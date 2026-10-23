@@ -1,5 +1,44 @@
 # Delivery evidence index
 
+## Project-owned builds without central kit storage — 2026-10-23
+
+Owner superseded the mandatory historical release-kit archive with
+[project-owned source/build policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation).
+Student repositories retain actual framework source, native/browser build files,
+Zero-specific builder/profile/checker and exact records, not just version pointers.
+No central historical-kit storage/database/registry, old maintenance branches,
+all-version CI or old-API shims are required. Normal artifact hosts and existing
+ZeroHub sharing remain; full offline bundles are optional and student-retained.
+Default indefinite rebuilding depends on usable tools/artifact availability,
+separately from editing retained source and playing/rehosting saved web output.
+Exact pins, optional reversible upgrades, current-line maintenance and stable-major
+compatibility remain. Source ownership grants no execution/trusted-helper exemption;
+safe project-owned browser launch is future implementation/security work.
+
+Independent requested Astra/xhigh accepted the complete nine-file diff from
+1739770da2fbbd7f29526329d14dc59077a8e2a7 to
+b662eeea25cab5f580838a2839833446f5bb8c04: one initial full wave, 251.8 seconds,
+no actionable findings or correction batches. Verified no runtime/schema delta,
+searched for stale mandatory archive/default-offline obligations and checked
+current template/execution boundaries. Unchanged prior evidence reused; effective
+configuration/tokens unavailable. Reports/receipt: ignored
+.verification/project-owned-build-astra/.
+
+Nonblocking implementation notes retained in CURRENT: include all required Zero
+builder support modules/config, retain actual dirty-source bytes when promising
+exact recovery, and distinguish missing tools/artifacts/unsupported launch from
+student API errors. Existing ZIP/hash manifests are reused. Default acceptance
+is a clean-cache project clone/build via normal hosts and rehost/rollback without
+a kit service; offline restore is additional only when offering an offline bundle.
+
+Validation: configuration/syntax/contracts/local links pass; focused website
+navigation/API/learning tests 30 pass, 0 fail; diff check passes. No runtime,
+service, schema, install, archive, clone/build/restore, push, PR, merge, deployment,
+release or account change. Weekly 86% remaining and healthy276.8GB storage are
+account/machine context, not task cost. Other checkouts/profiles/watchers preserved.
+This receipt changes no reviewed policy; new tooling/backup/upgrade flows remain
+unimplemented.
+
 ## Exact versions and project preservation policy — 2026-10-23
 
 Owner approved a [versioning/preservation policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation)
