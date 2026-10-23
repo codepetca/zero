@@ -115,6 +115,7 @@
     "java.lang.String#equalsIgnoreCase(java.lang.String)",
     "java.lang.String#isEmpty()",
     "java.lang.String#trim()",
+    "java.lang.System#currentTimeMillis()",
     "java.lang.System#err",
     "java.lang.Throwable#getCause()",
     "java.lang.Throwable#getMessage()",

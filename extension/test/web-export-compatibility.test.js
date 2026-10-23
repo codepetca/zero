@@ -270,3 +270,10 @@ class Child extends Drawing {
   await assert.rejects(check({'Main.java':app(''), 'Wrong.java':
     'class Wrong extends zero.Actor { Wrong() { super(0,0); } public void draw() { fill(javafx.scene.paint.Color.BLUE); rect(1,2,3); } }'}), /Cannot resolve browser source/);
 });
+
+
+test('wall clock admits only the exact reviewed currentTimeMillis signature', { timeout: 120000 }, async () => {
+  const result = await check({ 'Main.java': app('long started = System.currentTimeMillis(); long elapsed = java.lang.System.currentTimeMillis() - started; new zero.ui.Label("Elapsed: " + elapsed);') });
+  assert.equal(result.status, 'passed');
+  await assert.rejects(check({ 'Main.java': app('long unsupported = System.nanoTime();') }), /java.lang.System#nanoTime\(\)/);
+});

@@ -5,7 +5,9 @@ in student code. Those two copy `shared/ScoreDisplay.java` unchanged. The
 [beginner version](beginner-coin-game/README.md) keeps title/HUD/all other menus
 directly in Main, with concrete Label/Button/Column types and a playing boolean.
 It needs no student Element declarations, Hud, ScoreDisplay or screen classes.
-All three are local framework experiments, not published tutorials or releases.
+The [animated Actor stress demo](actor-stress/README.md) adds live FPS/frame time
+and selectable 100/250/500-sprite workloads. All four are local framework
+experiments, not published tutorials or releases.
 
 The counter composes its reusable score view with Add one and Reset buttons.
 COIN QUEST begins on a title with Play and How to play; help returns with Back.
@@ -47,3 +49,8 @@ the ignored output directory. A previous simple three-coin playthrough does not
 establish acceptance of this fuller flow. Physical pointer input, browser output
 and other operating systems require their own evidence. Actual WebFX compilation
 and browser playthrough belong to the separate browser checks.
+
+The fourth project is `.verification/ui-prototypes/actor-stress`. Native checks
+verify its workload controls, moving actors and live metrics; the separate
+`scripts/verify-actor-stress.mjs` builds and measures its WebFX browser output.
+See its README for repeatable sampling and hardware limitations.

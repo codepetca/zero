@@ -15,7 +15,8 @@ for (const project of prepareUiPrototypes()) {
     writeFileSync(harness, readFileSync(path.join(root, 'framework/prototypes/checks', checkId, 'PrototypeCheck.java')));
     const result = maven(project.directory, ['-o', '-q', '-Dapp.mainClass=PrototypeCheck', 'clean', 'compile', 'javafx:run'], 60000);
     writeFileSync(log, result.stdout + '\n' + result.stderr);
-    const marker = project.id === 'counter' ? 'ZERO_COUNTER_PROTOTYPE_OK' : 'ZERO_COIN_PROTOTYPE_OK';
+    const marker = project.id === 'counter' ? 'ZERO_COUNTER_PROTOTYPE_OK'
+      : project.id === 'actor-stress' ? 'ZERO_ACTOR_STRESS_OK' : 'ZERO_COIN_PROTOTYPE_OK';
     if (!result.stdout.includes(marker)) throw new Error(`Missing native acceptance marker: ${marker}`);
     results.push({id: project.id, status: 'passed', marker, log});
     console.log(result.stdout.trim());
@@ -30,4 +31,4 @@ writeFileSync(path.join(root, '.verification/ui-prototypes/native-results.json')
   status: 'passed', platform: process.platform, architecture: process.arch, checkedAt: new Date().toISOString(),
   input: 'Native JavaFX windows and event handlers; synthetic Button.fire and canvas mouse-move events; real animation frames.', results,
 }, null, 2) + '\n');
-console.log('ZERO_UI_PROTOTYPES_OK standalone native counter and both coin-game versions.');
+console.log('ZERO_UI_PROTOTYPES_OK native counter, both coin-game versions and actor stress controls.');
