@@ -132,7 +132,10 @@ public final class PrototypeCheck extends Application {
     }
     private static double playerX(Main app) throws ReflectiveOperationException {
         var field = Main.class.getDeclaredField("player"); field.setAccessible(true);
-        return ((Player) field.get(app)).x;
+        Object player = field.get(app);
+        if (player instanceof zero.Actor actor) return actor.x();
+        var x = player.getClass().getDeclaredField("x"); x.setAccessible(true);
+        return ((Number) x.get(player)).doubleValue();
     }
     private static void move(Main app, double x, double y) {
         Point2D scene = app.canvas().localToScene(x, y);

@@ -19,11 +19,11 @@ function apply(source, edits) {
 }
 function fail(file, detail) { throw new Error(`Web export: ${file}: ${detail}`); }
 const helperHashes = Object.freeze({
-  'zero/Actor.java': 'b1cbdf896def29c79e4efdbcb4fda3a969f51bbddbec3c8177e1001c59122cab',
+  'zero/Actor.java': '88c22740146d4f2694a8945d054dcebf2fd804444e23b30b29bf1fc65b009225',
   'zero/App.java': '56b76faeac1134c11fd02ae53c09fd487780ad64a04329ab7b40fc35c2b57066',
   'zero/Collisions.java': '1d1cc1c57fcbbcb8421bf469c6d74e5f1707c5542c265d1819f38e59fb4e67fe',
   'zero/Color.java': 'ac3e62480b526e4505c5640ce857757c13cec6134ec7d6d759c4321b785e07d7',
-  'zero/GameApp.java': 'a6712bbfa29daf84706e24f6b21d924abcfad8435a60c53df00a662fc1c8d406',
+  'zero/GameApp.java': '7ab16ae32cc7efde5bde1ef8f702528a5727d09fb7e15a8f5f458c92c6c9561c',
   'zero/ImageRegion.java': '0fd6961541501815c80f1979f7aa54d36f724a794f8d241ae26ba9c27e54d83d',
   'zero/Music.java': '4c183bb3c7807cac3086dbbb29a388541c606c11b654ca4aad914ad3a5db8450',
   'zero/Sound.java': '6247f0a0d6af9b610727094967af249321c58e6dda21ce1a2a989a3fc6e75286',

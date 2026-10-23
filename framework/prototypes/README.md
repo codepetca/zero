@@ -28,7 +28,8 @@ automatic navigation history or second game loop.
 Run `node scripts/prepare-ui-prototypes.mjs` to assemble standalone projects in
 `.verification/ui-prototypes/counter` and `.verification/ui-prototypes/coin-game`.
 The beginner project is `.verification/ui-prototypes/beginner-coin-game`; it has
-Main plus unchanged Player and Coin sources from the structured example.
+Main plus its own Player and Coin subclasses of Actor. Those objects draw their
+own artwork; Main calls draw(coin) and draw(player) explicitly.
 Each includes all 13 readable Zero helpers, the pinned student Maven wrapper/POM,
 and ordinary Java app sources. Open any directory in Zero or run its included
 `./mvnw javafx:run` (`mvnw.cmd javafx:run` on Windows). The assembled project does

@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 
 /** Finite Actor behavior and rendered-pixel checks in a real native GameApp. */
 public final class ActorCheck extends GameApp {
@@ -21,7 +22,8 @@ public final class ActorCheck extends GameApp {
         checked = true;
         try {
             verifyMovement(); verifyImagesAndInheritance(); verifyPixels();
-            System.out.println("ZERO_ACTOR_OK movement/aiming/clamping, validation/atomicity, subclass animation, rotated pixels");
+            verifyDrawingCallbacks(); verifyNestedDrawing(); verifyDrawingMisuse();
+            System.out.println("ZERO_ACTOR_OK movement/aiming/clamping, validation/atomicity, sprites, local shape pixels, isolated styles, nested apps and failure cleanup");
             Platform.exit();
         } catch (Throwable failure) { failure.printStackTrace(); System.exit(1); }
     }
@@ -89,6 +91,7 @@ public final class ActorCheck extends GameApp {
         player.update(0.5);
         position(player, 35, 40); require(walk.frameIndex() == 1, "subclass calls super to advance animation");
         player.draw(this); player.draw(this);
+        draw(player); draw(player);
         require(walk.frameIndex() == 1, "drawing does not advance animation");
         unchanged(player, () -> player.update(-1));
         player.setImage(sheet); player.update(1);
@@ -125,6 +128,126 @@ public final class ActorCheck extends GameApp {
         color(pixels, 85, 10, Color.GREEN);
     }
 
+    private void verifyDrawingCallbacks() {
+        Actor blank = new Actor(70, 30);
+        position(blank, 70, 30); near(blank.width(), 1, "blank logical width"); near(blank.height(), 1, "blank logical height");
+        blank.setSize(20, 20);
+        for (double bad : new double[] {Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY}) {
+            expectIllegal(() -> new Actor(bad, 0)); expectIllegal(() -> new Actor(0, bad));
+        }
+        Actor shape = new Actor(30, 30) {
+            @Override public void draw() {
+                fill(zero.Color.BLUE); rect(-12, -4, 24, 8);
+                stroke(zero.Color.BLACK); strokeWidth(5); textSize(27);
+                line(-4, 20, 4, 20);
+                fill(zero.Color.GOLD); circle(6, 0, 4);
+            }
+        };
+        shape.setRotation(90);
+        Actor sibling = new Actor(60, 60) {
+            @Override public void draw() { rect(-4, -4, 8, 8); }
+        };
+        background(Color.WHITE); fill(Color.GREEN); stroke(Color.BLACK); strokeWidth(1); textSize(12);
+        draw(shape); draw(sibling); draw(blank); rect(80, 5, 10, 10);
+        require(graphics().getLineWidth() == 1 && graphics().getFont().getSize() == 12
+                && graphics().getStroke().equals(Color.BLACK), "actor restores native stroke and font settings");
+        WritableImage pixels = canvas().snapshot(null, null);
+        color(pixels, 30, 22, Color.BLUE); color(pixels, 30, 36, Color.GOLD);
+        color(pixels, 10, 30, Color.BLACK); color(pixels, 20, 30, Color.WHITE);
+        color(pixels, 60, 60, Color.GREEN); color(pixels, 85, 10, Color.GREEN);
+        color(pixels, 70, 30, Color.WHITE);
+
+        WritableImage image = new WritableImage(2, 2);
+        for (int y = 0; y < 2; y++) for (int x = 0; x < 2; x++) image.getPixelWriter().setColor(x, y, Color.BLUE);
+        Actor sprite = new Actor(image, 30, 80);
+        sprite.setSize(10, 10); draw(sprite);
+        Actor legacy = new Actor(0, 0) {
+            @Override public void draw(GameApp app) { app.fill(Color.BLUE); app.rect(80, 75, 10, 10); }
+            @Override public void draw() { throw new AssertionError("Legacy draw(app) override was bypassed"); }
+        };
+        draw(legacy);
+        pixels = canvas().snapshot(null, null);
+        color(pixels, 30, 80, Color.BLUE); color(pixels, 85, 80, Color.BLUE);
+    }
+
+    private void verifyNestedDrawing() {
+        Actor child = new Actor(12, 0) {
+            @Override public void draw() { fill(zero.Color.GOLD); circle(0, 0, 6); }
+        };
+        Actor parent = new Actor(30, 30) {
+            @Override public void draw() {
+                fill(zero.Color.BLUE); rect(-4, -4, 8, 8);
+                ActorCheck.this.draw(child);
+                rect(0, 10, 6, 6);
+            }
+        };
+        background(Color.WHITE); fill(Color.GREEN); draw(parent); rect(80, 5, 10, 10);
+        WritableImage pixels = canvas().snapshot(null, null);
+        color(pixels, 30, 30, Color.BLUE); color(pixels, 42, 30, Color.GOLD);
+        color(pixels, 32, 42, Color.BLUE); color(pixels, 85, 10, Color.GREEN);
+        expectState(() -> child.circle(0, 0, 2));
+        expectState(() -> parent.rect(0, 0, 2, 2));
+
+        GameApp other = new GameApp() { @Override public void settings() { size(120, 100); } };
+        Stage stage = new Stage();
+        try {
+            other.start(stage);
+            other.background(Color.WHITE); other.fill(Color.BLUE);
+            Actor crossing = new Actor(20, 20) {
+                private boolean inner;
+                @Override public void draw() {
+                    if (inner) {
+                        fill(zero.Color.BLACK); circle(0, 0, 6);
+                        throw new IllegalStateException("Expected inner drawing failure");
+                    }
+                    fill(zero.Color.BLUE); rect(-4, -4, 8, 8);
+                    inner = true;
+                    try {
+                        other.draw(this);
+                        throw new AssertionError("Inner drawing failure was swallowed");
+                    } catch (IllegalStateException expected) {
+                        require(expected.getMessage().equals("Expected inner drawing failure"), "original inner drawing error survives");
+                    } finally { inner = false; }
+                    fill(zero.Color.GOLD); rect(6, -3, 6, 6);
+                }
+            };
+            background(Color.WHITE); fill(Color.GREEN); draw(crossing); rect(80, 5, 10, 10);
+            other.rect(80, 5, 10, 10);
+            pixels = canvas().snapshot(null, null);
+            color(pixels, 20, 20, Color.BLUE); color(pixels, 28, 20, Color.GOLD); color(pixels, 85, 10, Color.GREEN);
+            WritableImage otherPixels = other.canvas().snapshot(null, null);
+            color(otherPixels, 20, 20, Color.BLACK); color(otherPixels, 28, 20, Color.WHITE); color(otherPixels, 85, 10, Color.BLUE);
+            expectState(() -> crossing.fill(zero.Color.BLUE));
+        } finally { other.stop(); stage.close(); }
+
+        Actor broken = new Actor(20, 70) {
+            @Override public void draw() {
+                fill(zero.Color.BLUE); strokeWidth(9); textSize(30); rect(-3, -3, 6, 6);
+                throw new IllegalStateException("Expected actor drawing failure");
+            }
+        };
+        background(Color.WHITE); fill(Color.GREEN); strokeWidth(1); textSize(12);
+        try { draw(broken); throw new AssertionError("Actor drawing failure was swallowed"); }
+        catch (IllegalStateException expected) { require(expected.getMessage().equals("Expected actor drawing failure"), "original drawing error survives"); }
+        rect(80, 5, 10, 10);
+        pixels = canvas().snapshot(null, null);
+        color(pixels, 20, 70, Color.BLUE); color(pixels, 85, 10, Color.GREEN);
+        require(graphics().getLineWidth() == 1 && graphics().getFont().getSize() == 12, "failure restores native drawing styles");
+        expectState(() -> broken.fill(zero.Color.BLUE));
+    }
+
+    private void verifyDrawingMisuse() {
+        Actor actor = new Actor(0, 0);
+        for (Runnable helper : new Runnable[] {
+                () -> actor.fill(zero.Color.BLUE), () -> actor.stroke(zero.Color.BLACK),
+                () -> actor.strokeWidth(1), () -> actor.textSize(12),
+                () -> actor.rect(0, 0, 2, 2), () -> actor.outlineRect(0, 0, 2, 2),
+                () -> actor.circle(0, 0, 2), () -> actor.line(0, 0, 2, 2),
+                () -> actor.text("Hello", 0, 0), () -> actor.textCentered("Hello", 0, 0), actor::draw}) expectState(helper);
+        expectNull(() -> draw((Actor) null));
+        expectState(() -> new GameApp() { }.draw(actor));
+    }
+
     private static final class Player extends Actor {
         Player(SpriteAnimation animation, double x, double y) { super(animation, x, y); }
         @Override public void update(double seconds) {
@@ -142,6 +265,14 @@ public final class ActorCheck extends GameApp {
     private static void expectNull(Runnable action) {
         try { action.run(); throw new AssertionError("Expected null Actor argument"); }
         catch (NullPointerException expected) { }
+    }
+    private static void expectIllegal(Runnable action) {
+        try { action.run(); throw new AssertionError("Expected invalid Actor argument"); }
+        catch (IllegalArgumentException expected) { }
+    }
+    private static void expectState(Runnable action) {
+        try { action.run(); throw new AssertionError("Expected Actor drawing scope error"); }
+        catch (IllegalStateException expected) { require(expected.getMessage().contains("draw") || expected.getMessage().contains("Draw"), "useful Actor drawing scope error"); }
     }
     private static void color(WritableImage image, int x, int y, Color expected) {
         require(image.getPixelReader().getColor(x, y).equals(expected), "Actor pixel " + x + "," + y + " expected " + expected);

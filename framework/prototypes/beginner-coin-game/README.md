@@ -14,10 +14,25 @@ Students can first learn the controls as building blocks and click callbacks as
 remain part of the game. This is a complete example, not a claim that every line
 belongs in the first lesson.
 
-The ordinary [Player](../coin-game/Player.java) and [Coin](../coin-game/Coin.java)
-classes are copied unchanged from the structured game. The assembled project has
-three student Java files: Main, Player and Coin. Its Zero library source stays in
-the separate zero package. No framework API changes are needed for this version.
+The [Player](Player.java) and [Coin](Coin.java) classes extend Actor and draw their
+own artwork. Main calls draw(player) and draw(coin) explicitly. Zero supplies the
+canvas for each draw call, places (0, 0) at the actor's centre, applies its rotation
+and restores drawing settings afterward. Students can call fill, circle, stroke
+and other inherited drawing helpers inside their actor's draw method, without a
+GameApp parameter. Those helpers require an active draw call from Main.
+
+Actor already supplies position and movement methods. Player's three-argument
+moveToward chooses a speed of 260 pixels per second using the inherited movement;
+the player now faces its direction of travel. Coin uses x()/y() for collision
+positions and skips its own drawing when collected. setSize declares dimensions;
+it does not scale custom shape coordinates. Moving, updating and drawing remain
+explicit. Main still holds all UI code, with no custom UI classes.
+
+This introduces inheritance and overriding through a concrete game object;
+students do not need Element or mixed-type collections to follow it. The assembled
+project has three student Java files: Main, Player and Coin. Its Zero library
+source stays in the separate zero package. The structured example remains an
+alternative using ordinary Player/Coin objects and drawing in Main.
 
 From the repository root, run `node scripts/prepare-ui-prototypes.mjs`, then open
 `.verification/ui-prototypes/beginner-coin-game` in Zero or run its included

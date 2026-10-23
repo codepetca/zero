@@ -3,11 +3,18 @@ package zero;
 import java.util.Objects;
 import javafx.scene.image.Image;
 
-/** A sprite with a centre position and explicit movement. Main owns its game rules and lifecycle. */
+/** A sprite or drawing with a centre position and explicit movement. Main owns its game rules and lifecycle. */
 public class Actor {
     private double x, y, width, height, rotation;
     private ImageRegion region;
     private SpriteAnimation animation;
+    private GameApp drawingApp;
+
+    /** Create an actor without artwork, with a logical size of one pixel by one pixel. */
+    public Actor(double x, double y) {
+        setPosition(x, y);
+        setSize(1, 1);
+    }
 
     public Actor(Image image, double x, double y) {
         this(fullImage(image), x, y);
@@ -127,10 +134,45 @@ public class Actor {
         if (animation != null) animation.update(seconds);
     }
 
-    /** Draw the current sprite about its centre. Drawing never advances animation. */
+    /** Run this actor's drawing callback in local coordinates, preserving the app's drawing settings. */
     public void draw(GameApp app) {
         Objects.requireNonNull(app, "Game app must not be null.");
-        app.imageCentered(animation == null ? region : animation.frame(), x, y, width, height, rotation);
+        var graphics = app.graphics();
+        if (graphics == null) throw new IllegalStateException("Draw actors inside setup() or a game drawing callback after the canvas exists.");
+        GameApp previousApp = drawingApp;
+        graphics.save();
+        drawingApp = app;
+        try {
+            graphics.translate(x, y);
+            graphics.rotate(rotation);
+            draw();
+        } finally {
+            try { graphics.restore(); }
+            finally { drawingApp = previousApp; }
+        }
+    }
+
+    /** Override to draw about local 0,0. The default draws the sprite, if present, without advancing it. */
+    public void draw() {
+        GameApp app = drawingApp();
+        ImageRegion frame = animation == null ? region : animation.frame();
+        if (frame != null) app.imageCentered(frame, 0, 0, width, height, 0);
+    }
+
+    protected final void fill(zero.Color color) { drawingApp().fill(color); }
+    protected final void stroke(zero.Color color) { drawingApp().stroke(color); }
+    protected final void strokeWidth(double pixels) { drawingApp().strokeWidth(pixels); }
+    protected final void textSize(double pixels) { drawingApp().textSize(pixels); }
+    protected final void rect(double x, double y, double width, double height) { drawingApp().rect(x, y, width, height); }
+    protected final void outlineRect(double x, double y, double width, double height) { drawingApp().outlineRect(x, y, width, height); }
+    protected final void circle(double centreX, double centreY, double diameter) { drawingApp().circle(centreX, centreY, diameter); }
+    protected final void line(double x1, double y1, double x2, double y2) { drawingApp().line(x1, y1, x2, y2); }
+    protected final void text(String value, double x, double y) { drawingApp().text(value, x, y); }
+    protected final void textCentered(String value, double x, double y) { drawingApp().textCentered(value, x, y); }
+
+    private GameApp drawingApp() {
+        if (drawingApp == null) throw new IllegalStateException("Use Actor drawing helpers inside draw(), called by app.draw(actor) or actor.draw(app).");
+        return drawingApp;
     }
 
     private static ImageRegion fullImage(Image image) {

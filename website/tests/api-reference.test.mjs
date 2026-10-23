@@ -22,7 +22,7 @@ test('every class-level public/protected Java declaration has an exact canonical
       expected.push(`${owner}:${normalizeSignature(match[1])}`);
     }
   }
-  assert.equal(expected.length, 146);
+  assert.equal(expected.length, 159);
   assert.deepEqual(entries.map(item => `${item.owner}:${normalizeSignature(item.signature)}`).sort(), expected.sort());
   assert.ok(!entries.some(item => item.name === 'handle'));
   assert.equal(JSON.parse(JSON.stringify(categories)).length, 15);
@@ -77,8 +77,8 @@ test('keeps canonical class defaults, constructors and lifecycle caveats', () =>
 
 test('search handles aliases, case, multiple terms, whitespace and empty results', () => {
   const search = query => searchApiReference(categories, query);
-  assert.equal(search('').length, 146);
-  assert.equal(search(' \n\t ').length, 146);
+  assert.equal(search('').length, 159);
+  assert.equal(search(' \n\t ').length, 159);
   assert.ok(search('KEYBOARD').some(item => item.id === 'keyDown'));
   assert.deepEqual(search('rectangle').slice(0, 2).map(item => item.id), ['rect', 'outlineRect']);
   assert.ok(search('mouse').some(item => item.id === 'mouseDown'));
@@ -101,7 +101,7 @@ test('search accepts method labels and ranks names before prose with stable ties
   assert.equal(ids('  CiRcLe ( )  ')[0], 'circle');
   assert.deepEqual(ids('image'), ids('image()'));
   assert.deepEqual(ids('mouse').slice(0, 3), ['mouseX', 'mouseY', 'mouseDown']);
-  assert.deepEqual(ids('circle() filled'), ['circle']);
+  assert.deepEqual(ids('circle() filled'), ['circle', 'actor-circle']);
   assert.ok(ids('circle() rectangle').every(id => id.startsWith('collisions-')));
   assert.deepEqual(ids(''), entries.map(item => item.id));
 });
@@ -208,7 +208,7 @@ test('audio declarations use owner-qualified anchors and preserve app lifecycle 
 
 
 test('Actor has exact overload anchors, explicit lifecycle examples and movement guidance', async () => {
-  assert.equal(category('actors').entries.length, 21);
+  assert.equal(category('actors').entries.length, 33);
   for (const suffix of ['', '-region', '-animation']) {
     assert.equal(entry(`actor-constructor${suffix}`).owner, 'Actor');
     assert.equal(entry(`actor-constructor${suffix}`).parameters.length, 3);
@@ -218,7 +218,7 @@ test('Actor has exact overload anchors, explicit lifecycle examples and movement
   }
   for (const item of category('actors').entries) {
     assert.ok(item.example, item.id);
-    assert.match(item.note, /unreleased/);
+    assert.ok(item.note, item.id);
     assert.ok(item.related.length, item.id);
   }
   assert.equal(entry('actor-update').example, 'actor.update(seconds);');
@@ -240,7 +240,7 @@ test('Actor has exact overload anchors, explicit lifecycle examples and movement
   assert.match(guide, /public class Player extends Actor/);
   assert.match(guide, /public class Enemy extends Actor/);
   assert.match(guide, /enemy.update\(seconds\)/);
-  assert.match(guide, /enemy.draw\(this\)/);
+  assert.match(guide, /draw\(enemy\)/);
   assert.match(guide, /super.update\(seconds\)/);
   assert.match(guide, /actor.x\(\) - actor.width\(\) \/ 2/);
 });
@@ -308,4 +308,34 @@ test('game flow preserves the gameplay view and documents explicit pause indepen
   assert.match(entry('gameapp-resume').description, /only when gameplay is visible/);
   assert.ok(searchApiReference(categories, 'navigation replay').some(item => item.id === 'gameapp-showGame'));
   assert.ok(searchApiReference(categories, 'game unpause').some(item => item.id === 'gameapp-resume'));
+});
+
+
+test('scoped Actor drawing covers callback, compatibility overload and protected local helpers', async () => {
+  assert.equal(entry('actor-constructor-position').signature, 'Actor(double x, double y)');
+  assert.match(entry('actor-constructor-position').description, /1 × 1/);
+  assert.equal(entry('actor-draw-callback').signature, 'void draw()');
+  assert.equal(entry('actor-draw').signature, 'void draw(GameApp app)');
+  assert.equal(entry('gameapp-draw-actor').signature, 'void draw(Actor actor)');
+  assert.equal(entry('gameapp-draw-actor').example, 'draw(player);');
+  assert.match(entry('gameapp-draw-actor').note, /preserve legacy overrides/);
+  for (const name of ['fill', 'stroke', 'strokeWidth', 'textSize', 'rect', 'outlineRect', 'circle', 'line', 'text', 'textCentered']) {
+    const item = entry(`actor-${name}`);
+    assert.equal(item.owner, 'Actor');
+    assert.match(item.signature, /^protected final /);
+    assert.ok(item.example, name);
+    assert.match(item.note, /IllegalStateException/);
+    assert.match(item.note, /actor-local/);
+  }
+  assert.match(entry('actor-fill').parameters[0].description, /zero.Color/);
+  assert.match(entry('actor-circle').parameters[0].description, /Actor-local/);
+  assert.match(category('actors').notes, /does not scale/);
+  assert.match(category('actors').notes, /restor.*context, styles and transform/);
+  assert.ok(searchApiReference(categories, 'draw actor callback').some(item => item.id === 'gameapp-draw-actor'));
+  const guide = await readFile(new URL('../../student-template/APP-GUIDE.md', import.meta.url), 'utf8');
+  assert.match(guide, /public class Coin extends Actor/);
+  assert.match(guide, /super\(x, y\)/);
+  assert.match(guide, /circle\(0, 0, width\(\)\)/);
+  assert.match(guide, /draw\(coin\)/);
+  assert.match(guide, /does not automatically scale custom/);
 });

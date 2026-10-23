@@ -48,6 +48,11 @@ public abstract class GameApp extends App {
     public void update(double seconds) { }
     public void draw() { }
 
+    /** Draw an actor explicitly; this never updates or registers it. */
+    public final void draw(Actor actor) {
+        Objects.requireNonNull(actor, "Actor must not be null.").draw(this);
+    }
+
     @Override protected final javafx.scene.Node createContent() {
         gameVisible = true;
         paused = false;

@@ -41,11 +41,10 @@ export function prepareUiPrototypes(root = repository) {
     entries.LICENSE = readFileSync(path.join(root, 'LICENSE'));
     for (const name of helpers) entries[`src/main/java/${name}`] = readFileSync(path.join(framework, name));
     const beginner = id === 'beginner-coin-game';
-    const studentSources = beginner ? ['Main.java', 'Player.java', 'Coin.java']
+    const studentSources = beginner ? javaFiles(path.join(root, 'framework/prototypes', id))
       : [...javaFiles(path.join(root, 'framework/prototypes', id)), 'ScoreDisplay.java'];
     for (const name of studentSources) {
-      const sourceId = beginner && name !== 'Main.java' ? 'coin-game' : id;
-      const bytes = name === 'ScoreDisplay.java' ? shared : readFileSync(path.join(root, 'framework/prototypes', sourceId, name));
+      const bytes = name === 'ScoreDisplay.java' ? shared : readFileSync(path.join(root, 'framework/prototypes', id, name));
       if (/\bimport\s+(?:static\s+)?javafx\./.test(bytes.toString('utf8'))) throw new Error(`Student prototype imports JavaFX: ${id}/${name}`);
       entries[`src/main/java/${name}`] = bytes;
     }
@@ -66,7 +65,7 @@ export function prepareUiPrototypes(root = repository) {
     }
     return {id, directory, studentSources, entries};
   });
-  // Validate both destinations before replacing any of our generated files.
+  // Validate all destinations before replacing any of our generated files.
   for (const plan of plans) {
     for (const [name, bytes] of Object.entries(plan.entries)) {
       const destination = path.join(plan.directory, name);

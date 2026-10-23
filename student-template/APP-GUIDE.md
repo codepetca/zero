@@ -431,6 +431,101 @@ edges count. Coordinates must be finite; dimensions/radii are non-negative and
 finite. These predicates leave movement, scoring and collision response in your
 own Java objects. The [API reference](API.md) lists every overload and constructor.
 
+### Drawing your own Actor
+
+The current local source lets a class extend `zero.Actor` and draw itself using
+Zero methods. This is an unreleased addition; existing kits keep their bundled
+API. Main still owns its objects and explicitly draws and updates them.
+
+Save each public class in its matching file. These two classes use only Zero
+imports and need no image files:
+
+```java
+// Player.java
+import zero.Actor;
+import zero.Color;
+
+public class Player extends Actor {
+    public Player(double x, double y) {
+        super(x, y);
+        setSize(44, 44);
+    }
+
+    @Override
+    public void draw() {
+        fill(Color.BLUE);
+        circle(0, 0, width());
+    }
+}
+```
+
+```java
+// Coin.java
+import zero.Actor;
+import zero.Color;
+
+public class Coin extends Actor {
+    public Coin(double x, double y) {
+        super(x, y);
+        setSize(24, 24);
+    }
+
+    @Override
+    public void draw() {
+        fill(Color.GOLD);
+        circle(0, 0, width());
+    }
+}
+```
+
+In Main, keep ordinary Player/Coin fields, then call `draw(player)` and
+`draw(coin)` from GameApp.draw. For example, these members belong inside a Main
+class that extends zero.GameApp (import zero.Color):
+
+```java
+private Player player = new Player(100, 100);
+private Coin coin = new Coin(240, 120);
+
+@Override
+public void update(double seconds) {
+    player.setPosition(mouseX(), mouseY());
+    player.update(seconds);
+    coin.update(seconds);
+}
+
+@Override
+public void draw() {
+    background(Color.WHITE);
+    draw(player);
+    draw(coin);
+}
+```
+
+Actor's position is its centre. Inside its draw callback, (0, 0) is that centre;
+the framework translates and rotates the drawing for this actor, then restores
+the app's previous styles/transform even on failure. Main draws in canvas
+coordinates; an actor drawn inside another actor callback uses coordinates
+relative to that parent's current transform. Each nested draw restores its caller. Rotation 0 faces right and
+positive degrees turn clockwise. The Player circle above follows width because
+its code explicitly reads width(). setSize does not automatically scale custom
+shape coordinates. An actor without artwork starts at logical size 1 × 1 and
+its default draw does nothing; an image/animation actor's default draw still
+renders its sprite at the actor's size.
+
+Protected helpers such as fill, stroke, circle, rect and text work only during
+that actor's active drawing scope. Calling them from a constructor, update or
+outside drawing throws IllegalStateException. Store state in your own fields;
+request drawing explicitly from Main. Drawing does not advance animation or
+register objects. Collision and collection rules remain explicit Java code.
+
+The existing `actor.draw(GameApp app)` entry point remains compatible. Main's
+`draw(actor)` calls it, so an older override still runs. The base entry point
+opens the local drawing scope and calls the new no-argument draw callback. New
+Actor subclasses normally override draw(); a legacy draw(GameApp) override that
+skips super is responsible for its own drawing/context use. This does not change
+ordinary helper classes that accept a GameApp parameter directly.
+See the [Actor API](API.md#actor) for the complete callback/helper contract.
+
 ### Moving objects with Actor
 
 `zero.Actor` is an optional local source addition and is unreleased; older kits
@@ -516,8 +611,8 @@ public class Main extends GameApp {
     @Override
     public void draw() {
         background(Color.WHITE);
-        player.draw(this);
-        enemy.draw(this);
+        draw(player);
+        draw(enemy);
     }
 
     public static void main(String[] args) {

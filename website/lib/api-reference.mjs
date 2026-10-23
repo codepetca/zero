@@ -96,6 +96,7 @@ function parameterDescription(name, method) {
     spacing: 'Vertical spacing in pixels; non-negative and finite.',
     red: 'Red channel, an integer from 0 through 255.', green: 'Green channel, an integer from 0 through 255.', blue: 'Blue channel, an integer from 0 through 255.',
     content: method === 'show' ? 'JavaFX node to display; must not be null.' : 'Root layout containing the app content.',
+    actor: 'Non-null Actor to draw explicitly; no update or registration.',
     app: 'GameApp canvas to draw on; must not be null.',
     dx: 'Finite horizontal movement in pixels.', dy: 'Finite vertical movement in pixels.',
     targetX: 'Finite target horizontal centre in canvas pixels.', targetY: 'Finite target vertical centre in canvas pixels.',
@@ -167,15 +168,18 @@ export function buildApiReference(markdown) {
     const parameters = argumentsText ? argumentsText.split(',').map(argument => {
       const parameter = argument.trim().match(/^(\w+(?:\.\w+)*(?:\.\.\.)?)\s+(\w+)$/);
       if (!parameter) throw new Error(`Malformed API parameter: ${argument}`);
-      return { type: parameter[1], name: parameter[2], description: section === 'Actor' && ['x', 'y'].includes(parameter[2]) ? `Finite ${parameter[2] === 'x' ? 'horizontal' : 'vertical'} centre in canvas pixels.` : section === 'Actor' && ['width', 'height'].includes(parameter[2]) ? 'Drawing dimension in pixels; strictly positive and finite.' : section === 'Actor' && parameter[2] === 'seconds' ? 'Elapsed seconds; non-negative and finite. Main passes this explicitly.' : parameterDescription(parameter[2], name) };
+      return { type: parameter[1], name: parameter[2], description: section === 'Actor' && ['Actor', 'setPosition'].includes(name) && ['x', 'y'].includes(parameter[2]) ? `Finite ${parameter[2] === 'x' ? 'horizontal' : 'vertical'} centre in canvas pixels.` : section === 'Actor' && ['width', 'height'].includes(parameter[2]) ? 'Drawing dimension in pixels; strictly positive and finite.' : section === 'Actor' && parameter[2] === 'seconds' ? 'Elapsed seconds; non-negative and finite. Main passes this explicitly.' : parameterDescription(parameter[2], name) };
     }) : [];
     const sourceType = parameters[0]?.type;
     const variant = sourceType === 'ImageRegion' ? '-region' : sourceType === 'SpriteAnimation' ? '-animation' : '';
-    const id = categoryId === 'game-flow' ? `gameapp-${name}`
+    const id = owner === 'GameApp' && name === 'draw' && sourceType === 'Actor' ? 'gameapp-draw-actor'
+      : owner === 'Actor' && name === 'Actor' && sourceType === 'double' ? 'actor-constructor-position'
+      : owner === 'Actor' && name === 'draw' && parameters.length === 0 ? 'actor-draw-callback'
+      : categoryId === 'game-flow' ? `gameapp-${name}`
       : uiHelper ? `ui-${className.toLowerCase()}-${name === className ? `constructor${sourceType === 'double' ? '-spacing' : ''}` : name}`
       : owner === 'Color' ? `color-${name}`
       : name === 'show' && sourceType === 'zero.ui.Element' ? 'show-element'
-      : ['background', 'fill', 'stroke'].includes(name) && sourceType === 'zero.Color' ? `${name}-zero-color`
+      : owner === 'GameApp' && ['background', 'fill', 'stroke'].includes(name) && sourceType === 'zero.Color' ? `${name}-zero-color`
       : signature.startsWith('protected ') ? `${owner.toLowerCase()}-${name}`
       : owner === 'Actor' ? `actor-${name === owner ? 'constructor' : name}${['Actor', 'setImage'].includes(name) ? variant : ''}`
       : helper ? `${owner.toLowerCase()}-${name === owner ? `constructor${sourceType === 'double' ? '-frames' : ''}` : name}`
@@ -206,7 +210,7 @@ export function buildApiReference(markdown) {
     if (owner === 'Actor') {
       const argument = sourceType === 'ImageRegion' ? 'region' : sourceType === 'SpriteAnimation' ? 'walk' : 'image';
       const actorExamples = {
-        Actor: `Actor actor = new Actor(${argument}, 100, 80);`,
+        Actor: sourceType === 'double' ? 'Actor actor = new Actor(100, 80);' : `Actor actor = new Actor(${argument}, 100, 80);`,
         x: 'double centreX = actor.x();', y: 'double centreY = actor.y();',
         width: 'double left = actor.x() - actor.width() / 2;', height: 'double top = actor.y() - actor.height() / 2;',
         rotation: 'double facing = actor.rotation();', setPosition: 'actor.setPosition(100, 80);',
@@ -222,7 +226,28 @@ export function buildApiReference(markdown) {
         : name === 'update' ? ['actor-draw', 'spriteanimation-update']
         : name === 'moveToward' ? ['actor-face', 'actor-moveForward', 'collisions-rectHitsRect']
         : ['actor-constructor', 'actor-update', 'actor-draw'];
-      entry.note = 'Actor is an unreleased local source addition. Main calls update(seconds) and draw(this) explicitly. Position is the centre; creating an actor does not register it with the app.';
+      entry.note = 'Actor is an unreleased local source addition. Main calls actor.update(seconds) and draw(actor) explicitly. Position is the centre; creating an actor does not register it with the app.';
+    }
+    if (owner === 'Actor' && signature.startsWith('protected ')) {
+      entry.example = examples[name]?.replaceAll('Color.', 'zero.Color.');
+      if (name === 'circle') entry.example = 'fill(zero.Color.BLUE);\ncircle(0, 0, 24);';
+      entry.related = ['actor-draw-callback', 'gameapp-draw-actor', 'actor-constructor-position'];
+      entry.note = 'Protected final Actor helper. Call only in this actor’s active base draw(GameApp) scope, normally from draw(); otherwise IllegalStateException. Coordinates are actor-local; setSize does not automatically scale custom drawing.';
+      for (const parameter of entry.parameters) {
+        if (parameter.name === 'color') parameter.description = 'Non-null zero.Color, not javafx.scene.paint.Color.';
+        else if (['x', 'y', 'x1', 'y1', 'x2', 'y2', 'centreX', 'centreY'].includes(parameter.name)) parameter.description = 'Actor-local canvas coordinate before its rotation.';
+        else if (['width', 'height'].includes(parameter.name)) parameter.description = 'Local drawing dimension in canvas pixels.';
+      }
+    }
+    if (id === 'actor-draw-callback') {
+      entry.example = '@Override\npublic void draw() {\n    fill(zero.Color.BLUE);\n    circle(0, 0, 24);\n}';
+      entry.related = ['gameapp-draw-actor', 'actor-draw', 'actor-circle', 'actor-fill'];
+      entry.note = 'Override in an Actor subclass. The base draw(GameApp) establishes local translation/rotation and restores styles/transform/context in finally. Main calls draw(actor); drawing never updates the actor.';
+    }
+    if (id === 'gameapp-draw-actor') {
+      entry.example = 'draw(player);';
+      entry.related = ['actor-draw-callback', 'actor-draw', 'draw', 'actor-update'];
+      entry.note = 'Calls the existing actor.draw(this) entry point to preserve legacy overrides. The base Actor entry point scopes the local draw() callback. Main owns update calls; no registration.';
     }
     if (uiHelper) {
       const variable = className.toLowerCase();
@@ -250,7 +275,7 @@ export function buildApiReference(markdown) {
       entry.note = id === 'controls' ? 'Use for a live game HUD. Retains canvas and gameplay state; does not navigate or clear explicit pause. A different parent or scene is rejected; the current bottom panel can be mounted again.' : 'Inherited by GameApp. Navigating away suspends gameplay update, draw and canvas input. showGame returns to the retained canvas/HUD. Frame requests commit after the current draw; idle UI callbacks commit immediately.';
       entry.parameters[0].description = 'Non-null Zero element; uses ordinary JavaFX node ownership.';
     }
-    if (sourceType === 'zero.Color') {
+    if (owner === 'GameApp' && sourceType === 'zero.Color') {
       entry.example = `${name}(zero.Color.${name === 'fill' ? 'BLUE' : name === 'stroke' ? 'BLACK' : 'WHITE'});`;
       entry.related = ['color-rgb', 'color-WHITE', name];
       entry.parameters[0].description = 'Non-null zero.Color wrapper; distinct from javafx.scene.paint.Color.';
@@ -270,8 +295,8 @@ export function buildApiReference(markdown) {
   }
   for (const category of categories) category.notes = noteLines[category.id].join('\n').trim();
   const entries = categories.flatMap(category => category.entries);
-  if (seenSections.size !== 20 || entries.length !== 146 || categories.some(category => !category.entries.length)) {
-    throw new Error(`Incomplete API reference: expected twenty sections and 146 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
+  if (seenSections.size !== 20 || entries.length !== 159 || categories.some(category => !category.entries.length)) {
+    throw new Error(`Incomplete API reference: expected twenty sections and 159 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
   }
   const ids = new Set(categories.map(category => category.id));
   for (const entry of entries) {
@@ -288,6 +313,7 @@ const aliases = {
   showGame: 'navigation screen title help results replay retained canvas hud', pause: 'game gameplay freeze updates explicit pause', resume: 'game gameplay continue unpause clock input', isPaused: 'game gameplay explicit pause state',
   Element: 'zero ui component reusable view JavaFX bridge', Label: 'zero ui component text', Button: 'zero ui component click callback action', Column: 'zero ui component vertical layout spacing',
   onClick: 'click callback action Runnable lambda', controls: 'game hud panel live canvas', fxNode: 'advanced JavaFX interoperability node bridge', rgb: 'color colour red green blue channels',
+  draw: 'render actor callback local shape sprite',
   Actor: 'player enemy sprite centre center position facing movement subclass',
   moveForward: 'actor heading facing forward backward speed', moveToward: 'actor enemy chase follow target stop overshoot',
   face: 'actor heading facing turn target', rotate: 'actor clockwise turn heading', setPosition: 'actor centre center coordinates',

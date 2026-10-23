@@ -252,3 +252,21 @@ test('package-local navigation internals stay outside the student browser contra
     'package zero; class NavigationLeak { void hidden(App app) { app.beginFrame(); app.endFrame(true); } }'}), error =>
       /zero.App#beginFrame\(\)/.test(error.message) && /zero.App#endFrame\(boolean\)/.test(error.message));
 });
+
+
+test('Actor drawing callbacks resolve protected inherited helpers without granting public or mismatched overload access', {timeout:240000}, async () => {
+  const result = await check({'Main.java':`import zero.GameApp;
+class Main extends GameApp { public void setup() { draw(new Child()); } }
+class Drawing extends zero.Actor { Drawing() { super(20, 30); } }
+class Child extends Drawing {
+ @Override public void draw() {
+  fill(zero.Color.BLUE); stroke(zero.Color.BLACK); strokeWidth(2); textSize(14);
+  rect(-5,-5,10,10); outlineRect(-5,-5,10,10); circle(0,0,8); line(-5,0,5,0);
+  text("Actor",0,0); textCentered("Actor",0,0);
+ }
+}`});
+  assert.equal(result.status,'passed');
+  await assert.rejects(check({'Main.java':app('new zero.Actor(0,0).fill(zero.Color.BLUE);')}), /protected access/);
+  await assert.rejects(check({'Main.java':app(''), 'Wrong.java':
+    'class Wrong extends zero.Actor { Wrong() { super(0,0); } public void draw() { fill(javafx.scene.paint.Color.BLUE); rect(1,2,3); } }'}), /Cannot resolve browser source/);
+});

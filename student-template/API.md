@@ -210,6 +210,7 @@ after canvas creation. Imports: `javafx.scene.canvas.Canvas`,
 | `Canvas canvas()` | Native JavaFX canvas. |
 | `GraphicsContext graphics()` | Native drawing context, including transforms and styles. |
 | `void controls(zero.ui.Element content)` | Mount a non-null Zero HUD/control panel at the bottom of the game layout in `setup()` or later, retaining the canvas and gameplay state. This does not navigate back or resume explicit pause. Replace the previous panel; do not steal nodes from another parent. Throws `IllegalStateException` before canvas creation, `NullPointerException` for null, and `IllegalArgumentException` for content owned by another parent or scene. Reusing the current bottom panel is allowed. |
+| `void draw(Actor actor)` | Draw a non-null actor explicitly through its existing draw(GameApp) entry point. The base Actor entry point provides a scoped local drawing callback; this never updates or registers the actor. Null actor throws `NullPointerException`; the base Actor entry point throws `IllegalStateException` before canvas creation. |
 | `BorderPane layout()` | Layout with the canvas in its centre. Add native controls to its other positions. |
 
 ## Drawing
@@ -311,18 +312,20 @@ throw `IllegalArgumentException`. There is no automatic registration or update.
 ## Actor
 
 `public class Actor` is an optional ordinary Java object you can extend. Import
-`zero.Actor`. Its x/y position is the image's **centre**, and its initial size is
-the image or frame's natural size. Rotation starts at 0 (facing right); positive
+`zero.Actor`. Its x/y position is the actor's **centre**. With artwork, its initial
+size is the image/frame's natural size. `Actor(x, y)` has no artwork and starts
+with logical width/height 1; override draw() to draw shapes. Rotation starts at 0 (facing right); positive
 degrees turn clockwise and rotation is normalized to [0, 360).
 
-Main explicitly calls `actor.update(seconds)` and `actor.draw(this)`; there is no
+Main explicitly calls `actor.update(seconds)` and `draw(actor)`; there is no
 registration or automatic lifecycle. Default update advances only the assigned
 SpriteAnimation; drawing never advances it. Override update for your own movement,
 and call `super.update(seconds)` to keep animation running. Use separate animation
 objects for independent clocks. Sharing one SpriteAnimation shares its clock,
 so updating two actors with it advances that same clock twice.
 
-All numeric arguments must be finite; sizes must be strictly positive, seconds
+Numeric arguments for construction, position, size, movement, rotation and
+elapsed time must be finite; sizes must be strictly positive, seconds
 must be non-negative, and moveToward speed must be non-negative. moveForward
 accepts signed speed (negative moves backward). Null references throw
 `NullPointerException`; invalid arguments, unloaded/failed images and non-finite
@@ -337,6 +340,7 @@ This class is an unreleased local source addition; older kits are unchanged.
 
 | Signature | Behavior |
 | --- | --- |
+| `Actor(double x, double y)` | Create an actor centred at finite x/y with no artwork and logical size 1 × 1. |
 | `Actor(Image image, double x, double y)` | Create an actor centred at x/y using a loaded image's natural dimensions. |
 | `Actor(ImageRegion region, double x, double y)` | Create an actor centred at x/y using the region's natural dimensions. |
 | `Actor(SpriteAnimation animation, double x, double y)` | Create an actor centred at x/y using the current frame's natural dimensions, preserving the animation clock. |
@@ -357,7 +361,43 @@ This class is an unreleased local source addition; older kits are unchanged.
 | `final void setImage(ImageRegion region)` | Replace the sprite with a region, keeping size, position and rotation. |
 | `final void setImage(SpriteAnimation animation)` | Replace the sprite with an animation, preserving its clock and actor size, position and rotation. |
 | `void update(double seconds)` | Advance the assigned animation by finite non-negative seconds; perform no automatic movement. |
-| `void draw(GameApp app)` | Draw the current sprite centred, scaled and rotated in the supplied app without advancing animation. |
+| `void draw(GameApp app)` | Existing overridable drawing entry point, called by GameApp.draw(actor). The base implementation establishes this actor/app drawing scope, translates to x/y, rotates, invokes draw(), and restores the prior drawing context, styles and transform in finally. Legacy overrides still run. |
+| `void draw()` | Override to draw in actor-local coordinates, with (0, 0) at its centre and the actor rotation already applied. Default: draw its sprite centred and scaled to width/height, or do nothing when there is no artwork. Never advances animation. |
+
+### Protected Actor drawing helpers
+
+These protected final methods are available inside an Actor subclass. Call them
+only during that actor's active base draw(GameApp) scope, normally from its draw()
+callback; otherwise they throw `IllegalStateException` with useful guidance.
+They delegate to the supplied app without a static current-app field. Exceptions restore the previous context, styles and transform. Main.draw(actor)
+uses canvas coordinates; drawing another actor inside an actor callback composes
+the current parent transform, so that nested actor's position is relative to it.
+Each nested scope restores its caller's state.
+
+Import `zero.Color` for fill/stroke. Coordinates are local canvas pixels: positive
+x points right and positive y points down before the actor's clockwise rotation.
+setSize changes logical dimensions and default sprite size; it does not scale
+custom drawing coordinates. Use width()/height() explicitly if your shapes
+should follow logical size. Shapes add no collision geometry.
+
+GameApp.draw(actor) deliberately calls actor.draw(app), preserving old overrides.
+An override of draw(GameApp) that does not call super controls its own drawing;
+the scoped callback/helpers are supplied by the base implementation. Prefer
+no-argument draw() for new Actor subclasses. Main still explicitly updates and
+draws each object, with no implicit registration or lifecycle.
+
+| Signature | Behavior |
+| --- | --- |
+| `protected final void fill(zero.Color color)` | Set local shape/text fill using a non-null zero.Color. |
+| `protected final void stroke(zero.Color color)` | Set local outline/line stroke using a non-null zero.Color. |
+| `protected final void strokeWidth(double pixels)` | Set line width through the active drawing app. |
+| `protected final void textSize(double pixels)` | Set text size through the active drawing app. |
+| `protected final void rect(double x, double y, double width, double height)` | Draw a filled rectangle from its local top-left x/y. |
+| `protected final void outlineRect(double x, double y, double width, double height)` | Draw an outlined rectangle from its local top-left x/y. |
+| `protected final void circle(double centreX, double centreY, double diameter)` | Draw a filled circle with a local centre and a diameter, not a radius. |
+| `protected final void line(double x1, double y1, double x2, double y2)` | Draw a line between local endpoints. |
+| `protected final void text(String value, double x, double y)` | Draw text at local x/y using the current baseline convention. |
+| `protected final void textCentered(String value, double x, double y)` | Centre text horizontally about local x using the current baseline convention. |
 
 ## Collisions
 

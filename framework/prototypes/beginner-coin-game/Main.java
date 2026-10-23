@@ -200,22 +200,9 @@ public class Main extends GameApp {
             text("Move your pointer onto the field to begin.", 18, 28);
         }
         for (Coin coin : coins) {
-            if (!coin.collected) {
-                fill(Color.rgb(224, 166, 21));
-                circle(coin.x, coin.y + 3, coin.radius * 2 + 4);
-                fill(Color.GOLD);
-                circle(coin.x, coin.y, coin.radius * 2);
-                fill(Color.WHITE);
-                circle(coin.x - 3, coin.y - 3, 5);
-            }
+            draw(coin);
         }
-        fill(Color.rgb(40, 70, 150));
-        circle(player.x, player.y + 3, player.radius * 2 + 3);
-        fill(Color.BLUE);
-        circle(player.x, player.y, player.radius * 2);
-        fill(Color.WHITE);
-        circle(player.x - 4, player.y - 3, 5);
-        circle(player.x + 4, player.y - 3, 5);
+        draw(player);
         stroke(Color.rgb(169, 190, 220));
         outlineRect(1, 1, width() - 2, height() - 2);
     }

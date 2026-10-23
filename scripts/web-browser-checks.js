@@ -37,6 +37,11 @@ async (page) => {
     };
     p.fillText = function (...args) {
       window.__zeroCheck.draws++;
+      if (String(args[0]) === 'Actor scope restored') {
+        const matrix = this.getTransform();
+        window.__zeroCheck.actorScope = {font:this.font,fill:this.fillStyle,lineWidth:this.lineWidth,
+          transform:[matrix.a,matrix.b,matrix.c,matrix.d,matrix.e,matrix.f]};
+      }
       if (String(args[0]) === 'Deferred draw completed') {
         window.__zeroCheck.deferredHiddenDuringDraw = ![...document.querySelectorAll('body *')].some(element =>
           element.children.length === 0 && element.textContent === 'Deferred view'
@@ -66,6 +71,18 @@ async (page) => {
   });
   check(JSON.stringify(actorPixels) === '[[80,200,80,255],[240,90,40,255],[240,90,40,255],[40,120,240,255]]',
     'Actor draws centered images with clockwise rotation, regions and the explicitly advanced animation frame', actorPixels);
+  const actorDrawingPixels = await page.locator('canvas').evaluate(canvas => {
+    const bounds = canvas.getBoundingClientRect();
+    return [[398,136],[408,136],[400,146],[434,140],[360,174],[360,170],[425,180],[435,195]].map(([x,y]) =>
+      Array.from(canvas.getContext('2d').getImageData(
+        Math.floor(x * canvas.width / bounds.width), Math.floor(y * canvas.height / bounds.height),1,1).data));
+  });
+  check(JSON.stringify(actorDrawingPixels) === '[[0,0,255,255],[255,255,255,255],[255,215,0,255],[0,0,255,255],[255,215,0,255],[0,0,255,255],[255,215,0,255],[0,0,0,255]]',
+    'Actor own draw uses centered local coordinates, clockwise rotation, nested contexts and legacy dispatch', actorDrawingPixels);
+  const actorScope = await page.evaluate(() => window.__zeroCheck.actorScope);
+  check(actorScope.fill === '#000000' && actorScope.lineWidth === 2 && /20px/.test(actorScope.font)
+      && JSON.stringify(actorScope.transform) === '[1,0,0,1,0,0]',
+    'Actor draw restores fill, font, stroke width and transform even after callback failure', actorScope);
   const rgbPixel = await page.locator('canvas').evaluate(canvas => {
     const bounds = canvas.getBoundingClientRect();
     return Array.from(canvas.getContext('2d').getImageData(

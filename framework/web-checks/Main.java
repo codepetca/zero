@@ -20,6 +20,12 @@ public final class Main extends GameApp {
     private int middleClicks, rightClicks, keyPresses;
     private String gameApiStatus;
     private Actor imageActor, regionActor, animatedActor;
+    private final Actor emptyActor = new Actor(5, 5);
+    private final ShapeActor rotatedShape = new ShapeActor(400, 140);
+    private final ShapeActor straightShape = new ShapeActor(440, 140);
+    private final FailingActor failingActor = new FailingActor();
+    private final LegacyActor legacyActor = new LegacyActor();
+    private final NestedActor nestedActor = new NestedActor(this);
     @Override public void init() {
         if (++initCalls != 1) throw new IllegalStateException("Application.init must run exactly once");
     }
@@ -46,6 +52,11 @@ public final class Main extends GameApp {
         canvas().setAccessibleText("Zero web helper check");
         sequence.reset();
         verifyActors();
+        require(emptyActor.width() == 1 && emptyActor.height() == 1, "Image-free actor logical size");
+        rotatedShape.setRotation(90);
+        boolean unbound = false;
+        try { failingActor.outside(); } catch (IllegalStateException expected) { unbound = true; }
+        require(unbound, "Actor helper must reject an unbound drawing context");
     }
     @Override public void update(double seconds) {
         if (!windowFocused()) paused = true;
@@ -78,7 +89,21 @@ public final class Main extends GameApp {
         text(gameApiStatus, 230, 30);
         text("Digits: " + digits + " Escapes: " + escapes, 230, 58);
         text("Actor checks ready", 230, 86);
-        imageActor.draw(this); regionActor.draw(this); animatedActor.draw(this);
+        draw(imageActor); regionActor.draw(this); draw(animatedActor);
+        draw(emptyActor);
+        int legacyCalls = legacyActor.calls;
+        draw(legacyActor);
+        require(legacyActor.calls == legacyCalls + 1, "Legacy draw(GameApp) override dispatch");
+        fill(Color.BLACK); stroke(Color.BLACK); strokeWidth(2); textSize(20);
+        draw(rotatedShape); draw(straightShape); draw(nestedActor);
+        boolean failed = false;
+        try { draw(failingActor); } catch (IllegalStateException expected) { failed = true; }
+        require(failed, "Expected actor draw failure");
+        boolean unbound = false;
+        try { failingActor.outside(); } catch (IllegalStateException expected) { unbound = true; }
+        require(unbound, "Failing actor must release its context");
+        rect(430, 190, 10, 10); outlineRect(445, 185, 12, 12);
+        text("Actor scope restored", 230, 114);
         fill(Color.rgb(17, 99, 203)); rect(440, 330, 20, 20);
         textCentered("Centered", width() / 2, height() - 20);
         fill(Color.BLUE); rect(20, 170, 20, 20); circle(70, 180, 20);
@@ -141,6 +166,43 @@ public final class Main extends GameApp {
         private int updates;
         Player(Image image) { super(image, 10, 20); }
         @Override public void update(double seconds) { super.update(seconds); updates++; }
+    }
+    private static final class ShapeActor extends Actor {
+        ShapeActor(double x, double y) { super(x, y); }
+        @Override public void draw() {
+            fill(zero.Color.BLUE); stroke(zero.Color.BLACK); strokeWidth(1); textSize(9);
+            rect(-10, -4, 20, 8); outlineRect(-10, -4, 20, 8);
+            line(-8, -2, 8, -2);
+            fill(zero.Color.GOLD); circle(6, 0, 4);
+            text("Actor shape", -12, -14); textCentered("C", 0, 16);
+        }
+    }
+    private static final class FailingActor extends Actor {
+        FailingActor() { super(440, 110); setRotation(30); }
+        @Override public void draw() {
+            fill(zero.Color.GOLD); strokeWidth(7); textSize(42); rect(-3, -3, 6, 6);
+            throw new IllegalStateException("Expected shape failure");
+        }
+        void outside() { fill(zero.Color.BLUE); }
+    }
+    private static final class LegacyActor extends Actor {
+        private int calls;
+        LegacyActor() { super(0, 0); }
+        @Override public void draw(GameApp app) {
+            calls++; app.fill(zero.Color.GOLD); app.rect(420, 175, 10, 10);
+        }
+    }
+    private static final class NestedActor extends Actor {
+        private final GameApp owner;
+        private final Actor child = new Actor(4, 0) {
+            @Override public void draw() { fill(zero.Color.GOLD); circle(0, 0, 6); }
+        };
+        NestedActor(GameApp owner) { super(360, 170); this.owner = owner; setRotation(90); }
+        @Override public void draw() {
+            fill(zero.Color.BLUE); rect(-8, -8, 16, 16);
+            owner.draw(child);
+            fill(zero.Color.BLUE); rect(-1, -1, 2, 2);
+        }
     }
     public static void main(String[] args) { launch(args); }
 }
