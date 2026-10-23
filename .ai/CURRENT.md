@@ -16,10 +16,20 @@ App/GameApp component through managed source-library export, then authorized
 Pages/novice acceptance. Interfaces, controls, metadata and World/Screen additions
 are proposals, not implemented APIs. Existing hosted checker/release gates remain.
 
-First Astra/xhigh architecture review is saved in ignored
-.verification/architecture-astra/. Next action: independent Astra/xhigh review of
-the fixed revised plan, resolve material findings, record acceptance and limits.
-Configuration/syntax/local links pass; focused website checks are running.
+Plan accepted at2bcacd5d382a748a59dad74f6bf75a59c6bfdd61 after an independent
+Astra/xhigh full-diff review and one targeted follow-up. One P2 preservation
+contradiction was corrected; retained-session deactivation versus disposal was
+clarified in the same batch. No remaining actionable findings. Receipts/reports:
+.verification/architecture-extension-astra/; prior reference review remains in
+.verification/architecture-astra/. Requested configuration is Astra/xhigh;
+effective configuration and token usage were not exposed.
+
+Checks: configuration/syntax/command contracts/local links pass; focused website
+document-navigation/API-reference/learning tests30pass/0fail; diff check passes.
+Next proposed phase, when scoped: design the three examples and smallest
+contracts, including repeated animation assignment, resource ownership and
+drawing capability. Plan acceptance does not authorize that implementation.
+See docs/EVIDENCE.md for review coverage and remaining empirical gates.
 
 Runtime remains Actor prototype source6f0ee4e1 / prior receiptc7ffa40a, with its
 recorded native/WebFX/browser/source checks. No new runtime, public API or binary

@@ -1,5 +1,41 @@
 # Delivery evidence index
 
+## Student-led framework architecture plan — 2026-10-23
+
+Owner made student-led framework evolution a core goal: build → extract → share
+→ reuse → improve → propose for core. Canonical plan is
+[FRAMEWORK-ARCHITECTURE.md](FRAMEWORK-ARCHITECTURE.md); product, repository
+architecture, components, consolidation plan, reference notes and AGENTS agree.
+JavaFX host, optional screens/explicit content and ordinary JavaFX UI preserve
+simple apps. Core consumers must accept demonstrated replacement contracts;
+animation separates shared definitions from actor-owned playback. ZeroHub
+contribution/core promotion preserves authorship, accepted versions and pins.
+This direction supersedes the preliminary reference choices in the prior entry.
+
+Documentation implementationcaded847c1bb4ead6272de3510cf4a1f19df3250 was reviewed
+independently using requested GPT-6 Astra/xhigh. Complete eight-file diff reviewed
+againstc7ffa40a; prior reference/source research reused after confirming no runtime
+diff. One accepted P2 found an unqualified historical preservation exception.
+Correction2bcacd5d382a748a59dad74f6bf75a59c6bfdd61 scopes that exception and
+clarifies retained-session deactivation versus final disposal. Targeted review
+accepted the complete two-file delta with no new actionable findings, reusing
+unchanged initial coverage. One reviewer, two turns/waves, one fix batch;
+initial298.6seconds and follow-up113.3seconds. Effective model/effort and tokens
+unavailable. Account snapshot91%weekly remaining and healthy279.8GB at start
+are context, not attributable task cost. Receipts/reports are ignored under
+.verification/architecture-extension-astra/; earlier reference review is under
+.verification/architecture-astra/.
+
+Validation: configuration, syntax, command contracts and local documentation links
+pass before and after corrections; focused website document-navigation,
+API-reference and learning tests30pass/0fail; diff whitespace check passes.
+No public API/runtime change or new runtime build. Proposed replacement APIs,
+native core dependency/build metadata, actual managed-library browser consumers,
+pinned WebFX execution, separately authorized Pages gameplay and novice learning
+acceptance remain future gates. No push, PR, merge, publication, hosted checker
+activation or account change. Primary funding and tutorial-padding work preserved.
+This final receipt changes no reviewed architecture behavior.
+
 ## Actor prototype and reference design — 2026-10-22
 
 Local source head6f0ee4e10a3db2107b2ad365352767f2516790f4 adds optional Actor
