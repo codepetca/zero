@@ -1,5 +1,54 @@
 # Delivery evidence index
 
+## Actor stress range1000/2000/5000 — 2026-10-23
+
+Owner requested larger actor counts with unchanged sprite workload to find lag.
+Accepted sourcee36c6b8a9e47b39a3765df60ea376ca3c32ba94a adds1000/2000/5000buttons
+alongside the existing three. Native control driver covers all six. Optional
+--large runner uses isolated .verification/actor-stress-web-large/project and
+separate receipts, preserving original small build/site/raw samples. Functional
+checks wait for real frames/four crops with a bounded timeout, allowing legitimately
+low/rounded-zeroFPS. Sparse frame stats are recorded rather than rejected as lag.
+Workload/renderer/asset remain800x450,32x32frames,four-frame8fps shared sheet,
+independent clocks, explicit movement/rotation; no culling/optimization added.
+No framework/API/contract changes (13helpers/159declarations).
+
+Native all4prototypes pass (stress367realframes/sixcounts, games640/632). Root
+check twice, syntax/diff and focused sparse0/1/2frame checks pass. Unchanged
+runtime/semantic20evidence reused. One actual fresh pinned WebFX build15.69s,
+IDa03f0da7-99ee-44c4-ba17-c1cefc2716f3; sourceb8c7e1e49003a52444bd54d93626c9158894e6764e0e55396ccfa453e8df5e4a,
+unchangedengine/profiled8ae6532f86f2a38a9bc80595d554051309f6fdfa005bc44e37d424256abe39d.
+Functional checks confirm exact1000/2000/5000draws/frame and four32px crops at
+each count. Two old IAB stress clients were stopped before timing (duplicate5
+closed;4temporarily blank) and own build/test/native jobs finished. Unrelated
+user/watchers preserved; no exclusive-host claim.
+
+Six samples ascending1000/2000/5000 anddescending5000/2000/1000, each3swarmup+
+10smeasured:3601drawframes/3601rAFframes; ascendingFPS60.0026/60.0026/60.0074,
+descending60.0002/60.0012/59.9996. P95interval16.8–17.4ms,maximum17.8ms,
+zero gaps>33.3ms; UI60each. No observed slowdown through5000 for this particular
+small-sprite localheadlessChrome156/900x900/DPR1 workload. Cadence capsFPS;
+physical presentation, larger images, collision/physics and schoolhardware remain
+unmeasured. Raw/receipt/build .verification/actor-stress-web-large/; native/check
+logs .verification/actor-stress-large-{native,check,final-check}.log.
+
+Independent retained Sol/high complete five-file review,
+basec8465f041defca6fbabc3bf1da55cca24e9c3a60→e36c6b8a9e47b39a3765df60ea376ca3c32ba94a,
+found no actionable issues. Revalidated large export/source hashes and all original
+small-site hashes, recalculated raw sample results, checked count selection,
+copy/guards/lowFPS handling/docs. Oneinitialwave/turn,0fix/targeted/integrationwaves;
+effective model, elapsed/tokens and attributable effort unknown. Start storage
+273.773GBhealthy/accountweekly3%used are shared readings, not task cost.
+
+Aftertiming, IAB4reopened new5000-capable export, selected5000 withvisible60FPS,
+16.6msaverage/17msworst; marked deliverable. Screenshot
+.verification/actor-stress-web-large/live-5000.png. Parentpreview execsession93232
+remains http://127.0.0.1:55997/26f3bef49ee0e177fe17bde439a3c3fd7159/.
+Oldserver34613is idle; oldbuildbytes preserved. Worker-owned browser/server closed.
+Only completiondocs follow reviewed code. No push/PR/merge/install/release/deploy,
+telemetry or account change. User next asked about larger sprite images and size
+guidelines; this increment adds no image-size warning/limit policy.
+
 ## Animated Actor stress demo and browser measurements — 2026-10-23
 
 Owner requested100/250/500animatedActors through actual WebFX with live FPS.
