@@ -29,6 +29,11 @@ showing a UI Screen suspends gameplay while a composed HUD/control panel does no
 [reliability plan](FRAMEWORK-RELIABILITY.md) maps existing local/CI signals and
 future automatic coverage/runtime diagnostics, including the PostHog/Clarity
 evaluation. These documents do not implement the proposed facade or telemetry.
+The [preservation policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation)
+binds projects to exact framework/build-kit releases independently of the editor.
+Preserve old kits and finished static output; maintain only the current line.
+Missing historical tooling must not silently upgrade a project or bypass checks.
+Release-bound selection/archives and upgrade flows remain proposed.
 Arcade informs the screen/container structure; Greenfoot informs Actor vocabulary;
 Godot informs focused composition. These are design references, not dependencies.
 

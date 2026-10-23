@@ -179,3 +179,20 @@ background tab and restart flows must stay free of false failures.
 Also verify UI-only ready without a frame, menu suspension/resume, controls/HUD
 that keep gameplay active, and two level/controller swaps through the same Main
 callbacks. No additional gameplay-screen class is needed for these checks.
+
+## Version and preservation evidence
+
+Apply the [version policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation)
+to every compatibility/build result: bind it to the project's recorded framework,
+profile/build kit and library pins, not merely the installed editor. An unavailable
+historical kit is a tooling/availability result, not evidence of a student API
+error or permission to upgrade automatically. Existing validation currently uses
+the installed exporter; project-bound selection is future work.
+
+Current-line CI uses a small fixed set of representative projects for same-major
+compatibility and one real archive restore/rehost/rollback proof at release
+acceptance. It does not continually build every old release. Assert that an editor
+update leaves old inputs/pins unchanged and that preserved static output plays
+without Zero services. Check archive provenance and retained dependency bytes;
+hashes/URLs alone do not establish recoverability. No service telemetry replaces
+these tests or promises indefinite old-version support.

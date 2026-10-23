@@ -31,6 +31,11 @@ preserve them in future UI work unless the owner asks to change them.
   output playable on GitHub Pages. Validate the pinned browser subset while
   designing extensions; native success alone does not establish portability.
 - Students own their GitHub repositories and submit links separately in Pika.
+- Preserve projects on exact framework/build-kit and library releases independently
+  of editor updates. Follow the planned version/preservation policy in
+  docs/FRAMEWORK-ARCHITECTURE.md: optional reversible upgrades, immutable archives
+  and playable output, one maintained current line rather than old-version branches.
+  Do not claim the new release-lock/archive flow is already implemented.
 - Never publish, push, deploy, or alter account credentials without explicit
   user authorization. Student GitHub actions default to live through explicit commands and guarded plans;
   optional simulation remains available for testing. Tutorials require students to create their own repository from the

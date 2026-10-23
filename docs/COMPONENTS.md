@@ -34,6 +34,12 @@ histories. There are no automatic updates or silent substitutions. Public kit
 releases retain their original bytes and do not acquire these controls until a
 new kit is deliberately released.
 
+The [project preservation policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation)
+also retains exact library inputs with the student's backup. Library/API claims
+remain bound to its recorded Zero/core/browser requirements; a newer editor or
+core adoption must not replace them. This archive capability is proposed, not
+already supplied by the current Add/Update flow.
+
 ### Manual setup for current downloads
 
 Open **Use this library → Manual Maven setup** on a library card. Merge the shown

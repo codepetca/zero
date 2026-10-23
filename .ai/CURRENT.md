@@ -1,39 +1,34 @@
-# Simpler framework architecture — 2026-10-23
+# Project versioning and preservation — 2026-10-23
 
-Owner requested revision and Astra review: keep GameApp extending App, remove
-GameScreen, retain apps/games, replaceable components, ZeroHub and real WebFX.
-Scope is architecture documentation only, no runtime implementation or publication.
-Canonical plan: docs/FRAMEWORK-ARCHITECTURE.md; detailed class/ownership model:
-docs/FRAMEWORK-MODEL.md; automatic checks: docs/FRAMEWORK-RELIABILITY.md.
+Owner authorized architecture-policy revision and Astra review: pin exact Zero
+framework/build-kit releases, preserve source and finished output, make upgrades
+optional/reversible, and keep maintenance simple without supporting every old
+version. Documentation only; no runtime, schema, artifact or publication changes.
+Canonical policy is the Project versions and preservation section in
+docs/FRAMEWORK-ARCHITECTURE.md, linked from model/reliability/product/components/
+repository/development guidance and AGENTS.
 
-App owns common UI/navigation/assets; GameApp adds one gameplay view and one
-update/draw loop in Main. Screen is optional UI, World an optional actor
-container. GameApp owns canvas/input/camera; ordinary controllers hold level
-state and replace default WorldContent. UI navigation suspends gameplay; live
-HUD/control composition does not. No new public gameplay-screen base replaces
-GameScreen. Existing published/current APIs are unchanged by this plan.
+Target: editor updates do not rewrite projects or apply the latest browser
+profile to old source. One immutable release build kit includes exporter/profile,
+locks/instructions and required redistributable inputs; project backups retain
+pinned libraries/assets and playable static output. Actively maintain the current
+line, archive old ones without backport branches/all-version CI. Stable major
+compatibility and experimental 0.x rules are explicit. Upgrade uses a branch,
+preview/checks and rollback; preservation does not guarantee all future platforms.
 
-Preserve Zero-first normal signatures, ordinary Java composition, animation
-source/playback substitution, real native + pinned WebFX/browser evidence,
-managed local/exact-pinned library consumers, credit/immutable versions and the
-student-led contribution-to-core loop. Native Run/background checks, runtime
-signals and optional sanitized PostHog collection remain as previously planned,
-not implemented. UI-only readiness requires no game frame.
+Existing source bundles/JavaFX/Maven pins are baseline. Current templateVersion
+is not a full runtime lock; installed exporter supplies browser rules/hashes.
+Project-bound selection, complete restore archives, upgrade UI and preserved ZIP
+provenance remain future acceptance work. No new publication/collection authority.
+Simple model remains GameApp extends App, optional UI Screen/World, one Main
+update/draw, replaceable components and ZeroHub-to-core contribution path.
 
-Accepted plan revision: 797541f611895d6c020641ddd7f35240719921ad. Independent
-requested Astra/xhigh reviewed the complete nine-file diff in 194.9 seconds,
-with no actionable findings or required corrections. One initial wave, no fix
-batches. Effective model/effort and tokens unavailable. Reports/receipts:
-.verification/simple-model-astra/. Previous model review at eeb0a554 is historical
-baseline, superseded where it required GameScreen. See docs/EVIDENCE.md.
+Next: configuration/link and focused website checks, fixed local commit, then
+independent requested Astra/xhigh review. Budget one initial reviewer/wave, up to
+four targeted fix waves/batches, 60min session/30min reviewer ceilings. New review
+receipts: .verification/version-policy-astra/. Earlier accepted simple model at
+797541f6 remains baseline. Final coverage/results go in docs/EVIDENCE.md.
 
-Checks: npm run check passes; focused website navigation/API/learning tests
-30 pass, 0 fail; diff check passes. No runtime/source/API changes or new browser
-build. Next proposed phase is the bounded exemplars and smallest contracts in the
-canonical plan, including one gameplay view per GameApp, live controls versus
-navigation, replacement and managed component export. Plan acceptance is not
-runtime/novice/WebFX acceptance or new implementation/publication authority.
-
-Keep this Actor worktree attached. Preserve primary funding and tutorial-padding
-Dev work, profiles/scratch/watcher. No push, PR, merge, deployment, hosted checker
-activation, analytics configuration or credential change is authorized.
+Retain Actor worktree and earlier receipts. Preserve primary funding and
+tutorial-padding Dev work/profiles/scratch/watcher. No push, PR, merge,
+deployment, release, account change or dependency installation authorized.
