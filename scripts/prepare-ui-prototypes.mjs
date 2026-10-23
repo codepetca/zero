@@ -34,15 +34,18 @@ export function prepareUiPrototypes(root = repository) {
   const helpers = javaFiles(framework);
   if (helpers.length !== 13) throw new Error(`Expected 13 reviewed Zero helper sources, found ${helpers.length}.`);
   const shared = readFileSync(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java'));
-  const plans = ['counter', 'coin-game'].map(id => {
+  const plans = ['counter', 'coin-game', 'beginner-coin-game'].map(id => {
     const directory = path.join(output, id);
     ordinary(directory);
     const entries = Object.fromEntries(scaffold.map(name => [name, readFileSync(path.join(root, 'student-template', name))]));
     entries.LICENSE = readFileSync(path.join(root, 'LICENSE'));
     for (const name of helpers) entries[`src/main/java/${name}`] = readFileSync(path.join(framework, name));
-    const studentSources = [...javaFiles(path.join(root, 'framework/prototypes', id)), 'ScoreDisplay.java'];
+    const beginner = id === 'beginner-coin-game';
+    const studentSources = beginner ? ['Main.java', 'Player.java', 'Coin.java']
+      : [...javaFiles(path.join(root, 'framework/prototypes', id)), 'ScoreDisplay.java'];
     for (const name of studentSources) {
-      const bytes = name === 'ScoreDisplay.java' ? shared : readFileSync(path.join(root, 'framework/prototypes', id, name));
+      const sourceId = beginner && name !== 'Main.java' ? 'coin-game' : id;
+      const bytes = name === 'ScoreDisplay.java' ? shared : readFileSync(path.join(root, 'framework/prototypes', sourceId, name));
       if (/\bimport\s+(?:static\s+)?javafx\./.test(bytes.toString('utf8'))) throw new Error(`Student prototype imports JavaFX: ${id}/${name}`);
       entries[`src/main/java/${name}`] = bytes;
     }

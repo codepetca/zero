@@ -1,8 +1,11 @@
 # Zero UI prototypes
 
-The counter and COIN QUEST game exercise ordinary Java and Zero imports in
-student code. Both copy `shared/ScoreDisplay.java` unchanged. These are local
-framework experiments, not published tutorials or releases.
+The counter and structured COIN QUEST game exercise ordinary Java and Zero imports
+in student code. Those two copy `shared/ScoreDisplay.java` unchanged. The
+[beginner version](beginner-coin-game/README.md) keeps title/HUD/all other menus
+directly in Main, with concrete Label/Button/Column types and a playing boolean.
+It needs no student Element declarations, Hud, ScoreDisplay or screen classes.
+All three are local framework experiments, not published tutorials or releases.
 
 The counter composes its reusable score view with Add one and Reset buttons.
 COIN QUEST begins on a title with Play and How to play; help returns with Back.
@@ -24,8 +27,10 @@ automatic navigation history or second game loop.
 
 Run `node scripts/prepare-ui-prototypes.mjs` to assemble standalone projects in
 `.verification/ui-prototypes/counter` and `.verification/ui-prototypes/coin-game`.
+The beginner project is `.verification/ui-prototypes/beginner-coin-game`; it has
+Main plus unchanged Player and Coin sources from the structured example.
 Each includes all 13 readable Zero helpers, the pinned student Maven wrapper/POM,
-and ordinary Java app sources. Open either directory in Zero or run its included
+and ordinary Java app sources. Open any directory in Zero or run its included
 `./mvnw javafx:run` (`mvnw.cmd javafx:run` on Windows). The assembled project does
 not need the surrounding repository. Dependency artifacts must already be cached
 for offline running. Preparation preserves edited or unowned output files.
@@ -35,7 +40,8 @@ offline Maven. Test drivers temporarily join the build and are removed afterward
 They open actual JavaFX windows, activate native button event handlers and send
 synthetic canvas pointer events while the game's own animation frames run. The
 flow checks should cover title/help, gameplay, pause/resume, results, replay/title
-and continued play after reset. Logs and a platform-specific receipt remain in
+and continued play after reset in both game versions. Logs and a platform-specific
+receipt remain in
 the ignored output directory. A previous simple three-coin playthrough does not
 establish acceptance of this fuller flow. Physical pointer input, browser output
 and other operating systems require their own evidence. Actual WebFX compilation
