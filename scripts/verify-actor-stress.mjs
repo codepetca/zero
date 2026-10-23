@@ -13,18 +13,21 @@ const {createWebPreview}=require('../extension/src/web-preview');
 const {validateExport}=require('../extension/src/web-export/snapshot');
 const cacheRoot=process.env.ZERO_STRESS_CACHE_ROOT||path.join(root,'.verification/web-export-checks/cache');
 const args=process.argv.slice(2);
-const large=args.includes('--large');
-const counts=large?[1000,2000,5000]:[100,250,500];
-const output=path.join(root,large?'.verification/actor-stress-web-large':'.verification/actor-stress-web');
+const large=args.includes('--large'),sizesMode=args.includes('--sizes');
+if(large&&sizesMode)throw Error('Choose either --large or --sizes.');
+const counts=large||sizesMode?[1000,2000,5000]:[100,250,500];
+const spriteSizes=sizesMode?[64,128,256]:[32];
+const assetNames=['stress-sprites.png',... [64,128,256].map(size=>'stress-sprites-'+size+'.png')];
+const output=path.join(root,sizesMode?'.verification/actor-stress-web-sizes':large?'.verification/actor-stress-web-large':'.verification/actor-stress-web');
 const assembledProject=path.join(root,'.verification/ui-prototypes/actor-stress');
 // A large export owns a separate build tree, preserving the original small preview bytes.
-const project=large?path.join(output,'project'):assembledProject;
+const project=large||sizesMode?path.join(output,'project'):assembledProject;
 const sha=value=>crypto.createHash('sha256').update(value).digest('hex');
 await fs.mkdir(output,{recursive:true});
-if(args.some(arg=>!['--build','--measure','--large'].includes(arg)))throw Error('Usage: node scripts/verify-actor-stress.mjs [--build] [--measure] [--large]. Run measurement only in an agreed quiet window.');
+if(args.some(arg=>!['--build','--measure','--large','--sizes'].includes(arg)))throw Error('Usage: node scripts/verify-actor-stress.mjs [--build] [--measure] [--large | --sizes]. Run measurement only in an agreed quiet window.');
 const started=Date.now();
 if(!args.includes('--measure')||args.includes('--build')){
- if(large){
+ if(large||sizesMode){
   await fs.rm(project,{recursive:true,force:true});
   await fs.cp(assembledProject,project,{recursive:true,filter:source=>!path.relative(assembledProject,source).split(path.sep).some(part=>['.zero','.git','target'].includes(part))});
  }
@@ -49,7 +52,7 @@ async function assertCanonicalTree(directory,assembled){
  }
 }
 await assertCanonicalTree(path.join(root,'framework/src/main/java/zero'),path.join(project,'src/main/java/zero'));
-if(!(await fs.readFile(path.join(root,'framework/prototypes/actor-stress/stress-sprites.png'))).equals(await fs.readFile(path.join(project,'src/main/resources/stress-sprites.png'))))throw Error('Reassemble and rebuild changed sprite asset');
+for(const name of assetNames)if(!(await fs.readFile(path.join(root,'framework/prototypes/actor-stress',name))).equals(await fs.readFile(path.join(project,'src/main/resources',name))))throw Error('Reassemble and rebuild changed sprite asset: '+name);
 const session='zero-stress-'+process.pid;
 const cli=path.join(root,'node_modules/@playwright/cli/playwright-cli.js');
 async function command(args){return new Promise((resolve,reject)=>{
@@ -60,23 +63,25 @@ async function command(args){return new Promise((resolve,reject)=>{
 const preview=await createWebPreview(build.sitePath);
 try{
  const script=String.raw`async (page) => {
- await page.setViewportSize({width:900,height:900});
+ await page.setViewportSize({width:900,height:HEIGHT_PLACEHOLDER});
  const errors=[];page.on('pageerror',e=>errors.push(String(e)));
  await page.addInitScript(() => {
   const prototype=CanvasRenderingContext2D.prototype;
   const draw=prototype.drawImage,clear=prototype.clearRect;
   window.__stressFunctional={frames:[],current:0,crops:[]};
   prototype.clearRect=function(...args){const s=window.__stressFunctional;if(s.frames.length<500)s.frames.push(s.current);s.current=0;return clear.apply(this,args);};
-  prototype.drawImage=function(...args){const s=window.__stressFunctional;s.current++;if(args.length===9&&s.current===1&&s.crops.length<5000)s.crops.push(args.slice(1,5));return draw.apply(this,args);};
+  prototype.drawImage=function(...args){const s=window.__stressFunctional;s.current++;if(args.length===9&&s.current===1&&s.crops.length<5000)s.crops.push({crop:args.slice(1,5),destination:args.slice(7,9),sheet:[args[0].naturalWidth||args[0].width,args[0].naturalHeight||args[0].height]});return draw.apply(this,args);};
   window.__restoreStressFunctional=()=>{prototype.drawImage=draw;prototype.clearRect=clear;};
  });
  await page.goto(URL_PLACEHOLDER);await page.bringToFront();
  await page.getByRole('button',{name:/^100(?: actors)?$/i}).waitFor();
- const environment=await page.evaluate(()=>({userAgent:navigator.userAgent,devicePixelRatio,hardwareConcurrency:navigator.hardwareConcurrency,visibility:document.visibilityState,focused:document.hasFocus(),viewport:{width:innerWidth,height:innerHeight}}));
+ const environment=await page.evaluate(()=>({userAgent:navigator.userAgent,devicePixelRatio,hardwareConcurrency:navigator.hardwareConcurrency,visibility:document.visibilityState,focused:document.hasFocus(),viewport:{width:innerWidth,height:innerHeight},canvas:[...document.querySelectorAll('canvas')].map(c=>({buffer:[c.width,c.height],css:[c.getBoundingClientRect().width,c.getBoundingClientRect().height]}))}));
  if(environment.devicePixelRatio!==1||environment.visibility!=='visible'||!environment.focused)throw Error('Benchmark requires DPR1, visible focused page: '+JSON.stringify(environment));
- const counts=COUNTS_PLACEHOLDER;
+ const counts=COUNTS_PLACEHOLDER,spriteSizes=SIZES_PLACEHOLDER;
+ const pairs=spriteSizes.flatMap(size=>counts.map(count=>({size,count})));
  const functional=[];
- for(const count of counts){
+ for(const {size,count} of pairs){
+  await page.getByRole('button',{name:size+' px',exact:true}).click();
   await page.getByRole('button',{name:new RegExp('^'+count+'(?: actors)?$','i')}).click();
   await page.evaluate(()=>{window.__stressFunctional.frames=[];window.__stressFunctional.crops=[];});
   await page.waitForFunction(() => {const s=window.__stressFunctional;return s.frames.length>=12&&new Set(s.crops.map(c=>JSON.stringify(c))).size===4&&/FPS:\s*[0-9.]+/.test(document.body.innerText);},null,{timeout:60000});
@@ -85,10 +90,14 @@ try{
   const crops=[...new Set(sample.crops.map(c=>JSON.stringify(c)))];
   if(frames.length<10||!frames.every(n=>n===count))throw Error('Actual draw count differs from selected '+count+': '+JSON.stringify(frames));
   if(crops.length!==4)throw Error('Expected four sprite source rectangles, got '+JSON.stringify(crops));
+  const geometry=crops.map(JSON.parse);
+  for(const item of geometry)if(item.crop[1]!==0||item.crop[2]!==size||item.crop[3]!==size||item.sheet[0]!==4*size||item.sheet[1]!==size||item.destination[0]!==size||item.destination[1]!==size)throw Error('Wrong natural/crop/destination dimensions: '+JSON.stringify(item));
+  if(new Set(geometry.map(item=>item.crop[0])).size!==4||!geometry.every(item=>[0,size,2*size,3*size].includes(item.crop[0])))throw Error('Wrong sprite frame source offsets');
+  if(!sample.text.includes('Sprite: '+size+' × '+size+' px | PNG sheet: '+4*size+' × '+size+' px'))throw Error('Selected size/PNG HUD differs: '+sample.text);
   const fps=sample.text.match(/FPS:\s*([0-9.]+)/i);
   if(!await page.locator('fx-text:not([aria-hidden="true"])').filter({hasText:new RegExp('^Actors: '+count+'$')}).isVisible()||!await page.locator('fx-text:not([aria-hidden="true"])').filter({hasText:/^FPS: [0-9.]+$/}).isVisible())throw Error('Workload/FPS HUD is not visible');
   if(!fps||!Number.isFinite(Number(fps[1])))throw Error('Numeric wall-clock FPS missing: '+sample.text);
-  functional.push({count,actualDrawFrames:frames.length,drawsPerFrame:count,crops: crops.map(JSON.parse),uiText:sample.text});
+  functional.push({size,count,actualDrawFrames:frames.length,drawsPerFrame:count,crops: crops.map(JSON.parse),uiText:sample.text});
  }
  await page.evaluate(()=>window.__restoreStressFunctional());
  // Per-image instrumentation has been restored. Only one timestamp per clear/frame remains.
@@ -100,29 +109,30 @@ try{
   window.__stopStressSamples=()=>{cancelAnimationFrame(id);prototype.clearRect=clear;};
  });
  const runs=[];
- for(const [index,count] of [...counts,...[...counts].reverse()].entries()){
+ for(const [index,{size,count}] of [...pairs,...[...pairs].reverse()].entries()){
+  await page.getByRole('button',{name:size+' px',exact:true}).click();
   await page.getByRole('button',{name:new RegExp('^'+count+'(?: actors)?$','i')}).click();
   await page.waitForTimeout(3000);
   await page.evaluate(()=>{window.__stressSamples.draw=[];window.__stressSamples.raf=[];window.__stressSamples.record=true;window.__stressSamples.started=performance.now();});
   await page.waitForTimeout(10000);
-  const sample=await page.evaluate(()=>{const s=window.__stressSamples;s.record=false;return{draw:s.draw,raf:s.raf,elapsed:performance.now()-s.started,text:document.body.innerText,visibility:document.visibilityState,focused:document.hasFocus()};});
+  const sample=await page.evaluate(()=>{const s=window.__stressSamples;s.record=false;return{draw:s.draw,raf:s.raf,elapsed:performance.now()-s.started,text:document.body.innerText,visibility:document.visibilityState,focused:document.hasFocus(),canvas:[...document.querySelectorAll('canvas')].map(c=>({buffer:[c.width,c.height],css:[c.getBoundingClientRect().width,c.getBoundingClientRect().height]}))};});
   if(sample.visibility!=='visible'||!sample.focused)throw Error('Measurement lost foreground visibility/focus');
   function stats(times){const intervals=times.slice(1).map((t,i)=>t-times[i]),sorted=[...intervals].sort((a,b)=>a-b);const p=q=>sorted.length?sorted[Math.min(sorted.length-1,Math.floor((sorted.length-1)*q))]:null;return{frames:times.length,averageFps:intervals.length?intervals.length*1000/(times.at(-1)-times[0]):times.length*1000/sample.elapsed,p50Ms:p(.5),p95Ms:p(.95),maxMs:intervals.length?Math.max(...intervals):null,gapsOver33_3Ms:intervals.filter(n=>n>33.3).length,intervalsMs:intervals,timestampsMs:times};}
   const draw=stats(sample.draw),raf=stats(sample.raf),uiFps=Number(sample.text.match(/FPS:\s*([0-9.]+)/i)?.[1]);
   if(!Number.isFinite(draw.averageFps)||!Number.isFinite(uiFps)||(uiFps===0&&draw.averageFps>=.5)||Math.abs(uiFps-draw.averageFps)>Math.max(12,draw.averageFps*.3))throw Error('UI wall-clock FPS inconsistent with actual draw rate: '+JSON.stringify({uiFps,draw}));
-  runs.push({pass:index<3?'ascending':'descending',count,warmupMs:3000,requestedMeasurementMs:10000,elapsedMs:sample.elapsed,draw,raf,uiFps,uiText:sample.text});
+  runs.push({pass:pairs.length>3?(index<pairs.length?'forward':'reverse'):(index<pairs.length?'ascending':'descending'),size,count,canvas:sample.canvas,warmupMs:3000,requestedMeasurementMs:10000,elapsedMs:sample.elapsed,draw,raf,uiFps,uiText:sample.text});
  }
  await page.evaluate(()=>window.__stopStressSamples());
  if(errors.length)throw Error('Browser runtime errors: '+JSON.stringify(errors));
  return{status:'passed',environment,functional,runs,errors};
-}`.replace('URL_PLACEHOLDER',JSON.stringify(preview.url)).replace('COUNTS_PLACEHOLDER',JSON.stringify(counts));
+}`.replace('URL_PLACEHOLDER',JSON.stringify(preview.url)).replace('COUNTS_PLACEHOLDER',JSON.stringify(counts)).replace('SIZES_PLACEHOLDER',JSON.stringify(spriteSizes)).replace('HEIGHT_PLACEHOLDER',sizesMode?'1100':'900');
  const scriptPath=path.join(output,'browser-probe.js');await fs.writeFile(scriptPath,script);
  await command(['open',preview.url,'--browser','chrome']);
  const raw=await command(['run-code','--filename',scriptPath]);await fs.writeFile(path.join(output,'browser.log'),raw);
  await validateExport({projectRoot:project,result:build});
  const result=JSON.parse(raw.slice(raw.indexOf('### Result\n')+11).split('\n')[0]);
  await fs.writeFile(path.join(output,'samples.json'),JSON.stringify(result,null,2)+'\n');
- const files=['scripts/verify-actor-stress.mjs','extension/src/web-export/compatibility/contract.json','extension/test/web-export-compatibility.test.js','framework/prototypes/actor-stress/Main.java','framework/prototypes/actor-stress/StressActor.java','framework/prototypes/actor-stress/stress-sprites.png'];
- const receipt={completedAt:new Date().toISOString(),actualPinnedBuilds:1,buildId:build.buildId,sourceHash:build.sourceHash,profileHash:build.profileHash,compatibility:build.compatibility,hashes:Object.fromEntries(await Promise.all(files.map(async file=>[file,sha(await fs.readFile(path.join(root,file)))]))),environment:result.environment,functional:result.functional,runs:result.runs.map(({draw,raf,...rest})=>({...rest,draw:Object.fromEntries(Object.entries(draw).filter(([k])=>!['timestampsMs','intervalsMs'].includes(k))),raf:Object.fromEntries(Object.entries(raf).filter(([k])=>!['timestampsMs','intervalsMs'].includes(k)))})),workloadCounts:counts,method:'Headless Chrome; no CPU throttle/artificial lag. Six serial ascending/descending passes at workloadCounts; each3s warmup+10s measurement. Separate per-image functional hooks restored before timing. One lightweight clearRect timestamp per GameApp draw plus rAF cadence; raw samples in samples.json. UI FPS compared with measured draw FPS using max12FPS/30percent tolerance.',interpretation:'Local headless benchmark only; no school hardware performance claim. LowFPS is a measurement, not a functional failure; report the observed range without school hardware claims.',cleanup:'Own browser session and preview disposed in finally.',limits:['One browser/device configuration; no physical school hardware','No concurrent build/test/native work permitted during measurement; coordination is external','No telemetry, installs, publication or remote writes']};
- await fs.writeFile(path.join(output,'receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({status:result.status,buildId:build.buildId,runs:receipt.runs.map(r=>({count:r.count,pass:r.pass,fps:r.draw.averageFps,p95Ms:r.draw.p95Ms}))}));
+ const files=['scripts/verify-actor-stress.mjs','extension/src/web-export/compatibility/contract.json','extension/test/web-export-compatibility.test.js','framework/prototypes/actor-stress/Main.java','framework/prototypes/actor-stress/StressActor.java',...assetNames.map(name=>'framework/prototypes/actor-stress/'+name)];
+ const receipt={completedAt:new Date().toISOString(),actualPinnedBuilds:1,buildId:build.buildId,sourceHash:build.sourceHash,profileHash:build.profileHash,compatibility:build.compatibility,hashes:Object.fromEntries(await Promise.all(files.map(async file=>[file,sha(await fs.readFile(path.join(root,file)))]))),environment:result.environment,functional:result.functional,runs:result.runs.map(({draw,raf,...rest})=>({...rest,draw:Object.fromEntries(Object.entries(draw).filter(([k])=>!['timestampsMs','intervalsMs'].includes(k))),raf:Object.fromEntries(Object.entries(raf).filter(([k])=>!['timestampsMs','intervalsMs'].includes(k)))})),workloadCounts:counts,spriteSizes,method:'Headless Chrome; no CPU throttle/artificial lag. Serial size/count pairs, size outer/count inner, then exact reverse; each3s warmup+10s measurement. Separate per-image functional hooks restored before timing. One lightweight clearRect timestamp per GameApp draw plus rAF cadence; raw samples in samples.json. UI FPS compared with measured draw FPS using max12FPS/30percent tolerance.',interpretation:'Local headless benchmark only; no school hardware performance claim. LowFPS is a measurement, not a functional failure; report the observed range without school hardware claims.',cleanup:'Own browser session and preview disposed in finally.',limits:['Game draw and rAF cadence measure CPU callbacks, not GPU presentation/completion; no pixel readback flush','One browser/device configuration; no physical school hardware','No concurrent build/test/native work permitted during measurement; coordination is external','No telemetry, installs, publication or remote writes']};
+ await fs.writeFile(path.join(output,'receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({status:result.status,buildId:build.buildId,runs:receipt.runs.map(r=>({size:r.size,count:r.count,pass:r.pass,fps:r.draw.averageFps,p95Ms:r.draw.p95Ms}))}));
 }finally{try{await command(['close']);}finally{preview.dispose();}}

@@ -49,8 +49,10 @@ export function prepareUiPrototypes(root = repository) {
       entries[`src/main/java/${name}`] = bytes;
     }
     if (id === 'actor-stress') {
-      entries['src/main/resources/stress-sprites.png'] = readFileSync(path.join(root,
-        'framework/prototypes/actor-stress/stress-sprites.png'));
+      for (const name of ['stress-sprites.png', 'stress-sprites-64.png', 'stress-sprites-128.png', 'stress-sprites-256.png']) {
+        entries[`src/main/resources/${name}`] = readFileSync(path.join(root,
+          'framework/prototypes/actor-stress', name));
+      }
     }
     entries['README.md'] = Buffer.from(`# Zero ${id} prototype\n\nRun with the included wrapper: \`./mvnw javafx:run\` (Windows: \`mvnw.cmd javafx:run\`).\nThis project contains its own ordinary Java sources, Zero helpers and pinned Maven/JavaFX setup.\nIt does not need the surrounding Zero repository.\n`);
     const marker = path.join(directory, '.zero-ui-prototype.json');

@@ -5,9 +5,9 @@ public class StressActor extends Actor {
     private double vx;
     private double vy;
 
-    public StressActor(SpriteAnimation animation, double x, double y, double vx, double vy) {
+    public StressActor(SpriteAnimation animation, double x, double y, double vx, double vy, int size) {
         super(animation, x, y);
-        setSize(32, 32);
+        setSize(size, size);
         this.vx = vx;
         this.vy = vy;
     }
@@ -16,13 +16,14 @@ public class StressActor extends Actor {
         super.update(seconds);
         move(vx * seconds, vy * seconds);
         rotate(35 * seconds);
-        if (x() < 16 || x() > 784) {
+        double half = width() / 2;
+        if (x() < half || x() > 800 - half) {
             vx = -vx;
-            setPosition(Math.max(16, Math.min(784, x())), y());
+            setPosition(Math.max(half, Math.min(800 - half, x())), y());
         }
-        if (y() < 16 || y() > 434) {
+        if (y() < half || y() > 450 - half) {
             vy = -vy;
-            setPosition(x(), Math.max(16, Math.min(434, y())));
+            setPosition(x(), Math.max(half, Math.min(450 - half, y())));
         }
     }
 }

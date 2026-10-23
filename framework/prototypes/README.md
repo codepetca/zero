@@ -6,7 +6,9 @@ in student code. Those two copy `shared/ScoreDisplay.java` unchanged. The
 directly in Main, with concrete Label/Button/Column types and a playing boolean.
 It needs no student Element declarations, Hud, ScoreDisplay or screen classes.
 The [animated Actor stress demo](actor-stress/README.md) adds live FPS/frame time
-and six selectable workloads from 100 to 5000 sprites. All four are local framework
+and six selectable workloads from 100 to 5000 sprites at 32/64/128/256-pixel sizes.
+Its WebFX runner can measure all nine larger-size/high-count combinations.
+All four are local framework
 experiments, not published tutorials or releases.
 
 The counter composes its reusable score view with Add one and Reset buttons.

@@ -7,7 +7,10 @@ import zero.ui.Label;
 /** A repeatable drawing workload, not a collision or physics benchmark. */
 public class Main extends GameApp {
     private StressActor[] actors = new StressActor[0];
+    private int actorCount = 100;
+    private int spriteSize = 32;
     private final Label countLabel = new Label("Actors: 100");
+    private final Label sizeLabel = new Label("Sprite: 32 × 32 px | PNG sheet: 128 × 32 px");
     private final Label fpsLabel = new Label("FPS: warming up");
     private final Label frameLabel = new Label("Average frame: — | worst: —");
     private long lastFrameAt;
@@ -34,12 +37,21 @@ public class Main extends GameApp {
         twoThousand.onClick(() -> selectCount(2000));
         Button fiveThousand = new Button("5000 actors");
         fiveThousand.onClick(() -> selectCount(5000));
+        Button size32 = new Button("32 px");
+        size32.onClick(() -> selectSize(32));
+        Button size64 = new Button("64 px");
+        size64.onClick(() -> selectSize(64));
+        Button size128 = new Button("128 px");
+        size128.onClick(() -> selectSize(128));
+        Button size256 = new Button("256 px");
+        size256.onClick(() -> selectSize(256));
 
         controls(new Column(6,
                 new Label("ACTOR STRESS TEST — choose a workload"),
-                countLabel, fpsLabel, frameLabel,
-                new Label("32 × 32 sprites, four frames at 8 animation fps; every actor moves and rotates."),
+                countLabel, sizeLabel, fpsLabel, frameLabel,
+                new Label("Four frames at 8 animation fps; every actor moves and rotates."),
                 new Label("FPS measures completed game frames. Higher FPS and lower frame time are smoother."),
+                size32, size64, size128, size256,
                 small, medium, large, thousand, twoThousand, fiveThousand));
         selectCount(100);
     }
@@ -49,20 +61,39 @@ public class Main extends GameApp {
                 && count != 1000 && count != 2000 && count != 5000) {
             throw new IllegalArgumentException("Choose 100, 250, 500, 1000, 2000 or 5000 actors.");
         }
-        actors = new StressActor[count];
-        for (int i = 0; i < count; i++) {
+        actorCount = count;
+        rebuildActors();
+    }
+
+    public void selectSize(int size) {
+        if (size != 32 && size != 64 && size != 128 && size != 256) {
+            throw new IllegalArgumentException("Choose 32, 64, 128 or 256 pixels.");
+        }
+        spriteSize = size;
+        rebuildActors();
+    }
+
+    private void rebuildActors() {
+        String image = "/stress-sprites.png";
+        if (spriteSize != 32) image = "/stress-sprites-" + spriteSize + ".png";
+        double half = spriteSize / 2.0;
+        actors = new StressActor[actorCount];
+        for (int i = 0; i < actorCount; i++) {
             // loadAnimation shares the cached image but gives each actor its own clock.
-            var animation = loadAnimation("/stress-sprites.png", 4, 1, 8);
+            var animation = loadAnimation(image, 4, 1, 8);
             animation.update((i % 4) / 8.0);
             double vx = 30 + i % 40;
             double vy = 25 + i % 35;
             if (i % 2 == 0) vx = -vx;
             if (i % 3 == 0) vy = -vy;
             actors[i] = new StressActor(animation,
-                    16 + (i * 73) % 768, 16 + (i * 47) % 418, vx, vy);
+                    half + (i * 73) % (800 - spriteSize),
+                    half + (i * 47) % (450 - spriteSize), vx, vy, spriteSize);
             actors[i].setRotation((i * 17) % 360);
         }
-        countLabel.setText("Actors: " + count);
+        countLabel.setText("Actors: " + actorCount);
+        sizeLabel.setText("Sprite: " + spriteSize + " × " + spriteSize
+                + " px | PNG sheet: " + (spriteSize * 4) + " × " + spriteSize + " px");
         fpsLabel.setText("FPS: warming up");
         frameLabel.setText("Average frame: — | worst: —");
         lastFrameAt = 0;
