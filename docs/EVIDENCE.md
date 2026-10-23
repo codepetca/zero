@@ -1,5 +1,46 @@
 # Delivery evidence index
 
+## Beginner Coin Quest with UI in Main — 2026-10-23
+
+Owner requested the same game without needing student Element declarations or
+polymorphism yet. Source b95d89bf3b9e0a677c9de06195e3fc6e7d8a97a9 adds
+framework/prototypes/beginner-coin-game/Main.java and its guide. Title/help/HUD,
+pause and results are methods in Main using concrete Label/Button/Column types;
+a playing boolean replaces Phase. Player and Coin are copied unchanged from the
+structured example. Students still use ordinary objects, methods, arrays, loops
+and click callbacks. Main retains the starter GameApp superclass; Zero's internal
+inheritance remains. No framework API or published tutorial change.
+
+The assembler now creates a third standalone project with exactly Main, Player
+and Coin plus the separate13 canonical Zero helpers. Both game versions use the
+same existing native playthrough harness. Native actual JavaFX checks pass for
+all3 projects (structured637frames, beginner639frames). Beginner covers title,
+help, pause freeze/resume, both levels, two wins, replay/restart/title and timeout
+via direct model step. Input is synthetic; no physical-input claim. Logs/receipt:
+.verification/beginner-game-native.log and .verification/ui-prototypes/.
+
+One actual pinned beginner WebFX/GWT build and Chrome9/9 assertions pass,
+including quiet title/start, help/back, score1, paused canvas/timer freeze,
+retained resume, restart, two full wins and replay/reset, with no JavaScript
+errors. Build/browser work took49.835seconds. Exact Main SHA256:
+59c935de45efe5c028cc5f34b4d6ff3d9a7c21026373eef8c15ceff0844f3d07.
+Receipt: .verification/beginner-game-web/receipt.json. Prior structured real
+30-active-second browser timeout evidence is reused explicitly; this browser
+run did not wait30seconds. No other browser fixtures rebuilt. macOS native and
+headless Chrome only; other platforms/engines, devices and novice trials untested.
+
+Configuration/syntax/contracts/docs links and diff checks pass. Independent
+Sol6.1/medium read-only complete five-file review, base4b9be279d02feb816c0ddbce90466f63367b66a2
+→ headb95d89bf3b9e0a677c9de06195e3fc6e7d8a97a9, found no actionable issues.
+Reviewer beginner_example_review inspected complete diff, immediate structured
+consumers, ownership/preservation and native harness, verified the native receipt
+and reran syntax/whitespace checks. Effective configuration, tokens and per-turn
+elapsed telemetry unavailable. Review budget:1launch,1initial wave,0fix batches,
+0targeted/integration waves; no additional wave adds coverage to unchanged code.
+Only evidence/CURRENT text follows reviewed implementation. Known previous Zero
+Dev keyboard foreground failure remains unresolved; this increment does not
+claim to fix it. No push/PR/merge/install/release/deploy/account changes.
+
 ## COIN QUEST title, levels and navigation — 2026-10-23
 
 Owner requested a fuller game with title screens. Local unreleased example now

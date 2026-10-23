@@ -1,55 +1,38 @@
-# COIN QUEST and navigation — 2026-10-23
+# Beginner Coin Quest — 2026-10-23
 
-Owner asked to turn the coin prototype into a fuller game with title screens.
-Worktree /Users/stew/.codex/worktrees/actor/zero, base b1b872eb. Local source work;
-no push/PR/merge/install/release/deployment/account changes. Preserve unrelated
-primary funding and tutorial-padding Dev scratch/profile/watcher state.
+Owner requested the same game with title and HUD directly in Main, without
+student Element declarations or polymorphism prerequisites. Local source only
+in /Users/stew/.codex/worktrees/actor/zero; no push/PR/merge/install/release/deploy
+or account authority. Preserve primary funding changes and tutorial-padding
+Dev scratch/profile/watcher state.
 
-Game now has title/help, two levels of three coins,30 active seconds per level,
-manual pause/resume, victory/timeout results and replay/restart/title paths.
-Main owns Phase/state/rules; ordinary TitleScreen/HelpScreen/PauseScreen/
-ResultsScreen classes return Element views, Hud reuses unchanged ScoreDisplay.
-All student imports use Zero; no zero.Screen base, World or second game loop.
+Accepted implementation b95d89bf3b9e0a677c9de06195e3fc6e7d8a97a9 adds
+framework/prototypes/beginner-coin-game/Main.java: title/help/HUD/pause/results
+methods, concrete Label/Button/Column fields and playing boolean. Same two
+levels, timer, win/loss and replay paths. Main extends GameApp as starter code;
+ordinary Player/Coin sources reused unchanged. Existing structured example
+remains. No framework/API changes (13helpers/146declarations). Assembly now
+creates counter, structured game and beginner game standalone projects.
 
-Framework adds GameApp.showGame/pause/resume/isPaused (13helpers/146decl).
-App.show(Node/Element) is one navigation path: suspend update/draw/input off-game;
-showGame restores retained canvas/HUD with cleared input/zero first delta and
-respects explicit pause. pause skipsupdate but draws/UIcontinue. Frame navigation
-last-wins after successful draw; failure/stop discards pending. Package-private
-frame brackets/hooks keep public surface small. Native/browser sizing measures
-retained game+HUD before restoring title; exact browser overlays/gates updated.
-Screen lifecycle, replaceable World/animation, project-owned browser tooling and
-new diagnostics/telemetry/distribution remain proposed. Preservation policy stays
-project-owned source/build files, exact pins and no required central old-kit DB.
+Native all3 pass (beginner639real frames); one pinned beginner WebFX build and
+Chrome9/9 pass. npm run check, syntax and whitespace pass. Prior real30second
+browser timeout evidence reused explicitly; native timeout uses a direct model
+step. Physical input, other OS/engines/devices and novice trials untested.
+Previous Zero Dev keyboard foreground check still fails separately; not fixed.
+Sol6.1/medium complete five-file independent review clean:1launch/1initialwave,
+0fixes or extra waves. Effective model/token/elapsed telemetry unknown.
+Details and revision-bound receipts: docs/EVIDENCE.md, ignored
+.verification/beginner-game-native.log, ui-prototypes/native-results.json and
+beginner-game-web/receipt.json. Only completion docs follow reviewed source.
 
-Workers: Sol/high runtime+NavigationCheck, Sol/medium browser/contracts, Sol/medium
-API/docs+immutable historical App testfixture. Runtime/guide source frozen.
-Native framework/navigation checks pass; native full-game603-frame playthrough
-passes after correcting test pointer baseline. Counter unchanged. WebFX/browser and root regression pass; website165/165,
-typecheck/build and four new /docs anchors pass. Existing Dev focus timeout
-repeated; its deadline now begins at the first visible frame rather than setup
-before CSS/scene creation. Foreground failure remains unresolved locally.
+Broader accepted architecture remains GameApp extends App, one loop, concrete
+Zero UI and optional reusable Element views. Prior fuller-game implementation
+and reentrant navigation correction remain at ef21cdbf/d62aea08; full checks and
+review history are in EVIDENCE. World/animation, ZeroHub extension path, new
+telemetry and project-owned complete browser tooling remain proposed. Students
+own source/build files with exact pins; no required old-kit database.
 
-Accepted source: ef21cdbf90b5ff5adc1c84dc0916dcdf1843d119 plus correction
-d62aea08ea2bde1a8c0143abc4ec67a0e586ce65. Initial complete36-file review:
-Astra/xhigh lifecycle, Sol/high browser/source preservation. One blocking P2
-(reentrant centre listeners left stale gameVisible) fixed by reconciling final
-root.getCenter. Native regression fails oldbody and passes fixed full framework,
-including both redirect directions. Targeted Astra review accepted four-file
-correction with no new findings; unchanged initial coverage reused.
-
-Full root1004pass/0fail/3skip; website165/165 +types/build/docsanchors;9 initial
-pinnedWebFX builds +Chrome85/mobile136; corrected navigation+game builds2/2 and
-focused Chrome24/24; corrected adapter/migration43/43 andcheck/diff pass.
-Prior7 browser fixtures/mobile/real30second loss evidence reused explicitly for
-private-hook correction. KnownDev keyboard macOSforegroundassertion stillfails;
-allnativeframework/navigation +nativegame603frames pass separately. No claim that
-Devsmoke/physicalkeyboard/otherOS/physicaldevices/measurementfaultinjection passed.
-
-Review ledger .verification/full-game-review/ledger.json; proofs in docs/EVIDENCE.md,
-.verification/full-game-*.log and full-game-{web,fix}/. One initial2-reviewerwave,
-one targetedwave/one fixbatch;3turns, no extra integrationwave becausecorrected
-interaction+unchangedcodecoveragecomplete. Effectiveconfig/token telemetry unknown.
-Only evidence/handoff text follows reviewed code. User's IAB gamepreview nowshows
-corrected COINQUESTtitle; localpreviewserver remainsrunning. No externalpublishing.
-PreviousUI slice8f3bcfe5/receiptb1b872eb retained in history. Use ZeroDev sourceflow.
+Next: show the beginner Main code and the title→startGame→showGame transition.
+No new publication or runtime work is authorized. Use the Zero Dev source loop
+for future implementation. Existing corrected local game/counter previews may
+remain running; beginner browser worker closed its own temporary preview.
