@@ -46,13 +46,49 @@ Element dependency rejection, path/inode/race/recovery guards are unchanged.
 Focused helper/GitHub tests83/83 pass. API/navigation17/17, website165/165,
 website typecheck/build and four new built /docs anchors pass. Browser semantic
 17/17, adapter10/10 and internal-method rejection1/1 pass. Configuration/syntax/
-links and diff checks pass. Final browser/root/review results follow below.
+links and diff checks pass. Full root regression at ef21cdbf:1004pass/0fail/
+3platform skips across1007 tests (503.9 seconds). Initial9 real WebFX builds,
+85/85 Chrome assertions and136/136 mobile assertions pass, including two full
+wins and a real30active-second timeout. Build/browser run667 seconds; receipts
+and title/pause/results screenshots: .verification/full-game-web/.
 
 No push, PR, merge, installed-kit change, dependency install, public site update,
 release, telemetry collection or account change. Source/build preservation policy
 and no required historical-kit database remain unchanged. Browser export still
 uses the current exporter; complete project-owned browser tooling remains planned.
 Other operating systems, physical devices and novice teaching trials are untested.
+
+Independent initial review of the full36-file diff b1b872ebff96ef88c52fbc7a41d1270eaaadd7ed
+→ ef21cdbf90b5ff5adc1c84dc0916dcdf1843d119 used Astra/xhigh for lifecycle and
+Sol/high for browser/source compatibility. Sol found no actionable issues. Astra
+found one blocking P2: synchronous centre listeners could redirect a transition,
+then the outer contentChanged(request) overwrote visibility using the stale view.
+Correction d62aea08ea2bde1a8c0143abc4ec67a0e586ce65 reconciles the final centre.
+New native tests fail the old body and pass the corrected full framework suite
+in both redirect directions, including drawing/input, hidden-menu suspension,
+zero first delta and normal navigation afterward. No public API change. The
+browser App pin changes with the exact canonical bytes; a stale model paragraph
+was corrected. Corrected check and focused adapter/migration tests43/43 pass.
+
+Targeted corrected navigation and CoinQuest WebFX builds2/2 plus focused Chrome
+24/24 assertions pass. Prior7 consumer fixtures, mobile136 and real30-second loss
+proof are reused explicitly; they were not rebuilt/rerun for this private hook
+correction. The ignored focused runner initially rejected a trailing semicolon
+before browser assertions; its normalized browser-only retry reused those same2
+builds and passed. Receipt: .verification/full-game-fix/receipt.json. Selected-view
+exception restoration remains structurally reviewed via finally, not fault-injected.
+
+Astra targeted review accepted the complete four-file correction and native/browser
+byte-equivalence, resolving P2 with no new findings. Initial coverage remains
+applicable to unchanged code; the targeted pass covers the corrected interaction,
+so another full integration wave adds no coverage. Review budget:3 reviewer turns,
+one initial two-reviewer wave, one targeted wave and one fix batch, no integration
+wave; about15 minutes review-session wall time observed, exact per-reviewer seconds
+and token/effective model telemetry unavailable. Receipts: .verification/full-game-review/.
+The separately failing local Dev keyboard-foreground check remains disclosed; no
+release readiness or physical keyboard acceptance is inferred. Only this completion
+receipt and CURRENT follow the reviewed code. The IAB game tab shows the corrected
+local COIN QUEST title; no deployment was performed.
 
 ## First Zero UI components and working consumers — 2026-10-23
 
