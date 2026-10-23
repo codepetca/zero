@@ -15,7 +15,7 @@ the small set you need for each project:
 
 | Build | Start with |
 | --- | --- |
-| An app | `App`: `settings()`, `setup()`, `size(...)`, `title(...)`, `padding(...)`, `show(...)`; ordinary `Label`, `Button`, `TextField`, `VBox`, `HBox`. |
+| An app | `App`: `settings()`, `setup()`, `size(...)`, `title(...)`, `padding(...)`, `show(...)`; `zero.ui.Label`, `Button`, `TextField` and `Column`. |
 | A game | `GameApp`: the same startup, plus `update(seconds)`, `draw()`, `keyDown(...)`, `width()`, `height()`, `background(...)`, `fill(...)`, `rect(...)`, `circle(...)`, `textSize(...)`, `text(...)`. |
 | Improve appearance | JavaFX fonts, a few colours, spacing/padding and an editable stylesheet; canvas fonts through `graphics().setFont(...)`. |
 
@@ -29,11 +29,29 @@ The source is the authority if you change your local framework.
 
 ## Zero UI: one view in an app or game
 
-The current local source adds `zero.ui.Label`, `Button`, `Column` and `Element`,
+The current local source adds `zero.ui.Label`, `Button`, `TextField`, `Column` and `Element`,
 plus `zero.Color` for canvas colours. These additions are unreleased; older kits
 keep their bundled APIs. Existing JavaFX examples and controls still work.
-These components provide text, button actions and vertical composition. GameApp
+These components provide text, single-line input, button actions and vertical composition. GameApp
 also provides explicit gameplay navigation and pause methods.
+
+For a greeting, use one text field and read it when the button is clicked:
+
+```java
+Label greeting = new Label("Hello!");
+TextField name = new TextField();
+name.setPromptText("Your name");
+Button hello = new Button("Say hello");
+hello.onClick(() -> greeting.setText("Hello, " + name.getText() + "!"));
+show(new Column(10, greeting, name, hello));
+```
+
+Import those four controls from `zero.ui`. The field starts empty; a prompt is a
+hint, not entered text. `setText("Ada")` replaces entered text, while getText
+reads the latest value. `getPromptText()` reads the hint; `setPromptText("")`
+removes it. Null text/prompt setters throw a useful NullPointerException and
+preserve the previous value. Use Tab to move from the field to the button and
+Space to activate the focused button. Keep the normal keyboard focus visible.
 
 A reusable display can be an ordinary class with a view and an explicit setter.
 Save this as `ScoreDisplay.java` beside Main; the same class works in an App or

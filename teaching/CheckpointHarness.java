@@ -75,6 +75,7 @@ public class CheckpointHarness extends Application {
         require(greeting.getText().equals("Hello, Java!"), "earlier greeting survives next lesson");
         if (id.equals("2")) {
             TextField name = (TextField) screen.getChildren().get(1);
+            require(name.getPromptText().equals("Your name"), "name prompt survives the Zero UI facade");
             name.setText("Sam"); hello.fire();
             require(greeting.getText().equals("Hello, Sam!"), "typed name changes the existing label");
             name.setText("Ada"); hello.fire();

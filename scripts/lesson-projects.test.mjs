@@ -34,6 +34,22 @@ test('three continuing projects cover every lesson without distributing solution
     assert.match(content(project,'README.md').toString(),/blank window or canvas/);
   }
 });
+test('Greeting teaching path uses Zero UI with ordinary Java callbacks', () => {
+  const starter = readFileSync(path.join(root, 'student-template/src/main/java/Main.java'), 'utf8');
+  assert.match(starter, /import zero\.ui\.Label;/);
+  assert.doesNotMatch(starter, /import javafx\./);
+  for (const [id, lesson] of ['00-hello-world', '01-hello-button', '02-hello-name'].entries()) {
+    const source = readFileSync(path.join(root, `teaching/checkpoints/${id}/Main.java`), 'utf8');
+    const instructions = readFileSync(path.join(root, `student-template/lessons/${lesson}.md`), 'utf8');
+    assert.doesNotMatch(source, /import javafx\.|setOnAction|new VBox\(/);
+    assert.doesNotMatch(instructions, /import javafx\.|setOnAction|new VBox\(/);
+    assert.match(source, /extends App/);
+    if (id > 0) {
+      assert.match(source, /button\.onClick\(\(\) ->/);
+      assert.match(instructions, /button\.onClick\(\(\) ->/);
+    }
+  }
+});
 test('optional asset archive contains only the two media resources', () => {
   const files=gameAssetFiles(root);
   assert.deepEqual(files.map(file=>file.path),['media-demo/player.png','media-demo/chime.wav']);

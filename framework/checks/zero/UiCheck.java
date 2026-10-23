@@ -14,6 +14,7 @@ import zero.ui.Button;
 import zero.ui.Column;
 import zero.ui.Element;
 import zero.ui.Label;
+import zero.ui.TextField;
 
 /** Finite native checks for Zero UI composition and live game controls. */
 public final class UiCheck extends GameApp {
@@ -22,8 +23,11 @@ public final class UiCheck extends GameApp {
     private Label scoreLabel;
     private Button reset;
     private Column hud;
+    private TextField name;
+    private Label greeting;
+    private Button greet;
 
-    @Override public void settings() { size(160, 100); title("Zero UI checks"); }
+    @Override public void settings() { size(320, 180); title("Zero UI checks"); }
 
     @Override public void setup() {
         Thread watchdog = new Thread(() -> {
@@ -43,7 +47,12 @@ public final class UiCheck extends GameApp {
             resets++;
             scoreLabel.setText("Score: 0");
         });
-        hud = new Column(scoreLabel, reset);
+        name = new TextField();
+        name.setPromptText("Your name");
+        greeting = new Label("Waiting for a name");
+        greet = new Button("Say hello");
+        greet.onClick(() -> greeting.setText("Hello, " + name.getText() + "!"));
+        hud = new Column(scoreLabel, reset, name, greet, greeting);
         controls(hud);
         controls(hud);
         Column replacement = new Column(new Label("Temporary controls"));
@@ -64,6 +73,19 @@ public final class UiCheck extends GameApp {
         expectNull(() -> new Bridge(null));
         expectNull(() -> new Label(null));
         expectNull(() -> new Button(null));
+        TextField field = new TextField();
+        require(field.getText().equals("") && field.getPromptText().equals(""), "empty text and prompt defaults");
+        field.setText("Ada");
+        field.setPromptText("Your name");
+        expectNull(() -> field.setText(null));
+        expectNull(() -> field.setPromptText(null));
+        require(field.getText().equals("Ada") && field.getPromptText().equals("Your name"),
+                "invalid TextField setters preserve text and prompt");
+        require(field.fxNode() instanceof javafx.scene.control.TextField && field.fxNode().isFocusTraversable(),
+                "TextField retains an editable native control and focus traversal");
+        field.setText("");
+        field.setPromptText("");
+        require(field.getText().equals("") && field.getPromptText().equals(""), "empty text and prompt are supported");
         Label label = new Label("Count: 0");
         Button add = new Button("Add");
         int[] count = {0};
@@ -179,10 +201,30 @@ public final class UiCheck extends GameApp {
                 key(reset.fxNode(), KeyEvent.KEY_RELEASED, KeyCode.SPACE);
                 require(resets == before + 1 && score == 0, "native keyboard activation invokes Zero callback");
                 require(!keyDown(KeyCode.SPACE), "button keyboard input stays out of game input");
+            } else if (phase == 3) {
+                name.fxNode().requestFocus();
+            } else if (phase == 4) {
+                if (!NativeFocus.await(name.fxNode(), phaseStarted, "Zero text field focus")) return;
+                for (String letter : new String[] {"S", "a", "m"}) {
+                    Event.fireEvent(name.fxNode(), new KeyEvent(KeyEvent.KEY_TYPED, letter, letter, KeyCode.UNDEFINED,
+                            false, false, false, false));
+                }
+                require(name.getText().equals("Sam"), "native typing changes Zero text field text");
+                require(!keyDown(KeyCode.A), "text input stays out of gameplay input");
+                key(name.fxNode(), KeyEvent.KEY_PRESSED, KeyCode.TAB);
+                key(name.fxNode(), KeyEvent.KEY_RELEASED, KeyCode.TAB);
             } else if (phase == 5) {
+                if (!NativeFocus.await(greet.fxNode(), phaseStarted, "Tab from text field to Zero button")) return;
+                key(greet.fxNode(), KeyEvent.KEY_PRESSED, KeyCode.SPACE);
+                key(greet.fxNode(), KeyEvent.KEY_RELEASED, KeyCode.SPACE);
+                require(greeting.getText().equals("Hello, Sam!"), "keyboard button callback reads typed text");
+                name.setText("Ada");
+                ((javafx.scene.control.Button) greet.fxNode()).fire();
+                require(greeting.getText().equals("Hello, Ada!"), "button reads the latest programmatic text");
+            } else if (phase == 8) {
                 require(updates >= 6 && score > 0, "game update continues while a control has focus");
                 require(layout().getBottom() == hud.fxNode() && layout().getCenter() == canvas(), "HUD and canvas remain mounted");
-                System.out.println("ZERO_UI_OK text/callback replacement, atomic composition, reuse, App show, colors, live game frames and native focus");
+                System.out.println("ZERO_UI_OK TextField five signatures, typed greeting, prompt/errors, tab/button focus, text/callback replacement, atomic composition, reuse, App show, colors and live game frames");
                 stop();
                 Platform.exit();
             }

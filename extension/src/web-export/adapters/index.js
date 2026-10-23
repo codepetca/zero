@@ -19,6 +19,7 @@ function apply(source, edits) {
 }
 function fail(file, detail) { throw new Error(`Web export: ${file}: ${detail}`); }
 const helperHashes = Object.freeze({
+  'zero/ui/TextField.java': 'eaa499518264c2be7463770f5967c4ae54511c9036b7e290e10996f2aa32a522',
   'zero/Actor.java': '88c22740146d4f2694a8945d054dcebf2fd804444e23b30b29bf1fc65b009225',
   'zero/App.java': '56b76faeac1134c11fd02ae53c09fd487780ad64a04329ab7b40fc35c2b57066',
   'zero/Collisions.java': '1d1cc1c57fcbbcb8421bf469c6d74e5f1707c5542c265d1819f38e59fb4e67fe',

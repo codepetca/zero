@@ -73,9 +73,9 @@ test('ambiguous applications, path escapes, reserved packages and unsupported me
 });
 
 
-test('all thirteen native helpers retain declarations and generated audio ownership/aliases', () => {
+test('all fourteen native helpers retain declarations and generated audio ownership/aliases', () => {
   const sources = { ...helpers(), 'Main.java': app };
-  assert.equal(Object.keys(helperHashes).length, 13);
+  assert.equal(Object.keys(helperHashes).length, 14);
   const result = adaptSources({ sources, resourcePaths: ['audio/tone.wav'] });
   const originalAPI = text => text.split('\n').filter(line => /^    (?:@Override )?(?:public|protected) /.test(line)).map(line => line.split('{')[0].trim());
   for (const file of Object.keys(helperHashes)) assert.deepEqual(originalAPI(result.sources[file]), originalAPI(sources[file]), file + ' public/protected API');

@@ -84,7 +84,8 @@
     "zero.ui.Button",
     "zero.ui.Column",
     "zero.ui.Element",
-    "zero.ui.Label"
+    "zero.ui.Label",
+    "zero.ui.TextField"
   ],
   "members": [
     "java.io.PrintStream#println(java.lang.String)",
@@ -376,7 +377,12 @@
     "zero.ui.Element#fxNode()",
     "zero.ui.Label#<init>(java.lang.String)",
     "zero.ui.Label#getText()",
-    "zero.ui.Label#setText(java.lang.String)"
+    "zero.ui.Label#setText(java.lang.String)",
+    "zero.ui.TextField#<init>()",
+    "zero.ui.TextField#getText()",
+    "zero.ui.TextField#setText(java.lang.String)",
+    "zero.ui.TextField#getPromptText()",
+    "zero.ui.TextField#setPromptText(java.lang.String)"
   ],
   "wrapperHashes": {
     "mvnw": "cae96cef89ebea3531221f4ae17c23cf8edf67d00eae8306d4186ae1bbed4d02",

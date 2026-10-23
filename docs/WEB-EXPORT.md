@@ -55,9 +55,9 @@ approve every inherited API. Unsupported or unresolved use produces original
 file/line/column diagnostics in Problems. Native methods/JSNI and source-defined
 runtime namespace spoofing are rejected.
 
-Only eight helpers at exact reviewed paths/hashes receive trusted adapters; a
-package name is not an exemption. Keep ordinary JavaFX control names and explicit
-object updates. Ordinary class-resource lookup is supported in
+Only the inventoried helpers at exact reviewed paths/hashes receive trusted
+adapters; a package name is not an exemption. The normal teaching path uses Zero
+controls with explicit object updates; supported JavaFX remains an advanced path. Ordinary class-resource lookup is supported in
 `Main.class.getResource(...)` and `getClass().getResource(...)`; unrelated
 reflection remains unavailable. Resource URL types are resolved before adaptation,
 including fields, parameters and return values shared between Java files. Source
@@ -190,11 +190,11 @@ window behavior is unchanged. Existing exported or published games need a fresh
 build with this runtime before they receive the fitting behavior.
 
 Students keep `Main.java`, explicit object updates, ordinary Java classes and
-JavaFX APIs. The exporter compiles a temporary copy with pinned WebFX/GWT modules.
+their supported Zero or advanced JavaFX APIs. The exporter compiles a temporary copy with pinned WebFX/GWT modules.
 Its adapters cover the reviewed Zero helpers, canvas images and sprite regions,
 keyboard/mouse state, focus, supported JavaFX controls and the bounded JavaFX
-media calls used by the tested game. All eight reviewed helpers, including
-`Sound` and `Music`, retain the ordinary Java API. Image preloading completes before `setup`.
+media calls used by the tested game. Reviewed helpers, including `Sound`,
+`Music` and the Zero UI facade, retain their ordinary Java API. Image preloading completes before `setup`.
 Image startup allows 30 seconds between completed images and at most two minutes
 overall; a progressing slow download can outlast the first 30 seconds. Timeouts
 name remaining files and suggest checking the connection or reducing image sizes.
@@ -220,8 +220,8 @@ must be reviewed before their profile fingerprints are updated. Publishing requi
 compatibility check. Branch-protection settings remain an owner decision and
 were not changed.
 
-The supported profile guards eight helper sources and 119 public/protected Java
-API declarations. Changes must update reviewed adapters and behavior coverage;
+The supported profile guards the exact helper inventory and public/protected
+Java declaration count in `scripts/web-profiles.mjs`. Changes must update reviewed adapters and behavior coverage;
 passing source checks alone is insufficient. Sound aliases share the native cache,
 effects overlap, Music players stay independent, and app/window shutdown releases
 owned playback. Browser limits are explicit: each Sound keeps at most 32 active or

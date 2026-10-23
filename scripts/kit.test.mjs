@@ -271,7 +271,7 @@ test('assembled ZIP is a standalone editable Java project with canonical source 
     assert.ok(existsSync(path.join(project, 'target/classes/Main.class')));
     assert.ok(existsSync(path.join(project, 'target/classes/zero/GameApp.class')));
     assert.ok(existsSync(path.join(project, 'target/classes/zero/Color.class')));
-    for (const name of ['Element', 'Label', 'Button', 'Column']) assert.ok(existsSync(path.join(project, `target/classes/zero/ui/${name}.class`)));
+    for (const name of ['Element', 'Label', 'Button', 'Column', 'TextField']) assert.ok(existsSync(path.join(project, `target/classes/zero/ui/${name}.class`)));
     for (const retired of ['SketchApp', 'SimpleApp']) assert.equal(existsSync(path.join(project, `target/classes/zero/${retired}.class`)), false);
   } finally {rmSync(project, {recursive:true, force:true});}
 });

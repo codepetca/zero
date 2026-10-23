@@ -52,6 +52,12 @@ for current gaps, experimental 0.x rules and bounded clone/build/rehost acceptan
 Project-owned browser tooling/launcher, complete locks and backup/upgrade flows
 remain proposed.
 
+Implementation execution, owner-authorized 2026-10-23: follow the single
+[phased delivery roadmap](FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).
+The first active slice moves Greeting lessons 0–2 and the starter to Zero UI,
+adding only the TextField needed by that teaching path. Local prototypes and
+verification are separate from released kits and published tutorial repositories.
+
 ## Core goal: students grow the framework
 
 Owner direction,2026-10-23: students should learn to build, extend and improve

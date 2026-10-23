@@ -5,6 +5,7 @@ import zero.Color;
 import zero.ui.Button;
 import zero.ui.Column;
 import zero.ui.Label;
+import zero.ui.TextField;
 
 /** Real-browser behavior probe for the small Zero-owned UI surface. */
 public final class Main extends GameApp {
@@ -64,6 +65,23 @@ public final class Main extends GameApp {
         return new Column(8, new Label("Replacement HUD"), navigation, menu, pause, resume, deferred);
     }
     private void showTitle() {
+        TextField name = new TextField();
+        require(name.getText().equals("") && name.getPromptText().equals(""), "TextField empty defaults");
+        name.setText("Before");
+        name.setPromptText("Your name");
+        boolean invalidText = false, invalidPrompt = false;
+        try { name.setText(null); } catch (Throwable expected) {
+            invalidText = expected.getMessage().contains("TextField text");
+        }
+        try { name.setPromptText(null); } catch (Throwable expected) {
+            invalidPrompt = expected.getMessage().contains("TextField prompt");
+        }
+        require(invalidText && invalidPrompt && name.getText().equals("Before")
+                && name.getPromptText().equals("Your name"), "TextField errors preserve values");
+        name.setText("");
+        Label greeting = new Label("TextField checks ready");
+        Button greet = new Button("Greet probe");
+        greet.onClick(() -> greeting.setText("Hello, " + name.getText() + "!"));
         Button play = new Button("Play probe");
         play.onClick(() -> {
             if (firstPlay) {
@@ -73,7 +91,7 @@ public final class Main extends GameApp {
             expectZero = true;
             showGame();
         });
-        show(new Column(new Label("Probe title"), play));
+        show(new Column(new Label("Probe title"), name, greet, greeting, play));
     }
     private void showMenu() {
         Button back = new Button("Return to probe game");

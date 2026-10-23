@@ -34,7 +34,7 @@ Run `node scripts/prepare-ui-prototypes.mjs` to assemble standalone projects in
 The beginner project is `.verification/ui-prototypes/beginner-coin-game`; it has
 Main plus its own Player and Coin subclasses of Actor. Those objects draw their
 own artwork; Main calls draw(coin) and draw(player) explicitly.
-Each includes all 13 readable Zero helpers, the pinned student Maven wrapper/POM,
+Each includes all 14 readable Zero helpers, the pinned student Maven wrapper/POM,
 and ordinary Java app sources. Open any directory in Zero or run its included
 `./mvnw javafx:run` (`mvnw.cmd javafx:run` on Windows). The assembled project does
 not need the surrounding repository. Dependency artifacts must already be cached

@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 
-export const coreSources = ['App.java', 'GameApp.java', 'Actor.java', 'ImageRegion.java', 'SpriteAnimation.java', 'Collisions.java', 'Sound.java', 'Music.java', 'Color.java', 'ui/Element.java', 'ui/Label.java', 'ui/Button.java', 'ui/Column.java'];
+export const coreSources = ['App.java', 'GameApp.java', 'Actor.java', 'ImageRegion.java', 'SpriteAnimation.java', 'Collisions.java', 'Sound.java', 'Music.java', 'Color.java', 'ui/Element.java', 'ui/Label.java', 'ui/Button.java', 'ui/Column.java', 'ui/TextField.java'];
 const retiredSources = ['SketchApp.java', 'SimpleApp.java']; // Removed API; never include in new kits.
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // This is maintainer tooling. Extracted student projects contain ordinary Java

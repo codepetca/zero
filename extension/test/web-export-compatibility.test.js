@@ -44,7 +44,7 @@ test('dependency gate rejects unpinned, injected, inherited and profile dependen
   for (const changed of [pom.replace('21.0.12', '21.0.11'), pom.replace('javafx-controls', 'javafx-web'), pom.replace('<dependencies>', '<profiles/><dependencies>'), pom.replace('<dependencies>', '<parent/><dependencies>'), pom.replace('<dependencies>', '<dependencyManagement/><dependencies>'), pom.replace('org.openjfx', 'org.openjfx.evil'), pom.replace('<artifactId>javafx-controls</artifactId>', '<artifactId>javafx-controls</artifactId><classifier>other</classifier>')]) assert.throws(() => validateDependencies(changed), /browser|Browser|POM/);
   assert.throws(() => validateDependencies(pom.replace('<dependencies>', '<!-- fake <dependency> ignored -->\n<dependencies>').replace('org.openjfx', 'evil')), /browser dependency/);
 });
-test('all thirteen reviewed helper APIs and quiz, drawing, audio and controls retain resolved compatibility', { timeout: 240000 }, async () => {
+test('all fourteen reviewed helper APIs and quiz, drawing, audio and controls retain resolved compatibility', { timeout: 240000 }, async () => {
   const fixtures = [
     { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/Main.java'), 'utf8'), 'GameApiChecks.java': await fs.readFile(path.join(root, 'framework/web-checks/GameApiChecks.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'student-template/examples/quiz/Main.java'), 'utf8'), 'ScoreDisplay.java': await fs.readFile(path.join(root, 'student-template/examples/shared/ScoreDisplay.java'), 'utf8') },
@@ -55,7 +55,7 @@ test('all thirteen reviewed helper APIs and quiz, drawing, audio and controls re
     { ...await readSources(path.join(root, 'framework/prototypes/counter')), 'ScoreDisplay.java': await fs.readFile(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java'), 'utf8') },
     { ...await readSources(path.join(root, 'framework/prototypes/coin-game')), 'ScoreDisplay.java': await fs.readFile(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java'), 'utf8') }
   ];
-  for (const sources of fixtures) { const result = await check(sources); assert.equal(result.status, 'passed'); assert.equal(result.trustedHelpers.length, 13); }
+  for (const sources of fixtures) { const result = await check(sources); assert.equal(result.status, 'passed'); assert.equal(result.trustedHelpers.length, 14); }
 });
 test('resolved owners, overloads, references, static imports, dead code and Java APIs fail with source positions', { timeout: 240000 }, async () => {
   const sources = {
@@ -233,12 +233,15 @@ test('Zero UI exact APIs and advanced fxNode interop do not grant neighboring Ja
     label.setText(label.getText()); zero.ui.Button button = new zero.ui.Button("Go");
     button.setText(button.getText()); button.onClick(() -> label.setText("Clicked"));
     zero.ui.Column column = new zero.ui.Column(12, label, button);
+    zero.ui.TextField name = new zero.ui.TextField(); name.setText(name.getText());
+    name.setPromptText("Your name"); label.setText(name.getPromptText());
     column.setSpacing(column.getSpacing()); javafx.scene.Node advanced = column.fxNode(); show(column);`)});
   assert.equal(result.status, 'passed');
   await assert.rejects(check({'Main.java': app('new zero.ui.Label("Ready").fxNode().setUserData("hidden");')}), /javafx.scene.Node#setUserData/);
+  await assert.rejects(check({'Main.java': app('new zero.ui.TextField().clear();')}), /clear/);
   await assert.rejects(check({'Main.java': app(''), 'zero/Leak.java':'package zero; class Leak { Object hidden() { return Color.BLUE.fxColor(); } }'}), /zero.Color#fxColor/);
   const helpers = await helpersPromise;
-  for (const file of ['zero/Color.java', 'zero/ui/Element.java', 'zero/ui/Label.java', 'zero/ui/Button.java', 'zero/ui/Column.java']) {
+  for (const file of ['zero/Color.java', 'zero/ui/Element.java', 'zero/ui/Label.java', 'zero/ui/TextField.java', 'zero/ui/Button.java', 'zero/ui/Column.java']) {
     await assert.rejects(check({'Main.java': app(''), [file]: helpers[file] + '\n// changed\n'}), /helper differs/);
     const sources = {...helpers, 'Main.java': app('')}; delete sources[file];
     sources['forged/' + file.split('/').pop()] = helpers[file];

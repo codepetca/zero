@@ -32,7 +32,7 @@ export function prepareUiPrototypes(root = repository) {
   ordinary(output);
   const framework = path.join(root, 'framework/src/main/java');
   const helpers = javaFiles(framework);
-  if (helpers.length !== 13) throw new Error(`Expected 13 reviewed Zero helper sources, found ${helpers.length}.`);
+  if (helpers.length !== 14) throw new Error(`Expected 14 reviewed Zero helper sources, found ${helpers.length}.`);
   const shared = readFileSync(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java'));
   const plans = ['counter', 'coin-game', 'beginner-coin-game', 'actor-stress'].map(id => {
     const directory = path.join(output, id);

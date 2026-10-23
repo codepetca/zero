@@ -1,7 +1,7 @@
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
+import zero.ui.Button;
+import zero.ui.Label;
+import zero.ui.TextField;
+import zero.ui.Column;
 import zero.App;
 
 public class Main extends App {
@@ -12,8 +12,8 @@ public class Main extends App {
         TextField name = new TextField();
         name.setPromptText("Your name");
         Button button = new Button("Say hello");
-        button.setOnAction(event -> greeting.setText("Hello, " + name.getText() + "!"));
-        show(new VBox(10, greeting, name, button));
+        button.onClick(() -> greeting.setText("Hello, " + name.getText() + "!"));
+        show(new Column(10, greeting, name, button));
     }
 
     public static void main(String[] args) { launch(args); }

@@ -61,10 +61,11 @@ There is no server-assigned short-ID reservation.
 
 Ordinary constructors, setters and callbacks connect components. Main owns
 navigation and game rules; explicit updates can be delegated to an owned
-container whose ordinary Java loop updates its members. Existing widgets expose
-JavaFX `Node view()`; the [target class model](FRAMEWORK-MODEL.md) uses a Zero
-Element view with a tested advanced bridge for reuse. This facade is not yet
-implemented. Ordinary helpers need no view, global registration system or
+container whose ordinary Java loop updates its members. Older widgets expose JavaFX `Node view()`. The local unreleased Zero UI
+facade now supports `Element view()` composition and an advanced JavaFX bridge;
+the shared ScoreDisplay prototypes demonstrate it in App and GameApp. The
+[target class model](FRAMEWORK-MODEL.md) still proposes the remaining controls
+and replacement contracts. Existing published widgets retain their own API. Ordinary helpers need no view, global registration system or
 automatic class discovery. Do not tick a component independently after handing
 its update ownership to a world or actor.
 

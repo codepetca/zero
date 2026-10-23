@@ -114,7 +114,7 @@ lifecycle or navigation history in this API.
 ## zero.ui.Element
 
 `public abstract class Element` is the base for the small Zero UI layer. Import
-`zero.ui.Element`, `zero.ui.Label`, `zero.ui.Button` and `zero.ui.Column` as needed.
+`zero.ui.Element`, `zero.ui.Label`, `zero.ui.Button`, `zero.ui.TextField` and `zero.ui.Column` as needed.
 These are additional, unreleased APIs; existing JavaFX controls remain available.
 Use `App.show(element)` for an interface or `GameApp.controls(element)` for a live
 game HUD. Each element wraps one node and can belong to only one parent at a time.
@@ -123,7 +123,7 @@ callbacks). A Column's children are supplied only in its constructor; there is
 no public add/remove/reparent API in this slice.
 
 The protected constructor and fxNode are an advanced JavaFX interoperability
-bridge for custom elements, not a requirement for using Label/Button/Column.
+bridge for custom elements, not a requirement for using Label/Button/TextField/Column.
 Subclasses wrap their own node or a newly created Column's node. Null backing
 nodes throw `NullPointerException`; the bridge exposes the actual node rather
 than a copy. Advanced code must preserve JavaFX ownership/thread rules.
@@ -131,7 +131,7 @@ than a copy. Advanced code must preserve JavaFX ownership/thread rules.
 | Signature | Behavior |
 | --- | --- |
 | `protected Element(Node node)` | Wrap a non-null JavaFX node in a custom Element subclass. |
-| `final Node fxNode()` | Return the underlying JavaFX node for advanced interoperability. Inherited by Label, Button and Column. |
+| `final Node fxNode()` | Return the underlying JavaFX node for advanced interoperability. Inherited by Label, Button, TextField and Column. |
 
 ## zero.ui.Label
 
@@ -159,6 +159,25 @@ onClick again replaces the previous callback; it does not accumulate handlers.
 | `String getText()` | Read its current text. |
 | `void setText(String text)` | Replace its text explicitly. |
 | `void onClick(Runnable action)` | Replace the click callback with a non-null action. |
+
+## zero.ui.TextField
+
+`public class TextField extends Element` accepts one line of text. Import
+`zero.ui.TextField`. It inherits `fxNode()`. Text and prompt start empty.
+Read getText inside a Button.onClick callback to use the text entered at that
+moment. A prompt is a hint shown when the field is empty; it is not entered text.
+Typing and Tab navigation retain the native control's focus behavior.
+Both setters reject null with `NullPointerException` and keep the previous value.
+Use an empty string to remove text or a prompt. Create and change it in setup or
+UI callbacks on the application thread, like the other elements.
+
+| Signature | Behavior |
+| --- | --- |
+| `TextField()` | Create an empty single-line text field with an empty prompt. |
+| `String getText()` | Read the current text, including edits typed by the user. |
+| `void setText(String text)` | Replace the text with a non-null string; an empty string removes entered text. |
+| `String getPromptText()` | Read the current prompt hint. |
+| `void setPromptText(String text)` | Replace the prompt with a non-null string; this does not change entered text. |
 
 ## zero.ui.Column
 

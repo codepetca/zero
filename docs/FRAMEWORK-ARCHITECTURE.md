@@ -256,11 +256,12 @@ Before implementing Screen/World and navigation, agree and prove these rules:
   mutable animation clocks have a single update owner. Missing resources name the
   component/path. Keep loaders inside the existing browser adapter boundary.
 
-These are future contracts. Current `App.show(Node)` only replaces content and
-does not stop GameApp's timer; the current Actor still requires sprite input and
-`super.update` for animation. Neither behavior is silently changed by this plan.
-Permit procedural/no-image actors when adopting Actor as a World member type so
-students can learn objects with shapes before authoring artwork.
+The full Screen/World/camera contracts above remain proposed. The local
+implementation already suspends gameplay callbacks and input when App.show
+replaces the gameplay view; showGame restores it. Actor(double, double) already
+supports procedural drawing with no sprite. Actor animation still requires
+super.update(seconds) in an override; the final update entry/behaviour hook and
+replaceable playback contract have not yet been implemented.
 
 ## ZeroHub is the extension and learning path
 
@@ -407,51 +408,61 @@ Old versions and exact pins remain unchanged. Users deliberately migrate with a
 documented new core/library release; no automatic updates or silent substitution.
 The public API, app guide, website reference and coverage checks change together.
 
-## Bounded delivery and acceptance
+## Phased delivery and acceptance
 
-1. **Document and review the direction.** Adopt this goal/plan, review it with
-   Astra, resolve material findings and record what remains a proposal. This step
-   changes documentation only; it authorizes no runtime implementation/publication.
-2. **Design the smallest contracts with three examples.** Coin collector;
-   scrolling enemy game with title/pause/results; simulation/control panel plus a
-   nonanimated App consumer. Compare handwritten ordinary Java with the helper
-   structure. Prove Zero-only imports for normal UI, drawing, input and assets.
-   Keep a first game in Main without mandatory Screen/World, and keep Main's
-   update/draw as it grows. Demonstrate two level/controller swaps, UI navigation
-   suspension/resume and a live control panel that does not suspend gameplay.
-   Finalize lifecycle/input/resource ownership before freezing APIs.
-3. **Prove extension and replacement.** Implement a steering contribution, default
-   and alternative animation playback, and a default/alternative game container.
-   Import them into consumers without core edits. Demonstrate independent clocks,
-   procedural actors, safe add/remove, camera inverse input and two restart cycles.
-4. **Prove actual component distribution.** Reuse one unchanged UI/helper source
-   in an App and GameApp. Exercise managed local source and exact-version pinned
-   source-library export, core requirements, resources and namespace binding.
-   Native JAR or resolver-only tests do not satisfy the browser consumer proof.
-5. **Prove browser delivery.** Run the exact supported semantic profile, pinned
-   WebFX build and browser behaviour checks throughout the feature increments.
-   Per-signature evidence, error-injection fixtures and truthful local run status
-   follow the reliability plan; optional PostHog/Clarity collection cannot replace
-   these gates. A separately authorized acceptance publishes the candidate to a student-owned
-   project Pages URL, verifies the source/run marker, and plays it unauthenticated
-   under `/<repository>/`, including refresh, assets, input, audio gestures,
-   pause/restart and a retained previous site after a failed update. Existing
-   Sky Hop Pages evidence does not prove new contracts. Broader browser/device
-   claims require their own evidence; first acceptance stays honestly scoped.
-   Include the project-owned clone/build/rehost/optional-upgrade checks above.
-   Offline restore is additional acceptance only when offering a full backup;
-   source/pins alone do not prove indefinite rebuilding.
-6. **Test the learning loop.** A novice can explain the Java, add an enemy, swap
-   animation, import an asset, extract/use a component, diagnose one unsupported
-   browser call and propose an improvement. Measure explanation quality and errors,
-   not just successful builds or speed. Exercise a documented core-adoption
-   proposal without silently changing existing library consumers.
+Owner authorization, 2026-10-23: prepare the implementation plan, establish the
+phased goal and orchestrate the work in this chat. This section is the single
+execution roadmap; the model/reliability documents supply detailed contracts.
+It supersedes the earlier documentation-only delivery sequence. Local source,
+tests, examples and independent review are authorized. Push, PR publication,
+merge, deployment, releases, account changes and external telemetry activation
+remain separate owner decisions. Do not repeat the completed stress benchmarks.
 
-The first UI slice above begins steps 2, 4 and 5; the remaining examples,
-replacement/distribution checks and steps 3–6 are still acceptance work. Hosted
-publication/release keeps its separate approval and checker gates.
-Do not expand into general ECS, a second scene graph/editor, automatic physics,
-serialization or runtime plugin discovery to prove these small use cases.
+The coordinator tracks current assignments, revisions and evidence in
+[.ai/CURRENT.md](../.ai/CURRENT.md). Each slice needs proportionate independent
+review and useful native plus pinned WebFX/browser behavior evidence for changed
+public capabilities. Student API, app guide and website reference/tests change
+with APIs; locally verified documentation is not a published website. Reuse valid
+unchanged checks. Future phases start only when their dependencies are ready.
+
+| Phase | Outcome and exit criteria | Initial state |
+| --- | --- | --- |
+| 0. Working baseline | Recover accepted App/GameApp/Actor/UI prototypes, source/export ownership and verification. Keep Main's explicit update/draw; one gameplay loop and no GameScreen. | Accepted locally: counter, structured/beginner Coin Quest and stress proof; prior native/browser receipts retained. |
+| 1. Make the student path Zero-first | Move maintained Greeting, Study and Coin teaching projects to Zero packages for normal UI/input/drawing/assets. Keep classes and callbacks ordinary Java. Add only controls needed by those lessons. Add a small simulation with live controls; preserve beginner Main/HUD and optional extraction. | Active. Slice 1A: starter and Greeting lessons 0–2, using Label/Button/Column plus the missing TextField. Then Study, Coin and simulation slices. |
+| 2. Prove student extension and sharing | Demonstrate an ordinary steering helper, interchangeable UI component, default/alternative animation and container through public consumers without core edits. Share immutable data but independent mutable clocks, with one explicit update owner. Prove the same component through managed local and exact-version library consumption in App and GameApp, natively and in the browser. | Planned after the teaching consumers are ready. Begin with a tiny student-owned ScoreView contract; then AnimationSource/AnimationPlayback. Add World/Screen/camera only for demonstrated examples, not as a prerequisite. Hosted acceptance remains gated. |
+| 3. Make projects self-contained and upgrades optional | Record exact framework/library/toolchain inputs and retain the complete reviewed browser-builder dependency closure with the project. Opening in a newer editor changes none of them. Explicit trusted build actions use project-owned tooling; missing tools get useful unavailable status. Upgrade a copy/branch deliberately and reversibly. Clone/build/rehost a representative older project and saved static export with no central Zero kit service. | Planned. Fix the existing automatic helper migration during Publish; hashes alone never authorize arbitrary project code execution. No required historical-kit database, all-version CI or old-maintenance branches. Full offline backup remains optional. |
+| 4. Catch failures during development | Complete exact-signature executed-evidence coverage; debounced saved-source browser compatibility, truthful native/managed-preview lifecycle and source-linked errors. Inject unsupported API, compiler, asset, startup, frame/UI/promise and stale-message failures; preserve the last good export. Native Run stays fast and usable offline. | Planned, with meaningful exact-signature evidence recorded from slice 1A onward. PostHog is an optional sanitized sink evaluated after local gates; Clarity is a possible website usability supplement. Neither is injected or activated by this plan. |
+| 5. Finish the student/contributor journey | Exercise create → code → native play → fix error → Git progress → browser export/preview and exact library reuse; keep public templates, kit, lessons, API and help coherent. Prepare a release candidate with scoped browser/platform limits and a core-adoption example retaining attribution. | Planned. Public template updates, authenticated Pages publication, hosted checker activation, signed releases and a teacher/novice pilot require their separately authorized real acceptance; local mocks cannot satisfy them. |
+
+Phase 1A is done when the canonical starter and all three Greeting checkpoints
+use Zero UI imports, the incremental lesson instructions match them, TextField
+text/prompt and button/typing/focus behavior are proved natively and in a real
+WebFX browser, API documentation is complete and independent review is clean.
+Published tutorial-template commit IDs and installed artifacts stay unchanged
+until their authorized publication phase; report this distinction explicitly.
+
+Phase 2 must include two actors sharing frame definitions with independent
+playback, procedural drawing, animation/image swaps, pause/restart and invalid
+component errors. A replacement must work by selecting an implementation or
+ordinary adapter, not rewriting the consumer or editing fingerprinted helpers.
+Containers prove safe add/remove and exactly-once explicit updates. A managed
+library's namespace, exact version, resources and core requirements stay bound
+on native and browser targets. A successful local check does not open the hosted
+checker gate or create an accepted public release.
+
+Phase 3 maintains only the current release line. Before 1.0, minor releases may
+break APIs while patches preserve them; after 1.0, same-major documented APIs
+remain compatible. Existing projects retain exact source/pins and published
+static output. Future rebuilding depends on usable tools and normal dependency
+hosts unless a student deliberately saves an optional full offline bundle.
+
+Final acceptance is evidence of the learning loop: a student can explain their
+Java, add an actor, import an asset, swap animation, extract/reuse a component,
+diagnose one unsupported browser call and propose a core improvement. Record
+what was actually observed; a local component, green compile or HTTP200 does not
+complete publication, physical device or novice acceptance. Do not expand into
+a general ECS, visual editor, automatic physics, serialization or runtime plugin
+discovery to satisfy these bounded use cases.
 
 ## Reference decisions
 

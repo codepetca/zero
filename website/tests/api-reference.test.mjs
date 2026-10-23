@@ -12,7 +12,7 @@ const normalizeSignature = signature => signature.replace(/\b(public|protected|f
 
 test('every class-level public/protected Java declaration has an exact canonical entry', async () => {
   const expected = [];
-  for (const owner of ['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.Button', 'zero.ui.Column']) {
+  for (const owner of ['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.TextField', 'zero.ui.Button', 'zero.ui.Column']) {
     const source = await readFile(new URL(`../../framework/src/main/java/zero/${owner.replace(/^zero\./, '').replaceAll('.', '/')}.java`, import.meta.url), 'utf8');
     for (const match of source.matchAll(/^ {4}public (static final \w+ \w+)\s*=/gm)) {
       expected.push(`${owner}:${normalizeSignature(match[1])}`);
@@ -22,7 +22,7 @@ test('every class-level public/protected Java declaration has an exact canonical
       expected.push(`${owner}:${normalizeSignature(match[1])}`);
     }
   }
-  assert.equal(expected.length, 159);
+  assert.equal(expected.length, 164);
   assert.deepEqual(entries.map(item => `${item.owner}:${normalizeSignature(item.signature)}`).sort(), expected.sort());
   assert.ok(!entries.some(item => item.name === 'handle'));
   assert.equal(JSON.parse(JSON.stringify(categories)).length, 15);
@@ -38,7 +38,7 @@ test('categories and entries have unique anchors, valid relationships and comple
   assert.equal(new Set(ids).size, ids.length);
   for (const item of entries) {
     assert.ok(item.description);
-    assert.ok(['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.Button', 'zero.ui.Column'].includes(item.owner));
+    assert.ok(['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.TextField', 'zero.ui.Button', 'zero.ui.Column'].includes(item.owner));
     for (const parameter of item.parameters) assert.ok(parameter.name && parameter.description);
     for (const target of item.related) assert.ok(entry(target), `${item.id} relates to missing ${target}`);
   }
@@ -77,8 +77,8 @@ test('keeps canonical class defaults, constructors and lifecycle caveats', () =>
 
 test('search handles aliases, case, multiple terms, whitespace and empty results', () => {
   const search = query => searchApiReference(categories, query);
-  assert.equal(search('').length, 159);
-  assert.equal(search(' \n\t ').length, 159);
+  assert.equal(search('').length, 164);
+  assert.equal(search(' \n\t ').length, 164);
   assert.ok(search('KEYBOARD').some(item => item.id === 'keyDown'));
   assert.deepEqual(search('rectangle').slice(0, 2).map(item => item.id), ['rect', 'outlineRect']);
   assert.ok(search('mouse').some(item => item.id === 'mouseDown'));
@@ -181,7 +181,7 @@ test('documents all source-type overloads with unique stable anchors and helper 
 
 
 test('fails closed when any new overload or constructor table row is omitted', () => {
-  for (const item of entries.filter(item => ['ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.Button', 'zero.ui.Column'].includes(item.owner) || /ImageRegion|SpriteAnimation|Pressed|Focused|Centered|Flipped|loadSound|loadMusic/.test(item.signature))) {
+  for (const item of entries.filter(item => ['ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.TextField', 'zero.ui.Button', 'zero.ui.Column'].includes(item.owner) || /ImageRegion|SpriteAnimation|Pressed|Focused|Centered|Flipped|loadSound|loadMusic/.test(item.signature))) {
     const line = markdown.split('\n').find(candidate => candidate.startsWith(`| \`${item.signature}\``));
     assert.ok(line, item.signature);
     assert.throws(() => buildApiReference(markdown.replace(line + '\n', '')), /Incomplete API reference/, item.signature);
@@ -247,7 +247,7 @@ test('Actor has exact overload anchors, explicit lifecycle examples and movement
 
 
 test('Zero UI and colour slice covers qualified owners, fields, overloads and inherited bridge', async () => {
-  assert.equal(category('components').entries.length, 13);
+  assert.equal(category('components').entries.length, 18);
   assert.equal(category('colors').entries.length, 5);
   for (const name of ['WHITE', 'BLACK', 'BLUE', 'GOLD']) {
     assert.equal(entry(`color-${name}`).kind, 'field');
@@ -338,4 +338,15 @@ test('scoped Actor drawing covers callback, compatibility overload and protected
   assert.match(guide, /circle\(0, 0, width\(\)\)/);
   assert.match(guide, /draw\(coin\)/);
   assert.match(guide, /does not automatically scale custom/);
+});
+
+test('TextField exposes exactly the greeting API with prompt and current text examples', () => {
+  const fields = entries.filter(item => item.owner === 'zero.ui.TextField');
+  assert.deepEqual(fields.map(item => item.name), ['TextField', 'getText', 'setText', 'getPromptText', 'setPromptText']);
+  assert.equal(entry('ui-textfield-constructor').signature, 'TextField()');
+  assert.match(entry('ui-textfield-getText').description, /typed by the user/);
+  assert.match(entry('ui-textfield-setPromptText').description, /does not change entered text/);
+  assert.equal(entry('ui-textfield-setPromptText').example, 'textfield.setPromptText("Your name");');
+  assert.ok(searchApiReference(categories, 'typing greeting').some(item => item.id === 'ui-textfield-constructor'));
+  assert.match(category('components').notes, /Both setters reject null/);
 });
