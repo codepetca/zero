@@ -28,19 +28,26 @@ public class Main extends GameApp {
         medium.onClick(() -> selectCount(250));
         Button large = new Button("500 actors");
         large.onClick(() -> selectCount(500));
+        Button thousand = new Button("1000 actors");
+        thousand.onClick(() -> selectCount(1000));
+        Button twoThousand = new Button("2000 actors");
+        twoThousand.onClick(() -> selectCount(2000));
+        Button fiveThousand = new Button("5000 actors");
+        fiveThousand.onClick(() -> selectCount(5000));
 
         controls(new Column(6,
                 new Label("ACTOR STRESS TEST — choose a workload"),
                 countLabel, fpsLabel, frameLabel,
                 new Label("32 × 32 sprites, four frames at 8 animation fps; every actor moves and rotates."),
                 new Label("FPS measures completed game frames. Higher FPS and lower frame time are smoother."),
-                small, medium, large));
+                small, medium, large, thousand, twoThousand, fiveThousand));
         selectCount(100);
     }
 
     public void selectCount(int count) {
-        if (count != 100 && count != 250 && count != 500) {
-            throw new IllegalArgumentException("Choose 100, 250 or 500 actors.");
+        if (count != 100 && count != 250 && count != 500
+                && count != 1000 && count != 2000 && count != 5000) {
+            throw new IllegalArgumentException("Choose 100, 250, 500, 1000, 2000 or 5000 actors.");
         }
         actors = new StressActor[count];
         for (int i = 0; i < count; i++) {

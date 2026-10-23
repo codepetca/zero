@@ -12,14 +12,22 @@ const {exportForWeb}=require('../extension/src/web-export');
 const {createWebPreview}=require('../extension/src/web-preview');
 const {validateExport}=require('../extension/src/web-export/snapshot');
 const cacheRoot=process.env.ZERO_STRESS_CACHE_ROOT||path.join(root,'.verification/web-export-checks/cache');
-const output=path.join(root,'.verification/actor-stress-web');
-const project=path.join(root,'.verification/ui-prototypes/actor-stress');
+const args=process.argv.slice(2);
+const large=args.includes('--large');
+const counts=large?[1000,2000,5000]:[100,250,500];
+const output=path.join(root,large?'.verification/actor-stress-web-large':'.verification/actor-stress-web');
+const assembledProject=path.join(root,'.verification/ui-prototypes/actor-stress');
+// A large export owns a separate build tree, preserving the original small preview bytes.
+const project=large?path.join(output,'project'):assembledProject;
 const sha=value=>crypto.createHash('sha256').update(value).digest('hex');
 await fs.mkdir(output,{recursive:true});
-const args=process.argv.slice(2);
-if(args.some(arg=>!['--build','--measure'].includes(arg)))throw Error('Usage: node scripts/verify-actor-stress.mjs [--build] [--measure]. Run measurement only in an agreed quiet window.');
+if(args.some(arg=>!['--build','--measure','--large'].includes(arg)))throw Error('Usage: node scripts/verify-actor-stress.mjs [--build] [--measure] [--large]. Run measurement only in an agreed quiet window.');
 const started=Date.now();
 if(!args.includes('--measure')||args.includes('--build')){
+ if(large){
+  await fs.rm(project,{recursive:true,force:true});
+  await fs.cp(assembledProject,project,{recursive:true,filter:source=>!path.relative(assembledProject,source).split(path.sep).some(part=>['.zero','.git','target'].includes(part))});
+ }
  const build=await exportForWeb({projectRoot:project,cacheRoot,onProgress:console.log});
  const studentSourceHashes=Object.fromEntries(await Promise.all(['Main.java','StressActor.java'].map(async name=>[name,sha(await fs.readFile(path.join(project,'src/main/java',name)))])));
  await fs.writeFile(path.join(output,'build.json'),JSON.stringify({...build,studentSourceHashes,elapsedSeconds:(Date.now()-started)/1000},null,2)+'\n');
@@ -66,11 +74,12 @@ try{
  await page.getByRole('button',{name:/^100(?: actors)?$/i}).waitFor();
  const environment=await page.evaluate(()=>({userAgent:navigator.userAgent,devicePixelRatio,hardwareConcurrency:navigator.hardwareConcurrency,visibility:document.visibilityState,focused:document.hasFocus(),viewport:{width:innerWidth,height:innerHeight}}));
  if(environment.devicePixelRatio!==1||environment.visibility!=='visible'||!environment.focused)throw Error('Benchmark requires DPR1, visible focused page: '+JSON.stringify(environment));
+ const counts=COUNTS_PLACEHOLDER;
  const functional=[];
- for(const count of [100,250,500]){
+ for(const count of counts){
   await page.getByRole('button',{name:new RegExp('^'+count+'(?: actors)?$','i')}).click();
   await page.evaluate(()=>{window.__stressFunctional.frames=[];window.__stressFunctional.crops=[];});
-  await page.waitForTimeout(1600);
+  await page.waitForFunction(() => {const s=window.__stressFunctional;return s.frames.length>=12&&new Set(s.crops.map(c=>JSON.stringify(c))).size===4&&/FPS:\s*[0-9.]+/.test(document.body.innerText);},null,{timeout:60000});
   const sample=await page.evaluate(()=>({frames:window.__stressFunctional.frames,crops:window.__stressFunctional.crops,text:document.body.innerText}));
   const frames=sample.frames.slice(2);
   const crops=[...new Set(sample.crops.map(c=>JSON.stringify(c)))];
@@ -78,7 +87,7 @@ try{
   if(crops.length!==4)throw Error('Expected four sprite source rectangles, got '+JSON.stringify(crops));
   const fps=sample.text.match(/FPS:\s*([0-9.]+)/i);
   if(!await page.locator('fx-text:not([aria-hidden="true"])').filter({hasText:new RegExp('^Actors: '+count+'$')}).isVisible()||!await page.locator('fx-text:not([aria-hidden="true"])').filter({hasText:/^FPS: [0-9.]+$/}).isVisible())throw Error('Workload/FPS HUD is not visible');
-  if(!fps||Number(fps[1])<=0)throw Error('Nonzero wall-clock FPS missing: '+sample.text);
+  if(!fps||!Number.isFinite(Number(fps[1])))throw Error('Numeric wall-clock FPS missing: '+sample.text);
   functional.push({count,actualDrawFrames:frames.length,drawsPerFrame:count,crops: crops.map(JSON.parse),uiText:sample.text});
  }
  await page.evaluate(()=>window.__restoreStressFunctional());
@@ -91,22 +100,22 @@ try{
   window.__stopStressSamples=()=>{cancelAnimationFrame(id);prototype.clearRect=clear;};
  });
  const runs=[];
- for(const [index,count] of [100,250,500,500,250,100].entries()){
+ for(const [index,count] of [...counts,...[...counts].reverse()].entries()){
   await page.getByRole('button',{name:new RegExp('^'+count+'(?: actors)?$','i')}).click();
   await page.waitForTimeout(3000);
   await page.evaluate(()=>{window.__stressSamples.draw=[];window.__stressSamples.raf=[];window.__stressSamples.record=true;window.__stressSamples.started=performance.now();});
   await page.waitForTimeout(10000);
   const sample=await page.evaluate(()=>{const s=window.__stressSamples;s.record=false;return{draw:s.draw,raf:s.raf,elapsed:performance.now()-s.started,text:document.body.innerText,visibility:document.visibilityState,focused:document.hasFocus()};});
   if(sample.visibility!=='visible'||!sample.focused)throw Error('Measurement lost foreground visibility/focus');
-  function stats(times){const intervals=times.slice(1).map((t,i)=>t-times[i]),sorted=[...intervals].sort((a,b)=>a-b);const p=q=>sorted[Math.min(sorted.length-1,Math.floor((sorted.length-1)*q))];return{frames:times.length,averageFps:intervals.length*1000/(times.at(-1)-times[0]),p50Ms:p(.5),p95Ms:p(.95),maxMs:Math.max(...intervals),gapsOver33_3Ms:intervals.filter(n=>n>33.3).length,intervalsMs:intervals,timestampsMs:times};}
+  function stats(times){const intervals=times.slice(1).map((t,i)=>t-times[i]),sorted=[...intervals].sort((a,b)=>a-b);const p=q=>sorted.length?sorted[Math.min(sorted.length-1,Math.floor((sorted.length-1)*q))]:null;return{frames:times.length,averageFps:intervals.length?intervals.length*1000/(times.at(-1)-times[0]):times.length*1000/sample.elapsed,p50Ms:p(.5),p95Ms:p(.95),maxMs:intervals.length?Math.max(...intervals):null,gapsOver33_3Ms:intervals.filter(n=>n>33.3).length,intervalsMs:intervals,timestampsMs:times};}
   const draw=stats(sample.draw),raf=stats(sample.raf),uiFps=Number(sample.text.match(/FPS:\s*([0-9.]+)/i)?.[1]);
-  if(!Number.isFinite(draw.averageFps)||!uiFps||Math.abs(uiFps-draw.averageFps)>Math.max(12,draw.averageFps*.3))throw Error('UI wall-clock FPS inconsistent with actual draw rate: '+JSON.stringify({uiFps,draw}));
+  if(!Number.isFinite(draw.averageFps)||!Number.isFinite(uiFps)||(uiFps===0&&draw.averageFps>=.5)||Math.abs(uiFps-draw.averageFps)>Math.max(12,draw.averageFps*.3))throw Error('UI wall-clock FPS inconsistent with actual draw rate: '+JSON.stringify({uiFps,draw}));
   runs.push({pass:index<3?'ascending':'descending',count,warmupMs:3000,requestedMeasurementMs:10000,elapsedMs:sample.elapsed,draw,raf,uiFps,uiText:sample.text});
  }
  await page.evaluate(()=>window.__stopStressSamples());
  if(errors.length)throw Error('Browser runtime errors: '+JSON.stringify(errors));
  return{status:'passed',environment,functional,runs,errors};
-}`.replace('URL_PLACEHOLDER',JSON.stringify(preview.url));
+}`.replace('URL_PLACEHOLDER',JSON.stringify(preview.url)).replace('COUNTS_PLACEHOLDER',JSON.stringify(counts));
  const scriptPath=path.join(output,'browser-probe.js');await fs.writeFile(scriptPath,script);
  await command(['open',preview.url,'--browser','chrome']);
  const raw=await command(['run-code','--filename',scriptPath]);await fs.writeFile(path.join(output,'browser.log'),raw);
@@ -114,6 +123,6 @@ try{
  const result=JSON.parse(raw.slice(raw.indexOf('### Result\n')+11).split('\n')[0]);
  await fs.writeFile(path.join(output,'samples.json'),JSON.stringify(result,null,2)+'\n');
  const files=['scripts/verify-actor-stress.mjs','extension/src/web-export/compatibility/contract.json','extension/test/web-export-compatibility.test.js','framework/prototypes/actor-stress/Main.java','framework/prototypes/actor-stress/StressActor.java','framework/prototypes/actor-stress/stress-sprites.png'];
- const receipt={completedAt:new Date().toISOString(),actualPinnedBuilds:1,buildId:build.buildId,sourceHash:build.sourceHash,profileHash:build.profileHash,compatibility:build.compatibility,hashes:Object.fromEntries(await Promise.all(files.map(async file=>[file,sha(await fs.readFile(path.join(root,file)))]))),environment:result.environment,functional:result.functional,runs:result.runs.map(({draw,raf,...rest})=>({...rest,draw:Object.fromEntries(Object.entries(draw).filter(([k])=>!['timestampsMs','intervalsMs'].includes(k))),raf:Object.fromEntries(Object.entries(raf).filter(([k])=>!['timestampsMs','intervalsMs'].includes(k)))})),method:'Headless Chrome; no CPU throttle/artificial lag. Six serial passes 100/250/500 then500/250/100; each3s warmup+10s measurement. Separate per-image functional hooks restored before timing. One lightweight clearRect timestamp per GameApp draw plus rAF cadence; raw samples in samples.json. UI FPS compared with measured draw FPS using max12FPS/30percent tolerance.',interpretation:'Local headless benchmark only; no school hardware performance claim. No failure threshold found if500 remains smooth.',cleanup:'Own browser session and preview disposed in finally.',limits:['One browser/device configuration; no physical school hardware','No concurrent build/test/native work permitted during measurement; coordination is external','No telemetry, installs, publication or remote writes']};
+ const receipt={completedAt:new Date().toISOString(),actualPinnedBuilds:1,buildId:build.buildId,sourceHash:build.sourceHash,profileHash:build.profileHash,compatibility:build.compatibility,hashes:Object.fromEntries(await Promise.all(files.map(async file=>[file,sha(await fs.readFile(path.join(root,file)))]))),environment:result.environment,functional:result.functional,runs:result.runs.map(({draw,raf,...rest})=>({...rest,draw:Object.fromEntries(Object.entries(draw).filter(([k])=>!['timestampsMs','intervalsMs'].includes(k))),raf:Object.fromEntries(Object.entries(raf).filter(([k])=>!['timestampsMs','intervalsMs'].includes(k)))})),workloadCounts:counts,method:'Headless Chrome; no CPU throttle/artificial lag. Six serial ascending/descending passes at workloadCounts; each3s warmup+10s measurement. Separate per-image functional hooks restored before timing. One lightweight clearRect timestamp per GameApp draw plus rAF cadence; raw samples in samples.json. UI FPS compared with measured draw FPS using max12FPS/30percent tolerance.',interpretation:'Local headless benchmark only; no school hardware performance claim. LowFPS is a measurement, not a functional failure; report the observed range without school hardware claims.',cleanup:'Own browser session and preview disposed in finally.',limits:['One browser/device configuration; no physical school hardware','No concurrent build/test/native work permitted during measurement; coordination is external','No telemetry, installs, publication or remote writes']};
  await fs.writeFile(path.join(output,'receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({status:result.status,buildId:build.buildId,runs:receipt.runs.map(r=>({count:r.count,pass:r.pass,fps:r.draw.averageFps,p95Ms:r.draw.p95Ms}))}));
 }finally{try{await command(['close']);}finally{preview.dispose();}}

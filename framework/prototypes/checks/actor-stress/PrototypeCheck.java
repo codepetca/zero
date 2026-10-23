@@ -9,7 +9,7 @@ import javafx.stage.Stage;
 
 /** Functional native acceptance; browser timing is measured separately. */
 public final class PrototypeCheck extends Application {
-    private final int[] counts = {100, 250, 500};
+    private final int[] counts = {100, 250, 500, 1000, 2000, 5000};
     private int step;
     private int frames;
 
@@ -40,7 +40,7 @@ public final class PrototypeCheck extends Application {
                         if (step == counts.length) {
                             require(frames > 10, "real frames ran");
                             stop(); app.stop(); stage.close(); Platform.exit();
-                            System.out.println("ZERO_ACTOR_STRESS_OK 100/250/500 controls, actual moving actors, live FPS/frame time; frames=" + frames);
+                            System.out.println("ZERO_ACTOR_STRESS_OK 100/250/500/1000/2000/5000 controls, actual moving actors, live FPS/frame time; frames=" + frames);
                         } else {
                             Button button = button(root, counts[step] + " actors");
                             require(button != null, "workload button exists"); button.fire();
