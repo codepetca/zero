@@ -80,6 +80,9 @@ public final class Main extends GameApp {
                 && name.getPromptText().equals("Your name"), "TextField errors preserve values");
         name.setText("");
         Label greeting = new Label("TextField checks ready");
+        Button disabled = new Button("Disabled greeting action");
+        disabled.fxNode().setDisable(true);
+        disabled.onClick(() -> { throw new IllegalStateException("Disabled button must be skipped"); });
         Button greet = new Button("Greet probe");
         greet.onClick(() -> greeting.setText("Hello, " + name.getText() + "!"));
         Button play = new Button("Play probe");
@@ -91,7 +94,7 @@ public final class Main extends GameApp {
             expectZero = true;
             showGame();
         });
-        show(new Column(new Label("Probe title"), name, greet, greeting, play));
+        show(new Column(new Label("Probe title"), name, disabled, greet, greeting, play));
     }
     private void showMenu() {
         Button back = new Button("Return to probe game");

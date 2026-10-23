@@ -43,6 +43,22 @@ test('current canonical helper fingerprints require a reviewed adapter update af
   assert.throws(() => adaptSources({ sources }), /helper differs from the reviewed browser adapter/);
 });
 
+test('the reviewed App overlay installs scene-local Tab traversal for App and GameApp exports', () => {
+  const originals = { ...helpers(), 'Main.java': app };
+  const result = adaptSources({ sources: originals });
+  assert.equal((result.sources['zero/App.java'].match(/BrowserUiFocus.install\(scene\)/g) || []).length, 1);
+  assert.match(result.sources['zero/App.java'], /stage.setScene\(scene\); zero.web.BrowserUiFocus.install\(scene\);/);
+  assert.doesNotMatch(originals['zero/App.java'], /BrowserUiFocus/);
+  assert.doesNotMatch(result.sources['zero/GameApp.java'], /BrowserUiFocus.install/);
+  const runtime = result.sources['zero/web/BrowserUiFocus.java'];
+  assert.match(runtime, /scene.getProperties\(\).containsKey\(INSTALLED\)/);
+  assert.match(runtime, /scene.addEventFilter\(KeyEvent.KEY_PRESSED/);
+  assert.match(runtime, /event.isConsumed\(\).*event.getCode\(\) != KeyCode.TAB/);
+  for (const modifier of ['Control', 'Alt', 'Meta']) assert.ok(runtime.includes(`event.is${modifier}Down()`));
+  assert.match(runtime, /event.isShiftDown\(\) \? Direction.PREVIOUS : Direction.NEXT, TraversalMethod.KEY/);
+  assert.doesNotMatch(runtime, /impl_traverse|DomGlobal|schedule|KeyCode\.(LEFT|RIGHT|UP|DOWN)/);
+});
+
 test('lexical rewrites preserve literals/comments and bridge only code resource and canvas calls', () => {
   const source = `import zero.GameApp;\nimport java.net.URL;\nimport javafx.scene.media.MediaPlayer;\npublic class Main extends GameApp {\n    String example = "Main.class.getResource(\\\"/foo\\\") canvas().setAccessibleText(";\n    // Main.class.getResource("comment") canvas().setAccessibleText("comment");\n    public void setup() { URL file = Main.class.getResource("/audio/loop.wav"); canvas().setAccessibleText("Space or click"); }\n}\n`;
   const result = adaptSources({ sources: { 'Main.java': source }, resourcePaths: ['audio/loop.wav'] });

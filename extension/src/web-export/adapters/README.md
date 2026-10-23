@@ -29,6 +29,16 @@ if requestAnimationFrame was suspended. Canvas accessible text becomes a browser
 ARIA label. The exact reviewed GameApp text-size adapter supplies a sans-serif
 family so pinned WebFX emits valid canvas CSS fonts and honors the requested size.
 
+The App overlay installs one scene-local `BrowserUiFocus` filter for plain Tab
+and Shift+Tab. The pinned WebFX keyboard handler calls the legacy
+`Node.impl_traverse` stub, which always returns false. The filter instead uses
+the existing scene traversal engine through `Node.traverse` with the KEY method.
+It consumes only successful traversal, leaves other keys/modifiers alone and
+uses the engine's enabled/visible focus rules without rewriting DOM tab order.
+Native helpers and the public student API are unchanged. Browser acceptance
+checks forward/backward traversal, disabled-button skipping and Space activation
+in addition to typed text and prompt restoration after blur.
+
 The audio bridge implements the JavaFX Media/MediaPlayer/AudioClip calls used by
 the unchanged reviewed `zero.Sound` and `zero.Music` helpers. It uses browser audio elements,
 retains pause/reset/mute/loop/error/close behavior, pauses immediately on window

@@ -46,6 +46,7 @@ function overlay(file, source) {
     source = source.replaceAll('URL resource', 'ResourceURL resource').replace('private URL audioResource', 'private ResourceURL audioResource');
     source = source.replace('getClass().getResource(resourcePath)', 'zero.web.Resources.get(getClass(), resourcePath)');
     source = source.replaceAll('        Sound.requireThread();', '        Sound.requireThread(); zero.web.BrowserLifecycle.own(this, this::stop);');
+    source = source.replace('            stage.setScene(scene);', '            stage.setScene(scene); zero.web.BrowserUiFocus.install(scene);');
     source = source.replace('        Throwable failure = null;', '        zero.web.BrowserLifecycle.release(this); Throwable failure = null;');
     const key = source.indexOf('    private static String audioResourceKey(');
     return source.slice(0, key) + '    private static String audioResourceKey(ResourceURL resource) { return resource.toExternalForm(); }\n}\n';

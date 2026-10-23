@@ -427,9 +427,15 @@ async (page) => {
   await visibleText('TextField checks ready').waitFor();
   const zeroName = page.locator('input[type="text"]');
   check(await zeroName.inputValue() === '', 'Zero TextField constructor, prompt and setter/error checks pass');
+  await zeroName.click();
   await zeroName.press('Tab');
   await page.getByPlaceholder('Your name', {exact:true}).waitFor();
   check(true, 'An empty unfocused Zero TextField displays its prompt');
+  await page.waitForFunction(() => document.activeElement?.getAttribute('role') === 'button' && document.activeElement?.textContent?.includes('Greet probe'));
+  check(true, 'Tab skips the disabled button and focuses the next enabled Zero button');
+  await page.keyboard.press('Shift+Tab');
+  await page.waitForFunction(() => document.activeElement?.matches('input[type="text"]'));
+  check(true, 'Shift+Tab skips the disabled button and returns to the Zero text field');
   await zeroName.click();
   await zeroName.pressSequentially('Sam');
   check(await zeroName.inputValue() === 'Sam', 'Typing edits the Zero TextField');
