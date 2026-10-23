@@ -1,19 +1,24 @@
-# Sign-in verification and Mac0.5.47 release — 2026-10-22
+# Direct GitHub sign-in — Mac0.5.47 publication, 2026-10-22
 
-Owner authorized testing Zero Dev sign-in, then releasing the update when it works.
-Native acceptance passed: first prompt was Connect Zero to GitHub/device code,
-without the redundant VS Code session-sharing dialog. After a deliberate cancel,
-retry completed GitHub authorization as armorup; Start tutorial enabled. The saved
-account persisted across Developer: Reload Window. No repository was published.
+Owner authorized native Dev sign-in testing and release after success. Native
+acceptance passed the direct device-code prompt without extra host confirmation,
+cancel/retry, human GitHub authorization as armorup and persisted account after
+reload. Auth PR176 merged3589903d after11CI checks and two clean reviews.
 
-PR176 merged3589903def589af7ec083c10c847f8da075e88a7 after11CI checks and two
-independent authentication reviews passed. Release0.5.47/build47 is prepared from
-that clean main source in zero-sign-in-release. Keep core0.2.1, prior immutable
-assets, published-kit17, Windows21 and the current signed Mac46 feed unchanged
-until exact new native bytes are verified. Publish one Mac DMG; no separate kit
-publication is requested. Review source/candidate, pass exact-head CI, then promote
-verified download/feed metadata and verify live bytes before claiming delivery.
+Signed/notarized/stapled Mac0.5.47 is public at
+https://github.com/codepetca/zero/releases/tag/setup-v0.5.47.
+Anonymous DMG size/SHA256 matches the reviewed sealed candidate. Source/version
+PR177 merged3d506bae after11checks. Clean built sourcefc0b8bf1; preparation7c08bcd9;
+separate source and candidate reviews clean. One installer build only. Installer
+snapshot and exact signed feed47 reflect those immutable bytes. Integration must
+pass exact-head CI, then verify deployed feed/download bytes before delivery is
+claimed; current external PR/CI/live verdict is in .verification/release47/progress.json.
+Website promotion also pins Next16.4.2 after the existing16.4.0 production build
+reported security advisories. Patched production audit reports0vulnerabilities;
+website typecheck,162tests and production build pass. Native bytes are unchanged.
+No installed-Zero update or fresh-machine/physical Intel/Windows trial was done.
+Prior immutable assets, kit17 and Windows21 are retained; no separate kit release.
 
-Preserve the tutorial-padding Dev checkout/profile/scratch game/watcher: it has
-other uncommitted UI work that is excluded from this release. Preserve unrelated
-primary funding work. See docs/EVIDENCE.md and ignored .verification/release47/.
+Preserve tutorial-padding Dev checkout/profile/scratch/watcher and its unrelated
+uncommitted Explorer/Start Page work, plus primary funding work. Release candidate
+and receipts must be retained before archiving the clean release worktree.

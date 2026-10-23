@@ -18,6 +18,40 @@ new signed/notarized Mac DMG. Candidate/source/CI/public download/live feed proo
 will be recorded in ignored .verification/release47/progress.json. Preparation
 alone does not establish publication, installation or update acceptance.
 
+Source/version review atfc0b8bf1 completed clean. Configuration,17release/update
+checks (2conditional skips),17installer contracts, packaging/extracted Maven and
+signed installer verification passed. One clean signed build fromfc0b8bf1 was
+accepted by Apple submission6d8ef1c8-fc3e-4003-9351-7e107643eb38, stapled and
+accepted by DMG/app Gatekeeper. The final post-stapling measurement is recorded
+in the local installer manifest and immutable candidate receipts; the previous
+published46 snapshot/feed remains unchanged at this preparation phase.
+
+Mac0.5.47 published at https://github.com/codepetca/zero/releases/tag/setup-v0.5.47
+with exactly one DMG targeting preparation7c08bcd971e6511d2c084ec185c117f10c45f36d.
+Source PR177 merged3d506bae5dd3baadcdb7c6295a71eb9aefc6747d after all11checks;
+one Linux attempt was cancelled during slow system-package downloads, then the
+fresh-runner retry passed unchanged source. Candidate review completed clean:
+13checksums, protected-source equivalence, exact sealed-vs-dist bytes, appcast/
+DMG Ed25519 signatures, build46→47 and sealed auth ancestry independently checked.
+DMG4612290bytes, SHA256f0a7217e1e01fbcff3ad3edb6545bb572ef23c23587a8690ab02df85cd4a1945.
+AppcastSHA2562f4bac1d98f3fb3afb2a89204d6a89f6bc0f07c551f1da3c1839791cf6231ade.
+Downloaded draft and anonymous public bytes match the sealed candidate. Promotion
+uses only verified installer URL/status, its published snapshot, exact sealed XML
+and sealed feed metadata with publication.status changed to published. Keep the
+sealed bytes immutable. Exact-head promotion CI and deployed feed/anchor/download
+verification remain required; their current external receipts are retained in
+ignored .verification/release47/progress.json. There was no new native build or
+installed-Zero update during promotion. Source and candidate reviews requested
+GPT-6.1 Sol/medium; effective configuration/tokens/elapsed review time unavailable.
+
+Website promotion hit Next16.4.0 SecurityFatalError after compilation. npm audit
+confirmed GHSA-2464-fhr4-w9xw, GHSA-673q-mjm6-r5xr and GHSA-p3m5-59mp-jv5r;
+official GitHub advisories identify patched16.4.1+. The website alone is pinned
+to16.4.2 with its matching lockfile, retaining React and other authored pins.
+Production audit now reports0vulnerabilities; typecheck,162website tests and
+production build passed. This dependency change does not alter the signed Mac
+candidate or protected native source. No build-warning bypass was introduced.
+
 ## Direct Zero GitHub sign-in — 2026-10-22
 
 Owner requested removal of VS Code's extra request for Zero to access its own
