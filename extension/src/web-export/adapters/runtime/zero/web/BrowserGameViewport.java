@@ -25,6 +25,7 @@ import jsinterop.base.Js;
 public final class BrowserGameViewport {
     private final BorderPane content;
     private final Canvas canvas;
+    private final javafx.scene.Node gameContent;
     private final Runnable clearInput;
     private final Scene scene;
     private double fittedScale = 1;
@@ -42,9 +43,10 @@ public final class BrowserGameViewport {
     private int activePointer = -1;
     private boolean installed, closed, releasing;
 
-    public BrowserGameViewport(BorderPane content, Canvas canvas, Runnable clearInput) {
+    public BrowserGameViewport(BorderPane content, Canvas canvas, javafx.scene.Node gameContent, Runnable clearInput) {
         this.content = content;
         this.canvas = canvas;
+        this.gameContent = gameContent;
         this.clearInput = clearInput;
         // setup has added padding and controls, but unattached WebFX controls can
         // still report their fallback skin size. This is an initial scene estimate;
@@ -115,11 +117,19 @@ public final class BrowserGameViewport {
     }
 
     private void measureContent() {
-        invalidateMeasurements(content);
-        logicalWidth = Math.max(1, content.prefWidth(-1));
-        logicalHeight = Math.max(1, content.prefHeight(logicalWidth));
-        content.resize(logicalWidth, logicalHeight);
-        content.layout();
+        // Titles and menus share the retained game viewport. Measure the game
+        // and HUD without navigating or running lifecycle callbacks.
+        javafx.scene.Node selected = content.getCenter();
+        try {
+            content.setCenter(gameContent);
+            invalidateMeasurements(content);
+            logicalWidth = Math.max(1, content.prefWidth(-1));
+            logicalHeight = Math.max(1, content.prefHeight(logicalWidth));
+            content.resize(logicalWidth, logicalHeight);
+            content.layout();
+        } finally {
+            content.setCenter(selected);
+        }
     }
 
     private static void invalidateMeasurements(Parent parent) {

@@ -142,7 +142,7 @@ that Main also updates independently. No field scanning or automatic registratio
 
 | Package/type | Relationship and role | Status |
 | --- | --- | --- |
-| `zero.App`, `zero.GameApp` | Inheritance above; GameApp owns the only game loop | Exist, with unreleased show(Element)/controls(Element); navigation remains proposed |
+| `zero.App`, `zero.GameApp` | Inheritance above; GameApp owns the only game loop | Unreleased show(Element)/controls(Element), showGame/pause/resume/isPaused and deferred in-frame navigation implemented; Screen lifecycle remains proposed |
 | `zero.Screen` | Optional UI lifecycle; no update/draw loop | Proposed |
 | `zero.WorldContent` | Small update/drawing contract; GameApp's world-drawing boundary accepts it | Proposed; exact signatures demonstrated first |
 | `zero.World` | Default WorldContent implementation with ordered Actor membership | Proposed; alternative containers implement the same contract |
@@ -159,7 +159,7 @@ that Main also updates independently. No field scanning or automatic registratio
 | `zero.Sound`, `zero.Music` | Audio handles; borrowed/shared versus owned lifetime explicit | Exist; preserve tested browser gesture/audio limits |
 | `zero.Collisions` | Stateless geometry utility; student owns collision response | Exists; additions need demonstrated uses |
 | `zero.ui.Element` and listed UI types | Compose private JavaFX nodes; reusable components expose a Zero view | Unreleased Element/Label/Button/Column slice; remaining UI types proposed |
-| Advanced JavaFX bridge | Foreign Node ↔ intentional Zero UI interoperability | Unreleased protected Element(Node), final fxNode() and retained App.show(Node); navigation lifetime contract proposed |
+| Advanced JavaFX bridge | Foreign Node ↔ intentional Zero UI interoperability | Unreleased protected Element(Node), final fxNode() and App.show(Node); Node/Element navigation shares suspension/reset rules, Screen lifecycle proposed |
 | Internal driver/platform adapters/diagnostics | Core infrastructure, no student base class/import | Existing pieces plus proposed integration |
 
 GameApp's public world-drawing boundary must accept WorldContent, not only World.

@@ -39,6 +39,9 @@ public abstract class GameApp extends App {
     private final EnumSet<MouseButton> pressedButtons = EnumSet.noneOf(MouseButton.class);
     private final Map<String, Image> imageCache = new HashMap<>();
     private Stage window;
+    private boolean gameVisible;
+    private boolean paused;
+    private long previousFrame;
     private double mouseX;
     private double mouseY;
 
@@ -46,12 +49,15 @@ public abstract class GameApp extends App {
     public void draw() { }
 
     @Override protected final javafx.scene.Node createContent() {
+        gameVisible = true;
+        paused = false;
+        previousFrame = 0;
         canvas = new Canvas(initialWidth(), initialHeight());
         canvas.setFocusTraversable(true);
         graphics = canvas.getGraphicsContext2D();
         layout = new BorderPane(canvas);
         canvas.addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
-            if (canvas.isFocused()) {
+            if (gameplayInputEnabled() && canvas.isFocused()) {
                 if (keys.add(event.getCode())) pendingKeys.add(event.getCode());
                 // Arrow movement belongs to the canvas; Tab still reaches native controls.
                 if (event.getCode().isArrowKey()) event.consume();
@@ -65,7 +71,21 @@ public abstract class GameApp extends App {
         return layout;
     }
 
-    @Override protected final Scene createScene(BorderPane content) { return new Scene(content); }
+    @Override protected final Scene createScene(BorderPane content) {
+        // A setup-time title must reserve the same initial space as the retained game and HUD.
+        javafx.scene.Node selected = content.getCenter();
+        try {
+            content.setCenter(layout);
+            Scene scene = new Scene(content);
+            content.applyCss();
+            double width = content.prefWidth(-1);
+            double height = content.prefHeight(width);
+            content.setPrefSize(width, height);
+            return scene;
+        } finally {
+            content.setCenter(selected);
+        }
+    }
 
     @Override protected final void ready(Stage stage) {
         window = stage;
@@ -74,6 +94,7 @@ public abstract class GameApp extends App {
         scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_RELEASED,
                 event -> keys.remove(event.getCode()));
         scene.addEventFilter(javafx.scene.input.MouseEvent.ANY, event -> {
+            if (!gameplayInputEnabled()) return;
             boolean onCanvas = event.getTarget() == canvas;
             if (onCanvas || !buttons.isEmpty()) {
                 var point = canvas.sceneToLocal(event.getSceneX(), event.getSceneY());
@@ -91,18 +112,24 @@ public abstract class GameApp extends App {
         stage.focusedProperty().addListener((property, wasFocused, focused) -> {
             if (!focused) clearInput();
         });
-        canvas.requestFocus();
+        if (gameplayInputEnabled()) canvas.requestFocus();
         timer = new AnimationTimer() {
-            private long previous;
             @Override public void handle(long now) {
-                double seconds = previous == 0 ? 0 : Math.min(0.1, (now - previous) / 1_000_000_000.0);
-                previous = now;
+                if (!gameVisible || isStopped()) {
+                    previousFrame = 0;
+                    return;
+                }
+                double seconds = previousFrame == 0 ? 0 : Math.min(0.1, (now - previousFrame) / 1_000_000_000.0);
+                previousFrame = now;
                 pressedKeys.clear(); pressedKeys.addAll(pendingKeys); pendingKeys.clear();
                 pressedButtons.clear(); pressedButtons.addAll(pendingButtons); pendingButtons.clear();
+                beginFrame();
                 try {
-                    update(seconds);
-                    draw();
+                    if (!paused) update(seconds);
+                    if (!isStopped()) draw();
+                    endFrame(true);
                 } catch (RuntimeException | Error failure) {
+                    endFrame(false);
                     // Preserve the useful frame error even if native cleanup also fails.
                     try { GameApp.this.stop(); }
                     catch (RuntimeException | Error cleanup) { failure.addSuppressed(cleanup); }
@@ -120,8 +147,21 @@ public abstract class GameApp extends App {
         pressedKeys.clear(); pressedButtons.clear();
     }
 
+    private boolean gameplayInputEnabled() {
+        return gameVisible && !paused && window != null && !isStopped();
+    }
+
+    @Override void contentChanged(javafx.scene.Node content) {
+        gameVisible = content == layout;
+        previousFrame = 0;
+        clearInput();
+        if (gameplayInputEnabled()) canvas.requestFocus();
+    }
+
     @Override protected final void shutdown() {
         if (timer != null) timer.stop();
+        gameVisible = false;
+        previousFrame = 0;
         clearInput();
         imageCache.clear();
         window = null;
@@ -144,6 +184,35 @@ public abstract class GameApp extends App {
     public final Canvas canvas() { return canvas; }
     public final GraphicsContext graphics() { return graphics; }
     public final BorderPane layout() { return layout; }
+
+    /** Return to the retained canvas and controls without changing the explicit pause state. */
+    public final void showGame() {
+        requireContentReady("showGame");
+        if (layout == null) throw new IllegalStateException("Call showGame inside setup() or an event handler.");
+        show(layout);
+    }
+
+    /** Freeze updates while drawing and ordinary UI callbacks continue. */
+    public final void pause() {
+        requireContentReady("pause");
+        paused = true;
+        previousFrame = 0;
+        clearInput();
+    }
+
+    /** Resume updates with no held input and a zero-second first frame. */
+    public final void resume() {
+        requireContentReady("resume");
+        paused = false;
+        previousFrame = 0;
+        clearInput();
+    }
+
+    /** Read the explicit pause state; displaying another view suspends gameplay separately. */
+    public final boolean isPaused() {
+        requireContentReady("isPaused");
+        return paused;
+    }
 
     /** Mount live controls below the canvas, replacing previous controls without stopping gameplay. */
     public final void controls(zero.ui.Element content) {

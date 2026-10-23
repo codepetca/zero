@@ -21,9 +21,8 @@ async function fixture(t, {old = true, crlf = false} = {}) {
   fs.mkdirSync(path.join(root, '.git'));
   const files = new Map(bundle.projects[0].files.filter(file => file.path.startsWith('src/main/java/zero/')).map(file => [file.path, Buffer.from(file.content, 'base64')]));
   const current = files.get(filename);
-  // Independently reproduce the known released source change. The historical
-  // SHA below prevents this fixture from silently drifting with implementation.
-  const previous = Buffer.from(current.toString().replace('    /** Display a Zero UI component with the same replacement behavior as show(Node). */\n    public final void show(zero.ui.Element content) {\n        show(Objects.requireNonNull(content, "Content must not be null.").fxNode());\n    }\n\n', '').replace('/** Space on every edge, in pixels. Call in settings, setup or an event handler. */', '/** Initial space around all content, in pixels on each edge. Call inside settings(). */').replace('    public final void padding(double pixels) {\n', '    public final void padding(double pixels) {\n        if (!configuring) throw new IllegalStateException("Call padding inside settings().");\n').replace('        if (root != null) root.setPadding(new Insets(pixels));\n', ''));
+  // Immutable released bytes; the pinned hash prevents historical fixture drift.
+  const previous = fs.readFileSync(path.join(__dirname, 'fixtures/stock-App.java'));
   assert.equal(hash(previous), 'bdcb1060ad5a30f16f1a395c522a520d2506530584bda71a0e4cbe1e7c467c09');
   if (old) files.set(filename, previous);
   for (const [name, bytes] of files) {

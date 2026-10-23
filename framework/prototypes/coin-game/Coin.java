@@ -3,7 +3,7 @@ import zero.Collisions;
 public class Coin {
     final double x;
     final double y;
-    final double radius = 10;
+    final double radius = 11;
     boolean collected;
 
     public Coin(double x, double y) {

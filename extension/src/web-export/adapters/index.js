@@ -20,10 +20,10 @@ function apply(source, edits) {
 function fail(file, detail) { throw new Error(`Web export: ${file}: ${detail}`); }
 const helperHashes = Object.freeze({
   'zero/Actor.java': 'b1cbdf896def29c79e4efdbcb4fda3a969f51bbddbec3c8177e1001c59122cab',
-  'zero/App.java': 'b1824d9988782bb9e1431807251c9ba973b46e646934c68ebbfb7a54267afdc6',
+  'zero/App.java': '56a3638927e42a99f52bd7e2a568a0a5ccc19c557b7721c476fa4f8ff0349279',
   'zero/Collisions.java': '1d1cc1c57fcbbcb8421bf469c6d74e5f1707c5542c265d1819f38e59fb4e67fe',
   'zero/Color.java': 'ac3e62480b526e4505c5640ce857757c13cec6134ec7d6d759c4321b785e07d7',
-  'zero/GameApp.java': '9be529b55e55b0e0f9415eceaf64910a44ab29fdbe587b0a2db80f44df6f447d',
+  'zero/GameApp.java': 'a6712bbfa29daf84706e24f6b21d924abcfad8435a60c53df00a662fc1c8d406',
   'zero/ImageRegion.java': '0fd6961541501815c80f1979f7aa54d36f724a794f8d241ae26ba9c27e54d83d',
   'zero/Music.java': '4c183bb3c7807cac3086dbbb29a388541c606c11b654ca4aad914ad3a5db8450',
   'zero/Sound.java': '6247f0a0d6af9b610727094967af249321c58e6dda21ce1a2a989a3fc6e75286',
@@ -53,7 +53,23 @@ function overlay(file, source) {
   if (file.endsWith('SpriteAnimation.java')) return source.replace('frames.clone()', 'java.util.Arrays.copyOf(frames, frames.length)');
   source = source.replace('import java.net.URL;\n', '\n').replace('import java.nio.file.Path;\n', '\n');
   source = source.replace('    private Canvas canvas;', '    private Canvas canvas; private zero.web.BrowserGameViewport browserViewport;');
-  source = source.replace('return new Scene(content);', 'browserViewport = new zero.web.BrowserGameViewport(content, canvas, this::clearInput); return browserViewport.scene();');
+  const sceneStart = source.indexOf('    @Override protected final Scene createScene(BorderPane content) {');
+  const sceneEnd = source.indexOf('    @Override protected final void ready(Stage stage) {', sceneStart);
+  if (sceneStart < 0 || sceneEnd < 0) fail(file, 'reviewed game scene adapter placement changed.');
+  const nativeSceneLines = source.slice(sceneStart, sceneEnd).split('\n').length - 1;
+  let browserScene = `    @Override protected final Scene createScene(BorderPane content) {
+        javafx.scene.Node selected = content.getCenter();
+        try {
+            content.setCenter(layout);
+            browserViewport = new zero.web.BrowserGameViewport(content, canvas, layout, this::clearInput);
+            return browserViewport.scene();
+        } finally {
+            content.setCenter(selected);
+        }
+    }
+`;
+  browserScene += '\n'.repeat(Math.max(0, nativeSceneLines - (browserScene.split('\n').length - 1)));
+  source = source.slice(0, sceneStart) + browserScene + source.slice(sceneEnd);
   source = source.replace('        window = stage;', '        window = stage; zero.web.BrowserFocus.install(this::clearInput);');
   source = source.replace('        Scene scene = stage.getScene();', '        Scene scene = stage.getScene(); browserViewport.install();');
   source = source.replace('canvas.sceneToLocal(event.getSceneX(), event.getSceneY())', 'zero.web.BrowserGameViewport.canvasPoint(canvas, event)');

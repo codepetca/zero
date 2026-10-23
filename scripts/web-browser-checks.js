@@ -1,6 +1,7 @@
 // Loaded by the pinned Playwright CLI as an async function, not a test-runner spec.
 async (page) => {
   const urls = __URLS__;
+  const artifactRoot = __ARTIFACT_ROOT__;
   const results = [];
   const helperImageDraws = 15;
   // JavaFX label peers also have aria-hidden text measurement nodes.
@@ -18,7 +19,7 @@ async (page) => {
       if (name.toLowerCase() === 'audio') window.__zeroAudio.push(element);
       return element;
     };
-    window.__zeroCheck = { texts: [], images: [], last: null, errors: [], draws: 0 };
+    window.__zeroCheck = { texts: [], images: [], last: null, errors: [], draws: 0, clears: 0 };
     addEventListener('error', (event) =>
       window.__zeroCheck.errors.push(event.message)
     );
@@ -28,6 +29,7 @@ async (page) => {
       image = p.drawImage;
     p.clearRect = function (...args) {
       const c = window.__zeroCheck;
+      c.clears++;
       if (c.texts.length) c.last = { texts: c.texts, images: c.images };
       c.texts = [];
       c.images = [];
@@ -35,6 +37,11 @@ async (page) => {
     };
     p.fillText = function (...args) {
       window.__zeroCheck.draws++;
+      if (String(args[0]) === 'Deferred draw completed') {
+        window.__zeroCheck.deferredHiddenDuringDraw = ![...document.querySelectorAll('body *')].some(element =>
+          element.children.length === 0 && element.textContent === 'Deferred view'
+          && element.getClientRects().length > 0 && getComputedStyle(element).visibility !== 'hidden');
+      }
       window.__zeroCheck.texts.push(String(args[0]));
       return text.apply(this, args);
     };
@@ -386,8 +393,31 @@ async (page) => {
     'Cross-file resource URL with inferred var resolves packaged data (no CSS styling claim)',
     {url:resourceUrl.href,status:resourceResponse.status()});
   check((await page.evaluate(()=>window.__zeroCheck.errors)).length===0,'No JavaScript errors in greeting/resource probe');
+  await page.setViewportSize({width:260,height:360});
   await page.goto(urls['zero-ui']);
+  await visibleText('Probe title').waitFor();
+  await page.waitForTimeout(100);
+  const initialIdle = await page.evaluate(() => window.__zeroCheck.clears);
+  await page.waitForTimeout(120);
+  check(await page.evaluate(() => window.__zeroCheck.clears) === initialIdle,
+    'A title shown during setup leaves update and draw idle');
+  await page.getByRole('button', {name:'Play probe', exact:true}).click();
   await visibleText('Zero UI ready').waitFor();
+  await visibleText('Input reset check ready').waitFor();
+  const smallCanvas = await page.locator('canvas').boundingBox();
+  const smallHud = await visibleText('Input reset check ready').boundingBox();
+  check(smallCanvas.x >= -1 && smallCanvas.y >= -1 && smallCanvas.x+smallCanvas.width <= 261
+      && smallHud.y+smallHud.height <= 361,
+    'Initial title reserves a fitted full game and complete HUD on a small viewport', {canvas:smallCanvas,hud:smallHud});
+  await page.mouse.move(smallCanvas.x+smallCanvas.width*.75,smallCanvas.y+smallCanvas.height*.75);
+  await page.waitForFunction(() => {
+    const text = [...window.__zeroCheck.texts,...(window.__zeroCheck.last?.texts || [])].find(t => t.startsWith('Zero UI pointer: '));
+    const point = text?.slice('Zero UI pointer: '.length).split(',').map(Number);
+    return point && Math.abs(point[0]-240) <= 2 && Math.abs(point[1]-135) <= 2;
+  });
+  check(true, 'Title-to-game navigation retains the fitted canvas input transform');
+  await page.setViewportSize({width:1280,height:900});
+  await page.waitForTimeout(100);
   const uiFrameCount = async () => Number((await state()).texts.find(t => t.startsWith('Zero UI frames: ')).split(': ')[1]);
   await page.waitForFunction(() => window.__zeroCheck.last?.texts.some(t => t.startsWith('Zero UI frames: ')));
   const uiBefore = await uiFrameCount();
@@ -418,6 +448,55 @@ async (page) => {
   await page.waitForFunction(before => Number(window.__zeroCheck.last?.texts.find(t => t.startsWith('Zero UI frames: '))?.split(': ')[1]) > before + 2, beforeReplacement);
   check(await page.getByRole('button', {name:'Zero button', exact:true}).count() === 0,
     'GameApp controls replacement removes old HUD while drawing continues');
+  const probeState = async () => page.evaluate(() => {
+    const text = [...window.__zeroCheck.texts, ...(window.__zeroCheck.last?.texts || [])].find(t => t.startsWith('Probe state: '));
+    return text?.slice('Probe state: '.length).split(',');
+  });
+  await page.getByRole('button', {name:'Pause frame loop', exact:true}).click();
+  await page.waitForTimeout(100);
+  const pausedState = await probeState();
+  await page.waitForTimeout(120);
+  const stillPausedState = await probeState();
+  check(pausedState[0] === stillPausedState[0] && Number(stillPausedState[1]) > Number(pausedState[1]) && stillPausedState[2] === 'true',
+    'Explicit pause freezes update while draw continues');
+  await page.getByRole('button', {name:'Open probe menu', exact:true}).click();
+  await visibleText('Probe menu').waitFor();
+  const idleMenu = await page.evaluate(() => window.__zeroCheck.clears);
+  await page.waitForTimeout(120);
+  check(await page.evaluate(() => window.__zeroCheck.clears) === idleMenu,
+    'A menu suspends game update and drawing');
+  await page.keyboard.down('a');
+  await page.getByRole('button', {name:'Return to probe game', exact:true}).click();
+  await visibleText('Replacement HUD').waitFor();
+  await page.waitForTimeout(100);
+  const returnedPaused = await probeState();
+  check(returnedPaused[0] === stillPausedState[0] && returnedPaused[2] === 'true',
+    'showGame preserves the retained HUD and independent explicit pause');
+  await page.getByRole('button', {name:'Resume frame loop', exact:true}).click();
+  await page.keyboard.up('a');
+  await visibleText('Resume checks ready').waitFor();
+  await page.waitForFunction(before => {
+    const text = [...window.__zeroCheck.texts, ...(window.__zeroCheck.last?.texts || [])].find(t => t.startsWith('Probe state: '));
+    return text && Number(text.slice('Probe state: '.length).split(',')[0]) > before;
+  }, Number(returnedPaused[0]));
+  check(true, 'Resume starts with zero delta and cleared input after an idle UI callback');
+  await page.getByRole('button', {name:'Defer probe view', exact:true}).click();
+  await visibleText('Deferred view').waitFor();
+  check(await page.evaluate(() => window.__zeroCheck.deferredHiddenDuringDraw === true
+      && window.__zeroCheck.texts.includes('Deferred draw completed')),
+    'Navigation requested inside update commits after its final draw');
+  const deferredIdle = await page.evaluate(() => window.__zeroCheck.clears);
+  await page.waitForTimeout(120);
+  check(await page.evaluate(() => window.__zeroCheck.clears) === deferredIdle, 'Deferred navigation leaves no hidden game frames');
+  await page.getByRole('button', {name:'Return to probe game', exact:true}).click();
+  await visibleText('Replacement HUD').waitFor();
+  await page.getByRole('button', {name:'Open probe menu', exact:true}).click();
+  await visibleText('Probe menu').waitFor();
+  await page.getByRole('button', {name:'Probe title screen', exact:true}).click();
+  await visibleText('Probe title').waitFor();
+  await page.getByRole('button', {name:'Play probe', exact:true}).click();
+  await visibleText('Replacement HUD').waitFor();
+  check(true, 'Ordinary title and menu views keep their callbacks functional while idle');
   check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'No JavaScript errors in Zero UI fixture');
   await page.goto(urls.counter);
   await visibleText('Score: 0').waitFor();
@@ -431,23 +510,84 @@ async (page) => {
   await visibleText('Score: 1').waitFor();
   check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'Java-and-Zero-only counter updates and resets shared ScoreDisplay');
   await page.goto(urls['coin-game']);
+  await visibleText('COIN QUEST').waitFor();
+  await page.screenshot({path:artifactRoot + '/coin-title.png'});
+  const titleClears = await page.evaluate(() => window.__zeroCheck.clears);
+  await page.waitForTimeout(150);
+  check(await page.evaluate(() => window.__zeroCheck.clears) === titleClears, 'Coin Quest title is idle before Play');
+  await page.getByRole('button', {name:'How to play', exact:true}).click();
+  await visibleText('How to play').waitFor();
+  await page.getByRole('button', {name:'Back', exact:true}).click();
+  await visibleText('COIN QUEST').waitFor();
+  await page.getByRole('button', {name:'Play', exact:true}).click();
   await visibleText('Score: 0').waitFor();
+  await visibleText('Level 1 of 2 — collect 3 coins.').waitFor();
+  await page.waitForTimeout(150);
+  check(await visibleText('Score: 0').count() === 1, 'Help/back/Play starts a quiet zero-score game');
+  const moveToCoin = async (x,y) => {
+    const box = await page.locator('canvas').boundingBox();
+    await page.mouse.move(box.x + x * box.width / 640, box.y + y * box.height / 360);
+  };
+  await moveToCoin(120,80);
+  await visibleText('Score: 1').waitFor();
+  await page.getByRole('button', {name:'Pause', exact:true}).click();
+  await visibleText('Paused').waitFor();
+  await page.screenshot({path:artifactRoot + '/coin-paused.png'});
+  const pausedTimer = await page.getByText(/^Time left: /).filter({visible:true}).innerText();
+  const pausedClears = await page.evaluate(() => window.__zeroCheck.clears);
+  await page.waitForTimeout(1200);
+  check(await page.evaluate(() => window.__zeroCheck.clears) === pausedClears
+      && await visibleText('Score: 1 / 6').count() === 1
+      && await page.getByText(/^Time left: /).filter({visible:true}).innerText() === pausedTimer,
+    'Pause menu freezes canvas, score and active countdown');
+  await page.getByRole('button', {name:'Resume', exact:true}).click();
+  await visibleText('Score: 1').waitFor();
+  await page.waitForTimeout(150);
+  check(await visibleText('Score: 1').count() === 1
+      && await page.getByText(/^Time left: /).filter({visible:true}).innerText() === pausedTimer,
+    'Resume preserves level, score and timer and waits for fresh pointer movement');
+  await page.getByRole('button', {name:'Pause', exact:true}).click();
+  await visibleText('Paused').waitFor();
+  await page.getByRole('button', {name:'Restart game', exact:true}).click();
+  await visibleText('Score: 0').waitFor();
+  await visibleText('Time left: 30s').waitFor();
+  check(true, 'Pause-menu restart begins a fresh first level');
   for (let cycle = 0; cycle < 2; cycle++) {
     if (cycle) {
-      await page.getByRole('button', {name:'Restart', exact:true}).click();
+      await page.getByRole('button', {name:'Play again', exact:true}).click();
       await visibleText('Score: 0').waitFor();
-      await page.waitForTimeout(180);
-      check(await visibleText('Score: 0').count() === 1, 'Restart keeps score zero while the pointer is unchanged');
+      await visibleText('Level 1 of 2 — collect 3 coins.').waitFor();
+      await page.waitForTimeout(150);
+      check(await visibleText('Score: 0').count() === 1, 'Play again resets both levels and keeps quiet-start score zero');
     }
-    const gameCanvas = await page.locator('canvas').boundingBox();
-    for (const [index, [x,y]] of [[100,60],[220,180],[360,60]].entries()) {
-      await page.mouse.move(gameCanvas.x + x * gameCanvas.width / 440, gameCanvas.y + y * gameCanvas.height / 240);
-      await visibleText('Score: ' + (index + 1)).waitFor();
+    await moveToCoin(60,300);
+    await page.waitForTimeout(60);
+    for (const [level,coins] of [[[120,80],[320,260],[520,80]],[[120,260],[320,80],[520,260]]].entries()) {
+      await visibleText('Level ' + (level+1) + ' of 2 — collect 3 coins.').waitFor();
+      for (const [index,[x,y]] of coins.entries()) {
+        await moveToCoin(x,y);
+        const score = level*3+index+1;
+        if (score < 6) await visibleText('Score: '+score).waitFor();
+        else await visibleText('Final score: 6 / 6').waitFor();
+      }
     }
-    await visibleText('You win! Press Restart to play again.').waitFor();
-    check(true, 'Java-and-Zero-only coin game collects and wins cycle ' + (cycle + 1));
+    await visibleText('You win!').waitFor();
+    if (cycle === 0) await page.screenshot({path:artifactRoot + '/coin-win.png'});
+    check(true, 'Coin Quest completes both levels and wins cycle ' + (cycle+1));
   }
-  check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'No JavaScript errors in coin-game prototype');
+  await page.getByRole('button', {name:'Title screen', exact:true}).click();
+  await visibleText('COIN QUEST').waitFor();
+  await page.getByRole('button', {name:'Play', exact:true}).click();
+  await visibleText('Score: 0').waitFor();
+  await moveToCoin(48,300);
+  await visibleText("Time's up!").waitFor({timeout:40000});
+  await visibleText('Final score: 0 / 6').waitFor();
+  check(true, 'Thirty real active seconds end in the failure results view');
+  await page.getByRole('button', {name:'Play again', exact:true}).click();
+  await visibleText('Score: 0').waitFor();
+  await visibleText('Time left: 30s').waitFor();
+  check(true, 'Failure results can replay into a fresh game');
+  check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'No JavaScript errors in fuller coin-game prototype');
   return {
     status: 'passed',
     results,

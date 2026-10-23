@@ -21,11 +21,20 @@ First implementation slice,2026-10-23 (local, unreleased): `zero.ui.Element`,
 coin GameApp reuse the same ordinary `ScoreDisplay` source. See the
 [runnable prototypes](../framework/prototypes/README.md) and
 [current API](../student-template/API.md). This proves the first composition
-boundary, not the whole plan: Screen/navigation, World, replaceable animation,
+boundary, not the whole plan: Screen lifecycle, World, replaceable animation,
 project-owned browser tooling and new automatic diagnostics remain future work.
-`show(Element)` retains existing `show(Node)` behavior; in a GameApp it replaces
-the visible canvas without suspending its timer. Use `controls(Element)` for a
-live HUD. The navigation suspension rules below describe the proposed Screen API.
+
+The next local increment turns the coin example into COIN QUEST: title/help,
+two timed levels, pause/resume, win/timeout results and replay/title navigation.
+Student screen classes are ordinary objects returning Element views. App.show
+now uses one transition path for Node/Element views: a replacement suspends
+GameApp update/draw/input; showGame restores its retained canvas/HUD and clears
+input/elapsed time. Pause/resume is a separate explicit state; pause skips update
+while drawing/UI continue. In-frame navigation commits after successful drawing,
+idle UI transitions commit immediately, and stop/failure discards queued views.
+Use controls(Element) for a live HUD. No zero.Screen lifetime base class, history,
+World or second frame driver is introduced; the fuller lifetime plan below
+remains proposed where it depends on those types.
 
 ## Core outcome
 

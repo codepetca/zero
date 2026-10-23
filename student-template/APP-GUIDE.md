@@ -32,7 +32,8 @@ The source is the authority if you change your local framework.
 The current local source adds `zero.ui.Label`, `Button`, `Column` and `Element`,
 plus `zero.Color` for canvas colours. These additions are unreleased; older kits
 keep their bundled APIs. Existing JavaFX examples and controls still work.
-This first slice provides text, button actions and vertical composition.
+These components provide text, button actions and vertical composition. GameApp
+also provides explicit gameplay navigation and pause methods.
 
 A reusable display can be an ordinary class with a view and an explicit setter.
 Save this as `ScoreDisplay.java` beside Main; the same class works in an App or
@@ -111,8 +112,9 @@ Call show/controls in setup or later callbacks, after content creation, or an
 IllegalStateException is thrown.
 
 App.show(Element) replaces centre content and is inherited by GameApp. On a game,
-show does not stop its timer: use controls for a live HUD. This slice adds no
-screen history or automatic navigation/pause. Keep those rules explicit.
+show navigates away from the retained canvas/HUD and suspends gameplay update,
+draw and canvas input. Call showGame() to return; use controls for a live HUD.
+Keep screen choices, resets and pause rules explicit in Main.
 
 For advanced interoperability, Element exposes the actual JavaFX node through
 `fxNode()`. A custom subclass can call the protected `Element(Node)` constructor
@@ -238,8 +240,8 @@ setup, shows the window, then starts frames. Override:
 
 | Signature | Behavior |
 | --- | --- |
-| `void update(double seconds)` | Called each frame before draw. Change your state and explicitly update your objects. |
-| `void draw()` | Called after update. Draw the current state. |
+| `void update(double seconds)` | Called before draw while gameplay is visible and not explicitly paused. Change your state and explicitly update your objects. |
+| `void draw()` | Called while gameplay is visible, including during explicit pause. Draw the current state. |
 
 The first frame receives `seconds == 0`. Later values measure elapsed time in
 seconds and are capped at `0.1` after a long pause. Frames are not promised at a
@@ -263,7 +265,76 @@ or later, after the canvas exists:
 Use `layout().setBottom(button)` or other BorderPane positions for native controls
 around the canvas. Keep its centre canvas for a sketch. Use App and
 `show(Node)` for a wholly event-driven interface; inherited `show` on a sketch
-replaces the visible sketch layout but does not stop its frame loop.
+navigates away from the retained sketch layout and suspends update, draw and
+canvas input. Call showGame() to return to the same canvas and HUD.
+
+### Title, pause and results views
+
+Use ordinary Java classes for a game's title, help, pause and results views.
+Each can build a Column and return it as an Element. Keep their button actions
+as Runnable callbacks supplied by Main, which owns the game state. A class named
+TitleScreen is your class; there is no framework `zero.Screen` type or automatic
+screen lifetime hook yet.
+
+For example, save this small reusable title view as `TitleScreen.java`:
+
+```java
+import zero.ui.Button;
+import zero.ui.Column;
+import zero.ui.Element;
+import zero.ui.Label;
+
+public class TitleScreen {
+    public Element view(Runnable play) {
+        Button start = new Button("Play");
+        start.onClick(play);
+        return new Column(12, new Label("Coin game"), start);
+    }
+}
+```
+
+In GameApp.setup, first create the actors and attach your HUD with controls.
+Then `show(new TitleScreen().view(this::showGame))` displays the title. Its Play
+button returns to the retained canvas/HUD without rebuilding your game objects.
+Use a callback such as `this::startNewGame` instead when you need to reset state
+before calling showGame.
+
+For an explicit pause, call `pause()` from your Pause button. While gameplay is
+visible, draw continues, update stops, and native buttons still work. A pause view
+can call `show(pauseView)` after pause; its Resume button calls `resume()` followed
+by `showGame()`. isPaused reports the explicit pause flag. Navigating away also
+suspends gameplay callbacks, but is separate from that flag: showGame preserves
+an explicit pause. Calling resume while another view is visible does not navigate.
+
+Main decides when to show results and what Replay resets. For example, after a
+win, `show(resultsView)` suspends gameplay. Replay can reset actors, score and
+level time, then call resume and showGame. A Title button can show a fresh title
+view. Use fresh view elements when composing a new Column; existing elements must
+not be attached to two parents.
+
+A navigation request inside update/draw commits after that frame's successful draw;
+the last request wins and a failed frame or app stop discards it.
+A request from an idle button callback commits immediately. Leaving gameplay
+and pause/resume clear held and edge input. Returning with showGame or calling
+resume resets elapsed time; the next update receives 0 seconds. Thus returning does not apply the time
+spent reading help as one movement step. Music remains your responsibility: call
+music.pause()/play() as appropriate. These methods require setup or later and
+throw IllegalStateException before the game layout exists or after the app stops.
+
+The local [COIN QUEST example](../framework/prototypes/coin-game/Main.java) puts
+this together with an explicit Phase enum in Main. Its title has Play and How to
+play; help returns with Back. The game has two levels of three coins, a pointer
+controlled player and a 30-active-second challenge per level that starts on the
+first pointer movement. Its HUD combines the unchanged ScoreDisplay with level,
+time, Pause and Restart game controls. Pause offers Resume, Restart game and
+Title screen. Results show You win! or Time's up!, the final score out of six,
+Play again and Title screen. Main owns phase, score, level, timing and resets;
+the framework owns gameplay suspension and input/elapsed-time clearing.
+TitleScreen, HelpScreen, PauseScreen and ResultsScreen are ordinary component
+classes returning Element, with no framework base class.
+
+See the [game-flow API](API.md#game-flow). Existing installed kits retain their
+bundled behavior; this source addition is unreleased.
 
 ### Drawing methods
 

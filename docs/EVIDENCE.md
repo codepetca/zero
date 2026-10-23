@@ -1,5 +1,59 @@
 # Delivery evidence index
 
+## COIN QUEST title, levels and navigation — 2026-10-23
+
+Owner requested a fuller game with title screens. Local unreleased example now
+has title/help, two timed three-coin levels, pause/resume, victory/timeout results,
+replay/restart and return-to-title. Main owns an explicit Phase enum and game
+state; ordinary TitleScreen/HelpScreen/PauseScreen/ResultsScreen objects return
+Element views. Hud reuses the same unchanged ScoreDisplay source as the counter.
+No zero.Screen base, World, new asset/input facades or second frame loop.
+
+GameApp.showGame/pause/resume/isPaused extend the exact API to146 declarations
+across the same13 helpers. App.show(Node/Element) uses one navigation path;
+off-game views suspend update/draw/input, showGame restores retained canvas/HUD
+with cleared input and zero first delta while respecting separate explicit pause.
+Pause skips update while drawing/UI continue. In-frame last-wins navigation
+commits after successful drawing; stop/failure discards queued views. Temporary
+native/browser retained-layout measurement restores the selected title infinally.
+API/guide/website metadata and all signature/source guards change together.
+
+Native NavigationCheck and complete framework regressions pass, including initial
+title sizing, immediate UI-only navigation, repeated menu/game transitions,
+retained HUD, pause draw/update separation, explicit pause across navigation,
+zero delta/input reset, deferred frame completion, failure/stop discard and cleanup.
+Full prototype native playthrough passes603 real frames: title/help/play, paused
+state freeze, retained resume, two levels, win/replay/restart/title and second win.
+Timeout UI/model branch is tested by one direct update(31) model step; that native
+probe does not claim thirty wall-clock seconds elapsed. Counter remains passing.
+An initial native prototype timeout exposed a test driver returning directly to
+its unchanged pointer baseline; the driver now moves away for a real frame first.
+No game/runtime bypass was added. Logs: .verification/full-game-framework.log,
+.verification/full-game-native.log and .verification/full-game-native-retry.log.
+
+The existing Zero Dev keyboard smoke repeatedly fails its three-second macOS
+window-foreground assertion (windowFocused=false). Component/native game checks
+above pass separately. The focus deadline now starts on the first visible frame
+instead of setup before CSS/scene creation; the full three-second assertion and
+25-second watchdog remain. This valid harness timing correction did not resolve
+the local foreground failure. Do not report ZERO_DEV_SMOKE_OK or physical keyboard
+acceptance for this increment. Logs: .verification/full-game-dev-smoke*.log.
+
+Historical App migration tests now read one immutable exact stock-App.java test
+fixture (SHA256 bdcb1060ad5a30f16f1a395c522a520d2506530584bda71a0e4cbe1e7c467c09),
+instead of reverse-editing evolving current source. Existing allowlist, missing
+Element dependency rejection, path/inode/race/recovery guards are unchanged.
+Focused helper/GitHub tests83/83 pass. API/navigation17/17, website165/165,
+website typecheck/build and four new built /docs anchors pass. Browser semantic
+17/17, adapter10/10 and internal-method rejection1/1 pass. Configuration/syntax/
+links and diff checks pass. Final browser/root/review results follow below.
+
+No push, PR, merge, installed-kit change, dependency install, public site update,
+release, telemetry collection or account change. Source/build preservation policy
+and no required historical-kit database remain unchanged. Browser export still
+uses the current exporter; complete project-owned browser tooling remains planned.
+Other operating systems, physical devices and novice teaching trials are untested.
+
 ## First Zero UI components and working consumers — 2026-10-23
 
 Owner authorized a small working framework increment. Local, unreleased source

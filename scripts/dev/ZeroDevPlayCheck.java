@@ -22,7 +22,6 @@ public final class ZeroDevPlayCheck extends Main {
 
     @Override public void setup() {
         super.setup();
-        started = System.nanoTime();
         Thread watchdog = new Thread(() -> {
             try { Thread.sleep(25_000); } catch (InterruptedException ignored) { return; }
             System.err.println("ZERO_DEV_PLAY_TIMEOUT frames=" + frames);
@@ -34,6 +33,9 @@ public final class ZeroDevPlayCheck extends Main {
 
     @Override public void update(double seconds) {
         try {
+            // setup runs before scene measurement and stage.show; time focus only
+            // once the visible game's first frame can actually request it.
+            if (started == 0) started = System.nanoTime();
             if (!NativeFocus.await(canvas(), started, "sample game keyboard focus")) return;
             super.update(seconds);
             if (seconds > 0) frames++;

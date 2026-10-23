@@ -22,15 +22,15 @@ test('every class-level public/protected Java declaration has an exact canonical
       expected.push(`${owner}:${normalizeSignature(match[1])}`);
     }
   }
-  assert.equal(expected.length, 142);
+  assert.equal(expected.length, 146);
   assert.deepEqual(entries.map(item => `${item.owner}:${normalizeSignature(item.signature)}`).sort(), expected.sort());
   assert.ok(!entries.some(item => item.name === 'handle'));
-  assert.equal(JSON.parse(JSON.stringify(categories)).length, 14);
+  assert.equal(JSON.parse(JSON.stringify(categories)).length, 15);
 });
 
 test('categories and entries have unique anchors, valid relationships and complete metadata', () => {
   assert.deepEqual(categories.map(item => [item.id, item.title]), [
-    ['startup', 'App startup'], ['interface', 'Window and interface'], ['components', 'Zero UI'], ['colors', 'Zero colours'], ['canvas', 'Canvas'],
+    ['startup', 'App startup'], ['interface', 'Window and interface'], ['game-flow', 'Game flow'], ['components', 'Zero UI'], ['colors', 'Zero colours'], ['canvas', 'Canvas'],
     ['drawing', 'Drawing'], ['images', 'Images'], ['regions', 'Image regions'],
     ['animation', 'Sprite animation'], ['actors', 'Actors'], ['audio', 'Audio'], ['collisions', 'Collisions'], ['input', 'Keyboard and mouse'], ['advanced', 'Advanced'],
   ]);
@@ -77,8 +77,8 @@ test('keeps canonical class defaults, constructors and lifecycle caveats', () =>
 
 test('search handles aliases, case, multiple terms, whitespace and empty results', () => {
   const search = query => searchApiReference(categories, query);
-  assert.equal(search('').length, 142);
-  assert.equal(search(' \n\t ').length, 142);
+  assert.equal(search('').length, 146);
+  assert.equal(search(' \n\t ').length, 146);
   assert.ok(search('KEYBOARD').some(item => item.id === 'keyDown'));
   assert.deepEqual(search('rectangle').slice(0, 2).map(item => item.id), ['rect', 'outlineRect']);
   assert.ok(search('mouse').some(item => item.id === 'mouseDown'));
@@ -268,8 +268,8 @@ test('Zero UI and colour slice covers qualified owners, fields, overloads and in
   assert.match(category('components').notes, /8 pixels/);
   assert.match(category('components').notes, /before any child is attached/);
   assert.match(category('components').notes, /inherits `fxNode\(\)`/);
-  assert.match(entry('show-element').note, /does not stop its game timer/);
-  assert.match(entry('controls').note, /Canvas and update\/draw loop remain active/);
+  assert.match(entry('show-element').note, /suspends gameplay update, draw and canvas input/);
+  assert.match(entry('controls').note, /Retains canvas and gameplay state/);
   assert.match(entry('ui-button-onClick').description, /Replace/);
   assert.match(entry('ui-button-onClick').parameters[0].description, /Runnable/);
   assert.ok(searchApiReference(categories, 'game hud').some(item => item.id === 'controls'));
@@ -285,5 +285,27 @@ test('Zero UI and colour slice covers qualified owners, fields, overloads and in
   assert.match(guide, /## Zero UI: one view in an app or game/);
   assert.match(guide, /score.view\(\)/);
   assert.match(guide, /controls\(new Column/);
-  assert.match(guide, /show does not stop/);
+  assert.match(guide, /show navigates away/);
+});
+
+
+test('game flow preserves the gameplay view and documents explicit pause independently of navigation', () => {
+  assert.deepEqual(category('game-flow').entries.map(item => item.name), ['showGame', 'pause', 'resume', 'isPaused']);
+  for (const name of ['showGame', 'pause', 'resume', 'isPaused']) {
+    const item = entry(`gameapp-${name}`);
+    assert.equal(item.owner, 'GameApp');
+    assert.ok(item.example);
+    assert.match(item.note, /no zero.Screen class/);
+    const line = markdown.split('\n').find(candidate => candidate.startsWith(`| \`${item.signature}\``));
+    assert.throws(() => buildApiReference(markdown.replace(line + '\n', '')), /Incomplete API reference/);
+  }
+  assert.equal(entry('music-pause').owner, 'Music');
+  assert.match(category('game-flow').notes, /after the current draw/);
+  assert.match(category('game-flow').notes, /commits immediately/);
+  assert.match(category('game-flow').notes, /next update gets 0/);
+  assert.match(category('game-flow').notes, /preserves an explicit pause/);
+  assert.match(entry('gameapp-pause').description, /still draws/);
+  assert.match(entry('gameapp-resume').description, /only when gameplay is visible/);
+  assert.ok(searchApiReference(categories, 'navigation replay').some(item => item.id === 'gameapp-showGame'));
+  assert.ok(searchApiReference(categories, 'game unpause').some(item => item.id === 'gameapp-resume'));
 });

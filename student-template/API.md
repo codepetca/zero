@@ -9,7 +9,7 @@ their bundled API; use their own reference when working with an older kit.
 Learn through the [tutorials](lessons/00-hello-world.md); use this reference to
 look up methods. Installation and troubleshooting are in [setup help](README.md).
 
-[App](#app) · [GameApp](#gameapp) ·
+[App](#app) · [GameApp](#gameapp) · [Game flow](#game-flow) ·
 [Zero UI](#zerouielement) · [Color](#color) · [Canvas](#canvas) · [Drawing](#drawing) · [Images](#images) ·
 [ImageRegion](#imageregion) · [SpriteAnimation](#spriteanimation) ·
 [Actor](#actor) · [Collisions](#collisions) · [Audio](#audio) · [Sound](#sound) · [Music](#music) · [Input](#input) · [Lifecycle and extension hooks](#lifecycle-and-extension-hooks)
@@ -45,8 +45,8 @@ These methods are public and final; call them without overriding them.
 | `void size(double width, double height)` | Set initial content dimensions in pixels, inside `settings()` only. Dimensions must be positive and finite. On GameApp, these are fixed canvas dimensions. |
 | `void title(String title)` | Set a non-null initial window title, inside `settings()` only. |
 | `void padding(double pixels)` | Set space around all four content edges in `settings()`, `setup()` or later JavaFX handlers. The number must be non-negative and finite. Default: 0. GameApp keeps its fixed canvas size. |
-| `void show(zero.ui.Element content)` | Replace the root's centre with a non-null Zero element in `setup()` or later. Inherited by GameApp; replacing its visible sketch layout does not stop the game timer. No screen history or navigation is added. |
-| `void show(Node content)` | Replace the root's centre with a non-null JavaFX node, in `setup()` or later. No screen history is stored. On GameApp this replaces the visible sketch layout while its loop continues. |
+| `void show(zero.ui.Element content)` | Replace the root's centre with a non-null Zero element in `setup()` or later. On GameApp, navigate away from its retained canvas/HUD and suspend gameplay update, draw and canvas input until showGame(). No history stack is stored. |
+| `void show(Node content)` | Replace the root's centre with a non-null JavaFX node, in `setup()` or later. No screen history is stored. On GameApp this navigates away from the retained canvas/HUD and suspends gameplay update, draw and canvas input until showGame(). |
 
 `size` and `title` throw `IllegalStateException` outside `settings()`;
 invalid dimensions or padding throw `IllegalArgumentException`. `show` throws `IllegalStateException`
@@ -71,13 +71,45 @@ Its canvas exists before `setup()`. It starts frames after showing the window.
 
 | Public callback | Behavior |
 | --- | --- |
-| `void update(double seconds)` | Runs each frame before `draw()`. Update your state and objects explicitly. Default: no action. |
-| `void draw()` | Runs after `update()`. Draw the current state. Default: no action. |
+| `void update(double seconds)` | Runs before `draw()` while gameplay is visible and not explicitly paused. Update your state and objects explicitly. Default: no action. |
+| `void draw()` | Runs while gameplay is visible, after `update()` when not paused. Draw the current state. Default: no action. |
 
 The first frame receives `0` seconds; later elapsed times are capped at `0.1`.
-Frame rate is variable. The canvas is not automatically cleared; drawing styles
+Frame rate is variable. While gameplay is visible, draw continues during an explicit pause, but update is skipped. Navigating away with show suspends both callbacks. The canvas is not automatically cleared; drawing styles
 persist. Resizing the window does not scale its fixed canvas. Native controls
 around the canvas can enlarge the initial window.
+
+## Game flow
+
+These GameApp methods are public and final. Call them on the JavaFX application
+thread in `setup()` or later UI/game callbacks. They require the game layout to
+exist and the app must not have stopped, or they throw `IllegalStateException`. The canvas and its controls panel are
+retained when `show(Node)` or `show(Element)` displays another view. showGame
+returns to that same gameplay view; it does not rebuild actors, reset scores or
+restart a level. Main owns those rules.
+
+Navigation requested inside update or draw takes effect after the current draw,
+so the current update/draw pair finishes together. The last navigation request
+in that frame wins; a failed frame or app stop discards pending navigation. A request in an idle UI callback
+commits immediately. Navigation and pause/resume clear held and edge canvas input; returning with showGame
+or calling resume clears input and resets elapsed time so the next update gets 0
+seconds, with no time accumulated while away. Explicit pause and navigation are
+separate: returning to gameplay preserves an explicit pause until resume is called.
+Native button callbacks remain available while paused or on another view. Game
+pause/navigation does not automatically pause music.
+
+isPaused reports only the explicit pause flag, not whether another view is showing.
+
+A title, help, pause or results screen can be an ordinary student class with a
+method returning an Element. There is no `zero.Screen` class, automatic screen
+lifecycle or navigation history in this API.
+
+| Signature | Behavior |
+| --- | --- |
+| `void showGame()` | Return to the retained gameplay canvas and HUD, clearing input and elapsed time. Preserve explicit pause state. |
+| `void pause()` | Explicitly pause gameplay updates. Visible gameplay still draws and UI callbacks still run. |
+| `void resume()` | Clear explicit pause, input and elapsed time. Resume gameplay updates only when gameplay is visible. |
+| `boolean isPaused()` | Read whether gameplay has been explicitly paused. |
 
 ## zero.ui.Element
 
@@ -177,7 +209,7 @@ after canvas creation. Imports: `javafx.scene.canvas.Canvas`,
 | `double height()` | Canvas height in pixels. |
 | `Canvas canvas()` | Native JavaFX canvas. |
 | `GraphicsContext graphics()` | Native drawing context, including transforms and styles. |
-| `void controls(zero.ui.Element content)` | Mount a non-null Zero HUD/control panel at the bottom of the game layout in `setup()` or later, retaining the canvas and running loop. Replace the previous panel; do not steal nodes from another parent. Throws `IllegalStateException` before canvas creation, `NullPointerException` for null, and `IllegalArgumentException` for content owned by another parent or scene. Reusing the current bottom panel is allowed. |
+| `void controls(zero.ui.Element content)` | Mount a non-null Zero HUD/control panel at the bottom of the game layout in `setup()` or later, retaining the canvas and gameplay state. This does not navigate back or resume explicit pause. Replace the previous panel; do not steal nodes from another parent. Throws `IllegalStateException` before canvas creation, `NullPointerException` for null, and `IllegalArgumentException` for content owned by another parent or scene. Reusing the current bottom panel is allowed. |
 | `BorderPane layout()` | Layout with the canvas in its centre. Add native controls to its other positions. |
 
 ## Drawing
@@ -472,7 +504,7 @@ GameApp supplies these final overrides; subclasses cannot replace them.
 | --- | --- |
 | `protected final Node createContent()` | Create the canvas, graphics context, layout and canvas input handlers; initialise mouse coordinates; return the layout. |
 | `protected final Scene createScene(BorderPane content)` | Create a scene sized from its content, allowing room for controls around the canvas. |
-| `protected final void ready(Stage stage)` | Install scene/window input handling, request canvas focus and start the frame timer. |
+| `protected final void ready(Stage stage)` | Install scene/window input handling, request canvas focus when gameplay input is enabled, and start the single frame driver. |
 | `protected final void shutdown()` | Stop the timer if present, clear all input and the image cache, and forget the window. |
 
 Settings, setup, frames and JavaFX handlers run on the JavaFX application thread.

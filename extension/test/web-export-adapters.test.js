@@ -26,6 +26,10 @@ test('current canonical helper fingerprints require a reviewed adapter update af
   const sources = { ...helpers(), 'Main.java': app };
   const result = adaptSources({ sources });
   assert.match(result.sources['zero/GameApp.java'], /BrowserFocus.install\(this::clearInput\)/);
+  assert.match(result.sources['zero/GameApp.java'], /new zero\.web\.BrowserGameViewport\(content, canvas, layout, this::clearInput\)/);
+  assert.doesNotMatch(result.sources['zero/GameApp.java'], /content\.applyCss\(\)/);
+  assert.match(result.sources['zero/GameApp.java'], /beginFrame\(\)/);
+  assert.match(result.sources['zero/GameApp.java'], /endFrame\(true\)/);
   assert.match(result.sources['zero/GameApp.java'], /BrowserImages.get\(resourcePath, getClass\(\)\)/);
   assert.match(result.sources['zero/GameApp.java'], /ImageRegion.requireLoaded\(image\)/);
   const originalLine = sources['zero/GameApp.java'].split('\n').findIndex(line => line.includes('public final SpriteAnimation loadAnimation'));

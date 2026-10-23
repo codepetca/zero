@@ -51,6 +51,7 @@ test('all thirteen reviewed helper APIs and quiz, drawing, audio and controls re
     { 'Main.java': await fs.readFile(path.join(root, 'student-template/examples/drawing/Main.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/audio/Main.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/ui/Main.java'), 'utf8') },
+    { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/navigation/Main.java'), 'utf8') },
     { ...await readSources(path.join(root, 'framework/prototypes/counter')), 'ScoreDisplay.java': await fs.readFile(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java'), 'utf8') },
     { ...await readSources(path.join(root, 'framework/prototypes/coin-game')), 'ScoreDisplay.java': await fs.readFile(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java'), 'utf8') }
   ];
@@ -243,4 +244,11 @@ test('Zero UI exact APIs and advanced fxNode interop do not grant neighboring Ja
     sources['forged/' + file.split('/').pop()] = helpers[file];
     await assert.rejects(check({}, {sources}), /helper identity requires/);
   }
+});
+
+
+test('package-local navigation internals stay outside the student browser contract', {timeout:240000}, async () => {
+  await assert.rejects(check({'Main.java':app(''), 'zero/NavigationLeak.java':
+    'package zero; class NavigationLeak { void hidden(App app) { app.beginFrame(); app.endFrame(true); } }'}), error =>
+      /zero.App#beginFrame\(\)/.test(error.message) && /zero.App#endFrame\(boolean\)/.test(error.message));
 });

@@ -26,6 +26,8 @@ public abstract class App extends Application {
     private double appPadding;
     private boolean configuring;
     private boolean shutdownCalled;
+    private boolean frameActive;
+    private Node pendingContent;
     private BorderPane root;
     private final Map<String, Sound> soundCache = new HashMap<>();
     private final ArrayList<Music> musicPlayers = new ArrayList<>();
@@ -59,13 +61,37 @@ public abstract class App extends Application {
 
     /** Display an ordinary JavaFX node after startup, usually inside setup(). */
     public final void show(Node content) {
-        if (root == null) throw new IllegalStateException("Call show inside setup() or an event handler.");
-        root.setCenter(Objects.requireNonNull(content, "Content must not be null."));
+        requireContentReady("show");
+        Objects.requireNonNull(content, "Content must not be null.");
+        if (frameActive) pendingContent = content;
+        else commitContent(content);
     }
 
     /** Display a Zero UI component with the same replacement behavior as show(Node). */
     public final void show(zero.ui.Element content) {
         show(Objects.requireNonNull(content, "Content must not be null.").fxNode());
+    }
+
+    // One navigation path for UI apps and game frames, without a public screen lifecycle.
+    final void requireContentReady(String operation) {
+        if (root == null || shutdownCalled) {
+            throw new IllegalStateException("Call " + operation + " inside setup() or an event handler before the app stops.");
+        }
+    }
+
+    final boolean isStopped() { return shutdownCalled; }
+    final void beginFrame() { frameActive = true; }
+    final void endFrame(boolean successful) {
+        frameActive = false;
+        Node content = pendingContent;
+        pendingContent = null;
+        if (successful && !shutdownCalled && content != null) commitContent(content);
+    }
+    void contentChanged(Node content) { }
+
+    private void commitContent(Node content) {
+        root.setCenter(content);
+        contentChanged(content);
     }
 
     protected final double initialWidth() { return appWidth; }
@@ -77,6 +103,8 @@ public abstract class App extends Application {
 
     @Override public final void start(Stage stage) {
         shutdownCalled = false;
+        frameActive = false;
+        pendingContent = null;
         try {
             configuring = true;
             try { settings(); } finally { configuring = false; }
@@ -100,6 +128,7 @@ public abstract class App extends Application {
     }
 
     @Override public final void stop() {
+        pendingContent = null;
         Throwable failure = null;
         // Window hiding and the JavaFX launcher can both stop the same lifecycle.
         if (!shutdownCalled) {

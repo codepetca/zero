@@ -2,6 +2,7 @@
 const categoryDefinitions = [
   ['startup', 'App startup', 'Choose an app and define its callbacks.'],
   ['interface', 'Window and interface', 'Configure the window and show JavaFX controls.'],
+  ['game-flow', 'Game flow', 'Navigate between game views and explicitly pause gameplay updates.'],
   ['components', 'Zero UI', 'Compose labels, buttons and vertical columns using Zero imports.'],
   ['colors', 'Zero colours', 'Choose canvas colours without a JavaFX import.'],
   ['canvas', 'Canvas', 'Read canvas dimensions and use native JavaFX objects.'],
@@ -55,8 +56,8 @@ const methodNotes = {
   title: 'Call inside settings() only. The title must not be null.',
   padding: 'Inherited by GameApp from App. Call in settings(), setup() or a JavaFX event handler. The default is 0; padding(0) removes it and repeated calls replace the amount. GameApp keeps its canvas dimensions. Later calls rearrange content without resizing the window.',
   show: 'Call in setup() or later. Content must not be null.',
-  update: 'The example assumes a double field named x. First-frame seconds is 0; later values are capped at 0.1.',
-  draw: 'The canvas is not cleared automatically. Drawing styles persist between frames.',
+  update: 'While gameplay is visible and not explicitly paused. The example assumes a double field named x. First-frame seconds is 0; later values are capped at 0.1.',
+  draw: 'Runs only while gameplay is visible, including during explicit pause. The canvas is not cleared automatically. Drawing styles persist between frames.',
   circle: 'The third argument is the diameter, not the radius.',
   text: 'By default, y is the text baseline.',
   loadImage: 'Put player.png in src/main/resources for this example. Successful loads share an app-scoped canonical-resource cache until shutdown.',
@@ -136,7 +137,7 @@ export function buildApiReference(markdown) {
   const noteLines = Object.fromEntries(categories.map(category => [category.id, []]));
   const route = () => {
     if (section === 'App') return subsection === 'Window and content' ? 'interface' : 'startup';
-    return { 'zero.ui.Element': 'components', 'zero.ui.Label': 'components', 'zero.ui.Button': 'components', 'zero.ui.Column': 'components', Color: 'colors', Audio: 'audio', Sound: 'audio', Music: 'audio', GameApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', ImageRegion: 'regions', SpriteAnimation: 'animation', Actor: 'actors', Collisions: 'collisions', 'Lifecycle and extension hooks': 'advanced' }[section];
+    return { 'zero.ui.Element': 'components', 'zero.ui.Label': 'components', 'zero.ui.Button': 'components', 'zero.ui.Column': 'components', Color: 'colors', 'Game flow': 'game-flow', Audio: 'audio', Sound: 'audio', Music: 'audio', GameApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', ImageRegion: 'regions', SpriteAnimation: 'animation', Actor: 'actors', Collisions: 'collisions', 'Lifecycle and extension hooks': 'advanced' }[section];
   };
   for (const line of markdown.split(/\r?\n/)) {
     const heading = line.match(/^## (.+)$/);
@@ -170,7 +171,8 @@ export function buildApiReference(markdown) {
     }) : [];
     const sourceType = parameters[0]?.type;
     const variant = sourceType === 'ImageRegion' ? '-region' : sourceType === 'SpriteAnimation' ? '-animation' : '';
-    const id = uiHelper ? `ui-${className.toLowerCase()}-${name === className ? `constructor${sourceType === 'double' ? '-spacing' : ''}` : name}`
+    const id = categoryId === 'game-flow' ? `gameapp-${name}`
+      : uiHelper ? `ui-${className.toLowerCase()}-${name === className ? `constructor${sourceType === 'double' ? '-spacing' : ''}` : name}`
       : owner === 'Color' ? `color-${name}`
       : name === 'show' && sourceType === 'zero.ui.Element' ? 'show-element'
       : ['background', 'fill', 'stroke'].includes(name) && sourceType === 'zero.Color' ? `${name}-zero-color`
@@ -245,7 +247,7 @@ export function buildApiReference(markdown) {
     if (id === 'show-element' || id === 'controls') {
       entry.example = `${name}(new zero.ui.Column(new zero.ui.Label("Ready")));`;
       entry.related = ['ui-column-constructor', id === 'controls' ? 'show-element' : 'controls'];
-      entry.note = id === 'controls' ? 'Use for a live game HUD. Canvas and update/draw loop remain active. A different parent or scene is rejected; the current bottom panel can be mounted again.' : 'Inherited by GameApp. Replaces visible centre content, but does not stop its game timer or provide navigation.';
+      entry.note = id === 'controls' ? 'Use for a live game HUD. Retains canvas and gameplay state; does not navigate or clear explicit pause. A different parent or scene is rejected; the current bottom panel can be mounted again.' : 'Inherited by GameApp. Navigating away suspends gameplay update, draw and canvas input. showGame returns to the retained canvas/HUD. Frame requests commit after the current draw; idle UI callbacks commit immediately.';
       entry.parameters[0].description = 'Non-null Zero element; uses ordinary JavaFX node ownership.';
     }
     if (sourceType === 'zero.Color') {
@@ -254,13 +256,22 @@ export function buildApiReference(markdown) {
       entry.parameters[0].description = 'Non-null zero.Color wrapper; distinct from javafx.scene.paint.Color.';
       entry.note = 'Unreleased Zero colour overload. Use import zero.Color, or the qualified name shown here.';
     }
+    if (id === 'show') {
+      entry.related = ['show-element', 'gameapp-showGame', 'controls', 'layout'];
+      entry.note = 'On GameApp, suspends gameplay update, draw and canvas input while another view is shown. showGame restores the retained canvas/HUD. Requests during a frame commit after its successful draw.';
+    }
+    if (categoryId === 'game-flow') {
+      entry.example = {showGame: 'showGame();', pause: 'pause();', resume: 'resume();\nshowGame();', isPaused: 'boolean paused = isPaused();'}[name];
+      entry.related = ['gameapp-showGame', 'gameapp-pause', 'gameapp-resume', 'gameapp-isPaused', 'show-element', 'controls'].filter(target => target !== id);
+      entry.note = 'Unreleased GameApp navigation/pause addition. Main owns game state and view choices; no zero.Screen class or automatic screen lifecycle exists. Call in setup or later on the JavaFX application thread.';
+    }
     if (id === 'image-scaled') entry.note = methodNotes.image;
     byId[categoryId].entries.push(entry);
   }
   for (const category of categories) category.notes = noteLines[category.id].join('\n').trim();
   const entries = categories.flatMap(category => category.entries);
-  if (seenSections.size !== 19 || entries.length !== 142 || categories.some(category => !category.entries.length)) {
-    throw new Error(`Incomplete API reference: expected nineteen sections and 142 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
+  if (seenSections.size !== 20 || entries.length !== 146 || categories.some(category => !category.entries.length)) {
+    throw new Error(`Incomplete API reference: expected twenty sections and 146 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
   }
   const ids = new Set(categories.map(category => category.id));
   for (const entry of entries) {
@@ -274,6 +285,7 @@ export function buildApiReference(markdown) {
 }
 
 const aliases = {
+  showGame: 'navigation screen title help results replay retained canvas hud', pause: 'game gameplay freeze updates explicit pause', resume: 'game gameplay continue unpause clock input', isPaused: 'game gameplay explicit pause state',
   Element: 'zero ui component reusable view JavaFX bridge', Label: 'zero ui component text', Button: 'zero ui component click callback action', Column: 'zero ui component vertical layout spacing',
   onClick: 'click callback action Runnable lambda', controls: 'game hud panel live canvas', fxNode: 'advanced JavaFX interoperability node bridge', rgb: 'color colour red green blue channels',
   Actor: 'player enemy sprite centre center position facing movement subclass',

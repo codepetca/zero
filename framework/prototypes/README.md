@@ -1,8 +1,26 @@
 # Zero UI prototypes
 
-The counter and pointer coin game exercise the first Zero UI components without
-JavaFX imports in student code. Both copy `shared/ScoreDisplay.java` unchanged.
-They are local framework experiments, not published tutorials or releases.
+The counter and COIN QUEST game exercise ordinary Java and Zero imports in
+student code. Both copy `shared/ScoreDisplay.java` unchanged. These are local
+framework experiments, not published tutorials or releases.
+
+The counter composes its reusable score view with Add one and Reset buttons.
+COIN QUEST begins on a title with Play and How to play; help returns with Back.
+Gameplay has two levels of three coins, a blue player controlled by the pointer,
+and a 30-active-second challenge per level starting on the first pointer movement.
+The retained HUD combines ScoreDisplay, level/time labels, Pause and Restart game.
+Pause offers Resume, Restart game and Title screen. Results show You win! or
+Time's up!, the final score out of six, Play again and Title screen.
+
+Main owns an explicit Phase enum, level/score/time rules and resets. TitleScreen,
+HelpScreen, PauseScreen and ResultsScreen are ordinary student classes returning
+Element. GameApp.show navigates away from gameplay and suspends update/draw/input;
+showGame restores the same canvas/HUD. Explicit pause skips update while visible
+gameplay still draws. Returning respects that pause until resume is called.
+Navigation requested during a frame commits after its successful draw; idle UI
+callbacks commit immediately. Navigation/pause/resume clear input, and resuming
+updates starts with zero elapsed seconds. There is no zero.Screen lifetime class,
+automatic navigation history or second game loop.
 
 Run `node scripts/prepare-ui-prototypes.mjs` to assemble standalone projects in
 `.verification/ui-prototypes/counter` and `.verification/ui-prototypes/coin-game`.
@@ -15,9 +33,10 @@ for offline running. Preparation preserves edited or unowned output files.
 Run `node scripts/verify-ui-prototypes.mjs` for finite native acceptance using
 offline Maven. Test drivers temporarily join the build and are removed afterward.
 They open actual JavaFX windows, activate native button event handlers and send
-synthetic canvas mouse-move events while the game's own animation frames run.
-The counter reaches 2, resets to 0 and reaches 1. The game collects all three
-coins, wins, restarts at 0 and wins a second time with the live HUD present.
-Logs and a platform-specific receipt remain inside the ignored output directory.
-This does not prove physical pointer input, browser output or another operating
-system. Browser compilation/playthrough belongs to the separate WebFX checks.
+synthetic canvas pointer events while the game's own animation frames run. The
+flow checks should cover title/help, gameplay, pause/resume, results, replay/title
+and continued play after reset. Logs and a platform-specific receipt remain in
+the ignored output directory. A previous simple three-coin playthrough does not
+establish acceptance of this fuller flow. Physical pointer input, browser output
+and other operating systems require their own evidence. Actual WebFX compilation
+and browser playthrough belong to the separate browser checks.

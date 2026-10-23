@@ -1,42 +1,37 @@
-# First Zero UI slice — 2026-10-23
+# COIN QUEST and navigation — 2026-10-23
 
-Owner authorized a quick working framework increment with real app/game examples.
-Worktree: `/Users/stew/.codex/worktrees/actor/zero`; base
-`5c6ddc62334e92290c8845e27c8f26d26002a394`. Preserve primary funding and other
-Zero Dev scratch/profile/watcher work. Local implementation only; no push, PR,
-merge, installation, publication, release, deployment or account changes.
+Owner asked to turn the coin prototype into a fuller game with title screens.
+Worktree /Users/stew/.codex/worktrees/actor/zero, base b1b872eb. Local source work;
+no push/PR/merge/install/release/deployment/account changes. Preserve unrelated
+primary funding and tutorial-padding Dev scratch/profile/watcher state.
 
-Implemented, unreleased: zero.ui.Element/Label/Button/Column, zero.Color,
-App.show(Element), GameApp.controls(Element) and Color drawing overloads.
-GameApp extends App and retains one existing frame driver. show(Element) keeps
-show(Node) replacement semantics and does not suspend gameplay. controls mounts
-a live bottom HUD. JavaFX bridge is protected Element(Node)/final fxNode().
-Atomic Column validation preserves child ownership on failure; button callbacks
-replace previous callbacks. Exact browser source identities and member gates
-include all 13 helpers/142 public or protected declarations, not arbitrary zero
-package code. Readable generated starter/lesson/example copies include UI packages
-with ownership and symlink guards. API/guide/website metadata change together.
+Game now has title/help, two levels of three coins,30 active seconds per level,
+manual pause/resume, victory/timeout results and replay/restart/title paths.
+Main owns Phase/state/rules; ordinary TitleScreen/HelpScreen/PauseScreen/
+ResultsScreen classes return Element views, Hud reuses unchanged ScoreDisplay.
+All student imports use Zero; no zero.Screen base, World or second game loop.
 
-Counter App and pointer coin GameApp use Zero imports and the same unchanged
-ordinary ScoreDisplay source. Assembly/native acceptance commands are documented
-in framework/prototypes/README.md. These are first composition examples; no claim
-that animation/container replacements or managed ZeroHub distribution were added.
-Screen/navigation/pause, World, input/image facades, project-owned browser tooling,
-new automatic diagnostics and opt-in telemetry remain planned. Existing project-
-owned source/build/version preservation policy remains canonical in
-docs/FRAMEWORK-ARCHITECTURE.md; no central historical-kit service/database.
+Framework adds GameApp.showGame/pause/resume/isPaused (13helpers/146decl).
+App.show(Node/Element) is one navigation path: suspend update/draw/input off-game;
+showGame restores retained canvas/HUD with cleared input/zero first delta and
+respects explicit pause. pause skipsupdate but draws/UIcontinue. Frame navigation
+last-wins after successful draw; failure/stop discards pending. Package-private
+frame brackets/hooks keep public surface small. Native/browser sizing measures
+retained game+HUD before restoring title; exact browser overlays/gates updated.
+Screen lifecycle, replaceable World/animation, project-owned browser tooling and
+new diagnostics/telemetry/distribution remain proposed. Preservation policy stays
+project-owned source/build files, exact pins and no required central old-kit DB.
 
-Workers: native core + prototype acceptance (Sol/high), WebFX/contracts/browser
-(Sol/medium), docs/API + source assembly (Sol/medium). DeepSeek pilot paused.
-Accepted implementation: 8f3bcfe5eb6984148d1ccfd5ccf29a0306b14efa. Independent
-Sol/high completed all53 changed files plus immediate interactions, no actionable
-findings. One initial wave, no remediation; about nine minutes (manual estimate),
-effective configuration/tokens unknown. Only evidence/handoff prose follows it.
-Final root1003pass/0fail/3skip; website164/164, typecheck/build; config/links/diff;
-real9 pinnedWebFX builds, Chrome68 and mobile136 assertions; /docs9 assertions;
-native standalone counter/game and full Dev smoke pass. Initial macOS foreground
-focus timeout cleared on unchanged retry. Initial inventory/migration fixture
-failures were corrected, with exact historical hash and missing-dependency
-preservation tests. Binary/source JARs include all13 helpers. See docs/EVIDENCE.md
-and .verification/ui-slice-review/ledger.json for detailed evidence and limits.
-Use source-based Zero Dev and native/browser checks, not installers, to iterate.
+Workers: Sol/high runtime+NavigationCheck, Sol/medium browser/contracts, Sol/medium
+API/docs+immutable historical App testfixture. Runtime/guide source frozen.
+Native framework/navigation checks pass; native full-game603-frame playthrough
+passes after correcting test pointer baseline. Counter unchanged. WebFX9builds
+and root regression underway; website165/165, typecheck/build and /docs4newanchors
+pass. Existing Dev focus timeout repeated; harness focusdeadline now begins at
+first visible frame rather than setup before CSS/scene creation, under validation.
+
+Evidence logs .verification/full-game-*.log and .verification/full-game-web/.
+Independent lifecycle/browser review will follow fixed candidate and cheap checks.
+No central kit service, hosted deployment or automatic project upgrade added.
+Use source-based Zero Dev; no installer iteration. Previous accepted UI slice at
+8f3bcfe5 and receipt b1b872eb remain in docs/EVIDENCE.md.

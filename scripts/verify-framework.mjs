@@ -24,6 +24,9 @@ try {
   const ui = maven(project, ['-q', '-Dapp.mainClass=zero.UiCheck', 'compile', 'javafx:run']);
   if (!ui.stdout.includes('ZERO_UI_OK')) throw new Error(ui.stdout + '\n' + ui.stderr);
   console.log(ui.stdout.trim());
+  const navigation = maven(project, ['-q', '-Dapp.mainClass=zero.NavigationCheck', 'compile', 'javafx:run']);
+  if (!navigation.stdout.includes('ZERO_NAVIGATION_OK')) throw new Error(navigation.stdout + '\n' + navigation.stderr);
+  console.log(navigation.stdout.trim());
   const audio = maven(project, ['-q', '-Dapp.mainClass=zero.AudioCheck', 'compile', 'javafx:run']);
   if (!audio.stdout.includes('ZERO_AUDIO_OK')) throw new Error(audio.stdout + '\n' + audio.stderr);
   console.log(audio.stdout.trim());

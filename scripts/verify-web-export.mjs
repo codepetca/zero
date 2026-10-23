@@ -127,7 +127,7 @@ async function fixture(name, example) {
     await fs.writeFile(path.join(directory, 'src/main/java/ScoreDisplay.java'), shared);
     if (!(await fs.readFile(path.join(directory, 'src/main/java/ScoreDisplay.java'))).equals(shared)) throw new Error('Shared ScoreDisplay bytes differ.');
   } else if (name === 'zero-ui') {
-    await fs.copyFile(path.join(root, 'framework/web-checks/ui/Main.java'), path.join(directory, 'src/main/java/Main.java'));
+    await fs.copyFile(path.join(root, 'framework/web-checks/navigation/Main.java'), path.join(directory, 'src/main/java/Main.java'));
   } else if (name === 'mobile') {
     await fs.copyFile(path.join(root, 'framework/web-checks/mobile/Main.java'), path.join(directory, 'src/main/java/Main.java'));
   } else if (name === 'audio') {
