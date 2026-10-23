@@ -9,6 +9,8 @@ public class TextField extends Element {
     public TextField() {
         super(new javafx.scene.control.TextField());
         field = (javafx.scene.control.TextField) fxNode();
+        field.setText("");
+        field.setPromptText("");
     }
 
     public String getText() { return field.getText(); }
