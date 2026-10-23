@@ -1,6 +1,6 @@
 # ZeroHub consolidation plan
 
-Owner direction: one Zero repository, ZeroHub brand, `/hub` address. No student work or legacy compatibility needs to be preserved. Replace the old separate catalog/Workshop/maintainer admission path with the generic automated library flow.
+Owner direction: one Zero repository, ZeroHub brand, `/hub` address. Replace the old separate catalog/Workshop/maintainer admission path with the generic automated library flow. The historical compatibility exception applies only to that obsolete pre-consolidation system and its fixtures. Preserve current student repositories/history, accepted releases and installed pins; future migration follows the [framework architecture plan](FRAMEWORK-ARCHITECTURE.md)'s versioning and credit rules.
 
 1. Move useful Starter UI and health-bar source, notices, tests and examples into `libraries/`.
 2. Remove old Community routes, catalogs, Workshop, extension actions and release asset dependencies.

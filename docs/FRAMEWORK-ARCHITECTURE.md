@@ -180,10 +180,12 @@ checks before becoming part of the default teaching promise.
 Before implementing Screen/World, agree and prove these rules:
 
 - The host has exactly one frame recipient. Transitions happen at a frame
-  boundary: leave the old screen, detach its listeners/view and owned playback,
-  clear transient gameplay input, enter the new screen and reset elapsed time.
-  A hidden screen receives no game updates/input. Re-entering an existing session
-  preserves it; Restart explicitly creates fresh session state.
+  boundary: leave the old screen, detach its listeners/view, suspend its owned
+  playback, clear transient gameplay input, enter the new screen and reset elapsed
+  time. A hidden screen receives no game updates/input. Deactivating a retained
+  session preserves its state and playback for re-entry; final disposal releases
+  owned resources when the session is discarded or the app closes. Restart
+  explicitly disposes the old session and creates fresh session state.
 - Pause stops simulation/actor animation updates while world drawing and UI
   continue. Input/focus policy is explicit: controls keep normal typing, gameplay
   belongs to the focused canvas, blur clears held/edge input and pauses the
