@@ -1,5 +1,76 @@
 # Delivery evidence index
 
+## PNG sprite-size stress matrix — 2026-10-23
+
+Owner requested actual 64×64, 128×128 and 256×256 PNG frames with
+1000/2000/5000 animated actors through WebFX, retaining live FPS. Local source
+commit e3c1a76a (base 8ae786b4) adds size controls, three original MIT PNG sheets,
+size-aware actor bounds and resource assembly. Every actor still moves, rotates
+and owns an animation clock; actors share the cached sheet. Source-frame and
+destination dimensions both equal the selected size. The 32px option and all six
+count buttons remain available. No framework/API/compatibility-contract changes:
+13 helpers and 159 public/protected declarations. No asset limit or warning policy.
+
+Native acceptance passes all four prototypes; stress ran 895 real frames across
+six 32px counts plus the nine larger-size/count combinations. It checks actual
+image/frame/actor sizes, shared images, independent clocks, motion and live FPS.
+Root `npm run check`, syntax/diff checks and focused runner parse/order/sparse-frame
+checks pass. Logs: `.verification/actor-stress-sizes-{native,check,final-check}.log`.
+Unchanged framework/semantic evidence is reused; not claimed as a new full run.
+
+One fresh pinned WebFX build passed in 16.69s, ID
+095cf516-4021-4d41-9926-d9fff6c6437e. Source hash
+857f0d728b3f07f856bc6ae8e70f39a60fe2cc2e17531c7a7af5d36a88c755f9;
+unchanged engine/profile hash
+d8ae6532f86f2a38a9bc80595d554051309f6fdfa005bc44e37d424256abe39d.
+`--sizes` owns `.verification/actor-stress-web-sizes/project` and distinct output,
+preserving both earlier small/large builds and evidence. Export/source/asset/engine
+guards pass before and after browser testing. Nine functional cases each verify
+61 real frames, exact actor draw counts, four crop rectangles, natural sheet sizes
+256×64/512×128/1024×256, matching destination sizes and visible workload/FPS.
+
+Measurements ran serially: size outer/count inner, then exact reverse; each of
+18 samples has a 3s warm-up and 10s measured window. Own build/test/native jobs
+were stopped and the old active IAB was blanked before timing. Unrelated user
+watchers were preserved; this was not an exclusive host. Per-image functional
+hooks were removed before timing; only one timestamp per canvas clear and an
+independent rAF sampler remained. Headless Chrome 156, visible/focused page,
+900×1100 viewport, DPR1; canvas buffer and CSS dimensions both 800×450.
+
+| Frame size | 1000 actors FPS, forward/reverse | 2000 actors | 5000 actors |
+| --- | --- | --- | --- |
+| 64×64 | 60.0036 / 60.0030 | 60.0014 / 59.9018 | 60.0014 / 60.0002 |
+| 128×128 | 60.0080 / 60.0024 | 60.0032 / 60.0032 | 60.0068 / 60.0044 |
+| 256×256 | 60.0014 / 60.0012 | 60.0032 / 60.0024 | 60.0044 / 59.9960 |
+
+10,804 game-frame and 10,805 rAF timestamps; draw p95 intervals 16.8–18.2ms,
+maximum 33.2ms and zero intervals over 33.3ms. Every sampled live label reads 60.
+No callback-cadence slowdown threshold was found through 5000×256px in this
+configuration. This does not establish physical presentation/GPU completion,
+school-device capacity or decoding speed: assets were loaded beforehand; source
+and destination size change together; simple transparent sprites overlap heavily
+in a fixed field and may clip. Largest shared sheet has 1 MiB raw RGBA pixels.
+
+Independent retained Sol/high reviewed the complete ten-file delta
+8ae786b463ba0b362eb4210ac902d1cfd7745fa9 →
+e3c1a76abfdcf012b193989e7ce73be62947a20d with no actionable findings or blockers.
+It independently verified export/source/asset/receipt hashes, all nine functional
+geometries, recomputed all 18 raw runs and confirmed prior small/large site byte
+inventories are unchanged. One initial review turn/wave, zero fixes or targeted
+waves; effective model configuration, token usage and attributable effort unknown.
+Ignored review receipt: `.verification/actor-stress-sizes-review/initial.json`.
+Only completion documentation follows the reviewed source.
+
+Raw data, receipt, build, probe and logs are in the ignored
+`.verification/actor-stress-web-sizes/` directory. After timing, IAB4 selected
+5000 actors/256px and showed 60 FPS, 16.6ms average and 19ms worst interval;
+screenshot `live-5000-256.png`. Parent preview session 95462 remains available at
+http://127.0.0.1:49907/9c7976b2e96d36cde02ff7f8c4b68ca78fa8/ and is marked as a
+deliverable. Old preview servers 34613/93232 are idle, old artifacts preserved;
+worker-owned browser/server closed. No push/PR/merge/deploy/release/install,
+telemetry or account changes. Starting storage 273.046GB healthy; account weekly
+6% used is shared usage, not attributable task cost.
+
 ## Actor stress range1000/2000/5000 — 2026-10-23
 
 Owner requested larger actor counts with unchanged sprite workload to find lag.

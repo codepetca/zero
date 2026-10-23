@@ -1,39 +1,41 @@
-# Actor stress through5000 — completed locally, 2026-10-23
+# PNG sprite-size stress matrix — completed locally, 2026-10-23
 
-Owner extended stressdemo to1000/2000/5000. Accepted source
-e36c6b8a9e47b39a3765df60ea376ca3c32ba94a, basec8465f04. Worktree
-/Users/stew/.codex/worktrees/actor/zero; local only, no push/PR/merge/install/
-release/deploy/telemetry/account authority. Preserve primary funding and other
-Dev scratch/profile/watcher state.
+Owner requested 64/128/256px PNG frames ×1000/2000/5000 actors with live FPS.
+Source e3c1a76a (base 8ae786b4), attached worktree
+/Users/stew/.codex/worktrees/actor/zero. Local only: no push/PR/merge/deploy/release,
+install, telemetry or account authority. Preserve primary funding changes and
+other worktrees' Dev scratch/profile/watcher state.
 
-Main now has sixcountbuttons100/250/500/1000/2000/5000. Same32x32frames/shared
-four-frame8fpsimage/movement/rotation; no framework/APIchange13helpers/159decl.
---large runner isolates output/projecttree in .verification/actor-stress-web-large,
-preserving oldsmallbuild/site/rawdata. Bounded actualframes/crops/HUD functional
-waits; low/zeroFPS handled asmeasurement, sparseframe stats supported.
+Demo offers 32/64/128/256px sizes and all six count buttons. Source and destination
+sizes match; four-frame 8fps PNGs share an image cache, with separate animation
+clocks, movement and rotation for every actor. New assets are original MIT pixel
+art. No framework/API/contract change (13 helpers/159 declarations), optimization,
+asset cap or warning policy. `--sizes` isolates its project/results, keeping prior
+small/large builds and receipts intact.
 
-Native all4pass(stress367frames/sixcontrols, oldgames640/632), rootcheck/syntax/
-diffpass. One pinnedWebFXbuild15.69s. Quiet6samples3swarm+10smeasure percount/order,
-oldIABclientsstopped, noowntest/build/nativework; unrelatedwatcherspreserved.
-3601game/rAFframes,59.9996–60.0074FPS,p9516.8–17.4ms,max17.8ms,0>33.3msgaps,
-UI60. No slowdownfoundthrough5000 onthissmall-spriteheadlessChrome/localMac
-configuration. Schoolhardware/largerimages/collision/physicalpresentationuntested.
-Prior exactruntime/semantic20 evidence reused, not rerun asnewmeasurements.
+Native all four pass: stress895 frames/all15cases, games637/638. Root check twice,
+syntax/diff and runner parse/order/sparse checks pass. One pinned WebFX build16.69s;
+ID095cf516-4021-4d41-9926-d9fff6c6437e. Nine browser functional cases each verify61
+frames, exact counts, real PNG/crop/destination sizes and visible HUD. Quiet serial
+18 samples, 3s warm+10s measured, forward then reverse; own jobs/old IAB stopped.
+Headless Chrome156, viewport900x1100, DPR1, canvas buffer/CSS800x450. Draw cadence
+59.9018–60.0080FPS, p95 intervals16.8–18.2ms, max33.2ms, zero>33.3ms gaps;
+10804draw/10805rAFtimestamps; UI60 throughout. No cadence slowdown found through
+5000×256px. Physical GPU presentation and school hardware remain unmeasured.
+Shared assets preloaded, transparent sprites overlap/clip; source and drawn area
+increase together, so this is not an isolated decoding/compression benchmark.
 
-Retained Sol/high complete5filereviewclean; independentexport/hash/rawstats and
-oldsmallsitepreservation validated. Oneinitialturn/wave,0fixes/extrawaves; effective
-configuration/token/elapsedtelemetryunknown. Proof docs/EVIDENCE.md and ignored
-actor-stress-web-large/{build,receipt,samples}.json, actor-stress-large-*.log and
-actor-stress-large-review/initial.json. Only completiondocs after reviewed code.
+Independent retained Sol/high complete10-file review is clean. Export/canonical
+hashes, raw statistics and unchanged prior sites independently verified; oneinitial
+turn/wave, zero fixes/targetedwaves. Effective model/tokens unavailable. Review
+receipt .verification/actor-stress-sizes-review/initial.json. Only completion docs
+follow the reviewed source.
 
-LiveIAB4 selected5000 shows60FPS/16.6msavg/17msworst aftertiming, marked deliverable.
-Screenshot .verification/actor-stress-web-large/live-5000.png. Parentserver93232
-http://127.0.0.1:55997/26f3bef49ee0e177fe17bde439a3c3fd7159/ stayslive.
-DuplicateoldIAB5closed; originaloldserver34613idle and oldartifactbyteskept.
-Worker-owned benchmarkbrowser/serverclosed.
-
-Current user steering: asks whether larger PNG sprites need maxsize/guidance.
-Answer using actualsmall-frame benchmark limits, distinguish source image vs
-on-screen/frame/whole-sheet sizes; propose softwarnings/defaults rather than
-claiming an implemented cap. No image-size policy changes authorized/implemented.
-Use sourceZeroDev loop for future implementation; broaderframework plans unchanged.
+Evidence in docs/EVIDENCE.md and ignored .verification/actor-stress-web-sizes/
+{build,receipt,samples}.json; native/check logs .verification/actor-stress-sizes-*.
+IAB4 after timing shows5000/256px with60FPS/16.6msavg/19msworst, marked deliverable;
+screenshot actor-stress-web-sizes/live-5000-256.png. Parent server95462 remains at
+http://127.0.0.1:49907/9c7976b2e96d36cde02ff7f8c4b68ca78fa8/.
+Oldservers34613/93232 idle; workerbrowser/serverclosed. Prior runtime/semantic
+verification reused without claiming new full-suite runs. Use source Zero Dev loop
+for future changes; broader architecture and preservation policies unchanged.
