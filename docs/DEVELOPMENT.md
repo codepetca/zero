@@ -299,6 +299,13 @@ Community catalog admission policy and its installed clients are unchanged.
 
 ## Browser export
 
+Target architecture: normal student code uses Zero facades rather than requiring
+JavaFX imports. Follow [the class model](FRAMEWORK-MODEL.md) and
+[reliability plan](FRAMEWORK-RELIABILITY.md) for proposed App/GameApp ownership,
+per-signature evidence, background compatibility and local runtime status.
+PostHog/Clarity evaluation grants no new collection or activation authority.
+The implemented Run/export behavior below has not changed.
+
 See [WEB-EXPORT.md](WEB-EXPORT.md) for the implemented WebFX/GWT teaching profile,
 explicit browser export/preview, deployment-only publishing kit and strict
 resolved-API gate. Normal Run App, setup Run test and the configured Zero run task

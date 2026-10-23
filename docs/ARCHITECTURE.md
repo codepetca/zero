@@ -20,6 +20,13 @@ simple apps/games, JavaFX/WebFX browser delivery and student-owned GitHub work.
 The runtime plan is [Framework architecture](FRAMEWORK-ARCHITECTURE.md): a small
 JavaFX-owned lifecycle, optional active screens and explicitly updated worlds,
 with replaceable ordinary Java behaviours, animation playback and UI components.
+Normal student code should use Zero packages almost entirely; JavaFX remains the
+implementation and advanced interoperability boundary. The
+[class model](FRAMEWORK-MODEL.md) distinguishes inheritance from ownership and
+specifies App/GameApp plus Screen/GameScreen. The
+[reliability plan](FRAMEWORK-RELIABILITY.md) maps existing local/CI signals and
+future automatic coverage/runtime diagnostics, including the PostHog/Clarity
+evaluation. These documents do not implement the proposed facade or telemetry.
 Arcade informs the screen/container structure; Greenfoot informs Actor vocabulary;
 Godot informs focused composition. These are design references, not dependencies.
 

@@ -53,8 +53,10 @@ There is no server-assigned short-ID reservation.
 
 Ordinary constructors, setters and callbacks connect components. Main owns
 navigation and game rules; explicit updates can be delegated to an owned
-container whose ordinary Java loop updates its members. Widgets expose
-`Node view()` and ordinary helpers need no view, global registration system or
+container whose ordinary Java loop updates its members. Existing widgets expose
+JavaFX `Node view()`; the [target class model](FRAMEWORK-MODEL.md) uses a Zero
+Element view with a tested advanced bridge for reuse. This facade is not yet
+implemented. Ordinary helpers need no view, global registration system or
 automatic class discovery. Do not tick a component independently after handing
 its update ownership to a world or actor.
 

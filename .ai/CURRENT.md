@@ -1,39 +1,36 @@
-# Student-led framework evolution — 2026-10-23
+# Zero-first framework model and reliability — 2026-10-23
 
-Owner approved a core goal: students extend/replace components, share exact
-versions on ZeroHub, reuse/improve them and propose proven ideas for Zero core.
-Implementation in this turn is documentation only. Canonical plan:
-docs/FRAMEWORK-ARCHITECTURE.md; product, repository architecture, components,
-component plan, game-system notes and AGENTS carry the same direction.
+Owner clarified: normal student game/app development uses Zero packages almost
+entirely; JavaFX remains underneath and available for advanced interoperability.
+Requested complete hierarchy/ownership design, App versus GameApp clarification
+and automatic failure detection; later asked to consider PostHog alongside Clarity.
+Current scope is architecture/documentation and read-only source/provider research.
+No runtime implementation, collection, publication or account changes.
 
-Proposed structure: JavaFX host, optional active screens, explicit World/content
-updates and JavaFX UI. Small public replacement contracts support animation and
-alternative structures; core owns lifetime/sequencing. No universal node tree,
-source patching, auto registration or required component base. Browser delivery
-through pinned WebFX to playable GitHub Pages remains a hard product goal.
-Proofs: missing steering helper, substituted animation and container, one shared
-App/GameApp component through managed source-library export, then authorized
-Pages/novice acceptance. Interfaces, controls, metadata and World/Screen additions
-are proposals, not implemented APIs. Existing hosted checker/release gates remain.
+Canonical plan: docs/FRAMEWORK-ARCHITECTURE.md, with detailed
+FRAMEWORK-MODEL.md and FRAMEWORK-RELIABILITY.md. App is the shared host;
+GameApp is a thin default-game convenience. Screen/GameScreen, explicit World
+content, Actor behavior/playback and Zero UI use one lifecycle driver. Zero
+facades do not expose JavaFX types on normal signatures; advanced bridge and
+published API/library migrations remain explicit. Proposed APIs are not delivered.
 
-Plan accepted at2bcacd5d382a748a59dad74f6bf75a59c6bfdd61 after an independent
-Astra/xhigh full-diff review and one targeted follow-up. One P2 preservation
-contradiction was corrected; retained-session deactivation versus disposal was
-clarified in the same batch. No remaining actionable findings. Receipts/reports:
-.verification/architecture-extension-astra/; prior reference review remains in
-.verification/architecture-astra/. Requested configuration is Astra/xhigh;
-effective configuration and token usage were not exposed.
+Read-only Sol/medium audit found existing source/API guards, compiler/source
+diagnostics and six-fixture real browser CI. Current native Run has no browser
+check; preview frame failures are not bridged to failed editor state; ZeroHub
+checks reachability only. No source-managed Clarity/PostHog field collector.
+Plan adds per-signature evidence, saved-source compatibility, truthful local
+runtime signals, failure injection and optional sanitized operational events.
+PostHog is recommended for evaluation as primary optional sink, Clarity for
+supplementary website UX. No automatic tracking injection into student games.
 
-Checks: configuration/syntax/command contracts/local links pass; focused website
-document-navigation/API-reference/learning tests30pass/0fail; diff check passes.
-Next proposed phase, when scoped: design the three examples and smallest
-contracts, including repeated animation assignment, resource ownership and
-drawing capability. Plan acceptance does not authorize that implementation.
-See docs/EVIDENCE.md for review coverage and remaining empirical gates.
+Checks: npm run check passed; focused website navigation/API/learning30pass/0fail.
+Next: independent Astra/xhigh review of the fixed model/reliability revision,
+resolve material findings and record evidence. Prior accepted extension plan at
+2bcacd5d and receipts under .verification/architecture-extension-astra/ remain
+baseline; the new Zero-first direction supersedes its default direct-JavaFX UI.
+Audit receipts: .verification/zero-first-plan/ (ignored). Preserve existing
+Actor receipts and source6f0ee4e1; no new public API/runtime change.
 
-Runtime remains Actor prototype source6f0ee4e1 / prior receiptc7ffa40a, with its
-recorded native/WebFX/browser/source checks. No new runtime, public API or binary
-change. No push, PR, merge, deployment, ZeroHub activation or credential change is
-authorized by this task. Preserve primary funding and tutorial-padding Dev work,
-profiles/scratch/watcher and all unrelated changes. Retain this attached Actor
-checkout and ignored receipts for the next scoped implementation phase.
+Retain this attached Actor checkout for continued local planning. Preserve the
+primary funding and tutorial-padding Dev work, profiles/scratch/watcher. No push,
+PR, merge, deployment, hosted checker activation or credential change authorized.

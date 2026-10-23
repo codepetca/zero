@@ -6,6 +6,11 @@ Owner direction,2026-10-23. This is the canonical runtime/extension plan, alongs
 review and makes student-led framework evolution an acceptance requirement.
 Contracts and names below are proposed, not implemented public APIs. The current
 App/GameApp path remains available; Actor is an unreleased local prototype.
+The later owner clarification makes Zero the normal student API, with JavaFX
+available for advanced interoperability. The detailed
+[class/ownership model](FRAMEWORK-MODEL.md) and
+[automatic failure-detection plan](FRAMEWORK-RELIABILITY.md) are parts of this
+architecture, not separate competing plans. They also remain proposed.
 
 ## Core outcome
 
@@ -17,11 +22,14 @@ other people's use, and propose proven ideas for Zero itself.
 
 **Build → extract → share → reuse → improve → propose for core.**
 
-The default teaching path uses ordinary Java/JavaFX, the pinned WebFX browser
+The default teaching path uses ordinary Java with Zero packages almost entirely,
+JavaFX underneath, the pinned WebFX browser
 toolchain and playable static GitHub Pages output from student-owned GitHub
 repositories. Native Run is the fast iteration loop. Browser compatibility is
 checked during development; real browser builds/behaviour are acceptance gates
-for each new capability, not a discovery deferred until final Publish.
+for each new capability, not a discovery deferred until final Publish. Current
+native Run does not check browser compatibility; saved-source background checks,
+truthful runtime status and per-signature evidence are required future work.
 
 Contributing and publishing need not happen in every introductory lesson. They
 must remain achievable outcomes without learning another application language,
@@ -38,15 +46,16 @@ architectural references, not new dependencies or a combined engine runtime.
 
 | Owner | Responsibility | Extension boundary |
 | --- | --- | --- |
-| App | Window/root, app-scoped assets and final cleanup; optional screen transitions | Ordinary JavaFX views and app-owned controllers; no game types required |
-| GameApp | One canvas/clock, input sampling, one active frame recipient | Introductory Main callbacks or an active game screen, never both ticking the same objects |
-| Screen/controller | Enter/leave, navigation/session rules, UI and a camera | Composes app-specific Java objects and selected content implementations |
+| App | Window/root, app-scoped assets, active-screen lifecycle and final cleanup | Zero UI and app-owned controllers; advanced JavaFX bridge; no game types required |
+| GameApp extends App | Thin default-GameScreen convenience for Main update/draw/input | Same host frame driver and screen contracts, never a second timer |
+| Screen/controller | Enter/leave, navigation/session rules and Zero UI | Composes app-specific Java objects; ordinary apps need no game callbacks |
+| GameScreen extends Screen | Drawing surface, game input, camera and frame callbacks | Explicit delegation to selected content implementations |
 | World | Default ordered actor membership, exactly-once updates and world drawing | One optional content implementation; a screen can select a different ordinary Java container/controller |
 | Actor | Local state, movement and optional appearance | Subclass behaviour, composed helpers and replaceable animation playback |
 | Camera | World-to-canvas and inverse pointer mapping | Owned by the viewing screen; follow/smoothing behaviour can be ordinary helpers |
 | UI/data components | Controls, HUDs, health, scores, inventories and other structures | Public constructors, setters, callbacks and small interfaces where alternatives share a contract |
 
-A one-screen quiz stays an event-driven App with Label/Button/TextField and normal
+A one-screen quiz stays an event-driven App with Zero Label/Button/TextField and
 layouts. A first moving shape can stay in Main. A menu has no World. A scrolling
 game can replace its level/world while retaining its UI. Neither a universal
 Zero Node tree nor a required component base class is part of this plan. Use
@@ -156,8 +165,12 @@ or adapter, not rewrite application logic or patch core.
 
 ### UI and events
 
-UI remains ordinary JavaFX. A reusable component may expose `Node view()` and
-ordinary value setters/callbacks; nonvisual components need no view. UI and model
+Zero supplies the default controls/layouts using JavaFX internally. A reusable
+component may expose a Zero Element view and ordinary value setters/callbacks;
+nonvisual components need no view. Existing components currently expose JavaFX
+`Node view()`; a tested advanced bridge and explicit migration preserve reuse.
+Do not subclass every JavaFX control or mirror its entire property/event API.
+UI and model
 do not require Actor inheritance. A score/health model owns rules; the display
 receives values or typed notifications. Direct method calls are the first lesson;
 callbacks/listeners are useful when a reusable component must report an event
@@ -172,8 +185,10 @@ The current student browser contract includes specific Button/Label/TextField
 and BorderPane/HBox/VBox signatures. ProgressBar, Slider and StackPane are not
 currently admitted; the existing native ProgressBar health bar is not a portable
 component proof. Underlying WebFX support and admission to Zero are distinct.
-Additional controls/layouts require exact contract and real browser behaviour
-checks before becoming part of the default teaching promise.
+Zero facade controls/layouts require their own exact contract and real browser
+behaviour checks before becoming part of the default teaching promise, even when
+the underlying JavaFX control is already admitted. Normal student API signatures
+must not require JavaFX imports. Keep advanced interop explicit and checked.
 
 ## Lifetime and coordinate contracts
 
@@ -279,7 +294,8 @@ The public API, app guide, website reference and coverage checks change together
 2. **Design the smallest contracts with three examples.** Coin collector;
    scrolling enemy game with title/pause/results; simulation/control panel plus a
    nonanimated App consumer. Compare handwritten ordinary Java with the helper
-   structure. Finalize lifecycle/input/resource ownership before freezing APIs.
+   structure. Prove Zero-only imports for normal UI, drawing, input and assets.
+   Finalize lifecycle/input/resource ownership before freezing APIs.
 3. **Prove extension and replacement.** Implement a steering contribution, default
    and alternative animation playback, and a default/alternative game container.
    Import them into consumers without core edits. Demonstrate independent clocks,
@@ -290,7 +306,9 @@ The public API, app guide, website reference and coverage checks change together
    Native JAR or resolver-only tests do not satisfy the browser consumer proof.
 5. **Prove browser delivery.** Run the exact supported semantic profile, pinned
    WebFX build and browser behaviour checks throughout the feature increments.
-   A separately authorized acceptance publishes the candidate to a student-owned
+   Per-signature evidence, error-injection fixtures and truthful local run status
+   follow the reliability plan; optional PostHog/Clarity collection cannot replace
+   these gates. A separately authorized acceptance publishes the candidate to a student-owned
    project Pages URL, verifies the source/run marker, and plays it unauthenticated
    under `/<repository>/`, including refresh, assets, input, audio gestures,
    pause/restart and a retained previous site after a failed update. Existing

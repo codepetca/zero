@@ -20,6 +20,21 @@ through the pinned JavaFX/WebFX toolchain, playable on GitHub Pages. An individu
 early lesson need not publish, but browser delivery is a core product capability.
 Keep ordinary Java and explicit ownership of updates central as the kit grows.
 
+Owner clarification,2026-10-23: normal student games/apps should use Zero packages
+almost entirely. Zero provides the common controls, layouts, drawing, input,
+assets and app/game lifecycle, using JavaFX underneath. Direct JavaFX remains an
+advanced supported-subset escape hatch. The target
+[class model](FRAMEWORK-MODEL.md) keeps App as the common host and GameApp as a
+thin default-game convenience, with optional Screen/GameScreen composition.
+This changes the intended teaching API, not the current JavaFX-based lessons.
+
+Catch framework/platform failures automatically: per-signature native/WebFX/browser
+evidence, early compatibility diagnostics, actual compiler/behavior gates and
+truthful runtime error state. The [reliability plan](FRAMEWORK-RELIABILITY.md)
+evaluates PostHog for optional structured operational signals and Clarity for
+supplementary website usability. Neither replaces compiler/tests or automatically
+instruments student-owned sites. No new collector or analytics deployment exists.
+
 ## Core goal: students grow the framework
 
 Owner direction,2026-10-23: students should learn to build, extend and improve
@@ -209,6 +224,9 @@ folder-upload service. Existing kit/installer downloads have separate release re
 See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md).
 
 ## App and learning contract
+
+The following describes the existing API/lessons. The Zero-first facade and
+screen hierarchy above are proposed and require explicit API/template migration.
 
 `zero.App` is event-driven: `settings()` sets `title(...)` and initial
 `size(...)` and optional `padding(...)` around the content; `setup()` creates JavaFX controls and calls `show(Node)`. Buttons,

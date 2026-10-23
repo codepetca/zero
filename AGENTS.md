@@ -14,6 +14,10 @@ preserve them in future UI work unless the owner asks to change them.
 
 - Zero is a local Java teaching kit: a VS Code extension/profile and a small
   JavaFX library. Preserve ordinary Java and explicit object updates.
+- Target normal student games/apps to Zero packages almost entirely, with JavaFX
+  underneath and an explicit advanced interoperability path. Follow the proposed
+  docs/FRAMEWORK-MODEL.md and docs/FRAMEWORK-RELIABILITY.md; do not claim new
+  facades, background checks or telemetry are implemented before their proof.
 - Student-led framework evolution is a core goal: build, extract, share through
   ZeroHub, reuse/improve, and propose proven ideas for Zero core. Design public
   extension points so students can add or replace components without patching
