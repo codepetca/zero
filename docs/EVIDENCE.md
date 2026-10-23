@@ -1,5 +1,74 @@
 # Delivery evidence index
 
+## Zero phased delivery: Greeting slice 1A — 2026-10-23
+
+Owner requested a phased goal and orchestration of the agreed Zero vision. The
+persistent coordinator goal is active; the single roadmap is
+FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance. Astra/xhigh reviewed the
+source/sequence and supported incremental Greeting → Study → Coin integration,
+then replacement/distribution, preservation, reliability and release-readiness.
+Optional World/Screen/Camera are not an up-front implementation checklist.
+Sol/high audited existing assembly/export/sharing seams before implementing the
+first bounded API slice. Local implementation only; no publication authority.
+
+Initial source 4f411858 moves the canonical starter and Greeting lessons/checkpoints
+0–2 from JavaFX imports to zero.ui Label/Button/Column/TextField and ordinary
+Runnable callbacks. TextField adds exactly five declarations: constructor and
+text/prompt getters/setters. Assembly, exact semantic member/identity/hash guards,
+student API/guide and website reference/tests now cover 14 helpers/164 declarations.
+Unsupported TextField.clear remains rejected. Lesson appearance uses the existing
+Zero controls/padding, with JavaFX styling kept advanced rather than wrapped.
+
+Native full finite framework checks pass, as do progression checkpoints0/1/2,
+API/adapter and assembly/lesson tests, targeted semantic/member-negative checks,
+root configuration/syntax/docs links and local website /docs HTTP200 containing
+TextField/getPromptText. An initial newly added tutorial link was incompatible
+with the reader's narrow link allowlist; changed to plain API-reference guidance,
+then all three tutorial-content tests pass. Tests are logged in ignored
+.verification/vision-greeting-*.log and .verification/phase1a-textfield/.
+
+Actual WebFX/browser acceptance caught a null-initialized pinned prompt property
+before the first title screen. af9bb8e0 explicitly initializes both wrapper values
+to empty strings; focused native UI acceptance passes afterward. The browser
+also hides prompts while focused and exposes an outer textbox peer plus actual
+input. Tests target the editable input and verify the empty unfocused hint.
+Then real Tab failed in both App and GameApp even after clicking the field; mouse
+greeting worked. Pinned KeyboardShortcutsHandler calls Node.impl_traverse, which
+always returns false; Node.traverse(Direction,TraversalMethod.KEY) delegates to
+working Scene traversal. 22b979d6 adds a scene-local browser-only filter via the
+fingerprinted App overlay. Plain Tab/Shift+Tab use the existing engine and consume
+only success; other keys/modifiers/native source/public API remain unchanged.
+No DOM tab-order rewrites, timers or global scene references were introduced.
+
+Six actual pinned builds across three attempts are fully accounted for: initial2,
+constructor-corrected2, focus-corrected2. Prior projects/builds/failure evidence
+are retained in vision-greeting-web/initial-baseline and prior-attempt2. Final
+build IDs c459bc0f-cf03-4956-aaf1-335b6a34d281 (zero-ui) and
+068a9714-5877-4847-b10d-82300f4cc930 (exact checkpoint2). Their engine/profile is
+b70300dd60bc2fdd3652937f450e4abbe0a2ba21e977d41958e8fb9e3167ca9e.
+Final two focused compiles/browser proof took41.1s; 29/29 assertions pass, including
+forward Tab skipping a disabled button, Shift+Tab returning to the field, prompt
+restoration, typed Sam → Tab → Space, Ada → click and reuse of the same Label.
+Game navigation, pause/menu/return, deferred draw and input-transform checks pass.
+No page/console/request/HTTP failures. Source/runtime/probe/export hashes validate.
+Receipt and screenshot: .verification/vision-greeting-web/{receipt.json,lesson2.png}.
+No repeated stress measurement, full9-fixture suite or physical-device claim.
+
+Initial Sol/high complete36-file source review at4f411858 found no actionable
+source issues but retained the browser gap. Targeted review of4f411858..22b979d6
+independently verified pinned upstream traversal source, final export/source/hash
+bindings and all29browser assertions; no actionable findings. Initial unchanged
+coverage retained. Two reviewer turns/launches, one initial and one targeted wave,
+three remediation batches, no extra integration wave. Review receipts in
+.verification/vision-greeting-review/. Requested model/effort recorded; effective
+configuration and attributable token/effort telemetry unavailable. Starting weekly
+7% used and271.779GB free are shared environment readings, not task cost.
+
+Published tutorial template commit IDs, installed kits and hosted website remain
+unchanged. Own browser/preview and local docs server closed. No push/PR/merge,
+deploy/release/install, account changes or telemetry collection. The overall goal
+continues with Study lessons3–7; slice1A is local acceptance, not whole-goal completion.
+
 ## PNG sprite-size stress matrix — 2026-10-23
 
 Owner requested actual 64×64, 128×128 and 256×256 PNG frames with

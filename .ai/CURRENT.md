@@ -1,50 +1,50 @@
-# Zero vision execution — active, 2026-10-23
+# Zero vision execution — active Phase1B, 2026-10-23
 
-Owner requests a phased plan, persistent goal and orchestration of implementation.
-The single roadmap is docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance.
-Persistent coordinator goal active; no token budget requested. Work in attached
-/Users/stew/.codex/worktrees/actor/zero, base8a1536ee. Preserve unrelated primary
-funding changes and other worktrees' Dev scratch/profile/watcher. Local source/
-checks/review only; no push/PR/merge/deploy/releases/account/telemetry authority.
+Persistent coordinator goal active; no token budget requested. Single roadmap:
+docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance. Attached worktree
+/Users/stew/.codex/worktrees/actor/zero. Preserve primary funding/otherworktrees'
+Dev scratch/profile/watchers. Local source/check/review only; no push/PR/merge,
+deploy/releases/install/accounts/telemetry authority. Do not repeat stress tests.
 
-Phases:0 accepted prototype baseline;1 Zero-first Greeting/Study/Coin teaching
-path and simulation;2 public extension/replacement and managed distribution;
-3 project-owned builder/pins/optional reversible upgrades;4 automatic diagnostics
-and exact-signature evidence;5 coherent end-to-end journey and release readiness.
-World/Screen/Camera optional until examples justify them; no more stress tests.
-Real releases/public templates/Pages/hosted checker/novice acceptance remain gated.
+Phases0baseline accepted;1Zero-first Greeting/Study/Coin+simulation;2extension/
+replacement+managed distribution;3projectownedbuilder/pins/optionalupgrade;
+4automaticdiagnostics/evidence;5journey/releasereadiness. OptionalWorld/Screen/
+Camera need demonstratedconsumers, not upfront implementation. Real template/
+Pages/checker/release/novice acceptance remains separately authorized.
 
-ACTIVE1A: Greeting lessons0–2 and canonical starter use zero.ui; new TextField
-facade covers only text/prompt getter/setters plus constructor. Parent owns
-starterMain, lessons00–02, checkpoints0–2,CheckpointHarness,lesson-projects.test,
-roadmap/product/components/WEB-EXPORT/evidence/CURRENT. Source teaching edits made;
-ready for validation after helper integration. Parent removed stale architecture
-claims (proceduralActor/navigation/Element already implemented).
+ACCEPTED1A through22b979d6: starter+Greetinglessons/checkpoints0–2 ZeroUI; new
+TextField5members;14helpers164decl. Nativeframeworkfullfinite/UI+progression0/1/2,
+API/adapter/assembly/lesson/semantic/root checks andlocal/docsHTTP200pass.
+Two finalactualWebFX/browser consumers29/29pass, exactlesson2sameLabel;6total
+builds preserveearlierfailures. Found/fixedWebFXnullpromptdefaults andlegacydead
+Tabtraversal: scene-localBrowserUiFocusshimusesworkingengineplainTab/ShiftTab,
+disabledskip, nootherkey/nativeAPIchange/globalDOMrewrite. Promptintentionally
+hiddenonfocus; outertextboxpeerduplicatedactualinputrole. Receipt/screenshot
+.verification/vision-greeting-web/{receipt.json,lesson2.png}, logsvision-greeting-*.
+IndependentSol/high initial36files4f411858 andtargeted9delta4f..22b979d6 clean;
+2turns/1initial+1targetedwave/3fixbatches/noextra. Pinnedsource/export/rawhashes
+independentlyvalidated. .verification/vision-greeting-review/{initial,targeted-1,
+budget}.json. Effectiveconfig/tokensunknown. Allownbrowser/preview/docsservers
+closed; publictemplates/website/kitsunchanged. Evidence docs/EVIDENCE.md.
 
-Worker vision_workflow_audit retained Sol/high now owns TextField/nativeUiCheck,
-all affected helper inventories/export fingerprints/contracts/tests, public
-API.md/APP-GUIDE.md and website metadata/APItests and existing browserUI fixture.
-No commits/staging/externalwrites/recursive delegation. Cheap focusedchecks
-allowed; coordinate native/WebFX heavy jobs, parent owns one actual browserbuild.
-Audit complete atbase8a1536ee; confirms source assembly already exists, project-
-owned builder closure and optional upgrade still missing, native core-dependent
-library contracts not proven, public template commit pins must not silently move.
+ACTIVE1B contract: migrateStudylessons/checkpoints3–7 tozero.ui controls,
+Button.onClick/Column, emptyLabel("");resetTextFieldwithsetText("") notnewclear.
+AddonlyElement.setEnabled(boolean) (Node.setDisable(!enabled)); inheritedbyall
+controls, defaultenabled, disablingpreservesvalues/actions andstopsinteraction;
+re-enableallowsreuse. KeepcorrectJavaquizmodels/rules/retry/double-scoreguards/
+advance/completion/restart. Studentstateownsquizrules, UIavailabilityreflectsit.
+MaintainerharnessunwrapsElementtoNodeforold/newcheckpoint compatibility.
 
-Astra/xhigh vision_architecture read-only review supports sequence, no blocker.
-Recommends tiny ScoreView alternative proof before AnimationSource/Playback;
-seed meaningful exact-signature native/browser evidence now, fullmatrix later.
-Keep optional JavaFX appearance advanced, not normal tutorial requirement.
-Both audits inspected source; no tests/builds/publication. Requested configs known,
-effective model/tokens unavailable. Coordinator usage7% weeklyused sharedaccount,
-not task cost; storage271.779GB healthy. DeepSeek paused through2026-12-31.
+ParentownsStudylessons03–07/checkpoints3–7,CheckpointHarness,lesson-projectstests,
+roadmap/product/evidence/CURRENT. Worker vision_workflow_audit Sol/high willown
+ElementsetEnabled,UiCheck,browsernavigation fixture+canonicalprobe, allaffected
+fingerprint/membercontract/inventory/API/website metadata/tests. NoAPIworkercommit/
+stage/delegation/externalwrites. Coordinateheavy native/WebFXjobs; parent native,
+actor_browser owns TWO focusedactualexports/browser (Study7 exact+UIfixture),
+ignored distinct .verification/vision-study-web. Nofull9/stress repeats. Next:
+assignworkerthenparentmigration, cheaptests,native3–7/UI, focusedbrowser, local/docs
+parity, fixedrevisionindependentreview; accept1BthenCoinwithinactivegoal.
 
-NEXT: integrate workerTextField, cheapNode/API/root checks; nativeGreeting0/1/2
-finite progression +frameworkUI; one pinnedWebFX/browser Greeting interactions,
-website /docs local verification; independent risk-matched review of fixedhead.
-Then accept1A and advance Study slice within same activegoal, no repeatapproval.
-Phase acceptance/native/browser evidence and local publicationlimits remain explicit.
-
-Prior Actor/stress implementation accepted locally through8a1536ee, evidence
-in docs/EVIDENCE.md and ignored .verification/actor-stress-web-sizes/. Newplan
-supersedesstresshandoff, not its artifacts. Old parentpreview servers remain;
-no need to benchmark them. Use sourceZeroDev for routine development, noinstaller.
+Astra/xhigh initialsource/phase reviewclean; Sol/high workflowauditsourcecomplete.
+DeepSeekpausedthrough2026-12-31. Startaccountweekly7%used/sharednotcost; storage
+271.779GBhealthy. UseZeroDevsourceworkflow, noinstallerforiteration.
