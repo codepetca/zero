@@ -82,8 +82,10 @@ trials. See [verification](VERIFICATION.md) for actual local acceptance evidence
 
 Owner direction,2026-10-23: student-led framework evolution is a core goal.
 The canonical [framework architecture plan](FRAMEWORK-ARCHITECTURE.md) supersedes
-the preliminary reference choices below: JavaFX owns the host; Arcade informs
-optional active screens; Greenfoot informs Actor vocabulary; Godot informs focused
+the preliminary reference choices below: App owns common UI/lifetime; GameApp
+extends App and owns one gameplay loop. Screens are optional UI views, with no
+public GameScreen; Worlds/controllers handle levels. Arcade informs lifetime/
+container ideas; Greenfoot informs Actor vocabulary; Godot informs focused
 composition. Students must be able to extend and replace parts through public
 Java contracts, share them through ZeroHub and propose proven ideas for core.
 The plan defines animation/content/UI seams, lifetime ownership and acceptance

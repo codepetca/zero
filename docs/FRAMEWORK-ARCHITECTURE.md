@@ -11,6 +11,9 @@ available for advanced interoperability. The detailed
 [class/ownership model](FRAMEWORK-MODEL.md) and
 [automatic failure-detection plan](FRAMEWORK-RELIABILITY.md) are parts of this
 architecture, not separate competing plans. They also remain proposed.
+Latest simplification: GameApp extends App and owns gameplay directly. Screen is
+an optional UI view; there is no public GameScreen. This supersedes the earlier
+active-game-screen design while preserving its lifetime and replacement goals.
 
 ## Core outcome
 
@@ -38,26 +41,30 @@ student repository just to extract a library. Pika submission stays separate.
 
 ## One organizing model
 
-Use a JavaFX-owned application with optional active screens and explicitly updated
-game content. Arcade's stable Window/View/container structure is the organizing
-reference. Greenfoot informs approachable Actor vocabulary; Godot informs focused
+Use App for event-driven UI and GameApp extending App for games/animated apps.
+GameApp owns one canvas/input/camera and one loop calling Main update/draw;
+Main delegates explicitly to objects or optional game content. Screen is optional
+UI navigation. Arcade informs lifecycle/container ideas without requiring its
+game-view hierarchy. Greenfoot informs approachable Actor vocabulary; Godot informs focused
 composition and independence from arbitrary surrounding objects. These are
 architectural references, not new dependencies or a combined engine runtime.
 
 | Owner | Responsibility | Extension boundary |
 | --- | --- | --- |
 | App | Window/root, app-scoped assets, active-screen lifecycle and final cleanup | Zero UI and app-owned controllers; advanced JavaFX bridge; no game types required |
-| GameApp extends App | Thin default-GameScreen convenience for Main update/draw/input | Same host frame driver and screen contracts, never a second timer |
-| Screen/controller | Enter/leave, navigation/session rules and Zero UI | Composes app-specific Java objects; ordinary apps need no game callbacks |
-| GameScreen extends Screen | Drawing surface, game input, camera and frame callbacks | Explicit delegation to selected content implementations |
-| World | Default ordered actor membership, exactly-once updates and world drawing | One optional content implementation; a screen can select a different ordinary Java container/controller |
+| GameApp extends App | Gameplay canvas, input, camera and one internal frame driver calling Main update/draw | Explicit delegation to objects, default World or alternative content/controller |
+| Screen | Optional UI view with enter/leave/disposal hooks | Title, quiz, settings or results; no game callbacks or timer |
+| World | Default ordered actor membership, exactly-once updates and world drawing | One optional content implementation; Main can select another ordinary Java container/controller |
 | Actor | Local state, movement and optional appearance | Subclass behaviour, composed helpers and replaceable animation playback |
-| Camera | World-to-canvas and inverse pointer mapping | Owned by the viewing screen; follow/smoothing behaviour can be ordinary helpers |
+| Camera | World-to-canvas and inverse pointer mapping | Owned by GameApp's gameplay view; follow/smoothing can be ordinary helpers |
 | UI/data components | Controls, HUDs, health, scores, inventories and other structures | Public constructors, setters, callbacks and small interfaces where alternatives share a contract |
 
 A one-screen quiz stays an event-driven App with Zero Label/Button/TextField and
 layouts. A first moving shape can stay in Main. A menu has no World. A scrolling
-game can replace its level/world while retaining its UI. Neither a universal
+game can replace its level/world while retaining its HUD/control UI. Main keeps
+the update/draw callbacks; level-specific code may move to ordinary controllers.
+Showing a UI Screen suspends gameplay; composing HUD/controls alongside gameplay
+does not. Returning to gameplay restores its retained state. Neither a universal
 Zero Node tree nor a required component base class is part of this plan. Use
 Screen/controller terminology rather than a second competing JavaFX Scene type.
 
@@ -148,15 +155,16 @@ the new contracts.
 ### Replacement: world structures and content
 
 The default World is a convenience, not the one legal structure for a game.
-An active screen must be able to delegate update and world drawing to a student
-controller/container using a small public content contract or an explicit
-ordinary-Java adapter. A core screen must not require downcasts to the default
+Main's update/draw must be able to delegate to a student controller/container
+using a small public content contract or an explicit ordinary-Java adapter.
+GameApp's public world-drawing boundary accepts that contract so a replacement
+does not require downcasts to the default
 World or depend on its private collection implementation. Choose exact drawing
 capabilities through the examples; current `draw(GameApp)` is not automatically
 the ideal permanent boundary. Do not create a large renderer abstraction first.
 
 Prove the boundary by selecting a default actor World and a student-authored
-alternative container in the same screen consumer. A spatial lookup structure,
+alternative container in the same GameApp/Main consumer. A spatial lookup structure,
 spawn controller or level model may remain a composed helper without replacing
 World. Alternative implementations document their update/removal semantics; they
 do not override the host's screen/input/resource lifetime. A library advertising
@@ -192,15 +200,20 @@ must not require JavaFX imports. Keep advanced interop explicit and checked.
 
 ## Lifetime and coordinate contracts
 
-Before implementing Screen/World, agree and prove these rules:
+Before implementing Screen/World and navigation, agree and prove these rules:
 
-- The host has exactly one frame recipient. Transitions happen at a frame
-  boundary: leave the old screen, detach its listeners/view, suspend its owned
-  playback, clear transient gameplay input, enter the new screen and reset elapsed
-  time. A hidden screen receives no game updates/input. Deactivating a retained
-  session preserves its state and playback for re-entry; final disposal releases
-  owned resources when the session is discarded or the app closes. Restart
-  explicitly disposes the old session and creates fresh session state.
+- GameApp has one internal frame driver and Main update/draw recipient; App-only
+  UI and Screens need no frame timer. Showing a UI Screen detaches the current
+  view/listeners and suspends game update/draw/input without destroying game
+  state/playback. Transitions requested during a frame commit after that frame;
+  idle UI transitions commit on the UI thread without waiting for a game frame.
+  Returning to gameplay resets elapsed time/input and respects explicit pause.
+  Final disposal releases owned resources only when discarded or the app closes.
+  Restart explicitly rebuilds game state and resets camera/input/time.
+- Composing a HUD or control panel with the gameplay view is separate from
+  showing a replacement UI Screen. It keeps gameplay active and preserves normal
+  control typing/focus. UI-only readiness follows setup/view activation; gameplay
+  readiness may additionally require its first successful frame.
 - Pause stops simulation/actor animation updates while world drawing and UI
   continue. Input/focus policy is explicit: controls keep normal typing, gameplay
   belongs to the focused canvas, blur clears held/edge input and pauses the
@@ -215,7 +228,7 @@ Before implementing Screen/World, agree and prove these rules:
   access so students need not repeat centre-to-top-left conversions everywhere.
   Drawing size is distinct from collision geometry. Rotating art does not make
   an axis-aligned hit test a rotated polygon test.
-- The screen's camera transforms only world drawing and converts pointer
+- GameApp's gameplay camera transforms only world drawing and converts pointer
   coordinates back to world space. Guarantee transform restoration. Start with
   translation; add general attachment transforms or zoom only for a proven use.
 - App owns cached images and final audio cleanup. Components borrow asset handles;
@@ -295,6 +308,9 @@ The public API, app guide, website reference and coverage checks change together
    scrolling enemy game with title/pause/results; simulation/control panel plus a
    nonanimated App consumer. Compare handwritten ordinary Java with the helper
    structure. Prove Zero-only imports for normal UI, drawing, input and assets.
+   Keep a first game in Main without mandatory Screen/World, and keep Main's
+   update/draw as it grows. Demonstrate two level/controller swaps, UI navigation
+   suspension/resume and a live control panel that does not suspend gameplay.
    Finalize lifecycle/input/resource ownership before freezing APIs.
 3. **Prove extension and replacement.** Implement a steering contribution, default
    and alternative animation playback, and a default/alternative game container.
@@ -328,7 +344,8 @@ serialization or runtime plugin discovery to prove these small use cases.
 ## Reference decisions
 
 - [Arcade stable Window/View](https://api.arcade.academy/en/stable/api_docs/api/window.html):
-  the optional active-screen structure; UI and camera remain separate concerns.
+  lifecycle/container reference; Zero's simpler model keeps gameplay in GameApp
+  and uses optional UI Screens without a public game-screen hierarchy.
 - [Greenfoot Actor](https://www.greenfoot.org/files/javadoc/greenfoot/Actor.html):
   approachable movement and Java subclass vocabulary; keep elapsed seconds and
   explicit deterministic ownership rather than its environment execution model.

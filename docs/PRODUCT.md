@@ -24,8 +24,11 @@ Owner clarification,2026-10-23: normal student games/apps should use Zero packag
 almost entirely. Zero provides the common controls, layouts, drawing, input,
 assets and app/game lifecycle, using JavaFX underneath. Direct JavaFX remains an
 advanced supported-subset escape hatch. The target
-[class model](FRAMEWORK-MODEL.md) keeps App as the common host and GameApp as a
-thin default-game convenience, with optional Screen/GameScreen composition.
+[class model](FRAMEWORK-MODEL.md) keeps App as the common UI host and GameApp
+extending App as the single gameplay owner. Optional UI Screens provide menus/
+results; optional Worlds organize actors. There is no public GameScreen. Main
+keeps update/draw, can swap level controllers, and can add live HUD/controls
+without navigating away; showing a replacement UI Screen suspends gameplay.
 This changes the intended teaching API, not the current JavaFX-based lessons.
 
 Catch framework/platform failures automatically: per-signature native/WebFX/browser

@@ -1,76 +1,72 @@
 # Framework model: Zero as the student API
 
-Owner clarification,2026-10-23. This is the proposed class model supporting the
+Owner direction,2026-10-23: keep App and GameApp, remove GameScreen, and make
+Screens optional UI views. This is the proposed class model supporting the
 [canonical architecture plan](FRAMEWORK-ARCHITECTURE.md), not an implemented API
-reference. It supersedes the earlier recommendation that normal lessons directly
-assemble JavaFX controls. Exact signatures must pass the exemplar/browser gates
-before adoption. Existing JavaFX-based projects and published artifacts retain
-their current contracts.
+reference. It supersedes the previous GameScreen design and default direct-JavaFX
+teaching recommendation. Exact signatures must pass exemplar/browser gates before
+adoption. Published artifacts and existing projects retain their current contracts.
 
 ## Student boundary
 
 Normal games and apps should use ordinary Java plus `zero` and `zero.ui` almost
 entirely. Zero provides common controls, layouts, drawing, input, assets and
-lifecycle. JavaFX implements these capabilities beneath Zero and remains an
-advanced interoperability path. Students can learn Java objects, inheritance,
-composition and callbacks without learning JavaFX event/property types first.
+lifecycle. JavaFX implements these capabilities underneath and remains an advanced
+interoperability path. Students learn Java objects, inheritance, composition and
+callbacks without needing JavaFX event/property types first.
 
-This is a focused teaching facade, not an attempt to mirror all JavaFX classes.
-Only add a wrapper for a demonstrated teaching use. Public default constructors,
-methods, callbacks, enums and return values must not require JavaFX imports.
-Retain an explicit advanced bridge for existing JavaFX nodes; arbitrary JavaFX
-calls remain subject to the exact browser profile. A Zero package name alone
-does not prove portability. Every advertised default capability needs native,
-pinned WebFX and actual browser evidence.
+This is a focused teaching facade, not a mirror of JavaFX. Only add a wrapper for
+a demonstrated teaching use. Normal constructors, methods, callbacks, enums and
+return values must not require JavaFX imports. Keep a tested advanced bridge for
+existing JavaFX nodes, still subject to the exact browser profile. A Zero package
+name alone does not prove portability: advertised default capabilities need
+native, pinned WebFX and actual browser evidence.
 
 ## App and GameApp
 
-Today `App extends javafx.application.Application`; it manages startup, window,
-content and audio cleanup. Students override `settings()` and `setup()` and
-call `show(Node)`. `GameApp extends App`, creates a canvas, owns a timer/input
-state, and calls `update(seconds)` followed by `draw()`. The current `show(Node)`
-does not stop that timer. This current behavior is not a suitable final screen
-transition contract.
+Today App extends JavaFX Application and manages startup, window, content and
+audio cleanup. GameApp already extends App and adds canvas/input/timer plus
+`update(seconds)` and `draw()`. Current `show(Node)` does not stop the timer;
+that behavior still needs an explicit migration.
 
-Keep the public distinction, but make GameApp a thin convenience:
+The simpler target retains those two starting points:
 
 | Type | Target responsibility | Student use |
 | --- | --- | --- |
-| App | Common host: window, assets, screen selection, cleanup; no continuous game work when inactive | Quiz, form, dashboard, or a game assembled from screens |
-| GameApp extends App | Installs one default GameScreen and delegates its canvas/input/update/draw conveniences | First drawing, simulation or single-screen game |
-| Screen | One UI/navigation state and its activation/disposal lifecycle | Title, quiz, results, settings or control panel |
-| GameScreen extends Screen | Adds a drawing surface, scoped game input, camera and frame callbacks | Playable level or simulation with controls/HUD |
+| App | Window, shared assets, UI navigation and final cleanup | Event-driven quiz, form, dashboard or other UI app |
+| GameApp extends App | Adds one gameplay view, canvas, input, camera and one update/draw loop | Game, drawing or animated simulation, with the same UI facilities |
+| Screen | Optional event-driven UI view with enter/leave/disposal hooks | Title, quiz, results, settings or menu |
+| World | Optional default container of actors | Level membership and readable update/draw iteration |
+| Actor | Position, movement, optional appearance and student behavior | Player, enemy, coin or other game object |
 
-App and GameApp describe startup convenience, not two isolated ecosystems. An
-App can show a GameScreen. A GameApp can show an ordinary title/result Screen.
-Both use the same UI components and assets. GameApp's default screen receives its
-Main callbacks only while active; another GameScreen receives its own callbacks.
-Switching back restores the retained default session unless Restart discards it.
+A game is an App because GameApp inherits App. Students create one Main extending
+one of them, not a separate App object beside their GameApp. A UI-only App has no
+game timer. An animated app can extend GameApp even when it is not a game.
+GameApp itself owns gameplay; there is no public GameScreen or replacement public
+game-view base class. Its private canvas/layout implementation stays internal.
 
-One internal host frame driver schedules the active game screen. Neither World,
-Actor, animation nor GameApp creates a second timer. An event-driven screen does
-not receive game frames. Paused GameScreens may redraw/UI-update while simulation
-updates stop. All overloads for showing Zero elements, Screens or bridged JavaFX
-nodes must route through the same transition rules. Introducing this behavior
-requires source/API migration checks; it is not already delivered.
+Main is the single student-facing place for game `update` and `draw`. It calls
+its objects directly at first, then delegates to a World or an ordinary game/level
+controller as useful. Changing levels selects different content/state; it does
+not require another screen subclass or another loop. A first game needs neither
+Screen nor World.
 
-## Complete bounded type map
+## Inheritance, separately from ownership
 
-Solid inheritance below is intentional. Owned/referenced objects are listed
-separately so a World, UI component or camera is not mistaken for an Actor.
-Student class names are examples, not framework classes.
+Only indentation in this first diagram means inheritance. Student names are
+examples, not framework classes.
 
 ```text
 javafx.application.Application                 platform boundary, current base
-└── zero.App                                  host
-    ├── zero.GameApp                          optional default-game convenience
-    │   └── student's Main                    small game
-    └── student's Main                        event app or multi-screen app
+└── zero.App                                  UI and common host
+    ├── zero.GameApp                          gameplay capabilities
+    │   └── student's Main                    game or animated app
+    └── student's Main                        event-driven app
 
-zero.Screen
-├── student's TitleScreen / QuizScreen / ResultsScreen
-└── zero.GameScreen
-    └── student's PlayScreen / SimulationScreen
+zero.Screen                                   optional UI views
+├── student's TitleScreen
+├── student's QuizScreen
+└── student's ResultsScreen
 
 zero.Actor
 ├── student's Player
@@ -80,93 +76,118 @@ zero.Actor
 zero.ui.Element                               narrow Zero UI abstraction
 ├── zero.ui.Button / Label / TextField         initial controls
 ├── zero.ui.Row / Column / Border              initial layouts
-└── zero.ui.Stack / ProgressBar / Slider       later candidates, evidence needed
+└── zero.ui.Stack / ProgressBar / Slider       later candidates, proof needed
 ```
 
-The existing Application base is an implementation/advanced boundary. Inherited
-JavaFX methods are not automatically part of Zero's supported browser API. There
-is no need to redesign Java's application launcher merely to hide this inheritance;
-the normal launch template can stay small without JavaFX imports.
+World, Camera, assets, input and animation are separate objects used by the app,
+not subclasses of App/GameApp. The JavaFX Application base remains an advanced
+implementation boundary; inherited platform methods do not automatically join
+the supported browser API. The small launch template can avoid JavaFX imports.
 
-| Package/type | Relationship and role | Status |
-| --- | --- | --- |
-| `zero.App`, `zero.GameApp` | Inheritance as above; share host services | Exist; target ownership/facades need revision |
-| `zero.Screen`, `zero.GameScreen` | Screen inheritance; internal host drives protected hooks | Proposed |
-| `zero.WorldContent` | Small interface actually consumed by game screens/ordinary controllers | Proposed; exact drawing signature demonstrated first |
-| `zero.World` | Default WorldContent implementation; owns ordered Actor membership | Proposed; alternative container implements the same contract |
-| `zero.Actor` | Subclass behavior; composes playback and ordinary helper/model objects | Unreleased prototype exists; future sequencing differs |
-| `zero.Camera` | GameScreen owns it; transform/inverse mapping, no Actor inheritance | Proposed |
-| `zero.Canvas` | Focused drawing facade over native/browser rendering; GameApp delegates | Proposed; does not expose GraphicsContext on normal path |
-| `zero.Input`, `zero.Key`, `zero.MouseButton` | Screen-scoped input facade and Zero enums | Proposed; existing input uses JavaFX enums |
-| `zero.Color`, `zero.Image` | Small Zero values/asset handle wrapping platform equivalents | Proposed; existing drawing uses JavaFX types |
-| `zero.Assets` | App owns cache/lifetime; screens/components borrow handles | Proposed extraction; caching currently lives in App/GameApp |
-| `zero.ImageRegion` | Shared immutable region using a Zero Image on the target path | Exists with JavaFX Image; facade/migration needed |
-| `zero.AnimationSource` | Factory for fresh independent playback | Proposed public replacement contract |
-| `zero.AnimationPlayback` | Advances mutable state and exposes current ImageRegion | Proposed public replacement contract |
-| `zero.SpriteAnimation` | Default AnimationSource; private playback implementation | Exists with combined mutable state; migration needed |
-| `zero.Sound`, `zero.Music` | Independent audio handles, borrowed/shared versus owned lifetime explicit | Exist; preserve tested browser audio/gesture limits |
-| `zero.Collisions` | Stateless geometry utility; game owns collision response | Exists; geometry additions need demonstrated uses |
-| `zero.ui.Element` and listed controls/layouts | Compose private JavaFX nodes; not JavaFX control subclasses | Proposed, not replacements already available |
-| Advanced JavaFX bridge | Adapts a foreign Node to an Element and exposes intentional interop | Capability proposed; name/signatures not frozen |
-| Internal frame driver/platform adapters/diagnostics | Core infrastructure; no student subclass or required import | Existing pieces plus proposed integration |
-
-Keep existing public `zero` names in place unless a documented version migration
-requires otherwise. Do not move all assets into new packages for tidiness. A
-student library keeps its existing derived `zero.contrib...` namespace, with no
-special core privilege.
-
-## Ownership and explicit updates
+This second diagram means contains/uses, never extends:
 
 ```text
 App
-├── Assets                          shared definitions and cached resources
-├── active Screen                   at most one active navigation state
-└── internal frame driver           schedules only active GameScreen
+├── Assets                              shared resources
+└── optional active UI Screen           UI navigation
 
-GameScreen
-├── Element view                    layouts, controls and HUD
-├── Canvas + Input + Camera         screen-scoped capabilities
-└── selected WorldContent            explicit calls from its frame callbacks
-    └── default World               or student alternative container
+GameApp (inherits those App facilities)
+├── one internal frame driver           calls Main update/draw
+├── Canvas + Input + Camera             one gameplay view
+├── optional HUD/control-panel Elements UI alongside gameplay
+└── selected game content               explicit calls in Main callbacks
+    └── World or alternative container/controller
         └── Actor objects
             ├── independent AnimationPlayback
             └── Health / Steering / Inventory / other ordinary Java objects
 ```
 
-App owns screen activation, removal and final shutdown. Constructors do not
-register screens/actors globally. Showing a screen establishes host ownership;
-the screen disposes its own controllers/listeners/session when discarded. Shared
-asset handles remain app-owned. Retained inactive sessions are suspended, not
-destroyed. The canonical lifetime rules also govern input reset, camera transform
-restoration, pause and Restart.
+## Navigation, pause and lifetime
 
-A screen's `update(seconds)` calls its selected content's update explicitly;
-its drawing callback calls content drawing under its camera and draws HUD in
-screen space. The core does not silently traverse every field or update a world
-that Main also updates. The same screen consumer must accept default World and
-a student implementation without a downcast or gameplay rewrite.
+Use one UI-thread transition path for Zero elements, Screens and bridged JavaFX
+nodes. Showing a UI view replaces the current view; GameApp then suspends gameplay
+updates, drawing and gameplay input. Returning to its gameplay view (illustrative
+name `showGame()`) restores the retained game, clears input and resets elapsed
+time. It respects a separate explicit pause state; navigation does not silently
+unpause a manually paused game. No accumulated time or stale presses replay.
 
-The target Actor has one final public update entry and a protected behavior hook
-(for example `onUpdate(seconds)`). The entry validates elapsed time, calls student
-behavior and advances the selected playback once. World calls that entry once;
-a small handwritten Main can call it directly. Students never need a super call
-to retain animation. Actors can draw shapes without an image. Existing prototype
-`update` overrides need explicit migration before adopting this contract.
+Transitions requested during a frame commit after that frame. Between callbacks,
+including when gameplay is suspended or in a UI-only App, transitions commit on
+the UI thread without waiting for a game frame. UI ready means setup/view
+activation succeeded. Gameplay readiness can additionally require its first
+successful frame. A suspended game or idle UI is not a watchdog failure.
 
-Default World membership is single-owner and ordered. It applies removals
-immediately and admits additions at the next update. A queued actor that is
-removed before admission must not reappear. Replacement containers state and
-prove compatible update/removal behavior. No automatic collision response.
+HUDs and control panels are composed alongside/over the gameplay canvas through
+a separate UI-placement operation (illustrative name `overlay(Element)`). Adding
+one does not navigate away or suspend gameplay. An editable control retains normal
+text input; gameplay keys belong to the focused canvas. Blur clears held and
+edge input, and pause-on-blur follows the documented app policy. A Pause operation
+stops simulation and actor animation while canvas drawing and UI may continue.
 
-Most extension code needs no interface: `Steering.turnTowards(actor, x, y, rate,
-seconds)` or a Health object can be called normally. Interfaces appear where the
-consumer must select alternatives. AnimationSource creates independent playback;
-WorldContent selects an alternative container; UI components expose an Element
-and ordinary values/callbacks. No universal Component, Entity, Node or event bus.
+App owns screen navigation, app assets and final shutdown. A Screen owns its UI
+listeners/controller state, deactivates them on leave and releases owned resources
+only when discarded. Constructors do not register globally. GameApp/Main owns
+retained game state across menus, independently of the UI Screen's lifetime.
+Restart explicitly discards/rebuilds the selected game state, releases its owned
+resources and resets camera/input/time; it does not recreate the application or
+close borrowed app assets. Game music pause/resume on navigation is an explicit
+game-owned policy; UI widgets must not close shared audio. Final App cleanup
+releases remaining owned audio even after an error.
 
-## Student-facing examples
+Only GameApp's internal driver schedules frames. No Actor, World, animation,
+controller or Screen starts a second timer. A container never updates an object
+that Main also updates independently. No field scanning or automatic registration.
 
-Illustrative target code, not compilable against the current release:
+## Replaceable parts and complete bounded type map
+
+| Package/type | Relationship and role | Status |
+| --- | --- | --- |
+| `zero.App`, `zero.GameApp` | Inheritance above; GameApp owns the only game loop | Exist; target UI/navigation facades need implementation |
+| `zero.Screen` | Optional UI lifecycle; no update/draw loop | Proposed |
+| `zero.WorldContent` | Small update/drawing contract; GameApp's world-drawing boundary accepts it | Proposed; exact signatures demonstrated first |
+| `zero.World` | Default WorldContent implementation with ordered Actor membership | Proposed; alternative containers implement the same contract |
+| `zero.Actor` | Subclass behavior; composes playback/helpers/model objects | Unreleased prototype; future sequencing differs |
+| `zero.Camera` | GameApp owns the gameplay camera; world drawing and inverse input mapping | Proposed; follow/smoothing can be student helpers |
+| `zero.Canvas` | Focused drawing facade; GameApp exposes drawing conveniences through it | Proposed; no GraphicsContext required on normal path |
+| `zero.Input`, `zero.Key`, `zero.MouseButton` | Gameplay-view input and Zero enums | Proposed; existing input uses JavaFX enums |
+| `zero.Color`, `zero.Image` | Small Zero values/asset handle wrapping platform equivalents | Proposed; current drawing uses JavaFX types |
+| `zero.Assets` | App owns cache/lifetime; games, screens and components borrow handles | Proposed extraction; caching exists in App/GameApp |
+| `zero.ImageRegion` | Shared immutable region using a Zero Image on target path | Exists with JavaFX Image; facade/migration needed |
+| `zero.AnimationSource` | Creates fresh independent playback | Proposed public replacement contract |
+| `zero.AnimationPlayback` | Advances mutable state and exposes current ImageRegion | Proposed public replacement contract |
+| `zero.SpriteAnimation` | Default AnimationSource, private playback implementation | Exists with combined mutable state; migration needed |
+| `zero.Sound`, `zero.Music` | Audio handles; borrowed/shared versus owned lifetime explicit | Exist; preserve tested browser gesture/audio limits |
+| `zero.Collisions` | Stateless geometry utility; student owns collision response | Exists; additions need demonstrated uses |
+| `zero.ui.Element` and listed UI types | Compose private JavaFX nodes; reusable components expose a Zero view | Proposed; initial UI subset needs browser proof |
+| Advanced JavaFX bridge | Foreign Node ↔ intentional Zero UI interoperability | Capability proposed; signatures not frozen |
+| Internal driver/platform adapters/diagnostics | Core infrastructure, no student base class/import | Existing pieces plus proposed integration |
+
+GameApp's public world-drawing boundary must accept WorldContent, not only World.
+For example, Main calls `content.update(seconds)` in its update callback and
+`drawWorld(content)` in draw; the latter is an illustrative GameApp operation that
+applies its camera, delegates drawing and restores the transform. No content is
+automatically ticked by setting a field. Prove default and alternative containers
+in this same consumer, changing only the selected implementation/adapter.
+A replacement may use different internal structures without patching core.
+
+The target Actor has a final public update entry and a protected behavior hook
+(for example `onUpdate(seconds)`). It validates time, invokes student behavior,
+then advances the selected playback once. World or handwritten Main calls it
+once; drawing advances nothing. No required super call. Procedural actors need no
+image. Existing prototype overrides need explicit migration. Shared animation
+definitions create independent per-actor playback, allowing another implementation
+through the same Actor boundary.
+
+Default World owns each actor once, updates in insertion order, removes immediately
+and admits additions at the next update. Removed pending actors must not reappear.
+Replacement containers document/prove compatible semantics. Collision response,
+scoring and level logic remain student Java. Helpers such as turnTowards, Health
+or Inventory need no framework base class. UI replacements compose Elements and
+ordinary values/callbacks. Interfaces arise only for demonstrated substitution.
+
+## Learning progression and acceptance
+
+Illustrative target app (not a current-release API):
 
 ```java
 import zero.App;
@@ -184,49 +205,31 @@ public class Main extends App {
 }
 ```
 
-`onClick` takes an ordinary Runnable. Value-change callbacks should pass only
-the demonstrated Java value, not a JavaFX event/property. Layouts expose simple
-spacing/alignment operations. Common appearance uses Zero values and methods;
-JavaFX CSS/FXML are not assumed portable.
+The game progression is one Main extending GameApp → separate Actors → optional
+World/container → optional UI Screens. Main keeps update/draw throughout. A larger
+game extracts level-specific behavior/state to ordinary controllers and swaps
+those, rather than inheriting a gameplay Screen. The same Zero controls and shared
+UI/helper component must work in an App, a menu and a live game HUD/control panel.
+Callbacks pass demonstrated Java values/Runnable, not JavaFX events/properties.
 
-```java
-import zero.Actor;
-import zero.Image;
+Implement the smallest example-proven API first: common App UI, GameApp drawing/
+input, one optional Screen, default/alternative content and animation. Candidate
+Stack/ProgressBar/Slider need their own native/accessibility/browser evidence.
+Custom Element rendering/subclassing needs a demonstrated public contract; normal
+component composition does not need private JavaFX peers. Keep existing public
+Zero names and the tested advanced bridge; native-only interop gets explicit
+compatibility diagnostics.
 
-public class Player extends Actor {
-    public Player(Image image) {
-        super(image);
-    }
+ZeroHub still shares exact-version ordinary Java source/resources from the
+student's own repository. Prove managed local and pinned-library consumers, native
+core-version support, replacement without core edits and the contribution-to-core
+path. Keep credit, namespaces and accepted versions/pins immutable. Simplifying
+navigation changes none of these goals or existing hosted checker/publication gates.
 
-    protected void onUpdate(double seconds) {
-        moveForward(100, seconds);
-    }
-}
-```
-
-In a small GameApp, Main explicitly updates/draws Player. Later, Main delegates
-the same jobs to World, then a PlayScreen. The learning progression changes where
-ordinary method calls live; it does not require a different object model. Title
-screens and health bars use the same `zero.ui` vocabulary as quizzes/control panels.
-
-## Delivery constraints
-
-Start with App/GameApp delegation, Screen/GameScreen, the existing three controls
-and three layouts, and Zero values needed by those examples. Prove at least one
-complete Zero-only-import app and game natively and through the pinned browser
-pipeline. Treat Stack/ProgressBar/Slider as candidates until their actual Zero
-implementation, accessibility and browser behavior pass; do not infer admission
-from underlying JavaFX/WebFX availability.
-
-Use composition for UI facade internals so the browser gate has a finite public
-surface. Student-authored reusable controls may compose Elements; making Element
-subclassable for custom rendering needs a demonstrated public rendering contract,
-not access to a private JavaFX peer. Native-only JavaFX extensions remain possible
-with explicit compatibility diagnostics.
-
-Preserve a tested advanced bridge and existing App/GameApp examples during
-migration. Update source assembly, exact semantic contracts, adapter hashes,
-student API/guide, website reference and per-API evidence together. Published
-releases and exact ZeroHub pins do not acquire changed inheritance/signatures
-silently. The [reliability plan](FRAMEWORK-RELIABILITY.md) defines the automatic
-checks needed before claiming this target model works.
+Run pinned real WebFX/browser acceptance for an event App, a game with title/
+pause/results plus two level swaps, and a simulation with live controls. Include
+resume/restart, alternative content/playback, independent clocks, input/camera
+mapping, resources and error paths. The [reliability plan](FRAMEWORK-RELIABILITY.md)
+adds per-signature and failure-injection proof; telemetry is supplementary.
+Update source assembly, contracts/hashes, student API/guide and website coverage
+with actual implementation. Existing releases do not silently acquire new APIs.

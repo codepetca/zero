@@ -23,7 +23,9 @@ public extension contracts. This adds a learning/portability acceptance track;
 it does not reopen the hosted checker gate or declare the consolidation complete.
 
 1. Agree the lifecycle and smallest public replacement contracts using ordinary
-   Java. Keep simple apps free of mandatory Actor/World/Screen machinery.
+   Java. GameApp extends App and owns gameplay; Screens are optional UI views.
+   Keep simple apps free of mandatory Actor/World/Screen machinery. Main may
+   select default or alternative WorldContent without a GameScreen hierarchy.
 2. Prove a missing steering helper and a substituted animation implementation in
    two game consumers without editing canonical helper source.
 3. Reuse one unchanged UI/helper source in an App and GameApp, including actual

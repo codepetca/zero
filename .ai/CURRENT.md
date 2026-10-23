@@ -1,45 +1,33 @@
-# Zero-first framework model and reliability — 2026-10-23
+# Simpler framework architecture — 2026-10-23
 
-Owner clarified: normal student game/app development uses Zero packages almost
-entirely; JavaFX remains underneath and available for advanced interoperability.
-Requested complete hierarchy/ownership design, App versus GameApp clarification
-and automatic failure detection; later asked to consider PostHog alongside Clarity.
-Current scope is architecture/documentation and read-only source/provider research.
-No runtime implementation, collection, publication or account changes.
+Owner requested revision and Astra review: keep GameApp extending App, remove
+GameScreen, retain apps/games, replaceable components, ZeroHub and real WebFX.
+Scope is architecture documentation only, no runtime implementation or publication.
+Canonical plan: docs/FRAMEWORK-ARCHITECTURE.md; detailed class/ownership model:
+docs/FRAMEWORK-MODEL.md; automatic checks: docs/FRAMEWORK-RELIABILITY.md.
 
-Canonical plan: docs/FRAMEWORK-ARCHITECTURE.md, with detailed
-FRAMEWORK-MODEL.md and FRAMEWORK-RELIABILITY.md. App is the shared host;
-GameApp is a thin default-game convenience. Screen/GameScreen, explicit World
-content, Actor behavior/playback and Zero UI use one lifecycle driver. Zero
-facades do not expose JavaFX types on normal signatures; advanced bridge and
-published API/library migrations remain explicit. Proposed APIs are not delivered.
+App owns common UI/navigation/assets; GameApp adds one gameplay view and one
+update/draw loop in Main. Screen is optional UI, World an optional actor
+container. GameApp owns canvas/input/camera; ordinary controllers hold level
+state and replace default WorldContent. UI navigation suspends gameplay; live
+HUD/control composition does not. No new public gameplay-screen base replaces
+GameScreen. Existing published/current APIs are unchanged by this plan.
 
-Read-only Sol/medium audit found existing source/API guards, compiler/source
-diagnostics and six-fixture real browser CI. Current native Run has no browser
-check; preview frame failures are not bridged to failed editor state; ZeroHub
-checks reachability only. No source-managed Clarity/PostHog field collector.
-Plan adds per-signature evidence, saved-source compatibility, truthful local
-runtime signals, failure injection and optional sanitized operational events.
-PostHog is recommended for evaluation as primary optional sink, Clarity for
-supplementary website UX. No automatic tracking injection into student games.
+Preserve Zero-first normal signatures, ordinary Java composition, animation
+source/playback substitution, real native + pinned WebFX/browser evidence,
+managed local/exact-pinned library consumers, credit/immutable versions and the
+student-led contribution-to-core loop. Native Run/background checks, runtime
+signals and optional sanitized PostHog collection remain as previously planned,
+not implemented. UI-only readiness requires no game frame.
 
-Checks: npm run check passed; focused website navigation/API/learning30pass/0fail.
-Independent Astra/xhigh review accepted the complete nine-file plan at
-eeb0a55481e867910995759bee3e91de29f71bbf
-with no actionable findings or required corrections. Reports/receipts:
-.verification/zero-first-plan/astra-review/ (ignored); audit is in its parent.
-Requested configuration recorded; effective configuration/tokens unavailable.
-Prior accepted extension plan at 2bcacd5d remains baseline; the new Zero-first
-direction supersedes its default direct-JavaFX UI. See docs/EVIDENCE.md.
+Next: run configuration/links and focused website tests, commit a fixed revision,
+then independent Astra/xhigh full-diff review. One reviewer, one initial wave,
+up to four targeted correction waves/batches, 60min session/30min reviewer caps.
+No source/runtime build is warranted for this documentation-only delta. Retain
+prior source/audit receipts; previous model review at eeb0a554 is historical
+baseline, superseded where it required GameScreen. Final evidence belongs in
+docs/EVIDENCE.md; new review receipts under .verification/simple-model-astra/.
 
-Next proposed exemplar phase: smallest concrete facade/lifecycle contracts,
-Zero-only app/game, actual managed component consumers and signature evidence.
-Retain review details: every supported call/hook reachable in browser fixtures;
-App ready after setup/view activation rather than waiting for a game frame;
-sanitized PostHog events need explicit grouping/trends/alerts rather than assuming
-Error Tracking issue ingestion. No implementation/collection is delivered or
-newly authorized by plan acceptance. Preserve prior Actor receipts/source6f0ee4e1.
-
-Retain this attached Actor checkout for continued local planning. Preserve the
-primary funding and tutorial-padding Dev work, profiles/scratch/watcher. No push,
-PR, merge, deployment, hosted checker activation or credential change authorized.
+Keep this Actor worktree attached. Preserve primary funding and tutorial-padding
+Dev work, profiles/scratch/watcher. No push, PR, merge, deployment, hosted checker
+activation, analytics configuration or credential change is authorized.

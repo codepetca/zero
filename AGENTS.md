@@ -18,6 +18,10 @@ preserve them in future UI work unless the owner asks to change them.
   underneath and an explicit advanced interoperability path. Follow the proposed
   docs/FRAMEWORK-MODEL.md and docs/FRAMEWORK-RELIABILITY.md; do not claim new
   facades, background checks or telemetry are implemented before their proof.
+- Keep the planned model simple: GameApp extends App and owns gameplay callbacks,
+  canvas/input/camera; Screen is optional UI, World an optional actor container.
+  No public GameScreen. Preserve component replacement and one explicit update
+  owner while separating menu navigation from live HUD/control composition.
 - Student-led framework evolution is a core goal: build, extract, share through
   ZeroHub, reuse/improve, and propose proven ideas for Zero core. Design public
   extension points so students can add or replace components without patching

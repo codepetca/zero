@@ -37,7 +37,9 @@ settings and independently modified student sites were not audited.
    are necessary but not proof of behavior. Changed methods invalidate their
    affected evidence. CI fails missing/stale entries rather than accepting a
    declaration-count bump or a test name with no assertion. Shared fixtures may
-   cover many methods when their behavior is actually observed.
+   cover many methods when their behavior is actually observed. Every supported
+   overload and extension hook must be reachable/executed in its browser fixture;
+   an import or dead-code-only call is insufficient.
 2. **Check browser compatibility during ordinary development.** Keep native Run
    fast/offline. Add a debounced original-source compatibility pass on saved
    changes using the existing bounded checker. Report status separately as
@@ -56,10 +58,13 @@ settings and independently modified student sites were not audited.
 4. **Make runtime status truthful locally.** Add framework startup/first-successful-
    frame/exception/stop signals to the browser adapter and native host integration.
    A managed preview moves through loading → starting → ready → stopped/failed;
-   first-frame readiness is evidence of startup, not gameplay correctness. Frame,
+   UI-only App/Screen readiness follows successful setup/view activation without
+   waiting for a game frame. Gameplay readiness may require the first successful
+   GameApp frame; it proves startup, not gameplay correctness. Frame,
    UI callback, asset and promise failures retain local source/stack information.
    A bounded watchdog can indicate lost progress; hidden tabs, pause, event-driven
-   screens and a closed preview are not crashes. Stop render/update work after a
+   screens, menu-suspended gameplay and a closed preview are not crashes. Stop
+   render/update work after a
    fatal failure, display a useful local message and offer the local log.
 5. **Observe accepted field signals.** An optional service can aggregate explicit
    diagnostics and show release regressions/alerts. Local diagnostics and CI work
@@ -122,7 +127,9 @@ and [alerts](https://posthog.com/docs/error-tracking/alerts). Its
 [collection controls](https://posthog.com/docs/privacy/data-collection) allow
 opt-in capture, restricted events and filtering. Exception capture normally
 contains messages/stacks; it cannot be enabled wholesale for student apps under
-the bounded remote schema above. Prefer explicit sanitized events first. A later
+the bounded remote schema above. Prefer explicit sanitized events first, with
+their own grouping/trend/alert rules; ordinary captured events do not automatically
+become Error Tracking issues. A later
 raw-error/source-map experiment needs its own disclosure and source-handling
 decision. Do not assume GWT Java source symbolication works: prove it on the exact
 toolchain, and keep source maps/student source local unless deliberately shared.
@@ -169,3 +176,6 @@ unhandled promise, stale preview message and unavailable collector. Verify the
 correct local status/code, retained previous build, useful source diagnostic,
 no secret/source leakage and expected deduplication. Valid App, paused game,
 background tab and restart flows must stay free of false failures.
+Also verify UI-only ready without a frame, menu suspension/resume, controls/HUD
+that keep gameplay active, and two level/controller swaps through the same Main
+callbacks. No additional gameplay-screen class is needed for these checks.

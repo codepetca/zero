@@ -23,7 +23,9 @@ with replaceable ordinary Java behaviours, animation playback and UI components.
 Normal student code should use Zero packages almost entirely; JavaFX remains the
 implementation and advanced interoperability boundary. The
 [class model](FRAMEWORK-MODEL.md) distinguishes inheritance from ownership and
-specifies App/GameApp plus Screen/GameScreen. The
+specifies GameApp extending App, optional UI Screens and Worlds, with gameplay
+update/draw in Main and no public GameScreen. GameApp owns canvas/input/camera;
+showing a UI Screen suspends gameplay while a composed HUD/control panel does not. The
 [reliability plan](FRAMEWORK-RELIABILITY.md) maps existing local/CI signals and
 future automatic coverage/runtime diagnostics, including the PostHog/Clarity
 evaluation. These documents do not implement the proposed facade or telemetry.
