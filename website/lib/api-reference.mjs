@@ -2,6 +2,8 @@
 const categoryDefinitions = [
   ['startup', 'App startup', 'Choose an app and define its callbacks.'],
   ['interface', 'Window and interface', 'Configure the window and show JavaFX controls.'],
+  ['components', 'Zero UI', 'Compose labels, buttons and vertical columns using Zero imports.'],
+  ['colors', 'Zero colours', 'Choose canvas colours without a JavaFX import.'],
   ['canvas', 'Canvas', 'Read canvas dimensions and use native JavaFX objects.'],
   ['drawing', 'Drawing', 'Draw shapes, lines and text in canvas pixels.'],
   ['images', 'Images', 'Load bundled images and draw them on the canvas.'],
@@ -87,6 +89,11 @@ function parameterDescription(name, method) {
     width: method === 'size' ? 'Initial content width in pixels; positive and finite.' : 'Width in pixels.',
     height: method === 'size' ? 'Initial content height in pixels; positive and finite.' : 'Height in pixels.',
     title: 'Initial window title; must not be null.',
+    text: 'Non-null text to display.', action: 'Non-null Runnable action; replaces the previous click callback.',
+    node: 'Non-null backing JavaFX node for advanced interoperability.',
+    children: 'Elements in order; non-null, distinct and not already attached to a parent or scene.',
+    spacing: 'Vertical spacing in pixels; non-negative and finite.',
+    red: 'Red channel, an integer from 0 through 255.', green: 'Green channel, an integer from 0 through 255.', blue: 'Blue channel, an integer from 0 through 255.',
     content: method === 'show' ? 'JavaFX node to display; must not be null.' : 'Root layout containing the app content.',
     app: 'GameApp canvas to draw on; must not be null.',
     dx: 'Finite horizontal movement in pixels.', dy: 'Finite vertical movement in pixels.',
@@ -129,7 +136,7 @@ export function buildApiReference(markdown) {
   const noteLines = Object.fromEntries(categories.map(category => [category.id, []]));
   const route = () => {
     if (section === 'App') return subsection === 'Window and content' ? 'interface' : 'startup';
-    return { Audio: 'audio', Sound: 'audio', Music: 'audio', GameApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', ImageRegion: 'regions', SpriteAnimation: 'animation', Actor: 'actors', Collisions: 'collisions', 'Lifecycle and extension hooks': 'advanced' }[section];
+    return { 'zero.ui.Element': 'components', 'zero.ui.Label': 'components', 'zero.ui.Button': 'components', 'zero.ui.Column': 'components', Color: 'colors', Audio: 'audio', Sound: 'audio', Music: 'audio', GameApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', ImageRegion: 'regions', SpriteAnimation: 'animation', Actor: 'actors', Collisions: 'collisions', 'Lifecycle and extension hooks': 'advanced' }[section];
   };
   for (const line of markdown.split(/\r?\n/)) {
     const heading = line.match(/^## (.+)$/);
@@ -147,11 +154,14 @@ export function buildApiReference(markdown) {
     const row = line.match(/^\|\s*`([^`]+)`\s*\|\s*(.+?)\s*\|\s*$/);
     if (!row) throw new Error(`Malformed API table row: ${line}`);
     const [, signature, description] = row;
+    const field = signature.match(/^static final (\w+) (\w+)$/);
     const declaration = signature.match(/^(?:(?:public|protected|final|static)\s+)*(?:(\w+(?:\.\w+)*)\s+)?(\w+)\(([^()]*)\)$/);
-    if (!declaration) throw new Error(`Malformed API signature: ${signature}`);
-    const [, , name, argumentsText] = declaration;
-    const helper = ['ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music'].includes(section);
-    if (!declaration[1] && (!helper || name !== section)) throw new Error(`Malformed API constructor: ${signature}`);
+    if (!declaration && !field) throw new Error(`Malformed API signature: ${signature}`);
+    const [, , name, argumentsText = ''] = declaration ?? field;
+    const className = section.split('.').at(-1);
+    const uiHelper = section.startsWith('zero.ui.');
+    const helper = uiHelper || ['Color', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music'].includes(section);
+    if (!field && !declaration[1] && (!helper || name !== className)) throw new Error(`Malformed API constructor: ${signature}`);
     const owner = helper ? section : ['App', 'Audio'].includes(section) || (categoryId === 'advanced' && subsection !== 'Protected GameApp overrides') ? 'App' : 'GameApp';
     const parameters = argumentsText ? argumentsText.split(',').map(argument => {
       const parameter = argument.trim().match(/^(\w+(?:\.\w+)*(?:\.\.\.)?)\s+(\w+)$/);
@@ -160,14 +170,18 @@ export function buildApiReference(markdown) {
     }) : [];
     const sourceType = parameters[0]?.type;
     const variant = sourceType === 'ImageRegion' ? '-region' : sourceType === 'SpriteAnimation' ? '-animation' : '';
-    const id = signature.startsWith('protected ') ? `${owner.toLowerCase()}-${name}`
+    const id = uiHelper ? `ui-${className.toLowerCase()}-${name === className ? `constructor${sourceType === 'double' ? '-spacing' : ''}` : name}`
+      : owner === 'Color' ? `color-${name}`
+      : name === 'show' && sourceType === 'zero.ui.Element' ? 'show-element'
+      : ['background', 'fill', 'stroke'].includes(name) && sourceType === 'zero.Color' ? `${name}-zero-color`
+      : signature.startsWith('protected ') ? `${owner.toLowerCase()}-${name}`
       : owner === 'Actor' ? `actor-${name === owner ? 'constructor' : name}${['Actor', 'setImage'].includes(name) ? variant : ''}`
       : helper ? `${owner.toLowerCase()}-${name === owner ? `constructor${sourceType === 'double' ? '-frames' : ''}` : name}`
       : name === 'image' ? `image${variant}${parameters.length === 5 ? '-scaled' : ''}`
       : ['imageCentered', 'imageFlippedY'].includes(name) ? `${name}${variant}`
       : name === 'canvas' ? 'canvas-access' : name;
     const metadataKey = name === 'image' && parameters.length === 5 ? 'image-scaled' : name;
-    const entry = { id, name, owner, signature, description, parameters, related: related[id] ?? related[name] ?? [] };
+    const entry = { id, name, owner, ...(field ? { kind: 'field' } : {}), signature, description, parameters, related: related[id] ?? related[name] ?? [] };
     if (variant && examples[metadataKey]) entry.example = examples[metadataKey].replaceAll('player,', `${parameters[0].name},`);
     if (!helper && examples[metadataKey] && !entry.example) entry.example = examples[metadataKey];
     if (!helper && methodNotes[metadataKey]) entry.note = methodNotes[metadataKey];
@@ -208,13 +222,45 @@ export function buildApiReference(markdown) {
         : ['actor-constructor', 'actor-update', 'actor-draw'];
       entry.note = 'Actor is an unreleased local source addition. Main calls update(seconds) and draw(this) explicitly. Position is the centre; creating an actor does not register it with the app.';
     }
+    if (uiHelper) {
+      const variable = className.toLowerCase();
+      const uiExamples = {
+        Element: 'public class ScoreDisplay extends Element {\n    public ScoreDisplay() {\n        super(new Label("Score: 0").fxNode());\n    }\n}',
+        Label: 'Label label = new Label("Score: 0");', Button: 'Button button = new Button("Add point");',
+        Column: sourceType === 'double' ? 'Column column = new Column(12, label, button);' : 'Column column = new Column(label, button);',
+        fxNode: 'Node node = score.fxNode(); // Advanced JavaFX bridge',
+        getText: `String text = ${variable}.getText();`, setText: `${variable}.setText("Ready");`,
+        onClick: 'button.onClick(() -> score.setScore(1));', getSpacing: 'double gap = column.getSpacing();', setSpacing: 'column.setSpacing(12);',
+      };
+      entry.example = uiExamples[name];
+      entry.related = name === 'fxNode' || className === 'Element' ? ['ui-label-constructor', 'show-element', 'controls']
+        : ['ui-element-fxNode', 'show-element', 'controls'];
+      entry.note = 'Unreleased Zero UI addition. Use zero.ui imports; Label, Button and Column inherit fxNode() from Element. JavaFX remains available through the advanced bridge.';
+    }
+    if (owner === 'Color') {
+      entry.example = field ? `fill(zero.Color.${name});` : 'fill(zero.Color.rgb(80, 120, 200));';
+      entry.related = ['background-zero-color', 'fill-zero-color', 'stroke-zero-color'];
+      entry.note = 'Import zero.Color for this wrapper. Existing javafx.scene.paint.Color overloads remain available.';
+    }
+    if (id === 'show-element' || id === 'controls') {
+      entry.example = `${name}(new zero.ui.Column(new zero.ui.Label("Ready")));`;
+      entry.related = ['ui-column-constructor', id === 'controls' ? 'show-element' : 'controls'];
+      entry.note = id === 'controls' ? 'Use for a live game HUD. Canvas and update/draw loop remain active. A different parent or scene is rejected; the current bottom panel can be mounted again.' : 'Inherited by GameApp. Replaces visible centre content, but does not stop its game timer or provide navigation.';
+      entry.parameters[0].description = 'Non-null Zero element; uses ordinary JavaFX node ownership.';
+    }
+    if (sourceType === 'zero.Color') {
+      entry.example = `${name}(zero.Color.${name === 'fill' ? 'BLUE' : name === 'stroke' ? 'BLACK' : 'WHITE'});`;
+      entry.related = ['color-rgb', 'color-WHITE', name];
+      entry.parameters[0].description = 'Non-null zero.Color wrapper; distinct from javafx.scene.paint.Color.';
+      entry.note = 'Unreleased Zero colour overload. Use import zero.Color, or the qualified name shown here.';
+    }
     if (id === 'image-scaled') entry.note = methodNotes.image;
     byId[categoryId].entries.push(entry);
   }
   for (const category of categories) category.notes = noteLines[category.id].join('\n').trim();
   const entries = categories.flatMap(category => category.entries);
-  if (seenSections.size !== 14 || entries.length !== 119 || categories.some(category => !category.entries.length)) {
-    throw new Error(`Incomplete API reference: expected fourteen sections and 119 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
+  if (seenSections.size !== 19 || entries.length !== 142 || categories.some(category => !category.entries.length)) {
+    throw new Error(`Incomplete API reference: expected nineteen sections and 142 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
   }
   const ids = new Set(categories.map(category => category.id));
   for (const entry of entries) {
@@ -228,6 +274,8 @@ export function buildApiReference(markdown) {
 }
 
 const aliases = {
+  Element: 'zero ui component reusable view JavaFX bridge', Label: 'zero ui component text', Button: 'zero ui component click callback action', Column: 'zero ui component vertical layout spacing',
+  onClick: 'click callback action Runnable lambda', controls: 'game hud panel live canvas', fxNode: 'advanced JavaFX interoperability node bridge', rgb: 'color colour red green blue channels',
   Actor: 'player enemy sprite centre center position facing movement subclass',
   moveForward: 'actor heading facing forward backward speed', moveToward: 'actor enemy chase follow target stop overshoot',
   face: 'actor heading facing turn target', rotate: 'actor clockwise turn heading', setPosition: 'actor centre center coordinates',

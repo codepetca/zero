@@ -1,6 +1,6 @@
 # Local Zero core library
 
-This development module packages the canonical App, GameApp, ImageRegion, SpriteAnimation, Actor, Collisions, Sound and Music source
+This development module packages the canonical App, GameApp, ImageRegion, SpriteAnimation, Actor, Collisions, Sound, Music, Color and zero.ui source
 for the Component Workshop. The student starter still ships editable core source;
 this module does not migrate existing projects or change their API.
 
@@ -22,6 +22,14 @@ students need no Node.js or access to this module.
 The finite contributor harness lives separately in `checks/zero/SmokeLauncher.java`.
 `verify:framework` runs it in a disposable assembled starter with a native GUI;
 normal student projects contain the core classes and their own app code.
+
+The first Zero UI slice adds Element, Label, Button, Column and Color. Ordinary
+student code uses Zero imports; custom components can expose an Element through
+composition or extend Element using its advanced JavaFX bridge. `App.show` accepts
+an Element, while `GameApp.controls` mounts a live HUD below its canvas. The
+[counter and coin prototypes](prototypes/README.md) share one unchanged
+ScoreDisplay class and can be assembled/run without installing or releasing Zero.
+Screen/navigation and World remain proposed; this slice adds no second game loop.
 
 The small game helpers are local, unreleased additions; published Mac setup
 0.5.15 still ships core 0.1.2. See the [complete API](../student-template/API.md)

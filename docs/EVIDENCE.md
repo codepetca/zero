@@ -1,5 +1,61 @@
 # Delivery evidence index
 
+## First Zero UI components and working consumers — 2026-10-23
+
+Owner authorized a small working framework increment. Local, unreleased source
+adds zero.ui.Element/Label/Button/Column, zero.Color, App.show(Element), live
+GameApp.controls(Element) and Zero Color drawing overloads. GameApp still extends
+App and owns the same single frame driver. Column validates all children before
+attachment; callback replacement and native JavaFX ownership remain explicit.
+Advanced extension uses protected Element(Node)/final fxNode(). No Screen/World,
+animation replacement, new diagnostics/telemetry or new distribution mechanism.
+
+Counter App and pointer coin GameApp use Zero imports and one unchanged
+ScoreDisplay source, SHA256
+b4f1ef6d961b0994ca1d4a8b91e5c25e57441dab7fd0a7fa209026b534f6ae97.
+Both native standalone assemblies include all13 helper sources and pinned student
+Maven/JavaFX files without a surrounding repository dependency. Counter checks
+add twice/reset/add; game checks collect3/win/restart/reset/collect3/win over206
+actual frames. Synthetic JavaFX events in real windows, darwin/arm64 only.
+Commands: node scripts/prepare-ui-prototypes.mjs and
+node scripts/verify-ui-prototypes.mjs. Logs/receipt: .verification/ui-prototypes/.
+
+Real pinned WebFX/GWT builds pass9/9 fixtures, including both consumers and a
+new UI contract. Chrome behavior68/68 and mobile regression136/136 assertions
+pass; shared source bytes match both builds. Exact source/member gates now cover
+13 helpers/142 declarations; adapter10/10 and focused semantic17/17 tests pass.
+Checks reject edited/forged helpers, unapproved platform members and hidden
+Color.fxColor. Build/browser elapsed317 seconds. Receipts/screenshots:
+.verification/ui-slice-web/. Headless Chrome/macOS and CDP mobile emulation only;
+no physical-device/other-engine or new live GitHub Pages acceptance claimed.
+Existing exporter still owns browser rules; project-owned browser tooling remains
+future work. No installation, public website update, push, PR, deployment or release.
+
+Source preparation, lessons, website downloads and core binary/source JARs include
+nested UI helpers. Ownership/drift/symlink checks preserve edited generated files.
+Kit/lesson tests22/22 pass, including extracted standalone Maven compilation.
+API/reference/guide coverage includes all142 declarations, including four fields.
+Website typecheck/build pass. Local /docs browser checks9/9 pass, including new
+entries, search, WHITE field heading without parentheses and exact anchor.
+Website tests initially163pass/1fail due to a stale inventory expectation;
+corrected learning suite15/15 passes, reusing the unchanged149 passing checks.
+
+Zero Dev smoke initially failed its existing three-second macOS foreground-focus
+assertion. Unchanged retry passed ZERO_DEV_SMOKE_OK, including native UI,
+Actor/game helpers,57 audio checks, sample keyboard playthrough and21 UI tests.
+The first root regression run found33 failures in historical App migration
+fixtures. They now reconstruct the exact original hash without the new overload.
+Migration additionally rejects a missing exact Element dependency before any
+source update; no missing helpers are installed. Focused helper33/33 and Publish
+UI46/46 tests pass. Final root regression and independent review are recorded
+in the completion receipt below.
+
+Configuration/syntax/contracts/local links and diff checks pass. Work used three
+bounded retained workers: Sol/high native/components/consumers, Sol/medium browser,
+Sol/medium docs/source assembly. Effective configuration/tokens unavailable.
+DeepSeek paused; existing compiler/dependency caches reused, no installations.
+Unrelated checkouts, Dev scratch state, editor profiles and watchers preserved.
+
 ## Project-owned builds without central kit storage — 2026-10-23
 
 Owner superseded the mandatory historical release-kit archive with

@@ -1,41 +1,32 @@
-# Project-owned builds, no central kit service — 2026-10-23
+# First Zero UI slice — 2026-10-23
 
-Owner authorized policy revision and Astra review: projects own framework source
-and native/browser build files, with no required central historical-kit storage,
-database or registry. Keep maintenance simple. Documentation only; no runtime,
-schema, artifact, service or publication changes. Canonical section: Project
-versions and preservation in docs/FRAMEWORK-ARCHITECTURE.md, linked from model,
-reliability/product/components/development/repository guidance and AGENTS.
+Owner authorized a quick working framework increment with real app/game examples.
+Worktree: `/Users/stew/.codex/worktrees/actor/zero`; base
+`5c6ddc62334e92290c8845e27c8f26d26002a394`. Preserve primary funding and other
+Zero Dev scratch/profile/watcher work. Local implementation only; no push, PR,
+merge, installation, publication, release, deployment or account changes.
 
-Default: student repository retains actual Zero source/build logic/profile and
-exact dependency/version records. Editor updates do not upgrade them. Normal
-artifact hosts supply dependencies; no new central historical-kit resolver.
-Retained playable web output is independent of rebuilding. Optional full offline
-bundles belong to students; default indefinite rebuilds depend on usable tools
-and artifact availability. Maintain one current line, no old branches/all-version
-CI or old-API shims. Existing ZeroHub sharing/catalog/artifact rules are unchanged.
+Implemented, unreleased: zero.ui.Element/Label/Button/Column, zero.Color,
+App.show(Element), GameApp.controls(Element) and Color drawing overloads.
+GameApp extends App and retains one existing frame driver. show(Element) keeps
+show(Node) replacement semantics and does not suspend gameplay. controls mounts
+a live bottom HUD. JavaFX bridge is protected Element(Node)/final fxNode().
+Atomic Column validation preserves child ownership on failure; button callbacks
+replace previous callbacks. Exact browser source identities and member gates
+include all 13 helpers/142 public or protected declarations, not arbitrary zero
+package code. Readable generated starter/lesson/example copies include UI packages
+with ownership and symlink guards. API/guide/website metadata change together.
 
-Project files/metadata are untrusted; no automatic hooks on open, execution bypass
-or editor credential access. Safe project-owned browser builder/launcher and
-complete records remain future work; current exporter still owns browser rules.
-Reuse existing ZIP/hash manifests, record actual source snapshots and preserve
-explicit branch-based upgrade/rollback. App/GameApp/simple Screen/World model,
-replaceable components, Java-first/Zero API and pinned WebFX goals remain.
+Counter App and pointer coin GameApp use Zero imports and the same unchanged
+ordinary ScoreDisplay source. Assembly/native acceptance commands are documented
+in framework/prototypes/README.md. These are first composition examples; no claim
+that animation/container replacements or managed ZeroHub distribution were added.
+Screen/navigation/pause, World, input/image facades, project-owned browser tooling,
+new automatic diagnostics and opt-in telemetry remain planned. Existing project-
+owned source/build/version preservation policy remains canonical in
+docs/FRAMEWORK-ARCHITECTURE.md; no central historical-kit service/database.
 
-Accepted at b662eeea25cab5f580838a2839833446f5bb8c04 after independent requested
-Astra/xhigh review: complete nine-file diff, one initial wave, 251.8 seconds,
-no actionable findings or correction batches. Effective configuration/tokens
-unavailable. Reports/receipts: .verification/project-owned-build-astra/.
-Prior mandatory central archives/default offline restore are superseded.
-See docs/EVIDENCE.md. Checks: npm run check, focused website tests 30 pass/0 fail,
-and diff check pass. No runtime or clone/build/backup/restore proof this turn.
-
-Next implementation acceptance: retain all required Zero-owned builder support
-modules/config in the project; retain dirty-source bytes when promising exact
-recovery; distinguish missing tools/artifacts, unsupported launch paths and API
-errors. Safe launcher design still needs implementation/security review. No new
-execution or publication authority follows from accepting the policy.
-
-Preserve Actor worktree/receipts, primary funding and tutorial-padding Dev work,
-profiles/scratch/watcher. No push, PR, merge, deployment, release, installation,
-account change or dependency install authorized.
+Workers: native core + prototype acceptance (Sol/high), WebFX/contracts/browser
+(Sol/medium), docs/API + source assembly (Sol/medium). DeepSeek pilot paused.
+Checks/review receipts and remaining limits will be recorded in docs/EVIDENCE.md.
+Use source-based Zero Dev and native/browser checks, not installers, to iterate.

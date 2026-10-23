@@ -27,6 +27,102 @@ and [GameApp source](src/main/java/zero/GameApp.java). Use these classes for
 startup, drawing and input; use ordinary Java for your app's objects and rules.
 The source is the authority if you change your local framework.
 
+## Zero UI: one view in an app or game
+
+The current local source adds `zero.ui.Label`, `Button`, `Column` and `Element`,
+plus `zero.Color` for canvas colours. These additions are unreleased; older kits
+keep their bundled APIs. Existing JavaFX examples and controls still work.
+This first slice provides text, button actions and vertical composition.
+
+A reusable display can be an ordinary class with a view and an explicit setter.
+Save this as `ScoreDisplay.java` beside Main; the same class works in an App or
+GameApp. The maintained [shared ScoreDisplay source](../framework/prototypes/shared/ScoreDisplay.java)
+is copied unchanged into the two small [counter](../framework/prototypes/counter/Main.java)
+and [coin game](../framework/prototypes/coin-game/Main.java) consumers.
+
+```java
+import zero.ui.Element;
+import zero.ui.Label;
+
+public class ScoreDisplay {
+    private final Label label = new Label("Score: 0");
+
+    public Element view() {
+        return label;
+    }
+
+    public void setScore(int score) {
+        label.setText("Score: " + score);
+    }
+}
+```
+
+In an App, compose views with Column and pass the result to show. In this small
+Main, `onClick` receives an ordinary Runnable action: the lambda runs when the
+button is activated. Each call replaces the previous callback.
+
+```java
+import zero.App;
+import zero.ui.Button;
+import zero.ui.Column;
+
+public class Main extends App {
+    private final ScoreDisplay score = new ScoreDisplay();
+    private int count;
+
+    @Override
+    public void settings() {
+        title("Counter");
+        size(320, 220);
+        padding(16);
+    }
+
+    @Override
+    public void setup() {
+        Button add = new Button("Add one");
+        add.onClick(() -> {
+            count++;
+            score.setScore(count);
+        });
+        show(new Column(12, score.view(), add));
+    }
+
+    public static void main(String[] args) { launch(args); }
+}
+```
+
+For a GameApp, keep a ScoreDisplay field and attach it in setup with
+`controls(new Column(score.view(), restartButton))`, where restartButton is a
+Zero Button. This mounts a bottom HUD while the canvas and explicit update/draw
+loop keep running. Change the display with `score.setScore(points)` when your
+own game state changes. Use `import zero.Color;` with `background(Color.WHITE)`
+and `fill(Color.GOLD)`, or make a colour with `Color.rgb(80, 120, 200)`; channels
+are integers from 0 through 255. Keep collision, scoring, reset and pause rules
+in your own Java methods.
+
+Column uses 8-pixel spacing by default, or the finite non-negative spacing you
+supply; getSpacing/setSpacing read/change that gap. Its children are chosen only
+in the constructor. Each element can belong to one parent; use fresh elements
+for a new composition. Null text, children or actions throw NullPointerException.
+Duplicate children, children already attached to a parent or scene, and invalid
+spacing throw IllegalArgumentException before attachment changes. controls
+rejects a panel owned elsewhere; mounting the current bottom panel again is safe.
+Call show/controls in setup or later callbacks, after content creation, or an
+IllegalStateException is thrown.
+
+App.show(Element) replaces centre content and is inherited by GameApp. On a game,
+show does not stop its timer: use controls for a live HUD. This slice adds no
+screen history or automatic navigation/pause. Keep those rules explicit.
+
+For advanced interoperability, Element exposes the actual JavaFX node through
+`fxNode()`. A custom subclass can call the protected `Element(Node)` constructor
+with a non-null backing node, while ordinary reusable classes can simply return
+an Element as ScoreDisplay does. The bridge preserves JavaFX thread and ownership
+rules; use it only when you need native capabilities. Existing JavaFX Color
+and drawing overloads remain available. Import one Color class by its short name
+and qualify the other if you need both. See the [Zero UI API](API.md#zerouielement)
+and [Zero colour API](API.md#color) for signatures and errors.
+
 ## Choose an app
 
 Extend `zero.App` for buttons, forms, quizzes and other event-driven

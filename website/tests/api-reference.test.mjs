@@ -12,22 +12,25 @@ const normalizeSignature = signature => signature.replace(/\b(public|protected|f
 
 test('every class-level public/protected Java declaration has an exact canonical entry', async () => {
   const expected = [];
-  for (const owner of ['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music']) {
-    const source = await readFile(new URL(`../../framework/src/main/java/zero/${owner}.java`, import.meta.url), 'utf8');
+  for (const owner of ['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.Button', 'zero.ui.Column']) {
+    const source = await readFile(new URL(`../../framework/src/main/java/zero/${owner.replace(/^zero\./, '').replaceAll('.', '/')}.java`, import.meta.url), 'utf8');
+    for (const match of source.matchAll(/^ {4}public (static final \w+ \w+)\s*=/gm)) {
+      expected.push(`${owner}:${normalizeSignature(match[1])}`);
+    }
     // Class-level declarations have four-space indentation; the anonymous timer callback has twelve.
     for (const match of source.matchAll(/^ {4}(?:@Override )?((?:public|protected) (?:(?:final|static) )?(?:[\w.]+ )?\w+\([^)]*\))\s*\{/gm)) {
       expected.push(`${owner}:${normalizeSignature(match[1])}`);
     }
   }
-  assert.equal(expected.length, 119);
+  assert.equal(expected.length, 142);
   assert.deepEqual(entries.map(item => `${item.owner}:${normalizeSignature(item.signature)}`).sort(), expected.sort());
   assert.ok(!entries.some(item => item.name === 'handle'));
-  assert.equal(JSON.parse(JSON.stringify(categories)).length, 12);
+  assert.equal(JSON.parse(JSON.stringify(categories)).length, 14);
 });
 
 test('categories and entries have unique anchors, valid relationships and complete metadata', () => {
   assert.deepEqual(categories.map(item => [item.id, item.title]), [
-    ['startup', 'App startup'], ['interface', 'Window and interface'], ['canvas', 'Canvas'],
+    ['startup', 'App startup'], ['interface', 'Window and interface'], ['components', 'Zero UI'], ['colors', 'Zero colours'], ['canvas', 'Canvas'],
     ['drawing', 'Drawing'], ['images', 'Images'], ['regions', 'Image regions'],
     ['animation', 'Sprite animation'], ['actors', 'Actors'], ['audio', 'Audio'], ['collisions', 'Collisions'], ['input', 'Keyboard and mouse'], ['advanced', 'Advanced'],
   ]);
@@ -35,7 +38,7 @@ test('categories and entries have unique anchors, valid relationships and comple
   assert.equal(new Set(ids).size, ids.length);
   for (const item of entries) {
     assert.ok(item.description);
-    assert.ok(['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music'].includes(item.owner));
+    assert.ok(['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.Button', 'zero.ui.Column'].includes(item.owner));
     for (const parameter of item.parameters) assert.ok(parameter.name && parameter.description);
     for (const target of item.related) assert.ok(entry(target), `${item.id} relates to missing ${target}`);
   }
@@ -44,8 +47,8 @@ test('categories and entries have unique anchors, valid relationships and comple
 
 test('classifies callbacks, window operations, overloads and advanced overrides', () => {
   assert.deepEqual(category('startup').entries.map(item => item.name), ['settings', 'setup', 'update', 'draw']);
-  assert.deepEqual(category('interface').entries.map(item => item.name), ['size', 'title', 'padding', 'show']);
-  assert.equal(category('drawing').entries.length, 11);
+  assert.deepEqual(category('interface').entries.map(item => item.name), ['size', 'title', 'padding', 'show', 'show']);
+  assert.equal(category('drawing').entries.length, 14);
   assert.equal(category('advanced').entries.length, 12);
   assert.equal(entry('image').parameters.length, 3);
   assert.equal(entry('image-scaled').parameters.length, 5);
@@ -74,8 +77,8 @@ test('keeps canonical class defaults, constructors and lifecycle caveats', () =>
 
 test('search handles aliases, case, multiple terms, whitespace and empty results', () => {
   const search = query => searchApiReference(categories, query);
-  assert.equal(search('').length, 119);
-  assert.equal(search(' \n\t ').length, 119);
+  assert.equal(search('').length, 142);
+  assert.equal(search(' \n\t ').length, 142);
   assert.ok(search('KEYBOARD').some(item => item.id === 'keyDown'));
   assert.deepEqual(search('rectangle').slice(0, 2).map(item => item.id), ['rect', 'outlineRect']);
   assert.ok(search('mouse').some(item => item.id === 'mouseDown'));
@@ -178,7 +181,7 @@ test('documents all source-type overloads with unique stable anchors and helper 
 
 
 test('fails closed when any new overload or constructor table row is omitted', () => {
-  for (const item of entries.filter(item => ['ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music'].includes(item.owner) || /ImageRegion|SpriteAnimation|Pressed|Focused|Centered|Flipped|loadSound|loadMusic/.test(item.signature))) {
+  for (const item of entries.filter(item => ['ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.Button', 'zero.ui.Column'].includes(item.owner) || /ImageRegion|SpriteAnimation|Pressed|Focused|Centered|Flipped|loadSound|loadMusic/.test(item.signature))) {
     const line = markdown.split('\n').find(candidate => candidate.startsWith(`| \`${item.signature}\``));
     assert.ok(line, item.signature);
     assert.throws(() => buildApiReference(markdown.replace(line + '\n', '')), /Incomplete API reference/, item.signature);
@@ -240,4 +243,47 @@ test('Actor has exact overload anchors, explicit lifecycle examples and movement
   assert.match(guide, /enemy.draw\(this\)/);
   assert.match(guide, /super.update\(seconds\)/);
   assert.match(guide, /actor.x\(\) - actor.width\(\) \/ 2/);
+});
+
+
+test('Zero UI and colour slice covers qualified owners, fields, overloads and inherited bridge', async () => {
+  assert.equal(category('components').entries.length, 13);
+  assert.equal(category('colors').entries.length, 5);
+  for (const name of ['WHITE', 'BLACK', 'BLUE', 'GOLD']) {
+    assert.equal(entry(`color-${name}`).kind, 'field');
+    assert.equal(entry(`color-${name}`).signature, `static final Color ${name}`);
+  }
+  assert.equal(entry('show').parameters[0].type, 'Node');
+  assert.equal(entry('show-element').parameters[0].type, 'zero.ui.Element');
+  assert.equal(entry('controls').owner, 'GameApp');
+  for (const method of ['background', 'fill', 'stroke']) {
+    assert.equal(entry(method).parameters[0].type, 'Color');
+    assert.equal(entry(`${method}-zero-color`).parameters[0].type, 'zero.Color');
+    assert.match(entry(`${method}-zero-color`).example, /zero.Color/);
+  }
+  assert.equal(entry('ui-column-constructor').parameters[0].type, 'Element...');
+  assert.equal(entry('ui-column-constructor-spacing').parameters[0].name, 'spacing');
+  assert.equal(entry('ui-element-constructor').signature, 'protected Element(Node node)');
+  assert.equal(entry('ui-element-fxNode').owner, 'zero.ui.Element');
+  assert.match(category('components').notes, /8 pixels/);
+  assert.match(category('components').notes, /before any child is attached/);
+  assert.match(category('components').notes, /inherits `fxNode\(\)`/);
+  assert.match(entry('show-element').note, /does not stop its game timer/);
+  assert.match(entry('controls').note, /Canvas and update\/draw loop remain active/);
+  assert.match(entry('ui-button-onClick').description, /Replace/);
+  assert.match(entry('ui-button-onClick').parameters[0].description, /Runnable/);
+  assert.ok(searchApiReference(categories, 'game hud').some(item => item.id === 'controls'));
+  assert.ok(searchApiReference(categories, 'vertical layout').some(item => item.id === 'ui-column-constructor'));
+  assert.ok(searchApiReference(categories, 'advanced bridge').some(item => item.id === 'ui-element-fxNode'));
+  for (const item of entries.filter(item => item.owner.startsWith('zero.ui.') || item.owner === 'Color' || ['show-element', 'controls', 'background-zero-color', 'fill-zero-color', 'stroke-zero-color'].includes(item.id))) {
+    assert.ok(item.example, item.id);
+    const line = markdown.split('\n').find(candidate => candidate.startsWith(`| \`${item.signature}\``));
+    assert.ok(line, item.id);
+    assert.throws(() => buildApiReference(markdown.replace(line + '\n', '')), /Incomplete API reference/, item.id);
+  }
+  const guide = await readFile(new URL('../../student-template/APP-GUIDE.md', import.meta.url), 'utf8');
+  assert.match(guide, /## Zero UI: one view in an app or game/);
+  assert.match(guide, /score.view\(\)/);
+  assert.match(guide, /controls\(new Column/);
+  assert.match(guide, /show does not stop/);
 });

@@ -411,10 +411,13 @@ test('Publish helper preparation updates stock source before upload and refuses 
  const extension=await fs.mkdtemp(path.join(os.tmpdir(),'zero-prepare-extension-'));t.after(()=>fs.rm(extension,{recursive:true,force:true}));
  await fs.mkdir(path.join(extension,'media'));
  const {lessonProjects}=await import('../../scripts/lesson-projects.mjs');
- await fs.writeFile(path.join(extension,'media/lesson-projects.json'),JSON.stringify(lessonProjects(path.resolve(__dirname,'../..'))));
+ const bundle=lessonProjects(path.resolve(__dirname,'../..'));
+ await fs.writeFile(path.join(extension,'media/lesson-projects.json'),JSON.stringify(bundle));
+ for(const file of bundle.projects[0].files.filter(file=>file.path.startsWith('src/main/java/zero/'))){const target=path.join(h.root,file.path);await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,Buffer.from(file.content,'base64'));}
  const preparation=createGitHubPagesPublisher({isSimulation:()=>false,engineRoot:path.join(extension,'src/web-export')});
  const current=await fs.readFile(path.join(__dirname,'../../framework/src/main/java/zero/App.java'),'utf8');
- const previous=current.replace('/** Space on every edge, in pixels. Call in settings, setup or an event handler. */','/** Initial space around all content, in pixels on each edge. Call inside settings(). */').replace('    public final void padding(double pixels) {\n','    public final void padding(double pixels) {\n        if (!configuring) throw new IllegalStateException("Call padding inside settings().");\n').replace('        if (root != null) root.setPadding(new Insets(pixels));\n','');
+ const previous=current.replace('    /** Display a Zero UI component with the same replacement behavior as show(Node). */\n    public final void show(zero.ui.Element content) {\n        show(Objects.requireNonNull(content, "Content must not be null.").fxNode());\n    }\n\n', '').replace('/** Space on every edge, in pixels. Call in settings, setup or an event handler. */','/** Initial space around all content, in pixels on each edge. Call inside settings(). */').replace('    public final void padding(double pixels) {\n','    public final void padding(double pixels) {\n        if (!configuring) throw new IllegalStateException("Call padding inside settings().");\n').replace('        if (root != null) root.setPadding(new Insets(pixels));\n','');
+ assert.equal(require('node:crypto').createHash('sha256').update(previous).digest('hex'),'bdcb1060ad5a30f16f1a395c522a520d2506530584bda71a0e4cbe1e7c467c09');
  const target=path.join(h.root,'src/main/java/zero/App.java');await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,previous);await h.git(['add','.']);await h.git(['commit','-m','stock helper']);
  await h.git(['switch','-c','change']);await assert.rejects(preparation.prepare(h.root),/Merge to main/);assert.equal(await fs.readFile(target,'utf8'),previous);
  await h.git(['switch','main']);let guard=0;assert.deepEqual(await preparation.prepare(h.root,{beforeWrite:async()=>{guard++;}}),{updated:['src/main/java/zero/App.java']});

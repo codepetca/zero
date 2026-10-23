@@ -10,6 +10,7 @@ import './ApiReference.css';
 
 type Entry = {
   id: string; name: string; owner: string; signature: string; description: string;
+  kind?: 'field';
   parameters: { name: string; description: string }[];
   example?: string; note?: string; related: string[];
 };
@@ -109,7 +110,10 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
     return () => { window.removeEventListener('scroll', onScroll); cancelAnimationFrame(frame); };
   }, []);
 
-  function methodLink(entry: Entry, label = `${entry.name}()`) {
+  function entryLabel(entry: Entry) {
+    return `${entry.name}${entry.kind === 'field' ? '' : '()'}`;
+  }
+  function methodLink(entry: Entry, label = entryLabel(entry)) {
     return <a href={`#${entry.id}`} aria-current={active === entry.id ? 'location' : undefined}
       onClick={event => { event.preventDefault(); jump(entry.id); }}>{label}</a>;
   }
@@ -117,7 +121,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
     return <section className="api-category" id={category.id} key={category.id} tabIndex={-1}>
       <div className="api-category-heading"><h2>{category.title}</h2></div>
       {category.entries.map(entry => <article className="api-entry" id={entry.id} data-api-entry key={entry.id} tabIndex={-1}>
-        <div className="api-method-title"><h3><a href={`#${entry.id}`} onClick={event => { event.preventDefault(); jump(entry.id); }}>{entry.name}()</a></h3><span className="api-owner">{entry.owner}</span></div>
+        <div className="api-method-title"><h3><a href={`#${entry.id}`} onClick={event => { event.preventDefault(); jump(entry.id); }}>{entryLabel(entry)}</a></h3><span className="api-owner">{entry.owner}</span></div>
         <div className="api-description"><RichText links={links}>{entry.description}</RichText></div>
         <div className="api-signature"><CodeBlock><Code value={entry.signature} /></CodeBlock></div>
         {!!entry.parameters.length && <dl className="api-parameters">{entry.parameters.map(parameter => <div key={parameter.name}><dt><code>{parameter.name}</code></dt><dd>{parameter.description}</dd></div>)}</dl>}
@@ -142,7 +146,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
       </form>
       <button className="api-contents-toggle" aria-expanded={mobileOpen} aria-controls="api-contents" onClick={() => setMobileOpen(!mobileOpen)}>Contents<Icon name="chevron-down" /></button>
       <p className="api-search-status" role="status">{searching ? `${results.length} ${results.length === 1 ? 'method' : 'methods'} found` : ''}</p>
-      {searching ? <nav className="api-results" aria-label="Search results">{results.length ? results.map(entry => <div key={entry.id}>{methodLink(entry, `${entry.name}()${entry.id === 'image-scaled' ? ' — scaled' : ''}`)}<small>{entry.categoryTitle} · {entry.owner}</small></div>) : <p>No matching methods. Try “drawing”, “keyboard” or “image”.</p>}</nav> :
+      {searching ? <nav className="api-results" aria-label="Search results">{results.length ? results.map(entry => <div key={entry.id}>{methodLink(entry, `${entryLabel(entry)}${entry.id === 'image-scaled' ? ' — scaled' : ''}`)}<small>{entry.categoryTitle} · {entry.owner}</small></div>) : <p>No matching methods. Try “drawing”, “keyboard” or “image”.</p>}</nav> :
         <div className={`api-contents ${mobileOpen ? 'is-open' : ''}`} id="api-contents">
           <nav aria-label="Methods by category">{[...categories].sort((a, b) => a.title.localeCompare(b.title, 'en')).map(category => {
             const isOpen = expanded.includes(category.id);
@@ -152,7 +156,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
                 <a href={`#${category.id}`} onClick={event => { event.preventDefault(); jump(category.id); }}>{category.title}</a>
                 <button type="button" aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${category.title}`} aria-expanded={isOpen} aria-controls={`nav-${category.id}`} onClick={() => setExpanded(previous => isOpen ? previous.filter(id => id !== category.id) : [...previous, category.id])}><Icon name="chevron-down" className={isOpen ? '' : 'is-closed'} /></button>
               </div>
-              <ul hidden={!isOpen} id={`nav-${category.id}`}>{category.entries.map(entry => <li key={entry.id}>{methodLink(entry, `${entry.name}()${entry.id === 'image-scaled' ? ' · scaled' : ''}${category.id === 'advanced' ? ` · ${entry.owner}` : ''}`)}</li>)}</ul>
+              <ul hidden={!isOpen} id={`nav-${category.id}`}>{category.entries.map(entry => <li key={entry.id}>{methodLink(entry, `${entryLabel(entry)}${entry.id === 'image-scaled' ? ' · scaled' : ''}${category.id === 'advanced' ? ` · ${entry.owner}` : ''}`)}</li>)}</ul>
             </div>;
           })}</nav>
           <div className="api-guide-links"><Link href="/learn">Tutorials</Link><Link href="/help/setup">Setup help</Link><Link href="/teachers">For teachers</Link></div>

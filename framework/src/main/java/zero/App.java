@@ -63,6 +63,11 @@ public abstract class App extends Application {
         root.setCenter(Objects.requireNonNull(content, "Content must not be null."));
     }
 
+    /** Display a Zero UI component with the same replacement behavior as show(Node). */
+    public final void show(zero.ui.Element content) {
+        show(Objects.requireNonNull(content, "Content must not be null.").fxNode());
+    }
+
     protected final double initialWidth() { return appWidth; }
     protected final double initialHeight() { return appHeight; }
     protected Node createContent() { return null; }

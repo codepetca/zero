@@ -21,6 +21,11 @@ student-template/src/main/java/zero/SpriteAnimation.java
 student-template/src/main/java/zero/Collisions.java
 student-template/src/main/java/zero/Sound.java
 student-template/src/main/java/zero/Music.java
+student-template/src/main/java/zero/Color.java
+student-template/src/main/java/zero/ui/Element.java
+student-template/src/main/java/zero/ui/Label.java
+student-template/src/main/java/zero/ui/Button.java
+student-template/src/main/java/zero/ui/Column.java
 student-template/LICENSE
 website/.generated/
 website/.next/

@@ -21,6 +21,9 @@ try {
   const actors = maven(project, ['-q', '-Dapp.mainClass=zero.ActorCheck', 'compile', 'javafx:run']);
   if (!actors.stdout.includes('ZERO_ACTOR_OK')) throw new Error(actors.stdout + '\n' + actors.stderr);
   console.log(actors.stdout.trim());
+  const ui = maven(project, ['-q', '-Dapp.mainClass=zero.UiCheck', 'compile', 'javafx:run']);
+  if (!ui.stdout.includes('ZERO_UI_OK')) throw new Error(ui.stdout + '\n' + ui.stderr);
+  console.log(ui.stdout.trim());
   const audio = maven(project, ['-q', '-Dapp.mainClass=zero.AudioCheck', 'compile', 'javafx:run']);
   if (!audio.stdout.includes('ZERO_AUDIO_OK')) throw new Error(audio.stdout + '\n' + audio.stderr);
   console.log(audio.stdout.trim());

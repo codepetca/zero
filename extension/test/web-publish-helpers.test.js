@@ -23,7 +23,7 @@ async function fixture(t, {old = true, crlf = false} = {}) {
   const current = files.get(filename);
   // Independently reproduce the known released source change. The historical
   // SHA below prevents this fixture from silently drifting with implementation.
-  const previous = Buffer.from(current.toString().replace('/** Space on every edge, in pixels. Call in settings, setup or an event handler. */', '/** Initial space around all content, in pixels on each edge. Call inside settings(). */').replace('    public final void padding(double pixels) {\n', '    public final void padding(double pixels) {\n        if (!configuring) throw new IllegalStateException("Call padding inside settings().");\n').replace('        if (root != null) root.setPadding(new Insets(pixels));\n', ''));
+  const previous = Buffer.from(current.toString().replace('    /** Display a Zero UI component with the same replacement behavior as show(Node). */\n    public final void show(zero.ui.Element content) {\n        show(Objects.requireNonNull(content, "Content must not be null.").fxNode());\n    }\n\n', '').replace('/** Space on every edge, in pixels. Call in settings, setup or an event handler. */', '/** Initial space around all content, in pixels on each edge. Call inside settings(). */').replace('    public final void padding(double pixels) {\n', '    public final void padding(double pixels) {\n        if (!configuring) throw new IllegalStateException("Call padding inside settings().");\n').replace('        if (root != null) root.setPadding(new Insets(pixels));\n', ''));
   assert.equal(hash(previous), 'bdcb1060ad5a30f16f1a395c522a520d2506530584bda71a0e4cbe1e7c467c09');
   if (old) files.set(filename, previous);
   for (const [name, bytes] of files) {
@@ -93,7 +93,7 @@ test('mandatory project guard, guard failures and guarded byte/path drift preser
       if (kind === 'guard rejects') throw Error('Publish context changed');
       if (kind === 'bytes') fs.appendFileSync(h.target, '// Saved after review\n');
       if (kind === 'same-content inode') { fs.renameSync(h.target, h.target + '.old'); fs.copyFileSync(h.target + '.old', h.target); }
-      if (kind === 'parent') { const parent = path.dirname(h.target); fs.renameSync(parent, parent + '.old'); fs.mkdirSync(parent); for (const [name, bytes] of h.files) fs.writeFileSync(path.join(h.root, name), bytes); }
+      if (kind === 'parent') { const parent = path.dirname(h.target); fs.renameSync(parent, parent + '.old'); fs.mkdirSync(parent); for (const [name, bytes] of h.files) { fs.mkdirSync(path.dirname(path.join(h.root,name)),{recursive:true}); fs.writeFileSync(path.join(h.root, name), bytes); } }
       if (kind === 'missing created') fs.writeFileSync(path.join(h.root, 'src/main/java/zero/Music.java'), 'Student source');
     };
     await assert.rejects(helpers.apply(h.root, plan, kind === 'no guard' ? {} : {beforeWrite}), /guard|changed/);
@@ -158,4 +158,20 @@ test('concurrent writes through the old source descriptor survive in the recover
   const backup = path.join(directory, fs.readdirSync(directory)[0], 'original-App.java');
   assert.ok(fs.readFileSync(backup, 'utf8').endsWith('// Concurrent old-descriptor edit\n'));
   assert.deepEqual(fs.readFileSync(h.target), h.current);
+});
+
+
+test('released App missing its current Element dependency rejects before any guard or source write', async t => {
+  const h = await fixture(t), missing = path.join(h.root, 'src/main/java/zero/ui/Element.java');
+  fs.unlinkSync(missing);
+  const before = [...h.files].filter(([name]) => name !== 'src/main/java/zero/ui/Element.java').map(([name]) => [name, fs.readFileSync(path.join(h.root,name)), fs.statSync(path.join(h.root,name)).ino]);
+  let guards = 0;
+  await assert.rejects(async () => {
+    const plan = await inspect(h);
+    await helpers.apply(h.root, plan, {beforeWrite:async()=>{guards++;}});
+  }, /required current helper src\/main\/java\/zero\/ui\/Element.java is missing or unsupported/);
+  assert.equal(guards, 0);
+  assert.equal(fs.existsSync(missing), false);
+  for (const [name,bytes,inode] of before) { assert.deepEqual(fs.readFileSync(path.join(h.root,name)),bytes); assert.equal(fs.statSync(path.join(h.root,name)).ino,inode); }
+  assert.equal(fs.existsSync(path.join(h.root,'.git/zero-publishing-upgrades')),false);
 });

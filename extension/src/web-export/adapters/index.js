@@ -20,13 +20,18 @@ function apply(source, edits) {
 function fail(file, detail) { throw new Error(`Web export: ${file}: ${detail}`); }
 const helperHashes = Object.freeze({
   'zero/Actor.java': 'b1cbdf896def29c79e4efdbcb4fda3a969f51bbddbec3c8177e1001c59122cab',
+  'zero/App.java': 'b1824d9988782bb9e1431807251c9ba973b46e646934c68ebbfb7a54267afdc6',
   'zero/Collisions.java': '1d1cc1c57fcbbcb8421bf469c6d74e5f1707c5542c265d1819f38e59fb4e67fe',
+  'zero/Color.java': 'ac3e62480b526e4505c5640ce857757c13cec6134ec7d6d759c4321b785e07d7',
+  'zero/GameApp.java': '9be529b55e55b0e0f9415eceaf64910a44ab29fdbe587b0a2db80f44df6f447d',
   'zero/ImageRegion.java': '0fd6961541501815c80f1979f7aa54d36f724a794f8d241ae26ba9c27e54d83d',
   'zero/Music.java': '4c183bb3c7807cac3086dbbb29a388541c606c11b654ca4aad914ad3a5db8450',
-  'zero/App.java': 'eb830cd7270ba9f4f83d3824e0216674492db72abe9e704d9e2f52134450faae',
-  'zero/GameApp.java': '218f45f20f585938fd7c8e4b152fd69b8ca4ad3daf6ff7d5bc45132c8fd3a4d7',
   'zero/Sound.java': '6247f0a0d6af9b610727094967af249321c58e6dda21ce1a2a989a3fc6e75286',
-  'zero/SpriteAnimation.java': 'c68e48317388de67be2f6170c990baef6c7a20e028f6ce3b6163e74f6d67e0f0'
+  'zero/SpriteAnimation.java': 'c68e48317388de67be2f6170c990baef6c7a20e028f6ce3b6163e74f6d67e0f0',
+  'zero/ui/Button.java': '396bac56f3c35fe2274aadab10a0047d974600eef0c2815204168b71aac12c55',
+  'zero/ui/Column.java': 'eeecc92fa722974da5b63ea842d5152b74436087953ab26b8d257a06fe3808e3',
+  'zero/ui/Element.java': '064e358541fce2fe45441aadf22a23c564cf6cbeea8b41dfcda95419f3dd7fbf',
+  'zero/ui/Label.java': '0165a8e484828ba82542f8bbc01c5db55d8ab0226dff4221c6fc97c7024808e0'
 });
 function overlay(file, source) {
   const expected = helperHashes[file];

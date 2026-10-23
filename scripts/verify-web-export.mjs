@@ -94,6 +94,14 @@ function png() {
     chunk('IEND', Buffer.alloc(0))
   ]);
 }
+async function copyJavaSources(source, destination) {
+  await fs.mkdir(destination, {recursive:true});
+  for (const entry of await fs.readdir(source, {withFileTypes:true})) {
+    const from = path.join(source, entry.name), to = path.join(destination, entry.name);
+    if (entry.isDirectory()) await copyJavaSources(from, to);
+    else if (entry.isFile() && entry.name.endsWith('.java')) await fs.copyFile(from, to);
+  }
+}
 async function fixture(name, example) {
   const directory = path.join(base, 'projects', name);
   await fs.mkdir(path.join(directory, 'src/main/java/zero'), {
@@ -101,14 +109,7 @@ async function fixture(name, example) {
   });
   if (name === 'helpers')
     await fs.copyFile(path.join(root, 'framework/web-checks/GameApiChecks.java'), path.join(directory, 'src/main/java/GameApiChecks.java'));
-  for (const filename of await fs.readdir(
-    path.join(root, 'framework/src/main/java/zero')
-  ))
-    if (filename.endsWith('.java'))
-      await fs.copyFile(
-        path.join(root, 'framework/src/main/java/zero', filename),
-        path.join(directory, 'src/main/java/zero', filename)
-      );
+  await copyJavaSources(path.join(root, 'framework/src/main/java/zero'), path.join(directory, 'src/main/java/zero'));
   for (const filename of ['mvnw', 'mvnw.cmd', 'pom.xml', 'zero.json'])
     await fs.copyFile(
       path.join(root, 'student-template', filename),
@@ -120,7 +121,14 @@ async function fixture(name, example) {
     { recursive: true }
   );
   await fs.chmod(path.join(directory, 'mvnw'), 0o755);
-  if (name === 'mobile') {
+  if (['counter','coin-game'].includes(name)) {
+    await copyJavaSources(path.join(root, 'framework/prototypes', name), path.join(directory, 'src/main/java'));
+    const shared = await fs.readFile(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java'));
+    await fs.writeFile(path.join(directory, 'src/main/java/ScoreDisplay.java'), shared);
+    if (!(await fs.readFile(path.join(directory, 'src/main/java/ScoreDisplay.java'))).equals(shared)) throw new Error('Shared ScoreDisplay bytes differ.');
+  } else if (name === 'zero-ui') {
+    await fs.copyFile(path.join(root, 'framework/web-checks/ui/Main.java'), path.join(directory, 'src/main/java/Main.java'));
+  } else if (name === 'mobile') {
     await fs.copyFile(path.join(root, 'framework/web-checks/mobile/Main.java'), path.join(directory, 'src/main/java/Main.java'));
   } else if (name === 'audio') {
     await fs.copyFile(path.join(root, 'framework/web-checks/audio/Main.java'), path.join(directory, 'src/main/java/Main.java'));
@@ -183,7 +191,10 @@ if (!browserOnly)
     ['drawing', 'drawing'],
     ['audio', null],
     ['hello', 'hello-app'],
-    ['mobile', null]
+    ['mobile', null],
+    ['zero-ui', null],
+    ['counter', null],
+    ['coin-game', null]
   ]) {
     const project = await fixture(name, example);
     const result = await exportForWeb({
@@ -199,12 +210,12 @@ if (!browserOnly)
     JSON.stringify(results, null, 2) + '\n'
   );
 if (
-  results.length !== 6 ||
-  ['helpers', 'quiz', 'drawing', 'audio', 'hello', 'mobile'].some(
+  results.length !== 9 ||
+  ['helpers', 'quiz', 'drawing', 'audio', 'hello', 'mobile', 'zero-ui', 'counter', 'coin-game'].some(
     (name) => !results.some((result) => result.name === name)
   )
 )
-  throw new Error('Build all six fixtures before using --browser-only or --mobile-only.');
+  throw new Error('Build all nine fixtures before using --browser-only or --mobile-only.');
 if (browser) {
   const previews = [];
   try {
@@ -279,4 +290,4 @@ if (browser) {
     previews.forEach((item) => item.dispose());
   }
 }
-console.log('Real WebFX/GWT exports passed for helpers, quiz, drawing, audio, greeting controls with cross-file resource URLs, and portrait mobile controls.');
+console.log('Real WebFX/GWT exports passed for helpers, quiz, drawing, audio, greeting controls with cross-file resource URLs, portrait mobile controls, Zero UI, counter and coin-game.');

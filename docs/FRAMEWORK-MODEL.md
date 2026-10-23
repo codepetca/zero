@@ -142,7 +142,7 @@ that Main also updates independently. No field scanning or automatic registratio
 
 | Package/type | Relationship and role | Status |
 | --- | --- | --- |
-| `zero.App`, `zero.GameApp` | Inheritance above; GameApp owns the only game loop | Exist; target UI/navigation facades need implementation |
+| `zero.App`, `zero.GameApp` | Inheritance above; GameApp owns the only game loop | Exist, with unreleased show(Element)/controls(Element); navigation remains proposed |
 | `zero.Screen` | Optional UI lifecycle; no update/draw loop | Proposed |
 | `zero.WorldContent` | Small update/drawing contract; GameApp's world-drawing boundary accepts it | Proposed; exact signatures demonstrated first |
 | `zero.World` | Default WorldContent implementation with ordered Actor membership | Proposed; alternative containers implement the same contract |
@@ -150,7 +150,7 @@ that Main also updates independently. No field scanning or automatic registratio
 | `zero.Camera` | GameApp owns the gameplay camera; world drawing and inverse input mapping | Proposed; follow/smoothing can be student helpers |
 | `zero.Canvas` | Focused drawing facade; GameApp exposes drawing conveniences through it | Proposed; no GraphicsContext required on normal path |
 | `zero.Input`, `zero.Key`, `zero.MouseButton` | Gameplay-view input and Zero enums | Proposed; existing input uses JavaFX enums |
-| `zero.Color`, `zero.Image` | Small Zero values/asset handle wrapping platform equivalents | Proposed; current drawing uses JavaFX types |
+| `zero.Color`, `zero.Image` | Small Zero values/asset handle wrapping platform equivalents | Color has an unreleased first palette/rgb facade; Image remains proposed |
 | `zero.Assets` | App owns cache/lifetime; games, screens and components borrow handles | Proposed extraction; caching exists in App/GameApp |
 | `zero.ImageRegion` | Shared immutable region using a Zero Image on target path | Exists with JavaFX Image; facade/migration needed |
 | `zero.AnimationSource` | Creates fresh independent playback | Proposed public replacement contract |
@@ -158,8 +158,8 @@ that Main also updates independently. No field scanning or automatic registratio
 | `zero.SpriteAnimation` | Default AnimationSource, private playback implementation | Exists with combined mutable state; migration needed |
 | `zero.Sound`, `zero.Music` | Audio handles; borrowed/shared versus owned lifetime explicit | Exist; preserve tested browser gesture/audio limits |
 | `zero.Collisions` | Stateless geometry utility; student owns collision response | Exists; additions need demonstrated uses |
-| `zero.ui.Element` and listed UI types | Compose private JavaFX nodes; reusable components expose a Zero view | Proposed; initial UI subset needs browser proof |
-| Advanced JavaFX bridge | Foreign Node ↔ intentional Zero UI interoperability | Capability proposed; signatures not frozen |
+| `zero.ui.Element` and listed UI types | Compose private JavaFX nodes; reusable components expose a Zero view | Unreleased Element/Label/Button/Column slice; remaining UI types proposed |
+| Advanced JavaFX bridge | Foreign Node ↔ intentional Zero UI interoperability | Unreleased protected Element(Node), final fxNode() and retained App.show(Node); navigation lifetime contract proposed |
 | Internal driver/platform adapters/diagnostics | Core infrastructure, no student base class/import | Existing pieces plus proposed integration |
 
 GameApp's public world-drawing boundary must accept WorldContent, not only World.

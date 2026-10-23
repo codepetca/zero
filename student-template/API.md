@@ -2,15 +2,15 @@
 
 The complete public/protected API declared by `zero.App`, `zero.GameApp`,
 `zero.ImageRegion`, `zero.SpriteAnimation`, `zero.Actor`, `zero.Collisions`,
-`zero.Sound` and `zero.Music`.
-Actor is a local source addition and is unreleased. Mac setup 0.5.23 includes
+`zero.Sound`, `zero.Music`, `zero.Color` and the `zero.ui` classes below.
+Actor, zero.Color and zero.ui are local source additions and are unreleased. Mac setup 0.5.23 includes
 the earlier image, animation, collision and audio helpers with core 0.2.1. Older downloads keep
 their bundled API; use their own reference when working with an older kit.
 Learn through the [tutorials](lessons/00-hello-world.md); use this reference to
 look up methods. Installation and troubleshooting are in [setup help](README.md).
 
 [App](#app) · [GameApp](#gameapp) ·
-[Canvas](#canvas) · [Drawing](#drawing) · [Images](#images) ·
+[Zero UI](#zerouielement) · [Color](#color) · [Canvas](#canvas) · [Drawing](#drawing) · [Images](#images) ·
 [ImageRegion](#imageregion) · [SpriteAnimation](#spriteanimation) ·
 [Actor](#actor) · [Collisions](#collisions) · [Audio](#audio) · [Sound](#sound) · [Music](#music) · [Input](#input) · [Lifecycle and extension hooks](#lifecycle-and-extension-hooks)
 
@@ -45,6 +45,7 @@ These methods are public and final; call them without overriding them.
 | `void size(double width, double height)` | Set initial content dimensions in pixels, inside `settings()` only. Dimensions must be positive and finite. On GameApp, these are fixed canvas dimensions. |
 | `void title(String title)` | Set a non-null initial window title, inside `settings()` only. |
 | `void padding(double pixels)` | Set space around all four content edges in `settings()`, `setup()` or later JavaFX handlers. The number must be non-negative and finite. Default: 0. GameApp keeps its fixed canvas size. |
+| `void show(zero.ui.Element content)` | Replace the root's centre with a non-null Zero element in `setup()` or later. Inherited by GameApp; replacing its visible sketch layout does not stop the game timer. No screen history or navigation is added. |
 | `void show(Node content)` | Replace the root's centre with a non-null JavaFX node, in `setup()` or later. No screen history is stored. On GameApp this replaces the visible sketch layout while its loop continues. |
 
 `size` and `title` throw `IllegalStateException` outside `settings()`;
@@ -78,6 +79,92 @@ Frame rate is variable. The canvas is not automatically cleared; drawing styles
 persist. Resizing the window does not scale its fixed canvas. Native controls
 around the canvas can enlarge the initial window.
 
+## zero.ui.Element
+
+`public abstract class Element` is the base for the small Zero UI layer. Import
+`zero.ui.Element`, `zero.ui.Label`, `zero.ui.Button` and `zero.ui.Column` as needed.
+These are additional, unreleased APIs; existing JavaFX controls remain available.
+Use `App.show(element)` for an interface or `GameApp.controls(element)` for a live
+game HUD. Each element wraps one node and can belong to only one parent at a time.
+Create, change and mount elements on the JavaFX application thread (in setup or
+callbacks). A Column's children are supplied only in its constructor; there is
+no public add/remove/reparent API in this slice.
+
+The protected constructor and fxNode are an advanced JavaFX interoperability
+bridge for custom elements, not a requirement for using Label/Button/Column.
+Subclasses wrap their own node or a newly created Column's node. Null backing
+nodes throw `NullPointerException`; the bridge exposes the actual node rather
+than a copy. Advanced code must preserve JavaFX ownership/thread rules.
+
+| Signature | Behavior |
+| --- | --- |
+| `protected Element(Node node)` | Wrap a non-null JavaFX node in a custom Element subclass. |
+| `final Node fxNode()` | Return the underlying JavaFX node for advanced interoperability. Inherited by Label, Button and Column. |
+
+## zero.ui.Label
+
+`public class Label extends Element` displays text. Import `zero.ui.Label`.
+Text must be non-null; constructors/setters throw `NullPointerException` for null.
+It inherits `fxNode()` from Element.
+
+| Signature | Behavior |
+| --- | --- |
+| `Label(String text)` | Create a text label. |
+| `String getText()` | Read its current text. |
+| `void setText(String text)` | Replace its text explicitly. |
+
+## zero.ui.Button
+
+`public class Button extends Element` is a clickable button. Import `zero.ui.Button`.
+It inherits `fxNode()`. Text and callbacks must be non-null or
+`NullPointerException` is thrown. The callback is an ordinary `java.lang.Runnable`:
+write `button.onClick(() -> score.setScore(1))`, with no event argument. Calling
+onClick again replaces the previous callback; it does not accumulate handlers.
+
+| Signature | Behavior |
+| --- | --- |
+| `Button(String text)` | Create a button with no click callback yet. |
+| `String getText()` | Read its current text. |
+| `void setText(String text)` | Replace its text explicitly. |
+| `void onClick(Runnable action)` | Replace the click callback with a non-null action. |
+
+## zero.ui.Column
+
+`public class Column extends Element` arranges child elements vertically. Import
+`zero.ui.Column`. It inherits `fxNode()`. The no-spacing constructor uses 8 pixels.
+Spacing must be finite and non-negative or `IllegalArgumentException` is thrown.
+Null children/child array throw `NullPointerException`; duplicate children or
+children whose nodes already have a parent or scene throw `IllegalArgumentException`.
+The complete list is validated before any child is attached. Children are fixed
+at construction; create fresh elements for a different composition instead of
+trying to attach one child to two parents. Empty columns are allowed.
+
+| Signature | Behavior |
+| --- | --- |
+| `Column(Element... children)` | Create a vertical column with 8-pixel spacing and the supplied children in order. |
+| `Column(double spacing, Element... children)` | Create a vertical column with finite non-negative pixel spacing. |
+| `double getSpacing()` | Read spacing in pixels. |
+| `void setSpacing(double spacing)` | Replace finite non-negative spacing; invalid values leave the old value unchanged. |
+
+## Color
+
+`public final class Color` is a small colour value wrapper. Import `zero.Color`
+for these constants and rgb; the platform colour is private. It has no public
+constructor. Existing overloads taking `javafx.scene.paint.Color` remain available;
+the short `Color` type in their older drawing signatures below means JavaFX Color.
+The explicitly qualified `zero.Color` overloads take the new wrapper. Import only
+one Color class by its short name, or qualify the other where needed.
+Each rgb channel must be an integer from 0 through 255 inclusive; otherwise
+`IllegalArgumentException` is thrown.
+
+| Signature | Behavior |
+| --- | --- |
+| `static final Color WHITE` | Opaque white. |
+| `static final Color BLACK` | Opaque black. |
+| `static final Color BLUE` | Opaque blue. |
+| `static final Color GOLD` | Opaque gold. |
+| `static Color rgb(int red, int green, int blue)` | Create an opaque colour from integer channels, each from 0 through 255. |
+
 ## Canvas
 
 These GameApp methods are public and final. Call them in `setup()` or later,
@@ -90,6 +177,7 @@ after canvas creation. Imports: `javafx.scene.canvas.Canvas`,
 | `double height()` | Canvas height in pixels. |
 | `Canvas canvas()` | Native JavaFX canvas. |
 | `GraphicsContext graphics()` | Native drawing context, including transforms and styles. |
+| `void controls(zero.ui.Element content)` | Mount a non-null Zero HUD/control panel at the bottom of the game layout in `setup()` or later, retaining the canvas and running loop. Replace the previous panel; do not steal nodes from another parent. Throws `IllegalStateException` before canvas creation, `NullPointerException` for null, and `IllegalArgumentException` for content owned by another parent or scene. Reusing the current bottom panel is allowed. |
 | `BorderPane layout()` | Layout with the canvas in its centre. Add native controls to its other positions. |
 
 ## Drawing
@@ -100,8 +188,11 @@ Import `Color` from `javafx.scene.paint`.
 
 | Signature | Behavior |
 | --- | --- |
+| `void background(zero.Color color)` | Clear and fill the entire canvas, restoring the previous styles and transform. Use the new Zero colour wrapper; null throws `NullPointerException`. |
 | `void background(Color color)` | Clear and fill the entire canvas using an identity transform, then restore the previous context styles and transform. |
+| `void fill(zero.Color color)` | Set the fill for filled shapes and text. Use the new Zero colour wrapper; null throws `NullPointerException`. |
 | `void fill(Color color)` | Set the fill for filled shapes and text. |
+| `void stroke(zero.Color color)` | Set the stroke for lines and outlines. Use the new Zero colour wrapper; null throws `NullPointerException`. |
 | `void stroke(Color color)` | Set the stroke for lines and outlines. |
 | `void strokeWidth(double pixels)` | Set line width. |
 | `void textSize(double pixels)` | Set a default JavaFX font at this size. |

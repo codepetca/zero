@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 
-export const coreSources = ['App.java', 'GameApp.java', 'Actor.java', 'ImageRegion.java', 'SpriteAnimation.java', 'Collisions.java', 'Sound.java', 'Music.java'];
+export const coreSources = ['App.java', 'GameApp.java', 'Actor.java', 'ImageRegion.java', 'SpriteAnimation.java', 'Collisions.java', 'Sound.java', 'Music.java', 'Color.java', 'ui/Element.java', 'ui/Label.java', 'ui/Button.java', 'ui/Column.java'];
 const retiredSources = ['SketchApp.java', 'SimpleApp.java']; // Removed API; never include in new kits.
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // This is maintainer tooling. Extracted student projects contain ordinary Java
@@ -34,7 +34,7 @@ export function prepareStarter(root = fileURLToPath(new URL('../', import.meta.u
   // Only a previous ownership hash permits retirement. Unrecorded files and
   // symlinks (including dangling ones) are preserved before any output changes.
   const retired = Object.entries({...Object.fromEntries(retiredSources.map(name => [name, null])), ...previous})
-    .filter(([name]) => /^[A-Za-z][A-Za-z0-9]*\.java$/.test(name) && !coreSources.includes(name))
+    .filter(([name]) => /^(?:[A-Za-z][A-Za-z0-9]*\/)*[A-Za-z][A-Za-z0-9]*\.java$/.test(name) && !coreSources.includes(name))
     .map(([name, sha256]) => {
       const destination = path.join(root, 'student-template/src/main/java/zero', name);
       const stat = outputStat(destination);

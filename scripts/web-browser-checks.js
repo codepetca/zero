@@ -386,6 +386,68 @@ async (page) => {
     'Cross-file resource URL with inferred var resolves packaged data (no CSS styling claim)',
     {url:resourceUrl.href,status:resourceResponse.status()});
   check((await page.evaluate(()=>window.__zeroCheck.errors)).length===0,'No JavaScript errors in greeting/resource probe');
+  await page.goto(urls['zero-ui']);
+  await visibleText('Zero UI ready').waitFor();
+  const uiFrameCount = async () => Number((await state()).texts.find(t => t.startsWith('Zero UI frames: ')).split(': ')[1]);
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.some(t => t.startsWith('Zero UI frames: ')));
+  const uiBefore = await uiFrameCount();
+  for (let i = 1; i <= 2; i++) {
+    await page.getByRole('button', {name:'Zero button', exact:true}).click();
+    await visibleText('Zero clicks: ' + i).waitFor();
+  }
+  check(await uiFrameCount() > uiBefore, 'Zero button callback replacement and label mutation preserve GameApp frames');
+  const uiCanvas = page.locator('canvas');
+  const uiBox = await uiCanvas.boundingBox();
+  await page.mouse.move(uiBox.x + uiBox.width * .75, uiBox.y + uiBox.height * .75);
+  await page.waitForFunction(() => {
+    const text = window.__zeroCheck.last?.texts.find(t => t.startsWith('Zero UI pointer: '));
+    const point = text?.slice('Zero UI pointer: '.length).split(',').map(Number);
+    return point && Math.abs(point[0]-240) <= 2 && Math.abs(point[1]-135) <= 2;
+  });
+  check(true, 'Zero HUD keeps canvas pointer input live');
+  const uiPixels = await uiCanvas.evaluate(canvas => {
+    const bounds = canvas.getBoundingClientRect();
+    return [[20,80],[50,80],[80,80],[100,80],[140,80]].map(([x,y]) => Array.from(canvas.getContext('2d').getImageData(
+      Math.floor(x * canvas.width / bounds.width), Math.floor(y * canvas.height / bounds.height),1,1).data));
+  });
+  check(JSON.stringify(uiPixels) === '[[17,99,203,255],[0,0,255,255],[255,215,0,255],[0,0,0,255],[255,255,255,255]]',
+    'Zero Color RGB, BLUE, GOLD, BLACK stroke and WHITE background render exact pixels', uiPixels);
+  const beforeReplacement = await uiFrameCount();
+  await page.getByRole('button', {name:'Replace controls', exact:true}).click();
+  await visibleText('Replacement HUD').waitFor();
+  await page.waitForFunction(before => Number(window.__zeroCheck.last?.texts.find(t => t.startsWith('Zero UI frames: '))?.split(': ')[1]) > before + 2, beforeReplacement);
+  check(await page.getByRole('button', {name:'Zero button', exact:true}).count() === 0,
+    'GameApp controls replacement removes old HUD while drawing continues');
+  check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'No JavaScript errors in Zero UI fixture');
+  await page.goto(urls.counter);
+  await visibleText('Score: 0').waitFor();
+  await page.getByRole('button', {name:'Add one', exact:true}).click();
+  await visibleText('Score: 1').waitFor();
+  await page.getByRole('button', {name:'Add one', exact:true}).click();
+  await visibleText('Score: 2').waitFor();
+  await page.getByRole('button', {name:'Reset', exact:true}).click();
+  await visibleText('Score: 0').waitFor();
+  await page.getByRole('button', {name:'Add one', exact:true}).click();
+  await visibleText('Score: 1').waitFor();
+  check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'Java-and-Zero-only counter updates and resets shared ScoreDisplay');
+  await page.goto(urls['coin-game']);
+  await visibleText('Score: 0').waitFor();
+  for (let cycle = 0; cycle < 2; cycle++) {
+    if (cycle) {
+      await page.getByRole('button', {name:'Restart', exact:true}).click();
+      await visibleText('Score: 0').waitFor();
+      await page.waitForTimeout(180);
+      check(await visibleText('Score: 0').count() === 1, 'Restart keeps score zero while the pointer is unchanged');
+    }
+    const gameCanvas = await page.locator('canvas').boundingBox();
+    for (const [index, [x,y]] of [[100,60],[220,180],[360,60]].entries()) {
+      await page.mouse.move(gameCanvas.x + x * gameCanvas.width / 440, gameCanvas.y + y * gameCanvas.height / 240);
+      await visibleText('Score: ' + (index + 1)).waitFor();
+    }
+    await visibleText('You win! Press Restart to play again.').waitFor();
+    check(true, 'Java-and-Zero-only coin game collects and wins cycle ' + (cycle + 1));
+  }
+  check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'No JavaScript errors in coin-game prototype');
   return {
     status: 'passed',
     results,

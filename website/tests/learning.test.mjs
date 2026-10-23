@@ -271,7 +271,7 @@ test("practice downloads contain foundations but no completed lesson examples", 
     assert.ok(paths.includes("README.md"),project.id);
     assert.ok(paths.every(path=>!path.startsWith("lessons/")&&!path.startsWith("examples/")&&!path.includes("checkpoints/")),project.id);
     const java = paths.filter(path=>path.endsWith(".java"));
-    assert.deepEqual(java.sort(), ["src/main/java/Main.java", ...["App", "GameApp", "Actor", "ImageRegion", "SpriteAnimation", "Collisions", "Sound", "Music"].map(name => `src/main/java/zero/${name}.java`)].sort(), project.id);
+    assert.deepEqual(java.sort(), ["src/main/java/Main.java", ...["App", "GameApp", "Actor", "ImageRegion", "SpriteAnimation", "Collisions", "Sound", "Music", "Color", "ui/Element", "ui/Label", "ui/Button", "ui/Column"].map(name => `src/main/java/zero/${name}.java`)].sort(), project.id);
     const main = Buffer.from(project.files.find(file=>file.path==="src/main/java/Main.java").content,"base64").toString("utf8");
     assert.doesNotMatch(main,/class (?:Question|Counter|Coin|Player|ScoreDisplay)/);
   }

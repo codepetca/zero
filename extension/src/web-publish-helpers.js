@@ -6,9 +6,8 @@ const {loadBundle} = require('./lesson-projects');
 const {helperHashes} = require('./web-export/adapters');
 const migration = require('./web-publish-migration');
 
-// App.java shipped before f1830654's runtime-padding change. The other six
-// helpers already have the current bytes. This is a reviewed source allowlist,
-// never inferred from project metadata, Java syntax or a student's Git history.
+// App.java shipped before f1830654's runtime-padding change. This reviewed source
+// allowlist is never inferred from project metadata, syntax or student Git history.
 const previousHashes = Object.freeze({
   'zero/App.java': Object.freeze(['bdcb1060ad5a30f16f1a395c522a520d2506530584bda71a0e4cbe1e7c467c09'])
 });
@@ -83,6 +82,16 @@ async function inspect(root, {extensionPath = path.resolve(__dirname, '..'), io 
     if (hash === helperHashes[name]) expected.set(filename, bytes);
     else if (previousHashes[name]?.includes(hash)) { expected.set(filename, current.get(filename)); updates.push(filename); }
     else throw conflict(name);
+  }
+  // A reviewed replacement may introduce a source dependency. Never install
+  // that replacement unless its exact current dependency already exists; this
+  // migration does not add source files or turn into a framework installer.
+  if (updates.includes(relative('zero/App.java'))) {
+    const dependency = relative('zero/ui/Element.java');
+    const bytes = original.entries.get(dependency);
+    if (!bytes || digest(bytes) !== helperHashes['zero/ui/Element.java']) {
+      throw Error(`Zero cannot update ${relative('zero/App.java')} because its required current helper ${dependency} is missing or unsupported. Zero kept every source file unchanged. Use a project with the complete supported framework before publishing.`);
+    }
   }
   // Keep mutable buffers and filesystem identities private to this module.
   const plan = Object.freeze({upgrade: updates.length > 0, changed: Object.freeze(updates)});

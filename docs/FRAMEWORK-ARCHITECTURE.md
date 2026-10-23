@@ -4,7 +4,7 @@ Owner direction,2026-10-23. This is the canonical runtime/extension plan, alongs
 [repository boundaries](ARCHITECTURE.md), [product goals](PRODUCT.md) and
 [ZeroHub sharing](COMPONENTS.md). It incorporates the first Astra architecture
 review and makes student-led framework evolution an acceptance requirement.
-Contracts and names below are proposed, not implemented public APIs. The current
+Contracts and names below are proposed unless marked implemented. The current
 App/GameApp path remains available; Actor is an unreleased local prototype.
 The later owner clarification makes Zero the normal student API, with JavaFX
 available for advanced interoperability. The detailed
@@ -14,6 +14,18 @@ architecture, not separate competing plans. They also remain proposed.
 Latest simplification: GameApp extends App and owns gameplay directly. Screen is
 an optional UI view; there is no public GameScreen. This supersedes the earlier
 active-game-screen design while preserving its lifetime and replacement goals.
+
+First implementation slice,2026-10-23 (local, unreleased): `zero.ui.Element`,
+`Label`, `Button`, `Column`, `zero.Color`, `App.show(Element)` and
+`GameApp.controls(Element)` now have readable source. A counter App and pointer
+coin GameApp reuse the same ordinary `ScoreDisplay` source. See the
+[runnable prototypes](../framework/prototypes/README.md) and
+[current API](../student-template/API.md). This proves the first composition
+boundary, not the whole plan: Screen/navigation, World, replaceable animation,
+project-owned browser tooling and new automatic diagnostics remain future work.
+`show(Element)` retains existing `show(Node)` behavior; in a GameApp it replaces
+the visible canvas without suspending its timer. Use `controls(Element)` for a
+live HUD. The navigation suspension rules below describe the proposed Screen API.
 
 ## Core outcome
 
@@ -426,8 +438,9 @@ The public API, app guide, website reference and coverage checks change together
    not just successful builds or speed. Exercise a documented core-adoption
    proposal without silently changing existing library consumers.
 
-Steps 2–6 are implementation/acceptance work to scope next, not claims of current
-delivery. Hosted publication/release keeps its separate approval and checker gates.
+The first UI slice above begins steps 2, 4 and 5; the remaining examples,
+replacement/distribution checks and steps 3–6 are still acceptance work. Hosted
+publication/release keeps its separate approval and checker gates.
 Do not expand into general ECS, a second scene graph/editor, automatic physics,
 serialization or runtime plugin discovery to prove these small use cases.
 

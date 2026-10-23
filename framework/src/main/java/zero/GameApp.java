@@ -3,6 +3,7 @@ package zero;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.net.URL;
 import java.nio.file.Path;
 import javafx.animation.AnimationTimer;
@@ -144,6 +145,16 @@ public abstract class GameApp extends App {
     public final GraphicsContext graphics() { return graphics; }
     public final BorderPane layout() { return layout; }
 
+    /** Mount live controls below the canvas, replacing previous controls without stopping gameplay. */
+    public final void controls(zero.ui.Element content) {
+        if (layout == null) throw new IllegalStateException("Call controls inside setup() or an event handler.");
+        javafx.scene.Node node = Objects.requireNonNull(content, "Controls must not be null.").fxNode();
+        if (node != layout.getBottom() && (node.getParent() != null || node.getScene() != null)) {
+            throw new IllegalArgumentException("Controls already belong to a layout or scene. Use a separate component.");
+        }
+        layout.setBottom(node);
+    }
+
     /** Clears the full canvas, retaining the current drawing styles. */
     public final void background(Color color) {
         graphics.save();
@@ -155,6 +166,15 @@ public abstract class GameApp extends App {
     }
     public final void fill(Color color) { graphics.setFill(color); }
     public final void stroke(Color color) { graphics.setStroke(color); }
+    public final void background(zero.Color color) {
+        background(Objects.requireNonNull(color, "Background color must not be null.").fxColor());
+    }
+    public final void fill(zero.Color color) {
+        fill(Objects.requireNonNull(color, "Fill color must not be null.").fxColor());
+    }
+    public final void stroke(zero.Color color) {
+        stroke(Objects.requireNonNull(color, "Stroke color must not be null.").fxColor());
+    }
     public final void strokeWidth(double pixels) { graphics.setLineWidth(pixels); }
     public final void textSize(double pixels) { graphics.setFont(Font.font(pixels)); }
     public final void rect(double x, double y, double width, double height) { graphics.fillRect(x, y, width, height); }

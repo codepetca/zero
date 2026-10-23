@@ -15,11 +15,13 @@ relative resource paths retain their original default-package meaning. The
 bridge supports `URL.toExternalForm()` and `toString()`; unsupported URL, JavaFX,
 reflection, file or other Java APIs fail the compiler gate.
 
-All eight reviewed Zero helper sources are fingerprint-checked. Exact reviewed
+All thirteen reviewed Zero helper sources are fingerprint-checked. Exact reviewed
 `App`, `GameApp` and `SpriteAnimation` profiles receive internal overlays. CRLF and LF are equivalent. Modified helpers stop export with
 an actionable error; reviewing/updating the profile is deliberate maintenance.
 `Actor` stays unchanged: its ordinary movement math and calls to reviewed image
-helpers need no separate runtime overlay.
+helpers need no separate runtime overlay. The reviewed `zero.Color` and
+`zero.ui` sources also compile unchanged; helper identity checks use exact
+recursive paths, including the UI subpackage.
 Image loading becomes a manifest-driven preload before student setup, with
 progress, individual failures, a 30-second named timeout and original dimension
 validation. Browser focus loss clears input and latches one unfocused frame even

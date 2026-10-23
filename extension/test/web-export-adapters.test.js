@@ -69,9 +69,9 @@ test('ambiguous applications, path escapes, reserved packages and unsupported me
 });
 
 
-test('all eight native helpers retain declarations and generated audio ownership/aliases', () => {
+test('all thirteen native helpers retain declarations and generated audio ownership/aliases', () => {
   const sources = { ...helpers(), 'Main.java': app };
-  assert.equal(Object.keys(helperHashes).length, 8);
+  assert.equal(Object.keys(helperHashes).length, 13);
   const result = adaptSources({ sources, resourcePaths: ['audio/tone.wav'] });
   const originalAPI = text => text.split('\n').filter(line => /^    (?:@Override )?(?:public|protected) /.test(line)).map(line => line.split('{')[0].trim());
   for (const file of Object.keys(helperHashes)) assert.deepEqual(originalAPI(result.sources[file]), originalAPI(sources[file]), file + ' public/protected API');
@@ -103,4 +103,15 @@ test('Actor is hash-guarded and keeps its ordinary movement and drawing source',
   assert.equal(adaptSources({ sources }).sources['zero/Actor.java'], sources['zero/Actor.java']);
   sources['zero/Actor.java'] += '// edited actor\n';
   assert.throws(() => adaptSources({ sources }), /Actor.java: this Zero helper differs/);
+});
+
+
+test('subpackage UI helpers retain exact source and reject changes at their reviewed paths', () => {
+  const sources = { ...helpers(), 'Main.java': app };
+  const adapted = adaptSources({ sources }).sources;
+  for (const name of ['Element', 'Label', 'Button', 'Column']) {
+    const file = 'zero/ui/' + name + '.java';
+    assert.equal(adapted[file], sources[file]);
+    assert.throws(() => adaptSources({ sources: {...sources, [file]: sources[file] + '// changed\n'} }), /helper differs/);
+  }
 });
