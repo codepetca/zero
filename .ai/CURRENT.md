@@ -28,5 +28,15 @@ docs/FRAMEWORK-ARCHITECTURE.md; no central historical-kit service/database.
 
 Workers: native core + prototype acceptance (Sol/high), WebFX/contracts/browser
 (Sol/medium), docs/API + source assembly (Sol/medium). DeepSeek pilot paused.
-Checks/review receipts and remaining limits will be recorded in docs/EVIDENCE.md.
+Accepted implementation: 8f3bcfe5eb6984148d1ccfd5ccf29a0306b14efa. Independent
+Sol/high completed all53 changed files plus immediate interactions, no actionable
+findings. One initial wave, no remediation; about nine minutes (manual estimate),
+effective configuration/tokens unknown. Only evidence/handoff prose follows it.
+Final root1003pass/0fail/3skip; website164/164, typecheck/build; config/links/diff;
+real9 pinnedWebFX builds, Chrome68 and mobile136 assertions; /docs9 assertions;
+native standalone counter/game and full Dev smoke pass. Initial macOS foreground
+focus timeout cleared on unchanged retry. Initial inventory/migration fixture
+failures were corrected, with exact historical hash and missing-dependency
+preservation tests. Binary/source JARs include all13 helpers. See docs/EVIDENCE.md
+and .verification/ui-slice-review/ledger.json for detailed evidence and limits.
 Use source-based Zero Dev and native/browser checks, not installers, to iterate.
