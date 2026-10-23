@@ -1,5 +1,39 @@
 # Delivery evidence index
 
+## Exact versions and project preservation policy — 2026-10-23
+
+Owner approved a [versioning/preservation policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation)
+for rapid development with durable student ownership. Projects pin an exact
+framework and matching build kit independently of editor updates. Upgrades are
+optional, previewed on a branch and reversible. Stable-major compatibility and
+experimental 0.x rules are explicit. Maintain the current line; preserve old
+releases as immutable archives rather than backport branches or all-version CI.
+Archive complete reusable release build kits, project-specific libraries/assets
+and finished static output for independent retention/rehosting. Archive only
+student-facing kit releases, not every Dev iteration or editor-only patch.
+
+Independent requested Astra/xhigh accepted the complete nine-file diff from
+e7697defbc07bf68176dc304864d4b2b58b72c33 to
+dde2db2f156752ed1a6c5ee0d97e95372cbff39a: one initial full wave, 293.4 seconds,
+no actionable findings or correction batches. Source/template/exporter spot-checks
+confirm current pins versus proposed release locks. Unchanged prior evidence
+reused; no new runtime tests or external research. Effective configuration and
+tokens unavailable. Reports/receipt: ignored .verification/version-policy-astra/.
+
+Nonblocking implementation acceptance notes retained in CURRENT: prove restore
+with empty caches/upstream artifacts unavailable, bind dirty exports to actual
+source snapshots, and identify framework-to-kit association unambiguously. Existing
+web-export.zip and its source/profile hash manifest should be reused; the new work
+is durable retention, complete provenance and release-bound restoration/selection.
+Policy acceptance does not deliver those capabilities or promise all future OSes.
+
+Validation: npm run check passes; focused website navigation/API/learning tests
+30 pass, 0 fail; diff check passes. No runtime/API/schema/CI source change, installs,
+archive activation, push, PR, merge, deployment, release or account changes.
+Weekly 87% remaining and healthy277.1GB storage are account/machine context, not
+task cost. Other checkouts/profiles/watchers preserved. This final receipt does
+not change the reviewed policy.
+
 ## Simpler App/GameApp architecture — 2026-10-23
 
 Owner approved removing GameScreen from the target design. Revised the

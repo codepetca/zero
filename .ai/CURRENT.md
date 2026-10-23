@@ -23,11 +23,19 @@ provenance remain future acceptance work. No new publication/collection authorit
 Simple model remains GameApp extends App, optional UI Screen/World, one Main
 update/draw, replaceable components and ZeroHub-to-core contribution path.
 
-Next: configuration/link and focused website checks, fixed local commit, then
-independent requested Astra/xhigh review. Budget one initial reviewer/wave, up to
-four targeted fix waves/batches, 60min session/30min reviewer ceilings. New review
-receipts: .verification/version-policy-astra/. Earlier accepted simple model at
-797541f6 remains baseline. Final coverage/results go in docs/EVIDENCE.md.
+Accepted policy at dde2db2f156752ed1a6c5ee0d97e95372cbff39a after independent
+requested Astra/xhigh review: complete nine-file diff, 293.4 seconds, no actionable
+findings or correction batches. Effective configuration/tokens unavailable.
+Reports/receipts: .verification/version-policy-astra/. Earlier accepted simple
+model at 797541f6 remains baseline. See docs/EVIDENCE.md.
+
+Checks: configuration/syntax/contracts/local links pass; focused website
+navigation/API/learning tests 30 pass, 0 fail; diff check passes. No new runtime
+build or archive/restore/upgrade proof. Next implementation acceptance must use
+empty caches with upstream artifact access disabled, retain actual source bytes
+for dirty exports, and bind framework/build-kit identity unambiguously. Reuse
+the existing web-export.zip and source/profile hash manifest rather than inventing
+another format. All planned runtime/archive/upgrade capabilities remain undelivered.
 
 Retain Actor worktree and earlier receipts. Preserve primary funding and
 tutorial-padding Dev work/profiles/scratch/watcher. No push, PR, merge,
