@@ -9,4 +9,31 @@ Owner direction: one Zero repository, ZeroHub brand, `/hub` address. No student 
 5. Complete outstanding checker review and separately authorize/configure hosted activation.
 6. Retire the obsolete external source repository after useful source is consolidated and checked.
 
-This is the active consolidation plan. Current execution/evidence belongs in [.ai/CURRENT.md](../.ai/CURRENT.md) and [VERIFICATION.md](VERIFICATION.md). Publication/deployment still require applicable owner authorization.
+These remain the consolidation work items. Current execution/evidence belongs in
+[.ai/CURRENT.md](../.ai/CURRENT.md) and [VERIFICATION.md](VERIFICATION.md).
+Publication/deployment still require applicable owner authorization.
+
+## Core learning and architecture direction — 2026-10-23
+
+The owner made student-led framework evolution a core goal: students extend or
+replace components, share exact versions on ZeroHub, improve them through reuse,
+and propose proven ideas for Zero core. Follow the
+[framework architecture plan](FRAMEWORK-ARCHITECTURE.md) for the runtime and
+public extension contracts. This adds a learning/portability acceptance track;
+it does not reopen the hosted checker gate or declare the consolidation complete.
+
+1. Agree the lifecycle and smallest public replacement contracts using ordinary
+   Java. Keep simple apps free of mandatory Actor/World/Screen machinery.
+2. Prove a missing steering helper and a substituted animation implementation in
+   two game consumers without editing canonical helper source.
+3. Reuse one unchanged UI/helper source in an App and GameApp, including actual
+   managed local and pinned-library source export rather than manual copying.
+4. Verify native behaviour and real WebFX browser execution, resources, input,
+   pause/restart and error paths before calling a component portable. Validate
+   core-dependent library build/version support instead of assuming it exists.
+5. Complete a separately authorized Pages/gameplay proof for the candidate
+   architecture and library path. Retain the create/clone, branch, Run, Commit &
+   push, Merge to main, explicit Publish app and separate Pika workflows.
+6. Exercise the contribution-to-core decision with attribution, version migration,
+   examples/API documentation, CI/review and immutable existing artifacts. A good
+   independent library need not be promoted into core.

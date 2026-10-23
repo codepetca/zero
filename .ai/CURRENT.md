@@ -1,25 +1,29 @@
-# Actor prototype and game-system references — 2026-10-22
+# Student-led framework evolution — 2026-10-23
 
-Local Actor source is complete and independently reviewed at6f0ee4e1, based on
-origin/main bf2083a3. Player/Enemy extend Actor; Main explicitly updates and draws
-instances. API/guide/website metadata, source assembly and browser export agree.
-This final receipt changes documentation only. No push, PR, merge, release,
-template publication or website deployment was authorized or performed.
+Owner approved a core goal: students extend/replace components, share exact
+versions on ZeroHub, reuse/improve them and propose proven ideas for Zero core.
+Implementation in this turn is documentation only. Canonical plan:
+docs/FRAMEWORK-ARCHITECTURE.md; product, repository architecture, components,
+component plan, game-system notes and AGENTS carry the same direction.
 
-Checks pass: source999/3conditional skips; website163/type/build; native Actor
-movement/aiming/atomicity/subclass animation/rotated pixels and framework/input/
-audio; Zero Dev real-frame game smoke; extracted guide compiles;6WebFX/GWT builds
-and58desktop+136mobile browser checks. One stale image-count test assertion fixed;
-independent initial+targeted review has no remaining blockers. See docs/EVIDENCE.md
-and ignored .verification/actor/progress.json for receipts and limits.
+Proposed structure: JavaFX host, optional active screens, explicit World/content
+updates and JavaFX UI. Small public replacement contracts support animation and
+alternative structures; core owns lifetime/sequencing. No universal node tree,
+source patching, auto registration or required component base. Browser delivery
+through pinned WebFX to playable GitHub Pages remains a hard product goal.
+Proofs: missing steering helper, substituted animation and container, one shared
+App/GameApp component through managed source-library export, then authorized
+Pages/novice acceptance. Interfaces, controls, metadata and World/Screen additions
+are proposals, not implemented APIs. Existing hosted checker/release gates remain.
 
-Latest direction: use established game systems before adding World/UI abstractions.
-Greenfoot is the primary Java teaching reference; FXGL, libGDX Scene2D and Godot
-inform UI/world/camera/input boundaries. Proposals and sources are recorded in
-docs/GAME-SYSTEMS.md. World, camera and screen APIs are not implemented. Next design
-step is coin collector, scrolling enemy game and simulation/control-panel examples.
+First Astra/xhigh architecture review is saved in ignored
+.verification/architecture-astra/. Next action: independent Astra/xhigh review of
+the fixed revised plan, resolve material findings, record acceptance and limits.
+Configuration/syntax/local links pass; focused website checks are running.
 
-Preserve primary funding checkout and tutorial-padding Dev scratch/profile/watcher
-and unrelated edits. This attached Actor checkout retains its source and ignored
-receipts; its Zero Dev UI watcher is running on3158. Local website preview3159 is
-for API verification. Physical other OS/devices/browser engines remain untested.
+Runtime remains Actor prototype source6f0ee4e1 / prior receiptc7ffa40a, with its
+recorded native/WebFX/browser/source checks. No new runtime, public API or binary
+change. No push, PR, merge, deployment, ZeroHub activation or credential change is
+authorized by this task. Preserve primary funding and tutorial-padding Dev work,
+profiles/scratch/watcher and all unrelated changes. Retain this attached Actor
+checkout and ignored receipts for the next scoped implementation phase.

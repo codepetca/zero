@@ -13,6 +13,15 @@ repository-link workflow.
 
 ## Use a library
 
+Student-led framework evolution is a core product goal. Components include
+ordinary Java helpers and data structures, behaviours, alternative animation
+players, HUDs and other UI, and larger reusable game/app structures. A library
+may add a missing capability or replace a default implementation through a public
+contract. It need not subclass a mandatory component base. The
+[framework architecture plan](FRAMEWORK-ARCHITECTURE.md) defines the planned
+extension seams and proof examples; the existing publication limits below remain
+in force.
+
 Browse a library’s author, exact source commit, version, optional PNG preview and
 Java API on [ZeroHub](https://zero.codepet.ca/hub). Related classes come together
 as one library. The website never installs a dependency merely by displaying it.
@@ -43,8 +52,27 @@ GitHub contributor names provide credit, while numeric identities bind ownership
 There is no server-assigned short-ID reservation.
 
 Ordinary constructors, setters and callbacks connect components. Main owns
-navigation, game rules and explicit updates; widgets expose `Node view()` and
-ordinary helpers need no view, registration system or automatic lifecycle.
+navigation and game rules; explicit updates can be delegated to an owned
+container whose ordinary Java loop updates its members. Widgets expose
+`Node view()` and ordinary helpers need no view, global registration system or
+automatic class discovery. Do not tick a component independently after handing
+its update ownership to a world or actor.
+
+### Browser portability
+
+The exporter already resolves supported managed local/published libraries into
+verified Java source and resources, then applies the browser compatibility check
+and pinned WebFX compilation. This is different from allowing arbitrary Maven
+dependencies. A native JAR check is not proof that a library is playable in the
+browser. Source, resources, exact version/core requirements and the relevant
+runtime/profile must remain traceable in both targets. Imported library bodies
+are checked even when a method is unused; moving a native-only call behind an
+unused method is not a portability mechanism.
+
+The revised plan requires real app/game consumers of a managed component and a
+replacement animation implementation. Those acceptance proofs and any additional
+core dependency or browser-contract support are future work. Current native-only
+samples such as the ProgressBar health bar do not establish a portable widget.
 
 ## Open a game
 
@@ -116,6 +144,24 @@ Downloaded Java runs with the app’s permissions. Existing experiment artifacts
 are not migrated into this replacement catalog or treated as verified releases.
 
 ## Alternatives, samples and curation
+
+### From student project to Zero core
+
+Build a useful feature in a student-owned project, extract its related classes
+and documented API, share an exact library version through the existing reviewed
+ZeroHub flow, then learn from reuse and improvements in other projects. Students
+may propose a proven capability for Zero itself; maintainers deliberately decide
+whether to adopt it, keep it as a library, or defer it. A library's technical
+acceptance or star count does not make that decision.
+
+A core proposal needs understandable source and examples, demonstrated reuse,
+native and actual WebFX/browser behaviour, clear ownership/errors, an API and
+compatibility/migration plan, appropriate licensing and retained contributor
+credit. Adoption does not rewrite an accepted library, move its namespace, or
+change an installed pin. A new core release documents the capability and users
+choose whether to migrate. Specialized or competing libraries can remain useful
+on ZeroHub indefinitely. Source PR review, CI and owner-authorized publication
+remain separate from contribution acceptance.
 
 Several HUDs or health bars can coexist as separate libraries. Related classes
 can share one library. Combining alternatives, highlighting preferred choices

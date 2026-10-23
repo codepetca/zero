@@ -80,7 +80,16 @@ trials. See [verification](VERIFICATION.md) for actual local acceptance evidence
 
 ## Design references and next boundaries
 
-Owner direction,2026-10-22: use established small game systems to inform the
+Owner direction,2026-10-23: student-led framework evolution is a core goal.
+The canonical [framework architecture plan](FRAMEWORK-ARCHITECTURE.md) supersedes
+the preliminary reference choices below: JavaFX owns the host; Arcade informs
+optional active screens; Greenfoot informs Actor vocabulary; Godot informs focused
+composition. Students must be able to extend and replace parts through public
+Java contracts, share them through ZeroHub and propose proven ideas for core.
+The plan defines animation/content/UI seams, lifetime ownership and acceptance
+examples. It does not implement Screen/World or change current Actor behavior.
+
+Earlier direction,2026-10-22: use established small game systems to inform the
 design before adding World, camera or screen/UI abstractions. Actor is a local
 prototype; these further concepts are proposals, not implemented APIs.
 

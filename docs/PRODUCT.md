@@ -15,9 +15,33 @@ later cohorts. Students own their repositories; Pika submission is separate.
 
 Success means a student can start their own tutorial repository, make and explain
 a small Java change, run it, repair a useful compiler error, and save their work
-to GitHub. Browser publication and ZeroHub contributions extend that learning;
-they are optional for completing the lessons. Keep ordinary Java and explicit
-object updates central as setup, publishing and community features grow.
+to GitHub. The default teaching path must also produce working games and apps
+through the pinned JavaFX/WebFX toolchain, playable on GitHub Pages. An individual
+early lesson need not publish, but browser delivery is a core product capability.
+Keep ordinary Java and explicit ownership of updates central as the kit grows.
+
+## Core goal: students grow the framework
+
+Owner direction,2026-10-23: students should learn to build, extend and improve
+software together, rather than only consume a fixed game API. The learning loop
+is **build → extract → share → reuse → improve → propose for core**. A student
+can implement a missing steering method, replace animation playback, or share a
+HUD, camera behaviour or larger structure as understandable Java through ZeroHub.
+The architecture must provide public seams for those contributions without
+editing canonical framework source or relying on private runtime internals.
+
+Students keep their own GitHub repositories and exact-version library choices.
+Alternatives can coexist; popularity does not automatically promote an API into
+Zero. Demonstrated reuse, clear teaching value, native and WebFX/browser evidence,
+attribution and deliberate maintainer review make an idea a core candidate.
+Accepted artifacts and existing pins remain immutable; adoption into core does
+not silently replace installed libraries. Contributing is a core learning goal,
+not a requirement to publish every beginner exercise or activate unaccepted
+hosted checking. The [framework architecture plan](FRAMEWORK-ARCHITECTURE.md)
+defines the proposed ownership, replacement contracts and acceptance examples;
+[ZeroHub components](COMPONENTS.md) defines the existing sharing flow and limits.
+
+## Current delivery
 
 Mac 0.5.43 includes a split Run control: the main button runs locally and its
 arrow opens **Publish app** for connected, ready projects. Stop the app before

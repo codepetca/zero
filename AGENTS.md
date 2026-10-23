@@ -14,6 +14,14 @@ preserve them in future UI work unless the owner asks to change them.
 
 - Zero is a local Java teaching kit: a VS Code extension/profile and a small
   JavaFX library. Preserve ordinary Java and explicit object updates.
+- Student-led framework evolution is a core goal: build, extract, share through
+  ZeroHub, reuse/improve, and propose proven ideas for Zero core. Design public
+  extension points so students can add or replace components without patching
+  canonical helper source. Follow docs/FRAMEWORK-ARCHITECTURE.md; distinguish its
+  planned contracts from implemented APIs and existing publication gates.
+- The default teaching path must support native JavaFX and real WebFX browser
+  output playable on GitHub Pages. Validate the pinned browser subset while
+  designing extensions; native success alone does not establish portability.
 - Students own their GitHub repositories and submit links separately in Pika.
 - Never publish, push, deploy, or alter account credentials without explicit
   user authorization. Student GitHub actions default to live through explicit commands and guarded plans;
