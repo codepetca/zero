@@ -136,6 +136,22 @@ hosted browser/CI and the full student walkthrough remain required. Ledger:
 2initial+6targeted+1integration turns,6fixbatches;0unresolved findings. Native
 release and hosted core-dependent library admission remain separate.
 
+The corrected Mac browser retry passed atbb552fa9: account chooser → armorup →
+Returning to Zero, followed by editor armorup/account menu. No code was entered.
+Greeting0–2 fresh-template WebFX interactions passed and Commit & push confirmed
+Pushed to main. Study was created/cloned; the remaining walkthrough is in progress.
+
+Hosted browser40133171869 at184f4114 now PASS, including its selected compatible
+gate. Root40133172061 passed the complete native/Dev step, then failed an older
+finite-example harness that called stop() before firing Restart; stop disables
+the root. Correctioned3f9d87 uses pause() in four live-event cases, adds enabled
+Start/Restart assertions and retains stop() for cleanup. Four actual Mac examples,
+fresh reproducible Starter UI/exact-JAR check and both packaged examples PASS.
+Restoring early stop() fails the enabled-Restart assertion. Sol/high one-file
+targeted closure COMPLETE/CLEAN; corrected hosted root execution remains required.
+No framework/student-source change. Ledger2initial+7targeted+1integration turns,
+7fixbatches,0unresolved findings; effective configuration/tokens/timing unknown.
+
 ## Tutorial readiness and browser-first sign-in — 2026-10-24
 
 Local source only. Tutorial phase87a9b4ef prepares the three coherent current

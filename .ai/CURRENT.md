@@ -42,6 +42,14 @@ CodefallbackcompletedliveandnewGreetingrepo/clonesucceeded. bb552fa9bounded
 64KiBheaderfixretains8KiBURL/allguards;42author/38independentauthPASS,Astra
 targetedCLEAN. Retrypending. bbdfkeysfix+71a77006cumulativeSolreviewCLEAN54tests;
 native193/193reloaded. Ledger2initial+6targeted+1integration/6fixbatches.
+ActualMacretryatbb552fa9PASS:accountchooser→armorup→ReturningtoZeroandeditor
+armorup/accountmenu;nocodeentered. CodefallbackalsolivePASS. Greeting0–2
+fresh-templateWebFXUIpassedandsourcepushedthroughZero. FreshStudycreated/cloned;
+fullquiz/game/lesson11walkthroughinprogress. Browser184fCI40133171869PASS.
+184frootnative/DevPASSthenoldfiniteexampleharnessstopdisabledRestart. ed3f9d87
+usespausefor4liveeventcases,retainsfinalstop;actual4examples+packagedproofPASS,
+oldstopnegativecontrolfails. SoltargetedCLEAN. Ledger2initial+7targeted+
+1integration/7fixbatches;correctedrootCIpending,nativereleasesheld.
 
 ## Tutorial readiness and browser sign-in complete locally — 2026-10-24
 
