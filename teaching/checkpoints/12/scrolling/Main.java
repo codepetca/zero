@@ -1,13 +1,12 @@
-import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
-import javafx.scene.layout.HBox;
-import javafx.scene.media.AudioClip;
-import javafx.scene.media.MediaException;
-import javafx.scene.paint.Color;
+import zero.Color;
 import zero.GameApp;
+import zero.ImageRegion;
+import zero.Key;
+import zero.Sound;
+import zero.ui.Button;
+import zero.ui.Column;
+import zero.ui.Label;
+import zero.ui.Row;
 
 public class Main extends GameApp {
     private final double worldWidth = 1600;
@@ -19,8 +18,9 @@ public class Main extends GameApp {
     private ScoreDisplay score;
     private Label message;
     private Label soundStatus;
-    private Image sprite;
-    private AudioClip chime;
+    private Label assetStatus;
+    private ImageRegion sprite;
+    private Sound chime;
     private int plays;
 
     @Override public void settings() {
@@ -29,30 +29,38 @@ public class Main extends GameApp {
     }
 
     @Override public void setup() {
-        var imageFile = getClass().getResource("/media-demo/player.png");
-        if (imageFile != null) sprite = loadImage("/media-demo/player.png");
-        var soundFile = getClass().getResource("/media-demo/chime.wav");
-        if (soundFile != null) {
-            try {
-                chime = new AudioClip(soundFile.toExternalForm());
-                chime.setVolume(0.25);
-            } catch (MediaException failure) {
-                throw new IllegalArgumentException("Cannot load sound: /media-demo/chime.wav", failure);
-            }
-        }
         score = new ScoreDisplay();
-        score.setColor(Color.DARKSLATEBLUE);
-        message = new Label();
-        soundStatus = new Label();
+        score.setCaption("Score");
+        message = new Label("");
+        soundStatus = new Label("");
         var restartButton = new Button("Restart");
-        restartButton.setOnAction(event -> restart());
-        var controls = new HBox(12, score.view(), soundStatus, message, restartButton);
-        controls.setPadding(new Insets(12));
-        layout().setBottom(controls);
+        restartButton.onClick(() -> restart());
+        assetStatus = new Label("Drawing mode");
+        var artworkButton = new Button("Use artwork and sound");
+        artworkButton.onClick(() -> loadAssets());
+        controls(new Column(8,
+                new Row(12, score.view(), soundStatus, message, restartButton),
+                new Row(12, artworkButton, assetStatus)));
         restart();
     }
 
+    /** Keep drawing playable if a requested resource is missing or invalid. */
+    public void loadAssets() {
+        try {
+            ImageRegion nextSprite = loadImageRegion("/media-demo/player.png");
+            Sound nextChime = loadSound("/media-demo/chime.wav");
+            nextChime.setVolume(0.25);
+            sprite = nextSprite;
+            chime = nextChime;
+            assetStatus.setText("Artwork and sound ready");
+        } catch (IllegalArgumentException failure) {
+            assetStatus.setText(failure.getMessage());
+        }
+        showGame();
+    }
+
     public void restart() {
+        if (chime != null) chime.stop();
         player = new Player(40, 180);
         camera = new Camera();
         coins = new Coin[] {
@@ -64,17 +72,17 @@ public class Main extends GameApp {
         plays = 0;
         soundStatus.setText("Chimes: 0");
         message.setText("Collect all " + coins.length + " coins.");
-        canvas().requestFocus();
+        showGame();
     }
 
     @Override public void update(double seconds) {
         if (won) return;
         int horizontal = 0;
         int vertical = 0;
-        if (keyDown(KeyCode.LEFT)) horizontal--;
-        if (keyDown(KeyCode.RIGHT)) horizontal++;
-        if (keyDown(KeyCode.UP)) vertical--;
-        if (keyDown(KeyCode.DOWN)) vertical++;
+        if (keyDown(Key.LEFT)) horizontal--;
+        if (keyDown(Key.RIGHT)) horizontal++;
+        if (keyDown(Key.UP)) vertical--;
+        if (keyDown(Key.DOWN)) vertical++;
         player.update(horizontal, vertical, seconds, worldWidth, height());
         camera.follow(player.x(), width(), worldWidth);
 
@@ -98,8 +106,8 @@ public class Main extends GameApp {
     }
 
     @Override public void draw() {
-        background(Color.ALICEBLUE);
-        fill(Color.DARKSLATEGRAY);
+        background(Color.rgb(240, 248, 255));
+        fill(Color.rgb(47, 79, 79));
         textSize(20);
         text("Click the canvas, then hold the arrow keys.", 20, 30);
         for (Coin each : coins) each.draw(this, camera.x());

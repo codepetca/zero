@@ -32,6 +32,8 @@ test('current canonical helper fingerprints require a reviewed adapter update af
   assert.match(result.sources['zero/GameApp.java'], /endFrame\(true\)/);
   assert.match(result.sources['zero/GameApp.java'], /BrowserImages.get\(resourcePath, getClass\(\)\)/);
   assert.match(result.sources['zero/GameApp.java'], /ImageRegion.requireLoaded\(image\)/);
+  assert.match(result.sources['zero/GameApp.java'], /public final ImageRegion loadImageRegion\(String resourcePath\)/);
+  assert.match(result.sources['zero/GameApp.java'], /Image resource path must not be null/);
   const originalLine = sources['zero/GameApp.java'].split('\n').findIndex(line => line.includes('public final SpriteAnimation loadAnimation'));
   const adaptedLine = result.sources['zero/GameApp.java'].split('\n').findIndex(line => line.includes('public final SpriteAnimation loadAnimation'));
   assert.equal(adaptedLine, originalLine, 'framework source diagnostics retain original line numbers');

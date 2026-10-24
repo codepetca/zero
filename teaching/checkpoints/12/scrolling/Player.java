@@ -1,6 +1,6 @@
-import javafx.scene.paint.Color;
-import javafx.scene.image.Image;
+import zero.Color;
 import zero.GameApp;
+import zero.ImageRegion;
 
 /** An ordinary object: coordinates change only when update is called. */
 public class Player {
@@ -32,20 +32,20 @@ public class Player {
     public double x() { return x; }
 
     public void draw(GameApp app) {
-        app.fill(Color.CORNFLOWERBLUE);
+        app.fill(Color.rgb(100, 149, 237));
         app.rect(x, y, size, size);
     }
 
-    public void drawImage(GameApp app, Image sprite) {
+    public void drawImage(GameApp app, ImageRegion sprite) {
         app.image(sprite, x, y, size, size);
     }
 
     public void draw(GameApp app, double cameraX) {
-        app.fill(Color.CORNFLOWERBLUE);
+        app.fill(Color.rgb(100, 149, 237));
         app.rect(x - cameraX, y, size, size);
     }
 
-    public void drawImage(GameApp app, Image sprite, double cameraX) {
+    public void drawImage(GameApp app, ImageRegion sprite, double cameraX) {
         app.image(sprite, x - cameraX, y, size, size);
     }
 }

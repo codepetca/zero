@@ -334,6 +334,11 @@ public abstract class GameApp extends App {
     public final SpriteAnimation loadAnimation(String resourcePath, int columns, int rows, double fps) {
         return new SpriteAnimation(loadImage(resourcePath), columns, rows, fps);
     }
+    /** Load a full-image region sharing the app's cached bundled image. */
+    public final ImageRegion loadImageRegion(String resourcePath) {
+        Image image = loadImage(Objects.requireNonNull(resourcePath, "Image resource path must not be null."));
+        return new ImageRegion(image, 0, 0, image.getWidth(), image.getHeight());
+    }
     private static String imageResourceKey(URL resource) {
         try {
             if (resource.getProtocol().equals("file")) return Path.of(resource.toURI()).toRealPath().toUri().toString();

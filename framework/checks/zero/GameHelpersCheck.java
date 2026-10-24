@@ -131,6 +131,15 @@ public final class GameHelpersCheck extends GameApp {
         ImageIO.write(bitmap, "png", sheet.toFile());
         cached = loadImage("/zero/helper-sheet.png");
         require(cached == loadImage("helper-sheet.png") && cached == loadImage("/zero/../zero/helper-sheet.png"), "canonical resource aliases share bitmap");
+        ImageRegion fullImage = loadImageRegion("/zero/helper-sheet.png");
+        require(fullImage.x() == 0 && fullImage.y() == 0 && fullImage.width() == 8 && fullImage.height() == 4
+                && fullImage.image() == cached, "full-image region shares cached image and exact bounds");
+        require(loadImageRegion("helper-sheet.png").image() == cached
+                && loadImageRegion("/zero/../zero/helper-sheet.png").image() == cached, "full-image region aliases share backing pixels");
+        try { loadImageRegion(null); throw new AssertionError("Null image-region path accepted"); }
+        catch (NullPointerException expected) { require("Image resource path must not be null.".equals(expected.getMessage()), "useful null image-region error"); }
+        try { loadImageRegion("/zero/missing.png"); throw new AssertionError("Missing image-region path accepted"); }
+        catch (IllegalArgumentException expected) { require(expected.getMessage().contains("/zero/missing.png"), "missing image-region error names resource"); }
         SpriteAnimation first = loadAnimation("/zero/helper-sheet.png", 4, 2, 8);
         SpriteAnimation second = loadAnimation("helper-sheet.png", 4, 2, 8);
         require(first.image() == cached && second.image() == cached, "animations share cached bitmap");
@@ -173,10 +182,13 @@ public final class GameHelpersCheck extends GameApp {
         imageFlippedY(cached, 10, 10, 40, 40);
         imageFlippedY(new ImageRegion(cached, 0, 0, 4, 4), 60, 10, 40, 40);
         imageCentered(new SpriteAnimation(cached, 1, 1, 1), 30, 80, 40, 40, 180);
+        image(loadImageRegion("/zero/helper-sheet.png"), 110, 65, 40, 40);
         WritableImage pixels = canvas().snapshot(null, null);
         require(pixels.getPixelReader().getColor(20, 15).equals(Color.BLUE), "image flipped top pixels");
         require(pixels.getPixelReader().getColor(70, 45).equals(Color.RED), "region flipped bottom pixels");
         require(pixels.getPixelReader().getColor(20, 65).equals(Color.BLUE), "animation centered and rotated pixels");
+        require(pixels.getPixelReader().getColor(115, 70).equals(Color.RED)
+                && pixels.getPixelReader().getColor(115, 100).equals(Color.BLUE), "full-image region scales complete image to destination bounds");
         graphics().translate(3, 7); graphics().rotate(12); graphics().setGlobalAlpha(0.6);
         fill(Color.GREEN); textSize(18); graphics().setTextAlign(TextAlignment.RIGHT); graphics().setTextBaseline(VPos.BASELINE);
         var transform = graphics().getTransform(); var font = graphics().getFont();

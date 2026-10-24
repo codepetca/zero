@@ -32,6 +32,7 @@ const examples = {
   line: 'line(20, 30, 120, 90);', text: 'text("Hello", 20, 40);',
   loadSound: 'Sound chime = loadSound("/chime.wav");',
   loadMusic: 'Music music = loadMusic("/music.wav");\nmusic.loop();',
+  loadImageRegion: 'ImageRegion player = loadImageRegion("/player.png");',
   loadImage: 'Image player = loadImage("/player.png");',
   image: 'image(player, 20, 30);', 'image-scaled': 'image(player, 20, 30, 80, 80);',
   textCentered: 'textCentered("Ready", width() / 2, 40);',
@@ -60,6 +61,7 @@ const methodNotes = {
   draw: 'Runs only while gameplay is visible, including during explicit pause. The canvas is not cleared automatically. Drawing styles persist between frames.',
   circle: 'The third argument is the diameter, not the radius.',
   text: 'By default, y is the text baseline.',
+  loadImageRegion: 'Put player.png in src/main/resources. The region covers the full cached image without copying pixels; region wrapper identity is not promised.',
   loadImage: 'Put player.png in src/main/resources for this example. Successful loads share an app-scoped canonical-resource cache until shutdown.',
   image: 'The example assumes player is an Image loaded in setup().',
   keyDown: 'Click the canvas to focus it. This example belongs in update(seconds) and assumes a double field named x.',
@@ -75,6 +77,7 @@ const related = {
   outlineRect: ['rect', 'stroke'], circle: ['fill', 'rect'], line: ['stroke', 'strokeWidth'], text: ['textSize', 'fill'],
   loadSound: ['sound-play', 'sound-stop', 'sound-setMuted'],
   loadMusic: ['music-play', 'music-loop', 'music-pause', 'music-stop'],
+  loadImageRegion: ['image-region', 'image-region-scaled'],
   loadImage: ['image', 'image-scaled'], image: ['loadImage', 'image-scaled'], 'image-scaled': ['loadImage', 'image'],
   mouseX: ['mouseY', 'mouseDown'], mouseY: ['mouseX', 'mouseDown'], keyDown: ['update', 'mouseDown'],
   mouseDown: ['mouseX', 'mouseY', 'keyDown'],
@@ -313,8 +316,8 @@ export function buildApiReference(markdown) {
   }
   for (const category of categories) category.notes = noteLines[category.id].join('\n').trim();
   const entries = categories.flatMap(category => category.entries);
-  if (seenSections.size !== 23 || entries.length !== 175 || categories.some(category => !category.entries.length)) {
-    throw new Error(`Incomplete API reference: expected twenty-three sections and 175 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
+  if (seenSections.size !== 23 || entries.length !== 176 || categories.some(category => !category.entries.length)) {
+    throw new Error(`Incomplete API reference: expected twenty-three sections and 176 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
   }
   const ids = new Set(categories.map(category => category.id));
   for (const entry of entries) {

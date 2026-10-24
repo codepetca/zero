@@ -10,77 +10,100 @@ Previous: [Check a component](11-zerohub.md).
 
 ## 1. Draw an image from Player
 
-In your existing `Player.java`, add `import javafx.scene.image.Image;`. Keep its current `draw(...)` method for the no-assets route. Add a second method inside Player:
+Add `import zero.ImageRegion;` to your existing Player. Keep its shape-drawing
+method for the drawing route, and add:
 
 ```java
-public void drawImage(GameApp app, Image sprite) {
+public void drawImage(GameApp app, ImageRegion sprite) {
     app.image(sprite, x, y, size, size);
 }
 ```
 
-This uses the same `x`, `y` and `size` as the blue square. Movement, touching coins and Restart still use one Player object. You can keep drawing your own shapes instead of using a PNG.
+An ImageRegion describes a rectangle in shared image pixels. This lesson loads
+the whole image, then draws it at Player's existing position and size. There is
+still one Player, with the same movement and collision rules.
 
-## 2. Add media imports and fields to Main
+## 2. Add fields to Main
 
-In Main, add imports for `javafx.scene.image.Image`, `javafx.scene.media.AudioClip` and `javafx.scene.media.MediaException`. Add these fields:
+Import `zero.ImageRegion`, `zero.Sound` and `zero.ui.Column`. Keep the existing
+Zero Label, Button and Row imports. Add:
 
 ```java
-private Image sprite;
-private AudioClip chime;
+private ImageRegion sprite;
+private Sound chime;
 private Label soundStatus;
+private Label assetStatus;
 private int plays;
 ```
 
-## 3. Load optional resources at the start of `setup()`
+## 3. Add an explicit artwork action
 
-At the **start** of your existing `setup()`, before making the controls, add:
+Add this method to Main:
 
 ```java
-var imageFile = getClass().getResource("/media-demo/player.png");
-if (imageFile != null) sprite = loadImage("/media-demo/player.png");
-var soundFile = getClass().getResource("/media-demo/chime.wav");
-if (soundFile != null) {
+public void loadAssets() {
     try {
-        chime = new AudioClip(soundFile.toExternalForm());
-        chime.setVolume(0.25);
-    } catch (MediaException failure) {
-        throw new IllegalArgumentException(
-                "Cannot load sound: /media-demo/chime.wav", failure);
+        ImageRegion nextSprite = loadImageRegion("/media-demo/player.png");
+        Sound nextChime = loadSound("/media-demo/chime.wav");
+        nextChime.setVolume(0.25);
+        sprite = nextSprite;
+        chime = nextChime;
+        assetStatus.setText("Artwork and sound ready");
+    } catch (IllegalArgumentException failure) {
+        assetStatus.setText(failure.getMessage());
     }
+    showGame();
 }
 ```
 
-The `/` starts at `src/main/resources/`. Missing optional files leave `sprite` and `chime` null so the drawn game still runs. An invalid image or sound reports its resource path. If you use your own files with different names, change these two paths to match. Run after adding the files; no asset download is needed to compile.
+The `/` starts at `src/main/resources/`. Load both candidates before changing the
+fields. If a requested file is missing or invalid, the error names its path and
+the existing game stays playable. The catch handles this expected resource error
+and shows it; it does not silently ignore it. Other programming errors still surface.
+`showGame()` returns keyboard focus to the retained canvas after the button.
 
-### Resource ownership
+Zero caches the image pixels and owns the Sound's cleanup when the app closes.
+A repeated load may create a new immutable ImageRegion over the same cached
+pixels. Restart reuses these resources; do not close the borrowed Sound there.
+Load in setup or an action, never every frame. Use artwork/audio you created or
+have permission to redistribute, and include required licence files in the
+project. These are bundled paths, not absolute paths on your computer.
 
-Load resources once in setup and keep them in fields, then reuse them while
-drawing or responding to collection. Main owns this sprite and chime; Player
-receives the sprite to draw at its existing position. Loading an image does not
-create a second player or change collision rules. `loadImage(...)` reports a
-missing or unreadable required image; the checks above deliberately make these
-two files optional. Keep a small asset set rather than loading files each frame.
+In browsers, packaged images preload before setup. A corrupt packaged PNG can
+therefore report a startup error before the button appears. Audio may fail later
+during decoding or playback; keep Zero's named audio notices and gesture prompt.
+The ready label means the action selected resources, not that sound was heard.
 
-Use artwork and audio you created or have permission to redistribute, and include
-required licence files with the project. Resource paths are bundled project paths,
-not absolute paths on your computer. The same resource-root rule applies to an
-optional font in `src/main/resources/fonts/`. Start with the System font from
-[lesson 2](02-hello-name.md#layout-and-appearance); custom fonts and larger audio
-controls can wait until your game needs them. Docs contains the API reference
-for additional image and sound methods.
+## 4. Add controls once in setup
 
-## 4. Add and reset the chime count control
+Replace the existing `controls(new Row(...))` call with:
 
-In `setup()`, after creating your score and message controls, add `soundStatus = new Label();`. In the **existing** `new HBox(...)`, add `soundStatus` between `score.view()` and `message`; keep the Restart button. In `restart()`, after resetting points, add:
+```java
+soundStatus = new Label("");
+assetStatus = new Label("Drawing mode");
+var artworkButton = new Button("Use artwork and sound");
+artworkButton.onClick(() -> loadAssets());
+controls(new Column(8,
+        new Row(12, score.view(), soundStatus, message, restartButton),
+        new Row(12, artworkButton, assetStatus)));
+```
+
+Keep the existing score, message, Restart callback and final `restart()` call.
+The second row gives the action and its result room below the score. The game
+starts in drawing mode, even when resources are bundled.
+
+At the start of `restart()`, add `if (chime != null) chime.stop();`. After resetting
+points, reset the request counter:
 
 ```java
 plays = 0;
 soundStatus.setText("Chimes: 0");
 ```
 
-## 5. Play the sound inside the collection block
+## 5. Request a chime after collection
 
-Inside the coin collection block in `update()`, just after `score.setScore(points);`, add:
+Inside the existing coin-collection block, immediately after
+`score.setScore(points);`, add:
 
 ```java
 if (chime != null) {
@@ -91,18 +114,35 @@ if (chime != null) {
 }
 ```
 
-## 6. Choose the sprite or drawing in `draw()`
+Main's collected check still prevents repeated scoring and sound requests while
+standing on one coin. The counter records requests; your ears, device volume
+and media support determine whether you hear the sound.
 
-At the end of `draw()`, replace `player.draw(this);` with:
+## 6. Choose the image or drawing
+
+At the end of Main's existing draw method, replace `player.draw(this);` with:
 
 ```java
 if (sprite == null) player.draw(this);
 else player.drawImage(this, sprite);
 ```
 
-## 7. Run App and test collection and Restart
+## 7. Run both routes and test Restart
 
-Click **Run App**. With assets, the player should be an image; without assets, the blue square should remain playable. Move over one coin and wait there: score rises once, and with sound loaded the chime plays and its count rises once. Collect two more, then Restart. Score and chime count return to 0 and all coins return. The counter shows that an audio action was requested; your ears, device volume and media support check actual sound. After you do the edits, compare with the media checkpoint's [Main.java](../../teaching/checkpoints/12/media/Main.java) and [Player.java](../../teaching/checkpoints/12/media/Player.java).
+Run App before importing assets. The blue square can collect all three coins and
+Restart. Click **Use artwork and sound**: a missing path should appear, and you
+can still play. If you choose a drawing-only game, keep drawing and remove the
+artwork button and media fields from your finished version.
+
+For the artwork route, import the two files at the paths above, run again and
+click the button. The player becomes the supplied image. Collect one coin and
+stay there: score and chime count rise once. Finish and Restart twice. Score and
+chime count return to 0; the artwork stays loaded. Repeated artwork clicks reuse
+resources and keep the same Player and control objects. If playback is blocked,
+follow the browser's click/key prompt. Check actual sound separately from the
+counter. Compare your [Main.java](../../teaching/checkpoints/12/media/Main.java)
+and [Player.java](../../teaching/checkpoints/12/media/Player.java) after writing
+your code. The API reference describes additional image and sound methods.
 
 ## 8. Optional stage 2: scroll a wider world
 
@@ -115,7 +155,7 @@ public void follow(double playerX, double viewportWidth, double worldWidth) {
 }
 ```
 
-Add `public double x() { return x; }` to Player. In Main add `private final double worldWidth = 1600;` and `private Camera camera;`. Create `camera = new Camera();` in `restart()` and move two coins farther away, for example x 840 and 1360. Pass `worldWidth` instead of `width()` to `player.update(...)`, then call `camera.follow(player.x(), width(), worldWidth);` after movement. To draw world objects, add overloads `Player.draw(GameApp app, double cameraX)`, `Player.drawImage(GameApp app, Image sprite, double cameraX)` and `Coin.draw(GameApp app, double cameraX)`. In each, use `x - cameraX` for the image or rectangle's horizontal drawing coordinate; keep the original methods and collection positions unchanged. In Main's `draw()`, pass `camera.x()` to those new methods. Native ScoreDisplay and Restart stay outside the canvas and do not scroll. Check both world edges and collect a far coin. Compare your edits with the optional [scrolling checkpoint Main](../../teaching/checkpoints/12/scrolling/Main.java) and [Camera.java](../../teaching/checkpoints/12/scrolling/Camera.java), or the maintained [scrolling example](../examples/scrolling-game/README.md), then return to **your own code**.
+Add `public double x() { return x; }` to Player. In Main add `private final double worldWidth = 1600;` and `private Camera camera;`. Create `camera = new Camera();` in `restart()` and move two coins farther away, for example x 840 and 1360. Pass `worldWidth` instead of `width()` to `player.update(...)`, then call `camera.follow(player.x(), width(), worldWidth);` after movement. To draw world objects, add overloads `Player.draw(GameApp app, double cameraX)`, `Player.drawImage(GameApp app, ImageRegion sprite, double cameraX)` and `Coin.draw(GameApp app, double cameraX)`. In each, use `x - cameraX` for the image or rectangle's horizontal drawing coordinate; keep the original methods and collection positions unchanged. In Main's `draw()`, pass `camera.x()` to those new methods. Zero ScoreDisplay and Restart stay outside the canvas and do not scroll. Check both world edges and collect a far coin. Compare your edits with the optional [scrolling checkpoint Main](../../teaching/checkpoints/12/scrolling/Main.java) and [Camera.java](../../teaching/checkpoints/12/scrolling/Camera.java), or the maintained [scrolling example](../examples/scrolling-game/README.md), then return to **your own code**.
 
 ## 9. Optional stage 3: add platforms and gravity
 
@@ -125,7 +165,7 @@ Move the coins near reachable ledges. In Player, add `private double velocityY; 
 
 ## 10. Optional stage 4: add levels and enemies
 
-Add a `Level.java` that stores a `Platform[]`, `Coin[]`, spawn x/y and an exit x; its constructor creates the data for either level number 0 or 1. Main adds `private Level level; private int levelIndex;` and a `startLevel(int index)` method. That method sets `levelIndex = index`, constructs `level = new Level(index)` so coins are fresh, creates Player at `level.spawnX()`/`level.spawnY()`, assigns Main's `platforms` and `coins` from the new level, resets camera and displays the level number. `restart()` sets points and levelIndex to 0, then calls `startLevel(0)`. When every coin in the current level is collected and `player.x() >= level.exitX()`, call `startLevel(1)` from level 0; after level 1, enter the won state instead. Keep total score in Main and call `score.setScore(points)` when it changes. An optional `Enemy.java` can store x/y, move with an explicit `update(seconds)`, and expose `touches(Player)` using Player's existing contact method. Main owns an `Enemy[]`, explicitly updates/draws it, and decides whether a touch loses the current run. Check that entering a second level creates fresh coins and that the native score stays fixed while scenery moves. The maintained [level example](../examples/level-game/README.md) shows a complete reference with two levels.
+Add a `Level.java` that stores a `Platform[]`, `Coin[]`, spawn x/y and an exit x; its constructor creates the data for either level number 0 or 1. Main adds `private Level level; private int levelIndex;` and a `startLevel(int index)` method. That method sets `levelIndex = index`, constructs `level = new Level(index)` so coins are fresh, creates Player at `level.spawnX()`/`level.spawnY()`, assigns Main's `platforms` and `coins` from the new level, resets camera and displays the level number. `restart()` sets points and levelIndex to 0, then calls `startLevel(0)`. When every coin in the current level is collected and `player.x() >= level.exitX()`, call `startLevel(1)` from level 0; after level 1, enter the won state instead. Keep total score in Main and call `score.setScore(points)` when it changes. An optional `Enemy.java` can store x/y, move with an explicit `update(seconds)`, and expose `touches(Player)` using Player's existing contact method. Main owns an `Enemy[]`, explicitly updates/draws it, and decides whether a touch loses the current run. Check that entering a second level creates fresh coins and that the score display stays fixed while scenery moves. The maintained [level example](../examples/level-game/README.md) shows a complete reference with two levels.
 
 ## 11. Optional stage 5: add endings and Restart
 

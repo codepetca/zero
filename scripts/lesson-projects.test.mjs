@@ -110,6 +110,22 @@ test('shared component teaching path uses Zero views in both consumers', () => {
     assert.doesNotMatch(instructions, /import javafx\.|label\.setStyle|label\.setTextFill|setColor/);
   }
 });
+test('media teaching uses explicit Zero resources and retains the shared component', () => {
+  const shared = readFileSync(path.join(root, 'teaching/checkpoints/11/game/ScoreDisplay.java'), 'utf8');
+  for (const kind of ['media', 'scrolling']) {
+    const directory = path.join(root, `teaching/checkpoints/12/${kind}`);
+    for (const name of ['Main.java', 'Player.java', 'Coin.java', 'ScoreDisplay.java']) {
+      assert.doesNotMatch(readFileSync(path.join(directory, name), 'utf8'), /import javafx\.|getResource\(|AudioClip|setColor|setOnAction|new HBox|canvas\(\)\.requestFocus/);
+    }
+    assert.equal(readFileSync(path.join(directory, 'ScoreDisplay.java'), 'utf8'), shared);
+    const main = readFileSync(path.join(directory, 'Main.java'), 'utf8');
+    assert.match(main, /ImageRegion nextSprite = loadImageRegion\("\/media-demo\/player\.png"\)/);
+    assert.match(main, /Sound nextChime = loadSound\("\/media-demo\/chime\.wav"\)/);
+    assert.match(main, /assetStatus\.setText\(failure\.getMessage\(\)\)/);
+    assert.match(main, /artworkButton\.onClick\(\(\) -> loadAssets\(\)\)/);
+  }
+  assert.doesNotMatch(readFileSync(path.join(root, 'student-template/lessons/12-media.md'), 'utf8'), /import javafx\.|getResource\(|AudioClip|new HBox|setColor/);
+});
 test('optional asset archive contains only the two media resources', () => {
   const files=gameAssetFiles(root);
   assert.deepEqual(files.map(file=>file.path),['media-demo/player.png','media-demo/chime.wav']);

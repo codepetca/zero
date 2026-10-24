@@ -27,7 +27,7 @@ test('every class-level public/protected Java declaration has an exact canonical
       expected.push(`${owner}:${normalizeSignature(match[1])}`);
     }
   }
-  assert.equal(expected.length, 175);
+  assert.equal(expected.length, 176);
   assert.deepEqual(entries.map(item => `${item.owner}:${normalizeSignature(item.signature)}`).sort(), expected.sort());
   assert.ok(!entries.some(item => item.name === 'handle'));
   assert.equal(JSON.parse(JSON.stringify(categories)).length, 15);
@@ -82,8 +82,8 @@ test('keeps canonical class defaults, constructors and lifecycle caveats', () =>
 
 test('search handles aliases, case, multiple terms, whitespace and empty results', () => {
   const search = query => searchApiReference(categories, query);
-  assert.equal(search('').length, 175);
-  assert.equal(search(' \n\t ').length, 175);
+  assert.equal(search('').length, 176);
+  assert.equal(search(' \n\t ').length, 176);
   assert.ok(search('KEYBOARD').some(item => item.id === 'keyDown'));
   assert.deepEqual(search('rectangle').slice(0, 2).map(item => item.id), ['rect', 'outlineRect']);
   assert.ok(search('mouse').some(item => item.id === 'mouseDown'));
@@ -174,6 +174,11 @@ test('documents all source-type overloads with unique stable anchors and helper 
   assert.equal(category('collisions').entries.length, 3);
   assert.match(category('images').notes, /same backing Image without bitmap copies/);
   assert.match(entry('loadImage').description, /cached per app by canonical/);
+  assert.equal(entry('loadImageRegion').signature, 'ImageRegion loadImageRegion(String resourcePath)');
+  assert.equal(entry('loadImageRegion').example, 'ImageRegion player = loadImageRegion("/player.png");');
+  assert.match(entry('loadImageRegion').description, /full pixel bounds/);
+  assert.match(entry('loadImageRegion').description, /Image resource path must not be null/);
+  assert.match(entry('loadImageRegion').note, /wrapper identity is not promised/);
   assert.match(category('input').notes, /press and release between frames/);
   assert.match(category('input').notes, /update\nand draw, then cleared/);
   assert.match(category('animation').notes, /equal aligned cells/);

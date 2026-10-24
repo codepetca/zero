@@ -403,6 +403,7 @@ with `(0, 0)` at the top left and y increasing downward. Import `Color` from
 | `void text(String value, double x, double y)` | Filled text. By default y is the text baseline, not its top edge. |
 | `void image(Image image, double x, double y)` | Draw an image at x/y using its natural size. |
 | `void image(Image image, double x, double y, double width, double height)` | Draw an image scaled to the supplied dimensions. |
+| `ImageRegion loadImageRegion(String resourcePath)` | Load the full bounds of a bundled image using the app-owned image cache. |
 | `Image loadImage(String resourcePath)` | Load a bundled resource; throw `IllegalArgumentException` if missing or unreadable. |
 
 The helpers use the native GraphicsContext, including settings you change through
@@ -411,19 +412,30 @@ The helpers use the native GraphicsContext, including settings you change throug
 
 ### Images and resources
 
-Place `player.png` in `src/main/resources/`. Import `javafx.scene.image.Image`,
-keep an Image field, and load it once in setup:
+Place `player.png` in `src/main/resources/`. Import `zero.ImageRegion`, keep
+an `ImageRegion sprite;` field, and load it once in setup:
 
 ```java
-sprite = loadImage("/player.png");
+sprite = loadImageRegion("/player.png");
 ```
 
-Then call `image(sprite, x, y)` in draw. The leading `/` starts at the classpath
-resource root. A path without `/` is relative to your class's Java package.
-`loadImage` caches successful loads per app using the canonical resolved resource
-URL. Aliases return the same Image; failures are not cached. Images remain in
-memory until shutdown clears the cache, so keep your asset set bounded. Load
-assets in setup to make their ownership and any errors easy to find.
+Then call `image(sprite, x, y, 48, 48)` in draw. The region covers the whole image
+from 0/0 without copying pixels. The leading `/` starts at the classpath resource
+root; a path without `/` is relative to your class's Java package.
+`loadImageRegion` shares the app's cached backing image, including path aliases;
+region wrapper identity is not promised. Missing or unreadable resources throw
+`IllegalArgumentException` naming the path. A null path throws
+`NullPointerException` with `Image resource path must not be null.`
+
+Images stay in memory until shutdown, so keep your asset set bounded. Load assets
+in setup, or from an explicit button if the drawing version should run without
+files. That button can display a known missing-resource error to the user.
+Browser exports preload packaged images before setup; a corrupt packaged image
+can therefore prevent startup before the button appears.
+
+The advanced `loadImage` method returns a JavaFX `Image` for operations that need
+it. Successful loads use the same canonical-resource cache; aliases share the
+backing Image and failed loads are not cached.
 
 ### Sprite frames and small game helpers
 

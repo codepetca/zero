@@ -9,7 +9,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import zero.App;
@@ -185,7 +184,7 @@ public class CheckpointHarness extends Application {
         require(secondView != view && secondView.getText().equals("Score: 0"), "new display has its own view");
         second.getClass().getMethod("setScore", int.class).invoke(second, 9);
         require(secondView.getText().equals("Score: 9") && view.getText().equals("Score: 0"), "display instances update independently");
-        if (id.startsWith("11/")) {
+        if (id.startsWith("11/") || id.startsWith("12/")) {
             second.getClass().getMethod("setCaption", String.class).invoke(second, "Coins");
             require(secondView.getText().equals("Coins: 9") && view.getText().equals("Score: 0"),
                     "caption changes preserve the latest score and independent instances");
@@ -199,9 +198,6 @@ public class CheckpointHarness extends Application {
                         && failure.getCause().getMessage().toLowerCase().contains("caption"), "useful null caption error");
             }
             require(secondView.getText().equals("Coins: 4"), "invalid caption preserves the displayed value");
-        } else if (id.startsWith("12/")) {
-            second.getClass().getMethod("setColor", Color.class).invoke(second, Color.DARKSLATEBLUE);
-            require(secondView.getTextFill().equals(Color.DARKSLATEBLUE), "setColor changes display text color");
         }
     }
 
@@ -228,7 +224,6 @@ public class CheckpointHarness extends Application {
         if (id.startsWith("12/")) {
             require((field(app, "sprite") != null) == withMedia && (field(app, "chime") != null) == withMedia,
                     "media resource mode loads or falls back explicitly");
-            if (withMedia) require(score.getTextFill().equals(Color.DARKSLATEBLUE), "game applies ScoreDisplay color");
         }
         Object[] coins = (Object[]) field(app, "coins");
         Object player = field(app, "player");
@@ -300,6 +295,21 @@ public class CheckpointHarness extends Application {
         settle.setOnFinished(event -> {
             boolean passed = false;
             try {
+                if (id.startsWith("12/")) {
+                    button(stage, "Use artwork and sound").fire();
+                    String status = ((Label) node(field(app, "assetStatus"))).getText();
+                    if (withMedia) {
+                        require(status.equals("Artwork and sound ready"), "explicit asset action loads the supplied resources");
+                        zero.ImageRegion first = (zero.ImageRegion) field(app, "sprite");
+                        Object effect = field(app, "chime");
+                        Object player = field(app, "player");
+                        button(stage, "Use artwork and sound").fire();
+                        require(((zero.ImageRegion) field(app, "sprite")).image() == first.image()
+                                && field(app, "chime") == effect && field(app, "player") == player,
+                                "repeated asset action shares cached pixels and sound without replacing the player");
+                    } else require(status.contains("/media-demo/player.png") && field(app, "sprite") == null
+                            && field(app, "chime") == null, "missing requested assets show their path without changing drawing mode");
+                }
                 if (((App) app) instanceof GameApp game) game.pause(); // Freeze automatic updates; keep the app alive for Restart/navigation.
                 BorderPane root = (BorderPane) stage.getScene().getRoot();
                 require(root.getPadding().equals(new javafx.geometry.Insets(20)),

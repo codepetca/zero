@@ -14,7 +14,7 @@ export function verifyWebProfiles() {
   const declarations = Object.values(sources).reduce((total, source) => total + [...source.matchAll(/^    (?:@Override )?(?:public|protected) /gm)].length, 0);
   const keyConstants = [...sources['zero/Key.java'].matchAll(/^    ([A-Z]+)\(KeyCode\.[A-Z]+\)[,;]/gm)].map(match => match[1]);
   assert.deepEqual(keyConstants, ['LEFT', 'RIGHT', 'UP', 'DOWN'], 'Review each supported Zero key constant explicitly.');
-  assert.equal(declarations + keyConstants.length, 175, 'The supported Zero API declaration inventory changed. Extend browser fixture coverage before updating the profile.');
+  assert.equal(declarations + keyConstants.length, 176, 'The supported Zero API declaration inventory changed. Extend browser fixture coverage before updating the profile.');
   sources['Main.java']=fs.readFileSync(path.join(root,'framework/web-checks/Main.java'),'utf8');
   adaptSources({sources,resourcePaths:['tiles.png']});
   return names;

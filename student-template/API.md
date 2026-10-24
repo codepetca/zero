@@ -20,7 +20,8 @@ look up methods. Installation and troubleshooting are in [setup help](README.md)
 
 Extend `zero.App` for event-driven interfaces. It has an implicit public
 no-argument constructor. The default window is resizable, 800 × 500 pixels,
-with title `"Zero"` and zero content-edge padding. Import JavaFX `Node` from `javafx.scene`.
+with title `"Zero"` and zero content-edge padding. Use `zero.ui.Element` for normal
+Zero UI content. JavaFX `Node` from `javafx.scene` remains an advanced bridge.
 
 Normal Run builds and opens a native JavaFX window. Publishing for the browser
 checks the supported Java/JavaFX subset; unsupported calls produce source
@@ -286,10 +287,12 @@ through `graphics()`. For other operations, use that context directly.
 ## Images
 
 These GameApp methods are public and final. Drawing requires an existing
-canvas. Import `Image` from `javafx.scene.image`.
+canvas. Import `zero.ImageRegion` for ordinary artwork. JavaFX `Image` from
+`javafx.scene.image` remains available for advanced image operations.
 
 | Signature | Behavior |
 | --- | --- |
+| `ImageRegion loadImageRegion(String resourcePath)` | Load a bundled image as a region covering its full pixel bounds, starting at 0/0. Uses the same app-owned cached backing image as `loadImage`, including path aliases, without copying pixels. Each call may return a new region wrapper. A null path throws `NullPointerException` with `Image resource path must not be null.`; missing or unreadable images throw `IllegalArgumentException` naming the path. |
 | `Image loadImage(String resourcePath)` | Load a bundled classpath image. A leading `/` starts at the resource root; otherwise the path is relative to your app class's Java package. Throws `IllegalArgumentException` for missing or unreadable images. Successful loads are cached per app by canonical resolved resource URL, including path aliases. The same resource returns the same Image until shutdown clears the cache; failed loads are not cached. |
 | `void image(Image image, double x, double y)` | Draw at x/y using the image's natural size. |
 | `void image(Image image, double x, double y, double width, double height)` | Draw at x/y scaled to the supplied dimensions. |
@@ -542,7 +545,8 @@ advanced JavaFX interoperability path for other keys.
 ## Input
 
 These GameApp methods are public and final. Use after canvas creation.
-Import `KeyCode` and `MouseButton` from `javafx.scene.input`.
+Use `zero.Key` for the four arrow keys. For advanced JavaFX input, import
+`KeyCode` and `MouseButton` from `javafx.scene.input`.
 
 | Signature | Result |
 | --- | --- |

@@ -23,9 +23,8 @@ function sameSource(left, right) {
 }
 sameSource('10/study','10/game');
 sameSource('11/study','11/game');
-// Lesson 12 retains its older media/JavaFX component until its Zero migration.
-// Keep both current consumer pairs exact; reconnect 11 -> 12 in that slice.
-sameSource('12/media','12/scrolling');
+sameSource('11/study','12/media');
+sameSource('11/study','12/scrolling');
 
 function projectKind(id) {
   const lesson = Number(id.split('/')[0]);

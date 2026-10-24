@@ -3,7 +3,7 @@ async (page) => {
   const urls = __URLS__;
   const artifactRoot = __ARTIFACT_ROOT__;
   const results = [];
-  const helperImageDraws = 15;
+  const helperImageDraws = 16;
   // JavaFX label peers also have aria-hidden text measurement nodes.
   const visibleText = (text) =>
     page.getByText(text, { exact: true }).filter({ visible: true });
@@ -70,6 +70,17 @@ async (page) => {
   let s = await state();
   check(s.texts.includes('Game API checks ready'), 'Native/browser math and ArrayList semantics agree');
   check(s.texts.includes('Actor checks ready'), 'Actor subclasses, movement, aiming, validation and explicit animation updates agree');
+  check(s.texts.includes('Full image region ready'), 'Full-image region bounds, shared backing image aliases and named null/missing errors pass');
+  check(s.images.some(draw => JSON.stringify(draw) === '[0,0,24,24,400,220,48,48]'),
+    'Full-image region uses the complete source bounds and requested destination size');
+  const fullRegionPixels = await page.locator('canvas').evaluate(canvas => {
+    const bounds = canvas.getBoundingClientRect();
+    return [[406,226],[438,226],[406,258],[438,258]].map(([x,y]) =>
+      Array.from(canvas.getContext('2d').getImageData(
+        Math.floor(x * canvas.width / bounds.width), Math.floor(y * canvas.height / bounds.height),1,1).data));
+  });
+  check(JSON.stringify(fullRegionPixels) === '[[240,90,40,255],[40,120,240,255],[80,200,80,255],[200,80,220,255]]',
+    'Full-image region destination renders every source quadrant', fullRegionPixels);
   const actorPixels = await page.locator('canvas').evaluate(canvas => {
     const bounds = canvas.getBoundingClientRect();
     return [[269, 289], [281, 289], [314, 289], [359, 289]].map(([x, y]) =>

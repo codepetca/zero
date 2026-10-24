@@ -318,6 +318,7 @@
     "zero.GameApp#line(double,double,double,double)",
     "zero.GameApp#loadAnimation(java.lang.String,int,int,double)",
     "zero.GameApp#loadImage(java.lang.String)",
+    "zero.GameApp#loadImageRegion(java.lang.String)",
     "zero.GameApp#mouseDown(javafx.scene.input.MouseButton)",
     "zero.GameApp#mousePressed(javafx.scene.input.MouseButton)",
     "zero.GameApp#mouseX()",

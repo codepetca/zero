@@ -296,3 +296,10 @@ test('Zero arrow enum and overloads admit only the exact four constants and quer
     await assert.rejects(check({'Main.java':game(expression + ';')}), /Unsupported browser API/);
   }
 });
+
+
+test('full-image region loader exposes only its exact path signature', {timeout:240000}, async () => {
+  const source = 'import zero.GameApp; import zero.ImageRegion; public class Main extends GameApp { public void setup() { ImageRegion sprite = loadImageRegion("/player.png"); image(sprite, 20, 30, 24, 24); } }';
+  assert.equal((await check({'Main.java':source})).status, 'passed');
+  await assert.rejects(check({'Main.java':source.replace('loadImageRegion("/player.png")', 'loadImageRegion("/player.png", true)')}), /loadImageRegion/);
+});

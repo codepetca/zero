@@ -12,6 +12,7 @@ import zero.SpriteAnimation;
 public final class Main extends GameApp {
     private Image sheet;
     private ImageRegion region;
+    private ImageRegion fullRegion;
     private SpriteAnimation animation, sequence;
     private int presses, clicks, initCalls;
     private double x = 150;
@@ -38,6 +39,20 @@ public final class Main extends GameApp {
         if (!invalidRgb) throw new IllegalStateException("Color.rgb must reject out-of-range channels");
         sheet = loadImage("/tiles.png");
         if (sheet != loadImage("/./tiles.png")) throw new IllegalStateException("Image aliases lost cache identity");
+        fullRegion = loadImageRegion("/tiles.png");
+        require(fullRegion.x() == 0 && fullRegion.y() == 0 && fullRegion.width() == 24 && fullRegion.height() == 24
+                && fullRegion.image() == sheet && loadImageRegion("/./tiles.png").image() == sheet,
+                "Full-image region bounds and backing image aliases");
+        boolean badRegionPath = false;
+        try { loadImageRegion(null); } catch (Throwable expected) {
+            badRegionPath = "Image resource path must not be null.".equals(expected.getMessage());
+        }
+        require(badRegionPath, "Full-image region null path names its error");
+        badRegionPath = false;
+        try { loadImageRegion("/missing-region.png"); } catch (IllegalArgumentException expected) {
+            badRegionPath = expected.getMessage().contains("/missing-region.png");
+        }
+        require(badRegionPath, "Full-image region missing resource names its path");
         region = imageRegion(sheet, 0, 0, 12, 12);
         animation = loadAnimation("/tiles.png", 2, 2, 12);
         sequence = new SpriteAnimation(8, region, imageRegion(sheet, 12, 0, 12, 12));
@@ -110,6 +125,7 @@ public final class Main extends GameApp {
         stroke(Color.BLACK); strokeWidth(2); outlineRect(90, 170, 20, 20); line(120, 170, 140, 190);
         image(sheet, 20, 220); image(sheet, 60, 220, 30, 30);
         image(region, 110, 220); image(region, 140, 220, 30, 30);
+        image(fullRegion, 400, 220, 48, 48);
         image(animation, 190, 220); image(animation, 220, 220, 30, 30);
         imageCentered(sheet, 280, 235, 30, 30, 20);
         imageCentered(region, 320, 235, 30, 30, -20);
@@ -117,6 +133,7 @@ public final class Main extends GameApp {
         imageFlippedY(sheet, 40, 290, 40, 40);
         imageFlippedY(region, 110, 290, 40, 40);
         imageFlippedY(animation, 180, 290, 40, 40);
+        text("Full image region ready", 15, 360);
         if (mouseDown(MouseButton.PRIMARY)) circle(mouseX(), mouseY(), 6);
     }
     private void verifyActors() {
