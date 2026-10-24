@@ -1,8 +1,10 @@
 .catalog { min-width: 0; overflow-wrap: anywhere; }
 .discovery { width: 100%; max-width: 1440px; margin: 24px auto 64px; padding: 0 32px; }
 .workspace { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 32px; align-items: start; }
-.sidebar { position: sticky; top: 24px; min-width: 0; max-height: calc(100dvh - 48px); overflow-y: auto; padding: 6px 24px 6px 6px; border-right: 1px solid var(--zero-border); }
-.discovery .sidebar h1 { margin: 0 0 20px; font-size: 32px; line-height: 1.2; letter-spacing: -1px; }
+.sidebar { position: sticky; top: 24px; min-width: 0; max-height: calc(100dvh - 48px); overflow-y: auto; padding: 6px 24px 6px 6px; }
+.discovery .sidebar h1 { margin: 0 0 8px; font-size: 32px; line-height: 1.2; letter-spacing: -1px; }
+.discovery .tagline { margin: 0 0 20px; color: var(--muted); font-size: 16px; line-height: 1.5; }
+.discovery .sidebarDescription { margin: 20px 0 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
 .discovery .catalog { padding: 0; border: 0; }
 .discovery :global(.secondary) { background: var(--zero-page); color: var(--ink); }
 .discovery :global(.secondary):hover { background: var(--zero-surface); }
@@ -25,7 +27,6 @@
   .discovery { margin-top: 0; padding-inline: 24px; }
   .workspace { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .sidebar { position: static; max-height: none; overflow: visible; padding: 0; border: 0; }
-  .discovery .sidebar h1 { margin-bottom: 16px; }
   .catalogTools, .navigation { flex-direction: row; flex-wrap: wrap; gap: 8px; }
   .catalogTools { align-items: center; }
 }

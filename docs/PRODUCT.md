@@ -115,9 +115,12 @@ ZeroHub opens Projects by default and has only Projects and Libraries in its
 catalog navigation. A desktop sidebar contains the ZeroHub title, search field,
 Share your work and Projects/Libraries filters, in that order. The gallery sits
 in the right pane. On narrow screens the controls stack above the gallery.
-Sharing keeps its purple-tinted fill and stronger border. The title has no
-subtitle or account row; search keeps its magnifying glass, accessible name and
-“search zerohub” placeholder.
+The sidebar has no vertical divider. A short tagline under the title says
+“Discover and share Java projects.” Below the buttons, a brief description
+explains browser projects, reusable libraries and sharing with Zero. Sharing
+keeps its purple-tinted fill and stronger border. Account actions stay in the
+header; search keeps its magnifying glass, accessible name and “search zerohub”
+placeholder.
 Drawing Pad is a
 maintained Codepet project backed by `codepetca/zero-drawing-pad`, shown alongside
 community projects with a tiny description, square screenshot and GitHub source.

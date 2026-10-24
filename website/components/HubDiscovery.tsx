@@ -87,8 +87,10 @@ export function HubDiscovery() {
   return <div className={styles.workspace}>
     <aside className={styles.sidebar} aria-label="ZeroHub discovery">
       <h1>ZeroHub</h1>
+      <p className={styles.tagline}>Discover and share Java projects.</p>
       {!id && !version && <div className={styles.search}><Icon name="search" /><input id="sharing-search" type="search" aria-label="Search ZeroHub" value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder="search zerohub" /></div>}
       <HubNavigation active={kind} />
+      <p className={styles.sidebarDescription}>Play projects in your browser, find reusable libraries, and share what you build with Zero.</p>
     </aside>
     <section className={styles.catalog} aria-labelledby="sharing-heading">
     <h2 id="sharing-heading" className="sr-only">{kind === 'game' ? 'Projects' : 'Libraries'}</h2>

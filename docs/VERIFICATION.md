@@ -1,5 +1,18 @@
 # Verification
 
+## ZeroHub sidebar introduction — 2026-10-24
+
+Removed the vertical divider, added “Discover and share Java projects.” below
+the title, and placed a short playing/libraries/sharing description below the
+buttons. Existing sidebar/gallery and mobile layout remain intact.
+
+All 177 website tests, production build (including TypeScript), root checks and
+whitespace checks pass. Chromium verifies desktop dark copy placement, 0px
+sidebar border, readable 16px tagline/14px description, no sidebar clipping, and
+320px light/dark stacking without horizontal overflow. No real auth/star/Play
+writes. Physical Safari/touch and text enlargement were not reverified.
+Review/CI/live evidence: PR handoff and ignored .verification/zerohub-sidebar-copy/.
+
 ## ZeroHub sidebar layout — 2026-10-24
 
 Desktop discovery now places the title, search, purple Share action and vertical
