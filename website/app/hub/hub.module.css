@@ -1,13 +1,31 @@
 .catalog { min-width: 0; overflow-wrap: anywhere; }
+.discovery .intro { padding: 0; }
+.discovery .intro h1 { margin-bottom: 0; }
+.discovery .catalog { padding-top: 0; }
 .discovery :global(.secondary) { background: var(--zero-page); color: var(--ink); }
 .discovery :global(.secondary):hover { background: var(--zero-surface); }
 .navigation { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
-.catalogTools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin: 20px 0; }
+.catalogTools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0; }
 .catalogTools .navigation { margin: 0; }
 .catalogTools .shareAction { min-width: 0; margin: 0; }
-.navigation a, .retry { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 14px; border: 1px solid var(--zero-border, var(--outline)); border-radius: 6px; font: inherit; background: var(--zero-page, white); }
+.navigation { gap: 8px; }
+.navigation a, .catalogTools .shareAction, .retry { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 12px; border: 1px solid var(--zero-border, var(--outline)); border-radius: 6px; font: inherit; font-size: 16px; line-height: 1.5; text-decoration: none; background: var(--zero-page, white); }
 .navigation a[aria-current="page"] { color: var(--ink); border-color: var(--purple); font-weight: 600; }
-.navigation a:focus-visible, .retry:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
+.navigation a:focus-visible, .shareAction:focus-visible, .retry:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
+.search { display: flex; align-items: center; gap: 10px; max-width: 540px; margin: 12px 0 16px; padding: 0 12px; border: 1px solid var(--zero-border); border-radius: 6px; background: var(--zero-surface); color: var(--muted); }
+.search:focus-within { outline: 3px solid var(--purple); outline-offset: 3px; }
+.search :global(.icon) { flex: none; }
+.search input { min-width: 0; width: 100%; min-height: 44px; padding: 10px 0; border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 16px; }
+.search input:focus-visible { outline: none; }
+.search input::placeholder { color: var(--muted); }
+@media (max-width: 480px) {
+  .catalogTools, .catalogTools .navigation { gap: 6px; }
+  .catalogTools .navigation a, .catalogTools .shareAction { padding-inline: 8px; font-size: 15px; }
+}
+@media (max-width: 380px) {
+  .catalogTools, .catalogTools .navigation { gap: 4px; }
+  .catalogTools .navigation a, .catalogTools .shareAction { padding-inline: 4px; font-size: 14px; }
+}
 .cards { display: grid; gap: 24px; }
 .card { display: flex; gap: 24px; align-items: flex-start; min-width: 0; padding: 24px 0; border-top: 1px solid var(--zero-border, var(--outline)); }
 .cardContent { flex: 1; min-width: 0; max-width: 100%; }
@@ -28,13 +46,13 @@
 .card a { overflow-wrap: anywhere; }
 .metadata { color: var(--muted); font-size: 16px; }
 
-.account { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 16px; color: var(--muted); }
-.account button, .starButton { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--zero-border, var(--outline)); border-radius: 6px; background: var(--zero-page); color: var(--ink); font: inherit; text-decoration: none; cursor: pointer; }
-.account button:focus-visible, .starButton:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
+.account { display: flex; flex-direction: column; align-items: stretch; gap: 4px; font-size: 16px; color: var(--muted); }
+.starButton { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--zero-border, var(--outline)); border-radius: 6px; background: var(--zero-page); color: var(--ink); font: inherit; text-decoration: none; cursor: pointer; }
+.starButton:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
 .starButton { border: 0; background: transparent; }
 .starButton[aria-pressed="true"] { color: var(--purple); }
 .starButton[aria-pressed="true"] :global(.icon) { fill: currentColor; }
-.account button:disabled, .starButton:disabled { opacity: .65; cursor: default; }
+.starButton:disabled { opacity: .65; cursor: default; }
 .feedback { margin-top: 12px; }
 .projectActions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 16px; }
 .projectActions .metadata { flex: 1 1 auto; min-width: 0; margin: 0; }

@@ -9,6 +9,7 @@ import releaseAuthors from '@/content/release-authors.json';
 import styles from '@/app/hub/hub.module.css';
 import {HubNavigation} from './HubNavigation';
 import {CodeBlock} from './CodeBlock';
+import {Icon} from './Icon';
 import {loadMetricBatches, metricLabel} from '@/lib/hub-metrics-client.mjs';
 import {HubProjectCard} from './HubProjectCard';
 import {HubProjectInfo} from './HubProjectInfo';
@@ -86,7 +87,7 @@ export function HubDiscovery() {
   return <section className={styles.catalog} aria-labelledby="sharing-heading">
     <h2 id="sharing-heading" className="sr-only">{kind === 'game' ? 'Projects' : 'Libraries'}</h2>
     <HubNavigation active={kind} />
-    {id || version ? <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {kind==='game'?'projects':'libraries'}</Link></p> : <div className="hub-form"><label htmlFor="sharing-search">Find {kind==='game'?'a project':'a library'}</label><input id="sharing-search" type="search" value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder="Title, author or description" /></div>}
+    {id || version ? <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {kind==='game'?'projects':'libraries'}</Link></p> : <div className={styles.search}><Icon name="search" /><input id="sharing-search" type="search" aria-label="Search ZeroHub" value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder="search zerohub" /></div>}
     <div className={`${styles.cards}${kind==='game'?` ${styles.projectCards}`:''}`}>
     {projects.map(project => <HubProjectCard projectId={project.id} key={project.id} title={project.title} description={projectSummary(project.description)} author={project.author}
       compact siteReachable={feedback[project.id]?.repositoryUrl===project.repositoryUrl && feedback[project.id]?.site.status==='reachable'} image={project.image} playHref={maintainedPlayLink(project)} repositoryHref={project.repositoryUrl} feedback={projectFeedback({id:project.id,title:project.title,repositoryHref:project.repositoryUrl,playHref:maintainedPlayLink(project),sourceCommit:project.sourceCommit})} />)}

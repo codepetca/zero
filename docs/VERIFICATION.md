@@ -1,5 +1,22 @@
 # Verification
 
+## ZeroHub header cleanup — 2026-10-24
+
+Shared profile dropdown replaces the standalone theme button; it contains
+GitHub sign-in or username/Sign out and appearance switching. ZeroHub removes
+the subtitle/account row, reduces title spacing, aligns sharing with the filters,
+and uses an inset search icon with the “search zerohub” placeholder.
+
+All 177 website tests, TypeScript, production build, root checks and whitespace
+checks pass. Chromium production-build fixtures verify signed-out and connected
+states (no duplicate sign-in), guarded local sign-out/focus restoration,
+connection failure/Retry/focus restoration, Tab and Escape, outside dismissal,
+light/dark switching, search filtering, and 320px/390px inline toolbar reflow
+without horizontal overflow. No real account, star or Play writes were made.
+Physical Safari/touch, text enlargement and real OAuth were not reverified.
+Review/CI/live delivery receipts are retained in the PR handoff and ignored
+.verification/zerohub-header-cleanup/.
+
 ## ZeroHub inline flag and stars — 2026-10-24
 
 Owner aligns the flag at the right of the username/version row in project
