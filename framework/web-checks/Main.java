@@ -1,3 +1,5 @@
+import evidence.ApiProof;
+import evidence.ApiSignatureChecks;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
@@ -38,6 +40,7 @@ public final class Main extends GameApp {
         try { Color.rgb(256, 0, 0); } catch (IllegalArgumentException expected) { invalidRgb = true; }
         if (!invalidRgb) throw new IllegalStateException("Color.rgb must reject out-of-range channels");
         sheet = loadImage("/tiles.png");
+        ApiSignatureChecks.actors(sheet,24,24);
         if (sheet != loadImage("/./tiles.png")) throw new IllegalStateException("Image aliases lost cache identity");
         fullRegion = loadImageRegion("/tiles.png");
         require(fullRegion.x() == 0 && fullRegion.y() == 0 && fullRegion.width() == 24 && fullRegion.height() == 24
@@ -91,6 +94,7 @@ public final class Main extends GameApp {
         }
     }
     @Override public void draw() {
+        text(ApiProof.events(),-10000,-10000);
         background(Color.WHITE); fill(Color.BLACK); textSize(20);
         text("Web helpers ready", 15, 30);
         text("Mobile state: " + clicks + "," + middleClicks + "," + rightClicks + ","

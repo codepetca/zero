@@ -1,5 +1,8 @@
 package zero;
 
+import evidence.ApiSignatureChecks;
+import evidence.ApiNative;
+
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.scene.Node;
@@ -39,6 +42,7 @@ public final class UiCheck extends GameApp {
         }, "zero-ui-deadline");
         watchdog.setDaemon(true);
         watchdog.start();
+        ApiSignatureChecks.ui();
         verifyComponents();
         verifyApp();
         verifyColors();
@@ -289,6 +293,7 @@ public final class UiCheck extends GameApp {
             } else if (phase == 8) {
                 require(updates >= 6 && score > 0, "game update continues while a control has focus");
                 require(layout().getBottom() == hud.fxNode() && layout().getCenter() == canvas(), "HUD and canvas remain mounted");
+                ApiNative.emit();
                 System.out.println("ZERO_UI_OK inherited setEnabled, disabled input/button blocking and reuse, TextField five signatures, typed greeting, prompt/errors, tab/button focus, text/callback replacement, atomic composition, App show, colors and live game frames");
                 stop();
                 Platform.exit();

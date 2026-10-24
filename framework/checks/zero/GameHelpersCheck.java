@@ -1,5 +1,8 @@
 package zero;
 
+import evidence.ApiSignatureChecks;
+import evidence.ApiNative;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.awt.image.BufferedImage;
@@ -24,6 +27,7 @@ public final class GameHelpersCheck extends GameApp {
     private Image cached;
     @Override public void settings() { size(160, 120); title("Zero game helper checks"); }
     @Override public void setup() {
+        ApiSignatureChecks.host(this,160,120);
         phaseStarted = System.nanoTime();
         for (Runnable query : new Runnable[] {() -> keyDown((Key) null), () -> keyPressed((Key) null)}) {
             try { query.run(); throw new AssertionError("Null Zero key accepted"); }
@@ -105,6 +109,7 @@ public final class GameHelpersCheck extends GameApp {
                     require(!keyDown(KeyCode.D) && !keyPressed(KeyCode.D) && !mouseDown(MouseButton.PRIMARY)
                             && !mousePressed(MouseButton.PRIMARY) && !windowFocused(), "stop clears input and focus");
                     require(cached != loadImage("/zero/helper-sheet.png"), "shutdown clears image cache");
+                    ApiNative.emit();
                     System.out.println("ZERO_GAME_HELPERS_OK input frames/focus, image sharing/validation/timing, transforms/pixels/text, collisions");
                     Platform.exit(); break;
             }

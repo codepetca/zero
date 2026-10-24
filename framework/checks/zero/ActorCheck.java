@@ -1,5 +1,8 @@
 package zero;
 
+import evidence.ApiSignatureChecks;
+import evidence.ApiNative;
+
 import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
@@ -21,8 +24,10 @@ public final class ActorCheck extends GameApp {
         if (checked) return;
         checked = true;
         try {
+            ApiSignatureChecks.actors(new WritableImage(4,2),4,2);
             verifyMovement(); verifyImagesAndInheritance(); verifyPlaybackContract(); verifyPixels();
             verifyDrawingCallbacks(); verifyNestedDrawing(); verifyDrawingMisuse();
+            ApiNative.emit();
             System.out.println("ZERO_ACTOR_OK movement/aiming/clamping, validation/atomicity, sprites, local shape pixels, isolated styles, nested apps and failure cleanup");
             Platform.exit();
         } catch (Throwable failure) { failure.printStackTrace(); System.exit(1); }

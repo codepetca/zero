@@ -1,0 +1,228 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {createRequire} from 'node:module';
+import {projectBuilderFilesSync} from './prepare-project-builder.mjs';
+const require=createRequire(import.meta.url);
+const core=require('../extension/src/core-contract');
+const repositoryRoot=fileURLToPath(new URL('../',import.meta.url));
+export const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+export const nativeCases=Object.freeze(['ActorCheck','AudioCheck','GameHelpersCheck','NavigationCheck','UiCheck','SmokeLauncher','PaddingLauncher'].map(name=>({id:'native/'+name,target:'native',fixture:'framework/checks/zero/'+name+'.java',harness:'scripts/verify-framework.mjs'})));
+export const browserCases=Object.freeze([
+ {id:'browser/helpers',target:'browser',fixture:'framework/web-checks/Main.java',harness:'scripts/web-browser-checks.js'},
+ {id:'browser/zero-ui',target:'browser',fixture:'framework/web-checks/navigation/Main.java',harness:'scripts/web-browser-checks.js'},
+ {id:'browser/audio',target:'browser',fixture:'framework/web-checks/audio/Main.java',harness:'scripts/web-browser-checks.js'},
+ {id:'browser/lifecycle',target:'browser',fixture:'framework/web-checks/lifecycle/Main.java',harness:'scripts/web-browser-checks.js'}
+]);
+const fail=message=>{throw new Error('API evidence: '+message);};
+const sha=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
+const bounded=value=>typeof value==='string'&&value.length>0&&value.length<=2048;
+function exact(value,keys,label){if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length!==keys.length||keys.some(key=>!Object.hasOwn(value,key)))fail('invalid '+label);}
+export function inventoryDeclarations({sourceRoot=repositoryRoot,javaHome=process.env.JAVA_HOME,cacheRoot=path.join(os.homedir(),'.cache/zero/web-export/compatibility-artifacts'),execute=spawnSync}={}) {
+ if(!javaHome||!path.isAbsolute(javaHome))fail('set --java-home to a cached standalone JDK 21; no tools will be downloaded');
+ const tool=path.join(javaHome,'bin',process.platform==='win32'?'java.exe':'java');
+ const environment=Object.fromEntries(['PATH','HOME','USERPROFILE','SystemRoot','TEMP','TMP','TMPDIR'].filter(key=>process.env[key]).map(key=>[key,process.env[key]]));
+ const probe=execute(tool,['-version'],{encoding:'utf8',env:environment,timeout:5000,maxBuffer:32768});
+ if(probe.status!==0||!/version "21\./.test((probe.stderr||'')+(probe.stdout||'')))fail('a cached full JDK 21 is required for semantic attribution');
+ const contract=JSON.parse(fs.readFileSync(path.join(sourceRoot,'extension/src/web-export/compatibility/contract.json'),'utf8'));
+ const jars=contract.attributionArtifacts.map(pin=>{const filename=path.join(cacheRoot,pin.file),bytes=fs.readFileSync(filename);if(hash(bytes)!==pin.sha256)fail('missing or modified cached attribution artifact '+pin.file);return filename;});
+ const directory=path.join(sourceRoot,'framework/src/main/java');
+ const found=fs.readdirSync(directory,{recursive:true,withFileTypes:true}).filter(entry=>entry.isFile()&&entry.name.endsWith('.java')).map(entry=>path.relative(directory,path.join(entry.parentPath,entry.name)).split(path.sep).join('/')).sort();
+ if(JSON.stringify(found)!==JSON.stringify(Object.keys(core.helperHashes).sort()))fail('review the complete core source inventory before generating API evidence');
+ const sources=found.map(name=>({path:'framework/src/main/java/'+name,sha256:hash(fs.readFileSync(path.join(directory,name)))}));
+ const output=execute(tool,[path.join(sourceRoot,'framework/evidence/ApiInventory.java'),jars.join(path.delimiter),directory,...sources.map(source=>path.join(sourceRoot,source.path))],{encoding:'utf8',env:environment,timeout:30000,maxBuffer:2*1024*1024});
+ if(output.error||output.status!==0)fail('semantic inventory failed: '+String(output.stderr||output.error).slice(0,6000));
+ const signatures=output.stdout.trim().split('\n').filter(Boolean).map(line=>{
+  const fields=line.split('\t').map(value=>Buffer.from(value,'base64').toString('utf8'));
+  if(fields.length!==11)fail('invalid semantic inventory record');
+  const [owner,signature,kind,name,returnType,modifiers,source,lineNumber,start,end,declarationSha256]=fields;
+  return {id:owner+'#'+signature,owner,signature,kind,name,returnType,modifiers:modifiers.split(',').filter(Boolean),source:'framework/src/main/java/'+source,line:Number(lineNumber),start:Number(start),end:Number(end),declarationSha256,evidence:{native:[],browser:[]}};
+ }).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+ const manifest={schema:1,scope:'Source-declared accessible public/protected members; inherited receiver use is a variant; compiler-generated and inaccessible nested members excluded.',sources,signatures};
+ validateSignatureManifest(manifest);return manifest;
+}
+export function validateSignatureManifest(manifest){
+ exact(manifest,['schema','scope','sources','signatures'],'signature manifest');
+ if(manifest.schema!==1||!bounded(manifest.scope)||!Array.isArray(manifest.sources)||!manifest.sources.length||manifest.sources.length>64||!Array.isArray(manifest.signatures)||!manifest.signatures.length||manifest.signatures.length>2048)fail('unsupported or oversized signature manifest');
+ const paths=new Set();for(const source of manifest.sources){exact(source,['path','sha256'],'source record');if(!bounded(source.path)||!source.path.startsWith('framework/src/main/java/')||source.path.includes('..')||!sha(source.sha256)||paths.has(source.path))fail('invalid/duplicate source');paths.add(source.path);}
+ const ids=new Set();for(const entry of manifest.signatures){
+  exact(entry,['id','owner','signature','kind','name','returnType','modifiers','source','line','start','end','declarationSha256','evidence'],'signature');
+  if(!bounded(entry.id)||entry.id!==entry.owner+'#'+entry.signature||ids.has(entry.id)||!['method','constructor','field','enum-constant'].includes(entry.kind)||!sha(entry.declarationSha256)||!paths.has(entry.source)||!Number.isSafeInteger(entry.line)||entry.line<1||!Number.isSafeInteger(entry.start)||!Number.isSafeInteger(entry.end)||entry.start<0||entry.end<=entry.start||!Array.isArray(entry.modifiers)||!entry.modifiers.some(item=>['public','protected'].includes(item)))fail('invalid/duplicate source declaration');ids.add(entry.id);
+  exact(entry.evidence,['native','browser'],'evidence mappings');
+  for(const target of ['native','browser']){if(!Array.isArray(entry.evidence[target])||entry.evidence[target].length>32)fail('invalid evidence mapping');const links=new Set();for(const link of entry.evidence[target]){exact(link,['caseId','assertionId','postcondition'],'evidence link');if(![...nativeCases,...browserCases].some(item=>item.target===target&&item.id===link.caseId)||!bounded(link.assertionId)||!bounded(link.postcondition)||links.has(link.caseId+'\0'+link.assertionId))fail('invalid/duplicate evidence link');links.add(link.caseId+'\0'+link.assertionId);}}
+ }
+ return manifest;
+}
+export function assertInventoryParity(actual,recorded){validateSignatureManifest(actual);validateSignatureManifest(recorded);const withoutEvidence=manifest=>({...manifest,signatures:manifest.signatures.map(entry=>({...entry,evidence:{native:[],browser:[]}}))});if(JSON.stringify(withoutEvidence(actual))!==JSON.stringify(withoutEvidence(recorded)))fail('source declaration inventory is stale; regenerate deliberately and refresh affected evidence');return recorded;}
+export function assertManifestSources(manifest,{sourceRoot=repositoryRoot}={}){validateSignatureManifest(manifest);for(const source of manifest.sources){const filename=path.resolve(sourceRoot,source.path);if(!filename.startsWith(path.resolve(sourceRoot)+path.sep)||hash(fs.readFileSync(filename))!==source.sha256)fail('stale source identity: '+source.path);}return manifest;}
+export function mapJavaProbeAssertions(manifest,{sourceRoot=repositoryRoot}={}) {
+ validateSignatureManifest(manifest);
+ const source=fs.readFileSync(path.join(sourceRoot,'framework/evidence/java/evidence/ApiSignatureChecks.java'),'utf8');
+ const cases={actors:['native/ActorCheck','browser/helpers'],ui:['native/UiCheck','browser/zero-ui'],host:['native/GameHelpersCheck','browser/lifecycle'],audio:['native/AudioCheck','browser/audio']};
+ const entries=new Map(manifest.signatures.map(entry=>[entry.id,entry]));
+ let group;for(const line of source.split('\n')) {
+  const method=line.match(/^    public static void (\w+)\(/);if(method)group=method[1];
+  const call=line.match(/\beq\("([^"]+)","([^"]+)","([^"]+)"/);if(!call)continue;
+  const [,signatureId,assertionId,postcondition]=call,entry=entries.get(signatureId);
+  if(!entry||!cases[group])fail('unmapped Java probe declaration '+signatureId);
+  for(const caseId of cases[group]){const target=caseId.split('/')[0];if(!entry.evidence[target].some(link=>link.caseId===caseId&&link.assertionId===assertionId))entry.evidence[target].push({caseId,assertionId,postcondition});}
+ }
+ return validateSignatureManifest(manifest);
+}
+
+// This consumes events emitted by the *Java* invocation/assertion wrapper. It
+// never substitutes a JavaScript callback for a Java method invocation.
+export function receiptFromJavaEvents({manifest,raw,identity,runId,target,caseId}) {
+ validateSignatureManifest(manifest);validateIdentity(identity);
+ if(!bounded(runId)||!['native','browser'].includes(target)||![...nativeCases,...browserCases].some(item=>item.id===caseId&&item.target===target))fail('invalid Java evidence case');
+ if(typeof raw!=='string'||Buffer.byteLength(raw)>2*1024*1024)fail('oversized Java event transport');
+ const matches=[...raw.matchAll(/ZERO_API_EVIDENCE_V1\n([\s\S]*?)END_ZERO_API_EVIDENCE/g)];
+ if(matches.length!==1)fail('expected exactly one Java event block');
+ const rows=matches[0][1].trimEnd().split('\n').filter(Boolean),events=[],outcomes=[],seen=new Set();
+ if(!rows.length||rows.length%2)fail('empty/incomplete Java observations');
+ for(let index=0;index<rows.length;index+=2){
+  const invoked=rows[index].split('|'),asserted=rows[index+1].split('|');
+  if(invoked.length!==3||asserted.length!==5||invoked[0]!=='I'||asserted[0]!=='A'||invoked[1]!==asserted[1]||invoked[2]!==asserted[2])fail('unordered Java invocation/postcondition events');
+  const [,signatureId,assertionId,postcondition,observation]=asserted,entry=manifest.signatures.find(entry=>entry.id===signatureId);
+  if(!entry?.evidence[target].some(link=>link.caseId===caseId&&link.assertionId===assertionId&&link.postcondition===postcondition)||seen.has(signatureId+'\0'+assertionId))fail('unmapped/duplicate Java observation');
+  seen.add(signatureId+'\0'+assertionId);const observationSha256=hash(JSON.stringify({javaObservation:observation})),invocation=events.length+1;
+  events.push({schema:1,runId,target,caseId,sequence:invocation,phase:'invoked',signatureId,assertionId});
+  events.push({schema:1,runId,target,caseId,sequence:invocation+1,phase:'asserted',signatureId,assertionId,postcondition,observationSha256});
+  outcomes.push({signatureId,declarationSha256:entry.declarationSha256,assertionId,postcondition,invocation,observationSha256,status:'passed'});
+ }
+ const log=events.map(event=>JSON.stringify(event)).join('\n')+'\n';
+ return {receipt:{schema:1,runId,target,caseId,identity,logSha256:hash(log),outcomes},log,raw};
+}
+
+export function browserExecutionRecords(raw,selection) {
+ if(typeof raw!=='string'||Buffer.byteLength(raw)>2*1024*1024)fail('oversized browser result');
+ const blocks=[...raw.matchAll(/### Result\s*\n([\s\S]*?)(?=\n### |$)/g)];
+ if(blocks.length!==1)fail('expected one structured browser result');
+ const observed=JSON.parse(blocks[0][1]),selected=selection.filter(id=>id!=='mobile');
+ if(observed.status!=='passed'||JSON.stringify(observed.selectedFixtures)!==JSON.stringify(selected)||!bounded(observed.browser)||!Array.isArray(observed.apiEvidence))fail('incomplete browser execution result');
+ const expected=selected.filter(id=>['helpers','zero-ui','audio','lifecycle'].includes(id)).map(id=>'browser/'+id);
+ if(observed.apiEvidence.length!==expected.length||observed.apiEvidence.some(item=>!item||!expected.includes(item.caseId)||typeof item.raw!=='string')||new Set(observed.apiEvidence.map(item=>item.caseId)).size!==expected.length)fail('missing, duplicate or unexpected browser Java evidence');
+ return observed;
+}
+
+export function packEvidenceDirectory(directory) {
+ const files=[];
+ function walk(folder,relative='') {
+  for(const entry of fs.readdirSync(folder,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))){
+   const name=relative?relative+'/'+entry.name:entry.name,filename=path.join(folder,entry.name);
+   if(entry.isSymbolicLink())fail('linked evidence artifact '+filename);
+   if(entry.isDirectory())walk(filename,name);
+   else if(entry.isFile())files.push({path:name,bytes:fs.readFileSync(filename)});
+   else fail('special evidence artifact '+filename);
+  }
+ }
+ walk(directory);
+ return Buffer.concat(files.flatMap(file=>{const name=Buffer.from(file.path),header=Buffer.alloc(12);header.writeUInt32BE(name.length);header.writeBigUInt64BE(BigInt(file.bytes.length),4);return [header,name,file.bytes];}));
+}
+function measuredFiles(files){return Buffer.from(JSON.stringify(files.map(filename=>{const stat=fs.lstatSync(filename);if(!stat.isFile()||stat.isSymbolicLink())fail('tool/harness must be an ordinary file');const bytes=fs.readFileSync(filename);return {path:path.resolve(filename),bytes:bytes.length,sha256:hash(bytes)};})));}
+export function executionIdentity({manifest,projectRoot,outputDirectory,toolFiles,platform,harnessFiles,sourceRoot=repositoryRoot}) {
+ assertManifestSources(manifest,{sourceRoot});
+ if(!Array.isArray(toolFiles)||!toolFiles.length||!Array.isArray(harnessFiles)||!harnessFiles.length||!bounded(platform))fail('execution must identify actual tools and harnesses');
+ if(fs.existsSync(path.join(projectRoot,'zero-libraries.json')))fail('bind actual managed libraries before recording this fixture');
+ for(const source of manifest.sources){const copied=path.join(projectRoot,source.path.slice('framework/'.length));if(hash(fs.readFileSync(copied))!==source.sha256)fail('assembled core source differs: '+source.path);}
+ const output=packEvidenceDirectory(outputDirectory),builder=projectBuilderFilesSync({sourceRoot});
+ const profile=Buffer.from(JSON.stringify(builder.map(file=>({path:file.path,sha256:hash(file.bytes),bytes:file.bytes.length}))));
+ const identity={manifestSha256:hash(JSON.stringify(manifest)),coreSha256:hash(JSON.stringify(manifest.sources)),profileSha256:hash(profile),contractSha256:hash(fs.readFileSync(path.join(sourceRoot,'extension/src/web-export/compatibility/contract.json'))),librariesSha256:hash('[]'),fixtureSha256:hash(packEvidenceDirectory(path.join(projectRoot,'src'))),harnessSha256:hash(measuredFiles(harnessFiles)),outputSha256:hash(output),toolSha256:hash(measuredFiles(toolFiles)),platform};
+ return {identity:validateIdentity(identity),output,inputs:{toolFiles,harnessFiles}};
+}
+export function persistJavaEvidence({directory,manifest,raw,identity,output,inputs,runId,target,caseId}) {
+ const converted=receiptFromJavaEvents({manifest,raw,identity,runId,target,caseId});
+ fs.mkdirSync(directory,{recursive:true});
+ const artifacts=path.join(directory,'artifacts');fs.mkdirSync(artifacts,{recursive:true});
+ fs.writeFileSync(path.join(artifacts,converted.receipt.logSha256),converted.log);
+ fs.writeFileSync(path.join(artifacts,identity.outputSha256),output);
+ fs.writeFileSync(path.join(artifacts,hash(raw)),raw);
+ fs.writeFileSync(path.join(directory,'receipt.json'),JSON.stringify(converted.receipt,null,2)+'\n');
+ if(inputs)fs.writeFileSync(path.join(directory,'identity-inputs.json'),JSON.stringify(inputs,null,2)+'\n');
+ fs.writeFileSync(path.join(directory,'expected-identity.json'),JSON.stringify(identity,null,2)+'\n');
+ fs.writeFileSync(path.join(directory,'java-events.json'),JSON.stringify({sha256:hash(raw),transport:'Actual Java invocation and postcondition events'},null,2)+'\n');
+ return converted.receipt;
+}
+export function loadJavaEvidence(directory,{manifest,checkCurrentInputs=true}) {
+ const receipts=[],expectedIdentities={},artifacts={};
+ for(const entry of fs.readdirSync(directory,{withFileTypes:true})) {
+  if(!entry.isDirectory()||entry.isSymbolicLink())fail('evidence root must contain ordinary case directories');
+  const folder=path.join(directory,entry.name),receipt=JSON.parse(fs.readFileSync(path.join(folder,'receipt.json'),'utf8'));
+  const identity=JSON.parse(fs.readFileSync(path.join(folder,'expected-identity.json'),'utf8'));
+  if(checkCurrentInputs){
+   assertManifestSources(manifest);
+   const inputs=JSON.parse(fs.readFileSync(path.join(folder,'identity-inputs.json'),'utf8'));
+   exact(inputs,['toolFiles','harnessFiles'],'current identity inputs');
+   if(!Array.isArray(inputs.toolFiles)||!inputs.toolFiles.length||!Array.isArray(inputs.harnessFiles)||!inputs.harnessFiles.length)fail('missing current tool/harness paths');
+   const profile=projectBuilderFilesSync({}).map(file=>({path:file.path,sha256:hash(file.bytes),bytes:file.bytes.length}));
+   if(identity.toolSha256!==hash(measuredFiles(inputs.toolFiles))||identity.harnessSha256!==hash(measuredFiles(inputs.harnessFiles))||identity.profileSha256!==hash(JSON.stringify(profile))||identity.coreSha256!==hash(JSON.stringify(manifest.sources))||identity.contractSha256!==hash(fs.readFileSync(path.join(repositoryRoot,'extension/src/web-export/compatibility/contract.json')))||identity.librariesSha256!==hash('[]'))fail('stale current tool, harness, fixture, profile or contract');
+  }
+  const transport=JSON.parse(fs.readFileSync(path.join(folder,'java-events.json'),'utf8'));
+  if(!sha(transport.sha256))fail('invalid Java transport identity');
+  const raw=fs.readFileSync(path.join(folder,'artifacts',transport.sha256),'utf8');
+  if(hash(raw)!==transport.sha256)fail('changed Java transport');
+  const rebuilt=receiptFromJavaEvents({manifest,raw,identity,runId:receipt.runId,target:receipt.target,caseId:receipt.caseId});
+  if(JSON.stringify(rebuilt.receipt)!==JSON.stringify(receipt))fail('receipt differs from actual Java observations');
+  const key=receipt.target+':'+receipt.caseId;if(expectedIdentities[key])fail('duplicate evidence case');expectedIdentities[key]=identity;
+  for(const digest of [receipt.logSha256,identity.outputSha256])artifacts[digest]=fs.readFileSync(path.join(folder,'artifacts',digest),digest===receipt.logSha256?'utf8':undefined);
+  receipts.push(receipt);
+ }
+ return {manifest,receipts,expectedIdentities,artifacts};
+}
+const identityKeys=['manifestSha256','coreSha256','profileSha256','contractSha256','librariesSha256','fixtureSha256','harnessSha256','outputSha256','toolSha256','platform'];
+export function validateIdentity(identity){exact(identity,identityKeys,'execution identities');for(const key of identityKeys)if(key==='platform'?!bounded(identity[key]):!sha(identity[key]))fail('invalid '+key);return identity;}
+// The trusted harness owns callbacks and emission. Merely finding a call in an
+// AST or writing a receipt cannot establish execution. Store the returned log
+// beside the actual compiled output; validation checks their retained hashes.
+export function createEvidenceRecorder({runId,target,caseId,emit=()=>{}}){
+ if(!bounded(runId)||!['native','browser'].includes(target)||![...nativeCases,...browserCases].some(item=>item.id===caseId&&item.target===target))fail('invalid evidence recorder case');
+ const events=[],outcomes=[],seen=new Set();let sequence=0;
+ const event=value=>{const record={schema:1,runId,target,caseId,sequence:++sequence,...value};events.push(record);emit(record);return record;};
+ return {async observe({signatureId,declarationSha256,assertionId,postcondition,invoke,assert}){
+  if(!bounded(signatureId)||!sha(declarationSha256)||!bounded(assertionId)||!bounded(postcondition)||typeof invoke!=='function'||typeof assert!=='function'||seen.has(signatureId+'\0'+assertionId))fail('invalid or duplicate observation');seen.add(signatureId+'\0'+assertionId);
+  const value=await invoke();const invocation=event({phase:'invoked',signatureId,assertionId}).sequence;
+  const observation=await assert(value);if(observation===false||observation===undefined)fail('postcondition did not pass: '+assertionId);
+  const observationSha256=hash(JSON.stringify(observation));event({phase:'asserted',signatureId,assertionId,postcondition,observationSha256});
+  const outcome={signatureId,declarationSha256,assertionId,postcondition,invocation,observationSha256,status:'passed'};outcomes.push(outcome);return value;
+ },finish(identity){validateIdentity(identity);const log=events.map(value=>JSON.stringify(value)).join('\n')+'\n';return {receipt:{schema:1,runId,target,caseId,identity,logSha256:hash(log),outcomes:[...outcomes]},log};}};
+}
+export function validateEvidenceReceipts({manifest,receipts=[],expectedIdentities={},artifacts={}}){
+ validateSignatureManifest(manifest);if(!Array.isArray(receipts)||receipts.length>256)fail('invalid receipt collection');
+ const entries=new Map(manifest.signatures.map(entry=>[entry.id,entry])),accepted=new Set(),runs=new Set();
+ for(const receipt of receipts){
+  exact(receipt,['schema','runId','target','caseId','identity','logSha256','outcomes'],'receipt');
+  if(receipt.schema!==1||!bounded(receipt.runId)||runs.has(receipt.runId)||!['native','browser'].includes(receipt.target)||!Array.isArray(receipt.outcomes)||!receipt.outcomes.length||receipt.outcomes.length>4096||!sha(receipt.logSha256))fail('duplicate, incomplete or unsupported receipt');runs.add(receipt.runId);validateIdentity(receipt.identity);
+  const expected=expectedIdentities[receipt.target+':'+receipt.caseId];if(!expected)fail('receipt has no current trusted execution identity');validateIdentity(expected);
+  if(identityKeys.some(key=>expected[key]!==receipt.identity[key])||receipt.identity.manifestSha256!==hash(JSON.stringify(manifest)))fail('stale or conflicting execution identity');
+  const log=artifacts[receipt.logSha256],output=artifacts[receipt.identity.outputSha256];if(typeof log!=='string'||Buffer.byteLength(log)>4*1024*1024||hash(log)!==receipt.logSha256||output===undefined||hash(output)!==receipt.identity.outputSha256)fail('missing/forged execution log or compiled output');
+  const events=log.trim().split('\n').filter(Boolean).map(line=>JSON.parse(line));
+  if(events.length!==receipt.outcomes.length*2||events.some((event,index)=>event.schema!==1||event.runId!==receipt.runId||event.target!==receipt.target||event.caseId!==receipt.caseId||event.sequence!==index+1))fail('incomplete/conflicting execution events');
+  for(const [index,outcome] of receipt.outcomes.entries()){
+   exact(outcome,['signatureId','declarationSha256','assertionId','postcondition','invocation','observationSha256','status'],'assertion outcome');
+   const entry=entries.get(outcome.signatureId),link=entry?.evidence[receipt.target].find(link=>link.caseId===receipt.caseId&&link.assertionId===outcome.assertionId&&link.postcondition===outcome.postcondition);
+   const key=receipt.target+'\0'+outcome.signatureId+'\0'+receipt.caseId+'\0'+outcome.assertionId;
+   if(!link||entry.declarationSha256!==outcome.declarationSha256||outcome.status!=='passed'||accepted.has(key)||!sha(outcome.observationSha256))fail('stale, duplicate, forged or unmapped assertion');
+   const invoked=events[index*2],asserted=events[index*2+1];
+   exact(invoked,['schema','runId','target','caseId','sequence','phase','signatureId','assertionId'],'invocation event');
+   exact(asserted,['schema','runId','target','caseId','sequence','phase','signatureId','assertionId','postcondition','observationSha256'],'postcondition event');
+   if(invoked.phase!=='invoked'||asserted.phase!=='asserted'||outcome.invocation!==invoked.sequence||[invoked,asserted].some(event=>event.signatureId!==outcome.signatureId||event.assertionId!==outcome.assertionId)||asserted.postcondition!==outcome.postcondition||asserted.observationSha256!==outcome.observationSha256)fail('assertion lacks ordered invocation and postcondition evidence');
+   accepted.add(key);
+  }
+ }
+ const gaps=[];let covered=0;
+ for(const entry of manifest.signatures)for(const target of ['native','browser']){const links=entry.evidence[target];if(!links.length){gaps.push({signatureId:entry.id,target,reason:'no executed assertion mapping'});continue;}const missing=links.filter(link=>!accepted.has(target+'\0'+entry.id+'\0'+link.caseId+'\0'+link.assertionId));if(missing.length)gaps.push({signatureId:entry.id,target,reason:'missing current executed receipt',assertions:missing.map(link=>link.assertionId)});else covered++;}
+ return {schema:1,status:gaps.length?'pending':'complete',declarations:manifest.signatures.length,requiredTargets:manifest.signatures.length*2,coveredTargets:covered,gaps};
+}
+async function main(args){
+ const flags=new Set(['--report','--require-complete','--write']);let javaHome=process.env.JAVA_HOME,cacheRoot,receiptsDirectory;
+ for(let index=0;index<args.length;index++){if(args[index]==='--java-home'){javaHome=args[++index];if(!javaHome)fail('missing --java-home');}else if(args[index]==='--cache'){cacheRoot=args[++index];if(!cacheRoot)fail('missing --cache');}else if(args[index]==='--receipts'){receiptsDirectory=args[++index];if(!receiptsDirectory)fail('missing --receipts');}else if(!flags.has(args[index]))fail('unknown argument '+args[index]);}
+ const filename=path.join(repositoryRoot,'framework/evidence/api-signatures.json');
+ if(args.includes('--write')){const actual=mapJavaProbeAssertions(inventoryDeclarations({javaHome,cacheRoot}));fs.writeFileSync(filename,JSON.stringify(actual,null,2)+'\n');console.log('Recorded '+actual.signatures.length+' semantic declarations; Java assertion mappings are pending actual execution.');return;}
+ const manifest=assertManifestSources(JSON.parse(fs.readFileSync(filename,'utf8')));
+ const report=validateEvidenceReceipts(receiptsDirectory?loadJavaEvidence(receiptsDirectory,{manifest}):{manifest});console.log(JSON.stringify(report,null,2));if(args.includes('--require-complete')&&report.status!=='complete')process.exitCode=1;
+}
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))main(process.argv.slice(2)).catch(error=>{console.error(error.message);process.exitCode=1;});

@@ -1,5 +1,8 @@
 package zero;
 
+import evidence.ApiSignatureChecks;
+import evidence.ApiNative;
+
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -63,6 +66,7 @@ public final class AudioCheck extends Application {
         malformed[20] = (byte) 0xff; malformed[21] = (byte) 0xff; // Invalid WAV encoding after a valid container signature.
         Files.write(resources.resolve("zero/broken-decode.wav"), malformed);
         owner = new Owner(); ownerStage = new Stage(); owner.start(ownerStage);
+        ApiSignatureChecks.audio(owner,"/zero/audio-check.wav");
         sound = owner.loadSound("/zero/audio-check.wav");
         require(sound == owner.loadSound("audio-check.wav") && sound == owner.loadSound("/zero/../zero/audio-check.wav"), "sound canonical aliases");
         sound.setVolume(.12); require(owner.loadSound("audio-check.wav").getVolume() == .12, "cached settings shared");
@@ -183,6 +187,7 @@ public final class AudioCheck extends Application {
                 require(failing.sound.isClosed() && failing.music.isClosed()
                         && player(failing.music).getStatus() == MediaPlayer.Status.DISPOSED, "frame failure closes audio");
                 failingStage.close(); Thread.currentThread().setUncaughtExceptionHandler(previousHandler);
+                ApiNative.emit();
                 System.out.println("ZERO_AUDIO_OK " + checks + " native checks: canonical effects, independent/pre-ready music, pause/rewind/repeated loops, mute/volume/errors, ownership and failure cleanup");
                 Platform.exit(); phase = 8; break;
         }

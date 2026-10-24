@@ -1,3 +1,5 @@
+import evidence.ApiProof;
+import evidence.ApiSignatureChecks;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -16,6 +18,7 @@ public final class Main extends GameApp {
     private boolean failed;
     @Override public void settings() { title("Zero web audio"); size(680, 260); }
     @Override public void setup() {
+        ApiSignatureChecks.audio(this,"/audio/tone.wav");
         Sound closed = loadSound("/audio/tone.wav"); closed.close(); closed.close();
         effect = loadSound("audio/tone.wav");
         require(effect != closed, "closed effect reload");
@@ -64,6 +67,7 @@ public final class Main extends GameApp {
     private boolean closed(Sound sound) { try { sound.play(); return false; } catch (IllegalStateException expected) { return !sound.isPlaying(); } }
     private boolean closed(Music music) { try { music.play(); return false; } catch (IllegalStateException expected) { return !music.isPlaying(); } }
     @Override public void draw() {
+        text(ApiProof.events(),-10000,-10000);
         background(Color.WHITE); fill(Color.BLACK); textSize(20);
         text("Audio API ready: " + checks, 10, 30);
         text("Effect playing: " + effect.isPlaying(), 10, 65);

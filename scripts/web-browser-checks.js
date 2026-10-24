@@ -1,8 +1,18 @@
 // Loaded by the pinned Playwright CLI as an async function, not a test-runner spec.
-async (page) => {
+async (initialPage) => {
+  let page = initialPage;
   const urls = __URLS__;
   const artifactRoot = __ARTIFACT_ROOT__;
   const results = [];
+  const apiEvidence=[];
+  const selection = typeof __SELECTION__ === 'undefined' ? Object.keys(urls) : __SELECTION__;
+  const known = ['helpers','quiz','drawing','audio','hello','mobile','zero-ui','counter','coin-game','lifecycle'];
+  if (!Array.isArray(selection) || !selection.length || selection.some(id => !known.includes(id)) || new Set(selection).size !== selection.length) throw new Error('Invalid browser fixture selection.');
+  if (!selection.some(id => id !== 'mobile')) throw new Error('No ordinary browser fixture was selected.');
+  const state = () => page.evaluate(() => window.__zeroCheck.last);
+  let s;
+  const cases = {};
+
   const helperImageDraws = 16;
   // JavaFX label peers also have aria-hidden text measurement nodes.
   const visibleText = (text) =>
@@ -11,7 +21,7 @@ async (page) => {
     results.push({ name, pass: !!condition, data });
     if (!condition) throw new Error(JSON.stringify(results));
   };
-  await page.addInitScript(() => {
+  const initialize = async () => { await page.addInitScript(() => {
     window.__zeroAudio = [];
     const create = document.createElement.bind(document);
     document.createElement = function(name, ...args) {
@@ -19,10 +29,11 @@ async (page) => {
       if (name.toLowerCase() === 'audio') window.__zeroAudio.push(element);
       return element;
     };
-    window.__zeroCheck = { texts: [], images: [], last: null, errors: [], draws: 0, clears: 0 };
+    window.__zeroCheck = { texts: [], images: [], last: null, errors: [], rejections: [], draws: 0, clears: 0 };
     addEventListener('error', (event) =>
       window.__zeroCheck.errors.push(event.message)
     );
+    addEventListener('unhandledrejection',event=>window.__zeroCheck.rejections.push(String(event.reason)));
     const p = CanvasRenderingContext2D.prototype,
       clear = p.clearRect,
       text = p.fillText,
@@ -37,6 +48,7 @@ async (page) => {
     };
     p.fillText = function (...args) {
       window.__zeroCheck.draws++;
+      if(String(args[0]).startsWith('ZERO_API_EVIDENCE_V1\n'))window.__zeroCheck.apiEvidence=String(args[0]);
       const actorFontMarkers = {'Actor checks ready':'before', 'Actor shape':'inside',
         'Actor failing font':'failing', 'Actor scope restored':'after'};
       const actorFontMarker = actorFontMarkers[String(args[0])];
@@ -62,12 +74,13 @@ async (page) => {
       return image.apply(this, args);
     };
   });
+  };
+  cases.helpers = async () => {
   await page.goto(urls.helpers);
   await page.waitForFunction(() =>
     window.__zeroCheck?.last?.texts.includes('Web helpers ready')
   );
-  const state = () => page.evaluate(() => window.__zeroCheck.last);
-  let s = await state();
+  s = await state();
   check(s.texts.includes('Game API checks ready'), 'Native/browser math and ArrayList semantics agree');
   check(s.texts.includes('Actor checks ready'), 'Actor subclasses, movement, aiming, validation and explicit animation updates agree');
   check(s.texts.includes('Full image region ready'), 'Full-image region bounds, shared backing image aliases and named null/missing errors pass');
@@ -204,6 +217,8 @@ async (page) => {
     await page.unroute('**/tiles.png', held);
     await page.unroute('**/late-image.png', held);
   }
+  };
+  cases.quiz = async () => {
   await page.goto(urls.quiz);
   await page.waitForSelector('input[type="text"]');
   await page.locator('input[type="text"]').fill('41');
@@ -237,6 +252,8 @@ async (page) => {
     (await page.evaluate(() => window.__zeroCheck.errors)).length === 0,
     'No JavaScript errors in quiz'
   );
+  };
+  cases.drawing = async () => {
   await page.goto(urls.drawing);
   await page.waitForSelector('canvas');
   const pixel = (x, y) =>
@@ -294,6 +311,8 @@ async (page) => {
     (await page.evaluate(() => window.__zeroCheck.errors)).length === 0,
     'No JavaScript errors in drawing'
   );
+  };
+  cases.audio = async () => {
   await page.goto(urls.audio);
   await page.getByText(/^Audio checks ready:/).filter({ visible: true }).waitFor();
   await page.waitForFunction(() => window.__zeroCheck.last?.texts.some(text => text.startsWith('Audio API ready:')));
@@ -411,6 +430,8 @@ async (page) => {
   await page.waitForTimeout(100);
   check(await page.evaluate(before => window.__zeroCheck.draws === before, finalDraws), 'Non-persisted pagehide stops the GameApp timer');
   check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'No JavaScript errors in audio fixture');
+  };
+  cases.hello = async () => {
   await page.goto(urls.hello);
   await page.locator('input[type="text"]').fill('Ada');
   await page.getByRole('button',{name:'Say hello',exact:true}).click();
@@ -432,6 +453,8 @@ async (page) => {
     'Cross-file resource URL with inferred var resolves packaged data (no CSS styling claim)',
     {url:resourceUrl.href,status:resourceResponse.status()});
   check((await page.evaluate(()=>window.__zeroCheck.errors)).length===0,'No JavaScript errors in greeting/resource probe');
+  };
+  cases['zero-ui'] = async () => {
   await page.setViewportSize({width:260,height:360});
   await page.goto(urls['zero-ui']);
   await visibleText('Probe title').waitFor();
@@ -668,6 +691,8 @@ async (page) => {
   await visibleText('Replacement HUD').waitFor();
   check(true, 'Ordinary title and menu views keep their callbacks functional while idle');
   check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'No JavaScript errors in Zero UI fixture');
+  };
+  cases.counter = async () => {
   await page.goto(urls.counter);
   await visibleText('Score: 0').waitFor();
   await page.getByRole('button', {name:'Add one', exact:true}).click();
@@ -679,6 +704,8 @@ async (page) => {
   await page.getByRole('button', {name:'Add one', exact:true}).click();
   await visibleText('Score: 1').waitFor();
   check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'Java-and-Zero-only counter updates and resets shared ScoreDisplay');
+  };
+  cases['coin-game'] = async () => {
   await page.goto(urls['coin-game']);
   await visibleText('COIN QUEST').waitFor();
   await page.screenshot({path:artifactRoot + '/coin-title.png'});
@@ -758,10 +785,53 @@ async (page) => {
   await visibleText('Time left: 30s').waitFor();
   check(true, 'Failure results can replay into a fresh game');
   check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'No JavaScript errors in fuller coin-game prototype');
+  };
+  cases.lifecycle = async () => {
+    await page.goto(urls.lifecycle);
+    await page.getByRole('button',{name:'Start game',exact:true}).waitFor();
+    const menuClears=await page.evaluate(()=>window.__zeroCheck.clears);
+    await page.waitForTimeout(150);
+    check(await page.evaluate(()=>window.__zeroCheck.clears)===menuClears,'Lifecycle menu is UI ready with no advancing game frames');
+    await page.getByRole('button',{name:'Start game',exact:true}).click();
+    await page.waitForFunction(()=>window.__zeroCheck.last?.texts.includes('Lifecycle evidence ready'));
+    check(await page.evaluate(()=>window.__zeroCheck.apiEvidence?.includes('END_ZERO_API_EVIDENCE')),'Lifecycle first frame emits actual Java host postconditions');
+    apiEvidence.push({caseId:'browser/lifecycle',raw:await page.evaluate(()=>window.__zeroCheck.apiEvidence)});
+    for(const fault of ['update','draw','UI','missing asset','setup','shutdown']) {
+      await page.reload();
+      await page.getByRole('button',{name:'Start game',exact:true}).waitFor();
+      if(!['setup','shutdown'].includes(fault)) {
+        await page.getByRole('button',{name:'Start game',exact:true}).click();
+        await page.waitForFunction(()=>window.__zeroCheck.last?.texts.includes('Lifecycle evidence ready'));
+      }
+      const failures=[];const onFailure=error=>failures.push(String(error));page.on('pageerror',onFailure);
+      try {
+        await page.getByRole('button',{name:'Fault '+fault,exact:true}).click();
+        await page.waitForFunction(()=>window.__zeroCheck.errors.length>0);
+        const before=await page.evaluate(()=>window.__zeroCheck.clears);
+        await page.waitForTimeout(150);
+        check(await page.evaluate(()=>window.__zeroCheck.clears)===before,'Lifecycle '+fault+' failure stops frame work');
+        check(failures.length>0||await page.evaluate(()=>window.__zeroCheck.errors.length>0),'Lifecycle '+fault+' failure is surfaced');
+      } finally {page.off('pageerror',onFailure);}
+    }
+    await page.reload();
+    await page.getByRole('button',{name:'Start game',exact:true}).waitFor();
+    await page.evaluate(()=>{Promise.reject(new Error('Lifecycle browser promise fault'));});
+    // The browser-level rejection reaches the runtime listener; the host preview
+    // protocol assertion is performed separately by the parent integration run.
+    await page.waitForFunction(()=>window.__zeroCheck.rejections.some(reason=>reason.includes('Lifecycle browser promise fault')));
+    check(true,'Lifecycle browser promise rejection reaches actual unhandled rejection event');
+  };
+  for (const id of selection.filter(id => id !== 'mobile')) {
+    if (!urls[id]) throw new Error('Missing selected browser fixture URL: ' + id);
+    page = await initialPage.context().newPage();
+    try { await initialize(); await cases[id](); if(['helpers','zero-ui','audio'].includes(id)){const raw=await page.evaluate(()=>window.__zeroCheck.apiEvidence);if(!raw)throw new Error('Missing Java observations for '+id);apiEvidence.push({caseId:'browser/'+id,raw});} } finally { await page.close(); }
+  }
   return {
+    selectedFixtures: selection.filter(id => id !== 'mobile'),
     status: 'passed',
+    apiEvidence,
     results,
-    browser: await page.evaluate(() => navigator.userAgent),
+    browser: await initialPage.evaluate(() => navigator.userAgent),
     scope:
       'Nested preview paths; physical tab switching and other browser engines need separate verification.'
   };

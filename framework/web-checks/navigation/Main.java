@@ -1,3 +1,5 @@
+import evidence.ApiProof;
+import evidence.ApiSignatureChecks;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import zero.GameApp;
@@ -20,6 +22,7 @@ public final class Main extends GameApp {
     private int keyMask;
     @Override public void settings() { title("Zero UI check"); size(320, 180); padding(0); }
     @Override public void setup() {
+        ApiSignatureChecks.ui();
         require(status.getText().equals("Before"), "Label constructor text");
         status.setText("Zero UI ready");
         require(status.getText().equals("Zero UI ready"), "Label replacement text");
@@ -203,6 +206,7 @@ public final class Main extends GameApp {
         }
     }
     @Override public void draw() {
+        text(ApiProof.events(),-10000,-10000);
         draws++;
         background(Color.WHITE);
         fill(Color.BLACK); textSize(16);

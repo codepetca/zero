@@ -22,12 +22,13 @@ async function readSources(directory) {
 }
 const pomPromise = fs.readFile(path.join(root, 'student-template/pom.xml'), 'utf8');
 const helpersPromise = readSources(path.join(root, 'framework/src/main/java'));
+const evidencePromise = readSources(path.join(root,'framework/evidence/java/evidence')).then(sources=>Object.fromEntries(Object.entries(sources).filter(([name])=>name!=='ApiNative.java').map(([name,source])=>['evidence/'+name,source])));
 let temporary;
 test.before(async () => { temporary = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'zero-semantic-'))); });
 test.after(async () => { await fs.rm(temporary, { recursive: true, force: true }); });
 async function check(sources, overrides = {}) {
   const workRoot = path.join(temporary, String(++counter)); await fs.mkdir(workRoot);
-  return checkCompatibility({ sources: { ...await helpersPromise, ...sources }, pom: await pomPromise, workRoot, cacheRoot: path.join(temporary, 'cache'), ...overrides });
+  return checkCompatibility({ sources: { ...await helpersPromise, ...await evidencePromise, ...sources }, pom: await pomPromise, workRoot, cacheRoot: path.join(temporary, 'cache'), ...overrides });
 }
 const app = body => `import zero.App;\npublic class Main extends App {\n public void setup() { ${body} }\n public static void main(String[] args) { launch(args); }\n}\n`;
 test('contract has an immutable explicit type/member boundary and hashed attribution inputs', async () => {

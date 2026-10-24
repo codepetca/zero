@@ -1,0 +1,4950 @@
+{
+  "schema": 1,
+  "scope": "Source-declared accessible public/protected members; inherited receiver use is a variant; compiler-generated and inaccessible nested members excluded.",
+  "sources": [
+    {
+      "path": "framework/src/main/java/zero/Actor.java",
+      "sha256": "8ee940c7d877571ba80d2adb7323956207a8961e62b00e5742c84ee3b991a797"
+    },
+    {
+      "path": "framework/src/main/java/zero/AnimationPlayback.java",
+      "sha256": "2b7e9cbbb6113a9b0ae751bc6db46bc07b2e1b515294b13a734016f13fb6616c"
+    },
+    {
+      "path": "framework/src/main/java/zero/AnimationSource.java",
+      "sha256": "6e8c59ead0dc61900ab51547c76295db0e3f72ecc1f314d62507a6861c23bb6e"
+    },
+    {
+      "path": "framework/src/main/java/zero/App.java",
+      "sha256": "8402997e9d6228ffdb2a13d90f87c8baa6ca3452b75e057e7f91df74c0a0d386"
+    },
+    {
+      "path": "framework/src/main/java/zero/Collisions.java",
+      "sha256": "1d1cc1c57fcbbcb8421bf469c6d74e5f1707c5542c265d1819f38e59fb4e67fe"
+    },
+    {
+      "path": "framework/src/main/java/zero/Color.java",
+      "sha256": "ac3e62480b526e4505c5640ce857757c13cec6134ec7d6d759c4321b785e07d7"
+    },
+    {
+      "path": "framework/src/main/java/zero/GameApp.java",
+      "sha256": "02197ea55d455b877a46ecd54d60b5322be1701d49ba209789aa67aaa823cac4"
+    },
+    {
+      "path": "framework/src/main/java/zero/ImageRegion.java",
+      "sha256": "0fd6961541501815c80f1979f7aa54d36f724a794f8d241ae26ba9c27e54d83d"
+    },
+    {
+      "path": "framework/src/main/java/zero/Key.java",
+      "sha256": "ddea0ecdbd6ff66b0b0ed8365fa4e9404a8cd0b4f44f27c5f57a443110b59dc3"
+    },
+    {
+      "path": "framework/src/main/java/zero/Music.java",
+      "sha256": "4c183bb3c7807cac3086dbbb29a388541c606c11b654ca4aad914ad3a5db8450"
+    },
+    {
+      "path": "framework/src/main/java/zero/Sound.java",
+      "sha256": "6247f0a0d6af9b610727094967af249321c58e6dda21ce1a2a989a3fc6e75286"
+    },
+    {
+      "path": "framework/src/main/java/zero/SpriteAnimation.java",
+      "sha256": "7eb05ad248f4b781870a27859f545bddaf4f5043ea580f01a9597566625ce93c"
+    },
+    {
+      "path": "framework/src/main/java/zero/ui/Button.java",
+      "sha256": "396bac56f3c35fe2274aadab10a0047d974600eef0c2815204168b71aac12c55"
+    },
+    {
+      "path": "framework/src/main/java/zero/ui/Column.java",
+      "sha256": "eeecc92fa722974da5b63ea842d5152b74436087953ab26b8d257a06fe3808e3"
+    },
+    {
+      "path": "framework/src/main/java/zero/ui/Element.java",
+      "sha256": "4ad21695876906252a91beba1e499f2da4ae15bcbb0dce883525ca91393a80b6"
+    },
+    {
+      "path": "framework/src/main/java/zero/ui/Label.java",
+      "sha256": "0165a8e484828ba82542f8bbc01c5db55d8ab0226dff4221c6fc97c7024808e0"
+    },
+    {
+      "path": "framework/src/main/java/zero/ui/Row.java",
+      "sha256": "75be7cf9339fe60df6308509d4a8116d328b0dc3bd636e8d3620002861da306a"
+    },
+    {
+      "path": "framework/src/main/java/zero/ui/TextField.java",
+      "sha256": "b5b26ea3e0f64e6b5ceb8f225b9c89691a615fa213c13723d28b42f3bb983188"
+    }
+  ],
+  "signatures": [
+    {
+      "id": "zero.Actor#<init>(double,double)",
+      "owner": "zero.Actor",
+      "signature": "<init>(double,double)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 14,
+      "start": 459,
+      "end": 549,
+      "declarationSha256": "109d2e549ec879dce0ffca4d7025566e01671f5c3a34095487a0de1b58372186",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-empty",
+            "postcondition": "Empty construction preserves centre and one-pixel logical size"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-empty",
+            "postcondition": "Empty construction preserves centre and one-pixel logical size"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#<init>(javafx.scene.image.Image,double,double)",
+      "owner": "zero.Actor",
+      "signature": "<init>(javafx.scene.image.Image,double,double)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 19,
+      "start": 555,
+      "end": 646,
+      "declarationSha256": "7c9ee944d99f41bbb69ba68dd2261552d0c4ab95cdbb615386427ac6c24db553",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-image",
+            "postcondition": "Image construction uses natural dimensions"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-image",
+            "postcondition": "Image construction uses natural dimensions"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#<init>(zero.AnimationSource,double,double)",
+      "owner": "zero.Actor",
+      "signature": "<init>(zero.AnimationSource,double,double)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 33,
+      "start": 998,
+      "end": 1158,
+      "declarationSha256": "654d390772806219b3963bf220279d02f27258abc17292b4609cec58c192223f",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-source",
+            "postcondition": "Source construction uses initial playback dimensions"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-source",
+            "postcondition": "Source construction uses initial playback dimensions"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#<init>(zero.ImageRegion,double,double)",
+      "owner": "zero.Actor",
+      "signature": "<init>(zero.ImageRegion,double,double)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 23,
+      "start": 652,
+      "end": 815,
+      "declarationSha256": "cf0db171a204f5b6d712bcd522f34ff33021c9291492559cf3807f75fc93372e",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-region",
+            "postcondition": "Region construction uses region dimensions"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-region",
+            "postcondition": "Region construction uses region dimensions"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#<init>(zero.SpriteAnimation,double,double)",
+      "owner": "zero.Actor",
+      "signature": "<init>(zero.SpriteAnimation,double,double)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 29,
+      "start": 821,
+      "end": 992,
+      "declarationSha256": "89400e2abaafe5ed775af8cba80ee60fab92f3f0b328eb5d577290d6c1ac8199",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-sprite",
+            "postcondition": "Sprite construction uses initial playback dimensions"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-sprite",
+            "postcondition": "Sprite construction uses initial playback dimensions"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#circle(double,double,double)",
+      "owner": "zero.Actor",
+      "signature": "circle(double,double,double)",
+      "kind": "method",
+      "name": "circle",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 193,
+      "start": 8038,
+      "end": 8167,
+      "declarationSha256": "7bb48a223b64813a135eb9f07c5902513f88555404b7ed87d405d2fd17fbb0c4",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Actor#draw()",
+      "owner": "zero.Actor",
+      "signature": "draw()",
+      "kind": "method",
+      "name": "draw",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 182,
+      "start": 7297,
+      "end": 7438,
+      "declarationSha256": "6df8090a2cba66714dfafcf760abbb56ce20f1bfcd85e9812015d76a12f502f2",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Actor#draw(zero.GameApp)",
+      "owner": "zero.Actor",
+      "signature": "draw(zero.GameApp)",
+      "kind": "method",
+      "name": "draw",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 164,
+      "start": 6570,
+      "end": 7182,
+      "declarationSha256": "fef24f1a253d5b2f6b268dc17d1862f1ab42cbe742ce8751a698a2bc3a6e15a0",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Actor#face(double,double)",
+      "owner": "zero.Actor",
+      "signature": "face(double,double)",
+      "kind": "method",
+      "name": "face",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 81,
+      "start": 2808,
+      "end": 3318,
+      "declarationSha256": "8d304c096c428e2d584a0d7276aba3dbe4c4d7f1ffc71d667e202a5aa293e65a",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-face",
+            "postcondition": "Facing a point below yields clockwise ninety degrees"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-face",
+            "postcondition": "Facing a point below yields clockwise ninety degrees"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#fill(zero.Color)",
+      "owner": "zero.Actor",
+      "signature": "fill(zero.Color)",
+      "kind": "method",
+      "name": "fill",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 187,
+      "start": 7444,
+      "end": 7517,
+      "declarationSha256": "88ff0102f8154ec479647642458ab0ce5d8d8925a9d94a9c1a71bfeeaede9c5a",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Actor#height()",
+      "owner": "zero.Actor",
+      "signature": "height()",
+      "kind": "method",
+      "name": "height",
+      "returnType": "double",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 42,
+      "start": 1298,
+      "end": 1345,
+      "declarationSha256": "60e5378cf47390c49716f769b53496cb2ed7dbb875b57a06fc44f7f5fd8b5116",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-height",
+            "postcondition": "Logical height starts at one"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-height",
+            "postcondition": "Logical height starts at one"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#line(double,double,double,double)",
+      "owner": "zero.Actor",
+      "signature": "line(double,double,double,double)",
+      "kind": "method",
+      "name": "line",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 194,
+      "start": 8172,
+      "end": 8280,
+      "declarationSha256": "e60117e07ad86291dc39419dbefb2c7e6014aa3758e4c92e154273ea175ccd09",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Actor#move(double,double)",
+      "owner": "zero.Actor",
+      "signature": "move(double,double)",
+      "kind": "method",
+      "name": "move",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 61,
+      "start": 1971,
+      "end": 2122,
+      "declarationSha256": "b5bd3ffe0bf4f5314506eefafc9f4aeffc8f4ce1d2ec8c36794e10ab407bf5eb",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-move",
+            "postcondition": "Pixel deltas change both coordinates"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-move",
+            "postcondition": "Pixel deltas change both coordinates"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#moveForward(double,double)",
+      "owner": "zero.Actor",
+      "signature": "moveForward(double,double)",
+      "kind": "method",
+      "name": "moveForward",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 67,
+      "start": 2210,
+      "end": 2575,
+      "declarationSha256": "3489d3a75bde961038dc36433aa66435097896f342145476906a94f8ae849759",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-forward",
+            "postcondition": "Signed speed times elapsed time follows heading"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-forward",
+            "postcondition": "Signed speed times elapsed time follows heading"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#moveToward(double,double,double,double)",
+      "owner": "zero.Actor",
+      "signature": "moveToward(double,double,double,double)",
+      "kind": "method",
+      "name": "moveToward",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 94,
+      "start": 3412,
+      "end": 4772,
+      "declarationSha256": "991361ec38eb36bd44e8fe1261c8d25d23b3136722f09f3dc2a594d1ef9b71ee",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-clamp",
+            "postcondition": "Approach stops at target without overshoot"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-clamp",
+            "postcondition": "Approach stops at target without overshoot"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#onUpdate(double)",
+      "owner": "zero.Actor",
+      "signature": "onUpdate(double)",
+      "kind": "method",
+      "name": "onUpdate",
+      "returnType": "void",
+      "modifiers": [
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 155,
+      "start": 6154,
+      "end": 6197,
+      "declarationSha256": "891817664cfe7a838f696c38ab9b244e26664efe8eb584aba94e366154bff3e5",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-behaviour-hook",
+            "postcondition": "Protected behaviour receives validated time on next update"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-behaviour-hook",
+            "postcondition": "Protected behaviour receives validated time on next update"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#outlineRect(double,double,double,double)",
+      "owner": "zero.Actor",
+      "signature": "outlineRect(double,double,double,double)",
+      "kind": "method",
+      "name": "outlineRect",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 192,
+      "start": 7901,
+      "end": 8033,
+      "declarationSha256": "63552f393eb5e6260ddbcc084ffc5c62bc8b89e7f274407e63d40ff31a879cb4",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Actor#rect(double,double,double,double)",
+      "owner": "zero.Actor",
+      "signature": "rect(double,double,double,double)",
+      "kind": "method",
+      "name": "rect",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 191,
+      "start": 7778,
+      "end": 7896,
+      "declarationSha256": "c9f75372c79943ad221d95b0daf773f0e8bb71e900ec1260e856e325901b7f17",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Actor#rotate(double)",
+      "owner": "zero.Actor",
+      "signature": "rotate(double)",
+      "kind": "method",
+      "name": "rotate",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 75,
+      "start": 2581,
+      "end": 2720,
+      "declarationSha256": "5c2e0c3cd9489f1a7269ce3b53c4f9d8b4f4e4af242531655ff2f04123176294",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-turn",
+            "postcondition": "Relative turn wraps across zero"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-turn",
+            "postcondition": "Relative turn wraps across zero"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#rotation()",
+      "owner": "zero.Actor",
+      "signature": "rotation()",
+      "kind": "method",
+      "name": "rotation",
+      "returnType": "double",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 43,
+      "start": 1350,
+      "end": 1401,
+      "declarationSha256": "7c37d199fce9ac9b64060f9461ec758a02d321bc1a0057002621401e17a6b85f",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-rotation",
+            "postcondition": "Initial rotation faces right"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-rotation",
+            "postcondition": "Initial rotation faces right"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#setImage(javafx.scene.image.Image)",
+      "owner": "zero.Actor",
+      "signature": "setImage(javafx.scene.image.Image)",
+      "kind": "method",
+      "name": "setImage",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 122,
+      "start": 4858,
+      "end": 4941,
+      "declarationSha256": "694eba1131dc414485698b28294bf90ef9cebf5266a2f40e8594972c1c4e39b4",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-static-image",
+            "postcondition": "Static replacement preserves explicit geometry"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-static-image",
+            "postcondition": "Static replacement preserves explicit geometry"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#setImage(zero.AnimationSource)",
+      "owner": "zero.Actor",
+      "signature": "setImage(zero.AnimationSource)",
+      "kind": "method",
+      "name": "setImage",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 135,
+      "start": 5289,
+      "end": 5718,
+      "declarationSha256": "99a1d448378eebae588a338a24e3a0d979ef62956e9092e66af7323606f1e3ef",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-set-source",
+            "postcondition": "Source replacement preserves geometry without ticking source"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-set-source",
+            "postcondition": "Source replacement preserves geometry without ticking source"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#setImage(zero.ImageRegion)",
+      "owner": "zero.Actor",
+      "signature": "setImage(zero.ImageRegion)",
+      "kind": "method",
+      "name": "setImage",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 126,
+      "start": 4947,
+      "end": 5114,
+      "declarationSha256": "57a630e218d9f7d2c92fcdfa0e99625b15d6c200ec2702a84a0440039b3e8103",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-static-region",
+            "postcondition": "Region replacement preserves explicit geometry"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-static-region",
+            "postcondition": "Region replacement preserves explicit geometry"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#setImage(zero.SpriteAnimation)",
+      "owner": "zero.Actor",
+      "signature": "setImage(zero.SpriteAnimation)",
+      "kind": "method",
+      "name": "setImage",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 131,
+      "start": 5120,
+      "end": 5283,
+      "declarationSha256": "ab91fe88ca226383e41c4b3e213c62f9d6a869890f67028f5ccf0daccf77aea1",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-set-sprite",
+            "postcondition": "Assigning sprite keeps geometry and legacy clock"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-set-sprite",
+            "postcondition": "Assigning sprite keeps geometry and legacy clock"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#setPosition(double,double)",
+      "owner": "zero.Actor",
+      "signature": "setPosition(double,double)",
+      "kind": "method",
+      "name": "setPosition",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 45,
+      "start": 1407,
+      "end": 1548,
+      "declarationSha256": "bbdcdab5fae8aab9af62aa8ed545ea6f804ab62894600eb226065f3c809210f7",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-position",
+            "postcondition": "Setting centre preserves logical size"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-position",
+            "postcondition": "Setting centre preserves logical size"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#setRotation(double)",
+      "owner": "zero.Actor",
+      "signature": "setRotation(double)",
+      "kind": "method",
+      "name": "setRotation",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 55,
+      "start": 1746,
+      "end": 1882,
+      "declarationSha256": "110017e462cea35a448df56a44352f0ade071a1967cce9fc31d17a4dd9ffe846",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-wrap",
+            "postcondition": "Negative rotation normalizes into a positive turn"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-wrap",
+            "postcondition": "Negative rotation normalizes into a positive turn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#setSize(double,double)",
+      "owner": "zero.Actor",
+      "signature": "setSize(double,double)",
+      "kind": "method",
+      "name": "setSize",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 50,
+      "start": 1554,
+      "end": 1740,
+      "declarationSha256": "94b9c37cba2ddc4896b9b483acbd7d3e5fdbe964d1c6a965b633f29bd7f9c4fd",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-size",
+            "postcondition": "Display dimensions change without moving centre"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-size",
+            "postcondition": "Display dimensions change without moving centre"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#stroke(zero.Color)",
+      "owner": "zero.Actor",
+      "signature": "stroke(zero.Color)",
+      "kind": "method",
+      "name": "stroke",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 188,
+      "start": 7522,
+      "end": 7599,
+      "declarationSha256": "9340c37f40032b5aec7aaeb3f18a8fae723cfd398f50b83f8f2d78eb07c0e365",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Actor#strokeWidth(double)",
+      "owner": "zero.Actor",
+      "signature": "strokeWidth(double)",
+      "kind": "method",
+      "name": "strokeWidth",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 189,
+      "start": 7604,
+      "end": 7689,
+      "declarationSha256": "9d2d0138bc96679863b7919e7f5764de0cd1093dcc39a84c64bc2bba41cb1ede",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Actor#text(java.lang.String,double,double)",
+      "owner": "zero.Actor",
+      "signature": "text(java.lang.String,double,double)",
+      "kind": "method",
+      "name": "text",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 195,
+      "start": 8285,
+      "end": 8380,
+      "declarationSha256": "f79090ce1a426d4ae8cee1e079966c2125542fa18993220456e79f886b114d81",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Actor#textCentered(java.lang.String,double,double)",
+      "owner": "zero.Actor",
+      "signature": "textCentered(java.lang.String,double,double)",
+      "kind": "method",
+      "name": "textCentered",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 196,
+      "start": 8385,
+      "end": 8496,
+      "declarationSha256": "8052d1c7f048046ec31a086c952b9ab9ff6b035ee04855e35a7d9c4492d4f563",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Actor#textSize(double)",
+      "owner": "zero.Actor",
+      "signature": "textSize(double)",
+      "kind": "method",
+      "name": "textSize",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 190,
+      "start": 7694,
+      "end": 7773,
+      "declarationSha256": "e21aa08129a308c37eabc7ba166a8eac36b640a96062cec6f307b52d9d48fe58",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Actor#update(double)",
+      "owner": "zero.Actor",
+      "signature": "update(double)",
+      "kind": "method",
+      "name": "update",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 145,
+      "start": 5813,
+      "end": 6060,
+      "declarationSha256": "c82457ba3c502404ae402329b7a7563a3f77ee1585f39d32965286535cf24803",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-update-owner",
+            "postcondition": "One explicit update invokes behaviour once with elapsed time"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-update-owner",
+            "postcondition": "One explicit update invokes behaviour once with elapsed time"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#width()",
+      "owner": "zero.Actor",
+      "signature": "width()",
+      "kind": "method",
+      "name": "width",
+      "returnType": "double",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 41,
+      "start": 1248,
+      "end": 1293,
+      "declarationSha256": "9db2f803699041061a64ed7c42ef693077e2f574ac2d2b7daa662686567d68c3",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-width",
+            "postcondition": "Logical width starts at one"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-width",
+            "postcondition": "Logical width starts at one"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#x()",
+      "owner": "zero.Actor",
+      "signature": "x()",
+      "kind": "method",
+      "name": "x",
+      "returnType": "double",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 39,
+      "start": 1164,
+      "end": 1201,
+      "declarationSha256": "f7258491b732a7288f5cf00819a506726ea735aa2ed4a034d17adb4a75bacc7e",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-x",
+            "postcondition": "Horizontal centre is readable"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-x",
+            "postcondition": "Horizontal centre is readable"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Actor#y()",
+      "owner": "zero.Actor",
+      "signature": "y()",
+      "kind": "method",
+      "name": "y",
+      "returnType": "double",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 40,
+      "start": 1206,
+      "end": 1243,
+      "declarationSha256": "8a657461d224cece2434e98a016644c155626cabe202ec7bc60e926386a18838",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-y",
+            "postcondition": "Vertical centre is readable"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-y",
+            "postcondition": "Vertical centre is readable"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.AnimationPlayback#frame()",
+      "owner": "zero.AnimationPlayback",
+      "signature": "frame()",
+      "kind": "method",
+      "name": "frame",
+      "returnType": "zero.ImageRegion",
+      "modifiers": [
+        "abstract",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/AnimationPlayback.java",
+      "line": 6,
+      "start": 178,
+      "end": 205,
+      "declarationSha256": "51c9052db68d58151b4dc482cf5b0f72e5c08e6d0e3fb9a4a436a5262437da34",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "playback-observe",
+            "postcondition": "Repeated frame reads observe the same selected region"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "playback-observe",
+            "postcondition": "Repeated frame reads observe the same selected region"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.AnimationPlayback#update(double)",
+      "owner": "zero.AnimationPlayback",
+      "signature": "update(double)",
+      "kind": "method",
+      "name": "update",
+      "returnType": "void",
+      "modifiers": [
+        "abstract",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/AnimationPlayback.java",
+      "line": 5,
+      "start": 138,
+      "end": 173,
+      "declarationSha256": "b21b0685e5cc39a58238c3c0bbcaa975ae6dce44c59b879250edc38177d020a2",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "playback-advance",
+            "postcondition": "Advancing one owner leaves the other at its initial frame"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "playback-advance",
+            "postcondition": "Advancing one owner leaves the other at its initial frame"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.AnimationSource#createPlayback()",
+      "owner": "zero.AnimationSource",
+      "signature": "createPlayback()",
+      "kind": "method",
+      "name": "createPlayback",
+      "returnType": "zero.AnimationPlayback",
+      "modifiers": [
+        "abstract",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/AnimationSource.java",
+      "line": 5,
+      "start": 143,
+      "end": 185,
+      "declarationSha256": "ded4c70eeab917e15800f89bbe21a2135263fb33a144c21ac3955ddd4be7a669",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "source-factory",
+            "postcondition": "Interface factory returns independent frame-zero clocks"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "source-factory",
+            "postcondition": "Interface factory returns independent frame-zero clocks"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.App#createContent()",
+      "owner": "zero.App",
+      "signature": "createContent()",
+      "kind": "method",
+      "name": "createContent",
+      "returnType": "javafx.scene.Node",
+      "modifiers": [
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 102,
+      "start": 4025,
+      "end": 4072,
+      "declarationSha256": "60f84612013fe3083aae5ec74430a7049987e64c32276c4ae93078d8da0ee97b",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.App#createScene(javafx.scene.layout.BorderPane)",
+      "owner": "zero.App",
+      "signature": "createScene(javafx.scene.layout.BorderPane)",
+      "kind": "method",
+      "name": "createScene",
+      "returnType": "javafx.scene.Scene",
+      "modifiers": [
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 103,
+      "start": 4077,
+      "end": 4176,
+      "declarationSha256": "13f80c9422079b7caa023d610c577e1dfaa1a38cf5e87fd22411fae04c21f76f",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.App#initialHeight()",
+      "owner": "zero.App",
+      "signature": "initialHeight()",
+      "kind": "method",
+      "name": "initialHeight",
+      "returnType": "double",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 101,
+      "start": 3960,
+      "end": 4020,
+      "declarationSha256": "7a4cbb238b96cc4028e2af8634c77662516bf2fec8ff7812645f22bdace0c4d3",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.App#initialWidth()",
+      "owner": "zero.App",
+      "signature": "initialWidth()",
+      "kind": "method",
+      "name": "initialWidth",
+      "returnType": "double",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 100,
+      "start": 3897,
+      "end": 3955,
+      "declarationSha256": "f3997327d0cb362834023fcef5ccf29ff5c3e24c19cc49880d313a85b1478599",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.App#loadMusic(java.lang.String)",
+      "owner": "zero.App",
+      "signature": "loadMusic(java.lang.String)",
+      "kind": "method",
+      "name": "loadMusic",
+      "returnType": "zero.Music",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 188,
+      "start": 7933,
+      "end": 8260,
+      "declarationSha256": "ec8ec825fdc85bd936422b6db32deca64307cbb6da4339addc5bca41120dea36",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "music-independent",
+            "postcondition": "Repeated load creates an independent music owner"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "music-independent",
+            "postcondition": "Repeated load creates an independent music owner"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.App#loadSound(java.lang.String)",
+      "owner": "zero.App",
+      "signature": "loadSound(java.lang.String)",
+      "kind": "method",
+      "name": "loadSound",
+      "returnType": "zero.Sound",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 175,
+      "start": 7426,
+      "end": 7838,
+      "declarationSha256": "fb9598ec3892ad2376c8070948d3b966a9904882c8c8481507cf27c8535b44e3",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "sound-cache",
+            "postcondition": "Repeated load borrows same app-owned sound"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "sound-cache",
+            "postcondition": "Repeated load borrows same app-owned sound"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.App#padding(double)",
+      "owner": "zero.App",
+      "signature": "padding(double)",
+      "kind": "method",
+      "name": "padding",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 56,
+      "start": 2080,
+      "end": 2381,
+      "declarationSha256": "9870c06a4497808face2096cbd710c354804c59a55c57701a04cefab531661eb",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.App#ready(javafx.stage.Stage)",
+      "owner": "zero.App",
+      "signature": "ready(javafx.stage.Stage)",
+      "kind": "method",
+      "name": "ready",
+      "returnType": "void",
+      "modifiers": [
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 104,
+      "start": 4181,
+      "end": 4218,
+      "declarationSha256": "3a138501dd25ac73c4502ff218bb8c8403cfd1e56bd376dd3d16b9982b658d0f",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.App#settings()",
+      "owner": "zero.App",
+      "signature": "settings()",
+      "kind": "method",
+      "name": "settings",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 37,
+      "start": 1201,
+      "end": 1227,
+      "declarationSha256": "bd8ee0d6a0df5908771a0d9e5e47d4bb63bdb5595518746c8d09f7f92f5a2c6f",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.App#setup()",
+      "owner": "zero.App",
+      "signature": "setup()",
+      "kind": "method",
+      "name": "setup",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 38,
+      "start": 1232,
+      "end": 1255,
+      "declarationSha256": "727d5a62e70b61a2626e0ccd740b791ffedd9646e43122515760da19690d1b9a",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.App#show(javafx.scene.Node)",
+      "owner": "zero.App",
+      "signature": "show(javafx.scene.Node)",
+      "kind": "method",
+      "name": "show",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 65,
+      "start": 2469,
+      "end": 2708,
+      "declarationSha256": "f6fb8ccf6f37771e82146af011be15ac7ccada690c6c2e129fd064ba27f8b98d",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.App#show(zero.ui.Element)",
+      "owner": "zero.App",
+      "signature": "show(zero.ui.Element)",
+      "kind": "method",
+      "name": "show",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 73,
+      "start": 2803,
+      "end": 2943,
+      "declarationSha256": "51094c4205e5ce88aac4d17bdbe29b9c1ff57c2c711813d5140fa4049efe1c36",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.App#shutdown()",
+      "owner": "zero.App",
+      "signature": "shutdown()",
+      "kind": "method",
+      "name": "shutdown",
+      "returnType": "void",
+      "modifiers": [
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 105,
+      "start": 4223,
+      "end": 4252,
+      "declarationSha256": "205f141f5803515d81aaf72164f4b04764f8ce59f4c0c70b93677a638242a41a",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.App#size(double,double)",
+      "owner": "zero.App",
+      "signature": "size(double,double)",
+      "kind": "method",
+      "name": "size",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 41,
+      "start": 1348,
+      "end": 1759,
+      "declarationSha256": "db1b8f5868a8e528ba9083ff233875621346ae5fd51b12e2cd0a14632bb2b3ef",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.App#start(javafx.stage.Stage)",
+      "owner": "zero.App",
+      "signature": "start(javafx.stage.Stage)",
+      "kind": "method",
+      "name": "start",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 107,
+      "start": 4258,
+      "end": 5642,
+      "declarationSha256": "1bf6336f647390fe9a2781a17ceea2bede5410fc91bfd78675d97f2714998de3",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.App#stop()",
+      "owner": "zero.App",
+      "signature": "stop()",
+      "kind": "method",
+      "name": "stop",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 139,
+      "start": 5648,
+      "end": 7318,
+      "declarationSha256": "c1219c7589071bac841145f56cb7d4d98a507f325c2936b44c94092b585db344",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.App#title(java.lang.String)",
+      "owner": "zero.App",
+      "signature": "title(java.lang.String)",
+      "kind": "method",
+      "name": "title",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/App.java",
+      "line": 50,
+      "start": 1765,
+      "end": 1986,
+      "declarationSha256": "3b09527ca58c377eae727c264c23d140f6d7f3eaddebe6fb43e4f56fe9289363",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Collisions#circleHitsCircle(double,double,double,double,double,double)",
+      "owner": "zero.Collisions",
+      "signature": "circleHitsCircle(double,double,double,double,double,double)",
+      "kind": "method",
+      "name": "circleHitsCircle",
+      "returnType": "boolean",
+      "modifiers": [
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Collisions.java",
+      "line": 20,
+      "start": 1002,
+      "end": 1917,
+      "declarationSha256": "260c8ec58fbc8ef4a7bcc21a557f32513bebf1ec3f711e268405fcc79fa63443",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "collision-circle",
+            "postcondition": "Separated circle boundaries do not collide"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "collision-circle",
+            "postcondition": "Separated circle boundaries do not collide"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Collisions#circleHitsRect(double,double,double,double,double,double,double)",
+      "owner": "zero.Collisions",
+      "signature": "circleHitsRect(double,double,double,double,double,double,double)",
+      "kind": "method",
+      "name": "circleHitsRect",
+      "returnType": "boolean",
+      "modifiers": [
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Collisions.java",
+      "line": 7,
+      "start": 149,
+      "end": 665,
+      "declarationSha256": "1f22c33f965bf8c2d9095096ef8083917ec5bc8095a1651e2e9168f14f556f7e",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "collision-mixed",
+            "postcondition": "Circle touching the near rectangle edge collides"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "collision-mixed",
+            "postcondition": "Circle touching the near rectangle edge collides"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Collisions#rectHitsRect(double,double,double,double,double,double,double,double)",
+      "owner": "zero.Collisions",
+      "signature": "rectHitsRect(double,double,double,double,double,double,double,double)",
+      "kind": "method",
+      "name": "rectHitsRect",
+      "returnType": "boolean",
+      "modifiers": [
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Collisions.java",
+      "line": 15,
+      "start": 670,
+      "end": 997,
+      "declarationSha256": "7a904f481d081da005a2db03a2f44a8f89b051703a99c11037af8a547beb079a",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "collision-rect",
+            "postcondition": "Touching rectangle edges count as contact"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "collision-rect",
+            "postcondition": "Touching rectangle edges count as contact"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Color#BLACK:zero.Color",
+      "owner": "zero.Color",
+      "signature": "BLACK:zero.Color",
+      "kind": "field",
+      "name": "BLACK",
+      "returnType": "zero.Color",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Color.java",
+      "line": 6,
+      "start": 208,
+      "end": 284,
+      "declarationSha256": "cee7210f8ed846bdaf0a673bc7571857cf314f0df94bea1e3319968898e8b5b5",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Color#BLUE:zero.Color",
+      "owner": "zero.Color",
+      "signature": "BLUE:zero.Color",
+      "kind": "field",
+      "name": "BLUE",
+      "returnType": "zero.Color",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Color.java",
+      "line": 7,
+      "start": 289,
+      "end": 363,
+      "declarationSha256": "f06546afeac811beafe70dc25bb5aaf0e3cb17a8f8e7a6cdd7c6d7086113f626",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Color#GOLD:zero.Color",
+      "owner": "zero.Color",
+      "signature": "GOLD:zero.Color",
+      "kind": "field",
+      "name": "GOLD",
+      "returnType": "zero.Color",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Color.java",
+      "line": 8,
+      "start": 368,
+      "end": 442,
+      "declarationSha256": "cd5ddf59c0e3d0d5895518f61268b3fd6312e397ad8e18cc7141b2582a8ecbad",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Color#WHITE:zero.Color",
+      "owner": "zero.Color",
+      "signature": "WHITE:zero.Color",
+      "kind": "field",
+      "name": "WHITE",
+      "returnType": "zero.Color",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Color.java",
+      "line": 5,
+      "start": 127,
+      "end": 203,
+      "declarationSha256": "cfbb54608f597f174deee0edd6c7130576fa27f84c72a7e509624632a13111ff",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Color#rgb(int,int,int)",
+      "owner": "zero.Color",
+      "signature": "rgb(int,int,int)",
+      "kind": "method",
+      "name": "rgb",
+      "returnType": "zero.Color",
+      "modifiers": [
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Color.java",
+      "line": 14,
+      "start": 574,
+      "end": 709,
+      "declarationSha256": "39aeaf2240b943f92ce91dab50d64a8ae89d9264214666124d5fb2329519f1b9",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "color-range",
+            "postcondition": "Out-of-range RGB is rejected before a color is returned"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "color-range",
+            "postcondition": "Out-of-range RGB is rejected before a color is returned"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.GameApp#background(javafx.scene.paint.Color)",
+      "owner": "zero.GameApp",
+      "signature": "background(javafx.scene.paint.Color)",
+      "kind": "method",
+      "name": "background",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 249,
+      "start": 10684,
+      "end": 10973,
+      "declarationSha256": "09fe6268da0dcecc556b0ef7633bc9f54246ea1fba57e45eed21ece7610d01e4",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#background(zero.Color)",
+      "owner": "zero.GameApp",
+      "signature": "background(zero.Color)",
+      "kind": "method",
+      "name": "background",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 259,
+      "start": 11120,
+      "end": 11273,
+      "declarationSha256": "abe83d475cc44cd8efc4873d71f86c4d3dc85c63827fcb54d973025e1eb94cd7",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#canvas()",
+      "owner": "zero.GameApp",
+      "signature": "canvas()",
+      "kind": "method",
+      "name": "canvas",
+      "returnType": "javafx.scene.canvas.Canvas",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 205,
+      "start": 8811,
+      "end": 8858,
+      "declarationSha256": "cd7b075e65f9a4843af6ebc411c19d1e8d3d75f3c536ab542281052ac2b8f47f",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "canvas-identity",
+            "postcondition": "Live canvas escape hatch preserves identity"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "canvas-identity",
+            "postcondition": "Live canvas escape hatch preserves identity"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.GameApp#circle(double,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "circle(double,double,double)",
+      "kind": "method",
+      "name": "circle",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 272,
+      "start": 11984,
+      "end": 12160,
+      "declarationSha256": "07ffd6b01ea245c1e27fbba16cf96bdc713ca8aed312d350c1abe5dfb4f32550",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#controls(zero.ui.Element)",
+      "owner": "zero.GameApp",
+      "signature": "controls(zero.ui.Element)",
+      "kind": "method",
+      "name": "controls",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 239,
+      "start": 10063,
+      "end": 10605,
+      "declarationSha256": "fa26014024991a5bf7074242a365448057dae9dfaf8ae7d04af853fe0226bc88",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#createContent()",
+      "owner": "zero.GameApp",
+      "signature": "createContent()",
+      "kind": "method",
+      "name": "createContent",
+      "returnType": "javafx.scene.Node",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 57,
+      "start": 2197,
+      "end": 3205,
+      "declarationSha256": "8a3d221311bb59672a918846786612a7d499342e57fda296d6073847796df8aa",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#createScene(javafx.scene.layout.BorderPane)",
+      "owner": "zero.GameApp",
+      "signature": "createScene(javafx.scene.layout.BorderPane)",
+      "kind": "method",
+      "name": "createScene",
+      "returnType": "javafx.scene.Scene",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 81,
+      "start": 3211,
+      "end": 3817,
+      "declarationSha256": "c91f7e292ecc54c193d7df1d43e37f03ccdb6ca94ce2a1d7ac0653f353b07310",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#draw()",
+      "owner": "zero.GameApp",
+      "signature": "draw()",
+      "kind": "method",
+      "name": "draw",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 50,
+      "start": 1970,
+      "end": 1992,
+      "declarationSha256": "b425b26c44c5a8f680f22cc86d09564737f7689de6b6c24fa67903a932179091",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#draw(zero.Actor)",
+      "owner": "zero.GameApp",
+      "signature": "draw(zero.Actor)",
+      "kind": "method",
+      "name": "draw",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 53,
+      "start": 2071,
+      "end": 2191,
+      "declarationSha256": "2f4a8dd8cf7a3b69f8e0d30ed36247a55f9d5e9a6a58e431462b486c8079e78c",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#fill(javafx.scene.paint.Color)",
+      "owner": "zero.GameApp",
+      "signature": "fill(javafx.scene.paint.Color)",
+      "kind": "method",
+      "name": "fill",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 257,
+      "start": 10978,
+      "end": 11042,
+      "declarationSha256": "d08932c0e0db97bfcc12c53791b8b0f9367d5d8adf03f4b329e6fb73903bcd07",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#fill(zero.Color)",
+      "owner": "zero.GameApp",
+      "signature": "fill(zero.Color)",
+      "kind": "method",
+      "name": "fill",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 262,
+      "start": 11278,
+      "end": 11413,
+      "declarationSha256": "6f1098208e9c2aed943025ada4c75806e3f80d038fac3afa5109d2e86d070413",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#graphics()",
+      "owner": "zero.GameApp",
+      "signature": "graphics()",
+      "kind": "method",
+      "name": "graphics",
+      "returnType": "javafx.scene.canvas.GraphicsContext",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 206,
+      "start": 8863,
+      "end": 8923,
+      "declarationSha256": "39e4b69551964692ae8eae8ce0a09e2fc6059280724f9a0fc3a8a6944978296c",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "graphics-identity",
+            "postcondition": "Live drawing context preserves identity"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "graphics-identity",
+            "postcondition": "Live drawing context preserves identity"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.GameApp#height()",
+      "owner": "zero.GameApp",
+      "signature": "height()",
+      "kind": "method",
+      "name": "height",
+      "returnType": "double",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 186,
+      "start": 7632,
+      "end": 7691,
+      "declarationSha256": "080d8da020b8bcda5b1f0ebfb9a0b31d9d547ff4fbbf8d631696507a63897bea",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "canvas-height",
+            "postcondition": "Canvas height matches settings"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "canvas-height",
+            "postcondition": "Canvas height matches settings"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.GameApp#image(javafx.scene.image.Image,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "image(javafx.scene.image.Image,double,double)",
+      "kind": "method",
+      "name": "image",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 284,
+      "start": 12760,
+      "end": 12853,
+      "declarationSha256": "9a8363b47866e86f60bb304dd8ef55fa3f54591d57f8954be72512d398b1e913",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#image(javafx.scene.image.Image,double,double,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "image(javafx.scene.image.Image,double,double,double,double)",
+      "kind": "method",
+      "name": "image",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 285,
+      "start": 12858,
+      "end": 13007,
+      "declarationSha256": "b65497ea93e9715c3b0c72d9c66b689eadc47f0f459edd12d713c8c6587d4ad0",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#image(zero.ImageRegion,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "image(zero.ImageRegion,double,double)",
+      "kind": "method",
+      "name": "image",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 291,
+      "start": 13183,
+      "end": 13316,
+      "declarationSha256": "455fde1b0b9a8a669f46cc32dee26126225a1bf502f324a55d2a7b5d85d68ea7",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#image(zero.ImageRegion,double,double,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "image(zero.ImageRegion,double,double,double,double)",
+      "kind": "method",
+      "name": "image",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 294,
+      "start": 13321,
+      "end": 13543,
+      "declarationSha256": "bb84b1e2baa41c7c21881048450f311f9c539ae34b4dde45d0709a25536add03",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#image(zero.SpriteAnimation,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "image(zero.SpriteAnimation,double,double)",
+      "kind": "method",
+      "name": "image",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 297,
+      "start": 13548,
+      "end": 13654,
+      "declarationSha256": "c1eaefbda7310cdb3ae942b62e273e085f35407e826e7251dc5b95d0f7bb96f0",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#image(zero.SpriteAnimation,double,double,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "image(zero.SpriteAnimation,double,double,double,double)",
+      "kind": "method",
+      "name": "image",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 298,
+      "start": 13659,
+      "end": 13821,
+      "declarationSha256": "c50cfb0fe8877714c9753321a1ab71f7b51b8c0828e7ceaa2d8baa7d6194773d",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#imageCentered(javafx.scene.image.Image,double,double,double,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "imageCentered(javafx.scene.image.Image,double,double,double,double,double)",
+      "kind": "method",
+      "name": "imageCentered",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 303,
+      "start": 13912,
+      "end": 14226,
+      "declarationSha256": "f92130e181354af0a56df4ccc9a38c30a30a1a65675ffc8b0f149b2a8b1f6bbc",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#imageCentered(zero.ImageRegion,double,double,double,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "imageCentered(zero.ImageRegion,double,double,double,double,double)",
+      "kind": "method",
+      "name": "imageCentered",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 308,
+      "start": 14231,
+      "end": 14553,
+      "declarationSha256": "c42ed5947b3db4fb112794239e986f969cc82e8c8ebfdf8874d6f50c0f041a81",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#imageCentered(zero.SpriteAnimation,double,double,double,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "imageCentered(zero.SpriteAnimation,double,double,double,double,double)",
+      "kind": "method",
+      "name": "imageCentered",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 313,
+      "start": 14558,
+      "end": 14771,
+      "declarationSha256": "c35943d2db881448d79828791638b2fd594d3f8c0348495c813a993110bc82eb",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#imageFlippedY(javafx.scene.image.Image,double,double,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "imageFlippedY(javafx.scene.image.Image,double,double,double,double)",
+      "kind": "method",
+      "name": "imageFlippedY",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 317,
+      "start": 14859,
+      "end": 15134,
+      "declarationSha256": "9fd8970b6aab877d0b4e4fba1768c39aae2bcf6a8f1ead0f89c46907046c0486",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#imageFlippedY(zero.ImageRegion,double,double,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "imageFlippedY(zero.ImageRegion,double,double,double,double)",
+      "kind": "method",
+      "name": "imageFlippedY",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 322,
+      "start": 15139,
+      "end": 15422,
+      "declarationSha256": "0e70054106ac6850b22a836cb6c5bb51f34943cc0b2af0545ed8a33089d3c246",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#imageFlippedY(zero.SpriteAnimation,double,double,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "imageFlippedY(zero.SpriteAnimation,double,double,double,double)",
+      "kind": "method",
+      "name": "imageFlippedY",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 327,
+      "start": 15427,
+      "end": 15605,
+      "declarationSha256": "73e99ee6a4137de95497e59ba15ed2155b70b695cb81322815183cc3b994b16f",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#imageRegion(javafx.scene.image.Image,double,double,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "imageRegion(javafx.scene.image.Image,double,double,double,double)",
+      "kind": "method",
+      "name": "imageRegion",
+      "returnType": "zero.ImageRegion",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 288,
+      "start": 13012,
+      "end": 13178,
+      "declarationSha256": "b159c848f893fd65d37db0b71bf958ecd1d9806e334b0d206602ee09059a6f28",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#isPaused()",
+      "owner": "zero.GameApp",
+      "signature": "isPaused()",
+      "kind": "method",
+      "name": "isPaused",
+      "returnType": "boolean",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 233,
+      "start": 9850,
+      "end": 9953,
+      "declarationSha256": "af7d2e41c4a94018c1ad189212ddf7c55b8fac88fc2b7aecff50c9e755651b65",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "host-paused",
+            "postcondition": "Paused state is readable"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "host-paused",
+            "postcondition": "Paused state is readable"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.GameApp#keyDown(javafx.scene.input.KeyCode)",
+      "owner": "zero.GameApp",
+      "signature": "keyDown(javafx.scene.input.KeyCode)",
+      "kind": "method",
+      "name": "keyDown",
+      "returnType": "boolean",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 189,
+      "start": 7800,
+      "end": 7872,
+      "declarationSha256": "33c7eb2406a62fa0f28bfa91d3de8e44f175e551d344db39bf7232d589e372be",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#keyDown(zero.Key)",
+      "owner": "zero.GameApp",
+      "signature": "keyDown(zero.Key)",
+      "kind": "method",
+      "name": "keyDown",
+      "returnType": "boolean",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 190,
+      "start": 7877,
+      "end": 8012,
+      "declarationSha256": "5fd391065ce42649bc49e3c491c3508281cc9ff0a59db5d7afa1d2f3fb74bef2",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#keyPressed(javafx.scene.input.KeyCode)",
+      "owner": "zero.GameApp",
+      "signature": "keyPressed(javafx.scene.input.KeyCode)",
+      "kind": "method",
+      "name": "keyPressed",
+      "returnType": "boolean",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 196,
+      "start": 8213,
+      "end": 8295,
+      "declarationSha256": "7498bacad957abbbf143c78ccad5d0e2cf1bce27bad00990351192d4561a75df",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#keyPressed(zero.Key)",
+      "owner": "zero.GameApp",
+      "signature": "keyPressed(zero.Key)",
+      "kind": "method",
+      "name": "keyPressed",
+      "returnType": "boolean",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 197,
+      "start": 8300,
+      "end": 8441,
+      "declarationSha256": "a386dd09f8d3337a48044b1fd387ceca6aa7497b67315042fd779eabaaca1404",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#layout()",
+      "owner": "zero.GameApp",
+      "signature": "layout()",
+      "kind": "method",
+      "name": "layout",
+      "returnType": "javafx.scene.layout.BorderPane",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 207,
+      "start": 8928,
+      "end": 8979,
+      "declarationSha256": "63d4351bdeea62c0a3b244e648d60d7071877f33a78f39c81a188235a70c7732",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "layout-identity",
+            "postcondition": "Retained layout preserves identity"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "layout-identity",
+            "postcondition": "Retained layout preserves identity"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.GameApp#line(double,double,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "line(double,double,double,double)",
+      "kind": "method",
+      "name": "line",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 275,
+      "start": 12165,
+      "end": 12272,
+      "declarationSha256": "61cccf2dc0feab783e62791b7298dcd9135f1456fe6cd0fb2912d2b630c5e610",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#loadAnimation(java.lang.String,int,int,double)",
+      "owner": "zero.GameApp",
+      "signature": "loadAnimation(java.lang.String,int,int,double)",
+      "kind": "method",
+      "name": "loadAnimation",
+      "returnType": "zero.SpriteAnimation",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 344,
+      "start": 16364,
+      "end": 16551,
+      "declarationSha256": "52bf142b5a769ed9da11fec7d3f547439bc6f28caed15691e5b41e61192fdbf0",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#loadImage(java.lang.String)",
+      "owner": "zero.GameApp",
+      "signature": "loadImage(java.lang.String)",
+      "kind": "method",
+      "name": "loadImage",
+      "returnType": "javafx.scene.image.Image",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 332,
+      "start": 15709,
+      "end": 16359,
+      "declarationSha256": "b1a5339da793e8f5ada9658ebf2d467656ca51a6463406e15373f00905cfb936",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#loadImageRegion(java.lang.String)",
+      "owner": "zero.GameApp",
+      "signature": "loadImageRegion(java.lang.String)",
+      "kind": "method",
+      "name": "loadImageRegion",
+      "returnType": "zero.ImageRegion",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 348,
+      "start": 16632,
+      "end": 16895,
+      "declarationSha256": "d55510058cf70a428159b7b04b77c327a281e19bf414628e2a45b4b66c9057da",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#mouseDown(javafx.scene.input.MouseButton)",
+      "owner": "zero.GameApp",
+      "signature": "mouseDown(javafx.scene.input.MouseButton)",
+      "kind": "method",
+      "name": "mouseDown",
+      "returnType": "boolean",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 193,
+      "start": 8017,
+      "end": 8104,
+      "declarationSha256": "b3834272c390913e29846dd5f0c1d1a822ee1f731ea3862a9087f7d637c58f28",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#mousePressed(javafx.scene.input.MouseButton)",
+      "owner": "zero.GameApp",
+      "signature": "mousePressed(javafx.scene.input.MouseButton)",
+      "kind": "method",
+      "name": "mousePressed",
+      "returnType": "boolean",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 200,
+      "start": 8446,
+      "end": 8543,
+      "declarationSha256": "8253b2079bc35ec8eb6e0b1d0575f7b65b8e66bd9c77114c18b29e9bbc6da903",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#mouseX()",
+      "owner": "zero.GameApp",
+      "signature": "mouseX()",
+      "kind": "method",
+      "name": "mouseX",
+      "returnType": "double",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 187,
+      "start": 7696,
+      "end": 7743,
+      "declarationSha256": "35b7f650c8b54fe8e9c4de6c4757b1b190d4a633010d5511e91f33514c90f68a",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#mouseY()",
+      "owner": "zero.GameApp",
+      "signature": "mouseY()",
+      "kind": "method",
+      "name": "mouseY",
+      "returnType": "double",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 188,
+      "start": 7748,
+      "end": 7795,
+      "declarationSha256": "1e0057ebf4c9a9721faf4973fc799e92b113ac3146c661dfd481559a981e9a5c",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#outlineRect(double,double,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "outlineRect(double,double,double,double)",
+      "kind": "method",
+      "name": "outlineRect",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 271,
+      "start": 11855,
+      "end": 11979,
+      "declarationSha256": "8f5ef6b24808a16479ea6fc309a627665f01a0bc03c309dfd632d0cbdf38baf6",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#pause()",
+      "owner": "zero.GameApp",
+      "signature": "pause()",
+      "kind": "method",
+      "name": "pause",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 217,
+      "start": 9377,
+      "end": 9520,
+      "declarationSha256": "a55327d7fabf93de26d4886ee90a1cb26096d9becbe232786525ef05408680f2",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "host-pause",
+            "postcondition": "Pause sets explicit paused state"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "host-pause",
+            "postcondition": "Pause sets explicit paused state"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.GameApp#ready(javafx.stage.Stage)",
+      "owner": "zero.GameApp",
+      "signature": "ready(javafx.stage.Stage)",
+      "kind": "method",
+      "name": "ready",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 97,
+      "start": 3823,
+      "end": 6584,
+      "declarationSha256": "eeebcbedda6aeb488ea54d4260f13761f5d106695f88afd9a1ccda1f479b66e8",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#rect(double,double,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "rect(double,double,double,double)",
+      "kind": "method",
+      "name": "rect",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 270,
+      "start": 11735,
+      "end": 11850,
+      "declarationSha256": "202f93b46b44197fe7b39d8da385afbffcff65c1bc10fd0952b35be4e24caf88",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#resume()",
+      "owner": "zero.GameApp",
+      "signature": "resume()",
+      "kind": "method",
+      "name": "resume",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 225,
+      "start": 9602,
+      "end": 9748,
+      "declarationSha256": "57e05e9b9f1c0a021aa231e914ab3103d3cc2cfc5a91f406745e4f4b96f5be16",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "host-resume",
+            "postcondition": "Resume clears explicit paused state"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "host-resume",
+            "postcondition": "Resume clears explicit paused state"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.GameApp#showGame()",
+      "owner": "zero.GameApp",
+      "signature": "showGame()",
+      "kind": "method",
+      "name": "showGame",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 210,
+      "start": 9082,
+      "end": 9295,
+      "declarationSha256": "15bbbd2574541152f9a67b7e3c6c83bd1d16739faff4d7ec3657a6d106398530",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#shutdown()",
+      "owner": "zero.GameApp",
+      "signature": "shutdown()",
+      "kind": "method",
+      "name": "shutdown",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 172,
+      "start": 7110,
+      "end": 7564,
+      "declarationSha256": "d339739852e86f54c2722d1742c70cdeb2932972c89e617ff8f5b35b420c8ae3",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#stroke(javafx.scene.paint.Color)",
+      "owner": "zero.GameApp",
+      "signature": "stroke(javafx.scene.paint.Color)",
+      "kind": "method",
+      "name": "stroke",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 258,
+      "start": 11047,
+      "end": 11115,
+      "declarationSha256": "f8694a4d14b787b3c506a67497165a6f55a561755e461671a04f814197124770",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#stroke(zero.Color)",
+      "owner": "zero.GameApp",
+      "signature": "stroke(zero.Color)",
+      "kind": "method",
+      "name": "stroke",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 265,
+      "start": 11418,
+      "end": 11559,
+      "declarationSha256": "49825ab38c55a41310dffb3c0f756a041b3094cf3a3d9bfd232bf5aa2f52d608",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#strokeWidth(double)",
+      "owner": "zero.GameApp",
+      "signature": "strokeWidth(double)",
+      "kind": "method",
+      "name": "strokeWidth",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 268,
+      "start": 11564,
+      "end": 11643,
+      "declarationSha256": "e95d53daed1657bdc4bcb45410ae849dc6b0c046ca08f3ddf861659c54c8ba51",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#text(java.lang.String,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "text(java.lang.String,double,double)",
+      "kind": "method",
+      "name": "text",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 277,
+      "start": 12342,
+      "end": 12434,
+      "declarationSha256": "725c945d3a4e8965898356777ef77ac187fad7381b12641215db00403c3ea591",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#textCentered(java.lang.String,double,double)",
+      "owner": "zero.GameApp",
+      "signature": "textCentered(java.lang.String,double,double)",
+      "kind": "method",
+      "name": "textCentered",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 279,
+      "start": 12525,
+      "end": 12755,
+      "declarationSha256": "5cb7480fce011ec1112addbf93aee37ae88cda136d5e5a2e23155a527fa412d3",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#textSize(double)",
+      "owner": "zero.GameApp",
+      "signature": "textSize(double)",
+      "kind": "method",
+      "name": "textSize",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 269,
+      "start": 11648,
+      "end": 11730,
+      "declarationSha256": "1ca54527ae1566e04844ef754b4960ce44df2d615d1a3960b78849af1ea6f4f6",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#update(double)",
+      "owner": "zero.GameApp",
+      "signature": "update(double)",
+      "kind": "method",
+      "name": "update",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 49,
+      "start": 1927,
+      "end": 1965,
+      "declarationSha256": "b6b1d0844d32f604945afc040737dbf9195add050c11ba1f2c2d87b81c691b26",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.GameApp#width()",
+      "owner": "zero.GameApp",
+      "signature": "width()",
+      "kind": "method",
+      "name": "width",
+      "returnType": "double",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 185,
+      "start": 7570,
+      "end": 7627,
+      "declarationSha256": "6cb578fde46b4d4a4297f05f4572e66f9e92ebf49723f9fafd1eef384cb3ba4e",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "canvas-width",
+            "postcondition": "Canvas width matches settings"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "canvas-width",
+            "postcondition": "Canvas width matches settings"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.GameApp#windowFocused()",
+      "owner": "zero.GameApp",
+      "signature": "windowFocused()",
+      "kind": "method",
+      "name": "windowFocused",
+      "returnType": "boolean",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 202,
+      "start": 8643,
+      "end": 8728,
+      "declarationSha256": "f70884cfb29da3d2ff58040635848d7ec42f8c83465fbd9e021e0ca319265806",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.ImageRegion#<init>(javafx.scene.image.Image,double,double,double,double)",
+      "owner": "zero.ImageRegion",
+      "signature": "<init>(javafx.scene.image.Image,double,double,double,double)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ImageRegion.java",
+      "line": 11,
+      "start": 264,
+      "end": 931,
+      "declarationSha256": "4ede452c9c4acbbaba74442917d9d849663b44da8c6ff7796cdc3b4818c797a7",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "region-construction",
+            "postcondition": "Region retains exact supplied bounds"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "region-construction",
+            "postcondition": "Region retains exact supplied bounds"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ImageRegion#height()",
+      "owner": "zero.ImageRegion",
+      "signature": "height()",
+      "kind": "method",
+      "name": "height",
+      "returnType": "double",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ImageRegion.java",
+      "line": 33,
+      "start": 1493,
+      "end": 1534,
+      "declarationSha256": "28290bac809ae5d9cb3e8ff69c506a2d09eefd8dce54a4c5aab997e8ed7a7c09",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "region-height",
+            "postcondition": "Atlas height is readable"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "region-height",
+            "postcondition": "Atlas height is readable"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ImageRegion#image()",
+      "owner": "zero.ImageRegion",
+      "signature": "image()",
+      "kind": "method",
+      "name": "image",
+      "returnType": "javafx.scene.image.Image",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ImageRegion.java",
+      "line": 29,
+      "start": 1334,
+      "end": 1372,
+      "declarationSha256": "fe5a4d2584812629b1a186463dc0d9a49ad0067e8f047a67d5d741970404d16d",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "region-image",
+            "postcondition": "Region borrows the original image identity"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "region-image",
+            "postcondition": "Region borrows the original image identity"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ImageRegion#width()",
+      "owner": "zero.ImageRegion",
+      "signature": "width()",
+      "kind": "method",
+      "name": "width",
+      "returnType": "double",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ImageRegion.java",
+      "line": 32,
+      "start": 1449,
+      "end": 1488,
+      "declarationSha256": "4d225ab1f3eccdce391a132ca0282668cc9075e990913a9013d6950eb41d3452",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "region-width",
+            "postcondition": "Atlas width is readable"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "region-width",
+            "postcondition": "Atlas width is readable"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ImageRegion#x()",
+      "owner": "zero.ImageRegion",
+      "signature": "x()",
+      "kind": "method",
+      "name": "x",
+      "returnType": "double",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ImageRegion.java",
+      "line": 30,
+      "start": 1377,
+      "end": 1408,
+      "declarationSha256": "3219e82d6f8984019b6a543fbd36f0252e9fd24ec956ec64a9fe2288ec1d8098",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "region-x",
+            "postcondition": "Horizontal atlas offset is readable"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "region-x",
+            "postcondition": "Horizontal atlas offset is readable"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ImageRegion#y()",
+      "owner": "zero.ImageRegion",
+      "signature": "y()",
+      "kind": "method",
+      "name": "y",
+      "returnType": "double",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ImageRegion.java",
+      "line": 31,
+      "start": 1413,
+      "end": 1444,
+      "declarationSha256": "b5f084521652c97f061798b474315e2481f36dc4c97da897fa2063b7d6828587",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "region-y",
+            "postcondition": "Vertical atlas offset is readable"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "region-y",
+            "postcondition": "Vertical atlas offset is readable"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Key#DOWN:zero.Key",
+      "owner": "zero.Key",
+      "signature": "DOWN:zero.Key",
+      "kind": "enum-constant",
+      "name": "DOWN",
+      "returnType": "zero.Key",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Key.java",
+      "line": 10,
+      "start": 209,
+      "end": 227,
+      "declarationSha256": "acc6e50f5556f04c31882c90e08528422a78ff5cbba97e611e00a2a3f63b9315",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Key#LEFT:zero.Key",
+      "owner": "zero.Key",
+      "signature": "LEFT:zero.Key",
+      "kind": "enum-constant",
+      "name": "LEFT",
+      "returnType": "zero.Key",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Key.java",
+      "line": 7,
+      "start": 139,
+      "end": 157,
+      "declarationSha256": "bb71f5bc61e7e9bfd4f8360894b9fb1bcbc90752c3ff72145294ed75642715ea",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Key#RIGHT:zero.Key",
+      "owner": "zero.Key",
+      "signature": "RIGHT:zero.Key",
+      "kind": "enum-constant",
+      "name": "RIGHT",
+      "returnType": "zero.Key",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Key.java",
+      "line": 8,
+      "start": 163,
+      "end": 183,
+      "declarationSha256": "8478daa2bafe949d77388340ee179e6d06faac06cd2b9a047b90c5012353d708",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Key#UP:zero.Key",
+      "owner": "zero.Key",
+      "signature": "UP:zero.Key",
+      "kind": "enum-constant",
+      "name": "UP",
+      "returnType": "zero.Key",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Key.java",
+      "line": 9,
+      "start": 189,
+      "end": 203,
+      "declarationSha256": "6474b9de5a0f749c6e187169729bec787028f167abfe19eaa86950e267b1798c",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Music#close()",
+      "owner": "zero.Music",
+      "signature": "close()",
+      "kind": "method",
+      "name": "close",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Music.java",
+      "line": 69,
+      "start": 3021,
+      "end": 3192,
+      "declarationSha256": "eea023e8898c81bc70548a82a928d5c78cb7924c2a5d3d91caa700aef5a315b3",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "music-close",
+            "postcondition": "Closing rejects later music controls"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "music-close",
+            "postcondition": "Closing rejects later music controls"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Music#getVolume()",
+      "owner": "zero.Music",
+      "signature": "getVolume()",
+      "kind": "method",
+      "name": "getVolume",
+      "returnType": "double",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Music.java",
+      "line": 63,
+      "start": 2505,
+      "end": 2549,
+      "declarationSha256": "cf773aeaa10cce179591692db24a3a5417f45da97e3007a4d01c67b2e38f1607",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "music-volume-read",
+            "postcondition": "Music getter returns selected volume"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "music-volume-read",
+            "postcondition": "Music getter returns selected volume"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Music#isMuted()",
+      "owner": "zero.Music",
+      "signature": "isMuted()",
+      "kind": "method",
+      "name": "isMuted",
+      "returnType": "boolean",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Music.java",
+      "line": 65,
+      "start": 2656,
+      "end": 2698,
+      "declarationSha256": "b75c444939db5362184a93e0664c55ed9b710a215b7832e64fb28156b0c1344c",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "music-mute-read",
+            "postcondition": "Music getter returns selected mute state"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "music-mute-read",
+            "postcondition": "Music getter returns selected mute state"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Music#isPlaying()",
+      "owner": "zero.Music",
+      "signature": "isPlaying()",
+      "kind": "method",
+      "name": "isPlaying",
+      "returnType": "boolean",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Music.java",
+      "line": 67,
+      "start": 2792,
+      "end": 2919,
+      "declarationSha256": "18dd164f654fc0b439072fa40ababf1dcbfc47831905bfff69a6bfb6adcc237f",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "music-closed-playing",
+            "postcondition": "Closed music cannot still be playing"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "music-closed-playing",
+            "postcondition": "Closed music cannot still be playing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Music#loop()",
+      "owner": "zero.Music",
+      "signature": "loop()",
+      "kind": "method",
+      "name": "loop",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Music.java",
+      "line": 49,
+      "start": 1894,
+      "end": 2029,
+      "declarationSha256": "f6769e51da84b27aaf87b57d6a44571907bfd17b1fd7738e661959503560ad2d",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Music#pause()",
+      "owner": "zero.Music",
+      "signature": "pause()",
+      "kind": "method",
+      "name": "pause",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Music.java",
+      "line": 54,
+      "start": 2034,
+      "end": 2125,
+      "declarationSha256": "39146a9440bb017906a38726d44a8dbee90d28ededaa82b8c463d358cd857b60",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Music#play()",
+      "owner": "zero.Music",
+      "signature": "play()",
+      "kind": "method",
+      "name": "play",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Music.java",
+      "line": 42,
+      "start": 1631,
+      "end": 1791,
+      "declarationSha256": "85835b9474311ef98d0675b2dbe0c879e92ab1aa4b7b41c070c5c803c91ebd4c",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Music#setMuted(boolean)",
+      "owner": "zero.Music",
+      "signature": "setMuted(boolean)",
+      "kind": "method",
+      "name": "setMuted",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Music.java",
+      "line": 64,
+      "start": 2554,
+      "end": 2651,
+      "declarationSha256": "d56c32732040a719df5a996dd4b4432a2b6dc36505644fff15430af1da385444",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "music-mute-change",
+            "postcondition": "Music mute changes remain readable"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "music-mute-change",
+            "postcondition": "Music mute changes remain readable"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Music#setVolume(double)",
+      "owner": "zero.Music",
+      "signature": "setVolume(double)",
+      "kind": "method",
+      "name": "setVolume",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Music.java",
+      "line": 60,
+      "start": 2356,
+      "end": 2500,
+      "declarationSha256": "efaedf0779aeaff3f8855d989623efa90f6bcb380a21e955f96d14b4f51f6947",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "music-volume-change",
+            "postcondition": "Music volume changes remain readable"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "music-volume-change",
+            "postcondition": "Music volume changes remain readable"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Music#stop()",
+      "owner": "zero.Music",
+      "signature": "stop()",
+      "kind": "method",
+      "name": "stop",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Music.java",
+      "line": 56,
+      "start": 2221,
+      "end": 2351,
+      "declarationSha256": "7c66096ea1876eddaa420e6c5caad04277f53e0d26c4f9dd4759adc0550b7289",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Sound#close()",
+      "owner": "zero.Sound",
+      "signature": "close()",
+      "kind": "method",
+      "name": "close",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Sound.java",
+      "line": 33,
+      "start": 1533,
+      "end": 1727,
+      "declarationSha256": "daeba68dcd4a4b25726bdcc8d9d7db3ac63a6c1747afca3c867c463d95310cff",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "sound-close",
+            "postcondition": "Closing rejects further playback controls"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "sound-close",
+            "postcondition": "Closing rejects further playback controls"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Sound#getVolume()",
+      "owner": "zero.Sound",
+      "signature": "getVolume()",
+      "kind": "method",
+      "name": "getVolume",
+      "returnType": "double",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Sound.java",
+      "line": 27,
+      "start": 1087,
+      "end": 1131,
+      "declarationSha256": "cf773aeaa10cce179591692db24a3a5417f45da97e3007a4d01c67b2e38f1607",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "sound-volume-read",
+            "postcondition": "Sound getter returns selected volume"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "sound-volume-read",
+            "postcondition": "Sound getter returns selected volume"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Sound#isMuted()",
+      "owner": "zero.Sound",
+      "signature": "isMuted()",
+      "kind": "method",
+      "name": "isMuted",
+      "returnType": "boolean",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Sound.java",
+      "line": 30,
+      "start": 1328,
+      "end": 1370,
+      "declarationSha256": "b75c444939db5362184a93e0664c55ed9b710a215b7832e64fb28156b0c1344c",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "sound-mute-read",
+            "postcondition": "Sound getter returns selected mute state"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "sound-mute-read",
+            "postcondition": "Sound getter returns selected mute state"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Sound#isPlaying()",
+      "owner": "zero.Sound",
+      "signature": "isPlaying()",
+      "kind": "method",
+      "name": "isPlaying",
+      "returnType": "boolean",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Sound.java",
+      "line": 31,
+      "start": 1375,
+      "end": 1441,
+      "declarationSha256": "d6953cc40ce456a57c8542e73e14cdbe534185aece5d448330ea622dc91c66eb",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "sound-closed-playing",
+            "postcondition": "Closed sound cannot still be playing"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "sound-closed-playing",
+            "postcondition": "Closed sound cannot still be playing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Sound#play()",
+      "owner": "zero.Sound",
+      "signature": "play()",
+      "kind": "method",
+      "name": "play",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Sound.java",
+      "line": 23,
+      "start": 754,
+      "end": 822,
+      "declarationSha256": "9c53be922de1f9c221cb2fa364d9f06d32baf3aa67645a4c80d1ab3d05454c0f",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.Sound#setMuted(boolean)",
+      "owner": "zero.Sound",
+      "signature": "setMuted(boolean)",
+      "kind": "method",
+      "name": "setMuted",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Sound.java",
+      "line": 29,
+      "start": 1225,
+      "end": 1323,
+      "declarationSha256": "669b79839d0f2bab6f2ff3d9fa0ea9e301a9ace1e1a5a92cf2a46d2e74cf0441",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "sound-mute-change",
+            "postcondition": "Mute changes remain readable"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "sound-mute-change",
+            "postcondition": "Mute changes remain readable"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Sound#setVolume(double)",
+      "owner": "zero.Sound",
+      "signature": "setVolume(double)",
+      "kind": "method",
+      "name": "setVolume",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Sound.java",
+      "line": 26,
+      "start": 958,
+      "end": 1082,
+      "declarationSha256": "ab248f6eb4ece7469378dc57e04bee3f833ac2591c7ee483c4bce1817db6a769",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "sound-volume-change",
+            "postcondition": "Volume changes remain readable"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "sound-volume-change",
+            "postcondition": "Volume changes remain readable"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Sound#stop()",
+      "owner": "zero.Sound",
+      "signature": "stop()",
+      "kind": "method",
+      "name": "stop",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Sound.java",
+      "line": 24,
+      "start": 827,
+      "end": 877,
+      "declarationSha256": "7d84bce2a4ee7e01a7c6e50e85daabae079dcf6a4f9130af26fc7e35de1a11b9",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.SpriteAnimation#<init>(double,zero.ImageRegion...)",
+      "owner": "zero.SpriteAnimation",
+      "signature": "<init>(double,zero.ImageRegion...)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/SpriteAnimation.java",
+      "line": 33,
+      "start": 1557,
+      "end": 2555,
+      "declarationSha256": "f651b34903fa96bf4a5beccd13d79723c4024ab2c5ccdfcf2d44b752689827fd",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "sprite-sequence",
+            "postcondition": "Explicit sequence retains both frame identities"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "sprite-sequence",
+            "postcondition": "Explicit sequence retains both frame identities"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.SpriteAnimation#<init>(javafx.scene.image.Image,int,int,double)",
+      "owner": "zero.SpriteAnimation",
+      "signature": "<init>(javafx.scene.image.Image,int,int,double)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/SpriteAnimation.java",
+      "line": 14,
+      "start": 400,
+      "end": 1442,
+      "declarationSha256": "8982a778cc2226fed9594b65fe6c6bbcd923e42a81a74b04004a4df73fb7c67b",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "sprite-grid",
+            "postcondition": "Grid construction divides the supplied image into two frames"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "sprite-grid",
+            "postcondition": "Grid construction divides the supplied image into two frames"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.SpriteAnimation#columns()",
+      "owner": "zero.SpriteAnimation",
+      "signature": "columns()",
+      "kind": "method",
+      "name": "columns",
+      "returnType": "int",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/SpriteAnimation.java",
+      "line": 72,
+      "start": 3789,
+      "end": 3829,
+      "declarationSha256": "d66ae4658946e51984d8866cbe73f01639129916d121b32b87e4a13355f08972",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "sprite-columns",
+            "postcondition": "Explicit sequence is one row with two columns"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "sprite-columns",
+            "postcondition": "Explicit sequence is one row with two columns"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.SpriteAnimation#createPlayback()",
+      "owner": "zero.SpriteAnimation",
+      "signature": "createPlayback()",
+      "kind": "method",
+      "name": "createPlayback",
+      "returnType": "zero.AnimationPlayback",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/SpriteAnimation.java",
+      "line": 49,
+      "start": 2657,
+      "end": 2735,
+      "declarationSha256": "f46578018a8d8d7a2b1187693c819ca5d097d66a5eee9d1abac01c3e4e062d8a",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "sprite-factory",
+            "postcondition": "Each Sprite factory call returns independent initial playback"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "sprite-factory",
+            "postcondition": "Each Sprite factory call returns independent initial playback"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.SpriteAnimation#fps()",
+      "owner": "zero.SpriteAnimation",
+      "signature": "fps()",
+      "kind": "method",
+      "name": "fps",
+      "returnType": "double",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/SpriteAnimation.java",
+      "line": 74,
+      "start": 3873,
+      "end": 3908,
+      "declarationSha256": "ded9d8e7815fd446835882ca704f7cbe298f99c36a2465f554117cb7c7326c42",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "sprite-fps",
+            "postcondition": "Configured frame rate remains readable"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "sprite-fps",
+            "postcondition": "Configured frame rate remains readable"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.SpriteAnimation#frame()",
+      "owner": "zero.SpriteAnimation",
+      "signature": "frame()",
+      "kind": "method",
+      "name": "frame",
+      "returnType": "zero.ImageRegion",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/SpriteAnimation.java",
+      "line": 69,
+      "start": 3616,
+      "end": 3675,
+      "declarationSha256": "1e385781861b2829451441df9b5934a9be109878bf4d272228e88421f11e6d3a",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "sprite-frame",
+            "postcondition": "Initial legacy frame is first region"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "sprite-frame",
+            "postcondition": "Initial legacy frame is first region"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.SpriteAnimation#frameCount()",
+      "owner": "zero.SpriteAnimation",
+      "signature": "frameCount()",
+      "kind": "method",
+      "name": "frameCount",
+      "returnType": "int",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/SpriteAnimation.java",
+      "line": 71,
+      "start": 3735,
+      "end": 3784,
+      "declarationSha256": "fb4de18a91794b64a3eed6d30a61f9e36d9d425f7b1d23d83c825fab9ad185a7",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "sprite-count",
+            "postcondition": "Frame count is exact"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "sprite-count",
+            "postcondition": "Frame count is exact"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.SpriteAnimation#frameIndex()",
+      "owner": "zero.SpriteAnimation",
+      "signature": "frameIndex()",
+      "kind": "method",
+      "name": "frameIndex",
+      "returnType": "int",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/SpriteAnimation.java",
+      "line": 70,
+      "start": 3680,
+      "end": 3730,
+      "declarationSha256": "9442cfa8e0ba3357b8506e987c4c344fbd24f7f95e6a8c48acc16960548ef841",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "sprite-index",
+            "postcondition": "Advanced frame has zero-based index one"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "sprite-index",
+            "postcondition": "Advanced frame has zero-based index one"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.SpriteAnimation#image()",
+      "owner": "zero.SpriteAnimation",
+      "signature": "image()",
+      "kind": "method",
+      "name": "image",
+      "returnType": "javafx.scene.image.Image",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/SpriteAnimation.java",
+      "line": 75,
+      "start": 3913,
+      "end": 3951,
+      "declarationSha256": "fe5a4d2584812629b1a186463dc0d9a49ad0067e8f047a67d5d741970404d16d",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "sprite-image",
+            "postcondition": "Animation borrows original backing image"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "sprite-image",
+            "postcondition": "Animation borrows original backing image"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.SpriteAnimation#reset()",
+      "owner": "zero.SpriteAnimation",
+      "signature": "reset()",
+      "kind": "method",
+      "name": "reset",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/SpriteAnimation.java",
+      "line": 68,
+      "start": 3574,
+      "end": 3611,
+      "declarationSha256": "d6da2b6bce4332700f6599949b8ce6ca48fd0d411e4d03d2f5983859e6a61d17",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "sprite-reset",
+            "postcondition": "Reset restores frame zero and fractional clock"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "sprite-reset",
+            "postcondition": "Reset restores frame zero and fractional clock"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.SpriteAnimation#rows()",
+      "owner": "zero.SpriteAnimation",
+      "signature": "rows()",
+      "kind": "method",
+      "name": "rows",
+      "returnType": "int",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/SpriteAnimation.java",
+      "line": 73,
+      "start": 3834,
+      "end": 3868,
+      "declarationSha256": "64e143b133f498bb1a27ab117b5551d6c295e9bf103776af8b859e3e5fd689ee",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "sprite-rows",
+            "postcondition": "Explicit sequence reports one row"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "sprite-rows",
+            "postcondition": "Explicit sequence reports one row"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.SpriteAnimation#update(double)",
+      "owner": "zero.SpriteAnimation",
+      "signature": "update(double)",
+      "kind": "method",
+      "name": "update",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/SpriteAnimation.java",
+      "line": 57,
+      "start": 3021,
+      "end": 3098,
+      "declarationSha256": "65e0d6b486ee0f12f4cd433d6e34fefeb376ac8246620c503f11796835d8630f",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "sprite-advance",
+            "postcondition": "Half a second advances exactly one frame at two fps"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "sprite-advance",
+            "postcondition": "Half a second advances exactly one frame at two fps"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Button#<init>(java.lang.String)",
+      "owner": "zero.ui.Button",
+      "signature": "<init>(java.lang.String)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Button.java",
+      "line": 9,
+      "start": 200,
+      "end": 402,
+      "declarationSha256": "861fdc696e5a47e16f9d4fdc98214c94304b4283b7248a1aec987a729f2e7024",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "button-construct",
+            "postcondition": "Constructor retains button text"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "button-construct",
+            "postcondition": "Constructor retains button text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Button#getText()",
+      "owner": "zero.ui.Button",
+      "signature": "getText()",
+      "kind": "method",
+      "name": "getText",
+      "returnType": "java.lang.String",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Button.java",
+      "line": 14,
+      "start": 408,
+      "end": 460,
+      "declarationSha256": "2c50a8e8c4cfbcbf2e1b5d3b6fd7f8ed051758a1358239f08bb98fdcf00636be",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "button-read",
+            "postcondition": "Getter returns latest button text"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "button-read",
+            "postcondition": "Getter returns latest button text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Button#onClick(java.lang.Runnable)",
+      "owner": "zero.ui.Button",
+      "signature": "onClick(java.lang.Runnable)",
+      "kind": "method",
+      "name": "onClick",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Button.java",
+      "line": 21,
+      "start": 689,
+      "end": 859,
+      "declarationSha256": "a6b7fa1e63e30e0177b3a2f0fdd25b9f412e91de053f680a7bf12ebf3248aa08",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.ui.Button#setText(java.lang.String)",
+      "owner": "zero.ui.Button",
+      "signature": "setText(java.lang.String)",
+      "kind": "method",
+      "name": "setText",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Button.java",
+      "line": 16,
+      "start": 466,
+      "end": 593,
+      "declarationSha256": "c0af039511e295999663c6c9b8fbf8ed92361863c367fb7a0ec978f32c776886",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "button-change",
+            "postcondition": "Setter changes button text"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "button-change",
+            "postcondition": "Setter changes button text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Column#<init>(double,zero.ui.Element...)",
+      "owner": "zero.ui.Column",
+      "signature": "<init>(double,zero.ui.Element...)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Column.java",
+      "line": 14,
+      "start": 340,
+      "end": 480,
+      "declarationSha256": "95b48e1f1de890c502e5d5fd46d36f8f72049c3da60935d77683dd3355325ee0",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "column-explicit",
+            "postcondition": "Constructor preserves explicit spacing"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "column-explicit",
+            "postcondition": "Constructor preserves explicit spacing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Column#<init>(zero.ui.Element...)",
+      "owner": "zero.ui.Column",
+      "signature": "<init>(zero.ui.Element...)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Column.java",
+      "line": 12,
+      "start": 277,
+      "end": 334,
+      "declarationSha256": "57a66e08336b56a33c9d32a48fc6206d1460ff1d5d0c997251f8a303b13f4eb0",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "column-default",
+            "postcondition": "Default spacing is eight pixels"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "column-default",
+            "postcondition": "Default spacing is eight pixels"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Column#getSpacing()",
+      "owner": "zero.ui.Column",
+      "signature": "getSpacing()",
+      "kind": "method",
+      "name": "getSpacing",
+      "returnType": "double",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Column.java",
+      "line": 19,
+      "start": 486,
+      "end": 544,
+      "declarationSha256": "a112a42e3b9e7e59ffb30ec4d04bb8c571d18ae3d516702e3b740149b04fa923",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "column-read",
+            "postcondition": "Spacing getter returns latest value"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "column-read",
+            "postcondition": "Spacing getter returns latest value"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Column#setSpacing(double)",
+      "owner": "zero.ui.Column",
+      "signature": "setSpacing(double)",
+      "kind": "method",
+      "name": "setSpacing",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Column.java",
+      "line": 21,
+      "start": 550,
+      "end": 665,
+      "declarationSha256": "cc1032ab76abfbc67a3839630b1c37aff3158f4ae68f6a6886c49ce8bb851880",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "column-change",
+            "postcondition": "Setter updates column spacing"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "column-change",
+            "postcondition": "Setter updates column spacing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Element#<init>(javafx.scene.Node)",
+      "owner": "zero.ui.Element",
+      "signature": "<init>(javafx.scene.Node)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "protected"
+      ],
+      "source": "framework/src/main/java/zero/ui/Element.java",
+      "line": 11,
+      "start": 271,
+      "end": 391,
+      "declarationSha256": "022f4314feeaec485556e6ce46d97c0d48717214b30ab075baf7139580b37c9b",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.ui.Element#fxNode()",
+      "owner": "zero.ui.Element",
+      "signature": "fxNode()",
+      "kind": "method",
+      "name": "fxNode",
+      "returnType": "javafx.scene.Node",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Element.java",
+      "line": 19,
+      "start": 670,
+      "end": 713,
+      "declarationSha256": "c7224b8f52d87d5a994eb85bc8b8b78fba67dac8b16a88842aa7a66e9316c4bc",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "element-node",
+            "postcondition": "Repeated advanced bridge returns the same backing node"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "element-node",
+            "postcondition": "Repeated advanced bridge returns the same backing node"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Element#setEnabled(boolean)",
+      "owner": "zero.ui.Element",
+      "signature": "setEnabled(boolean)",
+      "kind": "method",
+      "name": "setEnabled",
+      "returnType": "void",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Element.java",
+      "line": 16,
+      "start": 494,
+      "end": 570,
+      "declarationSha256": "0088b0130b85421614ecbc65cd05a1c4c72ac40e63285275b8b0b204ed03b598",
+      "evidence": {
+        "native": [],
+        "browser": []
+      }
+    },
+    {
+      "id": "zero.ui.Label#<init>(java.lang.String)",
+      "owner": "zero.ui.Label",
+      "signature": "<init>(java.lang.String)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Label.java",
+      "line": 9,
+      "start": 197,
+      "end": 394,
+      "declarationSha256": "d7c412abe6c9f7ac0230913dc15e522a92fb7efdcd1a6fb38535925dc2ab931c",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "label-construct",
+            "postcondition": "Constructor retains supplied label text"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "label-construct",
+            "postcondition": "Constructor retains supplied label text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Label#getText()",
+      "owner": "zero.ui.Label",
+      "signature": "getText()",
+      "kind": "method",
+      "name": "getText",
+      "returnType": "java.lang.String",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Label.java",
+      "line": 14,
+      "start": 400,
+      "end": 451,
+      "declarationSha256": "f25c7a081c6016ec062b721a56ce593a79b1436fbcfd0c111bcf405f2d0a2ead",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "label-read",
+            "postcondition": "Getter returns latest text"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "label-read",
+            "postcondition": "Getter returns latest text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Label#setText(java.lang.String)",
+      "owner": "zero.ui.Label",
+      "signature": "setText(java.lang.String)",
+      "kind": "method",
+      "name": "setText",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Label.java",
+      "line": 16,
+      "start": 457,
+      "end": 582,
+      "declarationSha256": "324119a7a6be229747b572262d36ea94a89aecb792c65dd8b056d49bbb790452",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "label-change",
+            "postcondition": "Changing label replaces displayed text"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "label-change",
+            "postcondition": "Changing label replaces displayed text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Row#<init>(double,zero.ui.Element...)",
+      "owner": "zero.ui.Row",
+      "signature": "<init>(double,zero.ui.Element...)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Row.java",
+      "line": 14,
+      "start": 330,
+      "end": 461,
+      "declarationSha256": "2f152aa03d89ffdd19cd982ceb7bb332036dd32ce2f2e113e051a050d3ff3a23",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "row-explicit",
+            "postcondition": "Constructor preserves explicit row spacing"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "row-explicit",
+            "postcondition": "Constructor preserves explicit row spacing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Row#<init>(zero.ui.Element...)",
+      "owner": "zero.ui.Row",
+      "signature": "<init>(zero.ui.Element...)",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Row.java",
+      "line": 12,
+      "start": 270,
+      "end": 324,
+      "declarationSha256": "d896d47986b73ee4f3eaa19208a8e30d79dad3cb1bcdeb30f995628e6eff3369",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "row-default",
+            "postcondition": "Default row spacing is eight pixels"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "row-default",
+            "postcondition": "Default row spacing is eight pixels"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Row#getSpacing()",
+      "owner": "zero.ui.Row",
+      "signature": "getSpacing()",
+      "kind": "method",
+      "name": "getSpacing",
+      "returnType": "double",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Row.java",
+      "line": 19,
+      "start": 467,
+      "end": 522,
+      "declarationSha256": "47914a9f3111948f3352516550ea76ed5019cfaab77e0d17049dd459ce3d6169",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "row-read",
+            "postcondition": "Spacing getter returns latest row value"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "row-read",
+            "postcondition": "Spacing getter returns latest row value"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.Row#setSpacing(double)",
+      "owner": "zero.ui.Row",
+      "signature": "setSpacing(double)",
+      "kind": "method",
+      "name": "setSpacing",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/Row.java",
+      "line": 21,
+      "start": 528,
+      "end": 640,
+      "declarationSha256": "7cd5fba0d9cec47982f7c6ad1431f1a6de5fdff9171c119ff04fd563843dfe68",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "row-change",
+            "postcondition": "Setter updates row spacing"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "row-change",
+            "postcondition": "Setter updates row spacing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.TextField#<init>()",
+      "owner": "zero.ui.TextField",
+      "signature": "<init>()",
+      "kind": "constructor",
+      "name": "<init>",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/TextField.java",
+      "line": 9,
+      "start": 229,
+      "end": 427,
+      "declarationSha256": "0bd959008bfb2c8c077153d4b5a193fd8fdafb0dfce9753c1debd76b9335d6c9",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "field-construct",
+            "postcondition": "New text field starts empty"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "field-construct",
+            "postcondition": "New text field starts empty"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.TextField#getPromptText()",
+      "owner": "zero.ui.TextField",
+      "signature": "getPromptText()",
+      "kind": "method",
+      "name": "getPromptText",
+      "returnType": "java.lang.String",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/TextField.java",
+      "line": 22,
+      "start": 625,
+      "end": 688,
+      "declarationSha256": "94e3126bdeb5507b6803641a68b8106c82d5cb27f4dfd8174301284e402fdc28",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "field-prompt-read",
+            "postcondition": "Prompt getter returns latest prompt"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "field-prompt-read",
+            "postcondition": "Prompt getter returns latest prompt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.TextField#getText()",
+      "owner": "zero.ui.TextField",
+      "signature": "getText()",
+      "kind": "method",
+      "name": "getText",
+      "returnType": "java.lang.String",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/TextField.java",
+      "line": 16,
+      "start": 433,
+      "end": 484,
+      "declarationSha256": "87c45e133f1f3dbbf4086aa28945aa381068e73cb4e394abdf9856cece47ad24",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "field-read",
+            "postcondition": "Text getter returns latest input"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "field-read",
+            "postcondition": "Text getter returns latest input"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.TextField#setPromptText(java.lang.String)",
+      "owner": "zero.ui.TextField",
+      "signature": "setPromptText(java.lang.String)",
+      "kind": "method",
+      "name": "setPromptText",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/TextField.java",
+      "line": 24,
+      "start": 694,
+      "end": 842,
+      "declarationSha256": "7d35d2fa8368bf10a3a539efa61f4c4c8a285d2f69a530b061231a08aa8a91bb",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "field-prompt-change",
+            "postcondition": "Prompt can change without altering field value"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "field-prompt-change",
+            "postcondition": "Prompt can change without altering field value"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.ui.TextField#setText(java.lang.String)",
+      "owner": "zero.ui.TextField",
+      "signature": "setText(java.lang.String)",
+      "kind": "method",
+      "name": "setText",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/ui/TextField.java",
+      "line": 18,
+      "start": 490,
+      "end": 619,
+      "declarationSha256": "3d205f145f26bedc84de7a7778d2d662eb6257ffc3a1a92df3c68022337c20bf",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "field-change",
+            "postcondition": "Programmatic text changes are readable"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "field-change",
+            "postcondition": "Programmatic text changes are readable"
+          }
+        ]
+      }
+    }
+  ]
+}
