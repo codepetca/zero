@@ -23,7 +23,11 @@ PreviewHubnav/taglineverified;previewcatalogunconfigurederrorreportedaccurately.
 390e8972CIWindows/Linuxpass;sourcegatefoundZeroDev4-vs6classassemblergap.
 Fixadds2helpers+canonicalclassinventoryregressionandnext-framepre-focus-helper
 Restartassertion;actualfullDevsmoke/rootPASS,negativefocuscontrolfailscorrectly.
-Publictemplate/frameworkbytesunchanged;targetedreview/newCIpending.
+Publictemplate/frameworkbytesunchanged;Devfix20b9291bSolhighclosureCLEAN.
+390browser10GWTbuilds/130ordinarychecksPASS,thenCACertsymlinksealfailed.
+8fafde02CI-onlybyteidenticalcacertssnapshot,JDK17+21;strictscannerunchanged.
+AstrahightargetedclosureCLEAN37tests+strictunrelatedlinkprobePASS.
+Ledger2initial+3targeted/3fixbatches;finalcorrectedCI/deploy/UIpending.
 
 ## Tutorial readiness and browser sign-in complete locally — 2026-10-24
 

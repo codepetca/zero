@@ -62,6 +62,25 @@ Root check PASS. Corrected-commit independent review and CI follow before merge.
 The earlier checker Java-version setup timeout passed on the unchanged final-head
 checker rerun; infrastructure cause is plausible but unproven. No check was relaxed.
 
+### Hosted JDK evidence preparation
+
+Browser run40128845988 built all10WebFXfixtures and completed130ordinary browser
+assertions, then failed while sealing tool identity at the hosted JDK's linked
+lib/security/cacerts. Mobile checks/final API coverage were not reached. Strict
+api-evidence traversal is retained. Both native JDK17 and browser JDK21 jobs now
+snapshot only that selected certificate link into an ordinary file before any
+execution/evidence. Bytes and permissions are preserved, the original shared
+target is unchanged, linked parents are refused and unrelated links still fail
+strict traversal. The CLI requires hosted-Linux CI markers as an accident guard.
+No developer/student JDK or publisher configuration is changed.
+
+Correction8fafde02:37CI/evidence tests PASS0skip androotPASS. Independent targeted
+Astra/high review COMPLETE/CLEAN over5files/immediateboundaries; independently
+37tests anddirectjavaToolFileslink-rejectionprobePASS. Dev correction20b9291b
+also has complete clean targeted Sol/high review with8independent tests. Current
+integration review ledger:2initial+3targetedturns,3fixbatches,0unresolvedfindings.
+Actual corrected-hosted execution, deployment/liveOAuth andstudentUIstillpending.
+
 ## Tutorial readiness and browser-first sign-in — 2026-10-24
 
 Local source only. Tutorial phase87a9b4ef prepares the three coherent current
