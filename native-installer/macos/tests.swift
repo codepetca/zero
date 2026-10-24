@@ -4,9 +4,9 @@ import Darwin
 
 #if ZERO_SETUP_TESTS
 private func snapshot(_ overrides: [String: Int] = [:]) -> String {
-    var values = ["kit": 1, "code": 1, "java": 1, "profile": 1, "zero": 1, "redhat": 1, "javaHomeBlocked": 0]
+    var values = ["kit": 1, "code": 1, "java": 1, "node": 1, "profile": 1, "zero": 1, "redhat": 1, "javaHomeBlocked": 0]
     values.merge(overrides) { _, new in new }
-    values["ready"] = ["kit", "code", "java", "profile", "zero", "redhat"].allSatisfy { values[$0] == 1 } ? 1 : 0
+    values["ready"] = ["kit", "code", "java", "node", "profile", "zero", "redhat"].allSatisfy { values[$0] == 1 } ? 1 : 0
     return "ZERO_SETUP_V1\n" + values.keys.sorted().map { "\($0)=\(values[$0]!)" }.joined(separator: "\n") + "\nEND_ZERO_SETUP\n"
 }
 private final class FakeRunner: SetupCommandRunning {
@@ -626,14 +626,52 @@ struct SetupTests {
         let archive = temporary.appendingPathComponent("valid-jdk.tar.gz")
         _ = try MacRuntime.execute("/usr/bin/tar", ["-czf", archive.path, "-C", payload.path, "jdk-test"])
         let digest = try MacRuntime.execute("/usr/bin/shasum", ["-a", "256", archive.path]).split(separator: " ").first.map(String.init)!
+        #if arch(arm64)
+        let nodeArchitecture = "arm64"
+        #else
+        let nodeArchitecture = "x64"
+        #endif
+        let nodeFolder = "node-v22.21.1-darwin-" + nodeArchitecture
+        let nodePayload = payload.appendingPathComponent(nodeFolder), nodeBin = nodePayload.appendingPathComponent("bin")
+        try MacRuntime.mkdir(nodeBin)
+        let fakeNode = nodeBin.appendingPathComponent("node")
+        try "#!/bin/bash\nif [ -n \"${NODE_OPTIONS-}${NODE_PATH-}${ELECTRON_RUN_AS_NODE-}\" ]; then exit 9; fi\necho v22.21.1\n".write(to:fakeNode,atomically:false,encoding:.utf8)
+        try manager.setAttributes([.posixPermissions:0o755],ofItemAtPath:fakeNode.path)
+        let npm = nodePayload.appendingPathComponent("lib/node_modules/npm/bin/npm-cli.js")
+        try MacRuntime.mkdir(npm.deletingLastPathComponent())
+        try "fixture only, never run".write(to:npm,atomically:false,encoding:.utf8)
+        try manager.createSymbolicLink(atPath:nodeBin.appendingPathComponent("npm").path,withDestinationPath:"../lib/node_modules/npm/bin/npm-cli.js")
+        let nodeArchive = temporary.appendingPathComponent("valid-node.tar.gz")
+        _ = try MacRuntime.execute("/usr/bin/tar",["-czf",nodeArchive.path,"-C",payload.path,nodeFolder])
+        let nodeDigest = try MacRuntime.execute("/usr/bin/shasum",["-a","256",nodeArchive.path]).split(separator:" ").first.map(String.init)!
         func manifest(_ hash: String = digest, _ url: String = "https://github.com/adoptium/test.tar.gz") throws {
             let asset: [String: Any] = ["url": url, "sha256": hash, "format": "tar.gz", "size": (try manager.attributesOfItem(atPath: archive.path)[.size] as! NSNumber).intValue]
             let editor: [String: Any] = ["url": "https://vscode.download.prss.microsoft.com/test.zip", "sha256": String(repeating: "a", count: 64), "format": "zip", "size": 100]
-            let values: [String: Any] = ["schemaVersion": 1, "architectures": ["arm64": ["jdk": asset, "vscode": editor], "x64": ["jdk": asset, "vscode": editor]]]
+            var architectures: [String:Any] = [:]
+            for architecture in ["arm64","x64"] {
+                let node: [String:Any] = ["url":"https://nodejs.org/dist/v22.21.1/node-v22.21.1-darwin-\(architecture).tar.gz","sha256":nodeDigest,"version":"22.21.1","format":"tar.gz","size":(try manager.attributesOfItem(atPath:nodeArchive.path)[.size] as! NSNumber).intValue]
+                architectures[architecture] = ["jdk":asset,"vscode":editor,"node":node]
+            }
+            let values: [String: Any] = ["schemaVersion": 1, "architectures": architectures]
             try JSONSerialization.data(withJSONObject: values).write(to: runtimeKit.root.appendingPathComponent("setup/mac-downloads.json"))
         }
         try manifest()
         let argumentRuntime = try MacRuntime(kit: runtimeKit.root, home: temporary.appendingPathComponent("argument home"))
+        try rejected("unsigned Node fixture without explicit vendor-test hook") { _ = try argumentRuntime.verifyNodeBinary(fakeNode) }
+        let originalNodeScript = try Data(contentsOf:fakeNode)
+        try "#!/bin/bash\necho v20.0.0\n".write(to:fakeNode,atomically:false,encoding:.utf8)
+        var wrongNodeFixture = argumentRuntime
+        wrongNodeFixture.testDownload = { _,_ in } // Compile-time disposable-vendor fixture only.
+        try rejected("wrong standalone Node version") { _ = try wrongNodeFixture.verifyNodeBinary(fakeNode) }
+        try originalNodeScript.write(to:fakeNode)
+        let metadataPath = runtimeKit.root.appendingPathComponent("setup/mac-downloads.json")
+        let originalMetadata = try String(contentsOf:metadataPath,encoding:.utf8)
+        for bad in [originalMetadata.replacingOccurrences(of:"nodejs.org",with:"nodejs.org.evil.test"),
+                    originalMetadata.replacingOccurrences(of:"node-v22.21.1-darwin-",with:"node-v22.21.1-linux-")] {
+            try bad.write(to:metadataPath,atomically:false,encoding:.utf8)
+            try rejected("unofficial or wrong-platform Node metadata") { _ = try MacRuntime(kit:runtimeKit.root,home:temporary.appendingPathComponent("metadata home")) }
+        }
+        try originalMetadata.write(to:metadataPath,atomically:false,encoding:.utf8)
         try expect(argumentRuntime.editorArguments(resuming: false) == argumentRuntime.isolated + ["--new-window"], "first runtime opening selects empty window and separate Zero environment")
         try expect(argumentRuntime.editorArguments(resuming: true) == argumentRuntime.isolated, "resume uses separate Zero environment and lets VS Code restore session")
         let updateMarker = argumentRuntime.root.appendingPathComponent("editor/update-ready.json")
@@ -659,13 +697,38 @@ struct SetupTests {
         let runtimeHome = temporary.appendingPathComponent("private runtime home")
         try MacRuntime.mkdir(runtimeHome)
         var runtime = try MacRuntime(kit: runtimeKit.root, home: runtimeHome)
-        try expect(try runtime.javaHome() == nil && !manager.fileExists(atPath: runtime.root.path), "read-only Java discovery creates nothing")
-        runtime.testDownload = { target, _ in try manager.copyItem(at: archive, to: target) }
+        try expect(try runtime.javaHome() == nil && runtime.nodeExecutable() == nil && !manager.fileExists(atPath: runtime.root.path), "read-only Java and Node discovery create nothing")
+        runtime.testDownload = { target, asset in try manager.copyItem(at:asset.url.contains("nodejs.org") ? nodeArchive : archive,to:target) }
         try runtime.install("jdk")
+        try runtime.prepareNode()
+        try expect(try runtime.nodeExecutable() == runtime.nodeBinary, "pinned standalone Node selected from private hash folder")
+        let parentNodeOptions = ProcessInfo.processInfo.environment["NODE_OPTIONS"], parentNodePath = ProcessInfo.processInfo.environment["NODE_PATH"]
+        setenv("NODE_OPTIONS","--require=/untrusted-fixture-preload",1); setenv("NODE_PATH","/untrusted-fixture-modules",1)
+        defer {
+            if let parentNodeOptions { setenv("NODE_OPTIONS",parentNodeOptions,1) } else { unsetenv("NODE_OPTIONS") }
+            if let parentNodePath { setenv("NODE_PATH",parentNodePath,1) } else { unsetenv("NODE_PATH") }
+        }
+        try expect(try runtime.nodeExecutable() == runtime.nodeBinary && runtime.environment(try runtime.javaHome()!)["NODE_OPTIONS"] == nil && runtime.environment(try runtime.javaHome()!)["NODE_PATH"] == nil, "Node version probe and editor environment reject inherited preloads/modules")
+        try expect(try manager.destinationOfSymbolicLink(atPath:runtime.nodeBinary.deletingLastPathComponent().appendingPathComponent("npm").path) == "../lib/node_modules/npm/bin/npm-cli.js", "Node npm link extracted only as a contained link, never executed")
         let selected = try runtime.javaHome()!
         try expect(selected.path.hasPrefix(runtime.root.path), "private verified Java selected independently of host JAVA_HOME")
         try expect(runtime.environment(selected)["JAVA_HOME"] == selected.path, "editor and task environment receives private Java")
         try expect(runtime.environment(selected)["ZERO_KIT_DIR"] == runtimeKit.root.path, "editor receives kit location for explicit installation testing")
+        try expect(runtime.environment(selected)["ZERO_NODE_EXECUTABLE"] == runtime.nodeBinary.path && runtime.environment(selected)["PATH"]!.contains(runtime.nodeBinary.deletingLastPathComponent().path), "private Node hint and child PATH reach only Zero editor environment")
+        try expect(!(try SetupSnapshot.parse(snapshot(["node":0]))).ready, "missing browser runtime prevents ready while Java remains available")
+        let nodeReceipt = runtime.node.appendingPathComponent(".zero-asset.json")
+        try "unrecognized".write(to:nodeReceipt,atomically:false,encoding:.utf8)
+        try rejected("unrecognized private Node is preserved") { try runtime.prepareNode() }
+        try expect(try String(contentsOf:nodeReceipt) == "unrecognized", "unrecognized Node receipt never overwritten")
+        try nodeDigest.write(to:nodeReceipt,atomically:false,encoding:.utf8)
+        try manager.removeItem(at:runtime.nodeBinary)
+        try expect(!runtime.nodeReady(), "damaged Node reports repairable unavailable readiness without trapping the setup check")
+        runtime.testDownload = { _,_ in throw SetupFailure(message:"fake offline Node repair") }
+        try rejected("offline Node repair") { try runtime.prepareNode() }
+        try expect(manager.fileExists(atPath:runtime.node.path) && !manager.fileExists(atPath:runtime.nodeBinary.path), "failed Node repair restores recognized previous copy")
+        runtime.testDownload = { target, _ in try manager.copyItem(at:nodeArchive,to:target) }
+        try runtime.prepareNode()
+        try expect(try runtime.nodeExecutable() == runtime.nodeBinary && runtime.nodeReady(), "Node repair replaces only damaged private runtime")
         try expect(runtime.environment(selected)["PATH"]!.hasPrefix(selected.appendingPathComponent("bin").path + ":"), "private compiler wins PATH")
         runtime.testDownload = { _, _ in throw SetupFailure(message: "Unexpected repeat download") }
         try runtime.install("jdk")
@@ -729,6 +792,10 @@ struct SetupTests {
         _ = try MacRuntime.execute("/usr/bin/tar", ["-czf", unsafeArchive.path, "-C", payload.path, "escape"])
         try rejected("archive escaping symlink") { try SafeMacArchive.extract(unsafeArchive, to: extraction) }
         try expect(try String(contentsOf: outside) == "student", "unsafe archive cannot modify external files")
+        let brokenArchive = temporary.appendingPathComponent("broken-link.tar.gz")
+        try manager.createSymbolicLink(atPath:payload.appendingPathComponent("broken").path,withDestinationPath:"missing-target")
+        _ = try MacRuntime.execute("/usr/bin/tar",["-czf",brokenArchive.path,"-C",payload.path,"broken"])
+        try rejected("archive broken contained symlink") { try SafeMacArchive.extract(brokenArchive,to:extraction) }
 
         let traversalArchive = temporary.appendingPathComponent("traversal.tar.gz")
         _ = try MacRuntime.execute("/usr/bin/tar", ["-czf", traversalArchive.path, "-s", "|^jdk-test|../escaped|", "-C", payload.path, "jdk-test"])
@@ -741,6 +808,7 @@ struct SetupTests {
         try manager.removeItem(at: launcher)
         try runtime.launcher(cli: URL(fileURLWithPath: "/fake editor/code"), java: selected)
         let generated = try String(contentsOf: launcher)
+        try expect(generated.contains("export ZERO_NODE_EXECUTABLE=" + MacRuntime.quote(runtime.nodeBinary.path)) && generated.contains("NODE_OPTIONS NODE_PATH"), "owned launcher carries private Node path and clears inherited injection")
         try expect(generated.contains("--new-window") && !generated.contains(runtimeKit.root.appendingPathComponent("starter").path), "standalone fallback opens empty tutorial window")
         try expect(generated.contains("--user-data-dir") && generated.contains("--extensions-dir") && generated.contains("export JAVA_HOME=") && generated.contains("export ZERO_KIT_DIR=" + MacRuntime.quote(runtimeKit.root.path)), "standalone launcher preserves private editor, Java and kit location after DMG closes")
         try manager.removeItem(at: launcher)
@@ -790,6 +858,7 @@ struct SetupTests {
         try expect(signedLabel.detail == "Zero 0.5.4", "signed detail states version without notarization claim")
         try expect(SetupBuildLabel(info: [:]).development, "missing build marker defaults to development")
 
+        if CommandLine.arguments.contains("--no-ui") { print("Zero native setup no-UI tests: \(passed) checks passed"); return }
         let app = NSApplication.shared
         app.setActivationPolicy(.prohibited)
         try updaterTests(app: app, kit: kit, home: temporary)

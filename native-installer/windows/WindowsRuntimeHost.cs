@@ -37,7 +37,7 @@ namespace ZeroSetup
         private static bool TrustedDownload(Uri uri)
         {
             return uri.Scheme == "https" && string.IsNullOrEmpty(uri.UserInfo) && uri.IsDefaultPort &&
-                (uri.Host == "github.com" || uri.Host == "release-assets.githubusercontent.com" || uri.Host == "objects.githubusercontent.com" || uri.Host == "vscode.download.prss.microsoft.com");
+                (uri.Host == "github.com" || uri.Host == "release-assets.githubusercontent.com" || uri.Host == "objects.githubusercontent.com" || uri.Host == "vscode.download.prss.microsoft.com" || uri.Host == "nodejs.org");
         }
         public async Task Download(WindowsRuntimeAsset asset, string destination, CancellationToken cancellation)
         {
