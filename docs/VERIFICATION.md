@@ -1,5 +1,15 @@
 # Verification
 
+## ZeroHub visit labels and star styling — 2026-10-24
+
+Owner follow-up changes the display to visit/visits and removes the star-control
+border/background in both library and compact project cards. Counting/storage,
+GitHub star behavior,44px targets and focus outlines remain unchanged. All177
+website tests, typecheck, production build and whitespace pass. Browser and
+independent review receipts are retained in ignored .verification/zerohub-visits/;
+publication/CI/live results belong in the PR handoff. This follow-up changes no
+Free-plan resource or publisher source pin.
+
 ## ZeroHub metrics — implementation and publication preparation, 2026-10-24
 
 Vercel-native Free setup follow-up: integration credential-pair precedence,

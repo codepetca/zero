@@ -31,7 +31,8 @@
 .account { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 16px; color: var(--muted); }
 .account button, .starButton { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--zero-border, var(--outline)); border-radius: 6px; background: var(--zero-page); color: var(--ink); font: inherit; text-decoration: none; cursor: pointer; }
 .account button:focus-visible, .starButton:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
-.starButton[aria-pressed="true"] { border-color: var(--purple); color: var(--purple); }
+.starButton { border: 0; background: transparent; }
+.starButton[aria-pressed="true"] { color: var(--purple); }
 .starButton[aria-pressed="true"] :global(.icon) { fill: currentColor; }
 .account button:disabled, .starButton:disabled { opacity: .65; cursor: default; }
 .feedback { margin-top: 12px; }
@@ -64,8 +65,7 @@
 .projectCard .feedback { margin: 0; }
 .projectCard .siteStatus { margin: 0 0 4px; gap: 4px; font-size: 12px; line-height: 1.4; color: white; }
 .projectCard .siteStatus time { white-space: normal; }
-.projectCard .starButton { min-width: 44px; padding: 6px 8px; border-color: rgb(255 255 255 / 50%); background: rgb(0 0 0 / 35%); color: white; }
-.projectCard .starButton[aria-pressed="true"] { border-color: white; }
+.projectCard .starButton { min-width: 44px; padding: 6px 8px; background: transparent; color: white; }
 .projectCard .reportLink { min-width: 32px; }
 .projectCard .metadata { font-size: 14px; line-height: 1.4; }
 .projectCard .metadata a, .projectCard .reportLink, .projectCard .feedbackError { color: white; }

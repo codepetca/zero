@@ -179,11 +179,11 @@ check time such as **Oct 20 · 12:56 PM**. Reporting uses a flag icon; stars sho
 only a star icon and count, filled when starred. Accessible labels describe each
 control and status; an unavailable star count displays an em dash.
 See [ZeroHub feedback](ZEROHUB-FEEDBACK.md) for setup and limits.
-The local metrics implementation adds aggregate ZeroHub Play opens and library
-adoption from declared dependencies in shared game snapshots. Opens include
+ZeroHub displays aggregate Play-link activations as visits and library adoption
+from declared dependencies in shared game snapshots. Visits include
 repeat activations; adoption counts repositories, with incomplete older coverage
 explicitly labelled. Neither measures unique people or runtime usefulness.
-See [metrics and activation](ZEROHUB-METRICS.md); hosted activation is separate.
+See [metrics and activation](ZEROHUB-METRICS.md).
 Contribution instructions require GitHub sign-in in Zero and the same personal
 account for the browser publication form. The replacement has no reservation or
 folder-upload service. Existing kit/installer downloads have separate release records.
