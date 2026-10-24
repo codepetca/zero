@@ -39,7 +39,7 @@ async function nativeBuildIdentity(root) {
 }
 
 function createRecordDecoder({runId, buildId, write, onEvent, now = Date.now}) {
-  let buffer = '', passthrough = false, sequence = 0, terminal = false, windowStart = now(), count = 0;
+  let buffer = '', sequence = 0, terminal = false, windowStart = now(), count = 0;
   const seen = new Set();
   const line = text => {
     const event = parseNativeRecord(text.replace(/\r?\n$/, ''), {runId, buildId, afterSeq: sequence});
@@ -55,39 +55,55 @@ function createRecordDecoder({runId, buildId, write, onEvent, now = Date.now}) {
   };
   return {
     push(text) {
+      text = buffer + text;
+      buffer = '';
       while (text.length) {
-        const newline = text.indexOf('\n');
-        const part = newline < 0 ? text : text.slice(0, newline + 1);
-        text = newline < 0 ? '' : text.slice(newline + 1);
-        if (passthrough) {write(part); if (newline >= 0) passthrough = false; continue;}
-        const candidate = buffer + part;
-        if (!candidate.startsWith(NATIVE_PREFIX) && !NATIVE_PREFIX.startsWith(candidate)) {
-          write(candidate); buffer = ''; passthrough = newline < 0; continue;
+        const marker = text.indexOf('\x1e');
+        if (marker < 0) {write(text); return;}
+        if (marker > 0) {write(text.slice(0, marker)); text = text.slice(marker);}
+        if (text.length < NATIVE_PREFIX.length && NATIVE_PREFIX.startsWith(text)) {buffer = text; return;}
+        if (!text.startsWith(NATIVE_PREFIX)) {write(text[0]); text = text.slice(1); continue;}
+        const newline = text.indexOf('\n'), nextMarker = text.indexOf('\x1e', 1);
+        // A raw RS cannot occur inside the reporter's JSON string. Recover at a
+        // newer marker even after a malformed/oversized record without a newline.
+        if (nextMarker >= 0 && (newline < 0 || nextMarker < newline)) {
+          write(text.slice(0, nextMarker)); text = text.slice(nextMarker); continue;
         }
-        if (Buffer.byteLength(buffer, 'utf8') + Buffer.byteLength(part, 'utf8') > MAX_RECORD_BYTES) {
-          write(buffer + part); buffer = ''; passthrough = newline < 0; continue;
+        if (newline < 0) {
+          if (Buffer.byteLength(text, 'utf8') > MAX_RECORD_BYTES) write(text);
+          else buffer = text;
+          return;
         }
-        buffer += part;
-        if (newline >= 0) {line(buffer); buffer = '';}
+        const record = text.slice(0, newline + 1);
+        if (Buffer.byteLength(record, 'utf8') > MAX_RECORD_BYTES) write(record);
+        else line(record);
+        text = text.slice(newline + 1);
       }
     },
     end() {if (buffer) {line(buffer); buffer = '';}}
   };
 }
 
-function createNativeRuntimeExecution({vscode, spec, buildId, onEvent = () => {}, onExit = () => {}, isCurrent = () => true, spawn = childProcess.spawn, killProcess = process.kill, platform = process.platform, env = process.env, graceMs = 1500}) {
+function createNativeRuntimeExecution({vscode, spec, buildId, onEvent = () => {}, onExit = () => {}, isCurrent = () => true, spawn = childProcess.spawn, killProcess = process.kill, platform = process.platform, env = process.env, graceMs = 1500, drainMs = 500}) {
   const controllers = new Set();
   const execution = new vscode.CustomExecution(async () => {
     const runId = crypto.randomUUID();
     const writes = new vscode.EventEmitter(), closes = new vscode.EventEmitter();
     const stdout = new StringDecoder('utf8'), stderr = new StringDecoder('utf8');
-    let child, cancelled = false, closed = false, opened = false, timer;
-    const write = text => {if (text) writes.fire(text);};
+    let child, cancelled = false, closed = false, opened = false, timer, drainTimer;
+    let inputClosed = false, rootExited = false, settledCode, forceKilled = false, previousCR = false;
+    const write = text => {
+      if (!text) return;
+      const normalized = text.replace(/\n/g, (_, offset) => (offset ? text[offset - 1] === '\r' : previousCR) ? '\n' : '\r\n');
+      previousCR = text.endsWith('\r');
+      writes.fire(normalized);
+    };
     const decoder = createRecordDecoder({runId, buildId, write, onEvent:event => {if (isCurrent() && !cancelled && !closed) onEvent(event);}});
     const childEnv = {...env, ZERO_RUNTIME_RUN_ID: runId, ZERO_RUNTIME_BUILD_ID: buildId};
     const systemRoot = Object.entries(childEnv).find(([key]) => key.toUpperCase() === 'SYSTEMROOT')?.[1];
     function kill(force) {
-      if (!child?.pid) return;
+      if (!child?.pid || force && forceKilled) return;
+      if (force) forceKilled = true;
       if (platform === 'win32') {
         const executable = systemRoot ? path.win32.join(systemRoot, 'System32', 'taskkill.exe') : 'taskkill.exe';
         try {spawn(executable, ['/PID', String(child.pid), '/T', '/F'], {env: childEnv, stdio: 'ignore', windowsHide: true}).once('error', () => child.kill());}
@@ -99,18 +115,32 @@ function createNativeRuntimeExecution({vscode, spec, buildId, onEvent = () => {}
     }
     function finish(code) {
       if (closed) return;
-      closed = true; clearTimeout(timer);
+      closed = true; clearTimeout(timer); clearTimeout(drainTimer);
       decoder.push(stdout.end()); decoder.end(); write(stderr.end());
-      // A crashed Maven wrapper must not leave an owned Java process running.
       kill(true);
+      child?.stdin?.destroy?.(); child?.stdout?.destroy?.(); child?.stderr?.destroy?.();
       controllers.delete(controller);
-      const exitCode = cancelled ? 0 : (Number.isInteger(code) ? code : 1);
+      const exitCode = settledCode ?? (cancelled ? 0 : (Number.isInteger(code) ? code : 1));
       onExit(exitCode); closes.fire(exitCode);
+    }
+    function rootExit(code) {
+      if (rootExited || closed) return;
+      rootExited = true;
+      // Latch the actual wrapper result before cleanup or a later Stop changes
+      // cancellation state. Descendants can hold stdout open after this event.
+      settledCode = cancelled ? 0 : (Number.isInteger(code) ? code : 1);
+      clearTimeout(timer);
+      kill(true);
+      if (!closed) {
+        drainTimer = setTimeout(() => finish(settledCode), drainMs);
+        drainTimer.unref?.();
+      }
     }
     function close() {
       if (cancelled || closed) return;
       cancelled = true;
       if (!opened || !child) {finish(0); return;}
+      if (rootExited) return;
       kill(false);
       if (!closed) {timer = setTimeout(() => {kill(true);}, graceMs); timer.unref?.();}
     }
@@ -134,17 +164,24 @@ function createNativeRuntimeExecution({vscode, spec, buildId, onEvent = () => {}
             args = ['/d', '/v:off', '/s', '/c', '""%ZERO_NATIVE_MAVEN_WRAPPER%" ' + args.join(' ') + '"'];
           }
           child = spawn(command, args, {cwd: spec.cwd, env: childEnv, stdio: ['pipe', 'pipe', 'pipe'], detached: platform !== 'win32', windowsHide: true, ...(platform === 'win32' ? {windowsVerbatimArguments: true} : {})});
+          child.stdin?.on?.('error', () => {inputClosed = true;});
+          child.stdin?.on?.('close', () => {inputClosed = true;});
+          child.stdin?.on?.('finish', () => {inputClosed = true;});
           child.stdout.on('data', data => decoder.push(stdout.write(data)));
           child.stderr.on('data', data => write(stderr.write(data)));
-          child.once('error', error => {write(`Cannot start native Java: ${error.message}\r\n`); finish(1);});
-          child.once('close', code => finish(code));
+          child.once('error', error => {if (!closed) {write(`Cannot start native Java: ${error.message}\r\n`); finish(1);}});
+          child.once('exit', code => rootExit(code));
+          child.once('close', code => {rootExit(code); finish(code);});
           if (cancelled) close();
         } catch (error) {write(`Cannot start native Java: ${error.message}\r\n`); finish(1);}
       },
       handleInput(data) {
         if (closed || cancelled) return;
         if (data === '\x03') close();
-        else if (child?.stdin?.writable) child.stdin.write(data);
+        else if (!inputClosed && child?.stdin?.writable && !child.stdin.destroyed && !child.stdin.writableEnded) {
+          try {child.stdin.write(data, error => {if (error) inputClosed = true;});}
+          catch {inputClosed = true;}
+        }
       },
       close
     };

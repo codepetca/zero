@@ -94,7 +94,8 @@ function activate(context, services = {}) {
   let repository = 'No repository connected';
   let localPractice = false;
   let originalWork = false;
-  let savedBuilderInspectedRoot,savedChecks,savedChecksRoot,savedChecksState;
+  let savedBuilderInspectedRoot,savedChecks,savedChecksRoot,savedChecksState,savedPreparation;
+  let savedChecksEnableGeneration=0;
   const project = async () => {
     let root;
     try {root = await core.resolveProject((vscode.workspace.workspaceFolders || []).map(folder => folder.uri.fsPath));}
@@ -287,13 +288,13 @@ function activate(context, services = {}) {
     let timer;
     try {await Promise.race([ending, new Promise((_, reject) => {timer = setTimeout(() => reject(new Error('The app task has not stopped. Close its terminal before restarting.')), 10000);})]);}
     finally {clearTimeout(timer);}
-    if (!execution) {state = 'App stopped'; refresh();}
+    if (!execution) {state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped'; refresh();}
   }
   async function stopRequested() {
     runGeneration++;
     if (pendingLaunch) await pendingLaunch.catch(() => {});
     await stop();
-    state = 'App stopped'; refresh();
+    state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped'; refresh();
   }
   const nativeTaskStates = new WeakMap();
   const nativeProblems=vscode.languages?.createDiagnosticCollection('zero-native-runtime');
@@ -329,7 +330,7 @@ function activate(context, services = {}) {
         ? new vscode.ShellExecution({value: spec.command, quoting: vscode.ShellQuoting.Strong}, spec.args, {cwd: root})
         : new vscode.ProcessExecution(spec.command, spec.args, {cwd: root});
     task = new vscode.Task(definition, scope, 'Run App', 'Zero', processExecution, '$zero-java');
-    nativeTaskStates.set(task,metadata);
+    metadata.custom=Boolean(transport);nativeTaskStates.set(task,metadata);
     if (transport) context.subscriptions.push(transport);
     task.presentationOptions = {reveal: vscode.TaskRevealKind.Always, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
     task.group = vscode.TaskGroup.Build;
@@ -358,7 +359,7 @@ function activate(context, services = {}) {
       execution = undefined;
       const metadata = nativeTaskStates.get(event.execution.task);
       const exitCode = metadata?.exitCode ?? taskExitCodes.get(event.execution);
-      buildFailed = !stoppedTasks.has(event.execution) && (metadata?.failed || typeof exitCode === 'number' && exitCode !== 0);
+      buildFailed = Boolean(metadata?.failed || typeof exitCode === 'number' && exitCode !== 0 && (metadata?.custom || !stoppedTasks.has(event.execution)));
       state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped';
       refresh();
     }
@@ -760,20 +761,23 @@ function activate(context, services = {}) {
   }
   const sourceWatcher=vscode.workspace.createFileSystemWatcher('**/*');
   for(const method of ['onDidCreate','onDidChange','onDidDelete'])sourceWatcher[method]?.(sourceChanged,undefined,context.subscriptions);
-  context.subscriptions.push(sourceWatcher,{dispose(){savedChecks?.dispose();savedProblems?.dispose();}});
+  context.subscriptions.push(sourceWatcher,{dispose(){savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.dispose();savedProblems?.dispose();}});
   actions['zero.enableBrowserChecks']=async()=>{
-    if(isBusy())return;const root=await runnableProject();
-    if(vscode.workspace.isTrusted!==true)throw Error('Trust your own project before enabling its saved browser tooling.');
-    if(!await vscode.workspace.saveAll(false))throw Error('Save your files before preparing browser checks.');
-    maintenanceBusy=true;savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=root;savedChecksState={status:'unavailable',message:'Preparing verified dependencies for browser checks.'};savedProblems?.clear();refresh();
+    if(isBusy())return;
+    const attempt=++savedChecksEnableGeneration,controller=new AbortController();savedPreparation=controller;maintenanceBusy=true;refresh();
+    const current=()=>!disposed&&attempt===savedChecksEnableGeneration&&!controller.signal.aborted;
     try{
-      const work=async(progress,token)=>{const controller=new AbortController(),listener=token?.onCancellationRequested(()=>controller.abort());
-        try{await savedBuilder.prepareBrowserChecks({projectRoot:root,cacheRoot:webCacheRoot,explicitAction:true,signal:controller.signal,onProgress:message=>{output.appendLine(message);progress?.report({message:String(message)});}});}finally{listener?.dispose();}};
+      const root=await runnableProject();if(!current())return;
+      if(vscode.workspace.isTrusted!==true)throw Error('Trust your own project before enabling its saved browser tooling.');
+      if(!await vscode.workspace.saveAll(false))throw Error('Save your files before preparing browser checks.');
+      if(!current())return;
+      savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=root;savedChecksState={status:'unavailable',message:'Preparing verified dependencies for browser checks.'};savedProblems?.clear();refresh();
+      const work=async(progress,token)=>{const listener=token?.onCancellationRequested(()=>controller.abort());
+        try{await savedBuilder.prepareBrowserChecks({projectRoot:root,cacheRoot:webCacheRoot,explicitAction:true,signal:controller.signal,onProgress:message=>{if(!current())return;output.appendLine(message);progress?.report({message:String(message)});}});}finally{listener?.dispose();}};
       if(vscode.window.withProgress)await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title:'Prepare browser checks for this project',cancellable:true},work);else await work();
-      if(disposed||await project()!==root)return;
-      savedChecks?.dispose();savedChecksRoot=root;
+      if(!current())return;const selected=await project();if(!current()||selected!==root)return;
       const host=createSavedSourceHost({projectRoot:root,cacheRoot:webCacheRoot,builder:savedBuilder});
-      savedChecks=createSavedSourceStatus({...host,isTrusted:()=>!disposed&&vscode.workspace.isTrusted===true&&projectRoot===root,onChange:next=>{
+      const checks=createSavedSourceStatus({...host,isTrusted:()=>!disposed&&vscode.workspace.isTrusted===true&&projectRoot===root,onChange:next=>{
         if(disposed||savedChecksRoot!==root)return;savedChecksState=next;savedProblems?.clear();
         if(next.status==='unsupported'&&savedProblems){const grouped=new Map();
           for(const entry of sourceDiagnostics((next.diagnostics||[]).map(item=>item.message).join('\n'),root)){
@@ -784,10 +788,15 @@ function activate(context, services = {}) {
         }
         refresh();
       }});
-      await savedChecks.enable({explicitAction:true});savedChecks.changed({dirty:hasDirtySource(),reason:'Saved source ready for checking.'});await savedChecks.flush();
-    }finally{maintenanceBusy=false;refresh();}
+      savedChecks=checks;await checks.enable({explicitAction:true});if(!current()){checks.dispose();return;}
+      checks.changed({dirty:hasDirtySource(),reason:'Saved source ready for checking.'});await checks.flush();
+    }catch(error){if(current()&&error.name!=='AbortError')throw error;}
+    finally{if(savedPreparation===controller)savedPreparation=undefined;maintenanceBusy=false;refresh();}
   };
-  actions['zero.disableBrowserChecks']=()=>{savedChecks?.disable();savedProblems?.clear();};
+  actions['zero.disableBrowserChecks']=()=>{
+    savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.disable();savedProblems?.clear();
+    if(!savedChecks)savedChecksState={status:'unavailable',message:'Browser checks are disabled.'};refresh();
+  };
 
   const buildWithSavedProject=options=>savedBuilder.ensureValidatedExport({...options,explicitAction:true});
   const validateWithSavedProject=options=>savedBuilder.validateExport({...options,explicitAction:true});
@@ -912,7 +921,7 @@ function activate(context, services = {}) {
   context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {
     runGeneration++;
     if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));
-    savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;savedProblems?.clear();
+    savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;savedProblems?.clear();
     projectRoot = undefined; repositoryStatus(); void introduceAfterConnection();
   }));
   context.subscriptions.push({dispose:() => {runGeneration++;if (execution) execution.terminate();}});
