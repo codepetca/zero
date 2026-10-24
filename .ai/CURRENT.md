@@ -1,15 +1,13 @@
-# ZeroHub sidebar copy — 2026-10-24
+# ZeroHub tagline — 2026-10-24
 
-Owner requests no vertical divider, a short tagline below the ZeroHub title,
-and a brief explanation below the buttons. Use “Discover and share Java
-projects.” and a short description of playing, libraries and sharing with Zero.
-Preserve the sidebar/gallery layout, mobile stacking, all controls and metrics.
+Owner specifies the exact tagline “Play. Share. Learn.” Replace the previous
+sidebar tagline; keep the lower description and divider-free sidebar layout.
 
-Branch codex/zerohub-sidebar-copy, base 1ccd1412, attached zerohub-interest
-worktree. Root owns markup/CSS. Preserve primary funding work and unrelated
-worktrees. Existing website publication authority continues. Free services,
-auth, publisher pins and native releases unchanged.
+Branch codex/zerohub-tagline, based on merged PR186/bcabc1f4, in the attached
+zerohub-interest worktree. Root owns the copy-only change. Preserve the primary
+funding checkout and unrelated worktrees. Existing website publication authority
+continues; Free services, auth, metrics, publisher pins and native releases unchanged.
 
-Next: website build/tests/root/whitespace, phone/desktop light/dark rendering,
-one low-risk independent review, PR/CI/merge and live verification. Evidence
-stays ignored in .verification/zerohub-sidebar-copy/ and the PR handoff.
+Next: website validation, one low-risk independent review, PR/CI/merge and verify
+the exact text on production. Reuse unchanged layout/interaction coverage from
+PR186. Evidence stays ignored in .verification/zerohub-tagline/ and PR handoff.
