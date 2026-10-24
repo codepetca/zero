@@ -4,10 +4,16 @@
 
 Vercel-native Free setup follow-up: integration credential-pair precedence,
 partial-pair rejection, preview isolation and a disable switch pass the focused
-15-test metrics suite and website typecheck. Vercel CLI product metadata lists
-the `free` plan and `autoUpgrade` setting; no acceptance, resource provisioning
-or new hosted environment changes have been performed while terms approval is
-pending. The web application still needs separately authorized publication.
+15-test metrics suite, all 177 website tests, typecheck and production build.
+Independent review of `230401b3` is complete with no findings. After the owner's
+terms acceptance, Vercel provisioned `zero-hub-opens` on Free with creation
+metadata autoUpgrade=false, prodPack=false and primaryRegion=iad1. The connection
+result and dashboard confirm only `zero` Production, Free/500K monthly commands
+and Available. Integration credentials are injected; their values were not
+copied or printed. Screenshots and sanitized CLI receipts are retained locally.
+No application or publisher deployment occurred. The current public site has
+not yet run the new counters, so actual application counter writes/durability
+remain unverified until separately authorized publication.
 
 The implementation adds aggregate Play opens and library adoption from accepted
 shared-game dependency declarations. All 176 website tests and 86 sharing tests pass;

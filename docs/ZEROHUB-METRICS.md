@@ -82,6 +82,14 @@ Reads use one Redis `MGET` per uncached batch and each open uses one atomic
 
 ## Optional hosted activation
 
+Configuration status, 2026-10-24: the owner accepted integration terms and
+`zero-hub-opens` was created through Vercel on Free, with auto-upgrade and Prod
+Pack explicitly off at creation, primary region iad1 and no read replicas.
+Only Zero Production is connected. The Vercel dashboard confirms Free, 500K
+monthly commands and Available. Credentials are injected automatically. The
+reviewed application source still needs separate publication before real
+ZeroHub opens are counted; no existing public totals were fabricated.
+
 Component observation collection begins when the reviewed sharing publisher is
 adopted through its normal pinned policy/configuration rollout. Deployment of
 the website alone does not update the selected publisher policy. No registry
