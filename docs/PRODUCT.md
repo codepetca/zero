@@ -293,22 +293,26 @@ See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md)
 
 ## App and learning contract
 
-The following describes the existing API/lessons. The Zero-first facade and
-screen hierarchy above are proposed and require explicit API/template migration.
+The following describes the current local API and lessons. Existing published
+kits keep their original source and build files until explicitly upgraded.
 
 `zero.App` is event-driven: `settings()` sets `title(...)` and initial
-`size(...)` and optional `padding(...)` around the content; `setup()` creates JavaFX controls and calls `show(Node)`. Buttons,
-labels, text fields and layouts keep their ordinary JavaFX names and behavior.
+`size(...)` and optional `padding(...)` around the content; `setup()` creates
+Zero controls and calls `show(...)`. The tutorial uses Zero buttons, labels,
+text fields and layouts without direct JavaFX imports.
 The installed kit's default app shows Hello, world!; the learning projects start
 with empty runnable boilerplate. Lessons 0–2 grow one Greeting app from label to
 button to name input. Lessons 3–7 grow one Study quiz: answer feedback, attempts,
 reset methods, a Counter object, then Question objects/arrays and scoring. Lessons
 8–12 grow one Coin game with student-authored Player/Coin, win/restart, ScoreDisplay
-reuse, and optional media/scrolling. Lesson 10 reopens Study and Game to extract and
-reuse the student's display class. Lesson 11 practises compatible changes locally;
-sharing uses a separate original project. Lesson 12's platform/level/endings stages
-are optional continuations of the same game, with maintained references; see
-[game systems](GAME-SYSTEMS.md).
+reuse, and optional media/scrolling. Lesson 10 extracts PlayerInput from a busy
+game Main, then reopens Study and Game to extract and reuse ScoreDisplay. Lesson
+11 practises compatible changes, optionally adds WASD controls, and records a
+community or core proposal in the existing project's README. Actual library
+sharing uses an original contribution with attribution, licensing and checks.
+Lesson 12 adds optional artwork, sound and a small scrolling extension to the
+same Coin game. Larger game references are maintainer completeness checks,
+not additional tutorial requirements; see [basic games](BASIC-GAMES.md).
 The scored quiz remains a later reuse example.
 The new local tutorial pass inserts one-coin native controls before arrays/win,
 then reuses unchanged ScoreDisplay in the study app and coin game.
