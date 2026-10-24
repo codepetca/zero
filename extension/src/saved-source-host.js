@@ -14,13 +14,16 @@ async function inspectSourceScope({projectRoot,cacheRoot,environment=process.env
   if(signal?.aborted)throw Object.assign(Error('Browser check inspection cancelled.'),{name:'AbortError'});
   let stat;try{stat=await fs.lstat(filename);}catch(error){if(optional&&['ENOENT','ENOTDIR'].includes(error.code)){add(name,Buffer.from('absent'));return;}throw error;}
   if(++count>10000)throw Error('Saved browser checks exceed their file limit.');
-  if(links){const actual=await fs.realpath(filename);if(actual===root||actual.startsWith(root+path.sep))throw Error('Runtime must be outside the student project.');if(actual!==filename)return visit(actual,name,{optional:false});}
-  try{await ordinary(filename,{directory:stat.isDirectory(),maxBytes:32*1024*1024});}catch{throw Error('Saved browser checks cannot inspect linked, special or oversized project/cache paths.');}
+  if(links){const actual=await fs.realpath(filename);if(actual===root||actual.startsWith(root+path.sep))throw Error('Runtime must be outside the student project.');if(actual!==filename)return visit(actual,name,{optional:false,links:true});}
+  // External runtime candidates are read only for identity. macOS system launchers
+  // are ordinary hard-linked files; project/cache inputs retain strict ownership.
+  if(links){if(!stat.isFile()||stat.size>32*1024*1024)throw Error('Saved browser checks require bounded ordinary runtime files.');}
+  else try{await ordinary(filename,{directory:stat.isDirectory(),maxBytes:32*1024*1024});}catch{throw Error('Saved browser checks cannot inspect linked, special or oversized project/cache paths.');}
   if(stat.isDirectory()){
    add(name+'/',Buffer.alloc(0));for(const child of (await fs.readdir(filename)).sort())await visit(path.join(filename,child),name+'/'+child,{optional:false});return;
   }
-  if(!stat.isFile()||stat.nlink!==1||stat.size>32*1024*1024||(total+=stat.size)>256*1024*1024)throw Error('Saved browser checks cannot inspect a linked, special or oversized input.');
-  const bytes=await fs.readFile(filename),after=await fs.lstat(filename);if(after.ino!==stat.ino||after.size!==bytes.length||after.mtimeMs!==stat.mtimeMs)throw Error('Saved browser inputs changed during inspection.');add(name,bytes);
+  if(!stat.isFile()||(!links&&stat.nlink!==1)||stat.size>32*1024*1024||(total+=stat.size)>256*1024*1024)throw Error('Saved browser checks cannot inspect a linked, special or oversized input.');
+  const bytes=await fs.readFile(filename),after=await fs.lstat(filename);if(!after.isFile()||after.dev!==stat.dev||after.ino!==stat.ino||after.size!==stat.size||after.size!==bytes.length||after.mtimeMs!==stat.mtimeMs||after.ctimeMs!==stat.ctimeMs||(!links&&after.nlink!==1))throw Error('Saved browser inputs changed during inspection.');add(name,bytes);
  }
  add('builder',Buffer.from(saved.profileHash));
  for(const name of ['src/main/java','src/main/resources','.mvn','pom.xml','mvnw','mvnw.cmd','zero-core.json','zero-libraries.json'])await visit(path.join(root,name),name);

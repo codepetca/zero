@@ -21,3 +21,36 @@ test('host requires the same approved scope before invoking the saved runner',as
 test('linked project input is unavailable rather than silently omitted',async t=>{
  const h=await fixture(t),outside=path.join(h.root,'outside.java');await fs.writeFile(outside,'private');await fs.symlink(outside,path.join(h.project,'src/main/java/Linked.java'));await assert.rejects(inspectSourceScope(h.options),/linked/);
 });
+
+test('external hard-linked runtime files and symlink aliases remain byte-bound data reads',async t=>{
+ const h=await fixture(t),launcher=path.join(h.java,'bin/java'),alias=path.join(h.root,'shared-launcher');
+ await fs.link(launcher,alias);assert.equal((await fs.stat(launcher)).nlink,2);
+ const before=await inspectSourceScope(h.options);
+ await fs.writeFile(alias,'changed through hard link');
+ const after=await inspectSourceScope(h.options);assert.notEqual(after.scopeHash,before.scopeHash);
+ const bin=path.join(h.root,'aliases/bin');await fs.mkdir(bin,{recursive:true});await fs.symlink(alias,path.join(bin,'java'));
+ const options={...h.options,environment:{PATH:bin,JAVA_HOME:h.java}};
+ const throughAlias=await inspectSourceScope(options);await fs.writeFile(alias,'another identity');
+ assert.notEqual((await inspectSourceScope(options)).scopeHash,throughAlias.scopeHash);
+ assert.equal(await fs.readFile(launcher,'utf8'),'another identity');
+ await assert.rejects(fs.stat(path.join(h.project,'.zero')),{code:'ENOENT'});
+});
+test('hard-linked project and cached inputs retain strict rejection',async t=>{
+ const h=await fixture(t),source=path.join(h.project,'src/main/java/Main.java'),alias=path.join(h.root,'source-alias');
+ await fs.link(source,alias);await assert.rejects(inspectSourceScope(h.options),/linked/);await fs.rm(alias);
+ const saved=await readSavedBuilder(h.project),partition=cachePartition(saved,h.cache);
+ for(const name of ['compatibility-artifacts','library-responses']){
+  const folder=path.join(partition,name);await fs.mkdir(folder,{recursive:true});const file=path.join(folder,'index.json');
+  await fs.writeFile(file,'{}');await fs.link(file,alias);await assert.rejects(inspectSourceScope(h.options),/linked/);await fs.rm(alias);
+ }
+});
+test('runtime directories, special files and project targets are rejected',async t=>{
+ const h=await fixture(t),launcher=path.join(h.java,'bin/java');await fs.rm(launcher);await fs.mkdir(launcher);
+ await assert.rejects(inspectSourceScope(h.options),/ordinary runtime files/);await fs.rm(launcher,{recursive:true});
+ await fs.symlink(path.join(h.project,'src/main/java/Main.java'),launcher);await assert.rejects(inspectSourceScope(h.options),/outside the student project/);await fs.rm(launcher);
+ if(process.platform!=='win32'){
+  await fs.symlink('/dev/null',launcher);await assert.rejects(inspectSourceScope(h.options),/ordinary runtime files/);await fs.rm(launcher);
+ }
+ const inside=path.join(h.project,'jdk/bin');await fs.mkdir(inside,{recursive:true});await fs.writeFile(path.join(inside,'java'),'not executed');
+ await assert.rejects(inspectSourceScope({...h.options,environment:{PATH:inside}}),/outside the student project/);
+});
