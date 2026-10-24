@@ -250,6 +250,28 @@ Authorize led to sudo/passkey confirmation, which timed out. Editor sign-in was
 cancelled. No repository create/clone/commit/push or library extraction was
 completed; live transport acceptance remains unverified. No bypass, credential
 copy or alternate authentication was used.
+
+## Website GitHub profile photo — 2026-10-24
+
+Signed-in headers load the public GitHub avatar directly by the existing
+verified numeric account ID. A 44px circle shows the initial while loading or
+after an error; loaded photos hide the initial. Image state is keyed by account
+ID. Anonymous CORS and no-referrer avoid sending credentials or page paths to
+the avatar CDN. Auth/session shape, permissions and API request count are unchanged.
+
+All 189 website tests, production build (including TypeScript), root checks and
+whitespace checks pass. Chrome/Playwright fixtures verify a real public Octocat
+avatar (88px source,44px circle), delayed load O→photo,404 fallback, failed-photo
+account A→account B loading its own image without a page reload, mock sign-out
+removing the photo and restoring focus, and dark/light plus320px reflow. The
+menu still opens from the photo and Escape restores focus. One initial CLI
+loading-test syntax mismatch was corrected; the final loading test passed.
+No real OAuth/star/Play writes; account identity was mocked and public CDN
+images were real. Physical Safari/touch and text enlargement were not reverified.
+Screenshots: output/playwright/zerohub-profile-photo/; delivery/review/CI receipts:
+.verification/zerohub-profile-photo/ and the PR handoff.
+
+
 ## Website GitHub initial avatar — 2026-10-24
 
 Signed-in profile triggers show the uppercase first username character in the

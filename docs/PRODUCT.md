@@ -255,9 +255,11 @@ workflow is part of the learning outcome. Tutorial setup and the minimal origina
 project template remain available through their setup instructions. See
 [the course project guide](COURSE-PROJECT.md).
 The shared website header opens an account dropdown. Signed-out users see a
-profile icon; connected users see the uppercase first character of their GitHub
-username in a purple circle with contrasting text. The accessible name retains
-the full GitHub username.
+profile icon; connected users see their GitHub profile image cropped to the
+same circle. The purple initial circle stays visible while the image loads
+or if it fails. The accessible name retains the full
+GitHub username. Images load directly from GitHub’s avatar CDN using the already
+verified account ID, without another API lookup, credentials or referrer.
 Signed-out users can Sign in to GitHub; connected users see their username and
 Sign out without a duplicate sign-in action. Connection failures retain Retry.
 The dropdown also switches light/dark mode. The OS preference is the initial
