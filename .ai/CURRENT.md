@@ -7,14 +7,15 @@ Aggregate Play opens use optional Redis REST INCR/MGET; dependency observations
 reuse the sharing ledger, with no new package, App permission or native telemetry.
 Public cards distinguish repeat opens and partial shared-project coverage.
 
-Local website174tests, sharing86pass/4environment-skips, website typecheck/build,
+Local website176tests, sharing86pass/4environment-skips, website typecheck/build,
 root configuration/syntax/document-link check and whitespace check pass. Controlled
 browser QA and independent source review receipts live in ignored
 `.verification/zerohub-metrics/`; final verdicts/limits are in docs/VERIFICATION.md.
 No push, PR, deployment, publisher-pin change, resource provisioning or credential
 change is authorized by this implementation request. Both publisher readers need
 the documented compatibility rollout before observations are first written.
-Next: complete review, retain local work for owner-authorized activation.
+Next: complete targeted review of lazy metrics batches; retain local work for
+owner-authorized activation.
 
 ## Prior release state — Direct GitHub sign-in, Mac0.5.47, 2026-10-22
 

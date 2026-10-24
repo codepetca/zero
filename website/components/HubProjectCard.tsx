@@ -22,7 +22,7 @@ export function HubProjectCard({projectId, title, description, author, version, 
     {image ? <img className={styles.thumbnail} src={image} alt={`${title} screenshot`} loading="lazy" /> : <span className={styles.playPlaceholder} aria-hidden="true" />}
     {playHref && <span className={styles.playOverlay} aria-hidden="true"><span>▶ Play</span></span>}
   </>;
-  if (compact) return <article className={styles.projectCard} data-description-open={descriptionOpen || undefined} data-description-dismissed={descriptionDismissed || undefined}
+  if (compact) return <article className={styles.projectCard} data-hub-project-id={projectId} data-description-open={descriptionOpen || undefined} data-description-dismissed={descriptionDismissed || undefined}
     onKeyDown={event=>{if(event.key==='Escape'){if(event.target===descriptionElement.current)aboutButton.current?.focus();setDescriptionOpen(false);setDescriptionDismissed(true);}}}
     onPointerLeave={()=>setDescriptionDismissed(false)} onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setDescriptionDismissed(false);}}>
     {playHref ? <a className={styles.playImage} data-muted={!siteReachable || undefined} href={playHref} onClick={recordOpen} onAuxClick={event=>{if(event.button===1)recordOpen(event);}} target="_blank" rel="noopener noreferrer" aria-label={`Play ${title} (opens in a new tab)`} aria-describedby={descriptionId}>
@@ -35,7 +35,7 @@ export function HubProjectCard({projectId, title, description, author, version, 
       {feedback ? feedback(identity) : identity}
     </div>
   </article>;
-  return <article className={styles.card}>
+  return <article className={styles.card} data-hub-project-id={projectId}>
     {playHref ? <a className={styles.playImage} href={playHref} onClick={recordOpen} onAuxClick={event=>{if(event.button===1)recordOpen(event);}} target="_blank" rel="noopener noreferrer" aria-label={`Play ${title} (opens in a new tab)`}>{preview}</a> : image && <img className={styles.thumbnail} src={image} alt={`${title} screenshot`} loading="lazy" />}
     <div className={styles.cardContent}>
       <h3>{title}</h3><p className={styles.description}>{description}</p>

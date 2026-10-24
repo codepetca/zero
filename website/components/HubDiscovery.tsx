@@ -9,7 +9,7 @@ import releaseAuthors from '@/content/release-authors.json';
 import styles from '@/app/hub/hub.module.css';
 import {HubNavigation} from './HubNavigation';
 import {CodeBlock} from './CodeBlock';
-import {metricLabel} from '@/lib/hub-metrics-client.mjs';
+import {loadMetricBatches, metricLabel} from '@/lib/hub-metrics-client.mjs';
 import {HubProjectCard} from './HubProjectCard';
 import {HubProjectFeedback, type ProjectFeedback} from './HubProjectFeedback';
 type Artifact = {url:string; size:number; sha256:string};
@@ -46,6 +46,7 @@ export function HubDiscovery() {
     releases = selectReleases(catalog, {kind, search, id, version, attributions:releaseAuthors}) as Release[];
   } catch (failure) {selectionError = failure instanceof Error ? failure.message : 'This release link is invalid.';}
   const feedbackIds = [...projects.map(project=>project.id),...releases.filter(release=>release.status==='available').map(release=>release.id)].slice(0,12).join(',');
+  const metricIds = [...projects.map(project=>project.id),...releases.filter(release=>release.status==='available').map(release=>release.id)].join(',');
   useEffect(()=>{
     const controller=new AbortController();let active=true;setFeedback({});
     if(feedbackIds)void fetch(`/api/hub/projects?${new URLSearchParams({kind,ids:feedbackIds})}`,{cache:'no-store',redirect:'error',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(20000)])}).then(async response=>{
@@ -57,15 +58,24 @@ export function HubDiscovery() {
     return()=>{active=false;controller.abort();};
   },[kind,feedbackIds]);
   useEffect(()=>{
-    const controller=new AbortController();let active=true;setMetrics({});
-    if(feedbackIds)void fetch(`/api/hub/metrics?${new URLSearchParams({kind,ids:feedbackIds})}`,{cache:'no-store',redirect:'error',credentials:'omit',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(10000)])}).then(async response=>{
-      if(!response.ok)return;const data=await response.json();
-      if(!active||data.schema!==1||!Array.isArray(data.items))return;
-      const ids=new Set(feedbackIds.split(','));
-      setMetrics(Object.fromEntries(data.items.filter((item:Metric)=>item&&item.kind===kind&&ids.has(item.id)).map((item:Metric)=>[item.id,item])));
-    }).catch(()=>{/* Optional metrics do not block browsing. */});
-    return()=>{active=false;controller.abort();};
-  },[kind,feedbackIds]);
+    const controller=new AbortController(), requested=new Set<string>();setMetrics({});
+    const ids=new Set(metricIds?metricIds.split(','):[]);
+    const load=(visible:string[])=>{
+      const pending=visible.filter(id=>ids.has(id)&&!requested.has(id));
+      pending.forEach(id=>requested.add(id));
+      void loadMetricBatches(kind,pending,{signal:controller.signal,onItems:(items:Metric[])=>{
+        if(!controller.signal.aborted)setMetrics(previous=>({...previous,...Object.fromEntries(items.map(item=>[item.id,item]))}));
+      }});
+    };
+    if(!('IntersectionObserver' in window)){load([...ids]);return()=>controller.abort();}
+    const observer=new IntersectionObserver(entries=>{
+      const visible:string[]=[];
+      for(const entry of entries)if(entry.isIntersecting){const id=entry.target.getAttribute('data-hub-project-id');if(id)visible.push(id);observer.unobserve(entry.target);}
+      load(visible);
+    },{rootMargin:'200px'});
+    document.querySelectorAll('[data-hub-project-id]').forEach(card=>observer.observe(card));
+    return()=>{observer.disconnect();controller.abort();};
+  },[kind,metricIds]);
   const projectMetric=(id:string)=>{const label=metricLabel(kind,metrics[id]);return label?<p className={styles.metrics} title={label.hint}>{label.text}<span className="sr-only">. {label.hint}</span></p>:null;};
   const projectFeedback=(entry:{id:string;title:string;repositoryHref:string;playHref?:string;sourceCommit?:string;version?:string})=>(identity?:ReactNode)=><HubProjectFeedback {...entry} kind={kind} feedback={feedback[entry.id]?.repositoryUrl===entry.repositoryHref?feedback[entry.id]:undefined} metric={projectMetric(entry.id)}>{identity}</HubProjectFeedback>;
   return <section className={styles.catalog} aria-labelledby="sharing-heading">
@@ -77,7 +87,7 @@ export function HubDiscovery() {
       compact siteReachable={feedback[project.id]?.repositoryUrl===project.repositoryUrl && feedback[project.id]?.site.status==='reachable'} image={project.image} playHref={maintainedPlayLink(project)} repositoryHref={project.repositoryUrl} feedback={projectFeedback({id:project.id,title:project.title,repositoryHref:project.repositoryUrl,playHref:maintainedPlayLink(project),sourceCommit:project.sourceCommit})} />)}
     {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={()=>setRetry(value=>value+1)}>Try again</button></div> : !catalog ? <p role="status">Loading {kind==='game'?'projects':'libraries'}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
       {!releases.length && !projects.length && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${kind==='game'?'projects':'libraries'} match this search.` : `No ${kind==='game'?'projects':'libraries'} are available yet.`}</p>}
-      {releases.map(release=><HubProjectCard projectId={release.kind==='game'&&release.status==='available'?release.id:undefined} key={`${release.id}/${release.version}`} title={release.title} description={releaseSummary(release, projectPreviews)} author={releaseAuthor(release, releaseAuthors)}
+      {releases.map(release=><HubProjectCard projectId={release.status==='available'?release.id:undefined} key={`${release.id}/${release.version}`} title={release.title} description={releaseSummary(release, projectPreviews)} author={releaseAuthor(release, releaseAuthors)}
         compact={release.kind==='game'} siteReachable={feedback[release.id]?.repositoryUrl===release.repository.url && feedback[release.id]?.site.status==='reachable'} version={release.version} repositoryHref={release.repository.url} image={releaseImage(release, projectPreviews)} playHref={playLink(release)} feedback={release.status==='available'?projectFeedback({id:release.id,title:release.title,repositoryHref:release.repository.url,playHref:playLink(release),sourceCommit:release.source.commit,version:release.version}):undefined}>
         {release.status !== 'available' ? <p role="status">This release has been withdrawn.</p> : release.kind === 'library' ? <details><summary>Use this library</summary>
           <p>In Zero, choose Browse ZeroHub → {release.title} → Add library → Apply.</p>

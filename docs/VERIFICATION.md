@@ -3,7 +3,7 @@
 ## ZeroHub metrics — local implementation, 2026-10-24
 
 The implementation adds aggregate Play opens and library adoption from accepted
-shared-game dependency declarations. Website174tests and sharing86tests pass;
+shared-game dependency declarations. Website176tests and sharing86tests pass;
 four existing Docker/managed-environment checks skip. Website typecheck and
 production build, root configuration/syntax/local-link check and whitespace
 check pass. New checks cover frozen-source extraction, immutable evidence,
@@ -11,6 +11,13 @@ unknown historical coverage, repository deduplication, withdrawal/version
 selection, interrupted delivery/recovery, origin and input validation, atomic
 counter protocol, preview isolation, batching/cache, provider failure and labels.
 
+Controlled browser checks pass primary/middle/keyboard Play and original-URL
+navigation when the metrics POST fails; 320px light/dark reflow, library partial,
+unknown/observed-zero and usage disclosure states pass. The thirteen-library
+regression verifies lazy bounded loading after scrolling to the last card.
+Independent complete review of67031a42 found oneP2 first-twelve-only metrics bug;
+the corrected path uses visible-card batches and a25-ID unit regression. Targeted
+review is recorded in the local receipt; unchanged initial coverage is retained.
 Browser fixture screenshots and action receipts are kept in ignored
 `.verification/zerohub-metrics/` and `output/playwright/`. Review verdicts are
 recorded alongside them. Fixtures do not establish hosted Redis durability,

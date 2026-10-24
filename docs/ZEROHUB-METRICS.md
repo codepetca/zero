@@ -69,6 +69,9 @@ canonical public registry; direct catalog staging configurations have unknown
 adoption. Public responses and bounded process caches each last one minute, so
 displayed counts can lag by about two minutes. Failed sources stay unknown.
 The endpoint never returns registry request bodies or dependency lists.
+The browser loads metrics in batches as cards approach the viewport, including
+cards after the first twelve. Browsers without IntersectionObserver load all
+selected cards in bounded batches. Existing site-check limits stay separate.
 
 Play opens use `POST /api/hub/opens` with only `{"id":"drawing-pad"}`.
 Writes require the configured same origin and a known playable game. The

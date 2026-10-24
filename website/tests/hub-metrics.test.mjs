@@ -2,9 +2,36 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHubMetricsService, hubMetricsResponse} from '../lib/hub-metrics.mjs';
 import {REGISTRY_URL} from '../lib/sharing-catalog.mjs';
+import {loadMetricBatches} from '../lib/hub-metrics-client.mjs';
 
 const request = query => new Request(`https://zero.codepet.ca/api/hub/metrics?${query}`);
 const resolve = async ({kind, id}) => id === 'unknown' ? null : {kind, id, ...(kind === 'game' ? {playUrl: 'https://student.github.io/game/'} : {})};
+
+test('visible metric selections beyond twelve load bounded batches and retain earlier results', async () => {
+  const ids = Array.from({length: 25}, (_, index) => `lib-r${index + 1}-helper`), requests = [], result = {};
+  await loadMetricBatches('library', [...ids, ids[0]], {signal: new AbortController().signal,
+    onItems: items => {for (const item of items) result[item.id] = item;},
+    fetchImpl: async url => {
+      const params = new URL(url, 'https://zero.codepet.ca').searchParams, batch = params.get('ids').split(',');
+      requests.push(batch);
+      return Response.json({schema: 1, items: [...batch.map(id => ({id, kind: 'library', projects: 1})), {id: 'unrequested', kind: 'library', projects: 999}]});
+    },
+  });
+  assert.deepEqual(requests.map(ids => ids.length), [12, 12, 1]);
+  assert.deepEqual(Object.keys(result), ids); assert.equal(result['lib-r13-helper'].projects, 1);
+  assert.equal(result.unrequested, undefined);
+});
+
+test('one failed batch does not suppress later cards, and cancelled selections stop loading', async () => {
+  const ids = Array.from({length: 13}, (_, index) => 'project-' + index), received = [];
+  let calls = 0;
+  await loadMetricBatches('game', ids, {signal: new AbortController().signal, onItems: items => received.push(...items),
+    fetchImpl: async () => ++calls === 1 ? new Response('', {status: 503}) : Response.json({schema: 1, items: [{id: ids[12], kind: 'game', opens: 1}]}),
+  });
+  assert.equal(calls, 2); assert.equal(received[0].id, ids[12]);
+  const controller = new AbortController(); controller.abort();
+  await loadMetricBatches('game', ids, {signal: controller.signal, onItems: () => assert.fail(), fetchImpl: () => assert.fail()});
+});
 
 test('metrics endpoint bounds/deduplicates selections before work and projects only known targets', async () => {
   let calls = 0;

@@ -8,6 +8,24 @@ export function recordPlayOpen(id, fetchImpl = fetch) {
   } catch { /* Metrics never prevent opening the author's project. */ }
 }
 
+/** Load visible cards in API-sized batches, merging rather than replacing them. */
+export async function loadMetricBatches(kind, ids, {signal, onItems, fetchImpl = fetch}) {
+  const unique = [...new Set(ids)];
+  for (let offset = 0; offset < unique.length && !signal.aborted; offset += 12) {
+    const batch = unique.slice(offset, offset + 12), allowed = new Set(batch);
+    try {
+      const response = await fetchImpl(`/api/hub/metrics?${new URLSearchParams({kind, ids: batch.join(',')})}`, {
+        cache: 'no-store', redirect: 'error', credentials: 'omit',
+        signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]),
+      });
+      if (!response.ok) continue;
+      const data = await response.json();
+      if (signal.aborted || data.schema !== 1 || !Array.isArray(data.items)) continue;
+      onItems(data.items.filter(item => item && item.kind === kind && allowed.has(item.id)));
+    } catch { /* Optional counts never block later batches or browsing. */ }
+  }
+}
+
 export function metricLabel(kind, metric) {
   if (!metric) return null;
   if (kind === 'game') return Number.isSafeInteger(metric.opens) && metric.opens >= 0
