@@ -2,6 +2,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const core = require('./core-contract');
+const builderFormat = require('./project-builder-format');
 
 const PROJECT_LESSONS = new Map([['greeting','0'],['study','3'],['game','8']]);
 const PROJECT_FILES = new Set(['zero-core.json','zero.json','.gitignore','README.md','LICENSE','pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE','.vscode/tasks.json','.vscode/settings.json','src/main/java/Main.java','src/main/java/zero/App.java','src/main/java/zero/GameApp.java','src/main/java/zero/Actor.java','src/main/java/zero/AnimationSource.java','src/main/java/zero/AnimationPlayback.java','src/main/java/zero/ImageRegion.java','src/main/java/zero/SpriteAnimation.java','src/main/java/zero/Collisions.java','src/main/java/zero/Sound.java','src/main/java/zero/Music.java','src/main/java/zero/Color.java','src/main/java/zero/Key.java','src/main/java/zero/ui/Element.java','src/main/java/zero/ui/Label.java','src/main/java/zero/ui/Button.java','src/main/java/zero/ui/Column.java','src/main/java/zero/ui/Row.java','src/main/java/zero/ui/TextField.java']);
@@ -12,6 +13,16 @@ const safePart = value => typeof value === 'string' && value.length > 0 && value
 function safeRelative(value) {
   if (typeof value !== 'string' || !value || value.includes('\\') || value.includes('\0') || path.posix.isAbsolute(value)) return false;
   return value.split('/').every(part => safePart(part) && part !== '.git');
+}
+const allowedProjectPath = value => PROJECT_FILES.has(value) || value.startsWith('.zero-build/') && builderFormat.relativePath(value.slice('.zero-build/'.length));
+function validateSavedBuilderFiles(files) {
+  const saved = files.filter(file => file.path.startsWith('.zero-build/'));
+  if (!saved.length) return; // Older bundled scaffolds remain ordinary native projects.
+  const manifest = saved.find(file => file.path === '.zero-build/builder.json');
+  if (!manifest || manifest.content.length > builderFormat.LIMITS.manifestBytes || saved.some(file => file.mode !== 0o644)) throw new Error('The lesson bundle has incomplete or executable saved browser tooling.');
+  builderFormat.validateBuilderFiles(JSON.parse(manifest.content.toString('utf8')),
+    saved.filter(file => file !== manifest).map(file => ({path:file.path.slice('.zero-build/'.length),bytes:file.content})));
+  builderFormat.validateRuntimeLock(JSON.parse(saved.find(file => file.path === '.zero-build/runtime-lock.json').content.toString('utf8')));
 }
 function decode(value) {
   if (typeof value !== 'string' || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value)) throw new Error('The lesson bundle contains invalid file data.');
@@ -48,7 +59,7 @@ function validateBundle(bundle) {
     const template = validateTemplate(project.template, project.id);
     const files = new Set(); let marker = false, ignored = false, settings = false, projectBytes = 0;
     const validated = project.files.map(file => {
-      if (!isRecord(file) || !safeRelative(file.path) || !PROJECT_FILES.has(file.path) || files.has(file.path) || ![420,493].includes(file.mode)) throw new Error('The lesson bundle contains an unsafe file path or mode.');
+      if (!isRecord(file) || !safeRelative(file.path) || !allowedProjectPath(file.path) || files.has(file.path) || ![420,493].includes(file.mode)) throw new Error('The lesson bundle contains an unsafe file path or mode.');
       const portable = file.path.toLowerCase();
       if (files.has(portable)) throw new Error('The lesson bundle contains duplicate file paths.');
       files.add(portable);
@@ -68,6 +79,7 @@ function validateBundle(bundle) {
       return {path:file.path,content,mode:file.mode};
     });
     const coreFile = validated.find(file => file.path === 'zero-core.json');
+    validateSavedBuilderFiles(validated);
     if (!coreFile) throw new Error('The lesson bundle is missing its core record.');
     core.validateCoreRecord(JSON.parse(core.normalizeSource(coreFile.content)),Object.fromEntries(
       validated.filter(file => core.coreSourcePaths.includes(file.path)).map(file => [file.path,file.content])));
@@ -98,6 +110,12 @@ async function assertOutsideGit(parent) {
 }
 async function createLessonProject(project, destination, {forbiddenRoots = []} = {}) {
   if (!project || !Array.isArray(project.files)) throw new Error('Choose a valid bundled lesson.');
+  const paths = new Set();
+  for (const file of project.files) {
+    if (!isRecord(file) || !safeRelative(file.path) || !allowedProjectPath(file.path) || ![420,493].includes(file.mode) || !Buffer.isBuffer(file.content) || paths.has(file.path.toLowerCase())) throw new Error('The lesson bundle contains an unsafe file.');
+    paths.add(file.path.toLowerCase());
+  }
+  validateSavedBuilderFiles(project.files);
   if (typeof destination !== 'string' || !path.isAbsolute(destination)) throw new Error('Choose an absolute path for the new lesson folder.');
   const target = path.resolve(destination), parent = path.dirname(target);
   const actualTarget = path.join(await fs.realpath(parent), path.basename(target));
@@ -112,7 +130,7 @@ async function createLessonProject(project, destination, {forbiddenRoots = []} =
   try {
     await fs.mkdir(target); createdDirs.push(target);
     for (const file of project.files) {
-      if (!safeRelative(file.path) || !PROJECT_FILES.has(file.path) || ![420,493].includes(file.mode) || !Buffer.isBuffer(file.content)) throw new Error('The lesson bundle contains an unsafe file.');
+      if (!safeRelative(file.path) || !allowedProjectPath(file.path) || ![420,493].includes(file.mode) || !Buffer.isBuffer(file.content)) throw new Error('The lesson bundle contains an unsafe file.');
       const parts = file.path.split('/'); let directory = target;
       for (const part of parts.slice(0,-1)) {
         directory = path.join(directory,part);

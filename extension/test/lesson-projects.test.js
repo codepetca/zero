@@ -35,6 +35,26 @@ test('bundle validation rejects traversal, bad base64, duplicate paths and false
   const missing=sample();missing.projects.pop();assert.throws(()=>lessons.validateBundle(missing));
   const wrongLesson=sample();wrongLesson.projects[1].lesson='4';assert.throws(()=>lessons.validateBundle(wrongLesson));
 });
+test('bundled projects retain a complete saved builder without executing it', async t => {
+  const {projectBuilderFilesSync} = await import('../../scripts/prepare-project-builder.mjs');
+  const builder = projectBuilderFilesSync().map(file => ({path:'.zero-build/' + file.path,content:file.bytes.toString('base64'),mode:420}));
+  const bundle = sample();bundle.projects[0].files.push(...builder);
+  const [project] = lessons.validateBundle(bundle), root = await temporary(t);
+  const target = path.join(root,'saved-project');await lessons.createLessonProject(project,target);
+  assert.deepEqual(await fs.readFile(path.join(target,'.zero-build/run.cjs')),Buffer.from(builder.find(file => file.path === '.zero-build/run.cjs').content,'base64'));
+  for (const mode of ['missing','extra','changed','executable']) {
+    const bad = structuredClone(bundle), files = bad.projects[0].files;
+    const index = files.findIndex(file => file.path === '.zero-build/run.cjs');
+    if (mode === 'missing') files.splice(index,1);
+    if (mode === 'extra') files.push({path:'.zero-build/extra.js',content:Buffer.from('throw Error("must not execute")').toString('base64'),mode:420});
+    if (mode === 'changed') files[index].content = Buffer.from('throw Error("must not execute")').toString('base64');
+    if (mode === 'executable') files[index].mode = 493;
+    assert.throws(() => lessons.validateBundle(bad));
+  }
+  const invalid = {...project,files:[...project.files,{path:'.zero-build/extra.js',content:Buffer.from(''),mode:420}]};
+  const untouched = path.join(root,'untouched');await assert.rejects(lessons.createLessonProject(invalid,untouched));
+  await assert.rejects(fs.stat(untouched),/ENOENT/);
+});
 test('creates an exclusive local folder, preserves existing content, rejects symlinks and Git ancestors', async t => {
   const root=await temporary(t),project=lessons.validateBundle(sample())[0],target=path.join(root,'practice');
   assert.equal(await lessons.createLessonProject(project,target),target);
@@ -53,10 +73,10 @@ test('failed materialization removes only files created by this operation', asyn
   const root=await temporary(t),project=lessons.validateBundle(sample())[0];
   project.files.push({path:'src/main/java/Main.java',content:Buffer.from('other'),mode:420});
   const target=path.join(root,'practice');
-  await assert.rejects(lessons.createLessonProject(project,target),/EEXIST/);
+  await assert.rejects(lessons.createLessonProject(project,target),/unsafe file/);
   await assert.rejects(fs.stat(target),/ENOENT/);
   await fs.writeFile(target,'student work');
-  await assert.rejects(lessons.createLessonProject(project,target),/EEXIST/);
+  await assert.rejects(lessons.createLessonProject(project,target),/unsafe file/);
   assert.equal(await fs.readFile(target,'utf8'),'student work');
 });
 test('local practice blocks Git service entry points before Git or network calls', async t => {

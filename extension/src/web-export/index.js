@@ -8,7 +8,7 @@ const { spawn } = require('node:child_process');
 const { acquireBuildLock } = require('./build-lock');
 const { generateProject } = require('./project');
 const { zipFiles } = require('./zip');
-const { captureBuildInputs, buildProfileHash, boundSourceHash } = require('./snapshot');
+const { assertSelectedBuilder, captureBuildInputs, buildProfileHash, boundSourceHash } = require('./snapshot');
 const { resolveLibrarySources } = require('./libraries');
 const { declaration } = require('../sharing/authoring');
 const { prepareMavenDistribution, verifyMavenDistribution } = require('./compatibility/maven-distribution');
@@ -384,6 +384,7 @@ async function exportForWeb(options = {}) {
     throw new Error('Choose a Zero project before exporting for web.');
   const projectRoot = await fs.realpath(path.resolve(options.projectRoot));
   await noSymlinks(projectRoot);
+  await assertSelectedBuilder(projectRoot);
   if (!(await exists(projectRoot))?.isDirectory())
     throw new Error('The Zero project folder does not exist.');
   const cacheRoot = await canonicalPath(

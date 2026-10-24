@@ -2,7 +2,7 @@
 // Static snapshot validation only: never resolve Maven, run Java, or execute hooks.
 const {parseXml,single,value,allNodes}=require('../project-pom');
 const {JAVA_RELEASE,JAVAFX_VERSION}=require('./contracts');
-const SAFE_GITIGNORE='**/target/\n**/build/\n**/dist/\n*.class\n.DS_Store\n.env\n.env.*\n*.pem\n*.key\n*.p12\n*.pfx\ncredentials*\n.zero*\n';
+const SAFE_GITIGNORE='**/target/\n**/build/\n**/dist/\n*.class\n.DS_Store\n.env\n.env.*\n*.pem\n*.key\n*.p12\n*.pfx\ncredentials*\n.zero/\n.zero-sharing-recovery/\n';
 const fail=message=>{throw new Error(message);};
 const javaName=/^[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*$/;
 function text(files,name){const file=files.get(name);if(!file)fail('Required game file missing: '+name);return Buffer.from(file.data??file.bytes).toString('utf8');}
