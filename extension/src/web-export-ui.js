@@ -15,7 +15,7 @@ function createWebExportCommands(vscode,{project,output,isBusy,setBusy,setState,
   const validate = options => (validateExport || require('./web-export/snapshot').validateExport)(options);
   const current = async () => {
     const root = await project();
-    if (!latest || latest.root !== root) throw new Error('Choose Export for web for this project first.');
+    if (!latest || latest.root !== root) latest={root,result:await validate({projectRoot:root})};
     const result=await validate({projectRoot:root,result:latest.result}) || latest.result;
     return {root,result};
   };

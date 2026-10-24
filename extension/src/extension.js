@@ -29,6 +29,7 @@ const {isSetupProject,findSetupProject} = require('./setup-project');
 const {createNativeUpdateCommands} = require('./native-updates');
 const {createNativeUpdateReload} = require('./native-update-reload');
 const {createWebExportCommands} = require('./web-export-ui');
+const {createProjectBuilder,readSavedBuilder} = require('./project-builder');
 const {createBrowserRunCommands} = require('./web-run-ui');
 const {createTutorialReader} = require('./tutorial-reader');
 const {createStartPage} = require('./start-page');
@@ -89,12 +90,14 @@ function activate(context, services = {}) {
   let repository = 'No repository connected';
   let localPractice = false;
   let originalWork = false;
+  let savedBuilderInspectedRoot;
   const project = async () => {
     let root;
     try {root = await core.resolveProject((vscode.workspace.workspaceFolders || []).map(folder => folder.uri.fsPath));}
     catch(error) {projectRoot=undefined;localPractice=false;originalWork=false;throw error;}
     const practice = await lessonProjects.isLocalPractice(root);
     const original = !practice && !await lessonProjects.tutorialMarker(root);
+    if(savedBuilderInspectedRoot!==root){savedBuilderInspectedRoot=root;try{await readSavedBuilder(root,{metadataOnly:true});}catch(error){output.appendLine(error.message);}}
     projectRoot = root; localPractice = practice; originalWork = original;
     return root;
   };
@@ -705,8 +708,11 @@ function activate(context, services = {}) {
     'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),testInstallation:async()=>{const root=await findSetupProject();await vscode.commands.executeCommand('vscode.openFolder',vscode.Uri.file(root),{forceNewWindow:true});},uploadMode})
   };
   const webCacheRoot=context.globalStorageUri ? path.join(context.globalStorageUri.fsPath,'web-compiler') : undefined;
+  const savedBuilder=createProjectBuilder({isTrusted:()=>vscode.workspace.isTrusted===true});
+  const buildWithSavedProject=options=>savedBuilder.ensureValidatedExport({...options,explicitAction:true});
+  const validateWithSavedProject=options=>savedBuilder.validateExport({...options,explicitAction:true});
   const runnableProject=async()=>{const root=await project();await core.assertTutorialRepository(root);return root;};
-  const browserRun=createBrowserRunCommands(vscode,{project:runnableProject,output,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested,preferredPreviewColumn:root=>tutorials.columnFor(root)});
+  const browserRun=createBrowserRunCommands(vscode,{project:runnableProject,output,ensureValidatedExport:buildWithSavedProject,validateExport:validateWithSavedProject,validateRetainedExport:savedBuilder.validateRetainedExport,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested,preferredPreviewColumn:root=>tutorials.columnFor(root)});
   Object.assign(actions,browserRun.commands);
   actions['zero.runApp']=expectedRoot=>{
     if (stopPromise) return stopPromise;
@@ -728,7 +734,7 @@ function activate(context, services = {}) {
     if (!isBusy()) return actions['zero.runApp']();
   };
   context.subscriptions.push(...browserRun.disposables);
-  const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
+  const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,localBuild:buildWithSavedProject,validateExport:validateWithSavedProject,assertBuildInputsAtCommit:savedBuilder.assertBuildInputsAtCommit,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
   Object.assign(actions,webPublish.commands);
   context.subscriptions.push(...webPublish.disposables);
   const sharingHandoff=async(root,action)=>{
@@ -746,7 +752,7 @@ function activate(context, services = {}) {
   const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,setState:report,verifiedPublication:webPublish.verifiedPublication,uploadForSharing:root=>sharingHandoff(root,()=>uploadProject()),publishForSharing:root=>sharingHandoff(root,()=>webPublish.publish()),setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
   Object.assign(actions, sharing.commands);
   context.subscriptions.push(...sharing.disposables);
-  const webExport=createWebExportCommands(vscode,{project:runnableProject,output,setAvailable:root=>{exportReadyRoot=root;},publish:()=>webPublish.publish(),openPreview:browserRun.preview,isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot});
+  const webExport=createWebExportCommands(vscode,{project:runnableProject,output,ensureValidatedExport:buildWithSavedProject,validateExport:savedBuilder.validateRetainedExport,setAvailable:root=>{exportReadyRoot=root;},publish:()=>webPublish.publish(),openPreview:(root,result)=>browserRun.preview(root,result,{retained:true}),isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot});
   Object.assign(actions,webExport.commands);
   context.subscriptions.push(...webExport.disposables);
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {

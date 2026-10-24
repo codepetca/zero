@@ -61,7 +61,7 @@ async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoize
 }
 test('simulation never looks up auth, reads repository, creates files or requests network',async()=>{
   const no=()=>assert.fail('Unexpected side effect');const p=createGitHubPagesPublisher({authentication:{capture:no},fetch:no,git:no});
-  assert.equal((await p.prepare('/missing')).status,'simulated');assert.equal((await p.review('/missing')).status,'simulated');assert.equal((await p.setup({})).status,'simulated');assert.equal((await p.update({})).status,'simulated');assert.equal((await p.publish({})).status,'simulated');assert.equal((await p.check({})).status,'simulated');
+  assert.equal(p.prepare,undefined);assert.equal((await p.review('/missing')).status,'simulated');assert.equal((await p.setup({})).status,'simulated');assert.equal((await p.update({})).status,'simulated');assert.equal((await p.publish({})).status,'simulated');assert.equal((await p.check({})).status,'simulated');
 });
 test('clean uploaded main dispatches exact reviewed source and confirms actual public run marker without token',async t=>{
   const h=await fixture(t);const review=await h.publisher.review(h.root);assert.equal(review.setup,false);
@@ -404,24 +404,6 @@ test('invalid local browser source never creates a first Pages site',async t=>{
  await assert.rejects(h.publisher.publish(await h.publisher.review(h.root)),/browser source invalid/);
  assert.equal(h.pages,null);assert.ok(h.calls.every(call=>call.options.method==='GET'));
 });
-test('Publish helper preparation updates stock source before upload and refuses a change branch',async t=>{
- const h=await fixture(t);
- // This suite runs directly in the compatibility job, before packaging has
- // generated extension/media. Supply a real minimal bundle in its own fixture.
- const extension=await fs.mkdtemp(path.join(os.tmpdir(),'zero-prepare-extension-'));t.after(()=>fs.rm(extension,{recursive:true,force:true}));
- await fs.mkdir(path.join(extension,'media'));
- const {lessonProjects}=await import('../../scripts/lesson-projects.mjs');
- const bundle=lessonProjects(path.resolve(__dirname,'../..'));
- await fs.writeFile(path.join(extension,'media/lesson-projects.json'),JSON.stringify(bundle));
- for(const file of bundle.projects[0].files.filter(file=>file.path.startsWith('src/main/java/zero/'))){const target=path.join(h.root,file.path);await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,Buffer.from(file.content,'base64'));}
- const preparation=createGitHubPagesPublisher({isSimulation:()=>false,engineRoot:path.join(extension,'src/web-export')});
- const current=await fs.readFile(path.join(__dirname,'../../framework/src/main/java/zero/App.java'),'utf8');
- // Immutable released bytes, independent of the current App implementation.
- const previous=await fs.readFile(path.join(__dirname,'fixtures/stock-App.java'),'utf8');
- assert.equal(require('node:crypto').createHash('sha256').update(previous).digest('hex'),'bdcb1060ad5a30f16f1a395c522a520d2506530584bda71a0e4cbe1e7c467c09');
- const target=path.join(h.root,'src/main/java/zero/App.java');await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,previous);await h.git(['add','.']);await h.git(['commit','-m','stock helper']);
- await h.git(['switch','-c','change']);await assert.rejects(preparation.prepare(h.root),/Merge to main/);assert.equal(await fs.readFile(target,'utf8'),previous);
- await h.git(['switch','main']);let guard=0;assert.deepEqual(await preparation.prepare(h.root,{beforeWrite:async()=>{guard++;}}),{updated:['src/main/java/zero/App.java']});
- assert.ok(guard>=2);assert.equal(await fs.readFile(target,'utf8'),current);assert.match(await h.git(['status','--porcelain']),/App.java/);
- await assert.rejects(h.publisher.review(h.root),error=>error.code==='WEB_PUBLISH_UPLOAD_REQUIRED');assert.equal(h.calls.length,0);
+test('publisher exposes no automatic helper migration entrypoint',()=>{
+ const publisher=createGitHubPagesPublisher();assert.equal(publisher.prepare,undefined);
 });

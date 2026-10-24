@@ -19,7 +19,7 @@ function sourceDiagnostics(text, root) {
   return diagnostics.filter(item => item.file.startsWith(root+path.sep));
 }
 
-function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setActive=()=>{},setFailed=()=>{},cacheRoot,ensureValidatedExport,validateExport,previewFactory=createManagedWebPreview,beforeRun=async()=>{},preferredPreviewColumn=()=>undefined}) {
+function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setActive=()=>{},setFailed=()=>{},cacheRoot,ensureValidatedExport,validateExport,validateRetainedExport,previewFactory=createManagedWebPreview,beforeRun=async()=>{},preferredPreviewColumn=()=>undefined}) {
   const build = options => (ensureValidatedExport || require('./web-export/snapshot').ensureValidatedExport)(options);
   const validate = options => (validateExport || require('./web-export/snapshot').validateExport)(options);
   const problems = vscode.languages?.createDiagnosticCollection('zero-browser');
@@ -63,8 +63,8 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
     }
     for (const [filename,items] of grouped) problems.set(vscode.Uri.file(filename),items);
   }
-  async function showPreview(root,result,id=generation) {
-    const validated=await validate({projectRoot:root,result}) || result;
+  async function showPreview(root,result,id=generation,validator=validate) {
+    const validated=await validator({projectRoot:root,result}) || result;
     if (!await current(id,root)) return;
     disposeRuntime();
     let opened;
@@ -110,7 +110,7 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
     stop({quiet:true});const id=generation;queuedGeneration=id;
     const next=queue.then(()=>execute(id,expectedRoot));queue=next.catch(()=>{});setActive(true);return next;
   }
-  async function preview(root,result) {stop({quiet:true});const id=generation;return showPreview(root,result,id);}
+  async function preview(root,result,{retained=false}={}) {stop({quiet:true});const id=generation;const validator=retained?(validateRetainedExport || require('./retained-web-export').validateRetainedExport):validate;return showPreview(root,result,id,validator);}
   const workspaceListener=vscode.workspace.onDidChangeWorkspaceFolders?.(()=>stop());
   return {commands:{'zero.runApp':run,'zero.stopApp':stop,'zero.openRunningAppInBrowser':openInBrowser},run,stop,preview,openInBrowser,whenIdle:()=>queue,get canOpenInBrowser(){return !disposed && typeof runtime?.openInBrowser==='function';},get generation(){return generation;},disposables:[{dispose(){disposed=true;stop({quiet:true});workspaceListener?.dispose();problems?.dispose();}}]};
 }

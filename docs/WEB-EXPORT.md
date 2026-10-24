@@ -43,6 +43,24 @@ compares all build inputs against the reviewed uploaded commit, including files
 Git status might hide as ignored. Standard CRLF/LF equivalence is allowed only
 for Java/known textual Maven inputs; resources must match the commit exactly.
 
+Unreleased preservation implementation: newly assembled projects track their
+complete browser builder in `.zero-build`, alongside `zero-core.json`, Java
+source and Maven setup. A newer editor reads bounded metadata on open and leaves
+those files unchanged. An explicit browser action in a trusted workspace verifies
+the saved closure, runs a frozen copy with a separate Node/JDK process, withholds
+GitHub credentials, and checks its inputs and output before accepting the build.
+Missing tools or saved files produce a tooling-unavailable result; the editor
+does not silently use its latest compiler. Publish no longer upgrades helpers.
+Current runtime requirements and standalone commands live in that project's
+`.zero-build/README.md`; no central historical-kit database is required.
+
+Finished site/ZIP validation is separate. Previewing or saving retained output
+checks its own file hashes and ZIP bytes without the Java compiler, current
+framework source, current browser profile or live library catalog. Publishing a
+new source version still requires current saved-builder validation and exact
+uploaded-commit binding. Local implementation/review is separate from released
+kits, private runtime provisioning and real authenticated Pages acceptance.
+
 ## Strict WebFX compatibility
 
 A local JDK semantic checker attributes original sources before browser adapters

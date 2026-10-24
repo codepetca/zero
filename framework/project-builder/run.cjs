@@ -76,7 +76,7 @@ async function execute(request, controller) {
   const cacheBase = request.cacheRoot || path.join(os.homedir(), '.cache', 'zero', 'project-builder');
   const cacheRoot = path.join(cacheBase, before.manifest.closureSha256);
   if (cacheRoot === projectRoot || cacheRoot.startsWith(projectRoot + path.sep)) throw new Error('Browser tooling cache must be outside the project.');
-  const options = {projectRoot, cacheRoot, env: environment, signal: controller.signal, onProgress: message => process.stderr.write(String(message).slice(0, 4096) + '\n')};
+  const options = {projectRoot, cacheRoot, inheritedProcessGroup: true, env: environment, signal: controller.signal, onProgress: message => process.stderr.write(String(message).slice(0, 4096) + '\n')};
   let result;
   if (request.operation === 'export') result = resultMetadata(await require('./src/web-export').exportForWeb(options));
   else if (request.operation === 'validate') result = resultMetadata(await snapshot.validateExport(options));

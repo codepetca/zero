@@ -37,8 +37,11 @@ framework/UI inputs and serves the auto-refreshing component preview.
 `npm run dev:smoke` runs local game/framework/UI checks without building an installer.
 
 Use Node.js 22+ for developer tooling. Students use a supported JDK 17+ and
-VS Code; Git 2.31+ is needed for authenticated uploads. Students do not need Node.js or
-global Maven.
+VS Code; Git 2.31+ is needed for authenticated uploads. Native Run needs no
+Node.js or global Maven. The unreleased project-owned browser builder uses
+standalone Node22 and JDK21. Its current local host discovers existing tools;
+the classroom kit must provision its own private Node runtime before release,
+so installing global Node is not the normal student setup path.
 
 ```sh
 npm ci

@@ -249,7 +249,8 @@ async function runMaven({
   env,
   signal,
   onProgress,
-  buildLock
+  buildLock,
+  inheritedProcessGroup = false
 }) {
   await buildLock?.update({ phase: 'launching' });
   return new Promise((resolve, reject) => {
@@ -287,7 +288,7 @@ async function runMaven({
       env: childEnv,
       windowsHide: true,
       windowsVerbatimArguments: process.platform === 'win32',
-      detached: process.platform !== 'win32'
+      detached: process.platform !== 'win32' && !inheritedProcessGroup
     });
     if (child.pid) buildLock?.trackCompiler(child.pid);
     const registered = child.pid ? buildLock?.update({ phase: 'compiling', compilerPid: child.pid }) : undefined;
@@ -531,7 +532,8 @@ async function exportForWeb(options = {}) {
       env: options.env,
       signal,
       onProgress,
-      buildLock
+      buildLock,
+      inheritedProcessGroup: options.inheritedProcessGroup === true
     });
     await buildLock.compilerFinished();
     await verifyMavenDistribution({ cacheRoot });

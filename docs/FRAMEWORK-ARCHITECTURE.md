@@ -21,8 +21,9 @@ First implementation slice,2026-10-23 (local, unreleased): `zero.ui.Element`,
 coin GameApp reuse the same ordinary `ScoreDisplay` source. See the
 [runnable prototypes](../framework/prototypes/README.md) and
 [current API](../student-template/API.md). This proves the first composition
-boundary, not the whole plan: Screen lifecycle, World, replaceable animation,
-project-owned browser tooling and new automatic diagnostics remain future work.
+boundary. Replaceable animation is now implemented and accepted in Phase2C.
+Project-owned browser tooling is being integrated in Phase3. Screen lifetime,
+World and new automatic diagnostics remain proposed.
 
 The next local increment turns the coin example into COIN QUEST: title/help,
 two timed levels, pause/resume, win/timeout results and replay/title navigation.
@@ -374,13 +375,15 @@ script silently. Standalone instructions must also document tools and explicit
 local execution. Browser output must still pass the selected validated profile,
 real pinned WebFX compilation and source/output snapshot checks before publishing.
 
-Current limits: projects already include readable framework source and native
-Maven/JavaFX pins. The existing exporter already emits a web ZIP and source/profile/
-output hashes and has a standalone CLI. Browser rules and builder files still
-come from the installed exporter; templateVersion is not a complete project build
-record. Project-owned browser tooling, a supported safe launcher, complete locks,
-retention/optional backup and upgrade UI remain future work. This policy does not
-implement them or establish a complete offline rebuild guarantee.
+Current source, unreleased: projects include readable framework source, native
+Maven/JavaFX pins and the complete `.zero-build` browser builder. Its standalone
+CLI retains rules, adapters and locks. Explicit trusted editor actions are being
+connected to a verified frozen copy; opening a project never executes it or
+upgrades its helpers. Retained finished output has separate data-only validation.
+Independent review and clone/build/rehost acceptance are still in progress.
+`templateVersion` alone is not a complete build record. Private runtime
+provisioning for the classroom kit and optional upgrade guidance remain delivery
+work; no complete offline or indefinite rebuild guarantee is claimed.
 
 Acceptance stays bounded: current examples and a small fixed set of representative
 same-major projects, not every historical release. Clone one older project with

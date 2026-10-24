@@ -2,10 +2,10 @@
 const path = require('node:path');
 const {createGitHubPagesPublisher} = require('./web-publish-github');
 
-function createWebPublishCommands(vscode,{project,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},output,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
+function createWebPublishCommands(vscode,{project,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},output,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
   let disposed=false,controller,publishing=false,resume,recheckRequested=false,lastLive;
   let root;
-  const publisher=publisherFactory({authentication,repositories,isSimulation:()=>!root || isSimulation(root),engineRoot,cacheRoot,localBuild});
+  const publisher=publisherFactory({authentication,repositories,isSimulation:()=>!root || isSimulation(root),engineRoot,cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit});
   async function stillCurrent(expected) {
     if(disposed || controller?.signal.aborted || await project()!==expected)throw new Error('The project changed or publishing was cancelled. Check GitHub Actions for any run already started.');
   }
@@ -85,10 +85,6 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
           if(!await vscode.workspace.saveAll(false))throw Error('Save your project before publishing its browser app.');
           await stillCurrent(expected);
         }
-        await stillPublishable(expected);
-        // Upgrade only recognized stock sources before the normal commit/push
-        // review, so the deployed version includes the exact helper bytes.
-        if(publisher.prepare)await publisher.prepare(expected,{signal:controller.signal,beforeWrite:()=>stillPublishable(expected),onProgress:progress});
         await stillPublishable(expected);
         let review,uploadedSource;
         try {review=await publisher.review(expected,{signal:controller.signal});}
