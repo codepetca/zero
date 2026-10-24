@@ -1,13 +1,12 @@
 # Zero phased vision — current handoff
 
-Updated 2026-10-24 09:55UTC. Human resumed: **“Unlocked and approved.”**
-The Mac is unlocked and all seven actual native suites now PASS. The approved
-fifth correction batch and one targeted independent review are complete/clean.
-A real browser UI-callback failure remains; another bounded runtime fix is pending
-explicit approval. Goal is not complete; the goal tool still reports its prior
-blocked status (no agent resume operation exists).
+Updated 2026-10-24 10:16UTC. **Local reliability Phase4 acceptance PASS.**
+All183 declarations have current executed native AND browser evidence:366/366,
+zero gaps. Goal is not complete: held interactive/platform/publication gates in
+Phase5 remain. Goal tool retains its earlier blocked status; there is no agent
+resume operation. Human approvals and completed work below supersede old requests.
 Single roadmap: [architecture phases](../docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).
-Historical checks/retries/hashes: [EVIDENCE](../docs/EVIDENCE.md).
+Historical attempts/hashes: [EVIDENCE](../docs/EVIDENCE.md).
 
 ## Workspace and authority
 
@@ -39,84 +38,81 @@ DeepSeek paused through2026-12-31. Parent owns Git/docs/integration; one writer.
   saved adapter source. Receipts vision-preservation-C and vision-compiler-failure
   independently hash-verified. Detailed references remain in EVIDENCE.
 
-## Current source / API evidence acceptance
+## Current implementation and acceptance
 
-Last implementation HEAD `55bbc8ada3fc26b610c369a4ce3501d5a26029e7`.
-All183 exact declarations have native/browser assertion mappings,195 links each.
-Scene remains TYPE-only permitted for createScene overrides. Thirty tool tests
-and11 focused JS tests pass. Actual current native7 suites PASS, including
-183/183 native declarations, on the unlocked Mac with real JavaFX interaction.
-Fresh six emitting case receipts: `.verification/vision-api-resumed/native`;
-Smoke is the seventh regression-only suite. Raw native log:
-`.verification/vision-final-checks/native-api-resumed.log`.
+Implementation HEAD `a668d3b516e1f3b14351bd11410195e733616de6`, after
+`86b8da8d7ff9b5c219bdab5c50c7ad1703c1d4f0`. Docs-only commit follows; inspect Git.
+The private browser console provider bridges actual scheduled WebFX Throwables
+into existing lifecycle failure/cleanup. Ordinary logging remains nonfatal.
+The fingerprint-checked App browser overlay reports startup failure BEFORE
+shared-stage closure can consume the single terminal status with a stopped event.
+No student API/core source, telemetry or command authority changed.
 
-Human approved one additional15min window09:49:15–10:04:15UTC. Fifth fix55bbc8ad
-recognizes named lifecycle faults through window/console channels and preserves
-stopped-frame assertions. One initial full30-path/183-mapping review plus four
-narrow targeted Sol/high reviews are COMPLETE/CLEAN. Ledger
-`.verification/vision-api-review/budget.json`: launches5, initialwave1,
-targetwaves4, fixBatches5. Effective config/tokens unknown. Do not silently begin
-sixth batch or another review. New async approval request proposes one bounded20min
-runtime correction/review; no answer yet.
+Human approved a20min correction/review window10:00:04–10:20:04UTC, then explicitly
+approved seventh batch inside the same window. Both runtime deltas have COMPLETE/
+CLEAN independent Sol/high targeted reviews. Earlier API full30-path/183mapping
+and reliability full46-path Sol/Astra reviews remain reused. API review ledger:
+launches7, initialwave1, targetedwaves6, fixBatches7. No further correction/reviewer
+launch authorized. Per-turn tokens/effective configs unknown; clocks approximate.
 
-All4 actual WebFX/GWT exports at52ea0d97 are still byte-valid: later fixes only
-maintainer JS. The approved actual four-family run passes helpers, Zero UI, audio,
-normal lifecycle/atlas and update/draw fault checks, then FAILS UI callback.
-WebFX catches the actual exception in pinned SchedulerProviderBase.java129–130
-and calls Console.error(message,Throwable), bypassing GWT/window handlers.
-Elemental2ConsoleProvider emits only generic console.error and console.trace of
-the Throwable. No fatal event reaches Zero and frames continue (Updates1803,
-Draws1803 after30s). Do not weaken this test or declare browser complete.
-Failure retained under `.verification/vision-api-resumed/approved-browser-failure`;
-raw `.verification/vision-final-checks/web-api-approved.log`.
+31 focused runtime/adapter/builder tests PASS, including actual production Java
+provider+BrowserLifecycle execution with dependency fakes. All7 actual serial
+native suites PASS at final profile; six emitting native case receipts plus
+Smoke regression. Four real pinned WebFX/GWT exports PASS. All4 ordinary browser
+families PASS103 assertions plus helpers mobile57 assertions. Intentional update,
+draw, UI callback, missing-asset, setup, shutdown and promise checks all pass.
+No stress/full10 run repeated; previous failed attempts retained.
 
-A scoped three-family browser-only run subsequently PASSES and emits authoritative
-helpers/zero-ui/audio receipts. No exports or stress/full10 run repeated. Browser
-lifecycle receipts remain absent; combined current evidence validates282/366
-targets (183native+99browser),84browser targets pending. Report
-`.verification/vision-api-resumed/combined-partial-report.json`.
-Concrete next-correction proposal (no runtime files edited):
-`.verification/vision-api-resumed/ui-fault-correction-proposal.json`.
-Register a private Zero console provider forwarding actual scheduled-runnable
-Throwables into existing BrowserLifecycle.fail and cleanup, preserve unrelated
-logging/causal diagnostics and prevent reentrancy. Requires adapter/entrypoint
-regressions, affected real exports/browser and current evidence recollection,
-one independent review, within a newly approved bounded window.
+Authoritative loader remeasures current source, exact complete saved builder/
+profile, configuration, executed output and actual tools. Combined native and
+browser declaration outcomes: **366/366 complete, no gaps**. This is execution
+coverage for the finite manifest, not every possible behavior or physical device.
+- Native: `.verification/vision-api-startup-native`.
+- Real exports/browser: `.verification/vision-api-startup-web`.
+- Combined case receipts: `.verification/vision-api-startup-complete`.
+- Required-complete report: `.verification/vision-api-console/complete-report.json`.
+- Raw checks/package/review evidence: `.verification/vision-api-console/`.
+- An actual loopback parent/child iframe MessagePort probe also passes for UI
+  and setup faults: exactly one fatal, original cause retained, ordered sequence,
+  no competing stopped event. Receipt `vision-api-console/managed-fault-receipt.json`;
+  not physical editor acceptance. Its first wrapper result parser failed after
+  successful browser execution; offline raw JSON decoding recovered the unchanged
+  actual result without a browser retry.
+- Actual earlier UI/startup failures and diagnostic probe remain retained there;
+  diagnostic replay is not substituted for the final unmodified browser harness.
 
-## Local Phase5 progress
+## Local Phase5 candidate
 
-Local VSIX/kit/starter candidate assembled; exact source/archive/license checks,
-extracted standalone Maven compile, root config/syntax/links and22websiteAPI/
-navigation tests PASS.43 local Git/mocked-editor workflow contracts PASS89.902s;
-not real editor/GitHub/novice acceptance. Current archive parity independently
-compares585 source/setup members. Receipt
-`.verification/vision-final-checks/local-candidate-receipt.json`.
-Kit4,248,578 bytes SHA d348b1fdd5a5d0b8530809c6263d1d86005dc5249276b1980accafa9386ccfa8;
-starter2,760,670 SHA7099b052154ceed245d4009c71504260b0eadbba9f664f4267fcb28abf7d1eae;
-VSIX1,474,188 SHA44aa15c19004d38c43643ae572792dbeebde94d3ebddd5d10b80db3824a8fb29.
-Metadata kit0.5.47/core0.3.0/publication.local, NOT replacement released bytes.
-Student guide now keeps appearance Zero-first. Concrete teaching CORE-PROPOSAL
-for TurnTowards retains source/credit/pins, discloses remaining independent reuse
-proof; no API adopted/published. Public docs/API behavior unchanged by tooling.
-PhysicalWindows/installers, heldnativeeditorQA, novicepilot, hosted schema2 sharing,
-authenticated Pages and release publication remain separately gated.
+Rebuilt local VSIX/kit/starter at final runtime source. Exact licenses/archives,
+executable wrappers, all canonical source bytes and extracted Maven compilation
+PASS. Independent current parity compares588 archive/source/setup members. Current
+project-owned saved builder has62 files, including the console provider; historical
+A/B project builders remain unchanged. Candidate receipt:
+`.verification/vision-api-console/startup-local-candidate-receipt.json`.
+Metadata remains kit0.5.47/core0.3.0/publication.local, NOT released replacement bytes.
+- kit: zero-bootstrap.zip, 4252021 bytes, SHA256 `1de1aff68269d39320d3e97e53bafeff2f87f9594c218d30d222ed7cda1e7b5e`.
+- starter: zero-starter.zip, 2761536 bytes, SHA256 `5bd3a3ee6bea19a6faaf17ec85505522b2b6a0356de50b932e1935056d604f2c`.
+- extension: zero-0.5.47.vsix, 1476862 bytes, SHA256 `7017445873ed93bee5d2c09adf3914c5795194fd042a0876f14e2fe416b8b675`.
 
-## Next action / pending approval
+Earlier unaffected22websiteAPI/navigation tests and43 local Git/mocked-editor
+workflow contracts remain valid. No physical editor/GitHub/novice proof is claimed.
+Teaching CORE-PROPOSAL for TurnTowards preserves source/credit/pins and discloses
+missing independent reuse proof; no public API adopted or library published.
 
-1. Combined partial evidence validation finished:282/366, all84 gaps browser
-   lifecycle. Retain that evidence; do not claim366 complete.
-2. Await answer to the explicit additional runtime correction/review request.
-   Existing15min approval covered only fifth harness correction/review; both done.
-   No further runtime edits/exports/review launches until extension.
-3. After approval, implement the concrete browser scheduled-exception bridge,
-   rerun affected checks and collect366 current target outcomes; never substitute
-   counts/mappings for execution. Keep physical/editor/publication holds separate.
-4. Complete local phase acceptance documentation after actual gates pass.
+## Next phase / remaining holds
+
+Phase0–4 local deliverables are accepted; Phase5 local packaging/contracts pass.
+Next substantive acceptance is the actual student/contributor journey in the
+isolated Zero Dev editor, after the existing native editor QA hold is explicitly
+released. Actual installers/platforms/novice trial, hosted schema2 sharing,
+authenticated Pages and release publication remain separately gated. No outstanding
+runtime fix is known after the final gates. Do not rerun completed reviews/exports
+or add features merely to fill these held external/interactive acceptance gaps.
+No push/PR/merge, deploy/release, real installation, accounts or telemetry authorized.
 
 Existing Node `/Users/stew/.local/share/mise/installs/node/22.21.1/bin/node`.
 JDK `/Users/stew/Library/Application Support/Zero/runtime/jdk-3623232f33a9c3baadf304480b2535f9a3cba8a58d42ecbb438ba267315d9998/jdk-21.0.12.1+1/Contents/Home`.
 Cache `/Users/stew/Repos/zero/.verification/web-export-checks/cache`.
-Storage cached09:49UTC262.717GB healthy; weekly25%used75%remaining sharedaccount,
-not taskcost. Effective configs/perturntokens unknown. Review worker completed;
-owned browser/native processes closed after checks. No supported worker close
-API; runtime reclamation unverified. No monitor/newchat created.
+Storage healthy262.717GB cached at resume; weekly25%used75%remaining sharedaccount,
+not taskcost. No monitor/newchat created. All reviewers completed; no supported
+worker-close API. Preserve this useful worktree and ignored proofs/caches.

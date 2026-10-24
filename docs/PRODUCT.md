@@ -67,10 +67,11 @@ tooling and trusted editor selection are accepted locally through05390785; the
 full old/new preservation proof also passes locally. Local prototypes and
 verification are separate from released kits and published tutorial repositories.
 
-Reliability source and exact API evidence tooling are implemented locally. All183
-declarations have mappings on both targets, but complete executed coverage remains
-a gate: native checks require the unlocked Mac and browser fault-channel test
-acceptance is unfinished. The local kit candidate passes archive/source/license
+Local reliability gates pass througha668d3b5: all183 declarations have current
+executed native and browser evidence,366/366 targets with no gaps. Seven actual
+native suites, four pinned WebFX exports and the scoped browser behavior/failure
+checks pass. UI callback and startup failures preserve their causes and stop the
+browser game. The refreshed local kit candidate passes archive/source/license
 and extracted Maven checks; those results do not establish installation, physical
 Windows, interactive student use, hosted sharing admission or publication.
 

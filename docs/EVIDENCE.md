@@ -1,5 +1,77 @@
 # Delivery evidence index
 
+## Final local reliability acceptance — 2026-10-24
+
+Human approved the20-minute runtime correction/review window10:00:04–10:20:04UTC,
+and a seventh batch within that same deadline. `86b8da8d` registers a private
+BrowserConsoleProvider for actual pinned WebFX scheduled-runnable Throwables.
+It retains ordinary logging and routes real callback errors through existing
+BrowserLifecycle failure/cleanup, preserving original and cleanup causes.
+Actual browser verification then passes UI and missing-asset stop checks but
+exposes startup ordering: a failed app closes its shared Stage, an older owner's
+hide handler reports stopped, and the global sink suppresses the later fatal.
+The retained diagnostic run tags that exact setup action; it is not final proof.
+`a668d3b5` reports startup failure through BrowserLifecycle before stop/stage-close
+can produce a competing terminal status. Core/student API signatures are unchanged.
+
+Both deltas have complete independent Sol/high reviews with no P1/P2 findings,
+including SHA-pinned upstream scheduler/console source, generated registration,
+recursive builder inclusion, cleanup/reentrancy and terminal ordering. Prior full
+API and reliability source review coverage remains applicable. API ledger totals:
+7 reviewer turns,1 initial wave,6 targeted waves,7 correction batches. Human
+extensions are recorded in the same ledger; no fresh budget/session bypass.
+Effective configurations and per-turn token use remain unknown.31 focused tests
+pass with zero skipped, including actual Java production provider/lifecycle code
+compiled with dependency fakes. The initial new generation test used an unsupported
+fully-qualified entrypoint spelling; its fixture was corrected before committing.
+
+**Final unmodified actual checks PASS:** seven serial native JavaFX suites;
+four real pinned WebFX/GWT exports;103 ordinary browser assertions across helpers,
+Zero UI, audio and lifecycle;57 helpers-mobile assertions. Update/draw/UI,
+missing-asset, setup/shutdown and actual browser promise failure checks all pass.
+No stress/full-ten fixture run repeated. Native and four browser case receipts
+are collected at final source/profile. The authoritative loader remeasures exact
+current source/complete saved builder/configuration/tools/outputs and reports
+**183 declarations,366 required targets,366 covered, zero gaps** with
+`--require-complete`. This finite coverage does not prove every possible behavior,
+physical platform or actual editor interaction.
+
+Final evidence:
+- `.verification/vision-api-startup-native`: six emitting cases plus Smoke's
+  regression-only pass; raw `vision-api-console/startup-native.log`.
+- `.verification/vision-api-startup-web`: four builds and actual ordinary/mobile
+  browser receipts; raw `vision-api-console/startup-web.log`.
+- `.verification/vision-api-startup-complete`: combined current case directories.
+- `.verification/vision-api-console/complete-report.json`:366/366 complete.
+- Earlier console-only failed build/browser, bounded diagnostic replay and prior
+  native/profile evidence remain retained; they are historical after final fix.
+
+A further bounded real loopback parent/child iframe MessagePort probe on the exact
+final lifecycle build passes UI and setup faults: ordered records, exactly one
+fatal with the original named cause and no competing stopped event. UI reaches
+startup→UI-ready→first-frame→fatal; setup reaches startup→UI-ready→fatal. This is
+actual browser transport, not physical editor UI. Raw
+`vision-api-console/managed-fault-browser.log` and `managed-fault-receipt.json` are
+retained. The wrapper's first JSON parser failed after successful browser execution;
+offline decoding of the preserved result recovered it without a browser retry.
+
+Local packaging was rebuilt at final source. Exact MIT/license/archive/wrapper
+checks and extracted standalone Maven compilation PASS.588 current archive/source/
+setup byte comparisons PASS. Current project-owned builder has62 files; historical
+student A/B builders are unchanged. Candidate receipt:
+`.verification/vision-api-console/startup-local-candidate-receipt.json`.
+Final local kit4,252,021 bytes SHA256
+1de1aff68269d39320d3e97e53bafeff2f87f9594c218d30d222ed7cda1e7b5e;
+starter2,761,536 SHA256
+5bd3a3ee6bea19a6faaf17ec85505522b2b6a0356de50b932e1935056d604f2c;
+VSIX1,476,862 SHA256
+7017445873ed93bee5d2c09adf3914c5795194fd042a0876f14e2fe416b8b675.
+Kit0.5.47/core0.3.0/publication.local are unreleased candidate metadata. No
+published bytes were replaced. Existing22API/navigation and43 local Git/mocked
+editor workflow checks remain applicable. Local Phase4 is accepted; Phase5's
+actual editor, installer/platform/novice, hosted/Pages and release gates remain
+held/separate. No public API addition, telemetry, credential or external action.
+
 ## Resumed native acceptance and browser UI fault — 2026-10-24
 
 Human **“Unlocked and approved”** authorized the fifth correction batch and one
