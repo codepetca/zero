@@ -1,5 +1,17 @@
 # Verification
 
+## ZeroHub sharing action emphasis — 2026-10-24
+
+Share your work now uses the existing purple token for a tinted fill, border
+and semibold label. Hover deepens the tint; size, position and link are retained.
+All 177 website tests, production build (including TypeScript), root checks
+and whitespace checks pass. Chromium checks cover dark/light phone styling,
+320px inline reflow without overflow, 44px action height, and the existing 3px
+keyboard focus outline. Desktop uses the same treatment. No auth, star or Play
+writes were performed. Physical Safari/touch and text enlargement were not
+reverified. Review/CI/live receipts: PR handoff and ignored
+.verification/zerohub-share-emphasis/.
+
 ## ZeroHub header cleanup — 2026-10-24
 
 Shared profile dropdown replaces the standalone theme button; it contains

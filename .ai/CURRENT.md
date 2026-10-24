@@ -1,16 +1,14 @@
-# ZeroHub header cleanup — 2026-10-24
+# ZeroHub share action emphasis — 2026-10-24
 
-Owner requests a shared profile dropdown in place of the standalone appearance
-button, GitHub sign-in only when disconnected, no ZeroHub subtitle/account row,
-a compact title-to-toolbar gap, Share your work inline with the filters, and an
-inset search icon with only “search zerohub” as its visible placeholder.
+Owner requests a slightly more prominent Share your work action, then PR and
+merge. Use existing purple tokens for a tinted fill, border and semibold label;
+preserve compact inline placement, hit targets, search and account behavior.
 
-Branch codex/zerohub-header-cleanup, base 576c3a0c, attached zerohub-interest
-worktree. Root owns implementation. Preserve the primary funding checkout and
-unrelated worktrees. Existing UI publication authority continues; Free services,
-metrics behavior, publisher pins, credentials and native releases unchanged.
+Branch codex/zerohub-share-emphasis in the attached zerohub-interest worktree;
+base 3ebf6995. Root owns the small CSS change. Preserve the dirty primary funding
+checkout and unrelated worktrees. No new service, dependency, native release,
+publisher-pin or credential change; existing Free services remain untouched.
 
-Next: browser checks (signed-out/connected/error, keyboard, phone/desktop),
-website tests/type/build/root checks, one independent standard-risk review,
-then reviewed PR/CI/merge/live verification. Logs/screenshots stay ignored in
-.verification/zerohub-header-cleanup/. No new task or service.
+Next: focused browser phone/desktop light/dark checks, website validation,
+one low-risk independent review, PR/CI/merge and live verification. Evidence
+stays in ignored .verification/zerohub-share-emphasis/ and the PR handoff.
