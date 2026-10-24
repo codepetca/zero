@@ -46,6 +46,7 @@ async (initialPage) => {
       if (c.texts.length) c.last = { texts: c.texts, images: c.images };
       c.texts = [];
       c.images = [];
+      c.apiPending=null;c.apiPendingCanvas=null;
       return clear.apply(this, args);
     };
     p.fillText = function (...args) {
@@ -60,7 +61,25 @@ async (initialPage) => {
         window.__zeroCheck.pixelEvidence ||= {};
         window.__zeroCheck.pixelEvidence[assertionId]={assertionId,specification,data};
       }
-      if(String(args[0]).startsWith('ZERO_API_EVIDENCE_V1\n'))window.__zeroCheck.apiEvidence=String(args[0]);
+      // WebFX can render a multiline Java text value as separate fillText calls.
+      // Preserve only complete ordered blocks from this actual canvas/frame.
+      const c=window.__zeroCheck,line=String(args[0]),start='ZERO_API_EVIDENCE_V1',end='END_ZERO_API_EVIDENCE',limit=512*1024;
+      const complete=raw=>raw.length<=limit&&/^ZERO_API_EVIDENCE_V1\n(?:I\|[^\n]+\n[APO]\|[^\n]+\n)+END_ZERO_API_EVIDENCE$/.test(raw);
+      if(line.startsWith(start+'\n')) {
+        c.apiPending=null;c.apiPendingCanvas=null;
+        if(complete(line))c.apiEvidence=line;
+      } else if(line===start) {
+        c.apiPending=start+'\n';c.apiPendingCanvas=this.canvas;
+      } else if(c.apiPending) {
+        if(c.apiPendingCanvas!==this.canvas||line.includes('\n')||c.apiPending.length+line.length+1>limit) {
+          c.apiPending=null;c.apiPendingCanvas=null;
+        } else if(line===end) {
+          const raw=c.apiPending+end;
+          if(complete(raw))c.apiEvidence=raw;
+          c.apiPending=null;c.apiPendingCanvas=null;
+        } else if(/^[IAPO]\|/.test(line))c.apiPending+=line+'\n';
+        else {c.apiPending=null;c.apiPendingCanvas=null;}
+      }
       const actorFontMarkers = {'Actor checks ready':'before', 'Actor shape':'inside',
         'Actor failing font':'failing', 'Actor scope restored':'after'};
       const actorFontMarker = actorFontMarkers[String(args[0])];

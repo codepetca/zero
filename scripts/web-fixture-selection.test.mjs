@@ -52,3 +52,25 @@ test('helper evidence retains its successful snapshot before loading fault reloa
  assert.equal(reads,1);assert.equal(apiEvidence.length,1);assert.equal(apiEvidence[0].caseId,'browser/helpers');assert.equal(apiEvidence[0].raw,successful);
  await assert.rejects(vm.runInNewContext('(async()=>{'+source.slice(start,end)+'})()',{page,apiEvidence:[]}),/Missing successful helper/);
 });
+
+test('actual Canvas instrumentation assembles whole/split blocks and rejects incomplete, cross-frame and oversized transport',async()=>{
+ // These are synthetic transport bytes, not evidence that a Java API ran.
+ const painted=[],window={},document={createElement:()=>({}),body:{innerText:''}};
+ function Context(){this.canvas={width:960,height:480};}
+ Context.prototype.fillText=function(text){painted.push(text);};Context.prototype.clearRect=function(){};Context.prototype.drawImage=function(){};
+ const globals={window,document,CanvasRenderingContext2D:Context,addEventListener:()=>{},console:{error:()=>{}}};
+ const child={addInitScript:async initialize=>initialize(),goto:async()=>{throw new Error('initialized-only');},evaluate:async predicate=>predicate(),screenshot:async()=>{},close:async()=>{}};
+ await assert.rejects((await harness('web-browser-checks.js',['helpers'],globals))({context:()=>({newPage:async()=>child})}),/initialized-only/);
+ const context=new Context(),start='ZERO_API_EVIDENCE_V1',end='END_ZERO_API_EVIDENCE';
+ const lines=[start,'I|fixture#actual()|transport','A|fixture#actual()|transport|Synthetic transport only|true',end],raw=lines.join('\n');
+ context.fillText(raw,0,0);assert.equal(window.__zeroCheck.apiEvidence,raw);assert.equal(painted[0],raw);
+ window.__zeroCheck.apiEvidence=undefined;for(const line of lines)context.fillText(line,0,0);assert.equal(window.__zeroCheck.apiEvidence,raw);
+ window.__zeroCheck.apiEvidence=undefined;for(const line of lines.slice(0,-1))context.fillText(line,0,0);assert.equal(window.__zeroCheck.apiEvidence,undefined);
+ context.clearRect(0,0,960,480);context.fillText(end,0,0);assert.equal(window.__zeroCheck.apiEvidence,undefined);
+ context.fillText(raw.slice(0,-end.length),0,0);assert.equal(window.__zeroCheck.apiEvidence,undefined);
+ context.fillText(start,0,0);context.fillText('I|'+ 'x'.repeat(512*1024),0,0);context.fillText(end,0,0);assert.equal(window.__zeroCheck.apiEvidence,undefined);
+ context.fillText(start,0,0);const other=new Context();for(const line of lines.slice(1))other.fillText(line,0,0);assert.equal(window.__zeroCheck.apiEvidence,undefined);
+ context.fillText(start,0,0);context.fillText('unrelated rendered text',0,0);for(const line of lines.slice(1))context.fillText(line,0,0);assert.equal(window.__zeroCheck.apiEvidence,undefined);
+ for(const line of [start,lines[2],lines[1],end])context.fillText(line,0,0);assert.equal(window.__zeroCheck.apiEvidence,undefined);
+ for(const line of lines)context.fillText(line,0,0);assert.equal(window.__zeroCheck.apiEvidence,raw);
+});
