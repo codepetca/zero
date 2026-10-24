@@ -1,6 +1,9 @@
 # Zero phased vision — current handoff
 
-Updated 2026-10-24 04:36UTC. Persistent goal **ACTIVE**, not complete.
+Updated 2026-10-24 04:40UTC. Persistent goal **BLOCKED**, not complete.
+Goal tool confirmed blocked after three consecutive turns with the same locked
+Mac and missing explicit fifth-fix approval. Await human input; a user resume
+starts a fresh blocked audit.
 Single roadmap: [architecture phases](../docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).
 Historical checks/retries/hashes: [EVIDENCE](../docs/EVIDENCE.md).
 
@@ -92,10 +95,10 @@ proof; no API adopted/published. Public docs/API behavior unchanged by tooling.
 PhysicalWindows/installers, heldnativeeditorQA, novicepilot, hosted schema2 sharing,
 authenticated Pages and release publication remain separately gated.
 
-Waiting-human blocked audit: first goal turn with both required inputs pending
-and independent authorized work exhausted. Keep active now; if the identical
-block repeats across three consecutive goal turns, apply the goal tool blocked
-rule rather than continuing empty work. No implicit approval from elapsed time.
+Waiting-human blocked audit: three consecutive goal turns revalidated the same
+locked Mac and missing fifth-fix approval, with independent authorized work
+exhausted. Goal tool now BLOCKED. No implicit approval from automatic continuation
+or elapsed time. See ignored vision-final-checks/blocked-audit.json.
 
 ## Next action / pending user input
 
