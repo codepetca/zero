@@ -917,7 +917,9 @@ async (initialPage) => {
       return {raw,pixels};
     },[stoppedBefore,stoppedAfter]);
     apiEvidence.push({caseId:'browser/lifecycle',raw:uiEvidence.raw+'\n'+drawingEvidence.raw,pixels:[...uiEvidence.pixels,...drawingEvidence.pixels]});
+    const lifecycleFaultSurfaced = expected => [...window.__zeroCheck.errors,...window.__zeroCheck.consoleErrors].some(message=>String(message).includes(expected));
     for(const fault of ['update','draw','UI','missing asset','setup','shutdown']) {
+      const expected = fault==='missing asset'?'missing-lifecycle-image.png':'Lifecycle '+fault+' fault';
       await page.reload();
       await page.getByRole('button',{name:'Start game',exact:true}).waitFor();
       if(!['setup','shutdown'].includes(fault)) {
@@ -927,11 +929,11 @@ async (initialPage) => {
       const failures=[];const onFailure=error=>failures.push(String(error));page.on('pageerror',onFailure);
       try {
         await page.getByRole('button',{name:'Fault '+fault,exact:true}).click();
-        await page.waitForFunction(()=>window.__zeroCheck.errors.length>0);
+        await page.waitForFunction(lifecycleFaultSurfaced,expected);
         const before=await page.evaluate(()=>window.__zeroCheck.clears);
         await page.waitForTimeout(150);
         check(await page.evaluate(()=>window.__zeroCheck.clears)===before,'Lifecycle '+fault+' failure stops frame work');
-        check(failures.length>0||await page.evaluate(()=>window.__zeroCheck.errors.length>0),'Lifecycle '+fault+' failure is surfaced');
+        check(failures.some(message=>message.includes(expected))||await page.evaluate(lifecycleFaultSurfaced,expected),'Lifecycle '+fault+' failure is surfaced');
       } finally {page.off('pageerror',onFailure);}
     }
     await page.reload();

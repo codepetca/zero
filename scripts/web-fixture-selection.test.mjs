@@ -74,3 +74,22 @@ test('actual Canvas instrumentation assembles whole/split blocks and rejects inc
  for(const line of [start,lines[2],lines[1],end])context.fillText(line,0,0);assert.equal(window.__zeroCheck.apiEvidence,undefined);
  for(const line of lines)context.fillText(line,0,0);assert.equal(window.__zeroCheck.apiEvidence,raw);
 });
+
+
+test('lifecycle fault checks match the named Java failure across actual window and console channels',async()=>{
+ const source=await fs.readFile(new URL('web-browser-checks.js',import.meta.url),'utf8');
+ const declaration=source.match(/const lifecycleFaultSurfaced = ([^;]+);/);
+ assert.ok(declaration);
+ const state={errors:[],consoleErrors:[]};
+ const surfaced=vm.runInNewContext('('+declaration[1]+')',{window:{__zeroCheck:state}});
+ for(const expected of ['Lifecycle update fault','Lifecycle draw fault','Lifecycle UI fault','missing-lifecycle-image.png','Lifecycle setup fault','Lifecycle shutdown fault']) {
+  state.errors=['Unrelated window error'];state.consoleErrors=['Failed to load resource: favicon.ico','Lifecycle different fault'];
+  assert.equal(surfaced(expected),false,expected);
+  state.consoleErrors.push('java.lang.IllegalStateException: '+expected);
+  assert.equal(surfaced(expected),true,expected+' console');
+  state.consoleErrors=[];state.errors.push('Error: '+expected);
+  assert.equal(surfaced(expected),true,expected+' window');
+ }
+ assert.ok(source.includes('page.waitForFunction(lifecycleFaultSurfaced,expected)'));
+ assert.ok(source.includes('page.evaluate(lifecycleFaultSurfaced,expected)'));
+});
