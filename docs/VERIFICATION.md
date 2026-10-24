@@ -1,5 +1,44 @@
 # Verification
 
+## Authorized tutorial publication and sign-in activation — 2026-10-24
+
+Owner authorizes the three template publications, browser sign-in activation and
+real Mac student walkthrough through lesson11; native releases remain separate.
+All3template PR1s merged after independent Sol/medium artifact review CLEAN:
+Greeting6c8bb13c, Study7abe7590, Gameaed2f3e9. Anonymous pinned GitHub archives each
+pass the exact95-file/bytes/executable-mode check and recorded scaffold digest;
+public repository IDs/template status/main commit/tree are verified. No generated
+output or private files were published. Current source publication gate passes.
+Artifact review also ran26builder tests; previous native/WebFX checkpoint proof
+shares94/95files with each minimal scaffold (Main is the completed checkpoint).
+
+Integration preserves current main throughd24d87bb, including approved ZeroHub
+sidebar/account/metrics and Play.Share.Learn. Parent merged6adb87dc/05ef3c49;
+Sol/high worker resolved4source conflicts, retaining schema2 rejection before
+compatible-policy intake and practice separation. Existing publisher policy/config
+revisions and gates stay unchanged. Worker29sharing/205website tests/typecheck
+PASS; parent55focused/root/websitebuildPASS. Preview actually shows current
+sidebar/tagline and separate practice navigation; its unconfigured catalog error
+is not a claim of production catalog availability.
+
+Astra/high integration/security reviewed all38integration files and relevant
+boundaries,81independent tests PASS. Sol/high compatibility reviewed the same
+integration,180focused tests and all3public archives PASS. Both COMPLETE with
+only2P3documentation findings; one2-file correction batch9bce780a and targeted
+Sol/high closure COMPLETE/CLEAN. No runtime correction. Prior phase and auth
+reviews remain applicable to byte-identical implementations. Integration ledger:
+2initial reviewers+1targeted turn,1fixbatch,0unresolved findings. Effective model,
+tokens and elapsed effort unknown. Template review is a separate1turn artifact
+review, no corrections. Exact-head GitHub CI still pending at this record.
+
+GitHub App UI confirms exact desktop callback added alongside the existing Hub
+callback; wildcard matching remains off and Device Flow remains enabled. Existing
+server credentials are reused, not regenerated/read. Vercel production flag
+ZERO_DESKTOP_GITHUB_ENABLED=1 added; reviewed source deployment/live OAuth and
+student walkthrough remain pending. No native release or publisher config change.
+Proofs: .verification/live-tutorial-rollout/{public-verified,template-candidates}.json,
+focused/root/build logs andgithub-callback.png. PR188 carries source activation.
+
 ## Tutorial readiness and browser-first sign-in — 2026-10-24
 
 Local source only. Tutorial phase87a9b4ef prepares the three coherent current
