@@ -272,7 +272,9 @@ if (browser) {
         const source = await fs.readFile(path.join(root, 'scripts', sourceName), 'utf8');
         await fs.writeFile(script, source.replace('__URLS__', JSON.stringify(urls))
           .replace('__ARTIFACT_ROOT__', JSON.stringify(base)).replaceAll('__SELECTION__',JSON.stringify(selectedFixtures)).trim().replace(/;$/, ''));
-        const receipt = await asyncCommand(['run-code', '--filename', script]);
+        let receipt;
+        try{receipt=await asyncCommand(['run-code','--filename',script]);}
+        catch(error){await fs.writeFile(path.join(base,receiptName),String(error)+'\n');throw error;}
         await fs.writeFile(path.join(base, receiptName), receipt);
         console.log(receipt.split('### Ran Playwright code')[0]);
         if(sourceName==='web-browser-checks.js') {

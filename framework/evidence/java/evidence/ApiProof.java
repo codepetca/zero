@@ -17,6 +17,12 @@ public final class ApiProof {
             this.signature=signature;this.assertion=assertion;this.postcondition=postcondition;this.kind=kind;this.value=value;
         }
     }
+    /** Explicit numeric-field transport; text assertions never pass through this formatter. */
+    public static String number(double value) {
+        if(!Double.isFinite(value))throw new IllegalArgumentException("Numeric API observations must be finite.");
+        if(value==(long)value)return ""+(long)value;
+        return ""+value;
+    }
     public static void observePixels(PixelObserver observer) { pixelObserver=observer; }
     private static void reserve(String signature,String assertion) {
         String key=signature+"|"+assertion;

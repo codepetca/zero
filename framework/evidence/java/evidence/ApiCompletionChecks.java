@@ -16,7 +16,7 @@ public final class ApiCompletionChecks {
         // attached Scene and subsequent real frames establish their completion.
         ApiProof.pending("zero.GameApp#ready(javafx.stage.Stage)","game-ready","Ready starts a timer that delivers real update and draw callbacks",()->
             ApiProof.pending("zero.GameApp#createScene(javafx.scene.layout.BorderPane)","game-scene","The created Scene attaches the configured game canvas",()->
-                ApiProof.equal("zero.GameApp#createContent()","game-content","Content creation constructs a canvas and drawing context with configured dimensions",()->{app.start(stage);return (app.canvas()!=null&&app.graphics()!=null&&app.layout()!=null)+","+app.width()+","+app.height();},"true,"+width+","+height),"canvas,"+width+","+height),"frames");
+                ApiProof.equal("zero.GameApp#createContent()","game-content","Content creation constructs a canvas and drawing context with configured dimensions",()->{app.start(stage);return (app.canvas()!=null&&app.graphics()!=null&&app.layout()!=null)+","+ApiProof.number(app.width())+","+ApiProof.number(app.height());},"true,"+ApiProof.number(width)+","+ApiProof.number(height)),"canvas,"+width+","+height),"frames");
     }
     public static void gameControls(GameApp app,Element content,String visibleText) {
         ApiProof.pending("zero.GameApp#controls(zero.ui.Element)","game-controls","Mounted controls remain visible beside the running canvas",()->app.controls(content),"text,"+visibleText);

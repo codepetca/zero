@@ -29,7 +29,9 @@ async (initialPage) => {
       if (name.toLowerCase() === 'audio') window.__zeroAudio.push(element);
       return element;
     };
-    window.__zeroCheck = { texts: [], images: [], last: null, errors: [], rejections: [], gameClears: 0, draws: 0, clears: 0 };
+    window.__zeroCheck = { texts: [], images: [], last: null, errors: [], consoleErrors: [], rejections: [], gameClears: 0, draws: 0, clears: 0 };
+    const reportError=console.error.bind(console);
+    console.error=(...args)=>{window.__zeroCheck.consoleErrors.push(args.map(String).join(' '));return reportError(...args);};
     addEventListener('error', (event) =>
       window.__zeroCheck.errors.push(event.message)
     );
@@ -85,11 +87,15 @@ async (initialPage) => {
     };
   });
   };
+  const waitForHelpers=(timeout=30000)=>page.waitForFunction(()=>{
+    const observed=window.__zeroCheck;
+    const failure=[...(observed?.errors||[]),...(observed?.consoleErrors||[]),...(observed?.rejections||[])].find(message=>/API assertion failed|API completion failed|Duplicate API assertion/.test(message));
+    if(failure)throw new Error('Helpers Java evidence failed: '+failure);
+    return observed?.last?.texts.includes('Web helpers ready');
+  },null,{timeout});
   cases.helpers = async () => {
   await page.goto(urls.helpers);
-  await page.waitForFunction(() =>
-    window.__zeroCheck?.last?.texts.includes('Web helpers ready')
-  );
+  await waitForHelpers();
   s = await state();
   check(s.texts.includes('Game API checks ready'), 'Native/browser math and ArrayList semantics agree');
   check(s.texts.includes('Actor checks ready'), 'Actor subclasses, movement, aiming, validation and explicit animation updates agree');
@@ -198,7 +204,7 @@ async (initialPage) => {
   await page.route('**/late-image.png', delayed);
   try {
     await page.goto(urls.helpers, {waitUntil:'domcontentloaded'});
-    await page.waitForFunction(() => window.__zeroCheck?.last?.texts.includes('Web helpers ready'), null, {timeout:45000});
+    await waitForHelpers(45000);
     check((await state()).images.length === helperImageDraws, 'Image progress extends startup beyond the original 30-second deadline');
   } finally {
     await page.unroute('**/tiles.png', delayed);
@@ -917,7 +923,13 @@ async (initialPage) => {
   for (const id of selection.filter(id => id !== 'mobile')) {
     if (!urls[id]) throw new Error('Missing selected browser fixture URL: ' + id);
     page = await initialPage.context().newPage();
-    try { await initialize(); await cases[id](); if(['helpers'].includes(id)){const raw=await page.evaluate(()=>window.__zeroCheck.apiEvidence);if(!raw)throw new Error('Missing Java observations for '+id);apiEvidence.push({caseId:'browser/'+id,raw});} } finally { await page.close(); }
+    try { await initialize(); await cases[id](); if(['helpers'].includes(id)){const raw=await page.evaluate(()=>window.__zeroCheck.apiEvidence);if(!raw)throw new Error('Missing Java observations for '+id);apiEvidence.push({caseId:'browser/'+id,raw});} }
+    catch(error) {
+      let observed={};
+      try{observed=await page.evaluate(()=>({errors:window.__zeroCheck?.errors,consoleErrors:window.__zeroCheck?.consoleErrors,rejections:window.__zeroCheck?.rejections,last:window.__zeroCheck?.last,java:window.__zeroCheck?.apiEvidence,body:document.body?.innerText?.slice(0,6000)}));}catch{}
+      try{await page.screenshot({path:artifactRoot+'/'+id+'-failure.png'});}catch{}
+      throw new Error('Browser fixture '+id+' failed: '+String(error)+'; observed='+JSON.stringify(observed));
+    } finally { await page.close(); }
   }
   return {
     selectedFixtures: selection.filter(id => id !== 'mobile'),

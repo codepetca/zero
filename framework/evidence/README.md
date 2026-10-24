@@ -38,6 +38,15 @@ completed by configured Canvas/Scene observations, delivered frames, retained
 controls and stopped-frame checks. The first update/draw callbacks also check
 zero initial time and ordering. No unused factory call establishes coverage.
 
+Known finite numeric fixture fields pass explicitly through `ApiProof.number`
+before string transport, so an integral double has the same spelling on the JVM
+and GWT. Text fields, labels, booleans and completion strings still use exact
+String comparison; numeric-looking text is never coerced. Java tests retain
+fractional and negative numeric witnesses and reject altered text and nonfinite
+numeric observations. Browser startup checks surface Java assertion errors
+promptly; failed cases retain their observed diagnostics and a screenshot when
+available, and the verifier saves the failed harness log.
+
 Button callback replacement uses actual activation. Disabled-control evidence
 retains before/after state around attempted blocked input. Media evidence checks
 real playing voices, held pause position, rewind, and continued looping across

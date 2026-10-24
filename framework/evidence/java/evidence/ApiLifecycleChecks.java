@@ -24,10 +24,10 @@ public final class ApiLifecycleChecks extends ApiProbeBases.Ui {
         trace.setText(ApiProof.events());
     }
     @Override public void settings() {
-        ApiProof.equal("zero.App#settings()","ui-settings","Settings callback runs before setup with default dimensions",()->{super.settings();return phase+","+initialWidth()+","+initialHeight();},"0,800.0,500.0");
-        ApiProof.equal("zero.App#size(double,double)","ui-size","Configured size is retained for both initial dimensions",()->{size(320,200);return initialWidth()+","+initialHeight();},"320.0,200.0");
-        ApiProof.equal("zero.App#initialWidth()","ui-initial-width","Protected initial width reports configured pixels",()->""+initialWidth(),"320.0");
-        ApiProof.equal("zero.App#initialHeight()","ui-initial-height","Protected initial height reports configured pixels",()->""+initialHeight(),"200.0");
+        ApiProof.equal("zero.App#settings()","ui-settings","Settings callback runs before setup with default dimensions",()->{super.settings();return phase+","+ApiProof.number(initialWidth())+","+ApiProof.number(initialHeight());},"0,800,500");
+        ApiProof.equal("zero.App#size(double,double)","ui-size","Configured size is retained for both initial dimensions",()->{size(320,200);return ApiProof.number(initialWidth())+","+ApiProof.number(initialHeight());},"320,200");
+        ApiProof.equal("zero.App#initialWidth()","ui-initial-width","Protected initial width reports configured pixels",()->ApiProof.number(initialWidth()),"320");
+        ApiProof.equal("zero.App#initialHeight()","ui-initial-height","Protected initial height reports configured pixels",()->ApiProof.number(initialHeight()),"200");
         ApiProof.pending("zero.App#title(java.lang.String)","ui-title","Startup applies the configured native or browser title",()->title("Zero API lifecycle"),"title,Zero API lifecycle");
         ApiProof.equal("zero.App#padding(double)","ui-padding-validation","Negative padding is rejected with a useful finite-dimension error",()->{try{padding(-1);return "accepted";}catch(IllegalArgumentException expected){return ""+expected.getMessage().contains("non-negative finite");}},"true");
         phase=1;

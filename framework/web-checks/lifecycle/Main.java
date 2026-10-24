@@ -51,7 +51,7 @@ public final class Main extends App {
                 button("Fault missing asset",() -> loadImage("/missing-lifecycle-image.png")),trace),"Fault update");
             show(new Label("Lifecycle waiting"));
         }
-        @Override public void update(double seconds) { if(updateFault)throw new IllegalStateException("Lifecycle update fault"); updates++;if(updates==1)ApiProof.equal("zero.GameApp#update(double)","game-update","The first actual update callback receives zero elapsed time",()->{super.update(seconds);return ""+seconds;},"0.0"); }
+        @Override public void update(double seconds) { if(updateFault)throw new IllegalStateException("Lifecycle update fault"); updates++;if(updates==1)ApiProof.equal("zero.GameApp#update(double)","game-update","The first actual update callback receives zero elapsed time",()->{super.update(seconds);return ApiProof.number(seconds);},"0"); }
         @Override public void draw() {
             if(drawFault)throw new IllegalStateException("Lifecycle draw fault");
             draws++;if(draws==1)ApiProof.equal("zero.GameApp#draw()","game-draw","The first actual draw follows exactly one update callback",()->{super.draw();return updates+","+draws;},"1,1");

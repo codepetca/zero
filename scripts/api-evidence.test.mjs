@@ -196,3 +196,22 @@ test('target gate requires all of that target, rejects missing/stale, and permit
  assert.throws(()=>requireTargetEvidence({...evidence,receipts:[]},'native'),/native execution gate/);
  evidence.receipts[0].identity.toolSha256='f'.repeat(64);assert.throws(()=>requireTargetEvidence(evidence,'native'),/stale/);
 });
+test('explicit finite numeric transport preserves values while numeric-looking text remains strict',t=>{
+ if(!fs.existsSync(path.join(jdk,'bin/javac'))){t.skip('Cached JDK unavailable.');return;}
+ const temporary=fs.mkdtempSync(path.join(os.tmpdir(),'zero-numeric-transport-unit-'));try{
+ const source=path.join(temporary,'Numbers.java');fs.writeFileSync(source,`import evidence.ApiProof;
+class Numbers { public static void main(String[] args) {
+ double[] values={10.0,-20.0,0.0,-0.0,.25,10.5,10.75};String[] expected={"10","-20","0","0","0.25","10.5","10.75"};
+ for(int i=0;i<values.length;i++)if(!ApiProof.number(values[i]).equals(expected[i]))throw new Error("bad numeric transport");
+ for(double invalid:new double[]{Double.NaN,Double.POSITIVE_INFINITY,Double.NEGATIVE_INFINITY})try{ApiProof.number(invalid);throw new Error("nonfinite accepted");}catch(IllegalArgumentException expectedError){}
+ int[] calls={0};ApiProof.equal("unit#geometry()","numeric","Numeric fields compare actual finite values",()->{calls[0]++;return ApiProof.number(10)+","+ApiProof.number(20.0);},"10,20");
+ if(calls[0]!=1)throw new Error("numeric invocation count");
+ for(String text:new String[]{"42.0","42 ","042"})try{ApiProof.equal("unit#text()",text,"Text remains exact",()->text,"42");throw new Error("text equivalence accepted");}catch(IllegalStateException expectedError){}
+ ApiProof.pending("unit#textLater()","strict-completion","Text completion remains exact",()->{},"text,42");
+ try{ApiProof.complete("strict-completion","42.0","42");throw new Error("completion coerced text");}catch(IllegalStateException expectedError){}
+ ApiProof.complete("strict-completion","42","42");System.out.println("NUMERIC_TRANSPORT_OK");
+} }`);
+ const compiled=spawnSync(path.join(jdk,'bin/javac'),['-d',temporary,path.join(root,'framework/evidence/java/evidence/ApiProof.java'),source],{encoding:'utf8'});assert.equal(compiled.status,0,compiled.stderr);
+ const ran=spawnSync(path.join(jdk,'bin/java'),['-cp',temporary,'Numbers'],{encoding:'utf8'});assert.equal(ran.status,0,ran.stderr);assert.match(ran.stdout,/NUMERIC_TRANSPORT_OK/);
+ }finally{fs.rmSync(temporary,{recursive:true,force:true});}
+});

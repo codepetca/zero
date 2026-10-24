@@ -28,8 +28,9 @@ public final class ApiSignatureChecks {
             ApiProof.Invocation call, String expected) {
         ApiProof.equal(signature,assertion,postcondition,call,expected);
     }
+    private static String n(double value) { return ApiProof.number(value); }
     private static String geometry(Actor actor) {
-        return actor.x() + "," + actor.y() + "," + actor.width() + "," + actor.height();
+        return n(actor.x()) + "," + n(actor.y()) + "," + n(actor.width()) + "," + n(actor.height());
     }
     private static final class Mover extends Actor {
         int hooks;
@@ -40,40 +41,40 @@ public final class ApiSignatureChecks {
     public static void actors(Image image,double imageWidth,double imageHeight) {
         ImageRegion first = new ImageRegion(image,0,0,1,1), second = new ImageRegion(image,1,0,1,1);
         SpriteAnimation source = new SpriteAnimation(2,first,second);
-        eq("zero.Actor#<init>(double,double)","actor-empty","Empty construction preserves centre and one-pixel logical size",()->geometry(new Actor(10,20)),"10.0,20.0,1.0,1.0");
-        eq("zero.Actor#<init>(javafx.scene.image.Image,double,double)","actor-image","Image construction uses natural dimensions",()->geometry(new Actor(image,10,20)),"10.0,20.0,"+imageWidth+","+imageHeight);
-        eq("zero.Actor#<init>(zero.ImageRegion,double,double)","actor-region","Region construction uses region dimensions",()->geometry(new Actor(first,10,20)),"10.0,20.0,1.0,1.0");
-        eq("zero.Actor#<init>(zero.SpriteAnimation,double,double)","actor-sprite","Sprite construction uses initial playback dimensions",()->geometry(new Actor(source,10,20)),"10.0,20.0,1.0,1.0");
+        eq("zero.Actor#<init>(double,double)","actor-empty","Empty construction preserves centre and one-pixel logical size",()->geometry(new Actor(10,20)),"10,20,1,1");
+        eq("zero.Actor#<init>(javafx.scene.image.Image,double,double)","actor-image","Image construction uses natural dimensions",()->geometry(new Actor(image,10,20)),"10,20,"+n(imageWidth)+","+n(imageHeight));
+        eq("zero.Actor#<init>(zero.ImageRegion,double,double)","actor-region","Region construction uses region dimensions",()->geometry(new Actor(first,10,20)),"10,20,1,1");
+        eq("zero.Actor#<init>(zero.SpriteAnimation,double,double)","actor-sprite","Sprite construction uses initial playback dimensions",()->geometry(new Actor(source,10,20)),"10,20,1,1");
         AnimationSource definition = source;
-        eq("zero.Actor#<init>(zero.AnimationSource,double,double)","actor-source","Source construction uses initial playback dimensions",()->geometry(new Actor(definition,10,20)),"10.0,20.0,1.0,1.0");
+        eq("zero.Actor#<init>(zero.AnimationSource,double,double)","actor-source","Source construction uses initial playback dimensions",()->geometry(new Actor(definition,10,20)),"10,20,1,1");
         Actor actor = new Actor(10,20);
-        eq("zero.Actor#x()","actor-x","Horizontal centre is readable",()->""+actor.x(),"10.0");
-        eq("zero.Actor#y()","actor-y","Vertical centre is readable",()->""+actor.y(),"20.0");
-        eq("zero.Actor#width()","actor-width","Logical width starts at one",()->""+actor.width(),"1.0");
-        eq("zero.Actor#height()","actor-height","Logical height starts at one",()->""+actor.height(),"1.0");
-        eq("zero.Actor#rotation()","actor-rotation","Initial rotation faces right",()->""+actor.rotation(),"0.0");
-        eq("zero.Actor#setPosition(double,double)","actor-position","Setting centre preserves logical size",()->{actor.setPosition(2,3);return geometry(actor);},"2.0,3.0,1.0,1.0");
-        eq("zero.Actor#setSize(double,double)","actor-size","Display dimensions change without moving centre",()->{actor.setSize(4,6);return geometry(actor);},"2.0,3.0,4.0,6.0");
-        eq("zero.Actor#setRotation(double)","actor-wrap","Negative rotation normalizes into a positive turn",()->{actor.setRotation(-90);return ""+actor.rotation();},"270.0");
-        eq("zero.Actor#rotate(double)","actor-turn","Relative turn wraps across zero",()->{actor.rotate(90);return ""+actor.rotation();},"0.0");
-        eq("zero.Actor#move(double,double)","actor-move","Pixel deltas change both coordinates",()->{actor.move(3,-1);return actor.x()+","+actor.y();},"5.0,2.0");
-        eq("zero.Actor#moveForward(double,double)","actor-forward","Signed speed times elapsed time follows heading",()->{actor.moveForward(8,.5);return actor.x()+","+actor.y();},"9.0,2.0");
-        eq("zero.Actor#face(double,double)","actor-face","Facing a point below yields clockwise ninety degrees",()->{actor.face(9,12);return ""+actor.rotation();},"90.0");
-        eq("zero.Actor#moveToward(double,double,double,double)","actor-clamp","Approach stops at target without overshoot",()->{actor.moveToward(9,12,100,1);return actor.x()+","+actor.y();},"9.0,12.0");
+        eq("zero.Actor#x()","actor-x","Horizontal centre is readable",()->""+n(actor.x()),"10");
+        eq("zero.Actor#y()","actor-y","Vertical centre is readable",()->""+n(actor.y()),"20");
+        eq("zero.Actor#width()","actor-width","Logical width starts at one",()->""+n(actor.width()),"1");
+        eq("zero.Actor#height()","actor-height","Logical height starts at one",()->""+n(actor.height()),"1");
+        eq("zero.Actor#rotation()","actor-rotation","Initial rotation faces right",()->""+n(actor.rotation()),"0");
+        eq("zero.Actor#setPosition(double,double)","actor-position","Setting centre preserves logical size",()->{actor.setPosition(2,3);return geometry(actor);},"2,3,1,1");
+        eq("zero.Actor#setSize(double,double)","actor-size","Display dimensions change without moving centre",()->{actor.setSize(4,6);return geometry(actor);},"2,3,4,6");
+        eq("zero.Actor#setRotation(double)","actor-wrap","Negative rotation normalizes into a positive turn",()->{actor.setRotation(-90);return ""+n(actor.rotation());},"270");
+        eq("zero.Actor#rotate(double)","actor-turn","Relative turn wraps across zero",()->{actor.rotate(90);return ""+n(actor.rotation());},"0");
+        eq("zero.Actor#move(double,double)","actor-move","Pixel deltas change both coordinates",()->{actor.move(3,-1);return n(actor.x())+","+n(actor.y());},"5,2");
+        eq("zero.Actor#moveForward(double,double)","actor-forward","Signed speed times elapsed time follows heading",()->{actor.moveForward(8,.5);return n(actor.x())+","+n(actor.y());},"9,2");
+        eq("zero.Actor#face(double,double)","actor-face","Facing a point below yields clockwise ninety degrees",()->{actor.face(9,12);return ""+n(actor.rotation());},"90");
+        eq("zero.Actor#moveToward(double,double,double,double)","actor-clamp","Approach stops at target without overshoot",()->{actor.moveToward(9,12,100,1);return n(actor.x())+","+n(actor.y());},"9,12");
         Mover mover = new Mover(source);
-        eq("zero.Actor#update(double)","actor-update-owner","One explicit update invokes behaviour once with elapsed time",()->{mover.update(.5);return mover.hooks+","+mover.x();},"1,10.5");
-        eq("zero.Actor#onUpdate(double)","actor-behaviour-hook","Protected behaviour receives validated time on next update",()->{mover.update(.25);return mover.hooks+","+mover.x();},"2,10.75");
-        eq("zero.ImageRegion#<init>(javafx.scene.image.Image,double,double,double,double)","region-construction","Region retains exact supplied bounds",()->{ImageRegion r=new ImageRegion(image,1,0,1,1);return r.x()+","+r.y()+","+r.width()+","+r.height();},"1.0,0.0,1.0,1.0");
+        eq("zero.Actor#update(double)","actor-update-owner","One explicit update invokes behaviour once with elapsed time",()->{mover.update(.5);return mover.hooks+","+n(mover.x());},"1,10.5");
+        eq("zero.Actor#onUpdate(double)","actor-behaviour-hook","Protected behaviour receives validated time on next update",()->{mover.update(.25);return mover.hooks+","+n(mover.x());},"2,10.75");
+        eq("zero.ImageRegion#<init>(javafx.scene.image.Image,double,double,double,double)","region-construction","Region retains exact supplied bounds",()->{ImageRegion r=new ImageRegion(image,1,0,1,1);return n(r.x())+","+n(r.y())+","+n(r.width())+","+n(r.height());},"1,0,1,1");
         eq("zero.ImageRegion#image()","region-image","Region borrows the original image identity",()->""+(first.image()==image),"true");
-        eq("zero.ImageRegion#x()","region-x","Horizontal atlas offset is readable",()->""+second.x(),"1.0");
-        eq("zero.ImageRegion#y()","region-y","Vertical atlas offset is readable",()->""+second.y(),"0.0");
-        eq("zero.ImageRegion#width()","region-width","Atlas width is readable",()->""+second.width(),"1.0");
-        eq("zero.ImageRegion#height()","region-height","Atlas height is readable",()->""+second.height(),"1.0");
+        eq("zero.ImageRegion#x()","region-x","Horizontal atlas offset is readable",()->""+n(second.x()),"1");
+        eq("zero.ImageRegion#y()","region-y","Vertical atlas offset is readable",()->""+n(second.y()),"0");
+        eq("zero.ImageRegion#width()","region-width","Atlas width is readable",()->""+n(second.width()),"1");
+        eq("zero.ImageRegion#height()","region-height","Atlas height is readable",()->""+n(second.height()),"1");
         eq("zero.SpriteAnimation#<init>(double,zero.ImageRegion...)","sprite-sequence","Explicit sequence retains both frame identities",()->{SpriteAnimation s=new SpriteAnimation(2,first,second);return (s.frame()==first)+","+s.frameCount();},"true,2");
-        eq("zero.SpriteAnimation#<init>(javafx.scene.image.Image,int,int,double)","sprite-grid","Grid construction divides the supplied image into two frames",()->{SpriteAnimation s=new SpriteAnimation(image,2,1,4);return s.frame().width()+","+s.frameCount();},imageWidth/2+",2");
+        eq("zero.SpriteAnimation#<init>(javafx.scene.image.Image,int,int,double)","sprite-grid","Grid construction divides the supplied image into two frames",()->{SpriteAnimation s=new SpriteAnimation(image,2,1,4);return n(s.frame().width())+","+s.frameCount();},n(imageWidth/2)+",2");
         eq("zero.SpriteAnimation#columns()","sprite-columns","Explicit sequence is one row with two columns",()->""+source.columns(),"2");
         eq("zero.SpriteAnimation#rows()","sprite-rows","Explicit sequence reports one row",()->""+source.rows(),"1");
-        eq("zero.SpriteAnimation#fps()","sprite-fps","Configured frame rate remains readable",()->""+source.fps(),"2.0");
+        eq("zero.SpriteAnimation#fps()","sprite-fps","Configured frame rate remains readable",()->""+n(source.fps()),"2");
         eq("zero.SpriteAnimation#frameCount()","sprite-count","Frame count is exact",()->""+source.frameCount(),"2");
         eq("zero.SpriteAnimation#image()","sprite-image","Animation borrows original backing image",()->""+(source.image()==image),"true");
         eq("zero.SpriteAnimation#frame()","sprite-frame","Initial legacy frame is first region",()->""+(source.frame()==first),"true");
@@ -107,16 +108,16 @@ public final class ApiSignatureChecks {
         eq("zero.ui.TextField#getText()","field-read","Text getter returns latest input",field::getText,"Ada");
         eq("zero.ui.TextField#setPromptText(java.lang.String)","field-prompt-change","Prompt can change without altering field value",()->{field.setPromptText("Name");return field.getPromptText()+","+field.getText();},"Name,Ada");
         eq("zero.ui.TextField#getPromptText()","field-prompt-read","Prompt getter returns latest prompt",field::getPromptText,"Name");
-        eq("zero.ui.Column#<init>(zero.ui.Element...)","column-default","Default spacing is eight pixels",()->""+new Column(new Label("A")).getSpacing(),"8.0");
-        eq("zero.ui.Column#<init>(double,zero.ui.Element...)","column-explicit","Constructor preserves explicit spacing",()->""+new Column(6,new Label("B")).getSpacing(),"6.0");
+        eq("zero.ui.Column#<init>(zero.ui.Element...)","column-default","Default spacing is eight pixels",()->""+n(new Column(new Label("A")).getSpacing()),"8");
+        eq("zero.ui.Column#<init>(double,zero.ui.Element...)","column-explicit","Constructor preserves explicit spacing",()->""+n(new Column(6,new Label("B")).getSpacing()),"6");
         Column column=new Column();
-        eq("zero.ui.Column#setSpacing(double)","column-change","Setter updates column spacing",()->{column.setSpacing(12);return ""+column.getSpacing();},"12.0");
-        eq("zero.ui.Column#getSpacing()","column-read","Spacing getter returns latest value",()->""+column.getSpacing(),"12.0");
-        eq("zero.ui.Row#<init>(zero.ui.Element...)","row-default","Default row spacing is eight pixels",()->""+new Row(new Label("A")).getSpacing(),"8.0");
-        eq("zero.ui.Row#<init>(double,zero.ui.Element...)","row-explicit","Constructor preserves explicit row spacing",()->""+new Row(6,new Label("B")).getSpacing(),"6.0");
+        eq("zero.ui.Column#setSpacing(double)","column-change","Setter updates column spacing",()->{column.setSpacing(12);return ""+n(column.getSpacing());},"12");
+        eq("zero.ui.Column#getSpacing()","column-read","Spacing getter returns latest value",()->""+n(column.getSpacing()),"12");
+        eq("zero.ui.Row#<init>(zero.ui.Element...)","row-default","Default row spacing is eight pixels",()->""+n(new Row(new Label("A")).getSpacing()),"8");
+        eq("zero.ui.Row#<init>(double,zero.ui.Element...)","row-explicit","Constructor preserves explicit row spacing",()->""+n(new Row(6,new Label("B")).getSpacing()),"6");
         Row row=new Row();
-        eq("zero.ui.Row#setSpacing(double)","row-change","Setter updates row spacing",()->{row.setSpacing(12);return ""+row.getSpacing();},"12.0");
-        eq("zero.ui.Row#getSpacing()","row-read","Spacing getter returns latest row value",()->""+row.getSpacing(),"12.0");
+        eq("zero.ui.Row#setSpacing(double)","row-change","Setter updates row spacing",()->{row.setSpacing(12);return ""+n(row.getSpacing());},"12");
+        eq("zero.ui.Row#getSpacing()","row-read","Spacing getter returns latest row value",()->""+n(row.getSpacing()),"12");
         eq("zero.ui.Element#fxNode()","element-node","Repeated advanced bridge returns the same backing node",()->""+(label.fxNode()!=null&&label.fxNode()==label.fxNode()),"true");
         // setEnabled and callbacks require real input dispatch; their existing
         // native/browser interaction checks are not replaced by setter-only proof.
@@ -124,8 +125,8 @@ public final class ApiSignatureChecks {
     }
 
     public static void host(GameApp app,double width,double height) {
-        eq("zero.GameApp#width()","canvas-width","Canvas width matches settings",()->""+app.width(),""+width);
-        eq("zero.GameApp#height()","canvas-height","Canvas height matches settings",()->""+app.height(),""+height);
+        eq("zero.GameApp#width()","canvas-width","Canvas width matches settings",()->""+n(app.width()),n(width));
+        eq("zero.GameApp#height()","canvas-height","Canvas height matches settings",()->""+n(app.height()),n(height));
         eq("zero.GameApp#canvas()","canvas-identity","Live canvas escape hatch preserves identity",()->""+(app.canvas()!=null&&app.canvas()==app.canvas()),"true");
         eq("zero.GameApp#graphics()","graphics-identity","Live drawing context preserves identity",()->""+(app.graphics()!=null&&app.graphics()==app.graphics()),"true");
         eq("zero.GameApp#layout()","layout-identity","Retained layout preserves identity",()->""+(app.layout()!=null&&app.layout()==app.layout()),"true");
@@ -165,23 +166,23 @@ public final class ApiSignatureChecks {
     }
     public static void resources(GameApp app,Image image,String path,double width,double height) {
         eq("zero.GameApp#loadImage(java.lang.String)","image-load-cache","Repeated image load retains app-owned bitmap identity",()->""+(app.loadImage(path)==image),"true");
-        eq("zero.GameApp#loadImageRegion(java.lang.String)","image-load-region","Full region retains cached bitmap and exact natural bounds",()->{ImageRegion r=app.loadImageRegion(path);return (r.image()==image)+","+r.width()+","+r.height();},"true,"+width+","+height);
+        eq("zero.GameApp#loadImageRegion(java.lang.String)","image-load-region","Full region retains cached bitmap and exact natural bounds",()->{ImageRegion r=app.loadImageRegion(path);return (r.image()==image)+","+n(r.width())+","+n(r.height());},"true,"+n(width)+","+n(height));
         eq("zero.GameApp#loadAnimation(java.lang.String,int,int,double)","image-load-animation","Loaded animations have independent explicit playback clocks",()->{SpriteAnimation first=app.loadAnimation(path,2,1,2),second=app.loadAnimation(path,2,1,2);first.update(.5);return (first.image()==image)+","+first.frameIndex()+","+second.frameIndex();},"true,1,0");
-        eq("zero.GameApp#imageRegion(javafx.scene.image.Image,double,double,double,double)","image-factory-region","Region factory retains the requested bitmap and atlas bounds",()->{ImageRegion r=app.imageRegion(image,1,0,1,1);return (r.image()==image)+","+r.x()+","+r.y()+","+r.width()+","+r.height();},"true,1.0,0.0,1.0,1.0");
+        eq("zero.GameApp#imageRegion(javafx.scene.image.Image,double,double,double,double)","image-factory-region","Region factory retains the requested bitmap and atlas bounds",()->{ImageRegion r=app.imageRegion(image,1,0,1,1);return (r.image()==image)+","+n(r.x())+","+n(r.y())+","+n(r.width())+","+n(r.height());},"true,1,0,1,1");
     }
 
     public static void audio(App app,String resource) {
         Sound sound=app.loadSound(resource);Music music=app.loadMusic(resource);
         eq("zero.App#loadSound(java.lang.String)","sound-cache","Repeated load borrows same app-owned sound",()->""+(app.loadSound(resource)==sound),"true");
         eq("zero.App#loadMusic(java.lang.String)","music-independent","Repeated load creates an independent music owner",()->{Music other=app.loadMusic(resource);boolean independent=other!=music;other.close();return ""+independent;},"true");
-        eq("zero.Sound#setVolume(double)","sound-volume-change","Volume changes remain readable",()->{sound.setVolume(.25);return ""+sound.getVolume();},"0.25");
-        eq("zero.Sound#getVolume()","sound-volume-read","Sound getter returns selected volume",()->""+sound.getVolume(),"0.25");
+        eq("zero.Sound#setVolume(double)","sound-volume-change","Volume changes remain readable",()->{sound.setVolume(.25);return ""+n(sound.getVolume());},"0.25");
+        eq("zero.Sound#getVolume()","sound-volume-read","Sound getter returns selected volume",()->""+n(sound.getVolume()),"0.25");
         eq("zero.Sound#setMuted(boolean)","sound-mute-change","Mute changes remain readable",()->{sound.setMuted(true);return ""+sound.isMuted();},"true");
         eq("zero.Sound#isMuted()","sound-mute-read","Sound getter returns selected mute state",()->""+sound.isMuted(),"true");
         eq("zero.Sound#close()","sound-close","Closing rejects further playback controls",()->{sound.close();try{sound.play();return "accepted";}catch(IllegalStateException expected){return "closed";}},"closed");
         eq("zero.Sound#isPlaying()","sound-closed-playing","Closed sound cannot still be playing",()->""+sound.isPlaying(),"false");
-        eq("zero.Music#setVolume(double)","music-volume-change","Music volume changes remain readable",()->{music.setVolume(.25);return ""+music.getVolume();},"0.25");
-        eq("zero.Music#getVolume()","music-volume-read","Music getter returns selected volume",()->""+music.getVolume(),"0.25");
+        eq("zero.Music#setVolume(double)","music-volume-change","Music volume changes remain readable",()->{music.setVolume(.25);return ""+n(music.getVolume());},"0.25");
+        eq("zero.Music#getVolume()","music-volume-read","Music getter returns selected volume",()->""+n(music.getVolume()),"0.25");
         eq("zero.Music#setMuted(boolean)","music-mute-change","Music mute changes remain readable",()->{music.setMuted(true);return ""+music.isMuted();},"true");
         eq("zero.Music#isMuted()","music-mute-read","Music getter returns selected mute state",()->""+music.isMuted(),"true");
         eq("zero.Music#close()","music-close","Closing rejects later music controls",()->{music.close();try{music.play();return "accepted";}catch(IllegalStateException expected){return "closed";}},"closed");

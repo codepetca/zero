@@ -211,7 +211,7 @@ public final class NavigationCheck extends Application {
         @Override public void setup() { if(evidence)ApiCompletionChecks.gameControls(this,hud,"Retained HUD");else controls(hud); show(title); }
         @Override public void update(double seconds) {
             updates++;
-            if(evidence&&updates==1)ApiProof.equal("zero.GameApp#update(double)","game-update","The first actual update callback receives zero elapsed time",()->{super.update(seconds);return ""+seconds;},"0.0");
+            if(evidence&&updates==1)ApiProof.equal("zero.GameApp#update(double)","game-update","The first actual update callback receives zero elapsed time",()->{super.update(seconds);return ApiProof.number(seconds);},"0");
             if (expectZero) { require(seconds == 0, "first resumed or navigated update has zero delta"); expectZero = false; }
             if (mode == 1) {
                 show(menuA); show(menuB); queuedInUpdate = true; mode = 0;
