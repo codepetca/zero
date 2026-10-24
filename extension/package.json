@@ -302,6 +302,11 @@
       {
         "name": "zero-java",
         "owner": "java",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\[INFO\\] Scanning for projects\\.\\.\\.$",
+          "endsPattern": "^\\[INFO\\] --- javafx:[^\\s]+:run(?:\\s|$)"
+        },
         "fileLocation": [
           "absolute"
         ],

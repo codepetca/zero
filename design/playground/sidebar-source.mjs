@@ -19,7 +19,7 @@ export function sidebarSource(state = 'ready', {connected = false} = {}) {
   const phase = state === 'busy' ? 'ready' : ['signed-out','install','checking','unavailable'].includes(state) ? state : connected ? 'ready' : 'signed-out';
   const signedIn = phase !== 'signed-out';
   runInNewContext(`${source.slice(start, end)}\nrender(webview);`, {
-    path,isSetupProject:setupProject.isSetupProject,assets:{canCopyPaths:()=>false},context:{workspaceState:{get:()=>undefined}},exportReadyRoot:undefined,browserRun:{canOpenInBrowser:state==='running'},
+    path,isSetupProject:setupProject.isSetupProject,assets:{canCopyPaths:()=>false},context:{workspaceState:{get:()=>undefined}},exportReadyRoot:undefined,savedChecksRoot:undefined,savedChecksState:undefined,browserRun:{canOpenInBrowser:state==='running'},
     projectRoot: state === 'empty' ? undefined : '/fixture/project', renderedWebview: undefined, sidebarScript: sidebarClient.sidebarScript, crypto, webview, escape, icon:sidebarIcons.icon, sidebarStyles: sidebarStyle.sidebarStyles, isBusy: () => ['building','stopping','busy'].includes(state),
     githubReady:()=>connected && phase === 'ready', githubReadiness:{phase},
     repository: connected ? 'https://github.com/student/greeting' : 'No repository connected', auth: { signedIn: signedIn, accountLabel: signedIn ? 'armorup' : '' },

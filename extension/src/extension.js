@@ -330,6 +330,9 @@ function activate(context, services = {}) {
         ? new vscode.ShellExecution({value: spec.command, quoting: vscode.ShellQuoting.Strong}, spec.args, {cwd: root})
         : new vscode.ProcessExecution(spec.command, spec.args, {cwd: root});
     task = new vscode.Task(definition, scope, 'Run App', 'Zero', processExecution, '$zero-java');
+    // Complete compiler problem collection before the long-lived JavaFX process
+    // exits, so a corrected running app does not retain the last build's errors.
+    task.isBackground = true;
     metadata.custom=Boolean(transport);nativeTaskStates.set(task,metadata);
     if (transport) context.subscriptions.push(transport);
     task.presentationOptions = {reveal: vscode.TaskRevealKind.Always, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
