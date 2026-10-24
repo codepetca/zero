@@ -72,8 +72,12 @@ executed native and browser evidence,366/366 targets with no gaps. Seven actual
 native suites, four pinned WebFX exports and the scoped browser behavior/failure
 checks pass. UI callback and startup failures preserve their causes and stop the
 browser game. The refreshed local kit candidate passes archive/source/license
-and extracted Maven checks; those results do not establish installation, physical
-Windows, interactive student use, hosted sharing admission or publication.
+and extracted Maven checks. The later actual isolated Mac editor walkthrough
+exercises class/asset editing, compiler correction, native readiness, browser play,
+component replacement and local Git/ZIP saving. It finds a blocker in passive
+checks: the runtime scan rejects macOS hard-linked Java launchers despite a valid
+selected JDK. Native physical play, installation, physical Windows, novice use,
+authenticated GitHub/hosted sharing and publication remain separately unproven.
 
 ## Core goal: students grow the framework
 

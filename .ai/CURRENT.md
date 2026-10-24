@@ -1,10 +1,14 @@
 # Zero phased vision — current handoff
 
-Updated 2026-10-24 10:16UTC. **Local reliability Phase4 acceptance PASS.**
-All183 declarations have current executed native AND browser evidence:366/366,
-zero gaps. Goal is not complete: held interactive/platform/publication gates in
-Phase5 remain. Goal tool retains its earlier blocked status; there is no agent
-resume operation. Human approvals and completed work below supersede old requests.
+Updated 2026-10-24. The human explicitly lifted native editor QA hold and
+requested the student/editor walkthrough, with publishing/releases separate.
+The actual isolated editor/local-game path was exercised: class/asset editing,
+compiler error/source correction, native readiness/Stop, actual WebFX export,
+preview/browser six-coin win, score replacement, local Source Control commit and
+saved playable ZIP. **One actual host blocker found:** passive browser checks
+reject hard-linked /usr/bin/java despite a verified selected JDK. Exact API
+execution remains366/366 valid; the broader reliability/journey gate is reopened
+for that host bug. No full goal completion claim.
 Single roadmap: [architecture phases](../docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).
 Historical attempts/hashes: [EVIDENCE](../docs/EVIDENCE.md).
 
@@ -14,7 +18,9 @@ Use ONLY `/Users/stew/.codex/worktrees/actor/zero`, managed detachedHEAD.
 Primary `/Users/stew/Repos/zero` has unrelated work/watchers; preserve them.
 Local source/docs/checks/examples/review/commits authorized. NO push/PR/merge,
 deploy/release/real installation, accounts/credentials, external messaging or
-telemetry. Native editor QA remains held after the earlier Code Key popup.
+telemetry. Native editor QA hold explicitly LIFTED for this walkthrough. Source extension
+uses isolated ~/.zero-dev/8623a271fa8a user/extensions directories; no credentials
+were copied and no keychain prompt was accepted. Publishing/releases remain held.
 No more stress/full ten-fixture browser runs. Native GUI checks serially.
 DeepSeek paused through2026-12-31. Parent owns Git/docs/integration; one writer.
 
@@ -99,20 +105,69 @@ workflow contracts remain valid. No physical editor/GitHub/novice proof is claim
 Teaching CORE-PROPOSAL for TurnTowards preserves source/credit/pins and discloses
 missing independent reuse proof; no public API adopted or library published.
 
-## Next phase / remaining holds
+## Actual editor walkthrough — final state and next action
 
-Phase0–4 local deliverables are accepted; Phase5 local packaging/contracts pass.
-Next substantive acceptance is the actual student/contributor journey in the
-isolated Zero Dev editor, after the existing native editor QA hold is explicitly
-released. Actual installers/platforms/novice trial, hosted schema2 sharing,
-authenticated Pages and release publication remain separately gated. No outstanding
-runtime fix is known after the final gates. Do not rerun completed reviews/exports
-or add features merely to fill these held external/interactive acceptance gaps.
-No push/PR/merge, deploy/release, real installation, accounts or telemetry authorized.
+Maintainer HEAD before this docs update726ca3f2; no maintained source code changed.
+Canonical Zero Dev watcher runs on3158, session37148, owning only this checkout.
+The actual development editor is open on a complete isolated project:
+`/private/tmp/zero extracted with spaces WUdRw4`. Its current local commit is
+`4a4d722f18117e8cd0f3f8f25260a0e7d9cb53ca`, clean main, NO remotes. The CLI
+prepared a current starter plus maintained Coin Quest/shared source fixture;
+Zero Open Local Project, trust of this exact reviewed folder, New class, actual
+Companion extends Actor editing, New asset PNG import/path copy, compiler typo,
+Problems source link/correction, Run/App UI ready/Stop were observed in the real UI.
+Source Control diff/stage3files/localcommit and Save ZIP also observed.
+Project creation via authenticated GitHub was not exercised; simulation is not
+claimed as creation/push. No actual novice/physical Windows/install proof.
+
+Real WebFX compilation succeeded via editor Export for Web. Editor title/help/
+play/HUD and imported32px sprite plus drawing marker rendered. Actual browser
+pointer play completed both levels at6/6,19seconds; bar-score replacement retained
+score1 and pause/resume preserved it. Earlier coordinate/timing/operator mistakes
+were corrected before final pass. Standalone native Java app is not addressable
+through CUA; only its editor launch/readiness/Stop are actual UI evidence, not
+native physical play. Native framework/game proof remains separately retained.
+
+- Receipt: `.verification/vision-editor-walkthrough/final-receipt.json`.
+- Detailed actual observations: `observations.json` in the same directory.
+- Finished `Student-Coin-Quest.zip`:1,607,441 bytes, SHA256
+  `07454162564e45a347f15ba315b02ba9681729e70c7e2ddf3cc0b516bf4b0527`;
+  byte-identical to the validated retained export. Browser Stop made port52188
+  refuse connections. Owned browser QA tab closed; original Chrome tab untouched.
+- `student-project.bundle` preserves both local commits/source/assets/build files.
+- Zero Dev watcher/editor kept for useful development; no active game/preview.
+
+Blocker reproduction: actual Enable and Prepare Browser Checks finishes, then
+sidebar remains unavailable. Installed inspectSourceScope independently rejects
+unselected `/usr/bin/java` via retained-output ordinary() because its nlink is37;
+macOS java/javac are ordinary root-owned hard-linked launcher files. Real JDK21
+is selected/verified and explicit WebFX export succeeds. Do not edit PATH or
+weaken project/cache validation just to make acceptance pass. Correct only the
+bounded read-only runtime candidate identity reader (or independently selected
+runtime inspection), keeping stale-byte/identity binding and all project/cache
+hardlink/link protections. Add focused regression then repeat actual editor
+compatible→unsupported→corrected checks. No new export/API366 run required unless
+saved-builder/core/fixture inputs actually change.
+
+A smaller UX finding: native compiler Problems remain during a corrected running
+game, clearing on Stop. Record it separately from live language-server behavior.
+
+The human was asked asynchronously to approve one additional bounded20min
+host-correction/review batch. NO ANSWER YET. Prior API budget has7fixbatches/
+7reviewerturns/6targetwaves and is closed; do not start an8th without explicit
+approval. Proposed scope saved-source-host.js +focusedtests +narrowreview +actual
+editor check recovery. No code has been changed to mask the finding.
+
+Phase5 local path is exercised but acceptance remains partial due to this blocker,
+missing native physical play and separate authenticated/hosted/platform/novice/
+publication gates. Real GitHub create/clone/push and live ZeroHub extraction/
+artifact admission require their existing authorization/service inputs; local
+component replacement was observed, not live publishing. Keep publication,
+release, real installation, accounts and credential changes separate.
 
 Existing Node `/Users/stew/.local/share/mise/installs/node/22.21.1/bin/node`.
 JDK `/Users/stew/Library/Application Support/Zero/runtime/jdk-3623232f33a9c3baadf304480b2535f9a3cba8a58d42ecbb438ba267315d9998/jdk-21.0.12.1+1/Contents/Home`.
 Cache `/Users/stew/Repos/zero/.verification/web-export-checks/cache`.
-Storage healthy262.717GB cached at resume; weekly25%used75%remaining sharedaccount,
+Storage fresh258.081GB healthy during walkthrough; weekly26%used74%remaining sharedaccount,
 not taskcost. No monitor/newchat created. All reviewers completed; no supported
 worker-close API. Preserve this useful worktree and ignored proofs/caches.

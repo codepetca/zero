@@ -1,5 +1,71 @@
 # Delivery evidence index
 
+## Actual Mac student/editor walkthrough — 2026-10-24
+
+Owner explicitly lifted the editor QA hold and requested full local student-flow
+testing while separating publishing/releases. The canonical Zero Dev loop opened
+current source in isolated user/extensions directories, process94202 flags verified.
+No credentials copied or keychain prompt accepted. Port3158 watcher belongs only
+to the actor checkout; primary work preserved. Sol/high api_evidence_review supplied
+a bounded source-backed checklist; it performed no GUI, edits, tests or exports
+and did not reopen/repeat completed source reviews. Effective tokens/config unknown.
+
+The native-only scratch game launched/stopped from the real sidebar. A complete
+current verified starter ZIP plus maintained Coin Quest/shared component fixture
+was then prepared outside the repository at `/private/tmp/zero extracted with
+spaces WUdRw4`. This fixture preparation is not a claim of GitHub project creation.
+Actual Zero Open Local Project, trust of this exact reviewed folder, New class
+Companion, editing an Actor subclass, PNG import and Copy asset paths all worked.
+The actual copied `/actor-frames.png` was pasted into a source comment and its
+imported bytes independently match the maintained original. Companion uses a16px
+region at32px size and adds its own simple drawing. Main explicitly owns drawing.
+
+A deliberate setSiz typo produced actual javac exit1, Companion.java line7,column9,
+and one native Problems item. Show Problems and the error item opened that exact
+source line. Correcting it reached App UI ready; Stop returned No Problems.
+Further personalized game/PNG changes also reached UI ready. CUA cannot select
+the unbundled Java application: standalone native physical play is not claimed.
+The native compiler Problem remained visible during corrected app execution and
+cleared on Stop, a separate UX finding. No language-server acceptance is inferred.
+Operator focus/Monaco selection/automatic-comment mistakes were restored before
+final successful compilation; they are not framework defects.
+
+Actual editor Export for Web ran pinned GWT to BUILD SUCCESS. Editor preview
+reported App ready and showed title/help/back, game/HUD and the imported sprite.
+Open in browser created an actual loopback preview. Real pointer input exercised
+score1→bar-score replacement preserving1, pause/resume, both levels and **You win,
+6/6,19seconds**. Coordinate/timing retries preceded that successful playthrough;
+none of its state was mutated through JavaScript. A screenshot of the actual win
+was captured through CUA. The QA browser tab was closed; original tabs untouched.
+Actual Source Control showed the three changes, stage-all3 and local commit
+`4a4d722f18117e8cd0f3f8f25260a0e7d9cb53ca`. Git independently verifies clean main
+and no remote. No Commit & Push/Publish action was used. A source Git bundle retains
+both commits. Save Web Export ZIP produced1,607,441 bytes, SHA256
+07454162564e45a347f15ba315b02ba9681729e70c7e2ddf3cc0b516bf4b0527,
+exactly matching the validated retained ZIP. Actual Stop closed the preview;
+port52188 then returned ECONNREFUSED. Watcher/editor remain useful for follow-up.
+
+**Found blocker:** actual Enable and Prepare Browser Checks finishes, but the
+sidebar stays unavailable. Read-only inspectSourceScope diagnostic replay identifies
+`/usr/bin/java`: macOS's ordinary root-owned launcher has37 hardlinks (javac too),
+and the scanner applies the strict project/output ordinary-file policy to every
+PATH runtime candidate. This rejects an unused system launcher despite a verified
+explicit JDK21. Actual export succeeds; passive and real-build results remain
+separate. No environment workaround or code change was used to fake a pass.
+Proposed focused correction: dedicated bounded read-only runtime identity inspection
+that permits valid external OS runtime files, or inspect independently selected
+runtimes; preserve project/cache link restrictions, approval and stale-byte binding.
+An additional20min correction/review batch is pending explicit approval under the
+closed prior review budget. No eighth fix/reviewer turn has started.
+
+Receipts/observations, validated finished ZIP and `student-project.bundle`:
+`.verification/vision-editor-walkthrough/`. Exact API366/366 evidence remains valid
+because maintained source/profile/fixtures are unchanged. Overall reliability/
+journey acceptance is partial due to the host blocker. Default GitHub create/clone,
+authenticated transport, live ZeroHub extraction/catalog admission, installers,
+physical Windows/novice play, Pages and release publication remain separate.
+No publishing, release, credential/account change or telemetry occurred.
+
 ## Final local reliability acceptance — 2026-10-24
 
 Human approved the20-minute runtime correction/review window10:00:04–10:20:04UTC,
