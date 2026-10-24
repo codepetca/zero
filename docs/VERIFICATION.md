@@ -1,5 +1,22 @@
 # Verification
 
+## Website GitHub initial avatar — 2026-10-24
+
+Signed-in profile triggers show the uppercase first username character in the
+existing purple/on-accent colors. The full username remains in the accessible
+name and tooltip. Signed-out and attention icons, menus and auth are unchanged.
+
+All 177 website tests, production build (including TypeScript), root checks and
+whitespace checks pass. Playwright/Chrome fixtures verify fixture-user → F,
+44px circular target, white-on-purple in light mode and dark-on-light-purple
+in dark mode, 320px reflow without overflow, menu/Escape focus, and local mocked
+sign-out returning to the profile icon. An injected session 503 retains the
+attention icon and label; no initial persists while disconnected. No real
+OAuth/star/Play writes or extra GitHub request was introduced. Physical
+Safari/touch and text enlargement were not reverified. Browser screenshots
+are ignored in output/playwright/zerohub-profile-initial/; delivery/review/CI
+receipts remain in .verification/zerohub-profile-initial/ and the PR handoff.
+
 ## ZeroHub exact tagline — 2026-10-24
 
 Owner-selected tagline is now exactly “Play. Share. Learn.” The lower

@@ -33,10 +33,10 @@ export function AccountMenu({dark, onToggleTheme}: {dark:boolean; onToggleTheme:
   return <div ref={root} className="account-menu" onBlur={event => {
     if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
   }}>
-    <button ref={trigger} type="button" className="profile-toggle" aria-expanded={open} aria-controls={id}
+    <button ref={trigger} type="button" className="profile-toggle" data-connected={user ? 'true' : undefined} aria-expanded={open} aria-controls={id}
       aria-label={user ? `Account menu, signed in as @${user.login}` : attention ? 'Account menu, GitHub connection needs attention' : 'Account menu'}
       title={user ? `@${user.login}` : 'Account'} onClick={() => setOpen(value => !value)}>
-      <Icon name={attention ? 'triangle-alert' : 'user'} />
+      {user ? <span aria-hidden="true">{user.login.charAt(0).toUpperCase() || '?'}</span> : <Icon name={attention ? 'triangle-alert' : 'user'} />}
     </button>
     <div id={id} hidden={!open} className="account-dropdown" aria-label="Account and appearance">
       <HubAccount onSignedOut={() => {setOpen(false); trigger.current?.focus();}} onRetryComplete={() => trigger.current?.focus()} />
