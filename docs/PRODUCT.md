@@ -254,7 +254,10 @@ Students build one feature at a time in their own repository; GitHub/project
 workflow is part of the learning outcome. Tutorial setup and the minimal original
 project template remain available through their setup instructions. See
 [the course project guide](COURSE-PROJECT.md).
-The shared website header has a profile icon opening an account dropdown.
+The shared website header opens an account dropdown. Signed-out users see a
+profile icon; connected users see the uppercase first character of their GitHub
+username in a purple circle with contrasting text. The accessible name retains
+the full GitHub username.
 Signed-out users can Sign in to GitHub; connected users see their username and
 Sign out without a duplicate sign-in action. Connection failures retain Retry.
 The dropdown also switches light/dark mode. The OS preference is the initial
