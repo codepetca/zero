@@ -1,4 +1,4 @@
-# Zero vision execution — Phase 1F implementation, 2026-10-23
+# Zero vision execution — Phase 2A implementation, 2026-10-23
 
 Persistent coordinator goal active. Single roadmap:
 `docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance`.
@@ -49,29 +49,44 @@ failure+onebrowser-onlyretry retained; no extrasourcefix/build. Browser-onlyretr
 37.094s, totalelapsedunknown. Receiptinventorywordingcorrected. Proofvision-assets-*.
 Allownservers/previewsclosed. APIcore/assetproof accepted BEFORE nextcontractchange.
 
-Active1F: oneMainGameApp simulation with bluecircle, explicit seconds movement/
-bounce, TextFieldintegerSpeed0..400+Apply, Pause/Resume, Reset. Validatecandidate
-beforeassignment, catchIllegalArgumentException visibly, preserve lastgoodspeed;
-Resetposition/direction/speed120/input120/error/resume. NoFPS/stress/assets/newcore
-JavaAPI. OnlyJavaadmissionneeded is Integer#parseInt(String), radixoverloadstays
-rejected. Core remains16/176. Exact native+browser simulation acceptance pending.
+Phase1F and allPhase1 accepted at549db09f: singleMainGameApp simulation, existing
+Zero controls, validated0–400 integer input, pause/resume/reset. Onlynewbrowser
+admissionInteger.parseInt(String), radixoverloadrejected; core16/176unchanged.
+Sixfocusedtests/root/profile/semanticpass, ONLYselectedsimulationnative, oneactual
+WebFXexport20/20browserassertions26.8s, cleancomplete10file independentreview.
+All40receipt hashes matched before advancement. No otherprototype/stress touched;
+selected-before-prepare protections and separate subsetreceipts verified. Proof
+vision-simulation-*; full delivery detail docs/EVIDENCE.md. Public release unchanged.
 
-Ownership: vision_workflow_audit retainedSol/high owns simulationMain/README,
-nativefinitecheck, safe selected-before-prepare prototype assembly/verification,
-scopedsubsetreceipts, preservationtests and exactIntegerparseInt semanticcontract/
-test. Noheavybuilds/Git. Coordinator owns integration/docs/evidence/CURRENT/Git.
-actor_browser retainedSol/medium idle afteraccepted1E; later ONEsimulationexport.
-actor_stress_review retainedSol/high idle afterclean1E one-turn25file review.
-Earlier slice budgets/evidence retained. Do not execute defaultallprototypechecks
-because they include completedstress; use --only=simulation after newselector.
-Unselectedoldoutputs mustnotberead/modified, unknown/empty/duplicate IDs reject
-before mutation; preserveedited/unownedscratch and keep subsetreceipts separate.
+ActivePhase2A: student-owned ScoreView{Elementview();setScore(int)} withtext and
+10segmentASCIIbar implementations (truepointstextneverclamped, baronly). Actual
+AppCounter+GameHud typedconsumers, explicitTextscore/Barscore actions swapfresh
+view+copycurrentpoints/rebuildUIwithoutcoreedits; rules/player/canvas/level/time/
+pause retained, resets/navigationkeepselectedpresentation. Freshcontrolsrespect
+single-parentownership. BarRowkeepssameheightastext. No newcoreAPI/contract yet.
 
-Next: worker1Ffreeze/cheaptests, selectednativefinitecheck, oneactualWebFX/browser
-flow, independentreview; thenacceptPhase1andstartPhase2ScoreView replacement/
-sharing seams perroadmap. No goalcompletion or publicationclaim. Publictemplates,
-kits andhostedwebsite unchanged. LaterPhase3mustproject-owncompletebuilderclosure,
-fix automaticPublishhelpermigration and make upgradesoptional; no historicalkitDB.
+Ownership:
+- vision_workflow_audit retainedSol/high writesONLYsharedScoreView/ScoreDisplay/
+  BarScoreDisplay, CounterMain, CoinMain/Hud, scopedprototypeassembly+nativechecks/
+  README/safetytests. Cheaptests+cachedsemantic only, no heavyjobs or Git.20min
+  checkpoint25max; freezebeforeparentnative/browser/source review.
+- core_library_architecture Astra/xhigh read-only15min/max20 designs2Bminimal
+  independentZero-dependentJARcompile input+core requirements; no edits/builds.
+  Existing authoring/local-check/POMvalidatorsonlyknowFX, strictschemasnocore
+  requirement. NativeZeroLibraryHarness expectsNodeview; hostedpolicy rejects
+  interfaces andhostedharnesseslackcore/Element. Browser source-onlyresolution
+  isNOTnativeJARproof. Do notclaimhostedacceptance. No duplicatecoreclasses in
+  contributionJAR. No centraloldkitDB/maintenancebranches; respectprojectpins.
+- Coordinator owns integration, Git, goal, roadmap/evidence/CURRENT.
+- actor_browser retainedSol/medium idleafteraccepted1F; prepare2Aafterfreeze.
+- actor_stress_review retainedSol/high idleafterclean1F; independent2Areviewlater.
+
+Next: 2Afreeze/selectedcounter+coinnative, actualApp/GameAppbrowserreplacementproof,
+independentreview; settleAstra2Bdesign thenimplementmanagedlocal/exactartifact
+proof. Keepcontributionpublication/hostedactivation andallpush/PR/merge/deploy/
+release/install/accounts/telemetrygated. No newthreads/automations. Goalactive,
+notcomplete. LaterPhase3project-ownedcompletebuilderclosure/pins/optionalupgrades;
+Phase4diagnostics; Phase5fulljourney/publicationready. Do notresumeoldstress.
 
 Latest storage265.744GB healthy; startweekly7%used/sharednot taskcost. Use cached
 storage readings up to30min, refresh before heavy changes. No installer needed.

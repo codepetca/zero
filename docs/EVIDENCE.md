@@ -1,5 +1,49 @@
 # Delivery evidence index
 
+## Zero phased delivery: live controls slice 1F / Phase1 acceptance — 2026-10-23
+
+Accepted locally at `549db09f`. One ordinary Main extends GameApp, explicitly
+updates a blue circle by elapsed seconds and draws it. Existing Zero TextField,
+Label, Button, Row and Column provide speed, Apply, Pause/Resume and Reset.
+Trimmed integer0–400 input is validated before assignment; malformed text,
+fractions, overflow and range failures visibly preserve the last good speed.
+Reset restores position/direction/speed120/input/error/running state. No second
+timer, FPS display, assets, new hierarchy or core Java API. The only browser
+admission is Integer.parseInt(String); the radix overload remains rejected.
+Core stays16 helpers /176 declarations.
+
+Prototype assembly/verification now selects IDs before reading/writing prototype
+inputs and outputs. Unknown, empty and duplicate selections reject before writes;
+simulation-only does not read/write counter/coin/stress/shared-score scratch.
+Edited/unowned outputs remain protected. Subset native receipts are named
+separately and cannot replace full-suite evidence. Five temporary-root safety
+checks plus the exact decimal-positive/radix-negative semantic test pass, as do
+source profile/syntax/root checks. Native acceptance executed only
+`verify-ui-prototypes --only=simulation`, observing actual frames and controls plus
+model edge cases. The scoped receipt lists only simulation; no stress or other
+prototype was rerun.
+
+One actual WebFX export `a12b8083-928f-4cea-841d-a89fdacfd0c6` passes20/20 browser
+assertions in26.8seconds including build. Engine/profile:
+`4e9eb2bfa7fc7b884c88f49ad0880e2a12f803b490ecf9dd0d4e22fb3f6eae3c`.
+Canonical Main SHA256 `7cbb73f5b994721ed4b769e622b40807ae003eecd81f9db1a40d6d5097d123ec`.
+Real typing/buttons and rendered pixels prove valid/invalid input, continued
+motion at the retained speed, zero speed, maximum-speed bounces on both edges,
+Apply while paused, resume and two resets with retained controls/canvas. All40
+receipt hashes match; export validation passes before/after interaction. No app
+or required-resource errors; optional favicon404/readback warning retained.
+No retries or extra builds. Own browser/preview closed.
+
+Independent Sol/high review covers all10 files and validates native, semantic,
+source/export/runtime and browser receipts; no actionable findings. One initial
+turn, no fix/extra wave. Requested browser Sol/medium; effective configurations
+and tokens unknown. Ignored evidence: `.verification/phase1f-simulation/`,
+`vision-simulation-web/`, `vision-simulation-review/` and vision-simulation logs.
+This completes Phase1's local teaching path and live-control acceptance across
+slices1A–1F. It does not update installed kits, public templates or hosted sites,
+or claim other-platform, physical-school-device, audible-media or novice success.
+The goal advances to Phase2 replacement and managed component sharing.
+
 ## Zero phased delivery: image/sound slice 1E — 2026-10-23
 
 Accepted locally at `cbdfe997`. One public method, GameApp.loadImageRegion(String),
