@@ -61,8 +61,8 @@ export function assertInventoryParity(actual,recorded){validateSignatureManifest
 export function assertManifestSources(manifest,{sourceRoot=repositoryRoot}={}){validateSignatureManifest(manifest);for(const source of manifest.sources){const filename=path.resolve(sourceRoot,source.path);if(!filename.startsWith(path.resolve(sourceRoot)+path.sep)||hash(fs.readFileSync(filename))!==source.sha256)fail('stale source identity: '+source.path);}return manifest;}
 export function mapJavaProbeAssertions(manifest,{sourceRoot=repositoryRoot}={}) {
  validateSignatureManifest(manifest);
- const source=['ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java'].map(file=>fs.readFileSync(path.join(sourceRoot,'framework/evidence/java/evidence',file),'utf8')).join('\n');
- const cases={lifecycle:['native/PaddingLauncher','browser/lifecycle'],arrows:['native/GameHelpersCheck','browser/zero-ui'],held:['native/GameHelpersCheck','browser/zero-ui'],pointerHeld:['native/GameHelpersCheck','browser/zero-ui'],pointerPressed:['native/GameHelpersCheck','browser/zero-ui'],resources:['native/GameHelpersCheck','browser/helpers'],paint:['native/ActorCheck','browser/lifecycle'],actors:['native/ActorCheck','browser/helpers'],ui:['native/UiCheck','browser/zero-ui'],host:['native/GameHelpersCheck','browser/lifecycle'],audio:['native/AudioCheck','browser/audio']};
+ const source=['ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java','ApiCompletionChecks.java'].map(file=>fs.readFileSync(path.join(sourceRoot,'framework/evidence/java/evidence',file),'utf8')).join('\n');
+ const cases={gameStart:['native/NavigationCheck','browser/lifecycle'],gameControls:['native/NavigationCheck','browser/lifecycle'],showGame:['native/NavigationCheck','browser/lifecycle'],stopGame:['native/NavigationCheck','browser/lifecycle'],action:['native/UiCheck','browser/zero-ui'],disable:['native/UiCheck','browser/zero-ui'],musicPlay:['native/AudioCheck','browser/audio'],musicLoop:['native/AudioCheck','browser/audio'],musicPause:['native/AudioCheck','browser/audio'],musicStop:['native/AudioCheck','browser/audio'],soundPlay:['native/AudioCheck','browser/audio'],soundStop:['native/AudioCheck','browser/audio'],gameCallbacks:['native/NavigationCheck','browser/lifecycle'],lifecycle:['native/PaddingLauncher','browser/lifecycle'],arrows:['native/GameHelpersCheck','browser/zero-ui'],held:['native/GameHelpersCheck','browser/zero-ui'],pointerHeld:['native/GameHelpersCheck','browser/zero-ui'],pointerPressed:['native/GameHelpersCheck','browser/zero-ui'],resources:['native/GameHelpersCheck','browser/helpers'],paint:['native/ActorCheck','browser/lifecycle'],actors:['native/ActorCheck','browser/helpers'],ui:['native/UiCheck','browser/zero-ui'],host:['native/GameHelpersCheck','browser/lifecycle'],audio:['native/AudioCheck','browser/audio']};
  const entries=new Map(manifest.signatures.map(entry=>[entry.id,entry]));
  let group;for(const line of source.split('\n')) {
   if(line.includes('public final class ApiLifecycleChecks'))group='lifecycle';
@@ -71,6 +71,14 @@ export function mapJavaProbeAssertions(manifest,{sourceRoot=repositoryRoot}={}) 
   const [,signatureId,assertionId,postcondition]=call,entry=entries.get(signatureId);
   if(!entry||!cases[group])fail('unmapped Java probe declaration '+signatureId);
   for(const caseId of cases[group]){const target=caseId.split('/')[0];if(!entry.evidence[target].some(link=>link.caseId===caseId&&link.assertionId===assertionId))entry.evidence[target].push({caseId,assertionId,postcondition});}
+ }
+ for(const file of ['framework/checks/zero/NavigationCheck.java','framework/web-checks/lifecycle/Main.java']) {
+  for(const line of fs.readFileSync(path.join(sourceRoot,file),'utf8').split('\n')) {
+   const call=line.match(/ApiProof\.equal\("([^"]+)","([^"]+)","([^"]+)"/);if(!call)continue;
+   const [,signatureId,assertionId,postcondition]=call,entry=entries.get(signatureId);if(!entry)fail('unknown game callback declaration');
+   const target=file.includes('/checks/')?'native':'browser',caseId=target==='native'?'native/NavigationCheck':'browser/lifecycle';
+   if(!entry.evidence[target].some(link=>link.caseId===caseId&&link.assertionId===assertionId))entry.evidence[target].push({caseId,assertionId,postcondition});
+  }
  }
  return validateSignatureManifest(manifest);
 }
@@ -109,6 +117,19 @@ export function validateUiObservation(specification,observation) {
  if(observation.specification!==specification)fail('UI observation specification differs');
  if(specification.startsWith('text,')){exact(observation.data,['text','visible'],'visible text observation');if(observation.data.text!==specification.slice(5)||observation.data.visible!==true)fail('UI content postcondition failed');}
  else if(specification.startsWith('title,')){exact(observation.data,['title'],'title observation');if(observation.data.title!==specification.slice(6))fail('UI title postcondition failed');}
+ else if(specification.startsWith('canvas,')) {const expected=specification.split(',').slice(1).map(Number);exact(observation.data,['attached','width','height'],'attached canvas observation');if(observation.data.attached!==true||observation.data.width!==expected[0]||observation.data.height!==expected[1])fail('game Scene postcondition failed');}
+ else if(specification==='frames'){exact(observation.data,['updates','draws'],'live frame observation');if(!Number.isInteger(observation.data.updates)||!Number.isInteger(observation.data.draws)||observation.data.updates<1||observation.data.draws<1)fail('game frame postcondition failed');}
+ else if(specification==='stopped-frames'){exact(observation.data,['before','after'],'stopped frame observation');if(!Number.isInteger(observation.data.before)||observation.data.before<1||observation.data.after!==observation.data.before)fail('game shutdown postcondition failed');}
+ else if(specification==='disabled-controls'){exact(observation.data,['disabled','valueBefore','valueAfter','actionsBefore','actionsAfter'],'disabled input observation');if(observation.data.disabled!==true||observation.data.valueBefore!=='Ada'||observation.data.valueAfter!==observation.data.valueBefore||observation.data.actionsBefore!==2||observation.data.actionsAfter!==2)fail('disabled input postcondition failed');}
+ else if(specification.startsWith('media,')) {
+  const kind=specification.slice(6),data=observation.data;
+  if(kind==='play'){exact(data,['publicPlaying','playing','time'],'music play observation');if(data.publicPlaying!==true||data.playing!==true||!Number.isFinite(data.time)||data.time<=0)fail('music play postcondition failed');}
+  else if(kind==='loop'){exact(data,['publicPlaying','playing','loop','duration','elapsed','wraps'],'music loop observation');if(data.publicPlaying!==true||data.playing!==true||data.loop!==true||!Number.isFinite(data.duration)||data.duration<=0||!Number.isFinite(data.elapsed)||data.elapsed<data.duration*1000||!Number.isInteger(data.wraps)||data.wraps<1)fail('music loop postcondition failed');}
+  else if(kind==='pause'){exact(data,['publicPlaying','playing','before','after','elapsed'],'music pause observation');if(data.publicPlaying!==false||data.playing!==false||!Number.isFinite(data.before)||!Number.isFinite(data.after)||data.before<=0||Math.abs(data.after-data.before)>=.03||data.elapsed<100)fail('music pause postcondition failed');}
+  else if(kind==='stop'){exact(data,['publicPlaying','playing','time'],'music stop observation');if(data.publicPlaying!==false||data.playing!==false||!Number.isFinite(data.time)||data.time<0||data.time>=.03)fail('music stop postcondition failed');}
+  else if(kind==='sound-play'||kind==='sound-stop'){exact(data,['publicPlaying','voices'],'effect voice observation');if(kind==='sound-play'?(data.publicPlaying!==true||!Number.isInteger(data.voices)||data.voices<1):(data.publicPlaying!==false||data.voices!==0))fail('effect voice postcondition failed');}
+  else fail('unknown media observation');
+ }
  else fail('unknown UI observation specification');
  return JSON.stringify(observation.data);
 }

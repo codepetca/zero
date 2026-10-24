@@ -29,7 +29,7 @@ async (initialPage) => {
       if (name.toLowerCase() === 'audio') window.__zeroAudio.push(element);
       return element;
     };
-    window.__zeroCheck = { texts: [], images: [], last: null, errors: [], rejections: [], draws: 0, clears: 0 };
+    window.__zeroCheck = { texts: [], images: [], last: null, errors: [], rejections: [], gameClears: 0, draws: 0, clears: 0 };
     addEventListener('error', (event) =>
       window.__zeroCheck.errors.push(event.message)
     );
@@ -40,7 +40,7 @@ async (initialPage) => {
       image = p.drawImage;
     p.clearRect = function (...args) {
       const c = window.__zeroCheck;
-      c.clears++;
+      c.clears++;if(this.canvas.width===960&&this.canvas.height===480)c.gameClears++;
       if (c.texts.length) c.last = { texts: c.texts, images: c.images };
       c.texts = [];
       c.images = [];
@@ -323,6 +323,7 @@ async (initialPage) => {
   );
   };
   cases.audio = async () => {
+  const audioObservations={};
   await page.goto(urls.audio);
   await page.getByText(/^Audio checks ready:/).filter({ visible: true }).waitFor();
   await page.waitForFunction(() => window.__zeroCheck.last?.texts.some(text => text.startsWith('Audio API ready:')));
@@ -332,15 +333,24 @@ async (initialPage) => {
   check((await state()).texts.includes('Independent playing: false'), 'Pre-ready pause and stop leave independent music stopped');
   const musicState = () => page.evaluate(() => {
     const audio = window.__zeroAudio.find(element => element.getAttribute('src') && element.volume === .19);
-    return {playing: !audio.paused, time: audio.currentTime, muted: audio.muted, loop: audio.loop, volume: audio.volume};
+    return {playing: !audio.paused, time: audio.currentTime, muted: audio.muted, loop: audio.loop, volume: audio.volume,duration:audio.duration};
   });
   let audioState = await musicState();
   check(audioState.playing && audioState.loop && audioState.muted && audioState.volume === .19, 'Music ready callback applies pre-ready intent and retained loop/volume');
+  await page.waitForFunction(()=>window.__zeroAudio.some(audio=>audio.volume===.19&&!audio.paused&&audio.currentTime>.02));
+  audioState=await musicState();audioObservations['live-music-play']={publicPlaying:(await state()).texts.includes('Music playing: true'),playing:audioState.playing,time:audioState.time};
   await page.getByRole('button', {name: 'Loop', exact: true}).click();
   await page.getByRole('button', {name: 'Play twice', exact: true}).click();
   await page.waitForFunction(() => window.__zeroAudio.filter(a => a.getAttribute('src') && a.volume === .23 && !a.paused).length === 2);
   await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Effect playing: true'));
   check((await state()).texts.includes('Effect playing: true'), 'Overlapping effect voices report actual playing status');
+  audioObservations['live-sound-play']={publicPlaying:(await state()).texts.includes('Effect playing: true'),voices:await page.evaluate(()=>window.__zeroAudio.filter(a=>a.getAttribute('src')&&a.volume===.23&&!a.paused).length)};
+  await page.getByRole('button',{name:'Stop effects',exact:true}).click();
+  await page.waitForFunction(()=>window.__zeroCheck.last?.texts.includes('Effect playing: false')&&window.__zeroAudio.filter(a=>a.getAttribute('src')&&a.volume===.23&&!a.paused).length===0);
+  audioObservations['live-sound-stop']={publicPlaying:(await state()).texts.includes('Effect playing: true'),voices:await page.evaluate(()=>window.__zeroAudio.filter(a=>a.getAttribute('src')&&a.volume===.23&&!a.paused).length)};
+  await page.getByRole('button',{name:'Play twice',exact:true}).click();
+  await page.waitForFunction(()=>window.__zeroCheck.last?.texts.includes('Effect playing: true'));
+
   await page.getByRole('button', {name: 'Mute', exact: true}).click();
   await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Effect playing: false'));
   audioState = await musicState();
@@ -366,18 +376,29 @@ async (initialPage) => {
   await page.getByRole('button', {name: 'Mute', exact: true}).click();
   await page.getByRole('button', {name: 'Mute', exact: true}).click();
   await page.getByRole('button', {name: 'Pause', exact: true}).click();
-  const heldAt = (await musicState()).time;
+  const heldAt = (await musicState()).time,pauseStarted=Date.now();
   await page.waitForTimeout(120);
   check(!(await musicState()).playing && Math.abs((await musicState()).time - heldAt) < .03, 'Music pause holds playback position');
+  audioState=await musicState();audioObservations['live-music-pause']={publicPlaying:(await state()).texts.includes('Music playing: true'),playing:audioState.playing,before:heldAt,after:audioState.time,elapsed:Date.now()-pauseStarted};
   await page.getByRole('button', {name: 'Resume', exact: true}).click();
   await page.waitForTimeout(120);
   check((await musicState()).playing && Math.abs((await musicState()).time - heldAt) > .04, 'Music resumes from paused position');
   await page.getByRole('button', {name: 'Rewind', exact: true}).click();
   await page.waitForFunction(() => { const a = window.__zeroAudio.find(a => a.getAttribute('src') && a.volume === .19); return a.paused && a.currentTime < .03; });
   check(!(await musicState()).playing && (await musicState()).time < .03, 'Music stop rewinds without discarding loop mode');
+  await page.waitForFunction(()=>window.__zeroCheck.last?.texts.includes('Music playing: false'));
+  audioState=await musicState();audioObservations['live-music-stop']={publicPlaying:(await state()).texts.includes('Music playing: true'),playing:audioState.playing,time:audioState.time};
   await page.getByRole('button', {name: 'Resume', exact: true}).click();
-  await page.waitForTimeout(1150);
+  await page.evaluate(()=>{
+    const audio=window.__zeroAudio.find(audio=>audio.getAttribute('src')&&audio.volume===.19);
+    const proof=window.__zeroLoopProof={last:audio.currentTime,wraps:0,samples:0};
+    const sample=()=>{const now=audio.currentTime;if(now+.2<proof.last)proof.wraps++;proof.last=now;if(++proof.samples<180&&!proof.wraps)requestAnimationFrame(sample);};
+    requestAnimationFrame(sample);
+  });
+  const loopStarted=Date.now();await page.waitForTimeout(1150);
+  await page.waitForFunction(()=>window.__zeroLoopProof?.wraps>=1);
   check((await musicState()).playing && (await musicState()).loop, 'Music repeats through an actual audio end boundary');
+  audioState=await musicState();audioObservations['live-music-loop']={publicPlaying:(await state()).texts.includes('Music playing: true'),playing:audioState.playing,loop:audioState.loop,duration:audioState.duration,elapsed:Date.now()-loopStarted,wraps:await page.evaluate(()=>window.__zeroLoopProof.wraps)};
   await page.getByRole('button', {name: 'Once', exact: true}).click();
   await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Once playing: true'));
   await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Once playing: false'));
@@ -395,6 +416,9 @@ async (initialPage) => {
   await page.getByRole('button', {name: 'Check late', exact: true}).click();
   await page.getByText('Named playing failure: true', {exact:true}).filter({visible:true}).waitFor();
   check((await musicState()).playing, 'Injected failure of playing music disposes only its player');
+  const audioEvidence=await page.evaluate(()=>window.__zeroCheck.apiEvidence);
+  const audioPixels=audioEvidence.split('\n').filter(line=>line.startsWith('O|')).map(line=>{const [,signatureId,assertionId,postcondition,specification]=line.split('|');if(!audioObservations[assertionId])throw new Error('Missing actual media observation: '+signatureId);return {assertionId,specification,data:audioObservations[assertionId]};});
+  apiEvidence.push({caseId:'browser/audio',raw:audioEvidence,pixels:audioPixels});
   await page.getByRole('button', {name: 'Stop app', exact: true}).click();
   await page.getByText('App cleanup: true', {exact:true}).filter({visible:true}).waitFor();
   check(await page.evaluate(() => window.__zeroAudio.every(a => a.paused && !a.getAttribute('src'))), 'App stop closes all effect voices and independent music');
@@ -465,6 +489,7 @@ async (initialPage) => {
   check((await page.evaluate(()=>window.__zeroCheck.errors)).length===0,'No JavaScript errors in greeting/resource probe');
   };
   cases['zero-ui'] = async () => {
+  const uiObservations=[];
   await page.setViewportSize({width:260,height:360});
   await page.goto(urls['zero-ui']);
   await visibleText('Probe title').waitFor();
@@ -492,6 +517,7 @@ async (initialPage) => {
   await visibleText('Hello, Ada!').waitFor();
   check(true, 'Zero Button callback reads the current field text on each activation');
   await visibleText('Greeting actions: 2').waitFor();
+  const disabledBefore={value:await zeroName.inputValue(),actions:Number((await visibleText('Greeting actions: 2').textContent()).split(': ')[1])};
   await page.getByRole('button', {name:'Disable greeting controls', exact:true}).click();
   await zeroName.waitFor({state:'visible'});
   await page.waitForFunction(() => document.querySelector('input[type="text"]')?.disabled === true);
@@ -505,6 +531,7 @@ async (initialPage) => {
   await page.keyboard.type('blocked');
   check(await zeroName.inputValue() === 'Ada' && await visibleText('Greeting actions: 2').isVisible(),
     'Disabled Zero TextField blocks typing and disabled Button blocks mouse activation without losing state');
+  uiObservations.push({assertionId:'ui-disabled',specification:'disabled-controls',data:{disabled:await zeroName.isDisabled()&&await disabledGreet.getAttribute('aria-disabled')==='true',valueBefore:disabledBefore.value,valueAfter:await zeroName.inputValue(),actionsBefore:disabledBefore.actions,actionsAfter:Number((await visibleText('Greeting actions: 2').textContent()).split(': ')[1])}});
   await page.getByRole('button', {name:'Enable greeting controls', exact:true}).click();
   await page.waitForFunction(() => document.querySelector('input[type="text"]')?.disabled === false);
   await zeroName.click();
@@ -704,6 +731,7 @@ async (initialPage) => {
   await visibleText('Replacement HUD').waitFor();
   check(true, 'Ordinary title and menu views keep their callbacks functional while idle');
   check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'No JavaScript errors in Zero UI fixture');
+  apiEvidence.push({caseId:'browser/zero-ui',raw:await page.evaluate(()=>window.__zeroCheck.apiEvidence),pixels:uiObservations});
   };
   cases.counter = async () => {
   await page.goto(urls.counter);
@@ -831,8 +859,22 @@ async (initialPage) => {
     await page.getByRole('button',{name:'Start game',exact:true}).click();
     await page.waitForFunction(()=>window.__zeroCheck.last?.texts.includes('Lifecycle evidence ready'));
     check(await page.evaluate(()=>window.__zeroCheck.apiEvidence?.includes('END_ZERO_API_EVIDENCE')),'Lifecycle first frame emits actual Java host postconditions');
-    const drawingEvidence=await page.evaluate(()=>{
-      const raw=window.__zeroCheck.apiEvidence,pixels=[];
+    await page.getByRole('button',{name:'Stop lifecycle game',exact:true}).click();
+    await page.waitForFunction(()=>document.body.textContent.includes('O|zero.GameApp#shutdown()|game-shutdown'));
+    const stoppedBefore=await page.evaluate(()=>window.__zeroCheck.gameClears);await page.waitForTimeout(150);
+    const stoppedAfter=await page.evaluate(()=>window.__zeroCheck.gameClears);
+    const drawingEvidence=await page.evaluate(([stoppedBefore,stoppedAfter])=>{
+      const trace=[...document.querySelectorAll('body *')].find(node=>node.children.length===0&&node.textContent.startsWith('ZERO_API_EVIDENCE_V1\n'));
+      if(!trace)throw new Error('Stopped game Java event transport missing');
+      const raw=trace.textContent,pixels=[];
+      for(const line of raw.split('\n').filter(line=>line.startsWith('O|'))) {
+        const [,signatureId,assertionId,postcondition,specification]=line.split('|');let data;
+        if(specification.startsWith('canvas,')){const canvas=[...document.querySelectorAll('canvas')].find(canvas=>canvas.width===960&&canvas.height===480);data={attached:!!canvas&&canvas.isConnected,width:canvas?.width,height:canvas?.height};}
+        else if(specification==='frames'){const texts=window.__zeroCheck.last?.texts||[];data={updates:Number(texts.find(text=>text.startsWith('Updates: '))?.slice(9)),draws:Number(texts.find(text=>text.startsWith('Draws: '))?.slice(7))};}
+        else if(specification==='stopped-frames')data={before:stoppedBefore,after:stoppedAfter};
+        else {const text=specification.slice(5);data={text,visible:[...document.querySelectorAll('body *')].some(element=>element.children.length===0&&element.textContent===text&&element.getClientRects().length>0&&getComputedStyle(element).visibility!=='hidden')};}
+        pixels.push({assertionId,specification,data});
+      }
       for(const line of raw.split('\n').filter(line=>line.startsWith('P|'))) {
         const [,signatureId,assertionId,postcondition,specification]=line.split('|');
         const observation=window.__zeroCheck.pixelEvidence?.[assertionId];
@@ -844,7 +886,7 @@ async (initialPage) => {
         pixels.push(observation);
       }
       return {raw,pixels};
-    });
+    },[stoppedBefore,stoppedAfter]);
     apiEvidence.push({caseId:'browser/lifecycle',raw:uiEvidence.raw+'\n'+drawingEvidence.raw,pixels:[...uiEvidence.pixels,...drawingEvidence.pixels]});
     for(const fault of ['update','draw','UI','missing asset','setup','shutdown']) {
       await page.reload();
@@ -874,7 +916,7 @@ async (initialPage) => {
   for (const id of selection.filter(id => id !== 'mobile')) {
     if (!urls[id]) throw new Error('Missing selected browser fixture URL: ' + id);
     page = await initialPage.context().newPage();
-    try { await initialize(); await cases[id](); if(['helpers','zero-ui','audio'].includes(id)){const raw=await page.evaluate(()=>window.__zeroCheck.apiEvidence);if(!raw)throw new Error('Missing Java observations for '+id);apiEvidence.push({caseId:'browser/'+id,raw});} } finally { await page.close(); }
+    try { await initialize(); await cases[id](); if(['helpers'].includes(id)){const raw=await page.evaluate(()=>window.__zeroCheck.apiEvidence);if(!raw)throw new Error('Missing Java observations for '+id);apiEvidence.push({caseId:'browser/'+id,raw});} } finally { await page.close(); }
   }
   return {
     selectedFixtures: selection.filter(id => id !== 'mobile'),

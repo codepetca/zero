@@ -1,5 +1,9 @@
 package zero;
 
+import evidence.ApiProof;
+import evidence.ApiNative;
+import evidence.ApiCompletionChecks;
+
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -37,10 +41,11 @@ public final class NavigationCheck extends Application {
             GameProbe early = new GameProbe();
             expectState(early::showGame); expectState(early::pause);
             expectState(early::resume); expectState(() -> early.isPaused());
-            game = new GameProbe(); gameStage = stage; game.start(stage);
+            game = new GameProbe();game.evidence=true; gameStage = stage; ApiCompletionChecks.gameStart(game,stage,240,150);
             require(root(gameStage).getCenter() == game.title.fxNode(), "title displayed during setup");
             require(stage.getScene().getWidth() >= 264 && stage.getScene().getHeight() > 174,
                     "title reserves fixed canvas, padding and HUD space");
+            ApiProof.complete("game-scene",""+(stage.getScene().getWidth()>=264&&stage.getScene().getHeight()>174),"true");
             previousHandler = Thread.currentThread().getUncaughtExceptionHandler();
             Thread.currentThread().setUncaughtExceptionHandler((thread, failure) -> {
                 if (failure instanceof IllegalStateException && "Expected navigation frame failure".equals(failure.getMessage())) failures++;
@@ -61,8 +66,14 @@ public final class NavigationCheck extends Application {
             require(game.updates == 0 && game.draws == 0, "title suppresses first update and draw");
             game.show(game.menuA);
             require(root(gameStage).getCenter() == game.menuA.fxNode(), "UI callback navigation commits while game suspended");
-            game.expectZero = true; game.showGame(); next();
+            game.expectZero = true; ApiCompletionChecks.showGame(game); next();
         } else if (phase == 1 && game.updates >= 2) {
+            if(!game.evidenceComplete){
+                ApiProof.complete("game-ready",""+(game.updates>=2&&game.draws>=1),"true");
+                ApiProof.complete("game-show",""+(game.updates>=2&&game.draws>=1),"true");
+                ApiProof.complete("game-controls",""+(game.layout().getBottom()==game.hud.fxNode()&&game.hud.fxNode().getScene()==gameStage.getScene()),"true");
+                game.evidenceComplete=true;
+            }
             if (focusStarted == 0) focusStarted = System.nanoTime();
             if (!NativeFocus.await(game.canvas(), focusStarted, "navigation canvas focus")) return;
             key(game.canvas(), KeyEvent.KEY_PRESSED);
@@ -113,9 +124,10 @@ public final class NavigationCheck extends Application {
             require(root(gameStage).getCenter() == game.layout(), "failed frame discards queued view");
             require(!game.windowFocused(), "failure cleanup clears owned window state");
             cleanInput(game); expectState(game::showGame); game.stop(); game.stop(); gameStage.close();
-            stopped = new GameProbe(); stoppedStage = new Stage(); stopped.start(stoppedStage);
+            stopped = new GameProbe();stopped.evidenceStop=true; stoppedStage = new Stage(); stopped.start(stoppedStage);
             stopped.mode = 4; stopped.showGame(); next();
         } else if (phase == 12 && waited()) {
+            ApiProof.complete("game-shutdown",stopped.updates+","+stopped.draws+","+stopped.windowFocused(),"1,0,false");
             require(stopped.updates == 1 && stopped.draws == 0, "stop during update prevents later draw and frames");
             require(root(stoppedStage).getCenter() == stopped.layout(), "stop discards pending navigation");
             stopped.stop(); stoppedStage.close();
@@ -170,6 +182,7 @@ public final class NavigationCheck extends Application {
             require(game.updates == savedUpdates && game.draws == savedDraws, "normal menu navigation still suspends gameplay");
             game.stop(); gameStage.close();
             Thread.currentThread().setUncaughtExceptionHandler(previousHandler);
+            ApiNative.emit();
             System.out.println("ZERO_NAVIGATION_OK immediate UI, title sizing/suspension, retained game/HUD, pause drawing, zero delta/input reset, deferred navigation, reentrant view redirects, failure/stop cleanup");
             Platform.exit();
         }
@@ -192,11 +205,12 @@ public final class NavigationCheck extends Application {
         final Label menuB = new Label("Menu B");
         final Column hud = new Column(new Label("Retained HUD"));
         int updates, draws, mode, deferredDraws;
-        boolean expectZero, queuedInUpdate;
+        boolean expectZero, queuedInUpdate,evidence,evidenceStop,evidenceComplete;
         @Override public void settings() { size(240, 150); padding(12); }
-        @Override public void setup() { controls(hud); show(title); }
+        @Override public void setup() { if(evidence)ApiCompletionChecks.gameControls(this,hud,"Retained HUD");else controls(hud); show(title); }
         @Override public void update(double seconds) {
             updates++;
+            if(evidence&&updates==1)ApiProof.equal("zero.GameApp#update(double)","game-update","The first actual update callback receives zero elapsed time",()->{super.update(seconds);return ""+seconds;},"0.0");
             if (expectZero) { require(seconds == 0, "first resumed or navigated update has zero delta"); expectZero = false; }
             if (mode == 1) {
                 show(menuA); show(menuB); queuedInUpdate = true; mode = 0;
@@ -204,10 +218,12 @@ public final class NavigationCheck extends Application {
             } else if (mode == 3) {
                 show(menuA);
                 throw new IllegalStateException("Expected navigation frame failure");
-            } else if (mode == 4) { show(menuA); stop(); }
+            } else if (mode == 4) { show(menuA);if(evidenceStop)ApiCompletionChecks.stopGame(this);else stop(); }
         }
         @Override public void draw() {
-            draws++; background(zero.Color.WHITE);
+            draws++;
+            if(evidence&&draws==1)ApiProof.equal("zero.GameApp#draw()","game-draw","The first actual draw follows exactly one update callback",()->{super.draw();return updates+","+draws;},"1,1");
+            background(zero.Color.WHITE);
             if (queuedInUpdate) {
                 require(canvas().getScene() != null, "draw finishes on current attached canvas");
                 queuedInUpdate = false; deferredDraws++;

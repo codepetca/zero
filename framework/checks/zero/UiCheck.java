@@ -2,6 +2,8 @@ package zero;
 
 import evidence.ApiSignatureChecks;
 import evidence.ApiNative;
+import evidence.ApiProof;
+import evidence.ApiCompletionChecks;
 
 import javafx.application.Platform;
 import javafx.event.Event;
@@ -96,12 +98,13 @@ public final class UiCheck extends GameApp {
         Button add = new Button("Add");
         int[] count = {0};
         add.onClick(() -> count[0] += 100);
-        add.onClick(() -> { count[0]++; label.setText("Count: " + count[0]); });
+        ApiCompletionChecks.action(add,() -> { count[0]++; label.setText("Count: " + count[0]); });
         javafx.scene.control.Button nativeButton = (javafx.scene.control.Button) add.fxNode();
         require(nativeButton.isFocusTraversable(), "button retains native focus behavior");
         require(label.fxNode() instanceof javafx.scene.control.Label, "label is an ordinary native control");
         require(label.fxNode() == label.fxNode(), "bridge returns the same backing node");
         nativeButton.fire();
+        ApiProof.complete("ui-action",count[0]+","+label.getText(),"1,Count: 1");
         require(count[0] == 1 && label.getText().equals("Count: 1"), "new callback replaces old callback");
         expectNull(() -> add.onClick(null));
         nativeButton.fire();
@@ -110,8 +113,9 @@ public final class UiCheck extends GameApp {
         expectNull(() -> add.setText(null));
         expectNull(() -> label.setText(null));
         require(add.getText().equals("Increase") && label.getText().equals("Count: 2"), "invalid text preserves content");
-        add.setEnabled(false);
+        ApiCompletionChecks.disable(add);
         nativeButton.fire();
+        ApiProof.complete("ui-disabled",""+(count[0]==2&&nativeButton.isDisabled()&&add.getText().equals("Increase")),"true");
         require(count[0] == 2 && add.getText().equals("Increase"), "disabled button blocks activation and preserves text/action");
         add.setEnabled(true);
         nativeButton.fire();

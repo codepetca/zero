@@ -1,5 +1,6 @@
 import evidence.ApiProof;
 import evidence.ApiSignatureChecks;
+import evidence.ApiCompletionChecks;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import zero.GameApp;
@@ -30,7 +31,7 @@ public final class Main extends GameApp {
         button.setText("Zero button");
         require(button.getText().equals("Zero button"), "Button replacement text");
         button.onClick(() -> { throw new IllegalStateException("Old callback must be replaced"); });
-        button.onClick(() -> { clicks++; status.setText("Zero clicks: " + clicks); });
+        ApiCompletionChecks.action(button,() -> { clicks++; status.setText("Zero clicks: " + clicks);if(clicks==1)ApiProof.complete("ui-action",clicks+","+status.getText(),"1,Zero clicks: 1"); });
         Row counterRow = new Row(status, button);
         require(counterRow.getSpacing() == 8, "Row default spacing");
         counterRow.setSpacing(12);
@@ -131,7 +132,7 @@ public final class Main extends GameApp {
         toggle.onClick(() -> {
             enabled[0] = !enabled[0];
             name.setEnabled(enabled[0]);
-            greet.setEnabled(enabled[0]);
+            if(!enabled[0])ApiCompletionChecks.disable(greet);else greet.setEnabled(true);
             toggle.setText(enabled[0] ? "Disable greeting controls" : "Enable greeting controls");
         });
         Column inputGroup = new Column(name, disabled, greet);

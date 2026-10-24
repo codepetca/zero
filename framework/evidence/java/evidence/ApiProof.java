@@ -40,6 +40,18 @@ public final class ApiProof {
     public static void pending(String signature,String assertion,String postcondition,Runnable invocation,String specification) {
         reserve(signature,assertion);invocation.run();records.add(new Observation(signature,assertion,postcondition,"O",specification));
     }
+    /** Complete a real earlier invocation only after its asynchronous effect is observed. */
+    public static void complete(String assertion,String actual,String expected) {
+        for(int i=0;i<records.size();i++) {
+            Observation record=records.get(i);
+            if(record.assertion.equals(assertion)) {
+                if(!record.kind.equals("O"))throw new IllegalStateException("API assertion already completed: "+assertion);
+                if(!expected.equals(actual))throw new IllegalStateException("API completion failed: "+assertion+" observed "+actual);
+                record.value=actual;record.kind="A";return;
+            }
+        }
+        throw new IllegalStateException("Missing API invocation: "+assertion);
+    }
     public static void resolveUi(PixelObserver observer) {
         for(int i=0;i<records.size();i++) {
             Observation record=records.get(i);

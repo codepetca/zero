@@ -1,27 +1,17 @@
 {
   "schema": 1,
-  "status": "pending",
+  "status": "pending-execution",
   "declarations": 183,
-  "mappedDeclarationsPerTarget": 167,
-  "unmappedDeclarationsPerTarget": 16,
+  "mappedDeclarations": {
+    "native": 183,
+    "browser": 183
+  },
+  "unmappedDeclarations": {
+    "native": 0,
+    "browser": 0
+  },
   "actualExecutedTargets": 0,
-  "note": "Source fixtures, attribution, compilation and collector unit tests do not establish framework execution. Parent selected native/browser runs must generate current retained receipts; all 366 actual target outcomes remain pending.",
-  "unmapped": [
-    "zero.GameApp#controls(zero.ui.Element)",
-    "zero.GameApp#createContent()",
-    "zero.GameApp#createScene(javafx.scene.layout.BorderPane)",
-    "zero.GameApp#draw()",
-    "zero.GameApp#ready(javafx.stage.Stage)",
-    "zero.GameApp#showGame()",
-    "zero.GameApp#shutdown()",
-    "zero.GameApp#update(double)",
-    "zero.Music#loop()",
-    "zero.Music#pause()",
-    "zero.Music#play()",
-    "zero.Music#stop()",
-    "zero.Sound#play()",
-    "zero.Sound#stop()",
-    "zero.ui.Button#onClick(java.lang.Runnable)",
-    "zero.ui.Element#setEnabled(boolean)"
-  ]
+  "requiredExecutedTargets": 366,
+  "note": "All declarations now have source assertion mappings. Compilation, semantic attribution and collector unit tests establish no framework target outcome. All 366 actual native/browser outcomes remain pending current retained execution receipts.",
+  "unmapped": []
 }

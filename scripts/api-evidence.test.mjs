@@ -55,7 +55,7 @@ test('report is useful while require-complete fails the explicit gaps',()=>{cons
 
 test('Java probes map exact declarations idempotently without claiming execution',async()=>{
  const {mapJavaProbeAssertions}=await import('./api-evidence.mjs');const input=structuredClone(manifest);mapJavaProbeAssertions(input);assert.deepEqual(mapJavaProbeAssertions(input),input);
- const mapped=input.signatures.filter(entry=>entry.evidence.native.length);assert.equal(mapped.length,167);assert.equal(input.signatures.filter(entry=>entry.evidence.browser.length).length,167);
+ const mapped=input.signatures.filter(entry=>entry.evidence.native.length);assert.equal(mapped.length,183);assert.equal(input.signatures.filter(entry=>entry.evidence.browser.length).length,183);
  assert.equal(validateEvidenceReceipts({manifest:input}).coveredTargets,0);
 });
 test('actual Java collector emits only ordered completed postconditions and refuses duplicates',t=>{
@@ -120,4 +120,37 @@ test('pending Java drawing records need exact external evidence and retain measu
  const specification='pixel,1,2,0,0,255,255',raw='ZERO_API_EVIDENCE_V1\nI|'+entry.id+'|'+link.assertionId+'\nP|'+entry.id+'|'+link.assertionId+'|'+link.postcondition+'|'+specification+'\nEND_ZERO_API_EVIDENCE';const pixels=[{assertionId:link.assertionId,specification,data:[0,0,255,255]}],options={manifest:fixture.manifest,raw,pixels,identity,runId:'unit-external',target:'browser',caseId};
  assert.equal(receiptFromJavaEvents(options).receipt.outcomes.length,1);for(const alter of [copy=>copy.pixels=[],copy=>copy.pixels[0].data[0]=255,copy=>copy.pixels.push(copy.pixels[0]),copy=>copy.target='native']){const copy=structuredClone(options);alter(copy);assert.throws(()=>receiptFromJavaEvents(copy));}
  const temporary=fs.mkdtempSync(path.join(os.tmpdir(),'zero-pixel-receipt-unit-'));try{const directory=path.join(temporary,'case');persistJavaEvidence({...options,directory,output});assert.equal(validateEvidenceReceipts(loadJavaEvidence(temporary,{manifest:fixture.manifest,checkCurrentInputs:false})).coveredTargets,1);const metadata=JSON.parse(fs.readFileSync(path.join(directory,'java-events.json'),'utf8'));fs.writeFileSync(path.join(directory,'artifacts',metadata.pixelsSha256),'[]');assert.throws(()=>loadJavaEvidence(temporary,{manifest:fixture.manifest,checkCurrentInputs:false}),/changed pixel transport/);}finally{fs.rmSync(temporary,{recursive:true,force:true});}
+});
+test('frame, disabled input and actual media completion postconditions reject absent effects',async()=>{
+ const {validateUiObservation}=await import('./api-evidence.mjs');const check=(specification,data)=>validateUiObservation(specification,{assertionId:'unit-completion',specification,data});
+ const cases=[
+ ['canvas,960.0,480.0',{attached:true,width:960,height:480},data=>data.attached=false],
+ ['frames',{updates:1,draws:1},data=>data.draws=0],
+ ['stopped-frames',{before:8,after:8},data=>data.after=10],
+ ['disabled-controls',{disabled:true,valueBefore:'Ada',valueAfter:'Ada',actionsBefore:2,actionsAfter:2},data=>data.actionsAfter=3],
+ ['media,play',{publicPlaying:true,playing:true,time:.2},data=>data.publicPlaying=false],
+ ['media,loop',{publicPlaying:true,playing:true,loop:true,duration:1,elapsed:1150,wraps:1},data=>data.elapsed=900],
+ ['media,pause',{publicPlaying:false,playing:false,before:.2,after:.2,elapsed:120},data=>data.after=.4],
+ ['media,stop',{publicPlaying:false,playing:false,time:0},data=>data.time=.2],
+ ['media,sound-play',{publicPlaying:true,voices:2},data=>data.voices=0],
+ ['media,sound-stop',{publicPlaying:false,voices:0},data=>data.voices=1]
+ ];
+ for(const [specification,data,mutate]of cases){assert.doesNotThrow(()=>check(specification,data));const changed=structuredClone(data);mutate(changed);assert.throws(()=>check(specification,changed));}
+});
+test('actual Java deferred completion stays pending until a later checked observation',t=>{
+ if(!fs.existsSync(path.join(jdk,'bin/javac'))){t.skip('Cached JDK unavailable.');return;}
+ const temporary=fs.mkdtempSync(path.join(os.tmpdir(),'zero-completion-unit-'));try{
+  const source=path.join(temporary,'Deferred.java');fs.writeFileSync(source,`import evidence.ApiProof;
+class Deferred { public static void main(String[] args) {
+ int[] effects={0};ApiProof.pending("unit#call()","later","Synthetic unit callback changes observed state",()->effects[0]++,"java,later");
+ if(!ApiProof.events().contains("O|unit#call()"))throw new Error("premature completion");
+ try{ApiProof.complete("later","wrong","1");throw new Error("bad postcondition accepted");}catch(IllegalStateException expected){}
+ if(!ApiProof.events().contains("O|unit#call()"))throw new Error("failed assertion completed");
+ ApiProof.complete("later",""+effects[0],"1");
+ try{ApiProof.complete("later","1","1");throw new Error("duplicate completed");}catch(IllegalStateException expected){}
+ try{ApiProof.complete("absent","1","1");throw new Error("absent completed");}catch(IllegalStateException expected){}
+ System.out.println(ApiProof.events());
+} }`);
+  const compiled=spawnSync(path.join(jdk,'bin/javac'),['-d',temporary,path.join(root,'framework/evidence/java/evidence/ApiProof.java'),source],{encoding:'utf8'});assert.equal(compiled.status,0,compiled.stderr);const ran=spawnSync(path.join(jdk,'bin/java'),['-cp',temporary,'Deferred'],{encoding:'utf8'});assert.equal(ran.status,0,ran.stderr);assert.match(ran.stdout,/I\|unit#call\(\)\|later\nA\|unit#call\(\)/);assert.doesNotMatch(ran.stdout,/O\|unit#call/);
+ }finally{fs.rmSync(temporary,{recursive:true,force:true});}
 });

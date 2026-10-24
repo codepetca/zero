@@ -2327,8 +2327,20 @@
       "end": 10605,
       "declarationSha256": "fa26014024991a5bf7074242a365448057dae9dfaf8ae7d04af853fe0226bc88",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/NavigationCheck",
+            "assertionId": "game-controls",
+            "postcondition": "Mounted controls remain visible beside the running canvas"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "game-controls",
+            "postcondition": "Mounted controls remain visible beside the running canvas"
+          }
+        ]
       }
     },
     {
@@ -2348,8 +2360,20 @@
       "end": 3205,
       "declarationSha256": "8a3d221311bb59672a918846786612a7d499342e57fda296d6073847796df8aa",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/NavigationCheck",
+            "assertionId": "game-content",
+            "postcondition": "Content creation constructs a canvas and drawing context with configured dimensions"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "game-content",
+            "postcondition": "Content creation constructs a canvas and drawing context with configured dimensions"
+          }
+        ]
       }
     },
     {
@@ -2369,8 +2393,20 @@
       "end": 3817,
       "declarationSha256": "c91f7e292ecc54c193d7df1d43e37f03ccdb6ca94ce2a1d7ac0653f353b07310",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/NavigationCheck",
+            "assertionId": "game-scene",
+            "postcondition": "The created Scene attaches the configured game canvas"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "game-scene",
+            "postcondition": "The created Scene attaches the configured game canvas"
+          }
+        ]
       }
     },
     {
@@ -2389,8 +2425,20 @@
       "end": 1992,
       "declarationSha256": "b425b26c44c5a8f680f22cc86d09564737f7689de6b6c24fa67903a932179091",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/NavigationCheck",
+            "assertionId": "game-draw",
+            "postcondition": "The first actual draw follows exactly one update callback"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "game-draw",
+            "postcondition": "The first actual draw follows exactly one update callback"
+          }
+        ]
       }
     },
     {
@@ -3532,8 +3580,20 @@
       "end": 6584,
       "declarationSha256": "eeebcbedda6aeb488ea54d4260f13761f5d106695f88afd9a1ccda1f479b66e8",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/NavigationCheck",
+            "assertionId": "game-ready",
+            "postcondition": "Ready starts a timer that delivers real update and draw callbacks"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "game-ready",
+            "postcondition": "Ready starts a timer that delivers real update and draw callbacks"
+          }
+        ]
       }
     },
     {
@@ -3619,8 +3679,20 @@
       "end": 9295,
       "declarationSha256": "15bbbd2574541152f9a67b7e3c6c83bd1d16739faff4d7ec3657a6d106398530",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/NavigationCheck",
+            "assertionId": "game-show",
+            "postcondition": "Returning from a retained UI view resumes real game frames"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "game-show",
+            "postcondition": "Returning from a retained UI view resumes real game frames"
+          }
+        ]
       }
     },
     {
@@ -3640,8 +3712,20 @@
       "end": 7564,
       "declarationSha256": "d339739852e86f54c2722d1742c70cdeb2932972c89e617ff8f5b35b420c8ae3",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/NavigationCheck",
+            "assertionId": "game-shutdown",
+            "postcondition": "Shutdown stops all subsequent game update and draw work"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "game-shutdown",
+            "postcondition": "Shutdown stops all subsequent game update and draw work"
+          }
+        ]
       }
     },
     {
@@ -3858,8 +3942,20 @@
       "end": 1965,
       "declarationSha256": "b6b1d0844d32f604945afc040737dbf9195add050c11ba1f2c2d87b81c691b26",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/NavigationCheck",
+            "assertionId": "game-update",
+            "postcondition": "The first actual update callback receives zero elapsed time"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "game-update",
+            "postcondition": "The first actual update callback receives zero elapsed time"
+          }
+        ]
       }
     },
     {
@@ -4400,8 +4496,20 @@
       "end": 2029,
       "declarationSha256": "f6769e51da84b27aaf87b57d6a44571907bfd17b1fd7738e661959503560ad2d",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "live-music-loop",
+            "postcondition": "Loop continues playing across an actual media end boundary"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "live-music-loop",
+            "postcondition": "Loop continues playing across an actual media end boundary"
+          }
+        ]
       }
     },
     {
@@ -4420,8 +4528,20 @@
       "end": 2125,
       "declarationSha256": "39146a9440bb017906a38726d44a8dbee90d28ededaa82b8c463d358cd857b60",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "live-music-pause",
+            "postcondition": "Pause stops playback while retaining the actual playback position"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "live-music-pause",
+            "postcondition": "Pause stops playback while retaining the actual playback position"
+          }
+        ]
       }
     },
     {
@@ -4440,8 +4560,20 @@
       "end": 1791,
       "declarationSha256": "85835b9474311ef98d0675b2dbe0c879e92ab1aa4b7b41c070c5c803c91ebd4c",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "live-music-play",
+            "postcondition": "Play starts actual public music playback"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "live-music-play",
+            "postcondition": "Play starts actual public music playback"
+          }
+        ]
       }
     },
     {
@@ -4524,8 +4656,20 @@
       "end": 2351,
       "declarationSha256": "7c66096ea1876eddaa420e6c5caad04277f53e0d26c4f9dd4759adc0550b7289",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "live-music-stop",
+            "postcondition": "Stop halts actual playback and rewinds to the beginning"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "live-music-stop",
+            "postcondition": "Stop halts actual playback and rewinds to the beginning"
+          }
+        ]
       }
     },
     {
@@ -4672,8 +4816,20 @@
       "end": 822,
       "declarationSha256": "9c53be922de1f9c221cb2fa364d9f06d32baf3aa67645a4c80d1ab3d05454c0f",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "live-sound-play",
+            "postcondition": "Play starts an actual effect voice and public playing status"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "live-sound-play",
+            "postcondition": "Play starts an actual effect voice and public playing status"
+          }
+        ]
       }
     },
     {
@@ -4756,8 +4912,20 @@
       "end": 877,
       "declarationSha256": "7d84bce2a4ee7e01a7c6e50e85daabae079dcf6a4f9130af26fc7e35de1a11b9",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/AudioCheck",
+            "assertionId": "live-sound-stop",
+            "postcondition": "Stop halts an active effect voice and clears public playing status"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/audio",
+            "assertionId": "live-sound-stop",
+            "postcondition": "Stop halts an active effect voice and clears public playing status"
+          }
+        ]
       }
     },
     {
@@ -5224,8 +5392,20 @@
       "end": 859,
       "declarationSha256": "a6b7fa1e63e30e0177b3a2f0fdd25b9f412e91de053f680a7bf12ebf3248aa08",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "ui-action",
+            "postcondition": "A replacement callback runs once after actual button activation"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "ui-action",
+            "postcondition": "A replacement callback runs once after actual button activation"
+          }
+        ]
       }
     },
     {
@@ -5470,8 +5650,20 @@
       "end": 570,
       "declarationSha256": "0088b0130b85421614ecbc65cd05a1c4c72ac40e63285275b8b0b204ed03b598",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "ui-disabled",
+            "postcondition": "A disabled retained control blocks actual attempted input without losing state"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "ui-disabled",
+            "postcondition": "A disabled retained control blocks actual attempted input without losing state"
+          }
+        ]
       }
     },
     {

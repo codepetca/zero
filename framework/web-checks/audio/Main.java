@@ -1,5 +1,6 @@
 import evidence.ApiProof;
 import evidence.ApiSignatureChecks;
+import evidence.ApiCompletionChecks;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -31,7 +32,7 @@ public final class Main extends GameApp {
         song = loadMusic("/audio/tone.wav"); independent = loadMusic("audio/./tone.wav"); once = loadMusic("audio/tone.wav");
         require(song != independent && song != once, "independent music identity");
         song.setVolume(.19); song.setMuted(true); require(song.getVolume() == .19 && song.isMuted(), "music volume and mute getters");
-        song.loop(); song.stop(); song.play(); // Final pre-ready intent and repeat selection survive.
+        ApiCompletionChecks.musicLoop(song); song.stop(); ApiCompletionChecks.musicPlay(song); // Final pre-ready intent and repeat selection survive.
         independent.play(); independent.pause(); independent.stop();
         for (double value : new double[] {-1, 1.01, Double.NaN, Double.POSITIVE_INFINITY}) {
             try { effect.setVolume(value); throw new IllegalStateException("Invalid effect volume accepted"); } catch (IllegalArgumentException expected) { checks++; }
@@ -40,12 +41,13 @@ public final class Main extends GameApp {
         try { loadSound("/audio/missing.wav"); throw new IllegalStateException("Missing sound accepted"); }
         catch (IllegalArgumentException expected) { require(expected.getMessage().contains("missing.wav"), "named missing resource"); }
         broken = loadMusic("/audio/broken.wav");
-        Button twice = button("Play twice", () -> { effect.play(); effect.play(); });
+        Button twice = button("Play twice", () -> { ApiCompletionChecks.soundPlay(effect); effect.play(); });
+        Button stopEffects=button("Stop effects",()->ApiCompletionChecks.soundStop(effect));
         Button spam = button("Spam effects", () -> { for (int i = 0; i < 100; i++) effect.play(); });
         Button loop = button("Loop", () -> { song.setMuted(false); song.loop(); });
-        Button pause = button("Pause", () -> song.pause());
+        Button pause = button("Pause", () -> ApiCompletionChecks.musicPause(song));
         Button play = button("Resume", () -> song.play());
-        Button stop = button("Rewind", () -> song.stop());
+        Button stop = button("Rewind", () -> ApiCompletionChecks.musicStop(song));
         Button mute = button("Mute", () -> { effect.setMuted(!effect.isMuted()); song.setMuted(!song.isMuted()); });
         Button one = button("Once", () -> once.play());
         Button error = button("Check error", () -> {
@@ -57,7 +59,7 @@ public final class Main extends GameApp {
             catch (IllegalStateException expected) { result.setText("Named playing failure: " + expected.getMessage().contains("tone.wav")); }
         });
         Button cleanup = button("Stop app", () -> { stop(); result.setText("App cleanup: " + (closed(effect) && closed(song) && closed(once) && closed(independent))); });
-        layout().setBottom(new HBox(4, twice, spam, loop, pause, play, stop, mute, one, error, lateError, cleanup));
+        layout().setBottom(new HBox(4, twice, stopEffects, spam, loop, pause, play, stop, mute, one, error, lateError, cleanup));
         layout().setTop(result);
         result.setText("Audio checks ready: " + checks);
         canvas().setAccessibleText("Zero audio browser fixture");
