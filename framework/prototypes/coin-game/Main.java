@@ -4,7 +4,7 @@ import zero.GameApp;
 public class Main extends GameApp {
     private enum Phase { TITLE, HELP, PLAYING, PAUSED, RESULTS }
 
-    private final Hud hud = new Hud(this::pauseGame, this::startGame);
+    private Hud hud;
     private final TitleScreen titleScreen = new TitleScreen(this::startGame, this::showHelp);
     private final HelpScreen helpScreen = new HelpScreen(this::showTitle);
     private Phase phase = Phase.TITLE;
@@ -26,8 +26,16 @@ public class Main extends GameApp {
     }
 
     public void setup() {
-        controls(hud.view());
+        selectScore(new ScoreDisplay());
         showTitle();
+    }
+
+    /** Replace only the presentation; rules, canvas and lifecycle stay with Main. */
+    public void selectScore(ScoreView score) {
+        hud = new Hud(score, this::pauseGame, this::startGame,
+                () -> selectScore(new ScoreDisplay()), () -> selectScore(new BarScoreDisplay()));
+        hud.update(level, points, remaining);
+        controls(hud.view());
     }
 
     public void showTitle() {

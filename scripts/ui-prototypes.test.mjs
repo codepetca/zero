@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync, realpathSync} from 'node:fs';
+import {mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync, realpathSync, readdirSync} from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -89,4 +89,29 @@ test('selected native verification runs only simulation and retains full-suite r
   assert.deepEqual(receipt.selection, ['simulation']);
   assert.deepEqual(receipt.results.map(result => result.id), ['simulation']);
   assert.equal(existsSync(path.join(output, 'simulation/src/main/java/PrototypeCheck.java')), false);
+});
+
+
+test('counter and game receive identical student-owned score contracts without touching other prototypes', t => {
+  const root = fixture(t);
+  const shared = ['ScoreView.java','ScoreDisplay.java','BarScoreDisplay.java'];
+  for (const name of shared) put(root, 'framework/prototypes/shared/' + name, readFileSync(path.join(repository, 'framework/prototypes/shared', name)));
+  for (const id of ['counter','coin-game']) {
+    for (const name of readdirSync(path.join(repository, 'framework/prototypes', id)).filter(name => name.endsWith('.java'))) {
+      put(root, `framework/prototypes/${id}/${name}`, readFileSync(path.join(repository, 'framework/prototypes', id, name)));
+    }
+  }
+  put(root, '.verification/ui-prototypes/actor-stress/sentinel', 'keep stress');
+  const projects = prepareUiPrototypes(root, {only:['counter','coin-game']});
+  assert.deepEqual(projects.map(project => project.id), ['counter','coin-game']);
+  for (const name of shared) {
+    const expected = readFileSync(path.join(root, 'framework/prototypes/shared', name));
+    for (const project of projects) {
+      assert.ok(project.studentSources.includes(name));
+      assert.deepEqual(readFileSync(path.join(project.directory, 'src/main/java', name)), expected);
+    }
+  }
+  assert.equal(readFileSync(path.join(root, '.verification/ui-prototypes/actor-stress/sentinel'), 'utf8'), 'keep stress');
+  assert.equal(existsSync(path.join(root, '.verification/ui-prototypes/beginner-coin-game')), false);
+  assert.deepEqual(prepareUiPrototypes(root, {only:['simulation']})[0].studentSources, ['Main.java']);
 });

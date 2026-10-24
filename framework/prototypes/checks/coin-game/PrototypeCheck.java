@@ -22,6 +22,7 @@ public final class PrototypeCheck extends Application {
     private long waitingSince;
     private double pausedTime;
     private double pausedX;
+    private boolean switchedWhilePaused;
 
     @Override public void start(Stage stage) {
         Thread watchdog = new Thread(() -> {
@@ -49,10 +50,21 @@ public final class PrototypeCheck extends Application {
                         if (step == 1) {
                             require(app.canvas().getScene() == null && app.isPaused(), "pause menu suspends gameplay");
                             require(number(app, "remaining") == pausedTime && playerX(app) == pausedX, "paused state stays frozen");
+                            if (!switchedWhilePaused) {
+                                Object player = model(app, "player");
+                                app.selectScore(new ScoreDisplay());
+                                app.selectScore(new BarScoreDisplay());
+                                require(app.isPaused() && app.canvas().getScene() == null && model(app, "player") == player,
+                                        "typed replacement while paused preserves navigation and player");
+                                require(number(app, "remaining") == pausedTime && playerX(app) == pausedX
+                                        && number(app, "level") == 1 && points(app) == 1, "replacement does not update rules or time");
+                                require(hasText((Parent) app.layout().getBottom(), "[#---------]"), "hidden retained HUD receives current score");
+                                switchedWhilePaused = true;
+                            }
                             if (now - waitingSince < 500_000_000L) return;
                             click(root, "Resume");
                             require(app.canvas().getScene() != null && !app.isPaused(), "resume restores gameplay");
-                            require(points(app) == 1, "resume retains score");
+                            require(points(app) == 1 && hasText(root, "[#---------]"), "resume retains score and bar presentation");
                             waitingSince = now;
                             step = 2;
                             return;
@@ -71,6 +83,17 @@ public final class PrototypeCheck extends Application {
                         }
                         int points = points(app);
                         if (step == 0 && points == 1) {
+                            Object player = model(app, "player");
+                            double beforeTime = number(app, "remaining");
+                            double beforeX = playerX(app);
+                            click(root, "Bar score");
+                            require(hasText(root, "[#---------]"), "bar selection copies earned points");
+                            click(root, "Text score");
+                            require(hasText(root, "Score: 1") && !hasText(root, "[#---------]"), "text selection preserves earned points");
+                            click(root, "Bar score");
+                            require(model(app, "player") == player && number(app, "remaining") == beforeTime
+                                    && playerX(app) == beforeX && !app.isPaused() && number(app, "level") == 1
+                                    && app.layout().getCenter() == app.canvas(), "HUD replacement retains all gameplay state and canvas");
                             pausedTime = number(app, "remaining");
                             pausedX = playerX(app);
                             click(root, "Pause");
@@ -85,16 +108,19 @@ public final class PrototypeCheck extends Application {
                             wins++;
                             click(root, "Play again");
                             freshGame(app, root);
+                            require(hasText(root, "[----------]"), "replay resets score while retaining bar presentation");
                             if (wins == 1) {
                                 // Restart during a run, then navigate back to the title and begin again.
                                 move(app, 120, 80);
                                 click(root, "Restart game");
                                 freshGame(app, root);
+                                require(hasText(root, "[----------]"), "Restart game keeps the selected bar");
                                 click(root, "Pause");
                                 click(root, "Title screen");
                                 require(hasText(root, "COIN QUEST"), "pause returns to title");
                                 click(root, "Play");
                                 freshGame(app, root);
+                                require(hasText(root, "[----------]"), "title navigation retains the selected bar");
                                 step = 4;
                             } else {
                                 // A direct model step covers timeout without waiting thirty wall-clock seconds.
@@ -105,7 +131,7 @@ public final class PrototypeCheck extends Application {
                                 require(hasText(root, "COIN QUEST"), "results return to title");
                                 require(frames > 10, "actual animation frames ran");
                                 stop(); app.stop(); stage.close();
-                                System.out.println("ZERO_COIN_PROTOTYPE_OK title/help/play, pause/freeze/resume, two levels, win/replay/restart/title, second win and direct timeout model step; frames=" + frames);
+                                System.out.println("ZERO_COIN_PROTOTYPE_OK typed text/bar replacement retains score/canvas/rules/pause; title/help/play, pause/freeze/resume, two levels, win/replay/restart/title, second win and direct timeout model step; frames=" + frames);
                                 Platform.exit();
                                 return;
                             }
@@ -124,6 +150,9 @@ public final class PrototypeCheck extends Application {
         require(points(app) == 0 && number(app, "level") == 1 && number(app, "remaining") == 30, "new game resets state");
         require(playerX(app) == 48 && !app.isPaused(), "new game resets player/pause");
         require(hasText(root, "Score: 0") && hasText(root, "Time left: 30s"), "new game resets HUD");
+    }
+    private static Object model(Main app, String name) throws ReflectiveOperationException {
+        var field = Main.class.getDeclaredField(name); field.setAccessible(true); return field.get(app);
     }
     private static int points(Main app) throws ReflectiveOperationException { return (int) number(app, "points"); }
     private static double number(Main app, String name) throws ReflectiveOperationException {

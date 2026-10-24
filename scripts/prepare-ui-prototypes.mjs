@@ -51,7 +51,8 @@ export function prepareUiPrototypes(root = repository, {only} = {}) {
   const helpers = javaFiles(framework);
   if (helpers.length !== 16) throw new Error(`Expected 16 reviewed Zero helper sources, found ${helpers.length}.`);
   const needsShared = selected.some(id => id === 'counter' || id === 'coin-game');
-  const shared = needsShared ? readFileSync(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java')) : null;
+  const shared = needsShared ? Object.fromEntries(['ScoreView.java', 'ScoreDisplay.java', 'BarScoreDisplay.java'].map(name =>
+    [name, readFileSync(path.join(root, 'framework/prototypes/shared', name))])) : {};
   const plans = selected.map(id => {
     const directory = path.join(output, id);
     ordinary(directory);
@@ -60,9 +61,9 @@ export function prepareUiPrototypes(root = repository, {only} = {}) {
     for (const name of helpers) entries[`src/main/java/${name}`] = readFileSync(path.join(framework, name));
     const standalone = id === 'beginner-coin-game' || id === 'actor-stress' || id === 'simulation';
     const studentSources = standalone ? javaFiles(path.join(root, 'framework/prototypes', id))
-      : [...javaFiles(path.join(root, 'framework/prototypes', id)), 'ScoreDisplay.java'];
+      : [...javaFiles(path.join(root, 'framework/prototypes', id)), ...Object.keys(shared)];
     for (const name of studentSources) {
-      const bytes = name === 'ScoreDisplay.java' ? shared : readFileSync(path.join(root, 'framework/prototypes', id, name));
+      const bytes = !standalone && shared[name] ? shared[name] : readFileSync(path.join(root, 'framework/prototypes', id, name));
       if (/\bimport\s+(?:static\s+)?javafx\./.test(bytes.toString('utf8'))) throw new Error(`Student prototype imports JavaFX: ${id}/${name}`);
       entries[`src/main/java/${name}`] = bytes;
     }
@@ -103,8 +104,11 @@ export function prepareUiPrototypes(root = repository, {only} = {}) {
   const projects = plans.map(({id, directory, studentSources}) => ({id, directory, studentSources}));
   const counter = plans.find(plan => plan.id === 'counter');
   const coin = plans.find(plan => plan.id === 'coin-game');
-  if (counter && coin && !counter.entries['src/main/java/ScoreDisplay.java'].equals(
-    coin.entries['src/main/java/ScoreDisplay.java'])) throw new Error('ScoreDisplay copies differ.');
+  if (counter && coin) {
+    for (const name of Object.keys(shared)) {
+      if (!counter.entries['src/main/java/' + name].equals(coin.entries['src/main/java/' + name])) throw new Error('Shared score copies differ: ' + name);
+    }
+  }
   return projects;
 }
 

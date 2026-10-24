@@ -13,7 +13,7 @@ export function verifyUiPrototypes(root = repository, {only, run = maven} = {}) 
     if (existsSync(harness)) throw new Error(`Preserved pre-existing verification harness: ${harness}`);
     const log = path.join(project.directory, 'native-check.log');
     try {
-      const checkId = project.id === 'beginner-coin-game' ? 'coin-game' : project.id;
+      const checkId = project.id;
       writeFileSync(harness, readFileSync(path.join(root, 'framework/prototypes/checks', checkId, 'PrototypeCheck.java')));
       const result = run(project.directory, ['-o', '-q', '-Dapp.mainClass=PrototypeCheck', 'clean', 'compile', 'javafx:run'], 60000);
       writeFileSync(log, result.stdout + '\n' + result.stderr);
