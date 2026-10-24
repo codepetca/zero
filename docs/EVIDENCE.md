@@ -1,5 +1,55 @@
 # Delivery evidence index
 
+## Zero phased delivery: Study slice 1B — 2026-10-23
+
+Accepted locally through `7f8235ff`, following teaching/API commit `81872502`.
+Study lessons and checkpoints 3–7 now use Zero UI controls, ordinary callbacks
+and explicit quiz rules. `Element.setEnabled(boolean)` is the only new public
+member: 14 helpers / 165 declarations. It preserves values and callbacks; the
+student's answered/finished guards still own quiz correctness. The maintainer
+harness unwraps Elements and retains compatibility with older native examples.
+
+Focused native UI and sequential checkpoints 3–7 and 9 pass, including two full
+Study sessions and two resets. Lesson/tutorial/API/adapter, positive and negative
+semantic attribution, source profile and root checks pass. Local `/docs` returns
+HTTP200 and includes setEnabled. Logs are ignored under `.verification/vision-study-*`
+and `.verification/phase1b-enabled/`; no installed kit or hosted docs update.
+
+Initial independent Sol/high review covered all 23 changed files and found one
+P2: the pinned WebFX Node did not recalculate inherited disabled state across
+parents and children. The browser-only `ZeroDisabledState` observer repairs
+computed state with per-node listeners, retaining each node's own flag and
+following parent, children and scene-root changes. It has no global node map,
+polling or DOM mutation. Runtime collisions and forged javafx package sources
+are rejected. Native helpers and the public API are unchanged by this fix.
+
+Four actual pinned WebFX builds are accounted for: the first pair passed 43
+direct-control/quiz assertions but omitted ancestor coverage; retained under
+`vision-study-web/prior-43-pass/`. The corrected pair passes 52/52 assertions in
+38.6 seconds including compilation. IDs: `2792e3f2-ed98-44aa-992e-faa1e9dac281`
+(UI) and `8e0246ab-09df-4d6a-ace2-d68cd7fd7e25` (exact three-file Study7).
+Engine/profile: `524ff77a2df22d80b11f37c08171f2685215295982f06d860b28774d572af688`.
+Real typing, clicks and Tab are blocked under a disabled Column; child overrides
+cannot bypass it, restoring the parent retains independently disabled children,
+and initially disabled mounted groups work. Two full quiz sessions/reset cycles
+pass again. All 28 receipt source/evidence hashes match, with export validation
+before and after interaction. Receipt and screenshots: `.verification/vision-study-web/`.
+No application or required-resource errors occurred. Two optional favicon 404s
+were excluded explicitly by the probe and are preserved with a console audit;
+a Canvas2D pixel-readback warning came from the test. This is headless Chrome
+on macOS evidence, not school-device, other-engine or Windows acceptance.
+
+Targeted independent review of all seven fix files retained the initial coverage,
+validated source/runtime/export hashes and resolved the P2 with no remaining
+actionable findings. Two review turns: one initial, one targeted; one fix batch,
+no extra integration wave. Receipts: `.verification/vision-study-review/`.
+Requested Sol/high and browser Sol/medium configurations are recorded; effective
+configuration and attributable tokens are unavailable. Native evidence was reused
+for the browser-only fix. Own browser/previews and docs server were closed.
+No stress reruns, publication, account changes or telemetry activation. Overall
+goal remains active; the next slice is Coin lessons 8–9, followed by component
+lessons/assets and a simulation before later roadmap phases.
+
 ## Zero phased delivery: Greeting slice 1A — 2026-10-23
 
 Owner requested a phased goal and orchestration of the agreed Zero vision. The

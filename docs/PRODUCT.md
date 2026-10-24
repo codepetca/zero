@@ -29,7 +29,8 @@ extending App as the single gameplay owner. Optional UI Screens provide menus/
 results; optional Worlds organize actors. There is no public GameScreen. Main
 keeps update/draw, can swap level controllers, and can add live HUD/controls
 without navigating away; showing a replacement UI Screen suspends gameplay.
-This changes the intended teaching API, not the current JavaFX-based lessons.
+The starter and Greeting/Study lessons now use Zero UI locally; Coin lessons
+are being migrated incrementally. Released templates remain separately pinned.
 
 Catch framework/platform failures automatically: per-signature native/WebFX/browser
 evidence, early compatibility diagnostics, actual compiler/behavior gates and
@@ -55,8 +56,8 @@ remain proposed.
 Implementation execution, owner-authorized 2026-10-23: follow the single
 [phased delivery roadmap](FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).
 The first accepted local slice moves Greeting lessons0–2 and the starter to Zero
-UI, adding only the TextField needed by that teaching path. The next active slice
-is Study lessons3–7. Local prototypes and
+UI, adding only the TextField needed by that teaching path. Study lessons3–7 are also accepted locally, with inherited control availability
+verified in the pinned browser runtime. Coin lessons8–9 are the next active slice. Local prototypes and
 verification are separate from released kits and published tutorial repositories.
 
 ## Core goal: students grow the framework
