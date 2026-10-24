@@ -1,13 +1,23 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync, existsSync, symlinkSync, lstatSync, readlinkSync, renameSync} from 'node:fs';
+import {mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync, existsSync, symlinkSync, lstatSync, readlinkSync, renameSync, realpathSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {zipSync, unzipSync} from 'fflate';
+import {copyProjectBuilderFixture} from './project-builder-fixture.mjs';
+import {projectBuilderFilesSync} from './prepare-project-builder.mjs';
+import {createHash} from 'node:crypto';
 import {prepareStarter, coreSources} from './prepare-starter.mjs';
 import {starterMembers, setupMembers, setupFiles, setupRequirements} from './kit.mjs';
 import {root, releaseDefinition} from './release.mjs';
 import {extractProject, maven} from './verification-project.mjs';
+
+
+function builderFixture(directory) {
+  const fixture = realpathSync(mkdtempSync(directory));
+  copyProjectBuilderFixture(fixture,root);
+  return fixture;
+}
 
 const canonical = name => readFileSync(path.join(root,'framework/src/main/java/zero',name),'utf8');
 test('setup archive contains only launchers, guidance and version-bound metadata with executable shell files', () => {
@@ -43,7 +53,7 @@ test('setup compatibility follows the extension engine and refuses unsupported r
 });
 
 test('starter preparation refreshes generated source and preserves edited copies as a pair', () => {
-  const fixture = mkdtempSync(path.join(tmpdir(), 'zero-source-drift-'));
+  const fixture = builderFixture(path.join(tmpdir(), 'zero-source-drift-'));
   try {
     mkdirSync(path.join(fixture, 'framework/src/main/java/zero'), {recursive:true});
     writeFileSync(path.join(fixture, 'LICENSE'), readFileSync(path.join(root, 'LICENSE')));
@@ -72,7 +82,7 @@ test('starter preparation refreshes generated source and preserves edited copies
 });
 
 test('starter preparation retires unchanged managed sources and preserves edited retired copies', () => {
-  const fixture = mkdtempSync(path.join(tmpdir(), 'zero-source-retirement-'));
+  const fixture = builderFixture(path.join(tmpdir(), 'zero-source-retirement-'));
   try {
     mkdirSync(path.join(fixture, 'framework/src/main/java/zero'), {recursive:true});
     writeFileSync(path.join(fixture, 'LICENSE'), readFileSync(path.join(root, 'LICENSE')));
@@ -115,12 +125,13 @@ test('starter preparation retires unchanged managed sources and preserves edited
     assert.equal(readFileSync(generated('App.java'), 'utf8'), canonical('App.java').replace(/\n/g,'\r\n'));
     const updated = JSON.parse(readFileSync(statePath, 'utf8'));
     for (const name of retiredNames) assert.equal(Object.hasOwn(updated, name), false);
-    assert.deepEqual(Object.keys(updated).sort(), [...coreSources, 'LICENSE', 'zero-core.json'].sort());
+    assert.deepEqual(Object.keys(updated).sort(), [...coreSources, 'LICENSE', 'zero-core.json',
+      ...projectBuilderFilesSync({sourceRoot:fixture}).map(file=>'.zero-build/'+file.path)].sort());
   } finally {rmSync(fixture, {recursive:true, force:true});}
 });
 
 test('starter preparation preserves unrecorded retired files and retired symlinks', () => {
-  const fixture = mkdtempSync(path.join(tmpdir(), 'zero-source-unrecorded-'));
+  const fixture = builderFixture(path.join(tmpdir(), 'zero-source-unrecorded-'));
   try {
     mkdirSync(path.join(fixture, 'framework/src/main/java/zero'), {recursive:true});
     writeFileSync(path.join(fixture, 'LICENSE'), readFileSync(path.join(root, 'LICENSE')));
@@ -157,7 +168,7 @@ test('starter preparation preserves unrecorded retired files and retired symlink
 
 test('starter preparation rejects linked current files and output directories before retiring owned files', () => {
   for (const mode of ['current-link', 'dangling-current-link', 'directory-link']) {
-    const fixture = mkdtempSync(path.join(tmpdir(), 'zero-source-linked-output-'));
+    const fixture = builderFixture(path.join(tmpdir(), 'zero-source-linked-output-'));
     try {
       mkdirSync(path.join(fixture, 'framework/src/main/java/zero'), {recursive:true});
       writeFileSync(path.join(fixture, 'LICENSE'), readFileSync(path.join(root, 'LICENSE')));
@@ -201,7 +212,7 @@ test('starter preparation rejects linked current files and output directories be
 
 test('starter preparation rejects linked ownership state paths before changing any output', () => {
   for (const mode of ['state-link', 'dangling-state-link', 'state-directory-link']) {
-    const fixture = mkdtempSync(path.join(tmpdir(), 'zero-source-linked-state-'));
+    const fixture = builderFixture(path.join(tmpdir(), 'zero-source-linked-state-'));
     try {
       mkdirSync(path.join(fixture, 'framework/src/main/java/zero'), {recursive:true});
       writeFileSync(path.join(fixture, 'LICENSE'), readFileSync(path.join(root, 'LICENSE')));
@@ -280,7 +291,7 @@ test('assembled ZIP is a standalone editable Java project with canonical source 
 
 
 test('nested starter sources preserve edits, ownership and linked package directories atomically', () => {
-  const fixture = mkdtempSync(path.join(tmpdir(), 'zero-nested-source-'));
+  const fixture = builderFixture(path.join(tmpdir(), 'zero-nested-source-'));
   try {
     writeFileSync(path.join(fixture, 'LICENSE'), readFileSync(path.join(root, 'LICENSE')));
     for (const name of coreSources) {
@@ -311,7 +322,7 @@ test('nested starter sources preserve edits, ownership and linked package direct
 });
 
 test('edited generated core record blocks starter refresh before source or ownership writes',()=>{
- const fixture=mkdtempSync(path.join(tmpdir(),'zero-core-record-drift-'));
+ const fixture=builderFixture(path.join(tmpdir(),'zero-core-record-drift-'));
  try {
   for(const name of coreSources){const file=path.join(fixture,'framework/src/main/java/zero',name);mkdirSync(path.dirname(file),{recursive:true});writeFileSync(file,canonical(name));}
   writeFileSync(path.join(fixture,'LICENSE'),'license');prepareStarter(fixture);
@@ -321,5 +332,27 @@ test('edited generated core record blocks starter refresh before source or owner
   assert.throws(()=>prepareStarter(fixture),/Preserved edited starter source/);
   assert.equal(readFileSync(manifest,'utf8'),'valuable user edit');assert.deepEqual(readFileSync(state),before);
   assert.equal(readFileSync(path.join(fixture,'student-template/src/main/java/zero/App.java'),'utf8'),canonical('App.java'));
+ } finally {rmSync(fixture,{recursive:true,force:true});}
+});
+
+test('saved builder starter ownership preflights the complete closure before writes or retirement',()=>{
+ const fixture=builderFixture(path.join(tmpdir(),'zero-builder-starter-'));
+ try {
+  for(const name of coreSources){const file=path.join(fixture,'framework/src/main/java/zero',name);mkdirSync(path.dirname(file),{recursive:true});writeFileSync(file,canonical(name));}
+  writeFileSync(path.join(fixture,'LICENSE'),'license');prepareStarter(fixture);
+  for(const file of projectBuilderFilesSync({sourceRoot:fixture})) assert.deepEqual(readFileSync(path.join(fixture,'student-template/.zero-build',file.path)),file.bytes);
+  const statePath=path.join(fixture,'.verification/starter-source.json'),state=JSON.parse(readFileSync(statePath));
+  const retired='.zero-build/retired.cjs',owned=Buffer.from('old owned builder');
+  writeFileSync(path.join(fixture,'student-template',retired),owned);state[retired]=createHash('sha256').update(owned).digest('hex');
+  writeFileSync(statePath,JSON.stringify(state));prepareStarter(fixture);
+  assert.equal(existsSync(path.join(fixture,'student-template',retired)),false);
+  const before=readFileSync(statePath),generated=path.join(fixture,'student-template/src/main/java/zero/App.java');
+  writeFileSync(path.join(fixture,'framework/src/main/java/zero/App.java'),canonical('App.java').replace(/\n/g,'\r\n'));
+  const unknown=path.join(fixture,'student-template/.zero-build/private-note');writeFileSync(unknown,'valuable unknown bytes');
+  assert.throws(()=>prepareStarter(fixture),/Preserved unknown or edited retired starter builder/);
+  assert.equal(readFileSync(unknown,'utf8'),'valuable unknown bytes');assert.equal(readFileSync(generated,'utf8'),canonical('App.java'));assert.deepEqual(readFileSync(statePath),before);
+  rmSync(unknown);const launcher=path.join(fixture,'student-template/.zero-build/run.cjs');writeFileSync(launcher,'valuable edited launcher');
+  assert.throws(()=>prepareStarter(fixture),/Preserved edited starter source/);
+  assert.equal(readFileSync(launcher,'utf8'),'valuable edited launcher');assert.deepEqual(readFileSync(statePath),before);assert.equal(readFileSync(generated,'utf8'),canonical('App.java'));
  } finally {rmSync(fixture,{recursive:true,force:true});}
 });

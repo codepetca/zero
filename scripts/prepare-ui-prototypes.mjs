@@ -1,5 +1,6 @@
 import {createHash} from 'node:crypto';
-import {chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync} from 'node:fs';
+import {chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync, unlinkSync} from 'node:fs';
+import {projectBuilderFilesSync, readBuilderTreeSync} from './prepare-project-builder.mjs';
 import path from 'node:path';
 import core from '../extension/src/core-contract.js';
 import {fileURLToPath} from 'node:url';
@@ -7,7 +8,7 @@ import {fileURLToPath} from 'node:url';
 const repository = fileURLToPath(new URL('../', import.meta.url));
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const owner = 'zero-ui-prototypes-v1';
-export const prototypeIds = ['counter', 'coin-game', 'beginner-coin-game', 'actor-stress', 'simulation', 'actor-components'];
+export const prototypeIds = ['counter', 'coin-game', 'beginner-coin-game', 'actor-stress', 'simulation', 'actor-components', 'actor-containers'];
 
 export function selectUiPrototypes(only) {
   if (only === undefined) return [...prototypeIds];
@@ -50,6 +51,7 @@ export function prepareUiPrototypes(root = repository, {only} = {}) {
   ordinary(output);
   const framework = path.join(root, 'framework/src/main/java');
   const helpers = javaFiles(framework);
+  const builderFiles = projectBuilderFilesSync({sourceRoot:root});
   if (helpers.length !== 18) throw new Error(`Expected 18 reviewed Zero helper sources, found ${helpers.length}.`);
   const needsShared = selected.some(id => id === 'counter' || id === 'coin-game');
   const shared = needsShared ? Object.fromEntries(['ScoreView.java', 'ScoreDisplay.java', 'BarScoreDisplay.java'].map(name =>
@@ -59,9 +61,10 @@ export function prepareUiPrototypes(root = repository, {only} = {}) {
     ordinary(directory);
     const entries = Object.fromEntries(scaffold.map(name => [name, readFileSync(path.join(root, 'student-template', name))]));
     entries.LICENSE = readFileSync(path.join(root, 'LICENSE'));
+    for (const file of builderFiles) entries['.zero-build/' + file.path] = file.bytes;
     for (const name of helpers) entries[`src/main/java/${name}`] = readFileSync(path.join(framework, name));
     entries['zero-core.json'] = Buffer.from(JSON.stringify(core.makeCoreRecord(Object.fromEntries(core.coreSourcePaths.map(name => [name,entries[name]]))),null,2) + '\n');
-    const standalone = id === 'beginner-coin-game' || id === 'actor-stress' || id === 'simulation' || id === 'actor-components';
+    const standalone = id === 'beginner-coin-game' || id === 'actor-stress' || id === 'simulation' || id === 'actor-components' || id === 'actor-containers';
     const studentSources = standalone ? javaFiles(path.join(root, 'framework/prototypes', id))
       : [...javaFiles(path.join(root, 'framework/prototypes', id)), ...Object.keys(shared)];
     for (const name of studentSources) {
@@ -83,6 +86,15 @@ export function prepareUiPrototypes(root = repository, {only} = {}) {
     const previous = existsSync(marker) ? JSON.parse(readFileSync(marker, 'utf8')) : null;
     if (previous && (previous.owner !== owner || previous.id !== id || !previous.files)) throw new Error(`Unrecognized prototype ownership: ${marker}`);
     if (!previous && existsSync(directory) && readdirSync(directory).length) throw new Error(`Preserved unowned prototype output: ${directory}`);
+    const retiredBuilder = [];
+    for (const file of readBuilderTreeSync(path.join(directory,'.zero-build'),{optional:true})) {
+      const name = '.zero-build/' + file.path;
+      if (Object.hasOwn(entries,name)) continue;
+      if (!Object.hasOwn(previous?.files ?? {},name) || digest(file.bytes) !== previous.files[name]) {
+        throw new Error('Preserved unknown or edited retired prototype builder file: ' + name);
+      }
+      retiredBuilder.push(path.join(directory,name));
+    }
     for (const [name, bytes] of Object.entries(entries)) {
       const destination = path.join(directory, name);
       ordinary(destination);
@@ -92,10 +104,11 @@ export function prepareUiPrototypes(root = repository, {only} = {}) {
         if (current !== previous?.files[name] && current !== digest(bytes)) throw new Error(`Preserved edited prototype file: ${destination}`);
       }
     }
-    return {id, directory, studentSources, entries};
+    return {id, directory, studentSources, entries, retiredBuilder};
   });
   // Validate all destinations before replacing any of our generated files.
   for (const plan of plans) {
+    for (const filename of plan.retiredBuilder) unlinkSync(filename);
     for (const [name, bytes] of Object.entries(plan.entries)) {
       const destination = path.join(plan.directory, name);
       mkdirSync(path.dirname(destination), {recursive: true});

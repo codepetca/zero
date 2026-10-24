@@ -6,6 +6,7 @@ import archivePolicy from "../../extension/src/sharing/archive.js";
 import { examples } from "./learning.mjs";
 import { coreSources } from "../../scripts/prepare-starter.mjs";
 import core from "../../extension/src/core-contract.js";
+import {projectBuilderFiles} from "../../scripts/prepare-project-builder.mjs";
 import { courseStarterId, projectGuides } from "./project-curriculum.mjs";
 import { templateDefinition, validatePublishedTemplates, publishedTemplate } from "./project-templates.mjs";
 
@@ -204,6 +205,7 @@ async function scaffoldInventory(root) {
     inventory.push({ path: file, data: await sourceBytes(root, `student-template/${file}`) });
   }
   inventory.push({ path: "LICENSE", data: await sourceBytes(root, "LICENSE") });
+  for (const file of await projectBuilderFiles({sourceRoot:root})) inventory.push({path:'.zero-build/' + file.path,data:file.bytes});
   for (const name of coreSources) {
     inventory.push({ path: `src/main/java/zero/${name}`, data: await sourceBytes(root, `framework/src/main/java/zero/${name}`) });
   }

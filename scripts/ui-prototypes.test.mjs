@@ -6,6 +6,9 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {prepareUiPrototypes, parseUiPrototypeArgs, selectUiPrototypes} from './prepare-ui-prototypes.mjs';
 import {verifyUiPrototypes} from './verify-ui-prototypes.mjs';
+import {copyProjectBuilderFixture} from './project-builder-fixture.mjs';
+import {projectBuilderFilesSync} from './prepare-project-builder.mjs';
+import {createHash} from 'node:crypto';
 import core from '../extension/src/core-contract.js';
 const repository = fileURLToPath(new URL('../', import.meta.url));
 const scaffold = ['pom.xml', 'mvnw', 'mvnw.cmd', 'zero.json', '.gitignore',
@@ -17,6 +20,7 @@ function put(root, name, content) {
 function fixture(t) {
   const root = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'zero simulation selection ')));
   t.after(() => rmSync(root, {recursive:true, force:true}));
+  copyProjectBuilderFixture(root,repository);
   for (const name of scaffold) put(root, 'student-template/' + name, 'fixture ' + name);
   put(root, 'LICENSE', 'fixture license');
   for (const name of core.coreSourcePaths) put(root, 'framework/' + name, readFileSync(path.join(repository,'framework',name)));
@@ -24,10 +28,21 @@ function fixture(t) {
   put(root, 'framework/prototypes/checks/simulation/PrototypeCheck.java', '// test harness');
   return root;
 }
+const containerSources = ['Main.java','CounterActor.java',
+  'zero/contrib/r12345/actor_containers/ActorCollection.java',
+  'zero/contrib/r12345/actor_containers/OrderedActors.java',
+  'zero/contrib/r12345/actor_containers/SnapshotActors.java'];
+function containerFixture(t) {
+  const root = fixture(t);
+  for (const name of containerSources) put(root,'framework/prototypes/actor-containers/' + name,
+    readFileSync(path.join(repository,'framework/prototypes/actor-containers',name)));
+  put(root,'framework/prototypes/checks/actor-containers/PrototypeCheck.java','// selected harness');
+  return root;
+}
 
 test('selection is explicit and rejects bad IDs before any output mutation', t => {
   const root = fixture(t);
-  assert.deepEqual(selectUiPrototypes(), ['counter','coin-game','beginner-coin-game','actor-stress','simulation','actor-components']);
+  assert.deepEqual(selectUiPrototypes(), ['counter','coin-game','beginner-coin-game','actor-stress','simulation','actor-components','actor-containers']);
   assert.deepEqual(parseUiPrototypeArgs(['--only=simulation']), ['simulation']);
   for (const args of [['--only='],['--only=simulation,'],['--only=unknown'],['--only=simulation,simulation'],['--only=simulation','extra'],['--only','simulation']]) {
     assert.throws(() => parseUiPrototypeArgs(args));
@@ -141,4 +156,45 @@ test('actor-components selection copies its nested helper and PNG without readin
   assert.equal(existsSync(path.join(root, '.verification/ui-prototypes/counter')),false);
   const receipt=JSON.parse(readFileSync(path.join(root, '.verification/ui-prototypes/native-results-actor-components.json')));
   assert.deepEqual(receipt.selection,['actor-components']);
+});
+
+test('actor-containers selection copies every nested student source and canonical builder only', t => {
+  const root = containerFixture(t);
+  put(root,'.verification/ui-prototypes/actor-stress/sentinel','retain stress');
+  let runs = 0;
+  const results = verifyUiPrototypes(root,{only:['actor-containers'],run:(directory,args) => {
+    runs++; assert.equal(path.basename(directory),'actor-containers'); assert.ok(args.includes('-o'));
+    for (const name of containerSources) assert.deepEqual(readFileSync(path.join(directory,'src/main/java',name)),
+      readFileSync(path.join(root,'framework/prototypes/actor-containers',name)));
+    for (const file of projectBuilderFilesSync({sourceRoot:root})) assert.deepEqual(
+      readFileSync(path.join(directory,'.zero-build',file.path)),file.bytes);
+    assert.equal(existsSync(path.join(directory,'src/main/java/ScoreView.java')),false);
+    assert.equal(existsSync(path.join(directory,'src/main/resources')),false);
+    return {stdout:'ZERO_ACTOR_CONTAINERS_PROTOTYPE_OK fixture',stderr:''};
+  }});
+  assert.equal(runs,1); assert.deepEqual(results.map(result => result.id),['actor-containers']);
+  assert.equal(readFileSync(path.join(root,'.verification/ui-prototypes/actor-stress/sentinel'),'utf8'),'retain stress');
+  for (const id of ['simulation','counter','actor-components']) assert.equal(existsSync(path.join(root,'.verification/ui-prototypes',id)),false);
+  const receipt=JSON.parse(readFileSync(path.join(root,'.verification/ui-prototypes/native-results-actor-containers.json')));
+  assert.deepEqual(receipt.selection,['actor-containers']);
+});
+
+test('actor-containers builder ownership preflights edits and unknown files and retires unchanged owned files', t => {
+  const root=containerFixture(t),[project]=prepareUiPrototypes(root,{only:['actor-containers']});
+  const marker=path.join(project.directory,'.zero-ui-prototype.json'),state=JSON.parse(readFileSync(marker));
+  const retired='.zero-build/retired.cjs',owned=Buffer.from('old owned builder');
+  put(project.directory,retired,owned);state.files[retired]=createHash('sha256').update(owned).digest('hex');
+  writeFileSync(marker,JSON.stringify(state));prepareUiPrototypes(root,{only:['actor-containers']});
+  assert.equal(existsSync(path.join(project.directory,retired)),false);
+  const before=readFileSync(marker),main=readFileSync(path.join(project.directory,'src/main/java/Main.java'));
+  put(project.directory,'.zero-build/private-note','preserve unknown');
+  assert.throws(()=>prepareUiPrototypes(root,{only:['actor-containers']}),/Preserved unknown or edited retired prototype builder/);
+  assert.deepEqual(readFileSync(marker),before);assert.deepEqual(readFileSync(path.join(project.directory,'src/main/java/Main.java')),main);
+  rmSync(path.join(project.directory,'.zero-build/private-note'));
+  put(project.directory,'.zero-build/run.cjs','preserve edited launcher');
+  assert.throws(()=>prepareUiPrototypes(root,{only:['actor-containers']}),/Preserved edited prototype file/);
+  assert.equal(readFileSync(path.join(project.directory,'.zero-build/run.cjs'),'utf8'),'preserve edited launcher');
+  assert.deepEqual(readFileSync(marker),before);
+  rmSync(path.join(root,'framework/project-builder/run.cjs'));
+  assert.throws(()=>prepareUiPrototypes(root,{only:['actor-containers']}),/required saved file is absent/);
 });

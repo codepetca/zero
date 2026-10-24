@@ -1,3 +1,4 @@
+import {projectBuilderFilesSync} from './prepare-project-builder.mjs';
 import {coreSources} from './prepare-starter.mjs';
 import core from '../extension/src/core-contract.js';
 import {publishedTutorialTemplate,validateTutorialTemplates,tutorialTemplateDefinitions} from '../teaching/projects.mjs';
@@ -17,7 +18,7 @@ const content = (project, filename) => Buffer.from(project.files.find(file => fi
 test('three continuing projects cover every lesson without distributing solutions', () => {
   assert.deepEqual(bundle.projects.map(project => project.id), ['greeting','study','game']);
   const first = {greeting:'0',study:'3',game:'8'};
-  const expected = ['.gitignore','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE','.vscode/settings.json','.vscode/tasks.json','LICENSE','README.md','mvnw','mvnw.cmd','pom.xml','src/main/java/Main.java',...coreSources.map(name => `src/main/java/zero/${name}`),'zero.json','zero-core.json'].sort();
+  const expected = ['.gitignore','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE','.vscode/settings.json','.vscode/tasks.json','LICENSE','README.md','mvnw','mvnw.cmd','pom.xml','src/main/java/Main.java',...coreSources.map(name => `src/main/java/zero/${name}`),...projectBuilderFilesSync({sourceRoot:root}).map(file => '.zero-build/' + file.path),'zero.json','zero-core.json'].sort();
   for (const project of bundle.projects) {
     assert.deepEqual(project.files.map(file => file.path).sort(),expected);
     core.validateCoreRecord(JSON.parse(content(project,'zero-core.json')),Object.fromEntries(core.coreSourcePaths.map(name=>[name,content(project,name)])));

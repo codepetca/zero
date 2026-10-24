@@ -1,5 +1,6 @@
 import {coreSources} from './prepare-starter.mjs';
 import core from '../extension/src/core-contract.js';
+import {projectBuilderFilesSync} from './prepare-project-builder.mjs';
 import {readFileSync, writeFileSync, mkdirSync, readdirSync, lstatSync, existsSync, unlinkSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -30,6 +31,7 @@ export function lessonProjects(root = repository) {
   add(common, '.gitignore', read(root, 'student-template/.gitignore'));
   add(common, 'LICENSE', read(root, 'LICENSE'));
   for (const name of coreSources) add(common, `src/main/java/zero/${name}`, read(root, `framework/src/main/java/zero/${name}`));
+  for (const file of projectBuilderFilesSync({sourceRoot:root})) add(common,'.zero-build/' + file.path,file.bytes);
   add(common, 'zero-core.json', JSON.stringify(core.makeCoreRecord(Object.fromEntries(core.coreSourcePaths.map(name =>
     [name, Buffer.from(common.get(name).content,'base64')]))),null,2) + '\n');
   const projects = practiceProjects.map(project => {

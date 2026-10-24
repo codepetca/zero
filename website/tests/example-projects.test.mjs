@@ -1,4 +1,9 @@
 import test from "node:test";
+import {copyProjectBuilderFixture} from "../../scripts/project-builder-fixture.mjs";
+import {projectBuilderFilesSync} from "../../scripts/prepare-project-builder.mjs";
+import {prepareStarter} from "../../scripts/prepare-starter.mjs";
+import {lessonProjects} from "../../scripts/lesson-projects.mjs";
+import {prepareUiPrototypes} from "../../scripts/prepare-ui-prototypes.mjs";
 import core from "../../extension/src/core-contract.js";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -15,12 +20,14 @@ import { templateDefinitions, templateDefinition, validatePublishedTemplates } f
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const coreNames = ["App", "GameApp", "Actor", "AnimationSource", "AnimationPlayback", "ImageRegion", "SpriteAnimation", "Collisions", "Sound", "Music", "Color", "Key", "ui/Element", "ui/Label", "ui/Button", "ui/Column", "ui/Row", "ui/TextField"];
+const builderPaths = projectBuilderFilesSync({sourceRoot:root}).map(file => '.zero-build/' + file.path);
 const corePaths = coreNames.map(name => `src/main/java/zero/${name}.java`);
 const scaffolding = ["pom.xml", "mvnw", "mvnw.cmd", ".mvn/wrapper/maven-wrapper.properties", ".mvn/wrapper/LICENSE-APACHE-2.0.txt", ".mvn/wrapper/NOTICE", ".vscode/tasks.json", ".vscode/extensions.json", ".gitignore"];
 
 async function fixture(t) {
   const directory = await realpath(await mkdtemp(path.join(os.tmpdir(), "zero-example-projects-")));
   t.after(() => rm(directory, { recursive: true, force: true }));
+  copyProjectBuilderFixture(directory,root);
   const sources = new Set(["LICENSE", "student-template/src/main/java/Main.java", ...scaffolding.map(file => `student-template/${file}`), ...coreNames.map(name => `framework/src/main/java/zero/${name}.java`)]);
   for (const example of examples) {
     for (const file of example.files) sources.add(`student-template/examples/${file}`);
@@ -46,7 +53,7 @@ test("all 26 complete projects preserve exact manifest sources and resources, wi
     const project = await buildExampleProject({ root, example });
     const inspected = archivePolicy.inspectGamePackage(project.bytes);
     const files = new Map(inspected.map(file => [file.path, file]));
-    const expected = ["LICENSE", "README.md", "zero.json", "zero-core.json", ...scaffolding, ...corePaths,
+    const expected = ["LICENSE", "README.md", "zero.json", "zero-core.json", ...scaffolding, ...corePaths, ...builderPaths,
       ...example.files.map(file => `src/main/java/${path.posix.basename(file)}`), ...(example.resources ?? []).map(resource => resource.destination)].sort();
     assert.deepEqual([...files.keys()], expected, example.id);
     core.validateCoreRecord(JSON.parse(files.get('zero-core.json').data),Object.fromEntries(core.coreSourcePaths.map(name=>[name,files.get(name).data])));
@@ -207,7 +214,7 @@ test("course starter contains canonical Main, shared scaffold and framework only
   const project = await buildCourseStarter({ root: directory });
   const files = new Map(archivePolicy.inspectGamePackage(project.bytes).map(file => [file.path, file]));
   assert.deepEqual([...files.keys()], ["LICENSE", "README.md", "zero.json", "zero-core.json", ...scaffolding,
-    "src/main/java/Main.java", ...corePaths].sort());
+    "src/main/java/Main.java", ...corePaths, ...builderPaths].sort());
   const sources = [
     ["src/main/java/Main.java", "student-template/src/main/java/Main.java"],
     ...coreNames.map(name => [`src/main/java/zero/${name}.java`, `framework/src/main/java/zero/${name}.java`]),
@@ -224,6 +231,33 @@ test("course starter contains canonical Main, shared scaffold and framework only
   assert.match(readme, /\.\\mvnw\.cmd clean compile javafx:run/);
   assert.equal(project.size, project.bytes.length);
   assert.equal(project.sha256, createHash("sha256").update(project.bytes).digest("hex"));
+});
+
+test("all four assemblers retain every canonical saved-builder byte without fixture fallback", async t => {
+  const directory=await fixture(t);
+  const extra=['student-template/zero.json','student-template/.vscode/settings.json',
+    ...['app','game'].map(id=>`teaching/starters/${id}/Main.java`),
+    ...['Main.java','CounterActor.java','zero/contrib/r12345/actor_containers/ActorCollection.java',
+      'zero/contrib/r12345/actor_containers/OrderedActors.java','zero/contrib/r12345/actor_containers/SnapshotActors.java']
+      .map(name=>'framework/prototypes/actor-containers/'+name)];
+  for(const name of extra){await mkdir(path.dirname(path.join(directory,name)),{recursive:true});await writeFile(path.join(directory,name),await readFile(path.join(root,name)));}
+  prepareStarter(directory);
+  const lessons=lessonProjects(directory),[prototype]=prepareUiPrototypes(directory,{only:['actor-containers']});
+  const website=await buildCourseStarter({root:directory}),webFiles=new Map(website.files.map(file=>[file.path,file.data]));
+  const canonical=projectBuilderFilesSync({sourceRoot:directory});
+  assert.deepEqual([...webFiles.keys()].filter(name=>name.startsWith('.zero-build/')).sort(),canonical.map(file=>'.zero-build/'+file.path));
+  for(const file of canonical){
+    const name='.zero-build/'+file.path;
+    assert.deepEqual(await readFile(path.join(directory,'student-template',name)),file.bytes);
+    assert.deepEqual(await readFile(path.join(prototype.directory,name)),file.bytes);
+    assert.deepEqual(webFiles.get(name),file.bytes);
+    for(const lesson of lessons.projects)assert.deepEqual(Buffer.from(lesson.files.find(item=>item.path===name).content,'base64'),file.bytes);
+  }
+  await rm(path.join(directory,'framework/project-builder/run.cjs'));
+  assert.throws(()=>prepareStarter(directory),/required saved file is absent/);
+  assert.throws(()=>lessonProjects(directory),/required saved file is absent/);
+  assert.throws(()=>prepareUiPrototypes(directory,{only:['actor-containers']}),/required saved file is absent/);
+  await assert.rejects(buildCourseStarter({root:directory}),/required saved file is absent/);
 });
 
 test("starter and featured downloads give concrete changes and the actual individual Git workflow", async () => {
