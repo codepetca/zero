@@ -59,8 +59,10 @@ The first accepted local slice moves Greeting lessons0–2 and the starter to Ze
 UI, adding only the TextField needed by that teaching path. Study lessons3–7 are also accepted locally, with inherited control availability
 verified in the pinned browser runtime. Coin lessons8–9 are accepted locally with Zero Key and Row; shared ScoreDisplay
 lessons10–11 are accepted locally. Lesson12 Zero image/sound and scrolling are accepted locally; a live-control
-simulation is accepted locally. Phase1 is complete; Phase2 begins interchangeable
-student-owned views and core-dependent managed component reuse. Local prototypes and
+simulation is accepted locally. Phase1 is complete. Phase2A–C are accepted locally: interchangeable student-owned
+views, actual core-dependent managed component reuse and replaceable actor
+animation/steering. Core now has18 helpers/183 declarations. Optional container
+replacement and project-owned browser tooling are in progress. Local prototypes and
 verification are separate from released kits and published tutorial repositories.
 
 ## Core goal: students grow the framework

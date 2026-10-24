@@ -1,5 +1,66 @@
 # Delivery evidence index
 
+## Zero phased delivery: replaceable actor animation and steering slice 2C — 2026-10-23
+
+Accepted locally at df47d667, implementation668e0c46. Core now has18 helpers and
+183 public/protected declarations, still the explicitly unreleased0.3.0 draft.
+AnimationSource creates fresh AnimationPlayback; each Actor owns its clock and
+cached frame. Final update validates time, calls protected onUpdate and advances
+once; draw does not advance. SpriteAnimation retains its independent manual API.
+Atomic source selection, useful malformed-source errors, image/animation swaps
+and geometry preservation are checked. Student OnceAnimation and TurnTowards
+work through public seams without editing core; the latter turns gradually toward
+the demo's fixed rendered target(256,60), with bounded numerical edge checks.
+
+Focused core/API/assembly/managed fixtures pass(119 author tests,8 semantic
+fixtures,16 website tests,7 coordinator assembly tests), with root/profile/diff
+checks and local /docs inspection. Actual native ActorCheck/GameHelpersCheck and
+scoped beginner-coin-game/actor-components drivers pass. The beginner source
+remains unchanged. Necessary StressActor callback migration is source-only;
+no stress preparation, benchmark or full suite was run.
+
+Updated independent core/contribution Check and all4 local/artifact native App/
+GameApp consumers pass first cycle:2 fresh contribution JAR+sources resolutions,
+0 core artifact requests/install and the precise unused System.nanoTime negative.
+Receipt: .verification/vision-core-sharing-actor/receipt.json;50.105s gate only.
+Core source aggregate9bca3e129a18bc046e3a75ea37ddd8a386fba09c1999b7f7337ef24679ae2941;
+separate core JAR7b1b16cca614195bbf073ecd15209972a143ec59ebe2e041b701d8b140d27625.
+No repeat of the four old UI WebFX exports was needed.
+
+The new demo had one WebFX export at668e0c46 and15/15 real browser behavior
+assertions. One initial harness attempt read paused geometry before its final
+scheduled draw; one browser-only synchronization retry passed every assertion,
+then failed an optional second screenshot with ReferenceError(__OUT__). Preserve
+that trailing artifact error; procedural.png and all assertion results exist.
+After checker remediation, one fresh df47d667 export passed normal validation:
+build8a38c333-602d-4e6a-84de-fba61fe434ce,
+source863d2453b1ba67d1359021a098d7610880ba181d98be0ea2ffddd2cb2213492f,
+profile9cad03c2021a47966bc24ac241abd2cb4089030772e46815f5229941de92b561.
+All60 site files and the ZIP were byte-identical, without exclusions, to the
+browser-tested output. The coordinator independently checked those bytes and23
+core/student/PNG source hashes. The15 historical assertions are explicitly reused,
+not reported as another browser run. Current-profile receipt SHA256
+ a7623f1a0dc7b9cc28af2a062b92d7b426a0c163c69cd88d85d296b84c6f9d4b
+at .verification/vision-actor-components-web/current-profile-receipt.json.
+
+High-risk review: fresh Astra/xhigh architecture and Sol/high correctness covered
+all34 changed files and immediate callers. Three distinct accepted findings:
+old Actor override fixture, missing protected interface identities and stale
+lifecycle guidance. One correction batch df47d667 adds edited-canonical and
+relocated-canonical-byte negatives for both interfaces;2 named semantic tests
+pass. Astra targeted all5 changed files and the admission interaction clean.
+Three reviewer turns(2initial,1targeted),1fix batch; no final redundant wave.
+Review budget .verification/vision-animation-review/budget.json is closed within
+7launch/4fix/60min limits. Observed Astra188s initial+66s targeted; Sol elapsed,
+effective configs and per-turn tokens unknown. New untracked Phase3 source was
+outside this verdict. Authored components were verified separately before
+acceptance. All own proof servers/previews/processes and temporary trust cleaned.
+
+Scope is local macOS/native and headless Chrome over pinned WebFX. No hosted
+schema2 activation, public release/template update, installed kit/website change,
+physical Windows, interactive editor or novice acceptance is claimed. Historical
+profile/source evidence remains historical as Phase3 now changes exporter files.
+
 ## Zero phased delivery: core-aware component sharing slice 2B — 2026-10-23
 
 Accepted locally through98b3a831. Core definition/records ca76f3b2, separate-JAR
