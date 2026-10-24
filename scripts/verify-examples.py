@@ -162,7 +162,7 @@ checks={
         ((Button) controls.getChildren().get(1)).fire();
         require((int) field(app, "count") == 0, "Reset changes count");
         require(((Label) field(app, "total")).getText().equals("Count: 0"), "Reset label");''',
-'drawing': '''app.stop(); // Keep event sequences between deliberate frames, with no timer races.
+'drawing': '''app.pause(); // Freeze automatic updates while keeping live event handlers and controls enabled.
         mouse(app, MouseEvent.MOUSE_PRESSED, 100, 100, MouseButton.PRIMARY);
         app.draw();
         mouse(app, MouseEvent.MOUSE_RELEASED, 100, 100, MouseButton.PRIMARY);
@@ -213,7 +213,7 @@ checks={
         require(pixels.getColor(525, 200).equals(Color.DARKBLUE)
                 && pixels.getColor(450, 200).equals(Color.WHITE), "Painting after clear starts a fresh stroke");'''
 }
-checks['coin-game-controls'] = '''app.stop();
+checks['coin-game-controls'] = '''app.pause();
         var controls = (HBox) app.layout().getBottom();
         var score = (Label) field(app, "score");
         var player = (Player) field(app, "player");
@@ -225,11 +225,12 @@ checks['coin-game-controls'] = '''app.stop();
         app.update(0); app.update(0); app.draw();
         require(score.getText().equals("Score: 1 / 1") && (int) field(app, "points") == 1 && coin.isCollected(), "Repeated contact scores once and updates existing control");
         var restart = button(controls, "Restart");
+        require(!restart.isDisabled(), "Restart remains enabled while simulation is paused");
         restart.requestFocus(); restart.fire();
         require(score == field(app, "score") && app.layout().getBottom() == controls, "Restart reuses UI objects");
         require((int) field(app, "points") == 0 && !((Coin) field(app, "coin")).isCollected() && field(app, "player") != player, "Restart resets game data");
         require(score.getText().equals("Score: 0 / 1") && stage.getScene().getFocusOwner() == app.canvas(), "Restart resets display and returns input to canvas");'''
-checks['coin-game-component'] = '''app.stop();
+checks['coin-game-component'] = '''app.pause();
         var controls = (HBox) app.layout().getBottom();
         var display = (ScoreDisplay) field(app, "score");
         var score = (Label) display.view();
@@ -245,6 +246,7 @@ checks['coin-game-component'] = '''app.stop();
         app.draw();
         require((int) field(app, "points") == 3 && (boolean) field(app, "won") && score.getText().equals("Score: 3"), "All coins score once and win updates shared display");
         var restart = button(controls, "Restart");
+        require(!restart.isDisabled(), "Restart remains enabled while simulation is paused");
         restart.requestFocus(); restart.fire();
         require(field(app, "score") == display && display.view() == score && app.layout().getBottom() == controls, "Restart preserves component instance and native view");
         require((int) field(app, "points") == 0 && !(boolean) field(app, "won") && score.getText().equals("Score: 0"), "Restart resets rules and presentation");
@@ -281,7 +283,7 @@ checks['composed-study'] = '''var start = (StartScreen) field(app, "startScreen"
         int[] calls = {0}; var other = new Hud(() -> calls[0]++); other.setScore(7);
         button(other.view(), "Restart").fire();
         require(calls[0] == 1 && other.view() != hud.view() && score.getText().equals("Score: 1"), "Component action is supplied and instances stay independent");'''
-checks['composed-game'] = '''app.stop();
+checks['composed-game'] = '''app.pause();
         var start = (StartScreen) field(app, "startScreen");
         var hud = (Hud) field(app, "hud");
         var player = (Player) field(app, "player");
@@ -292,6 +294,7 @@ checks['composed-game'] = '''app.stop();
         setDouble(player, "x", (double) field(coins[0], "x"));
         setDouble(player, "y", (double) field(coins[0], "y")); app.update(0);
         require((int) field(app, "points") == 0 && !coins[0].isCollected(), "Menu prevents scoring even while timer exists");
+        require(!button(start.view(), "Start").isDisabled(), "Start remains enabled while simulation is paused");
         button(start.view(), "Start").fire();
         player = (Player) field(app, "player"); coins = (Coin[]) field(app, "coins");
         require(app.layout().getLeft() == null && app.layout().getBottom() == hud.view() && !hud.view().isDisabled() && (boolean) field(app, "playing"), "Start connects and enables same HUD");
@@ -311,6 +314,7 @@ checks['composed-game'] = '''app.stop();
         require((boolean) field(app, "won") && !(boolean) field(app, "playing") && score.getText().equals("Score: 3"), "Win stops game and reports three once-only coins");
         x = (double) field(player, "x"); app.update(1);
         require((double) field(player, "x") == x, "Finished game does not update simulation");
+        require(!button(hud.view(), "Restart").isDisabled(), "HUD Restart remains enabled while simulation is paused");
         button(hud.view(), "Restart").fire();
         require(field(app, "hud") == hud && field(app, "startScreen") == start && field(app, "player") != player && (boolean) field(app, "playing") && !(boolean) field(app, "won"), "Restart preserves views and resets gameplay objects");
         require((int) field(app, "points") == 0 && score.getText().equals("Score: 0") && stage.getScene().getFocusOwner() == app.canvas(), "Restart clears score and returns focus");

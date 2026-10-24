@@ -37,6 +37,32 @@ function digest(value,pattern,label) {if(typeof value!=='string'||!pattern.test(
 function bounded(value,max,label) {if(bytes(JSON.stringify(value))>max)fail(`${label} is too large.`);return value;}
 function validateSlug(value) {if(typeof value!=='string'||value.length>48||!SLUG.test(value))fail('Use a lowercase library/game name with single hyphens.');return value;}
 function validateVersion(value) {if(typeof value!=='string'||! /^(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})$/.test(value))fail('Use an exact version such as 0.1.0.');return value;}
+function validateCoreRequirement(value) {
+  keys(value,['minVersion','maxExclusive'],['minVersion','maxExclusive'],'core requirement');
+  validateVersion(value.minVersion);validateVersion(value.maxExclusive);
+  const min=value.minVersion.split('.').map(Number),max=value.maxExclusive.split('.').map(Number);
+  if(min[0]!==0||max[0]!==0||max[1]!==min[1]+1||max[2]!==0)fail('Core requirements must stay within one 0.x minor line.');
+  return {...value};
+}
+function versionSatisfies(version,requirement) {
+  validateVersion(version);const range=validateCoreRequirement(requirement);
+  const compare=(a,b)=>{const x=a.split('.').map(Number),y=b.split('.').map(Number);for(let i=0;i<3;i++)if(x[i]!==y[i])return x[i]<y[i]?-1:1;return 0;};
+  return compare(version,range.minVersion)>=0&&compare(version,range.maxExclusive)<0;
+}
+function validateCoreInput(value,requirement) {
+  keys(value,['version','sourceSha256'],['version','sourceSha256'],'core input');
+  validateVersion(value.version);digest(value.sourceSha256,HEX64,'core source digest');
+  if(!versionSatisfies(value.version,requirement))fail('Core input version is outside the required range.');
+  return {...value};
+}
+function validateCoreBuild(value,requirement) {
+  const fields=['version','sourceSha256','jarSha256','buildRecipeSha256','javaRelease','javafxVersion'];
+  keys(value,fields,fields,'core build');
+  validateCoreInput({version:value.version,sourceSha256:value.sourceSha256},requirement);
+  digest(value.jarSha256,HEX64,'core JAR digest');digest(value.buildRecipeSha256,HEX64,'core build recipe digest');
+  if(value.javaRelease!==JAVA_RELEASE||value.javafxVersion!==JAVAFX_VERSION)fail('Unsupported core Java/JavaFX build requirements.');
+  return {...value};
+}
 function validateFolder(value) {
   if(value==='.')return value;
   if(typeof value!=='string'||value.length>240||value.split('/').some(part=>! /^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$/.test(part)||part==='.'||part==='..')) fail('Use a safe relative project folder.');
@@ -77,11 +103,13 @@ function validateWebPublication(value,{commit}={}) {
 }
 function validateDescriptor(value) {
   const common=['schema','kind','slug','version','title','description','license','preview'];
-  keys(value,[...common,'libraryKind','controls'],common.filter(key=>key!=='preview'),'sharing descriptor');
-  if(value.schema!==SCHEMA)fail('Unsupported sharing descriptor schema.');
+  const core=value?.schema===2?['coreRequirement','coreInput']:[];
+  keys(value,[...common,'libraryKind','controls',...core],[...common.filter(key=>key!=='preview'),...core],'sharing descriptor');
+  if(value.schema!==SCHEMA&&!(value.schema===2&&value.kind==='library'))fail('Unsupported sharing descriptor schema.');
   kind(value.kind);validateSlug(value.slug);validateVersion(value.version);
   text(value.title,'title',120);text(value.description,'description',4000);text(value.license,'license',100);
   const result={...value};
+  if(value.schema===2){result.coreRequirement=validateCoreRequirement(value.coreRequirement);result.coreInput=validateCoreInput(value.coreInput,result.coreRequirement);}
   if(Object.hasOwn(value,'preview')){validateFolder(value.preview);if(!value.preview.endsWith('.png'))fail('Use a PNG preview.');}
   if(value.kind==='library'){
     if(!['widget','helper'].includes(value.libraryKind)||Object.hasOwn(value,'controls'))fail('Choose widget or helper for the library.');
@@ -123,8 +151,10 @@ function configuredOrigin(value) {
 }
 function validateRelease(value,{artifactOrigin}={}) {
   const required=['schema','kind','id','slug','version','title','description','license','repository','contributor','source','policyRevision','status','artifacts'];
-  keys(value,[...required,'namespace','coordinate','libraryKind','components','controls','web'],required,'release');
-  if(value.schema!==SCHEMA)fail('Unsupported release schema.');
+  const core=value?.schema===2?['coreRequirement','coreBuild']:[];
+  keys(value,[...required,'namespace','coordinate','libraryKind','components','controls','web',...core],[...required,...core],'release');
+  if(value.schema!==SCHEMA&&!(value.schema===2&&value.kind==='library'))fail('Unsupported release schema.');
+  if(value.schema===2){validateCoreRequirement(value.coreRequirement);validateCoreBuild(value.coreBuild,value.coreRequirement);}
   const repository=validateRepository(value.repository),contributor=person(value.contributor,'contributor');
   const item=identity(value.kind,repository.id,value.slug);validateVersion(value.version);
   if(value.id!==item.id||contributor.githubId!==repository.ownerId)fail('Release ownership/identity mismatch.');
@@ -184,6 +214,6 @@ function publicationUrl(request,{repository='codepetca/zero'}={}) {
   const url=`https://github.com/${repository}/issues/new?${query}`;
   if(url.length>12000)fail('Publication details are too large for the GitHub form.');return url;
 }
-module.exports={SCHEMA,JAVA_RELEASE,JAVAFX_VERSION,LIMITS,validateSlug,validateVersion,
+module.exports={validateCoreRequirement,versionSatisfies,validateCoreInput,validateCoreBuild,SCHEMA,JAVA_RELEASE,JAVAFX_VERSION,LIMITS,validateSlug,validateVersion,
   validateFolder,validateRepository,identity,validateDescriptor,validateRequest,
   validateRelease,validateCatalog,artifactPath,publicationUrl,validateWebUrl,validateWebPublication};

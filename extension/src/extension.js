@@ -5,6 +5,8 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const core = require('./core');
+const {nativeBuildIdentity,createNativeRuntimeExecution} = require('./native-runtime-task');
+const {createNativeCompilerDiagnostics} = require('./native-compiler-diagnostics');
 const lessonProjects = require('./lesson-projects');
 const github = require('./github');
 const workflow = require('./workflow');
@@ -29,7 +31,11 @@ const {isSetupProject,findSetupProject} = require('./setup-project');
 const {createNativeUpdateCommands} = require('./native-updates');
 const {createNativeUpdateReload} = require('./native-update-reload');
 const {createWebExportCommands} = require('./web-export-ui');
-const {createBrowserRunCommands} = require('./web-run-ui');
+const {createProjectBuilder,readSavedBuilder} = require('./project-builder');
+const {createBrowserRunCommands,sourceDiagnostics} = require('./web-run-ui');
+const {createSavedSourceStatus}=require('./saved-source-status');
+const {createSavedSourceHost}=require('./saved-source-host');
+const {runtimeDiagnostics}=require('./runtime-session');
 const {createTutorialReader} = require('./tutorial-reader');
 const {createStartPage} = require('./start-page');
 const {createWebPublishCommands} = require('./web-publish-ui');
@@ -89,12 +95,16 @@ function activate(context, services = {}) {
   let repository = 'No repository connected';
   let localPractice = false;
   let originalWork = false;
+  let savedBuilderInspectedRoot,savedChecks,savedChecksRoot,savedChecksState,savedPreparation;
+  let savedChecksEnableGeneration=0;
   const project = async () => {
     let root;
     try {root = await core.resolveProject((vscode.workspace.workspaceFolders || []).map(folder => folder.uri.fsPath));}
     catch(error) {projectRoot=undefined;localPractice=false;originalWork=false;throw error;}
     const practice = await lessonProjects.isLocalPractice(root);
     const original = !practice && !await lessonProjects.tutorialMarker(root);
+    if(savedBuilderInspectedRoot!==root){savedBuilderInspectedRoot=root;try{await readSavedBuilder(root,{metadataOnly:true});}catch(error){output.appendLine(error.message);}}
+    if(savedChecksRoot&&savedChecksRoot!==root){savedChecks.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;}
     projectRoot = root; localPractice = practice; originalWork = original;
     return root;
   };
@@ -242,7 +252,7 @@ function activate(context, services = {}) {
     if (!disposed && !ready) {report('GitHub setup paused');void githubReadiness.refresh();}
     return !disposed && ready ? ticket : false;
   }
-  async function signIn(changeAccount = auth.signedIn) {
+  async function signIn(changeAccount = auth.signedIn, method = 'browser') {
     if (disposed || isBusy()) return;
     signingIn = true; refresh();
     try {
@@ -251,7 +261,10 @@ function activate(context, services = {}) {
       if (changeAccount && auth.sessionId) {await appProvider.removeSession(auth.sessionId);await auth.refresh();}
       await actions['zero.startPage']();
       await auth.refresh();
-      if (!auth.signedIn) await auth.signIn(false);
+      if (!auth.signedIn) {
+        if(method==='device'){await appProvider.createSession([], {method:'device'});await auth.refresh();}
+        else await auth.signIn(false);
+      }
       if (!disposed) {await githubReadiness.refresh();output.appendLine(auth.status);try {await rememberOpened({projectPath:await project()});}catch{}}
     } catch (error) {
       if (!disposed) throw error;
@@ -279,23 +292,74 @@ function activate(context, services = {}) {
     let timer;
     try {await Promise.race([ending, new Promise((_, reject) => {timer = setTimeout(() => reject(new Error('The app task has not stopped. Close its terminal before restarting.')), 10000);})]);}
     finally {clearTimeout(timer);}
-    if (!execution) {state = 'App stopped'; refresh();}
+    if (!execution) {state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped'; refresh();}
   }
   async function stopRequested() {
     runGeneration++;
     if (pendingLaunch) await pendingLaunch.catch(() => {});
     await stop();
-    state = 'App stopped'; refresh();
+    state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped'; refresh();
+  }
+  const nativeTaskStates = new WeakMap();
+  // Configured tasks are reconstructed by VS Code; their CustomExecution is
+  // shared with the resolved task even when the Task object itself is different.
+  const nativeTaskState = task => nativeTaskStates.get(task) || nativeTaskStates.get(task?.execution);
+  const nativeProblems=vscode.languages?.createDiagnosticCollection('zero-native-runtime');
+  if(nativeProblems)context.subscriptions.push(nativeProblems);
+  const compilerProblems=vscode.languages?.createDiagnosticCollection('zero-native-compiler');
+  if(compilerProblems)context.subscriptions.push(compilerProblems);
+  function nativeRuntimeState(task, event) {
+    const metadata = nativeTaskState(task);
+    if (!metadata) return;
+    metadata.latest = event;
+    if (event.type === 'fatal') metadata.failed = true;
+    if (disposed || metadata.generation !== runGeneration || nativeTaskState(execution?.task) !== metadata || stoppedTasks.has(execution)) return;
+    if (event.type === 'ui-ready') state = 'App UI ready';
+    else if (event.type === 'first-frame') state = 'App running · first game frame ready';
+    else if (event.type === 'fatal') {buildFailed = true;state = `App failed (${event.stage}/${event.code}). Check Problems or the task terminal.`;
+      if(nativeProblems){const grouped=new Map();for(const item of runtimeDiagnostics(event.diagnostic||'',metadata.root)){const point=new vscode.Position(Math.max(0,item.line-1),0),diagnostic=new vscode.Diagnostic(new vscode.Range(point,point),item.message,vscode.DiagnosticSeverity.Error);diagnostic.source='Zero native runtime';if(!grouped.has(item.file))grouped.set(item.file,[]);grouped.get(item.file).push(diagnostic);}for(const [file,items]of grouped)nativeProblems.set(vscode.Uri.file(file),items);}
+    }
+    else if (event.type === 'stopped') state = 'App stopped';
+    if (event.diagnostic) output.appendLine(`[Native ${event.stage}/${event.code}] ${event.diagnostic}`);
+    refresh();
+  }
+  function publishCompilerProblems(metadata) {
+    if(!compilerProblems || disposed || metadata.generation !== runGeneration || nativeTaskState(execution?.task) !== metadata || stoppedTasks.has(execution))return;
+    const grouped=new Map();
+    for(const item of metadata.compilerItems||[]){
+      const point=new vscode.Position(item.line-1,item.column-1);
+      const diagnostic=new vscode.Diagnostic(new vscode.Range(point,point),item.message,vscode.DiagnosticSeverity.Error);
+      diagnostic.source='Zero Java compiler';
+      if(!grouped.has(item.file))grouped.set(item.file,[]);
+      grouped.get(item.file).push(diagnostic);
+    }
+    for(const [file,diagnostics]of grouped)compilerProblems.set(vscode.Uri.file(file),diagnostics);
   }
   async function makeTask(root, definition = {type:'zero',task:'run'}, scope = vscode.TaskScope.Workspace) {
     if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
     await core.assertTutorialRepository(root);
     const spec = core.runSpecification(root);
     await fs.access(spec.command);
-    const processExecution = spec.shell
-      ? new vscode.ShellExecution({value: spec.command, quoting: vscode.ShellQuoting.Strong}, spec.args, {cwd: root})
-      : new vscode.ProcessExecution(spec.command, spec.args, {cwd: root});
-    const task = new vscode.Task(definition, scope, 'Run App', 'Zero', processExecution, '$zero-java');
+    const metadata = {generation:runGeneration,root,failed:false};nativeProblems?.clear();
+    let task, transport;
+    const compiler = createNativeCompilerDiagnostics({root,onChange:items=>{
+      metadata.compilerItems=items;publishCompilerProblems(metadata);
+    }});
+    const processExecution = typeof vscode.CustomExecution === 'function'
+      ? (transport = createNativeRuntimeExecution({vscode,spec,buildId:await nativeBuildIdentity(root),...services.nativeRuntime,
+          isCurrent:()=>!disposed && metadata.generation === runGeneration,
+          onEvent:event => nativeRuntimeState(task,event),onOutput:(text,stream)=>compiler.push(text,stream),
+          onExit:code => {compiler.end();metadata.exitCode = code;}
+        })).execution
+      : spec.shell
+        ? new vscode.ShellExecution({value: spec.command, quoting: vscode.ShellQuoting.Strong}, spec.args, {cwd: root})
+        : new vscode.ProcessExecution(spec.command, spec.args, {cwd: root});
+    // CustomExecution owns compiler diagnostics. A finite task matcher cannot
+    // refresh them until the long-lived JavaFX process exits.
+    task = new vscode.Task(definition, scope, 'Run App', 'Zero', processExecution, transport ? [] : '$zero-java-fallback');
+    metadata.custom=Boolean(transport);nativeTaskStates.set(task,metadata);
+    nativeTaskStates.set(processExecution,metadata);
+    if (transport) context.subscriptions.push(transport);
     task.presentationOptions = {reveal: vscode.TaskRevealKind.Always, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
     task.group = vscode.TaskGroup.Build;
     return task;
@@ -307,7 +371,13 @@ function activate(context, services = {}) {
     execution = active;
     buildFailed = false;
     ending = new Promise(resolve => taskFinishes.set(active, resolve));
-    state = 'Building / running app — output is in the terminal'; refresh();
+    const metadata = nativeTaskState(active.task);
+    if (disposed || metadata && metadata.generation !== runGeneration) {stoppedTasks.add(active);active.terminate();return;}
+    compilerProblems?.clear();
+    if(metadata)publishCompilerProblems(metadata);
+    state = 'Building / running · readiness unverified — output is in the terminal'; refresh();
+    const latest = metadata?.latest;
+    if (latest) nativeRuntimeState(active.task,latest);
   }
   context.subscriptions.push(vscode.tasks.onDidStartTask(event => {
     if (event.execution.task.definition.type === 'zero' && ['run','native-run'].includes(event.execution.task.definition.task)) track(event.execution);
@@ -317,7 +387,9 @@ function activate(context, services = {}) {
     taskFinishes.delete(event.execution); finish();
     if (execution === event.execution) {
       execution = undefined;
-      buildFailed = !stoppedTasks.has(event.execution) && typeof taskExitCodes.get(event.execution) === 'number' && taskExitCodes.get(event.execution) !== 0;
+      const metadata = nativeTaskState(event.execution.task);
+      const exitCode = metadata?.exitCode ?? taskExitCodes.get(event.execution);
+      buildFailed = Boolean(metadata?.failed || typeof exitCode === 'number' && exitCode !== 0 && (metadata?.custom || !stoppedTasks.has(event.execution)));
       state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped';
       refresh();
     }
@@ -559,6 +631,7 @@ function activate(context, services = {}) {
       }
     },
     'zero.signInToGitHub': signIn,
+    'zero.signInUsingCode': () => signIn(auth.signedIn,'device'),
     'zero.setupGitHub': async () => {
       if (disposed || isBusy()) return;
       signingIn = true;refresh();
@@ -705,8 +778,61 @@ function activate(context, services = {}) {
     'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),testInstallation:async()=>{const root=await findSetupProject();await vscode.commands.executeCommand('vscode.openFolder',vscode.Uri.file(root),{forceNewWindow:true});},uploadMode})
   };
   const webCacheRoot=context.globalStorageUri ? path.join(context.globalStorageUri.fsPath,'web-compiler') : undefined;
+  const savedBuilder=createProjectBuilder({isTrusted:()=>vscode.workspace.isTrusted===true});
+  const savedProblems=vscode.languages?.createDiagnosticCollection('zero-browser-compatibility');
+  const relevantSource=uri=>{
+    if(!savedChecksRoot||!uri?.fsPath?.startsWith(savedChecksRoot+path.sep))return false;
+    const relative=path.relative(savedChecksRoot,uri.fsPath).split(path.sep).join('/');
+    return /^(?:src\/main\/(?:java|resources)\/|libraries\/|\.zero-build\/|\.mvn\/|(?:pom\.xml|mvnw|mvnw\.cmd|zero-core\.json|zero-libraries\.json|zero\.json)$)/.test(relative);
+  };
+  const hasDirtySource=()=>Boolean(vscode.workspace.textDocuments?.some(document=>document.isDirty&&relevantSource(document.uri)));
+  const sourceChanged=uri=>{if(relevantSource(uri))savedChecks?.changed({dirty:hasDirtySource()});};
+  for(const [method,callback]of [['onDidChangeTextDocument',event=>sourceChanged(event.document.uri)],['onDidSaveTextDocument',document=>sourceChanged(document.uri)],['onDidCloseTextDocument',document=>sourceChanged(document.uri)]]){
+    const subscription=vscode.workspace[method]?.(callback);if(subscription)context.subscriptions.push(subscription);
+  }
+  const sourceWatcher=vscode.workspace.createFileSystemWatcher('**/*');
+  for(const method of ['onDidCreate','onDidChange','onDidDelete'])sourceWatcher[method]?.(sourceChanged,undefined,context.subscriptions);
+  context.subscriptions.push(sourceWatcher,{dispose(){savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.dispose();savedProblems?.dispose();}});
+  actions['zero.enableBrowserChecks']=async()=>{
+    if(isBusy())return;
+    const attempt=++savedChecksEnableGeneration,controller=new AbortController();savedPreparation=controller;maintenanceBusy=true;refresh();
+    const current=()=>!disposed&&attempt===savedChecksEnableGeneration&&!controller.signal.aborted;
+    try{
+      const root=await runnableProject();if(!current())return;
+      if(vscode.workspace.isTrusted!==true)throw Error('Trust your own project before enabling its saved browser tooling.');
+      if(!await vscode.workspace.saveAll(false))throw Error('Save your files before preparing browser checks.');
+      if(!current())return;
+      savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=root;savedChecksState={status:'unavailable',message:'Preparing verified dependencies for browser checks.'};savedProblems?.clear();refresh();
+      const work=async(progress,token)=>{const listener=token?.onCancellationRequested(()=>controller.abort());
+        try{await savedBuilder.prepareBrowserChecks({projectRoot:root,cacheRoot:webCacheRoot,explicitAction:true,signal:controller.signal,onProgress:message=>{if(!current())return;output.appendLine(message);progress?.report({message:String(message)});}});}finally{listener?.dispose();}};
+      if(vscode.window.withProgress)await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title:'Prepare browser checks for this project',cancellable:true},work);else await work();
+      if(!current())return;const selected=await project();if(!current()||selected!==root)return;
+      const host=createSavedSourceHost({projectRoot:root,cacheRoot:webCacheRoot,builder:savedBuilder});
+      const checks=createSavedSourceStatus({...host,isTrusted:()=>!disposed&&vscode.workspace.isTrusted===true&&projectRoot===root,onChange:next=>{
+        if(disposed||savedChecksRoot!==root)return;savedChecksState=next;savedProblems?.clear();
+        if(next.status==='unsupported'&&savedProblems){const grouped=new Map();
+          for(const entry of sourceDiagnostics((next.diagnostics||[]).map(item=>item.message).join('\n'),root)){
+            const position=new vscode.Position(Math.max(0,entry.line-1),Math.max(0,entry.column-1)),item=new vscode.Diagnostic(new vscode.Range(position,position),entry.message,vscode.DiagnosticSeverity.Error);item.source='Zero saved-source browser check';
+            if(!grouped.has(entry.file))grouped.set(entry.file,[]);grouped.get(entry.file).push(item);
+          }
+          for(const [file,items]of grouped)savedProblems.set(vscode.Uri.file(file),items);
+        }
+        refresh();
+      }});
+      savedChecks=checks;await checks.enable({explicitAction:true});if(!current()){checks.dispose();return;}
+      checks.changed({dirty:hasDirtySource(),reason:'Saved source ready for checking.'});await checks.flush();
+    }catch(error){if(current()&&error.name!=='AbortError')throw error;}
+    finally{if(savedPreparation===controller)savedPreparation=undefined;maintenanceBusy=false;refresh();}
+  };
+  actions['zero.disableBrowserChecks']=()=>{
+    savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.disable();savedProblems?.clear();
+    if(!savedChecks)savedChecksState={status:'unavailable',message:'Browser checks are disabled.'};refresh();
+  };
+
+  const buildWithSavedProject=options=>savedBuilder.ensureValidatedExport({...options,explicitAction:true});
+  const validateWithSavedProject=options=>savedBuilder.validateExport({...options,explicitAction:true});
   const runnableProject=async()=>{const root=await project();await core.assertTutorialRepository(root);return root;};
-  const browserRun=createBrowserRunCommands(vscode,{project:runnableProject,output,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested,preferredPreviewColumn:root=>tutorials.columnFor(root)});
+  const browserRun=createBrowserRunCommands(vscode,{project:runnableProject,output,ensureValidatedExport:buildWithSavedProject,validateExport:validateWithSavedProject,validateRetainedExport:savedBuilder.validateRetainedExport,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested,preferredPreviewColumn:root=>tutorials.columnFor(root)});
   Object.assign(actions,browserRun.commands);
   actions['zero.runApp']=expectedRoot=>{
     if (stopPromise) return stopPromise;
@@ -728,7 +854,7 @@ function activate(context, services = {}) {
     if (!isBusy()) return actions['zero.runApp']();
   };
   context.subscriptions.push(...browserRun.disposables);
-  const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
+  const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,localBuild:buildWithSavedProject,validateExport:validateWithSavedProject,assertBuildInputsAtCommit:savedBuilder.assertBuildInputsAtCommit,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
   Object.assign(actions,webPublish.commands);
   context.subscriptions.push(...webPublish.disposables);
   const sharingHandoff=async(root,action)=>{
@@ -746,7 +872,7 @@ function activate(context, services = {}) {
   const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,setState:report,verifiedPublication:webPublish.verifiedPublication,uploadForSharing:root=>sharingHandoff(root,()=>uploadProject()),publishForSharing:root=>sharingHandoff(root,()=>webPublish.publish()),setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
   Object.assign(actions, sharing.commands);
   context.subscriptions.push(...sharing.disposables);
-  const webExport=createWebExportCommands(vscode,{project:runnableProject,output,setAvailable:root=>{exportReadyRoot=root;},publish:()=>webPublish.publish(),openPreview:browserRun.preview,isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot});
+  const webExport=createWebExportCommands(vscode,{project:runnableProject,output,ensureValidatedExport:buildWithSavedProject,validateExport:savedBuilder.validateRetainedExport,setAvailable:root=>{exportReadyRoot=root;},publish:()=>webPublish.publish(),openPreview:(root,result)=>browserRun.preview(root,result,{retained:true}),isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot});
   Object.assign(actions,webExport.commands);
   context.subscriptions.push(...webExport.disposables);
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {
@@ -780,6 +906,7 @@ function activate(context, services = {}) {
     const published = context.workspaceState?.get('zero.webPublish.lastLive');
     const publishedActions = auth.signedIn && connected && uploadMode() === 'live' && published && published.root === projectRoot && published.account === auth.accountId && published.resume?.repository === repository ? `<div class="row"><button class="link" data-command="zero.openPublishedWeb" ${disabled}>Open app</button><button class="link" data-command="zero.copyPublishedWebLink" ${disabled}>Copy playable link</button></div>` : '';
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
+    const browserCheckStatus=savedChecksRoot===projectRoot&&savedChecksState?`<p class="muted status" title="${escape(savedChecksState.message||'')}">Browser checks: ${escape(savedChecksState.status)}</p>`:'';
     const browserAction = browserActive && !stopPromise && browserRun.canOpenInBrowser ? `<button class="secondary browser-open" data-command="zero.openRunningAppInBrowser" title="Open in browser" aria-label="Open in browser" ${disabled}>${icon('ExternalLink')}</button>` : '';
     const githubPanel = !ready || !projectRoot ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;
     const fileActions=projectRoot ? `<h2 id="files-heading"><button id="files-menu-button" class="link files-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="files-menu" ${disabled}>New${icon('ChevronDown')}</button></h2><div id="files-menu" class="files-dropdown" role="menu" aria-labelledby="files-menu-button" hidden>${[['zero.newClass','New class…'],['zero.newFile','New file…'],['zero.newFolder','New folder…'],['zero.importAssets','New asset…'],...(assets.canCopyPaths() ? [['zero.copyImportedAssetPaths','Copy asset paths']] : [])].map(([command,label])=>`<button role="menuitem" tabindex="-1" data-command="${command}" ${disabled}>${label}</button>`).join('')}</div>` : '';
@@ -789,7 +916,7 @@ function activate(context, services = {}) {
     const runDisabled = stopPromise ? 'aria-disabled="true"' : !activeRun && isBusy() ? 'disabled' : '';
     const publishMenu = !setupCheck && ready && auth.signedIn && connected ? `<button id="run-menu-button" class="run-menu-button" aria-label="Run options" title="Run options" aria-haspopup="menu" aria-expanded="false" aria-controls="run-menu" ${isBusy() || activeRun ? 'disabled' : ''}>${icon('ChevronDown')}</button><div id="run-menu" class="files-dropdown run-dropdown" role="menu" aria-labelledby="run-menu-button" hidden><button role="menuitem" tabindex="-1" data-command="zero.publishWeb" ${isBusy() || activeRun ? 'disabled' : ''}>Publish app</button></div>` : '';
     const runControl = `<div class="run-split"><button class="${ready ? 'run' : 'secondary'}" data-command="zero.toggleApp" ${runDisabled}>${icon(activeRun || stopPromise ? 'Square' : 'Play')}${runLabel}</button>${publishMenu}</div>`;
-    const controls = !projectRoot ? `<button class="link" data-command="zero.startPage" ${disabled}>Open Start Page</button>` : `${setupCheck ? '<p class="muted">Installation test · Hello World</p>' : ''}${!ready ? `<button class="link" data-command="zero.startPage" ${disabled}>GitHub setup</button>` : ''}<div class="main-controls"><div class="run-controls">${runControl}${browserAction}</div>${exportActions}</div>${ready ? `<section class="repository">${githubPanel}</section>` : ''}<section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`;
+    const controls = !projectRoot ? `<button class="link" data-command="zero.startPage" ${disabled}>Open Start Page</button>` : `${setupCheck ? '<p class="muted">Installation test · Hello World</p>' : ''}${!ready ? `<button class="link" data-command="zero.startPage" ${disabled}>GitHub setup</button>` : ''}<div class="main-controls"><div class="run-controls">${runControl}${browserAction}</div>${exportActions}${browserCheckStatus}</div>${ready ? `<section class="repository">${githubPanel}</section>` : ''}<section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`;
     // Keep the controls document alive across progress updates; VS Code owns the file tree.
     if (renderedWebview === webview && webview.postMessage) {
       void webview.postMessage({type:'sidebar.update',controls,fileActions,status:state,failed:buildFailed}); return;
@@ -825,6 +952,7 @@ function activate(context, services = {}) {
   context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {
     runGeneration++;
     if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));
+    savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;savedProblems?.clear();
     projectRoot = undefined; repositoryStatus(); void introduceAfterConnection();
   }));
   context.subscriptions.push({dispose:() => {runGeneration++;if (execution) execution.terminate();}});

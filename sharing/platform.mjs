@@ -51,6 +51,7 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
     return request.policyRevision===policyRevision || request.policyRevision===COMPATIBLE_SHARED_REQUEST_POLICY || (request.kind==='game' && request.policyRevision===COMPATIBLE_GAME_REQUEST_POLICY);
   }
   function assertRequestPolicy(request) {
+    if(request.descriptor?.schema===2)throw sourceFailure('Core-dependent library schema 2 is not enabled for hosted preparation.');
     if(!compatibleRequestPolicy(request))throw sourceFailure('Request targets a different policy revision; prepare it again');
   }
   function validationSignal(requestId){const budget=publicationBudgets.get(requestId);if(budget&&now()-budget.started>=wallBudgetMs)throw new Error('Publication wall budget exhausted before acceptance');return budget?AbortSignal.any([budget.signal,AbortSignal.timeout(sourceTimeoutMs)]):AbortSignal.timeout(sourceTimeoutMs);}
@@ -313,6 +314,10 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
       if(status==='available')await service.deliver(key);
       return service.setAvailability(key,status);
     },
+    async cleanupPracticeListings(keys,{execute=false}={}) {
+      if(execute&&!libraryPublicationEnabled)throw executionGate();
+      return service.cleanupPracticeListings(keys,{execute});
+    },
     async readStatus() {
       const {state,revision}=await registry.read();
       return {schema:1,revision,sequence:state.sequence,counts:Object.fromEntries(['queued','failed','cancelled','paused','delivery-pending','available'].map(status=>[status,Object.values(state.requests).filter(request=>request.status===status).length])),catalog:state.catalog,inbox:state.inbox};
@@ -326,7 +331,7 @@ export function publicError(error) {
   // never copied into an issue or console report. Known source failures are data.
   if(error?.code==='EXECUTION_GATE')return LIBRARY_EXECUTION_GATE;
   const configurationMessages=new Set(['Unknown sharing command','Duplicate execution flag','Unsupported sharing argument','Positive issue number required','Use a finite comma-separated issue list','At most 150 issue numbers supported','Execution requires the explicit publisher role','An exact issue number is required','An exact accepted release key is required','Explicit platform configuration file required','Publication remains disabled in the reviewed platform configuration','Platform configuration invalid','Configured public Blob origin invalid','Explicit registry credential required','Explicit Blob SDK and publisher credential required','Registry branch/state missing; explicit operator setup required']);
-  for(const message of ['An exact frozen request fingerprint is required','Only infrastructure-paused requests can be manually retried','Unknown request','Unknown accepted release'])configurationMessages.add(message);
+  for(const message of ['An exact frozen request fingerprint is required','Only infrastructure-paused requests can be manually retried','Unknown request','Unknown accepted release','Choose 1–150 distinct exact practice release keys','Only exact delivery-ready tutorial practice releases can be cleaned up','Practice availability changed; review the exact selection again'])configurationMessages.add(message);
   if(configurationMessages.has(error?.message))return error.message;
   if(error?.kind==='source-failure' && typeof error.message==='string' && error.message.length<=2000 && !/(?:token|password|secret|Bearer\s|https?:\/\/)/i.test(error.message))return error.message;
   return 'Platform unavailable; the durable request can be retried';

@@ -78,7 +78,60 @@ remain future extensions.
 Physical Windows/Linux, audible output and novice classroom play still require
 trials. See [verification](VERIFICATION.md) for actual local acceptance evidence.
 
+## Design references and next boundaries
+
+Owner direction,2026-10-23: student-led framework evolution is a core goal.
+The canonical [framework architecture plan](FRAMEWORK-ARCHITECTURE.md) supersedes
+the preliminary reference choices below: App owns common UI/lifetime; GameApp
+extends App and owns one gameplay loop. Screens are optional UI views, with no
+public GameScreen; Worlds/controllers handle levels. Arcade informs lifetime/
+container ideas; Greenfoot informs Actor vocabulary; Godot informs focused
+composition. Students must be able to extend and replace parts through public
+Java contracts, share them through ZeroHub and propose proven ideas for core.
+The plan defines animation/content/UI seams, lifetime ownership and acceptance
+examples. It does not implement Screen/World or change current Actor behavior.
+
+Earlier direction,2026-10-22: use established small game systems to inform the
+design before adding World, camera or screen/UI abstractions. Actor is a local
+prototype; these further concepts are proposals, not implemented APIs.
+
+- [Greenfoot Actor](https://www.greenfoot.org/files/javadoc/greenfoot/Actor.html)
+  and [World](https://www.greenfoot.org/files/javadoc/greenfoot/World.html) are
+  the primary teaching reference: Java subclasses, position/appearance, movement,
+  turning/aiming and a container for actors. Zero keeps elapsed seconds and
+  explicit calls from Main rather than adopting Greenfoot's environment loop.
+- [FXGL's game scene](https://github.com/AlmasB/FXGL/wiki/Game-Scene) separates
+  the camera-controlled world view from a fixed UI view. Use that distinction for
+  scrolling games, stationary health/score displays and side control panels.
+- [libGDX Scene2D](https://libgdx.com/wiki/graphics/2d/scene2d/scene2d) provides
+  an explicit container update/draw pattern and lets UI handle input before it
+  reaches gameplay. Zero should settle input ownership as part of UI composition.
+- [Godot's HUD tutorial](https://docs.godotengine.org/en/stable/getting_started/first_2d_game/06.heads_up_display.html)
+  illustrates controls in a layer above gameplay for score, start and game-over
+  messages. JavaFX already provides Zero's controls and layout primitives.
+
+Before implementation, exercise the proposed boundaries in a coin collector,
+a scrolling enemy game, and a simulation with controls. A World would own actor
+membership and safe update/draw ordering. A camera would map world coordinates
+to the visible canvas. Fixed HUD/control layouts would use screen coordinates;
+an enemy health bar would follow world coordinates. Title/play/pause/results need
+defined enter/leave/restart rules, with gameplay paused while menus remain usable.
+Keep collision responses and scoring in student Java. Do not infer a new screen
+base class or adopt an engine dependency from these reference choices.
+
 ## Local core helpers
+
+`Actor` is an optional ordinary superclass for `Player`, `Enemy` and other sprites.
+It holds centre x/y, display size and clockwise rotation (0 faces right). Load an
+Image, ImageRegion or AnimationSource in setup and pass it to the constructor.
+Main explicitly calls final update(seconds) and draw(this); subclasses put
+behaviour in protected onUpdate(seconds). Each actor owns fresh playback from
+the source, even when actors share SpriteAnimation definitions. Movement and aiming helpers
+leave game rules with the student. Use Collisions explicitly; an unrotated
+rectangle's top-left is actor.x()-actor.width()/2, actor.y()-actor.height()/2.
+Rotation does not create a rotated collision shape. Actor is a local source
+addition and does not change existing installed kits. See the
+[Actor guide](../student-template/APP-GUIDE.md#moving-objects-with-actor).
 
 The current source adds small game helpers without changing the lesson stages
 or automatically updating objects. These additions are unreleased; published

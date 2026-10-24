@@ -26,8 +26,14 @@ test('current canonical helper fingerprints require a reviewed adapter update af
   const sources = { ...helpers(), 'Main.java': app };
   const result = adaptSources({ sources });
   assert.match(result.sources['zero/GameApp.java'], /BrowserFocus.install\(this::clearInput\)/);
+  assert.match(result.sources['zero/GameApp.java'], /new zero\.web\.BrowserGameViewport\(content, canvas, layout, this::clearInput\)/);
+  assert.doesNotMatch(result.sources['zero/GameApp.java'], /content\.applyCss\(\)/);
+  assert.match(result.sources['zero/GameApp.java'], /beginFrame\(\)/);
+  assert.match(result.sources['zero/GameApp.java'], /endFrame\(true\)/);
   assert.match(result.sources['zero/GameApp.java'], /BrowserImages.get\(resourcePath, getClass\(\)\)/);
   assert.match(result.sources['zero/GameApp.java'], /ImageRegion.requireLoaded\(image\)/);
+  assert.match(result.sources['zero/GameApp.java'], /public final ImageRegion loadImageRegion\(String resourcePath\)/);
+  assert.match(result.sources['zero/GameApp.java'], /Image resource path must not be null/);
   const originalLine = sources['zero/GameApp.java'].split('\n').findIndex(line => line.includes('public final SpriteAnimation loadAnimation'));
   const adaptedLine = result.sources['zero/GameApp.java'].split('\n').findIndex(line => line.includes('public final SpriteAnimation loadAnimation'));
   assert.equal(adaptedLine, originalLine, 'framework source diagnostics retain original line numbers');
@@ -37,6 +43,43 @@ test('current canonical helper fingerprints require a reviewed adapter update af
   assert.doesNotThrow(() => adaptSources({ sources: windowsSources }));
   sources['zero/GameApp.java'] += '// student changes preserved in original\n';
   assert.throws(() => adaptSources({ sources }), /helper differs from the reviewed browser adapter/);
+});
+
+test('the reviewed App overlay installs scene-local Tab traversal for App and GameApp exports', () => {
+  const originals = { ...helpers(), 'Main.java': app };
+  const result = adaptSources({ sources: originals });
+  assert.equal((result.sources['zero/App.java'].match(/BrowserUiFocus.install\(scene\)/g) || []).length, 1);
+  assert.match(result.sources['zero/App.java'], /stage.setScene\(scene\); zero.web.BrowserUiFocus.install\(scene\);/);
+  assert.doesNotMatch(originals['zero/App.java'], /BrowserUiFocus/);
+  assert.doesNotMatch(result.sources['zero/GameApp.java'], /BrowserUiFocus.install/);
+  const runtime = result.sources['zero/web/BrowserUiFocus.java'];
+  assert.match(runtime, /scene.getProperties\(\).containsKey\(INSTALLED\)/);
+  assert.match(runtime, /scene.addEventFilter\(KeyEvent.KEY_PRESSED/);
+  assert.match(runtime, /event.isConsumed\(\).*event.getCode\(\) != KeyCode.TAB/);
+  for (const modifier of ['Control', 'Alt', 'Meta']) assert.ok(runtime.includes(`event.is${modifier}Down()`));
+  assert.match(runtime, /event.isShiftDown\(\) \? Direction.PREVIOUS : Direction.NEXT, TraversalMethod.KEY/);
+  assert.doesNotMatch(runtime, /impl_traverse|DomGlobal|schedule|KeyCode\.(LEFT|RIGHT|UP|DOWN)/);
+});
+
+test('effective browser disabled state preserves own flags and rejects injected runtime collisions', () => {
+  const originals = { ...helpers(), 'Main.java': app };
+  const result = adaptSources({ sources: originals });
+  assert.match(result.sources['zero/App.java'], /stage.setScene\(scene\);.*ZeroDisabledState.install\(scene\)/);
+  assert.equal((result.sources['zero/App.java'].match(/ZeroDisabledState.install\(scene\)/g) || []).length, 1);
+  assert.doesNotMatch(originals['zero/App.java'], /ZeroDisabledState/);
+  const runtime = result.sources['javafx/scene/ZeroDisabledState.java'];
+  assert.match(runtime, /node.setDisabled\(effective\)/);
+  assert.match(runtime, /node.isDisable\(\) \|\| \(node.getParent\(\) != null && node.getParent\(\).isDisabled\(\)\)/);
+  assert.match(runtime, /node.getProperties\(\).put\(STATE, this\)/);
+  assert.match(runtime, /node.parentProperty\(\).addListener/);
+  assert.match(runtime, /getChildrenUnmodifiable\(\).addListener/);
+  assert.match(runtime, /change.getRemoved\(\)/);
+  assert.match(runtime, /change.getAddedSubList\(\)/);
+  assert.doesNotMatch(runtime, /\.setDisable\(|static final (?:Map|Set)|DomGlobal|schedule/);
+  for (const filename of ['javafx/scene/ZeroDisabledState.java', 'forged/ZeroDisabledState.java']) {
+    assert.throws(() => adaptSources({sources:{...originals,
+      [filename]:'package javafx.scene; public class ZeroDisabledState { }'}}), /reserved browser runtime/);
+  }
 });
 
 test('lexical rewrites preserve literals/comments and bridge only code resource and canvas calls', () => {
@@ -69,9 +112,9 @@ test('ambiguous applications, path escapes, reserved packages and unsupported me
 });
 
 
-test('all seven native helpers retain declarations and generated audio ownership/aliases', () => {
+test('all eighteen native helpers retain declarations and generated audio ownership/aliases', () => {
   const sources = { ...helpers(), 'Main.java': app };
-  assert.equal(Object.keys(helperHashes).length, 7);
+  assert.equal(Object.keys(helperHashes).length, 18);
   const result = adaptSources({ sources, resourcePaths: ['audio/tone.wav'] });
   const originalAPI = text => text.split('\n').filter(line => /^    (?:@Override )?(?:public|protected) /.test(line)).map(line => line.split('{')[0].trim());
   for (const file of Object.keys(helperHashes)) assert.deepEqual(originalAPI(result.sources[file]), originalAPI(sources[file]), file + ' public/protected API');
@@ -95,4 +138,32 @@ test('ordinary instance resource lookup supports stylesheets without enabling re
   assert.match(adapted,/var theme=zero.web.Resources.get\(getClass\(\), "\/theme.css"\)/);
   assert.match(adapted,/zero.web.ResourceURL same=zero.web.Resources.get\(Main.class, "\/theme.css"\)/);
   assert.ok(adapted.includes('"getClass().getResource(ignored)"'));
+});
+
+
+test('Actor is hash-guarded and keeps its ordinary movement and drawing source', () => {
+  const sources = { ...helpers(), 'Main.java': app };
+  assert.equal(adaptSources({ sources }).sources['zero/Actor.java'], sources['zero/Actor.java']);
+  sources['zero/Actor.java'] += '// edited actor\n';
+  assert.throws(() => adaptSources({ sources }), /Actor.java: this Zero helper differs/);
+});
+
+
+test('subpackage UI helpers retain exact source and reject changes at their reviewed paths', () => {
+  const sources = { ...helpers(), 'Main.java': app };
+  const adapted = adaptSources({ sources }).sources;
+  for (const name of ['Element', 'Label', 'Button', 'Column']) {
+    const file = 'zero/ui/' + name + '.java';
+    assert.equal(adapted[file], sources[file]);
+    assert.throws(() => adaptSources({ sources: {...sources, [file]: sources[file] + '// changed\n'} }), /helper differs/);
+  }
+});
+
+
+test('reviewed GameApp canvas text size supplies a valid browser font family without rewriting student Font calls', () => {
+  const sources = {...helpers(), 'Main.java': app.replace('public void setup() {}', 'public void setup() { javafx.scene.text.Font f = javafx.scene.text.Font.font(20); }')};
+  const result = adaptSources({sources}).sources;
+  assert.match(result['zero/GameApp.java'], /graphics.setFont\(Font.font\("sans-serif", pixels\)\)/);
+  assert.match(result['zero/exported/Main.java'], /javafx.scene.text.Font.font\(20\)/);
+  assert.match(sources['zero/GameApp.java'], /graphics.setFont\(Font.font\(pixels\)\)/);
 });

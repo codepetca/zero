@@ -34,3 +34,20 @@ test('playable URL validation rejects executable, credentialed, local, ambiguous
   for(const url of ['javascript:alert(1)','data:text/html,test','//student.github.io/game/','http://student.github.io/game/','https://student.github.io:444/game/','https://student.github.io:443/game/','https://user:secret@student.github.io/game/','https://127.0.0.1/','https://2130706433/','https://[::1]/','https://localhost/','https://game.local/','https://game.internal/','https://student.github.io/game/?x=1','https://student.github.io/game/#x','https://student.github.io/game/#','https://student.github.io/game/?','https://student.github.io/../game/','https://STUDENT.github.io/game/','https://student.github.io\\@evil.example/',' https://student.github.io/game/','https://student.github.io/\n'])assert.throws(()=>c.validateWebPublication({...web,url}),url);
   assert.equal(c.validateWebUrl('https://play.example.org/'),'https://play.example.org/');
 });
+
+const coreRequirement={minVersion:'0.3.0',maxExclusive:'0.4.0'};
+const coreInput={version:'0.3.0',sourceSha256:'1'.repeat(64)};
+const coreBuild={...coreInput,jarSha256:'2'.repeat(64),buildRecipeSha256:'3'.repeat(64),javaRelease:'17',javafxVersion:'21.0.12'};
+test('schema2 libraries bind authored input and generated core build while envelopes stay schema1',()=>{
+ const authored={...descriptor,schema:2,coreRequirement,coreInput};
+ assert.deepEqual(c.validateDescriptor(authored),authored);
+ assert.equal(c.validateRequest({...request(),descriptor:authored}).schema,1);
+ const released={...release(),schema:2,coreRequirement,coreBuild};
+ assert.deepEqual(c.validateRelease(released),released);
+ assert.equal(c.validateCatalog({schema:1,revision:'e'.repeat(40),releases:[released]}).releases[0].schema,2);
+ for(const changed of [{...descriptor,coreRequirement},{...authored,schema:1},{...authored,coreInput:{...coreInput,version:'0.4.0'}},{...authored,coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.5.0'}},{...authored,coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.1'}},{...authored,kind:'game',controls:'Keys'}])assert.throws(()=>c.validateDescriptor(changed));
+ for(const changed of [{...released,schema:1},{...released,coreInput},{...released,coreBuild:{...coreBuild,jarSha256:'bad'}},{...released,coreBuild:{...coreBuild,version:'0.2.9'}},{...released,coreBuild:{...coreBuild,javaRelease:'21'}},{...released,coreBuild:{...coreBuild,javafxVersion:'22'}}])assert.throws(()=>c.validateRelease(changed));
+ assert.equal(c.versionSatisfies('0.3.99',coreRequirement),true);assert.equal(c.versionSatisfies('0.4.0',coreRequirement),false);assert.equal(c.versionSatisfies('0.2.99',coreRequirement),false);
+ assert.throws(()=>c.validateCoreRequirement({minVersion:'0.3.0',maxExclusive:'1.0.0'}));
+ assert.throws(()=>c.validateCoreInput({...coreInput,commands:'run'},coreRequirement));
+});

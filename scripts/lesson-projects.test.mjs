@@ -1,4 +1,6 @@
+import {projectBuilderFilesSync} from './prepare-project-builder.mjs';
 import {coreSources} from './prepare-starter.mjs';
+import core from '../extension/src/core-contract.js';
 import {publishedTutorialTemplate,validateTutorialTemplates,tutorialTemplateDefinitions} from '../teaching/projects.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,6 +11,10 @@ import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {unzipSync} from 'fflate';
 import {lessonProjects, lessonProjectZip, prepareLessonProjects, gameAssetFiles} from './lesson-projects.mjs';
+import {prepareTutorialTemplates} from './prepare-tutorial-templates.mjs';
+import {checkTutorialTemplateDirectory,checkPublishedTutorialTemplates} from './check-tutorial-templates.mjs';
+import readiness from '../extension/src/tutorial-template-readiness.js';
+import lessonModule from '../extension/src/lesson-projects.js';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const bundle = lessonProjects(root);
 const content = (project, filename) => Buffer.from(project.files.find(file => file.path === filename).content, 'base64');
@@ -16,9 +22,10 @@ const content = (project, filename) => Buffer.from(project.files.find(file => fi
 test('three continuing projects cover every lesson without distributing solutions', () => {
   assert.deepEqual(bundle.projects.map(project => project.id), ['greeting','study','game']);
   const first = {greeting:'0',study:'3',game:'8'};
-  const expected = ['.gitignore','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE','.vscode/settings.json','.vscode/tasks.json','LICENSE','README.md','mvnw','mvnw.cmd','pom.xml','src/main/java/Main.java',...coreSources.map(name => `src/main/java/zero/${name}`),'zero.json'].sort();
+  const expected = ['.gitignore','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE','.vscode/settings.json','.vscode/tasks.json','LICENSE','README.md','mvnw','mvnw.cmd','pom.xml','src/main/java/Main.java',...coreSources.map(name => `src/main/java/zero/${name}`),...projectBuilderFilesSync({sourceRoot:root}).map(file => '.zero-build/' + file.path),'zero.json','zero-core.json'].sort();
   for (const project of bundle.projects) {
     assert.deepEqual(project.files.map(file => file.path).sort(),expected);
+    core.validateCoreRecord(JSON.parse(content(project,'zero-core.json')),Object.fromEntries(core.coreSourcePaths.map(name=>[name,content(project,name)])));
     const marker=JSON.parse(content(project,'zero.json'));
     assert.equal(marker.localOnly,undefined);
     assert.equal(marker.repositoryRequired,true);
@@ -33,6 +40,98 @@ test('three continuing projects cover every lesson without distributing solution
     assert.match(main,/void setup\(\)/);
     assert.match(content(project,'README.md').toString(),/blank window or canvas/);
   }
+});
+test('Greeting teaching path uses Zero UI with ordinary Java callbacks', () => {
+  const starter = readFileSync(path.join(root, 'student-template/src/main/java/Main.java'), 'utf8');
+  assert.match(starter, /import zero\.ui\.Label;/);
+  assert.doesNotMatch(starter, /import javafx\./);
+  for (const [id, lesson] of ['00-hello-world', '01-hello-button', '02-hello-name'].entries()) {
+    const source = readFileSync(path.join(root, `teaching/checkpoints/${id}/Main.java`), 'utf8');
+    const instructions = readFileSync(path.join(root, `student-template/lessons/${lesson}.md`), 'utf8');
+    assert.doesNotMatch(source, /import javafx\.|setOnAction|new VBox\(/);
+    assert.doesNotMatch(instructions, /import javafx\.|setOnAction|new VBox\(/);
+    assert.match(source, /extends App/);
+    if (id > 0) {
+      assert.match(source, /button\.onClick\(\(\) ->/);
+      assert.match(instructions, /button\.onClick\(\(\) ->/);
+    }
+  }
+});
+test('Study teaching path keeps quiz rules in ordinary Java and uses Zero UI', () => {
+  const lessons = ['03-quiz', '04-counter', '05-methods', '06-objects', '07-study-app'];
+  for (const [offset, lesson] of lessons.entries()) {
+    const source = readFileSync(path.join(root, `teaching/checkpoints/${offset + 3}/Main.java`), 'utf8');
+    const instructions = readFileSync(path.join(root, `student-template/lessons/${lesson}.md`), 'utf8');
+    for (const text of [source, instructions]) {
+      assert.doesNotMatch(text, /import javafx\.|setOnAction|new VBox\(|answer\.clear\(|\.setDisable\(/);
+    }
+    assert.match(source, /extends App/);
+    assert.match(source, /check\.onClick\(\(\) ->/);
+    if (offset >= 2) assert.match(source, /answer\.setText\(""\)/);
+  }
+  const session = readFileSync(path.join(root, 'teaching/checkpoints/7/Main.java'), 'utf8');
+  assert.match(session, /if \(answered \|\| finished\) return;/);
+  assert.match(session, /check\.setEnabled\(false\)/);
+  assert.match(session, /next\.setEnabled\(true\)/);
+});
+test('Coin movement and scoring lessons use Zero input, drawing and controls', () => {
+  for (const [id, lesson] of [[8, '08-movement'], [9, '09-coin-game']]) {
+    const directory = path.join(root, `teaching/checkpoints/${id}`);
+    const names = id === 8 ? ['Main.java', 'Player.java'] : ['Main.java', 'Player.java', 'Coin.java'];
+    for (const name of names) {
+      assert.doesNotMatch(readFileSync(path.join(directory, name), 'utf8'), /import javafx\.|KeyCode|setOnAction|layout\(\)|canvas\(\)/);
+    }
+    assert.doesNotMatch(readFileSync(path.join(root, `student-template/lessons/${lesson}.md`), 'utf8'), /import javafx\.|KeyCode|setOnAction|new HBox|canvas\(\)\.requestFocus/);
+    const main = readFileSync(path.join(directory, 'Main.java'), 'utf8');
+    for (const arrow of ['LEFT', 'RIGHT', 'UP', 'DOWN']) assert.match(main, new RegExp(`keyDown\\(Key\\.${arrow}\\)`));
+    assert.match(main, /player\.update\(horizontal, vertical, seconds/);
+    assert.match(main, /player\.draw\(this\)/);
+    if (id === 9) {
+      assert.match(main, /controls\(new Row\(12, scoreLabel, message, restartButton\)\)/);
+      assert.match(main, /showGame\(\)/);
+      assert.match(main, /!each\.isCollected\(\) && each\.touches\(player\)/);
+    }
+  }
+});
+test('shared component teaching path uses Zero views in both consumers', () => {
+  for (const id of [10, 11]) {
+    const sources = [];
+    for (const kind of ['study', 'game']) {
+      const directory = path.join(root, `teaching/checkpoints/${id}/${kind}`);
+      const main = readFileSync(path.join(directory, 'Main.java'), 'utf8');
+      const display = readFileSync(path.join(directory, 'ScoreDisplay.java'), 'utf8');
+      sources.push(display);
+      for (const text of [main, display]) assert.doesNotMatch(text, /import javafx\.|setOnAction|new VBox|new HBox|\.setDisable\(|answer\.clear\(|canvas\(\)\.requestFocus|setTextFill|setStyle/);
+      assert.match(display, /public Element view\(\)/);
+      assert.match(display, /import zero\.ui\.Label;/);
+      assert.match(main, /score\.setScore\(points\)/);
+      if (id === 11) {
+        assert.match(display, /void setCaption\(String caption\)/);
+        assert.match(main, /score\.setCaption\("Score"\)/);
+      }
+    }
+    assert.equal(sources[0], sources[1], 'Study and Game reuse the same component source');
+  }
+  for (const lesson of ['10-components', '11-zerohub']) {
+    const instructions = readFileSync(path.join(root, `student-template/lessons/${lesson}.md`), 'utf8');
+    assert.doesNotMatch(instructions, /import javafx\.|label\.setStyle|label\.setTextFill|setColor/);
+  }
+});
+test('media teaching uses explicit Zero resources and retains the shared component', () => {
+  const shared = readFileSync(path.join(root, 'teaching/checkpoints/11/game/ScoreDisplay.java'), 'utf8');
+  for (const kind of ['media', 'scrolling']) {
+    const directory = path.join(root, `teaching/checkpoints/12/${kind}`);
+    for (const name of ['Main.java', 'Player.java', 'Coin.java', 'ScoreDisplay.java']) {
+      assert.doesNotMatch(readFileSync(path.join(directory, name), 'utf8'), /import javafx\.|getResource\(|AudioClip|setColor|setOnAction|new HBox|canvas\(\)\.requestFocus/);
+    }
+    assert.equal(readFileSync(path.join(directory, 'ScoreDisplay.java'), 'utf8'), shared);
+    const main = readFileSync(path.join(directory, 'Main.java'), 'utf8');
+    assert.match(main, /ImageRegion nextSprite = loadImageRegion\("\/media-demo\/player\.png"\)/);
+    assert.match(main, /Sound nextChime = loadSound\("\/media-demo\/chime\.wav"\)/);
+    assert.match(main, /assetStatus\.setText\(failure\.getMessage\(\)\)/);
+    assert.match(main, /artworkButton\.onClick\(\(\) -> loadAssets\(\)\)/);
+  }
+  assert.doesNotMatch(readFileSync(path.join(root, 'student-template/lessons/12-media.md'), 'utf8'), /import javafx\.|getResource\(|AudioClip|new HBox|setColor/);
 });
 test('optional asset archive contains only the two media resources', () => {
   const files=gameAssetFiles(root);
@@ -88,12 +187,88 @@ test('native receives maintained bytes and website preparation removes stale tut
 test('tutorial publications stay unavailable until complete verified metadata exists', async () => {
   for (const item of tutorialTemplateDefinitions) {
     const repositoryUrl=`https://github.com/${item.repository}`;
-    assert.deepEqual(publishedTutorialTemplate(item.id),item.publication ? {repository:item.repository,repositoryUrl,templateHref:`${repositoryUrl}/generate`} : null);
+    assert.deepEqual(publishedTutorialTemplate(item.id),item.publication ? {repository:item.repository,repositoryUrl,templateHref:`${repositoryUrl}/generate`,...(item.publication.scaffoldSha256?{scaffoldSha256:item.publication.scaffoldSha256}:{})} : null);
   }
   const unpublished={schema:1,templates:tutorialTemplateDefinitions.map(item=>({...item,publication:null}))};
   assert.ok(validateTutorialTemplates(unpublished).every(item=>item.publication===null));
   for (const publication of [{}, {repositoryId:1,visibility:'private',isTemplate:true,defaultBranch:'main',commit:'a'.repeat(40),tree:'b'.repeat(40)}]) {
     const metadata={schema:1,templates:tutorialTemplateDefinitions.map(item=>({...item}))};metadata.templates[0].publication=publication;
     assert.throws(()=>validateTutorialTemplates(metadata),/publication/);
+  }
+});
+
+test('local tutorial drafts pass pristine inventory checks without claiming publication', async t=>{
+  const drafts=await prepareTutorialTemplates(root);
+  t.after(()=>rmSync(drafts.directory,{recursive:true,force:true}));
+  const projects=lessonModule.validateBundle(bundle);
+  assert.deepEqual(drafts.templates.map(item=>item.id),['greeting','study','game']);
+  for(const draft of drafts.templates){
+    const project=projects.find(item=>item.id===draft.id);
+    assert.equal(checkTutorialTemplateDirectory(project,draft.directory),draft.scaffoldSha256);
+  }
+  const game=drafts.templates[2],project=projects[2];
+  writeFileSync(path.join(game.directory,'src/main/java/zero/Key.java'),'// stale helper\n');
+  assert.throws(()=>checkTutorialTemplateDirectory(project,game.directory),/source differs.*Key.java/);
+  assert.equal(readFileSync(path.join(game.directory,'src/main/java/zero/Key.java'),'utf8'),'// stale helper\n');
+});
+
+test('publication coherence gate binds exact source and mode without upgrading projects',()=>{
+  const projects=lessonModule.validateBundle(bundle);
+  for(const project of projects)delete project.template.scaffoldSha256;
+  assert.throws(()=>checkPublishedTutorialTemplates(projects),/not been verified/);
+  for(const project of projects)project.template.scaffoldSha256=readiness.tutorialScaffoldSha256(project.files);
+  assert.equal(checkPublishedTutorialTemplates(projects),3);
+  projects[0].files.find(file=>file.path==='mvnw').mode=0o644;
+  assert.throws(()=>checkPublishedTutorialTemplates(projects),/greeting:/);
+  const metadata={schema:1,templates:structuredClone(tutorialTemplateDefinitions)};
+  metadata.templates[0].publication.scaffoldSha256='invalid';
+  assert.throws(()=>validateTutorialTemplates(metadata),/source evidence/);
+});
+
+test('intermediate refactoring extracts input without growing the tutorial or changing core', () => {
+  for (const id of ['10/game','11/game','12/media','12/scrolling']) {
+    const directory = path.join(root,'teaching/checkpoints',id);
+    const main = readFileSync(path.join(directory,'Main.java'),'utf8');
+    const input = readFileSync(path.join(directory,'PlayerInput.java'),'utf8');
+    assert.doesNotMatch(main,/keyDown\(|import zero\.Key/);
+    assert.match(main,/input = new PlayerInput\(this\)/);
+    assert.match(main,/int horizontal = input\.horizontal\(\)/);
+    assert.match(main,/int vertical = input\.vertical\(\)/);
+    assert.equal((main.match(/new PlayerInput/g)||[]).length,1);
+    assert.doesNotMatch(input,/javafx|Timer|Player player|extends |implements /);
+    for (const key of ['LEFT','RIGHT','UP','DOWN']) assert.ok(input.includes('game.keyDown(Key.'+key+')'));
+    if(id!=='10/game') for(const key of ['W','A','S','D']) assert.ok(input.includes('game.keyDown(Key.'+key+')'));
+  }
+  const lesson10=readFileSync(path.join(root,'student-template/lessons/10-components.md'),'utf8');
+  const lesson11=readFileSync(path.join(root,'student-template/lessons/11-zerohub.md'),'utf8');
+  assert.match(lesson10,/refactor/i);assert.match(lesson10,/PlayerInput/);assert.match(lesson11,/proposal/i);
+  assert.match(lesson11,/core/i);assert.match(lesson11,/original/i);
+});
+
+test('lesson 10 PlayerInput snippet matches the maintained helper and later copies stay identical', () => {
+  const markdown=readFileSync(path.join(root,'student-template/lessons/10-components.md'),'utf8');
+  const snippet=[...markdown.matchAll(/```java\n([\s\S]*?)```/g)].map(match=>match[1]).find(code=>code.includes('public class PlayerInput'));
+  const compact=text=>text.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\s+/g,'');
+  assert.equal(compact(snippet),compact(readFileSync(path.join(root,'teaching/checkpoints/10/game/PlayerInput.java'),'utf8')));
+  const improved=readFileSync(path.join(root,'teaching/checkpoints/11/game/PlayerInput.java'),'utf8');
+  for(const id of ['12/media','12/scrolling'])assert.equal(readFileSync(path.join(root,'teaching/checkpoints',id,'PlayerInput.java'),'utf8'),improved);
+});
+
+test('practice contribution uses a harmless badge, not duplicate input utilities', () => {
+  const lesson=readFileSync(path.join(root,'student-template/lessons/11-zerohub.md'),'utf8');
+  const badge=readFileSync(path.join(root,'teaching/checkpoints/11/game/CreditsBadge.java'),'utf8');
+  const snippet=[...lesson.matchAll(/```java\n([\s\S]*?)```/g)].map(m=>m[1]).find(c=>c.includes('public class CreditsBadge'));
+  assert.equal(snippet,badge);
+  assert.doesNotMatch(badge,/javafx|keyDown|Timer|Player|GameApp/);
+  assert.match(lesson,/Copies are expected/);
+  assert.match(lesson,/tutorial-credits-badge/);
+  assert.match(lesson,/Optional extension: contribute an original idea/);
+  assert.match(lesson,/Library publication is currently paused/);
+  for(const variant of ['12/media','12/scrolling'])assert.equal(readFileSync(path.join(root,'teaching/checkpoints',variant,'CreditsBadge.java'),'utf8'),badge);
+  for(const name of ['LibraryCheck','FirstExample','SecondExample']) {
+    const source=readFileSync(path.join(root,'teaching/checkpoints/11/practice',name+'.java'),'utf8');
+    assert.doesNotMatch(source,/javafx/);
+    assert.match(source,/CreditsBadge/);
+    assert.match(source,/throw new AssertionError/);
   }
 });

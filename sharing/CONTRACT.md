@@ -126,3 +126,70 @@ Requests immutable fingerprints; attempts/release ledger durable. Failed source
 can be corrected before acceptance. Stage/hash, CAS-accept version as delivery-pending,
 finalize standard paths, delivery-ready, catalog. Accepted versions never change
 source. Reconciliation uses requests, not Actions queues. No binary report copies.
+
+## Unreleased core-dependent library contract (local preparation only)
+
+Schema-1 descriptors/releases retain their existing fields and reject core fields.
+Schema-2 is library-only. A descriptor requires
+`coreRequirement: {minVersion:"0.3.0",maxExclusive:"0.4.0"}` and
+`coreInput: {version:"0.3.0",sourceSha256:<64hex>}`. Versions are exact; the range
+stays inside one 0.x minor line and its exclusive upper bound is the next minor
+at patch zero. The selected input version must satisfy that range. Authored input
+identifies source; it does not establish a successful build.
+
+A schema-2 release instead requires the copied `coreRequirement` and checker-owned
+`coreBuild: {version,sourceSha256,jarSha256,buildRecipeSha256,javaRelease:"17",
+javafxVersion:"21.0.12"}`. Its version must satisfy the same range. These hashes
+are provenance produced from actual reviewed builds; validating their shape does
+not authenticate them. Request/catalog envelopes remain schema1 and validate
+nested schema2 libraries. Games remain schema1. Current hosted preparation
+explicitly rejects schema2 libraries; this local schema change activates no
+hosted checker or publication path.
+
+Current unreleased core is `school.zero:zero-core:0.3.0`. Generated projects carry
+tracked root `zero-core.json` schema1 with its coordinate, Java/JavaFX pins, sorted
+`{path:"src/main/java/zero/...",sha256}` entries and `sourceSha256` (SHA256 of
+compact JSON for that sorted array). Hash UTF-8 source after CRLF→LF only; reject
+invalid UTF-8, BOM and lone CR. Validation recomputes all16 reviewed source hashes
+from included bytes. The record alone is never authority. Assemblers write it
+from exactly their included sources; editor updates do not migrate old projects.
+Legacy libraries without a core requirement need no core record. Contributions
+must not bundle canonical core classes. No public release is implied by0.3.0.
+
+## Tutorial practice libraries (local source, publication still gated)
+
+The reserved library slug `tutorial-credits-badge` is the practice marker. No
+schema fields change: normal repository-derived library identity, exact immutable
+versions, checker evidence and request fingerprints remain. All entries with this
+kind/slug are practice, irrespective of title/description. The editor permits
+this narrow library exception from a valid Coin tutorial repository; other
+marked tutorial games/libraries remain blocked by its teaching policy. This is
+not source-originality detection or an authentication boundary. Trusted numeric
+ownership and all source/checker/publication controls still apply.
+
+Canonical immutable snapshots retain both categories. Both existing catalog APIs
+(`/catalog` and `/catalog/web`) validate the full snapshot then exclude practice
+releases entirely. The explicit `/api/sharing/catalog/practice` projects only
+practice entries through the same bounded reader. This preserves strict old
+clients without new release keys. Ordinary library selection excludes practice;
+`/hub?kind=practice` and the editor's Browse tutorial practice opt into it. Default
+practice discovery groups versions by repository-derived library identity; an
+exact id/version link never substitutes another version. New versions are normal
+immutable releases, not overwrites of an accepted artifact.
+
+Library Check and hosted acceptance do not bypass their gates for practice.
+Extract/Check can finish while publication is paused. A prepared/opened/submitted
+form is not a listing. Copied badges are expected learning exercises, excluded
+from ordinary discovery and without automatic promotion to core. Original useful
+work and core proposals remain an optional extension.
+
+Practice cleanup takes explicit delivery-ready practice release keys, previews by default and
+requires the existing reviewed library-enabled configuration and publisher role
+for execution. CAS revalidation protects the reviewed selection from availability
+or delivery changes. Already-withdrawn exact keys allow a catalogue-write failure
+after withdrawal to be retried without duplicate events. It appends normal
+withdrawal events and regenerates the catalogue; it deletes no source, registry
+history, accepted JAR/source/POM or
+student repository. Already added bytes remain; future fetch/export/update checks
+continue to enforce ordinary availability rules. No scheduler or historical-kit
+database is introduced.

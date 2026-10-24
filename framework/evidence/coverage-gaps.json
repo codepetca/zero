@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "status": "pending-execution",
+  "declarations": 183,
+  "mappedDeclarations": {
+    "native": 183,
+    "browser": 183
+  },
+  "unmappedDeclarations": {
+    "native": 0,
+    "browser": 0
+  },
+  "actualExecutedTargets": 0,
+  "requiredExecutedTargets": 366,
+  "note": "All declarations now have source assertion mappings. Compilation, semantic attribution and collector unit tests establish no framework target outcome. All 366 actual native/browser outcomes remain pending current retained execution receipts.",
+  "unmapped": []
+}

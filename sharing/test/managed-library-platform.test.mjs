@@ -140,6 +140,13 @@ test('old-policy queued libraries never start a managed check while current-poli
  assert.deepEqual(await platform.selectLibraryForCheck(),{requestId:'3'.repeat(64),commit});
 });
 
+test('hosted preparation rejects schema2 core-dependent libraries before source access or execution',async t=>{
+ let sourceReads=0;
+ const request={...record.frozen,descriptor:{schema:2,kind:'library',coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},coreInput:{version:'0.3.0',sourceSha256:'a'.repeat(64)}}};
+ const {platform}=await setup(t,null,{publicationIssue:async()=>({issueState:'open',request}),source:async()=>{sourceReads++;throw Error('Must not fetch source');}});
+ await assert.rejects(platform.prepareIssue(1),/schema 2 is not enabled for hosted preparation/);
+ assert.equal(sourceReads,0);
+});
 
 test('unknown and legacy game-only policies never gain library intake, checking or publication authority',async t=>{
   for(const requestPolicy of ['1'.repeat(40),'1b63ae6ce07f467ab4c4600d78507157ad3bdc7c']){

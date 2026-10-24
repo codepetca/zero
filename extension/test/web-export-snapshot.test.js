@@ -83,3 +83,85 @@ test('standard CRLF source normalization does not allow changed resources or Git
  const git=async()=>inputs.files.map(file=>'100644 blob '+blob(file.path.endsWith('.java')?Buffer.from(file.bytes.toString().replace(/\r\n/g,'\n')):file.bytes)+'\t'+file.path+'\0').join('');
  const receipt=await assertBuildInputsAtCommit({projectRoot:f.root,result,sourceSha:'a'.repeat(40),git});assert.deepEqual(receipt.normalizedSourceLineEndings,['src/main/java/Main.java']);
 });
+
+test('profile hashes bind the central core contract even for custom engine fixtures',async t=>{
+ const f=await fixture(t),coreContractPath=path.join(path.dirname(f.engineRoot),'core-contract.js');
+ await fs.writeFile(coreContractPath,'reviewed current core');
+ const before=await buildProfileHash(f.engineRoot,{coreContractPath});
+ await fs.writeFile(coreContractPath,'changed current core');
+ assert.notEqual(await buildProfileHash(f.engineRoot,{coreContractPath}),before);
+ await fs.unlink(coreContractPath);
+ await assert.rejects(buildProfileHash(f.engineRoot,{coreContractPath}),/core contract is missing/);
+});
+
+
+test('profile binds each bounded external parser and library dependency, refusing absent inputs',async t=>{
+ const f=await fixture(t),externalRoot=path.join(path.dirname(f.engineRoot),'external');
+ const {browserExternalFiles}=require('../src/web-export/snapshot');
+ for(const name of browserExternalFiles){const file=path.join(externalRoot,name);await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,'reviewed '+name);}
+ for(const name of browserExternalFiles){const before=await buildProfileHash(f.engineRoot,{externalRoot});const file=path.join(externalRoot,name);await fs.appendFile(file,' changed');assert.notEqual(await buildProfileHash(f.engineRoot,{externalRoot}),before,name);}
+ await fs.unlink(path.join(externalRoot,'sharing/jar.js'));
+ await assert.rejects(buildProfileHash(f.engineRoot,{externalRoot}),/external dependency is missing/);
+});
+
+test('saved builder profile binds CLI, runtime, media and manifest without importing saved code',async t=>{
+ const f=await fixture(t),{prepareProjectBuilder}=await import('../../scripts/prepare-project-builder.mjs');
+ const builderRoot=path.join(f.root,'.zero-build');await prepareProjectBuilder({destination:builderRoot});
+ const engineRoot=path.join(builderRoot,'src/web-export'),before=await buildProfileHash(engineRoot);
+ const inputs=await captureBuildInputs(f.root);
+ assert.ok(inputs.files.some(file=>file.path==='.zero-build/run.cjs'));
+ assert.ok(inputs.files.some(file=>file.path==='.zero-build/builder.json'));
+ const format=require('../src/project-builder-format'),{readSavedBuilder}=require('../src/web-export/snapshot');
+ for(const name of ['run.cjs','runtime-lock.json','media/sharing-config.json']) {
+  const filename=path.join(builderRoot,name),original=await fs.readFile(filename);
+  // Keep metadata coherent to establish that profile binding covers changes even
+  // when a deliberate producer creates a fresh valid inventory.
+  const bytes=name.endsWith('.json')?Buffer.from(JSON.stringify(JSON.parse(original),null,4)+'\n'):Buffer.concat([original,Buffer.from('\nthrow new Error("MUST NOT EXECUTE");\n')]);
+  await fs.writeFile(filename,bytes);
+  await assert.rejects(readSavedBuilder(builderRoot),/changed/);
+  const {readBuilderTree}=await import('../../scripts/prepare-project-builder.mjs');
+  const files=(await readBuilderTree(builderRoot)).filter(file=>file.path!=='builder.json');
+  await fs.writeFile(path.join(builderRoot,'builder.json'),JSON.stringify(format.createBuilderManifest(files),null,2)+'\n');
+  assert.notEqual(await buildProfileHash(engineRoot),before,name);
+  await fs.writeFile(filename,original);
+  const restored=(await readBuilderTree(builderRoot)).filter(file=>file.path!=='builder.json');
+  await fs.writeFile(path.join(builderRoot,'builder.json'),JSON.stringify(format.createBuilderManifest(restored),null,2)+'\n');
+ }
+ assert.equal(await buildProfileHash(engineRoot),before);
+ await fs.rm(path.join(builderRoot,'builder.json'));
+ await assert.rejects(captureBuildInputs(f.root),/builder.json is missing/);
+});
+
+test('saved builder closure is required in the actual uploaded commit',async t=>{
+ const f=await fixture(t),{prepareProjectBuilder}=await import('../../scripts/prepare-project-builder.mjs');
+ await prepareProjectBuilder({destination:path.join(f.root,'.zero-build')});await f.build();
+ const inputs=await captureBuildInputs(f.root),result=await validateExport(f.options);
+ const {assertBuildInputsAtCommit}=require('../src/web-export/snapshot');
+ await assert.rejects(assertBuildInputsAtCommit({projectRoot:f.root,result,sourceSha:'a'.repeat(40)}),/host Git operation/);
+ const blob=bytes=>crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+ let requested;
+ const git=async(root,args)=>{requested=args;return inputs.files.map(file=>'100644 blob '+blob(file.bytes)+'\t'+file.path+'\0').join('');};
+ assert.equal((await assertBuildInputsAtCommit({projectRoot:f.root,result,sourceSha:'a'.repeat(40),git})).inputCount,inputs.files.length);
+ assert.ok(requested.includes('.zero-build'));
+ await assert.rejects(assertBuildInputsAtCommit({projectRoot:f.root,result,sourceSha:'a'.repeat(40),git:async()=>inputs.files.filter(file=>!file.path.startsWith('.zero-build/')).map(file=>'100644 blob '+blob(file.bytes)+'\t'+file.path+'\0').join('')}),/missing from the uploaded commit/);
+});
+
+test('installed exporter cannot replace saved tooling; exact frozen copies are selected by bytes',async t=>{
+ const f=await fixture(t),{prepareProjectBuilder}=await import('../../scripts/prepare-project-builder.mjs');
+ const builderRoot=path.join(f.root,'.zero-build');await prepareProjectBuilder({destination:builderRoot});
+ const {exportForWeb}=require('../src/web-export');
+ await assert.rejects(exportForWeb({projectRoot:f.root}),/installed exporter cannot replace it/);
+ const frozenRoot=path.join(path.dirname(f.root),'frozen-builder');await fs.cp(builderRoot,frozenRoot,{recursive:true});
+ const {assertSelectedBuilder,readSavedBuilder}=require('../src/web-export/snapshot');
+ const selected=await assertSelectedBuilder(f.root,path.join(frozenRoot,'src/web-export'));
+ assert.equal(selected.profileHash,await buildProfileHash(path.join(builderRoot,'src/web-export')));
+ assert.equal(await buildProfileHash(path.join(frozenRoot,'src/web-export')),selected.profileHash);
+ // A self-consistent different closure must still fail selection.
+ await fs.appendFile(path.join(frozenRoot,'README.md'),'\nDifferent reviewed revision.\n');
+ const {readBuilderTree}=await import('../../scripts/prepare-project-builder.mjs'),format=require('../src/project-builder-format');
+ const changed=(await readBuilderTree(frozenRoot)).filter(file=>file.path!=='builder.json');
+ await fs.writeFile(path.join(frozenRoot,'builder.json'),JSON.stringify(format.createBuilderManifest(changed)));
+ await readSavedBuilder(frozenRoot);
+ await assert.rejects(assertSelectedBuilder(f.root,path.join(frozenRoot,'src/web-export')),/differs from the project/);
+ await assert.rejects(require(path.join(frozenRoot,'src/web-export')).exportForWeb({projectRoot:f.root}),/differs from the project/);
+});

@@ -15,6 +15,7 @@ import { validatePublishedInstaller } from "../lib/published-installer.mjs";
 import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
 import { prepareDesign } from "../../design/prepare.mjs";
 import { prepareLessonProjects } from "../../scripts/lesson-projects.mjs";
+import { coreSources } from "../../scripts/prepare-starter.mjs";
 import { loadWindowsInstaller, loadWindowsUpdateFeed } from "../lib/windows-installer.mjs";
 import { loadWindowsPreview } from "../lib/windows-preview.mjs";
 import { loadUpdateFeed } from "../lib/update-feed.mjs";
@@ -88,9 +89,9 @@ for (const file of [
   "README.md",
 ])
   sources[file] = await readFile(resolve(root, file), "utf8");
-for (const name of ["App", "GameApp"])
-  sources[`student-template/src/main/java/zero/${name}.java`] = await readFile(
-    resolve(root, `framework/src/main/java/zero/${name}.java`),
+for (const name of coreSources)
+  sources[`student-template/src/main/java/zero/${name}`] = await readFile(
+    resolve(root, `framework/src/main/java/zero/${name}`),
     "utf8",
   );
 const release = validateManifest(

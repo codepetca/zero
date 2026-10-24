@@ -16,7 +16,7 @@ const settle = async predicate => {
     await new Promise(resolve=>setImmediate(resolve));
   }
 };
-async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, empty=false, profile, initialSession, githubAccess=async()=>{}, unpublishedTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
+async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, empty=false, profile, initialSession, githubAccess=async()=>{}, unpublishedTutorials=false, staleTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
   if (typeof profile === 'function') profile=profile(root);
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
@@ -45,14 +45,19 @@ async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEd
   Module._load=function(id,...args){if(id==='vscode')return textInputs(vscode);if(id==='./project-folders'){const mod=load.call(this,id,...args);return {createProjectFolders:(vscode,options)=>mod.createProjectFolders(vscode,{...options,home:root})};}if(id==='./setup-project'&&setupCheck)return {isSetupProject:candidate=>candidate===root,findSetupProject:async()=>root};if(id==='./core')return {...core,assertRepositoryRoot:async()=>{throw new Error('No repository');}};return load.call(this,id,...args);};
   let extension;try{extension=require(filename);}finally{Module._load=load;}
   t.after(()=>{subscriptions.forEach(item=>item.dispose());delete require.cache[filename];if(oldCache)require.cache[filename]=oldCache;});
-  let extensionPath;
-  if (unpublishedTutorials) {
-    extensionPath=path.join(root,'extension-fixture');
-    await fs.mkdir(path.join(extensionPath,'media'),{recursive:true});
-    const bundle=JSON.parse(await fs.readFile(path.join(__dirname,'../media/lesson-projects.json'),'utf8'));
-    for (const project of bundle.projects) project.template=null;
-    await fs.writeFile(path.join(extensionPath,'media/lesson-projects.json'),JSON.stringify(bundle));
+  // Explicit fixture publication evidence exercises the ready path without
+  // stamping the real public-template records, which intentionally remain stale.
+  const extensionPath=path.join(root,'extension-fixture');
+  await fs.mkdir(path.join(extensionPath,'media'),{recursive:true});
+  await fs.copyFile(path.join(__dirname,'../media/tutorial-content.json'),path.join(extensionPath,'media/tutorial-content.json'));
+  const bundle=JSON.parse(await fs.readFile(path.join(__dirname,'../media/lesson-projects.json'),'utf8'));
+  const {tutorialScaffoldSha256}=require('../src/tutorial-template-readiness');
+  for (const project of bundle.projects) {
+    if(unpublishedTutorials)project.template=null;
+    else if(!staleTutorials)project.template.scaffoldSha256=tutorialScaffoldSha256(project.files);
+    else delete project.template.scaffoldSha256;
   }
+  await fs.writeFile(path.join(extensionPath,'media/lesson-projects.json'),JSON.stringify(bundle));
   extension.activate({extensionPath,subscriptions,globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{checkSetup:githubAccess,async create(value){calls.push(['createRepository',value]);return {repository:{html_url:'https://github.com/student/my-project'}};}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
   const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
   if(!empty && !profile)await settle(()=>remembered.has('zero.sidebarShown'));
@@ -381,7 +386,7 @@ test('empty project actions stay on Start Page and direct local open reuses a fo
 });
 
 test('sign-in is independent of local practice while sharing stays unavailable',async t=>{
-  const f=await fixture(t,{practice:true});assert.match(f.webview.html,/>GitHub setup<\/button>/);assert.doesNotMatch(f.webview.html,/zero.chooseRepository/);
+  const f=await fixture(t,{practice:true});await settle(()=>/>GitHub setup<\/button>/.test(f.webview.html));assert.match(f.webview.html,/>GitHub setup<\/button>/);assert.doesNotMatch(f.webview.html,/zero.chooseRepository/);
   f.setInteractiveSession({id:'native',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();
   assert.equal(f.startState.phase,'ready');assert.equal(f.startState.accountId,'17');assert.doesNotMatch(f.webview.html,/Signed in as student|data-command="zero.githubAccount"/);assert.match(f.webview.html,/Local practice · no GitHub sharing/);assert.doesNotMatch(f.webview.html,/zero.uploadToGitHub|zero.finishChange|zero.publishWeb/);
   await f.commands.get('zero.uploadToGitHub')();assert.match(f.errors.at(-1),/local lesson practice/);
@@ -521,4 +526,12 @@ test('active-workspace recovery acknowledgement requires its exact account, repo
   assert.equal(profile.get('zero.repositoryCreationRecovery'),record);
   f.subscriptions.forEach(item=>item.dispose());
  }
+});
+
+test('stale tutorial evidence blocks the editor flow before forms or repository creation',async t=>{
+ let inputs=0;const f=await fixture(t,{empty:true,staleTutorials:true,pick:async items=>items[0],input:async()=>{inputs++;return 'unused';}});
+ f.setInteractiveSession({id:'app',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'});
+ await f.commands.get('zero.startProject')();
+ assert.match(f.errors.at(-1),/has not been verified/);assert.equal(inputs,0);
+ assert.equal(f.calls.some(([id])=>['createRepository','cloneRepository','vscode.openFolder'].includes(id)),false);
 });

@@ -2,7 +2,7 @@
 const path = require('node:path');
 const {randomBytes,createHash} = require('node:crypto');
 const {LESSON_IDS,escapeHtml,loadContent,browserUrl,renderLessons} = require('./tutorial-content');
-const EXTERNAL_LINKS = new Set(['https://zero.codepet.ca/hub','https://zero.codepet.ca/generated/learning-assets/game-assets.zip']);
+const EXTERNAL_LINKS = new Set(['https://zero.codepet.ca/hub','https://zero.codepet.ca/hub?kind=practice','https://zero.codepet.ca/generated/learning-assets/game-assets.zip']);
 function rootKey(root) {return `zero.tutorialReader.${createHash('sha256').update(root ? path.resolve(root) : 'no-project').digest('hex')}`;}
 function cleanState(value, fallback = '0') {
   const state = {lessonId:LESSON_IDS.includes(value?.lessonId) ? value.lessonId : LESSON_IDS.includes(fallback) ? fallback : '0',scroll:{},details:{}};

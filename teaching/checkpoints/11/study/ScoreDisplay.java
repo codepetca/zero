@@ -1,23 +1,30 @@
-import javafx.scene.Node;
-import javafx.scene.control.Label;
+import zero.ui.Element;
+import zero.ui.Label;
 
-/** Main owns the score. This class presents it in either app. */
+/** Main owns scoring rules; this component retains only its displayed values. */
 public class ScoreDisplay {
     private final Label label = new Label("Score: 0");
-
-    public ScoreDisplay() {
-        label.setStyle("-fx-font-weight: bold;");
-    }
+    private String caption = "Score";
+    private int points;
 
     public void setScore(int points) {
-        label.setText("Score: " + points);
+        this.points = points;
+        refresh();
     }
 
-    public void setColor(javafx.scene.paint.Color color) {
-        label.setTextFill(color);
+    public void setCaption(String caption) {
+        if (caption == null) {
+            throw new IllegalArgumentException("Score caption must not be null.");
+        }
+        this.caption = caption;
+        refresh();
     }
 
-    public Node view() {
+    private void refresh() {
+        label.setText(caption + ": " + points);
+    }
+
+    public Element view() {
         return label;
     }
 }

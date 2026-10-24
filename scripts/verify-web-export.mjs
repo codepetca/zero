@@ -4,15 +4,21 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 import { deflateSync } from 'node:zlib';
-import { verifyWebProfiles } from './web-profiles.mjs';
+import {executionIdentity,persistJavaEvidence,browserExecutionRecords,hash,loadJavaEvidence,requireTargetEvidence,javaToolFiles} from './api-evidence.mjs';
+import {parseFixtureSelection, selectFixtureReceipts, runSelectedFixtures} from './web-fixture-selection.mjs';
+const mobileOnly = process.argv.includes('--mobile-only');
+const explicitSelection=process.argv.some(arg=>arg==='--only'||arg.startsWith('--only='));
+const parsedSelection=parseFixtureSelection(process.argv.slice(2));
+const selectedFixtures=mobileOnly&&!explicitSelection?['helpers','mobile']:parsedSelection;
+if(mobileOnly&&selectedFixtures.some(id=>!['helpers','mobile'].includes(id)))throw new Error('--mobile-only supports only helpers and mobile fixtures.');
 const require = createRequire(import.meta.url);
+const { verifyWebProfiles } = await import('./web-profiles.mjs');
 const { exportForWeb } = require('../extension/src/web-export');
 const { prepareArtifacts } = require('../extension/src/web-export/compatibility');
 const { createWebPreview } = require('../extension/src/web-preview');
 const root = fileURLToPath(new URL('../', import.meta.url));
 const outputIndex = process.argv.indexOf('--output');
 const base = outputIndex >= 0 ? path.resolve(process.argv[outputIndex + 1]) : path.join(root, '.verification/web-export-checks');
-const mobileOnly = process.argv.includes('--mobile-only');
 const browserOnly = mobileOnly || process.argv.includes('--browser-only');
 const browser = browserOnly || process.argv.includes('--browser');
 const cacheIndex = process.argv.indexOf('--cache');
@@ -22,7 +28,7 @@ const cacheRoot =
     : path.join(base, 'cache');
 verifyWebProfiles();
 await fs.mkdir(base, { recursive: true });
-if (!browserOnly) {
+if (!browserOnly && selectedFixtures.includes('helpers')) {
   // Run the browser's math/list assertions unchanged on the native JDK too.
   const nativeRoot = path.join(base, 'native-game-api');
   await fs.mkdir(nativeRoot, { recursive: true });
@@ -94,21 +100,26 @@ function png() {
     chunk('IEND', Buffer.alloc(0))
   ]);
 }
+async function copyJavaSources(source, destination) {
+  await fs.mkdir(destination, {recursive:true});
+  for (const entry of await fs.readdir(source, {withFileTypes:true})) {
+    const from = path.join(source, entry.name), to = path.join(destination, entry.name);
+    if (entry.isDirectory()) await copyJavaSources(from, to);
+    else if (entry.isFile() && entry.name.endsWith('.java')) await fs.copyFile(from, to);
+  }
+}
 async function fixture(name, example) {
   const directory = path.join(base, 'projects', name);
   await fs.mkdir(path.join(directory, 'src/main/java/zero'), {
     recursive: true
   });
+  if (['helpers','zero-ui','audio','lifecycle'].includes(name)) {
+    await fs.mkdir(path.join(directory,'src/main/java/evidence'),{recursive:true});
+    for(const file of ['ApiProof.java','ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java','ApiCompletionChecks.java','ApiProbeBases.java'])await fs.copyFile(path.join(root,'framework/evidence/java/evidence',file),path.join(directory,'src/main/java/evidence',file));
+  }
   if (name === 'helpers')
     await fs.copyFile(path.join(root, 'framework/web-checks/GameApiChecks.java'), path.join(directory, 'src/main/java/GameApiChecks.java'));
-  for (const filename of await fs.readdir(
-    path.join(root, 'framework/src/main/java/zero')
-  ))
-    if (filename.endsWith('.java'))
-      await fs.copyFile(
-        path.join(root, 'framework/src/main/java/zero', filename),
-        path.join(directory, 'src/main/java/zero', filename)
-      );
+  await copyJavaSources(path.join(root, 'framework/src/main/java/zero'), path.join(directory, 'src/main/java/zero'));
   for (const filename of ['mvnw', 'mvnw.cmd', 'pom.xml', 'zero.json'])
     await fs.copyFile(
       path.join(root, 'student-template', filename),
@@ -120,7 +131,25 @@ async function fixture(name, example) {
     { recursive: true }
   );
   await fs.chmod(path.join(directory, 'mvnw'), 0o755);
-  if (name === 'mobile') {
+  if (['counter','coin-game'].includes(name)) {
+    await copyJavaSources(path.join(root, 'framework/prototypes', name), path.join(directory, 'src/main/java'));
+    const sharedDirectory = path.join(root, 'framework/prototypes/shared');
+    const sharedNames = ['BarScoreDisplay.java', 'ScoreDisplay.java', 'ScoreView.java'];
+    const actualNames = (await fs.readdir(sharedDirectory)).filter(name => name.endsWith('.java')).sort();
+    if (actualNames.join(',') !== sharedNames.join(',')) throw new Error('Review the complete shared score source inventory before exporting prototypes.');
+    for (const filename of sharedNames) {
+      const shared = await fs.readFile(path.join(sharedDirectory, filename));
+      const destination = path.join(directory, 'src/main/java', filename);
+      await fs.writeFile(destination, shared);
+      if (!(await fs.readFile(destination)).equals(shared)) throw new Error('Shared score source bytes differ: ' + filename);
+    }
+  } else if (name === 'zero-ui') {
+    await fs.copyFile(path.join(root, 'framework/web-checks/navigation/Main.java'), path.join(directory, 'src/main/java/Main.java'));
+  } else if (name === 'lifecycle') {
+    await fs.mkdir(path.join(directory,'src/main/resources'),{recursive:true});
+    await fs.writeFile(path.join(directory,'src/main/resources/tiles.png'),png());
+    await fs.copyFile(path.join(root,'framework/web-checks/lifecycle/Main.java'),path.join(directory,'src/main/java/Main.java'));
+  } else if (name === 'mobile') {
     await fs.copyFile(path.join(root, 'framework/web-checks/mobile/Main.java'), path.join(directory, 'src/main/java/Main.java'));
   } else if (name === 'audio') {
     await fs.copyFile(path.join(root, 'framework/web-checks/audio/Main.java'), path.join(directory, 'src/main/java/Main.java'));
@@ -174,37 +203,12 @@ async function fixture(name, example) {
   return directory;
 }
 const results = browserOnly
-  ? JSON.parse(await fs.readFile(path.join(base, 'builds.json'), 'utf8'))
-  : [];
+  ? selectFixtureReceipts(JSON.parse(await fs.readFile(path.join(base, 'builds.json'), 'utf8')), selectedFixtures)
+  : await runSelectedFixtures(selectedFixtures, {prepare: fixture, build: projectRoot => exportForWeb({projectRoot,cacheRoot,onProgress:message=>console.log(message)})});
 if (!browserOnly)
-  for (const [name, example] of [
-    ['helpers', null],
-    ['quiz', 'quiz'],
-    ['drawing', 'drawing'],
-    ['audio', null],
-    ['hello', 'hello-app'],
-    ['mobile', null]
-  ]) {
-    const project = await fixture(name, example);
-    const result = await exportForWeb({
-      projectRoot: project,
-      cacheRoot,
-      onProgress: (message) => console.log(name + ': ' + message)
-    });
-    results.push({ name, ...result });
-  }
-if (!browserOnly)
-  await fs.writeFile(
-    path.join(base, 'builds.json'),
-    JSON.stringify(results, null, 2) + '\n'
-  );
-if (
-  results.length !== 6 ||
-  ['helpers', 'quiz', 'drawing', 'audio', 'hello', 'mobile'].some(
-    (name) => !results.some((result) => result.name === name)
-  )
-)
-  throw new Error('Build all six fixtures before using --browser-only or --mobile-only.');
+  await fs.writeFile(path.join(base, 'builds.json'), JSON.stringify(results, null, 2) + '\n');
+const selectionReceipt={schema:1,selectedFixtures,browser,buildIds:results.map(result=>({name:result.name,buildId:result.buildId}))};
+await fs.writeFile(path.join(base,'selection.json'),JSON.stringify(selectionReceipt,null,2)+'\n');
 if (browser) {
   const previews = [];
   try {
@@ -259,18 +263,60 @@ if (browser) {
         });
       });
     try {
-      await asyncCommand(['open', urls.helpers, '--browser', 'chrome']);
+      await asyncCommand(['open', 'about:blank', '--browser', 'chrome']);
       for (const [sourceName, receiptName] of [
-        ...(!mobileOnly ? [['web-browser-checks.js', 'browser-checks.log']] : []),
-        ['web-mobile-checks.js', 'mobile-browser-checks.log']
+        ...(!mobileOnly && selectedFixtures.some(id=>id!=='mobile') ? [['web-browser-checks.js', 'browser-checks.log']] : []),
+        ...(selectedFixtures.some(id=>['helpers','mobile'].includes(id)) ? [['web-mobile-checks.js', 'mobile-browser-checks.log']] : [])
       ]) {
         const script = path.join(base, sourceName);
         const source = await fs.readFile(path.join(root, 'scripts', sourceName), 'utf8');
         await fs.writeFile(script, source.replace('__URLS__', JSON.stringify(urls))
-          .replace('__ARTIFACT_ROOT__', JSON.stringify(base)).trim().replace(/;$/, ''));
-        const receipt = await asyncCommand(['run-code', '--filename', script]);
+          .replace('__ARTIFACT_ROOT__', JSON.stringify(base)).replaceAll('__SELECTION__',JSON.stringify(selectedFixtures)).trim().replace(/;$/, ''));
+        let receipt;
+        try{receipt=await asyncCommand(['run-code','--filename',script]);}
+        catch(error){await fs.writeFile(path.join(base,receiptName),String(error)+'\n');throw error;}
         await fs.writeFile(path.join(base, receiptName), receipt);
         console.log(receipt.split('### Ran Playwright code')[0]);
+        if(sourceName==='web-browser-checks.js') {
+          const observed=browserExecutionRecords(receipt,selectedFixtures);
+          const manifest=JSON.parse(await fs.readFile(path.join(root,'framework/evidence/api-signatures.json'),'utf8'));
+          for(const evidence of observed.apiEvidence) {
+            const name=evidence.caseId.slice('browser/'.length),built=results.find(result=>result.name===name);
+            if(!built||!selectedFixtures.includes(name))throw new Error('Unexpected browser evidence case.');
+            const projectRoot=path.join(base,'projects',name);
+            const savedBuild=JSON.parse(await fs.readFile(built.manifestPath,'utf8'));
+            if(savedBuild.buildId!==built.buildId||!Array.isArray(savedBuild.inputs)||!Array.isArray(savedBuild.files))throw new Error('Browser build identity is incomplete.');
+            async function verifyCaptured(files,directory) {
+              for(const file of files) {
+                if(typeof file.path!=='string'||path.isAbsolute(file.path)||file.path.includes('\\')||file.path.split('/').some(part=>!part||part==='.'||part==='..'))throw new Error('Unsafe browser evidence file.');
+                const bytes=await fs.readFile(path.join(directory,file.path));
+                if(bytes.length!==file.bytes||hash(bytes)!==file.sha256)throw new Error('Browser build input/output changed: '+file.path);
+              }
+            }
+            await verifyCaptured(savedBuild.inputs,projectRoot);
+            await verifyCaptured(savedBuild.files,built.sitePath);
+            const originalMain=name==='helpers'?'framework/web-checks/Main.java':name==='zero-ui'?'framework/web-checks/navigation/Main.java':'framework/web-checks/'+name+'/Main.java';
+            for(const [relative,canonical] of [['Main.java',originalMain],...['ApiProof.java','ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java','ApiCompletionChecks.java','ApiProbeBases.java'].map(file=>['evidence/'+file,'framework/evidence/java/evidence/'+file]),...(name==='helpers'?[['GameApiChecks.java','framework/web-checks/GameApiChecks.java']]:[])]) {
+              if(!(await fs.readFile(path.join(projectRoot,'src/main/java',relative))).equals(await fs.readFile(path.join(root,canonical))))throw new Error('Browser fixture differs from current source: '+relative);
+            }
+            if(!process.env.JAVA_HOME)throw new Error('Browser evidence needs actual JAVA_HOME compiler identity.');
+            const toolFiles=[process.execPath,...javaToolFiles(process.env.JAVA_HOME),...await prepareArtifacts(cacheRoot)];
+            // Bind actual cached GWT/compiler and Maven dependency bytes as well
+            // as the Java/Node executables. This reads only the completed cache.
+            async function compilerJars(directory,allFiles=false) {
+              for(const entry of await fs.readdir(directory,{withFileTypes:true})) {
+                const file=path.join(directory,entry.name);
+                if(entry.isSymbolicLink())throw new Error('Linked compiler evidence input.');
+                if(entry.isDirectory())await compilerJars(file,allFiles);
+                else if(entry.isFile()&&(allFiles||entry.name.endsWith('.jar')))toolFiles.push(file);
+              }
+            }
+            for(const folder of ['repository','artifacts','maven-home'])await compilerJars(path.join(cacheRoot,folder),folder==='maven-home');
+            toolFiles.sort();
+            const {identity,output,inputs}=executionIdentity({manifest,projectRoot:path.join(base,'projects',name),outputDirectory:built.sitePath,toolFiles,platform:observed.browser,harnessFiles:[path.join(root,'scripts/verify-web-export.mjs'),path.join(root,'scripts/web-browser-checks.js'),path.join(root,'scripts/api-evidence.mjs'),path.join(root,name==='helpers'?'framework/web-checks/Main.java':name==='zero-ui'?'framework/web-checks/navigation/Main.java':'framework/web-checks/'+name+'/Main.java'),path.join(root,'framework/web-checks/GameApiChecks.java'),...['ApiProof.java','ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java','ApiCompletionChecks.java','ApiProbeBases.java'].map(file=>path.join(root,'framework/evidence/java/evidence',file))]});
+            persistJavaEvidence({directory:path.join(base,'api-evidence','browser-'+name),manifest,raw:evidence.raw,pixels:evidence.pixels,identity,output,inputs,runId:'browser-'+name+'-'+Date.now(),target:'browser',caseId:evidence.caseId});
+          }
+        }
       }
     } finally {
       command(['close']);
@@ -279,4 +325,8 @@ if (browser) {
     previews.forEach((item) => item.dispose());
   }
 }
-console.log('Real WebFX/GWT exports passed for helpers, quiz, drawing, audio, greeting controls with cross-file resource URLs, and portrait mobile controls.');
+if(browser&&!mobileOnly&&['helpers','zero-ui','audio','lifecycle'].every(name=>selectedFixtures.includes(name))) {
+ const manifest=JSON.parse(await fs.readFile(path.join(root,'framework/evidence/api-signatures.json'),'utf8'));
+ requireTargetEvidence(loadJavaEvidence(path.join(base,'api-evidence'),{manifest}),'browser');
+}
+console.log('Selected WebFX/GWT verification finished for: '+selectedFixtures.join(', ')+'. Unselected fixtures have no result from this run.');

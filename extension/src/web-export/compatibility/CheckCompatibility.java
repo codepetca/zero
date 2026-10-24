@@ -116,7 +116,7 @@ public final class CheckCompatibility {
                 new TreePathScanner<Void, Void>() {
                     @Override public Void visitClass(ClassTree tree, Void ignored) {
                         Element e = trees.getElement(getCurrentPath());
-                        if (e instanceof TypeElement type && Set.of("zero.App", "zero.GameApp", "zero.ImageRegion", "zero.SpriteAnimation", "zero.Collisions", "zero.Sound", "zero.Music").contains(type.getQualifiedName().toString())) fail(unit, tree, "This Zero helper identity requires its exact reviewed source path and adapter hash; use a different name for your own helper.");
+                        if (e instanceof TypeElement type && Set.of("zero.Actor", "zero.AnimationSource", "zero.AnimationPlayback", "zero.Color", "zero.Key", "zero.ui.Element", "zero.ui.Label", "zero.ui.TextField", "zero.ui.Button", "zero.ui.Column", "zero.ui.Row", "zero.App", "zero.GameApp", "zero.ImageRegion", "zero.SpriteAnimation", "zero.Collisions", "zero.Sound", "zero.Music").contains(type.getQualifiedName().toString())) fail(unit, tree, "This Zero helper identity requires its exact reviewed source path and adapter hash; use a different name for your own helper.");
                         return super.visitClass(tree, ignored);
                     }
                     void inspect(Tree tree) { check(trees.getElement(getCurrentPath()), tree, getCurrentPath(), trusted); }

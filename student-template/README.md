@@ -88,12 +88,20 @@ and **Check again**. School IT can provide the tools before students start.
 3. Copy the starter into your own folder outside any other Git repository,
    open that folder in VS Code,
    and trust the folder if you trust its source. Keep `zero.json`, `pom.xml`,
-   both Maven wrappers, and the `.mvn` folder with it.
+   both Maven wrappers, the `.mvn` folder, `zero-core.json` and the complete
+   `.zero-build` folder with it. Commit these source/build files to your own repository.
 4. Run App. The first run needs internet to download the pinned Maven and JavaFX
    dependencies; later runs reuse the local cache. You do
    not need Node.js, global Maven or a separate JavaFX installation.
    A school proxy/firewall can block these downloads; ask your teacher rather
    than adding passwords or tokens to project files.
+
+Your saved `.zero-build` folder contains the browser compiler rules and adapters
+for this project. Keep it unchanged when updating the Zero editor. Its README
+records the browser runtime requirements and explicit standalone commands.
+Native Run remains available without Node. Browser tooling updates are deliberate:
+work on a copy or Git branch, check the result, and keep the original recoverable.
+A saved finished web ZIP can be hosted separately from rebuilding the Java source.
 
 To run native JavaFX from a terminal in this folder:
 

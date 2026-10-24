@@ -1,5 +1,10 @@
 package zero;
 
+import evidence.ApiSignatureChecks;
+import evidence.ApiNative;
+import evidence.ApiProof;
+import evidence.ApiCompletionChecks;
+
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,7 +30,7 @@ public final class AudioCheck extends Application {
     private long entered;
     private double pausedAt;
     private int repeats;
-    private boolean replayRewound;
+    private boolean replayRewound,soundStopStarted;
     private Stage ownerStage, failingStage;
     private FailingGame failing;
     private int frameErrors;
@@ -63,6 +68,7 @@ public final class AudioCheck extends Application {
         malformed[20] = (byte) 0xff; malformed[21] = (byte) 0xff; // Invalid WAV encoding after a valid container signature.
         Files.write(resources.resolve("zero/broken-decode.wav"), malformed);
         owner = new Owner(); ownerStage = new Stage(); owner.start(ownerStage);
+        ApiSignatureChecks.audio(owner,"/zero/audio-check.wav");
         sound = owner.loadSound("/zero/audio-check.wav");
         require(sound == owner.loadSound("audio-check.wav") && sound == owner.loadSound("/zero/../zero/audio-check.wav"), "sound canonical aliases");
         sound.setVolume(.12); require(owner.loadSound("audio-check.wav").getVolume() == .12, "cached settings shared");
@@ -95,10 +101,10 @@ public final class AudioCheck extends Application {
         }
         music.setVolume(.05); music.setMuted(true);
         require(music.getVolume() == .05 && music.isMuted() && nativeMusic.isMute(), "music mute retains volume");
-        music.loop(); music.stop(); music.play(); // Commands before READY retain final intent and loop mode.
+        ApiCompletionChecks.musicLoop(music); music.stop(); ApiCompletionChecks.musicPlay(music); // Commands before READY retain final intent and loop mode.
         once.play(); once.pause(); preStopped.loop(); preStopped.stop();
         require(nativeMusic.getCycleCount() == MediaPlayer.INDEFINITE, "stop retains loop mode");
-        sound.setVolume(.01); sound.play();
+        sound.setVolume(.01); ApiCompletionChecks.soundPlay(sound);
         entered = System.nanoTime();
         new AnimationTimer() {
             @Override public void handle(long now) {
@@ -126,20 +132,28 @@ public final class AudioCheck extends Application {
                 require(!once.isPlaying() && nativeOnce.getCurrentTime().toMillis() < 60, "pause before ready");
                 require(!preStopped.isPlaying() && player(preStopped).getCurrentTime().toMillis() < 60, "stop before ready");
                 require(sound.isPlaying(), "native sound starts");
+                ApiProof.complete("live-music-play",""+music.isPlaying(),"true");
+                ApiProof.complete("live-sound-play",""+sound.isPlaying(),"true");
                 sound.setMuted(true); require(sound.isMuted() && !sound.isPlaying(), "mute stops active effects");
                 sound.play(); require(!sound.isPlaying(), "muted effects do not play");
                 sound.setMuted(false); require(!sound.isPlaying(), "unmute does not replay");
-                music.pause(); pausedAt = nativeMusic.getCurrentTime().toMillis(); next(now); break;
+                ApiCompletionChecks.musicPause(music); pausedAt = nativeMusic.getCurrentTime().toMillis(); next(now); break;
             case 1:
                 if (elapsed < .3) return;
                 require(!music.isPlaying() && Math.abs(nativeMusic.getCurrentTime().toMillis() - pausedAt) < 100, "pause holds position");
+                if(!soundStopStarted){sound.play();soundStopStarted=true;return;}
+                if(!sound.isPlaying())return;
+                ApiProof.complete("live-music-pause",""+(!music.isPlaying()&&Math.abs(nativeMusic.getCurrentTime().toMillis()-pausedAt)<100),"true");
+                ApiCompletionChecks.soundStop(sound);
+                ApiProof.complete("live-sound-stop",""+sound.isPlaying(),"false");
                 music.play(); next(now); break;
             case 2:
                 if (!music.isPlaying() || nativeMusic.getCurrentTime().toMillis() < pausedAt + 130) return;
-                require(true, "resume advances"); music.stop(); next(now); break;
+                require(true, "resume advances"); ApiCompletionChecks.musicStop(music); next(now); break;
             case 3:
                 if (elapsed < .12) return;
                 require(!music.isPlaying() && nativeMusic.getCurrentTime().toMillis() < 80, "stop rewinds");
+                if(repeats==0)ApiProof.complete("live-music-stop",""+(!music.isPlaying()&&nativeMusic.getCurrentTime().toMillis()<80),"true");
                 music.play(); next(now); break;
             case 4:
                 if (!music.isPlaying() || nativeMusic.getCurrentTime().toMillis() < 150) return;
@@ -150,6 +164,7 @@ public final class AudioCheck extends Application {
             case 5:
                 if (elapsed < 2.5) return;
                 require(music.isPlaying() && nativeMusic.getCurrentCount() >= 2, "full native repeats after three restarts");
+                ApiProof.complete("live-music-loop",""+(music.isPlaying()&&nativeMusic.getCurrentCount()>=2),"true");
                 require(!once.isPlaying() && nativeOnce.getCurrentTime().toMillis() >= 850,
                         "play once reaches end status=" + nativeOnce.getStatus() + " time=" + nativeOnce.getCurrentTime());
                 // Seek/status notifications are asynchronous. Observe an actual rewind
@@ -183,6 +198,7 @@ public final class AudioCheck extends Application {
                 require(failing.sound.isClosed() && failing.music.isClosed()
                         && player(failing.music).getStatus() == MediaPlayer.Status.DISPOSED, "frame failure closes audio");
                 failingStage.close(); Thread.currentThread().setUncaughtExceptionHandler(previousHandler);
+                ApiNative.emit();
                 System.out.println("ZERO_AUDIO_OK " + checks + " native checks: canonical effects, independent/pre-ready music, pause/rewind/repeated loops, mute/volume/errors, ownership and failure cleanup");
                 Platform.exit(); phase = 8; break;
         }

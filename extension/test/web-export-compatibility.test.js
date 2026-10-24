@@ -22,12 +22,13 @@ async function readSources(directory) {
 }
 const pomPromise = fs.readFile(path.join(root, 'student-template/pom.xml'), 'utf8');
 const helpersPromise = readSources(path.join(root, 'framework/src/main/java'));
+const evidencePromise = readSources(path.join(root,'framework/evidence/java/evidence')).then(sources=>Object.fromEntries(Object.entries(sources).filter(([name])=>name!=='ApiNative.java').map(([name,source])=>['evidence/'+name,source])));
 let temporary;
 test.before(async () => { temporary = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'zero-semantic-'))); });
 test.after(async () => { await fs.rm(temporary, { recursive: true, force: true }); });
 async function check(sources, overrides = {}) {
   const workRoot = path.join(temporary, String(++counter)); await fs.mkdir(workRoot);
-  return checkCompatibility({ sources: { ...await helpersPromise, ...sources }, pom: await pomPromise, workRoot, cacheRoot: path.join(temporary, 'cache'), ...overrides });
+  return checkCompatibility({ sources: { ...await helpersPromise, ...await evidencePromise, ...sources }, pom: await pomPromise, workRoot, cacheRoot: path.join(temporary, 'cache'), ...overrides });
 }
 const app = body => `import zero.App;\npublic class Main extends App {\n public void setup() { ${body} }\n public static void main(String[] args) { launch(args); }\n}\n`;
 test('contract has an immutable explicit type/member boundary and hashed attribution inputs', async () => {
@@ -44,14 +45,20 @@ test('dependency gate rejects unpinned, injected, inherited and profile dependen
   for (const changed of [pom.replace('21.0.12', '21.0.11'), pom.replace('javafx-controls', 'javafx-web'), pom.replace('<dependencies>', '<profiles/><dependencies>'), pom.replace('<dependencies>', '<parent/><dependencies>'), pom.replace('<dependencies>', '<dependencyManagement/><dependencies>'), pom.replace('org.openjfx', 'org.openjfx.evil'), pom.replace('<artifactId>javafx-controls</artifactId>', '<artifactId>javafx-controls</artifactId><classifier>other</classifier>')]) assert.throws(() => validateDependencies(changed), /browser|Browser|POM/);
   assert.throws(() => validateDependencies(pom.replace('<dependencies>', '<!-- fake <dependency> ignored -->\n<dependencies>').replace('org.openjfx', 'evil')), /browser dependency/);
 });
-test('all seven reviewed helper APIs and quiz, drawing, audio and controls retain resolved compatibility', { timeout: 240000 }, async () => {
+test('all eighteen reviewed helper APIs and quiz, drawing, audio and controls retain resolved compatibility', { timeout: 240000 }, async () => {
+  const sharedScoreSources = await readSources(path.join(root, 'framework/prototypes/shared'));
+  assert.deepEqual(Object.keys(sharedScoreSources).sort(), ['BarScoreDisplay.java', 'ScoreDisplay.java', 'ScoreView.java']);
   const fixtures = [
     { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/Main.java'), 'utf8'), 'GameApiChecks.java': await fs.readFile(path.join(root, 'framework/web-checks/GameApiChecks.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'student-template/examples/quiz/Main.java'), 'utf8'), 'ScoreDisplay.java': await fs.readFile(path.join(root, 'student-template/examples/shared/ScoreDisplay.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'student-template/examples/drawing/Main.java'), 'utf8') },
-    { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/audio/Main.java'), 'utf8') }
+    { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/audio/Main.java'), 'utf8') },
+    { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/ui/Main.java'), 'utf8') },
+    { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/navigation/Main.java'), 'utf8') },
+    { ...await readSources(path.join(root, 'framework/prototypes/counter')), ...sharedScoreSources },
+    { ...await readSources(path.join(root, 'framework/prototypes/coin-game')), ...sharedScoreSources }
   ];
-  for (const sources of fixtures) { const result = await check(sources); assert.equal(result.status, 'passed'); assert.equal(result.trustedHelpers.length, 7); }
+  for (const sources of fixtures) { const result = await check(sources); assert.equal(result.status, 'passed'); assert.equal(result.trustedHelpers.length, 18); }
 });
 test('resolved owners, overloads, references, static imports, dead code and Java APIs fail with source positions', { timeout: 240000 }, async () => {
   const sources = {
@@ -137,7 +144,7 @@ test('resource lookup is constrained and approved source initializers are attrib
   await assert.rejects(check({ 'Main.java': app('Object info = getClass();') }), /Object#getClass/);
   await assert.rejects(check({ 'Main.java': app('java.lang.Class<?> type = Main.class;') }), /Class literals are supported only/);
 });
-test('28 maintained source examples pass; external stylesheets and packaged dependencies fail explicitly', { timeout: 240000 }, async () => {
+test('31 maintained source examples pass; external stylesheets and packaged dependencies fail explicitly', { timeout: 240000 }, async () => {
   const base = path.join(root, 'student-template/examples'), sources = {};
   const exists = async file => fs.access(file).then(() => true, () => false);
   let count = 0;
@@ -153,7 +160,7 @@ test('28 maintained source examples pass; external stylesheets and packaged depe
     for (const file of files) sources[prefix.replaceAll('.', '/') + '/' + path.basename(file)] = 'package ' + prefix + ';\n' + await fs.readFile(file, 'utf8');
     count++;
   }
-  assert.equal(count, 28);
+  assert.equal(count, 31);
   assert.equal((await check(sources)).status, 'passed');
   await assert.rejects(check({ 'Main.java': app('var box = new javafx.scene.layout.VBox(); box.getStylesheets().add("theme.css");') }), error => {
     assert.match(error.message, /Main\.java:\d+:\d+: Unsupported browser API javafx\.scene\.Parent#getStylesheets\(\)/);
@@ -193,4 +200,170 @@ test('resolved resource URL types remain consistent across helpers, fields and w
  assert.match(result.sources['zero/exported/Reference.java'],/zero.web.ResourceURL pass\(zero.web.ResourceURL value\)/);
  assert.match(result.sources['zero/exported/Reference.java'],/ResourceURL local = new ResourceURL\(\)/);
  await assert.rejects(check({'Main.java':app('var resource = getClass().getResource("/theme.css"); resource.openConnection();')}), /java.net.URL#openConnection\(\)/);
+});
+
+
+test('Actor subclasses inherit reviewed methods while forged Actor identities fail', { timeout: 240000 }, async () => {
+  const result = await check({ 'Main.java': app(''), 'Player.java': `import zero.Actor;
+import zero.GameApp;
+import zero.ImageRegion;
+import zero.SpriteAnimation;
+import javafx.scene.image.Image;
+class Player extends Actor {
+ Player(Image image) { super(image, 10, 20); }
+ Player(ImageRegion region) { super(region, 10, 20); }
+ Player(SpriteAnimation animation) { super(animation, 10, 20); }
+ @Override protected void onUpdate(double seconds) { moveForward(30, seconds); }
+ @Override public void draw(GameApp app) { super.draw(app); }
+ void exercise(Image image, ImageRegion region, SpriteAnimation animation) {
+  setPosition(x() + 1, y()); setSize(width(), height()); setRotation(rotation());
+  move(1, 2); rotate(15); face(20, 30); moveToward(20, 30, 5, .5);
+  setImage(image); setImage(region); setImage(animation);
+ }
+}` });
+  assert.equal(result.status, 'passed');
+  const helpers = await helpersPromise;
+  await assert.rejects(check({ 'Main.java': app(''), 'zero/Actor.java': helpers['zero/Actor.java'] + '\n// edited\n' }), /helper differs/);
+  const sources = { ...helpers, 'Main.java': app('') };
+  delete sources['zero/Actor.java'];
+  sources['other/Actor.java'] = 'package zero; public class Actor {}';
+  await assert.rejects(check({}, { sources }), /helper identity requires/);
+});
+
+test('animation interfaces require canonical reviewed identities even when relocated', { timeout: 240000 }, async () => {
+  const helpers = await helpersPromise;
+  for (const name of ['AnimationSource', 'AnimationPlayback']) {
+    const canonical = 'zero/' + name + '.java';
+    await assert.rejects(check({'Main.java': app(''), [canonical]: helpers[canonical] + '\n// changed\n'}), /helper differs/);
+    const sources = { ...helpers, 'Main.java': app('') };
+    delete sources[canonical];
+    sources['other/' + name + '.java'] = helpers[canonical];
+    await assert.rejects(check({}, {sources}), /helper identity requires/);
+  }
+});
+
+
+test('Zero UI exact APIs and advanced fxNode interop do not grant neighboring JavaFX members or forged helper identities', { timeout: 240000 }, async () => {
+  const result = await check({'Main.java': app(`zero.ui.Label label = new zero.ui.Label("Ready");
+    label.setText(label.getText()); zero.ui.Button button = new zero.ui.Button("Go");
+    button.setText(button.getText()); button.onClick(() -> label.setText("Clicked"));
+    zero.ui.Column column = new zero.ui.Column(12, label, button);
+    zero.ui.TextField name = new zero.ui.TextField(); name.setText(name.getText());
+    name.setPromptText("Your name"); label.setText(name.getPromptText());
+    column.setEnabled(false); column.setEnabled(true); name.setEnabled(false);
+    button.setEnabled(false); label.setEnabled(true);
+    column.setSpacing(column.getSpacing()); javafx.scene.Node advanced = column.fxNode(); show(column);`)});
+  assert.equal(result.status, 'passed');
+  await assert.rejects(check({'Main.java': app('new zero.ui.Label("Ready").fxNode().setUserData("hidden");')}), /javafx.scene.Node#setUserData/);
+  await assert.rejects(check({'Main.java': app('new zero.ui.TextField().clear();')}), /clear/);
+  await assert.rejects(check({'Main.java': app(''), 'forged/ZeroDisabledState.java':
+    'package javafx.scene; public class ZeroDisabledState { }'}), /package is reserved/);
+  await assert.rejects(check({'Main.java': app(''), 'zero/Leak.java':'package zero; class Leak { Object hidden() { return Color.BLUE.fxColor(); } }'}), /zero.Color#fxColor/);
+  const helpers = await helpersPromise;
+  for (const file of ['zero/Color.java', 'zero/ui/Element.java', 'zero/ui/Label.java', 'zero/ui/TextField.java', 'zero/ui/Button.java', 'zero/ui/Column.java', 'zero/ui/Row.java', 'zero/Key.java']) {
+    await assert.rejects(check({'Main.java': app(''), [file]: helpers[file] + '\n// changed\n'}), /helper differs/);
+    const sources = {...helpers, 'Main.java': app('')}; delete sources[file];
+    sources['forged/' + file.split('/').pop()] = helpers[file];
+    await assert.rejects(check({}, {sources}), /helper identity requires/);
+  }
+});
+
+
+test('package-local navigation internals stay outside the student browser contract', {timeout:240000}, async () => {
+  await assert.rejects(check({'Main.java':app(''), 'zero/NavigationLeak.java':
+    'package zero; class NavigationLeak { void hidden(App app) { app.beginFrame(); app.endFrame(true); } }'}), error =>
+      /zero.App#beginFrame\(\)/.test(error.message) && /zero.App#endFrame\(boolean\)/.test(error.message));
+});
+
+
+test('Actor drawing callbacks resolve protected inherited helpers without granting public or mismatched overload access', {timeout:240000}, async () => {
+  const result = await check({'Main.java':`import zero.GameApp;
+class Main extends GameApp { public void setup() { draw(new Child()); } }
+class Drawing extends zero.Actor { Drawing() { super(20, 30); } }
+class Child extends Drawing {
+ @Override public void draw() {
+  fill(zero.Color.BLUE); stroke(zero.Color.BLACK); strokeWidth(2); textSize(14);
+  rect(-5,-5,10,10); outlineRect(-5,-5,10,10); circle(0,0,8); line(-5,0,5,0);
+  text("Actor",0,0); textCentered("Actor",0,0);
+ }
+}`});
+  assert.equal(result.status,'passed');
+  await assert.rejects(check({'Main.java':app('new zero.Actor(0,0).fill(zero.Color.BLUE);')}), /protected access/);
+  await assert.rejects(check({'Main.java':app(''), 'Wrong.java':
+    'class Wrong extends zero.Actor { Wrong() { super(0,0); } public void draw() { fill(javafx.scene.paint.Color.BLUE); rect(1,2,3); } }'}), /Cannot resolve browser source/);
+});
+
+
+test('wall clock admits only the exact reviewed currentTimeMillis signature', { timeout: 120000 }, async () => {
+  const result = await check({ 'Main.java': app('long started = System.currentTimeMillis(); long elapsed = java.lang.System.currentTimeMillis() - started; new zero.ui.Label("Elapsed: " + elapsed);') });
+  assert.equal(result.status, 'passed');
+  await assert.rejects(check({ 'Main.java': app('long unsupported = System.nanoTime();') }), /java.lang.System#nanoTime\(\)/);
+});
+
+
+test('Zero key and pointer overloads admit only the documented constants and query signatures', {timeout:240000}, async () => {
+  const contract = require('../src/web-export/compatibility/contract.json');
+  assert.deepEqual(contract.members.filter(member => member.startsWith('zero.Key#')).sort(),
+    ['LEFT','RIGHT','UP','DOWN','W','A','S','D','SPACE','ENTER','ESCAPE','R'].map(key => 'zero.Key#' + key).sort());
+  const game = body => `import zero.GameApp; public class Main extends GameApp { public void setup() { ${body} } }`;
+  assert.equal((await check({'Main.java':game('boolean held = keyDown(zero.Key.LEFT) || keyDown(zero.Key.RIGHT) || keyDown(zero.Key.UP) || keyDown(zero.Key.DOWN); boolean edge = keyPressed(zero.Key.SPACE) || keyPressed(zero.Key.ENTER) || keyPressed(zero.Key.ESCAPE) || keyPressed(zero.Key.R); boolean letters = keyDown(zero.Key.W) || keyDown(zero.Key.A) || keyDown(zero.Key.S) || keyDown(zero.Key.D); boolean pointer = mouseDown() || mousePressed(); show(new zero.ui.Row(12, new zero.ui.Label("Ready"), new zero.ui.Button("Go")));')})).status, 'passed');
+  for (const expression of ['zero.Key.values()', 'zero.Key.valueOf("LEFT")', 'zero.Key.LEFT.name()']) {
+    await assert.rejects(check({'Main.java':game(expression + ';')}), /Unsupported browser API/);
+  }
+});
+
+
+test('full-image region loader exposes only its exact path signature', {timeout:240000}, async () => {
+  const source = 'import zero.GameApp; import zero.ImageRegion; public class Main extends GameApp { public void setup() { ImageRegion sprite = loadImageRegion("/player.png"); image(sprite, 20, 30, 24, 24); } }';
+  assert.equal((await check({'Main.java':source})).status, 'passed');
+  await assert.rejects(check({'Main.java':source.replace('loadImageRegion("/player.png")', 'loadImageRegion("/player.png", true)')}), /loadImageRegion/);
+});
+
+
+test('simulation integer parsing admits only the decimal String signature', {timeout:120000}, async () => {
+  const source = await fs.readFile(path.join(root, 'framework/prototypes/simulation/Main.java'), 'utf8');
+  assert.equal((await check({'Main.java':source})).status, 'passed');
+  await assert.rejects(check({'Main.java':source.replace('Integer.parseInt(speedInput.getText().trim())', 'Integer.parseInt(speedInput.getText().trim(), 10)')}), /java.lang.Integer#parseInt\(java.lang.String,int\)/);
+});
+
+test('animation sources and playback admit exact factory/update/frame and protected actor hook only', {timeout:120000},async()=>{
+ const source=`import zero.*;
+public class Main extends GameApp {
+ public void setup() {
+  ImageRegion frame=loadImageRegion("/tiles.png");
+  AnimationSource source=new Clip(frame);
+  AnimationPlayback playback=source.createPlayback(); playback.update(0); ImageRegion same=playback.frame();
+  SpriteAnimation legacy=new SpriteAnimation(2,frame); legacy.createPlayback().update(.5);
+  Actor actor=new Mover(source);actor.setImage(source);actor.update(.5);draw(actor);
+ }
+}
+class Clip implements AnimationSource {
+ private final ImageRegion frame;
+ Clip(ImageRegion frame){this.frame=frame;}
+ public AnimationPlayback createPlayback(){return new AnimationPlayback(){public void update(double seconds){} public ImageRegion frame(){return frame;}};}
+}
+class Mover extends Actor {
+ Mover(AnimationSource source){super(source,10,20);}
+ @Override protected void onUpdate(double seconds){move(seconds,0);}
+}`;
+ assert.equal((await check({'Main.java':source})).status,'passed');
+ await assert.rejects(check({'Main.java':source.replace('playback.update(0)','playback.reset()')}),/reset/);
+ await assert.rejects(check({'Main.java':source.replace('actor.update(.5)','actor.onUpdate(.5)')}),/protected access/);
+ const contract=require('../src/web-export/compatibility/contract.json');
+ assert.deepEqual(contract.members.filter(name=>name.startsWith('zero.Animation')).sort(),[
+  'zero.AnimationPlayback#frame()','zero.AnimationPlayback#update(double)','zero.AnimationSource#createPlayback()']);
+});
+
+test('ordinary App createScene override accepts the advertised Scene return type without widening members',async()=>{
+  let cacheRoot=path.join(os.homedir(),'.cache/zero/web-export');
+  try {await fs.access(path.join(cacheRoot,'compatibility-artifacts'));} catch (_) {cacheRoot=path.join(temporary,'cache');}
+  const source=`import zero.App;
+import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
+public class Main extends App {
+ @Override protected Scene createScene(BorderPane content) { return super.createScene(content); }
+ public static void main(String[] args) { launch(args); }
+}`;
+  assert.equal((await check({'Main.java':source},{cacheRoot,cacheOnly:true})).status,'passed');
+  await assert.rejects(check({'Main.java':source.replace('return super.createScene(content);','Scene scene=super.createScene(content); scene.getRoot(); return scene;')},{cacheRoot,cacheOnly:true}),/Unsupported browser API javafx.scene.Scene#getRoot\(\)/);
 });

@@ -74,6 +74,17 @@ async function prepareArtifacts(cacheRoot, signal, get = download) {
   }
   return files;
 }
+async function readCachedArtifacts(cacheRoot,signal,{stageRoot}={}) {
+  const files=[];
+  for(const artifact of contract.attributionArtifacts) {
+    abort(signal);const file=path.join(cacheRoot,'compatibility-artifacts',artifact.file);await ordinary(file);
+    let bytes;
+    try{const stat=await fs.lstat(file);if(!stat.isFile()||stat.nlink!==1||stat.size>32*1024*1024)throw new Error('linked or oversized artifact');bytes=await fs.readFile(file);}catch(error){throw Object.assign(new Error('Browser checks unavailable: missing exact cached attribution artifact '+artifact.file+'. Choose preparation explicitly.'),{code:'ZERO_COMPATIBILITY_UNAVAILABLE'});}
+    if(digest(bytes)!==artifact.sha256)throw Object.assign(new Error('Browser checks unavailable: cached attribution checksum differs: '+artifact.file),{code:'ZERO_COMPATIBILITY_UNAVAILABLE'});
+    if(stageRoot){const target=path.join(stageRoot,artifact.file);await ordinary(target);await fs.writeFile(target,bytes,{flag:'wx'});files.push(target);}else files.push(file);
+  }
+  return files;
+}
 function validateWrapperInputs(files, platform = process.platform) {
   const name = platform === 'win32' ? 'mvnw.cmd' : 'mvnw';
   const propertiesName = '.mvn/wrapper/maven-wrapper.properties';
@@ -94,12 +105,14 @@ function verifyArtifactInventory(inventory) {
 async function compatibilityProfile() {
   return { id: contract.id, schemaVersion: contract.schemaVersion, contractHash: digest(await fs.readFile(path.join(__dirname, 'contract.json'))), checkerHash: digest(await fs.readFile(path.join(__dirname, 'CheckCompatibility.java'))), mavenArtifactCatalogueHash: digest(await fs.readFile(path.join(__dirname, 'maven-artifacts.json'))), javaRelease: contract.javaRelease, javafxVersion: contract.javafxVersion, attributionArtifacts: contract.attributionArtifacts.map(({ file, sha256 }) => ({ file, sha256 })) };
 }
-async function checkCompatibility({ sources, pom, libraries=[], sourceOrigins={}, workRoot, cacheRoot, env, signal, onProgress = () => {}, getArtifact }) {
+async function checkCompatibility({ sources, pom, libraries=[], sourceOrigins={}, workRoot, cacheRoot, env, signal, onProgress = () => {}, getArtifact, cacheOnly = false }) {
   abort(signal);
-  const dependencyProfile = validateDependencies(pom,{libraries});
+  let dependencyProfile;try{dependencyProfile=validateDependencies(pom,{libraries});}catch(error){error.code='ZERO_BROWSER_UNSUPPORTED';throw error;}
   const profile = await compatibilityProfile();
-  const jars = await prepareArtifacts(cacheRoot, signal, getArtifact);
   const root = path.join(workRoot, 'compatibility'); await ordinary(root); await fs.mkdir(root, { recursive: true });
+  let jars;
+  if(cacheOnly){const staged=path.join(root,'attribution');await fs.mkdir(staged);jars=await readCachedArtifacts(cacheRoot,signal,{stageRoot:staged});}
+  else jars=await prepareArtifacts(cacheRoot, signal, getArtifact);
   const sourceRoot = path.join(root, 'sources'); await fs.mkdir(sourceRoot);
   const trusted = [];
   for (const [name, source] of Object.entries(sources)) {
@@ -113,7 +126,8 @@ async function checkCompatibility({ sources, pom, libraries=[], sourceOrigins={}
   const api = path.join(root, 'contract.tsv'), trustedFile = path.join(root, 'trusted.txt');
   await fs.writeFile(api, [...contract.types.map(t => 'T\t' + t), ...contract.members.map(m => 'M\t' + m)].join('\n') + '\n');
   await fs.writeFile(trustedFile, trusted.join('\n'));
-  const childEnv = { ...process.env, ...env, JAVA_TOOL_OPTIONS: '', JDK_JAVA_OPTIONS: '', _JAVA_OPTIONS: '', CLASSPATH: '' };
+  const childEnv = { ...process.env, ...env };
+  for(const key of Object.keys(childEnv))if(['JAVA_TOOL_OPTIONS','JDK_JAVA_OPTIONS','_JAVA_OPTIONS','CLASSPATH'].includes(key.toUpperCase()))delete childEnv[key];
   const java = childEnv.JAVA_HOME ? path.join(childEnv.JAVA_HOME, 'bin', process.platform === 'win32' ? 'java.exe' : 'java') : 'java';
   onProgress('Checking every original Java API against ' + contract.id);
   const checkerOutput = await new Promise((resolve, reject) => {
@@ -126,13 +140,14 @@ async function checkCompatibility({ sources, pom, libraries=[], sourceOrigins={}
     const cleanup = () => { clearTimeout(timer); signal?.removeEventListener('abort', stop); };
     const receive = chunk => { output += chunk.toString(); if (output.length > 1024 * 1024) { output = output.slice(0, 1024 * 1024); stop(); } };
     child.stdout.on('data', receive); child.stderr.on('data', receive);
-    child.on('error', error => { if (!settled) { settled = true; cleanup(); reject(new Error('Cannot start the local JDK browser compatibility checker: ' + error.message)); } });
+    child.on('error', error => { if (!settled) { settled = true; cleanup(); reject(Object.assign(new Error('Cannot start the local JDK browser compatibility checker: ' + error.message),{code:'ZERO_COMPATIBILITY_UNAVAILABLE'})); } });
     child.on('close', code => { if (settled) return; settled = true; cleanup(); try { abort(signal); if (code !== 0) {
       const diagnostic=(output.trim() || 'The JDK checker timed out or stopped. Check the project and local JDK.').split(/\r?\n/).map(line=>{
         const match=/^(.+\.java)(:\d+:\d+:.*)$/.exec(line);
         return match&&sourceOrigins[match[1]]?sourceOrigins[match[1]]+match[2]:line;
       }).join('\n');
-      throw new Error('Browser compatibility check failed:\n' + diagnostic);
+      const rejected=code===1&&output.trim().split(/\r?\n/).every(line=>/^.+\.java:\d+:\d+: /.test(line));
+      throw Object.assign(new Error('Browser compatibility check failed:\n' + diagnostic),{code:rejected?'ZERO_BROWSER_UNSUPPORTED':'ZERO_COMPATIBILITY_UNAVAILABLE'});
     } resolve(output); } catch (error) { reject(error); } });
   });
   abort(signal);
@@ -147,4 +162,4 @@ async function checkCompatibility({ sources, pom, libraries=[], sourceOrigins={}
   }
   return { ...profile, status: 'passed', sourceCount: Object.keys(sources).length, trustedHelpers: trusted.sort().map(file => ({ file, sha256: helperHashes[file] })), resourceUrlReferences, ...dependencyProfile };
 }
-module.exports = { checkCompatibility, compatibilityProfile, validateDependencies, prepareArtifacts, verifyArtifactInventory, validateWrapperInputs };
+module.exports = { checkCompatibility, compatibilityProfile, validateDependencies, prepareArtifacts, readCachedArtifacts, verifyArtifactInventory, validateWrapperInputs };

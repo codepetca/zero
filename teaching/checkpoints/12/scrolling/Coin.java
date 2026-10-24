@@ -1,4 +1,4 @@
-import javafx.scene.paint.Color;
+import zero.Color;
 import zero.GameApp;
 
 /** A coin remembers whether it was collected; Main owns the score. */

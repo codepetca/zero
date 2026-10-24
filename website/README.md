@@ -42,7 +42,7 @@ manual Maven setup in a disclosure. New game submissions require a valid square
 PNG under the reviewed publisher policy; existing accepted releases remain valid.
 
 `/hub/share` explains native sharing and the official GitHub request forms.
-The website never receives publisher credentials. An optional, short-lived GitHub
+ZeroHub browser sessions do not receive desktop publisher credentials. An optional, short-lived GitHub
 App session enables inline repository stars; browsing and playing stay public.
 It uses the same Codepet App as native Zero, with separate browser credentials.
 The public [Codepet Zero App](https://github.com/apps/codepet-zero) is registered

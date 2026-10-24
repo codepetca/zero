@@ -13,6 +13,7 @@ function validateRecord(record, configuration) {
       typeof record.sessionId !== 'string' || !/^[a-f0-9-]{36}$/.test(record.sessionId) ||
       !record.account || typeof record.account.id !== 'string' || !/^[1-9][0-9]*$/.test(record.account.id) || typeof record.account.label !== 'string' || !/^[A-Za-z0-9-]{1,39}$/.test(record.account.label) ||
       !['active','refreshing','reconnect'].includes(record.state) ||
+      (record.flow!==undefined&&!['device','browser'].includes(record.flow)) ||
       typeof record.accessToken !== 'string' || !/^ghu_[A-Za-z0-9_]{8,512}$/.test(record.accessToken) ||
       typeof record.refreshToken !== 'string' || !/^ghr_[A-Za-z0-9_]{8,512}$/.test(record.refreshToken) ||
       !Number.isSafeInteger(record.expiresAt) || !Number.isSafeInteger(record.refreshExpiresAt) || record.expiresAt < 1 || record.refreshExpiresAt < record.expiresAt) {

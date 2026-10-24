@@ -14,12 +14,19 @@ dist/
 .env
 .env.*
 student-template/src/main/java/zero/App.java
+student-template/src/main/java/zero/Actor.java
 student-template/src/main/java/zero/GameApp.java
 student-template/src/main/java/zero/ImageRegion.java
 student-template/src/main/java/zero/SpriteAnimation.java
 student-template/src/main/java/zero/Collisions.java
 student-template/src/main/java/zero/Sound.java
 student-template/src/main/java/zero/Music.java
+student-template/src/main/java/zero/Color.java
+student-template/src/main/java/zero/ui/Element.java
+student-template/src/main/java/zero/ui/Label.java
+student-template/src/main/java/zero/ui/Button.java
+student-template/src/main/java/zero/ui/Column.java
+student-template/src/main/java/zero/ui/TextField.java
 student-template/LICENSE
 website/.generated/
 website/.next/
@@ -44,3 +51,13 @@ extension/media/tutorial-assets/
 output/playwright/
 .playwright-cli/
 **/.zero/web-export/
+
+student-template/src/main/java/zero/Key.java
+student-template/src/main/java/zero/ui/Row.java
+
+# Maintainer-generated starter record; extracted student projects track theirs.
+/student-template/zero-core.json
+/student-template/.zero-build/
+
+/student-template/src/main/java/zero/AnimationSource.java
+/student-template/src/main/java/zero/AnimationPlayback.java

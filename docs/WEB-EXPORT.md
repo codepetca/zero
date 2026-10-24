@@ -43,6 +43,24 @@ compares all build inputs against the reviewed uploaded commit, including files
 Git status might hide as ignored. Standard CRLF/LF equivalence is allowed only
 for Java/known textual Maven inputs; resources must match the commit exactly.
 
+Unreleased preservation implementation: newly assembled projects track their
+complete browser builder in `.zero-build`, alongside `zero-core.json`, Java
+source and Maven setup. A newer editor reads bounded metadata on open and leaves
+those files unchanged. An explicit browser action in a trusted workspace verifies
+the saved closure, runs a frozen copy with a separate Node/JDK process, withholds
+GitHub credentials, and checks its inputs and output before accepting the build.
+Missing tools or saved files produce a tooling-unavailable result; the editor
+does not silently use its latest compiler. Publish no longer upgrades helpers.
+Current runtime requirements and standalone commands live in that project's
+`.zero-build/README.md`; no central historical-kit database is required.
+
+Finished site/ZIP validation is separate. Previewing or saving retained output
+checks its own file hashes and ZIP bytes without the Java compiler, current
+framework source, current browser profile or live library catalog. Publishing a
+new source version still requires current saved-builder validation and exact
+uploaded-commit binding. Local implementation/review is separate from released
+kits, private runtime provisioning and real authenticated Pages acceptance.
+
 ## Strict WebFX compatibility
 
 A local JDK semantic checker attributes original sources before browser adapters
@@ -55,9 +73,9 @@ approve every inherited API. Unsupported or unresolved use produces original
 file/line/column diagnostics in Problems. Native methods/JSNI and source-defined
 runtime namespace spoofing are rejected.
 
-Only seven helpers at exact reviewed paths/hashes receive trusted adapters; a
-package name is not an exemption. Keep ordinary JavaFX control names and explicit
-object updates. Ordinary class-resource lookup is supported in
+Only the inventoried helpers at exact reviewed paths/hashes receive trusted
+adapters; a package name is not an exemption. The normal teaching path uses Zero
+controls with explicit object updates; supported JavaFX remains an advanced path. Ordinary class-resource lookup is supported in
 `Main.class.getResource(...)` and `getClass().getResource(...)`; unrelated
 reflection remains unavailable. Resource URL types are resolved before adaptation,
 including fields, parameters and return values shared between Java files. Source
@@ -91,7 +109,15 @@ wrapper language or second transpiler is introduced.
 
 The verified game subset includes `Math.hypot(double, double)`, `Math.abs(double)`,
 `Math.atan2(double, double)`, `Math.sin(double)`, `Math.cos(double)` and `Math.PI`.
-Angles use radians. `ArrayList.isEmpty()` and `ArrayList.remove(Object)` work with
+The live-control simulation also uses `Integer.parseInt(String)` with ordinary
+`IllegalArgumentException` handling and range validation before state changes.
+The radix overload is not admitted.
+
+Angles in those Math methods use radians. `Actor` uses clockwise degrees from the
+right, with explicit `update(seconds)` and `draw(app)` calls. Its reviewed browser
+fixture exercises subclass inheritance, movement and aiming, image replacement,
+animation advancement and centered drawing. Actors do not register themselves
+with the game loop. `ArrayList.isEmpty()` and `ArrayList.remove(Object)` work with
 ordinary Java semantics: object removal deletes the first equal item and returns
 whether it found one; `remove(int)` still removes by index and returns the item.
 The declared receiver must be an `ArrayList`; approval does not extend to every
@@ -186,11 +212,11 @@ window behavior is unchanged. Existing exported or published games need a fresh
 build with this runtime before they receive the fitting behavior.
 
 Students keep `Main.java`, explicit object updates, ordinary Java classes and
-JavaFX APIs. The exporter compiles a temporary copy with pinned WebFX/GWT modules.
+their supported Zero or advanced JavaFX APIs. The exporter compiles a temporary copy with pinned WebFX/GWT modules.
 Its adapters cover the reviewed Zero helpers, canvas images and sprite regions,
 keyboard/mouse state, focus, supported JavaFX controls and the bounded JavaFX
-media calls used by the tested game. All seven reviewed helpers, including
-`Sound` and `Music`, retain the ordinary Java API. Image preloading completes before `setup`.
+media calls used by the tested game. Reviewed helpers, including `Sound`,
+`Music` and the Zero UI facade, retain their ordinary Java API. Image preloading completes before `setup`.
 Image startup allows 30 seconds between completed images and at most two minutes
 overall; a progressing slow download can outlast the first 30 seconds. Timeouts
 name remaining files and suggest checking the connection or reducing image sizes.
@@ -216,8 +242,8 @@ must be reviewed before their profile fingerprints are updated. Publishing requi
 compatibility check. Branch-protection settings remain an owner decision and
 were not changed.
 
-The supported profile guards seven helper sources and 98 public/protected Java
-API declarations. Changes must update reviewed adapters and behavior coverage;
+The supported profile guards the exact helper inventory and public/protected
+Java declaration count in `scripts/web-profiles.mjs`. Changes must update reviewed adapters and behavior coverage;
 passing source checks alone is insufficient. Sound aliases share the native cache,
 effects overlap, Music players stay independent, and app/window shutdown releases
 owned playback. Browser limits are explicit: each Sound keeps at most 32 active or

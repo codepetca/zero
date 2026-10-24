@@ -8,8 +8,15 @@ const core=require('../src/core');
 const {createAuthentication}=require('../src/authentication');
 const {createGitHubProjectCommands,nameError}=require('../src/github-app/projects-ui');
 const remote='https://github.com/student/my-project';
-function bundle(){return {schema:2,projects:[['greeting','0'],['study','3'],['game','8']].map(([id,lesson])=>({id,lesson,title:id,folder:`zero-project-${id}`,template:{repository:`codepetca/zero-tutorial-${id}`,repositoryUrl:`https://github.com/codepetca/zero-tutorial-${id}`,templateHref:`https://github.com/codepetca/zero-tutorial-${id}/generate`},files:[['zero.json',JSON.stringify({name:id,templateVersion:'0.1.0',mainClass:'Main',repositoryRequired:true,tutorialProjectId:id,lessonId:lesson})],['.gitignore','target/\n'],['.vscode/settings.json','{"git.enabled":true}'],['src/main/java/Main.java','class Main {}']].map(([path,content])=>({path,content:Buffer.from(content).toString('base64'),mode:420}))}))};}
+const {tutorialScaffoldSha256}=require('../src/tutorial-template-readiness');
+let maintainedBundle;
+function bundle(){
+ const result=structuredClone(maintainedBundle);
+ for(const project of result.projects)project.template.scaffoldSha256=tutorialScaffoldSha256(project.files);
+ return result;
+}
 async function fixture(t){
+ maintainedBundle??=(await import('../../scripts/lesson-projects.mjs')).lessonProjects();
  t.mock.method(core,'repositoryRoot',async()=>undefined);
  const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-projects-ui-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));await fs.mkdir(path.join(root,'media'));await fs.writeFile(path.join(root,'media','lesson-projects.json'),JSON.stringify(bundle()));
  const calls=[],progress=[],recovery=[],inputs=[],picks=[];let name='my-project',tutorialChoice=true,parent={fsPath:root},current=root,enabled=true,afterName=()=>{},afterPick=()=>{},afterCreate=()=>{},cloneFailure,cloneResult=path.join(root,'my-project');
@@ -45,6 +52,16 @@ test('tutorial creation uses verified bundle template rather than original start
 test('cancelled tutorial selection and unpublished or forged template metadata cannot POST',async t=>{
  const f=await fixture(t);f.tutorialChoice=false;await f.commands.startTutorial();assert.equal(f.calls.length,0);
  for(const kind of ['unpublished','forged']){const g=await fixture(t),data=bundle();data.projects[0].template=kind==='unpublished'?null:{repository:'attacker/project',repositoryUrl:'https://github.com/attacker/project',templateHref:'https://github.com/attacker/project/generate'};await fs.writeFile(path.join(g.root,'media','lesson-projects.json'),JSON.stringify(data));await assert.rejects(g.commands.startTutorial(),kind==='unpublished'?/not published/:/invalid published template metadata/);assert.equal(g.calls.length,0);}
+});
+test('stale publication source evidence stops a new tutorial before forms, folder or POST',async t=>{
+ for(const kind of ['missing','stale']){
+  const f=await fixture(t),data=bundle();
+  if(kind==='missing')delete data.projects[0].template.scaffoldSha256;
+  else data.projects[0].template.scaffoldSha256='a'.repeat(64);
+  await fs.writeFile(path.join(f.root,'media','lesson-projects.json'),JSON.stringify(data));
+  await assert.rejects(f.commands.startTutorial(),error=>error.code==='ZERO_TUTORIAL_TEMPLATE_STALE'&&/No project was created/.test(error.message));
+  assert.equal(f.inputs.length,0);assert.equal(f.calls.length,0);assert.equal(f.recovery.length,0);
+ }
 });
 test('account drift during form collection prevents POST',async t=>{
  const f=await fixture(t);f.afterName=()=>f.drift();await assert.rejects(f.commands.newProject(),/account or sign-in changed/);assert.ok(f.calls.every(call=>call[0]!=='create'&&call[0]!=='clone'));

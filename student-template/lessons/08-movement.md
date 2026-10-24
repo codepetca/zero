@@ -13,7 +13,7 @@ Previous: [Your study quiz](07-study-app.md).
 Create `src/main/java/Player.java`. Player owns position; Main decides when to update and draw it. Type this class, then try changing its color or speed:
 
 ```java
-import javafx.scene.paint.Color;
+import zero.Color;
 import zero.GameApp;
 
 public class Player {
@@ -36,7 +36,7 @@ public class Player {
     }
 
     public void draw(GameApp app) {
-        app.fill(Color.CORNFLOWERBLUE);
+        app.fill(Color.rgb(100, 149, 237));
         app.rect(x, y, size, size);
     }
 }
@@ -46,7 +46,7 @@ The `Math.max`/`Math.min` lines keep the whole square on screen. `x` and `y` are
 
 ## 2. Connect Player to your existing Main
 
-Add `import javafx.scene.input.KeyCode;` and `import javafx.scene.paint.Color;` above Main. Add `private Player player;` inside the class. Fill your starter's **existing** methods:
+Add `import zero.Key;` and `import zero.Color;` above Main. `Key` names the four arrow keys. `Color.rgb(red, green, blue)` mixes amounts from 0 to 255; `Color.BLUE` and `Color.GOLD` are ready-made colours. Add `private Player player;` inside the class. Fill your starter's **existing** methods:
 
 ```java
 @Override public void setup() {
@@ -56,16 +56,16 @@ Add `import javafx.scene.input.KeyCode;` and `import javafx.scene.paint.Color;` 
 @Override public void update(double seconds) {
     int horizontal = 0;
     int vertical = 0;
-    if (keyDown(KeyCode.LEFT)) horizontal--;
-    if (keyDown(KeyCode.RIGHT)) horizontal++;
-    if (keyDown(KeyCode.UP)) vertical--;
-    if (keyDown(KeyCode.DOWN)) vertical++;
+    if (keyDown(Key.LEFT)) horizontal--;
+    if (keyDown(Key.RIGHT)) horizontal++;
+    if (keyDown(Key.UP)) vertical--;
+    if (keyDown(Key.DOWN)) vertical++;
     player.update(horizontal, vertical, seconds, width(), height());
 }
 
 @Override public void draw() {
-    background(Color.ALICEBLUE);
-    fill(Color.DARKSLATEGRAY);
+    background(Color.rgb(240, 248, 255));
+    fill(Color.rgb(47, 79, 79));
     textSize(20);
     text("Click the canvas, then hold the arrow keys.", 20, 30);
     player.draw(this);
@@ -96,8 +96,9 @@ around it. Initial padding grows the game window while preserving the
 `keyDown(...)` reports a held key while the canvas has focus. Typing in a text
 field belongs to that control. Focus loss clears held input but does not pause
 the frame loop. For pointer experiments, `mouseX()` and `mouseY()` report the
-tracked canvas position, and `mouseDown(MouseButton.PRIMARY)` checks a held
-button; import `javafx.scene.input.MouseButton` when using it.
+tracked canvas position. For the primary pointer button, `mouseDown()` reports
+whether it is held and `mousePressed()` reports a new press during the current
+update. These queries need no JavaFX import.
 
 The canvas keeps its pixels until you draw over them. `background(...)` clears
 it for each fresh frame; `fill(...)` chooses the colour for following filled
@@ -123,7 +124,7 @@ Look again at the method you already wrote in Player:
 
 ```java
 public void draw(GameApp app) {
-    app.fill(Color.CORNFLOWERBLUE);
+    app.fill(Color.rgb(100, 149, 237));
     app.rect(x, y, size, size);
 }
 ```

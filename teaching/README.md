@@ -10,8 +10,16 @@ with separate Study/Game consumers at 10 and 11, and optional media/scrolling at
 They are outside every practice download. Public source comparison links are
 optional references after students write their code. Keep narrative snippets and
 these checkpoints aligned; do not use a completed checkpoint as a student scaffold.
-The advanced platform/level/endings stages have maintained example references,
-not dedicated progressive checkpoints.
+Lessons 10–11 refactor input/score presentation in the existing small projects,
+then improve a component and practise sharing a harmless CreditsBadge. The badge
+uses a reserved practice name; duplicates are expected and do not enter ordinary
+community discovery. An original/core proposal remains an optional extension. Main keeps game rules and explicit updates.
+Checkpoint 10 has arrow-only PlayerInput; 11 and 12 include the optional WASD
+improvement. Media and scrolling preserve that source unchanged, along with CreditsBadge.
+`checkpoints/11/practice/` contains three small actual-JAR
+check/example sources for the extracted badge; replace their fixture package
+import with the student repository namespace. Larger platform/
+level/endings examples remain reference material outside the core tutorial.
 
 Verification uses temporary projects built from the actual minimal scaffolds:
 

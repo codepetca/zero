@@ -116,3 +116,18 @@ test('public request status binds accepted web provenance and keeps receipts out
   assert.equal(result.results[0].status,'available');assert.equal(Object.hasOwn(result.results[0],'web'),false);assert.doesNotMatch(JSON.stringify(result),/runId|github-pages|student.github.io/);
   release.web={...web,runId:43};await assert.rejects(readRequestResults('123',{env,fetchImpl:fetcher(f.state,snapshot)}),/Invalid accepted source/);
 });
+
+
+test('an accepted practice request links to its exact version in the separate practice catalog',async()=>{
+  const f=fixture('library'),frozen=f.record.frozen;frozen.slug='tutorial-credits-badge';frozen.folder=`libraries/${frozen.slug}`;frozen.descriptor.slug=frozen.slug;
+  f.record.id=digest(frozen);f.state.requests={[f.record.id]:f.record};
+  const identity=contracts.identity('library',frozen.repository.id,frozen.slug),version=frozen.version;
+  const release=contracts.validateRelease({schema:1,kind:'library',id:identity.id,slug:identity.slug,version,title:'CreditsBadge',description:'Copied tutorial practice.',license:'MIT',
+    repository:frozen.repository,contributor:frozen.requester,source:{commit:frozen.commit,folder:frozen.folder,sha256:frozen.sourceDigest},policyRevision:frozen.policyRevision,status:'available',
+    namespace:identity.namespace,coordinate:{...identity.coordinate,version},libraryKind:'helper',artifacts:Object.fromEntries(['jar','sources','pom'].map(kind=>{
+      const path=contracts.artifactPath(identity,version,kind);return [kind,{path,url:`${env.ZERO_SHARING_ARTIFACT_ORIGIN}/${path}`,size:1,sha256:'d'.repeat(64)}];
+    }))},{artifactOrigin:env.ZERO_SHARING_ARTIFACT_ORIGIN});
+  f.record.releaseKey=`library/${identity.id}/${version}`;f.record.status='available';f.state.releases[f.record.releaseKey]={requestId:f.record.id,release,delivery:'ready'};
+  const snapshot=catalog(f.state,[release]);const results=await readRequestResults('123',{env,fetchImpl:fetcher(f.state,snapshot)});
+  assert.equal(results.results[0].releaseLink,`/hub?kind=practice&id=${identity.id}&version=${version}`);
+});

@@ -7,6 +7,7 @@ import { zipSync } from 'fflate';
 import { readFileSync } from 'node:fs';
 import {minimalGameFiles} from './game-fixture.mjs';
 import authoring from '../../extension/src/sharing/authoring.js';
+import {projectBuilderFilesSync} from '../../scripts/prepare-project-builder.mjs';
 import { buildGamePackage, inspectGamePackage, extractGamePackage, collectGameFiles } from '../game-package.mjs';
 
 const files=()=>[...minimalGameFiles(),...Object.entries({'.vscode/tasks.json':'{"tasks":[{"type":"zero","task":"run"}]}','assets/coin.png':'asset bytes','src/main/resources/player sprite.png':'sprite bytes','zero-libraries.json':'{"schema":1,"libraries":[]}','libraries/health-bar/zero-library.json':'{}','libraries/health-bar/src/main/java/Health.java':'class Health {}','libraries/health-bar/src/test/java/HealthTest.java':'class HealthTest {}','libraries/health-bar/examples/first/Main.java':'class Main {}','.git/config':'secret history','.env':'token','target/output.class':'build','unrelated/secret.txt':'private','setup.sh':'arbitrary script'}).map(([path,data])=>({path,data:Buffer.from(data)})),{path:'libraries/health-bar/pom.xml',data:readFileSync(new URL('../../student-template/pom.xml',import.meta.url))},{path:'libraries/health-bar/LICENSE',data:readFileSync(new URL('../../student-template/LICENSE',import.meta.url))}];
@@ -25,8 +26,23 @@ test('exact sorted deterministic ZIP preserves source/assets/library state and w
   assert.equal((await stat(path.join(destination,'mvnw'))).mode&0o777,0o755);
   assert.equal((await readFile(path.join(destination,'assets/coin.png'))).toString(),'asset bytes');
   assert.ok(!(await readdir(destination)).includes('.git'));
-  const ignore=(await readFile(path.join(destination,'.gitignore'))).toString();assert.match(ignore,/\*\*\/target\//);assert.match(ignore,/\.env\.\*/);assert.match(ignore,/\.zero\*/);
+  const ignore=(await readFile(path.join(destination,'.gitignore'))).toString();assert.match(ignore,/\*\*\/target\//);assert.match(ignore,/\.env\.\*/);assert.match(ignore,/\.zero\//);assert.doesNotMatch(ignore,/\.zero\*/);
   await assert.rejects(extractGamePackage({bytes:first.bytes,destination}),/EEXIST/);
+});
+
+test('shared projects preserve a complete saved builder as data and reject incomplete or undeclared tooling', async t => {
+  const builder = projectBuilderFilesSync().map(file => ({path:'.zero-build/' + file.path,data:file.bytes}));
+  const built = buildGamePackage({files:[...minimalGameFiles(),...builder]});
+  const inspected = inspectGamePackage(built.bytes);
+  for (const file of builder) assert.deepEqual(inspected.find(item => item.path === file.path)?.data,file.data);
+  assert.throws(() => buildGamePackage({files:[...minimalGameFiles(),...builder.filter(file => file.path !== '.zero-build/run.cjs')]}), /missing|absent|changed|undeclared/);
+  assert.throws(() => buildGamePackage({files:[...minimalGameFiles(),...builder,{path:'.zero-build/extra.js',data:Buffer.from('throw Error("must never execute")')}]}), /missing|absent|changed|undeclared/);
+  assert.throws(() => buildGamePackage({files:[...minimalGameFiles(),{path:'.zero-build/run.cjs',data:Buffer.from('throw Error("must never execute")')}]}), /complete saved/);
+  const parent = await realpath(await mkdtemp(path.join(os.tmpdir(),'zero-saved-game-')));t.after(() => rm(parent,{recursive:true,force:true}));
+  const destination = path.join(parent,'opened');await extractGamePackage({bytes:built.bytes,destination});
+  assert.deepEqual(await readFile(path.join(destination,'.zero-build/run.cjs')),builder.find(file => file.path === '.zero-build/run.cjs').data);
+  const ignore = await readFile(path.join(destination,'.gitignore'),'utf8');
+  assert.doesNotMatch(ignore,/^\.zero\*$/m,'saved tooling must be tracked by the student repository');
 });
 
 test('static game structure rejects broken markers/main/framework/POM/pins/licenses and unignore overrides',()=>{
@@ -91,7 +107,7 @@ test('actual local extraction and published mode retain a valid game snapshot an
     const packageResult=buildGamePackage({files:await collectGameFiles(project)});
     assert.ok(packageResult.files.some(file=>file.path==='libraries/health-bar/src/main/java/zero/contrib/r11/health_bar/Range.java'));
     const destination=path.join(temporary,'opened-'+mode);await extractGamePackage({bytes:packageResult.bytes,destination});
-    const ignore=(await readFile(path.join(destination,'.gitignore'))).toString();assert.match(ignore,/\*\*\/target\//);assert.match(ignore,/\.env/);assert.match(ignore,/\.zero\*/);
+    const ignore=(await readFile(path.join(destination,'.gitignore'))).toString();assert.match(ignore,/\*\*\/target\//);assert.match(ignore,/\.env/);assert.match(ignore,/\.zero\//);assert.doesNotMatch(ignore,/\.zero\*/);
     assert.ok((await readFile(path.join(destination,'.mvn/wrapper/NOTICE'))).length>40);
   }
 });

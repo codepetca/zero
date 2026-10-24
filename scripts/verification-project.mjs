@@ -18,10 +18,12 @@ export function extractProject(archive, prefix, parent) {
   }
   return directory;
 }
-export function maven(directory, args, timeout = 120000) {
+export function maven(directory, args, timeout = 120000, {outputFilter} = {}) {
+  if(outputFilter!==undefined&&typeof outputFilter!=='function')throw new Error('Invalid Maven output filter');
   const spec = processSpecification(path.join(directory, process.platform === 'win32' ? 'mvnw.cmd' : 'mvnw'),
     ['-B', '--no-transfer-progress', ...args]);
   const result = spawnSync(spec.command, spec.args, {cwd:directory, encoding:'utf8', timeout,windowsVerbatimArguments:spec.windowsVerbatimArguments});
+  if(outputFilter){result.stdout=outputFilter(result.stdout||'');result.stderr=outputFilter(result.stderr||'');}
   if (result.status !== 0) throw new Error(`Standalone Maven build failed: ${result.error?.message || ''}\n${result.stdout}\n${result.stderr}`);
   return result;
 }

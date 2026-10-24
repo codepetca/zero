@@ -19,7 +19,7 @@ are language features, not external APIs. Enhanced for, boxing and string
 concatenation are compiler language lowering; their implicit implementation is
 covered by the pinned GWT compiler and positive ordinary-Java fixtures.
 
-The seven canonical helper **bodies** have a narrow exemption only at their exact
+The sixteen canonical helper **bodies** have a narrow exemption only at their exact
 source paths and reviewed adapter SHA-256 after CRLF normalization; their public
 and protected members are still explicit contract entries. Editing a helper,
 spoofing its qualified identity at another path, adding helpers in `zero`, or

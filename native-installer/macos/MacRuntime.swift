@@ -1,10 +1,11 @@
 import Foundation
 import Darwin
 
-/// Native-only setup. This is compiled into Zero Setup; no Python, Node, package
-/// manager, profile import or global environment changes are needed by students.
+/// Native setup provisions private Java and browser runtimes. Students need no
+/// global Node/package manager, profile import or global environment changes.
 struct MacRuntime {
     static let fm = FileManager.default
+    static let nodeVersion = "22.21.1"
     let kit: URL
     let home: URL
     let root: URL
@@ -17,7 +18,7 @@ struct MacRuntime {
     var testAfterExchange: (() throws -> Void)?
     var testBeforeExchange: (() throws -> Void)?
     #endif
-    struct Asset: Decodable { let url: String; let sha256: String; let format: String; let size: Int64 }
+    struct Asset: Decodable { let url: String; let sha256: String; let format: String; let size: Int64; let version: String? }
     struct Manifest: Decodable { let schemaVersion: Int; let architectures: [String: [String: Asset]] }
     init(kit: URL, home: URL = fm.homeDirectoryForCurrentUser) throws {
         self.kit = kit; self.home = home
@@ -35,12 +36,12 @@ struct MacRuntime {
         #else
         let architecture = "x64"
         #endif
-        guard manifest.schemaVersion == 1, let selected = manifest.architectures[architecture], Set(selected.keys) == ["jdk", "vscode"] else { throw SetupFailure(message: "Missing downloads for this Mac.") }
+        guard manifest.schemaVersion == 1, let selected = manifest.architectures[architecture], Set(selected.keys) == ["jdk", "vscode", "node"] else { throw SetupFailure(message: "Missing downloads for this Mac.") }
         for (kind, asset) in selected {
             guard let url = URL(string: asset.url), url.scheme == "https", url.user == nil, url.password == nil,
-                  ["github.com", "update.code.visualstudio.com", "vscode.download.prss.microsoft.com"].contains(url.host ?? ""),
+                  (kind == "node" ? asset.version == Self.nodeVersion && asset.url == "https://nodejs.org/dist/v\(Self.nodeVersion)/node-v\(Self.nodeVersion)-darwin-\(architecture).tar.gz" : ["github.com", "update.code.visualstudio.com", "vscode.download.prss.microsoft.com"].contains(url.host ?? "")),
                   asset.sha256.range(of: #"^[a-f0-9]{64}$"#, options: .regularExpression) != nil,
-                  asset.format == (kind == "jdk" ? "tar.gz" : "zip"), asset.size > 0, asset.size <= 600_000_000 else { throw SetupFailure(message: "Invalid verified download metadata.") }
+                  asset.format == (kind == "vscode" ? "zip" : "tar.gz"), asset.size > 0, asset.size <= 600_000_000 else { throw SetupFailure(message: "Invalid verified download metadata.") }
         }
         assets = selected
     }
@@ -48,6 +49,9 @@ struct MacRuntime {
     var extensions: URL { root.appendingPathComponent("editor/extensions") }
     var jdk: URL { root.appendingPathComponent("runtime/jdk-" + assets["jdk"]!.sha256) }
     var editor: URL { root.appendingPathComponent("runtime/vscode-" + assets["vscode"]!.sha256) }
+    var node: URL { root.appendingPathComponent("runtime/node-" + assets["node"]!.sha256) }
+    var nodeDirectory: String { String(URL(string: assets["node"]!.url)!.lastPathComponent.dropLast(".tar.gz".count)) }
+    var nodeBinary: URL { node.appendingPathComponent(nodeDirectory + "/bin/node") }
     var isolated: [String] { ["--user-data-dir", userData.path, "--extensions-dir", extensions.path] }
     func editorArguments(resuming: Bool) -> [String] {
         // With no folder/new-window argument VS Code restores its saved Zero
@@ -90,7 +94,9 @@ struct MacRuntime {
         var env = ProcessInfo.processInfo.environment
         env["JAVA_HOME"] = java.path
         env["ZERO_KIT_DIR"] = kit.path
-        env["PATH"] = java.appendingPathComponent("bin").path + ":" + (env["PATH"] ?? "/usr/bin:/bin")
+        env["ZERO_NODE_EXECUTABLE"] = nodeBinary.path
+        env["PATH"] = java.appendingPathComponent("bin").path + ":" + nodeBinary.deletingLastPathComponent().path + ":" + (env["PATH"] ?? "/usr/bin:/bin")
+        env.removeValue(forKey: "NODE_OPTIONS"); env.removeValue(forKey: "NODE_PATH")
         // VS Code must run as an editor process, even if launched from another editor.
         env.removeValue(forKey: "ELECTRON_RUN_AS_NODE")
         return env
@@ -130,14 +136,15 @@ struct MacRuntime {
         return true
     }
     func install(_ kind: String) throws {
-        let asset = assets[kind]!, destination = kind == "jdk" ? jdk : editor
+        guard let asset = assets[kind] else { throw SetupFailure(message: "Unknown private runtime.") }
+        let destination = kind == "jdk" ? jdk : kind == "node" ? node : editor
         if try installed(destination, asset: asset) { return }
         try Self.mkdir(root.appendingPathComponent("runtime"))
         let staging = root.appendingPathComponent("runtime/.install-" + UUID().uuidString)
         try Self.mkdir(staging)
         defer { try? Self.fm.removeItem(at: staging) }
         let download = staging.appendingPathComponent("download")
-        print("Downloading verified \(kind == "jdk" ? "Java 21" : "VS Code")…")
+        print("Downloading verified \(kind == "jdk" ? "Java 21" : kind == "node" ? "browser tools" : "VS Code")…")
         #if ZERO_SETUP_TESTS
         if let testDownload { try testDownload(download, asset) } else { try downloadAsset(asset, to: download) }
         #else
@@ -167,6 +174,9 @@ struct MacRuntime {
             for name in ["java", "javac"] { _ = try KitUpdatePlan.regular(home.appendingPathComponent("bin/" + name)) }
             guard try Self.execute(home.appendingPathComponent("bin/java").path, ["-version"]).contains("version \"21."),
                   try Self.execute(home.appendingPathComponent("bin/javac").path, ["-version"]).hasPrefix("javac 21.") else { throw SetupFailure(message: "Downloaded Java 21 is incomplete.") }
+        } else if kind == "node" {
+            guard children[0].lastPathComponent == nodeDirectory else { throw SetupFailure(message: "Unexpected browser runtime archive layout.") }
+            _ = try verifyNodeBinary(children[0].appendingPathComponent("bin/node"))
         } else {
             guard children[0].lastPathComponent == "Visual Studio Code.app" else { throw SetupFailure(message: "Unexpected editor archive layout.") }
             try verifyVendor(children[0], gatekeeper: true)
@@ -179,14 +189,57 @@ struct MacRuntime {
             _ = try KitUpdatePlan.regular(children[0].appendingPathComponent("Contents/Resources/app/bin/code"))
         }
     }
-    func verifyVendor(_ bundle: URL, gatekeeper: Bool) throws {
+    func verifyVendor(_ bundle: URL, gatekeeper: Bool, team: String? = nil) throws {
         #if ZERO_SETUP_TESTS
         if testDownload != nil { return } // Explicit disposable fixtures only.
         #endif
         _ = try Self.execute("/usr/bin/codesign", ["--verify", "--deep", "--strict", bundle.path], timeout: 120)
         let identity = try Self.execute("/usr/bin/codesign", ["--display", "--verbose=4", bundle.path])
-        guard identity.contains("Authority=Developer ID Application:"), identity.components(separatedBy: .newlines).contains("TeamIdentifier=" + (gatekeeper ? "UBF8T346G9" : "JCDTMS22B4")) else { throw SetupFailure(message: "The downloaded runtime lacks its developer signature.") }
+        guard identity.contains("Authority=Developer ID Application:"), identity.components(separatedBy: .newlines).contains("TeamIdentifier=" + (team ?? (gatekeeper ? "UBF8T346G9" : "JCDTMS22B4"))) else { throw SetupFailure(message: "The downloaded runtime lacks its developer signature.") }
         if gatekeeper { _ = try Self.execute("/usr/sbin/spctl", ["--assess", "--type", "execute", "--verbose=2", bundle.path], timeout: 120) }
+    }
+    func verifyNodeBinary(_ binary: URL) throws -> URL {
+        _ = try KitUpdatePlan.regular(binary)
+        try verifyVendor(binary, gatekeeper: false, team: "HX7739G8FX")
+        var env = ProcessInfo.processInfo.environment
+        for key in ["NODE_OPTIONS", "NODE_PATH", "ELECTRON_RUN_AS_NODE"] { env.removeValue(forKey:key) }
+        guard try Self.execute(binary.path,["--version"],environment:env).trimmingCharacters(in:.whitespacesAndNewlines) == "v" + Self.nodeVersion else {
+            throw SetupFailure(message:"The private browser runtime could not be verified. Run setup again.")
+        }
+        return binary
+    }
+    func nodeExecutable() throws -> URL? {
+        guard try installed(node,asset:assets["node"]!) else { return nil }
+        let children = try Self.fm.contentsOfDirectory(at:node,includingPropertiesForKeys:nil)
+        guard children.count == 2 else { throw SetupFailure(message:"Unexpected private browser runtime contents.") }
+        try KitUpdatePlan.realDirectory(nodeBinary.deletingLastPathComponent())
+        return try verifyNodeBinary(nodeBinary)
+    }
+    func nodeReady() -> Bool {
+        do { return try nodeExecutable() != nil }
+        catch { print("Private browser tools need repair: \(error.localizedDescription)"); return false }
+    }
+    func prepareNode() throws {
+        let existed = try installed(node,asset:assets["node"]!)
+        try install("node")
+        do { guard try nodeExecutable() != nil else { throw SetupFailure(message:"Browser runtime setup was incomplete.") }; return }
+        catch { if !existed { throw error } }
+        // Replace only a recognized private folder. Keep the old bytes through
+        // failed/offline repair, with exclusive publication in both directions.
+        _ = try installed(node,asset:assets["node"]!)
+        let previous = node.deletingLastPathComponent().appendingPathComponent(".repair-" + UUID().uuidString)
+        guard renameatx_np(AT_FDCWD,node.path,AT_FDCWD,previous.path,UInt32(RENAME_EXCL)) == 0 else { throw SetupFailure(message:"The browser runtime changed; your files were kept.") }
+        do {
+            try install("node")
+            guard try nodeExecutable() != nil else { throw SetupFailure(message:"Browser runtime repair was incomplete.") }
+            _ = try installed(previous,asset:assets["node"]!)
+            try Self.fm.removeItem(at:previous)
+        } catch {
+            if try KitUpdatePlan.identity(node) == nil {
+                guard renameatx_np(AT_FDCWD,previous.path,AT_FDCWD,node.path,UInt32(RENAME_EXCL)) == 0 else { throw SetupFailure(message:"Browser runtime repair stopped; the previous private copy was kept at \(previous.path).") }
+            }
+            throw error
+        }
     }
     func downloadAsset(_ asset: Asset, to download: URL) throws {
         _ = try Self.execute("/usr/bin/curl", ["--fail", "--location", "--silent", "--show-error", "--proto", "=https", "--proto-redir", "=https", "--connect-timeout", "20", "--max-time", "600", "--max-filesize", "600000000", "--retry", "2", "--retry-max-time", "900", "--output", download.path, asset.url], timeout: 950)
@@ -248,14 +301,14 @@ struct MacRuntime {
     }
     func check() throws -> Bool {
         // Read-only: do not launch CLI with absent user-data-dir (it creates files).
-        let java = try javaHome(); let cli = try editorCLI(java)
+        let java = try javaHome(); let node = nodeReady(); let cli = try editorCLI(java)
         let settingsExist = try KitUpdatePlan.identity(userData.appendingPathComponent("User/settings.json")) != nil
         let extensionsExist = try KitUpdatePlan.identity(extensions) != nil
         let configured = settingsExist && extensionsExist
         var state: [String: String] = [:]
         if configured, let java, let cli { _ = try KitUpdatePlan.regular(userData.appendingPathComponent("User/settings.json")); try KitUpdatePlan.realDirectory(extensions); state = try extensionState(cli, java: java) }
         let zero = Self.atLeast(state["zero.zero"] ?? "", version), redhat = state["redhat.java"] != nil
-        let fields = ["kit": true, "code": cli != nil, "java": java != nil, "profile": configured, "zero": zero, "redhat": redhat, "javaHomeBlocked": false, "ready": cli != nil && java != nil && configured && zero && redhat]
+        let fields = ["kit": true, "code": cli != nil, "java": java != nil, "node":node, "profile": configured, "zero": zero, "redhat": redhat, "javaHomeBlocked": false, "ready": cli != nil && java != nil && node && configured && zero && redhat]
         print("ZERO_SETUP_V1\n" + fields.keys.sorted().map { "\($0)=\(fields[$0]! ? 1 : 0)" }.joined(separator: "\n") + "\nEND_ZERO_SETUP")
         return fields["ready"]!
     }
@@ -270,6 +323,7 @@ struct MacRuntime {
         Self.progress("java")
         try install("jdk")
         guard let java = try javaHome() else { throw SetupFailure(message: "Java setup was incomplete.") }
+        try prepareNode()
         Self.progress("editor")
         if try editorCLI(java) == nil { try install("vscode") }
         guard let cli = try editorCLI(java) else { throw SetupFailure(message: "No compatible VS Code was found.") }
@@ -299,7 +353,7 @@ struct MacRuntime {
     func launcher(cli: URL, java: URL) throws {
         let publication = try AnchoredZeroFile(directory: kit)
         let previous = try launcherIdentity(publication)
-        let text = "#!/bin/bash\n# Generated by Zero Setup.\nunset ELECTRON_RUN_AS_NODE\nexport JAVA_HOME=\(Self.quote(java.path))\nexport ZERO_KIT_DIR=\(Self.quote(kit.path))\nexport PATH=\(Self.quote(java.appendingPathComponent("bin").path)):\"$PATH\"\nexec \(Self.quote(cli.path)) \((isolated + ["--new-window"]).map(Self.quote).joined(separator: " "))\n"
+        let text = "#!/bin/bash\n# Generated by Zero Setup.\nunset ELECTRON_RUN_AS_NODE NODE_OPTIONS NODE_PATH\nexport JAVA_HOME=\(Self.quote(java.path))\nexport ZERO_KIT_DIR=\(Self.quote(kit.path))\nexport ZERO_NODE_EXECUTABLE=\(Self.quote(nodeBinary.path))\nexport PATH=\(Self.quote(java.appendingPathComponent("bin").path)):\(Self.quote(nodeBinary.deletingLastPathComponent().path)):\"$PATH\"\nexec \(Self.quote(cli.path)) \((isolated + ["--new-window"]).map(Self.quote).joined(separator: " "))\n"
         #if ZERO_SETUP_TESTS
         try publication.publish(Data(text.utf8), leaf: "Open Zero.command", mode: 0o755, expected: previous, beforeCommit: testBeforePublish, beforeExchange: testBeforeExchange, afterExchange: testAfterExchange)
         #else
@@ -557,10 +611,16 @@ struct SafeMacArchive {
                 guard Darwin.link(target.path, destination.path) == 0 else { throw SetupFailure(message: "Invalid archive hard link.") }
             }
         }
+        // Canonicalize both sides with the same filesystem primitive. Foundation
+        // can spell a resolved /private/var target as /var on macOS; comparing it
+        // with an unresolved root incorrectly rejects contained vendor links.
+        guard let rootPath = realpath(root.path,nil) else { throw SetupFailure(message:"The archive extraction folder changed.") }
+        let canonicalRoot = String(cString:rootPath); Darwin.free(rootPath)
         for (name, _, _, symbolic) in links where symbolic {
             let link = root.appendingPathComponent(name)
-            let resolved = link.resolvingSymlinksInPath()
-            guard resolved.path.hasPrefix(root.path + "/"), MacRuntime.fm.fileExists(atPath: resolved.path) else { throw SetupFailure(message: "Archive contains a broken or escaping link.") }
+            guard let targetPath = realpath(link.path,nil) else { throw SetupFailure(message:"Archive contains a broken link: \(name).") }
+            let resolved = String(cString:targetPath); Darwin.free(targetPath)
+            guard resolved.hasPrefix(canonicalRoot + "/"), MacRuntime.fm.fileExists(atPath:resolved) else { throw SetupFailure(message:"Archive contains an escaping link: \(name).") }
         }
     }
 }

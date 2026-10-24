@@ -263,15 +263,8 @@ test('disabling live mode during save prevents upload and deployment',async t=>{
   await assert.rejects(h.api.publish(),/Live publishing was disabled/);assert.equal(h.reviewed,0);assert.equal(h.uploaded,0);assert.equal(h.published,0);
 });
 
-test('Publish prepares stock helper updates before its ordinary source commit review',async t=>{
+test('Publish never invokes an obsolete automatic helper preparer',async t=>{
  const h=fixture(t);requireUploadOnce(h);h.choices.push('Publish app');
- h.publisher.prepare=async(root,options)=>{assert.equal(root,'/student');await options.beforeWrite();h.calls.push('prepare');return {updated:['src/main/java/zero/App.java']};};
- assert.equal((await h.api.publish()).status,'live');assert.equal(h.uploaded,1);assert.equal(h.calls[0],'prepare');assert.equal(h.stored.get('zero.webPublish.lastLive').sha,'a'.repeat(40));
-});
-test('simulation, cancelled preparation and project drift never proceed to review/upload/deploy',async t=>{
- const simulation=fixture(t);simulation.simulation=true;simulation.publisher.prepare=async()=>assert.fail('no preparation in simulation');await simulation.api.publish();
- for(const drift of [false,true]){
-  const h=fixture(t);h.publisher.prepare=async(_root,options)=>{if(drift){h.active='/other';await options.beforeWrite();}else throw Error('helper update cancelled');};
-  await assert.rejects(h.api.publish(),drift?/project changed/:/helper update cancelled/);assert.equal(h.reviewed,0);assert.equal(h.uploaded,0);assert.equal(h.published,0);assert.equal(h.busy,false);
- }
+ h.publisher.prepare=async()=>assert.fail('Opening or publishing must preserve project helpers');
+ assert.equal((await h.api.publish()).status,'live');assert.equal(h.uploaded,1);
 });

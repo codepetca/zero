@@ -3,6 +3,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const {zipFiles} = require('./zip');
+const builderFormat = require('../project-builder-format');
 const {discoverBrowserLibraries,resolveLibrarySources}=require('./libraries');
 const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 const abort = signal => {if(signal?.aborted){const error=new Error('Browser build cancelled.');error.name='AbortError';throw error;}};
@@ -39,16 +40,64 @@ function digest(files) {
 function boundSourceHash(localSourceHash,publishedLibraries) {
   return publishedLibraries.length?sha(Buffer.from(localSourceHash+'\0'+JSON.stringify(publishedLibraries))):localSourceHash;
 }
+// Validate data only. Never import the saved project's modules from the host.
+async function readSavedBuilder(builderRoot,{optional=false}={}) {
+  await safePath(builderRoot);
+  const rootStat=await fs.lstat(builderRoot).catch(error=>{if(optional&&error.code==='ENOENT')return null;throw error;});
+  if(!rootStat)return null;
+  if(!rootStat.isDirectory())throw new Error('Project browser tooling unavailable: expected .zero-build directory.');
+  const files=[];let total=0;
+  async function walk(dir,prefix='') {
+    for(const item of await fs.readdir(dir,{withFileTypes:true})) {
+      const name=prefix+item.name,file=path.join(dir,item.name);
+      if(!builderFormat.relativePath(name))throw new Error('Project browser tooling unavailable: unsafe saved path.');
+      const stat=await fs.lstat(file);
+      if(stat.isSymbolicLink())throw new Error('Browser builds refuse symbolic links: '+file);
+      if(stat.isDirectory())await walk(file,name+'/');
+      else if(stat.isFile()) {
+        if(stat.nlink!==1||stat.size>builderFormat.LIMITS.fileBytes||name==='builder.json'&&stat.size>builderFormat.LIMITS.manifestBytes)throw new Error('Project browser tooling unavailable: linked or oversized file.');
+        const bytes=await fs.readFile(file);total+=bytes.length;
+        if(files.length>=builderFormat.LIMITS.files+1||total>builderFormat.LIMITS.totalBytes)throw new Error('Project browser tooling unavailable: saved closure exceeds limits.');
+        files.push({path:name,bytes});
+      }else throw new Error('Project browser tooling unavailable: special saved file.');
+    }
+  }
+  await walk(builderRoot);
+  const metadata=files.find(file=>file.path==='builder.json');
+  if(!metadata)throw new Error('Project browser tooling unavailable: builder.json is missing.');
+  const manifest=builderFormat.validateBuilderFiles(JSON.parse(metadata.bytes.toString('utf8')),files.filter(file=>file.path!=='builder.json'));
+  builderFormat.validateRuntimeLock(JSON.parse(files.find(file=>file.path==='runtime-lock.json').bytes.toString('utf8')));
+  return {manifest,files};
+}
+async function savedEngineRoot(engineRoot) {
+  const candidate=path.resolve(engineRoot,'../..');
+  if(path.resolve(engineRoot)!==path.join(candidate,'src/web-export'))return null;
+  if(path.basename(candidate)==='.zero-build')return candidate;
+  const metadata=await fs.lstat(path.join(candidate,'builder.json')).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
+  return metadata?candidate:null;
+}
+async function assertSelectedBuilder(projectRoot,engineRoot=__dirname) {
+  const saved=await readSavedBuilder(path.join(projectRoot,'.zero-build'),{optional:true});
+  const ownRoot=await savedEngineRoot(engineRoot);
+  if(!saved&&!ownRoot)return null; // Maintainer fixtures without saved tooling.
+  if(!saved||!ownRoot)throw new Error('Project browser tooling unavailable: explicitly select this project’s saved .zero-build builder; the installed exporter cannot replace it.');
+  const own=await readSavedBuilder(ownRoot);
+  const profileHash=digest(own.files);
+  if(profileHash!==digest(saved.files))throw new Error('Project browser tooling unavailable: selected saved builder differs from the project’s complete closure.');
+  return {builderRoot:ownRoot,profileHash,manifest:own.manifest};
+}
 async function captureBuildInputs(projectRoot) {
   await safePath(projectRoot);
   const files=[];
+  const saved=await readSavedBuilder(path.join(projectRoot,'.zero-build'),{optional:true});
+  if(saved)for(const file of saved.files)files.push({path:'.zero-build/'+file.path,bytes:file.bytes});
   for(const [name,optional] of [['src/main/java',false],['src/main/resources',true],['.mvn',false]]) {
     for(const file of await tree(path.join(projectRoot,name),optional)) {
       if(name==='src/main/resources'&&file.path==='.gitkeep')continue;
       files.push({path:name+'/'+file.path,bytes:file.bytes});
     }
   }
-  for(const name of ['pom.xml','mvnw','mvnw.cmd']) {
+  for(const name of ['pom.xml','mvnw','mvnw.cmd','zero-core.json']) {
     const file=path.join(projectRoot,name);await safePath(file);
     try {if(!(await fs.lstat(file)).isFile())throw new Error('Expected a regular build file: '+file);files.push({path:name,bytes:await fs.readFile(file)});}
     catch(error){if(error.code!=='ENOENT'||name==='pom.xml')throw error;}
@@ -70,7 +119,21 @@ async function captureBuildInputs(projectRoot) {
   }
   return {files,sourceHash:digest(files),libraries};
 }
-async function buildProfileHash(engineRoot=__dirname) {return digest(await tree(engineRoot));}
+const browserExternalFiles=Object.freeze(['project-builder-format.js','core-contract.js','project-pom.js','sharing/contracts.js','sharing/authoring.js','sharing/consumer.js','sharing/jar.js','sharing/configuration.js','sharing/tutorial-practice.js']);
+async function buildProfileHash(engineRoot=__dirname,{externalRoot=path.resolve(__dirname,'..'),coreContractPath=path.join(externalRoot,'core-contract.js')}={}) {
+  const savedRoot=await savedEngineRoot(engineRoot);
+  if(savedRoot)return digest((await readSavedBuilder(savedRoot)).files);
+  const files=await tree(engineRoot);
+  for(const name of browserExternalFiles) {
+    const file=name==='core-contract.js'?coreContractPath:path.join(externalRoot,...name.split('/'));
+    await safePath(file);
+    let bytes;try {const stat=await fs.lstat(file);if(!stat.isFile())throw new Error('not a file');bytes=await fs.readFile(file);}
+    catch {throw new Error('Browser compiler ' + (name==='core-contract.js'?'core contract':'external dependency') + ' is missing or unreadable: ' + file);}
+    files.push({path:'@extension-src/'+name,bytes});
+  }
+  return digest(files);
+}
+
 function validRelative(value) {return typeof value==='string'&&value!==''&&!value.includes('\\')&&!value.includes('\0')&&!path.posix.isAbsolute(value)&&value.split('/').every(p=>p&&p!=='.'&&p!=='..');}
 function inventoryMatches(files,expected) {
   if(!Array.isArray(expected)||files.length!==expected.length)return false;
@@ -120,13 +183,19 @@ async function ensureValidatedExport(options={}) {
   const result=await (options.engine?.exportForWeb||exportForWeb)(options);
   return validateExport({...options,result});
 }
+const gitBlobHash=bytes=>crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+const normalizableCommitInput=name=>/(?:^|\/)src\/main\/java\/.+\.java$/.test(name)||['pom.xml','mvnw','mvnw.cmd','zero-core.json','zero-libraries.json'].includes(name)||/^libraries\/[^/]+\/zero-library\.json$/.test(name)||/^\.mvn\/.+\.(?:properties|xml|config)$/.test(name);
+function commitInputMetadata(files) {
+  return files.map(file=>({path:file.path,bytes:file.bytes.length,sha256:sha(file.bytes),gitBlobSha1:gitBlobHash(file.bytes),...(normalizableCommitInput(file.path)?{normalizedGitBlobSha1:gitBlobHash(Buffer.from(file.bytes.toString('utf8').replace(/\r\n/g,'\n')))}:{})})).sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:0);
+}
 // Compare bytes to the reviewed commit without executing Git clean filters or
 // reading an index that may omit ignored application files used by the compiler.
-async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git=require('../core').git}={}) {
+async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git}={}) {
+  if(typeof git!=='function')throw new Error('Commit verification requires the host Git operation.');
   if(!/^[a-f0-9]{40}$/.test(sourceSha||''))throw new Error('Invalid uploaded source commit.');
   const inputs=await captureBuildInputs(projectRoot);
   if(inputs.sourceHash!==(result?.manifest?.localSourceHash||result?.sourceHash))throw new Error('The project changed since its browser build. Choose Export for web or Publish app again.');
-  const raw=await git(projectRoot,['ls-tree','-r','-z',sourceSha,'--','src/main/java','src/main/resources','pom.xml','mvnw','mvnw.cmd','.mvn','zero-libraries.json','libraries']);
+  const raw=await git(projectRoot,['ls-tree','-r','-z',sourceSha,'--','src/main/java','src/main/resources','pom.xml','mvnw','mvnw.cmd','.mvn','zero-core.json','zero-libraries.json','libraries','.zero-build']);
   const committed=new Map();
   for(const entry of String(raw).split('\0').filter(Boolean)) {
     const match=/^(100644|100755) blob ([a-f0-9]{40})\t([\s\S]+)$/.exec(entry);
@@ -134,7 +203,7 @@ async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git=requi
     if(match[3]==='src/main/resources/.gitkeep'||match[3].startsWith('libraries/')&&!inputs.files.some(file=>file.path===match[3]))continue;
     committed.set(match[3],match[2]);
   }
-  const gitBlob=bytes=>crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  const gitBlob=gitBlobHash;
   const normalized=[];
   if(committed.size!==inputs.files.length)throw new Error('The browser build uses files missing from the uploaded commit, or uploaded files are missing locally. Upload all Java, resources and Maven setup before publishing.');
   for(const file of inputs.files) {
@@ -143,11 +212,11 @@ async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git=requi
     // Ordinary Windows checkouts can use CRLF for Java/Maven source. These
     // language/config inputs treat line endings equivalently. Never transform
     // resources: their exact tested bytes must be present in the commit.
-    const textSource=/(?:^|\/)src\/main\/java\/.+\.java$/.test(file.path)||['pom.xml','mvnw','mvnw.cmd','zero-libraries.json'].includes(file.path)||/^libraries\/[^/]+\/zero-library\.json$/.test(file.path)||/^\.mvn\/.+\.(?:properties|xml|config)$/.test(file.path);
+    const textSource=normalizableCommitInput(file.path);
     if(expected&&textSource&&expected===gitBlob(Buffer.from(file.bytes.toString('utf8').replace(/\r\n/g,'\n')))){normalized.push(file.path);continue;}
     throw new Error('The browser input '+file.path+' differs from the uploaded commit or is ignored/untracked. Upload the exact source and resources before publishing.');
   }
   if((await captureBuildInputs(projectRoot)).sourceHash!==inputs.sourceHash)throw new Error('The project changed while checking its uploaded source. Choose Export for web or Publish app again.');
   return {sourceSha,sourceHash:result.sourceHash,inputCount:inputs.files.length,normalizedSourceLineEndings:normalized};
 }
-module.exports={captureBuildInputs,buildProfileHash,boundSourceHash,validateExport,ensureValidatedExport,assertBuildInputsAtCommit,_test:{digest,inventoryMatches,tree}};
+module.exports={commitInputMetadata,assertSelectedBuilder,readSavedBuilder,browserExternalFiles,captureBuildInputs,buildProfileHash,boundSourceHash,validateExport,ensureValidatedExport,assertBuildInputsAtCommit,_test:{digest,inventoryMatches,tree}};

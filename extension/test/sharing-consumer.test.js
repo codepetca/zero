@@ -27,12 +27,16 @@ test('strict catalog origin, schema, bytes and cumulative deadlines have no fall
 });
 test('independent Add/Update/Revert pins preserve Java and other dependency history',async t=>{
  const f=await fixture(t),pom=path.join(f.root,'pom.xml');
+ await fs.cp(path.resolve(__dirname,'../../framework/src/main/java/zero'),path.join(f.root,'src/main/java/zero'),{recursive:true});
+ assert.match(await fs.readFile(path.join(f.root,'src/main/java/zero/App.java'),'utf8'),/\\u001e/);
  let plan=await consumer.planChange(f.root,f.context,f.releases[0]);await fs.writeFile(pom,plan.afterText);
  plan=await consumer.planChange(f.root,f.context,f.releases[2]);await fs.writeFile(pom,plan.afterText);
  plan=await consumer.planChange(f.root,f.context,f.releases[1],{operation:'update'});await fs.writeFile(pom,plan.afterText);
  assert.equal(plan.current,'0.1.0');assert.match(plan.afterText,/<artifactId>score<\/artifactId><version>0.1.0/);
  plan=await consumer.planChange(f.root,f.context,f.releases[0],{operation:'revert'});await consumer.validatePlan(plan,f.context);assert.equal(plan.previous,'0.1.0');assert.match(plan.afterText,/<artifactId>health-bar<\/artifactId><version>0.1.0/);
  assert.equal(await fs.readFile(path.join(f.root,'src/main/java/Main.java'),'utf8'),'public class Main {}');
+ await fs.appendFile(path.join(f.root,'src/main/java/zero/App.java'),'// changed core');
+ await assert.rejects(consumer.planChange(f.root,f.context,f.releases[1],{operation:'update'}),/helper differs/);
 });
 test('hash, availability, catalog/POM drift and manual pins block dependency edits',async t=>{
  const f=await fixture(t),plan=await consumer.planChange(f.root,f.context,f.releases[0]);

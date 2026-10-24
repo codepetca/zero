@@ -25,6 +25,10 @@ sameSource('10/study','10/game');
 sameSource('11/study','11/game');
 sameSource('11/study','12/media');
 sameSource('11/study','12/scrolling');
+for (const next of ['12/media','12/scrolling']) {
+  if (!readFileSync(path.join(root,'teaching/checkpoints/11/game/PlayerInput.java')).equals(
+      readFileSync(path.join(root,'teaching/checkpoints',next,'PlayerInput.java')))) throw new Error('PlayerInput drift: ' + next);
+}
 
 function projectKind(id) {
   const lesson = Number(id.split('/')[0]);

@@ -1,13 +1,19 @@
 // Loaded by the existing pinned Playwright CLI; all state comes from ordinary Java draw().
-async (page) => {
+async (initialPage) => {
+  let page = initialPage;
   const urls = __URLS__;
   const artifactRoot = __ARTIFACT_ROOT__;
   const results = [];
+  const selection = typeof __SELECTION__ === 'undefined' ? Object.keys(urls) : __SELECTION__;
+  const known = ['helpers','quiz','drawing','audio','hello','mobile','zero-ui','counter','coin-game','lifecycle'];
+  if (!Array.isArray(selection) || !selection.length || selection.some(id => !known.includes(id)) || new Set(selection).size !== selection.length) throw new Error('Invalid mobile fixture selection.');
+  if (!selection.some(id => ['helpers','mobile'].includes(id))) throw new Error('No mobile browser fixture was selected.');
+
   const check = (pass, name, data) => {
     results.push({ name, pass: !!pass, data });
     if (!pass) throw new Error(JSON.stringify(results));
   };
-  await page.addInitScript(() => {
+  const initialize = async () => { await page.addInitScript(() => {
     window.__mobileCheck = { texts: [], last: [], errors: [] };
     window.__mobileTouchDowns = [];
     window.__mobileTouchUps = [];
@@ -32,6 +38,7 @@ async (page) => {
       return fill.apply(this, args);
     };
   });
+  };
   const state = () => page.evaluate(() => {
     const text = window.__mobileCheck.last.find(value => value.startsWith('Mobile state: '));
     return text?.slice(14).split(',').map(value => value === 'true' ? true : value === 'false' ? false : Number(value));
@@ -44,16 +51,21 @@ async (page) => {
     }, { index, value });
     return state();
   };
-  const cdp = await page.context().newCDPSession(page);
-  await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+  let cdp;
   const point = (x, y, id = 1) => ({ x, y, id, radiusX: 1, radiusY: 1, force: 1 });
   const touch = (type, points) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: points });
   const canvasPoint = async (x, y, width, height) => {
     const box = await page.locator('canvas').boundingBox();
     return point(box.x + x * box.width / width, box.y + y * box.height / height);
   };
-  try {
-    for (const [fixture, width, height, padding] of [['helpers', 480, 400, 0], ['mobile', 360, 640, 12]]) {
+  for (const [fixture, width, height, padding] of [['helpers', 480, 400, 0], ['mobile', 360, 640, 12]]) {
+    if (!selection.includes(fixture)) continue;
+    if (!urls[fixture]) throw new Error('Missing selected mobile fixture URL: ' + fixture);
+    page = await initialPage.context().newPage();
+    try {
+      await initialize();
+      cdp = await page.context().newCDPSession(page);
+      await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
       await page.setViewportSize({ width: 1200, height: 1000 });
       await page.goto(urls[fixture]);
       await page.waitForFunction(() => window.__mobileCheck.last.some(value => value.startsWith('Mobile state: ')));
@@ -302,11 +314,10 @@ async (page) => {
       }
       check((await page.evaluate(() => window.__mobileCheck.errors)).length === 0,fixture + ': no browser JavaScript errors');
       await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});
+    } finally {
+      try { if (cdp) { await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:false}); await cdp.detach(); } } finally { cdp = null; await page.close(); }
     }
-  } finally {
-    await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:false});
-    await cdp.detach();
   }
-  return {status:'passed',results,browser:await page.evaluate(() => navigator.userAgent),
+  return {status:'passed',selectedFixtures:selection.filter(id=>['helpers','mobile'].includes(id)),results,browser:await initialPage.evaluate(() => navigator.userAgent),
     scope:'Headless Chrome with real CDP touch dispatch and viewport resizing; secondary-only release/ancestor exits, cancel, lost capture, blur and persisted pagehide are synthetic. Physical phones and other engines remain untested.'};
 };

@@ -1,7 +1,10 @@
+import evidence.ApiProof;
+import evidence.ApiSignatureChecks;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
+import zero.Actor;
 import zero.Collisions;
 import zero.ImageRegion;
 import zero.GameApp;
@@ -11,6 +14,7 @@ import zero.SpriteAnimation;
 public final class Main extends GameApp {
     private Image sheet;
     private ImageRegion region;
+    private ImageRegion fullRegion;
     private SpriteAnimation animation, sequence;
     private int presses, clicks, initCalls;
     private double x = 150;
@@ -18,6 +22,13 @@ public final class Main extends GameApp {
     private int digits, escapes;
     private int middleClicks, rightClicks, keyPresses;
     private String gameApiStatus;
+    private Actor imageActor, regionActor, animatedActor;
+    private final Actor emptyActor = new Actor(5, 5);
+    private final ShapeActor rotatedShape = new ShapeActor(400, 140);
+    private final ShapeActor straightShape = new ShapeActor(440, 140);
+    private final FailingActor failingActor = new FailingActor();
+    private final LegacyActor legacyActor = new LegacyActor();
+    private final NestedActor nestedActor = new NestedActor(this);
     @Override public void init() {
         if (++initCalls != 1) throw new IllegalStateException("Application.init must run exactly once");
     }
@@ -29,7 +40,23 @@ public final class Main extends GameApp {
         try { Color.rgb(256, 0, 0); } catch (IllegalArgumentException expected) { invalidRgb = true; }
         if (!invalidRgb) throw new IllegalStateException("Color.rgb must reject out-of-range channels");
         sheet = loadImage("/tiles.png");
+        ApiSignatureChecks.actors(sheet,24,24);
+        ApiSignatureChecks.resources(this,sheet,"/tiles.png",24,24);
         if (sheet != loadImage("/./tiles.png")) throw new IllegalStateException("Image aliases lost cache identity");
+        fullRegion = loadImageRegion("/tiles.png");
+        require(fullRegion.x() == 0 && fullRegion.y() == 0 && fullRegion.width() == 24 && fullRegion.height() == 24
+                && fullRegion.image() == sheet && loadImageRegion("/./tiles.png").image() == sheet,
+                "Full-image region bounds and backing image aliases");
+        boolean badRegionPath = false;
+        try { loadImageRegion(null); } catch (Throwable expected) {
+            badRegionPath = "Image resource path must not be null.".equals(expected.getMessage());
+        }
+        require(badRegionPath, "Full-image region null path names its error");
+        badRegionPath = false;
+        try { loadImageRegion("/missing-region.png"); } catch (IllegalArgumentException expected) {
+            badRegionPath = expected.getMessage().contains("/missing-region.png");
+        }
+        require(badRegionPath, "Full-image region missing resource names its path");
         region = imageRegion(sheet, 0, 0, 12, 12);
         animation = loadAnimation("/tiles.png", 2, 2, 12);
         sequence = new SpriteAnimation(8, region, imageRegion(sheet, 12, 0, 12, 12));
@@ -43,8 +70,18 @@ public final class Main extends GameApp {
         if (canvas() == null || graphics() == null || layout() == null) throw new IllegalStateException("JavaFX escape hatches missing");
         canvas().setAccessibleText("Zero web helper check");
         sequence.reset();
+        verifyActors();
+        require(emptyActor.width() == 1 && emptyActor.height() == 1, "Image-free actor logical size");
+        rotatedShape.setRotation(90);
+        boolean unbound = false;
+        try { failingActor.outside(); } catch (IllegalStateException expected) { unbound = true; }
+        require(unbound, "Actor helper must reject an unbound drawing context");
     }
     @Override public void update(double seconds) {
+        zero.Key[] actions = {zero.Key.W, zero.Key.A, zero.Key.S, zero.Key.D, zero.Key.SPACE, zero.Key.ENTER, zero.Key.ESCAPE, zero.Key.R};
+        for (int index=0;index<actions.length;index++) if (keyPressed(actions[index])) ApiSignatureChecks.actionKeys(this,index);
+        if (mouseDown()) ApiSignatureChecks.primaryPointer(this,false);
+        if (mousePressed()) ApiSignatureChecks.primaryPointer(this,true);
         if (!windowFocused()) paused = true;
         if (keyPressed(KeyCode.P)) paused = !paused;
         if (keyPressed(KeyCode.SPACE)) presses++;
@@ -62,6 +99,7 @@ public final class Main extends GameApp {
         }
     }
     @Override public void draw() {
+        text(ApiProof.events(),-10000,-10000);
         background(Color.WHITE); fill(Color.BLACK); textSize(20);
         text("Web helpers ready", 15, 30);
         text("Mobile state: " + clicks + "," + middleClicks + "," + rightClicks + ","
@@ -74,12 +112,29 @@ public final class Main extends GameApp {
         text(paused ? "Paused" : "Playing", 15, 142);
         text(gameApiStatus, 230, 30);
         text("Digits: " + digits + " Escapes: " + escapes, 230, 58);
+        text("Actor checks ready", 230, 86);
+        draw(imageActor); regionActor.draw(this); draw(animatedActor);
+        draw(emptyActor);
+        int legacyCalls = legacyActor.calls;
+        draw(legacyActor);
+        require(legacyActor.calls == legacyCalls + 1, "Legacy draw(GameApp) override dispatch");
+        fill(Color.BLACK); stroke(Color.BLACK); strokeWidth(2); textSize(20);
+        draw(rotatedShape); draw(straightShape); draw(nestedActor);
+        boolean failed = false;
+        try { draw(failingActor); } catch (IllegalStateException expected) { failed = true; }
+        require(failed, "Expected actor draw failure");
+        boolean unbound = false;
+        try { failingActor.outside(); } catch (IllegalStateException expected) { unbound = true; }
+        require(unbound, "Failing actor must release its context");
+        rect(430, 190, 10, 10); outlineRect(445, 185, 12, 12);
+        text("Actor scope restored", 230, 114);
         fill(Color.rgb(17, 99, 203)); rect(440, 330, 20, 20);
         textCentered("Centered", width() / 2, height() - 20);
         fill(Color.BLUE); rect(20, 170, 20, 20); circle(70, 180, 20);
         stroke(Color.BLACK); strokeWidth(2); outlineRect(90, 170, 20, 20); line(120, 170, 140, 190);
         image(sheet, 20, 220); image(sheet, 60, 220, 30, 30);
         image(region, 110, 220); image(region, 140, 220, 30, 30);
+        image(fullRegion, 400, 220, 48, 48);
         image(animation, 190, 220); image(animation, 220, 220, 30, 30);
         imageCentered(sheet, 280, 235, 30, 30, 20);
         imageCentered(region, 320, 235, 30, 30, -20);
@@ -87,7 +142,96 @@ public final class Main extends GameApp {
         imageFlippedY(sheet, 40, 290, 40, 40);
         imageFlippedY(region, 110, 290, 40, 40);
         imageFlippedY(animation, 180, 290, 40, 40);
+        text("Full image region ready", 15, 360);
         if (mouseDown(MouseButton.PRIMARY)) circle(mouseX(), mouseY(), 6);
+    }
+    private void verifyActors() {
+        Player player = new Player(sheet);
+        require(player.x() == 10 && player.y() == 20 && player.width() == 24 && player.height() == 24
+                && player.rotation() == 0, "Actor initial center, size and rotation");
+        player.setPosition(20, 30); player.setSize(30, 18); player.setRotation(-90);
+        player.moveForward(10, .5);
+        near(player.x(), 20, "forward x"); near(player.y(), 25, "forward y");
+        player.move(3, 4); player.rotate(450);
+        near(player.rotation(), 0, "normalized rotation");
+        player.face(23, 39); near(player.rotation(), 90, "clockwise facing");
+        player.moveToward(23, 39, 4, 1);
+        near(player.y(), 33, "bounded movement");
+        player.moveToward(23, 39, 100, 1);
+        require(player.x() == 23 && player.y() == 39, "Actor cannot overshoot");
+        player.face(player.x(), player.y()); near(player.rotation(), 90, "same-position facing");
+        player.moveForward(-2, 1); near(player.y(), 37, "signed forward speed");
+        boolean invalid = false;
+        try { player.setPosition(2, Double.NaN); } catch (IllegalArgumentException expected) { invalid = true; }
+        require(invalid && player.x() == 23 && player.y() == 37, "atomic invalid position");
+        invalid = false;
+        try { player.setSize(50, 0); } catch (IllegalArgumentException expected) { invalid = true; }
+        require(invalid && player.width() == 30 && player.height() == 18, "atomic invalid size");
+        player.setImage(region); player.setImage(sheet);
+        require(player.width() == 30 && player.height() == 18, "image replacement preserves explicit size");
+        SpriteAnimation frames = new SpriteAnimation(2, region, imageRegion(sheet, 12, 0, 12, 12));
+        player.setImage(frames); player.update(.5);
+        require(player.updates == 1 && frames.frameIndex() == 0, "explicit subclass animation update");
+        player.setImage(sheet); player.update(.5);
+        require(frames.frameIndex() == 0, "replaced animation is detached");
+        imageActor = player; imageActor.setPosition(275, 295);
+        imageActor.setSize(24, 24); imageActor.setRotation(90);
+        regionActor = new Actor(region, 320, 295);
+        animatedActor = new Actor(frames, 365, 295);
+        animatedActor.update(.5);
+        require(frames.frameIndex() == 0, "actor-owned playback does not advance legacy source clock");
+        require(regionActor.width() == 12 && regionActor.height() == 12
+                && animatedActor.width() == 12 && animatedActor.height() == 12, "Actor sprite natural size");
+        regionActor.setSize(24, 24); animatedActor.setSize(24, 24);
+    }
+    private static void require(boolean condition, String name) {
+        if (!condition) throw new IllegalStateException(name);
+    }
+    private static void near(double actual, double expected, String name) {
+        require(Math.abs(actual - expected) < .000001, name);
+    }
+    private static final class Player extends Actor {
+        private int updates;
+        Player(Image image) { super(image, 10, 20); }
+        @Override protected void onUpdate(double seconds) { updates++; }
+    }
+    private static final class ShapeActor extends Actor {
+        ShapeActor(double x, double y) { super(x, y); }
+        @Override public void draw() {
+            fill(zero.Color.BLUE); stroke(zero.Color.BLACK); strokeWidth(1); textSize(9);
+            rect(-10, -4, 20, 8); outlineRect(-10, -4, 20, 8);
+            line(-8, -2, 8, -2);
+            fill(zero.Color.GOLD); circle(6, 0, 4);
+            text("Actor shape", -12, -14); textCentered("C", 0, 16);
+        }
+    }
+    private static final class FailingActor extends Actor {
+        FailingActor() { super(440, 110); setRotation(30); }
+        @Override public void draw() {
+            fill(zero.Color.GOLD); strokeWidth(7); textSize(42); rect(-3, -3, 6, 6);
+            text("Actor failing font", 0, 0);
+            throw new IllegalStateException("Expected shape failure");
+        }
+        void outside() { fill(zero.Color.BLUE); }
+    }
+    private static final class LegacyActor extends Actor {
+        private int calls;
+        LegacyActor() { super(0, 0); }
+        @Override public void draw(GameApp app) {
+            calls++; app.fill(zero.Color.GOLD); app.rect(420, 175, 10, 10);
+        }
+    }
+    private static final class NestedActor extends Actor {
+        private final GameApp owner;
+        private final Actor child = new Actor(4, 0) {
+            @Override public void draw() { fill(zero.Color.GOLD); circle(0, 0, 6); }
+        };
+        NestedActor(GameApp owner) { super(360, 170); this.owner = owner; setRotation(90); }
+        @Override public void draw() {
+            fill(zero.Color.BLUE); rect(-8, -8, 16, 16);
+            owner.draw(child);
+            fill(zero.Color.BLUE); rect(-1, -1, 2, 2);
+        }
     }
     public static void main(String[] args) { launch(args); }
 }

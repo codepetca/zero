@@ -64,10 +64,11 @@ public class CoinGameCheck extends Application {
         var app = new Main();
         try {
             app.start(stage);
-            app.stop();
+            app.pause();
             var keys = (Set<KeyCode>) field(app, GameApp.class, "keys");
             var controls = (HBox) app.layout().getBottom();
             var restart = (Button) controls.getChildren().get(2);
+            require(!restart.isDisabled(), "Restart remains enabled while simulation is paused");
             requireReset(app);
             app.draw();
             var pixels = app.canvas().snapshot(null, null).getPixelReader();

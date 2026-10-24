@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import contracts from '../extension/src/sharing/contracts.js';
+import practice from '../extension/src/sharing/tutorial-practice.js';
 import { canonical, digest, releaseKey, appendAttempt } from './registry.mjs';
 import { byteHash } from './file-storage.mjs';
 import { reportAttempt } from './requests.mjs';
@@ -13,6 +14,12 @@ function sameBinding(item, request) {
 }
 function currentOwner(request, metadata) {
   if (!metadata || metadata.id !== request.repository.id || metadata.ownerId !== request.requester.githubId || metadata.visibility !== 'public' || metadata.ownerType !== 'User') throw new Error('Repository ownership/visibility changed; deliberate migration required');
+}
+
+function changeAvailability(state, key, status) {
+  if (state.releases[key]?.delivery !== 'ready') throw new Error('Only delivery-ready releases have public availability');
+  const previous = state.availability.filter(event => event.key === key).at(-1);
+  if (previous?.status !== status) state.availability.push({sequence:state.sequence + 1,key,status});
 }
 
 export class PublicationService {
@@ -140,11 +147,45 @@ export class PublicationService {
   async setAvailability(key, status) {
     if (!['available','withdrawn'].includes(status)) throw new Error('Invalid availability');
     await this.registry.update(state => {
-      if (state.releases[key]?.delivery !== 'ready') throw new Error('Only delivery-ready releases have public availability');
-      const previous = [...state.availability].reverse().find(event => event.key === key);
-      if (previous?.status !== status) state.availability.push({sequence: state.sequence + 1, key, status});
+      changeAvailability(state,key,status);
     });
     return this.refreshCatalog();
+  }
+  /** Withdraw an explicitly reviewed finite list. No source, staging or artifact
+   * deletion: availability and the normal immutable catalog are the only writes. */
+  async cleanupPracticeListings(keys, {execute = false} = {}) {
+    if (!Array.isArray(keys) || keys.length < 1 || keys.length > 150 ||
+        keys.some(key => typeof key !== 'string') || new Set(keys).size !== keys.length)
+      throw new Error('Choose 1–150 distinct exact practice release keys');
+    const {state} = await this.registry.read();
+    const catalog = generateCatalog(state, {artifactOrigin:this.artifactOrigin});
+    const candidates = new Map(catalog.releases.map(release => [releaseKey(release, release.version), release]));
+    const selected = keys.map(key => {
+      const release = candidates.get(key);
+      if (!release || !practice.isTutorialPractice(release))
+        throw new Error('Only exact delivery-ready tutorial practice releases can be cleaned up');
+      const availability = state.availability.filter(event => event.key === key).at(-1);
+      return {key, id:release.id, version:release.version, repositoryUrl:release.repository.url, previousStatus:release.status,
+        availabilitySequence:availability?.sequence ?? null, releaseDigest:digest(state.releases[key])};
+    });
+    if (execute) {
+      await this.registry.update(current => {
+        // Retry against the current CAS state without broadening the selected set.
+        // Even a withdraw/restore cycle requires a fresh operator review.
+        for (const entry of selected) {
+          const live = current.releases[entry.key];
+          const latest = current.availability.filter(event => event.key === entry.key).at(-1);
+          if (!live || live.delivery !== 'ready' || !practice.isTutorialPractice(live.release) ||
+              digest(live) !== entry.releaseDigest || (latest?.sequence ?? null) !== entry.availabilitySequence ||
+              (latest?.status ?? 'available') !== entry.previousStatus)
+            throw new Error('Practice availability changed; review the exact selection again');
+        }
+        for (const entry of selected) changeAvailability(current,entry.key,'withdrawn');
+      });
+      await this.refreshCatalog();
+    }
+    return {mode:execute?'execute':'dry-run',action:'library-practice-cleanup',
+      selected:selected.map(({releaseDigest,...entry})=>entry),status:execute?'withdrawn':'unchanged',retained:'source and all accepted artifacts'};
   }
   async refreshCatalog() {
     for (let retries = 0; retries < this.registry.maxRetries; retries++) {

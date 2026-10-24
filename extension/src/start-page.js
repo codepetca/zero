@@ -10,6 +10,7 @@ const COMMANDS = Object.freeze({
   clone: 'zero.cloneRepository',
   local: 'zero.openLocalProject',
   signIn: 'zero.signInToGitHub',
+  signInCode: 'zero.signInUsingCode',
   setup: 'zero.setupGitHub'
 });
 const CLOUD = new Set(['tutorial', 'new', 'clone']);
@@ -109,7 +110,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     if (snapshot.busy) return false;
     if (CLOUD.has(action)) return snapshot.phase === 'ready' && Boolean(snapshot.accountId);
     if (action === 'local' || action === 'tutorials') return true;
-    if (action === 'signIn') return snapshot.phase === 'signed-out';
+    if (action === 'signIn'||action === 'signInCode') return snapshot.phase === 'signed-out';
     if (action === 'setup') return Boolean(snapshot.accountId) && ['install', 'unavailable'].includes(snapshot.phase);
     return false;
   }
@@ -128,7 +129,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
       else await vscode.commands.executeCommand(COMMANDS[action]);
     } catch (error) {
       if (!current(target) || state().accountId !== accountId) return;
-      failure = `Could not ${choice ? 'open this project' : ({tutorial:'start the tutorial', tutorials:'open Tutorials', new:'create a project', clone:'clone a project', local:'open a local project', signIn:'sign in to GitHub', setup:'check GitHub access'})[action]}. Try again.`;
+      failure = `Could not ${choice ? 'open this project' : ({tutorial:'start the tutorial', tutorials:'open Tutorials', new:'create a project', clone:'clone a project', local:'open a local project', signIn:'sign in to GitHub', signInCode:'sign in using a code', setup:'check GitHub access'})[action]}. Try again.`;
       retry = {action, choice, accountId};
       try {report(failure, error?.message || String(error));} catch {}
     } finally {
@@ -220,7 +221,7 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
 <h1 id="start-title" tabindex="-1">Start with Zero</h1>
 <div class="tutorial-actions" id="tutorial-actions"><div class="zero-split"><button class="primary" data-action="tutorial" disabled>Start tutorial</button><button class="primary zero-menu-button" id="tutorial-button" aria-label="Tutorial options" aria-haspopup="menu" aria-expanded="false" aria-controls="tutorial-menu" disabled>${icon('ChevronDown')}</button></div><div class="zero-menu" id="tutorial-menu" role="menu" aria-labelledby="tutorial-button" hidden><button role="menuitem" tabindex="-1" data-action="tutorials" disabled>Tutorials</button></div></div>
 <div class="actions"><div class="project-actions" id="project-actions"><button class="secondary zero-menu-trigger" id="project-button" aria-haspopup="menu" aria-expanded="false" aria-controls="project-menu" disabled>Project ${icon('ChevronDown')}</button><div class="zero-menu" id="project-menu" role="menu" aria-labelledby="project-button" hidden><button role="menuitem" tabindex="-1" data-action="new" disabled>New</button><button role="menuitem" tabindex="-1" data-action="clone" disabled>Clone</button><button role="menuitem" tabindex="-1" data-action="local" disabled>Open</button></div></div></div>
-<section aria-label="GitHub"><h2 id="github-heading">GitHub<span id="account-group" hidden> <span class="muted" aria-hidden="true">·</span> <span id="account" class="muted"></span></span></h2><p id="guidance">Checking GitHub access…</p><button class="primary" data-action="signIn" hidden>Sign in to GitHub</button><button class="primary" data-action="setup" hidden>Install Zero for GitHub</button></section>
+<section aria-label="GitHub"><h2 id="github-heading">GitHub<span id="account-group" hidden> <span class="muted" aria-hidden="true">·</span> <span id="account" class="muted"></span></span></h2><p id="guidance">Checking GitHub access…</p><button class="primary" data-action="signIn" hidden>Sign in to GitHub</button><button class="secondary" data-action="signInCode" hidden>Sign in using a code</button><button class="primary" data-action="setup" hidden>Install Zero for GitHub</button></section>
 <section id="recent-section" aria-labelledby="recent-heading" hidden><h2 id="recent-heading">Recent projects</h2><p id="recent-status" class="muted"></p><ul id="recent-list"></ul><button id="retry-recent" hidden>Try again</button></section>
 <p id="status" role="status" aria-live="polite"></p><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button></div>
 </main><script nonce="${nonce}">
@@ -284,7 +285,7 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
     for (const button of buttons) {
       const action = button.dataset.action;
       button.disabled = state.busy || (['tutorial','new','clone'].includes(action) && !ready);
-      if (action === 'signIn') button.hidden = state.phase !== 'signed-out';
+      if (action === 'signIn'||action === 'signInCode') button.hidden = state.phase !== 'signed-out';
       if (action === 'setup') {button.hidden = !signedIn || !['install','unavailable'].includes(state.phase);button.textContent = state.phase === 'install' ? 'Install Zero for GitHub' : 'Check again';}
     }
     for (const menu of dropdowns) menu.refresh(state.busy);

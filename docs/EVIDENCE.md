@@ -1,5 +1,1999 @@
 # Delivery evidence index
 
+## Tutorial readiness and browser sign-in — 2026-10-24
+
+Source-only readiness87a9b4ef and browser authentication throughaa8d4c3d are
+verified and independently reviewed locally. Current tutorial drafts each pass
+native behavior and saved-builder WebFX export; observed browser checks cover
+Greeting/Study behavior and lesson11 Coin startup/badge. New Start tutorial blocks
+stale recorded templates before creation; existing projects stay independent.
+Official template publication and direct/manual Clone verification remain separate.
+
+Browser-first authorization and explicit code fallback complete in controlled
+local UI using real client/server modules and fake GitHub. Saved editor session
+survives reload; code command and lesson11 practice link are visible. Two auth
+reviewers' duplicate account-selection finding was fixed, with clean targeted
+closure; no unresolved source blockers. Production broker remains disabled;
+live GitHub web OAuth, callback activation and physical Windows/Safari remain
+unproven. No publication/release or App configuration changes occurred.
+See [verification](VERIFICATION.md#tutorial-readiness-and-browser-first-sign-in--2026-10-24)
+and the ignored `.verification/tutorial-readiness-auth-receipt.json`.
+
+## CreditsBadge tutorial practice sharing — 2026-10-24
+
+Owner approved a harmless copied badge exercise instead of mass input-helper
+contributions, retaining the optional original/core extension. Base31badc97,
+actor worktree. Same Greeting/Study/Coin projects and13lesson IDs. Lesson10 input
+refactoring remains; lesson11 adds22-line Zero-only CreditsBadge, extraction,
+actual-JAR checks/two finite examples, explicit practice submission/reuse and
+optional original proposal. Lesson12 retains the badge. No core/public API change.
+
+Reserved library slug tutorial-credits-badge labels practice without schema changes.
+Both existing catalogue APIs exclude every practice version; explicit practice
+API/site/editor discovery opt in. Repository-derived identity groups versions;
+exact withdrawn links do not substitute newer versions. Editor teaching-policy
+exception permits only this library from a marked Coin tutorial, retaining
+ownership/trust/saved-state/review/source/version/checker controls. Browser
+resolution routes authored and managed practice pins through the practice API;
+new exports still reject withdrawn versions. Existing installed bytes are retained.
+Cleanup selects1–150exact practice release keys, previews by default, and requires
+existing publisher role plus reviewed library-enabled config for execution. CAS
+rechecks prevent availability/delivery races; cleanup deletes no source/artifact.
+No scheduler, database, active service or original-code detector was introduced.
+
+45focused curriculum/reader/navigation tests PASS/0skip; root source/config/link
+checks and website typecheck PASS. Five actual finite native executions cover
+11game plus12media/scrolling with/without assets. Actual extracted schema2 widget
+Check PASS against separate core/contribution JARs, running LibraryCheck and both
+finite examples. Four project-owned saved-builder WebFX/GWT exports PASS:11game,
+12media,12scrolling and11extracted. Actual CUA browser: extractedbadge game3/3win,
+Restart0and arrowscore1; otherthree badgevisible/arrowscore1 ormediaChimes1,
+artwork actionready. Local lesson11, its check-source link and practicearea were
+inspected. Practice area honestly reports unavailable catalogue in unconfigured
+local service; no claim of a live accepted submission/classmate download.
+200focused integration tests PASS/0skip;45affected cleanup/editor correction
+tests PASS/0skip. Independent Sol/high complete49-file review of31badc97..82cb6ff7
+found P2 cleanup partial-success retry, P3 native practice grouping and P3 SVG
+accessibility text. Fixed inonebatch ata8f1947c; targeted9-file review is
+COMPLETE/CLEAN. Cleanup now accepts exact already-withdrawn keys to repair a
+failed catalogue refresh without duplicateevents, retaining CAS/binding/gate
+checks. Native discovery groups identity then offers exactversions. Root checks
+pass after correction; student Java/browser builder sources are unchanged, so
+prior native/JAR/GWT/browser proof remains current. All6owned QA tabs and the
+4preview/localwebsite servers were closed; original ZeroDev watcher preserved.
+Proofs: ignored .verification/tutorial-practice/ and tutorial-practice-*.log.
+
+Parent owns lessons/checkpoints/docs/shared marker/integration/Git. Sol/high
+practice_editor owns editor/builder wiring and tests; Sol/high practice_platform
+owns platform/site/cleanup and tests. Effective configurations, elapsed worker
+costs and tokens unknown. Storage259GB healthy; weekly68%remaining at start is
+account-wide. DeepSeek paused. Retained rework: extraction UI calls widgets UI
+component; lesson aligned. Practice check sources live in allowed checkpoint
+references so both bundled reader and website can open them. Immediate key input
+after Restart preceded returned focus; explicit canvas focus then arrows verified.
+No push/PR/merge, publication/release, activation/live cleanup, install, account/
+credential changes or new telemetry. Hosted schema2 acceptance/rollout remains
+separately held; setting a library flag alone does not establish acceptance.
+
+## Small tutorial refactoring and contribution path — 2026-10-24
+
+Owner requested existing small Zero examples, an intermediate busy-Main refactor
+and a community/core contribution opportunity. Base95c2c140 in actor worktree;
+no new framework Input class or API. Three continuing Greeting/Study/Coin projects
+and13lesson IDs remain. Lesson10 extracts student-owned PlayerInput before the
+existing ScoreDisplay reuse. Lesson11 retains compatible caption improvement,
+adds optional WASD, and teaches a README proposal/original library/reuse/core
+review path with credit, exact versions and native/browser evidence. Proposals
+need no fourth project or publication; actual sharing keeps original-work policy.
+Lesson12 remains optional artwork/sound/scrolling; larger platform/level/endings
+exercises no longer expand the core tutorial. Big reference games remain
+maintainer completeness checks. Website metadata, bundled reader, index/teacher
+notes, comparison sources and advanced-guide prominence follow that scope.
+
+Four game checkpoints10/11/12media/12scrolling use a small ordinary PlayerInput.
+10 preserves arrow behavior;11 adds optional WASD, reused unchanged at12. Main
+keeps rules, score and exactly one Player update. No actor/movement convention,
+physics rule, core source or public API changed. Regression checks preserve
+per-axis diagonal speed, opposing-key cancellation, matching arrow+letter not
+doubling an axis, one9-pixel update and helper reuse across fresh-player Restart.
+Native harness supplies controlled held state for those query-seam tests; it does
+not claim physical key/focus dispatch. Actual browser tests supply CUA real keys.
+
+44focused curriculum/website/nav/reader tests PASS,0skip. Root source/config/link
+check PASS. Four affected checkpoint variants pass6actual native executions
+(12media andscrolling both without/with assets). Four actual saved-builder
+WebFX/GWT exports PASS. Actual CUA Chrome wins all four:10arrows3/3;11WASD3/3;
+12media3/3+Chimes3;12scrolling3/3+Chimes3 with retained fixed HUD. Restart and
+arrow fallback exercised. Actual local /tutorials/10 and11 show changed navigation,
+refactor snippets, PlayerInput comparison links and core-proposal guidance.
+Current canonical student source hashes match all four compiled projects.
+Ignored proofs: .verification/tutorial-refactor/ and tutorial-refactor-*.log.
+Independent Sol/high complete26-file source/curriculum review of95c2c140..5e760654
+found one nonblocking P3 stale product-contract paragraph. Corrected at2051288b;
+targeted docs-only review is COMPLETE/CLEAN with no remaining findings. Root
+checks and whitespace checks pass after the correction; runtime sources remain
+those already executed. Owned QA tabs/preview/site servers are closed; original
+Zero Dev watcher/profile remain useful.
+
+Parent owns source/harness/docs/integration. One Sol/high worker wrote lesson10/11
+prose only; parent verified snippets/links and aligned remaining sources. Effective
+model, task timing/tokens unavailable. Storage259GB healthy; weekly69%remaining
+atstart is account-wide, not task cost. DeepSeek pause honored. Retained rework:
+website scaffold test incorrectly included private builder Java in student roots
+and an outdated13helper list; it now checks exact reviewed current core paths
+inside src/main/java. Reader copy test expected old JavaFX import; updated to
+Zero Label. Lesson12 navigation expectation follows its smaller media outcome.
+These were test expectations; runtime APIs and source security boundaries did not
+change. No push/PR/merge, public templates, website deployment, sharing, release,
+installation, account/credential changes or telemetry occurred.
+
+## Zero-only basic games — 2026-10-24
+
+The owner authorized Pong, a top-down collector/shooter and a small platformer,
+using Zero/standard Java only, fixing demonstrated API gaps and checking real
+WebFX output. Publishing/releases remain separate. Work is confined to the actor
+worktree, base c5374ddc. Three Sol/high workers each wrote one game and one finite
+native check; parent owns shared API/docs/tooling/integration. Effective worker
+configuration and task token costs are unknown. Storage259GB healthy; account
+weekly70%remaining at start is not task cost. DeepSeek remains paused.
+
+All twelve student Java files contain no toolkit imports/references or advanced
+canvas/layout/graphics/node bridge calls. A source-boundary regression is included
+in ordinary test discovery. Every game has title/instructions, Play, live HUD,
+pause/resume, restart and win/loss rules. Collector uses a loaded PNG and sound;
+platformer uses sound. These are worked class/method examples, not first lessons.
+
+Added eight zero.Key constants W/A/S/D/SPACE/ENTER/ESCAPE/R and primary-pointer
+mouseDown()/mousePressed() overloads. Existing input ownership and edge behavior
+remain unchanged. Public docs, website metadata and exact source/profile/API
+inventories are synchronized at193declarations. Ten new declarations have all20
+current native/browser executed targets. Scoped actual receipts include35native
+GameHelpersCheck and58browser/helpers observations. This is not a fresh claim
+that all386current targets were rerun; prior366/366proof remains tied to its
+prior exact source.
+
+Three standalone native compilations and all three actual finite GUI checks pass:
+Pong clamps/AI/serve/wall+paddle bounces/no double bounce/scoring/win/loss/reset;
+collector sprite/movement/chase/shot sweep+cooldown/protection/one-time coins/
+win-loss/reset; platformer jumping/no midair repeat/one-way+slow-frame landings/
+edge fall/coin+exit gating/win-loss/reset and framework pause clocks.
+Three pinned project-owned WebFX/GWT exports pass. Actual CUA Chrome play proves
+Pong title/movement/rally/scoring/loss/pause/resume/restart, collector all8coins
+win with full health plus key/pointer fire/loss/restart, platformer all4coins
+and exit win plus falling loss/restart/pause/resume. Screenshots and local
+read-only drawing/key observations are retained. Native platform test harnesses
+are excluded from source ZIPs/browser inputs. Physical Windows remains untested.
+
+46focused source/API-evidence/website/navigation tests and39adapter/compatibility
+tests pass with0skips. Root syntax/configuration/local-link check passes. Actual
+local website /docs renders/searches the new key and primary-pointer entries.
+No website publication occurred. Independent Sol/high complete46-file source review of c5374ddc..0f534b5c
+is CLEAN, with no findings; effective configuration/time/tokens are unknown.
+A further56core/builder/library-consumer integration tests pass,0skip, bringing
+the targeted total to141. Review also verified all six sourceZIPs retain their
+62-file builder and exact game source without test/compiled/runtime artifacts. Source-bound outputs and full review outcome are
+recorded in ignored .verification/basic-games/.
+
+Retained rework: initial export correctly refused the installed producer for a
+project with saved tooling; runner now explicitly uses each saved builder.
+Tests with old inventory/example/search counts were updated for new entries.
+Immediate automated keydown before the Play view mounted reached its old button;
+waiting for actual canvas focus resolved it without a framework change. A native
+API receipt captured before package-script edits correctly failed current-harness
+binding; its unchanged behavior was rerun at final package metadata. API capture
+was frozen before hashing. Console logs also contain Chrome asynchronous-message
+channel diagnostics; no Java runtime/assertion or observed window error is present
+in the retained gameplay/10-new-API captures. Do not claim an empty browser console.
+
+[Student opportunities](BASIC-GAMES.md) include health/HUD components, actor-bounds
+helpers, optional landing/jump behavior and animation-state components. Camera/
+world/style gaps remain opportunities for larger demonstrated projects, not
+prerequisites inserted into these games. No framework physics, extra loop or
+scene hierarchy was introduced. No push/PR/merge, public templates, publication,
+release, installation, credential/account action or telemetry deployment occurred.
+
+## Completed local editor/component journey and current API evidence — 2026-10-24
+
+Human explicitly instructed “Disregards budget caps. Complete the goal.” Applied
+`override-task-stops` to this task/goal: low-usage and workflow caps, including prior
+absolute caps, are waived. Existing cumulative review ledger retained; no reset,
+replacement goal or monitor. Publishing/releases, installation, external accounts
+and credentials remain separately held. DeepSeek remains paused. Source authority
+and independent verification gates remain intact.
+
+Host fix f94809b3 is retained. `440bd84046f1eac5d307acf2224b407b09e3f95c` and
+`eef9960c6ccb5a05914ec2ba07829fd6793133de` correct the actual saved-checker/core
+Unicode interaction and the same application-source callers in library extraction,
+import editing and consumer Add/Update/Revert. Original core identities are read
+only after exact reviewed hash validation; core is never rewritten by import
+preparation. Student/library declarations and selected repackaging remain strict;
+changed core, namespace shadows and unsupported escaped identifiers still reject.
+No public Java API or framework runtime body changed.151 focused integration tests
+PASS,0skip. Independent Sol/high complete targeted review identified two remaining
+callers; both corrected together, targeted review clean. Prior full coverage reused.
+
+Actual isolated Mac editor opened a deliberate upgraded copy, trusted only that
+reviewed folder and ran its own current62-file saved builder. The original project,
+old builder and finished output remain valid and clean. Observed:
+
+- Explicit browser preparation → compatible. Unsaved `new java.io.File` → stale;
+  saved source → unsupported with constructor/type Problems at Companion.java8:9/13.
+  Error opened actual line8:9. Native Run still reached App UI ready. Stop worked.
+  Exact original source restored → compatible and No Problems.
+- Actual full editor WebFX export succeeded. A local schema2 ScoreView fixture was
+  then prepared through authoring API with maintained checks/examples; no remote
+  identity or authenticated Extract Library claim. Actual editor Check Library
+  built the independent JAR and ran behavior checks and both examples successfully.
+- Full editor export with the extracted library succeeded; actual preview Play,
+  bar-HUD replacement and Pause rendered. Previous original six-coin win and
+  Source Control workflow remain valid for unchanged game rules.
+- Actual Save Web Export ZIP produced the artifact below. Local CLI committed the
+  owned upgraded copy and retained all history in a source bundle. No remote/push.
+  Actual Stop closed the preview; Run and compatible status returned.
+
+Fresh final-profile native7 suites pass, six emitting receipts. The first combined
+run's AudioCheck saw an actual Unknown native media error and frame-cleanup failure;
+unchanged isolated AudioCheck retry passed. Both logs remain. Four current real
+pinned WebFX/GWT outputs pass. Actual Chrome CUA actions and bounded loopback
+observation capture execute all4 finite API families, preserving original Java
+invocation/postcondition blocks. No JavaScript fabrication/rebinding of old results.
+Parent independently runs the unchanged authoritative loader: **183 declarations,
+366/366 native/browser targets, zero gaps**, exit0. Browser cases have48/37/20/90
+actual outcomes (helpers/UI/audio/lifecycle), including57 real drawing samples and
+actual control, held key/pointer, music/sound and shutdown observations.
+
+The collector initially assumed normal-density pixels, then incorrectly used
+CSS-fitted bounds. Both failed unchanged validators and are retained as rejected
+harness attempts. Final v4 lifecycle sampling uses backing/style ratios for logical
+coordinates, actual logical canvas dimensions and positive stable game-frame
+counts. The first UI recorder omitted DOM before Java events; the same actual UI
+sequence was repeated using v5, retaining enabled-before and disabled-after Ada/2
+state around attempted blocked click/typing. v1 helpers/audio, final v5 UI and v4
+lifecycle are the ONLY selected evidence inputs. Exact source bytes/row references,
+observer identities, actual output/tool/profile/fixture hashes and immutable input
+copies are retained. This does not claim another full fault/mobile-harness run.
+All owned test browser tabs and5observation servers closed; useful Zero Dev remains.
+
+21 API-evidence validator tests and22 website API/navigation tests PASS,0skip.
+Root checks PASS. Final local kit/source/license/archive/executable-wrapper and
+extracted Maven compilation checks PASS. Metadata remains local kit0.5.47/core0.3.0;
+these bytes are not a published replacement. Candidate assets:
+- kit: zero-bootstrap.zip, 4253935bytes, SHA256 `910aa9f96f88fbd81a68d214c0a12018ddc90ccde780c183c31b7f24a1c23e28`.
+- starter: zero-starter.zip, 2761816bytes, SHA256 `6352dfcc58c10f418581a6491340d60afed1839cd568fe212fae96ee357fac34`.
+- extension: zero-0.5.47.vsix, 1478533bytes, SHA256 `fea4c52a2681ab2536511ce959bc809bd039886356c2a96d28738a3edbf38f28`.
+
+Upgraded student copy local commit `6154b4c4e0a705913e4813d7569c41afd202f24b`, clean main,
+NO remotes. `student-project-current.bundle` preserves source/history. Final playable
+`Student-Coin-Quest-current.zip`:1607457bytes, SHA256
+`ed4540dd7916f4d10e9238c5fd6e243160777e652cc0d213f103040d8b2bccad`, byte-identical validated output.
+Original project4a4d722f and its previous saved finished ZIP remain unchanged.
+
+Receipts: `.verification/vision-editor-walkthrough/completed-local-receipt.json`,
+`current-project-artifacts.json`, `cua-api-collection-receipt.json`,
+`cua-api-observation-selections.json`, `parent-authoritative-report.json` and logs.
+Current cases: `.verification/vision-api-scanner-final-{native,web,complete}`.
+Independent final evidence-integrity review is COMPLETE/CLEAN: exact Java blocks,
+all external postconditions,14bound-artifact and13origin hashes, all57pixel samples
+and241compiled site files verified. Cumulative ledger11reviewerturns,
+1initial/9targeted/1integration waves and10fixbatches under the human waiver;
+requested Sol/high, effective config/timing/tokens unknown. Actual editable source
+ZIP (2,792,253bytes) was extracted into a fresh folder and Maven compilation PASS;
+SHA256 `612eb5d0b6c344eb44fc7e3a589df4863e9195014ccea3de2715554f65ad449c`.
+Source ZIP and full history bundle are retained beside the playable ZIP.
+Local implementation/student-editor scope is complete. Actual authenticated
+GitHub creation/clone/push, live ZeroHub admission, Pages/public templates, installer
+signing/installation, physical Windows and teacher/novice trials remain separate
+held acceptance. Standalone native physical gameplay is not claimed. Native task
+compiler Problems can persist until Stop; this minor UX limitation is recorded,
+not confused with actual browser-diagnostic recovery. No publication, deployment,
+release, install, account/credential change or new telemetry occurred.
+
+## Mac runtime identity correction and remaining checker blocker — 2026-10-24
+
+Explicit user approval opened one focused20min window11:03:06–11:23:06UTC.
+Host-only commit `f94809b3c7a8c96f5bda5e58c7c2751dd0ed7d5d` permits bounded
+ordinary external hard-linked Java runtime files and retains runtime mode after
+resolving symlink aliases. Project/cache hardlink protections and rejection of
+runtime targets inside projects remain intact. Directory/special runtimes reject;
+byte hashing and strengthened post-read identity checks remain data-only.
+36 host/controller/builder tests PASS,0skip. Independent Sol/high runtime-scan-turn
+review covers both changed files and immediate controller/retained-output paths,
+COMPLETE/CLEAN. Prior full reliability/API reviews cover unchanged interactions.
+Existing ledger totals8launches,1initial,7targeted,8fixbatches; no further fixes
+under this review session's absolute cap. Clocks manually approximate, tokens and
+effective configuration unknown. Root checks and local kit packaging/verification
+PASS, including canonical source parity, licenses and extracted Maven compile.
+Current local candidate exact hashes are in CURRENT and the receipt below.
+
+Actual isolated editor Developer Reload Window and explicit Enable and Prepare
+Browser Checks ran using current host source. No PATH workaround or student source
+change. Host inspect with the actual extension-process JAVA_HOME/PATH/HOME now
+succeeds. Saved runner returns unavailable with CACHED_INPUTS_UNAVAILABLE:
+“Unicode-escaped Java needs manual package preparation: src/main/java/zero/App.java”.
+The legitimate runtime protocol record-separator escape is at project App.java:262.
+Read-only trace: compatibility/cached-project.js passes all original sources,
+including core, through sharing/authoring.js declaration(), which conservatively
+rejects Unicode escapes before literal masking to protect namespace transformations.
+This independent checker/core interaction prevents the requested actual
+compatible→unsupported→corrected cycle. The UI remains unavailable/No Problems;
+no recovery success is claimed. Actual full WebFX export/play proof is unaffected.
+Student repo remains clean4a4d722f with no remotes. Reload closed the owned preview.
+No new saved-builder/core/API/fixture bytes changed, so prior366/366 actual execution
+proof is reused; a checker correction would change project-owned builder inputs
+and requires affected checker/preservation validation. Do not weaken declaration
+safety or alter the fixture just to claim success. No ninth fix, new reviewer,
+publishing, release, installation, account/credential or telemetry action occurred.
+
+Evidence: `.verification/vision-editor-walkthrough/runtime-scan-receipt.json`,
+`runtime-scan-host-result.json`, `runtime-scan-tests.log`, `runtime-scan-check.log`,
+`runtime-scan-package.log`, `runtime-scan-verify-kit.log`. Earlier walkthrough
+findings below are retained as history; the runtime hardlink issue is now fixed.
+
+## Actual Mac student/editor walkthrough — 2026-10-24
+
+Owner explicitly lifted the editor QA hold and requested full local student-flow
+testing while separating publishing/releases. The canonical Zero Dev loop opened
+current source in isolated user/extensions directories, process94202 flags verified.
+No credentials copied or keychain prompt accepted. Port3158 watcher belongs only
+to the actor checkout; primary work preserved. Sol/high api_evidence_review supplied
+a bounded source-backed checklist; it performed no GUI, edits, tests or exports
+and did not reopen/repeat completed source reviews. Effective tokens/config unknown.
+
+The native-only scratch game launched/stopped from the real sidebar. A complete
+current verified starter ZIP plus maintained Coin Quest/shared component fixture
+was then prepared outside the repository at `/private/tmp/zero extracted with
+spaces WUdRw4`. This fixture preparation is not a claim of GitHub project creation.
+Actual Zero Open Local Project, trust of this exact reviewed folder, New class
+Companion, editing an Actor subclass, PNG import and Copy asset paths all worked.
+The actual copied `/actor-frames.png` was pasted into a source comment and its
+imported bytes independently match the maintained original. Companion uses a16px
+region at32px size and adds its own simple drawing. Main explicitly owns drawing.
+
+A deliberate setSiz typo produced actual javac exit1, Companion.java line7,column9,
+and one native Problems item. Show Problems and the error item opened that exact
+source line. Correcting it reached App UI ready; Stop returned No Problems.
+Further personalized game/PNG changes also reached UI ready. CUA cannot select
+the unbundled Java application: standalone native physical play is not claimed.
+The native compiler Problem remained visible during corrected app execution and
+cleared on Stop, a separate UX finding. No language-server acceptance is inferred.
+Operator focus/Monaco selection/automatic-comment mistakes were restored before
+final successful compilation; they are not framework defects.
+
+Actual editor Export for Web ran pinned GWT to BUILD SUCCESS. Editor preview
+reported App ready and showed title/help/back, game/HUD and the imported sprite.
+Open in browser created an actual loopback preview. Real pointer input exercised
+score1→bar-score replacement preserving1, pause/resume, both levels and **You win,
+6/6,19seconds**. Coordinate/timing retries preceded that successful playthrough;
+none of its state was mutated through JavaScript. A screenshot of the actual win
+was captured through CUA. The QA browser tab was closed; original tabs untouched.
+Actual Source Control showed the three changes, stage-all3 and local commit
+`4a4d722f18117e8cd0f3f8f25260a0e7d9cb53ca`. Git independently verifies clean main
+and no remote. No Commit & Push/Publish action was used. A source Git bundle retains
+both commits. Save Web Export ZIP produced1,607,441 bytes, SHA256
+07454162564e45a347f15ba315b02ba9681729e70c7e2ddf3cc0b516bf4b0527,
+exactly matching the validated retained ZIP. Actual Stop closed the preview;
+port52188 then returned ECONNREFUSED. Watcher/editor remain useful for follow-up.
+
+**Found blocker:** actual Enable and Prepare Browser Checks finishes, but the
+sidebar stays unavailable. Read-only inspectSourceScope diagnostic replay identifies
+`/usr/bin/java`: macOS's ordinary root-owned launcher has37 hardlinks (javac too),
+and the scanner applies the strict project/output ordinary-file policy to every
+PATH runtime candidate. This rejects an unused system launcher despite a verified
+explicit JDK21. Actual export succeeds; passive and real-build results remain
+separate. No environment workaround or code change was used to fake a pass.
+Proposed focused correction: dedicated bounded read-only runtime identity inspection
+that permits valid external OS runtime files, or inspect independently selected
+runtimes; preserve project/cache link restrictions, approval and stale-byte binding.
+An additional20min correction/review batch is pending explicit approval under the
+closed prior review budget. No eighth fix/reviewer turn has started.
+
+Receipts/observations, validated finished ZIP and `student-project.bundle`:
+`.verification/vision-editor-walkthrough/`. Exact API366/366 evidence remains valid
+because maintained source/profile/fixtures are unchanged. Overall reliability/
+journey acceptance is partial due to the host blocker. Default GitHub create/clone,
+authenticated transport, live ZeroHub extraction/catalog admission, installers,
+physical Windows/novice play, Pages and release publication remain separate.
+No publishing, release, credential/account change or telemetry occurred.
+
+## Final local reliability acceptance — 2026-10-24
+
+Human approved the20-minute runtime correction/review window10:00:04–10:20:04UTC,
+and a seventh batch within that same deadline. `86b8da8d` registers a private
+BrowserConsoleProvider for actual pinned WebFX scheduled-runnable Throwables.
+It retains ordinary logging and routes real callback errors through existing
+BrowserLifecycle failure/cleanup, preserving original and cleanup causes.
+Actual browser verification then passes UI and missing-asset stop checks but
+exposes startup ordering: a failed app closes its shared Stage, an older owner's
+hide handler reports stopped, and the global sink suppresses the later fatal.
+The retained diagnostic run tags that exact setup action; it is not final proof.
+`a668d3b5` reports startup failure through BrowserLifecycle before stop/stage-close
+can produce a competing terminal status. Core/student API signatures are unchanged.
+
+Both deltas have complete independent Sol/high reviews with no P1/P2 findings,
+including SHA-pinned upstream scheduler/console source, generated registration,
+recursive builder inclusion, cleanup/reentrancy and terminal ordering. Prior full
+API and reliability source review coverage remains applicable. API ledger totals:
+7 reviewer turns,1 initial wave,6 targeted waves,7 correction batches. Human
+extensions are recorded in the same ledger; no fresh budget/session bypass.
+Effective configurations and per-turn token use remain unknown.31 focused tests
+pass with zero skipped, including actual Java production provider/lifecycle code
+compiled with dependency fakes. The initial new generation test used an unsupported
+fully-qualified entrypoint spelling; its fixture was corrected before committing.
+
+**Final unmodified actual checks PASS:** seven serial native JavaFX suites;
+four real pinned WebFX/GWT exports;103 ordinary browser assertions across helpers,
+Zero UI, audio and lifecycle;57 helpers-mobile assertions. Update/draw/UI,
+missing-asset, setup/shutdown and actual browser promise failure checks all pass.
+No stress/full-ten fixture run repeated. Native and four browser case receipts
+are collected at final source/profile. The authoritative loader remeasures exact
+current source/complete saved builder/configuration/tools/outputs and reports
+**183 declarations,366 required targets,366 covered, zero gaps** with
+`--require-complete`. This finite coverage does not prove every possible behavior,
+physical platform or actual editor interaction.
+
+Final evidence:
+- `.verification/vision-api-startup-native`: six emitting cases plus Smoke's
+  regression-only pass; raw `vision-api-console/startup-native.log`.
+- `.verification/vision-api-startup-web`: four builds and actual ordinary/mobile
+  browser receipts; raw `vision-api-console/startup-web.log`.
+- `.verification/vision-api-startup-complete`: combined current case directories.
+- `.verification/vision-api-console/complete-report.json`:366/366 complete.
+- Earlier console-only failed build/browser, bounded diagnostic replay and prior
+  native/profile evidence remain retained; they are historical after final fix.
+
+A further bounded real loopback parent/child iframe MessagePort probe on the exact
+final lifecycle build passes UI and setup faults: ordered records, exactly one
+fatal with the original named cause and no competing stopped event. UI reaches
+startup→UI-ready→first-frame→fatal; setup reaches startup→UI-ready→fatal. This is
+actual browser transport, not physical editor UI. Raw
+`vision-api-console/managed-fault-browser.log` and `managed-fault-receipt.json` are
+retained. The wrapper's first JSON parser failed after successful browser execution;
+offline decoding of the preserved result recovered it without a browser retry.
+
+Local packaging was rebuilt at final source. Exact MIT/license/archive/wrapper
+checks and extracted standalone Maven compilation PASS.588 current archive/source/
+setup byte comparisons PASS. Current project-owned builder has62 files; historical
+student A/B builders are unchanged. Candidate receipt:
+`.verification/vision-api-console/startup-local-candidate-receipt.json`.
+Final local kit4,252,021 bytes SHA256
+1de1aff68269d39320d3e97e53bafeff2f87f9594c218d30d222ed7cda1e7b5e;
+starter2,761,536 SHA256
+5bd3a3ee6bea19a6faaf17ec85505522b2b6a0356de50b932e1935056d604f2c;
+VSIX1,476,862 SHA256
+7017445873ed93bee5d2c09adf3914c5795194fd042a0876f14e2fe416b8b675.
+Kit0.5.47/core0.3.0/publication.local are unreleased candidate metadata. No
+published bytes were replaced. Existing22API/navigation and43 local Git/mocked
+editor workflow checks remain applicable. Local Phase4 is accepted; Phase5's
+actual editor, installer/platform/novice, hosted/Pages and release gates remain
+held/separate. No public API addition, telemetry, credential or external action.
+
+## Resumed native acceptance and browser UI fault — 2026-10-24
+
+Human **“Unlocked and approved”** authorized the fifth correction batch and one
+additional targeted review in a15-minute window09:49:15–10:04:15UTC. Implementation
+`55bbc8ad` matches each expected lifecycle Java fault through actual console/window
+channels and keeps stopped-frame checks. All11 focused JS tests, syntax/diff checks
+and an independent complete Sol/high two-file/direct-fixture review pass with no
+P1/P2 findings. Earlier full and targeted source coverage remains applicable.
+Ledger now has5 reviewer turns,1 initialwave,4 targetwaves,5 correction batches;
+effective configurations and attributable tokens remain unknown.
+
+All **seven actual native JavaFX suites PASS** on the unlocked Mac, retaining
+complete current **183/183 native declaration targets**. Six emitting cases plus
+Smoke's regression-only run are in `.verification/vision-api-resumed/native`;
+raw output is `.verification/vision-final-checks/native-api-resumed.log`.
+No focus simulation, persistent power change or waiver was used.
+
+The actual four-family WebFX browser run reuses the byte-verified52ea0d97 GWT
+outputs because intervening changes affect only maintainer JS. Helpers, Zero UI,
+audio, normal lifecycle/atlas and intentional update/draw faults pass, then the
+UI button fault FAILS: no named diagnostic/window error, generic scheduled-runnable
+console error, and1803 updates/draws after30seconds. Pinned
+`SchedulerProviderBase.java:129–130` catches Throwable and logs through Console;
+`Elemental2ConsoleProvider` writes the generic string with console.error and the
+Throwable with console.trace. This bypasses Zero's installed GWT/window exception
+hooks, leaving the game running. Missing-asset/setup/shutdown/promise assertions
+after that point were not executed in this attempt. Do not weaken the test.
+
+A subsequent scoped helpers/zero-ui/audio browser-only run PASSes with88 ordinary
+and57 helpers-mobile assertions. It emits three authoritative browser receipts,
+without recompiling or rerunning stress/full-ten fixtures. Combined current native
+plus browser evidence validates **282/366 declaration targets**, with84 browser
+targets pending the lifecycle case; status remains pending. Report:
+`.verification/vision-api-resumed/combined-partial-report.json`. Raw failure,
+screenshot and bounded observation are preserved under
+`.verification/vision-api-resumed/approved-browser-failure`; both raw run logs are
+in vision-final-checks as `web-api-approved.log` and `web-api-three-approved.log`.
+
+A concrete private-runtime correction proposal is saved in
+`.verification/vision-api-resumed/ui-fault-correction-proposal.json`: register a
+Zero console provider that routes actual scheduled-runnable Throwables through
+existing BrowserLifecycle fatal/cleanup handling, preserving unrelated logging
+and causal diagnostics. No runtime files have been changed. Another bounded
+correction/review batch requires explicit extension; an async20-minute approval
+request is pending. No new reviewer or sixth correction has started.
+
+The three local candidate archives were rehashed and still exactly match the
+accepted candidate; this correction changed no shipped source. Receipt:
+`.verification/vision-api-resumed/candidate-byte-recheck.json`. Phase4 remains
+incomplete; real editor/install/novice/hosted/Pages/release gates remain separate.
+No publication, installation, account change or telemetry occurred.
+
+## Earlier API evidence checkpoint — before unlock/extension
+
+Source through `d7a17b2c` has183 exact public/protected source declarations mapped
+on both targets, with195 assertion links per target. A2 `97552c5f`, A3 `2f2d143c`
+and A4 `5fadb422` introduced the inventory, fixtures and retained receipts.
+Mapping, javac and semantic checks are not executed API coverage. Scene was added
+as a permitted type only so the documented createScene override can name its
+return type; Scene constructors/members remain outside the contract.
+
+One complete independent Sol/high review and three targeted reviews cover the
+current source. Six initial P2s and subsequent actual-run issues were addressed
+in four batches: entry-point selection/mobile vocabulary, native pointer
+coordinates/duplicate terminal output, native configuration/producer/tool/plugin
+identity, meaningful artwork pixels/owned-clock advancement, explicit numeric
+formatting and actual split Canvas transport. Numeric-looking text remains exact.
+Plugin identity includes68 cached resolved plugin/dependency/classifier JARs in
+addition to Node, JDK, JavaFX and the actual Maven distribution. The final two-file
+review is complete/clean. Thirty tooling tests and ten focused JavaScript tests
+pass, including actual instrumentation replay of the previous98-row Java trace;
+that replay is transport verification, not new API execution. All seven native
+and four browser Java fixture families compile; four semantic/adapter checks pass.
+Full native/browser verifier selections now require complete current evidence on
+their respective target; partial selections remain explicitly partial.
+
+First frozen5fadb422 native attempts passed Padding, Smoke, Actor, Ui and Audio
+(58 real media checks), retaining150 native target outcomes. Those receipts are
+historical after fixture changes. Corrected current native attempts pass Padding,
+but Smoke cannot focus its JavaFX window. A temporary display-wake request
+restored one active display; a filtered read-only console-state check confirmed
+that the Mac is locked. The request expired without changing persistent settings.
+No focus simulation or native-acceptance waiver was used. An awake/unlocked Mac
+is required before the seven serial native checks can complete.
+
+Four actual WebFX/GWT exports passed at `52ea0d97`. Later corrections changed only
+maintainer JavaScript, so subsequent browser interaction reused those exact
+compiled outputs rather than repeating exports. The latest run passes helpers,
+Zero UI, audio and normal lifecycle/atlas checks, then stops at the first
+intentional update fault: WebFX reports the handled exception through console.error,
+while the harness waits for a browser error event. The diagnostic retains the
+actual fault and frozen frame state. The browser case does not return success,
+so no complete/current API coverage receipt is claimed. A fifth small harness
+correction and targeted review require explicit budget extension. The Mac unlock
+and review-extension questions are pending; Phase4A remains incomplete.
+
+Ledger `.verification/vision-api-review/budget.json`: one initial full wave,
+three targeted waves, four reviewer turns and four correction batches; final
+reviewed source clean, runtime acceptance incomplete. Failed attempt logs,
+diagnostics/screenshots and freeze hashes remain in
+`.verification/vision-final-checks`; compiled outputs are in
+`.verification/vision-api-numeric-web`. No stress or full ten-fixture browser run
+was repeated. No publication, installation, credentials or telemetry changed.
+
+Local Phase5 candidate packaging passes: exact source/archive/license checks,
+extracted standalone Maven compilation,22 website API/navigation tests, root
+configuration/syntax/local links and43 local workflow contracts (89.902s). The
+workflow tests exercise disposable local Git and mocked editor behavior, not
+physical editor interaction or GitHub publication. A teaching core-proposal
+example records gradual turning, source/credit, missing independent reuse proof
+and optional migration; it neither adopts nor publishes an API.
+
+The final local candidate has585 current source/setup/archive byte comparisons.
+Kit4,248,578 bytes SHA256
+d348b1fdd5a5d0b8530809c6263d1d86005dc5249276b1980accafa9386ccfa8;
+starter2,760,670 bytes SHA256
+7099b052154ceed245d4009c71504260b0eadbba9f664f4267fcb28abf7d1eae;
+VSIX1,474,188 bytes SHA256
+44aa15c19004d38c43643ae572792dbeebde94d3ebddd5d10b80db3824a8fb29.
+Receipt `.verification/vision-final-checks/local-candidate-receipt.json`.
+Metadata remains kit0.5.47/core0.3.0, publication.status=local; these are not
+replacement released bytes or a release-ready acceptance claim. Current student
+sources are unchanged by the later maintainer-only evidence corrections.
+Physical Windows/setup, held interactive editor QA, novice trial, hosted schema2
+sharing acceptance, authenticated Pages and release publication remain separate.
+
+## Real WebFX compiler-failure preservation — 2026-10-23/24
+
+One trusted disposable copy of historical B injected an unresolved symbol into
+its saved browser adapter, updating its own bounded builder inventory. Maintained
+core, adapter and contract files remained unchanged. Before injection,91 input
+hashes/source/profile/build identity and current-host normal validation matched B.
+Because the copy moved directories, only the two absolute output paths in its
+receipt were transparently rebased; the original manifest was retained, with no
+new build/source/profile claim. That relocated manifest became the immutable
+last-good baseline. Data-only rehosting had needed no such metadata update.
+
+ONE actual export passed original Java API attribution, then real pinned GWT
+compilation failed: Maven/GWT exit1, BrowserRuntime.java line25 unresolved symbol
+ZeroProofMissingAdapterSymbol. The host retained its bounded1487-character
+summary and exact full29924-byte compiler log (SHA256
+1a7cca72b6b0f1f24c45938cc48979263d1cbfd8143d050f89cf91c311712c74).
+All61 output files—59 site files, ZIP and baseline manifest—remained identical.
+Retained validation passed; current-source validation rejected the changed builder.
+Exact B runtime bytes allow explicit reuse of its13 browser assertions; no new
+browser run, baseline export, rebuild retry or native GUI occurred. Proof11.339s
+includes Maven7.494s, not unrelated preparation/waiting.
+
+Receipt .verification/vision-compiler-failure/receipt.json SHA256
+408a00a1ca35d0b58486b74db5824deff18a7f81a47db85ce80d814cde9962f1.
+Parent verified all nine artifacts and61 output hashes. The proof exposed a
+location gap: generated runtime errors linked a deleted temporary source or a
+nonexistent student class.0c677feb maps reserved zero/web runtime and the exact
+ZeroDisabledState adapter to existing .zero-build adapter source; ordinary student/
+library attribution is unchanged. Parent applied the mapper to the real full log
+and verified that the existing saved file's line25 contains the injected symbol.
+GWT/Maven/Windows-path focused regressions pass. Independent Sol/high targeted
+review of the two-file delta is complete/clean, within the original reliability
+budget: total4turns/two target waves/two fix batches, no extra full/final wave.
+Other generated runtime/template errors are not claimed fully source-mapped.
+
+## Zero reliability foundations and private runtime sources — 2026-10-23/24
+
+Accepted locally through7208a918: private Node setup source7bc3622a, private
+native/browser readiness/error hooks03061efb, prepared source checks and runtime
+host6b7500f6, then five-P2 remediation7208a918. Core remains18helpers/183 public/
+protected declarations. No student lifecycle API, World/GameScreen or telemetry.
+Managed native output uses supported CustomExecution/Pseudoterminal around the
+same Maven command, actual UI/frame readiness, bounded records, cancellation/
+process-tree ownership and useful terminal/Problems errors. Old cores remain
+readiness-unverified. Managed browser status uses exact iframe/origin/MessagePort,
+run/build/sequence/rate bounds; fatal activity stops and preserves causal cleanup
+errors. Existing B WebFX/13behavior+8real bridge assertions cover unchanged core/
+browser runtime bytes; the host remediation does not change compiled game code.
+
+Browser checks require explicit trusted approval of the exact full saved builder.
+Opening is metadata-only. Explicit preparation may fetch verified dependencies;
+later650ms saved-source checks use exact cache-only attribution/library inputs,
+no network fallback, Maven, processors or app class/site generation. Late results,
+unsaved/changed inputs, changed builder or tools have stale/unavailable status;
+unsupported Java/API rejection is distinct. Native Run remains independent.
+Actual short JDK and standalone CLI tests cover cold/missing tools, supported,
+unsupported, published artifact/POM/source verification and preparation followed
+by unsupported checking. Editor command integration verifies dirty→stale,
+save→unsupported, no repeated preparation/native launch, Disable cancellation.
+
+Node22.21.1 private setup source has strict official Mac ARM/x64 and Winx64 archive
+sizes/hashes, safe extraction/contained-link handling, hash-keyed reuse/repair and
+readiness. Child-only ZERO_NODE_EXECUTABLE/PATH and preload clearing avoid global
+configuration. Existing Node Foundation teamHX7739G8FX was observed read-only;
+archive downloads/installations were not performed. Mac225 no-UI checks and
+production Swift typechecking, Windows1291 mocked Mono checks and metadata parity
+passed. Physical installers/platforms and published artifacts remain unaccepted.
+
+Fresh Sol/high and Astra/xhigh complete initial review covered all46 committed
+paths and immediate callers05390785→6b7500f6. Five P2s: native stdin EPIPE, wrapper
+exit with descendants holding stdio, records after unterminated human stdout,
+PTY LF normalization, and Disable racing pending preparation. All fixed together;
+complete Sol targeted five-file review clean at7208a918. Parent28 regression tests
+pass1.995s, including actual harmless POSIX closed-fd0 EPIPE, wrapper exit7/owned
+child cleanup, framing splits/CRLF and deferred Disable. The first parent UI-drain
+regression fixture accidentally closed pipes immediately on SIGKILL, then was
+corrected to model the intended held-pipe window; corrected test passes. Earlier
+80 focused tests pass3.712s and22API/navigation tests pass; root checks pass.
+No repeated full browser build or installer run was needed for host-only fixes.
+
+Review ledger .verification/vision-reliability-review/budget.json closed within
+60min: two fresh initial turns, one targeted turn, one five-finding fix batch.
+Complete targeted coverage plus unchanged initial pair coverage reused; no extra
+final wave. Requested models/effort recorded, effective configs and tokens unknown.
+Full per-signature executed coverage is a separate incomplete Phase4A gate; these
+foundations do not claim the entire reliability phase is finished.
+
+## Zero phased delivery: preservation proof 3C — 2026-10-23/24
+
+Project A's95 inputs including58 saved-builder files were committed with
+command-scoped local Git identity and cloned outside Zero. The newer host
+selected A's own closure, rebuilt it once and normally validated current source/
+profile. All59 site files and ZIP match A exactly; its prior13 browser assertions
+are explicitly reused. A finished-only copy has no Java/builder, empty PATH and
+untrusted host; data validation made zero process calls and actual browser play
+passed13/13. No ZeroHub or historical-kit service was needed.
+
+An explicit disposable branch/copy upgrade preview recorded15 owned-file changes:
+61 saved-builder files, changed App/GameApp and zero-core record. All five student
+sources, remaining scaffold and Maven/exact pins were preserved. One actual B
+WebFX export and normal pre/post source/profile validation passed, then13/13 new
+browser assertions passed first attempt. B's runtime differs from A at five site
+paths, so behavioral evidence was actually recollected. A separate retained B
+output remains data-valid, explicitly not current A. Rollback restored all95 A
+hashes/58 builder files; original A also still passes current-host normal and
+retained validation. All owned servers/browser sessions closed; local source,
+fixture Git history and output remain for recovery.
+
+Additional real browser MessageChannel checks passed8/8 on B output: two fresh
+frames emitted exact run/build-bound startup/UI-ready/first-frame seq1–3. Actual
+promise rejection and broken DOM image produced fatal seq4 with causal details,
+promise/PROMISE_REJECTED or asset-load/ASSET_MISSING, and stopped update counters.
+No fabricated runtime events or extra exports. Forgery/replay/bounds tests remain
+separate unit/VM evidence. No telemetry was activated.
+
+Final .verification/vision-preservation-C/receipt.json SHA256
+42b1abd7cb65981b3bc610dde23d8e04ca348f1199c37990dbc26a97f47147b4.
+Coordinator verified285 source-file comparisons across A/clone/rollback, all11
+retained evidence artifacts and site/ZIP hashes for A, clone, finished A and B.
+The first verification encountered an agent's final branch-prefix metadata change;
+rechecking the frozen final receipt passed, without runtime/build retries.
+A local commitb12e2c9f265e54c9d3e14912382e240d255a94eb;
+B build e2b597b3-df9d-4068-b1f3-3fe010076dc3,
+source73fc05924d349018ef6e410ef361d4972067be94093560f898af7fb28066d624,
+profilec1a4941c169004475135d0bff9a0555e6edf69f41f7fa27b6182fcfb6d41ee62,
+ZIP8edfd261a10666ad0af0302dc88a5b1fc9a821ff3aba2faea4ede034cae8f2fa.
+Tested B closure dba3490229cc6df531489979355a2aa429dcbd3678567bd655dbe3061f27c9c4
+is a frozen intermediate: a later CLI-only preparation/temp-alias correction is
+not claimed built under that profile. Compiled core/adapters are unchanged by it.
+
+Phase3 is accepted locally through source05390785 plus this scoped preservation
+proof; B's new reliability capabilities have their own pending Phase4 review.
+Two total exports,26 new app assertions+8 bridge assertions,13 old assertions
+reused; zero automatic build/browser retries, no native GUI runs. Build stages
+13.845s(A)/16.836s(B) exclude preparation/wait/browser. Normal upstream tool/
+dependency availability still matters; no permanent offline/platform guarantee,
+central kit database or historical maintenance branches are introduced.
+
+## Zero phased delivery: optional actor containers 2D and standalone builder proof 3A — 2026-10-23
+
+Phase2D is accepted locally: student source04539fc1 and assembler949fae28,
+independently reviewed in the full3290d393→40954085 preservation wave. Both
+reviewers found no container defect. ActorCollection is ordinary optional Java;
+OrderedActors and SnapshotActors share identity/insertion-order membership,
+exactly-once explicit updates, deferred additions, immediate removal including
+remove/readd, drawing guards and useful errors. Main can switch structures while
+retaining actor identities, positions and counters. No core API, World or second
+loop was added. Phase2's extension/replacement/sharing examples are complete
+locally; hosted admission/publication remains separate.
+
+Author compilation covered18 core+5 student+driver sources; cached semantic
+attribution passes. Actual scoped native actor-containers check passed first
+cycle. Then a new project A outside the repository contained95 initial source/
+scaffold files, including the complete58-file .zero-build closure. It had no
+node_modules or parent Zero source dependency. Its own run.cjs handled inspect,
+capture, ONE real WebFX export and pre/post-browser validation.13/13 actual
+browser controls/counter/pixel assertions passed first attempt: pause/draw without
+updates, remove/duplicate-add, both replacement directions, preserved canvas and
+counters, resumed equal update deltas and restart. No app or required-resource
+errors; raw optional favicon404/readback advisory retained.
+
+Receipt .verification/vision-preservation-A/receipt.json SHA256
+ e5f17de501ccf6eafe46148374146189de6d836eddace9c7b8685115c2a15e6c.
+Builder closure2a8f7eeaf2a95060a89a983a0c5a2c857b2dd4a6995be5cdf2f4ac0c0bb9593a;
+build eb53708e-eb92-4a32-9833-1dc1efdfa6ad,
+source0f2f51c64dc253ca22fbe20c3d2798136e4f19c6b21b5d00124920d907d950e9,
+profile4b3872d237c118ae8188fd40c7f4d4b7da65c7aaac7985299c6b1a8c6cdda799.
+All95 initial file hashes independently rechecked by the coordinator;59 finished
+site files. Actual existing standalone Node22.21.1/private ARMTemurin21.0.12.1+1
+versions/executable hashes recorded; archive hashes/signatures were not reverified
+and no runtime installed/downloaded.119MB owned cache seed was reverified by the
+normal saved builder. Export19.544s and browser3.543s are individual stages,
+excluding preparation, native checks and waiting. Own native/browser/server jobs
+closed. A/source/output/cache intentionally retained for Phase3C; Git was not yet
+initialized and clone/newer-builder/rehost/upgrade acceptance is still pending.
+
+The standalone proof establishes3A execution. Host3B40954085 received fresh
+Sol/high and Astra/xhigh high-risk reviews over all50 changed paths. Three P2s
+(follow-up cancellation, compiler-log loss, current-compression-dependent retained
+ZIP validation) were fixed together at8c779da2. Sol targeted all seven fix files
+clean with44tests. Astra final cumulative review found one additional malformed
+JSON-null response hang;05390785 fixes record validation and async-close settling.
+Sol's final two-file targeted review is clean:19host tests plus isolated deadline,
+cancel, delayed-log, throwing cleanup and malformed conversion probes, zero
+unhandled rejections. Parent45focused tests passed1.435s. Reused complete final
+cumulative coverage plus this last clean delta; no redundant second final wave.
+Four P2s, two fix batches, five reviewer turns, one initial/two targeted/one final
+waves; within60min/7launch limits. Ledger .verification/vision-preservation-review/
+budget.json closed. Effective configurations/tokens unavailable.3A/3B are accepted
+locally through05390785;3C remains pending. Full50 publisher regressions passed
+115.318s before the localized fixes; unchanged saved closure/runtime proof reused.
+
+Current host also actually validated A through its own saved CLI and available
+Node/JDK. A finished-only copy containing .zero output, with no Java/builder and
+empty PATH/untrusted host, passed data-only site/ZIP validation unchanged (59files).
+Receipt .verification/vision-preservation-A/host-and-retained-validation.json.
+This is not yet a claim of cloned rebuilding or static rehost play. Public Pages,
+physical Windows and actual interactive editor acceptance remain separate.
+
+## Zero phased delivery: replaceable actor animation and steering slice 2C — 2026-10-23
+
+Accepted locally at df47d667, implementation668e0c46. Core now has18 helpers and
+183 public/protected declarations, still the explicitly unreleased0.3.0 draft.
+AnimationSource creates fresh AnimationPlayback; each Actor owns its clock and
+cached frame. Final update validates time, calls protected onUpdate and advances
+once; draw does not advance. SpriteAnimation retains its independent manual API.
+Atomic source selection, useful malformed-source errors, image/animation swaps
+and geometry preservation are checked. Student OnceAnimation and TurnTowards
+work through public seams without editing core; the latter turns gradually toward
+the demo's fixed rendered target(256,60), with bounded numerical edge checks.
+
+Focused core/API/assembly/managed fixtures pass(119 author tests,8 semantic
+fixtures,16 website tests,7 coordinator assembly tests), with root/profile/diff
+checks and local /docs inspection. Actual native ActorCheck/GameHelpersCheck and
+scoped beginner-coin-game/actor-components drivers pass. The beginner source
+remains unchanged. Necessary StressActor callback migration is source-only;
+no stress preparation, benchmark or full suite was run.
+
+Updated independent core/contribution Check and all4 local/artifact native App/
+GameApp consumers pass first cycle:2 fresh contribution JAR+sources resolutions,
+0 core artifact requests/install and the precise unused System.nanoTime negative.
+Receipt: .verification/vision-core-sharing-actor/receipt.json;50.105s gate only.
+Core source aggregate9bca3e129a18bc046e3a75ea37ddd8a386fba09c1999b7f7337ef24679ae2941;
+separate core JAR7b1b16cca614195bbf073ecd15209972a143ec59ebe2e041b701d8b140d27625.
+No repeat of the four old UI WebFX exports was needed.
+
+The new demo had one WebFX export at668e0c46 and15/15 real browser behavior
+assertions. One initial harness attempt read paused geometry before its final
+scheduled draw; one browser-only synchronization retry passed every assertion,
+then failed an optional second screenshot with ReferenceError(__OUT__). Preserve
+that trailing artifact error; procedural.png and all assertion results exist.
+After checker remediation, one fresh df47d667 export passed normal validation:
+build8a38c333-602d-4e6a-84de-fba61fe434ce,
+source863d2453b1ba67d1359021a098d7610880ba181d98be0ea2ffddd2cb2213492f,
+profile9cad03c2021a47966bc24ac241abd2cb4089030772e46815f5229941de92b561.
+All60 site files and the ZIP were byte-identical, without exclusions, to the
+browser-tested output. The coordinator independently checked those bytes and23
+core/student/PNG source hashes. The15 historical assertions are explicitly reused,
+not reported as another browser run. Current-profile receipt SHA256
+ a7623f1a0dc7b9cc28af2a062b92d7b426a0c163c69cd88d85d296b84c6f9d4b
+at .verification/vision-actor-components-web/current-profile-receipt.json.
+
+High-risk review: fresh Astra/xhigh architecture and Sol/high correctness covered
+all34 changed files and immediate callers. Three distinct accepted findings:
+old Actor override fixture, missing protected interface identities and stale
+lifecycle guidance. One correction batch df47d667 adds edited-canonical and
+relocated-canonical-byte negatives for both interfaces;2 named semantic tests
+pass. Astra targeted all5 changed files and the admission interaction clean.
+Three reviewer turns(2initial,1targeted),1fix batch; no final redundant wave.
+Review budget .verification/vision-animation-review/budget.json is closed within
+7launch/4fix/60min limits. Observed Astra188s initial+66s targeted; Sol elapsed,
+effective configs and per-turn tokens unknown. New untracked Phase3 source was
+outside this verdict. Authored components were verified separately before
+acceptance. All own proof servers/previews/processes and temporary trust cleaned.
+
+Scope is local macOS/native and headless Chrome over pinned WebFX. No hosted
+schema2 activation, public release/template update, installed kit/website change,
+physical Windows, interactive editor or novice acceptance is claimed. Historical
+profile/source evidence remains historical as Phase3 now changes exporter files.
+
+## Zero phased delivery: core-aware component sharing slice 2B — 2026-10-23
+
+Accepted locally through98b3a831. Core definition/records ca76f3b2, separate-JAR
+Check3ef1667d, import/browser binding5f1486a5 and finite acceptance runnerb39f08ba.
+Unreleased school.zero:zero-core:0.3.0 identifies the current16 helpers/176
+declarations; a project-owned zero-core.json binds their reviewed LF-normalized
+source inventory. Four project assemblers emit it and preserve ownership/drift
+guards. Ordinary CRLF source checkouts are accepted; raw snapshots detect edits.
+Local kit coreVersion metadata agrees; no published kit version changed.
+
+Schema2 libraries separate semantic coreRequirement from exact author coreInput
+and checked coreBuild provenance. Schema1 stays valid. Explicit Check stages a
+fixed, pinned-wrapper Maven reactor, builds separate core/contribution JARs, then
+obtains only JavaFX dependencies from the standalone core module. Checks/examples
+compile against the two actual JARs, without app classes or library source roots.
+Annotation processing is disabled; namespace/core-shadow/JAR/manifest validation
+prevents bundled core, processors and Class-Path loading. The widget harness
+accepts verified Element views and legacy Node views on the JavaFX thread.
+The sanitized artifact POM contains the exact provided core and bound metadata,
+without candidate build hooks or source paths. Consumer apps compile their own
+core source and use only the contribution JAR at runtime.
+
+Add and authored published mode validate the selected release's requirement
+before mutation and snapshot core through apply; local mode matches author input
+exactly. New project extraction creates schema2 metadata automatically. Browser
+resolution validates captured core bytes, binds the record to source/uploaded
+commit and adds checked core metadata to the accepted-library manifest. Seven
+external compiler dependencies now participate in profile hashes. Hosted schema2
+preparation is explicitly unavailable; local proof creates no accepted public release.
+
+Initial independent Astra/xhigh architecture and Sol/high safety reviews cover
+all33 source files and callers. Three P2s were corrected in one batch: separate
+snapshot/staging reads, local descriptor versus selected published requirement,
+and LF-only wrapper-properties pinning. Captured buffers, selected-release
+planning and strict CRLF normalization fix them. A coordinator extraction-flow
+gap was corrected in the same batch. Sol's complete six-file targeted review is
+clean; it independently ran7 dedicated Check tests. Parent42 mode/editor/core
+consumer tests,36 consumer/snapshot/library tests and root checks pass; earlier
+110 core/schema/assembly tests and profile checks pass. One unintended author
+filter also ran all11 legacy Check tests, including two actual legacy builds and
+a disposable-fixture install. Those passed/cleaned up; global cache effects were
+not audited. This is disclosed separately from the intended schema2 proof.
+
+The maintained finite runner proves one actual independent core/component Check
+with three behavior checks/examples, four native local/artifact App/GameApp
+consumers, two fresh contribution JAR resolutions and source attachments through
+a disposable HTTPS server and isolated third-party-only Maven cache. All actual
+class origins match; contribution classes are absent from artifact consumer
+output; app core comes from its own target/classes. No core artifact request or
+install occurs. An unused library System.nanoTime call is rejected by exact
+semantic attribution. Core source inventory SHA256:
+d3fe24957e2bbe6ace3796425f6c2a33ef91b81a8473a4bdbc2bf63876870db1;
+separate core JAR40bbf9fed2bbb76442cebc0db99a97a90ac2365eeafcb453e1182bd3e91ae3dc.
+
+Four first-cycle WebFX exports pass: local-counter
+1c595904-d921-4960-bd04-2d0949d9a292, artifact-counter
+d507ff0d-f2a1-4c38-9d2e-c129dd947e47, local-coin-game
+f33c2a4f-c552-4c4b-b79e-7ae3e914d4a4 and artifact-coin-game
+45c7bb5a-8557-43b1-9675-93fc18819724. All share profile
+1b8093dffdd72777a8a093611f5e6650cdc8b5aed6d93095a53e6c32ed6adae6.
+After the artifact server stopped, all four static sites pass38/38 browser
+assertions, including typed swaps, continued scores/reset, player/timer/canvas
+retention, pause/resume, wins and navigation. Pre/post export validation replays
+the retained exact-URL catalog/artifact bytes with verified catalog fingerprints;
+it does not claim continued live catalog availability. All94 frozen source and
+four probe hashes matched before advancing to2C. Only optional favicon404s/readback advisories; no app or
+required-resource failures. Own browsers/previews/server and ephemeral trust cleaned.
+
+One ignored probe initially replayed pretty catalog JSON instead of the original
+compact bytes. Its0.135second failure occurred before opening a browser. The
+corrected transport verifies compact-byte hashes against both artifact manifests;
+one browser-only retry reused all four exports. No product fix or extra build.
+The native/export gate took115.411seconds; final browser attempt41.801seconds;
+the measured188.195second execution window excludes preparation and reviews.
+
+Final Astra/xhigh integration covers the seven-file source delta and independently
+checks current source/profile/artifact hashes, origins and runtime receipts;
+no unresolved blockers. Four review turns total (two initial, one targeted, one
+integration), one fix batch. Observed initial Astra193seconds and final integration
+215seconds plus final inspection; effective models/tokens and other elapsed times
+unknown. Evidence: ignored vision-core-sharing/acceptance-summary.json,
+vision-core-sharing-browser/, vision-core-sharing-review/, phase2b1-core-contract/
+and vision-core-* logs. Scope is macOS native/headless Chrome, trusted local
+fixtures. No Windows, physical/novice/editor-interaction, hosted/publication or
+telemetry claim. No stress/full9 rerun. The goal continues with replaceable actor
+animation/steering, then preservation, diagnostics and the final journey.
+
+## Zero phased delivery: replaceable display slice 2A — 2026-10-23
+
+Accepted locally at29118a74 (implementation6df16979). Student-owned ScoreView
+exposes Element view() and setScore(int). Text and ten-segment ASCII-bar displays
+implement it; the numeric score remains exact while only the bar is clamped.
+Counter App and Coin Quest GameApp accept either through the same typed boundary.
+Fresh controls/views preserve single-parent ownership; game rules, score, level,
+timer, player, canvas and explicit pause remain owned by Main. Reset/navigation
+retain the selected presentation. Core stays16 helpers /176 declarations.
+The beginner driver remains byte-identical to its former plain-score check.
+
+Root, six assembly-safety tests, cached semantic checks and scoped native
+counter/coin checks pass. No beginner/stress/full-suite execution. Independent
+complete13-file Sol/high review found one P2: two standard browser fixture
+assemblers omitted the new shared dependencies. Both now include and inventory-
+guard all three files. Targeted review is clean; all eight standard compatibility
+fixtures and the actual assembled Counter20/Coin27 sources pass attribution.
+Review used one initial and one targeted turn, one source-fix batch, no extra wave.
+
+Two actual WebFX exports pass19/19 browser assertions: counter
+07fd426c-b63d-48d0-bf42-31d5c89bb204 and Coin Quest
+562f1364-8b38-4478-9927-d400e799f27e. Profile remains
+4e9eb2bfa7fc7b884c88f49ad0880e2a12f803b490ecf9dd0d4e22fb3f6eae3c.
+Both switch directions, continued updates/reset, exact player/timer/canvas
+retention, pause/resume, two real pointer-controlled wins and replay/title pass.
+Constructor/negative/extreme/independent-instance and direct paused replacement
+edge cases are native evidence. All49 final receipt hashes match;15 consumer/
+shared byte-identity checks and export validation pass. Fresh HUDs are expected.
+
+Two harness-only browser retries reused the same builds: the first waited on an
+already-visible score instead of view detachment; real pointer steering during
+mouse movement then invalidated a strict position assertion. Keyboard Space
+activation isolates the swap while the pointer remains fixed. Failed probes are
+retained. Final20.03seconds covers only the last browser attempt; total elapsed
+is unknown. Raw console audit retains optional favicon404s/readback advisory;
+no application or required-resource errors. Own browsers/previews closed.
+
+Ignored evidence: .verification/phase2a-score-views/, vision-scoreviews-web/,
+vision-scoreviews-review/ and vision-scoreviews native/root logs. Requested browser
+Sol/medium and reviewer Sol/high; effective configurations/tokens unavailable.
+This proves ordinary replacement in both consumers, not independent library-JAR
+or hosted acceptance. Astra/xhigh reviewed the next provided-core build design;
+its recommendation is recorded in the canonical architecture roadmap. No public
+template/kit/site updates, publication, installs, accounts or telemetry changes.
+
+## Zero phased delivery: live controls slice 1F / Phase1 acceptance — 2026-10-23
+
+Accepted locally at `549db09f`. One ordinary Main extends GameApp, explicitly
+updates a blue circle by elapsed seconds and draws it. Existing Zero TextField,
+Label, Button, Row and Column provide speed, Apply, Pause/Resume and Reset.
+Trimmed integer0–400 input is validated before assignment; malformed text,
+fractions, overflow and range failures visibly preserve the last good speed.
+Reset restores position/direction/speed120/input/error/running state. No second
+timer, FPS display, assets, new hierarchy or core Java API. The only browser
+admission is Integer.parseInt(String); the radix overload remains rejected.
+Core stays16 helpers /176 declarations.
+
+Prototype assembly/verification now selects IDs before reading/writing prototype
+inputs and outputs. Unknown, empty and duplicate selections reject before writes;
+simulation-only does not read/write counter/coin/stress/shared-score scratch.
+Edited/unowned outputs remain protected. Subset native receipts are named
+separately and cannot replace full-suite evidence. Five temporary-root safety
+checks plus the exact decimal-positive/radix-negative semantic test pass, as do
+source profile/syntax/root checks. Native acceptance executed only
+`verify-ui-prototypes --only=simulation`, observing actual frames and controls plus
+model edge cases. The scoped receipt lists only simulation; no stress or other
+prototype was rerun.
+
+One actual WebFX export `a12b8083-928f-4cea-841d-a89fdacfd0c6` passes20/20 browser
+assertions in26.8seconds including build. Engine/profile:
+`4e9eb2bfa7fc7b884c88f49ad0880e2a12f803b490ecf9dd0d4e22fb3f6eae3c`.
+Canonical Main SHA256 `7cbb73f5b994721ed4b769e622b40807ae003eecd81f9db1a40d6d5097d123ec`.
+Real typing/buttons and rendered pixels prove valid/invalid input, continued
+motion at the retained speed, zero speed, maximum-speed bounces on both edges,
+Apply while paused, resume and two resets with retained controls/canvas. All40
+receipt hashes match; export validation passes before/after interaction. No app
+or required-resource errors; optional favicon404/readback warning retained.
+No retries or extra builds. Own browser/preview closed.
+
+Independent Sol/high review covers all10 files and validates native, semantic,
+source/export/runtime and browser receipts; no actionable findings. One initial
+turn, no fix/extra wave. Requested browser Sol/medium; effective configurations
+and tokens unknown. Ignored evidence: `.verification/phase1f-simulation/`,
+`vision-simulation-web/`, `vision-simulation-review/` and vision-simulation logs.
+This completes Phase1's local teaching path and live-control acceptance across
+slices1A–1F. It does not update installed kits, public templates or hosted sites,
+or claim other-platform, physical-school-device, audible-media or novice success.
+The goal advances to Phase2 replacement and managed component sharing.
+
+## Zero phased delivery: image/sound slice 1E — 2026-10-23
+
+Accepted locally at `cbdfe997`. One public method, GameApp.loadImageRegion(String),
+returns full bounds over the existing cached image with a useful null/path error.
+It sits after loadAnimation, outside the browser adapter's loadImage replacement
+span. No Image facade or extra asset registry was added. Inventory remains16
+helpers and increases to176 declarations; exact hash/member contracts, API/guide,
+website reference/tests and normal Zero versus advanced JavaFX guidance agree.
+
+Both checkpoint12 variants and lesson12 now use Zero ImageRegion, Sound, Key and
+UI. They reuse lesson11's exact ScoreDisplay source. The explicit artwork button
+loads two local candidates before changing fields; known resource errors appear
+with their path while the drawing game stays playable. Repeated actions share
+cached pixels/Sound and retain Player; Restart stops but does not close borrowed
+Sound. The ordinary Camera and explicit coordinate subtraction remain student code.
+Packaged corrupt images may fail preload before setup; asynchronous audio notices
+remain separate from the action's ready label. Eleven-to-twelve component equality
+is restored. No silent resource-presence fallback or raw JavaFX import remains in
+these maintained teaching consumers.
+
+Fifty-three focused API/adapter/semantic tests, nineteen lesson/tutorial checks,
+profile/syntax/root checks and local `/docs` HTTP200 with loadImageRegion pass.
+Native GameHelpersCheck executes full bounds, alias-backed cache reuse, exact null
+and named missing errors plus RED/BLUE destination pixels. Native12/media and
+12/scrolling each pass without assets and with canonical assets, using the actual
+button, repeated cache/player checks, caption behavior, scoring and Restart.
+
+Three actual pinned exports pass48/48 browser assertions: helpers
+`e36cd5f9-3f0b-485f-956e-d4e2f10826c3`, exact no-asset media
+`b5d64665-6ed7-4e40-8718-58662e8293a9`, exact scrolling with assets
+`97bb35f5-0c4f-40bd-bbad-f05656f1d3e6`. Engine/profile:
+`e7cd761af555fdbd1b9df05c428acc372ed6122a679c4dd3e43f4b948a80fd63`.
+The helper fixture proves loader behavior and actual destination drawing. Four
+media and five scrolling Java files match canonical sources exactly. The no-assets
+button names player.png, produces no missing-resource network requests, and the
+drawn game still wins/resets twice. The other route uses byte-identical canonical
+32px purple robot and10,628-byte WAV; source crop0,0,32,32 renders at24px, purple
+pixels and HTTP200 asset loads are observed, repeated loading retains game state,
+and wide-world play wins/resets twice. Six play/playing/ended event sequences are
+recorded; this establishes playback events, not audible sound. Canonical asset
+and generated helper-tile hashes are retained in the corrected receipt.
+
+An initial ignored browser-harness string escape caused a syntax error before
+acceptance actions. Its failed probe/log are retained; one ignored-runner fix and
+browser-only retry reused the same three exports. The final37.094seconds covers
+only that retry; total elapsed is unknown. There were no source remediation or
+extra builds. All45 source/evidence hashes matched at acceptance. No application
+or required-resource errors; four optional favicon404s and three pixel-readback
+advisories are separately audited. Own browsers/previews and docs server closed.
+
+Independent Sol/high review covers all25 files/callers and validates exports,
+consumer/runtime/resource hashes and receipts with no actionable findings. One
+initial turn, no source fix or extra wave. It caught a copied receipt inventory
+sentence, corrected without source changes. Requested browser Sol/medium;
+effective configurations and attributable tokens unknown. Ignored evidence:
+`.verification/phase1e-image-region/`, `vision-assets-web/`, `vision-assets-review/`
+and vision-assets-*.log. No stress/full9 rerun, publication, installs, accounts or
+telemetry activation. Goal continues with a live-control simulation to finish
+Phase1, then replaceable components and the remaining roadmap phases.
+
+## Zero phased delivery: shared component slice 1D — 2026-10-23
+
+Accepted locally at `8a80b640`. Lessons/checkpoints10–11 reuse the same ordinary
+ScoreDisplay class in Study and Coin. Its view returns a Zero Element backed by
+a Label; Main retains scoring rules and explicit updates. Mandatory JavaFX bold
+styling became a text-format experiment with an explicit restore. Lesson11 adds
+ordinary setCaption(String), retaining the latest displayed points and rejecting
+null before mutation. Both canonical Main setups retain the Score caption.
+Navigation guidance now distinguishes live controls from replacement UI views.
+ZeroHub's separate original-project, admission and publication boundaries remain.
+No core API, runtime or source fingerprint changes: 16 helpers / 175 declarations.
+
+Eighteen lesson/tutorial checks and root checks pass. Native10/11 Study and Game
+all pass; caption9→Coins9→4→Coins4, invalid-caption preservation and independent
+instances are checked natively. Legacy12/media passes without assets and with
+assets. The harness unwraps native and Zero views. Source equality checks cover
+10Study/Game,11Study/Game and the retained legacy12 pair; reconnect11→12 during
+its upcoming asset migration. This is an explicit temporary migration boundary.
+
+Two actual pinned exports pass39/39 browser assertions in67.1seconds including
+compilation: Study `2e97cb88-cd16-49d9-a64b-9054f2743be5` and Coin
+`9a42ddce-fec8-4849-a66e-953d7cfb8648`. Engine/profile remains
+`4d5871d7266d894d59174e10e27604a633ee234925265fb3fe67b14f6cd2742d`.
+All four Java files match each canonical consumer; shared ScoreDisplay SHA256
+`75bdbd974796d6f7de89295dfc17230646a41f5b96af486e85ad87088dc8d8a8`.
+The browser executes each setup's caption call and subsequent live score updates:
+Study completes two full sessions/resets, Coin two actual-keyboard wins/restarts
+with retained HUD/canvas. Custom caption/null/instance behavior is native evidence,
+not a browser claim. All51 receipt hashes match and both exports validate before
+and after use. No application/required-resource errors; two optional favicon404s
+and one pixel-readback advisory are separately audited. Own browsers/previews closed.
+
+Independent Sol/high review covers all17 files and callers, verifies native,
+consumer/export/runtime hashes and browser receipts, and finds no actionable
+issues. One initial turn, no fix batch or extra wave. Requested browser Sol/medium;
+effective configuration and tokens unknown. Receipts/logs/screenshots live under
+ignored `.verification/vision-components-*`. Unchanged core/UI checks were reused;
+no extra UI build, stress/full9 suite, publication, install, account or telemetry
+changes. Goal remains active with lesson12 assets, then live-control simulation.
+
+## Zero phased delivery: Coin slice 1C — 2026-10-23
+
+Accepted locally at `a4e8b771`. Coin lessons/checkpoints 8–9 now use Zero input,
+colours and controls while Player and Coin remain ordinary Java classes with
+explicit updates and drawing. `showGame()` restores retained canvas focus on
+Restart. The shared maintainer harness now pauses automatic game updates before
+deterministic checks, keeping the app alive for valid Restart/navigation, then
+stops it during final cleanup. Legacy checkpoint10/game still passes.
+
+Only ten public declarations were added: four `Key` arrow constants, two
+GameApp held/edge overloads and Row's two constructors plus spacing get/set.
+Inventory: 16 helpers / 175 declarations, explicitly counting the enum constants.
+Existing advanced KeyCode overloads remain. Null Zero keys have useful errors;
+implicit enum values/valueOf/name calls stay outside the admitted browser API.
+Row preserves Column's ownership, atomic validation and availability rules.
+Assembly, exact fingerprints/semantic contracts, API/guide and website parity
+were updated together. No Mouse, palette, focus, asset or camera API expansion.
+
+Thirty-one API/adapter tests, sixteen assembly/lesson tests, seventeen parent
+lesson/tutorial checks, source profile/syntax/root checks and cached semantic
+positive/negative attribution pass. Focused native GameHelpersCheck and UiCheck
+pass, including real frame/focus behavior and Row contracts. Sequential native
+checkpoints8/9 and legacy10/game pass. Local `/docs` HTTP200 includes Key, Row
+and the Zero keyDown overload; the owned docs server was closed.
+
+Two actual pinned WebFX builds pass 59/59 browser assertions in54.1 seconds
+including compilation: `807a76b2-83c8-4c70-9156-271190fb6951` (UI) and
+`e521c27e-95d6-4d34-90b0-acb2d887b1f4` (exact three-file Coin9).
+Engine/profile: `4d5871d7266d894d59174e10e27604a633ee234925265fb3fe67b14f6cd2742d`.
+Physical arrow events exercise all four mappings, held/release/repeat/edge
+behavior and control-focus exclusion; synthetic blur tests clearing. Rendered
+Row and contract checks pass. Read-only canvas pixel inspection guides actual
+keyboard collection through two wins and two restarts: each coin scores once,
+releasing stops movement, and the same HUD/canvas remain. All43 receipt hashes
+match and both exports validate before/after use. Two optional favicon404s and
+pixel-readback advisories are retained separately; no application or required
+resource errors. Own browser/previews closed. No stress or full9-fixture rerun.
+
+Independent Sol/high review covered all34 files and callers, validated semantic,
+native, source/export/runtime and browser receipts, and found no actionable
+issues. One initial turn, no fix batch or extra wave. Receipts are ignored under
+`.verification/vision-coin-review/`, browser proof/screenshots under
+`.verification/vision-coin-web/`, native/docs/check logs in vision-coin-*.log.
+Requested browser Sol/medium; effective configuration and attributable tokens
+unknown. This is local macOS/headless Chrome acceptance, not another OS/engine,
+physical school hardware, public template/kit/website update or publication.
+Overall goal continues with shared ScoreDisplay lessons10–11; no new core API
+is needed for that slice.
+
+## Zero phased delivery: Study slice 1B — 2026-10-23
+
+Accepted locally through `7f8235ff`, following teaching/API commit `81872502`.
+Study lessons and checkpoints 3–7 now use Zero UI controls, ordinary callbacks
+and explicit quiz rules. `Element.setEnabled(boolean)` is the only new public
+member: 14 helpers / 165 declarations. It preserves values and callbacks; the
+student's answered/finished guards still own quiz correctness. The maintainer
+harness unwraps Elements and retains compatibility with older native examples.
+
+Focused native UI and sequential checkpoints 3–7 and 9 pass, including two full
+Study sessions and two resets. Lesson/tutorial/API/adapter, positive and negative
+semantic attribution, source profile and root checks pass. Local `/docs` returns
+HTTP200 and includes setEnabled. Logs are ignored under `.verification/vision-study-*`
+and `.verification/phase1b-enabled/`; no installed kit or hosted docs update.
+
+Initial independent Sol/high review covered all 23 changed files and found one
+P2: the pinned WebFX Node did not recalculate inherited disabled state across
+parents and children. The browser-only `ZeroDisabledState` observer repairs
+computed state with per-node listeners, retaining each node's own flag and
+following parent, children and scene-root changes. It has no global node map,
+polling or DOM mutation. Runtime collisions and forged javafx package sources
+are rejected. Native helpers and the public API are unchanged by this fix.
+
+Four actual pinned WebFX builds are accounted for: the first pair passed 43
+direct-control/quiz assertions but omitted ancestor coverage; retained under
+`vision-study-web/prior-43-pass/`. The corrected pair passes 52/52 assertions in
+38.6 seconds including compilation. IDs: `2792e3f2-ed98-44aa-992e-faa1e9dac281`
+(UI) and `8e0246ab-09df-4d6a-ace2-d68cd7fd7e25` (exact three-file Study7).
+Engine/profile: `524ff77a2df22d80b11f37c08171f2685215295982f06d860b28774d572af688`.
+Real typing, clicks and Tab are blocked under a disabled Column; child overrides
+cannot bypass it, restoring the parent retains independently disabled children,
+and initially disabled mounted groups work. Two full quiz sessions/reset cycles
+pass again. All 28 receipt source/evidence hashes match, with export validation
+before and after interaction. Receipt and screenshots: `.verification/vision-study-web/`.
+No application or required-resource errors occurred. Two optional favicon 404s
+were excluded explicitly by the probe and are preserved with a console audit;
+a Canvas2D pixel-readback warning came from the test. This is headless Chrome
+on macOS evidence, not school-device, other-engine or Windows acceptance.
+
+Targeted independent review of all seven fix files retained the initial coverage,
+validated source/runtime/export hashes and resolved the P2 with no remaining
+actionable findings. Two review turns: one initial, one targeted; one fix batch,
+no extra integration wave. Receipts: `.verification/vision-study-review/`.
+Requested Sol/high and browser Sol/medium configurations are recorded; effective
+configuration and attributable tokens are unavailable. Native evidence was reused
+for the browser-only fix. Own browser/previews and docs server were closed.
+No stress reruns, publication, account changes or telemetry activation. Overall
+goal remains active; the next slice is Coin lessons 8–9, followed by component
+lessons/assets and a simulation before later roadmap phases.
+
+## Zero phased delivery: Greeting slice 1A — 2026-10-23
+
+Owner requested a phased goal and orchestration of the agreed Zero vision. The
+persistent coordinator goal is active; the single roadmap is
+FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance. Astra/xhigh reviewed the
+source/sequence and supported incremental Greeting → Study → Coin integration,
+then replacement/distribution, preservation, reliability and release-readiness.
+Optional World/Screen/Camera are not an up-front implementation checklist.
+Sol/high audited existing assembly/export/sharing seams before implementing the
+first bounded API slice. Local implementation only; no publication authority.
+
+Initial source 4f411858 moves the canonical starter and Greeting lessons/checkpoints
+0–2 from JavaFX imports to zero.ui Label/Button/Column/TextField and ordinary
+Runnable callbacks. TextField adds exactly five declarations: constructor and
+text/prompt getters/setters. Assembly, exact semantic member/identity/hash guards,
+student API/guide and website reference/tests now cover 14 helpers/164 declarations.
+Unsupported TextField.clear remains rejected. Lesson appearance uses the existing
+Zero controls/padding, with JavaFX styling kept advanced rather than wrapped.
+
+Native full finite framework checks pass, as do progression checkpoints0/1/2,
+API/adapter and assembly/lesson tests, targeted semantic/member-negative checks,
+root configuration/syntax/docs links and local website /docs HTTP200 containing
+TextField/getPromptText. An initial newly added tutorial link was incompatible
+with the reader's narrow link allowlist; changed to plain API-reference guidance,
+then all three tutorial-content tests pass. Tests are logged in ignored
+.verification/vision-greeting-*.log and .verification/phase1a-textfield/.
+
+Actual WebFX/browser acceptance caught a null-initialized pinned prompt property
+before the first title screen. af9bb8e0 explicitly initializes both wrapper values
+to empty strings; focused native UI acceptance passes afterward. The browser
+also hides prompts while focused and exposes an outer textbox peer plus actual
+input. Tests target the editable input and verify the empty unfocused hint.
+Then real Tab failed in both App and GameApp even after clicking the field; mouse
+greeting worked. Pinned KeyboardShortcutsHandler calls Node.impl_traverse, which
+always returns false; Node.traverse(Direction,TraversalMethod.KEY) delegates to
+working Scene traversal. 22b979d6 adds a scene-local browser-only filter via the
+fingerprinted App overlay. Plain Tab/Shift+Tab use the existing engine and consume
+only success; other keys/modifiers/native source/public API remain unchanged.
+No DOM tab-order rewrites, timers or global scene references were introduced.
+
+Six actual pinned builds across three attempts are fully accounted for: initial2,
+constructor-corrected2, focus-corrected2. Prior projects/builds/failure evidence
+are retained in vision-greeting-web/initial-baseline and prior-attempt2. Final
+build IDs c459bc0f-cf03-4956-aaf1-335b6a34d281 (zero-ui) and
+068a9714-5877-4847-b10d-82300f4cc930 (exact checkpoint2). Their engine/profile is
+b70300dd60bc2fdd3652937f450e4abbe0a2ba21e977d41958e8fb9e3167ca9e.
+Final two focused compiles/browser proof took41.1s; 29/29 assertions pass, including
+forward Tab skipping a disabled button, Shift+Tab returning to the field, prompt
+restoration, typed Sam → Tab → Space, Ada → click and reuse of the same Label.
+Game navigation, pause/menu/return, deferred draw and input-transform checks pass.
+No page/console/request/HTTP failures. Source/runtime/probe/export hashes validate.
+Receipt and screenshot: .verification/vision-greeting-web/{receipt.json,lesson2.png}.
+No repeated stress measurement, full9-fixture suite or physical-device claim.
+
+Initial Sol/high complete36-file source review at4f411858 found no actionable
+source issues but retained the browser gap. Targeted review of4f411858..22b979d6
+independently verified pinned upstream traversal source, final export/source/hash
+bindings and all29browser assertions; no actionable findings. Initial unchanged
+coverage retained. Two reviewer turns/launches, one initial and one targeted wave,
+three remediation batches, no extra integration wave. Review receipts in
+.verification/vision-greeting-review/. Requested model/effort recorded; effective
+configuration and attributable token/effort telemetry unavailable. Starting weekly
+7% used and271.779GB free are shared environment readings, not task cost.
+
+Published tutorial template commit IDs, installed kits and hosted website remain
+unchanged. Own browser/preview and local docs server closed. No push/PR/merge,
+deploy/release/install, account changes or telemetry collection. The overall goal
+continues with Study lessons3–7; slice1A is local acceptance, not whole-goal completion.
+
+## PNG sprite-size stress matrix — 2026-10-23
+
+Owner requested actual 64×64, 128×128 and 256×256 PNG frames with
+1000/2000/5000 animated actors through WebFX, retaining live FPS. Local source
+commit e3c1a76a (base 8ae786b4) adds size controls, three original MIT PNG sheets,
+size-aware actor bounds and resource assembly. Every actor still moves, rotates
+and owns an animation clock; actors share the cached sheet. Source-frame and
+destination dimensions both equal the selected size. The 32px option and all six
+count buttons remain available. No framework/API/compatibility-contract changes:
+13 helpers and 159 public/protected declarations. No asset limit or warning policy.
+
+Native acceptance passes all four prototypes; stress ran 895 real frames across
+six 32px counts plus the nine larger-size/count combinations. It checks actual
+image/frame/actor sizes, shared images, independent clocks, motion and live FPS.
+Root `npm run check`, syntax/diff checks and focused runner parse/order/sparse-frame
+checks pass. Logs: `.verification/actor-stress-sizes-{native,check,final-check}.log`.
+Unchanged framework/semantic evidence is reused; not claimed as a new full run.
+
+One fresh pinned WebFX build passed in 16.69s, ID
+095cf516-4021-4d41-9926-d9fff6c6437e. Source hash
+857f0d728b3f07f856bc6ae8e70f39a60fe2cc2e17531c7a7af5d36a88c755f9;
+unchanged engine/profile hash
+d8ae6532f86f2a38a9bc80595d554051309f6fdfa005bc44e37d424256abe39d.
+`--sizes` owns `.verification/actor-stress-web-sizes/project` and distinct output,
+preserving both earlier small/large builds and evidence. Export/source/asset/engine
+guards pass before and after browser testing. Nine functional cases each verify
+61 real frames, exact actor draw counts, four crop rectangles, natural sheet sizes
+256×64/512×128/1024×256, matching destination sizes and visible workload/FPS.
+
+Measurements ran serially: size outer/count inner, then exact reverse; each of
+18 samples has a 3s warm-up and 10s measured window. Own build/test/native jobs
+were stopped and the old active IAB was blanked before timing. Unrelated user
+watchers were preserved; this was not an exclusive host. Per-image functional
+hooks were removed before timing; only one timestamp per canvas clear and an
+independent rAF sampler remained. Headless Chrome 156, visible/focused page,
+900×1100 viewport, DPR1; canvas buffer and CSS dimensions both 800×450.
+
+| Frame size | 1000 actors FPS, forward/reverse | 2000 actors | 5000 actors |
+| --- | --- | --- | --- |
+| 64×64 | 60.0036 / 60.0030 | 60.0014 / 59.9018 | 60.0014 / 60.0002 |
+| 128×128 | 60.0080 / 60.0024 | 60.0032 / 60.0032 | 60.0068 / 60.0044 |
+| 256×256 | 60.0014 / 60.0012 | 60.0032 / 60.0024 | 60.0044 / 59.9960 |
+
+10,804 game-frame and 10,805 rAF timestamps; draw p95 intervals 16.8–18.2ms,
+maximum 33.2ms and zero intervals over 33.3ms. Every sampled live label reads 60.
+No callback-cadence slowdown threshold was found through 5000×256px in this
+configuration. This does not establish physical presentation/GPU completion,
+school-device capacity or decoding speed: assets were loaded beforehand; source
+and destination size change together; simple transparent sprites overlap heavily
+in a fixed field and may clip. Largest shared sheet has 1 MiB raw RGBA pixels.
+
+Independent retained Sol/high reviewed the complete ten-file delta
+8ae786b463ba0b362eb4210ac902d1cfd7745fa9 →
+e3c1a76abfdcf012b193989e7ce73be62947a20d with no actionable findings or blockers.
+It independently verified export/source/asset/receipt hashes, all nine functional
+geometries, recomputed all 18 raw runs and confirmed prior small/large site byte
+inventories are unchanged. One initial review turn/wave, zero fixes or targeted
+waves; effective model configuration, token usage and attributable effort unknown.
+Ignored review receipt: `.verification/actor-stress-sizes-review/initial.json`.
+Only completion documentation follows the reviewed source.
+
+Raw data, receipt, build, probe and logs are in the ignored
+`.verification/actor-stress-web-sizes/` directory. After timing, IAB4 selected
+5000 actors/256px and showed 60 FPS, 16.6ms average and 19ms worst interval;
+screenshot `live-5000-256.png`. Parent preview session 95462 remains available at
+http://127.0.0.1:49907/9c7976b2e96d36cde02ff7f8c4b68ca78fa8/ and is marked as a
+deliverable. Old preview servers 34613/93232 are idle, old artifacts preserved;
+worker-owned browser/server closed. No push/PR/merge/deploy/release/install,
+telemetry or account changes. Starting storage 273.046GB healthy; account weekly
+6% used is shared usage, not attributable task cost.
+
+## Actor stress range1000/2000/5000 — 2026-10-23
+
+Owner requested larger actor counts with unchanged sprite workload to find lag.
+Accepted sourcee36c6b8a9e47b39a3765df60ea376ca3c32ba94a adds1000/2000/5000buttons
+alongside the existing three. Native control driver covers all six. Optional
+--large runner uses isolated .verification/actor-stress-web-large/project and
+separate receipts, preserving original small build/site/raw samples. Functional
+checks wait for real frames/four crops with a bounded timeout, allowing legitimately
+low/rounded-zeroFPS. Sparse frame stats are recorded rather than rejected as lag.
+Workload/renderer/asset remain800x450,32x32frames,four-frame8fps shared sheet,
+independent clocks, explicit movement/rotation; no culling/optimization added.
+No framework/API/contract changes (13helpers/159declarations).
+
+Native all4prototypes pass (stress367realframes/sixcounts, games640/632). Root
+check twice, syntax/diff and focused sparse0/1/2frame checks pass. Unchanged
+runtime/semantic20evidence reused. One actual fresh pinned WebFX build15.69s,
+IDa03f0da7-99ee-44c4-ba17-c1cefc2716f3; sourceb8c7e1e49003a52444bd54d93626c9158894e6764e0e55396ccfa453e8df5e4a,
+unchangedengine/profiled8ae6532f86f2a38a9bc80595d554051309f6fdfa005bc44e37d424256abe39d.
+Functional checks confirm exact1000/2000/5000draws/frame and four32px crops at
+each count. Two old IAB stress clients were stopped before timing (duplicate5
+closed;4temporarily blank) and own build/test/native jobs finished. Unrelated
+user/watchers preserved; no exclusive-host claim.
+
+Six samples ascending1000/2000/5000 anddescending5000/2000/1000, each3swarmup+
+10smeasured:3601drawframes/3601rAFframes; ascendingFPS60.0026/60.0026/60.0074,
+descending60.0002/60.0012/59.9996. P95interval16.8–17.4ms,maximum17.8ms,
+zero gaps>33.3ms; UI60each. No observed slowdown through5000 for this particular
+small-sprite localheadlessChrome156/900x900/DPR1 workload. Cadence capsFPS;
+physical presentation, larger images, collision/physics and schoolhardware remain
+unmeasured. Raw/receipt/build .verification/actor-stress-web-large/; native/check
+logs .verification/actor-stress-large-{native,check,final-check}.log.
+
+Independent retained Sol/high complete five-file review,
+basec8465f041defca6fbabc3bf1da55cca24e9c3a60→e36c6b8a9e47b39a3765df60ea376ca3c32ba94a,
+found no actionable issues. Revalidated large export/source hashes and all original
+small-site hashes, recalculated raw sample results, checked count selection,
+copy/guards/lowFPS handling/docs. Oneinitialwave/turn,0fix/targeted/integrationwaves;
+effective model, elapsed/tokens and attributable effort unknown. Start storage
+273.773GBhealthy/accountweekly3%used are shared readings, not task cost.
+
+Aftertiming, IAB4reopened new5000-capable export, selected5000 withvisible60FPS,
+16.6msaverage/17msworst; marked deliverable. Screenshot
+.verification/actor-stress-web-large/live-5000.png. Parentpreview execsession93232
+remains http://127.0.0.1:55997/26f3bef49ee0e177fe17bde439a3c3fd7159/.
+Oldserver34613is idle; oldbuildbytes preserved. Worker-owned browser/server closed.
+Only completiondocs follow reviewed code. No push/PR/merge/install/release/deploy,
+telemetry or account change. User next asked about larger sprite images and size
+guidelines; this increment adds no image-size warning/limit policy.
+
+## Animated Actor stress demo and browser measurements — 2026-10-23
+
+Owner requested100/250/500animatedActors through actual WebFX with live FPS.
+Accepted source53c653517da156d0d8c172f317b99a6a9f436ae2 adds the standalone
+framework/prototypes/actor-stress project and a finite reproducible maintainer
+runner. Main has count buttons, completed-frame FPS, average/worst wall-clock
+frame intervals refreshed about once a second. Metrics use System.currentTimeMillis,
+not GameApp's clamped update delta; changing workload/backward wall time resets
+the sample. The compatibility contract allows only that exact additional core
+Java signature; nanoTime remains rejected. No Zero API change:13helpers/159decl.
+
+Workload is800x450canvas with32x32sprites, four frames at8animationfps from one
+original401byte128x32MIT fixture image. Every actor owns an animation clock,
+moves at deterministic velocities and rotates35degrees/second. The image cache
+is shared. No collision/physics workload, automatic culling or rendering
+optimization was added. Generic source-preserving assembly now creates a fourth
+project and copies its resource. All four native acceptance checks pass:
+counter, structuredgame636frames, beginnergame640frames, stress183realframes.
+Stress native acceptance checks actual100/250/500actor arrays, workload reset,
+motion/rotation and positive visible FPS/frame times. Native results are
+functional proof, not the browser performance measurement.
+
+One actual pinned WebFX build passed in17.3seconds. BuildID
+5c39e06b-0665-48f0-80dd-f9ec8090f0ed, engine/profile
+d8ae6532f86f2a38a9bc80595d554051309f6fdfa005bc44e37d424256abe39d.
+Functional browser probes verify100/250/500actual sprite draws each frame,
+all four source regions, visible workload/HUD and nonzero FPS. An initial test
+locator was ambiguous because of WebFX's hidden text peer; fixed to visible
+non-aria-hidden peers before collecting any timing data. Failed-probe evidence
+retained. No extra build or game/runtime change was required.
+
+Measured six serial samples:100/250/500 then500/250/100, each3seconds warmup and
+10seconds timed. Browser per-sprite hooks were removed before performance timing.
+A lightweight once-per-clear timestamp measures actual game frame cadence;
+independent requestAnimationFrame timestamps and HUD FPS are also recorded.
+FPS/frame intervals measure cadence, not isolated CPU/GPU draw cost or presented
+physical display frames. Parent-owned builds/tests/native jobs were stopped
+throughout the measurement; unrelated watchers and user state were preserved,
+so no exclusive-host claim. No CPU throttling/artificial lag. Headless Chrome156,
+900x900viewport,DPR1,hardwareConcurrency8, visible focused page on this Mac.
+
+All six samples have600game draws and600rAFcallbacks,3600measured game frames.
+Ascending FPS:100=60.0044,250=60.0074,500=59.9978; descending FPS:
+500=60.0026,250=60.0050,100=60.0020. Draw p95 intervals respectively
+17.1/17.4/17.1/16.8/17.1/17.1ms; overall max18.1ms,0gaps above33.3ms.
+HUD reports60FPS in all samples and agrees with draw cadence. No slowdown
+threshold established through500 for this workload/configuration. Refresh cadence
+caps the result; these measurements do not establish spare rendering capacity
+or guarantee school laptop, phone, other browser or OS performance.
+
+Runner uses a portable checkout cache default plus optional ZERO_STRESS_CACHE_ROOT
+for an existing verified cache. Full export validation binds all assembled
+source/resources/ZIP/site and current compiler; canonical helper/student/artwork
+bytes are checked before measuring, then export validity is checked again before
+the receipt. Raw samples, build/source/engine/script hashes and protocol:
+.verification/actor-stress-web/{build,receipt,samples}.json. Native/check/semantic
+logs: .verification/actor-stress-{native,check,final-check,semantic}.log.
+Full semantic20/20, rootconfiguration/syntax/contracts/docs links and diff pass.
+Existing exact framework/Dev/website API evidence remains applicable to unchanged
+runtime and159declaration UI; not rerun or reported as new measurements.
+
+Independent Sol6.1/high complete11-file review, baseedbd6697809f99c0309f2f41133b37b6e989e4d2
+→53c653517da156d0d8c172f317b99a6a9f436ae2, found no actionable findings. Reviewer
+followed GameApp/Actor/SpriteAnimation, assembler preservation/export validation,
+independently validated export and13helper bindings, matched all six receipt
+hashes and recomputed raw statistics. Syntax/diff checks pass. Oneinitialwave,
+one reviewerturn,0fixbatches/targeted/integrationwaves; about3minutes sessionwall,
+effective configuration/per-turn elapsed/tokens and attributable effort unknown.
+Build/probe worker Sol/medium reused existing cache and onebuild; initial locator
+retry included in evidence. Start observations:273.989GBhealthy, accountweekly1%
+used (shared reading, not task cost). Details .verification/actor-stress-review/.
+
+After timed runs ended, user-facing IAB tab4 was opened/marked deliverable and
+selected500: visible60FPS,16.6msaverage/18msworst. Screenshot
+.verification/actor-stress-web/live-500.png. Its separate parent-owned localpreview
+server remains in execsession34613 at
+http://127.0.0.1:49710/9793e5539f80f2010fdf9adc9fb8181b5a82/.
+Worker-owned benchmark browser/server closed. No live-preview data was mixed into
+the saved timed samples. Only completion EVIDENCE/CURRENT follows reviewed code.
+No push/PR/merge/install/release/deploy/telemetry/account changes.
+
+## Actor-owned drawing and beginner game — 2026-10-23
+
+Owner authorized Actor drawing callbacks and beginner Player/Coin owning their
+artwork without a GameApp parameter, with actual WebFX proof. Implementation
+291aca9e5a4467f4bc86e9631faea916b9031562 adds Actor(x,y), overridable draw(),
+GameApp.draw(Actor) and ten protected Zero drawing helpers. Same13helper sources,
+159public/protected declarations. Image-free actors begin with logical1x1 size;
+setSize does not automatically scale custom shapes. Main owns explicit drawing
+and updates. Legacy sprite constructors and virtual draw(GameApp) remain.
+
+Base draw(GameApp) saves canvas state, binds the actor's per-instance app,
+translates/rotates, invokes draw(), then restores canvas and prior context in
+finally. No static current app or registration. Nested rendering composes the
+parent transform; same-actor cross-app calls restore prior binding on failure.
+Helpers outside active drawing fail with useful errors. Existing legacy overrides
+that bypass the base scope retain their old behavior. Beginner Main retains all
+UI, background and grid; its new local Player/Coin subclasses own all their
+artwork. Player uses inherited movement and faces travel. Coin uses x()/y() for
+collision and skips collected artwork. Structured game remains unchanged.
+The source-preserving assembler copies the beginner's own three Java classes;
+the shared native driver supports ordinary and Actor positions.
+
+Actual native full framework checks pass: Actor movement/sprites plus local and
+rotated shape pixels, sibling/main styles, nesting, cross-app binding, exception
+cleanup and misuse; UI, navigation, media, input and padding regressions pass.
+Native all3prototypes pass (structured633frames, beginner640frames), including
+title/help, pause/freeze/resume, two wins, replay/restart/title and a direct timeout
+model step. Zero Dev smoke passes this run: real-frame synthetic arrow movement,
+score/win/restart/recollection, framework checks and21contracts. The previous
+macOS foreground failure was not reproduced; no dedicated focus fix was made.
+Tooling23/23 and helper migration33/33 pass. npm check and diff checks pass.
+Logs: .verification/actor-drawing-{framework,native,dev-smoke,tooling,
+helper-migration,check,check-after-font,web-suite}.log.
+
+Initial3actual pinned WebFX builds compiled but the browser font assertion failed.
+An actual fillText probe found requested20/9/42sizes emitted invalid family-free
+CSS and all rendered at10px. Browser-only correction
+5c753a8a11a17f9ab70682c18bc8801216e8df03 supplies sans-serif in the exact
+fingerprint-checked GameApp textSize adapter. Native source, student Font calls
+and API count are unchanged. Adapter11/11, semantic19/19 and13/159profile checks
+pass. Full web-export/publish regression:274tests pass,0fail/skip in188.679seconds.
+
+Three corrected fresh WebFX builds (helpers, navigation, beginner) plus Chrome
+40/40 assertions pass: shapes and original sprites, local/rotated/nested pixels,
+legacy dispatch, style/transform/error restoration, navigation, two complete game
+wins and pause/resume/restart/replay. Actual fillText font sizes are20px before,
+9px in a normal Actor,42px in a failing Actor and20px afterward. Six real builds
+total; initial failed-browser evidence retained separately. Corrected compile
+113.499seconds, corrected build/browser135.453seconds. Receipt/source/test/engine
+hashes independently matched current source:
+.verification/actor-drawing-web/receipt.json. Prior unrelated fixture/mobile136
+and real30second browser timeout evidence reused explicitly, not rerun.
+
+API/guide/website metadata and coverage synchronized. API/navigation18/18 and full
+website166/166 pass; typecheck/build pass; generated /docs has13new anchors and
+legacy actor-draw once each. Three existing updater filesystem-tracing warnings
+remain. No website publication or interactive website QA. Native macOS arm64 and
+headless Chrome only; other OS/engines/devices, physical input and novice trials
+untested. Source/build preservation policy and student-owned repositories remain.
+
+Independent Sol6.1/high complete21-file review, base553b266768b4e372aabb7b24074806631ce97266
+→291aca9e5a4467f4bc86e9631faea916b9031562, found no actionable source issues but
+correctly left browser acceptance pending. Targeted complete five-file font fix
+review291aca9e→5c753a8a also found no issues, covering exact hash isolation,
+student calls, line mapping and retained/expanded browser assertions. Initial
+coverage remains applicable to unchanged code; targeted coverage plus final
+passing receipts closes the changed boundary, so no extra integration wave.
+Budget:2reviewer turns,1initialwave,1targetedwave,1fixbatch,0integrationwaves;
+review-session wall471seconds at final validation. Effective configurations,
+per-turn elapsed/tokens and attributable coordinator effort unavailable. Storage
+273.574GB healthy and account weekly0%used at start are shared observations, not
+attributable task costs. Receipts: .verification/actor-drawing-review/.
+Only completion EVIDENCE/CURRENT text follows reviewed code. Local source only:
+no push/PR/merge/install/release/deploy/account changes. Worker-owned browser and
+preview servers closed; prior useful previews and other active Dev state kept.
+
+## Beginner Coin Quest with UI in Main — 2026-10-23
+
+Owner requested the same game without needing student Element declarations or
+polymorphism yet. Source b95d89bf3b9e0a677c9de06195e3fc6e7d8a97a9 adds
+framework/prototypes/beginner-coin-game/Main.java and its guide. Title/help/HUD,
+pause and results are methods in Main using concrete Label/Button/Column types;
+a playing boolean replaces Phase. Player and Coin are copied unchanged from the
+structured example. Students still use ordinary objects, methods, arrays, loops
+and click callbacks. Main retains the starter GameApp superclass; Zero's internal
+inheritance remains. No framework API or published tutorial change.
+
+The assembler now creates a third standalone project with exactly Main, Player
+and Coin plus the separate13 canonical Zero helpers. Both game versions use the
+same existing native playthrough harness. Native actual JavaFX checks pass for
+all3 projects (structured637frames, beginner639frames). Beginner covers title,
+help, pause freeze/resume, both levels, two wins, replay/restart/title and timeout
+via direct model step. Input is synthetic; no physical-input claim. Logs/receipt:
+.verification/beginner-game-native.log and .verification/ui-prototypes/.
+
+One actual pinned beginner WebFX/GWT build and Chrome9/9 assertions pass,
+including quiet title/start, help/back, score1, paused canvas/timer freeze,
+retained resume, restart, two full wins and replay/reset, with no JavaScript
+errors. Build/browser work took49.835seconds. Exact Main SHA256:
+59c935de45efe5c028cc5f34b4d6ff3d9a7c21026373eef8c15ceff0844f3d07.
+Receipt: .verification/beginner-game-web/receipt.json. Prior structured real
+30-active-second browser timeout evidence is reused explicitly; this browser
+run did not wait30seconds. No other browser fixtures rebuilt. macOS native and
+headless Chrome only; other platforms/engines, devices and novice trials untested.
+
+Configuration/syntax/contracts/docs links and diff checks pass. Independent
+Sol6.1/medium read-only complete five-file review, base4b9be279d02feb816c0ddbce90466f63367b66a2
+→ headb95d89bf3b9e0a677c9de06195e3fc6e7d8a97a9, found no actionable issues.
+Reviewer beginner_example_review inspected complete diff, immediate structured
+consumers, ownership/preservation and native harness, verified the native receipt
+and reran syntax/whitespace checks. Effective configuration, tokens and per-turn
+elapsed telemetry unavailable. Review budget:1launch,1initial wave,0fix batches,
+0targeted/integration waves; no additional wave adds coverage to unchanged code.
+Only evidence/CURRENT text follows reviewed implementation. Known previous Zero
+Dev keyboard foreground failure remains unresolved; this increment does not
+claim to fix it. No push/PR/merge/install/release/deploy/account changes.
+
+## COIN QUEST title, levels and navigation — 2026-10-23
+
+Owner requested a fuller game with title screens. Local unreleased example now
+has title/help, two timed three-coin levels, pause/resume, victory/timeout results,
+replay/restart and return-to-title. Main owns an explicit Phase enum and game
+state; ordinary TitleScreen/HelpScreen/PauseScreen/ResultsScreen objects return
+Element views. Hud reuses the same unchanged ScoreDisplay source as the counter.
+No zero.Screen base, World, new asset/input facades or second frame loop.
+
+GameApp.showGame/pause/resume/isPaused extend the exact API to146 declarations
+across the same13 helpers. App.show(Node/Element) uses one navigation path;
+off-game views suspend update/draw/input, showGame restores retained canvas/HUD
+with cleared input and zero first delta while respecting separate explicit pause.
+Pause skips update while drawing/UI continue. In-frame last-wins navigation
+commits after successful drawing; stop/failure discards queued views. Temporary
+native/browser retained-layout measurement restores the selected title infinally.
+API/guide/website metadata and all signature/source guards change together.
+
+Native NavigationCheck and complete framework regressions pass, including initial
+title sizing, immediate UI-only navigation, repeated menu/game transitions,
+retained HUD, pause draw/update separation, explicit pause across navigation,
+zero delta/input reset, deferred frame completion, failure/stop discard and cleanup.
+Full prototype native playthrough passes603 real frames: title/help/play, paused
+state freeze, retained resume, two levels, win/replay/restart/title and second win.
+Timeout UI/model branch is tested by one direct update(31) model step; that native
+probe does not claim thirty wall-clock seconds elapsed. Counter remains passing.
+An initial native prototype timeout exposed a test driver returning directly to
+its unchanged pointer baseline; the driver now moves away for a real frame first.
+No game/runtime bypass was added. Logs: .verification/full-game-framework.log,
+.verification/full-game-native.log and .verification/full-game-native-retry.log.
+
+The existing Zero Dev keyboard smoke repeatedly fails its three-second macOS
+window-foreground assertion (windowFocused=false). Component/native game checks
+above pass separately. The focus deadline now starts on the first visible frame
+instead of setup before CSS/scene creation; the full three-second assertion and
+25-second watchdog remain. This valid harness timing correction did not resolve
+the local foreground failure. Do not report ZERO_DEV_SMOKE_OK or physical keyboard
+acceptance for this increment. Logs: .verification/full-game-dev-smoke*.log.
+
+Historical App migration tests now read one immutable exact stock-App.java test
+fixture (SHA256 bdcb1060ad5a30f16f1a395c522a520d2506530584bda71a0e4cbe1e7c467c09),
+instead of reverse-editing evolving current source. Existing allowlist, missing
+Element dependency rejection, path/inode/race/recovery guards are unchanged.
+Focused helper/GitHub tests83/83 pass. API/navigation17/17, website165/165,
+website typecheck/build and four new built /docs anchors pass. Browser semantic
+17/17, adapter10/10 and internal-method rejection1/1 pass. Configuration/syntax/
+links and diff checks pass. Full root regression at ef21cdbf:1004pass/0fail/
+3platform skips across1007 tests (503.9 seconds). Initial9 real WebFX builds,
+85/85 Chrome assertions and136/136 mobile assertions pass, including two full
+wins and a real30active-second timeout. Build/browser run667 seconds; receipts
+and title/pause/results screenshots: .verification/full-game-web/.
+
+No push, PR, merge, installed-kit change, dependency install, public site update,
+release, telemetry collection or account change. Source/build preservation policy
+and no required historical-kit database remain unchanged. Browser export still
+uses the current exporter; complete project-owned browser tooling remains planned.
+Other operating systems, physical devices and novice teaching trials are untested.
+
+Independent initial review of the full36-file diff b1b872ebff96ef88c52fbc7a41d1270eaaadd7ed
+→ ef21cdbf90b5ff5adc1c84dc0916dcdf1843d119 used Astra/xhigh for lifecycle and
+Sol/high for browser/source compatibility. Sol found no actionable issues. Astra
+found one blocking P2: synchronous centre listeners could redirect a transition,
+then the outer contentChanged(request) overwrote visibility using the stale view.
+Correction d62aea08ea2bde1a8c0143abc4ec67a0e586ce65 reconciles the final centre.
+New native tests fail the old body and pass the corrected full framework suite
+in both redirect directions, including drawing/input, hidden-menu suspension,
+zero first delta and normal navigation afterward. No public API change. The
+browser App pin changes with the exact canonical bytes; a stale model paragraph
+was corrected. Corrected check and focused adapter/migration tests43/43 pass.
+
+Targeted corrected navigation and CoinQuest WebFX builds2/2 plus focused Chrome
+24/24 assertions pass. Prior7 consumer fixtures, mobile136 and real30-second loss
+proof are reused explicitly; they were not rebuilt/rerun for this private hook
+correction. The ignored focused runner initially rejected a trailing semicolon
+before browser assertions; its normalized browser-only retry reused those same2
+builds and passed. Receipt: .verification/full-game-fix/receipt.json. Selected-view
+exception restoration remains structurally reviewed via finally, not fault-injected.
+
+Astra targeted review accepted the complete four-file correction and native/browser
+byte-equivalence, resolving P2 with no new findings. Initial coverage remains
+applicable to unchanged code; the targeted pass covers the corrected interaction,
+so another full integration wave adds no coverage. Review budget:3 reviewer turns,
+one initial two-reviewer wave, one targeted wave and one fix batch, no integration
+wave; about15 minutes review-session wall time observed, exact per-reviewer seconds
+and token/effective model telemetry unavailable. Receipts: .verification/full-game-review/.
+The separately failing local Dev keyboard-foreground check remains disclosed; no
+release readiness or physical keyboard acceptance is inferred. Only this completion
+receipt and CURRENT follow the reviewed code. The IAB game tab shows the corrected
+local COIN QUEST title; no deployment was performed.
+
+## First Zero UI components and working consumers — 2026-10-23
+
+Owner authorized a small working framework increment. Local, unreleased source
+adds zero.ui.Element/Label/Button/Column, zero.Color, App.show(Element), live
+GameApp.controls(Element) and Zero Color drawing overloads. GameApp still extends
+App and owns the same single frame driver. Column validates all children before
+attachment; callback replacement and native JavaFX ownership remain explicit.
+Advanced extension uses protected Element(Node)/final fxNode(). No Screen/World,
+animation replacement, new diagnostics/telemetry or new distribution mechanism.
+
+Counter App and pointer coin GameApp use Zero imports and one unchanged
+ScoreDisplay source, SHA256
+b4f1ef6d961b0994ca1d4a8b91e5c25e57441dab7fd0a7fa209026b534f6ae97.
+Both native standalone assemblies include all13 helper sources and pinned student
+Maven/JavaFX files without a surrounding repository dependency. Counter checks
+add twice/reset/add; game checks collect3/win/restart/reset/collect3/win over206
+actual frames. Synthetic JavaFX events in real windows, darwin/arm64 only.
+Commands: node scripts/prepare-ui-prototypes.mjs and
+node scripts/verify-ui-prototypes.mjs. Logs/receipt: .verification/ui-prototypes/.
+
+Real pinned WebFX/GWT builds pass9/9 fixtures, including both consumers and a
+new UI contract. Chrome behavior68/68 and mobile regression136/136 assertions
+pass; shared source bytes match both builds. Exact source/member gates now cover
+13 helpers/142 declarations; adapter10/10 and focused semantic17/17 tests pass.
+Checks reject edited/forged helpers, unapproved platform members and hidden
+Color.fxColor. Build/browser elapsed317 seconds. Receipts/screenshots:
+.verification/ui-slice-web/. Headless Chrome/macOS and CDP mobile emulation only;
+no physical-device/other-engine or new live GitHub Pages acceptance claimed.
+Existing exporter still owns browser rules; project-owned browser tooling remains
+future work. No installation, public website update, push, PR, deployment or release.
+
+Source preparation, lessons, website downloads and core binary/source JARs include
+nested UI helpers. Ownership/drift/symlink checks preserve edited generated files.
+Kit/lesson tests22/22 pass, including extracted standalone Maven compilation.
+API/reference/guide coverage includes all142 declarations, including four fields.
+Website typecheck/build pass. Local /docs browser checks9/9 pass, including new
+entries, search, WHITE field heading without parentheses and exact anchor.
+Website tests initially163pass/1fail due to a stale inventory expectation;
+corrected learning suite15/15 and the final full website suite164/164 pass.
+
+Zero Dev smoke initially failed its existing three-second macOS foreground-focus
+assertion. Unchanged retry passed ZERO_DEV_SMOKE_OK, including native UI,
+Actor/game helpers,57 audio checks, sample keyboard playthrough and21 UI tests.
+The first root regression run found33 failures in historical App migration
+fixtures. They now reconstruct the exact original hash without the new overload.
+Migration additionally rejects a missing exact Element dependency before any
+source update; no missing helpers are installed. Focused helper33/33 and Publish
+UI46/46 tests pass. Final full root regression:1003pass/0fail/3 platform skips,
+1006 tests in365.8 seconds. No runtime source changed after browser acceptance.
+
+Configuration/syntax/contracts/local links and diff checks pass. Work used three
+bounded retained workers: Sol/high native/components/consumers, Sol/medium browser,
+Sol/medium docs/source assembly. Effective configuration/tokens unavailable.
+DeepSeek paused; existing compiler/dependency caches reused, no installations.
+Unrelated checkouts, Dev scratch state, editor profiles and watchers preserved.
+
+Independent Sol/high review accepted the complete53-file diff from
+5c6ddc62334e92290c8845e27c8f26d26002a394 to
+8f3bcfe5eb6984148d1ccfd5ccf29a0306b14efa with no actionable findings or coverage
+gaps. Standard-risk existing-framework/API increment; one reviewer, one initial
+wave, no remediation/final-integration waves or review-driven fix batches. About
+nine minutes reviewer wall time (manual estimate); effective configuration/tokens
+unknown. Independently rechecked all13 canonical hashes and diff check; reused
+same-source native/WebFX/website evidence and inspected final root test log.
+No final integration wave adds coverage because the reviewed source is unchanged.
+This completion receipt and CURRENT are the only post-review documentation delta.
+Ledger: .verification/ui-slice-review/ledger.json. Local counter/coin previews
+remain available; temporary website acceptance server was stopped.
+
+## Project-owned builds without central kit storage — 2026-10-23
+
+Owner superseded the mandatory historical release-kit archive with
+[project-owned source/build policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation).
+Student repositories retain actual framework source, native/browser build files,
+Zero-specific builder/profile/checker and exact records, not just version pointers.
+No central historical-kit storage/database/registry, old maintenance branches,
+all-version CI or old-API shims are required. Normal artifact hosts and existing
+ZeroHub sharing remain; full offline bundles are optional and student-retained.
+Default indefinite rebuilding depends on usable tools/artifact availability,
+separately from editing retained source and playing/rehosting saved web output.
+Exact pins, optional reversible upgrades, current-line maintenance and stable-major
+compatibility remain. Source ownership grants no execution/trusted-helper exemption;
+safe project-owned browser launch is future implementation/security work.
+
+Independent requested Astra/xhigh accepted the complete nine-file diff from
+1739770da2fbbd7f29526329d14dc59077a8e2a7 to
+b662eeea25cab5f580838a2839833446f5bb8c04: one initial full wave, 251.8 seconds,
+no actionable findings or correction batches. Verified no runtime/schema delta,
+searched for stale mandatory archive/default-offline obligations and checked
+current template/execution boundaries. Unchanged prior evidence reused; effective
+configuration/tokens unavailable. Reports/receipt: ignored
+.verification/project-owned-build-astra/.
+
+Nonblocking implementation notes retained in CURRENT: include all required Zero
+builder support modules/config, retain actual dirty-source bytes when promising
+exact recovery, and distinguish missing tools/artifacts/unsupported launch from
+student API errors. Existing ZIP/hash manifests are reused. Default acceptance
+is a clean-cache project clone/build via normal hosts and rehost/rollback without
+a kit service; offline restore is additional only when offering an offline bundle.
+
+Validation: configuration/syntax/contracts/local links pass; focused website
+navigation/API/learning tests 30 pass, 0 fail; diff check passes. No runtime,
+service, schema, install, archive, clone/build/restore, push, PR, merge, deployment,
+release or account change. Weekly 86% remaining and healthy276.8GB storage are
+account/machine context, not task cost. Other checkouts/profiles/watchers preserved.
+This receipt changes no reviewed policy; new tooling/backup/upgrade flows remain
+unimplemented.
+
+## Exact versions and project preservation policy — 2026-10-23
+
+Owner approved a [versioning/preservation policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation)
+for rapid development with durable student ownership. Projects pin an exact
+framework and matching build kit independently of editor updates. Upgrades are
+optional, previewed on a branch and reversible. Stable-major compatibility and
+experimental 0.x rules are explicit. Maintain the current line; preserve old
+releases as immutable archives rather than backport branches or all-version CI.
+Archive complete reusable release build kits, project-specific libraries/assets
+and finished static output for independent retention/rehosting. Archive only
+student-facing kit releases, not every Dev iteration or editor-only patch.
+
+Independent requested Astra/xhigh accepted the complete nine-file diff from
+e7697defbc07bf68176dc304864d4b2b58b72c33 to
+dde2db2f156752ed1a6c5ee0d97e95372cbff39a: one initial full wave, 293.4 seconds,
+no actionable findings or correction batches. Source/template/exporter spot-checks
+confirm current pins versus proposed release locks. Unchanged prior evidence
+reused; no new runtime tests or external research. Effective configuration and
+tokens unavailable. Reports/receipt: ignored .verification/version-policy-astra/.
+
+Nonblocking implementation acceptance notes retained in CURRENT: prove restore
+with empty caches/upstream artifacts unavailable, bind dirty exports to actual
+source snapshots, and identify framework-to-kit association unambiguously. Existing
+web-export.zip and its source/profile hash manifest should be reused; the new work
+is durable retention, complete provenance and release-bound restoration/selection.
+Policy acceptance does not deliver those capabilities or promise all future OSes.
+
+Validation: npm run check passes; focused website navigation/API/learning tests
+30 pass, 0 fail; diff check passes. No runtime/API/schema/CI source change, installs,
+archive activation, push, PR, merge, deployment, release or account changes.
+Weekly 87% remaining and healthy277.1GB storage are account/machine context, not
+task cost. Other checkouts/profiles/watchers preserved. This final receipt does
+not change the reviewed policy.
+
+## Simpler App/GameApp architecture — 2026-10-23
+
+Owner approved removing GameScreen from the target design. Revised the
+[canonical architecture](FRAMEWORK-ARCHITECTURE.md),
+[class/ownership model](FRAMEWORK-MODEL.md) and reliability/product/repository/
+component guidance. GameApp extends App and owns one gameplay view, canvas,
+input, camera and loop. Main keeps update/draw and explicitly delegates to objects,
+optional World or replacement content/controllers. Screen is optional UI only.
+Menu navigation suspends gameplay; composed HUD/live controls do not. Resume,
+manual pause, idle UI transitions and restart ownership are explicit.
+
+Ordinary apps, animated simulations, Zero-first signatures, alternative animation/
+content/UI, managed local and exact-pinned ZeroHub source sharing, credited core
+adoption and pinned WebFX/browser/Pages gates remain required. Reliability now
+explicitly includes reachable browser calls/hooks, UI-only readiness without a
+frame and separate grouping/alerts for sanitized PostHog events. These remain
+planned capabilities; no runtime or field collector was added.
+
+Independent requested Astra/xhigh accepted the complete nine-file diff from
+ff2b3147287c83d71e89d10b420d69ab4e2fc732 to
+797541f611895d6c020641ddd7f35240719921ad without actionable findings: one initial
+wave, 194.9 seconds, no correction batches. Reviewer verified no runtime/API
+source delta, searched for stale GameScreen obligations and reused unchanged
+source/provider evidence. Effective configuration and tokens unavailable.
+Receipts/report: ignored .verification/simple-model-astra/. One gameplay view per
+GameApp is the deliberate simplification; classroom usability still needs the
+planned novice trial.
+
+Validation: configuration/syntax/contracts/local links pass; focused website
+navigation/API/learning tests 30 pass, 0 fail; diff check passes. No runtime build,
+new browser run, telemetry configuration, push, PR, merge, deployment or release.
+Start context: weekly 88% remaining, storage healthy with 277.9GB available;
+account/machine readings are not task cost. Other checkouts/profiles/watchers
+preserved. This final receipt changes no reviewed design behavior.
+
+## Zero-first framework model and reliability — 2026-10-23
+
+Owner clarified Zero packages should cover almost all normal student game/app
+development, with JavaFX underneath and an advanced interoperability path. Added
+[complete bounded class/ownership model](FRAMEWORK-MODEL.md) and
+[automatic failure-detection design](FRAMEWORK-RELIABILITY.md) to the canonical
+architecture. App is the shared host; GameApp is a thin default-game convenience;
+Screen/GameScreen, explicit WorldContent, Actor behavior/playback and composed
+Zero UI share one lifecycle driver. Public facade signatures, background browser
+checks and telemetry remain proposed, not delivered API changes.
+
+Read-only retained Sol/medium audit inventoried existing guards/compiler mappings,
+real browser CI and local runtime errors. Coordinator checked key source claims.
+Current native Run is native-only; preview exceptions lack an editor-state bridge;
+Hub checks reachability; no source-managed Clarity/PostHog collector was found.
+Worker elapsed/effective configuration/tokens unavailable. No runtime tests or
+external hosting settings inspected. Planned detection layers: exact-signature
+evidence, saved-source compatibility, real pinned builds/behavior, truthful local
+status and optional sanitized operational collection. PostHog is recommended for
+evaluation; no SDK, account, alert or tracking injection was activated.
+
+Independent requested Astra/xhigh accepted the complete nine-file documentation
+diff from 9502440e to eeb0a55481e867910995759bee3e91de29f71bbf
+without actionable findings: one full wave, 221.1 seconds,
+zero correction batches. Reviewed current source and official provider docs;
+prior unchanged architecture coverage reused. Effective configuration/tokens
+unavailable. Implementation notes retained: calls/hooks reachable in browser
+fixtures; UI-only readiness after setup/view activation; sanitized PostHog
+events require explicit grouping/alert logic rather than automatic Error Tracking
+issues. Reports/receipts: ignored .verification/zero-first-plan/.
+
+Checks: npm run check passes; focused website navigation/API/learning30pass/0fail;
+diff check passes. No runtime/source/API implementation or browser rerun. Weekly
+90%remaining and healthy279.4GB at start are account/machine context, not task
+cost. No push, PR, merge, deployment, collection, publication or credential change.
+Other checkouts/profiles/watchers preserved. This receipt changes no reviewed
+architecture behavior; browser/Pages/library/novice acceptance remains future work.
+
+## Student-led framework architecture plan — 2026-10-23
+
+Owner made student-led framework evolution a core goal: build → extract → share
+→ reuse → improve → propose for core. Canonical plan is
+[FRAMEWORK-ARCHITECTURE.md](FRAMEWORK-ARCHITECTURE.md); product, repository
+architecture, components, consolidation plan, reference notes and AGENTS agree.
+JavaFX host, optional screens/explicit content and ordinary JavaFX UI preserve
+simple apps. Core consumers must accept demonstrated replacement contracts;
+animation separates shared definitions from actor-owned playback. ZeroHub
+contribution/core promotion preserves authorship, accepted versions and pins.
+This direction supersedes the preliminary reference choices in the prior entry.
+
+Documentation implementationcaded847c1bb4ead6272de3510cf4a1f19df3250 was reviewed
+independently using requested GPT-6 Astra/xhigh. Complete eight-file diff reviewed
+againstc7ffa40a; prior reference/source research reused after confirming no runtime
+diff. One accepted P2 found an unqualified historical preservation exception.
+Correction2bcacd5d382a748a59dad74f6bf75a59c6bfdd61 scopes that exception and
+clarifies retained-session deactivation versus final disposal. Targeted review
+accepted the complete two-file delta with no new actionable findings, reusing
+unchanged initial coverage. One reviewer, two turns/waves, one fix batch;
+initial298.6seconds and follow-up113.3seconds. Effective model/effort and tokens
+unavailable. Account snapshot91%weekly remaining and healthy279.8GB at start
+are context, not attributable task cost. Receipts/reports are ignored under
+.verification/architecture-extension-astra/; earlier reference review is under
+.verification/architecture-astra/.
+
+Validation: configuration, syntax, command contracts and local documentation links
+pass before and after corrections; focused website document-navigation,
+API-reference and learning tests30pass/0fail; diff whitespace check passes.
+No public API/runtime change or new runtime build. Proposed replacement APIs,
+native core dependency/build metadata, actual managed-library browser consumers,
+pinned WebFX execution, separately authorized Pages gameplay and novice learning
+acceptance remain future gates. No push, PR, merge, publication, hosted checker
+activation or account change. Primary funding and tutorial-padding work preserved.
+This final receipt changes no reviewed architecture behavior.
+
+## Actor prototype and reference design — 2026-10-22
+
+Local source head6f0ee4e10a3db2107b2ad365352767f2516790f4 adds optional Actor
+for Player/Enemy subclasses: centre position, size, clockwise rotation, explicit
+movement/aiming, images/regions/animation and overridable update/draw. No automatic
+registration, physics or collision responses. Starter/tutorial/example assembly,
+exact browser fingerprints/contracts and all21new API declarations are synchronized
+with student/website docs (119total). Source addition only; no version bump,
+push, PR, merge, template publication, installer release or deployed website change.
+
+Validation: source999pass/3conditional Windows/PowerShell skips/0fail in205.44s;
+website163pass/typecheck/production build; configuration/syntax/links; extracted
+three-class guide compiles. Native Actor movement/aiming/overflow/atomicity,
+subclass animation and rotated pixels pass, as do existing framework/input/audio
+checks and Zero Dev real-frame Coin Game win/restart/recollection. All6real
+WebFX/GWT fixtures compile; browser-only verification passes58desktop checks and
+136mobile checks, including Actor state and4exact sprite pixels. Physical other
+OS/phones, other browser engines and audible output were not certified. Local
+/docs search and moveToward entry were verified through the in-app browser DOM.
+
+Independent GPT6.1Sol/high review covers complete bf2083a3..1fee83ea diff and
+1fee83ea..6f0ee4e correction:1launch/2turns,1initial+1targeted wave,1acceptedP2
+fixed in1batch,0remaining blockers. Correction shares the15-image expectation
+between initial and delayed-loader checks; initial browser failure was a stale
+12-image assertion. Initial focused adapter/API21tests pass; final native/browser
+and source evidence reused for delta. Effective model/tokens/reviewer elapsed are
+unknown. Docs and browser implementation workers requested GPT6.1Sol/medium;
+coordinator verified delivery. Weekly93%remaining and healthy278.8GB at start;
+account-wide allowance is not task cost. Receipts: .verification/actor/progress.json
+and logs. This delivery receipt changes no reviewed behavior.
+
+Latest owner direction is captured in GAME-SYSTEMS.md: Greenfoot primary teaching
+reference, with FXGL world/UI separation, libGDX explicit container updates/input
+priority and Godot HUD layering. World/camera/screen APIs remain proposals pending
+three complete example designs. Primary funding and tutorial-padding Dev work,
+profiles, scratch game and watcher were preserved. Actor worktree remains attached
+for continued local design; its Zero Dev UI watcher uses port3158.
+
 ## Live sign-in acceptance and Mac0.5.47 preparation — 2026-10-22
 
 PR176 merged3589903def589af7ec083c10c847f8da075e88a7 after all11CI checks and both

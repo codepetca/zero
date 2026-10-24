@@ -196,12 +196,13 @@ public class FullGameCheck extends Application {
         watchdog.setDaemon(true); watchdog.start();
         var app = new Main();
         try {
-            app.start(stage); app.stop();
+            app.start(stage); app.pause();
             var keys = (Set<KeyCode>) field(app, GameApp.class, "keys");
             cameraChecks(); drawingChecks(app);
             physicsChecks(); jumpInputChecks(app, keys);
             var restart = (javafx.scene.control.Button) ((javafx.scene.layout.HBox)
                     app.layout().getBottom()).getChildren().get(2);
+            require(!restart.isDisabled(), "Restart remains enabled while simulation is paused");
             for (int round = 0; round < 2; round++) {
                 restart.fire();
                 exitLevel(app); require((int) field(app, "levelIndex") == 0, "Locked exit");

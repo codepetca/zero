@@ -59,11 +59,23 @@ function checkPom(bytes,release) {
  for(const key of ['groupId','artifactId','version'])if(value(single(project,key))!==release.coordinate[key])fail('Published POM coordinates differ from the selected release.');
  if(allNodes(project).some(n=>['parent','profiles','repositories','pluginRepositories','dependencyManagement','systemPath','build','extensions','reporting'].includes(n.name)))fail('The published POM has unsupported dependency configuration.');
  const properties=single(project,'properties',true),deps=single(project,'dependencies',true);
+ const core=release.schema===2;
+ const coreProperties=core?{
+  'zero.core.minVersion':release.coreRequirement.minVersion,
+  'zero.core.maxExclusive':release.coreRequirement.maxExclusive,
+  ...Object.fromEntries(Object.entries(release.coreBuild).map(([key,value])=>['zero.core.'+key,value]))
+ }:{};
+ const declaredCoreProperties=(properties?.children||[]).filter(node=>node.name.startsWith('zero.core.'));
+ if(declaredCoreProperties.length!==Object.keys(coreProperties).length||new Set(declaredCoreProperties.map(node=>node.name)).size!==declaredCoreProperties.length||declaredCoreProperties.some(node=>node.children.length||!Object.hasOwn(coreProperties,node.name)||value(node)!==coreProperties[node.name]))fail('Published POM core metadata differs from the selected release.');
+ let coreDependencies=0;
  for(const dep of deps?.children||[]) {
   const group=value(single(dep,'groupId')),artifact=value(single(dep,'artifactId')),version=value(single(dep,'version'));
   const javaFx=version==='${javafx.version}'&&properties?value(single(properties,'javafx.version')):version;
-  if(dep.name!=='dependency'||dep.children.length!==3||group!=='org.openjfx'||!['javafx-controls','javafx-media','javafx-swing'].includes(artifact)||javaFx!==c.JAVAFX_VERSION)fail('The published POM has unsupported dependencies.');
+  if(core&&group==='school.zero'&&artifact==='zero-core') {
+   if(dep.name!=='dependency'||dep.children.length!==4||version!==release.coreBuild.version||value(single(dep,'scope'))!=='provided'||++coreDependencies!==1)fail('Published POM must use the exact provided Zero core input.');
+  } else if(dep.name!=='dependency'||dep.children.length!==3||group!=='org.openjfx'||!['javafx-controls','javafx-media','javafx-swing'].includes(artifact)||javaFx!==c.JAVAFX_VERSION)fail('The published POM has unsupported dependencies.');
  }
+ if(core&&coreDependencies!==1)fail('Published POM is missing its provided Zero core dependency.');
 }
 async function verifyLibrary(context,release,options={}) {
  if(release.kind!=='library')fail('Games open as separate projects.');
@@ -74,7 +86,23 @@ async function verifyLibrary(context,release,options={}) {
   if(kind==='pom')checkPom(bytes,release);else if(bytes.length<4||bytes.readUInt32LE(0)!==0x04034b50)fail('A library artifact is not an ordinary JAR.');
   verified[kind]=bytes;
  }
+ if(release.schema===2) {
+  const {inspectLibraryJar}=require('./jar');
+  for(const [artifact,kind]of [['jar','binary'],['sources','sources']])inspectLibraryJar(verified[artifact],{namespace:release.namespace,coordinate:release.coordinate,kind});
+ }
  return verified;
+}
+
+// This records project-owned inputs, not authority to execute project code.
+// Read the verified source inventory again after downloads and before applying
+// a reviewed plan; source changes require another review instead of an upgrade.
+async function coreSnapshot(root,requirement) {
+ const core=require('../core-contract');
+ const record=await core.readProjectCore(root,{required:true});
+ if(!core.versionSatisfies(record.coordinate.version,requirement))fail(`This library requires Zero core ${requirement.minVersion} up to ${requirement.maxExclusive} (exclusive); this project has ${record.coordinate.version}. Keep its source and choose a compatible library or deliberately upgrade a copy.`);
+ const files=[];
+ for(const filename of ['zero-core.json',...record.sources.map(source=>source.path)])files.push({path:filename,sha256:hash(await fs.readFile(await authoring.safePath(root,filename)))});
+ return {record,files};
 }
 function managed(parent,text,label) {
  const start=` zero-sharing ${label} start `,end=` zero-sharing ${label} end `;
@@ -146,13 +174,15 @@ async function assertNoShadow(root,release) {
  const roots=['src/main/java'];
  for(const lib of await authoring.discoverLibraries(root))if(lib.mode==='local')roots.push(`${lib.folder}/src/main/java`);
  for(const sourceRoot of roots)for(const filename of await authoring.javaFiles(root,sourceRoot)) {
-  const decl=authoring.declaration(await authoring.read(root,filename),filename);
+  const source=await authoring.read(root,filename);
+  const decl=sourceRoot==='src/main/java'?authoring.applicationDeclaration(source,filename):authoring.declaration(source,filename);
   if(decl.packageName===release.namespace||decl.packageName.startsWith(release.namespace+'.'))fail(`Source shadows the published library: ${filename}. Keep your edits and choose the library's explicit local/published mode or move the copy.`);
  }
 }
 async function planChange(root,context,release,{operation='add',signal}={}) {
  release=selected(context,release);if(release.kind!=='library'||!['add','update','revert'].includes(operation))fail('Choose Add, Update or Revert for a library.');
  root=path.resolve(root);await authoring.read(root,'zero.json');const beforeText=await authoring.read(root,'pom.xml');
+ const coreInputs=release.schema===2?await coreSnapshot(root,release.coreRequirement):null;
  await assertNoShadow(root,release);
  const doc=parseXml(beforeText),properties=single(doc,'properties'),deps=single(doc,'dependencies'),repos=single(doc,'repositories',true);
  if(value(single(properties,'maven.compiler.release'))!==c.JAVA_RELEASE||value(single(properties,'javafx.version'))!==c.JAVAFX_VERSION||properties.selfClosing||deps.selfClosing||repos?.selfClosing)fail('Use the ordinary Zero Java/JavaFX project POM.');
@@ -173,13 +203,14 @@ async function planChange(root,context,release,{operation='add',signal}={}) {
  if(current===release.version)fail('This exact version is already installed.');
  if(operation==='update') {const a=release.version.split('.').map(Number),b=current.split('.').map(Number);if(a[0]!==b[0]||a[1]!==b[1]||a[2]<=b[2])fail('Update supports a newer compatible patch. Choose another exact version manually for a larger API change.');}
  await verifyLibrary(context,release,{signal});
+ if(coreInputs&&JSON.stringify(await coreSnapshot(root,release.coreRequirement))!==JSON.stringify(coreInputs))fail('Project Zero core changed during review. Choose the library again; no dependency edit applied.');
  const wrap=(label,body)=>`<!-- zero-sharing ${label} start -->\n${body}\n    <!-- zero-sharing ${label} end -->`,edits=[];
  function edit(parent,old,content){edits.push(old?{start:old.start,end:old.end,text:content}:{start:parent.close,end:parent.close,text:`\n    ${content}\n  `});}
  edit(deps,owned,wrap(`${id} dependency`,`    <dependency><groupId>${release.coordinate.groupId}</groupId><artifactId>${release.coordinate.artifactId}</artifactId><version>${release.version}</version></dependency>`));
  edit(properties,history,wrap(`${id} history`,`    <zero.sharing.${id}.previous>${current||'none'}</zero.sharing.${id}.previous>`));
  if(!repo){const content=wrap('repository',`    <repository><id>zero-sharing</id><url>${xml(context.artifactOrigin+'/maven')}</url><releases><enabled>true</enabled></releases><snapshots><enabled>false</enabled></snapshots></repository>`);if(repos)edit(repos,null,content);else edits.push({start:doc.close,end:doc.close,text:`\n  <repositories>\n    ${content}\n  </repositories>\n`});}
  let afterText=beforeText;for(const e of edits.sort((a,b)=>b.start-a.start))afterText=afterText.slice(0,e.start)+e.text+afterText.slice(e.end);parseXml(afterText);
- return {schema:1,root,beforeText,afterText,beforeHash:hash(beforeText),current,previous,release,operation,fingerprint:context.fingerprint};
+ return {schema:1,root,beforeText,afterText,beforeHash:hash(beforeText),current,previous,release,operation,fingerprint:context.fingerprint,...(coreInputs?{coreInputs}:{})};
 }
 async function validatePlan(plan,context,options={}) {
  const fresh=await loadCatalog({catalogUrl:context.catalogUrl,artifactOrigin:context.artifactOrigin},{fetcher:context.fetcher,...options});
@@ -188,6 +219,7 @@ async function validatePlan(plan,context,options={}) {
  if(!release)fail('The selected exact release is no longer available.');
  const again=await planChange(plan.root,fresh,release,{operation:plan.operation,...options});
  if(again.beforeText!==plan.beforeText||again.afterText!==plan.afterText)fail('The POM changed during review. No dependency edit applied.');
+ if(JSON.stringify(again.coreInputs)!==JSON.stringify(plan.coreInputs))fail('Project Zero core changed after review. Choose the library again; no dependency edit applied.');
 }
 async function downloadGame(context,release,options={}) {if(release.kind!=='game')fail('Choose a game.');return downloadArtifact(context,release,'zip',options);}
 module.exports={origin,catalogUrl,readBytes,loadCatalog,downloadArtifact,verifyLibrary,inspectManagedLibraryPins,planChange,validatePlan,downloadGame,assertNoShadow,addArtifactRepository};

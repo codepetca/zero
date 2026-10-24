@@ -1,17 +1,18 @@
 # Zero API reference
 
 The complete public/protected API declared by `zero.App`, `zero.GameApp`,
-`zero.ImageRegion`, `zero.SpriteAnimation`, `zero.Collisions`, `zero.Sound` and
-`zero.Music`.
-Mac setup 0.5.23 includes these helpers with core 0.2.1. Older downloads keep
+`zero.ImageRegion`, `zero.SpriteAnimation`, `zero.Actor`, `zero.Collisions`,
+`zero.Sound`, `zero.Music`, `zero.Color`, `zero.Key` and the `zero.ui` classes below.
+Actor, zero.Color, zero.Key and zero.ui are local source additions and are unreleased. Mac setup 0.5.23 includes
+the earlier image, animation, collision and audio helpers with core 0.2.1. Older downloads keep
 their bundled API; use their own reference when working with an older kit.
 Learn through the [tutorials](lessons/00-hello-world.md); use this reference to
 look up methods. Installation and troubleshooting are in [setup help](README.md).
 
-[App](#app) · [GameApp](#gameapp) ·
-[Canvas](#canvas) · [Drawing](#drawing) · [Images](#images) ·
+[App](#app) · [GameApp](#gameapp) · [Game flow](#game-flow) ·
+[Zero UI](#zerouielement) · [Color](#color) · [Key](#key) · [Canvas](#canvas) · [Drawing](#drawing) · [Images](#images) ·
 [ImageRegion](#imageregion) · [SpriteAnimation](#spriteanimation) ·
-[Collisions](#collisions) · [Audio](#audio) · [Sound](#sound) · [Music](#music) · [Input](#input) · [Lifecycle and extension hooks](#lifecycle-and-extension-hooks)
+[Actor](#actor) · [Collisions](#collisions) · [Audio](#audio) · [Sound](#sound) · [Music](#music) · [Input](#input) · [Lifecycle and extension hooks](#lifecycle-and-extension-hooks)
 
 ## App
 
@@ -19,12 +20,18 @@ look up methods. Installation and troubleshooting are in [setup help](README.md)
 
 Extend `zero.App` for event-driven interfaces. It has an implicit public
 no-argument constructor. The default window is resizable, 800 × 500 pixels,
-with title `"Zero"` and zero content-edge padding. Import JavaFX `Node` from `javafx.scene`.
+with title `"Zero"` and zero content-edge padding. Use `zero.ui.Element` for normal
+Zero UI content. JavaFX `Node` from `javafx.scene` remains an advanced bridge.
 
 Normal Run builds and opens a native JavaFX window. Publishing for the browser
 checks the supported Java/JavaFX subset; unsupported calls produce source
 diagnostics. Availability in native JavaFX does not imply browser support.
 See [running and browser compatibility](https://zero.codepet.ca/docs/setup#edit-and-run).
+
+An uncaught startup, game update/draw or UI callback error stops the app's owned
+loop, input and audio, preserving the original error and any cleanup failures.
+Managed runs report readiness and local errors; opening a window alone does not
+prove a successful game frame. Pause and title screens are valid states.
 
 ### Callbacks
 
@@ -44,7 +51,8 @@ These methods are public and final; call them without overriding them.
 | `void size(double width, double height)` | Set initial content dimensions in pixels, inside `settings()` only. Dimensions must be positive and finite. On GameApp, these are fixed canvas dimensions. |
 | `void title(String title)` | Set a non-null initial window title, inside `settings()` only. |
 | `void padding(double pixels)` | Set space around all four content edges in `settings()`, `setup()` or later JavaFX handlers. The number must be non-negative and finite. Default: 0. GameApp keeps its fixed canvas size. |
-| `void show(Node content)` | Replace the root's centre with a non-null JavaFX node, in `setup()` or later. No screen history is stored. On GameApp this replaces the visible sketch layout while its loop continues. |
+| `void show(zero.ui.Element content)` | Replace the root's centre with a non-null Zero element in `setup()` or later. On GameApp, navigate away from its retained canvas/HUD and suspend gameplay update, draw and canvas input until showGame(). No history stack is stored. |
+| `void show(Node content)` | Replace the root's centre with a non-null JavaFX node, in `setup()` or later. No screen history is stored. On GameApp this navigates away from the retained canvas/HUD and suspends gameplay update, draw and canvas input until showGame(). |
 
 `size` and `title` throw `IllegalStateException` outside `settings()`;
 invalid dimensions or padding throw `IllegalArgumentException`. `show` throws `IllegalStateException`
@@ -69,13 +77,175 @@ Its canvas exists before `setup()`. It starts frames after showing the window.
 
 | Public callback | Behavior |
 | --- | --- |
-| `void update(double seconds)` | Runs each frame before `draw()`. Update your state and objects explicitly. Default: no action. |
-| `void draw()` | Runs after `update()`. Draw the current state. Default: no action. |
+| `void update(double seconds)` | Runs before `draw()` while gameplay is visible and not explicitly paused. Update your state and objects explicitly. Default: no action. |
+| `void draw()` | Runs while gameplay is visible, after `update()` when not paused. Draw the current state. Default: no action. |
 
 The first frame receives `0` seconds; later elapsed times are capped at `0.1`.
-Frame rate is variable. The canvas is not automatically cleared; drawing styles
+Frame rate is variable. While gameplay is visible, draw continues during an explicit pause, but update is skipped. Navigating away with show suspends both callbacks. The canvas is not automatically cleared; drawing styles
 persist. Resizing the window does not scale its fixed canvas. Native controls
 around the canvas can enlarge the initial window.
+
+## Game flow
+
+These GameApp methods are public and final. Call them on the JavaFX application
+thread in `setup()` or later UI/game callbacks. They require the game layout to
+exist and the app must not have stopped, or they throw `IllegalStateException`. The canvas and its controls panel are
+retained when `show(Node)` or `show(Element)` displays another view. showGame
+returns to that same gameplay view; it does not rebuild actors, reset scores or
+restart a level. Main owns those rules.
+
+Navigation requested inside update or draw takes effect after the current draw,
+so the current update/draw pair finishes together. The last navigation request
+in that frame wins; a failed frame or app stop discards pending navigation. A request in an idle UI callback
+commits immediately. Navigation and pause/resume clear held and edge canvas input; returning with showGame
+or calling resume clears input and resets elapsed time so the next update gets 0
+seconds, with no time accumulated while away. Explicit pause and navigation are
+separate: returning to gameplay preserves an explicit pause until resume is called.
+Native button callbacks remain available while paused or on another view. Game
+pause/navigation does not automatically pause music.
+
+isPaused reports only the explicit pause flag, not whether another view is showing.
+
+A title, help, pause or results screen can be an ordinary student class with a
+method returning an Element. There is no `zero.Screen` class, automatic screen
+lifecycle or navigation history in this API.
+
+| Signature | Behavior |
+| --- | --- |
+| `void showGame()` | Return to the retained gameplay canvas and HUD, clearing input and elapsed time. Preserve explicit pause state. |
+| `void pause()` | Explicitly pause gameplay updates. Visible gameplay still draws and UI callbacks still run. |
+| `void resume()` | Clear explicit pause, input and elapsed time. Resume gameplay updates only when gameplay is visible. |
+| `boolean isPaused()` | Read whether gameplay has been explicitly paused. |
+
+## zero.ui.Element
+
+`public abstract class Element` is the base for the small Zero UI layer. Import
+`zero.ui.Element`, `zero.ui.Label`, `zero.ui.Button`, `zero.ui.TextField`, `zero.ui.Column` and `zero.ui.Row` as needed.
+These are additional, unreleased APIs; existing JavaFX controls remain available.
+Use `App.show(element)` for an interface or `GameApp.controls(element)` for a live
+game HUD. Each element wraps one node and can belong to only one parent at a time.
+Create, change and mount elements on the JavaFX application thread (in setup or
+callbacks). A Column's children are supplied only in its constructor; there is
+no public add/remove/reparent API in this slice.
+
+Elements start enabled. Call setEnabled(false) to block user interaction without
+removing the element or discarding its text, prompt or callback. setEnabled(true)
+clears the element's own disabled flag; a disabled ancestor still prevents its
+interaction. A disabled Column also disables interaction with its
+children; a child disabled separately remains disabled when the Column is enabled.
+The UI state reflects your app's rules. Keep rules such as whether an answer was
+already scored in ordinary Java fields rather than relying on a disabled button.
+
+The protected constructor and fxNode are an advanced JavaFX interoperability
+bridge for custom elements, not a requirement for using Label/Button/TextField/Column.
+Subclasses wrap their own node or a newly created Column's node. Null backing
+nodes throw `NullPointerException`; the bridge exposes the actual node rather
+than a copy. Advanced code must preserve JavaFX ownership/thread rules.
+
+| Signature | Behavior |
+| --- | --- |
+| `protected Element(Node node)` | Wrap a non-null JavaFX node in a custom Element subclass. |
+| `final void setEnabled(boolean enabled)` | Set this element's own enabled flag while preserving values and callbacks. False blocks interaction; true allows interaction unless an ancestor remains disabled. Inherited by Label, Button, TextField, Column and Row. |
+| `final Node fxNode()` | Return the underlying JavaFX node for advanced interoperability. Inherited by Label, Button, TextField, Column and Row. |
+
+## zero.ui.Label
+
+`public class Label extends Element` displays text. Import `zero.ui.Label`.
+Text must be non-null; constructors/setters throw `NullPointerException` for null.
+It inherits `fxNode()` from Element.
+
+| Signature | Behavior |
+| --- | --- |
+| `Label(String text)` | Create a text label. |
+| `String getText()` | Read its current text. |
+| `void setText(String text)` | Replace its text explicitly. |
+
+## zero.ui.Button
+
+`public class Button extends Element` is a clickable button. Import `zero.ui.Button`.
+It inherits `fxNode()`. Text and callbacks must be non-null or
+`NullPointerException` is thrown. The callback is an ordinary `java.lang.Runnable`:
+write `button.onClick(() -> score.setScore(1))`, with no event argument. Calling
+onClick again replaces the previous callback; it does not accumulate handlers.
+
+| Signature | Behavior |
+| --- | --- |
+| `Button(String text)` | Create a button with no click callback yet. |
+| `String getText()` | Read its current text. |
+| `void setText(String text)` | Replace its text explicitly. |
+| `void onClick(Runnable action)` | Replace the click callback with a non-null action. |
+
+## zero.ui.TextField
+
+`public class TextField extends Element` accepts one line of text. Import
+`zero.ui.TextField`. It inherits `fxNode()`. Text and prompt start empty.
+Read getText inside a Button.onClick callback to use the text entered at that
+moment. A prompt is a hint shown when the field is empty; it is not entered text.
+In the browser, focusing the empty field hides its hint; leaving it restores the hint.
+Typing and Tab navigation retain the native control's focus behavior.
+Both setters reject null with `NullPointerException` and keep the previous value.
+Use an empty string to remove text or a prompt. Create and change it in setup or
+UI callbacks on the application thread, like the other elements.
+
+| Signature | Behavior |
+| --- | --- |
+| `TextField()` | Create an empty single-line text field with an empty prompt. |
+| `String getText()` | Read the current text, including edits typed by the user. |
+| `void setText(String text)` | Replace the text with a non-null string; an empty string removes entered text. |
+| `String getPromptText()` | Read the current prompt hint. |
+| `void setPromptText(String text)` | Replace the prompt with a non-null string; this does not change entered text. |
+
+## zero.ui.Column
+
+`public class Column extends Element` arranges child elements vertically. Import
+`zero.ui.Column`. It inherits `fxNode()`. The no-spacing constructor uses 8 pixels.
+Spacing must be finite and non-negative or `IllegalArgumentException` is thrown.
+Null children/child array throw `NullPointerException`; duplicate children or
+children whose nodes already have a parent or scene throw `IllegalArgumentException`.
+The complete list is validated before any child is attached. Children are fixed
+at construction; create fresh elements for a different composition instead of
+trying to attach one child to two parents. Empty columns are allowed.
+
+| Signature | Behavior |
+| --- | --- |
+| `Column(Element... children)` | Create a vertical column with 8-pixel spacing and the supplied children in order. |
+| `Column(double spacing, Element... children)` | Create a vertical column with finite non-negative pixel spacing. |
+| `double getSpacing()` | Read spacing in pixels. |
+| `void setSpacing(double spacing)` | Replace finite non-negative spacing; invalid values leave the old value unchanged. |
+
+## zero.ui.Row
+
+`public class Row extends Element` arranges child elements horizontally. Import
+`zero.ui.Row`. It has the same ownership, availability and validation rules as
+Column: children must be distinct, non-null and unowned; validation completes
+before attachment. Children are fixed at construction. Empty rows are allowed.
+It inherits setEnabled(boolean) and fxNode().
+
+| Signature | Behavior |
+| --- | --- |
+| `Row(Element... children)` | Create a horizontal row with 8-pixel spacing and the supplied children in order. |
+| `Row(double spacing, Element... children)` | Create a horizontal row with finite non-negative pixel spacing. |
+| `double getSpacing()` | Read horizontal spacing in pixels. |
+| `void setSpacing(double spacing)` | Replace finite non-negative horizontal spacing; invalid values leave the old value unchanged. |
+
+## Color
+
+`public final class Color` is a small colour value wrapper. Import `zero.Color`
+for these constants and rgb; the platform colour is private. It has no public
+constructor. Existing overloads taking `javafx.scene.paint.Color` remain available;
+the short `Color` type in their older drawing signatures below means JavaFX Color.
+The explicitly qualified `zero.Color` overloads take the new wrapper. Import only
+one Color class by its short name, or qualify the other where needed.
+Each rgb channel must be an integer from 0 through 255 inclusive; otherwise
+`IllegalArgumentException` is thrown.
+
+| Signature | Behavior |
+| --- | --- |
+| `static final Color WHITE` | Opaque white. |
+| `static final Color BLACK` | Opaque black. |
+| `static final Color BLUE` | Opaque blue. |
+| `static final Color GOLD` | Opaque gold. |
+| `static Color rgb(int red, int green, int blue)` | Create an opaque colour from integer channels, each from 0 through 255. |
 
 ## Canvas
 
@@ -89,6 +259,8 @@ after canvas creation. Imports: `javafx.scene.canvas.Canvas`,
 | `double height()` | Canvas height in pixels. |
 | `Canvas canvas()` | Native JavaFX canvas. |
 | `GraphicsContext graphics()` | Native drawing context, including transforms and styles. |
+| `void controls(zero.ui.Element content)` | Mount a non-null Zero HUD/control panel at the bottom of the game layout in `setup()` or later, retaining the canvas and gameplay state. This does not navigate back or resume explicit pause. Replace the previous panel; do not steal nodes from another parent. Throws `IllegalStateException` before canvas creation, `NullPointerException` for null, and `IllegalArgumentException` for content owned by another parent or scene. Reusing the current bottom panel is allowed. |
+| `void draw(Actor actor)` | Draw a non-null actor explicitly through its existing draw(GameApp) entry point. The base Actor entry point provides a scoped local drawing callback; this never updates or registers the actor. Null actor throws `NullPointerException`; the base Actor entry point throws `IllegalStateException` before canvas creation. |
 | `BorderPane layout()` | Layout with the canvas in its centre. Add native controls to its other positions. |
 
 ## Drawing
@@ -99,8 +271,11 @@ Import `Color` from `javafx.scene.paint`.
 
 | Signature | Behavior |
 | --- | --- |
+| `void background(zero.Color color)` | Clear and fill the entire canvas, restoring the previous styles and transform. Use the new Zero colour wrapper; null throws `NullPointerException`. |
 | `void background(Color color)` | Clear and fill the entire canvas using an identity transform, then restore the previous context styles and transform. |
+| `void fill(zero.Color color)` | Set the fill for filled shapes and text. Use the new Zero colour wrapper; null throws `NullPointerException`. |
 | `void fill(Color color)` | Set the fill for filled shapes and text. |
+| `void stroke(zero.Color color)` | Set the stroke for lines and outlines. Use the new Zero colour wrapper; null throws `NullPointerException`. |
 | `void stroke(Color color)` | Set the stroke for lines and outlines. |
 | `void strokeWidth(double pixels)` | Set line width. |
 | `void textSize(double pixels)` | Set a default JavaFX font at this size. |
@@ -117,10 +292,12 @@ through `graphics()`. For other operations, use that context directly.
 ## Images
 
 These GameApp methods are public and final. Drawing requires an existing
-canvas. Import `Image` from `javafx.scene.image`.
+canvas. Import `zero.ImageRegion` for ordinary artwork. JavaFX `Image` from
+`javafx.scene.image` remains available for advanced image operations.
 
 | Signature | Behavior |
 | --- | --- |
+| `ImageRegion loadImageRegion(String resourcePath)` | Load a bundled image as a region covering its full pixel bounds, starting at 0/0. Uses the same app-owned cached backing image as `loadImage`, including path aliases, without copying pixels. Each call may return a new region wrapper. A null path throws `NullPointerException` with `Image resource path must not be null.`; missing or unreadable images throw `IllegalArgumentException` naming the path. |
 | `Image loadImage(String resourcePath)` | Load a bundled classpath image. A leading `/` starts at the resource root; otherwise the path is relative to your app class's Java package. Throws `IllegalArgumentException` for missing or unreadable images. Successful loads are cached per app by canonical resolved resource URL, including path aliases. The same resource returns the same Image until shutdown clears the cache; failed loads are not cached. |
 | `void image(Image image, double x, double y)` | Draw at x/y using the image's natural size. |
 | `void image(Image image, double x, double y, double width, double height)` | Draw at x/y scaled to the supplied dimensions. |
@@ -161,7 +338,8 @@ x/y, non-positive dimensions or an out-of-bounds rectangle throw
 
 ## SpriteAnimation
 
-`public final class SpriteAnimation` is an ordinary explicitly updated object.
+`public final class SpriteAnimation implements AnimationSource` retains an ordinary
+explicitly updated legacy clock and can create independent actor-owned playback.
 Import `zero.SpriteAnimation`. Regular sheets use equal aligned cells in
 row-major order, left to right then top to bottom. Trim outer margins and spacing
 before using a grid; arbitrary artwork is not automatically aligned. For an
@@ -175,6 +353,7 @@ throw `IllegalArgumentException`. There is no automatic registration or update.
 | `SpriteAnimation(Image image, int columns, int rows, double fps)` | Construct a looping grid animation at frame 0. Positive columns/rows must divide the loaded image dimensions exactly; fps must be positive and finite. |
 | `SpriteAnimation(double fps, ImageRegion... frames)` | Construct a non-empty looping sequence of equal-size regions from the same Image. Positive finite fps is required; columns is the frame count and rows is 1. |
 | `void update(double seconds)` | Advance and loop this object only. Seconds must be non-negative and finite. |
+| `AnimationPlayback createPlayback()` | Create a fresh looping clock at frame zero, sharing immutable frame definitions and backing image. Independent of this object's legacy clock. |
 | `void reset()` | Return this clock to frame 0, including fractional elapsed time. |
 | `ImageRegion frame()` | Current frame region; does not advance. |
 | `int frameIndex()` | Current zero-based frame index. |
@@ -183,6 +362,130 @@ throw `IllegalArgumentException`. There is no automatic registration or update.
 | `int rows()` | Grid rows, or 1 for an explicit sequence. |
 | `double fps()` | Configured frames per second. |
 | `Image image()` | Shared backing image. |
+
+## AnimationSource
+
+`public interface AnimationSource` is a student-implementable factory. Import
+`zero.AnimationSource`. A definition may share immutable ImageRegion objects and
+borrowed images, but must return fresh mutable playback on every call. It owns no
+app timer. Check independent clocks in your component's conformance tests.
+
+| Signature | Behavior |
+| --- | --- |
+| `AnimationPlayback createPlayback()` | Return a fresh, non-null playback with a non-null initial frame. Actor calls this once per assignment, including reassigning the same source to restart. |
+
+## AnimationPlayback
+
+`public interface AnimationPlayback` is one owner's mutable clock. Import
+`zero.AnimationPlayback`. Looping, non-looping and state-based implementations
+can share this contract. Keep frame() observational between explicit updates.
+
+| Signature | Behavior |
+| --- | --- |
+| `void update(double seconds)` | Advance this clock explicitly by finite, non-negative seconds, including zero. Actor validates time before its behaviour hook and advances the selected playback once afterward. |
+| `ImageRegion frame()` | Read the current non-null frame without advancing. Actor caches a validated frame after assignment and update; drawing only observes that cache. |
+
+Actor rejects a null returned playback or frame with `IllegalStateException`
+naming createPlayback() or frame(). A failed assignment preserves the previous
+appearance. A failing behaviour/update can have already changed student state;
+there is no transaction rollback. No global playback registry detects ownership
+for you. App-owned cached images are borrowed; dropping/replacing a playback
+does not close shared images or continue ticking the detached clock.
+
+## Actor
+
+`public class Actor` is an optional ordinary Java object you can extend. Import
+`zero.Actor`. Its x/y position is the actor's **centre**. With artwork, its initial
+size is the image/frame's natural size. `Actor(x, y)` has no artwork and starts
+with logical width/height 1; override draw() to draw shapes. Rotation starts at 0 (facing right); positive
+degrees turn clockwise and rotation is normalized to [0, 360).
+
+Main explicitly calls `actor.update(seconds)` and `draw(actor)`; there is no
+registration or automatic lifecycle. Final update validates seconds, calls the
+protected onUpdate(seconds) behaviour hook, then advances the currently selected
+playback once. Override onUpdate without a super call. A hook may switch image or
+animation; its selected playback receives that frame's elapsed time. Drawing
+never advances animation. Sharing one AnimationSource creates independent clocks
+for each actor; updating the source's legacy SpriteAnimation clock does not
+advance actor clocks.
+
+Numeric arguments for construction, position, size, movement, rotation and
+elapsed time must be finite; sizes must be strictly positive, seconds
+must be non-negative, and moveToward speed must be non-negative. moveForward
+accepts signed speed (negative moves backward). Null references throw
+`NullPointerException`; invalid arguments, unloaded/failed images and non-finite
+movement results throw `IllegalArgumentException` without changing actor state.
+Image replacements keep position, size and rotation. Assigning an animation source
+creates fresh playback at its initial frame; a static image detaches playback. A target at the current position leaves rotation unchanged.
+
+Actor adds no collision shape or automatic collision response. Use Collisions
+explicitly; for a rectangular test use top-left `actor.x() - actor.width() / 2`
+and `actor.y() - actor.height() / 2`. Rotation does not rotate that test rectangle.
+This class is an unreleased local source addition; older kits are unchanged.
+
+| Signature | Behavior |
+| --- | --- |
+| `Actor(double x, double y)` | Create an actor centred at finite x/y with no artwork and logical size 1 × 1. |
+| `Actor(Image image, double x, double y)` | Create an actor centred at x/y using a loaded image's natural dimensions. |
+| `Actor(ImageRegion region, double x, double y)` | Create an actor centred at x/y using the region's natural dimensions. |
+| `Actor(SpriteAnimation animation, double x, double y)` | Create fresh independent playback at frame zero, using its initial frame's natural dimensions. The source's legacy clock is unchanged. |
+| `Actor(AnimationSource source, double x, double y)` | Create independent playback from a non-null source, with initial frame dimensions and centre x/y. |
+| `final double x()` | Read the horizontal centre in canvas pixels. |
+| `final double y()` | Read the vertical centre in canvas pixels. |
+| `final double width()` | Read the drawing width in pixels. |
+| `final double height()` | Read the drawing height in pixels. |
+| `final double rotation()` | Read clockwise degrees in [0, 360), with 0 facing right. |
+| `final void setPosition(double x, double y)` | Set the centre to finite x/y. |
+| `final void setSize(double width, double height)` | Set strictly positive finite drawing dimensions. |
+| `final void setRotation(double degrees)` | Set finite clockwise degrees, normalized to [0, 360). |
+| `final void move(double dx, double dy)` | Add finite offsets to the centre; reject non-finite results before changing either coordinate. |
+| `final void moveForward(double speed, double seconds)` | Move in the facing direction by signed pixels-per-second speed times non-negative seconds. Reject non-finite results atomically. |
+| `final void rotate(double degrees)` | Add finite clockwise degrees and normalize to [0, 360). |
+| `final void face(double targetX, double targetY)` | Face a finite target point; a target at the centre leaves rotation unchanged. |
+| `final void moveToward(double targetX, double targetY, double speed, double seconds)` | Face and approach a finite target at non-negative pixels-per-second speed for non-negative seconds. Stop exactly at the target without overshooting; reject non-finite results atomically. |
+| `final void setImage(Image image)` | Replace the sprite with a loaded image, keeping size, position and rotation. |
+| `final void setImage(ImageRegion region)` | Replace the sprite with a region, keeping size, position and rotation. |
+| `final void setImage(SpriteAnimation animation)` | Create fresh playback, preserving actor size, position and rotation and leaving the source's legacy clock unchanged. |
+| `final void setImage(AnimationSource source)` | Validate fresh playback and its initial frame before replacing the appearance; preserve size, position and rotation. |
+| `final void update(double seconds)` | Validate finite non-negative time, run onUpdate(seconds), then advance the selected playback once and cache its non-null frame. |
+| `protected void onUpdate(double seconds)` | Override for ordinary behaviour; default does nothing. Receives validated time before playback advancement; no super call is needed. |
+| `void draw(GameApp app)` | Existing overridable drawing entry point, called by GameApp.draw(actor). The base implementation establishes this actor/app drawing scope, translates to x/y, rotates, invokes draw(), and restores the prior drawing context, styles and transform in finally. Legacy overrides still run. |
+| `void draw()` | Override to draw in actor-local coordinates, with (0, 0) at its centre and the actor rotation already applied. Default: draw its sprite centred and scaled to width/height, or do nothing when there is no artwork. Never advances animation. |
+
+### Protected Actor drawing helpers
+
+These protected final methods are available inside an Actor subclass. Call them
+only during that actor's active base draw(GameApp) scope, normally from its draw()
+callback; otherwise they throw `IllegalStateException` with useful guidance.
+They delegate to the supplied app without a static current-app field. Exceptions restore the previous context, styles and transform. Main.draw(actor)
+uses canvas coordinates; drawing another actor inside an actor callback composes
+the current parent transform, so that nested actor's position is relative to it.
+Each nested scope restores its caller's state.
+
+Import `zero.Color` for fill/stroke. Coordinates are local canvas pixels: positive
+x points right and positive y points down before the actor's clockwise rotation.
+setSize changes logical dimensions and default sprite size; it does not scale
+custom drawing coordinates. Use width()/height() explicitly if your shapes
+should follow logical size. Shapes add no collision geometry.
+
+GameApp.draw(actor) deliberately calls actor.draw(app), preserving old overrides.
+An override of draw(GameApp) that does not call super controls its own drawing;
+the scoped callback/helpers are supplied by the base implementation. Prefer
+no-argument draw() for new Actor subclasses. Main still explicitly updates and
+draws each object, with no implicit registration or lifecycle.
+
+| Signature | Behavior |
+| --- | --- |
+| `protected final void fill(zero.Color color)` | Set local shape/text fill using a non-null zero.Color. |
+| `protected final void stroke(zero.Color color)` | Set local outline/line stroke using a non-null zero.Color. |
+| `protected final void strokeWidth(double pixels)` | Set line width through the active drawing app. |
+| `protected final void textSize(double pixels)` | Set text size through the active drawing app. |
+| `protected final void rect(double x, double y, double width, double height)` | Draw a filled rectangle from its local top-left x/y. |
+| `protected final void outlineRect(double x, double y, double width, double height)` | Draw an outlined rectangle from its local top-left x/y. |
+| `protected final void circle(double centreX, double centreY, double diameter)` | Draw a filled circle with a local centre and a diameter, not a radius. |
+| `protected final void line(double x1, double y1, double x2, double y2)` | Draw a line between local endpoints. |
+| `protected final void text(String value, double x, double y)` | Draw text at local x/y using the current baseline convention. |
+| `protected final void textCentered(String value, double x, double y)` | Centre text horizontally about local x using the current baseline convention. |
 
 ## Collisions
 
@@ -264,18 +567,47 @@ close controls throw `IllegalStateException`, while getters remain readable.
 | `boolean isPlaying()` | Whether this player currently reports active playback. |
 | `void close()` | Stop playback and dispose the owned player. |
 
+## Key
+
+`public enum Key` supplies common movement and action keys for normal Zero game input. Import
+`zero.Key` and use keyDown(Key.LEFT) or keyPressed(Key.LEFT). No constructor or
+JavaFX key type is needed. The browser profile admits the constants below and
+queries; implicit enum methods such as values(), valueOf() and name() are not
+part of the supported browser API. The existing KeyCode overloads remain the
+advanced JavaFX interoperability path for additional keys.
+
+| Signature | Behavior |
+| --- | --- |
+| `static final Key LEFT` | The left arrow key. |
+| `static final Key RIGHT` | The right arrow key. |
+| `static final Key UP` | The up arrow key. |
+| `static final Key DOWN` | The down arrow key. |
+| `static final Key W` | The W key. |
+| `static final Key A` | The A key. |
+| `static final Key S` | The S key. |
+| `static final Key D` | The D key. |
+| `static final Key SPACE` | The Space key. |
+| `static final Key ENTER` | The Enter key. |
+| `static final Key ESCAPE` | The Escape key. |
+| `static final Key R` | The R key. |
+
 ## Input
 
 These GameApp methods are public and final. Use after canvas creation.
-Import `KeyCode` and `MouseButton` from `javafx.scene.input`.
+Use `zero.Key` for arrows, W/A/S/D, Space, Enter, Escape and R. For advanced JavaFX input, import
+`KeyCode` and `MouseButton` from `javafx.scene.input`.
 
 | Signature | Result |
 | --- | --- |
 | `double mouseX()` | Latest tracked mouse x in canvas coordinates. Starts at canvas centre. |
 | `double mouseY()` | Latest tracked mouse y in canvas coordinates. Starts at canvas centre. |
-| `boolean keyDown(KeyCode key)` | Whether a key pressed with canvas focus is held. |
+| `boolean keyDown(KeyCode key)` | Whether an advanced JavaFX key pressed with canvas focus is held. |
+| `boolean keyDown(Key key)` | Whether a Zero key pressed with canvas focus is held. Null throws NullPointerException with a useful error. |
+| `boolean mouseDown()` | Whether the primary pointer button pressed on the canvas is held, with no JavaFX type needed. |
 | `boolean mouseDown(MouseButton button)` | Whether a button pressed on the canvas is held. |
-| `boolean keyPressed(KeyCode key)` | Whether a new press occurred for the current update/draw frame. Repeated queries do not consume it; holding does not repeat it. |
+| `boolean keyPressed(KeyCode key)` | Whether an advanced JavaFX key has a new press for the current update/draw frame. Repeated queries do not consume it; holding does not repeat it. |
+| `boolean keyPressed(Key key)` | Whether a Zero key has a new press for the current update/draw frame. Repeated queries do not consume it and holding does not repeat it. Null throws NullPointerException with a useful error. |
+| `boolean mousePressed()` | Whether a new primary canvas press occurred this frame. Repeated queries do not consume it; no JavaFX type is needed. |
 | `boolean mousePressed(MouseButton button)` | Whether a new canvas button press occurred for the current update/draw frame. Repeated queries do not consume it. |
 | `boolean windowFocused()` | Whether the app window has focus, including when a native control owns keyboard focus. False before the window exists or after shutdown. |
 
@@ -329,7 +661,7 @@ GameApp supplies these final overrides; subclasses cannot replace them.
 | --- | --- |
 | `protected final Node createContent()` | Create the canvas, graphics context, layout and canvas input handlers; initialise mouse coordinates; return the layout. |
 | `protected final Scene createScene(BorderPane content)` | Create a scene sized from its content, allowing room for controls around the canvas. |
-| `protected final void ready(Stage stage)` | Install scene/window input handling, request canvas focus and start the frame timer. |
+| `protected final void ready(Stage stage)` | Install scene/window input handling, request canvas focus when gameplay input is enabled, and start the single frame driver. |
 | `protected final void shutdown()` | Stop the timer if present, clear all input and the image cache, and forget the window. |
 
 Settings, setup, frames and JavaFX handlers run on the JavaFX application thread.

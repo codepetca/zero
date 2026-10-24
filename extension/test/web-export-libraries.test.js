@@ -4,7 +4,7 @@ const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:
 const authoring=require('../src/sharing/authoring'),contracts=require('../src/sharing/contracts');
 const consumer=require('../src/sharing/consumer');
 const {captureBuildInputs,boundSourceHash,assertBuildInputsAtCommit}=require('../src/web-export/snapshot');
-const {resolveLibrarySources,inspectJar}=require('../src/web-export/libraries');
+const {resolveLibrarySources,inspectJar,assertApplicationNamespaces}=require('../src/web-export/libraries');
 const {validateDependencies}=require('../src/web-export/compatibility');
 const {zipFiles}=require('../src/web-export/zip');
 const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
@@ -118,4 +118,74 @@ test('independent Browse/Add, Update and Revert feed exact accepted browser sour
  catalog.releases[0].status='withdrawn';await assert.rejects(resolveLibrarySources(root,await captureBuildInputs(root),{sharingSettings:settings,fetcher}),/not an available accepted release/);
  catalog.releases[0].status='available';artifactBytes.set(releases[0].artifacts.sources.url,Buffer.from('changed'));
  await assert.rejects(resolveLibrarySources(root,await captureBuildInputs(root),{sharingSettings:settings,fetcher}),/hash|size/);
+});
+
+test('application namespace checks recognize exact core bodies without relaxing student/library source checks',async()=>{
+ const core=require('../src/core-contract'),base=path.resolve(__dirname,'../../framework/src/main/java');
+ const files=await Promise.all(Object.keys(core.helperHashes).map(async name=>({path:name,originalPath:'src/main/java/'+name,bytes:await fs.readFile(path.join(base,name))})));
+ assert.ok(files.find(file=>file.path==='zero/App.java').bytes.includes(Buffer.from('\\u001e')));
+ const library={identity:contracts.identity('library','12345','health-bar')};
+ assert.doesNotThrow(()=>assertApplicationNamespaces(files,[library]));
+ const crlf=files.map(file=>({...file,bytes:Buffer.from(file.bytes.toString('utf8').replace(/\n/g,'\r\n'))}));
+ assert.doesNotThrow(()=>assertApplicationNamespaces(crlf,[library]));
+ const changed=files.map(file=>({...file,bytes:Buffer.concat([file.bytes,Buffer.from('// changed')])}));
+ assert.throws(()=>assertApplicationNamespaces(changed,[library]),/helper differs/);
+ const student=source=>[{path:'Student.java',originalPath:'src/main/java/Student.java',bytes:Buffer.from(source)}];
+ const namespace=library.identity.namespace;
+ for(const pkg of [namespace,namespace+'.nested'])assert.throws(()=>assertApplicationNamespaces(student('package '+pkg+'; class Student {}'),[library]),/shadows library namespace/);
+ assert.doesNotThrow(()=>assertApplicationNamespaces(student('package student; class Student {}'),[library]));
+ assert.throws(()=>assertApplicationNamespaces(student('package '+namespace.replace('zero','z'+'\\u0065'+'ro')+'; class Student {}'),[library]),/Unicode-escaped Java/);
+ assert.throws(()=>assertApplicationNamespaces(student('package '+namespace.replace('zero','ze\u200bro')+'; class Student {}'),[library]),/Hidden Java/);
+ assert.doesNotThrow(()=>assertApplicationNamespaces(student('class Student { String label="\\u263a"; }'),[]));
+});
+
+test('authored and managed practice pins resolve only from practice catalog alongside ordinary published libraries',async t=>{
+ const {SLUG,practiceCatalogUrl}=require('../src/sharing/tutorial-practice');
+ for(const authored of [true,false]) {
+  const root=await fixture(t),settings={catalogUrl:'https://zero.example/api/sharing/catalog/web',artifactOrigin:'https://files.example'},practiceUrl=practiceCatalogUrl(settings.catalogUrl);
+  const practiceDescriptor={...descriptor,slug:SLUG,title:'CreditsBadge'},ordinaryId=contracts.identity('library',repository.id,descriptor.slug),practiceId=contracts.identity('library',repository.id,SLUG);
+  const artifactBytes=new Map();
+  function release(id,version,className,answer) {
+   const sourcePath=id.namespace.replaceAll('.','/')+'/'+className+'.java';
+   const values={jar:zipFiles([{path:sourcePath.replace('.java','.class'),bytes:Buffer.from('class')}]),sources:zipFiles([{path:sourcePath,bytes:Buffer.from(`package ${id.namespace}; public class ${className} { public int value() { return ${answer}; } }`)}]),pom:Buffer.from(`<project><modelVersion>4.0.0</modelVersion><groupId>${id.coordinate.groupId}</groupId><artifactId>${id.coordinate.artifactId}</artifactId><version>${version}</version></project>`)};
+   const artifacts={};for(const [kind,bytes]of Object.entries(values)){const artifactPath=contracts.artifactPath(id,version,kind),url=settings.artifactOrigin+'/'+artifactPath;artifacts[kind]={path:artifactPath,url,size:bytes.length,sha256:hash(bytes)};artifactBytes.set(url,bytes);}
+   return {...descriptor,slug:id.slug,id:id.id,version,title:id.slug===SLUG?'CreditsBadge':'Health',repository,contributor:{githubId:'7',login:'student'},source:{commit:'a'.repeat(40),folder:'libraries/'+id.slug,sha256:'b'.repeat(64)},policyRevision:'c'.repeat(40),status:'available',artifacts,namespace:id.namespace,coordinate:{...id.coordinate,version}};
+  }
+  const ordinary=release(ordinaryId,'0.1.0','Health',7),practice=[release(practiceId,'0.1.0','CreditsBadge',10),release(practiceId,'0.1.1','CreditsBadge',11)];
+  const normalCatalog={schema:1,revision:'d'.repeat(40),releases:[ordinary]},practiceCatalog={schema:1,revision:'e'.repeat(40),releases:practice};
+  const urls=[];let missing=false;
+  const fetcher=async url=>{urls.push(url);return new Response(url===settings.catalogUrl?JSON.stringify(normalCatalog):url===practiceUrl?JSON.stringify({...practiceCatalog,releases:missing?[]:practiceCatalog.releases}):artifactBytes.get(url));};
+  await authoring.applyPlan(await authoring.previewMode(root,{slug:descriptor.slug,mode:'published',version:'0.1.0'}));
+  if(authored) {
+   await fs.writeFile(path.join(root,'src/main/java/CreditsBadge.java'),'public class CreditsBadge { public int value() { return 1; } }');
+   await authoring.applyPlan(await authoring.previewExtraction(root,{repository,descriptor:practiceDescriptor,sources:['src/main/java/CreditsBadge.java']}));
+   await authoring.applyPlan(await authoring.previewMode(root,{slug:SLUG,mode:'published',version:'0.1.0'}));
+  }
+  const context=await consumer.loadCatalog({...settings,catalogUrl:practiceUrl},{fetcher}),pomPath=path.join(root,'pom.xml');
+  if(!authored) {
+   const plan=await consumer.planChange(root,context,practice[0],{operation:'add'});await consumer.validatePlan(plan,context);await fs.writeFile(pomPath,plan.afterText);
+  }
+  async function resolve(version,answer) {
+   const captured=await captureBuildInputs(root),result=await resolveLibrarySources(root,captured,{sharingSettings:settings,fetcher});
+   assert.equal(result.publishedLibraries.length,2);assert.equal(result.publishedLibraries.find(item=>item.id===practiceId.id).version,version);
+   const fingerprints=new Map(result.publishedLibraries.map(item=>[item.id,item.catalogFingerprint]));
+   assert.equal(fingerprints.get(ordinaryId.id),hash(Buffer.from(JSON.stringify(normalCatalog))));assert.equal(fingerprints.get(practiceId.id),hash(Buffer.from(JSON.stringify(practiceCatalog))));
+   assert.match(result.sources.find(item=>item.path.endsWith('/CreditsBadge.java')).bytes.toString(),new RegExp('return '+answer));
+   return captured;
+  }
+  let captured=await resolve('0.1.0',10);
+  for(const [index,operation]of [[1,'update'],[0,'revert']]) {
+   if(authored)await authoring.applyPlan(await authoring.previewMode(root,{slug:SLUG,mode:'published',version:practice[index].version}));
+   else {const plan=await consumer.planChange(root,context,practice[index],{operation});await consumer.validatePlan(plan,context);await fs.writeFile(pomPath,plan.afterText);}
+   captured=await resolve(practice[index].version,index?11:10);
+  }
+  assert.ok(urls.includes(settings.catalogUrl));assert.ok(urls.includes(practiceUrl));
+  // The ordinary catalog cannot act as fallback, even if it accidentally contains practice.
+  normalCatalog.releases.push(practice[0]);missing=true;
+  await assert.rejects(resolveLibrarySources(root,captured,{sharingSettings:settings,fetcher}),/not an available accepted release/);
+  missing=false;normalCatalog.releases.pop();practice[0].status='withdrawn';
+  await assert.rejects(resolveLibrarySources(root,captured,{sharingSettings:settings,fetcher}),/not an available accepted release/);
+  practice[0].status='available';artifactBytes.set(practice[0].artifacts.sources.url,Buffer.from('tampered'));
+  await assert.rejects(resolveLibrarySources(root,captured,{sharingSettings:settings,fetcher}),/size or hash/);
+ }
 });

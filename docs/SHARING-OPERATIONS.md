@@ -131,9 +131,14 @@ operator-selected publisher revision.
 
 The metrics publisher additionally accepts the exact currently shipped
 `11c54518320b52a659104eaf01d685fe2dd93917` request policy for both games and
-libraries. The checker, managed-evidence verifier and workflow bytes are unchanged
-from that policy. This exception keeps installed clients working when publisher
-source advances to collect dependency observations; it does not waive current
+libraries. The checker, managed-evidence verifier and workflow files match that
+policy, but current source changes the shared contracts included in the checker
+digest. Compatibility does not establish unchanged checker evidence: acceptance
+requires evidence bound to the actual trusted source and current digest. Publisher
+policy/configuration rollout and core-dependent admission remain separately held;
+website/auth activation does not advance them. This exception keeps installed
+clients working when publisher source advances to collect dependency observations;
+it does not waive current
 source, screenshot, ownership, official-run or artifact checks. Library queue
 selection uses the same exact-policy predicate as intake. Frozen fingerprints,
 request policies and evidence bindings stay unchanged. `release/sharing.json`
@@ -228,3 +233,44 @@ library operator pin. Released0.5.19's compatibility exception remains game-only
 A local0.5.20 candidate supports browser builds from declared editable libraries
 or exact accepted source artifacts, with no local-source fallback for a missing
 published release. A pilot with that client does not update existing installers.
+
+## Clear tutorial practice listings
+
+The local source reserves `tutorial-credits-badge` for lesson copies. Ordinary
+catalog APIs exclude those libraries; explicit practice discovery uses
+`/api/sharing/catalog/practice` and `/hub?kind=practice`. No production activation,
+cleanup or schedule is implied by this implementation. Library publication
+remains separately paused until authorized acceptance/rollout.
+
+Select exact practice release keys from the practice catalogue. Already-withdrawn
+keys are accepted for safe retry. Preview up to 150 distinct keys with the reviewed library configuration (replace the
+example repository ID/version/config path):
+
+```sh
+node sharing/cli.mjs library-practice-cleanup --config reviewed-config.json --releases library/lib-r12345-tutorial-credits-badge/0.1.0
+```
+
+This is a dry run. For an authorized cleanup of that same explicit selection,
+append `--execute --role publisher`. Execution requires
+`libraryPublicationEnabled: true`; it does not use the game publication gate or
+turn library publication on. Multiple exact keys use a comma-separated list.
+There is no implicit all-library deletion or automatic schedule. Review the
+selection and obtain authority for live registry mutation before executing.
+
+The operation rechecks the selected accepted records and availability state in a
+CAS update, appends ordinary withdrawn events and regenerates the catalogue.
+If withdrawal commits but catalogue publication fails, rerun the same exact-key
+command: already-withdrawn keys are rechecked, no duplicate withdrawal event is
+added, and catalogue publication is retried. A stale selection during execution
+must be reviewed again. Ordinary community libraries are
+rejected. Withdrawing all available versions removes the practice entry from
+discovery; withdrawing only the latest can reveal an older still-available
+version. Exact withdrawn-version views retain their status.
+
+It removes no student GitHub repository, source, accepted artifact or registry
+history. Existing downloaded/copied bytes stay in student projects/caches.
+Future Add/Update/Revert, fresh fetching and browser export still enforce the
+normal availability/integrity requirements; do not promise that a withdrawn
+release can always be resolved again. To restore an exact version, use the
+existing explicitly authorized restore flow with the appropriate enabled
+publisher configuration. Clearing listings does not authorize artifact deletion.

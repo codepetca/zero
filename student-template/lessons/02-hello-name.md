@@ -8,12 +8,12 @@ Target illustration: typing `Sam` and clicking **Say hello**.
 
 Open the **same Greeting project** you changed in lessons 0 and 1.
 
-## 1. Add this import beside your other JavaFX imports
+## 1. Add this import beside your other Zero imports
 
-Add this import beside your other JavaFX imports:
+Add this import beside your other Zero imports:
 
 ```java
-import javafx.scene.control.TextField;
+import zero.ui.TextField;
 ```
 
 ## 2. Create a text field before the button in `setup()`
@@ -30,7 +30,7 @@ name.setPromptText("Your name");
 Change the button's existing action to:
 
 ```java
-button.setOnAction(event ->
+button.onClick(() ->
         greeting.setText("Hello, " + name.getText() + "!"));
 ```
 
@@ -39,7 +39,7 @@ button.setOnAction(event ->
 Replace the `show(...)` line so the field appears between the other controls:
 
 ```java
-show(new VBox(10, greeting, name, button));
+show(new Column(10, greeting, name, button));
 ```
 
 ## 5. Run App and try two names
@@ -50,44 +50,26 @@ next lesson starts a new **Study** project, which you will keep through lesson 7
 
 ### Layout and appearance
 
-`Label`, `TextField` and `Button` are ordinary JavaFX controls. `VBox` arranges
-them vertically; `HBox` arranges a row. Import layouts from
-`javafx.scene.layout` and controls from `javafx.scene.control`. In
-`new VBox(10, greeting, name, button)`, 10 is the gap between controls. Layouts
-adapt to their text and available space without individual control coordinates.
+`Label`, `TextField`, `Button` and `Column` come from Zero's `zero.ui`
+package. Zero uses JavaFX underneath, so these controls keep ordinary keyboard
+focus and platform behavior. In `new Column(10, greeting, name, button)`, 10 is
+the gap between controls. The column arranges them without individual coordinates.
 
-For space around the whole interface, use `padding(20)` in Main's
-`settings()` as in [lesson 0](00-hello-world.md#app-startup). It also works in
-`setup()` or a JavaFX action; each call replaces the previous amount, and
-`padding(0)` removes it. In App, padding uses some of the window's configured
-size, so enlarge `size(...)` in settings if the content needs room.
-An individual layout can instead use `setPadding(new Insets(20))`, importing
-`javafx.geometry.Insets`. App padding and layout padding add together; choose
-one place for the outer margin.
+For space around the whole interface, keep `padding(20)` in Main's `settings()`
+as in [lesson 0](00-hello-world.md#app-startup). It also works in `setup()` or a
+button action; each call replaces the previous amount, and `padding(0)` removes
+it. Padding uses some of the window's configured size, so enlarge `size(...)`
+in settings if the content needs room.
 
-Try making the greeting larger. Add these imports:
+Keep clear button labels and feedback near the action. Try Tab to reach the
+field and button, then Space to activate the focused button. Type a second name
+and check that the action reads the current text, rather than remembering the
+first name. Keep keyboard focus visible and use words as well as colour to
+explain results.
 
-```java
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-```
-
-After creating `greeting` in setup, add:
-
-```java
-greeting.setFont(Font.font("System", FontWeight.BOLD, 24));
-```
-
-Use one font family and a few deliberate sizes. Keep clear button labels and
-feedback near the action. Try Tab to reach the field and button, then Space
-to activate the focused button. Keep the keyboard focus visible and use words
-as well as colour to explain results. Later, `button.setDisable(true)` can
-make an unavailable action explicit; `false` enables it again.
-
-The controls work with their platform theme and need no stylesheet. Optional
-external JavaFX CSS is a native-only extension beyond the supported browser
-publishing profile. Normal **Run App** opens native JavaFX; publishing is a
-separate action with its own compatibility checks. Keep the simple font change
-for this learning path; a stylesheet can wait until your app needs more styling.
+These controls need no stylesheet. Advanced JavaFX styling is a separate path;
+you do not need JavaFX imports for this project. Normal **Run App** opens the
+native app. Browser export and publishing are separate actions with their own
+compatibility checks. Use Zero’s API reference to inspect the available methods rather than assuming every JavaFX method is also a Zero method.
 
 Next: [Start a tiny quiz](03-quiz.md).

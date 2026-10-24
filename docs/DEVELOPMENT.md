@@ -37,8 +37,11 @@ framework/UI inputs and serves the auto-refreshing component preview.
 `npm run dev:smoke` runs local game/framework/UI checks without building an installer.
 
 Use Node.js 22+ for developer tooling. Students use a supported JDK 17+ and
-VS Code; Git 2.31+ is needed for authenticated uploads. Students do not need Node.js or
-global Maven.
+VS Code; Git 2.31+ is needed for authenticated uploads. Native Run needs no
+Node.js or global Maven. The unreleased project-owned browser builder uses
+standalone Node22 and JDK21. Its current local host discovers existing tools;
+the classroom kit must provision its own private Node runtime before release,
+so installing global Node is not the normal student setup path.
 
 ```sh
 npm ci
@@ -219,6 +222,15 @@ pending. Use [CLASSROOM-PILOT.md](CLASSROOM-PILOT.md) for a teacher-authorized t
 
 ## Dependencies and contributions
 
+Follow [project versioning/preservation](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation):
+project-owned framework/build source and exact version records independent of
+editor updates; one maintained current line with no required central historical-kit
+storage/database. Same-major compatibility uses a small representative regression
+set, not all-version CI/old branches. Retained web output and optional student-owned
+offline bundles use existing artifact formats. Current source includes project-owned browser tooling, trusted launch and
+data-only retained-output validation. The local clone/rebuild/rehost and explicit
+copy-upgrade/rollback proof passes; released kits retain their bundled behavior.
+
 Pin JavaFX, Maven wrapper/distribution and npm tooling; commit the npm lockfile.
 Keep generated artifacts and caches out of Git. The framework source ships inside
 the starter so students can inspect and edit it. App builds ordinary JavaFX
@@ -246,6 +258,16 @@ student contributions remain in their existing game repositories.
 Run `npm run test:sharing` for registry, ZIP and immutable publication contracts. Native student integration tests run with `npm test`. See [the adoption plan](GITHUB-SHARING-PLAN.md), [shared contract](../sharing/CONTRACT.md) and [website configuration](../website/README.md). The former Hub service, database dependencies and upload/OAuth adapters are removed. Managed library checking uses `hub/checker/` through a separate default-off workflow; enabling publication requires the acceptance and rollout procedure below and in [sharing operations](SHARING-OPERATIONS.md).
 
 Run `node scripts/verify-sharing-consumers.mjs --output .verification/sharing-consumers-new` for two real Maven consumers over scoped local HTTPS. Use a fresh output directory; no global trust is changed. Packaging reads reviewed `release/sharing.json` containing schema, catalogUrl, artifactOrigin and publisher policyRevision. Local and CI builds preserve its exact bytes; release/kit/native provenance checks reject stale or substituted settings. Environment overrides do not select release settings. Students receive verified settings with the kit, not manual hash-copy instructions.
+
+For the unreleased core-dependent ScoreView path, prepare a fresh owned fixture
+with `node scripts/verify-core-sharing.mjs --prepare --output .verification/core-sharing-new`.
+Then run the same command with `--run` instead of `--prepare` for the independent
+core/contribution JAR check, local and exact-artifact native App/GameApp consumers,
+source attachments and unused-call compatibility negative. Add `--web` for four
+actual WebFX exports. This is a finite local HTTPS proof with scoped temporary
+trust and an isolated Maven cache, not hosted checker acceptance or publication.
+The no-option command only prints usage. Browser interaction receipts are a
+separate acceptance step; successful export alone does not establish playability.
 
 ## Shared Learn and sidebar design
 
@@ -293,14 +315,35 @@ Internal lesson/example sources remain available to teaching and verification.
 
 The example generator, preview capture and template publication metadata remain
 maintainer tools. Run `node scripts/prepare-project-templates.mjs` to prepare
-local template drafts; this does not generate public website downloads or publish
+legacy local template drafts; use `npm run prepare:tutorial-templates` (or the
+same script's `--tutorials` option) for the three current minimal tutorial drafts.
+Run `npm run check:tutorial-templates` to check recorded publication source
+evidence, or `node scripts/check-tutorial-templates.mjs game /pristine/template`
+to check a local draft's exact files/bytes/modes. All three templates were updated
+through reviewed PRs and their anonymous public archives passed exact-source
+verification on2026-10-24; publication records include the verified commit/tree
+and scaffold digest. Future updates require the same separate authorization and
+verification before stamping evidence. This does not
+generate public website downloads or publish
 repositories. Publication remains a separate authorized action. Never copy the
 development repository or private files into a draft. Generator checks use
 `node --test website/tests/example-projects.test.mjs`; website tests also cover
 maintained-project search, exact-release exclusion and retired link behavior.
+New Start tutorial checks the bundled template's recorded source digest before
+creating a repository. Old Open/Clone/Run remain independent; no project is
+upgraded. This evidence check is not live verification of mutable remote main,
+and direct GitHub template creation/manual Clone can still select old content.
 Community catalog admission policy and its installed clients are unchanged.
 
 ## Browser export
+
+Target architecture: normal student code uses Zero facades rather than requiring
+JavaFX imports. Follow [the class model](FRAMEWORK-MODEL.md) and
+[reliability plan](FRAMEWORK-RELIABILITY.md) for proposed App/GameApp ownership,
+per-signature evidence, background compatibility and local runtime status.
+PostHog/Clarity evaluation grants no new collection or activation authority.
+The released Run/export behavior is described below; current source adds the
+project-owned builder and local reliability status described in those plans.
 
 See [WEB-EXPORT.md](WEB-EXPORT.md) for the implemented WebFX/GWT teaching profile,
 explicit browser export/preview, deployment-only publishing kit and strict
@@ -317,6 +360,21 @@ Its arrow opens Publish app for a ready, connected project and is disabled durin
 Run/Stop. It shares anchored-menu keyboard/focus behavior with New; both menus
 are mutually exclusive. Focused checks include `extension/test/run-dropdown.test.js`.
 The design fixture accepts `/sidebar?connected=1` for safe publishing-menu review.
+
+Native Run uses a separate Zero compiler diagnostic collection, reset when the
+next native task starts. It parses compiler output until Maven starts the JavaFX
+run goal and retains errors after a failed task exits or Stop. Verify recovery by introducing a
+syntax error, following its Problems link, fixing it and running again: the old
+error must disappear before Stop. Runtime failures retain their separate
+diagnostic collection. The standalone “Run App without Zero” task keeps its own
+bundled matcher and is outside this editor-managed behavior.
+VS Code preserves configured matchers over a provider's resolved matcher, even
+when the provider returns an empty list. The legacy `$zero-java` name therefore
+remains as an inert compatibility matcher under a separate owner; existing Zero
+task files need no rewrite. Compiler Problems come from CustomExecution, available
+in all supported VS Code versions. The programmatic non-CustomExecution fallback
+uses `$zero-java-fallback`; a configured task on a host without CustomExecution
+does not gain that fallback matcher. The standalone inline matcher still works.
 
 The supported `zero.controls` webview in Explorer contains development controls
 and teaching helpers; native Explorer owns the file list. Native `zero.startPage`
@@ -400,14 +458,44 @@ their narrower checks. See the staged rollout in ZERO-IDENTITY-PLAN.md.
 Registration and pinning do not prove installation, device authorization, token
 issuance or live acceptance. The source remains unreleased and local Run stays
 available without a connection. The extension registers the supported
-`zero-github` provider, keeps device-flow token pairs in SecretStorage,
-and uses no shipped client secret. Website OAuth uses the same client ID with
+`zero-github` provider and keeps expiring token pairs in SecretStorage,
+with no shipped client secret. Current local source defaults to browser
+authorization and keeps **Zero: Sign in using a code** as an explicit fallback.
+Browser-issued sessions renew through the server; schema1 records without a
+flow marker keep the original device-code renewal route. Website OAuth uses the same client ID with
 its own credential family and eight-hour reconnect policy. Browser sign-in remains
 disabled without the required server credentials; registration did not provision
 a client secret, private key or user tokens. The subsequent owner-approved native
 flow issued its own user tokens. A selected test installation, native device sign-in, private clone and guarded
 Commit & push have passed in an isolated Mac profile. The remaining live acceptance,
 production activation and an authorized native release remain pending.
+
+### Desktop browser sign-in activation (separate from publication)
+
+The local implementation adds `/api/desktop/github/{start,login,callback,exchange,refresh}`.
+It is disabled unless `ZERO_DESKTOP_GITHUB_ENABLED=1` and the existing
+`ZERO_HUB_GITHUB_CLIENT_ID`, `ZERO_HUB_GITHUB_CLIENT_SECRET` and
+`ZERO_HUB_GITHUB_SESSION_SECRET` configure the pinned Codepet App. The production
+origin is fixed to `https://zero.codepet.ca`; a trusted test constructor supports
+IPv4 loopback fixtures. Register the exact callback
+`https://zero.codepet.ca/api/desktop/github/callback` on the App before separately
+approved activation. No wildcard callback, new permission, database or central kit
+storage is required. Do not enable the flag, provision secrets, change App settings
+or deploy as part of local implementation checks.
+
+A temporary IPv4 listener receives only an OAuth code and short-lived sealed
+delivery ticket. PKCE and state/HttpOnly-cookie binding protect the exchange;
+GitHub enforces one-use codes. The desktop sends its verifier over HTTPS to the
+server, which holds the App secret for exchange/refresh. Tokens are returned in
+no-store POST responses and retained in SecretStorage, never browser-return URLs.
+The server does not retain desktop credentials. ZeroHub's separate browser
+session is unchanged. Cancellation, timeout and disposal close the listener;
+uncertain refresh outcomes require reconnecting instead of retrying a rotating token.
+
+Local broker/GitHub fixtures verify the handoff and renewal protocol. Live GitHub
+web authorization, deployed callbacks and physical Windows/Safari acceptance stay
+unproven until their separate activation/acceptance work. Published kits retain
+code sign-in until an authorized release ships this source.
 
 Focused native checks are `node --test extension/test/github-app-*.test.js`,
 followed by the full extension suite. Mocked API/device-flow tests and disposable

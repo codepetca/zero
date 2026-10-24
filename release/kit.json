@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "kitVersion": "0.5.47",
-  "coreVersion": "0.2.1",
+  "coreVersion": "0.3.0",
   "publication": {
     "status": "local",
     "repository": "codepetca/zero",
