@@ -131,9 +131,14 @@ operator-selected publisher revision.
 
 The metrics publisher additionally accepts the exact currently shipped
 `11c54518320b52a659104eaf01d685fe2dd93917` request policy for both games and
-libraries. The checker, managed-evidence verifier and workflow bytes are unchanged
-from that policy. This exception keeps installed clients working when publisher
-source advances to collect dependency observations; it does not waive current
+libraries. The checker, managed-evidence verifier and workflow files match that
+policy, but current source changes the shared contracts included in the checker
+digest. Compatibility does not establish unchanged checker evidence: acceptance
+requires evidence bound to the actual trusted source and current digest. Publisher
+policy/configuration rollout and core-dependent admission remain separately held;
+website/auth activation does not advance them. This exception keeps installed
+clients working when publisher source advances to collect dependency observations;
+it does not waive current
 source, screenshot, ownership, official-run or artifact checks. Library queue
 selection uses the same exact-policy predicate as intake. Frozen fingerprints,
 request policies and evidence bindings stay unchanged. `release/sharing.json`

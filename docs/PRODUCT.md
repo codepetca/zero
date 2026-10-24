@@ -231,9 +231,9 @@ in the relevant lessons. Setup/troubleshooting lives under `/help`, and teacher
 notes and the classroom pilot live under `/teachers`. Product, development and
 verification records stay in repository documentation. Legacy `/docs/...` guide
 bookmarks lead to the corresponding tutorial, help, teacher or repository page.
-ZeroHub opens Projects by default and has only Projects and Libraries in its
-catalog navigation. A desktop sidebar contains the ZeroHub title, search field,
-Share your work and Projects/Libraries filters, in that order. The gallery sits
+ZeroHub opens Projects by default, with Projects, Libraries and a separate
+Tutorial practice entry. A desktop sidebar contains the ZeroHub title, search
+field, Share your work and those three filters, in that order. The gallery sits
 in the right pane. On narrow screens the controls stack above the gallery.
 The sidebar has no vertical divider. A short tagline under the title says
 “Play. Share. Learn.” Below the buttons, a brief description
