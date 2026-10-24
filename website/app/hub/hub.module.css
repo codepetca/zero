@@ -90,3 +90,4 @@
 .projectCard .projectInfo .metadata a, .projectCard .projectInfo .reportLink { color: var(--purple); }
 .projectInfo .reportLink { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
 .projectInfo .siteStatus:not([data-status="reachable"]) :global(.icon) { color: light-dark(#a17a00, #facc15); }
+.projectCard .projectInfo .siteStatus[data-status="reachable"] :global(.icon) { color: light-dark(#15803d, #4ade80); }

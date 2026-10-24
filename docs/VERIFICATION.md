@@ -9,7 +9,11 @@ containing description, status/time, author/version and report flag. Counting/st
 GitHub star behavior,44px targets and focus outlines remain unchanged. All177
 website tests, typecheck, production build and whitespace pass. Browser and
 independent review receipts are retained in ignored .verification/zerohub-visits/;
-publication/CI/live results belong in the PR handoff. This follow-up changes no
+Chromium desktop/320px fixture checks verify native toggling, outside dismissal,
+Escape and focus restoration, borderless44px stars and both availability colors.
+The readable light-theme status green was corrected after review; final color,
+390px and production verification remain in receipts/PR handoff. No physical
+Safari or touch-device acceptance is claimed. This follow-up changes no
 Free-plan resource or publisher source pin.
 
 ## ZeroHub metrics — implementation and publication preparation, 2026-10-24
