@@ -20,7 +20,7 @@ separately reviewed and published.
 
 ## What the numbers mean
 
-**Visits** are best-effort Play-link activations from ZeroHub since activation,
+**Opens** are best-effort Play-link activations from ZeroHub since activation,
 including repeat opens. Cards show a filled play triangle and number; the
 tooltip and screen-reader text name opens and retain the measurement limits. Primary clicks, keyboard activation and middle clicks
 are recorded; opening through the browser's context menu or with JavaScript
