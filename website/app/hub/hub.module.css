@@ -104,7 +104,8 @@
 
 
 .metrics { margin: 0 0 4px; color: var(--muted); font-size: 14px; line-height: 1.4; }
-.projectCard .metrics { margin: 0; color: white; font-size: 12px; }
+.projectCard .metrics { display: inline-flex; align-items: center; gap: 6px; margin: 0; color: white; font-size: 12px; }
+.playCountIcon { width: 14px; height: 14px; flex: none; fill: currentColor; }
 
 .infoButton, .infoHeading button { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 8px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
 .infoButton[data-available="true"] { color: light-dark(#15803d, #4ade80); }

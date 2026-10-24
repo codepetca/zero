@@ -78,7 +78,14 @@ export function HubDiscovery() {
     document.querySelectorAll('[data-hub-project-id]').forEach(card=>observer.observe(card));
     return()=>{observer.disconnect();controller.abort();};
   },[kind,metricIds]);
-  const projectMetric=(id:string)=>{const label=metricLabel(kind,metrics[id]);return label?<p className={styles.metrics} title={label.hint}>{label.text}<span className="sr-only">. {label.hint}</span></p>:null;};
+  const projectMetric=(id:string)=>{
+    const metric=metrics[id], label=metricLabel(kind,metric);
+    if(!label)return null;
+    return <p className={styles.metrics} title={`${label.text}. ${label.hint}`}>
+      {kind==='game'?<><Icon name="play" className={styles.playCountIcon} /><span aria-hidden="true">{metric?.opens?.toLocaleString()}</span><span className="sr-only">{label.text}</span></>:label.text}
+      <span className="sr-only">. {label.hint}</span>
+    </p>;
+  };
   const projectFeedback=(entry:{id:string;title:string;repositoryHref:string;playHref?:string;sourceCommit?:string;version?:string})=>(identity?:ReactNode,description?:string,placement?:'details')=>{
     const observed=feedback[entry.id]?.repositoryUrl===entry.repositoryHref?feedback[entry.id]:undefined;
     if(placement==='details')return <HubProjectInfo title={entry.title} available={observed?.site.status==='reachable'}><HubProjectDetails {...entry} feedback={observed} description={description}>{identity}</HubProjectDetails></HubProjectInfo>;

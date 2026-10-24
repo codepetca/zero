@@ -1,17 +1,17 @@
-# Website GitHub profile photo — 2026-10-24
+# ZeroHub play-count icon — 2026-10-24
 
-Owner requests the GitHub user image for the website profile. Use GitHub’s
-public avatar CDN with the existing numeric account ID, retain the initial
-while loading/on failure, keep circular44px sizing/full accessible username,
-and reset image state when the account changes. No auth/session schema change,
-extra API lookup, image proxy/service, credential or permission change.
+Owner selected the play-triangle-plus-number preview for project counts.
+Render it at bottom-left, preserve stars at right, and name opens in the tooltip
+and screen-reader text. Keep counting Play-link activations, including repeats;
+no gameplay/unique-visitor claim. Unknown counts remain hidden; zero is visible.
+Libraries retain existing adoption text without the play icon.
 
-Branch codex/zerohub-profile-photo, base b376a903 (includes the separately
-reviewed desktop endpoint PR190), attached zerohub-interest worktree. Root owns
-AccountMenu and its CSS. Preserve primary funding work and other worktrees.
-Existing website publication authority continues; all Free services unchanged.
+Branch codex/zerohub-play-count, base cb6f95e6, attached zerohub-interest
+worktree. Root owns markup/CSS/client labels. Preserve primary funding work,
+other worktrees, server counting/auth, Free services and publisher/native pins.
+Existing website publication authority continues.
 
-Next: website tests/build/root checks; Playwright real public-avatar load,
-loading/error fallback, account switch, sign-out, light/dark/mobile checks;
-one independent standard-risk UI review, PR/CI/merge and production verification.
-Evidence stays in .verification/zerohub-profile-photo/ and output/playwright/.
+Next: website tests/build/root checks, browser counts/tooltip/accessibility and
+light/dark/mobile/library verification, one low-risk independent review, PR/CI/
+merge/live verification. Evidence: ignored .verification/zerohub-play-count/ and
+output/playwright/zerohub-play-count/ plus PR handoff.

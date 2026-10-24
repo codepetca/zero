@@ -89,8 +89,10 @@ test('client records without credentials and swallows errors without touching na
   assert.doesNotThrow(() => recordPlayOpen('drawing-pad', () => {throw Error('blocked');}));
 });
 
-test('labels distinguish visits, incomplete adoption coverage, unknown and observed zero', () => {
-  assert.equal(metricLabel('game', {opens: 42}).text, '42 visits');
+test('labels distinguish opens, incomplete adoption coverage, unknown and observed zero', () => {
+  assert.equal(metricLabel('game', {opens: 0}).text, '0 opens');
+  assert.equal(metricLabel('game', {opens: 1}).text, '1 open');
+  assert.equal(metricLabel('game', {opens: 42}).text, '42 opens');
   assert.equal(metricLabel('game', {opens: null}), null);
   assert.equal(metricLabel('library', {projects: 2, observedProjects: 4, totalProjects: 5}).text, 'Used by at least 2 shared projects');
   assert.equal(metricLabel('library', {projects: 0, observedProjects: 0, totalProjects: 5}).text, 'Usage not measured yet');

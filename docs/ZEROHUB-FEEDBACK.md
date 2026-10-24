@@ -4,7 +4,7 @@ ZeroHub offers repository stars, cached site checks and user-submitted issue
 reports. Browsing, playing and public counts do not require sign-in. No separate
 Zero account, votes database or background monitor is introduced.
 
-Source also includes aggregate visits (Play-link activations) and component adoption from shared
+Source also includes aggregate opens (Play-link activations) and component adoption from shared
 project dependency declarations. See [metrics](ZEROHUB-METRICS.md) for coverage,
 minimal storage, optional activation and limits. These metrics do not change
 GitHub stars or require new GitHub App permissions.
@@ -122,7 +122,9 @@ and [GitHub starring API](https://docs.github.com/en/rest/activity/starring).
 
 ## Compact project details
 
-Project cards keep visits and borderless stars visible. The single info icon
+Project cards show a filled play triangle with the open count at left and
+borderless stars at right. The tooltip and screen-reader text explain that
+opens count Play-link activations, including repeats. The single info icon
 beside the title replaces the old About question mark; it is
 green when the site is reachable and yellow when unavailable or unconfirmed.
 It opens a native popover containing the description, check/warning and last

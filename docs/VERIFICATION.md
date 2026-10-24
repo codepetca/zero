@@ -1,5 +1,21 @@
 # Verification
 
+## ZeroHub play-count icon — 2026-10-24
+
+Project card footers show a filled play triangle and numeric open count at left,
+with stars at right. Tooltips and screen-reader text identify opens as repeated
+Play-link activations, without claiming unique visitors or gameplay. Library
+adoption text is unchanged; unknown counts stay hidden and observed zero shows.
+
+All 189 website tests, production build (including TypeScript), root checks and
+whitespace checks pass. Chrome/Playwright production-build fixtures verify zero,
+one, unknown and ordinary counts, filled 14px icon, accessible unit and limits,
+left/right footer alignment, 320px dark reflow and desktop light styling. Library
+fixtures show the existing adoption text without a play icon. No real auth, star
+or Play writes. Physical Safari/touch and text enlargement were not reverified.
+Screenshots: output/playwright/zerohub-play-count/; review/CI/live receipts:
+.verification/zerohub-play-count/ and the PR handoff.
+
 ## Website GitHub profile photo — 2026-10-24
 
 Signed-in headers load the public GitHub avatar directly by the existing
