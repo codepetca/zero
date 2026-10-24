@@ -48,6 +48,16 @@ async (initialPage) => {
     };
     p.fillText = function (...args) {
       window.__zeroCheck.draws++;
+      if(String(args[0]).startsWith('ZERO_API_PIXEL_SAMPLE|')) {
+        const [,assertionId,specification]=String(args[0]).split('|');
+        const [kind,...values]=specification.split(','),numbers=values.map(Number),[x,y]=numbers;
+        const width=kind==='pixel'?1:numbers[2],height=kind==='pixel'?1:numbers[3];
+        // Sample the real backing canvas at the Java call's immediate completion,
+        // before a later background or overlapping draw could hide a failure.
+        const data=Array.from(this.getImageData(x,y,width,height).data);
+        window.__zeroCheck.pixelEvidence ||= {};
+        window.__zeroCheck.pixelEvidence[assertionId]={assertionId,specification,data};
+      }
       if(String(args[0]).startsWith('ZERO_API_EVIDENCE_V1\n'))window.__zeroCheck.apiEvidence=String(args[0]);
       const actorFontMarkers = {'Actor checks ready':'before', 'Actor shape':'inside',
         'Actor failing font':'failing', 'Actor scope restored':'after'};
@@ -593,6 +603,9 @@ async (initialPage) => {
     return actualMask === expectedMask && actualEdges?.[keyIndex] === expectedEdges;
   }, [mask, index, edges]);
   await uiCanvas.click({position:{x:uiBox.width / 2,y:uiBox.height / 2}});
+  await page.mouse.move(uiBox.x+80,uiBox.y+80);await page.mouse.down();
+  await page.waitForFunction(()=>window.__zeroCheck.apiEvidence?.includes('A|zero.GameApp#mouseY()|mouse-y'));
+  await page.mouse.up();
   for (const [index, code] of ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].entries()) {
     const before = await zeroInputState();
     await page.keyboard.down(code);
@@ -789,13 +802,50 @@ async (initialPage) => {
   cases.lifecycle = async () => {
     await page.goto(urls.lifecycle);
     await page.getByRole('button',{name:'Start game',exact:true}).waitFor();
+    await page.getByRole('button',{name:'Check UI lifecycle',exact:true}).click();
+    await visibleText('Lifecycle component').waitFor();
+    await page.getByRole('button',{name:'Stop UI lifecycle',exact:true}).click();
+    await page.waitForFunction(()=>document.body.textContent.includes('A|zero.App#stop()|ui-stop'));
+    const uiEvidence=await page.evaluate(()=>{
+      const node=[...document.querySelectorAll('body *')].find(node=>node.children.length===0&&node.textContent.startsWith('ZERO_API_EVIDENCE_V1\n'));
+      if(!node)throw new Error('Lifecycle Java UI event transport missing');
+      const raw=node.textContent,pixels=[];
+      for(const line of raw.split('\n').filter(line=>line.startsWith('O|'))) {
+        const [,signatureId,assertionId,postcondition,specification]=line.split('|');
+        let data;
+        if(specification.startsWith('title,'))data={title:document.title};
+        else {
+          const text=specification.slice(5);
+          const visible=[...document.querySelectorAll('body *')].some(element=>element.children.length===0&&element.textContent===text&&element.getClientRects().length>0&&getComputedStyle(element).visibility!=='hidden');
+          data={text,visible};
+        }
+        pixels.push({assertionId,specification,data});
+      }
+      return {raw,pixels};
+    });
+    await page.reload();
+    await page.getByRole('button',{name:'Start game',exact:true}).waitFor();
     const menuClears=await page.evaluate(()=>window.__zeroCheck.clears);
     await page.waitForTimeout(150);
     check(await page.evaluate(()=>window.__zeroCheck.clears)===menuClears,'Lifecycle menu is UI ready with no advancing game frames');
     await page.getByRole('button',{name:'Start game',exact:true}).click();
     await page.waitForFunction(()=>window.__zeroCheck.last?.texts.includes('Lifecycle evidence ready'));
     check(await page.evaluate(()=>window.__zeroCheck.apiEvidence?.includes('END_ZERO_API_EVIDENCE')),'Lifecycle first frame emits actual Java host postconditions');
-    apiEvidence.push({caseId:'browser/lifecycle',raw:await page.evaluate(()=>window.__zeroCheck.apiEvidence)});
+    const drawingEvidence=await page.evaluate(()=>{
+      const raw=window.__zeroCheck.apiEvidence,pixels=[];
+      for(const line of raw.split('\n').filter(line=>line.startsWith('P|'))) {
+        const [,signatureId,assertionId,postcondition,specification]=line.split('|');
+        const observation=window.__zeroCheck.pixelEvidence?.[assertionId];
+        if(!observation||observation.specification!==specification)throw new Error('Missing immediate atlas sample: '+signatureId);
+        const [kind,...values]=specification.split(','),numbers=values.map(Number),data=observation.data;
+        if(kind==='pixel'&&data.some((value,index)=>value!==numbers[index+2]))throw new Error('Atlas pixel failed: '+signatureId+' '+specification+' observed '+data);
+        let ink=0;for(let i=0;i<data.length;i+=4)if(data[i+3]>0&&(data[i]<255||data[i+1]<255||data[i+2]<255))ink++;
+        if(kind==='ink'&&!ink)throw new Error('Atlas text region has no ink: '+signatureId);
+        pixels.push(observation);
+      }
+      return {raw,pixels};
+    });
+    apiEvidence.push({caseId:'browser/lifecycle',raw:uiEvidence.raw+'\n'+drawingEvidence.raw,pixels:[...uiEvidence.pixels,...drawingEvidence.pixels]});
     for(const fault of ['update','draw','UI','missing asset','setup','shutdown']) {
       await page.reload();
       await page.getByRole('button',{name:'Start game',exact:true}).waitFor();

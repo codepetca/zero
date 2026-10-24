@@ -115,7 +115,7 @@ async function fixture(name, example) {
   });
   if (['helpers','zero-ui','audio','lifecycle'].includes(name)) {
     await fs.mkdir(path.join(directory,'src/main/java/evidence'),{recursive:true});
-    for(const file of ['ApiProof.java','ApiSignatureChecks.java'])await fs.copyFile(path.join(root,'framework/evidence/java/evidence',file),path.join(directory,'src/main/java/evidence',file));
+    for(const file of ['ApiProof.java','ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java'])await fs.copyFile(path.join(root,'framework/evidence/java/evidence',file),path.join(directory,'src/main/java/evidence',file));
   }
   if (name === 'helpers')
     await fs.copyFile(path.join(root, 'framework/web-checks/GameApiChecks.java'), path.join(directory, 'src/main/java/GameApiChecks.java'));
@@ -146,6 +146,8 @@ async function fixture(name, example) {
   } else if (name === 'zero-ui') {
     await fs.copyFile(path.join(root, 'framework/web-checks/navigation/Main.java'), path.join(directory, 'src/main/java/Main.java'));
   } else if (name === 'lifecycle') {
+    await fs.mkdir(path.join(directory,'src/main/resources'),{recursive:true});
+    await fs.writeFile(path.join(directory,'src/main/resources/tiles.png'),png());
     await fs.copyFile(path.join(root,'framework/web-checks/lifecycle/Main.java'),path.join(directory,'src/main/java/Main.java'));
   } else if (name === 'mobile') {
     await fs.copyFile(path.join(root, 'framework/web-checks/mobile/Main.java'), path.join(directory, 'src/main/java/Main.java'));
@@ -292,7 +294,7 @@ if (browser) {
             await verifyCaptured(savedBuild.inputs,projectRoot);
             await verifyCaptured(savedBuild.files,built.sitePath);
             const originalMain=name==='helpers'?'framework/web-checks/Main.java':name==='zero-ui'?'framework/web-checks/navigation/Main.java':'framework/web-checks/'+name+'/Main.java';
-            for(const [relative,canonical] of [['Main.java',originalMain],...['ApiProof.java','ApiSignatureChecks.java'].map(file=>['evidence/'+file,'framework/evidence/java/evidence/'+file]),...(name==='helpers'?[['GameApiChecks.java','framework/web-checks/GameApiChecks.java']]:[])]) {
+            for(const [relative,canonical] of [['Main.java',originalMain],...['ApiProof.java','ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java'].map(file=>['evidence/'+file,'framework/evidence/java/evidence/'+file]),...(name==='helpers'?[['GameApiChecks.java','framework/web-checks/GameApiChecks.java']]:[])]) {
               if(!(await fs.readFile(path.join(projectRoot,'src/main/java',relative))).equals(await fs.readFile(path.join(root,canonical))))throw new Error('Browser fixture differs from current source: '+relative);
             }
             if(!process.env.JAVA_HOME)throw new Error('Browser evidence needs actual JAVA_HOME compiler identity.');
@@ -309,8 +311,8 @@ if (browser) {
             }
             for(const folder of ['repository','artifacts','maven-home'])await compilerJars(path.join(cacheRoot,folder));
             toolFiles.sort();
-            const {identity,output,inputs}=executionIdentity({manifest,projectRoot:path.join(base,'projects',name),outputDirectory:built.sitePath,toolFiles,platform:observed.browser,harnessFiles:[path.join(root,'scripts/verify-web-export.mjs'),path.join(root,'scripts/web-browser-checks.js'),path.join(root,'scripts/api-evidence.mjs'),path.join(root,name==='helpers'?'framework/web-checks/Main.java':name==='zero-ui'?'framework/web-checks/navigation/Main.java':'framework/web-checks/'+name+'/Main.java'),path.join(root,'framework/web-checks/GameApiChecks.java'),...['ApiProof.java','ApiSignatureChecks.java'].map(file=>path.join(root,'framework/evidence/java/evidence',file))]});
-            persistJavaEvidence({directory:path.join(base,'api-evidence','browser-'+name),manifest,raw:evidence.raw,identity,output,inputs,runId:'browser-'+name+'-'+Date.now(),target:'browser',caseId:evidence.caseId});
+            const {identity,output,inputs}=executionIdentity({manifest,projectRoot:path.join(base,'projects',name),outputDirectory:built.sitePath,toolFiles,platform:observed.browser,harnessFiles:[path.join(root,'scripts/verify-web-export.mjs'),path.join(root,'scripts/web-browser-checks.js'),path.join(root,'scripts/api-evidence.mjs'),path.join(root,name==='helpers'?'framework/web-checks/Main.java':name==='zero-ui'?'framework/web-checks/navigation/Main.java':'framework/web-checks/'+name+'/Main.java'),path.join(root,'framework/web-checks/GameApiChecks.java'),...['ApiProof.java','ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java'].map(file=>path.join(root,'framework/evidence/java/evidence',file))]});
+            persistJavaEvidence({directory:path.join(base,'api-evidence','browser-'+name),manifest,raw:evidence.raw,pixels:evidence.pixels,identity,output,inputs,runId:'browser-'+name+'-'+Date.now(),target:'browser',caseId:evidence.caseId});
           }
         }
       }

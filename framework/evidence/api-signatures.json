@@ -253,8 +253,20 @@
       "end": 8167,
       "declarationSha256": "7bb48a223b64813a135eb9f07c5902513f88555404b7ed87d405d2fd17fbb0c4",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-circle",
+            "postcondition": "Bound Actor helper paints its expected local-coordinate witness"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-circle",
+            "postcondition": "Bound Actor helper paints its expected local-coordinate witness"
+          }
+        ]
       }
     },
     {
@@ -273,8 +285,20 @@
       "end": 7438,
       "declarationSha256": "6df8090a2cba66714dfafcf760abbb56ce20f1bfcd85e9812015d76a12f502f2",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-default-draw",
+            "postcondition": "Default Actor callback paints its current region"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-default-draw",
+            "postcondition": "Default Actor callback paints its current region"
+          }
+        ]
       }
     },
     {
@@ -293,8 +317,20 @@
       "end": 7182,
       "declarationSha256": "fef24f1a253d5b2f6b268dc17d1862f1ab42cbe742ce8751a698a2bc3a6e15a0",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-app-draw",
+            "postcondition": "Actor draw translates its natural sprite into world coordinates"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-app-draw",
+            "postcondition": "Actor draw translates its natural sprite into world coordinates"
+          }
+        ]
       }
     },
     {
@@ -347,8 +383,20 @@
       "end": 7517,
       "declarationSha256": "88ff0102f8154ec479647642458ab0ce5d8d8925a9d94a9c1a71bfeeaede9c5a",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-fill",
+            "postcondition": "Bound Actor helper paints its expected local-coordinate witness"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-fill",
+            "postcondition": "Bound Actor helper paints its expected local-coordinate witness"
+          }
+        ]
       }
     },
     {
@@ -401,8 +449,20 @@
       "end": 8280,
       "declarationSha256": "e60117e07ad86291dc39419dbefb2c7e6014aa3758e4c92e154273ea175ccd09",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-line",
+            "postcondition": "Bound Actor helper paints its expected local-coordinate witness"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-line",
+            "postcondition": "Bound Actor helper paints its expected local-coordinate witness"
+          }
+        ]
       }
     },
     {
@@ -553,8 +613,20 @@
       "end": 8033,
       "declarationSha256": "63552f393eb5e6260ddbcc084ffc5c62bc8b89e7f274407e63d40ff31a879cb4",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-outline",
+            "postcondition": "Bound Actor helper paints its expected local-coordinate witness"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-outline",
+            "postcondition": "Bound Actor helper paints its expected local-coordinate witness"
+          }
+        ]
       }
     },
     {
@@ -574,8 +646,20 @@
       "end": 7896,
       "declarationSha256": "c9f75372c79943ad221d95b0daf773f0e8bb71e900ec1260e856e325901b7f17",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-rect",
+            "postcondition": "Bound Actor helper paints its expected local-coordinate witness"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-rect",
+            "postcondition": "Bound Actor helper paints its expected local-coordinate witness"
+          }
+        ]
       }
     },
     {
@@ -892,8 +976,20 @@
       "end": 7599,
       "declarationSha256": "9340c37f40032b5aec7aaeb3f18a8fae723cfd398f50b83f8f2d78eb07c0e365",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-stroke",
+            "postcondition": "Bound Actor helper paints its expected local-coordinate witness"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-stroke",
+            "postcondition": "Bound Actor helper paints its expected local-coordinate witness"
+          }
+        ]
       }
     },
     {
@@ -913,8 +1009,20 @@
       "end": 7689,
       "declarationSha256": "9d2d0138bc96679863b7919e7f5764de0cd1093dcc39a84c64bc2bba41cb1ede",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-stroke-width",
+            "postcondition": "Bound Actor helper paints its expected local-coordinate witness"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-stroke-width",
+            "postcondition": "Bound Actor helper paints its expected local-coordinate witness"
+          }
+        ]
       }
     },
     {
@@ -934,8 +1042,20 @@
       "end": 8380,
       "declarationSha256": "f79090ce1a426d4ae8cee1e079966c2125542fa18993220456e79f886b114d81",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-text",
+            "postcondition": "Bound Actor text leaves ink in its expected font or alignment region"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-text",
+            "postcondition": "Bound Actor text leaves ink in its expected font or alignment region"
+          }
+        ]
       }
     },
     {
@@ -955,8 +1075,20 @@
       "end": 8496,
       "declarationSha256": "8052d1c7f048046ec31a086c952b9ab9ff6b035ee04855e35a7d9c4492d4f563",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-centred-text",
+            "postcondition": "Bound Actor text leaves ink in its expected font or alignment region"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-centred-text",
+            "postcondition": "Bound Actor text leaves ink in its expected font or alignment region"
+          }
+        ]
       }
     },
     {
@@ -976,8 +1108,20 @@
       "end": 7773,
       "declarationSha256": "e21aa08129a308c37eabc7ba166a8eac36b640a96062cec6f307b52d9d48fe58",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-font-size",
+            "postcondition": "Bound Actor text leaves ink in its expected font or alignment region"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-font-size",
+            "postcondition": "Bound Actor text leaves ink in its expected font or alignment region"
+          }
+        ]
       }
     },
     {
@@ -1227,8 +1371,20 @@
       "end": 4072,
       "declarationSha256": "60f84612013fe3083aae5ec74430a7049987e64c32276c4ae93078d8da0ee97b",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-default-content",
+            "postcondition": "The default UI content hook returns no implicit node"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-default-content",
+            "postcondition": "The default UI content hook returns no implicit node"
+          }
+        ]
       }
     },
     {
@@ -1247,8 +1403,20 @@
       "end": 4176,
       "declarationSha256": "13f80c9422079b7caa023d610c577e1dfaa1a38cf5e87fd22411fae04c21f76f",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-create-scene",
+            "postcondition": "The returned Scene is attached and displays the supplied content"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-create-scene",
+            "postcondition": "The returned Scene is attached and displays the supplied content"
+          }
+        ]
       }
     },
     {
@@ -1268,8 +1436,20 @@
       "end": 4020,
       "declarationSha256": "7a4cbb238b96cc4028e2af8634c77662516bf2fec8ff7812645f22bdace0c4d3",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-initial-height",
+            "postcondition": "Protected initial height reports configured pixels"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-initial-height",
+            "postcondition": "Protected initial height reports configured pixels"
+          }
+        ]
       }
     },
     {
@@ -1289,8 +1469,20 @@
       "end": 3955,
       "declarationSha256": "f3997327d0cb362834023fcef5ccf29ff5c3e24c19cc49880d313a85b1478599",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-initial-width",
+            "postcondition": "Protected initial width reports configured pixels"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-initial-width",
+            "postcondition": "Protected initial width reports configured pixels"
+          }
+        ]
       }
     },
     {
@@ -1376,8 +1568,20 @@
       "end": 2381,
       "declarationSha256": "9870c06a4497808face2096cbd710c354804c59a55c57701a04cefab531661eb",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-padding-validation",
+            "postcondition": "Negative padding is rejected with a useful finite-dimension error"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-padding-validation",
+            "postcondition": "Negative padding is rejected with a useful finite-dimension error"
+          }
+        ]
       }
     },
     {
@@ -1396,8 +1600,20 @@
       "end": 4218,
       "declarationSha256": "3a138501dd25ac73c4502ff218bb8c8403cfd1e56bd376dd3d16b9982b658d0f",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-ready",
+            "postcondition": "Ready receives the actual started stage after setup"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-ready",
+            "postcondition": "Ready receives the actual started stage after setup"
+          }
+        ]
       }
     },
     {
@@ -1416,8 +1632,20 @@
       "end": 1227,
       "declarationSha256": "bd8ee0d6a0df5908771a0d9e5e47d4bb63bdb5595518746c8d09f7f92f5a2c6f",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-settings",
+            "postcondition": "Settings callback runs before setup with default dimensions"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-settings",
+            "postcondition": "Settings callback runs before setup with default dimensions"
+          }
+        ]
       }
     },
     {
@@ -1436,8 +1664,20 @@
       "end": 1255,
       "declarationSha256": "727d5a62e70b61a2626e0ccd740b791ffedd9646e43122515760da19690d1b9a",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-setup",
+            "postcondition": "Setup callback follows configured settings"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-setup",
+            "postcondition": "Setup callback follows configured settings"
+          }
+        ]
       }
     },
     {
@@ -1457,8 +1697,20 @@
       "end": 2708,
       "declarationSha256": "f6fb8ccf6f37771e82146af011be15ac7ccada690c6c2e129fd064ba27f8b98d",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-show-node",
+            "postcondition": "Showing a JavaFX node attaches visible lifecycle content"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-show-node",
+            "postcondition": "Showing a JavaFX node attaches visible lifecycle content"
+          }
+        ]
       }
     },
     {
@@ -1478,8 +1730,20 @@
       "end": 2943,
       "declarationSha256": "51094c4205e5ce88aac4d17bdbe29b9c1ff57c2c711813d5140fa4049efe1c36",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-show-element",
+            "postcondition": "Showing an Element keeps the same visible lifecycle content"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-show-element",
+            "postcondition": "Showing an Element keeps the same visible lifecycle content"
+          }
+        ]
       }
     },
     {
@@ -1498,8 +1762,20 @@
       "end": 4252,
       "declarationSha256": "205f141f5803515d81aaf72164f4b04764f8ce59f4c0c70b93677a638242a41a",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-shutdown",
+            "postcondition": "Shutdown follows ready and is called exactly once"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-shutdown",
+            "postcondition": "Shutdown follows ready and is called exactly once"
+          }
+        ]
       }
     },
     {
@@ -1519,8 +1795,20 @@
       "end": 1759,
       "declarationSha256": "db1b8f5868a8e528ba9083ff233875621346ae5fd51b12e2cd0a14632bb2b3ef",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-size",
+            "postcondition": "Configured size is retained for both initial dimensions"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-size",
+            "postcondition": "Configured size is retained for both initial dimensions"
+          }
+        ]
       }
     },
     {
@@ -1540,8 +1828,20 @@
       "end": 5642,
       "declarationSha256": "1bf6336f647390fe9a2781a17ceea2bede5410fc91bfd78675d97f2714998de3",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-start",
+            "postcondition": "Completed startup attaches visible lifecycle content"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-start",
+            "postcondition": "Completed startup attaches visible lifecycle content"
+          }
+        ]
       }
     },
     {
@@ -1561,8 +1861,20 @@
       "end": 7318,
       "declarationSha256": "c1219c7589071bac841145f56cb7d4d98a507f325c2936b44c94092b585db344",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-stop",
+            "postcondition": "Repeated stop invokes shutdown exactly once"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-stop",
+            "postcondition": "Repeated stop invokes shutdown exactly once"
+          }
+        ]
       }
     },
     {
@@ -1582,8 +1894,20 @@
       "end": 1986,
       "declarationSha256": "3b09527ca58c377eae727c264c23d140f6d7f3eaddebe6fb43e4f56fe9289363",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/PaddingLauncher",
+            "assertionId": "ui-title",
+            "postcondition": "Startup applies the configured native or browser title"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "ui-title",
+            "postcondition": "Startup applies the configured native or browser title"
+          }
+        ]
       }
     },
     {
@@ -1703,8 +2027,20 @@
       "end": 284,
       "declarationSha256": "cee7210f8ed846bdaf0a673bc7571857cf314f0df94bea1e3319968898e8b5b5",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "constant-BLACK",
+            "postcondition": "Color constant paints its documented RGB channels"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "constant-BLACK",
+            "postcondition": "Color constant paints its documented RGB channels"
+          }
+        ]
       }
     },
     {
@@ -1725,8 +2061,20 @@
       "end": 363,
       "declarationSha256": "f06546afeac811beafe70dc25bb5aaf0e3cb17a8f8e7a6cdd7c6d7086113f626",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "constant-BLUE",
+            "postcondition": "Color constant paints its documented RGB channels"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "constant-BLUE",
+            "postcondition": "Color constant paints its documented RGB channels"
+          }
+        ]
       }
     },
     {
@@ -1747,8 +2095,20 @@
       "end": 442,
       "declarationSha256": "cd5ddf59c0e3d0d5895518f61268b3fd6312e397ad8e18cc7141b2582a8ecbad",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "constant-GOLD",
+            "postcondition": "Color constant paints its documented RGB channels"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "constant-GOLD",
+            "postcondition": "Color constant paints its documented RGB channels"
+          }
+        ]
       }
     },
     {
@@ -1769,8 +2129,20 @@
       "end": 203,
       "declarationSha256": "cfbb54608f597f174deee0edd6c7130576fa27f84c72a7e509624632a13111ff",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "constant-WHITE",
+            "postcondition": "Color constant paints its documented RGB channels"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "constant-WHITE",
+            "postcondition": "Color constant paints its documented RGB channels"
+          }
+        ]
       }
     },
     {
@@ -1823,8 +2195,20 @@
       "end": 10973,
       "declarationSha256": "09fe6268da0dcecc556b0ef7633bc9f54246ea1fba57e45eed21ece7610d01e4",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "background-fx",
+            "postcondition": "JavaFX background clears a retained outside-atlas witness"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "background-fx",
+            "postcondition": "JavaFX background clears a retained outside-atlas witness"
+          }
+        ]
       }
     },
     {
@@ -1844,8 +2228,20 @@
       "end": 11273,
       "declarationSha256": "abe83d475cc44cd8efc4873d71f86c4d3dc85c63827fcb54d973025e1eb94cd7",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "background-zero",
+            "postcondition": "Zero background clears a second retained outside-atlas witness"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "background-zero",
+            "postcondition": "Zero background clears a second retained outside-atlas witness"
+          }
+        ]
       }
     },
     {
@@ -1898,8 +2294,20 @@
       "end": 12160,
       "declarationSha256": "07ffd6b01ea245c1e27fbba16cf96bdc713ca8aed312d350c1abe5dfb4f32550",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "draw-circle",
+            "postcondition": "Circle covers its specified centre"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "draw-circle",
+            "postcondition": "Circle covers its specified centre"
+          }
+        ]
       }
     },
     {
@@ -2002,8 +2410,20 @@
       "end": 2191,
       "declarationSha256": "2f4a8dd8cf7a3b69f8e0d30ed36247a55f9d5e9a6a58e431462b486c8079e78c",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "app-actor-draw",
+            "postcondition": "GameApp actor overload reaches the translated sprite callback"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "app-actor-draw",
+            "postcondition": "GameApp actor overload reaches the translated sprite callback"
+          }
+        ]
       }
     },
     {
@@ -2023,8 +2443,20 @@
       "end": 11042,
       "declarationSha256": "d08932c0e0db97bfcc12c53791b8b0f9367d5d8adf03f4b329e6fb73903bcd07",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "fill-fx",
+            "postcondition": "Fill determines the interior color of a rectangle"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "fill-fx",
+            "postcondition": "Fill determines the interior color of a rectangle"
+          }
+        ]
       }
     },
     {
@@ -2044,8 +2476,20 @@
       "end": 11413,
       "declarationSha256": "6f1098208e9c2aed943025ada4c75806e3f80d038fac3afa5109d2e86d070413",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "fill-zero",
+            "postcondition": "Fill determines the interior color of a rectangle"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "fill-zero",
+            "postcondition": "Fill determines the interior color of a rectangle"
+          }
+        ]
       }
     },
     {
@@ -2131,8 +2575,20 @@
       "end": 12853,
       "declarationSha256": "9a8363b47866e86f60bb304dd8ef55fa3f54591d57f8954be72512d398b1e913",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "image-Image-natural",
+            "postcondition": "Image overload selects the top-left atlas color"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "image-Image-natural",
+            "postcondition": "Image overload selects the top-left atlas color"
+          }
+        ]
       }
     },
     {
@@ -2152,8 +2608,20 @@
       "end": 13007,
       "declarationSha256": "b65497ea93e9715c3b0c72d9c66b689eadc47f0f459edd12d713c8c6587d4ad0",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "image-Image-sized",
+            "postcondition": "Image overload selects the top-left atlas color"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "image-Image-sized",
+            "postcondition": "Image overload selects the top-left atlas color"
+          }
+        ]
       }
     },
     {
@@ -2173,8 +2641,20 @@
       "end": 13316,
       "declarationSha256": "455fde1b0b9a8a669f46cc32dee26126225a1bf502f324a55d2a7b5d85d68ea7",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "image-ImageRegion-natural",
+            "postcondition": "Image overload selects the top-left atlas color"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "image-ImageRegion-natural",
+            "postcondition": "Image overload selects the top-left atlas color"
+          }
+        ]
       }
     },
     {
@@ -2194,8 +2674,20 @@
       "end": 13543,
       "declarationSha256": "bb84b1e2baa41c7c21881048450f311f9c539ae34b4dde45d0709a25536add03",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "image-ImageRegion-sized",
+            "postcondition": "Image overload selects the top-left atlas color"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "image-ImageRegion-sized",
+            "postcondition": "Image overload selects the top-left atlas color"
+          }
+        ]
       }
     },
     {
@@ -2215,8 +2707,20 @@
       "end": 13654,
       "declarationSha256": "c1eaefbda7310cdb3ae942b62e273e085f35407e826e7251dc5b95d0f7bb96f0",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "image-SpriteAnimation-natural",
+            "postcondition": "Image overload selects the top-left atlas color"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "image-SpriteAnimation-natural",
+            "postcondition": "Image overload selects the top-left atlas color"
+          }
+        ]
       }
     },
     {
@@ -2236,8 +2740,20 @@
       "end": 13821,
       "declarationSha256": "c50cfb0fe8877714c9753321a1ab71f7b51b8c0828e7ceaa2d8baa7d6194773d",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "image-SpriteAnimation-sized",
+            "postcondition": "Image overload selects the top-left atlas color"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "image-SpriteAnimation-sized",
+            "postcondition": "Image overload selects the top-left atlas color"
+          }
+        ]
       }
     },
     {
@@ -2257,8 +2773,20 @@
       "end": 14226,
       "declarationSha256": "f92130e181354af0a56df4ccc9a38c30a30a1a65675ffc8b0f149b2a8b1f6bbc",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "imageCentered-Image",
+            "postcondition": "Image placement or vertical flip selects the expected atlas row"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "imageCentered-Image",
+            "postcondition": "Image placement or vertical flip selects the expected atlas row"
+          }
+        ]
       }
     },
     {
@@ -2278,8 +2806,20 @@
       "end": 14553,
       "declarationSha256": "c42ed5947b3db4fb112794239e986f969cc82e8c8ebfdf8874d6f50c0f041a81",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "imageCentered-ImageRegion",
+            "postcondition": "Image placement or vertical flip selects the expected atlas row"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "imageCentered-ImageRegion",
+            "postcondition": "Image placement or vertical flip selects the expected atlas row"
+          }
+        ]
       }
     },
     {
@@ -2299,8 +2839,20 @@
       "end": 14771,
       "declarationSha256": "c35943d2db881448d79828791638b2fd594d3f8c0348495c813a993110bc82eb",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "imageCentered-SpriteAnimation",
+            "postcondition": "Image placement or vertical flip selects the expected atlas row"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "imageCentered-SpriteAnimation",
+            "postcondition": "Image placement or vertical flip selects the expected atlas row"
+          }
+        ]
       }
     },
     {
@@ -2320,8 +2872,20 @@
       "end": 15134,
       "declarationSha256": "9fd8970b6aab877d0b4e4fba1768c39aae2bcf6a8f1ead0f89c46907046c0486",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "imageFlippedY-Image",
+            "postcondition": "Image placement or vertical flip selects the expected atlas row"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "imageFlippedY-Image",
+            "postcondition": "Image placement or vertical flip selects the expected atlas row"
+          }
+        ]
       }
     },
     {
@@ -2341,8 +2905,20 @@
       "end": 15422,
       "declarationSha256": "0e70054106ac6850b22a836cb6c5bb51f34943cc0b2af0545ed8a33089d3c246",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "imageFlippedY-ImageRegion",
+            "postcondition": "Image placement or vertical flip selects the expected atlas row"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "imageFlippedY-ImageRegion",
+            "postcondition": "Image placement or vertical flip selects the expected atlas row"
+          }
+        ]
       }
     },
     {
@@ -2362,8 +2938,20 @@
       "end": 15605,
       "declarationSha256": "73e99ee6a4137de95497e59ba15ed2155b70b695cb81322815183cc3b994b16f",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "imageFlippedY-SpriteAnimation",
+            "postcondition": "Image placement or vertical flip selects the expected atlas row"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "imageFlippedY-SpriteAnimation",
+            "postcondition": "Image placement or vertical flip selects the expected atlas row"
+          }
+        ]
       }
     },
     {
@@ -2383,8 +2971,20 @@
       "end": 13178,
       "declarationSha256": "b159c848f893fd65d37db0b71bf958ecd1d9806e334b0d206602ee09059a6f28",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "image-factory-region",
+            "postcondition": "Region factory retains the requested bitmap and atlas bounds"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "image-factory-region",
+            "postcondition": "Region factory retains the requested bitmap and atlas bounds"
+          }
+        ]
       }
     },
     {
@@ -2437,8 +3037,20 @@
       "end": 7872,
       "declarationSha256": "33c7eb2406a62fa0f28bfa91d3de8e44f175e551d344db39bf7232d589e372be",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-held-fx",
+            "postcondition": "JavaFX left key reports a real currently held press"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "key-held-fx",
+            "postcondition": "JavaFX left key reports a real currently held press"
+          }
+        ]
       }
     },
     {
@@ -2458,8 +3070,20 @@
       "end": 8012,
       "declarationSha256": "5fd391065ce42649bc49e3c491c3508281cc9ff0a59db5d7afa1d2f3fb74bef2",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-held-zero",
+            "postcondition": "Zero left key observes the same real held press"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "key-held-zero",
+            "postcondition": "Zero left key observes the same real held press"
+          }
+        ]
       }
     },
     {
@@ -2479,8 +3103,20 @@
       "end": 8295,
       "declarationSha256": "7498bacad957abbbf143c78ccad5d0e2cf1bce27bad00990351192d4561a75df",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-edge-fx",
+            "postcondition": "JavaFX left key reports the actual current frame edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "key-edge-fx",
+            "postcondition": "JavaFX left key reports the actual current frame edge"
+          }
+        ]
       }
     },
     {
@@ -2500,8 +3136,20 @@
       "end": 8441,
       "declarationSha256": "a386dd09f8d3337a48044b1fd387ceca6aa7497b67315042fd779eabaaca1404",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-edge-zero",
+            "postcondition": "Zero left key observes the same non-consuming frame edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "key-edge-zero",
+            "postcondition": "Zero left key observes the same non-consuming frame edge"
+          }
+        ]
       }
     },
     {
@@ -2554,8 +3202,20 @@
       "end": 12272,
       "declarationSha256": "61cccf2dc0feab783e62791b7298dcd9135f1456fe6cd0fb2912d2b630c5e610",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "draw-line",
+            "postcondition": "Line joins the supplied endpoints"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "draw-line",
+            "postcondition": "Line joins the supplied endpoints"
+          }
+        ]
       }
     },
     {
@@ -2575,8 +3235,20 @@
       "end": 16551,
       "declarationSha256": "52bf142b5a769ed9da11fec7d3f547439bc6f28caed15691e5b41e61192fdbf0",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "image-load-animation",
+            "postcondition": "Loaded animations have independent explicit playback clocks"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "image-load-animation",
+            "postcondition": "Loaded animations have independent explicit playback clocks"
+          }
+        ]
       }
     },
     {
@@ -2596,8 +3268,20 @@
       "end": 16359,
       "declarationSha256": "b1a5339da793e8f5ada9658ebf2d467656ca51a6463406e15373f00905cfb936",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "image-load-cache",
+            "postcondition": "Repeated image load retains app-owned bitmap identity"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "image-load-cache",
+            "postcondition": "Repeated image load retains app-owned bitmap identity"
+          }
+        ]
       }
     },
     {
@@ -2617,8 +3301,20 @@
       "end": 16895,
       "declarationSha256": "d55510058cf70a428159b7b04b77c327a281e19bf414628e2a45b4b66c9057da",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "image-load-region",
+            "postcondition": "Full region retains cached bitmap and exact natural bounds"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "image-load-region",
+            "postcondition": "Full region retains cached bitmap and exact natural bounds"
+          }
+        ]
       }
     },
     {
@@ -2638,8 +3334,20 @@
       "end": 8104,
       "declarationSha256": "b3834272c390913e29846dd5f0c1d1a822ee1f731ea3862a9087f7d637c58f28",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "mouse-held",
+            "postcondition": "Primary pointer query sees an actual held canvas press"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "mouse-held",
+            "postcondition": "Primary pointer query sees an actual held canvas press"
+          }
+        ]
       }
     },
     {
@@ -2659,8 +3367,20 @@
       "end": 8543,
       "declarationSha256": "8253b2079bc35ec8eb6e0b1d0575f7b65b8e66bd9c77114c18b29e9bbc6da903",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "mouse-edge",
+            "postcondition": "A real canvas press is latched for the current frame"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "mouse-edge",
+            "postcondition": "A real canvas press is latched for the current frame"
+          }
+        ]
       }
     },
     {
@@ -2680,8 +3400,20 @@
       "end": 7743,
       "declarationSha256": "35b7f650c8b54fe8e9c4de6c4757b1b190d4a633010d5511e91f33514c90f68a",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "mouse-x",
+            "postcondition": "Pointer X is translated into the expected canvas coordinate"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "mouse-x",
+            "postcondition": "Pointer X is translated into the expected canvas coordinate"
+          }
+        ]
       }
     },
     {
@@ -2701,8 +3433,20 @@
       "end": 7795,
       "declarationSha256": "1e0057ebf4c9a9721faf4973fc799e92b113ac3146c661dfd481559a981e9a5c",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "mouse-y",
+            "postcondition": "Pointer Y is translated into the expected canvas coordinate"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "mouse-y",
+            "postcondition": "Pointer Y is translated into the expected canvas coordinate"
+          }
+        ]
       }
     },
     {
@@ -2722,8 +3466,20 @@
       "end": 11979,
       "declarationSha256": "8f5ef6b24808a16479ea6fc309a627665f01a0bc03c309dfd632d0cbdf38baf6",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "draw-outline",
+            "postcondition": "Rectangle outline covers an edge witness"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "draw-outline",
+            "postcondition": "Rectangle outline covers an edge witness"
+          }
+        ]
       }
     },
     {
@@ -2797,8 +3553,20 @@
       "end": 11850,
       "declarationSha256": "202f93b46b44197fe7b39d8da385afbffcff65c1bc10fd0952b35be4e24caf88",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "draw-rect",
+            "postcondition": "Rectangle covers its interior witness"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "draw-rect",
+            "postcondition": "Rectangle covers its interior witness"
+          }
+        ]
       }
     },
     {
@@ -2893,8 +3661,20 @@
       "end": 11115,
       "declarationSha256": "f8694a4d14b787b3c506a67497165a6f55a561755e461671a04f814197124770",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "stroke-fx",
+            "postcondition": "Stroke determines the interior of a thick line"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "stroke-fx",
+            "postcondition": "Stroke determines the interior of a thick line"
+          }
+        ]
       }
     },
     {
@@ -2914,8 +3694,20 @@
       "end": 11559,
       "declarationSha256": "49825ab38c55a41310dffb3c0f756a041b3094cf3a3d9bfd232bf5aa2f52d608",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "stroke-zero",
+            "postcondition": "Stroke determines the interior of a thick line"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "stroke-zero",
+            "postcondition": "Stroke determines the interior of a thick line"
+          }
+        ]
       }
     },
     {
@@ -2935,8 +3727,20 @@
       "end": 11643,
       "declarationSha256": "e95d53daed1657bdc4bcb45410ae849dc6b0c046ca08f3ddf861659c54c8ba51",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "stroke-width",
+            "postcondition": "Eight-pixel line includes a witness three pixels from its centre"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "stroke-width",
+            "postcondition": "Eight-pixel line includes a witness three pixels from its centre"
+          }
+        ]
       }
     },
     {
@@ -2956,8 +3760,20 @@
       "end": 12434,
       "declarationSha256": "725c945d3a4e8965898356777ef77ac187fad7381b12641215db00403c3ea591",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "draw-text",
+            "postcondition": "Text leaves visible ink in the expected font or alignment region"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "draw-text",
+            "postcondition": "Text leaves visible ink in the expected font or alignment region"
+          }
+        ]
       }
     },
     {
@@ -2977,8 +3793,20 @@
       "end": 12755,
       "declarationSha256": "5cb7480fce011ec1112addbf93aee37ae88cda136d5e5a2e23155a527fa412d3",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "draw-centred-text",
+            "postcondition": "Text leaves visible ink in the expected font or alignment region"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "draw-centred-text",
+            "postcondition": "Text leaves visible ink in the expected font or alignment region"
+          }
+        ]
       }
     },
     {
@@ -2998,8 +3826,20 @@
       "end": 11730,
       "declarationSha256": "1ca54527ae1566e04844ef754b4960ce44df2d615d1a3960b78849af1ea6f4f6",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "font-size",
+            "postcondition": "Text leaves visible ink in the expected font or alignment region"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "font-size",
+            "postcondition": "Text leaves visible ink in the expected font or alignment region"
+          }
+        ]
       }
     },
     {
@@ -3072,8 +3912,20 @@
       "end": 8728,
       "declarationSha256": "f70884cfb29da3d2ff58040635848d7ec42f8c83465fbd9e021e0ca319265806",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "window-focused",
+            "postcondition": "Canvas input is delivered by a focused live game window"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "window-focused",
+            "postcondition": "Canvas input is delivered by a focused live game window"
+          }
+        ]
       }
     },
     {
@@ -3286,8 +4138,20 @@
       "end": 227,
       "declarationSha256": "acc6e50f5556f04c31882c90e08528422a78ff5cbba97e611e00a2a3f63b9315",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-constant-DOWN",
+            "postcondition": "DOWN constant resolves the actual dispatched arrow edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "key-constant-DOWN",
+            "postcondition": "DOWN constant resolves the actual dispatched arrow edge"
+          }
+        ]
       }
     },
     {
@@ -3308,8 +4172,20 @@
       "end": 157,
       "declarationSha256": "bb71f5bc61e7e9bfd4f8360894b9fb1bcbc90752c3ff72145294ed75642715ea",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-constant-LEFT",
+            "postcondition": "LEFT constant resolves the actual dispatched arrow edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "key-constant-LEFT",
+            "postcondition": "LEFT constant resolves the actual dispatched arrow edge"
+          }
+        ]
       }
     },
     {
@@ -3330,8 +4206,20 @@
       "end": 183,
       "declarationSha256": "8478daa2bafe949d77388340ee179e6d06faac06cd2b9a047b90c5012353d708",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-constant-RIGHT",
+            "postcondition": "RIGHT constant resolves the actual dispatched arrow edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "key-constant-RIGHT",
+            "postcondition": "RIGHT constant resolves the actual dispatched arrow edge"
+          }
+        ]
       }
     },
     {
@@ -3352,8 +4240,20 @@
       "end": 203,
       "declarationSha256": "6474b9de5a0f749c6e187169729bec787028f167abfe19eaa86950e267b1798c",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-constant-UP",
+            "postcondition": "UP constant resolves the actual dispatched arrow edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "key-constant-UP",
+            "postcondition": "UP constant resolves the actual dispatched arrow edge"
+          }
+        ]
       }
     },
     {
@@ -4504,8 +5404,20 @@
       "end": 391,
       "declarationSha256": "022f4314feeaec485556e6ce46d97c0d48717214b30ab075baf7139580b37c9b",
       "evidence": {
-        "native": [],
-        "browser": []
+        "native": [
+          {
+            "caseId": "native/UiCheck",
+            "assertionId": "element-extension",
+            "postcondition": "Advanced constructor retains the exact supplied backing node"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/zero-ui",
+            "assertionId": "element-extension",
+            "postcondition": "Advanced constructor retains the exact supplied backing node"
+          }
+        ]
       }
     },
     {

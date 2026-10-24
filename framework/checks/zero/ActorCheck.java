@@ -2,6 +2,7 @@ package zero;
 
 import evidence.ApiSignatureChecks;
 import evidence.ApiNative;
+import evidence.ApiDrawingChecks;
 
 import javafx.application.Platform;
 import javafx.scene.image.Image;
@@ -12,7 +13,7 @@ import javafx.stage.Stage;
 /** Finite Actor behavior and rendered-pixel checks in a real native GameApp. */
 public final class ActorCheck extends GameApp {
     private boolean checked;
-    @Override public void settings() { size(120, 100); title("Zero Actor checks"); }
+    @Override public void settings() { size(960, 480); title("Zero Actor checks"); }
     @Override public void setup() {
         Thread watchdog = new Thread(() -> {
             try { Thread.sleep(15_000); } catch (InterruptedException ignored) { return; }
@@ -24,6 +25,8 @@ public final class ActorCheck extends GameApp {
         if (checked) return;
         checked = true;
         try {
+            ApiNative.observePixels(this);
+            ApiDrawingChecks.paint(this,ApiNative.atlasImage(),true);
             ApiSignatureChecks.actors(new WritableImage(4,2),4,2);
             verifyMovement(); verifyImagesAndInheritance(); verifyPlaybackContract(); verifyPixels();
             verifyDrawingCallbacks(); verifyNestedDrawing(); verifyDrawingMisuse();
@@ -283,7 +286,7 @@ public final class ActorCheck extends GameApp {
         expectState(() -> child.circle(0, 0, 2));
         expectState(() -> parent.rect(0, 0, 2, 2));
 
-        GameApp other = new GameApp() { @Override public void settings() { size(120, 100); } };
+        GameApp other = new GameApp() { @Override public void settings() { size(960, 480); } };
         Stage stage = new Stage();
         try {
             other.start(stage);

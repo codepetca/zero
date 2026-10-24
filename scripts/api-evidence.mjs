@@ -61,12 +61,13 @@ export function assertInventoryParity(actual,recorded){validateSignatureManifest
 export function assertManifestSources(manifest,{sourceRoot=repositoryRoot}={}){validateSignatureManifest(manifest);for(const source of manifest.sources){const filename=path.resolve(sourceRoot,source.path);if(!filename.startsWith(path.resolve(sourceRoot)+path.sep)||hash(fs.readFileSync(filename))!==source.sha256)fail('stale source identity: '+source.path);}return manifest;}
 export function mapJavaProbeAssertions(manifest,{sourceRoot=repositoryRoot}={}) {
  validateSignatureManifest(manifest);
- const source=fs.readFileSync(path.join(sourceRoot,'framework/evidence/java/evidence/ApiSignatureChecks.java'),'utf8');
- const cases={actors:['native/ActorCheck','browser/helpers'],ui:['native/UiCheck','browser/zero-ui'],host:['native/GameHelpersCheck','browser/lifecycle'],audio:['native/AudioCheck','browser/audio']};
+ const source=['ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java'].map(file=>fs.readFileSync(path.join(sourceRoot,'framework/evidence/java/evidence',file),'utf8')).join('\n');
+ const cases={lifecycle:['native/PaddingLauncher','browser/lifecycle'],arrows:['native/GameHelpersCheck','browser/zero-ui'],held:['native/GameHelpersCheck','browser/zero-ui'],pointerHeld:['native/GameHelpersCheck','browser/zero-ui'],pointerPressed:['native/GameHelpersCheck','browser/zero-ui'],resources:['native/GameHelpersCheck','browser/helpers'],paint:['native/ActorCheck','browser/lifecycle'],actors:['native/ActorCheck','browser/helpers'],ui:['native/UiCheck','browser/zero-ui'],host:['native/GameHelpersCheck','browser/lifecycle'],audio:['native/AudioCheck','browser/audio']};
  const entries=new Map(manifest.signatures.map(entry=>[entry.id,entry]));
  let group;for(const line of source.split('\n')) {
+  if(line.includes('public final class ApiLifecycleChecks'))group='lifecycle';
   const method=line.match(/^    public static void (\w+)\(/);if(method)group=method[1];
-  const call=line.match(/\beq\("([^"]+)","([^"]+)","([^"]+)"/);if(!call)continue;
+  const call=line.match(/\b(?:eq|pixel|ApiProof.equal|ApiProof.pending)\("([^"]+)","([^"]+)","([^"]+)"/);if(!call)continue;
   const [,signatureId,assertionId,postcondition]=call,entry=entries.get(signatureId);
   if(!entry||!cases[group])fail('unmapped Java probe declaration '+signatureId);
   for(const caseId of cases[group]){const target=caseId.split('/')[0];if(!entry.evidence[target].some(link=>link.caseId===caseId&&link.assertionId===assertionId))entry.evidence[target].push({caseId,assertionId,postcondition});}
@@ -76,26 +77,52 @@ export function mapJavaProbeAssertions(manifest,{sourceRoot=repositoryRoot}={}) 
 
 // This consumes events emitted by the *Java* invocation/assertion wrapper. It
 // never substitutes a JavaScript callback for a Java method invocation.
-export function receiptFromJavaEvents({manifest,raw,identity,runId,target,caseId}) {
+export function receiptFromJavaEvents({manifest,raw,pixels=[],identity,runId,target,caseId}) {
  validateSignatureManifest(manifest);validateIdentity(identity);
  if(!bounded(runId)||!['native','browser'].includes(target)||![...nativeCases,...browserCases].some(item=>item.id===caseId&&item.target===target))fail('invalid Java evidence case');
- if(typeof raw!=='string'||Buffer.byteLength(raw)>2*1024*1024)fail('oversized Java event transport');
+ if(typeof raw!=='string'||Buffer.byteLength(raw)>2*1024*1024||!Array.isArray(pixels)||pixels.length>4096)fail('oversized Java event transport');
  const matches=[...raw.matchAll(/ZERO_API_EVIDENCE_V1\n([\s\S]*?)END_ZERO_API_EVIDENCE/g)];
- if(matches.length!==1)fail('expected exactly one Java event block');
- const rows=matches[0][1].trimEnd().split('\n').filter(Boolean),events=[],outcomes=[],seen=new Set();
+ if(matches.length<1||matches.length>(target==='browser'?2:1))fail('expected one Java event block or two browser lifecycle executions');
+ let externalCount=0;
+ const rows=matches.flatMap(match=>match[1].trimEnd().split('\n').filter(Boolean)),events=[],outcomes=[],seen=new Set();
  if(!rows.length||rows.length%2)fail('empty/incomplete Java observations');
  for(let index=0;index<rows.length;index+=2){
   const invoked=rows[index].split('|'),asserted=rows[index+1].split('|');
-  if(invoked.length!==3||asserted.length!==5||invoked[0]!=='I'||asserted[0]!=='A'||invoked[1]!==asserted[1]||invoked[2]!==asserted[2])fail('unordered Java invocation/postcondition events');
-  const [,signatureId,assertionId,postcondition,observation]=asserted,entry=manifest.signatures.find(entry=>entry.id===signatureId);
+  if(invoked.length!==3||asserted.length!==5||invoked[0]!=='I'||!['A','P','O'].includes(asserted[0])||invoked[1]!==asserted[1]||invoked[2]!==asserted[2])fail('unordered Java invocation/postcondition events');
+  const [,signatureId,assertionId,postcondition,javaObservation]=asserted;
+  let observation=javaObservation;
+  if(asserted[0]==='P'||asserted[0]==='O'){externalCount++;if(target!=='browser')fail('pending native pixel assertion');const found=pixels.filter(item=>item.assertionId===assertionId);if(found.length!==1)fail('missing/duplicate actual browser pixels');observation=asserted[0]==='P'?validatePixelObservation(javaObservation,found[0]):validateUiObservation(javaObservation,found[0]);}
+  const entry=manifest.signatures.find(entry=>entry.id===signatureId);
   if(!entry?.evidence[target].some(link=>link.caseId===caseId&&link.assertionId===assertionId&&link.postcondition===postcondition)||seen.has(signatureId+'\0'+assertionId))fail('unmapped/duplicate Java observation');
   seen.add(signatureId+'\0'+assertionId);const observationSha256=hash(JSON.stringify({javaObservation:observation})),invocation=events.length+1;
   events.push({schema:1,runId,target,caseId,sequence:invocation,phase:'invoked',signatureId,assertionId});
   events.push({schema:1,runId,target,caseId,sequence:invocation+1,phase:'asserted',signatureId,assertionId,postcondition,observationSha256});
   outcomes.push({signatureId,declarationSha256:entry.declarationSha256,assertionId,postcondition,invocation,observationSha256,status:'passed'});
  }
+ if(externalCount!==pixels.length)fail('unexpected external observations without Java invocation');
  const log=events.map(event=>JSON.stringify(event)).join('\n')+'\n';
  return {receipt:{schema:1,runId,target,caseId,identity,logSha256:hash(log),outcomes},log,raw};
+}
+
+export function validateUiObservation(specification,observation) {
+ exact(observation,['assertionId','specification','data'],'UI observation');
+ if(observation.specification!==specification)fail('UI observation specification differs');
+ if(specification.startsWith('text,')){exact(observation.data,['text','visible'],'visible text observation');if(observation.data.text!==specification.slice(5)||observation.data.visible!==true)fail('UI content postcondition failed');}
+ else if(specification.startsWith('title,')){exact(observation.data,['title'],'title observation');if(observation.data.title!==specification.slice(6))fail('UI title postcondition failed');}
+ else fail('unknown UI observation specification');
+ return JSON.stringify(observation.data);
+}
+
+export function validatePixelObservation(specification,observation) {
+ const parts=specification.split(','),kind=parts[0],numbers=parts.slice(1).map(Number);
+ if(!['pixel','ink'].includes(kind)||numbers.some(value=>!Number.isInteger(value)||value<0)||parts.length!==(kind==='pixel'?7:5))fail('invalid pixel specification');
+ exact(observation,['assertionId','specification','data'],'pixel observation');
+ if(observation.specification!==specification||!Array.isArray(observation.data)||observation.data.some(value=>!Number.isInteger(value)||value<0||value>255))fail('invalid actual pixel observation');
+ const expected=kind==='pixel'?4:numbers[2]*numbers[3]*4;
+ if(expected<1||expected>16384||observation.data.length!==expected)fail('invalid pixel region size');
+ if(kind==='pixel'){if(observation.data.some((value,index)=>value!==numbers[index+2]))fail('browser pixel postcondition failed');}
+ else {let ink=0;for(let i=0;i<observation.data.length;i+=4)if(observation.data[i+3]>0&&(observation.data[i]<255||observation.data[i+1]<255||observation.data[i+2]<255))ink++;if(!ink)fail('browser text region has no ink');}
+ return JSON.stringify({specification,data:observation.data});
 }
 
 export function browserExecutionRecords(raw,selection) {
@@ -134,8 +161,8 @@ export function executionIdentity({manifest,projectRoot,outputDirectory,toolFile
  const identity={manifestSha256:hash(JSON.stringify(manifest)),coreSha256:hash(JSON.stringify(manifest.sources)),profileSha256:hash(profile),contractSha256:hash(fs.readFileSync(path.join(sourceRoot,'extension/src/web-export/compatibility/contract.json'))),librariesSha256:hash('[]'),fixtureSha256:hash(packEvidenceDirectory(path.join(projectRoot,'src'))),harnessSha256:hash(measuredFiles(harnessFiles)),outputSha256:hash(output),toolSha256:hash(measuredFiles(toolFiles)),platform};
  return {identity:validateIdentity(identity),output,inputs:{toolFiles,harnessFiles}};
 }
-export function persistJavaEvidence({directory,manifest,raw,identity,output,inputs,runId,target,caseId}) {
- const converted=receiptFromJavaEvents({manifest,raw,identity,runId,target,caseId});
+export function persistJavaEvidence({directory,manifest,raw,pixels=[],identity,output,inputs,runId,target,caseId}) {
+ const converted=receiptFromJavaEvents({manifest,raw,pixels,identity,runId,target,caseId});
  fs.mkdirSync(directory,{recursive:true});
  const artifacts=path.join(directory,'artifacts');fs.mkdirSync(artifacts,{recursive:true});
  fs.writeFileSync(path.join(artifacts,converted.receipt.logSha256),converted.log);
@@ -144,7 +171,8 @@ export function persistJavaEvidence({directory,manifest,raw,identity,output,inpu
  fs.writeFileSync(path.join(directory,'receipt.json'),JSON.stringify(converted.receipt,null,2)+'\n');
  if(inputs)fs.writeFileSync(path.join(directory,'identity-inputs.json'),JSON.stringify(inputs,null,2)+'\n');
  fs.writeFileSync(path.join(directory,'expected-identity.json'),JSON.stringify(identity,null,2)+'\n');
- fs.writeFileSync(path.join(directory,'java-events.json'),JSON.stringify({sha256:hash(raw),transport:'Actual Java invocation and postcondition events'},null,2)+'\n');
+ const pixelsBytes=JSON.stringify(pixels);fs.writeFileSync(path.join(artifacts,hash(pixelsBytes)),pixelsBytes);
+ fs.writeFileSync(path.join(directory,'java-events.json'),JSON.stringify({sha256:hash(raw),pixelsSha256:hash(pixelsBytes),transport:'Actual Java invocation and postcondition events'},null,2)+'\n');
  return converted.receipt;
 }
 export function loadJavaEvidence(directory,{manifest,checkCurrentInputs=true}) {
@@ -165,7 +193,10 @@ export function loadJavaEvidence(directory,{manifest,checkCurrentInputs=true}) {
   if(!sha(transport.sha256))fail('invalid Java transport identity');
   const raw=fs.readFileSync(path.join(folder,'artifacts',transport.sha256),'utf8');
   if(hash(raw)!==transport.sha256)fail('changed Java transport');
-  const rebuilt=receiptFromJavaEvents({manifest,raw,identity,runId:receipt.runId,target:receipt.target,caseId:receipt.caseId});
+  if(!sha(transport.pixelsSha256))fail('invalid pixel transport identity');
+  const pixelBytes=fs.readFileSync(path.join(folder,'artifacts',transport.pixelsSha256),'utf8');if(hash(pixelBytes)!==transport.pixelsSha256)fail('changed pixel transport');
+  const pixels=JSON.parse(pixelBytes);
+  const rebuilt=receiptFromJavaEvents({manifest,raw,pixels,identity,runId:receipt.runId,target:receipt.target,caseId:receipt.caseId});
   if(JSON.stringify(rebuilt.receipt)!==JSON.stringify(receipt))fail('receipt differs from actual Java observations');
   const key=receipt.target+':'+receipt.caseId;if(expectedIdentities[key])fail('duplicate evidence case');expectedIdentities[key]=identity;
   for(const digest of [receipt.logSha256,identity.outputSha256])artifacts[digest]=fs.readFileSync(path.join(folder,'artifacts',digest),digest===receipt.logSha256?'utf8':undefined);

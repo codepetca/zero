@@ -1,5 +1,8 @@
 package zero;
 
+import evidence.ApiLifecycleChecks;
+import evidence.ApiNative;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -12,8 +15,11 @@ public final class PaddingLauncher extends Application {
     @Override public void start(Stage unused) {
         Platform.setImplicitExit(false);
         try {
+            ApiLifecycleChecks lifecycle=new ApiLifecycleChecks();lifecycle.startChecked(unused);
+            ApiNative.resolveUi(unused);lifecycle.stopChecked();unused.close();
             verifyApp();
             verifyGameApp();
+            ApiNative.emit();
             System.out.println("ZERO_PADDING_OK defaults, settings/setup/runtime changes, validation, replacement content, fixed canvas and initial window size");
             Platform.exit();
         } catch (Throwable failure) {

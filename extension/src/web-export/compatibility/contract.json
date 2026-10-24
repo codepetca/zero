@@ -50,6 +50,7 @@
     "javafx.event.ActionEvent",
     "javafx.geometry.Insets",
     "javafx.scene.Node",
+    "javafx.scene.Scene",
     "javafx.scene.Parent",
     "javafx.scene.canvas.GraphicsContext",
     "javafx.scene.control.Button",

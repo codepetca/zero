@@ -1,5 +1,8 @@
 import evidence.ApiProof;
 import evidence.ApiSignatureChecks;
+import evidence.ApiDrawingChecks;
+import evidence.ApiLifecycleChecks;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import zero.App;
 import zero.Color;
@@ -14,6 +17,7 @@ public final class Main extends App {
     @Override public void settings() { title("Zero lifecycle evidence"); size(480,300); padding(0); }
     @Override public void setup() {
         show(new Column(8,
+            button("Check UI lifecycle",() -> new ApiLifecycleChecks().startChecked(stage)),
             button("Start game",() -> new Host().start(stage)),
             button("Fault setup",() -> new SetupFailure().start(stage)),
             button("Fault shutdown",() -> { ShutdownFailure failure=new ShutdownFailure(); failure.start(stage); failure.stop(); })));
@@ -28,10 +32,13 @@ public final class Main extends App {
     }
     private static final class Host extends GameApp {
         private int updates;
+        private Image sheet;
+        private boolean painted;
         private boolean updateFault,drawFault;
-        @Override public void settings() { title("Zero lifecycle game"); size(480,300); padding(0); }
+        @Override public void settings() { title("Zero lifecycle game"); size(960,480); padding(0); }
         @Override public void setup() {
-            ApiSignatureChecks.host(this,480,300);
+            ApiSignatureChecks.host(this,960,480);
+            sheet=loadImage("/tiles.png");
             layout().setBottom(new Column(4,
                 button("Fault update",() -> updateFault=true),
                 button("Fault draw",() -> drawFault=true),
@@ -41,7 +48,8 @@ public final class Main extends App {
         @Override public void update(double seconds) { if(updateFault)throw new IllegalStateException("Lifecycle update fault"); updates++; }
         @Override public void draw() {
             if(drawFault)throw new IllegalStateException("Lifecycle draw fault");
-            background(Color.WHITE); fill(Color.BLACK);
+            ApiDrawingChecks.paint(this,sheet,!painted); painted=true;
+            fill(Color.BLACK);
             text("Lifecycle evidence ready",10,25); text("Updates: " + updates,10,55);
             text(ApiProof.events(),-10000,-10000);
         }

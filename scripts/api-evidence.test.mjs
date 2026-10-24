@@ -55,7 +55,7 @@ test('report is useful while require-complete fails the explicit gaps',()=>{cons
 
 test('Java probes map exact declarations idempotently without claiming execution',async()=>{
  const {mapJavaProbeAssertions}=await import('./api-evidence.mjs');const input=structuredClone(manifest);mapJavaProbeAssertions(input);assert.deepEqual(mapJavaProbeAssertions(input),input);
- const mapped=input.signatures.filter(entry=>entry.evidence.native.length);assert.equal(mapped.length,91);assert.equal(input.signatures.filter(entry=>entry.evidence.browser.length).length,91);
+ const mapped=input.signatures.filter(entry=>entry.evidence.native.length);assert.equal(mapped.length,167);assert.equal(input.signatures.filter(entry=>entry.evidence.browser.length).length,167);
  assert.equal(validateEvidenceReceipts({manifest:input}).coveredTargets,0);
 });
 test('actual Java collector emits only ordered completed postconditions and refuses duplicates',t=>{
@@ -105,4 +105,19 @@ test('current receipt loading remeasures actual tool and harness bytes',async()=
   assert.equal(validateEvidenceReceipts(loadJavaEvidence(receipts,{manifest:fixture.manifest})).coveredTargets,1);
   fs.writeFileSync(tool,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest}),/stale current/);fs.writeFileSync(tool,'synthetic tool');fs.writeFileSync(harness,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest}),/stale current/);
  } finally {fs.rmSync(temporary,{recursive:true,force:true});}
+});
+test('pixel postconditions require measured channels or visible text ink',async()=>{
+ const {validatePixelObservation,validateUiObservation}=await import('./api-evidence.mjs');const observation={assertionId:'unit-pixel',specification:'pixel,10,20,0,0,255,255',data:[0,0,255,255]};assert.match(validatePixelObservation(observation.specification,observation),/255/);
+ for(const data of [[255,0,0,255],[0,0,255],[-1,0,255,255]])assert.throws(()=>validatePixelObservation(observation.specification,{...observation,data}));
+ for(const data of [[255,255,255,255],[0,0,0,0]])assert.throws(()=>validatePixelObservation('ink,0,0,1,1',{assertionId:'unit-ink',specification:'ink,0,0,1,1',data}),/no ink/);
+ assert.match(validatePixelObservation('ink,0,0,1,1',{assertionId:'unit-ink',specification:'ink,0,0,1,1',data:[0,0,255,255]}),/ink/);
+ assert.match(validateUiObservation('text,Visible',{assertionId:'unit-ui',specification:'text,Visible',data:{text:'Visible',visible:true}}),/Visible/);
+ assert.throws(()=>validateUiObservation('text,Visible',{assertionId:'unit-ui',specification:'text,Visible',data:{text:'Visible',visible:false}}),/postcondition/);
+});
+test('pending Java drawing records need exact external evidence and retain measured bytes',async()=>{
+ const {receiptFromJavaEvents,persistJavaEvidence,loadJavaEvidence}=await import('./api-evidence.mjs');const fixture=await receiptFixture(),entry=fixture.manifest.signatures[0],caseId='browser/lifecycle',link={caseId,assertionId:'unit-drawing',postcondition:'Synthetic unit-only blue witness'};entry.evidence.browser=[link];
+ const output=Buffer.from('unit-only compiled output'),identity={...fixture.receipts[0].identity,manifestSha256:hash(JSON.stringify(fixture.manifest)),outputSha256:hash(output)};
+ const specification='pixel,1,2,0,0,255,255',raw='ZERO_API_EVIDENCE_V1\nI|'+entry.id+'|'+link.assertionId+'\nP|'+entry.id+'|'+link.assertionId+'|'+link.postcondition+'|'+specification+'\nEND_ZERO_API_EVIDENCE';const pixels=[{assertionId:link.assertionId,specification,data:[0,0,255,255]}],options={manifest:fixture.manifest,raw,pixels,identity,runId:'unit-external',target:'browser',caseId};
+ assert.equal(receiptFromJavaEvents(options).receipt.outcomes.length,1);for(const alter of [copy=>copy.pixels=[],copy=>copy.pixels[0].data[0]=255,copy=>copy.pixels.push(copy.pixels[0]),copy=>copy.target='native']){const copy=structuredClone(options);alter(copy);assert.throws(()=>receiptFromJavaEvents(copy));}
+ const temporary=fs.mkdtempSync(path.join(os.tmpdir(),'zero-pixel-receipt-unit-'));try{const directory=path.join(temporary,'case');persistJavaEvidence({...options,directory,output});assert.equal(validateEvidenceReceipts(loadJavaEvidence(temporary,{manifest:fixture.manifest,checkCurrentInputs:false})).coveredTargets,1);const metadata=JSON.parse(fs.readFileSync(path.join(directory,'java-events.json'),'utf8'));fs.writeFileSync(path.join(directory,'artifacts',metadata.pixelsSha256),'[]');assert.throws(()=>loadJavaEvidence(temporary,{manifest:fixture.manifest,checkCurrentInputs:false}),/changed pixel transport/);}finally{fs.rmSync(temporary,{recursive:true,force:true});}
 });

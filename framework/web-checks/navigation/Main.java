@@ -181,13 +181,15 @@ public final class Main extends GameApp {
         show(new Column(new Label("Probe menu"), back, title));
     }
     @Override public void update(double seconds) {
+        if(mouseDown(MouseButton.PRIMARY)&&mouseX()==80&&mouseY()==80)ApiSignatureChecks.pointerHeld(this,80,80);
+        if(mousePressed(MouseButton.PRIMARY))ApiSignatureChecks.pointerPressed(this);
         keyMask = 0;
         for (int index = 0; index < arrowKeys.length; index++) {
             Key arrow = arrowKeys[index];
             if (keyDown(arrow)) keyMask |= 1 << index;
             boolean pressed = keyPressed(arrow);
             require(pressed == keyPressed(arrow), "Zero key edge queries do not consume input");
-            if (pressed) keyEdges[index]++;
+            if (pressed) { keyEdges[index]++; ApiSignatureChecks.arrows(this,index); if(index==0&&keyDown(arrow))ApiSignatureChecks.held(this); }
         }
         if (expectZero) {
             require(seconds == 0, "First returned frame must have zero seconds");

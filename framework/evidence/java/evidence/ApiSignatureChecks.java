@@ -94,7 +94,9 @@ public final class ApiSignatureChecks {
         eq("zero.Collisions#circleHitsRect(double,double,double,double,double,double,double)","collision-mixed","Circle touching the near rectangle edge collides",()->""+Collisions.circleHitsRect(0,0,1,1,-1,2,2),"true");
     }
 
+    private static final class CustomElement extends Element { CustomElement(javafx.scene.Node node) { super(node); } }
     public static void ui() {
+        eq("zero.ui.Element#<init>(javafx.scene.Node)","element-extension","Advanced constructor retains the exact supplied backing node",()->{javafx.scene.Node node=new javafx.scene.control.Label("Custom");return ""+(new CustomElement(node).fxNode()==node);},"true");
         eq("zero.ui.Label#<init>(java.lang.String)","label-construct","Constructor retains supplied label text",()->new Label("Before").getText(),"Before");
         Label label=new Label("Before");
         eq("zero.ui.Label#setText(java.lang.String)","label-change","Changing label replaces displayed text",()->{label.setText("After");return label.getText();},"After");
@@ -134,6 +136,42 @@ public final class ApiSignatureChecks {
         eq("zero.GameApp#pause()","host-pause","Pause sets explicit paused state",()->{app.pause();return ""+app.isPaused();},"true");
         eq("zero.GameApp#isPaused()","host-paused","Paused state is readable",()->""+app.isPaused(),"true");
         eq("zero.GameApp#resume()","host-resume","Resume clears explicit paused state",()->{app.resume();return ""+app.isPaused();},"false");
+    }
+
+    private static final boolean[] arrowObserved=new boolean[4];
+    private static boolean heldObserved,pointerObserved,pointerEdgeObserved;
+    public static void arrows(GameApp app,int index) {
+        if(arrowObserved[index])return;arrowObserved[index]=true;
+        if(index==0)eq("zero.Key#LEFT:zero.Key","key-constant-LEFT","LEFT constant resolves the actual dispatched arrow edge",()->""+app.keyPressed(Key.LEFT),"true");
+        if(index==1)eq("zero.Key#RIGHT:zero.Key","key-constant-RIGHT","RIGHT constant resolves the actual dispatched arrow edge",()->""+app.keyPressed(Key.RIGHT),"true");
+        if(index==2)eq("zero.Key#UP:zero.Key","key-constant-UP","UP constant resolves the actual dispatched arrow edge",()->""+app.keyPressed(Key.UP),"true");
+        if(index==3)eq("zero.Key#DOWN:zero.Key","key-constant-DOWN","DOWN constant resolves the actual dispatched arrow edge",()->""+app.keyPressed(Key.DOWN),"true");
+        if(index==0) {
+            eq("zero.GameApp#keyPressed(javafx.scene.input.KeyCode)","key-edge-fx","JavaFX left key reports the actual current frame edge",()->""+app.keyPressed(javafx.scene.input.KeyCode.LEFT),"true");
+            eq("zero.GameApp#keyPressed(zero.Key)","key-edge-zero","Zero left key observes the same non-consuming frame edge",()->""+app.keyPressed(Key.LEFT),"true");
+        }
+    }
+    public static void held(GameApp app) {
+        if(heldObserved)return;heldObserved=true;
+        eq("zero.GameApp#keyDown(javafx.scene.input.KeyCode)","key-held-fx","JavaFX left key reports a real currently held press",()->""+app.keyDown(javafx.scene.input.KeyCode.LEFT),"true");
+        eq("zero.GameApp#keyDown(zero.Key)","key-held-zero","Zero left key observes the same real held press",()->""+app.keyDown(Key.LEFT),"true");
+        eq("zero.GameApp#windowFocused()","window-focused","Canvas input is delivered by a focused live game window",()->""+app.windowFocused(),"true");
+    }
+    public static void pointerHeld(GameApp app,double x,double y) {
+        if(pointerObserved)return;pointerObserved=true;
+        eq("zero.GameApp#mouseDown(javafx.scene.input.MouseButton)","mouse-held","Primary pointer query sees an actual held canvas press",()->""+app.mouseDown(javafx.scene.input.MouseButton.PRIMARY),"true");
+        eq("zero.GameApp#mouseX()","mouse-x","Pointer X is translated into the expected canvas coordinate",()->""+app.mouseX(),""+x);
+        eq("zero.GameApp#mouseY()","mouse-y","Pointer Y is translated into the expected canvas coordinate",()->""+app.mouseY(),""+y);
+    }
+    public static void pointerPressed(GameApp app) {
+        if(pointerEdgeObserved)return;pointerEdgeObserved=true;
+        eq("zero.GameApp#mousePressed(javafx.scene.input.MouseButton)","mouse-edge","A real canvas press is latched for the current frame",()->""+app.mousePressed(javafx.scene.input.MouseButton.PRIMARY),"true");
+    }
+    public static void resources(GameApp app,Image image,String path,double width,double height) {
+        eq("zero.GameApp#loadImage(java.lang.String)","image-load-cache","Repeated image load retains app-owned bitmap identity",()->""+(app.loadImage(path)==image),"true");
+        eq("zero.GameApp#loadImageRegion(java.lang.String)","image-load-region","Full region retains cached bitmap and exact natural bounds",()->{ImageRegion r=app.loadImageRegion(path);return (r.image()==image)+","+r.width()+","+r.height();},"true,"+width+","+height);
+        eq("zero.GameApp#loadAnimation(java.lang.String,int,int,double)","image-load-animation","Loaded animations have independent explicit playback clocks",()->{SpriteAnimation first=app.loadAnimation(path,2,1,2),second=app.loadAnimation(path,2,1,2);first.update(.5);return (first.image()==image)+","+first.frameIndex()+","+second.frameIndex();},"true,1,0");
+        eq("zero.GameApp#imageRegion(javafx.scene.image.Image,double,double,double,double)","image-factory-region","Region factory retains the requested bitmap and atlas bounds",()->{ImageRegion r=app.imageRegion(image,1,0,1,1);return (r.image()==image)+","+r.x()+","+r.y()+","+r.width()+","+r.height();},"true,1.0,0.0,1.0,1.0");
     }
 
     public static void audio(App app,String resource) {

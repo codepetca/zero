@@ -54,11 +54,13 @@ public final class GameHelpersCheck extends GameApp {
                     }
                     key(canvas(), KeyEvent.KEY_PRESSED, KeyCode.SPACE);
                     key(canvas(), KeyEvent.KEY_RELEASED, KeyCode.SPACE);
-                    mouse(MouseEvent.MOUSE_PRESSED); mouse(MouseEvent.MOUSE_RELEASED);
+                    mouse(MouseEvent.MOUSE_PRESSED); ApiSignatureChecks.pointerHeld(this,10,10); mouse(MouseEvent.MOUSE_RELEASED);
                     require(!keyDown(KeyCode.SPACE) && !mouseDown(MouseButton.PRIMARY), "between-frame release state");
                     require(!keyPressed(KeyCode.SPACE) && !mousePressed(MouseButton.PRIMARY), "new edges wait for next frame");
                     phase = 1; break;
                 case 1:
+                    for(int index=0;index<4;index++)ApiSignatureChecks.arrows(this,index);
+                    ApiSignatureChecks.pointerPressed(this);
                     for (Key arrow : Key.values()) require(keyPressed(arrow) && keyPressed(arrow), "Zero arrow edge is non-consuming in update");
                     require(keyPressed(KeyCode.SPACE) && keyPressed(KeyCode.SPACE), "key edge non-consuming in update");
                     require(mousePressed(MouseButton.PRIMARY) && mousePressed(MouseButton.PRIMARY), "mouse edge non-consuming in update");
@@ -70,6 +72,7 @@ public final class GameHelpersCheck extends GameApp {
                     key(canvas(), KeyEvent.KEY_PRESSED, KeyCode.A); key(canvas(), KeyEvent.KEY_PRESSED, KeyCode.A);
                     phase = 3; break;
                 case 3:
+                    ApiSignatureChecks.held(this);
                     require(keyDown(Key.LEFT) && keyPressed(Key.LEFT) && keyPressed(Key.LEFT), "Zero held/edge overloads share existing frame ownership");
                     require(keyPressed(KeyCode.A) && keyDown(KeyCode.A), "new held press delivered in update");
                     break;
@@ -135,6 +138,7 @@ public final class GameHelpersCheck extends GameApp {
         for (int y = 0; y < 4; y++) for (int x = 0; x < 8; x++) bitmap.setRGB(x, y, y < 2 ? 0xffff0000 : 0xff0000ff);
         ImageIO.write(bitmap, "png", sheet.toFile());
         cached = loadImage("/zero/helper-sheet.png");
+        ApiSignatureChecks.resources(this,cached,"/zero/helper-sheet.png",8,4);
         require(cached == loadImage("helper-sheet.png") && cached == loadImage("/zero/../zero/helper-sheet.png"), "canonical resource aliases share bitmap");
         ImageRegion fullImage = loadImageRegion("/zero/helper-sheet.png");
         require(fullImage.x() == 0 && fullImage.y() == 0 && fullImage.width() == 8 && fullImage.height() == 4

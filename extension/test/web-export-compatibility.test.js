@@ -353,3 +353,17 @@ class Mover extends Actor {
  assert.deepEqual(contract.members.filter(name=>name.startsWith('zero.Animation')).sort(),[
   'zero.AnimationPlayback#frame()','zero.AnimationPlayback#update(double)','zero.AnimationSource#createPlayback()']);
 });
+
+test('ordinary App createScene override accepts the advertised Scene return type without widening members',async()=>{
+  let cacheRoot=path.join(os.homedir(),'.cache/zero/web-export');
+  try {await fs.access(path.join(cacheRoot,'compatibility-artifacts'));} catch (_) {cacheRoot=path.join(temporary,'cache');}
+  const source=`import zero.App;
+import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
+public class Main extends App {
+ @Override protected Scene createScene(BorderPane content) { return super.createScene(content); }
+ public static void main(String[] args) { launch(args); }
+}`;
+  assert.equal((await check({'Main.java':source},{cacheRoot,cacheOnly:true})).status,'passed');
+  await assert.rejects(check({'Main.java':source.replace('return super.createScene(content);','Scene scene=super.createScene(content); scene.getRoot(); return scene;')},{cacheRoot,cacheOnly:true}),/Unsupported browser API javafx.scene.Scene#getRoot\(\)/);
+});

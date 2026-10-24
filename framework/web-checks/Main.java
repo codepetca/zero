@@ -41,6 +41,7 @@ public final class Main extends GameApp {
         if (!invalidRgb) throw new IllegalStateException("Color.rgb must reject out-of-range channels");
         sheet = loadImage("/tiles.png");
         ApiSignatureChecks.actors(sheet,24,24);
+        ApiSignatureChecks.resources(this,sheet,"/tiles.png",24,24);
         if (sheet != loadImage("/./tiles.png")) throw new IllegalStateException("Image aliases lost cache identity");
         fullRegion = loadImageRegion("/tiles.png");
         require(fullRegion.x() == 0 && fullRegion.y() == 0 && fullRegion.width() == 24 && fullRegion.height() == 24
