@@ -140,11 +140,13 @@ dividers. Generic setup/continuation cards are omitted; specific component or
 media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover student-hosted games and reusable libraries.
 Show only the latest available release of each project. Each project occupies one
 square screenshot: the title overlays its top on a dark background and fades at
-the edge when too long. Visits and borderless stars remain visible at the bottom.
+the edge when too long. Visits stay at the bottom-left, with borderless stars
+on the same row at the right.
 The single info icon beside the title replaces the old About question mark.
 It is green when the site is reachable and yellow otherwise. Tapping
 it opens project details: description, green check or yellow warning with the
-last check, GitHub author, available version and report flag. The native popover
+last check, GitHub author and available version, with the report flag at the
+right of that same author row. The native popover
 closes with its close button, an outside tap or Escape; keyboard focus stays
 visible. Full titles remain available in the details and to assistive technology.
 Unconfirmed or unreachable

@@ -59,14 +59,15 @@
 .projectHeading .infoButton { flex: none; }
 .imageTitle > span { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .projectCard .cardFooter { align-self: end; position: relative; z-index: 2; padding: 16px 10px 8px; border-radius: 0 0 6px 6px; background: linear-gradient(transparent, rgb(0 0 0 / 88%) 16px); }
-.projectCard .feedback { margin: 0; }
+.projectCard .feedback { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; }
+.projectCard .projectActions { margin-left: auto; }
 .projectCard .siteStatus { margin: 0 0 4px; gap: 4px; font-size: 12px; line-height: 1.4; color: white; }
 .projectCard .siteStatus time { white-space: normal; }
 .projectCard .starButton { min-width: 44px; padding: 6px 8px; background: transparent; color: white; }
 .projectCard .reportLink { min-width: 32px; }
 .projectCard .metadata { font-size: 14px; line-height: 1.4; }
 .projectCard .metadata a, .projectCard .reportLink, .projectCard .feedbackError { color: white; }
-.projectCard .feedbackError { margin: 4px 0 0; font-size: 14px; }
+.projectCard .feedbackError { flex-basis: 100%; margin: 4px 0 0; font-size: 14px; }
 .projectCard .playOverlay { background: none; }
 .projectCard .playOverlay > span { background: rgb(0 0 0 / 80%); }
 .projectCard .siteStatus[data-status="reachable"] :global(.icon) { color: #4ade80; }
@@ -74,7 +75,7 @@
 
 
 .metrics { margin: 0 0 4px; color: var(--muted); font-size: 14px; line-height: 1.4; }
-.projectCard .metrics { color: white; font-size: 12px; }
+.projectCard .metrics { margin: 0; color: white; font-size: 12px; }
 
 .infoButton, .infoHeading button { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 8px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
 .infoButton[data-available="true"] { color: light-dark(#15803d, #4ade80); }
@@ -91,3 +92,6 @@
 .projectInfo .reportLink { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
 .projectInfo .siteStatus:not([data-status="reachable"]) :global(.icon) { color: light-dark(#a17a00, #facc15); }
 .projectCard .projectInfo .siteStatus[data-status="reachable"] :global(.icon) { color: light-dark(#15803d, #4ade80); }
+.detailActions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.detailActions .metadata { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.detailActions .reportLink { flex: none; margin-left: auto; }

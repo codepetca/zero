@@ -1,5 +1,12 @@
 # Verification
 
+## ZeroHub inline flag and stars — 2026-10-24
+
+Owner aligns the flag at the right of the username/version row in project
+popovers and stars at the right of visits in the compact-card footer. This is
+pure markup/CSS.177website tests, TypeScript, production build and whitespace
+pass; browser alignment, review, CI and live delivery receipts belong in .verification/zerohub-inline-actions/ and the PR handoff.
+
 ## ZeroHub title information control — 2026-10-24
 
 Owner places the single availability-colored info trigger in the old top-right
