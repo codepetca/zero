@@ -6,17 +6,35 @@ Local source fix: the Zero native task owns a separate compiler diagnostic
 collection, reset at new Run and retained after failed exit/Stop. Actual Mac UI: lesson11 Coin Main line22
 missing semicolon produced one Problem; double-click selected Ln22/Col50.
 After correction and Run, Problems cleared while status showed “App running ·
-first game frame ready”, without Stop. Final source saved; app stopped.
+first game frame ready”, without Stop. Stop separately retained the current
+failed-build error. Repeated the same failure/navigation/correction sequence via
+Tasks: Run Build Task: exactly one Zero Java compiler Problem, then No Problems
+while first-frame-ready. Final source saved; app stopped.
 The first background-matcher implementation passed this UI sequence but was
 rejected by independent review: VS Code's watching collector can clear delivered
 errors on delayed failure exit. It was replaced with explicit compiler ownership
 and delayed-failure/Stop/new-run and bounded streaming-parser regressions.
-Focused task/runtime/menu tests pass, zero skips; root checks and diff check
+Early PTY output and reconstructed configured tasks are covered by metadata
+replay/execution identity tests. Actual host testing also exposed VS Code's
+configured-matcher precedence; the retained matcher name is now inert under a
+separate owner, preserving pinned project files and the standalone inline matcher.
+39 focused task/runtime/menu tests pass, zero skips; root checks and diff check
 pass. The broader test initially exposed missing saved-check state bindings in
 the playground renderer fixture; those bindings are now supplied and it passes.
 No public Java API, WebFX output or student project build files changed. Physical
 Windows and standalone fallback task recovery were not exercised. Independent
-source review pending; no push, publication or release.
+Sol/high source review through aec1468f COMPLETE/CLEAN. Five reviewer turns
+(one initial, three targeted, one host-merge investigation), three remediation
+batches, four accepted findings fixed; effective configuration/tokens/timing
+unknown. Logs/receipt: .verification/compiler-recovery*. No framework push,
+publication or release.
+
+Connected-repository UI attempt: GitHub device code retry reached Codepet Zero's
+authorization page. User confirmed its displayed Starring permission step;
+Authorize led to sudo/passkey confirmation, which timed out. Editor sign-in was
+cancelled. No repository create/clone/commit/push or library extraction was
+completed; live transport acceptance remains unverified. No bypass, credential
+copy or alternate authentication was used.
 
 ## System editor appearance — 2026-10-22
 

@@ -1,5 +1,27 @@
 # Zero phased vision — current handoff
 
+## Mac tutorial follow-up — 2026-10-24
+
+User approved fixing compiler recovery and attempting the connected-repository
+walkthrough; publishing/releases remain separate. Local fix through aec1468f:
+native compiler diagnostics have their own owner, survive failed exit/Stop,
+reset at next Run, replay early output and follow reconstructed configured tasks.
+Legacy matcher name remains inert under its own owner so pinned task files need
+no edits. Actual Mac Run AND Tasks Run Build Task: exactly one semicolon Problem,
+source Ln22/Col50, correction then No Problems while first-frame-ready; app stopped.
+39 focused tests/root/diff checks PASS. Independent Sol/high review COMPLETE/CLEAN;
+3 remediation batches resolved4 validated findings. Five reviewer turns include
+one bounded installed-host investigation; effective config/tokens/timing unknown.
+No public Java API/WebFX/project build-file change. Physical Windows/fallback host
+not tested. Details in VERIFICATION and .verification/compiler-recovery/receipt.json.
+
+GitHub device flow reached approved Authorize, then sudo/passkey Touch ID timed
+out. Editor sign-in cancelled; no repository creation, clone, commit/push or
+library extraction accepted as verified. User approved the displayed Starring
+permission step; no completed authorization claim. Next live walkthrough needs
+successful interactive sign-in. No framework push/publication/release.
+Student copies/report: ~/Zero Projects/Student UI Walkthrough 2026-10-24/.
+
 ## Tutorial practice sharing complete locally — 2026-10-24
 
 User approved CreditsBadge practice contribution, separate practice discovery and
@@ -201,9 +223,8 @@ public template rollout, signing/installers, physical Windows and a teacher/novi
 pilot remain outside this local acceptance. Source-based Mac editor QA does not
 establish those. Standalone native physical play is not claimed; actual native
 launch/readiness/Stop and seven technical suites are the retained proof.
-One minor known UX limitation: native compiler Problems can persist during a
-corrected running task until Stop. It does not block the accepted local browser
-checking cycle, and is not live Java language-server proof.
+The former native compiler Problems persistence limitation is fixed locally in
+the Mac tutorial follow-up above. This is not live Java language-server proof.
 
 No new goal/task/automation/monitor. Code reviews, evidence production and the
 final independent evidence-integrity review are COMPLETE/CLEAN. No active worker
