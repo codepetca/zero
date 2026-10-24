@@ -11,5 +11,5 @@ export default async function Hub({searchParams}: {searchParams: Promise<Record<
   // Repeated selectors are ambiguous; never silently select the first value.
   if (['kind', 'example', 'id', 'version'].some(key => Array.isArray(query[key]))) notFound();
   if (query.example !== undefined || query.kind === 'example' || query.kind === 'all') redirect('/learn');
-  return <LearnTheme active="ZeroHub"><main id="page-content" tabIndex={-1} className={`reading ${styles.discovery}`}><div className={styles.intro}><h1>ZeroHub</h1></div><Suspense fallback={<p role="status">Loading ZeroHub…</p>}><HubDiscovery /></Suspense></main></LearnTheme>;
+  return <LearnTheme active="ZeroHub"><main id="page-content" tabIndex={-1} className={`reading ${styles.discovery}`}><Suspense fallback={<p role="status">Loading ZeroHub…</p>}><HubDiscovery /></Suspense></main></LearnTheme>;
 }

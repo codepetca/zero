@@ -1,14 +1,15 @@
-# ZeroHub share action emphasis — 2026-10-24
+# ZeroHub sidebar — 2026-10-24
 
-Owner requests a slightly more prominent Share your work action, then PR and
-merge. Use existing purple tokens for a tinted fill, border and semibold label;
-preserve compact inline placement, hit targets, search and account behavior.
+Owner requests a left sidebar for ZeroHub title, search, Share your work and
+Projects/Libraries filters, with the image-square gallery in the right pane.
+At narrow widths controls stack above the gallery. Keep the purple sharing
+emphasis, account dropdown, search/selector semantics, card details and metrics.
 
-Branch codex/zerohub-share-emphasis in the attached zerohub-interest worktree;
-base 3ebf6995. Root owns the small CSS change. Preserve the dirty primary funding
-checkout and unrelated worktrees. No new service, dependency, native release,
-publisher-pin or credential change; existing Free services remain untouched.
+Branch codex/zerohub-sidebar, base 84eec20a, attached zerohub-interest worktree.
+Root owns markup/CSS. Preserve the primary funding checkout and unrelated
+worktrees. Existing website publication authority continues; Free services,
+auth guards, publisher pins, credentials and native releases unchanged.
 
-Next: focused browser phone/desktop light/dark checks, website validation,
-one low-risk independent review, PR/CI/merge and live verification. Evidence
-stays in ignored .verification/zerohub-share-emphasis/ and the PR handoff.
+Next: website validation, browser desktop/phone light/dark/keyboard and exact
+selection checks, one independent low-risk review, PR/CI/merge/live verification.
+Evidence stays ignored in .verification/zerohub-sidebar/ and the PR handoff.
