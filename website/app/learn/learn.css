@@ -100,21 +100,6 @@ html:has(.learn-theme),
   grid-template-columns: auto minmax(0, 1fr) auto;
 }
 .learn-theme .site-header nav { justify-content: flex-end; }
-.learn-theme .theme-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: var(--zero-page);
-  color: var(--zero-text);
-  font-size: 20px;
-  cursor: pointer;
-}
-.learn-theme .theme-toggle:hover { background: var(--zero-surface); }
 
 .learn-theme .hub {
   flex: 1;
@@ -248,7 +233,6 @@ html:has(.learn-theme),
   .learn-theme .site-header { display: flex; flex-wrap: wrap; }
   .learn-theme .site-header .brand { order: 1; }
   .learn-theme .site-header .menu-toggle { order: 2; margin-left: auto; flex-shrink: 0; }
-  .learn-theme .theme-toggle { order: 3; flex-shrink: 0; }
   .learn-theme .site-header nav { order: 4; justify-content: flex-start; }
   .learn-theme .hub { padding: var(--zero-space-5) var(--zero-space-5) 36px; }
   .learn-theme .hub-columns { display: block; }

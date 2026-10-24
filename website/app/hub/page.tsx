@@ -1,7 +1,6 @@
 import {Suspense} from 'react';
 import {notFound, redirect} from 'next/navigation';
 import {HubDiscovery} from '@/components/HubDiscovery';
-import {HubAccount, HubGitHubProvider} from '@/components/HubGitHub';
 import {LearnTheme} from '@/app/learn/LearnTheme';
 import styles from './hub.module.css';
 import '../../.generated/learn-theme.css';
@@ -12,5 +11,5 @@ export default async function Hub({searchParams}: {searchParams: Promise<Record<
   // Repeated selectors are ambiguous; never silently select the first value.
   if (['kind', 'example', 'id', 'version'].some(key => Array.isArray(query[key]))) notFound();
   if (query.example !== undefined || query.kind === 'example' || query.kind === 'all') redirect('/learn');
-  return <LearnTheme active="ZeroHub"><HubGitHubProvider><main id="page-content" tabIndex={-1} className={`reading ${styles.discovery}`}><div className="intro"><h1>ZeroHub</h1><p className="fine-print">Projects are hosted by their authors and may change after sharing.</p><HubAccount /></div><Suspense fallback={<p role="status">Loading ZeroHub…</p>}><HubDiscovery /></Suspense></main></HubGitHubProvider></LearnTheme>;
+  return <LearnTheme active="ZeroHub"><main id="page-content" tabIndex={-1} className={`reading ${styles.discovery}`}><Suspense fallback={<p role="status">Loading ZeroHub…</p>}><HubDiscovery /></Suspense></main></LearnTheme>;
 }

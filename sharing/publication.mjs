@@ -4,6 +4,7 @@ import practice from '../extension/src/sharing/tutorial-practice.js';
 import { canonical, digest, releaseKey, appendAttempt } from './registry.mjs';
 import { byteHash } from './file-storage.mjs';
 import { reportAttempt } from './requests.mjs';
+import { validateAdoption } from './adoption.mjs';
 import sourceDiagnostics from '../extension/src/sharing/source-diagnostics.js';
 
 const artifactKinds = {library: ['jar', 'sources', 'pom', 'preview'], game: ['zip', 'preview']};
@@ -29,15 +30,20 @@ export class PublicationService {
     this.publishCatalog = publishCatalog;
     this.beforeAccept=beforeAccept;
   }
-  async publish({requestId, evidence, artifacts, components}) {
+  async publish({requestId, evidence, artifacts, components, adoption}) {
     const record = (await this.registry.read()).state.requests[requestId];
     if (!record) throw new Error('Unknown request');
     if (record.status === 'cancelled') throw new Error('Request cancelled');
     if (record.releaseKey) return this.deliver(record.releaseKey);
     const request = record.frozen;
+    if(adoption!==undefined){
+      if(request.kind!=='game')throw new Error('Only game publications have adoption observations');
+      adoption=validateAdoption(adoption);
+    }
     if (!evidence || evidence.status !== 'passed' || evidence.requestFingerprint !== requestId || evidence.sourceDigest !== request.sourceDigest || evidence.commit !== request.commit || evidence.policyRevision !== request.policyRevision) throw new Error('Evidence is not bound to the frozen request/source/policy');
     if (await this.verifyEvidence(evidence, structuredClone(request)) !== true) throw new Error('Trusted managed evidence verification failed');
     if (canonical(evidence.web??null)!==canonical(request.web??null))throw new Error('Web publication is not bound to trusted evidence');
+    if ((adoption===undefined?undefined:digest(adoption)) !== evidence.adoptionDigest) throw new Error('Adoption observation is not bound to trusted evidence');
     if (components && evidence.componentsDigest !== digest(components)) throw new Error('Generated component metadata is not bound to trusted evidence');
     if (!artifacts || typeof artifacts !== 'object' || Array.isArray(artifacts)) throw new Error('Trusted artifacts required');
     const ident = contracts.identity(request.kind, request.repository.id, request.slug);
@@ -80,10 +86,10 @@ export class PublicationService {
       const item = state.items[ident.id];
       if (item && !sameBinding(item, request)) throw new Error('Established owner/source binding changed; deliberate migration required');
       const existing = state.releases[key];
-      if (existing && (existing.requestId !== requestId || canonical(stableRelease(existing.release)) !== canonical(stableRelease(release)))) throw Object.assign(new Error('Immutable version conflict; use a new version'),{kind:'source-failure'});
+      if (existing && (existing.requestId !== requestId || canonical(stableRelease(existing.release)) !== canonical(stableRelease(release)) || canonical(existing.adoption??null)!==canonical(adoption??null))) throw Object.assign(new Error('Immutable version conflict; use a new version'),{kind:'source-failure'});
       if (!existing) {
         state.items[ident.id] = {kind: ident.kind, slug: ident.slug, repositoryId: request.repository.id, contributorId: request.requester.githubId, folder: request.folder};
-        state.releases[key] = {requestId, release, staged, delivery: 'pending', evidenceDigest: digest(evidence)};
+        state.releases[key] = {requestId, release, staged, delivery: 'pending', evidenceDigest: digest(evidence), ...(adoption?{adoption}:{})};
         // Reserve generated-catalog capacity for pending deliveries too. A
         // capacity failure occurs before acceptance and leaves the inbox intact.
         contracts.validateCatalog({schema: 1, revision: '0'.repeat(40), releases: Object.values(state.releases).map(value => ({...value.release,status:'withdrawn'}))}, {artifactOrigin:this.artifactOrigin});

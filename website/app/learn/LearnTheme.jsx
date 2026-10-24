@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { Icon } from "@/components/Icon";
+import { AccountMenu } from "@/components/AccountMenu";
+import { HubGitHubProvider } from "@/components/HubGitHub";
 
 const key = "zero-learn-theme";
 const choices = new Set(["system", "light", "dark"]);
@@ -51,15 +52,9 @@ export function LearnTheme({ children, active }) {
   }
 
   return (
-    <div className="learn-theme" data-theme={theme}>
-      <PageHeader active={active} actions={
-        <button type="button" className="theme-toggle" onClick={toggleTheme}
-          aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
-          title={dark ? "Switch to light mode" : "Switch to dark mode"}>
-          <Icon name={dark ? "sun" : "moon"} />
-        </button>
-      } />
+    <HubGitHubProvider><div className="learn-theme" data-theme={theme}>
+      <PageHeader active={active} actions={<AccountMenu dark={dark} onToggleTheme={toggleTheme} />} />
       {children}
-    </div>
+    </div></HubGitHubProvider>
   );
 }

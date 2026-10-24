@@ -231,7 +231,16 @@ notes and the classroom pilot live under `/teachers`. Product, development and
 verification records stay in repository documentation. Legacy `/docs/...` guide
 bookmarks lead to the corresponding tutorial, help, teacher or repository page.
 ZeroHub opens Projects by default and has only Projects and Libraries in its
-catalog navigation. Share your work is a separate button. Drawing Pad is a
+catalog navigation. A desktop sidebar contains the ZeroHub title, search field,
+Share your work and Projects/Libraries filters, in that order. The gallery sits
+in the right pane. On narrow screens the controls stack above the gallery.
+The sidebar has no vertical divider. A short tagline under the title says
+“Discover and share Java projects.” Below the buttons, a brief description
+explains browser projects, reusable libraries and sharing with Zero. Sharing
+keeps its purple-tinted fill and stronger border. Account actions stay in the
+header; search keeps its magnifying glass, accessible name and “search zerohub”
+placeholder.
+Drawing Pad is a
 maintained Codepet project backed by `codepetca/zero-drawing-pad`, shown alongside
 community projects with a tiny description, square screenshot and GitHub source.
 It has no Play action until public hosting is verified. Maintained projects do
@@ -244,25 +253,34 @@ Students build one feature at a time in their own repository; GitHub/project
 workflow is part of the learning outcome. Tutorial setup and the minimal original
 project template remain available through their setup instructions. See
 [the course project guide](COURSE-PROJECT.md).
-Tutorials and Downloads use one circular sun/moon button in the header to switch
-light/dark mode. The OS preference is the initial default; a chosen mode persists.
+The shared website header has a profile icon opening an account dropdown.
+Signed-out users can Sign in to GitHub; connected users see their username and
+Sign out without a duplicate sign-in action. Connection failures retain Retry.
+The dropdown also switches light/dark mode. The OS preference is the initial
+default; a chosen mode persists.
 These pages fill the viewport width and at least its height; longer lessons scroll.
 Downloads centers its heading and equal-width platform buttons in a vertical stack.
 A setup-help link appears below the buttons; current platform/version requirements
 appear inside that linked setup guide, keeping Downloads uncluttered;
 initial tutorial entries offer the verified empty template and a concise Setup link.
 Longer guidance in Docs explains creating and cloning the student-owned repository.
-Share your work preserves the shared theme and appearance toggle.
+Share your work preserves the shared theme and account dropdown.
 Website tutorial steps and reference sections are expanded by default; full guides remain
 available. Tutorial step headings use subtle highlights instead of horizontal
 dividers. Generic setup/continuation cards are omitted; specific component or
 media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover student-hosted games and reusable libraries.
 Show only the latest available release of each project. Each project occupies one
 square screenshot: the title overlays its top on a dark background and fades at
-the edge when too long. Stars, the report flag and author/version sit at the bottom,
-with the cached page-check time. Hover or keyboard focus reveals the description;
-the title's About button toggles it for touch and keyboard users. Full title and
-description remain available to assistive technology. Unconfirmed or unreachable
+the edge when too long. Visits stay at the bottom-left, with borderless stars
+on the same row at the right.
+The single info icon beside the title replaces the old About question mark.
+It is green when the site is reachable and yellow otherwise. Tapping
+it opens project details: description, green check or yellow warning with the
+last check, GitHub author and available version, with the report flag at the
+right of that same author row. The native popover
+closes with its close button, an outside tap or Escape; keyboard focus stays
+visible. Full titles remain available in the details and to assistive technology.
+Unconfirmed or unreachable
 previews are muted until the existing page-reachability check succeeds; this does
 not verify gameplay. The screenshot opens the hosted game in a new tab. Older
 playable releases without screenshots use a Play tile. Withdrawn images remain static.
@@ -292,12 +310,17 @@ Desktop and browser sessions do not pair or transfer credentials automatically.
 Short-lived browser sessions require reconnection after expiry. Public counts may lag; no separate vote store
 is created. Site checks show cached page reachability, not verified gameplay.
 Report a problem opens a prefilled GitHub issue for the user to review and submit.
-Project cards show a green circled check for reachable sites, a yellow warning triangle for
-unreachable sites and a question mark for an unknown check, followed by a local
-check time such as **Oct 20 · 12:56 PM**. Reporting uses a flag icon; stars show
-only a star icon and count, filled when starred. Accessible labels describe each
-control and status; an unavailable star count displays an em dash.
+Project details show a green circled check for reachable sites and a yellow
+warning for unavailable or unknown checks, followed by a local check time such
+as **Oct 20 · 12:56 PM** when known. Reporting uses a flag icon inside the details.
+Stars show a borderless star icon and count, filled when starred. Accessible
+labels describe each control and status; unavailable star counts use an em dash.
 See [ZeroHub feedback](ZEROHUB-FEEDBACK.md) for setup and limits.
+ZeroHub displays aggregate Play-link activations as visits and library adoption
+from declared dependencies in shared game snapshots. Visits include
+repeat activations; adoption counts repositories, with incomplete older coverage
+explicitly labelled. Neither measures unique people or runtime usefulness.
+See [metrics and activation](ZEROHUB-METRICS.md).
 Contribution instructions require GitHub sign-in in Zero and the same personal
 account for the browser publication form. The replacement has no reservation or
 folder-upload service. Existing kit/installer downloads have separate release records.

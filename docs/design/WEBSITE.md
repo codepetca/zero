@@ -18,8 +18,9 @@ heading, stacked Mac/Windows platform actions and a setup-help link; platform
 versions and requirements belong inside the linked setup guide. Download is a
 regular menu item.
 
-Home, Tutorials and Downloads use shared light/dark semantic tokens and a circular header
-sun/moon toggle. Default to the OS preference until a mode is chosen, then save
+The shared website header uses a profile icon with an account dropdown for
+GitHub sign-in or the connected username/Sign out, plus the light/dark toggle.
+Default to the OS preference until a mode is chosen, then save
 the choice. Header and main fill the available viewport; longer content scrolls
 normally. Keep320px reflow, contained code, mobile menu and comfortable targets.
 Keep the landing sparse. Downloads retains concise installation help and explains connecting GitHub after

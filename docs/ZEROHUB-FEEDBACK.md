@@ -4,6 +4,11 @@ ZeroHub offers repository stars, cached site checks and user-submitted issue
 reports. Browsing, playing and public counts do not require sign-in. No separate
 Zero account, votes database or background monitor is introduced.
 
+Source also includes aggregate visits (Play-link activations) and component adoption from shared
+project dependency declarations. See [metrics](ZEROHUB-METRICS.md) for coverage,
+minimal storage, optional activation and limits. These metrics do not change
+GitHub stars or require new GitHub App permissions.
+
 ## Inline stars
 
 Connect GitHub, then press Star or Starred on a card. GitHub remains the source
@@ -114,3 +119,12 @@ promised.
 Primary provider references: [GitHub App user tokens](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app)
 , [App visibility](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/making-a-github-app-public-or-private)
 and [GitHub starring API](https://docs.github.com/en/rest/activity/starring).
+
+## Compact project details
+
+Project cards keep visits and borderless stars visible. The single info icon
+beside the title replaces the old About question mark; it is
+green when the site is reachable and yellow when unavailable or unconfirmed.
+It opens a native popover containing the description, check/warning and last
+check time, GitHub author, version when available and report flag. Close it with
+its close button, an outside tap or Escape. Library cards keep their text layout.

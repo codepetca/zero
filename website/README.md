@@ -130,6 +130,16 @@ are separate. The shared preview embeds matching licensed Lucide artwork.
 
 ## Searchable API reference
 
+ZeroHub's optional [interest and adoption metrics](../docs/ZEROHUB-METRICS.md)
+reuse publication records for component counts and a small Redis REST store for
+Play opens. Vercel Marketplace's Upstash integration supplies server-only
+`KV_REST_API_URL` and `KV_REST_API_TOKEN` automatically. An explicit
+`ZERO_HUB_OPENS_REDIS_URL` / `ZERO_HUB_OPENS_REDIS_TOKEN` pair overrides them.
+Use only the Free plan with auto-upgrade and Prod Pack off. Vercel previews
+always disable this store; `ZERO_HUB_OPENS_DISABLED=1` also disables it.
+Without counters, Play and existing feedback still work.
+No analytics package or new GitHub App permission is required.
+
 `/docs` presents the complete reference (`/docs/api` redirects there), generated from maintained
 `student-template/API.md` tables. The adapter verifies all current public/protected
 declarations against source in tests. Categories, exact-name/keyword search,

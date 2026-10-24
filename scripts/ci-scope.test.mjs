@@ -42,7 +42,10 @@ test('PR diff reads actual commits with deletion/rename and fails closed on unav
   const root=mkdtempSync(path.join(os.tmpdir(),'zero-ci-scope-'));
   const git=(...args)=>{const r=spawnSync('git',args,{cwd:root,encoding:'utf8'});assert.equal(r.status,0,r.stderr);return r.stdout.trim();};
   try {
-    git('init','-q');git('config','user.name','CI fixture');git('config','user.email','ci@example.invalid');
+    git('init','-q');
+    // This disposable repository must not launch maintenance that outlives Git.
+    git('config','maintenance.auto','false');
+    git('config','user.name','CI fixture');git('config','user.email','ci@example.invalid');
     mkdirSync(path.join(root,'profile'));writeFileSync(path.join(root,'profile/Zero.code-profile'),'{}');git('add','.');git('commit','-qm','base'); const base=git('rev-parse','HEAD');
     writeFileSync(path.join(root,'AGENTS.md'),'guide');git('add','.');git('commit','-qm','guidance only');
     const scoped=scopeForEvent({pull_request:{base:{sha:base},head:{sha:git('rev-parse','HEAD')}}},root);

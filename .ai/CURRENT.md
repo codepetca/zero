@@ -1,5 +1,19 @@
 # Zero phased vision — current handoff
 
+## Active: live tutorial publication and browser sign-in — 2026-10-24
+
+User authorizes publishing all3updatedtutorial templates, activating browser
+GitHub sign-in (website/Appcallback/config), then actualMacstudentUIwalkthrough
+throughlesson11. Native releases remain separate. Preserveprimarydirtyfundingwork.
+Source47ceccc6 independentlyreviewed/verified; integratingmainbcabc1f4 toretain
+8approvedHubmetrics/sidebar/account changes. ParentownsGit/docs/integration;
+Sol/highactivation_preflight owns4conflictfiles(sharingplatform/test,HubDiscovery,
+HubNavigation). Existingpublisherpolicyrevisions/gates/configs stayunchanged;
+schema2core-dependentadmissionremainsheld. Existingserversecretsreused, no values
+read. Addproductionflag+exactAppcallback onlyafterreviewedsource ready.
+Templatecandidates/pristinedigests inignoredlive-tutorial-rollout;3PRstaged.
+SourceprofileZeroDev retained. Local release metadata remains unchanged.
+
 ## Tutorial readiness and browser sign-in complete locally — 2026-10-24
 
 User authorized readiness first, then browser-first GitHub sign-in with explicit

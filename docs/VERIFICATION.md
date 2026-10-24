@@ -98,6 +98,156 @@ Authorize led to sudo/passkey confirmation, which timed out. Editor sign-in was
 cancelled. No repository create/clone/commit/push or library extraction was
 completed; live transport acceptance remains unverified. No bypass, credential
 copy or alternate authentication was used.
+## ZeroHub sidebar introduction — 2026-10-24
+
+Removed the vertical divider, added “Discover and share Java projects.” below
+the title, and placed a short playing/libraries/sharing description below the
+buttons. Existing sidebar/gallery and mobile layout remain intact.
+
+All 177 website tests, production build (including TypeScript), root checks and
+whitespace checks pass. Chromium verifies desktop dark copy placement, 0px
+sidebar border, readable 16px tagline/14px description, no sidebar clipping, and
+320px light/dark stacking without horizontal overflow. No real auth/star/Play
+writes. Physical Safari/touch and text enlargement were not reverified.
+Review/CI/live evidence: PR handoff and ignored .verification/zerohub-sidebar-copy/.
+
+## ZeroHub sidebar layout — 2026-10-24
+
+Desktop discovery now places the title, search, purple Share action and vertical
+Projects/Libraries filters in a sticky 240px sidebar, with the gallery at right.
+At 800px and below, the controls stack above the cards. Existing card, identity,
+metrics and exact-release semantics remain intact.
+
+All 177 website tests, production build (including TypeScript), root checks and
+whitespace checks pass. Chromium production-build fixtures verify 1280px
+light/dark two-pane placement with 304px square cards; 320px/390px stacked
+controls; 801px sidebar reflow; no horizontal overflow; at least 44px controls;
+Search → Share → Projects keyboard order; search filtering, Libraries selection,
+withdrawn exact-release selection without substitution, and details/Escape focus
+restoration. No real auth, star or Play writes. Physical Safari/touch and text
+enlargement were not reverified. Review/CI/live receipts are in the PR handoff
+and ignored .verification/zerohub-sidebar/.
+
+## ZeroHub sharing action emphasis — 2026-10-24
+
+Share your work now uses the existing purple token for a tinted fill, border
+and semibold label. Hover deepens the tint; size, position and link are retained.
+All 177 website tests, production build (including TypeScript), root checks
+and whitespace checks pass. Chromium checks cover dark/light phone styling,
+320px inline reflow without overflow, 44px action height, and the existing 3px
+keyboard focus outline. Desktop uses the same treatment. No auth, star or Play
+writes were performed. Physical Safari/touch and text enlargement were not
+reverified. Review/CI/live receipts: PR handoff and ignored
+.verification/zerohub-share-emphasis/.
+
+## ZeroHub header cleanup — 2026-10-24
+
+Shared profile dropdown replaces the standalone theme button; it contains
+GitHub sign-in or username/Sign out and appearance switching. ZeroHub removes
+the subtitle/account row, reduces title spacing, aligns sharing with the filters,
+and uses an inset search icon with the “search zerohub” placeholder.
+
+All 177 website tests, TypeScript, production build, root checks and whitespace
+checks pass. Chromium production-build fixtures verify signed-out and connected
+states (no duplicate sign-in), guarded local sign-out/focus restoration,
+connection failure/Retry/focus restoration, Tab and Escape, outside dismissal,
+light/dark switching, search filtering, and 320px/390px inline toolbar reflow
+without horizontal overflow. No real account, star or Play writes were made.
+The independent review identified hidden OAuth callback failure feedback; the
+correction shares that state with the profile trigger and automatically opens
+the existing failure/sign-in content after a failed or cancelled callback.
+Physical Safari/touch, text enlargement and real OAuth were not reverified.
+Review/CI/live delivery receipts are retained in the PR handoff and ignored
+.verification/zerohub-header-cleanup/.
+
+## ZeroHub inline flag and stars — 2026-10-24
+
+Owner aligns the flag at the right of the username/version row in project
+popovers and stars at the right of visits in the compact-card footer. This is
+pure markup/CSS.177website tests, TypeScript, production build and whitespace
+pass; browser alignment, review, CI and live delivery receipts belong in .verification/zerohub-inline-actions/ and the PR handoff.
+
+## ZeroHub title information control — 2026-10-24
+
+Owner places the single availability-colored info trigger in the old top-right
+About/question-mark position. The old control showed the description; the
+replacement opens the existing full details popover. Footer retains visits and
+one borderless star control. Shared status/report/details rendering is pure,
+without mounting another authenticated feedback control in the heading.
+
+177website tests, TypeScript, production build and whitespace pass. Chromium
+checks verify top/right0px offsets, one44px info trigger per card, none in the
+footer, Play→Info→Star keyboard order, Enter/Escape focus restoration, both
+availability states and320px light/dark popover reflow with no horizontal overflow.
+The readable light status green remainsrgb(21,128,61). Physical Safari/touch and
+text enlargement are not reverified. Review/CI/live receipts and final delivery
+belong in the PR handoff and ignored .verification/zerohub-header-info/.
+
+## ZeroHub visit labels and star styling — 2026-10-24
+
+Owner follow-up changes the display to visit/visits and removes the star-control
+border/background in both library and compact project cards. The expanded request
+adds one native availability-colored info popover to each compact project card,
+containing description, status/time, author/version and report flag. Counting/storage,
+GitHub star behavior,44px targets and focus outlines remain unchanged. All177
+website tests, typecheck, production build and whitespace pass. Browser and
+independent review receipts are retained in ignored .verification/zerohub-visits/;
+Chromium desktop/320px fixture checks verify native toggling, outside dismissal,
+Escape and focus restoration, borderless44px stars and both availability colors.
+The readable light-theme status green was corrected after review; final color,
+390px and production verification remain in receipts/PR handoff. No physical
+Safari or touch-device acceptance is claimed. This follow-up changes no
+Free-plan resource or publisher source pin.
+
+## ZeroHub metrics — implementation and publication preparation, 2026-10-24
+
+Vercel-native Free setup follow-up: integration credential-pair precedence,
+partial-pair rejection, preview isolation and a disable switch pass the focused
+15-test metrics suite, all 177 website tests, typecheck and production build.
+Independent review of `230401b3` is complete with no findings. After the owner's
+terms acceptance, Vercel provisioned `zero-hub-opens` on Free with creation
+metadata autoUpgrade=false, prodPack=false and primaryRegion=iad1. The connection
+result and dashboard confirm only `zero` Production, Free/500K monthly commands
+and Available. Integration credentials are injected; their values were not
+copied or printed. Screenshots and sanitized CLI receipts are retained locally.
+No application or publisher deployment occurred. The current public site has
+not yet run the new counters, so actual application counter writes/durability
+remain unverified until separately authorized publication.
+
+The implementation adds aggregate Play opens and library adoption from accepted
+shared-game dependency declarations. All 176 website tests and 86 sharing tests pass;
+four existing Docker/managed-environment checks skip. Website typecheck and
+production build, root configuration/syntax/local-link check and whitespace
+check pass. New checks cover frozen-source extraction, immutable evidence,
+unknown historical coverage, repository deduplication, withdrawal/version
+selection, interrupted delivery/recovery, origin and input validation, atomic
+counter protocol, preview isolation, batching/cache, provider failure and labels.
+
+Controlled browser checks pass primary/middle/keyboard Play and original-URL
+navigation when the metrics POST fails; 320px light/dark reflow, library partial,
+unknown/observed-zero and usage disclosure states pass. The thirteen-library
+regression verifies lazy bounded loading after scrolling to the last card.
+Independent complete review of `67031a42` found one P2 first-twelve-only metrics bug;
+the corrected path uses visible-card batches and a 25-ID unit regression. Targeted
+Sol/high review of `76f52630` is complete with no blockers. Together with unchanged
+initial coverage this covers the final code. Review used two turns, one fix batch
+and no extra integration wave; effective model/tokens/elapsed telemetry is unknown.
+Browser fixture screenshots and action receipts are kept in ignored
+`.verification/zerohub-metrics/` and `output/playwright/`. Review verdicts are
+recorded alongside them. Fixtures do not establish hosted Redis durability,
+production counter writes or adoption rollout. No resources, credentials,
+publisher pins, student binaries, public registry entries or production website
+were changed. Physical touch/Safari/Windows/Linux are untested. The operational
+plan and compatibility rollout are in [metrics](ZEROHUB-METRICS.md).
+
+Publication compatibility at e3f3218a: full sharing90pass/4Docker-only skips and
+rootcheck pass. Two fresh independent Sol6.1/high reviewers completed the entire
+five-file delta from2dc0611e; no findings. Security reviewer ran26focused tests,
+compatibility reviewer22; both confirmed checker/verifier/workflow byte identity
+with shipped11c545. Source review is complete; actual CI/merge/deployment and live
+receipts are tracked in PR179 and ignored publication records. Review budget:
+2launches/1initial wave/0fix batches, no further wave required; effective model,
+per-turn tokens and elapsed reviewer time unavailable.
 
 ## System editor appearance — 2026-10-22
 
