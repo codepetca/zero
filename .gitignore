@@ -54,3 +54,6 @@ output/playwright/
 
 student-template/src/main/java/zero/Key.java
 student-template/src/main/java/zero/ui/Row.java
+
+# Maintainer-generated starter record; extracted student projects track theirs.
+/student-template/zero-core.json

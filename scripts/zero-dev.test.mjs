@@ -13,7 +13,7 @@ function fixture(t) {
   t.after(() => rmSync(root, {recursive:true, force:true}));
   const put = (name, content) => {const filename = path.join(root, name); mkdirSync(path.dirname(filename), {recursive:true}); writeFileSync(filename, content);};
   for (const name of ['pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE']) put(`student-template/${name}`, name);
-  for (const name of coreSources) put(`framework/src/main/java/zero/${name}`, `// local ${name}`);
+  for (const name of coreSources) put(`framework/src/main/java/zero/${name}`, readFileSync(new URL('../framework/src/main/java/zero/' + name,import.meta.url)));
   for (const name of ['Main','Player','Coin','ScoreDisplay']) put(`teaching/checkpoints/11/game/${name}.java`, `// sample ${name}\npadding(20);`);
   put('student-template/.vscode/settings.json', '{}');
   put('student-template/.vscode/tasks.json', '{"version":"2.0.0","tasks":[]}');
@@ -43,7 +43,7 @@ test('an edited generated framework copy blocks the entire refresh before any ov
   writeFileSync(path.join(game, 'src/main/java/zero/GameApp.java'), '// accidental generated edit');
   put('framework/src/main/java/zero/App.java', '// new canonical app');
   assert.throws(prepare, /Preserved edited.*GameApp.java/);
-  assert.equal(readFileSync(app, 'utf8'), '// local App.java');
+  assert.equal(readFileSync(app,'utf8'),readFileSync(new URL('../framework/src/main/java/zero/App.java',import.meta.url),'utf8'));
 });
 test('linked output directories are rejected, including the separate extension directory', t => {
   if (process.platform === 'win32') return t.skip('symlink permission varies on Windows');

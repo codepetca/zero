@@ -6,6 +6,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {prepareUiPrototypes, parseUiPrototypeArgs, selectUiPrototypes} from './prepare-ui-prototypes.mjs';
 import {verifyUiPrototypes} from './verify-ui-prototypes.mjs';
+import core from '../extension/src/core-contract.js';
 const repository = fileURLToPath(new URL('../', import.meta.url));
 const scaffold = ['pom.xml', 'mvnw', 'mvnw.cmd', 'zero.json', '.gitignore',
   '.mvn/wrapper/maven-wrapper.properties', '.mvn/wrapper/LICENSE-APACHE-2.0.txt', '.mvn/wrapper/NOTICE',
@@ -18,7 +19,7 @@ function fixture(t) {
   t.after(() => rmSync(root, {recursive:true, force:true}));
   for (const name of scaffold) put(root, 'student-template/' + name, 'fixture ' + name);
   put(root, 'LICENSE', 'fixture license');
-  for (let i=0; i<16; i++) put(root, `framework/src/main/java/zero/Helper${i}.java`, `package zero; class Helper${i} {}`);
+  for (const name of core.coreSourcePaths) put(root, 'framework/' + name, readFileSync(path.join(repository,'framework',name)));
   put(root, 'framework/prototypes/simulation/Main.java', readFileSync(path.join(repository, 'framework/prototypes/simulation/Main.java')));
   put(root, 'framework/prototypes/checks/simulation/PrototypeCheck.java', '// test harness');
   return root;
@@ -44,6 +45,7 @@ test('simulation-only assembly needs no other sources and preserves every other 
   const projects = prepareUiPrototypes(root, {only:['simulation']});
   assert.deepEqual(projects.map(project => project.id), ['simulation']);
   assert.deepEqual(projects[0].studentSources, ['Main.java']);
+  core.validateCoreRecord(JSON.parse(readFileSync(path.join(projects[0].directory,'zero-core.json'))),Object.fromEntries(core.coreSourcePaths.map(name=>[name,readFileSync(path.join(projects[0].directory,name))])));
   assert.equal(existsSync(path.join(projects[0].directory, 'src/main/java/ScoreDisplay.java')), false);
   assert.equal(readFileSync(path.join(projects[0].directory, 'src/main/java/Main.java'), 'utf8'), readFileSync(path.join(root, 'framework/prototypes/simulation/Main.java'), 'utf8'));
   for (const id of ['counter','coin-game','beginner-coin-game','actor-stress']) assert.equal(readFileSync(path.join(root, `.verification/ui-prototypes/${id}/sentinel`), 'utf8'), `keep ${id}`);

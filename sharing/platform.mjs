@@ -43,6 +43,7 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
   if(typeof libraryPublicationEnabled!=='boolean')throw new Error('Invalid library publication gate');
   const receipts=new WeakSet(), observedRepositories=new Map(), sourceCache=new Map(), publicationBudgets=new Map();
   function assertRequestPolicy(request) {
+    if(request.descriptor?.schema===2)throw sourceFailure('Core-dependent library schema 2 is not enabled for hosted preparation.');
     if(request.policyRevision!==policyRevision && !(request.kind==='game' && request.policyRevision===COMPATIBLE_GAME_REQUEST_POLICY))throw sourceFailure('Request targets a different policy revision; prepare it again');
   }
   function validationSignal(requestId){const budget=publicationBudgets.get(requestId);if(budget&&now()-budget.started>=wallBudgetMs)throw new Error('Publication wall budget exhausted before acceptance');return budget?AbortSignal.any([budget.signal,AbortSignal.timeout(sourceTimeoutMs)]):AbortSignal.timeout(sourceTimeoutMs);}

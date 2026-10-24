@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>school.zero</groupId>
   <artifactId>zero-core</artifactId>
-  <version>0.2.1</version>
+  <version>0.3.0</version>
   <name>Zero core (local development library)</name>
   <description>The existing readable App and GameApp, without student app classes.</description>
   <properties>

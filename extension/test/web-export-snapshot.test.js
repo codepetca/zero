@@ -83,3 +83,23 @@ test('standard CRLF source normalization does not allow changed resources or Git
  const git=async()=>inputs.files.map(file=>'100644 blob '+blob(file.path.endsWith('.java')?Buffer.from(file.bytes.toString().replace(/\r\n/g,'\n')):file.bytes)+'\t'+file.path+'\0').join('');
  const receipt=await assertBuildInputsAtCommit({projectRoot:f.root,result,sourceSha:'a'.repeat(40),git});assert.deepEqual(receipt.normalizedSourceLineEndings,['src/main/java/Main.java']);
 });
+
+test('profile hashes bind the central core contract even for custom engine fixtures',async t=>{
+ const f=await fixture(t),coreContractPath=path.join(path.dirname(f.engineRoot),'core-contract.js');
+ await fs.writeFile(coreContractPath,'reviewed current core');
+ const before=await buildProfileHash(f.engineRoot,{coreContractPath});
+ await fs.writeFile(coreContractPath,'changed current core');
+ assert.notEqual(await buildProfileHash(f.engineRoot,{coreContractPath}),before);
+ await fs.unlink(coreContractPath);
+ await assert.rejects(buildProfileHash(f.engineRoot,{coreContractPath}),/core contract is missing/);
+});
+
+
+test('profile binds each bounded external parser and library dependency, refusing absent inputs',async t=>{
+ const f=await fixture(t),externalRoot=path.join(path.dirname(f.engineRoot),'external');
+ const {browserExternalFiles}=require('../src/web-export/snapshot');
+ for(const name of browserExternalFiles){const file=path.join(externalRoot,name);await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,'reviewed '+name);}
+ for(const name of browserExternalFiles){const before=await buildProfileHash(f.engineRoot,{externalRoot});const file=path.join(externalRoot,name);await fs.appendFile(file,' changed');assert.notEqual(await buildProfileHash(f.engineRoot,{externalRoot}),before,name);}
+ await fs.unlink(path.join(externalRoot,'sharing/jar.js'));
+ await assert.rejects(buildProfileHash(f.engineRoot,{externalRoot}),/external dependency is missing/);
+});

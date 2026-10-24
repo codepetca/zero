@@ -1,9 +1,10 @@
 'use strict';
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const core = require('./core-contract');
 
 const PROJECT_LESSONS = new Map([['greeting','0'],['study','3'],['game','8']]);
-const PROJECT_FILES = new Set(['zero.json','.gitignore','README.md','LICENSE','pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE','.vscode/tasks.json','.vscode/settings.json','src/main/java/Main.java','src/main/java/zero/App.java','src/main/java/zero/GameApp.java','src/main/java/zero/Actor.java','src/main/java/zero/ImageRegion.java','src/main/java/zero/SpriteAnimation.java','src/main/java/zero/Collisions.java','src/main/java/zero/Sound.java','src/main/java/zero/Music.java','src/main/java/zero/Color.java','src/main/java/zero/Key.java','src/main/java/zero/ui/Element.java','src/main/java/zero/ui/Label.java','src/main/java/zero/ui/Button.java','src/main/java/zero/ui/Column.java','src/main/java/zero/ui/Row.java','src/main/java/zero/ui/TextField.java']);
+const PROJECT_FILES = new Set(['zero-core.json','zero.json','.gitignore','README.md','LICENSE','pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE','.vscode/tasks.json','.vscode/settings.json','src/main/java/Main.java','src/main/java/zero/App.java','src/main/java/zero/GameApp.java','src/main/java/zero/Actor.java','src/main/java/zero/ImageRegion.java','src/main/java/zero/SpriteAnimation.java','src/main/java/zero/Collisions.java','src/main/java/zero/Sound.java','src/main/java/zero/Music.java','src/main/java/zero/Color.java','src/main/java/zero/Key.java','src/main/java/zero/ui/Element.java','src/main/java/zero/ui/Label.java','src/main/java/zero/ui/Button.java','src/main/java/zero/ui/Column.java','src/main/java/zero/ui/Row.java','src/main/java/zero/ui/TextField.java']);
 const LOCAL_MESSAGE = 'This is local lesson practice. Create your own separate student project before using GitHub or sharing.';
 const isRecord = value => value && typeof value === 'object' && !Array.isArray(value);
 const MAX_FILES = 500, MAX_PROJECT_BYTES = 4 * 1024 * 1024, MAX_BUNDLE_BYTES = 32 * 1024 * 1024;
@@ -66,6 +67,10 @@ function validateBundle(bundle) {
       if (file.path === '.vscode/settings.json') {if (JSON.parse(content.toString('utf8'))['git.enabled'] !== true) throw new Error('The tutorial bundle must enable Git.'); settings = true;}
       return {path:file.path,content,mode:file.mode};
     });
+    const coreFile = validated.find(file => file.path === 'zero-core.json');
+    if (!coreFile) throw new Error('The lesson bundle is missing its core record.');
+    core.validateCoreRecord(JSON.parse(core.normalizeSource(coreFile.content)),Object.fromEntries(
+      validated.filter(file => core.coreSourcePaths.includes(file.path)).map(file => [file.path,file.content])));
     if (!marker || !ignored || !settings) throw new Error('The lesson bundle is missing tutorial repository setup.');
     return {id:project.id,title:project.title,folder:project.folder,lesson:project.lesson,template,files:validated};
   });

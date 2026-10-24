@@ -126,3 +126,32 @@ Requests immutable fingerprints; attempts/release ledger durable. Failed source
 can be corrected before acceptance. Stage/hash, CAS-accept version as delivery-pending,
 finalize standard paths, delivery-ready, catalog. Accepted versions never change
 source. Reconciliation uses requests, not Actions queues. No binary report copies.
+
+## Unreleased core-dependent library contract (local preparation only)
+
+Schema-1 descriptors/releases retain their existing fields and reject core fields.
+Schema-2 is library-only. A descriptor requires
+`coreRequirement: {minVersion:"0.3.0",maxExclusive:"0.4.0"}` and
+`coreInput: {version:"0.3.0",sourceSha256:<64hex>}`. Versions are exact; the range
+stays inside one 0.x minor line and its exclusive upper bound is the next minor
+at patch zero. The selected input version must satisfy that range. Authored input
+identifies source; it does not establish a successful build.
+
+A schema-2 release instead requires the copied `coreRequirement` and checker-owned
+`coreBuild: {version,sourceSha256,jarSha256,buildRecipeSha256,javaRelease:"17",
+javafxVersion:"21.0.12"}`. Its version must satisfy the same range. These hashes
+are provenance produced from actual reviewed builds; validating their shape does
+not authenticate them. Request/catalog envelopes remain schema1 and validate
+nested schema2 libraries. Games remain schema1. Current hosted preparation
+explicitly rejects schema2 libraries; this local schema change activates no
+hosted checker or publication path.
+
+Current unreleased core is `school.zero:zero-core:0.3.0`. Generated projects carry
+tracked root `zero-core.json` schema1 with its coordinate, Java/JavaFX pins, sorted
+`{path:"src/main/java/zero/...",sha256}` entries and `sourceSha256` (SHA256 of
+compact JSON for that sorted array). Hash UTF-8 source after CRLF→LF only; reject
+invalid UTF-8, BOM and lone CR. Validation recomputes all16 reviewed source hashes
+from included bytes. The record alone is never authority. Assemblers write it
+from exactly their included sources; editor updates do not migrate old projects.
+Legacy libraries without a core requirement need no core record. Contributions
+must not bundle canonical core classes. No public release is implied by0.3.0.

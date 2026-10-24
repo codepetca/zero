@@ -9,6 +9,7 @@ import {starterMembers, setupMembers, setupFiles, setupRequirements} from './kit
 import {root, releaseDefinition} from './release.mjs';
 import {extractProject, maven} from './verification-project.mjs';
 
+const canonical = name => readFileSync(path.join(root,'framework/src/main/java/zero',name),'utf8');
 test('setup archive contains only launchers, guidance and version-bound metadata with executable shell files', () => {
   const fixture = mkdtempSync(path.join(tmpdir(), 'zero-setup-kit-'));
   try {
@@ -49,24 +50,24 @@ test('starter preparation refreshes generated source and preserves edited copies
     for (const name of coreSources) {
       const source = path.join(fixture, 'framework/src/main/java/zero', name);
       mkdirSync(path.dirname(source), {recursive:true});
-      writeFileSync(source, `original ${name}`);
+      writeFileSync(source, canonical(name));
     }
     prepareStarter(fixture);
     assert.deepEqual(readFileSync(path.join(fixture, 'student-template/LICENSE')), readFileSync(path.join(root, 'LICENSE')));
     const generated = name => path.join(fixture, 'student-template/src/main/java/zero', name);
-    writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), 'canonical update');
+    writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), canonical('App.java').replace(/\n/g,'\r\n'));
     prepareStarter(fixture);
-    assert.equal(readFileSync(generated('App.java'), 'utf8'), 'canonical update');
+    assert.equal(readFileSync(generated('App.java'), 'utf8'), canonical('App.java').replace(/\n/g,'\r\n'));
     writeFileSync(generated('GameApp.java'), 'valuable student edit');
-    writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), 'next update');
+    writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), canonical('App.java').replace(/\n/g,'\r\n'));
     assert.throws(() => prepareStarter(fixture), /Preserved edited starter source/);
     assert.equal(readFileSync(generated('GameApp.java'), 'utf8'), 'valuable student edit');
-    assert.equal(readFileSync(generated('App.java'), 'utf8'), 'canonical update');
-    writeFileSync(generated('GameApp.java'), `original GameApp.java`);
+    assert.equal(readFileSync(generated('App.java'), 'utf8'), canonical('App.java').replace(/\n/g,'\r\n'));
+    writeFileSync(generated('GameApp.java'), canonical('GameApp.java'));
     writeFileSync(path.join(fixture, 'student-template/LICENSE'), 'retained license edit');
     assert.throws(() => prepareStarter(fixture), /Preserved edited starter source/);
     assert.equal(readFileSync(path.join(fixture, 'student-template/LICENSE'), 'utf8'), 'retained license edit');
-    assert.equal(readFileSync(generated('App.java'), 'utf8'), 'canonical update');
+    assert.equal(readFileSync(generated('App.java'), 'utf8'), canonical('App.java').replace(/\n/g,'\r\n'));
   } finally {rmSync(fixture, {recursive:true, force:true});}
 });
 
@@ -78,7 +79,7 @@ test('starter preparation retires unchanged managed sources and preserves edited
     for (const name of coreSources) {
       const source = path.join(fixture, 'framework/src/main/java/zero', name);
       mkdirSync(path.dirname(source), {recursive:true});
-      writeFileSync(source, `original ${name}`);
+      writeFileSync(source, canonical(name));
     }
     prepareStarter(fixture);
     const statePath = path.join(fixture, '.verification/starter-source.json');
@@ -87,34 +88,34 @@ test('starter preparation retires unchanged managed sources and preserves edited
     for (const name of retiredNames) state[name] = state['App.java'];
     writeFileSync(statePath, JSON.stringify(state));
     const generated = name => path.join(fixture, 'student-template/src/main/java/zero', name);
-    writeFileSync(generated('RetiredApp.java'), 'original App.java');
-    writeFileSync(generated('ui/RetiredView.java'), 'original App.java');
+    writeFileSync(generated('RetiredApp.java'), canonical('App.java'));
+    writeFileSync(generated('ui/RetiredView.java'), canonical('App.java'));
     writeFileSync(generated('SimpleApp.java'), 'valuable second retired edit');
     writeFileSync(generated('SketchApp.java'), 'valuable student edit');
-    writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), 'next update');
+    writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), canonical('App.java').replace(/\n/g,'\r\n'));
     assert.throws(() => prepareStarter(fixture), /Preserved edited retired starter source/);
     assert.equal(readFileSync(generated('SketchApp.java'), 'utf8'), 'valuable student edit');
-    assert.equal(readFileSync(generated('RetiredApp.java'), 'utf8'), 'original App.java');
-    assert.equal(readFileSync(generated('App.java'), 'utf8'), 'original App.java');
+    assert.equal(readFileSync(generated('RetiredApp.java'), 'utf8'), canonical('App.java'));
+    assert.equal(readFileSync(generated('App.java'), 'utf8'), canonical('App.java'));
     assert.deepEqual(JSON.parse(readFileSync(statePath, 'utf8')), state);
-    writeFileSync(generated('SketchApp.java'), 'original App.java');
+    writeFileSync(generated('SketchApp.java'), canonical('App.java'));
     assert.throws(() => prepareStarter(fixture), /Preserved edited retired starter source/);
     assert.equal(readFileSync(generated('SimpleApp.java'), 'utf8'), 'valuable second retired edit');
-    assert.equal(readFileSync(generated('App.java'), 'utf8'), 'original App.java');
+    assert.equal(readFileSync(generated('App.java'), 'utf8'), canonical('App.java'));
     assert.deepEqual(JSON.parse(readFileSync(statePath, 'utf8')), state);
-    writeFileSync(generated('SimpleApp.java'), 'original App.java');
+    writeFileSync(generated('SimpleApp.java'), canonical('App.java'));
     // A current-source failure must also prevent retiring otherwise owned files.
     writeFileSync(generated('GameApp.java'), 'valuable current edit');
     assert.throws(() => prepareStarter(fixture), /Preserved edited starter source/);
     for (const name of retiredNames) assert.equal(existsSync(generated(name)), true);
     assert.deepEqual(JSON.parse(readFileSync(statePath, 'utf8')), state);
-    writeFileSync(generated('GameApp.java'), 'original GameApp.java');
+    writeFileSync(generated('GameApp.java'), canonical('GameApp.java'));
     prepareStarter(fixture);
     for (const name of retiredNames) assert.equal(existsSync(generated(name)), false);
-    assert.equal(readFileSync(generated('App.java'), 'utf8'), 'next update');
+    assert.equal(readFileSync(generated('App.java'), 'utf8'), canonical('App.java').replace(/\n/g,'\r\n'));
     const updated = JSON.parse(readFileSync(statePath, 'utf8'));
     for (const name of retiredNames) assert.equal(Object.hasOwn(updated, name), false);
-    assert.deepEqual(Object.keys(updated).sort(), [...coreSources, 'LICENSE'].sort());
+    assert.deepEqual(Object.keys(updated).sort(), [...coreSources, 'LICENSE', 'zero-core.json'].sort());
   } finally {rmSync(fixture, {recursive:true, force:true});}
 });
 
@@ -126,7 +127,7 @@ test('starter preparation preserves unrecorded retired files and retired symlink
     for (const name of coreSources) {
       const source = path.join(fixture, 'framework/src/main/java/zero', name);
       mkdirSync(path.dirname(source), {recursive:true});
-      writeFileSync(source, `original ${name}`);
+      writeFileSync(source, canonical(name));
     }
     const generated = path.join(fixture, 'student-template/src/main/java/zero');
     mkdirSync(generated, {recursive:true});
@@ -163,7 +164,7 @@ test('starter preparation rejects linked current files and output directories be
       for (const name of coreSources) {
       const source = path.join(fixture, 'framework/src/main/java/zero', name);
       mkdirSync(path.dirname(source), {recursive:true});
-      writeFileSync(source, `original ${name}`);
+      writeFileSync(source, canonical(name));
     }
       prepareStarter(fixture);
       const statePath = path.join(fixture, '.verification/starter-source.json');
@@ -172,8 +173,8 @@ test('starter preparation rejects linked current files and output directories be
       const stateBytes = JSON.stringify(state);
       writeFileSync(statePath, stateBytes);
       const generated = path.join(fixture, 'student-template/src/main/java/zero');
-      writeFileSync(path.join(generated, 'SimpleApp.java'), 'original App.java');
-      writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), 'canonical update');
+      writeFileSync(path.join(generated, 'SimpleApp.java'), canonical('App.java'));
+      writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), canonical('App.java').replace(/\n/g,'\r\n'));
       const backup = path.join(fixture, 'valuable-backup');
       let linked, target, preservedDirectory = generated;
       if (mode === 'directory-link') {
@@ -189,8 +190,8 @@ test('starter preparation rejects linked current files and output directories be
       assert.throws(() => prepareStarter(fixture), /Expected ordinary generated (?:source|directory)/, mode);
       assert.equal(lstatSync(linked).isSymbolicLink(), true);
       assert.equal(readlinkSync(linked), target);
-      assert.equal(readFileSync(path.join(preservedDirectory, 'SimpleApp.java'), 'utf8'), 'original App.java');
-      assert.equal(readFileSync(path.join(preservedDirectory, 'GameApp.java'), 'utf8'), 'original GameApp.java');
+      assert.equal(readFileSync(path.join(preservedDirectory, 'SimpleApp.java'), 'utf8'), canonical('App.java'));
+      assert.equal(readFileSync(path.join(preservedDirectory, 'GameApp.java'), 'utf8'), canonical('GameApp.java'));
       assert.equal(readFileSync(statePath, 'utf8'), stateBytes);
       if (mode === 'current-link') assert.equal(readFileSync(backup, 'utf8'), 'valuable external source');
       if (mode === 'dangling-current-link') assert.equal(existsSync(path.dirname(target)), false);
@@ -207,7 +208,7 @@ test('starter preparation rejects linked ownership state paths before changing a
       for (const name of coreSources) {
       const source = path.join(fixture, 'framework/src/main/java/zero', name);
       mkdirSync(path.dirname(source), {recursive:true});
-      writeFileSync(source, `original ${name}`);
+      writeFileSync(source, canonical(name));
     }
       prepareStarter(fixture);
       const statePath = path.join(fixture, '.verification/starter-source.json');
@@ -216,8 +217,8 @@ test('starter preparation rejects linked ownership state paths before changing a
       const stateBytes = JSON.stringify(state);
       writeFileSync(statePath, stateBytes);
       const generated = path.join(fixture, 'student-template/src/main/java/zero');
-      writeFileSync(path.join(generated, 'SimpleApp.java'), 'original App.java');
-      writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), 'canonical update');
+      writeFileSync(path.join(generated, 'SimpleApp.java'), canonical('App.java'));
+      writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), canonical('App.java').replace(/\n/g,'\r\n'));
       const backup = path.join(fixture, 'state-backup');
       let linked = statePath, target = backup, preservedState = backup;
       if (mode === 'state-directory-link') {
@@ -233,8 +234,8 @@ test('starter preparation rejects linked ownership state paths before changing a
       assert.equal(lstatSync(linked).isSymbolicLink(), true);
       assert.equal(readlinkSync(linked), target);
       assert.equal(readFileSync(preservedState, 'utf8'), stateBytes);
-      assert.equal(readFileSync(path.join(generated, 'SimpleApp.java'), 'utf8'), 'original App.java');
-      for (const name of coreSources) assert.equal(readFileSync(path.join(generated, name), 'utf8'), `original ${name}`);
+      assert.equal(readFileSync(path.join(generated, 'SimpleApp.java'), 'utf8'), canonical('App.java'));
+      for (const name of coreSources) assert.equal(readFileSync(path.join(generated, name), 'utf8'), canonical(name));
       if (mode === 'dangling-state-link') assert.equal(existsSync(target), false);
     } finally {rmSync(fixture, {recursive:true, force:true});}
   }
@@ -285,7 +286,7 @@ test('nested starter sources preserve edits, ownership and linked package direct
     for (const name of coreSources) {
       const source = path.join(fixture, 'framework/src/main/java/zero', name);
       mkdirSync(path.dirname(source), {recursive:true});
-      writeFileSync(source, `original ${name}`);
+      writeFileSync(source, canonical(name));
     }
     prepareStarter(fixture);
     const generated = name => path.join(fixture, 'student-template/src/main/java/zero', name);
@@ -293,18 +294,32 @@ test('nested starter sources preserve edits, ownership and linked package direct
     const state = readFileSync(statePath, 'utf8');
     assert.ok(Object.hasOwn(JSON.parse(state), 'ui/Label.java'));
     writeFileSync(generated('ui/Label.java'), 'valuable nested edit');
-    writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), 'next update');
+    writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), canonical('App.java').replace(/\n/g,'\r\n'));
     assert.throws(() => prepareStarter(fixture), /Preserved edited starter source/);
     assert.equal(readFileSync(generated('ui/Label.java'), 'utf8'), 'valuable nested edit');
-    assert.equal(readFileSync(generated('App.java'), 'utf8'), 'original App.java');
+    assert.equal(readFileSync(generated('App.java'), 'utf8'), canonical('App.java'));
     assert.equal(readFileSync(statePath, 'utf8'), state);
-    writeFileSync(generated('ui/Label.java'), 'original ui/Label.java');
+    writeFileSync(generated('ui/Label.java'), canonical('ui/Label.java'));
     const backup = path.join(fixture, 'valuable-ui');
     renameSync(generated('ui'), backup);
     symlinkSync(backup, generated('ui'));
     assert.throws(() => prepareStarter(fixture), /Expected ordinary generated directory/);
-    assert.equal(readFileSync(path.join(backup, 'Label.java'), 'utf8'), 'original ui/Label.java');
-    assert.equal(readFileSync(generated('App.java'), 'utf8'), 'original App.java');
+    assert.equal(readFileSync(path.join(backup, 'Label.java'), 'utf8'), canonical('ui/Label.java'));
+    assert.equal(readFileSync(generated('App.java'), 'utf8'), canonical('App.java'));
     assert.equal(readFileSync(statePath, 'utf8'), state);
   } finally {rmSync(fixture, {recursive:true, force:true});}
+});
+
+test('edited generated core record blocks starter refresh before source or ownership writes',()=>{
+ const fixture=mkdtempSync(path.join(tmpdir(),'zero-core-record-drift-'));
+ try {
+  for(const name of coreSources){const file=path.join(fixture,'framework/src/main/java/zero',name);mkdirSync(path.dirname(file),{recursive:true});writeFileSync(file,canonical(name));}
+  writeFileSync(path.join(fixture,'LICENSE'),'license');prepareStarter(fixture);
+  const manifest=path.join(fixture,'student-template/zero-core.json'),state=path.join(fixture,'.verification/starter-source.json');
+  const before=readFileSync(state);writeFileSync(manifest,'valuable user edit');
+  writeFileSync(path.join(fixture,'framework/src/main/java/zero/App.java'),canonical('App.java').replace(/\n/g,'\r\n'));
+  assert.throws(()=>prepareStarter(fixture),/Preserved edited starter source/);
+  assert.equal(readFileSync(manifest,'utf8'),'valuable user edit');assert.deepEqual(readFileSync(state),before);
+  assert.equal(readFileSync(path.join(fixture,'student-template/src/main/java/zero/App.java'),'utf8'),canonical('App.java'));
+ } finally {rmSync(fixture,{recursive:true,force:true});}
 });

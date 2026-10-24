@@ -1,4 +1,5 @@
 import test from "node:test";
+import core from "../../extension/src/core-contract.js";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { chmod, lstat, mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from "node:fs/promises";
@@ -13,7 +14,7 @@ import { buildCourseStarter, buildExampleProject, prepareExampleProjects } from 
 import { templateDefinitions, templateDefinition, validatePublishedTemplates } from "../lib/project-templates.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
-const coreNames = ["App", "GameApp", "Actor", "ImageRegion", "SpriteAnimation", "Collisions", "Sound", "Music", "Color", "ui/Element", "ui/Label", "ui/Button", "ui/Column"];
+const coreNames = ["App", "GameApp", "Actor", "ImageRegion", "SpriteAnimation", "Collisions", "Sound", "Music", "Color", "Key", "ui/Element", "ui/Label", "ui/Button", "ui/Column", "ui/Row", "ui/TextField"];
 const corePaths = coreNames.map(name => `src/main/java/zero/${name}.java`);
 const scaffolding = ["pom.xml", "mvnw", "mvnw.cmd", ".mvn/wrapper/maven-wrapper.properties", ".mvn/wrapper/LICENSE-APACHE-2.0.txt", ".mvn/wrapper/NOTICE", ".vscode/tasks.json", ".vscode/extensions.json", ".gitignore"];
 
@@ -45,9 +46,10 @@ test("all 26 complete projects preserve exact manifest sources and resources, wi
     const project = await buildExampleProject({ root, example });
     const inspected = archivePolicy.inspectGamePackage(project.bytes);
     const files = new Map(inspected.map(file => [file.path, file]));
-    const expected = ["LICENSE", "README.md", "zero.json", ...scaffolding, ...corePaths,
+    const expected = ["LICENSE", "README.md", "zero.json", "zero-core.json", ...scaffolding, ...corePaths,
       ...example.files.map(file => `src/main/java/${path.posix.basename(file)}`), ...(example.resources ?? []).map(resource => resource.destination)].sort();
     assert.deepEqual([...files.keys()], expected, example.id);
+    core.validateCoreRecord(JSON.parse(files.get('zero-core.json').data),Object.fromEntries(core.coreSourcePaths.map(name=>[name,files.get(name).data])));
     for (const file of example.files) {
       assert.deepEqual(files.get(`src/main/java/${path.posix.basename(file)}`).data, await readFile(path.join(root, "student-template/examples", file)), `${example.id}: ${file}`);
     }
@@ -204,7 +206,7 @@ test("course starter contains canonical Main, shared scaffold and framework only
   }
   const project = await buildCourseStarter({ root: directory });
   const files = new Map(archivePolicy.inspectGamePackage(project.bytes).map(file => [file.path, file]));
-  assert.deepEqual([...files.keys()], ["LICENSE", "README.md", "zero.json", ...scaffolding,
+  assert.deepEqual([...files.keys()], ["LICENSE", "README.md", "zero.json", "zero-core.json", ...scaffolding,
     "src/main/java/Main.java", ...corePaths].sort());
   const sources = [
     ["src/main/java/Main.java", "student-template/src/main/java/Main.java"],

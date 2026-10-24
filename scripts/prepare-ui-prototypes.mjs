@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 import {chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync} from 'node:fs';
 import path from 'node:path';
+import core from '../extension/src/core-contract.js';
 import {fileURLToPath} from 'node:url';
 
 const repository = fileURLToPath(new URL('../', import.meta.url));
@@ -59,6 +60,7 @@ export function prepareUiPrototypes(root = repository, {only} = {}) {
     const entries = Object.fromEntries(scaffold.map(name => [name, readFileSync(path.join(root, 'student-template', name))]));
     entries.LICENSE = readFileSync(path.join(root, 'LICENSE'));
     for (const name of helpers) entries[`src/main/java/${name}`] = readFileSync(path.join(framework, name));
+    entries['zero-core.json'] = Buffer.from(JSON.stringify(core.makeCoreRecord(Object.fromEntries(core.coreSourcePaths.map(name => [name,entries[name]]))),null,2) + '\n');
     const standalone = id === 'beginner-coin-game' || id === 'actor-stress' || id === 'simulation';
     const studentSources = standalone ? javaFiles(path.join(root, 'framework/prototypes', id))
       : [...javaFiles(path.join(root, 'framework/prototypes', id)), ...Object.keys(shared)];

@@ -10,11 +10,16 @@ const lessons = require('../src/lesson-projects');
 const core = require('../src/core');
 const github = require('../src/github');
 const workflow = require('../src/workflow');
+const coreContract = require('../src/core-contract');
+const sourceFiles = Object.fromEntries(coreContract.coreSourcePaths.map(name => [name,require('node:fs').readFileSync(path.resolve(__dirname,'../../framework',name))]));
+const coreFiles = [...Object.entries(sourceFiles).map(([name,content])=>({path:name,content:content.toString('base64'),mode:420})),
+  {path:'zero-core.json',content:Buffer.from(JSON.stringify(coreContract.makeCoreRecord(sourceFiles))).toString('base64'),mode:420}];
 const sample = () => ({schema:2,projects:[['greeting','0','Greeting app'],['study','3','Study quiz'],['game','8','Coin game']].map(([id,lesson,title])=>({id,lesson,title,folder:`zero-project-${id}`,template:null,files:[
   {path:'zero.json',content:Buffer.from(JSON.stringify({name:id,templateVersion:'0.1.0',mainClass:'Main',repositoryRequired:true,tutorialProjectId:id,lessonId:lesson})).toString('base64'),mode:420},
   {path:'.gitignore',content:Buffer.from('target/\n').toString('base64'),mode:420},
   {path:'.vscode/settings.json',content:Buffer.from('{"git.enabled":true}').toString('base64'),mode:420},
-  {path:'src/main/java/Main.java',content:Buffer.from('class Main {}\n').toString('base64'),mode:420}
+  {path:'src/main/java/Main.java',content:Buffer.from('class Main {}\n').toString('base64'),mode:420},
+  ...coreFiles.map(file=>({...file}))
 ]}))});
 async function temporary(t){const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-lessons-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));return root;}
 test('bundle validation rejects traversal, bad base64, duplicate paths and false practice marker', () => {
@@ -143,4 +148,13 @@ test('Start project cancels cleanly and creates only from verified tutorial meta
   assert.ok(authCalls.every(call=>call.provider==='zero-github'&&call.scopes.length===0&&call.options.silent),'Activation and captured App sessions stay silent when already connected');
   bundle.projects[0].template.templateHref='https://github.com/attacker/template/generate';await fs.writeFile(bundlePath,JSON.stringify(bundle));
   await commands.get('zero.startProject')();assert.match(errors.at(-1),/invalid published template metadata/);assert.equal(creates.length,1);assert.equal(clones.length,1);
+});
+
+test('lesson core record is required and bound to the actual included helper bytes',()=>{
+ const missing=sample();missing.projects[0].files=missing.projects[0].files.filter(file=>file.path!=='zero-core.json');
+ assert.throws(()=>lessons.validateBundle(missing),/core record/);
+ const drift=sample(),file=drift.projects[0].files.find(file=>file.path===coreContract.coreSourcePaths[0]);file.content=Buffer.from('changed').toString('base64');
+ assert.throws(()=>lessons.validateBundle(drift),/differs/);
+ const forged=sample(),manifest=forged.projects[0].files.find(file=>file.path==='zero-core.json');const value=JSON.parse(Buffer.from(manifest.content,'base64'));value.sourceSha256='a'.repeat(64);manifest.content=Buffer.from(JSON.stringify(value)).toString('base64');
+ assert.throws(()=>lessons.validateBundle(forged),/mismatched/);
 });

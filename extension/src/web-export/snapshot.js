@@ -70,7 +70,19 @@ async function captureBuildInputs(projectRoot) {
   }
   return {files,sourceHash:digest(files),libraries};
 }
-async function buildProfileHash(engineRoot=__dirname) {return digest(await tree(engineRoot));}
+const browserExternalFiles=Object.freeze(['core-contract.js','project-pom.js','sharing/contracts.js','sharing/authoring.js','sharing/consumer.js','sharing/jar.js','sharing/configuration.js']);
+async function buildProfileHash(engineRoot=__dirname,{externalRoot=path.resolve(__dirname,'..'),coreContractPath=path.join(externalRoot,'core-contract.js')}={}) {
+  const files=await tree(engineRoot);
+  for(const name of browserExternalFiles) {
+    const file=name==='core-contract.js'?coreContractPath:path.join(externalRoot,...name.split('/'));
+    await safePath(file);
+    let bytes;try {const stat=await fs.lstat(file);if(!stat.isFile())throw new Error('not a file');bytes=await fs.readFile(file);}
+    catch {throw new Error('Browser compiler ' + (name==='core-contract.js'?'core contract':'external dependency') + ' is missing or unreadable: ' + file);}
+    files.push({path:'@extension-src/'+name,bytes});
+  }
+  return digest(files);
+}
+
 function validRelative(value) {return typeof value==='string'&&value!==''&&!value.includes('\\')&&!value.includes('\0')&&!path.posix.isAbsolute(value)&&value.split('/').every(p=>p&&p!=='.'&&p!=='..');}
 function inventoryMatches(files,expected) {
   if(!Array.isArray(expected)||files.length!==expected.length)return false;
@@ -150,4 +162,4 @@ async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git=requi
   if((await captureBuildInputs(projectRoot)).sourceHash!==inputs.sourceHash)throw new Error('The project changed while checking its uploaded source. Choose Export for web or Publish app again.');
   return {sourceSha,sourceHash:result.sourceHash,inputCount:inputs.files.length,normalizedSourceLineEndings:normalized};
 }
-module.exports={captureBuildInputs,buildProfileHash,boundSourceHash,validateExport,ensureValidatedExport,assertBuildInputsAtCommit,_test:{digest,inventoryMatches,tree}};
+module.exports={browserExternalFiles,captureBuildInputs,buildProfileHash,boundSourceHash,validateExport,ensureValidatedExport,assertBuildInputsAtCommit,_test:{digest,inventoryMatches,tree}};

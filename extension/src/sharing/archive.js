@@ -17,7 +17,7 @@ const TRUSTED_WRAPPER_HASHES = Object.freeze({
   'mvnw.cmd':'46eedb8419bd14fe70d5bb2916d7b6f51806e51b39d5b76a42610384ca929c1c',
   '.mvn/wrapper/maven-wrapper.properties':'bb0b8f16b2661c3676ed5a6a15f5b11d864460c4e77cfb50c583f54708f944e7'
 });
-const fixed = new Set([...required,'.gitignore','zero-game.json','zero-libraries.json','README.md','LICENSE','LICENSE.md','NOTICE','preview.png','.vscode/tasks.json','.vscode/extensions.json','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE']);
+const fixed = new Set([...required,'zero-core.json','.gitignore','zero-game.json','zero-libraries.json','README.md','LICENSE','LICENSE.md','NOTICE','preview.png','.vscode/tasks.json','.vscode/extensions.json','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE']);
 const resourceExtensions = /\.(png|jpe?g|gif|webp|wav|mp3|ogg|txt|json|csv|properties|xml|fxml|css|ttf|otf|md)$/i;
 function safeGamePath(value) {
   if (typeof value !== 'string' || value.length > 240 || value.includes('\\') || value.startsWith('/') || value.split('/').some(part => !/^[A-Za-z0-9_. -]{1,80}$/.test(part) || ['.','..'].includes(part) || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part) || /[. ]$/.test(part) || part.startsWith(' '))) throw new Error('Unsafe game archive path');

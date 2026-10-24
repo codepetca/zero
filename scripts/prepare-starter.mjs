@@ -2,8 +2,9 @@ import {mkdirSync, readFileSync, writeFileSync, lstatSync, unlinkSync, realpathS
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import core from '../extension/src/core-contract.js';
 
-export const coreSources = ['App.java', 'GameApp.java', 'Actor.java', 'ImageRegion.java', 'SpriteAnimation.java', 'Collisions.java', 'Sound.java', 'Music.java', 'Color.java', 'Key.java', 'ui/Element.java', 'ui/Label.java', 'ui/Button.java', 'ui/Column.java', 'ui/Row.java', 'ui/TextField.java'];
+export const coreSources = core.coreSourcePaths.map(name => name.slice('src/main/java/zero/'.length));
 const retiredSources = ['SketchApp.java', 'SimpleApp.java']; // Removed API; never include in new kits.
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // This is maintainer tooling. Extracted student projects contain ordinary Java
@@ -57,6 +58,17 @@ export function prepareStarter(root = fileURLToPath(new URL('../', import.meta.u
     }
     return {name, destination, bytes, sha256};
   });
+  const recordBytes = Buffer.from(JSON.stringify(core.makeCoreRecord(Object.fromEntries(updates.filter(item => item.name !== 'LICENSE').map(item =>
+    ['src/main/java/zero/' + item.name, item.bytes]))), null, 2) + '\n');
+  const recordDestination = path.join(root,'student-template/zero-core.json');
+  const recordStat = outputStat(recordDestination);
+  const recordHash = digest(recordBytes);
+  if (recordStat && (!recordStat.isFile() || recordStat.isSymbolicLink())) throw new Error('Expected ordinary generated source: ' + recordDestination);
+  if (recordStat) {
+    const existing = digest(readFileSync(recordDestination));
+    if (existing !== recordHash && existing !== previous['zero-core.json']) throw new Error('Preserved edited starter source: ' + recordDestination);
+  }
+  updates.push({name:'zero-core.json',destination:recordDestination,bytes:recordBytes,sha256:recordHash});
   // Check every file before changing any, so a drift failure preserves all copies.
   for (const destination of retired) unlinkSync(destination);
   for (const item of updates) {
