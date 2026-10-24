@@ -46,7 +46,7 @@ public class MediaDemoCheck extends Application {
         try {
             app = new Main();
             app.start(stage);
-            app.stop(); // Freeze frames; control actions remain normal JavaFX.
+            app.pause(); // Freeze automatic updates while ordinary controls remain live.
             var sprite = (Image) field(app, "sprite");
             sound = (AudioClip) field(app, "sound");
             require(sprite.getWidth() == 32 && sprite.getHeight() == 32, "Bundled image loaded");
@@ -73,6 +73,7 @@ public class MediaDemoCheck extends Application {
             require(status.getText().equals("Plays: 0"), "Initial count");
             // Mute this automated check; a student must verify device output.
             sound.setVolume(0);
+            require(!play.isDisabled(), "Play sound remains enabled while simulation is paused");
             play.fire();
             play.fire();
             require(status.getText().equals("Plays: 2") && (int) field(app, "plays") == 2,
