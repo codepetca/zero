@@ -1,5 +1,54 @@
 # Delivery evidence index
 
+## Zero phased delivery: Coin slice 1C — 2026-10-23
+
+Accepted locally at `a4e8b771`. Coin lessons/checkpoints 8–9 now use Zero input,
+colours and controls while Player and Coin remain ordinary Java classes with
+explicit updates and drawing. `showGame()` restores retained canvas focus on
+Restart. The shared maintainer harness now pauses automatic game updates before
+deterministic checks, keeping the app alive for valid Restart/navigation, then
+stops it during final cleanup. Legacy checkpoint10/game still passes.
+
+Only ten public declarations were added: four `Key` arrow constants, two
+GameApp held/edge overloads and Row's two constructors plus spacing get/set.
+Inventory: 16 helpers / 175 declarations, explicitly counting the enum constants.
+Existing advanced KeyCode overloads remain. Null Zero keys have useful errors;
+implicit enum values/valueOf/name calls stay outside the admitted browser API.
+Row preserves Column's ownership, atomic validation and availability rules.
+Assembly, exact fingerprints/semantic contracts, API/guide and website parity
+were updated together. No Mouse, palette, focus, asset or camera API expansion.
+
+Thirty-one API/adapter tests, sixteen assembly/lesson tests, seventeen parent
+lesson/tutorial checks, source profile/syntax/root checks and cached semantic
+positive/negative attribution pass. Focused native GameHelpersCheck and UiCheck
+pass, including real frame/focus behavior and Row contracts. Sequential native
+checkpoints8/9 and legacy10/game pass. Local `/docs` HTTP200 includes Key, Row
+and the Zero keyDown overload; the owned docs server was closed.
+
+Two actual pinned WebFX builds pass 59/59 browser assertions in54.1 seconds
+including compilation: `807a76b2-83c8-4c70-9156-271190fb6951` (UI) and
+`e521c27e-95d6-4d34-90b0-acb2d887b1f4` (exact three-file Coin9).
+Engine/profile: `4d5871d7266d894d59174e10e27604a633ee234925265fb3fe67b14f6cd2742d`.
+Physical arrow events exercise all four mappings, held/release/repeat/edge
+behavior and control-focus exclusion; synthetic blur tests clearing. Rendered
+Row and contract checks pass. Read-only canvas pixel inspection guides actual
+keyboard collection through two wins and two restarts: each coin scores once,
+releasing stops movement, and the same HUD/canvas remain. All43 receipt hashes
+match and both exports validate before/after use. Two optional favicon404s and
+pixel-readback advisories are retained separately; no application or required
+resource errors. Own browser/previews closed. No stress or full9-fixture rerun.
+
+Independent Sol/high review covered all34 files and callers, validated semantic,
+native, source/export/runtime and browser receipts, and found no actionable
+issues. One initial turn, no fix batch or extra wave. Receipts are ignored under
+`.verification/vision-coin-review/`, browser proof/screenshots under
+`.verification/vision-coin-web/`, native/docs/check logs in vision-coin-*.log.
+Requested browser Sol/medium; effective configuration and attributable tokens
+unknown. This is local macOS/headless Chrome acceptance, not another OS/engine,
+physical school hardware, public template/kit/website update or publication.
+Overall goal continues with shared ScoreDisplay lessons10–11; no new core API
+is needed for that slice.
+
 ## Zero phased delivery: Study slice 1B — 2026-10-23
 
 Accepted locally through `7f8235ff`, following teaching/API commit `81872502`.

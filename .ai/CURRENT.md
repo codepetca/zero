@@ -1,71 +1,56 @@
-# Zero vision execution — Phase 1C implementation, 2026-10-23
+# Zero vision execution — Phase 1D implementation, 2026-10-23
 
-The persistent coordinator goal is active. The single roadmap is
+Persistent coordinator goal active. Single roadmap:
 `docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance`.
-Work only in `/Users/stew/.codex/worktrees/actor/zero`; preserve the primary
-checkout and other worktrees’ Dev profiles/watchers. Local source, checks,
-commits and independent review are authorized. No push, PR, merge, deployment,
-release, install, account changes or telemetry activation. Do not repeat stress
-benchmarks. Use source-based Zero Dev and focused finite checks.
+Work only in `/Users/stew/.codex/worktrees/actor/zero`; preserve primary and other
+worktrees' Dev profiles/watchers. Local source, checks, commits and independent
+review authorized; no push/PR/merge/deploy/release/install, account changes or
+telemetry activation. Do not repeat stress benchmarks. Use source Zero Dev and
+focused finite checks. DeepSeek paused through 2026-12-31.
 
-Phases: 0 baseline; 1 Zero-first Greeting → Study → Coin and a simulation;
-2 replaceable components and managed sharing; 3 project-owned builder and pins;
-4 automatic diagnostics and executed evidence; 5 journey and release readiness.
-No mandatory World, Screen, Camera or ECS. Public publication and physical/novice
-acceptance remain separate owner decisions. DeepSeek is paused through 2026-12-31.
+Phases: 0 baseline; 1 Zero-first teaching consumers and simulation; 2 replacement/
+sharing; 3 project-owned complete builder/pins; 4 diagnostics/evidence; 5 journey
+and release readiness. No mandatory World/Screen/Camera/ECS. Public publication
+and physical/novice acceptance remain separate decisions.
 
-Phase 1A is accepted locally through `22b979d6`; handoff `d04dbd93`.
-Starter/Greeting 0–2 use Zero UI; TextField, native checks, six actual builds
-including earlier failures, final 29 browser assertions and independent review.
-See `docs/EVIDENCE.md` and ignored `.verification/vision-greeting-*` receipts.
-Public template pins, installed kits and hosted website remain unchanged.
+Accepted locally:
+- 1A Greeting0–2/TextField through22b979d6: final29browser assertions, native and
+  independent review. Six builds including earlier failures.
+- 1B Study3–7/setEnabled through7f8235ff: final52browser assertions; inherited
+  disabled-state shim fixes pinned WebFX propagation, native and clean targeted
+  review. Four builds including initial limited43-pass proof.
+- 1C Coin8–9/Key/Row ata4e8b771: 16helpers/175decl (171explicit+4enumconstants),
+  native GameHelpers/UI and8/9/legacy10game, local/docs, two actualexports and
+  59browser assertions with two real-keyboard wins/resets, one clean independent
+  complete34file review/no fixes. Receipt vision-coin-web/; review vision-coin-review/.
+  Optional favicon404/readback warnings audited; no genuine app/resource errors.
 
-Phase 1B source is `81872502`: Study lessons/checkpoints 3–7 use Zero UI and
-ordinary callbacks; `Element.setEnabled(boolean)` adds the only public member
-(14 helpers / 165 declarations). Quiz state guards remain explicit. The native
-harness unwraps Elements while retaining older checkpoint compatibility.
-Focused native UI and sequential checkpoints 3–7/9 pass, as do lesson/API,
-semantic, root checks and local `/docs` HTTP200 with setEnabled.
+Evidence/detail in `docs/EVIDENCE.md`. Public templates/kits/hosted docs unchanged.
+Own browsers/previews/docs servers closed. Effective configurations/tokens unknown.
 
-Initial independent Sol/high review of all 23 changed files found one P2:
-pinned WebFX did not propagate disabled state from a Column to descendants.
-Fix batch 1 is committed as `7f8235ff` (seven files). Browser-only per-node
-ZeroDisabledState observers repair computed inheritance while preserving each
-node’s own flag, following parent/children/root changes; native source and public
-API stay unchanged. Runtime collisions and forged javafx packages are rejected.
-Thirty API/adapter tests, syntax/profile/semantic checks and root check pass.
+Active 1D contract: shared ScoreDisplay in lessons/checkpoints10–11 (Study+Game)
+uses zero.ui.Label and Element view(). No new core API. Ordinary Main owns points
+and rules, updates explicitly. Lesson10's former required FX bold style becomes
+an experiment changing/restoring text. Lesson11 adds setCaption(String), retaining
+latest displayed points; null caption gives useful error and preserves state.
+Default and both Main captions remain Score; optional exercises try other names.
+Do not change ZeroHub/publication boundaries. Keep paired ScoreDisplay bytes equal.
 
-Browser receipt `.verification/vision-study-web/receipt.json`: four actual builds
-in total; prior two/43 assertions archived under `prior-43-pass/`; new two builds
-pass 52/52 assertions, real ancestor typing/click/Tab blocking, re-enable and
-independent child flags, initial disabled mount, and two full Study sessions with
-two resets. Exact consumer/runtime/export hashes retained. Own browser/previews
-closed. Raw console audit confirms two optional favicon 404s and one test pixel-readback
-warning; no application/required-resource errors. Phase 1B is accepted locally.
+Ownership:
+- vision_workflow_audit retained Sol/high: ONLY lessons10-components/11-zerohub
+  and Java in checkpoints10/{study,game},11/{study,game}. No heavy builds or Git.
+- Coordinator: harness view-unwrapping/caption behavior/legacy12 compatibility,
+  teaching-boundary tests, integration, docs/evidence/roadmap/CURRENT and Git.
+- actor_browser retained Sol/medium: idle after frozen1C; reuse after1D freeze for
+  TWO exact Study11/Game11 consumer exports and functional checks, no UI rebuild.
+- actor_stress_review retained Sol/high: idle after clean1C; independent1D review
+  after checks. Completed1A/1B/1C budgets remain separate and retained.
 
-Phase 1B independent targeted review is clean, retaining initial coverage.
-Two turns / one initial and one targeted wave / one fix batch; receipts are in
-`.verification/vision-study-review/`. No extra builds or review waves needed.
+Next: implement1D harness/tests with worker lesson edits, native10/11 consumers+
+legacy12, focusedbrowser and independentreview; then asset12 contract and small
+live-control simulation. Image facade remains a deliberate decision: existing
+loadImage returns JavaFX Image; Sound is already Zero-owned. No camera API needed
+for the ordinary scrolling class. Do not mark overall goal complete.
 
-Active Phase 1C contract: migrate Coin lessons/checkpoints 8–9 to Zero packages.
-Add only zero.Key arrow constants and held/edge GameApp overloads, plus zero.ui.Row
-with Column-equivalent spacing/ownership behavior. Use existing Color.rgb and
-showGame on restart. Keep ordinary Player/Coin coordinates and explicit updates;
-no Actor migration, Mouse API, palette expansion, asset or camera API in this slice.
-
-Current owner lanes:
-- Coordinator: integration, roadmap/product/evidence/CURRENT and Git commits.
-- vision_workflow_audit (retained Sol/high): API writer for Key, GameApp input
-  overloads, Row, exact contracts/fingerprints/assembly, API/website docs/tests,
-  native checks and focused browser input fixture. No stage/commit/heavy builds.
-- Coordinator: lessons08/09, checkpoints8/9, lesson-projects test and integration.
-- actor_browser (retained Sol/medium): idle after accepted Study proof; reuse for
-  focused Coin/input browser acceptance after source freeze.
-- actor_stress_review (retained Sol/high): idle; independent Coin slice review
-  after checks. Phase 1B budget is complete and preserved.
-
-Next: finish API and lesson edits, cheap checks, native checkpoints8/9 and input/UI,
-then focused browser proof and independent review. Do not mark the goal complete.
-Starting weekly usage was 7% used and storage 271.779 GB free; shared readings
-are not task cost. Latest storage 265.744 GB, healthy. Effective configuration
-and attributable tokens remain unknown.
+Latest storage265.744GB healthy; startweekly7%used/sharednot taskcost. Use cached
+storage readings up to30min, refresh before heavy changes. No installer needed.
