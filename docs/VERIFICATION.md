@@ -81,6 +81,32 @@ also has complete clean targeted Sol/high review with8independent tests. Current
 integration review ledger:2initial+3targetedturns,3fixbatches,0unresolvedfindings.
 Actual corrected-hosted execution, deployment/liveOAuth andstudentUIstillpending.
 
+### Executed Maven realm evidence correction
+
+Hosted native run40129914693 completed the actual game and Padding checks, then
+correctly refused evidence whose old descriptor-based dependency inventory named
+an unused, absent commons-io2.2. Correctioned619550 records Maven's actual plugin
+class realms, retaining exact selected JAR identities and classloader order.
+Incomplete/malformed transcripts and linked or changed selected inputs fail;
+receipt reload reparses the retained transcript before validating input bytes.
+No broad debug output, cache inventory substitution or relaxed scanner is used.
+
+35focused tests, root checks and all7actual native cases PASS. A separate isolated
+repository with commons-io2.2 absent also passes Padding and receipt reload;
+15covered targets/371gaps are expected for that partial case. Independent
+Astra/high targeted four-file review COMPLETE/CLEAN, independently35tests and
+the actual Padding reload PASS. Full evidence is retained under
+.verification/live-tutorial-rollout/maven-realm-full-evidence. Corrected hosted
+CI remains required. Ledger now2initial+5targeted turns,4fixbatches,0unresolved
+review findings; effective configuration/tokens/timing unknown. Latest browser
+run40130988588 failed separately and is under investigation, not accepted.
+
+The isolated broker PR190 (8425c52a) copies the already-reviewed implementation
+without the broader evidence tooling changes. Independent Sol/high integration
+review COMPLETE/CLEAN;19auth/189website tests, typecheck and root checks PASS.
+Its selected GitHub CI gates, production deployment and actual sign-in remain
+pending. No native release is included.
+
 ## Tutorial readiness and browser-first sign-in — 2026-10-24
 
 Local source only. Tutorial phase87a9b4ef prepares the three coherent current

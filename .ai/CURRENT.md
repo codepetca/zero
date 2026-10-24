@@ -29,6 +29,13 @@ Publictemplate/frameworkbytesunchanged;Devfix20b9291bSolhighclosureCLEAN.
 8fafde02CI-onlybyteidenticalcacertssnapshot,JDK17+21;strictscannerunchanged.
 AstrahightargetedclosureCLEAN37tests+strictunrelatedlinkprobePASS.
 Ledger2initial+3targeted/3fixbatches;finalcorrectedCI/deploy/UIpending.
+Mavenrealmfixed619550 capturesactualexecutedpluginJARs/order,notdescriptors.
+35focusedtests/root/all7actualnativecasesPASS;isolatedPaddingwithoutunused
+commons-io2.2PASSandreceiptloads. Astrahightargeted4-fileclosureCLEAN.
+Ledger2initial+5targetedturns/4fixbatches;currentbrowser40130988588failure
+underinvestigation. PR188draftuntilfinalcorrectedCI. IsolatedbrokerPR190
+8425c52aSolhighintegrationCLEAN,19auth/189web/type/rootPASS;GitHubCIpending.
+No realnewbrowserOAuthornewstudentwalkthroughclaimyet;native releasesheld.
 
 ## Tutorial readiness and browser sign-in complete locally — 2026-10-24
 
