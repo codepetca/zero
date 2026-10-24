@@ -1,7 +1,7 @@
 'use strict';
 const path=require('node:path');
 const fs=require('node:fs/promises');
-const {discoverLibraries,declaration}=require('../sharing/authoring');
+const {discoverLibraries,declaration,applicationDeclaration}=require('../sharing/authoring');
 const {loadCatalog,verifyLibrary,inspectManagedLibraryPins}=require('../sharing/consumer');
 const {readKitConfiguration}=require('../sharing/configuration');
 const core=require('../core-contract');
@@ -24,6 +24,15 @@ async function discoverBrowserLibraries(projectRoot,pomText) {
   ids.add(library.identity.id);
  }
  return [...authored,...managed];
+}
+// Share the same original-application namespace rule in full and saved checks.
+function assertApplicationNamespaces(files,libraries) {
+ if(!libraries.length)return;
+ for(const file of files) {
+  const pkg=applicationDeclaration(file.bytes.toString('utf8'),file.originalPath).packageName;
+  for(const library of libraries)if(pkg===library.identity.namespace||pkg.startsWith(library.identity.namespace+'.'))
+   fail('Application source shadows library namespace: '+file.originalPath);
+ }
 }
 function capturedCore(captured,requirement,input) {
  const file=captured.files.find(file=>file.path==='zero-core.json');
@@ -94,4 +103,4 @@ async function resolveLibrarySources(projectRoot,captured,options={}) {
  }
  return {sources,resources,publishedLibraries};
 }
-module.exports={discoverBrowserLibraries,resolveLibrarySources,inspectJar};
+module.exports={discoverBrowserLibraries,resolveLibrarySources,inspectJar,assertApplicationNamespaces};

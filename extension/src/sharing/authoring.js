@@ -69,6 +69,17 @@ function declaration(source, filename) {
   const packageName = packages[0]?.[1].replace(/\s/g, '') || '';
   return {simple, packageName, className: packageName ? `${packageName}.${simple}` : simple, packageRange: packages[0] && [packages[0].index, packages[0].index + packages[0][0].length], masked};
 }
+// Read declarations for namespace/duplicate checks without rewriting source.
+// Exact reviewed core bodies have fixed identities; the extraction scanner still
+// handles all student/library source and every source selected for repackaging.
+function applicationDeclaration(source, filename) {
+  const name = filename.startsWith('src/main/java/') ? filename.slice('src/main/java/'.length) : filename;
+  const expected = require('../core-contract').helperHashes[name];
+  if (!expected) return declaration(source, filename);
+  if (hash(source.replace(/\r\n/g, '\n')) !== expected) fail(`This Zero helper differs from the reviewed browser adapter: ${filename}`);
+  const simple = path.posix.basename(name, '.java'), packageName = path.posix.dirname(name).replaceAll('/', '.');
+  return {simple, packageName, className: packageName + '.' + simple};
+}
 function repackage(source, decl, namespace) {
   return decl.packageRange ? source.slice(0, decl.packageRange[0]) + `package ${namespace};` + source.slice(decl.packageRange[1]) : `package ${namespace};\n\n${source}`;
 }
@@ -170,7 +181,7 @@ async function checkShadows(root, state, changes) {
   const classes = new Map();
   for (const [filename, updated] of files) {
     const contents = updated === null ? await read(root,filename) : updated;
-    const decl = declaration(contents,filename);
+    const decl = applicationDeclaration(contents,filename);
     if (classes.has(decl.className)) fail(`Duplicate class ${decl.className}: ${classes.get(decl.className)} and ${filename}`);
     classes.set(decl.className,filename);
     for (const lib of state.libraries) {
@@ -329,4 +340,4 @@ async function recover(root, recovery) {
   if (receipt.root !== path.resolve(root) || receipt.recovery !== recovery) fail('Recovery belongs to another project.');
   return rollback(receipt);
 }
-module.exports = {previewExtraction,previewMode,applyPlan,rollback,recover,discoverLibraries,libraryPom,javaFiles,declaration,safePath,read,hash,coreState,fixedBuild};
+module.exports = {previewExtraction,previewMode,applyPlan,rollback,recover,discoverLibraries,libraryPom,javaFiles,declaration,applicationDeclaration,safePath,read,hash,coreState,fixedBuild};

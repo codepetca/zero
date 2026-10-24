@@ -9,8 +9,7 @@ const { acquireBuildLock } = require('./build-lock');
 const { generateProject } = require('./project');
 const { zipFiles } = require('./zip');
 const { assertSelectedBuilder, captureBuildInputs, buildProfileHash, boundSourceHash } = require('./snapshot');
-const { resolveLibrarySources } = require('./libraries');
-const { declaration } = require('../sharing/authoring');
+const { resolveLibrarySources, assertApplicationNamespaces } = require('./libraries');
 const { prepareMavenDistribution, verifyMavenDistribution } = require('./compatibility/maven-distribution');
 const { checkCompatibility, validateDependencies, verifyArtifactInventory, validateWrapperInputs } = require('./compatibility');
 const toolchain = require('./toolchain-lock.json');
@@ -451,14 +450,7 @@ async function exportForWeb(options = {}) {
     await noSymlinks(path.join(projectRoot, 'pom.xml'));
     const pom = captured.files.find(file => file.path === 'pom.xml').bytes.toString('utf8');
     validateDependencies(pom,{libraries});
-    if (libraries.length) {
-      for (const file of javaFiles) {
-        const pkg = declaration(file.bytes.toString('utf8'),file.originalPath).packageName;
-        for (const library of libraries)
-          if (pkg === library.identity.namespace || pkg.startsWith(library.identity.namespace+'.'))
-            throw new Error('Application source shadows library namespace: '+file.originalPath);
-      }
-    }
+    assertApplicationNamespaces(javaFiles,libraries);
     const libraryInputs=await resolveLibrarySources(projectRoot,captured,options);
     for(const file of libraryInputs.sources) {
       if(javaFiles.some(existing=>existing.path.toLowerCase()===file.path.toLowerCase()))throw new Error('Browser Java source collision: '+file.path);

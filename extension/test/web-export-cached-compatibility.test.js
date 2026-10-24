@@ -48,5 +48,17 @@ test('standalone saved CLI cache-only operation distinguishes cold, compatible a
  const prepared=await invoke('compatibility');assert.equal(prepared.ok,true);assert.equal(prepared.result.status,'unsupported');assert.equal(prepared.result.prepared,true);assert.equal(prepared.result.diagnostics[0].code,'ZERO_BROWSER_UNSUPPORTED');
  const unavailablePreparation=await invoke('compatibility',1,path.join(base,'missing-jdk'));assert.equal(unavailablePreparation.ok,false);assert.equal(unavailablePreparation.error.code,'failed');
  const checkedAfterPrepare=await invoke();assert.equal(checkedAfterPrepare.result.status,'unsupported');assert.equal(checkedAfterPrepare.result.identity.sourceHash,unsupported.result.identity.sourceHash);
+ // Exercise the real assembled helper bodies, not just a bare Main fixture.
+ await fs.cp(path.resolve(__dirname,'../../framework/src/main/java/zero'),path.join(project,'src/main/java/zero'),{recursive:true});
+ await fs.writeFile(path.join(project,'src/main/java/Main.java'),'public class Main extends zero.GameApp {}');
+ assert.equal((await invoke()).result.status,'compatible');
+ await fs.writeFile(path.join(project,'src/main/java/Health.java'),'public class Health { public int value(){ return 1; } }');
+ const authoring=require('../src/sharing/authoring');
+ await fs.writeFile(path.join(project,'zero.json'),'{}');
+ await authoring.applyPlan(await authoring.previewExtraction(project,{repository:{id:'12345',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'},descriptor:{schema:1,kind:'library',slug:'health-bar',version:'0.1.0',title:'Health bar',description:'Cached core integration regression',license:'MIT',libraryKind:'helper'},sources:['src/main/java/Health.java']}));
+ const withLibrary=await invoke();assert.equal(withLibrary.result.status,'compatible',JSON.stringify(withLibrary.result));
+ await fs.writeFile(path.join(project,'src/main/java/Shadow.java'),'package zero.contrib.r12345.health_bar; class Shadow {}');
+ const shadow=await invoke('compatibilityCached',1);assert.equal(shadow.ok,false);assert.match(shadow.error.message,/shadows library namespace/);
+ await fs.rm(path.join(project,'src/main/java/Shadow.java'));
  await assert.rejects(fs.stat(path.join(project,'.zero/web-export')),{code:'ENOENT'});const projectFiles=await fs.readdir(project,{recursive:true});assert.ok(!projectFiles.some(name=>name.endsWith('.class')));
 });

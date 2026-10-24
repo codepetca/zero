@@ -5,10 +5,9 @@ const os=require('node:os');
 const crypto=require('node:crypto');
 const snapshot=require('../snapshot');
 const compatibility=require('./index');
-const {resolveLibrarySources}=require('../libraries');
+const {resolveLibrarySources,assertApplicationNamespaces}=require('../libraries');
 const {createCacheOnlyFetcher}=require('./cache');
 const core=require('../../core-contract');
-const {declaration}=require('../../sharing/authoring');
 const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const digest=files=>hash(Buffer.from(JSON.stringify(files.map(file=>({path:file.path,sha256:hash(file.bytes)})).sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:0))));
 const cancel=signal=>{if(signal?.aborted)throw Object.assign(Error('Browser checks cancelled.'),{name:'AbortError'});};
@@ -38,7 +37,7 @@ async function checkCachedProject(options={}){
   before=await cachedCompatibilityIdentity(options);cancel(options.signal);
   const {captured,resolved}=before;
   const javaFiles=[...captured.files.filter(file=>file.path.startsWith('src/main/java/')&&file.path.endsWith('.java')).map(file=>({...file,originalPath:file.path,path:file.path.slice('src/main/java/'.length)})),...resolved.sources];
-  for(const file of javaFiles.filter(file=>file.originalPath.startsWith('src/main/java/'))){const pkg=declaration(file.bytes.toString('utf8'),file.originalPath).packageName;for(const library of captured.libraries)if(pkg===library.identity.namespace||pkg.startsWith(library.identity.namespace+'.'))throw Error('Application source shadows library namespace: '+file.originalPath);}
+  assertApplicationNamespaces(javaFiles.filter(file=>file.originalPath.startsWith('src/main/java/')),captured.libraries);
   const names=new Set();for(const file of javaFiles){const key=file.path.toLowerCase();if(names.has(key))throw Error('Application/library source paths collide.');names.add(key);}
   workRoot=await fs.mkdtemp(path.join(await fs.realpath(os.tmpdir()),'zero-cached-compatibility-'));
   let result,error;

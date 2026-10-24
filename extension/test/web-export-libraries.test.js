@@ -4,7 +4,7 @@ const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:
 const authoring=require('../src/sharing/authoring'),contracts=require('../src/sharing/contracts');
 const consumer=require('../src/sharing/consumer');
 const {captureBuildInputs,boundSourceHash,assertBuildInputsAtCommit}=require('../src/web-export/snapshot');
-const {resolveLibrarySources,inspectJar}=require('../src/web-export/libraries');
+const {resolveLibrarySources,inspectJar,assertApplicationNamespaces}=require('../src/web-export/libraries');
 const {validateDependencies}=require('../src/web-export/compatibility');
 const {zipFiles}=require('../src/web-export/zip');
 const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
@@ -118,4 +118,23 @@ test('independent Browse/Add, Update and Revert feed exact accepted browser sour
  catalog.releases[0].status='withdrawn';await assert.rejects(resolveLibrarySources(root,await captureBuildInputs(root),{sharingSettings:settings,fetcher}),/not an available accepted release/);
  catalog.releases[0].status='available';artifactBytes.set(releases[0].artifacts.sources.url,Buffer.from('changed'));
  await assert.rejects(resolveLibrarySources(root,await captureBuildInputs(root),{sharingSettings:settings,fetcher}),/hash|size/);
+});
+
+test('application namespace checks recognize exact core bodies without relaxing student/library source checks',async()=>{
+ const core=require('../src/core-contract'),base=path.resolve(__dirname,'../../framework/src/main/java');
+ const files=await Promise.all(Object.keys(core.helperHashes).map(async name=>({path:name,originalPath:'src/main/java/'+name,bytes:await fs.readFile(path.join(base,name))})));
+ assert.ok(files.find(file=>file.path==='zero/App.java').bytes.includes(Buffer.from('\\u001e')));
+ const library={identity:contracts.identity('library','12345','health-bar')};
+ assert.doesNotThrow(()=>assertApplicationNamespaces(files,[library]));
+ const crlf=files.map(file=>({...file,bytes:Buffer.from(file.bytes.toString('utf8').replace(/\n/g,'\r\n'))}));
+ assert.doesNotThrow(()=>assertApplicationNamespaces(crlf,[library]));
+ const changed=files.map(file=>({...file,bytes:Buffer.concat([file.bytes,Buffer.from('// changed')])}));
+ assert.throws(()=>assertApplicationNamespaces(changed,[library]),/helper differs/);
+ const student=source=>[{path:'Student.java',originalPath:'src/main/java/Student.java',bytes:Buffer.from(source)}];
+ const namespace=library.identity.namespace;
+ for(const pkg of [namespace,namespace+'.nested'])assert.throws(()=>assertApplicationNamespaces(student('package '+pkg+'; class Student {}'),[library]),/shadows library namespace/);
+ assert.doesNotThrow(()=>assertApplicationNamespaces(student('package student; class Student {}'),[library]));
+ assert.throws(()=>assertApplicationNamespaces(student('package '+namespace.replace('zero','z'+'\\u0065'+'ro')+'; class Student {}'),[library]),/Unicode-escaped Java/);
+ assert.throws(()=>assertApplicationNamespaces(student('package '+namespace.replace('zero','ze\u200bro')+'; class Student {}'),[library]),/Hidden Java/);
+ assert.doesNotThrow(()=>assertApplicationNamespaces(student('class Student { String label="\\u263a"; }'),[]));
 });
