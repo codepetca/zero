@@ -50,6 +50,11 @@ under `codepetca`, and its public IDs are pinned in source. Browser sign-in rema
 disabled without the required server credentials. Registration did not provision
 server secrets or user tokens; installation, live acceptance, production activation
 and an authorized native release remain pending.
+The separate desktop broker supports browser authorization and token renewal
+for the reviewed Zero client. It is disabled by default and reuses the existing
+server App credentials; it does not persist desktop tokens or share Hub sessions.
+See [desktop activation](../docs/DESKTOP-GITHUB-ACTIVATION.md) for the fixed
+callback, feature flag and acceptance limits. Native releases remain separate.
 The shared App has selected-repository development permissions; ordinary browser
 tokens are not a GitHub-enforced star-only boundary. See the
 [identity plan](../docs/ZERO-IDENTITY-PLAN.md) for that owner-selected tradeoff.
