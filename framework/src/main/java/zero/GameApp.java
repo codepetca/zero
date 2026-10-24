@@ -177,10 +177,16 @@ public abstract class GameApp extends App {
     public final double mouseX() { return mouseX; }
     public final double mouseY() { return mouseY; }
     public final boolean keyDown(KeyCode key) { return keys.contains(key); }
+    public final boolean keyDown(Key key) {
+        return keyDown(Objects.requireNonNull(key, "Key must not be null.").fxKeyCode());
+    }
     public final boolean mouseDown(MouseButton button) { return buttons.contains(button); }
 
     /** True throughout the next update/draw frame after an owned press; queries do not consume it. */
     public final boolean keyPressed(KeyCode key) { return pressedKeys.contains(key); }
+    public final boolean keyPressed(Key key) {
+        return keyPressed(Objects.requireNonNull(key, "Key must not be null.").fxKeyCode());
+    }
     public final boolean mousePressed(MouseButton button) { return pressedButtons.contains(button); }
     /** Window focus, even when a native control rather than the canvas has keyboard focus. */
     public final boolean windowFocused() { return window != null && window.isFocused(); }

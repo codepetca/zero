@@ -27,6 +27,23 @@ and [GameApp source](src/main/java/zero/GameApp.java). Use these classes for
 startup, drawing and input; use ordinary Java for your app's objects and rules.
 The source is the authority if you change your local framework.
 
+## Arrow input and a live control row
+
+For the Coin game, import `zero.Key` and use `keyDown(Key.LEFT)`, RIGHT, UP and
+DOWN to read held arrows in update. `keyPressed(Key.LEFT)` reports a new press
+for one update/draw frame. Reading it twice does not consume it; holding a key
+does not repeat the edge. Null keys produce a useful NullPointerException.
+Canvas or window focus loss clears held and edge input; typing in a UI control
+belongs to that control. Other JavaFX KeyCode overloads remain an advanced path.
+
+`zero.ui.Row` places its Elements horizontally, with default 8-pixel spacing or
+an explicit gap such as `new Row(12, scoreLabel, message, restartButton)`. Use
+getSpacing/setSpacing to read/change that finite non-negative gap. Row has the
+same fixed children, atomic ownership validation and setEnabled behavior as
+Column. Mount the row with `controls(row)` to keep gameplay live. In Restart,
+`showGame()` returns to the retained game view, resets input/time and restores
+canvas focus when gameplay is enabled, while preserving explicit pause.
+
 ## Zero UI: one view in an app or game
 
 The current local source adds `zero.ui.Label`, `Button`, `TextField`, `Column` and `Element`,

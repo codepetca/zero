@@ -51,3 +51,6 @@ extension/media/tutorial-assets/
 output/playwright/
 .playwright-cli/
 **/.zero/web-export/
+
+student-template/src/main/java/zero/Key.java
+student-template/src/main/java/zero/ui/Row.java

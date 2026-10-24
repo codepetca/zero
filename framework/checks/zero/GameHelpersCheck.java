@@ -25,6 +25,10 @@ public final class GameHelpersCheck extends GameApp {
     @Override public void settings() { size(160, 120); title("Zero game helper checks"); }
     @Override public void setup() {
         phaseStarted = System.nanoTime();
+        for (Runnable query : new Runnable[] {() -> keyDown((Key) null), () -> keyPressed((Key) null)}) {
+            try { query.run(); throw new AssertionError("Null Zero key accepted"); }
+            catch (NullPointerException expected) { require("Key must not be null.".equals(expected.getMessage()), "useful null key error"); }
+        }
         field = new TextField(); layout().setBottom(field);
         Thread watchdog = new Thread(() -> {
             try { Thread.sleep(15_000); } catch (InterruptedException ignored) { return; }
@@ -38,6 +42,12 @@ public final class GameHelpersCheck extends GameApp {
                 case 0:
                     if (!NativeFocus.await(canvas(), phaseStarted, "game helper canvas focus")) return;
                     verifyImages(); verifyDrawing(); verifyCollisions();
+                    for (Key arrow : Key.values()) {
+                        key(canvas(), KeyEvent.KEY_PRESSED, arrow.fxKeyCode());
+                        require(keyDown(arrow) && keyDown(arrow.fxKeyCode()), "Zero arrow shares native held state: " + arrow);
+                        key(canvas(), KeyEvent.KEY_RELEASED, arrow.fxKeyCode());
+                        require(!keyDown(arrow), "Zero arrow release: " + arrow);
+                    }
                     key(canvas(), KeyEvent.KEY_PRESSED, KeyCode.SPACE);
                     key(canvas(), KeyEvent.KEY_RELEASED, KeyCode.SPACE);
                     mouse(MouseEvent.MOUSE_PRESSED); mouse(MouseEvent.MOUSE_RELEASED);
@@ -45,29 +55,38 @@ public final class GameHelpersCheck extends GameApp {
                     require(!keyPressed(KeyCode.SPACE) && !mousePressed(MouseButton.PRIMARY), "new edges wait for next frame");
                     phase = 1; break;
                 case 1:
+                    for (Key arrow : Key.values()) require(keyPressed(arrow) && keyPressed(arrow), "Zero arrow edge is non-consuming in update");
                     require(keyPressed(KeyCode.SPACE) && keyPressed(KeyCode.SPACE), "key edge non-consuming in update");
                     require(mousePressed(MouseButton.PRIMARY) && mousePressed(MouseButton.PRIMARY), "mouse edge non-consuming in update");
                     break;
                 case 2:
+                    for (Key arrow : Key.values()) require(!keyPressed(arrow), "Zero arrow edge expires after complete frame");
+                    key(canvas(), KeyEvent.KEY_PRESSED, KeyCode.LEFT); key(canvas(), KeyEvent.KEY_PRESSED, KeyCode.LEFT);
                     require(!keyPressed(KeyCode.SPACE) && !mousePressed(MouseButton.PRIMARY), "edges expire after complete frame");
                     key(canvas(), KeyEvent.KEY_PRESSED, KeyCode.A); key(canvas(), KeyEvent.KEY_PRESSED, KeyCode.A);
                     phase = 3; break;
                 case 3:
+                    require(keyDown(Key.LEFT) && keyPressed(Key.LEFT) && keyPressed(Key.LEFT), "Zero held/edge overloads share existing frame ownership");
                     require(keyPressed(KeyCode.A) && keyDown(KeyCode.A), "new held press delivered in update");
                     break;
                 case 4:
+                    require(keyDown(Key.LEFT) && !keyPressed(Key.LEFT), "Zero auto-repeat does not create another edge");
+                    key(canvas(), KeyEvent.KEY_RELEASED, KeyCode.LEFT);
+                    key(canvas(), KeyEvent.KEY_PRESSED, KeyCode.RIGHT);
                     require(keyDown(KeyCode.A) && !keyPressed(KeyCode.A), "auto-repeat does not create edges");
                     key(canvas(), KeyEvent.KEY_RELEASED, KeyCode.A);
                     key(canvas(), KeyEvent.KEY_PRESSED, KeyCode.B); mouse(MouseEvent.MOUSE_PRESSED);
                     field.requestFocus();
                     require(windowFocused(), "native control focus retains window focus");
                     require(!keyDown(KeyCode.B) && !mouseDown(MouseButton.PRIMARY), "canvas focus loss clears held input");
+                    require(!keyDown(Key.RIGHT) && !keyPressed(Key.RIGHT), "control focus clears Zero held and edge state");
                     phase = 5; break;
                 case 5:
                     require(!keyPressed(KeyCode.B) && !mousePressed(MouseButton.PRIMARY), "canvas focus loss clears pending edges");
                     field.setText("abc"); field.positionCaret(0);
                     key(field, KeyEvent.KEY_PRESSED, KeyCode.RIGHT);
                     require(field.getCaretPosition() == 1 && !keyDown(KeyCode.RIGHT) && !keyPressed(KeyCode.RIGHT), "native arrow caret behavior");
+                    require(!keyDown(Key.RIGHT) && !keyPressed(Key.RIGHT), "control typing does not enter Zero input state");
                     canvas().requestFocus(); key(canvas(), KeyEvent.KEY_PRESSED, KeyCode.C); mouse(MouseEvent.MOUSE_PRESSED);
                     other = new Stage(); other.setScene(new javafx.scene.Scene(new TextField(), 100, 60)); other.show(); other.requestFocus();
                     phase = 6; break;
@@ -96,6 +115,7 @@ public final class GameHelpersCheck extends GameApp {
             // The phase is set during update, so this first draw precedes edge delivery.
             if (!keyPressed(KeyCode.SPACE)) return;
             require(keyPressed(KeyCode.SPACE) && keyPressed(KeyCode.SPACE), "key edge non-consuming in draw");
+            for (Key arrow : Key.values()) require(keyPressed(arrow) && keyPressed(arrow), "Zero arrow edge is non-consuming in draw");
             require(mousePressed(MouseButton.PRIMARY) && mousePressed(MouseButton.PRIMARY), "mouse edge non-consuming in draw");
             phase = 2;
         } else if (phase == 3 && keyPressed(KeyCode.A)) {

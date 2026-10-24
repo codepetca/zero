@@ -3,7 +3,7 @@ const categoryDefinitions = [
   ['startup', 'App startup', 'Choose an app and define its callbacks.'],
   ['interface', 'Window and interface', 'Configure the window and show JavaFX controls.'],
   ['game-flow', 'Game flow', 'Navigate between game views and explicitly pause gameplay updates.'],
-  ['components', 'Zero UI', 'Compose labels, buttons, text fields and vertical columns using Zero imports.'],
+  ['components', 'Zero UI', 'Compose labels, buttons, text fields, rows and columns using Zero imports.'],
   ['colors', 'Zero colours', 'Choose canvas colours without a JavaFX import.'],
   ['canvas', 'Canvas', 'Read canvas dimensions and use native JavaFX objects.'],
   ['drawing', 'Drawing', 'Draw shapes, lines and text in canvas pixels.'],
@@ -139,7 +139,7 @@ export function buildApiReference(markdown) {
   const noteLines = Object.fromEntries(categories.map(category => [category.id, []]));
   const route = () => {
     if (section === 'App') return subsection === 'Window and content' ? 'interface' : 'startup';
-    return { 'zero.ui.Element': 'components', 'zero.ui.Label': 'components', 'zero.ui.TextField': 'components', 'zero.ui.Button': 'components', 'zero.ui.Column': 'components', Color: 'colors', 'Game flow': 'game-flow', Audio: 'audio', Sound: 'audio', Music: 'audio', GameApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', ImageRegion: 'regions', SpriteAnimation: 'animation', Actor: 'actors', Collisions: 'collisions', 'Lifecycle and extension hooks': 'advanced' }[section];
+    return { 'zero.ui.Element': 'components', 'zero.ui.Label': 'components', 'zero.ui.TextField': 'components', 'zero.ui.Button': 'components', 'zero.ui.Column': 'components', 'zero.ui.Row': 'components', Key: 'input', Color: 'colors', 'Game flow': 'game-flow', Audio: 'audio', Sound: 'audio', Music: 'audio', GameApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', ImageRegion: 'regions', SpriteAnimation: 'animation', Actor: 'actors', Collisions: 'collisions', 'Lifecycle and extension hooks': 'advanced' }[section];
   };
   for (const line of markdown.split(/\r?\n/)) {
     const heading = line.match(/^## (.+)$/);
@@ -163,7 +163,7 @@ export function buildApiReference(markdown) {
     const [, , name, argumentsText = ''] = declaration ?? field;
     const className = section.split('.').at(-1);
     const uiHelper = section.startsWith('zero.ui.');
-    const helper = uiHelper || ['Color', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music'].includes(section);
+    const helper = uiHelper || ['Key', 'Color', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music'].includes(section);
     if (!field && !declaration[1] && (!helper || name !== className)) throw new Error(`Malformed API constructor: ${signature}`);
     const owner = helper ? section : ['App', 'Audio'].includes(section) || (categoryId === 'advanced' && subsection !== 'Protected GameApp overrides') ? 'App' : 'GameApp';
     const parameters = argumentsText ? argumentsText.split(',').map(argument => {
@@ -178,6 +178,8 @@ export function buildApiReference(markdown) {
       : owner === 'Actor' && name === 'draw' && parameters.length === 0 ? 'actor-draw-callback'
       : categoryId === 'game-flow' ? `gameapp-${name}`
       : uiHelper ? `ui-${className.toLowerCase()}-${name === className ? `constructor${sourceType === 'double' ? '-spacing' : ''}` : name}`
+      : owner === 'Key' ? `key-${name}`
+      : ['keyDown', 'keyPressed'].includes(name) && sourceType === 'Key' ? `${name}-zero-key`
       : owner === 'Color' ? `color-${name}`
       : name === 'show' && sourceType === 'zero.ui.Element' ? 'show-element'
       : owner === 'GameApp' && ['background', 'fill', 'stroke'].includes(name) && sourceType === 'zero.Color' ? `${name}-zero-color`
@@ -257,16 +259,28 @@ export function buildApiReference(markdown) {
         Label: 'Label label = new Label("Score: 0");', Button: 'Button button = new Button("Add point");',
         TextField: 'TextField textfield = new TextField();',
         getPromptText: 'String hint = textfield.getPromptText();', setPromptText: 'textfield.setPromptText("Your name");',
+        Row: sourceType === 'double' ? 'Row row = new Row(12, label, button);' : 'Row row = new Row(label, button);',
         Column: sourceType === 'double' ? 'Column column = new Column(12, label, button);' : 'Column column = new Column(label, button);',
         setEnabled: 'button.setEnabled(false); // Keep the action for later reuse',
         fxNode: 'Node node = score.fxNode(); // Advanced JavaFX bridge',
         getText: `String text = ${variable}.getText();`, setText: `${variable}.setText("Ready");`,
-        onClick: 'button.onClick(() -> score.setScore(1));', getSpacing: 'double gap = column.getSpacing();', setSpacing: 'column.setSpacing(12);',
+        onClick: 'button.onClick(() -> score.setScore(1));', getSpacing: `double gap = ${variable}.getSpacing();`, setSpacing: `${variable}.setSpacing(12);`,
       };
       entry.example = uiExamples[name];
       entry.related = name === 'fxNode' || className === 'Element' ? ['ui-label-constructor', 'show-element', 'controls']
         : ['ui-element-fxNode', 'show-element', 'controls'];
-      entry.note = 'Unreleased Zero UI addition. Use zero.ui imports; Label, Button, TextField and Column inherit setEnabled(boolean) and fxNode() from Element. JavaFX remains available through the advanced bridge.';
+      entry.note = 'Unreleased Zero UI addition. Use zero.ui imports; Label, Button, TextField, Column and Row inherit setEnabled(boolean) and fxNode() from Element. JavaFX remains available through the advanced bridge.';
+    }
+    if (owner === 'Key') {
+      entry.example = `if (keyDown(Key.${name})) { /* Move your object explicitly. */ }`;
+      entry.related = ['keyDown-zero-key', 'keyPressed-zero-key'];
+      entry.note = 'Zero arrow enum constant; no JavaFX import. Only these four constants and the documented queries are admitted by the browser profile.';
+    }
+    if (owner === 'GameApp' && sourceType === 'Key') {
+      entry.example = `if (${name}(Key.LEFT)) { /* Move your object explicitly. */ }`;
+      entry.parameters[0].description = 'Non-null Zero Key arrow constant.';
+      entry.related = ['key-LEFT', name === 'keyDown' ? 'keyPressed-zero-key' : 'keyDown-zero-key'];
+      entry.note = 'Shares the existing canvas-owned input state. Focus loss clears held keys and pending edges; controls retain their own keyboard input.';
     }
     if (owner === 'Color') {
       entry.example = field ? `fill(zero.Color.${name});` : 'fill(zero.Color.rgb(80, 120, 200));';
@@ -299,8 +313,8 @@ export function buildApiReference(markdown) {
   }
   for (const category of categories) category.notes = noteLines[category.id].join('\n').trim();
   const entries = categories.flatMap(category => category.entries);
-  if (seenSections.size !== 21 || entries.length !== 165 || categories.some(category => !category.entries.length)) {
-    throw new Error(`Incomplete API reference: expected twenty-one sections and 165 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
+  if (seenSections.size !== 23 || entries.length !== 175 || categories.some(category => !category.entries.length)) {
+    throw new Error(`Incomplete API reference: expected twenty-three sections and 175 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
   }
   const ids = new Set(categories.map(category => category.id));
   for (const entry of entries) {
@@ -315,7 +329,8 @@ export function buildApiReference(markdown) {
 
 const aliases = {
   showGame: 'navigation screen title help results replay retained canvas hud', pause: 'game gameplay freeze updates explicit pause', resume: 'game gameplay continue unpause clock input', isPaused: 'game gameplay explicit pause state',
-  Element: 'zero ui component reusable view JavaFX bridge', Label: 'zero ui component text', TextField: 'zero ui component input text prompt typing greeting', Button: 'zero ui component click callback action', Column: 'zero ui component vertical layout spacing',
+  Element: 'zero ui component reusable view JavaFX bridge', Label: 'zero ui component text', TextField: 'zero ui component input text prompt typing greeting', Button: 'zero ui component click callback action', Column: 'zero ui component vertical layout spacing', Row: 'zero ui component horizontal layout spacing hud',
+  Key: 'zero arrow keyboard input enum',
   setEnabled: 'enabled disabled interaction availability quiz answer controls',
   onClick: 'click callback action Runnable lambda', controls: 'game hud panel live canvas', fxNode: 'advanced JavaFX interoperability node bridge', rgb: 'color colour red green blue channels',
   draw: 'render actor callback local shape sprite',

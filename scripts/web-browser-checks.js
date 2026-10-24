@@ -545,6 +545,48 @@ async (page) => {
   check(await uiFrameCount() > uiBefore, 'Zero button callback replacement and label mutation preserve GameApp frames');
   const uiCanvas = page.locator('canvas');
   const uiBox = await uiCanvas.boundingBox();
+  const zeroInputState = async () => page.evaluate(() => {
+    const texts = window.__zeroCheck.last?.texts || [];
+    return {
+      mask: Number(texts.find(text => text.startsWith('Zero key mask: '))?.slice('Zero key mask: '.length)),
+      edges: texts.find(text => text.startsWith('Zero key edges: '))?.slice('Zero key edges: '.length).split(',').map(Number)
+    };
+  });
+  const waitZeroInput = async (mask, index, edges) => page.waitForFunction(([expectedMask, keyIndex, expectedEdges]) => {
+    const texts = window.__zeroCheck.last?.texts || [];
+    const actualMask = Number(texts.find(text => text.startsWith('Zero key mask: '))?.slice('Zero key mask: '.length));
+    const actualEdges = texts.find(text => text.startsWith('Zero key edges: '))?.slice('Zero key edges: '.length).split(',').map(Number);
+    return actualMask === expectedMask && actualEdges?.[keyIndex] === expectedEdges;
+  }, [mask, index, edges]);
+  await uiCanvas.click({position:{x:uiBox.width / 2,y:uiBox.height / 2}});
+  for (const [index, code] of ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].entries()) {
+    const before = await zeroInputState();
+    await page.keyboard.down(code);
+    await waitZeroInput(1 << index, index, before.edges[index] + 1);
+    await page.keyboard.down(code);
+    const repeatedAt = await uiFrameCount();
+    await page.waitForFunction(frame => Number(window.__zeroCheck.last?.texts.find(text => text.startsWith('Zero UI frames: '))?.split(': ')[1]) > frame + 2, repeatedAt);
+    check((await zeroInputState()).edges[index] === before.edges[index] + 1,
+      code + ' held/repeated key events produce one non-consuming Zero edge');
+    await page.keyboard.up(code);
+    await waitZeroInput(0, index, before.edges[index] + 1);
+  }
+  const beforeControl = await zeroInputState();
+  await page.getByRole('button', {name:'Zero button', exact:true}).focus();
+  const controlAt = await uiFrameCount();
+  await page.keyboard.down('ArrowLeft');
+  await page.waitForFunction(frame => Number(window.__zeroCheck.last?.texts.find(text => text.startsWith('Zero UI frames: '))?.split(': ')[1]) > frame + 2, controlAt);
+  await waitZeroInput(0, 0, beforeControl.edges[0]);
+  await page.keyboard.up('ArrowLeft');
+  check(true, 'Focused UI controls keep arrow keys out of Zero canvas input');
+  await uiCanvas.click({position:{x:uiBox.width / 2,y:uiBox.height / 2}});
+  const beforeBlur = await zeroInputState();
+  await page.keyboard.down('ArrowUp');
+  await waitZeroInput(4, 2, beforeBlur.edges[2] + 1);
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await waitZeroInput(0, 2, beforeBlur.edges[2] + 1);
+  await page.keyboard.up('ArrowUp');
+  check(true, 'Synthetic browser blur clears Zero held arrow input without replaying edges');
   await page.mouse.move(uiBox.x + uiBox.width * .75, uiBox.y + uiBox.height * .75);
   await page.waitForFunction(() => {
     const text = window.__zeroCheck.last?.texts.find(t => t.startsWith('Zero UI pointer: '));

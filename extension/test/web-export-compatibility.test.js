@@ -44,7 +44,7 @@ test('dependency gate rejects unpinned, injected, inherited and profile dependen
   for (const changed of [pom.replace('21.0.12', '21.0.11'), pom.replace('javafx-controls', 'javafx-web'), pom.replace('<dependencies>', '<profiles/><dependencies>'), pom.replace('<dependencies>', '<parent/><dependencies>'), pom.replace('<dependencies>', '<dependencyManagement/><dependencies>'), pom.replace('org.openjfx', 'org.openjfx.evil'), pom.replace('<artifactId>javafx-controls</artifactId>', '<artifactId>javafx-controls</artifactId><classifier>other</classifier>')]) assert.throws(() => validateDependencies(changed), /browser|Browser|POM/);
   assert.throws(() => validateDependencies(pom.replace('<dependencies>', '<!-- fake <dependency> ignored -->\n<dependencies>').replace('org.openjfx', 'evil')), /browser dependency/);
 });
-test('all fourteen reviewed helper APIs and quiz, drawing, audio and controls retain resolved compatibility', { timeout: 240000 }, async () => {
+test('all sixteen reviewed helper APIs and quiz, drawing, audio and controls retain resolved compatibility', { timeout: 240000 }, async () => {
   const fixtures = [
     { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/Main.java'), 'utf8'), 'GameApiChecks.java': await fs.readFile(path.join(root, 'framework/web-checks/GameApiChecks.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'student-template/examples/quiz/Main.java'), 'utf8'), 'ScoreDisplay.java': await fs.readFile(path.join(root, 'student-template/examples/shared/ScoreDisplay.java'), 'utf8') },
@@ -55,7 +55,7 @@ test('all fourteen reviewed helper APIs and quiz, drawing, audio and controls re
     { ...await readSources(path.join(root, 'framework/prototypes/counter')), 'ScoreDisplay.java': await fs.readFile(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java'), 'utf8') },
     { ...await readSources(path.join(root, 'framework/prototypes/coin-game')), 'ScoreDisplay.java': await fs.readFile(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java'), 'utf8') }
   ];
-  for (const sources of fixtures) { const result = await check(sources); assert.equal(result.status, 'passed'); assert.equal(result.trustedHelpers.length, 14); }
+  for (const sources of fixtures) { const result = await check(sources); assert.equal(result.status, 'passed'); assert.equal(result.trustedHelpers.length, 16); }
 });
 test('resolved owners, overloads, references, static imports, dead code and Java APIs fail with source positions', { timeout: 240000 }, async () => {
   const sources = {
@@ -245,7 +245,7 @@ test('Zero UI exact APIs and advanced fxNode interop do not grant neighboring Ja
     'package javafx.scene; public class ZeroDisabledState { }'}), /package is reserved/);
   await assert.rejects(check({'Main.java': app(''), 'zero/Leak.java':'package zero; class Leak { Object hidden() { return Color.BLUE.fxColor(); } }'}), /zero.Color#fxColor/);
   const helpers = await helpersPromise;
-  for (const file of ['zero/Color.java', 'zero/ui/Element.java', 'zero/ui/Label.java', 'zero/ui/TextField.java', 'zero/ui/Button.java', 'zero/ui/Column.java']) {
+  for (const file of ['zero/Color.java', 'zero/ui/Element.java', 'zero/ui/Label.java', 'zero/ui/TextField.java', 'zero/ui/Button.java', 'zero/ui/Column.java', 'zero/ui/Row.java', 'zero/Key.java']) {
     await assert.rejects(check({'Main.java': app(''), [file]: helpers[file] + '\n// changed\n'}), /helper differs/);
     const sources = {...helpers, 'Main.java': app('')}; delete sources[file];
     sources['forged/' + file.split('/').pop()] = helpers[file];
@@ -283,4 +283,16 @@ test('wall clock admits only the exact reviewed currentTimeMillis signature', { 
   const result = await check({ 'Main.java': app('long started = System.currentTimeMillis(); long elapsed = java.lang.System.currentTimeMillis() - started; new zero.ui.Label("Elapsed: " + elapsed);') });
   assert.equal(result.status, 'passed');
   await assert.rejects(check({ 'Main.java': app('long unsupported = System.nanoTime();') }), /java.lang.System#nanoTime\(\)/);
+});
+
+
+test('Zero arrow enum and overloads admit only the exact four constants and query signatures', {timeout:240000}, async () => {
+  const contract = require('../src/web-export/compatibility/contract.json');
+  assert.deepEqual(contract.members.filter(member => member.startsWith('zero.Key#')).sort(),
+    ['zero.Key#LEFT', 'zero.Key#RIGHT', 'zero.Key#UP', 'zero.Key#DOWN'].sort());
+  const game = body => `import zero.GameApp; public class Main extends GameApp { public void setup() { ${body} } }`;
+  assert.equal((await check({'Main.java':game('boolean held = keyDown(zero.Key.LEFT) || keyDown(zero.Key.RIGHT) || keyDown(zero.Key.UP) || keyDown(zero.Key.DOWN); boolean edge = keyPressed(zero.Key.LEFT); show(new zero.ui.Row(12, new zero.ui.Label("Ready"), new zero.ui.Button("Go")));')})).status, 'passed');
+  for (const expression of ['zero.Key.values()', 'zero.Key.valueOf("LEFT")', 'zero.Key.LEFT.name()']) {
+    await assert.rejects(check({'Main.java':game(expression + ';')}), /Unsupported browser API/);
+  }
 });

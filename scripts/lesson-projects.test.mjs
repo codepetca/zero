@@ -67,6 +67,25 @@ test('Study teaching path keeps quiz rules in ordinary Java and uses Zero UI', (
   assert.match(session, /check\.setEnabled\(false\)/);
   assert.match(session, /next\.setEnabled\(true\)/);
 });
+test('Coin movement and scoring lessons use Zero input, drawing and controls', () => {
+  for (const [id, lesson] of [[8, '08-movement'], [9, '09-coin-game']]) {
+    const directory = path.join(root, `teaching/checkpoints/${id}`);
+    const names = id === 8 ? ['Main.java', 'Player.java'] : ['Main.java', 'Player.java', 'Coin.java'];
+    for (const name of names) {
+      assert.doesNotMatch(readFileSync(path.join(directory, name), 'utf8'), /import javafx\.|KeyCode|setOnAction|layout\(\)|canvas\(\)/);
+    }
+    assert.doesNotMatch(readFileSync(path.join(root, `student-template/lessons/${lesson}.md`), 'utf8'), /import javafx\.|KeyCode|setOnAction|new HBox|canvas\(\)\.requestFocus/);
+    const main = readFileSync(path.join(directory, 'Main.java'), 'utf8');
+    for (const arrow of ['LEFT', 'RIGHT', 'UP', 'DOWN']) assert.match(main, new RegExp(`keyDown\\(Key\\.${arrow}\\)`));
+    assert.match(main, /player\.update\(horizontal, vertical, seconds/);
+    assert.match(main, /player\.draw\(this\)/);
+    if (id === 9) {
+      assert.match(main, /controls\(new Row\(12, scoreLabel, message, restartButton\)\)/);
+      assert.match(main, /showGame\(\)/);
+      assert.match(main, /!each\.isCollected\(\) && each\.touches\(player\)/);
+    }
+  }
+});
 test('optional asset archive contains only the two media resources', () => {
   const files=gameAssetFiles(root);
   assert.deepEqual(files.map(file=>file.path),['media-demo/player.png','media-demo/chime.wav']);

@@ -286,7 +286,7 @@ public class CheckpointHarness extends Application {
         settle.setOnFinished(event -> {
             boolean passed = false;
             try {
-                if (((App) app) instanceof GameApp) app.stop(); // Stop timer before deterministic update calls.
+                if (((App) app) instanceof GameApp game) game.pause(); // Freeze automatic updates; keep the app alive for Restart/navigation.
                 BorderPane root = (BorderPane) stage.getScene().getRoot();
                 require(root.getPadding().equals(new javafx.geometry.Insets(20)),
                         "tutorial content has 20 pixels of outer padding");

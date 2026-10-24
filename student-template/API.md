@@ -2,15 +2,15 @@
 
 The complete public/protected API declared by `zero.App`, `zero.GameApp`,
 `zero.ImageRegion`, `zero.SpriteAnimation`, `zero.Actor`, `zero.Collisions`,
-`zero.Sound`, `zero.Music`, `zero.Color` and the `zero.ui` classes below.
-Actor, zero.Color and zero.ui are local source additions and are unreleased. Mac setup 0.5.23 includes
+`zero.Sound`, `zero.Music`, `zero.Color`, `zero.Key` and the `zero.ui` classes below.
+Actor, zero.Color, zero.Key and zero.ui are local source additions and are unreleased. Mac setup 0.5.23 includes
 the earlier image, animation, collision and audio helpers with core 0.2.1. Older downloads keep
 their bundled API; use their own reference when working with an older kit.
 Learn through the [tutorials](lessons/00-hello-world.md); use this reference to
 look up methods. Installation and troubleshooting are in [setup help](README.md).
 
 [App](#app) · [GameApp](#gameapp) · [Game flow](#game-flow) ·
-[Zero UI](#zerouielement) · [Color](#color) · [Canvas](#canvas) · [Drawing](#drawing) · [Images](#images) ·
+[Zero UI](#zerouielement) · [Color](#color) · [Key](#key) · [Canvas](#canvas) · [Drawing](#drawing) · [Images](#images) ·
 [ImageRegion](#imageregion) · [SpriteAnimation](#spriteanimation) ·
 [Actor](#actor) · [Collisions](#collisions) · [Audio](#audio) · [Sound](#sound) · [Music](#music) · [Input](#input) · [Lifecycle and extension hooks](#lifecycle-and-extension-hooks)
 
@@ -114,7 +114,7 @@ lifecycle or navigation history in this API.
 ## zero.ui.Element
 
 `public abstract class Element` is the base for the small Zero UI layer. Import
-`zero.ui.Element`, `zero.ui.Label`, `zero.ui.Button`, `zero.ui.TextField` and `zero.ui.Column` as needed.
+`zero.ui.Element`, `zero.ui.Label`, `zero.ui.Button`, `zero.ui.TextField`, `zero.ui.Column` and `zero.ui.Row` as needed.
 These are additional, unreleased APIs; existing JavaFX controls remain available.
 Use `App.show(element)` for an interface or `GameApp.controls(element)` for a live
 game HUD. Each element wraps one node and can belong to only one parent at a time.
@@ -139,8 +139,8 @@ than a copy. Advanced code must preserve JavaFX ownership/thread rules.
 | Signature | Behavior |
 | --- | --- |
 | `protected Element(Node node)` | Wrap a non-null JavaFX node in a custom Element subclass. |
-| `final void setEnabled(boolean enabled)` | Set this element's own enabled flag while preserving values and callbacks. False blocks interaction; true allows interaction unless an ancestor remains disabled. Inherited by Label, Button, TextField and Column. |
-| `final Node fxNode()` | Return the underlying JavaFX node for advanced interoperability. Inherited by Label, Button, TextField and Column. |
+| `final void setEnabled(boolean enabled)` | Set this element's own enabled flag while preserving values and callbacks. False blocks interaction; true allows interaction unless an ancestor remains disabled. Inherited by Label, Button, TextField, Column and Row. |
+| `final Node fxNode()` | Return the underlying JavaFX node for advanced interoperability. Inherited by Label, Button, TextField, Column and Row. |
 
 ## zero.ui.Label
 
@@ -206,6 +206,21 @@ trying to attach one child to two parents. Empty columns are allowed.
 | `Column(double spacing, Element... children)` | Create a vertical column with finite non-negative pixel spacing. |
 | `double getSpacing()` | Read spacing in pixels. |
 | `void setSpacing(double spacing)` | Replace finite non-negative spacing; invalid values leave the old value unchanged. |
+
+## zero.ui.Row
+
+`public class Row extends Element` arranges child elements horizontally. Import
+`zero.ui.Row`. It has the same ownership, availability and validation rules as
+Column: children must be distinct, non-null and unowned; validation completes
+before attachment. Children are fixed at construction. Empty rows are allowed.
+It inherits setEnabled(boolean) and fxNode().
+
+| Signature | Behavior |
+| --- | --- |
+| `Row(Element... children)` | Create a horizontal row with 8-pixel spacing and the supplied children in order. |
+| `Row(double spacing, Element... children)` | Create a horizontal row with finite non-negative pixel spacing. |
+| `double getSpacing()` | Read horizontal spacing in pixels. |
+| `void setSpacing(double spacing)` | Replace finite non-negative horizontal spacing; invalid values leave the old value unchanged. |
 
 ## Color
 
@@ -508,6 +523,22 @@ close controls throw `IllegalStateException`, while getters remain readable.
 | `boolean isPlaying()` | Whether this player currently reports active playback. |
 | `void close()` | Stop playback and dispose the owned player. |
 
+## Key
+
+`public enum Key` supplies the four arrow keys for normal Zero game input. Import
+`zero.Key` and use keyDown(Key.LEFT) or keyPressed(Key.LEFT). No constructor or
+JavaFX key type is needed. The browser profile admits these four constants and
+queries; implicit enum methods such as values(), valueOf() and name() are not
+part of the supported browser API. The existing KeyCode overloads remain the
+advanced JavaFX interoperability path for other keys.
+
+| Signature | Behavior |
+| --- | --- |
+| `static final Key LEFT` | The left arrow key. |
+| `static final Key RIGHT` | The right arrow key. |
+| `static final Key UP` | The up arrow key. |
+| `static final Key DOWN` | The down arrow key. |
+
 ## Input
 
 These GameApp methods are public and final. Use after canvas creation.
@@ -517,9 +548,11 @@ Import `KeyCode` and `MouseButton` from `javafx.scene.input`.
 | --- | --- |
 | `double mouseX()` | Latest tracked mouse x in canvas coordinates. Starts at canvas centre. |
 | `double mouseY()` | Latest tracked mouse y in canvas coordinates. Starts at canvas centre. |
-| `boolean keyDown(KeyCode key)` | Whether a key pressed with canvas focus is held. |
+| `boolean keyDown(KeyCode key)` | Whether an advanced JavaFX key pressed with canvas focus is held. |
+| `boolean keyDown(Key key)` | Whether a Zero arrow key pressed with canvas focus is held. Null throws NullPointerException with a useful error. |
 | `boolean mouseDown(MouseButton button)` | Whether a button pressed on the canvas is held. |
-| `boolean keyPressed(KeyCode key)` | Whether a new press occurred for the current update/draw frame. Repeated queries do not consume it; holding does not repeat it. |
+| `boolean keyPressed(KeyCode key)` | Whether an advanced JavaFX key has a new press for the current update/draw frame. Repeated queries do not consume it; holding does not repeat it. |
+| `boolean keyPressed(Key key)` | Whether a Zero arrow key has a new press for the current update/draw frame. Repeated queries do not consume it and holding does not repeat it. Null throws NullPointerException with a useful error. |
 | `boolean mousePressed(MouseButton button)` | Whether a new canvas button press occurred for the current update/draw frame. Repeated queries do not consume it. |
 | `boolean windowFocused()` | Whether the app window has focus, including when a native control owns keyboard focus. False before the window exists or after shutdown. |
 

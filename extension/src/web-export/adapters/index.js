@@ -19,12 +19,14 @@ function apply(source, edits) {
 }
 function fail(file, detail) { throw new Error(`Web export: ${file}: ${detail}`); }
 const helperHashes = Object.freeze({
+  'zero/ui/Row.java': '75be7cf9339fe60df6308509d4a8116d328b0dc3bd636e8d3620002861da306a',
+  'zero/Key.java': 'ddea0ecdbd6ff66b0b0ed8365fa4e9404a8cd0b4f44f27c5f57a443110b59dc3',
   'zero/ui/TextField.java': 'b5b26ea3e0f64e6b5ceb8f225b9c89691a615fa213c13723d28b42f3bb983188',
   'zero/Actor.java': '88c22740146d4f2694a8945d054dcebf2fd804444e23b30b29bf1fc65b009225',
   'zero/App.java': '56b76faeac1134c11fd02ae53c09fd487780ad64a04329ab7b40fc35c2b57066',
   'zero/Collisions.java': '1d1cc1c57fcbbcb8421bf469c6d74e5f1707c5542c265d1819f38e59fb4e67fe',
   'zero/Color.java': 'ac3e62480b526e4505c5640ce857757c13cec6134ec7d6d759c4321b785e07d7',
-  'zero/GameApp.java': '7ab16ae32cc7efde5bde1ef8f702528a5727d09fb7e15a8f5f458c92c6c9561c',
+  'zero/GameApp.java': '781194cdbbbc7f5e953a49b59774f1e6206d2a77cf4488471d7584a7b3ff6271',
   'zero/ImageRegion.java': '0fd6961541501815c80f1979f7aa54d36f724a794f8d241ae26ba9c27e54d83d',
   'zero/Music.java': '4c183bb3c7807cac3086dbbb29a388541c606c11b654ca4aad914ad3a5db8450',
   'zero/Sound.java': '6247f0a0d6af9b610727094967af249321c58e6dda21ce1a2a989a3fc6e75286',

@@ -9,12 +9,14 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import zero.ui.Button;
 import zero.ui.Column;
 import zero.ui.Element;
 import zero.ui.Label;
 import zero.ui.TextField;
+import zero.ui.Row;
 
 /** Finite native checks for Zero UI composition and live game controls. */
 public final class UiCheck extends GameApp {
@@ -52,7 +54,7 @@ public final class UiCheck extends GameApp {
         greeting = new Label("Waiting for a name");
         greet = new Button("Say hello");
         greet.onClick(() -> { greetings++; greeting.setText("Hello, " + name.getText() + "!"); });
-        hud = new Column(scoreLabel, reset, name, greet, greeting);
+        hud = new Column(scoreLabel, reset, new Row(name, greet), greeting);
         controls(hud);
         controls(hud);
         Column replacement = new Column(new Label("Temporary controls"));
@@ -159,6 +161,27 @@ public final class UiCheck extends GameApp {
         new Scene(sceneRoot);
         expectIllegal(() -> new Column(new Bridge(sceneRoot)));
         require(new Column().getSpacing() == 8, "empty column is supported");
+        Label left = new Label("Left"), right = new Label("Right");
+        Row row = new Row(left, right);
+        require(row.getSpacing() == 8 && ((HBox) row.fxNode()).getChildren().get(0) == left.fxNode()
+                && ((HBox) row.fxNode()).getChildren().get(1) == right.fxNode(), "Row default spacing and horizontal child order");
+        row.setSpacing(0); row.setSpacing(12.5);
+        for (double bad : new double[] {-1, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY}) {
+            expectIllegal(() -> row.setSpacing(bad));
+            Label untouched = new Label("Untouched");
+            expectIllegal(() -> new Row(bad, untouched));
+            require(row.getSpacing() == 12.5 && untouched.fxNode().getParent() == null, "Row invalid spacing is atomic");
+        }
+        Label untouched = new Label("Untouched");
+        expectNull(() -> new Row((Element[]) null));
+        expectNull(() -> new Row(untouched, null));
+        expectIllegal(() -> new Row(untouched, untouched));
+        expectIllegal(() -> new Row(untouched, left));
+        require(untouched.fxNode().getParent() == null && left.fxNode().getParent() == row.fxNode(), "Row ownership validation precedes attachment");
+        row.setEnabled(false);
+        require(left.fxNode().isDisabled(), "Row inherits parent availability behavior");
+        row.setEnabled(true);
+        require(!left.fxNode().isDisabled() && new Row().getSpacing() == 8, "Row re-enable and empty row");
     }
 
     private static void verifyApp() {

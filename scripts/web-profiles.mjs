@@ -9,10 +9,12 @@ const root=fileURLToPath(new URL('../',import.meta.url));
 export function verifyWebProfiles() {
   const directory=path.join(root,'framework/src/main/java/zero');
   const names=fs.readdirSync(directory,{recursive:true,withFileTypes:true}).filter(entry=>entry.isFile()&&entry.name.endsWith('.java')).map(entry=>path.relative(directory,path.join(entry.parentPath,entry.name)).split(path.sep).join('/')).sort();
-  assert.deepEqual(names,['Actor.java','App.java','Collisions.java','Color.java','GameApp.java','ImageRegion.java','Music.java','Sound.java','SpriteAnimation.java','ui/Button.java','ui/Column.java','ui/Element.java','ui/Label.java','ui/TextField.java'],'A Zero helper was added or removed. Add its browser adapter and real compile/browser coverage before releasing.');
+  assert.deepEqual(names,['Actor.java','App.java','Collisions.java','Color.java','GameApp.java','ImageRegion.java','Key.java','Music.java','Sound.java','SpriteAnimation.java','ui/Button.java','ui/Column.java','ui/Element.java','ui/Label.java','ui/Row.java','ui/TextField.java'],'A Zero helper was added or removed. Add its browser adapter and real compile/browser coverage before releasing.');
   const sources=Object.fromEntries(names.map(name=>['zero/'+name,fs.readFileSync(path.join(directory,name),'utf8')]));
   const declarations = Object.values(sources).reduce((total, source) => total + [...source.matchAll(/^    (?:@Override )?(?:public|protected) /gm)].length, 0);
-  assert.equal(declarations, 165, 'The supported Zero API declaration inventory changed. Extend browser fixture coverage before updating the profile.');
+  const keyConstants = [...sources['zero/Key.java'].matchAll(/^    ([A-Z]+)\(KeyCode\.[A-Z]+\)[,;]/gm)].map(match => match[1]);
+  assert.deepEqual(keyConstants, ['LEFT', 'RIGHT', 'UP', 'DOWN'], 'Review each supported Zero key constant explicitly.');
+  assert.equal(declarations + keyConstants.length, 175, 'The supported Zero API declaration inventory changed. Extend browser fixture coverage before updating the profile.');
   sources['Main.java']=fs.readFileSync(path.join(root,'framework/web-checks/Main.java'),'utf8');
   adaptSources({sources,resourcePaths:['tiles.png']});
   return names;
