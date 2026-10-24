@@ -98,6 +98,18 @@ public final class Main extends GameApp {
             greet.setEnabled(enabled[0]);
             toggle.setText(enabled[0] ? "Disable greeting controls" : "Enable greeting controls");
         });
+        Column inputGroup = new Column(name, disabled, greet);
+        Button groupToggle = new Button("Disable input group");
+        boolean[] groupEnabled = {true};
+        groupToggle.onClick(() -> {
+            groupEnabled[0] = !groupEnabled[0];
+            inputGroup.setEnabled(groupEnabled[0]);
+            groupToggle.setText(groupEnabled[0] ? "Disable input group" : "Enable input group");
+        });
+        Button enableChild = new Button("Enable children inside group");
+        enableChild.onClick(() -> { name.setEnabled(true); greet.setEnabled(true); });
+        Button mounted = new Button("Show initially disabled group");
+        mounted.onClick(this::showInitiallyDisabledGroup);
         Button play = new Button("Play probe");
         play.onClick(() -> {
             if (firstPlay) {
@@ -107,7 +119,23 @@ public final class Main extends GameApp {
             expectZero = true;
             showGame();
         });
-        show(new Column(new Label("Probe title"), name, disabled, greet, greeting, actions, toggle, play));
+        show(new Column(new Label("Probe title"), inputGroup, greeting, actions, toggle,
+                groupToggle, enableChild, mounted, play));
+    }
+    private void showInitiallyDisabledGroup() {
+        TextField field = new TextField();
+        field.setText("Retained");
+        Label count = new Label("Mounted group actions: 0");
+        int[] actions = {0};
+        Button action = new Button("Mounted group action");
+        action.onClick(() -> count.setText("Mounted group actions: " + ++actions[0]));
+        Column group = new Column(field, action);
+        group.setEnabled(false);
+        Button enable = new Button("Enable mounted group");
+        enable.onClick(() -> group.setEnabled(true));
+        Button back = new Button("Return to probe title");
+        back.onClick(this::showTitle);
+        show(new Column(new Label("Initially disabled group"), group, count, enable, back));
     }
     private void showMenu() {
         Button back = new Button("Return to probe game");

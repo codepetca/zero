@@ -46,7 +46,7 @@ function overlay(file, source) {
     source = source.replaceAll('URL resource', 'ResourceURL resource').replace('private URL audioResource', 'private ResourceURL audioResource');
     source = source.replace('getClass().getResource(resourcePath)', 'zero.web.Resources.get(getClass(), resourcePath)');
     source = source.replaceAll('        Sound.requireThread();', '        Sound.requireThread(); zero.web.BrowserLifecycle.own(this, this::stop);');
-    source = source.replace('            stage.setScene(scene);', '            stage.setScene(scene); zero.web.BrowserUiFocus.install(scene);');
+    source = source.replace('            stage.setScene(scene);', '            stage.setScene(scene); zero.web.BrowserUiFocus.install(scene); javafx.scene.ZeroDisabledState.install(scene);');
     source = source.replace('        Throwable failure = null;', '        zero.web.BrowserLifecycle.release(this); Throwable failure = null;');
     const key = source.indexOf('    private static String audioResourceKey(');
     return source.slice(0, key) + '    private static String audioResourceKey(ResourceURL resource) { return resource.toExternalForm(); }\n}\n';
@@ -199,7 +199,11 @@ function adaptSources({ sources, resourcePaths = [], urlReferences, originalPath
   const resources = [...new Set(resourcePaths)].sort();
   for (const resource of resources) if (typeof resource !== 'string' || resource.startsWith('/') || resource.includes('\\') || resource.split('/').some(x => !x || x === '..' || x === '.')) fail(String(resource), 'invalid packaged resource path.');
   const images = resources.filter(file => /\.(png|jpe?g|gif|webp|bmp|svg|avif|ico)$/i.test(file));
-  Object.assign(output, readRuntime(path.join(__dirname, 'runtime')));
+  const runtime = readRuntime(path.join(__dirname, 'runtime'));
+  for (const [file, source] of Object.entries(runtime)) {
+    if (output[file]) fail(file, 'source collides with reserved browser runtime support.');
+    output[file] = source;
+  }
   output['zero/web/PackagedResources.java'] = `package zero.web;\nfinal class PackagedResources {\n    static final String[] ALL = {${resources.map(x => JSON.stringify('/' + x)).join(', ')}};\n    static final String[] IMAGES = {${images.map(x => JSON.stringify('/' + x)).join(', ')}};\n}\n`;
   output['zero/web/BrowserLauncher.java'] = output['zero/web/BrowserLauncher.java'].replaceAll('__APPLICATION_CLASS__', apps[0]);
   warnings.push('Browser effects overlap with up to 32 active/preparing voices per Sound. Blocked autoplay requests coalesce to one pending effect.');

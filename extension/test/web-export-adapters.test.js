@@ -59,6 +59,27 @@ test('the reviewed App overlay installs scene-local Tab traversal for App and Ga
   assert.doesNotMatch(runtime, /impl_traverse|DomGlobal|schedule|KeyCode\.(LEFT|RIGHT|UP|DOWN)/);
 });
 
+test('effective browser disabled state preserves own flags and rejects injected runtime collisions', () => {
+  const originals = { ...helpers(), 'Main.java': app };
+  const result = adaptSources({ sources: originals });
+  assert.match(result.sources['zero/App.java'], /stage.setScene\(scene\);.*ZeroDisabledState.install\(scene\)/);
+  assert.equal((result.sources['zero/App.java'].match(/ZeroDisabledState.install\(scene\)/g) || []).length, 1);
+  assert.doesNotMatch(originals['zero/App.java'], /ZeroDisabledState/);
+  const runtime = result.sources['javafx/scene/ZeroDisabledState.java'];
+  assert.match(runtime, /node.setDisabled\(effective\)/);
+  assert.match(runtime, /node.isDisable\(\) \|\| \(node.getParent\(\) != null && node.getParent\(\).isDisabled\(\)\)/);
+  assert.match(runtime, /node.getProperties\(\).put\(STATE, this\)/);
+  assert.match(runtime, /node.parentProperty\(\).addListener/);
+  assert.match(runtime, /getChildrenUnmodifiable\(\).addListener/);
+  assert.match(runtime, /change.getRemoved\(\)/);
+  assert.match(runtime, /change.getAddedSubList\(\)/);
+  assert.doesNotMatch(runtime, /\.setDisable\(|static final (?:Map|Set)|DomGlobal|schedule/);
+  for (const filename of ['javafx/scene/ZeroDisabledState.java', 'forged/ZeroDisabledState.java']) {
+    assert.throws(() => adaptSources({sources:{...originals,
+      [filename]:'package javafx.scene; public class ZeroDisabledState { }'}}), /reserved browser runtime/);
+  }
+});
+
 test('lexical rewrites preserve literals/comments and bridge only code resource and canvas calls', () => {
   const source = `import zero.GameApp;\nimport java.net.URL;\nimport javafx.scene.media.MediaPlayer;\npublic class Main extends GameApp {\n    String example = "Main.class.getResource(\\\"/foo\\\") canvas().setAccessibleText(";\n    // Main.class.getResource("comment") canvas().setAccessibleText("comment");\n    public void setup() { URL file = Main.class.getResource("/audio/loop.wav"); canvas().setAccessibleText("Space or click"); }\n}\n`;
   const result = adaptSources({ sources: { 'Main.java': source }, resourcePaths: ['audio/loop.wav'] });

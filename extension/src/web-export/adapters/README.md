@@ -39,6 +39,16 @@ Native helpers and the public student API are unchanged. Browser acceptance
 checks forward/backward traversal, disabled-button skipping and Space activation
 in addition to typed text and prompt restoration after blur.
 
+The App overlay also installs the browser-only `javafx.scene.ZeroDisabledState`
+observer. The pinned Node computes its own effective disabled state but omits
+descendant propagation and parent-change recalculation. Per-node property-owned
+listeners restore those two paths, including added and detached children, using
+`setDisabled` for effective state. They never rewrite a node's own `disable` flag.
+There is no global node map, DOM mutation or polling. Runtime source is injected
+after semantic checking; project runtime-package sources and adapter output
+collisions are rejected. Browser acceptance includes disabled Columns, child
+overrides, retained independently disabled children and initially disabled mounts.
+
 The audio bridge implements the JavaFX Media/MediaPlayer/AudioClip calls used by
 the unchanged reviewed `zero.Sound` and `zero.Music` helpers. It uses browser audio elements,
 retains pause/reset/mute/loop/error/close behavior, pauses immediately on window

@@ -241,6 +241,8 @@ test('Zero UI exact APIs and advanced fxNode interop do not grant neighboring Ja
   assert.equal(result.status, 'passed');
   await assert.rejects(check({'Main.java': app('new zero.ui.Label("Ready").fxNode().setUserData("hidden");')}), /javafx.scene.Node#setUserData/);
   await assert.rejects(check({'Main.java': app('new zero.ui.TextField().clear();')}), /clear/);
+  await assert.rejects(check({'Main.java': app(''), 'forged/ZeroDisabledState.java':
+    'package javafx.scene; public class ZeroDisabledState { }'}), /package is reserved/);
   await assert.rejects(check({'Main.java': app(''), 'zero/Leak.java':'package zero; class Leak { Object hidden() { return Color.BLUE.fxColor(); } }'}), /zero.Color#fxColor/);
   const helpers = await helpersPromise;
   for (const file of ['zero/Color.java', 'zero/ui/Element.java', 'zero/ui/Label.java', 'zero/ui/TextField.java', 'zero/ui/Button.java', 'zero/ui/Column.java']) {
