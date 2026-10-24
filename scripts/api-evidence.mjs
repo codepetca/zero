@@ -172,15 +172,64 @@ export function packEvidenceDirectory(directory) {
  return Buffer.concat(files.flatMap(file=>{const name=Buffer.from(file.path),header=Buffer.alloc(12);header.writeUInt32BE(name.length);header.writeBigUInt64BE(BigInt(file.bytes.length),4);return [header,name,file.bytes];}));
 }
 function measuredFiles(files){return Buffer.from(JSON.stringify(files.map(filename=>{const stat=fs.lstatSync(filename);if(!stat.isFile()||stat.isSymbolicLink())fail('tool/harness must be an ordinary file');const bytes=fs.readFileSync(filename);return {path:path.resolve(filename),bytes:bytes.length,sha256:hash(bytes)};})));}
+// Bind ordinary maintainer producers transitively, including their pinned external implementation.
+export function nativeProducerFiles({sourceRoot=repositoryRoot}={}) {
+ const files=new Set();
+ function visit(filename) {
+  filename=fs.realpathSync(filename);if(files.has(filename))return;files.add(filename);
+  const source=fs.readFileSync(filename,'utf8');
+  for(const match of source.matchAll(/(?:from\s*|import\s*\(|require\s*\()\s*['"](\.[^'"]+)['"]/g)) {
+   const base=path.resolve(path.dirname(filename),match[1]);
+   const resolved=[base,base+'.js',base+'.mjs',base+'.cjs',path.join(base,'index.js')].find(candidate=>fs.existsSync(candidate)&&fs.statSync(candidate).isFile());
+   if(!resolved)fail('missing producer dependency '+base);visit(resolved);
+  }
+ }
+ for(const name of ['verify-framework.mjs','kit.mjs','prepare-starter.mjs','prepare-project-builder.mjs','verification-project.mjs','process-specification.mjs','release.mjs'])visit(path.join(sourceRoot,'scripts',name));
+ for(const file of ['package.json','package-lock.json','release/kit.json','extension/package.json','framework/pom.xml'])files.add(path.join(sourceRoot,file));
+ files.add(require.resolve('fflate'));files.add(require.resolve('fflate/package.json'));
+ for(const file of ordinaryFiles(path.join(sourceRoot,'student-template/src')))files.add(file);
+ return [...files].sort();
+}
+function ordinaryFiles(directory) {
+ const files=[];
+ for(const entry of fs.readdirSync(directory,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))) {
+  const file=path.join(directory,entry.name);if(entry.isSymbolicLink())fail('linked tool/configuration input '+file);
+  if(entry.isDirectory())files.push(...ordinaryFiles(file));else if(entry.isFile())files.push(file);else fail('special tool/configuration input');
+ }
+ return files;
+}
+export function javaToolFiles(javaHome) {
+ const executable=name=>path.join(javaHome,'bin',name+(process.platform==='win32'?'.exe':''));
+ // Full runtime/compiler closure, including launcher and native support libraries,
+ // fonts, security configuration and the module image. No runtime is executed.
+ const files=[executable('java'),executable('javac'),path.join(javaHome,'release')];
+ for(const directory of ['bin','lib','conf'])files.push(...ordinaryFiles(path.join(javaHome,directory)));
+ return [...new Set(files)].sort();
+}
+export function nativeToolFiles({javaHome,mavenHome,node=process.execPath,modulePath=[]}) {
+ const files=[fs.realpathSync(node),...javaToolFiles(javaHome),...modulePath];
+ // These contain Maven's actual classworlds launcher, core/extensions, settings and launcher scripts.
+ for(const directory of ['bin','boot','lib','conf'])files.push(...ordinaryFiles(path.join(mavenHome,directory)));
+ return [...new Set(files)].sort();
+}
+function configurationBytes(directory) {
+ const files=['pom.xml','mvnw','mvnw.cmd','zero.json'].map(name=>path.join(directory,name));
+ for(const file of files){const stat=fs.lstatSync(file);if(!stat.isFile()||stat.isSymbolicLink())fail('configuration must be an ordinary file');}
+ files.push(...ordinaryFiles(path.join(directory,'.mvn')));
+ return Buffer.from(JSON.stringify(files.sort().map(file=>({path:path.relative(directory,file).split(path.sep).join('/'),bytes:fs.readFileSync(file).toString('base64')}))));
+}
 export function executionIdentity({manifest,projectRoot,outputDirectory,toolFiles,platform,harnessFiles,sourceRoot=repositoryRoot}) {
  assertManifestSources(manifest,{sourceRoot});
  if(!Array.isArray(toolFiles)||!toolFiles.length||!Array.isArray(harnessFiles)||!harnessFiles.length||!bounded(platform))fail('execution must identify actual tools and harnesses');
  if(fs.existsSync(path.join(projectRoot,'zero-libraries.json')))fail('bind actual managed libraries before recording this fixture');
  for(const source of manifest.sources){const copied=path.join(projectRoot,source.path.slice('framework/'.length));if(hash(fs.readFileSync(copied))!==source.sha256)fail('assembled core source differs: '+source.path);}
  const output=packEvidenceDirectory(outputDirectory),builder=projectBuilderFilesSync({sourceRoot});
+ const configuration=configurationBytes(projectRoot),canonical=configurationBytes(path.join(sourceRoot,'student-template'));
+ if(!configuration.equals(canonical))fail('assembled POM, wrapper or configuration differs from current canonical fixture');
+ const fixture={sourceSha256:hash(packEvidenceDirectory(path.join(projectRoot,'src'))),configurationSha256:hash(configuration),configuration:configuration.toString('base64')};
  const profile=Buffer.from(JSON.stringify(builder.map(file=>({path:file.path,sha256:hash(file.bytes),bytes:file.bytes.length}))));
- const identity={manifestSha256:hash(JSON.stringify(manifest)),coreSha256:hash(JSON.stringify(manifest.sources)),profileSha256:hash(profile),contractSha256:hash(fs.readFileSync(path.join(sourceRoot,'extension/src/web-export/compatibility/contract.json'))),librariesSha256:hash('[]'),fixtureSha256:hash(packEvidenceDirectory(path.join(projectRoot,'src'))),harnessSha256:hash(measuredFiles(harnessFiles)),outputSha256:hash(output),toolSha256:hash(measuredFiles(toolFiles)),platform};
- return {identity:validateIdentity(identity),output,inputs:{toolFiles,harnessFiles}};
+ const identity={manifestSha256:hash(JSON.stringify(manifest)),coreSha256:hash(JSON.stringify(manifest.sources)),profileSha256:hash(profile),contractSha256:hash(fs.readFileSync(path.join(sourceRoot,'extension/src/web-export/compatibility/contract.json'))),librariesSha256:hash('[]'),fixtureSha256:hash(JSON.stringify({sourceSha256:fixture.sourceSha256,configurationSha256:fixture.configurationSha256})),harnessSha256:hash(measuredFiles(harnessFiles)),outputSha256:hash(output),toolSha256:hash(measuredFiles(toolFiles)),platform};
+ return {identity:validateIdentity(identity),output,inputs:{toolFiles,harnessFiles,fixture}};
 }
 export function persistJavaEvidence({directory,manifest,raw,pixels=[],identity,output,inputs,runId,target,caseId}) {
  const converted=receiptFromJavaEvents({manifest,raw,pixels,identity,runId,target,caseId});
@@ -190,25 +239,28 @@ export function persistJavaEvidence({directory,manifest,raw,pixels=[],identity,o
  fs.writeFileSync(path.join(artifacts,identity.outputSha256),output);
  fs.writeFileSync(path.join(artifacts,hash(raw)),raw);
  fs.writeFileSync(path.join(directory,'receipt.json'),JSON.stringify(converted.receipt,null,2)+'\n');
- if(inputs)fs.writeFileSync(path.join(directory,'identity-inputs.json'),JSON.stringify(inputs,null,2)+'\n');
+ if(inputs){fs.writeFileSync(path.join(directory,'identity-inputs.json'),JSON.stringify(inputs,null,2)+'\n');fs.writeFileSync(path.join(artifacts,inputs.fixture.configurationSha256),Buffer.from(inputs.fixture.configuration,'base64'));}
  fs.writeFileSync(path.join(directory,'expected-identity.json'),JSON.stringify(identity,null,2)+'\n');
  const pixelsBytes=JSON.stringify(pixels);fs.writeFileSync(path.join(artifacts,hash(pixelsBytes)),pixelsBytes);
  fs.writeFileSync(path.join(directory,'java-events.json'),JSON.stringify({sha256:hash(raw),pixelsSha256:hash(pixelsBytes),transport:'Actual Java invocation and postcondition events'},null,2)+'\n');
  return converted.receipt;
 }
-export function loadJavaEvidence(directory,{manifest,checkCurrentInputs=true}) {
+export function loadJavaEvidence(directory,{manifest,checkCurrentInputs=true,sourceRoot=repositoryRoot}) {
  const receipts=[],expectedIdentities={},artifacts={};
  for(const entry of fs.readdirSync(directory,{withFileTypes:true})) {
   if(!entry.isDirectory()||entry.isSymbolicLink())fail('evidence root must contain ordinary case directories');
   const folder=path.join(directory,entry.name),receipt=JSON.parse(fs.readFileSync(path.join(folder,'receipt.json'),'utf8'));
   const identity=JSON.parse(fs.readFileSync(path.join(folder,'expected-identity.json'),'utf8'));
   if(checkCurrentInputs){
-   assertManifestSources(manifest);
+   assertManifestSources(manifest,{sourceRoot});
    const inputs=JSON.parse(fs.readFileSync(path.join(folder,'identity-inputs.json'),'utf8'));
-   exact(inputs,['toolFiles','harnessFiles'],'current identity inputs');
+   exact(inputs,['toolFiles','harnessFiles','fixture'],'current identity inputs');
+   exact(inputs.fixture,['sourceSha256','configurationSha256','configuration'],'retained actual fixture inputs');
+   const configuration=fs.readFileSync(path.join(folder,'artifacts',inputs.fixture.configurationSha256));
+   if(!sha(inputs.fixture.sourceSha256)||hash(configuration)!==inputs.fixture.configurationSha256||!configuration.equals(Buffer.from(inputs.fixture.configuration,'base64'))||!configuration.equals(configurationBytes(path.join(sourceRoot,'student-template')))||identity.fixtureSha256!==hash(JSON.stringify({sourceSha256:inputs.fixture.sourceSha256,configurationSha256:inputs.fixture.configurationSha256})))fail('stale current POM, wrapper or configuration');
    if(!Array.isArray(inputs.toolFiles)||!inputs.toolFiles.length||!Array.isArray(inputs.harnessFiles)||!inputs.harnessFiles.length)fail('missing current tool/harness paths');
-   const profile=projectBuilderFilesSync({}).map(file=>({path:file.path,sha256:hash(file.bytes),bytes:file.bytes.length}));
-   if(identity.toolSha256!==hash(measuredFiles(inputs.toolFiles))||identity.harnessSha256!==hash(measuredFiles(inputs.harnessFiles))||identity.profileSha256!==hash(JSON.stringify(profile))||identity.coreSha256!==hash(JSON.stringify(manifest.sources))||identity.contractSha256!==hash(fs.readFileSync(path.join(repositoryRoot,'extension/src/web-export/compatibility/contract.json')))||identity.librariesSha256!==hash('[]'))fail('stale current tool, harness, fixture, profile or contract');
+   const profile=projectBuilderFilesSync({sourceRoot}).map(file=>({path:file.path,sha256:hash(file.bytes),bytes:file.bytes.length}));
+   if(identity.toolSha256!==hash(measuredFiles(inputs.toolFiles))||identity.harnessSha256!==hash(measuredFiles(inputs.harnessFiles))||identity.profileSha256!==hash(JSON.stringify(profile))||identity.coreSha256!==hash(JSON.stringify(manifest.sources))||identity.contractSha256!==hash(fs.readFileSync(path.join(sourceRoot,'extension/src/web-export/compatibility/contract.json')))||identity.librariesSha256!==hash('[]'))fail('stale current tool, harness, fixture, profile or contract');
   }
   const transport=JSON.parse(fs.readFileSync(path.join(folder,'java-events.json'),'utf8'));
   if(!sha(transport.sha256))fail('invalid Java transport identity');
@@ -241,6 +293,12 @@ export function createEvidenceRecorder({runId,target,caseId,emit=()=>{}}){
   const observationSha256=hash(JSON.stringify(observation));event({phase:'asserted',signatureId,assertionId,postcondition,observationSha256});
   const outcome={signatureId,declarationSha256,assertionId,postcondition,invocation,observationSha256,status:'passed'};outcomes.push(outcome);return value;
  },finish(identity){validateIdentity(identity);const log=events.map(value=>JSON.stringify(value)).join('\n')+'\n';return {receipt:{schema:1,runId,target,caseId,identity,logSha256:hash(log),outcomes:[...outcomes]},log};}};
+}
+export function requireTargetEvidence(evidence,target) {
+ if(!['native','browser'].includes(target))fail('unknown execution target');
+ const report=validateEvidenceReceipts(evidence),gaps=report.gaps.filter(gap=>gap.target===target);
+ if(gaps.length)fail(target+' execution gate: '+gaps.length+' declarations lack current executed assertions');
+ return {target,declarations:report.declarations,status:'complete'};
 }
 export function validateEvidenceReceipts({manifest,receipts=[],expectedIdentities={},artifacts={}}){
  validateSignatureManifest(manifest);if(!Array.isArray(receipts)||receipts.length>256)fail('invalid receipt collection');

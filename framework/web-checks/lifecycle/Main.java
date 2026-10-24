@@ -3,6 +3,7 @@ import evidence.ApiSignatureChecks;
 import evidence.ApiDrawingChecks;
 import evidence.ApiLifecycleChecks;
 import evidence.ApiCompletionChecks;
+import evidence.ApiProbeBases;
 import zero.ui.Label;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
@@ -25,14 +26,14 @@ public final class Main extends App {
             button("Fault shutdown",() -> { ShutdownFailure failure=new ShutdownFailure(); failure.start(stage); failure.stop(); })));
     }
     @Override protected void ready(Stage stage) { this.stage=stage; }
-    private static final class SetupFailure extends App {
+    private static final class SetupFailure extends ApiProbeBases.Ui {
         @Override public void setup() { throw new IllegalStateException("Lifecycle setup fault"); }
     }
-    private static final class ShutdownFailure extends App {
+    private static final class ShutdownFailure extends ApiProbeBases.Ui {
         @Override public void setup() { show(new zero.ui.Label("Shutdown fixture ready")); }
         @Override protected void shutdown() { throw new IllegalStateException("Lifecycle shutdown fault"); }
     }
-    private static final class Host extends GameApp {
+    private static final class Host extends ApiProbeBases.Game {
         private int updates,draws;
         private final Label trace=new Label("");
         private Image sheet;

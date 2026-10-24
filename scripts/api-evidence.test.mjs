@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {createRequire} from 'node:module';
 import {inventoryDeclarations,validateSignatureManifest,assertInventoryParity,validateEvidenceReceipts,createEvidenceRecorder,hash,nativeCases,browserCases} from './api-evidence.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'framework/evidence/api-signatures.json'),'utf8'));
@@ -92,18 +93,32 @@ test('browser result parsing requires exactly the selected actually observed Jav
  const wrap=value=>'### Result\n'+JSON.stringify(value)+'\n### Ran Playwright code\nunit-only';assert.deepEqual(browserExecutionRecords(wrap(result),['helpers','audio']),result);
  for(const modify of [copy=>copy.apiEvidence.pop(),copy=>copy.apiEvidence.push(copy.apiEvidence[0]),copy=>copy.apiEvidence[0].caseId='browser/unknown',copy=>copy.selectedFixtures.reverse(),copy=>copy.status='pending']){const copy=structuredClone(result);modify(copy);assert.throws(()=>browserExecutionRecords(wrap(copy),['helpers','audio']));}
 });
-test('current receipt loading remeasures actual tool and harness bytes',async()=>{
- const {executionIdentity,persistJavaEvidence,loadJavaEvidence}=await import('./api-evidence.mjs');const fixture=await receiptFixture(),temporary=fs.mkdtempSync(path.join(os.tmpdir(),'zero-current-proof-unit-'));
+test('current receipt loading remeasures tools and producer closure; actual POM and wrapper are retained',async()=>{
+ const {executionIdentity,persistJavaEvidence,loadJavaEvidence,nativeToolFiles}=await import('./api-evidence.mjs');const fixture=await receiptFixture(),temporary=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'zero-current-proof-unit-')));
  try {
   const project=path.join(temporary,'project'),outputDirectory=path.join(temporary,'output');fs.mkdirSync(path.join(project,'src/main/java'),{recursive:true});fs.mkdirSync(outputDirectory);
   for(const source of fixture.manifest.sources){const dest=path.join(project,source.path.slice('framework/'.length));fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(root,source.path),dest);}
+  for(const name of ['pom.xml','mvnw','mvnw.cmd','zero.json','.mvn'])fs.cpSync(path.join(root,'student-template',name),path.join(project,name),{recursive:true});
   fs.writeFileSync(path.join(outputDirectory,'unit-output'),'synthetic unit artifact only');
-  const tool=path.join(temporary,'unit-tool'),harness=path.join(temporary,'unit-harness');fs.writeFileSync(tool,'synthetic tool');fs.writeFileSync(harness,'synthetic harness');
-  const measured=executionIdentity({manifest:fixture.manifest,projectRoot:project,outputDirectory,toolFiles:[tool],platform:'unit-only',harnessFiles:[harness]});
+  const {copyProjectBuilderFixture}=await import('./project-builder-fixture.mjs');
+  const canonical=path.join(temporary,'canonical');copyProjectBuilderFixture(canonical,root);
+  fs.cpSync(path.join(root,'framework/src'),path.join(canonical,'framework/src'),{recursive:true});
+  for(const name of ['mvnw','mvnw.cmd','zero.json','.mvn'])fs.cpSync(path.join(root,'student-template',name),path.join(canonical,'student-template',name),{recursive:true});
+  const tool=path.join(temporary,'unit-tool'),harness=path.join(canonical,'prepare-starter.mjs');fs.writeFileSync(tool,'synthetic tool');const producerBytes=fs.readFileSync(path.join(root,'scripts/prepare-starter.mjs'));fs.writeFileSync(harness,producerBytes);
+  const javaHome=path.join(temporary,'jdk'),mavenHome=path.join(temporary,'maven');
+  for(const [base,names] of [[javaHome,['bin/java','bin/javac','release','lib/modules','lib/server/libjvm.dylib','conf/security/java.security']],[mavenHome,['bin/mvn','boot/classworlds.jar','lib/maven-core.jar','conf/settings.xml']]])for(const name of names){const file=path.join(base,name);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,'synthetic '+name);}
+  const tools=nativeToolFiles({javaHome,mavenHome,node:tool});
+  for(const file of [path.join(javaHome,'bin/javac'),path.join(javaHome,'lib/modules'),path.join(mavenHome,'lib/maven-core.jar')])assert.ok(tools.includes(file));
+  const measure=()=>executionIdentity({manifest:fixture.manifest,projectRoot:project,outputDirectory,toolFiles:tools,platform:'unit-only',harnessFiles:[harness],sourceRoot:canonical});
+  for(const name of ['pom.xml','mvnw','.mvn/wrapper/maven-wrapper.properties']) {const file=path.join(project,name),before=fs.readFileSync(file);fs.appendFileSync(file,'unit mutation');assert.throws(measure,/assembled POM, wrapper/);fs.writeFileSync(file,before);}
+  const measured=measure();
   const entry=fixture.manifest.signatures[0],link=entry.evidence.native[0];const raw='ZERO_API_EVIDENCE_V1\nI|'+entry.id+'|'+link.assertionId+'\nA|'+entry.id+'|'+link.assertionId+'|'+link.postcondition+'|42\nEND_ZERO_API_EVIDENCE';
   const receipts=path.join(temporary,'receipts');persistJavaEvidence({directory:path.join(receipts,'unit'),manifest:fixture.manifest,raw,...measured,runId:'unit-measured',target:'native',caseId:nativeCases[0].id});
-  assert.equal(validateEvidenceReceipts(loadJavaEvidence(receipts,{manifest:fixture.manifest})).coveredTargets,1);
-  fs.writeFileSync(tool,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest}),/stale current/);fs.writeFileSync(tool,'synthetic tool');fs.writeFileSync(harness,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest}),/stale current/);
+  assert.equal(validateEvidenceReceipts(loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical})).coveredTargets,1);
+  const retained=path.join(receipts,'unit','artifacts',measured.inputs.fixture.configurationSha256);const configuration=fs.readFileSync(retained);fs.appendFileSync(retained,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current POM/);fs.writeFileSync(retained,configuration);
+  const canonicalPom=path.join(canonical,'student-template/pom.xml'),pomBytes=fs.readFileSync(canonicalPom);fs.appendFileSync(canonicalPom,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current POM/);fs.writeFileSync(canonicalPom,pomBytes);
+  const mavenCore=path.join(mavenHome,'lib/maven-core.jar'),mavenBytes=fs.readFileSync(mavenCore);fs.appendFileSync(mavenCore,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current/);fs.writeFileSync(mavenCore,mavenBytes);
+  fs.writeFileSync(tool,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current/);fs.writeFileSync(tool,'synthetic tool');fs.writeFileSync(harness,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current/);
  } finally {fs.rmSync(temporary,{recursive:true,force:true});}
 });
 test('pixel postconditions require measured channels or visible text ink',async()=>{
@@ -153,4 +168,31 @@ class Deferred { public static void main(String[] args) {
 } }`);
   const compiled=spawnSync(path.join(jdk,'bin/javac'),['-d',temporary,path.join(root,'framework/evidence/java/evidence/ApiProof.java'),source],{encoding:'utf8'});assert.equal(compiled.status,0,compiled.stderr);const ran=spawnSync(path.join(jdk,'bin/java'),['-cp',temporary,'Deferred'],{encoding:'utf8'});assert.equal(ran.status,0,ran.stderr);assert.match(ran.stdout,/I\|unit#call\(\)\|later\nA\|unit#call\(\)/);assert.doesNotMatch(ran.stdout,/O\|unit#call/);
  }finally{fs.rmSync(temporary,{recursive:true,force:true});}
+});
+
+test('native producer closure binds assembly, process, release, transitive builder and pinned archive implementation',async()=>{
+ const {nativeProducerFiles}=await import('./api-evidence.mjs');const files=nativeProducerFiles();
+ for(const relative of ['scripts/kit.mjs','scripts/prepare-starter.mjs','scripts/verification-project.mjs','scripts/process-specification.mjs','scripts/release.mjs','scripts/prepare-project-builder.mjs','extension/src/core-contract.js','package-lock.json','release/kit.json'])assert.ok(files.includes(path.join(root,relative)),relative);
+ assert.ok(files.some(file=>file.includes('node_modules/fflate/')&&file.endsWith('.cjs')));
+ for(const file of files)assert.ok(fs.statSync(file).isFile(),file);
+});
+test('every browser evidence family selects only Main with all shared non-entry probes present',()=>{
+ const {adaptSources}=createRequire(import.meta.url)('../extension/src/web-export/adapters');
+ for(const relative of ['framework/web-checks/Main.java','framework/web-checks/navigation/Main.java','framework/web-checks/audio/Main.java','framework/web-checks/lifecycle/Main.java']) {
+  const sources={'Main.java':fs.readFileSync(path.join(root,relative),'utf8')};
+  for(const source of manifest.sources)sources[source.path.slice('framework/src/main/java/'.length)]=fs.readFileSync(path.join(root,source.path),'utf8');
+  for(const name of fs.readdirSync(path.join(root,'framework/evidence/java/evidence')).filter(name=>name.endsWith('.java')&&name!=='ApiNative.java'))sources['evidence/'+name]=fs.readFileSync(path.join(root,'framework/evidence/java/evidence',name),'utf8');
+  if(relative==='framework/web-checks/Main.java')sources['GameApiChecks.java']=fs.readFileSync(path.join(root,'framework/web-checks/GameApiChecks.java'),'utf8');
+  const adapted=adaptSources({sources});assert.equal(adapted.mainClass,'zero.web.BrowserLauncher');assert.ok(!adapted.sources['zero/web/BrowserLauncher.java'].includes('__APPLICATION_CLASS__'));
+ }
+});
+test('target gate requires all of that target, rejects missing/stale, and permits other target gaps',async()=>{
+ const {requireTargetEvidence}=await import('./api-evidence.mjs');const evidence=await receiptFixture();
+ evidence.manifest.signatures=evidence.manifest.signatures.slice(0,1);
+ evidence.receipts[0].identity.manifestSha256=hash(JSON.stringify(evidence.manifest));
+ evidence.expectedIdentities['native:'+nativeCases[0].id].manifestSha256=evidence.receipts[0].identity.manifestSha256;
+ assert.equal(requireTargetEvidence(evidence,'native').status,'complete');
+ assert.throws(()=>requireTargetEvidence(evidence,'browser'),/browser execution gate/);
+ assert.throws(()=>requireTargetEvidence({...evidence,receipts:[]},'native'),/native execution gate/);
+ evidence.receipts[0].identity.toolSha256='f'.repeat(64);assert.throws(()=>requireTargetEvidence(evidence,'native'),/stale/);
 });

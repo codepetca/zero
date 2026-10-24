@@ -2,6 +2,7 @@ package evidence;
 
 import javafx.scene.image.Image;
 import zero.Actor;
+import zero.AnimationSource;
 import zero.GameApp;
 import zero.ImageRegion;
 import zero.SpriteAnimation;
@@ -76,5 +77,29 @@ public final class ApiDrawingChecks {
                 pixel("zero.Actor#textCentered(java.lang.String,double,double)","actor-centred-text","Bound Actor text leaves ink in its expected font or alignment region",()->{fill(zero.Color.BLUE);textSize(24);textCentered("MM",10+40,390+30);},"ink,34,398,14,24");
             }
         });
+
+        ImageRegion orange=new ImageRegion(sheet,0,0,12,12), blue=new ImageRegion(sheet,12,0,12,12);
+        Actor replacement0=new Actor(blue,102,402);replacement0.setSize(24,24);
+        pixel("zero.Actor#draw(zero.GameApp)","setter-before-0","Replacement begins with visibly blue artwork",()->replacement0.draw(app),"pixel,93,393,40,120,240,255");
+        pixel("zero.Actor#setImage(javafx.scene.image.Image)","setter-after-0","Replacement changes blue artwork to orange while preserving placement",()->{replacement0.setImage(sheet);replacement0.draw(app);},"pixel,93,393,240,90,40,255");
+        Actor replacement1=new Actor(blue,182,402);replacement1.setSize(24,24);
+        pixel("zero.Actor#draw(zero.GameApp)","setter-before-1","Replacement begins with visibly blue artwork",()->replacement1.draw(app),"pixel,173,393,40,120,240,255");
+        pixel("zero.Actor#setImage(zero.ImageRegion)","setter-after-1","Replacement changes blue artwork to orange while preserving placement",()->{replacement1.setImage(orange);replacement1.draw(app);},"pixel,173,393,240,90,40,255");
+        SpriteAnimation replacementAnimation2=new SpriteAnimation(2,orange,blue);
+        Actor replacement2=new Actor(blue,262,402);replacement2.setSize(24,24);
+        pixel("zero.Actor#draw(zero.GameApp)","setter-before-2","Replacement begins with visibly blue artwork",()->replacement2.draw(app),"pixel,253,393,40,120,240,255");
+        pixel("zero.Actor#setImage(zero.SpriteAnimation)","setter-after-2","Replacement changes blue artwork to orange while preserving placement",()->{replacement2.setImage(replacementAnimation2);replacement2.draw(app);},"pixel,253,393,240,90,40,255");
+        pixel("zero.Actor#update(double)","setter-advance-2","Owned replacement playback advances from orange to blue after an explicit update",()->{replacement2.update(.5);replacement2.draw(app);},"pixel,253,393,40,120,240,255");
+        if(record) ApiProof.equal("zero.SpriteAnimation#frameIndex()","setter-source-clock-2","Owned playback advances without advancing the reusable source clock",()->""+replacementAnimation2.frameIndex(),"0");
+        SpriteAnimation replacementAnimation3=new SpriteAnimation(2,orange,blue);
+        Actor replacement3=new Actor(blue,342,402);replacement3.setSize(24,24);
+        pixel("zero.Actor#draw(zero.GameApp)","setter-before-3","Replacement begins with visibly blue artwork",()->replacement3.draw(app),"pixel,333,393,40,120,240,255");
+        pixel("zero.Actor#setImage(zero.AnimationSource)","setter-after-3","Replacement changes blue artwork to orange while preserving placement",()->{replacement3.setImage((AnimationSource)replacementAnimation3);replacement3.draw(app);},"pixel,333,393,240,90,40,255");
+        pixel("zero.Actor#update(double)","setter-advance-3","Owned replacement playback advances from orange to blue after an explicit update",()->{replacement3.update(.5);replacement3.draw(app);},"pixel,333,393,40,120,240,255");
+        if(record) ApiProof.equal("zero.SpriteAnimation#frameIndex()","setter-source-clock-3","Owned playback advances without advancing the reusable source clock",()->""+replacementAnimation3.frameIndex(),"0");
+        pixel("zero.Actor#<init>(javafx.scene.image.Image,double,double)","actor-artwork-0","Image construction actually paints orange source artwork at its natural bounds",()->new Actor(sheet,422,402).draw(app),"pixel,413,393,240,90,40,255");
+        pixel("zero.Actor#<init>(zero.ImageRegion,double,double)","actor-artwork-1","Image construction actually paints orange source artwork at its natural bounds",()->new Actor(orange,496,396).draw(app),"pixel,493,393,240,90,40,255");
+        pixel("zero.Actor#<init>(zero.SpriteAnimation,double,double)","actor-artwork-2","Image construction actually paints orange source artwork at its natural bounds",()->new Actor(new SpriteAnimation(2,orange,blue),576,396).draw(app),"pixel,573,393,240,90,40,255");
+        pixel("zero.Actor#<init>(zero.AnimationSource,double,double)","actor-artwork-3","Image construction actually paints orange source artwork at its natural bounds",()->new Actor((AnimationSource)new SpriteAnimation(2,orange,blue),656,396).draw(app),"pixel,653,393,240,90,40,255");
     }
 }

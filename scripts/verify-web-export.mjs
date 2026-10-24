@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 import { deflateSync } from 'node:zlib';
-import {executionIdentity,persistJavaEvidence,browserExecutionRecords,hash} from './api-evidence.mjs';
+import {executionIdentity,persistJavaEvidence,browserExecutionRecords,hash,loadJavaEvidence,requireTargetEvidence,javaToolFiles} from './api-evidence.mjs';
 import {parseFixtureSelection, selectFixtureReceipts, runSelectedFixtures} from './web-fixture-selection.mjs';
 const mobileOnly = process.argv.includes('--mobile-only');
 const explicitSelection=process.argv.some(arg=>arg==='--only'||arg.startsWith('--only='));
@@ -115,7 +115,7 @@ async function fixture(name, example) {
   });
   if (['helpers','zero-ui','audio','lifecycle'].includes(name)) {
     await fs.mkdir(path.join(directory,'src/main/java/evidence'),{recursive:true});
-    for(const file of ['ApiProof.java','ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java','ApiCompletionChecks.java'])await fs.copyFile(path.join(root,'framework/evidence/java/evidence',file),path.join(directory,'src/main/java/evidence',file));
+    for(const file of ['ApiProof.java','ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java','ApiCompletionChecks.java','ApiProbeBases.java'])await fs.copyFile(path.join(root,'framework/evidence/java/evidence',file),path.join(directory,'src/main/java/evidence',file));
   }
   if (name === 'helpers')
     await fs.copyFile(path.join(root, 'framework/web-checks/GameApiChecks.java'), path.join(directory, 'src/main/java/GameApiChecks.java'));
@@ -294,24 +294,24 @@ if (browser) {
             await verifyCaptured(savedBuild.inputs,projectRoot);
             await verifyCaptured(savedBuild.files,built.sitePath);
             const originalMain=name==='helpers'?'framework/web-checks/Main.java':name==='zero-ui'?'framework/web-checks/navigation/Main.java':'framework/web-checks/'+name+'/Main.java';
-            for(const [relative,canonical] of [['Main.java',originalMain],...['ApiProof.java','ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java','ApiCompletionChecks.java'].map(file=>['evidence/'+file,'framework/evidence/java/evidence/'+file]),...(name==='helpers'?[['GameApiChecks.java','framework/web-checks/GameApiChecks.java']]:[])]) {
+            for(const [relative,canonical] of [['Main.java',originalMain],...['ApiProof.java','ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java','ApiCompletionChecks.java','ApiProbeBases.java'].map(file=>['evidence/'+file,'framework/evidence/java/evidence/'+file]),...(name==='helpers'?[['GameApiChecks.java','framework/web-checks/GameApiChecks.java']]:[])]) {
               if(!(await fs.readFile(path.join(projectRoot,'src/main/java',relative))).equals(await fs.readFile(path.join(root,canonical))))throw new Error('Browser fixture differs from current source: '+relative);
             }
             if(!process.env.JAVA_HOME)throw new Error('Browser evidence needs actual JAVA_HOME compiler identity.');
-            const toolFiles=[process.execPath,path.join(process.env.JAVA_HOME,'bin',process.platform==='win32'?'java.exe':'java'),...await prepareArtifacts(cacheRoot)];
+            const toolFiles=[process.execPath,...javaToolFiles(process.env.JAVA_HOME),...await prepareArtifacts(cacheRoot)];
             // Bind actual cached GWT/compiler and Maven dependency bytes as well
             // as the Java/Node executables. This reads only the completed cache.
-            async function compilerJars(directory) {
+            async function compilerJars(directory,allFiles=false) {
               for(const entry of await fs.readdir(directory,{withFileTypes:true})) {
                 const file=path.join(directory,entry.name);
                 if(entry.isSymbolicLink())throw new Error('Linked compiler evidence input.');
-                if(entry.isDirectory())await compilerJars(file);
-                else if(entry.isFile()&&entry.name.endsWith('.jar'))toolFiles.push(file);
+                if(entry.isDirectory())await compilerJars(file,allFiles);
+                else if(entry.isFile()&&(allFiles||entry.name.endsWith('.jar')))toolFiles.push(file);
               }
             }
-            for(const folder of ['repository','artifacts','maven-home'])await compilerJars(path.join(cacheRoot,folder));
+            for(const folder of ['repository','artifacts','maven-home'])await compilerJars(path.join(cacheRoot,folder),folder==='maven-home');
             toolFiles.sort();
-            const {identity,output,inputs}=executionIdentity({manifest,projectRoot:path.join(base,'projects',name),outputDirectory:built.sitePath,toolFiles,platform:observed.browser,harnessFiles:[path.join(root,'scripts/verify-web-export.mjs'),path.join(root,'scripts/web-browser-checks.js'),path.join(root,'scripts/api-evidence.mjs'),path.join(root,name==='helpers'?'framework/web-checks/Main.java':name==='zero-ui'?'framework/web-checks/navigation/Main.java':'framework/web-checks/'+name+'/Main.java'),path.join(root,'framework/web-checks/GameApiChecks.java'),...['ApiProof.java','ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java','ApiCompletionChecks.java'].map(file=>path.join(root,'framework/evidence/java/evidence',file))]});
+            const {identity,output,inputs}=executionIdentity({manifest,projectRoot:path.join(base,'projects',name),outputDirectory:built.sitePath,toolFiles,platform:observed.browser,harnessFiles:[path.join(root,'scripts/verify-web-export.mjs'),path.join(root,'scripts/web-browser-checks.js'),path.join(root,'scripts/api-evidence.mjs'),path.join(root,name==='helpers'?'framework/web-checks/Main.java':name==='zero-ui'?'framework/web-checks/navigation/Main.java':'framework/web-checks/'+name+'/Main.java'),path.join(root,'framework/web-checks/GameApiChecks.java'),...['ApiProof.java','ApiSignatureChecks.java','ApiDrawingChecks.java','ApiLifecycleChecks.java','ApiCompletionChecks.java','ApiProbeBases.java'].map(file=>path.join(root,'framework/evidence/java/evidence',file))]});
             persistJavaEvidence({directory:path.join(base,'api-evidence','browser-'+name),manifest,raw:evidence.raw,pixels:evidence.pixels,identity,output,inputs,runId:'browser-'+name+'-'+Date.now(),target:'browser',caseId:evidence.caseId});
           }
         }
@@ -322,5 +322,9 @@ if (browser) {
   } finally {
     previews.forEach((item) => item.dispose());
   }
+}
+if(browser&&!mobileOnly&&['helpers','zero-ui','audio','lifecycle'].every(name=>selectedFixtures.includes(name))) {
+ const manifest=JSON.parse(await fs.readFile(path.join(root,'framework/evidence/api-signatures.json'),'utf8'));
+ requireTargetEvidence(loadJavaEvidence(path.join(base,'api-evidence'),{manifest}),'browser');
 }
 console.log('Selected WebFX/GWT verification finished for: '+selectedFixtures.join(', ')+'. Unselected fixtures have no result from this run.');

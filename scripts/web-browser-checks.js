@@ -630,7 +630,8 @@ async (initialPage) => {
     return actualMask === expectedMask && actualEdges?.[keyIndex] === expectedEdges;
   }, [mask, index, edges]);
   await uiCanvas.click({position:{x:uiBox.width / 2,y:uiBox.height / 2}});
-  await page.mouse.move(uiBox.x+80,uiBox.y+80);await page.mouse.down();
+  const logicalSize=await uiCanvas.evaluate(canvas=>({width:canvas.width,height:canvas.height}));
+  await page.mouse.move(uiBox.x+80*uiBox.width/logicalSize.width,uiBox.y+80*uiBox.height/logicalSize.height);await page.mouse.down();
   await page.waitForFunction(()=>window.__zeroCheck.apiEvidence?.includes('A|zero.GameApp#mouseY()|mouse-y'));
   await page.mouse.up();
   for (const [index, code] of ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].entries()) {

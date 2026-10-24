@@ -60,10 +60,6 @@ public final class ApiSignatureChecks {
         eq("zero.Actor#moveForward(double,double)","actor-forward","Signed speed times elapsed time follows heading",()->{actor.moveForward(8,.5);return actor.x()+","+actor.y();},"9.0,2.0");
         eq("zero.Actor#face(double,double)","actor-face","Facing a point below yields clockwise ninety degrees",()->{actor.face(9,12);return ""+actor.rotation();},"90.0");
         eq("zero.Actor#moveToward(double,double,double,double)","actor-clamp","Approach stops at target without overshoot",()->{actor.moveToward(9,12,100,1);return actor.x()+","+actor.y();},"9.0,12.0");
-        eq("zero.Actor#setImage(javafx.scene.image.Image)","actor-static-image","Static replacement preserves explicit geometry",()->{actor.setImage(image);return geometry(actor);},"9.0,12.0,4.0,6.0");
-        eq("zero.Actor#setImage(zero.ImageRegion)","actor-static-region","Region replacement preserves explicit geometry",()->{actor.setImage(first);return geometry(actor);},"9.0,12.0,4.0,6.0");
-        eq("zero.Actor#setImage(zero.SpriteAnimation)","actor-set-sprite","Assigning sprite keeps geometry and legacy clock",()->{actor.setImage(source);actor.update(.5);return geometry(actor)+","+source.frameIndex();},"9.0,12.0,4.0,6.0,0");
-        eq("zero.Actor#setImage(zero.AnimationSource)","actor-set-source","Source replacement preserves geometry without ticking source",()->{actor.setImage(definition);return geometry(actor)+","+source.frameIndex();},"9.0,12.0,4.0,6.0,0");
         Mover mover = new Mover(source);
         eq("zero.Actor#update(double)","actor-update-owner","One explicit update invokes behaviour once with elapsed time",()->{mover.update(.5);return mover.hooks+","+mover.x();},"1,10.5");
         eq("zero.Actor#onUpdate(double)","actor-behaviour-hook","Protected behaviour receives validated time on next update",()->{mover.update(.25);return mover.hooks+","+mover.x();},"2,10.75");
@@ -160,8 +156,8 @@ public final class ApiSignatureChecks {
     public static void pointerHeld(GameApp app,double x,double y) {
         if(pointerObserved)return;pointerObserved=true;
         eq("zero.GameApp#mouseDown(javafx.scene.input.MouseButton)","mouse-held","Primary pointer query sees an actual held canvas press",()->""+app.mouseDown(javafx.scene.input.MouseButton.PRIMARY),"true");
-        eq("zero.GameApp#mouseX()","mouse-x","Pointer X is translated into the expected canvas coordinate",()->""+app.mouseX(),""+x);
-        eq("zero.GameApp#mouseY()","mouse-y","Pointer Y is translated into the expected canvas coordinate",()->""+app.mouseY(),""+y);
+        eq("zero.GameApp#mouseX()","mouse-x","Pointer X is within one thousandth of the expected logical coordinate",()->""+(Math.abs(app.mouseX()-x)<.001),"true");
+        eq("zero.GameApp#mouseY()","mouse-y","Pointer Y is within one thousandth of the expected logical coordinate",()->""+(Math.abs(app.mouseY()-y)<.001),"true");
     }
     public static void pointerPressed(GameApp app) {
         if(pointerEdgeObserved)return;pointerEdgeObserved=true;

@@ -22,3 +22,11 @@ test('each ordinary browser fixture has an isolated selected entry and always cl
 });
 test('mobile selection initializes a fresh page/CDP only for its selected case',async()=>{const calls=[],cdp={send:async()=>{},detach:async()=>calls.push('detach')};const child={addInitScript:async()=>calls.push('init'),setViewportSize:async()=>{},context:()=>({newCDPSession:async()=>cdp}),goto:async url=>{calls.push(url);throw new Error('unit-stop-before-browser');},close:async()=>calls.push('closed')};const run=await harness('web-mobile-checks.js',['mobile']);await assert.rejects(run({context:()=>({newPage:async()=>child})}),/unit-stop-before-browser/);assert.deepEqual(calls,['init','https://unit.invalid/mobile','detach','closed']);});
 test('harness rejects malformed selections before creating any page',async()=>{for(const filename of ['web-browser-checks.js','web-mobile-checks.js'])for(const selection of [[],['no'],['audio','audio']]){const run=await harness(filename,selection);await assert.rejects(run({context(){throw new Error('must not create page');}}),/Invalid .*fixture selection/);}});
+test('mobile harness accepts default ten and the four evidence families',async()=>{
+ for(const selection of [fixtureIds,['helpers','zero-ui','audio','lifecycle']]) {
+  const calls=[],cdp={send:async()=>{},detach:async()=>calls.push('detach')};
+  const page={addInitScript:async()=>{},setViewportSize:async()=>{},context:()=>({newCDPSession:async()=>cdp}),goto:async url=>{calls.push(url);throw new Error('accepted-selection');},close:async()=>calls.push('closed')};
+  await assert.rejects((await harness('web-mobile-checks.js',selection))({context:()=>({newPage:async()=>page})}),/accepted-selection/);
+  assert.deepEqual(calls,['https://unit.invalid/helpers','detach','closed']);
+ }
+});

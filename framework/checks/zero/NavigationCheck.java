@@ -180,6 +180,7 @@ public final class NavigationCheck extends Application {
             savedUpdates = game.updates; savedDraws = game.draws; next();
         } else if (phase == 17 && waited()) {
             require(game.updates == savedUpdates && game.draws == savedDraws, "normal menu navigation still suspends gameplay");
+            phase = 18; // Closing a Stage can deliver another pulse before Platform.exit completes.
             game.stop(); gameStage.close();
             Thread.currentThread().setUncaughtExceptionHandler(previousHandler);
             ApiNative.emit();

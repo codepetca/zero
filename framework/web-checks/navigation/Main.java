@@ -182,7 +182,7 @@ public final class Main extends GameApp {
         show(new Column(new Label("Probe menu"), back, title));
     }
     @Override public void update(double seconds) {
-        if(mouseDown(MouseButton.PRIMARY)&&mouseX()==80&&mouseY()==80)ApiSignatureChecks.pointerHeld(this,80,80);
+        if(mouseDown(MouseButton.PRIMARY)&&Math.abs(mouseX()-80)<.001&&Math.abs(mouseY()-80)<.001)ApiSignatureChecks.pointerHeld(this,80,80);
         if(mousePressed(MouseButton.PRIMARY))ApiSignatureChecks.pointerPressed(this);
         keyMask = 0;
         for (int index = 0; index < arrowKeys.length; index++) {

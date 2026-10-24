@@ -5,7 +5,7 @@ async (initialPage) => {
   const artifactRoot = __ARTIFACT_ROOT__;
   const results = [];
   const selection = typeof __SELECTION__ === 'undefined' ? Object.keys(urls) : __SELECTION__;
-  const known = ['helpers','quiz','drawing','audio','hello','mobile','zero-ui','counter','coin-game'];
+  const known = ['helpers','quiz','drawing','audio','hello','mobile','zero-ui','counter','coin-game','lifecycle'];
   if (!Array.isArray(selection) || !selection.length || selection.some(id => !known.includes(id)) || new Set(selection).size !== selection.length) throw new Error('Invalid mobile fixture selection.');
   if (!selection.some(id => ['helpers','mobile'].includes(id))) throw new Error('No mobile browser fixture was selected.');
 

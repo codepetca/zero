@@ -129,6 +129,11 @@
             "caseId": "native/ActorCheck",
             "assertionId": "actor-image",
             "postcondition": "Image construction uses natural dimensions"
+          },
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-artwork-0",
+            "postcondition": "Image construction actually paints orange source artwork at its natural bounds"
           }
         ],
         "browser": [
@@ -136,6 +141,11 @@
             "caseId": "browser/helpers",
             "assertionId": "actor-image",
             "postcondition": "Image construction uses natural dimensions"
+          },
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-artwork-0",
+            "postcondition": "Image construction actually paints orange source artwork at its natural bounds"
           }
         ]
       }
@@ -161,6 +171,11 @@
             "caseId": "native/ActorCheck",
             "assertionId": "actor-source",
             "postcondition": "Source construction uses initial playback dimensions"
+          },
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-artwork-3",
+            "postcondition": "Image construction actually paints orange source artwork at its natural bounds"
           }
         ],
         "browser": [
@@ -168,6 +183,11 @@
             "caseId": "browser/helpers",
             "assertionId": "actor-source",
             "postcondition": "Source construction uses initial playback dimensions"
+          },
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-artwork-3",
+            "postcondition": "Image construction actually paints orange source artwork at its natural bounds"
           }
         ]
       }
@@ -193,6 +213,11 @@
             "caseId": "native/ActorCheck",
             "assertionId": "actor-region",
             "postcondition": "Region construction uses region dimensions"
+          },
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-artwork-1",
+            "postcondition": "Image construction actually paints orange source artwork at its natural bounds"
           }
         ],
         "browser": [
@@ -200,6 +225,11 @@
             "caseId": "browser/helpers",
             "assertionId": "actor-region",
             "postcondition": "Region construction uses region dimensions"
+          },
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-artwork-1",
+            "postcondition": "Image construction actually paints orange source artwork at its natural bounds"
           }
         ]
       }
@@ -225,6 +255,11 @@
             "caseId": "native/ActorCheck",
             "assertionId": "actor-sprite",
             "postcondition": "Sprite construction uses initial playback dimensions"
+          },
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-artwork-2",
+            "postcondition": "Image construction actually paints orange source artwork at its natural bounds"
           }
         ],
         "browser": [
@@ -232,6 +267,11 @@
             "caseId": "browser/helpers",
             "assertionId": "actor-sprite",
             "postcondition": "Sprite construction uses initial playback dimensions"
+          },
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "actor-artwork-2",
+            "postcondition": "Image construction actually paints orange source artwork at its natural bounds"
           }
         ]
       }
@@ -322,6 +362,26 @@
             "caseId": "native/ActorCheck",
             "assertionId": "actor-app-draw",
             "postcondition": "Actor draw translates its natural sprite into world coordinates"
+          },
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "setter-before-0",
+            "postcondition": "Replacement begins with visibly blue artwork"
+          },
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "setter-before-1",
+            "postcondition": "Replacement begins with visibly blue artwork"
+          },
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "setter-before-2",
+            "postcondition": "Replacement begins with visibly blue artwork"
+          },
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "setter-before-3",
+            "postcondition": "Replacement begins with visibly blue artwork"
           }
         ],
         "browser": [
@@ -329,6 +389,26 @@
             "caseId": "browser/lifecycle",
             "assertionId": "actor-app-draw",
             "postcondition": "Actor draw translates its natural sprite into world coordinates"
+          },
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "setter-before-0",
+            "postcondition": "Replacement begins with visibly blue artwork"
+          },
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "setter-before-1",
+            "postcondition": "Replacement begins with visibly blue artwork"
+          },
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "setter-before-2",
+            "postcondition": "Replacement begins with visibly blue artwork"
+          },
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "setter-before-3",
+            "postcondition": "Replacement begins with visibly blue artwork"
           }
         ]
       }
@@ -748,15 +828,15 @@
         "native": [
           {
             "caseId": "native/ActorCheck",
-            "assertionId": "actor-static-image",
-            "postcondition": "Static replacement preserves explicit geometry"
+            "assertionId": "setter-after-0",
+            "postcondition": "Replacement changes blue artwork to orange while preserving placement"
           }
         ],
         "browser": [
           {
-            "caseId": "browser/helpers",
-            "assertionId": "actor-static-image",
-            "postcondition": "Static replacement preserves explicit geometry"
+            "caseId": "browser/lifecycle",
+            "assertionId": "setter-after-0",
+            "postcondition": "Replacement changes blue artwork to orange while preserving placement"
           }
         ]
       }
@@ -781,15 +861,15 @@
         "native": [
           {
             "caseId": "native/ActorCheck",
-            "assertionId": "actor-set-source",
-            "postcondition": "Source replacement preserves geometry without ticking source"
+            "assertionId": "setter-after-3",
+            "postcondition": "Replacement changes blue artwork to orange while preserving placement"
           }
         ],
         "browser": [
           {
-            "caseId": "browser/helpers",
-            "assertionId": "actor-set-source",
-            "postcondition": "Source replacement preserves geometry without ticking source"
+            "caseId": "browser/lifecycle",
+            "assertionId": "setter-after-3",
+            "postcondition": "Replacement changes blue artwork to orange while preserving placement"
           }
         ]
       }
@@ -814,15 +894,15 @@
         "native": [
           {
             "caseId": "native/ActorCheck",
-            "assertionId": "actor-static-region",
-            "postcondition": "Region replacement preserves explicit geometry"
+            "assertionId": "setter-after-1",
+            "postcondition": "Replacement changes blue artwork to orange while preserving placement"
           }
         ],
         "browser": [
           {
-            "caseId": "browser/helpers",
-            "assertionId": "actor-static-region",
-            "postcondition": "Region replacement preserves explicit geometry"
+            "caseId": "browser/lifecycle",
+            "assertionId": "setter-after-1",
+            "postcondition": "Replacement changes blue artwork to orange while preserving placement"
           }
         ]
       }
@@ -847,15 +927,15 @@
         "native": [
           {
             "caseId": "native/ActorCheck",
-            "assertionId": "actor-set-sprite",
-            "postcondition": "Assigning sprite keeps geometry and legacy clock"
+            "assertionId": "setter-after-2",
+            "postcondition": "Replacement changes blue artwork to orange while preserving placement"
           }
         ],
         "browser": [
           {
-            "caseId": "browser/helpers",
-            "assertionId": "actor-set-sprite",
-            "postcondition": "Assigning sprite keeps geometry and legacy clock"
+            "caseId": "browser/lifecycle",
+            "assertionId": "setter-after-2",
+            "postcondition": "Replacement changes blue artwork to orange while preserving placement"
           }
         ]
       }
@@ -1146,6 +1226,16 @@
             "caseId": "native/ActorCheck",
             "assertionId": "actor-update-owner",
             "postcondition": "One explicit update invokes behaviour once with elapsed time"
+          },
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "setter-advance-2",
+            "postcondition": "Owned replacement playback advances from orange to blue after an explicit update"
+          },
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "setter-advance-3",
+            "postcondition": "Owned replacement playback advances from orange to blue after an explicit update"
           }
         ],
         "browser": [
@@ -1153,6 +1243,16 @@
             "caseId": "browser/helpers",
             "assertionId": "actor-update-owner",
             "postcondition": "One explicit update invokes behaviour once with elapsed time"
+          },
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "setter-advance-2",
+            "postcondition": "Owned replacement playback advances from orange to blue after an explicit update"
+          },
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "setter-advance-3",
+            "postcondition": "Owned replacement playback advances from orange to blue after an explicit update"
           }
         ]
       }
@@ -3452,14 +3552,14 @@
           {
             "caseId": "native/GameHelpersCheck",
             "assertionId": "mouse-x",
-            "postcondition": "Pointer X is translated into the expected canvas coordinate"
+            "postcondition": "Pointer X is within one thousandth of the expected logical coordinate"
           }
         ],
         "browser": [
           {
             "caseId": "browser/zero-ui",
             "assertionId": "mouse-x",
-            "postcondition": "Pointer X is translated into the expected canvas coordinate"
+            "postcondition": "Pointer X is within one thousandth of the expected logical coordinate"
           }
         ]
       }
@@ -3485,14 +3585,14 @@
           {
             "caseId": "native/GameHelpersCheck",
             "assertionId": "mouse-y",
-            "postcondition": "Pointer Y is translated into the expected canvas coordinate"
+            "postcondition": "Pointer Y is within one thousandth of the expected logical coordinate"
           }
         ],
         "browser": [
           {
             "caseId": "browser/zero-ui",
             "assertionId": "mouse-y",
-            "postcondition": "Pointer Y is translated into the expected canvas coordinate"
+            "postcondition": "Pointer Y is within one thousandth of the expected logical coordinate"
           }
         ]
       }
@@ -5173,6 +5273,16 @@
             "caseId": "native/ActorCheck",
             "assertionId": "sprite-index",
             "postcondition": "Advanced frame has zero-based index one"
+          },
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "setter-source-clock-2",
+            "postcondition": "Owned playback advances without advancing the reusable source clock"
+          },
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "setter-source-clock-3",
+            "postcondition": "Owned playback advances without advancing the reusable source clock"
           }
         ],
         "browser": [
@@ -5180,6 +5290,16 @@
             "caseId": "browser/helpers",
             "assertionId": "sprite-index",
             "postcondition": "Advanced frame has zero-based index one"
+          },
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "setter-source-clock-2",
+            "postcondition": "Owned playback advances without advancing the reusable source clock"
+          },
+          {
+            "caseId": "browser/lifecycle",
+            "assertionId": "setter-source-clock-3",
+            "postcondition": "Owned playback advances without advancing the reusable source clock"
           }
         ]
       }

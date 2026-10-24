@@ -13,10 +13,17 @@ ActorCheck, UiCheck, GameHelpersCheck, AudioCheck, NavigationCheck and
 PaddingLauncher. The four browser families are helpers, zero-ui, audio and
 lifecycle. Core/source, producer/profile, contract, tools, harnesses, fixture
 sources, Java observations and actual compiled outputs are bound by retained
-hashes. Loading receipts remeasures current input bytes. Receipts are trusted
+hashes. Loading receipts remeasures current input bytes. Actual POM, wrappers, `.mvn`
+files and `zero.json` are retained and compared with current canonical bytes.
+Native receipts bind the transitive assembly producer closure, actual Node,
+Java and javac, JDK runtime modules/JVM, and the Maven distribution identified
+by its startup banner (launcher, libraries and configuration). Receipts are trusted
 local harness evidence, not cryptographic attestation against a hostile writer.
 
-Drawing uses distinct atlas witnesses. Native checks snapshot the actual Canvas
+Drawing uses fixed atlas cells with immediate before/after witnesses. All four
+Actor artwork setters replace blue with orange; animation replacements then
+advance their owned playback to blue without advancing the reusable source.
+Image constructors must also paint their supplied artwork. Native checks snapshot the actual Canvas
 immediately; browser wrappers emit off-canvas markers immediately after Java
 calls, and the harness samples real RGBA bytes before later draws can overwrite
 them. Text checks require nontransparent ink in the expected region. Pending P
@@ -47,6 +54,14 @@ The browser type contract permits Scene so an ordinary App.createScene override
 can name its advertised return type. No Scene constructor or member surface was
 added; a semantic regression still rejects Scene.getRoot. The core API remains
 183 declarations.
+
+The default native verifier retains receipts in a unique ignored run directory.
+When all six emitting native cases are selected it requires zero native gaps.
+The browser verifier similarly gates all four API families when they are
+selected together. Partial selections retain partial evidence and cannot claim
+complete coverage. Logical pointer targets are scaled through the actual Canvas
+bounds and checked within one thousandth; this hardening addresses a source
+inference, not an observed browser failure.
 
 After the authorized actual runs:
 

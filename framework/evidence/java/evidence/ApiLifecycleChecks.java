@@ -10,7 +10,7 @@ import zero.ui.Column;
 import zero.ui.Label;
 
 /** Actual UI startup, attached content, phase order and idempotent shutdown. */
-public final class ApiLifecycleChecks extends App {
+public final class ApiLifecycleChecks extends ApiProbeBases.Ui {
     private int phase,shutdowns;
     private Stage expectedStage;
     private Label trace;

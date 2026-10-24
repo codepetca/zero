@@ -235,9 +235,11 @@ public final class GameHelpersCheck extends GameApp {
         Event.fireEvent(target, new KeyEvent(type, "", "", code, false, false, false, false));
     }
     private void mouse(javafx.event.EventType<MouseEvent> type) {
-        Event.fireEvent(canvas(), new MouseEvent(type, 10, 10, 10, 10, MouseButton.PRIMARY, 1,
+        var scene = canvas().localToScene(10, 10);
+        var screen = canvas().localToScreen(10, 10);
+        Event.fireEvent(canvas(), new MouseEvent(type, scene.getX(), scene.getY(), screen.getX(), screen.getY(), MouseButton.PRIMARY, 1,
                 false, false, false, false, type == MouseEvent.MOUSE_PRESSED, false, false,
-                false, false, false, new PickResult(canvas(), 10, 10)));
+                false, false, false, new PickResult(canvas(), scene.getX(), scene.getY())));
     }
     private static void require(boolean value, String message) { if (!value) throw new AssertionError(message); }
     public static void main(String[] args) { launch(args); }
