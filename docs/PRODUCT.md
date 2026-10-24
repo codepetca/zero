@@ -277,8 +277,10 @@ dividers. Generic setup/continuation cards are omitted; specific component or
 media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover student-hosted games and reusable libraries.
 Show only the latest available release of each project. Each project occupies one
 square screenshot: the title overlays its top on a dark background and fades at
-the edge when too long. Visits stay at the bottom-left, with borderless stars
-on the same row at the right.
+the edge when too long. A small filled play triangle and open count stay at the bottom-left, with
+borderless stars on the same row at the right. The visible metric is icon plus
+number; its tooltip and screen-reader text name opens and explain that the
+count measures Play-link activations, including repeats.
 The single info icon beside the title replaces the old About question mark.
 It is green when the site is reachable and yellow otherwise. Tapping
 it opens project details: description, green check or yellow warning with the
@@ -322,8 +324,8 @@ as **Oct 20 · 12:56 PM** when known. Reporting uses a flag icon inside the deta
 Stars show a borderless star icon and count, filled when starred. Accessible
 labels describe each control and status; unavailable star counts use an em dash.
 See [ZeroHub feedback](ZEROHUB-FEEDBACK.md) for setup and limits.
-ZeroHub displays aggregate Play-link activations as visits and library adoption
-from declared dependencies in shared game snapshots. Visits include
+ZeroHub displays aggregate Play-link activations as opens and library adoption
+from declared dependencies in shared game snapshots. Opens include
 repeat activations; adoption counts repositories, with incomplete older coverage
 explicitly labelled. Neither measures unique people or runtime usefulness.
 See [metrics and activation](ZEROHUB-METRICS.md).

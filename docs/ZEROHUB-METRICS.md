@@ -7,7 +7,7 @@ Keep GitHub stars as explicit appreciation. Add two small measures:
 1. Read direct published Zero library declarations from the immutable game POM
    already captured by the sharing publisher. Save a bounded observation with
    acceptance and derive **Used by N shared projects** from that ledger.
-2. Record a **visit** (Play-link activation) when a ZeroHub image link is activated. Store one atomic
+2. Record an **open** (Play-link activation) when a ZeroHub image link is activated. Store one atomic
    integer per known playable project in an optional Redis REST counter.
 3. Show these counts alongside existing feedback, test publication/recovery and
    browser behavior, then obtain separate authorization for hosted activation.
@@ -20,8 +20,9 @@ separately reviewed and published.
 
 ## What the numbers mean
 
-**Visits** are best-effort Play-link activations from ZeroHub since activation,
-including repeat opens. Primary clicks, keyboard activation and middle clicks
+**Opens** are best-effort Play-link activations from ZeroHub since activation,
+including repeat opens. Cards show a filled play triangle and number; the
+tooltip and screen-reader text name opens and retain the measurement limits. Primary clicks, keyboard activation and middle clicks
 are recorded; opening through the browser's context menu or with JavaScript
 disabled may not be recorded. They do not prove the destination loaded, unique
 visitors, play duration or successful gameplay. Counter errors never delay or
