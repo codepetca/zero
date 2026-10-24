@@ -291,7 +291,14 @@ function createSharingEditor(vscode,host,options={}) {
   const releases=context.catalog.releases.filter(r=>r.status==='available'&&(!kind||r.kind===kind)&&isTutorialPractice(r)===practice);
   if(!releases.length&&practice){report('No tutorial practice libraries','No tutorial practice libraries are available yet.');return;}
   if(!releases.length){report(`No shared ${kind==='game'?'games':'libraries'}`,`No shared ${kind==='game'?'games':'libraries'} are available yet.`);return;}
-  const picked=await vscode.window.showQuickPick(releases.map(release=>({label:release.title,description:`${practice?'Tutorial practice · ':''}${release.version} · ${release.contributor.login} · ${release.kind}`,detail:release.description,release})),{title:practice?'Tutorial practice libraries':kind==='game'?'Shared games':'Shared libraries',matchOnDescription:true});if(!picked)return;
+  let entries=releases;
+  const compareVersions=(left,right)=>{const a=left.version.split('.').map(Number),b=right.version.split('.').map(Number);for(let i=0;i<3;i++)if(a[i]!==b[i])return b[i]-a[i];return 0;};
+  if(practice){const grouped=new Map();for(const release of releases){const previous=grouped.get(release.id);if(!previous||compareVersions(release,previous)<0)grouped.set(release.id,release);}entries=[...grouped.values()];}
+  let picked=await vscode.window.showQuickPick(entries.map(release=>({label:release.title,description:`${practice?'Tutorial practice · ':''}${release.version} · ${release.contributor.login} · ${release.kind}`,detail:release.description,release})),{title:practice?'Tutorial practice libraries':kind==='game'?'Shared games':'Shared libraries',matchOnDescription:true});if(!picked)return;
+  if(practice){
+   const versions=releases.filter(release=>release.id===picked.release.id).sort(compareVersions);
+   if(versions.length>1){picked=await vscode.window.showQuickPick(versions.map(release=>({label:release.version,description:release.contributor.login,release})),{title:'Choose tutorial practice version'});if(!picked)return;}
+  }
   if(picked.release.kind==='game') {
    if(picked.release.web) {
     const web=c.validateWebPublication(picked.release.web,{commit:picked.release.source.commit});

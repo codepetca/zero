@@ -183,11 +183,13 @@ form is not a listing. Copied badges are expected learning exercises, excluded
 from ordinary discovery and without automatic promotion to core. Original useful
 work and core proposals remain an optional extension.
 
-Practice cleanup takes explicit available release keys, previews by default and
+Practice cleanup takes explicit delivery-ready practice release keys, previews by default and
 requires the existing reviewed library-enabled configuration and publisher role
 for execution. CAS revalidation protects the reviewed selection from availability
-or delivery changes. It appends normal withdrawal events and regenerates the
-catalogue; it deletes no source, registry history, accepted JAR/source/POM or
+or delivery changes. Already-withdrawn exact keys allow a catalogue-write failure
+after withdrawal to be retried without duplicate events. It appends normal
+withdrawal events and regenerates the catalogue; it deletes no source, registry
+history, accepted JAR/source/POM or
 student repository. Already added bytes remain; future fetch/export/update checks
 continue to enforce ordinary availability rules. No scheduler or historical-kit
 database is introduced.

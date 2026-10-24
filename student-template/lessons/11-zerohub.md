@@ -252,7 +252,7 @@ search. Everyone is expected to have a similar badge. Completing the workflow is
 the achievement; these are not candidates for automatic inclusion in Zero.
 
 To try a classmate's accepted version, choose **Libraries and games → Browse
-tutorial practice** in Zero, select their badge and **Add library → Apply**.
+tutorial practice** in Zero, select their badge, deliberately choose a version if offered, and **Add library → Apply**.
 Use the exact import shown for their package. In Main, replace only the badge
 construction with their fully qualified class name and the same message argument;
 keep your own library in local mode and keep the game rules unchanged. Run App

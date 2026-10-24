@@ -48,7 +48,7 @@ test('cleanup dry run writes nothing; execute withdraws exact versions and retai
   const f=await fixture(t),first=await f.publish();await f.publish(request('1','0.2.0'));await f.publish(request('2'));await f.publish(request('3','0.1.0','original-helper'));
   const before=await f.registry.read();
   const plan=await f.platform().cleanupPracticeListings([key()]);
-  assert.equal(plan.mode,'dry-run');assert.equal(plan.selected[0].key,key());assert.deepEqual(await f.registry.read(),before);
+  assert.equal(plan.mode,'dry-run');assert.equal(plan.status,'unchanged');assert.equal(plan.selected[0].key,key());assert.deepEqual(await f.registry.read(),before);
   const outcome=await f.platform(true).cleanupPracticeListings([key()],{execute:true});assert.equal(outcome.status,'withdrawn');
   const after=(await f.registry.read()).state;assert.deepEqual(after.requests,before.state.requests);assert.deepEqual(after.releases,before.state.releases);
   const catalog=generateCatalog(after,{artifactOrigin:origin});
@@ -57,15 +57,17 @@ test('cleanup dry run writes nothing; execute withdraws exact versions and retai
   for(const [kind,artifact] of Object.entries(first.release.artifacts)) {
     assert.deepEqual(await f.storage.get(artifact.path),bytes[kind]);assert.deepEqual(await f.storage.get(first.staged[kind]),bytes[kind]);
   }
-  await assert.rejects(f.service.cleanupPracticeListings([key()],{execute:true}),/exact available/);
+  const retry = await f.service.cleanupPracticeListings([key()],{execute:true});
+  assert.equal(retry.selected[0].previousStatus,'withdrawn');
+  assert.deepEqual((await f.registry.read()).state.availability,after.availability);
 });
 
-test('cleanup rejects nonpractice, unknown, duplicate, pending and withdrawn selections atomically',async t=>{
+test('cleanup rejects nonpractice, unknown, duplicate and pending selections atomically',async t=>{
   const f=await fixture(t);await f.publish();await f.publish(request('2','0.1.0','original-helper'));
   for(const selection of [[],[key(),key()],[key(),'library/lib-r2-original-helper/0.1.0'],[key('999')]])
     await assert.rejects(f.service.cleanupPracticeListings(selection,{execute:true}));
   await f.registry.update(state=>{state.releases[key()].delivery='pending';});
-  await assert.rejects(f.service.cleanupPracticeListings([key()],{execute:true}),/exact available/);
+  await assert.rejects(f.service.cleanupPracticeListings([key()],{execute:true}),/exact delivery-ready/);
   assert.equal((await f.registry.read()).state.availability.filter(e=>e.status==='withdrawn').length,0);
 });
 
@@ -98,4 +100,25 @@ test('cleanup keeps the library publication gate and CLI explicit publisher role
   await assert.rejects(runCli([...args,'--execute','--role','publisher'],dependencies),/Publication remains disabled/);
   config.libraryPublicationEnabled=true;
   assert.equal((await runCli([...args,'--execute','--role','publisher'],{...dependencies,createPlatform:async()=>f.platform(true)})).status,'withdrawn');
+});
+
+test('exact cleanup retry repairs a catalogue-write failure after withdrawal without duplicate events or artifact deletion',async t=>{
+  const f=await fixture(t),accepted=await f.publish();
+  const put=f.storage.putImmutable.bind(f.storage);let failOnce=true;
+  f.storage.putImmutable=async(name,...args)=>{
+    if(failOnce&&name.startsWith('catalog/snapshots/')){failOnce=false;throw new Error('Injected catalogue write failure');}
+    return put(name,...args);
+  };
+  await assert.rejects(f.platform(true).cleanupPracticeListings([key()],{execute:true}),/Injected catalogue/);
+  const partial=(await f.registry.read()).state;
+  assert.equal(partial.availability.at(-1).status,'withdrawn');
+  assert.equal(JSON.parse((await f.storage.get(partial.catalog.path)).toString()).releases[0].status,'available');
+  const preview=await f.platform().cleanupPracticeListings([key()]);
+  assert.equal(preview.selected[0].previousStatus,'withdrawn');
+  assert.deepEqual((await f.registry.read()).state,partial,'retry preview writes nothing');
+  await f.platform(true).cleanupPracticeListings([key()],{execute:true});
+  const repaired=(await f.registry.read()).state;
+  assert.deepEqual(repaired.availability,partial.availability,'withdrawal remains one event');
+  assert.equal(JSON.parse((await f.storage.get(repaired.catalog.path)).toString()).releases[0].status,'withdrawn');
+  for(const [kind,artifact]of Object.entries(accepted.release.artifacts))assert.deepEqual(await f.storage.get(artifact.path),bytes[kind]);
 });

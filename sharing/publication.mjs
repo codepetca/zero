@@ -156,10 +156,10 @@ export class PublicationService {
     const candidates = new Map(catalog.releases.map(release => [releaseKey(release, release.version), release]));
     const selected = keys.map(key => {
       const release = candidates.get(key);
-      if (!release || !practice.isTutorialPractice(release) || release.status !== 'available')
-        throw new Error('Only exact available tutorial practice releases can be cleaned up');
+      if (!release || !practice.isTutorialPractice(release))
+        throw new Error('Only exact delivery-ready tutorial practice releases can be cleaned up');
       const availability = state.availability.filter(event => event.key === key).at(-1);
-      return {key, id:release.id, version:release.version, repositoryUrl:release.repository.url,
+      return {key, id:release.id, version:release.version, repositoryUrl:release.repository.url, previousStatus:release.status,
         availabilitySequence:availability?.sequence ?? null, releaseDigest:digest(state.releases[key])};
     });
     if (execute) {
@@ -171,7 +171,7 @@ export class PublicationService {
           const latest = current.availability.filter(event => event.key === entry.key).at(-1);
           if (!live || live.delivery !== 'ready' || !practice.isTutorialPractice(live.release) ||
               digest(live) !== entry.releaseDigest || (latest?.sequence ?? null) !== entry.availabilitySequence ||
-              (latest?.status ?? 'available') !== 'available')
+              (latest?.status ?? 'available') !== entry.previousStatus)
             throw new Error('Practice availability changed; review the exact selection again');
         }
         for (const entry of selected) changeAvailability(current,entry.key,'withdrawn');
@@ -179,7 +179,7 @@ export class PublicationService {
       await this.refreshCatalog();
     }
     return {mode:execute?'execute':'dry-run',action:'library-practice-cleanup',
-      selected:selected.map(({releaseDigest,...entry})=>entry),status:execute?'withdrawn':'available',retained:'source and all accepted artifacts'};
+      selected:selected.map(({releaseDigest,...entry})=>entry),status:execute?'withdrawn':'unchanged',retained:'source and all accepted artifacts'};
   }
   async refreshCatalog() {
     for (let retries = 0; retries < this.registry.maxRetries; retries++) {

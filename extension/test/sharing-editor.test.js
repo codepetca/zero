@@ -371,3 +371,23 @@ test('published practice mode uses its catalog for exact-version selection and r
   assert.equal(urls.length,2);assert.ok(urls.every(url=>url.endsWith('/catalog/practice')));assert.equal(verified,drift?1:2);assert.equal(applied,drift?0:1);
  }
 });
+test('practice discovery groups repository identities before deliberate exact-version and revert selection',async t=>{
+ for(const chooseVersion of [false,true]) {
+  const f=await fixture(t,{approval:'Apply'}),before=await fs.readFile(path.join(f.root,'pom.xml'),'utf8');let text=before,selected,operation,versionPrompts=0,plans=0;
+  const old={kind:'library',slug:practiceSlug,status:'available',id:'lib-r12345-'+practiceSlug,version:'0.1.0',title:'Badge',description:'Exercise',contributor:{login:'student'}};
+  const latest={...old,version:'0.2.0'},other={...old,id:'lib-r98765-'+practiceSlug,contributor:{login:'classmate'}};
+  const document={version:1,isDirty:false,getText:()=>text,positionAt:x=>x,save:async()=>{document.isDirty=false;return true;}};
+  f.vscode.workspace.openTextDocument=async()=>document;f.vscode.window.showTextDocument=async()=>({edit:async callback=>{callback({replace:(_range,value)=>{text=value;document.version++;document.isDirty=true;}});return true;}});
+  f.vscode.window.showQuickPick=async(entries,options)=>{
+   if(options.title==='Tutorial practice libraries') {
+    assert.deepEqual(entries.map(entry=>[entry.release.id,entry.release.version]),[[latest.id,'0.2.0'],[other.id,'0.1.0']]);return entries[0];
+   }
+   if(options.title==='Choose tutorial practice version') {versionPrompts++;assert.deepEqual(entries.map(entry=>entry.label),['0.2.0','0.1.0']);return chooseVersion?entries[1]:undefined;}
+   return entries.find(entry=>entry.operation==='revert');
+  };
+  const editor=createSharingEditor(f.vscode,f.host,{consumer:{loadCatalog:async()=>({catalog:{releases:[old,latest,other]}}),planChange:async(_root,_context,release,options)=>{plans++;selected=release;operation=options.operation;return {beforeText:before,afterText:before+'<!-- exact previous pin -->'};},validatePlan:async()=>{}}});
+  await editor.commands['zero.browseTutorialPractice']();assert.equal(versionPrompts,1);
+  assert.equal(plans,chooseVersion?1:0);
+  if(chooseVersion){assert.equal(selected,old);assert.equal(operation,'revert');}
+ }
+});

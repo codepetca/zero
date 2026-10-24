@@ -216,8 +216,8 @@ catalog APIs exclude those libraries; explicit practice discovery uses
 cleanup or schedule is implied by this implementation. Library publication
 remains separately paused until authorized acceptance/rollout.
 
-Select exact available practice release keys from the practice catalogue. Preview
-up to 150 distinct keys with the reviewed library configuration (replace the
+Select exact practice release keys from the practice catalogue. Already-withdrawn
+keys are accepted for safe retry. Preview up to 150 distinct keys with the reviewed library configuration (replace the
 example repository ID/version/config path):
 
 ```sh
@@ -233,7 +233,10 @@ selection and obtain authority for live registry mutation before executing.
 
 The operation rechecks the selected accepted records and availability state in a
 CAS update, appends ordinary withdrawn events and regenerates the catalogue.
-A stale selection must be reviewed again. Ordinary community libraries are
+If withdrawal commits but catalogue publication fails, rerun the same exact-key
+command: already-withdrawn keys are rechecked, no duplicate withdrawal event is
+added, and catalogue publication is retried. A stale selection during execution
+must be reviewed again. Ordinary community libraries are
 rejected. Withdrawing all available versions removes the practice entry from
 discovery; withdrawing only the latest can reveal an older still-available
 version. Exact withdrawn-version views retain their status.
