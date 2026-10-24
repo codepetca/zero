@@ -78,6 +78,9 @@ test('keeps canonical class defaults, constructors and lifecycle caveats', () =>
   assert.match(category('input').notes, /Losing canvas or window focus clears/);
   assert.match(category('advanced').notes, /failed frame stops the timer/);
   assert.match(category('advanced').notes, /launch\(args\)/);
+  assert.match(markdown,/An uncaught startup, game update\/draw or UI callback error stops/);
+  assert.match(entry('setup').note,/preserves its cause/);
+  assert.match(entry('draw').note,/uncaught game-frame error stops/);
 });
 
 test('search handles aliases, case, multiple terms, whitespace and empty results', () => {

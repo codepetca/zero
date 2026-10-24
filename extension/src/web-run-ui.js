@@ -2,6 +2,7 @@
 const path = require('node:path');
 const os = require('node:os');
 const {createManagedWebPreview} = require('./web-run-preview');
+const {runtimeDiagnostics}=require('./runtime-session');
 
 function sourceDiagnostics(text, root) {
   const diagnostics = []; let file;
@@ -66,12 +67,25 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
     const validated=await validator({projectRoot:root,result,signal}) || result;
     if (!await current(id,root)) return;
     disposeRuntime();
-    let opened;
-    opened=await previewFactory(vscode,validated.sitePath,{siteFiles:validated.siteFiles,title:'Zero App',viewColumn:preferredPreviewColumn(root),onOpenInBrowser:openInBrowser,onError:error=>{output.appendLine(error.message);return vscode.window.showErrorMessage?.(error.message);},onDidDispose:()=>{
+    let opened;const pendingEvents=[];
+    const reportRuntime=event=>{
+      if(!opened){pendingEvents.push(event);return;}
+      if(disposed||id!==generation||runtime!==opened||runtimeRoot!==root)return;
+      if(event.type==='startup')setState('Starting app…');
+      else if(event.type==='ui-ready')setState('App ready');
+      else if(event.type==='first-frame')setState('App running');
+      else if(event.type==='fatal'){
+        setFailed(true);setState('App stopped with an error. Open Problems or check Zero output.');
+        const detail=event.diagnostic||event.code;output.appendLine(detail);output.show?.(true);
+        void diagnostics({message:detail,diagnostics:runtimeDiagnostics(detail,root)},root).catch(error=>output.appendLine(error.message));
+        disposeRuntime();updateActive();
+      }else if(event.type==='stopped'){disposeRuntime();updateActive();setState('App stopped');}
+    };
+    opened=await previewFactory(vscode,validated.sitePath,{siteFiles:validated.siteFiles,runtimeBuildId:validated.buildId,onRuntime:reportRuntime,title:'Zero App',viewColumn:preferredPreviewColumn(root),onOpenInBrowser:openInBrowser,onError:error=>{output.appendLine(error.message);return vscode.window.showErrorMessage?.(error.message);},onDidDispose:()=>{
       if(runtime===opened){runtime=undefined;runtimeRoot=undefined;runtimeGeneration=undefined;updateActive();if(!operation&&!disposed)setState('App stopped');}
     }});
     if (!await current(id,root)) {opened.dispose();return;}
-    runtime=opened;runtimeRoot=root;runtimeGeneration=id;setActive(true);setFailed(false);setState('App running');
+    runtime=opened;runtimeRoot=root;runtimeGeneration=id;setActive(true);setFailed(false);setState('App opened · readiness unverified');for(const event of pendingEvents)reportRuntime(event);
   }
   async function execute(id,expectedRoot) {
     if (disposed || id!==generation) return;

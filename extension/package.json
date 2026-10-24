@@ -256,6 +256,14 @@
         "command": "zero.startPage",
         "title": "Zero: Start Page",
         "shortTitle": "Start Page"
+      },
+      {
+        "command": "zero.enableBrowserChecks",
+        "title": "Zero: Enable and Prepare Browser Checks"
+      },
+      {
+        "command": "zero.disableBrowserChecks",
+        "title": "Zero: Disable Browser Checks"
       }
     ],
     "views": {

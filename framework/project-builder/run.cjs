@@ -42,7 +42,7 @@ async function readClosure() {
 }
 function validateRequest(request) {
   const allowed = new Set(['protocol', 'operation', 'projectRoot', 'cacheRoot']);
-  if (!request || typeof request !== 'object' || Array.isArray(request) || Object.keys(request).some(key => !allowed.has(key)) || request.protocol !== 1 || !['inspect', 'capture', 'export', 'validate', 'compatibility'].includes(request.operation)) throw new Error('Unsupported saved builder request. Use protocol 1 and a documented operation.');
+  if (!request || typeof request !== 'object' || Array.isArray(request) || Object.keys(request).some(key => !allowed.has(key)) || request.protocol !== 1 || !['inspect', 'capture', 'export', 'validate', 'compatibility', 'compatibilityCached'].includes(request.operation)) throw new Error('Unsupported saved builder request. Use protocol 1 and a documented operation.');
   for (const key of ['projectRoot', 'cacheRoot']) if (Object.hasOwn(request, key) && (typeof request[key] !== 'string' || !path.isAbsolute(request[key]) || request[key].includes('\0') || request[key].length > 4096)) throw new Error(key + ' must be an absolute path.');
   return request;
 }
@@ -72,19 +72,30 @@ async function execute(request, controller) {
   const environment = sanitizeEnvironment();
   const captured = await snapshot.captureBuildInputs(projectRoot);
   if (request.operation === 'capture') return {sourceHash: captured.sourceHash, inputs: snapshot.commitInputMetadata(captured.files), profileHash: selected.profileHash, closureSha256: before.manifest.closureSha256};
-  if (request.operation !== 'validate') checkRuntimes(before.runtime, environment);
+  if (request.operation !== 'validate') {
+    try {checkRuntimes(before.runtime, environment);} catch(error) {if(request.operation==='compatibilityCached')return {status:'unavailable',identity:null,diagnostics:[{code:'RUNTIME_UNAVAILABLE',message:String(error.message).slice(0,8192)}]};throw error;}
+  }
   const cacheBase = request.cacheRoot || path.join(os.homedir(), '.cache', 'zero', 'project-builder');
   const cacheRoot = path.join(cacheBase, before.manifest.closureSha256);
   if (cacheRoot === projectRoot || cacheRoot.startsWith(projectRoot + path.sep)) throw new Error('Browser tooling cache must be outside the project.');
   const options = {projectRoot, cacheRoot, inheritedProcessGroup: true, env: environment, signal: controller.signal, onProgress: message => process.stderr.write(String(message).slice(0, 4096) + '\n')};
   let result;
-  if (request.operation === 'export') result = resultMetadata(await require('./src/web-export').exportForWeb(options));
+  if (request.operation === 'compatibilityCached') result=await require('./src/web-export/compatibility/cached-project').checkCachedProject(options);
+  else if (request.operation === 'export') result = resultMetadata(await require('./src/web-export').exportForWeb(options));
   else if (request.operation === 'validate') result = resultMetadata(await snapshot.validateExport(options));
   else {
-    const resolved = await require('./src/web-export/libraries').resolveLibrarySources(projectRoot, captured, options);
+    const recording=require('./src/web-export/compatibility/cache').createRecordingFetcher();
+    const resolved = await require('./src/web-export/libraries').resolveLibrarySources(projectRoot, captured, {...options,fetcher:recording.fetcher});
+    await recording.commit(cacheRoot);
     const javaFiles = [...captured.files.filter(file => file.path.startsWith('src/main/java/') && file.path.endsWith('.java')).map(file => ({...file, originalPath: file.path, path: file.path.slice('src/main/java/'.length)})), ...resolved.sources];
-    const workRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'zero-compatibility-'));
+    const workRoot = await fs.mkdtemp(path.join(await fs.realpath(os.tmpdir()), 'zero-compatibility-'));
     try {result = await require('./src/web-export/compatibility').checkCompatibility({...options, workRoot, sources: Object.fromEntries(javaFiles.map(file => [file.path, file.bytes.toString('utf8')])), sourceOrigins: Object.fromEntries(javaFiles.map(file => [file.path, file.originalPath])), libraries: captured.libraries, pom: captured.files.find(file => file.path === 'pom.xml').bytes.toString('utf8')});}
+    catch(error){
+      // Preparation remains usable when the saved Java itself is rejected. Tool,
+      // cache and dependency-setup failures still fail the explicit operation.
+      if(error.code!=='ZERO_BROWSER_UNSUPPORTED'||!String(error.message).startsWith('Browser compatibility check failed:\n'))throw error;
+      result={status:'unsupported',prepared:true,diagnostics:[{code:error.code,message:String(error.message).slice(0,8192)}]};
+    }
     finally {await fs.rm(workRoot, {recursive: true, force: true});}
   }
   if ((await readClosure()).manifest.closureSha256 !== before.manifest.closureSha256) throw new Error('Saved browser tooling changed during the operation.');

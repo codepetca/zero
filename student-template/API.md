@@ -28,6 +28,11 @@ checks the supported Java/JavaFX subset; unsupported calls produce source
 diagnostics. Availability in native JavaFX does not imply browser support.
 See [running and browser compatibility](https://zero.codepet.ca/docs/setup#edit-and-run).
 
+An uncaught startup, game update/draw or UI callback error stops the app's owned
+loop, input and audio, preserving the original error and any cleanup failures.
+Managed runs report readiness and local errors; opening a window alone does not
+prove a successful game frame. Pause and title screens are valid states.
+
 ### Callbacks
 
 Override these public methods. Their default bodies do nothing.

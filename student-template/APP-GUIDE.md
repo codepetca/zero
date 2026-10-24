@@ -7,6 +7,18 @@ checks the supported Java/JavaFX subset; some native methods are outside that
 subset. For the run/stop flow and browser compatibility, see
 [running and browser compatibility](https://zero.codepet.ca/docs/setup#edit-and-run).
 
+In the current local source, **Zero: Enable and Prepare Browser Checks** prepares
+the project's saved tooling once. Later saved-source checks use verified cached
+dependencies without downloading or building a game. Unsaved edits show stale;
+missing tools show unavailable. Compatible source still needs a real browser
+export before publication. Changing `.zero-build` requires enabling checks again.
+Native Run works independently.
+
+Uncaught startup, update/draw or UI callback errors stop owned activity and keep
+the original error, including cleanup failures. Readiness means the UI is ready
+or a game frame completed; a title screen or paused game is not a failure. These
+source capabilities are separate from older released kits.
+
 
 Learn step by step through the [tutorials](lessons/00-hello-world.md).
 This source guide remains available for older kits and contributor reference;

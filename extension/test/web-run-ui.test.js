@@ -5,7 +5,7 @@ const {createBrowserRunCommands,sourceDiagnostics}=require('../src/web-run-ui');
 const {createManagedWebPreview}=require('../src/web-run-preview');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 function harness(t) {
-  let active='/project',busy=false,building,valid=true,save=true,saveGate,builds=0,previews=0,stops=0,opens=0,openResult=true,cancel,workspaceChanged,previewGate,projectGate,validating,retainedValidating;
+  let runtimeOptions;const allRuntimeOptions=[];let active='/project',busy=false,building,valid=true,save=true,saveGate,builds=0,previews=0,stops=0,opens=0,openResult=true,cancel,workspaceChanged,previewGate,projectGate,validating,retainedValidating;
   const states=[],failures=[],events=[],diagnostics=[];
   const result={sitePath:'/project/.zero/web-export/site'};
   const vscode={workspace:{isTrusted:true,saveAll:async()=>{events.push('save');if(saveGate)await saveGate;return save;},onDidChangeWorkspaceFolders:callback=>{workspaceChanged=callback;return {dispose(){}};}},
@@ -15,9 +15,9 @@ function harness(t) {
   const api=createBrowserRunCommands(vscode,{project:async()=>{if(projectGate)await projectGate;return active;},output:{appendLine(){},show(){}},isBusy:()=>busy,setBusy:v=>{busy=v;},setActive:v=>events.push('active:'+v),setFailed:v=>failures.push(v),setState:v=>states.push(v),
     ensureValidatedExport:async options=>{events.push('build');builds++;options.onProgress('Checking compatibility');options.onProgress('Compiling Java');return building ? building(options) : result;},validateExport:async options=>{events.push('validate');if(validating)return validating(options);if(!valid)throw Error('Inputs changed. Run App again.');},
     validateRetainedExport:async options=>{events.push('retained-validate');return retainedValidating?retainedValidating(options):result;},
-    previewFactory:async(_,site,options)=>{previews++;events.push('preview');if(previewGate)await previewGate;let stopped=false;return {openInBrowser:async()=>{opens++;if(openResult instanceof Error)throw openResult;return openResult;},dispose(){if(!stopped){stopped=true;stops++;events.push('dispose');options.onDidDispose();}}};}});
+    previewFactory:async(_,site,options)=>{runtimeOptions=options;allRuntimeOptions.push(options);previews++;events.push('preview');if(previewGate)await previewGate;let stopped=false;return {openInBrowser:async()=>{opens++;if(openResult instanceof Error)throw openResult;return openResult;},dispose(){if(!stopped){stopped=true;stops++;events.push('dispose');options.onDidDispose();}}};}});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
-  return {api,vscode,events,states,failures,diagnostics,get busy(){return busy;},get builds(){return builds;},get previews(){return previews;},get stops(){return stops;},get opens(){return opens;},set openResult(v){openResult=v;},set active(v){active=v;},set building(v){building=v;},set valid(v){valid=v;},set validating(v){validating=v;},set retainedValidating(v){retainedValidating=v;},set save(v){save=v;},set saveGate(v){saveGate=v;},set previewGate(v){previewGate=v;},set projectGate(v){projectGate=v;},cancel:()=>cancel(),workspaceChanged:()=>workspaceChanged()};
+  return {api,vscode,events,states,failures,diagnostics,get runtimeOptions(){return runtimeOptions;},allRuntimeOptions,get busy(){return busy;},get builds(){return builds;},get previews(){return previews;},get stops(){return stops;},get opens(){return opens;},set openResult(v){openResult=v;},set active(v){active=v;},set building(v){building=v;},set valid(v){valid=v;},set validating(v){validating=v;},set retainedValidating(v){retainedValidating=v;},set save(v){save=v;},set saveGate(v){saveGate=v;},set previewGate(v){previewGate=v;},set projectGate(v){projectGate=v;},cancel:()=>cancel(),workspaceChanged:()=>workspaceChanged()};
 }
 
 test('Open in browser requires a running app and reuses it without saving, rebuilding or revalidating source',async t=>{
@@ -44,7 +44,7 @@ test('browser open failure preserves the running app and does not recompile',asy
 test('browser runner saves, checks/builds, validates and opens one managed preview; restart closes it first',async t=>{
  const h=harness(t);await h.api.run();assert.equal(h.builds,1);assert.equal(h.previews,1);assert.equal(h.busy,false);
  assert.deepEqual(h.events.filter(v=>['save','build','validate','preview'].includes(v)),['save','build','validate','preview']);
- assert.ok(h.states.includes('Checking app…'));assert.ok(h.states.includes('Building app…'));assert.match(h.states.at(-1),/running/);
+ assert.ok(h.states.includes('Checking app…'));assert.ok(h.states.includes('Building app…'));assert.match(h.states.at(-1),/readiness unverified/);
  h.events.length=0;await h.api.run();assert.equal(h.stops,1);assert.ok(h.events.indexOf('dispose')<h.events.indexOf('build'));
  h.api.stop();assert.equal(h.stops,2);assert.equal(h.states.at(-1),'App stopped');
 });
@@ -147,4 +147,12 @@ test('retained preview cancellation keeps an interrupted Run operation responsib
 });
 test('disposing a retained preview aborts only its pending data validator',async t=>{
  const h=harness(t);let signal;h.retainedValidating=options=>{signal=options.signal;return new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(Error('cancelled')),{once:true}));};const pending=h.api.preview('/project',{buildId:'retained-A'},{retained:true});while(!signal)await tick();h.api.disposables[0].dispose();await pending;assert.equal(signal.aborted,true);assert.equal(h.previews,0);assert.equal(h.busy,false);
+});
+
+test('preview readiness is event-driven and old generations cannot replace current status',async t=>{
+ const h=harness(t);await h.api.run();const first=h.runtimeOptions;assert.match(h.states.at(-1),/readiness unverified/);
+ first.onRuntime({type:'startup'});assert.equal(h.states.at(-1),'Starting app…');first.onRuntime({type:'ui-ready'});assert.equal(h.states.at(-1),'App ready');first.onRuntime({type:'first-frame'});assert.equal(h.states.at(-1),'App running');
+ await h.api.run();const before=h.states.at(-1);first.onRuntime({type:'fatal',diagnostic:'stale'});assert.equal(h.states.at(-1),before);assert.equal(h.stops,1);
+ h.runtimeOptions.onRuntime({type:'fatal',code:'FRAME_EXCEPTION',diagnostic:'java.lang.IllegalStateException: broken\n  at demo.Main.draw(Main.java:42)'});await tick();assert.match(h.states.at(-1),/stopped with an error/);assert.equal(h.failures.at(-1),true);assert.equal(h.stops,2);assert.equal(h.diagnostics[0].uri.fsPath,'/project/src/main/java/demo/Main.java');assert.equal(h.diagnostics[0].items[0].range.start.line,41);
+ const failed=h.states.at(-1);h.runtimeOptions.onRuntime({type:'first-frame'});assert.equal(h.states.at(-1),failed);
 });

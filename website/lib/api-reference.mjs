@@ -52,13 +52,13 @@ const examples = {
 };
 const methodNotes = {
   settings: 'Override this callback. Call size, title and optional padding here.',
-  setup: 'Override this callback. On GameApp the canvas already exists.',
+  setup: 'Override this callback. On GameApp the canvas already exists. An uncaught startup error stops owned activity and preserves its cause.',
   size: 'Call inside settings() only. Dimensions must be positive and finite.',
   title: 'Call inside settings() only. The title must not be null.',
   padding: 'Inherited by GameApp from App. Call in settings(), setup() or a JavaFX event handler. The default is 0; padding(0) removes it and repeated calls replace the amount. GameApp keeps its canvas dimensions. Later calls rearrange content without resizing the window.',
   show: 'Call in setup() or later. Content must not be null.',
   update: 'While gameplay is visible and not explicitly paused. The example assumes a double field named x. First-frame seconds is 0; later values are capped at 0.1.',
-  draw: 'Runs only while gameplay is visible, including during explicit pause. The canvas is not cleared automatically. Drawing styles persist between frames.',
+  draw: 'Runs only while gameplay is visible, including during explicit pause. The canvas is not cleared automatically. Drawing styles persist between frames. An uncaught game-frame error stops owned activity and preserves its cause.',
   circle: 'The third argument is the diameter, not the radius.',
   text: 'By default, y is the text baseline.',
   loadImageRegion: 'Put player.png in src/main/resources. The region covers the full cached image without copying pixels; region wrapper identity is not promised.',

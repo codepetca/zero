@@ -70,3 +70,22 @@ test('adapter preserves a bounded ordinary compiler log only at this operationâ€
   });
  }
 });
+
+test('private Zero Node discovery and owned hint work without global Node or leaked preload variables',async t=>{
+ const dir=await root(t),runtime={requirements:{nodeMajor:22,javaMajor:21},pins:[]},home=path.join(dir,'home'),privateNode=path.join(home,'Library/Application Support/Zero/runtime','node-'+'a'.repeat(64),'node-v22.21.1-darwin-arm64/bin/node'),hint=path.join(dir,'owned/bin/node');
+ for(const file of [privateNode,hint]){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,'fake fixture only');}
+ const execute=async(command,args,options)=>{assert.equal(options.env.NODE_OPTIONS,undefined);assert.equal(options.env.ZERO_NODE_EXECUTABLE,undefined);return {stdout:JSON.stringify({node:'22.21.1',electron:null,platform:'darwin',arch:'arm64'})};};
+ const base={runtime,projectRoot:path.join(dir,'student'),platform:'darwin',arch:'arm64',needsJava:false,execute};
+ const privateFound=await locateRuntimes({...base,environment:{HOME:home,PATH:'',NODE_OPTIONS:'--require unsafe'}});assert.equal(privateFound.node,privateNode);assert.equal(privateFound.env.PATH,path.dirname(privateNode));
+ const hinted=await locateRuntimes({...base,environment:{HOME:home,PATH:'',ZERO_NODE_EXECUTABLE:hint}});assert.equal(hinted.node,hint);
+ await assert.rejects(locateRuntimes({...base,environment:{HOME:dir,PATH:'',ZERO_NODE_EXECUTABLE:path.join(dir,'student/node')}}),/private runtime/);
+ await assert.rejects(locateRuntimes({...base,environment:{HOME:home,PATH:''},execute:async()=>({stdout:JSON.stringify({node:'22.21.1',electron:null,platform:'darwin',arch:'x64'})})}),/standalone Node/);
+});
+
+test('cached checks require the exact approved builder and cannot authorize exports or preparation',async t=>{
+ const h=await saved(t),savedBuilder=await readSavedBuilder(h),runtime=await fakeRuntime(t);let launches=0,seen;
+ const adapter=createProjectBuilder({isTrusted:()=>true,platform:'linux',arch:'x64',...runtime,spawn:childFactory({protocol:1,ok:true,result:{status:'unavailable',identity:null,diagnostics:[]}},{onRequest:request=>{launches++;seen=request;}})});
+ await assert.rejects(adapter.checkSavedSources({projectRoot:h}),/trusted workspace/);await assert.rejects(adapter.checkSavedSources({projectRoot:h,approvedBuilderHash:'a'.repeat(64)}),/changed/);assert.equal(launches,0);
+ const result=await adapter.checkSavedSources({projectRoot:h,approvedBuilderHash:savedBuilder.profileHash});assert.equal(result.status,'unavailable');assert.equal(seen.operation,'compatibilityCached');assert.equal(launches,1);
+ await assert.rejects(adapter.ensureValidatedExport({projectRoot:h,approvedBuilderHash:savedBuilder.profileHash}),/trusted workspace/);await assert.rejects(adapter.prepareBrowserChecks({projectRoot:h,approvedBuilderHash:savedBuilder.profileHash}),/trusted workspace/);assert.equal(launches,1);
+});
