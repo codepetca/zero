@@ -39,6 +39,29 @@ student walkthrough remain pending. No native release or publisher config change
 Proofs: .verification/live-tutorial-rollout/{public-verified,template-candidates}.json,
 focused/root/build logs andgithub-callback.png. PR188 carries source activation.
 
+### CI-discovered Zero Dev sample correction
+
+Final-head390e8972 passed Windows real JavaFX/cached rebuild and isolated Linux
+checker, but source review correctly stopped at missing PlayerInput/CreditsBadge
+in the maintained Zero Dev assembler. Its old4-class list no longer matched the
+6-class checkpoint11. Add the two source classes with the existing preserve flag;
+fixture inputs now come from the canonical checkpoint directory, with a complete
+emitted-class regression. The new regression fails on the old assembler and all
+8Dev tests pass after correction. Existing4scratch source files are byte-identical
+after preparation; two missing helpers were seeded.
+
+Actual smoke then exposed an old harness assumption: Restart fired during draw
+uses the documented deferred showGame commit, so checking focus inside the same
+draw precedes the commit. The harness now checks focus at the next update before
+NativeFocus can request it. The same game passes real frame movement/win/Restart/
+recollection; all native framework/input/media checks and21UI tests pass, ending
+ZERO_DEV_SMOKE_OK. A disposable negative control omitted only contentChanged's
+focus request: it fails at the next-frame Restart focus assertion, demonstrating
+that focus repair cannot mask this check. No framework or tutorial bytes changed.
+Root check PASS. Corrected-commit independent review and CI follow before merge.
+The earlier checker Java-version setup timeout passed on the unchanged final-head
+checker rerun; infrastructure cause is plausible but unproven. No check was relaxed.
+
 ## Tutorial readiness and browser-first sign-in — 2026-10-24
 
 Local source only. Tutorial phase87a9b4ef prepares the three coherent current

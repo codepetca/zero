@@ -20,6 +20,10 @@ All3templates publiclyverified; Appcallbacksavedandproductionflag1added.
 PR188sourcehead9bce780a reviewed CLEAN (Astrahighsecurity+Solhighcompat, one
 2docP3batch+targetedclosure);finalGitHubCI/deploy/liveOAuth/studentUIpending.
 PreviewHubnav/taglineverified;previewcatalogunconfigurederrorreportedaccurately.
+390e8972CIWindows/Linuxpass;sourcegatefoundZeroDev4-vs6classassemblergap.
+Fixadds2helpers+canonicalclassinventoryregressionandnext-framepre-focus-helper
+Restartassertion;actualfullDevsmoke/rootPASS,negativefocuscontrolfailscorrectly.
+Publictemplate/frameworkbytesunchanged;targetedreview/newCIpending.
 
 ## Tutorial readiness and browser sign-in complete locally — 2026-10-24
 

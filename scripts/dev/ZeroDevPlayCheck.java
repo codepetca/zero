@@ -19,6 +19,7 @@ public final class ZeroDevPlayCheck extends Main {
     private int frames;
     private boolean restarted;
     private boolean captureWin;
+    private boolean expectRestartFocus;
 
     @Override public void setup() {
         super.setup();
@@ -35,6 +36,12 @@ public final class ZeroDevPlayCheck extends Main {
         try {
             // setup runs before scene measurement and stage.show; time focus only
             // once the visible game's first frame can actually request it.
+            if (expectRestartFocus) {
+                // showGame from draw commits after the successful frame. Check
+                // before NativeFocus can request focus and conceal a regression.
+                require(canvas().isFocused(), "Restart returns keyboard focus to canvas by the next frame");
+                expectRestartFocus = false;
+            }
             if (started == 0) started = System.nanoTime();
             if (!NativeFocus.await(canvas(), started, "sample game keyboard focus")) return;
             super.update(seconds);
@@ -83,7 +90,7 @@ public final class ZeroDevPlayCheck extends Main {
             restart.fire();
             require(((Number) field(this, Main.class, "points")).intValue() == 0
                     && !(boolean) field(this, Main.class, "won"), "Restart resets score and win");
-            require(canvas().isFocused(), "Restart returns keyboard focus to canvas");
+            expectRestartFocus = true;
             restarted = true;
         } catch (Throwable failure) { fail(failure); }
     }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync, symlinkSync, realpathSync} from 'node:fs';
+import {mkdtempSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync, symlinkSync, realpathSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
@@ -14,7 +14,7 @@ function fixture(t) {
   const put = (name, content) => {const filename = path.join(root, name); mkdirSync(path.dirname(filename), {recursive:true}); writeFileSync(filename, content);};
   for (const name of ['pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE']) put(`student-template/${name}`, name);
   for (const name of coreSources) put(`framework/src/main/java/zero/${name}`, readFileSync(new URL('../framework/src/main/java/zero/' + name,import.meta.url)));
-  for (const name of ['Main','Player','Coin','ScoreDisplay']) put(`teaching/checkpoints/11/game/${name}.java`, `// sample ${name}\npadding(20);`);
+  for (const filename of readdirSync(new URL('../teaching/checkpoints/11/game/',import.meta.url)).filter(name=>name.endsWith('.java'))) put(`teaching/checkpoints/11/game/${filename}`, `// sample ${filename}\npadding(20);`);
   put('student-template/.vscode/settings.json', '{}');
   put('student-template/.vscode/tasks.json', '{"version":"2.0.0","tasks":[]}');
   put('profile/Zero.code-profile', JSON.stringify({settings:JSON.stringify({settings:'{}'})}));
@@ -35,6 +35,12 @@ test('refresh uses local framework bytes and records the source, preserving edit
   assert.ok(second.preserved.includes('game/src/main/java/Main.java'));
   const provenance = JSON.parse(readFileSync(path.join(first.game, '.zero/dev-source.json')));
   assert.equal(provenance.frameworkSha256, second.sourceHash);
+});
+test('a fresh sample includes every canonical checkpoint game class', t => {
+  const {prepare} = fixture(t), {game} = prepare();
+  const expected = readdirSync(new URL('../teaching/checkpoints/11/game/',import.meta.url)).filter(name=>name.endsWith('.java')).sort();
+  const actual = readdirSync(path.join(game,'src/main/java')).filter(name=>name.endsWith('.java')).sort();
+  assert.deepEqual(actual,expected);
 });
 test('an edited generated framework copy blocks the entire refresh before any overwrite', t => {
   const {root, put, prepare} = fixture(t);
