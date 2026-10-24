@@ -1,5 +1,60 @@
 # Verification
 
+## Live tutorial rollout and Mac acceptance — 2026-10-24
+
+Source PR188 merged atdd4368dd765603c90b276faf0cce4f9a0c0938fe after all selected
+checks passed on20c092d2: root/native/examples/lesson progression/site/package
+40136183217; real WebFX/browser40136183105; Windows40136183121; isolated Linux
+40136183142. Production deployment7305153156 reports success for that merge.
+Actual production /docs exposes the current Zero UI, Actor face() and Zero keys;
+Tutorial practice is separate from ordinary discovery and currently empty.
+Broker PR190b376a903 and all three template PR1 publications are deployed/verified.
+The current source preserves approved main PR191 profile-photo code exactly.
+
+Actual source-based Zero Dev on this Mac completed fresh Greeting, Study and Coin
+repository creation/clone, lessons0–11 code progression via editor UI, native Run
+readiness and actual WebFX interactions. Greeting0–2, quiz3–7/10–11 and game8–11
+pass their input/count/reset/win/refactor/caption/badge checks. ScoreDisplay was
+copied between the actual student projects. Missing semicolon produced exactly
+one Problem at Main27:50; its link selected that position. Correction/Run reached
+the first game frame with zero Problems before Stop. Separate native-window
+physical gameplay is not claimed.
+
+CreditsBadge alone was extracted into the actual repository namespace
+zero.contrib.r1432612868.tutorial_credits_badge. Check Library0.1.0 passed with
+LibraryCheck and both finite consumers against its separate JAR. The extracted
+game exported through WebFX and won with WASD and arrows, with badge and Restart.
+README records checks/MIT credit and the optional original-contribution extension.
+Initial New branch correctly required a first main save; after that, a supported
+work-branch name, Commit & push and Merge to main succeeded. Anonymous public
+reads independently confirm the UI-pushed heads:
+
+- Greeting:59774687dd2b7ced6c52e242c9fc43d1b5776a99.
+- Study:7fbd5ae54cce700747f3761e21c7e35fd40d9133.
+- Coin:ba4db04a253b3e74f6b8f5612df94668090ae327.
+
+The exact-commit practice GitHub form opened with the correct owner/repository,
+folder/version/descriptor and existing policy revision. It was closed without
+submission. Native lesson11 explicitly says publication is paused and retains
+its optional original extension. Hosted core-dependent admission, accepted
+listing/classmate installation and native releases remain separately held.
+Browser-first sign-in and explicit code fallback both completed real GitHub
+sessions; existing installed clients receive new client behavior only in a
+separate release. No credential values were inspected or regenerated.
+
+Method: student project actions used CUA native editor/browser typing/clicking,
+including code comparison copy/paste. Maintainer publication/build/CI/provenance
+checks are separate. An operator helper initially selected the prior project;
+source was restored, explicit paths enforced and the actual resulting UI retested.
+Embedded Cmd+A did not replace input once (Sam became SamAlex); external-browser
+comparison remains. Combined physical key chords, physical Windows/Safari,
+forced-expiry refresh, school networks and Pages publication are not claimed.
+Proofs: .verification/live-tutorial-rollout/{mac-walkthrough.json,
+STUDENT-WALKTHROUGH.md,student-public-heads.json} and retained screenshots/logs.
+Temporary apps/auth/form/gallery tabs are closed; useful Zero Dev and the public
+student Main code tab remain. Primary funding work and prior student copies stay
+preserved. This accepts the authorized rollout, not the entire broader vision.
+
 ## ZeroHub play-count icon — 2026-10-24
 
 Project card footers show a filled play triangle and numeric open count at left,
@@ -21,6 +76,7 @@ Concurrent approved main dd4368dd was merged with practice-only metric suppressi
 retained. Combined-source 205 website tests, production build/TypeScript, root
 and whitespace checks pass. Combined browser and integration review receipts
 are recorded with PR192 and the ignored delivery evidence.
+
 
 ## Authorized tutorial publication and sign-in activation — 2026-10-24
 
