@@ -32,7 +32,16 @@ Restart0and arrowscore1; otherthree badgevisible/arrowscore1 ormediaChimes1,
 artwork actionready. Local lesson11, its check-source link and practicearea were
 inspected. Practice area honestly reports unavailable catalogue in unconfigured
 local service; no claim of a live accepted submission/classmate download.
-Integration test total and independent review closure follow after final review.
+200focused integration tests PASS/0skip;45affected cleanup/editor correction
+tests PASS/0skip. Independent Sol/high complete49-file review of31badc97..82cb6ff7
+found P2 cleanup partial-success retry, P3 native practice grouping and P3 SVG
+accessibility text. Fixed inonebatch ata8f1947c; targeted9-file review is
+COMPLETE/CLEAN. Cleanup now accepts exact already-withdrawn keys to repair a
+failed catalogue refresh without duplicateevents, retaining CAS/binding/gate
+checks. Native discovery groups identity then offers exactversions. Root checks
+pass after correction; student Java/browser builder sources are unchanged, so
+prior native/JAR/GWT/browser proof remains current. All6owned QA tabs and the
+4preview/localwebsite servers were closed; original ZeroDev watcher preserved.
 Proofs: ignored .verification/tutorial-practice/ and tutorial-practice-*.log.
 
 Parent owns lessons/checkpoints/docs/shared marker/integration/Git. Sol/high

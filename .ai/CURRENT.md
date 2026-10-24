@@ -1,16 +1,34 @@
 # Zero phased vision — current handoff
 
-## Active tutorial practice sharing — 2026-10-24
+## Tutorial practice sharing complete locally — 2026-10-24
 
 User approved CreditsBadge practice contribution, separate practice discovery and
-listing cleanup; retain optional original/core contribution extension. Base31badc97.
-No new game or framework API; preserve input refactor. Reserved library slug
-`tutorial-credits-badge` is the marker (no schema change); default catalog APIs
-exclude it, explicit practice API includes it. Existing immutable versions/checks,
-ownership, publisher roles and rollout holds remain. Cleanup withdraws listings,
-never artifacts/source. Parent owns tutorial/checkpoints/docs/shared practice helper;
-Sol/high workers own platform/site and editor integration respectively.
-Storage259GB healthy; weekly68%remaining account-wide. No publish/push/release.
+listing cleanup; optional original/core extension retained. Base31badc97,
+implementation82cb6ff7, correctiona8f1947c. Same3projects/13lessons; input refactor
+stays local, practicebadge uses fixedslug tutorial-credits-badge (no schema/core API
+change). BothdefaultcatalogAPIs excludepractice; explicit site/editor discovery
+and browser dependency resolution optin. Oneentryperrepository thenexactversions.
+Cleanup previews1–150exactkeys; execution keepspublisher+librarygates/CASchecks,
+withdrawslistings and retainsartifacts/source. Exactwithdrawnkey retries repair
+catalogue failure without duplicateevents. No scheduler/database/livecleanup.
+
+200integration+45curriculum tests PASS0skip;45affectedcorrection tests PASS0skip.
+Root/typecheckPASS. Fiveactualnativecheckpointexecutions, actualseparatebadge/core
+JAR Check+twoexamples,4savedbuilderGWTexports PASS. CUA:4actualbrowserstarts/badge
+andmovement; extracted3/3win/restart/arrows; media/scrollartready+chimes1. Canonical
+sources matchcompiledinputs; no test/harnesssource inbrowsermanifests. Lesson11,
+optionalextension, check-source link andpracticeUI verified; localserviceunconfigured
+so no liveacceptedsubmission/classmate-downloadclaim. Hosted schema2/library
+acceptance andproductionactivation remain held, as do publishing/releases.
+
+Parent ownedtutorial/checkpoints/docs/marker/integration/Git. Sol/high editor and
+platform workers delivered bounded nonoverlapping changes. Independent Sol/high
+complete49-file review foundP2cleanupretry/P3nativegrouping/P3SVGmetadata; allfixed
+inonebatch. Targeted9-file closure COMPLETE/CLEAN. Effectiveconfigs/tokensunknown.
+Proofs .verification/tutorial-practice/ andtutorial-practice-*.log. Owned6QA tabs,
+4previewservers/localNextserver closed; original ZeroDev watcher/profile preserved.
+Storage259GB healthy; weekly68%remaining atstart account-wide. No push/PR/merge,
+publication/release/install/accounts/credentials/telemetry. DeepSeek pause honored.
 
 ## Small tutorial refinement complete — 2026-10-24
 
