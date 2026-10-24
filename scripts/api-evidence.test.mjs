@@ -93,8 +93,8 @@ test('browser result parsing requires exactly the selected actually observed Jav
  const wrap=value=>'### Result\n'+JSON.stringify(value)+'\n### Ran Playwright code\nunit-only';assert.deepEqual(browserExecutionRecords(wrap(result),['helpers','audio']),result);
  for(const modify of [copy=>copy.apiEvidence.pop(),copy=>copy.apiEvidence.push(copy.apiEvidence[0]),copy=>copy.apiEvidence[0].caseId='browser/unknown',copy=>copy.selectedFixtures.reverse(),copy=>copy.status='pending']){const copy=structuredClone(result);modify(copy);assert.throws(()=>browserExecutionRecords(wrap(copy),['helpers','audio']));}
 });
-test('current receipt loading remeasures tools and producer closure; actual POM and wrapper are retained',async()=>{
- const {executionIdentity,persistJavaEvidence,loadJavaEvidence,nativeToolFiles}=await import('./api-evidence.mjs');const fixture=await receiptFixture(),temporary=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'zero-current-proof-unit-')));
+test('current receipts bind Maven plugins/dependencies/classifiers, tools, producers, actual POM and wrappers',async()=>{
+ const {executionIdentity,persistJavaEvidence,loadJavaEvidence,nativeToolFiles,mavenPluginTools}=await import('./api-evidence.mjs');const fixture=await receiptFixture(),temporary=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'zero-current-proof-unit-')));
  try {
   const project=path.join(temporary,'project'),outputDirectory=path.join(temporary,'output');fs.mkdirSync(path.join(project,'src/main/java'),{recursive:true});fs.mkdirSync(outputDirectory);
   for(const source of fixture.manifest.sources){const dest=path.join(project,source.path.slice('framework/'.length));fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(root,source.path),dest);}
@@ -107,9 +107,17 @@ test('current receipt loading remeasures tools and producer closure; actual POM 
   const tool=path.join(temporary,'unit-tool'),harness=path.join(canonical,'prepare-starter.mjs');fs.writeFileSync(tool,'synthetic tool');const producerBytes=fs.readFileSync(path.join(root,'scripts/prepare-starter.mjs'));fs.writeFileSync(harness,producerBytes);
   const javaHome=path.join(temporary,'jdk'),mavenHome=path.join(temporary,'maven');
   for(const [base,names] of [[javaHome,['bin/java','bin/javac','release','lib/modules','lib/server/libjvm.dylib','conf/security/java.security']],[mavenHome,['bin/mvn','boot/classworlds.jar','lib/maven-core.jar','conf/settings.xml']]])for(const name of names){const file=path.join(base,name);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,'synthetic '+name);}
-  const tools=nativeToolFiles({javaHome,mavenHome,node:tool});
+  const {zipSync}=createRequire(import.meta.url)('fflate'),pluginRepository=path.join(temporary,'plugin-repository');
+  const pluginJar=path.join(pluginRepository,'org/apache/maven/plugins/maven-compiler-plugin/3.14.0/maven-compiler-plugin-3.14.0.jar');
+  fs.mkdirSync(path.dirname(pluginJar),{recursive:true});fs.writeFileSync(pluginJar,zipSync({'META-INF/maven/plugin.xml':Buffer.from('<plugin><dependencies><dependency><groupId>fixture</groupId><artifactId>dependency</artifactId><version>1</version><type>jar</type></dependency></dependencies></plugin>')}));
+  const dependencyJar=path.join(pluginRepository,'fixture/dependency/1/dependency-1-tests.jar');fs.mkdirSync(path.dirname(dependencyJar),{recursive:true});fs.writeFileSync(dependencyJar,'synthetic classifier-only dependency');
+  const plugins=mavenPluginTools({repositoryRoot:pluginRepository,output:'[INFO] --- compiler:3.14.0:compile (unit) @ fixture ---'});
+  assert.ok(plugins.files.includes(pluginJar));assert.ok(plugins.files.includes(dependencyJar));
+  assert.throws(()=>mavenPluginTools({repositoryRoot:pluginRepository,output:''}),/omitted executed plugin/);
+  assert.throws(()=>mavenPluginTools({repositoryRoot:pluginRepository,output:'[INFO] --- unknown:1:run (unit) @ fixture ---'}),/unreviewed/);
+  const tools=[...nativeToolFiles({javaHome,mavenHome,node:tool}),...plugins.files];
   for(const file of [path.join(javaHome,'bin/javac'),path.join(javaHome,'lib/modules'),path.join(mavenHome,'lib/maven-core.jar')])assert.ok(tools.includes(file));
-  const measure=()=>executionIdentity({manifest:fixture.manifest,projectRoot:project,outputDirectory,toolFiles:tools,platform:'unit-only',harnessFiles:[harness],sourceRoot:canonical});
+  const measure=()=>executionIdentity({manifest:fixture.manifest,projectRoot:project,outputDirectory,toolFiles:tools,platform:'unit-only',harnessFiles:[harness],sourceRoot:canonical,mavenPlugins:plugins.provenance});
   for(const name of ['pom.xml','mvnw','.mvn/wrapper/maven-wrapper.properties']) {const file=path.join(project,name),before=fs.readFileSync(file);fs.appendFileSync(file,'unit mutation');assert.throws(measure,/assembled POM, wrapper/);fs.writeFileSync(file,before);}
   const measured=measure();
   const entry=fixture.manifest.signatures[0],link=entry.evidence.native[0];const raw='ZERO_API_EVIDENCE_V1\nI|'+entry.id+'|'+link.assertionId+'\nA|'+entry.id+'|'+link.assertionId+'|'+link.postcondition+'|42\nEND_ZERO_API_EVIDENCE';
@@ -118,6 +126,8 @@ test('current receipt loading remeasures tools and producer closure; actual POM 
   const retained=path.join(receipts,'unit','artifacts',measured.inputs.fixture.configurationSha256);const configuration=fs.readFileSync(retained);fs.appendFileSync(retained,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current POM/);fs.writeFileSync(retained,configuration);
   const canonicalPom=path.join(canonical,'student-template/pom.xml'),pomBytes=fs.readFileSync(canonicalPom);fs.appendFileSync(canonicalPom,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current POM/);fs.writeFileSync(canonicalPom,pomBytes);
   const mavenCore=path.join(mavenHome,'lib/maven-core.jar'),mavenBytes=fs.readFileSync(mavenCore);fs.appendFileSync(mavenCore,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current/);fs.writeFileSync(mavenCore,mavenBytes);
+  for(const file of [pluginJar,dependencyJar]){const before=fs.readFileSync(file);fs.appendFileSync(file,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}));fs.writeFileSync(file,before);}
+  const addedClassifier=path.join(path.dirname(dependencyJar),'dependency-1-extra.jar');fs.writeFileSync(addedClassifier,'new classifier');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current Maven plugin/);fs.unlinkSync(addedClassifier);
   fs.writeFileSync(tool,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current/);fs.writeFileSync(tool,'synthetic tool');fs.writeFileSync(harness,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current/);
  } finally {fs.rmSync(temporary,{recursive:true,force:true});}
 });

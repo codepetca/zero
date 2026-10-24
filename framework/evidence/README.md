@@ -17,7 +17,13 @@ hashes. Loading receipts remeasures current input bytes. Actual POM, wrappers, `
 files and `zero.json` are retained and compared with current canonical bytes.
 Native receipts bind the transitive assembly producer closure, actual Node,
 Java and javac, JDK runtime modules/JVM, and the Maven distribution identified
-by its startup banner (launcher, libraries and configuration). Receipts are trusted
+by its startup banner (launcher, libraries and configuration). Native runs use
+an explicit recorded local Maven repository. Ordinary INFO goal headers identify
+the executed plugin versions; each plugin JAR and the complete resolved
+dependency list in its plugin descriptor are bound, including every cached JAR
+classifier at each listed GAV/version. Loading receipts rechecks that closure
+and rejects missing, changed or newly added dependency JARs. No debug output or
+whole-repository inventory is used. Receipts are trusted
 local harness evidence, not cryptographic attestation against a hostile writer.
 
 Drawing uses fixed atlas cells with immediate before/after witnesses. All four
@@ -51,7 +57,9 @@ Button callback replacement uses actual activation. Disabled-control evidence
 retains before/after state around attempted blocked input. Media evidence checks
 real playing voices, held pause position, rewind, and continued looping across
 an actual media duration. Browser audio receipts retain the first complete flow
-before the fixture reloads for its separate restoration checks.
+before the fixture reloads for its separate restoration checks. Helpers likewise
+capture their successful Java transport before delayed-image and deliberately
+failed loading reloads, so those later pages cannot discard or replace it.
 
 The lifecycle case combines two fresh page executions (UI stop, then game/fault
 flow), retaining both Java blocks. It has menu, first-frame and independent

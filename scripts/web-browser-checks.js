@@ -194,6 +194,9 @@ async (initialPage) => {
     (await page.evaluate(() => window.__zeroCheck.errors)).length === 0,
     'No JavaScript errors in helpers'
   );
+  const helperEvidence=await page.evaluate(()=>window.__zeroCheck.apiEvidence);
+  if(!helperEvidence)throw new Error('Missing successful helper Java observations before loading fault reloads');
+  apiEvidence.push({caseId:'browser/helpers',raw:helperEvidence});
   // A completed image at 10s must extend the 30s wait for a second at 35s.
   // This exercises real loader timers without slowing every network resource.
   const delayed = async route => {
@@ -923,7 +926,7 @@ async (initialPage) => {
   for (const id of selection.filter(id => id !== 'mobile')) {
     if (!urls[id]) throw new Error('Missing selected browser fixture URL: ' + id);
     page = await initialPage.context().newPage();
-    try { await initialize(); await cases[id](); if(['helpers'].includes(id)){const raw=await page.evaluate(()=>window.__zeroCheck.apiEvidence);if(!raw)throw new Error('Missing Java observations for '+id);apiEvidence.push({caseId:'browser/'+id,raw});} }
+    try { await initialize(); await cases[id](); }
     catch(error) {
       let observed={};
       try{observed=await page.evaluate(()=>({errors:window.__zeroCheck?.errors,consoleErrors:window.__zeroCheck?.consoleErrors,rejections:window.__zeroCheck?.rejections,last:window.__zeroCheck?.last,java:window.__zeroCheck?.apiEvidence,body:document.body?.innerText?.slice(0,6000)}));}catch{}

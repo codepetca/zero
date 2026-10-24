@@ -212,13 +212,56 @@ export function nativeToolFiles({javaHome,mavenHome,node=process.execPath,module
  for(const directory of ['bin','boot','lib','conf'])files.push(...ordinaryFiles(path.join(mavenHome,directory)));
  return [...new Set(files)].sort();
 }
+/** Read only the executed plugins and the resolved dependency list shipped in each descriptor. */
+export function mavenPluginTools({repositoryRoot,output,plugins}) {
+ if(!path.isAbsolute(repositoryRoot))fail('Maven evidence requires an explicit absolute local repository');
+ const aliases={clean:['org.apache.maven.plugins','maven-clean-plugin'],resources:['org.apache.maven.plugins','maven-resources-plugin'],compiler:['org.apache.maven.plugins','maven-compiler-plugin'],javafx:['org.openjfx','javafx-maven-plugin']};
+ if(output!==undefined) {
+  plugins=[];
+  for(const match of output.replace(/\x1b\[[0-9;]*m/g,'').matchAll(/^\[INFO\] --- ([\w.-]+):([\w.-]+):[\w-]+ \(/gm)) {
+   const alias=Object.keys(aliases).find(name=>name===match[1]||aliases[name][1]===match[1]);
+   if(!alias)fail('unreviewed executed Maven plugin '+match[1]);
+   const [groupId,artifactId]=aliases[alias],version=match[2];
+   if(!plugins.some(plugin=>plugin.groupId===groupId&&plugin.artifactId===artifactId&&plugin.version===version))plugins.push({groupId,artifactId,version});
+  }
+ }
+ if(!Array.isArray(plugins)||!plugins.length)fail('Maven INFO output omitted executed plugin identities');
+ const files=new Set(),{unzipSync}=require('fflate'),{parseXml,single,value}=require('../extension/src/project-pom');
+ function jars(gav) {
+  exact(gav,['groupId','artifactId','version'],'Maven plugin dependency');
+  for(const part of [gav.artifactId,gav.version,...gav.groupId.split('.')])if(!/^[A-Za-z0-9_][A-Za-z0-9_.-]*$/.test(part)||part.includes('..'))fail('invalid resolved Maven coordinate');
+  const directory=path.join(repositoryRoot,...gav.groupId.split('.'),gav.artifactId,gav.version);
+  const found=ordinaryFiles(directory).filter(file=>path.dirname(file)===directory&&file.endsWith('.jar'));
+  if(!found.length)fail('resolved Maven dependency has no cached ordinary JAR: '+JSON.stringify(gav));
+  for(const file of found)files.add(file);return directory;
+ }
+ for(const plugin of plugins) {
+  if(!Object.values(aliases).some(([group,artifact])=>plugin.groupId===group&&plugin.artifactId===artifact))fail('unreviewed executed Maven plugin coordinate');
+  const directory=jars(plugin),jar=path.join(directory,plugin.artifactId+'-'+plugin.version+'.jar');
+  const descriptor=unzipSync(fs.readFileSync(jar),{filter:entry=>entry.name==='META-INF/maven/plugin.xml'})['META-INF/maven/plugin.xml'];
+  if(!descriptor)fail('executed plugin descriptor missing');
+  const xml=Buffer.from(descriptor).toString('utf8');
+  const blocks=[...xml.matchAll(/<dependencies>([\s\S]*?)<\/dependencies>/g)];
+  if(blocks.length!==1)fail('executed plugin descriptor must identify its resolved dependency closure');
+  const root=parseXml('<project>'+blocks[0][0]+'</project>'),dependencies=single(root,'dependencies');
+  for(const dependency of dependencies.children) {
+   if(dependency.name!=='dependency')fail('invalid Maven plugin dependency descriptor');
+   const type=single(dependency,'type',true);if(type&&value(type)!=='jar')fail('unsupported Maven plugin dependency type');
+   jars({groupId:value(single(dependency,'groupId')),artifactId:value(single(dependency,'artifactId')),version:value(single(dependency,'version'))});
+  }
+ }
+ return {files:[...files].sort(),provenance:{repositoryRoot,plugins}};
+}
+function measuredTools(files,mavenPlugins) {
+ return mavenPlugins?Buffer.from(JSON.stringify({files:JSON.parse(measuredFiles(files)),mavenPlugins})):measuredFiles(files);
+}
 function configurationBytes(directory) {
  const files=['pom.xml','mvnw','mvnw.cmd','zero.json'].map(name=>path.join(directory,name));
  for(const file of files){const stat=fs.lstatSync(file);if(!stat.isFile()||stat.isSymbolicLink())fail('configuration must be an ordinary file');}
  files.push(...ordinaryFiles(path.join(directory,'.mvn')));
  return Buffer.from(JSON.stringify(files.sort().map(file=>({path:path.relative(directory,file).split(path.sep).join('/'),bytes:fs.readFileSync(file).toString('base64')}))));
 }
-export function executionIdentity({manifest,projectRoot,outputDirectory,toolFiles,platform,harnessFiles,sourceRoot=repositoryRoot}) {
+export function executionIdentity({manifest,projectRoot,outputDirectory,toolFiles,platform,harnessFiles,sourceRoot=repositoryRoot,mavenPlugins}) {
  assertManifestSources(manifest,{sourceRoot});
  if(!Array.isArray(toolFiles)||!toolFiles.length||!Array.isArray(harnessFiles)||!harnessFiles.length||!bounded(platform))fail('execution must identify actual tools and harnesses');
  if(fs.existsSync(path.join(projectRoot,'zero-libraries.json')))fail('bind actual managed libraries before recording this fixture');
@@ -228,8 +271,8 @@ export function executionIdentity({manifest,projectRoot,outputDirectory,toolFile
  if(!configuration.equals(canonical))fail('assembled POM, wrapper or configuration differs from current canonical fixture');
  const fixture={sourceSha256:hash(packEvidenceDirectory(path.join(projectRoot,'src'))),configurationSha256:hash(configuration),configuration:configuration.toString('base64')};
  const profile=Buffer.from(JSON.stringify(builder.map(file=>({path:file.path,sha256:hash(file.bytes),bytes:file.bytes.length}))));
- const identity={manifestSha256:hash(JSON.stringify(manifest)),coreSha256:hash(JSON.stringify(manifest.sources)),profileSha256:hash(profile),contractSha256:hash(fs.readFileSync(path.join(sourceRoot,'extension/src/web-export/compatibility/contract.json'))),librariesSha256:hash('[]'),fixtureSha256:hash(JSON.stringify({sourceSha256:fixture.sourceSha256,configurationSha256:fixture.configurationSha256})),harnessSha256:hash(measuredFiles(harnessFiles)),outputSha256:hash(output),toolSha256:hash(measuredFiles(toolFiles)),platform};
- return {identity:validateIdentity(identity),output,inputs:{toolFiles,harnessFiles,fixture}};
+ const identity={manifestSha256:hash(JSON.stringify(manifest)),coreSha256:hash(JSON.stringify(manifest.sources)),profileSha256:hash(profile),contractSha256:hash(fs.readFileSync(path.join(sourceRoot,'extension/src/web-export/compatibility/contract.json'))),librariesSha256:hash('[]'),fixtureSha256:hash(JSON.stringify({sourceSha256:fixture.sourceSha256,configurationSha256:fixture.configurationSha256})),harnessSha256:hash(measuredFiles(harnessFiles)),outputSha256:hash(output),toolSha256:hash(measuredTools(toolFiles,mavenPlugins)),platform};
+ return {identity:validateIdentity(identity),output,inputs:{toolFiles,harnessFiles,fixture,...(mavenPlugins?{mavenPlugins}:{})}};
 }
 export function persistJavaEvidence({directory,manifest,raw,pixels=[],identity,output,inputs,runId,target,caseId}) {
  const converted=receiptFromJavaEvents({manifest,raw,pixels,identity,runId,target,caseId});
@@ -254,13 +297,14 @@ export function loadJavaEvidence(directory,{manifest,checkCurrentInputs=true,sou
   if(checkCurrentInputs){
    assertManifestSources(manifest,{sourceRoot});
    const inputs=JSON.parse(fs.readFileSync(path.join(folder,'identity-inputs.json'),'utf8'));
-   exact(inputs,['toolFiles','harnessFiles','fixture'],'current identity inputs');
+   exact(inputs,['toolFiles','harnessFiles','fixture',...(Object.hasOwn(inputs,'mavenPlugins')?['mavenPlugins']:[])],'current identity inputs');
+   if(inputs.mavenPlugins){exact(inputs.mavenPlugins,['repositoryRoot','plugins'],'Maven execution provenance');const current=mavenPluginTools(inputs.mavenPlugins);if(current.files.some(file=>!inputs.toolFiles.includes(file)))fail('stale current Maven plugin/dependency closure');}
    exact(inputs.fixture,['sourceSha256','configurationSha256','configuration'],'retained actual fixture inputs');
    const configuration=fs.readFileSync(path.join(folder,'artifacts',inputs.fixture.configurationSha256));
    if(!sha(inputs.fixture.sourceSha256)||hash(configuration)!==inputs.fixture.configurationSha256||!configuration.equals(Buffer.from(inputs.fixture.configuration,'base64'))||!configuration.equals(configurationBytes(path.join(sourceRoot,'student-template')))||identity.fixtureSha256!==hash(JSON.stringify({sourceSha256:inputs.fixture.sourceSha256,configurationSha256:inputs.fixture.configurationSha256})))fail('stale current POM, wrapper or configuration');
    if(!Array.isArray(inputs.toolFiles)||!inputs.toolFiles.length||!Array.isArray(inputs.harnessFiles)||!inputs.harnessFiles.length)fail('missing current tool/harness paths');
    const profile=projectBuilderFilesSync({sourceRoot}).map(file=>({path:file.path,sha256:hash(file.bytes),bytes:file.bytes.length}));
-   if(identity.toolSha256!==hash(measuredFiles(inputs.toolFiles))||identity.harnessSha256!==hash(measuredFiles(inputs.harnessFiles))||identity.profileSha256!==hash(JSON.stringify(profile))||identity.coreSha256!==hash(JSON.stringify(manifest.sources))||identity.contractSha256!==hash(fs.readFileSync(path.join(sourceRoot,'extension/src/web-export/compatibility/contract.json')))||identity.librariesSha256!==hash('[]'))fail('stale current tool, harness, fixture, profile or contract');
+   if(identity.toolSha256!==hash(measuredTools(inputs.toolFiles,inputs.mavenPlugins))||identity.harnessSha256!==hash(measuredFiles(inputs.harnessFiles))||identity.profileSha256!==hash(JSON.stringify(profile))||identity.coreSha256!==hash(JSON.stringify(manifest.sources))||identity.contractSha256!==hash(fs.readFileSync(path.join(sourceRoot,'extension/src/web-export/compatibility/contract.json')))||identity.librariesSha256!==hash('[]'))fail('stale current tool, harness, fixture, profile or contract');
   }
   const transport=JSON.parse(fs.readFileSync(path.join(folder,'java-events.json'),'utf8'));
   if(!sha(transport.sha256))fail('invalid Java transport identity');

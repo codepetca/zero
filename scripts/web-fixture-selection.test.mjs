@@ -39,3 +39,16 @@ test('a Java startup assertion fails promptly with fixture identity and retained
  await assert.rejects(run({context:()=>({newPage:async()=>child})}),error=>error.message.includes('Browser fixture helpers failed')&&error.message.includes(javaError)&&error.message.includes('consoleErrors'));
  assert.deepEqual(calls,['/unit/helpers-failure.png','closed']);
 });
+
+test('helper evidence retains its successful snapshot before loading fault reloads',async()=>{
+ const source=await fs.readFile(new URL('web-browser-checks.js',import.meta.url),'utf8');
+ const start=source.indexOf('  const helperEvidence=');const end=source.indexOf('  // A completed image',start);
+ assert.ok(start>source.indexOf("'No JavaScript errors in helpers'"));assert.ok(end>start);
+ assert.ok(!source.slice(source.indexOf('  for (const id of selection')).includes('apiEvidence.push'));
+ const successful='ZERO_API_EVIDENCE_V1\nI|fixture#actual()|observed\nA|fixture#actual()|observed|actual passed|true\nEND_ZERO_API_EVIDENCE';
+ let active=successful,reads=0;const apiEvidence=[],page={evaluate:async()=>{reads++;return active;}};
+ await vm.runInNewContext('(async()=>{'+source.slice(start,end)+'})()',{page,apiEvidence});
+ active=undefined; // An intentionally failed later page has no Java receipt.
+ assert.equal(reads,1);assert.equal(apiEvidence.length,1);assert.equal(apiEvidence[0].caseId,'browser/helpers');assert.equal(apiEvidence[0].raw,successful);
+ await assert.rejects(vm.runInNewContext('(async()=>{'+source.slice(start,end)+'})()',{page,apiEvidence:[]}),/Missing successful helper/);
+});
