@@ -1,5 +1,50 @@
 # Delivery evidence index
 
+## Zero phased delivery: replaceable display slice 2A — 2026-10-23
+
+Accepted locally at29118a74 (implementation6df16979). Student-owned ScoreView
+exposes Element view() and setScore(int). Text and ten-segment ASCII-bar displays
+implement it; the numeric score remains exact while only the bar is clamped.
+Counter App and Coin Quest GameApp accept either through the same typed boundary.
+Fresh controls/views preserve single-parent ownership; game rules, score, level,
+timer, player, canvas and explicit pause remain owned by Main. Reset/navigation
+retain the selected presentation. Core stays16 helpers /176 declarations.
+The beginner driver remains byte-identical to its former plain-score check.
+
+Root, six assembly-safety tests, cached semantic checks and scoped native
+counter/coin checks pass. No beginner/stress/full-suite execution. Independent
+complete13-file Sol/high review found one P2: two standard browser fixture
+assemblers omitted the new shared dependencies. Both now include and inventory-
+guard all three files. Targeted review is clean; all eight standard compatibility
+fixtures and the actual assembled Counter20/Coin27 sources pass attribution.
+Review used one initial and one targeted turn, one source-fix batch, no extra wave.
+
+Two actual WebFX exports pass19/19 browser assertions: counter
+07fd426c-b63d-48d0-bf42-31d5c89bb204 and Coin Quest
+562f1364-8b38-4478-9927-d400e799f27e. Profile remains
+4e9eb2bfa7fc7b884c88f49ad0880e2a12f803b490ecf9dd0d4e22fb3f6eae3c.
+Both switch directions, continued updates/reset, exact player/timer/canvas
+retention, pause/resume, two real pointer-controlled wins and replay/title pass.
+Constructor/negative/extreme/independent-instance and direct paused replacement
+edge cases are native evidence. All49 final receipt hashes match;15 consumer/
+shared byte-identity checks and export validation pass. Fresh HUDs are expected.
+
+Two harness-only browser retries reused the same builds: the first waited on an
+already-visible score instead of view detachment; real pointer steering during
+mouse movement then invalidated a strict position assertion. Keyboard Space
+activation isolates the swap while the pointer remains fixed. Failed probes are
+retained. Final20.03seconds covers only the last browser attempt; total elapsed
+is unknown. Raw console audit retains optional favicon404s/readback advisory;
+no application or required-resource errors. Own browsers/previews closed.
+
+Ignored evidence: .verification/phase2a-score-views/, vision-scoreviews-web/,
+vision-scoreviews-review/ and vision-scoreviews native/root logs. Requested browser
+Sol/medium and reviewer Sol/high; effective configurations/tokens unavailable.
+This proves ordinary replacement in both consumers, not independent library-JAR
+or hosted acceptance. Astra/xhigh reviewed the next provided-core build design;
+its recommendation is recorded in the canonical architecture roadmap. No public
+template/kit/site updates, publication, installs, accounts or telemetry changes.
+
 ## Zero phased delivery: live controls slice 1F / Phase1 acceptance — 2026-10-23
 
 Accepted locally at `549db09f`. One ordinary Main extends GameApp, explicitly

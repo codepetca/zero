@@ -428,40 +428,30 @@ unchanged checks. Future phases start only when their dependencies are ready.
 | Phase | Outcome and exit criteria | Status |
 | --- | --- | --- |
 | 0. Working baseline | Recover accepted App/GameApp/Actor/UI prototypes, source/export ownership and verification. Keep Main's explicit update/draw; one gameplay loop and no GameScreen. | Accepted locally: counter, structured/beginner Coin Quest and stress proof; prior native/browser receipts retained. |
-| 1. Make the student path Zero-first | Move maintained Greeting, Study and Coin teaching projects to Zero packages for normal UI/input/drawing/assets. Keep classes and callbacks ordinary Java. Add only controls needed by those lessons. Add a small simulation with live controls; preserve beginner Main/HUD and optional extraction. | Active. Slice 1A accepted locally: starter and Greeting lessons0–2 with TextField. Slice 1B accepted locally: Study lessons3–7 and inherited control availability. Slice 1C accepted locally: Coin lessons8–9 with Key and Row. Slice 1D accepted locally: shared ScoreDisplay lessons10–11. Slice 1E accepted locally: lesson12 images/sound and scrolling. Slice 1F accepted locally at549db09f: live-control simulation. Phase1 complete locally. |
-| 2. Prove student extension and sharing | Demonstrate an ordinary steering helper, interchangeable UI component, default/alternative animation and container through public consumers without core edits. Share immutable data but independent mutable clocks, with one explicit update owner. Prove the same component through managed local and exact-version library consumption in App and GameApp, natively and in the browser. | Active2A: student-owned ScoreView contract and text/bar App/GameApp consumers. Then core-dependent managed distribution and AnimationSource/AnimationPlayback. Add World/Screen/camera only for demonstrated examples, not as a prerequisite. Hosted acceptance remains gated. |
+| 1. Make the student path Zero-first | Move maintained Greeting, Study and Coin teaching projects to Zero packages for normal UI/input/drawing/assets. Keep classes and callbacks ordinary Java. Add only controls needed by those lessons. Add a small simulation with live controls; preserve beginner Main/HUD and optional extraction. | Accepted locally through549db09f (slices1A–1F): teaching path0–12 and live-control simulation, native/WebFX/browser checks and independent reviews. Core16helpers/176declarations. Public templates/kits remain separately pinned. |
+| 2. Prove student extension and sharing | Demonstrate an ordinary steering helper, interchangeable UI component, default/alternative animation and container through public consumers without core edits. Share immutable data but independent mutable clocks, with one explicit update owner. Prove the same component through managed local and exact-version library consumption in App and GameApp, natively and in the browser. | 2A accepted locally at29118a74: typed text/bar replacement in App/GameApp, native/browser checks and independent review. Active2B: core-dependent managed distribution; then steering and AnimationSource/AnimationPlayback. Add World/Screen/camera only for demonstrated examples, not as a prerequisite. Hosted acceptance remains gated. |
 | 3. Make projects self-contained and upgrades optional | Record exact framework/library/toolchain inputs and retain the complete reviewed browser-builder dependency closure with the project. Opening in a newer editor changes none of them. Explicit trusted build actions use project-owned tooling; missing tools get useful unavailable status. Upgrade a copy/branch deliberately and reversibly. Clone/build/rehost a representative older project and saved static export with no central Zero kit service. | Planned. Fix the existing automatic helper migration during Publish; hashes alone never authorize arbitrary project code execution. No required historical-kit database, all-version CI or old-maintenance branches. Full offline backup remains optional. |
 | 4. Catch failures during development | Complete exact-signature executed-evidence coverage; debounced saved-source browser compatibility, truthful native/managed-preview lifecycle and source-linked errors. Inject unsupported API, compiler, asset, startup, frame/UI/promise and stale-message failures; preserve the last good export. Native Run stays fast and usable offline. | Planned, with meaningful exact-signature evidence recorded from slice 1A onward. PostHog is an optional sanitized sink evaluated after local gates; Clarity is a possible website usability supplement. Neither is injected or activated by this plan. |
 | 5. Finish the student/contributor journey | Exercise create → code → native play → fix error → Git progress → browser export/preview and exact library reuse; keep public templates, kit, lessons, API and help coherent. Prepare a release candidate with scoped browser/platform limits and a core-adoption example retaining attribution. | Planned. Public template updates, authenticated Pages publication, hosted checker activation, signed releases and a teacher/novice pilot require their separately authorized real acceptance; local mocks cannot satisfy them. |
 
-Local acceptance, 2026-10-23: slice 1A is complete through source22b979d6.
-Greeting lessons/checkpoints0–2 and the starter use Zero UI; 14 helpers/164
-public declarations, native framework/progression checks, two focused final
-WebFX exports, 29 browser assertions and independent review pass. The checks
-caught and corrected pinned WebFX default/prompt/focus differences. Six actual
-builds include failed earlier attempts; see [delivery evidence](EVIDENCE.md).
-Study slice 1B is accepted through source7f8235ff: Zero UI lessons3–7,
-Element.setEnabled, native progression/UI checks, 52 final browser assertions
-and independent review. The review caught inherited disabled-state differences
-in pinned WebFX; four actual builds include the pre-fix pair. The next active
-slice is shared ScoreDisplay lessons10–11. Coin slice1C is accepted at
-a4e8b771: 16 helpers/175 declarations, native input/UI/progression, 59 browser
-assertions and independent review. Shared ScoreDisplay slice1D is accepted at
-8a80b640 with native paired consumers, 39 browser assertions and clean independent
-review; no new core API. Asset slice1E is accepted atcbdfe997 with native
-loader/asset-route checks, three actual exports and48browser assertions. The
-live-control simulation slice1F is accepted at549db09f with selected native
-checks, one actual export,20browser assertions and clean review. Phase1 is
-complete locally. Phase2 begins with student-owned ScoreView replacements;
-core-dependent managed JAR distribution still needs explicit compile-input and
-core-requirement support. Public template/release bytes have not changed.
+Local acceptance, 2026-10-23: Phase1 is complete through549db09f. The canonical
+starter, Greeting0–2, Study3–7, Coin8–12 and live-control simulation use Zero
+packages for their normal UI/input/drawing/assets. GameApp extends App; Main owns
+explicit updates. Core contains16helpers/176declarations. Native checks, actual
+pinned WebFX exports, browser behavior and independent review pass per slice.
+Checks caught and corrected pinned WebFX prompt, focus traversal and inherited
+disabled-state differences. Failed attempts and exact revision/hash evidence are
+preserved in [delivery evidence](EVIDENCE.md); these are not a single all-platform
+acceptance claim. Public templates, installed kits and hosted website are unchanged.
 
-Phase 1A is done when the canonical starter and all three Greeting checkpoints
-use Zero UI imports, the incremental lesson instructions match them, TextField
-text/prompt and button/typing/focus behavior are proved natively and in a real
-WebFX browser, API documentation is complete and independent review is clean.
-Published tutorial-template commit IDs and installed artifacts stay unchanged
-until their authorized publication phase; report this distinction explicitly.
+Phase2A is accepted locally at29118a74: a student-owned ScoreView contract with
+text/bar implementations consumed by App and GameApp, scoped native checks, two
+actual exports/19browser assertions and independent review with one corrected
+fixture omission. Active Phase2B implements core-dependent managed JAR
+distribution: explicit compile inputs/core requirements and actual native plus
+browser proof. Source-only resolution is not an independent JAR check.
+Published tutorial-template commit IDs and installed artifacts remain immutable
+until separately authorized publication. Report local versus public delivery.
 
 Phase 2 must include two actors sharing frame definitions with independent
 playback, procedural drawing, animation/image swaps, pause/restart and invalid
@@ -471,6 +461,35 @@ Containers prove safe add/remove and exactly-once explicit updates. A managed
 library's namespace, exact version, resources and core requirements stay bound
 on native and browser targets. A successful local check does not open the hosted
 checker gate or create an accepted public release.
+
+Phase2B design review (Astra/xhigh, 2026-10-23): compile a core-dependent
+contribution against a separately built copy of the project's reviewed core
+sources. Use a generated, fixed Maven reactor with a `provided` core dependency;
+do not install a global artifact or bundle core classes in the contribution.
+The consumer retains its own core source at runtime. The widget harness must
+deliberately support `Element view()` alongside existing `Node view()`, verify
+class origins and prevent checks/examples from shadowing core or contribution
+classes. This is a local Check capability, not permission to execute candidates
+in the hosted checker.
+
+Keep a small semantic core requirement separate from exact build provenance.
+An explicit unreleased core version describes API compatibility; source inventory,
+core JAR, recipe and toolchain hashes bind the actual compiled inputs. Descriptor,
+release, sanitized POM, Add/Update and browser snapshot must agree. A source change
+invalidates evidence without automatically meaning an API break. Existing
+core-independent libraries remain valid. Do not infer the new core's identity
+from the old framework POM's0.2.1 version.
+
+Acceptance uses the same interface and two display implementations as an actual
+namespace-confined contribution JAR: separate core/contribution JAR checks, local
+source and exact-artifact App/GameApp consumers, plus pinned browser behavior.
+Reject absent/incompatible core, changed prepared inputs, disagreeing POM metadata,
+duplicate core classes, corrupt artifacts and unsupported calls even in unused
+library methods. The existing disposable local HTTPS artifact proof can establish
+this without a central service. Hosted policy currently rejects interfaces and
+expects Node widgets; its separate core/JavaFX-media and admission gaps stay
+visible and gated until a reviewed hosted acceptance is authorized. This proof
+does not establish the complete saved-project builder closure planned in Phase3.
 
 Phase 3 maintains only the current release line. Before 1.0, minor releases may
 break APIs while patches preserve them; after 1.0, same-major documented APIs

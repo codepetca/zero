@@ -1,92 +1,76 @@
-# Zero vision execution — Phase 2A implementation, 2026-10-23
+# Zero vision execution — Phase2B active, 2026-10-23
 
 Persistent coordinator goal active. Single roadmap:
 `docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance`.
-Work only in `/Users/stew/.codex/worktrees/actor/zero`; preserve primary and other
-worktrees' Dev profiles/watchers. Local source, checks, commits and independent
-review authorized; no push/PR/merge/deploy/release/install, account changes or
-telemetry activation. Do not repeat stress benchmarks. Use source Zero Dev and
-focused finite checks. DeepSeek paused through 2026-12-31.
+Work only in `/Users/stew/.codex/worktrees/actor/zero`. Preserve primary and other
+worktrees' Dev profiles/watchers. Local source/checks/commits/review authorized;
+no push/PR/merge/deploy/release/install, accounts or telemetry activation. No more
+stress benchmarks; use scoped verification selectors. DeepSeek paused through
+2026-12-31. One writer per component, coordinator stages/commits/integrates.
 
-Phases: 0 baseline; 1 Zero-first teaching consumers and simulation; 2 replacement/
-sharing; 3 project-owned complete builder/pins; 4 diagnostics/evidence; 5 journey
-and release readiness. No mandatory World/Screen/Camera/ECS. Public publication
-and physical/novice acceptance remain separate decisions.
+Roadmap:0 baseline;1 Zero-first teaching consumers;2 replacement/sharing;
+3 project-owned complete browser-builder closure/pins/optional upgrades;
+4 diagnostics/executed-signature evidence;5 full journey/release readiness.
+No required World/Screen/Camera/ECS or central historical-kit database.
 
-Accepted locally:
-- 1A Greeting0–2/TextField through22b979d6: final29browser assertions, native and
-  independent review. Six builds including earlier failures.
-- 1B Study3–7/setEnabled through7f8235ff: final52browser assertions; inherited
-  disabled-state shim fixes pinned WebFX propagation, native and clean targeted
-  review. Four builds including initial limited43-pass proof.
-- 1C Coin8–9/Key/Row ata4e8b771: 16helpers/175decl (171explicit+4enumconstants),
-  native GameHelpers/UI and8/9/legacy10game, local/docs, two actualexports and
-  59browser assertions with two real-keyboard wins/resets, one clean independent
-  complete34file review/no fixes. Receipt vision-coin-web/; review vision-coin-review/.
-  Optional favicon404/readback warnings audited; no genuine app/resource errors.
+Accepted locally (complete details and limits in docs/EVIDENCE.md):
+- Phase1A Greeting0–2/TextField through22b979d6,29final browser assertions.
+- 1B Study3–7/setEnabled through7f8235ff,52final browser assertions. Browser
+  focus/prompt/inherited-disabled differences corrected in pinned runtime.
+- 1C Coin8–9/Key/Row ata4e8b771,59browser assertions, two exports.
+- 1D shared Zero ScoreDisplay10–11 at8a80b640,39browser assertions, two exports.
+- 1E loadImageRegion/lesson12 assets+scrolling atcbdfe997,48browser assertions,
+  three exports; media events not audibility, default drawing survives no assets.
+- 1F live-control simulation at549db09f,20browser assertions, one export. Only
+  Integer.parseInt(String) added to browser admission. Selected-before-prepare
+  protections stop simulation checks from reading/writing stress/other projects.
+- All Phase1 accepted through030189ad; core16helpers/176declarations.
+- 2A replacement source6df16979, fixture fix29118a74. Student ScoreView{Element
+  view();setScore(int)} with text and10segment ASCIIbar, truepointstext never
+  clamped. Counter App/Coin GameApp selectfresh views preserving model/rules/
+  canvas/player/level/timer/pause. Beginner driver retained byte-identically.
+  Root/sixsafetychecks/native ONLYcounter,coin-game pass. Standard browser
+  fixtures corrected after one P2 independent finding; cached semantic checks
+  include8fixtures plusactualCounter20/Coin27sources. Independent initial+
+  targetedreview clean, onefixbatch. Two actualWebFXexports19/19browserassertions,
+ 49finalhashes+15consumer/shared byteidentities match. Two harness-only retries
+  retained;20.03seconds finalbrowserattemptonly, totalunknown. Proof under
+  phase2a-score-views/,vision-scoreviews-web/review/logs. No core/runtime changes.
 
-Evidence/detail in `docs/EVIDENCE.md`. Public templates/kits/hosted docs unchanged.
-Own browsers/previews/docs servers closed. Effective configurations/tokens unknown.
+CurrentPhase2B: actual independent core-dependent contribution JAR, then managed
+local/exact-artifact App+GameApp native/browser reuse. Source-only resolution is
+not native JAR proof. Astra/xhigh architecture review recommends project-supplied
+separate core JAR with Maven provided dependency in fixed temporary reactor;
+consumer retains own core source runtime. No global install/registry/duplicate
+core classes. Compile checks/examples against core+contribution JARs, no app
+classes or contribution source roots. Core semantic requirement distinct from
+exact source/JAR/recipe/toolchain proof. Existing core-independent libraries stay
+valid. Element view() supported alongside existing Node view(); classorigins and
+shadow checks required. Full details canonical roadmap, concrete contract pending
+Astra refinement. Current framework/pom0.2.1 is NOT new16helper identity.
 
-Phase1D accepted at8a80b640: sharedScoreDisplay lessons10/11zero.Label/Element,
-ordinarycaption/points/refresh with useful nullerror and atomicity. No core API
-change16/175. Native10/11Study+Game+legacy12media bothmodes,18lessonchecks/root,
-twoexactfour-fileexports39/39browserassertions and clean complete17file review.
-Oneinitialturn/no fixes; proof in vision-components-web/review/logs. Customcaption/
-null/instancebehavior native; browsers useScore setup+actualscoreupdates. All51
-receipt hashes match. Full details docs/EVIDENCE.md. Sourceequality guards retain
-10pair/11pair/legacy12pair; reconnect11→12 in nextmigration.
+Buildrecipe: generated standalone core+contribution modules, reactor clean package;
+then dependency:build-classpath on coremoduleONLY (only FXcontrols/media) avoids
+resolving uninstalled core artifact. Legacy no-core plan keepsoneMaven step.
+Potential semantic core0.3.0 unreleased; finalcontract not yet implemented.
 
-Phase1E accepted atcbdfe997: loadImageRegion full cached bounds,16helpers176decl,
-Zero-only lesson12 assets/scrolling, explicit button/error/drawing flow, atomic
-candidate assignment and App-owned Sound. Source11→12 exactcomponentcontinuity
-restored. Nativehelper+12media/scrollingbothmodes,53focusedAPI/semantictests,
-19teachingchecks/root/localdocs and independentcomplete25file review pass.
-Three actualexports48/48browserassertions; all45receipt hashes matched before
-advancement. Missingmedia route remainsplayable; canonicalPNG/WAV route2wideworld
-wins/resets and sixaudioeventsequences, noaudibilityclaim. Ignoredharnesssyntax
-failure+onebrowser-onlyretry retained; no extrasourcefix/build. Browser-onlyretry
-37.094s, totalelapsedunknown. Receiptinventorywordingcorrected. Proofvision-assets-*.
-Allownservers/previewsclosed. APIcore/assetproof accepted BEFORE nextcontractchange.
+Agents: core_library_architecture Astra/xhigh currently finalizing concrete
+fields/location/ownership split; read-only, no builds/edits/install/delegate.
+vision_workflow_audit Sol/high idleafter2Aimplementation+fixturefix. actor_browser
+Sol/medium idleafter19/19accepted2A. actor_stress_review Sol/high idleafterclean
+2Atargetedreview. Coordinator owns Git/docs/evidence/integration/goal. Reuse
+bounded workers; get contract before parallel component edits. No sourcechanges
+in2B yet. Hosted policy rejects interfaces, has noCore/media/Elementwidgetharness;
+keep admission explicitly gated. Public publication requires real separate
+acceptance, not localfixture catalog. Existing oldprototype stressservers untouched.
 
-Phase1F and allPhase1 accepted at549db09f: singleMainGameApp simulation, existing
-Zero controls, validated0–400 integer input, pause/resume/reset. Onlynewbrowser
-admissionInteger.parseInt(String), radixoverloadrejected; core16/176unchanged.
-Sixfocusedtests/root/profile/semanticpass, ONLYselectedsimulationnative, oneactual
-WebFXexport20/20browserassertions26.8s, cleancomplete10file independentreview.
-All40receipt hashes matched before advancement. No otherprototype/stress touched;
-selected-before-prepare protections and separate subsetreceipts verified. Proof
-vision-simulation-*; full delivery detail docs/EVIDENCE.md. Public release unchanged.
+Next: acceptAstra concretecoreversion/record/requirement/provenance contract;
+implement and test schema/core-input/assembly, localCheck reactor/harness, consumer/
+browser validation and actuallocalHTTPSJARreuseproof with one writer percomponent.
+Run focused tests/native serial/browser sourcebound, independent correctness and
+security review appropriate to distribution/execution boundary. No broadstress/
+full9builds. Later2steering/animation/container then3–5. Goalnotcomplete.
 
-ActivePhase2A: student-owned ScoreView{Elementview();setScore(int)} withtext and
-10segmentASCIIbar implementations (truepointstextneverclamped, baronly). Actual
-AppCounter+GameHud typedconsumers, explicitTextscore/Barscore actions swapfresh
-view+copycurrentpoints/rebuildUIwithoutcoreedits; rules/player/canvas/level/time/
-pause retained, resets/navigationkeepselectedpresentation. Freshcontrolsrespect
-single-parentownership. BarRowkeepssameheightastext. No newcoreAPI/contract yet.
-
-Ownership:
-- vision_workflow_audit retainedSol/high writesONLYsharedScoreView/ScoreDisplay/
-  BarScoreDisplay, CounterMain, CoinMain/Hud, scopedprototypeassembly+nativechecks/
-  README/safetytests. Cheaptests+cachedsemantic only, no heavyjobs or Git.20min
-  checkpoint25max; freezebeforeparentnative/browser/source review.
-- core_library_architecture Astra/xhigh read-only15min/max20 designs2Bminimal
-  independentZero-dependentJARcompile input+core requirements; no edits/builds.
-  Existing authoring/local-check/POMvalidatorsonlyknowFX, strictschemasnocore
-  requirement. NativeZeroLibraryHarness expectsNodeview; hostedpolicy rejects
-  interfaces andhostedharnesseslackcore/Element. Browser source-onlyresolution
-  isNOTnativeJARproof. Do notclaimhostedacceptance. No duplicatecoreclasses in
-  contributionJAR. No centraloldkitDB/maintenancebranches; respectprojectpins.
-- Coordinator owns integration, Git, goal, roadmap/evidence/CURRENT.
-- actor_browser retainedSol/medium idleafteraccepted1F; prepare2Aafterfreeze.
-- actor_stress_review retainedSol/high idleafterclean1F; independent2Areviewlater.
-
-Next: 2Afreeze/selectedcounter+coinnative, actualApp/GameAppbrowserreplacementproof,
-independentreview; settleAstra2Bdesign thenimplementmanagedlocal/exactartifact
-proof. Keepcontributionpublication/hostedactivation andallpush/PR/merge/deploy/
-release/install/accounts/telemetrygated. No newthreads/automations. Goalactive,
-notcomplete. LaterPhase3project-ownedcompletebuilderclosure/pins/optionalupgrades;
-Phase4diagnostics; Phase5fulljourney/publicationready. Do notresumeoldstress.
-
-Latest storage265.744GB healthy; startweekly7%used/sharednot taskcost. Use cached
-storage readings up to30min, refresh before heavy changes. No installer needed.
+Storage265.318GB healthycached; refresh within30min/beforeheavyoperations.
+Weeklystart7%used/93%remaining sharedaccount, not taskcost. Effectiveagentmodel/
+tokens not observable. Own goalbrowser/previews/docs servers closed.
