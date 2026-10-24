@@ -215,6 +215,53 @@ public class CheckpointHarness extends Application {
         require(number(player, "x") == 0.0 && number(player, "y") == 0.0, "whole player stays inside left and top edges");
     }
 
+    private static void checkRefactoredInput(Main app, Stage stage) throws Exception {
+        if (!(id.equals("10/game") || id.equals("11/game") || id.startsWith("12/"))) return;
+        GameApp game = (GameApp) (App) app;
+        Object input = field(app, "input");
+        Object player = field(app, "player");
+        // Test the real public query seam with controlled held-state input. The
+        // separate framework input suite owns actual event/focus dispatch proof.
+        Field keysField = GameApp.class.getDeclaredField("keys");
+        keysField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        java.util.Set<javafx.scene.input.KeyCode> held =
+                (java.util.Set<javafx.scene.input.KeyCode>) keysField.get(game);
+        java.lang.reflect.Method horizontal = input.getClass().getMethod("horizontal");
+        java.lang.reflect.Method vertical = input.getClass().getMethod("vertical");
+        held.clear();
+        require((int) horizontal.invoke(input) == 0 && (int) vertical.invoke(input) == 0,
+                "refactored input is neutral when no keys are held");
+        held.add(javafx.scene.input.KeyCode.RIGHT);
+        held.add(javafx.scene.input.KeyCode.DOWN);
+        double x = number(player, "x"), y = number(player, "y");
+        app.getClass().getMethod("update", double.class).invoke(app, 0.05);
+        require(Math.abs(number(player, "x") - x - 9) < 0.00001
+                && Math.abs(number(player, "y") - y - 9) < 0.00001,
+                "extraction preserves both-axis movement and one update owner");
+        held.add(javafx.scene.input.KeyCode.LEFT);
+        held.add(javafx.scene.input.KeyCode.UP);
+        require((int) horizontal.invoke(input) == 0 && (int) vertical.invoke(input) == 0,
+                "opposing arrows cancel instead of accumulating movement");
+        if (!id.equals("10/game")) {
+            held.clear(); held.add(javafx.scene.input.KeyCode.D); held.add(javafx.scene.input.KeyCode.W);
+            require((int) horizontal.invoke(input) == 1 && (int) vertical.invoke(input) == -1,
+                    "optional WASD adds controls without changing the game rules");
+            held.add(javafx.scene.input.KeyCode.RIGHT); held.add(javafx.scene.input.KeyCode.UP);
+            require((int) horizontal.invoke(input) == 1 && (int) vertical.invoke(input) == -1,
+                    "matching arrow and letter do not double the direction");
+            held.add(javafx.scene.input.KeyCode.A); held.add(javafx.scene.input.KeyCode.S);
+            require((int) horizontal.invoke(input) == 0 && (int) vertical.invoke(input) == 0,
+                    "opposing letter controls cancel");
+        }
+        held.clear();
+        button(stage, "Restart").fire();
+        require(field(app, "input") == input && field(app, "player") != player,
+                "Restart reuses its input helper and creates fresh game state");
+        require((int) horizontal.invoke(input) == 0 && (int) vertical.invoke(input) == 0,
+                "returning to gameplay reads cleared input rather than cached directions");
+    }
+
     private static void checkGame(Main app, Stage stage) throws Exception {
         GameApp sketch = (GameApp) (App) app;
         require(sketch.layout().getCenter() == sketch.canvas(), "canvas remains in game layout");
@@ -310,6 +357,7 @@ public class CheckpointHarness extends Application {
                     } else require(status.contains("/media-demo/player.png") && field(app, "sprite") == null
                             && field(app, "chime") == null, "missing requested assets show their path without changing drawing mode");
                 }
+                checkRefactoredInput(app, stage);
                 if (((App) app) instanceof GameApp game) game.pause(); // Freeze automatic updates; keep the app alive for Restart/navigation.
                 BorderPane root = (BorderPane) stage.getScene().getRoot();
                 require(root.getPadding().equals(new javafx.geometry.Insets(20)),

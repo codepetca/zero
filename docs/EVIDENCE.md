@@ -1,5 +1,52 @@
 # Delivery evidence index
 
+## Small tutorial refactoring and contribution path — 2026-10-24
+
+Owner requested existing small Zero examples, an intermediate busy-Main refactor
+and a community/core contribution opportunity. Base95c2c140 in actor worktree;
+no new framework Input class or API. Three continuing Greeting/Study/Coin projects
+and13lesson IDs remain. Lesson10 extracts student-owned PlayerInput before the
+existing ScoreDisplay reuse. Lesson11 retains compatible caption improvement,
+adds optional WASD, and teaches a README proposal/original library/reuse/core
+review path with credit, exact versions and native/browser evidence. Proposals
+need no fourth project or publication; actual sharing keeps original-work policy.
+Lesson12 remains optional artwork/sound/scrolling; larger platform/level/endings
+exercises no longer expand the core tutorial. Big reference games remain
+maintainer completeness checks. Website metadata, bundled reader, index/teacher
+notes, comparison sources and advanced-guide prominence follow that scope.
+
+Four game checkpoints10/11/12media/12scrolling use a small ordinary PlayerInput.
+10 preserves arrow behavior;11 adds optional WASD, reused unchanged at12. Main
+keeps rules, score and exactly one Player update. No actor/movement convention,
+physics rule, core source or public API changed. Regression checks preserve
+per-axis diagonal speed, opposing-key cancellation, matching arrow+letter not
+doubling an axis, one9-pixel update and helper reuse across fresh-player Restart.
+Native harness supplies controlled held state for those query-seam tests; it does
+not claim physical key/focus dispatch. Actual browser tests supply CUA real keys.
+
+44focused curriculum/website/nav/reader tests PASS,0skip. Root source/config/link
+check PASS. Four affected checkpoint variants pass6actual native executions
+(12media andscrolling both without/with assets). Four actual saved-builder
+WebFX/GWT exports PASS. Actual CUA Chrome wins all four:10arrows3/3;11WASD3/3;
+12media3/3+Chimes3;12scrolling3/3+Chimes3 with retained fixed HUD. Restart and
+arrow fallback exercised. Actual local /tutorials/10 and11 show changed navigation,
+refactor snippets, PlayerInput comparison links and core-proposal guidance.
+Current canonical student source hashes match all four compiled projects.
+Ignored proofs: .verification/tutorial-refactor/ and tutorial-refactor-*.log.
+Independent complete source/curriculum review is pending at this snapshot.
+
+Parent owns source/harness/docs/integration. One Sol/high worker wrote lesson10/11
+prose only; parent verified snippets/links and aligned remaining sources. Effective
+model, task timing/tokens unavailable. Storage259GB healthy; weekly69%remaining
+atstart is account-wide, not task cost. DeepSeek pause honored. Retained rework:
+website scaffold test incorrectly included private builder Java in student roots
+and an outdated13helper list; it now checks exact reviewed current core paths
+inside src/main/java. Reader copy test expected old JavaFX import; updated to
+Zero Label. Lesson12 navigation expectation follows its smaller media outcome.
+These were test expectations; runtime APIs and source security boundaries did not
+change. No push/PR/merge, public templates, website deployment, sharing, release,
+installation, account/credential changes or telemetry occurred.
+
 ## Zero-only basic games — 2026-10-24
 
 The owner authorized Pong, a top-down collector/shooter and a small platformer,

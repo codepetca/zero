@@ -1,5 +1,17 @@
 # Zero phased vision — current handoff
 
+## Active tutorial refinement — 2026-10-24
+
+User wants the existing small Greeting/Study/Coin path, intermediate refactoring
+of busy Main (student PlayerInput + existing ScoreDisplay), and contribution
+proposal/reuse/core path. No new Zero input class or new tutorial game. Base95c2c140.
+Parent owns checkpoint10/11/12+native checks/index/site metadata/lesson12 scope;
+Sol/high curriculum_refactor owns lesson10/11 prose only. Publishing/releases
+and existing external holds remain separate. Plan: source/narrative parity,
+focused tests/native checks, actual saved-builder WebFX+browser and independent review.
+Storage259GB healthy/weekly69%remaining account-wide; no task-token estimate.
+
+
 ## Basic-game completeness pass complete — 2026-10-24
 
 User authorized three Zero/standard-Java-only reference games, student ergonomics

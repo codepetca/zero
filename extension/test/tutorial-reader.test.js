@@ -55,7 +55,7 @@ test('browser and clipboard messages are fixed allowlists with no project writes
   await panel.receive({type:'browser',lessonId:'3'});
   assert.deepEqual(f.external,['https://zero.codepet.ca/tutorials/3']);
   await panel.receive({type:'copy',id:'code-0'});
-  assert.ok(f.copied[0].includes('import javafx.scene.control.Label;'));
+  assert.ok(f.copied[0].includes('import zero.ui.Label;'));
   assert.deepEqual(panel.messages.at(-1),{type:'copied',id:'code-0',ok:true});
   f.vscode.env.clipboard.writeText=async()=>{throw new Error('clipboard unavailable');};
   await panel.receive({type:'copy',id:'code-0'});assert.equal(panel.messages.at(-1).ok,false);

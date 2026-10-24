@@ -9,8 +9,9 @@ checkpoints as starters. Keep students' current code and add the next lesson's c
 Use the visible target and numbered editing/testing steps. Full instructions
 and code stay visible; Compare your code references are optional.
 Illustrations are teaching drawings, not native-window screenshots. Pacing has
-not been measured with novice students. Lesson 12's advanced extensions can span
-several sessions or remain optional.
+not been measured with novice students. The intermediate refactoring work is in lessons 10–11. Keep the same three
+projects; new complete games are not required. Lesson 12's media/scrolling
+extensions can remain optional.
 
 ## Before lesson 0
 
@@ -32,7 +33,7 @@ pilot evidence; native sign-in does not configure commit identity.
 
 A local starter smoke can check setup without Git; it is not the tutorial start.
 The candidate's lesson flow requires the student's own template repository and
-clone before lesson 0. Run App opens a browser preview. After cloning and caching
+clone before lesson 0. Run App opens a local app window; browser export is a separate build. After cloning and caching
 the compiler/dependencies, Run works offline without an active GitHub session.
 
 ## Check each step
@@ -49,21 +50,30 @@ the compiler/dependencies, Run works offline without an active GitHub session.
 | 7 | Wrong/retry, correct, Next, completion and Restart work; each question scores once |
 | 8 | Held arrows move the player; edges keep the entire square inside |
 | 9 | Each coin scores once; all three win; Restart restores player, coins and score |
-| 10 | The same student-authored ScoreDisplay source works in Study and Game; each app creates its own instance |
-| 11 | A compatible setColor method works in both consumers; original sharing work includes API, examples and checks |
+| 10 | PlayerInput extraction preserves arrow movement/cancellation/reset; the same ScoreDisplay source works in Study and Game |
+| 11 | A compatible setCaption method works in both consumers; optional WASD preserves arrows; a contribution proposal records API, examples, checks and credit |
 | 12 | Same game runs with drawing fallback; optional PNG/WAV work; optional scrolling keeps HUD fixed |
 
-For optional platforms/levels/endings, check landing from above, underside/side
-collisions, one jump per press, level transitions, banked score, frozen win/loss
-and full Restart. These guided stages refer to maintained examples; only media
-and scrolling have dedicated progressive checkpoints.
+For refactoring, compare behavior before and after: arrows, diagonal movement,
+opposing keys, canvas edges, one-time scoring, focus loss and Restart. Main keeps
+one explicit update owner. PlayerInput reads current key state when Main asks;
+it does not move Player, save scores or start a timer. Optional WASD changes the
+bindings deliberately; holding an arrow and its matching letter must not double
+the movement. Keep the existing diagonal-speed behavior during the extraction.
+
+Ask students to identify one responsibility, extract it, run the same checks,
+and explain the smaller Main. Then write a short proposal for an improvement in
+their own README. A proposal does not require a fourth project or a public post.
+Actually sharing an original/adapted component remains optional and follows the
+original-work, attribution and acceptance policy below. Proven community ideas
+can be proposed for core; they are never installed or promoted automatically.
 
 ## Teach ownership
 
 `setup()` creates the interface once. Handlers change state. Methods name actions.
 Main explicitly calls ordinary objects' methods. Introduce Counter in lesson 6,
 then Question objects and array indexes in lesson 7. Rendering never awards points.
-ScoreDisplay presents app-owned state; a JavaFX node has one parent, so create
+ScoreDisplay presents app-owned state; a Zero Element has one parent, so create
 separate instances in Study and Game. GameApp calls Main's update/draw, and Main
 explicitly updates/draws Player and Coin. Compare world and screen coordinates
 before optional camera, gravity and level work.

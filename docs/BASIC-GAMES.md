@@ -10,9 +10,9 @@ student-authored Java files. No game calls `graphics()`, `canvas()`, `layout()` 
 | [Collector](../student-template/examples/zero-collector/README.md) | Coins, health/protection, pursuit, shots, cooldown, victory/loss | Sprite loading, Actor facing/movement, primary pointer input, sound, drawing and controls |
 | [Sky Steps](../student-template/examples/zero-platformer/README.md) | Gravity, jumping, one-way platform landings, coin/exit rules and restart | Game loop, Actor drawing, key edges, sound, title/HUD and pause |
 
-These are worked projects after students learn methods, classes, arrays and
-callbacks. They are not a claim that a first lesson should contain hundreds of
-lines. Students can start by changing one rule or actor. Main explicitly updates
+These are maintainer completeness checks, not additional tutorial projects.
+The student tutorial stays with the existing small Greeting, Study and Coin
+examples; lessons 10–11 teach refactoring and contribution proposals. Main explicitly updates
 each actor; substeps in Pong/platformer intentionally divide the same frame's time.
 No actor registers itself or starts an extra animation timer.
 

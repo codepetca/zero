@@ -95,6 +95,14 @@ now declares 193 public/protected entries; prior 183/366 evidence above belongs 
 its earlier exact revision. Current scoped input and game behavior proof is
 recorded separately in EVIDENCE. This does not publish or release the framework.
 
+The tutorial remains three small continuing projects: Greeting (0–2), Study
+(3–7), Coin (8–12). Intermediate lesson 10 explicitly refactors Main into a
+student-owned PlayerInput helper and the existing reusable ScoreDisplay. Lesson
+11 checks a compatible improvement, optionally adds WASD, and teaches an original
+community/core contribution proposal. Lesson 12 keeps optional media/scrolling;
+larger reference games remain maintainer completeness checks. No new core Input
+class, required fourth tutorial project or public sharing action is introduced.
+
 ## Core goal: students grow the framework
 
 Owner direction,2026-10-23: students should learn to build, extend and improve

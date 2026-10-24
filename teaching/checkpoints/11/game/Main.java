@@ -1,12 +1,12 @@
 import zero.Color;
 import zero.GameApp;
-import zero.Key;
 import zero.ui.Button;
 import zero.ui.Label;
 import zero.ui.Row;
 
 public class Main extends GameApp {
     private Player player;
+    private PlayerInput input;
     private Coin[] coins;
     private int points;
     private boolean won;
@@ -19,6 +19,7 @@ public class Main extends GameApp {
     }
 
     @Override public void setup() {
+        input = new PlayerInput(this);
         score = new ScoreDisplay();
         score.setCaption("Score");
         message = new Label("");
@@ -42,12 +43,8 @@ public class Main extends GameApp {
 
     @Override public void update(double seconds) {
         if (won) return;
-        int horizontal = 0;
-        int vertical = 0;
-        if (keyDown(Key.LEFT)) horizontal--;
-        if (keyDown(Key.RIGHT)) horizontal++;
-        if (keyDown(Key.UP)) vertical--;
-        if (keyDown(Key.DOWN)) vertical++;
+        int horizontal = input.horizontal();
+        int vertical = input.vertical();
         player.update(horizontal, vertical, seconds, width(), height());
 
         for (Coin each : coins) {
@@ -67,7 +64,7 @@ public class Main extends GameApp {
         background(Color.rgb(240, 248, 255));
         fill(Color.rgb(47, 79, 79));
         textSize(20);
-        text("Click the canvas, then hold the arrow keys.", 20, 30);
+        text("Click the canvas, then hold arrows or WASD.", 20, 30);
         for (Coin each : coins) each.draw(this);
         player.draw(this);
     }

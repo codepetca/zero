@@ -192,3 +192,32 @@ test('tutorial publications stay unavailable until complete verified metadata ex
     assert.throws(()=>validateTutorialTemplates(metadata),/publication/);
   }
 });
+
+test('intermediate refactoring extracts input without growing the tutorial or changing core', () => {
+  for (const id of ['10/game','11/game','12/media','12/scrolling']) {
+    const directory = path.join(root,'teaching/checkpoints',id);
+    const main = readFileSync(path.join(directory,'Main.java'),'utf8');
+    const input = readFileSync(path.join(directory,'PlayerInput.java'),'utf8');
+    assert.doesNotMatch(main,/keyDown\(|import zero\.Key/);
+    assert.match(main,/input = new PlayerInput\(this\)/);
+    assert.match(main,/int horizontal = input\.horizontal\(\)/);
+    assert.match(main,/int vertical = input\.vertical\(\)/);
+    assert.equal((main.match(/new PlayerInput/g)||[]).length,1);
+    assert.doesNotMatch(input,/javafx|Timer|Player player|extends |implements /);
+    for (const key of ['LEFT','RIGHT','UP','DOWN']) assert.ok(input.includes('game.keyDown(Key.'+key+')'));
+    if(id!=='10/game') for(const key of ['W','A','S','D']) assert.ok(input.includes('game.keyDown(Key.'+key+')'));
+  }
+  const lesson10=readFileSync(path.join(root,'student-template/lessons/10-components.md'),'utf8');
+  const lesson11=readFileSync(path.join(root,'student-template/lessons/11-zerohub.md'),'utf8');
+  assert.match(lesson10,/refactor/i);assert.match(lesson10,/PlayerInput/);assert.match(lesson11,/proposal/i);
+  assert.match(lesson11,/core/i);assert.match(lesson11,/original/i);
+});
+
+test('lesson 10 PlayerInput snippet matches the maintained helper and later copies stay identical', () => {
+  const markdown=readFileSync(path.join(root,'student-template/lessons/10-components.md'),'utf8');
+  const snippet=[...markdown.matchAll(/```java\n([\s\S]*?)```/g)].map(match=>match[1]).find(code=>code.includes('public class PlayerInput'));
+  const compact=text=>text.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\s+/g,'');
+  assert.equal(compact(snippet),compact(readFileSync(path.join(root,'teaching/checkpoints/10/game/PlayerInput.java'),'utf8')));
+  const improved=readFileSync(path.join(root,'teaching/checkpoints/11/game/PlayerInput.java'),'utf8');
+  for(const id of ['12/media','12/scrolling'])assert.equal(readFileSync(path.join(root,'teaching/checkpoints',id,'PlayerInput.java'),'utf8'),improved);
+});

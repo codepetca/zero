@@ -8,12 +8,15 @@ Illustrations show the intended result; native controls vary by platform.
 | --- | --- | --- |
 | Greeting app | [0](00-hello-world.md), [1](01-hello-button.md), [2](02-hello-name.md) | Label → button → name input |
 | Study quiz | [3](03-quiz.md), [4](04-counter.md), [5](05-methods.md), [6](06-objects.md), [7](07-study-app.md) | One question → attempts → reset methods → Counter object → question array and scoring |
-| Coin game | [8](08-movement.md), [9](09-coin-game.md), [10](10-components.md), [11](11-zerohub.md), [12](12-media.md) | Player → coins/win/restart → shared score display → optional media and larger world |
+| Coin game | [8](08-movement.md), [9](09-coin-game.md), [10](10-components.md), [11](11-zerohub.md), [12](12-media.md) | Player → coins/win/restart → refactor input and score display → improve/check/propose → optional media |
 
-Lesson 10 reopens both Study and Game to reuse the class you wrote. Lesson 11
-practises a compatible component change locally. Sharing is optional and uses
+The intermediate steps stay in these same small projects. Lesson 10 refactors
+the Coin game’s busy Main into a PlayerInput helper, then reopens Study and Game
+to reuse ScoreDisplay. Lesson 11 practises compatible improvements and a local
+contribution proposal. Sharing is optional and uses
 an original project of your own, separate from these three practice folders.
-Lesson 12's larger game stages are optional extensions of the same Game project.
+Lesson 12 adds optional artwork/sound and a small scrolling extension; larger
+games are outside the core tutorial.
 
 ## Start a lesson
 
@@ -31,14 +34,14 @@ repository in your GitHub account from the verified template and opens its clone
 You can instead use **Use template** on the tutorial page to create a repository
 on GitHub, then clone your own repository through **Project → Clone from GitHub…**.
 For an already-cloned Zero folder, use
-**Project → Open local project…** to open it in a new window without cloning.
+**Project → Open local project…** to open it without cloning.
 Do not clone Zero's shared template directly. There is no tutorial project ZIP
 or unconnected local-only folder path in this candidate. Template links follow verified
 publication metadata; unavailable templates show that state instead of an
 invented working link.
 
 Each template has an empty runnable `Main.java` and build/framework setup.
-The first run opens a blank browser preview or canvas. You write the controls,
+The first run opens a blank app window or canvas. You write the controls,
 game objects and logic. Completed lesson programs are not supplied as starters.
 
 Sign in through Zero for pushes and configure Git name/email for each repository.

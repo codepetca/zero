@@ -39,14 +39,13 @@ and [GameApp source](src/main/java/zero/GameApp.java). Use these classes for
 startup, drawing and input; use ordinary Java for your app's objects and rules.
 The source is the authority if you change your local framework.
 
-## Complete Zero-only games
+## Grow the existing tutorial projects
 
-Three worked games use Zero and standard Java throughout their student code:
-[Pong](examples/zero-pong/README.md), [Collector](examples/zero-collector/README.md)
-and [Sky Steps](examples/zero-platformer/README.md). Each has a title, live HUD,
-pause/resume, restart and win/loss rules. They need this current source API, not
-an older published kit. Start by changing an actor or one game rule; keep the
-framework game loop and explicit updates.
+The [tutorial](lessons/README.md) keeps three small continuing projects: Greeting,
+Study quiz and Coin game. In [lesson 10](lessons/10-components.md), refactor a busy
+Main by extracting PlayerInput and ScoreDisplay. [Lesson 11](lessons/11-zerohub.md)
+checks improvements and develops a contribution proposal. Larger reference games
+are maintainer completeness checks, not additional required tutorial projects.
 
 ## Game input and a live control row
 

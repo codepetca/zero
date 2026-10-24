@@ -1,12 +1,12 @@
-# 12. Grow your Coin game
+# 12. Add artwork and sound
 
 **First checkpoint: your moving player becomes a sprite and a collected coin rings.**
 
 ![The lesson 9 Coin game with a robot player, three coins and a native score below the canvas](visuals/12.svg)
 
-Reopen the **same Coin game** you wrote in lessons 8–11. Keep your Player, Coin, ScoreDisplay and Main. This lesson changes your current project in place and supplies no later stage project ZIPs. Optionally download the small [game assets ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip) and place `media-demo/player.png` and `media-demo/chime.wav` under `src/main/resources/`. You may use your own PNG and short WAV at those paths, or use the drawing route below without assets.
+Reopen the **same Coin game** you wrote in lessons 8–11. Keep your Player, Coin, PlayerInput, ScoreDisplay and Main. This lesson changes your current project in place and supplies no later stage project ZIPs. Optionally download the small [game assets ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip) and place `media-demo/player.png` and `media-demo/chime.wav` under `src/main/resources/`. You may use your own PNG and short WAV at those paths, or use the drawing route below without assets.
 
-Previous: [Check a component](11-zerohub.md).
+Previous: [Improve and propose a component](11-zerohub.md).
 
 ## 1. Draw an image from Player
 
@@ -155,20 +155,19 @@ public void follow(double playerX, double viewportWidth, double worldWidth) {
 }
 ```
 
-Add `public double x() { return x; }` to Player. In Main add `private final double worldWidth = 1600;` and `private Camera camera;`. Create `camera = new Camera();` in `restart()` and move two coins farther away, for example x 840 and 1360. Pass `worldWidth` instead of `width()` to `player.update(...)`, then call `camera.follow(player.x(), width(), worldWidth);` after movement. To draw world objects, add overloads `Player.draw(GameApp app, double cameraX)`, `Player.drawImage(GameApp app, ImageRegion sprite, double cameraX)` and `Coin.draw(GameApp app, double cameraX)`. In each, use `x - cameraX` for the image or rectangle's horizontal drawing coordinate; keep the original methods and collection positions unchanged. In Main's `draw()`, pass `camera.x()` to those new methods. Zero ScoreDisplay and Restart stay outside the canvas and do not scroll. Check both world edges and collect a far coin. Compare your edits with the optional [scrolling checkpoint Main](../../teaching/checkpoints/12/scrolling/Main.java) and [Camera.java](../../teaching/checkpoints/12/scrolling/Camera.java), or the maintained [scrolling example](../examples/scrolling-game/README.md), then return to **your own code**.
+Add `public double x() { return x; }` to Player. In Main add `private final double worldWidth = 1600;` and `private Camera camera;`. Create `camera = new Camera();` in `restart()` and move two coins farther away, for example x 840 and 1360. Pass `worldWidth` instead of `width()` to `player.update(...)`, then call `camera.follow(player.x(), width(), worldWidth);` after movement. To draw world objects, add overloads `Player.draw(GameApp app, double cameraX)`, `Player.drawImage(GameApp app, ImageRegion sprite, double cameraX)` and `Coin.draw(GameApp app, double cameraX)`. In each, use `x - cameraX` for the image or rectangle's horizontal drawing coordinate; keep the original methods and collection positions unchanged. In Main's `draw()`, pass `camera.x()` to those new methods. Zero ScoreDisplay and Restart stay outside the canvas and do not scroll. Check both world edges and collect a far coin. Compare your edits with the optional [scrolling checkpoint Main](../../teaching/checkpoints/12/scrolling/Main.java) and [Camera.java](../../teaching/checkpoints/12/scrolling/Camera.java), then return to **your own code**. Keep the PlayerInput helper from lessons 10–11; it still supplies horizontal and vertical directions, while Main owns the update and camera calls.
 
-## 9. Optional stage 3: add platforms and gravity
+## 9. Choose one next improvement
 
-Continue the same game. Add a `Platform.java` with `x`, `y`, `width`, `height`, getters and `draw(GameApp app, double cameraX)` that calls `app.rect(x - cameraX, y, width, height)`. Main owns `private Platform[] platforms;` and creates ground and ledges in `restart()`, for example `new Platform(0, 300, 600, 20)` and `new Platform(700, 240, 180, 20)`. Draw each platform before the coins and player.
+Finish by testing your same small Coin game: collect each coin once, win,
+Restart, and play again. Check the drawing fallback and any assets you chose.
+If you added scrolling, check both world edges and the fixed HUD. Keep your
+PlayerInput and ScoreDisplay responsibilities separate from Main’s game rules.
 
-Move the coins near reachable ledges. In Player, add `private double velocityY; private boolean grounded = true;`. Keep the old `update(...)` for your top-down version. Add a new `updatePlatform(int horizontal, boolean jumpPressed, double seconds, double worldWidth, Platform[] platforms)` method. It moves x with the existing `speed`, clamps x to `worldWidth - size`, starts a jump only when `jumpPressed && grounded` (`velocityY = -460`), then on each frame applies `velocityY = Math.min(800, velocityY + 1200 * seconds); y += velocityY * seconds;`. Save the old bottom (`oldY + size`) before moving. When falling (`velocityY >= 0`), land only if the old bottom was at or above a platform top, the new bottom reaches it, and the player's horizontal range overlaps the platform. Landing sets `y = platform.y() - size`, `velocityY = 0`, `grounded = true`. Otherwise set `grounded = false`. In Main, replace only the movement call with `player.updatePlatform(horizontal, jumpPressed, seconds, worldWidth, platforms);`; compute a fresh Space press with a `private boolean jumpHeld` field so holding Space through landing does not jump again. After falling below the canvas, call `restart()` or show a loss. Test a landing, a gap, and a held jump. See the maintained [platform example](../examples/platform-game/README.md) for side and underside collision details if you extend this simple landing rule.
+Choose one small improvement of your own: change the controls, add a score
+caption, or write clearer instructions. Use the refactor → test → improve →
+proposal process from [lesson 10](10-components.md) and
+[lesson 11](11-zerohub.md). A larger platformer, enemy system or level manager
+can be a later original project; you do not need one to complete this tutorial.
 
-## 10. Optional stage 4: add levels and enemies
-
-Add a `Level.java` that stores a `Platform[]`, `Coin[]`, spawn x/y and an exit x; its constructor creates the data for either level number 0 or 1. Main adds `private Level level; private int levelIndex;` and a `startLevel(int index)` method. That method sets `levelIndex = index`, constructs `level = new Level(index)` so coins are fresh, creates Player at `level.spawnX()`/`level.spawnY()`, assigns Main's `platforms` and `coins` from the new level, resets camera and displays the level number. `restart()` sets points and levelIndex to 0, then calls `startLevel(0)`. When every coin in the current level is collected and `player.x() >= level.exitX()`, call `startLevel(1)` from level 0; after level 1, enter the won state instead. Keep total score in Main and call `score.setScore(points)` when it changes. An optional `Enemy.java` can store x/y, move with an explicit `update(seconds)`, and expose `touches(Player)` using Player's existing contact method. Main owns an `Enemy[]`, explicitly updates/draws it, and decides whether a touch loses the current run. Check that entering a second level creates fresh coins and that the score display stays fixed while scenery moves. The maintained [level example](../examples/level-game/README.md) shows a complete reference with two levels.
-
-## 11. Optional stage 5: add endings and Restart
-
-Use `private boolean won; private boolean lost;` in Main. At the top of `update()`, use `if (won || lost) return;`; keep `draw()` running so the last scene and message remain visible. Finishing the last level sets won and a clear win message. Enemy contact or a fall sets lost and a clear loss message. In `restart()`, clear both flags, score and level index, then call `startLevel(0)` without creating controls again. Check win → frozen movement → Restart → first coin, and loss → frozen movement → Restart → first coin. The maintained [full-game source](../examples/full-game/README.md) is an advanced reference; inspect one method at a time and keep your own project and authored classes.
-
-These optional stages are larger exercises. Use a new branch in your **own** project repository for an experiment, so you can return to the completed main version. Your study quiz and Coin game remain the two continuing practice projects, and an original shareable game is an optional separate fourth project. Return to the [lesson index](README.md).
+Return to the [lesson index](README.md).

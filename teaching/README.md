@@ -10,8 +10,11 @@ with separate Study/Game consumers at 10 and 11, and optional media/scrolling at
 They are outside every practice download. Public source comparison links are
 optional references after students write their code. Keep narrative snippets and
 these checkpoints aligned; do not use a completed checkpoint as a student scaffold.
-The advanced platform/level/endings stages have maintained example references,
-not dedicated progressive checkpoints.
+Lessons 10–11 refactor input/score presentation in the existing small projects,
+then improve and propose a component. Main keeps game rules and explicit updates.
+Checkpoint 10 has arrow-only PlayerInput; 11 and 12 include the optional WASD
+improvement. Media and scrolling preserve that source unchanged. Larger platform/
+level/endings examples remain reference material outside the core tutorial.
 
 Verification uses temporary projects built from the actual minimal scaffolds:
 
