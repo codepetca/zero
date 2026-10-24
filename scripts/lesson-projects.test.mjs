@@ -11,6 +11,10 @@ import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {unzipSync} from 'fflate';
 import {lessonProjects, lessonProjectZip, prepareLessonProjects, gameAssetFiles} from './lesson-projects.mjs';
+import {prepareTutorialTemplates} from './prepare-tutorial-templates.mjs';
+import {checkTutorialTemplateDirectory,checkPublishedTutorialTemplates} from './check-tutorial-templates.mjs';
+import readiness from '../extension/src/tutorial-template-readiness.js';
+import lessonModule from '../extension/src/lesson-projects.js';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const bundle = lessonProjects(root);
 const content = (project, filename) => Buffer.from(project.files.find(file => file.path === filename).content, 'base64');
@@ -183,7 +187,7 @@ test('native receives maintained bytes and website preparation removes stale tut
 test('tutorial publications stay unavailable until complete verified metadata exists', async () => {
   for (const item of tutorialTemplateDefinitions) {
     const repositoryUrl=`https://github.com/${item.repository}`;
-    assert.deepEqual(publishedTutorialTemplate(item.id),item.publication ? {repository:item.repository,repositoryUrl,templateHref:`${repositoryUrl}/generate`} : null);
+    assert.deepEqual(publishedTutorialTemplate(item.id),item.publication ? {repository:item.repository,repositoryUrl,templateHref:`${repositoryUrl}/generate`,...(item.publication.scaffoldSha256?{scaffoldSha256:item.publication.scaffoldSha256}:{})} : null);
   }
   const unpublished={schema:1,templates:tutorialTemplateDefinitions.map(item=>({...item,publication:null}))};
   assert.ok(validateTutorialTemplates(unpublished).every(item=>item.publication===null));
@@ -191,6 +195,33 @@ test('tutorial publications stay unavailable until complete verified metadata ex
     const metadata={schema:1,templates:tutorialTemplateDefinitions.map(item=>({...item}))};metadata.templates[0].publication=publication;
     assert.throws(()=>validateTutorialTemplates(metadata),/publication/);
   }
+});
+
+test('local tutorial drafts pass pristine inventory checks without claiming publication', async t=>{
+  const drafts=await prepareTutorialTemplates(root);
+  t.after(()=>rmSync(drafts.directory,{recursive:true,force:true}));
+  const projects=lessonModule.validateBundle(bundle);
+  assert.deepEqual(drafts.templates.map(item=>item.id),['greeting','study','game']);
+  for(const draft of drafts.templates){
+    const project=projects.find(item=>item.id===draft.id);
+    assert.equal(checkTutorialTemplateDirectory(project,draft.directory),draft.scaffoldSha256);
+  }
+  const game=drafts.templates[2],project=projects[2];
+  writeFileSync(path.join(game.directory,'src/main/java/zero/Key.java'),'// stale helper\n');
+  assert.throws(()=>checkTutorialTemplateDirectory(project,game.directory),/source differs.*Key.java/);
+  assert.equal(readFileSync(path.join(game.directory,'src/main/java/zero/Key.java'),'utf8'),'// stale helper\n');
+});
+
+test('publication coherence gate binds exact source and mode without upgrading projects',()=>{
+  const projects=lessonModule.validateBundle(bundle);
+  assert.throws(()=>checkPublishedTutorialTemplates(projects),/not been verified/);
+  for(const project of projects)project.template.scaffoldSha256=readiness.tutorialScaffoldSha256(project.files);
+  assert.equal(checkPublishedTutorialTemplates(projects),3);
+  projects[0].files.find(file=>file.path==='mvnw').mode=0o644;
+  assert.throws(()=>checkPublishedTutorialTemplates(projects),/greeting:/);
+  const metadata={schema:1,templates:structuredClone(tutorialTemplateDefinitions)};
+  metadata.templates[0].publication.scaffoldSha256='invalid';
+  assert.throws(()=>validateTutorialTemplates(metadata),/source evidence/);
 });
 
 test('intermediate refactoring extracts input without growing the tutorial or changing core', () => {

@@ -312,11 +312,22 @@ Internal lesson/example sources remain available to teaching and verification.
 
 The example generator, preview capture and template publication metadata remain
 maintainer tools. Run `node scripts/prepare-project-templates.mjs` to prepare
-local template drafts; this does not generate public website downloads or publish
+legacy local template drafts; use `npm run prepare:tutorial-templates` (or the
+same script's `--tutorials` option) for the three current minimal tutorial drafts.
+Run `npm run check:tutorial-templates` to check recorded publication source
+evidence, or `node scripts/check-tutorial-templates.mjs game /pristine/template`
+to check a local draft's exact files/bytes/modes. The publication check currently
+fails for the stale public templates; do not stamp the new digest until a
+separately authorized public update and exact-source verification. This does not
+generate public website downloads or publish
 repositories. Publication remains a separate authorized action. Never copy the
 development repository or private files into a draft. Generator checks use
 `node --test website/tests/example-projects.test.mjs`; website tests also cover
 maintained-project search, exact-release exclusion and retired link behavior.
+New Start tutorial checks the bundled template's recorded source digest before
+creating a repository. Old Open/Clone/Run remain independent; no project is
+upgraded. This evidence check is not live verification of mutable remote main,
+and direct GitHub template creation/manual Clone can still select old content.
 Community catalog admission policy and its installed clients are unchanged.
 
 ## Browser export

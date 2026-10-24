@@ -31,6 +31,11 @@ keeps update/draw, can swap level controllers, and can add live HUD/controls
 without navigating away; showing a replacement UI Screen suspends gameplay.
 The starter and Greeting, Study and Coin lessons now use Zero packages locally.
 Released templates remain separately pinned.
+New Start tutorial now rejects missing/stale recorded template source evidence
+before creating a repository. Current public templates are still stale and need
+a separately authorized rollout; local drafts contain the current helpers and
+project-owned builder. Existing projects can Open/Clone/Run without upgrading.
+The gate does not verify mutable remote contents or change direct GitHub links.
 
 Catch framework/platform failures automatically: per-signature native/WebFX/browser
 evidence, early compatibility diagnostics, actual compiler/behavior gates and

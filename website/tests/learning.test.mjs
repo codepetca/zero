@@ -254,7 +254,7 @@ test("only three lessons start a project, without generic setup or continuation 
     assert.equal(resolveContentLink("student-template/lessons/README.md",`https://zero.codepet.ca${url}`,{},{}),null);
     const record=tutorialTemplateDefinitions.find(item=>item.id===id);
     const repositoryUrl=`https://github.com/${record.repository}`;
-    assert.deepEqual(publishedTutorialTemplate(id),record.publication ? {repository:record.repository,repositoryUrl,templateHref:`${repositoryUrl}/generate`} : null);
+    assert.deepEqual(publishedTutorialTemplate(id),record.publication ? {repository:record.repository,repositoryUrl,templateHref:`${repositoryUrl}/generate`,...(record.publication.scaffoldSha256?{scaffoldSha256:record.publication.scaffoldSha256}:{})} : null);
   }
   assert.equal(resolveContentLink("student-template/lessons/README.md","/generated/projects/zero-project-other.zip",{},{}),null);
   assert.equal(resolveContentLink("student-template/lessons/README.md","/generated/lessons/zero-lesson-10-game.zip",{},{}),null);

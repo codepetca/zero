@@ -1,5 +1,15 @@
 # Zero phased vision — current handoff
 
+## Active: tutorial readiness, then browser sign-in — 2026-10-24
+
+User authorized local readiness fixes first, then browser-first GitHub sign-in
+with explicit device-code fallback. Publishing, deployment, releases and App
+configuration changes remain separate. Parent owns Git/shared docs/integration.
+Tutorial worker owns generator/preflight/tests/lesson8+10; delivered locally.
+New-only Start tutorial digest gate blocks stale recorded templates before
+creation; existing Open/Clone/Run remain unchanged. Native/WebFX draft acceptance
+and independent phase1 review in progress. Auth implementation starts afterward.
+
 Next owner-requested authentication improvement,2026-10-24: after tutorial
 readiness, default desktop Sign in should open GitHub authorization and return
 automatically, retaining device-code sign-in as an explicit fallback. Planned

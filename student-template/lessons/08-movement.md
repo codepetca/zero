@@ -96,9 +96,9 @@ around it. Initial padding grows the game window while preserving the
 `keyDown(...)` reports a held key while the canvas has focus. Typing in a text
 field belongs to that control. Focus loss clears held input but does not pause
 the frame loop. For pointer experiments, `mouseX()` and `mouseY()` report the
-tracked canvas position. Advanced pointer-button experiments can use
-`mouseDown(MouseButton.PRIMARY)` with `javafx.scene.input.MouseButton`; the
-movement game here uses Zero packages throughout.
+tracked canvas position. For the primary pointer button, `mouseDown()` reports
+whether it is held and `mousePressed()` reports a new press during the current
+update. These queries need no JavaFX import.
 
 The canvas keeps its pixels until you draw over them. `background(...)` clears
 it for each fresh frame; `fill(...)` chooses the colour for following filled

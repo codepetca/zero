@@ -36,7 +36,8 @@ function validateTemplate(value, id) {
   const repository = `codepetca/zero-tutorial-${id}`;
   const repositoryUrl = `https://github.com/${repository}`;
   if (!isRecord(value) || value.repository !== repository || value.repositoryUrl !== repositoryUrl || value.templateHref !== `${repositoryUrl}/generate`) throw new Error('The tutorial bundle has invalid published template metadata.');
-  return {repository, repositoryUrl, templateHref:value.templateHref};
+  if(value.scaffoldSha256!==undefined&&!/^[a-f0-9]{64}$/.test(value.scaffoldSha256))throw new Error('The tutorial bundle has invalid template source evidence.');
+  return {repository, repositoryUrl, templateHref:value.templateHref,...(value.scaffoldSha256?{scaffoldSha256:value.scaffoldSha256}:{})};
 }
 async function tutorialMarker(root) {
   const text = await fs.readFile(path.join(root, 'zero.json'), 'utf8').catch(error => {if (error.code === 'ENOENT') return null; throw error;});

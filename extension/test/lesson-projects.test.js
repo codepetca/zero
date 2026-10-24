@@ -160,6 +160,8 @@ test('Start project cancels cleanly and creates only from verified tutorial meta
   await commands.get('zero.startProject')();assert.equal(errors.length,0);assert.equal(creates.length,0);assert.equal(opened.length,0);
   choose=true;await commands.get('zero.startProject')();assert.match(errors.at(-1),/not published yet/);assert.equal(creates.length,0);assert.equal(opened.length,0);
   bundle.projects[0].template={repository:'codepetca/zero-tutorial-greeting',repositoryUrl:'https://github.com/codepetca/zero-tutorial-greeting',templateHref:'https://github.com/codepetca/zero-tutorial-greeting/generate'};await fs.writeFile(bundlePath,JSON.stringify(bundle));
+  await commands.get('zero.startProject')();assert.match(errors.at(-1),/not been verified/);assert.equal(creates.length,0);assert.equal(opened.length,0);
+  bundle.projects[0].template.scaffoldSha256=require('../src/tutorial-template-readiness').tutorialScaffoldSha256(bundle.projects[0].files);await fs.writeFile(bundlePath,JSON.stringify(bundle));
   name=undefined;await commands.get('zero.startProject')();assert.equal(creates.length,0);
   name='my-greeting';location=false;await commands.get('zero.startProject')();assert.equal(creates.length,0);
   location=true;const beforeErrors=errors.length;await commands.get('zero.startProject')();assert.equal(errors.length,beforeErrors);

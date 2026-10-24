@@ -1,6 +1,7 @@
 'use strict';
 const path=require('node:path');
 const lessonProjects=require('../lesson-projects');
+const {assertTutorialTemplateReady}=require('../tutorial-template-readiness');
 const core=require('../core');
 const {createProjectProgress,throwIfCancelled}=require('../project-folders');
 const ORIGINAL_TEMPLATE=Object.freeze({owner:'codepetca',repo:'zero-starter'});
@@ -66,7 +67,7 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
     if(!isActive())return;
     const choice=await vscode.window.showQuickPick(projects.map(item=>({label:item.title,description:`Lessons ${{greeting:'0–2',study:'3–7',game:'8–12'}[item.id]}`,project:item})),{title:'Start tutorial'});
     if(!choice||!isActive())return;
-    if(!choice.project.template)throw Error(`The ${choice.project.title} tutorial template is not published yet. Ask your teacher when it is available; no project was created.`);
+    assertTutorialTemplateReady(choice.project);
     const [owner,repo]=choice.project.template.repository.split('/');
     return createAndClone(choice.project.title,{owner,repo},choice.project.id,`my-${choice.project.id}`,preparedTicket);
   }
