@@ -1,5 +1,55 @@
 # Verification
 
+## ZeroHub metrics — implementation and publication preparation, 2026-10-24
+
+Vercel-native Free setup follow-up: integration credential-pair precedence,
+partial-pair rejection, preview isolation and a disable switch pass the focused
+15-test metrics suite, all 177 website tests, typecheck and production build.
+Independent review of `230401b3` is complete with no findings. After the owner's
+terms acceptance, Vercel provisioned `zero-hub-opens` on Free with creation
+metadata autoUpgrade=false, prodPack=false and primaryRegion=iad1. The connection
+result and dashboard confirm only `zero` Production, Free/500K monthly commands
+and Available. Integration credentials are injected; their values were not
+copied or printed. Screenshots and sanitized CLI receipts are retained locally.
+No application or publisher deployment occurred. The current public site has
+not yet run the new counters, so actual application counter writes/durability
+remain unverified until separately authorized publication.
+
+The implementation adds aggregate Play opens and library adoption from accepted
+shared-game dependency declarations. All 176 website tests and 86 sharing tests pass;
+four existing Docker/managed-environment checks skip. Website typecheck and
+production build, root configuration/syntax/local-link check and whitespace
+check pass. New checks cover frozen-source extraction, immutable evidence,
+unknown historical coverage, repository deduplication, withdrawal/version
+selection, interrupted delivery/recovery, origin and input validation, atomic
+counter protocol, preview isolation, batching/cache, provider failure and labels.
+
+Controlled browser checks pass primary/middle/keyboard Play and original-URL
+navigation when the metrics POST fails; 320px light/dark reflow, library partial,
+unknown/observed-zero and usage disclosure states pass. The thirteen-library
+regression verifies lazy bounded loading after scrolling to the last card.
+Independent complete review of `67031a42` found one P2 first-twelve-only metrics bug;
+the corrected path uses visible-card batches and a 25-ID unit regression. Targeted
+Sol/high review of `76f52630` is complete with no blockers. Together with unchanged
+initial coverage this covers the final code. Review used two turns, one fix batch
+and no extra integration wave; effective model/tokens/elapsed telemetry is unknown.
+Browser fixture screenshots and action receipts are kept in ignored
+`.verification/zerohub-metrics/` and `output/playwright/`. Review verdicts are
+recorded alongside them. Fixtures do not establish hosted Redis durability,
+production counter writes or adoption rollout. No resources, credentials,
+publisher pins, student binaries, public registry entries or production website
+were changed. Physical touch/Safari/Windows/Linux are untested. The operational
+plan and compatibility rollout are in [metrics](ZEROHUB-METRICS.md).
+
+Publication compatibility at e3f3218a: full sharing90pass/4Docker-only skips and
+rootcheck pass. Two fresh independent Sol6.1/high reviewers completed the entire
+five-file delta from2dc0611e; no findings. Security reviewer ran26focused tests,
+compatibility reviewer22; both confirmed checker/verifier/workflow byte identity
+with shipped11c545. Source review is complete; actual CI/merge/deployment and live
+receipts are tracked in PR179 and ignored publication records. Review budget:
+2launches/1initial wave/0fix batches, no further wave required; effective model,
+per-turn tokens and elapsed reviewer time unavailable.
+
 ## System editor appearance — 2026-10-22
 
 New Zero settings enable native OS light/dark detection. Existing settings remain

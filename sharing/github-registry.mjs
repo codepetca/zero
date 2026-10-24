@@ -1,4 +1,5 @@
 import contracts from '../extension/src/sharing/contracts.js';
+import { validateAdoption } from './adoption.mjs';
 import sourceDiagnostics from '../extension/src/sharing/source-diagnostics.js';
 import { createHash } from 'node:crypto';
 import { canonical, digest, initialState } from './registry.mjs';
@@ -35,7 +36,8 @@ export function validateRegistryState(state) {
   for (const [key, value] of Object.entries(state.releases)) {
     contracts.validateRelease(value.release);
     if (key !== `${value.release.kind}/${value.release.id}/${value.release.version}` || !state.requests[value.requestId] || !['pending','ready'].includes(value.delivery) || !/^[a-f0-9]{64}$/.test(value.evidenceDigest)) throw new Error('Release ledger is invalid');
-    if (Object.keys(value).some(field=>!['requestId','release','staged','delivery','evidenceDigest','stagingCleaned'].includes(field))) throw new Error('Unsupported release ledger field');
+    if (Object.keys(value).some(field=>!['requestId','release','staged','delivery','evidenceDigest','stagingCleaned','adoption'].includes(field))) throw new Error('Unsupported release ledger field');
+    if(value.adoption!==undefined){if(value.release.kind!=='game')throw new Error('Only game releases have adoption observations');validateAdoption(value.adoption);}
   }
   return structuredClone(state);
 }

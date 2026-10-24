@@ -79,11 +79,12 @@ test('verified failed checker stage produces a fixed public correction without s
   assert.equal((await registry.read()).state.requests[id].attempts.at(-1).sourceDiagnostic.code,'library-build');
 });
 
-test('verified passing check reaches immutable publication and catalog through the trusted service',async t=>{
+const compatibleSharedPolicy='11c54518320b52a659104eaf01d685fe2dd93917';
+for(const requestPolicy of [policyRevision,compatibleSharedPolicy])test(`verified ${requestPolicy===policyRevision?'current':'current-kit compatible'} policy check reaches immutable publication and catalog through the trusted service`,async t=>{
   const dir=await mkdtemp(join(tmpdir(),'zero-managed-publish-'));
   t.after(()=>rm(dir,{recursive:true,force:true}));
   const descriptor={schema:1,kind:'library',slug:'flap-motion',version:'0.1.0',title:'Flap Motion',description:'Simple gravity and flap movement.',license:'MIT',libraryKind:'helper'};
-  const frozen={schema:1,kind:'library',slug:'flap-motion',version:'0.1.0',repository:{id:'1417021749',ownerId:'7',owner:'student',name:'sky-hop',url:'https://github.com/student/sky-hop'},requester:{githubId:'7',login:'student'},commit,folder:'libraries/flap-motion',descriptor,policyRevision,sourceDigest};
+  const frozen={schema:1,kind:'library',slug:'flap-motion',version:'0.1.0',repository:{id:'1417021749',ownerId:'7',owner:'student',name:'sky-hop',url:'https://github.com/student/sky-hop'},requester:{githubId:'7',login:'student'},commit,folder:'libraries/flap-motion',descriptor,policyRevision:requestPolicy,sourceDigest};
   const live={id:digest(frozen),frozen,issueIds:['1'],status:'queued',attempts:[],attemptCount:0,releaseKey:null};
   const registry=new FileRegistry({file:join(dir,'registry.json')});
   await registry.update(state=>{state.requests[live.id]=structuredClone(live);});
@@ -99,9 +100,11 @@ test('verified passing check reaches immutable publication and catalog through t
   const storage=new FileStorage({root:join(dir,'objects')});
   const originalPut=storage.putImmutable.bind(storage);let interruptDelivery=true;
   storage.putImmutable=async(key,bytes)=>{if(interruptDelivery&&key.startsWith('maven/')){interruptDelivery=false;throw new Error('Transient object delivery outage');}return originalPut(key,bytes);};
-  const reader={publicationIssue:async()=>{},publicationIssueState:async()=>({issueState:'open',authenticatedActor:{githubId:frozen.requester.githubId}}),source:async()=>{},repository:async()=>({
+  const reader={publicationIssue:async()=>{},publicationIssueState:async()=>({issueState:'open',authenticatedActor:{githubId:frozen.requester.githubId}}),source:async()=>({files:[],sourceDigest}),repository:async()=>({
     ...frozen.repository,visibility:'public',ownerType:'User'})};
-  const platform=createSharingPlatform({reader,registry,storage,artifactOrigin:'https://fixture.public.blob.vercel-storage.com',policyRevision,libraryPublicationEnabled:true,officialLibraryEvidence:async()=>official});
+  const platform=createSharingPlatform({reader,registry,storage,artifactOrigin:'https://fixture.public.blob.vercel-storage.com',policyRevision,libraryPublicationEnabled:true,officialLibraryEvidence:async()=>official,checkLibrarySource:async({request,sourceDigest:checkedDigest})=>{assert.equal(request.policyRevision,requestPolicy);assert.equal(checkedDigest,sourceDigest);return {sourceDigest};}});
+  assert.deepEqual(await platform.selectLibraryForCheck(),{requestId:live.id,commit});
+  assert.equal((await platform.checkLibraryRequest(live.id)).result.sourceDigest,sourceDigest);
   await assert.rejects(platform.publishManagedLibrary({requestId:live.id,runId,attempt,artifactId,token:'read-token'}),/Transient object delivery outage/);
   assert.equal((await registry.read()).state.requests[live.id].status,'delivery-pending');
   assert.deepEqual(await platform.selectLibraryForCheck(),{requestId:live.id,commit,recovery:true});
@@ -111,6 +114,7 @@ test('verified passing check reaches immutable publication and catalog through t
   assert.equal(state.requests[live.id].status,'available');
   assert.equal(Object.keys(state.releases).length,1);
   assert.ok(state.catalog?.path.startsWith('catalog/snapshots/'));
+  assert.deepEqual(state.requests[live.id].frozen,frozen);assert.equal(release.release.policyRevision,requestPolicy);
 });
 
 test('failed official check job retries infrastructure and pauses after three attempts',async t=>{
@@ -134,4 +138,30 @@ test('old-policy queued libraries never start a managed check while current-poli
  assert.deepEqual(Object.values(state.requests).map(record=>record.status).sort(),['failed','queued']);
  await registry.update(state=>{const current=structuredClone(record);current.id='3'.repeat(64);state.requests[current.id]=current;});
  assert.deepEqual(await platform.selectLibraryForCheck(),{requestId:'3'.repeat(64),commit});
+});
+
+
+test('unknown and legacy game-only policies never gain library intake, checking or publication authority',async t=>{
+  for(const requestPolicy of ['1'.repeat(40),'1b63ae6ce07f467ab4c4600d78507157ad3bdc7c']){
+    const {registry,platform}=await setup(t,null,{publicationIssues:async()=>({issueNumbers:[],exhausted:true}),publicationIssueState:async()=>({issueState:'open',authenticatedActor:{githubId:'2'}})});
+    await registry.update(state=>{state.requests[id].frozen.policyRevision=requestPolicy;});
+    await assert.rejects(platform.checkLibraryRequest(id),/different policy revision/);
+    await assert.rejects(platform.publishManagedLibrary({requestId:id,runId,attempt,artifactId,token:'read-token'}),/different policy revision/);
+    assert.equal(await platform.selectLibraryForCheck(),null);
+    const state=(await registry.read()).state;assert.equal(state.requests[id].status,'failed');assert.equal(Object.keys(state.releases).length,0);
+  }
+});
+
+test('a newly observed current-kit library request enters the newer publisher without changing its policy',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'zero-compatible-library-intake-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+  const repository={id:'11',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'};
+  const metadata={...repository,visibility:'public',ownerType:'User'};
+  const descriptor={schema:1,kind:'library',slug:'helper',version:'0.1.0',title:'Helper',description:'A helper',license:'MIT',libraryKind:'helper'};
+  const request={schema:1,kind:'library',slug:'helper',version:'0.1.0',repository,requester:{githubId:'7',login:'student'},commit,folder:'libraries/helper',descriptor,policyRevision:compatibleSharedPolicy};
+  const registry=new FileRegistry({file:join(dir,'registry.json')});
+  const reader={publicationIssue:async()=>({request,repositoryMetadata:metadata,issueId:'1',issueState:'open',authenticatedActor:request.requester}),publicationIssueState:async()=>({issueState:'open',authenticatedActor:request.requester}),source:async()=>({repositoryMetadata:metadata,sourceDigest,files:[{path:'zero-library.json',bytes:Buffer.from(JSON.stringify(descriptor))}]}),repository:async()=>metadata};
+  const platform=createSharingPlatform({reader,registry,storage:{},artifactOrigin:'https://fixture.public.blob.vercel-storage.com',policyRevision,libraryPublicationEnabled:true});
+  const {record:observed}=await platform.prepareIssue(1,{persist:true});
+  assert.deepEqual(observed.frozen,{...request,sourceDigest});assert.equal(observed.id,digest(observed.frozen));
+  assert.deepEqual(await platform.selectLibraryForCheck(),{requestId:observed.id,commit});
 });

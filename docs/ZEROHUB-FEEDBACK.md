@@ -4,6 +4,11 @@ ZeroHub offers repository stars, cached site checks and user-submitted issue
 reports. Browsing, playing and public counts do not require sign-in. No separate
 Zero account, votes database or background monitor is introduced.
 
+Source also includes aggregate Play opens and component adoption from shared
+project dependency declarations. See [metrics](ZEROHUB-METRICS.md) for coverage,
+minimal storage, optional activation and limits. These metrics do not change
+GitHub stars or require new GitHub App permissions.
+
 ## Inline stars
 
 Connect GitHub, then press Star or Starred on a card. GitHub remains the source
