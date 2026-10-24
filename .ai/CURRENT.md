@@ -1,9 +1,11 @@
 # Zero phased vision — current handoff
 
-Updated 2026-10-24 04:40UTC. Persistent goal **BLOCKED**, not complete.
-Goal tool confirmed blocked after three consecutive turns with the same locked
-Mac and missing explicit fifth-fix approval. Await human input; a user resume
-starts a fresh blocked audit.
+Updated 2026-10-24 09:55UTC. Human resumed: **“Unlocked and approved.”**
+The Mac is unlocked and all seven actual native suites now PASS. The approved
+fifth correction batch and one targeted independent review are complete/clean.
+A real browser UI-callback failure remains; another bounded runtime fix is pending
+explicit approval. Goal is not complete; the goal tool still reports its prior
+blocked status (no agent resume operation exists).
 Single roadmap: [architecture phases](../docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).
 Historical checks/retries/hashes: [EVIDENCE](../docs/EVIDENCE.md).
 
@@ -39,43 +41,47 @@ DeepSeek paused through2026-12-31. Parent owns Git/docs/integration; one writer.
 
 ## Current source / API evidence acceptance
 
-Last implementation HEAD `d7a17b2c3201485d9552e4b28ebab166c066e531`;
-a local documentation/handoff commit follows it. Inspect actual Git HEAD.
-A2/A3/A4 and four remediation batches are committed. All183 exact declarations
-mapped both targets,195 assertion links each. Scene is TYPE-only permitted for
-createScene overrides, no constructor/member widening. Native7/fourbrowser
-javac and four semantic/adapter selections pass.30 tool tests and10 JS transport
-checks pass; exact numeric fields normalized explicitly, text stays strict.
-Full native/browser selections now require current evidence for their target;
-partial selectors stay partial. Native identity binds POM/wrapper/.mvn/zero.json,
-producer closure, actualNode/JDK/JavaFX/Maven and68 resolved plugin/dependency JARs.
+Last implementation HEAD `55bbc8ada3fc26b610c369a4ce3501d5a26029e7`.
+All183 exact declarations have native/browser assertion mappings,195 links each.
+Scene remains TYPE-only permitted for createScene overrides. Thirty tool tests
+and11 focused JS tests pass. Actual current native7 suites PASS, including
+183/183 native declarations, on the unlocked Mac with real JavaFX interaction.
+Fresh six emitting case receipts: `.verification/vision-api-resumed/native`;
+Smoke is the seventh regression-only suite. Raw native log:
+`.verification/vision-final-checks/native-api-resumed.log`.
 
-Source review is COMPLETE/CLEAN: one fresh Sol/high full30-path/183-mapping review
-plus three targeted deltas cover current head. Ledger
-`.verification/vision-api-review/budget.json` opened03:45UTC, original deadline04:45.
-Launches4, initialwave1, targetwaves3, fixBatches4. DEFAULT FIX BUDGET EXHAUSTED.
-Do not start a fifth fix/new session/worker to bypass it. One further bounded
-correction/review requires explicit human extension (pr-review SKILL).
+Human approved one additional15min window09:49:15–10:04:15UTC. Fifth fix55bbc8ad
+recognizes named lifecycle faults through window/console channels and preserves
+stopped-frame assertions. One initial full30-path/183-mapping review plus four
+narrow targeted Sol/high reviews are COMPLETE/CLEAN. Ledger
+`.verification/vision-api-review/budget.json`: launches5, initialwave1,
+targetwaves4, fixBatches5. Effective config/tokens unknown. Do not silently begin
+sixth batch or another review. New async approval request proposes one bounded20min
+runtime correction/review; no answer yet.
 
-Actual browser: all4 WebFX/GWT exports PASS at52ea0d97 in
-`.verification/vision-api-numeric-web`. Later fixes JS-only; compiled outputs
-unchanged and browser-only reuse valid. Latest run atd7a17b2c passes helpers,
-Zero UI, audio and normal lifecycle/atlas checks, then intentional update fault
-is reported via console.error while harness waits for DOM error event. Gate
-correctly fails. Read scripts/web-browser-checks.js around920–936. Next proposed
-fix: recognize matching expected fault across actual window/page/console error
-channels, retaining stopped-frame check and rejecting unrelated errors. Promise
-rejection remains its own check. Fifth-fix approval PENDING since04:33UTC.
-No complete successful browser case result/receipt was emitted; no183/366 claim.
-Logs/diagnostics/screenshots in `.verification/vision-final-checks`; latest
-`web-api-split-fixed.log`. Preserve prior failures before rerunning browser-only.
+All4 actual WebFX/GWT exports at52ea0d97 are still byte-valid: later fixes only
+maintainer JS. The approved actual four-family run passes helpers, Zero UI, audio,
+normal lifecycle/atlas and update/draw fault checks, then FAILS UI callback.
+WebFX catches the actual exception in pinned SchedulerProviderBase.java129–130
+and calls Console.error(message,Throwable), bypassing GWT/window handlers.
+Elemental2ConsoleProvider emits only generic console.error and console.trace of
+the Throwable. No fatal event reaches Zero and frames continue (Updates1803,
+Draws1803 after30s). Do not weaken this test or declare browser complete.
+Failure retained under `.verification/vision-api-resumed/approved-browser-failure`;
+raw `.verification/vision-final-checks/web-api-approved.log`.
 
-Actual native: old5f partial150 outcomes are HISTORICAL after fixture changes.
-Current Padding passes, Smoke cannot focus. Filtered read-only IOConsoleUsers
-CONFIRMS Maclocked=true. Temporary caffeinate expired/closed; no persistent setting
-changed. Async question since04:10 asks awake/unlocked Mac; NO ANSWER. Do not retry,
-fake focus or waive native acceptance until unlock. Allcurrent366 outcomes remain
-unproven. Once unlocked use actual seven serial checks into a NEW receipt folder.
+A scoped three-family browser-only run subsequently PASSES and emits authoritative
+helpers/zero-ui/audio receipts. No exports or stress/full10 run repeated. Browser
+lifecycle receipts remain absent; combined current evidence validates282/366
+targets (183native+99browser),84browser targets pending. Report
+`.verification/vision-api-resumed/combined-partial-report.json`.
+Concrete next-correction proposal (no runtime files edited):
+`.verification/vision-api-resumed/ui-fault-correction-proposal.json`.
+Register a private Zero console provider forwarding actual scheduled-runnable
+Throwables into existing BrowserLifecycle.fail and cleanup, preserve unrelated
+logging/causal diagnostics and prevent reentrancy. Requires adapter/entrypoint
+regressions, affected real exports/browser and current evidence recollection,
+one independent review, within a newly approved bounded window.
 
 ## Local Phase5 progress
 
@@ -95,30 +101,22 @@ proof; no API adopted/published. Public docs/API behavior unchanged by tooling.
 PhysicalWindows/installers, heldnativeeditorQA, novicepilot, hosted schema2 sharing,
 authenticated Pages and release publication remain separately gated.
 
-Waiting-human blocked audit: three consecutive goal turns revalidated the same
-locked Mac and missing fifth-fix approval, with independent authorized work
-exhausted. Goal tool now BLOCKED. No implicit approval from automatic continuation
-or elapsed time. See ignored vision-final-checks/blocked-audit.json.
+## Next action / pending approval
 
-## Next action / pending user input
-
-1. Wait for explicit fifth-fix/review extension. Proposed extra window15min; record
-   approval and limits before work. Reuse api_evidence_review for ONE narrow delta
-   review; do not repeat completed source/foundation reviews. No extension yet.
-2. With approval fix only fault-channel harness predicate + focused regression,
-   commit, run ONLY four selected browser families `--browser-only` against
-   existing output (no new exports unless Java/profile changes). Require browser
-   evidence183/183 after real successful receipt. Preserve failed logs.
-3. Once Mac awake/unlocked, run all7native serial with fresh retained receipts,
-   then combine fourbrowser+sixnative emitting case directories and use
-   `scripts/api-evidence.mjs --require-complete` for366 current target outcomes.
-4. Finish local phase acceptance/docs, keep goalACTIVE until required local work
-   done. Publication/install/platform gates are distinct; never infer authority.
+1. Combined partial evidence validation finished:282/366, all84 gaps browser
+   lifecycle. Retain that evidence; do not claim366 complete.
+2. Await answer to the explicit additional runtime correction/review request.
+   Existing15min approval covered only fifth harness correction/review; both done.
+   No further runtime edits/exports/review launches until extension.
+3. After approval, implement the concrete browser scheduled-exception bridge,
+   rerun affected checks and collect366 current target outcomes; never substitute
+   counts/mappings for execution. Keep physical/editor/publication holds separate.
+4. Complete local phase acceptance documentation after actual gates pass.
 
 Existing Node `/Users/stew/.local/share/mise/installs/node/22.21.1/bin/node`.
 JDK `/Users/stew/Library/Application Support/Zero/runtime/jdk-3623232f33a9c3baadf304480b2535f9a3cba8a58d42ecbb438ba267315d9998/jdk-21.0.12.1+1/Contents/Home`.
 Cache `/Users/stew/Repos/zero/.verification/web-export-checks/cache`.
-Storage fresh04:12UTC262.432GB healthy(required2GB); weekly24%used76%remaining
-sharedaccount, not taskcost. Effective configs/perturntokens unknown. Allworkers
-completed/idle, allownedbrowser/server/native processes closed. No supported
-worker close API; runtime reclamation unverified. No monitor/newchat created.
+Storage cached09:49UTC262.717GB healthy; weekly25%used75%remaining sharedaccount,
+not taskcost. Effective configs/perturntokens unknown. Review worker completed;
+owned browser/native processes closed after checks. No supported worker close
+API; runtime reclamation unverified. No monitor/newchat created.

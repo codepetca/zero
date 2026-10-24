@@ -1,6 +1,58 @@
 # Delivery evidence index
 
-## Exact API evidence and local candidate — 2026-10-24
+## Resumed native acceptance and browser UI fault — 2026-10-24
+
+Human **“Unlocked and approved”** authorized the fifth correction batch and one
+additional targeted review in a15-minute window09:49:15–10:04:15UTC. Implementation
+`55bbc8ad` matches each expected lifecycle Java fault through actual console/window
+channels and keeps stopped-frame checks. All11 focused JS tests, syntax/diff checks
+and an independent complete Sol/high two-file/direct-fixture review pass with no
+P1/P2 findings. Earlier full and targeted source coverage remains applicable.
+Ledger now has5 reviewer turns,1 initialwave,4 targetwaves,5 correction batches;
+effective configurations and attributable tokens remain unknown.
+
+All **seven actual native JavaFX suites PASS** on the unlocked Mac, retaining
+complete current **183/183 native declaration targets**. Six emitting cases plus
+Smoke's regression-only run are in `.verification/vision-api-resumed/native`;
+raw output is `.verification/vision-final-checks/native-api-resumed.log`.
+No focus simulation, persistent power change or waiver was used.
+
+The actual four-family WebFX browser run reuses the byte-verified52ea0d97 GWT
+outputs because intervening changes affect only maintainer JS. Helpers, Zero UI,
+audio, normal lifecycle/atlas and intentional update/draw faults pass, then the
+UI button fault FAILS: no named diagnostic/window error, generic scheduled-runnable
+console error, and1803 updates/draws after30seconds. Pinned
+`SchedulerProviderBase.java:129–130` catches Throwable and logs through Console;
+`Elemental2ConsoleProvider` writes the generic string with console.error and the
+Throwable with console.trace. This bypasses Zero's installed GWT/window exception
+hooks, leaving the game running. Missing-asset/setup/shutdown/promise assertions
+after that point were not executed in this attempt. Do not weaken the test.
+
+A subsequent scoped helpers/zero-ui/audio browser-only run PASSes with88 ordinary
+and57 helpers-mobile assertions. It emits three authoritative browser receipts,
+without recompiling or rerunning stress/full-ten fixtures. Combined current native
+plus browser evidence validates **282/366 declaration targets**, with84 browser
+targets pending the lifecycle case; status remains pending. Report:
+`.verification/vision-api-resumed/combined-partial-report.json`. Raw failure,
+screenshot and bounded observation are preserved under
+`.verification/vision-api-resumed/approved-browser-failure`; both raw run logs are
+in vision-final-checks as `web-api-approved.log` and `web-api-three-approved.log`.
+
+A concrete private-runtime correction proposal is saved in
+`.verification/vision-api-resumed/ui-fault-correction-proposal.json`: register a
+Zero console provider that routes actual scheduled-runnable Throwables through
+existing BrowserLifecycle fatal/cleanup handling, preserving unrelated logging
+and causal diagnostics. No runtime files have been changed. Another bounded
+correction/review batch requires explicit extension; an async20-minute approval
+request is pending. No new reviewer or sixth correction has started.
+
+The three local candidate archives were rehashed and still exactly match the
+accepted candidate; this correction changed no shipped source. Receipt:
+`.verification/vision-api-resumed/candidate-byte-recheck.json`. Phase4 remains
+incomplete; real editor/install/novice/hosted/Pages/release gates remain separate.
+No publication, installation, account change or telemetry occurred.
+
+## Earlier API evidence checkpoint — before unlock/extension
 
 Source through `d7a17b2c` has183 exact public/protected source declarations mapped
 on both targets, with195 assertion links per target. A2 `97552c5f`, A3 `2f2d143c`
