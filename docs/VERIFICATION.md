@@ -1,5 +1,15 @@
 # Verification
 
+## ZeroHub exact tagline — 2026-10-24
+
+Owner-selected tagline is now exactly “Play. Share. Learn.” The lower
+description, divider removal and layout are unchanged. All 177 website tests,
+production build (including TypeScript), root checks and whitespace checks pass.
+Reuse the unchanged paragraph/layout and interaction coverage from PR186; the
+replacement text is shorter. Final production text/source verification and
+review/CI receipts belong in the PR handoff and ignored
+.verification/zerohub-tagline/.
+
 ## ZeroHub sidebar introduction — 2026-10-24
 
 Removed the vertical divider, added “Discover and share Java projects.” below

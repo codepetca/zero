@@ -116,7 +116,7 @@ catalog navigation. A desktop sidebar contains the ZeroHub title, search field,
 Share your work and Projects/Libraries filters, in that order. The gallery sits
 in the right pane. On narrow screens the controls stack above the gallery.
 The sidebar has no vertical divider. A short tagline under the title says
-“Discover and share Java projects.” Below the buttons, a brief description
+“Play. Share. Learn.” Below the buttons, a brief description
 explains browser projects, reusable libraries and sharing with Zero. Sharing
 keeps its purple-tinted fill and stronger border. Account actions stay in the
 header; search keeps its magnifying glass, accessible name and “search zerohub”
