@@ -33,7 +33,7 @@ test('rendered lessons show numbered code actions directly and keep comparison r
   const result = renderLessons(bundle,{assetUri:name => `webview://asset/${name}`});
   assert.equal((result.articles.match(/<article /g) || []).length,13);
   assert.match(result.articles,/What is 2 \+ 3/);
-  assert.match(result.articles,/Optional stage 5: add endings and Restart/);
+  assert.match(result.articles,/Optional stage 2: scroll a wider world/);
   assert.doesNotMatch(result.articles,/Code and explanation|Done:|class="quick-path"|class="explanation"/);
   for (const lesson of bundle.lessons) {
     const article = result.articles.split(`data-lesson-id="${lesson.id}"`)[1].split('</article>')[0];
@@ -58,6 +58,8 @@ test('content validation and link allowlists reject hostile and malformed replac
     const changed = structuredClone(bundle);mutate(changed);assert.throws(() => validateContent(changed));
   }
   for (const url of ['javascript:alert(1)','command:workbench.action.files.save','file:///secret','https://evil.test','https://zero.codepet.ca.evil.test/hub','../../secret']) assert.equal(resolveLink(bundle.lessons[0],url,bundle),null,url);
+  assert.deepEqual(resolveLink(bundle.lessons[11],'https://zero.codepet.ca/hub?kind=practice',bundle),{external:'https://zero.codepet.ca/hub?kind=practice'});
+  for(const url of ['https://zero.codepet.ca/hub?kind=practice&redirect=evil','https://zero.codepet.ca/hub?kind=unknown'])assert.equal(resolveLink(bundle.lessons[11],url,bundle),null);
   assert.equal(browserUrl('12'),'https://zero.codepet.ca/tutorials/12');
   for (const id of ['13',1,'../1','1?redirect=evil']) assert.throws(() => browserUrl(id));
 });
