@@ -1,4 +1,4 @@
-# Zero vision execution — Phase 1E contract, 2026-10-23
+# Zero vision execution — Phase 1F implementation, 2026-10-23
 
 Persistent coordinator goal active. Single roadmap:
 `docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance`.
@@ -37,24 +37,41 @@ null/instancebehavior native; browsers useScore setup+actualscoreupdates. All51
 receipt hashes match. Full details docs/EVIDENCE.md. Sourceequality guards retain
 10pair/11pair/legacy12pair; reconnect11→12 in nextmigration.
 
-Active1E contract decision: minimal GameApp.loadImageRegion(String) returning full
-existingcachedimage bounds asZeroImageRegion; preservesadvancedloadImage/Image API,
-no newImageclass. ExistingSound/loadSound handlesaudio. Explicitbutton toloadart/
-sound letsdrawingrouteworkwithoutassets and reportsnamedmissingassetwhenrequested;
-no silentgetResource fallback/broadcatch. ScrollingCamera remainsordinaryclass.
-No source edits for1E yet. APIworker is giving a5minute read-only critique before
-implementation; parent owns acceptance and finalcontract.
+Phase1E accepted atcbdfe997: loadImageRegion full cached bounds,16helpers176decl,
+Zero-only lesson12 assets/scrolling, explicit button/error/drawing flow, atomic
+candidate assignment and App-owned Sound. Source11→12 exactcomponentcontinuity
+restored. Nativehelper+12media/scrollingbothmodes,53focusedAPI/semantictests,
+19teachingchecks/root/localdocs and independentcomplete25file review pass.
+Three actualexports48/48browserassertions; all45receipt hashes matched before
+advancement. Missingmedia route remainsplayable; canonicalPNG/WAV route2wideworld
+wins/resets and sixaudioeventsequences, noaudibilityclaim. Ignoredharnesssyntax
+failure+onebrowser-onlyretry retained; no extrasourcefix/build. Browser-onlyretry
+37.094s, totalelapsedunknown. Receiptinventorywordingcorrected. Proofvision-assets-*.
+Allownservers/previewsclosed. APIcore/assetproof accepted BEFORE nextcontractchange.
 
-Ownership: coordinator owns roadmap/evidence/CURRENT, Git, integration and harness.
-vision_workflow_audit retainedSol/high: read-only1Econtractcritique, no edits yet.
-actor_browser retainedSol/medium: idle afterfrozen1D, reuse later focusedassetsproof.
-actor_stress_review retainedSol/high: idle afterclean1D one-turn17file review.
-Earlier slice budgets retained; no reset. Allownservers/browsers closed.
+Active1F: oneMainGameApp simulation with bluecircle, explicit seconds movement/
+bounce, TextFieldintegerSpeed0..400+Apply, Pause/Resume, Reset. Validatecandidate
+beforeassignment, catchIllegalArgumentException visibly, preserve lastgoodspeed;
+Resetposition/direction/speed120/input120/error/resume. NoFPS/stress/assets/newcore
+JavaAPI. OnlyJavaadmissionneeded is Integer#parseInt(String), radixoverloadstays
+rejected. Core remains16/176. Exact native+browser simulation acceptance pending.
 
-Next: decide1Eloader/explicitassetbutton contract, assignboundedAPIandteaching lanes,
-restore11→12exactcomponentcontinuity, nativeasset+scrolling andfocusedbrowserproof/
-independentreview. Then a smallsimulationwith existinglivecontrols beforephase2.
-Do not mark overallgoalcomplete. Publictemplates/kits/hostedwebsite unchanged.
+Ownership: vision_workflow_audit retainedSol/high owns simulationMain/README,
+nativefinitecheck, safe selected-before-prepare prototype assembly/verification,
+scopedsubsetreceipts, preservationtests and exactIntegerparseInt semanticcontract/
+test. Noheavybuilds/Git. Coordinator owns integration/docs/evidence/CURRENT/Git.
+actor_browser retainedSol/medium idle afteraccepted1E; later ONEsimulationexport.
+actor_stress_review retainedSol/high idle afterclean1E one-turn25file review.
+Earlier slice budgets/evidence retained. Do not execute defaultallprototypechecks
+because they include completedstress; use --only=simulation after newselector.
+Unselectedoldoutputs mustnotberead/modified, unknown/empty/duplicate IDs reject
+before mutation; preserveedited/unownedscratch and keep subsetreceipts separate.
+
+Next: worker1Ffreeze/cheaptests, selectednativefinitecheck, oneactualWebFX/browser
+flow, independentreview; thenacceptPhase1andstartPhase2ScoreView replacement/
+sharing seams perroadmap. No goalcompletion or publicationclaim. Publictemplates,
+kits andhostedwebsite unchanged. LaterPhase3mustproject-owncompletebuilderclosure,
+fix automaticPublishhelpermigration and make upgradesoptional; no historicalkitDB.
 
 Latest storage265.744GB healthy; startweekly7%used/sharednot taskcost. Use cached
 storage readings up to30min, refresh before heavy changes. No installer needed.

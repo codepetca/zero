@@ -58,7 +58,8 @@ Implementation execution, owner-authorized 2026-10-23: follow the single
 The first accepted local slice moves Greeting lessons0–2 and the starter to Zero
 UI, adding only the TextField needed by that teaching path. Study lessons3–7 are also accepted locally, with inherited control availability
 verified in the pinned browser runtime. Coin lessons8–9 are accepted locally with Zero Key and Row; shared ScoreDisplay
-lessons10–11 are accepted locally. Lesson12 asset migration is active. Local prototypes and
+lessons10–11 are accepted locally. Lesson12 Zero image/sound and scrolling are accepted locally; a live-control
+simulation is the final active Phase1 slice. Local prototypes and
 verification are separate from released kits and published tutorial repositories.
 
 ## Core goal: students grow the framework

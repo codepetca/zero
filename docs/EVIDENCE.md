@@ -1,5 +1,65 @@
 # Delivery evidence index
 
+## Zero phased delivery: image/sound slice 1E — 2026-10-23
+
+Accepted locally at `cbdfe997`. One public method, GameApp.loadImageRegion(String),
+returns full bounds over the existing cached image with a useful null/path error.
+It sits after loadAnimation, outside the browser adapter's loadImage replacement
+span. No Image facade or extra asset registry was added. Inventory remains16
+helpers and increases to176 declarations; exact hash/member contracts, API/guide,
+website reference/tests and normal Zero versus advanced JavaFX guidance agree.
+
+Both checkpoint12 variants and lesson12 now use Zero ImageRegion, Sound, Key and
+UI. They reuse lesson11's exact ScoreDisplay source. The explicit artwork button
+loads two local candidates before changing fields; known resource errors appear
+with their path while the drawing game stays playable. Repeated actions share
+cached pixels/Sound and retain Player; Restart stops but does not close borrowed
+Sound. The ordinary Camera and explicit coordinate subtraction remain student code.
+Packaged corrupt images may fail preload before setup; asynchronous audio notices
+remain separate from the action's ready label. Eleven-to-twelve component equality
+is restored. No silent resource-presence fallback or raw JavaFX import remains in
+these maintained teaching consumers.
+
+Fifty-three focused API/adapter/semantic tests, nineteen lesson/tutorial checks,
+profile/syntax/root checks and local `/docs` HTTP200 with loadImageRegion pass.
+Native GameHelpersCheck executes full bounds, alias-backed cache reuse, exact null
+and named missing errors plus RED/BLUE destination pixels. Native12/media and
+12/scrolling each pass without assets and with canonical assets, using the actual
+button, repeated cache/player checks, caption behavior, scoring and Restart.
+
+Three actual pinned exports pass48/48 browser assertions: helpers
+`e36cd5f9-3f0b-485f-956e-d4e2f10826c3`, exact no-asset media
+`b5d64665-6ed7-4e40-8718-58662e8293a9`, exact scrolling with assets
+`97bb35f5-0c4f-40bd-bbad-f05656f1d3e6`. Engine/profile:
+`e7cd761af555fdbd1b9df05c428acc372ed6122a679c4dd3e43f4b948a80fd63`.
+The helper fixture proves loader behavior and actual destination drawing. Four
+media and five scrolling Java files match canonical sources exactly. The no-assets
+button names player.png, produces no missing-resource network requests, and the
+drawn game still wins/resets twice. The other route uses byte-identical canonical
+32px purple robot and10,628-byte WAV; source crop0,0,32,32 renders at24px, purple
+pixels and HTTP200 asset loads are observed, repeated loading retains game state,
+and wide-world play wins/resets twice. Six play/playing/ended event sequences are
+recorded; this establishes playback events, not audible sound. Canonical asset
+and generated helper-tile hashes are retained in the corrected receipt.
+
+An initial ignored browser-harness string escape caused a syntax error before
+acceptance actions. Its failed probe/log are retained; one ignored-runner fix and
+browser-only retry reused the same three exports. The final37.094seconds covers
+only that retry; total elapsed is unknown. There were no source remediation or
+extra builds. All45 source/evidence hashes matched at acceptance. No application
+or required-resource errors; four optional favicon404s and three pixel-readback
+advisories are separately audited. Own browsers/previews and docs server closed.
+
+Independent Sol/high review covers all25 files/callers and validates exports,
+consumer/runtime/resource hashes and receipts with no actionable findings. One
+initial turn, no source fix or extra wave. It caught a copied receipt inventory
+sentence, corrected without source changes. Requested browser Sol/medium;
+effective configurations and attributable tokens unknown. Ignored evidence:
+`.verification/phase1e-image-region/`, `vision-assets-web/`, `vision-assets-review/`
+and vision-assets-*.log. No stress/full9 rerun, publication, installs, accounts or
+telemetry activation. Goal continues with a live-control simulation to finish
+Phase1, then replaceable components and the remaining roadmap phases.
+
 ## Zero phased delivery: shared component slice 1D — 2026-10-23
 
 Accepted locally at `8a80b640`. Lessons/checkpoints10–11 reuse the same ordinary
