@@ -1,5 +1,101 @@
 # Delivery evidence index
 
+## Completed local editor/component journey and current API evidence — 2026-10-24
+
+Human explicitly instructed “Disregards budget caps. Complete the goal.” Applied
+`override-task-stops` to this task/goal: low-usage and workflow caps, including prior
+absolute caps, are waived. Existing cumulative review ledger retained; no reset,
+replacement goal or monitor. Publishing/releases, installation, external accounts
+and credentials remain separately held. DeepSeek remains paused. Source authority
+and independent verification gates remain intact.
+
+Host fix f94809b3 is retained. `440bd84046f1eac5d307acf2224b407b09e3f95c` and
+`eef9960c6ccb5a05914ec2ba07829fd6793133de` correct the actual saved-checker/core
+Unicode interaction and the same application-source callers in library extraction,
+import editing and consumer Add/Update/Revert. Original core identities are read
+only after exact reviewed hash validation; core is never rewritten by import
+preparation. Student/library declarations and selected repackaging remain strict;
+changed core, namespace shadows and unsupported escaped identifiers still reject.
+No public Java API or framework runtime body changed.151 focused integration tests
+PASS,0skip. Independent Sol/high complete targeted review identified two remaining
+callers; both corrected together, targeted review clean. Prior full coverage reused.
+
+Actual isolated Mac editor opened a deliberate upgraded copy, trusted only that
+reviewed folder and ran its own current62-file saved builder. The original project,
+old builder and finished output remain valid and clean. Observed:
+
+- Explicit browser preparation → compatible. Unsaved `new java.io.File` → stale;
+  saved source → unsupported with constructor/type Problems at Companion.java8:9/13.
+  Error opened actual line8:9. Native Run still reached App UI ready. Stop worked.
+  Exact original source restored → compatible and No Problems.
+- Actual full editor WebFX export succeeded. A local schema2 ScoreView fixture was
+  then prepared through authoring API with maintained checks/examples; no remote
+  identity or authenticated Extract Library claim. Actual editor Check Library
+  built the independent JAR and ran behavior checks and both examples successfully.
+- Full editor export with the extracted library succeeded; actual preview Play,
+  bar-HUD replacement and Pause rendered. Previous original six-coin win and
+  Source Control workflow remain valid for unchanged game rules.
+- Actual Save Web Export ZIP produced the artifact below. Local CLI committed the
+  owned upgraded copy and retained all history in a source bundle. No remote/push.
+  Actual Stop closed the preview; Run and compatible status returned.
+
+Fresh final-profile native7 suites pass, six emitting receipts. The first combined
+run's AudioCheck saw an actual Unknown native media error and frame-cleanup failure;
+unchanged isolated AudioCheck retry passed. Both logs remain. Four current real
+pinned WebFX/GWT outputs pass. Actual Chrome CUA actions and bounded loopback
+observation capture execute all4 finite API families, preserving original Java
+invocation/postcondition blocks. No JavaScript fabrication/rebinding of old results.
+Parent independently runs the unchanged authoritative loader: **183 declarations,
+366/366 native/browser targets, zero gaps**, exit0. Browser cases have48/37/20/90
+actual outcomes (helpers/UI/audio/lifecycle), including57 real drawing samples and
+actual control, held key/pointer, music/sound and shutdown observations.
+
+The collector initially assumed normal-density pixels, then incorrectly used
+CSS-fitted bounds. Both failed unchanged validators and are retained as rejected
+harness attempts. Final v4 lifecycle sampling uses backing/style ratios for logical
+coordinates, actual logical canvas dimensions and positive stable game-frame
+counts. The first UI recorder omitted DOM before Java events; the same actual UI
+sequence was repeated using v5, retaining enabled-before and disabled-after Ada/2
+state around attempted blocked click/typing. v1 helpers/audio, final v5 UI and v4
+lifecycle are the ONLY selected evidence inputs. Exact source bytes/row references,
+observer identities, actual output/tool/profile/fixture hashes and immutable input
+copies are retained. This does not claim another full fault/mobile-harness run.
+All owned test browser tabs and5observation servers closed; useful Zero Dev remains.
+
+21 API-evidence validator tests and22 website API/navigation tests PASS,0skip.
+Root checks PASS. Final local kit/source/license/archive/executable-wrapper and
+extracted Maven compilation checks PASS. Metadata remains local kit0.5.47/core0.3.0;
+these bytes are not a published replacement. Candidate assets:
+- kit: zero-bootstrap.zip, 4253935bytes, SHA256 `910aa9f96f88fbd81a68d214c0a12018ddc90ccde780c183c31b7f24a1c23e28`.
+- starter: zero-starter.zip, 2761816bytes, SHA256 `6352dfcc58c10f418581a6491340d60afed1839cd568fe212fae96ee357fac34`.
+- extension: zero-0.5.47.vsix, 1478533bytes, SHA256 `fea4c52a2681ab2536511ce959bc809bd039886356c2a96d28738a3edbf38f28`.
+
+Upgraded student copy local commit `6154b4c4e0a705913e4813d7569c41afd202f24b`, clean main,
+NO remotes. `student-project-current.bundle` preserves source/history. Final playable
+`Student-Coin-Quest-current.zip`:1607457bytes, SHA256
+`ed4540dd7916f4d10e9238c5fd6e243160777e652cc0d213f103040d8b2bccad`, byte-identical validated output.
+Original project4a4d722f and its previous saved finished ZIP remain unchanged.
+
+Receipts: `.verification/vision-editor-walkthrough/completed-local-receipt.json`,
+`current-project-artifacts.json`, `cua-api-collection-receipt.json`,
+`cua-api-observation-selections.json`, `parent-authoritative-report.json` and logs.
+Current cases: `.verification/vision-api-scanner-final-{native,web,complete}`.
+Independent final evidence-integrity review is COMPLETE/CLEAN: exact Java blocks,
+all external postconditions,14bound-artifact and13origin hashes, all57pixel samples
+and241compiled site files verified. Cumulative ledger11reviewerturns,
+1initial/9targeted/1integration waves and10fixbatches under the human waiver;
+requested Sol/high, effective config/timing/tokens unknown. Actual editable source
+ZIP (2,792,253bytes) was extracted into a fresh folder and Maven compilation PASS;
+SHA256 `612eb5d0b6c344eb44fc7e3a589df4863e9195014ccea3de2715554f65ad449c`.
+Source ZIP and full history bundle are retained beside the playable ZIP.
+Local implementation/student-editor scope is complete. Actual authenticated
+GitHub creation/clone/push, live ZeroHub admission, Pages/public templates, installer
+signing/installation, physical Windows and teacher/novice trials remain separate
+held acceptance. Standalone native physical gameplay is not claimed. Native task
+compiler Problems can persist until Stop; this minor UX limitation is recorded,
+not confused with actual browser-diagnostic recovery. No publication, deployment,
+release, install, account/credential change or new telemetry occurred.
+
 ## Mac runtime identity correction and remaining checker blocker — 2026-10-24
 
 Explicit user approval opened one focused20min window11:03:06–11:23:06UTC.

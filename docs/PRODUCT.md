@@ -67,20 +67,24 @@ tooling and trusted editor selection are accepted locally through05390785; the
 full old/new preservation proof also passes locally. Local prototypes and
 verification are separate from released kits and published tutorial repositories.
 
-Local reliability gates pass througha668d3b5: all183 declarations have current
+Local reliability gates pass through eef9960c: all183 declarations have current
 executed native and browser evidence,366/366 targets with no gaps. Seven actual
 native suites, four pinned WebFX exports and the scoped browser behavior/failure
 checks pass. UI callback and startup failures preserve their causes and stop the
 browser game. The refreshed local kit candidate passes archive/source/license
 and extracted Maven checks. The later actual isolated Mac editor walkthrough
 exercises class/asset editing, compiler correction, native readiness, browser play,
-component replacement and local Git/ZIP saving. The host runtime scan now accepts
-bounded macOS hard-linked Java launchers throughf94809b3, with36 focused tests and independent review. Actual editor passive
-checks still report unavailable: the saved declaration scanner rejects a legitimate
-Unicode escape in Zero App.java before checking student APIs. This separate
-checker integration issue remains open. Native physical play, installation, physical
-Windows, novice use,
-authenticated GitHub/hosted sharing and publication remain separately unproven.
+component replacement and local Git/ZIP saving. The host runtime scan accepts
+bounded macOS hard-linked Java launchers. The saved checker and library workflows
+recognize exact core source without relaxing student/library namespace protection.
+The actual editor now passes compatible → unsaved stale → unsupported source-linked
+Problems → corrected compatible, and native Run remains usable. Current local
+Check Library builds an independent ScoreView JAR and runs its checks and both
+examples; full WebFX export with that component and its bar HUD also pass.
+151 focused tests and targeted independent review pass through eef9960c.
+Native physical play, installation, physical Windows, novice use, authenticated
+GitHub/hosted sharing and publication remain separately unproven. Local completion
+is distinct from release and live-service acceptance.
 
 ## Core goal: students grow the framework
 

@@ -1,186 +1,132 @@
 # Zero phased vision — current handoff
 
-Updated 2026-10-24. The human explicitly lifted native editor QA hold and
-requested the student/editor walkthrough, with publishing/releases separate.
-The actual isolated editor/local-game path was exercised: class/asset editing,
-compiler error/source correction, native readiness/Stop, actual WebFX export,
-preview/browser six-coin win, score replacement, local Source Control commit and
-saved playable ZIP. **Host runtime blocker fixed at f94809b3**, with36 focused
-passes and clean Sol/high review. Actual editor preparation now reaches a separate saved-checker
-blocker: its declaration scanner rejects the canonical App.java runtime protocol
-Unicode escape. Exact API execution remains366/366 valid; passive-check/journey
-acceptance remains incomplete. No full goal completion claim.
-Single roadmap: [architecture phases](../docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).
-Historical attempts/hashes: [EVIDENCE](../docs/EVIDENCE.md).
+Updated 2026-10-24. Authorized local implementation and actual Mac editor journey
+are complete through `eef9960c6ccb5a05914ec2ba07829fd6793133de`. No publication,
+release or full external acceptance claim. Single roadmap: [architecture phases](../docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).
+Detailed history and failed attempts: [EVIDENCE](../docs/EVIDENCE.md).
 
-## Workspace and authority
+## Workspace, goal and authority
 
-Use ONLY `/Users/stew/.codex/worktrees/actor/zero`, managed detachedHEAD.
-Primary `/Users/stew/Repos/zero` has unrelated work/watchers; preserve them.
-Local source/docs/checks/examples/review/commits authorized. NO push/PR/merge,
-deploy/release/real installation, accounts/credentials, external messaging or
-telemetry. Native editor QA hold explicitly LIFTED for this walkthrough. Source extension
-uses isolated ~/.zero-dev/8623a271fa8a user/extensions directories; no credentials
-were copied and no keychain prompt was accepted. Publishing/releases remain held.
-No more stress/full ten-fixture browser runs. Native GUI checks serially.
-DeepSeek paused through2026-12-31. Parent owns Git/docs/integration; one writer.
+Use ONLY `/Users/stew/.codex/worktrees/actor/zero`; primary checkout has unrelated
+work. Local implementation, checks, docs, independent reviews and commits approved.
+Editor QA hold was explicitly lifted. NO push/PR/merge, deployment/publication,
+release/real installation, account/credential changes, external messaging or new
+telemetry. DeepSeek remains paused through2026-12-31. Parent owns Git/docs; one writer.
 
-## Accepted locally
+Human instruction: **“Disregards budget caps. Complete the goal.”** The
+`override-task-stops` skill waives low-usage and all workflow review/fix/wave/time
+stops for this task/goal, including prior absolute caps. Waiver persists through
+continuations; preserve cumulative `.verification/vision-api-review/budget.json`.
+Do not reopen a cap checkpoint. Correctness/review and all external holds remain.
+The tool-backed goal still has its earlier blocked state; tools cannot resume it.
+Do not replace it or mark the broader goal complete while required separately
+held external/physical acceptance remains. Local work is resumed by direct human
+instruction and is complete; external release work stays separate.
 
-- Phase0 baseline; Phase1 Zero-first starter/lessons0–12/live controls through549db09f.
-- Phase2 complete through949fae28: typed UI replacement, independent core/component
-  JARs and native/browser consumers, replaceable animation/steering and optional
-  actor containers. Current draft core0.3.0 has18 helpers/183 declarations; exact
-  source hashes distinguish unreleased revisions. No World/GameScreen required.
-- Phase3 complete through05390785 plus actual3C outside-repository clone/rebuild,
-  finished-only play, explicit copy upgrade and exact rollback. Project-owned
-  builder source/locks, no central old-kit database. Proof reused verified normal
-  dependency caches; not cold installation/full offline preservation.
-- Reliability foundations4B/C/private Node source accepted through0c677feb:
-  explicit trusted exact-builder approval, prepared cache-only source checks,
-  actual local runtime status/errors, process-tree ownership, source-linked errors.
-  High-risk fresh Sol/high+Astra/xhigh46-path review and both fixes targeted clean;
-  closed ledger vision-reliability-review. Do not repeat that review.
-- One actual GWT failure preserves all61 last-good output files; actual log maps
-  saved adapter source. Receipts vision-preservation-C and vision-compiler-failure
-  independently hash-verified. Detailed references remain in EVIDENCE.
+## Delivered locally
 
-## Current implementation and acceptance
+- Phase0/1: App/GameApp/Actor, Zero-first starter/lessons0–12/live controls.
+  GameApp extends App; Main owns explicit update/draw. No public GameScreen;
+  World/container and UI extraction remain optional.18helpers/183 declarations.
+- Phase2: interchangeable ScoreView text/bar components, independent contribution
+  and core JARs, exact local/managed native and browser App/GameApp consumers,
+  replaceable steering/animation and optional actor containers. Credited core
+  proposal teaching example retained; no automatic promotion/publishing.
+- Phase3: project-owned framework/build source and exact locks, saved62-file
+  browser builder, no central old-kit database. Older clone/rebuild/static rehost,
+  explicit copy upgrade and rollback accepted; normal dependency hosts/caches
+  remain needed for future rebuilds. Editor opening never auto-upgrades projects.
+- Phase4: native/WebFX/runtime/error/retained-output reliability accepted locally.
+  UI/setup/frame/shutdown failures preserve causes. Actual editor now passes saved
+  compatible→dirty-stale→unsupported→source-linked error→corrected compatible.
+- Phase5 local scope: actual class/asset editing, useful compiler source link,
+  native readiness/Stop, real export/preview/browser6-coin win, HUD replacement,
+  local SourceControl commit and SaveZIP observed. Current upgraded copy adds
+  actual CheckLibrary independent JAR/check/both examples, full export with the
+  extracted schema2 component, browser bar HUD and pause. Remote create/clone,
+  authenticated transport/ZeroHub admission/Pages remain separate held checks.
 
-Browser runtime implementation `a668d3b516e1f3b14351bd11410195e733616de6`, after
-`86b8da8d7ff9b5c219bdab5c50c7ad1703c1d4f0`. Current host correction is below.
-The private browser console provider bridges actual scheduled WebFX Throwables
-into existing lifecycle failure/cleanup. Ordinary logging remains nonfatal.
-The fingerprint-checked App browser overlay reports startup failure BEFORE
-shared-stage closure can consume the single terminal status with a stopped event.
-No student API/core source, telemetry or command authority changed.
+## Final corrections and verification
 
-Human approved the additional20min host fix/review window11:03:06–11:23:06UTC.
-Host-only implementation f94809b3c7a8c96f5bda5e58c7c2751dd0ed7d5d allows bounded
-ordinary external hard-linked runtime identity reads, including resolved symlink
-aliases. Project/cache links and runtime paths inside the project still reject;
-post-read identity checks retain byte binding. No runtime executes during inspect.
-36 focused host/controller/builder tests PASS,0skip. Independent Sol/high targeted
-review COMPLETE/CLEAN across both changed paths and immediate interactions.
-Existing ledger vision-api-review now has8launches/1initial/7targeted/8fixbatches.
-Absolute skill cap8fixbatches reached: no ninth correction in this review session.
-Effective model/config/tokens unknown; reviewer clock manually approximate.
+Host runtime scan f94809b3 accepts bounded ordinary external macOS hard-linked
+Java files, retains strict project/cache restrictions and byte/stale binding.
+440bd840/eef9960c fix canonical App Unicode scanning across saved/full export,
+local extraction, import editing and Add/Update/Revert. Exact reviewed core source
+has fixed identities and is never rewritten; student/library source and selected
+repackaging retain conservative declaration/namespace checks. Altered core fails.
+No public Java API, runtime core body or telemetry contract changed.
 
-31 focused runtime/adapter/builder tests PASS, including actual production Java
-provider+BrowserLifecycle execution with dependency fakes. All7 actual serial
-native suites PASS at final profile; six emitting native case receipts plus
-Smoke regression. Four real pinned WebFX/GWT exports PASS. All4 ordinary browser
-families PASS103 assertions plus helpers mobile57 assertions. Intentional update,
-draw, UI callback, missing-asset, setup, shutdown and promise checks all pass.
-No stress/full10 run repeated; previous failed attempts retained.
+151 focused sharing/editor/consumer/cache/host/controller/builder tests PASS,0skip.
+21 API-evidence tests and22 website API/navigation tests PASS,0skip. Root checks
+PASS. Independent Sol/high targeted review found two remaining application callers;
+both fixed together and targeted clean. Prior complete source reviews reused.
+Native7 suites pass at final saved-builder profile;6 emitting case receipts.
+The combined run had an actual unknown native media error; unchanged isolated
+AudioCheck retry passed. Four current real pinned GWT exports PASS. Fresh CUA
+browser Java events, actual controls/input/media and57 logical pixel samples
+cover all183 declarations in both targets. Authoritative aggregate CLI passes
+**366/366 targets, zero gaps** in
+`.verification/vision-api-scanner-final-complete`; parent independently reran it.
+No rehashing of old receipts or stress/full ten-fixture repeat.
 
-Authoritative loader remeasures current source, exact complete saved builder/
-profile, configuration, executed output and actual tools. Combined native and
-browser declaration outcomes: **366/366 complete, no gaps**. This is execution
-coverage for the finite manifest, not every possible behavior or physical device.
-- Native: `.verification/vision-api-startup-native`.
-- Real exports/browser: `.verification/vision-api-startup-web`.
-- Combined case receipts: `.verification/vision-api-startup-complete`.
-- Required-complete report: `.verification/vision-api-console/complete-report.json`.
-- Raw checks/package/review evidence: `.verification/vision-api-console/`.
-- An actual loopback parent/child iframe MessagePort probe also passes for UI
-  and setup faults: exactly one fatal, original cause retained, ordered sequence,
-  no competing stopped event. Receipt `vision-api-console/managed-fault-receipt.json`;
-  not physical editor acceptance. Its first wrapper result parser failed after
-  successful browser execution; offline raw JSON decoding recovered the unchanged
-  actual result without a browser retry.
-- Actual earlier UI/startup failures and diagnostic probe remain retained there;
-  diagnostic replay is not substituted for the final unmodified browser harness.
+Final evidence review independently verified14boundartifacts,13retained-origin
+hashes, exactJava transports/all57pixels and241compiledsitefiles; no findings.
+Cumulative ledger:11reviewerturns,1initial/9targeted/1integration waves,10fixbatches,
+with the direct human waiver active. Requested Sol/high; effective config and
+per-turn timing/tokens unknown.
 
-## Local Phase5 candidate
+Current proof paths:
 
-Rebuilt local VSIX/kit/starter at f94809b3. Exact licenses/archives, canonical
-source parity, executable wrappers and extracted Maven compilation PASS.
-Saved project builder remains62 unchanged files; host-only fix does not invalidate
-prior366/366 API execution evidence. Current candidate receipt:
-`.verification/vision-editor-walkthrough/runtime-scan-receipt.json`.
-Metadata remains kit0.5.47/core0.3.0/publication.local, NOT released replacement bytes.
-- kit: zero-bootstrap.zip, 4252114 bytes, SHA256 `952ed6f86751d967e29f7b0e7688afe5a4f8cd87fe3ccf53eefbcc3dc10b5582`.
-- starter: zero-starter.zip, 2761536 bytes, SHA256 `f5cfcb5c18496489fc4da4e5215806e8da0854737dcece82ba6a9d3602020ffb`.
-- extension: zero-0.5.47.vsix, 1477005 bytes, SHA256 `4ad39c3dbb0a59a7c5efc3fc8e71ecebf9fa87f0db5e711006534fb5eac58585`.
+- `.verification/vision-api-scanner-final-native`.
+- `.verification/vision-api-scanner-final-web` (four actual outputs).
+- `.verification/vision-api-scanner-final-complete` (combined current cases).
+- `.verification/vision-editor-walkthrough/completed-local-receipt.json`.
+- `cua-actions.json`, frozen browser observation inputs and collector in that directory.
+Retina collector attempts are retained as rejected harness attempts. Final logical
+pixel sampling respects backing/style dimensions; data collection failures are
+not substituted for passing execution. UI disabled-state capture was repeated
+with v5 because earlier recorder omitted DOM before the first Java event block.
+All owned QA browser tabs and five loopback observers closed; actual editor
+preview stopped. Useful Zero Dev watcher/profile remain running on3158.
 
-Earlier unaffected22websiteAPI/navigation tests and43 local Git/mocked-editor
-workflow contracts remain valid. Actual isolated editor scope is detailed below;
-GitHub/novice proof remains separate.
-Teaching CORE-PROPOSAL for TurnTowards preserves source/credit/pins and discloses
-missing independent reuse proof; no public API adopted or library published.
+## Current local candidate and student artifacts
 
-## Actual editor walkthrough — final state and next action
+Metadata kit0.5.47/core0.3.0/publication.local; NOT released replacement bytes.
+Local packaging and verification pass exact source/archive/license parity,
+executable wrappers and extracted Maven compilation. Final saved-builder profile
+`87bd59d0322850dd73c13a21696913f426c7810a6d6522c5e6c4c4cf69c58c63`.
 
-Initial walkthrough used726ca3f2. Subsequent host-only correction f94809b3 is
-reviewed; saved builder/core/API/fixture sources remain unchanged.
-Canonical Zero Dev watcher runs on3158, session37148, owning only this checkout.
-The actual development editor is open on a complete isolated project:
-`/private/tmp/zero extracted with spaces WUdRw4`. Its current local commit is
-`4a4d722f18117e8cd0f3f8f25260a0e7d9cb53ca`, clean main, NO remotes. The CLI
-prepared a current starter plus maintained Coin Quest/shared source fixture;
-Zero Open Local Project, trust of this exact reviewed folder, New class, actual
-Companion extends Actor editing, New asset PNG import/path copy, compiler typo,
-Problems source link/correction, Run/App UI ready/Stop were observed in the real UI.
-Source Control diff/stage3files/localcommit and Save ZIP also observed.
-Project creation via authenticated GitHub was not exercised; simulation is not
-claimed as creation/push. No actual novice/physical Windows/install proof.
+- kit: zero-bootstrap.zip, 4253935bytes, SHA256 `910aa9f96f88fbd81a68d214c0a12018ddc90ccde780c183c31b7f24a1c23e28`.
+- starter: zero-starter.zip, 2761816bytes, SHA256 `6352dfcc58c10f418581a6491340d60afed1839cd568fe212fae96ee357fac34`.
+- extension: zero-0.5.47.vsix, 1478533bytes, SHA256 `fea4c52a2681ab2536511ce959bc809bd039886356c2a96d28738a3edbf38f28`.
 
-Real WebFX compilation succeeded via editor Export for Web. Editor title/help/
-play/HUD and imported32px sprite plus drawing marker rendered. Actual browser
-pointer play completed both levels at6/6,19seconds; bar-score replacement retained
-score1 and pause/resume preserved it. Earlier coordinate/timing/operator mistakes
-were corrected before final pass. Standalone native Java app is not addressable
-through CUA; only its editor launch/readiness/Stop are actual UI evidence, not
-native physical play. Native framework/game proof remains separately retained.
+Original student project `/private/tmp/zero extracted with spaces WUdRw4` remains
+clean4a4d722f with no remotes; its builder/profile and finished output still validate.
+The deliberate upgraded copy is
+`/private/var/folders/qp/f66_vfps3839pj76pb3d_9fr0000gn/T/zero editor current tivpVR/Student Coin Quest`.
+Current local commit `6154b4c4e0a705913e4813d7569c41afd202f24b`, clean main, no remotes.
+Source/history are preserved in `student-project-current.bundle`; original bundle
+remains. `Student-Coin-Quest-source.zip` contains the editable project; actual
+fresh extracted Maven compilation PASS. Its SHA256 is
+`612eb5d0b6c344eb44fc7e3a589df4863e9195014ccea3de2715554f65ad449c`.
+Actual SaveZIP artifact `Student-Coin-Quest-current.zip`:1607457bytes,
+SHA256 `ed4540dd7916f4d10e9238c5fd6e243160777e652cc0d213f103040d8b2bccad`, byte-identical to its validated retained export.
+Library identity12345 is local fixture metadata, NOT authenticated publication.
 
-- Receipt: `.verification/vision-editor-walkthrough/final-receipt.json`.
-- Detailed actual observations: `observations.json` in the same directory.
-- Finished `Student-Coin-Quest.zip`:1,607,441 bytes, SHA256
-  `07454162564e45a347f15ba315b02ba9681729e70c7e2ddf3cc0b516bf4b0527`;
-  byte-identical to the validated retained export. Browser Stop made port52188
-  refuse connections. Owned browser QA tab closed; original Chrome tab untouched.
-- `student-project.bundle` preserves both local commits/source/assets/build files.
-- Zero Dev watcher/editor kept for useful development; no active game/preview.
+## Remaining separately gated work
 
-Initial blocker: inspectSourceScope rejected unselected /usr/bin/java with37
-hardlinks despite verified JDK21. Fixed at f94809b3 without changing PATH or
-relaxing project/cache validation. Actual source extension reloaded in the same
-isolated editor and explicit Enable and Prepare Browser Checks ran again.
-The host now inspects the actual extension-process runtime environment successfully.
-The saved runner returns unavailable/CACHED_INPUTS_UNAVAILABLE: the restrictive
-sharing/authoring.js declaration scanner rejects src/main/java/zero/App.java:262,
-whose runtime protocol output contains a legitimate Unicode record-separator escape.
-This is a separate saved-checker integration blocker, not another host scan failure.
-Actual UI remains Browser checks: unavailable, with no Problems; there is no
-compatible→unsupported→corrected acceptance claim. No fixture/core source workaround
-or environment change was used. Student repo remains exact clean4a4d722f, no remotes.
-Reload closed the previously reopened owned preview; no game remains active.
+Publishing/releases were explicitly kept separate. Authenticated GitHub project
+creation/clone/push, live ZeroHub extraction/catalog admission and Pages publication,
+public template rollout, signing/installers, physical Windows and a teacher/novice
+pilot remain outside this local acceptance. Source-based Mac editor QA does not
+establish those. Standalone native physical play is not claimed; actual native
+launch/readiness/Stop and seven technical suites are the retained proof.
+One minor known UX limitation: native compiler Problems can persist during a
+corrected running task until Stop. It does not block the accepted local browser
+checking cycle, and is not live Java language-server proof.
 
-Read-only diagnosis: cached-project.js applies declaration() to all original
-application sources, including core. That conservative sharing scanner rejects
-Unicode escapes before masking literals. Correcting it needs a focused design/test
-that preserves namespace-shadowing safety and saved-builder reproducibility;
-never simply remove the scanner protection or rewrite the student fixture to pass.
-New saved-builder bytes would require affected compatibility/preservation gates and
-a proportionate review. No additional stress/full API suite is justified yet.
-Receipt/logs/actual host result: `.verification/vision-editor-walkthrough/runtime-scan-*`.
-
-A smaller UX finding: native compiler Problems remain during a corrected running
-game, clearing on Stop. Record it separately from live language-server behavior.
-
-The requested host fix is committed, checked, reviewed and packaged locally.
-Actual recovery-cycle verification is BLOCKED by the separate saved-checker issue.
-The approved final eighth correction/review batch is consumed. pr-review SKILL.md
-has an absolute cap of8fixbatches, even after extension: do not reset the ledger,
-launch another reviewer or start a ninth correction under this review session.
-Phase5 remains partial due to saved-source checking, native physical play and
-separate authenticated/hosted/platform/novice/publication gates. Keep publishing,
-release, installation, accounts and credentials separate.
-
-Existing Node `/Users/stew/.local/share/mise/installs/node/22.21.1/bin/node`.
-JDK `/Users/stew/Library/Application Support/Zero/runtime/jdk-3623232f33a9c3baadf304480b2535f9a3cba8a58d42ecbb438ba267315d9998/jdk-21.0.12.1+1/Contents/Home`.
-Cache `/Users/stew/Repos/zero/.verification/web-export-checks/cache`.
-Storage fresh258.081GB healthy during walkthrough; weekly27%used73%remaining sharedaccount,
-not taskcost. No monitor/newchat created. All reviewers completed; no supported
-worker-close API. Preserve this useful worktree and ignored proofs/caches.
+No new goal/task/automation/monitor. Code reviews, evidence production and the
+final independent evidence-integrity review are COMPLETE/CLEAN. No active worker
+assignment remains. No supported worker-close API; preserve useful worktree and
+ignored proofs. Storage258.97GB healthy; weekly72%remaining at start,
+account-wide rather than task cost. Existing Node22/JDK21/private caches reused.
