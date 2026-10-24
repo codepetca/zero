@@ -207,3 +207,41 @@ library operator pin. Released0.5.19's compatibility exception remains game-only
 A local0.5.20 candidate supports browser builds from declared editable libraries
 or exact accepted source artifacts, with no local-source fallback for a missing
 published release. A pilot with that client does not update existing installers.
+
+## Clear tutorial practice listings
+
+The local source reserves `tutorial-credits-badge` for lesson copies. Ordinary
+catalog APIs exclude those libraries; explicit practice discovery uses
+`/api/sharing/catalog/practice` and `/hub?kind=practice`. No production activation,
+cleanup or schedule is implied by this implementation. Library publication
+remains separately paused until authorized acceptance/rollout.
+
+Select exact available practice release keys from the practice catalogue. Preview
+up to 150 distinct keys with the reviewed library configuration (replace the
+example repository ID/version/config path):
+
+```sh
+node sharing/cli.mjs library-practice-cleanup --config reviewed-config.json --releases library/lib-r12345-tutorial-credits-badge/0.1.0
+```
+
+This is a dry run. For an authorized cleanup of that same explicit selection,
+append `--execute --role publisher`. Execution requires
+`libraryPublicationEnabled: true`; it does not use the game publication gate or
+turn library publication on. Multiple exact keys use a comma-separated list.
+There is no implicit all-library deletion or automatic schedule. Review the
+selection and obtain authority for live registry mutation before executing.
+
+The operation rechecks the selected accepted records and availability state in a
+CAS update, appends ordinary withdrawn events and regenerates the catalogue.
+A stale selection must be reviewed again. Ordinary community libraries are
+rejected. Withdrawing all available versions removes the practice entry from
+discovery; withdrawing only the latest can reveal an older still-available
+version. Exact withdrawn-version views retain their status.
+
+It removes no student GitHub repository, source, accepted artifact or registry
+history. Existing downloaded/copied bytes stay in student projects/caches.
+Future Add/Update/Revert, fresh fetching and browser export still enforce the
+normal availability/integrity requirements; do not promise that a withdrawn
+release can always be resolved again. To restore an exact version, use the
+existing explicitly authorized restore flow with the appropriate enabled
+publisher configuration. Clearing listings does not authorize artifact deletion.

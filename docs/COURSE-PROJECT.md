@@ -79,7 +79,11 @@ history and own GitHub origin. A ZIP, a folder inside another
 Git repository or a clone still pointing at the shared template receives setup
 guidance. This is teaching workflow validation, not tamper-proof provenance.
 Publish app is available as an explicit optional action; its game/assets are
-public. ZeroHub contributions remain for separate original work. Submit tutorial
+public. Ordinary ZeroHub contributions remain for separate original work. Lesson
+11 has one explicit exception: the copied `tutorial-credits-badge` library from
+the Coin repository belongs only in Tutorial practice, when hosted library
+acceptance is enabled. Other tutorial games/libraries stay out of the community
+catalogue. Submit tutorial
 repository links in Pika only when the teacher assigns them; nothing is submitted
 automatically.
 

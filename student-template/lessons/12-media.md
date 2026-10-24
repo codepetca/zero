@@ -4,9 +4,9 @@
 
 ![The lesson 9 Coin game with a robot player, three coins and a native score below the canvas](visuals/12.svg)
 
-Reopen the **same Coin game** you wrote in lessons 8–11. Keep your Player, Coin, PlayerInput, ScoreDisplay and Main. This lesson changes your current project in place and supplies no later stage project ZIPs. Optionally download the small [game assets ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip) and place `media-demo/player.png` and `media-demo/chime.wav` under `src/main/resources/`. You may use your own PNG and short WAV at those paths, or use the drawing route below without assets.
+Reopen the **same Coin game** you wrote in lessons 8–11. Keep your Player, Coin, PlayerInput, ScoreDisplay, CreditsBadge and Main. This lesson changes your current project in place and supplies no later stage project ZIPs. Optionally download the small [game assets ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip) and place `media-demo/player.png` and `media-demo/chime.wav` under `src/main/resources/`. You may use your own PNG and short WAV at those paths, or use the drawing route below without assets.
 
-Previous: [Improve and propose a component](11-zerohub.md).
+Previous: [Practise sharing a component](11-zerohub.md).
 
 ## 1. Draw an image from Player
 
@@ -76,7 +76,7 @@ The ready label means the action selected resources, not that sound was heard.
 
 ## 4. Add controls once in setup
 
-Replace the existing `controls(new Row(...))` call with:
+Replace the existing `controls(new Column(...))` call with:
 
 ```java
 soundStatus = new Label("");
@@ -85,10 +85,10 @@ var artworkButton = new Button("Use artwork and sound");
 artworkButton.onClick(() -> loadAssets());
 controls(new Column(8,
         new Row(12, score.view(), soundStatus, message, restartButton),
-        new Row(12, artworkButton, assetStatus)));
+        new Row(12, artworkButton, assetStatus), badge.view()));
 ```
 
-Keep the existing score, message, Restart callback and final `restart()` call.
+Keep the existing score, message, badge, Restart callback and final `restart()` call.
 The second row gives the action and its result room below the score. The game
 starts in drawing mode, even when resources are bundled.
 

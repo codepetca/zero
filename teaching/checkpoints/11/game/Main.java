@@ -1,6 +1,7 @@
 import zero.Color;
 import zero.GameApp;
 import zero.ui.Button;
+import zero.ui.Column;
 import zero.ui.Label;
 import zero.ui.Row;
 
@@ -23,9 +24,11 @@ public class Main extends GameApp {
         score = new ScoreDisplay();
         score.setCaption("Score");
         message = new Label("");
+        var badge = new CreditsBadge("Coin game");
         var restartButton = new Button("Restart");
         restartButton.onClick(() -> restart());
-        controls(new Row(12, score.view(), message, restartButton));
+        controls(new Column(8,
+                new Row(12, score.view(), message, restartButton), badge.view()));
         restart();
     }
 

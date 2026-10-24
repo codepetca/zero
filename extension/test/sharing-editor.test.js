@@ -270,3 +270,104 @@ test('simulated, incomplete and action-required handoff results cannot advance S
   const f=await guidedFixture(t);f.host[stage==='upload'?'uploadForSharing':'publishForSharing']=async()=>result;await f.editor.commands['zero.shareGame']();assert.equal(f.opened.length,0);assert.match(f.states.at(-1),/Share paused/);assert.equal(f.stats().busy,false);
  }
 });
+
+const practiceSlug=require('../src/sharing/tutorial-practice').SLUG;
+const coinMarker={tutorialProjectId:'game',lessonId:'8',repositoryRequired:true};
+async function practiceShareFixture(t,{slug=practiceSlug,...options}={}) {
+ const f=await fixture(t,options),descriptor={schema:2,kind:'library',slug,version:'0.1.0',title:'CreditsBadge',description:'Tutorial badge exercise',license:'MIT',libraryKind:'widget',coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},coreInput:{version:'0.3.0',sourceSha256:'1'.repeat(64)}};
+ await fs.writeFile(path.join(f.root,'zero.json'),JSON.stringify(coinMarker));
+ const folder=`libraries/${slug}`;await fs.mkdir(path.join(f.root,folder),{recursive:true});await fs.writeFile(path.join(f.root,folder,'zero-library.json'),JSON.stringify(descriptor));
+ const library={slug,folder,mode:'local',descriptor,identity:require('../src/sharing/contracts').identity('library',repository.id,slug)};
+ const api={...authoring,discoverLibraries:async()=>[library]};
+ const git=async(root,args)=>args[0]==='show'?JSON.stringify(descriptor):f.git(root,args);
+ const makeEditor=extra=>createSharingEditor(f.vscode,f.host,{git,reader:f.reader,authoring:api,...extra});
+ return {...f,descriptor,library,makeEditor,editor:makeEditor()};
+}
+test('tutorial practice extraction defaults the reserved identity, keeps core/import checks and prevents a second extraction',async t=>{
+ const f=await fixture(t,{approval:'Apply'}),core=require('../src/core-contract'),sources={};
+ await fs.writeFile(path.join(f.root,'zero.json'),JSON.stringify(coinMarker));
+ await fs.writeFile(path.join(f.root,'src/main/java/CreditsBadge.java'),'import zero.ui.Label; public class CreditsBadge { public Label view() { return new Label("Credits"); } }');
+ await fs.writeFile(path.join(f.root,'src/main/java/Main.java'),'public class Main { CreditsBadge badge = new CreditsBadge(); }');
+ for(const name of core.coreSourcePaths){sources[name]=await fs.readFile(path.resolve(__dirname,'../../framework',name));await fs.mkdir(path.dirname(path.join(f.root,name)),{recursive:true});await fs.writeFile(path.join(f.root,name),sources[name]);}
+ await fs.writeFile(path.join(f.root,'zero-core.json'),JSON.stringify(core.makeCoreRecord(sources)));
+ f.vscode.window.showQuickPick=async entries=>entries[0]?.path?[entries.find(item=>item.label==='CreditsBadge')]:entries[0];
+ const input=f.vscode.window.showInputBox;let defaultSlug;
+ f.vscode.window.showInputBox=async options=>{if(options.title==='Library name'){defaultSlug=options.value;return options.value;}return input(options);};
+ await f.editor.commands['zero.extractLibrary']();
+ assert.equal(defaultSlug,practiceSlug);assert.equal(f.stats().stagedPlan.descriptor.schema,2);assert.equal(f.stats().stagedPlan.descriptor.libraryKind,'widget');
+ assert.match(await fs.readFile(path.join(f.root,'src/main/java/Main.java'),'utf8'),/import zero.contrib.r12345.tutorial_credits_badge.CreditsBadge;/);
+ assert.match(f.messages.at(-1),/Extract practice library/);
+ // A repeated exercise keeps its identity and versions; it cannot create a second folder.
+ await fs.writeFile(path.join(f.root,'src/main/java/CreditsBadge.java'),'public class CreditsBadge {}');
+ await assert.rejects(f.editor.commands['zero.extractLibrary'](),/library folder already exists/);
+});
+test('Share library allows only exact Coin tutorial practice and labels the explicit reviewed form',async t=>{
+ const f=await practiceShareFixture(t,{approval:'Open GitHub form'}),details=[];
+ const show=f.vscode.window.showInformationMessage;f.vscode.window.showInformationMessage=async(message,options)=>{details.push(options.detail);return show(message,options);};
+ await f.editor.commands['zero.shareLibrary']();
+ assert.equal(f.opened.length,1);assert.equal(f.stats().sources,1);assert.match(f.messages.at(-1),/practice library publication form/);assert.match(details.at(-1),/Tutorial practice.*copied CreditsBadge exercise/);
+ const request=JSON.parse(new URL(f.opened[0]).searchParams.get('body').match(/```json\n([\s\S]+?)\n```/)[1]);
+ assert.equal(request.slug,practiceSlug);assert.equal(request.kind,'library');assert.equal(request.descriptor.schema,2);assert.equal(request.commit,'a'.repeat(40));
+ assert.ok(f.gitCalls.every(args=>['rev-parse','remote','status','show'].includes(args[0])));
+ for(const slug of ['credits-badge','tutorial-credits-badge-extra']){const blocked=await practiceShareFixture(t,{slug,approval:'Open GitHub form'});await assert.rejects(blocked.editor.commands['zero.shareLibrary'](),/separate original project/);assert.equal(blocked.opened.length,0);}
+ for(const marker of [{tutorialProjectId:'greeting',lessonId:'0',repositoryRequired:true},{tutorialProjectId:'study',lessonId:'3',repositoryRequired:true}]){await fs.writeFile(path.join(f.root,'zero.json'),JSON.stringify(marker));await assert.rejects(f.editor.commands['zero.shareLibrary'](),/separate original project/);}
+ await fs.writeFile(path.join(f.root,'zero.json'),JSON.stringify(coinMarker));await assert.rejects(f.editor.commands['zero.shareGame'](),/separate original project/);
+});
+test('practice Share keeps cancellation, dirty source, trust, ownership, metadata and review revalidation gates',async t=>{
+ for(const scenario of ['cancel','dirty','unsaved','trust','owner','marker','account','head','metadata']) {
+  const f=await practiceShareFixture(t,{approval:scenario==='cancel'?undefined:'Open GitHub form',owner:scenario==='owner'?'8':'7'});
+  let git=f.git;
+  if(scenario==='dirty')git=async(root,args)=>args[0]==='status'?' M CreditsBadge.java\0':args[0]==='show'?JSON.stringify(f.descriptor):f.git(root,args);
+  if(scenario==='unsaved')f.vscode.workspace.textDocuments=[{isDirty:true,uri:{fsPath:path.join(f.root,'src/main/java/Main.java')}}];
+  if(scenario==='trust')f.vscode.workspace.isTrusted=false;
+  if(['marker','account','head','metadata'].includes(scenario)) {
+   const show=f.vscode.window.showInformationMessage;f.vscode.window.showInformationMessage=async(message,options)=>{
+    if(message.includes('publication form')) {
+     if(scenario==='marker')await fs.writeFile(path.join(f.root,'zero.json'),JSON.stringify({tutorialProjectId:'study',lessonId:'3',repositoryRequired:true}));
+     if(scenario==='account')f.host.auth.assertCurrent=async()=>{throw Error('account changed');};
+     if(scenario==='head')f.head='e'.repeat(40);
+    }
+    return show(message,options);
+   };
+   git=async(root,args)=>args[0]==='show'?JSON.stringify(scenario==='metadata'?{...f.descriptor,title:'Different'}:f.descriptor):args[0]==='rev-parse'&&args[1]==='HEAD'&&f.head?f.head:f.git(root,args);
+  } else if(scenario!=='dirty')git=async(root,args)=>args[0]==='show'?JSON.stringify(f.descriptor):f.git(root,args);
+  const editor=f.makeEditor({git});
+  if(scenario==='cancel')await editor.commands['zero.shareLibrary']();else await assert.rejects(editor.commands['zero.shareLibrary'](),/Commit & push|Save your project|Trust your own|personal GitHub account|separate original project|account changed|revision or files changed|committed sharing details differ/);
+  assert.equal(f.opened.length,0,scenario);assert.equal(f.stats().busy,false,scenario);
+ }
+});
+test('practice Check uses the existing native/core check pipeline and preserves failures',async t=>{
+ for(const failed of [false,true]) {
+  const f=await practiceShareFixture(t,{approval:'Check library'});let prepared=0,run=0;
+  const editor=f.makeEditor({checks:{prepareLocalCheck:async(root,slug)=>{assert.equal(root,f.root);assert.equal(slug,practiceSlug);prepared++;return {schema:2};},runLocalCheck:async(plan,options)=>{assert.equal(plan.schema,2);assert.ok(options.signal);run++;if(failed)throw Error('behavior assertions failed');return {version:'0.1.0',outputs:[]};}}});
+  if(failed)await assert.rejects(editor.commands['zero.checkLibrary'](),/behavior assertions failed/);else await editor.commands['zero.checkLibrary']();
+  assert.equal(prepared,1);assert.equal(run,1);assert.equal(f.opened.length,0);assert.equal(f.stats().busy,false);
+ }
+});
+test('normal browse excludes raw practice fixtures, while explicit practice browse uses its endpoint and consumer plan',async t=>{
+ const practice={kind:'library',slug:practiceSlug,status:'available',id:'lib-r12345-'+practiceSlug,version:'0.1.0',title:'CreditsBadge',description:'Exercise',contributor:{login:'student'},namespace:'zero.contrib.r12345.tutorial_credits_badge'};
+ const ordinary={...practice,slug:'health-bar',id:'lib-r12345-health-bar',title:'Health'};
+ for(const command of ['zero.browseHub','zero.browseTutorialPractice']) {
+  const f=await fixture(t,{approval:'Apply'}),before=await fs.readFile(path.join(f.root,'pom.xml'),'utf8');let text=before,selected,observed,validated=0;
+  const document={version:1,isDirty:false,getText:()=>text,positionAt:x=>x,save:async()=>{document.isDirty=false;return true;}};
+  f.vscode.workspace.openTextDocument=async()=>document;f.vscode.window.showTextDocument=async()=>({edit:async callback=>{callback({replace:(_range,value)=>{text=value;document.version++;document.isDirty=true;}});return true;}});
+  f.vscode.window.showQuickPick=async(entries,options)=>{if(options.title.includes('libraries'))assert.equal(entries.length,1);return entries[0];};
+  const editor=createSharingEditor(f.vscode,f.host,{consumer:{loadCatalog:async settings=>{observed=settings;return {catalog:{releases:[practice,ordinary]},catalogUrl:settings.catalogUrl};},planChange:async(_root,context,release)=>{selected=release;return {beforeText:before,afterText:before+'<!-- exact pin -->'};},validatePlan:async(_plan,context)=>{assert.equal(context.catalogUrl,observed.catalogUrl);validated++;}}});
+  await editor.commands[command]();assert.equal(selected,command==='zero.browseHub'?ordinary:practice);assert.equal(validated,1);
+  assert.equal(new URL(observed.catalogUrl).pathname,command==='zero.browseHub'?'/api/sharing/catalog/web':'/api/sharing/catalog/practice');
+ }
+ const f=await fixture(t);let loaded=false;
+ f.vscode.window.showQuickPick=async entries=>entries.find(entry=>entry.command==='zero.browseTutorialPractice');
+ const editor=createSharingEditor(f.vscode,f.host,{consumer:{loadCatalog:async settings=>{loaded=true;assert.match(settings.catalogUrl,/\/catalog\/practice$/);return {catalog:{releases:[]}};}}});
+ await editor.commands['zero.sharingActions']();assert.equal(loaded,true);assert.equal(f.opened.length,0);
+});
+test('published practice mode uses its catalog for exact-version selection and review revalidation',async t=>{
+ for(const drift of [false,true]) {
+  const f=await practiceShareFixture(t,{approval:'Apply'}),release={...f.descriptor,id:f.library.identity.id,status:'available'},urls=[];let verified=0,applied=0;
+  f.vscode.window.showQuickPick=async entries=>entries.find(entry=>entry.mode==='published')||entries[0];
+  const api={...authoring,discoverLibraries:async()=>[f.library],previewMode:async(_root,options)=>{assert.equal(options.publishedRelease,release);return {changes:[{path:'pom.xml',before:'original',after:'published'}]};},applyPlan:async()=>{applied++;}};
+  const editor=f.makeEditor({authoring:api,consumer:{loadCatalog:async settings=>{urls.push(settings.catalogUrl);return {artifactOrigin:'https://files.example',fingerprint:drift&&urls.length>1?'changed':'stable',catalog:{releases:[release]}};},verifyLibrary:async()=>{verified++;},addArtifactRepository:text=>text}});
+  if(drift)await assert.rejects(editor.commands['zero.switchLibraryMode'](),/catalog changed during mode review/);else await editor.commands['zero.switchLibraryMode']();
+  assert.equal(urls.length,2);assert.ok(urls.every(url=>url.endsWith('/catalog/practice')));assert.equal(verified,drift?1:2);assert.equal(applied,drift?0:1);
+ }
+});

@@ -221,3 +221,22 @@ test('lesson 10 PlayerInput snippet matches the maintained helper and later copi
   const improved=readFileSync(path.join(root,'teaching/checkpoints/11/game/PlayerInput.java'),'utf8');
   for(const id of ['12/media','12/scrolling'])assert.equal(readFileSync(path.join(root,'teaching/checkpoints',id,'PlayerInput.java'),'utf8'),improved);
 });
+
+test('practice contribution uses a harmless badge, not duplicate input utilities', () => {
+  const lesson=readFileSync(path.join(root,'student-template/lessons/11-zerohub.md'),'utf8');
+  const badge=readFileSync(path.join(root,'teaching/checkpoints/11/game/CreditsBadge.java'),'utf8');
+  const snippet=[...lesson.matchAll(/```java\n([\s\S]*?)```/g)].map(m=>m[1]).find(c=>c.includes('public class CreditsBadge'));
+  assert.equal(snippet,badge);
+  assert.doesNotMatch(badge,/javafx|keyDown|Timer|Player|GameApp/);
+  assert.match(lesson,/Copies are expected/);
+  assert.match(lesson,/tutorial-credits-badge/);
+  assert.match(lesson,/Optional extension: contribute an original idea/);
+  assert.match(lesson,/Library publication is currently paused/);
+  for(const variant of ['12/media','12/scrolling'])assert.equal(readFileSync(path.join(root,'teaching/checkpoints',variant,'CreditsBadge.java'),'utf8'),badge);
+  for(const name of ['LibraryCheck','FirstExample','SecondExample']) {
+    const source=readFileSync(path.join(root,'teaching/checkpoints/11/practice',name+'.java'),'utf8');
+    assert.doesNotMatch(source,/javafx/);
+    assert.match(source,/CreditsBadge/);
+    assert.match(source,/throw new AssertionError/);
+  }
+});

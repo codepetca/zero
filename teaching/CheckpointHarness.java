@@ -57,6 +57,16 @@ public class CheckpointHarness extends Application {
         return null;
     }
 
+    private static boolean hasLabel(Node current, String text) {
+        if (current instanceof Label label && label.getText().equals(text)) return true;
+        if (current instanceof Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                if (hasLabel(child, text)) return true;
+            }
+        }
+        return false;
+    }
+
     private static Button button(Stage stage, String label) {
         Button found = button(stage.getScene().getRoot(), label);
         require(found != null, label + " button exists");
@@ -268,6 +278,10 @@ public class CheckpointHarness extends Application {
         Label score = score(app);
         require(score.getText().equals("Score: 0"), "game begins with zero score");
         if (!id.equals("9")) checkScoreDisplay(app);
+        if (id.equals("11/game") || id.startsWith("12/")) {
+            require(hasLabel(stage.getScene().getRoot(), "Made with Zero: Coin game"),
+                    "practice badge remains mounted without changing game rules");
+        }
         if (id.startsWith("12/")) {
             require((field(app, "sprite") != null) == withMedia && (field(app, "chime") != null) == withMedia,
                     "media resource mode loads or falls back explicitly");

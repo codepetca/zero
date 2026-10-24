@@ -77,7 +77,7 @@ test('Play uses a stable external page independently of the immutable source sna
 });
 test('discovery offers Play and linked versions without separate GitHub actions',async()=>{
   const {readFile}=await import('node:fs/promises'),discovery=await readFile(new URL('../components/HubDiscovery.tsx',import.meta.url),'utf8'),source=await readFile(new URL('../components/HubProjectCard.tsx',import.meta.url),'utf8');
-  assert.match(discovery,/fetch\('\/api\/sharing\/catalog\/web'/);assert.match(source,/target="_blank" rel="noopener noreferrer" aria-label=\{`Play \$\{title\}/);
+  assert.match(discovery,/practiceOnly\?'\/api\/sharing\/catalog\/practice':'\/api\/sharing\/catalog\/web'/);assert.match(source,/target="_blank" rel="noopener noreferrer" aria-label=\{`Play \$\{title\}/);
   assert.match(source,/<h3>\{title\}<\/h3>/);assert.match(source,/href=\{repositoryHref\} aria-label=/);
   assert.doesNotMatch(source,/>GitHub(?:<|\{)/);
   assert.doesNotMatch(source,/Play latest|Controls:|Student-hosted live app|Download source project|Download sources|Release details/);
@@ -108,4 +108,36 @@ test('Codepet sample credits match exact library sources without changing public
   }
   assert.equal(releaseAuthor({...base,id:entry.id,title:'Flap Motion'},attributions),'student','Other source commits cannot inherit the credit');
   assert.equal(releaseAuthor(base,attributions),'student');
+});
+
+
+function practiceFixture(repositoryId='123', version='0.1.0', status='available') {
+  const release=fixture('library',version,status),identity=contracts.identity('library',repositoryId,'tutorial-credits-badge');
+  return contracts.validateRelease({...release,kind:identity.kind,id:identity.id,slug:identity.slug,namespace:identity.namespace,repository:{...release.repository,id:repositoryId},source:{...release.source,folder:'libraries/tutorial-credits-badge'},
+    coordinate:{...identity.coordinate,version},components:[],artifacts:Object.fromEntries(['jar','sources','pom'].map(kind=>{
+      const path=contracts.artifactPath(identity,version,kind);return [kind,{path,url:`${origin}/${path}`,size:1,sha256:'d'.repeat(64)}];
+    }))},{artifactOrigin:origin});
+}
+test('tutorial copies stay out of regular search, projects and libraries, with latest available per repository in practice',()=>{
+  const old=practiceFixture(),latest=practiceFixture('123','0.2.0'),other=practiceFixture('999'),withdrawn=practiceFixture('123','1.0.0','withdrawn');
+  const regular=fixture('library'),game=fixture('game'),catalog={releases:[old,other,withdrawn,regular,latest,game]};
+  assert.deepEqual(selectReleases(catalog),[regular]);assert.deepEqual(selectReleases(catalog,{kind:'game'}),[game]);
+  assert.deepEqual(selectReleases(catalog,{kind:'library',search:'tutorial-credits-badge'}),[]);
+  assert.deepEqual(selectReleases(catalog,{kind:'practice'}),[latest,other]);
+  assert.deepEqual(selectReleases(catalog,{kind:'practice',id:old.id,version:old.version}),[old]);
+  assert.deepEqual(selectReleases(catalog,{kind:'practice',id:withdrawn.id,version:withdrawn.version}),[withdrawn]);
+  assert.deepEqual(selectReleases(catalog,{kind:'library',id:old.id,version:old.version}),[]);
+  assert.deepEqual(selectMaintainedProjects([{title:'Copied tutorial',description:'practice',author:'student'}],{kind:'practice'}),[]);
+  assert.equal(new URL(releaseLink(old),'https://zero.codepet.ca').searchParams.get('kind'),'practice');
+});
+test('practice discovery exposes copied-work and listing cleanup guidance, with explicit editor navigation and paused publication',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const discovery=await readFile(new URL('../components/HubDiscovery.tsx',import.meta.url),'utf8');
+  const prepare=await readFile(new URL('../components/HubPrepare.tsx',import.meta.url),'utf8');
+  const navigation=await readFile(new URL('../components/HubNavigation.tsx',import.meta.url),'utf8');
+  assert.match(discovery,/copied tutorial work/);assert.match(discovery,/periodic cleanup/);
+  assert.match(discovery,/Tutorial practice/);assert.match(discovery,/Add library → Apply/);
+  assert.match(discovery,/Libraries and games →/);assert.match(discovery,/Browse tutorial practice/);
+  assert.match(navigation,/href="\/hub\?kind=practice"/);
+  assert.match(prepare,/publication, including practice, remains paused/);assert.match(prepare,/local passing check does not publish/);
 });

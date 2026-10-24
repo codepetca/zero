@@ -5,6 +5,7 @@ const {discoverLibraries,declaration,applicationDeclaration}=require('../sharing
 const {loadCatalog,verifyLibrary,inspectManagedLibraryPins}=require('../sharing/consumer');
 const {readKitConfiguration}=require('../sharing/configuration');
 const core=require('../core-contract');
+const {isTutorialPractice,practiceCatalogUrl}=require('../sharing/tutorial-practice');
 
 const {inspectJar}=require('../sharing/jar');
 const resourceExtension=/\.(?:png|jpe?g|gif|webp|bmp|svg|avif|ico|wav|mp3|ogg|txt|json|csv|properties|xml|fxml|css|ttf|otf|md)$/i;
@@ -52,7 +53,11 @@ async function resolveLibrarySources(projectRoot,captured,options={}) {
  const libraries=captured.libraries||await discoverBrowserLibraries(projectRoot,pom),sources=[],resources=[],publishedLibraries=[];
  const published=libraries.filter(library=>library.mode==='published');
  const settings=options.sharingSettings||readKitConfiguration(path.resolve(__dirname,'../..'));
- const context=published.length?await loadCatalog(settings,{fetcher:options.fetcher,signal:options.signal}):null;
+ const contexts=new Map();
+ for(const library of published) {
+  const practice=isTutorialPractice(library.identity);
+  if(!contexts.has(practice))contexts.set(practice,await loadCatalog(practice?{...settings,catalogUrl:practiceCatalogUrl(settings.catalogUrl)}:settings,{fetcher:options.fetcher,signal:options.signal}));
+ }
  for(const library of libraries) {
   const namespace=library.identity.namespace,prefix=namespace.replaceAll('.','/')+'/';
   if(library.mode==='local') {
@@ -73,8 +78,9 @@ async function resolveLibrarySources(projectRoot,captured,options={}) {
    }
    continue;
   }
+  const practice=isTutorialPractice(library.identity),context=contexts.get(practice);
   if(library.source==='consumer'&&library.repositoryOrigin!==context.artifactOrigin)fail(`managed repository origin changed for ${library.slug}`);
-  const release=context.catalog.releases.find(item=>item.kind==='library'&&item.id===library.identity.id&&item.version===library.version&&item.status==='available');
+  const release=context.catalog.releases.find(item=>item.kind==='library'&&item.id===library.identity.id&&item.version===library.version&&item.status==='available'&&isTutorialPractice(item)===practice);
   if(!release)fail(`published ${library.slug} ${library.version} is not an available accepted release`);
   if(release.schema===2)capturedCore(captured,release.coreRequirement);
   const verified=await verifyLibrary(context,release,{signal:options.signal});

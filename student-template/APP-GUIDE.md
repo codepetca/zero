@@ -44,7 +44,8 @@ The source is the authority if you change your local framework.
 The [tutorial](lessons/README.md) keeps three small continuing projects: Greeting,
 Study quiz and Coin game. In [lesson 10](lessons/10-components.md), refactor a busy
 Main by extracting PlayerInput and ScoreDisplay. [Lesson 11](lessons/11-zerohub.md)
-checks improvements and develops a contribution proposal. Larger reference games
+checks improvements and practises sharing a small CreditsBadge in Tutorial
+practice, with an optional original-contribution proposal. Larger reference games
 are maintainer completeness checks, not additional required tutorial projects.
 
 ## Game input and a live control row

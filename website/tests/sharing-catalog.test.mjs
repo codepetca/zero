@@ -122,3 +122,40 @@ test('legacy and enriched API routes explicitly select their distinct projection
   assert.match(await readFile(new URL('../app/api/sharing/catalog/route.ts',import.meta.url),'utf8'),/return catalogResponse\(request\);/);
   assert.match(await readFile(new URL('../app/api/sharing/catalog/web/route.ts',import.meta.url),'utf8'),/includeWeb:true/);
 });
+
+
+function practiceRelease(repositoryId='123',version='0.1.0',status='available') {
+  const identity=contracts.identity('library',repositoryId,'tutorial-credits-badge'),base=webCatalog().releases[0];
+  const {web,controls,...common}=base;
+  return contracts.validateRelease({...common,kind:identity.kind,id:identity.id,slug:identity.slug,version,status,repository:{...base.repository,id:repositoryId},source:{...base.source,folder:'libraries/tutorial-credits-badge'},
+    namespace:identity.namespace,coordinate:{...identity.coordinate,version},libraryKind:'helper',artifacts:Object.fromEntries(['jar','sources','pom'].map(kind=>{
+      const path=contracts.artifactPath(identity,version,kind);return [kind,{path,url:env.ZERO_SHARING_ARTIFACT_ORIGIN+'/'+path,size:1,sha256:'e'.repeat(64)}];
+    }))},{artifactOrigin:env.ZERO_SHARING_ARTIFACT_ORIGIN});
+}
+test('legacy and web APIs exclude every practice version while explicit practice API returns only validated practice',async()=>{
+  const snapshot=webCatalog();snapshot.releases.push(practiceRelease(),practiceRelease('123','0.2.0','withdrawn'),practiceRelease('999'));
+  const original=structuredClone(snapshot),request=new Request('https://zero.codepet.ca/api/sharing/catalog/practice');
+  let reads=0;const reader=async({signal})=>{reads++;assert.equal(signal,request.signal);return snapshot;};
+  for(const includeWeb of [false,true]) {
+    const result=await catalogResponse(request,{reader,includeWeb});const selected=await result.json();
+    assert.equal(selected.releases.length,1);assert.equal(selected.releases[0].kind,'game');
+    assert.equal(Object.hasOwn(selected.releases[0],'web'),includeWeb);
+  }
+  const response=await catalogResponse(request,{reader,practiceOnly:true});
+  assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'no-store');
+  const practice=await response.json();assert.deepEqual(practice.releases,snapshot.releases.slice(1));assert.equal(reads,3);
+  assert.equal(practice.releases[1].status,'withdrawn');assert.deepEqual(snapshot,original);
+  assert.deepEqual(legacyCatalog(snapshot).releases.length,1);
+  const {readFile}=await import('node:fs/promises');
+  assert.match(await readFile(new URL('../app/api/sharing/catalog/practice/route.ts',import.meta.url),'utf8'),/practiceOnly:true/);
+});
+test('hidden practice and nonpractice records are validated before either API partitions the snapshot',async()=>{
+  for(const practiceOnly of [false,true])for(const includeWeb of [false,true]) {
+    const invalidPractice=webCatalog();invalidPractice.releases.push({...practiceRelease(),status:'invalid'});
+    const invalidGame=webCatalog();invalidGame.releases[0].web.url='javascript:alert(1)';
+    for(const snapshot of [invalidPractice,invalidGame]) {
+      const response=await catalogResponse(new Request('https://zero.codepet.ca/api/sharing/catalog'),{reader:async()=>snapshot,includeWeb,practiceOnly});
+      assert.equal(response.status,503);
+    }
+  }
+});

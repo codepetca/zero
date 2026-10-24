@@ -1,5 +1,52 @@
 # Delivery evidence index
 
+## CreditsBadge tutorial practice sharing — 2026-10-24
+
+Owner approved a harmless copied badge exercise instead of mass input-helper
+contributions, retaining the optional original/core extension. Base31badc97,
+actor worktree. Same Greeting/Study/Coin projects and13lesson IDs. Lesson10 input
+refactoring remains; lesson11 adds22-line Zero-only CreditsBadge, extraction,
+actual-JAR checks/two finite examples, explicit practice submission/reuse and
+optional original proposal. Lesson12 retains the badge. No core/public API change.
+
+Reserved library slug tutorial-credits-badge labels practice without schema changes.
+Both existing catalogue APIs exclude every practice version; explicit practice
+API/site/editor discovery opt in. Repository-derived identity groups versions;
+exact withdrawn links do not substitute newer versions. Editor teaching-policy
+exception permits only this library from a marked Coin tutorial, retaining
+ownership/trust/saved-state/review/source/version/checker controls. Browser
+resolution routes authored and managed practice pins through the practice API;
+new exports still reject withdrawn versions. Existing installed bytes are retained.
+Cleanup selects1–150exact practice release keys, previews by default, and requires
+existing publisher role plus reviewed library-enabled config for execution. CAS
+rechecks prevent availability/delivery races; cleanup deletes no source/artifact.
+No scheduler, database, active service or original-code detector was introduced.
+
+45focused curriculum/reader/navigation tests PASS/0skip; root source/config/link
+checks and website typecheck PASS. Five actual finite native executions cover
+11game plus12media/scrolling with/without assets. Actual extracted schema2 widget
+Check PASS against separate core/contribution JARs, running LibraryCheck and both
+finite examples. Four project-owned saved-builder WebFX/GWT exports PASS:11game,
+12media,12scrolling and11extracted. Actual CUA browser: extractedbadge game3/3win,
+Restart0and arrowscore1; otherthree badgevisible/arrowscore1 ormediaChimes1,
+artwork actionready. Local lesson11, its check-source link and practicearea were
+inspected. Practice area honestly reports unavailable catalogue in unconfigured
+local service; no claim of a live accepted submission/classmate download.
+Integration test total and independent review closure follow after final review.
+Proofs: ignored .verification/tutorial-practice/ and tutorial-practice-*.log.
+
+Parent owns lessons/checkpoints/docs/shared marker/integration/Git. Sol/high
+practice_editor owns editor/builder wiring and tests; Sol/high practice_platform
+owns platform/site/cleanup and tests. Effective configurations, elapsed worker
+costs and tokens unknown. Storage259GB healthy; weekly68%remaining at start is
+account-wide. DeepSeek paused. Retained rework: extraction UI calls widgets UI
+component; lesson aligned. Practice check sources live in allowed checkpoint
+references so both bundled reader and website can open them. Immediate key input
+after Restart preceded returned focus; explicit canvas focus then arrows verified.
+No push/PR/merge, publication/release, activation/live cleanup, install, account/
+credential changes or new telemetry. Hosted schema2 acceptance/rollout remains
+separately held; setting a library flag alone does not establish acceptance.
+
 ## Small tutorial refactoring and contribution path — 2026-10-24
 
 Owner requested existing small Zero examples, an intermediate busy-Main refactor

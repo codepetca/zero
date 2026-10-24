@@ -1,5 +1,17 @@
 # Zero phased vision — current handoff
 
+## Active tutorial practice sharing — 2026-10-24
+
+User approved CreditsBadge practice contribution, separate practice discovery and
+listing cleanup; retain optional original/core contribution extension. Base31badc97.
+No new game or framework API; preserve input refactor. Reserved library slug
+`tutorial-credits-badge` is the marker (no schema change); default catalog APIs
+exclude it, explicit practice API includes it. Existing immutable versions/checks,
+ownership, publisher roles and rollout holds remain. Cleanup withdraws listings,
+never artifacts/source. Parent owns tutorial/checkpoints/docs/shared practice helper;
+Sol/high workers own platform/site and editor integration respectively.
+Storage259GB healthy; weekly68%remaining account-wide. No publish/push/release.
+
 ## Small tutorial refinement complete — 2026-10-24
 
 User wants the existing small Greeting/Study/Coin path, intermediate refactoring

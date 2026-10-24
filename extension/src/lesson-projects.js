@@ -3,6 +3,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const core = require('./core-contract');
 const builderFormat = require('./project-builder-format');
+const {isTutorialPractice} = require('./sharing/tutorial-practice');
 
 const PROJECT_LESSONS = new Map([['greeting','0'],['study','3'],['game','8']]);
 const PROJECT_FILES = new Set(['zero-core.json','zero.json','.gitignore','README.md','LICENSE','pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE','.vscode/tasks.json','.vscode/settings.json','src/main/java/Main.java','src/main/java/zero/App.java','src/main/java/zero/GameApp.java','src/main/java/zero/Actor.java','src/main/java/zero/AnimationSource.java','src/main/java/zero/AnimationPlayback.java','src/main/java/zero/ImageRegion.java','src/main/java/zero/SpriteAnimation.java','src/main/java/zero/Collisions.java','src/main/java/zero/Sound.java','src/main/java/zero/Music.java','src/main/java/zero/Color.java','src/main/java/zero/Key.java','src/main/java/zero/ui/Element.java','src/main/java/zero/ui/Label.java','src/main/java/zero/ui/Button.java','src/main/java/zero/ui/Column.java','src/main/java/zero/ui/Row.java','src/main/java/zero/ui/TextField.java']);
@@ -45,6 +46,11 @@ async function tutorialMarker(root) {
   if (data.tutorialProjectId === undefined && data.repositoryRequired === undefined) return null;
   if (!PROJECT_LESSONS.has(data.tutorialProjectId) || data.repositoryRequired !== true || data.lessonId !== PROJECT_LESSONS.get(data.tutorialProjectId) || data.localOnly !== undefined || data.practiceProjectId !== undefined) throw new Error('This project’s zero.json has an invalid tutorial repository marker. Restore its project marker or start a new project.');
   return data;
+}
+async function assertContributionProject(root, descriptor) {
+  await assertShareable(root);
+  const marker = await tutorialMarker(root);
+  if (marker && !(marker.tutorialProjectId === 'game' && isTutorialPractice(descriptor))) throw new Error('Keep this tutorial repository for learning. Share only the tutorial-credits-badge practice library from the Coin Game tutorial, or create a separate original project before contributing a game or library to ZeroHub.');
 }
 async function assertOriginalProject(root) {
   await assertShareable(root);
@@ -150,4 +156,4 @@ async function createLessonProject(project, destination, {forbiddenRoots = []} =
     throw error;
   }
 }
-module.exports = {tutorialMarker,assertOriginalProject,validateTemplate,loadBundle,validateBundle,createLessonProject,isLocalPractice,assertShareable,LOCAL_MESSAGE};
+module.exports = {tutorialMarker,assertOriginalProject,assertContributionProject,validateTemplate,loadBundle,validateBundle,createLessonProject,isLocalPractice,assertShareable,LOCAL_MESSAGE};

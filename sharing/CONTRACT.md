@@ -155,3 +155,39 @@ from included bytes. The record alone is never authority. Assemblers write it
 from exactly their included sources; editor updates do not migrate old projects.
 Legacy libraries without a core requirement need no core record. Contributions
 must not bundle canonical core classes. No public release is implied by0.3.0.
+
+## Tutorial practice libraries (local source, publication still gated)
+
+The reserved library slug `tutorial-credits-badge` is the practice marker. No
+schema fields change: normal repository-derived library identity, exact immutable
+versions, checker evidence and request fingerprints remain. All entries with this
+kind/slug are practice, irrespective of title/description. The editor permits
+this narrow library exception from a valid Coin tutorial repository; other
+marked tutorial games/libraries remain blocked by its teaching policy. This is
+not source-originality detection or an authentication boundary. Trusted numeric
+ownership and all source/checker/publication controls still apply.
+
+Canonical immutable snapshots retain both categories. Both existing catalog APIs
+(`/catalog` and `/catalog/web`) validate the full snapshot then exclude practice
+releases entirely. The explicit `/api/sharing/catalog/practice` projects only
+practice entries through the same bounded reader. This preserves strict old
+clients without new release keys. Ordinary library selection excludes practice;
+`/hub?kind=practice` and the editor's Browse tutorial practice opt into it. Default
+practice discovery groups versions by repository-derived library identity; an
+exact id/version link never substitutes another version. New versions are normal
+immutable releases, not overwrites of an accepted artifact.
+
+Library Check and hosted acceptance do not bypass their gates for practice.
+Extract/Check can finish while publication is paused. A prepared/opened/submitted
+form is not a listing. Copied badges are expected learning exercises, excluded
+from ordinary discovery and without automatic promotion to core. Original useful
+work and core proposals remain an optional extension.
+
+Practice cleanup takes explicit available release keys, previews by default and
+requires the existing reviewed library-enabled configuration and publisher role
+for execution. CAS revalidation protects the reviewed selection from availability
+or delivery changes. It appends normal withdrawal events and regenerates the
+catalogue; it deletes no source, registry history, accepted JAR/source/POM or
+student repository. Already added bytes remain; future fetch/export/update checks
+continue to enforce ordinary availability rules. No scheduler or historical-kit
+database is introduced.

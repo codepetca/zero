@@ -51,7 +51,7 @@ the compiler/dependencies, Run works offline without an active GitHub session.
 | 8 | Held arrows move the player; edges keep the entire square inside |
 | 9 | Each coin scores once; all three win; Restart restores player, coins and score |
 | 10 | PlayerInput extraction preserves arrow movement/cancellation/reset; the same ScoreDisplay source works in Study and Game |
-| 11 | A compatible setCaption method works in both consumers; optional WASD preserves arrows; a contribution proposal records API, examples, checks and credit |
+| 11 | A compatible setCaption method works in both consumers; optional WASD preserves arrows; CreditsBadge is checked and prepared for Tutorial practice; copied input helpers are not submitted |
 | 12 | Same game runs with drawing fallback; optional PNG/WAV work; optional scrolling keeps HUD fixed |
 
 For refactoring, compare behavior before and after: arrows, diagonal movement,
@@ -62,11 +62,13 @@ bindings deliberately; holding an arrow and its matching letter must not double
 the movement. Keep the existing diagonal-speed behavior during the extraction.
 
 Ask students to identify one responsibility, extract it, run the same checks,
-and explain the smaller Main. Then write a short proposal for an improvement in
-their own README. A proposal does not require a fourth project or a public post.
-Actually sharing an original/adapted component remains optional and follows the
-original-work, attribution and acceptance policy below. Proven community ideas
-can be proposed for core; they are never installed or promoted automatically.
+and explain the smaller Main. Lesson 11 uses a harmless CreditsBadge for the
+sharing exercise. Copies are expected and labelled Tutorial practice, excluded
+from the ordinary catalogue. Keep the fixed `tutorial-credits-badge` name, use the
+Coin repository, and assess extraction/check/README/review/use rather than novelty.
+Local work can finish while hosted publication is paused; do not promise a listing.
+The original-component/core proposal remains an optional extension, not a required
+fourth project or public post. Proven ideas are never promoted automatically.
 
 ## Teach ownership
 
@@ -98,7 +100,11 @@ a normal and repeat/reset check, and explain their source.
 All three tutorial projects use the student's own GitHub repositories. Teach the
 same New branch, edit/Run, Upload and Finish flow in each group; check the actual
 remote commit rather than only a copied link. An optional fourth **original**
-app/game is the place for a reusable ZeroHub contribution. Tutorial GitHub uploads
+app/game is the place for an original reusable ZeroHub contribution. The copied
+CreditsBadge is the narrow exception: share it only in Tutorial practice from the
+Coin repository when hosted acceptance is enabled. Maintainers can preview and
+withdraw practice listings using the documented cleanup command; this removes
+discovery entries, not source or artifacts. Tutorial GitHub uploads
 and explicit optional Pages publishing are distinct from ZeroHub admission.
 Pika submission is separate from optional public game hosting. Pages availability
 for private repositories depends on the account plan; do not require payment or a

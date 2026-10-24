@@ -282,7 +282,7 @@ test("intermediate lessons keep the existing three small projects and a proposal
   assert.equal(lessons.length,13);
   assert.deepEqual(lessonGroups.map(group=>group.id),['greeting','study','game']);
   assert.equal(lessons.find(lesson=>lesson.id==='10').title,'Refactor a busy Main');
-  assert.equal(lessons.find(lesson=>lesson.id==='11').title,'Improve and propose a component');
+  assert.equal(lessons.find(lesson=>lesson.id==='11').title,'Practise sharing a component');
   for (const [id,name] of [['10','10-components'],['11','11-zerohub']]) {
     const source=readFileSync(new URL(`../../student-template/lessons/${name}.md`,import.meta.url),'utf8');
     assert.ok(source.includes('PlayerInput'));

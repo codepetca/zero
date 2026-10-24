@@ -103,8 +103,8 @@ export const lessons = [
   },
   {
     "id": "11",
-    encouragement: "You checked your component in both apps. Nice work!",
-    "title": "Improve and propose a component",
+    encouragement: "You checked a component and prepared a practice contribution!",
+    "title": "Practise sharing a component",
     "description": "Check a compatible improvement and write a contribution proposal.",
     "topic": "Compatibility, tests, reuse, credit, optional ZeroHub sharing",
     "doc": "components",

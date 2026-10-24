@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 import contracts from '../../extension/src/sharing/contracts.js';
 import sourceDiagnostics from '../../extension/src/sharing/source-diagnostics.js';
+import {releaseLink} from './sharing-client.mjs';
 import {CATALOG_TIMEOUT_MS, readPublicRegistry, readRegistryCatalog} from './sharing-catalog.mjs';
 
 export function parseIssue(value) {
@@ -91,7 +92,7 @@ export async function readRequestResults(issue, {env = process.env, fetchImpl = 
         const event = [...state.availability].reverse().find(value=>value.key===record.releaseKey);
         const status = event?.status || 'available';
         if (!['available','withdrawn'].includes(status) || release.status !== status) continue;
-        results[index] = {...results[index],status,message:messages[status],...(status==='available'?{releaseLink:`/hub?kind=${release.kind}&id=${encodeURIComponent(release.id)}&version=${release.version}`}:{})};
+        results[index] = {...results[index],status,message:messages[status],...(status==='available'?{releaseLink:releaseLink(release)}:{})};
       }
     }
     controller.signal.throwIfAborted();

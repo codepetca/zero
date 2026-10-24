@@ -8,13 +8,14 @@ Illustrations show the intended result; native controls vary by platform.
 | --- | --- | --- |
 | Greeting app | [0](00-hello-world.md), [1](01-hello-button.md), [2](02-hello-name.md) | Label → button → name input |
 | Study quiz | [3](03-quiz.md), [4](04-counter.md), [5](05-methods.md), [6](06-objects.md), [7](07-study-app.md) | One question → attempts → reset methods → Counter object → question array and scoring |
-| Coin game | [8](08-movement.md), [9](09-coin-game.md), [10](10-components.md), [11](11-zerohub.md), [12](12-media.md) | Player → coins/win/restart → refactor input and score display → improve/check/propose → optional media |
+| Coin game | [8](08-movement.md), [9](09-coin-game.md), [10](10-components.md), [11](11-zerohub.md), [12](12-media.md) | Player → coins/win/restart → refactor input and score display → improve/check/practise sharing → optional media |
 
 The intermediate steps stay in these same small projects. Lesson 10 refactors
 the Coin game’s busy Main into a PlayerInput helper, then reopens Study and Game
-to reuse ScoreDisplay. Lesson 11 practises compatible improvements and a local
-contribution proposal. Sharing is optional and uses
-an original project of your own, separate from these three practice folders.
+to reuse ScoreDisplay. Lesson 11 practises compatible improvements, then extracts
+a tiny CreditsBadge for the separate Tutorial practice area. Copies are expected.
+Sharing depends on hosted acceptance being enabled; local extraction/checking
+works while publication is paused. An optional extension proposes original work.
 Lesson 12 adds optional artwork/sound and a small scrolling extension; larger
 games are outside the core tutorial.
 
@@ -56,8 +57,8 @@ after compiler dependencies are cached.
 
 The only optional lesson download is the [image and sound ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip)
 in lesson12. You can use your own assets or keep the drawing fallback. Publishing
-a playable page is optional and explicit; it makes the app/assets public. ZeroHub
-contributions use separate original projects. See [repository setup](../../docs/COURSE-PROJECT.md#tutorial-repositories).
+a playable page is optional and explicit; it makes the app/assets public. The copied CreditsBadge has an explicit Tutorial practice path from the Coin
+repository. Ordinary ZeroHub contributions use separate original projects. See [repository setup](../../docs/COURSE-PROJECT.md#tutorial-repositories).
 
 ## Check your work
 

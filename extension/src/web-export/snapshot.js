@@ -119,7 +119,7 @@ async function captureBuildInputs(projectRoot) {
   }
   return {files,sourceHash:digest(files),libraries};
 }
-const browserExternalFiles=Object.freeze(['project-builder-format.js','core-contract.js','project-pom.js','sharing/contracts.js','sharing/authoring.js','sharing/consumer.js','sharing/jar.js','sharing/configuration.js']);
+const browserExternalFiles=Object.freeze(['project-builder-format.js','core-contract.js','project-pom.js','sharing/contracts.js','sharing/authoring.js','sharing/consumer.js','sharing/jar.js','sharing/configuration.js','sharing/tutorial-practice.js']);
 async function buildProfileHash(engineRoot=__dirname,{externalRoot=path.resolve(__dirname,'..'),coreContractPath=path.join(externalRoot,'core-contract.js')}={}) {
   const savedRoot=await savedEngineRoot(engineRoot);
   if(savedRoot)return digest((await readSavedBuilder(savedRoot)).files);

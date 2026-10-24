@@ -31,6 +31,7 @@ public class Main extends GameApp {
         score = new ScoreDisplay();
         score.setCaption("Score");
         message = new Label("");
+        var badge = new CreditsBadge("Coin game");
         soundStatus = new Label("");
         var restartButton = new Button("Restart");
         restartButton.onClick(() -> restart());
@@ -39,7 +40,7 @@ public class Main extends GameApp {
         artworkButton.onClick(() -> loadAssets());
         controls(new Column(8,
                 new Row(12, score.view(), soundStatus, message, restartButton),
-                new Row(12, artworkButton, assetStatus)));
+                new Row(12, artworkButton, assetStatus), badge.view()));
         restart();
     }
 

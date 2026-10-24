@@ -98,10 +98,12 @@ recorded separately in EVIDENCE. This does not publish or release the framework.
 The tutorial remains three small continuing projects: Greeting (0–2), Study
 (3–7), Coin (8–12). Intermediate lesson 10 explicitly refactors Main into a
 student-owned PlayerInput helper and the existing reusable ScoreDisplay. Lesson
-11 checks a compatible improvement, optionally adds WASD, and teaches an original
-community/core contribution proposal. Lesson 12 keeps optional media/scrolling;
+11 checks a compatible improvement, optionally adds WASD, and practises sharing a
+small CreditsBadge in a separate Tutorial practice area. An original community/core
+contribution proposal remains an optional extension. Lesson 12 keeps optional media/scrolling;
 larger reference games remain maintainer completeness checks. No new core Input
-class, required fourth tutorial project or public sharing action is introduced.
+class or required fourth tutorial project is introduced. Submitting practice work
+is explicit and remains gated by hosted library acceptance.
 
 ## Core goal: students grow the framework
 
@@ -307,9 +309,11 @@ reset methods, a Counter object, then Question objects/arrays and scoring. Lesso
 8–12 grow one Coin game with student-authored Player/Coin, win/restart, ScoreDisplay
 reuse, and optional media/scrolling. Lesson 10 extracts PlayerInput from a busy
 game Main, then reopens Study and Game to extract and reuse ScoreDisplay. Lesson
-11 practises compatible changes, optionally adds WASD controls, and records a
-community or core proposal in the existing project's README. Actual library
-sharing uses an original contribution with attribution, licensing and checks.
+11 practises compatible changes, optionally adds WASD controls, then extracts
+a harmless CreditsBadge for explicitly labelled Tutorial practice sharing. Copies
+are expected and excluded from ordinary catalogue search. An original community
+or core contribution remains an optional extension with attribution, licensing
+and checks.
 Lesson 12 adds optional artwork, sound and a small scrolling extension to the
 same Coin game. Larger game references are maintainer completeness checks,
 not additional tutorial requirements; see [basic games](BASIC-GAMES.md).
@@ -416,8 +420,9 @@ an existing standalone Git repository with a valid commit and GitHub origin;
 cloning the shared teacher template directly is rejected. These are local teaching
 checks, not cryptographic proof of a clone or online account ownership. Once cloned,
 Run works offline without an active GitHub session. Upload, branch changes and
-Publish use the ordinary live GitHub flow. ZeroHub contributions still require
-separate original work; lesson11 keeps that distinction. Legacy local-only
+Publish use the ordinary live GitHub flow. Ordinary ZeroHub contributions still require
+separate original work. Lesson11 allows only the reserved CreditsBadge library
+from the Coin tutorial into separate Tutorial practice discovery. Legacy local-only
 projects retain their old protection. No student project is silently rewritten.
 
 Canonical example sources live outside the starter's compiled source. ZeroHub
@@ -511,7 +516,9 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   and Merge to main remain direct actions. Simulation
   remains visibly labeled. ZeroHub offers Browse (Projects on
   the website, or native library browsing) and signed-in Share project for original
-  work. Tutorial repositories use GitHub normally but are not original ZeroHub contributions. Tutorials and Setup help live in the native view
+  work. Tutorial repositories use GitHub normally; copied tutorial work is not an original
+  community contribution. The reserved CreditsBadge has a separate practice-sharing
+  path from the Coin repository. Tutorials and Setup help live in the native view
   overflow; Copy repository link lives in the repository menu. **New ▾** opens a dropdown in the Zero controls with **New class…**, **New file…**,
   **New folder…**, **New asset…** and **Copy asset paths** after import. New class
   creates an ordinary public class beside Main; files/folders choose Java source,

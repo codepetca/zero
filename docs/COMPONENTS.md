@@ -202,3 +202,33 @@ A withdrawn release is visibly unavailable and cannot be added or downloaded
 through Zero; already installed local files are unchanged. Curation is separate
 from routine technical acceptance. See [the contribution policy](ZEROHUB-POLICY.md)
 and [development commands](DEVELOPMENT.md).
+
+## Tutorial practice
+
+Lesson 10 still extracts PlayerInput and ScoreDisplay to teach refactoring. It
+never asks every student to submit an input utility. Lesson 11 instead adds a
+small CreditsBadge and teaches extract → check → review submission → reuse with
+an explicitly copied exercise. The fixed `tutorial-credits-badge` library name
+places it in **Tutorial practice**, separate from ordinary community discovery.
+Copies are expected. One repository-derived practice library identity keeps its
+exact immutable versions; later submitted changes use a new version.
+
+Use the existing Coin tutorial repository, select only CreditsBadge for
+extraction and choose **UI component**. A valid current project automatically
+uses its project-owned Zero core contract. The lesson supplies a behaviour check
+and two finite examples using only Zero and standard Java. Check still compiles
+and runs against the independent actual library JAR. Browse another accepted
+badge through **Libraries and games → Browse tutorial practice → Add library →
+Apply**. The same reviewed dependency/hash/core checks apply to practice.
+
+Local implementation does not enable hosted publication. Library publication
+remains paused; finish extraction/checks/README locally and treat a form as a
+request until hosted acceptance is enabled and succeeds. Practice ownership,
+licensing and library execution restrictions match the normal pipeline.
+
+Teachers/maintainers can clear practice listings using the explicit preview and
+withdrawal command in [sharing operations](SHARING-OPERATIONS.md#clear-tutorial-practice-listings).
+This retains source/artifacts and existing installed copies. Fresh dependency
+operations still obey withdrawal rules; retained bytes do not guarantee a future
+online rebuild. An original useful component and eventual core proposal remain
+optional and use the ordinary community path with attribution and evidence.
