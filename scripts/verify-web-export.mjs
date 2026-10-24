@@ -123,9 +123,16 @@ async function fixture(name, example) {
   await fs.chmod(path.join(directory, 'mvnw'), 0o755);
   if (['counter','coin-game'].includes(name)) {
     await copyJavaSources(path.join(root, 'framework/prototypes', name), path.join(directory, 'src/main/java'));
-    const shared = await fs.readFile(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java'));
-    await fs.writeFile(path.join(directory, 'src/main/java/ScoreDisplay.java'), shared);
-    if (!(await fs.readFile(path.join(directory, 'src/main/java/ScoreDisplay.java'))).equals(shared)) throw new Error('Shared ScoreDisplay bytes differ.');
+    const sharedDirectory = path.join(root, 'framework/prototypes/shared');
+    const sharedNames = ['BarScoreDisplay.java', 'ScoreDisplay.java', 'ScoreView.java'];
+    const actualNames = (await fs.readdir(sharedDirectory)).filter(name => name.endsWith('.java')).sort();
+    if (actualNames.join(',') !== sharedNames.join(',')) throw new Error('Review the complete shared score source inventory before exporting prototypes.');
+    for (const filename of sharedNames) {
+      const shared = await fs.readFile(path.join(sharedDirectory, filename));
+      const destination = path.join(directory, 'src/main/java', filename);
+      await fs.writeFile(destination, shared);
+      if (!(await fs.readFile(destination)).equals(shared)) throw new Error('Shared score source bytes differ: ' + filename);
+    }
   } else if (name === 'zero-ui') {
     await fs.copyFile(path.join(root, 'framework/web-checks/navigation/Main.java'), path.join(directory, 'src/main/java/Main.java'));
   } else if (name === 'mobile') {

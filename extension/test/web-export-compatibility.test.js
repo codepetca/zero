@@ -45,6 +45,8 @@ test('dependency gate rejects unpinned, injected, inherited and profile dependen
   assert.throws(() => validateDependencies(pom.replace('<dependencies>', '<!-- fake <dependency> ignored -->\n<dependencies>').replace('org.openjfx', 'evil')), /browser dependency/);
 });
 test('all sixteen reviewed helper APIs and quiz, drawing, audio and controls retain resolved compatibility', { timeout: 240000 }, async () => {
+  const sharedScoreSources = await readSources(path.join(root, 'framework/prototypes/shared'));
+  assert.deepEqual(Object.keys(sharedScoreSources).sort(), ['BarScoreDisplay.java', 'ScoreDisplay.java', 'ScoreView.java']);
   const fixtures = [
     { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/Main.java'), 'utf8'), 'GameApiChecks.java': await fs.readFile(path.join(root, 'framework/web-checks/GameApiChecks.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'student-template/examples/quiz/Main.java'), 'utf8'), 'ScoreDisplay.java': await fs.readFile(path.join(root, 'student-template/examples/shared/ScoreDisplay.java'), 'utf8') },
@@ -52,8 +54,8 @@ test('all sixteen reviewed helper APIs and quiz, drawing, audio and controls ret
     { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/audio/Main.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/ui/Main.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/navigation/Main.java'), 'utf8') },
-    { ...await readSources(path.join(root, 'framework/prototypes/counter')), 'ScoreDisplay.java': await fs.readFile(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java'), 'utf8') },
-    { ...await readSources(path.join(root, 'framework/prototypes/coin-game')), 'ScoreDisplay.java': await fs.readFile(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java'), 'utf8') }
+    { ...await readSources(path.join(root, 'framework/prototypes/counter')), ...sharedScoreSources },
+    { ...await readSources(path.join(root, 'framework/prototypes/coin-game')), ...sharedScoreSources }
   ];
   for (const sources of fixtures) { const result = await check(sources); assert.equal(result.status, 'passed'); assert.equal(result.trustedHelpers.length, 16); }
 });
