@@ -1,69 +1,58 @@
 # Zero phased vision — current handoff
 
-## Active: live tutorial publication and browser sign-in — 2026-10-24
+## Live tutorial rollout accepted — 2026-10-24
 
-Latest verified source:01fa7d48 passes every selected GitHub CI gate, including
-native examples/lesson progression/site/package, real WebFX/browser, Windows and
-isolated Linux. The remaining six standalone check harnesses use pause rather
-than terminal stop; six actual Mac checks and the negative control pass, with
-clean Sol/high closure. No early terminal stops remain in the default checks.
-PR188 merge encountered concurrent approved PR191; integration396b1b61 preserves
-its profile-photo code exactly and unions both handoffs.205website tests/types/
-root and19independent auth tests pass; targeted compatibility review is clean.
-One cosmetic EOF blank line is removed here. New integration CI is required.
-Live browser sign-in and code fallback pass in Zero Dev. Greeting0–2 and Study3–7
-are pushed; game8–10, quiz score reuse and caption improvement pass WebFX UI.
-Lesson11 badge extraction/checking remains in progress. Full live proof is in
-.verification/live-tutorial-rollout/mac-walkthrough.json. Native releases held.
+The authorized template publication, browser sign-in activation and Mac walkthrough
+through lesson11's available local/preparation steps are complete. Native releases
+and hosted core-dependent library admission remain separate. Primary funding work
+was preserved; use this actor worktree and its retained proof directory.
 
-User authorizes publishing all3updatedtutorial templates, activating browser
-GitHub sign-in (website/Appcallback/config), then actualMacstudentUIwalkthrough
-throughlesson11. Native releases remain separate. Preserveprimarydirtyfundingwork.
-Source47ceccc6 independentlyreviewed/verified; integratingmainbcabc1f4 toretain
-8approvedHubmetrics/sidebar/account changes. ParentownsGit/docs/integration;
-Sol/highactivation_preflight owns4conflictfiles(sharingplatform/test,HubDiscovery,
-HubNavigation). Existingpublisherpolicyrevisions/gates/configs stayunchanged;
-schema2core-dependentadmissionremainsheld. Existingserversecretsreused, no values
-read. Addproductionflag+exactAppcallback onlyafterreviewedsource ready.
-TemplatePR1 ineachofgreeting/study/game merged; anonymous95-filearchivesverified
-andrecordedcommit/tree/scaffolddigestsupdated. Appdesktopcallbackaddedalongside
-existingHubcallback,wildcardsoff;productionflag/deployment/liveOAuthpending.
-Templatesandproofsinignoredlive-tutorial-rollout;native releasesheld.
-Approvedmain4333e110 profile-initial UI retainedexactly; no auth protocolchange.
-SourceprofileZeroDev retained. Local release metadata remains unchanged.
-All3templates publiclyverified; Appcallbacksavedandproductionflag1added.
-PR188sourcehead9bce780a reviewed CLEAN (Astrahighsecurity+Solhighcompat, one
-2docP3batch+targetedclosure);finalGitHubCI/deploy/liveOAuth/studentUIpending.
-PreviewHubnav/taglineverified;previewcatalogunconfigurederrorreportedaccurately.
-390e8972CIWindows/Linuxpass;sourcegatefoundZeroDev4-vs6classassemblergap.
-Fixadds2helpers+canonicalclassinventoryregressionandnext-framepre-focus-helper
-Restartassertion;actualfullDevsmoke/rootPASS,negativefocuscontrolfailscorrectly.
-Publictemplate/frameworkbytesunchanged;Devfix20b9291bSolhighclosureCLEAN.
-390browser10GWTbuilds/130ordinarychecksPASS,thenCACertsymlinksealfailed.
-8fafde02CI-onlybyteidenticalcacertssnapshot,JDK17+21;strictscannerunchanged.
-AstrahightargetedclosureCLEAN37tests+strictunrelatedlinkprobePASS.
-Ledger2initial+3targeted/3fixbatches;finalcorrectedCI/deploy/UIpending.
-Mavenrealmfixed619550 capturesactualexecutedpluginJARs/order,notdescriptors.
-35focusedtests/root/all7actualnativecasesPASS;isolatedPaddingwithoutunused
-commons-io2.2PASSandreceiptloads. Astrahightargeted4-fileclosureCLEAN.
-Ledger2initial+5targetedturns/4fixbatches;currentbrowser40130988588failure
-underinvestigation. PR188draftuntilfinalcorrectedCI. IsolatedbrokerPR190
-8425c52aSolhighintegrationCLEAN,19auth/189web/type/rootPASS;GitHubCIpending.
-No realnewbrowserOAuthornewstudentwalkthroughclaimyet;native releasesheld.
-PR190mergedb376a903/allselectedCIpassed;productionREADYandstart200/no-store.
-ActualMacbrowseraccountchooser(no code)→armorup→local431;notacceptedcomplete.
-CodefallbackcompletedliveandnewGreetingrepo/clonesucceeded. bb552fa9bounded
-64KiBheaderfixretains8KiBURL/allguards;42author/38independentauthPASS,Astra
-targetedCLEAN. Retrypending. bbdfkeysfix+71a77006cumulativeSolreviewCLEAN54tests;
-native193/193reloaded. Ledger2initial+6targeted+1integration/6fixbatches.
-ActualMacretryatbb552fa9PASS:accountchooser→armorup→ReturningtoZeroandeditor
-armorup/accountmenu;nocodeentered. CodefallbackalsolivePASS. Greeting0–2
-fresh-templateWebFXUIpassedandsourcepushedthroughZero. FreshStudycreated/cloned;
-fullquiz/game/lesson11walkthroughinprogress. Browser184fCI40133171869PASS.
-184frootnative/DevPASSthenoldfiniteexampleharnessstopdisabledRestart. ed3f9d87
-usespausefor4liveeventcases,retainsfinalstop;actual4examples+packagedproofPASS,
-oldstopnegativecontrolfails. SoltargetedCLEAN. Ledger2initial+7targeted+
-1integration/7fixbatches;correctedrootCIpending,nativereleasesheld.
+- Source PR188 merged atdd4368dd765603c90b276faf0cce4f9a0c0938fe. Its reviewed
+  head20c092d2 passes all selected CI: root/native/examples/lessons/site/package
+  40136183217, real WebFX/browser40136183105, Windows40136183121 and isolated
+  Linux40136183142. Approved main PR191 profile photos are retained exactly.
+- Broker PR190 merged atb376a903. The exact App callback and production flag are
+  active using existing server credentials. Actual Mac browser account selection
+  returns to Zero as armorup without a code; explicit code fallback also passes.
+  Native client delivery to existing installations awaits a separate release.
+- Greeting6c8bb13c, Study7abe7590 and Gameaed2f3e9 template publications each match
+  the reviewed95-file archive, bytes/modes and scaffold digest. Fresh student
+  repositories were created/cloned through Zero, edited by UI and pushed.
+- Actual WebFX UI covers lessons0–11: greeting input, quiz attempts/reset/classes/
+  completion, game movement/bounds/collection/win/Restart, PlayerInput refactor,
+  shared ScoreDisplay, compatible caption changes and CreditsBadge. Native Run
+  readiness and exact semicolon error navigation/recovery pass; no separate
+  native-window gameplay claim. Problems clear while the corrected game is ready.
+- Extracted tutorial-credits-badge0.1.0 uses
+  zero.contrib.r1432612868.tutorial_credits_badge. Check Library passed against
+  the separate JAR and two consumers. Extracted WebFX game wins with WASD/arrows
+  and restarts. README records proof/credit and optional original contribution.
+  The work branch was pushed/merged through Zero; public main isba4db04a253b3e74f6b8f5612df94668090ae327.
+- The exact-commit practice form opened successfully but was closed unsubmitted.
+  Live Tutorial practice discovery is separate and empty. No accepted listing,
+  classmate Add/Update/Revert, policy/config revision or release is claimed.
+
+Student repositories: armorup/zero-live-greeting-20261024 (59774687),
+armorup/zero-live-study-20261024 (7fbd5ae5), armorup/zero-live-coin-20261024
+(ba4db04a). Anonymous public reads confirm these UI-pushed heads.
+
+Proof: .verification/live-tutorial-rollout/mac-walkthrough.json,
+STUDENT-WALKTHROUGH.md, student-public-heads.json and retained screenshots/logs.
+Student actions used native editor/browser typing/clicking; comparison sources
+were copied through the editor. Maintainer deployment/build/publication checks
+are separate. Two operator file-picker recovery attempts are retained honestly.
+
+Known limit: embedded preview Cmd+A appended Alex to Sam instead of replacing it;
+external-browser comparison is still needed. Combined physical key chords,
+physical Windows/Safari, live forced-expiry refresh and school networks were not
+accepted by this Mac run. All test apps/temporary auth/form/gallery tabs were
+stopped/closed; the student GitHub Main tab and useful Zero Dev profile remain.
+
+Review coverage includes initial security/compatibility, targeted CI/auth fixes
+and integration syncs, with no unresolved findings. A cosmetic EOF blank line
+was removed and checked. The user's task-scoped budget-stop waiver remains;
+effective model/tokens/timing are unknown. The broader vision goal retains its
+separately gated external/physical acceptance; do not mark it complete here.
 
 ## Tutorial readiness and browser sign-in complete locally — 2026-10-24
 
