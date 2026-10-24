@@ -353,7 +353,7 @@ function activate(context, services = {}) {
         : new vscode.ProcessExecution(spec.command, spec.args, {cwd: root});
     // CustomExecution owns compiler diagnostics. A finite task matcher cannot
     // refresh them until the long-lived JavaFX process exits.
-    task = new vscode.Task(definition, scope, 'Run App', 'Zero', processExecution, transport ? [] : '$zero-java');
+    task = new vscode.Task(definition, scope, 'Run App', 'Zero', processExecution, transport ? [] : '$zero-java-fallback');
     metadata.custom=Boolean(transport);nativeTaskStates.set(task,metadata);
     nativeTaskStates.set(processExecution,metadata);
     if (transport) context.subscriptions.push(transport);

@@ -48,7 +48,7 @@ test('commands simulate upload without Git and native Run App tasks retain resta
   assert.equal(mutations,0,'Simulated publishing must not change Git or setup files');
   await commands.get('zero.runApp')();assert.equal(launches.length,1);assert.equal(saved,1);
   assert.equal(reloadIsBusy(),true,'A running Java task defers reload');
-  assert.deepEqual(launches[0].task.execution.args,['clean','compile','javafx:run']);assert.equal(launches[0].task.matcher,'$zero-java');
+  assert.deepEqual(launches[0].task.execution.args,['clean','compile','javafx:run']);assert.equal(launches[0].task.matcher,'$zero-java-fallback');
   await commands.get('zero.runApp')();assert.equal(launches.length,2);
   await commands.get('zero.stopApp')();
   assert.equal(reloadIsBusy(),false,'A completed task must not leave its resolved ending promise blocking update reload');

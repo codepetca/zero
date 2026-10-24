@@ -301,6 +301,16 @@
     "problemMatchers": [
       {
         "name": "zero-java",
+        "owner": "zero-native-task-compatibility",
+        "pattern": {
+          "regexp": "^(?!)()()()$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        }
+      },
+      {
+        "name": "zero-java-fallback",
         "owner": "java",
         "fileLocation": [
           "absolute"

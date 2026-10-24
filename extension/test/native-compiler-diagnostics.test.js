@@ -7,6 +7,17 @@ const root=path.resolve('student project');
 const file=path.join(root,'src/main/java/Main.java');
 const error=(name=file,line=22,column=50,message="';' expected")=>`[ERROR] ${name}:[${line},${column}] ${message}\n`;
 
+test('pinned configured matcher is inert under its own owner, while programmatic fallback still parses Maven',()=>{
+  const matchers=require('../package.json').contributes.problemMatchers;
+  const pinned=matchers.find(item=>item.name==='zero-java');
+  const fallback=matchers.find(item=>item.name==='zero-java-fallback');
+  assert.notEqual(pinned.owner,'java');assert.notEqual(pinned.owner,'zero-native-compiler');
+  const output=error().trimEnd();
+  assert.equal(new RegExp(pinned.pattern.regexp).test(output),false);
+  assert.equal(new RegExp(pinned.pattern.regexp).test(''),false);
+  assert.deepEqual(new RegExp(fallback.pattern.regexp).exec(output).slice(1),[file,'22','50',"';' expected"]);
+});
+
 test('split streams, CRLF, duplicates and unterminated final errors retain exact source links',()=>{
   const changes=[];const compiler=createNativeCompilerDiagnostics({root,onChange:items=>changes.push(items)});
   compiler.push(error().slice(0,20),'stdout');compiler.push('[INFO] working\n','stderr');

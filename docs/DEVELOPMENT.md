@@ -352,6 +352,13 @@ syntax error, following its Problems link, fixing it and running again: the old
 error must disappear before Stop. Runtime failures retain their separate
 diagnostic collection. The standalone “Run App without Zero” task keeps its own
 bundled matcher and is outside this editor-managed behavior.
+VS Code preserves configured matchers over a provider's resolved matcher, even
+when the provider returns an empty list. The legacy `$zero-java` name therefore
+remains as an inert compatibility matcher under a separate owner; existing Zero
+task files need no rewrite. Compiler Problems come from CustomExecution, available
+in all supported VS Code versions. The programmatic non-CustomExecution fallback
+uses `$zero-java-fallback`; a configured task on a host without CustomExecution
+does not gain that fallback matcher. The standalone inline matcher still works.
 
 The supported `zero.controls` webview in Explorer contains development controls
 and teaching helpers; native Explorer owns the file list. Native `zero.startPage`
