@@ -86,6 +86,30 @@ test('Coin movement and scoring lessons use Zero input, drawing and controls', (
     }
   }
 });
+test('shared component teaching path uses Zero views in both consumers', () => {
+  for (const id of [10, 11]) {
+    const sources = [];
+    for (const kind of ['study', 'game']) {
+      const directory = path.join(root, `teaching/checkpoints/${id}/${kind}`);
+      const main = readFileSync(path.join(directory, 'Main.java'), 'utf8');
+      const display = readFileSync(path.join(directory, 'ScoreDisplay.java'), 'utf8');
+      sources.push(display);
+      for (const text of [main, display]) assert.doesNotMatch(text, /import javafx\.|setOnAction|new VBox|new HBox|\.setDisable\(|answer\.clear\(|canvas\(\)\.requestFocus|setTextFill|setStyle/);
+      assert.match(display, /public Element view\(\)/);
+      assert.match(display, /import zero\.ui\.Label;/);
+      assert.match(main, /score\.setScore\(points\)/);
+      if (id === 11) {
+        assert.match(display, /void setCaption\(String caption\)/);
+        assert.match(main, /score\.setCaption\("Score"\)/);
+      }
+    }
+    assert.equal(sources[0], sources[1], 'Study and Game reuse the same component source');
+  }
+  for (const lesson of ['10-components', '11-zerohub']) {
+    const instructions = readFileSync(path.join(root, `student-template/lessons/${lesson}.md`), 'utf8');
+    assert.doesNotMatch(instructions, /import javafx\.|label\.setStyle|label\.setTextFill|setColor/);
+  }
+});
 test('optional asset archive contains only the two media resources', () => {
   const files=gameAssetFiles(root);
   assert.deepEqual(files.map(file=>file.path),['media-demo/player.png','media-demo/chime.wav']);

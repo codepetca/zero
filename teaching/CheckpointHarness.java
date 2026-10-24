@@ -67,7 +67,7 @@ public class CheckpointHarness extends Application {
     private static Label score(Main app) throws Exception {
         if (id.equals("7") || id.equals("9")) return (Label) node(field(app, "scoreLabel"));
         Object display = field(app, "score");
-        return (Label) display.getClass().getMethod("view").invoke(display);
+        return (Label) node(display.getClass().getMethod("view").invoke(display));
     }
 
     private static void checkGreeting(Main app, Stage stage) {
@@ -179,13 +179,27 @@ public class CheckpointHarness extends Application {
 
     private static void checkScoreDisplay(Main app) throws Exception {
         Object display = field(app, "score");
-        Label view = (Label) display.getClass().getMethod("view").invoke(display);
+        Label view = (Label) node(display.getClass().getMethod("view").invoke(display));
         Object second = display.getClass().getConstructor().newInstance();
-        Label secondView = (Label) second.getClass().getMethod("view").invoke(second);
+        Label secondView = (Label) node(second.getClass().getMethod("view").invoke(second));
         require(secondView != view && secondView.getText().equals("Score: 0"), "new display has its own view");
         second.getClass().getMethod("setScore", int.class).invoke(second, 9);
         require(secondView.getText().equals("Score: 9") && view.getText().equals("Score: 0"), "display instances update independently");
-        if (id.startsWith("11/") || id.startsWith("12/")) {
+        if (id.startsWith("11/")) {
+            second.getClass().getMethod("setCaption", String.class).invoke(second, "Coins");
+            require(secondView.getText().equals("Coins: 9") && view.getText().equals("Score: 0"),
+                    "caption changes preserve the latest score and independent instances");
+            second.getClass().getMethod("setScore", int.class).invoke(second, 4);
+            require(secondView.getText().equals("Coins: 4"), "later score keeps the selected caption");
+            try {
+                second.getClass().getMethod("setCaption", String.class).invoke(second, new Object[] {null});
+                throw new AssertionError("Null caption accepted");
+            } catch (java.lang.reflect.InvocationTargetException failure) {
+                require(failure.getCause() instanceof IllegalArgumentException
+                        && failure.getCause().getMessage().toLowerCase().contains("caption"), "useful null caption error");
+            }
+            require(secondView.getText().equals("Coins: 4"), "invalid caption preserves the displayed value");
+        } else if (id.startsWith("12/")) {
             second.getClass().getMethod("setColor", Color.class).invoke(second, Color.DARKSLATEBLUE);
             require(secondView.getTextFill().equals(Color.DARKSLATEBLUE), "setColor changes display text color");
         }
