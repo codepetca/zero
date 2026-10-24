@@ -2,6 +2,20 @@
 
 ## Active: live tutorial publication and browser sign-in — 2026-10-24
 
+Latest verified source:01fa7d48 passes every selected GitHub CI gate, including
+native examples/lesson progression/site/package, real WebFX/browser, Windows and
+isolated Linux. The remaining six standalone check harnesses use pause rather
+than terminal stop; six actual Mac checks and the negative control pass, with
+clean Sol/high closure. No early terminal stops remain in the default checks.
+PR188 merge encountered concurrent approved PR191; integration396b1b61 preserves
+its profile-photo code exactly and unions both handoffs.205website tests/types/
+root and19independent auth tests pass; targeted compatibility review is clean.
+One cosmetic EOF blank line is removed here. New integration CI is required.
+Live browser sign-in and code fallback pass in Zero Dev. Greeting0–2 and Study3–7
+are pushed; game8–10, quiz score reuse and caption improvement pass WebFX UI.
+Lesson11 badge extraction/checking remains in progress. Full live proof is in
+.verification/live-tutorial-rollout/mac-walkthrough.json. Native releases held.
+
 User authorizes publishing all3updatedtutorial templates, activating browser
 GitHub sign-in (website/Appcallback/config), then actualMacstudentUIwalkthrough
 throughlesson11. Native releases remain separate. Preserveprimarydirtyfundingwork.
@@ -335,4 +349,3 @@ Next: website tests/build/root checks; Playwright real public-avatar load,
 loading/error fallback, account switch, sign-out, light/dark/mobile checks;
 one independent standard-risk UI review, PR/CI/merge and production verification.
 Evidence stays in .verification/zerohub-profile-photo/ and output/playwright/.
-

@@ -2,6 +2,17 @@
 
 ## Authorized tutorial publication and sign-in activation — 2026-10-24
 
+Final source01fa7d48 passes all selected CI gates: root/native/examples/lessons/
+website/package40135021342, WebFX/browser40135018654, Windows40135018544 and
+isolated Linux40135018583. The final six standalone harness corrections passed
+all six actual Mac checks and an old-stop negative control, with independent
+Sol/high closure. Framework/Main/public template bytes remain unchanged by them.
+The attempted merge met concurrent main PR191 profile-photo changes. Integration
+396b1b61 retains incoming AccountMenu source/CSS byte-for-byte and preserves both
+handoffs.205website tests/types/root and19independent auth tests PASS; complete
+Sol/high five-file compatibility review has only an extra EOF blank line, removed
+in this documentation receipt. New exact-head CI remains required. No release.
+
 Owner authorizes the three template publications, browser sign-in activation and
 real Mac student walkthrough through lesson11; native releases remain separate.
 All3template PR1s merged after independent Sol/medium artifact review CLEAN:
