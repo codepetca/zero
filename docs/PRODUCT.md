@@ -113,7 +113,8 @@ verification records stay in repository documentation. Legacy `/docs/...` guide
 bookmarks lead to the corresponding tutorial, help, teacher or repository page.
 ZeroHub opens Projects by default and has only Projects and Libraries in its
 catalog navigation. Share your work sits alongside those filters on the same
-toolbar. The title has no subtitle or account row; the search field contains a
+toolbar, with a purple-tinted fill and stronger border to distinguish sharing
+from the filters. The title has no subtitle or account row; the search field contains a
 magnifying glass and the placeholder “search zerohub”, with an accessible name.
 Drawing Pad is a
 maintained Codepet project backed by `codepetca/zero-drawing-pad`, shown alongside
