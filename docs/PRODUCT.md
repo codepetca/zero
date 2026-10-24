@@ -112,10 +112,12 @@ notes and the classroom pilot live under `/teachers`. Product, development and
 verification records stay in repository documentation. Legacy `/docs/...` guide
 bookmarks lead to the corresponding tutorial, help, teacher or repository page.
 ZeroHub opens Projects by default and has only Projects and Libraries in its
-catalog navigation. Share your work sits alongside those filters on the same
-toolbar, with a purple-tinted fill and stronger border to distinguish sharing
-from the filters. The title has no subtitle or account row; the search field contains a
-magnifying glass and the placeholder “search zerohub”, with an accessible name.
+catalog navigation. A desktop sidebar contains the ZeroHub title, search field,
+Share your work and Projects/Libraries filters, in that order. The gallery sits
+in the right pane. On narrow screens the controls stack above the gallery.
+Sharing keeps its purple-tinted fill and stronger border. The title has no
+subtitle or account row; search keeps its magnifying glass, accessible name and
+“search zerohub” placeholder.
 Drawing Pad is a
 maintained Codepet project backed by `codepetca/zero-drawing-pad`, shown alongside
 community projects with a tiny description, square screenshot and GitHub source.

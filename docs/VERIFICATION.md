@@ -1,5 +1,22 @@
 # Verification
 
+## ZeroHub sidebar layout — 2026-10-24
+
+Desktop discovery now places the title, search, purple Share action and vertical
+Projects/Libraries filters in a sticky 240px sidebar, with the gallery at right.
+At 800px and below, the controls stack above the cards. Existing card, identity,
+metrics and exact-release semantics remain intact.
+
+All 177 website tests, production build (including TypeScript), root checks and
+whitespace checks pass. Chromium production-build fixtures verify 1280px
+light/dark two-pane placement with 304px square cards; 320px/390px stacked
+controls; 801px sidebar reflow; no horizontal overflow; at least 44px controls;
+Search → Share → Projects keyboard order; search filtering, Libraries selection,
+withdrawn exact-release selection without substitution, and details/Escape focus
+restoration. No real auth, star or Play writes. Physical Safari/touch and text
+enlargement were not reverified. Review/CI/live receipts are in the PR handoff
+and ignored .verification/zerohub-sidebar/.
+
 ## ZeroHub sharing action emphasis — 2026-10-24
 
 Share your work now uses the existing purple token for a tinted fill, border

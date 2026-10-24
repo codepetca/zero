@@ -276,8 +276,10 @@ Legacy guide routes resolve through `website/lib/document-navigation.mjs`,
 including chapter bookmarks. Keep migrated destinations and anchors covered by
 `website/tests/document-navigation.test.mjs`. Source guides remain in the kit and
 repository for older links and advanced contributor reference.
-ZeroHub opens Projects by default, with Projects/Libraries and Share your work
-on the same toolbar, followed by a search field with an inset magnifying glass. Maintained project metadata lives in website/content/projects.json;
+ZeroHub opens Projects by default. Its desktop sidebar contains the title,
+search, Share your work and Projects/Libraries filters; the gallery is on the
+right. At 800px and below controls stack above the gallery. Search keeps an inset
+magnifying glass. Maintained project metadata lives in website/content/projects.json;
 Drawing Pad links to the verified codepetca repository and an actual square
 browser screenshot. It has no Play URL until public hosting is verified.
 Maintained entries are independent of community admission and remain visible

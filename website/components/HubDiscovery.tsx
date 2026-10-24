@@ -84,10 +84,15 @@ export function HubDiscovery() {
     if(placement==='details')return <HubProjectInfo title={entry.title} available={observed?.site.status==='reachable'}><HubProjectDetails {...entry} feedback={observed} description={description}>{identity}</HubProjectDetails></HubProjectInfo>;
     return <HubProjectFeedback {...entry} kind={kind} compact={kind==='game'} feedback={observed} metric={projectMetric(entry.id)}>{identity}</HubProjectFeedback>;
   };
-  return <section className={styles.catalog} aria-labelledby="sharing-heading">
+  return <div className={styles.workspace}>
+    <aside className={styles.sidebar} aria-label="ZeroHub discovery">
+      <h1>ZeroHub</h1>
+      {!id && !version && <div className={styles.search}><Icon name="search" /><input id="sharing-search" type="search" aria-label="Search ZeroHub" value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder="search zerohub" /></div>}
+      <HubNavigation active={kind} />
+    </aside>
+    <section className={styles.catalog} aria-labelledby="sharing-heading">
     <h2 id="sharing-heading" className="sr-only">{kind === 'game' ? 'Projects' : 'Libraries'}</h2>
-    <HubNavigation active={kind} />
-    {id || version ? <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {kind==='game'?'projects':'libraries'}</Link></p> : <div className={styles.search}><Icon name="search" /><input id="sharing-search" type="search" aria-label="Search ZeroHub" value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder="search zerohub" /></div>}
+    {(id || version) && <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {kind==='game'?'projects':'libraries'}</Link></p>}
     <div className={`${styles.cards}${kind==='game'?` ${styles.projectCards}`:''}`}>
     {projects.map(project => <HubProjectCard projectId={project.id} key={project.id} title={project.title} description={projectSummary(project.description)} author={project.author}
       compact siteReachable={feedback[project.id]?.repositoryUrl===project.repositoryUrl && feedback[project.id]?.site.status==='reachable'} image={project.image} playHref={maintainedPlayLink(project)} repositoryHref={project.repositoryUrl} feedback={projectFeedback({id:project.id,title:project.title,repositoryHref:project.repositoryUrl,playHref:maintainedPlayLink(project),sourceCommit:project.sourceCommit})} />)}
@@ -105,5 +110,6 @@ export function HubDiscovery() {
       </HubProjectCard>)}
     </>}
     </div>
-  </section>;
+    </section>
+  </div>;
 }
