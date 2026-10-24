@@ -16,7 +16,7 @@ test('every class-level public/protected Java declaration has an exact canonical
     const source = await readFile(new URL(`../../framework/src/main/java/zero/${owner.replace(/^zero\./, '').replaceAll('.', '/')}.java`, import.meta.url), 'utf8');
     if (owner === 'Key') {
       const constants = [...source.matchAll(/^    ([A-Z]+)\(KeyCode\.[A-Z]+\)[,;]/gm)].map(match => match[1]);
-      assert.deepEqual(constants, ['LEFT', 'RIGHT', 'UP', 'DOWN']);
+      assert.deepEqual(constants, ['LEFT', 'RIGHT', 'UP', 'DOWN', 'W', 'A', 'S', 'D', 'SPACE', 'ENTER', 'ESCAPE', 'R']);
       for (const name of constants) expected.push(`Key:Key ${name}`);
     }
     for (const match of source.matchAll(/^ {4}public (static final \w+ \w+)\s*=/gm)) {
@@ -27,7 +27,7 @@ test('every class-level public/protected Java declaration has an exact canonical
       expected.push(`${owner}:${normalizeSignature(match[1])}`);
     }
   }
-  assert.equal(expected.length, 183);
+  assert.equal(expected.length, 193);
   assert.deepEqual(entries.map(item => `${item.owner}:${normalizeSignature(item.signature)}`).sort(), expected.sort());
   assert.ok(!entries.some(item => item.name === 'handle'));
   assert.equal(JSON.parse(JSON.stringify(categories)).length, 15);
@@ -85,8 +85,8 @@ test('keeps canonical class defaults, constructors and lifecycle caveats', () =>
 
 test('search handles aliases, case, multiple terms, whitespace and empty results', () => {
   const search = query => searchApiReference(categories, query);
-  assert.equal(search('').length, 183);
-  assert.equal(search(' \n\t ').length, 183);
+  assert.equal(search('').length, 193);
+  assert.equal(search(' \n\t ').length, 193);
   assert.ok(search('KEYBOARD').some(item => item.id === 'keyDown'));
   assert.deepEqual(search('rectangle').slice(0, 2).map(item => item.id), ['rect', 'outlineRect']);
   assert.ok(search('mouse').some(item => item.id === 'mouseDown'));
@@ -108,7 +108,7 @@ test('search accepts method labels and ranks names before prose with stable ties
   assert.equal(ids('circle()')[0], 'circle');
   assert.equal(ids('  CiRcLe ( )  ')[0], 'circle');
   assert.deepEqual(ids('image'), ids('image()'));
-  assert.deepEqual(ids('mouse').slice(0, 3), ['mouseX', 'mouseY', 'mouseDown']);
+  assert.deepEqual(ids('mouse').slice(0, 3), ['mouseX', 'mouseY', 'mouseDown-primary']);
   assert.deepEqual(ids('circle() filled'), ['circle', 'actor-circle']);
   assert.ok(ids('circle() rectangle').every(id => id.startsWith('collisions-')));
   assert.deepEqual(ids(''), entries.map(item => item.id));
@@ -383,8 +383,8 @@ test('all Zero elements inherit the one availability operation without extra que
 
 
 test('Zero arrows and Row have exact owners, overload anchors and explicit constant coverage', () => {
-  assert.deepEqual(entries.filter(item => item.owner === 'Key').map(item => item.name), ['LEFT', 'RIGHT', 'UP', 'DOWN']);
-  for (const key of ['LEFT', 'RIGHT', 'UP', 'DOWN']) {
+  assert.deepEqual(entries.filter(item => item.owner === 'Key').map(item => item.name), ['LEFT', 'RIGHT', 'UP', 'DOWN', 'W', 'A', 'S', 'D', 'SPACE', 'ENTER', 'ESCAPE', 'R']);
+  for (const key of ['LEFT', 'RIGHT', 'UP', 'DOWN', 'W', 'A', 'S', 'D', 'SPACE', 'ENTER', 'ESCAPE', 'R']) {
     assert.equal(entry(`key-${key}`).signature, `static final Key ${key}`);
     assert.equal(entry(`key-${key}`).kind, 'field');
   }
@@ -411,4 +411,12 @@ test('animation interfaces and actor sequencing have exact documented owners and
   assert.match(entry('actor-onUpdate').note,/without a super call/);
   assert.match(entry('actor-constructor-source').description,/independent playback/);
   assert.match(entry('actor-setImage-source').description,/before replacing/);
+});
+
+test("primary pointer overloads have Zero-only examples and distinct anchors", () => {
+  for (const method of ["mouseDown", "mousePressed"]) {
+    assert.equal(entry(`${method}-primary`).parameters.length, 0);
+    assert.match(entry(`${method}-primary`).example, new RegExp(method + "\\(\\)"));
+    assert.equal(entry(method).parameters[0].type, "MouseButton");
+  }
 });

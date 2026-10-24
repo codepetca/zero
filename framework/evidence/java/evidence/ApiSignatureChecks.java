@@ -148,6 +148,30 @@ public final class ApiSignatureChecks {
             eq("zero.GameApp#keyPressed(zero.Key)","key-edge-zero","Zero left key observes the same non-consuming frame edge",()->""+app.keyPressed(Key.LEFT),"true");
         }
     }
+    private static final boolean[] actionObserved = new boolean[8];
+    public static void actionKeys(GameApp app, int index) {
+        if (actionObserved[index]) return;
+        actionObserved[index] = true;
+        if(index==0)eq("zero.Key#W:zero.Key","key-constant-W","W constant observes its dispatched press edge",()->""+app.keyPressed(Key.W),"true");
+        if(index==1)eq("zero.Key#A:zero.Key","key-constant-A","A constant observes its dispatched press edge",()->""+app.keyPressed(Key.A),"true");
+        if(index==2)eq("zero.Key#S:zero.Key","key-constant-S","S constant observes its dispatched press edge",()->""+app.keyPressed(Key.S),"true");
+        if(index==3)eq("zero.Key#D:zero.Key","key-constant-D","D constant observes its dispatched press edge",()->""+app.keyPressed(Key.D),"true");
+        if(index==4)eq("zero.Key#SPACE:zero.Key","key-constant-SPACE","SPACE constant observes its dispatched press edge",()->""+app.keyPressed(Key.SPACE),"true");
+        if(index==5)eq("zero.Key#ENTER:zero.Key","key-constant-ENTER","ENTER constant observes its dispatched press edge",()->""+app.keyPressed(Key.ENTER),"true");
+        if(index==6)eq("zero.Key#ESCAPE:zero.Key","key-constant-ESCAPE","ESCAPE constant observes its dispatched press edge",()->""+app.keyPressed(Key.ESCAPE),"true");
+        if(index==7)eq("zero.Key#R:zero.Key","key-constant-R","R constant observes its dispatched press edge",()->""+app.keyPressed(Key.R),"true");
+    }
+    private static boolean primaryHeldObserved, primaryEdgeObserved;
+    public static void primaryPointer(GameApp app, boolean edge) {
+        if (!edge && !primaryHeldObserved) {
+            primaryHeldObserved = true;
+            eq("zero.GameApp#mouseDown()","primary-held","Zero primary pointer query observes the held canvas press",()->""+app.mouseDown(),"true");
+        }
+        if (edge && !primaryEdgeObserved) {
+            primaryEdgeObserved = true;
+            eq("zero.GameApp#mousePressed()","primary-edge","Zero primary pointer query observes a non-consuming frame edge",()->""+(app.mousePressed() && app.mousePressed()),"true");
+        }
+    }
     public static void held(GameApp app) {
         if(heldObserved)return;heldObserved=true;
         eq("zero.GameApp#keyDown(javafx.scene.input.KeyCode)","key-held-fx","JavaFX left key reports a real currently held press",()->""+app.keyDown(javafx.scene.input.KeyCode.LEFT),"true");

@@ -10,16 +10,16 @@ import {inventoryDeclarations,validateSignatureManifest,assertInventoryParity,va
 const root=fileURLToPath(new URL('../',import.meta.url));
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'framework/evidence/api-signatures.json'),'utf8'));
 const jdk=path.join(os.homedir(),'Library/Application Support/Zero/runtime/jdk-3623232f33a9c3baadf304480b2535f9a3cba8a58d42ecbb438ba267315d9998/jdk-21.0.12.1+1/Contents/Home');
-test('semantic inventory is exact across 18 owners and 183 source declarations',t=>{
+test('semantic inventory is exact across 18 owners and 193 source declarations',t=>{
  if(!fs.existsSync(path.join(jdk,'bin/java'))){t.skip('Verified cached JDK21 is unavailable; no download attempted.');return;}
- const actual=inventoryDeclarations({javaHome:jdk});assert.equal(actual.signatures.length,183);assert.equal(new Set(actual.signatures.map(entry=>entry.owner)).size,18);assertInventoryParity(actual,manifest);
- assert.equal(actual.signatures.filter(entry=>entry.kind==='enum-constant').length,4);
+ const actual=inventoryDeclarations({javaHome:jdk});assert.equal(actual.signatures.length,193);assert.equal(new Set(actual.signatures.map(entry=>entry.owner)).size,18);assertInventoryParity(actual,manifest);
+ assert.equal(actual.signatures.filter(entry=>entry.kind==='enum-constant').length,12);
  assert.equal(actual.signatures.filter(entry=>entry.owner==='zero.Color'&&entry.kind==='field').length,4);
  assert.ok(!actual.signatures.some(entry=>entry.owner.includes('$')||entry.owner.includes('SpriteAnimation.Playback')||entry.signature==='values()'||entry.signature==='valueOf(java.lang.String)'));
  assert.ok(actual.signatures.some(entry=>entry.signature==='<init>(double,zero.ImageRegion...)'));
  assert.ok(actual.signatures.some(entry=>entry.id==='zero.Actor#onUpdate(double)'&&entry.modifiers.includes('protected')));
 });
-test('recorded manifest reports 366 explicit target gaps rather than count-based success',()=>{validateSignatureManifest(manifest);const report=validateEvidenceReceipts({manifest});assert.equal(report.status,'pending');assert.equal(report.requiredTargets,366);assert.equal(report.coveredTargets,0);assert.equal(report.gaps.length,366);for(const item of [...nativeCases,...browserCases]){assert.ok(fs.existsSync(path.join(root,item.fixture)));assert.ok(fs.existsSync(path.join(root,item.harness)));}});
+test('recorded manifest reports 386 explicit target gaps rather than count-based success',()=>{validateSignatureManifest(manifest);const report=validateEvidenceReceipts({manifest});assert.equal(report.status,'pending');assert.equal(report.requiredTargets,386);assert.equal(report.coveredTargets,0);assert.equal(report.gaps.length,386);for(const item of [...nativeCases,...browserCases]){assert.ok(fs.existsSync(path.join(root,item.fixture)));assert.ok(fs.existsSync(path.join(root,item.harness)));}});
 test('inventory parity rejects changed bodies, signature hashes and omitted declarations',()=>{for(const alter of [copy=>copy.sources[0].sha256='0'.repeat(64),copy=>copy.signatures[0].declarationSha256='0'.repeat(64),copy=>copy.signatures.pop()]){const copy=structuredClone(manifest);alter(copy);assert.throws(()=>assertInventoryParity(manifest,copy),/stale/);}});
 async function receiptFixture(){
  const input=structuredClone(manifest),entry=input.signatures[0],caseId=nativeCases[0].id,assertionId='unit-only-postcondition',postcondition='Synthetic unit observation equals 42 (not framework execution evidence)';
@@ -37,7 +37,7 @@ test('recorder emits outcomes only after invocation and a meaningful postconditi
  assert.deepEqual(events,['invoke','assert']);assert.deepEqual(records.map(record=>record.phase),['invoked','asserted']);
  await assert.rejects(recorder.observe({signatureId:'zero.X#f()',declarationSha256:'0'.repeat(64),assertionId:'fail',postcondition:'fails',invoke:()=>3,assert:()=>false}),/did not pass/);
 });
-test('valid ordered receipt covers only its mapped declaration and target',async()=>{const report=validateEvidenceReceipts(await receiptFixture());assert.equal(report.coveredTargets,1);assert.equal(report.gaps.length,365);assert.equal(report.status,'pending');});
+test('valid ordered receipt covers only its mapped declaration and target',async()=>{const report=validateEvidenceReceipts(await receiptFixture());assert.equal(report.coveredTargets,1);assert.equal(report.gaps.length,385);assert.equal(report.status,'pending');});
 test('forged, stale, duplicate, conflicting and incomplete receipts are rejected',async()=>{
  for(const mutate of [
   fixture=>fixture.receipts.push(structuredClone(fixture.receipts[0])),
@@ -56,7 +56,7 @@ test('report is useful while require-complete fails the explicit gaps',()=>{cons
 
 test('Java probes map exact declarations idempotently without claiming execution',async()=>{
  const {mapJavaProbeAssertions}=await import('./api-evidence.mjs');const input=structuredClone(manifest);mapJavaProbeAssertions(input);assert.deepEqual(mapJavaProbeAssertions(input),input);
- const mapped=input.signatures.filter(entry=>entry.evidence.native.length);assert.equal(mapped.length,183);assert.equal(input.signatures.filter(entry=>entry.evidence.browser.length).length,183);
+ const mapped=input.signatures.filter(entry=>entry.evidence.native.length);assert.equal(mapped.length,193);assert.equal(input.signatures.filter(entry=>entry.evidence.browser.length).length,193);
  assert.equal(validateEvidenceReceipts({manifest:input}).coveredTargets,0);
 });
 test('actual Java collector emits only ordered completed postconditions and refuses duplicates',t=>{

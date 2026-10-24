@@ -182,6 +182,7 @@ export function buildApiReference(markdown) {
       : owner === 'Actor' && name === 'draw' && parameters.length === 0 ? 'actor-draw-callback'
       : categoryId === 'game-flow' ? `gameapp-${name}`
       : uiHelper ? `ui-${className.toLowerCase()}-${name === className ? `constructor${sourceType === 'double' ? '-spacing' : ''}` : name}`
+      : owner === 'GameApp' && ['mouseDown', 'mousePressed'].includes(name) && parameters.length === 0 ? `${name}-primary`
       : owner === 'Key' ? `key-${name}`
       : ['keyDown', 'keyPressed'].includes(name) && sourceType === 'Key' ? `${name}-zero-key`
       : owner === 'Color' ? `color-${name}`
@@ -288,13 +289,18 @@ export function buildApiReference(markdown) {
     if (owner === 'Key') {
       entry.example = `if (keyDown(Key.${name})) { /* Move your object explicitly. */ }`;
       entry.related = ['keyDown-zero-key', 'keyPressed-zero-key'];
-      entry.note = 'Zero arrow enum constant; no JavaFX import. Only these four constants and the documented queries are admitted by the browser profile.';
+      entry.note = 'Zero keyboard enum constant; no JavaFX import. Only the documented constants and queries are admitted by the browser profile.';
     }
     if (owner === 'GameApp' && sourceType === 'Key') {
       entry.example = `if (${name}(Key.LEFT)) { /* Move your object explicitly. */ }`;
-      entry.parameters[0].description = 'Non-null Zero Key arrow constant.';
+      entry.parameters[0].description = 'Non-null Zero Key constant.';
       entry.related = ['key-LEFT', name === 'keyDown' ? 'keyPressed-zero-key' : 'keyDown-zero-key'];
       entry.note = 'Shares the existing canvas-owned input state. Focus loss clears held keys and pending edges; controls retain their own keyboard input.';
+    }
+    if (id === 'mouseDown-primary' || id === 'mousePressed-primary') {
+      entry.example = `if (${name}()) { /* Use mouseX() and mouseY() for your game. */ }`;
+      entry.note = 'Primary pointer input without a JavaFX import; shares existing canvas focus and non-consuming edge rules.';
+      entry.related = ['mouseX', 'mouseY', name];
     }
     if (owner === 'Color') {
       entry.example = field ? `fill(zero.Color.${name});` : 'fill(zero.Color.rgb(80, 120, 200));';
@@ -327,8 +333,8 @@ export function buildApiReference(markdown) {
   }
   for (const category of categories) category.notes = noteLines[category.id].join('\n').trim();
   const entries = categories.flatMap(category => category.entries);
-  if (seenSections.size !== 25 || entries.length !== 183 || categories.some(category => !category.entries.length)) {
-    throw new Error(`Incomplete API reference: expected twenty-five sections and 183 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
+  if (seenSections.size !== 25 || entries.length !== 193 || categories.some(category => !category.entries.length)) {
+    throw new Error(`Incomplete API reference: expected twenty-five sections and 193 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
   }
   const ids = new Set(categories.map(category => category.id));
   for (const entry of entries) {
@@ -344,7 +350,7 @@ export function buildApiReference(markdown) {
 const aliases = {
   showGame: 'navigation screen title help results replay retained canvas hud', pause: 'game gameplay freeze updates explicit pause', resume: 'game gameplay continue unpause clock input', isPaused: 'game gameplay explicit pause state',
   Element: 'zero ui component reusable view JavaFX bridge', Label: 'zero ui component text', TextField: 'zero ui component input text prompt typing greeting', Button: 'zero ui component click callback action', Column: 'zero ui component vertical layout spacing', Row: 'zero ui component horizontal layout spacing hud',
-  Key: 'zero arrow keyboard input enum',
+  Key: 'zero keyboard movement action space enter escape input enum',
   setEnabled: 'enabled disabled interaction availability quiz answer controls',
   onClick: 'click callback action Runnable lambda', controls: 'game hud panel live canvas', fxNode: 'advanced JavaFX interoperability node bridge', rgb: 'color colour red green blue channels',
   draw: 'render actor callback local shape sprite',

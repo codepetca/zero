@@ -2,12 +2,20 @@ package zero;
 
 import javafx.scene.input.KeyCode;
 
-/** The four arrow keys available to ordinary Zero game input. */
+/** Common movement and action keys for ordinary Zero game input. */
 public enum Key {
     LEFT(KeyCode.LEFT),
     RIGHT(KeyCode.RIGHT),
     UP(KeyCode.UP),
-    DOWN(KeyCode.DOWN);
+    DOWN(KeyCode.DOWN),
+    W(KeyCode.W),
+    A(KeyCode.A),
+    S(KeyCode.S),
+    D(KeyCode.D),
+    SPACE(KeyCode.SPACE),
+    ENTER(KeyCode.ENTER),
+    ESCAPE(KeyCode.ESCAPE),
+    R(KeyCode.R);
 
     private final KeyCode keyCode;
 

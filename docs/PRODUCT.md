@@ -86,6 +86,15 @@ Native physical play, installation, physical Windows, novice use, authenticated
 GitHub/hosted sharing and publication remain separately unproven. Local completion
 is distinct from release and live-service acceptance.
 
+## Basic game completeness pass
+
+The local [three-game pass](BASIC-GAMES.md) adds Zero/standard-Java-only Pong,
+a collector/shooter and a fixed-screen platformer. Movement/action key constants
+and primary pointer overloads remove the demonstrated input enum gaps. The core
+now declares 193 public/protected entries; prior 183/366 evidence above belongs to
+its earlier exact revision. Current scoped input and game behavior proof is
+recorded separately in EVIDENCE. This does not publish or release the framework.
+
 ## Core goal: students grow the framework
 
 Owner direction,2026-10-23: students should learn to build, extend and improve

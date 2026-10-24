@@ -39,14 +39,28 @@ and [GameApp source](src/main/java/zero/GameApp.java). Use these classes for
 startup, drawing and input; use ordinary Java for your app's objects and rules.
 The source is the authority if you change your local framework.
 
-## Arrow input and a live control row
+## Complete Zero-only games
+
+Three worked games use Zero and standard Java throughout their student code:
+[Pong](examples/zero-pong/README.md), [Collector](examples/zero-collector/README.md)
+and [Sky Steps](examples/zero-platformer/README.md). Each has a title, live HUD,
+pause/resume, restart and win/loss rules. They need this current source API, not
+an older published kit. Start by changing an actor or one game rule; keep the
+framework game loop and explicit updates.
+
+## Game input and a live control row
 
 For the Coin game, import `zero.Key` and use `keyDown(Key.LEFT)`, RIGHT, UP and
-DOWN to read held arrows in update. `keyPressed(Key.LEFT)` reports a new press
+DOWN to read held arrows in update. W, A, S and D are also available. Use
+`keyPressed(Key.SPACE)` for a jump or shot, ENTER to confirm, ESCAPE to pause
+and R to restart when your game defines those rules. Zero reports input; it does
+not assign game actions automatically. `keyPressed(Key.LEFT)` reports a new press
 for one update/draw frame. Reading it twice does not consume it; holding a key
 does not repeat the edge. Null keys produce a useful NullPointerException.
 Canvas or window focus loss clears held and edge input; typing in a UI control
-belongs to that control. Other JavaFX KeyCode overloads remain an advanced path.
+belongs to that control. Use `mouseDown()` or `mousePressed()` for the primary pointer button, alongside
+`mouseX()` and `mouseY()`. No JavaFX import is needed. JavaFX KeyCode and
+MouseButton overloads remain an advanced path.
 
 `zero.ui.Row` places its Elements horizontally, with default 8-pixel spacing or
 an explicit gap such as `new Row(12, scoreLabel, message, restartButton)`. Use

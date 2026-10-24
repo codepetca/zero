@@ -1,5 +1,67 @@
 # Delivery evidence index
 
+## Zero-only basic games — 2026-10-24
+
+The owner authorized Pong, a top-down collector/shooter and a small platformer,
+using Zero/standard Java only, fixing demonstrated API gaps and checking real
+WebFX output. Publishing/releases remain separate. Work is confined to the actor
+worktree, base c5374ddc. Three Sol/high workers each wrote one game and one finite
+native check; parent owns shared API/docs/tooling/integration. Effective worker
+configuration and task token costs are unknown. Storage259GB healthy; account
+weekly70%remaining at start is not task cost. DeepSeek remains paused.
+
+All twelve student Java files contain no toolkit imports/references or advanced
+canvas/layout/graphics/node bridge calls. A source-boundary regression is included
+in ordinary test discovery. Every game has title/instructions, Play, live HUD,
+pause/resume, restart and win/loss rules. Collector uses a loaded PNG and sound;
+platformer uses sound. These are worked class/method examples, not first lessons.
+
+Added eight zero.Key constants W/A/S/D/SPACE/ENTER/ESCAPE/R and primary-pointer
+mouseDown()/mousePressed() overloads. Existing input ownership and edge behavior
+remain unchanged. Public docs, website metadata and exact source/profile/API
+inventories are synchronized at193declarations. Ten new declarations have all20
+current native/browser executed targets. Scoped actual receipts include35native
+GameHelpersCheck and58browser/helpers observations. This is not a fresh claim
+that all386current targets were rerun; prior366/366proof remains tied to its
+prior exact source.
+
+Three standalone native compilations and all three actual finite GUI checks pass:
+Pong clamps/AI/serve/wall+paddle bounces/no double bounce/scoring/win/loss/reset;
+collector sprite/movement/chase/shot sweep+cooldown/protection/one-time coins/
+win-loss/reset; platformer jumping/no midair repeat/one-way+slow-frame landings/
+edge fall/coin+exit gating/win-loss/reset and framework pause clocks.
+Three pinned project-owned WebFX/GWT exports pass. Actual CUA Chrome play proves
+Pong title/movement/rally/scoring/loss/pause/resume/restart, collector all8coins
+win with full health plus key/pointer fire/loss/restart, platformer all4coins
+and exit win plus falling loss/restart/pause/resume. Screenshots and local
+read-only drawing/key observations are retained. Native platform test harnesses
+are excluded from source ZIPs/browser inputs. Physical Windows remains untested.
+
+46focused source/API-evidence/website/navigation tests and39adapter/compatibility
+tests pass with0skips. Root syntax/configuration/local-link check passes. Actual
+local website /docs renders/searches the new key and primary-pointer entries.
+No website publication occurred. Independent source review is pending at this
+implementation snapshot. Source-bound outputs and full review outcome are
+recorded in ignored .verification/basic-games/.
+
+Retained rework: initial export correctly refused the installed producer for a
+project with saved tooling; runner now explicitly uses each saved builder.
+Tests with old inventory/example/search counts were updated for new entries.
+Immediate automated keydown before the Play view mounted reached its old button;
+waiting for actual canvas focus resolved it without a framework change. A native
+API receipt captured before package-script edits correctly failed current-harness
+binding; its unchanged behavior was rerun at final package metadata. API capture
+was frozen before hashing. Console logs also contain Chrome asynchronous-message
+channel diagnostics; no Java runtime/assertion or observed window error is present
+in the retained gameplay/10-new-API captures. Do not claim an empty browser console.
+
+[Student opportunities](BASIC-GAMES.md) include health/HUD components, actor-bounds
+helpers, optional landing/jump behavior and animation-state components. Camera/
+world/style gaps remain opportunities for larger demonstrated projects, not
+prerequisites inserted into these games. No framework physics, extra loop or
+scene hierarchy was introduced. No push/PR/merge, public templates, publication,
+release, installation, credential/account action or telemetry deployment occurred.
+
 ## Completed local editor/component journey and current API evidence — 2026-10-24
 
 Human explicitly instructed “Disregards budget caps. Complete the goal.” Applied

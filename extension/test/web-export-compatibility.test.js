@@ -144,7 +144,7 @@ test('resource lookup is constrained and approved source initializers are attrib
   await assert.rejects(check({ 'Main.java': app('Object info = getClass();') }), /Object#getClass/);
   await assert.rejects(check({ 'Main.java': app('java.lang.Class<?> type = Main.class;') }), /Class literals are supported only/);
 });
-test('28 maintained source examples pass; external stylesheets and packaged dependencies fail explicitly', { timeout: 240000 }, async () => {
+test('31 maintained source examples pass; external stylesheets and packaged dependencies fail explicitly', { timeout: 240000 }, async () => {
   const base = path.join(root, 'student-template/examples'), sources = {};
   const exists = async file => fs.access(file).then(() => true, () => false);
   let count = 0;
@@ -160,7 +160,7 @@ test('28 maintained source examples pass; external stylesheets and packaged depe
     for (const file of files) sources[prefix.replaceAll('.', '/') + '/' + path.basename(file)] = 'package ' + prefix + ';\n' + await fs.readFile(file, 'utf8');
     count++;
   }
-  assert.equal(count, 28);
+  assert.equal(count, 31);
   assert.equal((await check(sources)).status, 'passed');
   await assert.rejects(check({ 'Main.java': app('var box = new javafx.scene.layout.VBox(); box.getStylesheets().add("theme.css");') }), error => {
     assert.match(error.message, /Main\.java:\d+:\d+: Unsupported browser API javafx\.scene\.Parent#getStylesheets\(\)/);
@@ -301,12 +301,12 @@ test('wall clock admits only the exact reviewed currentTimeMillis signature', { 
 });
 
 
-test('Zero arrow enum and overloads admit only the exact four constants and query signatures', {timeout:240000}, async () => {
+test('Zero key and pointer overloads admit only the documented constants and query signatures', {timeout:240000}, async () => {
   const contract = require('../src/web-export/compatibility/contract.json');
   assert.deepEqual(contract.members.filter(member => member.startsWith('zero.Key#')).sort(),
-    ['zero.Key#LEFT', 'zero.Key#RIGHT', 'zero.Key#UP', 'zero.Key#DOWN'].sort());
+    ['LEFT','RIGHT','UP','DOWN','W','A','S','D','SPACE','ENTER','ESCAPE','R'].map(key => 'zero.Key#' + key).sort());
   const game = body => `import zero.GameApp; public class Main extends GameApp { public void setup() { ${body} } }`;
-  assert.equal((await check({'Main.java':game('boolean held = keyDown(zero.Key.LEFT) || keyDown(zero.Key.RIGHT) || keyDown(zero.Key.UP) || keyDown(zero.Key.DOWN); boolean edge = keyPressed(zero.Key.LEFT); show(new zero.ui.Row(12, new zero.ui.Label("Ready"), new zero.ui.Button("Go")));')})).status, 'passed');
+  assert.equal((await check({'Main.java':game('boolean held = keyDown(zero.Key.LEFT) || keyDown(zero.Key.RIGHT) || keyDown(zero.Key.UP) || keyDown(zero.Key.DOWN); boolean edge = keyPressed(zero.Key.SPACE) || keyPressed(zero.Key.ENTER) || keyPressed(zero.Key.ESCAPE) || keyPressed(zero.Key.R); boolean letters = keyDown(zero.Key.W) || keyDown(zero.Key.A) || keyDown(zero.Key.S) || keyDown(zero.Key.D); boolean pointer = mouseDown() || mousePressed(); show(new zero.ui.Row(12, new zero.ui.Label("Ready"), new zero.ui.Button("Go")));')})).status, 'passed');
   for (const expression of ['zero.Key.values()', 'zero.Key.valueOf("LEFT")', 'zero.Key.LEFT.name()']) {
     await assert.rejects(check({'Main.java':game(expression + ';')}), /Unsupported browser API/);
   }

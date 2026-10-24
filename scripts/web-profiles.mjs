@@ -13,8 +13,8 @@ export function verifyWebProfiles() {
   const sources=Object.fromEntries(names.map(name=>['zero/'+name,fs.readFileSync(path.join(directory,name),'utf8')]));
   const declarations = Object.values(sources).reduce((total, source) => total + [...source.matchAll(/^    (?:@Override )?(?:public|protected) /gm)].length, 0);
   const keyConstants = [...sources['zero/Key.java'].matchAll(/^    ([A-Z]+)\(KeyCode\.[A-Z]+\)[,;]/gm)].map(match => match[1]);
-  assert.deepEqual(keyConstants, ['LEFT', 'RIGHT', 'UP', 'DOWN'], 'Review each supported Zero key constant explicitly.');
-  assert.equal(declarations + keyConstants.length, 183, 'The supported Zero API declaration inventory changed. Extend browser fixture coverage before updating the profile.');
+  assert.deepEqual(keyConstants, ['LEFT', 'RIGHT', 'UP', 'DOWN', 'W', 'A', 'S', 'D', 'SPACE', 'ENTER', 'ESCAPE', 'R'], 'Review each supported Zero key constant explicitly.');
+  assert.equal(declarations + keyConstants.length, 193, 'The supported Zero API declaration inventory changed. Extend browser fixture coverage before updating the profile.');
   sources['Main.java']=fs.readFileSync(path.join(root,'framework/web-checks/Main.java'),'utf8');
   adaptSources({sources,resourcePaths:['tiles.png']});
   return names;

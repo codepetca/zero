@@ -190,6 +190,9 @@ public abstract class GameApp extends App {
     public final boolean keyDown(Key key) {
         return keyDown(Objects.requireNonNull(key, "Key must not be null.").fxKeyCode());
     }
+    /** Whether the primary pointer button is held on the game canvas. */
+    public final boolean mouseDown() { return mouseDown(MouseButton.PRIMARY); }
+
     public final boolean mouseDown(MouseButton button) { return buttons.contains(button); }
 
     /** True throughout the next update/draw frame after an owned press; queries do not consume it. */
@@ -197,6 +200,9 @@ public abstract class GameApp extends App {
     public final boolean keyPressed(Key key) {
         return keyPressed(Objects.requireNonNull(key, "Key must not be null.").fxKeyCode());
     }
+    /** Whether the primary pointer button was newly pressed this frame. */
+    public final boolean mousePressed() { return mousePressed(MouseButton.PRIMARY); }
+
     public final boolean mousePressed(MouseButton button) { return pressedButtons.contains(button); }
     /** Window focus, even when a native control rather than the canvas has keyboard focus. */
     public final boolean windowFocused() { return window != null && window.isFocused(); }

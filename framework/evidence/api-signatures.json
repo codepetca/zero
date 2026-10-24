@@ -28,7 +28,7 @@
     },
     {
       "path": "framework/src/main/java/zero/GameApp.java",
-      "sha256": "02197ea55d455b877a46ecd54d60b5322be1701d49ba209789aa67aaa823cac4"
+      "sha256": "b93f486b931b4cd89300010ec434894119c2dbf2e3e3923f9b4c6e063fd197d1"
     },
     {
       "path": "framework/src/main/java/zero/ImageRegion.java",
@@ -36,7 +36,7 @@
     },
     {
       "path": "framework/src/main/java/zero/Key.java",
-      "sha256": "ddea0ecdbd6ff66b0b0ed8365fa4e9404a8cd0b4f44f27c5f57a443110b59dc3"
+      "sha256": "ba68495fd911017c8ca84a53ec0211c94cf9e14796fb8462cbc6c32cbf6835f8"
     },
     {
       "path": "framework/src/main/java/zero/Music.java",
@@ -2290,9 +2290,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 249,
-      "start": 10684,
-      "end": 10973,
+      "line": 255,
+      "start": 11002,
+      "end": 11291,
       "declarationSha256": "09fe6268da0dcecc556b0ef7633bc9f54246ea1fba57e45eed21ece7610d01e4",
       "evidence": {
         "native": [
@@ -2323,9 +2323,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 259,
-      "start": 11120,
-      "end": 11273,
+      "line": 265,
+      "start": 11438,
+      "end": 11591,
       "declarationSha256": "abe83d475cc44cd8efc4873d71f86c4d3dc85c63827fcb54d973025e1eb94cd7",
       "evidence": {
         "native": [
@@ -2356,9 +2356,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 205,
-      "start": 8811,
-      "end": 8858,
+      "line": 211,
+      "start": 9129,
+      "end": 9176,
       "declarationSha256": "cd7b075e65f9a4843af6ebc411c19d1e8d3d75f3c536ab542281052ac2b8f47f",
       "evidence": {
         "native": [
@@ -2389,9 +2389,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 272,
-      "start": 11984,
-      "end": 12160,
+      "line": 278,
+      "start": 12302,
+      "end": 12478,
       "declarationSha256": "07ffd6b01ea245c1e27fbba16cf96bdc713ca8aed312d350c1abe5dfb4f32550",
       "evidence": {
         "native": [
@@ -2422,9 +2422,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 239,
-      "start": 10063,
-      "end": 10605,
+      "line": 245,
+      "start": 10381,
+      "end": 10923,
       "declarationSha256": "fa26014024991a5bf7074242a365448057dae9dfaf8ae7d04af853fe0226bc88",
       "evidence": {
         "native": [
@@ -2586,9 +2586,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 257,
-      "start": 10978,
-      "end": 11042,
+      "line": 263,
+      "start": 11296,
+      "end": 11360,
       "declarationSha256": "d08932c0e0db97bfcc12c53791b8b0f9367d5d8adf03f4b329e6fb73903bcd07",
       "evidence": {
         "native": [
@@ -2619,9 +2619,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 262,
-      "start": 11278,
-      "end": 11413,
+      "line": 268,
+      "start": 11596,
+      "end": 11731,
       "declarationSha256": "6f1098208e9c2aed943025ada4c75806e3f80d038fac3afa5109d2e86d070413",
       "evidence": {
         "native": [
@@ -2652,9 +2652,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 206,
-      "start": 8863,
-      "end": 8923,
+      "line": 212,
+      "start": 9181,
+      "end": 9241,
       "declarationSha256": "39e4b69551964692ae8eae8ce0a09e2fc6059280724f9a0fc3a8a6944978296c",
       "evidence": {
         "native": [
@@ -2718,9 +2718,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 284,
-      "start": 12760,
-      "end": 12853,
+      "line": 290,
+      "start": 13078,
+      "end": 13171,
       "declarationSha256": "9a8363b47866e86f60bb304dd8ef55fa3f54591d57f8954be72512d398b1e913",
       "evidence": {
         "native": [
@@ -2751,9 +2751,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 285,
-      "start": 12858,
-      "end": 13007,
+      "line": 291,
+      "start": 13176,
+      "end": 13325,
       "declarationSha256": "b65497ea93e9715c3b0c72d9c66b689eadc47f0f459edd12d713c8c6587d4ad0",
       "evidence": {
         "native": [
@@ -2784,9 +2784,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 291,
-      "start": 13183,
-      "end": 13316,
+      "line": 297,
+      "start": 13501,
+      "end": 13634,
       "declarationSha256": "455fde1b0b9a8a669f46cc32dee26126225a1bf502f324a55d2a7b5d85d68ea7",
       "evidence": {
         "native": [
@@ -2817,9 +2817,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 294,
-      "start": 13321,
-      "end": 13543,
+      "line": 300,
+      "start": 13639,
+      "end": 13861,
       "declarationSha256": "bb84b1e2baa41c7c21881048450f311f9c539ae34b4dde45d0709a25536add03",
       "evidence": {
         "native": [
@@ -2850,9 +2850,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 297,
-      "start": 13548,
-      "end": 13654,
+      "line": 303,
+      "start": 13866,
+      "end": 13972,
       "declarationSha256": "c1eaefbda7310cdb3ae942b62e273e085f35407e826e7251dc5b95d0f7bb96f0",
       "evidence": {
         "native": [
@@ -2883,9 +2883,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 298,
-      "start": 13659,
-      "end": 13821,
+      "line": 304,
+      "start": 13977,
+      "end": 14139,
       "declarationSha256": "c50cfb0fe8877714c9753321a1ab71f7b51b8c0828e7ceaa2d8baa7d6194773d",
       "evidence": {
         "native": [
@@ -2916,9 +2916,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 303,
-      "start": 13912,
-      "end": 14226,
+      "line": 309,
+      "start": 14230,
+      "end": 14544,
       "declarationSha256": "f92130e181354af0a56df4ccc9a38c30a30a1a65675ffc8b0f149b2a8b1f6bbc",
       "evidence": {
         "native": [
@@ -2949,9 +2949,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 308,
-      "start": 14231,
-      "end": 14553,
+      "line": 314,
+      "start": 14549,
+      "end": 14871,
       "declarationSha256": "c42ed5947b3db4fb112794239e986f969cc82e8c8ebfdf8874d6f50c0f041a81",
       "evidence": {
         "native": [
@@ -2982,9 +2982,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 313,
-      "start": 14558,
-      "end": 14771,
+      "line": 319,
+      "start": 14876,
+      "end": 15089,
       "declarationSha256": "c35943d2db881448d79828791638b2fd594d3f8c0348495c813a993110bc82eb",
       "evidence": {
         "native": [
@@ -3015,9 +3015,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 317,
-      "start": 14859,
-      "end": 15134,
+      "line": 323,
+      "start": 15177,
+      "end": 15452,
       "declarationSha256": "9fd8970b6aab877d0b4e4fba1768c39aae2bcf6a8f1ead0f89c46907046c0486",
       "evidence": {
         "native": [
@@ -3048,9 +3048,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 322,
-      "start": 15139,
-      "end": 15422,
+      "line": 328,
+      "start": 15457,
+      "end": 15740,
       "declarationSha256": "0e70054106ac6850b22a836cb6c5bb51f34943cc0b2af0545ed8a33089d3c246",
       "evidence": {
         "native": [
@@ -3081,9 +3081,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 327,
-      "start": 15427,
-      "end": 15605,
+      "line": 333,
+      "start": 15745,
+      "end": 15923,
       "declarationSha256": "73e99ee6a4137de95497e59ba15ed2155b70b695cb81322815183cc3b994b16f",
       "evidence": {
         "native": [
@@ -3114,9 +3114,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 288,
-      "start": 13012,
-      "end": 13178,
+      "line": 294,
+      "start": 13330,
+      "end": 13496,
       "declarationSha256": "b159c848f893fd65d37db0b71bf958ecd1d9806e334b0d206602ee09059a6f28",
       "evidence": {
         "native": [
@@ -3147,9 +3147,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 233,
-      "start": 9850,
-      "end": 9953,
+      "line": 239,
+      "start": 10168,
+      "end": 10271,
       "declarationSha256": "af7d2e41c4a94018c1ad189212ddf7c55b8fac88fc2b7aecff50c9e755651b65",
       "evidence": {
         "native": [
@@ -3246,9 +3246,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 196,
-      "start": 8213,
-      "end": 8295,
+      "line": 199,
+      "start": 8368,
+      "end": 8450,
       "declarationSha256": "7498bacad957abbbf143c78ccad5d0e2cf1bce27bad00990351192d4561a75df",
       "evidence": {
         "native": [
@@ -3279,9 +3279,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 197,
-      "start": 8300,
-      "end": 8441,
+      "line": 200,
+      "start": 8455,
+      "end": 8596,
       "declarationSha256": "a386dd09f8d3337a48044b1fd387ceca6aa7497b67315042fd779eabaaca1404",
       "evidence": {
         "native": [
@@ -3312,9 +3312,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 207,
-      "start": 8928,
-      "end": 8979,
+      "line": 213,
+      "start": 9246,
+      "end": 9297,
       "declarationSha256": "63d4351bdeea62c0a3b244e648d60d7071877f33a78f39c81a188235a70c7732",
       "evidence": {
         "native": [
@@ -3345,9 +3345,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 275,
-      "start": 12165,
-      "end": 12272,
+      "line": 281,
+      "start": 12483,
+      "end": 12590,
       "declarationSha256": "61cccf2dc0feab783e62791b7298dcd9135f1456fe6cd0fb2912d2b630c5e610",
       "evidence": {
         "native": [
@@ -3378,9 +3378,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 344,
-      "start": 16364,
-      "end": 16551,
+      "line": 350,
+      "start": 16682,
+      "end": 16869,
       "declarationSha256": "52bf142b5a769ed9da11fec7d3f547439bc6f28caed15691e5b41e61192fdbf0",
       "evidence": {
         "native": [
@@ -3411,9 +3411,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 332,
-      "start": 15709,
-      "end": 16359,
+      "line": 338,
+      "start": 16027,
+      "end": 16677,
       "declarationSha256": "b1a5339da793e8f5ada9658ebf2d467656ca51a6463406e15373f00905cfb936",
       "evidence": {
         "native": [
@@ -3444,9 +3444,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 348,
-      "start": 16632,
-      "end": 16895,
+      "line": 354,
+      "start": 16950,
+      "end": 17213,
       "declarationSha256": "d55510058cf70a428159b7b04b77c327a281e19bf414628e2a45b4b66c9057da",
       "evidence": {
         "native": [
@@ -3466,6 +3466,39 @@
       }
     },
     {
+      "id": "zero.GameApp#mouseDown()",
+      "owner": "zero.GameApp",
+      "signature": "mouseDown()",
+      "kind": "method",
+      "name": "mouseDown",
+      "returnType": "boolean",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 194,
+      "start": 8091,
+      "end": 8166,
+      "declarationSha256": "74a9f2717b9c909d6cd399ac048e6fb0396094c57db12adb1278dc26222bca56",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "primary-held",
+            "postcondition": "Zero primary pointer query observes the held canvas press"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "primary-held",
+            "postcondition": "Zero primary pointer query observes the held canvas press"
+          }
+        ]
+      }
+    },
+    {
       "id": "zero.GameApp#mouseDown(javafx.scene.input.MouseButton)",
       "owner": "zero.GameApp",
       "signature": "mouseDown(javafx.scene.input.MouseButton)",
@@ -3477,9 +3510,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 193,
-      "start": 8017,
-      "end": 8104,
+      "line": 196,
+      "start": 8172,
+      "end": 8259,
       "declarationSha256": "b3834272c390913e29846dd5f0c1d1a822ee1f731ea3862a9087f7d637c58f28",
       "evidence": {
         "native": [
@@ -3499,6 +3532,39 @@
       }
     },
     {
+      "id": "zero.GameApp#mousePressed()",
+      "owner": "zero.GameApp",
+      "signature": "mousePressed()",
+      "kind": "method",
+      "name": "mousePressed",
+      "returnType": "boolean",
+      "modifiers": [
+        "final",
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/GameApp.java",
+      "line": 204,
+      "start": 8677,
+      "end": 8758,
+      "declarationSha256": "4819faaabeb722bd52c2232282c7f2c27e60507da1e08232338814ad81bfdfa1",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "primary-edge",
+            "postcondition": "Zero primary pointer query observes a non-consuming frame edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "primary-edge",
+            "postcondition": "Zero primary pointer query observes a non-consuming frame edge"
+          }
+        ]
+      }
+    },
+    {
       "id": "zero.GameApp#mousePressed(javafx.scene.input.MouseButton)",
       "owner": "zero.GameApp",
       "signature": "mousePressed(javafx.scene.input.MouseButton)",
@@ -3510,9 +3576,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 200,
-      "start": 8446,
-      "end": 8543,
+      "line": 206,
+      "start": 8764,
+      "end": 8861,
       "declarationSha256": "8253b2079bc35ec8eb6e0b1d0575f7b65b8e66bd9c77114c18b29e9bbc6da903",
       "evidence": {
         "native": [
@@ -3609,9 +3675,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 271,
-      "start": 11855,
-      "end": 11979,
+      "line": 277,
+      "start": 12173,
+      "end": 12297,
       "declarationSha256": "8f5ef6b24808a16479ea6fc309a627665f01a0bc03c309dfd632d0cbdf38baf6",
       "evidence": {
         "native": [
@@ -3642,9 +3708,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 217,
-      "start": 9377,
-      "end": 9520,
+      "line": 223,
+      "start": 9695,
+      "end": 9838,
       "declarationSha256": "a55327d7fabf93de26d4886ee90a1cb26096d9becbe232786525ef05408680f2",
       "evidence": {
         "native": [
@@ -3708,9 +3774,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 270,
-      "start": 11735,
-      "end": 11850,
+      "line": 276,
+      "start": 12053,
+      "end": 12168,
       "declarationSha256": "202f93b46b44197fe7b39d8da385afbffcff65c1bc10fd0952b35be4e24caf88",
       "evidence": {
         "native": [
@@ -3741,9 +3807,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 225,
-      "start": 9602,
-      "end": 9748,
+      "line": 231,
+      "start": 9920,
+      "end": 10066,
       "declarationSha256": "57e05e9b9f1c0a021aa231e914ab3103d3cc2cfc5a91f406745e4f4b96f5be16",
       "evidence": {
         "native": [
@@ -3774,9 +3840,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 210,
-      "start": 9082,
-      "end": 9295,
+      "line": 216,
+      "start": 9400,
+      "end": 9613,
       "declarationSha256": "15bbbd2574541152f9a67b7e3c6c83bd1d16739faff4d7ec3657a6d106398530",
       "evidence": {
         "native": [
@@ -3840,9 +3906,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 258,
-      "start": 11047,
-      "end": 11115,
+      "line": 264,
+      "start": 11365,
+      "end": 11433,
       "declarationSha256": "f8694a4d14b787b3c506a67497165a6f55a561755e461671a04f814197124770",
       "evidence": {
         "native": [
@@ -3873,9 +3939,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 265,
-      "start": 11418,
-      "end": 11559,
+      "line": 271,
+      "start": 11736,
+      "end": 11877,
       "declarationSha256": "49825ab38c55a41310dffb3c0f756a041b3094cf3a3d9bfd232bf5aa2f52d608",
       "evidence": {
         "native": [
@@ -3906,9 +3972,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 268,
-      "start": 11564,
-      "end": 11643,
+      "line": 274,
+      "start": 11882,
+      "end": 11961,
       "declarationSha256": "e95d53daed1657bdc4bcb45410ae849dc6b0c046ca08f3ddf861659c54c8ba51",
       "evidence": {
         "native": [
@@ -3939,9 +4005,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 277,
-      "start": 12342,
-      "end": 12434,
+      "line": 283,
+      "start": 12660,
+      "end": 12752,
       "declarationSha256": "725c945d3a4e8965898356777ef77ac187fad7381b12641215db00403c3ea591",
       "evidence": {
         "native": [
@@ -3972,9 +4038,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 279,
-      "start": 12525,
-      "end": 12755,
+      "line": 285,
+      "start": 12843,
+      "end": 13073,
       "declarationSha256": "5cb7480fce011ec1112addbf93aee37ae88cda136d5e5a2e23155a527fa412d3",
       "evidence": {
         "native": [
@@ -4005,9 +4071,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 269,
-      "start": 11648,
-      "end": 11730,
+      "line": 275,
+      "start": 11966,
+      "end": 12048,
       "declarationSha256": "1ca54527ae1566e04844ef754b4960ce44df2d615d1a3960b78849af1ea6f4f6",
       "evidence": {
         "native": [
@@ -4103,9 +4169,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/GameApp.java",
-      "line": 202,
-      "start": 8643,
-      "end": 8728,
+      "line": 208,
+      "start": 8961,
+      "end": 9046,
       "declarationSha256": "f70884cfb29da3d2ff58040635848d7ec42f8c83465fbd9e021e0ca319265806",
       "evidence": {
         "native": [
@@ -4317,6 +4383,74 @@
       }
     },
     {
+      "id": "zero.Key#A:zero.Key",
+      "owner": "zero.Key",
+      "signature": "A:zero.Key",
+      "kind": "enum-constant",
+      "name": "A",
+      "returnType": "zero.Key",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Key.java",
+      "line": 12,
+      "start": 254,
+      "end": 266,
+      "declarationSha256": "862224b5de90ff0b07ab27a6b90149566a460179e1fa0ed8d177704556b0125d",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-constant-A",
+            "postcondition": "A constant observes its dispatched press edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "key-constant-A",
+            "postcondition": "A constant observes its dispatched press edge"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Key#D:zero.Key",
+      "owner": "zero.Key",
+      "signature": "D:zero.Key",
+      "kind": "enum-constant",
+      "name": "D",
+      "returnType": "zero.Key",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Key.java",
+      "line": 14,
+      "start": 290,
+      "end": 302,
+      "declarationSha256": "58e2d9abb1d1458f2c3cefe19e175864182a48cda7a6d23e3d2f3d3ebc8982a8",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-constant-D",
+            "postcondition": "D constant observes its dispatched press edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "key-constant-D",
+            "postcondition": "D constant observes its dispatched press edge"
+          }
+        ]
+      }
+    },
+    {
       "id": "zero.Key#DOWN:zero.Key",
       "owner": "zero.Key",
       "signature": "DOWN:zero.Key",
@@ -4330,8 +4464,8 @@
       ],
       "source": "framework/src/main/java/zero/Key.java",
       "line": 10,
-      "start": 209,
-      "end": 227,
+      "start": 212,
+      "end": 230,
       "declarationSha256": "acc6e50f5556f04c31882c90e08528422a78ff5cbba97e611e00a2a3f63b9315",
       "evidence": {
         "native": [
@@ -4351,6 +4485,74 @@
       }
     },
     {
+      "id": "zero.Key#ENTER:zero.Key",
+      "owner": "zero.Key",
+      "signature": "ENTER:zero.Key",
+      "kind": "enum-constant",
+      "name": "ENTER",
+      "returnType": "zero.Key",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Key.java",
+      "line": 16,
+      "start": 334,
+      "end": 354,
+      "declarationSha256": "31a0b95352e623f46cd9a8176793a791d7cbfe79e7f2a77d8f7ebe0ca3cfee26",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-constant-ENTER",
+            "postcondition": "ENTER constant observes its dispatched press edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "key-constant-ENTER",
+            "postcondition": "ENTER constant observes its dispatched press edge"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Key#ESCAPE:zero.Key",
+      "owner": "zero.Key",
+      "signature": "ESCAPE:zero.Key",
+      "kind": "enum-constant",
+      "name": "ESCAPE",
+      "returnType": "zero.Key",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Key.java",
+      "line": 17,
+      "start": 360,
+      "end": 382,
+      "declarationSha256": "6acd60e8d5ba4bb4bd085f7d793b6618f8db2333e425a2118ad528044816e27b",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-constant-ESCAPE",
+            "postcondition": "ESCAPE constant observes its dispatched press edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "key-constant-ESCAPE",
+            "postcondition": "ESCAPE constant observes its dispatched press edge"
+          }
+        ]
+      }
+    },
+    {
       "id": "zero.Key#LEFT:zero.Key",
       "owner": "zero.Key",
       "signature": "LEFT:zero.Key",
@@ -4364,8 +4566,8 @@
       ],
       "source": "framework/src/main/java/zero/Key.java",
       "line": 7,
-      "start": 139,
-      "end": 157,
+      "start": 142,
+      "end": 160,
       "declarationSha256": "bb71f5bc61e7e9bfd4f8360894b9fb1bcbc90752c3ff72145294ed75642715ea",
       "evidence": {
         "native": [
@@ -4385,6 +4587,40 @@
       }
     },
     {
+      "id": "zero.Key#R:zero.Key",
+      "owner": "zero.Key",
+      "signature": "R:zero.Key",
+      "kind": "enum-constant",
+      "name": "R",
+      "returnType": "zero.Key",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Key.java",
+      "line": 18,
+      "start": 388,
+      "end": 400,
+      "declarationSha256": "ceb187695e011b0a399f82e5c79fb22dd6af8ab1a9b1691a6162b4cdea061d56",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-constant-R",
+            "postcondition": "R constant observes its dispatched press edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "key-constant-R",
+            "postcondition": "R constant observes its dispatched press edge"
+          }
+        ]
+      }
+    },
+    {
       "id": "zero.Key#RIGHT:zero.Key",
       "owner": "zero.Key",
       "signature": "RIGHT:zero.Key",
@@ -4398,8 +4634,8 @@
       ],
       "source": "framework/src/main/java/zero/Key.java",
       "line": 8,
-      "start": 163,
-      "end": 183,
+      "start": 166,
+      "end": 186,
       "declarationSha256": "8478daa2bafe949d77388340ee179e6d06faac06cd2b9a047b90c5012353d708",
       "evidence": {
         "native": [
@@ -4419,6 +4655,74 @@
       }
     },
     {
+      "id": "zero.Key#S:zero.Key",
+      "owner": "zero.Key",
+      "signature": "S:zero.Key",
+      "kind": "enum-constant",
+      "name": "S",
+      "returnType": "zero.Key",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Key.java",
+      "line": 13,
+      "start": 272,
+      "end": 284,
+      "declarationSha256": "be1367614c1ad6f32fbe06075bd8bea12b92f70eba7579c4ecdb6d582e484203",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-constant-S",
+            "postcondition": "S constant observes its dispatched press edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "key-constant-S",
+            "postcondition": "S constant observes its dispatched press edge"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Key#SPACE:zero.Key",
+      "owner": "zero.Key",
+      "signature": "SPACE:zero.Key",
+      "kind": "enum-constant",
+      "name": "SPACE",
+      "returnType": "zero.Key",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Key.java",
+      "line": 15,
+      "start": 308,
+      "end": 328,
+      "declarationSha256": "5eb0029f96f8dca8fe92c5c75352c61bb5919a5b76b30944f13a334ba57ca1d5",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-constant-SPACE",
+            "postcondition": "SPACE constant observes its dispatched press edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "key-constant-SPACE",
+            "postcondition": "SPACE constant observes its dispatched press edge"
+          }
+        ]
+      }
+    },
+    {
       "id": "zero.Key#UP:zero.Key",
       "owner": "zero.Key",
       "signature": "UP:zero.Key",
@@ -4432,8 +4736,8 @@
       ],
       "source": "framework/src/main/java/zero/Key.java",
       "line": 9,
-      "start": 189,
-      "end": 203,
+      "start": 192,
+      "end": 206,
       "declarationSha256": "6474b9de5a0f749c6e187169729bec787028f167abfe19eaa86950e267b1798c",
       "evidence": {
         "native": [
@@ -4448,6 +4752,40 @@
             "caseId": "browser/zero-ui",
             "assertionId": "key-constant-UP",
             "postcondition": "UP constant resolves the actual dispatched arrow edge"
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero.Key#W:zero.Key",
+      "owner": "zero.Key",
+      "signature": "W:zero.Key",
+      "kind": "enum-constant",
+      "name": "W",
+      "returnType": "zero.Key",
+      "modifiers": [
+        "final",
+        "public",
+        "static"
+      ],
+      "source": "framework/src/main/java/zero/Key.java",
+      "line": 11,
+      "start": 236,
+      "end": 248,
+      "declarationSha256": "30ee022b85172f0ec536c84bd7c5d63c9f731f8e450ff455f48f84b57deb7d83",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/GameHelpersCheck",
+            "assertionId": "key-constant-W",
+            "postcondition": "W constant observes its dispatched press edge"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "key-constant-W",
+            "postcondition": "W constant observes its dispatched press edge"
           }
         ]
       }

@@ -1,5 +1,17 @@
 # Zero phased vision — current handoff
 
+## Active completeness pass — 2026-10-24
+
+User authorized three Zero/standard-Java-only reference games, student ergonomics
+gap fixes and actual WebFX/browser verification. Publishing/releases remain separate;
+existing external holds persist. Base c5374ddc. Parent owns framework/API/docs/tests,
+three Sol/high workers own examples/zero-pong, zero-collector, zero-platformer respectively.
+No direct JavaFX or advanced bridge calls in these games. Exit: source-only guard,
+native logic checks, three actual exports/play checks, additive API checks and independent
+review. Prior 366/366 evidence remains historical for its exact prior source.
+Storage healthy259GB; weekly70%remaining account-wide, not task cost. DeepSeek paused.
+
+
 Updated 2026-10-24. Authorized local implementation and actual Mac editor journey
 are complete through `eef9960c6ccb5a05914ec2ba07829fd6793133de`. No publication,
 release or full external acceptance claim. Single roadmap: [architecture phases](../docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).

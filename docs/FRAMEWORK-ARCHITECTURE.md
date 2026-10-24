@@ -534,6 +534,11 @@ remain compatible. Existing projects retain exact source/pins and published
 static output. Future rebuilding depends on usable tools and normal dependency
 hosts unless a student deliberately saves an optional full offline bundle.
 
+The later [basic-game completeness pass](BASIC-GAMES.md) exercises the actual
+Zero-only game path with three worked games. It extends input by demonstrated
+need without making a camera, world, physics engine or extra screen base class
+mandatory. Existing phase acceptance remains tied to its recorded source revision.
+
 ### Phase 3 implementation contract
 
 Astra's concrete preservation review (2026-10-23) selects one tracked

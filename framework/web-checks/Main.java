@@ -78,6 +78,10 @@ public final class Main extends GameApp {
         require(unbound, "Actor helper must reject an unbound drawing context");
     }
     @Override public void update(double seconds) {
+        zero.Key[] actions = {zero.Key.W, zero.Key.A, zero.Key.S, zero.Key.D, zero.Key.SPACE, zero.Key.ENTER, zero.Key.ESCAPE, zero.Key.R};
+        for (int index=0;index<actions.length;index++) if (keyPressed(actions[index])) ApiSignatureChecks.actionKeys(this,index);
+        if (mouseDown()) ApiSignatureChecks.primaryPointer(this,false);
+        if (mousePressed()) ApiSignatureChecks.primaryPointer(this,true);
         if (!windowFocused()) paused = true;
         if (keyPressed(KeyCode.P)) paused = !paused;
         if (keyPressed(KeyCode.SPACE)) presses++;

@@ -54,13 +54,15 @@ public final class GameHelpersCheck extends GameApp {
                     }
                     key(canvas(), KeyEvent.KEY_PRESSED, KeyCode.SPACE);
                     key(canvas(), KeyEvent.KEY_RELEASED, KeyCode.SPACE);
-                    mouse(MouseEvent.MOUSE_PRESSED); ApiSignatureChecks.pointerHeld(this,10,10); mouse(MouseEvent.MOUSE_RELEASED);
+                    mouse(MouseEvent.MOUSE_PRESSED); ApiSignatureChecks.primaryPointer(this,false); ApiSignatureChecks.pointerHeld(this,10,10); mouse(MouseEvent.MOUSE_RELEASED);
                     require(!keyDown(KeyCode.SPACE) && !mouseDown(MouseButton.PRIMARY), "between-frame release state");
                     require(!keyPressed(KeyCode.SPACE) && !mousePressed(MouseButton.PRIMARY), "new edges wait for next frame");
                     phase = 1; break;
                 case 1:
                     for(int index=0;index<4;index++)ApiSignatureChecks.arrows(this,index);
                     ApiSignatureChecks.pointerPressed(this);
+                    ApiSignatureChecks.primaryPointer(this,true);
+                    for(int index=0;index<8;index++)ApiSignatureChecks.actionKeys(this,index);
                     for (Key arrow : Key.values()) require(keyPressed(arrow) && keyPressed(arrow), "Zero arrow edge is non-consuming in update");
                     require(keyPressed(KeyCode.SPACE) && keyPressed(KeyCode.SPACE), "key edge non-consuming in update");
                     require(mousePressed(MouseButton.PRIMARY) && mousePressed(MouseButton.PRIMARY), "mouse edge non-consuming in update");

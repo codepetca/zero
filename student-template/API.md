@@ -569,12 +569,12 @@ close controls throw `IllegalStateException`, while getters remain readable.
 
 ## Key
 
-`public enum Key` supplies the four arrow keys for normal Zero game input. Import
+`public enum Key` supplies common movement and action keys for normal Zero game input. Import
 `zero.Key` and use keyDown(Key.LEFT) or keyPressed(Key.LEFT). No constructor or
-JavaFX key type is needed. The browser profile admits these four constants and
+JavaFX key type is needed. The browser profile admits the constants below and
 queries; implicit enum methods such as values(), valueOf() and name() are not
 part of the supported browser API. The existing KeyCode overloads remain the
-advanced JavaFX interoperability path for other keys.
+advanced JavaFX interoperability path for additional keys.
 
 | Signature | Behavior |
 | --- | --- |
@@ -582,11 +582,19 @@ advanced JavaFX interoperability path for other keys.
 | `static final Key RIGHT` | The right arrow key. |
 | `static final Key UP` | The up arrow key. |
 | `static final Key DOWN` | The down arrow key. |
+| `static final Key W` | The W key. |
+| `static final Key A` | The A key. |
+| `static final Key S` | The S key. |
+| `static final Key D` | The D key. |
+| `static final Key SPACE` | The Space key. |
+| `static final Key ENTER` | The Enter key. |
+| `static final Key ESCAPE` | The Escape key. |
+| `static final Key R` | The R key. |
 
 ## Input
 
 These GameApp methods are public and final. Use after canvas creation.
-Use `zero.Key` for the four arrow keys. For advanced JavaFX input, import
+Use `zero.Key` for arrows, W/A/S/D, Space, Enter, Escape and R. For advanced JavaFX input, import
 `KeyCode` and `MouseButton` from `javafx.scene.input`.
 
 | Signature | Result |
@@ -594,10 +602,12 @@ Use `zero.Key` for the four arrow keys. For advanced JavaFX input, import
 | `double mouseX()` | Latest tracked mouse x in canvas coordinates. Starts at canvas centre. |
 | `double mouseY()` | Latest tracked mouse y in canvas coordinates. Starts at canvas centre. |
 | `boolean keyDown(KeyCode key)` | Whether an advanced JavaFX key pressed with canvas focus is held. |
-| `boolean keyDown(Key key)` | Whether a Zero arrow key pressed with canvas focus is held. Null throws NullPointerException with a useful error. |
+| `boolean keyDown(Key key)` | Whether a Zero key pressed with canvas focus is held. Null throws NullPointerException with a useful error. |
+| `boolean mouseDown()` | Whether the primary pointer button pressed on the canvas is held, with no JavaFX type needed. |
 | `boolean mouseDown(MouseButton button)` | Whether a button pressed on the canvas is held. |
 | `boolean keyPressed(KeyCode key)` | Whether an advanced JavaFX key has a new press for the current update/draw frame. Repeated queries do not consume it; holding does not repeat it. |
-| `boolean keyPressed(Key key)` | Whether a Zero arrow key has a new press for the current update/draw frame. Repeated queries do not consume it and holding does not repeat it. Null throws NullPointerException with a useful error. |
+| `boolean keyPressed(Key key)` | Whether a Zero key has a new press for the current update/draw frame. Repeated queries do not consume it and holding does not repeat it. Null throws NullPointerException with a useful error. |
+| `boolean mousePressed()` | Whether a new primary canvas press occurred this frame. Repeated queries do not consume it; no JavaFX type is needed. |
 | `boolean mousePressed(MouseButton button)` | Whether a new canvas button press occurred for the current update/draw frame. Repeated queries do not consume it. |
 | `boolean windowFocused()` | Whether the app window has focus, including when a native control owns keyboard focus. False before the window exists or after shutdown. |
 
