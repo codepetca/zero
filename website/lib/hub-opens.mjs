@@ -6,8 +6,12 @@ const key = id => `zero:hub:opens:v1:${id}`;
 
 export function opensConfiguration(env = process.env) {
   // Preview traffic must never change production counts, even with copied env.
-  if (env.VERCEL && env.VERCEL_ENV !== 'production') return null;
-  const endpoint = env.ZERO_HUB_OPENS_REDIS_URL, token = env.ZERO_HUB_OPENS_REDIS_TOKEN;
+  if (env.ZERO_HUB_OPENS_DISABLED === '1' || env.VERCEL && env.VERCEL_ENV !== 'production') return null;
+  // Native Vercel Marketplace injects KV_REST_API_*. An explicit Zero pair
+  // overrides it as a pair; never mix credentials from different databases.
+  const explicit = env.ZERO_HUB_OPENS_REDIS_URL !== undefined || env.ZERO_HUB_OPENS_REDIS_TOKEN !== undefined;
+  const endpoint = explicit ? env.ZERO_HUB_OPENS_REDIS_URL : env.KV_REST_API_URL;
+  const token = explicit ? env.ZERO_HUB_OPENS_REDIS_TOKEN : env.KV_REST_API_TOKEN;
   if (!endpoint || !token || token.length > 4096 || /\s/.test(token)) return null;
   try {
     const url = new URL(endpoint);

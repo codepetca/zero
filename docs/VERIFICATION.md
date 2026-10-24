@@ -2,6 +2,13 @@
 
 ## ZeroHub metrics — local implementation, 2026-10-24
 
+Vercel-native Free setup follow-up: integration credential-pair precedence,
+partial-pair rejection, preview isolation and a disable switch pass the focused
+15-test metrics suite and website typecheck. Vercel CLI product metadata lists
+the `free` plan and `autoUpgrade` setting; no acceptance, resource provisioning
+or new hosted environment changes have been performed while terms approval is
+pending. The web application still needs separately authorized publication.
+
 The implementation adds aggregate Play opens and library adoption from accepted
 shared-game dependency declarations. All 176 website tests and 86 sharing tests pass;
 four existing Docker/managed-environment checks skip. Website typecheck and

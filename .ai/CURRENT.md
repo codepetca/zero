@@ -1,5 +1,15 @@
 # ZeroHub interest and adoption — local implementation, 2026-10-24
 
+Owner follow-up authorizes a Free-only Redis setup inside Vercel, with no paid
+plan/add-on or automatic upgrade. Native Upstash Marketplace injects the
+`KV_REST_API_URL` / `KV_REST_API_TOKEN` pair; source now accepts it, retains
+explicit Zero-pair precedence and supports `ZERO_HUB_OPENS_DISABLED=1`.
+The Vercel terms screen is prepared in Chrome. Owner action-time approval for
+the Marketplace/Upstash legal terms and account-data sharing is pending; do not
+accept it or provision until that answer arrives. Auto-upgrade defaults on in
+the provider metadata and must be explicitly disabled. Production-only project
+connection is intended; no push, deployment or publisher-pin change authorized.
+
 Owner requested a minimal-cost plan and implementation. Isolated worktree
 `zerohub-interest` starts at origin/main bf2083a3; primary funding work and other
 Dev worktrees remain untouched. Plan and activation contract: docs/ZEROHUB-METRICS.md.

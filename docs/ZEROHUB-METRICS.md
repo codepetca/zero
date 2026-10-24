@@ -95,8 +95,19 @@ field. Old strict registry readers reject it; rolling back to those readers
 after observations exist requires a compatibility patch, not deleting history.
 Keep client policy configuration synchronized using the existing rollout guide.
 
-For durable opens, provision a small Upstash Redis database separately and set
-these server-only variables in the production website environment:
+Owner constraint (2026-10-24): keep Redis free and configure it through Vercel.
+In **Vercel → Storage → Create Storage → Upstash for Redis**, select **Free**,
+disable **auto-upgrade**, leave **Prod Pack** off and use one primary region.
+Connect only the `zero` project and only **Production**. Do not enable a paid
+plan, a paid add-on or an automatic upgrade. At free limits, accept unavailable
+counts while preserving Play. New integration terms require owner confirmation.
+
+The native integration injects server-only `KV_REST_API_URL` and
+`KV_REST_API_TOKEN`; source consumes this pair directly without an SDK or manual
+credential copying. The integration can be provisioned before source publication;
+its settings apply to a subsequent deployment, not the already running site.
+For an explicit database override, set both variables below. A partial override
+disables the store rather than mixing it with integration credentials:
 
 | Variable | Value |
 | --- | --- |
@@ -107,14 +118,15 @@ Reuse the existing `ZERO_HUB_ORIGIN` (`https://zero.codepet.ca` by default).
 Explicit `http://127.0.0.1:PORT` is supported outside Vercel for local tests.
 Vercel Preview/development environments ignore counter credentials even if
 copied. Missing or invalid counter configuration disables counting and hides
-open totals; stars, adoption, browsing and Play remain available. Remove either
-counter variable to disable it without deleting stored totals. Keep the database
+open totals; stars, adoption, browsing and Play remain available. Set
+`ZERO_HUB_OPENS_DISABLED=1` to disable all counter credential sources without
+deleting stored totals. Keep the database
 on a capped/free plan if avoiding spend is the priority; ordinary website
 function invocations still use hosting resources. Anonymous counts are approximate
 and can be inflated by automated requests; same-origin checks are not bot proof.
 
-At implementation time (2026-10-24), the provider lists one free database,
-256 MB storage and 500K monthly commands. Recheck eligibility and pricing before
+At implementation time (2026-10-24), the provider lists one free database
+and 500K monthly commands. Recheck eligibility and pricing before
 provisioning; this is not an unlimited-free promise. No resource or credential
 is provisioned by source changes. See [pricing](https://upstash.com/pricing/redis)
 and the [REST protocol](https://upstash.com/docs/redis/features/restapi).

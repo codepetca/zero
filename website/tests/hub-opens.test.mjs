@@ -17,6 +17,16 @@ test('only explicit server Redis config is enabled, and preview credentials stay
   assert.equal(opensConfiguration({...env, ZERO_HUB_OPENS_REDIS_TOKEN: 'bad\ntoken'}), null);
 });
 
+test('Vercel Marketplace credentials work as a pair, with explicit override and disable controls', () => {
+  const marketplace = {KV_REST_API_URL: 'https://marketplace.upstash.io', KV_REST_API_TOKEN: 'marketplace-token', VERCEL: '1', VERCEL_ENV: 'production'};
+  assert.deepEqual(opensConfiguration(marketplace), {endpoint: 'https://marketplace.upstash.io', token: 'marketplace-token'});
+  assert.equal(opensConfiguration({...marketplace, VERCEL_ENV: 'preview'}), null);
+  assert.equal(opensConfiguration({...marketplace, ZERO_HUB_OPENS_DISABLED: '1'}), null);
+  assert.deepEqual(opensConfiguration({...marketplace, ...env}), {endpoint: 'https://counter.upstash.io', token: 'fixture-token'});
+  for (const override of [{ZERO_HUB_OPENS_REDIS_URL: env.ZERO_HUB_OPENS_REDIS_URL}, {ZERO_HUB_OPENS_REDIS_TOKEN: env.ZERO_HUB_OPENS_REDIS_TOKEN}, {ZERO_HUB_OPENS_REDIS_URL: ''}])
+    assert.equal(opensConfiguration({...marketplace, ...override}), null);
+});
+
 test('atomic increments and batched reads use fixed namespaced keys, no URLs or visitor data', async () => {
   const values = new Map(), calls = [];
   const store = createOpensStore({env, fetchImpl: async (url, options) => {
