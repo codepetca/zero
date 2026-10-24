@@ -1,14 +1,20 @@
 # Zero phased vision — current handoff
 
-## Active tutorial refinement — 2026-10-24
+## Small tutorial refinement complete — 2026-10-24
 
 User wants the existing small Greeting/Study/Coin path, intermediate refactoring
 of busy Main (student PlayerInput + existing ScoreDisplay), and contribution
 proposal/reuse/core path. No new Zero input class or new tutorial game. Base95c2c140.
-Parent owns checkpoint10/11/12+native checks/index/site metadata/lesson12 scope;
-Sol/high curriculum_refactor owns lesson10/11 prose only. Publishing/releases
-and existing external holds remain separate. Plan: source/narrative parity,
-focused tests/native checks, actual saved-builder WebFX+browser and independent review.
+Implemented at5e760654; product-contract correction at2051288b. Parent owned
+checkpoint10/11/12+native checks/index/site metadata/lesson12 scope; Sol/high
+curriculum_refactor wrote lesson10/11 prose only. Independent Sol/high complete
+26-file review found one P3 stale product paragraph; fixed and targeted closure
+is COMPLETE/CLEAN.44focused tests/0skip, root checks,6actual native executions,
+4saved-builder WebFX/GWT exports and4actual CUA browser wins pass. Local website
+lessons10/11 and comparison links verified. Native helper regression uses
+controlled held state; browser play uses actual CUA keys. No core/API changes.
+Owned QA tabs/preview/site servers closed; original Zero Dev watcher preserved.
+Publishing/releases and existing external holds remain separate.
 Storage259GB healthy/weekly69%remaining account-wide; no task-token estimate.
 
 

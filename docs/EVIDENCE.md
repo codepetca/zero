@@ -33,7 +33,12 @@ arrow fallback exercised. Actual local /tutorials/10 and11 show changed navigati
 refactor snippets, PlayerInput comparison links and core-proposal guidance.
 Current canonical student source hashes match all four compiled projects.
 Ignored proofs: .verification/tutorial-refactor/ and tutorial-refactor-*.log.
-Independent complete source/curriculum review is pending at this snapshot.
+Independent Sol/high complete26-file source/curriculum review of95c2c140..5e760654
+found one nonblocking P3 stale product-contract paragraph. Corrected at2051288b;
+targeted docs-only review is COMPLETE/CLEAN with no remaining findings. Root
+checks and whitespace checks pass after the correction; runtime sources remain
+those already executed. Owned QA tabs/preview/site servers are closed; original
+Zero Dev watcher/profile remain useful.
 
 Parent owns source/harness/docs/integration. One Sol/high worker wrote lesson10/11
 prose only; parent verified snippets/links and aligned remaining sources. Effective
