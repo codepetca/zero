@@ -73,6 +73,30 @@ claim that the initial design has narrower authority than GitHub grants.
 
 ## Architecture
 
+### Next sign-in improvement — owner direction, 2026-10-24
+
+After the current tutorial readiness work, make browser authorization the default
+desktop sign-in: click Sign in, open GitHub's authorization page, then return to
+Zero automatically. Keep explicit device-code sign-in as a fallback for browsers
+or school computers that cannot complete the return. GitHub may still require
+account selection, password/passkey or two-factor authentication.
+
+This is planned, not implemented. GitHub's App web flow requires a server-held
+client secret for code exchange and refresh, even with PKCE. Evaluate the existing
+website GitHub authentication code as a starting point; desktop handoff needs its
+own reviewed state/PKCE binding, short-lived single-use delivery and secure local
+storage. Never put an App secret in the extension/student project or put access
+tokens in browser-return URLs. Preserve cancellation, account/session drift and
+multi-window refresh protections. Server dependency, callback configuration and
+both sign-in methods need independent security review and actual editor/browser
+acceptance before activation. This direction does not authorize a deployment,
+GitHub App configuration change, new permissions or a release.
+
+References: [GitHub App authorization](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app)
+and [refresh requirements](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/refreshing-user-access-tokens).
+
+### Current implementation
+
 Desktop uses GitHub device flow with expiring user access/refresh tokens stored
 as one versioned secret in VS Code SecretStorage. Current GitHub supports
 secretless refresh for tokens originally issued through device flow. No client

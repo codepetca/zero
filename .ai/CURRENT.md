@@ -1,5 +1,12 @@
 # Zero phased vision — current handoff
 
+Next owner-requested authentication improvement,2026-10-24: after tutorial
+readiness, default desktop Sign in should open GitHub authorization and return
+automatically, retaining device-code sign-in as an explicit fallback. Planned
+only; current provider remains device flow. See ZERO-IDENTITY-PLAN for server
+exchange/refresh and secure handoff requirements. No deployment/App permission
+change/release authorized by this UX direction.
+
 ## Mac tutorial follow-up — 2026-10-24
 
 User approved fixing compiler recovery and attempting the connected-repository
