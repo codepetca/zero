@@ -15,6 +15,13 @@
         "format": "zip",
         "version": "1.142.0",
         "size": 351679077
+      },
+      "node": {
+        "url": "https://nodejs.org/dist/v22.21.1/node-v22.21.1-win-x64.zip",
+        "sha256": "3c624e9fbe07e3217552ec52a0f84e2bdc2e6ffa7348f3fdfb9fbf8f42e23fcf",
+        "version": "22.21.1",
+        "format": "zip",
+        "size": 35556042
       }
     }
   },
@@ -22,6 +29,9 @@
     "checkedUtc": "2026-10-16",
     "jdk": "https://api.adoptium.net/v3/assets/latest/21/hotspot?architecture=x64&image_type=jdk&os=windows&vendor=eclipse",
     "vscode": "https://update.code.visualstudio.com/api/update/win32-x64-archive/stable/latest",
-    "sizes": "Adoptium package.size and Microsoft asset HEAD Content-Length; checksums from the vendor metadata. No vendor executable was run during pin selection."
+    "sizes": "Adoptium package.size and Microsoft asset HEAD Content-Length; checksums from the vendor metadata. No vendor executable was run during pin selection.",
+    "nodeCheckedUtc": "2026-10-24T02:24:07Z",
+    "nodeChecksums": "https://nodejs.org/dist/v22.21.1/SHASUMS256.txt",
+    "nodeSizes": "Official nodejs.org archive HTTP HEAD Content-Length; no archive download or installation."
   }
 }

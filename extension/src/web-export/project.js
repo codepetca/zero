@@ -14,6 +14,71 @@ const xml = (value) =>
         "'": '&apos;'
       })[c]
   );
+// Runs before WebFX/GWT and has no network or parent-window broadcast path.
+function browserRuntimeBootstrap() {
+  'use strict';
+  const options = new URLSearchParams(location.hash.slice(1));
+  const runId = options.get('zeroRuntimeRun'), buildId = options.get('zeroRuntimeBuild');
+  const parentOrigin = options.get('zeroRuntimeParentOrigin');
+  const validId = value => typeof value === 'string' && /^[A-Za-z0-9._:-]{1,128}$/.test(value);
+  let managed = location.protocol === 'http:' && location.hostname === '127.0.0.1' &&
+    ['zeroRuntimeRun', 'zeroRuntimeBuild', 'zeroRuntimeParentOrigin'].every(key => options.getAll(key).length === 1) && validId(runId) && validId(buildId) && typeof parentOrigin === 'string';
+  try { managed = managed && ((/^vscode-webview:\/\/[A-Za-z0-9-]+$/.test(parentOrigin)) || (new URL(parentOrigin).origin === parentOrigin && new URL(parentOrigin).protocol === 'http:' && new URL(parentOrigin).hostname === '127.0.0.1')); } catch (_) { managed = false; }
+  let sequence = 0, terminal = false, failing = false, port = null;
+  const queue = [], stops = [], milestones = new Set();
+  const text = error => {
+    try { return String(error && (error.stack || error.message) || error || 'Unknown runtime failure').slice(0, 8192); }
+    catch (_) { return 'Cannot inspect runtime failure.'; }
+  };
+  const emit = (type, stage, code, diagnostic) => {
+    if (terminal || (failing && type !== 'fatal') || milestones.has(type)) return;
+    if (!['startup', 'ui-ready', 'first-frame', 'fatal', 'stopped'].includes(type)) return;
+    milestones.add(type);
+    if (type === 'fatal' || type === 'stopped') terminal = true;
+    if (!managed) return;
+    const event = {version: 1, runId, buildId, seq: ++sequence, type, stage, code};
+    if (diagnostic != null) event.diagnostic = text(diagnostic);
+    if (port) { try { port.postMessage(event); } catch (_) { port = null; } }
+    else { if (queue.length === 32) queue.shift(); queue.push(event); }
+  };
+  const fail = (stage, code, error) => {
+    if (terminal || failing) return;
+    failing = true;
+    let diagnostic = text(error);
+    for (const stop of stops.splice(0)) {
+      try { stop(); } catch (cleanup) { diagnostic = (diagnostic + '\nSuppressed cleanup: ' + text(cleanup)).slice(0, 8192); }
+    }
+    failing = false;
+    emit('fatal', stage, code, diagnostic);
+    console.error(diagnostic);
+  };
+  window.__zeroRuntime = Object.freeze({emit, fail, registerStop(stop) {
+    if (typeof stop !== 'function') return () => {};
+    if (terminal) { stop(); return () => {}; }
+    stops.push(stop);
+    return () => { const index = stops.indexOf(stop); if (index >= 0) stops.splice(index, 1); };
+  }});
+  window.addEventListener('error', event => {
+    if (event.target && event.target !== window) fail('asset-load', 'ASSET_MISSING', 'Cannot load runtime resource: ' + (event.target.src || event.target.href || event.target.tagName));
+    else fail('ui-callback', 'UI_CALLBACK_FAILED', event.error || event.message);
+  }, true);
+  window.addEventListener('unhandledrejection', event => fail('promise', 'PROMISE_REJECTED', event.reason));
+  window.addEventListener('pagehide', event => {
+    if (event.persisted || terminal) return;
+    let failure;
+    for (const stop of stops.splice(0)) { try { stop(); } catch (error) { if (!failure) failure = error; } }
+    if (failure) fail('shutdown', 'SHUTDOWN_FAILED', failure);
+    else emit('stopped', 'shutdown', 'STOPPED');
+  });
+  window.addEventListener('message', event => {
+    const data = event.data;
+    if (!managed || port || event.source !== parent || event.origin !== parentOrigin || !data || data.type !== 'zero-runtime-connect' || data.version !== 1 || data.runId !== runId || data.buildId !== buildId || event.ports.length !== 1) return;
+    port = event.ports[0];
+    for (const record of queue.splice(0)) { try { port.postMessage(record); } catch (_) { port = null; break; } }
+  });
+  emit('startup', 'startup', 'STARTING');
+}
+const runtimeBootstrap = '(' + browserRuntimeBootstrap.toString() + ')();';
 async function generateProject(root, adapted, resources, artifactRoot) {
   const put = async (relative, content) => {
     const file = path.join(root, relative);
@@ -70,7 +135,7 @@ async function generateProject(root, adapted, resources, artifactRoot) {
   );
   await put(
     'src/main/resources/public/index.html',
-    '<!doctype html>\n<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Zero app</title><link rel="stylesheet" href="./dev/webfx/kit/css/main.css"></head><body><script src="./zero_web.nocache.js"></script></body></html>\n'
+    '<!doctype html>\n<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Zero app</title><link rel="stylesheet" href="./dev/webfx/kit/css/main.css"></head><body><script>' + runtimeBootstrap + '</script><script src="./zero_web.nocache.js"></script></body></html>\n'
   );
   for (const resource of resources)
     await put(`src/main/resources/public/${resource.path}`, resource.bytes);
@@ -114,4 +179,4 @@ async function generateProject(root, adapted, resources, artifactRoot) {
 <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-install-plugin</artifactId><version>3.1.0</version></plugin><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-deploy-plugin</artifactId><version>3.1.1</version></plugin><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-clean-plugin</artifactId><version>3.2.0</version></plugin></plugins></build></project>`
   );
 }
-module.exports = { generateProject };
+module.exports = { generateProject, runtimeBootstrap };

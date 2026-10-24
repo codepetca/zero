@@ -10,11 +10,16 @@ const lessons = require('../src/lesson-projects');
 const core = require('../src/core');
 const github = require('../src/github');
 const workflow = require('../src/workflow');
+const coreContract = require('../src/core-contract');
+const sourceFiles = Object.fromEntries(coreContract.coreSourcePaths.map(name => [name,require('node:fs').readFileSync(path.resolve(__dirname,'../../framework',name))]));
+const coreFiles = [...Object.entries(sourceFiles).map(([name,content])=>({path:name,content:content.toString('base64'),mode:420})),
+  {path:'zero-core.json',content:Buffer.from(JSON.stringify(coreContract.makeCoreRecord(sourceFiles))).toString('base64'),mode:420}];
 const sample = () => ({schema:2,projects:[['greeting','0','Greeting app'],['study','3','Study quiz'],['game','8','Coin game']].map(([id,lesson,title])=>({id,lesson,title,folder:`zero-project-${id}`,template:null,files:[
   {path:'zero.json',content:Buffer.from(JSON.stringify({name:id,templateVersion:'0.1.0',mainClass:'Main',repositoryRequired:true,tutorialProjectId:id,lessonId:lesson})).toString('base64'),mode:420},
   {path:'.gitignore',content:Buffer.from('target/\n').toString('base64'),mode:420},
   {path:'.vscode/settings.json',content:Buffer.from('{"git.enabled":true}').toString('base64'),mode:420},
-  {path:'src/main/java/Main.java',content:Buffer.from('class Main {}\n').toString('base64'),mode:420}
+  {path:'src/main/java/Main.java',content:Buffer.from('class Main {}\n').toString('base64'),mode:420},
+  ...coreFiles.map(file=>({...file}))
 ]}))});
 async function temporary(t){const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-lessons-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));return root;}
 test('bundle validation rejects traversal, bad base64, duplicate paths and false practice marker', () => {
@@ -29,6 +34,26 @@ test('bundle validation rejects traversal, bad base64, duplicate paths and false
   const marker=sample();marker.projects[0].files[0].content=Buffer.from('{"localOnly":false}').toString('base64');assert.throws(()=>lessons.validateBundle(marker));
   const missing=sample();missing.projects.pop();assert.throws(()=>lessons.validateBundle(missing));
   const wrongLesson=sample();wrongLesson.projects[1].lesson='4';assert.throws(()=>lessons.validateBundle(wrongLesson));
+});
+test('bundled projects retain a complete saved builder without executing it', async t => {
+  const {projectBuilderFilesSync} = await import('../../scripts/prepare-project-builder.mjs');
+  const builder = projectBuilderFilesSync().map(file => ({path:'.zero-build/' + file.path,content:file.bytes.toString('base64'),mode:420}));
+  const bundle = sample();bundle.projects[0].files.push(...builder);
+  const [project] = lessons.validateBundle(bundle), root = await temporary(t);
+  const target = path.join(root,'saved-project');await lessons.createLessonProject(project,target);
+  assert.deepEqual(await fs.readFile(path.join(target,'.zero-build/run.cjs')),Buffer.from(builder.find(file => file.path === '.zero-build/run.cjs').content,'base64'));
+  for (const mode of ['missing','extra','changed','executable']) {
+    const bad = structuredClone(bundle), files = bad.projects[0].files;
+    const index = files.findIndex(file => file.path === '.zero-build/run.cjs');
+    if (mode === 'missing') files.splice(index,1);
+    if (mode === 'extra') files.push({path:'.zero-build/extra.js',content:Buffer.from('throw Error("must not execute")').toString('base64'),mode:420});
+    if (mode === 'changed') files[index].content = Buffer.from('throw Error("must not execute")').toString('base64');
+    if (mode === 'executable') files[index].mode = 493;
+    assert.throws(() => lessons.validateBundle(bad));
+  }
+  const invalid = {...project,files:[...project.files,{path:'.zero-build/extra.js',content:Buffer.from(''),mode:420}]};
+  const untouched = path.join(root,'untouched');await assert.rejects(lessons.createLessonProject(invalid,untouched));
+  await assert.rejects(fs.stat(untouched),/ENOENT/);
 });
 test('creates an exclusive local folder, preserves existing content, rejects symlinks and Git ancestors', async t => {
   const root=await temporary(t),project=lessons.validateBundle(sample())[0],target=path.join(root,'practice');
@@ -48,10 +73,10 @@ test('failed materialization removes only files created by this operation', asyn
   const root=await temporary(t),project=lessons.validateBundle(sample())[0];
   project.files.push({path:'src/main/java/Main.java',content:Buffer.from('other'),mode:420});
   const target=path.join(root,'practice');
-  await assert.rejects(lessons.createLessonProject(project,target),/EEXIST/);
+  await assert.rejects(lessons.createLessonProject(project,target),/unsafe file/);
   await assert.rejects(fs.stat(target),/ENOENT/);
   await fs.writeFile(target,'student work');
-  await assert.rejects(lessons.createLessonProject(project,target),/EEXIST/);
+  await assert.rejects(lessons.createLessonProject(project,target),/unsafe file/);
   assert.equal(await fs.readFile(target,'utf8'),'student work');
 });
 test('local practice blocks Git service entry points before Git or network calls', async t => {
@@ -135,6 +160,8 @@ test('Start project cancels cleanly and creates only from verified tutorial meta
   await commands.get('zero.startProject')();assert.equal(errors.length,0);assert.equal(creates.length,0);assert.equal(opened.length,0);
   choose=true;await commands.get('zero.startProject')();assert.match(errors.at(-1),/not published yet/);assert.equal(creates.length,0);assert.equal(opened.length,0);
   bundle.projects[0].template={repository:'codepetca/zero-tutorial-greeting',repositoryUrl:'https://github.com/codepetca/zero-tutorial-greeting',templateHref:'https://github.com/codepetca/zero-tutorial-greeting/generate'};await fs.writeFile(bundlePath,JSON.stringify(bundle));
+  await commands.get('zero.startProject')();assert.match(errors.at(-1),/not been verified/);assert.equal(creates.length,0);assert.equal(opened.length,0);
+  bundle.projects[0].template.scaffoldSha256=require('../src/tutorial-template-readiness').tutorialScaffoldSha256(bundle.projects[0].files);await fs.writeFile(bundlePath,JSON.stringify(bundle));
   name=undefined;await commands.get('zero.startProject')();assert.equal(creates.length,0);
   name='my-greeting';location=false;await commands.get('zero.startProject')();assert.equal(creates.length,0);
   location=true;const beforeErrors=errors.length;await commands.get('zero.startProject')();assert.equal(errors.length,beforeErrors);
@@ -143,4 +170,13 @@ test('Start project cancels cleanly and creates only from verified tutorial meta
   assert.ok(authCalls.every(call=>call.provider==='zero-github'&&call.scopes.length===0&&call.options.silent),'Activation and captured App sessions stay silent when already connected');
   bundle.projects[0].template.templateHref='https://github.com/attacker/template/generate';await fs.writeFile(bundlePath,JSON.stringify(bundle));
   await commands.get('zero.startProject')();assert.match(errors.at(-1),/invalid published template metadata/);assert.equal(creates.length,1);assert.equal(clones.length,1);
+});
+
+test('lesson core record is required and bound to the actual included helper bytes',()=>{
+ const missing=sample();missing.projects[0].files=missing.projects[0].files.filter(file=>file.path!=='zero-core.json');
+ assert.throws(()=>lessons.validateBundle(missing),/core record/);
+ const drift=sample(),file=drift.projects[0].files.find(file=>file.path===coreContract.coreSourcePaths[0]);file.content=Buffer.from('changed').toString('base64');
+ assert.throws(()=>lessons.validateBundle(drift),/differs/);
+ const forged=sample(),manifest=forged.projects[0].files.find(file=>file.path==='zero-core.json');const value=JSON.parse(Buffer.from(manifest.content,'base64'));value.sourceSha256='a'.repeat(64);manifest.content=Buffer.from(JSON.stringify(value)).toString('base64');
+ assert.throws(()=>lessons.validateBundle(forged),/mismatched/);
 });

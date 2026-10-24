@@ -26,7 +26,7 @@ Both horizontal and vertical ranges must meet. The comparisons count touching an
 Create `src/main/java/Coin.java` yourself. Coin owns its position and collection state; Main owns the score.
 
 ```java
-import javafx.scene.paint.Color;
+import zero.Color;
 import zero.GameApp;
 
 public class Coin {
@@ -68,7 +68,7 @@ if (!coin.isCollected() && coin.touches(player)) {
 In `draw()`, just before `player.draw(this);`, add:
 
 ```java
-fill(Color.DARKSLATEGRAY);
+fill(Color.rgb(47, 79, 79));
 text("Score: " + points, 20, 60);
 coin.draw(this);
 ```
@@ -77,18 +77,16 @@ coin.draw(this);
 
 Click **Run App**. Touch the coin, stay there, leave, and return. The coin should disappear and the score should become 1 only once. The `!coin.isCollected()` check prevents a point every frame. If you remove it, contact can repeatedly score even though Coin no longer draws. Put it back before continuing.
 
-## 6. Add a native score and Restart
+## 6. Add a score and Restart below the canvas
 
-JavaFX controls can sit below the canvas. Add imports for `javafx.geometry.Insets`, `javafx.scene.control.Button`, `javafx.scene.control.Label`, and `javafx.scene.layout.HBox`. Add fields `private Label scoreLabel;` and `private Label message;`. In `setup()`, create controls **once**, then call a new `restart()` method:
+Zero controls can sit below the canvas. Add imports for `zero.ui.Button`, `zero.ui.Label`, and `zero.ui.Row`. Add fields `private Label scoreLabel;` and `private Label message;`. In `setup()`, create controls **once**, then call a new `restart()` method:
 
 ```java
-scoreLabel = new Label();
-message = new Label();
+scoreLabel = new Label("");
+message = new Label("");
 var restartButton = new Button("Restart");
-restartButton.setOnAction(event -> restart());
-var controls = new HBox(12, scoreLabel, message, restartButton);
-controls.setPadding(new Insets(12));
-layout().setBottom(controls);
+restartButton.onClick(() -> restart());
+controls(new Row(12, scoreLabel, message, restartButton));
 restart();
 ```
 
@@ -103,13 +101,13 @@ public void restart() {
     points = 0;
     scoreLabel.setText("Score: 0");
     message.setText("Collect the gold square.");
-    canvas().requestFocus();
+    showGame();
 }
 ```
 
-## 8. Update the native score after collection
+## 8. Update the score label after collection
 
-When a coin is collected, immediately after `points++`, add `scoreLabel.setText("Score: " + points);`. Remove the canvas score `text(...)` line from `draw()`. Restart should restore the coin, Player's position and score without creating another control row. It requests canvas focus after the button receives it.
+When a coin is collected, immediately after `points++`, add `scoreLabel.setText("Score: " + points);`. Remove the canvas score `text(...)` line from `draw()`. Restart should restore the coin, Player's position and score without creating another control row. `showGame()` returns keyboard focus to the retained canvas and clears held input; it keeps the existing control row. It also works here when the game is already showing.
 
 ## 9. Grow to three coins and a win
 

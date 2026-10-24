@@ -1,4 +1,4 @@
-import javafx.scene.paint.Color;
+import zero.Color;
 import zero.GameApp;
 
 /** An ordinary object: coordinates change only when update is called. */
@@ -29,7 +29,7 @@ public class Player {
     }
 
     public void draw(GameApp app) {
-        app.fill(Color.CORNFLOWERBLUE);
+        app.fill(Color.rgb(100, 149, 237));
         app.rect(x, y, size, size);
     }
 }

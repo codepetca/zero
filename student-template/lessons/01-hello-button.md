@@ -8,13 +8,13 @@ Target illustration: the label after clicking **Say hello**.
 
 Open your **Greeting** project from lesson 0. Keep its `Main.java`.
 
-## 1. Add the Button and VBox imports
+## 1. Add the Button and Column imports
 
 In `Main.java`, add two imports beside the `Label` import:
 
 ```java
-import javafx.scene.control.Button;
-import javafx.scene.layout.VBox;
+import zero.ui.Button;
+import zero.ui.Column;
 ```
 
 ## 2. Create a button after the greeting in `setup()`
@@ -23,18 +23,20 @@ Keep your existing `greeting` line in `setup()`. After it, write:
 
 ```java
 Button button = new Button("Say hello");
-button.setOnAction(event -> greeting.setText("You did it!"));
+button.onClick(() -> greeting.setText("You did it!"));
 ```
 
 ## 3. Replace `show(greeting)` with a vertical layout
 
-`VBox` stacks the label and button with 10 pixels between them. Replace only
+`Column` stacks the label and button with 10 pixels between them. Replace only
 `show(greeting);` with:
 
 ```java
-show(new VBox(10, greeting, button));
+show(new Column(10, greeting, button));
 ```
 
+`onClick` tells Zero which code to run when the button is activated.
+The `() ->` introduces that action; you do not need an event object.
 The button's action changes the **existing** label. The label must stay in
 `setup()` above the action so the action can use `greeting`.
 

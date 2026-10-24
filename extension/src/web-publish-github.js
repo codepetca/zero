@@ -7,7 +7,6 @@ const core = require('./core');
 const {prepareUpload} = require('./github');
 const {pagesFiles, pagesWorkflow} = require('./web-publishing');
 const migration = require('./web-publish-migration');
-const helpers = require('./web-publish-helpers');
 
 const workflowPath = '.github/workflows/zero-web.yml';
 const shaPattern = /^[a-f0-9]{40}$/;
@@ -110,23 +109,6 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(allow404 && response.status===404)return null;
     if(!response.ok) {const error=new Error(response.status===401?'GitHub sign-in expired. Sign in and review publishing again.':response.status===403?'GitHub blocked publishing. Check repository Pages and Actions permissions, then recheck.':`GitHub could not complete publishing (HTTP ${response.status}). Recheck the repository before retrying.`);error.status=response.status;throw error;}
     return response.status===204 ? null : await response.json();
-  }
-  async function prepare(root,{signal,beforeWrite=async()=>{},onProgress=()=>{}}={}) {
-    if(isSimulation())return simulation();
-    const plan=await prepareUpload(root,git);
-    if(plan.branch!=='main')throw Error('Finish your change with Merge to main before publishing the app.');
-    const current=async()=>{
-      if(signal?.aborted)throw Error('Web publishing cancelled.');
-      await beforeWrite();
-      if(isSimulation())throw Error('Live publishing was disabled. Choose Publish app again after enabling live uploads.');
-      const now=await prepareUpload(root,git);
-      if(['root','remote','branch','head'].some(key=>now[key]!==plan[key]))throw Error('The publishing project, repository or branch changed. Choose Publish again.');
-    };
-    await current();
-    const inspection=await helpers.inspect(root,{extensionPath:path.resolve(engineRoot,'../..')});
-    if(!inspection.upgrade)return {updated:[]};
-    onProgress('Updating the bundled Zero helpers before committing…');
-    return helpers.apply(root,inspection,{beforeWrite:current});
   }
   async function review(root,{signal}={}) {
     if(isSimulation())return simulation();
@@ -357,6 +339,6 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     await cleanupStaging({root:plan.root,plan,ticket,slug:plan.page.slice('https://github.com/'.length),cleanupSha:saved.sha},saved.staging);
     unresolvedStages.delete(plan.root);
   }
-  return {prepare,review,setup,update,publish,check,restore,verifyLink,cleanup};
+  return {review,setup,update,publish,check,restore,verifyLink,cleanup};
 }
 module.exports={createGitHubPagesPublisher,publishingFiles,workflowPath,pagesPublishWorkflow:compiledWorkflow,publicAddress,_test:{publicReadiness,boundedText}};

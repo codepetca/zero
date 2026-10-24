@@ -24,5 +24,5 @@ const designFiles = readdirSync(designDirectory).filter(name => name.endsWith('.
   .sort().map(name => path.join(designDirectory, name));
 // Git fixtures and the local Java compatibility compiler are process-heavy.
 // Bound concurrent files so the full matrix leaves the editor responsive.
-const result = spawnSync(process.execPath, ['--test', '--test-concurrency=4', path.join(root,'scripts/kit.test.mjs'), path.join(root,'scripts/lesson-projects.test.mjs'), path.join(root,'scripts/zero-dev.test.mjs'), ...['ci-scope','ci-gate','ci-browser'].map(name=>path.join(root,`scripts/${name}.test.mjs`)), ...setupFiles, ...files, ...designFiles, path.join(root, 'design/playground/playground.test.mjs')], { cwd: root, stdio: 'inherit' });
+const result = spawnSync(process.execPath, ['--test', '--test-concurrency=4', path.join(root,'scripts/kit.test.mjs'), path.join(root,'scripts/basic-games.test.mjs'), path.join(root,'scripts/lesson-projects.test.mjs'), path.join(root,'scripts/zero-dev.test.mjs'), ...['ci-scope','ci-gate','ci-browser'].map(name=>path.join(root,`scripts/${name}.test.mjs`)), ...setupFiles, ...files, ...designFiles, path.join(root, 'design/playground/playground.test.mjs')], { cwd: root, stdio: 'inherit' });
 process.exit(result.status ?? 1);

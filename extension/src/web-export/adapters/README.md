@@ -15,14 +15,39 @@ relative resource paths retain their original default-package meaning. The
 bridge supports `URL.toExternalForm()` and `toString()`; unsupported URL, JavaFX,
 reflection, file or other Java APIs fail the compiler gate.
 
-All seven reviewed Zero helper sources are fingerprint-checked. Exact reviewed
+All eighteen reviewed Zero helper sources are fingerprint-checked. Exact reviewed
 `App`, `GameApp` and `SpriteAnimation` profiles receive internal overlays. CRLF and LF are equivalent. Modified helpers stop export with
 an actionable error; reviewing/updating the profile is deliberate maintenance.
+`Actor` stays unchanged: its ordinary movement math and calls to reviewed image
+helpers need no separate runtime overlay. The reviewed `zero.Color` and
+`zero.ui` sources also compile unchanged; helper identity checks use exact
+recursive paths, including the UI subpackage.
 Image loading becomes a manifest-driven preload before student setup, with
 progress, individual failures, a 30-second named timeout and original dimension
 validation. Browser focus loss clears input and latches one unfocused frame even
 if requestAnimationFrame was suspended. Canvas accessible text becomes a browser
-ARIA label.
+ARIA label. The exact reviewed GameApp text-size adapter supplies a sans-serif
+family so pinned WebFX emits valid canvas CSS fonts and honors the requested size.
+
+The App overlay installs one scene-local `BrowserUiFocus` filter for plain Tab
+and Shift+Tab. The pinned WebFX keyboard handler calls the legacy
+`Node.impl_traverse` stub, which always returns false. The filter instead uses
+the existing scene traversal engine through `Node.traverse` with the KEY method.
+It consumes only successful traversal, leaves other keys/modifiers alone and
+uses the engine's enabled/visible focus rules without rewriting DOM tab order.
+Native helpers and the public student API are unchanged. Browser acceptance
+checks forward/backward traversal, disabled-button skipping and Space activation
+in addition to typed text and prompt restoration after blur.
+
+The App overlay also installs the browser-only `javafx.scene.ZeroDisabledState`
+observer. The pinned Node computes its own effective disabled state but omits
+descendant propagation and parent-change recalculation. Per-node property-owned
+listeners restore those two paths, including added and detached children, using
+`setDisabled` for effective state. They never rewrite a node's own `disable` flag.
+There is no global node map, DOM mutation or polling. Runtime source is injected
+after semantic checking; project runtime-package sources and adapter output
+collisions are rejected. Browser acceptance includes disabled Columns, child
+overrides, retained independently disabled children and initially disabled mounts.
 
 The audio bridge implements the JavaFX Media/MediaPlayer/AudioClip calls used by
 the unchanged reviewed `zero.Sound` and `zero.Music` helpers. It uses browser audio elements,

@@ -15,6 +15,13 @@
         "format": "zip",
         "version": "1.141.0",
         "size": 328788027
+      },
+      "node": {
+        "url": "https://nodejs.org/dist/v22.21.1/node-v22.21.1-darwin-arm64.tar.gz",
+        "sha256": "c170d6554fba83d41d25a76cdbad85487c077e51fa73519e41ac885aa429d8af",
+        "version": "22.21.1",
+        "format": "tar.gz",
+        "size": 49924179
       }
     },
     "x64": {
@@ -31,7 +38,20 @@
         "format": "zip",
         "version": "1.141.0",
         "size": 354470558
+      },
+      "node": {
+        "url": "https://nodejs.org/dist/v22.21.1/node-v22.21.1-darwin-x64.tar.gz",
+        "sha256": "8e3dc89614debe66c2a6ad2313a1adb06eb37db6cd6c40d7de6f7d987f7d1afd",
+        "version": "22.21.1",
+        "format": "tar.gz",
+        "size": 51091933
       }
     }
+  },
+  "provenance": {
+    "nodeCheckedUtc": "2026-10-24T02:24:07Z",
+    "nodeChecksums": "https://nodejs.org/dist/v22.21.1/SHASUMS256.txt",
+    "nodeSizes": "Official nodejs.org archive HTTP HEAD Content-Length; no archive download or installation.",
+    "nodeSigning": "Read-only codesign metadata from existing Node 22.21.1 darwin-arm64: Developer ID Application: Node.js Foundation (HX7739G8FX), TeamIdentifier=HX7739G8FX."
   }
 }

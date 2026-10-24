@@ -66,7 +66,7 @@ second point for the same question; `finished` stops checking after completion.
 In `setup()`, change the old local `Label question` to the field:
 
 ```java
-questionLabel = new Label();
+questionLabel = new Label("");
 ```
 
 ## 4. Create Next, Restart and score controls
@@ -77,7 +77,7 @@ Replace the old Reset button with two fields, and create a score label:
 ```java
 next = new Button("Next");
 restart = new Button("Restart");
-scoreLabel = new Label();
+scoreLabel = new Label("");
 ```
 
 ## 5. Connect the actions and replace the layout
@@ -87,17 +87,17 @@ the old Reset action and layout with these lines. Put `showQuestion()` and
 `refreshStats()` after `show(...)` so the existing controls are initialized:
 
 ```java
-check.setOnAction(event -> checkAnswer());
-next.setOnAction(event -> nextQuestion());
-restart.setOnAction(event -> restartSession());
-show(new VBox(10, questionLabel, answer, check, next, restart,
+check.onClick(() -> checkAnswer());
+next.onClick(() -> nextQuestion());
+restart.onClick(() -> restartSession());
+show(new Column(10, questionLabel, answer, check, next, restart,
         feedback, attemptsLabel, scoreLabel));
 showQuestion();
 refreshStats();
 ```
 
-There should be one `check.setOnAction(...)` line. Remove the old
-`reset.setOnAction(...)` and old `show(...)` line.
+There should be one `check.onClick(...)` line. Remove the old
+`reset.onClick(...)` and old `show(...)` line.
 
 ## 6. Check once, then move forward
 
@@ -112,14 +112,18 @@ private void checkAnswer() {
         answered = true;
         points = points + 1;
         feedback.setText("Correct! " + questions[questionIndex].explanation());
-        check.setDisable(true);
-        next.setDisable(false);
+        check.setEnabled(false);
+        next.setEnabled(true);
     } else {
         feedback.setText("Try again.");
     }
     refreshStats();
 }
 ```
+
+`check.setEnabled(false)` makes Check unavailable; `next.setEnabled(true)`
+makes Next available. The booleans `answered` and `finished` still protect the
+quiz rules. Disabling a button reflects that state; it does not replace it.
 
 ## 7. Add methods to advance and show questions
 
@@ -131,9 +135,9 @@ private void nextQuestion() {
     if (questionIndex == questions.length - 1) {
         finished = true;
         questionLabel.setText("Finished! Score: " + points + " / " + questions.length);
-        answer.setDisable(true);
-        check.setDisable(true);
-        next.setDisable(true);
+        answer.setEnabled(false);
+        check.setEnabled(false);
+        next.setEnabled(false);
         feedback.setText("Choose Restart to try again.");
         return;
     }
@@ -145,10 +149,10 @@ private void nextQuestion() {
 private void showQuestion() {
     questionLabel.setText("Question " + (questionIndex + 1) + " of "
             + questions.length + ": " + questions[questionIndex].prompt());
-    answer.clear();
-    answer.setDisable(false);
-    check.setDisable(false);
-    next.setDisable(true);
+    answer.setText("");
+    answer.setEnabled(true);
+    check.setEnabled(true);
+    next.setEnabled(false);
     feedback.setText("");
 }
 ```

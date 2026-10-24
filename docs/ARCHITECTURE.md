@@ -13,6 +13,40 @@
 | `hub/checker/` | Disconnected former checker reference; no active publication authority |
 | `profile/`, `release/`, `scripts/` | Editor settings, release definitions and verification |
 
+## Runtime and extension architecture
+
+Student-led extension and contribution is a core goal, alongside learning Java,
+simple apps/games, JavaFX/WebFX browser delivery and student-owned GitHub work.
+The runtime plan is [Framework architecture](FRAMEWORK-ARCHITECTURE.md): a small
+JavaFX-owned lifecycle, optional active screens and explicitly updated worlds,
+with replaceable ordinary Java behaviours, animation playback and UI components.
+Normal student code should use Zero packages almost entirely; JavaFX remains the
+implementation and advanced interoperability boundary. The
+[class model](FRAMEWORK-MODEL.md) distinguishes inheritance from ownership and
+specifies GameApp extending App, optional UI Screens and Worlds, with gameplay
+update/draw in Main and no public GameScreen. GameApp owns canvas/input/camera;
+showing a UI Screen suspends gameplay while a composed HUD/control panel does not. The
+[reliability plan](FRAMEWORK-RELIABILITY.md) maps existing local/CI signals and
+future automatic coverage/runtime diagnostics, including the PostHog/Clarity
+evaluation. These documents do not implement the proposed facade or telemetry.
+The [preservation policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation)
+keeps framework source, build files and exact version records in each student
+repository, independently of editor updates. No central historical-kit database,
+registry or storage is required; maintain only the current line. Normal dependency
+hosts remain external dependencies; offline bundles are optional/student-retained.
+Missing tooling must not silently upgrade source or bypass checks. Safe project
+browser tooling/launch and backup/upgrade flows remain proposed.
+Arcade informs the screen/container structure; Greenfoot informs Actor vocabulary;
+Godot informs focused composition. These are design references, not dependencies.
+
+Framework ownership and third-party replacement are different boundaries. The
+core owns sequencing, input/resource cleanup and useful errors. A student selects
+implementations through documented public contracts; no source-hash exemption,
+automatic class discovery, global registration or private hook is required.
+Native and WebFX/GWT consumers must use the same public extension API. The plan
+is not an implementation of World/Screen, a released Actor API, or admission of
+new browser controls/dependencies. Preserve the current simple App/GameApp path.
+
 The dedicated GitHub branch `zero-sharing-registry` stores `registry/state.json`, updated with Git blob compare-and-swap. Issue events are hints; reconciliation discovers requests again. Numeric repository and owner IDs bind source ownership; exact commits freeze submissions. Library IDs and Java namespaces derive from repository ID and slug, so account renames do not rename imports. Publication stages bytes before reserving an exact version, then delivers immutable Maven or game ZIP paths and a content-addressed catalog. Interrupted delivery resumes without replacing accepted bytes.
 
 Vercel serves the website. Its read-only catalog route reads the fixed public Git registry and verifies the immutable catalog from public Blob storage. There is no database, custom website account, OAuth application or artifact proxy. Students need VS Code, Java and the project's Maven wrapper; no Node or Docker. The existing Maven starter remains to avoid introducing a second build tool.

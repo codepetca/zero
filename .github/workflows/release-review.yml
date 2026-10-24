@@ -54,6 +54,8 @@ jobs:
             extension/src/web-export/toolchain-lock.json
       - name: Install pinned dependencies
         run: npm ci
+      - name: Snapshot the selected hosted JDK trust store before evidence collection
+        run: node scripts/ci-browser.mjs prepare-jdk
       - name: Install website dependencies
         if: needs.scope.outputs.website == 'true'
         run: npm ci --prefix website

@@ -23,7 +23,8 @@ namespace ZeroSetup
         private readonly JavaScriptSerializer json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024, RecursionLimit = 32 };
         private readonly Dictionary<string, WindowsRuntimeAsset> assets;
         private readonly string version, minimum;
-        private string java, editor, editorApp;
+        private string java, editor, editorApp, node;
+        private const string NodeVersion = "22.21.1";
         private sealed class Manifest
         {
             public int schemaVersion { get; set; }
@@ -40,7 +41,7 @@ namespace ZeroSetup
             kit = FullPath(kitRoot); data = FullPath(dataRoot); project = FullPath(projectRoot);
             if (Inside(data, kit) || Inside(kit, data)) throw new IOException("Zero's private tools must be outside the replaceable launcher and kit folders.");
             var manifest = json.Deserialize<Manifest>(ReadText(Path.Combine(kit, "setup", "windows-downloads.json"), 65536));
-            if (manifest == null || manifest.schemaVersion != 1 || manifest.architectures == null || !manifest.architectures.TryGetValue(this.architecture, out assets) || assets.Count != 2 || !assets.ContainsKey("jdk") || !assets.ContainsKey("vscode"))
+            if (manifest == null || manifest.schemaVersion != 1 || manifest.architectures == null || !manifest.architectures.TryGetValue(this.architecture, out assets) || assets.Count != 3 || !assets.ContainsKey("jdk") || !assets.ContainsKey("vscode") || !assets.ContainsKey("node"))
                 throw new IOException("Verified Windows download metadata is missing. Reinstall Zero.");
             foreach (var pair in assets) ValidateAsset(pair.Key, pair.Value);
             var properties = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -81,11 +82,17 @@ namespace ZeroSetup
                 official = Regex.IsMatch(asset.version, @"^jdk-21\.\d+\.\d+(\.\d+)?\+\d+$") && uri.Host == "github.com" &&
                     path == "/adoptium/temurin21-binaries/releases/download/" + asset.version + "/OpenJDK21U-jdk_x64_windows_hotspot_" + asset.version.Substring(4).Replace('+', '_') + ".zip";
             }
-            else
+            else if (kind == "node")
+            {
+                official = asset.version == NodeVersion && uri.Host == "nodejs.org" &&
+                    path == "/dist/v" + NodeVersion + "/node-v" + NodeVersion + "-win-x64.zip";
+            }
+            else if (kind == "vscode")
             {
                 official = ValidVersion(asset.version) && uri.Host == "vscode.download.prss.microsoft.com" &&
                     Regex.IsMatch(path, @"^/dbazure/download/stable/[a-f0-9]{40}/VSCode-win32-x64-" + Regex.Escape(asset.version) + @"\.zip$");
             }
+            else official = false;
             if (!official || !uri.AbsolutePath.EndsWith(".zip", StringComparison.Ordinal)) throw new IOException("Zero's download must use its official pinned vendor URL.");
         }
         private string UserData { get { return Path.Combine(data, "editor", "user-data"); } }
@@ -109,7 +116,11 @@ namespace ZeroSetup
             };
             info.EnvironmentVariables["JAVA_HOME"] = java;
             info.EnvironmentVariables["ZERO_KIT_DIR"] = kit;
-            info.EnvironmentVariables["PATH"] = Path.Combine(java, "bin") + ";" + (Environment.GetEnvironmentVariable("PATH") ?? "");
+            info.EnvironmentVariables["PATH"] = Path.Combine(java, "bin") + ";" + (node == null ? "" : Path.GetDirectoryName(node) + ";") + (Environment.GetEnvironmentVariable("PATH") ?? "");
+            if (node != null) info.EnvironmentVariables["ZERO_NODE_EXECUTABLE"] = node;
+            else info.EnvironmentVariables.Remove("ZERO_NODE_EXECUTABLE");
+            info.EnvironmentVariables.Remove("NODE_OPTIONS");
+            info.EnvironmentVariables.Remove("NODE_PATH");
             info.EnvironmentVariables.Remove("VSCODE_PORTABLE");
             info.EnvironmentVariables.Remove("VSCODE_CWD");
             info.EnvironmentVariables.Remove("VSCODE_IPC_HOOK_CLI");
@@ -148,29 +159,31 @@ namespace ZeroSetup
                 folders.Ensure(staging);
                 try
                 {
-                    progress(kind == "jdk" ? "Downloading Java…" : "Downloading editor…");
+                    progress(kind == "jdk" ? "Downloading Java…" : kind == "node" ? "Downloading browser tools…" : "Downloading editor…");
                     string download = Path.Combine(staging, "download.zip");
                     await host.Download(assets[kind], download, cancellation);
                     cancellation.ThrowIfCancellationRequested();
                     WindowsRuntimeFolders.Check(download);
                     if (new FileInfo(download).Length != assets[kind].size || WindowsRuntimeArchive.Hash(download, cancellation) != assets[kind].sha256) throw new IOException("The " + kind + " download did not match its verified size and checksum. Retry setup.");
-                    progress(kind == "jdk" ? "Preparing Java…" : "Preparing editor…");
+                    progress(kind == "jdk" ? "Preparing Java…" : kind == "node" ? "Preparing browser tools…" : "Preparing editor…");
                     string extracted = Path.Combine(staging, "extracted");
                     await Task.Run(() => WindowsRuntimeArchive.Extract(download, extracted, cancellation), cancellation);
                     string content = extracted;
-                    if (kind == "jdk" || !File.Exists(Path.Combine(extracted, "Code.exe")))
+                    if (kind != "vscode" || !File.Exists(Path.Combine(extracted, "Code.exe")))
                     {
                         string[] children = Directory.GetFileSystemEntries(extracted);
                         if (children.Length != 1 || !Directory.Exists(children[0])) throw new IOException("The " + kind + " archive has an unexpected layout.");
                         content = children[0];
+                        if (kind == "node" && Path.GetFileName(content) != "node-v" + NodeVersion + "-win-x64") throw new IOException("The browser runtime archive has an unexpected layout.");
                     }
-                    foreach (string required in kind == "jdk" ? new[] { "bin/java.exe", "bin/javac.exe", "release" } : new[] { "Code.exe" })
+                    foreach (string required in kind == "jdk" ? new[] { "bin/java.exe", "bin/javac.exe", "release" } : kind == "node" ? new[] { "node.exe" } : new[] { "Code.exe" })
                     {
                         string path = Path.Combine(content, required.Replace('/', Path.DirectorySeparatorChar));
                         WindowsRuntimeFolders.Check(path);
                         if (!File.Exists(path)) throw new IOException("The downloaded runtime is incomplete: " + required);
                     }
                     if (kind == "vscode") ResolveEditorApp(content);
+                    if (kind == "node") await VerifyNodeBinary(Path.Combine(content, "node.exe"), cancellation);
                     File.WriteAllText(Path.Combine(content, ".zero-asset.sha256"), assets[kind].sha256);
                     cancellation.ThrowIfCancellationRequested();
                     WindowsRuntimeFolders.Check(destination);
@@ -196,7 +209,7 @@ namespace ZeroSetup
             Directory.Move(destination, previous);
             try
             {
-                progress(kind == "jdk" ? "Repairing Java…" : "Repairing editor…");
+                progress(kind == "jdk" ? "Repairing Java…" : kind == "node" ? "Repairing browser tools…" : "Repairing editor…");
                 await Install(kind, progress, cancellation);
             }
             finally
@@ -225,6 +238,29 @@ namespace ZeroSetup
             string javaVersion = await Execute(Path.Combine(java, "bin", "java.exe"), new[] { "-version" }, 30000, cancellation);
             string javacVersion = await Execute(Path.Combine(java, "bin", "javac.exe"), new[] { "-version" }, 30000, cancellation);
             if (!Regex.IsMatch(javaVersion, @"version ""21\.") || !Regex.IsMatch(javacVersion, @"^javac 21\.", RegexOptions.Multiline)) throw new IOException("Zero's private Java 21 could not be verified. Try again; if your device blocks software, ask your teacher or IT for help.");
+        }
+        private async Task VerifyNodeBinary(string executable, CancellationToken cancellation)
+        {
+            string output = await Execute(executable, new[] { "--version" }, 30000, cancellation);
+            if (output.Trim() != "v" + NodeVersion) throw new IOException("Zero's private browser runtime could not be verified. Run setup again.");
+        }
+        private async Task VerifyNode(CancellationToken cancellation)
+        {
+            string folder = AssetFolder("node"); Marker(folder, "node");
+            node = Path.Combine(folder, "node.exe");
+            await VerifyNodeBinary(node, cancellation);
+        }
+        private async Task PrepareNode(Action<string> progress, CancellationToken cancellation)
+        {
+            bool existed = Directory.Exists(AssetFolder("node"));
+            await Install("node", progress, cancellation);
+            progress("Checking browser tools…");
+            try { await VerifyNode(cancellation); }
+            catch (Exception error) when (existed && (error is IOException || error is System.ComponentModel.Win32Exception))
+            {
+                await Repair("node", progress, cancellation);
+                await VerifyNode(cancellation);
+            }
         }
         internal static string ResolveEditorApp(string root)
         {
@@ -352,6 +388,7 @@ namespace ZeroSetup
                 {
                     WindowsRuntimeFolders.Check(lockPath);
                     await PrepareJava(progress, cancellation);
+                    await PrepareNode(progress, cancellation);
                     folders.Ensure(UserData); folders.Ensure(Extensions);
                     progress("Preparing editor…"); await FindEditor(cancellation);
                     if (editor == null)
@@ -401,7 +438,7 @@ namespace ZeroSetup
                 WindowsRuntimeFolders.Check(data); WindowsRuntimeFolders.Check(project);
                 if (!Directory.Exists(data) || !Directory.Exists(project)) throw new IOException("Your Zero starter or private support folder is missing. Run setup again.");
                 folders.Ensure(data); folders.Ensure(UserData); folders.Ensure(Extensions);
-                await VerifyJava(cancellation); await FindEditor(cancellation);
+                await VerifyJava(cancellation); await VerifyNode(cancellation); await FindEditor(cancellation);
                 if (editor == null || !SettingsReady() || !ExtensionsReady(await ExtensionState(cancellation))) throw new IOException("Zero's editor support needs repair. Run setup again.");
                 cancellation.ThrowIfCancellationRequested();
                 host.Launch(Info(Path.Combine(editor, "Code.exe"), Isolated.Concat(resume ? new string[0] : new[] { "--new-window" }), false));

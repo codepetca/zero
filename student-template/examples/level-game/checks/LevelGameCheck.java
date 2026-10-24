@@ -171,7 +171,7 @@ public class LevelGameCheck extends Application {
         watchdog.setDaemon(true); watchdog.start();
         var app = new Main();
         try {
-            app.start(stage); app.stop();
+            app.start(stage); app.pause();
             var keys = (Set<KeyCode>) field(app, GameApp.class, "keys");
             cameraChecks(); drawingChecks(app);
             physicsChecks(); jumpInputChecks(app, keys);

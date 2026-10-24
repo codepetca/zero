@@ -1,0 +1,64 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
+const {createCacheOnlyFetcher,createRecordingFetcher}=require('../src/web-export/compatibility/cache');
+const {readCachedArtifacts,checkCompatibility}=require('../src/web-export/compatibility');
+const {checkCachedProject}=require('../src/web-export/compatibility/cached-project');
+const {loadCatalog,verifyLibrary}=require('../src/sharing/consumer');
+const {zipFiles}=require('../src/web-export/zip'),contracts=require('../src/sharing/contracts');
+const sha=require('node:crypto').createHash;
+const hash=bytes=>sha('sha256').update(bytes).digest('hex');
+async function temporary(t){const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-cached-check-test-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));return root;}
+test('cache-only artifact misses and corruption never call the download path or create cache',async t=>{const root=await temporary(t),missing=path.join(root,'missing');await assert.rejects(readCachedArtifacts(missing),{code:'ZERO_COMPATIBILITY_UNAVAILABLE'});await assert.rejects(fs.stat(missing),{code:'ENOENT'});await fs.mkdir(path.join(missing,'compatibility-artifacts'),{recursive:true});const first=require('../src/web-export/compatibility/contract.json').attributionArtifacts[0];await fs.writeFile(path.join(missing,'compatibility-artifacts',first.file),'bad');await assert.rejects(readCachedArtifacts(missing),/checksum differs/);});
+test('explicit preparation records exact responses; cache-only reads reject missing URLs and modified bytes',async t=>{const root=await temporary(t),recorder=createRecordingFetcher(async()=>new Response('verified response'));const url='https://files.example/exact';assert.equal(await (await recorder.fetcher(url,{})).text(),'verified response');await recorder.commit(root);const cached=await createCacheOnlyFetcher(root);assert.equal(await (await cached.fetcher(url)).text(),'verified response');await assert.rejects(cached.fetcher('https://files.example/other'),/not been prepared/);const index=JSON.parse(await fs.readFile(path.join(root,'library-responses/index.json')));await fs.writeFile(path.join(root,'library-responses',index.responses[0].sha256+'.bin'),'modified');await assert.rejects(cached.fetcher(url),/differs/);});
+test('cached published catalog/JAR/source/POM are independently reverified without network',async t=>{
+ const root=await temporary(t),identity=contracts.identity('library','12345','small-helper'),namespace=identity.namespace,source=namespace.replaceAll('.','/')+'/Helper.java';
+ const values={jar:zipFiles([{path:source.replace('.java','.class'),bytes:Buffer.from('class')}]),sources:zipFiles([{path:source,bytes:Buffer.from('package '+namespace+'; public class Helper {}')}]),pom:Buffer.from('<project><modelVersion>4.0.0</modelVersion><groupId>'+identity.coordinate.groupId+'</groupId><artifactId>'+identity.coordinate.artifactId+'</artifactId><version>0.1.0</version></project>')};
+ const artifacts=Object.fromEntries(Object.entries(values).map(([kind,bytes])=>{const name=contracts.artifactPath(identity,'0.1.0',kind);return [kind,{path:name,url:'https://files.example/'+name,size:bytes.length,sha256:hash(bytes)}];}));
+ const release={schema:1,kind:'library',id:identity.id,slug:'small-helper',version:'0.1.0',title:'Small helper',description:'Cache-only verification fixture',license:'MIT',repository:{id:'12345',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'},contributor:{githubId:'7',login:'student'},source:{commit:'a'.repeat(40),folder:'libraries/small-helper',sha256:'b'.repeat(64)},policyRevision:'c'.repeat(40),status:'available',artifacts,namespace,coordinate:{...identity.coordinate,version:'0.1.0'},libraryKind:'helper'};
+ const settings={catalogUrl:'https://zero.example/catalog',artifactOrigin:'https://files.example'},catalog={schema:1,revision:'d'.repeat(40),releases:[release]};
+ let networkCalls=0;const recorder=createRecordingFetcher(async url=>{networkCalls++;return new Response(url===settings.catalogUrl?JSON.stringify(catalog):values[Object.keys(artifacts).find(kind=>artifacts[kind].url===url)]);});
+ const context=await loadCatalog(settings,{fetcher:recorder.fetcher});await verifyLibrary(context,context.catalog.releases[0]);await recorder.commit(root);assert.equal(networkCalls,4);
+ const cached=await createCacheOnlyFetcher(root),frozen=await loadCatalog(settings,{fetcher:cached.fetcher}),verified=await verifyLibrary(frozen,frozen.catalog.releases[0]);assert.equal(networkCalls,4);assert.ok(verified.sources.equals(values.sources));
+ const resolved=await require('../src/web-export/libraries').resolveLibrarySources(root,{files:[{path:'pom.xml',bytes:Buffer.from('<project/>')}],libraries:[{identity,slug:'small-helper',mode:'published',version:'0.1.0',source:'consumer',repositoryOrigin:settings.artifactOrigin}]},{sharingSettings:settings,fetcher:cached.fetcher});assert.equal(resolved.sources.length,1);assert.ok(resolved.sources[0].path.startsWith(namespace.replaceAll('.','/')+'/'));assert.equal(resolved.publishedLibraries[0].catalogFingerprint,context.fingerprint);assert.equal(networkCalls,4);
+ await fs.writeFile(path.join(root,'library-responses',artifacts.jar.sha256+'.bin'),'corrupt');await assert.rejects(verifyLibrary(frozen,frozen.catalog.releases[0]),/unavailable/);assert.equal(networkCalls,4);
+});
+test('real cache-only JDK attribution distinguishes supported, rejected and unavailable inputs without Maven or class output',async t=>{
+ const root=await temporary(t),javaHome=path.join(os.homedir(),'Library/Application Support/Zero/runtime/jdk-3623232f33a9c3baadf304480b2535f9a3cba8a58d42ecbb438ba267315d9998/jdk-21.0.12.1+1/Contents/Home');
+ try{await fs.access(path.join(javaHome,'bin/java'));await fs.access(path.join(os.homedir(),'.cache/zero/web-export/compatibility-artifacts'));}catch{t.skip('Verified cached JDK21/JavaFX attribution inputs unavailable; no download attempted.');return;}
+ const pom=await fs.readFile(path.resolve(__dirname,'../../student-template/pom.xml'),'utf8'),cacheRoot=path.join(os.homedir(),'.cache/zero/web-export');
+ const run=async(name,body)=>{const workRoot=path.join(root,name);await fs.mkdir(workRoot);return checkCompatibility({sources:{'Main.java':'public class Main { int value() { '+body+' } }'},pom,cacheRoot,workRoot,cacheOnly:true,env:{JAVA_HOME:javaHome},getArtifact:()=>{throw Error('NETWORK MUST NOT RUN');}});};
+ assert.equal((await run('supported','return Math.max(1,2);')).status,'passed');await assert.rejects(run('unsupported','return (int) System.nanoTime();'),{code:'ZERO_BROWSER_UNSUPPORTED'});
+ await assert.rejects(checkCompatibility({sources:{'Main.java':'public class Main {}'},pom,cacheRoot,workRoot:path.join(root,'bad-jdk'),cacheOnly:true,env:{JAVA_HOME:path.join(root,'missing-jdk')}}),{code:'ZERO_COMPATIBILITY_UNAVAILABLE'});
+ const generated=await fs.readdir(root,{recursive:true});assert.ok(!generated.some(name=>name.endsWith('.class')||name==='target'));
+});
+test('cached project operation reports unavailable for incomplete projects without touching network',async t=>{const root=await temporary(t),result=await checkCachedProject({projectRoot:root,cacheRoot:path.join(root,'cache'),env:{}});assert.equal(result.status,'unavailable');assert.equal(result.identity,null);});
+test('standalone saved CLI cache-only operation distinguishes cold, compatible and unsupported saved source without building output',async t=>{
+ const base=await temporary(t),project=path.join(base,'project'),cache=path.join(base,'cold-cache'),javaHome=path.join(os.homedir(),'Library/Application Support/Zero/runtime/jdk-3623232f33a9c3baadf304480b2535f9a3cba8a58d42ecbb438ba267315d9998/jdk-21.0.12.1+1/Contents/Home');
+ try{await fs.access(path.join(javaHome,'bin/java'));}catch{t.skip('Cached JDK21 unavailable; no download attempted.');return;}
+ await fs.mkdir(path.join(project,'src/main/java'),{recursive:true});await fs.mkdir(path.join(project,'.mvn'),{recursive:true});await fs.writeFile(path.join(project,'pom.xml'),await fs.readFile(path.resolve(__dirname,'../../student-template/pom.xml')));await fs.writeFile(path.join(project,'src/main/java/Main.java'),'public class Main { int value(){ return Math.max(1,2); } }');
+ const {prepareProjectBuilder}=await import('../../scripts/prepare-project-builder.mjs');await prepareProjectBuilder({destination:path.join(project,'.zero-build')});
+ const {spawn}=require('node:child_process');const invoke=(operation='compatibilityCached',expectedExit=0,selectedJavaHome=javaHome)=>new Promise((resolve,reject)=>{const child=spawn(process.execPath,[path.join(project,'.zero-build/run.cjs')],{env:{PATH:process.env.PATH,HOME:os.homedir(),JAVA_HOME:selectedJavaHome},cwd:base});let text='';child.stdout.on('data',chunk=>text+=chunk);child.stderr.resume();child.on('error',reject);child.on('close',code=>{try{assert.equal(code,expectedExit,text);resolve(JSON.parse(text));}catch(error){reject(error);}});child.stdin.end(JSON.stringify({protocol:1,operation,projectRoot:project,cacheRoot:cache}));});
+ const response=await invoke();
+ assert.equal(response.ok,true);assert.equal(response.result.status,'unavailable');assert.ok(response.result.diagnostics[0].message.includes('cached attribution'));await assert.rejects(fs.stat(cache),{code:'ENOENT'});
+ const manifest=JSON.parse(await fs.readFile(path.join(project,'.zero-build/builder.json'))),attribution=path.join(cache,manifest.closureSha256,'compatibility-artifacts');await fs.mkdir(attribution,{recursive:true});
+ for(const artifact of require('../src/web-export/compatibility/contract.json').attributionArtifacts)await fs.copyFile(path.join(os.homedir(),'.cache/zero/web-export/compatibility-artifacts',artifact.file),path.join(attribution,artifact.file));
+ const compatible=await invoke();assert.equal(compatible.result.status,'compatible');assert.equal(Object.keys(compatible.result.identity).length,7);
+ await fs.writeFile(path.join(project,'src/main/java/Main.java'),'public class Main { long value(){ return System.nanoTime(); } }');const unsupported=await invoke();assert.equal(unsupported.result.status,'unsupported');assert.equal(unsupported.result.diagnostics[0].code,'ZERO_BROWSER_UNSUPPORTED');assert.notEqual(unsupported.result.identity.sourceHash,compatible.result.identity.sourceHash);
+ const prepared=await invoke('compatibility');assert.equal(prepared.ok,true);assert.equal(prepared.result.status,'unsupported');assert.equal(prepared.result.prepared,true);assert.equal(prepared.result.diagnostics[0].code,'ZERO_BROWSER_UNSUPPORTED');
+ const unavailablePreparation=await invoke('compatibility',1,path.join(base,'missing-jdk'));assert.equal(unavailablePreparation.ok,false);assert.equal(unavailablePreparation.error.code,'failed');
+ const checkedAfterPrepare=await invoke();assert.equal(checkedAfterPrepare.result.status,'unsupported');assert.equal(checkedAfterPrepare.result.identity.sourceHash,unsupported.result.identity.sourceHash);
+ // Exercise the real assembled helper bodies, not just a bare Main fixture.
+ await fs.cp(path.resolve(__dirname,'../../framework/src/main/java/zero'),path.join(project,'src/main/java/zero'),{recursive:true});
+ await fs.writeFile(path.join(project,'src/main/java/Main.java'),'public class Main extends zero.GameApp {}');
+ assert.equal((await invoke()).result.status,'compatible');
+ await fs.writeFile(path.join(project,'src/main/java/Health.java'),'public class Health { public int value(){ return 1; } }');
+ const authoring=require('../src/sharing/authoring');
+ await fs.writeFile(path.join(project,'zero.json'),'{}');
+ await authoring.applyPlan(await authoring.previewExtraction(project,{repository:{id:'12345',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'},descriptor:{schema:1,kind:'library',slug:'health-bar',version:'0.1.0',title:'Health bar',description:'Cached core integration regression',license:'MIT',libraryKind:'helper'},sources:['src/main/java/Health.java']}));
+ const withLibrary=await invoke();assert.equal(withLibrary.result.status,'compatible',JSON.stringify(withLibrary.result));
+ await fs.writeFile(path.join(project,'src/main/java/Shadow.java'),'package zero.contrib.r12345.health_bar; class Shadow {}');
+ const shadow=await invoke('compatibilityCached',1);assert.equal(shadow.ok,false);assert.match(shadow.error.message,/shadows library namespace/);
+ await fs.rm(path.join(project,'src/main/java/Shadow.java'));
+ await assert.rejects(fs.stat(path.join(project,'.zero/web-export')),{code:'ENOENT'});const projectFiles=await fs.readdir(project,{recursive:true});assert.ok(!projectFiles.some(name=>name.endsWith('.class')));
+});

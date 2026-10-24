@@ -50,12 +50,15 @@ test('reader opens beside Java with bounded resources/CSP and restores per-root 
 test('browser and clipboard messages are fixed allowlists with no project writes or arbitrary commands',async () => {
   const f=fake();const reader=createTutorialReader(f.vscode,{context:f.context});const panel=await reader.open();
   await panel.receive({type:'ready'});
-  for(const message of [{type:'browser',lessonId:'../0'},{type:'external',url:'file:///secret'},{type:'external',url:'https://evil.test'},{type:'copy',id:'unknown'},{type:'execute',command:'delete'}]) await panel.receive(message);
+  for(const message of [{type:'browser',lessonId:'../0'},{type:'external',url:'file:///secret'},{type:'external',url:'https://evil.test'},{type:'external',url:'https://zero.codepet.ca/hub?kind=practice&redirect=evil'},{type:'copy',id:'unknown'},{type:'execute',command:'delete'}]) await panel.receive(message);
   assert.deepEqual(f.external,[]);assert.deepEqual(f.copied,[]);
   await panel.receive({type:'browser',lessonId:'3'});
   assert.deepEqual(f.external,['https://zero.codepet.ca/tutorials/3']);
+  assert.match(panel.webview.html,/data-external="https:\/\/zero.codepet.ca\/hub\?kind=practice"/);
+  await panel.receive({type:'external',url:'https://zero.codepet.ca/hub?kind=practice'});
+  assert.equal(f.external.at(-1),'https://zero.codepet.ca/hub?kind=practice');
   await panel.receive({type:'copy',id:'code-0'});
-  assert.ok(f.copied[0].includes('import javafx.scene.control.Label;'));
+  assert.ok(f.copied[0].includes('import zero.ui.Label;'));
   assert.deepEqual(panel.messages.at(-1),{type:'copied',id:'code-0',ok:true});
   f.vscode.env.clipboard.writeText=async()=>{throw new Error('clipboard unavailable');};
   await panel.receive({type:'copy',id:'code-0'});assert.equal(panel.messages.at(-1).ok,false);

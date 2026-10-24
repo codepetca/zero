@@ -16,8 +16,9 @@ terminal open for source watching. A separate **Zero Dev** extension development
 window opens with a playable Coin Game and the real Zero sidebar. Open
 `src/main/java/Main.java` and click **Run**. Click the canvas and use arrow keys
 to collect the three coins; **Restart** resets the score and returns canvas focus.
-The sample starts from the maintained lesson 11 game, with its Player, Coin and
-ScoreDisplay classes. It uses current `framework/src/main/java/zero` source.
+The sample starts from the maintained lesson 11 game, with its Player, Coin,
+ScoreDisplay, PlayerInput and CreditsBadge classes. It uses current
+`framework/src/main/java/zero` source.
 
 The launcher reuses the installed Zero JDK on a Mac when JAVA_HOME is absent.
 Otherwise provide a working JDK through JAVA_HOME/PATH. Set ZERO_DEV_CODE to the

@@ -15,7 +15,7 @@ The new `Main.java` has `Main extends App`, `settings()` with `padding(20)`, an 
 first control is yours to write. Add this import above `public class Main`:
 
 ```java
-import javafx.scene.control.Label;
+import zero.ui.Label;
 ```
 
 ## 2. Write the greeting inside `setup()`
@@ -38,7 +38,7 @@ code rather than replace `Main.java`.
 
 ### App startup
 
-Your Main extends `zero.App`, a JavaFX application. The starter's
+Your Main extends `zero.App`. Zero uses JavaFX underneath to display the interface. The starter's
 `main(...)` calls `launch(args)`. Zero then calls `settings()` once, calls
 `setup()` once to build your interface, and shows the window. Keep that entry
 point; you do not need to construct another Main.
@@ -57,12 +57,12 @@ method:
 
 Keep one `settings()` method. Call `title(...)` and `size(...)` there, before
 the interface exists. `padding(20)` leaves space
-around your content. In `setup()`, `show(greeting)` displays an ordinary JavaFX
+around your content. In `setup()`, `show(greeting)` displays a Zero
 Label; later lessons arrange several controls before calling `show(...)`.
 
 App responds to events rather than calling an automatic `update()` or `draw()`.
 In the next lesson, a button action changes your existing label with `setText(...)`,
-and JavaFX displays the change. Keep setup and actions short so the window can
+and Zero displays the change. Keep setup and actions short so the window can
 respond; sleeping or a long loop blocks its JavaFX application thread.
 
 Next: [Add a button](01-hello-button.md).

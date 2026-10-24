@@ -7,6 +7,7 @@ const { createHash } = require('node:crypto');
 const { inflateRawSync } = require('node:zlib');
 const contracts = require('./contracts');
 const {validateGameStructure,SAFE_GITIGNORE}=require('./game-structure');
+const builderFormat = require('../project-builder-format');
 const byteHash = bytes => createHash('sha256').update(bytes).digest('hex');
 
 const required = ['zero.json','pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties'];
@@ -17,7 +18,7 @@ const TRUSTED_WRAPPER_HASHES = Object.freeze({
   'mvnw.cmd':'46eedb8419bd14fe70d5bb2916d7b6f51806e51b39d5b76a42610384ca929c1c',
   '.mvn/wrapper/maven-wrapper.properties':'bb0b8f16b2661c3676ed5a6a15f5b11d864460c4e77cfb50c583f54708f944e7'
 });
-const fixed = new Set([...required,'.gitignore','zero-game.json','zero-libraries.json','README.md','LICENSE','LICENSE.md','NOTICE','preview.png','.vscode/tasks.json','.vscode/extensions.json','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE']);
+const fixed = new Set([...required,'zero-core.json','.gitignore','zero-game.json','zero-libraries.json','README.md','LICENSE','LICENSE.md','NOTICE','preview.png','.vscode/tasks.json','.vscode/extensions.json','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE']);
 const resourceExtensions = /\.(png|jpe?g|gif|webp|wav|mp3|ogg|txt|json|csv|properties|xml|fxml|css|ttf|otf|md)$/i;
 function safeGamePath(value) {
   if (typeof value !== 'string' || value.length > 240 || value.includes('\\') || value.startsWith('/') || value.split('/').some(part => !/^[A-Za-z0-9_. -]{1,80}$/.test(part) || ['.','..'].includes(part) || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part) || /[. ]$/.test(part) || part.startsWith(' '))) throw new Error('Unsafe game archive path');
@@ -27,6 +28,9 @@ function includeGamePath(value) {
   safeGamePath(value);
   if (value.split('/').some(part => /^(?:\.git|\.env(?:\..*)?|\.zero-sharing-recovery|target|build|dist|node_modules|\.idea|\.DS_Store)$/i.test(part))) return false;
   if (fixed.has(value)) return true;
+  // Candidate saved-tooling paths are admitted only as a complete, data-validated
+  // inventory below. Importing a shared game never executes these files.
+  if (value.startsWith('.zero-build/')) return builderFormat.relativePath(value.slice('.zero-build/'.length));
   if (value.split('/').some(part => part.startsWith('.'))) return false;
   if (/^src\/(main|test)\/java\/.+\.java$/.test(value)) return true;
   if (/^(?:src\/main\/resources|assets)\//.test(value)) return resourceExtensions.test(value);
@@ -62,6 +66,14 @@ function normalizeGameFiles(files) {
   }
   for (const name of required) if (!seen.has(name) || !included.some(file => file.path === name)) throw new Error('Required game file missing: ' + name);
   const includedPaths = new Set(included.map(file => file.path));
+  const builderFiles = included.filter(file => file.path.startsWith('.zero-build/'));
+  if (builderFiles.length) {
+    const manifest = builderFiles.find(file => file.path === '.zero-build/builder.json');
+    if (!manifest || manifest.data.length > builderFormat.LIMITS.manifestBytes) throw new Error('Shared game is missing its complete saved browser builder.');
+    builderFormat.validateBuilderFiles(JSON.parse(manifest.data.toString('utf8')),
+      builderFiles.filter(file => file !== manifest).map(file => ({path:file.path.slice('.zero-build/'.length),bytes:file.data})));
+    builderFormat.validateRuntimeLock(JSON.parse(builderFiles.find(file => file.path === '.zero-build/runtime-lock.json').data.toString('utf8')));
+  }
   for (const file of included) {
     const segments = file.path.split('/');
     for (let end = 1; end < segments.length; end++) if (includedPaths.has(segments.slice(0,end).join('/'))) throw new Error('Game file shadows another file directory');

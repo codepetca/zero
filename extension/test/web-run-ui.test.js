@@ -5,7 +5,7 @@ const {createBrowserRunCommands,sourceDiagnostics}=require('../src/web-run-ui');
 const {createManagedWebPreview}=require('../src/web-run-preview');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 function harness(t) {
-  let active='/project',busy=false,building,valid=true,save=true,saveGate,builds=0,previews=0,stops=0,opens=0,openResult=true,cancel,workspaceChanged,previewGate,projectGate;
+  let runtimeOptions;const allRuntimeOptions=[];let active='/project',busy=false,building,valid=true,save=true,saveGate,builds=0,previews=0,stops=0,opens=0,openResult=true,cancel,workspaceChanged,previewGate,projectGate,validating,retainedValidating;
   const states=[],failures=[],events=[],diagnostics=[];
   const result={sitePath:'/project/.zero/web-export/site'};
   const vscode={workspace:{isTrusted:true,saveAll:async()=>{events.push('save');if(saveGate)await saveGate;return save;},onDidChangeWorkspaceFolders:callback=>{workspaceChanged=callback;return {dispose(){}};}},
@@ -13,10 +13,11 @@ function harness(t) {
     languages:{createDiagnosticCollection:()=>({clear(){diagnostics.length=0;},set(uri,items){diagnostics.push({uri,items});},dispose(){}})},Uri:{file:fsPath=>({fsPath})},
     Position:class{constructor(line,character){Object.assign(this,{line,character});}},Range:class{constructor(start,end){Object.assign(this,{start,end});}},Diagnostic:class{constructor(range,message,severity){Object.assign(this,{range,message,severity});}},DiagnosticSeverity:{Error:0}};
   const api=createBrowserRunCommands(vscode,{project:async()=>{if(projectGate)await projectGate;return active;},output:{appendLine(){},show(){}},isBusy:()=>busy,setBusy:v=>{busy=v;},setActive:v=>events.push('active:'+v),setFailed:v=>failures.push(v),setState:v=>states.push(v),
-    ensureValidatedExport:async options=>{events.push('build');builds++;options.onProgress('Checking compatibility');options.onProgress('Compiling Java');return building ? building(options) : result;},validateExport:async()=>{events.push('validate');if(!valid)throw Error('Inputs changed. Run App again.');},
-    previewFactory:async(_,site,options)=>{previews++;events.push('preview');if(previewGate)await previewGate;let stopped=false;return {openInBrowser:async()=>{opens++;if(openResult instanceof Error)throw openResult;return openResult;},dispose(){if(!stopped){stopped=true;stops++;events.push('dispose');options.onDidDispose();}}};}});
+    ensureValidatedExport:async options=>{events.push('build');builds++;options.onProgress('Checking compatibility');options.onProgress('Compiling Java');return building ? building(options) : result;},validateExport:async options=>{events.push('validate');if(validating)return validating(options);if(!valid)throw Error('Inputs changed. Run App again.');},
+    validateRetainedExport:async options=>{events.push('retained-validate');return retainedValidating?retainedValidating(options):result;},
+    previewFactory:async(_,site,options)=>{runtimeOptions=options;allRuntimeOptions.push(options);previews++;events.push('preview');if(previewGate)await previewGate;let stopped=false;return {openInBrowser:async()=>{opens++;if(openResult instanceof Error)throw openResult;return openResult;},dispose(){if(!stopped){stopped=true;stops++;events.push('dispose');options.onDidDispose();}}};}});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
-  return {api,vscode,events,states,failures,diagnostics,get busy(){return busy;},get builds(){return builds;},get previews(){return previews;},get stops(){return stops;},get opens(){return opens;},set openResult(v){openResult=v;},set active(v){active=v;},set building(v){building=v;},set valid(v){valid=v;},set save(v){save=v;},set saveGate(v){saveGate=v;},set previewGate(v){previewGate=v;},set projectGate(v){projectGate=v;},cancel:()=>cancel(),workspaceChanged:()=>workspaceChanged()};
+  return {api,vscode,events,states,failures,diagnostics,get runtimeOptions(){return runtimeOptions;},allRuntimeOptions,get busy(){return busy;},get builds(){return builds;},get previews(){return previews;},get stops(){return stops;},get opens(){return opens;},set openResult(v){openResult=v;},set active(v){active=v;},set building(v){building=v;},set valid(v){valid=v;},set validating(v){validating=v;},set retainedValidating(v){retainedValidating=v;},set save(v){save=v;},set saveGate(v){saveGate=v;},set previewGate(v){previewGate=v;},set projectGate(v){projectGate=v;},cancel:()=>cancel(),workspaceChanged:()=>workspaceChanged()};
 }
 
 test('Open in browser requires a running app and reuses it without saving, rebuilding or revalidating source',async t=>{
@@ -43,7 +44,7 @@ test('browser open failure preserves the running app and does not recompile',asy
 test('browser runner saves, checks/builds, validates and opens one managed preview; restart closes it first',async t=>{
  const h=harness(t);await h.api.run();assert.equal(h.builds,1);assert.equal(h.previews,1);assert.equal(h.busy,false);
  assert.deepEqual(h.events.filter(v=>['save','build','validate','preview'].includes(v)),['save','build','validate','preview']);
- assert.ok(h.states.includes('Checking app…'));assert.ok(h.states.includes('Building app…'));assert.match(h.states.at(-1),/running/);
+ assert.ok(h.states.includes('Checking app…'));assert.ok(h.states.includes('Building app…'));assert.match(h.states.at(-1),/readiness unverified/);
  h.events.length=0;await h.api.run();assert.equal(h.stops,1);assert.ok(h.events.indexOf('dispose')<h.events.indexOf('build'));
  h.api.stop();assert.equal(h.stops,2);assert.equal(h.states.at(-1),'App stopped');
 });
@@ -116,4 +117,52 @@ test('preview passes the current project tutorial column only after root and lif
 test('Problems deduplicates source errors repeated in the summary and compiler log',async t=>{
  const h=harness(t);h.building=()=>{throw Error('Main.java:7:4: Unsupported member\nMain.java:7:4: Unsupported member');};
  await assert.rejects(h.api.run(),/Unsupported member/);assert.equal(h.diagnostics.length,1);assert.equal(h.diagnostics[0].items.length,1);assert.equal(h.diagnostics[0].items[0].message,'Unsupported member');
+});
+
+test('Stop and disposal abort the follow-up current validation and release the browser Run busy state',async t=>{
+ for(const mode of ['stop','dispose']){const h=harness(t);let signal;
+  h.validating=options=>{signal=options.signal;return new Promise((resolve,reject)=>{signal?.addEventListener('abort',()=>reject(Object.assign(Error('cancelled'),{name:'AbortError'})),{once:true});});};
+  const pending=h.api.run();while(!h.events.includes('validate'))await tick();assert.ok(signal instanceof AbortSignal);assert.equal(signal.aborted,false);
+  mode==='stop'?h.api.stop():h.api.disposables[0].dispose();await pending;await h.api.whenIdle();assert.equal(signal.aborted,true);assert.equal(h.busy,false);assert.equal(h.previews,0);
+ }
+});
+test('retained preview uses its selected validator, exact result and its own cancellable generation',async t=>{
+ const h=harness(t),result={buildId:'retained-A',sitePath:'/project/.zero/web-export/site'};let signal;
+ h.validating=()=>assert.fail('retained preview cannot execute the current builder');
+ h.retainedValidating=options=>{assert.equal(options.projectRoot,'/project');assert.equal(options.result,result);signal=options.signal;return new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(Error('cancelled')),{once:true}));};
+ const pending=h.api.preview('/project',result,{retained:true});while(!signal)await tick();h.api.stop();await pending;assert.equal(signal.aborted,true);assert.equal(h.previews,0);
+ h.retainedValidating=async options=>{assert.equal(options.result,result);return {...result,siteFiles:[]};};await h.api.preview('/project',result,{retained:true});assert.equal(h.previews,1);
+});
+test('protocol-validated compiler log restores GWT file context omitted from the bounded error summary',async t=>{
+ const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),{EventEmitter}=require('node:events'),{PassThrough}=require('node:stream'),{runProtocol}=require('../src/project-builder');
+ const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-protocol-problems-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));const logPath=path.join(root,'owned-cache','closure','logs','project.log');await fs.mkdir(path.dirname(logPath),{recursive:true});
+ await fs.writeFile(logPath,"Errors in '/generated/src/main/java/Bird.java'\n[ERROR] Line 19: Unsupported draw call\n");
+ const spawn=()=>{const child=new EventEmitter();child.stdout=new PassThrough();child.stderr=new PassThrough();child.stdin=new PassThrough();child.kill=()=>{};child.stdin.on('finish',()=>setImmediate(()=>{child.stdout.end(JSON.stringify({protocol:1,ok:false,error:{code:'failed',message:'Summary '.repeat(600),logPath}}));child.emit('close',1);}));child.stdin.resume();return child;};
+ const h=harness(t);h.active=root;h.building=()=>runProtocol({node:'/verified/node',entrypoint:'/frozen/run.cjs',request:{protocol:1,operation:'export',projectRoot:root},env:{},spawn,expectedLogPath:logPath});
+ await assert.rejects(h.api.run(),error=>error.message.length===4096);assert.equal(h.diagnostics.length,1);assert.equal(h.diagnostics[0].uri.fsPath,path.join(root,'src/main/java/Bird.java'));assert.equal(h.diagnostics[0].items[0].range.start.line,18);assert.match(h.diagnostics[0].items[0].message,/Unsupported draw call/);
+});
+test('retained preview cancellation keeps an interrupted Run operation responsible for releasing its busy state',async t=>{
+ const h=harness(t);let signal;h.validating=options=>{signal=options.signal;return new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(Error('cancelled')),{once:true}));};
+ const running=h.api.run();while(!signal)await tick();assert.equal(h.busy,true);await h.api.preview('/project',{buildId:'retained-A'},{retained:true});await running;assert.equal(h.busy,false);assert.equal(signal.aborted,true);assert.equal(h.previews,1);
+});
+test('disposing a retained preview aborts only its pending data validator',async t=>{
+ const h=harness(t);let signal;h.retainedValidating=options=>{signal=options.signal;return new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(Error('cancelled')),{once:true}));};const pending=h.api.preview('/project',{buildId:'retained-A'},{retained:true});while(!signal)await tick();h.api.disposables[0].dispose();await pending;assert.equal(signal.aborted,true);assert.equal(h.previews,0);assert.equal(h.busy,false);
+});
+
+test('preview readiness is event-driven and old generations cannot replace current status',async t=>{
+ const h=harness(t);await h.api.run();const first=h.runtimeOptions;assert.match(h.states.at(-1),/readiness unverified/);
+ first.onRuntime({type:'startup'});assert.equal(h.states.at(-1),'Starting app…');first.onRuntime({type:'ui-ready'});assert.equal(h.states.at(-1),'App ready');first.onRuntime({type:'first-frame'});assert.equal(h.states.at(-1),'App running');
+ await h.api.run();const before=h.states.at(-1);first.onRuntime({type:'fatal',diagnostic:'stale'});assert.equal(h.states.at(-1),before);assert.equal(h.stops,1);
+ h.runtimeOptions.onRuntime({type:'fatal',code:'FRAME_EXCEPTION',diagnostic:'java.lang.IllegalStateException: broken\n  at demo.Main.draw(Main.java:42)'});await tick();assert.match(h.states.at(-1),/stopped with an error/);assert.equal(h.failures.at(-1),true);assert.equal(h.stops,2);assert.equal(h.diagnostics[0].uri.fsPath,'/project/src/main/java/demo/Main.java');assert.equal(h.diagnostics[0].items[0].range.start.line,41);
+ const failed=h.states.at(-1);h.runtimeOptions.onRuntime({type:'first-frame'});assert.equal(h.states.at(-1),failed);
+});
+
+test('generated browser-runtime errors link to the retained adapter source rather than a deleted build or student class',()=>{
+ const log="[INFO] [ERROR] Errors in 'file:/temporary/build/src/main/java/zero/web/BrowserRuntime.java'\n[INFO] [ERROR] Line 25: ZeroProofMissingAdapterSymbol cannot be resolved\n[ERROR] /temporary/build/src/main/java/javafx/scene/ZeroDisabledState.java:[9,4] Broken adapter";
+ assert.deepEqual(sourceDiagnostics(log,'/project'),[
+  {file:'/project/.zero-build/src/web-export/adapters/runtime/zero/web/BrowserRuntime.java',line:25,column:1,message:'ZeroProofMissingAdapterSymbol cannot be resolved'},
+  {file:'/project/.zero-build/src/web-export/adapters/runtime/javafx/scene/ZeroDisabledState.java',line:9,column:4,message:'Broken adapter'}
+ ]);
+ const windows="Errors in 'C:\\cache\\build\\src\\main\\java\\zero\\web\\media\\BrowserSound.java'\nLine 14: Broken audio adapter";
+ assert.equal(sourceDiagnostics(windows,'/project')[0].file,'/project/.zero-build/src/web-export/adapters/runtime/zero/web/media/BrowserSound.java');
 });

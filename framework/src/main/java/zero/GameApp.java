@@ -3,6 +3,7 @@ package zero;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.net.URL;
 import java.nio.file.Path;
 import javafx.animation.AnimationTimer;
@@ -38,19 +39,32 @@ public abstract class GameApp extends App {
     private final EnumSet<MouseButton> pressedButtons = EnumSet.noneOf(MouseButton.class);
     private final Map<String, Image> imageCache = new HashMap<>();
     private Stage window;
+    private boolean gameVisible;
+    private boolean paused;
+    private boolean firstFrameReported;
+    private long previousFrame;
     private double mouseX;
     private double mouseY;
 
     public void update(double seconds) { }
     public void draw() { }
 
+    /** Draw an actor explicitly; this never updates or registers it. */
+    public final void draw(Actor actor) {
+        Objects.requireNonNull(actor, "Actor must not be null.").draw(this);
+    }
+
     @Override protected final javafx.scene.Node createContent() {
+        gameVisible = true;
+        paused = false;
+        firstFrameReported = false;
+        previousFrame = 0;
         canvas = new Canvas(initialWidth(), initialHeight());
         canvas.setFocusTraversable(true);
         graphics = canvas.getGraphicsContext2D();
         layout = new BorderPane(canvas);
         canvas.addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
-            if (canvas.isFocused()) {
+            if (gameplayInputEnabled() && canvas.isFocused()) {
                 if (keys.add(event.getCode())) pendingKeys.add(event.getCode());
                 // Arrow movement belongs to the canvas; Tab still reaches native controls.
                 if (event.getCode().isArrowKey()) event.consume();
@@ -64,7 +78,21 @@ public abstract class GameApp extends App {
         return layout;
     }
 
-    @Override protected final Scene createScene(BorderPane content) { return new Scene(content); }
+    @Override protected final Scene createScene(BorderPane content) {
+        // A setup-time title must reserve the same initial space as the retained game and HUD.
+        javafx.scene.Node selected = content.getCenter();
+        try {
+            content.setCenter(layout);
+            Scene scene = new Scene(content);
+            content.applyCss();
+            double width = content.prefWidth(-1);
+            double height = content.prefHeight(width);
+            content.setPrefSize(width, height);
+            return scene;
+        } finally {
+            content.setCenter(selected);
+        }
+    }
 
     @Override protected final void ready(Stage stage) {
         window = stage;
@@ -73,6 +101,7 @@ public abstract class GameApp extends App {
         scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_RELEASED,
                 event -> keys.remove(event.getCode()));
         scene.addEventFilter(javafx.scene.input.MouseEvent.ANY, event -> {
+            if (!gameplayInputEnabled()) return;
             boolean onCanvas = event.getTarget() == canvas;
             if (onCanvas || !buttons.isEmpty()) {
                 var point = canvas.sceneToLocal(event.getSceneX(), event.getSceneY());
@@ -90,21 +119,31 @@ public abstract class GameApp extends App {
         stage.focusedProperty().addListener((property, wasFocused, focused) -> {
             if (!focused) clearInput();
         });
-        canvas.requestFocus();
+        if (gameplayInputEnabled()) canvas.requestFocus();
         timer = new AnimationTimer() {
-            private long previous;
             @Override public void handle(long now) {
-                double seconds = previous == 0 ? 0 : Math.min(0.1, (now - previous) / 1_000_000_000.0);
-                previous = now;
+                if (!gameVisible || isStopped()) {
+                    previousFrame = 0;
+                    return;
+                }
+                double seconds = previousFrame == 0 ? 0 : Math.min(0.1, (now - previousFrame) / 1_000_000_000.0);
+                previousFrame = now;
                 pressedKeys.clear(); pressedKeys.addAll(pendingKeys); pendingKeys.clear();
                 pressedButtons.clear(); pressedButtons.addAll(pendingButtons); pendingButtons.clear();
+                beginFrame();
+                String stage = "frame-update";
                 try {
-                    update(seconds);
-                    draw();
+                    if (!paused) update(seconds);
+                    stage = "frame-draw";
+                    if (!isStopped()) draw();
+                    endFrame(true);
+                    if (!isStopped() && !firstFrameReported) {
+                        firstFrameReported = true;
+                        runtimeEvent("first-frame", "frame-draw", "FIRST_FRAME");
+                    }
                 } catch (RuntimeException | Error failure) {
-                    // Preserve the useful frame error even if native cleanup also fails.
-                    try { GameApp.this.stop(); }
-                    catch (RuntimeException | Error cleanup) { failure.addSuppressed(cleanup); }
+                    endFrame(false);
+                    runtimeFailure(stage, "FRAME_EXCEPTION", failure);
                     throw failure;
                 } finally {
                     pressedKeys.clear(); pressedButtons.clear();
@@ -119,11 +158,28 @@ public abstract class GameApp extends App {
         pressedKeys.clear(); pressedButtons.clear();
     }
 
+    private boolean gameplayInputEnabled() {
+        return gameVisible && !paused && window != null && !isStopped();
+    }
+
+    @Override void contentChanged(javafx.scene.Node content) {
+        gameVisible = content == layout;
+        previousFrame = 0;
+        clearInput();
+        if (gameplayInputEnabled()) canvas.requestFocus();
+    }
+
     @Override protected final void shutdown() {
-        if (timer != null) timer.stop();
+        Throwable failure = null;
+        try { if (timer != null) timer.stop(); }
+        catch (RuntimeException | Error error) { failure = error; }
+        gameVisible = false;
+        previousFrame = 0;
         clearInput();
         imageCache.clear();
         window = null;
+        if (failure instanceof RuntimeException error) throw error;
+        if (failure instanceof Error error) throw error;
     }
 
     public final double width() { return canvas.getWidth(); }
@@ -131,10 +187,22 @@ public abstract class GameApp extends App {
     public final double mouseX() { return mouseX; }
     public final double mouseY() { return mouseY; }
     public final boolean keyDown(KeyCode key) { return keys.contains(key); }
+    public final boolean keyDown(Key key) {
+        return keyDown(Objects.requireNonNull(key, "Key must not be null.").fxKeyCode());
+    }
+    /** Whether the primary pointer button is held on the game canvas. */
+    public final boolean mouseDown() { return mouseDown(MouseButton.PRIMARY); }
+
     public final boolean mouseDown(MouseButton button) { return buttons.contains(button); }
 
     /** True throughout the next update/draw frame after an owned press; queries do not consume it. */
     public final boolean keyPressed(KeyCode key) { return pressedKeys.contains(key); }
+    public final boolean keyPressed(Key key) {
+        return keyPressed(Objects.requireNonNull(key, "Key must not be null.").fxKeyCode());
+    }
+    /** Whether the primary pointer button was newly pressed this frame. */
+    public final boolean mousePressed() { return mousePressed(MouseButton.PRIMARY); }
+
     public final boolean mousePressed(MouseButton button) { return pressedButtons.contains(button); }
     /** Window focus, even when a native control rather than the canvas has keyboard focus. */
     public final boolean windowFocused() { return window != null && window.isFocused(); }
@@ -143,6 +211,45 @@ public abstract class GameApp extends App {
     public final Canvas canvas() { return canvas; }
     public final GraphicsContext graphics() { return graphics; }
     public final BorderPane layout() { return layout; }
+
+    /** Return to the retained canvas and controls without changing the explicit pause state. */
+    public final void showGame() {
+        requireContentReady("showGame");
+        if (layout == null) throw new IllegalStateException("Call showGame inside setup() or an event handler.");
+        show(layout);
+    }
+
+    /** Freeze updates while drawing and ordinary UI callbacks continue. */
+    public final void pause() {
+        requireContentReady("pause");
+        paused = true;
+        previousFrame = 0;
+        clearInput();
+    }
+
+    /** Resume updates with no held input and a zero-second first frame. */
+    public final void resume() {
+        requireContentReady("resume");
+        paused = false;
+        previousFrame = 0;
+        clearInput();
+    }
+
+    /** Read the explicit pause state; displaying another view suspends gameplay separately. */
+    public final boolean isPaused() {
+        requireContentReady("isPaused");
+        return paused;
+    }
+
+    /** Mount live controls below the canvas, replacing previous controls without stopping gameplay. */
+    public final void controls(zero.ui.Element content) {
+        if (layout == null) throw new IllegalStateException("Call controls inside setup() or an event handler.");
+        javafx.scene.Node node = Objects.requireNonNull(content, "Controls must not be null.").fxNode();
+        if (node != layout.getBottom() && (node.getParent() != null || node.getScene() != null)) {
+            throw new IllegalArgumentException("Controls already belong to a layout or scene. Use a separate component.");
+        }
+        layout.setBottom(node);
+    }
 
     /** Clears the full canvas, retaining the current drawing styles. */
     public final void background(Color color) {
@@ -155,6 +262,15 @@ public abstract class GameApp extends App {
     }
     public final void fill(Color color) { graphics.setFill(color); }
     public final void stroke(Color color) { graphics.setStroke(color); }
+    public final void background(zero.Color color) {
+        background(Objects.requireNonNull(color, "Background color must not be null.").fxColor());
+    }
+    public final void fill(zero.Color color) {
+        fill(Objects.requireNonNull(color, "Fill color must not be null.").fxColor());
+    }
+    public final void stroke(zero.Color color) {
+        stroke(Objects.requireNonNull(color, "Stroke color must not be null.").fxColor());
+    }
     public final void strokeWidth(double pixels) { graphics.setLineWidth(pixels); }
     public final void textSize(double pixels) { graphics.setFont(Font.font(pixels)); }
     public final void rect(double x, double y, double width, double height) { graphics.fillRect(x, y, width, height); }
@@ -233,6 +349,11 @@ public abstract class GameApp extends App {
     }
     public final SpriteAnimation loadAnimation(String resourcePath, int columns, int rows, double fps) {
         return new SpriteAnimation(loadImage(resourcePath), columns, rows, fps);
+    }
+    /** Load a full-image region sharing the app's cached bundled image. */
+    public final ImageRegion loadImageRegion(String resourcePath) {
+        Image image = loadImage(Objects.requireNonNull(resourcePath, "Image resource path must not be null."));
+        return new ImageRegion(image, 0, 0, image.getWidth(), image.getHeight());
     }
     private static String imageResourceKey(URL resource) {
         try {

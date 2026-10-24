@@ -62,7 +62,7 @@ export function prepareGame(inputRoot = repository, {home = homedir()} = {}) {
   const add = (relative, bytes, preserve = false) => files.set(relative, {bytes:Buffer.from(bytes), preserve});
   for (const name of commonFiles) add(`game/${name}`, source(root, `student-template/${name}`));
   for (const name of coreSources) add(`game/src/main/java/zero/${name}`, source(root, `framework/src/main/java/zero/${name}`));
-  for (const name of ['Main', 'Player', 'Coin', 'ScoreDisplay']) {
+  for (const name of ['Main', 'Player', 'Coin', 'ScoreDisplay', 'PlayerInput', 'CreditsBadge']) {
     let bytes = source(root, `teaching/checkpoints/11/game/${name}.java`);
     if (name === 'Main') bytes = Buffer.from(bytes.toString().replace('padding(20);', 'title("Zero Dev · Coin Game");\n        padding(20);'));
     add(`game/src/main/java/${name}.java`, bytes, true);

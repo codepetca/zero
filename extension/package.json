@@ -122,6 +122,10 @@
         "title": "Zero: Sign in to GitHub"
       },
       {
+        "command": "zero.signInUsingCode",
+        "title": "Zero: Sign in using a code"
+      },
+      {
         "command": "zero.createRepository",
         "title": "Zero: Create GitHub Repository"
       },
@@ -175,6 +179,10 @@
       {
         "command": "zero.browseHub",
         "title": "Zero: Browse Libraries"
+      },
+      {
+        "command": "zero.browseTutorialPractice",
+        "title": "Zero: Browse Tutorial Practice"
       },
       {
         "command": "zero.browseGames",
@@ -256,6 +264,14 @@
         "command": "zero.startPage",
         "title": "Zero: Start Page",
         "shortTitle": "Start Page"
+      },
+      {
+        "command": "zero.enableBrowserChecks",
+        "title": "Zero: Enable and Prepare Browser Checks"
+      },
+      {
+        "command": "zero.disableBrowserChecks",
+        "title": "Zero: Disable Browser Checks"
       }
     ],
     "views": {
@@ -289,6 +305,16 @@
     "problemMatchers": [
       {
         "name": "zero-java",
+        "owner": "zero-native-task-compatibility",
+        "pattern": {
+          "regexp": "^(?!)()()()$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        }
+      },
+      {
+        "name": "zero-java-fallback",
         "owner": "java",
         "fileLocation": [
           "absolute"
@@ -313,7 +339,7 @@
           ],
           "default": "live",
           "scope": "resource",
-          "markdownDescription": "Live is the default. GitHub actions require your explicit choice. Commit & push uses an empty Commit Message input; check the repository and branch in the sidebar; naming a new branch creates it directly. First Publish warns that the app and included assets will be public; later Publish actions update that site. Merge to main runs directly after its safety checks. After successful merging, guarded cleanup automatically deletes the finished local branch; the remote branch stays available. Repository replacement keeps a concise confirmation. Uploads commit when needed and send files to your connected repository using your VS Code GitHub sign-in. A local Git name/email identity is required. Simulation is an optional testing mode that makes no Git changes or uploads. Tutorial practice remains local-only in either mode."
+          "markdownDescription": "Live is the default. GitHub actions require your explicit choice. Commit & push uses an empty Commit Message input; check the repository and branch in the sidebar; naming a new branch creates it directly. First Publish warns that the app and included assets will be public; later Publish actions update that site. Merge to main runs directly after its safety checks. After successful merging, guarded cleanup automatically deletes the finished local branch; the remote branch stays available. Repository replacement keeps a concise confirmation. Uploads commit when needed and send files to your connected repository using your VS Code GitHub sign-in. A local Git name/email identity is required. Simulation is an optional testing mode that makes no Git changes or uploads. Local lesson practice projects remain local-only in either mode."
         },
         "zero.sharingCatalogUrl": {
           "type": "string",

@@ -1,15 +1,17 @@
 import contracts from '../../extension/src/sharing/contracts.js';
+import practice from '../../extension/src/sharing/tutorial-practice.js';
 
 /**
  * @param {{releases: any[]}} catalog
  * @param {{kind?: string, search?: string, id?: string, version?: string, attributions?: {id:string, sourceCommits:string[], author:string}[]}} [options]
  */
 export function selectReleases(catalog, {kind = 'library', search = '', id = '', version = '', attributions = []} = {}) {
-  if (!['library', 'game'].includes(kind)) throw new Error('Choose games or libraries.');
+  if (!['library', 'game', 'practice'].includes(kind)) throw new Error('Choose projects, libraries or tutorial practice.');
+  const practiceOnly=kind==='practice', releaseKind=practiceOnly?'library':kind;
   if (!!id !== !!version) throw new Error('An exact release link needs both its ID and version.');
   if (version) contracts.validateVersion(version);
   const phrase = id ? '' : search.trim().toLowerCase();
-  let releases = catalog.releases.filter(release => release.kind === kind &&
+  let releases = catalog.releases.filter(release => release.kind === releaseKind && practice.isTutorialPractice(release)===practiceOnly &&
     (id ? release.id === id && release.version === version : release.status === 'available'));
   if (!id) {
     const latest = new Map();
@@ -48,7 +50,7 @@ function compareVersions(a, b) {
   return 0;
 }
 export function releaseLink(release) {
-  return `/hub?${new URLSearchParams({kind: release.kind, id: release.id, version: release.version})}`;
+  return `/hub?${new URLSearchParams({kind: practice.isTutorialPractice(release)?'practice':release.kind, id: release.id, version: release.version})}`;
 }
 export function sourceLink(release) {
   return `${release.repository.url}/tree/${release.source.commit}${release.source.folder === '.' ? '' : `/${release.source.folder}`}`;

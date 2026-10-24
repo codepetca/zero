@@ -66,6 +66,14 @@ that could silently supply a different pinned toolchain.
 Java setup caches Maven downloads by OS/architecture and dependency inputs.
 WebFX separately caches only its verified download directories, keyed by
 OS/architecture, JDK21, npm lockfile, starter Maven inputs and exporter inputs.
+Both native/API and browser evidence jobs use this preparation. On disposable
+GitHub-hosted Linux runners, setup snapshots only a linked
+`JAVA_HOME/lib/security/cacerts` into an ordinary file with identical bytes before
+compilation. Its original shared target remains untouched. Evidence traversal
+still rejects other unexpected links; no certificate trust or API coverage check
+is disabled. The CLI requires GitHub-hosted Linux runner markers to avoid
+modifying normal developer or student JDKs.
+
 It never caches exported builds, lock state, logs or credentials. The existing
 exporter still verifies its artifact/distribution inventory. Cache misses use
 normal downloads; cache service failure does not omit verification.

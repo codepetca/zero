@@ -18,6 +18,8 @@ export const sampleGameAssets = {
 
 // Publication records are authored only after a separately authorized public
 // template verification. A planned repository name is never an available link.
+// scaffoldSha256 binds the verified commit's pristine file inventory to these
+// lessons. It is recorded evidence, not a live check of the mutable remote main.
 export function validateTutorialTemplates(value) {
   if (!value || value.schema !== 1 || !Array.isArray(value.templates) || value.templates.length !== practiceProjects.length) throw new Error('Invalid tutorial template metadata.');
   const ids = new Set();
@@ -26,6 +28,7 @@ export function validateTutorialTemplates(value) {
     ids.add(item.id);
     const publication = item.publication;
     if (publication !== null && (!publication || !Number.isSafeInteger(publication.repositoryId) || publication.repositoryId < 1 || publication.visibility !== 'public' || publication.isTemplate !== true || publication.defaultBranch !== 'main' || !/^[0-9a-f]{40}$/.test(publication.commit) || !/^[0-9a-f]{40}$/.test(publication.tree))) throw new Error('Invalid tutorial template publication record.');
+    if(publication?.scaffoldSha256!==undefined&&!/^[0-9a-f]{64}$/.test(publication.scaffoldSha256))throw new Error('Invalid tutorial template publication source evidence.');
     return {...item};
   });
 }
@@ -34,5 +37,5 @@ export function publishedTutorialTemplate(id) {
   const item = tutorialTemplateDefinitions.find(template => template.id === id);
   if (!item?.publication) return null;
   const repositoryUrl = `https://github.com/${item.repository}`;
-  return {repository:item.repository, repositoryUrl, templateHref:`${repositoryUrl}/generate`};
+  return {repository:item.repository, repositoryUrl, templateHref:`${repositoryUrl}/generate`,...(item.publication.scaffoldSha256?{scaffoldSha256:item.publication.scaffoldSha256}:{})};
 }

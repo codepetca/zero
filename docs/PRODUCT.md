@@ -15,9 +15,124 @@ later cohorts. Students own their repositories; Pika submission is separate.
 
 Success means a student can start their own tutorial repository, make and explain
 a small Java change, run it, repair a useful compiler error, and save their work
-to GitHub. Browser publication and ZeroHub contributions extend that learning;
-they are optional for completing the lessons. Keep ordinary Java and explicit
-object updates central as setup, publishing and community features grow.
+to GitHub. The default teaching path must also produce working games and apps
+through the pinned JavaFX/WebFX toolchain, playable on GitHub Pages. An individual
+early lesson need not publish, but browser delivery is a core product capability.
+Keep ordinary Java and explicit ownership of updates central as the kit grows.
+
+Owner clarification,2026-10-23: normal student games/apps should use Zero packages
+almost entirely. Zero provides the common controls, layouts, drawing, input,
+assets and app/game lifecycle, using JavaFX underneath. Direct JavaFX remains an
+advanced supported-subset escape hatch. The target
+[class model](FRAMEWORK-MODEL.md) keeps App as the common UI host and GameApp
+extending App as the single gameplay owner. Optional UI Screens provide menus/
+results; optional Worlds organize actors. There is no public GameScreen. Main
+keeps update/draw, can swap level controllers, and can add live HUD/controls
+without navigating away; showing a replacement UI Screen suspends gameplay.
+The starter and Greeting, Study and Coin lessons now use Zero packages locally.
+Released templates remain separately pinned.
+New Start tutorial now rejects missing/stale recorded template source evidence
+before creating a repository. The three public templates were updated through
+reviewed PRs and verified from anonymous public archives on2026-10-24. Their
+recorded commits/trees/digests match the current helpers and project-owned builder.
+Existing projects can Open/Clone/Run without upgrading.
+The gate does not verify mutable remote contents or change direct GitHub links.
+
+Catch framework/platform failures automatically: per-signature native/WebFX/browser
+evidence, early compatibility diagnostics, actual compiler/behavior gates and
+truthful runtime error state. The [reliability plan](FRAMEWORK-RELIABILITY.md)
+evaluates PostHog for optional structured operational signals and Clarity for
+supplementary website usability. Neither replaces compiler/tests or automatically
+instruments student-owned sites. No new collector or analytics deployment exists.
+
+Project longevity, owner direction 2026-10-23: the student's repository owns its
+framework source, native/browser build files, Zero-specific build tooling, version
+records and exact dependencies. Editor updates never upgrade them automatically.
+No required central historical-kit storage, database or kit registry. Maintain the
+current release line without old-version branches/backports. Stable same-major
+releases preserve the documented API; upgrades remain optional/reversible. Keep
+editable source and a retained finished web build. Full offline backups are
+optional and student-retained; default future rebuilds depend on usable tools
+and availability of normal dependency hosts, not a promise of permanent support.
+See the [versioning and preservation policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation)
+for current gaps, experimental 0.x rules and bounded clone/build/rehost acceptance.
+Project-owned browser tooling and complete locks are implemented locally. The
+old/new clone, rebuild, static rehost and reversible upgrade proof passes locally.
+
+Implementation execution, owner-authorized 2026-10-23: follow the single
+[phased delivery roadmap](FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).
+The first accepted local slice moves Greeting lessons0–2 and the starter to Zero
+UI, adding only the TextField needed by that teaching path. Study lessons3–7 are also accepted locally, with inherited control availability
+verified in the pinned browser runtime. Coin lessons8–9 are accepted locally with Zero Key and Row; shared ScoreDisplay
+lessons10–11 are accepted locally. Lesson12 Zero image/sound and scrolling are accepted locally; a live-control
+simulation is accepted locally. Phase1 is complete. Phase2A–C are accepted locally: interchangeable student-owned
+views, actual core-dependent managed component reuse and replaceable actor
+animation/steering. Core now has18 helpers/183 declarations. Optional container
+replacement is also accepted locally, completing Phase2. Project-owned browser
+tooling and trusted editor selection are accepted locally through05390785; the
+full old/new preservation proof also passes locally. Local prototypes and
+verification are separate from released kits and published tutorial repositories.
+
+Local reliability gates pass through eef9960c: all183 declarations have current
+executed native and browser evidence,366/366 targets with no gaps. Seven actual
+native suites, four pinned WebFX exports and the scoped browser behavior/failure
+checks pass. UI callback and startup failures preserve their causes and stop the
+browser game. The refreshed local kit candidate passes archive/source/license
+and extracted Maven checks. The later actual isolated Mac editor walkthrough
+exercises class/asset editing, compiler correction, native readiness, browser play,
+component replacement and local Git/ZIP saving. The host runtime scan accepts
+bounded macOS hard-linked Java launchers. The saved checker and library workflows
+recognize exact core source without relaxing student/library namespace protection.
+The actual editor now passes compatible → unsaved stale → unsupported source-linked
+Problems → corrected compatible, and native Run remains usable. Current local
+Check Library builds an independent ScoreView JAR and runs its checks and both
+examples; full WebFX export with that component and its bar HUD also pass.
+151 focused tests and targeted independent review pass through eef9960c.
+Native physical play, installation, physical Windows, novice use, authenticated
+GitHub/hosted sharing and publication remain separately unproven. Local completion
+is distinct from release and live-service acceptance.
+
+## Basic game completeness pass
+
+The local [three-game pass](BASIC-GAMES.md) adds Zero/standard-Java-only Pong,
+a collector/shooter and a fixed-screen platformer. Movement/action key constants
+and primary pointer overloads remove the demonstrated input enum gaps. The core
+now declares 193 public/protected entries; prior 183/366 evidence above belongs to
+its earlier exact revision. Current scoped input and game behavior proof is
+recorded separately in EVIDENCE. This does not publish or release the framework.
+
+The tutorial remains three small continuing projects: Greeting (0–2), Study
+(3–7), Coin (8–12). Intermediate lesson 10 explicitly refactors Main into a
+student-owned PlayerInput helper and the existing reusable ScoreDisplay. Lesson
+11 checks a compatible improvement, optionally adds WASD, and practises sharing a
+small CreditsBadge in a separate Tutorial practice area. An original community/core
+contribution proposal remains an optional extension. Lesson 12 keeps optional media/scrolling;
+larger reference games remain maintainer completeness checks. No new core Input
+class or required fourth tutorial project is introduced. Submitting practice work
+is explicit and remains gated by hosted library acceptance.
+
+## Core goal: students grow the framework
+
+Owner direction,2026-10-23: students should learn to build, extend and improve
+software together, rather than only consume a fixed game API. The learning loop
+is **build → extract → share → reuse → improve → propose for core**. A student
+can implement a missing steering method, replace animation playback, or share a
+HUD, camera behaviour or larger structure as understandable Java through ZeroHub.
+The architecture must provide public seams for those contributions without
+editing canonical framework source or relying on private runtime internals.
+
+Students keep their own GitHub repositories and exact-version library choices.
+Alternatives can coexist; popularity does not automatically promote an API into
+Zero. Demonstrated reuse, clear teaching value, native and WebFX/browser evidence,
+attribution and deliberate maintainer review make an idea a core candidate.
+Accepted artifacts and existing pins remain immutable; adoption into core does
+not silently replace installed libraries. Contributing is a core learning goal,
+not a requirement to publish every beginner exercise or activate unaccepted
+hosted checking. The [framework architecture plan](FRAMEWORK-ARCHITECTURE.md)
+defines the proposed ownership, replacement contracts and acceptance examples;
+[ZeroHub components](COMPONENTS.md) defines the existing sharing flow and limits.
+
+## Current delivery
 
 Mac 0.5.43 includes a split Run control: the main button runs locally and its
 arrow opens **Publish app** for connected, ready projects. Stop the app before
@@ -77,10 +192,15 @@ projects, alongside the destination's code and tutorial tabs.
 
 The Start Page guides students through **Sign in to GitHub** →
 **Install Zero for GitHub** → **Start tutorial**.
-Zero calls its own `zero-github` provider directly, so explicit sign-in starts
-with **Connect Zero to GitHub** and the device code, without a second VS Code
-request to share Zero's session with itself. The provider remains registered for
-the Accounts menu and other extensions, whose host consent checks still apply.
+Current local source calls its own `zero-github` provider directly. **Sign in to
+GitHub** starts browser authorization and completes the editor session after the
+browser return, without entering a code. **Sign in using a code** remains an
+explicit Start Page/command fallback, also offered when browser sign-in is
+unavailable. Browser sign-in requires separately activated website/App settings;
+until then students can use the code fallback. GitHub may still require account
+selection, passkey or two-factor authentication. Published downloads retain
+their bundled flow. The provider remains registered for the Accounts menu and
+other extensions, whose host consent checks still apply.
 It stores expiring user/refresh tokens in VS Code SecretStorage; GitHub handles
 sign-in and consent, and Zero has no separate password or account.
 Signing in runs a read-only check for repository creation and contents writing
@@ -111,9 +231,9 @@ in the relevant lessons. Setup/troubleshooting lives under `/help`, and teacher
 notes and the classroom pilot live under `/teachers`. Product, development and
 verification records stay in repository documentation. Legacy `/docs/...` guide
 bookmarks lead to the corresponding tutorial, help, teacher or repository page.
-ZeroHub opens Projects by default and has only Projects and Libraries in its
-catalog navigation. A desktop sidebar contains the ZeroHub title, search field,
-Share your work and Projects/Libraries filters, in that order. The gallery sits
+ZeroHub opens Projects by default, with Projects, Libraries and a separate
+Tutorial practice entry. A desktop sidebar contains the ZeroHub title, search
+field, Share your work and those three filters, in that order. The gallery sits
 in the right pane. On narrow screens the controls stack above the gallery.
 The sidebar has no vertical divider. A short tagline under the title says
 “Play. Share. Learn.” Below the buttons, a brief description
@@ -216,19 +336,28 @@ See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md)
 
 ## App and learning contract
 
+The following describes the current local API and lessons. Existing published
+kits keep their original source and build files until explicitly upgraded.
+
 `zero.App` is event-driven: `settings()` sets `title(...)` and initial
-`size(...)` and optional `padding(...)` around the content; `setup()` creates JavaFX controls and calls `show(Node)`. Buttons,
-labels, text fields and layouts keep their ordinary JavaFX names and behavior.
+`size(...)` and optional `padding(...)` around the content; `setup()` creates
+Zero controls and calls `show(...)`. The tutorial uses Zero buttons, labels,
+text fields and layouts without direct JavaFX imports.
 The installed kit's default app shows Hello, world!; the learning projects start
 with empty runnable boilerplate. Lessons 0–2 grow one Greeting app from label to
 button to name input. Lessons 3–7 grow one Study quiz: answer feedback, attempts,
 reset methods, a Counter object, then Question objects/arrays and scoring. Lessons
 8–12 grow one Coin game with student-authored Player/Coin, win/restart, ScoreDisplay
-reuse, and optional media/scrolling. Lesson 10 reopens Study and Game to extract and
-reuse the student's display class. Lesson 11 practises compatible changes locally;
-sharing uses a separate original project. Lesson 12's platform/level/endings stages
-are optional continuations of the same game, with maintained references; see
-[game systems](GAME-SYSTEMS.md).
+reuse, and optional media/scrolling. Lesson 10 extracts PlayerInput from a busy
+game Main, then reopens Study and Game to extract and reuse ScoreDisplay. Lesson
+11 practises compatible changes, optionally adds WASD controls, then extracts
+a harmless CreditsBadge for explicitly labelled Tutorial practice sharing. Copies
+are expected and excluded from ordinary catalogue search. An original community
+or core contribution remains an optional extension with attribution, licensing
+and checks.
+Lesson 12 adds optional artwork, sound and a small scrolling extension to the
+same Coin game. Larger game references are maintainer completeness checks,
+not additional tutorial requirements; see [basic games](BASIC-GAMES.md).
 The scored quiz remains a later reuse example.
 The new local tutorial pass inserts one-coin native controls before arrays/win,
 then reuses unchanged ScoreDisplay in the study app and coin game.
@@ -276,6 +405,13 @@ independent animations share pixels. Physics, game states, scoring and obstacle
 rules stay in ordinary student classes. Sky Hop and the optional sprite playground
 exercise this contract; see [game systems](GAME-SYSTEMS.md). Published core0.1.2
 and kit bytes are unchanged.
+
+The local source also adds optional `Actor` objects. Students can write
+`Player extends Actor` or `Enemy extends Actor`, inheriting a centre position,
+size, clockwise rotation, sprite drawing and explicit `move`, `moveForward`,
+`rotate`, `face` and `moveToward` helpers. Main calls each actor's update and draw;
+subclasses add their own game rules. Actors do not register themselves or supply
+physics or collision responses. This source addition is not an installer release.
 
 
 The scored quiz and practice tracker reuse the canonical
@@ -325,8 +461,9 @@ an existing standalone Git repository with a valid commit and GitHub origin;
 cloning the shared teacher template directly is rejected. These are local teaching
 checks, not cryptographic proof of a clone or online account ownership. Once cloned,
 Run works offline without an active GitHub session. Upload, branch changes and
-Publish use the ordinary live GitHub flow. ZeroHub contributions still require
-separate original work; lesson11 keeps that distinction. Legacy local-only
+Publish use the ordinary live GitHub flow. Ordinary ZeroHub contributions still require
+separate original work. Lesson11 allows only the reserved CreditsBadge library
+from the Coin tutorial into separate Tutorial practice discovery. Legacy local-only
 projects retain their old protection. No student project is silently rewritten.
 
 Canonical example sources live outside the starter's compiled source. ZeroHub
@@ -402,7 +539,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   without extra GitHub/ZeroHub headings. VS Code owns the view order: drag Zero above the file tree
   once if needed; the editor remembers it. No private layout commands or state edits are used.
   Idle status is empty; app progress/errors
-  appear when there is a message. Signed-out GitHub controls show only Sign in;
+  appear when there is a message. Signed-out GitHub controls show Sign in and the code fallback;
   the project dropdown and branch are hidden, and local Run/files remain usable.
   Signed in shows the project menu as the current folder or connected owner/repository,
   without a duplicate username, with a right chevron indicating its menu.
@@ -420,7 +557,9 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   and Merge to main remain direct actions. Simulation
   remains visibly labeled. ZeroHub offers Browse (Projects on
   the website, or native library browsing) and signed-in Share project for original
-  work. Tutorial repositories use GitHub normally but are not original ZeroHub contributions. Tutorials and Setup help live in the native view
+  work. Tutorial repositories use GitHub normally; copied tutorial work is not an original
+  community contribution. The reserved CreditsBadge has a separate practice-sharing
+  path from the Coin repository. Tutorials and Setup help live in the native view
   overflow; Copy repository link lives in the repository menu. **New ▾** opens a dropdown in the Zero controls with **New class…**, **New file…**,
   **New folder…**, **New asset…** and **Copy asset paths** after import. New class
   creates an ordinary public class beside Main; files/folders choose Java source,
@@ -521,7 +660,10 @@ choices and the first-publication warning remain visible through native prompts.
 
 ## Repository and upload contract
 
-Current desktop source uses Zero's `zero-github` provider and GitHub device flow.
+Current local desktop source uses Zero's `zero-github` provider with browser
+authorization by default and an explicit device-code fallback. Browser-issued
+tokens renew through the first-party server; existing device sessions retain
+secretless GitHub renewal. Both use the same guarded SecretStorage lifecycle.
 Native ⋯ → GitHub Account… offers Change GitHub account and Sign out.
 Sign out clears only Zero's local connection; it preserves
 projects, Git history and other extensions' accounts. Account, token or session

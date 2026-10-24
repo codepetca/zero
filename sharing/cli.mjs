@@ -20,25 +20,28 @@ export function validateLibraryPlatformConfig(config) {
   return {...validatePlatformConfig(shared),libraryPublicationEnabled};
 }
 export function parseArguments(argv) {
-  const commands=['setup','status','prepare','publish','reconcile','deliver','retry','withdraw','restore','library-intake','library-check','library-publish'];
+  const commands=['setup','status','prepare','publish','reconcile','deliver','retry','withdraw','restore','library-intake','library-check','library-publish','library-practice-cleanup'];
   const options={command:argv[0]||'setup',execute:false};
   if(!commands.includes(options.command))throw new Error('Unknown sharing command');
   for(let index=1;index<argv.length;index++) {
     const flag=argv[index];
     if(flag==='--execute'){if(options.execute)throw new Error('Duplicate execution flag');options.execute=true;continue;}
-    const name={'--config':'config','--issue':'issue','--issues':'issues','--release':'release','--role':'role','--page':'page','--offset':'offset','--request':'request','--run':'run','--attempt':'attempt','--artifact':'artifact','--out':'out','--outcome':'outcome'}[flag];
+    const name={'--config':'config','--issue':'issue','--issues':'issues','--release':'release','--releases':'releases','--role':'role','--page':'page','--offset':'offset','--request':'request','--run':'run','--attempt':'attempt','--artifact':'artifact','--out':'out','--outcome':'outcome'}[flag];
     if(!name||options[name]!==undefined||!argv[index+1]||argv[index+1].startsWith('--'))throw new Error('Unsupported sharing argument');
     options[name]=argv[++index];
   }
   if(options.issue!==undefined){if(!/^[1-9][0-9]*$/.test(options.issue)||!Number.isSafeInteger(Number(options.issue)))throw new Error('Positive issue number required');options.issue=Number(options.issue);}
   if(options.issues!==undefined){if(!/^[1-9][0-9]*(?:,[1-9][0-9]*)*$/.test(options.issues))throw new Error('Use a finite comma-separated issue list');options.issues=options.issues.split(',').map(Number);if(options.issues.length>150||options.issues.some(value=>!Number.isSafeInteger(value)))throw new Error('At most 150 issue numbers supported');}
   for(const field of ['page','offset'])if(options[field]!==undefined){if(!/^[0-9]+$/.test(options[field]))throw new Error('Invalid bounded inbox continuation');options[field]=Number(options[field]);}
-  const libraryCommand=options.command.startsWith('library-');
+  if(options.command==='library-practice-cleanup') {
+    options.releases=(options.releases||'').split(',');
+    if(options.releases.length>150||new Set(options.releases).size!==options.releases.length||options.releases.some(key=>!/^library\/lib-r[1-9][0-9]*-tutorial-credits-badge\/(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/.test(key)))throw new Error('Choose 1–150 distinct exact practice release keys');
+  } else if(options.releases!==undefined)throw new Error('Unsupported sharing argument');
   if(options.execute && options.role!==(options.command==='library-intake'?'intake':options.command==='library-check'?'worker':'publisher'))throw new Error('Execution requires the explicit publisher role');
   if(['prepare','publish'].includes(options.command)&&!options.issue)throw new Error('An exact issue number is required');
   if(['deliver','withdraw','restore'].includes(options.command)&&!/^(game|library)\/(game|lib)-r[1-9][0-9]*-[a-z][a-z0-9]*(?:-[a-z0-9]+)*\/[0-9]+\.[0-9]+\.[0-9]+$/.test(options.release||''))throw new Error('An exact accepted release key is required');
   if(options.command==='retry'&&!/^[a-f0-9]{64}$/.test(options.request||''))throw new Error('An exact frozen request fingerprint is required');
-  if(libraryCommand) {
+  if(['library-intake','library-check','library-publish'].includes(options.command)) {
     if(['library-check','library-publish'].includes(options.command)&&!/^[a-f0-9]{64}$/.test(options.request||''))throw new Error('An exact frozen request fingerprint is required');
     for(const key of ['run','attempt',...(options.command==='library-publish'&&options.outcome==='success'?['artifact']:[])])if(options[key]!==undefined){if(!/^[1-9][0-9]*$/.test(options[key])||!Number.isSafeInteger(Number(options[key])))throw new Error('Exact managed workflow identity required');options[key]=Number(options[key]);}
     if(['library-check','library-publish'].includes(options.command)&&(!options.run||!options.attempt))throw new Error('Exact managed workflow identity required');
@@ -69,6 +72,7 @@ export async function runCli(argv,{loadConfig=async filename=>JSON.parse(await r
   if(options.execute&&!(libraryCommand?config.libraryPublicationEnabled:config.gamePublicationEnabled))throw new Error('Publication remains disabled in the reviewed platform configuration');
   const platform=await createPlatform(config,options.execute,environment,options.role);
   if(libraryCommand) {
+    if(options.command==='library-practice-cleanup')return platform.cleanupPracticeListings(options.releases,{execute:options.execute});
     if(!options.execute)return {mode:'dry-run',action:options.command,libraryPublicationEnabled:config.libraryPublicationEnabled};
     if(options.command==='library-intake')return {selected:await platform.selectLibraryForCheck()};
     if(options.command==='library-check'){

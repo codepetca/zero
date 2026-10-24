@@ -7,6 +7,15 @@ import {fileURLToPath} from 'node:url';
 import {templateDefinitions, templateDefinition} from '../website/lib/project-templates.mjs';
 import {buildCourseStarter, buildExampleProject} from '../website/lib/example-projects.mjs';
 import {examples} from '../website/lib/learning.mjs';
+import {prepareTutorialTemplates} from './prepare-tutorial-templates.mjs';
+
+// Keep the standalone maintainer entry point compatible; tutorial drafts are
+// the three minimal continuing projects, selected explicitly.
+if(process.argv.length>2 && (process.argv.length!==3 || process.argv[2]!=='--tutorials'))throw Error('Usage: node scripts/prepare-project-templates.mjs [--tutorials]');
+if(process.argv[2]==='--tutorials') {
+  console.log(JSON.stringify(await prepareTutorialTemplates(),null,2));
+  process.exit(0);
+}
 
 const root = await realpath(fileURLToPath(new URL('../', import.meta.url)));
 // Build and inspect all five inventories before creating any draft directory.

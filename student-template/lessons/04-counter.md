@@ -27,15 +27,15 @@ attemptsLabel = new Label("Attempts: 0");
 
 ## 3. Add the attempts label to the layout
 
-Add `attemptsLabel` as the **last** item in the existing `VBox`:
+Add `attemptsLabel` as the **last** item in the existing `Column`:
 
 ```java
-show(new VBox(10, question, answer, check, feedback, attemptsLabel));
+show(new Column(10, question, answer, check, feedback, attemptsLabel));
 ```
 
 ## 4. Count each check before the `if` statement
 
-Inside the **existing** `check.setOnAction(...)` block, put these two lines
+Inside the **existing** `check.onClick(...)` block, put these two lines
 *before* the `if` statement:
 
 ```java

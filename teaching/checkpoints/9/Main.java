@@ -1,10 +1,9 @@
-import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.input.KeyCode;
-import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
+import zero.Color;
 import zero.GameApp;
+import zero.Key;
+import zero.ui.Button;
+import zero.ui.Label;
+import zero.ui.Row;
 
 public class Main extends GameApp {
     private Player player;
@@ -20,13 +19,11 @@ public class Main extends GameApp {
     }
 
     @Override public void setup() {
-        scoreLabel = new Label();
-        message = new Label();
+        scoreLabel = new Label("");
+        message = new Label("");
         var restartButton = new Button("Restart");
-        restartButton.setOnAction(event -> restart());
-        var controls = new HBox(12, scoreLabel, message, restartButton);
-        controls.setPadding(new Insets(12));
-        layout().setBottom(controls);
+        restartButton.onClick(() -> restart());
+        controls(new Row(12, scoreLabel, message, restartButton));
         restart();
     }
 
@@ -39,17 +36,17 @@ public class Main extends GameApp {
         won = false;
         scoreLabel.setText("Score: 0");
         message.setText("Collect all " + coins.length + " coins.");
-        canvas().requestFocus();
+        showGame();
     }
 
     @Override public void update(double seconds) {
         if (won) return;
         int horizontal = 0;
         int vertical = 0;
-        if (keyDown(KeyCode.LEFT)) horizontal--;
-        if (keyDown(KeyCode.RIGHT)) horizontal++;
-        if (keyDown(KeyCode.UP)) vertical--;
-        if (keyDown(KeyCode.DOWN)) vertical++;
+        if (keyDown(Key.LEFT)) horizontal--;
+        if (keyDown(Key.RIGHT)) horizontal++;
+        if (keyDown(Key.UP)) vertical--;
+        if (keyDown(Key.DOWN)) vertical++;
         player.update(horizontal, vertical, seconds, width(), height());
 
         for (Coin each : coins) {
@@ -66,8 +63,8 @@ public class Main extends GameApp {
     }
 
     @Override public void draw() {
-        background(Color.ALICEBLUE);
-        fill(Color.DARKSLATEGRAY);
+        background(Color.rgb(240, 248, 255));
+        fill(Color.rgb(47, 79, 79));
         textSize(20);
         text("Click the canvas, then hold the arrow keys.", 20, 30);
         for (Coin each : coins) each.draw(this);

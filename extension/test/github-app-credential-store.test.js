@@ -13,7 +13,8 @@ test('one versioned secret atomically retains pair and App/account binding acros
  const first=createCredentialStore({secrets,configuration});await first.write(record());assert.equal(data.size,1);assert(data.has(SECRET_KEY));
  assert.deepEqual(await createCredentialStore({secrets,configuration}).read(),record());
  await assert.rejects(createCredentialStore({secrets,configuration:{...configuration,appId:2}}).read(),/invalid/);
- for(const mutation of [{schema:2},{state:'unknown'},{account:{id:'attacker',label:'learner'}},{accessToken:'native_github_token'}]){data.set(SECRET_KEY,JSON.stringify({...record(),...mutation}));await assert.rejects(first.read(),/invalid/);}
+ for(const mutation of [{schema:2},{flow:'unknown'},{flow:null},{state:'unknown'},{account:{id:'attacker',label:'learner'}},{accessToken:'native_github_token'}]){data.set(SECRET_KEY,JSON.stringify({...record(),...mutation}));await assert.rejects(first.read(),/invalid/);}
+ for (const flow of ['browser','device']) {await first.write({...record(),flow});assert.equal((await first.read()).flow,flow);}
  await first.clear();assert.equal(data.size,0);
 });
 test('cross-window lock serializes work and writes only non-secret ownership metadata',async t=>{

@@ -1,4 +1,5 @@
 import test from "node:test";
+import core from "../../extension/src/core-contract.js";
 import { tutorialTemplateDefinitions } from "../../teaching/projects.mjs";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
@@ -189,7 +190,7 @@ test("composed examples supply the same shared screens and every ordinary helper
 });
 
 test("Lesson 12 stages expose every runnable helper and reuse canonical assets", () => {
-  assert.equal(lessonNavigation("12").related.title, "Build a platformer");
+  assert.equal(lessonNavigation("12").related.title, "Add artwork and sound");
   for (const id of ["scrolling-game", "platform-game", "level-game", "full-game"]) {
     const example = examples.find((item) => item.id === id);
     assert.equal(example.lesson, "12");
@@ -253,7 +254,7 @@ test("only three lessons start a project, without generic setup or continuation 
     assert.equal(resolveContentLink("student-template/lessons/README.md",`https://zero.codepet.ca${url}`,{},{}),null);
     const record=tutorialTemplateDefinitions.find(item=>item.id===id);
     const repositoryUrl=`https://github.com/${record.repository}`;
-    assert.deepEqual(publishedTutorialTemplate(id),record.publication ? {repository:record.repository,repositoryUrl,templateHref:`${repositoryUrl}/generate`} : null);
+    assert.deepEqual(publishedTutorialTemplate(id),record.publication ? {repository:record.repository,repositoryUrl,templateHref:`${repositoryUrl}/generate`,...(record.publication.scaffoldSha256?{scaffoldSha256:record.publication.scaffoldSha256}:{})} : null);
   }
   assert.equal(resolveContentLink("student-template/lessons/README.md","/generated/projects/zero-project-other.zip",{},{}),null);
   assert.equal(resolveContentLink("student-template/lessons/README.md","/generated/lessons/zero-lesson-10-game.zip",{},{}),null);
@@ -270,9 +271,23 @@ test("practice downloads contain foundations but no completed lesson examples", 
     assert.ok(paths.includes("zero.json"),project.id);
     assert.ok(paths.includes("README.md"),project.id);
     assert.ok(paths.every(path=>!path.startsWith("lessons/")&&!path.startsWith("examples/")&&!path.includes("checkpoints/")),project.id);
-    const java = paths.filter(path=>path.endsWith(".java"));
-    assert.deepEqual(java.sort(), ["src/main/java/Main.java", ...["App", "GameApp", "ImageRegion", "SpriteAnimation", "Collisions", "Sound", "Music"].map(name => `src/main/java/zero/${name}.java`)].sort(), project.id);
+    const java = paths.filter(path=>path.startsWith("src/main/java/") && path.endsWith(".java"));
+    assert.deepEqual(java.sort(), ["src/main/java/Main.java", ...core.coreSourcePaths].sort(), project.id);
     const main = Buffer.from(project.files.find(file=>file.path==="src/main/java/Main.java").content,"base64").toString("utf8");
     assert.doesNotMatch(main,/class (?:Question|Counter|Coin|Player|ScoreDisplay)/);
+  }
+});
+
+test("intermediate lessons keep the existing three small projects and a proposal path", () => {
+  assert.equal(lessons.length,13);
+  assert.deepEqual(lessonGroups.map(group=>group.id),['greeting','study','game']);
+  assert.equal(lessons.find(lesson=>lesson.id==='10').title,'Refactor a busy Main');
+  assert.equal(lessons.find(lesson=>lesson.id==='11').title,'Practise sharing a component');
+  for (const [id,name] of [['10','10-components'],['11','11-zerohub']]) {
+    const source=readFileSync(new URL(`../../student-template/lessons/${name}.md`,import.meta.url),'utf8');
+    assert.ok(source.includes('PlayerInput'));
+    assert.doesNotMatch(source,/zero-pong|zero-collector|zero-platformer/);
+    const target=`teaching/checkpoints/${id}/game/PlayerInput.java`;
+    assert.equal(resolveContentLink(`student-template/lessons/${name}.md`,`../../${target}`,{}, {[target]:'source'}),`/source?file=${encodeURIComponent(target)}`);
   }
 });

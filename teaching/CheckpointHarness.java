@@ -9,7 +9,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import zero.App;
@@ -28,6 +27,13 @@ public class CheckpointHarness extends Application {
         Field field = target.getClass().getDeclaredField(name);
         field.setAccessible(true);
         return field.get(target);
+    }
+
+    // Maintainer checks inspect the actual controls in both Zero-first and older
+    // JavaFX checkpoints. Students do not need this interoperability bridge.
+    private static Node node(Object component) {
+        if (component instanceof zero.ui.Element element) return element.fxNode();
+        return (Node) component;
     }
 
     private static void setDouble(Object target, String name, double value) throws Exception {
@@ -51,6 +57,16 @@ public class CheckpointHarness extends Application {
         return null;
     }
 
+    private static boolean hasLabel(Node current, String text) {
+        if (current instanceof Label label && label.getText().equals(text)) return true;
+        if (current instanceof Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                if (hasLabel(child, text)) return true;
+            }
+        }
+        return false;
+    }
+
     private static Button button(Stage stage, String label) {
         Button found = button(stage.getScene().getRoot(), label);
         require(found != null, label + " button exists");
@@ -58,9 +74,9 @@ public class CheckpointHarness extends Application {
     }
 
     private static Label score(Main app) throws Exception {
-        if (id.equals("7") || id.equals("9")) return (Label) field(app, "scoreLabel");
+        if (id.equals("7") || id.equals("9")) return (Label) node(field(app, "scoreLabel"));
         Object display = field(app, "score");
-        return (Label) display.getClass().getMethod("view").invoke(display);
+        return (Label) node(display.getClass().getMethod("view").invoke(display));
     }
 
     private static void checkGreeting(Main app, Stage stage) {
@@ -75,6 +91,7 @@ public class CheckpointHarness extends Application {
         require(greeting.getText().equals("Hello, Java!"), "earlier greeting survives next lesson");
         if (id.equals("2")) {
             TextField name = (TextField) screen.getChildren().get(1);
+            require(name.getPromptText().equals("Your name"), "name prompt survives the Zero UI facade");
             name.setText("Sam"); hello.fire();
             require(greeting.getText().equals("Hello, Sam!"), "typed name changes the existing label");
             name.setText("Ada"); hello.fire();
@@ -89,8 +106,8 @@ public class CheckpointHarness extends Application {
     private static void checkSingleQuiz(Main app, Stage stage) throws Exception {
         VBox screen = (VBox) ((BorderPane) stage.getScene().getRoot()).getCenter();
         Label prompt = (Label) screen.getChildren().get(0);
-        TextField answer = (TextField) field(app, "answer");
-        Label feedback = (Label) field(app, "feedback");
+        TextField answer = (TextField) node(field(app, "answer"));
+        Label feedback = (Label) node(field(app, "feedback"));
         Button check = button(stage, "Check");
         require(prompt.getText().equals("What is 2 + 3?"), "same question continues through lessons 3–6");
         answer.setText("4"); check.fire();
@@ -98,7 +115,7 @@ public class CheckpointHarness extends Application {
         answer.setText("5"); check.fire();
         require(feedback.getText().equals("Correct!"), "correct answer updates feedback");
         if (id.equals("3")) return;
-        Label attemptsLabel = (Label) field(app, "attemptsLabel");
+        Label attemptsLabel = (Label) node(field(app, "attemptsLabel"));
         require(attemptsLabel.getText().equals("Attempts: 2"), "two checks count as two attempts");
         if (id.equals("4")) return;
         button(stage, "Reset").fire();
@@ -119,10 +136,10 @@ public class CheckpointHarness extends Application {
     }
 
     private static void checkStudy(Main app, Stage stage) throws Exception {
-        TextField answer = (TextField) field(app, "answer");
-        Label question = (Label) field(app, "questionLabel");
-        Label feedback = (Label) field(app, "feedback");
-        Label attempts = (Label) field(app, "attemptsLabel");
+        TextField answer = (TextField) node(field(app, "answer"));
+        Label question = (Label) node(field(app, "questionLabel"));
+        Label feedback = (Label) node(field(app, "feedback"));
+        Label attempts = (Label) node(field(app, "attemptsLabel"));
         Label score = score(app);
         Button check = button(stage, "Check");
         Button next = button(stage, "Next");
@@ -153,20 +170,44 @@ public class CheckpointHarness extends Application {
                 && attempts.getText().equals("Attempts: 0") && answer.getText().isEmpty()
                 && !answer.isDisabled() && !check.isDisabled() && next.isDisabled(), "Restart resets all visible state");
         require((int) field(app, "points") == 0 && !(boolean) field(app, "finished"), "Restart resets owned rule state");
+        if (id.equals("7")) {
+            for (String response : new String[] {"5", "1", " TRUE "}) {
+                answer.setText(response);
+                check.fire();
+                require(check.isDisabled() && !next.isDisabled(), "second session still locks Check and unlocks Next");
+                next.fire();
+            }
+            require((boolean) field(app, "finished") && score.getText().equals("Score: 3")
+                    && answer.isDisabled(), "second complete session reuses controls and scores normally");
+            restart.fire();
+            require(score.getText().equals("Score: 0") && !answer.isDisabled()
+                    && !check.isDisabled() && next.isDisabled(), "second Restart restores enabled state again");
+        }
         if (id.startsWith("10/") || id.startsWith("11/")) checkScoreDisplay(app);
     }
 
     private static void checkScoreDisplay(Main app) throws Exception {
         Object display = field(app, "score");
-        Label view = (Label) display.getClass().getMethod("view").invoke(display);
+        Label view = (Label) node(display.getClass().getMethod("view").invoke(display));
         Object second = display.getClass().getConstructor().newInstance();
-        Label secondView = (Label) second.getClass().getMethod("view").invoke(second);
+        Label secondView = (Label) node(second.getClass().getMethod("view").invoke(second));
         require(secondView != view && secondView.getText().equals("Score: 0"), "new display has its own view");
         second.getClass().getMethod("setScore", int.class).invoke(second, 9);
         require(secondView.getText().equals("Score: 9") && view.getText().equals("Score: 0"), "display instances update independently");
         if (id.startsWith("11/") || id.startsWith("12/")) {
-            second.getClass().getMethod("setColor", Color.class).invoke(second, Color.DARKSLATEBLUE);
-            require(secondView.getTextFill().equals(Color.DARKSLATEBLUE), "setColor changes display text color");
+            second.getClass().getMethod("setCaption", String.class).invoke(second, "Coins");
+            require(secondView.getText().equals("Coins: 9") && view.getText().equals("Score: 0"),
+                    "caption changes preserve the latest score and independent instances");
+            second.getClass().getMethod("setScore", int.class).invoke(second, 4);
+            require(secondView.getText().equals("Coins: 4"), "later score keeps the selected caption");
+            try {
+                second.getClass().getMethod("setCaption", String.class).invoke(second, new Object[] {null});
+                throw new AssertionError("Null caption accepted");
+            } catch (java.lang.reflect.InvocationTargetException failure) {
+                require(failure.getCause() instanceof IllegalArgumentException
+                        && failure.getCause().getMessage().toLowerCase().contains("caption"), "useful null caption error");
+            }
+            require(secondView.getText().equals("Coins: 4"), "invalid caption preserves the displayed value");
         }
     }
 
@@ -184,16 +225,66 @@ public class CheckpointHarness extends Application {
         require(number(player, "x") == 0.0 && number(player, "y") == 0.0, "whole player stays inside left and top edges");
     }
 
+    private static void checkRefactoredInput(Main app, Stage stage) throws Exception {
+        if (!(id.equals("10/game") || id.equals("11/game") || id.startsWith("12/"))) return;
+        GameApp game = (GameApp) (App) app;
+        Object input = field(app, "input");
+        Object player = field(app, "player");
+        // Test the real public query seam with controlled held-state input. The
+        // separate framework input suite owns actual event/focus dispatch proof.
+        Field keysField = GameApp.class.getDeclaredField("keys");
+        keysField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        java.util.Set<javafx.scene.input.KeyCode> held =
+                (java.util.Set<javafx.scene.input.KeyCode>) keysField.get(game);
+        java.lang.reflect.Method horizontal = input.getClass().getMethod("horizontal");
+        java.lang.reflect.Method vertical = input.getClass().getMethod("vertical");
+        held.clear();
+        require((int) horizontal.invoke(input) == 0 && (int) vertical.invoke(input) == 0,
+                "refactored input is neutral when no keys are held");
+        held.add(javafx.scene.input.KeyCode.RIGHT);
+        held.add(javafx.scene.input.KeyCode.DOWN);
+        double x = number(player, "x"), y = number(player, "y");
+        app.getClass().getMethod("update", double.class).invoke(app, 0.05);
+        require(Math.abs(number(player, "x") - x - 9) < 0.00001
+                && Math.abs(number(player, "y") - y - 9) < 0.00001,
+                "extraction preserves both-axis movement and one update owner");
+        held.add(javafx.scene.input.KeyCode.LEFT);
+        held.add(javafx.scene.input.KeyCode.UP);
+        require((int) horizontal.invoke(input) == 0 && (int) vertical.invoke(input) == 0,
+                "opposing arrows cancel instead of accumulating movement");
+        if (!id.equals("10/game")) {
+            held.clear(); held.add(javafx.scene.input.KeyCode.D); held.add(javafx.scene.input.KeyCode.W);
+            require((int) horizontal.invoke(input) == 1 && (int) vertical.invoke(input) == -1,
+                    "optional WASD adds controls without changing the game rules");
+            held.add(javafx.scene.input.KeyCode.RIGHT); held.add(javafx.scene.input.KeyCode.UP);
+            require((int) horizontal.invoke(input) == 1 && (int) vertical.invoke(input) == -1,
+                    "matching arrow and letter do not double the direction");
+            held.add(javafx.scene.input.KeyCode.A); held.add(javafx.scene.input.KeyCode.S);
+            require((int) horizontal.invoke(input) == 0 && (int) vertical.invoke(input) == 0,
+                    "opposing letter controls cancel");
+        }
+        held.clear();
+        button(stage, "Restart").fire();
+        require(field(app, "input") == input && field(app, "player") != player,
+                "Restart reuses its input helper and creates fresh game state");
+        require((int) horizontal.invoke(input) == 0 && (int) vertical.invoke(input) == 0,
+                "returning to gameplay reads cleared input rather than cached directions");
+    }
+
     private static void checkGame(Main app, Stage stage) throws Exception {
         GameApp sketch = (GameApp) (App) app;
         require(sketch.layout().getCenter() == sketch.canvas(), "canvas remains in game layout");
         Label score = score(app);
         require(score.getText().equals("Score: 0"), "game begins with zero score");
         if (!id.equals("9")) checkScoreDisplay(app);
+        if (id.equals("11/game") || id.startsWith("12/")) {
+            require(hasLabel(stage.getScene().getRoot(), "Made with Zero: Coin game"),
+                    "practice badge remains mounted without changing game rules");
+        }
         if (id.startsWith("12/")) {
             require((field(app, "sprite") != null) == withMedia && (field(app, "chime") != null) == withMedia,
                     "media resource mode loads or falls back explicitly");
-            if (withMedia) require(score.getTextFill().equals(Color.DARKSLATEBLUE), "game applies ScoreDisplay color");
         }
         Object[] coins = (Object[]) field(app, "coins");
         Object player = field(app, "player");
@@ -207,12 +298,12 @@ public class CheckpointHarness extends Application {
                     "coin " + (index + 1) + " scores exactly once");
             require(score.getText().equals("Score: " + (index + 1)), "score view follows app-owned points");
         }
-        require((boolean) field(app, "won") && ((Label) field(app, "message")).getText().contains("You win"),
+        require((boolean) field(app, "won") && ((Label) node(field(app, "message"))).getText().contains("You win"),
                 "all coins show win state");
         if (id.startsWith("12/")) {
             int expected = withMedia ? coins.length : 0;
             require((int) field(app, "plays") == expected
-                    && ((Label) field(app, "soundStatus")).getText().equals("Chimes: " + expected),
+                    && ((Label) node(field(app, "soundStatus"))).getText().equals("Chimes: " + expected),
                     "sound counter matches available media");
         }
         Button restart = button(stage, "Restart");
@@ -265,7 +356,23 @@ public class CheckpointHarness extends Application {
         settle.setOnFinished(event -> {
             boolean passed = false;
             try {
-                if (((App) app) instanceof GameApp) app.stop(); // Stop timer before deterministic update calls.
+                if (id.startsWith("12/")) {
+                    button(stage, "Use artwork and sound").fire();
+                    String status = ((Label) node(field(app, "assetStatus"))).getText();
+                    if (withMedia) {
+                        require(status.equals("Artwork and sound ready"), "explicit asset action loads the supplied resources");
+                        zero.ImageRegion first = (zero.ImageRegion) field(app, "sprite");
+                        Object effect = field(app, "chime");
+                        Object player = field(app, "player");
+                        button(stage, "Use artwork and sound").fire();
+                        require(((zero.ImageRegion) field(app, "sprite")).image() == first.image()
+                                && field(app, "chime") == effect && field(app, "player") == player,
+                                "repeated asset action shares cached pixels and sound without replacing the player");
+                    } else require(status.contains("/media-demo/player.png") && field(app, "sprite") == null
+                            && field(app, "chime") == null, "missing requested assets show their path without changing drawing mode");
+                }
+                checkRefactoredInput(app, stage);
+                if (((App) app) instanceof GameApp game) game.pause(); // Freeze automatic updates; keep the app alive for Restart/navigation.
                 BorderPane root = (BorderPane) stage.getScene().getRoot();
                 require(root.getPadding().equals(new javafx.geometry.Insets(20)),
                         "tutorial content has 20 pixels of outer padding");

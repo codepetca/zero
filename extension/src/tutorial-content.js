@@ -35,7 +35,7 @@ function browserUrl(id) {
 // command URI, file URI or HTML from Markdown is passed through to the webview.
 function resolveLink(lesson, href, bundle) {
   const [file,fragment] = String(href).split('#');
-  if (file === 'https://zero.codepet.ca/hub') return {external:file};
+  if (file === 'https://zero.codepet.ca/hub' || file === 'https://zero.codepet.ca/hub?kind=practice') return {external:file};
   if (file === 'https://zero.codepet.ca/generated/learning-assets/game-assets.zip') return {external:file};
   if (/^[a-z]+:|^\//i.test(file)) return null;
   const target = path.posix.normalize(path.posix.join(path.posix.dirname(lesson.source),file));

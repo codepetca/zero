@@ -16,6 +16,269 @@ or Play writes. Physical Safari/touch and text enlargement were not reverified.
 Screenshots: output/playwright/zerohub-play-count/; review/CI/live receipts:
 .verification/zerohub-play-count/ and the PR handoff.
 
+
+## Authorized tutorial publication and sign-in activation — 2026-10-24
+
+Final source01fa7d48 passes all selected CI gates: root/native/examples/lessons/
+website/package40135021342, WebFX/browser40135018654, Windows40135018544 and
+isolated Linux40135018583. The final six standalone harness corrections passed
+all six actual Mac checks and an old-stop negative control, with independent
+Sol/high closure. Framework/Main/public template bytes remain unchanged by them.
+The attempted merge met concurrent main PR191 profile-photo changes. Integration
+396b1b61 retains incoming AccountMenu source/CSS byte-for-byte and preserves both
+handoffs.205website tests/types/root and19independent auth tests PASS; complete
+Sol/high five-file compatibility review has only an extra EOF blank line, removed
+in this documentation receipt. New exact-head CI remains required. No release.
+
+Owner authorizes the three template publications, browser sign-in activation and
+real Mac student walkthrough through lesson11; native releases remain separate.
+All3template PR1s merged after independent Sol/medium artifact review CLEAN:
+Greeting6c8bb13c, Study7abe7590, Gameaed2f3e9. Anonymous pinned GitHub archives each
+pass the exact95-file/bytes/executable-mode check and recorded scaffold digest;
+public repository IDs/template status/main commit/tree are verified. No generated
+output or private files were published. Current source publication gate passes.
+Artifact review also ran26builder tests; previous native/WebFX checkpoint proof
+shares94/95files with each minimal scaffold (Main is the completed checkpoint).
+
+Integration preserves current main throughd24d87bb, including approved ZeroHub
+sidebar/account/metrics and Play.Share.Learn. Parent merged6adb87dc/05ef3c49;
+Sol/high worker resolved4source conflicts, retaining schema2 rejection before
+compatible-policy intake and practice separation. Existing publisher policy/config
+revisions and gates stay unchanged. Worker29sharing/205website tests/typecheck
+PASS; parent55focused/root/websitebuildPASS. Preview actually shows current
+sidebar/tagline and separate practice navigation; its unconfigured catalog error
+is not a claim of production catalog availability.
+
+Astra/high integration/security reviewed all38integration files and relevant
+boundaries,81independent tests PASS. Sol/high compatibility reviewed the same
+integration,180focused tests and all3public archives PASS. Both COMPLETE with
+only2P3documentation findings; one2-file correction batch9bce780a and targeted
+Sol/high closure COMPLETE/CLEAN. No runtime correction. Prior phase and auth
+reviews remain applicable to byte-identical implementations. Integration ledger:
+2initial reviewers+1targeted turn,1fixbatch,0unresolved findings. Effective model,
+tokens and elapsed effort unknown. Template review is a separate1turn artifact
+review, no corrections. Exact-head GitHub CI still pending at this record.
+
+GitHub App UI confirms exact desktop callback added alongside the existing Hub
+callback; wildcard matching remains off and Device Flow remains enabled. Existing
+server credentials are reused, not regenerated/read. Vercel production flag
+ZERO_DESKTOP_GITHUB_ENABLED=1 added; reviewed source deployment/live OAuth and
+student walkthrough remain pending. No native release or publisher config change.
+Proofs: .verification/live-tutorial-rollout/{public-verified,template-candidates}.json,
+focused/root/build logs andgithub-callback.png. PR188 carries source activation.
+
+### CI-discovered Zero Dev sample correction
+
+Final-head390e8972 passed Windows real JavaFX/cached rebuild and isolated Linux
+checker, but source review correctly stopped at missing PlayerInput/CreditsBadge
+in the maintained Zero Dev assembler. Its old4-class list no longer matched the
+6-class checkpoint11. Add the two source classes with the existing preserve flag;
+fixture inputs now come from the canonical checkpoint directory, with a complete
+emitted-class regression. The new regression fails on the old assembler and all
+8Dev tests pass after correction. Existing4scratch source files are byte-identical
+after preparation; two missing helpers were seeded.
+
+Actual smoke then exposed an old harness assumption: Restart fired during draw
+uses the documented deferred showGame commit, so checking focus inside the same
+draw precedes the commit. The harness now checks focus at the next update before
+NativeFocus can request it. The same game passes real frame movement/win/Restart/
+recollection; all native framework/input/media checks and21UI tests pass, ending
+ZERO_DEV_SMOKE_OK. A disposable negative control omitted only contentChanged's
+focus request: it fails at the next-frame Restart focus assertion, demonstrating
+that focus repair cannot mask this check. No framework or tutorial bytes changed.
+Root check PASS. Corrected-commit independent review and CI follow before merge.
+The earlier checker Java-version setup timeout passed on the unchanged final-head
+checker rerun; infrastructure cause is plausible but unproven. No check was relaxed.
+
+### Hosted JDK evidence preparation
+
+Browser run40128845988 built all10WebFXfixtures and completed130ordinary browser
+assertions, then failed while sealing tool identity at the hosted JDK's linked
+lib/security/cacerts. Mobile checks/final API coverage were not reached. Strict
+api-evidence traversal is retained. Both native JDK17 and browser JDK21 jobs now
+snapshot only that selected certificate link into an ordinary file before any
+execution/evidence. Bytes and permissions are preserved, the original shared
+target is unchanged, linked parents are refused and unrelated links still fail
+strict traversal. The CLI requires hosted-Linux CI markers as an accident guard.
+No developer/student JDK or publisher configuration is changed.
+
+Correction8fafde02:37CI/evidence tests PASS0skip androotPASS. Independent targeted
+Astra/high review COMPLETE/CLEAN over5files/immediateboundaries; independently
+37tests anddirectjavaToolFileslink-rejectionprobePASS. Dev correction20b9291b
+also has complete clean targeted Sol/high review with8independent tests. Current
+integration review ledger:2initial+3targetedturns,3fixbatches,0unresolvedfindings.
+Actual corrected-hosted execution, deployment/liveOAuth andstudentUIstillpending.
+
+### Executed Maven realm evidence correction
+
+Hosted native run40129914693 completed the actual game and Padding checks, then
+correctly refused evidence whose old descriptor-based dependency inventory named
+an unused, absent commons-io2.2. Correctioned619550 records Maven's actual plugin
+class realms, retaining exact selected JAR identities and classloader order.
+Incomplete/malformed transcripts and linked or changed selected inputs fail;
+receipt reload reparses the retained transcript before validating input bytes.
+No broad debug output, cache inventory substitution or relaxed scanner is used.
+
+35focused tests, root checks and all7actual native cases PASS. A separate isolated
+repository with commons-io2.2 absent also passes Padding and receipt reload;
+15covered targets/371gaps are expected for that partial case. Independent
+Astra/high targeted four-file review COMPLETE/CLEAN, independently35tests and
+the actual Padding reload PASS. Full evidence is retained under
+.verification/live-tutorial-rollout/maven-realm-full-evidence. Corrected hosted
+CI remains required. Ledger now2initial+5targeted turns,4fixbatches,0unresolved
+review findings; effective configuration/tokens/timing unknown. Latest browser
+run40130988588 failed separately and is under investigation, not accepted.
+
+The isolated broker PR190 (8425c52a) copies the already-reviewed implementation
+without the broader evidence tooling changes. Independent Sol/high integration
+review COMPLETE/CLEAN;19auth/189website tests, typecheck and root checks PASS.
+Its selected GitHub CI gates, production deployment and actual sign-in remain
+pending. No native release is included.
+
+### Live deployment and Mac return-listener correction
+
+PR190 merged atb376a903 after every selected GitHub gate passed. Production
+deployment2szA4vDjUBVoYcPLxLhqbjuuXXpr is READY at that SHA. The public desktop
+start endpoint returns200/no-store with the registered client ID. Actual Mac
+Zero browser authorization reaches GitHub's account chooser without a code;
+selecting armorup returned HTTP431 from the local listener, so completion was
+not accepted. The explicit code fallback subsequently completed real GitHub
+authorization and restored armorup in Zero. A fresh public Greeting tutorial
+repository was created/cloned through the editor from the updated template.
+
+Correctionbb552fa9 raises only the bounded listener header cap to64KiB while
+retaining8KiB URLs and all callback identity guards. Synthetic9/32KiB cookies
+reproduce the old failure and pass the correction;70KiB still receives431 without
+exchange and a subsequent valid callback recovers. Real browser header/cookie
+values were not inspected; accumulated loopback cookies are a plausible cause,
+not an observed value.42author auth tests/root PASS; independent Astra/high
+two-file closure COMPLETE/CLEAN with38tests/0skips. Actual Mac retry is pending.
+
+The separate browser coverage correctionbbdf0c3b presses six previously omitted
+keys and awaits exact completed Java assertions before retaining the snapshot.
+All10builds/130desktop/136mobile assertions passed on the earlier run, but its
+six coverage gaps correctly failed the gate.39focused tests/root PASS. Sol/high
+cumulative integration review through71a77006 COMPLETE/CLEAN,54independent tests
+and retained native evidence reload PASS:193/193native targets. Final corrected
+hosted browser/CI and the full student walkthrough remain required. Ledger:
+2initial+6targeted+1integration turns,6fixbatches;0unresolved findings. Native
+release and hosted core-dependent library admission remain separate.
+
+The corrected Mac browser retry passed atbb552fa9: account chooser → armorup →
+Returning to Zero, followed by editor armorup/account menu. No code was entered.
+Greeting0–2 fresh-template WebFX interactions passed and Commit & push confirmed
+Pushed to main. Study was created/cloned; the remaining walkthrough is in progress.
+
+Hosted browser40133171869 at184f4114 now PASS, including its selected compatible
+gate. Root40133172061 passed the complete native/Dev step, then failed an older
+finite-example harness that called stop() before firing Restart; stop disables
+the root. Correctioned3f9d87 uses pause() in four live-event cases, adds enabled
+Start/Restart assertions and retains stop() for cleanup. Four actual Mac examples,
+fresh reproducible Starter UI/exact-JAR check and both packaged examples PASS.
+Restoring early stop() fails the enabled-Restart assertion. Sol/high one-file
+targeted closure COMPLETE/CLEAN; corrected hosted root execution remains required.
+No framework/student-source change. Ledger2initial+7targeted+1integration turns,
+7fixbatches,0unresolved findings; effective configuration/tokens/timing unknown.
+
+## Tutorial readiness and browser-first sign-in — 2026-10-24
+
+Local source only. Tutorial phase87a9b4ef prepares the three coherent current
+scaffolds and verifies recorded scaffold digests before NEW Start tutorial forms
+or repository creation. Existing Open/Clone/Run remain independent. Official
+publication metadata remains stale, so the strict publication checker intentionally
+fails for all three templates. This is recorded evidence, not a live guarantee of
+mutable remote contents; direct GitHub links/manual Clone stay outside the gate.
+
+70focused+17legacy tests passed. Fresh generated Greeting checkpoint2, Study7 and
+Coin11 each passed an actual finite native behavior check and project-owned
+saved-builder GWT export. Actual browser UI: Greeting Sam→Hello, Sam!, Study
+Correct/attempts1/score1, Coin startup score0/threecoins/CreditsBadge. New browser
+win is not claimed; native checks cover win/reset. Actual Mac Start tutorial stops
+with useful stale-template guidance before repository forms. The failed public
+walkthrough clone is preserved separately. Independent Sol/high readiness review
+COMPLETE/CLEAN over all18files. Full-suite follow-up fixed fixture-only publication
+evidence, the offline reader's exact practice URL and authored link rendering;
+58focused onboarding/reader/content tests pass. Actual Mac lesson11 renders the
+practice button and retains the optional original contribution extension.
+
+Browser authadfdc267 with corrections throughaa8d4c3d defaults to GitHub browser
+authorization, keeps explicit Start Page/command code sign-in and offers that
+fallback on unavailable browser service. The server is OFF by default. A fixed
+first-party broker, state/per-flow HttpOnly cookie, desktop-held PKCE verifier,
+short-lived purpose-separated seals and temporary IPv4 listener bind the return.
+Access/refresh tokens never enter callback URLs/cookies; the server does not
+persist desktop tokens. SecretStorage marks the issuing flow. Legacy device
+sessions retain direct secretless renewal; browser sessions use server renewal.
+The inherited lock/uncertain-rotation/reconnect and account drift guards remain.
+GitHub enforces one-use OAuth codes; there is no local durable replay database.
+
+147focused auth/start checks passed, then19account-selection/routing and28final
+server/website-learning checks passed; website author reports190/190 full tests.
+Root check and final website typecheck pass. Controlled browser UI exercised the
+actual provider/client/server modules against fake GitHub: browser sign-in
+completed without a code and explicit code fallback completed a device session.
+These are local protocol proofs, not live GitHub OAuth or native SecretStorage
+acceptance. Real Mac source editor retained armorup after reload and discovered
+Zero: Sign in using a code; no existing account was removed for QA.
+
+Independent initial Astra/high security and Sol/high compatibility reviews covered
+all24files plus dependencies. Both found the same P2 missing account selection;
+prompt=select_account and query/reconnect regressions close it. Targeted Sol/high
+closure covered all9correction files and immediate boundaries, COMPLETE/CLEAN;
+3focused checks independently pass. Auth ledger:3reviewer turns,1initial and
+1targeted wave,2correction commits,0unresolved findings. No additional full wave
+was needed: targeted closure plus unchanged initial coverage covers source head
+aa8d4c3d. Effective configurations, tokens and elapsed effort are unavailable.
+
+Full extension/configuration matrix:1,134tests,1,131passed,0failures,3existing
+Windows/PowerShell checks skipped on this Mac (320.75s).
+
+Proofs: `.verification/tutorial-readiness/builds.json`,
+`.verification/browser-auth-ui/{browser-session,device-session}.png`, focused/full
+logs and `.verification/tutorial-readiness-auth-receipt.json`. Owned test servers
+and browser tab stopped/closed; original Zero Dev watcher/profile preserved.
+Physical Windows/Safari, deployed web OAuth, live refresh/revocation and school
+network return behavior remain unproven. Activation requires separate website
+publication, matching server secrets/flag and exact App callback registration.
+No push/PR/merge/deploy, official tutorial publication, App settings/secret changes
+or release occurred.
+
+## Native compiler recovery — 2026-10-24
+
+Local source fix: the Zero native task owns a separate compiler diagnostic
+collection, reset at new Run and retained after failed exit/Stop. Actual Mac UI: lesson11 Coin Main line22
+missing semicolon produced one Problem; double-click selected Ln22/Col50.
+After correction and Run, Problems cleared while status showed “App running ·
+first game frame ready”, without Stop. Stop separately retained the current
+failed-build error. Repeated the same failure/navigation/correction sequence via
+Tasks: Run Build Task: exactly one Zero Java compiler Problem, then No Problems
+while first-frame-ready. Final source saved; app stopped.
+The first background-matcher implementation passed this UI sequence but was
+rejected by independent review: VS Code's watching collector can clear delivered
+errors on delayed failure exit. It was replaced with explicit compiler ownership
+and delayed-failure/Stop/new-run and bounded streaming-parser regressions.
+Early PTY output and reconstructed configured tasks are covered by metadata
+replay/execution identity tests. Actual host testing also exposed VS Code's
+configured-matcher precedence; the retained matcher name is now inert under a
+separate owner, preserving pinned project files and the standalone inline matcher.
+39 focused task/runtime/menu tests pass, zero skips; root checks and diff check
+pass. The broader test initially exposed missing saved-check state bindings in
+the playground renderer fixture; those bindings are now supplied and it passes.
+No public Java API, WebFX output or student project build files changed. Physical
+Windows and standalone fallback task recovery were not exercised. Independent
+Sol/high source review through aec1468f COMPLETE/CLEAN. Five reviewer turns
+(one initial, three targeted, one host-merge investigation), three remediation
+batches, four accepted findings fixed; effective configuration/tokens/timing
+unknown. Logs/receipt: .verification/compiler-recovery*. No framework push,
+publication or release.
+
+Connected-repository UI attempt: GitHub device code retry reached Codepet Zero's
+authorization page. User confirmed its displayed Starring permission step;
+Authorize led to sudo/passkey confirmation, which timed out. Editor sign-in was
+cancelled. No repository create/clone/commit/push or library extraction was
+completed; live transport acceptance remains unverified. No bypass, credential
+copy or alternate authentication was used.
+
 ## Website GitHub profile photo — 2026-10-24
 
 Signed-in headers load the public GitHub avatar directly by the existing
@@ -35,6 +298,7 @@ No real OAuth/star/Play writes; account identity was mocked and public CDN
 images were real. Physical Safari/touch and text enlargement were not reverified.
 Screenshots: output/playwright/zerohub-profile-photo/; delivery/review/CI receipts:
 .verification/zerohub-profile-photo/ and the PR handoff.
+
 
 ## Website GitHub initial avatar — 2026-10-24
 

@@ -18,15 +18,7 @@ function apply(source, edits) {
   return source;
 }
 function fail(file, detail) { throw new Error(`Web export: ${file}: ${detail}`); }
-const helperHashes = Object.freeze({
-  'zero/Collisions.java': '1d1cc1c57fcbbcb8421bf469c6d74e5f1707c5542c265d1819f38e59fb4e67fe',
-  'zero/ImageRegion.java': '0fd6961541501815c80f1979f7aa54d36f724a794f8d241ae26ba9c27e54d83d',
-  'zero/Music.java': '4c183bb3c7807cac3086dbbb29a388541c606c11b654ca4aad914ad3a5db8450',
-  'zero/App.java': 'eb830cd7270ba9f4f83d3824e0216674492db72abe9e704d9e2f52134450faae',
-  'zero/GameApp.java': '218f45f20f585938fd7c8e4b152fd69b8ca4ad3daf6ff7d5bc45132c8fd3a4d7',
-  'zero/Sound.java': '6247f0a0d6af9b610727094967af249321c58e6dda21ce1a2a989a3fc6e75286',
-  'zero/SpriteAnimation.java': 'c68e48317388de67be2f6170c990baef6c7a20e028f6ce3b6163e74f6d67e0f0'
-});
+const {helperHashes} = require('../../core-contract');
 function overlay(file, source) {
   const expected = helperHashes[file];
   if (!expected) return source;
@@ -38,8 +30,23 @@ function overlay(file, source) {
     source = source.replace('import java.net.URL;\n', 'import zero.web.ResourceURL;\n').replace('import java.nio.file.Path;\n', '\n');
     source = source.replaceAll('URL resource', 'ResourceURL resource').replace('private URL audioResource', 'private ResourceURL audioResource');
     source = source.replace('getClass().getResource(resourcePath)', 'zero.web.Resources.get(getClass(), resourcePath)');
-    source = source.replaceAll('        Sound.requireThread();', '        Sound.requireThread(); zero.web.BrowserLifecycle.own(this, this::stop);');
+    source = source.replace('        runtimeOpen();', '        runtimeOpen(); zero.web.BrowserLifecycle.own(this, this::stop);');
+    // Report startup failure before closing a shared Stage can stop another
+    // owner and otherwise consume the browser's single terminal status.
+    source = source.replace('            runtimeFailing = true;', '            runtimeFailing = true; zero.web.BrowserLifecycle.fail("startup", "STARTUP_FAILED", failure);');
+    source = source.replace('            stage.setScene(scene);', '            stage.setScene(scene); zero.web.BrowserUiFocus.install(scene); javafx.scene.ZeroDisabledState.install(scene);');
     source = source.replace('        Throwable failure = null;', '        zero.web.BrowserLifecycle.release(this); Throwable failure = null;');
+    const nativeStart = source.indexOf('    // BEGIN NATIVE RUNTIME REPORTER');
+    const nativeEnd = source.indexOf('    // END NATIVE RUNTIME REPORTER', nativeStart);
+    if (nativeStart < 0 || nativeEnd < 0) fail(file, 'reviewed native runtime reporter placement changed.');
+    source = source.slice(0, nativeStart) + `    private void runtimeOpen() { }
+    private void runtimeClose() { }
+    private void runtimeEvent(String type, String stage, String code, Throwable failure) {
+        if (type.equals("fatal")) zero.web.BrowserRuntime.fatal(stage, code, failure);
+        else zero.web.BrowserRuntime.emit(type, stage, code, failure);
+    }
+` + source.slice(nativeEnd + '    // END NATIVE RUNTIME REPORTER'.length);
+    source = source.replace('    private RuntimeReporter runtimeReporter;\n', '');
     const key = source.indexOf('    private static String audioResourceKey(');
     return source.slice(0, key) + '    private static String audioResourceKey(ResourceURL resource) { return resource.toExternalForm(); }\n}\n';
   }
@@ -47,12 +54,33 @@ function overlay(file, source) {
   if (file.endsWith('SpriteAnimation.java')) return source.replace('frames.clone()', 'java.util.Arrays.copyOf(frames, frames.length)');
   source = source.replace('import java.net.URL;\n', '\n').replace('import java.nio.file.Path;\n', '\n');
   source = source.replace('    private Canvas canvas;', '    private Canvas canvas; private zero.web.BrowserGameViewport browserViewport;');
-  source = source.replace('return new Scene(content);', 'browserViewport = new zero.web.BrowserGameViewport(content, canvas, this::clearInput); return browserViewport.scene();');
+  // WebFX Font.font(double) omits the CSS-required family; preserve the requested canvas size.
+  source = source.replace('graphics.setFont(Font.font(pixels));', 'graphics.setFont(Font.font("sans-serif", pixels));');
+  const sceneStart = source.indexOf('    @Override protected final Scene createScene(BorderPane content) {');
+  const sceneEnd = source.indexOf('    @Override protected final void ready(Stage stage) {', sceneStart);
+  if (sceneStart < 0 || sceneEnd < 0) fail(file, 'reviewed game scene adapter placement changed.');
+  const nativeSceneLines = source.slice(sceneStart, sceneEnd).split('\n').length - 1;
+  let browserScene = `    @Override protected final Scene createScene(BorderPane content) {
+        javafx.scene.Node selected = content.getCenter();
+        try {
+            content.setCenter(layout);
+            browserViewport = new zero.web.BrowserGameViewport(content, canvas, layout, this::clearInput);
+            return browserViewport.scene();
+        } finally {
+            content.setCenter(selected);
+        }
+    }
+`;
+  browserScene += '\n'.repeat(Math.max(0, nativeSceneLines - (browserScene.split('\n').length - 1)));
+  source = source.slice(0, sceneStart) + browserScene + source.slice(sceneEnd);
   source = source.replace('        window = stage;', '        window = stage; zero.web.BrowserFocus.install(this::clearInput);');
   source = source.replace('        Scene scene = stage.getScene();', '        Scene scene = stage.getScene(); browserViewport.install();');
   source = source.replace('canvas.sceneToLocal(event.getSceneX(), event.getSceneY())', 'zero.web.BrowserGameViewport.canvasPoint(canvas, event)');
   source = source.replace('window != null && window.isFocused()', 'window != null && zero.web.BrowserFocus.focused()');
-  source = source.replace('        if (timer != null) timer.stop();', '        if (timer != null) timer.stop(); if (browserViewport != null) browserViewport.close(); zero.web.BrowserFocus.uninstall();');
+  source = source.replace('        gameVisible = false;\n        previousFrame = 0;\n        clearInput();\n        imageCache.clear();', `        try { if (browserViewport != null) browserViewport.close(); } catch (RuntimeException | Error error) { if (failure == null) failure = error; else failure.addSuppressed(error); } try { zero.web.BrowserFocus.uninstall(); } catch (RuntimeException | Error error) { if (failure == null) failure = error; else failure.addSuppressed(error); } gameVisible = false;
+        previousFrame = 0;
+        clearInput();
+        imageCache.clear();`);
   const start = source.indexOf('        var resource = getClass().getResource(resourcePath);');
   const end = source.indexOf('    public final SpriteAnimation loadAnimation(', start);
   const originalLines = source.slice(start, end).split('\n').length - 1;
@@ -173,7 +201,11 @@ function adaptSources({ sources, resourcePaths = [], urlReferences, originalPath
   const resources = [...new Set(resourcePaths)].sort();
   for (const resource of resources) if (typeof resource !== 'string' || resource.startsWith('/') || resource.includes('\\') || resource.split('/').some(x => !x || x === '..' || x === '.')) fail(String(resource), 'invalid packaged resource path.');
   const images = resources.filter(file => /\.(png|jpe?g|gif|webp|bmp|svg|avif|ico)$/i.test(file));
-  Object.assign(output, readRuntime(path.join(__dirname, 'runtime')));
+  const runtime = readRuntime(path.join(__dirname, 'runtime'));
+  for (const [file, source] of Object.entries(runtime)) {
+    if (output[file]) fail(file, 'source collides with reserved browser runtime support.');
+    output[file] = source;
+  }
   output['zero/web/PackagedResources.java'] = `package zero.web;\nfinal class PackagedResources {\n    static final String[] ALL = {${resources.map(x => JSON.stringify('/' + x)).join(', ')}};\n    static final String[] IMAGES = {${images.map(x => JSON.stringify('/' + x)).join(', ')}};\n}\n`;
   output['zero/web/BrowserLauncher.java'] = output['zero/web/BrowserLauncher.java'].replaceAll('__APPLICATION_CLASS__', apps[0]);
   warnings.push('Browser effects overlap with up to 32 active/preparing voices per Sound. Blocked autoplay requests coalesce to one pending effect.');

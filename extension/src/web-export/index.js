@@ -8,9 +8,8 @@ const { spawn } = require('node:child_process');
 const { acquireBuildLock } = require('./build-lock');
 const { generateProject } = require('./project');
 const { zipFiles } = require('./zip');
-const { captureBuildInputs, buildProfileHash, boundSourceHash } = require('./snapshot');
-const { resolveLibrarySources } = require('./libraries');
-const { declaration } = require('../sharing/authoring');
+const { assertSelectedBuilder, captureBuildInputs, buildProfileHash, boundSourceHash } = require('./snapshot');
+const { resolveLibrarySources, assertApplicationNamespaces } = require('./libraries');
 const { prepareMavenDistribution, verifyMavenDistribution } = require('./compatibility/maven-distribution');
 const { checkCompatibility, validateDependencies, verifyArtifactInventory, validateWrapperInputs } = require('./compatibility');
 const toolchain = require('./toolchain-lock.json');
@@ -249,7 +248,8 @@ async function runMaven({
   env,
   signal,
   onProgress,
-  buildLock
+  buildLock,
+  inheritedProcessGroup = false
 }) {
   await buildLock?.update({ phase: 'launching' });
   return new Promise((resolve, reject) => {
@@ -287,7 +287,7 @@ async function runMaven({
       env: childEnv,
       windowsHide: true,
       windowsVerbatimArguments: process.platform === 'win32',
-      detached: process.platform !== 'win32'
+      detached: process.platform !== 'win32' && !inheritedProcessGroup
     });
     if (child.pid) buildLock?.trackCompiler(child.pid);
     const registered = child.pid ? buildLock?.update({ phase: 'compiling', compilerPid: child.pid }) : undefined;
@@ -384,6 +384,7 @@ async function exportForWeb(options = {}) {
     throw new Error('Choose a Zero project before exporting for web.');
   const projectRoot = await fs.realpath(path.resolve(options.projectRoot));
   await noSymlinks(projectRoot);
+  await assertSelectedBuilder(projectRoot);
   if (!(await exists(projectRoot))?.isDirectory())
     throw new Error('The Zero project folder does not exist.');
   const cacheRoot = await canonicalPath(
@@ -449,14 +450,7 @@ async function exportForWeb(options = {}) {
     await noSymlinks(path.join(projectRoot, 'pom.xml'));
     const pom = captured.files.find(file => file.path === 'pom.xml').bytes.toString('utf8');
     validateDependencies(pom,{libraries});
-    if (libraries.length) {
-      for (const file of javaFiles) {
-        const pkg = declaration(file.bytes.toString('utf8'),file.originalPath).packageName;
-        for (const library of libraries)
-          if (pkg === library.identity.namespace || pkg.startsWith(library.identity.namespace+'.'))
-            throw new Error('Application source shadows library namespace: '+file.originalPath);
-      }
-    }
+    assertApplicationNamespaces(javaFiles,libraries);
     const libraryInputs=await resolveLibrarySources(projectRoot,captured,options);
     for(const file of libraryInputs.sources) {
       if(javaFiles.some(existing=>existing.path.toLowerCase()===file.path.toLowerCase()))throw new Error('Browser Java source collision: '+file.path);
@@ -530,7 +524,8 @@ async function exportForWeb(options = {}) {
       env: options.env,
       signal,
       onProgress,
-      buildLock
+      buildLock,
+      inheritedProcessGroup: options.inheritedProcessGroup === true
     });
     await buildLock.compilerFinished();
     await verifyMavenDistribution({ cacheRoot });

@@ -14,7 +14,29 @@ preserve them in future UI work unless the owner asks to change them.
 
 - Zero is a local Java teaching kit: a VS Code extension/profile and a small
   JavaFX library. Preserve ordinary Java and explicit object updates.
+- Target normal student games/apps to Zero packages almost entirely, with JavaFX
+  underneath and an explicit advanced interoperability path. Follow the proposed
+  docs/FRAMEWORK-MODEL.md and docs/FRAMEWORK-RELIABILITY.md; do not claim new
+  facades, background checks or telemetry are implemented before their proof.
+- Keep the planned model simple: GameApp extends App and owns gameplay callbacks,
+  canvas/input/camera; Screen is optional UI, World an optional actor container.
+  No public GameScreen. Preserve component replacement and one explicit update
+  owner while separating menu navigation from live HUD/control composition.
+- Student-led framework evolution is a core goal: build, extract, share through
+  ZeroHub, reuse/improve, and propose proven ideas for Zero core. Design public
+  extension points so students can add or replace components without patching
+  canonical helper source. Follow docs/FRAMEWORK-ARCHITECTURE.md; distinguish its
+  planned contracts from implemented APIs and existing publication gates.
+- The default teaching path must support native JavaFX and real WebFX browser
+  output playable on GitHub Pages. Validate the pinned browser subset while
+  designing extensions; native success alone does not establish portability.
 - Students own their GitHub repositories and submit links separately in Pika.
+- Projects own framework source/build files and exact version records independently
+  of editor updates. Follow docs/FRAMEWORK-ARCHITECTURE.md: optional reversible
+  upgrades, retained playable output, optional student-owned offline bundles and
+  one maintained current line. No required central kit storage/database/registry
+  or old-version branches. Keep project execution untrusted and do not claim the
+  proposed project-owned browser tooling/backup flow is already implemented.
 - Never publish, push, deploy, or alter account credentials without explicit
   user authorization. Student GitHub actions default to live through explicit commands and guarded plans;
   optional simulation remains available for testing. Tutorials require students to create their own repository from the

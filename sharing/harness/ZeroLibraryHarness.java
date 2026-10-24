@@ -13,23 +13,34 @@ public final class ZeroLibraryHarness {
 
     private static void checks(String[] args) throws Exception {
         Path jar = Path.of(args[0]).toRealPath();
+        boolean withCore = args.length > 5 && args[3].equals("--core");
+        int firstCheck = withCore ? 6 : 3;
+        Class<?> element = null;
+        if (withCore) {
+            Path coreJar = Path.of(args[4]).toRealPath();
+            if (coreJar.equals(jar)) throw new AssertionError("Core and contribution must be separate JARs.");
+            for (String name : args[5].split(",")) {
+                Class<?> type = Class.forName(name, false, ZeroLibraryHarness.class.getClassLoader());
+                origin(type, coreJar);
+            }
+            element = Class.forName("zero.ui.Element", false, ZeroLibraryHarness.class.getClassLoader());
+            origin(element, coreJar);
+        }
         boolean widgetView = false;
         for (String name : args[2].split(",")) {
             Class<?> type = Class.forName(name, false, ZeroLibraryHarness.class.getClassLoader());
-            URL origin = type.getProtectionDomain().getCodeSource().getLocation();
-            if (!Path.of(origin.toURI()).toRealPath().equals(jar)) {
-                throw new AssertionError(name + " loaded from source/classes instead of the actual library JAR: " + origin);
-            }
+            origin(type, jar);
             if (args[1].equals("widget")) {
                 for (Method method : type.getMethods()) {
                     if (method.getName().equals("view") && method.getParameterCount() == 0
                             && !java.lang.reflect.Modifier.isStatic(method.getModifiers())
-                            && javafx.scene.Node.class.isAssignableFrom(method.getReturnType())) widgetView = true;
+                            && (javafx.scene.Node.class.isAssignableFrom(method.getReturnType())
+                                || (element != null && element.isAssignableFrom(method.getReturnType())))) widgetView = true;
                 }
             }
         }
-        if (args[1].equals("widget") && !widgetView) throw new AssertionError("A widget must expose a public Node view() method.");
-        for (int i = 3; i < args.length; i++) {
+        if (args[1].equals("widget") && !widgetView) throw new AssertionError("A widget must expose a public Node view() or verified Zero Element view() method.");
+        for (int i = firstCheck; i < args.length; i++) {
             try {
                 Method main = Class.forName(args[i]).getMethod("main", String[].class);
                 if (!java.lang.reflect.Modifier.isStatic(main.getModifiers()) || main.getReturnType() != void.class) {
@@ -40,7 +51,15 @@ public final class ZeroLibraryHarness {
                 throw new AssertionError("Local behavior check failed: " + args[i] + ": " + error.getCause(), error.getCause());
             }
         }
-        System.out.println("Actual JAR origins and " + (args.length - 3) + " behavior checks/examples passed.");
+        System.out.println("Actual JAR origins and " + (args.length - firstCheck) + " behavior checks/examples passed.");
+        if (withCore) System.out.println("Separate reviewed Zero core JAR origins verified.");
+    }
+
+    private static void origin(Class<?> type, Path jar) throws Exception {
+        URL origin = type.getProtectionDomain().getCodeSource().getLocation();
+        if (!Path.of(origin.toURI()).toRealPath().equals(jar)) {
+            throw new AssertionError(type.getName() + " loaded from source/classes instead of the actual expected JAR: " + origin);
+        }
     }
 
     private static void widgetChecks(String[] args) throws Exception {

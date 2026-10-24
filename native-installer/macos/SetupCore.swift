@@ -597,12 +597,12 @@ struct SetupSnapshot {
     var ready: Bool { self["ready"] }
     static func parse(_ output: String) throws -> SetupSnapshot {
         let fields = try protocolFields(output, start: "ZERO_SETUP_V1", end: "END_ZERO_SETUP")
-        let keys: Set<String> = ["kit", "code", "java", "profile", "zero", "redhat", "javaHomeBlocked", "ready"]
+        let keys: Set<String> = ["kit", "code", "java", "node", "profile", "zero", "redhat", "javaHomeBlocked", "ready"]
         guard Set(fields.keys) == keys, fields.values.allSatisfy({ $0 == "0" || $0 == "1" }) else {
             throw SetupFailure(message: "Invalid setup check response.")
         }
         let snapshot = SetupSnapshot(fields: fields.mapValues { $0 == "1" })
-        let complete = ["kit", "code", "java", "profile", "zero", "redhat"].allSatisfy { snapshot[$0] }
+        let complete = ["kit", "code", "java", "node", "profile", "zero", "redhat"].allSatisfy { snapshot[$0] }
         guard snapshot.ready == complete, !(snapshot["javaHomeBlocked"] && snapshot["java"]) else {
             throw SetupFailure(message: "Inconsistent setup check response.")
         }
