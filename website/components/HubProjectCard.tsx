@@ -7,7 +7,7 @@ import styles from '@/app/hub/hub.module.css';
 type Props = {
   projectId?: string; title: string; description: string; author: string; version?: string;
   repositoryHref: string; image?: string; playHref?: string; compact?: boolean; siteReachable?: boolean;
-  feedback?: (identity?: ReactNode, description?: string) => ReactNode; children?: ReactNode;
+  feedback?: (identity?: ReactNode, description?: string, placement?: 'details') => ReactNode; children?: ReactNode;
 };
 
 export function HubProjectCard({projectId, title, description, author, version, repositoryHref, image, playHref, compact, siteReachable, feedback, children}: Props) {
@@ -21,10 +21,13 @@ export function HubProjectCard({projectId, title, description, author, version, 
     {playHref ? <a className={styles.playImage} data-muted={!siteReachable || undefined} href={playHref} onClick={recordOpen} onAuxClick={event=>{if(event.button===1)recordOpen(event);}} target="_blank" rel="noopener noreferrer" aria-label={`Play ${title} (opens in a new tab)`}>
       {preview}
     </a> : <div className={styles.playImage} data-muted>{preview}</div>}
-    <h3 className={styles.imageTitle}><span title={title}>{title}</span></h3>
+    <div className={styles.projectHeading}>
+      <h3 className={styles.imageTitle}><span title={title}>{title}</span></h3>
+      {feedback ? feedback(identity, description, 'details') : <HubProjectInfo title={title} available={!!siteReachable}><p>{description}</p>{identity}</HubProjectInfo>}
+    </div>
     <div className={styles.cardFooter}>
       {children}
-      {feedback ? feedback(identity, description) : <div className={styles.projectActions}><HubProjectInfo title={title} available={!!siteReachable}><p>{description}</p>{identity}</HubProjectInfo></div>}
+      {feedback?.()}
     </div>
   </article>;
   return <article className={styles.card} data-hub-project-id={projectId}>

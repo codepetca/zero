@@ -1,5 +1,21 @@
 # Verification
 
+## ZeroHub title information control — 2026-10-24
+
+Owner places the single availability-colored info trigger in the old top-right
+About/question-mark position. The old control showed the description; the
+replacement opens the existing full details popover. Footer retains visits and
+one borderless star control. Shared status/report/details rendering is pure,
+without mounting another authenticated feedback control in the heading.
+
+177website tests, TypeScript, production build and whitespace pass. Chromium
+checks verify top/right0px offsets, one44px info trigger per card, none in the
+footer, Play→Info→Star keyboard order, Enter/Escape focus restoration, both
+availability states and320px light/dark popover reflow with no horizontal overflow.
+The readable light status green remainsrgb(21,128,61). Physical Safari/touch and
+text enlargement are not reverified. Review/CI/live receipts and final delivery
+belong in the PR handoff and ignored .verification/zerohub-header-info/.
+
 ## ZeroHub visit labels and star styling — 2026-10-24
 
 Owner follow-up changes the display to visit/visits and removes the star-control
