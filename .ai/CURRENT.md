@@ -1,6 +1,7 @@
 # ZeroHub visits and borderless stars — 2026-10-24
 
-Owner requests “x visits” and removal of the star-control border as a follow-up
+Owner requests “x visits”, borderless stars and one availability-colored info
+icon for all extra project details, as a follow-up
 to the authorized metrics publication. Keep services on Free; no infrastructure,
 API/storage key or publisher-policy change. Preserve the dirty primary funding
 checkout and unrelated Dev worktrees. Branch codex/zerohub-visits in the existing
@@ -11,6 +12,9 @@ verified. One real test + owner's phone visit brought Drawing Pad to2opens.
 Counting still means Play activations including repeats, not unique visitors.
 New display uses visit/visits and keeps the precise hint. Star buttons/links keep
 44px targets, accessible labels, filled selected icons and focus outlines.
+Project title/About hover disclosure is replaced by one native info popover
+with description, status/time, GitHub author/version and report flag. The icon
+is green when reachable and yellow otherwise; library text layout is retained.
 
 Next: focused website checks and browser verification; independent low-risk
 review, then reviewed PR/CI publication and live label/style verification within

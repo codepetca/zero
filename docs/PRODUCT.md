@@ -140,10 +140,13 @@ dividers. Generic setup/continuation cards are omitted; specific component or
 media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover student-hosted games and reusable libraries.
 Show only the latest available release of each project. Each project occupies one
 square screenshot: the title overlays its top on a dark background and fades at
-the edge when too long. Stars, the report flag and author/version sit at the bottom,
-with the cached page-check time. Hover or keyboard focus reveals the description;
-the title's About button toggles it for touch and keyboard users. Full title and
-description remain available to assistive technology. Unconfirmed or unreachable
+the edge when too long. Visits and borderless stars remain visible at the bottom.
+One info icon is green when the site is reachable and yellow otherwise. Tapping
+it opens project details: description, green check or yellow warning with the
+last check, GitHub author, available version and report flag. The native popover
+closes with its close button, an outside tap or Escape; keyboard focus stays
+visible. Full titles remain available in the details and to assistive technology.
+Unconfirmed or unreachable
 previews are muted until the existing page-reachability check succeeds; this does
 not verify gameplay. The screenshot opens the hosted game in a new tab. Older
 playable releases without screenshots use a Play tile. Withdrawn images remain static.
@@ -173,11 +176,11 @@ Desktop and browser sessions do not pair or transfer credentials automatically.
 Short-lived browser sessions require reconnection after expiry. Public counts may lag; no separate vote store
 is created. Site checks show cached page reachability, not verified gameplay.
 Report a problem opens a prefilled GitHub issue for the user to review and submit.
-Project cards show a green circled check for reachable sites, a yellow warning triangle for
-unreachable sites and a question mark for an unknown check, followed by a local
-check time such as **Oct 20 · 12:56 PM**. Reporting uses a flag icon; stars show
-only a star icon and count, filled when starred. Accessible labels describe each
-control and status; an unavailable star count displays an em dash.
+Project details show a green circled check for reachable sites and a yellow
+warning for unavailable or unknown checks, followed by a local check time such
+as **Oct 20 · 12:56 PM** when known. Reporting uses a flag icon inside the details.
+Stars show a borderless star icon and count, filled when starred. Accessible
+labels describe each control and status; unavailable star counts use an em dash.
 See [ZeroHub feedback](ZEROHUB-FEEDBACK.md) for setup and limits.
 ZeroHub displays aggregate Play-link activations as visits and library adoption
 from declared dependencies in shared game snapshots. Visits include

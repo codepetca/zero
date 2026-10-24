@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronDown, ChevronRight, CircleCheck, CircleHelp, Download, Flag, Menu, Moon, Search, Star, Sun, TriangleAlert, X } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronRight, CircleCheck, CircleHelp, Info, Download, Flag, Menu, Moon, Search, Star, Sun, TriangleAlert, X } from "lucide-react";
 
 const icons = {
   "arrow-right": ArrowRight,
@@ -8,6 +8,7 @@ const icons = {
   "circle-help": CircleHelp,
   download: Download,
   flag: Flag,
+  info: Info,
   menu: Menu,
   search: Search,
   star: Star,

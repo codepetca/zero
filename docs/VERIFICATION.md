@@ -3,7 +3,9 @@
 ## ZeroHub visit labels and star styling — 2026-10-24
 
 Owner follow-up changes the display to visit/visits and removes the star-control
-border/background in both library and compact project cards. Counting/storage,
+border/background in both library and compact project cards. The expanded request
+adds one native availability-colored info popover to each compact project card,
+containing description, status/time, author/version and report flag. Counting/storage,
 GitHub star behavior,44px targets and focus outlines remain unchanged. All177
 website tests, typecheck, production build and whitespace pass. Browser and
 independent review receipts are retained in ignored .verification/zerohub-visits/;
