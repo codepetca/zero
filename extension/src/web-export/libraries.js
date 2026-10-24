@@ -1,59 +1,14 @@
 'use strict';
 const path=require('node:path');
 const fs=require('node:fs/promises');
-const zlib=require('node:zlib');
 const {discoverLibraries,declaration}=require('../sharing/authoring');
 const {loadCatalog,verifyLibrary,inspectManagedLibraryPins}=require('../sharing/consumer');
 const {readKitConfiguration}=require('../sharing/configuration');
+const core=require('../core-contract');
 
-const MAX_JAR_FILES=256,MAX_JAR_BYTES=2*1024*1024;
+const {inspectJar}=require('../sharing/jar');
 const resourceExtension=/\.(?:png|jpe?g|gif|webp|bmp|svg|avif|ico|wav|mp3|ogg|txt|json|csv|properties|xml|fxml|css|ttf|otf|md)$/i;
 const fail=message=>{throw new Error('Browser library: '+message);};
-function crc32(bytes) {
- let crc=-1;for(const byte of bytes){crc^=byte;for(let i=0;i<8;i++)crc=crc>>>1^(crc&1?0xedb88320:0);}return (crc^-1)>>>0;
-}
-function safeEntry(name) {
- if(!name||name.includes('\\')||name.includes('\0')||name.startsWith('/')||name.split('/').some(part=>!part||part==='.'||part==='..'||part.startsWith('.'))||/^[A-Za-z]:/.test(name))fail('unsafe source JAR entry');
- return name;
-}
-// Read central and local headers, bounds, CRC and modes before admitting any
-// source bytes. Never extract a contributor JAR to a filesystem directory.
-function inspectJar(input) {
- const bytes=Buffer.from(input);
- if(bytes.length<22||bytes.length>16*1024*1024)fail('source JAR exceeds its size limit');
- let end=-1;
- for(let at=bytes.length-22;at>=Math.max(0,bytes.length-65557);at--)
-  if(bytes.readUInt32LE(at)===0x06054b50&&at+22+bytes.readUInt16LE(at+20)===bytes.length){end=at;break;}
- if(end<0||bytes.readUInt16LE(end+4)||bytes.readUInt16LE(end+6))fail('invalid source JAR directory');
- const count=bytes.readUInt16LE(end+10),start=bytes.readUInt32LE(end+16),length=bytes.readUInt32LE(end+12);
- if(count>MAX_JAR_FILES||count!==bytes.readUInt16LE(end+8)||start+length!==end)fail('invalid source JAR count');
- let cursor=start,total=0;const entries=[],seen=new Set(),ranges=[];
- for(let i=0;i<count;i++) {
-  if(cursor+46>end||bytes.readUInt32LE(cursor)!==0x02014b50)fail('invalid source JAR header');
-  const flags=bytes.readUInt16LE(cursor+8),method=bytes.readUInt16LE(cursor+10),compressed=bytes.readUInt32LE(cursor+20),size=bytes.readUInt32LE(cursor+24),nameSize=bytes.readUInt16LE(cursor+28),extra=bytes.readUInt16LE(cursor+30),comment=bytes.readUInt16LE(cursor+32),offset=bytes.readUInt32LE(cursor+42),mode=bytes.readUInt32LE(cursor+38)>>>16;
-  if(cursor+46+nameSize+extra+comment>end||flags&~0x808||![0,8].includes(method)||size>MAX_JAR_BYTES||offset+30>start)fail('unsupported source JAR entry');
-  const raw=bytes.subarray(cursor+46,cursor+46+nameSize),name=raw.toString('utf8');
-  if(!Buffer.from(name,'utf8').equals(raw))fail('invalid source JAR name');
-  const directory=name.endsWith('/'),relative=directory?name.slice(0,-1):name;
-  safeEntry(relative);
-  if(seen.has(relative.toLowerCase()))fail('duplicate source JAR path');seen.add(relative.toLowerCase());
-  if(mode&&(mode&0o170000)!==(directory?0o040000:0o100000))fail('source JAR contains a link or special file');
-  const localName=bytes.readUInt16LE(offset+26),localExtra=bytes.readUInt16LE(offset+28),dataStart=offset+30+localName+localExtra;
-  if(bytes.readUInt32LE(offset)!==0x04034b50||bytes.readUInt16LE(offset+6)!==flags||bytes.readUInt16LE(offset+8)!==method||!bytes.subarray(offset+30,offset+30+localName).equals(raw)||dataStart+compressed>start)fail('source JAR local header differs');
-  if(!(flags&8)&&(bytes.readUInt32LE(offset+14)!==bytes.readUInt32LE(cursor+16)||bytes.readUInt32LE(offset+18)!==compressed||bytes.readUInt32LE(offset+22)!==size))fail('source JAR size or CRC differs');
-  ranges.push([offset,dataStart+compressed]);
-  if(!directory) {
-   total+=size;if(total>MAX_JAR_BYTES)fail('source JAR expanded size exceeds limit');
-   const packed=bytes.subarray(dataStart,dataStart+compressed);
-   const data=method===0?Buffer.from(packed):zlib.inflateRawSync(packed,{maxOutputLength:Math.max(1,size)});
-   if(data.length!==size||crc32(data)!==bytes.readUInt32LE(cursor+16))fail('source JAR content differs');
-   entries.push({path:relative,bytes:data});
-  }
-  cursor+=46+nameSize+extra+comment;
- }
- if(cursor!==end||ranges.sort((a,b)=>a[0]-b[0]).some((range,i)=>range[0]<(i?ranges[i-1][1]:0)))fail('source JAR entries overlap');
- return entries;
-}
 function add(target,name,bytes,kind,originalPath=name) {
  const folded=name.toLowerCase();
  if(target.some(entry=>entry.path.toLowerCase()===folded))fail(`${kind} collision: ${name}`);
@@ -70,6 +25,18 @@ async function discoverBrowserLibraries(projectRoot,pomText) {
  }
  return [...authored,...managed];
 }
+function capturedCore(captured,requirement,input) {
+ const file=captured.files.find(file=>file.path==='zero-core.json');
+ if(!file)fail('this library needs the project-owned zero-core.json; keep the project unchanged and choose a compatible library or deliberately upgrade a copy');
+ let record;
+ try {
+  const sources=Object.fromEntries(core.coreSourcePaths.map(name=>[name,captured.files.find(file=>file.path===name)?.bytes]));
+  record=core.validateCoreRecord(JSON.parse(core.normalizeSource(file.bytes)),sources);
+ } catch(error) {fail('invalid captured project core: '+error.message);}
+ if(!core.versionSatisfies(record.coordinate.version,requirement))fail(`library requires Zero core ${requirement.minVersion} up to ${requirement.maxExclusive} (exclusive); this project has ${record.coordinate.version}`);
+ if(input&&(input.version!==record.coordinate.version||input.sourceSha256!==record.sourceSha256))fail('local library coreInput differs from the captured project core; deliberately update and check the library before using changed compilation inputs');
+ return record;
+}
 async function resolveLibrarySources(projectRoot,captured,options={}) {
  const pom=captured.files.find(file=>file.path==='pom.xml')?.bytes.toString('utf8');
  if(!pom)fail('the project POM is missing');
@@ -80,6 +47,7 @@ async function resolveLibrarySources(projectRoot,captured,options={}) {
  for(const library of libraries) {
   const namespace=library.identity.namespace,prefix=namespace.replaceAll('.','/')+'/';
   if(library.mode==='local') {
+   if(library.descriptor.schema===2)capturedCore(captured,library.descriptor.coreRequirement,library.descriptor.coreInput);
    const sourcePrefix=`${library.folder}/src/main/java/`,resourcePrefix=`${library.folder}/src/main/resources/`;
    const own=captured.files.filter(file=>file.path.startsWith(sourcePrefix));
    if(!own.length)fail(`${library.slug} has no local Java source`);
@@ -99,6 +67,7 @@ async function resolveLibrarySources(projectRoot,captured,options={}) {
   if(library.source==='consumer'&&library.repositoryOrigin!==context.artifactOrigin)fail(`managed repository origin changed for ${library.slug}`);
   const release=context.catalog.releases.find(item=>item.kind==='library'&&item.id===library.identity.id&&item.version===library.version&&item.status==='available');
   if(!release)fail(`published ${library.slug} ${library.version} is not an available accepted release`);
+  if(release.schema===2)capturedCore(captured,release.coreRequirement);
   const verified=await verifyLibrary(context,release,{signal:options.signal});
   const sourceEntries=inspectJar(verified.sources),binaryEntries=inspectJar(verified.jar);
   let count=0;
@@ -121,7 +90,7 @@ async function resolveLibrarySources(projectRoot,captured,options={}) {
    if(!resourceExtension.test(file.path))fail(`unsupported published resource: ${file.path}`);
    add(resources,file.path,file.bytes,'resource',`published/${release.id}/${release.version}/${file.path}`);
   }
-  publishedLibraries.push({id:release.id,version:release.version,namespace,sourceCommit:release.source.commit,sourceDigest:release.source.sha256,catalogFingerprint:context.fingerprint,artifacts:Object.fromEntries(['jar','sources','pom'].map(kind=>[kind,{sha256:release.artifacts[kind].sha256,size:release.artifacts[kind].size}]))});
+  publishedLibraries.push({id:release.id,version:release.version,namespace,sourceCommit:release.source.commit,sourceDigest:release.source.sha256,catalogFingerprint:context.fingerprint,artifacts:Object.fromEntries(['jar','sources','pom'].map(kind=>[kind,{sha256:release.artifacts[kind].sha256,size:release.artifacts[kind].size}])),...(release.schema===2?{coreRequirement:release.coreRequirement,coreBuild:release.coreBuild}:{})});
  }
  return {sources,resources,publishedLibraries};
 }

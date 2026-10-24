@@ -48,7 +48,7 @@ async function captureBuildInputs(projectRoot) {
       files.push({path:name+'/'+file.path,bytes:file.bytes});
     }
   }
-  for(const name of ['pom.xml','mvnw','mvnw.cmd']) {
+  for(const name of ['pom.xml','mvnw','mvnw.cmd','zero-core.json']) {
     const file=path.join(projectRoot,name);await safePath(file);
     try {if(!(await fs.lstat(file)).isFile())throw new Error('Expected a regular build file: '+file);files.push({path:name,bytes:await fs.readFile(file)});}
     catch(error){if(error.code!=='ENOENT'||name==='pom.xml')throw error;}
@@ -138,7 +138,7 @@ async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git=requi
   if(!/^[a-f0-9]{40}$/.test(sourceSha||''))throw new Error('Invalid uploaded source commit.');
   const inputs=await captureBuildInputs(projectRoot);
   if(inputs.sourceHash!==(result?.manifest?.localSourceHash||result?.sourceHash))throw new Error('The project changed since its browser build. Choose Export for web or Publish app again.');
-  const raw=await git(projectRoot,['ls-tree','-r','-z',sourceSha,'--','src/main/java','src/main/resources','pom.xml','mvnw','mvnw.cmd','.mvn','zero-libraries.json','libraries']);
+  const raw=await git(projectRoot,['ls-tree','-r','-z',sourceSha,'--','src/main/java','src/main/resources','pom.xml','mvnw','mvnw.cmd','.mvn','zero-core.json','zero-libraries.json','libraries']);
   const committed=new Map();
   for(const entry of String(raw).split('\0').filter(Boolean)) {
     const match=/^(100644|100755) blob ([a-f0-9]{40})\t([\s\S]+)$/.exec(entry);
@@ -155,7 +155,7 @@ async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git=requi
     // Ordinary Windows checkouts can use CRLF for Java/Maven source. These
     // language/config inputs treat line endings equivalently. Never transform
     // resources: their exact tested bytes must be present in the commit.
-    const textSource=/(?:^|\/)src\/main\/java\/.+\.java$/.test(file.path)||['pom.xml','mvnw','mvnw.cmd','zero-libraries.json'].includes(file.path)||/^libraries\/[^/]+\/zero-library\.json$/.test(file.path)||/^\.mvn\/.+\.(?:properties|xml|config)$/.test(file.path);
+    const textSource=/(?:^|\/)src\/main\/java\/.+\.java$/.test(file.path)||['pom.xml','mvnw','mvnw.cmd','zero-core.json','zero-libraries.json'].includes(file.path)||/^libraries\/[^/]+\/zero-library\.json$/.test(file.path)||/^\.mvn\/.+\.(?:properties|xml|config)$/.test(file.path);
     if(expected&&textSource&&expected===gitBlob(Buffer.from(file.bytes.toString('utf8').replace(/\r\n/g,'\n')))){normalized.push(file.path);continue;}
     throw new Error('The browser input '+file.path+' differs from the uploaded commit or is ignored/untracked. Upload the exact source and resources before publishing.');
   }
