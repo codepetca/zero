@@ -123,9 +123,10 @@ base class or adopt an engine dependency from these reference choices.
 
 `Actor` is an optional ordinary superclass for `Player`, `Enemy` and other sprites.
 It holds centre x/y, display size and clockwise rotation (0 faces right). Load an
-Image, ImageRegion or independent SpriteAnimation in setup and pass it to the
-constructor. Main explicitly calls update(seconds) and draw(this); an override
-calls super.update(seconds) to advance animation. Movement and aiming helpers
+Image, ImageRegion or AnimationSource in setup and pass it to the constructor.
+Main explicitly calls final update(seconds) and draw(this); subclasses put
+behaviour in protected onUpdate(seconds). Each actor owns fresh playback from
+the source, even when actors share SpriteAnimation definitions. Movement and aiming helpers
 leave game rules with the student. Use Collisions explicitly; an unrotated
 rectangle's top-left is actor.x()-actor.width()/2, actor.y()-actor.height()/2.
 Rotation does not create a rotated collision shape. Actor is a local source

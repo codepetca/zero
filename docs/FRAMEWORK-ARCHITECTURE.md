@@ -259,9 +259,11 @@ Before implementing Screen/World and navigation, agree and prove these rules:
 The full Screen/World/camera contracts above remain proposed. The local
 implementation already suspends gameplay callbacks and input when App.show
 replaces the gameplay view; showGame restores it. Actor(double, double) already
-supports procedural drawing with no sprite. Actor animation still requires
-super.update(seconds) in an override; the final update entry/behaviour hook and
-replaceable playback contract have not yet been implemented.
+supports procedural drawing with no sprite. Actor's final update(seconds)
+validates time, runs protected onUpdate(seconds), then advances its selected
+playback once. AnimationSource creates fresh per-actor AnimationPlayback; drawing
+uses the cached frame. SpriteAnimation supplies the default source and students
+can select their own implementation without changing the actor consumer.
 
 ## ZeroHub is the extension and learning path
 
@@ -520,6 +522,76 @@ break APIs while patches preserve them; after 1.0, same-major documented APIs
 remain compatible. Existing projects retain exact source/pins and published
 static output. Future rebuilding depends on usable tools and normal dependency
 hosts unless a student deliberately saves an optional full offline bundle.
+
+### Phase 3 implementation contract
+
+Astra's concrete preservation review (2026-10-23) selects one tracked
+`.zero-build/` directory in each student repository. It contains `builder.json`,
+`runtime-lock.json`, `run.cjs`, instructions, LF attributes, the reviewed sharing
+configuration and the complete browser exporter source tree. Preserve its
+`src/` and `media/` relative layout, including the exporter’s local core,
+project-POM and sharing dependencies. The current exporter needs Node built-ins
+and its local files; maintainer npm packages and editor APIs are outside this
+closure. Remove the snapshot module's lazy editor/Git dependency; credentialed
+publication supplies that operation from the host.
+
+`builder.json` uses a bounded versioned protocol and a sorted inventory of every
+saved file except itself: relative path, SHA-256 and byte count, plus the
+canonical aggregate hash. Reject missing, undeclared, case-colliding, linked or
+escaping paths. A hash identifies bytes; it does not authorize executing them.
+The build profile binds the entire selected saved closure, including the CLI,
+runtime requirements and sharing configuration. Existing dependency locks,
+wrapper hashes, WebFX source pins, adapter/checker/runtime patches and notices
+travel with it. Runtime requirements come from verified current release
+metadata; unavailable platform evidence must not become guessed download pins.
+
+The installed editor reads only bounded metadata when opening a project. It
+does not import or execute project code, fetch tools or upgrade files on open.
+An explicit Browser Run/Export/Publish action in a trusted workspace selects the
+saved builder, verifies and freezes its closure, and starts the fixed entrypoint
+as a child process with a bounded JSON operation protocol. Locate and verify a
+standalone Node/JDK independently of project metadata. Clear preload/module and
+Java/Maven injection variables; pass only the required operating-system/tool
+environment, never GitHub tokens. Enforce cancellation, deadlines and owned
+process cleanup. Recheck project and builder inputs before accepting results.
+Partition caches by builder/lock identity. Missing runtimes, an incomplete
+closure or an unsupported protocol produce a useful tooling-unavailable result
+and standalone instructions; never silently substitute the latest builder.
+
+One maintainer producer supplies this directory to starter, lesson, prototype
+and internal website project assemblers. Preserve edited generated copies using
+the existing ownership checks before writing anything. Maintainer copies remain
+ignored; student repositories track the complete directory. Archive/import
+allowlists retain only its validated inventory rather than admitting arbitrary
+hidden executable files. Source/upload snapshots include the saved closure.
+
+The same host adapter serves browser preview, export and Publish's local build.
+Remove Publish's automatic helper replacement. Credentialed Pages transport
+stays outside the saved Java builder. Provide a separate data-only validation
+path for retained finished site/ZIP output: rehosting a saved game must not need
+the old compiler, current source/profile or a live catalog. The public site ZIP
+does not contain student Java; retain exact source in the student's repository
+and use a separate input snapshot if a build receipt claims exported source
+preservation.
+
+Deliver three bounded slices in order:
+
+1. **3A — saved builder:** closed standalone producer/CLI, complete inventory and
+   runtime pins, no automatic helper upgrade, and a build outside this repository
+   with no parent source or `node_modules` dependency.
+2. **3B — editor selection:** shared trusted-action adapter/protocol, immutable
+   open behavior, useful missing/changed-tooling errors, cancellation, source and
+   commit binding, with no fallback to installed exporter code.
+3. **3C — preservation proof:** freeze project/builder A, advance the maintained
+   template to B, clone and rebuild A using available runtimes and verified normal
+   dependencies with no ZeroHub service. Rehost retained output without build
+   services. Deliberately upgrade a copy/branch to B, verify it, and demonstrate
+   recovery of the original. Do not promise permanent upstream availability.
+
+Only the current producer is maintained. Historical student repositories retain
+their own builder; no central kit store, database, old maintenance branches or
+automatic migrations are introduced. Optional full offline bundles remain a
+later student-owned backup choice.
 
 Final acceptance is evidence of the learning loop: a student can explain their
 Java, add an actor, import an asset, swap animation, extract/reuse a component,

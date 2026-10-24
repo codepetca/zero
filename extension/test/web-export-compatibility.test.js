@@ -212,7 +212,7 @@ class Player extends Actor {
  Player(Image image) { super(image, 10, 20); }
  Player(ImageRegion region) { super(region, 10, 20); }
  Player(SpriteAnimation animation) { super(animation, 10, 20); }
- @Override public void update(double seconds) { super.update(seconds); moveForward(30, seconds); }
+ @Override protected void onUpdate(double seconds) { moveForward(30, seconds); }
  @Override public void draw(GameApp app) { super.draw(app); }
  void exercise(Image image, ImageRegion region, SpriteAnimation animation) {
   setPosition(x() + 1, y()); setSize(width(), height()); setRotation(rotation());
@@ -227,6 +227,18 @@ class Player extends Actor {
   delete sources['zero/Actor.java'];
   sources['other/Actor.java'] = 'package zero; public class Actor {}';
   await assert.rejects(check({}, { sources }), /helper identity requires/);
+});
+
+test('animation interfaces require canonical reviewed identities even when relocated', { timeout: 240000 }, async () => {
+  const helpers = await helpersPromise;
+  for (const name of ['AnimationSource', 'AnimationPlayback']) {
+    const canonical = 'zero/' + name + '.java';
+    await assert.rejects(check({'Main.java': app(''), [canonical]: helpers[canonical] + '\n// changed\n'}), /helper differs/);
+    const sources = { ...helpers, 'Main.java': app('') };
+    delete sources[canonical];
+    sources['other/' + name + '.java'] = helpers[canonical];
+    await assert.rejects(check({}, {sources}), /helper identity requires/);
+  }
 });
 
 

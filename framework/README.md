@@ -49,10 +49,12 @@ input is non-consuming during one real update/draw, and focus loss clears it.
 
 Actor is an unreleased local source addition. It is an extensible ordinary Java
 object with a centre position, drawing size, clockwise facing and an Image,
-ImageRegion or SpriteAnimation. Main explicitly updates and draws each actor;
+ImageRegion or AnimationSource (including SpriteAnimation). Main explicitly updates and draws each actor;
 there is no registration, automatic movement or collision geometry. Subclass
-updates call super.update(seconds) to advance animation. Separate animations
-keep independent clocks; sharing an animation shares its clock. See the
+behaviour belongs in protected onUpdate(seconds). The final update(seconds)
+validates time, runs that hook and advances the actor's playback once. Sharing a
+SpriteAnimation source gives each actor a fresh independent clock; drawing only
+reads the cached frame. See the
 [Actor API](../student-template/API.md#actor) and
 [complete chase example](../student-template/APP-GUIDE.md#moving-objects-with-actor).
 Existing installed kits and published website bytes are unchanged.
