@@ -31,6 +31,9 @@ function overlay(file, source) {
     source = source.replaceAll('URL resource', 'ResourceURL resource').replace('private URL audioResource', 'private ResourceURL audioResource');
     source = source.replace('getClass().getResource(resourcePath)', 'zero.web.Resources.get(getClass(), resourcePath)');
     source = source.replace('        runtimeOpen();', '        runtimeOpen(); zero.web.BrowserLifecycle.own(this, this::stop);');
+    // Report startup failure before closing a shared Stage can stop another
+    // owner and otherwise consume the browser's single terminal status.
+    source = source.replace('            runtimeFailing = true;', '            runtimeFailing = true; zero.web.BrowserLifecycle.fail("startup", "STARTUP_FAILED", failure);');
     source = source.replace('            stage.setScene(scene);', '            stage.setScene(scene); zero.web.BrowserUiFocus.install(scene); javafx.scene.ZeroDisabledState.install(scene);');
     source = source.replace('        Throwable failure = null;', '        zero.web.BrowserLifecycle.release(this); Throwable failure = null;');
     const nativeStart = source.indexOf('    // BEGIN NATIVE RUNTIME REPORTER');
