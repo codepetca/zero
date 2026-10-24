@@ -11,7 +11,10 @@ Sol/highactivation_preflight owns4conflictfiles(sharingplatform/test,HubDiscover
 HubNavigation). Existingpublisherpolicyrevisions/gates/configs stayunchanged;
 schema2core-dependentadmissionremainsheld. Existingserversecretsreused, no values
 read. Addproductionflag+exactAppcallback onlyafterreviewedsource ready.
-Templatecandidates/pristinedigests inignoredlive-tutorial-rollout;3PRstaged.
+TemplatePR1 ineachofgreeting/study/game merged; anonymous95-filearchivesverified
+andrecordedcommit/tree/scaffolddigestsupdated. Appdesktopcallbackaddedalongside
+existingHubcallback,wildcardsoff;productionflag/deployment/liveOAuthpending.
+Templatesandproofsinignoredlive-tutorial-rollout;native releasesheld.
 SourceprofileZeroDev retained. Local release metadata remains unchanged.
 
 ## Tutorial readiness and browser sign-in complete locally — 2026-10-24

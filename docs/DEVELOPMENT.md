@@ -319,9 +319,11 @@ legacy local template drafts; use `npm run prepare:tutorial-templates` (or the
 same script's `--tutorials` option) for the three current minimal tutorial drafts.
 Run `npm run check:tutorial-templates` to check recorded publication source
 evidence, or `node scripts/check-tutorial-templates.mjs game /pristine/template`
-to check a local draft's exact files/bytes/modes. The publication check currently
-fails for the stale public templates; do not stamp the new digest until a
-separately authorized public update and exact-source verification. This does not
+to check a local draft's exact files/bytes/modes. All three templates were updated
+through reviewed PRs and their anonymous public archives passed exact-source
+verification on2026-10-24; publication records include the verified commit/tree
+and scaffold digest. Future updates require the same separate authorization and
+verification before stamping evidence. This does not
 generate public website downloads or publish
 repositories. Publication remains a separate authorized action. Never copy the
 development repository or private files into a draft. Generator checks use

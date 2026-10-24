@@ -214,6 +214,7 @@ test('local tutorial drafts pass pristine inventory checks without claiming publ
 
 test('publication coherence gate binds exact source and mode without upgrading projects',()=>{
   const projects=lessonModule.validateBundle(bundle);
+  for(const project of projects)delete project.template.scaffoldSha256;
   assert.throws(()=>checkPublishedTutorialTemplates(projects),/not been verified/);
   for(const project of projects)project.template.scaffoldSha256=readiness.tutorialScaffoldSha256(project.files);
   assert.equal(checkPublishedTutorialTemplates(projects),3);
