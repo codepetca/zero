@@ -1,9 +1,11 @@
 # Sharing operations
 
 Use [the adoption plan](GITHUB-SHARING-PLAN.md) and
-[shared contract](../sharing/CONTRACT.md). The replacement source is merged; public game delivery is proven while
-general publication remains disabled during Mac rollout. Generic library publication is closed pending the actual outstanding
-managed execution acceptance. The game path only packages source.
+[shared contract](../sharing/CONTRACT.md). Game and managed-library publication
+are enabled in the live repository configuration (verified 2026-10-24). Both
+publishers use an explicitly reviewed source pin; source availability alone
+does not advance it. The game path only packages source. Library admission
+retains its managed execution/evidence gates.
 
 ## Before activation
 
@@ -125,8 +127,27 @@ released 0.5.19 game requests carrying the exact prior
 `1b63ae6ce07f467ab4c4600d78507157ad3bdc7c` request policy. That compatibility
 never skips current screenshot checks for unaccepted games. Frozen request and
 release identity keep the client policy; trusted provenance records the actual
-operator-selected publisher revision. Other stale pins and legacy-pin libraries
-remain rejected. Existing accepted delivery and recovery preserve original bytes.
+operator-selected publisher revision.
+
+The metrics publisher additionally accepts the exact currently shipped
+`11c54518320b52a659104eaf01d685fe2dd93917` request policy for both games and
+libraries. The checker, managed-evidence verifier and workflow bytes are unchanged
+from that policy. This exception keeps installed clients working when publisher
+source advances to collect dependency observations; it does not waive current
+source, screenshot, ownership, official-run or artifact checks. Library queue
+selection uses the same exact-policy predicate as intake. Frozen fingerprints,
+request policies and evidence bindings stay unchanged. `release/sharing.json`
+retains the shipped policy; no installer release is needed for metrics.
+Other stale pins and `1b63ae6` library requests remain rejected. Existing
+accepted delivery and recovery preserve original bytes.
+
+For this rollout, briefly disable both publication workflow gates, drain active
+jobs, preserve the current public registry and accepted manifests, then advance
+both operator configuration pins to the same final reviewed source revision.
+Re-enable the prior gates together and verify each workflow. Do not leave an
+old strict library reader active once games can write adoption ledger fields.
+After observations exist, a rollback must retain an adoption-compatible reader;
+never delete historical observations to restore an obsolete reader.
 
 ## Backups, withdrawal and retirement
 

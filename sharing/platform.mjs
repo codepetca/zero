@@ -16,6 +16,10 @@ export const LIBRARY_EVIDENCE_CONTRACT = Object.freeze({schema:1,required:['requ
 // preserves that request identity; all unaccepted games use this publisher's
 // current source and screenshot checks, including already frozen queued work.
 const COMPATIBLE_GAME_REQUEST_POLICY = '1b63ae6ce07f467ab4c4600d78507157ad3bdc7c';
+// Current kits use this reviewed game/library contract. Metrics only enrich the
+// accepted ledger; source admission, fixed checker and evidence gates still run
+// from the operator-selected current publisher without rewriting old requests.
+const COMPATIBLE_SHARED_REQUEST_POLICY = '11c54518320b52a659104eaf01d685fe2dd93917';
 
 function sourceFailure(message) { return Object.assign(new Error(message),{kind:'source-failure'}); }
 function executionGate() {return Object.assign(new Error(LIBRARY_EXECUTION_GATE),{code:'EXECUTION_GATE'});}
@@ -43,8 +47,11 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
   if(!Number.isFinite(wallBudgetMs)||wallBudgetMs<1||wallBudgetMs>1200000||!Number.isInteger(sourceTimeoutMs)||sourceTimeoutMs<1||sourceTimeoutMs>60000)throw new Error('Invalid finite publication budget');
   if(typeof libraryPublicationEnabled!=='boolean')throw new Error('Invalid library publication gate');
   const receipts=new WeakSet(), observedRepositories=new Map(), sourceCache=new Map(), publicationBudgets=new Map();
+  function compatibleRequestPolicy(request) {
+    return request.policyRevision===policyRevision || request.policyRevision===COMPATIBLE_SHARED_REQUEST_POLICY || (request.kind==='game' && request.policyRevision===COMPATIBLE_GAME_REQUEST_POLICY);
+  }
   function assertRequestPolicy(request) {
-    if(request.policyRevision!==policyRevision && !(request.kind==='game' && request.policyRevision===COMPATIBLE_GAME_REQUEST_POLICY))throw sourceFailure('Request targets a different policy revision; prepare it again');
+    if(!compatibleRequestPolicy(request))throw sourceFailure('Request targets a different policy revision; prepare it again');
   }
   function validationSignal(requestId){const budget=publicationBudgets.get(requestId);if(budget&&now()-budget.started>=wallBudgetMs)throw new Error('Publication wall budget exhausted before acceptance');return budget?AbortSignal.any([budget.signal,AbortSignal.timeout(sourceTimeoutMs)]):AbortSignal.timeout(sourceTimeoutMs);}
   async function assertOpen(record,{signal}={}) {
@@ -174,9 +181,9 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
       const state=(await registry.read()).state;
       const pending=Object.values(state.requests).find(record=>record.frozen.kind==='library'&&record.status==='delivery-pending'&&record.releaseKey);
       if(pending)return {requestId:pending.id,commit:pending.frozen.commit,recovery:true};
-      const stale=Object.values(state.requests).find(record=>record.frozen.kind==='library'&&record.status==='queued'&&!record.releaseKey&&record.frozen.policyRevision!==policyRevision);
+      const stale=Object.values(state.requests).find(record=>record.frozen.kind==='library'&&record.status==='queued'&&!record.releaseKey&&!compatibleRequestPolicy(record.frozen));
       if(stale)await reportAttempt(registry,stale.id,{kind:'source-failure',message:'Library request targets a different reviewed policy',sourceDiagnostic:{code:'source-check'}});
-      for(const queued of Object.values((await registry.read()).state.requests).filter(record=>record.frozen.kind==='library'&&record.status==='queued'&&!record.releaseKey&&record.frozen.policyRevision===policyRevision)) {
+      for(const queued of Object.values((await registry.read()).state.requests).filter(record=>record.frozen.kind==='library'&&record.status==='queued'&&!record.releaseKey&&compatibleRequestPolicy(record.frozen))) {
         if(now()-started+sourceTimeoutMs>480000)return null;
         try {await assertOpen(queued,{signal:AbortSignal.timeout(sourceTimeoutMs)});return {requestId:queued.id,commit:queued.frozen.commit};}
         catch(error){if(error.kind!=='source-failure')throw error;}

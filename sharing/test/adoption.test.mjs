@@ -79,16 +79,16 @@ test('latest available versions remove dependencies and withdrawal/restore falls
   assert.deepEqual(generateAdoption(state).libraries,[]);
 });
 
-async function publicationFixture(t,pomChange=text=>text){
+async function publicationFixture(t,pomChange=text=>text,{requestPolicy='b'.repeat(40),publisherPolicy=requestPolicy}={}){
   const dir=await mkdtemp(join(tmpdir(),'zero-adoption-'));t.after(()=>rm(dir,{recursive:true,force:true}));
   const registry=new FileRegistry({file:join(dir,'state.json')}),storage=new FileStorage({root:join(dir,'objects')});
   const repository={id:'11',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'},metadata={...repository,visibility:'public',ownerType:'User'};
   const descriptor={schema:1,kind:'game',slug:'game',version:'0.1.0',title:'Game',description:'A game',license:'MIT',controls:'Arrows',preview:'preview.png'};
-  const request={schema:1,kind:'game',slug:'game',version:'0.1.0',repository,requester:{githubId:'7',login:'student'},commit:'a'.repeat(40),folder:'.',descriptor,policyRevision:'b'.repeat(40)};
+  const request={schema:1,kind:'game',slug:'game',version:'0.1.0',repository,requester:{githubId:'7',login:'student'},commit:'a'.repeat(40),folder:'.',descriptor,policyRevision:requestPolicy};
   const files=[...minimalGameFiles().map(file=>file.path==='pom.xml'?{...file,data:Buffer.from(pomChange(file.data.toString()))}:file),{path:'zero-game.json',data:Buffer.from(JSON.stringify(descriptor))},{path:'preview.png',data:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64')}];
   let reads=0;
   const reader={publicationIssue:async()=>({request,repositoryMetadata:metadata,issueId:'1',issueState:'open',authenticatedActor:request.requester}),publicationIssueState:async()=>({issueState:'open',authenticatedActor:request.requester}),source:async()=>{reads++;return {files,repositoryMetadata:metadata,sourceDigest:digest('frozen-source')};},repository:async()=>metadata};
-  const platform=createSharingPlatform({reader,registry,storage,artifactOrigin:'https://fixture.public.blob.vercel-storage.com',policyRevision:request.policyRevision});
+  const platform=createSharingPlatform({reader,registry,storage,artifactOrigin:'https://fixture.public.blob.vercel-storage.com',policyRevision:publisherPolicy});
   return {platform,registry,storage,reader,request,reads:()=>reads};
 }
 
@@ -145,4 +145,18 @@ test('delivery interruptions retain the accepted observation and recover with no
   f.reader.source=async()=>{throw new Error('Recovery must not fetch source');};
   const recovered=await f.platform.deliverAccepted(key);
   assert.equal(recovered.delivery,'ready');assert.deepEqual(recovered.adoption,observation());assert.equal(f.reads(),1);
+});
+
+
+test('current-kit game policy preserves its frozen request and receives observations from the newer publisher',async t=>{
+  const requestPolicy='11c54518320b52a659104eaf01d685fe2dd93917',publisherPolicy='c'.repeat(40);
+  const f=await publicationFixture(t,text=>text.replace('</dependencies>',dependency()+'</dependencies>'),{requestPolicy,publisherPolicy});
+  const preview=await f.platform.prepareIssue(1),frozen=structuredClone(preview.record.frozen);
+  const original=PublicationService.prototype.publish;let evidence;
+  t.mock.method(PublicationService.prototype,'publish',function(input){evidence=structuredClone(input.evidence);return original.call(this,input);});
+  const result=await f.platform.publishIssue(1),state=(await f.registry.read()).state;
+  assert.deepEqual(result.adoption,observation());assert.equal(result.release.policyRevision,requestPolicy);
+  assert.deepEqual(state.requests[result.requestId].frozen,frozen);assert.equal(result.requestId,digest(frozen));
+  assert.equal(evidence.policyRevision,requestPolicy);assert.equal(evidence.provenance.policyRevision,publisherPolicy);
+  assert.equal(evidence.adoptionDigest,digest(observation()));
 });

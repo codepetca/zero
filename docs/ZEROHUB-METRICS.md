@@ -101,7 +101,10 @@ Before any new observation is written, stop/drain old publication jobs and updat
 both game and library publisher pins to readers that accept the optional ledger
 field. Old strict registry readers reject it; rolling back to those readers
 after observations exist requires a compatibility patch, not deleting history.
-Keep client policy configuration synchronized using the existing rollout guide.
+The exact shipped `11c54518320b52a659104eaf01d685fe2dd93917` request policy is
+supported for games and libraries with unchanged current admission checks.
+Keep `release/sharing.json` and installed clients on that policy while advancing
+both operator source pins together; see the [rollout guide](SHARING-OPERATIONS.md).
 
 Owner constraint (2026-10-24): keep Redis free and configure it through Vercel.
 In **Vercel → Storage → Create Storage → Upstash for Redis**, select **Free**,
