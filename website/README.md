@@ -123,6 +123,13 @@ are separate. The shared preview embeds matching licensed Lucide artwork.
 
 ## Searchable API reference
 
+ZeroHub's optional [interest and adoption metrics](../docs/ZEROHUB-METRICS.md)
+reuse publication records for component counts and a small Redis REST store for
+Play opens. Server-only `ZERO_HUB_OPENS_REDIS_URL` and
+`ZERO_HUB_OPENS_REDIS_TOKEN` enable durable opens in production; Vercel previews
+always disable this store. Without it, Play and existing feedback still work.
+No analytics package or new GitHub App permission is required.
+
 `/docs` presents the complete reference (`/docs/api` redirects there), generated from maintained
 `student-template/API.md` tables. The adapter verifies all current public/protected
 declarations against source in tests. Categories, exact-name/keyword search,

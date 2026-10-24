@@ -9,6 +9,7 @@ import releaseAuthors from '@/content/release-authors.json';
 import styles from '@/app/hub/hub.module.css';
 import {HubNavigation} from './HubNavigation';
 import {CodeBlock} from './CodeBlock';
+import {metricLabel} from '@/lib/hub-metrics-client.mjs';
 import {HubProjectCard} from './HubProjectCard';
 import {HubProjectFeedback, type ProjectFeedback} from './HubProjectFeedback';
 type Artifact = {url:string; size:number; sha256:string};
@@ -24,6 +25,8 @@ export function HubDiscovery() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [feedback, setFeedback] = useState<Record<string,ProjectFeedback>>({});
+  type Metric = {id:string;kind:string;opens?:number|null;projects?:number|null;observedProjects?:number|null;totalProjects?:number|null};
+  const [metrics, setMetrics] = useState<Record<string,Metric>>({});
   const [retry, setRetry] = useState(0);
   const projects = selectMaintainedProjects(maintainedProjects, {kind, search, id, version}) as typeof maintainedProjects;
   useEffect(() => {
@@ -53,17 +56,28 @@ export function HubDiscovery() {
     }).catch(()=>{/* Counts and checks are optional; browsing and reporting remain available. */});
     return()=>{active=false;controller.abort();};
   },[kind,feedbackIds]);
-  const projectFeedback=(entry:{id:string;title:string;repositoryHref:string;playHref?:string;sourceCommit?:string;version?:string})=>(identity?:ReactNode)=><HubProjectFeedback {...entry} kind={kind} feedback={feedback[entry.id]?.repositoryUrl===entry.repositoryHref?feedback[entry.id]:undefined}>{identity}</HubProjectFeedback>;
+  useEffect(()=>{
+    const controller=new AbortController();let active=true;setMetrics({});
+    if(feedbackIds)void fetch(`/api/hub/metrics?${new URLSearchParams({kind,ids:feedbackIds})}`,{cache:'no-store',redirect:'error',credentials:'omit',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(10000)])}).then(async response=>{
+      if(!response.ok)return;const data=await response.json();
+      if(!active||data.schema!==1||!Array.isArray(data.items))return;
+      const ids=new Set(feedbackIds.split(','));
+      setMetrics(Object.fromEntries(data.items.filter((item:Metric)=>item&&item.kind===kind&&ids.has(item.id)).map((item:Metric)=>[item.id,item])));
+    }).catch(()=>{/* Optional metrics do not block browsing. */});
+    return()=>{active=false;controller.abort();};
+  },[kind,feedbackIds]);
+  const projectMetric=(id:string)=>{const label=metricLabel(kind,metrics[id]);return label?<p className={styles.metrics} title={label.hint}>{label.text}<span className="sr-only">. {label.hint}</span></p>:null;};
+  const projectFeedback=(entry:{id:string;title:string;repositoryHref:string;playHref?:string;sourceCommit?:string;version?:string})=>(identity?:ReactNode)=><HubProjectFeedback {...entry} kind={kind} feedback={feedback[entry.id]?.repositoryUrl===entry.repositoryHref?feedback[entry.id]:undefined} metric={projectMetric(entry.id)}>{identity}</HubProjectFeedback>;
   return <section className={styles.catalog} aria-labelledby="sharing-heading">
     <h2 id="sharing-heading" className="sr-only">{kind === 'game' ? 'Projects' : 'Libraries'}</h2>
     <HubNavigation active={kind} />
     {id || version ? <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {kind==='game'?'projects':'libraries'}</Link></p> : <div className="hub-form"><label htmlFor="sharing-search">Find {kind==='game'?'a project':'a library'}</label><input id="sharing-search" type="search" value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder="Title, author or description" /></div>}
     <div className={`${styles.cards}${kind==='game'?` ${styles.projectCards}`:''}`}>
-    {projects.map(project => <HubProjectCard key={project.id} title={project.title} description={projectSummary(project.description)} author={project.author}
+    {projects.map(project => <HubProjectCard projectId={project.id} key={project.id} title={project.title} description={projectSummary(project.description)} author={project.author}
       compact siteReachable={feedback[project.id]?.repositoryUrl===project.repositoryUrl && feedback[project.id]?.site.status==='reachable'} image={project.image} playHref={maintainedPlayLink(project)} repositoryHref={project.repositoryUrl} feedback={projectFeedback({id:project.id,title:project.title,repositoryHref:project.repositoryUrl,playHref:maintainedPlayLink(project),sourceCommit:project.sourceCommit})} />)}
     {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={()=>setRetry(value=>value+1)}>Try again</button></div> : !catalog ? <p role="status">Loading {kind==='game'?'projects':'libraries'}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
       {!releases.length && !projects.length && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${kind==='game'?'projects':'libraries'} match this search.` : `No ${kind==='game'?'projects':'libraries'} are available yet.`}</p>}
-      {releases.map(release=><HubProjectCard key={`${release.id}/${release.version}`} title={release.title} description={releaseSummary(release, projectPreviews)} author={releaseAuthor(release, releaseAuthors)}
+      {releases.map(release=><HubProjectCard projectId={release.kind==='game'&&release.status==='available'?release.id:undefined} key={`${release.id}/${release.version}`} title={release.title} description={releaseSummary(release, projectPreviews)} author={releaseAuthor(release, releaseAuthors)}
         compact={release.kind==='game'} siteReachable={feedback[release.id]?.repositoryUrl===release.repository.url && feedback[release.id]?.site.status==='reachable'} version={release.version} repositoryHref={release.repository.url} image={releaseImage(release, projectPreviews)} playHref={playLink(release)} feedback={release.status==='available'?projectFeedback({id:release.id,title:release.title,repositoryHref:release.repository.url,playHref:playLink(release),sourceCommit:release.source.commit,version:release.version}):undefined}>
         {release.status !== 'available' ? <p role="status">This release has been withdrawn.</p> : release.kind === 'library' ? <details><summary>Use this library</summary>
           <p>In Zero, choose Browse ZeroHub → {release.title} → Add library → Apply.</p>

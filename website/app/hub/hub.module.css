@@ -80,3 +80,6 @@
 .projectCard .siteStatus[data-status="unreachable"] :global(.icon) { color: #facc15; }
 
 .projectCard:not([data-description-dismissed]):hover .playOverlay, .projectCard:not([data-description-dismissed]):focus-within .playOverlay, .projectCard[data-description-open] .playOverlay { opacity: 0; }
+
+.metrics { margin: 0 0 4px; color: var(--muted); font-size: 14px; line-height: 1.4; }
+.projectCard .metrics { color: white; font-size: 12px; }

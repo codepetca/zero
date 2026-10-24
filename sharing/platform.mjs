@@ -1,5 +1,6 @@
 import contracts from '../extension/src/sharing/contracts.js';
-import { canonical } from './registry.mjs';
+import { canonical, digest } from './registry.mjs';
+import { inspectAdoption } from './adoption.mjs';
 import { freezeRequest, ingestRequest, reportAttempt, cancelRequest, retryRequest, sameStableRequest } from './requests.mjs';
 import sourceDiagnostics from '../extension/src/sharing/source-diagnostics.js';
 import gamePreview from '../extension/src/sharing/game-preview.js';
@@ -106,6 +107,7 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
     observedRepositories.set(request.repository.id,`${source.repositoryMetadata.owner}/${source.repositoryMetadata.name}`);
     let packaged;try{packaged=buildGamePackage({files:source.files});}catch(error){throw sourceFailure(error.message);}
     const artifacts={zip:packaged.bytes};
+    const adoption=inspectAdoption(source.files);
     let web;
     if(request.web){
       if(typeof reader.verifyWebPublication!=='function')throw new Error('Trusted web publication verifier unavailable');
@@ -115,11 +117,11 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
     artifacts.preview=screenshot(request,source.files);
     // Evidence preserves the frozen client contract; provenance records the
     // exact operator-selected publisher source that performed current checks.
-    const evidence={...(web?{web}:{}),status:'passed',requestFingerprint:record.id,sourceDigest,commit:request.commit,policyRevision:request.policyRevision,
+    const evidence={...(adoption?{adoptionDigest:digest(adoption)}:{}),...(web?{web}:{}),status:'passed',requestFingerprint:record.id,sourceDigest,commit:request.commit,policyRevision:request.policyRevision,
       artifacts:Object.fromEntries(Object.entries(artifacts).map(([kind,bytes])=>[kind,{size:bytes.length,sha256:byteHash(bytes)}])),
       provenance:{kind:'trusted-game-packaging',schema:1,policyRevision,execution:'none'}};
     receipts.add(evidence);
-    return {evidence,artifacts};
+    return {evidence,artifacts,...(adoption?{adoption}:{})};
   }
   function requireLibrary(record) {
     if(!libraryPublicationEnabled)throw executionGate();

@@ -1,5 +1,24 @@
 # Verification
 
+## ZeroHub metrics — local implementation, 2026-10-24
+
+The implementation adds aggregate Play opens and library adoption from accepted
+shared-game dependency declarations. Website174tests and sharing86tests pass;
+four existing Docker/managed-environment checks skip. Website typecheck and
+production build, root configuration/syntax/local-link check and whitespace
+check pass. New checks cover frozen-source extraction, immutable evidence,
+unknown historical coverage, repository deduplication, withdrawal/version
+selection, interrupted delivery/recovery, origin and input validation, atomic
+counter protocol, preview isolation, batching/cache, provider failure and labels.
+
+Browser fixture screenshots and action receipts are kept in ignored
+`.verification/zerohub-metrics/` and `output/playwright/`. Review verdicts are
+recorded alongside them. Fixtures do not establish hosted Redis durability,
+production counter writes or adoption rollout. No resources, credentials,
+publisher pins, student binaries, public registry entries or production website
+were changed. Physical touch/Safari/Windows/Linux are untested. The operational
+plan and compatibility rollout are in [metrics](ZEROHUB-METRICS.md).
+
 ## System editor appearance — 2026-10-22
 
 New Zero settings enable native OS light/dark detection. Existing settings remain

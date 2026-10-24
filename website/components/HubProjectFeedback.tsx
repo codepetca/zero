@@ -5,8 +5,8 @@ import {hubLoginHref,useHubGitHub} from './HubGitHub';
 import {Icon} from './Icon';
 import styles from '@/app/hub/hub.module.css';
 export type ProjectFeedback={id:string;kind:'game'|'library';repositoryUrl:string;stars:number|null;issuesEnabled:boolean|null;site:{status:'reachable'|'unreachable'|'unknown'|'not-checked';checkedAt?:string}};
-type Props={id:string;kind:'game'|'library';title:string;repositoryHref:string;playHref?:string;sourceCommit?:string;version?:string;feedback?:ProjectFeedback;children?:ReactNode};
-export function HubProjectFeedback({id,kind,title,repositoryHref,playHref,sourceCommit,version,feedback,children}:Props){
+type Props={id:string;kind:'game'|'library';title:string;repositoryHref:string;playHref?:string;sourceCommit?:string;version?:string;feedback?:ProjectFeedback;metric?:ReactNode;children?:ReactNode};
+export function HubProjectFeedback({id,kind,title,repositoryHref,playHref,sourceCommit,version,feedback,metric,children}:Props){
   const {configured,user,refresh}=useHubGitHub();const [starred,setStarred]=useState<boolean|null>(null),[pending,setPending]=useState(false),[error,setError]=useState(''),[retry,setRetry]=useState(0),[freshCount,setFreshCount]=useState<number|null>(null),[visible,setVisible]=useState(false);
   const element=useRef<HTMLDivElement>(null),revision=useRef(0);
   useEffect(()=>{if(!element.current||!('IntersectionObserver' in window)){setVisible(true);return;}const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){setVisible(true);observer.disconnect();}},{rootMargin:'100px'});observer.observe(element.current);return()=>observer.disconnect();},[]);
@@ -39,6 +39,7 @@ export function HubProjectFeedback({id,kind,title,repositoryHref,playHref,source
   const checkedAt=feedback?.site.checkedAt?new Date(feedback.site.checkedAt):null;
   const statusIcon=feedback?.site.status==='reachable'?'circle-check':feedback?.site.status==='unreachable'?'triangle-alert':'circle-help';
   return <div ref={element} className={styles.feedback}>
+    {metric}
     {status&&<p className={styles.siteStatus} data-status={feedback?.site.status} title={`${status}. Checks whether the hosted page responds. Gameplay bugs need testing or a report.`}><Icon name={statusIcon} /><span className="sr-only">{status}</span>{checkedAt&&<time dateTime={feedback?.site.checkedAt} title={feedback?.site.checkedAt}><span className="sr-only">Checked </span>{checkedAt.toLocaleDateString('en-US',{month:'short',day:'numeric'})} · {checkedAt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}</time>}</p>}
     <div className={styles.projectActions}>
       {user?<button className={styles.starButton} type="button" onClick={()=>starred===null?setRetry(value=>value+1):void toggle()} disabled={pending||starred===null&&!error} aria-pressed={starred===true} aria-busy={pending||starred===null&&!error} aria-label={starLabel} title={`${starAction} ${title}. ${hint}`}><Icon name="star" />{countLabel}<span className="sr-only" role="status">{pending?'Saving star…':starred===null&&!error?'Checking star…':''}</span></button>:configured?<a className={styles.starButton} href={hubLoginHref()} aria-label={`Connect GitHub to star ${title}, ${countDescription}`} title={hint}><Icon name="star" />{countLabel}</a>:<button className={styles.starButton} type="button" disabled aria-label={`Stars unavailable for ${title}, ${countDescription}`} title="Connect GitHub when stars are available"><Icon name="star" />{countLabel}</button>}
