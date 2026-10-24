@@ -72,9 +72,33 @@ function declaration(source, filename) {
 function repackage(source, decl, namespace) {
   return decl.packageRange ? source.slice(0, decl.packageRange[0]) + `package ${namespace};` + source.slice(decl.packageRange[1]) : `package ${namespace};\n\n${source}`;
 }
-function libraryPom(id, descriptor, {sourceDirectory, outputDirectory, resourceDirectory, licenseDirectory} = {}) {
+function libraryPom(id, descriptor, {sourceDirectory, outputDirectory, resourceDirectory, licenseDirectory, coreBuild} = {}) {
   const c = contracts();
+  if (descriptor.schema === 2) {
+    const properties = { 'maven.compiler.release':c.JAVA_RELEASE, 'project.build.sourceEncoding':'UTF-8',
+      'zero.core.minVersion':descriptor.coreRequirement.minVersion, 'zero.core.maxExclusive':descriptor.coreRequirement.maxExclusive };
+    const core = coreBuild ? c.validateCoreBuild(coreBuild,descriptor.coreRequirement) : descriptor.coreInput;
+    for (const [name,value] of Object.entries(core)) properties[`zero.core.${name}`] = value;
+    return `<?xml version="1.0" encoding="UTF-8"?>\n<project xmlns="http://maven.apache.org/POM/4.0.0">\n<modelVersion>4.0.0</modelVersion>\n<groupId>${xml(id.coordinate.groupId)}</groupId><artifactId>${xml(id.coordinate.artifactId)}</artifactId><version>${xml(descriptor.version)}</version>\n<properties>${Object.entries(properties).map(([k,v])=>`<${k}>${xml(v)}</${k}>`).join('')}</properties>\n<dependencies><dependency><groupId>school.zero</groupId><artifactId>zero-core</artifactId><version>${xml(core.version)}</version><scope>provided</scope></dependency></dependencies>\n${coreBuild ? '' : fixedBuild({sourceDirectory,outputDirectory,resourceDirectory,licenseDirectory})}\n</project>\n`;
+  }
   return `<?xml version="1.0" encoding="UTF-8"?>\n<project xmlns="http://maven.apache.org/POM/4.0.0">\n  <modelVersion>4.0.0</modelVersion>\n  <groupId>${xml(id.coordinate.groupId)}</groupId><artifactId>${xml(id.coordinate.artifactId)}</artifactId><version>${xml(descriptor.version)}</version>\n  <properties><maven.compiler.release>${c.JAVA_RELEASE}</maven.compiler.release><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding></properties>\n  <dependencies><dependency><groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>${c.JAVAFX_VERSION}</version></dependency><dependency><groupId>org.openjfx</groupId><artifactId>javafx-media</artifactId><version>${c.JAVAFX_VERSION}</version></dependency></dependencies>\n  <build>${resourceDirectory ? `<resources><resource><directory>${xml(resourceDirectory)}</directory></resource>${licenseDirectory ? `<resource><directory>${xml(licenseDirectory)}</directory><targetPath>META-INF</targetPath><includes><include>LICENSE</include></includes></resource>` : ''}</resources>` : ''}${sourceDirectory ? `<sourceDirectory>${xml(sourceDirectory)}</sourceDirectory>` : ''}${outputDirectory ? `<directory>${xml(outputDirectory)}</directory>` : ''}<plugins>\n    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-clean-plugin</artifactId><version>3.2.0</version></plugin>\n    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-resources-plugin</artifactId><version>3.3.1</version></plugin>\n    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.14.0</version></plugin>\n    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-jar-plugin</artifactId><version>3.4.2</version></plugin>\n    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.5.2</version></plugin>\n    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-source-plugin</artifactId><version>3.3.1</version><executions><execution><id>sources</id><goals><goal>jar-no-fork</goal></goals></execution></executions></plugin>\n  </plugins></build>\n</project>\n`;
+}
+// Fixed build recipes never inherit a candidate POM or run its plugins.
+function fixedBuild({sourceDirectory,outputDirectory,resourceDirectory,licenseDirectory} = {}) {
+  const plugins = [['maven-clean-plugin','3.2.0'],['maven-resources-plugin','3.3.1'],['maven-compiler-plugin','3.14.0'],['maven-jar-plugin','3.4.2'],['maven-surefire-plugin','3.5.2'],['maven-source-plugin','3.3.1']];
+  return `<build>${sourceDirectory?`<sourceDirectory>${xml(sourceDirectory)}</sourceDirectory>`:''}${outputDirectory?`<directory>${xml(outputDirectory)}</directory>`:''}${resourceDirectory?`<resources><resource><directory>${xml(resourceDirectory)}</directory></resource>${licenseDirectory?`<resource><directory>${xml(licenseDirectory)}</directory><targetPath>META-INF</targetPath><includes><include>LICENSE</include></includes></resource>`:''}</resources>`:''}<plugins>${plugins.map(([name,version])=>`<plugin><groupId>org.apache.maven.plugins</groupId><artifactId>${name}</artifactId><version>${version}</version>${name==='maven-compiler-plugin'?'<configuration><proc>none</proc></configuration>':name==='maven-jar-plugin'?'<configuration><archive><addMavenDescriptor>false</addMavenDescriptor></archive></configuration>':name==='maven-source-plugin'?'<executions><execution><id>sources</id><goals><goal>jar-no-fork</goal></goals></execution></executions>':''}</plugin>`).join('')}</plugins></build>`;
+}
+async function coreState(root, descriptor, {exact=true}={}) {
+  if (descriptor.schema !== 2) return null;
+  const core = require('../core-contract'), record = await core.readProjectCore(root,{required:true});
+  if (!core.versionSatisfies(record.coordinate.version,descriptor.coreRequirement)) fail('Project core version is outside this library requirement.');
+  if (exact && (record.coordinate.version !== descriptor.coreInput.version || record.sourceSha256 !== descriptor.coreInput.sourceSha256)) fail('Project core does not match the library coreInput. Restore the authored core before local development or Check.');
+  const names = ['zero-core.json',...(await javaFiles(root,'src/main/java/zero')).filter(name=>!name.startsWith('src/main/java/zero/contrib/'))].sort();
+  const snapshot = [];
+  for (const filename of names) snapshot.push({path:filename,hash:hash(await fs.readFile(await safePath(root,filename)))});
+  // Bind the snapshot to the validated bytes as well as the declared record.
+  await core.readProjectCore(root,{required:true});
+  return {record,snapshot};
 }
 function stateValue(text) {
   const result = text === null ? {schema: 1, libraries: []} : JSON.parse(text);
@@ -160,6 +184,7 @@ async function previewExtraction(root, options) {
   const c = contracts(), repository = c.validateRepository(options.repository), descriptor = c.validateDescriptor(options.descriptor);
   if (descriptor.kind !== 'library') fail('Select a library descriptor.');
   const project = await base(root), id = c.identity('library',repository.id,descriptor.slug), folder = `libraries/${descriptor.slug}`;
+  const core = await coreState(project.root,descriptor);
   if (project.state.libraries.some(l => l.slug === descriptor.slug) || await fs.lstat(path.join(project.root,folder)).catch(e => { if (e.code === 'ENOENT') return null; throw e; })) fail('This library folder already exists. Keep its files and choose another name.');
   if (!Array.isArray(options.sources) || !options.sources.length || options.sources.length > c.LIMITS.libraryFiles || new Set(options.sources).size !== options.sources.length) fail('Select unique source classes and their required helpers.');
   const explicitEdits = new Map();
@@ -179,6 +204,7 @@ async function previewExtraction(root, options) {
     const original = await read(project.root,filename); bytes += Buffer.byteLength(original);
     if (bytes > c.LIMITS.librarySourceBytes) fail('Selected library sources exceed the supported source size.');
     const source = explicitEdits.get(filename)?.after ?? original, decl = declaration(source,filename);
+    if (descriptor.schema === 2 && (require('../core-contract').coreSourcePaths.includes(filename) || decl.packageName === 'zero' || (decl.packageName.startsWith('zero.') && !decl.packageName.startsWith('zero.contrib.')))) fail('Keep reviewed Zero core source in the project; extract student-owned classes.');
     if (mainClass && decl.className === mainClass) fail('Keep the root game entry point in the game. Select reusable classes and helpers instead.');
     const target = `${folder}/src/main/java/${id.namespace.replaceAll('.','/')}/${decl.simple}.java`;
     if (changes.some(x => x.path === target)) fail('Selected classes must have different names in the library namespace.');
@@ -195,19 +221,21 @@ async function previewExtraction(root, options) {
   const license = await read(project.root,'LICENSE',true);
   if (license !== null) changes.push(await change(project.root,`${folder}/LICENSE`,license));
   await checkShadows(project.root,newState,changes);
-  return {schema:1,root:project.root,kind:'extract',identity:id,descriptor,classes,changes,sourceSnapshot:await snapshot(project.root)};
+  return {schema:1,root:project.root,kind:'extract',identity:id,descriptor,classes,changes,sourceSnapshot:await snapshot(project.root),...(core?{coreDescriptor:descriptor,coreExact:true,coreSnapshot:core.snapshot}:{})};
 }
 async function previewMode(root, {slug,mode,version}) {
   const project = await base(root); contracts().validateSlug(slug);
   if (!['local','published'].includes(mode)) fail('Choose local or published mode.');
   const library = project.state.libraries.find(l => l.slug === slug); if (!library) fail('Unknown authored library.');
-  const descriptor = contracts().validateDescriptor(JSON.parse(await read(project.root,`libraries/${slug}/zero-library.json`)));
+  const descriptorPath = `libraries/${slug}/zero-library.json`, descriptorText = await read(project.root,descriptorPath);
+  const descriptor = contracts().validateDescriptor(JSON.parse(descriptorText));
   if (descriptor.slug !== slug) fail('The library descriptor does not match its folder.');
+  const core = await coreState(project.root,descriptor,{exact:mode==='local'});
   const selectedVersion = mode === 'published' ? contracts().validateVersion(version) : descriptor.version;
   const state = {schema:1,libraries:project.state.libraries.map(l => l.slug === slug ? {...l,mode,version:selectedVersion} : l)};
   const changes = [await change(project.root,STATE,JSON.stringify(state,null,2)+'\n'),{path:'pom.xml',before:project.pom,after:integratePom(project.pom,state)}];
   await checkShadows(project.root,state,changes);
-  return {schema:1,root:project.root,kind:'mode',changes,sourceSnapshot:await snapshot(project.root)};
+  return {schema:1,root:project.root,kind:'mode',changes,sourceSnapshot:await snapshot(project.root),...(core?{coreDescriptor:descriptor,coreExact:mode==='local',coreSnapshot:core.snapshot,coreDescriptorPath:descriptorPath,coreDescriptorText:descriptorText}:{})};
 }
 async function discoverLibraries(root) {
   const project = await base(root), results = [];
@@ -221,8 +249,13 @@ async function discoverLibraries(root) {
 }
 async function verifyPlan(plan) {
   if (plan.schema !== 1 || !path.isAbsolute(plan.root) || !Array.isArray(plan.changes)) fail('Invalid authoring plan.');
+  await verifyCoreSnapshot(plan);
   if (JSON.stringify(await snapshot(plan.root)) !== JSON.stringify(plan.sourceSnapshot)) fail('Java source changed after preview. Review the extraction or mode switch again.');
   for (const item of plan.changes) if (await read(plan.root,item.path,true) !== item.before) fail(`File changed after preview: ${item.path}`);
+}
+async function verifyCoreSnapshot(plan) {
+  if (plan.coreSnapshot && JSON.stringify((await coreState(plan.root,plan.coreDescriptor,{exact:plan.coreExact})).snapshot)!==JSON.stringify(plan.coreSnapshot)) fail('Project core changed after preview. Review the library change again.');
+  if (plan.coreDescriptorPath && await read(plan.root,plan.coreDescriptorPath)!==plan.coreDescriptorText) fail('Library descriptor changed after preview. Review the mode switch again.');
 }
 async function write(root, filename, contents) {
   const dest = await safePath(root, filename, {missing:true});
@@ -246,6 +279,7 @@ async function applyPlan(plan, {onStep} = {}) {
   await write(plan.root,recovery,JSON.stringify(receipt,null,2)+'\n');
   try {
     for (const item of plan.changes) {
+      await verifyCoreSnapshot(plan);
       if (await read(plan.root,item.path,true) !== item.before) fail(`File changed during application: ${item.path}`);
       // Persist intent before each mutation, including the small crash window.
       receipt.applied.push(item.path);
@@ -253,6 +287,7 @@ async function applyPlan(plan, {onStep} = {}) {
       await write(plan.root,item.path,item.after);
       if (onStep) await onStep(item.path);
     }
+    await verifyCoreSnapshot(plan);
     receipt.status = 'applied'; await write(plan.root,recovery,JSON.stringify(receipt,null,2)+'\n');
     return receipt;
   } catch (error) {
@@ -288,4 +323,4 @@ async function recover(root, recovery) {
   if (receipt.root !== path.resolve(root) || receipt.recovery !== recovery) fail('Recovery belongs to another project.');
   return rollback(receipt);
 }
-module.exports = {previewExtraction,previewMode,applyPlan,rollback,recover,discoverLibraries,libraryPom,javaFiles,declaration,safePath,read,hash};
+module.exports = {previewExtraction,previewMode,applyPlan,rollback,recover,discoverLibraries,libraryPom,javaFiles,declaration,safePath,read,hash,coreState,fixedBuild};
