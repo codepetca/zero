@@ -91,6 +91,10 @@ wrapper language or second transpiler is introduced.
 
 The verified game subset includes `Math.hypot(double, double)`, `Math.abs(double)`,
 `Math.atan2(double, double)`, `Math.sin(double)`, `Math.cos(double)` and `Math.PI`.
+The live-control simulation also uses `Integer.parseInt(String)` with ordinary
+`IllegalArgumentException` handling and range validation before state changes.
+The radix overload is not admitted.
+
 Angles in those Math methods use radians. `Actor` uses clockwise degrees from the
 right, with explicit `update(seconds)` and `draw(app)` calls. Its reviewed browser
 fixture exercises subclass inheritance, movement and aiming, image replacement,

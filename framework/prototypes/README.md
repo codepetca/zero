@@ -8,7 +8,8 @@ It needs no student Element declarations, Hud, ScoreDisplay or screen classes.
 The [animated Actor stress demo](actor-stress/README.md) adds live FPS/frame time
 and six selectable workloads from 100 to 5000 sprites at 32/64/128/256-pixel sizes.
 Its WebFX runner can measure all nine larger-size/high-count combinations.
-All four are local framework
+The [live simulation](simulation/README.md) uses one GameApp loop and editable
+speed, Apply, Pause/Resume and Reset controls. All five are local framework
 experiments, not published tutorials or releases.
 
 The counter composes its reusable score view with Add one and Reset buttons.
@@ -39,6 +40,13 @@ and ordinary Java app sources. Open any directory in Zero or run its included
 `./mvnw javafx:run` (`mvnw.cmd javafx:run` on Windows). The assembled project does
 not need the surrounding repository. Dependency artifacts must already be cached
 for offline running. Preparation preserves edited or unowned output files.
+
+Use `node scripts/prepare-ui-prototypes.mjs --only=simulation` to prepare just
+the simulation without reading or rewriting other prototype outputs.
+`node scripts/verify-ui-prototypes.mjs --only=simulation` runs only its finite
+native check and writes `native-results-simulation.json`; the full-suite receipt
+is retained. Comma-separated IDs are supported; empty, duplicate or unknown IDs
+fail before assembly.
 
 Run `node scripts/verify-ui-prototypes.mjs` for finite native acceptance using
 offline Maven. Test drivers temporarily join the build and are removed afterward.

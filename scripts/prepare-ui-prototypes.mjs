@@ -6,6 +6,22 @@ import {fileURLToPath} from 'node:url';
 const repository = fileURLToPath(new URL('../', import.meta.url));
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const owner = 'zero-ui-prototypes-v1';
+export const prototypeIds = ['counter', 'coin-game', 'beginner-coin-game', 'actor-stress', 'simulation'];
+
+export function selectUiPrototypes(only) {
+  if (only === undefined) return [...prototypeIds];
+  if (!Array.isArray(only) || !only.length || only.some(id => typeof id !== 'string' || !prototypeIds.includes(id))) {
+    throw new Error('Select one or more known UI prototypes: ' + prototypeIds.join(', '));
+  }
+  if (new Set(only).size !== only.length) throw new Error('Duplicate UI prototype selection.');
+  return [...only];
+}
+
+export function parseUiPrototypeArgs(args) {
+  if (!args.length) return undefined;
+  if (args.length !== 1 || !args[0].startsWith('--only=')) throw new Error('Usage: --only=simulation (or comma-separated prototype IDs)');
+  return selectUiPrototypes(args[0].slice('--only='.length).split(','));
+}
 const scaffold = ['pom.xml', 'mvnw', 'mvnw.cmd', 'zero.json', '.gitignore',
   '.mvn/wrapper/maven-wrapper.properties', '.mvn/wrapper/LICENSE-APACHE-2.0.txt', '.mvn/wrapper/NOTICE',
   '.vscode/settings.json', '.vscode/tasks.json', '.vscode/extensions.json'];
@@ -27,20 +43,22 @@ function javaFiles(directory, relative = '') {
 }
 
 /** Assemble disposable, independently runnable projects without changing starter outputs. */
-export function prepareUiPrototypes(root = repository) {
+export function prepareUiPrototypes(root = repository, {only} = {}) {
+  const selected = selectUiPrototypes(only);
   const output = path.join(root, '.verification/ui-prototypes');
   ordinary(output);
   const framework = path.join(root, 'framework/src/main/java');
   const helpers = javaFiles(framework);
   if (helpers.length !== 16) throw new Error(`Expected 16 reviewed Zero helper sources, found ${helpers.length}.`);
-  const shared = readFileSync(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java'));
-  const plans = ['counter', 'coin-game', 'beginner-coin-game', 'actor-stress'].map(id => {
+  const needsShared = selected.some(id => id === 'counter' || id === 'coin-game');
+  const shared = needsShared ? readFileSync(path.join(root, 'framework/prototypes/shared/ScoreDisplay.java')) : null;
+  const plans = selected.map(id => {
     const directory = path.join(output, id);
     ordinary(directory);
     const entries = Object.fromEntries(scaffold.map(name => [name, readFileSync(path.join(root, 'student-template', name))]));
     entries.LICENSE = readFileSync(path.join(root, 'LICENSE'));
     for (const name of helpers) entries[`src/main/java/${name}`] = readFileSync(path.join(framework, name));
-    const standalone = id === 'beginner-coin-game' || id === 'actor-stress';
+    const standalone = id === 'beginner-coin-game' || id === 'actor-stress' || id === 'simulation';
     const studentSources = standalone ? javaFiles(path.join(root, 'framework/prototypes', id))
       : [...javaFiles(path.join(root, 'framework/prototypes', id)), 'ScoreDisplay.java'];
     for (const name of studentSources) {
@@ -83,11 +101,13 @@ export function prepareUiPrototypes(root = repository) {
       files: Object.fromEntries(Object.entries(plan.entries).map(([name, bytes]) => [name, digest(bytes)]))}, null, 2) + '\n');
   }
   const projects = plans.map(({id, directory, studentSources}) => ({id, directory, studentSources}));
-  if (!readFileSync(path.join(projects[0].directory, 'src/main/java/ScoreDisplay.java')).equals(
-    readFileSync(path.join(projects[1].directory, 'src/main/java/ScoreDisplay.java')))) throw new Error('ScoreDisplay copies differ.');
+  const counter = plans.find(plan => plan.id === 'counter');
+  const coin = plans.find(plan => plan.id === 'coin-game');
+  if (counter && coin && !counter.entries['src/main/java/ScoreDisplay.java'].equals(
+    coin.entries['src/main/java/ScoreDisplay.java'])) throw new Error('ScoreDisplay copies differ.');
   return projects;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  for (const project of prepareUiPrototypes()) console.log(`Prepared standalone ${project.id}: ${project.directory}`);
+  for (const project of prepareUiPrototypes(repository, {only: parseUiPrototypeArgs(process.argv.slice(2))})) console.log(`Prepared standalone ${project.id}: ${project.directory}`);
 }

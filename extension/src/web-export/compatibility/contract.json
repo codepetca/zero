@@ -99,6 +99,7 @@
     "java.lang.IllegalArgumentException#<init>(java.lang.String)",
     "java.lang.IllegalArgumentException#<init>(java.lang.String,java.lang.Throwable)",
     "java.lang.IllegalStateException#<init>(java.lang.String)",
+    "java.lang.Integer#parseInt(java.lang.String)",
     "java.lang.Integer#toString(int)",
     "java.lang.Math#PI",
     "java.lang.Math#abs(double)",

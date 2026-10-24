@@ -303,3 +303,10 @@ test('full-image region loader exposes only its exact path signature', {timeout:
   assert.equal((await check({'Main.java':source})).status, 'passed');
   await assert.rejects(check({'Main.java':source.replace('loadImageRegion("/player.png")', 'loadImageRegion("/player.png", true)')}), /loadImageRegion/);
 });
+
+
+test('simulation integer parsing admits only the decimal String signature', {timeout:120000}, async () => {
+  const source = await fs.readFile(path.join(root, 'framework/prototypes/simulation/Main.java'), 'utf8');
+  assert.equal((await check({'Main.java':source})).status, 'passed');
+  await assert.rejects(check({'Main.java':source.replace('Integer.parseInt(speedInput.getText().trim())', 'Integer.parseInt(speedInput.getText().trim(), 10)')}), /java.lang.Integer#parseInt\(java.lang.String,int\)/);
+});
