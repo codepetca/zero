@@ -21,7 +21,7 @@ public final class ActorCheck extends GameApp {
         if (checked) return;
         checked = true;
         try {
-            verifyMovement(); verifyImagesAndInheritance(); verifyPixels();
+            verifyMovement(); verifyImagesAndInheritance(); verifyPlaybackContract(); verifyPixels();
             verifyDrawingCallbacks(); verifyNestedDrawing(); verifyDrawingMisuse();
             System.out.println("ZERO_ACTOR_OK movement/aiming/clamping, validation/atomicity, sprites, local shape pixels, isolated styles, nested apps and failure cleanup");
             Platform.exit();
@@ -89,26 +89,116 @@ public final class ActorCheck extends GameApp {
         Player player = new Player(walk, 30, 40);
         player.setSize(20, 30); player.setRotation(15);
         player.update(0.5);
-        position(player, 35, 40); require(walk.frameIndex() == 1, "subclass calls super to advance animation");
+        position(player, 35, 40); require(walk.frameIndex() == 0, "actor update owns a separate clock without subclass super");
         player.draw(this); player.draw(this);
         draw(player); draw(player);
-        require(walk.frameIndex() == 1, "drawing does not advance animation");
+        require(walk.frameIndex() == 0, "drawing does not advance animation");
         unchanged(player, () -> player.update(-1));
         player.setImage(sheet); player.update(1);
-        require(walk.frameIndex() == 1, "replaced animation stops advancing");
+        require(walk.frameIndex() == 0, "replaced animation stops advancing");
         player.setImage(region); player.setImage(walk);
         position(player, 45, 40);
         near(player.width(), 20, "replacement preserves display width");
         near(player.height(), 30, "replacement preserves display height");
         near(player.rotation(), 15, "replacement preserves rotation");
         player.setImage(new SpriteAnimation(sheet, 2, 1, 2)); player.update(0);
-        require(walk.frameIndex() == 1, "new animation has independent clock");
+        require(walk.frameIndex() == 0, "new animation has independent clock");
         near(new Actor(region, 0, 0).width(), 2, "region natural size");
         near(new Actor(walk, 0, 0).height(), 2, "animation natural size");
         expectNull(() -> player.setImage((Image) null));
         expectNull(() -> player.setImage((ImageRegion) null));
         expectNull(() -> player.setImage((SpriteAnimation) null));
         expectNull(() -> player.draw(null));
+    }
+
+    private void verifyPlaybackContract() {
+        WritableImage pixels = new WritableImage(4, 2);
+        for (int y = 0; y < 2; y++) for (int x = 0; x < 4; x++) pixels.getPixelWriter().setColor(x, y, x < 2 ? Color.RED : Color.BLUE);
+        ImageRegion first = new ImageRegion(pixels, 0, 0, 2, 2), second = new ImageRegion(pixels, 2, 0, 2, 2);
+        SpriteAnimation definition = new SpriteAnimation(2, first, second);
+        AnimationPlayback left = definition.createPlayback(), right = definition.createPlayback();
+        require(left != right && left.frame() == right.frame(), "fresh clocks share immutable frame definitions");
+        left.update(.5); require(left.frame() == second && right.frame() == first, "factory clocks are independent");
+        definition.update(.5); require(definition.frameIndex() == 1 && right.frame() == first, "legacy clock stays independent");
+        require(definition.createPlayback().frame() == first, "factory always starts at zero, regardless of legacy position");
+        definition.reset(); require(definition.frameIndex() == 0 && left.frame() == second, "legacy reset never resets actor playback");
+        for (double bad : new double[] {-1, Double.NaN, Double.POSITIVE_INFINITY}) expectIllegal(() -> left.update(bad));
+        ProbeSource source = new ProbeSource(first, second);
+        HookActor actor = new HookActor(source, 20, 20);
+        actor.setSize(20, 20); actor.setRotation(25);
+        ProbePlayback owned = source.last;
+        require(source.created == 1, "actor calls factory exactly once");
+        actor.update(0); require(actor.hooks == 1 && owned.updates == 1 && owned.seconds == 0, "zero seconds follows normal sequence");
+        for (double bad : new double[] {-1, Double.NaN, Double.POSITIVE_INFINITY}) {
+            expectIllegal(() -> actor.update(bad));
+            require(actor.hooks == 1 && owned.updates == 1, "invalid time is rejected before behaviour and playback");
+        }
+        actor.action = () -> { throw new IllegalStateException("hook failure"); };
+        try { actor.update(.5); throw new AssertionError("Hook failure swallowed"); }
+        catch (IllegalStateException expected) { require(expected.getMessage().equals("hook failure"), "original hook failure preserved"); }
+        require(owned.updates == 1, "failed behaviour does not advance playback");
+        ProbeSource replacement = new ProbeSource(first, second);
+        actor.action = () -> actor.setImage(replacement);
+        actor.update(.5); actor.action = null;
+        require(owned.updates == 1 && replacement.created == 1 && replacement.last.updates == 1
+                && replacement.last.seconds == .5, "hook replacement selects the one playback advanced that frame");
+        position(actor, 20, 20); near(actor.width(), 20, "animation keeps width"); near(actor.height(), 20, "animation keeps height"); near(actor.rotation(), 25, "animation keeps rotation");
+        ProbePlayback selected = replacement.last;
+        for (AnimationSource broken : new AnimationSource[] {() -> null, () -> new AnimationPlayback() {
+            public void update(double seconds) { }
+            public ImageRegion frame() { return null; }
+        }}) {
+            try { actor.setImage(broken); throw new AssertionError("Invalid playback accepted"); }
+            catch (IllegalStateException expected) { require(expected.getMessage().contains("Animation"), "useful component failure"); }
+        }
+        position(actor, 20, 20); near(actor.width(), 20, "failed replacement keeps dimensions"); near(actor.rotation(), 25, "failed replacement keeps heading");
+        actor.update(0); require(selected.updates == 2, "failed replacement preserves selected clock");
+        int frameReads = selected.frameReads;
+        background(Color.WHITE); actor.draw(this); draw(actor);
+        require(selected.updates == 2 && selected.frameReads == frameReads, "repeated drawing observes cached frame without querying or advancing playback");
+        require(canvas().snapshot(null, null).getPixelReader().getColor(20,20).equals(Color.BLUE), "owned playback frame is rendered");
+        selected.badFrame = true;
+        try { actor.update(0); throw new AssertionError("Invalid updated frame accepted"); }
+        catch (IllegalStateException expected) { require(expected.getMessage().contains("frame()"), "updated frame failure names contract"); }
+        selected.badFrame = false;
+        actor.action = () -> actor.setImage(first); actor.update(.5); actor.action = null;
+        require(selected.updates == 3, "static image chosen during behaviour detaches old playback before advancement");
+        background(Color.WHITE); draw(actor);
+        require(canvas().snapshot(null, null).getPixelReader().getColor(20,20).equals(Color.RED), "static image replaces cached frame");
+        actor.setImage(source); require(source.last != owned && source.last.frame() == first, "reapplying a source restarts with a fresh clock");
+        expectNull(() -> actor.setImage((AnimationSource) null));
+        expectNull(() -> new Actor((AnimationSource) null, 0, 0));
+        // Conformance probes run outside Actor: production does not call factories twice or keep a global owner registry.
+        require(fresh(definition), "default source conforms");
+        AnimationPlayback cached = definition.createPlayback();
+        require(!fresh(() -> cached), "cached playback source fails freshness conformance");
+        pause(); int before = source.last.updates; draw(actor); draw(actor);
+        require(source.last.updates == before && isPaused(), "paused rendering does not advance clocks");
+        resume(); actor.update(.25); require(source.last.updates == before + 1, "explicit update resumes owned playback");
+    }
+    private static boolean fresh(AnimationSource source) { return source.createPlayback() != source.createPlayback(); }
+    private static final class ProbeSource implements AnimationSource {
+        private final ImageRegion first, second;
+        private ProbePlayback last;
+        private int created;
+        ProbeSource(ImageRegion first, ImageRegion second) { this.first = first; this.second = second; }
+        public AnimationPlayback createPlayback() { created++; last = new ProbePlayback(first, second); return last; }
+    }
+    private static final class ProbePlayback implements AnimationPlayback {
+        private final ImageRegion first, second;
+        private int updates;
+        private double seconds;
+        private boolean badFrame;
+        private int frameReads;
+        ProbePlayback(ImageRegion first, ImageRegion second) { this.first = first; this.second = second; }
+        public void update(double seconds) { updates++; this.seconds += seconds; }
+        public ImageRegion frame() { frameReads++; return badFrame ? null : seconds >= .5 ? second : first; }
+    }
+    private static final class HookActor extends Actor {
+        private int hooks;
+        private Runnable action;
+        HookActor(AnimationSource source, double x, double y) { super(source, x, y); }
+        @Override protected void onUpdate(double seconds) { hooks++; if (action != null) action.run(); }
     }
 
     private void verifyPixels() {
@@ -250,8 +340,7 @@ public final class ActorCheck extends GameApp {
 
     private static final class Player extends Actor {
         Player(SpriteAnimation animation, double x, double y) { super(animation, x, y); }
-        @Override public void update(double seconds) {
-            super.update(seconds);
+        @Override protected void onUpdate(double seconds) {
             move(10 * seconds, 0);
         }
     }

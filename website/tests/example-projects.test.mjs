@@ -14,7 +14,7 @@ import { buildCourseStarter, buildExampleProject, prepareExampleProjects } from 
 import { templateDefinitions, templateDefinition, validatePublishedTemplates } from "../lib/project-templates.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
-const coreNames = ["App", "GameApp", "Actor", "ImageRegion", "SpriteAnimation", "Collisions", "Sound", "Music", "Color", "Key", "ui/Element", "ui/Label", "ui/Button", "ui/Column", "ui/Row", "ui/TextField"];
+const coreNames = ["App", "GameApp", "Actor", "AnimationSource", "AnimationPlayback", "ImageRegion", "SpriteAnimation", "Collisions", "Sound", "Music", "Color", "Key", "ui/Element", "ui/Label", "ui/Button", "ui/Column", "ui/Row", "ui/TextField"];
 const corePaths = coreNames.map(name => `src/main/java/zero/${name}.java`);
 const scaffolding = ["pom.xml", "mvnw", "mvnw.cmd", ".mvn/wrapper/maven-wrapper.properties", ".mvn/wrapper/LICENSE-APACHE-2.0.txt", ".mvn/wrapper/NOTICE", ".vscode/tasks.json", ".vscode/extensions.json", ".gitignore"];
 

@@ -4,7 +4,7 @@ import java.util.Objects;
 import javafx.scene.image.Image;
 
 /** A looping row-major sprite sheet. Each object owns its own explicit update timer. */
-public final class SpriteAnimation {
+public final class SpriteAnimation implements AnimationSource {
     private final Image image;
     private final int columns, rows;
     private final double fps;
@@ -45,14 +45,25 @@ public final class SpriteAnimation {
         }
     }
 
-    public void update(double seconds) {
+    /** Each owner gets a fresh looping clock at frame zero, sharing only frame definitions. */
+    @Override public AnimationPlayback createPlayback() { return new Playback(); }
+
+    private final class Playback implements AnimationPlayback {
+        private double position;
+        @Override public void update(double seconds) { position = advance(position, seconds); }
+        @Override public ImageRegion frame() { return frames[(int) position]; }
+    }
+
+    public void update(double seconds) { position = advance(position, seconds); }
+
+    private double advance(double position, double seconds) {
         if (!Double.isFinite(seconds) || seconds < 0) {
             throw new IllegalArgumentException("Animation seconds must be a non-negative finite number.");
         }
         // Reduce time before multiplying: a finite delta times fps can overflow.
         double cycle = frames.length / fps;
         double advance = (seconds % cycle) * fps;
-        position = (position + advance) % frames.length;
+        return (position + advance) % frames.length;
     }
     public void reset() { position = 0; }
     public ImageRegion frame() { return frames[frameIndex()]; }

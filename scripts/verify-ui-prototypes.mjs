@@ -19,6 +19,7 @@ export function verifyUiPrototypes(root = repository, {only, run = maven} = {}) 
       writeFileSync(log, result.stdout + '\n' + result.stderr);
       const marker = project.id === 'simulation' ? 'ZERO_SIMULATION_PROTOTYPE_OK'
         : project.id === 'counter' ? 'ZERO_COUNTER_PROTOTYPE_OK'
+        : project.id === 'actor-components' ? 'ZERO_ACTOR_COMPONENTS_PROTOTYPE_OK'
         : project.id === 'actor-stress' ? 'ZERO_ACTOR_STRESS_OK' : 'ZERO_COIN_PROTOTYPE_OK';
       if (!result.stdout.includes(marker)) throw new Error(`Missing native acceptance marker: ${marker}`);
       results.push({id: project.id, status: 'passed', marker, log});

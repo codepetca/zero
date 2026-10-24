@@ -57,3 +57,6 @@ student-template/src/main/java/zero/ui/Row.java
 
 # Maintainer-generated starter record; extracted student projects track theirs.
 /student-template/zero-core.json
+
+/student-template/src/main/java/zero/AnimationSource.java
+/student-template/src/main/java/zero/AnimationPlayback.java

@@ -333,7 +333,8 @@ x/y, non-positive dimensions or an out-of-bounds rectangle throw
 
 ## SpriteAnimation
 
-`public final class SpriteAnimation` is an ordinary explicitly updated object.
+`public final class SpriteAnimation implements AnimationSource` retains an ordinary
+explicitly updated legacy clock and can create independent actor-owned playback.
 Import `zero.SpriteAnimation`. Regular sheets use equal aligned cells in
 row-major order, left to right then top to bottom. Trim outer margins and spacing
 before using a grid; arbitrary artwork is not automatically aligned. For an
@@ -347,6 +348,7 @@ throw `IllegalArgumentException`. There is no automatic registration or update.
 | `SpriteAnimation(Image image, int columns, int rows, double fps)` | Construct a looping grid animation at frame 0. Positive columns/rows must divide the loaded image dimensions exactly; fps must be positive and finite. |
 | `SpriteAnimation(double fps, ImageRegion... frames)` | Construct a non-empty looping sequence of equal-size regions from the same Image. Positive finite fps is required; columns is the frame count and rows is 1. |
 | `void update(double seconds)` | Advance and loop this object only. Seconds must be non-negative and finite. |
+| `AnimationPlayback createPlayback()` | Create a fresh looping clock at frame zero, sharing immutable frame definitions and backing image. Independent of this object's legacy clock. |
 | `void reset()` | Return this clock to frame 0, including fractional elapsed time. |
 | `ImageRegion frame()` | Current frame region; does not advance. |
 | `int frameIndex()` | Current zero-based frame index. |
@@ -355,6 +357,35 @@ throw `IllegalArgumentException`. There is no automatic registration or update.
 | `int rows()` | Grid rows, or 1 for an explicit sequence. |
 | `double fps()` | Configured frames per second. |
 | `Image image()` | Shared backing image. |
+
+## AnimationSource
+
+`public interface AnimationSource` is a student-implementable factory. Import
+`zero.AnimationSource`. A definition may share immutable ImageRegion objects and
+borrowed images, but must return fresh mutable playback on every call. It owns no
+app timer. Check independent clocks in your component's conformance tests.
+
+| Signature | Behavior |
+| --- | --- |
+| `AnimationPlayback createPlayback()` | Return a fresh, non-null playback with a non-null initial frame. Actor calls this once per assignment, including reassigning the same source to restart. |
+
+## AnimationPlayback
+
+`public interface AnimationPlayback` is one owner's mutable clock. Import
+`zero.AnimationPlayback`. Looping, non-looping and state-based implementations
+can share this contract. Keep frame() observational between explicit updates.
+
+| Signature | Behavior |
+| --- | --- |
+| `void update(double seconds)` | Advance this clock explicitly by finite, non-negative seconds, including zero. Actor validates time before its behaviour hook and advances the selected playback once afterward. |
+| `ImageRegion frame()` | Read the current non-null frame without advancing. Actor caches a validated frame after assignment and update; drawing only observes that cache. |
+
+Actor rejects a null returned playback or frame with `IllegalStateException`
+naming createPlayback() or frame(). A failed assignment preserves the previous
+appearance. A failing behaviour/update can have already changed student state;
+there is no transaction rollback. No global playback registry detects ownership
+for you. App-owned cached images are borrowed; dropping/replacing a playback
+does not close shared images or continue ticking the detached clock.
 
 ## Actor
 
@@ -365,11 +396,13 @@ with logical width/height 1; override draw() to draw shapes. Rotation starts at 
 degrees turn clockwise and rotation is normalized to [0, 360).
 
 Main explicitly calls `actor.update(seconds)` and `draw(actor)`; there is no
-registration or automatic lifecycle. Default update advances only the assigned
-SpriteAnimation; drawing never advances it. Override update for your own movement,
-and call `super.update(seconds)` to keep animation running. Use separate animation
-objects for independent clocks. Sharing one SpriteAnimation shares its clock,
-so updating two actors with it advances that same clock twice.
+registration or automatic lifecycle. Final update validates seconds, calls the
+protected onUpdate(seconds) behaviour hook, then advances the currently selected
+playback once. Override onUpdate without a super call. A hook may switch image or
+animation; its selected playback receives that frame's elapsed time. Drawing
+never advances animation. Sharing one AnimationSource creates independent clocks
+for each actor; updating the source's legacy SpriteAnimation clock does not
+advance actor clocks.
 
 Numeric arguments for construction, position, size, movement, rotation and
 elapsed time must be finite; sizes must be strictly positive, seconds
@@ -377,8 +410,8 @@ must be non-negative, and moveToward speed must be non-negative. moveForward
 accepts signed speed (negative moves backward). Null references throw
 `NullPointerException`; invalid arguments, unloaded/failed images and non-finite
 movement results throw `IllegalArgumentException` without changing actor state.
-Image replacements keep position, size and rotation, and do not reset the supplied
-animation's clock. A target at the current position leaves rotation unchanged.
+Image replacements keep position, size and rotation. Assigning an animation source
+creates fresh playback at its initial frame; a static image detaches playback. A target at the current position leaves rotation unchanged.
 
 Actor adds no collision shape or automatic collision response. Use Collisions
 explicitly; for a rectangular test use top-left `actor.x() - actor.width() / 2`
@@ -390,7 +423,8 @@ This class is an unreleased local source addition; older kits are unchanged.
 | `Actor(double x, double y)` | Create an actor centred at finite x/y with no artwork and logical size 1 × 1. |
 | `Actor(Image image, double x, double y)` | Create an actor centred at x/y using a loaded image's natural dimensions. |
 | `Actor(ImageRegion region, double x, double y)` | Create an actor centred at x/y using the region's natural dimensions. |
-| `Actor(SpriteAnimation animation, double x, double y)` | Create an actor centred at x/y using the current frame's natural dimensions, preserving the animation clock. |
+| `Actor(SpriteAnimation animation, double x, double y)` | Create fresh independent playback at frame zero, using its initial frame's natural dimensions. The source's legacy clock is unchanged. |
+| `Actor(AnimationSource source, double x, double y)` | Create independent playback from a non-null source, with initial frame dimensions and centre x/y. |
 | `final double x()` | Read the horizontal centre in canvas pixels. |
 | `final double y()` | Read the vertical centre in canvas pixels. |
 | `final double width()` | Read the drawing width in pixels. |
@@ -406,8 +440,10 @@ This class is an unreleased local source addition; older kits are unchanged.
 | `final void moveToward(double targetX, double targetY, double speed, double seconds)` | Face and approach a finite target at non-negative pixels-per-second speed for non-negative seconds. Stop exactly at the target without overshooting; reject non-finite results atomically. |
 | `final void setImage(Image image)` | Replace the sprite with a loaded image, keeping size, position and rotation. |
 | `final void setImage(ImageRegion region)` | Replace the sprite with a region, keeping size, position and rotation. |
-| `final void setImage(SpriteAnimation animation)` | Replace the sprite with an animation, preserving its clock and actor size, position and rotation. |
-| `void update(double seconds)` | Advance the assigned animation by finite non-negative seconds; perform no automatic movement. |
+| `final void setImage(SpriteAnimation animation)` | Create fresh playback, preserving actor size, position and rotation and leaving the source's legacy clock unchanged. |
+| `final void setImage(AnimationSource source)` | Validate fresh playback and its initial frame before replacing the appearance; preserve size, position and rotation. |
+| `final void update(double seconds)` | Validate finite non-negative time, run onUpdate(seconds), then advance the selected playback once and cache its non-null frame. |
+| `protected void onUpdate(double seconds)` | Override for ordinary behaviour; default does nothing. Receives validated time before playback advancement; no super call is needed. |
 | `void draw(GameApp app)` | Existing overridable drawing entry point, called by GameApp.draw(actor). The base implementation establishes this actor/app drawing scope, translates to x/y, rotates, invokes draw(), and restores the prior drawing context, styles and transform in finally. Legacy overrides still run. |
 | `void draw()` | Override to draw in actor-local coordinates, with (0, 0) at its centre and the actor rotation already applied. Default: draw its sprite centred and scaled to width/height, or do nothing when there is no artwork. Never advances animation. |
 

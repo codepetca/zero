@@ -6,7 +6,7 @@ const root=path.resolve(__dirname,'../..');
 async function sources(){return Object.fromEntries(await Promise.all(core.coreSourcePaths.map(async name=>[name,await fs.readFile(path.join(root,'framework',name))])));}
 test('current core matches exact helper inventory, POM and local release metadata',async()=>{
  const data=await sources(),record=core.makeCoreRecord(data);
- assert.equal(record.coordinate.version,'0.3.0');assert.equal(record.sources.length,16);
+ assert.equal(record.coordinate.version,'0.3.0');assert.equal(record.sources.length,18);
  assert.deepEqual(Object.keys(require('../src/web-export/adapters').helperHashes).sort(),Object.keys(core.helperHashes).sort());
  assert.deepEqual(core.validateCoreRecord(record,data),record);
  assert.equal(record.sourceSha256,crypto.createHash('sha256').update(JSON.stringify(record.sources)).digest('hex'));

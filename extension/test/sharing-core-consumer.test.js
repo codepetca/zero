@@ -55,7 +55,7 @@ test('core-dependent Add uses the consumer requirement rather than the author so
  const f=await fixture(t),plan=await consumer.planChange(f.root,f.context,f.release);
  assert.notEqual(plan.coreInputs.record.sourceSha256,f.release.coreBuild.sourceSha256);
  assert.equal(plan.coreInputs.record.coordinate.version,'0.3.0');
- assert.equal(plan.coreInputs.files.length,17);assert.match(plan.afterText,/<artifactId>score-views<\/artifactId><version>1.0.0/);
+ assert.equal(plan.coreInputs.files.length,core.coreSourcePaths.length+1);assert.match(plan.afterText,/<artifactId>score-views<\/artifactId><version>1.0.0/);
  await consumer.validatePlan(plan,f.context);
 });
 test('missing or incompatible core blocks Add before artifact downloads or POM mutation',async t=>{

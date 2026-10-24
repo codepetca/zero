@@ -100,6 +100,7 @@ function parameterDescription(name, method) {
     spacing: 'Vertical spacing in pixels; non-negative and finite.',
     red: 'Red channel, an integer from 0 through 255.', green: 'Green channel, an integer from 0 through 255.', blue: 'Blue channel, an integer from 0 through 255.',
     content: method === 'show' ? 'JavaFX node to display; must not be null.' : 'Root layout containing the app content.',
+    source: 'Non-null AnimationSource that creates fresh independent playback.',
     actor: 'Non-null Actor to draw explicitly; no update or registration.',
     app: 'GameApp canvas to draw on; must not be null.',
     dx: 'Finite horizontal movement in pixels.', dy: 'Finite vertical movement in pixels.',
@@ -142,7 +143,7 @@ export function buildApiReference(markdown) {
   const noteLines = Object.fromEntries(categories.map(category => [category.id, []]));
   const route = () => {
     if (section === 'App') return subsection === 'Window and content' ? 'interface' : 'startup';
-    return { 'zero.ui.Element': 'components', 'zero.ui.Label': 'components', 'zero.ui.TextField': 'components', 'zero.ui.Button': 'components', 'zero.ui.Column': 'components', 'zero.ui.Row': 'components', Key: 'input', Color: 'colors', 'Game flow': 'game-flow', Audio: 'audio', Sound: 'audio', Music: 'audio', GameApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', ImageRegion: 'regions', SpriteAnimation: 'animation', Actor: 'actors', Collisions: 'collisions', 'Lifecycle and extension hooks': 'advanced' }[section];
+    return { 'zero.ui.Element': 'components', 'zero.ui.Label': 'components', 'zero.ui.TextField': 'components', 'zero.ui.Button': 'components', 'zero.ui.Column': 'components', 'zero.ui.Row': 'components', Key: 'input', Color: 'colors', 'Game flow': 'game-flow', Audio: 'audio', Sound: 'audio', Music: 'audio', GameApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', ImageRegion: 'regions', AnimationSource: 'animation', AnimationPlayback: 'animation', SpriteAnimation: 'animation', Actor: 'actors', Collisions: 'collisions', 'Lifecycle and extension hooks': 'advanced' }[section];
   };
   for (const line of markdown.split(/\r?\n/)) {
     const heading = line.match(/^## (.+)$/);
@@ -166,7 +167,7 @@ export function buildApiReference(markdown) {
     const [, , name, argumentsText = ''] = declaration ?? field;
     const className = section.split('.').at(-1);
     const uiHelper = section.startsWith('zero.ui.');
-    const helper = uiHelper || ['Key', 'Color', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music'].includes(section);
+    const helper = uiHelper || ['Key', 'Color', 'ImageRegion', 'AnimationSource', 'AnimationPlayback', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music'].includes(section);
     if (!field && !declaration[1] && (!helper || name !== className)) throw new Error(`Malformed API constructor: ${signature}`);
     const owner = helper ? section : ['App', 'Audio'].includes(section) || (categoryId === 'advanced' && subsection !== 'Protected GameApp overrides') ? 'App' : 'GameApp';
     const parameters = argumentsText ? argumentsText.split(',').map(argument => {
@@ -175,7 +176,7 @@ export function buildApiReference(markdown) {
       return { type: parameter[1], name: parameter[2], description: section === 'Actor' && ['Actor', 'setPosition'].includes(name) && ['x', 'y'].includes(parameter[2]) ? `Finite ${parameter[2] === 'x' ? 'horizontal' : 'vertical'} centre in canvas pixels.` : section === 'Actor' && ['width', 'height'].includes(parameter[2]) ? 'Drawing dimension in pixels; strictly positive and finite.' : section === 'Actor' && parameter[2] === 'seconds' ? 'Elapsed seconds; non-negative and finite. Main passes this explicitly.' : parameterDescription(parameter[2], name) };
     }) : [];
     const sourceType = parameters[0]?.type;
-    const variant = sourceType === 'ImageRegion' ? '-region' : sourceType === 'SpriteAnimation' ? '-animation' : '';
+    const variant = sourceType === 'ImageRegion' ? '-region' : sourceType === 'SpriteAnimation' ? '-animation' : sourceType === 'AnimationSource' ? '-source' : '';
     const id = owner === 'GameApp' && name === 'draw' && sourceType === 'Actor' ? 'gameapp-draw-actor'
       : owner === 'Actor' && name === 'Actor' && sourceType === 'double' ? 'actor-constructor-position'
       : owner === 'Actor' && name === 'draw' && parameters.length === 0 ? 'actor-draw-callback'
@@ -214,7 +215,7 @@ export function buildApiReference(markdown) {
       entry.example = `${variable}.${name}(${argument});`;
     }
     if (owner === 'Actor') {
-      const argument = sourceType === 'ImageRegion' ? 'region' : sourceType === 'SpriteAnimation' ? 'walk' : 'image';
+      const argument = sourceType === 'ImageRegion' ? 'region' : sourceType === 'SpriteAnimation' ? 'walk' : sourceType === 'AnimationSource' ? 'source' : 'image';
       const actorExamples = {
         Actor: sourceType === 'double' ? 'Actor actor = new Actor(100, 80);' : `Actor actor = new Actor(${argument}, 100, 80);`,
         x: 'double centreX = actor.x();', y: 'double centreY = actor.y();',
@@ -234,7 +235,7 @@ export function buildApiReference(markdown) {
         : ['actor-constructor', 'actor-update', 'actor-draw'];
       entry.note = 'Actor is an unreleased local source addition. Main calls actor.update(seconds) and draw(actor) explicitly. Position is the centre; creating an actor does not register it with the app.';
     }
-    if (owner === 'Actor' && signature.startsWith('protected ')) {
+    if (owner === 'Actor' && signature.startsWith('protected ') && name !== 'onUpdate') {
       entry.example = examples[name]?.replaceAll('Color.', 'zero.Color.');
       if (name === 'circle') entry.example = 'fill(zero.Color.BLUE);\ncircle(0, 0, 24);';
       entry.related = ['actor-draw-callback', 'gameapp-draw-actor', 'actor-constructor-position'];
@@ -244,6 +245,16 @@ export function buildApiReference(markdown) {
         else if (['x', 'y', 'x1', 'y1', 'x2', 'y2', 'centreX', 'centreY'].includes(parameter.name)) parameter.description = 'Actor-local canvas coordinate before its rotation.';
         else if (['width', 'height'].includes(parameter.name)) parameter.description = 'Local drawing dimension in canvas pixels.';
       }
+    }
+    if (owner === 'Actor' && name === 'onUpdate') {
+      entry.example = '@Override\nprotected void onUpdate(double seconds) {\n    move(60 * seconds, 0);\n}';
+      entry.related = ['actor-update', 'actor-setImage-source'];
+      entry.note = 'Override this validated behaviour hook without a super call. Final update advances the currently selected playback once after this returns.';
+    }
+    if (['AnimationSource', 'AnimationPlayback'].includes(owner) || owner === 'SpriteAnimation' && name === 'createPlayback') {
+      entry.example = name === 'createPlayback' ? 'AnimationPlayback playback = source.createPlayback();' : name === 'frame' ? 'ImageRegion current = playback.frame();' : 'playback.update(seconds);';
+      entry.related = ['actor-constructor-source', 'actor-setImage-source', 'spriteanimation-createPlayback'];
+      entry.note = name === 'createPlayback' ? 'Return a fresh independent clock with a non-null initial frame; shared immutable definitions do not share mutable time.' : 'Playback belongs to one explicit update owner. Drawing does not advance it.';
     }
     if (id === 'actor-draw-callback') {
       entry.example = '@Override\npublic void draw() {\n    fill(zero.Color.BLUE);\n    circle(0, 0, 24);\n}';
@@ -316,8 +327,8 @@ export function buildApiReference(markdown) {
   }
   for (const category of categories) category.notes = noteLines[category.id].join('\n').trim();
   const entries = categories.flatMap(category => category.entries);
-  if (seenSections.size !== 23 || entries.length !== 176 || categories.some(category => !category.entries.length)) {
-    throw new Error(`Incomplete API reference: expected twenty-three sections and 176 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
+  if (seenSections.size !== 25 || entries.length !== 183 || categories.some(category => !category.entries.length)) {
+    throw new Error(`Incomplete API reference: expected twenty-five sections and 183 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
   }
   const ids = new Set(categories.map(category => category.id));
   for (const entry of entries) {

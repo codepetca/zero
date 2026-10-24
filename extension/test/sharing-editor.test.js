@@ -45,7 +45,7 @@ test('ordinary extraction records current project core support without manual me
  const descriptor=JSON.parse(await fs.readFile(path.join(f.root,'libraries/health-bar/zero-library.json')));
  assert.equal(descriptor.schema,2);assert.deepEqual(descriptor.coreRequirement,{minVersion:'0.3.0',maxExclusive:'0.4.0'});
  assert.deepEqual(descriptor.coreInput,{version:'0.3.0',sourceSha256:record.sourceSha256});
- assert.equal(f.stats().stagedPlan.coreSnapshot.length,17);
+ assert.equal(f.stats().stagedPlan.coreSnapshot.length,require('../src/core-contract').coreSourcePaths.length+1);
 });
 test('Use published version passes the selected verified release into core-aware mode planning',async t=>{
  const f=await fixture(t),before=await fs.readFile(path.join(f.root,'pom.xml'));

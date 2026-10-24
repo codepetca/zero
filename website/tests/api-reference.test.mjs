@@ -12,7 +12,7 @@ const normalizeSignature = signature => signature.replace(/\b(public|protected|f
 
 test('every class-level public/protected Java declaration has an exact canonical entry', async () => {
   const expected = [];
-  for (const owner of ['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'Key', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.TextField', 'zero.ui.Button', 'zero.ui.Column', 'zero.ui.Row']) {
+  for (const owner of ['App', 'GameApp', 'ImageRegion', 'AnimationSource', 'AnimationPlayback', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'Key', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.TextField', 'zero.ui.Button', 'zero.ui.Column', 'zero.ui.Row']) {
     const source = await readFile(new URL(`../../framework/src/main/java/zero/${owner.replace(/^zero\./, '').replaceAll('.', '/')}.java`, import.meta.url), 'utf8');
     if (owner === 'Key') {
       const constants = [...source.matchAll(/^    ([A-Z]+)\(KeyCode\.[A-Z]+\)[,;]/gm)].map(match => match[1]);
@@ -23,11 +23,11 @@ test('every class-level public/protected Java declaration has an exact canonical
       expected.push(`${owner}:${normalizeSignature(match[1])}`);
     }
     // Class-level declarations have four-space indentation; the anonymous timer callback has twelve.
-    for (const match of source.matchAll(/^ {4}(?:@Override )?((?:public|protected) (?:(?:final|static) )?(?:[\w.]+ )?\w+\([^)]*\))\s*\{/gm)) {
+    for (const match of source.matchAll(/^ {4}(?:@Override )?((?:public|protected) (?:(?:final|static) )?(?:[\w.]+ )?\w+\([^)]*\))\s*(?:\{|;)/gm)) {
       expected.push(`${owner}:${normalizeSignature(match[1])}`);
     }
   }
-  assert.equal(expected.length, 176);
+  assert.equal(expected.length, 183);
   assert.deepEqual(entries.map(item => `${item.owner}:${normalizeSignature(item.signature)}`).sort(), expected.sort());
   assert.ok(!entries.some(item => item.name === 'handle'));
   assert.equal(JSON.parse(JSON.stringify(categories)).length, 15);
@@ -43,7 +43,7 @@ test('categories and entries have unique anchors, valid relationships and comple
   assert.equal(new Set(ids).size, ids.length);
   for (const item of entries) {
     assert.ok(item.description);
-    assert.ok(['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'Key', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.TextField', 'zero.ui.Button', 'zero.ui.Column', 'zero.ui.Row'].includes(item.owner));
+    assert.ok(['App', 'GameApp', 'ImageRegion', 'AnimationSource', 'AnimationPlayback', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'Key', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.TextField', 'zero.ui.Button', 'zero.ui.Column', 'zero.ui.Row'].includes(item.owner));
     for (const parameter of item.parameters) assert.ok(parameter.name && parameter.description);
     for (const target of item.related) assert.ok(entry(target), `${item.id} relates to missing ${target}`);
   }
@@ -82,8 +82,8 @@ test('keeps canonical class defaults, constructors and lifecycle caveats', () =>
 
 test('search handles aliases, case, multiple terms, whitespace and empty results', () => {
   const search = query => searchApiReference(categories, query);
-  assert.equal(search('').length, 176);
-  assert.equal(search(' \n\t ').length, 176);
+  assert.equal(search('').length, 183);
+  assert.equal(search(' \n\t ').length, 183);
   assert.ok(search('KEYBOARD').some(item => item.id === 'keyDown'));
   assert.deepEqual(search('rectangle').slice(0, 2).map(item => item.id), ['rect', 'outlineRect']);
   assert.ok(search('mouse').some(item => item.id === 'mouseDown'));
@@ -170,7 +170,7 @@ test('documents all source-type overloads with unique stable anchors and helper 
     assert.match(entry(`collisions-${name}`).example, /Collisions\./);
   }
   assert.equal(category('regions').entries.length, 6);
-  assert.equal(category('animation').entries.length, 11);
+  assert.equal(category('animation').entries.length, 15);
   assert.equal(category('collisions').entries.length, 3);
   assert.match(category('images').notes, /same backing Image without bitmap copies/);
   assert.match(entry('loadImage').description, /cached per app by canonical/);
@@ -191,7 +191,7 @@ test('documents all source-type overloads with unique stable anchors and helper 
 
 
 test('fails closed when any new overload or constructor table row is omitted', () => {
-  for (const item of entries.filter(item => ['ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'Key', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.TextField', 'zero.ui.Button', 'zero.ui.Column', 'zero.ui.Row'].includes(item.owner) || /ImageRegion|SpriteAnimation|Pressed|Focused|Centered|Flipped|loadSound|loadMusic/.test(item.signature))) {
+  for (const item of entries.filter(item => ['ImageRegion', 'AnimationSource', 'AnimationPlayback', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music', 'Color', 'Key', 'zero.ui.Element', 'zero.ui.Label', 'zero.ui.TextField', 'zero.ui.Button', 'zero.ui.Column', 'zero.ui.Row'].includes(item.owner) || /ImageRegion|SpriteAnimation|Pressed|Focused|Centered|Flipped|loadSound|loadMusic/.test(item.signature))) {
     const line = markdown.split('\n').find(candidate => candidate.startsWith(`| \`${item.signature}\``));
     assert.ok(line, item.signature);
     assert.throws(() => buildApiReference(markdown.replace(line + '\n', '')), /Incomplete API reference/, item.signature);
@@ -218,8 +218,8 @@ test('audio declarations use owner-qualified anchors and preserve app lifecycle 
 
 
 test('Actor has exact overload anchors, explicit lifecycle examples and movement guidance', async () => {
-  assert.equal(category('actors').entries.length, 33);
-  for (const suffix of ['', '-region', '-animation']) {
+  assert.equal(category('actors').entries.length, 36);
+  for (const suffix of ['', '-region', '-animation', '-source']) {
     assert.equal(entry(`actor-constructor${suffix}`).owner, 'Actor');
     assert.equal(entry(`actor-constructor${suffix}`).parameters.length, 3);
     assert.equal(entry(`actor-setImage${suffix}`).parameters.length, 1);
@@ -240,9 +240,9 @@ test('Actor has exact overload anchors, explicit lifecycle examples and movement
   assert.match(entry('actor-setSize').parameters[0].description, /strictly positive/);
   assert.match(entry('actor-moveToward').parameters[2].description, /non-negative/);
   assert.match(entry('actor-moveForward').parameters[0].description, /Signed/);
-  assert.match(category('actors').notes, /super.update\(seconds\)/);
+  assert.match(category('actors').notes, /onUpdate\(seconds\)/);
   assert.match(category('actors').notes, /without changing actor state/);
-  assert.match(category('actors').notes, /Sharing one SpriteAnimation shares its clock/);
+  assert.match(category('actors').notes, /Sharing one AnimationSource creates independent clocks/);
   assert.match(entry('actor-moveToward').description, /without overshooting/);
   assert.ok(searchApiReference(categories, 'enemy chase').some(item => item.id === 'actor-moveToward'));
   assert.ok(searchApiReference(categories, 'actor center').some(item => item.id === 'actor-constructor'));
@@ -251,7 +251,7 @@ test('Actor has exact overload anchors, explicit lifecycle examples and movement
   assert.match(guide, /public class Enemy extends Actor/);
   assert.match(guide, /enemy.update\(seconds\)/);
   assert.match(guide, /draw\(enemy\)/);
-  assert.match(guide, /super.update\(seconds\)/);
+  assert.match(guide, /onUpdate\(seconds\)/);
   assert.match(guide, /actor.x\(\) - actor.width\(\) \/ 2/);
 });
 
@@ -394,4 +394,18 @@ test('Zero arrows and Row have exact owners, overload anchors and explicit const
   assert.equal(entry('ui-row-constructor-spacing').parameters[0].name, 'spacing');
   assert.equal(entry('ui-row-setSpacing').example, 'row.setSpacing(12);');
   assert.ok(searchApiReference(categories, 'horizontal layout').some(item => item.id === 'ui-row-constructor'));
+});
+
+
+test('animation interfaces and actor sequencing have exact documented owners and examples',()=>{
+  assert.equal(entry('animationsource-createPlayback').owner,'AnimationSource');
+  assert.equal(entry('animationplayback-update').owner,'AnimationPlayback');
+  assert.equal(entry('animationplayback-frame').signature,'ImageRegion frame()');
+  assert.equal(entry('spriteanimation-createPlayback').owner,'SpriteAnimation');
+  assert.equal(entry('actor-update').signature,'final void update(double seconds)');
+  assert.equal(entry('actor-onUpdate').signature,'protected void onUpdate(double seconds)');
+  assert.match(entry('actor-onUpdate').example,/protected void onUpdate/);
+  assert.match(entry('actor-onUpdate').note,/without a super call/);
+  assert.match(entry('actor-constructor-source').description,/independent playback/);
+  assert.match(entry('actor-setImage-source').description,/before replacing/);
 });

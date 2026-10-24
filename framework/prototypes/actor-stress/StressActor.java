@@ -12,8 +12,7 @@ public class StressActor extends Actor {
         this.vy = vy;
     }
 
-    public void update(double seconds) {
-        super.update(seconds);
+    @Override protected void onUpdate(double seconds) {
         move(vx * seconds, vy * seconds);
         rotate(35 * seconds);
         double half = width() / 2;

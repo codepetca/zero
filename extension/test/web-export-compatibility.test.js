@@ -44,7 +44,7 @@ test('dependency gate rejects unpinned, injected, inherited and profile dependen
   for (const changed of [pom.replace('21.0.12', '21.0.11'), pom.replace('javafx-controls', 'javafx-web'), pom.replace('<dependencies>', '<profiles/><dependencies>'), pom.replace('<dependencies>', '<parent/><dependencies>'), pom.replace('<dependencies>', '<dependencyManagement/><dependencies>'), pom.replace('org.openjfx', 'org.openjfx.evil'), pom.replace('<artifactId>javafx-controls</artifactId>', '<artifactId>javafx-controls</artifactId><classifier>other</classifier>')]) assert.throws(() => validateDependencies(changed), /browser|Browser|POM/);
   assert.throws(() => validateDependencies(pom.replace('<dependencies>', '<!-- fake <dependency> ignored -->\n<dependencies>').replace('org.openjfx', 'evil')), /browser dependency/);
 });
-test('all sixteen reviewed helper APIs and quiz, drawing, audio and controls retain resolved compatibility', { timeout: 240000 }, async () => {
+test('all eighteen reviewed helper APIs and quiz, drawing, audio and controls retain resolved compatibility', { timeout: 240000 }, async () => {
   const sharedScoreSources = await readSources(path.join(root, 'framework/prototypes/shared'));
   assert.deepEqual(Object.keys(sharedScoreSources).sort(), ['BarScoreDisplay.java', 'ScoreDisplay.java', 'ScoreView.java']);
   const fixtures = [
@@ -57,7 +57,7 @@ test('all sixteen reviewed helper APIs and quiz, drawing, audio and controls ret
     { ...await readSources(path.join(root, 'framework/prototypes/counter')), ...sharedScoreSources },
     { ...await readSources(path.join(root, 'framework/prototypes/coin-game')), ...sharedScoreSources }
   ];
-  for (const sources of fixtures) { const result = await check(sources); assert.equal(result.status, 'passed'); assert.equal(result.trustedHelpers.length, 16); }
+  for (const sources of fixtures) { const result = await check(sources); assert.equal(result.status, 'passed'); assert.equal(result.trustedHelpers.length, 18); }
 });
 test('resolved owners, overloads, references, static imports, dead code and Java APIs fail with source positions', { timeout: 240000 }, async () => {
   const sources = {
@@ -311,4 +311,32 @@ test('simulation integer parsing admits only the decimal String signature', {tim
   const source = await fs.readFile(path.join(root, 'framework/prototypes/simulation/Main.java'), 'utf8');
   assert.equal((await check({'Main.java':source})).status, 'passed');
   await assert.rejects(check({'Main.java':source.replace('Integer.parseInt(speedInput.getText().trim())', 'Integer.parseInt(speedInput.getText().trim(), 10)')}), /java.lang.Integer#parseInt\(java.lang.String,int\)/);
+});
+
+test('animation sources and playback admit exact factory/update/frame and protected actor hook only', {timeout:120000},async()=>{
+ const source=`import zero.*;
+public class Main extends GameApp {
+ public void setup() {
+  ImageRegion frame=loadImageRegion("/tiles.png");
+  AnimationSource source=new Clip(frame);
+  AnimationPlayback playback=source.createPlayback(); playback.update(0); ImageRegion same=playback.frame();
+  SpriteAnimation legacy=new SpriteAnimation(2,frame); legacy.createPlayback().update(.5);
+  Actor actor=new Mover(source);actor.setImage(source);actor.update(.5);draw(actor);
+ }
+}
+class Clip implements AnimationSource {
+ private final ImageRegion frame;
+ Clip(ImageRegion frame){this.frame=frame;}
+ public AnimationPlayback createPlayback(){return new AnimationPlayback(){public void update(double seconds){} public ImageRegion frame(){return frame;}};}
+}
+class Mover extends Actor {
+ Mover(AnimationSource source){super(source,10,20);}
+ @Override protected void onUpdate(double seconds){move(seconds,0);}
+}`;
+ assert.equal((await check({'Main.java':source})).status,'passed');
+ await assert.rejects(check({'Main.java':source.replace('playback.update(0)','playback.reset()')}),/reset/);
+ await assert.rejects(check({'Main.java':source.replace('actor.update(.5)','actor.onUpdate(.5)')}),/protected access/);
+ const contract=require('../src/web-export/compatibility/contract.json');
+ assert.deepEqual(contract.members.filter(name=>name.startsWith('zero.Animation')).sort(),[
+  'zero.AnimationPlayback#frame()','zero.AnimationPlayback#update(double)','zero.AnimationSource#createPlayback()']);
 });

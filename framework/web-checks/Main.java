@@ -162,13 +162,15 @@ public final class Main extends GameApp {
         require(player.width() == 30 && player.height() == 18, "image replacement preserves explicit size");
         SpriteAnimation frames = new SpriteAnimation(2, region, imageRegion(sheet, 12, 0, 12, 12));
         player.setImage(frames); player.update(.5);
-        require(player.updates == 1 && frames.frameIndex() == 1, "explicit subclass animation update");
+        require(player.updates == 1 && frames.frameIndex() == 0, "explicit subclass animation update");
         player.setImage(sheet); player.update(.5);
-        require(frames.frameIndex() == 1, "replaced animation is detached");
+        require(frames.frameIndex() == 0, "replaced animation is detached");
         imageActor = player; imageActor.setPosition(275, 295);
         imageActor.setSize(24, 24); imageActor.setRotation(90);
         regionActor = new Actor(region, 320, 295);
         animatedActor = new Actor(frames, 365, 295);
+        animatedActor.update(.5);
+        require(frames.frameIndex() == 0, "actor-owned playback does not advance legacy source clock");
         require(regionActor.width() == 12 && regionActor.height() == 12
                 && animatedActor.width() == 12 && animatedActor.height() == 12, "Actor sprite natural size");
         regionActor.setSize(24, 24); animatedActor.setSize(24, 24);
@@ -182,7 +184,7 @@ public final class Main extends GameApp {
     private static final class Player extends Actor {
         private int updates;
         Player(Image image) { super(image, 10, 20); }
-        @Override public void update(double seconds) { super.update(seconds); updates++; }
+        @Override protected void onUpdate(double seconds) { updates++; }
     }
     private static final class ShapeActor extends Actor {
         ShapeActor(double x, double y) { super(x, y); }

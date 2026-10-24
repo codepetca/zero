@@ -623,8 +623,7 @@ public class Enemy extends Actor {
     }
 
     @Override
-    public void update(double seconds) {
-        super.update(seconds);
+    protected void onUpdate(double seconds) {
         moveToward(target.x(), target.y(), 70, seconds);
     }
 }
@@ -690,12 +689,27 @@ at rotation 0 to match these directions. This example lets the player leave the
 canvas; add your own boundary rules when needed.
 
 For animation, you can use `new Actor(loadAnimation("/walk.png", 4, 2, 8), x, y)`.
-Keep calling update explicitly. A subclass that overrides update calls
-`super.update(seconds)` so its sprite still animates. Drawing never advances the
-clock. Separate animation objects have independent clocks; assigning the same
-SpriteAnimation to two actors shares a clock, which advances on each update call.
-`setImage` can switch to an Image, region or animation while retaining the actor's
-size, centre and rotation; it does not reset the supplied animation.
+Keep Main's explicit `actor.update(seconds)` call. That final method validates time,
+calls the protected `onUpdate(seconds)` behaviour hook, then advances the selected
+playback exactly once. A subclass overrides onUpdate without a super call.
+Drawing observes its cached frame and never advances animation.
+
+`SpriteAnimation` also implements `AnimationSource`. Assigning it to two actors
+creates independent clocks over shared frame definitions. Its existing direct
+update/reset/frame methods still operate only its own legacy clock. A student
+can implement `AnimationSource.createPlayback()` and the small
+`AnimationPlayback.update(seconds)`/`frame()` interface for non-looping or
+state-based animation without editing core. Each factory call must return fresh
+playback; test this and independent advancement in the component's checks.
+
+`setImage` accepts an Image, region or AnimationSource while retaining size,
+centre and rotation. A source assignment starts fresh playback; assigning the
+same source again restarts it. Static images detach the old clock. A null returned
+playback/frame gives a useful IllegalStateException, and a failed assignment
+preserves the previous appearance. A throwing behaviour or playback update does
+not roll back earlier student state changes. GameApp Pause skips Main's updates;
+Restart explicitly rebuilds actors or reapplies their source. Borrowed shared
+images are not closed when playback is replaced.
 
 Use finite numbers, strictly positive sizes and non-negative elapsed seconds.
 `moveToward` also needs non-negative speed. Invalid arguments or non-finite

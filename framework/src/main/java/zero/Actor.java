@@ -7,7 +7,7 @@ import javafx.scene.image.Image;
 public class Actor {
     private double x, y, width, height, rotation;
     private ImageRegion region;
-    private SpriteAnimation animation;
+    private AnimationPlayback playback;
     private GameApp drawingApp;
 
     /** Create an actor without artwork, with a logical size of one pixel by one pixel. */
@@ -27,8 +27,13 @@ public class Actor {
     }
 
     public Actor(SpriteAnimation animation, double x, double y) {
-        this(Objects.requireNonNull(animation, "Animation must not be null.").frame(), x, y);
-        setImage(animation);
+        this((AnimationSource) Objects.requireNonNull(animation, "Animation must not be null."), x, y);
+    }
+
+    public Actor(AnimationSource source, double x, double y) {
+        this(x, y);
+        setImage(source);
+        setSize(region.width(), region.height());
     }
 
     public final double x() { return x; }
@@ -120,18 +125,39 @@ public class Actor {
 
     public final void setImage(ImageRegion region) {
         this.region = Objects.requireNonNull(region, "Image region must not be null.");
-        animation = null;
+        playback = null;
     }
 
     public final void setImage(SpriteAnimation animation) {
-        this.animation = Objects.requireNonNull(animation, "Animation must not be null.");
-        region = animation.frame();
+        setImage((AnimationSource) Objects.requireNonNull(animation, "Animation must not be null."));
     }
 
-    /** Explicitly advance this actor's animation. Overrides should call super.update(seconds). */
-    public void update(double seconds) {
+    public final void setImage(AnimationSource source) {
+        Objects.requireNonNull(source, "Animation source must not be null.");
+        AnimationPlayback candidate = source.createPlayback();
+        if (candidate == null) throw new IllegalStateException("Animation source createPlayback() must not return null.");
+        ImageRegion frame = requireFrame(candidate);
+        playback = candidate;
+        region = frame;
+    }
+
+    /** Validate time, run behaviour, then advance the current playback exactly once. */
+    public final void update(double seconds) {
         nonNegative(seconds, "Actor seconds");
-        if (animation != null) animation.update(seconds);
+        onUpdate(seconds);
+        if (playback != null) {
+            playback.update(seconds);
+            region = requireFrame(playback);
+        }
+    }
+
+    /** Override for behaviour. Main calls update(seconds); no super call is needed. */
+    protected void onUpdate(double seconds) { }
+
+    private static ImageRegion requireFrame(AnimationPlayback playback) {
+        ImageRegion frame = playback.frame();
+        if (frame == null) throw new IllegalStateException("Animation playback frame() must not return null.");
+        return frame;
     }
 
     /** Run this actor's drawing callback in local coordinates, preserving the app's drawing settings. */
@@ -155,8 +181,7 @@ public class Actor {
     /** Override to draw about local 0,0. The default draws the sprite, if present, without advancing it. */
     public void draw() {
         GameApp app = drawingApp();
-        ImageRegion frame = animation == null ? region : animation.frame();
-        if (frame != null) app.imageCentered(frame, 0, 0, width, height, 0);
+        if (region != null) app.imageCentered(region, 0, 0, width, height, 0);
     }
 
     protected final void fill(zero.Color color) { drawingApp().fill(color); }

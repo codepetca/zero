@@ -27,7 +27,7 @@ function fixture(t) {
 
 test('selection is explicit and rejects bad IDs before any output mutation', t => {
   const root = fixture(t);
-  assert.deepEqual(selectUiPrototypes(), ['counter','coin-game','beginner-coin-game','actor-stress','simulation']);
+  assert.deepEqual(selectUiPrototypes(), ['counter','coin-game','beginner-coin-game','actor-stress','simulation','actor-components']);
   assert.deepEqual(parseUiPrototypeArgs(['--only=simulation']), ['simulation']);
   for (const args of [['--only='],['--only=simulation,'],['--only=unknown'],['--only=simulation,simulation'],['--only=simulation','extra'],['--only','simulation']]) {
     assert.throws(() => parseUiPrototypeArgs(args));
@@ -116,4 +116,29 @@ test('counter and game receive identical student-owned score contracts without t
   assert.equal(readFileSync(path.join(root, '.verification/ui-prototypes/actor-stress/sentinel'), 'utf8'), 'keep stress');
   assert.equal(existsSync(path.join(root, '.verification/ui-prototypes/beginner-coin-game')), false);
   assert.deepEqual(prepareUiPrototypes(root, {only:['simulation']})[0].studentSources, ['Main.java']);
+});
+
+test('actor-components selection copies its nested helper and PNG without reading stress or score components', t => {
+  const root = fixture(t);
+  const files = ['Main.java','DemoActor.java','OnceAnimation.java','zero/contrib/r12345/actor_tools/TurnTowards.java','actor-frames.png'];
+  for (const name of files) put(root, 'framework/prototypes/actor-components/' + name,
+    readFileSync(path.join(repository, 'framework/prototypes/actor-components', name)));
+  put(root, 'framework/prototypes/checks/actor-components/PrototypeCheck.java', '// selected harness');
+  put(root, '.verification/ui-prototypes/actor-stress/sentinel', 'retain existing stress output');
+  let runs = 0;
+  const results = verifyUiPrototypes(root, {only:['actor-components'], run:(directory, args) => {
+    runs++;
+    assert.equal(path.basename(directory), 'actor-components');assert.ok(args.includes('-o'));
+    for (const name of files.filter(name => name.endsWith('.java'))) assert.deepEqual(
+      readFileSync(path.join(directory, 'src/main/java', name)),readFileSync(path.join(root, 'framework/prototypes/actor-components', name)));
+    assert.deepEqual(readFileSync(path.join(directory, 'src/main/resources/actor-frames.png')),
+      readFileSync(path.join(root, 'framework/prototypes/actor-components/actor-frames.png')));
+    assert.equal(existsSync(path.join(directory, 'src/main/java/ScoreView.java')), false);
+    return {stdout:'ZERO_ACTOR_COMPONENTS_PROTOTYPE_OK fixture',stderr:''};
+  }});
+  assert.equal(runs, 1);assert.deepEqual(results.map(result => result.id), ['actor-components']);
+  assert.equal(readFileSync(path.join(root, '.verification/ui-prototypes/actor-stress/sentinel'),'utf8'), 'retain existing stress output');
+  assert.equal(existsSync(path.join(root, '.verification/ui-prototypes/counter')),false);
+  const receipt=JSON.parse(readFileSync(path.join(root, '.verification/ui-prototypes/native-results-actor-components.json')));
+  assert.deepEqual(receipt.selection,['actor-components']);
 });

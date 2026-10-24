@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 const repository = fileURLToPath(new URL('../', import.meta.url));
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const owner = 'zero-ui-prototypes-v1';
-export const prototypeIds = ['counter', 'coin-game', 'beginner-coin-game', 'actor-stress', 'simulation'];
+export const prototypeIds = ['counter', 'coin-game', 'beginner-coin-game', 'actor-stress', 'simulation', 'actor-components'];
 
 export function selectUiPrototypes(only) {
   if (only === undefined) return [...prototypeIds];
@@ -50,7 +50,7 @@ export function prepareUiPrototypes(root = repository, {only} = {}) {
   ordinary(output);
   const framework = path.join(root, 'framework/src/main/java');
   const helpers = javaFiles(framework);
-  if (helpers.length !== 16) throw new Error(`Expected 16 reviewed Zero helper sources, found ${helpers.length}.`);
+  if (helpers.length !== 18) throw new Error(`Expected 18 reviewed Zero helper sources, found ${helpers.length}.`);
   const needsShared = selected.some(id => id === 'counter' || id === 'coin-game');
   const shared = needsShared ? Object.fromEntries(['ScoreView.java', 'ScoreDisplay.java', 'BarScoreDisplay.java'].map(name =>
     [name, readFileSync(path.join(root, 'framework/prototypes/shared', name))])) : {};
@@ -61,7 +61,7 @@ export function prepareUiPrototypes(root = repository, {only} = {}) {
     entries.LICENSE = readFileSync(path.join(root, 'LICENSE'));
     for (const name of helpers) entries[`src/main/java/${name}`] = readFileSync(path.join(framework, name));
     entries['zero-core.json'] = Buffer.from(JSON.stringify(core.makeCoreRecord(Object.fromEntries(core.coreSourcePaths.map(name => [name,entries[name]]))),null,2) + '\n');
-    const standalone = id === 'beginner-coin-game' || id === 'actor-stress' || id === 'simulation';
+    const standalone = id === 'beginner-coin-game' || id === 'actor-stress' || id === 'simulation' || id === 'actor-components';
     const studentSources = standalone ? javaFiles(path.join(root, 'framework/prototypes', id))
       : [...javaFiles(path.join(root, 'framework/prototypes', id)), ...Object.keys(shared)];
     for (const name of studentSources) {
@@ -75,6 +75,8 @@ export function prepareUiPrototypes(root = repository, {only} = {}) {
           'framework/prototypes/actor-stress', name));
       }
     }
+    if (id === 'actor-components') entries['src/main/resources/actor-frames.png'] = readFileSync(path.join(root,
+      'framework/prototypes/actor-components/actor-frames.png'));
     entries['README.md'] = Buffer.from(`# Zero ${id} prototype\n\nRun with the included wrapper: \`./mvnw javafx:run\` (Windows: \`mvnw.cmd javafx:run\`).\nThis project contains its own ordinary Java sources, Zero helpers and pinned Maven/JavaFX setup.\nIt does not need the surrounding Zero repository.\n`);
     const marker = path.join(directory, '.zero-ui-prototype.json');
     ordinary(marker);
