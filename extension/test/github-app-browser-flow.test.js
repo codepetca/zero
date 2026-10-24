@@ -61,3 +61,37 @@ test('browser refresh uses the pinned server endpoint, while denial never exchan
  const denied=fixture();denied.vscode.env.openExternal=async()=>{await fetch(`http://127.0.0.1:${denied.start.port}/github/${denied.start.nonce}?error=denied`);return true;};
  await assert.rejects(browserFlow(denied.options),error=>error.code==='cancelled');assert.equal(denied.calls.length,1);
 });
+
+function syntheticCallback(url,headers={}) {
+ return new Promise((resolve,reject)=>{
+  const request=http.get(url,{headers},response=>{
+   let body='';response.on('data',chunk=>body+=chunk);response.on('end',()=>resolve({status:response.statusCode,body}));
+  });request.on('error',reject);
+ });
+}
+test('loopback accepts bounded synthetic browser cookies without weakening callback guards',async()=>{
+ for(const bytes of [9*1024,32*1024]) {
+  const f=fixture();let opened;
+  f.vscode.env.openExternal=()=>opened=(async()=>{
+   const base=`http://127.0.0.1:${f.start.port}`,good=`/github/${f.start.nonce}?code=${code}&ticket=${ticket}`,headers={Cookie:'fixture='+'c'.repeat(bytes)};
+   for(const [path,extra,status] of [['/wrong',{},404],[good,{Host:'evil.example'},404],[good,{Origin:'https://evil.example'},403],[good+'&code=other',{},400],[good+'&extra='+'a'.repeat(8192),{},404]]) {
+    const rejected=await syntheticCallback(base+path,{...headers,...extra});assert.equal(rejected.status,status);
+    assert.equal(f.calls.filter(call=>call.url.endsWith('/exchange')).length,0);
+   }
+   const accepted=await syntheticCallback(base+good,headers);assert.equal(accepted.status,200);assert.equal(accepted.body,'Returning to Zero. You can close this tab.');return true;
+  })();
+  assert.equal((await browserFlow(f.options)).accessToken,pair.access_token);await opened;
+  assert.equal(f.calls.filter(call=>call.url.endsWith('/exchange')).length,1);
+ }
+});
+test('above-cap synthetic headers are rejected before exchange and preserve the valid callback',async()=>{
+ const f=fixture();let opened;
+ f.vscode.env.openExternal=()=>opened=(async()=>{
+  const url=`http://127.0.0.1:${f.start.port}/github/${f.start.nonce}?code=${code}&ticket=${ticket}`;
+  const rejected=await syntheticCallback(url,{Cookie:'fixture='+'c'.repeat(70*1024)});assert.equal(rejected.status,431);assert.equal(rejected.body,'');
+  assert.equal(f.calls.filter(call=>call.url.endsWith('/exchange')).length,0);
+  const accepted=await syntheticCallback(url,{Cookie:'fixture='+'c'.repeat(32*1024)});assert.equal(accepted.status,200);return true;
+ })();
+ assert.equal((await browserFlow(f.options)).accessToken,pair.access_token);await opened;
+ assert.equal(f.calls.filter(call=>call.url.endsWith('/exchange')).length,1);
+});

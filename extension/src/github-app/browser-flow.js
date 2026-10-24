@@ -32,7 +32,9 @@ async function browserFlow({configuration,vscode,fetchImpl=globalThis.fetch,sign
   const stop=error=>{if(settled)return;settled=true;stoppedError=error;controller.abort();fail(error);};
   const abort=()=>stop(failure('cancelled','GitHub sign-in was cancelled.'));
   signal?.addEventListener('abort',abort,{once:true});
-  const server=http.createServer({maxHeaderSize:8192},(request,response)=>{
+  // Browsers share loopback cookies across ports. Allow bounded incidental
+  // headers independently of the strict callback URL; no cookies are inspected.
+  const server=http.createServer({maxHeaderSize:64*1024},(request,response)=>{
     const headers={'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'; frame-ancestors 'none'; base-uri 'none'"};
     const reply=(status,text)=>{response.writeHead(status,headers);response.end(text);};
     if(settled||request.method!=='GET'||request.headers.host!==`127.0.0.1:${port}`||typeof request.url!=='string'||request.url.length>8192)return reply(404,'Not found');
