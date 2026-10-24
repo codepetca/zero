@@ -1,15 +1,35 @@
 # Zero phased vision — current handoff
 
-## Active completeness pass — 2026-10-24
+## Basic-game completeness pass complete — 2026-10-24
 
 User authorized three Zero/standard-Java-only reference games, student ergonomics
-gap fixes and actual WebFX/browser verification. Publishing/releases remain separate;
-existing external holds persist. Base c5374ddc. Parent owns framework/API/docs/tests,
-three Sol/high workers own examples/zero-pong, zero-collector, zero-platformer respectively.
-No direct JavaFX or advanced bridge calls in these games. Exit: source-only guard,
-native logic checks, three actual exports/play checks, additive API checks and independent
-review. Prior 366/366 evidence remains historical for its exact prior source.
-Storage healthy259GB; weekly70%remaining account-wide, not task cost. DeepSeek paused.
+fixes and actual WebFX/browser verification. Implemented at0f534b5c; independent
+Sol/high complete46-file review CLEAN. Three workers owned separate games/checks;
+parent owned API/docs/tooling/integration. Effective configs/tokens unknown.
+No direct JavaFX or graphics/layout/canvas/fxNode bridge calls in twelve game files.
+
+- Examples: student-template/examples/zero-pong, zero-collector, zero-platformer.
+  Each has title/help, Play, HUD, pause/resume, restart and win/loss rules.
+- Added Key W/A/S/D/SPACE/ENTER/ESCAPE/R and mouseDown()/mousePressed() primary
+  queries.193declarations; docs/site inventory/profile/core hashes synchronized.
+-141targeted tests PASS/0skip, root checks PASS. Three actual native GUI checks
+  and three standalone compilations PASS; three saved-builder GWT exports PASS.
+-Actual CUA browser: collector8/8win/fullhealth/key+pointerfire/loss/reset;
+  platformer4/4+exitwin/fall/reset; Pong movement/rally/score/loss/pause/reset.
+  Ten new API entries have all20current native/browser targets. Scoped receipt
+  has35native+58browser observations. Prior366/366evidence below stays historical;
+  no full current386target, physicalWindows or novice acceptance claim.
+- Proofs/source+webZIPs/screenshots: .verification/basic-games/; scoped input
+  summary and current-source byte parity checked. Complete review covers all six
+  archived sourceZIPs, independent builders and no harness/compiled-output leakage.
+- [Student findings and opportunities](../docs/BASIC-GAMES.md) records reusable
+  health/bounds/jump/animation components and future camera/HUD motivations.
+- No push/PR/merge, publication/release/install/accounts/credentials or telemetry.
+  Publishing/releases and existing external acceptance remain separately held.
+- All owned QA observers closed after captures; game/docs QA tabs, preview
+  servers and the owned local website server are closed. Original Zero Dev watcher/profile remain useful.
+  Chrome message-channel console diagnostics documented; no observed Java/window
+  failures in game/input proof. No claim of an empty browser console.
 
 
 Updated 2026-10-24. Authorized local implementation and actual Mac editor journey
