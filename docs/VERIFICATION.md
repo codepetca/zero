@@ -107,6 +107,35 @@ review COMPLETE/CLEAN;19auth/189website tests, typecheck and root checks PASS.
 Its selected GitHub CI gates, production deployment and actual sign-in remain
 pending. No native release is included.
 
+### Live deployment and Mac return-listener correction
+
+PR190 merged atb376a903 after every selected GitHub gate passed. Production
+deployment2szA4vDjUBVoYcPLxLhqbjuuXXpr is READY at that SHA. The public desktop
+start endpoint returns200/no-store with the registered client ID. Actual Mac
+Zero browser authorization reaches GitHub's account chooser without a code;
+selecting armorup returned HTTP431 from the local listener, so completion was
+not accepted. The explicit code fallback subsequently completed real GitHub
+authorization and restored armorup in Zero. A fresh public Greeting tutorial
+repository was created/cloned through the editor from the updated template.
+
+Correctionbb552fa9 raises only the bounded listener header cap to64KiB while
+retaining8KiB URLs and all callback identity guards. Synthetic9/32KiB cookies
+reproduce the old failure and pass the correction;70KiB still receives431 without
+exchange and a subsequent valid callback recovers. Real browser header/cookie
+values were not inspected; accumulated loopback cookies are a plausible cause,
+not an observed value.42author auth tests/root PASS; independent Astra/high
+two-file closure COMPLETE/CLEAN with38tests/0skips. Actual Mac retry is pending.
+
+The separate browser coverage correctionbbdf0c3b presses six previously omitted
+keys and awaits exact completed Java assertions before retaining the snapshot.
+All10builds/130desktop/136mobile assertions passed on the earlier run, but its
+six coverage gaps correctly failed the gate.39focused tests/root PASS. Sol/high
+cumulative integration review through71a77006 COMPLETE/CLEAN,54independent tests
+and retained native evidence reload PASS:193/193native targets. Final corrected
+hosted browser/CI and the full student walkthrough remain required. Ledger:
+2initial+6targeted+1integration turns,6fixbatches;0unresolved findings. Native
+release and hosted core-dependent library admission remain separate.
+
 ## Tutorial readiness and browser-first sign-in — 2026-10-24
 
 Local source only. Tutorial phase87a9b4ef prepares the three coherent current

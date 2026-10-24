@@ -36,6 +36,12 @@ Ledger2initial+5targetedturns/4fixbatches;currentbrowser40130988588failure
 underinvestigation. PR188draftuntilfinalcorrectedCI. IsolatedbrokerPR190
 8425c52aSolhighintegrationCLEAN,19auth/189web/type/rootPASS;GitHubCIpending.
 No realnewbrowserOAuthornewstudentwalkthroughclaimyet;native releasesheld.
+PR190mergedb376a903/allselectedCIpassed;productionREADYandstart200/no-store.
+ActualMacbrowseraccountchooser(no code)→armorup→local431;notacceptedcomplete.
+CodefallbackcompletedliveandnewGreetingrepo/clonesucceeded. bb552fa9bounded
+64KiBheaderfixretains8KiBURL/allguards;42author/38independentauthPASS,Astra
+targetedCLEAN. Retrypending. bbdfkeysfix+71a77006cumulativeSolreviewCLEAN54tests;
+native193/193reloaded. Ledger2initial+6targeted+1integration/6fixbatches.
 
 ## Tutorial readiness and browser sign-in complete locally — 2026-10-24
 
