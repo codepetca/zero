@@ -1,6 +1,6 @@
 # Verification
 
-## ZeroHub metrics — local implementation, 2026-10-24
+## ZeroHub metrics — implementation and publication preparation, 2026-10-24
 
 Vercel-native Free setup follow-up: integration credential-pair precedence,
 partial-pair rejection, preview isolation and a disable switch pass the focused
@@ -40,6 +40,15 @@ production counter writes or adoption rollout. No resources, credentials,
 publisher pins, student binaries, public registry entries or production website
 were changed. Physical touch/Safari/Windows/Linux are untested. The operational
 plan and compatibility rollout are in [metrics](ZEROHUB-METRICS.md).
+
+Publication compatibility at e3f3218a: full sharing90pass/4Docker-only skips and
+rootcheck pass. Two fresh independent Sol6.1/high reviewers completed the entire
+five-file delta from2dc0611e; no findings. Security reviewer ran26focused tests,
+compatibility reviewer22; both confirmed checker/verifier/workflow byte identity
+with shipped11c545. Source review is complete; actual CI/merge/deployment and live
+receipts are tracked in PR179 and ignored publication records. Review budget:
+2launches/1initial wave/0fix batches, no further wave required; effective model,
+per-turn tokens and elapsed reviewer time unavailable.
 
 ## System editor appearance — 2026-10-22
 
