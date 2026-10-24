@@ -298,16 +298,19 @@ function activate(context, services = {}) {
     state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped'; refresh();
   }
   const nativeTaskStates = new WeakMap();
+  // Configured tasks are reconstructed by VS Code; their CustomExecution is
+  // shared with the resolved task even when the Task object itself is different.
+  const nativeTaskState = task => nativeTaskStates.get(task) || nativeTaskStates.get(task?.execution);
   const nativeProblems=vscode.languages?.createDiagnosticCollection('zero-native-runtime');
   if(nativeProblems)context.subscriptions.push(nativeProblems);
   const compilerProblems=vscode.languages?.createDiagnosticCollection('zero-native-compiler');
   if(compilerProblems)context.subscriptions.push(compilerProblems);
   function nativeRuntimeState(task, event) {
-    const metadata = nativeTaskStates.get(task);
+    const metadata = nativeTaskState(task);
     if (!metadata) return;
     metadata.latest = event;
     if (event.type === 'fatal') metadata.failed = true;
-    if (disposed || metadata.generation !== runGeneration || execution?.task !== task || stoppedTasks.has(execution)) return;
+    if (disposed || metadata.generation !== runGeneration || nativeTaskState(execution?.task) !== metadata || stoppedTasks.has(execution)) return;
     if (event.type === 'ui-ready') state = 'App UI ready';
     else if (event.type === 'first-frame') state = 'App running · first game frame ready';
     else if (event.type === 'fatal') {buildFailed = true;state = `App failed (${event.stage}/${event.code}). Check Problems or the task terminal.`;
@@ -317,6 +320,18 @@ function activate(context, services = {}) {
     if (event.diagnostic) output.appendLine(`[Native ${event.stage}/${event.code}] ${event.diagnostic}`);
     refresh();
   }
+  function publishCompilerProblems(metadata) {
+    if(!compilerProblems || disposed || metadata.generation !== runGeneration || nativeTaskState(execution?.task) !== metadata || stoppedTasks.has(execution))return;
+    const grouped=new Map();
+    for(const item of metadata.compilerItems||[]){
+      const point=new vscode.Position(item.line-1,item.column-1);
+      const diagnostic=new vscode.Diagnostic(new vscode.Range(point,point),item.message,vscode.DiagnosticSeverity.Error);
+      diagnostic.source='Zero Java compiler';
+      if(!grouped.has(item.file))grouped.set(item.file,[]);
+      grouped.get(item.file).push(diagnostic);
+    }
+    for(const [file,diagnostics]of grouped)compilerProblems.set(vscode.Uri.file(file),diagnostics);
+  }
   async function makeTask(root, definition = {type:'zero',task:'run'}, scope = vscode.TaskScope.Workspace) {
     if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
     await core.assertTutorialRepository(root);
@@ -325,16 +340,7 @@ function activate(context, services = {}) {
     const metadata = {generation:runGeneration,root,failed:false};nativeProblems?.clear();
     let task, transport;
     const compiler = createNativeCompilerDiagnostics({root,onChange:items=>{
-      if(!compilerProblems || disposed || metadata.generation !== runGeneration || execution?.task !== task || stoppedTasks.has(execution))return;
-      const grouped=new Map();
-      for(const item of items){
-        const point=new vscode.Position(item.line-1,item.column-1);
-        const diagnostic=new vscode.Diagnostic(new vscode.Range(point,point),item.message,vscode.DiagnosticSeverity.Error);
-        diagnostic.source='Zero Java compiler';
-        if(!grouped.has(item.file))grouped.set(item.file,[]);
-        grouped.get(item.file).push(diagnostic);
-      }
-      for(const [file,diagnostics]of grouped)compilerProblems.set(vscode.Uri.file(file),diagnostics);
+      metadata.compilerItems=items;publishCompilerProblems(metadata);
     }});
     const processExecution = typeof vscode.CustomExecution === 'function'
       ? (transport = createNativeRuntimeExecution({vscode,spec,buildId:await nativeBuildIdentity(root),...services.nativeRuntime,
@@ -349,6 +355,7 @@ function activate(context, services = {}) {
     // refresh them until the long-lived JavaFX process exits.
     task = new vscode.Task(definition, scope, 'Run App', 'Zero', processExecution, transport ? [] : '$zero-java');
     metadata.custom=Boolean(transport);nativeTaskStates.set(task,metadata);
+    nativeTaskStates.set(processExecution,metadata);
     if (transport) context.subscriptions.push(transport);
     task.presentationOptions = {reveal: vscode.TaskRevealKind.Always, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
     task.group = vscode.TaskGroup.Build;
@@ -361,11 +368,12 @@ function activate(context, services = {}) {
     execution = active;
     buildFailed = false;
     ending = new Promise(resolve => taskFinishes.set(active, resolve));
-    const metadata = nativeTaskStates.get(active.task);
+    const metadata = nativeTaskState(active.task);
     if (disposed || metadata && metadata.generation !== runGeneration) {stoppedTasks.add(active);active.terminate();return;}
     compilerProblems?.clear();
+    if(metadata)publishCompilerProblems(metadata);
     state = 'Building / running · readiness unverified — output is in the terminal'; refresh();
-    const latest = nativeTaskStates.get(active.task)?.latest;
+    const latest = metadata?.latest;
     if (latest) nativeRuntimeState(active.task,latest);
   }
   context.subscriptions.push(vscode.tasks.onDidStartTask(event => {
@@ -376,7 +384,7 @@ function activate(context, services = {}) {
     taskFinishes.delete(event.execution); finish();
     if (execution === event.execution) {
       execution = undefined;
-      const metadata = nativeTaskStates.get(event.execution.task);
+      const metadata = nativeTaskState(event.execution.task);
       const exitCode = metadata?.exitCode ?? taskExitCodes.get(event.execution);
       buildFailed = Boolean(metadata?.failed || typeof exitCode === 'number' && exitCode !== 0 && (metadata?.custom || !stoppedTasks.has(event.execution)));
       state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped';
