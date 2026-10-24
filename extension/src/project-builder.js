@@ -89,19 +89,19 @@ async function readOperationLog(filename,expectedLogPath){
 function runProtocol({node,entrypoint,request,env,signal,onProgress=()=>{},deadlineMs=15*60*1000,spawn=spawnChild,platform=process.platform,killProcess=process.kill.bind(process),expectedLogPath}){
  if(signal?.aborted)return Promise.reject(aborted());const input=Buffer.from(JSON.stringify(request));if(input.length>format.LIMITS.requestBytes)return Promise.reject(unavailable('request exceeds its protocol limit.'));
  return new Promise((resolve,reject)=>{
-  const child=spawn(node,[entrypoint],{cwd:path.dirname(entrypoint),env,stdio:['pipe','pipe','pipe'],windowsHide:true,detached:platform!=='win32'});let chunks=[],size=0,stderrSize=0,line='',failure,closed=false,killTimer;
+  const child=spawn(node,[entrypoint],{cwd:path.dirname(entrypoint),env,stdio:['pipe','pipe','pipe'],windowsHide:true,detached:platform!=='win32'});let chunks=[],size=0,stderrSize=0,line='',failure,closed=false,closeObserved=false,killTimer;
   const kill=(force=true)=>{if(!child.pid)return;if(platform==='win32'){const system=Object.entries(env).find(([key])=>key.toUpperCase()==='SYSTEMROOT')?.[1];if(system)spawn(path.win32.join(system,'System32','taskkill.exe'),['/PID',String(child.pid),'/T','/F'],{env,stdio:'ignore',windowsHide:true}).on('error',()=>child.kill());else child.kill();}else {try{killProcess(-child.pid,force?'SIGKILL':'SIGTERM');}catch{child.kill(force?'SIGKILL':'SIGTERM');}}};
-  const fail=error=>{if(failure)return;failure=error;kill(false);killTimer=setTimeout(()=>kill(true),5500);killTimer.unref?.();};
+  const fail=error=>{if(failure||closed)return;failure=error;if(closeObserved)return finish(error);kill(false);killTimer=setTimeout(()=>kill(true),5500);killTimer.unref?.();};
   const cancel=()=>fail(aborted()),timer=setTimeout(()=>fail(unavailable('the builder exceeded its deadline.')),deadlineMs);timer.unref?.();signal?.addEventListener('abort',cancel,{once:true});
-  const finish=(error,result)=>{if(closed)return;closed=true;clearTimeout(timer);clearTimeout(killTimer);signal?.removeEventListener('abort',cancel);kill();error?reject(error):resolve(result);};
+  const finish=(error,result)=>{if(closed)return;closed=true;clearTimeout(timer);clearTimeout(killTimer);signal?.removeEventListener('abort',cancel);try{kill();}catch{}error?reject(error):resolve(result);};
   child.on('error',error=>finish(unavailable('could not start standalone Node: '+error.message)));
   child.stdout.on('data',bytes=>{size+=bytes.length;if(size>2*1024*1024){fail(unavailable('builder response exceeded 2 MiB.'));return;}chunks.push(bytes);});
   child.stderr.on('data',bytes=>{stderrSize+=bytes.length;if(stderrSize>1024*1024){fail(unavailable('builder progress exceeded its limit.'));return;}line+=bytes.toString('utf8');const parts=line.split(/\r?\n/);line=parts.pop();if(line.length>8192||parts.some(part=>part.length>8192)){fail(unavailable('builder progress line exceeded its limit.'));return;}for(const part of parts){try{onProgress(part.replace(/[\x00-\x08\x0b-\x1f\x7f]/g,'').slice(0,4096));}catch(error){fail(error);break;}}});
-  child.on('close',async code=>{if(failure)return finish(failure);let response;try{response=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{return finish(unavailable('builder returned invalid JSON.'));}if(response.protocol!==1||typeof response.ok!=='boolean')return finish(unavailable('builder operation failed: unsupported response protocol.'));if(!response.ok){
+  child.on('close',code=>{closeObserved=true;(async()=>{if(failure)return finish(failure);let response;try{response=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{return finish(unavailable('builder returned invalid JSON.'));}const record=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);if(!record(response)||response.protocol!==1||typeof response.ok!=='boolean'||!record(response.ok?response.result:response.error))return finish(unavailable('builder operation failed: unsupported response protocol.'));if(!response.ok){
    const message=String(response.error?.message||'Browser build failed. Check the Zero output.').slice(0,4096),error=response.error?.code==='cancelled'?aborted():Object.assign(Error(message),{code:'ZERO_BUILDER_OPERATION_FAILED'});
    if(response.error?.logPath!==undefined){try{error.logText=await readOperationLog(response.error.logPath,expectedLogPath);error.logPath=expectedLogPath;}catch(logError){return finish(failure||logError);}}
    return finish(failure||error);
-  }if(code!==0)return finish(unavailable('builder exited unsuccessfully.'));finish(null,response.result);});
+  }if(code!==0)return finish(unavailable('builder exited unsuccessfully.'));finish(null,response.result);})().catch(error=>finish(failure||unavailable('could not read the builder response: '+String(error.message).slice(0,4096))));});
   child.stdin.on('error',()=>{});child.stdin.end(input);
  });
 }
