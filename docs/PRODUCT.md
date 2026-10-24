@@ -112,7 +112,10 @@ notes and the classroom pilot live under `/teachers`. Product, development and
 verification records stay in repository documentation. Legacy `/docs/...` guide
 bookmarks lead to the corresponding tutorial, help, teacher or repository page.
 ZeroHub opens Projects by default and has only Projects and Libraries in its
-catalog navigation. Share your work is a separate button. Drawing Pad is a
+catalog navigation. Share your work sits alongside those filters on the same
+toolbar. The title has no subtitle or account row; the search field contains a
+magnifying glass and the placeholder “search zerohub”, with an accessible name.
+Drawing Pad is a
 maintained Codepet project backed by `codepetca/zero-drawing-pad`, shown alongside
 community projects with a tiny description, square screenshot and GitHub source.
 It has no Play action until public hosting is verified. Maintained projects do
@@ -125,15 +128,18 @@ Students build one feature at a time in their own repository; GitHub/project
 workflow is part of the learning outcome. Tutorial setup and the minimal original
 project template remain available through their setup instructions. See
 [the course project guide](COURSE-PROJECT.md).
-Tutorials and Downloads use one circular sun/moon button in the header to switch
-light/dark mode. The OS preference is the initial default; a chosen mode persists.
+The shared website header has a profile icon opening an account dropdown.
+Signed-out users can Sign in to GitHub; connected users see their username and
+Sign out without a duplicate sign-in action. Connection failures retain Retry.
+The dropdown also switches light/dark mode. The OS preference is the initial
+default; a chosen mode persists.
 These pages fill the viewport width and at least its height; longer lessons scroll.
 Downloads centers its heading and equal-width platform buttons in a vertical stack.
 A setup-help link appears below the buttons; current platform/version requirements
 appear inside that linked setup guide, keeping Downloads uncluttered;
 initial tutorial entries offer the verified empty template and a concise Setup link.
 Longer guidance in Docs explains creating and cloning the student-owned repository.
-Share your work preserves the shared theme and appearance toggle.
+Share your work preserves the shared theme and account dropdown.
 Website tutorial steps and reference sections are expanded by default; full guides remain
 available. Tutorial step headings use subtle highlights instead of horizontal
 dividers. Generic setup/continuation cards are omitted; specific component or
