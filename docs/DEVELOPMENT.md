@@ -345,8 +345,9 @@ Run/Stop. It shares anchored-menu keyboard/focus behavior with New; both menus
 are mutually exclusive. Focused checks include `extension/test/run-dropdown.test.js`.
 The design fixture accepts `/sidebar?connected=1` for safe publishing-menu review.
 
-Native Run collects compiler Problems until Maven starts the JavaFX run goal,
-then refreshes them while the app stays open. Verify recovery by introducing a
+Native Run uses a separate Zero compiler diagnostic collection, reset when the
+next native task starts. It parses compiler output until Maven starts the JavaFX
+run goal and retains errors after a failed task exits or Stop. Verify recovery by introducing a
 syntax error, following its Problems link, fixing it and running again: the old
 error must disappear before Stop. Runtime failures retain their separate
 diagnostic collection. The standalone “Run App without Zero” task keeps its own

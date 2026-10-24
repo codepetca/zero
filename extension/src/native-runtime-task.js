@@ -84,12 +84,16 @@ function createRecordDecoder({runId, buildId, write, onEvent, now = Date.now}) {
   };
 }
 
-function createNativeRuntimeExecution({vscode, spec, buildId, onEvent = () => {}, onExit = () => {}, isCurrent = () => true, spawn = childProcess.spawn, killProcess = process.kill, platform = process.platform, env = process.env, graceMs = 1500, drainMs = 500}) {
+function createNativeRuntimeExecution({vscode, spec, buildId, onEvent = () => {}, onExit = () => {}, onOutput = () => {}, isCurrent = () => true, spawn = childProcess.spawn, killProcess = process.kill, platform = process.platform, env = process.env, graceMs = 1500, drainMs = 500}) {
   const controllers = new Set();
   const execution = new vscode.CustomExecution(async () => {
     const runId = crypto.randomUUID();
     const writes = new vscode.EventEmitter(), closes = new vscode.EventEmitter();
     const stdout = new StringDecoder('utf8'), stderr = new StringDecoder('utf8');
+    const decoded = (text, stream) => {
+      if (text && isCurrent() && !cancelled) onOutput(text,stream);
+      if (stream === 'stdout') decoder.push(text); else write(text);
+    };
     let child, cancelled = false, closed = false, opened = false, timer, drainTimer;
     let inputClosed = false, rootExited = false, settledCode, forceKilled = false, previousCR = false;
     const write = text => {
@@ -116,7 +120,7 @@ function createNativeRuntimeExecution({vscode, spec, buildId, onEvent = () => {}
     function finish(code) {
       if (closed) return;
       closed = true; clearTimeout(timer); clearTimeout(drainTimer);
-      decoder.push(stdout.end()); decoder.end(); write(stderr.end());
+      decoded(stdout.end(),'stdout'); decoder.end(); decoded(stderr.end(),'stderr');
       kill(true);
       child?.stdin?.destroy?.(); child?.stdout?.destroy?.(); child?.stderr?.destroy?.();
       controllers.delete(controller);
@@ -167,8 +171,8 @@ function createNativeRuntimeExecution({vscode, spec, buildId, onEvent = () => {}
           child.stdin?.on?.('error', () => {inputClosed = true;});
           child.stdin?.on?.('close', () => {inputClosed = true;});
           child.stdin?.on?.('finish', () => {inputClosed = true;});
-          child.stdout.on('data', data => decoder.push(stdout.write(data)));
-          child.stderr.on('data', data => write(stderr.write(data)));
+          child.stdout.on('data', data => decoded(stdout.write(data),'stdout'));
+          child.stderr.on('data', data => decoded(stderr.write(data),'stderr'));
           child.once('error', error => {if (!closed) {write(`Cannot start native Java: ${error.message}\r\n`); finish(1);}});
           child.once('exit', code => rootExit(code));
           child.once('close', code => {rootExit(code); finish(code);});

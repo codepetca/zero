@@ -6,6 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const core = require('./core');
 const {nativeBuildIdentity,createNativeRuntimeExecution} = require('./native-runtime-task');
+const {createNativeCompilerDiagnostics} = require('./native-compiler-diagnostics');
 const lessonProjects = require('./lesson-projects');
 const github = require('./github');
 const workflow = require('./workflow');
@@ -299,6 +300,8 @@ function activate(context, services = {}) {
   const nativeTaskStates = new WeakMap();
   const nativeProblems=vscode.languages?.createDiagnosticCollection('zero-native-runtime');
   if(nativeProblems)context.subscriptions.push(nativeProblems);
+  const compilerProblems=vscode.languages?.createDiagnosticCollection('zero-native-compiler');
+  if(compilerProblems)context.subscriptions.push(compilerProblems);
   function nativeRuntimeState(task, event) {
     const metadata = nativeTaskStates.get(task);
     if (!metadata) return;
@@ -321,18 +324,30 @@ function activate(context, services = {}) {
     await fs.access(spec.command);
     const metadata = {generation:runGeneration,root,failed:false};nativeProblems?.clear();
     let task, transport;
+    const compiler = createNativeCompilerDiagnostics({root,onChange:items=>{
+      if(!compilerProblems || disposed || metadata.generation !== runGeneration || execution?.task !== task || stoppedTasks.has(execution))return;
+      const grouped=new Map();
+      for(const item of items){
+        const point=new vscode.Position(item.line-1,item.column-1);
+        const diagnostic=new vscode.Diagnostic(new vscode.Range(point,point),item.message,vscode.DiagnosticSeverity.Error);
+        diagnostic.source='Zero Java compiler';
+        if(!grouped.has(item.file))grouped.set(item.file,[]);
+        grouped.get(item.file).push(diagnostic);
+      }
+      for(const [file,diagnostics]of grouped)compilerProblems.set(vscode.Uri.file(file),diagnostics);
+    }});
     const processExecution = typeof vscode.CustomExecution === 'function'
       ? (transport = createNativeRuntimeExecution({vscode,spec,buildId:await nativeBuildIdentity(root),...services.nativeRuntime,
           isCurrent:()=>!disposed && metadata.generation === runGeneration,
-          onEvent:event => nativeRuntimeState(task,event),onExit:code => {metadata.exitCode = code;}
+          onEvent:event => nativeRuntimeState(task,event),onOutput:(text,stream)=>compiler.push(text,stream),
+          onExit:code => {compiler.end();metadata.exitCode = code;}
         })).execution
       : spec.shell
         ? new vscode.ShellExecution({value: spec.command, quoting: vscode.ShellQuoting.Strong}, spec.args, {cwd: root})
         : new vscode.ProcessExecution(spec.command, spec.args, {cwd: root});
-    task = new vscode.Task(definition, scope, 'Run App', 'Zero', processExecution, '$zero-java');
-    // Complete compiler problem collection before the long-lived JavaFX process
-    // exits, so a corrected running app does not retain the last build's errors.
-    task.isBackground = true;
+    // CustomExecution owns compiler diagnostics. A finite task matcher cannot
+    // refresh them until the long-lived JavaFX process exits.
+    task = new vscode.Task(definition, scope, 'Run App', 'Zero', processExecution, transport ? [] : '$zero-java');
     metadata.custom=Boolean(transport);nativeTaskStates.set(task,metadata);
     if (transport) context.subscriptions.push(transport);
     task.presentationOptions = {reveal: vscode.TaskRevealKind.Always, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
@@ -348,6 +363,7 @@ function activate(context, services = {}) {
     ending = new Promise(resolve => taskFinishes.set(active, resolve));
     const metadata = nativeTaskStates.get(active.task);
     if (disposed || metadata && metadata.generation !== runGeneration) {stoppedTasks.add(active);active.terminate();return;}
+    compilerProblems?.clear();
     state = 'Building / running · readiness unverified — output is in the terminal'; refresh();
     const latest = nativeTaskStates.get(active.task)?.latest;
     if (latest) nativeRuntimeState(active.task,latest);
