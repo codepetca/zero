@@ -3,10 +3,11 @@ import {createContext, useCallback, useContext, useEffect, useRef, useState, typ
 import styles from '@/app/hub/hub.module.css';
 
 type HubUser = {id:string; login:string; csrfToken:string};
-type Connection = {configured:boolean|null; user:HubUser|null; error:string; refresh:()=>Promise<void>};
-const GitHubContext = createContext<Connection>({configured:null,user:null,error:'',refresh:async()=>{}});
+type Connection = {configured:boolean|null; user:HubUser|null; error:string; callbackError:boolean; refresh:()=>Promise<void>};
+const GitHubContext = createContext<Connection>({configured:null,user:null,error:'',callbackError:false,refresh:async()=>{}});
 export function HubGitHubProvider({children}:{children:ReactNode}) {
   const [configured,setConfigured]=useState<boolean|null>(null),[user,setUser]=useState<HubUser|null>(null),[error,setError]=useState('');
+  const [callbackError,setCallbackError]=useState(false);
   const generation=useRef(0);
   const refresh=useCallback(async()=>{
     const current=++generation.current;
@@ -16,11 +17,11 @@ export function HubGitHubProvider({children}:{children:ReactNode}) {
       const data=await response.json();
       if(current!==generation.current)return;
       if(typeof data.configured!=='boolean'||data.user&&(!/^[0-9]+$/.test(data.user.id)||typeof data.user.login!=='string'||typeof data.user.csrfToken!=='string'))throw new Error();
-      setConfigured(data.configured);setUser(data.user||null);setError('');
+      setConfigured(data.configured);setUser(data.user||null);setError('');if(data.user)setCallbackError(false);
     }catch {if(current===generation.current){setUser(null);setError('Could not check your GitHub connection.');}}
   },[]);
-  useEffect(()=>{void refresh();return()=>{generation.current++;};},[refresh]);
-  return <GitHubContext.Provider value={{configured,user,error,refresh}}>{children}</GitHubContext.Provider>;
+  useEffect(()=>{setCallbackError(['denied','invalid','failed','unavailable','error','expired'].includes(new URLSearchParams(window.location.search).get('github')||''));void refresh();return()=>{generation.current++;};},[refresh]);
+  return <GitHubContext.Provider value={{configured,user,error,callbackError,refresh}}>{children}</GitHubContext.Provider>;
 }
 export function useHubGitHub(){return useContext(GitHubContext);}
 export function hubLoginHref(){
@@ -28,8 +29,7 @@ export function hubLoginHref(){
   return `/api/hub/github/login?${new URLSearchParams({returnTo})}`;
 }
 export function HubAccount({onSignedOut,onRetryComplete}:{onSignedOut?:()=>void;onRetryComplete?:()=>void}={}){
-  const {configured,user,error,refresh}=useHubGitHub();const[busy,setBusy]=useState(false),[failure,setFailure]=useState(''),[callbackError,setCallbackError]=useState(false);
-  useEffect(()=>{setCallbackError(['denied','invalid','failed','unavailable','error','expired'].includes(new URLSearchParams(window.location.search).get('github')||''));},[]);
+  const {configured,user,error,callbackError,refresh}=useHubGitHub();const[busy,setBusy]=useState(false),[failure,setFailure]=useState('');
   async function signOut(){
     if(!user||busy)return;setBusy(true);setFailure('');
     try{const response=await fetch('/api/hub/github/logout',{method:'POST',credentials:'same-origin',headers:{'X-Hub-CSRF':user.csrfToken},redirect:'error',signal:AbortSignal.timeout(10000)});if(!response.ok&&response.status!==401)throw new Error();await refresh();onSignedOut?.();}

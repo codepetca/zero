@@ -5,10 +5,12 @@ import {Icon} from './Icon';
 import './AccountMenu.css';
 
 export function AccountMenu({dark, onToggleTheme}: {dark:boolean; onToggleTheme:()=>void}) {
-  const {user, error} = useHubGitHub();
+  const {user, error, callbackError} = useHubGitHub();
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null), trigger = useRef<HTMLButtonElement>(null);
   const id = useId();
+  const attention = !!error || callbackError && !user;
+  useEffect(() => {if (callbackError) {setOpen(true); trigger.current?.focus();}}, [callbackError]);
   useEffect(() => {
     if (!open) return;
     function outside(event: PointerEvent) {
@@ -32,9 +34,9 @@ export function AccountMenu({dark, onToggleTheme}: {dark:boolean; onToggleTheme:
     if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
   }}>
     <button ref={trigger} type="button" className="profile-toggle" aria-expanded={open} aria-controls={id}
-      aria-label={user ? `Account menu, signed in as @${user.login}` : error ? 'Account menu, GitHub connection needs attention' : 'Account menu'}
+      aria-label={user ? `Account menu, signed in as @${user.login}` : attention ? 'Account menu, GitHub connection needs attention' : 'Account menu'}
       title={user ? `@${user.login}` : 'Account'} onClick={() => setOpen(value => !value)}>
-      <Icon name={error ? 'triangle-alert' : 'user'} />
+      <Icon name={attention ? 'triangle-alert' : 'user'} />
     </button>
     <div id={id} hidden={!open} className="account-dropdown" aria-label="Account and appearance">
       <HubAccount onSignedOut={() => {setOpen(false); trigger.current?.focus();}} onRetryComplete={() => trigger.current?.focus()} />

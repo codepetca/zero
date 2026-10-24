@@ -13,6 +13,9 @@ states (no duplicate sign-in), guarded local sign-out/focus restoration,
 connection failure/Retry/focus restoration, Tab and Escape, outside dismissal,
 light/dark switching, search filtering, and 320px/390px inline toolbar reflow
 without horizontal overflow. No real account, star or Play writes were made.
+The independent review identified hidden OAuth callback failure feedback; the
+correction shares that state with the profile trigger and automatically opens
+the existing failure/sign-in content after a failed or cancelled callback.
 Physical Safari/touch, text enlargement and real OAuth were not reverified.
 Review/CI/live delivery receipts are retained in the PR handoff and ignored
 .verification/zerohub-header-cleanup/.
