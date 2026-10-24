@@ -159,6 +159,9 @@ export function loginResponse(request, env = process.env, fetchImpl = fetch, now
   url.searchParams.set('code_challenge', intent.codeChallenge);
   url.searchParams.set('code_challenge_method', 'S256');
   url.searchParams.set('scope', 'offline_access');
+  // A local sign-out cannot change the browser's GitHub account. Keep the
+  // existing Change GitHub account command able to select a different user.
+  url.searchParams.set('prompt', 'select_account');
   return redirect(url.toString(), flowCookie(intent.flowId, csrf, config,
     Math.floor((intent.expiresAt - now) / 1000)));
 }

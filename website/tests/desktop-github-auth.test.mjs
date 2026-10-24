@@ -131,6 +131,7 @@ test('login binds the fixed GitHub callback, PKCE, scope and isolated per-flow c
   assert.equal(first.authorize.searchParams.get('code_challenge'), challenge);
   assert.equal(first.authorize.searchParams.get('code_challenge_method'), 'S256');
   assert.equal(first.authorize.searchParams.get('scope'), 'offline_access');
+  assert.equal(first.authorize.searchParams.get('prompt'), 'select_account');
   assert.notEqual(first.cookie.split('=')[0], second.cookie.split('=')[0]);
   assert.match(first.login.headers.get('set-cookie'), /Path=\/api\/desktop\/github; HttpOnly; SameSite=Lax; Max-Age=600; Secure/);
   assert.doesNotMatch(first.cookie, /zero_hub|ghu_|ghr_/);

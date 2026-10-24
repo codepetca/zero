@@ -37,7 +37,7 @@ async function fixture(t,{enabled=true,fallback=true}={}){
  const vscode={EventEmitter:Emitter,ProgressLocation:{Notification:15},Uri:{parse:value=>value},env:{clipboard:{writeText:async()=>{}},openExternal:async url=>{
   opens.push(url);if(url==='https://github.com/login/device')return true;
   const login=server.loginResponse(new Request(url),env,githubFetch,time);assert.equal(login.status,303);
-  const authorize=new URL(login.headers.get('location'));assert.equal(authorize.origin,'https://github.com');assert.equal(authorize.pathname,'/login/oauth/authorize');
+  const authorize=new URL(login.headers.get('location'));assert.equal(authorize.origin,'https://github.com');assert.equal(authorize.pathname,'/login/oauth/authorize');assert.equal(authorize.searchParams.get('prompt'),'select_account');
   const cookie=login.headers.get('set-cookie').split(';')[0];
   const callback=server.callbackResponse(new Request('https://zero.codepet.ca/api/desktop/github/callback?code=oauth_code_123456&state='+encodeURIComponent(authorize.searchParams.get('state')),{headers:{Cookie:cookie}}),env,githubFetch,time);
   assert.equal(callback.status,303);assert.doesNotMatch(callback.headers.get('location'),/ghu_|ghr_/);
@@ -66,4 +66,11 @@ test('declined fallback writes no credentials and uncertain browser rotation can
  await assert.rejects(f.provider.getSessions([]),error=>error.code==='reconnect-required'&&!error.message.includes('do_not_leak'));
  assert.equal(JSON.parse(f.data.get(SECRET_KEY)).state,'reconnect');assert.deepEqual(await f.provider.getSessions([]),[]);
  assert.equal(f.refreshes,1);assert.equal(f.calls.some(url=>url==='https://github.com/login/oauth/access_token'),false);
+});
+
+test('removing the local session and signing in again keeps browser account selection available',async t=>{
+ const f=await fixture(t);const first=await f.provider.createSession([]);
+ await f.provider.removeSession(first.id);assert.equal(f.data.has(SECRET_KEY),false);
+ const second=await f.provider.createSession([]);assert.notEqual(second.id,first.id);
+ assert.equal(f.exchanges,2);assert.equal(f.opens.length,2);assert.equal(JSON.parse(f.data.get(SECRET_KEY)).flow,'browser');
 });
