@@ -1,24 +1,39 @@
 # Zero phased vision — current handoff
 
-## Active: tutorial readiness, then browser sign-in — 2026-10-24
+## Tutorial readiness and browser sign-in complete locally — 2026-10-24
 
-User authorized local readiness fixes first, then browser-first GitHub sign-in
-with explicit device-code fallback. Publishing, deployment, releases and App
-configuration changes remain separate. Parent owns Git/shared docs/integration.
-Tutorial worker owned generator/preflight/tests/lesson8+10; delivered locally.
-New-only Start tutorial digest gate blocks stale recorded templates before
-creation; existing Open/Clone/Run remain unchanged. Phase1 at87a9b4ef independently
-COMPLETE/CLEAN:70focused+17legacytests,3actualnativebehaviors and3savedbuilderGWT
-exports pass. CUA newStart blocks beforeforms; fresh exports show Greeting Sam,
-Study Correct/Score1, lesson11game HUD/badge. New browser win not claimed; native
-checks cover win/reset. Auth phase now starting; official templates remain stale.
+User authorized readiness first, then browser-first GitHub sign-in with explicit
+code fallback. Source throughaa8d4c3d; no push/PR/merge/deployment, official template
+publication, App settings/secrets or release. Phase1 at87a9b4ef independently
+COMPLETE/CLEAN:70focused+17legacytests,3actual native behaviors and3savedbuilder
+WebFX exports pass. CUA Greeting/Study interactions and Coin11 startup/HUD/badge
+pass; new browser win not claimed. New Start tutorial rejects stale recorded
+publication digests before forms; Open/Clone/Run unchanged. Public templates stay
+stale and direct GitHub/manual Clone remains outside this new-only gate.
 
-Browser-first auth implemented locally; integration/security review in progress.
-Client IPv4 listener + PKCE, distinct sealed server handoff, no-store POST token
-exchange/renewal, explicit code fallback and legacy device renewal routing.
-Server remains disabled; no deployment, App callback/config changes or release.
-Focused protocol tests include real client/server modules with fake GitHub and
-actual loopback requests. Live deployed browser/editor OAuth remains unproven.
+Default source sign-in uses broker+IPv4 return/PKCE; code command/Start Page
+fallback remains. Server OFF by default; legacy device sessions retain renewal.
+147focused+19account-selection+58tutorial integration+28finalsite checks pass;
+website190/190 author tests and finaltypecheck/root PASS. Fullmatrix1,134tests:1,131pass/0fail/3existingWindows/PowerShellskips.
+Actual local browser UI (fakeGitHub, realmodules):browser session without code,
+explicit code session. RealMac editor retains armorup afterreload, fallbackcommand
+discoverable, lesson11practice button rendered/optionalextension retained.
+
+Initial Astra/high security + Sol/high compatibility auth reviews COMPLETE;
+same P2missingaccountselection fixed. Sol/high targeted9-fileclosure CLEAN.
+3authreviewerturns/2waves/2correctioncommits;0unresolved findings. Effectiveconfigs,
+tokens and timings unavailable. Fullmatrix follow-up fixed fixture ready evidence
+and actualofflinepractice link. See VERIFICATION/EVIDENCE andignored receipt.
+OwnedQAservers/tab stopped/closed; originalZeroDevwatcher/profile preserved.
+Storage253GBhealthy/weekly60%remaining atstart account-wide; DeepSeek pause honored.
+Live deployed webOAuth, physicalWindows/Safari and template publication held.
+
+The prior Mac walkthrough subsequently completed real device sign-in as armorup,
+created/cloned the authorized disposable public repository
+https://github.com/armorup/zero-tutorial-walkthrough-20261024, and reproduced34
+missing-current-API compile errors from its stale public template. Its saved
+student edits/report remain in ~/Zero Projects; no follow-up push/extraction/share
+or classmate install acceptance is claimed.
 
 ## Mac tutorial follow-up — 2026-10-24
 

@@ -1,5 +1,68 @@
 # Verification
 
+## Tutorial readiness and browser-first sign-in — 2026-10-24
+
+Local source only. Tutorial phase87a9b4ef prepares the three coherent current
+scaffolds and verifies recorded scaffold digests before NEW Start tutorial forms
+or repository creation. Existing Open/Clone/Run remain independent. Official
+publication metadata remains stale, so the strict publication checker intentionally
+fails for all three templates. This is recorded evidence, not a live guarantee of
+mutable remote contents; direct GitHub links/manual Clone stay outside the gate.
+
+70focused+17legacy tests passed. Fresh generated Greeting checkpoint2, Study7 and
+Coin11 each passed an actual finite native behavior check and project-owned
+saved-builder GWT export. Actual browser UI: Greeting Sam→Hello, Sam!, Study
+Correct/attempts1/score1, Coin startup score0/threecoins/CreditsBadge. New browser
+win is not claimed; native checks cover win/reset. Actual Mac Start tutorial stops
+with useful stale-template guidance before repository forms. The failed public
+walkthrough clone is preserved separately. Independent Sol/high readiness review
+COMPLETE/CLEAN over all18files. Full-suite follow-up fixed fixture-only publication
+evidence, the offline reader's exact practice URL and authored link rendering;
+58focused onboarding/reader/content tests pass. Actual Mac lesson11 renders the
+practice button and retains the optional original contribution extension.
+
+Browser authadfdc267 with corrections throughaa8d4c3d defaults to GitHub browser
+authorization, keeps explicit Start Page/command code sign-in and offers that
+fallback on unavailable browser service. The server is OFF by default. A fixed
+first-party broker, state/per-flow HttpOnly cookie, desktop-held PKCE verifier,
+short-lived purpose-separated seals and temporary IPv4 listener bind the return.
+Access/refresh tokens never enter callback URLs/cookies; the server does not
+persist desktop tokens. SecretStorage marks the issuing flow. Legacy device
+sessions retain direct secretless renewal; browser sessions use server renewal.
+The inherited lock/uncertain-rotation/reconnect and account drift guards remain.
+GitHub enforces one-use OAuth codes; there is no local durable replay database.
+
+147focused auth/start checks passed, then19account-selection/routing and28final
+server/website-learning checks passed; website author reports190/190 full tests.
+Root check and final website typecheck pass. Controlled browser UI exercised the
+actual provider/client/server modules against fake GitHub: browser sign-in
+completed without a code and explicit code fallback completed a device session.
+These are local protocol proofs, not live GitHub OAuth or native SecretStorage
+acceptance. Real Mac source editor retained armorup after reload and discovered
+Zero: Sign in using a code; no existing account was removed for QA.
+
+Independent initial Astra/high security and Sol/high compatibility reviews covered
+all24files plus dependencies. Both found the same P2 missing account selection;
+prompt=select_account and query/reconnect regressions close it. Targeted Sol/high
+closure covered all9correction files and immediate boundaries, COMPLETE/CLEAN;
+3focused checks independently pass. Auth ledger:3reviewer turns,1initial and
+1targeted wave,2correction commits,0unresolved findings. No additional full wave
+was needed: targeted closure plus unchanged initial coverage covers source head
+aa8d4c3d. Effective configurations, tokens and elapsed effort are unavailable.
+
+Full extension/configuration matrix:1,134tests,1,131passed,0failures,3existing
+Windows/PowerShell checks skipped on this Mac (320.75s).
+
+Proofs: `.verification/tutorial-readiness/builds.json`,
+`.verification/browser-auth-ui/{browser-session,device-session}.png`, focused/full
+logs and `.verification/tutorial-readiness-auth-receipt.json`. Owned test servers
+and browser tab stopped/closed; original Zero Dev watcher/profile preserved.
+Physical Windows/Safari, deployed web OAuth, live refresh/revocation and school
+network return behavior remain unproven. Activation requires separate website
+publication, matching server secrets/flag and exact App callback registration.
+No push/PR/merge/deploy, official tutorial publication, App settings/secret changes
+or release occurred.
+
 ## Native compiler recovery — 2026-10-24
 
 Local source fix: the Zero native task owns a separate compiler diagnostic

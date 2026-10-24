@@ -1,5 +1,24 @@
 # Delivery evidence index
 
+## Tutorial readiness and browser sign-in — 2026-10-24
+
+Source-only readiness87a9b4ef and browser authentication throughaa8d4c3d are
+verified and independently reviewed locally. Current tutorial drafts each pass
+native behavior and saved-builder WebFX export; observed browser checks cover
+Greeting/Study behavior and lesson11 Coin startup/badge. New Start tutorial blocks
+stale recorded templates before creation; existing projects stay independent.
+Official template publication and direct/manual Clone verification remain separate.
+
+Browser-first authorization and explicit code fallback complete in controlled
+local UI using real client/server modules and fake GitHub. Saved editor session
+survives reload; code command and lesson11 practice link are visible. Two auth
+reviewers' duplicate account-selection finding was fixed, with clean targeted
+closure; no unresolved source blockers. Production broker remains disabled;
+live GitHub web OAuth, callback activation and physical Windows/Safari remain
+unproven. No publication/release or App configuration changes occurred.
+See [verification](VERIFICATION.md#tutorial-readiness-and-browser-first-sign-in--2026-10-24)
+and the ignored `.verification/tutorial-readiness-auth-receipt.json`.
+
 ## CreditsBadge tutorial practice sharing — 2026-10-24
 
 Owner approved a harmless copied badge exercise instead of mass input-helper
