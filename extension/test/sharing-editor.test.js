@@ -34,6 +34,33 @@ test('extraction cancellation, unsaved changes and source drift preserve files; 
  }
  const applied=await fixture(t,{approval:'Apply'});await applied.editor.commands['zero.extractLibrary']();assert.match(await fs.readFile(path.join(applied.root,'src/main/java/Main.java'),'utf8'),/import zero.contrib.r12345.health_bar.Health;/);assert.match(await fs.readFile(path.join(applied.root,'.gitignore'),'utf8'),/\.zero-sharing-recovery\//);assert.ok(applied.stats().stagedPlan.changes.some(c=>c.path==='.gitignore'));assert.equal(applied.stats().busy,false);assert.match(applied.states.at(-1),/Library extracted/);assert.ok(!applied.messages.some(text=>text.startsWith('Library extracted')));
 });
+test('ordinary extraction records current project core support without manual metadata editing',async t=>{
+ const f=await fixture(t,{approval:'Apply'}),core=require('../src/core-contract'),sources={};
+ for(const name of core.coreSourcePaths) {
+  sources[name]=await fs.readFile(path.resolve(__dirname,'../../framework',name));
+  await fs.mkdir(path.dirname(path.join(f.root,name)),{recursive:true});await fs.writeFile(path.join(f.root,name),sources[name]);
+ }
+ const record=core.makeCoreRecord(sources);await fs.writeFile(path.join(f.root,'zero-core.json'),JSON.stringify(record));
+ await f.editor.commands['zero.extractLibrary']();
+ const descriptor=JSON.parse(await fs.readFile(path.join(f.root,'libraries/health-bar/zero-library.json')));
+ assert.equal(descriptor.schema,2);assert.deepEqual(descriptor.coreRequirement,{minVersion:'0.3.0',maxExclusive:'0.4.0'});
+ assert.deepEqual(descriptor.coreInput,{version:'0.3.0',sourceSha256:record.sourceSha256});
+ assert.equal(f.stats().stagedPlan.coreSnapshot.length,17);
+});
+test('Use published version passes the selected verified release into core-aware mode planning',async t=>{
+ const f=await fixture(t),before=await fs.readFile(path.join(f.root,'pom.xml'));
+ const identity=require('../src/sharing/contracts').identity('library','12345','health-bar');
+ const release={schema:2,kind:'library',id:identity.id,status:'available',version:'2.0.0',title:'Health',coreRequirement:{minVersion:'0.4.0',maxExclusive:'0.5.0'}};
+ let verified=0,planned=0;
+ const api={...authoring,discoverLibraries:async()=>[{slug:'health-bar',mode:'local',identity,descriptor:{schema:1,title:'Health',version:'0.1.0'}}],previewMode:async(root,options)=>{
+  planned++;assert.equal(root,f.root);assert.equal(options.publishedRelease,release);assert.equal(options.version,'2.0.0');
+  throw new Error('Selected release core requirement blocks the mode switch.');
+ }};
+ f.vscode.window.showQuickPick=async entries=>entries.find(entry=>entry.mode==='published')||entries[0];
+ const editor=createSharingEditor(f.vscode,f.host,{authoring:api,consumer:{loadCatalog:async()=>({catalog:{releases:[release]}}),verifyLibrary:async(context,selected)=>{assert.equal(selected,release);verified++;}}});
+ await assert.rejects(editor.commands['zero.switchLibraryMode'](),/Selected release core requirement/);
+ assert.equal(verified,1);assert.equal(planned,1);assert.deepEqual(await fs.readFile(path.join(f.root,'pom.xml')),before);
+});
 test('direct import rewriting preserves strings/comments and complex qualified references take manual path',async t=>{
  const f=await fixture(t);await fs.writeFile(path.join(f.root,'src/main/java/Health.java'),'package game; public class Health {}');
  await fs.writeFile(path.join(f.root,'src/main/java/Main.java'),'import game.Health; public class Main { Health h; String text="import game.Health;"; /* import game.Health; */ }');

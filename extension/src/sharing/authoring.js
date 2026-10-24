@@ -223,19 +223,25 @@ async function previewExtraction(root, options) {
   await checkShadows(project.root,newState,changes);
   return {schema:1,root:project.root,kind:'extract',identity:id,descriptor,classes,changes,sourceSnapshot:await snapshot(project.root),...(core?{coreDescriptor:descriptor,coreExact:true,coreSnapshot:core.snapshot}:{})};
 }
-async function previewMode(root, {slug,mode,version}) {
+async function previewMode(root, {slug,mode,version,publishedRelease}) {
   const project = await base(root); contracts().validateSlug(slug);
   if (!['local','published'].includes(mode)) fail('Choose local or published mode.');
   const library = project.state.libraries.find(l => l.slug === slug); if (!library) fail('Unknown authored library.');
   const descriptorPath = `libraries/${slug}/zero-library.json`, descriptorText = await read(project.root,descriptorPath);
   const descriptor = contracts().validateDescriptor(JSON.parse(descriptorText));
   if (descriptor.slug !== slug) fail('The library descriptor does not match its folder.');
-  const core = await coreState(project.root,descriptor,{exact:mode==='local'});
   const selectedVersion = mode === 'published' ? contracts().validateVersion(version) : descriptor.version;
+  let coreDescriptor=descriptor;
+  if (mode === 'published' && publishedRelease) {
+    const release=contracts().validateRelease(publishedRelease), identity=contracts().identity('library',library.repositoryId,slug);
+    if (release.kind!=='library' || release.id!==identity.id || release.version!==selectedVersion || release.status!=='available') fail('Choose the verified published release for this library and exact version.');
+    coreDescriptor=release.schema===2?{schema:2,coreRequirement:release.coreRequirement}:{schema:1};
+  } else if (mode === 'published' && descriptor.schema===2) fail('Choose a verified published release before switching a core-dependent library.');
+  const core = await coreState(project.root,coreDescriptor,{exact:mode==='local'});
   const state = {schema:1,libraries:project.state.libraries.map(l => l.slug === slug ? {...l,mode,version:selectedVersion} : l)};
   const changes = [await change(project.root,STATE,JSON.stringify(state,null,2)+'\n'),{path:'pom.xml',before:project.pom,after:integratePom(project.pom,state)}];
   await checkShadows(project.root,state,changes);
-  return {schema:1,root:project.root,kind:'mode',changes,sourceSnapshot:await snapshot(project.root),...(core?{coreDescriptor:descriptor,coreExact:mode==='local',coreSnapshot:core.snapshot,coreDescriptorPath:descriptorPath,coreDescriptorText:descriptorText}:{})};
+  return {schema:1,root:project.root,kind:'mode',changes,sourceSnapshot:await snapshot(project.root),coreDescriptorPath:descriptorPath,coreDescriptorText:descriptorText,...(core?{coreDescriptor,coreExact:mode==='local',coreSnapshot:core.snapshot}:{})};
 }
 async function discoverLibraries(root) {
   const project = await base(root), results = [];

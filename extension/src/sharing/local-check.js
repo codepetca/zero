@@ -140,6 +140,14 @@ async function inputs(root, library) {
   return {files,classes,mains,checks:[...checks,...first,...second]};
 }
 async function fingerprint(root,names) { const out=[]; for (const name of names) out.push({path:name,sha256:hash(await fs.readFile(await safePath(root,name)))}); return out; }
+async function captureInputs(root,names) {
+  const bytes=new Map(), snapshot=[];
+  for (const name of names) {
+    const contents=await fs.readFile(await safePath(root,name));
+    bytes.set(name,contents); snapshot.push({path:name,sha256:hash(contents)});
+  }
+  return {bytes,snapshot};
+}
 function javaTool(name, javaHome) { return javaHome ? path.join(javaHome,'bin',process.platform === 'win32' ? `${name}.exe` : name) : name; }
 function mavenCommand(wrapper,args,root,javaHome) {
   const spec={command:wrapper,args:['-B','-ntp','-V',...args],cwd:root,...(javaHome?{env:{...process.env,JAVA_HOME:javaHome}}:{})};
@@ -152,22 +160,27 @@ function mavenCommand(wrapper,args,root,javaHome) {
 }
 async function prepareCoreCheck(root,library,input,{temporaryRoot,javaHome,harnessPath}) {
   const core=require('../core-contract'), state=await coreState(root,library.descriptor);
-  const original=await fingerprint(root,input.files), wrapperName=process.platform==='win32'?'mvnw.cmd':'mvnw';
-  const toolNames=[wrapperName,'.mvn/wrapper/maven-wrapper.properties'], toolSnapshot=await fingerprint(root,toolNames);
+  const captured=await captureInputs(root,input.files), original=captured.snapshot, wrapperName=process.platform==='win32'?'mvnw.cmd':'mvnw';
+  const toolNames=[wrapperName,'.mvn/wrapper/maven-wrapper.properties'], tools=await captureInputs(root,toolNames), toolSnapshot=tools.snapshot;
+  // Only this known text file permits checkout line-ending normalization. Keep
+  // raw fingerprints for drift; execute the same normalized bytes we pin here.
+  const propertiesName='.mvn/wrapper/maven-wrapper.properties';
+  tools.bytes.set(propertiesName,Buffer.from(core.normalizeSource(tools.bytes.get(propertiesName))));
+  const stagedToolSnapshot=toolNames.map(name=>({path:name,sha256:hash(tools.bytes.get(name))}));
   const trusted=require('./archive').TRUSTED_WRAPPER_HASHES;
-  if (toolSnapshot.some(item=>item.sha256!==trusted[item.path])) fail('Core-dependent Check requires the pinned Zero Maven wrapper and properties. Restore project build files before checking.');
+  if (stagedToolSnapshot.some(item=>item.sha256!==trusted[item.path])) fail('Core-dependent Check requires the pinned Zero Maven wrapper and properties. Restore project build files before checking.');
   const temp=await fs.realpath(await fs.mkdtemp(path.join(temporaryRoot || os.tmpdir(),'zero-library-check-')));
   try {
     const pom=path.join(temp,'pom.xml'), corePom=path.join(temp,'core/pom.xml'), libPom=path.join(temp,'library/pom.xml');
     const target=path.join(temp,'library/target'), classesDir=path.join(temp,'checks'), classpathFile=path.join(temp,'classpath.txt');
     const stagedChecks={}, stagedNames=[];
     for (const name of toolNames) {
-      const destination=path.join(temp,name);await fs.mkdir(path.dirname(destination),{recursive:true});await fs.writeFile(destination,await fs.readFile(await safePath(root,name)),{flag:'wx'});stagedNames.push(name);
+      const destination=path.join(temp,name);await fs.mkdir(path.dirname(destination),{recursive:true});await fs.writeFile(destination,tools.bytes.get(name),{flag:'wx'});stagedNames.push(name);
     }
     const wrapper=path.join(temp,wrapperName);await fs.chmod(wrapper,0o755);
     for (const filename of input.files) {
       const relative=filename.slice(library.folder.length+1), name=`library/${relative}`, destination=path.join(temp,name);
-      await fs.mkdir(path.dirname(destination),{recursive:true}); await fs.writeFile(destination,await fs.readFile(await safePath(root,filename)),{flag:'wx'}); stagedNames.push(name);
+      await fs.mkdir(path.dirname(destination),{recursive:true}); await fs.writeFile(destination,captured.bytes.get(filename),{flag:'wx'}); stagedNames.push(name);
       if (input.checks.includes(filename)) stagedChecks[filename]=destination;
     }
     for (const name of core.coreSourcePaths) {
@@ -189,9 +202,9 @@ async function prepareCoreCheck(root,library,input,{temporaryRoot,javaHome,harne
     const commands=[mavenCommand(wrapper,['-f',pom,'clean','package','-Dmaven.test.skip=true'],temp,javaHome),mavenCommand(wrapper,['-f',corePom,'org.apache.maven.plugins:maven-dependency-plugin:3.8.1:build-classpath',`-Dmdep.outputFile=${classpathFile}`],temp,javaHome)];
     const plan={schema:1,root,slug:library.slug,library,temp,pom,target,jar,sourcesJar,coreJar,corePom,artifactPom:path.join(temp,'artifact.pom'),classesDir,classpathFile,harnessSource,input,snapshot:original,maven:commands[0],commands,javaHome,stagedChecks,stagedNames,
       stagedSnapshot:await fingerprint(temp,stagedNames),toolSnapshot,coreSnapshot:state.snapshot,coreRecord:state.record,coreClasses:core.coreSourcePaths.map(n=>n.slice('src/main/java/'.length,-5).replaceAll('/','.')),
-      buildRecipeSha256:hash(JSON.stringify({schema:1,reactorPom:reactorPomText,corePom:corePomText,libraryPom:libPomText,wrapper:toolSnapshot,commands:[['clean','package','-Dmaven.test.skip=true'],['org.apache.maven.plugins:maven-dependency-plugin:3.8.1:build-classpath']],javac:['--release','17','-proc:none'],harness:hash(await fs.readFile(harnessSource))})),
+      buildRecipeSha256:hash(JSON.stringify({schema:1,reactorPom:reactorPomText,corePom:corePomText,libraryPom:libPomText,wrapper:stagedToolSnapshot,commands:[['clean','package','-Dmaven.test.skip=true'],['org.apache.maven.plugins:maven-dependency-plugin:3.8.1:build-classpath']],javac:['--release','17','-proc:none'],harness:hash(await fs.readFile(harnessSource))})),
       summary:{library:library.identity.id,version:library.descriptor.version,kind:library.descriptor.libraryKind,classes:input.classes,checks:input.mains,mode:library.mode,core:state.record.coordinate}};
-    if (JSON.stringify(await fingerprint(root,input.files))!==JSON.stringify(original) || JSON.stringify((await coreState(root,library.descriptor)).snapshot)!==JSON.stringify(state.snapshot)) fail('Library or core changed while preparing Check. Prepare again.');
+    if (JSON.stringify(await fingerprint(root,input.files))!==JSON.stringify(original) || JSON.stringify(await fingerprint(root,toolNames))!==JSON.stringify(toolSnapshot) || JSON.stringify((await coreState(root,library.descriptor)).snapshot)!==JSON.stringify(state.snapshot)) fail('Library, Maven wrapper or core changed while preparing Check. Prepare again.');
     return plan;
   } catch(error) {await fs.rm(temp,{recursive:true,force:true});throw error;}
 }

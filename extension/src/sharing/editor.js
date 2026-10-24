@@ -96,10 +96,12 @@ function createSharingEditor(vscode,host,options={}) {
   const slug=await input('Library name','',c.validateSlug);if(!slug)return;
   const title=await input('Library title',picked[0].label);if(!title)return;
   const description=await input('Library description','');if(!description)return;
-  const kind=await vscode.window.showQuickPick([{label:'JavaFX widget',kind:'widget'},{label:'Ordinary Java helper',kind:'helper'}],{title:'Library kind'});if(!kind)return;
+  const kind=await vscode.window.showQuickPick([{label:'UI component',kind:'widget'},{label:'Ordinary Java helper',kind:'helper'}],{title:'Library kind'});if(!kind)return;
   const version=await input('Library version','0.1.0',c.validateVersion);if(!version)return;
   const license=await input('Library license','MIT');if(!license)return;
-  const descriptor=c.validateDescriptor({schema:1,kind:'library',slug,version,title,description,license,libraryKind:kind.kind});
+  const core=require('../core-contract'),record=await core.readProjectCore(root);
+  const coreFields=record?{coreRequirement:{minVersion:record.coordinate.version,maxExclusive:`0.${Number(record.coordinate.version.split('.')[1])+1}.0`},coreInput:{version:record.coordinate.version,sourceSha256:record.sourceSha256}}:{};
+  const descriptor=c.validateDescriptor({schema:record?2:1,kind:'library',slug,version,title,description,license,libraryKind:kind.kind,...coreFields});
   const sources=picked.map(p=>p.path),edits=await importEdits(root,sources,c.identity('library',resolved.repository.id,slug).namespace);
   const plan=await api.authoring.previewExtraction(root,{repository:resolved.repository,descriptor,sources,edits});
   const ignored=await authoring.read(root,'.gitignore',true),line='.zero-sharing-recovery/';
@@ -128,7 +130,7 @@ function createSharingEditor(vscode,host,options={}) {
    const picked=await vscode.window.showQuickPick(versions.map(release=>({label:release.version,description:release.title,release})),{title:'Published version'});if(!picked)return;
    await api.consumer.verifyLibrary(context,picked.release);version=picked.release.version;published={context,release:picked.release};
   }
-  const plan=await api.authoring.previewMode(root,{slug:lib.slug,mode:selected.mode,version});
+  const plan=await api.authoring.previewMode(root,{slug:lib.slug,mode:selected.mode,version,...(published?{publishedRelease:published.release}:{})});
   if(published) {const pom=plan.changes.find(c=>c.path==='pom.xml');pom.after=api.consumer.addArtifactRepository(pom.after,published.context.artifactOrigin);}
   const revalidate=published?async()=>{const fresh=await api.consumer.loadCatalog(settings(),{fetcher:options.fetcher});if(fresh.fingerprint!==published.context.fingerprint)fail('The catalog changed during mode review. Choose the published version again.');await api.consumer.verifyLibrary(fresh,published.release);}:undefined;
   if(await reviewPlan(root,plan,`${selected.label}: ${lib.descriptor.title}?`,revalidate))report('Library mode changed','Library mode changed. Run App to check your game. Editable library source was preserved.');

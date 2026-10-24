@@ -139,3 +139,26 @@ test('uploaded browser inputs include the project core record and permit ordinar
  const withoutRecord=entries.split('\0').filter(entry=>entry&&!entry.endsWith('\tzero-core.json')).join('\0')+'\0';
  await assert.rejects(assertBuildInputsAtCommit({projectRoot:f.root,result:{sourceHash:captured.sourceHash},sourceSha:'a'.repeat(40),git:async()=>withoutRecord}),/missing from the uploaded commit/);
 });
+async function authorForMode(t,options={}) {
+ const f=await fixture(t,options),record=options.withCore===false?null:await core.readProjectCore(f.root,{required:true});
+ const descriptor={schema:record?2:1,kind:'library',slug:identity.slug,version,title:'Score views',description:'Mode validation unit fixture',license:'MIT',libraryKind:'helper',...(record?{coreRequirement:requirement,coreInput:{version:record.coordinate.version,sourceSha256:record.sourceSha256}}:{})};
+ await fs.writeFile(path.join(f.root,'src/main/java/Reusable.java'),'public class Reusable {}');
+ await authoring.applyPlan(await authoring.previewExtraction(f.root,{repository,descriptor,sources:['src/main/java/Reusable.java']}));
+ return f;
+}
+test('published authored mode validates the selected release instead of the local descriptor',async t=>{
+ const f=await authorForMode(t,{requirementOverride:{minVersion:'0.4.0',maxExclusive:'0.5.0'}});
+ const before=await fs.readFile(path.join(f.root,'pom.xml'));
+ await assert.rejects(authoring.previewMode(f.root,{slug:identity.slug,mode:'published',version,publishedRelease:f.release}),/outside this library requirement/);
+ assert.deepEqual(await fs.readFile(path.join(f.root,'pom.xml')),before);
+ const legacy=await authorForMode(t,{withCore:false});
+ await assert.rejects(authoring.previewMode(legacy.root,{slug:identity.slug,mode:'published',version,publishedRelease:legacy.release}),/zero-core\.json/);
+});
+test('published mode snapshots the selected release core requirement through apply',async t=>{
+ const f=await authorForMode(t),plan=await authoring.previewMode(f.root,{slug:identity.slug,mode:'published',version,publishedRelease:f.release});
+ assert.equal(plan.coreExact,false);assert.deepEqual(plan.coreDescriptor.coreRequirement,f.release.coreRequirement);
+ await fs.appendFile(path.join(f.root,'zero-core.json'),' ');
+ await assert.rejects(authoring.applyPlan(plan),/core changed after preview/);
+ const state=JSON.parse(await fs.readFile(path.join(f.root,'zero-libraries.json')));
+ assert.equal(state.libraries[0].mode,'local');
+});
