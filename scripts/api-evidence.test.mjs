@@ -6,7 +6,7 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
-import {inventoryDeclarations,validateSignatureManifest,assertInventoryParity,validateEvidenceReceipts,createEvidenceRecorder,hash,nativeCases,browserCases} from './api-evidence.mjs';
+import {inventoryDeclarations,validateSignatureManifest,assertInventoryParity,validateEvidenceReceipts,createEvidenceRecorder,hash,nativeCases,browserCases,filterMavenEvidenceOutput,mavenPluginTools} from './api-evidence.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'framework/evidence/api-signatures.json'),'utf8'));
 const jdk=path.join(os.homedir(),'Library/Application Support/Zero/runtime/jdk-3623232f33a9c3baadf304480b2535f9a3cba8a58d42ecbb438ba267315d9998/jdk-21.0.12.1+1/Contents/Home');
@@ -111,7 +111,8 @@ test('current receipts bind Maven plugins/dependencies/classifiers, tools, produ
   const pluginJar=path.join(pluginRepository,'org/apache/maven/plugins/maven-compiler-plugin/3.14.0/maven-compiler-plugin-3.14.0.jar');
   fs.mkdirSync(path.dirname(pluginJar),{recursive:true});fs.writeFileSync(pluginJar,zipSync({'META-INF/maven/plugin.xml':Buffer.from('<plugin><dependencies><dependency><groupId>fixture</groupId><artifactId>dependency</artifactId><version>1</version><type>jar</type></dependency></dependencies></plugin>')}));
   const dependencyJar=path.join(pluginRepository,'fixture/dependency/1/dependency-1-tests.jar');fs.mkdirSync(path.dirname(dependencyJar),{recursive:true});fs.writeFileSync(dependencyJar,'synthetic classifier-only dependency');
-  const plugins=mavenPluginTools({repositoryRoot:pluginRepository,output:'[INFO] --- compiler:3.14.0:compile (unit) @ fixture ---'});
+  const invocation=filterMavenEvidenceOutput('[INFO] --- compiler:3.14.0:compile (unit) @ fixture ---\n[DEBUG] Populating class realm plugin>org.apache.maven.plugins:maven-compiler-plugin:3.14.0\n[DEBUG]   Included: org.apache.maven.plugins:maven-compiler-plugin:jar:3.14.0\n[DEBUG]   Included: fixture:dependency:jar:tests:1\n[INFO] BUILD SUCCESS\n');
+  const plugins=mavenPluginTools({repositoryRoot:pluginRepository,output:invocation});
   assert.ok(plugins.files.includes(pluginJar));assert.ok(plugins.files.includes(dependencyJar));
   assert.throws(()=>mavenPluginTools({repositoryRoot:pluginRepository,output:''}),/omitted executed plugin/);
   assert.throws(()=>mavenPluginTools({repositoryRoot:pluginRepository,output:'[INFO] --- unknown:1:run (unit) @ fixture ---'}),/unreviewed/);
@@ -121,13 +122,17 @@ test('current receipts bind Maven plugins/dependencies/classifiers, tools, produ
   for(const name of ['pom.xml','mvnw','.mvn/wrapper/maven-wrapper.properties']) {const file=path.join(project,name),before=fs.readFileSync(file);fs.appendFileSync(file,'unit mutation');assert.throws(measure,/assembled POM, wrapper/);fs.writeFileSync(file,before);}
   const measured=measure();
   const entry=fixture.manifest.signatures[0],link=entry.evidence.native[0];const raw='ZERO_API_EVIDENCE_V1\nI|'+entry.id+'|'+link.assertionId+'\nA|'+entry.id+'|'+link.assertionId+'|'+link.postcondition+'|42\nEND_ZERO_API_EVIDENCE';
-  const receipts=path.join(temporary,'receipts');persistJavaEvidence({directory:path.join(receipts,'unit'),manifest:fixture.manifest,raw,...measured,runId:'unit-measured',target:'native',caseId:nativeCases[0].id});
+  const receipts=path.join(temporary,'receipts');persistJavaEvidence({directory:path.join(receipts,'unit'),manifest:fixture.manifest,raw:invocation+raw,...measured,runId:'unit-measured',target:'native',caseId:nativeCases[0].id});
   assert.equal(validateEvidenceReceipts(loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical})).coveredTargets,1);
   const retained=path.join(receipts,'unit','artifacts',measured.inputs.fixture.configurationSha256);const configuration=fs.readFileSync(retained);fs.appendFileSync(retained,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current POM/);fs.writeFileSync(retained,configuration);
   const canonicalPom=path.join(canonical,'student-template/pom.xml'),pomBytes=fs.readFileSync(canonicalPom);fs.appendFileSync(canonicalPom,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current POM/);fs.writeFileSync(canonicalPom,pomBytes);
   const mavenCore=path.join(mavenHome,'lib/maven-core.jar'),mavenBytes=fs.readFileSync(mavenCore);fs.appendFileSync(mavenCore,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current/);fs.writeFileSync(mavenCore,mavenBytes);
   for(const file of [pluginJar,dependencyJar]){const before=fs.readFileSync(file);fs.appendFileSync(file,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}));fs.writeFileSync(file,before);}
-  const addedClassifier=path.join(path.dirname(dependencyJar),'dependency-1-extra.jar');fs.writeFileSync(addedClassifier,'new classifier');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current Maven plugin/);fs.unlinkSync(addedClassifier);
+  const addedClassifier=path.join(path.dirname(dependencyJar),'dependency-1-extra.jar');fs.writeFileSync(addedClassifier,'new classifier');assert.equal(validateEvidenceReceipts(loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical})).coveredTargets,1);fs.unlinkSync(addedClassifier);
+  const transportFile=path.join(receipts,'unit','java-events.json'),transport=JSON.parse(fs.readFileSync(transportFile)),rawPath=path.join(receipts,'unit','artifacts',transport.sha256),rawBytes=fs.readFileSync(rawPath);fs.writeFileSync(rawPath,rawBytes.toString().replace('fixture:dependency:jar:tests:1','fixture:dependency:jar:tests:2'));assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/changed Java transport/);fs.writeFileSync(rawPath,rawBytes);
+  fs.writeFileSync(addedClassifier,'unused ordinary classifier');
+  const changedInvocation=(invocation+raw).replace('fixture:dependency:jar:tests:1','fixture:dependency:jar:extra:1'),changedDigest=hash(changedInvocation),changedPath=path.join(receipts,'unit','artifacts',changedDigest);fs.writeFileSync(changedPath,changedInvocation);fs.writeFileSync(transportFile,JSON.stringify({...transport,sha256:changedDigest}));assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current Maven plugin/);fs.writeFileSync(transportFile,JSON.stringify(transport));fs.unlinkSync(changedPath);fs.unlinkSync(addedClassifier);
+  const inputsFile=path.join(receipts,'unit','identity-inputs.json'),inputsBytes=fs.readFileSync(inputsFile),oldInputs=JSON.parse(inputsBytes);delete oldInputs.mavenPlugins.schema;fs.writeFileSync(inputsFile,JSON.stringify(oldInputs));assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/Maven execution provenance/);fs.writeFileSync(inputsFile,inputsBytes);
   fs.writeFileSync(tool,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current/);fs.writeFileSync(tool,'synthetic tool');fs.writeFileSync(harness,'changed');assert.throws(()=>loadJavaEvidence(receipts,{manifest:fixture.manifest,sourceRoot:canonical}),/stale current/);
  } finally {fs.rmSync(temporary,{recursive:true,force:true});}
 });
@@ -224,4 +229,60 @@ class Numbers { public static void main(String[] args) {
  const compiled=spawnSync(path.join(jdk,'bin/javac'),['-d',temporary,path.join(root,'framework/evidence/java/evidence/ApiProof.java'),source],{encoding:'utf8'});assert.equal(compiled.status,0,compiled.stderr);
  const ran=spawnSync(path.join(jdk,'bin/java'),['-cp',temporary,'Numbers'],{encoding:'utf8'});assert.equal(ran.status,0,ran.stderr);assert.match(ran.stdout,/NUMERIC_TRANSPORT_OK/);
  }finally{fs.rmSync(temporary,{recursive:true,force:true});}
+});
+
+function realmFixture(t) {
+ const repositoryRoot=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'zero-realm-unit-')));t.after(()=>fs.rmSync(repositoryRoot,{recursive:true,force:true}));
+ const self='org.apache.maven.plugins:maven-clean-plugin:jar:3.4.1',dependency='fixture:actual:jar:tests:2';
+ function jar(coordinate,bytes='unit ordinary JAR') {const parts=coordinate.split(':'),[group,artifact]=parts,version=parts.at(-1),classifier=parts.length===5?parts[3]:'';const file=path.join(repositoryRoot,...group.split('.'),artifact,version,artifact+'-'+version+(classifier?'-'+classifier:'')+'.jar');fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,bytes);return file;}
+ const selfFile=jar(self),dependencyFile=jar(dependency);
+ const raw='[INFO] --- clean:3.4.1:clean (unit) @ fixture ---\n[DEBUG] Populating class realm plugin>org.apache.maven.plugins:maven-clean-plugin:3.4.1\n[DEBUG]   Included: '+self+'\n[DEBUG]   Included: '+dependency+'\n[INFO] BUILD SUCCESS\n';
+ return {repositoryRoot,self,dependency,selfFile,dependencyFile,jar,raw,parse:output=>mavenPluginTools({repositoryRoot,output})};
+}
+test('actual plugin realm binds mediated dependency and exact classifier without descriptor or cache sweep',t=>{
+ const f=realmFixture(t),{zipSync}=createRequire(import.meta.url)('fflate');
+ fs.writeFileSync(f.selfFile,zipSync({'META-INF/maven/plugin.xml':Buffer.from('<plugin><dependencies><dependency><groupId>fixture</groupId><artifactId>missing</artifactId><version>1</version></dependency></dependencies></plugin>')}));
+ const observed=f.parse(filterMavenEvidenceOutput(f.raw));assert.deepEqual(observed.files,[f.dependencyFile,f.selfFile].sort());assert.equal(observed.provenance.schema,2);assert.equal(observed.provenance.plugins[0].artifacts.find(a=>a.groupId==='fixture').classifier,'tests');
+ f.jar('fixture:actual:jar:unused:2');assert.deepEqual(f.parse(filterMavenEvidenceOutput(f.raw)),observed);
+ fs.unlinkSync(f.dependencyFile);assert.throws(()=>f.parse(filterMavenEvidenceOutput(f.raw)),/ENOENT/);
+});
+test('plugin provenance retains observed class-loader artifact order',t=>{
+ const f=realmFixture(t),normal=f.parse(filterMavenEvidenceOutput(f.raw));
+ const self='[DEBUG]   Included: '+f.self,dependency='[DEBUG]   Included: '+f.dependency;
+ const reversed=f.parse(filterMavenEvidenceOutput(f.raw.replace(self+'\n'+dependency,dependency+'\n'+self)));
+ assert.deepEqual(normal.files,reversed.files);
+ assert.deepEqual(normal.provenance.plugins[0].artifacts.map(a=>a.artifactId),['maven-clean-plugin','actual']);
+ assert.notEqual(hash(JSON.stringify(normal.provenance)),hash(JSON.stringify(reversed.provenance)));
+});
+test('realm transcript rejects absent, truncated, malformed, duplicate, conflicting and unreviewed populations',t=>{
+ const f=realmFixture(t),valid=filterMavenEvidenceOutput(f.raw),start='[DEBUG] Populating class realm plugin>org.apache.maven.plugins:maven-clean-plugin:3.4.1',self='[DEBUG]   Included: '+f.self,dependency='[DEBUG]   Included: '+f.dependency;
+ for(const broken of [
+  '[INFO] --- clean:3.4.1:clean (unit) @ fixture ---',
+  filterMavenEvidenceOutput(f.raw.slice(0,f.raw.indexOf('[INFO] BUILD SUCCESS'))),
+  valid.replace(self+'\n',''),valid.replace(dependency,dependency+'\n'+dependency),valid+valid,
+  valid.replace('clean:3.4.1:clean','clean:3.4.2:clean'),valid.replace(self,self+'\n[DEBUG]   Included: org.apache.maven.plugins:maven-clean-plugin:jar:3.4.2'),
+  valid.replace('fixture:actual:jar:tests:2','fixture:actual:zip:tests:2'),valid.replace('fixture:actual:jar:tests:2','fixture:actual:jar:tests:2-SNAPSHOT'),valid.replace('fixture:actual:jar:tests:2','fixture:actual:jar:tests:2-20261024.123456-1'),
+  valid.replace('fixture:actual:jar:tests:2','fixture:../actual:jar:2'),valid.replace('fixture:actual:jar:tests:2','fixture.:actual:jar:2'),valid.replace('fixture:actual:jar:tests:2','fixture:actual:jar::2'),
+  valid.replace('maven-clean-plugin','unknown-plugin'),valid.replace('clean:3.4.1:clean','clean:3.4.1:bad:goal'),valid.replace('ZERO_MAVEN_REALM_END|','ZERO_MAVEN_REALM_END|wrong:'),
+  valid.replace(dependency,dependency+' unexpected'),valid.replace(start,start+' unexpected'),valid+'[DEBUG] unrelated private-value\n'
+ ])assert.throws(()=>f.parse(broken));
+ assert.throws(()=>mavenPluginTools({repositoryRoot:f.repositoryRoot,plugins:[]}),/invocation transcript/);
+});
+test('selected Maven JAR and every ancestor must be ordinary, never symlink aliases',t=>{
+ const f=realmFixture(t),parse=()=>f.parse(filterMavenEvidenceOutput(f.raw));
+ if(process.platform==='win32')return t.skip('symlink permissions vary on Windows');
+ const stored=path.join(f.repositoryRoot,'ordinary-copy');fs.renameSync(f.dependencyFile,stored);fs.symlinkSync(stored,f.dependencyFile);assert.throws(parse,/ordinary/);fs.unlinkSync(f.dependencyFile);fs.renameSync(stored,f.dependencyFile);
+ const directory=path.dirname(f.dependencyFile),saved=directory+'-ordinary';fs.renameSync(directory,saved);fs.symlinkSync(saved,directory);assert.throws(parse,/ordinary/);fs.unlinkSync(directory);fs.renameSync(saved,directory);assert.equal(parse().files.length,2);
+});
+test('Maven output filter retains only parsed realm DEBUG and fails closed on incomplete population',t=>{
+ const f=realmFixture(t),raw='[DEBUG] private-environment-secret\n'+f.raw+'[DEBUG] unrelated-settings-secret\n',filtered=filterMavenEvidenceOutput(raw);assert.doesNotMatch(filtered,/secret/);assert.equal(f.parse(filtered).files.length,2);
+ assert.throws(()=>filterMavenEvidenceOutput(f.raw.replace(f.dependency,'fixture:actual:jar:2-SNAPSHOT')),/coordinate/);
+ const cut=raw.slice(0,raw.indexOf('[INFO] BUILD SUCCESS'));assert.throws(()=>f.parse(filterMavenEvidenceOutput(cut)),/incomplete/);
+});
+test('caller-owned Maven output filter sanitizes both streams before failed build errors',async t=>{
+ if(process.platform==='win32')return t.skip('POSIX fake wrapper only');
+ const {maven}=await import('./verification-project.mjs'),directory=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'zero-maven-filter-unit-')));t.after(()=>fs.rmSync(directory,{recursive:true,force:true}));
+ fs.writeFileSync(path.join(directory,'mvnw'),'#!/bin/sh\nprintf "[DEBUG] stdout-private-secret\\n[INFO] useful failure\\n"\nprintf "[DEBUG] stderr-private-secret\\nordinary stderr\\n" >&2\nexit 1\n',{mode:0o755});
+ assert.throws(()=>maven(directory,[],10000,{outputFilter:filterMavenEvidenceOutput}),error=>{assert.match(error.message,/useful failure/);assert.match(error.message,/ordinary stderr/);assert.doesNotMatch(error.message,/private-secret/);return true;});
+ assert.throws(()=>maven(directory,[],10000),/stdout-private-secret/);
 });

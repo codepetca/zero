@@ -212,45 +212,103 @@ export function nativeToolFiles({javaHome,mavenHome,node=process.execPath,module
  for(const directory of ['bin','boot','lib','conf'])files.push(...ordinaryFiles(path.join(mavenHome,directory)));
  return [...new Set(files)].sort();
 }
-/** Read only the executed plugins and the resolved dependency list shipped in each descriptor. */
-export function mavenPluginTools({repositoryRoot,output,plugins}) {
- if(!path.isAbsolute(repositoryRoot))fail('Maven evidence requires an explicit absolute local repository');
- const aliases={clean:['org.apache.maven.plugins','maven-clean-plugin'],resources:['org.apache.maven.plugins','maven-resources-plugin'],compiler:['org.apache.maven.plugins','maven-compiler-plugin'],javafx:['org.openjfx','javafx-maven-plugin']};
- if(output!==undefined) {
-  plugins=[];
-  for(const match of output.replace(/\x1b\[[0-9;]*m/g,'').matchAll(/^\[INFO\] --- ([\w.-]+):([\w.-]+):[\w-]+ \(/gm)) {
-   const alias=Object.keys(aliases).find(name=>name===match[1]||aliases[name][1]===match[1]);
-   if(!alias)fail('unreviewed executed Maven plugin '+match[1]);
-   const [groupId,artifactId]=aliases[alias],version=match[2];
-   if(!plugins.some(plugin=>plugin.groupId===groupId&&plugin.artifactId===artifactId&&plugin.version===version))plugins.push({groupId,artifactId,version});
+// This targeted Maven logger emits only class-realm construction. Never enable -X:
+// unrelated Maven DEBUG output can expose environment and settings values.
+export const mavenRealmArguments=Object.freeze(['-Dstyle.color=never','-Dorg.slf4j.simpleLogger.log.org.codehaus.plexus.PlexusContainer=debug']);
+const pluginAliases={clean:['org.apache.maven.plugins','maven-clean-plugin'],resources:['org.apache.maven.plugins','maven-resources-plugin'],compiler:['org.apache.maven.plugins','maven-compiler-plugin'],javafx:['org.openjfx','javafx-maven-plugin']};
+const coordinatePart=value=>typeof value==='string'&&/^[A-Za-z0-9_][A-Za-z0-9_.-]*$/.test(value)&&!value.includes('..')&&!/snapshot|[0-9]{8}\.[0-9]{6}-[0-9]+$/i.test(value);
+const pluginKey=plugin=>[plugin.groupId,plugin.artifactId,plugin.version].join(':');
+const artifactKey=artifact=>[artifact.groupId,artifact.artifactId,artifact.extension,artifact.classifier,artifact.version].join(':');
+function pluginCoordinate(text) {
+ const parts=text.split(':');
+ if(parts.length!==3||!parts.every(coordinatePart)||!parts[0].split('.').every(coordinatePart))fail('invalid Maven plugin realm coordinate');
+ const [groupId,artifactId,version]=parts;
+ if(!Object.values(pluginAliases).some(([group,artifact])=>group===groupId&&artifact===artifactId))fail('unreviewed executed Maven plugin coordinate');
+ return {groupId,artifactId,version};
+}
+function realmArtifact(text) {
+ const parts=text.split(':');
+ if(![4,5].includes(parts.length)||!parts.every(coordinatePart)||!parts[0].split('.').every(coordinatePart)||parts[2]!=='jar')fail('invalid Maven realm artifact coordinate');
+ const [groupId,artifactId,extension]=parts,version=parts.at(-1),classifier=parts.length===5?parts[3]:'';
+ return {groupId,artifactId,extension,classifier,version};
+}
+export function filterMavenEvidenceOutput(raw) {
+ const result=[];let active=null;
+ for(const line of String(raw||'').replace(/\x1b\[[0-9;]*m/g,'').split(/\r?\n/)) {
+  const start=line.match(/^\[DEBUG\] Populating class realm plugin>(.+)$/);
+  const included=line.match(/^\[DEBUG\]   Included: (.+)$/);
+  if(active&&!included&&line.trim()) {result.push('ZERO_MAVEN_REALM_END|'+active);active=null;}
+  if(start) {const plugin=pluginCoordinate(start[1]);active=pluginKey(plugin);result.push('[DEBUG] Populating class realm plugin>'+active);}
+  else if(included) {if(!active)fail('Maven artifact outside a populated plugin realm');realmArtifact(included[1]);result.push(line);}
+  else if(/^\[DEBUG\]/.test(line)) {
+   // Drop all other DEBUG lines, including values from unrelated loggers.
+   if(/Populating class realm plugin>|Included:/.test(line))fail('malformed Maven realm line');
+  } else {
+   if(line.startsWith('ZERO_MAVEN_REALM_END|'))fail('unexpected Maven realm end marker');
+   result.push(line);
   }
  }
- if(!Array.isArray(plugins)||!plugins.length)fail('Maven INFO output omitted executed plugin identities');
- const files=new Set(),{unzipSync}=require('fflate'),{parseXml,single,value}=require('../extension/src/project-pom');
- function jars(gav) {
-  exact(gav,['groupId','artifactId','version'],'Maven plugin dependency');
-  for(const part of [gav.artifactId,gav.version,...gav.groupId.split('.')])if(!/^[A-Za-z0-9_][A-Za-z0-9_.-]*$/.test(part)||part.includes('..'))fail('invalid resolved Maven coordinate');
-  const directory=path.join(repositoryRoot,...gav.groupId.split('.'),gav.artifactId,gav.version);
-  const found=ordinaryFiles(directory).filter(file=>path.dirname(file)===directory&&file.endsWith('.jar'));
-  if(!found.length)fail('resolved Maven dependency has no cached ordinary JAR: '+JSON.stringify(gav));
-  for(const file of found)files.add(file);return directory;
+ // No marker is synthesized at EOF: a truncated population is never complete.
+ return result.join('\n');
+}
+function ordinarySelectedJar(filename) {
+ let current=path.parse(filename).root;
+ for(const part of filename.slice(current.length).split(path.sep)) {
+  current=path.join(current,part);const stat=fs.lstatSync(current);
+  if(stat.isSymbolicLink()||(current===filename?!stat.isFile():!stat.isDirectory()))fail('Maven artifact requires ordinary parents and file');
  }
- for(const plugin of plugins) {
-  if(!Object.values(aliases).some(([group,artifact])=>plugin.groupId===group&&plugin.artifactId===artifact))fail('unreviewed executed Maven plugin coordinate');
-  const directory=jars(plugin),jar=path.join(directory,plugin.artifactId+'-'+plugin.version+'.jar');
-  const descriptor=unzipSync(fs.readFileSync(jar),{filter:entry=>entry.name==='META-INF/maven/plugin.xml'})['META-INF/maven/plugin.xml'];
-  if(!descriptor)fail('executed plugin descriptor missing');
-  const xml=Buffer.from(descriptor).toString('utf8');
-  const blocks=[...xml.matchAll(/<dependencies>([\s\S]*?)<\/dependencies>/g)];
-  if(blocks.length!==1)fail('executed plugin descriptor must identify its resolved dependency closure');
-  const root=parseXml('<project>'+blocks[0][0]+'</project>'),dependencies=single(root,'dependencies');
-  for(const dependency of dependencies.children) {
-   if(dependency.name!=='dependency')fail('invalid Maven plugin dependency descriptor');
-   const type=single(dependency,'type',true);if(type&&value(type)!=='jar')fail('unsupported Maven plugin dependency type');
-   jars({groupId:value(single(dependency,'groupId')),artifactId:value(single(dependency,'artifactId')),version:value(single(dependency,'version'))});
+ return filename;
+}
+function mavenProvenanceFiles(provenance) {
+ exact(provenance,['schema','repositoryRoot','plugins'],'Maven execution provenance');
+ if(provenance.schema!==2||!path.isAbsolute(provenance.repositoryRoot)||path.resolve(provenance.repositoryRoot)!==provenance.repositoryRoot||!Array.isArray(provenance.plugins)||!provenance.plugins.length)fail('unsupported Maven execution provenance');
+ const files=new Set(),seen=new Set();
+ for(const plugin of provenance.plugins) {
+  exact(plugin,['groupId','artifactId','version','artifacts'],'Maven plugin provenance');pluginCoordinate(pluginKey(plugin));
+  if(seen.has(pluginKey(plugin))||!Array.isArray(plugin.artifacts)||!plugin.artifacts.length)fail('duplicate or empty Maven plugin realm');seen.add(pluginKey(plugin));
+  const coordinates=new Set();let self=false;
+  for(const artifact of plugin.artifacts) {
+   exact(artifact,['groupId','artifactId','extension','classifier','version'],'Maven artifact provenance');
+   const parsed=realmArtifact([artifact.groupId,artifact.artifactId,artifact.extension,...(artifact.classifier?[artifact.classifier]:[]),artifact.version].join(':'));
+   if(JSON.stringify(parsed)!==JSON.stringify(artifact)||coordinates.has(artifactKey(artifact))||plugin.artifacts.some(other=>other!==artifact&&other.groupId===artifact.groupId&&other.artifactId===artifact.artifactId&&other.classifier===artifact.classifier))fail('duplicate or invalid Maven artifact');coordinates.add(artifactKey(artifact));
+   if(artifact.groupId===plugin.groupId&&artifact.artifactId===plugin.artifactId&&artifact.version===plugin.version&&!artifact.classifier)self=true;
+   const file=path.join(provenance.repositoryRoot,...artifact.groupId.split('.'),artifact.artifactId,artifact.version,artifact.artifactId+'-'+artifact.version+(artifact.classifier?'-'+artifact.classifier:'')+'.jar');
+   files.add(ordinarySelectedJar(file));
   }
+  if(!self)fail('Maven plugin realm omitted its own JAR');
  }
- return {files:[...files].sort(),provenance:{repositoryRoot,plugins}};
+ return [...files].sort();
+}
+/** Bind the actual populated plugin realms, not build-time plugin.xml closures. */
+export function mavenPluginTools({repositoryRoot,output}) {
+ if(typeof repositoryRoot!=='string'||!path.isAbsolute(repositoryRoot)||path.resolve(repositoryRoot)!==repositoryRoot||typeof output!=='string'||Buffer.byteLength(output)>8*1024*1024)fail('Maven evidence requires an absolute repository and invocation transcript');
+ const executed=new Map(),realms=new Map();let active=null;
+ for(const line of output.replace(/\x1b\[[0-9;]*m/g,'').split(/\r?\n/)) {
+  const info=line.match(/^\[INFO\] --- ([\w.-]+):([\w.-]+):[\w-]+ \(/);
+  if(line.startsWith('[INFO] --- ')&&!info)fail('malformed executed Maven plugin identity');
+  if(info) {
+   const alias=Object.keys(pluginAliases).find(name=>name===info[1]||pluginAliases[name][1]===info[1]);if(!alias)fail('unreviewed executed Maven plugin');
+   const [groupId,artifactId]=pluginAliases[alias],plugin=pluginCoordinate([groupId,artifactId,info[2]].join(':')),key=pluginKey(plugin);
+   if([...executed.values()].some(other=>other.artifactId===artifactId&&other.version!==plugin.version))fail('conflicting executed Maven plugin versions');
+   executed.set(key,plugin);
+  }
+  const start=line.match(/^\[DEBUG\] Populating class realm plugin>(.+)$/),included=line.match(/^\[DEBUG\]   Included: (.+)$/),end=line.match(/^ZERO_MAVEN_REALM_END\|(.+)$/);
+  if(start) {
+   const plugin=pluginCoordinate(start[1]),key=pluginKey(plugin);
+   if(active||realms.has(key)||!executed.has(key))fail('duplicate, conflicting or unexecuted Maven plugin realm');
+   active={...plugin,artifacts:[]};realms.set(key,active);
+  } else if(included) {
+   if(!active)fail('Maven artifact outside a populated plugin realm');const artifact=realmArtifact(included[1]);
+   if(active.artifacts.some(other=>artifactKey(other)===artifactKey(artifact)||(other.groupId===artifact.groupId&&other.artifactId===artifact.artifactId&&other.classifier===artifact.classifier)))fail('duplicate or conflicting Maven realm artifact');active.artifacts.push(artifact);
+  } else if(end) {
+   if(!active||end[1]!==pluginKey(active)||!active.artifacts.length)fail('invalid Maven realm completion');active=null;
+  } else if(active&&line.trim()||/^\[DEBUG\]/.test(line)||line.startsWith('ZERO_MAVEN_REALM_END'))fail('incomplete or malformed Maven realm transcript');
+ }
+ if(!executed.size)fail('Maven INFO output omitted executed plugin identities');
+ if(active||executed.size!==realms.size)fail('missing or incomplete executed Maven plugin realm');
+ // Preserve artifact URL order: it determines lookup order inside a plugin realm.
+ const plugins=[...realms.values()].sort((a,b)=>pluginKey(a).localeCompare(pluginKey(b)));
+ const provenance={schema:2,repositoryRoot,plugins};return {files:mavenProvenanceFiles(provenance),provenance};
 }
 function measuredTools(files,mavenPlugins) {
  return mavenPlugins?Buffer.from(JSON.stringify({files:JSON.parse(measuredFiles(files)),mavenPlugins})):measuredFiles(files);
@@ -294,11 +352,15 @@ export function loadJavaEvidence(directory,{manifest,checkCurrentInputs=true,sou
   if(!entry.isDirectory()||entry.isSymbolicLink())fail('evidence root must contain ordinary case directories');
   const folder=path.join(directory,entry.name),receipt=JSON.parse(fs.readFileSync(path.join(folder,'receipt.json'),'utf8'));
   const identity=JSON.parse(fs.readFileSync(path.join(folder,'expected-identity.json'),'utf8'));
+  const transport=JSON.parse(fs.readFileSync(path.join(folder,'java-events.json'),'utf8'));
+  if(!sha(transport.sha256))fail('invalid Java transport identity');
+  const raw=fs.readFileSync(path.join(folder,'artifacts',transport.sha256),'utf8');
+  if(hash(raw)!==transport.sha256)fail('changed Java transport');
   if(checkCurrentInputs){
    assertManifestSources(manifest,{sourceRoot});
    const inputs=JSON.parse(fs.readFileSync(path.join(folder,'identity-inputs.json'),'utf8'));
    exact(inputs,['toolFiles','harnessFiles','fixture',...(Object.hasOwn(inputs,'mavenPlugins')?['mavenPlugins']:[])],'current identity inputs');
-   if(inputs.mavenPlugins){exact(inputs.mavenPlugins,['repositoryRoot','plugins'],'Maven execution provenance');const current=mavenPluginTools(inputs.mavenPlugins);if(current.files.some(file=>!inputs.toolFiles.includes(file)))fail('stale current Maven plugin/dependency closure');}
+   if(inputs.mavenPlugins){const selected=mavenProvenanceFiles(inputs.mavenPlugins),current=mavenPluginTools({repositoryRoot:inputs.mavenPlugins.repositoryRoot,output:raw});if(JSON.stringify(current.provenance)!==JSON.stringify(inputs.mavenPlugins)||JSON.stringify(current.files)!==JSON.stringify(selected)||current.files.some(file=>!inputs.toolFiles.includes(file)))fail('stale current Maven plugin/dependency closure');}
    exact(inputs.fixture,['sourceSha256','configurationSha256','configuration'],'retained actual fixture inputs');
    const configuration=fs.readFileSync(path.join(folder,'artifacts',inputs.fixture.configurationSha256));
    if(!sha(inputs.fixture.sourceSha256)||hash(configuration)!==inputs.fixture.configurationSha256||!configuration.equals(Buffer.from(inputs.fixture.configuration,'base64'))||!configuration.equals(configurationBytes(path.join(sourceRoot,'student-template')))||identity.fixtureSha256!==hash(JSON.stringify({sourceSha256:inputs.fixture.sourceSha256,configurationSha256:inputs.fixture.configurationSha256})))fail('stale current POM, wrapper or configuration');
@@ -306,10 +368,6 @@ export function loadJavaEvidence(directory,{manifest,checkCurrentInputs=true,sou
    const profile=projectBuilderFilesSync({sourceRoot}).map(file=>({path:file.path,sha256:hash(file.bytes),bytes:file.bytes.length}));
    if(identity.toolSha256!==hash(measuredTools(inputs.toolFiles,inputs.mavenPlugins))||identity.harnessSha256!==hash(measuredFiles(inputs.harnessFiles))||identity.profileSha256!==hash(JSON.stringify(profile))||identity.coreSha256!==hash(JSON.stringify(manifest.sources))||identity.contractSha256!==hash(fs.readFileSync(path.join(sourceRoot,'extension/src/web-export/compatibility/contract.json')))||identity.librariesSha256!==hash('[]'))fail('stale current tool, harness, fixture, profile or contract');
   }
-  const transport=JSON.parse(fs.readFileSync(path.join(folder,'java-events.json'),'utf8'));
-  if(!sha(transport.sha256))fail('invalid Java transport identity');
-  const raw=fs.readFileSync(path.join(folder,'artifacts',transport.sha256),'utf8');
-  if(hash(raw)!==transport.sha256)fail('changed Java transport');
   if(!sha(transport.pixelsSha256))fail('invalid pixel transport identity');
   const pixelBytes=fs.readFileSync(path.join(folder,'artifacts',transport.pixelsSha256),'utf8');if(hash(pixelBytes)!==transport.pixelsSha256)fail('changed pixel transport');
   const pixels=JSON.parse(pixelBytes);
