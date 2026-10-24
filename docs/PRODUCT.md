@@ -29,8 +29,8 @@ extending App as the single gameplay owner. Optional UI Screens provide menus/
 results; optional Worlds organize actors. There is no public GameScreen. Main
 keeps update/draw, can swap level controllers, and can add live HUD/controls
 without navigating away; showing a replacement UI Screen suspends gameplay.
-The starter and Greeting/Study lessons now use Zero UI locally; Coin lessons
-are being migrated incrementally. Released templates remain separately pinned.
+The starter and Greeting, Study and Coin lessons now use Zero packages locally.
+Released templates remain separately pinned.
 
 Catch framework/platform failures automatically: per-signature native/WebFX/browser
 evidence, early compatibility diagnostics, actual compiler/behavior gates and
@@ -50,8 +50,8 @@ optional and student-retained; default future rebuilds depend on usable tools
 and availability of normal dependency hosts, not a promise of permanent support.
 See the [versioning and preservation policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation)
 for current gaps, experimental 0.x rules and bounded clone/build/rehost acceptance.
-Project-owned browser tooling/launcher, complete locks and backup/upgrade flows
-remain proposed.
+Project-owned browser tooling and complete locks are implemented locally. The
+old/new clone, rebuild, static rehost and reversible upgrade proof passes locally.
 
 Implementation execution, owner-authorized 2026-10-23: follow the single
 [phased delivery roadmap](FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).
@@ -62,8 +62,17 @@ lessons10–11 are accepted locally. Lesson12 Zero image/sound and scrolling are
 simulation is accepted locally. Phase1 is complete. Phase2A–C are accepted locally: interchangeable student-owned
 views, actual core-dependent managed component reuse and replaceable actor
 animation/steering. Core now has18 helpers/183 declarations. Optional container
-replacement and project-owned browser tooling are in progress. Local prototypes and
+replacement is also accepted locally, completing Phase2. Project-owned browser
+tooling and trusted editor selection are accepted locally through05390785; the
+full old/new preservation proof also passes locally. Local prototypes and
 verification are separate from released kits and published tutorial repositories.
+
+Reliability source and exact API evidence tooling are implemented locally. All183
+declarations have mappings on both targets, but complete executed coverage remains
+a gate: native checks require the unlocked Mac and browser fault-channel test
+acceptance is unfinished. The local kit candidate passes archive/source/license
+and extracted Maven checks; those results do not establish installation, physical
+Windows, interactive student use, hosted sharing admission or publication.
 
 ## Core goal: students grow the framework
 

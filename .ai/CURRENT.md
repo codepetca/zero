@@ -1,115 +1,121 @@
-# Zero vision execution — Phase2C accepted, Phase2D/3A active, 2026-10-23
+# Zero phased vision — current handoff
 
-Persistent goal ACTIVE. Single canonical roadmap:
-`docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance` (includes concrete
-Astra Phase3 preservation contract). Use ONLY /Users/stew/.codex/worktrees/actor/zero.
-Preserve primary and other Dev profiles/watchers. Authorized local source/checks/
-commits/review. No push/PR/merge/deploy/release/install/accounts/external messages/
-telemetry. No more stress benchmarks/full9builds; scoped selectors only.
-DeepSeek paused through2026-12-31. One writer/component; parent Git/docs/integration.
+Updated 2026-10-24 04:36UTC. Persistent goal **ACTIVE**, not complete.
+Single roadmap: [architecture phases](../docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).
+Historical checks/retries/hashes: [EVIDENCE](../docs/EVIDENCE.md).
 
-Phase0 baseline,1 Zero-first lessons complete;2 extension/replacement/sharing,
-3 complete project-owned browser builder/pins/optional upgrades,4 diagnostics/
-signature evidence,5 journey/release readiness. No mandatory World/Screen/Camera/
-ECS, historical kit database or all-oldversions maintenance. Public/hosted/physical/
-novice acceptance stays separate. Sources are local unreleased0.3.0 draft; exact
-hashes distinguish revisions until first publication. Public0.x patch/minor policy
-unchanged. No automatic student migration.
+## Workspace and authority
 
-Accepted local history (docs/EVIDENCE.md has complete scoped receipts/retries):
-- Phase1A–F through549db09f/030189ad: starter/Greeting0–2,Study3–7,Coin8–12,
- shared ScoreDisplay/assets/scrolling/simulation; per-slice native/WebFX/browser
- and independent review.16helpers176decl. Pinned prompt/focus/disabled fixed.
-- 2A29118a74: student ScoreView text/bar,App/GameApp,native+2exports19assertions,
- 49hashes+15identities; one browser fixture omission fixed/targeted clean.
-- 2B98b3a831: core-contract.js/current record/schema2, fixed independent core/
- contribution reactor and JAR provenance,coreRequirement versus exactcoreInput/
- coreBuild, captured bytes+CRLF properties, actual selected-release requirements,
- sanitized POM/namespace/JAR validation,7 external browser deps profile-bound.
- Four native+four actual WebFX local/artifact App/GameApp consumers38assertions,
- 2 actual contribution artifact+source resolutions,0coreartifactrequests/install.
- .verification/vision-core-sharing/acceptance-summary.json SHA
- 5daf05edf9432114c2851e7f88a2e7aeb1a80e61da7b18fd4a305c6ade075786.
- Historical16core/source/profile are now superseded by2C; don'tclaim old hashes
- current.2B review closed .verification/vision-core-sharing-review/:2initial,
- 1targeted,1final;3P2/1fixbatch. Hosted schema2 remains explicitly rejected.
- One unintended full11legacy localChecktest run did2real builds+install ONLY in
- disposable fixture repository; cleaned,globalcacheeffectsunaudited. Do notuse
- heavy-file --test-name-pattern filters again.
-- 2C df47d667 (implementation668e0c46):18helpers183decl. AnimationSource factory
- →fresh AnimationPlayback; SpriteAnimation default shares immutable definitions,
- legacy manual clock stays independent. Actor final update validates finite>=0,
- calls protected onUpdate, advances selected clock once/cache; drawneveradvances.
- Atomic source factory/frame selection, static swap clears clock,geometry stays.
- Useful errors, no globalregistry/doublefactory; constructor/Spriteoverloads kept.
- Student OnceAnimation+TurnTowards via public APIs; demo target fixed(256,60),
- NOT pointer steering. Student4Java+48x16RGB PNG, zero JavaFXimports. Necessary
- StressActor hookrename SOURCEONLY, no stressprepare/run.
- Actualnative Actor/GameHelpers and ONLYbeginner-coin-game,actor-components pass.
- Author119focused/8semantic/16website;parent7assembly/root/profile/docs pass.
- Current18core independentCheck+4nativeconsumers+2freshMavencontrib+sources+unused
- nanoTime negative pass50.105s,0oldUIwebexports:
- .verification/vision-core-sharing-actor/receipt.json. Core aggregate
- 9bca3e129a18bc046e3a75ea37ddd8a386fba09c1999b7f7337ef24679ae2941,
- JAR7b1b16cca614195bbf073ecd15209972a143ec59ebe2e041b701d8b140d27625.
- Two actual actor-components exports: historical668e0c46, then df47d667 corrected
- checker. Browser15/15 assertions on historicaloutput; firstharnessattempt paused
- drawsettling mismatch, authorizedretryallpass then optional secondscreenshot
- __OUT__ ReferenceError. Honest error retained,procedural.png exists. Corrected
- export ALL60sitefiles+ZIP identical/noexclusions,23source/assetsame; parent
- independently verified. Explicit reuse15assertions, no repeatedbrowser/native.
- Currentbuild8a38c333-602d-4e6a-84de-fba61fe434ce/source863d2453b1ba67d1359021a098d7610880ba181d98be0ea2ffddd2cb2213492f/
- profile9cad03c2021a47966bc24ac241abd2cb4089030772e46815f5229941de92b561.
- Receipt .verification/vision-actor-components-web/current-profile-receipt.json
- SHAa7623f1a0dc7b9cc28af2a062b92d7b426a0c163c69cd88d85d296b84c6f9d4b.
- 2C highrisk review CLOSED .verification/vision-animation-review/budget.json:
- freshAstra/xhigh+Sol/high full34files;3distinctP2 legacyfixture,protectedidentity,
- staleguidance fixed1batchdf47d667;2namedsemanticpositive/forged tests pass;
- Astra targetedall5filesclean.3turns2initial1targeted,1fixbatch,no redundantfinal.
- Astra188+66s observed,Sol/config/tokensunknown. New Phase3 files OUTSIDEreview.
- Own servers/previews/temptrust/processes cleaned. Historicalproofnowstaleagainst
- latest profile only because3A writer modifying snapshot, preserve receipts.
+Use ONLY `/Users/stew/.codex/worktrees/actor/zero`, managed detachedHEAD.
+Primary `/Users/stew/Repos/zero` has unrelated work/watchers; preserve them.
+Local source/docs/checks/examples/review/commits authorized. NO push/PR/merge,
+deploy/release/real installation, accounts/credentials, external messaging or
+telemetry. Native editor QA remains held after the earlier Code Key popup.
+No more stress/full ten-fixture browser runs. Native GUI checks serially.
+DeepSeek paused through2026-12-31. Parent owns Git/docs/integration; one writer.
 
-ACTIVE authors:
-- vision_saved_builder requestedSol/high,forknone (25mincheckpoint35max),3A.
- Owns NEW scripts/prepare-project-builder.mjs,extension/src/project-builder-format.js,
- framework/project-builder/** and new focusedtests. NOW released ownership of
- extension/src/web-export/snapshot.js +actual targeted snapshot testfile for closed
- dependency/fullprofile/input/commit binding. No existingassemblers/editor/publish
- edits; parent/secondauthor later. Proposed saved .zero-build closure preserves
- src/media layout, entireweb-export tree+7 externaldeps+format; fixedrun.cjs
- bounded64KiBstdinJSONv1 opsinspect/capture/compatibility/export/validate, JSON
- stdout/progressstderr. Producer inventoriesallfilesexceptbuilder.json,strict
- safeordinarypaths/sort/hash/bytes/caseoverlap/missing/undeclared; all-beforewrite
- ownership. Runtime requirementsvsverifieddownloadpins fromactualmetadata,
- noinstall. Remove snapshot lazy../core.git; explicit callback required. Full
- savedclosure boundprofile+snapshots/uploadedGitpaths. Newfilesonlyinitially,
- existing snapshot ownership released AFTER2C finalproofcompleted. Noheavybuilds.
-- vision_animation_safety_review retainedSol/high now AUTHOR2D (18mincheckpoint25max).
- Owns ONLYNEW framework/prototypes/actor-containers/** +checks/actor-containers/
- PrototypeCheck.java. ActorCollection add/remove/contains/size/get/update/draw,
- identity/insertionorder, once, addednextupdate (remove/readd newtoken), immediate
- removal; OrderedActors ArrayList tokens vs SnapshotActors replacedtokenarray.
- Rejectnull/invalidtime/recursiveupdatesbeforemutation; callbackfailureguardfinally,
- norollbackpromise. Drawobserves-only; rejectmembership/update whiledrawactive,
- finallyguardcleanup. Main/GameApp sameconsumer swapsstructures retainsactors/
- geometry/counters; controlsAdd/Remove/Switch/Pause/Restart,2actorsnoassets/stress.
- Noexistingcore/assembler/docs/Git edits; parentadds scopedID AFTERfreeze. Cheap
- checks only,noheavybuilds/delegation. Must independently review ownnewphase.
-- actor_browser retainedSol/medium IDLE, all2Cproofdone, ownsignoredreceipts only.
-- vision_animation_arch_review Astra/xhigh IDLE cleantargeted2C; canreviewnew3A.
- Agent runtimehandles mayexpire; inspectliveinventory, recoverfromfiles.
+## Accepted locally
 
-NEXT parent: commit ONLY2Cacceptancedocs/EVIDENCE/CURRENT (notnew3Aor2Dsource).
- Await2Dfreeze, add standaloneID/scopedpreparationtest, native+ONEbrowserproof,
- independentstandardSolreview (studentexampleonly,no coreAPI). Thiscompletes2.
- Await3Afreeze/protocol, integrateassemblers+safe archiveallowlist+noautoPublish
- migration and3Bsharedhostadapter. Highrisk freshreviewpair3A/B, actual standalone
- builder outside repo+oldA/newBclone/rebuild+retainedstaticrehost+upgradecopy/rollback.
- Parentcanonicalplan outlines exactboundaries; no arbitraryprojectexecutiononopen,
- nohash-as-trust, noauthenv, noinstalledbuilderfallback ifsavedunavailable.
- Then4 diagnostics/exactexecutedevidence+5studentjourney. GoalNOTcomplete.
+- Phase0 baseline; Phase1 Zero-first starter/lessons0–12/live controls through549db09f.
+- Phase2 complete through949fae28: typed UI replacement, independent core/component
+  JARs and native/browser consumers, replaceable animation/steering and optional
+  actor containers. Current draft core0.3.0 has18 helpers/183 declarations; exact
+  source hashes distinguish unreleased revisions. No World/GameScreen required.
+- Phase3 complete through05390785 plus actual3C outside-repository clone/rebuild,
+  finished-only play, explicit copy upgrade and exact rollback. Project-owned
+  builder source/locks, no central old-kit database. Proof reused verified normal
+  dependency caches; not cold installation/full offline preservation.
+- Reliability foundations4B/C/private Node source accepted through0c677feb:
+  explicit trusted exact-builder approval, prepared cache-only source checks,
+  actual local runtime status/errors, process-tree ownership, source-linked errors.
+  High-risk fresh Sol/high+Astra/xhigh46-path review and both fixes targeted clean;
+  closed ledger vision-reliability-review. Do not repeat that review.
+- One actual GWT failure preserves all61 last-good output files; actual log maps
+  saved adapter source. Receipts vision-preservation-C and vision-compiler-failure
+  independently hash-verified. Detailed references remain in EVIDENCE.
 
-Storagecachedlast01:47UTC263.74GBhealthy;refreshafter30min/beforelargeoperations.
- Usage01:32UTC16%weeklyused84%remaining;start7%used,sharedaccountNOTattributable
- taskcost. No usagewarning. Effectiveconfigs/perturntokensunknown.
+## Current source / API evidence acceptance
+
+Last implementation HEAD `d7a17b2c3201485d9552e4b28ebab166c066e531`;
+a local documentation/handoff commit follows it. Inspect actual Git HEAD.
+A2/A3/A4 and four remediation batches are committed. All183 exact declarations
+mapped both targets,195 assertion links each. Scene is TYPE-only permitted for
+createScene overrides, no constructor/member widening. Native7/fourbrowser
+javac and four semantic/adapter selections pass.30 tool tests and10 JS transport
+checks pass; exact numeric fields normalized explicitly, text stays strict.
+Full native/browser selections now require current evidence for their target;
+partial selectors stay partial. Native identity binds POM/wrapper/.mvn/zero.json,
+producer closure, actualNode/JDK/JavaFX/Maven and68 resolved plugin/dependency JARs.
+
+Source review is COMPLETE/CLEAN: one fresh Sol/high full30-path/183-mapping review
+plus three targeted deltas cover current head. Ledger
+`.verification/vision-api-review/budget.json` opened03:45UTC, original deadline04:45.
+Launches4, initialwave1, targetwaves3, fixBatches4. DEFAULT FIX BUDGET EXHAUSTED.
+Do not start a fifth fix/new session/worker to bypass it. One further bounded
+correction/review requires explicit human extension (pr-review SKILL).
+
+Actual browser: all4 WebFX/GWT exports PASS at52ea0d97 in
+`.verification/vision-api-numeric-web`. Later fixes JS-only; compiled outputs
+unchanged and browser-only reuse valid. Latest run atd7a17b2c passes helpers,
+Zero UI, audio and normal lifecycle/atlas checks, then intentional update fault
+is reported via console.error while harness waits for DOM error event. Gate
+correctly fails. Read scripts/web-browser-checks.js around920–936. Next proposed
+fix: recognize matching expected fault across actual window/page/console error
+channels, retaining stopped-frame check and rejecting unrelated errors. Promise
+rejection remains its own check. Fifth-fix approval PENDING since04:33UTC.
+No complete successful browser case result/receipt was emitted; no183/366 claim.
+Logs/diagnostics/screenshots in `.verification/vision-final-checks`; latest
+`web-api-split-fixed.log`. Preserve prior failures before rerunning browser-only.
+
+Actual native: old5f partial150 outcomes are HISTORICAL after fixture changes.
+Current Padding passes, Smoke cannot focus. Filtered read-only IOConsoleUsers
+CONFIRMS Maclocked=true. Temporary caffeinate expired/closed; no persistent setting
+changed. Async question since04:10 asks awake/unlocked Mac; NO ANSWER. Do not retry,
+fake focus or waive native acceptance until unlock. Allcurrent366 outcomes remain
+unproven. Once unlocked use actual seven serial checks into a NEW receipt folder.
+
+## Local Phase5 progress
+
+Local VSIX/kit/starter candidate assembled; exact source/archive/license checks,
+extracted standalone Maven compile, root config/syntax/links and22websiteAPI/
+navigation tests PASS.43 local Git/mocked-editor workflow contracts PASS89.902s;
+not real editor/GitHub/novice acceptance. Current archive parity independently
+compares585 source/setup members. Receipt
+`.verification/vision-final-checks/local-candidate-receipt.json`.
+Kit4,248,578 bytes SHA d348b1fdd5a5d0b8530809c6263d1d86005dc5249276b1980accafa9386ccfa8;
+starter2,760,670 SHA7099b052154ceed245d4009c71504260b0eadbba9f664f4267fcb28abf7d1eae;
+VSIX1,474,188 SHA44aa15c19004d38c43643ae572792dbeebde94d3ebddd5d10b80db3824a8fb29.
+Metadata kit0.5.47/core0.3.0/publication.local, NOT replacement released bytes.
+Student guide now keeps appearance Zero-first. Concrete teaching CORE-PROPOSAL
+for TurnTowards retains source/credit/pins, discloses remaining independent reuse
+proof; no API adopted/published. Public docs/API behavior unchanged by tooling.
+PhysicalWindows/installers, heldnativeeditorQA, novicepilot, hosted schema2 sharing,
+authenticated Pages and release publication remain separately gated.
+
+Waiting-human blocked audit: first goal turn with both required inputs pending
+and independent authorized work exhausted. Keep active now; if the identical
+block repeats across three consecutive goal turns, apply the goal tool blocked
+rule rather than continuing empty work. No implicit approval from elapsed time.
+
+## Next action / pending user input
+
+1. Wait for explicit fifth-fix/review extension. Proposed extra window15min; record
+   approval and limits before work. Reuse api_evidence_review for ONE narrow delta
+   review; do not repeat completed source/foundation reviews. No extension yet.
+2. With approval fix only fault-channel harness predicate + focused regression,
+   commit, run ONLY four selected browser families `--browser-only` against
+   existing output (no new exports unless Java/profile changes). Require browser
+   evidence183/183 after real successful receipt. Preserve failed logs.
+3. Once Mac awake/unlocked, run all7native serial with fresh retained receipts,
+   then combine fourbrowser+sixnative emitting case directories and use
+   `scripts/api-evidence.mjs --require-complete` for366 current target outcomes.
+4. Finish local phase acceptance/docs, keep goalACTIVE until required local work
+   done. Publication/install/platform gates are distinct; never infer authority.
+
+Existing Node `/Users/stew/.local/share/mise/installs/node/22.21.1/bin/node`.
+JDK `/Users/stew/Library/Application Support/Zero/runtime/jdk-3623232f33a9c3baadf304480b2535f9a3cba8a58d42ecbb438ba267315d9998/jdk-21.0.12.1+1/Contents/Home`.
+Cache `/Users/stew/Repos/zero/.verification/web-export-checks/cache`.
+Storage fresh04:12UTC262.432GB healthy(required2GB); weekly24%used76%remaining
+sharedaccount, not taskcost. Effective configs/perturntokens unknown. Allworkers
+completed/idle, allownedbrowser/server/native processes closed. No supported
+worker close API; runtime reclamation unverified. No monitor/newchat created.

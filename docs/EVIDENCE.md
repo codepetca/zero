@@ -1,5 +1,278 @@
 # Delivery evidence index
 
+## Exact API evidence and local candidate — 2026-10-24
+
+Source through `d7a17b2c` has183 exact public/protected source declarations mapped
+on both targets, with195 assertion links per target. A2 `97552c5f`, A3 `2f2d143c`
+and A4 `5fadb422` introduced the inventory, fixtures and retained receipts.
+Mapping, javac and semantic checks are not executed API coverage. Scene was added
+as a permitted type only so the documented createScene override can name its
+return type; Scene constructors/members remain outside the contract.
+
+One complete independent Sol/high review and three targeted reviews cover the
+current source. Six initial P2s and subsequent actual-run issues were addressed
+in four batches: entry-point selection/mobile vocabulary, native pointer
+coordinates/duplicate terminal output, native configuration/producer/tool/plugin
+identity, meaningful artwork pixels/owned-clock advancement, explicit numeric
+formatting and actual split Canvas transport. Numeric-looking text remains exact.
+Plugin identity includes68 cached resolved plugin/dependency/classifier JARs in
+addition to Node, JDK, JavaFX and the actual Maven distribution. The final two-file
+review is complete/clean. Thirty tooling tests and ten focused JavaScript tests
+pass, including actual instrumentation replay of the previous98-row Java trace;
+that replay is transport verification, not new API execution. All seven native
+and four browser Java fixture families compile; four semantic/adapter checks pass.
+Full native/browser verifier selections now require complete current evidence on
+their respective target; partial selections remain explicitly partial.
+
+First frozen5fadb422 native attempts passed Padding, Smoke, Actor, Ui and Audio
+(58 real media checks), retaining150 native target outcomes. Those receipts are
+historical after fixture changes. Corrected current native attempts pass Padding,
+but Smoke cannot focus its JavaFX window. A temporary display-wake request
+restored one active display; a filtered read-only console-state check confirmed
+that the Mac is locked. The request expired without changing persistent settings.
+No focus simulation or native-acceptance waiver was used. An awake/unlocked Mac
+is required before the seven serial native checks can complete.
+
+Four actual WebFX/GWT exports passed at `52ea0d97`. Later corrections changed only
+maintainer JavaScript, so subsequent browser interaction reused those exact
+compiled outputs rather than repeating exports. The latest run passes helpers,
+Zero UI, audio and normal lifecycle/atlas checks, then stops at the first
+intentional update fault: WebFX reports the handled exception through console.error,
+while the harness waits for a browser error event. The diagnostic retains the
+actual fault and frozen frame state. The browser case does not return success,
+so no complete/current API coverage receipt is claimed. A fifth small harness
+correction and targeted review require explicit budget extension. The Mac unlock
+and review-extension questions are pending; Phase4A remains incomplete.
+
+Ledger `.verification/vision-api-review/budget.json`: one initial full wave,
+three targeted waves, four reviewer turns and four correction batches; final
+reviewed source clean, runtime acceptance incomplete. Failed attempt logs,
+diagnostics/screenshots and freeze hashes remain in
+`.verification/vision-final-checks`; compiled outputs are in
+`.verification/vision-api-numeric-web`. No stress or full ten-fixture browser run
+was repeated. No publication, installation, credentials or telemetry changed.
+
+Local Phase5 candidate packaging passes: exact source/archive/license checks,
+extracted standalone Maven compilation,22 website API/navigation tests, root
+configuration/syntax/local links and43 local workflow contracts (89.902s). The
+workflow tests exercise disposable local Git and mocked editor behavior, not
+physical editor interaction or GitHub publication. A teaching core-proposal
+example records gradual turning, source/credit, missing independent reuse proof
+and optional migration; it neither adopts nor publishes an API.
+
+The final local candidate has585 current source/setup/archive byte comparisons.
+Kit4,248,578 bytes SHA256
+d348b1fdd5a5d0b8530809c6263d1d86005dc5249276b1980accafa9386ccfa8;
+starter2,760,670 bytes SHA256
+7099b052154ceed245d4009c71504260b0eadbba9f664f4267fcb28abf7d1eae;
+VSIX1,474,188 bytes SHA256
+44aa15c19004d38c43643ae572792dbeebde94d3ebddd5d10b80db3824a8fb29.
+Receipt `.verification/vision-final-checks/local-candidate-receipt.json`.
+Metadata remains kit0.5.47/core0.3.0, publication.status=local; these are not
+replacement released bytes or a release-ready acceptance claim. Current student
+sources are unchanged by the later maintainer-only evidence corrections.
+Physical Windows/setup, held interactive editor QA, novice trial, hosted schema2
+sharing acceptance, authenticated Pages and release publication remain separate.
+
+## Real WebFX compiler-failure preservation — 2026-10-23/24
+
+One trusted disposable copy of historical B injected an unresolved symbol into
+its saved browser adapter, updating its own bounded builder inventory. Maintained
+core, adapter and contract files remained unchanged. Before injection,91 input
+hashes/source/profile/build identity and current-host normal validation matched B.
+Because the copy moved directories, only the two absolute output paths in its
+receipt were transparently rebased; the original manifest was retained, with no
+new build/source/profile claim. That relocated manifest became the immutable
+last-good baseline. Data-only rehosting had needed no such metadata update.
+
+ONE actual export passed original Java API attribution, then real pinned GWT
+compilation failed: Maven/GWT exit1, BrowserRuntime.java line25 unresolved symbol
+ZeroProofMissingAdapterSymbol. The host retained its bounded1487-character
+summary and exact full29924-byte compiler log (SHA256
+1a7cca72b6b0f1f24c45938cc48979263d1cbfd8143d050f89cf91c311712c74).
+All61 output files—59 site files, ZIP and baseline manifest—remained identical.
+Retained validation passed; current-source validation rejected the changed builder.
+Exact B runtime bytes allow explicit reuse of its13 browser assertions; no new
+browser run, baseline export, rebuild retry or native GUI occurred. Proof11.339s
+includes Maven7.494s, not unrelated preparation/waiting.
+
+Receipt .verification/vision-compiler-failure/receipt.json SHA256
+408a00a1ca35d0b58486b74db5824deff18a7f81a47db85ce80d814cde9962f1.
+Parent verified all nine artifacts and61 output hashes. The proof exposed a
+location gap: generated runtime errors linked a deleted temporary source or a
+nonexistent student class.0c677feb maps reserved zero/web runtime and the exact
+ZeroDisabledState adapter to existing .zero-build adapter source; ordinary student/
+library attribution is unchanged. Parent applied the mapper to the real full log
+and verified that the existing saved file's line25 contains the injected symbol.
+GWT/Maven/Windows-path focused regressions pass. Independent Sol/high targeted
+review of the two-file delta is complete/clean, within the original reliability
+budget: total4turns/two target waves/two fix batches, no extra full/final wave.
+Other generated runtime/template errors are not claimed fully source-mapped.
+
+## Zero reliability foundations and private runtime sources — 2026-10-23/24
+
+Accepted locally through7208a918: private Node setup source7bc3622a, private
+native/browser readiness/error hooks03061efb, prepared source checks and runtime
+host6b7500f6, then five-P2 remediation7208a918. Core remains18helpers/183 public/
+protected declarations. No student lifecycle API, World/GameScreen or telemetry.
+Managed native output uses supported CustomExecution/Pseudoterminal around the
+same Maven command, actual UI/frame readiness, bounded records, cancellation/
+process-tree ownership and useful terminal/Problems errors. Old cores remain
+readiness-unverified. Managed browser status uses exact iframe/origin/MessagePort,
+run/build/sequence/rate bounds; fatal activity stops and preserves causal cleanup
+errors. Existing B WebFX/13behavior+8real bridge assertions cover unchanged core/
+browser runtime bytes; the host remediation does not change compiled game code.
+
+Browser checks require explicit trusted approval of the exact full saved builder.
+Opening is metadata-only. Explicit preparation may fetch verified dependencies;
+later650ms saved-source checks use exact cache-only attribution/library inputs,
+no network fallback, Maven, processors or app class/site generation. Late results,
+unsaved/changed inputs, changed builder or tools have stale/unavailable status;
+unsupported Java/API rejection is distinct. Native Run remains independent.
+Actual short JDK and standalone CLI tests cover cold/missing tools, supported,
+unsupported, published artifact/POM/source verification and preparation followed
+by unsupported checking. Editor command integration verifies dirty→stale,
+save→unsupported, no repeated preparation/native launch, Disable cancellation.
+
+Node22.21.1 private setup source has strict official Mac ARM/x64 and Winx64 archive
+sizes/hashes, safe extraction/contained-link handling, hash-keyed reuse/repair and
+readiness. Child-only ZERO_NODE_EXECUTABLE/PATH and preload clearing avoid global
+configuration. Existing Node Foundation teamHX7739G8FX was observed read-only;
+archive downloads/installations were not performed. Mac225 no-UI checks and
+production Swift typechecking, Windows1291 mocked Mono checks and metadata parity
+passed. Physical installers/platforms and published artifacts remain unaccepted.
+
+Fresh Sol/high and Astra/xhigh complete initial review covered all46 committed
+paths and immediate callers05390785→6b7500f6. Five P2s: native stdin EPIPE, wrapper
+exit with descendants holding stdio, records after unterminated human stdout,
+PTY LF normalization, and Disable racing pending preparation. All fixed together;
+complete Sol targeted five-file review clean at7208a918. Parent28 regression tests
+pass1.995s, including actual harmless POSIX closed-fd0 EPIPE, wrapper exit7/owned
+child cleanup, framing splits/CRLF and deferred Disable. The first parent UI-drain
+regression fixture accidentally closed pipes immediately on SIGKILL, then was
+corrected to model the intended held-pipe window; corrected test passes. Earlier
+80 focused tests pass3.712s and22API/navigation tests pass; root checks pass.
+No repeated full browser build or installer run was needed for host-only fixes.
+
+Review ledger .verification/vision-reliability-review/budget.json closed within
+60min: two fresh initial turns, one targeted turn, one five-finding fix batch.
+Complete targeted coverage plus unchanged initial pair coverage reused; no extra
+final wave. Requested models/effort recorded, effective configs and tokens unknown.
+Full per-signature executed coverage is a separate incomplete Phase4A gate; these
+foundations do not claim the entire reliability phase is finished.
+
+## Zero phased delivery: preservation proof 3C — 2026-10-23/24
+
+Project A's95 inputs including58 saved-builder files were committed with
+command-scoped local Git identity and cloned outside Zero. The newer host
+selected A's own closure, rebuilt it once and normally validated current source/
+profile. All59 site files and ZIP match A exactly; its prior13 browser assertions
+are explicitly reused. A finished-only copy has no Java/builder, empty PATH and
+untrusted host; data validation made zero process calls and actual browser play
+passed13/13. No ZeroHub or historical-kit service was needed.
+
+An explicit disposable branch/copy upgrade preview recorded15 owned-file changes:
+61 saved-builder files, changed App/GameApp and zero-core record. All five student
+sources, remaining scaffold and Maven/exact pins were preserved. One actual B
+WebFX export and normal pre/post source/profile validation passed, then13/13 new
+browser assertions passed first attempt. B's runtime differs from A at five site
+paths, so behavioral evidence was actually recollected. A separate retained B
+output remains data-valid, explicitly not current A. Rollback restored all95 A
+hashes/58 builder files; original A also still passes current-host normal and
+retained validation. All owned servers/browser sessions closed; local source,
+fixture Git history and output remain for recovery.
+
+Additional real browser MessageChannel checks passed8/8 on B output: two fresh
+frames emitted exact run/build-bound startup/UI-ready/first-frame seq1–3. Actual
+promise rejection and broken DOM image produced fatal seq4 with causal details,
+promise/PROMISE_REJECTED or asset-load/ASSET_MISSING, and stopped update counters.
+No fabricated runtime events or extra exports. Forgery/replay/bounds tests remain
+separate unit/VM evidence. No telemetry was activated.
+
+Final .verification/vision-preservation-C/receipt.json SHA256
+42b1abd7cb65981b3bc610dde23d8e04ca348f1199c37990dbc26a97f47147b4.
+Coordinator verified285 source-file comparisons across A/clone/rollback, all11
+retained evidence artifacts and site/ZIP hashes for A, clone, finished A and B.
+The first verification encountered an agent's final branch-prefix metadata change;
+rechecking the frozen final receipt passed, without runtime/build retries.
+A local commitb12e2c9f265e54c9d3e14912382e240d255a94eb;
+B build e2b597b3-df9d-4068-b1f3-3fe010076dc3,
+source73fc05924d349018ef6e410ef361d4972067be94093560f898af7fb28066d624,
+profilec1a4941c169004475135d0bff9a0555e6edf69f41f7fa27b6182fcfb6d41ee62,
+ZIP8edfd261a10666ad0af0302dc88a5b1fc9a821ff3aba2faea4ede034cae8f2fa.
+Tested B closure dba3490229cc6df531489979355a2aa429dcbd3678567bd655dbe3061f27c9c4
+is a frozen intermediate: a later CLI-only preparation/temp-alias correction is
+not claimed built under that profile. Compiled core/adapters are unchanged by it.
+
+Phase3 is accepted locally through source05390785 plus this scoped preservation
+proof; B's new reliability capabilities have their own pending Phase4 review.
+Two total exports,26 new app assertions+8 bridge assertions,13 old assertions
+reused; zero automatic build/browser retries, no native GUI runs. Build stages
+13.845s(A)/16.836s(B) exclude preparation/wait/browser. Normal upstream tool/
+dependency availability still matters; no permanent offline/platform guarantee,
+central kit database or historical maintenance branches are introduced.
+
+## Zero phased delivery: optional actor containers 2D and standalone builder proof 3A — 2026-10-23
+
+Phase2D is accepted locally: student source04539fc1 and assembler949fae28,
+independently reviewed in the full3290d393→40954085 preservation wave. Both
+reviewers found no container defect. ActorCollection is ordinary optional Java;
+OrderedActors and SnapshotActors share identity/insertion-order membership,
+exactly-once explicit updates, deferred additions, immediate removal including
+remove/readd, drawing guards and useful errors. Main can switch structures while
+retaining actor identities, positions and counters. No core API, World or second
+loop was added. Phase2's extension/replacement/sharing examples are complete
+locally; hosted admission/publication remains separate.
+
+Author compilation covered18 core+5 student+driver sources; cached semantic
+attribution passes. Actual scoped native actor-containers check passed first
+cycle. Then a new project A outside the repository contained95 initial source/
+scaffold files, including the complete58-file .zero-build closure. It had no
+node_modules or parent Zero source dependency. Its own run.cjs handled inspect,
+capture, ONE real WebFX export and pre/post-browser validation.13/13 actual
+browser controls/counter/pixel assertions passed first attempt: pause/draw without
+updates, remove/duplicate-add, both replacement directions, preserved canvas and
+counters, resumed equal update deltas and restart. No app or required-resource
+errors; raw optional favicon404/readback advisory retained.
+
+Receipt .verification/vision-preservation-A/receipt.json SHA256
+ e5f17de501ccf6eafe46148374146189de6d836eddace9c7b8685115c2a15e6c.
+Builder closure2a8f7eeaf2a95060a89a983a0c5a2c857b2dd4a6995be5cdf2f4ac0c0bb9593a;
+build eb53708e-eb92-4a32-9833-1dc1efdfa6ad,
+source0f2f51c64dc253ca22fbe20c3d2798136e4f19c6b21b5d00124920d907d950e9,
+profile4b3872d237c118ae8188fd40c7f4d4b7da65c7aaac7985299c6b1a8c6cdda799.
+All95 initial file hashes independently rechecked by the coordinator;59 finished
+site files. Actual existing standalone Node22.21.1/private ARMTemurin21.0.12.1+1
+versions/executable hashes recorded; archive hashes/signatures were not reverified
+and no runtime installed/downloaded.119MB owned cache seed was reverified by the
+normal saved builder. Export19.544s and browser3.543s are individual stages,
+excluding preparation, native checks and waiting. Own native/browser/server jobs
+closed. A/source/output/cache intentionally retained for Phase3C; Git was not yet
+initialized and clone/newer-builder/rehost/upgrade acceptance is still pending.
+
+The standalone proof establishes3A execution. Host3B40954085 received fresh
+Sol/high and Astra/xhigh high-risk reviews over all50 changed paths. Three P2s
+(follow-up cancellation, compiler-log loss, current-compression-dependent retained
+ZIP validation) were fixed together at8c779da2. Sol targeted all seven fix files
+clean with44tests. Astra final cumulative review found one additional malformed
+JSON-null response hang;05390785 fixes record validation and async-close settling.
+Sol's final two-file targeted review is clean:19host tests plus isolated deadline,
+cancel, delayed-log, throwing cleanup and malformed conversion probes, zero
+unhandled rejections. Parent45focused tests passed1.435s. Reused complete final
+cumulative coverage plus this last clean delta; no redundant second final wave.
+Four P2s, two fix batches, five reviewer turns, one initial/two targeted/one final
+waves; within60min/7launch limits. Ledger .verification/vision-preservation-review/
+budget.json closed. Effective configurations/tokens unavailable.3A/3B are accepted
+locally through05390785;3C remains pending. Full50 publisher regressions passed
+115.318s before the localized fixes; unchanged saved closure/runtime proof reused.
+
+Current host also actually validated A through its own saved CLI and available
+Node/JDK. A finished-only copy containing .zero output, with no Java/builder and
+empty PATH/untrusted host, passed data-only site/ZIP validation unchanged (59files).
+Receipt .verification/vision-preservation-A/host-and-retained-validation.json.
+This is not yet a claim of cloned rebuilding or static rehost play. Public Pages,
+physical Windows and actual interactive editor acceptance remain separate.
+
 ## Zero phased delivery: replaceable actor animation and steering slice 2C — 2026-10-23
 
 Accepted locally at df47d667, implementation668e0c46. Core now has18 helpers and

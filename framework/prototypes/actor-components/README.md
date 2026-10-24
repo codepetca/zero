@@ -29,3 +29,7 @@ green and blue tiles. The native maintainer driver also checks actual frame-cent
 pixels, swaps, geometry, invalid-input atomicity, independent clocks, bad-source
 conformance and live pause/resume/restart. Browser and native acceptance are
 separate recorded verification steps.
+
+[Example core proposal](CORE-PROPOSAL.md) shows how a useful helper can become a
+reviewable idea for Zero while preserving its source, attribution and existing
+library versions. It does not adopt or publish a new API.

@@ -14,7 +14,7 @@ The default Zero API must be verified before students encounter platform failure
 | Original-source resolved API check | [compatibility](../extension/src/web-export/compatibility/index.js) | Rejects unsupported student/library API use before transpilation; reviewed helpers have a narrow exemption |
 | Actual pinned WebFX/GWT compile | [exporter](../extension/src/web-export/index.js) | Real compilation fails on nonzero exit; source-mapped local diagnostic log; previous output retained |
 | Problems/Output and native task matcher | [web run UI](../extension/src/web-run-ui.js), [extension](../extension/src/extension.js) | Local compile errors, failed operation and native exit feedback |
-| Six real fixtures and browser interaction assertions | [verifier](../scripts/verify-web-export.mjs), [browser checks](../scripts/web-browser-checks.js), [CI](../.github/workflows/web-export.yml) | Selected API/gameplay behaviors pass in tested browsers, not all possible applications |
+| Ten real fixtures and browser interaction assertions | [verifier](../scripts/verify-web-export.mjs), [browser checks](../scripts/web-browser-checks.js), [CI](../.github/workflows/web-export.yml) | Selected API/gameplay behaviors pass in tested browsers, not all possible applications |
 | Image/startup/audio failures | [launcher](../extension/src/web-export/adapters/runtime/zero/web/BrowserLauncher.java), [audio](../extension/src/web-export/adapters/runtime/zero/web/media/BrowserSound.java) | User-visible status/console failures; no central collector |
 | Frame failures | [GameApp](../framework/src/main/java/zero/GameApp.java) | Stops and rethrows update/draw exception with cleanup failures retained |
 | ZeroHub status | [project status](../website/lib/hub-project-status.mjs) | HTTP reachability only; not playable/healthy behavior |
@@ -186,14 +186,14 @@ Apply the [version policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preser
 to every compatibility/build result: bind it to the project's owned build files,
 recorded framework/profile and library pins, not merely the installed editor.
 Missing tools/artifacts or an unsupported project entry point are tooling/
-availability results, not student API errors or permission to upgrade. Existing
-validation uses the installed exporter; safe project-bound tooling remains future
-work. A manifest/hash alone must not authorize execution of arbitrary project code.
+availability results, not student API errors or permission to upgrade. Current source uses the project-owned saved builder for explicit trusted builds.
+Opening is metadata-only; retained finished output has separate data-only
+validation. A manifest/hash alone does not authorize execution of project code.
 
 Current-line CI uses a small fixed set of representative projects for same-major
-compatibility and one project clone/build/rehost/rollback proof. Use empty caches,
-project-owned Zero build files and normal pinned dependency hosts without a
-central kit service. It does not continually build every old release. Assert that
+compatibility and one project clone/build/rehost/rollback proof. Use project-owned Zero build files and normal pinned dependency sources without
+a central kit service. Distinguish the accepted verified-cache rebuild from cold
+setup; missing-cache/tool tests must report unavailable honestly. It does not continually build every old release. Assert that
 an editor update leaves inputs unchanged, missing dependencies report unavailable,
 and saved static output plays without Zero services. Only when offering an optional
 full offline bundle, restore it with upstream downloads disabled and verify bytes/

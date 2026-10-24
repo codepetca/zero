@@ -29,7 +29,7 @@ the small set you need for each project:
 | --- | --- |
 | An app | `App`: `settings()`, `setup()`, `size(...)`, `title(...)`, `padding(...)`, `show(...)`; `zero.ui.Label`, `Button`, `TextField` and `Column`. |
 | A game | `GameApp`: the same startup, plus `update(seconds)`, `draw()`, `keyDown(...)`, `width()`, `height()`, `background(...)`, `fill(...)`, `rect(...)`, `circle(...)`, `textSize(...)`, `text(...)`. |
-| Improve appearance | JavaFX fonts, a few colours, spacing/padding and an editable stylesheet; canvas fonts through `graphics().setFont(...)`. |
+| Improve appearance | Zero `Color`, `Column`/`Row` spacing, app padding and canvas `textSize(...)`. Advanced projects can use the supported JavaFX escape hatch. |
 
 Follow the [Greeting App tutorial](lessons/02-hello-name.md) for controls or
 the [Coin Game tutorial](lessons/08-movement.md) for a canvas game.

@@ -377,18 +377,21 @@ real pinned WebFX compilation and source/output snapshot checks before publishin
 
 Current source, unreleased: projects include readable framework source, native
 Maven/JavaFX pins and the complete `.zero-build` browser builder. Its standalone
-CLI retains rules, adapters and locks. Explicit trusted editor actions are being
-connected to a verified frozen copy; opening a project never executes it or
-upgrades its helpers. Retained finished output has separate data-only validation.
-Independent review and clone/build/rehost acceptance are still in progress.
-`templateVersion` alone is not a complete build record. Private runtime
-provisioning for the classroom kit and optional upgrade guidance remain delivery
-work; no complete offline or indefinite rebuild guarantee is claimed.
+CLI retains rules, adapters and locks. Explicit trusted editor actions use
+a verified frozen copy; opening a project never executes it or upgrades its
+helpers. Retained finished output has separate data-only validation. Independent
+review and clone/build/rehost/upgrade/rollback acceptance pass locally.
+`templateVersion` alone is not a complete build record. Private Node provisioning
+source and platform harness checks pass; real installation acceptance remains
+separate. No complete offline or indefinite rebuild guarantee is claimed.
 
 Acceptance stays bounded: current examples and a small fixed set of representative
 same-major projects, not every historical release. Clone one older project with
-its committed build files into a clean environment, with empty caches and no
-central Zero kit service, and build using the recorded normal dependency sources.
+its committed build files outside the development repository and rebuild with no
+central Zero kit service. Record cache reuse honestly: the accepted local proof
+uses verified normal dependency caches, not a cold installation or full offline
+archive. Check missing-cache/tool availability separately; cold setup remains a
+platform acceptance gate.
 Verify that a newer editor leaves inputs unchanged, explains unsupported tooling,
 and makes an optional upgrade reversible. Rehost the saved web ZIP with Zero
 services unavailable. If an optional full offline bundle is offered, separately
@@ -434,10 +437,10 @@ unchanged checks. Future phases start only when their dependencies are ready.
 | --- | --- | --- |
 | 0. Working baseline | Recover accepted App/GameApp/Actor/UI prototypes, source/export ownership and verification. Keep Main's explicit update/draw; one gameplay loop and no GameScreen. | Accepted locally: counter, structured/beginner Coin Quest and stress proof; prior native/browser receipts retained. |
 | 1. Make the student path Zero-first | Move maintained Greeting, Study and Coin teaching projects to Zero packages for normal UI/input/drawing/assets. Keep classes and callbacks ordinary Java. Add only controls needed by those lessons. Add a small simulation with live controls; preserve beginner Main/HUD and optional extraction. | Accepted locally through549db09f (slices1A–1F): teaching path0–12 and live-control simulation, native/WebFX/browser checks and independent reviews. Core16helpers/176declarations. Public templates/kits remain separately pinned. |
-| 2. Prove student extension and sharing | Demonstrate an ordinary steering helper, interchangeable UI component, default/alternative animation and container through public consumers without core edits. Share immutable data but independent mutable clocks, with one explicit update owner. Prove the same component through managed local and exact-version library consumption in App and GameApp, natively and in the browser. | 2A accepted locally at29118a74: typed text/bar replacement in App/GameApp, native/browser checks and independent review. 2B accepted locally at98b3a831: independent JAR and four native/WebFX consumers,38browser assertions. 2C accepted locally atdf47d667: replaceable animation/steering,18helpers183declarations, native/managed-JAR and browser behavior. Active2D: optional student container replacement. Add World/Screen/camera only for demonstrated examples, not as a prerequisite. Hosted acceptance remains gated. |
-| 3. Make projects self-contained and upgrades optional | Record exact framework/library/toolchain inputs and retain the complete reviewed browser-builder dependency closure with the project. Opening in a newer editor changes none of them. Explicit trusted build actions use project-owned tooling; missing tools get useful unavailable status. Upgrade a copy/branch deliberately and reversibly. Clone/build/rehost a representative older project and saved static export with no central Zero kit service. | Active3A: complete saved-builder producer/CLI and closure. Remove the existing automatic helper migration during Publish; hashes alone never authorize arbitrary project code execution. No required historical-kit database, all-version CI or old-maintenance branches. Full offline backup remains optional. |
-| 4. Catch failures during development | Complete exact-signature executed-evidence coverage; debounced saved-source browser compatibility, truthful native/managed-preview lifecycle and source-linked errors. Inject unsupported API, compiler, asset, startup, frame/UI/promise and stale-message failures; preserve the last good export. Native Run stays fast and usable offline. | Planned, with meaningful exact-signature evidence recorded from slice 1A onward. PostHog is an optional sanitized sink evaluated after local gates; Clarity is a possible website usability supplement. Neither is injected or activated by this plan. |
-| 5. Finish the student/contributor journey | Exercise create → code → native play → fix error → Git progress → browser export/preview and exact library reuse; keep public templates, kit, lessons, API and help coherent. Prepare a release candidate with scoped browser/platform limits and a core-adoption example retaining attribution. | Planned. Public template updates, authenticated Pages publication, hosted checker activation, signed releases and a teacher/novice pilot require their separately authorized real acceptance; local mocks cannot satisfy them. |
+| 2. Prove student extension and sharing | Demonstrate an ordinary steering helper, interchangeable UI component, default/alternative animation and container through public consumers without core edits. Share immutable data but independent mutable clocks, with one explicit update owner. Prove the same component through managed local and exact-version library consumption in App and GameApp, natively and in the browser. | 2A accepted locally at29118a74: typed text/bar replacement in App/GameApp, native/browser checks and independent review. 2B accepted locally at98b3a831: independent JAR and four native/WebFX consumers,38browser assertions. 2C accepted locally atdf47d667: replaceable animation/steering,18helpers183declarations, native/managed-JAR and browser behavior. 2D accepted locally: optional ordered/snapshot actor containers, native and13browser assertions; Phase2 complete. Add World/Screen/camera only for demonstrated examples, not as a prerequisite. Hosted acceptance remains gated. |
+| 3. Make projects self-contained and upgrades optional | Record exact framework/library/toolchain inputs and retain the complete reviewed browser-builder dependency closure with the project. Opening in a newer editor changes none of them. Explicit trusted build actions use project-owned tooling; missing tools get useful unavailable status. Upgrade a copy/branch deliberately and reversibly. Clone/build/rehost a representative older project and saved static export with no central Zero kit service. | 3A/3B accepted locally through05390785: standalone saved-builder closure and trusted editor selection; automatic Publish migration removed. Actual outside-repository export and13browser assertions pass. 3C accepted locally: old A clone/rebuild is byte-identical; finished-only play, explicit B upgrade and exact rollback pass. Full Phase3 preservation is accepted locally. Hashes never authorize execution by themselves. No required historical-kit database, all-version CI or old-maintenance branches. Full offline backup remains optional. |
+| 4. Catch failures during development | Complete exact-signature executed-evidence coverage; debounced saved-source browser compatibility, truthful native/managed-preview lifecycle and source-linked errors. Inject unsupported API, compiler, asset, startup, frame/UI/promise and stale-message failures; preserve the last good export. Native Run stays fast and usable offline. | Active: all183 declarations have native/browser assertion mappings; cache-only status, runtime hooks and per-target evidence gates are implemented. Four current WebFX exports pass. Complete native execution needs the unlocked Mac; a small browser fault-channel harness correction awaits review-budget extension. Full executed coverage remains pending. Meaningful evidence exists from slice 1A onward. PostHog is an optional sanitized sink evaluated after local gates; Clarity is a possible website usability supplement. Neither is injected or activated by this plan. |
+| 5. Finish the student/contributor journey | Exercise create → code → native play → fix error → Git progress → browser export/preview and exact library reuse; keep public templates, kit, lessons, API and help coherent. Prepare a release candidate with scoped browser/platform limits and a core-adoption example retaining attribution. | Private Node setup source is implemented and platform-harness checked. A local VSIX/kit candidate passes source/archive/license checks and extracted Maven compilation;43 local Git/mocked-editor workflow contracts pass. A credited core-proposal example is prepared. Actual installation and interactive journey acceptance remain pending. Public template updates, authenticated Pages publication, hosted checker activation, signed releases and a teacher/novice pilot require their separately authorized real acceptance; local mocks cannot satisfy them. |
 
 Local acceptance, 2026-10-23: Phase1 is complete through549db09f. The canonical
 starter, Greeting0–2, Study3–7, Coin8–12 and live-control simulation use Zero
@@ -460,8 +463,9 @@ corrected during independent review. Phase2C is accepted locally atdf47d667:
 replaceable actor animation, independent clocks, procedural/image swaps and
 student steering, with native/managed-JAR proof and15 browser assertions. The
 checker-only remediation export has all60 runtime files byte-identical to the
-browser-tested build. Optional student container replacement is the remaining2D
-slice. Source-only resolution remains distinct from JAR proof.
+browser-tested build. Phase2D is accepted locally: optional student ordered/snapshot containers through
+the same Main, native checks and13 browser assertions from one outside-repository
+saved-builder export. Phase2 is complete locally. Source-only resolution remains distinct from JAR proof.
 Published tutorial-template commit IDs and installed artifacts remain immutable
 until separately authorized publication. Report local versus public delivery.
 
@@ -599,6 +603,68 @@ Only the current producer is maintained. Historical student repositories retain
 their own builder; no central kit store, database, old maintenance branches or
 automatic migrations are introduced. Optional full offline bundles remain a
 later student-owned backup choice.
+
+### Phase 4 implementation contract
+
+Astra's read-only reliability audit (2026-10-23) confirms that the current
+18-helper/183-declaration inventory and behavioral checks are useful, but do not
+yet prove executed native/browser behavior for every signature. A count, import,
+dead-code call or list of test names is not passing evidence. The maintained
+browser verifier has nine fixtures; add explicit local fixture selection before
+preparation, preserving full conservative CI defaults. Do not repeat stress tests.
+
+Prepare three coordinated source components, then collect acceptance against
+their final frozen inputs:
+
+- **Evidence and fixtures:** a finite exact declaration manifest and receipt
+  validator bind every owner/signature, overload, extension hook and constant to
+  native/browser assertion IDs and meaningful postconditions. Bind declaration,
+  fixture, harness, core, complete builder/profile, contract, library and executed
+  output/tool/platform identities. Emit each outcome after invocation and its
+  postcondition; reject missing, stale, duplicate, conflicting or incomplete
+  receipts. Reuse seven native checks and four browser fixture families: helpers,
+  actual Zero UI/navigation, audio and a small lifecycle fixture. Inherited
+  receiver use is a variant, not another declaration. Keep gaps explicit until
+  actual execution passes.
+- **Saved-source status:** add cache-only compatibility with no network fallback,
+  Maven, annotation processors or export generation. Missing verified tools,
+  attribution or exact library/cache metadata means unavailable. A deliberate
+  Enable browser checks/preparation action approves a trusted project and exact
+  frozen builder hash; opening/saving alone grants no execution authority.
+  Changed tooling revokes approval. Debounce saves and relevant create/delete/
+  rename/config/library changes, cancel superseded work, bind results to saved
+  source/core/library/builder/checker/JDK identity, and discard late completion.
+  Dirty edits mark status stale. Keep checking, compatible, unsupported,
+  unavailable and stale separate from native Run or real WebFX success. Only
+  explicit preparation fetches dependencies with progress. Native Run remains
+  independent, fast and usable offline.
+- **Local runtime status:** use bounded versioned startup, UI-ready, first
+  successful game frame, fatal error and stopped events. Keep pause/menu/hidden
+  activity separate from failure. Instrument existing App/GameApp, assets/startup,
+  early browser bootstrap, GWT uncaught handling and actual UI callbacks; retain
+  causal and cleanup errors. Do not add a public lifecycle API solely for
+  diagnostics. Bind the preview channel to its exact active iframe/origin, run
+  generation and immutable build identity; validate sequence, size/rate and reject
+  stale/forged events. Messages have status/diagnostic authority only. Native Task
+  start/exit cannot prove readiness: a supported CustomExecution/Pseudoterminal
+  wraps the same Maven command, mirrors terminal output/problem matching and owns
+  cross-platform process cancellation. Older cores report started/readiness
+  unverified. Avoid a progress watchdog initially; inactivity is not a crash.
+
+Prepare evidence tooling while the other components are implemented, then run it
+after their source/profile is frozen. Inject unsupported APIs, a real WebFX
+compiler failure, missing asset, setup/update/draw/UI-handler/promise and shutdown
+failures. Prove useful local diagnostics and unchanged last-good output. Test
+replayed, oversized, flooded and stale-origin events, Stop/restart/disposal and
+valid UI-only/menu/pause/hidden-tab cases. Every advertised declaration needs
+executed evidence on both targets before claiming complete coverage.
+
+Phase5 must provision/discover a private pinned standalone Node runtime in the
+classroom kit, with setup candidate and host-discovery checks. Missing Node now
+reports unavailable while native Run continues; global manual Node installation
+must not become the normal student workflow. Physical platform/publication gates
+stay separate. Telemetry remains off: no SDK, collector, keys or replay injection.
+A later sanitized PostHog experiment cannot replace these local gates.
 
 Final acceptance is evidence of the learning loop: a student can explain their
 Java, add an actor, import an asset, swap animation, extract/reuse a component,

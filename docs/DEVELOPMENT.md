@@ -227,8 +227,9 @@ project-owned framework/build source and exact version records independent of
 editor updates; one maintained current line with no required central historical-kit
 storage/database. Same-major compatibility uses a small representative regression
 set, not all-version CI/old branches. Retained web output and optional student-owned
-offline bundles use existing artifact formats. Safe project-bound browser tooling,
-launcher and backup/upgrade flows remain future work; current Run/export is unchanged.
+offline bundles use existing artifact formats. Current source includes project-owned browser tooling, trusted launch and
+data-only retained-output validation. The local clone/rebuild/rehost and explicit
+copy-upgrade/rollback proof passes; released kits retain their bundled behavior.
 
 Pin JavaFX, Maven wrapper/distribution and npm tooling; commit the npm lockfile.
 Keep generated artifacts and caches out of Git. The framework source ships inside
@@ -325,7 +326,8 @@ JavaFX imports. Follow [the class model](FRAMEWORK-MODEL.md) and
 [reliability plan](FRAMEWORK-RELIABILITY.md) for proposed App/GameApp ownership,
 per-signature evidence, background compatibility and local runtime status.
 PostHog/Clarity evaluation grants no new collection or activation authority.
-The implemented Run/export behavior below has not changed.
+The released Run/export behavior is described below; current source adds the
+project-owned builder and local reliability status described in those plans.
 
 See [WEB-EXPORT.md](WEB-EXPORT.md) for the implemented WebFX/GWT teaching profile,
 explicit browser export/preview, deployment-only publishing kit and strict
