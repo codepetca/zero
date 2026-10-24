@@ -77,7 +77,7 @@ export function HubDiscovery() {
     return()=>{observer.disconnect();controller.abort();};
   },[kind,metricIds]);
   const projectMetric=(id:string)=>{const label=metricLabel(kind,metrics[id]);return label?<p className={styles.metrics} title={label.hint}>{label.text}<span className="sr-only">. {label.hint}</span></p>:null;};
-  const projectFeedback=(entry:{id:string;title:string;repositoryHref:string;playHref?:string;sourceCommit?:string;version?:string})=>(identity?:ReactNode)=><HubProjectFeedback {...entry} kind={kind} feedback={feedback[entry.id]?.repositoryUrl===entry.repositoryHref?feedback[entry.id]:undefined} metric={projectMetric(entry.id)}>{identity}</HubProjectFeedback>;
+  const projectFeedback=(entry:{id:string;title:string;repositoryHref:string;playHref?:string;sourceCommit?:string;version?:string})=>(identity?:ReactNode,description?:string)=><HubProjectFeedback {...entry} kind={kind} compact={kind==='game'} description={description} feedback={feedback[entry.id]?.repositoryUrl===entry.repositoryHref?feedback[entry.id]:undefined} metric={projectMetric(entry.id)}>{identity}</HubProjectFeedback>;
   return <section className={styles.catalog} aria-labelledby="sharing-heading">
     <h2 id="sharing-heading" className="sr-only">{kind === 'game' ? 'Projects' : 'Libraries'}</h2>
     <HubNavigation active={kind} />

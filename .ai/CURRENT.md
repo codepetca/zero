@@ -1,23 +1,23 @@
-# ZeroHub metrics — publication, 2026-10-24
+# ZeroHub visits and borderless stars — 2026-10-24
 
-Owner authorizes publishing the reviewed metrics code and verifying it live,
-with all services kept on Free. Use the reviewed PR/CI flow; no paid plan,
-paid add-on or automatic upgrade is authorized. Preserve primary funding work
-and unrelated Dev worktrees/profiles. Task branch: `codex/zerohub-metrics`.
+Owner requests “x visits”, borderless stars and one availability-colored info
+icon for all extra project details, as a follow-up
+to the authorized metrics publication. Keep services on Free; no infrastructure,
+API/storage key or publisher-policy change. Preserve the dirty primary funding
+checkout and unrelated Dev worktrees. Branch codex/zerohub-visits in the existing
+attached zerohub-interest worktree.
 
-Reviewed source: initial67031a42 + targeted76f52630 + native Vercel config230401b3;
-compatibility e3f3218a independently reviewed by two Sol6.1/high reviewers, clean.
-Website177tests, sharing90pass/4Docker-skips, typecheck/build and root checks pass.
-Plans, semantics and publisher compatibility: docs/ZEROHUB-METRICS.md.
+Prior metrics PR179 merged b549b959; live production and both publisher pins
+verified. One real test + owner's phone visit brought Drawing Pad to2opens.
+Counting still means Play activations including repeats, not unique visitors.
+New display uses visit/visits and keeps the precise hint. Star buttons/links keep
+44px targets, accessible labels, filled selected icons and focus outlines.
+Project title/About hover disclosure is replaced by one native info popover
+with description, status/time, GitHub author/version and report flag. The icon
+is green when reachable and yellow otherwise; library text layout is retained.
 
-`zero-hub-opens` exists in Vercel on Free, connected only to Zero Production.
-Creation explicitly set autoUpgrade=false and prodPack=false. The integration
-injects KV_REST_API_URL/TOKEN; no credentials belong in Git or browser bundles.
-
-Draft PR https://github.com/codepetca/zero/pull/179; preview Ready.
-Next: merge after exact-head CI; verify the production deployment,
-real anonymous Play opens/durable totals and preview isolation. Coordinate both
-publisher reader pins before new adoption observations are written. No native
-installer release or historical adoption backfill is requested. Retain receipts
-in ignored `.verification/zerohub-metrics/`; final CI/live status belongs there
-and in the PR handoff. No separate task, goal or automation was created.
+Next: focused website checks and browser verification; independent low-risk
+review, then reviewed PR/CI publication and live label/style verification within
+the existing website-publication authorization. Keep publisher pins unchanged.
+Receipts: ignored .verification/zerohub-visits/. Prior delivery records remain
+.verification/zerohub-metrics/publication/ and PR179. No new task or automation.
