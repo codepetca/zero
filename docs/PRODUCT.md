@@ -141,7 +141,8 @@ media notes stay muted and unboxed. Previous lesson prose is omitted in favor of
 Show only the latest available release of each project. Each project occupies one
 square screenshot: the title overlays its top on a dark background and fades at
 the edge when too long. Visits and borderless stars remain visible at the bottom.
-One info icon is green when the site is reachable and yellow otherwise. Tapping
+The single info icon beside the title replaces the old About question mark.
+It is green when the site is reachable and yellow otherwise. Tapping
 it opens project details: description, green check or yellow warning with the
 last check, GitHub author, available version and report flag. The native popover
 closes with its close button, an outside tap or Escape; keyboard focus stays

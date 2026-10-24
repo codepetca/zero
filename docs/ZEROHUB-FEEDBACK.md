@@ -122,7 +122,8 @@ and [GitHub starring API](https://docs.github.com/en/rest/activity/starring).
 
 ## Compact project details
 
-Project cards keep visits and borderless stars visible. A single info icon is
+Project cards keep visits and borderless stars visible. The single info icon
+beside the title replaces the old About question mark; it is
 green when the site is reachable and yellow when unavailable or unconfirmed.
 It opens a native popover containing the description, check/warning and last
 check time, GitHub author, version when available and report flag. Close it with

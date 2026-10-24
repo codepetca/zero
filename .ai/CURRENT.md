@@ -1,23 +1,19 @@
-# ZeroHub visits and borderless stars — 2026-10-24
+# ZeroHub title info placement — 2026-10-24
 
-Owner requests “x visits”, borderless stars and one availability-colored info
-icon for all extra project details, as a follow-up
-to the authorized metrics publication. Keep services on Free; no infrastructure,
-API/storage key or publisher-policy change. Preserve the dirty primary funding
-checkout and unrelated Dev worktrees. Branch codex/zerohub-visits in the existing
-attached zerohub-interest worktree.
+Owner asks to reuse the old top-right About/question-mark position for the
+availability-colored details control, rather than a separate footer info icon.
+The old question mark toggled the project description. Preserve the native
+popover containing description, status/time, author/version and report flag;
+keep visits and borderless stars at the bottom. Existing publication authority
+continues for this UI follow-up; Free-plan infrastructure/publisher pins unchanged.
 
-Prior metrics PR179 merged b549b959; live production and both publisher pins
-verified. One real test + owner's phone visit brought Drawing Pad to2opens.
-Counting still means Play activations including repeats, not unique visitors.
-New display uses visit/visits and keeps the precise hint. Star buttons/links keep
-44px targets, accessible labels, filled selected icons and focus outlines.
-Project title/About hover disclosure is replaced by one native info popover
-with description, status/time, GitHub author/version and report flag. The icon
-is green when reachable and yellow otherwise; library text layout is retained.
+PR179 metrics merged b549b959; PR180 details/visits merged6f8388bd. This branch is
+codex/zerohub-header-info in the attached zerohub-interest worktree. Preserve the
+dirty primary funding checkout and unrelated worktrees. Shared details are pure
+presentation; render exactly one authenticated star control per card. Place the
+info trigger in the heading DOM to preserve keyboard reading order.
 
-Next: focused website checks and browser verification; independent low-risk
-review, then reviewed PR/CI publication and live label/style verification within
-the existing website-publication authorization. Keep publisher pins unchanged.
-Receipts: ignored .verification/zerohub-visits/. Prior delivery records remain
-.verification/zerohub-metrics/publication/ and PR179. No new task or automation.
+Next: website checks, native-popover browser checks, one independent delta review,
+PR/CI publication and live verification. Receipts: ignored
+.verification/zerohub-header-info/. Prior delivery receipts/PRs remain available.
+No new task, automation, resource, dependency or native installer release.
