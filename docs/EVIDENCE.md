@@ -1,5 +1,45 @@
 # Delivery evidence index
 
+## Zero phased delivery: shared component slice 1D — 2026-10-23
+
+Accepted locally at `8a80b640`. Lessons/checkpoints10–11 reuse the same ordinary
+ScoreDisplay class in Study and Coin. Its view returns a Zero Element backed by
+a Label; Main retains scoring rules and explicit updates. Mandatory JavaFX bold
+styling became a text-format experiment with an explicit restore. Lesson11 adds
+ordinary setCaption(String), retaining the latest displayed points and rejecting
+null before mutation. Both canonical Main setups retain the Score caption.
+Navigation guidance now distinguishes live controls from replacement UI views.
+ZeroHub's separate original-project, admission and publication boundaries remain.
+No core API, runtime or source fingerprint changes: 16 helpers / 175 declarations.
+
+Eighteen lesson/tutorial checks and root checks pass. Native10/11 Study and Game
+all pass; caption9→Coins9→4→Coins4, invalid-caption preservation and independent
+instances are checked natively. Legacy12/media passes without assets and with
+assets. The harness unwraps native and Zero views. Source equality checks cover
+10Study/Game,11Study/Game and the retained legacy12 pair; reconnect11→12 during
+its upcoming asset migration. This is an explicit temporary migration boundary.
+
+Two actual pinned exports pass39/39 browser assertions in67.1seconds including
+compilation: Study `2e97cb88-cd16-49d9-a64b-9054f2743be5` and Coin
+`9a42ddce-fec8-4849-a66e-953d7cfb8648`. Engine/profile remains
+`4d5871d7266d894d59174e10e27604a633ee234925265fb3fe67b14f6cd2742d`.
+All four Java files match each canonical consumer; shared ScoreDisplay SHA256
+`75bdbd974796d6f7de89295dfc17230646a41f5b96af486e85ad87088dc8d8a8`.
+The browser executes each setup's caption call and subsequent live score updates:
+Study completes two full sessions/resets, Coin two actual-keyboard wins/restarts
+with retained HUD/canvas. Custom caption/null/instance behavior is native evidence,
+not a browser claim. All51 receipt hashes match and both exports validate before
+and after use. No application/required-resource errors; two optional favicon404s
+and one pixel-readback advisory are separately audited. Own browsers/previews closed.
+
+Independent Sol/high review covers all17 files and callers, verifies native,
+consumer/export/runtime hashes and browser receipts, and finds no actionable
+issues. One initial turn, no fix batch or extra wave. Requested browser Sol/medium;
+effective configuration and tokens unknown. Receipts/logs/screenshots live under
+ignored `.verification/vision-components-*`. Unchanged core/UI checks were reused;
+no extra UI build, stress/full9 suite, publication, install, account or telemetry
+changes. Goal remains active with lesson12 assets, then live-control simulation.
+
 ## Zero phased delivery: Coin slice 1C — 2026-10-23
 
 Accepted locally at `a4e8b771`. Coin lessons/checkpoints 8–9 now use Zero input,

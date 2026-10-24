@@ -1,4 +1,4 @@
-# Zero vision execution — Phase 1D implementation, 2026-10-23
+# Zero vision execution — Phase 1E contract, 2026-10-23
 
 Persistent coordinator goal active. Single roadmap:
 `docs/FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance`.
@@ -28,29 +28,33 @@ Accepted locally:
 Evidence/detail in `docs/EVIDENCE.md`. Public templates/kits/hosted docs unchanged.
 Own browsers/previews/docs servers closed. Effective configurations/tokens unknown.
 
-Active 1D contract: shared ScoreDisplay in lessons/checkpoints10–11 (Study+Game)
-uses zero.ui.Label and Element view(). No new core API. Ordinary Main owns points
-and rules, updates explicitly. Lesson10's former required FX bold style becomes
-an experiment changing/restoring text. Lesson11 adds setCaption(String), retaining
-latest displayed points; null caption gives useful error and preserves state.
-Default and both Main captions remain Score; optional exercises try other names.
-Do not change ZeroHub/publication boundaries. Keep paired ScoreDisplay bytes equal.
+Phase1D accepted at8a80b640: sharedScoreDisplay lessons10/11zero.Label/Element,
+ordinarycaption/points/refresh with useful nullerror and atomicity. No core API
+change16/175. Native10/11Study+Game+legacy12media bothmodes,18lessonchecks/root,
+twoexactfour-fileexports39/39browserassertions and clean complete17file review.
+Oneinitialturn/no fixes; proof in vision-components-web/review/logs. Customcaption/
+null/instancebehavior native; browsers useScore setup+actualscoreupdates. All51
+receipt hashes match. Full details docs/EVIDENCE.md. Sourceequality guards retain
+10pair/11pair/legacy12pair; reconnect11→12 in nextmigration.
 
-Ownership:
-- vision_workflow_audit retained Sol/high: ONLY lessons10-components/11-zerohub
-  and Java in checkpoints10/{study,game},11/{study,game}. No heavy builds or Git.
-- Coordinator: harness view-unwrapping/caption behavior/legacy12 compatibility,
-  teaching-boundary tests, integration, docs/evidence/roadmap/CURRENT and Git.
-- actor_browser retained Sol/medium: idle after frozen1C; reuse after1D freeze for
-  TWO exact Study11/Game11 consumer exports and functional checks, no UI rebuild.
-- actor_stress_review retained Sol/high: idle after clean1C; independent1D review
-  after checks. Completed1A/1B/1C budgets remain separate and retained.
+Active1E contract decision: minimal GameApp.loadImageRegion(String) returning full
+existingcachedimage bounds asZeroImageRegion; preservesadvancedloadImage/Image API,
+no newImageclass. ExistingSound/loadSound handlesaudio. Explicitbutton toloadart/
+sound letsdrawingrouteworkwithoutassets and reportsnamedmissingassetwhenrequested;
+no silentgetResource fallback/broadcatch. ScrollingCamera remainsordinaryclass.
+No source edits for1E yet. APIworker is giving a5minute read-only critique before
+implementation; parent owns acceptance and finalcontract.
 
-Next: implement1D harness/tests with worker lesson edits, native10/11 consumers+
-legacy12, focusedbrowser and independentreview; then asset12 contract and small
-live-control simulation. Image facade remains a deliberate decision: existing
-loadImage returns JavaFX Image; Sound is already Zero-owned. No camera API needed
-for the ordinary scrolling class. Do not mark overall goal complete.
+Ownership: coordinator owns roadmap/evidence/CURRENT, Git, integration and harness.
+vision_workflow_audit retainedSol/high: read-only1Econtractcritique, no edits yet.
+actor_browser retainedSol/medium: idle afterfrozen1D, reuse later focusedassetsproof.
+actor_stress_review retainedSol/high: idle afterclean1D one-turn17file review.
+Earlier slice budgets retained; no reset. Allownservers/browsers closed.
+
+Next: decide1Eloader/explicitassetbutton contract, assignboundedAPIandteaching lanes,
+restore11→12exactcomponentcontinuity, nativeasset+scrolling andfocusedbrowserproof/
+independentreview. Then a smallsimulationwith existinglivecontrols beforephase2.
+Do not mark overallgoalcomplete. Publictemplates/kits/hostedwebsite unchanged.
 
 Latest storage265.744GB healthy; startweekly7%used/sharednot taskcost. Use cached
 storage readings up to30min, refresh before heavy changes. No installer needed.
