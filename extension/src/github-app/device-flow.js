@@ -17,7 +17,7 @@ function wait(ms, signal) {
   });
 }
 // Never propagate response bodies or transport errors: they can contain credentials.
-async function requestJson(fetchImpl, url, {body, token, signal} = {}) {
+async function requestJson(fetchImpl, url, {body, token, signal, jsonBody = false} = {}) {
   checkSignal(signal);
   const controller = new AbortController();
   const abort = () => controller.abort();
@@ -26,8 +26,8 @@ async function requestJson(fetchImpl, url, {body, token, signal} = {}) {
   try {
     const response = await fetchImpl(url, {
       method:body ? 'POST' : 'GET', redirect:'error', signal:controller.signal,
-      headers:{Accept:'application/json', ...(body ? {'Content-Type':'application/x-www-form-urlencoded'} : {'X-GitHub-Api-Version':'2026-03-10'}), ...(token ? {Authorization:`Bearer ${token}`} : {})},
-      ...(body ? {body:new URLSearchParams(body).toString()} : {})
+      headers:{Accept:'application/json', ...(body ? {'Content-Type':jsonBody?'application/json':'application/x-www-form-urlencoded'} : {'X-GitHub-Api-Version':'2026-03-10'}), ...(jsonBody?{'X-Zero-Desktop':'1'}:{}), ...(token ? {Authorization:`Bearer ${token}`} : {})},
+      ...(body ? {body:jsonBody?JSON.stringify(body):new URLSearchParams(body).toString()} : {})
     });
     if (!response.ok) throw failure(response.status === 401 ? 'unauthorized' : 'github-unavailable', 'GitHub could not verify the connection. Try again later.');
     let text = '';

@@ -453,14 +453,44 @@ their narrower checks. See the staged rollout in ZERO-IDENTITY-PLAN.md.
 Registration and pinning do not prove installation, device authorization, token
 issuance or live acceptance. The source remains unreleased and local Run stays
 available without a connection. The extension registers the supported
-`zero-github` provider, keeps device-flow token pairs in SecretStorage,
-and uses no shipped client secret. Website OAuth uses the same client ID with
+`zero-github` provider and keeps expiring token pairs in SecretStorage,
+with no shipped client secret. Current local source defaults to browser
+authorization and keeps **Zero: Sign in using a code** as an explicit fallback.
+Browser-issued sessions renew through the server; schema1 records without a
+flow marker keep the original device-code renewal route. Website OAuth uses the same client ID with
 its own credential family and eight-hour reconnect policy. Browser sign-in remains
 disabled without the required server credentials; registration did not provision
 a client secret, private key or user tokens. The subsequent owner-approved native
 flow issued its own user tokens. A selected test installation, native device sign-in, private clone and guarded
 Commit & push have passed in an isolated Mac profile. The remaining live acceptance,
 production activation and an authorized native release remain pending.
+
+### Desktop browser sign-in activation (separate from publication)
+
+The local implementation adds `/api/desktop/github/{start,login,callback,exchange,refresh}`.
+It is disabled unless `ZERO_DESKTOP_GITHUB_ENABLED=1` and the existing
+`ZERO_HUB_GITHUB_CLIENT_ID`, `ZERO_HUB_GITHUB_CLIENT_SECRET` and
+`ZERO_HUB_GITHUB_SESSION_SECRET` configure the pinned Codepet App. The production
+origin is fixed to `https://zero.codepet.ca`; a trusted test constructor supports
+IPv4 loopback fixtures. Register the exact callback
+`https://zero.codepet.ca/api/desktop/github/callback` on the App before separately
+approved activation. No wildcard callback, new permission, database or central kit
+storage is required. Do not enable the flag, provision secrets, change App settings
+or deploy as part of local implementation checks.
+
+A temporary IPv4 listener receives only an OAuth code and short-lived sealed
+delivery ticket. PKCE and state/HttpOnly-cookie binding protect the exchange;
+GitHub enforces one-use codes. The desktop sends its verifier over HTTPS to the
+server, which holds the App secret for exchange/refresh. Tokens are returned in
+no-store POST responses and retained in SecretStorage, never browser-return URLs.
+The server does not retain desktop credentials. ZeroHub's separate browser
+session is unchanged. Cancellation, timeout and disposal close the listener;
+uncertain refresh outcomes require reconnecting instead of retrying a rotating token.
+
+Local broker/GitHub fixtures verify the handoff and renewal protocol. Live GitHub
+web authorization, deployed callbacks and physical Windows/Safari acceptance stay
+unproven until their separate activation/acceptance work. Published kits retain
+code sign-in until an authorized release ships this source.
 
 Focused native checks are `node --test extension/test/github-app-*.test.js`,
 followed by the full extension suite. Mocked API/device-flow tests and disposable

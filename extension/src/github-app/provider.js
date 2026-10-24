@@ -2,6 +2,7 @@
 
 const {randomUUID} = require('node:crypto');
 const {deviceFlow, refreshTokens, requestJson, failure} = require('./device-flow');
+const {browserFlow,refreshBrowserTokens}=require('./browser-flow');
 const {SECRET_KEY, binding, createCredentialStore, createCredentialLock} = require('./credential-store');
 function session(record) {
   return Object.freeze({id:record.sessionId, account:Object.freeze({...record.account}), accessToken:record.accessToken, scopes:Object.freeze([])});
@@ -32,7 +33,7 @@ async function accountFor(record, fetchImpl, signal) {
   }
   return {id:String(user.id), label:user.login};
 }
-function createGitHubAppProvider({vscode, context, configuration, fetchImpl = globalThis.fetch, now = Date.now, onDiagnostic = () => {}}) {
+function createGitHubAppProvider({vscode, context, configuration, fetchImpl = globalThis.fetch, now = Date.now, onDiagnostic = () => {}, browserOptions = {}}) {
   const emitter = new vscode.EventEmitter();
   let disposed = false, cached, signInPromise, verifiedConfiguration, pendingRemovals = 0;
   const controllers = new Set();
@@ -85,7 +86,9 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
         // so restart must reconnect rather than reuse a rotating refresh token.
         await store.write({...record, state:'refreshing'});
         try {
-          const pair = await refreshTokens({clientId:configuration.clientId, refreshToken:record.refreshToken, fetchImpl, now, signal});
+          const pair = record.flow==='browser'
+            ? await refreshBrowserTokens({...browserOptions,configuration,refreshToken:record.refreshToken,fetchImpl,now,signal})
+            : await refreshTokens({clientId:configuration.clientId, refreshToken:record.refreshToken, fetchImpl, now, signal});
           record = {...record, ...pair, state:'active'};
           // Verify identity before replacing the pair atomically.
           const account = await accountFor(record, fetchImpl, signal);
@@ -128,7 +131,7 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
       return [result];
     }, signal);
   }
-  async function signIn(controller) {
+  async function signIn(controller,method) {
     available();
     // Reject non-local storage before issuing any authorization request.
     lock ||= createCredentialLock({globalStorageUri:context.globalStorageUri, now});
@@ -138,7 +141,16 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
       const cancellationSubscription = cancellation?.onCancellationRequested(() => controller.abort());
       try {
         if (cancellation?.isCancellationRequested) controller.abort();
-        const pair = await deviceFlow({clientId:configuration.clientId, fetchImpl, now, signal:controller.signal,
+        let pair,flow='device';
+        if(method!=='device'&&configuration.websiteOrigin){
+          try{pair=await browserFlow({...browserOptions,configuration,vscode,fetchImpl,now,signal:controller.signal,onProgress:message=>progress.report({message})});flow='browser';}
+          catch(error){
+            if(error.code==='cancelled'||controller.signal.aborted)throw error;
+            const choice=await vscode.window.showInformationMessage('Browser sign-in is unavailable. You can sign in using a code.', 'Sign in using a code');
+            if(choice!=='Sign in using a code'||controller.signal.aborted)throw failure('cancelled','GitHub sign-in was cancelled.');
+          }
+        }
+        if(!pair)pair = await deviceFlow({clientId:configuration.clientId, fetchImpl, now, signal:controller.signal,
           async onCode({userCode, verificationUri}) {
             progress.report({message:`Code ${userCode} · enter on github.com/login/device`});
             const choice = await vscode.window.showInformationMessage('Connect Zero to GitHub', {modal:true, detail:`Code: ${userCode}`}, 'Copy code and continue');
@@ -152,7 +164,7 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
         return await withLock(async () => {
           if (disposed || controller.signal.aborted) throw failure('cancelled', 'GitHub sign-in was cancelled.');
           if (await store.raw() !== baseline) throw failure('connection-changed', 'Another Zero window changed the connection. Try sign-in again.');
-          const record = {schema:1, app:binding(configuration), sessionId:randomUUID(), account, ...pair, state:'active'};
+          const record = {schema:1, app:binding(configuration), sessionId:randomUUID(), account, ...pair, flow,state:'active'};
           await store.write(record);
           const result = session(record); cached = result;
           emitter.fire({added:[result], changed:[], removed:[]});
@@ -171,9 +183,10 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
       const sessions = await operation(controller => load(controller.signal));
       return options?.account ? sessions.filter(value => value.account.id === options.account.id) : sessions;
     },
-    async createSession(scopes) {
+    async createSession(scopes,options={}) {
       supportedScopes(scopes); available();
-      if (!signInPromise) signInPromise = operation(signIn).finally(() => { signInPromise = undefined; });
+      if(options.method!==undefined&&!['browser','device'].includes(options.method))throw failure('unsupported-method','Choose browser or code sign-in.');
+      if (!signInPromise) signInPromise = operation(controller=>signIn(controller,options.method)).finally(() => { signInPromise = undefined; });
       return signInPromise;
     },
     async removeSession(id) {

@@ -73,7 +73,7 @@ claim that the initial design has narrower authority than GitHub grants.
 
 ## Architecture
 
-### Next sign-in improvement — owner direction, 2026-10-24
+### Browser-first desktop sign-in — local implementation, 2026-10-24
 
 After the current tutorial readiness work, make browser authorization the default
 desktop sign-in: click Sign in, open GitHub's authorization page, then return to
@@ -81,25 +81,31 @@ Zero automatically. Keep explicit device-code sign-in as a fallback for browsers
 or school computers that cannot complete the return. GitHub may still require
 account selection, password/passkey or two-factor authentication.
 
-This is planned, not implemented. GitHub's App web flow requires a server-held
-client secret for code exchange and refresh, even with PKCE. Evaluate the existing
-website GitHub authentication code as a starting point; desktop handoff needs its
-own reviewed state/PKCE binding, short-lived single-use delivery and secure local
-storage. Never put an App secret in the extension/student project or put access
-tokens in browser-return URLs. Preserve cancellation, account/session drift and
-multi-window refresh protections. Server dependency, callback configuration and
-both sign-in methods need independent security review and actual editor/browser
-acceptance before activation. This direction does not authorize a deployment,
-GitHub App configuration change, new permissions or a release.
+Implemented locally with a separate first-party desktop broker. GitHub's App web
+flow requires a server-held client secret for code exchange and refresh, even with
+PKCE. A per-flow sealed intent, state/HttpOnly cookie and desktop-held PKCE verifier
+bind the handoff to a temporary IPv4 listener. The return contains only an OAuth
+code and two-minute sealed delivery; GitHub enforces one-use codes. The server
+returns tokens only through no-store POST responses and does not persist them.
+SecretStorage records the issuing flow; existing device sessions retain their
+secretless renewal route and browser sessions renew through the broker.
+Cancellation, account/session drift and multi-window refresh guards remain.
+
+The broker is disabled unless explicitly enabled with matching server credentials.
+The fixed callback needs a separately approved App configuration change. See
+[activation requirements](DEVELOPMENT.md#desktop-browser-sign-in-activation-separate-from-publication).
+Controlled local tests do not establish deployed GitHub/editor acceptance. No
+deployment, App configuration change, new permissions or release is authorized.
 
 References: [GitHub App authorization](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app)
 and [refresh requirements](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/refreshing-user-access-tokens).
 
 ### Current implementation
 
-Desktop uses GitHub device flow with expiring user access/refresh tokens stored
-as one versioned secret in VS Code SecretStorage. Current GitHub supports
-secretless refresh for tokens originally issued through device flow. No client
+Desktop defaults to browser authorization with explicit device-code fallback,
+with expiring user access/refresh tokens stored as one versioned secret in VS Code
+SecretStorage. Browser-issued tokens use the server for refresh; device-issued
+tokens keep GitHub's secretless refresh route. No client
 secret/private key ships in the extension. Register Zero's own supported
 provider ID; do not repurpose Microsoft's built-in github provider. Replace
 Zero's broad repo/workflow OAuth requests and do not fall back to them silently.
@@ -108,8 +114,7 @@ shared guarded authentication facade. This avoids the host's redundant request
 to share Zero's own session with Zero. Keep provider registration for Accounts
 and third-party consumers; never change host trust or consent settings. Silent
 reads cannot start device authorization, and only explicit sign-in can create a
-session. GitHub's device authorization and secure credential lifecycle remain
-required.
+session. Both authorization methods use the same secure credential lifecycle.
 
 Keep the existing capture/assert-current/synchronous-before-dispatch contract.
 Invalidate pending operations on account/token/session/installation changes.

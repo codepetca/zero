@@ -191,10 +191,15 @@ projects, alongside the destination's code and tutorial tabs.
 
 The Start Page guides students through **Sign in to GitHub** →
 **Install Zero for GitHub** → **Start tutorial**.
-Zero calls its own `zero-github` provider directly, so explicit sign-in starts
-with **Connect Zero to GitHub** and the device code, without a second VS Code
-request to share Zero's session with itself. The provider remains registered for
-the Accounts menu and other extensions, whose host consent checks still apply.
+Current local source calls its own `zero-github` provider directly. **Sign in to
+GitHub** starts browser authorization and completes the editor session after the
+browser return, without entering a code. **Sign in using a code** remains an
+explicit Start Page/command fallback, also offered when browser sign-in is
+unavailable. Browser sign-in requires separately activated website/App settings;
+until then students can use the code fallback. GitHub may still require account
+selection, passkey or two-factor authentication. Published downloads retain
+their bundled flow. The provider remains registered for the Accounts menu and
+other extensions, whose host consent checks still apply.
 It stores expiring user/refresh tokens in VS Code SecretStorage; GitHub handles
 sign-in and consent, and Zero has no separate password or account.
 Signing in runs a read-only check for repository creation and contents writing
@@ -503,7 +508,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   without extra GitHub/ZeroHub headings. VS Code owns the view order: drag Zero above the file tree
   once if needed; the editor remembers it. No private layout commands or state edits are used.
   Idle status is empty; app progress/errors
-  appear when there is a message. Signed-out GitHub controls show only Sign in;
+  appear when there is a message. Signed-out GitHub controls show Sign in and the code fallback;
   the project dropdown and branch are hidden, and local Run/files remain usable.
   Signed in shows the project menu as the current folder or connected owner/repository,
   without a duplicate username, with a right chevron indicating its menu.
@@ -624,7 +629,10 @@ choices and the first-publication warning remain visible through native prompts.
 
 ## Repository and upload contract
 
-Current desktop source uses Zero's `zero-github` provider and GitHub device flow.
+Current local desktop source uses Zero's `zero-github` provider with browser
+authorization by default and an explicit device-code fallback. Browser-issued
+tokens renew through the first-party server; existing device sessions retain
+secretless GitHub renewal. Both use the same guarded SecretStorage lifecycle.
 Native ⋯ → GitHub Account… offers Change GitHub account and Sign out.
 Sign out clears only Zero's local connection; it preserves
 projects, Git history and other extensions' accounts. Account, token or session

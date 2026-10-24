@@ -35,8 +35,9 @@ marks a preferred pattern with documented, task-specific exceptions.
   Starting from zero. and direct Mac Silicon and Windows download actions. Keep the
   centered stack and shared light/dark themes without promotional sections.
   GitHub development connection belongs in downloaded Zero's welcome, using the
-  supported `zero-github` provider, native editor controls and GitHub device-code
-  consent. Download/browse/Play require no sign-in; optional ZeroHub stars use
+  supported `zero-github` provider and native editor controls. Current local source
+  defaults to GitHub browser authorization with explicit **Sign in using a code**
+  fallback; activation and published downloads remain separate. Download/browse/Play require no sign-in; optional ZeroHub stars use
   the same Codepet-owned App with a separate browser credential family. There is
   no separate Zero password/account or automatic browser/editor pairing.
 - MUST keep the option-2 sidebar minimal and use supported VS Code APIs.

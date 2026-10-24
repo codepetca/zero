@@ -42,7 +42,7 @@ manual Maven setup in a disclosure. New game submissions require a valid square
 PNG under the reviewed publisher policy; existing accepted releases remain valid.
 
 `/hub/share` explains native sharing and the official GitHub request forms.
-The website never receives publisher credentials. An optional, short-lived GitHub
+ZeroHub browser sessions do not receive desktop publisher credentials. An optional, short-lived GitHub
 App session enables inline repository stars; browsing and playing stay public.
 It uses the same Codepet App as native Zero, with separate browser credentials.
 The public [Codepet Zero App](https://github.com/apps/codepet-zero) is registered
@@ -50,6 +50,13 @@ under `codepetca`, and its public IDs are pinned in source. Browser sign-in rema
 disabled without the required server credentials. Registration did not provision
 server secrets or user tokens; installation, live acceptance, production activation
 and an authorized native release remain pending.
+Local source also includes a separate desktop authorization broker at
+`/api/desktop/github/*`, disabled by default. It exchanges and renews desktop
+tokens using the server-held App secret, with PKCE and a temporary IPv4 return.
+It does not persist desktop tokens or reuse ZeroHub browser sessions.
+`ZERO_DESKTOP_GITHUB_ENABLED=1`, matching server credentials, the exact registered
+`https://zero.codepet.ca/api/desktop/github/callback`, and separately approved
+deployment/activation are required. See [desktop activation](../docs/DEVELOPMENT.md#desktop-browser-sign-in-activation-separate-from-publication).
 The shared App has selected-repository development permissions; ordinary browser
 tokens are not a GitHub-enforced star-only boundary. See the
 [identity plan](../docs/ZERO-IDENTITY-PLAN.md) for that owner-selected tradeoff.

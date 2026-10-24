@@ -5,17 +5,20 @@
 User authorized local readiness fixes first, then browser-first GitHub sign-in
 with explicit device-code fallback. Publishing, deployment, releases and App
 configuration changes remain separate. Parent owns Git/shared docs/integration.
-Tutorial worker owns generator/preflight/tests/lesson8+10; delivered locally.
+Tutorial worker owned generator/preflight/tests/lesson8+10; delivered locally.
 New-only Start tutorial digest gate blocks stale recorded templates before
-creation; existing Open/Clone/Run remain unchanged. Native/WebFX draft acceptance
-and independent phase1 review in progress. Auth implementation starts afterward.
+creation; existing Open/Clone/Run remain unchanged. Phase1 at87a9b4ef independently
+COMPLETE/CLEAN:70focused+17legacytests,3actualnativebehaviors and3savedbuilderGWT
+exports pass. CUA newStart blocks beforeforms; fresh exports show Greeting Sam,
+Study Correct/Score1, lesson11game HUD/badge. New browser win not claimed; native
+checks cover win/reset. Auth phase now starting; official templates remain stale.
 
-Next owner-requested authentication improvement,2026-10-24: after tutorial
-readiness, default desktop Sign in should open GitHub authorization and return
-automatically, retaining device-code sign-in as an explicit fallback. Planned
-only; current provider remains device flow. See ZERO-IDENTITY-PLAN for server
-exchange/refresh and secure handoff requirements. No deployment/App permission
-change/release authorized by this UX direction.
+Browser-first auth implemented locally; integration/security review in progress.
+Client IPv4 listener + PKCE, distinct sealed server handoff, no-store POST token
+exchange/renewal, explicit code fallback and legacy device renewal routing.
+Server remains disabled; no deployment, App callback/config changes or release.
+Focused protocol tests include real client/server modules with fake GitHub and
+actual loopback requests. Live deployed browser/editor OAuth remains unproven.
 
 ## Mac tutorial follow-up — 2026-10-24
 

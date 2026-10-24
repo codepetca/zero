@@ -56,9 +56,9 @@ test('one reusable native start tab, stable document, explicit focus and lifecyc
 test('cloud choices require verified ready access; local is available through setup states', async () => {
   for (const phase of ['signed-out','checking','install','unavailable','ready']) {
     const f = fake({phase, accountId:phase === 'signed-out' ? undefined : '42'}), {page, panel} = await open(f);
-    for (const action of ['tutorial','tutorials','new','clone','local','signIn','setup']) await f.message(panel, {type:'action', action});
+    for (const action of ['tutorial','tutorials','new','clone','local','signIn','signInCode','setup']) await f.message(panel, {type:'action', action});
     const expected = phase === 'ready' ? ['zero.startProject','zero.openFirstLesson','zero.newProject','zero.cloneRepository','zero.openLocalProject']
-      : ['zero.openFirstLesson','zero.openLocalProject', ...(phase === 'signed-out' ? ['zero.signInToGitHub'] : ['install','unavailable'].includes(phase) ? ['zero.setupGitHub'] : [])];
+      : ['zero.openFirstLesson','zero.openLocalProject', ...(phase === 'signed-out' ? ['zero.signInToGitHub','zero.signInUsingCode'] : ['install','unavailable'].includes(phase) ? ['zero.setupGitHub'] : [])];
     assert.deepEqual(f.commands, expected, phase);page.dispose();
   }
 });
@@ -188,6 +188,7 @@ test('GitHub account stays compact while signed-out and setup states keep their 
   assert.equal(b.elements.get('github-heading').hidden, false);
   assert.equal(b.elements.get('guidance').hidden, true);
   assert.equal(action('signIn').hidden, true);
+  assert.equal(action('signInCode').hidden, true);
   for (const phase of ['checking','install','unavailable']) {
     f.setState({phase, accountId:'42', accountLabel:'armorup'});
     await page.refresh();b.update(panel.messages.at(-1));
@@ -201,6 +202,8 @@ test('GitHub account stays compact while signed-out and setup states keep their 
   assert.equal(b.elements.get('guidance').hidden, true);
   assert.equal(action('signIn').hidden, false);
   assert.equal(action('signIn').disabled, false);
+  assert.equal(action('signInCode').hidden, false);
+  assert.equal(action('signInCode').disabled, false);
   page.dispose();
 });
 
