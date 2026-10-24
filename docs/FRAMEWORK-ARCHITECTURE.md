@@ -429,7 +429,7 @@ unchanged checks. Future phases start only when their dependencies are ready.
 | --- | --- | --- |
 | 0. Working baseline | Recover accepted App/GameApp/Actor/UI prototypes, source/export ownership and verification. Keep Main's explicit update/draw; one gameplay loop and no GameScreen. | Accepted locally: counter, structured/beginner Coin Quest and stress proof; prior native/browser receipts retained. |
 | 1. Make the student path Zero-first | Move maintained Greeting, Study and Coin teaching projects to Zero packages for normal UI/input/drawing/assets. Keep classes and callbacks ordinary Java. Add only controls needed by those lessons. Add a small simulation with live controls; preserve beginner Main/HUD and optional extraction. | Accepted locally through549db09f (slices1A–1F): teaching path0–12 and live-control simulation, native/WebFX/browser checks and independent reviews. Core16helpers/176declarations. Public templates/kits remain separately pinned. |
-| 2. Prove student extension and sharing | Demonstrate an ordinary steering helper, interchangeable UI component, default/alternative animation and container through public consumers without core edits. Share immutable data but independent mutable clocks, with one explicit update owner. Prove the same component through managed local and exact-version library consumption in App and GameApp, natively and in the browser. | 2A accepted locally at29118a74: typed text/bar replacement in App/GameApp, native/browser checks and independent review. Active2B: core-dependent managed distribution; then steering and AnimationSource/AnimationPlayback. Add World/Screen/camera only for demonstrated examples, not as a prerequisite. Hosted acceptance remains gated. |
+| 2. Prove student extension and sharing | Demonstrate an ordinary steering helper, interchangeable UI component, default/alternative animation and container through public consumers without core edits. Share immutable data but independent mutable clocks, with one explicit update owner. Prove the same component through managed local and exact-version library consumption in App and GameApp, natively and in the browser. | 2A accepted locally at29118a74: typed text/bar replacement in App/GameApp, native/browser checks and independent review. 2B accepted locally at98b3a831: independent JAR and four native/WebFX consumers,38browser assertions. Active2C: replaceable animation and steering. Add World/Screen/camera only for demonstrated examples, not as a prerequisite. Hosted acceptance remains gated. |
 | 3. Make projects self-contained and upgrades optional | Record exact framework/library/toolchain inputs and retain the complete reviewed browser-builder dependency closure with the project. Opening in a newer editor changes none of them. Explicit trusted build actions use project-owned tooling; missing tools get useful unavailable status. Upgrade a copy/branch deliberately and reversibly. Clone/build/rehost a representative older project and saved static export with no central Zero kit service. | Planned. Fix the existing automatic helper migration during Publish; hashes alone never authorize arbitrary project code execution. No required historical-kit database, all-version CI or old-maintenance branches. Full offline backup remains optional. |
 | 4. Catch failures during development | Complete exact-signature executed-evidence coverage; debounced saved-source browser compatibility, truthful native/managed-preview lifecycle and source-linked errors. Inject unsupported API, compiler, asset, startup, frame/UI/promise and stale-message failures; preserve the last good export. Native Run stays fast and usable offline. | Planned, with meaningful exact-signature evidence recorded from slice 1A onward. PostHog is an optional sanitized sink evaluated after local gates; Clarity is a possible website usability supplement. Neither is injected or activated by this plan. |
 | 5. Finish the student/contributor journey | Exercise create → code → native play → fix error → Git progress → browser export/preview and exact library reuse; keep public templates, kit, lessons, API and help coherent. Prepare a release candidate with scoped browser/platform limits and a core-adoption example retaining attribution. | Planned. Public template updates, authenticated Pages publication, hosted checker activation, signed releases and a teacher/novice pilot require their separately authorized real acceptance; local mocks cannot satisfy them. |
@@ -447,9 +447,12 @@ acceptance claim. Public templates, installed kits and hosted website are unchan
 Phase2A is accepted locally at29118a74: a student-owned ScoreView contract with
 text/bar implementations consumed by App and GameApp, scoped native checks, two
 actual exports/19browser assertions and independent review with one corrected
-fixture omission. Active Phase2B implements core-dependent managed JAR
-distribution: explicit compile inputs/core requirements and actual native plus
-browser proof. Source-only resolution is not an independent JAR check.
+fixture omission. Phase2B is accepted locally through98b3a831: separate core/
+contribution JAR checks and actual local/exact-artifact App/GameApp consumers,
+four native runs, four WebFX exports and38browser assertions. Selected-release
+requirements, staged input integrity and ordinary wrapper-properties CRLF were
+corrected during independent review. Active Phase2C adds replaceable actor
+animation and steering. Source-only resolution remains distinct from JAR proof.
 Published tutorial-template commit IDs and installed artifacts remain immutable
 until separately authorized publication. Report local versus public delivery.
 
@@ -490,6 +493,27 @@ this without a central service. Hosted policy currently rejects interfaces and
 expects Node widgets; its separate core/JavaFX-media and admission gaps stay
 visible and gated until a reviewed hosted acceptance is authorized. This proof
 does not establish the complete saved-project builder closure planned in Phase3.
+
+The implemented2B contract uses unreleased school.zero:zero-core:0.3.0, Java17 and
+JavaFX21.0.12. A generated project-owned zero-core.json records the exact reviewed
+source inventory; canonical LF hashes tolerate an ordinary Windows CRLF checkout,
+while raw input snapshots detect edits during a build. This is one maintained
+current-core definition, not a history of kits. Opening an older project never
+creates or rewrites its record automatically.
+
+Core-dependent descriptor/release schema2 separates a bounded semantic requirement
+(minimum0.3.0, exclusive0.4.0) from the author's exact source/core-JAR/recipe proof.
+Existing core-independent schema1 remains valid. A consumer checks its own core
+version against the requirement, rather than requiring the author's source hash.
+Current tooling admits only its reviewed core inventory. The complete builder
+saved with older projects is Phase3's route to preserving their original build.
+Run the fixed core/contribution reactor first, then obtain the JavaFX classpath
+from its standalone core module; no Maven install or unavailable core download.
+Hosted schema2 admission remains explicitly unavailable until separately reviewed.
+During this unreleased prototype series,0.3.0 names the draft core; exact source/
+recipe hashes distinguish revisions. Finalizing Actor update/animation ownership
+can change this draft before publication. Once published, the stated0.x minor/
+patch policy applies; do not silently rewrite a student project to follow drafts.
 
 Phase 3 maintains only the current release line. Before 1.0, minor releases may
 break APIs while patches preserve them; after 1.0, same-major documented APIs

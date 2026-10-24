@@ -80,10 +80,19 @@ runtime/profile must remain traceable in both targets. Imported library bodies
 are checked even when a method is unused; moving a native-only call behind an
 unused method is not a portability mechanism.
 
-The revised plan requires real app/game consumers of a managed component and a
-replacement animation implementation. Those acceptance proofs and any additional
-core dependency or browser-contract support are future work. Current native-only
-samples such as the ProgressBar health bar do not establish a portable widget.
+The local unreleased core-dependent path now uses project-owned zero-core.json
+and schema2 library metadata. Check builds a separate core JAR, using it as a
+provided compile dependency; an importing app retains its own core source at
+runtime. A semantic requirement describes acceptable consumer versions, while
+exact source/JAR/recipe hashes describe the checked build. New project extraction
+writes this metadata automatically. Existing schema1 libraries remain supported.
+
+Text/bar ScoreView implementations now pass real local-source and exact-artifact
+App/GameApp consumers, native JAR checks and four WebFX exports/browser tests.
+This is local acceptance with a disposable artifact fixture, not a public release
+or hosted checker admission. Hosted schema2 checking remains explicitly gated.
+Replaceable animation is the next slice. Current native-only samples such as the
+ProgressBar health bar do not establish a portable widget.
 
 ## Open a game
 
@@ -117,7 +126,9 @@ an artifact is missing.
 Choose **Check library** for local feedback on independent compilation, API/source
 boundaries, behavior checks and two finite examples using the actual JAR. The
 first policy uses Java 17, JavaFX 21.0.12 and a fixed dependency allowlist; it
-supports self-contained JavaFX widgets and ordinary Java helpers. Local feedback
+supports legacy JavaFX widgets, core-dependent Zero UI components and ordinary
+Java helpers. A core-dependent Check requires the project's reviewed core record
+and source; it does not fetch an old kit or upgrade the project. Local feedback
 is not hosted publication authority.
 
 Upload source through the normal reviewed Git workflow. Share opens a prefilled

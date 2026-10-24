@@ -255,6 +255,16 @@ Run `npm run test:sharing` for registry, ZIP and immutable publication contracts
 
 Run `node scripts/verify-sharing-consumers.mjs --output .verification/sharing-consumers-new` for two real Maven consumers over scoped local HTTPS. Use a fresh output directory; no global trust is changed. Packaging reads reviewed `release/sharing.json` containing schema, catalogUrl, artifactOrigin and publisher policyRevision. Local and CI builds preserve its exact bytes; release/kit/native provenance checks reject stale or substituted settings. Environment overrides do not select release settings. Students receive verified settings with the kit, not manual hash-copy instructions.
 
+For the unreleased core-dependent ScoreView path, prepare a fresh owned fixture
+with `node scripts/verify-core-sharing.mjs --prepare --output .verification/core-sharing-new`.
+Then run the same command with `--run` instead of `--prepare` for the independent
+core/contribution JAR check, local and exact-artifact native App/GameApp consumers,
+source attachments and unused-call compatibility negative. Add `--web` for four
+actual WebFX exports. This is a finite local HTTPS proof with scoped temporary
+trust and an isolated Maven cache, not hosted checker acceptance or publication.
+The no-option command only prints usage. Browser interaction receipts are a
+separate acceptance step; successful export alone does not establish playability.
+
 ## Shared Learn and sidebar design
 
 `design/tokens.json` and `design/adapters.mjs` are the shared source. Run

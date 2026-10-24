@@ -1,5 +1,92 @@
 # Delivery evidence index
 
+## Zero phased delivery: core-aware component sharing slice 2B — 2026-10-23
+
+Accepted locally through98b3a831. Core definition/records ca76f3b2, separate-JAR
+Check3ef1667d, import/browser binding5f1486a5 and finite acceptance runnerb39f08ba.
+Unreleased school.zero:zero-core:0.3.0 identifies the current16 helpers/176
+declarations; a project-owned zero-core.json binds their reviewed LF-normalized
+source inventory. Four project assemblers emit it and preserve ownership/drift
+guards. Ordinary CRLF source checkouts are accepted; raw snapshots detect edits.
+Local kit coreVersion metadata agrees; no published kit version changed.
+
+Schema2 libraries separate semantic coreRequirement from exact author coreInput
+and checked coreBuild provenance. Schema1 stays valid. Explicit Check stages a
+fixed, pinned-wrapper Maven reactor, builds separate core/contribution JARs, then
+obtains only JavaFX dependencies from the standalone core module. Checks/examples
+compile against the two actual JARs, without app classes or library source roots.
+Annotation processing is disabled; namespace/core-shadow/JAR/manifest validation
+prevents bundled core, processors and Class-Path loading. The widget harness
+accepts verified Element views and legacy Node views on the JavaFX thread.
+The sanitized artifact POM contains the exact provided core and bound metadata,
+without candidate build hooks or source paths. Consumer apps compile their own
+core source and use only the contribution JAR at runtime.
+
+Add and authored published mode validate the selected release's requirement
+before mutation and snapshot core through apply; local mode matches author input
+exactly. New project extraction creates schema2 metadata automatically. Browser
+resolution validates captured core bytes, binds the record to source/uploaded
+commit and adds checked core metadata to the accepted-library manifest. Seven
+external compiler dependencies now participate in profile hashes. Hosted schema2
+preparation is explicitly unavailable; local proof creates no accepted public release.
+
+Initial independent Astra/xhigh architecture and Sol/high safety reviews cover
+all33 source files and callers. Three P2s were corrected in one batch: separate
+snapshot/staging reads, local descriptor versus selected published requirement,
+and LF-only wrapper-properties pinning. Captured buffers, selected-release
+planning and strict CRLF normalization fix them. A coordinator extraction-flow
+gap was corrected in the same batch. Sol's complete six-file targeted review is
+clean; it independently ran7 dedicated Check tests. Parent42 mode/editor/core
+consumer tests,36 consumer/snapshot/library tests and root checks pass; earlier
+110 core/schema/assembly tests and profile checks pass. One unintended author
+filter also ran all11 legacy Check tests, including two actual legacy builds and
+a disposable-fixture install. Those passed/cleaned up; global cache effects were
+not audited. This is disclosed separately from the intended schema2 proof.
+
+The maintained finite runner proves one actual independent core/component Check
+with three behavior checks/examples, four native local/artifact App/GameApp
+consumers, two fresh contribution JAR resolutions and source attachments through
+a disposable HTTPS server and isolated third-party-only Maven cache. All actual
+class origins match; contribution classes are absent from artifact consumer
+output; app core comes from its own target/classes. No core artifact request or
+install occurs. An unused library System.nanoTime call is rejected by exact
+semantic attribution. Core source inventory SHA256:
+d3fe24957e2bbe6ace3796425f6c2a33ef91b81a8473a4bdbc2bf63876870db1;
+separate core JAR40bbf9fed2bbb76442cebc0db99a97a90ac2365eeafcb453e1182bd3e91ae3dc.
+
+Four first-cycle WebFX exports pass: local-counter
+1c595904-d921-4960-bd04-2d0949d9a292, artifact-counter
+d507ff0d-f2a1-4c38-9d2e-c129dd947e47, local-coin-game
+f33c2a4f-c552-4c4b-b79e-7ae3e914d4a4 and artifact-coin-game
+45c7bb5a-8557-43b1-9675-93fc18819724. All share profile
+1b8093dffdd72777a8a093611f5e6650cdc8b5aed6d93095a53e6c32ed6adae6.
+After the artifact server stopped, all four static sites pass38/38 browser
+assertions, including typed swaps, continued scores/reset, player/timer/canvas
+retention, pause/resume, wins and navigation. Pre/post export validation replays
+the retained exact-URL catalog/artifact bytes with verified catalog fingerprints;
+it does not claim continued live catalog availability. All94 frozen source and
+four probe hashes matched before advancing to2C. Only optional favicon404s/readback advisories; no app or
+required-resource failures. Own browsers/previews/server and ephemeral trust cleaned.
+
+One ignored probe initially replayed pretty catalog JSON instead of the original
+compact bytes. Its0.135second failure occurred before opening a browser. The
+corrected transport verifies compact-byte hashes against both artifact manifests;
+one browser-only retry reused all four exports. No product fix or extra build.
+The native/export gate took115.411seconds; final browser attempt41.801seconds;
+the measured188.195second execution window excludes preparation and reviews.
+
+Final Astra/xhigh integration covers the seven-file source delta and independently
+checks current source/profile/artifact hashes, origins and runtime receipts;
+no unresolved blockers. Four review turns total (two initial, one targeted, one
+integration), one fix batch. Observed initial Astra193seconds and final integration
+215seconds plus final inspection; effective models/tokens and other elapsed times
+unknown. Evidence: ignored vision-core-sharing/acceptance-summary.json,
+vision-core-sharing-browser/, vision-core-sharing-review/, phase2b1-core-contract/
+and vision-core-* logs. Scope is macOS native/headless Chrome, trusted local
+fixtures. No Windows, physical/novice/editor-interaction, hosted/publication or
+telemetry claim. No stress/full9 rerun. The goal continues with replaceable actor
+animation/steering, then preservation, diagnostics and the final journey.
+
 ## Zero phased delivery: replaceable display slice 2A — 2026-10-23
 
 Accepted locally at29118a74 (implementation6df16979). Student-owned ScoreView
