@@ -46,6 +46,10 @@ test('ordinary extraction records current project core support without manual me
  assert.equal(descriptor.schema,2);assert.deepEqual(descriptor.coreRequirement,{minVersion:'0.3.0',maxExclusive:'0.4.0'});
  assert.deepEqual(descriptor.coreInput,{version:'0.3.0',sourceSha256:record.sourceSha256});
  assert.equal(f.stats().stagedPlan.coreSnapshot.length,require('../src/core-contract').coreSourcePaths.length+1);
+ const before=await fs.readFile(path.join(f.root,'src/main/java/zero/App.java'),'utf8');assert.match(before,/\\u001e/);
+ assert.ok(!f.stats().stagedPlan.changes.some(change=>change.path.startsWith('src/main/java/zero/')));
+ await fs.appendFile(path.join(f.root,'src/main/java/zero/App.java'),'// changed core');
+ await assert.rejects(importEdits(f.root,['src/main/java/Main.java'],'zero.contrib.r12345.demo'),/helper differs/);
 });
 test('Use published version passes the selected verified release into core-aware mode planning',async t=>{
  const f=await fixture(t),before=await fs.readFile(path.join(f.root,'pom.xml'));

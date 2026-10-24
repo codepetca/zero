@@ -10,7 +10,9 @@ async function importEdits(root,sources,namespace) {
  const chosen=new Map();for(const filename of sources){const source=await authoring.read(root,filename);chosen.set(filename,authoring.declaration(source,filename));}
  const edits=[];
  for(const filename of await authoring.javaFiles(root,'src/main/java')) {
-  const before=await authoring.read(root,filename),decl=authoring.declaration(before,filename);let after=before;const additions=[];
+  const before=await authoring.read(root,filename);
+  if(authoring.isReviewedCoreSource(before,filename))continue; // Fixed core never imports extracted student classes.
+  const decl=authoring.declaration(before,filename);let after=before;const additions=[];
   for(const [selectedFilename,item] of chosen) {
    if(selectedFilename===filename)continue;
    const target=`${namespace}.${item.simple}`;

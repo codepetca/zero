@@ -174,7 +174,8 @@ async function assertNoShadow(root,release) {
  const roots=['src/main/java'];
  for(const lib of await authoring.discoverLibraries(root))if(lib.mode==='local')roots.push(`${lib.folder}/src/main/java`);
  for(const sourceRoot of roots)for(const filename of await authoring.javaFiles(root,sourceRoot)) {
-  const decl=authoring.declaration(await authoring.read(root,filename),filename);
+  const source=await authoring.read(root,filename);
+  const decl=sourceRoot==='src/main/java'?authoring.applicationDeclaration(source,filename):authoring.declaration(source,filename);
   if(decl.packageName===release.namespace||decl.packageName.startsWith(release.namespace+'.'))fail(`Source shadows the published library: ${filename}. Keep your edits and choose the library's explicit local/published mode or move the copy.`);
  }
 }

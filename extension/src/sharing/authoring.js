@@ -72,11 +72,16 @@ function declaration(source, filename) {
 // Read declarations for namespace/duplicate checks without rewriting source.
 // Exact reviewed core bodies have fixed identities; the extraction scanner still
 // handles all student/library source and every source selected for repackaging.
-function applicationDeclaration(source, filename) {
+function isReviewedCoreSource(source, filename) {
   const name = filename.startsWith('src/main/java/') ? filename.slice('src/main/java/'.length) : filename;
   const expected = require('../core-contract').helperHashes[name];
-  if (!expected) return declaration(source, filename);
+  if (!expected) return false;
   if (hash(source.replace(/\r\n/g, '\n')) !== expected) fail(`This Zero helper differs from the reviewed browser adapter: ${filename}`);
+  return true;
+}
+function applicationDeclaration(source, filename) {
+  if (!isReviewedCoreSource(source, filename)) return declaration(source, filename);
+  const name = filename.startsWith('src/main/java/') ? filename.slice('src/main/java/'.length) : filename;
   const simple = path.posix.basename(name, '.java'), packageName = path.posix.dirname(name).replaceAll('/', '.');
   return {simple, packageName, className: packageName + '.' + simple};
 }
@@ -340,4 +345,4 @@ async function recover(root, recovery) {
   if (receipt.root !== path.resolve(root) || receipt.recovery !== recovery) fail('Recovery belongs to another project.');
   return rollback(receipt);
 }
-module.exports = {previewExtraction,previewMode,applyPlan,rollback,recover,discoverLibraries,libraryPom,javaFiles,declaration,applicationDeclaration,safePath,read,hash,coreState,fixedBuild};
+module.exports = {previewExtraction,previewMode,applyPlan,rollback,recover,discoverLibraries,libraryPom,javaFiles,declaration,applicationDeclaration,isReviewedCoreSource,safePath,read,hash,coreState,fixedBuild};
