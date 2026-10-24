@@ -14,9 +14,16 @@ public final class GwtEntryPoint implements ApplicationBooterProvider, EntryPoin
 
     @Override
     public void onModuleLoad() {
+        com.google.gwt.core.client.GWT.setUncaughtExceptionHandler(failure ->
+            zero.web.BrowserLifecycle.fail("ui-callback", "UI_CALLBACK_FAILED", failure));
+        try {
         registerArrayConstructors();
         registerServiceProviders();
         ApplicationBooter.start(this, null);
+        } catch (RuntimeException | Error failure) {
+            zero.web.BrowserLifecycle.fail("startup", "STARTUP_FAILED", failure);
+            throw failure;
+        }
 
     }
 

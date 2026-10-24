@@ -17,6 +17,7 @@ public final class BrowserLauncher extends Application {
     private double timeout, totalTimeout;
     private final java.util.Set<String> waiting = new java.util.LinkedHashSet<>();
     @Override public void start(Stage stage) {
+        BrowserLifecycle.own(this, this::stop);
         Text status = new Text("Loading game images…");
         stage.setScene(new Scene(new StackPane(status), 480, 680));
         stage.show();
@@ -64,25 +65,29 @@ public final class BrowserLauncher extends Application {
                 app = new __APPLICATION_CLASS__();
                 app.init();
                 app.start(stage);
+                BrowserRuntime.emit("ui-ready", "startup", "UI_READY", null);
             }
             catch (Exception | Error failure) {
                 stage.setScene(new Scene(new StackPane(status), 480, 680));
                 stage.show();
-                fail(status, "Game startup failed: " + failure.getMessage());
+                fail(status, "Game startup failed: " + failure.getMessage(), failure, "startup", "STARTUP_FAILED");
                 throw new RuntimeException("Game startup failed.", failure);
             }
         });
     }
     private void fail(Text status, String message) {
+        fail(status, message, new IllegalStateException(message), "asset-load", "ASSET_MISSING");
+    }
+    private void fail(Text status, String message, Throwable failure, String stage, String code) {
         if (failed) return;
         failed = true;
         clearTimeouts();
         status.setText(message);
-        DomGlobal.console.error(message);
+        BrowserLifecycle.fail(stage, code, failure);
     }
     @Override public void stop() {
         try { if (app != null) app.stop(); }
         catch (Exception failure) { throw new RuntimeException("Game shutdown failed.", failure); }
-        finally { clearTimeouts(); BrowserFocus.uninstall(); }
+        finally { BrowserLifecycle.release(this); clearTimeouts(); BrowserFocus.uninstall(); }
     }
 }

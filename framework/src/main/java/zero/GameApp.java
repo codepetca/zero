@@ -41,6 +41,7 @@ public abstract class GameApp extends App {
     private Stage window;
     private boolean gameVisible;
     private boolean paused;
+    private boolean firstFrameReported;
     private long previousFrame;
     private double mouseX;
     private double mouseY;
@@ -56,6 +57,7 @@ public abstract class GameApp extends App {
     @Override protected final javafx.scene.Node createContent() {
         gameVisible = true;
         paused = false;
+        firstFrameReported = false;
         previousFrame = 0;
         canvas = new Canvas(initialWidth(), initialHeight());
         canvas.setFocusTraversable(true);
@@ -129,15 +131,19 @@ public abstract class GameApp extends App {
                 pressedKeys.clear(); pressedKeys.addAll(pendingKeys); pendingKeys.clear();
                 pressedButtons.clear(); pressedButtons.addAll(pendingButtons); pendingButtons.clear();
                 beginFrame();
+                String stage = "frame-update";
                 try {
                     if (!paused) update(seconds);
+                    stage = "frame-draw";
                     if (!isStopped()) draw();
                     endFrame(true);
+                    if (!isStopped() && !firstFrameReported) {
+                        firstFrameReported = true;
+                        runtimeEvent("first-frame", "frame-draw", "FIRST_FRAME");
+                    }
                 } catch (RuntimeException | Error failure) {
                     endFrame(false);
-                    // Preserve the useful frame error even if native cleanup also fails.
-                    try { GameApp.this.stop(); }
-                    catch (RuntimeException | Error cleanup) { failure.addSuppressed(cleanup); }
+                    runtimeFailure(stage, "FRAME_EXCEPTION", failure);
                     throw failure;
                 } finally {
                     pressedKeys.clear(); pressedButtons.clear();
@@ -164,12 +170,16 @@ public abstract class GameApp extends App {
     }
 
     @Override protected final void shutdown() {
-        if (timer != null) timer.stop();
+        Throwable failure = null;
+        try { if (timer != null) timer.stop(); }
+        catch (RuntimeException | Error error) { failure = error; }
         gameVisible = false;
         previousFrame = 0;
         clearInput();
         imageCache.clear();
         window = null;
+        if (failure instanceof RuntimeException error) throw error;
+        if (failure instanceof Error error) throw error;
     }
 
     public final double width() { return canvas.getWidth(); }

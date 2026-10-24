@@ -30,9 +30,20 @@ function overlay(file, source) {
     source = source.replace('import java.net.URL;\n', 'import zero.web.ResourceURL;\n').replace('import java.nio.file.Path;\n', '\n');
     source = source.replaceAll('URL resource', 'ResourceURL resource').replace('private URL audioResource', 'private ResourceURL audioResource');
     source = source.replace('getClass().getResource(resourcePath)', 'zero.web.Resources.get(getClass(), resourcePath)');
-    source = source.replaceAll('        Sound.requireThread();', '        Sound.requireThread(); zero.web.BrowserLifecycle.own(this, this::stop);');
+    source = source.replace('        runtimeOpen();', '        runtimeOpen(); zero.web.BrowserLifecycle.own(this, this::stop);');
     source = source.replace('            stage.setScene(scene);', '            stage.setScene(scene); zero.web.BrowserUiFocus.install(scene); javafx.scene.ZeroDisabledState.install(scene);');
     source = source.replace('        Throwable failure = null;', '        zero.web.BrowserLifecycle.release(this); Throwable failure = null;');
+    const nativeStart = source.indexOf('    // BEGIN NATIVE RUNTIME REPORTER');
+    const nativeEnd = source.indexOf('    // END NATIVE RUNTIME REPORTER', nativeStart);
+    if (nativeStart < 0 || nativeEnd < 0) fail(file, 'reviewed native runtime reporter placement changed.');
+    source = source.slice(0, nativeStart) + `    private void runtimeOpen() { }
+    private void runtimeClose() { }
+    private void runtimeEvent(String type, String stage, String code, Throwable failure) {
+        if (type.equals("fatal")) zero.web.BrowserRuntime.fatal(stage, code, failure);
+        else zero.web.BrowserRuntime.emit(type, stage, code, failure);
+    }
+` + source.slice(nativeEnd + '    // END NATIVE RUNTIME REPORTER'.length);
+    source = source.replace('    private RuntimeReporter runtimeReporter;\n', '');
     const key = source.indexOf('    private static String audioResourceKey(');
     return source.slice(0, key) + '    private static String audioResourceKey(ResourceURL resource) { return resource.toExternalForm(); }\n}\n';
   }
@@ -63,7 +74,10 @@ function overlay(file, source) {
   source = source.replace('        Scene scene = stage.getScene();', '        Scene scene = stage.getScene(); browserViewport.install();');
   source = source.replace('canvas.sceneToLocal(event.getSceneX(), event.getSceneY())', 'zero.web.BrowserGameViewport.canvasPoint(canvas, event)');
   source = source.replace('window != null && window.isFocused()', 'window != null && zero.web.BrowserFocus.focused()');
-  source = source.replace('        if (timer != null) timer.stop();', '        if (timer != null) timer.stop(); if (browserViewport != null) browserViewport.close(); zero.web.BrowserFocus.uninstall();');
+  source = source.replace('        gameVisible = false;\n        previousFrame = 0;\n        clearInput();\n        imageCache.clear();', `        try { if (browserViewport != null) browserViewport.close(); } catch (RuntimeException | Error error) { if (failure == null) failure = error; else failure.addSuppressed(error); } try { zero.web.BrowserFocus.uninstall(); } catch (RuntimeException | Error error) { if (failure == null) failure = error; else failure.addSuppressed(error); } gameVisible = false;
+        previousFrame = 0;
+        clearInput();
+        imageCache.clear();`);
   const start = source.indexOf('        var resource = getClass().getResource(resourcePath);');
   const end = source.indexOf('    public final SpriteAnimation loadAnimation(', start);
   const originalLines = source.slice(start, end).split('\n').length - 1;
