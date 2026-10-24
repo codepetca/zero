@@ -72,7 +72,21 @@ async function locateRuntimes({runtime,projectRoot,environment=process.env,platf
  const pins=runtime.pins.filter(pin=>pin.platform===platform+'-'+arch);
  return {node,javaHome,env,evidence:{nodeVersion,javaVersion,platform:platform+'-'+arch,testedPins:pins.map(({tool,version})=>({tool,version})),matchesTestedVersions:pins.length>0&&pins.every(pin=>pin.version.replace(/^v/,'').split('+')[0]===(pin.tool==='node'?nodeVersion:javaVersion||'unavailable'))}};
 }
-function runProtocol({node,entrypoint,request,env,signal,onProgress=()=>{},deadlineMs=15*60*1000,spawn=spawnChild,platform=process.platform,killProcess=process.kill.bind(process)}){
+async function readOperationLog(filename,expectedLogPath){
+ if(typeof filename!=='string'||filename.length>4096||!expectedLogPath||filename!==expectedLogPath)throw unavailable('builder returned an invalid diagnostic log path.');
+ const before=await ordinary(filename,{maxBytes:16*1024*1024});let handle;
+ try {
+  handle=await fs.open(filename,require('node:fs').constants.O_RDONLY|(require('node:fs').constants.O_NOFOLLOW||0));
+  const opened=await handle.stat();
+  if(opened.dev!==before.dev||opened.ino!==before.ino||!opened.isFile()||opened.nlink!==1||opened.size!==before.size)throw unavailable('compiler log changed while opening it.');
+  const bytes=Buffer.alloc(before.size+1);let length=0;
+  while(length<bytes.length){const read=await handle.read(bytes,length,bytes.length-length,null);if(!read.bytesRead)break;length+=read.bytesRead;}
+  const after=await handle.stat(),current=await ordinary(filename,{maxBytes:16*1024*1024});
+  if(length!==before.size||after.size!==before.size||after.mtimeMs!==before.mtimeMs||current.dev!==before.dev||current.ino!==before.ino)throw unavailable('compiler log changed while reading it.');
+  return bytes.subarray(0,length).toString('utf8');
+ }finally{await handle?.close();}
+}
+function runProtocol({node,entrypoint,request,env,signal,onProgress=()=>{},deadlineMs=15*60*1000,spawn=spawnChild,platform=process.platform,killProcess=process.kill.bind(process),expectedLogPath}){
  if(signal?.aborted)return Promise.reject(aborted());const input=Buffer.from(JSON.stringify(request));if(input.length>format.LIMITS.requestBytes)return Promise.reject(unavailable('request exceeds its protocol limit.'));
  return new Promise((resolve,reject)=>{
   const child=spawn(node,[entrypoint],{cwd:path.dirname(entrypoint),env,stdio:['pipe','pipe','pipe'],windowsHide:true,detached:platform!=='win32'});let chunks=[],size=0,stderrSize=0,line='',failure,closed=false,killTimer;
@@ -83,7 +97,11 @@ function runProtocol({node,entrypoint,request,env,signal,onProgress=()=>{},deadl
   child.on('error',error=>finish(unavailable('could not start standalone Node: '+error.message)));
   child.stdout.on('data',bytes=>{size+=bytes.length;if(size>2*1024*1024){fail(unavailable('builder response exceeded 2 MiB.'));return;}chunks.push(bytes);});
   child.stderr.on('data',bytes=>{stderrSize+=bytes.length;if(stderrSize>1024*1024){fail(unavailable('builder progress exceeded its limit.'));return;}line+=bytes.toString('utf8');const parts=line.split(/\r?\n/);line=parts.pop();if(line.length>8192||parts.some(part=>part.length>8192)){fail(unavailable('builder progress line exceeded its limit.'));return;}for(const part of parts){try{onProgress(part.replace(/[\x00-\x08\x0b-\x1f\x7f]/g,'').slice(0,4096));}catch(error){fail(error);break;}}});
-  child.on('close',code=>{if(failure)return finish(failure);let response;try{response=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{return finish(unavailable('builder returned invalid JSON.'));}if(response.protocol!==1||typeof response.ok!=='boolean')return finish(unavailable('builder operation failed: unsupported response protocol.'));if(!response.ok){const message=String(response.error?.message||'Browser build failed. Check the Zero output.').slice(0,4096);return finish(response.error?.code==='cancelled'?aborted():Object.assign(Error(message),{code:'ZERO_BUILDER_OPERATION_FAILED'}));}if(code!==0)return finish(unavailable('builder exited unsuccessfully.'));finish(null,response.result);});
+  child.on('close',async code=>{if(failure)return finish(failure);let response;try{response=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{return finish(unavailable('builder returned invalid JSON.'));}if(response.protocol!==1||typeof response.ok!=='boolean')return finish(unavailable('builder operation failed: unsupported response protocol.'));if(!response.ok){
+   const message=String(response.error?.message||'Browser build failed. Check the Zero output.').slice(0,4096),error=response.error?.code==='cancelled'?aborted():Object.assign(Error(message),{code:'ZERO_BUILDER_OPERATION_FAILED'});
+   if(response.error?.logPath!==undefined){try{error.logText=await readOperationLog(response.error.logPath,expectedLogPath);error.logPath=expectedLogPath;}catch(logError){return finish(failure||logError);}}
+   return finish(failure||error);
+  }if(code!==0)return finish(unavailable('builder exited unsuccessfully.'));finish(null,response.result);});
   child.stdin.on('error',()=>{});child.stdin.end(input);
  });
 }
@@ -107,7 +125,7 @@ function createProjectBuilder({isTrusted=()=>false,environment=process.env,platf
    if((await readSavedBuilder(projectRoot)).profileHash!==before.profileHash)throw unavailable('saved tooling changed before execution.');authorize(options);
    const cacheBase=path.resolve(options.cacheRoot||path.join(temporaryBase,'zero-web-cache')),identity=before.manifest.closureSha256+'-'+format.sha256(before.files.find(file=>file.path==='runtime-lock.json').bytes),cacheRoot=path.join(cacheBase,identity);
    if(cacheRoot===projectRoot||cacheRoot.startsWith(projectRoot+path.sep))throw unavailable('the browser cache must be outside the project.');
-   const result=await runProtocol({node:runtime.node,entrypoint:path.join(frozen,'run.cjs'),request:{protocol:1,operation,projectRoot,cacheRoot},env:runtime.env,signal:options.signal,onProgress:options.onProgress,deadlineMs,spawn,platform});
+   const result=await runProtocol({node:runtime.node,entrypoint:path.join(frozen,'run.cjs'),request:{protocol:1,operation,projectRoot,cacheRoot},env:runtime.env,signal:options.signal,onProgress:options.onProgress,deadlineMs,spawn,platform,expectedLogPath:path.join(cacheRoot,before.manifest.closureSha256,'logs',format.sha256(projectRoot)+'.log')});
    authorize(options);if((await readSavedBuilder(projectRoot)).profileHash!==before.profileHash)throw unavailable('saved tooling changed during execution.');
    if(options.result?.buildId&&result?.buildId!==options.result.buildId)throw unavailable('the browser build was replaced.');
    const validated=await validateRetainedExport({projectRoot,result,signal:options.signal});if(validated.profileHash!==before.profileHash)throw unavailable('the browser result belongs to another builder.');await currentInputs(projectRoot,validated.manifest);

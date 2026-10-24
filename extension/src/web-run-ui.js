@@ -1,7 +1,6 @@
 'use strict';
 const path = require('node:path');
 const os = require('node:os');
-const fs = require('node:fs/promises');
 const {createManagedWebPreview} = require('./web-run-preview');
 
 function sourceDiagnostics(text, root) {
@@ -23,12 +22,12 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
   const build = options => (ensureValidatedExport || require('./web-export/snapshot').ensureValidatedExport)(options);
   const validate = options => (validateExport || require('./web-export/snapshot').validateExport)(options);
   const problems = vscode.languages?.createDiagnosticCollection('zero-browser');
-  let generation=0, queuedGeneration, operation, runtime, runtimeRoot, runtimeGeneration, disposed=false, queue=Promise.resolve();
-  const updateActive = () => setActive(Boolean(runtime || operation && !operation.signal.aborted || queuedGeneration===generation));
+  let generation=0, queuedGeneration, operation, previewOperation, runtime, runtimeRoot, runtimeGeneration, disposed=false, queue=Promise.resolve();
+  const updateActive = () => setActive(Boolean(runtime || operation && !operation.signal.aborted || previewOperation && !previewOperation.signal.aborted || queuedGeneration===generation));
   const current = async (id,root) => !disposed && id===generation && await project()===root;
   function disposeRuntime() {const old=runtime;runtime=undefined;runtimeRoot=undefined;runtimeGeneration=undefined;old?.dispose();}
   function stop({quiet=false}={}) {
-    generation++;operation?.abort();disposeRuntime();setActive(false);
+    generation++;operation?.abort();previewOperation?.abort();disposeRuntime();setActive(false);
     if (!quiet && !disposed) {setFailed(false);setState('App stopped');}
   }
   async function openInBrowser() {
@@ -43,7 +42,7 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
   async function diagnostics(error,root) {
     if (!problems || !root) return;
     let log=error.message;
-    if (error.logPath) log+='\n'+await fs.readFile(error.logPath,'utf8').catch(()=> '');
+    if (typeof error.logText==='string') log+='\n'+error.logText;
     const entries=Array.isArray(error.diagnostics) ? error.diagnostics : sourceDiagnostics(log,root);
     const grouped=new Map(),seen=new Set();
     for (const item of entries) {
@@ -63,8 +62,8 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
     }
     for (const [filename,items] of grouped) problems.set(vscode.Uri.file(filename),items);
   }
-  async function showPreview(root,result,id=generation,validator=validate) {
-    const validated=await validator({projectRoot:root,result}) || result;
+  async function showPreview(root,result,id=generation,validator=validate,signal) {
+    const validated=await validator({projectRoot:root,result,signal}) || result;
     if (!await current(id,root)) return;
     disposeRuntime();
     let opened;
@@ -96,7 +95,7 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
       };
       const result=vscode.window.withProgress ? await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title:'Run App',cancellable:true},work) : await work();
       if(controller.signal.aborted || !await current(id,root))return;
-      await showPreview(root,result,id);
+      await showPreview(root,result,id,validate,controller.signal);
     }catch(error){
       if(controller.signal.aborted || id!==generation || disposed)return;
       error.zeroRunMessage=root ? 'App could not run. Open Problems or check Zero output.' : error.message;
@@ -110,7 +109,13 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
     stop({quiet:true});const id=generation;queuedGeneration=id;
     const next=queue.then(()=>execute(id,expectedRoot));queue=next.catch(()=>{});setActive(true);return next;
   }
-  async function preview(root,result,{retained=false}={}) {stop({quiet:true});const id=generation;const validator=retained?(validateRetainedExport || require('./retained-web-export').validateRetainedExport):validate;return showPreview(root,result,id,validator);}
+  async function preview(root,result,{retained=false}={}) {
+    stop({quiet:true});const id=generation,controller=new AbortController();previewOperation=controller;updateActive();
+    const validator=retained?(validateRetainedExport || require('./retained-web-export').validateRetainedExport):validate;
+    try{return await showPreview(root,result,id,validator,controller.signal);}
+    catch(error){if(!controller.signal.aborted&&await current(id,root))throw error;}
+    finally{if(previewOperation===controller){previewOperation=undefined;updateActive();}}
+  }
   const workspaceListener=vscode.workspace.onDidChangeWorkspaceFolders?.(()=>stop());
   return {commands:{'zero.runApp':run,'zero.stopApp':stop,'zero.openRunningAppInBrowser':openInBrowser},run,stop,preview,openInBrowser,whenIdle:()=>queue,get canOpenInBrowser(){return !disposed && typeof runtime?.openInBrowser==='function';},get generation(){return generation;},disposables:[{dispose(){disposed=true;stop({quiet:true});workspaceListener?.dispose();problems?.dispose();}}]};
 }

@@ -3,7 +3,7 @@
 const fs=require('node:fs/promises');
 const path=require('node:path');
 const crypto=require('node:crypto');
-const {zipFiles}=require('./web-export/zip');
+const {inspectRetainedZip}=require('./retained-web-zip');
 const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const LIMITS=Object.freeze({files:10000,totalBytes:256*1024*1024,manifestBytes:2*1024*1024});
 function relative(name){return typeof name==='string'&&name.length<=512&&name.split('/').every(part=>part&&!/[\\\x00-\x1f\x7f<>:\x22|?*]/.test(part)&&!['.','..'].includes(part)&&!/[. ]$/.test(part)&&!/^(?:con|prn|aux|nul|com[0-9]|lpt[0-9])(?:\.|$)/i.test(part));}
@@ -52,8 +52,8 @@ async function validateRetainedExport({projectRoot,result,signal}={}){
  const sitePath=path.join(output,'site'),zipPath=path.join(output,'web-export.zip'),siteFiles=await readTree(sitePath);
  if(!inventoryMatches(siteFiles,manifest.files)||manifest.totalBytes!==siteFiles.reduce((n,file)=>n+file.bytes.length,0))throw Error('The retained browser site changed or is incomplete.');
  if(!siteFiles.some(file=>file.path==='index.html'&&file.bytes.length)||!siteFiles.some(file=>file.path==='zero_web.nocache.js'&&file.bytes.length)||!siteFiles.some(file=>/\.cache\.js$/.test(file.path)&&file.bytes.length))throw Error('The retained browser site is incomplete.');
- await ordinary(zipPath);const zipBytes=await fs.readFile(zipPath),byName=new Map(siteFiles.map(file=>[file.path,file]));
- if(!zipBytes.equals(zipFiles(manifest.files.map(file=>byName.get(file.path)))))throw Error('The retained browser ZIP differs from its site.');
+ await ordinary(zipPath);const zipBytes=await fs.readFile(zipPath);
+ inspectRetainedZip(zipBytes,siteFiles,{safePath:relative,maxFiles:LIMITS.files,maxBytes:LIMITS.totalBytes});
  const all=await readTree(output),allowed=new Set(['manifest.json','web-export.zip',...siteFiles.map(file=>'site/'+file.path)]);
  if(all.length!==allowed.size||all.some(file=>!allowed.has(file.path)))throw Error('The retained browser output contains undeclared files.');
  if(!raw.equals(await fs.readFile(manifestPath))||signal?.aborted)throw Error('The retained browser receipt changed during validation.');
