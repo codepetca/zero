@@ -17,6 +17,11 @@ Screenshots: output/playwright/zerohub-play-count/; review/CI/live receipts:
 .verification/zerohub-play-count/ and the PR handoff.
 
 
+Concurrent approved main dd4368dd was merged with practice-only metric suppression
+retained. Combined-source 205 website tests, production build/TypeScript, root
+and whitespace checks pass. Combined browser and integration review receipts
+are recorded with PR192 and the ignored delivery evidence.
+
 ## Authorized tutorial publication and sign-in activation — 2026-10-24
 
 Final source01fa7d48 passes all selected CI gates: root/native/examples/lessons/

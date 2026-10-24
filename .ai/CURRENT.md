@@ -12,8 +12,9 @@ other worktrees, server counting/auth, Free services and publisher/native pins.
 Existing website publication authority continues.
 
 Implementation and initial review pass. Concurrent approved PR188 reached main
-at dd4368dd; merging it preserves practice-only metric suppression. Next: combined
-website/root checks, browser check, integration review, exact-head CI/merge/live. Evidence: ignored .verification/zerohub-play-count/ and
+at dd4368dd; merging it preserves practice-only metric suppression. Combined205
+website tests/build/types/root pass. Next: browser check, integration review,
+exact-head CI/merge/live. Evidence: ignored .verification/zerohub-play-count/ and
 output/playwright/zerohub-play-count/ plus PR handoff.
 
 ---
