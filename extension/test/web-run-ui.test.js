@@ -156,3 +156,13 @@ test('preview readiness is event-driven and old generations cannot replace curre
  h.runtimeOptions.onRuntime({type:'fatal',code:'FRAME_EXCEPTION',diagnostic:'java.lang.IllegalStateException: broken\n  at demo.Main.draw(Main.java:42)'});await tick();assert.match(h.states.at(-1),/stopped with an error/);assert.equal(h.failures.at(-1),true);assert.equal(h.stops,2);assert.equal(h.diagnostics[0].uri.fsPath,'/project/src/main/java/demo/Main.java');assert.equal(h.diagnostics[0].items[0].range.start.line,41);
  const failed=h.states.at(-1);h.runtimeOptions.onRuntime({type:'first-frame'});assert.equal(h.states.at(-1),failed);
 });
+
+test('generated browser-runtime errors link to the retained adapter source rather than a deleted build or student class',()=>{
+ const log="[INFO] [ERROR] Errors in 'file:/temporary/build/src/main/java/zero/web/BrowserRuntime.java'\n[INFO] [ERROR] Line 25: ZeroProofMissingAdapterSymbol cannot be resolved\n[ERROR] /temporary/build/src/main/java/javafx/scene/ZeroDisabledState.java:[9,4] Broken adapter";
+ assert.deepEqual(sourceDiagnostics(log,'/project'),[
+  {file:'/project/.zero-build/src/web-export/adapters/runtime/zero/web/BrowserRuntime.java',line:25,column:1,message:'ZeroProofMissingAdapterSymbol cannot be resolved'},
+  {file:'/project/.zero-build/src/web-export/adapters/runtime/javafx/scene/ZeroDisabledState.java',line:9,column:4,message:'Broken adapter'}
+ ]);
+ const windows="Errors in 'C:\\cache\\build\\src\\main\\java\\zero\\web\\media\\BrowserSound.java'\nLine 14: Broken audio adapter";
+ assert.equal(sourceDiagnostics(windows,'/project')[0].file,'/project/.zero-build/src/web-export/adapters/runtime/zero/web/media/BrowserSound.java');
+});
