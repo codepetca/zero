@@ -51,5 +51,7 @@ test('PR diff reads actual commits with deletion/rename and fails closed on unav
     const event={pull_request:{base:{sha:base},head:{sha:head}}};assert.ok(Object.values(scopeForEvent(event,root)).every(v=>v===true));
     assert.ok(Object.values(scopeForEvent({pull_request:{base:{sha:'a'.repeat(40)},head:{sha:head}}},root)).every(v=>v===true));
     assert.ok(Object.values(scopeForEvent({},root)).every(v=>v===true));
-  } finally {rmSync(root,{recursive:true,force:true});}
+  // Git may finish background maintenance just after a child exits. Retry only
+  // transient removal errors in this disposable fixture; assertions still fail.
+  } finally {rmSync(root,{recursive:true,force:true,maxRetries:5,retryDelay:100});}
 });
