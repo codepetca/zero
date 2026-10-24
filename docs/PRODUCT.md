@@ -74,9 +74,12 @@ checks pass. UI callback and startup failures preserve their causes and stop the
 browser game. The refreshed local kit candidate passes archive/source/license
 and extracted Maven checks. The later actual isolated Mac editor walkthrough
 exercises class/asset editing, compiler correction, native readiness, browser play,
-component replacement and local Git/ZIP saving. It finds a blocker in passive
-checks: the runtime scan rejects macOS hard-linked Java launchers despite a valid
-selected JDK. Native physical play, installation, physical Windows, novice use,
+component replacement and local Git/ZIP saving. The host runtime scan now accepts
+bounded macOS hard-linked Java launchers throughf94809b3, with36 focused tests and independent review. Actual editor passive
+checks still report unavailable: the saved declaration scanner rejects a legitimate
+Unicode escape in Zero App.java before checking student APIs. This separate
+checker integration issue remains open. Native physical play, installation, physical
+Windows, novice use,
 authenticated GitHub/hosted sharing and publication remain separately unproven.
 
 ## Core goal: students grow the framework

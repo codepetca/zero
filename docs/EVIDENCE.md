@@ -1,5 +1,46 @@
 # Delivery evidence index
 
+## Mac runtime identity correction and remaining checker blocker — 2026-10-24
+
+Explicit user approval opened one focused20min window11:03:06–11:23:06UTC.
+Host-only commit `f94809b3c7a8c96f5bda5e58c7c2751dd0ed7d5d` permits bounded
+ordinary external hard-linked Java runtime files and retains runtime mode after
+resolving symlink aliases. Project/cache hardlink protections and rejection of
+runtime targets inside projects remain intact. Directory/special runtimes reject;
+byte hashing and strengthened post-read identity checks remain data-only.
+36 host/controller/builder tests PASS,0skip. Independent Sol/high runtime-scan-turn
+review covers both changed files and immediate controller/retained-output paths,
+COMPLETE/CLEAN. Prior full reliability/API reviews cover unchanged interactions.
+Existing ledger totals8launches,1initial,7targeted,8fixbatches; no further fixes
+under this review session's absolute cap. Clocks manually approximate, tokens and
+effective configuration unknown. Root checks and local kit packaging/verification
+PASS, including canonical source parity, licenses and extracted Maven compile.
+Current local candidate exact hashes are in CURRENT and the receipt below.
+
+Actual isolated editor Developer Reload Window and explicit Enable and Prepare
+Browser Checks ran using current host source. No PATH workaround or student source
+change. Host inspect with the actual extension-process JAVA_HOME/PATH/HOME now
+succeeds. Saved runner returns unavailable with CACHED_INPUTS_UNAVAILABLE:
+“Unicode-escaped Java needs manual package preparation: src/main/java/zero/App.java”.
+The legitimate runtime protocol record-separator escape is at project App.java:262.
+Read-only trace: compatibility/cached-project.js passes all original sources,
+including core, through sharing/authoring.js declaration(), which conservatively
+rejects Unicode escapes before literal masking to protect namespace transformations.
+This independent checker/core interaction prevents the requested actual
+compatible→unsupported→corrected cycle. The UI remains unavailable/No Problems;
+no recovery success is claimed. Actual full WebFX export/play proof is unaffected.
+Student repo remains clean4a4d722f with no remotes. Reload closed the owned preview.
+No new saved-builder/core/API/fixture bytes changed, so prior366/366 actual execution
+proof is reused; a checker correction would change project-owned builder inputs
+and requires affected checker/preservation validation. Do not weaken declaration
+safety or alter the fixture just to claim success. No ninth fix, new reviewer,
+publishing, release, installation, account/credential or telemetry action occurred.
+
+Evidence: `.verification/vision-editor-walkthrough/runtime-scan-receipt.json`,
+`runtime-scan-host-result.json`, `runtime-scan-tests.log`, `runtime-scan-check.log`,
+`runtime-scan-package.log`, `runtime-scan-verify-kit.log`. Earlier walkthrough
+findings below are retained as history; the runtime hardlink issue is now fixed.
+
 ## Actual Mac student/editor walkthrough — 2026-10-24
 
 Owner explicitly lifted the editor QA hold and requested full local student-flow
