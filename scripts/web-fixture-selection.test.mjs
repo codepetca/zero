@@ -93,3 +93,26 @@ test('lifecycle fault checks match the named Java failure across actual window a
  assert.ok(source.includes('page.waitForFunction(lifecycleFaultSurfaced,expected)'));
  assert.ok(source.includes('page.evaluate(lifecycleFaultSurfaced,expected)'));
 });
+
+test('helper action keys require matching completed Java witnesses and always release before snapshot',async()=>{
+ const source=await fs.readFile(new URL('web-browser-checks.js',import.meta.url),'utf8'),start=source.indexOf('  // Complete the action-key declarations'),end=source.indexOf("  await page.evaluate(() => window.dispatchEvent(new Event('blur')));",start);
+ assert.ok(start>0&&end>start&&end<source.indexOf('  const helperEvidence='));
+ const block='(async()=>{'+source.slice(start,end)+'})()',keys=['w','a','s','d','Enter','r'],names=['W','A','S','D','ENTER','R'];
+ // Synthetic driver scheduling only; these bytes are not Java execution evidence.
+ async function execute(failName) {
+  const calls=[],window={__zeroCheck:{apiEvidence:''}},completed=[];
+  const page={keyboard:{down:async key=>{calls.push(['down',key]);},up:async key=>{calls.push(['up',key]);}},waitForFunction:async(predicate,name,options)=>{
+   calls.push(['wait',name]);assert.equal(options.timeout,5000);assert.equal(predicate(name),false,'a dispatch alone must never satisfy evidence');
+   window.__zeroCheck.apiEvidence=`A|zero.Key#WRONG:zero.Key|key-constant-${name}|synthetic unit witness|true`;assert.equal(predicate(name),false,'another key must not satisfy this key');
+   window.__zeroCheck.apiEvidence=`I|zero.Key#${name}:zero.Key|key-constant-${name}`;assert.equal(predicate(name),false,'invocation without a completed assertion must not pass');
+   window.__zeroCheck.apiEvidence=`A|zero.Key#${name}:zero.Key|key-constant-${name}|synthetic unit witness|false`;assert.equal(predicate(name),false,'failed postcondition must not pass');
+   if(name===failName)throw Error('missing unit Java witness');
+   window.__zeroCheck.apiEvidence=`A|zero.Key#${name}:zero.Key|key-constant-${name}|synthetic unit witness|true`;assert.equal(predicate(name),true);
+  }};
+  const run=vm.runInNewContext(block,{page,window,check:pass=>{assert.equal(pass,true);completed.push(true);}});
+  if(failName)await assert.rejects(run,/missing unit Java witness/);else await run;
+  return {calls,completed};
+ }
+ const success=await execute();assert.deepEqual(success.calls,keys.flatMap((key,index)=>[['down',key],['wait',names[index]],['up',key]]));assert.equal(success.completed.length,6);
+ const failure=await execute('D');assert.deepEqual(failure.calls,keys.slice(0,4).flatMap((key,index)=>[['down',key],['wait',names[index]],['up',key]]));assert.equal(failure.completed.length,3);
+});

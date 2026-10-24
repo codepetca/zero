@@ -202,6 +202,18 @@ async (initialPage) => {
   await page.waitForTimeout(70);
   s = await state();
   check(s.texts.includes('Clicks: 1'), 'Mouse press reaches the canvas');
+  // Complete the action-key declarations before retaining this page's Java evidence.
+  for (const [key, name] of [['w','W'],['a','A'],['s','S'],['d','D'],['Enter','ENTER'],['r','R']]) {
+    try {
+      await page.keyboard.down(key);
+      await page.waitForFunction(name => window.__zeroCheck.apiEvidence?.split('\n').some(line =>
+        line.startsWith(`A|zero.Key#${name}:zero.Key|key-constant-${name}|`) && line.endsWith('|true')),
+        name, {timeout:5000});
+      check(true, `Zero ${name} constant observes an actual browser key press`);
+    } finally {
+      await page.keyboard.up(key);
+    }
+  }
   await page.evaluate(() => window.dispatchEvent(new Event('blur')));
   await page.waitForTimeout(70);
   s = await state();
