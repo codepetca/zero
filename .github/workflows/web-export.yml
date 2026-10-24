@@ -34,6 +34,8 @@ jobs:
             student-template/.mvn/wrapper/maven-wrapper.properties
             extension/src/web-export/toolchain-lock.json
       - run: npm ci
+      - name: Snapshot the selected hosted JDK trust store before evidence collection
+        run: node scripts/ci-browser.mjs prepare-jdk
       - name: Check reviewed helper profiles and export/publish safety
         run: npm run test:web
       - name: Reuse working runner Chrome or install pinned fallback
