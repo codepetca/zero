@@ -1,3 +1,26 @@
+# ZeroHub play-count icon — 2026-10-24
+
+Owner selected the play-triangle-plus-number preview for project counts.
+Render it at bottom-left, preserve stars at right, and name opens in the tooltip
+and screen-reader text. Keep counting Play-link activations, including repeats;
+no gameplay/unique-visitor claim. Unknown counts remain hidden; zero is visible.
+Libraries retain existing adoption text without the play icon.
+
+Branch codex/zerohub-play-count, base cb6f95e6, attached zerohub-interest
+worktree. Root owns markup/CSS/client labels. Preserve primary funding work,
+other worktrees, server counting/auth, Free services and publisher/native pins.
+Existing website publication authority continues.
+
+Implementation and initial review pass. Concurrent approved PR188 reached main
+at dd4368dd; merging it preserves practice-only metric suppression. Combined205
+website tests/build/types/root pass. Next: browser check, integration review,
+exact-head CI/merge/live. Evidence: ignored .verification/zerohub-play-count/ and
+output/playwright/zerohub-play-count/ plus PR handoff.
+
+---
+
+Concurrent tutorial handoff (preserved from main):
+
 # Zero phased vision — current handoff
 
 ## Active: live tutorial publication and browser sign-in — 2026-10-24

@@ -29,7 +29,7 @@ export async function loadMetricBatches(kind, ids, {signal, onItems, fetchImpl =
 export function metricLabel(kind, metric) {
   if (!metric) return null;
   if (kind === 'game') return Number.isSafeInteger(metric.opens) && metric.opens >= 0
-    ? {text: `${metric.opens.toLocaleString()} ${metric.opens === 1 ? 'visit' : 'visits'}`, hint: 'Play-link activations from ZeroHub since counting began. Includes repeat visits; does not measure unique visitors or gameplay.'} : null;
+    ? {text: `${metric.opens.toLocaleString()} ${metric.opens === 1 ? 'open' : 'opens'}`, hint: 'Play-link activations from ZeroHub since counting began. Includes repeat opens; does not measure unique visitors or gameplay.'} : null;
   if (!Number.isSafeInteger(metric.projects) || metric.projects < 0 ||
       !Number.isSafeInteger(metric.observedProjects) || !Number.isSafeInteger(metric.totalProjects) ||
       metric.observedProjects < 0 || metric.observedProjects > metric.totalProjects) return null;
