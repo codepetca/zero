@@ -308,23 +308,30 @@ function activate(context, services = {}) {
   if(nativeProblems)context.subscriptions.push(nativeProblems);
   const compilerProblems=vscode.languages?.createDiagnosticCollection('zero-native-compiler');
   if(compilerProblems)context.subscriptions.push(compilerProblems);
+  function publishRuntimeProblems(metadata, event) {
+    if(!nativeProblems)return;
+    const grouped=new Map();
+    for(const item of runtimeDiagnostics(event.diagnostic||'',metadata.root)){
+      const point=new vscode.Position(Math.max(0,item.line-1),0),diagnostic=new vscode.Diagnostic(new vscode.Range(point,point),item.message,vscode.DiagnosticSeverity.Error);
+      diagnostic.source='Zero native runtime';if(!grouped.has(item.file))grouped.set(item.file,[]);grouped.get(item.file).push(diagnostic);
+    }
+    for(const [file,items]of grouped)nativeProblems.set(vscode.Uri.file(file),items);
+  }
   function nativeRuntimeState(task, event) {
     const metadata = nativeTaskState(task);
     if (!metadata) return;
     metadata.latest = event;
-    if (event.type === 'fatal') metadata.failed = true;
+    if (event.type === 'fatal') {metadata.failed = true;metadata.fatal = event;}
     if (disposed || metadata.generation !== runGeneration || nativeTaskState(execution?.task) !== metadata || stoppedTasks.has(execution)) return;
     if (event.type === 'ui-ready') state = 'App UI ready';
     else if (event.type === 'first-frame') state = 'App running · first game frame ready';
-    else if (event.type === 'fatal') {buildFailed = true;state = `App failed (${event.stage}/${event.code}). Check Problems or the task terminal.`;
-      if(nativeProblems){const grouped=new Map();for(const item of runtimeDiagnostics(event.diagnostic||'',metadata.root)){const point=new vscode.Position(Math.max(0,item.line-1),0),diagnostic=new vscode.Diagnostic(new vscode.Range(point,point),item.message,vscode.DiagnosticSeverity.Error);diagnostic.source='Zero native runtime';if(!grouped.has(item.file))grouped.set(item.file,[]);grouped.get(item.file).push(diagnostic);}for(const [file,items]of grouped)nativeProblems.set(vscode.Uri.file(file),items);}
-    }
+    else if (event.type === 'fatal') {buildFailed = true;state = `App failed (${event.stage}/${event.code}). Check Problems or the task terminal.`;publishRuntimeProblems(metadata,event);}
     else if (event.type === 'stopped') state = 'App stopped';
     if (event.diagnostic) output.appendLine(`[Native ${event.stage}/${event.code}] ${event.diagnostic}`);
     refresh();
   }
-  function publishCompilerProblems(metadata) {
-    if(!compilerProblems || disposed || metadata.generation !== runGeneration || nativeTaskState(execution?.task) !== metadata || stoppedTasks.has(execution))return;
+  function publishCompilerProblems(metadata, owner = execution) {
+    if(!compilerProblems || disposed || metadata.generation !== runGeneration || nativeTaskState(owner?.task) !== metadata || stoppedTasks.has(owner))return;
     const grouped=new Map();
     for(const item of metadata.compilerItems||[]){
       const point=new vscode.Position(item.line-1,item.column-1);
@@ -375,10 +382,22 @@ function activate(context, services = {}) {
     };
   }
   function track(active) {
-    if (taskFinishes.has(active) || endedTasks.has(active)) return;
+    if (taskFinishes.has(active)) return;
     const metadata = nativeTaskState(active.task);
     if (!metadata) return;
-    if (disposed || metadata.generation !== runGeneration) {stoppedTasks.add(active);active.terminate();return;}
+    if (disposed || metadata.generation !== runGeneration) {if(!endedTasks.has(active)){stoppedTasks.add(active);active.terminate();}return;}
+    if (endedTasks.has(active)) {
+      if (metadata.reconciled) return;
+      if (execution) {metadata.reconciled = true;return;}
+      metadata.reconciled = true;
+      compilerProblems?.clear();nativeProblems?.clear();
+      publishCompilerProblems(metadata,active);
+      if (metadata.fatal) publishRuntimeProblems(metadata,metadata.fatal);
+      const exitCode = metadata.exitCode ?? taskExitCodes.get(active);
+      buildFailed = Boolean(metadata.failed || typeof exitCode === 'number' && exitCode !== 0 && (metadata.custom || !stoppedTasks.has(active)));
+      state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped';
+      refresh();return;
+    }
     if (execution && execution !== active) {stoppedTasks.add(execution); execution.terminate();}
     execution = active;
     buildFailed = false;
@@ -395,17 +414,17 @@ function activate(context, services = {}) {
     endedTasks.add(event.execution);
     const finish = taskFinishes.get(event.execution);
     if (!finish) return;
+    const metadata = nativeTaskState(event.execution.task);
+    if (metadata) metadata.reconciled = true;
     taskFinishes.delete(event.execution); finish();
     if (execution === event.execution) {
       execution = undefined;
-      const metadata = nativeTaskState(event.execution.task);
       const exitCode = metadata?.exitCode ?? taskExitCodes.get(event.execution);
       buildFailed = Boolean(metadata?.failed || typeof exitCode === 'number' && exitCode !== 0 && (metadata?.custom || !stoppedTasks.has(event.execution)));
       state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped';
       refresh();
     }
   }), vscode.tasks.onDidEndTaskProcess(event => {
-    if (!taskFinishes.has(event.execution)) return;
     taskExitCodes.set(event.execution, event.exitCode);
   }));
   context.subscriptions.push(vscode.tasks.registerTaskProvider('zero', {
