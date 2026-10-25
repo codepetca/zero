@@ -63,12 +63,31 @@ route/method requests return 404, and `/hub` returns 200 without a jam link. Ver
 protection remains `all_except_custom_domains`; production branch remains `main`.
 No main merge, production environment change or public activation occurred.
 
-Cost observation: creating the state-only registry branch triggered an automatic
-Vercel build attempt, which failed because that branch intentionally has no site
-source. Before repeated event writes or expanding the pilot, exclude that branch
-from deployment triggers under a separately reviewed configuration change. This
-activation did not alter the project's shared build settings or make a free-tier
-cost claim.
+Registry build exclusion was owner-authorized after activation. The dedicated
+state branch now contains only state, its README and `website/vercel.json`:
+
+```json
+{"$schema":"https://openapi.vercel.sh/vercel.json","git":{"deploymentEnabled":{"zero-jams-pilot-registry":false}}}
+```
+
+The configured project root is `website`; this configuration disables Git-triggered
+deployments for only that exact branch. Main and source previews remain enabled.
+No project-wide build setting, environment, production branch or protection was
+changed. Guard commit `a39b3bdd` and follow-up README probe `5a4eb284` produced no
+Vercel deployments in the observed window. Preserve the guard when recovering the
+registry; never put it in the validated `jams/` event namespace. Removing only
+this guard restores the old deployment behavior. See
+[Vercel's branch configuration](https://vercel.com/docs/project-configuration/git-configuration).
+The ignored-build-step alternative was avoided because canceled builds still
+count against deployment/concurrency limits. Actual lifecycle writes will also
+be checked before claiming the entire verification complete.
+
+The live creator run found that preparation POST requests omitted the sealed
+pilot session. They now use same-origin credentials for the two fixed relative
+preview/ZIP endpoints, retaining redirect rejection and all server access gates.
+The two-line fix passed 13 focused tests, a production build and an independent
+Sol 6.1/high review (24 reviewer tests). Hosted preview/download acceptance is
+being rerun before the lifecycle continues.
 The fixed public policy is [jams/pilot.json](../jams/pilot.json). The service model
 and existing local verification remain in [the plan](ZEROJAMS-PLAN.md) and
 [operations guide](ZEROJAMS-OPERATIONS.md). This packet narrows the proposed hosted
