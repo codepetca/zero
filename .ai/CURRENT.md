@@ -1,23 +1,23 @@
-# Guided ZeroJams preparation merged; production hidden — 2026-10-25
+# Controlled ZeroJams pilot preparation — 2026-10-25
 
-[PR200](https://github.com/codepetca/zero/pull/200) merged aa6d58c5 from reviewed
-head e135c82d after all11CIchecks passed. This worktree and local main ref are
-fast-forwarded; primary funding and actor worktrees remain untouched.
+Owner authorized setup audit and controlled-pilot preparation, keeping production
+hidden. Branch codex/zerojams-controlled-pilot; base PR200 merge aa6d58c5, syncing
+current main010ae629 (Mac50 release). Primary/actor worktrees preserved. No push,
+deploy, App/credential/permission changes, registry provisioning or live writes
+performed/authorized by preparation. No tool-backed goal requested.
 
-Delivered: details → actual template preview → customized8file ZIP, public draft
-recovery, timezone/DST validation and separate exact-source approval. All Game/App
-Jam rules require a public GitHub project repository and exact commit. Preparation
-works before sign-in. Plan: docs/ZEROJAMS-PLAN.md; receipts: docs/EVIDENCE.md.
+Coordinator owns live read-only GitHub/Vercel audit, design/config/test preparation
+and docs. Sol6.1/high pilot_boundary_audit owns read-only source-boundary analysis;
+no file writes or recursive delegation. DeepSeek remains paused through2026-12-31.
+Audit: Codepet Zero App5367740 has broad desktop permissions; zero-jams-registry
+branch404; Vercel zero project auth names only inproduction and noZERO_JAMS names.
+Connector installation84608113 is a different App, not evidence for Codepet Zero.
+GitHub CLI cannot enumerate Codepet Zero installations with current auth (403);
+record unknown without switching credentials. Secret values not disclosed.
 
-Production deployment7315783838 succeeded for aa6d58c5. Actual public13jam route/
-method checks404; Hub200 with no jam link; local preparation3025returns200.
-Source hold unchanged. No credential/permission changes, registry provisioning,
-live pilot or installer release authorized/performed. The separate previously
-recorded encoded-Hub500issue is outside this change.
-
-62focused/240website tests, root check, website typecheck/build pass. Feature,
-wording and main-integration reviews complete/clean. Safari/WebKit and live
-GitHub-hosted/authenticated participant acceptance remain unverified. Next: a
-small live pilot requires its separate explicit activation/configuration authority.
-DeepSeek paused through2026-12-31. Keep this worktree for active local preview.
-These post-merge completion notes are local/uncommitted receipts.
+Current source still rejects jams in production AND deployed previews; no flags
+can release production. Next: finish live metadata audit, prepare concrete gated
+pilot contract/runbook and appropriate local preflight evidence, independent
+review, then present required operator changes separately. Production hidden.
+Prior PR200 all11CIpass/live13canonical404 proof retained in EVIDENCE; local3025
+preview retained. Safari/real authenticated pilot still unverified.

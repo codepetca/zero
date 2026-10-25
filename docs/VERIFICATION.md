@@ -1,5 +1,85 @@
 # Verification
 
+## Mac0.5.50 published; download/feed promotion — 2026-10-25
+
+[SourcePR199](https://github.com/codepetca/zero/pull/199) merged2de6bc54 after all11checks
+passed integratedc923d2a4: [source](https://github.com/codepetca/zero/actions/runs/40211289366),
+[browser](https://github.com/codepetca/zero/actions/runs/40211289363),
+[Windows](https://github.com/codepetca/zero/actions/runs/40211289474). MainPR200's guided
+jam work and evidence were preserved in a reviewed prose-only conflict resolution;
+all41protected native inputs remain equivalent to built4675e862. Sol/high targeted
+integration review and Luna/medium final candidate-doc review complete/clean.
+
+The owner-authorized [native release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.50)
+targets prep66e6ce90 and contains exactly the sealed DMG. Draft target/singleasset,
+authenticated draft download and anonymous published download match5,918,971bytes/
+SHA2567effba8ea273dbff3629b6dca3ee84f0d3d9243d1fe67ada7d6ea892b67ae6c1;
+public Ed25519 verification passes. No bytes were rebuilt or replaced after sealing.
+This metadata promotion changes only native publication/snapshot, copies sealed
+signedXML exactly, and changes feedJSON publication.status. Signed key/build/source/
+URL/size/digest stay fixed; manualkit17, Windows21 and productionZeroJams hold stay.
+Promotion review/CI/merge and live download/feed verification are separate final
+gates recorded on the promotionPR and ignored `.verification/mac50/` receipts.
+Installed native sign-in/Run/Stop/preservation proof is in the corrected candidate
+record below. FreshMac/school/novice/physicalgameplay/Sparkle delivery remain unproven.
+
+
+## Corrected Mac0.5.50 acceptance — 2026-10-25
+
+The first private50candidate below was superseded before publication: real installed
+browser sign-in succeeded but retained stale “Signed out of Zero” feedback. Commit
+4675e862 clears only authentication-owned feedback; later runtime errors survive.
+49focused integration tests pass, including cancellation/unavailable retry and
+pending-sign-in/runtime-failure interleaving. Sol/high independent targeted review
+of33553e9e..4675e862 is complete, no blocker; source/auth authority is unchanged.
+
+Final build4675e862c993d5582bddf568ffb6254f5572decd, prep66e6ce901e116ce90466924514faf4cd514c4ee3.
+Seal `dist/candidates/mac-0.5.50-66e6ce901e11/` retains13checksummed entries.
+DMG5,918,971bytes/SHA2567effba8ea273dbff3629b6dca3ee84f0d3d9243d1fe67ada7d6ea892b67ae6c1;
+AppleAccepted4079be41-9d30-4872-a64b-af4162ec28c2. Actual signature/staple/Gatekeeper,
+source/archive/license/Maven and final feed/DMG Ed25519 checks pass. Sol/high
+independent corrected-artifact review confirms13hashes,41protected equivalent
+paths and exact source/manifest/feed agreement; no blocker. Native platform
+assessment reused coordinator logs; reviewers did not repeat mounts. Effective
+model and token cost unknown; review turns reused coverage, not duplicate full waves.
+
+Installed acceptance: actual49→first50app replacement retained the authenticated
+account, settings and48character unsaved note. Final50app was manually replaced;
+because private same-version setup skips reinstall/reload, the official isolated
+VSCode CLI force-installed its exact bundled VSIX and the normal Reload Window
+command activated it. Installed critical source and kit VSIX hashes match the
+final source/bundle. Real sign-out→primary Sign in to GitHub→existing GitHub
+account picker→browser return→armorup/Start tutorial succeeds, clears stale status,
+and requires no device code or new permissions. Run/Stop reaches App UI ready then
+App stopped on a retained49starter; all249original source/build files, settings
+hash and saved48character note match baseline. No originalstudent-project root
+existed at baseline. This is manual replacement/explicit same-version QA, not an
+actual Sparkle delivery or a fresh-device/school-network pass. No student remote
+writes were performed. Both private seals/backups are retained. PR199/CI and
+separate publication promotion remain gates. Detailed ignored proof:
+`.verification/mac50/corrected-installed-acceptance.json` and corrected-* logs.
+
+
+## Mac0.5.50 candidate preparation — 2026-10-25
+
+Owner authorized mergePR198 and conditional50release after installed/normal gates.
+PR198 merged73847c88 with11green checks. Clean build ecf95cd0, preparationfc7001e4,
+core0.3.0/native50; signed/notarized/stapled seal contains exact DMG
+5,918,773bytes/SHA2568120ada9ad2c999117615e0f6b7e4de67ccc4ea43f4d833005c2dc9220fe41b1 and signed feed.
+Apple Acceptede880824d-30a3-48ef-912e-878d861d441b; actual app/DMG signature,
+Gatekeeper, source/archive/license/extracted Maven and13checksum checks pass.
+Root and34focused release/installer tests pass;2optional signing skips are
+separate from actual artifact proof. Old code-flow guidance corrected beforebuild.
+
+Private49rollback prepared; baseline student-project root absent, not a preservation
+pass for earlier repositories. Explicit49starter249file fixture/settings hash and
+48character unsaved note support subsequent installed acceptance. Exact candidate,
+review/runtime/CI/publication receipts and limits: [candidate record](MAC-CANDIDATE-0.5.50.md)
+and `.verification/mac50/`; final delivery links/results on source/promotion PRs.
+Public49/feed/manual17/Windows21/ZeroJams production hold remain separate and
+unchanged at preparation. No fresh-device/school/novice/updater-delivery pass inferred.
+
+
 ## Simpler desktop GitHub entry — 2026-10-25
 
 Owner requested browser-only new sign-in and the main Start Page action as

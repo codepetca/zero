@@ -1,14 +1,16 @@
 # Getting started with Zero
 
-This guide describes Mac setup 0.5.47, including guided GitHub sign-in and
+This guide describes Mac setup 0.5.49, including guided GitHub sign-in and
 project access before tutorial choices or repository details. The shared GitHub
 App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
 source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
-Local Mac candidate **0.5.49** includes Zero core **0.3.0**, the Zero-first
-Greeting/Study/Coin tutorials and browser GitHub sign-in with an explicit code
-fallback. It is not published; the public Mac download remains0.5.47. Editor
+Local Mac candidate **0.5.50** includes Zero core **0.3.0**, the Zero-first
+Greeting/Study/Coin tutorials and browser-only GitHub sign-in for new connections.
+The main button says Sign in to GitHub while signed out, then Start tutorial
+once authenticated and ready. It is not published; the public Mac download
+remains0.5.49. Existing saved sessions retain their renewal path. Editor
 updates preserve existing projects’ framework source and build versions.
 
 Mac 0.5.47 uses native JavaFX for Run App. To publish, stop the app, open the
@@ -65,10 +67,10 @@ Open **Zero: Start Page** from the Command Palette or **⋯ → Start Page** to
 return to it. The sidebar stays focused on Run, Files and project development.
 
 
-1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.47
+1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.49
    opens the Zero Start Page with the next setup action.
-2. Choose **Sign in to GitHub** and complete the existing
-   device flow if needed. Zero checks project access read-only and stops at the
+2. Choose **Sign in to GitHub** and complete GitHub's browser
+   authorization if needed. Zero checks project access read-only and stops at the
    next Start Page step. If asked, choose **Install Zero for GitHub**; Zero opens
    the pinned GitHub App page after checking again. Approve selected repositories
    on GitHub, then return to Zero. The automatic recheck unlocks the next step;
@@ -126,14 +128,14 @@ continuing tutorials start from your own template-created repository and clone.
 1. Ask your teacher which username and email to use, and confirm that public
    tutorial source is allowed. For existing or GitHub-created repositories,
    follow your teacher's visibility instructions. Also
-   confirm that GitHub device sign-in is allowed on your school device/network.
+   confirm that GitHub browser sign-in is allowed on your school device/network.
    If access is blocked, ask your teacher or IT; do not bypass school restrictions.
 2. [Create a personal GitHub account](https://github.com/signup) if you do not
    already have one, and verify its email; [GitHub's account guide](https://docs.github.com/en/account-and-profile/how-tos/account-management/creating-an-account-on-github) explains this step. Use an email you can access under the
    school's instructions. Keep the account yours; never share its password or
    put passwords, tokens or recovery codes in project files.
 3. Have **Git 2.31+** available locally; **Troubleshooting** explains missing tools.
-   On the school machine, check that you can open GitHub, complete Zero's device
+   On the school machine, check that you can open GitHub, complete Zero's browser
    sign-in and download Zero's compiler dependencies. Use the same account for
    your repository, cloning and Zero pushes. Nothing pushes just by signing in.
 4. Repositories created through Zero are public. Keep passwords, personal data
@@ -328,7 +330,7 @@ complete sign-in and identity setup below, and skip creating an empty repository
 The empty-repository steps below apply to an extracted source ZIP:
 
 1. Choose **Sign in to GitHub** on the **Zero Start Page** and complete the
-   device-code flow with your personal account. Use **⋯ → GitHub Account**
+   browser authorization with your personal account. Use **⋯ → GitHub Account**
    for **Change GitHub account…** or **Sign out**. Sign out clears only Zero's
    connection on this computer and preserves local work and other extensions'
    accounts. Canceling authentication leaves local Run available.
