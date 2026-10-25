@@ -1,3 +1,32 @@
+# ZeroJams local implementation — 2026-10-25
+
+Active checkout `/Users/stew/.codex/worktrees/zerojams/zero`, branch
+`codex/zerojams`, base77b371db. User authorized phased local implementation and
+orchestration. Tool-backed goal active; canonical plan docs/ZEROJAMS-PLAN.md.
+No push, deployment, credentials/permissions changes or live pilot authorized.
+Primary checkout's unrelated changes and actor publication worktree are preserved.
+
+Agreed: ZeroJams Game Jam/App Jam; complete canonical template copied independently
+into creator repositories; creator-hosted websites/demos; Zero maintainer approval;
+small shared GitHub-backed service, no new database. Implemented locally:
+`jam-template/`, `jams/`, /hub/jams preparation/discovery/review/participation,
+trusted public panel, server-only writer token minting and editor creation shortcut.
+See docs/ZEROJAMS-OPERATIONS.md for default-off configuration and pilot limits.
+
+Contracts/template/admission/participation delivered; reliability/browser/review
+in progress. Start weekly97%remaining (account-wide), fresh healthy241.3GB storage.
+GPT6.1Sol/high source-map→engine worker and separate template/UI worker delivered;
+coordinator owns HTTP/runtime/docs/integration. DeepSeek paused through2026-12-31.
+Effective worker timing/model/token telemetry unknown. Small interface corrections
+were coordinated before review. No overlapping file writers.
+
+Initial root check, website tests/typecheck/build,40focused jam tests pass.
+Actual browser verification uses local intercepted fixtures; no live writes.
+Next: finish browser/reliability and independent security + compatibility reviews,
+record exact final checks in EVIDENCE.md, preserve reviewable local branch.
+
+# Upstream work at base (separate authority)
+
 # Mac0.5.49 publication — metadata promotion / live verification
 
 Use `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/publish-mac-0-5-49`.

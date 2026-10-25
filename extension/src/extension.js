@@ -767,6 +767,11 @@ function activate(context, services = {}) {
       try {await projectFolders.openLocal();}
       finally {connecting = false; if (!disposed) refresh();}
     },
+    'zero.createJam': async () => {
+      if (!(await vscode.env.openExternal(vscode.Uri.parse('https://zero.codepet.ca/hub/jams/create')))) {
+        throw new Error('Could not open ZeroJams. Open https://zero.codepet.ca/hub/jams/create in your browser.');
+      }
+    },
     'zero.browseZeroHub': async () => {
       if (isBusy()) return;
       await repositoryStatus();
@@ -775,6 +780,7 @@ function activate(context, services = {}) {
       const choice = await quickPick([
         {label:'Projects', description:'Browse shared games', action:'projects'},
         {label:'Libraries', description:'Inspect libraries and exact versions', action:'libraries'},
+        {label:'ZeroJams', description:'Browse or create a Game Jam or App Jam', action:'jams'},
         ...(githubReady() && originalWork ? [{label:'Share project', action:'share'}] : [])
       ], {title:'ZeroHub'});
       if (isBusy()) return;
@@ -782,6 +788,9 @@ function activate(context, services = {}) {
         throw new Error('Could not open ZeroHub. Open https://zero.codepet.ca/hub in your browser.');
       }
       if (choice?.action === 'libraries') await actions['zero.browseHub']();
+      if (choice?.action === 'jams' && !(await vscode.env.openExternal(vscode.Uri.parse('https://zero.codepet.ca/hub/jams')))) {
+        throw new Error('Could not open ZeroJams. Open https://zero.codepet.ca/hub/jams in your browser.');
+      }
       if (choice?.action === 'share') {
         await repositoryStatus();
         if (isBusy() || projectRoot !== root || !auth.signedIn || !originalWork) return;

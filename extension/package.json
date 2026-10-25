@@ -32,6 +32,10 @@
   "contributes": {
     "commands": [
       {
+        "command": "zero.createJam",
+        "title": "Zero: Create a Jam"
+      },
+      {
         "command": "zero.getStarted",
         "title": "Zero: Get Started"
       },

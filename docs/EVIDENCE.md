@@ -1,5 +1,40 @@
 # Delivery evidence index
 
+## ZeroJams local MVP — 2026-10-25
+
+User authorized the phased plan, tool-backed goal and local orchestration.
+Isolated branch `codex/zerojams` from77b371db; primary unrelated work preserved.
+Complete canonical template/independent ZIP, creator-hosted Game/App Jam flow,
+source-bound maintainer admission/inbox, GitHub-backed participation, event/entry
+moderation and trusted public panel are implemented locally. Dedicated server
+installation credential and numeric maintainer authority are default off; no
+credentials/permissions/remote records changed. No push/deploy/live pilot.
+
+Validation before independent review:45focused ZeroJams tests pass (engine22,
+HTTP/runtime/integration11,template/UI12); full website216tests pass; root1141pass/
+3skip (1144total); root check and website typecheck/production build pass. The
+initial production build caught a directory-URL resolution failure; fixed with
+explicit canonical/traced source lookup and byte-equivalence regressions. API
+and browser calls use injected/intercepted fixtures, not live GitHub writes.
+
+Actual local Chromium at320px verifies preparation and participant forms with
+required rules acknowledgment, join and project submission. An intercepted lost
+write response preserves the draft and operation identity on retry. Actual local
+ZIP download extracts a complete independent App Jam site with all7files and
+its publishing workflow. Further browser screenshots/checks and independent
+review receipts are recorded below when complete. WebKit launch was unavailable
+because its matching browser binary is not installed; physical Safari/mobile,
+Windows/editor host, live consent/permissions/Pages and school-network proof
+remain unperformed. Template action SHAs were checked read-only by the worker.
+
+Pilot limits are explicit: per-event caps/rates are atomic; the global event cap
+is advisory under simultaneous new-event creation. Discovery/proposal recovery
+can read one record per event, bounded to100pilot events. Public Git history is
+not private roster storage or an erasure guarantee. See
+[plan](ZEROJAMS-PLAN.md) and [operator setup](ZEROJAMS-OPERATIONS.md).
+Receipts/logs: `.verification/zerojams/`; browser screenshots: `output/playwright/`.
+
+
 ## Mac0.5.49 authorized publication — 2026-10-25
 
 Owner authorized publication after [sourcePR194](https://github.com/codepetca/zero/pull/194)

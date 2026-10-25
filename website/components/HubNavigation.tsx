@@ -8,6 +8,7 @@ export function HubNavigation({active}: {active: 'game' | 'library' | 'practice'
     <Link href="/hub?kind=game" aria-current={active === 'game' ? 'page' : undefined}>Projects</Link>
     <Link href="/hub?kind=library" aria-current={active === 'library' ? 'page' : undefined}>Libraries</Link>
     <Link href="/hub?kind=practice" aria-current={active === 'practice' ? 'page' : undefined}>Tutorial practice</Link>
+    <Link href="/hub/jams">ZeroJams</Link>
     </nav>
   </div>;
 }

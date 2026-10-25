@@ -174,7 +174,9 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   assert.doesNotMatch(webview.html.split('<section class="repository">')[0],/zero.publishWeb/,'Run controls stay separate from GitHub publishing');
   assert.ok(authCalls.every(call=>call.options.silent));
   await commands.get('zero.browseZeroHub')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries']);
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries','jams']);
+  nextChoice='jams';await commands.get('zero.browseZeroHub')();assert.equal(opened.pop().url,'https://zero.codepet.ca/hub/jams');
+  await commands.get('zero.createJam')();assert.equal(opened.pop().url,'https://zero.codepet.ca/hub/jams/create');
   nextChoice='projects';await commands.get('zero.browseZeroHub')();assert.equal(opened.pop().url,'https://zero.codepet.ca/hub?kind=game');
   nextChoice='starters';await commands.get('zero.browseZeroHub')();assert.equal(opened.length,0,'Retired starters cannot open an old catalog route');
   nextChoice=undefined;
@@ -213,7 +215,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   assert.match(webview.html.match(/<button class="repo-choice"[\s\S]*?<\/button>/)[0],/lucide-chevron-down[\s\S]*aria-hidden="true"/,'A decorative right-pointing chevron identifies the project menu');
   assert.doesNotMatch(webview.html,/Browse ZeroHub|data-command="zero.shareGame"/,'Sharing belongs inside the single ZeroHub menu');
   nextChoice=undefined;await commands.get('zero.browseZeroHub')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries','share']);
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries','jams','share']);
   assert.equal(picks.at(-1).items.at(-1).label,'Share project');
   nextChoice='share';await commands.get('zero.browseZeroHub')();assert.equal(shareCalls,1,'Share project dispatches the existing guarded sharing command');
   pickEffect=async()=>{await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',repositoryRequired:true,lessonId:'0'}));};
@@ -253,7 +255,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',repositoryRequired:true,lessonId:'0'}));
   nextChoice=undefined;await commands.get('zero.chooseRepository')();
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','recovery','account'],'A cloned tutorial keeps repository actions without offering rejected origin replacement');
-  await commands.get('zero.browseZeroHub')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries'],'Tutorial projects do not offer Share project');
+  await commands.get('zero.browseZeroHub')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries','jams'],'Tutorial projects can browse jams without offering Share project');
   repo=undefined;webviewProvider.resolveWebviewView(candidate);await settle(()=>!webview.html.includes('student/app'));
   await commands.get('zero.chooseRepository')();
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['recovery','account'],'An uncloned tutorial offers a new project, clone or opening an existing local copy');
