@@ -537,7 +537,11 @@ push and Merge to main keep their existing simple interface and guarded transpor
 This prototype does not migrate those actions to native Git or alter account
 permissions, release settings or external-terminal authentication.
 
-Test in a fresh isolated VS Code profile with no credentials or existing terminals.
+Test in a fresh isolated VS Code profile with no credentials or existing terminals,
+and verify **no effective Git credential helpers** in the disposable environment.
+A fresh editor profile still reads system, global and repository Git configuration;
+it does not isolate Keychain or other credential storage. This helper prerequisite
+is a maintainer check: the host-only credentials API cannot enforce it.
 Use these **User Settings** before opening that window:
 
 ```json
@@ -553,8 +557,10 @@ Use these **User Settings** before opening that window:
 The Zero setting has application scope; project/workspace opt-in is rejected.
 The bridge requires workspace trust and an existing Zero sign-in. It never opens
 OAuth or asks for a token, changes settings, or falls back to a different account.
-Zero Output explains missing prerequisites. Disabled or unavailable Git APIs
-leave ordinary Zero actions working. Registering the bridge alone does not prove
+Zero Output explains checked prerequisites. Disabled or unavailable Git APIs
+leave ordinary Zero actions working; public Git enablement events retry delayed
+initialization and invalidate registration when Git becomes unavailable.
+Registering the bridge alone does not prove
 which account native Git used: ambient Git helpers or another credential provider
 can take precedence. Use a disposable repository with empty credential-helper
 configuration and verify the actual account/access separately for live acceptance.
@@ -568,9 +574,14 @@ Terminal authentication is kept off; existing terminals can retain their earlier
 environment, which is why a fresh window/profile is required. Other extensions
 are outside this adapter's isolation guarantees.
 
-Sign-out, account/trust/configuration changes and disposal stop new credentials.
-VS Code Askpass can retain a returned username/password pair for up to 60 seconds;
-the public API cannot clear it or cancel an in-flight native Git process. If no
+Sign-out, account/trust/configuration changes and disposal stop new bridge credentials.
+VS Code Askpass can retain a returned username/password pair for up to 60 seconds.
+Separately, successful Git authentication can send that pair to configured helpers
+for persistent storage. Such credentials may remain usable after sign-out until
+the token expires or is revoked; 60 seconds is not an overall retention limit.
+The bridge cannot clear helper storage, the Askpass cache or an in-flight Git
+process. This is why empty effective helper configuration is required for prototype
+tests, rather than just a new editor profile. If no
 provider supplies credentials, VS Code may show its generic Git credential prompt.
 Do not interpret that prompt as Zero sign-in or promise immediate native-cache
 revocation. Routine Zero transport retains its separate synchronous final guard.

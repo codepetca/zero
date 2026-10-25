@@ -306,3 +306,28 @@ test('explicit signout invalidates facade tickets before storage removal finishe
  while(auth.busy)await new Promise(resolve=>setImmediate(resolve));
  assert.equal(auth.signedIn,false);assert.equal(f.data.has(SECRET_KEY),false);
 });
+
+test('pending signout rejects automatic refresh, capture and new signin before its lock is acquired',async t=>{
+ const f=await fixture(t),auth=integratedAuthentication(f,t);
+ await auth.refresh();while(auth.busy)await new Promise(resolve=>setImmediate(resolve));
+ const ticket=await auth.capture(),[source]=await f.provider.getSessions([]);
+ const mkdir=fs.mkdir;let started,release,gate=true;
+ const waiting=new Promise(resolve=>{started=resolve;});
+ fs.mkdir=async(directory,options)=>{
+  if(gate&&directory===f.context.globalStorageUri.fsPath){gate=false;started();await new Promise(resolve=>{release=resolve;});}
+  return mkdir(directory,options);
+ };
+ t.after(()=>{fs.mkdir=mkdir;release?.();});
+ const calls=f.calls.length,pending=f.provider.removeSession(ticket.session.id);
+ await waiting;
+ while(auth.busy)await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(f.data.has(SECRET_KEY),true,'Removal has not reached storage or acquired its lock');
+ assert.equal(auth.signedIn,false,'The removal event must not refresh the old record back into the facade');
+ await assert.rejects(auth.capture(),/Sign in to GitHub/);
+ await assert.rejects(f.provider.getSessions([]),error=>error.code==='connection-removing');
+ await assert.rejects(f.provider.getSessionsForOperation(source,[]),error=>error.code==='connection-removing');
+ await assert.rejects(f.provider.createSession([]),error=>error.code==='connection-removing');
+ assert.equal(f.calls.length,calls,'No pending-signout path may dispatch a credential or authorization request');
+ release();await pending;fs.mkdir=mkdir;
+ assert.equal(f.data.has(SECRET_KEY),false);assert.deepEqual(await f.provider.getSessions([]),[]);
+});

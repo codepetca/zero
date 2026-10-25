@@ -335,7 +335,7 @@
           "type": "boolean",
           "default": false,
           "scope": "application",
-          "markdownDescription": "Experimental: let VS Code's built-in Git extension request the existing Zero GitHub sign-in for HTTPS github.com. Try only in a fresh isolated profile with Git: Terminal Authentication and GitHub: Git Authentication turned off. Other credential helpers may take precedence. Native Git receives host-wide credentials rather than Zero's exact-operation transport, and may cache a credential for up to 60 seconds after sign-out. This does not change Zero's student buttons or enable external terminals. Check Zero Output for prerequisites."
+          "markdownDescription": "Experimental: let VS Code's built-in Git extension request the existing Zero GitHub sign-in for HTTPS github.com. Test only in a fresh isolated profile with no effective Git credential helpers, and Git: Terminal Authentication and GitHub: Git Authentication turned off. A fresh editor profile still reads host Git configuration. Helpers may take precedence and persist supplied credentials beyond sign-out; VS Code Askpass separately caches them for up to 60 seconds. Native Git receives host-wide credentials rather than Zero's exact-operation transport. This does not change Zero's student buttons or enable external terminals. Check Zero Output for prerequisites."
         },
         "zero.uploadMode": {
           "type": "string",

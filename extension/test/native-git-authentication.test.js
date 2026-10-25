@@ -157,6 +157,34 @@ test('default loader activates only built-in Git and requests supported API v1',
   const bridge=createNativeGitAuthentication({vscode:f.vscode,authentication:f.authentication});await bridge.refresh();
   assert.equal(activations,1);assert.equal(registered,1);bridge.dispose();f.bridge.dispose();
 });
+test('default loader retries delayed Git readiness and invalidates on enablement loss', async () => {
+  const f=fixture();let enabled=true,ready=false,listener,unsubscribed=0,registrations=0;
+  const providers=[],disposals=[];
+  const exports={get enabled(){return enabled;},
+    onDidChangeEnablement(fn){listener=fn;return {dispose(){unsubscribed++;}};},
+    getAPI(){if(!ready)throw Error('Git model not found');return {registerCredentialsProvider(provider){
+      registrations++;providers.push(provider);const record={disposed:false,dispose(){this.disposed=true;}};disposals.push(record);return record;
+    }};}};
+  f.vscode.extensions={getExtension:()=>({isActive:true,exports})};
+  const bridge=createNativeGitAuthentication({vscode:f.vscode,authentication:f.authentication});
+  await bridge.refresh();assert.equal(bridge.status.phase,'unavailable');assert.equal(registrations,0);
+  ready=true;listener(true);await bridge.refresh();assert.equal(bridge.status.phase,'ready');assert.equal(registrations,1);
+  assert.deepEqual(await providers[0].getCredentials(host()),{username:'123',password:'FAKE_ZERO_TOKEN'});
+  enabled=false;ready=false;listener(false);assert.equal(disposals[0].disposed,true);
+  assert.equal(await providers[0].getCredentials(host()),undefined);await bridge.refresh();
+  assert.match(bridge.status.message,/Waiting/);assert.equal(registrations,1);
+  enabled=true;ready=true;listener(true);await bridge.refresh();assert.equal(registrations,2);
+  bridge.dispose();assert.equal(unsubscribed,1);assert.equal(disposals[1].disposed,true);
+  listener(true);await bridge.refresh();assert.equal(registrations,2);f.bridge.dispose();
+});
+test('disposal during Git activation cannot leave a readiness subscription', async () => {
+  const f=fixture(),activation=deferred();let subscriptions=0;
+  f.vscode.extensions={getExtension:()=>({isActive:false,activate:()=>activation.promise})};
+  const bridge=createNativeGitAuthentication({vscode:f.vscode,authentication:f.authentication});
+  const loading=bridge.refresh();await Promise.resolve();bridge.dispose();
+  activation.resolve({onDidChangeEnablement(){subscriptions++;return {dispose(){}};},getAPI(){assert.fail('Disposed activation must not request API');}});
+  await loading;assert.equal(subscriptions,0);f.bridge.dispose();
+});
 test('real Zero authentication remains silent and its refresh callback does not invalidate a stable registration', async () => {
   const f=fixture();let bridge,session={id:'session',account:{id:'123',label:'student'},accessToken:'FAKE_OWNED_TOKEN'},listener;
   const lookups=[];

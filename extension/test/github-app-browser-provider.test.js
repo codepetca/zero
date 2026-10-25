@@ -29,7 +29,7 @@ async function fixture(t,{enabled=true,hooks={}}={}){
    const operation=url.split('/').at(-1),handler={start:server.startResponse,exchange:server.exchangeResponse,refresh:server.refreshResponse}[operation];
    assert.ok(handler);return handler(new Request(url,options),env,githubFetch,time);
   }
-  if(url.includes('/apps/'))return Response.json(metadata);
+  if(url.includes('/apps/')){await hooks.beforeApp?.();return Response.json(metadata);}
   if(url.endsWith('/user')){await hooks.beforeUser?.();return Response.json(user);}
   assert.fail('Unexpected network destination '+url);
  };
@@ -75,7 +75,17 @@ test('uncertain browser rotation cannot become device refresh',async t=>{
 
 test('removing the local session and signing in again keeps browser account selection available',async t=>{
  const f=await fixture(t);const first=await f.provider.createSession([]);
- await f.provider.removeSession(first.id);assert.equal(f.data.has(SECRET_KEY),false);
+ const mkdir=fs.mkdir;let started,release,gate=true;
+ const waiting=new Promise(resolve=>{started=resolve;});
+ fs.mkdir=async(directory,options)=>{
+  if(gate&&directory===f.context.globalStorageUri.fsPath){gate=false;started();await new Promise(resolve=>{release=resolve;});}
+  return mkdir(directory,options);
+ };
+ t.after(()=>{fs.mkdir=mkdir;release?.();});
+ const removing=f.provider.removeSession(first.id);await waiting;
+ await assert.rejects(f.provider.createSession([]),error=>error.code==='connection-removing');
+ assert.equal(f.exchanges,1);assert.equal(f.opens.length,1);
+ release();await removing;fs.mkdir=mkdir;assert.equal(f.data.has(SECRET_KEY),false);
  const second=await f.provider.createSession([]);assert.notEqual(second.id,first.id);
  assert.equal(f.exchanges,2);assert.equal(f.opens.length,2);assert.equal(JSON.parse(f.data.get(SECRET_KEY)).flow,'browser');
 });
@@ -134,4 +144,23 @@ test('another window signing out during browser identity verification cannot res
  const signingIn=f.provider.createSession([]);await waiting;
  await second.removeSession(first.id);assert.equal(f.data.has(SECRET_KEY),false);
  release();await assert.rejects(signingIn,error=>error.code==='connection-changed');assert.equal(f.data.has(SECRET_KEY),false);
+});
+
+test('signin already checking App metadata cannot continue into browser authorization during signout',async t=>{
+ const hooks={},f=await fixture(t,{hooks}),first=await f.provider.createSession([]);
+ let appStarted,releaseApp;const checking=new Promise(resolve=>{appStarted=resolve;});
+ hooks.beforeApp=async()=>{appStarted();await new Promise(resolve=>{releaseApp=resolve;});};
+ const signingIn=f.provider.createSession([]);await checking;
+ const mkdir=fs.mkdir;let lockStarted,releaseLock,gate=true;
+ const waiting=new Promise(resolve=>{lockStarted=resolve;});
+ fs.mkdir=async(directory,options)=>{
+  if(gate&&directory===f.context.globalStorageUri.fsPath){gate=false;lockStarted();await new Promise(resolve=>{releaseLock=resolve;});}
+  return mkdir(directory,options);
+ };
+ t.after(()=>{fs.mkdir=mkdir;releaseApp?.();releaseLock?.();});
+ const removing=f.provider.removeSession(first.id);await waiting;releaseApp();
+ await assert.rejects(signingIn,error=>error.code==='cancelled');
+ assert.equal(f.opens.length,1);assert.equal(f.exchanges,1,'Metadata completion must not start another browser authorization');
+ assert.equal(f.data.has(SECRET_KEY),true,'Removal is still waiting before lock acquisition');
+ releaseLock();await removing;fs.mkdir=mkdir;
 });

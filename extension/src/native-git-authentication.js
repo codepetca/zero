@@ -9,6 +9,8 @@
 // terminals may retain their environment. Test only in a fresh isolated profile.
 // Ambient Git helpers and other extensions can take precedence; this API cannot
 // enumerate them or guarantee the identity used by every native Git command.
+// Git can also store returned Askpass credentials in configured helpers. A new
+// editor profile does not isolate host Git config; test with no effective helpers.
 
 function githubHTTPSHost(host) {
   return Boolean(host && host.scheme === 'https' && typeof host.authority === 'string'
@@ -18,10 +20,25 @@ function githubHTTPSHost(host) {
 
 function createNativeGitAuthentication({vscode, authentication, getGitAPI, onChange = () => {}}) {
   const workspace = vscode.workspace;
+  let gitExtension, gitEnablement;
   const loadGitAPI = getGitAPI || (async () => {
     const extension = vscode.extensions?.getExtension('vscode.git');
     if (!extension) return;
     const exports = extension.isActive ? extension.exports : await extension.activate();
+    if (disposed) return;
+    if (exports && exports !== gitExtension) {
+      gitEnablement?.dispose();
+      gitExtension = exports;
+      // Enabling Git initializes its model asynchronously. A configuration
+      // event can arrive before getAPI is usable, so observe public readiness.
+      gitEnablement = exports.onDidChangeEnablement?.(enabled => {
+        if (disposed) return;
+        invalidate();
+        if (enabled) void refresh();
+        else publish('unavailable', 'The built-in Git extension is unavailable. Enable Git to use the Zero sign-in prototype.');
+      });
+    }
+    if (exports?.enabled === false) return;
     return exports?.getAPI?.(1);
   });
   let disposed = false, generation = 0, registration, pending, identity;
@@ -100,7 +117,9 @@ function createNativeGitAuthentication({vscode, authentication, getGitAPI, onCha
     const operation = Promise.resolve().then(loadGitAPI).then(api => {
       if (!current(epoch, account)) return;
       if (typeof api?.registerCredentialsProvider !== 'function') {
-        publish('unavailable', 'The built-in Git extension does not provide the credentials API required by this prototype.');
+        publish('unavailable', gitExtension?.enabled === false
+          ? 'Waiting for the built-in Git extension to become ready for the Zero sign-in prototype.'
+          : 'The built-in Git extension does not provide the credentials API required by this prototype.');
         return;
       }
       const disposable = api.registerCredentialsProvider(createProvider(epoch, account));
@@ -108,7 +127,7 @@ function createNativeGitAuthentication({vscode, authentication, getGitAPI, onCha
       // registration. Never retain a provider registered under stale authority.
       if (!current(epoch, account)) {disposable.dispose();return;}
       registration = disposable;
-      publish('ready', 'Native Git can use Zero sign-in for HTTPS github.com in this trusted window. Other Git credential helpers may take precedence. Sign-out stops new requests; Git may retain a returned credential for up to 60 seconds.');
+      publish('ready', 'Native Git can use Zero sign-in for HTTPS github.com in this trusted window. Test only with no effective Git credential helpers: helpers may take precedence and can persist credentials after sign-out. VS Code Askpass separately caches credentials for up to 60 seconds.');
     }).catch(() => {
       if (current(epoch, account)) publish('unavailable', 'Native Git with Zero sign-in could not start. Check that the built-in Git extension is enabled.');
     }).finally(() => {if (pending === operation) pending = undefined;});
@@ -129,8 +148,9 @@ function createNativeGitAuthentication({vscode, authentication, getGitAPI, onCha
       if (disposed) return;
       disposed = true;
       invalidate();
+      gitEnablement?.dispose();
       for (const subscription of subscriptions) subscription.dispose();
-      publish('disabled', 'Native Git with Zero sign-in is off. Git may retain a previously returned credential for up to 60 seconds.');
+      publish('disabled', 'Native Git with Zero sign-in is off. VS Code may cache a previously returned credential for up to 60 seconds; Git helpers can retain stored credentials longer.');
     }
   };
 }
