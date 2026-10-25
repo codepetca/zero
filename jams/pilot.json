@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "status": "prepared",
-  "origin": null,
+  "status": "enabled",
+  "origin": "https://zero-git-codex-zerojams-contr-11f1f5-stewarts-projects-cc2722c4.vercel.app",
   "projectId": "prj_b8dDCbuiF8uzVcXYMLghpWTAr4aA",
   "branch": "codex/zerojams-controlled-pilot",
   "inviteIds": ["35233916", "4050555"],

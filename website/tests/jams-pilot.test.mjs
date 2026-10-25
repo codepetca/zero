@@ -25,8 +25,11 @@ const compile=source=>ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit
 const routes=[['api/jams/route.ts','GET'],['api/jams/[id]/route.ts','GET'],['api/jams/[id]/actions/route.ts','POST'],['api/jams/proposals/route.ts','POST'],['api/jams/template/route.ts','GET'],['api/jams/template/route.ts','POST'],['api/jams/template/preview/route.ts','POST'],['api/jams/template/preview/route.ts','GET'],['hub/jams/[id]/panel/route.ts','GET']];
 function load(source,imports) {const module={exports:{}};vm.runInNewContext(compile(source),{module,exports:module.exports,require:name=>Object.hasOwn(imports,name)?imports[name]:require(name),Request,Response,URL});return module.exports;}
 
-test('checked-in pilot stays disabled; production cannot be unlocked by valid flags, project, origin or policy',()=>{
-  assert.equal(prepared.status,'prepared');assert.equal(prepared.origin,null);assert.equal(jamDeploymentPolicy(env),null);
+test('unconfigured hosted pilots stay closed; production cannot be unlocked by valid flags, project, origin or policy',()=>{
+  assert.equal(jamDeploymentPolicy({}),null);
+  assert.equal(jamDeploymentPolicy(env,{...prepared,status:'prepared',origin:null}),null);
+  assert.equal(jamDeploymentPolicy({...env,VERCEL_ENV:'production'},prepared),null);
+  assert.equal(jamDeploymentPolicy(env),null,'Another branch origin cannot use the checked-in policy');
   assert.equal(jamDeploymentPolicy(env,pilot).mode,'pilot');
   for(const patch of [{VERCEL_ENV:'production'},{VERCEL_ENV:undefined},{VERCEL_ENV:'development'},{NODE_ENV:'development'},{VERCEL:'0'},{VERCEL_PROJECT_ID:'another'},{VERCEL_GIT_COMMIT_REF:'main'},{ZERO_JAMS_PILOT_ENABLED:'0'},{ZERO_HUB_ORIGIN:'https://zero.codepet.ca'},{VERCEL_BRANCH_URL:'other.vercel.app'}])assert.equal(jamDeploymentPolicy({...env,...patch},pilot),null,JSON.stringify(patch));
   for(const patch of [{status:'prepared'},{origin:'https://zero.codepet.ca'},{origin:origin+'/'},{inviteIds:[]},{inviteIds:['35233916','4050555','4050555']},{maintainerIds:['35233916']},{registryBranch:'main'},{limits:{...pilot.limits,events:3}}])assert.equal(jamDeploymentPolicy(env,{...pilot,...patch}),null);
