@@ -3,7 +3,7 @@ import {manifestData, text, httpsUrl} from '../../jams/manifest.mjs';
 export const JAM_DRAFT_LIMITS=Object.freeze({title:120,summary:1000,theme:1000,rules:8000,eligibility:2000,websiteUrl:2048,timezone:100});
 export function defaultJamDraft(type='game',timezone='America/Toronto') {
   return {type:['game','app'].includes(type)?type:'game',title:'',summary:'',theme:'',
-    rules:'Make your own work during the jam. Credit collaborators, libraries and assets. Keep entries appropriate for a classroom. Submit a public source repository and exact commit.',
+    rules:'Make your own work during the jam. Credit collaborators, libraries and assets. Keep entries appropriate for a classroom. Submit your own public GitHub repository and exact commit.',
     eligibility:'Open to beginning Java students working individually.',websiteUrl:'',timezone,
     registrationOpensAt:'',startsAt:'',submissionsCloseAt:'',registrationClosesAt:'',submissionsOpenAt:''};
 }

@@ -8,6 +8,13 @@ and App Jam downloads use example details instead.
 The template source uses the included MIT license. Keep its notice with reused
 template code; your repository owns your additions and custom content.
 
+## GitHub is required for every jam
+
+Both Game Jams and App Jams require participants to use GitHub: sign in on Zero
+to join, then submit their own public GitHub repository at an exact commit.
+Creator eligibility rules add to this platform requirement. Preparing or
+browsing a website does not require sign-in; joining and submitting do.
+
 ## Make it yours
 
 1. Download and unzip the Game Jam or App Jam template from

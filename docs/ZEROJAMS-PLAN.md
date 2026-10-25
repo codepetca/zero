@@ -25,6 +25,10 @@ The agreed direction is:
 
 - **ZeroJams** is the umbrella, with **Game Jam** and **App Jam** event types.
 - Anyone can propose an event; a teacher affiliation is not required.
+- Every Game Jam and App Jam requires GitHub participation: students sign in on
+  Zero to join and submit their own public GitHub repository at an exact commit.
+  This is a platform requirement, independent of creator eligibility wording.
+  Browsing and preparing/downloading a site remain available before sign-in.
 - A Zero maintainer approves the event before official participation opens.
 - Creators host their websites, with GitHub Pages as the default template path.
 - Zero maintains the complete canonical website template in this repository. Each
@@ -55,7 +59,7 @@ not create a second platform. Competitive versus showcase-only is a separate
 event choice. Automated judging is outside the first release.
 
 Proposed MVP defaults, to validate during implementation: public events and
-records, GitHub accounts, individual participation, one active project entry per
+records, individual participation, one active project entry per
 account per jam, and Zero-created games/apps. Teams, private events, other
 toolchains, prizes, chat, email notifications and ranked voting are later work.
 These defaults are not additional owner decisions.

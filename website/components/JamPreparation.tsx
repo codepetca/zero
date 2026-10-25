@@ -207,7 +207,7 @@ export function JamPreparation() {
   return <section className="jam-preparation" aria-labelledby={`${id}-heading`}>
     <h1 id={`${id}-heading`}>Create a ZeroJam</h1>
     <p className="lead">Prepare your jam, preview its website, then download a complete editable copy for your own repository.</p>
-    <p className="jam-muted">No sign-in is needed to prepare or download. Hosting and maintainer approval come later.</p>
+    <p className="jam-muted">Every jam requires a GitHub account and a public GitHub repository for submissions. You can prepare and download this website before signing in.</p>
     <ol className="jam-preparation-steps" aria-label="Preparation steps">
       <li aria-current={step==='details'?'step':undefined}>1. Jam details</li>
       <li aria-current={step==='preview'?'step':undefined}>2. Website preview</li>
