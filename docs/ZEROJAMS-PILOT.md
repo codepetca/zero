@@ -53,11 +53,12 @@ protected branch alias. In Chrome on macOS, signed-out access shows the invited
 sign-in screen and the API reveals no records. Normal GitHub OAuth as `armorup`
 returns to the pilot; the hosted API returns `configured:true`, `events:[]`,
 `canMaintain:true` and `proposals:[]`. Signing out restores the invitation gate.
-Creator `stewchan` is invited in the policy, but its fresh GitHub sign-in requires
-owner authentication and remains pending. No forged session or identity was used.
+Creator `stewchan` also completed normal GitHub OAuth. Its hosted API returns
+`configured:true`, `events:[]` and `canMaintain:false`. The preparation page loads
+and the source-bound proposal controls are available, requiring its own public
+repository and exact commit. No forged session or identity was used.
 
-All 251 website tests, typecheck and production build pass. Exact-head CI is
-running. Production was rechecked after deployment: all 13 canonical jam
+All 251 website tests, typecheck and production build pass. All 11 CI checks pass on the exact deployed source revision. Production was rechecked after deployment: all 13 canonical jam
 route/method requests return 404, and `/hub` returns 200 without a jam link. Vercel
 protection remains `all_except_custom_domains`; production branch remains `main`.
 No main merge, production environment change or public activation occurred.
@@ -246,7 +247,7 @@ branch, browser/OS and each observed result. Never record token/key/session valu
 
 Passing local tests and preflight presence checks do not satisfy this live record.
 Hosted approver sign-in and registry reads are verified above. The full event
-lifecycle, creator sign-in, Safari acceptance and provider cost results remain
+lifecycle, Safari acceptance and provider cost results remain
 unverified.
 
 ## Rollback and incident stop

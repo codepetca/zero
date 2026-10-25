@@ -123,10 +123,11 @@ Every Game Jam and App Jam requires students to use GitHub: sign in on Zero to
 join and submit their own public GitHub repository at an exact commit. This
 platform requirement is separate from creator eligibility rules. Browsing and
 site preparation remain available before sign-in.
-ZeroJams currently remains local-development-only: production pages, panels,
-APIs, template downloads and navigation are hidden under the owner hold. Editor
-shortcuts are deferred until the public product is ready. Local implementation
-and live activation are separate. See the
+ZeroJams has an owner-authorized, protected preview for creator stewchan and
+independent approver armorup. Both GitHub sign-ins and their separate roles are
+verified. Production pages, panels, APIs, template downloads and navigation remain
+hidden under the owner hold. Editor shortcuts are deferred until the public
+product is ready. Full event lifecycle and provider-cost acceptance remain pending. See the
 [phased plan](ZEROJAMS-PLAN.md) and [operator guide](ZEROJAMS-OPERATIONS.md).
 
 ## Core goal: students grow the framework

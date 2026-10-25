@@ -1,6 +1,6 @@
 # Delivery evidence index
 
-## Controlled preview activation and live approver access — 2026-10-25
+## Controlled preview activation and both account roles — 2026-10-25
 
 Owner confirmed security-access changes and completed the writer key download.
 Preview source3c68f391 is READY in dpl_6hfCqZG9HXDKNtZA1fV9tcnz3w8S at the fixed
@@ -19,12 +19,15 @@ review launch/fix batch this turn; no integration conflicts or reviewer rework.
 
 Actual Chrome/macOS: signed-out page neutral, API no records; armorupOAuthcallback
 succeeds and API configuredtrue/canMaintaintrue/events[]/proposals[]. Signout
-restores gate. stewchan invitation configured; fresh authentication pending owner.
+restores gate. stewchan OAuth succeeds, API configuredtrue/canMaintainfalse;
+preparation and public-repository/exact-commit proposal controls available.
 No full event lifecycle or uninvited third-account acceptance claim. Production
 13canonical jamGET/POST404, Hub200/nojamlink; protection unchanged, main held.
-DraftPR202 source published, exact-headCI running; no merge/publicrelease.
+DraftPR202 source3c68f391 published; all11 exact-sourceCI checks pass.
+No merge/publicrelease. Both account roles are verified; no event was created.
 Ignored receipts writer-validation.json, active-preview.json, live-production-hold.json
-and live-approver.png. Registry Vercel build-trigger cost gap recorded in pilotpacket.
+live-access.json, live-approver.png and live-creator.png. Registry Vercel
+build-trigger cost gap recorded in pilotpacket.
 
 ## Controlled pilot activation checkpoint — 2026-10-25
 

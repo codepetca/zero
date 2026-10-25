@@ -1,36 +1,28 @@
-# Controlled preview active — creator sign-in pending, 2026-10-25
+# Controlled pilot active; both roles verified — 2026-10-25
 
-Owner authorized activation and confirmed security changes; writer key downloaded.
-Active source3c68f391, draftPR202 (no main merge), VercelREADY
- dpl_6hfCqZG9HXDKNtZA1fV9tcnz3w8S at
-https://zero-git-codex-zerojams-contr-11f1f5-stewarts-projects-cc2722c4.vercel.app/hub/jams.
-Production hidden unconditionally;13livejamGET/POST404, Hub200/nojamlink.
-Vercel protection all_except_custom_domains and mainproduction unchanged.
+Owner-authorized activation milestone complete. Protected Preview at
+https://zero-git-codex-zerojams-contr-11f1f5-stewarts-projects-cc2722c4.vercel.app/hub/jams
+runs source3c68f391 in dpl_6hfCqZG9HXDKNtZA1fV9tcnz3w8S. DraftPR202 remains
+unmerged; all11 exact-sourceCI checks pass. Production13jamchecks404, Hub200/nojamlink;
+production env/main branch/Vercel protection unchanged. No publicrollout.
 
-Configured exactcallback preserving2productioncallbacks/wildcardsoff; dedicated
-writer codepet-zerojams-pilot-writer5470616 installed175232591 selectedonlyzero,
-Contentswrite/Metadataread; real narrowed token/emptyisolatedregistry read pass.
-All10envsettings are exactbranch Previewonly; sensitivekey/client/session secrets.
-Existing clientsecret retained. Owner PEM kept localmode0600; no temporary copy.
-Registry zero-jams-pilot-registry orphan1709d161. No eventwrites yet.
+Live Chrome/macOS OAuth: armorup4050555 configuredtrue/canMaintaintrue;
+stewchan35233916 configuredtrue/canMaintainfalse, preparation/proposalcontrols work.
+Signedoutneutral/noAPIrecords; wrongdeploymenthostNotfound. No eventwrites yet.
+All10requiredsettings exactbranchPreviewonly. Dedicated writer5470616 installed
+175232591 selectedonlycodepetca/zero Contentswrite/Metadataread; real narrowedtoken
+reads emptyzero-jams-pilot-registry (orphan1709d161). Existing clientsecret retained.
+Secretvaluesneverlogged/committed; ownerdownload0600, nointermediatekeycopy.
 
-GitHub stateless token required bounded runtimefix (opaqueheader-safeASCII/prefix,
-max1024); scope/repo/expiryunchanged. IndependentSol6.1/high targetedreviewclean.
-251website tests, typecheck/buildpass; previoussource/activationreviews reused.
-Remote exactheadCI stillrunning. No claims about full event lifecycle/Safari/cost.
+Runtime statelesstokenfix targetedSol6.1/high reviewclean. Two source reviews and
+activationreview reused;251website tests/typecheck/buildpass. Local receipt/docs
+commits follow deployedsource; no functional changes after3c68f391.
 
-LIVE Chrome/macOS: anonymousneutral/noAPIrecords; armorupOAuthcallback succeeds,
-APIconfiguredtrue/canMaintaintrue/events[]/proposals[]; signout restoresgate.
-Alternate deploymenthost API Notfound. Creatorstewchan invitationconfigured,
-freshloginrequiresowner. Asyncquestionpending asking complete login and replydone.
-Retain pilotLive Chrome1788220741 as handoff (currently GitHub stewchanlogin).
-Browser1 selected. API1788220744 and wrongorigin1788220751 are disposable.
-Do not read passwords/codes, forge sessions or bypass auth/Vercelprotection.
-
-Next: after ownerlogin verify creatorAPIcanMaintainfalse and preparationpage;
-check exactheadCI, finish packet/EVIDENCE/PRbody, commit finalreceipt. No newcore
-sourcefix planned; trackedreceipt edits pending. Do not merge or deployproduction.
-Costgap: Vercelattempted registrybranchbuild; exclude trigger before repeatedwrites
-under separatelyreviewed sharedbuildconfigchange. Packet docs/ZEROJAMS-PILOT.md.
-Ignoredreceipts .verification/zerojams-pilot; local3025/othercheckouts preserved.
-DeepSeekpaused; storagehealthy232GB; weekly86%remaining accountwide.
+Next phase: full two-account Game/App lifecycle with public disposable data,
+third-account negative proof, Safari/mobile/schoolnetwork and providercost evidence.
+Before repeatedwrites, resolve Vercel registrybranchbuildtrigger under a reviewed
+sharedbuildsetting change; activation did not alter it. Keep production held;
+no uninvitedaccounts, forgedsessions, bypasslinks or expandedscope.
+Packet docs/ZEROJAMS-PILOT.md and docs/EVIDENCE.md; ignoredreceipts
+.verification/zerojams-pilot. Pilot Chrome1788220741 left as deliverable, signedin
+stewchan atcreatepage. Local3025/othercheckouts preserved. DeepSeekpaused.

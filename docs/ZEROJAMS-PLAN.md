@@ -1,18 +1,19 @@
 # ZeroJams architecture and user flow
 
-Status: local development only; owner hold on production visibility,2026-10-25.
+Status: protected two-account preview activated; production remains hidden,
+2026-10-25. The owner separately authorized setup, credentials and deployment for
+this pilot after the source hold. Both `stewchan` (creator, no maintainer role) and
+`armorup` (approver) completed live GitHub sign-in. All 11 checks pass for deployed
+source `3c68f391`; full event lifecycle and cost acceptance remain pending.
 
-Owner authorized source PR and merge on2026-10-25, with ZeroJams hidden in
-production because it is not ready. Production builds (including deployment
-previews) return404 for every jam page, public panel, API and template download,
-even if service credentials/activation flags are present. ZeroHub hides its link;
-unreleased editor shortcuts are deferred. Local `next dev` retains the preview.
-Removing this source-level visibility hold needs a subsequent explicit decision.
-No GitHub App permissions, credentials, registry provisioning or live pilot are
-authorized by the source PR/merge.
-Implementation is authorized locally from 2026-10-25; live activation is separate. Publication, deployment,
-GitHub App permission changes and account configuration require separate explicit
-authorization. Existing game/library sharing and Pika submission stay separate.
+The pilot is restricted to the fixed Preview project, branch, origin and invited
+numeric identities. Production always returns 404 for jam pages, panels, APIs and
+template downloads, even with activation flags. ZeroHub hides its production link;
+editor shortcuts remain deferred. Existing sharing and Pika submission stay
+separate. No main merge or production rollout is part of pilot activation. See
+[the pilot operator packet](ZEROJAMS-PILOT.md) for configuration, live results and
+remaining acceptance. The preparation snapshots below record earlier states;
+they do not supersede this current authorization and activation record.
 
 ## Goal and agreed decisions
 
@@ -334,11 +335,11 @@ introduce a database speculatively or treat Git as an unlimited transactional DB
 User authorized phased local implementation and orchestration. Coordinator goal:
 deliver a verified local MVP ready for independent review, with complete creator
 website template, preparation/admission, official discovery and participation.
-Source push/PR/merge is now authorized with the production hold; permission/
-credential changes and a live pilot remain unauthorized.
+Source publication retains the production hold. The owner subsequently authorized
+the narrow controlled pilot described above; general rollout remains held.
 
 Active checkout: `/Users/stew/.codex/worktrees/zerojams/zero`, branch
-`codex/zerojams`, base `77b371db`. Primary checkout's unrelated work is preserved.
+`codex/zerojams-controlled-pilot`, deployed source `3c68f391`. Primary checkout's unrelated work is preserved.
 Canonical template directory: `jam-template/`; shared pure service: `jams/`;
 website entry point: `/hub/jams`. Template copying starts with a downloadable
 complete ZIP; it must not claim a separate hosted template repository exists.
@@ -352,7 +353,7 @@ only when a pinned public template is actually available and verified.
 | 2: Creator admission and discovery | Locally delivered | Source-bound proposal, maintainer-only approval, immutable accepted metadata |
 | 3: Participation | Locally delivered | Authenticated join/leave, reviewed entry updates/withdrawal, cached gallery |
 | 4: Reliability, UI verification and independent review | Locally verified and reviewed | Meaningful failure/security checks, actual local browser proof, clean reviews |
-| 5: Live pilot | Awaiting separate authorization | Real deployment/permissions/provider usage and participant acceptance |
+| 5: Live pilot | Activated; both roles verified | Protected deployment and scoped writer pass; full event lifecycle/provider usage acceptance remain |
 
 Worker receipt: source-map (GPT-6.1 Sol/high) completed read-only mapping of
 existing auth, CAS, navigation and editor seams; coordinator verified principal
@@ -439,7 +440,7 @@ ordinary capacity exhaustion; verify exact commits with the metadata-only Git
 commit endpoint; expose approved rule/schedule history and explicit changed-version
 notice before renewed participant acknowledgment. Targeted and cumulative reviews are complete and clean.
 
-## Controlled pilot preparation — 2026-10-25
+## Controlled pilot preparation snapshot — 2026-10-25
 
 Owner authorized read-only setup audit and local source preparation, retaining
 production denial. No new push/deploy, App/permission/secret changes, registry
