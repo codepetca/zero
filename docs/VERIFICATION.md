@@ -1,5 +1,34 @@
 # Verification
 
+## Branch activity feedback in Zero Dev — 2026-10-25
+
+User reported New branch looked frozen; logs confirmed their tester branch had
+completed. Local source196fac7c on codex/branch-progress wraps the existing guarded
+New branch/Merge to main operation in native VSCode noncancellable progress after
+name confirmation. Sidebar and notification report GitHub access/project/repository,
+branch-name/main/fetch/create stages. No percentage or completion is invented;
+existing auth/snapshot/Git mutations/serialization/conflict/cleanup checks stay.
+Public Mac50 bytes/feed are unchanged; no push/PR/release was authorized here.
+
+Root configuration/docs checks pass. Corrected workflowUI+extension4tests pass;
+17realGitworkflow cases passed in original combined run (its separate newUI
+selector assertion initially failed, corrected to the actual repository control).
+Current focused realGit2/2 also pass. One Sol6.1/high independent complete4file
+review3dd1d69b→196fac7c is clean,1launch/1wave/0reviewfixbatches; effective model,
+tokens and attributable time unavailable. No broader suite/remoteCI/release run.
+
+Actual native Dev reload/restoration passes. New Branch using the existing tester
+name visibly exposes native progress/checking stages, then the existing feature
+branch guard refuses and progress ends/controls reenable. No branch or network
+write occurred; all95tracked student files, HEAD, tester and cleanstatus match
+baseline. An isolated mock-profile fixture was first opened but the controller
+selected the userDev process; only the owned QA app was stopped and its files kept.
+The real Dev guard path provided native acceptance. Final reload clears test
+feedback and keeps Main/Tutorials tabs. No full successful live branch creation was
+performed by the agent. Proof `.verification/branch-progress/acceptance.json`;
+Mac visual/focus/animation/theme breadth and Windows remain outside this check.
+
+
 ## Mac0.5.50 delivery complete — 2026-10-25
 
 [SourcePR199](https://github.com/codepetca/zero/pull/199) merged2de6bc54 after11greenchecks
