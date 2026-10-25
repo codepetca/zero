@@ -14,6 +14,8 @@ test('preview and full downloadable site share exact normalized details, safely 
   assert.deepEqual(JSON.parse(embedded),input);assert.doesNotMatch(embedded,/<script|<\/script/);
   assert.match(preview.html,/connect-src 'none'/);assert.match(preview.html,/base-uri 'none'/);
   assert.doesNotMatch(preview.html,/(?:src|href)="assets\//);assert.match(preview.html,/data:image\/svg\+xml;base64/);
+  assert.doesNotMatch(preview.html,/<a\b[^>]*\bhref=/);assert.match(preview.html,/<a\b[^>]*aria-disabled="true"/);
+  assert.match(strFromU8(zip['zero-app-jam/index.html']),/href="https:\/\/zero.codepet.ca\/hub\/jams\/create"/);
   assert.match(strFromU8(zip['zero-app-jam/assets/jam.js']),/else \{\s+const response = await fetch/);
 });
 test('preparation responses need no sign-in and reject malformed, oversized and cross-origin requests',async()=>{

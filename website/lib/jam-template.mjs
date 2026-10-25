@@ -73,6 +73,9 @@ export async function createJamTemplatePreview(input) {
     .replace('<link rel="stylesheet" href="assets/jam.css">',()=>`<style>${decode('assets/jam.css')}</style>`)
     .replace('<script src="assets/jam.js" defer></script>','')
     .replaceAll('assets/mark.svg',mark)
+    // CSP does not stop document navigation. Disable preview anchors as well;
+    // downloaded source keeps every original link and in-page shortcut.
+    .replace(/(<a\b[^>]*?)\s+href="[^"]*"/g,'$1 aria-disabled="true"')
     .replace('</body>',()=>`<script id="zero-jam-preview-data" type="application/json">${data}</script><script>${decode('assets/jam.js')}</script></body>`);
   return {html,manifest};
 }

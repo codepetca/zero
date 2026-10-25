@@ -250,7 +250,7 @@ export function JamPreparation() {
     </>}
     {step==='preview'&&preview&&<>
       <h2 ref={headingRef} tabIndex={-1}>2. Preview your website</h2>
-      <p>This is the website included in your download, with your jam details. The isolated preview has no live participation connection.</p>
+      <p>This is the website included in your download, with your jam details. Links and live participation are disabled in this preview.</p>
       {preview.manifest.websiteUrl==='https://example.com/your-jam/'&&<p className="jam-notice">Your website address is a placeholder. Update <code>websiteUrl</code> in <code>zero-jam.json</code> after hosting.</p>}
       {previewFrame}
       <p>The ZIP includes all eight template files, your details, editable source and a GitHub Pages workflow. Downloading makes no repository or hosting changes.</p>

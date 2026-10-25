@@ -129,7 +129,8 @@ Implementation contract for this slice:
   preserve inputs. Shared canonical manifest validation remains authoritative.
 - `POST /api/jams/template/preview` accepts `{manifest}` and returns
   `{html,manifest}`. HTML uses the exact canonical template/assets with escaped
-  embedded JSON, a restrictive CSP and no network access. Display it only in a
+  embedded JSON, a restrictive CSP and disabled anchors (CSP alone cannot block
+  document navigation). No preview network access. Display it only in a
   titled iframe with sandbox `allow-scripts` (no same-origin/top-navigation).
 - `POST /api/jams/template` accepts the same body and returns the complete ZIP
   with exactly the same normalized manifest. Existing GET downloads still work
