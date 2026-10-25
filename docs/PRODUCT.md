@@ -119,6 +119,10 @@ template; creators keep an independent copy in their own repository and host it
 themselves. A shared Zero-owned panel/service handles official joining and project
 submission through GitHub-backed records. Zero owns approval, accepted rules and
 moderation; creator websites and participant demos remain independently hosted.
+Every Game Jam and App Jam requires students to use GitHub: sign in on Zero to
+join and submit their own public GitHub repository at an exact commit. This
+platform requirement is separate from creator eligibility rules. Browsing and
+site preparation remain available before sign-in.
 ZeroJams currently remains local-development-only: production pages, panels,
 APIs, template downloads and navigation are hidden under the owner hold. Editor
 shortcuts are deferred until the public product is ready. Local implementation
