@@ -4,6 +4,19 @@ const path = require('node:path');
 const http = require('node:http');
 const crypto = require('node:crypto');
 
+// macOS VS Code loses Select All inside an iframe in a webview. This runs only
+// in the embedded preview's derived index response, never in exported files.
+function selectAllInEmbeddedPreview() {
+  document.addEventListener('keydown', event => {
+    if (!event.metaKey || event.ctrlKey || event.altKey || event.shiftKey || event.isComposing || String(event.key).toLowerCase() !== 'a') return;
+    const target = event.target;
+    if (target !== document.activeElement || target.disabled) return;
+    if (!(target instanceof HTMLTextAreaElement) && !(target instanceof HTMLInputElement && /^(text|search|tel|url|email|password)$/.test(target.type))) return;
+    target.select();
+    event.preventDefault();
+  }, true);
+}
+
 const mime = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.gif':'image/gif','.webp':'image/webp','.svg':'image/svg+xml','.wav':'audio/wav','.mp3':'audio/mpeg','.ogg':'audio/ogg','.woff':'font/woff','.woff2':'font/woff2','.wasm':'application/wasm','.ico':'image/x-icon','.txt':'text/plain; charset=utf-8'};
 // This host page is local preview infrastructure, never part of an exported site.
 // The persistent connection owns the child frame: closing the runtime ends the
@@ -48,6 +61,17 @@ async function createWebPreview(sitePath, {siteFiles} = {}) {
   // exact, random control paths never shadow a student's generated assets.
   const browserPath = prefix + '.zero-preview-' + crypto.randomBytes(18).toString('hex') + '/';
   const livePath = browserPath + 'live';
+  const webviewQuery = '?zero-embedded-' + crypto.randomBytes(18).toString('hex');
+  const originalIndex = files.get('index.html');
+  // Keep the validated snapshot untouched. Only the exact webview URL serves
+  // this derived HTML; the browser shell and every export asset use the original.
+  const selectScript = Buffer.from(`<script>(${selectAllInEmbeddedPreview.toString()})()</script>`);
+  const headClose = originalIndex?.toString('latin1').search(/<\/head\s*>/i) ?? -1;
+  const webviewIndex = originalIndex && Buffer.concat([
+    originalIndex.subarray(0,headClose < 0 ? originalIndex.length : headClose),
+    selectScript,
+    originalIndex.subarray(headClose < 0 ? originalIndex.length : headClose)
+  ]);
   const nonce = crypto.randomBytes(16).toString('hex');
   const shell = Buffer.from(browserShell(prefix, livePath, nonce));
   const clients = new Set();
@@ -75,7 +99,7 @@ async function createWebPreview(sitePath, {siteFiles} = {}) {
       try {relative = decodeURIComponent(raw.slice(prefix.length));} catch {return fail(400);}
       if (!relative) relative = 'index.html';
       if (relative.includes('\\') || relative.includes('\0') || relative.split('/').some(segment => !segment || segment === '.' || segment === '..' || segment.startsWith('.'))) return fail(404);
-      const data = files.get(relative);
+      const data = request.url === prefix + webviewQuery && relative === 'index.html' ? webviewIndex : files.get(relative);
       if (!data) return fail(404);
       response.writeHead(200, {'Content-Type':mime[path.extname(relative).toLowerCase()] || 'application/octet-stream','Content-Length':data.length,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'});
       response.end(request.method === 'HEAD' ? undefined : data);
@@ -88,7 +112,7 @@ async function createWebPreview(sitePath, {siteFiles} = {}) {
   const heartbeat = setInterval(()=>{for(const client of clients)client.write('data: running\n\n');},1000);
   heartbeat.unref();
   const origin = `http://127.0.0.1:${server.address().port}`;
-  return {url:origin+prefix,browserUrl:origin+browserPath,dispose:() => {
+  return {url:origin+prefix,webviewUrl:origin+prefix+webviewQuery,browserUrl:origin+browserPath,dispose:() => {
     if(disposed)return;
     disposed=true;
     clearInterval(heartbeat);

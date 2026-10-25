@@ -533,3 +533,17 @@ VS Code preserves that choice. Do not use private move/layout commands, modify
 workbench storage or alter host DOM/CSS to force a placement. Native editor QA
 remains held after the Code Key popup; mocks/browser fixtures do not prove actual
 Explorer layout, file highlighting or drag/rename interactions.
+
+## Embedded preview text selection
+
+Mac VS Code can lose Cmd+A inside a nested webview input. The local embedded
+preview uses a separate exact-token URL whose index response adds a focused
+text-input/textarea selection handler. That embedded HTML is derived preview
+infrastructure; the validated snapshot, exported ZIP, external browser page and
+other assets remain unchanged. Ctrl shortcuts, clipboard commands and canvas
+input keep their existing handling. This also applies to saved older exports
+without upgrading the project-owned builder or framework.
+
+Check `extension/test/web-run-preview.test.js` and repeat Sam → Cmd+A → Alex in
+the actual Mac embedded field. URI serialization must preserve the exact preview
+token. A mocked key event alone does not establish host keyboard acceptance.

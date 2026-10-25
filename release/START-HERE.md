@@ -1,6 +1,6 @@
 # Start with Zero
 
-Zero **0.5.47** includes core **0.2.1**, targeting **Mac with Apple Silicon** and **Windows**.
+This local Mac candidate **0.5.48** includes core **0.3.0**, targeting **Mac with Apple Silicon** and **Windows**.
 Use the guide bundled with an older download for its controls. Linux and Intel
 Macs are unsupported; physical Windows/classroom testing remains pending.
 
@@ -32,8 +32,8 @@ lessons. Read the [complete account/privacy setup](https://zero.codepet.ca/docs/
 ## Open a tutorial project
 
 Follow the sidebar: **Sign in to GitHub**, then
-**Install Zero for GitHub** if requested, then **Start tutorial**. Sign-in uses
-the existing GitHub device flow. Zero checks project access read-only and stops
+**Install Zero for GitHub** if requested, then **Start tutorial**. Sign-in opens GitHub in your browser and returns to Zero.
+Use **Sign in using a code** if the browser return is unavailable. Zero checks project access read-only and stops
 at the next sidebar step. If access is missing, **Install Zero for GitHub**
 opens the pinned GitHub App page after a read-only recheck. Approve selected
 repositories there, then return to Zero; it checks again automatically. Use
