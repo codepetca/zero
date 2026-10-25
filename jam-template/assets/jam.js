@@ -1,4 +1,5 @@
-/* Your repository owns this source. No framework, build step, credentials or CDN. */
+/* Copyright (c) 2026 Codepet. MIT license: ../LICENSE.
+ * Your repository owns this copy. No framework, build step, credentials or CDN. */
 'use strict';
 const byId = id => document.getElementById(id);
 const put = (id, value) => { byId(id).textContent = value; };

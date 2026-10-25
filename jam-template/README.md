@@ -5,6 +5,9 @@ HTML, CSS, JavaScript and local SVG, with no package install or build step. Your
 repository owns every file. Zero updates do not replace them. The Game Jam and
 App Jam downloads differ only in their example manifest and wording.
 
+The template source uses the included MIT license. Keep its notice with reused
+template code; your repository owns your additions and custom content.
+
 ## Make it yours
 
 1. Download and unzip the Game Jam or App Jam template from

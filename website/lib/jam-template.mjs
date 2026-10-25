@@ -5,7 +5,7 @@ import {zipSync, strToU8} from 'fflate';
 export const JAM_TEMPLATE_VERSION = '1.0.0';
 // Explicit source inventory: never include checkout/private/generated files.
 export const JAM_TEMPLATE_FILES = Object.freeze([
-  'index.html', 'zero-jam.json', 'README.md', 'assets/jam.css',
+  'index.html', 'zero-jam.json', 'README.md', 'LICENSE', 'assets/jam.css',
   'assets/jam.js', 'assets/mark.svg', '.github/workflows/pages.yml',
 ]);
 async function canonicalTemplateRoot() {

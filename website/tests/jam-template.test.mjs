@@ -63,7 +63,7 @@ test('source inventory includes local assets, README and only commit-pinned depl
   for(const [,path] of index.matchAll(/(?:src|href)="(assets\/[^"]+)"/g))assert.ok(files[path],`local asset exists: ${path}`);
   const actions=[...workflow.matchAll(/uses:\s+([^\s#]+)/g)].map(match=>match[1]);
   assert.equal(actions.length,4);for(const action of actions)assert.match(action,/^actions\/[\w-]+@[a-f0-9]{40}$/);
-  assert.match(workflow,/cp index\.html zero-jam\.json _site\//);assert.match(workflow,/cp -R assets _site\/assets/);
+  assert.match(workflow,/cp index\.html zero-jam\.json LICENSE _site\//);assert.match(workflow,/cp -R assets _site\/assets/);
   assert.doesNotMatch(workflow,/npm install|npm ci|secrets\./);
   assert.doesNotMatch(index+script,/https:\/\/.*\.(?:js|css)["']/);
   assert.doesNotMatch(script,/innerHTML|postMessage|Authorization|method:\s*['"]POST/);
@@ -73,4 +73,11 @@ test('source inventory includes local assets, README and only commit-pinned depl
   assert.match(readme,/no separately\s+published GitHub template repository/);
   assert.match(readme,/including the\s+hidden `\.github` folder/);
   assert.match(readme,/does not change approved rules/);
+});
+
+test('independent copies retain the exact canonical MIT notice and publish it with public source',async()=>{
+  const files=await jamTemplateFiles('game');
+  assert.deepEqual(files.LICENSE,new Uint8Array(await readFile(new URL('../../LICENSE',import.meta.url))));
+  assert.match(strFromU8(files['assets/jam.js']),/Copyright \(c\) 2026 Codepet\. MIT license/);
+  assert.match(strFromU8(files['README.md']),/Keep its notice with reused/);
 });
