@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An independently hosted Game Jam or App Jam.">
+  <!-- After approval, put the official event ID (jam-12345) here. -->
+  <meta name="zero-jam-id" content="">
+  <title>Your ZeroJam</title>
+  <link rel="icon" type="image/svg+xml" href="assets/mark.svg">
+  <link rel="stylesheet" href="assets/jam.css">
+  <script src="assets/jam.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header><a class="brand" href="#content"><img src="assets/mark.svg" alt="" width="32" height="32">Your jam</a><button id="appearance" type="button" hidden>Switch appearance</button></header>
+  <main id="content" tabindex="-1">
+    <p id="kind" class="eyebrow">Game Jam / App Jam</p>
+    <h1 id="title">Your jam starts here</h1>
+    <p id="summary" class="lead">Edit zero-jam.json to make this page your own.</p>
+    <p id="load-status" role="status">Loading the jam details…</p>
+    <noscript><p>JavaScript is off. <a href="zero-jam.json">Read the jam details and schedule</a>. Use the official ZeroJams page for registration and submissions.</p></noscript>
+    <div class="columns">
+      <div>
+        <section aria-labelledby="theme-heading"><h2 id="theme-heading">Theme</h2><p id="theme">Add your theme to zero-jam.json.</p></section>
+        <section aria-labelledby="rules-heading"><h2 id="rules-heading">Rules</h2><p id="rules">Add the rules participants will agree to.</p></section>
+        <section aria-labelledby="eligibility-heading"><h2 id="eligibility-heading">Who can take part</h2><p id="eligibility">Add eligibility and collaboration details.</p></section>
+      </div>
+      <aside>
+        <section aria-labelledby="schedule-heading"><h2 id="schedule-heading">Schedule</h2><p id="timezone"></p><dl id="schedule"></dl></section>
+        <section aria-labelledby="participate-heading"><h2 id="participate-heading">Take part</h2><p id="connection-status">This independently hosted page is not an approved ZeroJam yet. The creator must submit it for Zero maintainer review.</p><a id="official-link" class="button" href="https://zero.codepet.ca/hub/jams" target="_blank" rel="noopener noreferrer">Browse official ZeroJams</a><p class="muted">Registration and submissions happen on Zero. This site never asks for your GitHub credentials.</p></section>
+      </aside>
+    </div>
+    <section id="official-panel" hidden aria-label="Official jam status"><h2>Official status</h2><div id="panel-slot"></div><p class="muted">If the panel does not load, use the official page link above. Official rules and availability on Zero take precedence over an edited creator page.</p></section>
+  </main>
+  <footer>This page belongs to its creator. Built from the editable <a href="https://zero.codepet.ca/hub/jams/create">ZeroJams template</a>. <a href="zero-jam.json">View jam manifest</a>.</footer>
+</body>
+</html>

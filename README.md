@@ -49,6 +49,7 @@ original Zero code is MIT licensed.
 - [Public ZeroHub catalog](https://zero.codepet.ca/hub)
 - [ZeroHub local run guide](hub/README.md)
 - [Product scope and contracts](docs/PRODUCT.md)
+- [ZeroJams architecture and phased delivery](docs/ZEROJAMS-PLAN.md)
 - [Development and contributions](docs/DEVELOPMENT.md)
 - [Release preparation and publication](docs/RELEASING.md)
 - [Classroom pilot checklist](docs/CLASSROOM-PILOT.md)

@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "templateVersion": "1.0.0",
+  "type": "game",
+  "title": "Small Worlds Jam",
+  "summary": "An example weekend jam: make a small game about a surprisingly big idea.",
+  "theme": "A world in your pocket",
+  "rules": "Make your own work during the jam. Credit collaborators, libraries and assets. Keep entries appropriate for a classroom. Submit a public source repository and exact commit. This example has no prizes or judging.",
+  "eligibility": "Example: open to beginning Java students working individually. Replace this with your actual eligibility and collaboration rules.",
+  "websiteUrl": "https://example.com/your-jam/",
+  "timezone": "America/Toronto",
+  "schedule": {
+    "registrationOpensAt": "2030-03-01T14:00:00Z",
+    "registrationClosesAt": "2030-03-16T14:00:00Z",
+    "startsAt": "2030-03-15T14:00:00Z",
+    "submissionsOpenAt": "2030-03-15T14:00:00Z",
+    "submissionsCloseAt": "2030-03-18T02:00:00Z"
+  }
+}
