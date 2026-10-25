@@ -40,7 +40,7 @@ for web perform those checks and browser compilation when requested.
 
 Before tutorial lesson 0, have **your own verified GitHub account and Git 2.31+**.
 Use [github.com/signup](https://github.com/signup) if needed. Follow your teacher's
-username/email policy and check GitHub access, VS Code sign-in and compiler
+username/email policy and check GitHub access, Zero browser sign-in and compiler
 downloads on your school machine; ask teacher/IT about restrictions. Confirm that
 public tutorial source is allowed before creating through Zero. Keep private files
 out of public repositories. For an existing or GitHub-created private repository,

@@ -12,7 +12,7 @@ Tutorials require **your own GitHub account and Git 2.31+**. Before starting:
    [github.com/signup](https://github.com/signup), verify its email, and keep
    your password private. Use your own account for the template repository,
    VS Code cloning and Zero uploads.
-2. Check GitHub access, native VS Code sign-in and compiler downloads on your
+2. Check GitHub access, Zero browser sign-in and compiler downloads on your
    school machine/network. Use Setup help for missing Git; ask teacher/IT about
    restrictions rather than bypassing them.
 3. Zero creates public tutorial repositories. Check your teacher's privacy rules
