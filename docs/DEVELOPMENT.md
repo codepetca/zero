@@ -386,6 +386,11 @@ running app or resetting its diagnostics. Configured tasks require CustomExecuti
 separate. Verify by opening **Tasks: Configure Default Build Task** while a game
 is running: opening/cancelling the picker must preserve that app and readiness.
 Actually starting the configured task retains normal save/restart/Stop behavior.
+Each editor-launched native Run has a fresh internal task `instanceId`, registered
+in the extension's task definition. Leave it out of student tasks.json. VS Code
+normalizes task identity using registered fields; this separates a live app from
+a refused configured retry so the retry cannot clear the live app's Stop owner.
+
 
 
 The supported `zero.controls` webview in Explorer contains development controls

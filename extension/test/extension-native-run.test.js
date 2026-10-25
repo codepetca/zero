@@ -14,21 +14,23 @@ const disposable=()=>({dispose(){}});
 test('Run App, sidebar and configured tasks use native Java while web export retains its compiler',async t=>{
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-native-command-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
  await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,process.platform==='win32'?'mvnw.cmd':'mvnw'),'');
- const commands=new Map(),errors=[],states=[],launches=[],starts=[],ends=[],processEnds=[];let provider,saves=0,builds=0,validated=0,webview,saveGate,openGate,startGate,preparations=0,checks=0,edited,savedDocument,checkStatus='compatible',prepareGate,prepareSignal,holdNativePipes=false,cloneConfiguredTask=false,earlyCompilerOutput=false;
+ const commands=new Map(),errors=[],states=[],launches=[],starts=[],ends=[],processEnds=[];let provider,saves=0,builds=0,validated=0,webview,saveGate,openGate,startGate,preparations=0,checks=0,edited,savedDocument,checkStatus='compatible',prepareGate,prepareSignal,holdNativePipes=false,cloneConfiguredTask=false,earlyCompilerOutput=false,hostCacheMode=false;
  const sourceIdentity={builderHash:'b'.repeat(64),scopeHash:'a'.repeat(64)};
  const proof=Object.fromEntries(['sourceHash','coreHash','librariesHash','profileHash','checkerHash','contractHash','jdkHash'].map(key=>[key,key==='profileHash'?sourceIdentity.builderHash:'a'.repeat(64)]));
  class Task{constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}
  class ProcessExecution{constructor(command,args,options){Object.assign(this,{command,args,options});}}
  const diagnosticCollections=new Map();
- const spawned=[];
+ const spawned=[],hostExecutionCache=new Map();
+ const registeredTaskFields=Object.keys(require('../package.json').contributes.taskDefinitions.find(item=>item.type==='zero').properties);
+ const hostTaskKey=task=>JSON.stringify({type:task.definition.type,...Object.fromEntries(registeredTaskFields.filter(key=>task.definition[key]!==undefined).map(key=>[key,task.definition[key]]))});
  class CustomExecution{constructor(callback){this.callback=callback;}}
  class NativeEmitter{constructor(){this.events=new EventEmitter();this.event=listener=>{this.events.on('value',listener);return disposable();};}fire(value){this.events.emit('value',value);}dispose(){this.events.removeAllListeners();}}
  const spawn=(command,args,options)=>{const child=new EventEmitter();Object.assign(child,{pid:100+spawned.length,stdout:new EventEmitter(),stderr:new EventEmitter(),stdin:{writable:true,write(){}},kill(){child.emit('close',0);}});spawned.push({command,args,options,child});return child;};
- const finish=(active,exitCode=0)=>{if(active.finished)return;active.finished=true;active.child?.emit('close',exitCode);processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
+ const finish=(active,exitCode=0)=>{if(active.finished)return;active.finished=true;active.child?.emit('close',exitCode);const reported=active.reportedExecution||active;if(hostExecutionCache.get(active.hostKey)===reported)hostExecutionCache.delete(active.hostKey);processEnds.forEach(fn=>fn({execution:reported,exitCode}));ends.forEach(fn=>fn({execution:reported}));};
  const appProvider={dispose(){},async removeSession(){assert.fail('Local Run must not remove a GitHub session');}};
  const vscode={languages:{createDiagnosticCollection:name=>{const entries=new Map();diagnosticCollections.set(name,entries);return {clear:()=>entries.clear(),set:(uri,items)=>entries.set(uri.fsPath,items),dispose(){}};}},Position:class{constructor(line,character){Object.assign(this,{line,character});}},Range:class{constructor(start,end){Object.assign(this,{start,end});}},Diagnostic:class{constructor(range,message,severity){Object.assign(this,{range,message,severity});}},DiagnosticSeverity:{Error:0},authentication:{getSession:async()=>null,onDidChangeSessions:disposable,registerAuthenticationProvider:disposable},workspace:{registerTextDocumentContentProvider:disposable,textDocuments:[],onDidChangeTextDocument:callback=>{edited=callback;return disposable();},onDidSaveTextDocument:callback=>{savedDocument=callback;return disposable();},workspaceFolders:[{uri:{fsPath:root}}],isTrusted:true,getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>{saves++;if(saveGate)await saveGate;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
  window:{createOutputChannel:()=>({appendLine:v=>states.push(v),dispose(){}}),registerWebviewViewProvider:(_,value)=>{webview={options:{},onDidReceiveMessage:disposable};value.resolveWebviewView({webview,onDidDispose:disposable});return disposable();},registerTreeDataProvider:disposable,showErrorMessage:async v=>errors.push(v)},
- tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTask:fn=>{ends.push(fn);return disposable();},onDidEndTaskProcess:fn=>{processEnds.push(fn);return disposable();},registerTaskProvider:(_,value)=>{provider=value;return disposable();},executeTask:async task=>{if(cloneConfiguredTask)task=new Task({...task.definition},task.scope,task.name,task.source,task.execution,task.matcher);const active={task,output:'',terminate(){if(active.pty)active.pty.close();else finish(active);}};launches.push(active);if(task.execution instanceof CustomExecution){active.pty=await task.execution.callback();active.pty.onDidClose(code=>finish(active,code));active.pty.onDidWrite(text=>{active.output+=text;});}if(openGate)await openGate;const open=()=>{if(!active.pty)return;const before=spawned.length;active.pty.open();if(spawned.length>before)active.child=spawned.at(-1).child;};if(active.pty&&earlyCompilerOutput){open();active.child?.stdout.emit('data',Buffer.from('[ERROR] '+path.join(root,'src/main/java/Main.java')+":[22,50] ';' expected\n"));}const delayedStart=Boolean(startGate);if(delayedStart){open();await startGate;}starts.forEach(fn=>fn({execution:active}));if(!earlyCompilerOutput&&!delayedStart)open();return active;}},
+ tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTask:fn=>{ends.push(fn);return disposable();},onDidEndTaskProcess:fn=>{processEnds.push(fn);return disposable();},registerTaskProvider:(_,value)=>{provider=value;return disposable();},executeTask:async task=>{if(cloneConfiguredTask)task=new Task({...task.definition},task.scope,task.name,task.source,task.execution,task.matcher);const active={task,output:'',terminate(){if(active.pty)active.pty.close();else finish(active);}};const hostKey=hostTaskKey(task),reported=hostCacheMode?(hostExecutionCache.get(hostKey)||active):active;active.hostKey=hostKey;active.reportedExecution=reported;hostExecutionCache.set(hostKey,reported);launches.push(active);if(task.execution instanceof CustomExecution){active.pty=await task.execution.callback();active.pty.onDidClose(code=>finish(active,code));active.pty.onDidWrite(text=>{active.output+=text;});}if(openGate)await openGate;const open=()=>{if(!active.pty)return;const before=spawned.length;active.pty.open();if(spawned.length>before)active.child=spawned.at(-1).child;};if(active.pty&&earlyCompilerOutput){open();active.child?.stdout.emit('data',Buffer.from('[ERROR] '+path.join(root,'src/main/java/Main.java')+":[22,50] ';' expected\n"));}const delayedStart=Boolean(startGate);if(delayedStart){open();await startGate;}starts.forEach(fn=>fn({execution:reported}));if(!earlyCompilerOutput&&!delayedStart)open();return reported;}},
  commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},Uri:{file:fsPath=>({fsPath})},EventEmitter:NativeEmitter,CustomExecution,Task,ProcessExecution,ShellExecution:ProcessExecution,ShellQuoting:{Strong:2},TaskScope:{Workspace:1},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2}};
  const originalLoad=Module._load,originalEnsure=snapshot.ensureValidatedExport,originalValidate=snapshot.validateExport;
  snapshot.ensureValidatedExport=async options=>{builds++;assert.equal(options.projectRoot,root);return {sitePath:path.join(root,'site')};};snapshot.validateExport=async()=>{validated++;};
@@ -43,6 +45,22 @@ test('Run App, sidebar and configured tasks use native Java while web export ret
  signal(1,'startup','STARTING');signal(2,'ui-ready','UI_READY');assert.match(webview.html,/App UI ready/);signal(3,'first-frame','FIRST_FRAME','frame-draw');assert.match(webview.html,/first game frame ready/);assert.equal(launches[0].task.name,'Run App');assert.deepEqual(launches[0].task.matcher,[]);
  const liveCompiler=diagnosticCollections.get('zero-native-compiler'),liveRuntime=diagnosticCollections.get('zero-native-runtime');
  liveCompiler.set('live.java',['retained compiler diagnostic']);liveRuntime.set('live.java',['retained runtime diagnostic']);
+ const wrapper=path.join(root,process.platform==='win32'?'mvnw.cmd':'mvnw');
+ hostCacheMode=true;
+ await fs.rename(wrapper,wrapper+'.held');
+ const unavailableTask=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});
+ const liveSpawns=spawned.length;
+ await vscode.tasks.executeTask(unavailableTask);
+ await fs.rename(wrapper+'.held',wrapper);
+ hostCacheMode=false;
+ assert.equal(unavailableTask.definition.instanceId,undefined,'Configured tasks keep their user definition');
+ assert.match(launches.at(-1).output,/ENOENT/);
+ assert.equal(spawned.length,liveSpawns);
+ assert.equal(launches[0].finished,undefined,'A rejected configured task must not finish the cached live execution');
+ assert.match(webview.html,/first game frame ready/);
+ assert.match(webview.html,/data-command="zero.toggleApp"[^>]*>[\s\S]*Stop<\/button>/);
+ assert.deepEqual(liveCompiler.get('live.java'),['retained compiler diagnostic']);assert.deepEqual(liveRuntime.get('live.java'),['retained runtime diagnostic']);
+ assert.notEqual(hostTaskKey(launches[0].task),hostTaskKey(unavailableTask),'The host must give manual and configured runs distinct execution IDs');
  const discoverySaves=saves,discoverySpawns=spawned.length,liveChild=launches[0].child;
  const discovered=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});
  assert.ok(discovered.execution instanceof CustomExecution);assert.equal(saves,discoverySaves);assert.equal(spawned.length,discoverySpawns);
@@ -91,7 +109,7 @@ test('Run App, sidebar and configured tasks use native Java while web export ret
  const beforeConfiguredRestart=spawned.length;await vscode.tasks.executeTask(discovered);
  assert.equal(launches[0].finished,true,'Starting a previously discovered configured task replaces the active app');
  assert.equal(spawned.length,beforeConfiguredRestart+1);assert.match(webview.html,/Stop<\/button>/);
- const beforeProgrammaticRestart=launches.length;await commands.get('zero.runApp')();assert.equal(launches.length,beforeProgrammaticRestart+1);assert.match(webview.html,/Stop<\/button>/);
+ const beforeProgrammaticRestart=launches.length;await commands.get('zero.runApp')();assert.equal(launches.length,beforeProgrammaticRestart+1);assert.notEqual(hostTaskKey(launches[0].task),hostTaskKey(launches.at(-1).task),'Each programmatic run has a fresh host execution ID');assert.match(webview.html,/Stop<\/button>/);
  await commands.get('zero.toggleApp')();assert.match(webview.html,/Run<\/button>/);
  cloneConfiguredTask=true;earlyCompilerOutput=true;
  const configured=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});assert.ok(configured.execution instanceof CustomExecution);assert.deepEqual(configured.matcher,[]);assert.equal(configured.name,'Run App');const savesBeforeConfigured=saves;await vscode.tasks.executeTask(configured);assert.equal(saves,savesBeforeConfigured+1,'Configured execution saves only when started');

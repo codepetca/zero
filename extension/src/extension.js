@@ -340,7 +340,7 @@ function activate(context, services = {}) {
     }
     for(const [file,diagnostics]of grouped)compilerProblems.set(vscode.Uri.file(file),diagnostics);
   }
-  async function makeTask(root, definition = {type:'zero',task:'run'}, scope = vscode.TaskScope.Workspace) {
+  async function makeTask(root, definition = {type:'zero',task:'run',instanceId:crypto.randomUUID()}, scope = vscode.TaskScope.Workspace) {
     if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
     await core.assertTutorialRepository(root);
     const spec = core.runSpecification(root);

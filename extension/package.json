@@ -298,6 +298,10 @@
               "native-run"
             ],
             "description": "Save and run the marked Zero Java project."
+          },
+          "instanceId": {
+            "type": "string",
+            "description": "Internal identifier for each Run App command."
           }
         }
       }

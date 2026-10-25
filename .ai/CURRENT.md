@@ -15,7 +15,13 @@ Temporary tracing was removed; originals/trace are retained under
 and actual live-picker/keyboardRun/Stop checks. Independent Sol/high review
 requires preserving the live app until preflight succeeds and reserving native
 preparation across both entrypoints/return-to-start gap. Author remediates these
-as one batch; rerun targeted review and actual UI before packaging.
+as one batch5956943b. Real-host missing-wrapper rejection exposed a second issue:
+VSCode caches TaskExecution by normalized task-definition ID, so manual/configured
+Run collided: rejected task end removed Stop ownership while Java stayed alive.
+Trace proves this in rejected-trace.jsonl. Author now owns optional registered
+instanceId metadata + fresh programmatic run IDs and faithful cache tests. Parent
+restored all probe code and fixture wrapper. Test repeated configured Run as well,
+then targeted review and actual UI before packaging.
 Prepare a new local49/build49 candidate after verification; keep sealed48intact. Original Zero Dev watcher/profile preserved; Dev editor closed
 normally for isolation. Installed48and preserved upgraded private editor session
 are open, with the actual unsaved upgrade-test note intact. Test apps are stopped.
