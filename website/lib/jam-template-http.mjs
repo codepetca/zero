@@ -19,10 +19,10 @@ async function requestManifest(request) {
   let body;try{body=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}catch{throw new JamError(400,'Provide valid jam details.');}
   keys(body,['manifest']);return manifestData(body.manifest);
 }
-export async function preparedJamResponse(request,{preview=false}={}) {
+export async function preparedJamResponse(request,{preview=false,officialOrigin='https://zero.codepet.ca'}={}) {
   try {
     const manifest=await requestManifest(request);
-    if(preview)return Response.json(await createJamTemplatePreview(manifest),{headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
-    return new Response(new Uint8Array(await createJamTemplateZip(manifest.type,manifest)),{headers:{'Content-Type':'application/zip','Content-Disposition':`attachment; filename="zero-${manifest.type}-jam.zip"`,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
+    if(preview)return Response.json(await createJamTemplatePreview(manifest,{officialOrigin}),{headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
+    return new Response(new Uint8Array(await createJamTemplateZip(manifest.type,manifest,{officialOrigin})),{headers:{'Content-Type':'application/zip','Content-Disposition':`attachment; filename="zero-${manifest.type}-jam.zip"`,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
   }catch(error){return Response.json({error:error instanceof JamError?error.message:'The jam site could not be prepared. Try again.'},{status:error instanceof JamError?error.status:503,headers:{'Cache-Control':'no-store'}});}
 }

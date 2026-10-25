@@ -1,5 +1,36 @@
 # Delivery evidence index
 
+## Controlled pilot audit and local preparation — 2026-10-25
+
+Owner authorized audit/preparation with production hidden, not account/config/
+deployment activation. Current main010ae629 synchronized; prior completion and
+Mac50 histories retained. Read-only metadata confirms Vercel zero project/root/
+Node22/main/protection, production-only Hub auth variable names and no jam names;
+normal registry404. Codepet Zero5367740 public permissions are broad desktop
+scope. CLI installation listing403 is unknown, and connector installation84608113
+is another integration. No secret values printed; filtered preflight audit remains
+not ready. User selected stewchan35233916 creator and armorup4050555 approver;
+creator also exercises participant flow for the initial two-account pilot.
+
+Local prepared policy remains disabled/origin null. Source gates only one fixed
+preview/project/branch/canonical origin and sealed numeric invitations, retains
+unconditional production404, isolates preview session origin, fixes a separate
+state-only pilot registry branch and narrow writer/caps, and generates trusted
+pilot links without accepting client origin overrides. No database added or live
+writes attempted. Dedicated writer/callback/preview secrets/orphan registry remain
+concrete operator steps in ZEROJAMS-PILOT.md, separate from preparation.
+
+Template GPT6.1Sol/medium worker delivered four owned helper/test files with11
+passing focused tests. Preflight GPT6.1Sol/medium worker delivered tool/tests/
+runbook; one coordinator-requested namespace-proof correction prevents treating
+an orphanless/source-filled branch as ready.6tests pass and no online worker
+operations performed. Coordinator verified worker output and ran metadata-only
+audit.73focused/250website tests, root check, typecheck/build pass. Independent
+source review and final surface/production verification pending at this receipt.
+Effective worker model/time/token telemetry unavailable; start account weekly88%
+remaining is shared allowance, not task cost. No writer conflicts. No push/PR,
+credentials/permissions changes, branch provisioning or deployment performed.
+
 ## Guided preparation PR200 merged with production held — 2026-10-25
 
 Owner authorized source PR/merge, with live pilot still separate. [PR200](https://github.com/codepetca/zero/pull/200)

@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "status": "prepared",
+  "origin": null,
+  "projectId": "prj_b8dDCbuiF8uzVcXYMLghpWTAr4aA",
+  "branch": "codex/zerojams-controlled-pilot",
+  "inviteIds": ["35233916", "4050555"],
+  "maintainerIds": ["4050555"],
+  "creatorId": "35233916",
+  "registryBranch": "zero-jams-pilot-registry",
+  "limits": {"events": 2, "participants": 5, "operations": 200, "safetyOperations": 7, "proposals": 10, "entryHistory": 5}
+}

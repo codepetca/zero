@@ -82,3 +82,21 @@ test('CAS conflicts retry cleanly; ambiguous upstream outcomes remain unknown; c
   await assert.rejects(store.read('jam-101'),error=>error.status===503);
   await assert.rejects(store.read('../arbitrary'),error=>error.status===400);
 });
+
+test('pilot store uses only its reviewed branch and never falls back or provisions when missing',async()=>{
+  const f=fixture();await approved(f);const state=f.store.records.get('jam-101').state;
+  const calls=[],bytes=Buffer.from(JSON.stringify(state)+'\n'),sha=blob(bytes).sha;
+  const store=createGitHubJamStore({token:TOKEN,registryBranch:'zero-jams-pilot-registry',maxEvents:2,fetchImpl:async(url,options)=>{
+    calls.push({url,options});
+    if(options.method==='PUT'){assert.equal(JSON.parse(options.body).branch,'zero-jams-pilot-registry');return json({content:{sha}});}
+    if(url.includes('/branches/'))return json({name:'zero-jams-pilot-registry',commit:{sha:COMMIT}});
+    return json({},404);
+  }});
+  assert.deepEqual(await store.read('jam-101'),{state:null,revision:null});assert.deepEqual(await store.list(),[]);
+  assert.equal(await store.compareAndSwap('jam-101',null,state),true);
+  assert.ok(calls.every(({url})=>!url.includes('zero-jams-registry')));
+  assert.ok(calls.every(({options})=>['GET','PUT'].includes(options.method)));
+  assert.throws(()=>createGitHubJamStore({token:TOKEN,registryBranch:'main'}),e=>e.status===503);
+  const missing=createGitHubJamStore({token:TOKEN,registryBranch:'zero-jams-pilot-registry',fetchImpl:async(url,options)=>{assert.equal(options.method,'GET');return json({},404);}});
+  await assert.rejects(missing.compareAndSwap('jam-101',null,state),e=>e.status===503);
+});

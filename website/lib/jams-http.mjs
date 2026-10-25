@@ -1,3 +1,4 @@
+import {jamDeploymentPolicy} from './jams-pilot-policy.mjs';
 import {hubConfig, readSession, sameOrigin, equalSecret, githubUser, json} from './hub-github-auth.mjs';
 import {createJamRuntime, jamServiceConfig} from './jams-runtime.mjs';
 import {JamError} from '../../jams/service.mjs';
@@ -57,13 +58,15 @@ export async function getJamsResponse(request, inputOptions = {}) {
   const config = hubConfig(options.env);
   const session = config && readSession(request,config,options.now());
   const actor = session ? {id:session.id,login:session.login} : undefined;
-  const cacheKey = `list:${options.env.ZERO_JAMS_APP_ID}:${options.env.ZERO_JAMS_INSTALLATION_ID}`;
-  const cached = !actor && !options.service && publicCache.get(cacheKey);
+  const policy=jamDeploymentPolicy(options.env);
+  const canCache=!actor&&!options.service&&policy?.mode!=='pilot';
+  const cacheKey = `list:${policy?.mode}:${policy?.origin}:${policy?.registryBranch}:${options.env.ZERO_JAMS_APP_ID}:${options.env.ZERO_JAMS_INSTALLATION_ID}`;
+  const cached = canCache && publicCache.get(cacheKey);
   if (cached && cached.expiresAt > options.now()) return json(cached.result);
   try {
     const service = await serviceFor(options);
     const result = {configured:true,...await service.list(actor),checkedAt:new Date(options.now()).toISOString()};
-    if (!actor && !options.service) {
+    if (canCache) {
       if (publicCache.size >= 32) publicCache.delete(publicCache.keys().next().value);
       publicCache.set(cacheKey,{result,expiresAt:options.now()+30_000});
     }
@@ -79,12 +82,14 @@ export async function getJamResponse(request, id, inputOptions = {}) {
     const config = hubConfig(options.env);
     const session = config && readSession(request,config,options.now());
     const actor = session ? {id:session.id,login:session.login} : undefined;
-    const cacheKey = `event:${id}:${options.env.ZERO_JAMS_APP_ID}:${options.env.ZERO_JAMS_INSTALLATION_ID}`;
-    const cached = !actor && !options.service && publicCache.get(cacheKey);
+    const policy=jamDeploymentPolicy(options.env);
+    const canCache=!actor&&!options.service&&policy?.mode!=='pilot';
+    const cacheKey = `event:${policy?.mode}:${policy?.origin}:${policy?.registryBranch}:${id}:${options.env.ZERO_JAMS_APP_ID}:${options.env.ZERO_JAMS_INSTALLATION_ID}`;
+    const cached = canCache && publicCache.get(cacheKey);
     if (cached && cached.expiresAt > options.now()) return json(cached.result);
     const service = await serviceFor(options);
     const result = {configured:true,...await service.read(id,actor),checkedAt:new Date(options.now()).toISOString()};
-    if (!actor && !options.service) {
+    if (canCache) {
       if (publicCache.size >= 32) publicCache.delete(publicCache.keys().next().value);
       publicCache.set(cacheKey,{result,expiresAt:options.now()+15_000});
     }

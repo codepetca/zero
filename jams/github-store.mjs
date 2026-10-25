@@ -5,15 +5,17 @@ import {credential, githubRequest} from './github-transport.mjs';
 
 export const JAM_REGISTRY_REPOSITORY = 'codepetca/zero';
 export const JAM_REGISTRY_BRANCH = 'zero-jams-registry';
+export const JAM_PILOT_REGISTRY_BRANCH = 'zero-jams-pilot-registry';
 const ROOT = `/repos/${JAM_REGISTRY_REPOSITORY}`;
-const branch = `?ref=${JAM_REGISTRY_BRANCH}`;
-export function createGitHubJamStore({token,fetchImpl=fetch,timeoutMs=8000,maxEvents=LIMITS.events}={}) {
+export function createGitHubJamStore({token,fetchImpl=fetch,timeoutMs=8000,maxEvents=LIMITS.events,registryBranch=JAM_REGISTRY_BRANCH}={}) {
+  if (![JAM_REGISTRY_BRANCH,JAM_PILOT_REGISTRY_BRANCH].includes(registryBranch)) fail(503,'Invalid jam registry target.');
+  const branch=`?ref=${registryBranch}`;
   credential(token);
   if (!Number.isSafeInteger(maxEvents) || maxEvents < 1 || maxEvents > LIMITS.events) fail(503,'Invalid jam registry limit.');
   const request = (route,options={}) => githubRequest(ROOT+route,{token,fetchImpl,timeoutMs,maxBytes:3_000_000,...options});
   async function requireBranch() {
-    const response = await request(`/branches/${JAM_REGISTRY_BRANCH}`,{maxBytes:16384});
-    if (response.status !== 200 || response.data?.name !== JAM_REGISTRY_BRANCH || !SHA.test(response.data?.commit?.sha||'')) fail(503,'The jam registry requires operator setup.');
+    const response = await request(`/branches/${registryBranch}`,{maxBytes:16384});
+    if (response.status !== 200 || response.data?.name !== registryBranch || !SHA.test(response.data?.commit?.sha||'')) fail(503,'The jam registry requires operator setup.');
   }
   function validId(id) { if (!ID.test(id||'')) fail(400,'Invalid jam ID.'); }
   async function read(id) {
@@ -52,7 +54,7 @@ export function createGitHubJamStore({token,fetchImpl=fetch,timeoutMs=8000,maxEv
     const state = validateState(nextState,id,LIMITS,{enforceReserve:false});
     if (expectedRevision === null) { await requireBranch(); const ids=await list(); if(!ids.includes(id)&&ids.length>=maxEvents)fail(429,'The jam pilot is at event capacity.'); }
     const bytes=Buffer.from(JSON.stringify(state)+'\n');
-    const response = await request(`/contents/jams/${id}.json`,{method:'PUT',body:{message:`ZeroJams ${id}`,branch:JAM_REGISTRY_BRANCH,...(expectedRevision?{sha:expectedRevision}:{}),content:bytes.toString('base64')}});
+    const response = await request(`/contents/jams/${id}.json`,{method:'PUT',body:{message:`ZeroJams ${id}`,branch:registryBranch,...(expectedRevision?{sha:expectedRevision}:{}),content:bytes.toString('base64')}});
     if ([409,422].includes(response.status)) return false;
     const expectedBlob = createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
     if (response.status !== 200 && response.status !== 201 || response.data?.content?.sha !== expectedBlob) fail(503,'Jam write result is unknown. Retry with the same operation ID.');

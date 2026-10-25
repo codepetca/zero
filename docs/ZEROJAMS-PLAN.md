@@ -439,6 +439,64 @@ ordinary capacity exhaustion; verify exact commits with the metadata-only Git
 commit endpoint; expose approved rule/schedule history and explicit changed-version
 notice before renewed participant acknowledgment. Targeted and cumulative reviews are complete and clean.
 
+## Controlled pilot preparation — 2026-10-25
+
+Owner authorized read-only setup audit and local source preparation, retaining
+production denial. No new push/deploy, App/permission/secret changes, registry
+provisioning or live writes are part of preparation. This extends the prior
+all-preview hold only through a reviewed, default-disabled invited preview policy.
+
+Live audit: Vercel project `zero`, root `website`, Node22, production branch main;
+protection `all_except_custom_domains`. Hub OAuth variable names exist only in
+production; no ZERO_JAMS variables exist. Registry `zero-jams-registry` is absent
+(404). Codepet Zero App5367740 public metadata grants broad desktop permissions.
+The connector installation84608113 belongs to a different integration, and CLI
+Codepet App installation enumeration is403; its installation/callbacks remain
+unknown. Never substitute the connector installation or claim missing access is
+proof no installation exists. Only metadata/presence was recorded, no secret values.
+
+Fixed prepared policy `jams/pilot.json`: creator/participant stewchan35233916,
+approver armorup4050555; status prepared and origin null until separately reviewed.
+Invitations use numeric IDs, roles remain separate; no self approval. Pilot registry
+is fixed `codepetca/zero` branch `zero-jams-pilot-registry`, distinct from the future
+normal registry. Records in this public Git repository are public-safe test data,
+not confidential records. Creator/participant repositories remain public too.
+
+Source contract:
+- `jamDeploymentPolicy(env,pilot)` is null for production or malformed/disabled
+  hosted policy. Local development retains current behavior. Invited mode requires
+  Vercel preview, exact project ID/branch, enabled prepared policy, fixed HTTPS
+  branch origin matching VERCEL_BRANCH_URL and ZERO_HUB_ORIGIN, numeric invitations
+  and maintainers. Pilot/service flags cannot override production denial.
+- Every page/API/template/panel checks deployed policy then sealed GitHub numeric
+  invitation before event/file/service reads or params. Wrong origin/unknown users
+  fail closed. A neutral sign-in page bootstraps existing OAuth with no event data.
+  Invitation removal applies on every request. Existing CSRF/fresh identity checks
+  remain on writes. Preview session encryption binds its configured origin.
+- An unsigned cross-site panel returns neutral top-level sign-in links without
+  event reads. Keep SameSite=Lax/HttpOnly/Secure; no bearer tokens in creator sites.
+  Framing of event data remains limited to an accepted creator origin.
+- Only trusted server policy supplies official origin to generated ZIP/preview and
+  panel links. Template generators accept an options object `{officialOrigin}`:
+  jamTemplateFiles(type,root,customManifest,options),
+  createJamTemplateZip(type,customManifest,options),
+  createJamTemplatePreview(manifest,options). Defaults retain canonical public URL.
+  preparedJamResponse(request,{preview,officialOrigin}) forwards this trusted value;
+  request manifests/query never choose official origin.
+- Store accepts only reviewed normal/pilot branch constants selected server-side.
+  Pilot runtime requires a separate minimal Contents-write/Metadata-read writer,
+  never the broad desktop App; no automatic branch creation or production fallback.
+  Use small fixed limits and include mode/origin/registry in cache identities.
+- Read-only preflight reports metadata/presence/readiness without secret values,
+  writes, token minting, login/config changes, or installing dependencies. A concrete
+  operator packet lists unresolved callback/installation/origin setup and acceptance
+  and rollback steps. Preparation cannot report a live pilot has succeeded.
+
+Ownership: coordinator policy/auth/routes/runtime/store/docs integration; template
+worker only jam-template helper/http helper and focused template tests; preflight
+worker only operator preflight tool/tests and new pilot runbook. Independent risk-
+matched source review follows proportionate tests; production hold is an exit gate.
+
 ## Remaining rollout decisions
 
 - Actual GitHub App choice, permissions/installations and explicit branch

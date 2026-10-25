@@ -1,10 +1,16 @@
 # ZeroJams local verification and operator setup
 
-ZeroJams is under an owner-requested production visibility hold. Production builds
-and deployment previews return404 for `/hub/jams` descendants and `/api/jams`
-endpoints, including the panel and template ZIP. Navigation and unreleased editor
-shortcuts are hidden/deferred. Only local development exposes the work. Credentials
-or `ZERO_JAMS_ENABLED=1` cannot lift this hold; a reviewed source change is required.
+ZeroJams is under an owner-requested production visibility hold. Production always
+returns404 for `/hub/jams` descendants and `/api/jams`, including panels and template
+downloads. Credentials or pilot flags cannot lift that hold. Public navigation and
+unreleased editor shortcuts stay hidden/deferred.
+
+Local development remains available. The prepared controlled-pilot policy also
+keeps every hosted preview closed by default: `jams/pilot.json` has status prepared
+and no origin. A separately reviewed enabled policy can admit only the fixed Vercel
+preview project/branch/origin and sealed numeric GitHub invitations. See the
+[controlled pilot packet](ZEROJAMS-PILOT.md) for audited gaps, exact operator changes,
+read-only preflight and acceptance/rollback. No pilot has been deployed or activated.
 
 The underlying service is also default off. This document describes setup prerequisites, not
 authorization to activate a service or change a GitHub App. The
@@ -41,10 +47,12 @@ to verify its relative paths and editable source copy.
 
 ## Configuration boundary
 
-After the production source hold is separately lifted, activation needs explicit
-owner authorization, existing website browser-auth
-configuration, a reviewed GitHub App installation, and all of these server-only
-values supplied through the deployment's secret/configuration system:
+Normal public activation still needs a separately reviewed production-hold change.
+An invited preview pilot keeps production closed and follows its narrower operator
+packet instead. Both need explicit configuration/deployment authorization, browser
+auth, a reviewed service installation and server-only values through the secret
+manager. Pilot settings must be scoped only to its exact preview branch; no
+production secret changes are needed. The service settings are:
 
 | Setting | Purpose |
 | --- | --- |
@@ -71,7 +79,11 @@ permission scope. Do not grant all-repository access or silently add scopes.
 
 Official state uses the dedicated existing `zero-jams-registry` branch in
 `codepetca/zero`, with one `jams/<event-id>.json` file per event. An operator must
-provision and validate the branch separately after authorization. It is not the
+provision and validate the branch separately after authorization. The prepared
+pilot instead selects only `zero-jams-pilot-registry`. Initialize that as a state-only
+orphan branch, with any README outside `jams/`; do not branch from main, whose
+`jams/` directory contains service source rather than event records. There is no
+fallback between pilot and normal registries. It is not the
 game/library sharing branch. Initial absence is an error, not permission to write
 to main or create another destination. The writer must have access only through
 its reviewed service configuration; creators cannot write official records.
@@ -110,7 +122,9 @@ do not invent a new success or manually replay it with another operation key.
 Conflicting changes require a fresh review. Deadlines are checked by the service
 on current authoritative state; stale public summaries never authorize writes.
 
-The public discovery cache is bounded to thirty seconds per warm server instance.
+Non-pilot anonymous discovery caching is bounded to thirty seconds per warm server
+instance. The invited pilot disables that public cache and checks current invitations
+before each route read.
 There is no workflow dispatch or full-site rebuild per join. Ordinary writes
 read GitHub and conditionally update their exact event file. GitHub outages,
 capacity or quota errors preserve drafts and refuse false success. Existing

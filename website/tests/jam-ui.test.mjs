@@ -111,7 +111,7 @@ test('fetched private data is unavailable immediately after actor changes, while
 });
 function panelModule(reply,seen) {
   const module={exports:{}};
-  const context={module,exports:module.exports,require:name=>name.includes('jams-visibility')?{hiddenJamsResponse:()=>null}:{getJamResponse:async(request,id)=>{seen.push({request,id});return Response.json(reply.body,{status:reply.status||200});}},Request,Response,URL};
+  const context={module,exports:module.exports,require:name=>name.includes('jams-access')?{authorizeJamRequest:()=>null}:name.includes('jams-pilot-policy')?{jamOfficialOrigin:()=> 'https://zero.codepet.ca'}:{getJamResponse:async(request,id)=>{seen.push({request,id});return Response.json(reply.body,{status:reply.status||200});}},Request,Response,URL};
   vm.runInNewContext(compile(panelSource),context);return module.exports;
 }
 test('public panel strips caller credentials, escapes content and allows only approved creator origin',async()=>{

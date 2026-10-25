@@ -3,7 +3,7 @@ import {boundedJson} from './hub-github-auth.mjs';
 import {createGitHubJamStore} from '../../jams/github-store.mjs';
 import {createGitHubSourceVerifier} from '../../jams/github-source.mjs';
 import {createJamService} from '../../jams/service.mjs';
-import {jamsPreviewAvailable} from './jams-visibility.mjs';
+import {jamDeploymentPolicy} from './jams-pilot-policy.mjs';
 
 // A separate installation credential writes only the official registry. Never
 // substitute the visiting participant's token for this service credential.
@@ -11,19 +11,22 @@ const tokenCache = new Map();
 const positiveId = /^[1-9][0-9]{0,19}$/;
 const api = 'https://api.github.com';
 
-export function jamServiceConfig(env = process.env) {
-  if (!jamsPreviewAvailable(env) || env.ZERO_JAMS_ENABLED !== '1') return null;
+export function jamServiceConfig(env = process.env,pilot) {
+  const policy=jamDeploymentPolicy(env,pilot);
+  if (!policy || env.ZERO_JAMS_ENABLED !== '1') return null;
   const maintainers = (env.ZERO_JAMS_MAINTAINER_IDS || '').split(',').map(value => value.trim());
   if (!maintainers.length || maintainers.some(value => !positiveId.test(value)) ||
       new Set(maintainers).size !== maintainers.length || maintainers.length > 20) return null;
+  if(policy.mode==='pilot'&&(maintainers.length!==policy.maintainerIds.length||maintainers.some(id=>!policy.maintainerIds.includes(id))))return null;
   const {ZERO_JAMS_APP_ID: appId, ZERO_JAMS_INSTALLATION_ID: installationId,
     ZERO_JAMS_PRIVATE_KEY: privateKey} = env;
   if (!positiveId.test(appId || '') || !positiveId.test(installationId || '') ||
       typeof privateKey !== 'string' || privateKey.length > 16_384) return null;
+  if(policy.mode==='pilot'&&appId==='5367740')return null;
   try {
     if (createPrivateKey(privateKey).asymmetricKeyType !== 'rsa') return null;
   } catch { return null; }
-  return {appId, installationId, privateKey, maintainerIds: maintainers};
+  return {appId, installationId, privateKey, maintainerIds: maintainers,mode:policy.mode,origin:policy.origin,registryBranch:policy.registryBranch,...(policy.mode==='pilot'?{limits:policy.limits}:{})};
 }
 
 function jwt(config, now) {
@@ -35,7 +38,7 @@ function jwt(config, now) {
 }
 
 export async function jamInstallationToken(config, {fetchImpl = fetch, now = Date.now(), cache = tokenCache} = {}) {
-  const key = createHash('sha256').update(`${config.appId}:${config.installationId}:${config.privateKey}`).digest('hex');
+  const key = createHash('sha256').update(`${config.appId}:${config.installationId}:${config.privateKey}:${config.mode}:${config.origin}:${config.registryBranch}`).digest('hex');
   const cached = cache.get(key);
   if (cached && cached.expiresAt > now + 60_000) return cached.token;
   const authorization = `Bearer ${jwt(config, now)}`;
@@ -56,6 +59,7 @@ export async function jamInstallationToken(config, {fetchImpl = fetch, now = Dat
   if (String(installation.id) !== config.installationId || String(installation.app_id) !== config.appId ||
       installation.account?.login !== 'codepetca' || installation.suspended_at ||
       installation.permissions?.contents !== 'write') throw new Error('ZeroJams installation unavailable');
+  if(config.mode==='pilot'&&(installation.repository_selection!=='selected'||installation.permissions?.metadata!=='read'||Object.keys(installation.permissions).some(key=>!['contents','metadata'].includes(key))))throw new Error('ZeroJams installation unavailable');
   const result = await request(`/app/installations/${config.installationId}/access_tokens`, 'POST',
     {repositories:['zero'], permissions:{contents:'write',metadata:'read'}});
   const expiresAt = Date.parse(result.expires_at);
@@ -72,11 +76,11 @@ export async function jamInstallationToken(config, {fetchImpl = fetch, now = Dat
 }
 
 export async function createJamRuntime({env = process.env, fetchImpl = fetch,
-  now = Date.now, sourceToken} = {}) {
-  const config = jamServiceConfig(env);
+  now = Date.now, sourceToken,pilot} = {}) {
+  const config = jamServiceConfig(env,pilot);
   if (!config) return null;
   const token = await jamInstallationToken(config, {fetchImpl,now:now()});
-  return createJamService({store:createGitHubJamStore({token,fetchImpl}),
+  return createJamService({store:createGitHubJamStore({token,fetchImpl,registryBranch:config.registryBranch,maxEvents:config.limits?.events}),
     verifySource:createGitHubSourceVerifier({token:sourceToken,fetchImpl}),
-    maintainerIds:config.maintainerIds, now});
+    maintainerIds:config.maintainerIds,limits:config.limits, now});
 }
