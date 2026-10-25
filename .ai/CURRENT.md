@@ -1,7 +1,10 @@
 # Guided ZeroJams preparation complete locally — 2026-10-25
 
 Owner accepted details → actual site preview → customized full-template ZIP.
-Branch codex/zerojams-guided-preparation; base25acd272, reviewed source35241dde.
+Branch codex/zerojams-guided-preparation; base25acd272, guided source35241dde.
+Owner clarified all jams require GitHub; wording/defaults reviewed21678c73.
+Creators cannot waive GitHub sign-in/public exact-source submissions through
+eligibility text. Preparation remains available before sign-in.
 Plan: docs/ZEROJAMS-PLAN.md. Delivery/review receipt: docs/EVIDENCE.md.
 
 Create flow works without sign-in, retains public session drafts and renders the

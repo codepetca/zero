@@ -1,5 +1,19 @@
 # Delivery evidence index
 
+## Every jam requires GitHub — 2026-10-25
+
+Owner clarified GitHub is mandatory for every Game Jam and App Jam. Local source
+21678c73 (basebdda07db) makes the requirement explicit in preparation, fixed
+canonical template copy, official event facts, default rules, README/product/plan.
+Participants sign in on Zero to join and submit their own public GitHub repository
+at an exact commit; creator eligibility text cannot waive the platform rule.
+Existing authentication/source ownership enforcement remains unchanged. Preparing
+and browsing stay available before sign-in. Production hold remains unchanged.
+62focused jam tests, website typecheck and whitespace checks pass; Chromium
+320/1280reflow and actual template preview wording pass. Independent GPT6Luna/
+medium complete8file review clean,1launch/0fix batches; reported checks reused,
+effective model/time/tokens unknown. No push/PR/merge or activation performed.
+
 ## Guided ZeroJams preparation completed locally — 2026-10-25
 
 Owner accepted details → actual site preview → customized download. Implemented
