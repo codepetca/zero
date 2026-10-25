@@ -156,6 +156,63 @@ and existing local verification remain in [the plan](ZEROJAMS-PLAN.md) and
 [operations guide](ZEROJAMS-OPERATIONS.md). This packet narrows the proposed hosted
 pilot to one invited preview; it grants no production release authority.
 
+## Failure recovery and concurrent writes — 2026-10-25
+
+Candidate `791a8482` was checked against the actual service, source verifier,
+GitHub storage adapter and transport using a loopback HTTP GitHub-contract fixture.
+This uses real Node fetch, blob SHA comparisons, controlled PUT barriers, dropped
+sockets, unreadable replies and actual abort timeouts. Dummy credentials and
+fixture identities never reach GitHub or a hosted Zero service. Existing closed
+pilot records were not reopened, reset or used for destructive fault injection.
+
+The 24 HTTP integration cases verify concurrent users retain both records, the
+last participant slot is rechecked after conflict, duplicate same-key submissions
+commit once, changed payloads on the same key conflict, and separate submissions
+both survive. Lost post-commit responses (socket, malformed JSON, wrong SHA and
+timeout) recover the recorded result with the same operation ID, including after
+source outage and deadline. Provider errors and pre-commit timeout do not report
+success; bounded 409/422 retries stop without mutating state. Failed reads do not
+become empty events. Approval, suspension, leave and deadline races recheck the
+winning state; reverse ordering preserves the earlier accepted history.
+
+Client-hook tests connect to the same real-adapter fixture for unreadable success,
+`configured:false` and wrong-operation confirmation. Reload preserves the key;
+retry records no second join. Existing double-click/in-flight suppression remains
+covered. All barriers have ten-second test bounds to prevent a regression from
+hanging CI.
+
+One recovery gap was fixed: review and moderation reasons previously disappeared
+on reload even while their uncertain operation keys survived. Public reason drafts
+now use session storage scoped to account and exact proposal, entry revision or
+moderation context. Confirmation clears only that original draft; a late response
+cannot hide another account's active draft. Gallery summaries include the immutable
+entry `revision` for this read-only context; mutation authority is unchanged.
+
+**Open student-trial blocker: historical retry versus new intent.** The audit also
+reproduces this browser sequence:
+
+1. Join commits, but the reply is unreadable, leaving its key pending.
+2. An authoritative read shows joined; the user subsequently leaves.
+3. A later Join with the same payload reuses that old key.
+4. The server correctly returns the historical joined result without undoing the
+   later leave; the UI currently shows “Confirmed by Zero” while still left.
+
+The characterization test documents this existing behavior; its passing status
+is not a readiness sign-off. A dedicated pending-request resolution flow must
+separate recovery of the old request from a new intent before a wider trial.
+Do not resolve this by blindly generating a fresh key after an uncertain write,
+which could create duplicate submissions. During this controlled pilot, resolve
+unknown requests before attempting intervening changes. Production stays hidden.
+
+Candidate checks: 105 jam tests, 258 website tests, typecheck and production build
+pass. Independent Sol 6.1/high review reran 41 focused cases and found no remaining
+issues in this bounded patch; the pending-intent limitation is deliberately open.
+Receipts are in `.verification/zerojams-pilot/recovery/verification.json` and the
+ignored `recovery-*.log`/`reason-recovery-*.log` files. These deterministic checks
+do not establish live GitHub contention performance, provider capacity, Safari,
+mobile or school-network behavior. Cross-event admission remains the existing
+advisory cap and must be serialized by the pilot operator.
+
 ## Observed audit, 2026-10-25
 
 | Surface | Read-only evidence | Consequence |

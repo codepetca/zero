@@ -1,5 +1,34 @@
 # Delivery evidence index
 
+## Failure recovery and concurrent registry writes — 2026-10-25
+
+Owner authorized recovery/concurrency testing with production hidden and the
+closed pilot fixtures preserved. Candidate791a8482:24 deterministic loopback HTTP
+cases combine actual service/source verifier/store/transport with real fetch/blob
+SHA CAS, controlled concurrent PUTs, socket loss/malformed replies/wrong success
+SHA, actual pre/postcommit timeouts, outages, bounded conflicts and moderation/
+approval/deadline/leave races. Same-key commits remain exactly once; conflicts
+preserve both valid writers. Tests use only dummy credentials/local identities.
+
+Client-hook/real-adapter cases verify retry identity through unreadable200,
+configuredfalse and wrong-operation replies. Reason-draft loss was reproduced
+first, then fixed for review/moderation/entry reasons. Account/subject scopes,
+confirmed clearing and late-callback safety pass. Gallery entry revision is a
+read-only contract addition, with no mutation/authorization change.
+
+105jamtests,258website tests,typecheck/build pass. One Sol6.1/high read-only audit
+worker reused for independent review;41 focused cases pass. Accepted review
+corrections:10s test bounds, exact subject scope and stale-callback guard. No
+reviewer edits or integration conflict. Effective model/token cost unavailable;
+weekly82%remaining at start is account-wide, not task cost; storagehealthy229GB.
+
+Open finding: an uncertain committed join, then leave, then a new identical join
+can reuse the old key and show historical confirmation while storage remains left.
+The characterization test records this known UI gap; passing tests do not clear
+it. Wider student trial blocked pending explicit old-request/new-intent resolution.
+No live provider outage/contention claim; no main merge or production rollout.
+Runbook docs/ZEROJAMS-PILOT.md; ignored recovery verification packet/logs.
+
 ## Registry build exclusion and live Game/App lifecycle — 2026-10-25
 
 Owner authorized registry build prevention and complete controlled-pilot lifecycle,

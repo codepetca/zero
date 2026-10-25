@@ -6,7 +6,10 @@ this pilot after the source hold. Both `stewchan` (creator, no maintainer role) 
 `armorup` (approver) completed live GitHub sign-in. All 11 checks pass for deployed
 source `f50942b0`. The two-account Chrome Game/App lifecycle passed, with 24
 durable operations and zero registry-triggered Vercel builds. Cross-browser,
-network, concurrency and expansion cost acceptance remain pending.
+network and expansion cost acceptance remain pending. Recovery candidate
+`791a8482` adds deterministic service/transport concurrency checks and a bounded
+review-draft fix. A reproduced pending-operation/new-intent UI gap blocks a wider
+student trial; the runbook records the required next step.
 
 The pilot is restricted to the fixed Preview project, branch, origin and invited
 numeric identities. Production always returns 404 for jam pages, panels, APIs and
