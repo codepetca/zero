@@ -1,5 +1,39 @@
 # Verification
 
+## Mac0.5.50 delivery complete — 2026-10-25
+
+[SourcePR199](https://github.com/codepetca/zero/pull/199) merged2de6bc54 after11greenchecks
+at reviewedc923d2a4; [promotionPR201](https://github.com/codepetca/zero/pull/201) merged
+010ae629 after11greenchecks at reviewed9f8826d3. Promotion had2Sol/high independent
+complete/clean reviews, one initialwave/0fixbatches; no extra integrationwave was
+needed for unchanged head. Actual model/token/elapsed cost remain unknown.
+Local root/typecheck/240website/build and11updater tests pass,2optional signing
+skips separate from actual signed/notarized artifact proof. Final exact-head CI:
+[source](https://github.com/codepetca/zero/actions/runs/40212449012),
+[browser](https://github.com/codepetca/zero/actions/runs/40212449086),
+[Windows](https://github.com/codepetca/zero/actions/runs/40212448958).
+
+The [public Mac50release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.50)
+retains one immutable5918971byteDMG/SHA256
+7effba8ea273dbff3629b6dca3ee84f0d3d9243d1fe67ada7d6ea892b67ae6c1,
+targetprep66e6ce90/built4675e862. Production deploymentGAdRJ1W3hvpPFvZsLzGoMk38G16X
+succeeded. At2026-10-25T16:48:27Z the anonymous live homepage/downloads anchors and
+DMG bytes verify; live1178bytefeed exactly matches sealedSHA256
+ca5036bada568573ba93bd857db1ac4ae3ac8529059259698490900e785b090a and its Ed25519
+signature verifies. Windows21/manual21links, retainedkit17 and canonicaljam404hold
+remain. Proof `.verification/mac50/live-verification.json`; PRdescriptions also
+carry final delivery. No distributed or sealed asset was replaced.
+
+Local probe rework: initial homepage assertion allowed only a chooser; corrected
+to the documented direct-anchor-or-chooser contract after observing approved direct
+anchors. Firstprobe precededrollout and saw49; finalprobe validates50. No product
+or gate was weakened. InstalledQA/124sourcefiles/249preservedfiles/settings/note
+and realbrowserlogin/RunStop proof are retained in corrected candidate record.
+FreshMac/schoolnetwork/novice/physicalgameplay/actualSparkledelivery remain pilot
+limits; publication does not mark them passed. This completion receipt is local
+maintainer history; no additional release or metadata change follows it.
+
+
 ## Mac0.5.50 published; download/feed promotion — 2026-10-25
 
 [SourcePR199](https://github.com/codepetca/zero/pull/199) merged2de6bc54 after all11checks
