@@ -1,3 +1,4 @@
+import {manifestData} from '../../jams/manifest.mjs';
 import {readFile, lstat} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {zipSync, strToU8} from 'fflate';
@@ -24,8 +25,9 @@ async function canonicalTemplateRoot() {
   }
   throw new Error('Jam template source is unavailable.');
 }
-export async function jamTemplateFiles(type = 'game', root) {
+export async function jamTemplateFiles(type = 'game', root, customManifest) {
   if (!['game', 'app'].includes(type)) throw new TypeError('Choose Game Jam or App Jam.');
+  if (customManifest && customManifest.type !== type) throw new TypeError('The jam type must match its details.');
   root ??= await canonicalTemplateRoot();
   // A fixed inventory must not turn a linked source asset into a download of
   // another local file. Validate owned directories and files before reading any.
@@ -48,11 +50,29 @@ export async function jamTemplateFiles(type = 'game', root) {
     manifest.summary = 'An example weekend jam: make a small app that makes someone’s day easier.';
     manifest.theme = 'A little everyday help';
   }
-  files['zero-jam.json'] = strToU8(`${JSON.stringify(manifest, null, 2)}\n`);
+  files['zero-jam.json'] = strToU8(`${JSON.stringify(customManifest ? manifestData(customManifest) : manifest, null, 2)}\n`);
   return files;
 }
-export async function createJamTemplateZip(type = 'game') {
-  const files = await jamTemplateFiles(type);
+export async function createJamTemplateZip(type = 'game', customManifest) {
+  const files = await jamTemplateFiles(type, undefined, customManifest);
   // Fixed timestamps make repeated downloads of unchanged source reproducible.
   return zipSync(Object.fromEntries(Object.entries(files).map(([path, bytes]) => [`zero-${type}-jam/${path}`, [bytes, {mtime:new Date('2026-01-01T00:00:00Z')}]])), {level:6});
+}
+
+// Preview the exact canonical source without granting it the parent origin or
+// network access. User metadata stays in escaped JSON and is rendered as text.
+export async function createJamTemplatePreview(input) {
+  const manifest=manifestData(input);
+  const files=await jamTemplateFiles(manifest.type,undefined,manifest);
+  const decode=path=>new TextDecoder().decode(files[path]);
+  const mark=`data:image/svg+xml;base64,${Buffer.from(files['assets/mark.svg']).toString('base64')}`;
+  const data=JSON.stringify(manifest).replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
+  const policy="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'";
+  const html=decode('index.html')
+    .replace('<head>',()=>`<head><meta http-equiv="Content-Security-Policy" content="${policy}">`)
+    .replace('<link rel="stylesheet" href="assets/jam.css">',()=>`<style>${decode('assets/jam.css')}</style>`)
+    .replace('<script src="assets/jam.js" defer></script>','')
+    .replaceAll('assets/mark.svg',mark)
+    .replace('</body>',()=>`<script id="zero-jam-preview-data" type="application/json">${data}</script><script>${decode('assets/jam.js')}</script></body>`);
+  return {html,manifest};
 }
