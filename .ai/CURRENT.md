@@ -1,10 +1,14 @@
 # Controlled ZeroJams pilot prepared locally — 2026-10-25
 
-Owner authorized read-only setup audit and local pilot preparation, production
-hidden. Branch codex/zerojams-controlled-pilot; current-main010ae629 synced;
+Owner now authorizes configuring/deploying/activating the controlled pilot for
+stewchan/armorup, keeping production hidden. GitHub App/callback, exact preview
+secrets and state-only pilot registry setup are in scope; production settings and
+main activation remain held. Prior preparation receipt follows. Branch codex/zerojams-controlled-pilot; current-main010ae629 synced;
 reviewed source a226038f. Packet docs/ZEROJAMS-PILOT.md, fixed config jams/pilot.json.
-No push/deploy, App/callback/secret/permission changes, registry provisioning or
-live writes. Policy remains prepared/origin null, so no invitations are active.
+Activation in progress: current policy still prepared/origin null. First publish
+the reviewed disabled preview to discover its stable branch origin. New writer
+App and exact callback setup follow the operator packet; no existing secrets
+revoked and no protection bypass permitted. GitHub sudo completed by owner.
 
 User-selected creator/participant stewchan35233916; independent approver
 armorup4050555. Local source prepares one exact invited preview/project/branch/
