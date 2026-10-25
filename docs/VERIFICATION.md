@@ -1,5 +1,18 @@
 # Verification
 
+## Corrected local Mac 0.5.49 candidate — 2026-10-24
+
+Clean reviewed source e5953f05 fixes task-discovery side effects, host task identity
+collisions, repeated configured Run, stale ownership/trust timing and fast-exit
+error reporting. Source fullsuite1,141pass/3Windows-PowerShellskips/0fail;19focused
+pass. Signed/notarized/stapled candidate52fa3120sealed and independently verified.
+Actual installed48→49preserves unsaved note/settings/projects and passes first Run,
+picker stability, keyboard restarts, rejected retry/Stop, compiler Problem/recovery
+and retained real WebFX Cmd+A. No push/publication/feed/site/template changes.
+Public Mac remains47. Source review and artifact review are clean; fresh machine,
+school network, physical Windows/native gameplay and production delivery remain
+separate. Exact bytes, review receipts and limits: [acceptance](MAC-CANDIDATE-0.5.49.md).
+
 ## Live tutorial rollout and Mac acceptance — 2026-10-24
 
 Source PR188 merged atdd4368dd765603c90b276faf0cce4f9a0c0938fe after all selected

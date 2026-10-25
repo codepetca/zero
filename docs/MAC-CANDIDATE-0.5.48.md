@@ -99,3 +99,8 @@ game. VS Code automatically invokes the same resolver during startup. The local
 0.5.49 change makes discovery side-effect-free and defers preparation to actual
 execution; source-host picker regression passes. Historical early attempts had no
 trace, so their individual causes remain unproven. The sealed48files stay intact.
+
+Follow-up complete: the corrected local49candidate passes installed upgrade,
+first Run, task discovery, configured restarts, rejected retry, compiler recovery
+and retained WebFX/select-all acceptance. See [49acceptance](MAC-CANDIDATE-0.5.49.md).
+The sealed48artifact remains unchanged; public release remains47.
