@@ -1,5 +1,9 @@
 # Mac 0.5.49 candidate acceptance — 2026-10-24
 
+Historical candidate acceptance below predates owner-authorized publication on2026-10-25.
+See the [current publication receipt](EVIDENCE.md#mac0549-authorized-publication--2026-10-25).
+
+
 The corrected local Mac candidate is signed, notarized, stapled, sealed and
 installed for testing. It is **not published or approved for student rollout**.
 Public Mac download and production feed remain0.5.47. No push, PR, merge, feed,
