@@ -118,11 +118,13 @@ function activate(context, services = {}) {
     projectRoot = root; localPractice = practice; originalWork = original;
     return root;
   };
+  const refreshSidebarShortcut = (pageOpen = startPage?.isOpen()) => {
+    if (!sidebarShortcut) return;
+    const zeroWindow = projectRoot || !(vscode.workspace.workspaceFolders || []).length || pageOpen;
+    if (!disposed && zeroWindow) sidebarShortcut.show();else sidebarShortcut.hide();
+  };
   const refresh = () => {
-    if (sidebarShortcut) {
-      const zeroWindow = projectRoot || !(vscode.workspace.workspaceFolders || []).length || startPage?.isOpen();
-      if (!disposed && zeroWindow) sidebarShortcut.show();else sidebarShortcut.hide();
-    }
+    refreshSidebarShortcut();
     if (view) render(view.webview);startPage?.refresh();
   };
   const report = (text, detail = text) => {state=text;output.appendLine(detail);refresh();};
@@ -241,6 +243,7 @@ function activate(context, services = {}) {
   const githubProjects = createGitHubProjectCommands({vscode,authentication:auth,repositories,folders:projectFolders,prepare:prepareGitHub,extensionPath:context.extensionPath || path.resolve(__dirname,'..'),project,active:()=>!disposed,onProgress:text=>report(text),onRecovery:record=>context.globalState?.update('zero.repositoryCreationRecovery',record)});
   context.subscriptions.push(projectFolders,githubProjects,projectPicker);
   startPage=createStartPage(vscode,{
+    onDidChangeOpen:refreshSidebarShortcut,
     getState:()=>({phase:githubReady()?'ready':auth.signedIn?githubReadiness.phase:'signed-out',accountId:auth.accountId,accountLabel:auth.accountLabel,busy:disposed||isBusy(),status:state}),
     listRecent:accountId=>recentProjects.list(accountId),
     openRecent:async(item,accountId)=>{

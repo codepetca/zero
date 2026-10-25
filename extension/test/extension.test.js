@@ -268,6 +268,12 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['recovery','account'],'An uncloned tutorial offers a new project, clone or opening an existing local copy');
   nextChoice='clone';const beforeClone=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeClone,'Cancelled clone URL does not launch Git');
   assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.toggleApp'),'Local Run is always available');
+  for(const panel of startPanels)panel.dispose();
+  const unrelated=path.join(root,'unrelated');await fs.mkdir(unrelated);
+  vscode.workspace.workspaceFolders=[{uri:{fsPath:unrelated}}];
+  webviewProvider.resolveWebviewView(candidate);await settle(()=>!sidebarShortcut.visible);
+  await commands.get('zero.startPage')();assert.equal(sidebarShortcut.visible,true,'Opening Start Page immediately provides a way back without unrelated events');
+  startPanels.at(-1).dispose();assert.equal(sidebarShortcut.visible,false,'Closing the last Zero surface immediately hides the shortcut in an unrelated project');
 });
 
 test("Zero controls live in native Explorer with minimal overflow",()=>{
