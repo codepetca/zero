@@ -132,8 +132,11 @@ creator hosting, independent approval, submissions, updates, withdrawal and
 closure. Registry writes no longer create Vercel deployments. Protected-preview
 frames are blocked; the official top-level link works. Wider browser/network and
 provider-cost acceptance remain pending. Controlled recovery/concurrency tests
-verify the service contracts; review drafts now survive reload. An unresolved
-pending-confirmation/new-intent UI bug blocks a wider student trial. See the
+verify the service contracts; review drafts now survive reload. The client now
+resolves an uncertain request before sending another action; a subsequent new
+action receives a fresh operation ID. Recovery stays available after reload, with
+account-scoped public request details. This local fix is awaiting independent
+review and protected-preview verification; broader trial acceptance remains open. See the
 [phased plan](ZEROJAMS-PLAN.md) and [operator guide](ZEROJAMS-OPERATIONS.md).
 
 ## Core goal: students grow the framework

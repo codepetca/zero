@@ -189,7 +189,7 @@ moderation context. Confirmation clears only that original draft; a late respons
 cannot hide another account's active draft. Gallery summaries include the immutable
 entry `revision` for this read-only context; mutation authority is unchanged.
 
-**Open student-trial blocker: historical retry versus new intent.** The audit also
+**Historical finding (superseded by the reconciliation phase below): retry versus new intent.** The audit also
 reproduces this browser sequence:
 
 1. Join commits, but the reply is unreadable, leaving its key pending.
@@ -408,3 +408,40 @@ through reviewed controls when service access is safe and safety capacity allows
 Credential revocation/rotation or repository changes require their own applicable
 authorization. Resume only after cause review, permission verification, fresh
 negative checks and owner approval.
+
+
+## Pending-request reconciliation — 2026-10-25
+
+Owner authorized fixing the lost Join reply → Leave → Join bug, with production
+hidden. The client keeps uncertain request details and the original operation ID
+in session storage and shares a lock between controls for the same account and
+endpoint within a tab. Another payload cannot pass that unresolved request.
+“Resolve earlier request” retries the saved payload independently of a disappeared
+button/form, then reloads the current event details. Only a confirmed operation
+clears its key; a later new action gets a new key. Existing pending keys restore
+without migration, one at a time. Requests contain public form fields only; no
+credential is persisted. Changing accounts hides the other account's pending
+request and feedback immediately. Existing server idempotency is unchanged.
+
+A first explicit application 4xx rejection permits correction. An error while
+recovering an unknown result retains the old key: sign back into the same account
+or restore service availability and resolve again. There is deliberately no
+“discard unknown request” action. If an uncommitted request becomes permanently
+invalid (for example a deadline expires), this conservative flow may remain
+blocked; stop that pilot action and have the maintainer investigate. A future
+durable server rejection/fencing protocol would be needed to abandon it safely
+while an old request might still commit. This is a remaining wider-trial limit,
+not permission to clear browser keys or claim the unknown request failed.
+Session storage and locks are tab-scoped; this does not serialize separate tabs
+or devices. Server CAS/idempotency still protects shared records.
+
+The actual participation component and hooks run against the loopback GitHub
+HTTP fixture: Join commits but its reply is unreadable, reload reads joined and
+removes the Join button, Leave is blocked, the recovery control confirms the old
+Join, Leave commits, and the next Join commits with a different operation ID.
+There are exactly three commits for the three intents; recovery adds no commit.
+Additional cases cover legacy pending keys, queued old unknowns, first rejection
+versus uncertain retry, shared locks, actor changes and late confirmation.
+
+Local checks and independent review are in progress. Closed live fixtures and
+registry branch are preserved. No main merge or production rollout is authorized.
