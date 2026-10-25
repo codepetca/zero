@@ -347,7 +347,7 @@ function activate(context, services = {}) {
     }});
     const processExecution = typeof vscode.CustomExecution === 'function'
       ? (transport = createNativeRuntimeExecution({vscode,spec,buildId:await nativeBuildIdentity(root),...services.nativeRuntime,
-          isCurrent:()=>!disposed && metadata.generation === runGeneration,
+          isCurrent:()=>!disposed && metadata.generation === runGeneration && vscode.workspace.isTrusted !== false,
           onEvent:event => nativeRuntimeState(task,event),onOutput:(text,stream)=>compiler.push(text,stream),
           onExit:code => {compiler.end();metadata.exitCode = code;}
         })).execution
@@ -364,7 +364,7 @@ function activate(context, services = {}) {
     task.group = vscode.TaskGroup.Build;
     return task;
   }
-  const taskFinishes = new Map();
+  const taskFinishes = new Map(), endedTasks = new WeakSet();
   function finishedTaskPty(message, exitCode) {
     const writes = new vscode.EventEmitter(), closes = new vscode.EventEmitter();
     let closed = false;
@@ -375,14 +375,14 @@ function activate(context, services = {}) {
     };
   }
   function track(active) {
-    if (taskFinishes.has(active)) return;
+    if (taskFinishes.has(active) || endedTasks.has(active)) return;
     const metadata = nativeTaskState(active.task);
     if (!metadata) return;
+    if (disposed || metadata.generation !== runGeneration) {stoppedTasks.add(active);active.terminate();return;}
     if (execution && execution !== active) {stoppedTasks.add(execution); execution.terminate();}
     execution = active;
     buildFailed = false;
     ending = new Promise(resolve => taskFinishes.set(active, resolve));
-    if (disposed || metadata.generation !== runGeneration) {stoppedTasks.add(active);active.terminate();return;}
     compilerProblems?.clear();nativeProblems?.clear();
     if(metadata)publishCompilerProblems(metadata);
     state = 'Building / running · readiness unverified — output is in the terminal'; refresh();
@@ -392,6 +392,7 @@ function activate(context, services = {}) {
   context.subscriptions.push(vscode.tasks.onDidStartTask(event => {
     if (event.execution.task.definition.type === 'zero' && ['run','native-run'].includes(event.execution.task.definition.task)) track(event.execution);
   }), vscode.tasks.onDidEndTask(event => {
+    endedTasks.add(event.execution);
     const finish = taskFinishes.get(event.execution);
     if (!finish) return;
     taskFinishes.delete(event.execution); finish();
@@ -450,11 +451,13 @@ function activate(context, services = {}) {
     if (disposed || generation !== runGeneration) return;
     if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
     if (disposed || generation !== runGeneration) return;
+    if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
     if (stopPromise || isBusy()) throw new Error('Finish the current action before running the app.');
     await stop();
     if (disposed || generation !== runGeneration) return;
     if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
     if (disposed || generation !== runGeneration) return;
+    if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
     browserRun.stop({quiet:true});
     pendingLaunch = vscode.tasks.executeTask(task).then(active => {
       if (disposed || generation !== runGeneration) {stoppedTasks.add(active);active.terminate();}
