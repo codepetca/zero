@@ -515,8 +515,9 @@ uncertain refresh outcomes require reconnecting instead of retrying a rotating t
 
 Local broker/GitHub fixtures verify the handoff and renewal protocol. Live GitHub
 web authorization, deployed callbacks and physical Windows/Safari acceptance stay
-unproven until their separate activation/acceptance work. Published kits retain
-code sign-in until an authorized release ships this source.
+unproven until their separate activation/acceptance work. Published desktop downloads retain
+their bundled sign-in behavior; browser-only new connections require a separate
+authorized release.
 
 Focused native checks are `node --test extension/test/github-app-*.test.js`,
 followed by the full extension suite. Mocked API/device-flow tests and disposable

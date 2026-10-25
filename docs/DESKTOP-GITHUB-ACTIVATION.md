@@ -1,8 +1,9 @@
 # Desktop GitHub authorization activation
 
-The desktop broker supports the reviewed browser-first Zero client, with an
-explicit device-code fallback. Published desktop downloads retain their bundled
-sign-in behavior until a separate authorized native release.
+The desktop broker supports browser authorization. Current local Zero source
+uses it for new connections, without a code option or device fallback. Existing
+device-issued sessions retain their renewal path. Published desktop downloads
+retain their bundled sign-in behavior until a separate authorized native release.
 
 `/api/desktop/github/{start,login,callback,exchange,refresh}` uses the existing
 Codepet App configuration and server-held `ZERO_HUB_GITHUB_CLIENT_ID`,

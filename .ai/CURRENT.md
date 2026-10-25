@@ -22,7 +22,9 @@ computer controls selected installed Zero instead of the separate Dev instance;
 no native-editor/realliveOAuth acceptance claimed. Installed account state and
 unsaved work preserved. Browser preview is simulated; no new GitHub login or
 repository operation was performed. Independent source-review receipts and final
-verdicts: `.verification/simplify-sign-in/`. Root Dev watcher/preview at3153 retained.
+verdicts: `.verification/simplify-sign-in/`. Two independent Sol/high implementation
+reviews at0a525808 are clean; one P3 docs inconsistency was corrected separately,
+with targeted closure in the receipts. Root Dev watcher/preview at3153 retained.
 
 Remaining before shipping: actual new native/editor interaction, source PR/CI and
 separately authorized new immutable release; do not modify published49bytes.

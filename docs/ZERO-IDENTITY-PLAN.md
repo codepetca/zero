@@ -73,13 +73,15 @@ claim that the initial design has narrower authority than GitHub grants.
 
 ## Architecture
 
-### Browser-first desktop sign-in — local implementation, 2026-10-24
+### Browser-only new desktop sign-in — local implementation, 2026-10-25
 
-After the current tutorial readiness work, make browser authorization the default
-desktop sign-in: click Sign in, open GitHub's authorization page, then return to
-Zero automatically. Keep explicit device-code sign-in as a fallback for browsers
-or school computers that cannot complete the return. GitHub may still require
-account selection, password/passkey or two-factor authentication.
+New desktop connections use browser authorization: click Sign in to GitHub,
+open GitHub's authorization page, then return to Zero automatically. No code
+option or device fallback is offered. Browser failures leave sign-in available
+to retry and local running usable. Existing device-issued sessions retain their
+renewal path; published downloads keep their bundled behavior until the next
+authorized release. GitHub may still require account selection, password/passkey
+or two-factor authentication.
 
 Implemented locally with a separate first-party desktop broker. GitHub's App web
 flow requires a server-held client secret for code exchange and refresh, even with
