@@ -1,32 +1,29 @@
-# Mac0.5.50 — candidate, installed acceptance, conditional publication
+# Mac0.5.50 — final candidate accepted, source CI then conditional publication
 
-Use `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/mac-0-5-50`.
-Owner “Do it” on2026-10-25 authorized mergePR198, signed0.5.50 candidate,
-installed sign-in/upgrade preservation tests and publication after required gates.
-PR198 merged73847c88 after11greenCI and clean source/security/UI/integration reviews.
-Source is browser-only new login; legacy saved sessions retain renewal. Main
-button says Sign in to GitHub signed out, Start tutorial once authenticated,
-enabled only after access is verified. Owner approved prior manualDevUI smoke;
-full native/liveOAuth completion was not separately reported.
+Worktree `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/mac-0-5-50`.
+Owner Do it2026-10-25 authorizes merge198, signed50, installedQA and publication
+after normal gates. PR198 merged73847c88/11green; PR199 source candidate draft.
+Browser-only new GitHub sign-in; old sessions retain renewal. Start Page main
+button Sign in to GitHub signed out, Start tutorial when authenticated/access-ready.
 
-Current step: sealed50candidate prepared from clean ecf95cd0, preparationfc7001e4.
-DMG5,918,773bytes/SHA2568120ada9ad2c999117615e0f6b7e4de67ccc4ea43f4d833005c2dc9220fe41b1;
-AppleAcceptede880824d-30a3-48ef-912e-878d861d441b. Root/34tests/kit/Maven/signatures/
-staple/Gatekeeper/seal checks pass. SourcePR/CI, independentartifact review and
-actual installed49→50sign-in/preservation acceptance gate publication. See
-docs/MAC-CANDIDATE-0.5.50.md; no originalstudentprojectroot atbaseline.
-Retain published49DMG/feed/manifest snapshot while50is local. Keep all old sealed
-candidates and private backups. No clobber/rebuild of distributed assets. Do not
-publish50until source/CI/artifact/installed acceptance gates pass. Source and
-promotion PRs/merges within this release flow are authorized. Record failures
-honestly and preserve rollback/work. Use existing signing/notary credentials
-without reading values or changing account settings.
+Final build4675e862, prep66e6ce90, seal dist/candidates/mac-0.5.50-66e6ce901e11.
+DMG5918971/SHA2567effba8ea273dbff3629b6dca3ee84f0d3d9243d1fe67ada7d6ea892b67ae6c1;
+AppleAccepted4079be41-9d30-4872-a64b-af4162ec28c2. Source/kit/signature/staple/
+Gatekeeper/13hash/feed+DMG Ed checks pass; independent authdelta+artifact review clean.
+First private50seal fc7001e4 is retained/superseded: actual signin found stale
+signout feedback, fixed with49focused tests. Installed corrected source verified:
+manual app replacement+explicit supported sameversion VSIX reinstall/reload,
+real account-picker/browser-return signin clears stale message; old49project
+Run→App UI ready→Stop succeeds;249source/build files/settings/48char note unchanged.
+No original ~/Zero Projects root existed. Details docs/MAC-CANDIDATE-0.5.50.md.
 
-ZeroJams remains hidden/default off in production; no activation authority.
-Windows21preview and manualkit17 stay separate. No student repository writes,
-Pages/ZeroHub publication, template deployment, new telemetry or credential changes.
-Fresh-Mac/school-network/novice/physical native-gameplay and actual updater-delivery
-pilot gaps remain separately unproven; owner continues that pilot. Primary
-checkout's funding work and isolated Dev projects/profiles remain preserved.
-Proof: `.verification/mac50/`; prior source `.verification/simplify-sign-in/`.
-DeepSeek paused through2026-12-31. No new goal/task/automation.
+Next: final PR199 checks/review→merge; create single-DMG setup-v0.5.50 draft targeting
+prep66e6ce90; verify draft bytes→publish→anonymous exact bytes; separate reviewed
+promotion PR for installer snapshot/feed→CI/merge→verify live downloads/feed.
+Preserve published49/old seals until promotion; never overwrite distributed assets.
+Source/promotion PRs/merges authorized. Existing signing credentials only; no
+account settings. Core0.3.0/manualkit17/Windows21 and ZeroJams production hold stay.
+No student repo/Pages/ZeroHub writes, manual-kit/Windows release or template deploy.
+FreshMac/school-network/novice/gameplay/Sparkle delivery remain separate pilot gaps.
+Primary checkout funding work, Dev process/profiles and private backups preserved.
+Proof .verification/mac50/; DeepSeek paused through2026-12-31. No newgoal/task.
