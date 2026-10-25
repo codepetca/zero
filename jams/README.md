@@ -18,6 +18,8 @@ be absent when constructing read-only service instances; verification then fails
 unavailable. Manifest retrieval uses the fixed GitHub Contents API at the exact
 commit and verifies Git blob SHA-1 plus bounded UTF-8 JSON. Links are validated,
 but demo bytes and mutable hosted websites are not verified/frozen by Zero.
+Commit existence uses `/git/commits/<sha>` metadata, avoiding diff/patch payloads
+from large student commits.
 
 `createGitHubJamStore({token, fetchImpl, timeoutMs, maxEvents})` uses a separate
 server-only service credential. It is fixed to `codepetca/zero`, existing branch
@@ -47,17 +49,36 @@ restoring anything. A participant may submit a corrected new entry revision whil
 the event is active and its ordinary submission window remains open.
 `list(actor?)` includes an inbox of submitted/changes-requested proposal summaries
 only for configured maintainer IDs; public and other-account lists omit it.
+Public `event.approvalHistory` contains at most 50 approved-only revision, manifest
+and approval-date snapshots. Pending proposals stay private. Approving new rules
+does not overwrite a participant's previous `registration.revision`; the next
+applicable action acknowledges the displayed current revision.
 
 Pilot defaults: 100 events per listing/new-event capacity check, 200 distinct
 participant records per event (including departed participants), 1,000 accepted
-operations per event, 50 proposal revisions, 30 entry revisions per participant,
+ordinary operations per event, 50 proposal revisions, 30 entry revisions per participant,
 2,000,000 serialized state bytes, eight CAS attempts, and ten distinct accepted
-writes per actor/event in a rolling 60 seconds. The per-event capacities and
+writes per actor/event in a rolling 60 seconds for ordinary operations. The per-event capacities and
 write-rate limit are durable CAS checks. Idempotent recovery runs before quotas;
 same actor/event/key with altered normalized payload conflicts. No operation is
 evicted to make room. Operators must review capacity before activation.
 The final entry-history slot is reserved for withdrawal/removal; ordinary
 submissions stop at 29 revisions under the default 30-revision bound.
+
+Safety moderation (`suspend`, `cancel`, `withdraw-entry`) has a separate bounded
+pool: `min(safetyOperations, participants + 2)` slots, default 202, with 4,096
+serialized bytes reserved per unspent slot. Ordinary writes cannot consume that
+space or those operation slots. The initial ordinary byte budget is 1,172,608
+under the default 2,000,000-byte limit. Every safety write must grow the whole
+record by at most 4,096 bytes, and state validation reserves 4,096 bytes for each
+remaining safety slot; unused bytes from consumed slots may serve later ordinary
+writes. Safety reasons are limited to 256 characters, and removal stores a compact
+withdrawal revision pointing to immutable prior source. Participant reads resolve
+that reference for useful removed-entry metadata. These safety actions bypass the
+ordinary count/rate quota but remain maintainer-only and recover by the same
+durable operation key. Exhausting the safety pool fails explicitly for operator
+intervention; moderation is bounded, not unlimited. Custom limits leaving less
+than 65,536 ordinary bytes or fewer than two entry-history slots are invalid.
 
 The global event cap is an advisory admission check, **not an atomic quota**:
 two new events may race because the contract has per-event CAS only. Over-cap

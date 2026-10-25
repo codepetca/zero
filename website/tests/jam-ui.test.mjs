@@ -5,18 +5,24 @@ import vm from 'node:vm';
 import {createRequire} from 'node:module';
 import {webcrypto} from 'node:crypto';
 import ts from 'typescript';
+import {renderToStaticMarkup} from 'react-dom/server';
 const require=createRequire(import.meta.url);
 const clientSource=await readFile(new URL('../components/JamClient.tsx',import.meta.url),'utf8');
 const panelSource=await readFile(new URL('../app/hub/jams/[id]/panel/route.ts',import.meta.url),'utf8');
 function compile(source){return ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;}
-function harness({storage=new Map(),fetcher=async()=>{throw new Error('network');}}={}) {
+function harness({storage=new Map(),fetcher=async()=>{throw new Error('network');},participateData=null}={}) {
   let actor={id:'12',login:'creator',csrfToken:'csrf'},index=0,slots=[];
   const self={},window={self,top:self};
   const react={useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(){index++;}};
   const module={exports:{}};
-  const context={module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor})};if(name==='next/link')return ()=>null;return require(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
-  vm.runInNewContext(compile(clientSource)+'\nexports.testing={useMutation,useResource};',context);
-  return {render(kind='useMutation',path='/api/jams/jam-42/actions'){index=0;return module.exports.testing[kind](path);},setActor(value){actor=value;},frame(){window.top={};},storage};
+  const context={participateData,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return ()=>null;return require(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
+  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData,error:"",loading:false,refresh:async()=>{}});useTopLevel=()=>true;}exports.testing={useMutation,useResource,JamParticipate,ApprovedVersions};',context);
+  return {render(kind='useMutation',path='/api/jams/jam-42/actions'){index=0;return module.exports.testing[kind](path);},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
+}
+function elements(node) {
+  if(Array.isArray(node))return node.flatMap(elements);
+  if(!node||typeof node!=='object')return [];
+  return [node,...elements(node.props?.children)];
 }
 function confirmed(init){const body=JSON.parse(init.body);return Response.json({configured:true,eventId:'jam-42',operationId:body.operationId});}
 test('mutation retries preserve operation identity through errors and reload; success clears it',async()=>{
@@ -68,6 +74,32 @@ test('entry moderation is maintainer-only in the gallery and sends the public re
   const h=harness({fetcher:async(url,init)=>{received=JSON.parse(init.body);return confirmed(init);}});
   assert.ok(await h.render().send(payload));
   const {operationId,...sent}=received;assert.deepEqual(sent,payload);assert.ok(operationId);
+});
+test('a participant joined under A sees approved B changes and old rules, but cannot submit without reviewing B',async()=>{
+  const original={type:'game',title:'Jam A',summary:'Original jam',theme:'Water',rules:'Original rule A: work alone.',eligibility:'Students',websiteUrl:'https://creator.example/',timezone:'UTC',schedule:{registrationOpensAt:'2030-01-01T00:00:00Z',registrationClosesAt:'2030-01-10T00:00:00Z',startsAt:'2030-01-11T00:00:00Z',submissionsOpenAt:'2030-01-11T00:00:00Z',submissionsCloseAt:'2030-01-12T00:00:00Z'}};
+  const revised={...original,title:'Jam B',rules:'Revised rule B: pairs allowed.',schedule:{...original.schedule,submissionsCloseAt:'2030-01-14T00:00:00Z'}};
+  const acceptedA={revision:'A',approvedAt:'2029-12-01T12:00:00Z',manifest:original},acceptedB={revision:'B',approvedAt:'2029-12-02T12:00:00Z',manifest:revised};
+  const detail={configured:true,event:{...original,id:'jam-42',revision:'A',approvalHistory:[acceptedA],moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participants:[],participantCount:1,entries:[]},registration:{status:'joined',revision:'A'},entry:null,canMaintain:false,proposal:{manifest:{...revised,rules:'Private pending rule C'}}};
+  const calls=[],h=harness({participateData:detail,fetcher:async(url,init)=>{calls.push(JSON.parse(init.body));return confirmed(init);}});
+  const render=()=>h.render('JamParticipate',{id:'jam-42'}),submitButton=tree=>elements(tree).find(node=>node.type==='button'&&node.props.children==='Submit my work');
+  let tree=render();assert.equal(elements(tree).some(node=>node.props?.role==='status'&&String(node.props.children).includes('newer approved version')),false);
+  elements(tree).find(node=>node.type==='input'&&node.props.type==='checkbox').props.onChange({target:{checked:true}});
+  assert.equal(submitButton(render()).props.disabled,false);
+  const updated={...detail,event:{...detail.event,...revised,revision:'B',approvalHistory:[acceptedA,acceptedB]}};h.setDetail(updated);
+  tree=render();assert.ok(elements(tree).find(node=>node.props?.role==='status'&&String(node.props.children).includes('Review the current rules and schedule')));
+  assert.equal(elements(tree).find(node=>node.type==='input'&&node.props.type==='checkbox').props.checked,false);assert.equal(submitButton(tree).props.disabled,true);
+  await elements(tree).find(node=>node.type==='form').props.onSubmit({preventDefault(){}});assert.equal(calls.length,0,'even a form submit cannot acknowledge an unreviewed replacement');
+  const history=renderToStaticMarkup(h.render('ApprovedVersions',{event:updated.event}));
+  assert.match(history,/<summary>Approved versions<\/summary>/);assert.match(history,/Original rule A: work alone\./);assert.match(history,/Revised rule B: pairs allowed\./);
+  assert.match(history,/2030-01-12T00:00:00Z/);assert.match(history,/2030-01-14T00:00:00Z/);assert.match(history,/2029-12-01T12:00:00Z/);assert.doesNotMatch(history,/Private pending rule C/);
+  tree=render();elements(tree).find(node=>node.type==='input'&&node.props.type==='checkbox').props.onChange({target:{checked:true}});
+  tree=render();assert.equal(submitButton(tree).props.disabled,false);
+  await elements(tree).find(node=>node.type==='form').props.onSubmit({preventDefault(){}});assert.equal(calls.length,1);assert.equal(calls[0].revision,'B');assert.equal(detail.registration.revision,'A','reading/checking does not silently rewrite prior server acknowledgment');
+});
+test('safety moderation reasons are bounded to 256 characters while proposal review keeps its existing limit',()=>{
+  const moderation=clientSource.slice(clientSource.indexOf('function Moderation('),clientSource.indexOf('export function JamDetail('));
+  assert.equal([...moderation.matchAll(/maxLength=\{256\}/g)].length,2);assert.doesNotMatch(moderation,/maxLength=\{2000\}/);
+  assert.match(clientSource,/<label>Review reason<textarea[\s\S]*?maxLength=\{2000\}/);
 });
 test('fetched private data is unavailable immediately after actor changes, while draft hooks are independent',async()=>{
   const h=harness({fetcher:async()=>Response.json({configured:true,canMaintain:true,proposal:{title:'private proposal'}})});

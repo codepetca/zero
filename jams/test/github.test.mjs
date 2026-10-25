@@ -13,7 +13,7 @@ function githubFixture(overrides={}) {
   const fetchImpl=async(url,options)=>{
     calls.push({url,options});
     if(url.endsWith('/repos/creator/jam'))return json({id:101,owner:{id:11,type:'User'},full_name:'creator/jam',private:false,visibility:'public',...overrides.repository});
-    if(url.endsWith(`/commits/${COMMIT}`))return json({sha:COMMIT,...overrides.commit});
+    if(url.endsWith(`/git/commits/${COMMIT}`))return json({sha:COMMIT,...overrides.commit});
     if(url.endsWith(`/contents/zero-jam.json?ref=${COMMIT}`))return json({...content,...overrides.content});
     throw Error('Unexpected external request.');
   };
@@ -37,6 +37,15 @@ test('source response sizes and URLs are bounded',async()=>{
   let calls=0;const verify=createGitHubSourceVerifier({token:TOKEN,fetchImpl:async()=>{calls++;return json({});}});
   await assert.rejects(verify({...sourceInput,repositoryUrl:'https://github.com/creator/jam?redirect=evil'}),error=>error.status===400);assert.equal(calls,0);
   await assert.rejects(createGitHubSourceVerifier({token:TOKEN,fetchImpl:async()=>new Response('x'.repeat(40000),{headers:{'content-type':'application/json'}})})(sourceInput),error=>error.status===503);
+});
+test('large student commits use Git commit metadata and never request diff/patch contents',async()=>{
+  const f=githubFixture();
+  const verify=createGitHubSourceVerifier({token:TOKEN,fetchImpl:async(url,options)=>{
+    if(url.endsWith(`/commits/${COMMIT}`)&&!url.includes('/git/commits/'))return json({sha:COMMIT,files:[{patch:'x'.repeat(2_000_000)}]});
+    return f.fetchImpl(url,options);
+  }});
+  assert.equal((await verify({...sourceInput,manifest:false})).repository.commit,COMMIT);
+  assert.equal(f.calls.length,2);assert.ok(f.calls[1].url.endsWith(`/git/commits/${COMMIT}`));
 });
 test('store fixes branch/path, verifies blob bytes and writes with expected revision and atomic operation record',async()=>{
   const f=fixture();await approved(f);const state=f.store.records.get('jam-101').state;

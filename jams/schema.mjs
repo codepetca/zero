@@ -8,7 +8,11 @@ export const ID = /^jam-[1-9][0-9]{0,19}$/;
 export const SHA = /^[a-f0-9]{40}$/;
 export const ACCOUNT = /^[1-9][0-9]{0,19}$/;
 export const LOGIN = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/;
-export const LIMITS = Object.freeze({events:100, participants:200, operations:1000, proposals:50, entryHistory:30, retries:8, stateBytes:2_000_000, actorWrites:10, writeWindowMs:60000});
+export const LIMITS = Object.freeze({events:100, participants:200, operations:1000, safetyOperations:202, proposals:50, entryHistory:30, retries:8, stateBytes:2_000_000, actorWrites:10, writeWindowMs:60000});
+export const SAFETY_SLOT_BYTES=4096;
+export const safetySlots=limit=>Math.min(limit.safetyOperations,limit.participants+2);
+export const operationCounts=state=>Object.values(state.operations).reduce((counts,operation)=>{counts[operation.pool]=(counts[operation.pool]||0)+1;return counts;},{ordinary:0,safety:0});
+export const stateBudget=(state,limit)=>limit.stateBytes-(safetySlots(limit)-operationCounts(state).safety)*SAFETY_SLOT_BYTES;
 export const canonical = value => Array.isArray(value) ? `[${value.map(canonical).join(',')}]`
   : value && typeof value === 'object' ? `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonical(value[key])}`).join(',')}}`
   : JSON.stringify(value);
@@ -61,7 +65,7 @@ export function repositoryData(input, actor, expectedCommit) {
   if (parsed.owner.toLowerCase() !== actor.login.toLowerCase()) fail(403,'The public source must belong to your GitHub account.');
   return {...input};
 }
-export function validateState(state, id, limit = LIMITS) {
+export function validateState(state, id, limit = LIMITS, {enforceReserve=true} = {}) {
   // The registry is operator-controlled, but malformed/truncated state must never
   // become an empty event or supply authority through an unchecked record.
   try {
@@ -69,7 +73,8 @@ export function validateState(state, id, limit = LIMITS) {
     if (state.schema !== 1 || state.id !== id || !ID.test(id) || state.repositoryId !== id.slice(4)) throw Error();
     actorIdentity(state.creator);
     if (!Array.isArray(state.proposals) || !state.proposals.length || state.proposals.length > limit.proposals || !object(state.registrations) || !object(state.entries) || !object(state.operations) || !Array.isArray(state.history) || !['active','suspended','cancelled'].includes(state.moderation?.status)) throw Error();
-    if (Object.keys(state.registrations).length > limit.participants || Object.keys(state.operations).length > limit.operations || Buffer.byteLength(JSON.stringify(state)) > limit.stateBytes) throw Error();
+    const counts=operationCounts(state);
+    if (Object.keys(state.registrations).length > limit.participants || counts.ordinary > limit.operations || counts.safety > safetySlots(limit) || Buffer.byteLength(JSON.stringify(state)) > (enforceReserve?stateBudget(state,limit):limit.stateBytes)) throw Error();
     for (const proposal of state.proposals) {
       if (!/^[a-f0-9]{64}$/.test(proposal.revision) || !['submitted','changes-requested','approved','rejected'].includes(proposal.status)) throw Error();
       manifestData(proposal.manifest);
@@ -84,10 +89,16 @@ export function validateState(state, id, limit = LIMITS) {
       if(!proposal||canonical(proposal)!==canonical(acceptedProposal)||!ACCOUNT.test(approvedBy)||approvedBy===state.creator.id||approvedAt!==proposal.reviewedAt)throw Error();
     }
     for (const [key,value] of Object.entries(state.registrations)) if (!ACCOUNT.test(key) || value.id !== key || !LOGIN.test(value.login) || !['joined','left'].includes(value.status)) throw Error();
-    for (const [key,history] of Object.entries(state.entries)) if (!ACCOUNT.test(key) || !state.registrations[key] || !Array.isArray(history) || history.length > limit.entryHistory || history.some(entry => entry.participantId !== key || !['active','withdrawn'].includes(entry.status))) throw Error();
+    for (const [key,history] of Object.entries(state.entries)) {
+      if (!ACCOUNT.test(key) || !state.registrations[key] || !Array.isArray(history) || history.length > limit.entryHistory || history.some(entry => entry.participantId !== key || !['active','withdrawn'].includes(entry.status))) throw Error();
+      for(const entry of history.filter(entry=>entry.moderatedBy)) {
+        keys(entry,['participantId','revision','previousRevision','status','withdrawnAt','moderatedBy','reason']);
+        if(entry.status!=='withdrawn'||!ACCOUNT.test(entry.moderatedBy)||text(entry.reason,256)!==entry.reason||!history.some(previous=>previous.revision===entry.previousRevision&&previous.status==='active'))throw Error();
+      }
+    }
     for(const [key,operation]of Object.entries(state.operations)) {
-      keys(operation,['actorId','acceptedAt','payloadDigest','result']);
-      if(!ACCOUNT.test(operation.actorId)||!key.startsWith(operation.actorId+':')||!Number.isSafeInteger(operation.acceptedAt)||! /^[a-f0-9]{64}$/.test(operation.payloadDigest)||operation.result?.eventId!==id||operation.result.operationId!==key.slice(operation.actorId.length+1))throw Error();
+      keys(operation,['actorId','acceptedAt','payloadDigest','result','pool']);
+      if(!['ordinary','safety'].includes(operation.pool)||!ACCOUNT.test(operation.actorId)||!key.startsWith(operation.actorId+':')||!Number.isSafeInteger(operation.acceptedAt)||! /^[a-f0-9]{64}$/.test(operation.payloadDigest)||operation.result?.eventId!==id||operation.result.operationId!==key.slice(operation.actorId.length+1))throw Error();
     }
     return structuredClone(state);
   } catch { fail(503,'Official jam records are unavailable.'); }

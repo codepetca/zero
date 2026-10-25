@@ -25,7 +25,7 @@ export function createGitHubSourceVerifier({token,fetchImpl=fetch,timeoutMs=8000
     const repo = await request('');
     if (!Number.isSafeInteger(repo?.id) || !Number.isSafeInteger(repo?.owner?.id) || repo.private !== false || repo.visibility && repo.visibility !== 'public' || repo.owner.type !== 'User' || repo.full_name?.toLowerCase() !== `${parts.owner}/${parts.repo}`.toLowerCase()) fail(403,'Use a public repository owned by your personal GitHub account.');
     const repository = repositoryData({id:String(repo.id),ownerId:String(repo.owner.id),fullName:repo.full_name,commit},actor,commit);
-    const exact = await request(`/commits/${commit}`,128000);
+    const exact = await request(`/git/commits/${commit}`,32768);
     if (exact?.sha !== commit) fail(400,'The exact source commit could not be verified.');
     if (!manifest) return {repository};
     const content = await request(`/contents/zero-jam.json?ref=${commit}`,100000);

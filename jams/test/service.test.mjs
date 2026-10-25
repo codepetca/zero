@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createJamService,JamError} from '../service.mjs';
 import {manifestData} from '../schema.mjs';
+import {LIMITS,SAFETY_SLOT_BYTES,safetySlots,stateBudget,operationCounts,validateState} from '../schema.mjs';
 import {fixture,approved,creator,maintainer,participant,COMMIT,NEXT_COMMIT,manifest,submission} from './fixtures.mjs';
 
 const status=expected=>error=>error instanceof JamError&&error.status===expected;
@@ -148,4 +149,49 @@ test('global event cap is checked for each new event but is not an atomic cross-
   const f=fixture({limits:{events:1}});await approved(f);
   const service=createJamService({store:f.store,maintainerIds:['22'],now:()=>Date.parse('2030-01-02T00:00:00Z'),limits:{events:1},verifySource:async input=>({repository:{id:'303',ownerId:input.actor.id,fullName:'creator/second',commit:COMMIT},manifest:manifest()})});
   await assert.rejects(service.propose({actor:creator,operationId:'propose-next',repositoryUrl:'https://github.com/creator/second',commit:COMMIT}),status(429));
+});
+test('ordinary operation exhaustion preserves durable safety suspend, cancel and removal with retry recovery',async()=>{
+  const f=fixture({limits:{operations:4,actorWrites:2}}),revision=await approved(f);await f.service.mutate(join(revision));await f.service.mutate(submission(revision));
+  await assert.rejects(f.service.mutate({id:'jam-101',actor:participant,operationId:'leave-capped',action:'leave'}),status(429));
+  const actions=[{action:'suspend',operationId:'safety-suspend'},{action:'cancel',operationId:'safety-cancel'},{action:'withdraw-entry',operationId:'safety-remove',participantId:participant.id}];
+  for(const action of actions) {const input={id:'jam-101',actor:maintainer,reason:'Safety remedy',...action};const accepted=await f.service.mutate(input);assert.deepEqual(await f.service.mutate(input),accepted);}
+  const state=f.store.records.get('jam-101').state;
+  assert.deepEqual(operationCounts(state),{ordinary:4,safety:3});assert.equal(state.moderation.status,'cancelled');assert.equal(state.entries[participant.id].at(-1).repository,undefined);
+  assert.equal((await f.service.read('jam-101',participant)).entry.repository.commit,COMMIT);assert.equal((await f.service.read('jam-101')).event.entries.length,0);
+});
+test('ordinary serialized budget remains bounded while reserved safety writes fit and schema enforces pool counts',async()=>{
+  const limits={participants:5,stateBytes:65536+7*SAFETY_SLOT_BYTES},bound={...LIMITS,...limits};
+  const f=fixture({limits}),revision=await approved(f),actors=[participant,...Array.from({length:4},(_,index)=>({id:String(100+index),login:`student${index}`}))];
+  for(const actor of actors)await f.service.mutate(join(revision,{actor}));
+  let exhausted=false,number=0;
+  // Actual accepted submissions accumulate bounded source/history until the
+  // ordinary serialized budget refuses another full-size entry revision.
+  for(let round=0;round<5&&!exhausted;round++)for(const actor of actors) {
+    try {await f.service.mutate(submission(revision,{actor,operationId:`fill-entry-${number++}`,source:{repositoryUrl:`https://github.com/${actor.login}/project`,commit:COMMIT},description:'d'.repeat(2000),instructions:'i'.repeat(4000)}));}
+    catch(error) {assert.equal(error.status,413);exhausted=true;break;}
+  }
+  assert.equal(exhausted,true);
+  const starting=Buffer.byteLength(JSON.stringify(f.store.records.get('jam-101').state));
+  assert.ok(starting<=stateBudget(f.store.records.get('jam-101').state,bound));
+  for(const input of [{action:'suspend',operationId:'full-suspend'},{action:'cancel',operationId:'full-cancel'},{action:'withdraw-entry',operationId:'full-remove',participantId:participant.id}])await f.service.mutate({id:'jam-101',actor:maintainer,reason:'漢'.repeat(256),...input});
+  const final=f.store.records.get('jam-101').state;
+  assert.ok(Buffer.byteLength(JSON.stringify(final))-starting<=3*SAFETY_SLOT_BYTES);assert.ok(Buffer.byteLength(JSON.stringify(final))<=stateBudget(final,bound));validateState(final,'jam-101',bound);
+  const malformed=structuredClone(final);malformed.operations[Object.keys(malformed.operations)[0]].pool='unknown';assert.throws(()=>validateState(malformed,'jam-101',bound),status(503));
+});
+test('safety reserve exhaustion is explicit, idempotent retries recover, and invalid low budgets are rejected',async()=>{
+  const f=fixture({limits:{safetyOperations:1}});await approved(f);
+  const suspend={id:'jam-101',actor:maintainer,operationId:'only-suspend',action:'suspend',reason:'Review'};const result=await f.service.mutate(suspend);
+  await assert.rejects(f.service.mutate({...suspend,operationId:'extra-safety',action:'cancel'}),error=>error.status===429&&error.message.includes('safety'));
+  assert.deepEqual(await f.service.mutate(suspend),result);
+  assert.throws(()=>fixture({limits:{stateBytes:safetySlots(LIMITS)*SAFETY_SLOT_BYTES+65535}}),status(503));
+});
+test('approved-only history exposes prior and current rules/dates without disclosing pending proposals or changing acknowledgment',async()=>{
+  const f=fixture(),revisionA=await approved(f);await f.service.mutate(join(revisionA));
+  const service=createJamService({store:f.store,maintainerIds:[maintainer.id],now:()=>Date.parse('2030-01-02T12:00:00Z'),verifySource:async input=>({repository:{id:'101',ownerId:creator.id,fullName:'creator/jam',commit:input.commit},manifest:manifest({rules:'Changed public rules',schedule:{...manifest().schedule,submissionsCloseAt:'2030-01-05T00:00:00Z'}})})});
+  const revisionB=await service.propose({actor:creator,operationId:'history-propB',repositoryUrl:'https://github.com/creator/jam',commit:NEXT_COMMIT});
+  assert.equal((await service.read('jam-101')).event.approvalHistory.length,1);
+  await service.mutate({id:'jam-101',actor:maintainer,operationId:'history-approveB',action:'approve',revision:revisionB.revision});
+  await service.propose({actor:creator,operationId:'history-pending',repositoryUrl:'https://github.com/creator/jam',commit:'c'.repeat(40)});
+  const read=await service.read('jam-101',participant),history=read.event.approvalHistory;
+  assert.equal(read.registration.revision,revisionA);assert.equal(history.length,2);assert.equal(history[0].manifest.rules,'Make your own work.');assert.equal(history[1].manifest.rules,'Changed public rules');assert.equal(history[1].manifest.schedule.submissionsCloseAt,'2030-01-05T00:00:00.000Z');assert.equal(read.proposal,undefined);assert.equal(history[1].revision,revisionB.revision);
 });

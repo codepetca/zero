@@ -27,6 +27,26 @@ because its matching browser binary is not installed; physical Safari/mobile,
 Windows/editor host, live consent/permissions/Pages and school-network proof
 remain unperformed. Template action SHAs were checked read-only by the worker.
 
+Initial independent full-diff reviews at831d7b18 (GPT6.1Sol/high, separate fresh
+security/correctness and architecture/compatibility workers) completed with three
+accepted P2 findings. Remediation batch1 reserves bounded safety operation/byte
+capacity unavailable to participant writes, switches exact-commit verification
+to Git metadata without patches, and exposes approved rules/schedule history
+with changed-version notice and explicit renewed acknowledgment.52focused tests
+and230full website tests pass after correction; final production build passes.
+Unchanged root suite coverage1141pass/3platform skips is reused. Targeted review
+of the correction delta follows; budget used2initial launches/1wave/1fix batch.
+
+Production Next server smoke downloaded both7file ZIP types and verified actual
+anti-framing headers on preparation/detail/participation and default-off503 API/
+panel behavior. Standalone extracted App Jam rendered at320/390px with light/dark
+and keyboard skip-to-content; local official detail rendered1280px and CSS200%
+zoom in dark mode without horizontal overflow. Changed-rules fixture shows current
+facts, approved-version disclosure, preserved entry draft and unchecked acknowledgment.
+Screenshots include `zerojams-create-320.png`, `zerojams-participate-320.png`,
+`zerojams-detail-dark-200.png`, `zerojams-template-dark-320.png` in the ignored
+browser evidence directory. These are local source/intercepted-data checks.
+
 Pilot limits are explicit: per-event caps/rates are atomic; the global event cap
 is advisory under simultaneous new-event creation. Discovery/proposal recovery
 can read one record per event, bounded to100pilot events. Public Git history is

@@ -27,9 +27,11 @@ export function createGitHubJamStore({token,fetchImpl=fetch,timeoutMs=8000,maxEv
       if (blob.status !== 200 || blob.data?.sha !== resource.sha || blob.data?.size !== resource.size) fail(503,'Official jam records are unavailable.');
       resource = {...blob.data,type:'file'};
     }
-    const bytes = decodeGitHubBlob(resource,LIMITS.stateBytes);
+    const bytes = decodeGitHubBlob(resource,LIMITS.stateBytes+1);
     let state;try { state=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)); }catch { fail(503,'Official jam records are unavailable.'); }
-    return {state:validateState(state,id),revision:resource.sha};
+    // The storage adapter enforces physical/schema maxima. The service applies
+    // its configured ordinary/safety reserve policy on every authoritative read.
+    return {state:validateState(state,id,LIMITS,{enforceReserve:false}),revision:resource.sha};
   }
   async function list() {
     const response = await request(`/contents/jams${branch}`,{maxBytes:256000});
@@ -47,7 +49,7 @@ export function createGitHubJamStore({token,fetchImpl=fetch,timeoutMs=8000,maxEv
   async function compareAndSwap(id,expectedRevision,nextState) {
     validId(id);
     if (expectedRevision !== null && !SHA.test(expectedRevision||'')) fail(400,'An exact jam record revision is required.');
-    const state = validateState(nextState,id);
+    const state = validateState(nextState,id,LIMITS,{enforceReserve:false});
     if (expectedRevision === null) { await requireBranch(); const ids=await list(); if(!ids.includes(id)&&ids.length>=maxEvents)fail(429,'The jam pilot is at event capacity.'); }
     const bytes=Buffer.from(JSON.stringify(state)+'\n');
     const response = await request(`/contents/jams/${id}.json`,{method:'PUT',body:{message:`ZeroJams ${id}`,branch:JAM_REGISTRY_BRANCH,...(expectedRevision?{sha:expectedRevision}:{}),content:bytes.toString('base64')}});

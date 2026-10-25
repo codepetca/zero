@@ -89,6 +89,14 @@ creation: different event files do not share a quota transaction. Listing fails
 closed above its configured bound. A strict global quota needs a shared index
 reservation and is not claimed by this MVP.
 
+Participant and ordinary administrative writes cannot consume the reserved
+safety operation/storage pool. Suspension, cancellation and entry removal use
+bounded separate slots with short public reasons and compact source-referencing
+withdrawal records; the original source revision stays in history. This reserve
+is finite and is not an unlimited audit log. If operator-driven safety history
+itself reaches capacity, preserve records and disable participation while planning
+an authorized capacity/schema change. Ordinary participants cannot spend it.
+
 Every accepted write records an idempotent operation result with its state.
 After a timeout, retry the same request identity/payload to recover the result;
 do not invent a new success or manually replay it with another operation key.

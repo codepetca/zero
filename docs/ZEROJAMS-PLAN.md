@@ -311,7 +311,11 @@ Review ledger (high risk: new event authority and server writer credential): two
 independent GPT-6.1 Sol/high reviewers, one security/correctness and one architecture/
 compatibility. Budget: max7launches, one initial full-diff wave,4targeted waves,
 4remediation batches, one final integration wave,60minutes session/30minutes worker.
-Initial wave pending; no review remediation yet. No publication authority.
+Initial wave completed at831d7b18: security1P2, compatibility2P2; all accepted.
+One correction batch implemented and locally checked (52focused/230website tests,
+production build). Targeted review of the fixed delta pending. Budget used2initial
+launches/1wave/1fix batch; effective worker telemetry remains unknown. No publication
+authority.
 
 ## Delivery phases and acceptance
 
@@ -363,6 +367,12 @@ Initial wave pending; no review remediation yet. No publication authority.
   event-count admission cap is advisory under simultaneous new events; over-cap
   listings fail closed. Discovery/proposal retry recovery can read up to one
   record per event. These are measured pilot limits, not a large-scale database.
+
+Review remediation batch 1 addresses three accepted P2 findings from the complete
+initial reviews: reserve operation/storage capacity for safety moderation after
+ordinary capacity exhaustion; verify exact commits with the metadata-only Git
+commit endpoint; expose approved rule/schedule history and explicit changed-version
+notice before renewed participant acknowledgment. Targeted review follows checks.
 
 ## Remaining rollout decisions
 

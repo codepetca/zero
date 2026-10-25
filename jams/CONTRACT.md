@@ -51,6 +51,8 @@ Return methods:
   reason. It appends withdrawal history even after closure/suspension/cancellation;
   registration stays unchanged. Corrected ordinary submissions still follow the
   accepted schedule and rules. Instructions are optional; demoUrl is required.
+  Suspend/cancel/entry-removal reasons are at most256characters and use separately
+  reserved bounded operation/storage capacity that ordinary writes cannot consume.
 
 Event summary: `{id,revision,title,type,summary,theme,rules,eligibility,websiteUrl,
 timezone,schedule,reviewStatus,moderation,registrationOpen,submissionsOpen,
@@ -59,6 +61,10 @@ description,demoUrl,instructions,repository:{id,ownerId,fullName,commit},submitt
 updatedAt}`. Pending creator view may have `revision:null` and proposal-derived
 display fields, but never open actions. Latest proposal reviewStatus does not
 disable an existing accepted revision while a replacement is under review.
+`event.approvalHistory` contains approved-only `{revision,approvedAt,manifest}`
+versions. A joined participant's prior acknowledgment is `registration.revision`;
+the UI explicitly identifies a newer accepted rules/schedule version and makes
+previous accepted facts inspectable before renewed acknowledgment.
 
 Errors: export `JamError` with `.status` (400,401,403,404,409,413,429,503) and
 safe public message. No credentials/operational payloads in errors. Same operation
