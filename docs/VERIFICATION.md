@@ -1,5 +1,21 @@
 # Verification
 
+## Branch progress and Zero navigation source PR preparation — 2026-10-25
+
+Owner authorized a source PR and CI for both local Dev fixes, with publishing
+kept separate. This authorizes the source push/PR, not merging, an installer
+build or release. Existing published Mac0.5.50 assets/feed remain unchanged.
+The PR uses current main010ae629 and includes native branch activity feedback,
+the persistent status-bar Zero return action, and its StartPage lifecycle fix.
+Owner's final label refinement removes the arrow; visible text is simply Zero.
+Existing scoped reviews and actual native Mac checks below are reused. One final
+independent integration pass checks the combined source/docs and label delta;
+required CI runs on its fixed head. No new feature/framework/package/version,
+auth permission, student-repository write or ZeroJams activation is included.
+The existing local Mac50 completion record is retained as maintainer evidence.
+Ignored PR/review/CI receipts: `.verification/ux-source-pr/`.
+
+
 ## Return to Zero navigation in Dev — 2026-10-25
 
 User lost Zero after Review changes opened native Source Control while the

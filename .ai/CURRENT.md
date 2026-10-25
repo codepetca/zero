@@ -1,29 +1,31 @@
-# Local Dev UX fixes complete — 2026-10-25
+# Branch progress and Zero navigation: source PR and CI
 
-Worktree `/Users/stew/.codex/worktrees/actor/zero`, branchcodex/branch-progress.
-User reported NewBranch looked frozen and Zero vanished in SourceControl.
-Localonly fixes, notpushed/PR/released; publication requires new explicit scope.
+Worktree: `/Users/stew/.codex/worktrees/actor/zero`.
+Branch: `codex/branch-progress`; current main is 010ae629.
+Owner authorized the source push, PR and CI on 2026-10-25. Keep publishing
+separate. Do not merge, build an installer or release without further authority.
 
-Branchprogress source196fac7c: native spinner aftername with GitHub/project/
-branch/main/fetch/create stages, shared with sidebar; merge samewrapper. Existing
-Git/auth guards unchanged. Sol6.1/high completeclean review; UI4pass,17realGit
-cases reused/currentfocused2pass/rootpass. RealDev existingtesterguard shows
-progress then closes/re-enables;95files/HEAD/branch/status preserved; no newbranch.
-Proof .verification/branch-progress/; fullsuccesslivecreation notclaimed.
+Implemented and loaded in Dev:
+- Native branch/merge activity with GitHub, project, branch and fetch stages.
+  Existing authentication, Git safety checks and serialization are preserved.
+- Persistent native Zero button at bottom left, with Back to Zero accessibility
+  label. It restores Explorer and expands Zero from Source Control/other panels.
+  StartPage open, restore, close and disposal update its visibility immediately.
+- Owner's final refinement: visible label Zero, with no arrow.
 
-Returnnavigation9bc584e0 corrected3f37e4ea: nativeZero statusbar atbottomleft,
-Owner removed the arrow: visiblelabel Zero, BacktoZero accessiblelabel, existingShowSidebar→Explorer/zero.controls.focus.
-Independent ofauth/busy; visibleforZero/empty/StartPage windows. StartPageopen/
-restore/close/dispose notifications keepvisibilitycurrent. Sol6.1/medium initial
-1P2 fixed inonebatch;targetedreviewclean. Initial65tests/corrected64/rootpass.
-ActualMacDev Reviewchanges→SCM→BacktoZero returns expandedZero/Run/projectcontrols;
-95trackedfiles/HEAD/branch/status unchanged. Proof .verification/sidebar-return/.
-Windows/assistive-tech/broaderphysicaltheme coverage notclaimed. Dev reloaded;
-my-greeting/tester remainsactive with Main/Tutorials preserved. Watcher3153active.
+Previous source reviews: branch progress clean; sidebar review found one lifecycle
+P2, fixed and clean on targeted review. Reuse that coverage and actual native Mac
+checks. Final combined integration review and exact-head CI are the next gates.
+Local evidence includes corrected UI/extension tests, 17 real-Git cases and two
+current focused Git cases; navigation has 65 initial/64 corrected tests. Native
+progress/guard closure and Review changes -> Source Control -> Zero return pass.
+All 95 tracked student files, HEAD, tester branch and status were preserved.
+Proof: `.verification/branch-progress/`, `.verification/sidebar-return/` and
+`.verification/ux-source-pr/`. No full successful live branch creation, Windows,
+assistive-technology or broad theme/device acceptance is claimed.
 
-PublishedMac50/PR199+201 unchanged and verified; oldseals/privatebackups preserved.
-Core0.3.0/manualkit17/Windows21/productionZeroJams hold unchanged. Primaryfunding/
-other3025preview untouched. CoinGame Devworkspace stayssimulation/localOnly;
-separateignoredZeroDevTutorials window useslive mode. FreshMac/school/novice/
-gameplay/actualSparkledelivery pilot gaps remain. Docs/EVIDENCE/VERIFICATION carry
-trackedreceipts. No newgoal/task/automation. DeepSeekpaused through2026-12-31.
+Keep Dev watcher3153, profiles, my-greeting/tester, primary funding work, other
+preview3025, private backups and old sealed artifacts. Published Mac50/PR199+201,
+core0.3.0, manual kit17, Windows21 and the production ZeroJams hold stay unchanged.
+Fresh-Mac/school/novice/gameplay/Sparkle pilot gaps remain separate. DeepSeek is
+paused through2026-12-31. No new goal, task or automation.
