@@ -1,26 +1,30 @@
-# Controlled ZeroJams pilot preparation — in review, 2026-10-25
+# Controlled ZeroJams pilot prepared locally — 2026-10-25
 
-Owner authorized setup audit/local preparation, keeping production hidden. Branch
-codex/zerojams-controlled-pilot, current-main010ae629 synced; prior PR200 aa6d58c5.
-No push/deploy/App/permission/secret changes, registry provisioning or live writes.
-Primary/actor worktrees and local3025preview preserved. No new tool-backed goal.
+Owner authorized read-only setup audit and local pilot preparation, production
+hidden. Branch codex/zerojams-controlled-pilot; current-main010ae629 synced;
+reviewed source a226038f. Packet docs/ZEROJAMS-PILOT.md, fixed config jams/pilot.json.
+No push/deploy, App/callback/secret/permission changes, registry provisioning or
+live writes. Policy remains prepared/origin null, so no invitations are active.
 
-Prepared policy jams/pilot.json remains status prepared/origin null. IDs verified:
-stewchan35233916 creator/participant; armorup4050555 independent approver. Fixed
-preview project/branch/origin/invitations, separate state-only pilot branch, small
-caps, isolated preview sessions, guarded pages/APIs/templates/panel and trusted
-site links implemented locally. Packet docs/ZEROJAMS-PILOT.md; main plan/operations
-updated. Source writers completed separate template and preflight assignments.
+User-selected creator/participant stewchan35233916; independent approver
+armorup4050555. Local source prepares one exact invited preview/project/branch/
+origin, guarded jam surfaces, origin-bound preview sessions, minimal separate
+writer, fixed state-only pilot branch/caps and trusted generated site links.
+Audit confirms auth names production-only/nojamvars; normalbranch404 and pilot
+namespace unverified; Codepet desktop App broad; installationlisting403 remains
+unknown. Existing Vercel protection retained. No secrets printed or pulled.
 
-Live read-only audit: normal registry404, pilot registry not verified; no jam vars
-in Vercel; browser auth var names production-only. Existing Codepet Zero App is
-broad desktop scope; dedicated minimal writer needed. Current CLI cannot enumerate
-Codepet App installations403; connector's other App is not evidence. No secrets
-printed. Filtered report .verification/zerojams-pilot/setup-audit.json ready false.
+73focused/250website/6preflight tests, root check, typecheck/build pass. Two fresh
+Sol6.1/high security/compatibility reviews complete/clean at a226038f,2launches,
+1initial wave/0fix batches; no extra review waves needed. Chromium actual local
+creation/preview and320/1280reflow pass. Local flag-on production AND current live
+production13jam cases404 each; Hub200/nojamlink. Neutral pilot layout and invited/
+unauthorized request behavior verified with local fixtures, not hosted OAuth.
 
-73focused/250website tests,6preflight tests, root check, website typecheck/build pass.
-Next: two fresh independent high-risk reviewers (security/correctness and
-compatibility) inspect fixed source, then bounded corrections and production/local
-browser verification. Ledger2launches/1initial wave/0fix batches; caps7launches,
-4fix batches,60minutes session/30minutes reviewer. DeepSeek paused through2026-12-31.
-Live auth/hosting/Safari/mobile/school pilot acceptance remains unverified.
+Next activation decision is concrete: stable protected branch origin, exact shared
+browser App callback/branch secrets, separate minimal writer installation and
+state-only orphan pilot branch. Follow packet/preflight; do not treat source
+preparation as live acceptance. Private callbacks/key/installation, actual preview
+access/framing, Safari/mobile/school and full live flow remain unverified.
+Primary/actor worktrees preserved; local3025preview retained. DeepSeek paused
+through2026-12-31. No new tool-backed goal, chat or automation.

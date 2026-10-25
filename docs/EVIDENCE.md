@@ -1,5 +1,37 @@
 # Delivery evidence index
 
+## Controlled pilot preparation independently accepted — 2026-10-25
+
+Prepared source a226038f on codex/zerojams-controlled-pilot (base5f3cf77c) passed
+both independent GPT6.1Sol/high reviews: security/correctness and compatibility.
+Both reviewed complete30file diff and immediate callers, with no actionable
+findings. Security reran16pilot/auth/runtime and14preflight/source/store tests;
+compatibility reran23pilot/template/preparation/preflight tests. Review ledger:
+2launches,1initial wave,0fix batches/targeted waves; no extra integration wave
+needed for unchanged source. Effective configurations, attributable time/tokens
+unknown. All reported wider checks reused against this unchanged implementation.
+
+Coordinator73focused/250website/6preflight tests, typecheck/build/root check pass.
+Actual Chromium local details→canonical preview and320/1280reflow pass; preview
+retains sandbox allow-scripts and disabled anchors. Compiled local production with
+both activation flags and Vercel production markers returns404 in13canonical jam
+GET/POST cases; current public production does likewise, Hub200/nojamlink in both.
+These live requests validate the existing hold, not a deployed pilot. New source
+has not been pushed or deployed. Invited/anonymous/removed/expired/wrong-origin
+access, neutral page layout and route ordering are local fixture proof only.
+
+Read-only preflight --audit executed against existing CLIs with filtered output:
+fixed public policy passes; ready=false, missing configuration/manual evidence
+remain explicit. Public App/repository/Vercel metadata observed; pilot branch/
+namespace and writer installation stay unknown where inaccessible/unverified.
+No token minted, secret pulled, login/permissions/config changed, branch created,
+or participant write attempted. The operator packet is concrete but unexecuted:
+protected stable preview origin, exact callback/new branch-scoped session secrets,
+separate selected-repository minimal writer and state-only orphan pilot branch.
+Public Git records require public-safe test information despite invited web access.
+Ignored evidence: .verification/zerojams-pilot/setup-audit.json and production-hold.json.
+Account/provider/Safari/mobile/framing/school/live-flow acceptance remains pending.
+
 ## Controlled pilot audit and local preparation — 2026-10-25
 
 Owner authorized audit/preparation with production hidden, not account/config/
