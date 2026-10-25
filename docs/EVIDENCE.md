@@ -1,5 +1,34 @@
 # Delivery evidence index
 
+## Pending-request reconciliation — 2026-10-25
+
+Source671dc0aa, test correction9dec4f1e. The client resolves uncertain mutations
+before another intent for the same actor/endpoint, using the saved public payload
+and operation ID. Independent recovery controls survive reload and disappearance
+of the original action; new confirmed intents receive fresh IDs. Server authority
+and historical idempotency remain unchanged.
+
+110 jam/263 website tests, typecheck/build pass. A full-suite test timing race
+was corrected to await caller refresh; focused22 pass. macOS Chrome uses the
+actual React JamParticipate component with a loopback GitHub HTTP fixture and
+real service/source/store/transport. Join commits with unreadable reply, reload
+removes Join, Leave is blocked until exact recovery, then Leave and new Join
+commit. Receipt shows3 commits/final joined, initial/recovery keys equal and new
+Join key different. No live fixture writes. Bulk artifacts remain ignored under
+.verification/zerojams-pilot/pending-*.log and pending-browser/.
+
+Independent Sol6.1/high reviewer: full170564eb→671dc0aa, focused22 pass, one
+accepted test synchronization finding; targeted671dc0aa→9dec4f1e clean.2 reviewer
+turns,1 remediation wave/fix batch, no conflicts. Effective model/timing/tokens
+unavailable. Start weekly80%remaining is account-wide, not task cost; storage
+healthy230GB. Source coverage reused after test-only delta; no extra review wave.
+
+Remaining limits: permanently invalid unknown requests conservatively stay
+blocked pending a future durable rejection/fencing protocol. Tab-local locks
+do not serialize separate tabs/devices. These and previous browser/network/cost
+limits prevent claiming wider-trial readiness. Production hold remains. Protected
+preview/CI/production-smoke delivery receipt will follow; no main merge.
+
 ## Failure recovery and concurrent registry writes — 2026-10-25
 
 Owner authorized recovery/concurrency testing with production hidden and the

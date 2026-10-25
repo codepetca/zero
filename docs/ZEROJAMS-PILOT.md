@@ -443,5 +443,15 @@ There are exactly three commits for the three intents; recovery adds no commit.
 Additional cases cover legacy pending keys, queued old unknowns, first rejection
 versus uncertain retry, shared locks, actor changes and late confirmation.
 
-Local checks and independent review are in progress. Closed live fixtures and
-registry branch are preserved. No main merge or production rollout is authorized.
+Local checks:110 jam tests,263 website tests, typecheck/build pass. The initial
+full website run exposed a test synchronization race; one correction now awaits
+caller refresh completion rather than the shorter mutation lock. Sol6.1/high
+review covers170564eb→671dc0aa and targeted test correction671dc0aa→9dec4f1e,
+with no unresolved findings (2 reviewer turns,1 fix batch). Actual Chrome running
+the real React component against the loopback fixture independently completes
+the requested sequence, including reload/disappeared Join button, blocked Leave,
+exact recovery and final registered state. Receipt:pending-browser/receipt.json
+and final-joined.png under ignored .verification/zerojams-pilot. macOS Chrome
+desktop was exercised; Safari/mobile/zoom/school networks remain unverified.
+Closed live fixtures and registry branch are preserved. Protected-preview
+delivery, CI and production-hold smoke are next. No main merge or production rollout is authorized.

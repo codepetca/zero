@@ -11,7 +11,9 @@ network and expansion cost acceptance remain pending. Recovery candidate
 review-draft fix. The pending-operation/new-intent fix now serializes uncertain
 requests before new actions and provides an independent recovery control. The
 lost Join reply → resolve → Leave → new Join regression passes locally; independent
-review and protected-preview verification are in progress. Production stays hidden.
+review and Chrome loopback verification pass. Protected-preview delivery is next.
+Permanently invalid unknown requests still need a future durable rejection fence
+before a wider trial. Production stays hidden.
 
 The pilot is restricted to the fixed Preview project, branch, origin and invited
 numeric identities. Production always returns 404 for jam pages, panels, APIs and
