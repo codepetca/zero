@@ -1,5 +1,30 @@
 # Verification
 
+## Return to Zero navigation in Dev — 2026-10-25
+
+User lost Zero after Review changes opened native Source Control while the
+ActivityBar was hidden. Local source9bc584e0 adds native **← Zero** at bottomleft,
+accessiblelabel Back to Zero, existingzero.showSidebar command. It opens Explorer
+and expands/focuses Zero independently of auth or busy work. Native host styling
+and the hiddenActivityBar/minimal sidebar remain; no Git/file action runs.
+
+One Sol6.1/medium complete4file review370d0dc8→9bc584e0 found a P2: opening/closing
+StartPage outside a Zero folder did not refresh shortcut visibility. One batch
+3f37e4ea adds deduped open/restore/close/dispose notifications and regression
+coverage. Targetedreview9bc584e0→3f37e4ea completeclean; unchanged initialcoverage
+reused, no extra fullwave. Two reviewturns,oneinitial/onetargeted,onefixbatch;
+effective configuration, tokens and attributabletime unknown.
+Rootchecks pass; initial extension/onboarding/recovery65tests pass; corrected
+extension/onboarding/StartPage64tests pass (including unrelatedfolder visibility
+without other events and restoredpanel lifecycle). NativeMacDev reload and actual
+Reviewchanges→SourceControl→BacktoZero click pass: button remains available,
+Explorer/expandedZero/Run/projectcontrols restore. All95tracked studentfiles,
+HEAD/branch/status unchanged; no Git/network write. Screenshots/receipts ignored
+under `.verification/sidebar-return/`. Windows, assistivetechnology and broader
+physical/theme coverage notclaimed. LocalDev sourceonly; no push/PR/release.
+Earlierbranchprogress fixes and publicMac50 remain separate/preserved.
+
+
 ## Branch activity feedback in Zero Dev — 2026-10-25
 
 User reported New branch looked frozen; logs confirmed their tester branch had
