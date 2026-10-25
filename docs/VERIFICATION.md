@@ -1,5 +1,19 @@
 # Verification
 
+## Mac 0.5.49 source PR / CI — 2026-10-25
+
+Owner authorized source push/PR and CI, keeping publishing separate and taking the
+fresh-Mac/school-network pilot. [PR194](https://github.com/codepetca/zero/pull/194)
+targets main at base cebd3b8e. No source conflict or base sync is needed. Existing
+candidate48/49 reviews and exact protected-source checks remain applicable;
+27focused native/preview tests and root checks pass again. Full PR CI is selected
+by the unchanged classifier. Cumulative source integration review and exact-head
+CI results are retained on the PR; pilot gaps remain as recorded in LOCAL-MAC-01.
+This step grants no merge, tag/release, feed/download/site/template publication,
+student remote write, or production update activation. Candidate bytes and public
+47delivery remain unchanged. Execution receipts: `.verification/mac-source49/`.
+
+
 ## Existing-Mac pilot LOCAL-MAC-01 — 2026-10-25
 
 Ran the installed 49 pilot as far as the enabled Mac controls allowed. Actual
