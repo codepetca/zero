@@ -1,5 +1,25 @@
 # Delivery evidence index
 
+## Mac0.5.50 candidate preparation — 2026-10-25
+
+Owner authorized mergePR198 and conditional50release after installed/normal gates.
+PR198 merged73847c88 with11green checks. Clean build ecf95cd0, preparationfc7001e4,
+core0.3.0/native50; signed/notarized/stapled seal contains exact DMG
+5,918,773bytes/SHA2568120ada9ad2c999117615e0f6b7e4de67ccc4ea43f4d833005c2dc9220fe41b1 and signed feed.
+Apple Acceptede880824d-30a3-48ef-912e-878d861d441b; actual app/DMG signature,
+Gatekeeper, source/archive/license/extracted Maven and13checksum checks pass.
+Root and34focused release/installer tests pass;2optional signing skips are
+separate from actual artifact proof. Old code-flow guidance corrected beforebuild.
+
+Private49rollback prepared; baseline student-project root absent, not a preservation
+pass for earlier repositories. Explicit49starter249file fixture/settings hash and
+48character unsaved note support subsequent installed acceptance. Exact candidate,
+review/runtime/CI/publication receipts and limits: [candidate record](MAC-CANDIDATE-0.5.50.md)
+and `.verification/mac50/`; final delivery links/results on source/promotion PRs.
+Public49/feed/manual17/Windows21/ZeroJams production hold remain separate and
+unchanged at preparation. No fresh-device/school/novice/updater-delivery pass inferred.
+
+
 ## Simpler desktop GitHub entry — 2026-10-25
 
 Owner requested browser-only new sign-in and the main Start Page action as

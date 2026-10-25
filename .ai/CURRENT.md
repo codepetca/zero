@@ -9,8 +9,12 @@ button says Sign in to GitHub signed out, Start tutorial once authenticated,
 enabled only after access is verified. Owner approved prior manualDevUI smoke;
 full native/liveOAuth completion was not separately reported.
 
-Current step: prepare unused50version/build50, independent version review,
-clean package/sign/notarize/staple/seal, then actual installed49→50acceptance.
+Current step: sealed50candidate prepared from clean ecf95cd0, preparationfc7001e4.
+DMG5,918,773bytes/SHA2568120ada9ad2c999117615e0f6b7e4de67ccc4ea43f4d833005c2dc9220fe41b1;
+AppleAcceptede880824d-30a3-48ef-912e-878d861d441b. Root/34tests/kit/Maven/signatures/
+staple/Gatekeeper/seal checks pass. SourcePR/CI, independentartifact review and
+actual installed49→50sign-in/preservation acceptance gate publication. See
+docs/MAC-CANDIDATE-0.5.50.md; no originalstudentprojectroot atbaseline.
 Retain published49DMG/feed/manifest snapshot while50is local. Keep all old sealed
 candidates and private backups. No clobber/rebuild of distributed assets. Do not
 publish50until source/CI/artifact/installed acceptance gates pass. Source and
