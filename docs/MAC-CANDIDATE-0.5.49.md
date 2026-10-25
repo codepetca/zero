@@ -106,3 +106,9 @@ Clean-folder48setup ran on this existing Apple Silicon Mac with cached tools.
 A separate fresh Mac, managed school network, physical Windows and physical
 native-window gameplay remain unverified. The earlier lesson0–11/live-auth rollout
 record remains applicable; this continuation did not repeat or publish it.
+
+Pilot preparation,2026-10-24: a version-specific [operator guide](pilots/mac-0.5.49/README.md),
+[school IT inventory](pilots/mac-0.5.49/NETWORK.md) and
+[unrun result template](pilots/mac-0.5.49/RESULTS.md) are ready for a private
+transfer pack with the exact sealed DMG. This adds no fresh-machine or school
+acceptance evidence and changes no candidate bytes or publication status.

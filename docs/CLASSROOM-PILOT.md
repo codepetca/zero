@@ -1,5 +1,13 @@
 # Classroom pilot
 
+For the unpublished Mac0.5.49trial, use the version-specific
+[fresh Mac / school-network pack](pilots/mac-0.5.49/README.md),
+[IT sheet](pilots/mac-0.5.49/NETWORK.md) and
+[blank result record](pilots/mac-0.5.49/RESULTS.md). Preparation is complete;
+physical execution is pending. Its core trial defers repository writes and all
+publication. The broader authorized repository/hosting checks below remain
+separate adoption gates; this preparation does not approve running them.
+
 Use one student machine and one novice student before cohort adoption. This is
 a trial checklist, not completed evidence. Current targets are Mac with Apple
 Silicon and Windows; Linux and Intel Macs are unsupported. Physical Windows, real native
