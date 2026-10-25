@@ -31,8 +31,11 @@ limits prevent claiming wider-trial readiness. Production hold remains. Protecte
 preview67221e75 is READY (dpl_2RNdyJCUL2vkCQQFykQnxrBbkERB). Hosted
 read-only legacy recovery control smoke passes with no writes. Production13jam404/
 Hub200/no link; registry unchanged.320 CSS px content column fits recovery text
-and long revision; real mobile/zoom remains unverified. Final source delivery/CI
-receipt will follow; no main merge.
+and long revision; real mobile/zoom remains unverified. Final reviewed source `d5a60666` is deployed in `70de6ba8`,
+`dpl_3po4TiFqJSx4JqemyqLm1UnctNTv`; all11 exact-head CI pass. Hosted read-only
+smoke and production13jam404/Hub200/no link pass again. Registry remains
+ce130103b5b84968c83982516104826c88a260a0. Final ignored receipt is
+`pending-verification.json` under the same evidence directory. No main merge.
 
 ## Failure recovery and concurrent registry writes — 2026-10-25
 

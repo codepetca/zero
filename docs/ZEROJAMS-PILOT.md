@@ -2,7 +2,7 @@
 
 Prepared 2026-10-25; activation subsequently authorized by the owner. Production
 remains hidden regardless of flags or credentials. Local policy is `enabled` and
-pinned to the approved origin. Preview revision `5059fd9c` is active; the
+pinned to the approved origin. Preview revision `70de6ba8` is active; the
 checkpoint below distinguishes verified hosted access from remaining pilot
 acceptance.
 
@@ -47,7 +47,7 @@ caching, wrong types/prefixes, controls, whitespace and oversize rejection. An
 independent Sol 6.1/high review found no blockers. See GitHub's
 [stateless-token rollout notice](https://github.blog/changelog/2026-10-02-stateless-github-app-installation-tokens-rolled-out/).
 
-The reviewed activation revision `5059fd9c48f8059e01842898eacc25ff08b19b62` is READY
+The activation checkpoint `5059fd9c48f8059e01842898eacc25ff08b19b62` was READY
 as Vercel deployment `dpl_BvRcpQGmS2FJrUNiF6HEKWDNrR2d`, attached to the exact
 protected branch alias. In Chrome on macOS, signed-out access shows the invited
 sign-in screen and the API reveals no records. Normal GitHub OAuth as `armorup`
@@ -461,5 +461,8 @@ Protected preview67221e75 deployed successfully; read-only Chrome smoke restores
 a legacy request on official and participation pages without sending it. All13
 production jam cases404 and Hub200/no jam link. Registry head remains unchanged.
 The recovery notice/revision wraps in a320 CSS px content column (desktop
-viewport, not a physical mobile test). Final source d5a60666 delivery/CI is next.
+viewport, not a physical mobile test). Final reviewed source `d5a60666` is deployed in `70de6ba8` as
+`dpl_3po4TiFqJSx4JqemyqLm1UnctNTv`. All11 exact-head CI checks pass. Final
+hosted read-only smoke and production hold pass again. The registry is unchanged.
+Final ignored receipt: `.verification/zerojams-pilot/pending-verification.json`.
 Closed live fixtures and registry branch are preserved. No main merge or production rollout is authorized.

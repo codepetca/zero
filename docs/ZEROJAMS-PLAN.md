@@ -1,19 +1,19 @@
 # ZeroJams architecture and user flow
 
 Status: protected two-account preview activated; production remains hidden,
-2026-10-25. The owner separately authorized setup, credentials and deployment for
-this pilot after the source hold. Both `stewchan` (creator, no maintainer role) and
-`armorup` (approver) completed live GitHub sign-in. All 11 checks pass for deployed
-source `f50942b0`. The two-account Chrome Game/App lifecycle passed, with 24
-durable operations and zero registry-triggered Vercel builds. Cross-browser,
-network and expansion cost acceptance remain pending. Recovery candidate
-`791a8482` adds deterministic service/transport concurrency checks and a bounded
-review-draft fix. The pending-operation/new-intent fix now serializes uncertain
-requests before new actions and provides an independent recovery control. The
-lost Join reply → resolve → Leave → new Join regression passes locally; independent
-review and Chrome loopback verification pass. Protected-preview delivery is next.
-Permanently invalid unknown requests still need a future durable rejection fence
-before a wider trial. Production stays hidden.
+2026-10-25. Both `stewchan` (creator, no maintainer role) and `armorup` (approver)
+completed live GitHub sign-in. The Game/App lifecycle passed with24 durable
+operations and zero registry-triggered Vercel builds. Reviewed reconciliation
+source `d5a60666` is deployed in preview revision `70de6ba8`; all11 exact-head CI
+checks pass.111 jam/264 website tests, independent review and Chrome loopback
+regression pass: lost Join reply → recover → Leave → new Join, with3 commits and
+final registration joined. Recovery stays available after reload and distinguishes
+historical confirmation from new intent, including another-device Leave.
+
+Permanently invalid unknown requests still need a durable server rejection fence
+before a wider trial. Cross-browser, school-network, provider-cost and atomic
+global event admission acceptance also remain open. No production rollout or
+main merge is authorized.
 
 The pilot is restricted to the fixed Preview project, branch, origin and invited
 numeric identities. Production always returns 404 for jam pages, panels, APIs and

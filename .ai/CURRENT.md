@@ -1,27 +1,28 @@
-# Pending-request reconciliation — 2026-10-25
+# Pending-request reconciliation verified — 2026-10-25
 
-Owner authorized fixing lost Join reply → Leave → Join; production hidden.
-Current branch codex/zerojams-controlled-pilot, draft PR202. Source edits only
-JamClient/Jam.css and focused tests; no backend authority or service rule changes.
+Owner authorized lost Join reply → Leave → Join fix; production remains hidden.
+Reviewed source d5a60666 deployed as70de6ba815f79a6aca413284ba9217c0585cce59,
+Vercel dpl_3po4TiFqJSx4JqemyqLm1UnctNTv. All11 exact-head CI pass.
+Draft PR202 stays unmerged. Final receipt follows deployed source locally.
 
-Client shares per-account/endpoint locks, retains unknown payload/key, blocks
-intervening changes, and offers independent exact-request recovery after reload.
-Matching confirmation clears only that operation; new Join receives a fresh ID.
-Actual participation UI + loopback GitHub fixture passes the requested sequence
-with exactly three commits. Legacy storage/account/late callback cases pass.
-111 jam/264 website tests and typecheck/build pass. Sol6.1/high full review
-671dc0aa + targeted9dec4f1e/d5a60666 pass; test timing + recovery wording
-corrections. Matching original-button retry is labelled historical too, including
-another-device Leave; the next new Join still uses a fresh ID. Actual Chrome
-React/loopback sequence passes, receipt3commits/final joined. No live writes.
+Client serializes uncertain requests per actor/endpoint within a tab, saves exact
+public payload/key and exposes independent recovery after reload/disappeared
+controls. Historical retries say Earlier request confirmed, including retries
+through the original button; the next new action gets a fresh ID. No backend
+authority changes. Actual React/Chrome loopback sequence: lost Join reply, reload,
+blocked Leave, exact recovery, Leave, new Join;3 commits and final joined.
+Another-device Leave/historical recovery/new Join also passes the HTTP test.
 
-Conservative limit: unknown requests that never committed and later become
-permanently invalid may remain blocked. Durable server fencing would be needed
-to abandon them safely; no discard/automatic fresh-key escape is added. Locks
-are within a tab; registry CAS/idempotency remains the cross-device boundary.
+111 jam/264 website tests, typecheck/build and Sol6.1/high independent review pass.
+3 reviewer turns/2 correction batches: test refresh timing and historical label.
+Hosted read-only legacy restore passes.320 CSS px content column wraps correctly;
+physical mobile/zoom/WebKit/school networks remain unverified. Production13jam404,
+Hub200/no jam link. Registry ce130103b5b84968c83982516104826c88a260a0 unchanged,
+two closed fixtures preserved, no live fault writes or added invitations.
 
-Preview67221e75 READY; hosted read-only legacy restore and production13jam404/
-Hub200/no link pass. Final source d5a60666 delivery/CI next, then final receipt. Keep draft/unmerged.
-Registry ce130103b5b84968c83982516104826c88a260a0 and two closed fixtures retained;
-no live fault injection or invitations. Other checkouts/local3025 preserved.
-Use docs/ZEROJAMS-PILOT.md reconciliation section. DeepSeek remains paused.
+NEXT wider-trial blocker: safely settle permanently invalid unknown requests.
+A durable server rejection/fence is needed before abandoning them; never clear
+unknown keys or generate fresh ones blindly. Keep production hidden. Prior
+provider-cost/global event admission/browser acceptance limits also remain.
+Packet docs/ZEROJAMS-PILOT.md; ignored pending-verification.json/logs/screenshots
+under .verification/zerojams-pilot. Local3025/other checkouts retained; DeepSeek paused.
