@@ -1,6 +1,6 @@
 # ZeroJams architecture and user flow
 
-Status: agreed product direction and proposed implementation plan, 2026-10-25.
+Status: locally implemented and independently reviewed; live activation pending,2026-10-25.
 Implementation is authorized locally from 2026-10-25; live activation is separate. Publication, deployment,
 GitHub App permission changes and account configuration require separate explicit
 authorization. Existing game/library sharing and Pika submission stay separate.
@@ -290,7 +290,7 @@ only when a pinned public template is actually available and verified.
 | 1: Contracts, complete template and preparation | Locally delivered | Shared contract, independent website copy, both types, safe preview |
 | 2: Creator admission and discovery | Locally delivered | Source-bound proposal, maintainer-only approval, immutable accepted metadata |
 | 3: Participation | Locally delivered | Authenticated join/leave, reviewed entry updates/withdrawal, cached gallery |
-| 4: Reliability, UI verification and independent review | Running | Meaningful failure/security checks, actual local browser proof, clean reviews |
+| 4: Reliability, UI verification and independent review | Locally verified and reviewed | Meaningful failure/security checks, actual local browser proof, clean reviews |
 | 5: Live pilot | Awaiting separate authorization | Real deployment/permissions/provider usage and participant acceptance |
 
 Worker receipt: source-map (GPT-6.1 Sol/high) completed read-only mapping of
@@ -312,10 +312,14 @@ independent GPT-6.1 Sol/high reviewers, one security/correctness and one archite
 compatibility. Budget: max7launches, one initial full-diff wave,4targeted waves,
 4remediation batches, one final integration wave,60minutes session/30minutes worker.
 Initial wave completed at831d7b18: security1P2, compatibility2P2; all accepted.
-One correction batch implemented and locally checked (52focused/230website tests,
-production build). Targeted review of the fixed delta pending. Budget used2initial
-launches/1wave/1fix batch; effective worker telemetry remains unknown. No publication
-authority.
+Correction921c6d30 passed targeted security/correctness and cumulative compatibility
+reviews. Final packaging4ced7ae8 includes the canonical MIT notice in both template
+ZIPs and public Pages output; its six-file delta passed a separate GPT6Luna/medium
+review. No unresolved findings. Budget used5review turns (2initial,2targeted,
+1integration),2fix batches; effective worker timing/tokens remain unknown. Final
+focused53tests pass; full website230tests passed before the additive license test,
+with final build/root check and actual production8file ZIP/header smoke passing.
+Live publication/permission acceptance remains separate and unauthorized.
 
 ## Delivery phases and acceptance
 
@@ -372,7 +376,7 @@ Review remediation batch 1 addresses three accepted P2 findings from the complet
 initial reviews: reserve operation/storage capacity for safety moderation after
 ordinary capacity exhaustion; verify exact commits with the metadata-only Git
 commit endpoint; expose approved rule/schedule history and explicit changed-version
-notice before renewed participant acknowledgment. Targeted review follows checks.
+notice before renewed participant acknowledgment. Targeted and cumulative reviews are complete and clean.
 
 ## Remaining rollout decisions
 
@@ -391,13 +395,13 @@ notice before renewed participant acknowledgment. Targeted review follows checks
 
 ## Existing foundations and references
 
-Current-checkout product and architecture notes contain older MVP assumptions;
-this plan describes future ZeroJams behavior and does not rewrite their delivery
-history. Inspection of `origin/main` at `77b371db` found existing GitHub sign-in
-under `website/lib/hub-github-auth.mjs`, server routes under
-`website/app/api/hub/github/`, and Git-backed publication under `sharing/`.
-Recheck the implementation checkout before reusing them; they may be absent from
-this older working branch. Their existence is not ZeroJams implementation evidence.
+Implementation starts from `77b371db` and reuses existing browser identity/session
+patterns in `website/lib/hub-github-auth.mjs`. ZeroJams service/HTTP/runtime and
+registry contracts remain separate from game/library sharing. Reviewed code is
+`4ced7ae8`, with complete cumulative coverage through921c6d30 and a clean packaging
+delta review. Final evidence and limits are in [EVIDENCE.md](EVIDENCE.md) and the
+[operator guide](ZEROJAMS-OPERATIONS.md). No live ZeroJams deployment exists from
+this work.
 
 - [Product](PRODUCT.md), [repository architecture](ARCHITECTURE.md) and
   [development workflow](DEVELOPMENT.md).
