@@ -70,7 +70,7 @@ test('individual start/finish cycle uploads exact feature SHA to main and safely
   assert.equal(result.finished, true); assert.equal(result.branch, 'main'); assert.equal(result.head, feature);
   assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), feature);
   assert.equal(await fs.readFile(path.join(f.root, 'secret.txt'), 'utf8'), 'kept locally');
-  assert.deepEqual(f.calls.find(args => args[0] === 'fetch'), ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, baseline]);
+  assert.ok(!f.calls.some(args => args[0] === 'fetch'), 'An existing reviewed commit needs no download');
   await assert.rejects(fs.access(path.join(f.root, '.git', 'FETCH_HEAD')));
   await workflow.deleteFinishedBranch(f.root, result.finishedBranch, result.head, {run: f.run});
   await assert.rejects(core.git(f.root, ['show-ref', '--verify', 'refs/heads/add-score']));
@@ -81,6 +81,8 @@ test('Start fast-forwards a clean main to pinned newer remote main', async t => 
   const result = await start(f); assert.equal(result.head, updated);
   assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), updated);
   assert.equal(await fs.readFile(path.join(f.root, 'Remote.java'), 'utf8'), 'class Remote {}');
+  assert.deepEqual(f.calls.find(args => args[0] === 'fetch'), ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, updated]);
+  await assert.rejects(fs.access(path.join(f.root, '.git', 'FETCH_HEAD')));
 });
 test('disjoint updated main merges into feature and stops for a fresh app run/review before publication', async t => {
   const f = await fixture(t); await start(f);
@@ -150,7 +152,8 @@ test('post-review file, branch, destination, main and remote drift invalidate be
   }
 });
 test('drift introduced during pinned fetch stops before main/feature mutation', async t => {
-  const f = await fixture(t); const plan = await workflow.prepareStart(f.root, 'feature', f.options);
+  const f = await fixture(t); await remoteChange(f, 'Remote.java', 'class Remote {}');
+  const plan = await workflow.prepareStart(f.root, 'feature', f.options);
   f.setHook(async (_, args) => { if (args[0] === 'fetch') await write(f.root, 'Main.java', 'edited during fetch'); });
   await assert.rejects(workflow.startPrepared(plan, f.options), /changed after review/);
   assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
@@ -244,7 +247,8 @@ test('exact project root, additional worktrees and unrelated remote main are ref
 });
 
 test('remote main changing during fetch invalidates Start before local main or branch mutation', async t => {
-  const f = await fixture(t); const plan = await workflow.prepareStart(f.root, 'feature', f.options);
+  const f = await fixture(t); await remoteChange(f, 'Remote.java', 'first remote change');
+  const plan = await workflow.prepareStart(f.root, 'feature', f.options);
   const refs = await core.git(f.root, ['show-ref']);
   f.setHook(async (_, args) => { if (args[0] === 'fetch') { f.setHook(null); await remoteChange(f, 'Remote.java', 'remote'); } });
   await assert.rejects(workflow.startPrepared(plan, f.options), /GitHub main changed after review/);

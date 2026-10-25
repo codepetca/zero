@@ -1,30 +1,30 @@
-# PR203 ready: branch progress and Zero navigation
+# Git checks and native Git prototype: local verification/review
 
-Worktree `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/branch-progress`.
-Owner authorized source PR and CI only on2026-10-25. Task complete:
-https://github.com/codepetca/zero/pull/203 is ready, OPEN and MERGEABLE.
-Reviewed PR head7e4c2231a690540c4209a96cfa092af0136ff1dd, base010ae629.
-All11checks pass: source40237189497, browser40237189441, Windows40237189461.
-No unresolved threads or changes-requested reviews. Do not merge or publish
-without further owner authority. No installer/version/release change was made.
-This completion receipt is local and not pushed; PR203 remains at its tested head.
+Worktree `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/git-flow-efficiency`,
+basea9fb85c4. Owner authorized deduplicated checks, native Git sign-in prototype,
+and full student flow. No source push, PR update/merge, publishing or release.
+PR203 stays open/unmerged at reviewed7e4c2231 (all11CIchecks passed); prior receipts
+remain in EVIDENCE/VERIFICATION. Local new changes require their own review/checks.
 
-Implemented in Dev: native branch/merge progress with access/branch/fetch stages;
-persistent plain Zero status-bar button returning to Explorer/expanded controls;
-StartPage open/restore/close/dispose visibility updates. Arrow removed by owner.
-Existing Git/auth safety checks and operation ordering remain unchanged.
+Implemented: private exact-session identity receipts with locked storage rereads,
+full capture validation and immediate signout invalidation; no duplicate workflow
+repository check before guarded transport; skip fetching exact existing main SHA.
+Default-off native Git credential adapter, User Settings opt-in/trust + isolated
+Askpass prerequisites. Student buttons keep guarded transport/simple interface.
+Native cache60s/host-wide/helper precedence limits explicit in DEVELOPMENT.
 
-Final Sol6.1/high complete11file integration review clean; prior scoped reviews
-and one corrected lifecycleP2 reused. Current root+65focused tests pass;17realGit
-and two focusedGit cases retained. Actual native progress/guard closure and
-Review changes -> Source Control -> Zero round trip pass.95studentfiles/HEAD/
-tester/status unchanged during QA. Full successful live creation, Windows,
-assistive-technology and broad theme/device acceptance not claimed.
-Evidence: docs/EVIDENCE.md, docs/VERIFICATION.md, .verification/ux-source-pr/,
-.verification/branch-progress/ and .verification/sidebar-return/.
+Verified: npmcheck; fullnpmtest1201pass/3skip; focusedauth/provider/native/UI/upload;
+realGit drift/conflict/recovery; synthetic REST counts144→22newbranch/180→25merge.
+Actual disposable Mac public-editor-command flow passed through sign-in, branch,
+edit, native Run/UI_READY/Stop, local-bare commit/push/merge/cleanup and SCMreturn.
+Actual native Askpass received fixture Zero credential; no realcredential upload.
+Mac controller selected existingDev, so full click walkthrough not claimed.
+Artifacts `.verification/git-flow-efficiency/`, docsEVIDENCE/VERIFICATION.
 
-Preserve Dev watcher3153, profiles, my-greeting/tester, primary funding work,
-other preview3025, private backups and sealed artifacts. Published Mac50/PR199+201,
-core0.3.0/manualkit17/Windows21 and productionZeroJams hold unchanged. FreshMac/
-school/novice/gameplay/Sparkle pilot gaps remain separate. DeepSeek paused through
-2026-12-31. No new goal, separate task or automation. Next: owner merge decision.
+Next: fixed-revision independent security/correctness + compatibility review,
+resolve accepted findings within bounded session, update final receipt. No release.
+Keep student my-greeting, existing Devwatcher3153/profiles, primary funding work,
+other preview3025/backups/sealed artifacts. New disposable QA profile recorded in
+`.verification/git-flow-efficiency/paths.json`; retire only owned QAprocess after
+acceptance. PublishedMac50/core0.3.0/manualkit17/Windows21/ZeroJams hold unchanged.
+DeepSeek paused through2026-12-31. No new goal/task/automation.

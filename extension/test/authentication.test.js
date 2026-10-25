@@ -129,3 +129,33 @@ test('unconfigured or failing owned providers cannot prompt from silent reads or
   assert.equal(silent.calls.length,1);assert.equal(silent.calls[0].method,'getSessions');
   await assert.rejects(ownedProviderApi(silent.provider).getSession('github',[],{createIfNone:true}));
 });
+
+test('operation reuse forwards only a privately retained provider session and capture always uses full lookup',async()=>{
+  const {ownedProviderApi}=require('../src/authentication'),f=ownedFixture(),source=session();
+  f.set([source]);let checks=0;
+  f.provider.getSessionsForOperation=async(expected,scopes,options)=>{
+    checks++;assert.equal(expected,source);assert.deepEqual(scopes,[]);assert.equal(options,undefined);return [source];
+  };
+  const auth=createAuthentication(ownedProviderApi(f.provider)),ticket=await auth.capture();
+  assert.notEqual(ticket.session,source);assert.deepEqual(Object.keys(ticket).sort(),['revision','session']);
+  await auth.assertCurrent(ticket);await auth.assertCurrent(ticket);
+  assert.equal(checks,2);assert.equal(f.calls.length,1);
+  await auth.capture();assert.equal(f.calls.length,2,'Capturing another operation never takes the private fast path');
+  auth.dispose();await assert.rejects(auth.assertCurrent(ticket),/account or sign-in changed/);assert.equal(checks,2);
+});
+
+test('foreign API and older owned providers retain full silent revalidation for every assertion',async()=>{
+  const f=fixture();f.set(session());const auth=createAuthentication(f.api),ticket=await auth.capture();
+  await auth.assertCurrent(ticket);await auth.assertCurrent(ticket);assert.equal(f.calls.length,3);auth.dispose();
+  const {ownedProviderApi}=require('../src/authentication'),older=ownedFixture();older.set([session()]);
+  const owned=createAuthentication(ownedProviderApi(older.provider)),captured=await owned.capture();
+  await owned.assertCurrent(captured);await owned.assertCurrent(captured);assert.equal(older.calls.length,3);owned.dispose();
+});
+
+test('owned operation lookup rejects ambiguous accounts and invalidated tickets before another request',async()=>{
+  const {ownedProviderApi}=require('../src/authentication'),f=ownedFixture();f.set([session()]);let checks=0;
+  f.provider.getSessionsForOperation=async()=>{checks++;return [session(),session('other')];};
+  const auth=createAuthentication(ownedProviderApi(f.provider)),ticket=await auth.capture();
+  await assert.rejects(auth.assertCurrent(ticket),/account or sign-in changed/);assert.equal(auth.signedIn,false);assert.equal(checks,1);
+  await assert.rejects(auth.assertCurrent(ticket),/account or sign-in changed/);assert.equal(checks,1);auth.dispose();
+});

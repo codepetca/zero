@@ -128,6 +128,16 @@ async function ensureRemote(expected, options) {
 }
 async function fetchMain(expected, options) {
   if (!expected.remoteMainHead) return;
+  // A reviewed SHA already present in the object database needs no download.
+  // ensureRemote still checks the live branch before and after this step, and
+  // the normal source/ref guards still run before any working-tree mutation.
+  try {
+    const present = await options.run(expected.root, ['rev-parse', '--verify', `${expected.remoteMainHead}^{commit}`]);
+    if (present !== expected.remoteMainHead) throw drift();
+    return;
+  } catch (error) {
+    if (error.code !== 128) throw error;
+  }
   await protectedNetwork(expected, options, () => network(options.networkRun, expected.root, ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', expected.remote, expected.remoteMainHead]));
   const commit = await local(options.run, expected.root, ['rev-parse', '--verify', `${expected.remoteMainHead}^{commit}`], 'inspect the fetched main commit');
   if (commit !== expected.remoteMainHead) throw new Error('GitHub main did not resolve to the reviewed commit. Review this step again.');

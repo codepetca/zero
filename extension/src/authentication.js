@@ -15,6 +15,15 @@ function same(a, b) {
 // requests still go through the host's normal consent checks.
 function ownedProviderApi(provider) {
   return {
+    // This path is private to Zero's captured operation. Normal host/provider
+    // lookups retain full remote identity validation.
+    async getSessionForOperation(providerId, requestedScopes, expected, options = {}) {
+      if (providerId !== 'zero-github') throw new Error('Unsupported authentication provider');
+      if (!provider?.getSessionsForOperation) return this.getSession(providerId, requestedScopes, options);
+      const sessions = await provider.getSessionsForOperation(expected, requestedScopes, options.account ? {account:options.account} : undefined);
+      if (sessions.length > 1) throw new Error('Zero requires a single GitHub account');
+      return sessions[0];
+    },
     async getSession(providerId, requestedScopes, options = {}) {
       if (providerId !== 'zero-github') throw new Error('Unsupported authentication provider');
       if (!provider) return undefined;
@@ -33,13 +42,22 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
   // Supported native account hint; callers still enforce the captured account.
   const account = preferredAccount && Object.freeze({id:preferredAccount.id,label:preferredAccount.label});
   let current, revision = 0, disposed = false, unavailable = false, pendingRequests = 0;
+  const verifiedSessions = new WeakMap();
   let queue = Promise.resolve();
-  function request(options) {
+  function request(options, expected) {
     pendingRequests++;
     const next = queue.then(async () => {
       if (disposed) return;
       let session;
-      try { session = snapshot(await api.getSession(providerId, sessionScopes, account ? {...options,account} : options)); unavailable = false; }
+      try {
+        const lookupOptions = account ? {...options,account} : options;
+        const source = expected && api.getSessionForOperation
+          ? await api.getSessionForOperation(providerId, sessionScopes, expected, lookupOptions)
+          : await api.getSession(providerId, sessionScopes, lookupOptions);
+        session = snapshot(source);
+        if (session) verifiedSessions.set(session, source);
+        unavailable = false;
+      }
       catch { unavailable = true; }
       if (disposed) return;
       if (!same(current, session)) revision++;
@@ -78,7 +96,8 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
       return Object.freeze({session: current, revision});
     },
     async assertCurrent(ticket) {
-      await refresh();
+      assertCurrentNow(ticket);
+      await request({silent:true}, verifiedSessions.get(ticket.session));
       return assertCurrentNow(ticket);
     },
     assertCurrentNow,

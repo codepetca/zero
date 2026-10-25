@@ -187,3 +187,122 @@ test('reviewed optional Pages setup permission supports staged rollout without a
   await assert.rejects(f.provider.getSessions([]),error=>error.code==='app-mismatch');
  }
 });
+
+test('captured operation reuses verified identity, rereads locked storage and keeps standard lookups strong',async t=>{
+ const f=await fixture(t),auth=integratedAuthentication(f,t);
+ await auth.refresh();while(auth.busy)await new Promise(resolve=>setImmediate(resolve));
+ const ticket=await auth.capture();
+ let reads=0;const get=f.context.secrets.get;
+ f.context.secrets.get=async key=>{reads++;await fs.access(path.join(f.context.globalStorageUri.fsPath,'github-app-refresh.lock'));return get(key);};
+ const users=()=>f.calls.filter(([url])=>url.endsWith('/user')).length;
+ const before=users();
+ for(let i=0;i<25;i++)assert.equal((await auth.assertCurrent(ticket)).accountId,'42');
+ assert.equal(users(),before,'An unchanged operation must not repeatedly query /user');
+ assert.equal(reads,50,'Each assertion rereads storage while locked, including its final drift check');
+ f.advance(60001);await auth.assertCurrent(ticket);
+ assert.equal(users(),before);assert.equal(f.calls.filter(([url])=>url.includes('/apps/')).length,2,'App metadata retains its existing bounded freshness policy');
+ await auth.capture();assert.equal(users(),before+1,'A new operation verifies remote identity');
+ await f.provider.getSessions([]);assert.equal(users(),before+2,'Standard provider lookups still verify remotely');
+});
+
+test('only the exact session returned by remote verification can use the private operation path',async t=>{
+ const f=await fixture(t),[verified]=await f.provider.getSessions([]);
+ const users=()=>f.calls.filter(([url])=>url.endsWith('/user')).length;
+ assert.equal(users(),1);await f.provider.getSessionsForOperation(verified,[]);assert.equal(users(),1);
+ await f.provider.getSessionsForOperation({...verified},[]);assert.equal(users(),2,'Copied session fields do not carry the private receipt');
+ await assert.rejects(f.provider.getSessionsForOperation(verified,['repo']),error=>error.code==='unsupported-scopes');
+ assert.deepEqual(await f.provider.getSessionsForOperation(verified,[],{account:{id:'99'}}),[]);
+});
+
+test('unannounced record drift cannot reuse a verified operation even when its access token is unchanged',async t=>{
+ const mutations=[
+  value=>({...value,sessionId:'22345678-1234-1234-1234-123456789012'}),
+  value=>({...value,account:{id:'99',label:'other'}}),
+  value=>({...value,account:{...value.account,label:'renamed'}}),
+  value=>({...value,accessToken:'ghu_changedabcdefgh'}),
+  value=>({...value,refreshToken:'ghr_changedabcdefgh'}),
+  value=>({...value,expiresAt:value.expiresAt+1}),
+  value=>({...value,flow:'browser'}),
+  value=>({...value,state:'reconnect'})
+ ];
+ for(const mutate of mutations){
+  const f=await fixture(t),[verified]=await f.provider.getSessions([]);
+  f.data.set(SECRET_KEY,JSON.stringify(mutate(record())));
+  const result=await f.provider.getSessionsForOperation(verified,[]).catch(error=>error);
+  assert.ok(result.code==='connection-changed'||Array.isArray(result)&&result.length===0);
+  assert.equal(f.calls.filter(([url])=>url.endsWith('/user')).length,1,'Drift requires a new operation, never silent identity reuse');
+ }
+});
+
+test('storage failures, silent deletion, configuration changes and secret events reject existing receipts',async t=>{
+ for(const kind of ['storage','deleted','malformed','configuration','event']){
+  const config={...configuration,permissions:{...permissions}},f=await fixture(t,{config});
+  const [verified]=await f.provider.getSessions([]);
+  if(kind==='storage')f.context.secrets.get=async()=>{throw Error('private storage details');};
+  if(kind==='deleted')f.data.delete(SECRET_KEY);
+  if(kind==='malformed')f.data.set(SECRET_KEY,'invalid');
+  if(kind==='configuration')config.permissions.administration='write';
+  if(kind==='event')f.events.fire({key:SECRET_KEY});
+  const result=await f.provider.getSessionsForOperation(verified,[]).catch(error=>error);
+  assert.ok(result instanceof Error||Array.isArray(result)&&result.length===0,kind);
+  assert.equal(f.calls.filter(([url])=>url.endsWith('/user')).length,1,kind);
+ }
+});
+
+test('operation checks renew expiring tokens and invalidate the captured facade ticket',async t=>{
+ const f=await fixture(t),auth=integratedAuthentication(f,t);
+ await auth.refresh();while(auth.busy)await new Promise(resolve=>setImmediate(resolve));
+ const ticket=await auth.capture();f.advance(450000);
+ await assert.rejects(auth.assertCurrent(ticket),/account or sign-in changed/);
+ assert.equal(f.calls.filter(([url])=>url.endsWith('/access_token')).length,1);
+ assert.equal(JSON.parse(f.data.get(SECRET_KEY)).accessToken,pair.access_token);
+});
+
+test('new capture detects server revocation while local operation rereads make no revocation claim',async t=>{
+ let revoked=false;
+ const f=await fixture(t,{overrides:{fetch:async url=>{
+  if(url.includes('/apps/'))return response(metadata);
+  return revoked?new Response('',{status:401}):response({id:42,login:'learner',type:'User'});
+ }}}),auth=integratedAuthentication(f,t);
+ await auth.refresh();while(auth.busy)await new Promise(resolve=>setImmediate(resolve));
+ const ticket=await auth.capture();revoked=true;
+ await auth.assertCurrent(ticket);
+ await assert.rejects(auth.capture(),/Sign in to GitHub/);
+ assert.equal(f.data.has(SECRET_KEY),false);assert.throws(()=>auth.assertCurrentNow(ticket),/account or sign-in changed/);
+});
+
+test('signout and disposal during an operation storage read cannot return its verified session',async t=>{
+ for(const action of ['signout','dispose']){
+  const f=await fixture(t),[verified]=await f.provider.getSessions([]);
+  const get=f.context.secrets.get;let started,release;
+  const waiting=new Promise(resolve=>{started=resolve;});let once=true;
+  f.context.secrets.get=async key=>{const value=await get(key);if(once){once=false;started();await new Promise(resolve=>{release=resolve;});}return value;};
+  const checking=f.provider.getSessionsForOperation(verified,[]);await waiting;
+  let removal;
+  if(action==='signout')removal=f.provider.removeSession(verified.id);else f.provider.dispose();
+  release();await assert.rejects(checking,error=>['cancelled','disposed'].includes(error.code));
+  if(removal)await removal;
+  assert.equal(f.provider.busy,false);assert.deepEqual(await f.provider.getSessionsForOperation(verified,[]),[]);
+ }
+});
+
+test('a storage event during the final operation reread invalidates immediately before returning',async t=>{
+ const f=await fixture(t),auth=integratedAuthentication(f,t);
+ await auth.refresh();while(auth.busy)await new Promise(resolve=>setImmediate(resolve));
+ const ticket=await auth.capture(),get=f.context.secrets.get;let reads=0;
+ f.context.secrets.get=async key=>{const value=await get(key);if(++reads===2)f.events.fire({key:SECRET_KEY});return value;};
+ await assert.rejects(auth.assertCurrent(ticket),/account or sign-in changed/);
+});
+
+test('explicit signout invalidates facade tickets before storage removal finishes',async t=>{
+ const f=await fixture(t),auth=integratedAuthentication(f,t);
+ await auth.refresh();while(auth.busy)await new Promise(resolve=>setImmediate(resolve));
+ const ticket=await auth.capture(),remove=f.context.secrets.delete;let started,release;
+ const waiting=new Promise(resolve=>{started=resolve;});
+ f.context.secrets.delete=async key=>{started();await new Promise(resolve=>{release=resolve;});return remove(key);};
+ const pending=f.provider.removeSession(ticket.session.id);
+ assert.throws(()=>auth.assertCurrentNow(ticket),/account or sign-in changed/);
+ await waiting;assert.equal(f.data.has(SECRET_KEY),true);release();await pending;
+ while(auth.busy)await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(auth.signedIn,false);assert.equal(f.data.has(SECRET_KEY),false);
+});

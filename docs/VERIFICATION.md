@@ -1,5 +1,62 @@
 # Verification
 
+## Git validation efficiency and native Git prototype — 2026-10-25
+
+Local implementation based on a9fb85c4, branch `codex/git-flow-efficiency`.
+Owner authorized implementation, prototype and student-flow checks; no source
+push/PR update, merge, publishing, deployment, account changes or release.
+PR203 remains unchanged at7e4c2231, open/unmerged; its prior CI is not evidence
+for these changes. No Java/framework/build-tool/version changes.
+
+Private operation receipts reuse verified identity only for the exact provider
+session, complete credential record/configuration and invalidation generation.
+Every assertion rereads locked SecretStorage; normal capture/session lookup
+still validates remotely. Signout invalidates captured tickets before its storage
+clear. Transport still checks live repository/installation access and dispatches
+with the final synchronous guard. Workflow no longer repeats that access check
+in beforeNetwork. Existing reviewed main objects skip redundant pinned fetches;
+missing objects still fetch, and drift/concurrency/ignored-file guards remain.
+
+Instrumented real-code local fixtures: New branch REST144→22, Git remote6→5,
+full fingerprints15→12, local Git247→199 (tutorial310→250). Merge+cleanup
+REST180→25, remote7→6, fingerprints25→22, local Git405→357 (tutorial501→441).
+HTTP/remote spawn/session storage mocked, warm valid token, one-page membership,
+clean main/descendant feature, tiny files. These are conditional counts, not live
+latency; after timings competed with the full test suite. Baselinea9fb85c4 retained.
+Receipt `.verification/git-flow-efficiency/comparison.json`, runnable
+`probe-current.cjs`, original study receipts in `.verification/git-flow-study/`.
+
+Native bridge defaultOFF, application/User Settings opt-in only; trusted window,
+integrated Askpass, terminalAuthentication=false, github.gitAuthentication=false.
+No settings mutation or OAuth fallback. Host-only API deliberately broadens native
+Git authority compared with Zero's exact URL/SHA transport; ambient helpers may
+win, native cache can survive signout60s, generic Git prompts remain possible.
+Student controls continue using guarded transport. See DEVELOPMENT for limits.
+
+Actual Mac VSCode1.143.1/JDK17 command-level integration passed in disposable
+profile: fixture sign-in → New branch → edit → native Run/UI_READY → Stop →
+Commit & push to local bare → Merge to main → confirmed local cleanup → native
+SCM → Show Zero → signout. Real native Git Askpass requested the same fixture
+Zero credential during read-only nonexistent GitHub repository access, then
+received expected refusal. No real account credential or GitHub upload used.
+Full click walkthrough unproven: Mac controller kept selecting existing Dev,
+so actual public editor commands drove the isolated host with fixture text inputs.
+Native source trace `.verification/git-flow-efficiency/native-acceptance.json`.
+Unrelated my-greeting and existing profiles/watcher preserved. Two fixture setup
+errors (module path/JAVA_HOME) corrected before successful run.
+
+Validation: npm run check passes; npm test1201pass/3skip (1204total), no failures.
+Auth/provider/browser/native/UI/upload focused108pass; worker final auth57pass;
+real Git/transport/UI initial29pass/1failure from now-skipped cached fetch fixture;
+updated focused fetch regressions4pass, updated workflow UI1pass. Remaining
+unchanged realGit cases passed in full suite. Windows/minimumVSCode/live-account
+native upload, fresh Mac/school-network and click acceptance remain separate.
+Independent auth/security and compatibility review pending at this receipt.
+Requested workers Sol6.1/high (2 implementation assignments); effective model,
+attributable token/time cost unknown. Weekly81%remaining at start, storage230GB
+healthy. Shared usage is not task cost. Bulky outputs remain ignored.
+
+
 ## Branch progress and Zero navigation PR203 ready — 2026-10-25
 
 [PR203](https://github.com/codepetca/zero/pull/203) is ready, open and mergeable at

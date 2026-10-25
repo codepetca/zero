@@ -772,8 +772,13 @@ unusual histories require normal Git tools. No automatic source rollback occurs.
 Live transport uses transient credentials from the captured Zero GitHub App session.
 It requires Git 2.31+ for runtime credential configuration and rejects older Git
 before credential dispatch.
-The session is revalidated before network actions, so account/session changes
-require another review. Expiring tokens are stored in VS Code SecretStorage.
+Capture verifies the account remotely once. Checks within that operation reread
+SecretStorage under the cross-window lock using a private receipt bound to the
+exact verified session, credentials and App configuration. Changes, expiry and
+sign-out invalidate it; ordinary session lookups still verify remotely. Each
+credential-bearing transport checks repository/installation access immediately
+before dispatch. Remote revocation is enforced by actual server requests, not
+the local receipt. Expiring tokens are stored in VS Code SecretStorage.
 Git transport injects them only into guarded credential-bearing children
 temporarily; they do not appear in Git configuration files, command arguments,
 URLs or logs. No client secret or App
@@ -783,9 +788,15 @@ The same guarded transport permits only exact-destination pushes, branch-head
 queries and SHA-pinned fetches needed to update main. Local Git receives no native
 credentials. Zero's separate clone service also authenticates only its exact
 verified destination. General Source Control and terminal network commands do
-not automatically inherit Zero's credentials; their normal Git configuration and
-authentication remain separate. Preparation queries remote main without changing local files/refs;
+not automatically inherit Zero's credentials. An experimental, default-off
+native Git bridge is available only through explicit User Settings in a trusted
+window; its broader authority and acceptance limits are documented in
+[Development](DEVELOPMENT.md#native-git-sign-in-prototype).
+The student buttons continue to use guarded transport independently of that
+prototype. Preparation queries remote main without changing local files/refs;
 the reviewed executor performs updates, with drift/session checks throughout.
+An exact reviewed main commit already present locally is not fetched again;
+live remote-head checks and source/ref mutation guards remain in force.
 
 Copy Repository Link returns a page URL for separate Pika submission. A copied
 link does not establish that code was uploaded or that the remote is current.
