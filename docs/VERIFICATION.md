@@ -1,5 +1,24 @@
 # Verification
 
+## Existing-Mac pilot LOCAL-MAC-01 — 2026-10-25
+
+Ran the installed 49 pilot as far as the enabled Mac controls allowed. Actual
+browser-first sign-in/cancel/retry, read-only HTTPS clone, native readiness for
+Greeting/Study/Coin/current starter, three fresh installed WebFX exports and
+embedded/external behavior pass. Study finished 3/3 and reset; Coin won with arrows
+and WASD in both previews. Normal Quit→Zero reopen retained unsaved notes,304 copied
+files and original repositories/settings. All 9 separate warm-cache CLI build/export/
+validate checks passed under deny-network sandbox, with EPERM control,104.96s total.
+
+Native physical-window input was outside the enabled app inventory. Cold fresh-Mac
+setup, real school network/proxy/CA downloads and sign-in/clone, physically offline
+GUI use and actual novice authorship remain unproven. Optional code fallback
+reached the account-holder passkey step and was cancelled uncompleted; initial
+signed-out state restored. No publishing, remote writes, broader permissions or
+product code changes. Exact P01–P16coverage/gaps: [local result](pilots/mac-0.5.49/LOCAL-MAC-01.md).
+Luna/medium independent result review clean at 6c0dce18; parent checked final cleanup.
+Evidence `.verification/mac-pilot49/local-run/`; original sealed pilot pack unchanged.
+
 ## Mac 0.5.49 fresh-device / school pilot prepared — 2026-10-24
 
 Prepared a supervised two-session [pilot](pilots/mac-0.5.49/README.md), source-backed

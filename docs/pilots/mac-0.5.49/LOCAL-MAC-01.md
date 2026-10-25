@@ -13,8 +13,8 @@ Zero release or feed/site/template deployment was performed.
   `182b79fffebb7bce665db242a5867e5592a1510f62472ee86841262c14e879ee` verified.
 - Existing Applications VS Code 1.143.1, Java support 1.58.0; private Temurin
   21.0.12.1+1 and Node 22.21.1; system `/usr/bin/git`2.54.0 (Apple Git-157).
-  Zero Troubleshooting separately confirmed its host JDK21fromJAVA_HOME, Java
-  editor support and Git2.31+available. The maintainer shell uses a different Git.
+  Zero Troubleshooting separately confirmed its host JDK 21 from JAVA_HOME, Java
+  editor support and Git 2.31+ available. The maintainer shell uses a different Git.
 - Current owner network; no claim that it is the managed school network. No
   global Wi-Fi, proxy, TLS, Gatekeeper or certificate setting was changed.
 - Normal installed editor/browser interactions used native computer controls.
@@ -107,3 +107,22 @@ permissions and actual Sparkle 49 delivery remain outside this run. These still
 need their separate authorization and acceptance; none is implied by the checks
 above. The sealed candidate and transfer ZIP remain unchanged, and the blank
 fresh/school results master remains unfilled.
+
+## Final state and review
+
+The uncompleted device-code attempt was cancelled after the passkey checkpoint;
+Zero returned to its starting signed-out state. Test apps/previews were stopped,
+the additional pilot windows were closed, and only the original Zero window and
+its unsaved note remain. All six pilot-created browser tabs were closed; the
+unrelated existing browser tab was preserved. The new disposable note was saved
+inside the pilot folder; originals, private backups and the transfer pack remain
+untouched. No passkey, authentication code or credential was stored in evidence.
+
+Independent Luna/medium result review at 6c0dce18 found no actionable coverage or
+evidence inconsistencies (one launch/turn, zero corrections). Sol/medium ran the
+bounded offline checks; parent inspected the control, commands and receipts and
+owned all UI/integration. Final cleanup is coordinator-checked. Effective model,
+per-turn usage and elapsed reviewer time were unavailable. Weekly account usage
+was 40% remaining at start; it is not an attributable task cost. Root/diff checks
+and preservation verification pass; no full source suite rerun was needed for
+this documentation-only record and unchanged candidate.
