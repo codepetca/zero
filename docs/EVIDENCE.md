@@ -1,5 +1,28 @@
 # Delivery evidence index
 
+## Mac 0.5.49 fresh-device / school pilot prepared — 2026-10-24
+
+Prepared a supervised two-session [pilot](pilots/mac-0.5.49/README.md), source-backed
+[IT inventory](pilots/mac-0.5.49/NETWORK.md) and [blank results](pilots/mac-0.5.49/RESULTS.md).
+All16physical checks remain NOT_RUN. No account/network operation, publication or
+product-code change occurred. Existing candidate49DMG bytes and public47feeds are
+unchanged. Cold downloads, proxy isolation, native physical play, fresh WebFX,
+offline rebuild/reopen and novice evidence are separate observed gates.
+
+Ignored transfer folder/ZIP: `dist/pilots/mac-0.5.49-52fa3120f045` / matching `.zip`;
+5,907,792-byte ZIP SHA256 `d4cca01caa49ffb4ed0794c9cf8a33755409995f0ecda68d265f641416684157`.
+Prepared from06c51235;10file checksums, ZIP extraction/integrity, portable links,
+exact reviewed-document copies and16unrun statuses pass. Source equivalence to
+built e5953f05passes. Proof `.verification/mac-pilot49/`. Public provenance only;
+no profiles, private backups, credentials or student repositories copied.
+
+Sol/medium read-only source inventory and one independent Luna/medium complete
+pilot-document review found no actionable issues (one review launch/wave, zero
+fix batches). Effective model/token/timing telemetry unavailable; account usage
+was41%weekly remaining at start, not attributable task cost. Root/diff checks pass.
+Publishing, remote create/push/merge/Pages/ZeroHub and49updater delivery remain
+separate; this preparation does not close fresh-machine/school/classroom adoption.
+
 ## Corrected local Mac 0.5.49 candidate — 2026-10-24
 
 Clean reviewed source e5953f05 fixes task-discovery side effects, host task identity
