@@ -4465,3 +4465,12 @@ See EVIDENCE.md and ignored `.verification/tab-branding/`.
 render exactly one lowercase zero title; Chrome Tutorials verified. Regular
 site pages use one shared title template;41public URL cases including404each
 have exactly one zero title. Custom fallback UI compiles. Logs .verification/uniform-tab-title/.
+
+## Mac0.5.48 installed acceptance — 2026-10-24
+
+See [the candidate acceptance record](MAC-CANDIDATE-0.5.48.md) for exact source,
+artifact hash, independent reviews and Mac UI checks. Candidate signing/sealing,
+manual47→48upgrade, clean-folder setup, browser sign-in, native compiler recovery
+and fresh WebFX preview pass. Two early Run stops remain an unresolved QA
+observation; no student-rollout approval or production update-delivery claim.
+Publishing remains held.

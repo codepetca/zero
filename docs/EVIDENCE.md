@@ -10010,3 +10010,12 @@ native Settings and visibly switched dark to match macOS Dark, including Sidebar
 Start Page and Tutorials. No OS roundtrip, fresh-machine, physical Windows/Intel
 acceptance or46installation is claimed. Windows21/manualkit17 and previous assets
 remain unchanged. Metadata/feed promotion and live verification pending below.
+
+## Mac0.5.48 local candidate — 2026-10-24
+
+See [the candidate acceptance record](MAC-CANDIDATE-0.5.48.md) for exact source,
+artifact hash, independent reviews and Mac UI checks. Candidate signing/sealing,
+manual47→48upgrade, clean-folder setup, browser sign-in, native compiler recovery
+and fresh WebFX preview pass. Two early Run stops remain an unresolved QA
+observation; no student-rollout approval or production update-delivery claim.
+Publishing remains held.

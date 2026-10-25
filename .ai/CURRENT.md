@@ -1,32 +1,38 @@
-# Mac release candidate — 2026-10-24
+# Mac candidate prepared — 2026-10-24
 
-User authorizes local Mac candidate preparation, select-all correction, installed
-app and upgrade testing. Publishing remains separate: no push/PR/merge, production
-feed/site/template changes or release publication. Existing signing/notarization
-identities may be used; do not change credentials or account access.
+Local Mac0.5.48/core0.3.0/build48 is signed, notarized, stapled, sealed and tested.
+Publishing remains held: no push/PR/merge, release or production feed/site/template
+change in this phase. Public Mac remains47. User authorized preparation, select-all
+fix and installed/upgrade testing; do not infer rollout approval.
 
-Work only in `/Users/stew/.codex/worktrees/actor/zero`, branch
-`codex/mac-student-rc`, base cebd3b8e. Primary checkout has unrelated funding work.
-Parent owns Git/docs/UI/build/install. Sol/high read-only preflight workers cover
-Mac packaging/isolation and preview input; parent owns implementation initially.
-Preserve existing Zero installation/profile, student repositories, unsaved work
-and original Zero Dev watcher/profile. Isolate tests before installing/running.
+Use `/Users/stew/.codex/worktrees/actor/zero`, branch`codex/mac-student-rc`.
+Primary checkout has unrelated funding work. Parent owns Git/docs. No active
+worker remains. Original Zero Dev watcher/profile preserved; Dev editor closed
+normally for isolation. Installed48and preserved upgraded private editor session
+are open, with the actual unsaved upgrade-test note intact. Test apps are stopped.
 
-Published Mac0.5.47/build47 is immutable. Current source metadata0.5.47/core0.3.0
-has not shipped. Choose unused higher kit/extension/native version; keep published
-snapshot and production feeds at47. Production updater has no staging override;
-a fixture/manual upgrade must be labelled accurately, not claimed as live delivery.
+Source31c42a48; preparation498d651a5a23. Exact candidate and limits:
+[acceptance record](../docs/MAC-CANDIDATE-0.5.48.md).
+Ignored artifacts `dist/candidates/mac-0.5.48-498d651a5a23/`; detailed proof
+`.verification/mac-student-rc/`. Original47app/kit/private profile and fresh-test
+state are retained outside Git in private rollback storage.
 
-Next: compare embedded versus external browser Cmd+A, implement smallest supported
-repair, independent review/checks, stamp/version and build signed/notarized local
-candidate, then fresh-install/upgrade acceptance with project pin preservation.
-No new public Java API planned. DeepSeek remains paused through2026-12-31.
-Storage250GB healthy and weekly47%remaining at start (account-wide, not task cost).
-Human “Disregards budget caps. Complete the goal” task waiver persists for low-usage
-and workflow review-budget stops; correctness and publishing holds remain.
+Select-all fixed in actual Mac source/installed WebFX preview, without modifying
+project source/exported bytes. Manual47→48native handoff preserves unsaved note,
+settings, three original repositories and bundled starter. Actual native readiness,
+source-linked compiler recovery, fresh installed WebFX compile, clean-folder setup,
+browser GitHub return without code, sign-out and native update check accepted.
+Fullsuite1141pass/3Windows-PowerShellskips/0fail;27focused+30releasechecks pass.
+Independent Sol/high source+targeted closure and sealed13-file review clean.
+No actual automatic production47→48delivery or separate fresh-machine proof.
 
-Prior accepted rollout and historical phase evidence:
-[archived handoff](archive/live-tutorial-rollout-complete-2026-10-24.md).
-Live templates, browser broker and lesson11 local/preparation walkthrough were
-accepted. `.verification/live-tutorial-rollout/` holds exact proof. The broader
-vision retains separately gated external/physical acceptance; no completion claim.
+Next before publication: diagnose two initial Run attempts that ended App stopped
+without retained readiness/error output. Repeats and controlled first Run after
+Java Ready were stable; cause unproven, no speculative code change. Keep this QA
+observation visible. Physical Windows/native-window interaction and school-network
+pilot remain separate. Normal source/CI/publication gates remain.
+
+Prior accepted live templates/broker/lesson11 rollout is archived in
+[previous handoff](archive/live-tutorial-rollout-complete-2026-10-24.md).
+DeepSeek pause through2026-12-31 remains. Human budget-stop waiver remains for this
+task; correctness and publication holds remain. No new goal/task/automation.
