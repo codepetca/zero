@@ -54,3 +54,17 @@ test('wrong owner/app, suspended installation or unexpected token scope fail clo
       fetchImpl:async () => Response.json(++calls === 1 ? installation : bad)}),/unavailable/);
   }
 });
+
+test('opaque stateless installation tokens survive caching; unsafe or oversized tokens fail closed',async () => {
+  const token='ghs_123_'+['eyJhbGciOiJSUzI1NiJ9','a'.repeat(520),'b-c_d'].join('.');
+  let calls=0;
+  const cache=new Map(),fetchImpl=async()=>Response.json(++calls===1?installation:{...result,token});
+  assert.equal(await jamInstallationToken(jamServiceConfig(env),{now,cache,fetchImpl}),token);
+  assert.equal(await jamInstallationToken(jamServiceConfig(env),{now,cache,fetchImpl}),token);
+  assert.equal(calls,2);
+  for(const token of [undefined,123,'ghu_'+'a'.repeat(30),'ghs_'+'a'.repeat(1021),'ghs_abc defghi','ghs_abcdefghij\r\nX: bad','ghs_abcdefghij\u007f']) {
+    let count=0;
+    await assert.rejects(jamInstallationToken(jamServiceConfig(env),{now,cache:new Map(),
+      fetchImpl:async()=>Response.json(++count===1?installation:{...result,token})}),/unavailable/);
+  }
+});

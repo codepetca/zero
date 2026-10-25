@@ -63,7 +63,10 @@ export async function jamInstallationToken(config, {fetchImpl = fetch, now = Dat
   const result = await request(`/app/installations/${config.installationId}/access_tokens`, 'POST',
     {repositories:['zero'], permissions:{contents:'write',metadata:'read'}});
   const expiresAt = Date.parse(result.expires_at);
-  if (!/^ghs_[A-Za-z0-9_]{10,512}$/.test(result.token || '') ||
+  // GitHub installation tokens are opaque: current stateless tokens contain
+  // JWT punctuation and have variable length. Keep the type prefix, transport
+  // bound and header-safety checks without interpreting the credential.
+  if (typeof result.token !== 'string' || !/^ghs_[\x21-\x7e]{10,1020}$/.test(result.token) ||
       !Number.isFinite(expiresAt) || expiresAt <= now + 60_000 || expiresAt > now + 3_660_000 ||
       result.permissions?.contents !== 'write' ||
       Object.keys(result.permissions).some(permission => !['contents','metadata'].includes(permission)) ||

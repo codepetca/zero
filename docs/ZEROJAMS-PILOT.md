@@ -29,19 +29,28 @@ existing browser secret was retained. No production settings changed and no
 plaintext secret was committed or logged; the temporary client-secret file was
 deleted after successful storage.
 
-Writer key generation remains a manual handoff: Chrome blocked the automated
-New key download (`ERR_BLOCKED_BY_CLIENT`), and no writer key pair or matching
-local PEM download was observed. The owner has been asked to complete that
-specific download in Chrome. The writer private-key setting and both enable
-flags remain absent. The hosted preview is still disabled; do not describe the
-pilot as activated.
+The owner completed the writer-key download. The downloaded RSA public fingerprint
+matches the newly registered key. A real App-authenticated installation check and
+narrowed token mint passed, and the token successfully read the empty isolated
+registry. The key was stored as a sensitive exact-branch Preview setting; no
+intermediate plaintext copy was made. The owner's downloaded file remains local
+with mode 0600. GitHub displays two key pairs; neither was revoked by this work.
+Both branch-scoped enable flags are now set. All ten required settings are scoped
+to Preview and this exact branch; no Production setting changed.
 
-Local policy activation `2b512953` pins the actual branch URL and passed targeted
-independent review plus focused tests/build. It has not been pushed. The enabled-
-policy production build and current public production both return 404 for 13 jam
-route/method checks. After the manual key step, verify the real App installation
-and narrowed token, store the key only in the exact Preview branch scope, set the
-flags, publish the reviewed activation and verify actual invited access.
+Live validation found the installation token uses GitHub's current stateless
+format, which the original character whitelist rejected. The runtime now treats
+it as opaque while preserving the installation prefix, printable-ASCII/header
+safety and 1,024-character transport bound. Scope, expiry and repository checks
+remain unchanged. Regression tests cover stateless punctuation, longer tokens,
+caching, wrong types/prefixes, controls, whitespace and oversize rejection. An
+independent Sol 6.1/high review found no blockers. See GitHub's
+[stateless-token rollout notice](https://github.blog/changelog/2026-10-02-stateless-github-app-installation-tokens-rolled-out/).
+
+The reviewed local policy pins the actual branch URL. Publication of this
+activation revision and hosted OAuth/access verification are the final remaining
+steps. The previous hosted build remains disabled until replaced; configuration
+presence and the real writer validation alone are not hosted acceptance.
 The fixed public policy is [jams/pilot.json](../jams/pilot.json). The service model
 and existing local verification remain in [the plan](ZEROJAMS-PLAN.md) and
 [operations guide](ZEROJAMS-OPERATIONS.md). This packet narrows the proposed hosted
