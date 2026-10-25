@@ -1,11 +1,10 @@
 # ZeroJams controlled preview pilot
 
-Prepared 2026-10-25. This is an operator packet for review, not a record of
-activation. Production remains hidden regardless of flags or credentials. The
-current policy is `prepared`, with no origin. Preparation authorizes local source
-work and a read-only audit; it does not authorize deployment, callback/App changes,
-secret changes, installation, branch provisioning or live writes. Those steps
-require a separate owner decision after review.
+Prepared 2026-10-25; activation subsequently authorized by the owner. Production
+remains hidden regardless of flags or credentials. Local policy is `enabled` and
+pinned to the approved origin; the deployed preview still uses the disabled
+preparation revision. The checkpoint below distinguishes completed provisioning
+from the remaining activation and live verification.
 
 ## Authorized activation in progress — 2026-10-25
 
@@ -15,21 +14,34 @@ publishes the reviewed preparation; no main merge is part of activation. A disab
 preview is READY at the protected
 [pilot branch URL](https://zero-git-codex-zerojams-contr-11f1f5-stewarts-projects-cc2722c4.vercel.app/hub/jams).
 
-The state-only pilot registry now exists with orphan root `1709d161` and README-only
-tree `7bff485a`. Four Vercel settings were added only to this branch's Preview scope:
-origin, browser client ID, maintainer ID and a new sensitive session secret. No
-production settings changed. The exact callback and minimal writer registration
-are prepared in GitHub forms but remain unsaved/unsubmitted pending the browser
-tool's required action-time security-access confirmation. No writer App, installation
-or browser client secret has yet been created. The live preview remains disabled.
+The state-only pilot registry exists with orphan root `1709d161` and README-only
+tree `7bff485a`. After the owner's action-time confirmation, the exact pilot OAuth
+callback was saved alongside the two unchanged production callbacks, with wildcard
+matching disabled. Dedicated App `codepet-zerojams-pilot-writer` (App ID `5470616`)
+was created with only Contents write and Metadata read, then installed as
+`175232591` on selected repository `codepetca/zero` only. Webhooks, device flow and
+OAuth-on-install are disabled.
+
+Seven settings now exist only in this branch's Vercel Preview scope: origin,
+browser client ID, maintainer ID, writer App and installation IDs, a new sensitive
+session secret, and a separately generated sensitive browser client secret. The
+existing browser secret was retained. No production settings changed and no
+plaintext secret was committed or logged; the temporary client-secret file was
+deleted after successful storage.
+
+Writer key generation remains a manual handoff: Chrome blocked the automated
+New key download (`ERR_BLOCKED_BY_CLIENT`), and no writer key pair or matching
+local PEM download was observed. The owner has been asked to complete that
+specific download in Chrome. The writer private-key setting and both enable
+flags remain absent. The hosted preview is still disabled; do not describe the
+pilot as activated.
 
 Local policy activation `2b512953` pins the actual branch URL and passed targeted
 independent review plus focused tests/build. It has not been pushed. The enabled-
-policy production build and current public production both return404 for13jam
-route/method checks. Finish the pending GitHub changes, narrow credential checks,
-branch-only settings, final publication and actual access verification before
-claiming an activated pilot. Do not interpret this checkpoint as live acceptance.
-
+policy production build and current public production both return 404 for 13 jam
+route/method checks. After the manual key step, verify the real App installation
+and narrowed token, store the key only in the exact Preview branch scope, set the
+flags, publish the reviewed activation and verify actual invited access.
 The fixed public policy is [jams/pilot.json](../jams/pilot.json). The service model
 and existing local verification remain in [the plan](ZEROJAMS-PLAN.md) and
 [operations guide](ZEROJAMS-OPERATIONS.md). This packet narrows the proposed hosted
@@ -115,7 +127,7 @@ An explicit structured HTTP 404 for the namespace means empty only after the
 branch ref has been verified. CLI denial/unavailable status and unstructured error
 text remain unknown; a missing branch is never inferred from them.
 
-## Proposed operator changes — not executed
+## Operator sequence and verification requirements
 
 1. Review and authorize a single stable HTTPS Vercel branch origin for
    `codex/zerojams-controlled-pilot` in the fixed project. Record the exact origin
