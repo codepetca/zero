@@ -289,10 +289,11 @@ modified component before copying an example over it.
 
 ## Your repository and Pika
 
-Choose **Sign in** using the account control in Zero’s sidebar and complete VS Code's native browser
-flow. The control then shows your GitHub username; click it for account-change
-or sign-out actions. Sign-out opens VS Code Accounts, where you
-select the GitHub account and choose Sign Out.
+Choose **Sign in to GitHub** on Zero's Start Page and complete GitHub's browser
+flow. Returning to Zero shows your account; **Start tutorial** becomes available
+after project access is ready. Use Zero's GitHub account actions to change account
+or sign out. Sign-out disconnects Zero while preserving your projects and other
+extensions' accounts.
 
 If you created your own repository from a ZeroHub template and cloned it,
 keep that clone and its existing origin; skip creating an empty repository.

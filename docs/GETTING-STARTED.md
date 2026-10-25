@@ -1,14 +1,16 @@
 # Getting started with Zero
 
-This guide describes Mac setup 0.5.47, including guided GitHub sign-in and
+This guide describes Mac setup 0.5.49, including guided GitHub sign-in and
 project access before tutorial choices or repository details. The shared GitHub
 App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
 source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
 Local Mac candidate **0.5.50** includes Zero core **0.3.0**, the Zero-first
-Greeting/Study/Coin tutorials and browser GitHub sign-in with an explicit code
-fallback. It is not published; the public Mac download remains0.5.47. Editor
+Greeting/Study/Coin tutorials and browser-only GitHub sign-in for new connections.
+The main button says Sign in to GitHub while signed out, then Start tutorial
+once authenticated and ready. It is not published; the public Mac download
+remains0.5.49. Existing saved sessions retain their renewal path. Editor
 updates preserve existing projects’ framework source and build versions.
 
 Mac 0.5.47 uses native JavaFX for Run App. To publish, stop the app, open the

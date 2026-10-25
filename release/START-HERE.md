@@ -33,7 +33,9 @@ lessons. Read the [complete account/privacy setup](https://zero.codepet.ca/docs/
 
 Follow the sidebar: **Sign in to GitHub**, then
 **Install Zero for GitHub** if requested, then **Start tutorial**. Sign-in opens GitHub in your browser and returns to Zero.
-Use **Sign in using a code** if the browser return is unavailable. Zero checks project access read-only and stops
+The main button says **Sign in to GitHub** while signed out, then **Start tutorial**
+once signed in. If browser sign-in fails, check your connection/default browser
+and try again; local running remains available. Zero checks project access read-only and stops
 at the next sidebar step. If access is missing, **Install Zero for GitHub**
 opens the pinned GitHub App page after a read-only recheck. Approve selected
 repositories there, then return to Zero; it checks again automatically. Use
