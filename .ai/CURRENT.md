@@ -1,30 +1,23 @@
-# Guided ZeroJams preparation complete locally — 2026-10-25
+# Guided ZeroJams preparation merged; production hidden — 2026-10-25
 
-Owner accepted details → actual site preview → customized full-template ZIP.
-Branch codex/zerojams-guided-preparation; base25acd272, guided source35241dde.
-Owner clarified all jams require GitHub; wording/defaults reviewed21678c73.
-Creators cannot waive GitHub sign-in/public exact-source submissions through
-eligibility text. Preparation remains available before sign-in.
-Public-repository requirement now appears directly in default and participant
-Rules, reviewed d32efdf3;62focused tests/typecheck and Chromium checks pass.
-Plan: docs/ZEROJAMS-PLAN.md. Delivery/review receipt: docs/EVIDENCE.md.
+[PR200](https://github.com/codepetca/zero/pull/200) merged aa6d58c5 from reviewed
+head e135c82d after all11CIchecks passed. This worktree and local main ref are
+fast-forwarded; primary funding and actor worktrees remain untouched.
 
-Create flow works without sign-in, retains public session drafts and renders the
-canonical site in an isolated preview. Download includes the same normalized
-manifest and all eight editable files. Creator hosting and exact-source maintainer
-approval remain separate.62focused/240website tests, typecheck/build pass;
-Chromium flow, copied-site serving, recovery,320/390/1280reflow and200% CSS zoom
-verified. Sol6.1/high independent review clean after one preview-navigation fix.
-Safari/WebKit and live authenticated hosting/participation remain unverified.
+Delivered: details → actual template preview → customized8file ZIP, public draft
+recovery, timezone/DST validation and separate exact-source approval. All Game/App
+Jam rules require a public GitHub project repository and exact commit. Preparation
+works before sign-in. Plan: docs/ZEROJAMS-PLAN.md; receipts: docs/EVIDENCE.md.
 
-Production hold unchanged: canonical jam pages/panels/APIs/downloads404; Hub link
-hidden. Latest flag-on production-build smoke passes. Owner now authorizes this source PR/merge; no
-credentials/permissions, registry provisioning, live pilot or installer release.
-Local preview3025/hub/jams/create. Current main73847c88 (PR198 desktop sign-in)
-integrated without executable conflicts; both EVIDENCE histories retained. Primary
-funding and actor worktrees untouched. Next: focused integration review, draft PR,
-exact-head CI, authorized merge and verify production hold. Live pilot remains held.
-Integration review budget:1targeted wave planned, max7launches/4fix batches/60min;
-reuse prior complete feature and wording reviews. No new full implementation wave. DeepSeek paused through
-2026-12-31. Prior PR196/197 merged; separate live encoded-Hub500 issue remains
-recorded without scope expansion. Worktree retained for active local preview.
+Production deployment7315783838 succeeded for aa6d58c5. Actual public13jam route/
+method checks404; Hub200 with no jam link; local preparation3025returns200.
+Source hold unchanged. No credential/permission changes, registry provisioning,
+live pilot or installer release authorized/performed. The separate previously
+recorded encoded-Hub500issue is outside this change.
+
+62focused/240website tests, root check, website typecheck/build pass. Feature,
+wording and main-integration reviews complete/clean. Safari/WebKit and live
+GitHub-hosted/authenticated participant acceptance remain unverified. Next: a
+small live pilot requires its separate explicit activation/configuration authority.
+DeepSeek paused through2026-12-31. Keep this worktree for active local preview.
+These post-merge completion notes are local/uncommitted receipts.

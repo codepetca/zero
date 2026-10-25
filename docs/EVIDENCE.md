@@ -1,5 +1,34 @@
 # Delivery evidence index
 
+## Guided preparation PR200 merged with production held — 2026-10-25
+
+Owner authorized source PR/merge, with live pilot still separate. [PR200](https://github.com/codepetca/zero/pull/200)
+merged aa6d58c5f2641c4522cdf049432a9a5cf8ac3f69 at16:19:30UTC from reviewed
+head e135c82d132fffa7251d8f8ab163eac5f7f2a258. All11checks passed, including
+actual Windows install/JavaFX, WebFX browser, source/native/examples/lessons,
+website and final gates. Runs40210186817(browser),40210186818(Windows),
+40210186832(source). No review threads or changes-requested reviews remained.
+Current-main73847c88 sync preserved both delivery histories; no executable
+conflict fixes. Independent GPT6.1Sol/medium integration review complete/clean,
+one launch/zero fixes, about3minutes reported by reviewer; effective model and
+attributable tokens unknown. Prior feature and wording review coverage reused.
+Local62focused/240website tests, root check, website typecheck/build pass. Main
+integration tree equals reviewed feature and upstream extension source exactly.
+Merged tree equals the checked head; current worktree/local main fast-forwarded.
+Primary funding and actor worktrees preserved; local preview worktree retained.
+
+Vercel Production deployment7315783838 succeeded for the exact merge commit.
+Actual https://zero.codepet.ca canonical13jam route/method cases return404;
+Hub200 with no jam link and local3025preparation200. The PR deployment was behind
+Vercel authentication (page302/API401), so no application-route claim was inferred
+from it. Local flag-on production13case smoke also passed. No credentials/App
+permissions, registry provisioning, live participant pilot or installer release
+were performed. Existing separately recorded encoded-Hub500behavior is unchanged.
+Exact ignored receipts: `.verification/zerojams-guided/pr200-checks.json`,
+`pr200-publication.json`, `pr200-production.json`, `pr200-preview.json` and
+`pr200-live-hold.json`. Post-merge completion receipt remains local/uncommitted;
+no additional public source change was made to publish these notes.
+
 ## Public GitHub requirement in jam rules — 2026-10-25
 
 Owner requested the GitHub requirement inside gamejam rules and clarified the
