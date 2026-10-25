@@ -1,5 +1,31 @@
 # Delivery evidence index
 
+## Controlled preview activation and live approver access — 2026-10-25
+
+Owner confirmed security-access changes and completed the writer key download.
+Preview source3c68f391 is READY in dpl_6hfCqZG9HXDKNtZA1fV9tcnz3w8S at the fixed
+branch origin recorded in docs/ZEROJAMS-PILOT.md. Dedicated writer5470616,
+installation175232591 is selected onlycodepetca/zero, Contentswrite/Metadataread;
+real RSA/App validation and narrowed token mint/read of empty pilot registry pass.
+All10server settings are exact-branch Preview only; sensitive values were not
+logged/committed. Existing browser secret retained; local download mode0600.
+
+Real GitHub stateless token exposed obsolete runtime regex. Fix treats returned
+token as opaque with prefix/header-safeASCII/1024bound; scope/expiry/repo checks
+unchanged. Targeted independent Sol6.1/high review complete/clean (~2min; actual
+tokens/effective runtime model unknown). Reviewer4runtime tests pass. One targeted
+review launch/fix batch this turn; no integration conflicts or reviewer rework.
+251website tests, typecheck/build pass; accountweekly86%remaining is not taskcost.
+
+Actual Chrome/macOS: signed-out page neutral, API no records; armorupOAuthcallback
+succeeds and API configuredtrue/canMaintaintrue/events[]/proposals[]. Signout
+restores gate. stewchan invitation configured; fresh authentication pending owner.
+No full event lifecycle or uninvited third-account acceptance claim. Production
+13canonical jamGET/POST404, Hub200/nojamlink; protection unchanged, main held.
+DraftPR202 source published, exact-headCI running; no merge/publicrelease.
+Ignored receipts writer-validation.json, active-preview.json, live-production-hold.json
+and live-approver.png. Registry Vercel build-trigger cost gap recorded in pilotpacket.
+
 ## Controlled pilot activation checkpoint — 2026-10-25
 
 Owner authorized actual setup/activation, production held. Draft PR202 at39562271

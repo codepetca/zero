@@ -2,15 +2,15 @@
 
 Prepared 2026-10-25; activation subsequently authorized by the owner. Production
 remains hidden regardless of flags or credentials. Local policy is `enabled` and
-pinned to the approved origin; the deployed preview still uses the disabled
-preparation revision. The checkpoint below distinguishes completed provisioning
-from the remaining activation and live verification.
+pinned to the approved origin. Preview revision `3c68f391` is active; the
+checkpoint below distinguishes verified hosted access from remaining pilot
+acceptance.
 
 ## Authorized activation in progress — 2026-10-25
 
 Owner subsequently authorized setup and activation for stewchan and armorup while
 keeping production hidden. [Draft PR202](https://github.com/codepetca/zero/pull/202)
-publishes the reviewed preparation; no main merge is part of activation. A disabled
+publishes the reviewed pilot; no main merge is part of activation. The activated
 preview is READY at the protected
 [pilot branch URL](https://zero-git-codex-zerojams-contr-11f1f5-stewarts-projects-cc2722c4.vercel.app/hub/jams).
 
@@ -47,10 +47,27 @@ caching, wrong types/prefixes, controls, whitespace and oversize rejection. An
 independent Sol 6.1/high review found no blockers. See GitHub's
 [stateless-token rollout notice](https://github.blog/changelog/2026-10-02-stateless-github-app-installation-tokens-rolled-out/).
 
-The reviewed local policy pins the actual branch URL. Publication of this
-activation revision and hosted OAuth/access verification are the final remaining
-steps. The previous hosted build remains disabled until replaced; configuration
-presence and the real writer validation alone are not hosted acceptance.
+The reviewed activation revision `3c68f39100f9722fb6c42ae480c0c3fb13a687ce` is READY
+as Vercel deployment `dpl_6hfCqZG9HXDKNtZA1fV9tcnz3w8S`, attached to the exact
+protected branch alias. In Chrome on macOS, signed-out access shows the invited
+sign-in screen and the API reveals no records. Normal GitHub OAuth as `armorup`
+returns to the pilot; the hosted API returns `configured:true`, `events:[]`,
+`canMaintain:true` and `proposals:[]`. Signing out restores the invitation gate.
+Creator `stewchan` is invited in the policy, but its fresh GitHub sign-in requires
+owner authentication and remains pending. No forged session or identity was used.
+
+All 251 website tests, typecheck and production build pass. Exact-head CI is
+running. Production was rechecked after deployment: all 13 canonical jam
+route/method requests return 404, and `/hub` returns 200 without a jam link. Vercel
+protection remains `all_except_custom_domains`; production branch remains `main`.
+No main merge, production environment change or public activation occurred.
+
+Cost observation: creating the state-only registry branch triggered an automatic
+Vercel build attempt, which failed because that branch intentionally has no site
+source. Before repeated event writes or expanding the pilot, exclude that branch
+from deployment triggers under a separately reviewed configuration change. This
+activation did not alter the project's shared build settings or make a free-tier
+cost claim.
 The fixed public policy is [jams/pilot.json](../jams/pilot.json). The service model
 and existing local verification remain in [the plan](ZEROJAMS-PLAN.md) and
 [operations guide](ZEROJAMS-OPERATIONS.md). This packet narrows the proposed hosted
@@ -228,7 +245,9 @@ branch, browser/OS and each observed result. Never record token/key/session valu
   Agree provider cost/usage stop thresholds before expansion; no free-tier promise.
 
 Passing local tests and preflight presence checks do not satisfy this live record.
-No authenticated hosted pilot, Safari acceptance or provider cost result is claimed.
+Hosted approver sign-in and registry reads are verified above. The full event
+lifecycle, creator sign-in, Safari acceptance and provider cost results remain
+unverified.
 
 ## Rollback and incident stop
 
