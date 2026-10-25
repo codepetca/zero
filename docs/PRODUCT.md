@@ -557,7 +557,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
 - The native Explorer handles all file browsing, selection, editor tracking and file operations.
   A Zero view in the same Explorer container holds Run/Stop, repository actions and teaching helpers,
   without extra GitHub/ZeroHub headings. Current local source keeps a native
-  **← Zero** action at the bottom left in Zero windows. It restores Explorer and
+  **Zero** action at the bottom left in Zero windows. It restores Explorer and
   focuses/expands Zero when Source Control or another panel replaces the sidebar;
   no file or Git action runs. Published downloads retain their bundled navigation.
   VS Code owns the view order: drag Zero above the file tree

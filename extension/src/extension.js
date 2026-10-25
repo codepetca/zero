@@ -57,7 +57,7 @@ function activate(context, services = {}) {
   const sidebarShortcut = vscode.window.createStatusBarItem?.('zero.backToSidebar',vscode.StatusBarAlignment?.Left,1000);
   if (sidebarShortcut) {
     sidebarShortcut.name='Back to Zero';
-    sidebarShortcut.text='$(arrow-left) Zero';
+    sidebarShortcut.text='Zero';
     sidebarShortcut.tooltip='Return to Zero’s Run, files and project controls';
     sidebarShortcut.accessibilityInformation={label:'Back to Zero',role:'button'};
     sidebarShortcut.command='zero.showSidebar';

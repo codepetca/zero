@@ -11,8 +11,8 @@ cases reused/currentfocused2pass/rootpass. RealDev existingtesterguard shows
 progress then closes/re-enables;95files/HEAD/branch/status preserved; no newbranch.
 Proof .verification/branch-progress/; fullsuccesslivecreation notclaimed.
 
-Returnnavigation9bc584e0 corrected3f37e4ea: native←Zero statusbar atbottomleft,
-BacktoZero accessiblelabel, existingShowSidebar→Explorer/zero.controls.focus.
+Returnnavigation9bc584e0 corrected3f37e4ea: nativeZero statusbar atbottomleft,
+Owner removed the arrow: visiblelabel Zero, BacktoZero accessiblelabel, existingShowSidebar→Explorer/zero.controls.focus.
 Independent ofauth/busy; visibleforZero/empty/StartPage windows. StartPageopen/
 restore/close/dispose notifications keepvisibilitycurrent. Sol6.1/medium initial
 1P2 fixed inonebatch;targetedreviewclean. Initial65tests/corrected64/rootpass.
