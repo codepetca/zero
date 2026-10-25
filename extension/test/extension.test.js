@@ -126,13 +126,15 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   let reportWarning; const warningShown=new Promise(resolve=>{reportWarning=resolve;});
   const oldAssert=core.assertRepositoryRoot;core.assertRepositoryRoot=async()=>root;t.after(()=>{core.assertRepositoryRoot=oldAssert;});
   const oldGit=core.git;core.git=async(_,args)=>{if(args[0]==='rev-parse') return args.includes('--verify')?'a'.repeat(40):root;if(args[0]==='symbolic-ref'){if(currentBranch===undefined)throw new Error('Detached HEAD');return currentBranch;}if(args[0]==='remote'&&args[1]==='get-url'){if(!repo)throw new Error('no origin');return repo;}gitChanges++;throw new Error('Unexpected mutation');};t.after(()=>{core.git=oldGit;});
+  const sidebarShortcut={visible:false,show(){this.visible=true;},hide(){this.visible=false;},dispose(){this.disposed=true;}};
   const nativeRepository={rootUri:{fsPath:root}};
   const nativeApi={getRepository:()=>{nativeRepository.rootUri.fsPath=nativeRoot;return nativeRoot?nativeRepository:null;},get repositories(){return nativeRoot?[{rootUri:{fsPath:nativeRoot}}]:[];}};
   const vscode={
+    StatusBarAlignment:{Left:1},
     extensions:{getExtension:()=>({isActive:true,exports:{getAPI:()=>nativeApi}})},
     authentication:{getSession:async(provider,scopes,options)=>{assert.equal(provider,'zero-github');assert.deepEqual(scopes,[]);authCalls.push({provider,scopes,options});if(options.createIfNone&&connectionSession)session=connectionSession;return session;},registerAuthenticationProvider:(id,label,provider)=>{registered.push({id,label,provider});return disposable();},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
     workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?mode:fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
-    window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async message=>{notices.push(message);},showWarningMessage:async message=>{notices.push(message);reportWarning();await warningPending;},showQuickPick:async(items,options)=>{picks.push({items,options});if(pickEffect)await pickEffect();return items.find(item=>item.action===nextChoice);},showInputBox:async()=>{inputCount++;return inputs.shift();},showOpenDialog:async()=>[{fsPath:root}],showErrorMessage:async message=>{errors.push(message);}},
+    window:{createStatusBarItem:(id,alignment,priority)=>{assert.equal(id,'zero.backToSidebar');assert.equal(alignment,1);assert.equal(priority,1000);return sidebarShortcut;},createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async message=>{notices.push(message);},showWarningMessage:async message=>{notices.push(message);reportWarning();await warningPending;},showQuickPick:async(items,options)=>{picks.push({items,options});if(pickEffect)await pickEffect();return items.find(item=>item.action===nextChoice);},showInputBox:async()=>{inputCount++;return inputs.shift();},showOpenDialog:async()=>[{fsPath:root}],showErrorMessage:async message=>{errors.push(message);}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},getCommands:async()=>['workbench.action.manageAccounts'],executeCommand:async (id,uri)=>{dispatched.push(id);if(id==='git.checkout'){assert.equal(uri.fsPath,root);if(checkoutGate)await checkoutGate;if(checkout)await checkout();}}},
     env:{openExternal:async uri=>{opened.push(uri);return true;},clipboard:{writeText:async text=>{copied.push(text);}}},Uri:{file:fsPath=>({fsPath}),parse:url=>({url})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
@@ -161,6 +163,13 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
     }
   };await settle(()=>authCalls.length>0 && /GitHub setup/.test(webview.html));
   assert.match(webview.html,/GitHub setup/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
+  assert.equal(sidebarShortcut.visible,true,'The return button remains available while signed out');
+  assert.equal(sidebarShortcut.command,'zero.showSidebar');
+  assert.equal(sidebarShortcut.accessibilityInformation.label,'Back to Zero');
+  await vscode.commands.executeCommand('workbench.view.scm');
+  await commands.get(sidebarShortcut.command)();
+  assert.deepEqual(dispatched.slice(-2),['workbench.view.explorer','zero.controls.focus'],'Return from Source Control reveals Explorer and expands/focuses Zero');
+  assert.equal(sidebarShortcut.visible,true,'Navigation does not remove the return button');
   await settle(()=>webview.html.includes('id="files-menu-button"'));
   assert.match(webview.html,/id="files-menu-button"[^>]*>New/);
   assert.doesNotMatch(webview.html,/data-command="zero.recovery"|role="tree"|id="files"|files\.list/);

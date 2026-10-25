@@ -54,6 +54,15 @@ function activate(context, services = {}) {
     context.subscriptions.push(vscode.commands.registerCommand(id, action));
   }
   const output = vscode.window.createOutputChannel('Zero');
+  const sidebarShortcut = vscode.window.createStatusBarItem?.('zero.backToSidebar',vscode.StatusBarAlignment?.Left,1000);
+  if (sidebarShortcut) {
+    sidebarShortcut.name='Back to Zero';
+    sidebarShortcut.text='$(arrow-left) Zero';
+    sidebarShortcut.tooltip='Return to Zero’s Run, files and project controls';
+    sidebarShortcut.accessibilityInformation={label:'Back to Zero',role:'button'};
+    sidebarShortcut.command='zero.showSidebar';
+    context.subscriptions.push(sidebarShortcut);
+  }
   let execution, ending, view, pendingLaunch;
   let runGeneration = 0;
   let nativeStarting = 0, stopPromise;
@@ -109,7 +118,13 @@ function activate(context, services = {}) {
     projectRoot = root; localPractice = practice; originalWork = original;
     return root;
   };
-  const refresh = () => { if (view) render(view.webview); startPage?.refresh(); };
+  const refresh = () => {
+    if (sidebarShortcut) {
+      const zeroWindow = projectRoot || !(vscode.workspace.workspaceFolders || []).length || startPage?.isOpen();
+      if (!disposed && zeroWindow) sidebarShortcut.show();else sidebarShortcut.hide();
+    }
+    if (view) render(view.webview);startPage?.refresh();
+  };
   const report = (text, detail = text) => {state=text;output.appendLine(detail);refresh();};
   const tutorials = createTutorialReader(vscode,{context,output,project});
   context.subscriptions.push(tutorials);
