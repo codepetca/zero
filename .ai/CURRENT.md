@@ -1,4 +1,4 @@
-# Mac candidate prepared — 2026-10-24
+# Native early-Run diagnosis active — 2026-10-24
 
 Local Mac0.5.48/core0.3.0/build48 is signed, notarized, stapled, sealed and tested.
 Publishing remains held: no push/PR/merge, release or production feed/site/template
@@ -6,8 +6,14 @@ change in this phase. Public Mac remains47. User authorized preparation, select-
 fix and installed/upgrade testing; do not infer rollout approval.
 
 Use `/Users/stew/.codex/worktrees/actor/zero`, branch`codex/mac-student-rc`.
-Primary checkout has unrelated funding work. Parent owns Git/docs. No active
-worker remains. Original Zero Dev watcher/profile preserved; Dev editor closed
+Primary checkout has unrelated funding work. Parent owns Git/docs/UI/version/build. Sol/high native_run_ordering owns
+extension native lifecycle source/tests for a confirmed fix. Native traces prove
+that task discovery (Tasks: Configure Default Build Task, no selection) calls
+resolveTask→stop and kills a running game. Startup also invokes this resolver.
+Temporary tracing was removed; originals/trace are retained under
+`.verification/native-run-startup/`. Make resolution pure and defer save/stop/
+validation to actual CustomExecution, then independent review and Mac UI tests.
+Prepare a new local49/build49 candidate after verification; keep sealed48intact. Original Zero Dev watcher/profile preserved; Dev editor closed
 normally for isolation. Installed48and preserved upgraded private editor session
 are open, with the actual unsaved upgrade-test note intact. Test apps are stopped.
 

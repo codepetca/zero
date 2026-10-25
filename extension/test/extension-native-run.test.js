@@ -28,7 +28,7 @@ test('Run App, sidebar and configured tasks use native Java while web export ret
  const appProvider={dispose(){},async removeSession(){assert.fail('Local Run must not remove a GitHub session');}};
  const vscode={languages:{createDiagnosticCollection:name=>{const entries=new Map();diagnosticCollections.set(name,entries);return {clear:()=>entries.clear(),set:(uri,items)=>entries.set(uri.fsPath,items),dispose(){}};}},Position:class{constructor(line,character){Object.assign(this,{line,character});}},Range:class{constructor(start,end){Object.assign(this,{start,end});}},Diagnostic:class{constructor(range,message,severity){Object.assign(this,{range,message,severity});}},DiagnosticSeverity:{Error:0},authentication:{getSession:async()=>null,onDidChangeSessions:disposable,registerAuthenticationProvider:disposable},workspace:{registerTextDocumentContentProvider:disposable,textDocuments:[],onDidChangeTextDocument:callback=>{edited=callback;return disposable();},onDidSaveTextDocument:callback=>{savedDocument=callback;return disposable();},workspaceFolders:[{uri:{fsPath:root}}],isTrusted:true,getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>{saves++;if(saveGate)await saveGate;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
  window:{createOutputChannel:()=>({appendLine:v=>states.push(v),dispose(){}}),registerWebviewViewProvider:(_,value)=>{webview={options:{},onDidReceiveMessage:disposable};value.resolveWebviewView({webview,onDidDispose:disposable});return disposable();},registerTreeDataProvider:disposable,showErrorMessage:async v=>errors.push(v)},
- tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTask:fn=>{ends.push(fn);return disposable();},onDidEndTaskProcess:fn=>{processEnds.push(fn);return disposable();},registerTaskProvider:(_,value)=>{provider=value;return disposable();},executeTask:async task=>{if(cloneConfiguredTask)task=new Task({...task.definition},task.scope,task.name,task.source,task.execution,task.matcher);const active={task,terminate(){if(active.pty)active.pty.close();else finish(active);}};launches.push(active);if(task.execution instanceof CustomExecution){active.pty=await task.execution.callback();active.pty.onDidClose(code=>finish(active,code));}if(active.pty&&earlyCompilerOutput){active.pty.open();active.child=spawned.at(-1).child;active.child.stdout.emit('data',Buffer.from('[ERROR] '+path.join(root,'src/main/java/Main.java')+":[22,50] ';' expected\n"));}starts.forEach(fn=>fn({execution:active}));if(active.pty&&!active.child){active.pty.open();active.child=spawned.at(-1).child;}return active;}},
+ tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTask:fn=>{ends.push(fn);return disposable();},onDidEndTaskProcess:fn=>{processEnds.push(fn);return disposable();},registerTaskProvider:(_,value)=>{provider=value;return disposable();},executeTask:async task=>{if(cloneConfiguredTask)task=new Task({...task.definition},task.scope,task.name,task.source,task.execution,task.matcher);const active={task,output:'',terminate(){if(active.pty)active.pty.close();else finish(active);}};launches.push(active);if(task.execution instanceof CustomExecution){active.pty=await task.execution.callback();active.pty.onDidClose(code=>finish(active,code));active.pty.onDidWrite(text=>{active.output+=text;});}const open=()=>{if(!active.pty)return;const before=spawned.length;active.pty.open();if(spawned.length>before)active.child=spawned.at(-1).child;};if(active.pty&&earlyCompilerOutput){open();active.child?.stdout.emit('data',Buffer.from('[ERROR] '+path.join(root,'src/main/java/Main.java')+":[22,50] ';' expected\n"));}starts.forEach(fn=>fn({execution:active}));if(!earlyCompilerOutput)open();return active;}},
  commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},Uri:{file:fsPath=>({fsPath})},EventEmitter:NativeEmitter,CustomExecution,Task,ProcessExecution,ShellExecution:ProcessExecution,ShellQuoting:{Strong:2},TaskScope:{Workspace:1},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2}};
  const originalLoad=Module._load,originalEnsure=snapshot.ensureValidatedExport,originalValidate=snapshot.validateExport;
  snapshot.ensureValidatedExport=async options=>{builds++;assert.equal(options.projectRoot,root);return {sitePath:path.join(root,'site')};};snapshot.validateExport=async()=>{validated++;};
@@ -41,11 +41,33 @@ test('Run App, sidebar and configured tasks use native Java while web export ret
  assert.ok(launches[0].task.execution instanceof CustomExecution);assert.deepEqual(spawned[0].args,['clean','compile','javafx:run']);assert.match(webview.html,/readiness unverified/);
  const identity=spawned[0].options.env;const signal=(seq,type,code,stage='startup',diagnostic)=>{launches[0].child.stdout.emit('data',Buffer.from(NATIVE_PREFIX+JSON.stringify({version:1,runId:identity.ZERO_RUNTIME_RUN_ID,buildId:identity.ZERO_RUNTIME_BUILD_ID,seq,type,stage,code,...(diagnostic?{diagnostic}:{})})+'\n'));};
  signal(1,'startup','STARTING');signal(2,'ui-ready','UI_READY');assert.match(webview.html,/App UI ready/);signal(3,'first-frame','FIRST_FRAME','frame-draw');assert.match(webview.html,/first game frame ready/);assert.equal(launches[0].task.name,'Run App');assert.deepEqual(launches[0].task.matcher,[]);
+ const liveCompiler=diagnosticCollections.get('zero-native-compiler'),liveRuntime=diagnosticCollections.get('zero-native-runtime');
+ liveCompiler.set('live.java',['retained compiler diagnostic']);liveRuntime.set('live.java',['retained runtime diagnostic']);
+ const discoverySaves=saves,discoverySpawns=spawned.length,liveChild=launches[0].child;
+ const discovered=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});
+ assert.ok(discovered.execution instanceof CustomExecution);assert.equal(saves,discoverySaves);assert.equal(spawned.length,discoverySpawns);
+ assert.equal(launches[0].finished,undefined,'Task discovery must not terminate an active app');
+ assert.equal(launches[0].child,liveChild);assert.match(webview.html,/first game frame ready/);
+ assert.deepEqual(liveCompiler.get('live.java'),['retained compiler diagnostic']);assert.deepEqual(liveRuntime.get('live.java'),['retained runtime diagnostic']);
+ let closePicker;vscode.window.showQuickPick=async()=>new Promise(resolve=>{closePicker=resolve;});
+ const picking=commands.get('zero.browseZeroHub')();const pickerDeadline=Date.now()+2000;
+ while(!closePicker&&Date.now()<pickerDeadline)await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(closePicker,'Project picker holds an unrelated busy action while native app runs');
+ const busyLive=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});
+ const busyLiveSaves=saves,busyLiveSpawns=spawned.length;
+ const refusedLive=await vscode.tasks.executeTask(busyLive);
+ assert.match(refusedLive.output,/Finish the current action/);assert.equal(saves,busyLiveSaves);assert.equal(spawned.length,busyLiveSpawns);
+ assert.equal(launches[0].finished,undefined,'A rejected busy task must not stop the app');assert.match(webview.html,/first game frame ready/);
+ assert.deepEqual(liveCompiler.get('live.java'),['retained compiler diagnostic']);assert.deepEqual(liveRuntime.get('live.java'),['retained runtime diagnostic']);
+ closePicker();await picking;
  assert.match(webview.html,/data-command="zero.toggleApp"[^>]*>[\s\S]*Stop<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.openRunningAppInBrowser"/);
- await commands.get('zero.runApp')();assert.equal(launches.length,2);assert.match(webview.html,/Stop<\/button>/);
+ const beforeConfiguredRestart=spawned.length;await vscode.tasks.executeTask(discovered);
+ assert.equal(launches[0].finished,true,'Starting a previously discovered configured task replaces the active app');
+ assert.equal(spawned.length,beforeConfiguredRestart+1);assert.match(webview.html,/Stop<\/button>/);
+ await commands.get('zero.runApp')();assert.equal(launches.length,4);assert.match(webview.html,/Stop<\/button>/);
  await commands.get('zero.toggleApp')();assert.match(webview.html,/Run<\/button>/);
  cloneConfiguredTask=true;earlyCompilerOutput=true;
- const configured=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});assert.ok(configured.execution instanceof CustomExecution);assert.deepEqual(configured.matcher,[]);assert.equal(configured.name,'Run App');await vscode.tasks.executeTask(configured);
+ const configured=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});assert.ok(configured.execution instanceof CustomExecution);assert.deepEqual(configured.matcher,[]);assert.equal(configured.name,'Run App');const savesBeforeConfigured=saves;await vscode.tasks.executeTask(configured);assert.equal(saves,savesBeforeConfigured+1,'Configured execution saves only when started');
  cloneConfiguredTask=false;earlyCompilerOutput=false;
  assert.notEqual(launches.at(-1).task,configured,'Host reconstructs the configured Task');
  assert.equal(launches.at(-1).task.execution,configured.execution);
@@ -53,18 +75,43 @@ test('Run App, sidebar and configured tasks use native Java while web export ret
  launches.at(-1).child.stderr.emit('data',Buffer.from('[ERROR] '+path.join(root,'src/main/java/Main.java')+':[23,1] second error\n'));
  assert.equal(diagnosticCollections.get('zero-native-compiler').get(path.join(root,'src/main/java/Main.java')).length,2,'Later configured-task diagnostics stay associated');
  assert.match(webview.html,/Stop<\/button>/,'Configured Run App task participates in Stop ownership');finish(launches.at(-1),1);assert.match(webview.html,/App ended with an error/);assert.match(webview.html,/data-command="zero.showProblems"/);
+ const errorDiscoverySaves=saves,errorDiscoverySpawns=spawned.length,errorDiagnostic=diagnosticCollections.get('zero-native-compiler').get(path.join(root,'src/main/java/Main.java'));
+ await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});
+ assert.equal(saves,errorDiscoverySaves);assert.equal(spawned.length,errorDiscoverySpawns);assert.deepEqual(diagnosticCollections.get('zero-native-compiler').get(path.join(root,'src/main/java/Main.java')),errorDiagnostic,'Task discovery preserves Problems after failure');
  await commands.get('zero.toggleApp')();assert.doesNotMatch(webview.html,/data-command="zero.showProblems"/);finish(launches.at(-1));assert.match(webview.html,/Run<\/button>/,'Closing native app returns to Run');
  // Both legacy entry points still execute and are tracked as native tasks.
  await commands.get('zero.runNativeApp')();await commands.get('zero.stopApp')();const legacy=await provider.resolveTask({definition:{type:'zero',task:'native-run'},scope:1});await vscode.tasks.executeTask(legacy);await commands.get('zero.stopApp')();
- const before=launches.length,beforeSaves=saves;vscode.workspace.isTrusted=false;
- await commands.get('zero.runApp')();assert.match(errors.at(-1),/Trust your own project/);await assert.rejects(provider.resolveTask({definition:{type:'zero',task:'run'},scope:1}),/Trust your own project/);assert.equal(saves,beforeSaves);assert.equal(launches.length,before);vscode.workspace.isTrusted=true;
- vscode.workspace.saveAll=async()=>false;await commands.get('zero.toggleApp')();assert.equal(launches.length,before);assert.match(errors.at(-1),/Save your files/);assert.match(webview.html,/Run<\/button>/);
+ let releaseSave;saveGate=new Promise(resolve=>{releaseSave=resolve;});
+ const cancelledTask=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});
+ const beforeCancelledSave=saves,beforeCancelledSpawn=spawned.length;
+ const cancelledLaunch=vscode.tasks.executeTask(cancelledTask);
+ while(saves===beforeCancelledSave)await new Promise(resolve=>setImmediate(resolve));
+ let stopSettled=false;const stopping=commands.get('zero.stopApp')().then(()=>{stopSettled=true;});
+ await new Promise(resolve=>setImmediate(resolve));assert.equal(stopSettled,false,'Stop waits for configured preparation to finish');
+ releaseSave();const cancelledExecution=await cancelledLaunch;await stopping;saveGate=undefined;
+ assert.match(cancelledExecution.output,/Run cancelled/);assert.equal(spawned.length,beforeCancelledSpawn,'Cancelled configured task never spawns');
+ const otherRoot=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-native-other-')));t.after(()=>fs.rm(otherRoot,{recursive:true,force:true}));
+ await fs.writeFile(path.join(otherRoot,'zero.json'),'{}');await fs.writeFile(path.join(otherRoot,process.platform==='win32'?'mvnw.cmd':'mvnw'),'');
+ saveGate=new Promise(resolve=>{releaseSave=resolve;});
+ const changedTask=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});
+ const beforeChangedSave=saves,beforeChangedSpawn=spawned.length;
+ const changedLaunch=vscode.tasks.executeTask(changedTask);
+ while(saves===beforeChangedSave)await new Promise(resolve=>setImmediate(resolve));
+ vscode.workspace.workspaceFolders=[{uri:{fsPath:otherRoot}}];releaseSave();const changedExecution=await changedLaunch;
+ assert.match(changedExecution.output,/project changed/i);assert.equal(spawned.length,beforeChangedSpawn,'Changed project never spawns');
+ vscode.workspace.workspaceFolders=[{uri:{fsPath:root}}];saveGate=undefined;
+ const beforeSaves=saves;vscode.workspace.isTrusted=false;
+ await commands.get('zero.runApp')();assert.match(errors.at(-1),/Trust your own project/);const untrusted=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});assert.equal(saves,beforeSaves);const untrustedSpawns=spawned.length;const denied=await vscode.tasks.executeTask(untrusted);assert.match(denied.output,/Trust your own project/);assert.equal(spawned.length,untrustedSpawns);assert.equal(saves,beforeSaves);vscode.workspace.isTrusted=true;
+ vscode.workspace.saveAll=async()=>false;
+ const unsavedTask=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});const unsavedSpawns=spawned.length;
+ const unsaved=await vscode.tasks.executeTask(unsavedTask);assert.match(unsaved.output,/Save your files/);assert.equal(spawned.length,unsavedSpawns);
+ const before=launches.length;await commands.get('zero.toggleApp')();assert.equal(launches.length,before);assert.match(errors.at(-1),/Save your files/);assert.match(webview.html,/Run<\/button>/);
  vscode.workspace.saveAll=async()=>true;
  const queued=commands.get('zero.toggleApp')(),cancelled=commands.get('zero.toggleApp')();await Promise.all([queued,cancelled]);assert.equal(launches.length,before,'Immediate repeated click cancels before launching');
  // The expensive browser pipeline remains reachable only through an explicit export/publishing action.
  let releaseExport;snapshot.ensureValidatedExport=async()=>{builds++;await new Promise(resolve=>{releaseExport=resolve;});return {sitePath:path.join(root,'site')};};
  assert.equal(builds,0);const exporting=commands.get('zero.exportWeb')();while(!releaseExport)await new Promise(resolve=>setImmediate(resolve));
- await commands.get('zero.runApp')();assert.equal(await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1}),undefined);assert.equal(launches.length,before,'Do not start native work during a browser export');releaseExport();await exporting;
+ await commands.get('zero.runApp')();const busy=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});const busySpawns=spawned.length,busySaves=saves;const rejected=await vscode.tasks.executeTask(busy);assert.match(rejected.output,/Finish the current action/);assert.equal(spawned.length,busySpawns);assert.equal(saves,busySaves,'Busy configured tasks must not save or start native work');releaseExport();await exporting;
  assert.equal(builds,1);assert.ok(states.some(text=>text.includes('Web export ready')));
  await commands.get('zero.runApp')();const failed=launches.at(-1),failureIdentity=spawned.at(-1).options.env;
  const failureRecord=(seq,type,code,stage,diagnostic)=>failed.child.stdout.emit('data',Buffer.from(NATIVE_PREFIX+JSON.stringify({version:1,runId:failureIdentity.ZERO_RUNTIME_RUN_ID,buildId:failureIdentity.ZERO_RUNTIME_BUILD_ID,seq,type,code,stage,...(diagnostic?{diagnostic}:{})})+'\n'));

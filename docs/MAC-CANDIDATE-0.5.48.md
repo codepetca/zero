@@ -93,3 +93,9 @@ WebFX/update screenshots. Private original and clean-test app/kit/editor rollbac
 state lives outside Git. The installed candidate and restored upgraded editor
 session remain available; the old app remains recoverable. The original Zero Dev
 watcher/profile are preserved; its editor window was closed normally for isolation.
+
+Follow-up,2026-10-24: the next phase reproduced task discovery stopping an active
+game. VS Code automatically invokes the same resolver during startup. The local
+0.5.49 change makes discovery side-effect-free and defers preparation to actual
+execution; source-host picker regression passes. Historical early attempts had no
+trace, so their individual causes remain unproven. The sealed48files stay intact.

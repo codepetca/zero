@@ -376,6 +376,18 @@ in all supported VS Code versions. The programmatic non-CustomExecution fallback
 uses `$zero-java-fallback`; a configured task on a host without CustomExecution
 does not gain that fallback matcher. The standalone inline matcher still works.
 
+Configured task resolution is description-only. VS Code calls it while listing
+choices and during project startup, so it must not save files, stop an app or
+clear Problems. The CustomExecution start callback performs the native Run
+preparation and rechecks trust, project identity, cancellation and busy state.
+A refused/cancelled callback returns a finite terminal without replacing the
+running app or resetting its diagnostics. Configured tasks require CustomExecution
+(all supported VS Code versions provide it); programmatic fallback remains
+separate. Verify by opening **Tasks: Configure Default Build Task** while a game
+is running: opening/cancelling the picker must preserve that app and readiness.
+Actually starting the configured task retains normal save/restart/Stop behavior.
+
+
 The supported `zero.controls` webview in Explorer contains development controls
 and teaching helpers; native Explorer owns the file list. Native `zero.startPage`
 opens one reusable/restorable editor panel

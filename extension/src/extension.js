@@ -340,7 +340,7 @@ function activate(context, services = {}) {
     await core.assertTutorialRepository(root);
     const spec = core.runSpecification(root);
     await fs.access(spec.command);
-    const metadata = {generation:runGeneration,root,failed:false};nativeProblems?.clear();
+    const metadata = {generation:runGeneration,root,failed:false};
     let task, transport;
     const compiler = createNativeCompilerDiagnostics({root,onChange:items=>{
       metadata.compilerItems=items;publishCompilerProblems(metadata);
@@ -357,7 +357,7 @@ function activate(context, services = {}) {
     // CustomExecution owns compiler diagnostics. A finite task matcher cannot
     // refresh them until the long-lived JavaFX process exits.
     task = new vscode.Task(definition, scope, 'Run App', 'Zero', processExecution, transport ? [] : '$zero-java-fallback');
-    metadata.custom=Boolean(transport);nativeTaskStates.set(task,metadata);
+    metadata.custom=Boolean(transport);metadata.transport=transport;nativeTaskStates.set(task,metadata);
     nativeTaskStates.set(processExecution,metadata);
     if (transport) context.subscriptions.push(transport);
     task.presentationOptions = {reveal: vscode.TaskRevealKind.Always, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
@@ -365,15 +365,25 @@ function activate(context, services = {}) {
     return task;
   }
   const taskFinishes = new Map();
+  function rejectedNativePty(message, exitCode) {
+    const writes = new vscode.EventEmitter(), closes = new vscode.EventEmitter();
+    let closed = false;
+    const close = code => {if (!closed) {closed = true;closes.fire(code);}};
+    return {onDidWrite:writes.event,onDidClose:closes.event,
+      open() {if (closed) return;if (message) writes.fire(`Zero: ${message}\r\n`);close(exitCode);},
+      close() {close(0);}
+    };
+  }
   function track(active) {
     if (taskFinishes.has(active)) return;
+    if (nativeTaskState(active.task)?.rejected) return;
     if (execution && execution !== active) {stoppedTasks.add(execution); execution.terminate();}
     execution = active;
     buildFailed = false;
     ending = new Promise(resolve => taskFinishes.set(active, resolve));
     const metadata = nativeTaskState(active.task);
     if (disposed || metadata && metadata.generation !== runGeneration) {stoppedTasks.add(active);active.terminate();return;}
-    compilerProblems?.clear();
+    compilerProblems?.clear();nativeProblems?.clear();
     if(metadata)publishCompilerProblems(metadata);
     state = 'Building / running · readiness unverified — output is in the terminal'; refresh();
     const latest = metadata?.latest;
@@ -398,28 +408,45 @@ function activate(context, services = {}) {
     taskExitCodes.set(event.execution, event.exitCode);
   }));
   context.subscriptions.push(vscode.tasks.registerTaskProvider('zero', {
-    // Configured tasks must pass through resolveTask for saving and restart checks.
+    // VS Code also resolves tasks while listing build choices. Prepare only when
+    // CustomExecution runs, never while the configured task is being discovered.
     provideTasks: async () => [],
     resolveTask: async configured => {
       if (!['run','native-run'].includes(configured.definition.task)) return undefined;
-      if (stopPromise || isBusy()) return undefined;
-      nativeStarting++;refresh();
-      try {
-        browserRun.stop({quiet:true});
+      if (typeof vscode.CustomExecution !== 'function') return undefined;
+      let task;
+      const taskExecution = new vscode.CustomExecution(async () => {
         const generation = runGeneration;
-        await stop();
-        const root=await project();
-        if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
-        if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
-        if (disposed || generation !== runGeneration) return undefined;
-        if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
-        const task = await makeTask(root, configured.definition, configured.scope);
-        if (disposed || generation !== runGeneration) return undefined;
-        if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
-        if (disposed || generation !== runGeneration) return undefined;
-        task.group = configured.group || vscode.TaskGroup.Build;
-        return task;
-      } finally {nativePrepared();}
+        const reject = (message, code = 1) => {
+          const metadata = {generation,rejected:true};
+          nativeTaskStates.set(task,metadata);nativeTaskStates.set(taskExecution,metadata);
+          return rejectedNativePty(message,code);
+        };
+        if (disposed || stopPromise || isBusy()) return reject('Finish the current action before running the app.');
+        nativeStarting++;refresh();
+        try {
+          browserRun.stop({quiet:true});
+          await stop();
+          if (disposed || generation !== runGeneration) return reject('Run cancelled.',0);
+          const root=await project();
+          if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
+          if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
+          if (disposed || generation !== runGeneration) return reject('Run cancelled.',0);
+          if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
+          const prepared = await makeTask(root, configured.definition, configured.scope);
+          if (disposed || generation !== runGeneration) return reject('Run cancelled.',0);
+          if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
+          if (disposed || generation !== runGeneration) return reject('Run cancelled.',0);
+          const metadata = nativeTaskState(prepared);
+          nativeTaskStates.set(task,metadata);nativeTaskStates.set(taskExecution,metadata);
+          return await metadata.transport.createPty();
+        } catch (error) {return reject(error.message || 'Cannot prepare Run App.');}
+        finally {nativePrepared();}
+      });
+      task = new vscode.Task(configured.definition, configured.scope, 'Run App', 'Zero', taskExecution, []);
+      task.presentationOptions = {reveal: vscode.TaskRevealKind.Always, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
+      task.group = configured.group || vscode.TaskGroup.Build;
+      return task;
     }
   }));
   async function run(generation, expectedRoot) {
