@@ -56,13 +56,15 @@ Return methods:
 
 Event summary: `{id,revision,title,type,summary,theme,rules,eligibility,websiteUrl,
 timezone,schedule,reviewStatus,moderation,registrationOpen,submissionsOpen,
-participantCount,participants:[{id,login}],entries:[{participantId,login,title,
+participantCount,participants:[{id,login}],entries:[{participantId,login,revision,title,
 description,demoUrl,instructions,repository:{id,ownerId,fullName,commit},submittedAt}],
 updatedAt}`. Pending creator view may have `revision:null` and proposal-derived
 display fields, but never open actions. Latest proposal reviewStatus does not
 disable an existing accepted revision while a replacement is under review.
 `event.approvalHistory` contains approved-only `{revision,approvedAt,manifest}`
-versions. A joined participant's prior acknowledgment is `registration.revision`;
+versions. Each gallery entry includes its immutable entry `revision`, so a saved
+review draft can remain bound to the exact entry being reviewed. This field does
+not grant mutation authority. A joined participant's prior acknowledgment is `registration.revision`;
 the UI explicitly identifies a newer accepted rules/schedule version and makes
 previous accepted facts inspectable before renewed acknowledgment.
 

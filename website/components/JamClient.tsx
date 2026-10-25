@@ -7,8 +7,8 @@ import {HubAccount,useHubGitHub} from './HubGitHub';
 type Source = {repositoryUrl:string;commit:string};
 type Repository = {id:string;ownerId:string;fullName:string;commit:string};
 type Manifest = {type:'game'|'app';title:string;summary:string;theme:string;rules:string;eligibility:string;websiteUrl:string;timezone:string;schedule:Record<string,string>};
-type Entry = {participantId:string;login:string;title:string;description:string;demoUrl?:string;instructions?:string;repository:Repository;submittedAt:string;status?:string};
-type Event = Manifest & {id:string;revision:string|null;approvalHistory?:{revision:string;approvedAt:string;manifest:Manifest}[];reviewStatus:string;moderation:{status:string;reason?:string};registrationOpen:boolean;submissionsOpen:boolean;participantCount:number;participants:{id:string;login:string}[];entries:Entry[];updatedAt:string};
+type Entry = {participantId:string;login:string;revision:string;title:string;description:string;demoUrl?:string;instructions?:string;repository:Repository;submittedAt:string;status?:string};
+type Event = Manifest & {id:string;revision:string|null;approvalHistory?:{revision:string;approvedAt:string;manifest:Manifest}[];reviewStatus:string;moderation:{status:string;reason?:string;updatedAt?:string};registrationOpen:boolean;submissionsOpen:boolean;participantCount:number;participants:{id:string;login:string}[];entries:Entry[];updatedAt:string};
 type Detail = {configured:boolean;event:Event;registration:{status:string;revision?:string}|null;entry:Entry|null;canMaintain:boolean;proposal?:{revision:string;manifest:Manifest;repository:Repository;status:string;reason?:string}};
 type Mutation = Record<string,unknown>;
 const kindLabel = (type:string) => type === 'app' ? 'App Jam' : 'Game Jam';
@@ -37,6 +37,25 @@ function useDraft<T>(name:string,initial:T):[T,(value:T)=>void] {
   useEffect(()=>{try {const saved=sessionStorage.getItem(`zero-jam-draft:${name}`);if(saved){const parsed=JSON.parse(saved);if(parsed&&typeof parsed==='object'&&Object.entries(initial as object).every(([key,item])=>typeof parsed[key]===typeof item))setValue(parsed);}}catch{/* Keep editable defaults if storage is unavailable. */}setRestored(true);},[name]);
   useEffect(()=>{if(restored)try{sessionStorage.setItem(`zero-jam-draft:${name}`,JSON.stringify(value));}catch{/* In-memory editing remains available. */}},[name,value,restored]);
   return [value,setValue];
+}
+function useReasonDraft(name:string,maxLength:number):[string,(value:string)=>void] {
+  const {user}=useHubGitHub(),key=`zero-jam-reason:${user?.id||'signed-out'}:${name}`;
+  const currentKey=useRef(key);currentKey.current=key;
+  const [draft,setDraft]=useState<{key:string;reason:string}|null>(null);
+  useEffect(()=>{
+    let reason='';
+    try {const saved=sessionStorage.getItem(key);if(typeof saved==='string'&&saved.length<=maxLength)reason=saved;}
+    catch {/* Keep the public reason in memory when browser storage is unavailable. */}
+    if(currentKey.current===key)setDraft({key,reason});
+  },[key,maxLength]);
+  function change(reason:string) {
+    if(reason.length>maxLength)return;
+    if(currentKey.current===key)setDraft({key,reason});
+    try {if(reason)sessionStorage.setItem(key,reason);else sessionStorage.removeItem(key);}
+    catch {/* An unavailable store must not prevent editing or confirming the action. */}
+  }
+  // Never display another account/event's draft while its restore effect runs.
+  return [draft?.key===key?draft.reason:'',change];
 }
 function useTopLevel() {
   const [top,setTop]=useState(false);
@@ -103,32 +122,32 @@ export function JamCreate() {
 function Proposal({id,data,onChanged}:{id:string;data:Detail;onChanged:()=>Promise<void>}) {
   const {user}=useHubGitHub(),top=useTopLevel(),mutation=useMutation(`/api/jams/${id}/actions`);
   const proposeMutation=useMutation('/api/jams/proposals');
-  const [reason,setReason]=useState(''),[source,setSource]=useDraft<Source>(`update-source:${id}`,{repositoryUrl:'',commit:''});
+  const [reason,setReason]=useReasonDraft(`review:${id}:${data.proposal?.revision||'none'}`,2000),[source,setSource]=useDraft<Source>(`update-source:${id}`,{repositoryUrl:'',commit:''});
   const proposal=data.proposal; const creator=Boolean(user&&proposal?.repository.ownerId===user.id);
   if(!top)return null;
-  async function review(action:string){const result=await mutation.send({action,revision:proposal?.revision,...(reason?{reason}:{})});if(result)await onChanged();}
+  async function review(action:string){const result=await mutation.send({action,revision:proposal?.revision,...(reason?{reason}:{})});if(result){setReason('');await onChanged();}}
   async function update(e:FormEvent){e.preventDefault();const result=await proposeMutation.send({...source,repositoryUrl:`https://github.com/${proposal!.repository.fullName}`});if(result)await onChanged();}
   return <>{proposal&&<details className="jam-review" open={!data.event.revision}><summary>Proposal · {reviewLabel(proposal.status)}</summary><p className="jam-source">Source: <a href={`https://github.com/${proposal.repository.fullName}/tree/${proposal.repository.commit}`} target="_blank" rel="noopener noreferrer">{proposal.repository.fullName} at {proposal.repository.commit}</a></p>{proposal.reason&&<p className="jam-notice">Review note: {proposal.reason}</p>}<h2>{proposal.manifest.title}</h2><EventFacts event={proposal.manifest}/><p><a href={proposal.manifest.websiteUrl} target="_blank" rel="noopener noreferrer">Proposed creator page</a></p>{data.canMaintain&&proposal.status==='submitted'&&<div className="jam-form"><p>Review the exact proposed details above. Approval makes this revision official. Existing accepted details stay active until a replacement is approved.</p><label>Review reason<textarea value={reason} onChange={e=>setReason(e.target.value)} maxLength={2000} disabled={mutation.busy}/></label>{creator&&<p>A different Zero maintainer must review your proposal.</p>}<div className="jam-actions"><button className="jam-primary" disabled={creator||mutation.busy} onClick={()=>void review('approve')}>Approve this revision</button><button disabled={creator||mutation.busy||!reason.trim()} onClick={()=>void review('request-changes')}>Request changes</button><button disabled={creator||mutation.busy||!reason.trim()} onClick={()=>void review('reject')}>Reject proposal</button></div><Feedback error={mutation.error} success={mutation.success}/></div>}</details>}{creator&&<section><h2>Propose an update</h2><p>Commit your changed manifest, then send the new exact source. Approved details stay active while the update is reviewed.</p><form className="jam-form" onSubmit={e=>void update(e)}><SourceFields source={source} setSource={setSource} disabled={proposeMutation.busy} fixedRepository={`https://github.com/${proposal!.repository.fullName}`}/><button disabled={proposeMutation.busy||!user}>{proposeMutation.busy?'Sending update…':'Send updated source for review'}</button><Feedback error={proposeMutation.error} success={proposeMutation.success}/></form></section>}{data.canMaintain&&data.event.revision&&<Moderation id={id} event={data.event} onChanged={onChanged}/>}</>;
 }
 function Moderation({id,event,onChanged}:{id:string;event:Event;onChanged:()=>Promise<void>}) {
-  const [reason,setReason]=useState(''),mutation=useMutation(`/api/jams/${id}/actions`);
-  async function act(action:string){const result=await mutation.send({action,reason});if(result)await onChanged();}
+  const [reason,setReason]=useReasonDraft(`moderation:${id}:${event.revision}:${event.moderation.status}:${event.moderation.updatedAt||'initial'}`,256),mutation=useMutation(`/api/jams/${id}/actions`);
+  async function act(action:string){const result=await mutation.send({action,reason});if(result){setReason('');await onChanged();}}
   return <details className="jam-review"><summary>Maintainer moderation</summary><div className="jam-form"><label>Public reason<textarea value={reason} onChange={e=>setReason(e.target.value)} maxLength={256} disabled={mutation.busy}/></label><p>Suspension stops participation. Cancellation closes this event. The reason is visible on its official page.</p><div className="jam-actions">{event.moderation.status==='active'&&<button disabled={!reason.trim()||mutation.busy} onClick={()=>void act('suspend')}>Suspend jam</button>}{event.moderation.status==='suspended'&&<button disabled={!reason.trim()||mutation.busy} onClick={()=>void act('resume')}>Resume jam</button>}{event.moderation.status!=='cancelled'&&<button disabled={!reason.trim()||mutation.busy} onClick={()=>void act('cancel')}>Cancel jam</button>}</div><Feedback error={mutation.error} success={mutation.success}/></div></details>;
 }
-function EntryModeration({id,participantId,onChanged}:{id:string;participantId:string;onChanged:()=>Promise<void>}) {
-  const top=useTopLevel(),[reason,setReason]=useState(''),mutation=useMutation(`/api/jams/${id}/actions`);
+function EntryModeration({id,participantId,revision,onChanged}:{id:string;participantId:string;revision:string;onChanged:()=>Promise<void>}) {
+  const top=useTopLevel(),[reason,setReason]=useReasonDraft(`entry-review:${id}:${participantId}:${revision}`,256),mutation=useMutation(`/api/jams/${id}/actions`);
   async function withdraw(e:FormEvent) {
     e.preventDefault();
     if(!reason.trim())return;
     const result=await mutation.send({action:'withdraw-entry',participantId,reason});
-    if(result)await onChanged();
+    if(result){setReason('');await onChanged();}
   }
   if(!top)return null;
   return <details className="jam-review"><summary>Maintainer review</summary><form className="jam-form" onSubmit={e=>void withdraw(e)}><label>Public reason<textarea required value={reason} onChange={e=>setReason(e.target.value)} maxLength={256} disabled={mutation.busy}/></label><p>This removes the active entry from the gallery and keeps its withdrawal history. The participant stays registered and can submit a corrected entry while submissions are open.</p><button disabled={!reason.trim()||mutation.busy}>{mutation.busy?'Withdrawing entry…':'Withdraw this entry'}</button><Feedback error={mutation.error} success={mutation.success}/></form></details>;
 }
 export function JamDetail({id}:{id:string}) {
   const {data,error,loading,refresh}=useResource<Detail>(`/api/jams/${encodeURIComponent(id)}`);
-  return <><h1>{data?.event.title||'Jam details'}</h1><Retry error={error} loading={loading} refresh={refresh}/>{data&&<><EventStatus event={data.event}/><EventFacts event={data.event}/><ApprovedVersions event={data.event}/><div className="jam-actions"><a className="jam-button" href={data.event.websiteUrl} target="_blank" rel="noopener noreferrer">Creator’s jam page</a>{data.event.revision&&<Link className="jam-button jam-primary" href={`/hub/jams/${id}/participate`}>Review and take part</Link>}</div><h2>Participants · {data.event.participantCount}</h2>{data.event.participants.length?<p>{data.event.participants.map(p=>`@${p.login}`).join(', ')}</p>:<p>No participants yet.</p>}<h2>Submitted work</h2>{data.event.entries.length?<ul className="jam-entries">{data.event.entries.map(entry=><li key={entry.participantId}><h3>{entry.title}</h3><p className="jam-muted">@{entry.login}</p><p className="jam-prose">{entry.description}</p>{entry.instructions&&<p className="jam-prose">{entry.instructions}</p>}<div className="jam-actions"><a href={`https://github.com/${entry.repository.fullName}/tree/${entry.repository.commit}`} target="_blank" rel="noopener noreferrer">Exact source</a>{entry.demoUrl&&<a href={entry.demoUrl} target="_blank" rel="noopener noreferrer">Open demo</a>}</div>{data.canMaintain&&<EntryModeration id={id} participantId={entry.participantId} onChanged={refresh}/>}</li>)}</ul>:<p>No active submissions yet.</p>}<HubAccount/><Proposal id={id} data={data} onChanged={refresh}/></>}</>;
+  return <><h1>{data?.event.title||'Jam details'}</h1><Retry error={error} loading={loading} refresh={refresh}/>{data&&<><EventStatus event={data.event}/><EventFacts event={data.event}/><ApprovedVersions event={data.event}/><div className="jam-actions"><a className="jam-button" href={data.event.websiteUrl} target="_blank" rel="noopener noreferrer">Creator’s jam page</a>{data.event.revision&&<Link className="jam-button jam-primary" href={`/hub/jams/${id}/participate`}>Review and take part</Link>}</div><h2>Participants · {data.event.participantCount}</h2>{data.event.participants.length?<p>{data.event.participants.map(p=>`@${p.login}`).join(', ')}</p>:<p>No participants yet.</p>}<h2>Submitted work</h2>{data.event.entries.length?<ul className="jam-entries">{data.event.entries.map(entry=><li key={entry.participantId}><h3>{entry.title}</h3><p className="jam-muted">@{entry.login}</p><p className="jam-prose">{entry.description}</p>{entry.instructions&&<p className="jam-prose">{entry.instructions}</p>}<div className="jam-actions"><a href={`https://github.com/${entry.repository.fullName}/tree/${entry.repository.commit}`} target="_blank" rel="noopener noreferrer">Exact source</a>{entry.demoUrl&&<a href={entry.demoUrl} target="_blank" rel="noopener noreferrer">Open demo</a>}</div>{data.canMaintain&&<EntryModeration id={id} participantId={entry.participantId} revision={entry.revision} onChanged={refresh}/>}</li>)}</ul>:<p>No active submissions yet.</p>}<HubAccount/><Proposal id={id} data={data} onChanged={refresh}/></>}</>;
 }
 export function JamParticipate({id}:{id:string}) {
   const top=useTopLevel(),{user}=useHubGitHub(),{data,error,loading,refresh}=useResource<Detail>(`/api/jams/${encodeURIComponent(id)}`);

@@ -6,18 +6,20 @@ import {createRequire} from 'node:module';
 import {webcrypto} from 'node:crypto';
 import ts from 'typescript';
 import {renderToStaticMarkup} from 'react-dom/server';
+import {githubHttpFixture} from '../../jams/test/github-http-fixture.mjs';
+import {participant} from '../../jams/test/fixtures.mjs';
 const require=createRequire(import.meta.url);
 const clientSource=await readFile(new URL('../components/JamClient.tsx',import.meta.url),'utf8');
 const panelSource=await readFile(new URL('../app/hub/jams/[id]/panel/route.ts',import.meta.url),'utf8');
 function compile(source){return ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;}
-function harness({storage=new Map(),fetcher=async()=>{throw new Error('network');},participateData=null}={}) {
-  let actor={id:'12',login:'creator',csrfToken:'csrf'},index=0,slots=[];
+function harness({storage=new Map(),fetcher=async()=>{throw new Error('network');},participateData=null,effects=false}={}) {
+  let actor={id:'12',login:'creator',csrfToken:'csrf'},index=0,slots=[],pendingEffects=[];
   const self={},window={self,top:self};
-  const react={useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(){index++;}};
+  const react={useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(fn,deps){const i=index++;if(effects&&(!slots[i]||deps.some((value,n)=>!Object.is(value,slots[i][n])))){pendingEffects.push(fn);slots[i]=deps;}}};
   const module={exports:{}};
   const context={participateData,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return ()=>null;return require(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
-  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData,error:"",loading:false,refresh:async()=>{}});useTopLevel=()=>true;}exports.testing={useMutation,useResource,JamParticipate,ApprovedVersions};',context);
-  return {render(kind='useMutation',path='/api/jams/jam-42/actions'){index=0;return module.exports.testing[kind](path);},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
+  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData,error:"",loading:false,refresh:async()=>{}});useTopLevel=()=>true;}exports.testing={useMutation,useResource,JamParticipate,ApprovedVersions,Proposal,Moderation,EntryModeration};',context);
+  return {render(kind='useMutation',path='/api/jams/jam-42/actions'){index=0;return module.exports.testing[kind](path);},flushEffects(){const work=pendingEffects;pendingEffects=[];work.forEach(fn=>fn());},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
 }
 function elements(node) {
   if(Array.isArray(node))return node.flatMap(elements);
@@ -38,6 +40,82 @@ test('mutation retries preserve operation identity through errors and reload; su
   assert.equal(calls[1].init.headers['x-hub-csrf'],'csrf');assert.equal(calls[1].init.credentials,'same-origin');
   assert.equal(JSON.parse(calls[1].init.body).actor,undefined);assert.equal(storage.size,0);
   assert.deepEqual(payload,{action:'join',revision:'accepted-revision'});
+});
+for(const kind of ['Proposal','Moderation','EntryModeration']) {
+  test(`${kind} retains an uncertain reason and operation through reload, scopes drafts and clears only on confirmation`,{timeout:10000},async()=>{
+    const storage=new Map(),calls=[],reason='Public test reason, preserved exactly.  ',actor={id:'22',login:'maintainer',csrfToken:'csrf'};
+    let failing=true,finished,finishResponse;
+    const fetcher=async(url,init)=>{calls.push(JSON.parse(init.body));if(failing)throw Error('unknown outcome');await new Promise(resolve=>{finishResponse=resolve;});return confirmed(init);};
+    const props={id:'jam-42',participantId:'33',revision:'a'.repeat(64),event:{revision:'event-A',moderation:{status:'active'}},data:{event:{},canMaintain:true,proposal:{status:'submitted',revision:'a'.repeat(64),repository:{ownerId:'11',fullName:'creator/jam',commit:'a'.repeat(40)},manifest:{}}},onChanged:async()=>finished?.()};
+    const render=h=>h.render(kind,props),field=tree=>elements(tree).find(node=>node.type==='textarea');
+    const act=tree=>kind==='EntryModeration'?elements(tree).find(node=>node.type==='form').props.onSubmit({preventDefault(){}}):elements(tree).find(node=>node.type==='button'&&node.props.children===(kind==='Proposal'?'Request changes':'Suspend jam')).props.onClick();
+    const first=harness({storage,fetcher,effects:true});first.setActor(actor);render(first);first.flushEffects();
+    field(render(first)).props.onChange({target:{value:reason}});act(render(first));await new Promise(setImmediate);
+    assert.equal(calls.length,1);assert.ok(elements(render(first)).find(node=>Boolean(node.props?.error)));
+    const second=harness({storage,fetcher,effects:true});second.setActor(actor);render(second);second.flushEffects();
+    assert.equal(field(render(second)).props.value,reason);
+    if(kind==='Proposal')props.data.proposal.revision='b'.repeat(64);
+    if(kind==='Moderation')props.event.moderation.status='suspended';
+    if(kind==='EntryModeration')props.revision='b'.repeat(64);
+    assert.equal(field(render(second)).props.value,'','a changed review subject never inherits the old reason');second.flushEffects();
+    if(kind==='Proposal')props.data.proposal.revision='a'.repeat(64);
+    if(kind==='Moderation')props.event.moderation.status='active';
+    if(kind==='EntryModeration')props.revision='a'.repeat(64);
+    render(second);second.flushEffects();assert.equal(field(render(second)).props.value,reason);
+    second.setActor({...actor,id:'99'});assert.equal(field(render(second)).props.value,'','another actor cannot see the draft, even before effects');second.flushEffects();
+    field(render(second)).props.onChange({target:{value:'Another actor public draft'}});
+    second.setActor(actor);render(second);second.flushEffects();assert.equal(field(render(second)).props.value,reason);
+    failing=false;const done=new Promise(resolve=>{finished=resolve;});act(render(second));await new Promise(setImmediate);
+    second.setActor({...actor,id:'99'});render(second);second.flushEffects();assert.equal(field(render(second)).props.value,'Another actor public draft');
+    finishResponse();await done;
+    assert.equal(calls.length,2);assert.equal(calls[1].operationId,calls[0].operationId);assert.equal(calls[1].reason,reason);
+    assert.equal(field(render(second)).props.value,'Another actor public draft','late confirmation clears only its original account/context');
+    second.setActor(actor);render(second);second.flushEffects();
+    assert.equal(field(render(second)).props.value,'');
+    const third=harness({storage,fetcher,effects:true});third.setActor(actor);render(third);third.flushEffects();assert.equal(field(render(third)).props.value,'');
+  });
+}
+for(const mode of ['unreadable success','unconfigured success','wrong operation confirmation']) {
+  test(`client reload recovers one actual stored join after ${mode}`,{timeout:10000},async t=>{
+    const f=await githubHttpFixture(t),revision=await f.approve(),storage=new Map(),calls=[];
+    let damaged=true;
+    const fetcher=async(url,init)=>{
+      assert.equal(url,'/api/jams/jam-101/actions');const body=JSON.parse(init.body);calls.push(body);
+      assert.equal(body.actor,undefined);
+      const result=await f.service.mutate({...body,id:'jam-101',actor:participant});
+      if(damaged) {
+        if(mode==='unreadable success')return new Response('{broken',{headers:{'Content-Type':'application/json'}});
+        return Response.json({...result,configured:mode!=='unconfigured success',...(mode==='wrong operation confirmation'?{operationId:'wrong-operation'}:{})});
+      }
+      return Response.json({configured:true,...result});
+    };
+    const first=harness({storage,fetcher});first.setActor({...participant,csrfToken:'fixture-csrf'});
+    const payload={action:'join',revision},before=f.commits.length;
+    assert.equal(await first.render('useMutation','/api/jams/jam-101/actions').send(payload),null);
+    assert.equal(first.render('useMutation','/api/jams/jam-101/actions').success,'');assert.equal(f.commits.length,before+1);
+    const reloaded=harness({storage,fetcher});reloaded.setActor({...participant,csrfToken:'fixture-csrf'});damaged=false;
+    f.sourceUnavailable=true;f.time=Date.parse('2030-01-05T00:00:00Z');
+    assert.equal((await reloaded.render('useMutation','/api/jams/jam-101/actions').send(payload)).status,'joined');
+    assert.equal(calls[1].operationId,calls[0].operationId);assert.equal(f.commits.length,before+1);
+    assert.equal(Object.keys(f.state().registrations).length,1);assert.equal(storage.size,0);
+  });
+}
+
+test('historical retry after an intervening leave exposes the pending-intent UI limitation', {timeout:10000},async t=>{
+  const f=await githubHttpFixture(t),revision=await f.approve(),calls=[];let lose=true;
+  const h=harness({fetcher:async(url,init)=>{
+    const body=JSON.parse(init.body);calls.push(body);
+    const result=await f.service.mutate({...body,id:'jam-101',actor:participant});
+    if(lose){lose=false;return new Response('{broken',{headers:{'Content-Type':'application/json'}});}
+    return Response.json({configured:true,...result});
+  }});h.setActor({...participant,csrfToken:'fixture-csrf'});
+  const render=()=>h.render('useMutation','/api/jams/jam-101/actions'),payload={action:'join',revision};
+  assert.equal(await render().send(payload),null);assert.equal(f.state().registrations[participant.id].status,'joined');
+  assert.equal((await render().send({action:'leave'})).status,'left');
+  assert.equal((await render().send(payload)).status,'joined');
+  assert.equal(calls[2].operationId,calls[0].operationId);
+  assert.equal(f.state().registrations[participant.id].status,'left','idempotent replay is historical and must not undo the later leave');
+  assert.equal(render().success,'Confirmed by Zero.','the UI currently presents the old confirmation for a new intent');
 });
 test('operation identity changes for payload, actor and endpoint; duplicate in-flight writes are suppressed',async()=>{
   const ids=[],fetcher=async(url,init)=>{ids.push(JSON.parse(init.body).operationId);throw new Error('unknown');};
@@ -64,7 +142,7 @@ test('submission contract requires a demo URL and preserves exact source and dem
   const {operationId,...sent}=received;assert.deepEqual(sent,payload);assert.ok(operationId);
 });
 test('entry moderation is maintainer-only in the gallery and sends the public reason and participant identity',async()=>{
-  assert.match(clientSource,/data\.canMaintain&&<EntryModeration id=\{id\} participantId=\{entry\.participantId\} onChanged=\{refresh\}/);
+  assert.match(clientSource,/data\.canMaintain&&<EntryModeration id=\{id\} participantId=\{entry\.participantId\} revision=\{entry\.revision\} onChanged=\{refresh\}/);
   assert.match(clientSource,/<summary>Maintainer review<\/summary>/);
   assert.match(clientSource,/<label>Public reason<textarea required/);
   assert.match(clientSource,/mutation\.send\(\{action:'withdraw-entry',participantId,reason\}\)/);
