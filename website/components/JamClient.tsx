@@ -101,7 +101,7 @@ function useMutation(path:string) {
         throw new Error(typeof body.error==='string'?body.error:'ZeroJams is unavailable. Keep your work and try again later.');
       }
       if(body.configured!==true||body.operationId!==operationId)throw new Error('Zero did not confirm this operation. Resolve the earlier request to check its outcome.');
-      clear();feedbackFor('',recovering?'Earlier request confirmed. Review the current details before making another change.':'Confirmed by Zero.');return body;
+      clear();feedbackFor('',recovering||wasPending?'Earlier request confirmed. Review the current details before making another change.':'Confirmed by Zero.');return body;
     }catch(e){feedbackFor(message(e));return null;}finally{mutationLocks.delete(scope);notifyMutations();}
   }
   async function retry(){const earlier=user?operationRecords(user.id,path)[0]:undefined;return earlier?send(earlier.payload,true):null;}

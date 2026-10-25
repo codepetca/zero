@@ -123,6 +123,17 @@ test('lost Join reply must resolve before Leave; the next Join is a new stored o
   assert.equal(f.state().registrations[participant.id].status,'joined');
   assert.equal(render().success,'Confirmed by Zero.');
 });
+test('retry through the original Join button identifies historical recovery after another device leaves', {timeout:10000},async t=>{
+  const f=await githubHttpFixture(t),revision=await f.approve(),calls=[];let lose=true;
+  const h=harness({fetcher:async(url,init)=>{const body=JSON.parse(init.body);calls.push(body);const result=await f.service.mutate({...body,id:'jam-101',actor:participant});if(lose){lose=false;return new Response('{lost');}return Response.json({configured:true,...result});}});h.setActor({...participant,csrfToken:'fixture-csrf'});
+  const render=()=>h.render('useMutation','/api/jams/jam-101/actions'),join={action:'join',revision};
+  await render().send(join);
+  await f.service.mutate({id:'jam-101',actor:participant,operationId:'other-device-leave',action:'leave'});
+  assert.equal((await render().send(join)).status,'joined');assert.equal(calls[1].operationId,calls[0].operationId);
+  assert.match(render().success,/^Earlier request confirmed/,'historical recovery does not claim the new intent completed');
+  assert.equal(f.state().registrations[participant.id].status,'left','historical retry never reverses the other device');
+  await render().send(join);assert.notEqual(calls[2].operationId,calls[0].operationId);assert.equal(f.state().registrations[participant.id].status,'joined');
+});
 test('participation UI recovers a lost Join after reload and authoritative refresh, then Leave → Join commits once each', {timeout:10000},async t=>{
   const f=await githubHttpFixture(t);await f.approve();const storage=new Map(),calls=[];let lose=true,h,finishRefresh;
   const read=()=>f.service.read('jam-101',participant);
