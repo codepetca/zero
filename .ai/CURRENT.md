@@ -1,4 +1,4 @@
-# Recovery verification — candidate reviewed, wider trial blocked
+# Recovery verified; wider trial blocked — 2026-10-25
 
 Owner authorized failure recovery/concurrent-write testing; production hidden.
 Candidate code791a8482:24 loopback HTTP cases using real service/source/store/
@@ -16,14 +16,16 @@ left. Characterization test confirms existing UI gap, not a readiness pass.
 Next work needs explicit pending-request/new-intent reconciliation; never blindly
 replace uncertain keys. No broad queue/UI workflow was added in this test phase.
 
-Hosted before this phase: f50942b0, dpl_4r7w2mfNCkGhJx7PQHBmU8rDEXkZ, draftPR202.
-Protected branch URL unchanged; reviewed candidate Preview update/CI still to be
-published/verified. No main merge/public rollout. Registry ce130103b5b84968c83982516104826c88a260a0
+Hosted now:5059fd9c48f8059e01842898eacc25ff08b19b62,
+dpl_BvRcpQGmS2FJrUNiF6HEKWDNrR2d, draftPR202. All11 exact-head CI pass.
+Chrome smoke: reason survives reload/clears, no action submitted; gallery revision
+field present. Production13jam404/Hub200/nojamlink; protected origin unchanged. No main merge/public rollout. Registry ce130103b5b84968c83982516104826c88a260a0
 holds the two closed fixtures; fault tests did not write live data. Registry-only
 website/vercel.json guard remains; no extra invites, secrets or provider changes.
 
-Next: publish bounded reviewed fix only to protected preview, verify UI draft
-restore without submitting, exact-source CI, live production hold and unchanged
-registry head. Finish receipt/PR description; keep trial blocker prominent.
+Testing phase complete; all11CI pass and live read-only smoke succeeds. Final
+receipt docs follow deployed5059fd9c locally, without another source change.
+Next implementation: dedicated pending-request/new-intent reconciliation, never
+blind fresh keys. Keep this student-trial blocker prominent and production hidden.
 Packet docs/ZEROJAMS-PILOT.md; ignored recovery verification.json/logs under
 .verification/zerojams-pilot. Other checkouts/local3025 preserved. DeepSeek paused.

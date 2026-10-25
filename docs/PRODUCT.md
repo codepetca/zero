@@ -131,7 +131,9 @@ product is ready. The two-account Chrome Game/App lifecycle is verified, includi
 creator hosting, independent approval, submissions, updates, withdrawal and
 closure. Registry writes no longer create Vercel deployments. Protected-preview
 frames are blocked; the official top-level link works. Wider browser/network and
-provider-cost acceptance remain pending. See the
+provider-cost acceptance remain pending. Controlled recovery/concurrency tests
+verify the service contracts; review drafts now survive reload. An unresolved
+pending-confirmation/new-intent UI bug blocks a wider student trial. See the
 [phased plan](ZEROJAMS-PLAN.md) and [operator guide](ZEROJAMS-OPERATIONS.md).
 
 ## Core goal: students grow the framework

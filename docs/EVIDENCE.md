@@ -26,7 +26,11 @@ Open finding: an uncertain committed join, then leave, then a new identical join
 can reuse the old key and show historical confirmation while storage remains left.
 The characterization test records this known UI gap; passing tests do not clear
 it. Wider student trial blocked pending explicit old-request/new-intent resolution.
-No live provider outage/contention claim; no main merge or production rollout.
+Hosted preview5059fd9c (dpl_BvRcpQGmS2FJrUNiF6HEKWDNrR2d) verifies reason
+restore/clear and gallery revision without any action submission. Registry still
+ce130103b5b84968c83982516104826c88a260a0; production13jam404/Hub200/nojamlink.
+All11 exact-headCI pass. No live provider outage/contention claim, main merge or
+production rollout.
 Runbook docs/ZEROJAMS-PILOT.md; ignored recovery verification packet/logs.
 
 ## Registry build exclusion and live Game/App lifecycle — 2026-10-25

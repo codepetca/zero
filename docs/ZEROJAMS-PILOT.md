@@ -2,7 +2,7 @@
 
 Prepared 2026-10-25; activation subsequently authorized by the owner. Production
 remains hidden regardless of flags or credentials. Local policy is `enabled` and
-pinned to the approved origin. Preview revision `f50942b0` is active; the
+pinned to the approved origin. Preview revision `5059fd9c` is active; the
 checkpoint below distinguishes verified hosted access from remaining pilot
 acceptance.
 
@@ -47,8 +47,8 @@ caching, wrong types/prefixes, controls, whitespace and oversize rejection. An
 independent Sol 6.1/high review found no blockers. See GitHub's
 [stateless-token rollout notice](https://github.blog/changelog/2026-10-02-stateless-github-app-installation-tokens-rolled-out/).
 
-The reviewed activation revision `f50942b01a3e7b715380fd663a026e341089bfc3` is READY
-as Vercel deployment `dpl_4r7w2mfNCkGhJx7PQHBmU8rDEXkZ`, attached to the exact
+The reviewed activation revision `5059fd9c48f8059e01842898eacc25ff08b19b62` is READY
+as Vercel deployment `dpl_BvRcpQGmS2FJrUNiF6HEKWDNrR2d`, attached to the exact
 protected branch alias. In Chrome on macOS, signed-out access shows the invited
 sign-in screen and the API reveals no records. Normal GitHub OAuth as `armorup`
 returns to the pilot; the hosted API returns `configured:true`, `events:[]`,
@@ -60,7 +60,8 @@ repository and exact commit. No forged session or identity was used.
 
 The preparation milestone passed 251 website tests and typecheck/build. The
 session fix below passed its focused checks and production build; all 11 CI checks
-pass on the current deployed source revision. Production was rechecked after deployment: all 13 canonical jam
+passed on the lifecycle revision `f50942b0`; the recovery revision CI is recorded
+below. Production was rechecked after deployment: all 13 canonical jam
 route/method requests return 404, and `/hub` returns 200 without a jam link. Vercel
 protection remains `all_except_custom_domains`; production branch remains `main`.
 No main merge, production environment change or public activation occurred.
@@ -135,7 +136,7 @@ Observed acceptance:
   Clicking the ordinary creator-page link opened authenticated official
   participation in a new top-level tab. Do not claim the iframe itself worked.
 
-All 11 checks pass on deployed `f50942b0`. The session fix has a clean targeted
+At lifecycle acceptance, all 11 checks passed on `f50942b0`. The session fix has a clean targeted
 Sol 6.1/high review and production build; the registry exclusion has a separate
 clean review. Final production checks: 13 jam route/method requests return 404;
 `/hub` remains 200 with no jam link. Main, production settings and Vercel protection
@@ -158,7 +159,7 @@ pilot to one invited preview; it grants no production release authority.
 
 ## Failure recovery and concurrent writes — 2026-10-25
 
-Candidate `791a8482` was checked against the actual service, source verifier,
+Reviewed code `791a8482`, deployed as preview `5059fd9c`, was checked against the actual service, source verifier,
 GitHub storage adapter and transport using a loopback HTTP GitHub-contract fixture.
 This uses real Node fetch, blob SHA comparisons, controlled PUT barriers, dropped
 sockets, unreadable replies and actual abort timeouts. Dummy credentials and
@@ -204,9 +205,13 @@ Do not resolve this by blindly generating a fresh key after an uncertain write,
 which could create duplicate submissions. During this controlled pilot, resolve
 unknown requests before attempting intervening changes. Production stays hidden.
 
-Candidate checks: 105 jam tests, 258 website tests, typecheck and production build
+Code checks: 105 jam tests, 258 website tests, typecheck and production build
 pass. Independent Sol 6.1/high review reran 41 focused cases and found no remaining
 issues in this bounded patch; the pending-intent limitation is deliberately open.
+Hosted Chrome smoke on `5059fd9c` also verifies public reason text survives reload
+and can be cleared without submitting; the gallery returns its immutable entry
+revision. Registry head remains `ce130103b5b84968c83982516104826c88a260a0`. Production
+13 jam cases still return 404, with Hub 200/no jam link. All 11 exact-head CI checks pass on `5059fd9c`.
 Receipts are in `.verification/zerojams-pilot/recovery/verification.json` and the
 ignored `recovery-*.log`/`reason-recovery-*.log` files. These deterministic checks
 do not establish live GitHub contention performance, provider capacity, Safari,
