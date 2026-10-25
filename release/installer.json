@@ -6,11 +6,11 @@
     "repository": "codepetca/zero",
     "tag": "setup-v0.5.50"
   },
-  "sourceRevision": "ecf95cd0367522fe0edb1c92c38b43770787026a",
+  "sourceRevision": "4675e862c993d5582bddf568ffb6254f5572decd",
   "kit": {
     "filename": "zero-bootstrap.zip",
-    "size": 4309968,
-    "sha256": "21750fb8e26d2327438bc56e132d731da06a057997a19c6e3b299e0b3f9e7192"
+    "size": 4310027,
+    "sha256": "a3564416e7534d6a28beac2fa8d16183845064268e59dc99e0a667687ed7ef3e"
   },
   "asset": {
     "filename": "Zero-0.5.50-macos.dmg",
@@ -20,12 +20,12 @@
       "x86_64"
     ],
     "minimumOS": "12.0",
-    "size": 5918773,
-    "sha256": "8120ada9ad2c999117615e0f6b7e4de67ccc4ea43f4d833005c2dc9220fe41b1"
+    "size": 5918971,
+    "sha256": "7effba8ea273dbff3629b6dca3ee84f0d3d9243d1fe67ada7d6ea892b67ae6c1"
   },
   "signing": {
     "identitySha1": "ACE8EE40F3615C5062CBBD5F085E299E049BAE08",
     "teamIdentifier": "88FT6QZJP8"
   },
-  "notarizationSubmissionId": "e880824d-30a3-48ef-912e-878d861d441b"
+  "notarizationSubmissionId": "4079be41-9d30-4872-a64b-af4162ec28c2"
 }
