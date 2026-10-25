@@ -2,14 +2,14 @@
 
 ## Pending-request reconciliation — 2026-10-25
 
-Source671dc0aa, test correction9dec4f1e. The client resolves uncertain mutations
+Source671dc0aa, test correction9dec4f1e, final wording delta d5a60666. The client resolves uncertain mutations
 before another intent for the same actor/endpoint, using the saved public payload
 and operation ID. Independent recovery controls survive reload and disappearance
 of the original action; new confirmed intents receive fresh IDs. Server authority
 and historical idempotency remain unchanged.
 
-110 jam/263 website tests, typecheck/build pass. A full-suite test timing race
-was corrected to await caller refresh; focused22 pass. macOS Chrome uses the
+111 jam/264 website tests, typecheck/build pass. A full-suite test timing race
+was corrected to await caller refresh; focused23 pass. macOS Chrome uses the
 actual React JamParticipate component with a loopback GitHub HTTP fixture and
 real service/source/store/transport. Join commits with unreadable reply, reload
 removes Join, Leave is blocked until exact recovery, then Leave and new Join
@@ -18,16 +18,21 @@ Join key different. No live fixture writes. Bulk artifacts remain ignored under
 .verification/zerojams-pilot/pending-*.log and pending-browser/.
 
 Independent Sol6.1/high reviewer: full170564eb→671dc0aa, focused22 pass, one
-accepted test synchronization finding; targeted671dc0aa→9dec4f1e clean.2 reviewer
-turns,1 remediation wave/fix batch, no conflicts. Effective model/timing/tokens
+accepted test synchronization finding; targeted671dc0aa→9dec4f1e and9dec4f1e→d5a60666 clean.3 reviewer
+turns,2 remediation waves/fix batches, no conflicts. Effective model/timing/tokens
 unavailable. Start weekly80%remaining is account-wide, not task cost; storage
-healthy230GB. Source coverage reused after test-only delta; no extra review wave.
+healthy230GB. Source coverage reused across bounded deltas; the final regression verifies
+original-button recovery after another-device Leave without claiming a new Join.
 
 Remaining limits: permanently invalid unknown requests conservatively stay
 blocked pending a future durable rejection/fencing protocol. Tab-local locks
 do not serialize separate tabs/devices. These and previous browser/network/cost
 limits prevent claiming wider-trial readiness. Production hold remains. Protected
-preview/CI/production-smoke delivery receipt will follow; no main merge.
+preview67221e75 is READY (dpl_2RNdyJCUL2vkCQQFykQnxrBbkERB). Hosted
+read-only legacy recovery control smoke passes with no writes. Production13jam404/
+Hub200/no link; registry unchanged.320 CSS px content column fits recovery text
+and long revision; real mobile/zoom remains unverified. Final source delivery/CI
+receipt will follow; no main merge.
 
 ## Failure recovery and concurrent registry writes — 2026-10-25
 
