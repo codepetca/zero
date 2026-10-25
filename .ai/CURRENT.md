@@ -1,40 +1,28 @@
-# Simplify desktop GitHub sign-in — source PR and CI
+# Mac0.5.50 — candidate, installed acceptance, conditional publication
 
-Use `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/simplify-github-sign-in`,
-base77b371db (published49metadataPR195). Owner asked to remove code sign-in and
-make the main tutorial control say Sign in to GitHub while signed out.
-Owner authorized source push, PR and CI on2026-10-25 after manual UI confirmation.
-Merge and publication remain separate; no new release is authorized here.
-Published Mac0.5.49, production website/feed and sealed artifacts stay unchanged.
+Use `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/mac-0-5-50`.
+Owner “Do it” on2026-10-25 authorized mergePR198, signed0.5.50 candidate,
+installed sign-in/upgrade preservation tests and publication after required gates.
+PR198 merged73847c88 after11greenCI and clean source/security/UI/integration reviews.
+Source is browser-only new login; legacy saved sessions retain renewal. Main
+button says Sign in to GitHub signed out, Start tutorial once authenticated,
+enabled only after access is verified. Owner approved prior manualDevUI smoke;
+full native/liveOAuth completion was not separately reported.
 
-New connections use browser authorization only. Code command/button/fallback
-removed; old saved device-issued sessions retain their original renewal path.
-Signed-out main button signs in only; authenticated state says Start tutorial,
-disabled until repository access is ready. Tutorials/Open stay available offline.
-No change to broker, PKCE/callback validation, identity/permissions, secret schema,
-Java framework, project files or versions. Parent owns UI/docs/commands/integration;
-Sol/high browser_only_login worker owns provider/browser/client tests (delivered).
+Current step: prepare unused50version/build50, independent version review,
+clean package/sign/notarize/staple/seal, then actual installed49→50acceptance.
+Retain published49DMG/feed/manifest snapshot while50is local. Keep all old sealed
+candidates and private backups. No clobber/rebuild of distributed assets. Do not
+publish50until source/CI/artifact/installed acceptance gates pass. Source and
+promotion PRs/merges within this release flow are authorized. Record failures
+honestly and preserve rollback/work. Use existing signing/notary credentials
+without reading values or changing account settings.
 
-Root checks and69UI/onboarding/command/playground tests pass; worker's128GitHub
-App tests pass (final owned subset40pass). Actual production-renderer browser
-fixture verified light/dark/highcontrast signed-out, install-disabled and ready
-states, sign-in dispatch and Tutorials keyboard menu. Native Dev launch ran, but
-computer controls selected installed Zero instead of the separate Dev instance;
-owner confirmed the requested manual Dev UI check with “yes, looks good” on
-2026-10-25. Record this as human-observed UI smoke, not automated native proof or
-a confirmed completed OAuth exchange. Installed account state and
-unsaved work preserved. Browser preview is simulated; no new GitHub login or
-repository operation was performed. Independent source-review receipts and final
-verdicts: `.verification/simplify-sign-in/`. Two independent Sol/high implementation
-reviews at0a525808 are clean; one P3 docs inconsistency was corrected separately,
-with targeted closure in the receipts. Root Dev watcher/preview at3153 retained.
-
-Current-main sync integrates25acd272 without executable conflicts; preserve
-main's ZeroJams production hold (hidden/default off; no activation authority).
-Both evidence histories retained. Next: focused integration checks, independent
-sync/docs review, draft source PR and exact-head CI. Final PR status/CI/review
-links retained on the PR and in `.verification/simplify-sign-in/`. A separate
-merge decision/new immutable release is still required; do not modify49bytes.
-Existing fresh-Mac/school-network/novice/actualSparkle pilot gaps remain open.
-Primary checkout's funding work and private student editor remain untouched.
+ZeroJams remains hidden/default off in production; no activation authority.
+Windows21preview and manualkit17 stay separate. No student repository writes,
+Pages/ZeroHub publication, template deployment, new telemetry or credential changes.
+Fresh-Mac/school-network/novice/physical native-gameplay and actual updater-delivery
+pilot gaps remain separately unproven; owner continues that pilot. Primary
+checkout's funding work and isolated Dev projects/profiles remain preserved.
+Proof: `.verification/mac50/`; prior source `.verification/simplify-sign-in/`.
 DeepSeek paused through2026-12-31. No new goal/task/automation.

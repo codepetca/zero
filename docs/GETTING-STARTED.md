@@ -6,7 +6,7 @@ App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
 source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
-Local Mac candidate **0.5.49** includes Zero core **0.3.0**, the Zero-first
+Local Mac candidate **0.5.50** includes Zero core **0.3.0**, the Zero-first
 Greeting/Study/Coin tutorials and browser GitHub sign-in with an explicit code
 fallback. It is not published; the public Mac download remains0.5.47. Editor
 updates preserve existing projects’ framework source and build versions.
