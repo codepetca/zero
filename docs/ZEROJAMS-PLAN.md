@@ -115,6 +115,13 @@ download** flow. Keep the production hold and existing published-site approval
 flow. No GitHub sign-in is needed to prepare/download; no remote repository or
 hosting changes occur. The full editable website stays in the creator's copy.
 
+Delivered locally at reviewed source `35241dde` (base `25acd272`). The guided
+form, actual canonical-template preview, customized ZIP and separate source
+proposal form are implemented. No new PR or production activation was performed.
+Focused62tests,240website tests, typecheck/build and Chromium checks pass;
+production build remains closed even with the activation flag. Safari/WebKit and
+live GitHub hosting/approval are unverified. Evidence: `docs/EVIDENCE.md`.
+
 Implementation contract for this slice:
 
 - Browser-safe `website/lib/jam-draft.mjs` exports `defaultJamDraft(type='game',

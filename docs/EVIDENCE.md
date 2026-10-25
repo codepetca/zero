@@ -1,5 +1,76 @@
 # Delivery evidence index
 
+## Guided ZeroJams preparation completed locally — 2026-10-25
+
+Owner accepted details → actual site preview → customized download. Implemented
+on `codex/zerojams-guided-preparation`, base25acd272, source5d294c4e and reviewed
+correction35241dde. Browser-safe canonical manifest validation is shared with
+intake; local dates convert through the chosen timezone and reject ambiguous or
+nonexistent clock-change times. Public session drafts recover without sign-in.
+Both preview and ZIP use the same normalized details; all eight editable files
+remain creator-owned. Published-source approval remains a separate disclosure.
+No push, PR, merge, account changes, registry provisioning or activation occurred.
+
+Verification:62focused jam tests and240website tests pass; website typecheck and
+production build pass. Chromium covers App Jam details/real preview/download,
+ZIP extraction and independent static serving, schedule parity, edit/reload
+recovery, invalid-field focus, DST error, intercepted network failure/retry,
+literal script text/parent isolation, light/dark,320/390/1280reflow and200% CSS
+zoom. Preview requests no assets; all five disabled anchors issue no requests
+when clicked. Downloaded source retains its real links. Production flag-on smoke
+returns404 for seven jam route/method cases, Hub200 with no jam link. Ignored
+artifacts: `output/playwright/zerojams-guided/`; extracted site under
+`.verification/zerojams-guided/`. Safari/WebKit, mobile devices, live GitHub Pages
+and live authenticated participation remain unverified; no full Java/native suite
+was repeated for this website-only slice.
+
+Orchestration: GPT6.1Sol/high implemented only JamPreparation.tsx/CSS while the
+coordinator owned shared helpers/routes/integration. Acceptance found/fixed one
+duplicate heading/input ID before review; no writer conflicts. Standard-risk
+GPT6.1Sol/high independent complete review25acd272→5d294c4e found one blockingP2:
+CSP did not prevent iframe document navigation through template links. One batch
+removed preview hrefs, preserved downloaded source links and added regression
+coverage. Targeted5d294c4e→35241dde review complete/clean; seven focused review
+tests pass and unchanged initial coverage remains valid. Two review turns,
+one initial/one targeted wave,one fix batch; no extra integration wave needed.
+Review completed2026-10-25 by15:38UTC; effective model, attributable elapsed time
+and per-turn tokens unavailable. Account-wide weekly remaining92%at start and91%
+at acceptance is shared allowance, not a task cost measurement. DeepSeek remained
+paused. Current worktree stays active for the local3025preview.
+
+## Jam filter label PR197 merged — 2026-10-25
+
+[PR197](https://github.com/codepetca/zero/pull/197) merged25acd272 from reviewedb64bbc43.
+One-line change removes visible Show and gives the select aria-label Jam type;
+filter options/value/change handling/styles and production hold are unchanged.
+10existing jam UI tests, website typecheck and local browser snapshot pass.
+Independent GPT6Luna/medium one-file review complete/clean,1launch/0fix batches;
+effective model/time/tokens unknown. CIpassed with correctly skipped native/browser
+execution lanes; no unresolved threads. Local main/worktree fast-forwarded and
+prior uncommitted completion notes preserved. Receipt remains local only here.
+
+
+## ZeroJams PR196 merged with production hidden — 2026-10-25
+
+Owner authorized the source PR/merge while keeping the product hidden. [PR196](https://github.com/codepetca/zero/pull/196)
+merged4aed6a46 from reviewed head38a1dddc after all11checks passed. Local main and
+this worktree fast-forwarded; primary funding and actor worktrees preserved.
+Independent production-hold/CI-wiring delta review (GPT6.1Sol/medium) was complete
+and clean, with7focused checks; prior implementation coverage remains valid.
+Local57focused/235website/1168root tests passed (3platform skips), check/build pass.
+The root/CI runner includes jam engine tests. No credentials/permissions, registry
+setup, live participation or installer release were activated.
+
+Vercel production deployment8XTRNxr3agLTvCNNdcsx5c785bek succeeded for the merge.
+Live canonical jam page/detail/participation/panel/API/template URLs return404;
+GET/POST checks pass, /hub returns200 with no jam link, local dev remains200.
+Separate percent-encoded live URLs return500 for both jam and unrelated Hub paths
+(/h%75b,/%68ub). They expose no jam content; broader encoded routing was not changed.
+Equivalent local production-build13case smoke is404. Exact results and checklinks:
+`.verification/zerojams/pr196-publication.json` and `pr196-live-hold.json`.
+This completion receipt is local only; merged code remains unchanged.
+
+
 ## ZeroJams production hold and authorized source merge — 2026-10-25
 
 Owner authorized source PR/merge with ZeroJams hidden in production because it is
