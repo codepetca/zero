@@ -1,6 +1,12 @@
 # ZeroJams local verification and operator setup
 
-ZeroJams is default off. This document describes setup prerequisites, not
+ZeroJams is under an owner-requested production visibility hold. Production builds
+and deployment previews return404 for `/hub/jams` descendants and `/api/jams`
+endpoints, including the panel and template ZIP. Navigation and unreleased editor
+shortcuts are hidden/deferred. Only local development exposes the work. Credentials
+or `ZERO_JAMS_ENABLED=1` cannot lift this hold; a reviewed source change is required.
+
+The underlying service is also default off. This document describes setup prerequisites, not
 authorization to activate a service or change a GitHub App. The
 [plan](ZEROJAMS-PLAN.md) defines architecture, ownership and delivery acceptance.
 Do not use local fixtures or passing mocked tests as evidence of live acceptance.
@@ -35,7 +41,8 @@ to verify its relative paths and editable source copy.
 
 ## Configuration boundary
 
-Activation needs explicit owner authorization, existing website browser-auth
+After the production source hold is separately lifted, activation needs explicit
+owner authorization, existing website browser-auth
 configuration, a reviewed GitHub App installation, and all of these server-only
 values supplied through the deployment's secret/configuration system:
 

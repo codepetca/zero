@@ -1,6 +1,15 @@
 # ZeroJams architecture and user flow
 
-Status: locally implemented and independently reviewed; live activation pending,2026-10-25.
+Status: local development only; owner hold on production visibility,2026-10-25.
+
+Owner authorized source PR and merge on2026-10-25, with ZeroJams hidden in
+production because it is not ready. Production builds (including deployment
+previews) return404 for every jam page, public panel, API and template download,
+even if service credentials/activation flags are present. ZeroHub hides its link;
+unreleased editor shortcuts are deferred. Local `next dev` retains the preview.
+Removing this source-level visibility hold needs a subsequent explicit decision.
+No GitHub App permissions, credentials, registry provisioning or live pilot are
+authorized by the source PR/merge.
 Implementation is authorized locally from 2026-10-25; live activation is separate. Publication, deployment,
 GitHub App permission changes and account configuration require separate explicit
 authorization. Existing game/library sharing and Pika submission stay separate.
@@ -274,15 +283,16 @@ introduce a database speculatively or treat Git as an unlimited transactional DB
 User authorized phased local implementation and orchestration. Coordinator goal:
 deliver a verified local MVP ready for independent review, with complete creator
 website template, preparation/admission, official discovery and participation.
-No push, deployment, permission/credential change or live pilot is authorized.
+Source push/PR/merge is now authorized with the production hold; permission/
+credential changes and a live pilot remain unauthorized.
 
 Active checkout: `/Users/stew/.codex/worktrees/zerojams/zero`, branch
 `codex/zerojams`, base `77b371db`. Primary checkout's unrelated work is preserved.
 Canonical template directory: `jam-template/`; shared pure service: `jams/`;
 website entry point: `/hub/jams`. Template copying starts with a downloadable
 complete ZIP; it must not claim a separate hosted template repository exists.
-An editor shortcut opens the same web creation flow without requiring a Java
-project or a second account. Automated remote repository creation can follow
+An editor shortcut is deferred while production is hidden; the local web creation
+flow needs no Java project or second account. Automated remote repository creation can follow
 only when a pinned public template is actually available and verified.
 
 | Phase | State | Exit evidence |

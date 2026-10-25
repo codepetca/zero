@@ -1,8 +1,10 @@
 import {getJamResponse} from '@/lib/jams-http.mjs';
+import {hiddenJamsResponse} from '@/lib/jams-visibility.mjs';
 export const dynamic='force-dynamic';
 const escape=(value:unknown)=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]!));
-export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}) {
-  const {id}=await params;
+export async function GET(_request:Request,context:{params:Promise<{id:string}>}) {
+  const hidden=hiddenJamsResponse();if(hidden)return hidden;
+  const {id}=await context.params;
   let title='Official ZeroJam status',status='This jam is unavailable. Open Zero to check its status.',origin='',code=503;
   if(/^jam-[1-9][0-9]*$/.test(id)) {
     try {

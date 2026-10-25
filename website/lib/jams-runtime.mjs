@@ -3,6 +3,7 @@ import {boundedJson} from './hub-github-auth.mjs';
 import {createGitHubJamStore} from '../../jams/github-store.mjs';
 import {createGitHubSourceVerifier} from '../../jams/github-source.mjs';
 import {createJamService} from '../../jams/service.mjs';
+import {jamsPreviewAvailable} from './jams-visibility.mjs';
 
 // A separate installation credential writes only the official registry. Never
 // substitute the visiting participant's token for this service credential.
@@ -11,7 +12,7 @@ const positiveId = /^[1-9][0-9]{0,19}$/;
 const api = 'https://api.github.com';
 
 export function jamServiceConfig(env = process.env) {
-  if (env.ZERO_JAMS_ENABLED !== '1') return null;
+  if (!jamsPreviewAvailable(env) || env.ZERO_JAMS_ENABLED !== '1') return null;
   const maintainers = (env.ZERO_JAMS_MAINTAINER_IDS || '').split(',').map(value => value.trim());
   if (!maintainers.length || maintainers.some(value => !positiveId.test(value)) ||
       new Set(maintainers).size !== maintainers.length || maintainers.length > 20) return null;

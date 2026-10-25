@@ -6,7 +6,7 @@ import {jamServiceConfig,jamInstallationToken} from '../lib/jams-runtime.mjs';
 const now = 1_800_000_000_000;
 const pair = generateKeyPairSync('rsa',{modulusLength:2048});
 const privateKey = pair.privateKey.export({type:'pkcs8',format:'pem'});
-const env = {ZERO_JAMS_ENABLED:'1',ZERO_JAMS_APP_ID:'123',ZERO_JAMS_INSTALLATION_ID:'456',
+const env = {NODE_ENV:'development',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_APP_ID:'123',ZERO_JAMS_INSTALLATION_ID:'456',
   ZERO_JAMS_PRIVATE_KEY:privateKey,ZERO_JAMS_MAINTAINER_IDS:'12,34'};
 const installation = {id:456,app_id:123,account:{login:'codepetca'},permissions:{contents:'write'},suspended_at:null};
 const result = {token:'ghs_'+'x'.repeat(30),expires_at:new Date(now+3600000).toISOString(),
@@ -14,7 +14,7 @@ const result = {token:'ghs_'+'x'.repeat(30),expires_at:new Date(now+3600000).toI
 
 test('runtime requires explicit enablement, server RSA credential and numeric maintainer identities',() => {
   assert.equal(jamServiceConfig({}),null);
-  for (const patch of [{ZERO_JAMS_ENABLED:'0'},{ZERO_JAMS_PRIVATE_KEY:'not a key'},
+  for (const patch of [{NODE_ENV:'production'},{VERCEL_ENV:'production'},{ZERO_JAMS_ENABLED:'0'},{ZERO_JAMS_PRIVATE_KEY:'not a key'},
     {ZERO_JAMS_MAINTAINER_IDS:'student'},{ZERO_JAMS_MAINTAINER_IDS:'12,12'},
     {ZERO_JAMS_INSTALLATION_ID:'../evil'}]) assert.equal(jamServiceConfig({...env,...patch}),null);
   assert.deepEqual(jamServiceConfig(env).maintainerIds,['12','34']);

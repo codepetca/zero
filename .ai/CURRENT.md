@@ -1,10 +1,10 @@
-# ZeroJams local MVP complete — 2026-10-25
+# ZeroJams source PR/merge with production hold — 2026-10-25
 
 Checkout `/Users/stew/.codex/worktrees/zerojams/zero`, branch `codex/zerojams`,
 base77b371db, reviewed code4ced7ae8. User authorized phased local implementation
 and orchestration; tool-backed goal completion is being recorded. Canonical plan:
-docs/ZEROJAMS-PLAN.md. No push, PR, merge, deployment, credential/permission changes
-or live pilot authorized/performed. Primary unrelated work and actor publication
+docs/ZEROJAMS-PLAN.md. Owner now authorizes source push/PR/merge with all jam production surfaces hidden.
+No credential/permission changes, registry setup or live pilot authorized. Primary unrelated work and actor publication
 worktree were preserved. Live activation is a separate next decision.
 
 Delivered locally: complete canonical `jam-template/` copied as independent8file
@@ -30,4 +30,6 @@ weekly97%remaining and storage241.3GB healthy; no task-cost/savings inference.
 
 Local previews: website3025/hub/jams/create; independent App Jam3026.
 Ignored receipts: .verification/zerojams/ and output/playwright/.
-Next: user review, then explicitly authorized source publication/service activation.
+Next: verify production404/no-navigation and local preview, review the bounded
+hold/CI-test-wiring delta, open a draft PR, run exact-head CI, then authorized merge.
+Keep source-level production hold. No service activation or installer release.

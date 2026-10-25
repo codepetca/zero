@@ -1,5 +1,24 @@
 # Delivery evidence index
 
+## ZeroJams production hold and authorized source merge — 2026-10-25
+
+Owner authorized source PR/merge with ZeroJams hidden in production because it is
+not ready. Visibility is local-development-only: the server layout blocks all jam
+pages, every API/panel/template handler returns404 before dependencies, runtime
+configuration cannot enable production, and Hub navigation hides the link. New
+editor commands/menu entries are deferred (extension files match current main).
+No credential/permission changes, registry setup, installer release or live pilot.
+
+Actual production-build HTTP smoke verifies13page/API/panel/template/encoded/HEAD
+cases return404, the Hub has no jam anchor, and ZERO_JAMS_ENABLED=1 cannot bypass
+the hold. Local dev pages/template remain200.57focused tests,235website tests,
+root check and production build pass; normal root runner now includes the27jam
+engine tests so CI covers them. Full root run and independent visibility-delta
+review are in progress before final merge. Prior reviewed service/template source
+coverage through4ced7ae8 remains applicable. Current main77b371db requires no sync.
+Receipts: `.verification/zerojams/production-hold-*`.
+
+
 ## ZeroJams local MVP — 2026-10-25
 
 User authorized the phased plan, tool-backed goal and local orchestration.

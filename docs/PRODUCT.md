@@ -119,7 +119,10 @@ template; creators keep an independent copy in their own repository and host it
 themselves. A shared Zero-owned panel/service handles official joining and project
 submission through GitHub-backed records. Zero owns approval, accepted rules and
 moderation; creator websites and participant demos remain independently hosted.
-Local implementation and live activation are separate. See the
+ZeroJams currently remains local-development-only: production pages, panels,
+APIs, template downloads and navigation are hidden under the owner hold. Editor
+shortcuts are deferred until the public product is ready. Local implementation
+and live activation are separate. See the
 [phased plan](ZEROJAMS-PLAN.md) and [operator guide](ZEROJAMS-OPERATIONS.md).
 
 ## Core goal: students grow the framework
