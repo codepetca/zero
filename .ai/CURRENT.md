@@ -19,14 +19,17 @@ App tests pass (final owned subset40pass). Actual production-renderer browser
 fixture verified light/dark/highcontrast signed-out, install-disabled and ready
 states, sign-in dispatch and Tutorials keyboard menu. Native Dev launch ran, but
 computer controls selected installed Zero instead of the separate Dev instance;
-no native-editor/realliveOAuth acceptance claimed. Installed account state and
+owner confirmed the requested manual Dev UI check with “yes, looks good” on
+2026-10-25. Record this as human-observed UI smoke, not automated native proof or
+a confirmed completed OAuth exchange. Installed account state and
 unsaved work preserved. Browser preview is simulated; no new GitHub login or
 repository operation was performed. Independent source-review receipts and final
 verdicts: `.verification/simplify-sign-in/`. Two independent Sol/high implementation
 reviews at0a525808 are clean; one P3 docs inconsistency was corrected separately,
 with targeted closure in the receipts. Root Dev watcher/preview at3153 retained.
 
-Remaining before shipping: actual new native/editor interaction, source PR/CI and
+Remaining before shipping: explicit source push/PR authority, current-main sync
+review and exact-head CI, plus
 separately authorized new immutable release; do not modify published49bytes.
 Existing fresh-Mac/school-network/novice/actualSparkle pilot gaps remain open.
 Primary checkout's funding work and private student editor remain untouched.

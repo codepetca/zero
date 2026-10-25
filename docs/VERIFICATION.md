@@ -17,7 +17,11 @@ production renderer verifies light/dark/highcontrast signed-out, ready and
 install-disabled states, sign-in dispatch and keyboard Tutorials. Fixture actions
 are simulated. Native Dev process launched, but computer controls selected the
 installed profile rather than the separate Dev window: actual native interaction
-and real OAuth remain untested. No installed account/work change or remote write.
+and real OAuth could not be automated. On2026-10-25 the owner replied “yes, looks
+good” to the requested manual Dev UI check (one sign-in button, no code option,
+browser handoff). This is human UI smoke acceptance; completed OAuth/token
+exchange and post-login native state were not separately reported. No installed
+account/work change or remote write was performed by the agent.
 Sol/high bounded implementation worker; parent owns UI/docs/integration. Effective
 model/elapsed/token metrics unknown. Independent source-review receipts, exact
 head and final verdicts retained in `.verification/simplify-sign-in/` with tests
