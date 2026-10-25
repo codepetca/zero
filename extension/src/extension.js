@@ -57,6 +57,7 @@ function activate(context, services = {}) {
   let execution, ending, view, pendingLaunch;
   let runGeneration = 0;
   let nativeStarting = 0, stopPromise;
+  const pendingConfiguredPtys = new Set();
   const nativeIdleWaiters = new Set();
   function nativePrepared() {
     nativeStarting--;
@@ -70,7 +71,10 @@ function activate(context, services = {}) {
   let startingTutorial = false;
   let signingIn = false;
   let disposed = false;
-  context.subscriptions.push({dispose() { disposed = true; }});
+  context.subscriptions.push({dispose() {
+    disposed = true;
+    for (const release of [...pendingConfiguredPtys]) release();
+  }});
   let changing = false;
   let menuOpen = false;
   let componentBusy = false;
@@ -296,6 +300,7 @@ function activate(context, services = {}) {
   }
   async function stopRequested() {
     runGeneration++;
+    for (const release of [...pendingConfiguredPtys]) release();
     if (pendingLaunch) await pendingLaunch.catch(() => {});
     await stop();
     state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped'; refresh();
@@ -383,6 +388,7 @@ function activate(context, services = {}) {
     ending = new Promise(resolve => taskFinishes.set(active, resolve));
     const metadata = nativeTaskState(active.task);
     if (disposed || metadata && metadata.generation !== runGeneration) {stoppedTasks.add(active);active.terminate();return;}
+    metadata?.taskStarted?.();
     compilerProblems?.clear();nativeProblems?.clear();
     if(metadata)publishCompilerProblems(metadata);
     state = 'Building / running · readiness unverified — output is in the terminal'; refresh();
@@ -422,12 +428,10 @@ function activate(context, services = {}) {
           nativeTaskStates.set(task,metadata);nativeTaskStates.set(taskExecution,metadata);
           return rejectedNativePty(message,code);
         };
-        if (disposed || stopPromise || isBusy()) return reject('Finish the current action before running the app.');
+        if (disposed || stopPromise || isBusy() || nativeStarting) return reject('Finish the current action before running the app.');
         nativeStarting++;refresh();
+        let handedOff = false;
         try {
-          browserRun.stop({quiet:true});
-          await stop();
-          if (disposed || generation !== runGeneration) return reject('Run cancelled.',0);
           const root=await project();
           if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
           if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
@@ -437,11 +441,36 @@ function activate(context, services = {}) {
           if (disposed || generation !== runGeneration) return reject('Run cancelled.',0);
           if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
           if (disposed || generation !== runGeneration) return reject('Run cancelled.',0);
+          if (stopPromise || isBusy()) return reject('Finish the current action before running the app.');
+          await stop();
+          if (disposed || generation !== runGeneration) return reject('Run cancelled.',0);
+          if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
+          if (disposed || generation !== runGeneration) return reject('Run cancelled.',0);
+          browserRun.stop({quiet:true});
           const metadata = nativeTaskState(prepared);
           nativeTaskStates.set(task,metadata);nativeTaskStates.set(taskExecution,metadata);
-          return await metadata.transport.createPty();
+          const pty = await metadata.transport.createPty();
+          if (disposed || generation !== runGeneration) {pty.close();return reject('Run cancelled.',0);}
+          const release = () => {
+            if (!pendingConfiguredPtys.delete(release)) return;
+            nativePrepared();
+          };
+          pendingConfiguredPtys.add(release);
+          pty.onDidClose(release);
+          // Either host callback order is safe: keep the reservation until both
+          // the task-start event and terminal open have happened.
+          let opened = false, started = false;
+          metadata.taskStarted = () => {started = true;if (opened) release();};
+          const open = pty.open, close = pty.close;
+          pty.open = (...args) => {
+            try {return open.apply(pty,args);}
+            finally {opened = true;if (started) release();}
+          };
+          pty.close = (...args) => {release();return close.apply(pty,args);};
+          handedOff = true;
+          return pty;
         } catch (error) {return reject(error.message || 'Cannot prepare Run App.');}
-        finally {nativePrepared();}
+        finally {if (!handedOff) nativePrepared();}
       });
       task = new vscode.Task(configured.definition, configured.scope, 'Run App', 'Zero', taskExecution, []);
       task.presentationOptions = {reveal: vscode.TaskRevealKind.Always, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
@@ -451,7 +480,6 @@ function activate(context, services = {}) {
   }));
   async function run(generation, expectedRoot) {
     if (disposed || generation !== runGeneration) return;
-    await stop();
     const root = await project();
     if (expectedRoot && root !== expectedRoot) throw new Error('The student project changed before running the dependency update. Run the original app explicitly.');
     if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
@@ -463,6 +491,11 @@ function activate(context, services = {}) {
     if (disposed || generation !== runGeneration) return;
     if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
     if (disposed || generation !== runGeneration) return;
+    await stop();
+    if (disposed || generation !== runGeneration) return;
+    if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
+    if (disposed || generation !== runGeneration) return;
+    browserRun.stop({quiet:true});
     pendingLaunch = vscode.tasks.executeTask(task).then(active => {
       if (disposed || generation !== runGeneration) {stoppedTasks.add(active);active.terminate();}
       else track(active);
@@ -863,8 +896,7 @@ function activate(context, services = {}) {
   Object.assign(actions,browserRun.commands);
   actions['zero.runApp']=expectedRoot=>{
     if (stopPromise) return stopPromise;
-    if (isBusy()) return Promise.resolve();
-    browserRun.stop({quiet:true});
+    if (isBusy() || nativeStarting) return Promise.resolve();
     return queuedRun(expectedRoot);
   };
   actions['zero.stopApp']=()=>{
@@ -905,18 +937,20 @@ function activate(context, services = {}) {
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {
     try {await action();} catch(error) {
       const message = error.zeroRunMessage || error.message;
-      state = /^GitHub sign-in was cancelled or unavailable\./.test(message) ? 'GitHub sign-in cancelled or unavailable. Try again.' : message;refresh();output.appendLine(error.message);
+      const display = /^GitHub sign-in was cancelled or unavailable\./.test(message) ? 'GitHub sign-in cancelled or unavailable. Try again.' : message;
+      if (!(execution && ['zero.runApp','zero.runNativeApp','zero.toggleApp'].includes(id))) state = display;
+      refresh();output.appendLine(error.message);
       const installUrl=appConfiguration&&`https://github.com/apps/${appConfiguration.slug}/installations/new`;
       if(installUrl && error.actionUrl===installUrl){
         void githubReadiness.refresh();
-        const choice=await vscode.window.showErrorMessage(`Zero: ${state}`,'Open GitHub');
+        const choice=await vscode.window.showErrorMessage(`Zero: ${display}`,'Open GitHub');
         if(choice==='Open GitHub'&&!disposed)await vscode.env.openExternal(vscode.Uri.parse(installUrl));
       }else if(error.code==='creation-uncertain'&&typeof error.repositoryUrl==='string'){
         const destination=core.parseRepositoryUrl(error.repositoryUrl);
         const prior=context.globalState?.get('zero.repositoryCreationRecovery');
         await context.globalState?.update('zero.repositoryCreationRecovery',{...(prior?.repositoryUrl===destination.page?prior:{}),repositoryUrl:destination.page,at:Date.now()});
-        vscode.window.showErrorMessage(`Zero: ${state} Use Zero: Repository Actions → Resume created project to continue.`);
-      }else vscode.window.showErrorMessage(`Zero: ${state}`);
+        vscode.window.showErrorMessage(`Zero: ${display} Use Zero: Repository Actions → Resume created project to continue.`);
+      }else vscode.window.showErrorMessage(`Zero: ${display}`);
     }
   }));
   function render(webview) {

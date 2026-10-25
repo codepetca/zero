@@ -11,8 +11,11 @@ extension native lifecycle source/tests for a confirmed fix. Native traces prove
 that task discovery (Tasks: Configure Default Build Task, no selection) calls
 resolveTask→stop and kills a running game. Startup also invokes this resolver.
 Temporary tracing was removed; originals/trace are retained under
-`.verification/native-run-startup/`. Make resolution pure and defer save/stop/
-validation to actual CustomExecution, then independent review and Mac UI tests.
+`.verification/native-run-startup/`. Initial pure resolver source5553caf8 passes19focused,1141fullsuite(3skips),
+and actual live-picker/keyboardRun/Stop checks. Independent Sol/high review
+requires preserving the live app until preflight succeeds and reserving native
+preparation across both entrypoints/return-to-start gap. Author remediates these
+as one batch; rerun targeted review and actual UI before packaging.
 Prepare a new local49/build49 candidate after verification; keep sealed48intact. Original Zero Dev watcher/profile preserved; Dev editor closed
 normally for isolation. Installed48and preserved upgraded private editor session
 are open, with the actual unsaved upgrade-test note intact. Test apps are stopped.
