@@ -224,7 +224,7 @@ export function JamPreparation() {
         {textField('title')}
         {textField('summary',{multiline:true,help:'Introduce the jam to someone visiting your website.'})}
         {textField('theme',{multiline:true})}
-        {textField('rules',{multiline:true})}
+        {textField('rules',{multiline:true,help:'GitHub is required for every jam. Project repositories must be public; submissions include an exact commit.'})}
         {textField('eligibility',{multiline:true})}
         {textField('websiteUrl',{optional:true,placeholder:'https://your-name.github.io/your-jam/',help:'Leave blank to use a placeholder. Replace it with your public HTTPS address after hosting.'})}
         <fieldset className="jam-preparation-schedule">
