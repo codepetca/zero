@@ -308,23 +308,30 @@ function activate(context, services = {}) {
   if(nativeProblems)context.subscriptions.push(nativeProblems);
   const compilerProblems=vscode.languages?.createDiagnosticCollection('zero-native-compiler');
   if(compilerProblems)context.subscriptions.push(compilerProblems);
+  function publishRuntimeProblems(metadata, event) {
+    if(!nativeProblems)return;
+    const grouped=new Map();
+    for(const item of runtimeDiagnostics(event.diagnostic||'',metadata.root)){
+      const point=new vscode.Position(Math.max(0,item.line-1),0),diagnostic=new vscode.Diagnostic(new vscode.Range(point,point),item.message,vscode.DiagnosticSeverity.Error);
+      diagnostic.source='Zero native runtime';if(!grouped.has(item.file))grouped.set(item.file,[]);grouped.get(item.file).push(diagnostic);
+    }
+    for(const [file,items]of grouped)nativeProblems.set(vscode.Uri.file(file),items);
+  }
   function nativeRuntimeState(task, event) {
     const metadata = nativeTaskState(task);
     if (!metadata) return;
     metadata.latest = event;
-    if (event.type === 'fatal') metadata.failed = true;
+    if (event.type === 'fatal') {metadata.failed = true;metadata.fatal = event;}
     if (disposed || metadata.generation !== runGeneration || nativeTaskState(execution?.task) !== metadata || stoppedTasks.has(execution)) return;
     if (event.type === 'ui-ready') state = 'App UI ready';
     else if (event.type === 'first-frame') state = 'App running · first game frame ready';
-    else if (event.type === 'fatal') {buildFailed = true;state = `App failed (${event.stage}/${event.code}). Check Problems or the task terminal.`;
-      if(nativeProblems){const grouped=new Map();for(const item of runtimeDiagnostics(event.diagnostic||'',metadata.root)){const point=new vscode.Position(Math.max(0,item.line-1),0),diagnostic=new vscode.Diagnostic(new vscode.Range(point,point),item.message,vscode.DiagnosticSeverity.Error);diagnostic.source='Zero native runtime';if(!grouped.has(item.file))grouped.set(item.file,[]);grouped.get(item.file).push(diagnostic);}for(const [file,items]of grouped)nativeProblems.set(vscode.Uri.file(file),items);}
-    }
+    else if (event.type === 'fatal') {buildFailed = true;state = `App failed (${event.stage}/${event.code}). Check Problems or the task terminal.`;publishRuntimeProblems(metadata,event);}
     else if (event.type === 'stopped') state = 'App stopped';
     if (event.diagnostic) output.appendLine(`[Native ${event.stage}/${event.code}] ${event.diagnostic}`);
     refresh();
   }
-  function publishCompilerProblems(metadata) {
-    if(!compilerProblems || disposed || metadata.generation !== runGeneration || nativeTaskState(execution?.task) !== metadata || stoppedTasks.has(execution))return;
+  function publishCompilerProblems(metadata, owner = execution) {
+    if(!compilerProblems || disposed || metadata.generation !== runGeneration || nativeTaskState(owner?.task) !== metadata || stoppedTasks.has(owner))return;
     const grouped=new Map();
     for(const item of metadata.compilerItems||[]){
       const point=new vscode.Position(item.line-1,item.column-1);
@@ -335,19 +342,19 @@ function activate(context, services = {}) {
     }
     for(const [file,diagnostics]of grouped)compilerProblems.set(vscode.Uri.file(file),diagnostics);
   }
-  async function makeTask(root, definition = {type:'zero',task:'run'}, scope = vscode.TaskScope.Workspace) {
+  async function makeTask(root, definition = {type:'zero',task:'run',instanceId:crypto.randomUUID()}, scope = vscode.TaskScope.Workspace) {
     if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
     await core.assertTutorialRepository(root);
     const spec = core.runSpecification(root);
     await fs.access(spec.command);
-    const metadata = {generation:runGeneration,root,failed:false};nativeProblems?.clear();
+    const metadata = {generation:runGeneration,root,failed:false};
     let task, transport;
     const compiler = createNativeCompilerDiagnostics({root,onChange:items=>{
       metadata.compilerItems=items;publishCompilerProblems(metadata);
     }});
     const processExecution = typeof vscode.CustomExecution === 'function'
       ? (transport = createNativeRuntimeExecution({vscode,spec,buildId:await nativeBuildIdentity(root),...services.nativeRuntime,
-          isCurrent:()=>!disposed && metadata.generation === runGeneration,
+          isCurrent:()=>!disposed && metadata.generation === runGeneration && vscode.workspace.isTrusted !== false,
           onEvent:event => nativeRuntimeState(task,event),onOutput:(text,stream)=>compiler.push(text,stream),
           onExit:code => {compiler.end();metadata.exitCode = code;}
         })).execution
@@ -357,23 +364,45 @@ function activate(context, services = {}) {
     // CustomExecution owns compiler diagnostics. A finite task matcher cannot
     // refresh them until the long-lived JavaFX process exits.
     task = new vscode.Task(definition, scope, 'Run App', 'Zero', processExecution, transport ? [] : '$zero-java-fallback');
-    metadata.custom=Boolean(transport);nativeTaskStates.set(task,metadata);
+    metadata.custom=Boolean(transport);metadata.transport=transport;nativeTaskStates.set(task,metadata);
     nativeTaskStates.set(processExecution,metadata);
     if (transport) context.subscriptions.push(transport);
     task.presentationOptions = {reveal: vscode.TaskRevealKind.Always, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
     task.group = vscode.TaskGroup.Build;
     return task;
   }
-  const taskFinishes = new Map();
+  const taskFinishes = new Map(), endedTasks = new WeakSet();
+  function finishedTaskPty(message, exitCode) {
+    const writes = new vscode.EventEmitter(), closes = new vscode.EventEmitter();
+    let closed = false;
+    const close = code => {if (!closed) {closed = true;closes.fire(code);}};
+    return {onDidWrite:writes.event,onDidClose:closes.event,
+      open() {if (closed) return;if (message) writes.fire(`Zero: ${message}\r\n`);close(exitCode);},
+      close() {close(0);}
+    };
+  }
   function track(active) {
     if (taskFinishes.has(active)) return;
+    const metadata = nativeTaskState(active.task);
+    if (!metadata) return;
+    if (disposed || metadata.generation !== runGeneration) {if(!endedTasks.has(active)){stoppedTasks.add(active);active.terminate();}return;}
+    if (endedTasks.has(active)) {
+      if (metadata.reconciled) return;
+      if (execution) {metadata.reconciled = true;return;}
+      metadata.reconciled = true;
+      compilerProblems?.clear();nativeProblems?.clear();
+      publishCompilerProblems(metadata,active);
+      if (metadata.fatal) publishRuntimeProblems(metadata,metadata.fatal);
+      const exitCode = metadata.exitCode ?? taskExitCodes.get(active);
+      buildFailed = Boolean(metadata.failed || typeof exitCode === 'number' && exitCode !== 0 && (metadata.custom || !stoppedTasks.has(active)));
+      state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped';
+      refresh();return;
+    }
     if (execution && execution !== active) {stoppedTasks.add(execution); execution.terminate();}
     execution = active;
     buildFailed = false;
     ending = new Promise(resolve => taskFinishes.set(active, resolve));
-    const metadata = nativeTaskState(active.task);
-    if (disposed || metadata && metadata.generation !== runGeneration) {stoppedTasks.add(active);active.terminate();return;}
-    compilerProblems?.clear();
+    compilerProblems?.clear();nativeProblems?.clear();
     if(metadata)publishCompilerProblems(metadata);
     state = 'Building / running · readiness unverified — output is in the terminal'; refresh();
     const latest = metadata?.latest;
@@ -382,51 +411,56 @@ function activate(context, services = {}) {
   context.subscriptions.push(vscode.tasks.onDidStartTask(event => {
     if (event.execution.task.definition.type === 'zero' && ['run','native-run'].includes(event.execution.task.definition.task)) track(event.execution);
   }), vscode.tasks.onDidEndTask(event => {
+    endedTasks.add(event.execution);
     const finish = taskFinishes.get(event.execution);
     if (!finish) return;
+    const metadata = nativeTaskState(event.execution.task);
+    if (metadata) metadata.reconciled = true;
     taskFinishes.delete(event.execution); finish();
     if (execution === event.execution) {
       execution = undefined;
-      const metadata = nativeTaskState(event.execution.task);
       const exitCode = metadata?.exitCode ?? taskExitCodes.get(event.execution);
       buildFailed = Boolean(metadata?.failed || typeof exitCode === 'number' && exitCode !== 0 && (metadata?.custom || !stoppedTasks.has(event.execution)));
       state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped';
       refresh();
     }
   }), vscode.tasks.onDidEndTaskProcess(event => {
-    if (!taskFinishes.has(event.execution)) return;
     taskExitCodes.set(event.execution, event.exitCode);
   }));
   context.subscriptions.push(vscode.tasks.registerTaskProvider('zero', {
-    // Configured tasks must pass through resolveTask for saving and restart checks.
+    // VS Code also resolves tasks while listing build choices. The configured
+    // task starts the same owned Run task as the sidebar and then exits.
     provideTasks: async () => [],
     resolveTask: async configured => {
       if (!['run','native-run'].includes(configured.definition.task)) return undefined;
-      if (stopPromise || isBusy()) return undefined;
-      nativeStarting++;refresh();
-      try {
-        browserRun.stop({quiet:true});
+      if (typeof vscode.CustomExecution !== 'function') return undefined;
+      const taskExecution = new vscode.CustomExecution(async () => {
         const generation = runGeneration;
-        await stop();
-        const root=await project();
-        if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
-        if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
-        if (disposed || generation !== runGeneration) return undefined;
-        if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
-        const task = await makeTask(root, configured.definition, configured.scope);
-        if (disposed || generation !== runGeneration) return undefined;
-        if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
-        if (disposed || generation !== runGeneration) return undefined;
-        task.group = configured.group || vscode.TaskGroup.Build;
-        return task;
-      } finally {nativePrepared();}
+        const fail = message => {
+          output.appendLine(`Run App: ${message}`);
+          void vscode.window.showErrorMessage(`Zero: ${message}`).then(undefined,()=>{});
+          return finishedTaskPty(message,1);
+        };
+        if (disposed || stopPromise || isBusy() || nativeStarting) return fail('Finish the current action before running the app.');
+        try {
+          const root=await project();
+          if (disposed || generation !== runGeneration) return finishedTaskPty('Run cancelled.',0);
+          if (stopPromise || isBusy() || nativeStarting) return fail('Finish the current action before running the app.');
+          const active=await queuedRun(root);
+          if (disposed || generation !== runGeneration || !active) return finishedTaskPty('Run cancelled.',0);
+          return finishedTaskPty('',0);
+        } catch (error) {return fail(error.message || 'Cannot prepare Run App.');}
+      });
+      const task = new vscode.Task(configured.definition, configured.scope, 'Run App', 'Zero', taskExecution, []);
+      task.presentationOptions = {reveal: vscode.TaskRevealKind.Never, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
+      task.group = configured.group || vscode.TaskGroup.Build;
+      return task;
     }
   }));
   async function run(generation, expectedRoot) {
     if (disposed || generation !== runGeneration) return;
-    await stop();
     const root = await project();
-    if (expectedRoot && root !== expectedRoot) throw new Error('The student project changed before running the dependency update. Run the original app explicitly.');
+    if (expectedRoot && root !== expectedRoot) throw new Error('The student project changed before running. Open the intended project and run it explicitly.');
     if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
     await core.assertTutorialRepository(root);
     if (generation !== runGeneration) return;
@@ -436,12 +470,20 @@ function activate(context, services = {}) {
     if (disposed || generation !== runGeneration) return;
     if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
     if (disposed || generation !== runGeneration) return;
+    if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
+    if (stopPromise || isBusy()) throw new Error('Finish the current action before running the app.');
+    await stop();
+    if (disposed || generation !== runGeneration) return;
+    if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
+    if (disposed || generation !== runGeneration) return;
+    if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
+    browserRun.stop({quiet:true});
     pendingLaunch = vscode.tasks.executeTask(task).then(active => {
       if (disposed || generation !== runGeneration) {stoppedTasks.add(active);active.terminate();}
       else track(active);
       return active;
     });
-    try {await pendingLaunch;} finally {pendingLaunch = undefined;}
+    try {return await pendingLaunch;} finally {pendingLaunch = undefined;}
   }
   function queuedRun(expectedRoot) {
     const generation = runGeneration;
@@ -836,8 +878,7 @@ function activate(context, services = {}) {
   Object.assign(actions,browserRun.commands);
   actions['zero.runApp']=expectedRoot=>{
     if (stopPromise) return stopPromise;
-    if (isBusy()) return Promise.resolve();
-    browserRun.stop({quiet:true});
+    if (isBusy() || nativeStarting) return Promise.resolve();
     return queuedRun(expectedRoot);
   };
   actions['zero.stopApp']=()=>{
@@ -878,18 +919,20 @@ function activate(context, services = {}) {
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {
     try {await action();} catch(error) {
       const message = error.zeroRunMessage || error.message;
-      state = /^GitHub sign-in was cancelled or unavailable\./.test(message) ? 'GitHub sign-in cancelled or unavailable. Try again.' : message;refresh();output.appendLine(error.message);
+      const display = /^GitHub sign-in was cancelled or unavailable\./.test(message) ? 'GitHub sign-in cancelled or unavailable. Try again.' : message;
+      if (!(execution && ['zero.runApp','zero.runNativeApp','zero.toggleApp'].includes(id))) state = display;
+      refresh();output.appendLine(error.message);
       const installUrl=appConfiguration&&`https://github.com/apps/${appConfiguration.slug}/installations/new`;
       if(installUrl && error.actionUrl===installUrl){
         void githubReadiness.refresh();
-        const choice=await vscode.window.showErrorMessage(`Zero: ${state}`,'Open GitHub');
+        const choice=await vscode.window.showErrorMessage(`Zero: ${display}`,'Open GitHub');
         if(choice==='Open GitHub'&&!disposed)await vscode.env.openExternal(vscode.Uri.parse(installUrl));
       }else if(error.code==='creation-uncertain'&&typeof error.repositoryUrl==='string'){
         const destination=core.parseRepositoryUrl(error.repositoryUrl);
         const prior=context.globalState?.get('zero.repositoryCreationRecovery');
         await context.globalState?.update('zero.repositoryCreationRecovery',{...(prior?.repositoryUrl===destination.page?prior:{}),repositoryUrl:destination.page,at:Date.now()});
-        vscode.window.showErrorMessage(`Zero: ${state} Use Zero: Repository Actions → Resume created project to continue.`);
-      }else vscode.window.showErrorMessage(`Zero: ${state}`);
+        vscode.window.showErrorMessage(`Zero: ${display} Use Zero: Repository Actions → Resume created project to continue.`);
+      }else vscode.window.showErrorMessage(`Zero: ${display}`);
     }
   }));
   function render(webview) {

@@ -19,6 +19,9 @@ prepareDesign();
 prepareTutorials();
 verifyWebProfiles();
 const checkedRelease=releaseDefinition();
+for (const match of readFileSync(path.join(root,'release/START-HERE.md'),'utf8').matchAll(/zero-\d+\.\d+\.\d+\.vsix/g)) {
+  assert.equal(match[0],checkedRelease.assets.extension.filename,'Bundled VSIX instructions must match the candidate');
+}
 const priorUpdateFeed=path.join(root,'release/mac-update-feed.json');
 verifyUpdateBuildOrder(readMacUpdaterConfig(root),checkedRelease.kitVersion,existsSync(priorUpdateFeed) ? JSON.parse(readFileSync(priorUpdateFeed,'utf8')) : undefined);
 function json(relative) { return JSON.parse(readFileSync(path.join(root, relative), 'utf8')); }

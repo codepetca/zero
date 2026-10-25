@@ -376,6 +376,27 @@ in all supported VS Code versions. The programmatic non-CustomExecution fallback
 uses `$zero-java-fallback`; a configured task on a host without CustomExecution
 does not gain that fallback matcher. The standalone inline matcher still works.
 
+Configured task resolution is description-only. VS Code calls it while listing
+choices and during project startup, so it must not save files, stop an app or
+clear Problems. The CustomExecution start callback launches the same native Run pipeline as the
+sidebar, which rechecks trust, project identity, cancellation and busy state.
+A refused/cancelled callback returns a finite terminal without replacing the
+running app or resetting its diagnostics. Configured tasks require CustomExecution
+(all supported VS Code versions provide it); programmatic fallback remains
+separate. Verify by opening **Tasks: Configure Default Build Task** while a game
+is running: opening/cancelling the picker must preserve that app and readiness.
+The configured task finishes its launch request; the separate app task owns the
+compiler, Java process, readiness, Problems and Stop. This allows repeated build
+shortcuts to restart the app while keeping one preparation implementation. The
+launcher's completion is not a claim that compilation has finished. Actually
+starting the configured task retains normal save/restart/Stop behavior.
+Each editor-launched native Run has a fresh internal task `instanceId`, registered
+in the extension's task definition. Leave it out of student tasks.json. VS Code
+normalizes task identity using registered fields; this separates a live app from
+a refused configured retry so the retry cannot clear the live app's Stop owner.
+
+
+
 The supported `zero.controls` webview in Explorer contains development controls
 and teaching helpers; native Explorer owns the file list. Native `zero.startPage`
 opens one reusable/restorable editor panel
@@ -533,3 +554,17 @@ VS Code preserves that choice. Do not use private move/layout commands, modify
 workbench storage or alter host DOM/CSS to force a placement. Native editor QA
 remains held after the Code Key popup; mocks/browser fixtures do not prove actual
 Explorer layout, file highlighting or drag/rename interactions.
+
+## Embedded preview text selection
+
+Mac VS Code can lose Cmd+A inside a nested webview input. The local embedded
+preview uses a separate exact-token URL whose index response adds a focused
+text-input/textarea selection handler. That embedded HTML is derived preview
+infrastructure; the validated snapshot, exported ZIP, external browser page and
+other assets remain unchanged. Ctrl shortcuts, clipboard commands and canvas
+input keep their existing handling. This also applies to saved older exports
+without upgrading the project-owned builder or framework.
+
+Check `extension/test/web-run-preview.test.js` and repeat Sam → Cmd+A → Alex in
+the actual Mac embedded field. URI serialization must preserve the exact preview
+token. A mocked key event alone does not establish host keyboard acceptance.

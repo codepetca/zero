@@ -1,6 +1,6 @@
 # Start with Zero
 
-Zero **0.5.47** includes core **0.2.1**, targeting **Mac with Apple Silicon** and **Windows**.
+This local Mac candidate **0.5.49** includes core **0.3.0**, targeting **Mac with Apple Silicon** and **Windows**.
 Use the guide bundled with an older download for its controls. Linux and Intel
 Macs are unsupported; physical Windows/classroom testing remains pending.
 
@@ -32,8 +32,8 @@ lessons. Read the [complete account/privacy setup](https://zero.codepet.ca/docs/
 ## Open a tutorial project
 
 Follow the sidebar: **Sign in to GitHub**, then
-**Install Zero for GitHub** if requested, then **Start tutorial**. Sign-in uses
-the existing GitHub device flow. Zero checks project access read-only and stops
+**Install Zero for GitHub** if requested, then **Start tutorial**. Sign-in opens GitHub in your browser and returns to Zero.
+Use **Sign in using a code** if the browser return is unavailable. Zero checks project access read-only and stops
 at the next sidebar step. If access is missing, **Install Zero for GitHub**
 opens the pinned GitHub App page after a read-only recheck. Approve selected
 repositories there, then return to Zero; it checks again automatically. Use
@@ -110,7 +110,7 @@ lesson 0, then create and clone your own tutorial repository.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.47.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.49.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors

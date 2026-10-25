@@ -53,45 +53,35 @@ test('commands simulate upload without Git and native Run App tasks retain resta
   await commands.get('zero.stopApp')();
   assert.equal(reloadIsBusy(),false,'A completed task must not leave its resolved ending promise blocking update reload');
   assert.deepEqual(await provider.provideTasks(),[], 'Detected executable tasks would bypass the save/restart resolver');
-  const shortcut=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:2});
-  await vscode.tasks.executeTask(shortcut);assert.equal(saved,3);
-  const rerun=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:2});
-  await vscode.tasks.executeTask(rerun);assert.equal(saved,4);
-  await commands.get('zero.stopApp')();assert.equal(launches.length,4);
+  assert.equal(await provider.resolveTask({definition:{type:'zero',task:'run'},scope:2}),undefined,
+    'A host without CustomExecution cannot resolve the configured task');
+  assert.equal(saved,2,'Task discovery must not save student files');
+  assert.equal(launches.length,2);
   let releaseSave;
   saveGate = new Promise(resolve => {releaseSave=resolve;});
   const pendingRun = commands.get('zero.runApp')();
   const queuedRun = commands.get('zero.runApp')();
-  while(saved < 5) await new Promise(resolve => setImmediate(resolve));
+  while(saved < 3) await new Promise(resolve => setImmediate(resolve));
   const stopping=commands.get('zero.stopApp')();
   releaseSave();
   await Promise.all([pendingRun,queuedRun,stopping]);
-  assert.equal(launches.length,4,'Stop must cancel saving and queued Run requests');
-  let releaseResolution;
-  saveGate=new Promise(resolve=>{releaseResolution=resolve;});const beforeResolution=saved;
-  const resolution=provider.resolveTask({definition:{type:'zero',task:'run'},scope:2});
-  while(saved===beforeResolution)await new Promise(resolve=>setImmediate(resolve));
-  let settled=false;const cancelledResolution=commands.get('zero.stopApp')().then(()=>{settled=true;});
-  await new Promise(resolve=>setImmediate(resolve));assert.equal(settled,false,'Stopping waits for native task preparation');
-  releaseResolution();assert.equal(await resolution,undefined,'Cancelled task resolution cannot launch later');await cancelledResolution;
+  assert.equal(launches.length,2,'Stop must cancel saving and queued Run requests');
   const otherRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'zero-other-project-'));
   t.after(() => fs.rm(otherRoot, {recursive:true, force:true}));
   await fs.writeFile(path.join(otherRoot, 'zero.json'), '{}');
   await fs.writeFile(path.join(otherRoot, 'mvnw'), '');
-  // Both entry points must retain the project selected before the save dialog.
-  for (const [index, launch] of [() => commands.get('zero.runApp')(),
-    () => provider.resolveTask({definition:{type:'zero',task:'run'},scope:2})].entries()) {
+  // Programmatic Run must retain the project selected before the save dialog.
+  {
     let release;
     saveGate = new Promise(resolve => {release = resolve;});
     const beforeSave = saved;
-    const preparation = launch();
-    const completion = index ? assert.rejects(preparation, /project changed/i) : preparation;
+    const preparation = commands.get('zero.runApp')();
     while (saved === beforeSave) await new Promise(resolve => setImmediate(resolve));
     vscode.workspace.workspaceFolders = [{uri:{fsPath:otherRoot}}];
     release();
-    await completion;
-    if (!index) assert.match(errors.at(-1), /project changed/i);
-    assert.equal(launches.length, 4, 'Changing projects during preparation must not launch either project');
+    await preparation;
+    assert.match(errors.at(-1), /project changed/i);
+    assert.equal(launches.length, 2, 'Changing projects during preparation must not launch another project');
     vscode.workspace.workspaceFolders = [{uri:{fsPath:root}}];
   }
   saveGate=undefined; mode='live';
@@ -124,7 +114,7 @@ test('commands simulate upload without Git and native Run App tasks retain resta
   subscriptions.forEach(item => item.dispose());
   releaseDisposedSave();
   await disposedRun;
-  assert.equal(launches.length, 4, 'Disposing the extension cancels preparation before a task can escape cleanup');
+  assert.equal(launches.length, 2, 'Disposing the extension cancels preparation before a task can escape cleanup');
 });
 
 test('minimal GitHub section follows Zero App sign-in and connection state; project creation and simulation stay explicit', async t => {

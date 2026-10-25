@@ -1,6 +1,6 @@
 # My Zero App
 
-This source is included in Mac setup **0.5.47** with core **0.2.1**.
+This source is included in the local Mac candidate **0.5.49** with core **0.3.0**.
 Older downloads keep their own bundled instructions and API.
 
 Zero 0.5.27 uses a native JavaFX window for Run App. Mac 0.5.26 and other
@@ -17,9 +17,9 @@ in your GitHub account from the verified template and opens its clone. Its sourc
 and included files are public. The lesson page's **Use template** action also lets
 you create a repository on GitHub; clone your own repository through **Project →
 Clone from GitHub…**.
-Newer VS Code versions open a new window automatically; the VS Code 1.95 fallback
-may ask for **Open in New Window**. For an already-cloned Zero folder, choose
-**Project → Open local project…** to open a new window without cloning again. Keep that clone and add your own code across its lessons. Each template contains only empty Main
+Zero reuses the current window with the editor’s normal unsaved-work handling.
+For an already-cloned Zero folder, choose **Project → Open local project…**
+to open it without cloning again. Keep that clone and add your own code across its lessons. Each template contains only empty Main
 and build/framework setup. Tutorial repositories use New branch, Run App,
 Commit & push and Merge to main, like original coursework projects. Template links
 follow verified publication metadata; unavailable templates show that state.

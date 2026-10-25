@@ -86,7 +86,7 @@ function createRecordDecoder({runId, buildId, write, onEvent, now = Date.now}) {
 
 function createNativeRuntimeExecution({vscode, spec, buildId, onEvent = () => {}, onExit = () => {}, onOutput = () => {}, isCurrent = () => true, spawn = childProcess.spawn, killProcess = process.kill, platform = process.platform, env = process.env, graceMs = 1500, drainMs = 500}) {
   const controllers = new Set();
-  const execution = new vscode.CustomExecution(async () => {
+  const createPty = async () => {
     const runId = crypto.randomUUID();
     const writes = new vscode.EventEmitter(), closes = new vscode.EventEmitter();
     const stdout = new StringDecoder('utf8'), stderr = new StringDecoder('utf8');
@@ -189,7 +189,8 @@ function createNativeRuntimeExecution({vscode, spec, buildId, onEvent = () => {}
       },
       close
     };
-  });
-  return {execution, dispose() {for (const controller of [...controllers]) controller.close();}};
+  };
+  const execution = new vscode.CustomExecution(createPty);
+  return {execution, createPty, dispose() {for (const controller of [...controllers]) controller.close();}};
 }
 module.exports = {nativeBuildIdentity, createRecordDecoder, createNativeRuntimeExecution};

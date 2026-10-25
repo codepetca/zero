@@ -35,7 +35,7 @@ test('native decoder bounds long lines, rejects replay/invalid combinations, flo
 test('CustomExecution runs exact native Maven argv, opts into local identity, mirrors UTF8/stderr and stdin', async () => {
  const child=fakeChild(),calls=[],events=[],exits=[],writes=[];
  const transport=createNativeRuntimeExecution({vscode,spec:{command:'/project/mvnw',args:['clean','compile','javafx:run'],cwd:'/project'},buildId:'b',env:{KEEP:'yes'},platform:'darwin',spawn:(...args)=>{calls.push(args);return child;},killProcess:()=>{},onEvent:e=>events.push(e),onExit:code=>exits.push(code)});
- const pty=await transport.execution.callback();pty.onDidWrite(x=>writes.push(x));pty.open();
+ const pty=await transport.createPty();pty.onDidWrite(x=>writes.push(x));pty.open();
  assert.equal(calls[0][0],'/project/mvnw');assert.deepEqual(calls[0][1],['clean','compile','javafx:run']);assert.equal(calls[0][2].detached,true);assert.equal(calls[0][2].env.KEEP,'yes');
  const runId=calls[0][2].env.ZERO_RUNTIME_RUN_ID;assert.match(runId,/^[a-f0-9-]+$/);assert.equal(calls[0][2].env.ZERO_RUNTIME_BUILD_ID,'b');
  const utf=Buffer.from('hello ☃\n');child.stdout.emit('data',utf.subarray(0,8));child.stdout.emit('data',utf.subarray(8));child.stderr.emit('data',Buffer.from('compiler stderr\n'));

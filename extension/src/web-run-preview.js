@@ -26,7 +26,7 @@ async function createManagedWebPreview(vscode, sitePath, {onDidDispose = () => {
     return true;
   };
   try {
-    const local = vscode.Uri.parse(server.url);
+    const local = vscode.Uri.parse(server.webviewUrl || server.url);
     const target = vscode.env.asExternalUri ? await vscode.env.asExternalUri(local) : local;
     const url = target.toString();
     const origin = new URL(url).origin;

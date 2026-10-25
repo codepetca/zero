@@ -9,10 +9,10 @@ const {createWebPreview}=require('../src/web-preview');
 const {createManagedWebPreview}=require('../src/web-run-preview');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 
-async function fixture(t) {
+async function fixture(t, indexBytes=Buffer.from('<h1>compiled app</h1>')) {
  const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-browser-run-'));
  t.after(()=>fs.rm(root,{recursive:true,force:true}));
- const index=Buffer.from('<h1>compiled app</h1>');
+ const index=Buffer.from(indexBytes);
  await fs.writeFile(path.join(root,'index.html'),'unvalidated replacement');
  await fs.writeFile(path.join(root,'source.java'),'private source');
  const preview=await createWebPreview(root,{siteFiles:[{path:'index.html',bytes:index},{path:'assets/app.js',bytes:Buffer.from('compiled javascript')}]});
@@ -33,13 +33,56 @@ function shellHarness(html) {
 
 test('browser shell serves only a preview wrapper around the same immutable validated app',async t=>{
  const {root,index,preview}=await fixture(t);
- assert.equal(new URL(preview.browserUrl).origin,new URL(preview.url).origin);assert.equal(new URL(preview.url).hostname,'127.0.0.1');
+ assert.equal(new URL(preview.browserUrl).origin,new URL(preview.url).origin);assert.equal(new URL(preview.webviewUrl).origin,new URL(preview.url).origin);assert.equal(new URL(preview.url).hostname,'127.0.0.1');
  const response=await fetch(preview.browserUrl),html=await response.text();assert.match(response.headers.get('content-security-policy'),/default-src 'none'; frame-src 'self'; connect-src 'self'/);assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'none'/);assert.equal(response.headers.get('cache-control'),'no-store');
  assert.doesNotMatch(html,/Open in browser|acquireVsCodeApi|window\.open/);
  const shell=shellHarness(html);assert.equal(shell.frames.length,0,'No app before live runtime acknowledges connection');
  shell.source.onmessage({data:'running'});assert.equal(shell.frames.length,1);assert.equal(shell.frames[0].src,new URL(preview.url).pathname);assert.equal(shell.frames[0].sandbox,'allow-scripts allow-same-origin');assert.equal(shell.frames[0].allow,'autoplay; fullscreen');
  assert.equal(await(await fetch(preview.url)).text(),'<h1>compiled app</h1>');index.fill(0);await fs.writeFile(path.join(root,'index.html'),'new app');await fs.rm(root,{recursive:true,force:true});
  assert.equal(await(await fetch(preview.url)).text(),'<h1>compiled app</h1>');assert.equal((await fetch(preview.url+'source.java')).status,404);assert.equal(await(await fetch(preview.url+'assets/app.js')).text(),'compiled javascript');
+});
+
+test('only the exact embedded URL derives an older saved export index; all original bytes remain immutable',async t=>{
+ const oldIndex=Buffer.from('<!doctype html><html><head><title>Earlier Zero export</title></head><body><script src="./zero_web.nocache.js"></script></body></html>\n');
+ const {root,index,preview}=await fixture(t,oldIndex);
+ const embeddedResponse=await fetch(preview.webviewUrl);
+ assert.equal(embeddedResponse.headers.get('content-type'),'text/html; charset=utf-8');assert.equal(embeddedResponse.headers.get('cache-control'),'no-store');
+ const derived=Buffer.from(await embeddedResponse.arrayBuffer());
+ assert.deepEqual(Buffer.from(await(await fetch(preview.url)).arrayBuffer()),oldIndex);
+ const injection=derived.toString().indexOf('<script>(function selectAllInEmbeddedPreview');
+ assert.ok(injection>0 && injection<derived.toString().indexOf('<script src="./zero_web.nocache.js"'),'Preview handler loads before the app');
+ assert.deepEqual(Buffer.concat([derived.subarray(0,injection),derived.subarray(injection+derived.length-oldIndex.length)]),oldIndex);
+ const head=await fetch(preview.webviewUrl,{method:'HEAD'});assert.equal(head.status,200);assert.equal(Number(head.headers.get('content-length')),derived.length);
+ const wrong=new URL(preview.webviewUrl);wrong.search='?zero-embedded-wrong';assert.deepEqual(Buffer.from(await(await fetch(wrong)).arrayBuffer()),oldIndex);
+ const extra=new URL(preview.webviewUrl);extra.search+='&extra=1';assert.deepEqual(Buffer.from(await(await fetch(extra)).arrayBuffer()),oldIndex);
+ const differentPath=new URL(preview.webviewUrl);differentPath.pathname+='index.html';assert.deepEqual(Buffer.from(await(await fetch(differentPath)).arrayBuffer()),oldIndex);
+ const asset=new URL('assets/app.js',preview.webviewUrl);asset.search=new URL(preview.webviewUrl).search;
+ assert.equal(await(await fetch(asset)).text(),'compiled javascript');
+ assert.equal((await fetch(preview.webviewUrl,{method:'POST'})).status,405);
+ const browser=await(await fetch(preview.browserUrl)).text();assert.doesNotMatch(browser,/selectAllInEmbeddedPreview/);
+ index.fill(0);await fs.writeFile(path.join(root,'index.html'),'changed');assert.deepEqual(Buffer.from(await(await fetch(preview.url)).arrayBuffer()),oldIndex);
+ assert.deepEqual(Buffer.from(await(await fetch(preview.webviewUrl)).arrayBuffer()),derived);
+});
+
+test('embedded Select All only selects a focused text control on plain Mac Meta+A',async t=>{
+ const {preview}=await fixture(t);
+ const html=await(await fetch(preview.webviewUrl)).text();
+ const script=html.match(/<script>\(([\s\S]*?)\)\(\)<\/script>$/)?.[1];assert.ok(script);
+ class Input {constructor(type='text'){this.type=type;this.disabled=false;this.readOnly=false;this.selections=0;}select(){this.selections++;}}
+ class Textarea extends Input {}
+ let keydown;const document={activeElement:null,addEventListener(type,listener,capture){assert.equal(type,'keydown');assert.equal(capture,true);keydown=listener;}};
+ vm.runInNewContext(`(${script})()`,{document,HTMLInputElement:Input,HTMLTextAreaElement:Textarea});
+ function press(target,options={}) {let prevented=false;keydown({target,key:'a',metaKey:true,ctrlKey:false,altKey:false,shiftKey:false,isComposing:false,preventDefault(){prevented=true;},...options});return prevented;}
+ const input=new Input();document.activeElement=input;assert.equal(press(input),true);assert.equal(input.selections,1);
+ const textarea=new Textarea();document.activeElement=textarea;assert.equal(press(textarea),true);assert.equal(textarea.selections,1);
+ const readonly=new Input();readonly.readOnly=true;document.activeElement=readonly;assert.equal(press(readonly),true,'Read-only text remains selectable');
+ document.activeElement=input;
+ for(const options of [{metaKey:false,ctrlKey:true},{key:'c'},{key:'v'},{shiftKey:true},{altKey:true},{ctrlKey:true},{isComposing:true}])assert.equal(press(input,options),false);
+ assert.equal(input.selections,1,'Other editing and modified shortcuts do not select');
+ document.activeElement=textarea;assert.equal(press(input),false,'Only the focused control is selected');
+ const disabled=new Input();disabled.disabled=true;document.activeElement=disabled;assert.equal(press(disabled),false);
+ const number=new Input('number');document.activeElement=number;assert.equal(press(number),false);
+ const canvas={};document.activeElement=canvas;assert.equal(press(canvas),false);
 });
 
 test('liveness disconnect removes executing frame and never reconnects or secretly reruns it',async t=>{
@@ -64,7 +107,7 @@ test('Stop ends live connections promptly, closes every browser session and refu
  for(const reader of readers)assert.match(new TextDecoder().decode((await reader.read()).value),/data: running/);
  const pending=readers.map(reader=>reader.read().then(result=>assert.equal(result.done,true),()=>{}));preview.dispose();preview.dispose();
  let timeout;try{await Promise.race([Promise.all(pending),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('live streams remained open after Stop')),1000);})]);}finally{clearTimeout(timeout);}
- await assert.rejects(fetch(preview.url));await assert.rejects(fetch(preview.browserUrl));
+ await assert.rejects(fetch(preview.url));await assert.rejects(fetch(preview.webviewUrl));await assert.rejects(fetch(preview.browserUrl));
 });
 
 test('preview control routes retain method/path confinement and cannot shadow build assets',async t=>{
@@ -100,13 +143,27 @@ test('managed preview honors the explicit tutorial column even when the host rep
 
 test('managed toolbar opens the default browser using only the runtime shell URL and reports failed opens',async()=>{
  const h=managedHarness();const options=[];
- const preview=await createManagedWebPreview(h.vscode,'/site',{siteFiles:['validated'],serverFactory:async(site,value)=>{options.push({site,value});return {url:'http://127.0.0.1:1234/immutable/',browserUrl:'http://127.0.0.1:1234/immutable/.zero-preview-secret/',dispose:()=>h.events.push('server disposed')};}});
+ const preview=await createManagedWebPreview(h.vscode,'/site',{siteFiles:['validated'],serverFactory:async(site,value)=>{options.push({site,value});return {url:'http://127.0.0.1:1234/immutable/',webviewUrl:'http://127.0.0.1:1234/immutable/?zero-embedded-secret',browserUrl:'http://127.0.0.1:1234/immutable/.zero-preview-secret/',dispose:()=>h.events.push('server disposed')};}});
  assert.match(h.html,/<button type="button">Open in browser<\/button>/);assert.match(h.html,/postMessage\(\{type:'openInBrowser'\}\)/);assert.match(h.html,/button:focus-visible/);assert.deepEqual(options,[{site:'/site',value:{siteFiles:['validated']}}]);
+ assert.match(h.html,/<iframe[^>]+src="http:\/\/127\.0\.0\.1:1234\/immutable\/\?zero-embedded-secret"/);
+ assert.equal(preview.url,'http://127.0.0.1:1234/immutable/?zero-embedded-secret');
  h.receive({type:'unknown',url:'https://wrong.example'});await tick();assert.equal(h.opened.length,0);
  h.receive({type:'openInBrowser',url:'https://wrong.example'});await tick();assert.deepEqual(h.opened,[preview.browserUrl]);
  h.openResult=false;await assert.rejects(preview.openInBrowser(),/browser did not open/);h.receive({type:'openInBrowser'});await tick();assert.match(h.errors.at(-1),/browser did not open/);
  h.openResult=Error('Browser unavailable');h.receive({type:'openInBrowser'});await tick();assert.equal(h.errors.at(-1),'Browser unavailable');
  preview.dispose();assert.deepEqual(h.events,['messages disposed','frame disposed','server disposed']);await assert.rejects(preview.openInBrowser(),/App stopped/);const count=h.opened.length;h.receive({type:'openInBrowser'});await tick();assert.equal(h.opened.length,count);
+});
+
+test('embedded URL survives VS Code URI serialization and still reaches the exact derived route',async t=>{
+ const {preview}=await fixture(t);
+ assert.match(preview.webviewUrl,/\?zero-embedded-[a-f0-9]{36}$/);
+ const h=managedHarness();h.vscode.Uri.parse=value=>({toString:()=>value.replaceAll('=','%3D')});
+ const managed=await createManagedWebPreview(h.vscode,'/site',{serverFactory:async()=>preview});
+ assert.equal(managed.url,preview.webviewUrl);
+ assert.match(h.html,/zero-embedded-[a-f0-9]{36}/);
+ assert.match(await(await fetch(managed.url)).text(),/selectAllInEmbeddedPreview/);
+ assert.doesNotMatch(await(await fetch(preview.url)).text(),/selectAllInEmbeddedPreview/);
+ managed.dispose();
 });
 
 test('managed toolbar uses the coordinator guard and catches guard failures',async()=>{

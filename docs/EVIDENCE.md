@@ -1,5 +1,74 @@
 # Delivery evidence index
 
+## Mac 0.5.49 source PR / CI — 2026-10-25
+
+Owner authorized source push/PR and CI, keeping publishing separate and taking the
+fresh-Mac/school-network pilot. [PR194](https://github.com/codepetca/zero/pull/194)
+targets main at base cebd3b8e. No source conflict or base sync is needed. Existing
+candidate48/49 reviews and exact protected-source checks remain applicable;
+27focused native/preview tests and root checks pass again. Full PR CI is selected
+by the unchanged classifier. Cumulative source integration review and exact-head
+CI results are retained on the PR; pilot gaps remain as recorded in LOCAL-MAC-01.
+This step grants no merge, tag/release, feed/download/site/template publication,
+student remote write, or production update activation. Candidate bytes and public
+47delivery remain unchanged. Execution receipts: `.verification/mac-source49/`.
+
+
+## Existing-Mac pilot LOCAL-MAC-01 — 2026-10-25
+
+Ran the installed 49 pilot as far as the enabled Mac controls allowed. Actual
+browser-first sign-in/cancel/retry, read-only HTTPS clone, native readiness for
+Greeting/Study/Coin/current starter, three fresh installed WebFX exports and
+embedded/external behavior pass. Study finished 3/3 and reset; Coin won with arrows
+and WASD in both previews. Normal Quit→Zero reopen retained unsaved notes,304 copied
+files and original repositories/settings. All 9 separate warm-cache CLI build/export/
+validate checks passed under deny-network sandbox, with EPERM control,104.96s total.
+
+Native physical-window input was outside the enabled app inventory. Cold fresh-Mac
+setup, real school network/proxy/CA downloads and sign-in/clone, physically offline
+GUI use and actual novice authorship remain unproven. Optional code fallback
+reached the account-holder passkey step and was cancelled uncompleted; initial
+signed-out state restored. No publishing, remote writes, broader permissions or
+product code changes. Exact P01–P16coverage/gaps: [local result](pilots/mac-0.5.49/LOCAL-MAC-01.md).
+Luna/medium independent result review clean at 6c0dce18; parent checked final cleanup.
+Evidence `.verification/mac-pilot49/local-run/`; original sealed pilot pack unchanged.
+
+## Mac 0.5.49 fresh-device / school pilot prepared — 2026-10-24
+
+Prepared a supervised two-session [pilot](pilots/mac-0.5.49/README.md), source-backed
+[IT inventory](pilots/mac-0.5.49/NETWORK.md) and [blank results](pilots/mac-0.5.49/RESULTS.md).
+All16physical checks remain NOT_RUN. No account/network operation, publication or
+product-code change occurred. Existing candidate49DMG bytes and public47feeds are
+unchanged. Cold downloads, proxy isolation, native physical play, fresh WebFX,
+offline rebuild/reopen and novice evidence are separate observed gates.
+
+Ignored transfer folder/ZIP: `dist/pilots/mac-0.5.49-52fa3120f045` / matching `.zip`;
+5,907,792-byte ZIP SHA256 `d4cca01caa49ffb4ed0794c9cf8a33755409995f0ecda68d265f641416684157`.
+Prepared from06c51235;10file checksums, ZIP extraction/integrity, portable links,
+exact reviewed-document copies and16unrun statuses pass. Source equivalence to
+built e5953f05passes. Proof `.verification/mac-pilot49/`. Public provenance only;
+no profiles, private backups, credentials or student repositories copied.
+
+Sol/medium read-only source inventory and one independent Luna/medium complete
+pilot-document review found no actionable issues (one review launch/wave, zero
+fix batches). Effective model/token/timing telemetry unavailable; account usage
+was41%weekly remaining at start, not attributable task cost. Root/diff checks pass.
+Publishing, remote create/push/merge/Pages/ZeroHub and49updater delivery remain
+separate; this preparation does not close fresh-machine/school/classroom adoption.
+
+## Corrected local Mac 0.5.49 candidate — 2026-10-24
+
+Clean reviewed source e5953f05 fixes task-discovery side effects, host task identity
+collisions, repeated configured Run, stale ownership/trust timing and fast-exit
+error reporting. Source fullsuite1,141pass/3Windows-PowerShellskips/0fail;19focused
+pass. Signed/notarized/stapled candidate52fa3120sealed and independently verified.
+Actual installed48→49preserves unsaved note/settings/projects and passes first Run,
+picker stability, keyboard restarts, rejected retry/Stop, compiler Problem/recovery
+and retained real WebFX Cmd+A. No push/publication/feed/site/template changes.
+Public Mac remains47. Source review and artifact review are clean; fresh machine,
+school network, physical Windows/native gameplay and production delivery remain
+separate. Exact bytes, review receipts and limits: [acceptance](MAC-CANDIDATE-0.5.49.md).
+
 ## Tutorial readiness and browser sign-in — 2026-10-24
 
 Source-only readiness87a9b4ef and browser authentication throughaa8d4c3d are
@@ -10010,3 +10079,12 @@ native Settings and visibly switched dark to match macOS Dark, including Sidebar
 Start Page and Tutorials. No OS roundtrip, fresh-machine, physical Windows/Intel
 acceptance or46installation is claimed. Windows21/manualkit17 and previous assets
 remain unchanged. Metadata/feed promotion and live verification pending below.
+
+## Mac0.5.48 local candidate — 2026-10-24
+
+See [the candidate acceptance record](MAC-CANDIDATE-0.5.48.md) for exact source,
+artifact hash, independent reviews and Mac UI checks. Candidate signing/sealing,
+manual47→48upgrade, clean-folder setup, browser sign-in, native compiler recovery
+and fresh WebFX preview pass. Two early Run stops remain an unresolved QA
+observation; no student-rollout approval or production update-delivery claim.
+Publishing remains held.
