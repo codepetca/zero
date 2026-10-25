@@ -1,5 +1,29 @@
 # Verification
 
+## Mac0.5.50 published; download/feed promotion — 2026-10-25
+
+[SourcePR199](https://github.com/codepetca/zero/pull/199) merged2de6bc54 after all11checks
+passed integratedc923d2a4: [source](https://github.com/codepetca/zero/actions/runs/40211289366),
+[browser](https://github.com/codepetca/zero/actions/runs/40211289363),
+[Windows](https://github.com/codepetca/zero/actions/runs/40211289474). MainPR200's guided
+jam work and evidence were preserved in a reviewed prose-only conflict resolution;
+all41protected native inputs remain equivalent to built4675e862. Sol/high targeted
+integration review and Luna/medium final candidate-doc review complete/clean.
+
+The owner-authorized [native release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.50)
+targets prep66e6ce90 and contains exactly the sealed DMG. Draft target/singleasset,
+authenticated draft download and anonymous published download match5,918,971bytes/
+SHA2567effba8ea273dbff3629b6dca3ee84f0d3d9243d1fe67ada7d6ea892b67ae6c1;
+public Ed25519 verification passes. No bytes were rebuilt or replaced after sealing.
+This metadata promotion changes only native publication/snapshot, copies sealed
+signedXML exactly, and changes feedJSON publication.status. Signed key/build/source/
+URL/size/digest stay fixed; manualkit17, Windows21 and productionZeroJams hold stay.
+Promotion review/CI/merge and live download/feed verification are separate final
+gates recorded on the promotionPR and ignored `.verification/mac50/` receipts.
+Installed native sign-in/Run/Stop/preservation proof is in the corrected candidate
+record below. FreshMac/school/novice/physicalgameplay/Sparkle delivery remain unproven.
+
+
 ## Corrected Mac0.5.50 acceptance — 2026-10-25
 
 The first private50candidate below was superseded before publication: real installed

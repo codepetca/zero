@@ -3,22 +3,22 @@
   "publication": {
     "status": "published"
   },
-  "kitVersion": "0.5.49",
-  "buildNumber": 49,
+  "kitVersion": "0.5.50",
+  "buildNumber": 50,
   "feedURL": "https://zero.codepet.ca/updates/macos/appcast.xml",
   "publicKeySha256": "ea2fff0ee6537c05038f011272d466711afe633ba3950eb875a3928aa01bc60e",
-  "sourceRevision": "e5953f05e3f0d0e8e503acc5c419237f39113284",
-  "createdAt": "2026-10-25T02:59:38.000Z",
+  "sourceRevision": "4675e862c993d5582bddf568ffb6254f5572decd",
+  "createdAt": "2026-10-25T16:06:02.000Z",
   "asset": {
-    "filename": "Zero-0.5.49-macos.dmg",
-    "size": 5916593,
-    "sha256": "182b79fffebb7bce665db242a5867e5592a1510f62472ee86841262c14e879ee",
-    "url": "https://github.com/codepetca/zero/releases/download/setup-v0.5.49/Zero-0.5.49-macos.dmg",
-    "edSignature": "lk+6lkUi/pic/UAvHkgSO6coDzLgk1v2YqVu49npnORp13Mzfje35izYr4wJJYRxpGi89BAJNUsvK3g+Gz2NBQ=="
+    "filename": "Zero-0.5.50-macos.dmg",
+    "size": 5918971,
+    "sha256": "7effba8ea273dbff3629b6dca3ee84f0d3d9243d1fe67ada7d6ea892b67ae6c1",
+    "url": "https://github.com/codepetca/zero/releases/download/setup-v0.5.50/Zero-0.5.50-macos.dmg",
+    "edSignature": "Oo04r3VyLA+xb5G0Lf7UAzg/sV4T7S+VJidhWkaaIJuZ8JLtqOetZeJ54Zhoa4UEZBA+yPv4ffhGmJ2byGKvDQ=="
   },
   "feed": {
     "filename": "appcast.xml",
     "size": 1178,
-    "sha256": "d97d488fe12ef607a72ec2b8ed4ef0c1d6eec84e6942070ff34a32d4440cfde2"
+    "sha256": "ca5036bada568573ba93bd857db1ac4ae3ac8529059259698490900e785b090a"
   }
 }

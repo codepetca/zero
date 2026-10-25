@@ -1,38 +1,30 @@
-# Mac0.5.50 — final candidate accepted, source CI then conditional publication
+# Mac0.5.50 — published asset, final download/feed promotion
 
-Worktree `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/mac-0-5-50`.
-Owner Do it2026-10-25 authorizes merge198, signed50, installedQA and publication
-after normal gates. PR198 merged73847c88/11green; PR199 source candidate draft.
-Browser-only new GitHub sign-in; old sessions retain renewal. Start Page main
-button Sign in to GitHub signed out, Start tutorial when authenticated/access-ready.
+Worktree `/Users/stew/.codex/worktrees/actor/zero`, branchcodex/publish-mac-0-5-50.
+Owner Do it2026-10-25 authorizes normal source/candidate/installedQA/publication.
+PR199 merged2de6bc54 after11greenchecks atc923d2a4, complete independent source/
+artifact/authdelta/docs/main-integration reviews. PR198 browser-only new sign-in
+merged earlier. MainPR200 guidedjam work/evidence retained; productionhold unchanged.
 
-Final build4675e862, prep66e6ce90, seal dist/candidates/mac-0.5.50-66e6ce901e11.
-DMG5918971/SHA2567effba8ea273dbff3629b6dca3ee84f0d3d9243d1fe67ada7d6ea892b67ae6c1;
-AppleAccepted4079be41-9d30-4872-a64b-af4162ec28c2. Source/kit/signature/staple/
-Gatekeeper/13hash/feed+DMG Ed checks pass; independent authdelta+artifact review clean.
-First private50seal fc7001e4 is retained/superseded: actual signin found stale
-signout feedback, fixed with49focused tests. Installed corrected source verified:
-manual app replacement+explicit supported sameversion VSIX reinstall/reload,
-real account-picker/browser-return signin clears stale message; old49project
-Run→App UI ready→Stop succeeds;249source/build files/settings/48char note unchanged.
-No original ~/Zero Projects root existed. Details docs/MAC-CANDIDATE-0.5.50.md.
+Native setup-v0.5.50 published, one immutableDMG targetingprep66e6ce90/built4675e862.
+Seal dist/candidates/mac-0.5.50-66e6ce901e11. DMG5918971/SHA256
+7effba8ea273dbff3629b6dca3ee84f0d3d9243d1fe67ada7d6ea892b67ae6c1.
+AppleAccepted4079be41-9d30-4872-a64b-af4162ec28c2; actual signatures/staple/
+Gatekeeper/source/13hash/feed+DMG Ed pass. Draft/public downloads match; anonymous
+proof .verification/mac50/public-verification.json. Firstprivate50seal retained/
+superseded beforepublication after authfeedback fix (49focused tests).
+Installed final50 source124filesexact; realbrowseraccountsignin clearsoldstatus;
+old49project RunUIready→Stop works;249source/build files/settings/48char note kept.
+Method manualappreplacement+explicit sameversion VSIXreinstall/ReloadWindow,
+notSparkledelivery. No original ~/Zero Projects root existed atbaseline.
 
-Next: final PR199 checks/review→merge; create single-DMG setup-v0.5.50 draft targeting
-prep66e6ce90; verify draft bytes→publish→anonymous exact bytes; separate reviewed
-promotion PR for installer snapshot/feed→CI/merge→verify live downloads/feed.
-Preserve published49/old seals until promotion; never overwrite distributed assets.
-Source/promotion PRs/merges authorized. Existing signing credentials only; no
-account settings. Core0.3.0/manualkit17/Windows21 and ZeroJams production hold stay.
-No student repo/Pages/ZeroHub writes, manual-kit/Windows release or template deploy.
-FreshMac/school-network/novice/gameplay/Sparkle delivery remain separate pilot gaps.
-Primary checkout funding work, Dev process/profiles and private backups preserved.
-Proof .verification/mac50/; DeepSeek paused through2026-12-31. No newgoal/task.
-
-Parallel main integration: PR200 mergedaa6d58c5 while PR199 CI ran. Its guided
-ZeroJams preparation and GitHub/public-repository wording are preserved, with
-both EVIDENCE histories retained. Production jam pages/panels/APIs/downloads
-remain404 and Hub link hidden; no activation is authorized here. Other worktree's
-local3025preview remains untouched. See docs/ZEROJAMS-PLAN.md and EVIDENCE for
-that delivery/remaining Safari and live-hosting limits. Merge conflicts affected
-CURRENT/EVIDENCE prose only; native/extension/framework build inputs unchanged.
-Repeat required final-headCI after targeted integration review; keep PR199 draft.
+Next: review final8file native metadata promotion, relevant checks/CI→merge,
+then verify real homepage/downloads anchors, anonymous DMG, exact signedlivefeed
+and productionjamhold. SealedXML unchanged; feedJSON statusonly changes. No extra
+manualkit/Windows release or rebuild. Core0.3.0/manualkit17/Windows21 remain.
+FreshMac/school/novice/gameplay/Sparklepilot remain unproven; owner handlespilot.
+No studentrepo/Pages/ZeroHub writes, template deploy, new credentials/permissions,
+telemetry or jamactivation. Primaryfunding/Devprojects/profiles/privatebackups and
+otherworktree3025preview preserved. Docs/MAC-CANDIDATE-0.5.50.md and EVIDENCE
+carry trackedproof; .verification/mac50/ has logs. DeepSeekpaused through2026-12-31.
+No newgoal/task/automation. Neverreplace oldpublic/sealedbytes.
