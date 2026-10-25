@@ -285,6 +285,42 @@ test('Start Page sign-in is explicit and retry needs no project or welcome modal
   assert.equal(f.calls.filter(([id])=>id==='openExternal'||id==='createRepository').length,0);assert.equal(await fs.readFile(path.join(f.root,'zero.json'),'utf8'),'{}');
 });
 
+test('sign-out feedback is replaced by current sign-in failure and cleared after successful retry',async t=>{
+  for (const failure of ['cancelled','unavailable']) {
+    const session={id:'initial',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'};
+    const f=await fixture(t,{empty:true,initialSession:session,pick:async()=>({action:'signOut'})});
+    await settle(()=>f.startState?.phase==='ready');
+    await f.commands.get('zero.githubAccount')();assert.equal(f.startState.phase,'signed-out');assert.equal(f.startState.status,'Signed out of Zero');
+    if(failure==='unavailable')f.setFailure(true);
+    await f.commands.get('zero.signInToGitHub')();
+    assert.equal(f.startState.phase,'signed-out');assert.notEqual(f.startState.status,'Signed out of Zero');assert.match(f.errors.at(-1),/Sign in to GitHub|cancelled or unavailable/);
+    f.setFailure(false);f.setInteractiveSession({...session,id:'retry'});await f.commands.get('zero.signInToGitHub')();
+    assert.equal(f.startState.phase,'ready');assert.equal(f.startState.accountId,'17');assert.equal(f.startState.status,'');
+  }
+});
+
+test('sign-out followed by successful sign-in clears stale feedback without hiding a new runtime failure',async t=>{
+  for (const runtimeFailure of [false,true]) {
+    const session={id:'initial',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'};
+    const f=await fixture(t,{initialSession:session,pick:async()=>({action:'signOut'})});
+    await f.commands.get('zero.startPage')();await settle(()=>f.startState?.phase==='ready');
+    await f.commands.get('zero.githubAccount')();assert.equal(f.startState.status,'Signed out of Zero');
+    if(runtimeFailure)await f.commands.get('zero.runApp')();
+    let complete;
+    f.setInteractiveSession(()=>new Promise(resolve=>{complete=resolve;}));
+    const pending=f.commands.get('zero.signInToGitHub')();await settle(()=>complete);
+    if(runtimeFailure) {
+      // Native task ownership is independent of the pending browser callback.
+      f.finish(f.launches.at(-1),1);
+      assert.match(f.startState.status,/App ended with an error/);
+    }
+    complete({...session,id:'retry'});await pending;
+    assert.equal(f.startState.phase,'ready');assert.equal(f.startState.accountId,'17');
+    if(runtimeFailure)assert.match(f.startState.status,/App ended with an error/);
+    else assert.equal(f.startState.status,'');
+  }
+});
+
 test('setup sidebar never blocks local Run or replaces editors with a welcome modal',async t=>{
   const f=await fixture(t,{profile:new Map(),setupCheck:true,activeEditor:true});
   await settle(()=>f.remembered.has('zero.sidebarShown'));assert.equal(f.notices.length,0);

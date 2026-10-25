@@ -89,6 +89,7 @@ function activate(context, services = {}) {
   const uploadMode = (root = projectRoot) => root ? vscode.workspace.getConfiguration('zero', vscode.Uri.file(root)).get('uploadMode', 'live') : 'live';
   let runQueue = Promise.resolve();
   let state = '';
+  let authFeedback;
   let buildFailed = false;
   const stoppedTasks = new WeakSet();
   const taskExitCodes = new WeakMap();
@@ -184,7 +185,12 @@ function activate(context, services = {}) {
   let githubReadiness,projectPicker;
   const appConfiguration = githubAppConfiguration();
   const appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({vscode,context,configuration:appConfiguration,onDiagnostic:message=>output.appendLine(message)}) : null);
-  const auth = createAuthentication(ownedProviderApi(appProvider), () => {if (state.startsWith('Signed in as ')) state='';githubReadiness?.sync();projectPicker?.sessionChanged();refresh();});
+  const auth = createAuthentication(ownedProviderApi(appProvider), () => {
+    // Clear only feedback owned by authentication. Native runtime updates may
+    // have replaced it while browser sign-in was pending.
+    if (state.startsWith('Signed in as ') || (auth.signedIn && state === authFeedback)) {state='';authFeedback=undefined;}
+    githubReadiness?.sync();projectPicker?.sessionChanged();refresh();
+  });
   context.subscriptions.push(auth);
   if (appProvider) {
     context.subscriptions.push(appProvider);
@@ -615,7 +621,7 @@ function activate(context, services = {}) {
       if (choice?.action === 'change') await actions['zero.signInToGitHub']();
       if (choice?.action === 'signOut') {
         if (appProvider && auth.sessionId) await appProvider.removeSession(auth.sessionId);
-        await auth.refresh();report('Signed out of Zero');
+        await auth.refresh();authFeedback='Signed out of Zero';report(authFeedback);
       }
     },
     'zero.chooseRepository': async () => {
@@ -917,6 +923,7 @@ function activate(context, services = {}) {
       const message = error.zeroRunMessage || error.message;
       const display = /^GitHub sign-in was cancelled or unavailable\./.test(message) ? 'GitHub sign-in cancelled or unavailable. Try again.' : message;
       if (!(execution && ['zero.runApp','zero.runNativeApp','zero.toggleApp'].includes(id))) state = display;
+      if (id === 'zero.signInToGitHub') authFeedback = display;
       refresh();output.appendLine(error.message);
       const installUrl=appConfiguration&&`https://github.com/apps/${appConfiguration.slug}/installations/new`;
       if(installUrl && error.actionUrl===installUrl){
