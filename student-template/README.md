@@ -1,6 +1,6 @@
 # My Zero App
 
-This source is included in the local Mac candidate **0.5.49** with core **0.3.0**.
+This source is included in the local Mac candidate **0.5.50** with core **0.3.0**.
 Older downloads keep their own bundled instructions and API.
 
 Zero 0.5.27 uses a native JavaFX window for Run App. Mac 0.5.26 and other
@@ -40,7 +40,7 @@ for web perform those checks and browser compilation when requested.
 
 Before tutorial lesson 0, have **your own verified GitHub account and Git 2.31+**.
 Use [github.com/signup](https://github.com/signup) if needed. Follow your teacher's
-username/email policy and check GitHub access, VS Code sign-in and compiler
+username/email policy and check GitHub access, Zero browser sign-in and compiler
 downloads on your school machine; ask teacher/IT about restrictions. Confirm that
 public tutorial source is allowed before creating through Zero. Keep private files
 out of public repositories. For an existing or GitHub-created private repository,
@@ -289,10 +289,11 @@ modified component before copying an example over it.
 
 ## Your repository and Pika
 
-Choose **Sign in** using the account control in Zero’s sidebar and complete VS Code's native browser
-flow. The control then shows your GitHub username; click it for account-change
-or sign-out actions. Sign-out opens VS Code Accounts, where you
-select the GitHub account and choose Sign Out.
+Choose **Sign in to GitHub** on Zero's Start Page and complete GitHub's browser
+flow. Returning to Zero shows your account; **Start tutorial** becomes available
+after project access is ready. Use Zero's GitHub account actions to change account
+or sign out. Sign-out disconnects Zero while preserving your projects and other
+extensions' accounts.
 
 If you created your own repository from a ZeroHub template and cloned it,
 keep that clone and its existing origin; skip creating an empty repository.

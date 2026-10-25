@@ -1,6 +1,6 @@
 # Start with Zero
 
-This local Mac candidate **0.5.49** includes core **0.3.0**, targeting **Mac with Apple Silicon** and **Windows**.
+This local Mac candidate **0.5.50** includes core **0.3.0**, targeting **Mac with Apple Silicon** and **Windows**.
 Use the guide bundled with an older download for its controls. Linux and Intel
 Macs are unsupported; physical Windows/classroom testing remains pending.
 
@@ -12,7 +12,7 @@ Tutorials require **your own GitHub account and Git 2.31+**. Before starting:
    [github.com/signup](https://github.com/signup), verify its email, and keep
    your password private. Use your own account for the template repository,
    VS Code cloning and Zero uploads.
-2. Check GitHub access, native VS Code sign-in and compiler downloads on your
+2. Check GitHub access, Zero browser sign-in and compiler downloads on your
    school machine/network. Use Setup help for missing Git; ask teacher/IT about
    restrictions rather than bypassing them.
 3. Zero creates public tutorial repositories. Check your teacher's privacy rules
@@ -33,7 +33,9 @@ lessons. Read the [complete account/privacy setup](https://zero.codepet.ca/docs/
 
 Follow the sidebar: **Sign in to GitHub**, then
 **Install Zero for GitHub** if requested, then **Start tutorial**. Sign-in opens GitHub in your browser and returns to Zero.
-Use **Sign in using a code** if the browser return is unavailable. Zero checks project access read-only and stops
+The main button says **Sign in to GitHub** while signed out, then **Start tutorial**
+once signed in. If browser sign-in fails, check your connection/default browser
+and try again; local running remains available. Zero checks project access read-only and stops
 at the next sidebar step. If access is missing, **Install Zero for GitHub**
 opens the pinned GitHub App page after a read-only recheck. Approve selected
 repositories there, then return to Zero; it checks again automatically. Use
@@ -110,7 +112,7 @@ lesson 0, then create and clone your own tutorial repository.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.49.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.50.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors

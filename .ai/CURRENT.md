@@ -1,30 +1,38 @@
-# Guided ZeroJams preparation complete locally — 2026-10-25
+# Mac0.5.50 — final candidate accepted, source CI then conditional publication
 
-Owner accepted details → actual site preview → customized full-template ZIP.
-Branch codex/zerojams-guided-preparation; base25acd272, guided source35241dde.
-Owner clarified all jams require GitHub; wording/defaults reviewed21678c73.
-Creators cannot waive GitHub sign-in/public exact-source submissions through
-eligibility text. Preparation remains available before sign-in.
-Public-repository requirement now appears directly in default and participant
-Rules, reviewed d32efdf3;62focused tests/typecheck and Chromium checks pass.
-Plan: docs/ZEROJAMS-PLAN.md. Delivery/review receipt: docs/EVIDENCE.md.
+Worktree `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/mac-0-5-50`.
+Owner Do it2026-10-25 authorizes merge198, signed50, installedQA and publication
+after normal gates. PR198 merged73847c88/11green; PR199 source candidate draft.
+Browser-only new GitHub sign-in; old sessions retain renewal. Start Page main
+button Sign in to GitHub signed out, Start tutorial when authenticated/access-ready.
 
-Create flow works without sign-in, retains public session drafts and renders the
-canonical site in an isolated preview. Download includes the same normalized
-manifest and all eight editable files. Creator hosting and exact-source maintainer
-approval remain separate.62focused/240website tests, typecheck/build pass;
-Chromium flow, copied-site serving, recovery,320/390/1280reflow and200% CSS zoom
-verified. Sol6.1/high independent review clean after one preview-navigation fix.
-Safari/WebKit and live authenticated hosting/participation remain unverified.
+Final build4675e862, prep66e6ce90, seal dist/candidates/mac-0.5.50-66e6ce901e11.
+DMG5918971/SHA2567effba8ea273dbff3629b6dca3ee84f0d3d9243d1fe67ada7d6ea892b67ae6c1;
+AppleAccepted4079be41-9d30-4872-a64b-af4162ec28c2. Source/kit/signature/staple/
+Gatekeeper/13hash/feed+DMG Ed checks pass; independent authdelta+artifact review clean.
+First private50seal fc7001e4 is retained/superseded: actual signin found stale
+signout feedback, fixed with49focused tests. Installed corrected source verified:
+manual app replacement+explicit supported sameversion VSIX reinstall/reload,
+real account-picker/browser-return signin clears stale message; old49project
+Run→App UI ready→Stop succeeds;249source/build files/settings/48char note unchanged.
+No original ~/Zero Projects root existed. Details docs/MAC-CANDIDATE-0.5.50.md.
 
-Production hold unchanged: canonical jam pages/panels/APIs/downloads404; Hub link
-hidden. Latest flag-on production-build smoke passes. Owner now authorizes this source PR/merge; no
-credentials/permissions, registry provisioning, live pilot or installer release.
-Local preview3025/hub/jams/create. Current main73847c88 (PR198 desktop sign-in)
-integrated without executable conflicts; both EVIDENCE histories retained. Primary
-funding and actor worktrees untouched. Next: focused integration review, draft PR,
-exact-head CI, authorized merge and verify production hold. Live pilot remains held.
-Integration review budget:1targeted wave planned, max7launches/4fix batches/60min;
-reuse prior complete feature and wording reviews. No new full implementation wave. DeepSeek paused through
-2026-12-31. Prior PR196/197 merged; separate live encoded-Hub500 issue remains
-recorded without scope expansion. Worktree retained for active local preview.
+Next: final PR199 checks/review→merge; create single-DMG setup-v0.5.50 draft targeting
+prep66e6ce90; verify draft bytes→publish→anonymous exact bytes; separate reviewed
+promotion PR for installer snapshot/feed→CI/merge→verify live downloads/feed.
+Preserve published49/old seals until promotion; never overwrite distributed assets.
+Source/promotion PRs/merges authorized. Existing signing credentials only; no
+account settings. Core0.3.0/manualkit17/Windows21 and ZeroJams production hold stay.
+No student repo/Pages/ZeroHub writes, manual-kit/Windows release or template deploy.
+FreshMac/school-network/novice/gameplay/Sparkle delivery remain separate pilot gaps.
+Primary checkout funding work, Dev process/profiles and private backups preserved.
+Proof .verification/mac50/; DeepSeek paused through2026-12-31. No newgoal/task.
+
+Parallel main integration: PR200 mergedaa6d58c5 while PR199 CI ran. Its guided
+ZeroJams preparation and GitHub/public-repository wording are preserved, with
+both EVIDENCE histories retained. Production jam pages/panels/APIs/downloads
+remain404 and Hub link hidden; no activation is authorized here. Other worktree's
+local3025preview remains untouched. See docs/ZEROJAMS-PLAN.md and EVIDENCE for
+that delivery/remaining Safari and live-hosting limits. Merge conflicts affected
+CURRENT/EVIDENCE prose only; native/extension/framework build inputs unchanged.
+Repeat required final-headCI after targeted integration review; keep PR199 draft.
