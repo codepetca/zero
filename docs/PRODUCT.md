@@ -742,7 +742,11 @@ The individual flow uses main for completed work and one short-lived branch per
 change. A new empty repository starts with Commit & push on main.
 Choose New branch in the repository menu and enter its name to create it directly. New branch
 requires clean committed main and brings in remote main only by fast-forward;
-diverged histories require manual repair. Commit & push commits/pushes progress
+diverged histories require manual repair. Current local source shows native
+activity progress after naming a branch, with stages for GitHub access, branch
+checks and fetching main. Merge to main uses the same native progress surface;
+success or failure ends it. Published downloads retain their bundled feedback.
+Commit & push commits/pushes progress
 to the current branch. Run and check the app before finishing.
 
 Click Merge to main beside the change branch. Commit & push pending edits first.
