@@ -1,5 +1,27 @@
 # Verification
 
+## Branch progress and Zero navigation PR203 ready — 2026-10-25
+
+[PR203](https://github.com/codepetca/zero/pull/203) is ready, open and mergeable at
+reviewed head7e4c2231a690540c4209a96cfa092af0136ff1dd, base010ae629. All11checks pass:
+[source](https://github.com/codepetca/zero/actions/runs/40237189497),
+[WebFX/browser](https://github.com/codepetca/zero/actions/runs/40237189441),
+[Windows](https://github.com/codepetca/zero/actions/runs/40237189461). No unresolved
+threads or changes-requested review. Source PR/CI delivery is complete; owner
+merge decision and publishing/releases remain separate. No production/version/
+feed/framework inputs changed, and no new installer was built or released.
+
+Final Sol6.1/high independent integration review covers the complete11file diff
+and immediate callers, including plain Zero label, progress/serialization/errors,
+StartPage and navigation lifecycle. Clean, no findings or new remediation; prior
+three scoped turns/one lifecycle fix are reused. One final integration turn;
+effective model, attributable time and token cost unknown. Current root+65focused
+tests pass. Prior realGit/native Mac proof remains scoped as recorded below.
+Final receipts `.verification/ux-source-pr/{progress,ci-final,pr-final}.json` and
+PR description record exact head/checks/holds. This local completion note is not
+pushed into the ready PR; its reviewed head remains unchanged.
+
+
 ## Branch progress and Zero navigation source PR preparation — 2026-10-25
 
 Owner authorized a source PR and CI for both local Dev fixes, with publishing

@@ -1,31 +1,30 @@
-# Branch progress and Zero navigation: source PR and CI
+# PR203 ready: branch progress and Zero navigation
 
-Worktree: `/Users/stew/.codex/worktrees/actor/zero`.
-Branch: `codex/branch-progress`; current main is 010ae629.
-Owner authorized the source push, PR and CI on 2026-10-25. Keep publishing
-separate. Do not merge, build an installer or release without further authority.
+Worktree `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/branch-progress`.
+Owner authorized source PR and CI only on2026-10-25. Task complete:
+https://github.com/codepetca/zero/pull/203 is ready, OPEN and MERGEABLE.
+Reviewed PR head7e4c2231a690540c4209a96cfa092af0136ff1dd, base010ae629.
+All11checks pass: source40237189497, browser40237189441, Windows40237189461.
+No unresolved threads or changes-requested reviews. Do not merge or publish
+without further owner authority. No installer/version/release change was made.
+This completion receipt is local and not pushed; PR203 remains at its tested head.
 
-Implemented and loaded in Dev:
-- Native branch/merge activity with GitHub, project, branch and fetch stages.
-  Existing authentication, Git safety checks and serialization are preserved.
-- Persistent native Zero button at bottom left, with Back to Zero accessibility
-  label. It restores Explorer and expands Zero from Source Control/other panels.
-  StartPage open, restore, close and disposal update its visibility immediately.
-- Owner's final refinement: visible label Zero, with no arrow.
+Implemented in Dev: native branch/merge progress with access/branch/fetch stages;
+persistent plain Zero status-bar button returning to Explorer/expanded controls;
+StartPage open/restore/close/dispose visibility updates. Arrow removed by owner.
+Existing Git/auth safety checks and operation ordering remain unchanged.
 
-Previous source reviews: branch progress clean; sidebar review found one lifecycle
-P2, fixed and clean on targeted review. Reuse that coverage and actual native Mac
-checks. Final combined integration review and exact-head CI are the next gates.
-Local evidence includes corrected UI/extension tests, 17 real-Git cases and two
-current focused Git cases; navigation has 65 initial/64 corrected tests. Native
-progress/guard closure and Review changes -> Source Control -> Zero return pass.
-All 95 tracked student files, HEAD, tester branch and status were preserved.
-Proof: `.verification/branch-progress/`, `.verification/sidebar-return/` and
-`.verification/ux-source-pr/`. No full successful live branch creation, Windows,
-assistive-technology or broad theme/device acceptance is claimed.
+Final Sol6.1/high complete11file integration review clean; prior scoped reviews
+and one corrected lifecycleP2 reused. Current root+65focused tests pass;17realGit
+and two focusedGit cases retained. Actual native progress/guard closure and
+Review changes -> Source Control -> Zero round trip pass.95studentfiles/HEAD/
+tester/status unchanged during QA. Full successful live creation, Windows,
+assistive-technology and broad theme/device acceptance not claimed.
+Evidence: docs/EVIDENCE.md, docs/VERIFICATION.md, .verification/ux-source-pr/,
+.verification/branch-progress/ and .verification/sidebar-return/.
 
-Keep Dev watcher3153, profiles, my-greeting/tester, primary funding work, other
-preview3025, private backups and old sealed artifacts. Published Mac50/PR199+201,
-core0.3.0, manual kit17, Windows21 and the production ZeroJams hold stay unchanged.
-Fresh-Mac/school/novice/gameplay/Sparkle pilot gaps remain separate. DeepSeek is
-paused through2026-12-31. No new goal, task or automation.
+Preserve Dev watcher3153, profiles, my-greeting/tester, primary funding work,
+other preview3025, private backups and sealed artifacts. Published Mac50/PR199+201,
+core0.3.0/manualkit17/Windows21 and productionZeroJams hold unchanged. FreshMac/
+school/novice/gameplay/Sparkle pilot gaps remain separate. DeepSeek paused through
+2026-12-31. No new goal, separate task or automation. Next: owner merge decision.
