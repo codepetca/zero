@@ -1,5 +1,44 @@
 # Delivery evidence index
 
+## Git checks and native Git prototype accepted locally — 2026-10-25
+
+Reviewed implementation head9d68fc860a44af9021253597d721f79f157e66fe,
+basea9fb85c4; branch `codex/git-flow-efficiency`. Local only: no source push,
+new PR/update to PR203, merge, deployment, publication or release. Student UI
+keeps its existing guarded actions. Native Git adapter remains defaultOFF.
+
+Independent initial complete-diff review: Astra/high security2P2 and Sol6.1/high
+compatibility1P2. One combined correction batch closes pending-signout session
+resurrection before lock acquisition, retries delayed Git initialization via the
+public enablement event, and explicitly documents persistent Git-helper storage
+separately from Askpass's60s cache. Empty effective helpers are a maintainer
+prototype prerequisite; fresh editor profiles alone do not isolate host Git config.
+Astra/high targeted review of the complete7file delta and interactions is clean,
+0remaining findings;7independent targeted regressions pass.3review launches,
+1initialwave/1targetedwave/1fixbatch; no redundant integration wave needed per
+reviewer. Effective models, attributable tokens/cost and elapsed review time are
+unknown. Completed workers remain retained; no supported runtime-close control.
+
+Current correction checks:147focused tests pass plus npmcheck. The earlier full
+suite1201pass/3skip remains valid for unchanged paths; targeted coverage handles
+the corrections. Full actual Mac command-level student-flow and real native
+Askpass fixture proof above remain distinct from successful live-account uploads,
+minimumVSCode/Windows and full click acceptance. The owned isolated QAhost was
+retired; fixtures/receipts retained. Source changes require their own future CI.
+Request-count comparison remains22/25REST vs144/180; see comparison/provenance
+receipts rather than the copied baseline label inside raw study output. No live
+speed-up timing is claimed. Remaining full-byte scans are deliberate drift guards.
+
+Existing Zero Dev was reloaded through the native Command Palette after review.
+Actual sidebar/Start Page returned ready for armorup/my-greeting on main, with
+Run/Commit & push and existing two unpushed commits retained. No prototype opt-in
+or settings change was applied to that profile.
+
+Final receipts `.verification/git-flow-efficiency/review-ledger.json`,
+`review-fixes-focused.log`, `check-review-fixes.log`, `native-acceptance.json`,
+`comparison.json`, `counts-current-provenance.json`, `qa-retired.json`.
+
+
 ## Git validation efficiency and native Git prototype — 2026-10-25
 
 Local implementation based on a9fb85c4, branch `codex/git-flow-efficiency`.
