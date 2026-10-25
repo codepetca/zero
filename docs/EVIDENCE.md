@@ -1,5 +1,28 @@
 # Delivery evidence index
 
+## Controlled pilot activation checkpoint — 2026-10-25
+
+Owner authorized actual setup/activation, production held. Draft PR202 at39562271
+contains the reviewed disabled preparation; protected Vercel preview READY with
+branchAlias zero-git-codex-zerojams-contr-11f1f5-stewarts-projects-cc2722c4.vercel.app.
+State-only registry zero-jams-pilot-registry created with orphan root1709d161 and
+README-only tree7bff485a, no application source/workflows. Branch-only Preview
+origin/client-ID/maintainer and new independent sensitive session-secret rows
+confirmed by metadata; production rows/protection/main unchanged. No plaintext
+session key persisted or printed. No pilot flags/writer/browser secret yet.
+
+Local activation2b512953 exact-origin config/test delta independently reviewed by
+GPT6.1Sol/high, complete/clean;6pilot tests and actual-policy positives/negatives
+rerun by reviewer.73focused/6preflight and new build pass. Enabled-policy local
+production and actual public production13jam cases404each, Hub200/nojamlink.
+Owner completed GitHub sudo. Callback/minimal-writer forms are prepared but
+unsubmitted: browser policy requires action-time confirmation of new security-
+sensitive access. Pending batched question remains unanswered, so GitHub changes
+and final activation are paused. No existing credential revoked, permission or
+callback saved; current deployed pilot remains404. Screenshots and deployment,
+initial-CI/registry/hold metadata remain ignored under .verification/zerojams-pilot/.
+No live authenticated pilot success is claimed. No production activation/merge.
+
 ## Controlled pilot preparation independently accepted — 2026-10-25
 
 Prepared source a226038f on codex/zerojams-controlled-pilot (base5f3cf77c) passed

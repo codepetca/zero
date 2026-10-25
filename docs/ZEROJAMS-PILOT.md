@@ -7,6 +7,29 @@ work and a read-only audit; it does not authorize deployment, callback/App chang
 secret changes, installation, branch provisioning or live writes. Those steps
 require a separate owner decision after review.
 
+## Authorized activation in progress — 2026-10-25
+
+Owner subsequently authorized setup and activation for stewchan and armorup while
+keeping production hidden. [Draft PR202](https://github.com/codepetca/zero/pull/202)
+publishes the reviewed preparation; no main merge is part of activation. A disabled
+preview is READY at the protected
+[pilot branch URL](https://zero-git-codex-zerojams-contr-11f1f5-stewarts-projects-cc2722c4.vercel.app/hub/jams).
+
+The state-only pilot registry now exists with orphan root `1709d161` and README-only
+tree `7bff485a`. Four Vercel settings were added only to this branch's Preview scope:
+origin, browser client ID, maintainer ID and a new sensitive session secret. No
+production settings changed. The exact callback and minimal writer registration
+are prepared in GitHub forms but remain unsaved/unsubmitted pending the browser
+tool's required action-time security-access confirmation. No writer App, installation
+or browser client secret has yet been created. The live preview remains disabled.
+
+Local policy activation `2b512953` pins the actual branch URL and passed targeted
+independent review plus focused tests/build. It has not been pushed. The enabled-
+policy production build and current public production both return404 for13jam
+route/method checks. Finish the pending GitHub changes, narrow credential checks,
+branch-only settings, final publication and actual access verification before
+claiming an activated pilot. Do not interpret this checkpoint as live acceptance.
+
 The fixed public policy is [jams/pilot.json](../jams/pilot.json). The service model
 and existing local verification remain in [the plan](ZEROJAMS-PLAN.md) and
 [operations guide](ZEROJAMS-OPERATIONS.md). This packet narrows the proposed hosted
