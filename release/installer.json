@@ -1,31 +1,31 @@
 {
   "schema": 1,
-  "kitVersion": "0.5.48",
+  "kitVersion": "0.5.49",
   "publication": {
     "status": "local",
     "repository": "codepetca/zero",
-    "tag": "setup-v0.5.48"
+    "tag": "setup-v0.5.49"
   },
-  "sourceRevision": "31c42a481ea7fc1f338775a4db11c6f61203a567",
+  "sourceRevision": "e5953f05e3f0d0e8e503acc5c419237f39113284",
   "kit": {
     "filename": "zero-bootstrap.zip",
-    "size": 4309621,
-    "sha256": "f717075c5873b1242cf68d285e306ff1b7de6a2ec0ee1b89894d737230d4557e"
+    "size": 4310430,
+    "sha256": "3e9d9008dc9d67bdbb520e90bbee0439c8b27dab46618bbae073be23eebf0d5e"
   },
   "asset": {
-    "filename": "Zero-0.5.48-macos.dmg",
+    "filename": "Zero-0.5.49-macos.dmg",
     "platform": "macos",
     "architectures": [
       "arm64",
       "x86_64"
     ],
     "minimumOS": "12.0",
-    "size": 5915143,
-    "sha256": "3a7e76ba133cfb1828861b72fbf99307d405b75dfcca2b534c46a089e25128ef"
+    "size": 5916593,
+    "sha256": "182b79fffebb7bce665db242a5867e5592a1510f62472ee86841262c14e879ee"
   },
   "signing": {
     "identitySha1": "ACE8EE40F3615C5062CBBD5F085E299E049BAE08",
     "teamIdentifier": "88FT6QZJP8"
   },
-  "notarizationSubmissionId": "6b3a766f-7ef7-4bc5-985d-a6fa10bf9366"
+  "notarizationSubmissionId": "af289c5b-debc-46ac-bdf3-dd7d5537faf9"
 }
