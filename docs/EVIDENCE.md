@@ -1,5 +1,17 @@
 # Delivery evidence index
 
+## Public GitHub requirement in jam rules — 2026-10-25
+
+Owner requested the GitHub requirement inside gamejam rules and clarified the
+repository must be public. Source d32efdf3 (base4099ce55) adds explicit public
+repository/URL/exact-commit wording to both default rule variants and fixed Rules
+sections in the template and official event facts. Preparation Rules help also
+shows the requirement for restored drafts.62focused tests, website typecheck and
+whitespace pass; Chromium default Rules/actual preview and320/1280reflow pass.
+Independent GPT6Luna/medium five-file wording review complete/clean,one turn,
+no fixes; checks reused. No backend enforcement or production visibility changes;
+no push/PR/merge. Effective model/time/tokens unavailable.
+
 ## Every jam requires GitHub — 2026-10-25
 
 Owner clarified GitHub is mandatory for every Game Jam and App Jam. Local source

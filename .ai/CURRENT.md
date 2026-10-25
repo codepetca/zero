@@ -5,6 +5,8 @@ Branch codex/zerojams-guided-preparation; base25acd272, guided source35241dde.
 Owner clarified all jams require GitHub; wording/defaults reviewed21678c73.
 Creators cannot waive GitHub sign-in/public exact-source submissions through
 eligibility text. Preparation remains available before sign-in.
+Public-repository requirement now appears directly in default and participant
+Rules, reviewed d32efdf3;62focused tests/typecheck and Chromium checks pass.
 Plan: docs/ZEROJAMS-PLAN.md. Delivery/review receipt: docs/EVIDENCE.md.
 
 Create flow works without sign-in, retains public session drafts and renders the
