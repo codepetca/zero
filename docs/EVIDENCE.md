@@ -32,6 +32,102 @@ Public49/metadataPR195 remain unchanged; next shipping requires
 normal source/CI and a separately authorized new immutable release. Pilot limits
 remain as recorded in LOCAL-MAC-01; no fresh Mac or school pass inferred.
 
+## ZeroJams production hold and authorized source merge — 2026-10-25
+
+Owner authorized source PR/merge with ZeroJams hidden in production because it is
+not ready. Visibility is local-development-only: the server layout blocks all jam
+pages, every API/panel/template handler returns404 before dependencies, runtime
+configuration cannot enable production, and Hub navigation hides the link. New
+editor commands/menu entries are deferred (extension files match current main).
+No credential/permission changes, registry setup, installer release or live pilot.
+
+Actual production-build HTTP smoke verifies13page/API/panel/template/encoded/HEAD
+cases return404, the Hub has no jam anchor, and ZERO_JAMS_ENABLED=1 cannot bypass
+the hold. Local dev pages/template remain200.57focused tests,235website tests,
+root check and production build pass; normal root runner now includes the27jam
+engine tests so CI covers them. Full root run and independent visibility-delta
+review are in progress before final merge. Prior reviewed service/template source
+coverage through4ced7ae8 remains applicable. Current main77b371db requires no sync.
+Receipts: `.verification/zerojams/production-hold-*`.
+
+
+## ZeroJams local MVP — 2026-10-25
+
+User authorized the phased plan, tool-backed goal and local orchestration.
+Isolated branch `codex/zerojams` from77b371db; primary unrelated work preserved.
+Complete canonical template/independent ZIP, creator-hosted Game/App Jam flow,
+source-bound maintainer admission/inbox, GitHub-backed participation, event/entry
+moderation and trusted public panel are implemented locally. Dedicated server
+installation credential and numeric maintainer authority are default off; no
+credentials/permissions/remote records changed. No push/deploy/live pilot.
+
+Validation before independent review:45focused ZeroJams tests pass (engine22,
+HTTP/runtime/integration11,template/UI12); full website216tests pass; root1141pass/
+3skip (1144total); root check and website typecheck/production build pass. The
+initial production build caught a directory-URL resolution failure; fixed with
+explicit canonical/traced source lookup and byte-equivalence regressions. API
+and browser calls use injected/intercepted fixtures, not live GitHub writes.
+
+Actual local Chromium at320px verifies preparation and participant forms with
+required rules acknowledgment, join and project submission. An intercepted lost
+write response preserves the draft and operation identity on retry. Actual local
+ZIP download extracts a complete independent App Jam site with all7files and
+its publishing workflow. Further browser screenshots/checks and independent
+review receipts are recorded below when complete. WebKit launch was unavailable
+because its matching browser binary is not installed; physical Safari/mobile,
+Windows/editor host, live consent/permissions/Pages and school-network proof
+remain unperformed. Template action SHAs were checked read-only by the worker.
+
+Initial independent full-diff reviews at831d7b18 (GPT6.1Sol/high, separate fresh
+security/correctness and architecture/compatibility workers) completed with three
+accepted P2 findings. Remediation batch1 reserves bounded safety operation/byte
+capacity unavailable to participant writes, switches exact-commit verification
+to Git metadata without patches, and exposes approved rules/schedule history
+with changed-version notice and explicit renewed acknowledgment.52focused tests
+and230full website tests pass after correction; final production build passes.
+Unchanged root suite coverage1141pass/3platform skips is reused. Targeted review
+of the correction delta follows; budget used2initial launches/1wave/1fix batch.
+
+Production Next server smoke downloaded both7file ZIP types and verified actual
+anti-framing headers on preparation/detail/participation and default-off503 API/
+panel behavior. Standalone extracted App Jam rendered at320/390px with light/dark
+and keyboard skip-to-content; local official detail rendered1280px and CSS200%
+zoom in dark mode without horizontal overflow. Changed-rules fixture shows current
+facts, approved-version disclosure, preserved entry draft and unchecked acknowledgment.
+Screenshots include `zerojams-create-320.png`, `zerojams-participate-320.png`,
+`zerojams-detail-dark-200.png`, `zerojams-template-dark-320.png` in the ignored
+browser evidence directory. These are local source/intercepted-data checks.
+
+Local delivery complete at reviewed code4ced7ae8. Security targeted review
+831d7b18→921c6d30 and compatibility cumulative review77b371db→921c6d30 are clean;
+separate Luna/medium packaging review921c6d30→4ced7ae8 is clean. Final template
+contains8files including the exact canonical MIT notice; Pages publishes it too.
+53focused tests pass after that delta. Full230website tests passed immediately
+before the additive license regression; unchanged full-suite coverage is reused.
+Final production build, root check and actual production-route smoke confirm
+both8file ZIP variants/license bytes, anti-framing and default-off behavior.
+
+Review receipt:5review turns,1initial wave,2targeted waves,1integration wave,
+2fix batches,3accepted initial findings all fixed,0remaining. Requested reviewers
+were GPT6.1Sol/high for authority/integration and GPT6Luna/medium for packaging;
+effective model and per-turn token/timing telemetry unavailable. Review session
+started13:21UTC and completed within its60minute ceiling. Worker delivery and
+coordinator correction effort are included qualitatively above; account usage
+is not attributable task cost. Bulky receipts remain ignored in the worktree.
+
+Preparation and independent App Jam previews remain at localhost3025/hub/jams/create
+and localhost3026. These do not enable the live service. Remote deployment, App
+permissions/installation, registry provisioning and live pilot need explicit user
+authorization. No push/PR/merge/publication occurred. Physical OS/editor, WebKit/
+Safari, school-network and actual live GitHub action proof remain separate.
+
+Pilot limits are explicit: per-event caps/rates are atomic; the global event cap
+is advisory under simultaneous new-event creation. Discovery/proposal recovery
+can read one record per event, bounded to100pilot events. Public Git history is
+not private roster storage or an erasure guarantee. See
+[plan](ZEROJAMS-PLAN.md) and [operator setup](ZEROJAMS-OPERATIONS.md).
+Receipts/logs: `.verification/zerojams/`; browser screenshots: `output/playwright/`.
+
 
 ## Mac0.5.49 authorized publication — 2026-10-25
 

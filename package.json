@@ -35,6 +35,7 @@
     "verify:web": "node scripts/verify-web-export.mjs --browser",
     "test:web": "node --test extension/test/web-export-*.test.js extension/test/web-publish-*.test.js",
     "test:sharing": "node --test sharing/test/*.test.mjs",
+    "test:jams": "node --test jams/test/*.test.mjs website/tests/jams-*.test.mjs website/tests/jam-*.test.mjs",
     "sharing": "node sharing/cli.mjs",
     "prepare:design": "node design/prepare.mjs",
     "test:windows": "node scripts/test-windows.mjs",

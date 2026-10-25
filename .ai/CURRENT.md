@@ -1,9 +1,10 @@
-# Simplify desktop GitHub sign-in — local source change
+# Simplify desktop GitHub sign-in — source PR and CI
 
 Use `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/simplify-github-sign-in`,
 base77b371db (published49metadataPR195). Owner asked to remove code sign-in and
 make the main tutorial control say Sign in to GitHub while signed out.
-This authorizes local implementation/testing, not another push/PR/release.
+Owner authorized source push, PR and CI on2026-10-25 after manual UI confirmation.
+Merge and publication remain separate; no new release is authorized here.
 Published Mac0.5.49, production website/feed and sealed artifacts stay unchanged.
 
 New connections use browser authorization only. Code command/button/fallback
@@ -28,9 +29,12 @@ verdicts: `.verification/simplify-sign-in/`. Two independent Sol/high implementa
 reviews at0a525808 are clean; one P3 docs inconsistency was corrected separately,
 with targeted closure in the receipts. Root Dev watcher/preview at3153 retained.
 
-Remaining before shipping: explicit source push/PR authority, current-main sync
-review and exact-head CI, plus
-separately authorized new immutable release; do not modify published49bytes.
+Current-main sync integrates25acd272 without executable conflicts; preserve
+main's ZeroJams production hold (hidden/default off; no activation authority).
+Both evidence histories retained. Next: focused integration checks, independent
+sync/docs review, draft source PR and exact-head CI. Final PR status/CI/review
+links retained on the PR and in `.verification/simplify-sign-in/`. A separate
+merge decision/new immutable release is still required; do not modify49bytes.
 Existing fresh-Mac/school-network/novice/actualSparkle pilot gaps remain open.
 Primary checkout's funding work and private student editor remain untouched.
 DeepSeek paused through2026-12-31. No new goal/task/automation.

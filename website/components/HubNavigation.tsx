@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import styles from '@/app/hub/hub.module.css';
+import {jamsPreviewAvailable} from '@/lib/jams-visibility.mjs';
 
 export function HubNavigation({active}: {active: 'game' | 'library' | 'practice'}) {
   return <div className={styles.catalogTools}>
@@ -8,6 +9,7 @@ export function HubNavigation({active}: {active: 'game' | 'library' | 'practice'
     <Link href="/hub?kind=game" aria-current={active === 'game' ? 'page' : undefined}>Projects</Link>
     <Link href="/hub?kind=library" aria-current={active === 'library' ? 'page' : undefined}>Libraries</Link>
     <Link href="/hub?kind=practice" aria-current={active === 'practice' ? 'page' : undefined}>Tutorial practice</Link>
+    {jamsPreviewAvailable() && <Link href="/hub/jams">ZeroJams</Link>}
     </nav>
   </div>;
 }

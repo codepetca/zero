@@ -111,6 +111,20 @@ larger reference games remain maintainer completeness checks. No new core Input
 class or required fourth tutorial project is introduced. Submitting practice work
 is explicit and remains gated by hosted library acceptance.
 
+## ZeroJams
+
+ZeroJams supports planned Game Jam and App Jam events. Any user can propose an
+event for Zero maintainer approval. Zero supplies the complete versioned website
+template; creators keep an independent copy in their own repository and host it
+themselves. A shared Zero-owned panel/service handles official joining and project
+submission through GitHub-backed records. Zero owns approval, accepted rules and
+moderation; creator websites and participant demos remain independently hosted.
+ZeroJams currently remains local-development-only: production pages, panels,
+APIs, template downloads and navigation are hidden under the owner hold. Editor
+shortcuts are deferred until the public product is ready. Local implementation
+and live activation are separate. See the
+[phased plan](ZEROJAMS-PLAN.md) and [operator guide](ZEROJAMS-OPERATIONS.md).
+
 ## Core goal: students grow the framework
 
 Owner direction,2026-10-23: students should learn to build, extend and improve

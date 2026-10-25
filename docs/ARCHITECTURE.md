@@ -53,4 +53,18 @@ Vercel serves the website. Its read-only catalog route reads the fixed public Gi
 
 Local library Check runs the student's own code on their computer. It builds a JAR with a generated POM and runs behavior checks and two examples against that JAR. Local success does not authorize remote execution or publication. Generic submitted-library execution remains closed pending the outstanding independent checker acceptance. Game sharing packages validated source without executing it; opening a game extracts into a new folder without running it.
 
+## ZeroJams boundary
+
+The [ZeroJams plan](ZEROJAMS-PLAN.md) adds creator-hosted Game Jam and App Jam
+websites. `jam-template/` owns the canonical complete static site, copied as an
+independent versioned ZIP into each creator's repository. `jams/` owns pure
+event/participation contracts and a dedicated GitHub registry adapter; the website
+owns authenticated serverless routes, official summaries, preparation/review and
+a public participation panel. The registry is separate from game/library sharing.
+Participant tokens never reach creator pages or substitute for the server's
+registry writer credential. Existing sites adopt template updates explicitly.
+There is no dedicated database or arbitrary creator-code execution. Default-off
+local implementation is distinct from authorized live deployment and acceptance;
+see [operator setup and limits](ZEROJAMS-OPERATIONS.md).
+
 See [the adoption plan](GITHUB-SHARING-PLAN.md) and [actual verification](VERIFICATION.md).
