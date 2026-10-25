@@ -124,9 +124,9 @@ test('lost Join reply must resolve before Leave; the next Join is a new stored o
   assert.equal(render().success,'Confirmed by Zero.');
 });
 test('participation UI recovers a lost Join after reload and authoritative refresh, then Leave → Join commits once each', {timeout:10000},async t=>{
-  const f=await githubHttpFixture(t);await f.approve();const storage=new Map(),calls=[];let lose=true,h;
+  const f=await githubHttpFixture(t);await f.approve();const storage=new Map(),calls=[];let lose=true,h,finishRefresh;
   const read=()=>f.service.read('jam-101',participant);
-  const refresh=async()=>h.setDetail({configured:true,...await read()});
+  const refresh=async()=>{h.setDetail({configured:true,...await read()});finishRefresh?.();finishRefresh=null;};
   const fetcher=async(url,init)=>{const body=JSON.parse(init.body);calls.push(body);const result=await f.service.mutate({...body,id:'jam-101',actor:participant});if(lose){lose=false;return new Response('{broken');}return Response.json({configured:true,...result});};
   const make=async()=>{h=harness({storage,fetcher,effects:true,participateData:{configured:true,...await read()},onRefresh:refresh});h.setActor({...participant,csrfToken:'fixture-csrf'});render();h.flushEffects();};
   const render=()=>h.render('JamParticipate',{id:'jam-101'}),button=(tree,name)=>elements(tree).find(n=>n.type==='button'&&n.props.children===name);
@@ -141,8 +141,8 @@ test('participation UI recovers a lost Join after reload and authoritative refre
   await click('Leave jam and withdraw my entry');await settled();assert.equal(calls.length,1,'Leave is blocked by the pending Join');
   const feedback=elements(render()).find(n=>n.props?.mutation),recovery=h.render('Feedback',feedback.props);
   await button(recovery,'Resolve earlier request').props.onClick();assert.equal(calls[1].operationId,calls[0].operationId);
-  await click('Leave jam and withdraw my entry');await settled();assert.equal(f.state().registrations[participant.id].status,'left');
-  acknowledge();await click('Join this jam');await settled();assert.equal(f.state().registrations[participant.id].status,'joined');
+  let changed=new Promise(resolve=>finishRefresh=resolve);await click('Leave jam and withdraw my entry');await changed;assert.equal(f.state().registrations[participant.id].status,'left');
+  acknowledge();changed=new Promise(resolve=>finishRefresh=resolve);await click('Join this jam');await changed;assert.equal(f.state().registrations[participant.id].status,'joined');
   assert.notEqual(calls[3].operationId,calls[0].operationId);assert.equal(f.commits.length,before+3,'Join, Leave and new Join each commit once; resolution only reads the historical result');
 });
 test('operation identity changes for payload, actor and endpoint; duplicate in-flight writes are suppressed',async()=>{
