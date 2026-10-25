@@ -2,11 +2,11 @@
 
 Prepared 2026-10-25; activation subsequently authorized by the owner. Production
 remains hidden regardless of flags or credentials. Local policy is `enabled` and
-pinned to the approved origin. Preview revision `3c68f391` is active; the
+pinned to the approved origin. Preview revision `f50942b0` is active; the
 checkpoint below distinguishes verified hosted access from remaining pilot
 acceptance.
 
-## Authorized activation in progress — 2026-10-25
+## Activated controlled pilot — 2026-10-25
 
 Owner subsequently authorized setup and activation for stewchan and armorup while
 keeping production hidden. [Draft PR202](https://github.com/codepetca/zero/pull/202)
@@ -47,8 +47,8 @@ caching, wrong types/prefixes, controls, whitespace and oversize rejection. An
 independent Sol 6.1/high review found no blockers. See GitHub's
 [stateless-token rollout notice](https://github.blog/changelog/2026-10-02-stateless-github-app-installation-tokens-rolled-out/).
 
-The reviewed activation revision `3c68f39100f9722fb6c42ae480c0c3fb13a687ce` is READY
-as Vercel deployment `dpl_6hfCqZG9HXDKNtZA1fV9tcnz3w8S`, attached to the exact
+The reviewed activation revision `f50942b01a3e7b715380fd663a026e341089bfc3` is READY
+as Vercel deployment `dpl_4r7w2mfNCkGhJx7PQHBmU8rDEXkZ`, attached to the exact
 protected branch alias. In Chrome on macOS, signed-out access shows the invited
 sign-in screen and the API reveals no records. Normal GitHub OAuth as `armorup`
 returns to the pilot; the hosted API returns `configured:true`, `events:[]`,
@@ -58,7 +58,9 @@ Creator `stewchan` also completed normal GitHub OAuth. Its hosted API returns
 and the source-bound proposal controls are available, requiring its own public
 repository and exact commit. No forged session or identity was used.
 
-All 251 website tests, typecheck and production build pass. All 11 CI checks pass on the exact deployed source revision. Production was rechecked after deployment: all 13 canonical jam
+The preparation milestone passed 251 website tests and typecheck/build. The
+session fix below passed its focused checks and production build; all 11 CI checks
+pass on the current deployed source revision. Production was rechecked after deployment: all 13 canonical jam
 route/method requests return 404, and `/hub` returns 200 without a jam link. Vercel
 protection remains `all_except_custom_domains`; production branch remains `main`.
 No main merge, production environment change or public activation occurred.
@@ -79,15 +81,76 @@ registry; never put it in the validated `jams/` event namespace. Removing only
 this guard restores the old deployment behavior. See
 [Vercel's branch configuration](https://vercel.com/docs/project-configuration/git-configuration).
 The ignored-build-step alternative was avoided because canceled builds still
-count against deployment/concurrency limits. Actual lifecycle writes will also
-be checked before claiming the entire verification complete.
+count against deployment/concurrency limits. After the probe, 24 durable event operations also produced zero registry
+deployments. The Vercel list since the guard has one deployment: the expected
+source-preview build for `f50942b0`, with no further pagination.
 
 The live creator run found that preparation POST requests omitted the sealed
 pilot session. They now use same-origin credentials for the two fixed relative
 preview/ZIP endpoints, retaining redirect rejection and all server access gates.
 The two-line fix passed 13 focused tests, a production build and an independent
-Sol 6.1/high review (24 reviewer tests). Hosted preview/download acceptance is
-being rerun before the lifecycle continues.
+Sol 6.1/high review (24 reviewer tests). Hosted preview/download acceptance now passes for both Game Jam and App Jam.
+
+## Live lifecycle acceptance — 2026-10-25
+
+Chrome on macOS, real GitHub OAuth for both invited accounts; no forged sessions,
+clock overrides or participant-token substitution. The fixtures contain only
+public test handles, source links and disposable descriptions. Their small HTML
+demos verify source/demo delivery; this does not certify a Java/WebFX project.
+
+| Event | Creator-owned source and website | Final official state |
+| --- | --- | --- |
+| Game Jam `jam-1433630157` | [Repository](https://github.com/stewchan/zerojams-pilot-game-20261025), [page](https://stewchan.github.io/zerojams-pilot-game-20261025/); initial `290b76cb`, update `864a17d6` | Approved updated deadline is in the real past; registration/submissions closed; participant left and entry withdrawn; five history versions retained |
+| App Jam `jam-1433632489` | [Repository](https://github.com/stewchan/zerojams-pilot-app-20261025), [page](https://stewchan.github.io/zerojams-pilot-app-20261025/); initial `e4c617a4`, update `95d6e0d9` | Cancelled by armorup after lifecycle completion; one registered participant and final active gallery entry preserved; four history versions |
+
+Observed acceptance:
+
+- Both complete eight-file templates previewed and downloaded through the hosted
+  creator form. Public repository bytes match the downloaded/customized files;
+  all source assets and pinned Pages workflows are present. Both Pages workflows
+  and hosted demos work. Two files initially entered empty through the browser
+  editor were corrected before this byte verification; failed initial fixture
+  workflow runs are retained in their repositories.
+- stewchan proposed exact public commits; armorup independently approved both.
+  Creator UI had no approval authority. Joining stayed disabled before current
+  rule acknowledgment. Both types joined and submitted exact owned public source.
+  An organization-owned repository was rejected without losing the form.
+- Game entry replacement, participant withdrawal, resubmission, leaving and
+  rejoining passed. Rejoining did not resurrect the entry. A further submission
+  correctly hit the configured history-cap error; no cap was relaxed.
+- Creator updates remained pending while accepted details stayed active. After
+  independent approval, the App participant saw the changed-version warning and
+  could not resubmit without a fresh acknowledgment. The Game's approved past
+  deadline closed participation using the real server clock.
+- App suspension closed both windows; resume reopened them. Maintainer entry
+  withdrawal removed the gallery item while retaining registration. Corrected
+  resubmission and replacement restored one entry with the exact update commit.
+  Maintainer cancellation closed both windows, removed the App Jam from discovery
+  and preserved its direct showcase. The App Jam filter then showed no listed events.
+- With fresh acknowledgment, cancelled App replacement and deadline-closed Game
+  joining remained disabled. Final Git records confirm 12 operations per event,
+  creator/approver separation, retained history and the stated final states.
+- Creator sites contain the actual event IDs and official pilot links. The
+  protected-preview iframe is blocked in Chrome; no protection was weakened.
+  Clicking the ordinary creator-page link opened authenticated official
+  participation in a new top-level tab. Do not claim the iframe itself worked.
+
+All 11 checks pass on deployed `f50942b0`. The session fix has a clean targeted
+Sol 6.1/high review and production build; the registry exclusion has a separate
+clean review. Final production checks: 13 jam route/method requests return 404;
+`/hub` remains 200 with no jam link. Main, production settings and Vercel protection
+remain held. Registry head at acceptance: `ce130103b5b84968c83982516104826c88a260a0`.
+
+Both event slots are occupied by these closed, reviewable fixtures. They were not
+deleted or silently reset. Preserve the guard and record history in any separately
+chosen fixture cleanup. No real student event is admitted by these tests.
+Ignored receipts/screenshots are in `.verification/zerojams-pilot/lifecycle/`,
+including `final-receipt.json`, both final states, source hashes, CI and production
+hold. Safari/mobile/school-network, a third real uninvited account, concurrency,
+provider request/latency telemetry and agreed expansion cost thresholds remain
+unverified; 24 durable operations and zero registry builds are not a free-tier or
+large-scale capacity promise.
+
 The fixed public policy is [jams/pilot.json](../jams/pilot.json). The service model
 and existing local verification remain in [the plan](ZEROJAMS-PLAN.md) and
 [operations guide](ZEROJAMS-OPERATIONS.md). This packet narrows the proposed hosted
@@ -265,9 +328,8 @@ branch, browser/OS and each observed result. Never record token/key/session valu
   Agree provider cost/usage stop thresholds before expansion; no free-tier promise.
 
 Passing local tests and preflight presence checks do not satisfy this live record.
-Hosted approver sign-in and registry reads are verified above. The full event
-lifecycle, Safari acceptance and provider cost results remain
-unverified.
+The two-account Chrome lifecycle above is verified. The additional expansion
+checks listed above, including Safari and provider cost thresholds, remain open.
 
 ## Rollback and incident stop
 

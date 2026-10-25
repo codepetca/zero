@@ -4,7 +4,9 @@ Status: protected two-account preview activated; production remains hidden,
 2026-10-25. The owner separately authorized setup, credentials and deployment for
 this pilot after the source hold. Both `stewchan` (creator, no maintainer role) and
 `armorup` (approver) completed live GitHub sign-in. All 11 checks pass for deployed
-source `3c68f391`; full event lifecycle and cost acceptance remain pending.
+source `f50942b0`. The two-account Chrome Game/App lifecycle passed, with 24
+durable operations and zero registry-triggered Vercel builds. Cross-browser,
+network, concurrency and expansion cost acceptance remain pending.
 
 The pilot is restricted to the fixed Preview project, branch, origin and invited
 numeric identities. Production always returns 404 for jam pages, panels, APIs and
@@ -339,7 +341,7 @@ Source publication retains the production hold. The owner subsequently authorize
 the narrow controlled pilot described above; general rollout remains held.
 
 Active checkout: `/Users/stew/.codex/worktrees/zerojams/zero`, branch
-`codex/zerojams-controlled-pilot`, deployed source `3c68f391`. Primary checkout's unrelated work is preserved.
+`codex/zerojams-controlled-pilot`, deployed source `f50942b0`. Primary checkout's unrelated work is preserved.
 Canonical template directory: `jam-template/`; shared pure service: `jams/`;
 website entry point: `/hub/jams`. Template copying starts with a downloadable
 complete ZIP; it must not claim a separate hosted template repository exists.
@@ -353,7 +355,7 @@ only when a pinned public template is actually available and verified.
 | 2: Creator admission and discovery | Locally delivered | Source-bound proposal, maintainer-only approval, immutable accepted metadata |
 | 3: Participation | Locally delivered | Authenticated join/leave, reviewed entry updates/withdrawal, cached gallery |
 | 4: Reliability, UI verification and independent review | Locally verified and reviewed | Meaningful failure/security checks, actual local browser proof, clean reviews |
-| 5: Live pilot | Activated; both roles verified | Protected deployment and scoped writer pass; full event lifecycle/provider usage acceptance remain |
+| 5: Live pilot | Two-account Chrome lifecycle verified | Both types prepared/hosted/proposed/approved/participated/submitted/updated/closed; 24 operations and zero registry builds; expansion checks remain |
 
 Worker receipt: source-map (GPT-6.1 Sol/high) completed read-only mapping of
 existing auth, CAS, navigation and editor seams; coordinator verified principal

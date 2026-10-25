@@ -127,7 +127,11 @@ ZeroJams has an owner-authorized, protected preview for creator stewchan and
 independent approver armorup. Both GitHub sign-ins and their separate roles are
 verified. Production pages, panels, APIs, template downloads and navigation remain
 hidden under the owner hold. Editor shortcuts are deferred until the public
-product is ready. Full event lifecycle and provider-cost acceptance remain pending. See the
+product is ready. The two-account Chrome Game/App lifecycle is verified, including
+creator hosting, independent approval, submissions, updates, withdrawal and
+closure. Registry writes no longer create Vercel deployments. Protected-preview
+frames are blocked; the official top-level link works. Wider browser/network and
+provider-cost acceptance remain pending. See the
 [phased plan](ZEROJAMS-PLAN.md) and [operator guide](ZEROJAMS-OPERATIONS.md).
 
 ## Core goal: students grow the framework

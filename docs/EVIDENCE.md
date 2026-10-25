@@ -1,5 +1,42 @@
 # Delivery evidence index
 
+## Registry build exclusion and live Game/App lifecycle — 2026-10-25
+
+Owner authorized registry build prevention and complete controlled-pilot lifecycle,
+keeping production hidden. Registry-only `website/vercel.json` exact-branch guard
+commit a39b3bdd, README probe5a4eb284; no shared project setting or source/main
+branch deployment exclusion changed. Independent Sol6.1/high config review clean.
+After 24 durable event operations, Vercel records zero registry deployments since
+the guard; only expected source preview f50942b0 appears (pagination complete).
+
+Live UI exposed omitted cookies on preparation POSTs. Two same-origin credential
+changes in JamPreparation.tsx fixed preview and ZIP for invited sessions without
+weakening server gates, redirect policy or sandbox. Separate Sol6.1/high review
+clean (24 reviewer tests), coordinator13 focused tests/build pass. All11CI checks
+pass on deployed f50942b01a3e7b715380fd663a026e341089bfc3,
+Vercel dpl_4r7w2mfNCkGhJx7PQHBmU8rDEXkZ. Two targeted review launches, one code fix
+batch this phase; effective worker models/token totals unavailable. Repository
+fixture editor input error was corrected and bytes verified before acceptance.
+
+Actual Chrome/macOS, real stewchan/armorup OAuth: both complete templates downloaded,
+public personal repos/Pages sites and tiny HTML demos verified, exact-source
+proposals independently approved. Required acknowledgment, both joins/submissions,
+wrong-owner rejection, replacement/withdrawal/leave/rejoin, no resurrected entry,
+fixed history cap, pending versus accepted updates and changed-rule acknowledgment
+passed. App suspend/resume and maintainer entry withdrawal/resubmission passed.
+Game closes on approved real-past deadline, participant left/entry withdrawn;
+App cancelled with one final active showcase entry. Twelve durable operations each;
+Game history5, App history4. Two pilot slots remain occupied by closed fixtures.
+
+Protected-preview iframe is blocked; actual creator-page top-level fallback opens
+signed-in official participation. No security bypass or false iframe success claim.
+Production13jamchecks404, Hub200/nojamlink; protection all_except_custom_domains,
+main production, no main merge/production rollout. Third-account, Safari/mobile/
+school-network, concurrency and request/latency/cost thresholds remain unverified.
+Details and exact fixture links: docs/ZEROJAMS-PILOT.md. Ignored lifecycle packet
+.verification/zerojams-pilot/lifecycle/final-receipt.json plus source/record/CI/hold
+receipts and screenshots. Final registry ce130103b5b84968c83982516104826c88a260a0.
+
 ## Controlled preview activation and both account roles — 2026-10-25
 
 Owner confirmed security-access changes and completed the writer key download.

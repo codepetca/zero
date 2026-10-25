@@ -1,28 +1,35 @@
-# Controlled pilot active; both roles verified — 2026-10-25
+# Controlled pilot lifecycle verified — 2026-10-25
 
-Owner-authorized activation milestone complete. Protected Preview at
+Owner-authorized registry build prevention and complete two-account lifecycle done.
+Protected Preview source f50942b01a3e7b715380fd663a026e341089bfc3, all11CIpass,
+dpl_4r7w2mfNCkGhJx7PQHBmU8rDEXkZ:
 https://zero-git-codex-zerojams-contr-11f1f5-stewarts-projects-cc2722c4.vercel.app/hub/jams
-runs source3c68f391 in dpl_6hfCqZG9HXDKNtZA1fV9tcnz3w8S. DraftPR202 remains
-unmerged; all11 exact-sourceCI checks pass. Production13jamchecks404, Hub200/nojamlink;
-production env/main branch/Vercel protection unchanged. No publicrollout.
+DraftPR202 remains unmerged. Production13jamchecks404, Hub200/nojamlink.
+Production env/main/protection unchanged; no publicrollout.
 
-Live Chrome/macOS OAuth: armorup4050555 configuredtrue/canMaintaintrue;
-stewchan35233916 configuredtrue/canMaintainfalse, preparation/proposalcontrols work.
-Signedoutneutral/noAPIrecords; wrongdeploymenthostNotfound. No eventwrites yet.
-All10requiredsettings exactbranchPreviewonly. Dedicated writer5470616 installed
-175232591 selectedonlycodepetca/zero Contentswrite/Metadataread; real narrowedtoken
-reads emptyzero-jams-pilot-registry (orphan1709d161). Existing clientsecret retained.
-Secretvaluesneverlogged/committed; ownerdownload0600, nointermediatekeycopy.
+Registry-only website/vercel.json exactbranch deploymentEnabledfalse added a39b3bdd;
+probe5a4eb284 and24eventwrites create zero Verceldeployments. No shared setting
+changed. Preserve guard outside jams namespace. Registryfinal ce130103b5b84968c83982516104826c88a260a0.
 
-Runtime statelesstokenfix targetedSol6.1/high reviewclean. Two source reviews and
-activationreview reused;251website tests/typecheck/buildpass. Local receipt/docs
-commits follow deployedsource; no functional changes after3c68f391.
+Live Chrome/macOS stewchan creator/participant, armorup independent approver:
+Game1433630157 and App1433632489 templates/Pages/proposal/approval/join/exactowned
+submission/update/closure verified. Game replacement/withdraw/leave/rejoin/history
+cap pass; final deadlineclosed/left/withdrawn, history5. App changedruleack,
+suspend/resume/moderatorwithdraw/resubmit/replace/cancel pass; finalcancelled with
+one active showcase entry, history4. Twelve durable operations each. Bothslots
+occupied by closed public test fixtures; no deletion/reset performed.
 
-Next phase: full two-account Game/App lifecycle with public disposable data,
-third-account negative proof, Safari/mobile/schoolnetwork and providercost evidence.
-Before repeatedwrites, resolve Vercel registrybranchbuildtrigger under a reviewed
-sharedbuildsetting change; activation did not alter it. Keep production held;
-no uninvitedaccounts, forgedsessions, bypasslinks or expandedscope.
-Packet docs/ZEROJAMS-PILOT.md and docs/EVIDENCE.md; ignoredreceipts
-.verification/zerojams-pilot. Pilot Chrome1788220741 left as deliverable, signedin
-stewchan atcreatepage. Local3025/othercheckouts preserved. DeepSeekpaused.
+Cookie omission on preparation endpoints fixed with two same-origin values;
+reviewclean,13focusedtests/build,24reviewertests. Registry config separate review
+clean. Two targeted launches/one codefixbatch this phase. Actual owner repo files
+byteverified after correcting empty browser-editor entries. No extra sourcechanges
+planned; final receipt docs follow tested deployment as local commits.
+
+Protected iframe blocked; creator-site top-level link works authenticated. Do not
+weaken protection/cookies to make framing work. Next expansion evidence: Safari/
+mobile/schoolnetwork, third real uninvited identity, concurrency and provider
+request/latency/cost thresholds; fixture cleanup needs preservehistory/guard.
+Packet docs/ZEROJAMS-PILOT.md, EVIDENCE. Ignored lifecycle receipts in
+.verification/zerojams-pilot/lifecycle. Other checkouts/local3025 preserved.
+Pilot browser1 current stewchan; pilotLive1788220741 leave at official jam list.
+DeepSeek paused. No automation or new tool-backed goal created.
