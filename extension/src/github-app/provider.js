@@ -1,7 +1,7 @@
 'use strict';
 
 const {randomUUID} = require('node:crypto');
-const {deviceFlow, refreshTokens, requestJson, failure} = require('./device-flow');
+const {refreshTokens, requestJson, failure} = require('./device-flow');
 const {browserFlow,refreshBrowserTokens}=require('./browser-flow');
 const {SECRET_KEY, binding, createCredentialStore, createCredentialLock} = require('./credential-store');
 function session(record) {
@@ -131,7 +131,7 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
       return [result];
     }, signal);
   }
-  async function signIn(controller,method) {
+  async function signIn(controller) {
     available();
     // Reject non-local storage before issuing any authorization request.
     lock ||= createCredentialLock({globalStorageUri:context.globalStorageUri, now});
@@ -141,30 +141,12 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
       const cancellationSubscription = cancellation?.onCancellationRequested(() => controller.abort());
       try {
         if (cancellation?.isCancellationRequested) controller.abort();
-        let pair,flow='device';
-        if(method!=='device'&&configuration.websiteOrigin){
-          try{pair=await browserFlow({...browserOptions,configuration,vscode,fetchImpl,now,signal:controller.signal,onProgress:message=>progress.report({message})});flow='browser';}
-          catch(error){
-            if(error.code==='cancelled'||controller.signal.aborted)throw error;
-            const choice=await vscode.window.showInformationMessage('Browser sign-in is unavailable. You can sign in using a code.', 'Sign in using a code');
-            if(choice!=='Sign in using a code'||controller.signal.aborted)throw failure('cancelled','GitHub sign-in was cancelled.');
-          }
-        }
-        if(!pair)pair = await deviceFlow({clientId:configuration.clientId, fetchImpl, now, signal:controller.signal,
-          async onCode({userCode, verificationUri}) {
-            progress.report({message:`Code ${userCode} · enter on github.com/login/device`});
-            const choice = await vscode.window.showInformationMessage('Connect Zero to GitHub', {modal:true, detail:`Code: ${userCode}`}, 'Copy code and continue');
-            if (choice !== 'Copy code and continue' || controller.signal.aborted) { controller.abort(); throw failure('cancelled', 'GitHub sign-in was cancelled. Local running still works.'); }
-            try { await vscode.env.clipboard.writeText(userCode); }
-            catch { throw failure('clipboard-unavailable','The GitHub code could not be copied. Sign in again to retry; the browser was not opened.'); }
-            if(controller.signal.aborted)throw failure('cancelled','GitHub sign-in was cancelled. Local running still works.');
-            if (!await vscode.env.openExternal(vscode.Uri.parse(verificationUri))) throw failure('browser-unavailable', 'Open https://github.com/login/device in your browser to sign in again.');
-          }});
+        const pair = await browserFlow({...browserOptions,configuration,vscode,fetchImpl,now,signal:controller.signal,onProgress:message=>progress.report({message})});
         const account = await accountFor(pair, fetchImpl, controller.signal);
         return await withLock(async () => {
           if (disposed || controller.signal.aborted) throw failure('cancelled', 'GitHub sign-in was cancelled.');
           if (await store.raw() !== baseline) throw failure('connection-changed', 'Another Zero window changed the connection. Try sign-in again.');
-          const record = {schema:1, app:binding(configuration), sessionId:randomUUID(), account, ...pair, flow,state:'active'};
+          const record = {schema:1, app:binding(configuration), sessionId:randomUUID(), account, ...pair, flow:'browser',state:'active'};
           await store.write(record);
           const result = session(record); cached = result;
           emitter.fire({added:[result], changed:[], removed:[]});
@@ -185,8 +167,8 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
     },
     async createSession(scopes,options={}) {
       supportedScopes(scopes); available();
-      if(options.method!==undefined&&!['browser','device'].includes(options.method))throw failure('unsupported-method','Choose browser or code sign-in.');
-      if (!signInPromise) signInPromise = operation(controller=>signIn(controller,options.method)).finally(() => { signInPromise = undefined; });
+      if(options.method!==undefined&&options.method!=='browser')throw failure('unsupported-method','Sign in to GitHub using your browser.');
+      if (!signInPromise) signInPromise = operation(controller=>signIn(controller)).finally(() => { signInPromise = undefined; });
       return signInPromise;
     },
     async removeSession(id) {

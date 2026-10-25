@@ -1,35 +1,40 @@
-# ZeroJams source PR/merge with production hold — 2026-10-25
+# Simplify desktop GitHub sign-in — source PR and CI
 
-Checkout `/Users/stew/.codex/worktrees/zerojams/zero`, branch `codex/zerojams`,
-base77b371db, reviewed code4ced7ae8. User authorized phased local implementation
-and orchestration; tool-backed goal completion is being recorded. Canonical plan:
-docs/ZEROJAMS-PLAN.md. Owner now authorizes source push/PR/merge with all jam production surfaces hidden.
-No credential/permission changes, registry setup or live pilot authorized. Primary unrelated work and actor publication
-worktree were preserved. Live activation is a separate next decision.
+Use `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/simplify-github-sign-in`,
+base77b371db (published49metadataPR195). Owner asked to remove code sign-in and
+make the main tutorial control say Sign in to GitHub while signed out.
+Owner authorized source push, PR and CI on2026-10-25 after manual UI confirmation.
+Merge and publication remain separate; no new release is authorized here.
+Published Mac0.5.49, production website/feed and sealed artifacts stay unchanged.
 
-Delivered locally: complete canonical `jam-template/` copied as independent8file
-Game/App Jam ZIPs with MIT notice; creator-hosted pages; source-bound maintainer
-admission/inbox; GitHub-backed join/submit/update/withdraw; event/entry moderation;
-trusted panel; editor Create a Jam shortcut. Accepted rule/date history is visible;
-new acknowledgment required after revisions. Dedicated server installation writer
-never falls back to participant credentials. Runtime remains default off.
+New connections use browser authorization only. Code command/button/fallback
+removed; old saved device-issued sessions retain their original renewal path.
+Signed-out main button signs in only; authenticated state says Start tutorial,
+disabled until repository access is ready. Tutorials/Open stay available offline.
+No change to broker, PKCE/callback validation, identity/permissions, secret schema,
+Java framework, project files or versions. Parent owns UI/docs/commands/integration;
+Sol/high browser_only_login worker owns provider/browser/client tests (delivered).
 
-Phase1–4 locally complete. Phase5 live pilot awaits separate authorization.
-Evidence: docs/EVIDENCE.md; setup/limits: docs/ZEROJAMS-OPERATIONS.md.53focused
-jams tests,230full website tests before additive license regression,final production
-build/root check and actual8file ZIP/header smoke pass. Unchanged root1141pass/
-3platform skips reused. Chromium local fixtures cover proposal/join/submit retry,
-changed rules/history/fresh acknowledgment,320/390/1280px and dark CSS200%zoom.
-WebKit binary absent; physical OS/editor/Safari/school/liveGitHub proof unperformed.
+Root checks and69UI/onboarding/command/playground tests pass; worker's128GitHub
+App tests pass (final owned subset40pass). Actual production-renderer browser
+fixture verified light/dark/highcontrast signed-out, install-disabled and ready
+states, sign-in dispatch and Tutorials keyboard menu. Native Dev launch ran, but
+computer controls selected installed Zero instead of the separate Dev instance;
+owner confirmed the requested manual Dev UI check with “yes, looks good” on
+2026-10-25. Record this as human-observed UI smoke, not automated native proof or
+a confirmed completed OAuth exchange. Installed account state and
+unsaved work preserved. Browser preview is simulated; no new GitHub login or
+repository operation was performed. Independent source-review receipts and final
+verdicts: `.verification/simplify-sign-in/`. Two independent Sol/high implementation
+reviews at0a525808 are clean; one P3 docs inconsistency was corrected separately,
+with targeted closure in the receipts. Root Dev watcher/preview at3153 retained.
 
-Independent reviews:5turns (2initial,2targeted,1integration),2fix batches,
-3acceptedP2fixed,0unresolved. Source/cumulative921c6d30 and packaging4ced7ae8 clean.
-GPT6.1Sol/high engine/UI/security/compat workers and Luna/medium packaging review;
-effective model/tokens unknown. DeepSeek paused through2026-12-31. Start account
-weekly97%remaining and storage241.3GB healthy; no task-cost/savings inference.
-
-Local previews: website3025/hub/jams/create; independent App Jam3026.
-Ignored receipts: .verification/zerojams/ and output/playwright/.
-Next: verify production404/no-navigation and local preview, review the bounded
-hold/CI-test-wiring delta, open a draft PR, run exact-head CI, then authorized merge.
-Keep source-level production hold. No service activation or installer release.
+Current-main sync integrates25acd272 without executable conflicts; preserve
+main's ZeroJams production hold (hidden/default off; no activation authority).
+Both evidence histories retained. Next: focused integration checks, independent
+sync/docs review, draft source PR and exact-head CI. Final PR status/CI/review
+links retained on the PR and in `.verification/simplify-sign-in/`. A separate
+merge decision/new immutable release is still required; do not modify49bytes.
+Existing fresh-Mac/school-network/novice/actualSparkle pilot gaps remain open.
+Primary checkout's funding work and private student editor remain untouched.
+DeepSeek paused through2026-12-31. No new goal/task/automation.

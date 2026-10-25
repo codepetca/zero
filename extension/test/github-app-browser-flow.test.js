@@ -41,7 +41,7 @@ test('cancellation and timeout close owned listeners even while openExternal is 
  for(const cancel of [true,false]){
   const controller=new AbortController(),f=fixture({signal:controller.signal,timeoutMs:30});
   f.vscode.env.openExternal=()=>{if(cancel)setTimeout(()=>controller.abort(),5);return new Promise(()=>{});};
-  await assert.rejects(browserFlow(f.options),error=>error.code===(cancel?'cancelled':'browser-expired'));
+  await assert.rejects(browserFlow(f.options),error=>error.code===(cancel?'cancelled':'browser-expired')&&!/using a code|use a code/.test(error.message));
   await assert.rejects(fetch(`http://127.0.0.1:${f.start.port}/github/${f.start.nonce}`));
   assert.equal(f.calls.length,1);
  }
@@ -49,11 +49,11 @@ test('cancellation and timeout close owned listeners even while openExternal is 
 test('unsafe broker replies and external-open failure do not exchange credentials or leak failures',async()=>{
  for(const url of ['https://evil.example/api/desktop/github/login?ticket='+ticket,configuration.websiteOrigin+'/wrong?ticket='+ticket,configuration.websiteOrigin+'/api/desktop/github/login?ticket='+ticket+'&extra=x']){
   const f=fixture();f.options.fetchImpl=async()=>response({clientId:configuration.clientId,url});
-  await assert.rejects(browserFlow(f.options),error=>error.code==='browser-unavailable');assert.equal(f.opens.length,0);
+  await assert.rejects(browserFlow(f.options),error=>error.code==='browser-unavailable'&&!/using a code|use a code/.test(error.message)&&/Local running still works/.test(error.message));assert.equal(f.opens.length,0);
  }
- const f=fixture();f.vscode.env.openExternal=async()=>false;await assert.rejects(browserFlow(f.options),error=>error.code==='browser-unavailable');assert.equal(f.calls.length,1);
+ const f=fixture();f.vscode.env.openExternal=async()=>false;await assert.rejects(browserFlow(f.options),error=>error.code==='browser-unavailable'&&!/using a code|use a code/.test(error.message)&&/Local running still works/.test(error.message));assert.equal(f.calls.length,1);
  const untrusted=fixture();untrusted.options.fetchImpl=async()=>{throw Error('ghr_do_not_leak');};await assert.rejects(browserFlow(untrusted.options),error=>!error.message.includes('do_not_leak'));
- assert.throws(()=>brokerOrigin({websiteOrigin:'https://evil.example'}));
+ assert.throws(()=>brokerOrigin({websiteOrigin:'https://evil.example'}),error=>error.code==='browser-unavailable'&&!/using a code|use a code/.test(error.message)&&/Local running still works/.test(error.message));
 });
 test('browser refresh uses the pinned server endpoint, while denial never exchanges a code',async()=>{
  const f=fixture();assert.equal((await refreshBrowserTokens({configuration,refreshToken:pair.refresh_token,fetchImpl:f.fetchImpl})).accessToken,pair.access_token);
