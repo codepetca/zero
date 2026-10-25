@@ -57,7 +57,6 @@ function activate(context, services = {}) {
   let execution, ending, view, pendingLaunch;
   let runGeneration = 0;
   let nativeStarting = 0, stopPromise;
-  const pendingConfiguredPtys = new Set();
   const nativeIdleWaiters = new Set();
   function nativePrepared() {
     nativeStarting--;
@@ -71,10 +70,7 @@ function activate(context, services = {}) {
   let startingTutorial = false;
   let signingIn = false;
   let disposed = false;
-  context.subscriptions.push({dispose() {
-    disposed = true;
-    for (const release of [...pendingConfiguredPtys]) release();
-  }});
+  context.subscriptions.push({dispose() { disposed = true; }});
   let changing = false;
   let menuOpen = false;
   let componentBusy = false;
@@ -300,7 +296,6 @@ function activate(context, services = {}) {
   }
   async function stopRequested() {
     runGeneration++;
-    for (const release of [...pendingConfiguredPtys]) release();
     if (pendingLaunch) await pendingLaunch.catch(() => {});
     await stop();
     state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped'; refresh();
@@ -370,7 +365,7 @@ function activate(context, services = {}) {
     return task;
   }
   const taskFinishes = new Map();
-  function rejectedNativePty(message, exitCode) {
+  function finishedTaskPty(message, exitCode) {
     const writes = new vscode.EventEmitter(), closes = new vscode.EventEmitter();
     let closed = false;
     const close = code => {if (!closed) {closed = true;closes.fire(code);}};
@@ -381,14 +376,13 @@ function activate(context, services = {}) {
   }
   function track(active) {
     if (taskFinishes.has(active)) return;
-    if (nativeTaskState(active.task)?.rejected) return;
+    const metadata = nativeTaskState(active.task);
+    if (!metadata) return;
     if (execution && execution !== active) {stoppedTasks.add(execution); execution.terminate();}
     execution = active;
     buildFailed = false;
     ending = new Promise(resolve => taskFinishes.set(active, resolve));
-    const metadata = nativeTaskState(active.task);
-    if (disposed || metadata && metadata.generation !== runGeneration) {stoppedTasks.add(active);active.terminate();return;}
-    metadata?.taskStarted?.();
+    if (disposed || metadata.generation !== runGeneration) {stoppedTasks.add(active);active.terminate();return;}
     compilerProblems?.clear();nativeProblems?.clear();
     if(metadata)publishCompilerProblems(metadata);
     state = 'Building / running · readiness unverified — output is in the terminal'; refresh();
@@ -414,66 +408,31 @@ function activate(context, services = {}) {
     taskExitCodes.set(event.execution, event.exitCode);
   }));
   context.subscriptions.push(vscode.tasks.registerTaskProvider('zero', {
-    // VS Code also resolves tasks while listing build choices. Prepare only when
-    // CustomExecution runs, never while the configured task is being discovered.
+    // VS Code also resolves tasks while listing build choices. The configured
+    // task starts the same owned Run task as the sidebar and then exits.
     provideTasks: async () => [],
     resolveTask: async configured => {
       if (!['run','native-run'].includes(configured.definition.task)) return undefined;
       if (typeof vscode.CustomExecution !== 'function') return undefined;
-      let task;
       const taskExecution = new vscode.CustomExecution(async () => {
         const generation = runGeneration;
-        const reject = (message, code = 1) => {
-          const metadata = {generation,rejected:true};
-          nativeTaskStates.set(task,metadata);nativeTaskStates.set(taskExecution,metadata);
-          return rejectedNativePty(message,code);
+        const fail = message => {
+          output.appendLine(`Run App: ${message}`);
+          void vscode.window.showErrorMessage(`Zero: ${message}`).then(undefined,()=>{});
+          return finishedTaskPty(message,1);
         };
-        if (disposed || stopPromise || isBusy() || nativeStarting) return reject('Finish the current action before running the app.');
-        nativeStarting++;refresh();
-        let handedOff = false;
+        if (disposed || stopPromise || isBusy() || nativeStarting) return fail('Finish the current action before running the app.');
         try {
           const root=await project();
-          if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
-          if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
-          if (disposed || generation !== runGeneration) return reject('Run cancelled.',0);
-          if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
-          const prepared = await makeTask(root, configured.definition, configured.scope);
-          if (disposed || generation !== runGeneration) return reject('Run cancelled.',0);
-          if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
-          if (disposed || generation !== runGeneration) return reject('Run cancelled.',0);
-          if (stopPromise || isBusy()) return reject('Finish the current action before running the app.');
-          await stop();
-          if (disposed || generation !== runGeneration) return reject('Run cancelled.',0);
-          if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
-          if (disposed || generation !== runGeneration) return reject('Run cancelled.',0);
-          browserRun.stop({quiet:true});
-          const metadata = nativeTaskState(prepared);
-          nativeTaskStates.set(task,metadata);nativeTaskStates.set(taskExecution,metadata);
-          const pty = await metadata.transport.createPty();
-          if (disposed || generation !== runGeneration) {pty.close();return reject('Run cancelled.',0);}
-          const release = () => {
-            if (!pendingConfiguredPtys.delete(release)) return;
-            nativePrepared();
-          };
-          pendingConfiguredPtys.add(release);
-          pty.onDidClose(release);
-          // Either host callback order is safe: keep the reservation until both
-          // the task-start event and terminal open have happened.
-          let opened = false, started = false;
-          metadata.taskStarted = () => {started = true;if (opened) release();};
-          const open = pty.open, close = pty.close;
-          pty.open = (...args) => {
-            try {return open.apply(pty,args);}
-            finally {opened = true;if (started) release();}
-          };
-          pty.close = (...args) => {release();return close.apply(pty,args);};
-          handedOff = true;
-          return pty;
-        } catch (error) {return reject(error.message || 'Cannot prepare Run App.');}
-        finally {if (!handedOff) nativePrepared();}
+          if (disposed || generation !== runGeneration) return finishedTaskPty('Run cancelled.',0);
+          if (stopPromise || isBusy() || nativeStarting) return fail('Finish the current action before running the app.');
+          const active=await queuedRun(root);
+          if (disposed || generation !== runGeneration || !active) return finishedTaskPty('Run cancelled.',0);
+          return finishedTaskPty('',0);
+        } catch (error) {return fail(error.message || 'Cannot prepare Run App.');}
       });
-      task = new vscode.Task(configured.definition, configured.scope, 'Run App', 'Zero', taskExecution, []);
-      task.presentationOptions = {reveal: vscode.TaskRevealKind.Always, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
+      const task = new vscode.Task(configured.definition, configured.scope, 'Run App', 'Zero', taskExecution, []);
+      task.presentationOptions = {reveal: vscode.TaskRevealKind.Never, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
       task.group = configured.group || vscode.TaskGroup.Build;
       return task;
     }
@@ -481,7 +440,7 @@ function activate(context, services = {}) {
   async function run(generation, expectedRoot) {
     if (disposed || generation !== runGeneration) return;
     const root = await project();
-    if (expectedRoot && root !== expectedRoot) throw new Error('The student project changed before running the dependency update. Run the original app explicitly.');
+    if (expectedRoot && root !== expectedRoot) throw new Error('The student project changed before running. Open the intended project and run it explicitly.');
     if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
     await core.assertTutorialRepository(root);
     if (generation !== runGeneration) return;
@@ -491,6 +450,7 @@ function activate(context, services = {}) {
     if (disposed || generation !== runGeneration) return;
     if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
     if (disposed || generation !== runGeneration) return;
+    if (stopPromise || isBusy()) throw new Error('Finish the current action before running the app.');
     await stop();
     if (disposed || generation !== runGeneration) return;
     if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
@@ -501,7 +461,7 @@ function activate(context, services = {}) {
       else track(active);
       return active;
     });
-    try {await pendingLaunch;} finally {pendingLaunch = undefined;}
+    try {return await pendingLaunch;} finally {pendingLaunch = undefined;}
   }
   function queuedRun(expectedRoot) {
     const generation = runGeneration;

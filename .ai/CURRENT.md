@@ -21,7 +21,14 @@ Run collided: rejected task end removed Stop ownership while Java stayed alive.
 Trace proves this in rejected-trace.jsonl. Author now owns optional registered
 instanceId metadata + fresh programmatic run IDs and faithful cache tests. Parent
 restored all probe code and fixture wrapper. Test repeated configured Run as well,
-then targeted review and actual UI before packaging.
+then targeted review and actual UI before packaging. Identity5c04f3de passes
+actual refusal/Stop ownership; repeated configured Run is inert due host active-task
+limit (PIDs/classmtime unchanged). Author now makes configured task a finite
+launcher into the canonical programmatic Run pipeline, keeping identity separation
+and one preparation/ownership implementation. The final adapter passes actual repeated keyboardRun (newJVMs/classmtime),
+configured-launched liveapp→refusedconfiguredretry preservesJVMs/UIready/Stop,
+and Stop then removes allfixtureJVMs. Final source review/matrix stillpending;
+no49artifact exists yet.
 Prepare a new local49/build49 candidate after verification; keep sealed48intact. Original Zero Dev watcher/profile preserved; Dev editor closed
 normally for isolation. Installed48and preserved upgraded private editor session
 are open, with the actual unsaved upgrade-test note intact. Test apps are stopped.

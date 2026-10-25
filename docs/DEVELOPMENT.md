@@ -378,14 +378,18 @@ does not gain that fallback matcher. The standalone inline matcher still works.
 
 Configured task resolution is description-only. VS Code calls it while listing
 choices and during project startup, so it must not save files, stop an app or
-clear Problems. The CustomExecution start callback performs the native Run
-preparation and rechecks trust, project identity, cancellation and busy state.
+clear Problems. The CustomExecution start callback launches the same native Run pipeline as the
+sidebar, which rechecks trust, project identity, cancellation and busy state.
 A refused/cancelled callback returns a finite terminal without replacing the
 running app or resetting its diagnostics. Configured tasks require CustomExecution
 (all supported VS Code versions provide it); programmatic fallback remains
 separate. Verify by opening **Tasks: Configure Default Build Task** while a game
 is running: opening/cancelling the picker must preserve that app and readiness.
-Actually starting the configured task retains normal save/restart/Stop behavior.
+The configured task finishes its launch request; the separate app task owns the
+compiler, Java process, readiness, Problems and Stop. This allows repeated build
+shortcuts to restart the app while keeping one preparation implementation. The
+launcher's completion is not a claim that compilation has finished. Actually
+starting the configured task retains normal save/restart/Stop behavior.
 Each editor-launched native Run has a fresh internal task `instanceId`, registered
 in the extension's task definition. Leave it out of student tasks.json. VS Code
 normalizes task identity using registered fields; this separates a live app from
