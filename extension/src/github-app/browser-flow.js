@@ -7,7 +7,7 @@ function brokerOrigin(configuration,allowLoopbackForTests=false){
   let url;try{url=new URL(configuration.websiteOrigin);}catch{}
   const local=allowLoopbackForTests&&url?.protocol==='http:'&&url.hostname==='127.0.0.1'&&url.port;
   if(!url||(!local&&url.origin!=='https://zero.codepet.ca')||url.username||url.password||url.pathname!=='/'||url.search||url.hash)
-    throw failure('browser-unavailable','Browser sign-in is unavailable. Sign in using a code instead.');
+    throw failure('browser-unavailable','Browser sign-in is unavailable. Check your connection and default browser, then sign in again. Local running still works.');
   return url.origin;
 }
 async function brokerRequest(configuration,operation,body,options={}){
@@ -51,20 +51,20 @@ async function browserFlow({configuration,vscode,fetchImpl=globalThis.fetch,sign
     settled=true;reply(200,'Returning to Zero. You can close this tab.');finish({code:codes[0],ticket:tickets[0]});
   });
   server.requestTimeout=5000;server.headersTimeout=5000;server.keepAliveTimeout=1;
-  server.on('error',()=>stop(failure('browser-unavailable','Zero could not open the sign-in return. Sign in using a code instead.')));
+  server.on('error',()=>stop(failure('browser-unavailable','Zero could not open the sign-in return. Restart Zero and sign in again. Local running still works.')));
   try{
     await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
     if(signal?.aborted)throw failure('cancelled','GitHub sign-in was cancelled.');
     port=server.address().port;
-    timer=setTimeout(()=>stop(failure('browser-expired','Browser sign-in timed out. Sign in again or use a code.')),timeoutMs);timer.unref?.();
+    timer=setTimeout(()=>stop(failure('browser-expired','Browser sign-in timed out. Sign in again and finish the GitHub steps in your browser. Local running still works.')),timeoutMs);timer.unref?.();
     const start=await brokerRequest(configuration,'start',{port,nonce,codeChallenge},{fetchImpl,signal:controller.signal,allowLoopbackForTests});
     let target;try{target=new URL(start.url);}catch{}
     if(start.clientId!==configuration.clientId||!target||target.origin!==origin||target.pathname!=='/api/desktop/github/login'||target.username||target.password||target.hash||[...target.searchParams.keys()].join(',')!=='ticket'||!/^[A-Za-z0-9_-]{40,4096}$/.test(target.searchParams.get('ticket')||''))
-      throw failure('browser-unavailable','Zero could not verify the browser sign-in page. Sign in using a code instead.');
+      throw failure('browser-unavailable','Zero could not verify the browser sign-in page. Try signing in again later. Local running still works.');
     if(controller.signal.aborted)await received;
     onProgress('Finish signing in on GitHub in your browser.');
     const opened=await Promise.race([Promise.resolve(vscode.env.openExternal(vscode.Uri.parse(target.toString()))),received.then(()=>true)]);
-    if(!opened)throw failure('browser-unavailable','The sign-in browser could not be opened. Sign in using a code instead.');
+    if(!opened)throw failure('browser-unavailable','The sign-in browser could not be opened. Check your default browser, then sign in again. Local running still works.');
     const callback=await received;
     if(signal?.aborted)throw failure('cancelled','GitHub sign-in was cancelled.');
     const value=await brokerRequest(configuration,'exchange',{...callback,codeVerifier:verifier},{fetchImpl,signal,allowLoopbackForTests});
@@ -73,7 +73,7 @@ async function browserFlow({configuration,vscode,fetchImpl=globalThis.fetch,sign
     if(stoppedError)throw stoppedError;
     if(signal?.aborted||error.code==='cancelled')throw failure('cancelled','GitHub sign-in was cancelled.');
     if(error.code==='browser-expired')throw error;
-    throw failure('browser-unavailable','Browser sign-in is unavailable. Sign in using a code instead.');
+    throw failure('browser-unavailable','Browser sign-in is unavailable. Check your connection and default browser, then sign in again. Local running still works.');
   }finally{
     clearTimeout(timer);signal?.removeEventListener('abort',abort);controller.abort();
     server.close();server.closeAllConnections?.();

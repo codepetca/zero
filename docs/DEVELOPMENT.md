@@ -480,8 +480,8 @@ Registration and pinning do not prove installation, device authorization, token
 issuance or live acceptance. The source remains unreleased and local Run stays
 available without a connection. The extension registers the supported
 `zero-github` provider and keeps expiring token pairs in SecretStorage,
-with no shipped client secret. Current local source defaults to browser
-authorization and keeps **Zero: Sign in using a code** as an explicit fallback.
+with no shipped client secret. Current local source uses browser authorization
+for new connections, with no code-sign-in command or fallback.
 Browser-issued sessions renew through the server; schema1 records without a
 flow marker keep the original device-code renewal route. Website OAuth uses the same client ID with
 its own credential family and eight-hour reconnect policy. Browser sign-in remains
@@ -515,8 +515,9 @@ uncertain refresh outcomes require reconnecting instead of retrying a rotating t
 
 Local broker/GitHub fixtures verify the handoff and renewal protocol. Live GitHub
 web authorization, deployed callbacks and physical Windows/Safari acceptance stay
-unproven until their separate activation/acceptance work. Published kits retain
-code sign-in until an authorized release ships this source.
+unproven until their separate activation/acceptance work. Published desktop downloads retain
+their bundled sign-in behavior; browser-only new connections require a separate
+authorized release.
 
 Focused native checks are `node --test extension/test/github-app-*.test.js`,
 followed by the full extension suite. Mocked API/device-flow tests and disposable

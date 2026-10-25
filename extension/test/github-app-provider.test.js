@@ -20,8 +20,8 @@ async function fixture(t,{saved=record(),overrides={},config=configuration,clock
  const events=new Emitter(),data=new Map(saved?[[SECRET_KEY,JSON.stringify(saved)]]:[]),calls=[],diagnostics=[];
  const context={globalStorageUri:{scheme:'file',fsPath:directory},secrets:{onDidChange:events.event,get:async k=>data.get(k),store:async(k,v)=>{data.set(k,v);events.fire({key:k});},delete:async k=>{data.delete(k);events.fire({key:k});}}};
  let cancelListener,time=1000000;const progress=[];
- const vscode={EventEmitter:Emitter,ProgressLocation:{Notification:15},Uri:{parse:value=>value},env:{clipboard:{writeText:async()=>{}},openExternal:async()=>true},window:{showInformationMessage:async()=> 'Copy code and continue',withProgress:async(_options,callback)=>callback({report:value=>progress.push(value)}, {onCancellationRequested:listener=>{cancelListener=listener;return{dispose(){}};},isCancellationRequested:false})}};
- const fetchImpl=async(url,options)=>{calls.push([url,options]);if(overrides.fetch)return overrides.fetch(url,options);if(url.includes('/apps/'))return response(metadata);if(url.endsWith('/user'))return response({id:42,login:'learner',type:'User'});if(url.endsWith('/access_token'))return response(pair);return response({device_code:'device_code_abcdefgh',user_code:'ABCD-1234',verification_uri:'https://github.com/login/device',expires_in:900,interval:5});};
+ const vscode={EventEmitter:Emitter,ProgressLocation:{Notification:15},Uri:{parse:value=>value},env:{openExternal:async()=>{assert.fail('Saved-session tests must not open a browser');}},window:{withProgress:async(_options,callback)=>callback({report:value=>progress.push(value)}, {onCancellationRequested:listener=>{cancelListener=listener;return{dispose(){}};},isCancellationRequested:false})}};
+ const fetchImpl=async(url,options)=>{calls.push([url,options]);if(overrides.fetch)return overrides.fetch(url,options);if(url.includes('/apps/'))return response(metadata);if(url.endsWith('/user'))return response({id:42,login:'learner',type:'User'});if(url.endsWith('/access_token')){assert.equal(new URLSearchParams(options.body).get('grant_type'),'refresh_token');return response(pair);}assert.fail('Unexpected request '+url);};
  const create=()=>createGitHubAppProvider({vscode,context,configuration:config,fetchImpl,now:clock||(()=>time),onDiagnostic:value=>diagnostics.push(value)});
  const provider=create();t.after(()=>provider.dispose());return{provider,create,vscode,context,data,calls,events,progress,diagnostics,fetchImpl,advance:ms=>{time+=ms;},cancel:()=>cancelListener?.()};
 }
@@ -35,10 +35,15 @@ test('restart returns standard numeric identity session, no OAuth scopes, and si
 test('secret changes invalidate immediately; repeated empty reads do not cause event loops',async t=>{
  const f=await fixture(t);await f.provider.getSessions([]);const events=[];f.provider.onDidChangeSessions(value=>events.push(value));f.events.fire({key:SECRET_KEY});assert.equal(events.length,1);assert.equal(events[0].removed[0].account.id,'42');await f.context.secrets.delete(SECRET_KEY);const count=events.length;await f.provider.getSessions([]);await f.provider.getSessions([]);assert.equal(events.length,count);
 });
-test('App metadata id/client/owner/permission tampering prevents device sign-in',async t=>{
+test('App metadata id/client/owner/permission tampering prevents browser sign-in',async t=>{
  for(const changed of [{id:456},{client_id:'Ivattacker'},{owner:{login:'evil'}},{permissions:{...permissions,administration:'write'}}]){
  const f=await fixture(t,{saved:null,overrides:{fetch:async url=>{assert(url.includes('/apps/'));return response({...metadata,...changed});}}});await assert.rejects(f.provider.createSession([]),error=>error.code==='app-mismatch');assert.equal(f.calls.length,1);assert.equal(f.data.has(SECRET_KEY),false);
  }
+});
+test('missing browser configuration never falls back to device authorization',async t=>{
+ const f=await fixture(t,{saved:null});
+ await assert.rejects(f.provider.createSession([]),error=>error.code==='browser-unavailable'&&!/using a code/.test(error.message));
+ assert.equal(f.calls.length,1);assert.ok(f.calls[0][0].includes('/apps/'));assert.equal(f.data.has(SECRET_KEY),false);
 });
 test('account drift removes credentials; mutable username updates preserve numeric account',async t=>{
  const f=await fixture(t,{overrides:{fetch:async url=>response(url.includes('/apps/')?metadata:{id:99,login:'learner',type:'User'})}});await assert.rejects(f.provider.getSessions([]),error=>error.code==='account-changed');assert.equal(f.data.has(SECRET_KEY),false);
@@ -47,6 +52,19 @@ test('account drift removes credentials; mutable username updates preserve numer
 test('two windows refresh once and reread the winning atomic pair',async t=>{
  const f=await fixture(t,{saved:{...record(),expiresAt:999999}});const second=f.create();t.after(()=>second.dispose());
  const [a,b]=await Promise.all([f.provider.getSessions([]),second.getSessions([])]);assert.equal(a[0].accessToken,pair.access_token);assert.equal(b[0].accessToken,pair.access_token);assert.equal(f.calls.filter(([url])=>url.endsWith('/access_token')).length,1);const saved=JSON.parse(f.data.get(SECRET_KEY));assert.equal(saved.refreshToken,pair.refresh_token);assert.equal(saved.state,'active');
+});
+test('saved device sessions keep their family, identity and legacy renewal route',async t=>{
+ for(const flow of [undefined,'device']){
+  const saved={...record(),...(flow?{flow}:{})},f=await fixture(t,{saved});
+  assert.equal((await f.provider.getSessions([]))[0].accessToken,saved.accessToken);
+  assert.equal(f.calls.some(([url])=>url.endsWith('/access_token')),false);
+  f.advance(500000);const [renewed]=await f.provider.getSessions([]);
+  assert.equal(renewed.id,saved.sessionId);assert.deepEqual(renewed.account,saved.account);assert.equal(renewed.accessToken,pair.access_token);
+  const stored=JSON.parse(f.data.get(SECRET_KEY));assert.equal(stored.flow,flow);assert.equal(stored.refreshToken,pair.refresh_token);
+  const rotations=f.calls.filter(([url])=>url==='https://github.com/login/oauth/access_token');assert.equal(rotations.length,1);
+  const fields=new URLSearchParams(rotations[0][1].body);assert.equal(fields.get('grant_type'),'refresh_token');assert.equal(fields.get('refresh_token'),saved.refreshToken);
+  assert.equal(f.calls.some(([url])=>url.includes('/device/')||url.includes('/api/desktop/')),false);
+ }
 });
 test('provider remains busy throughout silent rotating renewal and account removal',async t=>{
  let release,started;
@@ -95,35 +113,7 @@ test('crash marker, expired refresh and malformed secret require reconnection wi
  for(const saved of [{...record(),state:'refreshing'},{...record(),expiresAt:100,refreshExpiresAt:999999}]){const f=await fixture(t,{saved});assert.deepEqual(await f.provider.getSessions([]),[]);assert.equal(f.calls.length,0);}
  const f=await fixture(t);f.data.set(SECRET_KEY,'ghu_invalid secret');await assert.rejects(f.provider.getSessions([]),error=>error.code==='invalid-credentials'&&!error.message.includes('ghu_'));assert.equal(f.calls.length,0);
 });
-test('cancelled required code step and native cancellation do not poll or save credentials',async t=>{
- const f=await fixture(t,{saved:null});f.vscode.window.showInformationMessage=async()=>undefined;await assert.rejects(f.provider.createSession([]),error=>error.code==='cancelled');assert.equal(f.calls.filter(([url])=>url.endsWith('/access_token')).length,0);assert.equal(f.data.has(SECRET_KEY),false);
- const g=await fixture(t,{saved:null});g.vscode.window.showInformationMessage=async()=>{g.cancel();return 'Copy code and continue';};await assert.rejects(g.provider.createSession([]),error=>error.code==='cancelled');assert.equal(g.data.has(SECRET_KEY),false);
-});
-test('completed device sign-in stores one expiring pair and verifies personal numeric identity',async t=>{
- const f=await fixture(t,{saved:null});const events=[];f.provider.onDidChangeSessions(value=>events.push(value));
- const session=await f.provider.createSession([]);assert.equal(session.account.id,'42');assert.equal(session.accessToken,pair.access_token);assert.deepEqual(session.scopes,[]);
- const saved=JSON.parse(f.data.get(SECRET_KEY));assert.equal(saved.accessToken,pair.access_token);assert.equal(saved.refreshToken,pair.refresh_token);assert.equal(saved.state,'active');assert(events.some(value=>value.added.some(value=>value.id===session.id)));
- assert.equal(f.calls.filter(([url])=>url.endsWith('/access_token')).length,1);
- for(const [url,options]of f.calls){assert(!url.includes('ghu_'));assert(!url.includes('ghr_'));assert(!url.includes('device_code'));assert(!options.body?.includes('client_secret'));}
-});
-test('owned facade starts at the device-code prompt and cancellation never opens GitHub or saves a session',async t=>{
- const f=await fixture(t,{saved:null});const prompts=[];let opened=0,copied=0;
- f.vscode.window.showInformationMessage=async(message,options,...buttons)=>{prompts.push({message,options,buttons});return undefined;};
- f.vscode.env.openExternal=async()=>{opened++;return true;};f.vscode.env.clipboard.writeText=async()=>{copied++;};
- const auth=integratedAuthentication(f,t);await auth.refresh();assert.equal(prompts.length,0);assert.equal(f.calls.length,0);
- await assert.rejects(auth.signIn(),/cancelled or unavailable/);
- assert.equal(prompts.length,1);assert.equal(prompts[0].message,'Connect Zero to GitHub');assert.equal(prompts[0].options.modal,true);
- assert.deepEqual(prompts[0].buttons,['Copy code and continue']);assert.match(prompts[0].options.detail,/ABCD-1234/);
- assert.equal(opened,0);assert.equal(copied,0);assert.equal(f.data.has(SECRET_KEY),false);assert.equal(auth.signedIn,false);
- assert.equal(f.calls.filter(([url])=>url.endsWith('/access_token')).length,0);
-});
-test('owned facade completes device authorization and retains renewal and sign-out invalidation',async t=>{
- const f=await fixture(t,{saved:null}),auth=integratedAuthentication(f,t);
- await auth.signIn();assert.equal(auth.accountId,'42');const ticket=await auth.capture();
- assert.equal(JSON.parse(f.data.get(SECRET_KEY)).state,'active');
- await f.provider.removeSession(auth.sessionId);assert.throws(()=>auth.assertCurrentNow(ticket),/account or sign-in changed/);
- await auth.refresh();assert.equal(auth.signedIn,false);assert.equal(f.data.has(SECRET_KEY),false);
-});
+
 test('revoked connection clears only the Zero secret',async t=>{
  const f=await fixture(t,{overrides:{fetch:async url=>url.endsWith('/user')?new Response('token details must not leak',{status:401}):response(metadata)}});f.data.set('other.extension','keep');
  await assert.rejects(f.provider.getSessions([]),error=>error.code==='unauthorized'&&!error.message.includes('token details'));assert.equal(f.data.has(SECRET_KEY),false);assert.equal(f.data.get('other.extension'),'keep');
@@ -176,31 +166,6 @@ test('integrated metadata mismatch stops repository work and is retried rather t
  const authentication=integratedAuthentication(f,t),repositories=createGitHubAppRepositories({authentication,configuration,fetchImpl:f.fetchImpl});
  for(let attempt=0;attempt<2;attempt++)await assert.rejects(repositories.access('https://github.com/learner/project'),/Sign in to GitHub/);
  assert.equal(f.calls.length,2);assert.ok(f.calls.every(([,options])=>options.headers.Authorization==='Bearer '+record().accessToken));
-});
-test('device code is copied before browser opening and remains in progress while polling',async t=>{
- let resolvePoll,pollStarted;const polling=new Promise(resolve=>{pollStarted=resolve;});
- const f=await fixture(t,{saved:null,overrides:{fetch:async url=>{
-  if(url.includes('/apps/'))return response(metadata);
-  if(url.endsWith('/device/code'))return response({device_code:'device_code_abcdefgh',user_code:'ABCD-1234',verification_uri:'https://github.com/login/device',expires_in:900,interval:5});
-  if(url.endsWith('/access_token')){pollStarted();return new Promise(resolve=>{resolvePoll=resolve;});}
-  return response({id:42,login:'learner',type:'User'});
- }}});
- const dialogs=[];f.vscode.window.showInformationMessage=async(...args)=>{dialogs.push(args);return 'Copy code and continue';};
- const actions=[];f.vscode.env.clipboard.writeText=async text=>actions.push(['copy',text]);f.vscode.env.openExternal=async uri=>{actions.push(['open',uri]);return true;};
- const signingIn=f.provider.createSession([]);await polling;
- assert.deepEqual(dialogs,[['Connect Zero to GitHub',{modal:true,detail:'Code: ABCD-1234'},'Copy code and continue']]);
- assert.deepEqual(actions,[['copy','ABCD-1234'],['open','https://github.com/login/device']]);assert.match(f.progress.at(-1).message,/ABCD-1234/);
- assert.equal(f.calls.find(([url])=>url.includes('/apps/'))[1].headers.Authorization,undefined,'First authorization retains anonymous pinned-App precheck');
- resolvePoll(response(pair));await signingIn;
-});
-test('cancel or clipboard failure never opens a browser or polls for a token',async t=>{
- for(const mode of ['cancel','clipboard','cancel-copy']) {
-  const f=await fixture(t,{saved:null});let opened=0,copied=0;f.vscode.env.openExternal=async()=>{opened++;return true;};
-  f.vscode.env.clipboard.writeText=async()=>{copied++;if(mode==='clipboard')throw Error('private clipboard error');if(mode==='cancel-copy')f.cancel();};
-  if(mode==='cancel')f.vscode.window.showInformationMessage=async()=>undefined;
-  await assert.rejects(f.provider.createSession([]),error=>['cancelled','clipboard-unavailable'].includes(error.code)&&!error.message.includes('private clipboard error'));
-  assert.equal(opened,0);assert.equal(copied,mode==='cancel'?0:1);assert.equal(f.calls.filter(([url])=>url.endsWith('/access_token')).length,0);assert.equal(f.data.has(SECRET_KEY),false);
- }
 });
 
 test('lock repair diagnostic reaches Zero Output callback even when authentication facade sanitizes its error',async t=>{

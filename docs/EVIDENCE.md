@@ -96,6 +96,37 @@ Equivalent local production-build13case smoke is404. Exact results and checklink
 `.verification/zerojams/pr196-publication.json` and `pr196-live-hold.json`.
 This completion receipt is local only; merged code remains unchanged.
 
+## Simpler desktop GitHub entry — 2026-10-25
+
+Owner requested browser-only new sign-in and the main Start Page action as
+Sign in to GitHub while signed out. Local branch codex/simplify-github-sign-in,
+base77b371db. Removed the duplicate action, code command and automatic code
+fallback; legacy saved device sessions retain identity/storage/secretless renewal.
+The same main control becomes Start tutorial after sign-in, gated by verified
+repository access. Sign-in itself never creates a project. Tutorials and Open
+remain available signed out; stale actions and busy guards remain enforced.
+No broker/PKCE/callback/permission/schema/JavaAPI/version changes or publication.
+
+Root checks and69focused UI/onboarding/command/playground tests pass. Worker ran
+128GitHubApp tests, final owned subset40pass. Actual CUA browser fixture using
+production renderer verifies light/dark/highcontrast signed-out, ready and
+install-disabled states, sign-in dispatch and keyboard Tutorials. Fixture actions
+are simulated. Native Dev process launched, but computer controls selected the
+installed profile rather than the separate Dev window: actual native interaction
+and real OAuth could not be automated. On2026-10-25 the owner replied “yes, looks
+good” to the requested manual Dev UI check (one sign-in button, no code option,
+browser handoff). This is human UI smoke acceptance; completed OAuth/token
+exchange and post-login native state were not separately reported. No installed
+account/work change or remote write was performed by the agent.
+Sol/high bounded implementation worker; parent owns UI/docs/integration. Effective
+model/elapsed/token metrics unknown. Independent source-review receipts, exact
+head and final verdicts retained in `.verification/simplify-sign-in/` with tests
+and screenshots. Two independent Sol/high source reviews at0a525808 found no
+actionable implementation issues; one P3 current-doc fallback inconsistency was
+corrected in a docs-only batch. Targeted closure is recorded with those receipts.
+Public49/metadataPR195 remain unchanged; next shipping requires
+normal source/CI and a separately authorized new immutable release. Pilot limits
+remain as recorded in LOCAL-MAC-01; no fresh Mac or school pass inferred.
 
 ## ZeroJams production hold and authorized source merge — 2026-10-25
 

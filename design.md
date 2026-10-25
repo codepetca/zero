@@ -43,7 +43,10 @@ when adding features; a new feature does not reset the agreed interaction style.
 - The **Zero Start Page** owns onboarding: **Start tutorial** with a **Tutorials** dropdown,
   **Project ▾ → New / Clone / Open**, recent projects and guided GitHub sign-in/access.
   The Start tutorial split control and Project button share the same width.
-  Keep Tutorials available without sign-in. Show it automatically in an empty Zero window; preserve existing editors and
+  While signed out, its main action says **Sign in to GitHub** and opens browser
+  sign-in only. After sign-in it says **Start tutorial**, enabled only when
+  repository access is ready. Omit the duplicate sign-in action and code-sign-in
+  option. Keep Tutorials available without sign-in. Show it automatically in an empty Zero window; preserve existing editors and
   restore its native editor tab. Reopen it through **Zero: Start Page** or the
   sidebar's **⋯ → Start Page**. Keep local opening available without GitHub.
 - On the Start Page, ready GitHub access is one line: **GitHub · username**.
@@ -121,7 +124,7 @@ kits keep their original behavior. This section supersedes the older VS Code
 GitHub-provider and browser-only repository-creation decisions below; those dated
 entries remain historical design records. See [the identity plan](docs/ZERO-IDENTITY-PLAN.md).
 
-Use GitHub device sign-in through Zero's supported `zero-github` provider and
+Use GitHub browser sign-in through Zero's supported `zero-github` provider and
 native editor controls. Store expiring credentials in VS Code SecretStorage;
 no password or token-entry form. Show username as the account label and bind
 remote actions to its numeric GitHub ID. Sign out disconnects only Zero on this

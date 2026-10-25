@@ -18,9 +18,13 @@ verified. Sol6.1/high independent review clean after one preview-navigation fix.
 Safari/WebKit and live authenticated hosting/participation remain unverified.
 
 Production hold unchanged: canonical jam pages/panels/APIs/downloads404; Hub link
-hidden. Latest flag-on production-build smoke passes. No new push/PR/merge,
+hidden. Latest flag-on production-build smoke passes. Owner now authorizes this source PR/merge; no
 credentials/permissions, registry provisioning, live pilot or installer release.
-Local preview3025/hub/jams/create. Next: owner can inspect the completed flow;
-publication/activation needs applicable explicit authority. DeepSeek paused through
+Local preview3025/hub/jams/create. Current main73847c88 (PR198 desktop sign-in)
+integrated without executable conflicts; both EVIDENCE histories retained. Primary
+funding and actor worktrees untouched. Next: focused integration review, draft PR,
+exact-head CI, authorized merge and verify production hold. Live pilot remains held.
+Integration review budget:1targeted wave planned, max7launches/4fix batches/60min;
+reuse prior complete feature and wording reviews. No new full implementation wave. DeepSeek paused through
 2026-12-31. Prior PR196/197 merged; separate live encoded-Hub500 issue remains
 recorded without scope expansion. Worktree retained for active local preview.
