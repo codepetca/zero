@@ -27,3 +27,12 @@ No student repo/Pages/ZeroHub writes, manual-kit/Windows release or template dep
 FreshMac/school-network/novice/gameplay/Sparkle delivery remain separate pilot gaps.
 Primary checkout funding work, Dev process/profiles and private backups preserved.
 Proof .verification/mac50/; DeepSeek paused through2026-12-31. No newgoal/task.
+
+Parallel main integration: PR200 mergedaa6d58c5 while PR199 CI ran. Its guided
+ZeroJams preparation and GitHub/public-repository wording are preserved, with
+both EVIDENCE histories retained. Production jam pages/panels/APIs/downloads
+remain404 and Hub link hidden; no activation is authorized here. Other worktree's
+local3025preview remains untouched. See docs/ZEROJAMS-PLAN.md and EVIDENCE for
+that delivery/remaining Safari and live-hosting limits. Merge conflicts affected
+CURRENT/EVIDENCE prose only; native/extension/framework build inputs unchanged.
+Repeat required final-headCI after targeted integration review; keep PR199 draft.

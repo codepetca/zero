@@ -1,3 +1,4 @@
+import {preparedJamResponse} from '@/lib/jam-template-http.mjs';
 import {createJamTemplateZip} from '@/lib/jam-template.mjs';
 import {hiddenJamsResponse} from '@/lib/jams-visibility.mjs';
 export const runtime = 'nodejs';
@@ -12,4 +13,9 @@ export async function GET(request:Request) {
   } catch {
     return Response.json({error:'The jam template could not be prepared. Try downloading it again later.'},{status:503});
   }
+}
+
+export async function POST(request:Request) {
+  const hidden=hiddenJamsResponse();if(hidden)return hidden;
+  return preparedJamResponse(request);
 }

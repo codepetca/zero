@@ -1,0 +1,38 @@
+.jam-preparation { min-width:0; }
+.jam-preparation-steps { display:flex; flex-wrap:wrap; gap:8px 24px; padding:0; margin-block:28px; list-style:none; color:var(--muted); }
+.jam-preparation-steps li { padding-block:6px; }
+.jam-preparation-steps [aria-current="step"] { color:var(--ink); font-weight:600; border-bottom:2px solid var(--purple); }
+.jam-preparation h2[tabindex="-1"]:focus { outline:none; }
+.jam-preparation h2[tabindex="-1"]:focus-visible { outline:3px solid var(--purple); outline-offset:6px; border-radius:2px; }
+.jam-preparation-form { max-width:760px; gap:24px; }
+.jam-preparation-form fieldset { min-width:0; padding:0; border:0; margin:0; }
+.jam-preparation-form legend { padding:0; margin-bottom:10px; font-weight:600; }
+.jam-preparation-types { display:flex; flex-wrap:wrap; gap:12px; }
+.jam-preparation .jam-preparation-form .jam-preparation-type { display:flex; flex:1 1 160px; flex-direction:row; align-items:center; gap:10px; min-height:48px; padding:10px 14px; border:1px solid var(--zero-border); border-radius:6px; cursor:pointer; background:var(--zero-page); }
+.jam-preparation-type:has(input:checked) { border-color:var(--purple); background:color-mix(in srgb,var(--purple) 8%,var(--zero-page)); }
+.jam-preparation-form .jam-preparation-type input[type="radio"] { width:18px; height:18px; min-width:18px; min-height:18px; padding:0; margin:0; accent-color:var(--purple); }
+.jam-preparation-types .jam-preparation-field-error { flex-basis:100%; }
+.jam-preparation-schedule > label { margin-block:20px; }
+.jam-preparation-schedule > p { margin-top:0; }
+.jam-preparation-dates { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:20px; }
+.jam-preparation-form input[type="datetime-local"] { max-width:100%; min-width:0; box-sizing:border-box; }
+.jam-preparation-form :is(input,textarea)[aria-invalid="true"] { border-color:var(--purple); border-width:2px; }
+.jam-preparation-field-error { color:var(--ink); font-size:15px; font-weight:400; }
+.jam-preparation-field-error::before { content:'Please check: '; font-weight:600; }
+.jam-preparation-options { margin-top:24px; }
+.jam-preparation :is(.jam-preparation-options,.jam-preparation-inventory,.jam-preparation-saved-preview) > summary { display:list-item; min-height:44px; padding-block:10px; cursor:pointer; font-weight:600; }
+.jam-preparation summary:focus-visible { outline:3px solid var(--purple); outline-offset:3px; }
+.jam-preparation-options .jam-preparation-dates { margin-block:16px; }
+.jam-preparation-form > button { justify-self:start; }
+.jam-preparation-preview { display:block; width:100%; min-width:0; height:640px; border:1px solid var(--zero-border); border-radius:6px; background:var(--zero-page); margin-block:20px; }
+.jam-preparation-hosting { max-width:72ch; padding-left:24px; }
+.jam-preparation-hosting li { padding-block:6px; }
+.jam-preparation-inventory { margin-block:16px 24px; }
+.jam-preparation-inventory ul { padding-left:24px; }
+.jam-preparation-saved-preview { margin-top:24px; }
+@media(max-width:600px) {
+  .jam-preparation-steps { gap:4px 16px; }
+  .jam-preparation .jam-actions > button { flex:1 1 100%; }
+  .jam-preparation-form > button { justify-self:stretch; }
+  .jam-preparation-preview { height:600px; }
+}

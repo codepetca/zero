@@ -2,11 +2,18 @@
 
 This is the complete editable ZeroJams template, version **1.0.0**. It is plain
 HTML, CSS, JavaScript and local SVG, with no package install or build step. Your
-repository owns every file. Zero updates do not replace them. The Game Jam and
-App Jam downloads differ only in their example manifest and wording.
+repository owns every file. Zero updates do not replace them. Guided preparation fills in `zero-jam.json` with your details. Plain Game Jam
+and App Jam downloads use example details instead.
 
 The template source uses the included MIT license. Keep its notice with reused
 template code; your repository owns your additions and custom content.
+
+## GitHub is required for every jam
+
+Both Game Jams and App Jams require participants to use GitHub: sign in on Zero
+to join, then submit their own public GitHub repository at an exact commit.
+Creator eligibility rules add to this platform requirement. Preparing or
+browsing a website does not require sign-in; joining and submitting do.
 
 ## Make it yours
 
@@ -18,7 +25,9 @@ template code; your repository owns your additions and custom content.
    GitHub tools. The download does not create, connect or write a remote repository.
 3. Edit `zero-jam.json`: choose `type` (`game` or `app`), title, summary, theme,
    rules, eligibility, actual public `websiteUrl`, IANA timezone and schedule.
-   The included 2030 dates and example.com URL are examples, not a real event.
+   If you used guided preparation, your chosen dates and details are already set.
+   Plain templates use example 2030 dates. Replace any example.com website URL
+   with your actual address after hosting; it is a placeholder.
    Dates are exact UTC instants ending in `Z`; the page displays them in your
    chosen timezone, including daylight-saving changes. Registration and submission
    windows include their opening instant and exclude their closing instant.

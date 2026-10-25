@@ -13,9 +13,14 @@ appearance.addEventListener('click', () => {
 });
 async function showJam() {
   try {
-    const response = await fetch('zero-jam.json', {cache:'no-store'});
-    if (!response.ok) throw new Error('manifest');
-    const jam = await response.json();
+    const embedded = document.getElementById('zero-jam-preview-data');
+    let jam;
+    if (embedded) jam = JSON.parse(embedded.textContent);
+    else {
+      const response = await fetch('zero-jam.json', {cache:'no-store'});
+      if (!response.ok) throw new Error('manifest');
+      jam = await response.json();
+    }
     if (jam.schema !== 1 || !['game','app'].includes(jam.type) || !jam.schedule || typeof jam.title !== 'string') throw new Error('manifest');
     document.title = jam.title;
     put('kind', jam.type === 'game' ? 'Game Jam' : 'App Jam');

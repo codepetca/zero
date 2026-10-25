@@ -25,6 +25,10 @@ The agreed direction is:
 
 - **ZeroJams** is the umbrella, with **Game Jam** and **App Jam** event types.
 - Anyone can propose an event; a teacher affiliation is not required.
+- Every Game Jam and App Jam requires GitHub participation: students sign in on
+  Zero to join and submit their own public GitHub repository at an exact commit.
+  This is a platform requirement, independent of creator eligibility wording.
+  Browsing and preparing/downloading a site remain available before sign-in.
 - A Zero maintainer approves the event before official participation opens.
 - Creators host their websites, with GitHub Pages as the default template path.
 - Zero maintains the complete canonical website template in this repository. Each
@@ -55,7 +59,7 @@ not create a second platform. Competitive versus showcase-only is a separate
 event choice. Automated judging is outside the first release.
 
 Proposed MVP defaults, to validate during implementation: public events and
-records, GitHub accounts, individual participation, one active project entry per
+records, individual participation, one active project entry per
 account per jam, and Zero-created games/apps. Teams, private events, other
 toolchains, prizes, chat, email notifications and ranked voting are later work.
 These defaults are not additional owner decisions.
@@ -107,6 +111,53 @@ There is still backend execution, provider dependency and maintenance, even
 without a dedicated database or provisioned server.
 
 ## Creator preparation and review flow
+
+### Guided preparation follow-up — 2026-10-25
+
+Owner requested a local guided **details → actual website preview → customized
+download** flow. Keep the production hold and existing published-site approval
+flow. No GitHub sign-in is needed to prepare/download; no remote repository or
+hosting changes occur. The full editable website stays in the creator's copy.
+
+Delivered locally at reviewed source `35241dde` (base `25acd272`). The guided
+form, actual canonical-template preview, customized ZIP and separate source
+proposal form are implemented. No new PR or production activation was performed.
+Focused62tests,240website tests, typecheck/build and Chromium checks pass;
+production build remains closed even with the activation flag. Safari/WebKit and
+live GitHub hosting/approval are unverified. Evidence: `docs/EVIDENCE.md`.
+
+Implementation contract for this slice:
+
+- Browser-safe `website/lib/jam-draft.mjs` exports `defaultJamDraft(type='game',
+  timezone='America/Toronto')`, `JAM_DRAFT_LIMITS`, and `prepareJamDraft(draft)`.
+  Result is `{manifest:null|normalizedManifest,errors:{field:message}}`.
+  Draft string fields: type,title,summary,theme,rules,eligibility,websiteUrl,
+  timezone,registrationOpensAt,startsAt,submissionsCloseAt,registrationClosesAt,
+  submissionsOpenAt. Main dates use `datetime-local` minutes in the selected IANA
+  timezone. The last two are optional overrides, defaulting to startsAt. Empty
+  websiteUrl generates the documented placeholder, to replace after hosting.
+  Reject nonexistent/ambiguous daylight-saving times with useful field errors;
+  preserve inputs. Shared canonical manifest validation remains authoritative.
+- `POST /api/jams/template/preview` accepts `{manifest}` and returns
+  `{html,manifest}`. HTML uses the exact canonical template/assets with escaped
+  embedded JSON, a restrictive CSP and disabled anchors (CSP alone cannot block
+  document navigation). No preview network access. Display it only in a
+  titled iframe with sandbox `allow-scripts` (no same-origin/top-navigation).
+- `POST /api/jams/template` accepts the same body and returns the complete ZIP
+  with exactly the same normalized manifest. Existing GET downloads still work
+  locally. Both handlers reject production before reading bodies/templates.
+- New `JamPreparation` component owns type/details, validation, preview/edit,
+  download/error recovery and next hosting steps. Persist public draft fields
+  in sessionStorage only. Keep one primary action per step, associated errors,
+  keyboard/focus and320px reflow. Clearly distinguish download from publication.
+  `JamCreate` retains its existing source-bound approval form separately below.
+
+Ownership: coordinator writes shared draft/schema/template helpers, HTTP routes,
+integration and docs; bounded UI worker owns only JamPreparation.tsx and its CSS.
+Verify timezone/DST, HTML injection isolation, preview/ZIP equality, original
+downloads, local actual browser flow and production404. One independent review
+will cover the final coherent slice after checks. This is implementation work,
+not authorization to lift the production hold or change accounts/permissions.
 
 1. **Create a jam.** Choose Game Jam or App Jam from Zero or the web preparation
    page. Both lead to the same workflow. Use a creator-owned public repository
