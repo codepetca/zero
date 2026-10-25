@@ -1,5 +1,23 @@
 # Verification
 
+## Mac0.5.49 authorized publication — 2026-10-25
+
+Owner authorized publication after [sourcePR194](https://github.com/codepetca/zero/pull/194)
+merged294d0c97 with all11checks and complete clean independent integration review.
+Published the exact sealed one-DMG [Mac release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.49),
+target52fa3120, built e5953f05. Draft and anonymous public download match
+5,916,593bytes/SHA256182b79fffebb7bce665db242a5867e5592a1510f62472ee86841262c14e879ee.
+All13checksums, DMG/feedEd25519 signatures, staple andGatekeeper pass. No rebuild,
+clobber or priorrelease mutation. This metadata promotion copies the exact signed
+feed bytes (SHA256d97d488fe12ef607a72ec2b8ed4ef0c1d6eec84e6942070ff34a32d4440cfde2)
+and promotes the verified installer/snapshot; review, exact-headCI and live
+website/feed checks are recorded on its PR and `.verification/publish-mac49/`.
+Manualkit0.5.17 andWindows0.5.21 preview retain their versions.
+Fresh-Mac/school-network, physical nativeplay/novice and49productionSparkle delivery
+remain separate unproven acceptance, owned by the user; no claims that publication
+completes them. Candidate, pilot pack, projects/settings and private backups preserved.
+
+
 ## Mac 0.5.49 source PR / CI — 2026-10-25
 
 Owner authorized source push/PR and CI, keeping publishing separate and taking the
