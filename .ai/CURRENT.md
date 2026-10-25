@@ -1,28 +1,31 @@
-# Mac0.5.49 publication — metadata promotion / live verification
+# Simplify desktop GitHub sign-in — local source change
 
-Use `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/publish-mac-0-5-49`.
-Owner authorized publication on2026-10-25 after sourcePR194 merged294d0c97
-(all11CIchecks and independent integration review clean). Primary checkout has
-unrelated user work; preserve it and the ZeroDev watcher/private student editor.
+Use `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/simplify-github-sign-in`,
+base77b371db (published49metadataPR195). Owner asked to remove code sign-in and
+make the main tutorial control say Sign in to GitHub while signed out.
+This authorizes local implementation/testing, not another push/PR/release.
+Published Mac0.5.49, production website/feed and sealed artifacts stay unchanged.
 
-The exact sealed49DMG is public at
-https://github.com/codepetca/zero/releases/tag/setup-v0.5.49,
-targeting preparation52fa3120, original clean build e5953f05. Draft and anonymous
-public downloads match5,916,593bytes/SHA256182b79fffebb7bce665db242a5867e5592a1510f62472ee86841262c14e879ee.
-All13sealedchecksums, DMG/feedEd25519, staple andGatekeeper pass. No rebuild or
-asset replacement. Original candidate and pilot ZIP remain unchanged.
+New connections use browser authorization only. Code command/button/fallback
+removed; old saved device-issued sessions retain their original renewal path.
+Signed-out main button signs in only; authenticated state says Start tutorial,
+disabled until repository access is ready. Tutorials/Open stay available offline.
+No change to broker, PKCE/callback validation, identity/permissions, secret schema,
+Java framework, project files or versions. Parent owns UI/docs/commands/integration;
+Sol/high browser_only_login worker owns provider/browser/client tests (delivered).
 
-This branch promotes only verified Mac installer/snapshot and exact signed49
-feed. Next: independent publication/correctness and compatibility reviews,
-exact-headCI, normalmetadataPRmerge, then live download/feed byte/signature checks.
-Release authority includes this standard metadata/website/feed promotion.
-Separate manualkit0.5.17 andWindows0.5.21 preview stay unchanged.
-Proof `.verification/publish-mac49/`; prior source receipt `.verification/mac-source49/`.
+Root checks and69UI/onboarding/command/playground tests pass; worker's128GitHub
+App tests pass (final owned subset40pass). Actual production-renderer browser
+fixture verified light/dark/highcontrast signed-out, install-disabled and ready
+states, sign-in dispatch and Tutorials keyboard menu. Native Dev launch ran, but
+computer controls selected installed Zero instead of the separate Dev instance;
+no native-editor/realliveOAuth acceptance claimed. Installed account state and
+unsaved work preserved. Browser preview is simulated; no new GitHub login or
+repository operation was performed. Independent source-review receipts and final
+verdicts: `.verification/simplify-sign-in/`. Root Dev watcher/preview at3153 retained.
 
-Owner continues fresh-Mac/school-network pilot. Do not mark those tests passed.
-[Local pilot](../docs/pilots/mac-0.5.49/LOCAL-MAC-01.md) records warm-Mac evidence
-and exact remaining physical/novice/offlineGUI limits. Optional codefallback
-needs account-holder passkey completion. Production49Sparkle delivery itself
-remains untested until actual installed-client acceptance.
-No student remote writes, tutorialtemplate deployment, new telemetry, account/
-credential changes or Windows release. DeepSeek paused through2026-12-31.
+Remaining before shipping: actual new native/editor interaction, source PR/CI and
+separately authorized new immutable release; do not modify published49bytes.
+Existing fresh-Mac/school-network/novice/actualSparkle pilot gaps remain open.
+Primary checkout's funding work and private student editor remain untouched.
+DeepSeek paused through2026-12-31. No new goal/task/automation.

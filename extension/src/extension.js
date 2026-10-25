@@ -252,7 +252,7 @@ function activate(context, services = {}) {
     if (!disposed && !ready) {report('GitHub setup paused');void githubReadiness.refresh();}
     return !disposed && ready ? ticket : false;
   }
-  async function signIn(changeAccount = auth.signedIn, method = 'browser') {
+  async function signIn(changeAccount = auth.signedIn) {
     if (disposed || isBusy()) return;
     signingIn = true; refresh();
     try {
@@ -261,10 +261,7 @@ function activate(context, services = {}) {
       if (changeAccount && auth.sessionId) {await appProvider.removeSession(auth.sessionId);await auth.refresh();}
       await actions['zero.startPage']();
       await auth.refresh();
-      if (!auth.signedIn) {
-        if(method==='device'){await appProvider.createSession([], {method:'device'});await auth.refresh();}
-        else await auth.signIn(false);
-      }
+      if (!auth.signedIn) await auth.signIn(false);
       if (!disposed) {await githubReadiness.refresh();output.appendLine(auth.status);try {await rememberOpened({projectPath:await project()});}catch{}}
     } catch (error) {
       if (!disposed) throw error;
@@ -673,7 +670,6 @@ function activate(context, services = {}) {
       }
     },
     'zero.signInToGitHub': signIn,
-    'zero.signInUsingCode': () => signIn(auth.signedIn,'device'),
     'zero.setupGitHub': async () => {
       if (disposed || isBusy()) return;
       signingIn = true;refresh();

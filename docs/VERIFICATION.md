@@ -1,5 +1,31 @@
 # Verification
 
+## Simpler desktop GitHub entry — 2026-10-25
+
+Owner requested browser-only new sign-in and the main Start Page action as
+Sign in to GitHub while signed out. Local branch codex/simplify-github-sign-in,
+base77b371db. Removed the duplicate action, code command and automatic code
+fallback; legacy saved device sessions retain identity/storage/secretless renewal.
+The same main control becomes Start tutorial after sign-in, gated by verified
+repository access. Sign-in itself never creates a project. Tutorials and Open
+remain available signed out; stale actions and busy guards remain enforced.
+No broker/PKCE/callback/permission/schema/JavaAPI/version changes or publication.
+
+Root checks and69focused UI/onboarding/command/playground tests pass. Worker ran
+128GitHubApp tests, final owned subset40pass. Actual CUA browser fixture using
+production renderer verifies light/dark/highcontrast signed-out, ready and
+install-disabled states, sign-in dispatch and keyboard Tutorials. Fixture actions
+are simulated. Native Dev process launched, but computer controls selected the
+installed profile rather than the separate Dev window: actual native interaction
+and real OAuth remain untested. No installed account/work change or remote write.
+Sol/high bounded implementation worker; parent owns UI/docs/integration. Effective
+model/elapsed/token metrics unknown. Independent source-review receipts, exact
+head and final verdicts retained in `.verification/simplify-sign-in/` with tests
+and screenshots. Public49/sourcePR195 remain unchanged; next shipping requires
+normal source/CI and a separately authorized new immutable release. Pilot limits
+remain as recorded in LOCAL-MAC-01; no fresh Mac or school pass inferred.
+
+
 ## Mac0.5.49 authorized publication — 2026-10-25
 
 Owner authorized publication after [sourcePR194](https://github.com/codepetca/zero/pull/194)

@@ -102,7 +102,7 @@ and [refresh requirements](https://docs.github.com/en/apps/creating-github-apps/
 
 ### Current implementation
 
-Desktop defaults to browser authorization with explicit device-code fallback,
+Desktop uses browser authorization for new connections, without a code option,
 with expiring user access/refresh tokens stored as one versioned secret in VS Code
 SecretStorage. Browser-issued tokens use the server for refresh; device-issued
 tokens keep GitHub's secretless refresh route. No client

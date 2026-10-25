@@ -36,8 +36,10 @@ marks a preferred pattern with documented, task-specific exceptions.
   centered stack and shared light/dark themes without promotional sections.
   GitHub development connection belongs in downloaded Zero's welcome, using the
   supported `zero-github` provider and native editor controls. Current local source
-  defaults to GitHub browser authorization with explicit **Sign in using a code**
-  fallback; activation and published downloads remain separate. Download/browse/Play require no sign-in; optional ZeroHub stars use
+  uses GitHub browser authorization for new connections, with no code-sign-in
+  option. The primary Start Page action says **Sign in to GitHub** while signed
+  out and **Start tutorial** after sign-in; tutorial creation stays disabled until
+  access is ready. Activation and published downloads remain separate. Download/browse/Play require no sign-in; optional ZeroHub stars use
   the same Codepet-owned App with a separate browser credential family. There is
   no separate Zero password/account or automatic browser/editor pairing.
 - MUST keep the option-2 sidebar minimal and use supported VS Code APIs.

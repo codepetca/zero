@@ -122,10 +122,6 @@
         "title": "Zero: Sign in to GitHub"
       },
       {
-        "command": "zero.signInUsingCode",
-        "title": "Zero: Sign in using a code"
-      },
-      {
         "command": "zero.createRepository",
         "title": "Zero: Create GitHub Repository"
       },
