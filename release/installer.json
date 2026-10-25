@@ -21,8 +21,7 @@
     ],
     "minimumOS": "12.0",
     "size": 5915143,
-    "sha256": "3a7e76ba133cfb1828861b72fbf99307d405b75dfcca2b534c46a089e25128ef",
-    "url": "https://github.com/codepetca/zero/releases/download/setup-v0.5.48/Zero-0.5.48-macos.dmg"
+    "sha256": "3a7e76ba133cfb1828861b72fbf99307d405b75dfcca2b534c46a089e25128ef"
   },
   "signing": {
     "identitySha1": "ACE8EE40F3615C5062CBBD5F085E299E049BAE08",
