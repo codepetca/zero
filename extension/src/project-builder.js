@@ -61,8 +61,10 @@ async function locateRuntimes({runtime,projectRoot,environment=process.env,platf
  nodeCandidates.push(...dirs.map(dir=>paths.join(dir,'node'+suffix)));
  env.PATH=dirs.join(delimiter);
  const home=get('JAVA_HOME'),javaHomes=home?[home]:[];
- if(platform==='darwin'&&!home){const base=path.join(get('HOME')||os.homedir(),'Library/Application Support/Zero/runtime');for(const name of (await fs.readdir(base).catch(()=>[])).slice(0,32))if(name.startsWith('jdk-')){javaHomes.push(path.join(base,name));for(const child of (await fs.readdir(path.join(base,name)).catch(()=>[])).slice(0,16))javaHomes.push(path.join(base,name,child,'Contents/Home'));}
- try{const selected=await execute('/usr/libexec/java_home',['-v',String(runtime.requirements.javaMajor)],{env,cwd:os.tmpdir(),timeout:5000,maxBuffer:32768,windowsHide:true,signal});const selectedHome=String(selected.stdout).trim();if(path.isAbsolute(selectedHome))javaHomes.push(selectedHome);}catch{} }
+ // Native Run may inherit JDK17; the saved browser builder can use Zero's
+ // already-installed compatible private JDK without changing that preference.
+ if(platform==='darwin'){const base=path.join(get('HOME')||os.homedir(),'Library/Application Support/Zero/runtime');for(const name of (await fs.readdir(base).catch(()=>[])).slice(0,32))if(name.startsWith('jdk-')){javaHomes.push(path.join(base,name));for(const child of (await fs.readdir(path.join(base,name)).catch(()=>[])).slice(0,16))javaHomes.push(path.join(base,name,child,'Contents/Home'));}
+ if(!home)try{const selected=await execute('/usr/libexec/java_home',['-v',String(runtime.requirements.javaMajor)],{env,cwd:os.tmpdir(),timeout:5000,maxBuffer:32768,windowsHide:true,signal});const selectedHome=String(selected.stdout).trim();if(path.isAbsolute(selectedHome))javaHomes.push(selectedHome);}catch{} }
  if(!home)for(const dir of dirs)javaHomes.push(paths.dirname(dir));
  const safe=async candidate=>{if(!paths.isAbsolute(candidate))throw Error('absolute runtime path required');const actual=await fs.realpath(candidate);if(actual===projectRoot||actual.startsWith(projectRoot+path.sep))throw Error('runtime is inside project');if(!(await fs.stat(actual)).isFile())throw Error('ordinary runtime required');return actual;};
  let node,nodeVersion;
@@ -73,7 +75,7 @@ async function locateRuntimes({runtime,projectRoot,environment=process.env,platf
  let javaHome,javaVersion;
  if(needsJava){for(const candidate of javaHomes){if(signal?.aborted)throw aborted();try{const java=await safe(paths.join(candidate,'bin','java'+suffix)),javac=await safe(paths.join(candidate,'bin','javac'+suffix));const [run,compile]=await Promise.all([execute(java,['-version'],{env,cwd:os.tmpdir(),timeout:5000,maxBuffer:32768,windowsHide:true,signal}),execute(javac,['-version'],{env,cwd:os.tmpdir(),timeout:5000,maxBuffer:32768,windowsHide:true,signal})]);const text=String(run.stderr||'')+String(run.stdout||''),version=/version "([0-9][^"]*)"/.exec(text)?.[1],compiler=/javac (\d+)/.exec(String(compile.stdout||'')+String(compile.stderr||''));if(Number(version?.split('.')[0])!==runtime.requirements.javaMajor||Number(compiler?.[1])!==runtime.requirements.javaMajor)continue;javaHome=paths.dirname(paths.dirname(java));javaVersion=version;break;}catch{}}
  if(signal?.aborted)throw aborted();
- if(!javaHome)throw unavailable('standalone JDK '+runtime.requirements.javaMajor+' with matching java and javac is missing'+(home?' from JAVA_HOME':'')+'.');env.JAVA_HOME=javaHome;env.PATH=paths.join(javaHome,'bin')+delimiter+env.PATH;}
+ if(!javaHome)throw unavailable('standalone JDK '+runtime.requirements.javaMajor+' with matching java and javac is missing'+(home?(platform==='darwin'?' from JAVA_HOME or Zero’s private runtime':' from JAVA_HOME'):'')+'.');env.JAVA_HOME=javaHome;env.PATH=paths.join(javaHome,'bin')+delimiter+env.PATH;}
  const pins=runtime.pins.filter(pin=>pin.platform===platform+'-'+arch);
  return {node,javaHome,env,evidence:{nodeVersion,javaVersion,platform:platform+'-'+arch,testedPins:pins.map(({tool,version})=>({tool,version})),matchesTestedVersions:pins.length>0&&pins.every(pin=>pin.version.replace(/^v/,'').split('+')[0]===(pin.tool==='node'?nodeVersion:javaVersion||'unavailable'))}};
 }

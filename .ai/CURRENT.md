@@ -36,4 +36,11 @@ root/prompt verification pass; independent Luna/medium review is clear. Evidence
 and updated screenshot: docs/EVIDENCE.md. Toolbar refinement25512c6f leaves only
 New (+) visible; Refresh, Show All and Collapse All are in Project overflow.
 20 focused checks/check/diff, independent Sol/medium review and real Mac menu /
-collapse/refresh/full-Explorer-return proof pass. No remaining local plan work.
+collapse/refresh/full-Explorer-return proof pass. Explorer plan complete.
+
+Active follow-up: owner reports Publish app failure in my-study from Zero Dev.
+Native error reproduced: inherited JAVA_HOME is JDK17; saved browser builder
+requires21. A compatible private JDK21 is already installed. Host discovery now
+tries that private JDK after an incompatible configured JAVA_HOME; configured
+compatible JDK remains first. 22 focused builder tests/check/diff pass. Local
+export and independent review pending. No live Publish/push is authorized here.
