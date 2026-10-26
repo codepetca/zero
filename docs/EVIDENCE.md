@@ -11331,3 +11331,12 @@ approximately8minutes (manual wall estimate). Review ledger:2launches,1initial
 wave,1fixbatch; targeted prose/candidate review next. Budgets7launches/4fixbatches/
 60minutes session/30minutes reviewer. Physical Windows not newly tested; prior
 Git30-scenario Mac acceptance retained, no new failure-matrix claim.
+
+Mac51 follow-up review turns: release51_compat_review turn2 inspectedf419222f..
+eeecce6a, requested Sol/high, original prose mismatch substantially resolved with
+three exact-label/default clarifications accepted. Turn3 inspectedeeecce6a..
+849a3527 complete/clean, same model/effort, original finding resolved. Code
+coverage108tests retained. Ledger4review turns,1initial+2targetedwaves,2prosefix
+batches. Per-turn elapsed/tokens unavailable. Root rerun1338pass/3skip, website
+243pass/typecheck/build and final check pass. Signed/stapled candidate proof in
+MAC-CANDIDATE-0.5.51.md; sourcePR208 remains draft during exact artifact/QA gates.
