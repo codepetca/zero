@@ -9,6 +9,10 @@ remain separate. Existing Git recovery work and public student projects stay int
 
 ## Student experience
 
+Creation uses the native Project header’s New… (+) menu and tree context menus.
+ZeroHub lives in Project’s overflow; neither control appears in the preview
+controls panel (owner refinement,2026-10-26).
+
 Code and Assets are always visible. Code presents Main, student classes and Java
 packages; Assets maps to the app's real resource directory. Libraries appears only
 when a project has an added or authored component. Added libraries show their exact
@@ -57,7 +61,7 @@ The preview must be fully functional before asking for that final review. A visu
 acceptance gate does not stop backend implementation or independent testing.
 
 Status: implementation and scoped local acceptance complete through reviewed
-c8ce5cb2; required owner visual decision remains. Phases1–5 pass locally in the
+feeeb0fe (including the owner-requested Project menu refinement); required owner visual decision remains. Phases1–5 pass locally in the
 scope recorded in docs/EVIDENCE.md; phase6 source review/docs pass, with concrete
 native light/dark screenshots ready. Standard Explorer remains default. No source
 publication, account changes or release. Use the native preview and exact evidence

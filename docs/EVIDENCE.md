@@ -1,5 +1,35 @@
 # Delivery evidence index
 
+## Project creation menu refinement — 2026-10-26
+
+Owner requested moving ZeroHub/New from the controls panel into the native
+Student Explorer. Local reviewed implementation
+`feeeb0fee3d57d1e75a3b9184d3bd6898118090d`, base
+`ce60122cf7de5d3c67f22595bdfbd65d27dba644`, same isolated worktree/branch.
+Preview controls now omit both controls; native Project **New… (+)** opens the
+creation picker for selected Code/Assets folders. Existing tree right-click
+creation remains. Project overflow exposes the existing guarded ZeroHub picker.
+Without a writable selection, creation choices state app defaults or use the
+existing location picker. Stale project/tree targets, cancelled menus, duplicate
+menus and busy states remain guarded. The standard Explorer remains the default
+while the overall visual decision is pending; no publication occurred.
+
+111 focused controller/manifest/render/file/assets/sidebar/onboarding/workflow-UI/
+playground checks pass; `npm run check` and `git diff --check` pass. Actual Mac CUA
+verified controls removal, keyboard creation-menu choice, creation of menu_notes
+from Project New and notes.txt from a folder right-click, opening that exact file,
+and ZeroHub → Projects/Libraries via Project overflow with cancellation. Saved
+screenshots: `.verification/student-explorer/screenshots/native-project-menu-light.png`
+and `native-project-context-light.png`. No Java/runtime/export code changed, so
+prior scoped native/WebFX/browser proof remains applicable; it was not repeated.
+
+One fresh GPT-6 Sol/high independent reviewer inspected the complete10-file delta
+and immediate canonical-target/two-view callers: clean, no findings/fix batches.
+Requested configuration recorded; effective model/tokens and individual elapsed
+telemetry unknown. Reviewer reused reported checks and Mac proof. Windows/minimum
+host interaction remains untested. This refinement does not approve the full
+preview as default or authorize source push/PR/merge/release.
+
 ## Student explorer preview ready for owner visual review — 2026-10-26
 
 Local branch `codex/student-explorer`, reviewed implementation
