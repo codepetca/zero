@@ -169,14 +169,14 @@ test('unsafe/duplicate names, dirty/unborn/main/detached and pending-operation g
   const f = await fixture(t);
   for (const name of ['main', '-x', 'x..y', 'x@{1}', 'HEAD~1', 'x//y', 'x.lock', '', 'a b', 'x:main', '../x']) await assert.rejects(workflow.prepareStart(f.root, name, f.options), /name|valid feature/);
   await assert.rejects(workflow.prepareFinish(f.root, f.options), /Start a feature/);
-  await write(f.root, 'Main.java', 'dirty'); await assert.rejects(workflow.prepareStart(f.root, 'feature', f.options), /Use Commit & push/);
+  await write(f.root, 'Main.java', 'dirty'); await assert.rejects(workflow.prepareStart(f.root, 'feature', f.options), /local commit.*Source Control → Commit.*Pushing is not required/);
   await core.git(f.root, ['restore', 'Main.java']);
   await start(f); await assert.rejects(workflow.prepareStart(f.root, 'other', f.options), /Switch to main/);
   await core.git(f.root, ['checkout', 'main']); await assert.rejects(workflow.prepareStart(f.root, 'add-score', f.options), /already exists/);
   await core.git(f.root, ['checkout', '--detach']); await assert.rejects(workflow.prepareStart(f.root, 'other', f.options), /detached HEAD/);
   await core.git(f.root, ['checkout', 'main']); await write(f.root, '.git/MERGE_HEAD', 'pending');
   await assert.rejects(workflow.prepareStart(f.root, 'other', f.options), /current Git merge/);
-  const u = await fixture(t, {unborn: true}); await assert.rejects(workflow.prepareStart(u.root, 'feature', u.options), /Commit & push on main/);
+  const u = await fixture(t, {unborn: true}); await assert.rejects(workflow.prepareStart(u.root, 'feature', u.options), /local commit on main.*Pushing is not required/);
 });
 test('Sync keeps locally ahead main and Merge refuses missing local main while empty remote accepts baseline', async t => {
   const f = await fixture(t); await commit(f.root, 'Local.java', 'local');
@@ -190,7 +190,7 @@ test('Sync keeps locally ahead main and Merge refuses missing local main while e
 test('cleanup refuses modified feature, missing commits and a dirty/non-main worktree', async t => {
   const f = await fixture(t); await start(f); const head = await commit(f.root, 'Score.java', 'score'); await finish(f);
   await assert.rejects(workflow.deleteFinishedBranch(f.root, 'main', head, {run: f.run}), /exact finished/);
-  await write(f.root, 'Main.java', 'dirty'); await assert.rejects(workflow.deleteFinishedBranch(f.root, 'add-score', head, {run: f.run}), /Use Commit & push/);
+  await write(f.root, 'Main.java', 'dirty'); await assert.rejects(workflow.deleteFinishedBranch(f.root, 'add-score', head, {run: f.run}), /local commit.*Source Control → Commit.*Pushing is not required/);
   await core.git(f.root, ['restore', 'Main.java']); await core.git(f.root, ['checkout', 'add-score']);
   await assert.rejects(workflow.deleteFinishedBranch(f.root, 'add-score', head, {run: f.run}), /Switch to clean main/);
   const changed = await commit(f.root, 'More.java', 'more'); await core.git(f.root, ['checkout', 'main']);
@@ -320,7 +320,7 @@ test('Merge preparation is local, session failure blocks push, and a normal merg
 
 test('Sync refuses dirty main and merges diverged main without uploading or losing commits', async t => {
   const f = await fixture(t); await write(f.root, 'Main.java', 'dirty');
-  await assert.rejects(workflow.prepareSync(f.root, f.options), /Use Commit & push/);
+  await assert.rejects(workflow.prepareSync(f.root, f.options), /local commit.*Source Control → Commit.*Pushing is not required/);
   assert.equal(f.calls.length, 0);
   await core.git(f.root, ['restore', 'Main.java']); const head = await commit(f.root, 'Local.java', 'local');
   await remoteChange(f, 'Remote.java', 'remote');

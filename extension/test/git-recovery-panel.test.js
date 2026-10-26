@@ -27,6 +27,9 @@ test('push recovery is destination-specific and never claims an uncertain push s
   assert.match(panel({pending:{branch:'main',kind:'behind'}}),/zero.syncProject/);
   assert.match(panel({pending:{branch:'feature',kind:'behind'}}),/zero.updateBranchFromGitHub/);
   assert.match(panel({pending:{branch:'main',kind:'unconfirmed'}}),/zero.checkPush/);
+  const changed=panel({pending:{branch:'main',kind:'changed'}});
+  assert.match(changed,/project or GitHub sign-in changed/);assert.match(changed,/Check your GitHub account/);assert.match(changed,/zero.checkPush/);
+  assert.doesNotMatch(changed,/Pushed to|confirmed on GitHub/);
   assert.match(uploadMessage({kind:'unconfirmed',committed:true}),/Committed locally.*confirmation was interrupted/);
   assert.match(panel({pending:{branch:'main',kind:'protected'}}),/Create feature branch/);
   assert.match(panel({pending:{branch:'feature',kind:'auth',operation:'merge'}}),/zero.reconnectGitHub/);

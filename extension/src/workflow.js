@@ -73,9 +73,9 @@ async function state(project, run, {full = false, connected = false, allowMerge 
   return {...source, ...current};
 }
 function clean(current) {
-  if (!current.head) throw new Error('Use Commit & push on main to save the initial project, then New branch.');
-  if (current.status) throw new Error('Use Commit & push first, then review New branch or Merge to main again. For the initial project, commit and push on main.');
-  if (!current.mainHead) throw new Error('This project needs a committed main branch. Save the initial project on main with Commit & push first.');
+  if (!current.head) throw new Error('Save the initial project as a local commit on main using Source Control → Commit, then try New branch again. Pushing is not required.');
+  if (current.status) throw new Error('Save your changes as a local commit using Source Control → Commit, then try again. Pushing is not required.');
+  if (!current.mainHead) throw new Error('This project needs a committed main branch. Save the initial project as a local commit on main using Source Control → Commit. Pushing is not required.');
 }
 function same(a, b) {
   return ['root', 'page', 'remote', 'branch', 'head', 'mainHead', 'status', 'gitDir', 'worktrees'].every(key => a[key] === b[key]);
