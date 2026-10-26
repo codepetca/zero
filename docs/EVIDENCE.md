@@ -10633,3 +10633,68 @@ manual47→48upgrade, clean-folder setup, browser sign-in, native compiler recov
 and fresh WebFX preview pass. Two early Run stops remain an unresolved QA
 observation; no student-rollout approval or production update-delivery claim.
 Publishing remains held.
+
+## Local branches and explicit GitHub Sync — 2026-10-25
+
+Owner approved local New branch, explicit Sync, fewer repeated transfer checks and
+correct Source Control tracking. Local source on `codex/local-git-workflow`, base
+`3bab71a0272552e4234db9baf3f0eccbe3f8982d`, reviewed implementation
+`41837be7f54f29cd469bbc59875a736206bca5cc`. No source push, PR, merge, release,
+website/template publication or Pages deployment in this phase. Existing native
+Git credential prototype remains default OFF; the live pilot used guarded Zero
+transport with its existing session.
+
+New branch now uses local Git state with no authentication, GitHub access request
+or upload fingerprint. Signed-out local branching and no-origin original projects
+are tested. Sync explicitly downloads reviewed GitHub main into the current main
+or feature, preserving conflict recovery without upload. Merge uses a nonforce
+push and one exact-SHA confirmation; rejected pushes direct students to Sync,
+Run and retry. Repository access is checked at the first actual transfer and
+reused only within that operation; session/project guards still apply. Confirmed
+remote SHAs refresh only the origin tracking cache through guarded CAS. Existing
+upstream configuration remains unchanged; new feature branches can still show
+native Publish Branch until an upstream is configured.
+
+Checks: root suite at `a90be934` passed1236/1239 with3existing skips, no failures.
+An earlier run found2menu regressions (empty-window/practice gating), corrected
+before review; one premature rerun was stopped. The subsequent two-file session
+fix passes39UI/upload tests and root configuration/syntax/command/link checks.
+Independent real-Git workflow22 and tracking25 tests pass; broader UI/onboarding
+96tests and extension3tests pass. All3tutorial template scaffolds retain their
+published source evidence and readiness checks. Java/API/WebFX/toolchain files
+are unchanged; no new browser-framework proof is claimed.
+
+Independent initial full16file wave: Astra/high security/correctness identified
+one acceptedP2, Sol6.1/high compatibility was clean. Signing out or replacing the
+session during a Sync fetch previously allowed applying incoming main afterward.
+One fix batch adds captured-session validation to connected mutation/cleanup
+callbacks while local branching remains auth-free. Astra/high targeted review
+is clean, including an independent local real-Git reproduction showing session
+invalidation preserves HEAD/main. Ledger:3reviewer turns/launches,1initial wave,
+1targeted wave,1fix batch, no separate integration wave needed for the isolated
+guard delta. Effective configurations, elapsed reviewer time and token usage were
+not exposed. Unchanged initial coverage plus targeted review covers41837be7.
+
+Actual Mac CUA pilot used the existing owner-owned disposable repository
+<https://github.com/armorup/zero-git-flow-pilot-20261025>. Sync corrected its stale
+origin/main cache from the initial commit to confirmed `cfa7f70b`. Through the
+real Zero controls: New branch `pilot-local-fast`, edit Main.java greeting, native
+Run → App UI ready → Stop, Commit & push, Merge to main, automatic local branch
+cleanup, native SCM inspection and persistent Zero return all passed. The final
+local main, origin/main, feature tracking cache and read-only remote main/feature
+resolve to `e37d39dfda0c59ea49a1ca87066551680d246483`; worktree is clean and only
+local main remains. Remote test branches remain recoverable. Native SCM shows
+main/origin/main together and no false outgoing commit count. No JavaFX button
+interaction is claimed; the native app readiness marker and Stop were observed.
+
+Single current-connection samples, CUA submission/click timestamp to a read-only
+HEAD/ref observer: branch599ms (prior13815ms); merge6007ms (prior19778ms).
+These are illustrative observations, not a network benchmark or school acceptance.
+The observer was stopped. Original `my-greeting` was reopened and its recorded
+HEAD `2909872c993b311e74cd1b3331f46a5baea57a42`, main and clean status are unchanged.
+Raw local receipts live in ignored `.verification/local-git-workflow/`.
+
+Physical Windows, Git2.31 binary, minimum VSCode, fresh Mac, school network and
+successful real-account native adapter transfer remain unproven. User confirmed
+this connection is not the school network. Published Mac50/core0.3.0/manualkit17/
+Windows21 and the ZeroJams publication hold remain unchanged.

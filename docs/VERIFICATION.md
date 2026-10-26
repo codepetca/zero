@@ -4896,3 +4896,20 @@ manual47→48upgrade, clean-folder setup, browser sign-in, native compiler recov
 and fresh WebFX preview pass. Two early Run stops remain an unresolved QA
 observation; no student-rollout approval or production update-delivery claim.
 Publishing remains held.
+
+## Local branch / explicit Sync acceptance — 2026-10-25
+
+Reviewed local implementation41837be7, base3bab71a0: root1236pass/3existing skips
+at pre-remediation a90be934; isolated session-guard remediation39UI/upload tests
+and root checks pass. Workflow22, tracking25 and broader UI/onboarding96tests pass.
+Two initial full-diff reviewers and one targeted reviewer resolved oneP2; no
+remaining source blockers. All3tutorial template readiness checks remain valid.
+See [evidence](EVIDENCE.md#local-branches-and-explicit-github-sync--2026-10-25).
+
+Actual Mac existing-session guarded-transport pilot passes Sync, local New branch,
+Zero-only edit, native UI-ready/Stop, Commit & push, Merge, local branch cleanup,
+SCM tracking and persistent Zero return. Disposable repository final main is
+`e37d39dfda0c59ea49a1ca87066551680d246483`. Single local branch sample599ms versus
+prior13815ms; merge6007ms versus19778ms. Original my-greeting restored unchanged.
+No publishing/releases or new source PR/CI. School network, fresh Mac, physical
+Windows/minimum host and successful real native-auth transfer remain separate.
