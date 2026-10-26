@@ -231,7 +231,7 @@ Existing files and folders are preserved; choose another name if one exists.
 Cancel leaves the project unchanged. The file list refreshes automatically.
 Right-click resources or a folder inside it to import existing images/audio.
 Right-click an asset and choose **Copy Asset Path** for its path in Java.
-**Rename…** changes an editable file's name; Java declarations and references
+**Rename file…** changes an editable file's name; Java declarations and references
 need their own source edits. The Project **⋯** menu contains Refresh, Collapse
 All, Show all project files and ZeroHub. **Zero: Use Standard Explorer** restores
 the ordinary file tree; **Zero: Use Student Explorer** returns here.
