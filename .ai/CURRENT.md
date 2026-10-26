@@ -1,33 +1,30 @@
-# Durable request settlement live — 2026-10-26
+# ZeroJams browser/network/provider checks — 2026-10-26
 
-Owner-authorized phase complete; ZeroJams production hold remains. Draft PR202
-is unmerged. Reviewed settlement04da7ce1 + main integration10150f20 deployed as
-619ca729b5d4844b32c0294706406d3c79183881, Vercel dpl_Gq9Fz6yHtugW3p2ZmwASyTzk7qPC.
-All11 exact-head CI pass; final receipt follows deployed source locally.
+Production hold remains; draft PR202 is unmerged. Hosted source `619ca729` and
+Vercel dpl_Gq9Fz6yHtugW3p2ZmwASyTzk7qPC unchanged. Registry `db8a7d2b` retains two
+closed event blobs and two fences. No live writes, settings, credentials,
+invitations, deployments or publication in this pass. Local3025 preserved.
 
-Atomic branch CAS closes unknowns by recovering accepted outcome or storing a
-not-applied fence; missing-event/proposal cases included. Client close mode/key
-are one saved value; storage failure blocks dispatch. Lost close/reload continues
-closing. Payload/draft/actor isolation and older-client409 handling are verified.
+Owner confirms current connection is intended school network. Chrome existing
+stewchan OAuth refresh, protected event read, creator Pages/top-level fallback,
+Game/App demo HTTP reachability pass. Three event reloads2.092–2.680 s including
+browser automation. Actual hosted320 px reflows without horizontal overflow.
+Delayed-provider Chrome fixture passes unknownJoin→expiredResolve→lostClose→
+reload→finishClose→freshJoin; exactly1 fence + 1 Join, draft survives reload.
+Safari reached Vercel login; owner explicitly paused Safari work. Physical
+device/WebKit/real200%/400% zoom remain unverified; no bypass or weakened cookies.
 
-Guarded migration77066b52fcd7367e669ae35f933bac9fef2f923b copied both closed event
-blobs unchanged to zero-jams-v2/events and retained deployment guard. stewchan's
-two queued Game test requests closed via normal authenticated UI; reload has no
-pending control. Current registrydb8a7d2b3a52d84afc523c00b84a31beddf361ec contains
-2 fences, event blobs/guard unchanged.4 exact public-ledger service replays return
-not-applied with0source/0write calls (read-only audit, not forged web access).
+40 new current-atomic-provider regressions pass; canonical194 jam tests pass.
+No application change. Five fixture runs measure Join 27 GitHub calls; warm web
+Join including identity/refresh 36. Eight forced conflicts160 calls/32 write-method
+requests/0 published commits. Current caps do not pace aggregate provider traffic.
+Vercel metadata confirms active Hobby/Fluid/iad1/protection unchanged. Billing API
+404 Costs not found: expense unknown, never zero. Installation quota headers,
+Preview cost stops and real write-latency acceptance remain open.
 
-154jam/275website/7preflight/typecheck/build pass.10new-route access cases pass.
-Astra+Sol initial reviews, Astra delta, Sol integration clean;4turns/1fixbatch,
-3P2s fixed. Real Chrome lost-close/reload/freshJoin,320/390px+Tab/Enter pass.
-Production existing13cases +settlementGET404; undeployedsettlementPOST405; Hub200
-with no jam link. New handler's production404 guard tested.0deployments for3new
-registry commits; historical initial1709d161 error is unrelated. No account,
-secret, invitation or protection changes. Local3025/other checkouts preserved.
-
-NEXT: browser/school-network and provider quota/latency/cost acceptance before
-wider trial; no extra invite/public rollout without owner scope. Keep v2 fences
-and marker; rollback disables pilot, never restores legacy writer. Physical
-mobile/WebKit/zoom and retired-path provider behavior remain unverified (marker
-loss fails closed). Packet docs/ZEROJAMS-PILOT.md; ignored final receipt
-.verification/zerojams-pilot/settlement-verification.json. DeepSeek paused.
+Packet: docs/ZEROJAMS-PILOT.md newest receipt; measured budgets/recommendations in
+OPERATIONS. Ignored browser-network/, provider-acceptance/, provider-failures/.
+NEXT: installation-wide quota observation/pacing and Preview cost acceptance
+before wider trial; Safari remains owner-paused. Manual budget proposals are not
+configured/approved. No extra invite, main merge or production rollout. Retain
+v2 marker/fences; rollback disables pilot, never restores legacy writer.

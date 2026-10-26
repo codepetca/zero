@@ -170,6 +170,71 @@ API limits, hosting plans and free allowances are dependencies, not permanent
 unlimited service guarantees. Private events, large events or sustained write
 contention require another design review.
 
+## Measured provider budget — 2026-10-26
+
+Five deterministic runs of the current atomic service/transport against real
+loopback HTTP fixtures give identical request counts. These are request budgets,
+not live provider throughput or latency guarantees. Setup/migration are excluded.
+
+| Operation | Registry GET | Registry POST/PATCH | Participant-source GET | Published commits |
+| --- | ---: | ---: | ---: | ---: |
+| Join / approve | 23 | 4 | 0 | 1 |
+| Submit | 23 | 4 | 2 | 1 |
+| New proposal, empty registry | 18 | 4 | 3 | 1 |
+| Accepted retry / applied close | 8 | 0 | 0 | 0 |
+| Close uncommitted event request | 15 | 4 | 0 | 1 |
+| Event read | 8 | 0 | 0 | 0 |
+| List two events | 23 | 0 | 0 | 0 |
+| Two synchronized distinct Joins | 61 | 12 | 0 | 2 |
+| Eight forced conflicts, then409 | 128 | 32 | 0 | 0 |
+
+A normal POST adds one participant `/user` request. A successful action refreshes
+its event (8 installation GETs): warm web Join36 calls, Submit 38. Cold installation
+token setup adds 2 calls per process; the cache is not shared across instances.
+Failed ref publication can leave staged objects: accepted-operation counts and
+published commits undercount provider traffic. Pilot GETs bypass projection caches;
+no background timer polling is implemented.
+
+Existing accepted-record/actor caps do not impose an installation-wide traffic
+budget. No aggregate limiter/queue, CAS backoff or rate-header telemetry is
+implemented. GitHub403/429/5xx stop the current attempt with safe unavailability;
+Retry-After is not forwarded/scheduled by the current adapter. Do not repeatedly
+retry provider refusals. Eight bounded conflict attempts can still be expensive.
+The new40 fault regressions verify state preservation/exact-key recovery through
+these failures; they do not test real quota resets.
+
+GitHub documents a minimum5000 installation requests/hour, plus secondary limits
+including generally80 content-generating requests/minute and500/hour. Some endpoint
+costs/limits are undisclosed. Treat all4 write-method calls/action conservatively;
+125 actions/hour is arithmetic under a500-write budget, not a supported rate.
+[Official GitHub limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api).
+Actual dedicated-installation headers remain unmeasured; a public60/hour IP sample
+or the operator's CLI account quota cannot substitute for them.
+
+Read-only Vercel metadata confirms active Hobby plan, Fluid compute, `iad1`, Node22
+and unchanged Preview protection. The billing-charge API returned404 Costs not
+found for2026-10-25–27UTC. Expense is unknown, not zero; this does not isolate jam
+cost from the shared Zero project. Confirm plan eligibility, usage and a
+Preview-specific stop before expansion. Vercel's documented spend-management pause
+applies to production deployments; it is not a Preview cost stop.
+[Spend management](https://vercel.com/docs/spend-management),
+[billing API](https://vercel.com/docs/rest-api/billing/list-focus-billing-charges),
+[plan conditions](https://vercel.com/docs/plans/hobby).
+
+Proposed supervised envelope, **not configured or owner-approved**: retain2 invites/
+2 events, serialize mutations, at most2 new intents/minute and20/hour aggregate,
+and at most60 additional registry GET route loads/hour. Under the measured warm
+no-conflict case this models up to 2080 installation calls/hour; cold starts, source
+updates, other service activity and retries add more. This is planning margin,
+not a capacity guarantee. Proposed stops: any provider rate refusal/unknown outcome,
+repeated conflict, GET≥10 s or POST≥15 s; preserve keys/drafts and recover the same
+intent before new work. Dollar alert/stop amounts require measured Preview spend
+and owner choice; no new spending limit or account setting was applied.
+
+Before a wider trial, add reviewed aggregate quota observation/pacing and verify
+actual installation budget, real mutation latency and Preview cost controls.
+Do not widen invitations based only on the current fault tests or fast read sample.
+
 ## Live acceptance still required
 
 After source review and authorized deployment, verify actual GitHub consent,

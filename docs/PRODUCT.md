@@ -167,8 +167,11 @@ loopback regression pass. The protected pilot can durably close an
 unknown request without applying it, or recover its accepted result, using an
 atomic Git registry transaction. Lost close replies retain the close intent.
 Source review, guarded migration and live closure of two legacy test requests
-pass with unchanged event bytes; broader
-provider/browser/network acceptance remains open. See the
+pass with unchanged event bytes. Chrome sign-in, hosted reads and creator fallback
+also pass on the owner-confirmed school network, with hosted320 px reflow and
+synthetic delayed-provider recovery. Safari work is owner-paused. Aggregate
+provider pacing/quota, Preview cost, physical-device and real zoom acceptance
+remain open; the existing pilot caps do not establish classroom capacity. See the
 [phased plan](ZEROJAMS-PLAN.md) and [operator guide](ZEROJAMS-OPERATIONS.md).
 
 ## Core goal: students grow the framework

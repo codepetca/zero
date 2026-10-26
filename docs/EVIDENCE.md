@@ -11194,3 +11194,40 @@ manual47→48upgrade, clean-folder setup, browser sign-in, native compiler recov
 and fresh WebFX preview pass. Two early Run stops remain an unresolved QA
 observation; no student-rollout approval or production update-delivery claim.
 Publishing remains held.
+
+
+## ZeroJams school-network/provider checks — 2026-10-26
+
+Source523be528; hosted application619ca729 unchanged. Owner confirmed intended
+school connection; Chrome existing stewchan OAuth refresh, hosted event read,
+creator Pages/official top-level fallback pass. Three visible-ready GET reloads
+2.092–2.680 s including automation; actual hosted320 px has309 px client/scroll width.
+Both Game/App Pages/demo URLs and GitHub source metadata200. Protected frame stays
+blocked by normal Vercel login; no cookie/protection bypass. Owner paused Safari;
+physical-device/WebKit/actual200%/400% zoom unverified.
+
+Delayed75 ms/provider HTTP Chrome fixture: lostJoin→expiredResolve→lostClose→reload
+→finishClose→freshJoin;1 fence + 1 Join, distinct fresh key, draft reload retained.
+40 new current-atomic-provider regressions pass; canonical194 jam tests pass.
+403/429/500/503, socket/timeout/malformed loss, source/event/ledger refusal preserve
+state and exact-key recovery; no application change. Coordinator independently
+reran40; provider measurement worker reused20existing targeted checks.
+
+Five synthetic runs stable: warm Join service 27 calls; web identity+refresh 36;
+8 forced conflicts: 160 calls/32 write methods/0 published commits. Aggregate provider
+quota/backoff/header observation is absent. Public registry `db8a7d2b` unchanged,
+27795 current file bytes excluding history. Read-only Vercel confirms Hobby/Fluid/
+iad1/READY/protection unchanged. Billing API404 leaves cost unknown. Operations
+records measured budgets and proposed supervised thresholds, no configuration or
+spending acceptance. No live writes/load/new branches/accounts/deployments.
+Production13existing+settlement GET404; undeployedsettlement POST405; Hub200/no link.
+
+Two bounded Sol6.1/high assignments (provider assessment read-only; new test file
+only), no shared edits/conflicts/app fixes. Requested configuration known;
+effective model/attributable tokens/wall-time unknown. Start account weekly100%
+remaining, storage227.47 GB healthy; not task cost. DeepSeek remained paused.
+Independent final delta review recorded below. Source/CI prior11checks for619ca729
+remain that deployed head's evidence, not new local-head CI. PR202 draft/unmerged.
+Full ignored receipts: .verification/zerojams-pilot/browser-network/,
+provider-acceptance/, provider-failures/. Detailed current acceptance in PILOT;
+provider call counts/remaining gates in OPERATIONS. No wider rollout accepted.

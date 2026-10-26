@@ -14,10 +14,16 @@ The guarded v2 registry migration preserved both closed event files and build
 exclusion. Two queued legacy test submissions were closed through normal signed-in
 UI without changing event data. No Vercel deployments match the3 new state commits.
 
-Wider-trial acceptance still requires browser/school-network and provider quota,
-latency and cost evidence. Physical mobile/WebKit/zoom and provider-specific
-legacy-path traversal remain unverified; marker loss fails v2 closed. No added
-invitation, production rollout or main merge is authorized.
+The next acceptance pass adds40 atomic-provider fault regressions (194 jam tests
+pass) and verifies Chrome OAuth/hosted reads/creator fallback on the owner's
+confirmed school network. Hosted320 px reflow and delayed-provider browser recovery
+pass. Current Vercel metadata confirms Hobby/Fluid/iad1; billing API404 leaves
+expense unknown. Join uses27 service GitHub calls,36 including warm web identity
+and refresh. Aggregate quota/pacing and Preview cost acceptance remain open.
+Safari work is owner-paused; physical mobile/WebKit/real zoom and provider-specific
+legacy-path traversal remain unverified. Marker loss fails v2 closed. No added
+invitation, production rollout or main merge is authorized. See the newest pilot
+receipt and measured provider budgets in OPERATIONS.
 
 The pilot is restricted to the fixed Preview project, branch, origin and invited
 numeric identities. Production always returns 404 for jam pages, panels, APIs and
@@ -163,7 +169,7 @@ Implementation contract for this slice:
 - New `JamPreparation` component owns type/details, validation, preview/edit,
   download/error recovery and next hosting steps. Persist public draft fields
   in sessionStorage only. Keep one primary action per step, associated errors,
-  keyboard/focus and320px reflow. Clearly distinguish download from publication.
+  keyboard/focus and320 px reflow. Clearly distinguish download from publication.
   `JamCreate` retains its existing source-bound approval form separately below.
 
 Ownership: coordinator writes shared draft/schema/template helpers, HTTP routes,

@@ -571,3 +571,72 @@ unknown settlement blocker; wider browser/network/provider acceptance still hold
 Rollback disables the pilot while retaining v2 records/marker/fences; never restore
 the retired Contents writer. Final receipt docs follow the deployed head locally
 to avoid another unchanged-source CI/deployment run.
+
+
+## Browser/network/provider pass — 2026-10-26
+
+Scope: local tests and bounded read-only hosted checks from source `523be528`;
+application/deployed source `619ca729` remains unchanged. Owner confirms this Mac's
+connection is the intended school network. No live mutation, load test, deployment,
+invitation, credential, protection or billing setting change. Production stays held.
+
+Verified:
+
+- Chrome's expired session showed neutral invited-pilot sign-in with no event
+  details. Normal GitHub account selection as existing stewchan returned to the
+  protected closed Game event. Three sequential fresh event reloads took2680,
+  2485and2092ms including browser automation/visible-control wait. This is a small
+  GET sample, not server-only latency or a write p95/capacity result.
+- Creator Game Pages rendered, and its actual top-level official link opened the
+  signed-in closed-event page. Both Game/App Pages and demo URLs returned200 over
+  this school connection; public GitHub source metadata returned200. No TLS/proxy
+  bypass was used. This establishes these paths for one connection/account today;
+  fresh maintainer sign-in, write latency and other school devices remain separate.
+- Hosted participate at actual320 CSS px had client/scroll width309 px, no horizontal
+  overflow. Real Chrome delayed-provider fixture uses75 ms per provider request:
+  unknownJoin→expiredResolve→Close with lost reply→reload keeps closing→finishClose
+  →freshJoin. Exactly1 fence + 1 Join, new Join key, and draft survive reload.320/390 px
+  controls and keyboard Enter activation pass. This fixture uses dummy identity
+  and loopback provider contracts; it is not an authenticated live write.
+- The protected embedded panel remains empty. A separate unauthenticated GET's
+  normal redirects reach Vercel login with X-Frame-Options DENY/frame-ancestors
+  none; HTTP200there is the login page, not official panel acceptance. Top-level
+  fallback works. SameSite/cookies/protection were not weakened.
+-40 new real HTTP regressions cover current atomic Git staging/ref403/429 with
+  Retry-After/500/503, staging socket/timeout losses, accepted Join reply loss,
+  unavailable event/ledger/source reads and same-key recovery. Full canonical
+  jam aggregate194/194 passes; no application bug/change. Separate coordinator
+  rerun40/40 and provider worker's20 focused existing tests pass.
+- Five fixture runs give identical call counts; see OPERATIONS. Warm browser Join
+  including identity/refresh 36 GitHub calls; worst bounded conflict fixture160 calls/
+  32 write-method requests/0 published commits. No live contention/load probe.
+- Read-only provider metadata: Vercel active Hobby/Fluid/iad1, deployment READY at
+ 619ca729, protection unchanged. Billing API404 Costs not found: expense unknown.
+  Public registry metadata remains db8a7d2b, both event blob hashes unchanged,
+  current six files 27795 bytes excluding history/unreferenced staged objects.
+- Production hold rechecked: existing13 cases plus settlement GET404; undeployed
+  settlement POST405; Hub200 with no jam link. No production deployment was created.
+
+Owner explicitly paused Safari work after desktop Safari reached normal Vercel
+login. No later Safari or physical-device result is claimed. Real200%/400% zoom
+also remains open: a tab shortcut attempt did not change the measured viewport,
+so responsive320 px is not relabeled zoom acceptance. Control host macOS26.6.2;
+Chrome extension engine version was not exposed by its read-only scope. Native
+Chrome showed unrelated windows; no native zoom/settings change was made there.
+
+Expansion remains held for Safari/mobile/zoom, actual dedicated-installation
+quota headers and aggregate pacing, Preview cost controls/plan acceptance, and
+real mutation latency. Provider-specific retired Contents parent-file behavior
+is untested live; v2 marker loss fails closed independently. No scratch live
+branches or writes were created merely to characterize that retired API path.
+The new manual operating thresholds in OPERATIONS are proposals, not installed
+limits or permission to expand. The prior two-account lifecycle evidence remains
+valid for its earlier exact source/date; today's school check does not relabel it.
+
+Ignored receipts: browser-network/{browser-receipt,chrome-school-network,
+live-network,vercel-metadata,vercel-cost,receipt}.json and screenshots;
+provider-acceptance/{report.md,measurement-summary.json,public-metadata.json};
+provider-failures/{receipt.json,test-jams.tap}. Reproducible fixture scripts are
+stored beside those receipts. Temporary fixture listeners/tabs are retired after
+verification; original pilot/local3025/user tabs remain. New tests/docs remain
+local to avoid a source-identical Preview deployment; PR202 stays draft/unmerged.
