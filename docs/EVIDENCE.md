@@ -1,5 +1,50 @@
 # Delivery evidence index
 
+## Durable unknown-request settlement — 2026-10-25
+
+Local reviewed candidate04da7ce1 (base9a88a7fc, initial5117611d). Atomic Git
+branch snapshots/CAS serialize accepted event operations with a bounded global
+not-applied ledger. Close recovers an accepted result or fences an uncommitted
+actor/scope/key/digest. Covers missing events and proposals before verified ID.
+Client saves close mode atomically with the key, refuses dispatch on storage
+failure, preserves drafts, and retries closing after lost replies/reload. Normal
+closed-key replay409 protects older clients. No new auth/role/invitation grant.
+
+154 jam tests,272 website tests,7 preflight tests and typecheck/build pass.
+Eight actual loopback GitHTTP/service/source cases supplement12 adapter cases
+and11 service fence cases. Both winner orders, held verification, missing events,
+provider reply loss/timeouts, strict migration drift, byte/capacity bounds and
+auth/scope/storage failures are covered. The global final-event-slot race also
+passes under the hosted atomic adapter. Existing per-file fixtures are historical
+compatibility checks, not the hosted transaction implementation.
+
+Actual reviewed React bundle/Chrome: unknown Join receives unreadable reply before
+commit, expires, retry409 retains it, Close fence commits but reply is unreadable,
+reload keeps closing after eligibility reopens, terminal not-applied clears the
+key, fresh Join commits. Exactly2 commits (1fence+1join), final joined.320/390px
+and Tab/Enter acceptance pass; physical mobile/WebKit/zoom/network unverified.
+An initial corrected-bundle socket-loss run was retried transparently by Chrome
+and returned a definite409; the fixture now uses deterministic unreadable replies
+for that boundary. No application correction was needed. Local artifacts are
+ignored under .verification/zerojams-pilot/settlement-*.log and settlement-browser/.
+
+One Sol6.1/high worker supplied adapter/HTTP fixture/tests; coordinator verified.
+Independent initial reviews: Astra/high correctness/security and Sol6.1/high
+compatibility,9a88a7fc→5117611d.3 deduplicated P2s accepted and fixed in one batch:
+publication pins inspected migration head; bounded wrapper accommodates near16KiB
+valid multibyte originals; saved close mode is atomic and storage failure blocks
+dispatch. Related read-only preflight now recognizes exact public protocol and
+pinned v2 namespace. Astra/high targeted5117611d→04da7ce1 reviews all16delta files
+and independently passes8 regressions, no findings.3 reviewer turns/1 fix batch;
+no additional review wave needed. Effective model, worker token/time cost unknown.
+Start account weekly73%remaining is not task-specific cost; storage229GB healthy.
+
+Read-only migration plan: isolated pilot headce130103b5b84968c83982516104826c88a260a0,
+2 existing event blob SHAs and guard recorded, not applied. Protected Preview
+delivery, guarded migration, existing legacy test-request closure with unchanged
+event bytes, production15jam404/Hub200/no link and exact-head CI are next.
+Production hold, originalclosedfixtures, App/secret/protection settings retained.
+
 ## Pending-request reconciliation — 2026-10-25
 
 Source671dc0aa, test correction9dec4f1e, final wording delta d5a60666. The client resolves uncertain mutations

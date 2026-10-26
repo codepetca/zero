@@ -13,8 +13,8 @@ historical confirmation from new intent, including another-device Leave.
 The local durable-settlement candidate adds explicit close/recover outcomes,
 atomic branch transactions and a guarded registry migration.154 jam/272 website
 tests, typecheck/build and actual Chrome lost-close/reload recovery pass locally.
-Two independent reviews identified three corrected P2s; targeted delta review
-and protected-preview activation are next. Cross-browser,
+Two independent reviews and the targeted correction review pass. Three P2s
+were fixed in one batch. Protected-preview delivery and guarded migration are next. Cross-browser,
 school-network and provider-cost acceptance remain open. No production rollout
 or main merge is authorized.
 

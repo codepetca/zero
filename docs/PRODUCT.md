@@ -139,7 +139,8 @@ account-scoped public request details. Independent review and the actual Chrome
 loopback regression pass. The local settlement candidate can durably close an
 unknown request without applying it, or recover its accepted result, using an
 atomic Git registry transaction. Lost close replies retain the close intent.
-Source review and protected-preview migration/acceptance are pending; broader
+Source review and local recovery acceptance pass; protected-preview migration
+and live acceptance are pending; broader
 provider/browser/network acceptance remains open. See the
 [phased plan](ZEROJAMS-PLAN.md) and [operator guide](ZEROJAMS-OPERATIONS.md).
 

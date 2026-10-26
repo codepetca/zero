@@ -23,7 +23,9 @@ One Sol6.1/high worker delivered atomic adapter/12tests; coordinator verified.
 Initial5117611d reviews(Astra/high security,Sol6.1/high compat) complete:3dedupP2.
 One correction batch pinsplannedmigrationHEAD, allowsboundedclosewrapper, persists
 closemodeatomically and blocksdispatchifstoragefails. Preflight understandsv2.
-Next: targeted fixed-delta review, then Preview deploy/migrate/livelegacy
-close (no event changes),15production404 cases,CI/finalreceipt. Initial2turns/1fixbatch; targetedreview pending.
+TargetedAstra/high5117611d→04da7ce1 passesall16deltafiles/8regressions.
+Full154jam/272website/7preflight/typecheck/build +correctedChrome flow pass.
+Next: Preview deploy/migrate/livelegacy
+close (no event changes),15production404 cases,CI/finalreceipt. Review3turns/1fixbatch complete, no findings.
 No secret/invite/protection changes. Local3025/other checkouts preserved.
 Packet docs/ZEROJAMS-PILOT.md settlement section. DeepSeek paused.

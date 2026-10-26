@@ -513,6 +513,9 @@ overhead for valid near16KiB multibyte forms, and persist close mode atomically
 with its key (block dispatch on storage failure). One remediation batch adds
 regressions for all three. Read-only preflight also recognizes/pins v2 namespace
 metadata so migration does not leave a false legacy-layout audit failure.
-Targeted independent delta review is next, then protected Preview deployment, explicit migration, settle the existing legacy
+Astra/high targeted5117611d→04da7ce1 passes all16changed files and8independent
+regressions. Corrected full154jam/272website/7preflight/typecheck/build and real
+Chrome same lost-close flow pass. No unresolved review findings.
+NEXT: protected Preview deployment, explicit migration, settle the existing legacy
 test request without changing either closed event, verify production15jam404/
 Hub200/no jam link and exact-head CI. No main merge or production rollout.
