@@ -3,13 +3,14 @@ const fs = require('node:fs/promises');
 const {constants} = require('node:fs');
 const path = require('node:path');
 const {resolveAuthoringTarget,packageNameError} = require('./file-targets');
+const {authoringLocation} = require('./explorer-labels');
 
 const hidden = new Set(['.git','target','node_modules','.ds_store','.zero-sharing-recovery','.zero','.zero-build','.zero-web']);
 const keywords = new Set(('abstract assert boolean break byte case catch char class const continue default do double else enum extends final finally float for goto if implements import instanceof int interface long native new package private protected public return short static strictfp super switch synchronized this throw throws transient try void volatile while true false null _ var yield record sealed permits').split(' '));
 const locations = [
-  {label:'Java source',relative:'src/main/java'},
-  {label:'Resources',relative:'src/main/resources'},
-  {label:'Project files',relative:''}
+  {label:'Code',relative:'src/main/java'},
+  {label:'Assets',relative:'src/main/resources'},
+  {label:'Other project files',relative:''}
 ];
 const key = value => value.normalize('NFC').toLowerCase();
 const identity = stat => `${stat.dev}:${stat.ino}`;
@@ -104,7 +105,7 @@ function createFileCommands(vscode, {project,isBusy,setBusy,setState,output,refr
           if (error.code !== 'ENOENT') return error.message;
         }
       };
-      const value = await vscode.window.showInputBox({placeHolder:kind === 'package' && target.packageName ? `Subpackage inside ${target.packageName}` : title,ignoreFocusOut:true,validateInput:validateName});
+      const value = await vscode.window.showInputBox({placeHolder:title,prompt:`In ${authoringLocation(target)}`,ignoreFocusOut:true,validateInput:validateName});
       if (value === undefined) return;
       const invalid = await validateName(value);
       if (invalid) throw Error(invalid);

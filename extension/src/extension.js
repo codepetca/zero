@@ -44,6 +44,7 @@ const {createStartPage} = require('./start-page');
 const {createWebPublishCommands} = require('./web-publish-ui');
 const {createAssetCommands} = require('./assets');
 const {createFileCommands} = require('./file-actions');
+const {createRenameCommands} = require('./file-rename');
 const {createStudentExplorer} = require('./student-explorer');
 const {createRecoveryCommands} = require('./recovery');
 const {sidebarStyles} = require('./sidebar-style');
@@ -1129,6 +1130,8 @@ function activate(context, services = {}) {
   const fileCreation=createFileCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output,refreshFiles:()=>studentExplorer?.invalidate()});
   Object.assign(actions,fileCreation.commands);
   context.subscriptions.push(fileCreation);
+  const fileRename=createRenameCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output,refreshFiles:()=>studentExplorer?.invalidate()});
+  Object.assign(actions,fileRename.commands);context.subscriptions.push(fileRename);
   const recovery=createRecoveryCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
   Object.assign(actions,assets.commands,recovery.commands);
   context.subscriptions.push(assets,recovery);

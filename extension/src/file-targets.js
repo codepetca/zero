@@ -38,11 +38,11 @@ async function resolveAuthoringTarget(root, context, kind) {
     if (!['code','assets','library-code','library-assets','project'].includes(context.area) || relativeError(context.relative)) throw Error('Choose a valid project folder.');
     area = context.area; relative = context.relative; libraryFolder = context.libraryFolder;
     if (area === 'project') {
-      if (libraryFolder !== undefined || relative !== '') throw Error('Choose Code, Assets, or a local library folder.');
+      if (libraryFolder !== undefined || /^(?:src\/main\/(?:java|resources)|libraries)(?:\/|$)/.test(relative)) throw Error('Choose Code, Assets, or a local library folder.');
       if (source || asset) {area = asset ? 'assets' : 'code'; relative = asset ? 'src/main/resources' : 'src/main/java';}
     } else if (!area.startsWith('library-') && libraryFolder !== undefined) throw Error('Choose a valid project folder.');
   }
-  let codeBase = 'src/main/java', resourceBaseRelative = 'src/main/resources', namespace;
+  let codeBase = 'src/main/java', resourceBaseRelative = 'src/main/resources', namespace,libraryTitle;
   if (area.startsWith('library-')) {
     if (relativeError(libraryFolder) || !/^libraries\/[^/]+$/.test(libraryFolder)) throw Error('Choose a local library from this project.');
     await validateDirectory(root,libraryFolder);
@@ -50,7 +50,7 @@ async function resolveAuthoringTarget(root, context, kind) {
     if (!library || library.mode !== 'local') throw Error('Only a library in local mode can receive new files.');
     // The descriptor is validated by discoverLibraries. Its repository identity
     // supplies the namespace; descriptors cannot invent a different namespace.
-    namespace = library.identity.namespace;
+    namespace = library.identity.namespace;libraryTitle=library.descriptor.title;
     if (packageNameError(namespace)) throw Error('The library namespace is invalid.');
     codeBase = `${libraryFolder}/src/main/java/${namespace.replaceAll('.','/')}`;
     resourceBaseRelative = `${libraryFolder}/src/main/resources`;
@@ -75,6 +75,6 @@ async function resolveAuthoringTarget(root, context, kind) {
     if (packageName && packageNameError(packageName)) throw Error('Choose a folder with a valid Java package name.');
     if (!libraryFolder && reserved(packageName)) throw Error('The zero package belongs to the framework. Choose your own package.');
   }
-  return {baseRelative:relative, ...(packageName !== undefined ? {packageName} : {}), area, ...(libraryFolder ? {libraryFolder} : {}), resourceBaseRelative};
+  return {baseRelative:relative, ...(packageName !== undefined ? {packageName} : {}), area, ...(libraryFolder ? {libraryFolder,libraryTitle} : {}), resourceBaseRelative};
 }
 module.exports = {resolveAuthoringTarget,packageNameError};

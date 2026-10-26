@@ -92,7 +92,7 @@ test('New package uses dotted folders and selected classes declare their exact p
   assert.equal(await fs.readFile(path.join(f.root,context.relative,'Player.java'),'utf8'),'package game.characters;\n\npublic class Player {\n\n}\n');
   f.name='enemies.bosses';await f.run('Package',context);
   assert.equal((await fs.stat(path.join(f.root,context.relative,'enemies/bosses'))).isDirectory(),true);
-  assert.equal(f.pickers.length,0);assert.match(f.prompts.at(-1).placeHolder,/inside game.characters/);
+  assert.equal(f.pickers.length,0);assert.equal(f.prompts.at(-1).prompt,'In Code › game › characters');
   f.name='game.characters';await assert.rejects(f.run('Package'),/already exists/);
 });
 test('package names are portable Java identifiers and framework packages remain protected',async t=>{

@@ -11,7 +11,12 @@ remain separate. Existing Git recovery work and public student projects stay int
 
 Creation uses the native Project header’s New… (+) menu and tree context menus.
 ZeroHub lives in Project’s overflow; neither control appears in the preview
-controls panel (owner refinement,2026-10-26).
+controls panel (owner refinement,2026-10-26). New opens an anchored dropdown,
+uses the selected file’s parent or selected folder, and names destinations using
+the visible Code/Assets/package hierarchy. File right-click menus also offer
+Rename file; this changes the basename only and explicitly leaves Java class
+names/references for the student to update. No cross-folder moves or automatic
+Java refactor engine are included.
 
 Code and Assets are always visible. Code presents Main, student classes and Java
 packages; Assets maps to the app's real resource directory. Libraries appears only

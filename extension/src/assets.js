@@ -3,6 +3,7 @@ const fs = require('node:fs/promises');
 const {constants} = require('node:fs');
 const path = require('node:path');
 const {resolveAuthoringTarget} = require('./file-targets');
+const {authoringLocation} = require('./explorer-labels');
 
 const EXTENSIONS = ['png','jpg','jpeg','gif','bmp','webp','wav','mp3','aiff','aif','m4a','ogg'];
 const LIMITS = Object.freeze({files:100, fileBytes:25*1024*1024, totalBytes:100*1024*1024});
@@ -38,7 +39,7 @@ async function validateRoot(snapshot, assertCurrent) {
 }
 async function assetDestination(snapshot, assertCurrent, destination) {
   await validateRoot(snapshot,assertCurrent);
-  if(destination===undefined)return {baseRelative:'src/main/resources',resourceBaseRelative:'src/main/resources'};
+  if(destination===undefined)return {area:'assets',baseRelative:'src/main/resources',resourceBaseRelative:'src/main/resources'};
   const target=await resolveAuthoringTarget(snapshot.root,destination,'asset');
   if(!['assets','library-assets'].includes(target.area) || !target.resourceBaseRelative)throw Error('Choose an asset folder in the current project.');
   return target;
@@ -180,8 +181,8 @@ function createAssetCommands(vscode,{project,isBusy=()=>false,setBusy=()=>{},set
       };
       await assertCurrent();const snapshot=await captureRoot(root);
       // A native tree supplies its selected folder; the plain New menu keeps the app default.
-      await assetDestination(snapshot,assertCurrent,destination);
-      const selected=await vscode.window.showOpenDialog({title:'New asset',openLabel:'Import',canSelectFiles:true,canSelectFolders:false,canSelectMany:true,filters:{'Images and audio':EXTENSIONS}});
+      const target=await assetDestination(snapshot,assertCurrent,destination);
+      const selected=await vscode.window.showOpenDialog({title:`Import assets into ${authoringLocation(target)}`,openLabel:'Import',canSelectFiles:true,canSelectFolders:false,canSelectMany:true,filters:{'Images and audio':EXTENSIONS}});
       if(!selected?.length)return;
       await assertCurrent();
       if(selected.some(uri=>uri.scheme && uri.scheme!=='file'))throw Error('Choose local image or audio files.');

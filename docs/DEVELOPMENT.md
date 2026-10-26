@@ -638,11 +638,18 @@ visual review. The supported `zero-student-explorer` view container combines
 `zero.studentControls` and the native `zero.studentProject` TreeDataProvider.
 Both control views share the renderer but keep independent document lifecycles.
 The student controls omit the ZeroHub and New dropdowns. The native Project
-header supplies **New… (+)** with a native picker for the selected Code/Assets
-folder, alongside existing context menus. Its overflow retains ZeroHub's guarded
-browser. Without a writable selection, the picker states app destinations;
-selected retained source is refused. Root/generation checks after the picker
-prevent project switches or external refreshes from reusing a stale target.
+header supplies an anchored **New (+)** dropdown for the selected folder. A
+selected file targets its containing folder; without a selection, creation starts
+in Code. Its description and name prompts use the visible hierarchy, such as
+**Code › game › characters** or **Libraries › Health bar › Assets**, while the
+project keeps its ordinary Java source/resource layout. The dropdown limits
+choices to that area. Right-click files or folders for contextual creation;
+editable files also expose **Rename file…**. Rename uses a guarded native
+WorkspaceEdit, refuses collisions/unsaved changes, and never moves files between
+folders. Java file names change without rewriting class names or references;
+the prompt explains that limitation. Published retained source remains read-only.
+Project overflow retains ZeroHub's guarded browser. Actions revalidate current
+project/tree targets and refuse stale selections before mutation.
 **Show all project files** opens the full Explorer without disabling the preview;
 the Zero status-bar action returns to the active controls. **Zero: Use Standard
 Explorer** disables the preview. No host layout storage or private APIs are used.
@@ -657,7 +664,8 @@ Root-scoped file watching refreshes authored changes and ignores build output.
 
 Focused checks: `node --test extension/test/student-explorer.test.js
 extension/test/project-explorer-model.test.js extension/test/file-actions.test.js
-extension/test/assets.test.js extension/test/sharing-explorer.test.js
+extension/test/assets.test.js extension/test/file-rename.test.js
+extension/test/project-menu.test.js extension/test/sharing-explorer.test.js
 extension/test/sharing-editor.test.js extension/test/extension.test.js
 extension/test/sidebar-refresh.test.js`. Use Zero Dev for actual light/dark,
 keyboard, context-menu, error-recovery and project-switch acceptance. Native and

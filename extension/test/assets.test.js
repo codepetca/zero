@@ -137,7 +137,7 @@ test('selected app Assets folder imports and copies classpath paths, with collis
  const result=await f.commands.commands['zero.importAssets']({root:f.root,area:'assets',relative:'src/main/resources/images'});
  assert.equal(result.imported[0].path,path.join(nested,'coin (2).wav'));assert.equal(result.imported[0].javaPath,'"/images/coin (2).wav"');
  assert.equal(await fs.readFile(path.join(nested,'COIN.wav'),'utf8'),'existing nested asset');assert.equal(await fs.readFile(path.join(f.folder,'coin.wav'),'utf8'),'unrelated app asset');
- await f.commands.commands['zero.copyImportedAssetPaths']();assert.equal(f.copied,'"/images/coin (2).wav"');assert.match(f.logs[0],/src\/main\/resources\/images/);assert.equal(f.dialogs.length,1);
+ await f.commands.commands['zero.copyImportedAssetPaths']();assert.equal(f.copied,'"/images/coin (2).wav"');assert.match(f.logs[0],/src\/main\/resources\/images/);assert.equal(f.dialogs.length,1);assert.equal(f.dialogs[0].title,'Import assets into Assets › images');
 });
 async function localLibrary(f) {
  const {previewExtraction,applyPlan}=require('../src/sharing/authoring');
@@ -156,7 +156,7 @@ test('local library import uses its derived namespace and classpath root, includ
 });
 test('New asset from a library Code folder selects namespaced resources without another chooser',async t=>{
  const f=await uiFixture(t),assets=await localLibrary(f),destination={...assets,area:'library-code',relative:'libraries/health-bar/src/main/java/zero/contrib/r12345/health_bar'};
- const result=await f.commands.commands['zero.importAssets'](destination);assert.equal(result.imported[0].javaPath,'"/zero/contrib/r12345/health_bar/coin.wav"');assert.equal(f.dialogs.length,1);assert.equal(f.busy(),false);
+ const result=await f.commands.commands['zero.importAssets'](destination);assert.equal(result.imported[0].javaPath,'"/zero/contrib/r12345/health_bar/coin.wav"');assert.equal(f.dialogs.length,1);assert.equal(f.dialogs[0].title,'Import assets into Libraries › Health bar › Assets');assert.equal(f.busy(),false);
 });
 test('selected destination refuses foreign project, traversal, source/core areas, symlinks and stale folders before picker',async t=>{
  const f=await uiFixture(t);await fs.mkdir(f.folder,{recursive:true});await fs.symlink(f.source,path.join(f.folder,'linked'));
