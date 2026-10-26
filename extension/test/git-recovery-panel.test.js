@@ -29,6 +29,9 @@ test('push recovery is destination-specific and never claims an uncertain push s
   assert.match(panel({pending:{branch:'main',kind:'unconfirmed'}}),/zero.checkPush/);
   assert.match(uploadMessage({kind:'unconfirmed',committed:true}),/Committed locally.*confirmation was interrupted/);
   assert.match(panel({pending:{branch:'main',kind:'protected'}}),/Create feature branch/);
+  assert.match(panel({pending:{branch:'feature',kind:'auth',operation:'merge'}}),/zero.reconnectGitHub/);
+  assert.match(panel({pending:{branch:'feature',kind:'ready',operation:'merge'}}),/Retry Merge to main/);
+  assert.match(uploadMessage({kind:'ready'}),/local commits are ready to push/);
   assert.match(panel({pending:{branch:'feature',kind:'protected'}}),/Open Source Control/);
   assert.doesNotMatch(panel({pending:{kind:'network'},disabled:true}),/data-command="[^"]+"\s*>/);
 });

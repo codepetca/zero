@@ -8,6 +8,10 @@ function selection(recovery) {
 }
 function uploadMessage(pending) {
   if (!pending) return '';
+  if(pending.kind==='ready')return pending.operation==='merge'?'Signed in. Retry Merge to main to finish.':'Signed in. Your local commits are ready to push.';
+  if(pending.operation==='merge'&&pending.kind==='auth')return 'Your feature and local main keep the completed work. Sign in to finish Merge to main.';
+  if(pending.operation==='merge'&&pending.kind==='access')return 'Your feature and local main keep the completed work. Review GitHub access before retrying Merge to main.';
+  if(pending.operation==='merge'&&pending.kind==='protected')return 'GitHub requires a pull request for main. Your feature and commits are kept; finish the review on GitHub.';
   if(pending.operation==='merge')return pending.kind==='behind'?'Merge paused. GitHub main has newer changes. Your feature and local commits are kept.':'Merge was not confirmed. Your feature and local main keep the completed work. Check the connection or GitHub access, then retry Merge to main.';
   const prefix = pending.committed ? 'Committed locally.' : 'Local commits are kept.';
   return `${prefix} ${({behind:pending.branch === 'main' ? 'GitHub main has newer changes. Update from main, then run and push.' : 'This branch has newer changes on GitHub. Update this branch, then run and push.',auth:'Sign in to finish pushing.',access:'GitHub refused access. Review the account and repository access.',network:'Could not confirm the push. Check your connection and retry.',unconfirmed:'Push sent; GitHub confirmation was interrupted. Check its status before retrying.',protected:'GitHub requires a pull request. Keep these commits on a feature branch and finish on GitHub.',changed:'The project changed during upload. Check which commit GitHub received.'})[pending.kind] || 'Push needs attention.'}`;
@@ -37,9 +41,9 @@ function panel({recovery,pending,error,disabled=false}) {
   if (!pending) return '';
   let action;
   if (pending.kind === 'behind') action = button(pending.operation==='merge'||pending.branch === 'main' ? 'zero.syncProject' : 'zero.updateBranchFromGitHub',pending.operation==='merge'||pending.branch === 'main' ? 'Update from main' : 'Update branch from GitHub');
-  else if(pending.operation==='merge')action=button('zero.finishChange','Retry Merge to main');
   else if (pending.kind === 'auth') action = button('zero.reconnectGitHub','Sign in to GitHub');
   else if (pending.kind === 'access') action = button('zero.startPage','Review GitHub access');
+  else if(pending.operation==='merge')action=button(pending.kind==='protected'?'zero.openGitSourceControl':'zero.finishChange',pending.kind==='protected'?'Open Source Control':'Retry Merge to main');
   else if (pending.kind === 'unconfirmed' || pending.kind === 'changed') action = button('zero.checkPush','Check GitHub status');
   else if (pending.kind === 'protected') action = pending.branch === 'main' ? button('zero.startChange','Create feature branch…') : button('zero.openGitSourceControl','Open Source Control');
   else action = button('zero.uploadToGitHub','Retry push');

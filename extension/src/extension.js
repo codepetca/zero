@@ -663,6 +663,20 @@ function activate(context, services = {}) {
       else {await rememberPush({...record,kind:result.remoteHead?'behind':'network'},record.accountId);report('GitHub has not confirmed this commit · review the recovery action');}
     } finally {await repositoryStatus();changing=false;refresh();}
   }
+  async function reconnectPush() {
+    if(isBusy())return;
+    const root=await project();
+    if(uploadMode(root)!=='live')return simulation('Reconnect GitHub for push');
+    await signIn(false);
+    await assertGitProject(root);
+    await repositoryStatus();
+    const record=pendingUpload;
+    if(!auth.signedIn||!record||record.root!==root)return;
+    if(record.accountId&&record.accountId!==auth.accountId)throw new Error('The GitHub account changed. Review the account and repository before starting a new upload.');
+    await rememberPush({...record,kind:'ready'},auth.accountId);
+    await repositoryStatus();
+    report(record.operation==='merge'?'Signed in · retry Merge to main':'Signed in · your local commits are ready to push');
+  }
   async function change(kind) {
     if (isBusy()) return;
     changing = true; refresh();
@@ -709,7 +723,7 @@ function activate(context, services = {}) {
           if(result.recovery){report('Choose changes to keep · nothing uploaded');await refreshNativeGit(root);return;}
           const tracking = !result.remoteHead || await updateTracking(root,result.remote || plan.remote,result.remoteBranch,result.remoteHead);
           await refreshNativeGit(root);
-          report(result.updated ? 'Changes combined locally · run your app, then Commit & push' : `Already up to date with GitHub ${result.remoteBranch||'main'}`);
+          report(result.updated ? result.branch==='main'&&result.head===result.remoteHead?'Main updated · run your app':'Changes combined locally · run your app, then Commit & push' : `Already up to date with GitHub ${result.remoteBranch||'main'}`);
           if (!tracking) void vscode.window.showWarningMessage('Updated from GitHub · Source Control tracking needs refresh; see Zero Output.');
           return;
         }
@@ -903,7 +917,7 @@ function activate(context, services = {}) {
     'zero.cancelUpdate': token => applyUpdateChoice('cancel',token),
     'zero.compareUpdate': compareUpdate,
     'zero.checkPush': checkPush,
-    'zero.reconnectGitHub': () => signIn(false),
+    'zero.reconnectGitHub': reconnectPush,
     'zero.openGitSourceControl': () => vscode.commands.executeCommand('workbench.view.scm'),
     'zero.switchBranch': async () => {
       if (isBusy()) return;

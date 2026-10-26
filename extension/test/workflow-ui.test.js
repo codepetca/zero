@@ -53,6 +53,7 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async id=>{dispatch.push(id);},getCommands:async()=>nativeScm?['workbench.view.scm']:[]},
     env:{clipboard:{writeText:async()=>{}},openExternal:async()=>true},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
+  const startPanels=require('./fixtures/start-page-panel').startPagePanels(vscode);
   const oldLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){if(id==='./git-tracking')return {updateRemoteTracking:async()=>({updated:true})};if(id==='./transport')return {createTransport:(_remote,authenticate,{assertCurrentNow})=>async(_root,args)=>{await authenticate();assertCurrentNow();transportDispatches++;transportCalls.push(args);return args[0]==='ls-remote'?`${plan().head}\trefs/heads/main`:'';}};return id==='vscode'?textInputs(vscode):oldLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
   const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:key=>key==='zero.webPublish.lastLive'?publishedState:key.startsWith('zero.gitUploadRecovery:')?storedPending:true,update:async(key,value)=>{if(key.startsWith('zero.gitUploadRecovery:'))storedPending=value;}}},{provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{async checkSetup(){return {};},async access(url,{ticket,permissions}){accesses.push({url,ticket,permissions});assert.equal(url,'https://github.com/student/app');assert.deepEqual(permissions,{contents:'write'});assert.equal(ticket.session.accountId,'1');assert.equal(ticket.session.accessToken,'NEVER_RENDER_TOKEN');if(accessFailure)throw accessFailure;return {ticket,repository:{id:repositoryId},installation:{id:installationId}};}}});
@@ -196,5 +197,12 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   const dispatchesBeforeCheck=transportCalls.length;await commands.get('zero.checkPush')();
   assert.equal(checkedRecorded,'f'.repeat(40));assert.equal(currentHead,'b'.repeat(40));assert.equal(gitStatus,'MM Player.java\0');assert.equal(storedPending,undefined);
   assert.deepEqual(transportCalls.slice(dispatchesBeforeCheck).map(args=>args[0]),['ls-remote'],'Exact status checking cannot push newer local commits');
+
+  storedPending={root,remote,page:'https://github.com/student/app',branch,head:currentHead,kind:'auth',accountId:'1',committed:true,pushStarted:true};gitStatus='';
+  metadata.change({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>webview.html.includes('Sign in to GitHub'));
+  const beforeReconnect=transportCalls.length;await commands.get('zero.reconnectGitHub')();
+  assert.equal(storedPending.kind,'ready');assert.equal(transportCalls.length,beforeReconnect,'Reconnection never silently pushes');assert.match(webview.html,/local commits are ready to push/);assert.doesNotMatch(webview.html,/data-command="zero.reconnectGitHub"/);assert.ok(startPanels.length>0);
+  const expectedRecord=storedPending;session={...session,account:{id:'2',label:'other-student'}};authEvent({provider:{id:'zero-github'}});await new Promise(resolve=>setImmediate(resolve));
+  await commands.get('zero.reconnectGitHub')();assert.equal(storedPending,expectedRecord);assert.match(errors.at(-1),/account changed/);assert.equal(transportCalls.length,beforeReconnect,'A different account needs a new explicit upload review');
 
 });
