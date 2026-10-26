@@ -6,7 +6,7 @@ App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
 source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
-Local Mac candidate **0.5.50** includes Zero core **0.3.0**, the Zero-first
+Local Mac candidate **0.5.51** includes Zero core **0.3.0**, the Zero-first
 Greeting/Study/Coin tutorials and browser-only GitHub sign-in for new connections.
 The main button says Sign in to GitHub while signed out, then Start tutorial
 once authenticated and ready. It is not published; the public Mac download
