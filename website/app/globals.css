@@ -65,6 +65,7 @@ h3 {
   margin: 0 0 8px;
 }
 .site-header {
+  position: relative;
   max-width: 1296px;
   margin: auto;
   padding: 24px 0;
@@ -728,12 +729,21 @@ pre code {
     display: block;
     margin-left: auto;
   }
-  .site-header nav {
+  .site-header > nav {
     display: none;
-    width: 100%;
+    position: absolute;
+    z-index: 20;
+    top: calc(100% - 8px);
+    right: 24px;
+    width: min(280px, calc(100% - 48px));
+    max-height: calc(100dvh - 160px);
+    overflow-y: auto;
     gap: 0;
-    border-top: 1px solid var(--line);
-    padding-top: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--zero-page, #fff);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
     flex-direction: column;
     align-items: stretch;
   }

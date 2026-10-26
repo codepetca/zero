@@ -1,5 +1,32 @@
 # Zero: local Java teaching MVP
 
+The shared website header shows a Beta chip. It opens a notice that Zero and
+ZeroHub are in beta, features may change or be unavailable, and data may not be
+saved or retained. Users should keep their own backups and are responsible for
+repositories created in their GitHub accounts, including contents, visibility,
+access, maintenance and published apps.
+
+Permanent Privacy and Terms footer links open separate plain pages at `/privacy`
+and `/terms`, independently of beta status. There is no boxed overview, policy
+tab navigation or extra table of contents; `/legal` redirects to Privacy. The beta
+notice also links directly to the pages. Landing downloads have no duplicate
+policy links. The footer copyright keeps2026 as the initial year and adds the
+current year as a range on later visits, without changing source-license years.
+The privacy notice follows the [source inventory](PRIVACY-DATA.md), including
+GitHub credentials, cookies/local storage, public sharing, aggregate Play counts,
+providers and retention/deletion limits. Owner-authorized Terms version2026-10-25
+takes effect on publication. A footer notice and the Terms state prospective
+use-based agreement for Zero/ZeroHub and related Codepet-operated services that
+expressly link to them, after notice is brought to the user’s attention. This
+is not a claim that past visitors, unrelated products or guardians have accepted,
+and does not replace privacy consent required by law or separately licensed
+software rights. No explicit acceptance registry is implemented. See
+[rollout status and sources](LEGAL-TERMS.md).
+
+Mobile website navigation opens as an overlay dropdown without shifting page
+content. Outside interaction, focus leaving the menu, Escape and selecting a link
+close it; Escape returns focus to the toggle. Desktop navigation stays inline.
+
 ## Outcome
 
 Maintainers iterate locally through [Zero Dev](ZERO-DEV.md): a separate source

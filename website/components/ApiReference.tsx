@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Icon } from './Icon';
 import { CodeBlock } from './CodeBlock';
@@ -35,6 +35,51 @@ function RichText({ children, links }: { children: string; links: Record<string,
     return target ? <a href={target}>{children}</a> : <span title="See this file in your downloaded starter">{children}</span>;
   } }}>{children}</Markdown>;
 }
+function entryLabel(entry: Entry) {
+  return `${entry.name}${entry.kind === 'field' ? '' : '()'}`;
+}
+type ApiContentProps = {
+  categories: Category[]; links: Record<string, string | null>; active: string;
+  jump: (id: string) => void; advancedOpen: boolean; setAdvancedOpen: (open: boolean) => void;
+};
+// Navigation-only state must not re-parse and reconcile the entire reference.
+const ApiContent = memo(function ApiContent({ categories, links, active, jump, advancedOpen, setAdvancedOpen }: ApiContentProps) {
+  const entries = useMemo(() => categories.flatMap(category => category.entries), [categories]);
+  function methodLink(entry: Entry, label = entryLabel(entry)) {
+    return <a href={`#${entry.id}`} aria-current={active === entry.id ? 'location' : undefined}
+      onClick={event => { event.preventDefault(); jump(entry.id); }}>{label}</a>;
+  }
+  function renderCategory(category: Category) {
+    return <section className="api-category" id={category.id} key={category.id} tabIndex={-1}>
+      <div className="api-category-heading"><h2>{category.title}</h2></div>
+      {category.entries.map(entry => <article className="api-entry" id={entry.id} data-api-entry key={entry.id} tabIndex={-1}>
+        <div className="api-method-title"><h3><a href={`#${entry.id}`} onClick={event => { event.preventDefault(); jump(entry.id); }}>{entryLabel(entry)}</a></h3><span className="api-owner">{entry.owner}</span></div>
+        <div className="api-description"><RichText links={links}>{entry.description}</RichText></div>
+        <div className="api-signature"><CodeBlock><Code value={entry.signature} /></CodeBlock></div>
+        {!!entry.parameters.length && <dl className="api-parameters">{entry.parameters.map(parameter => <div key={parameter.name}><dt><code>{parameter.name}</code></dt><dd>{parameter.description}</dd></div>)}</dl>}
+        {entry.example && <><h4>Example</h4><div className="api-example"><CodeBlock><Code value={entry.example} /></CodeBlock></div></>}
+        {entry.note && <div className="api-method-note"><RichText links={links}>{entry.note}</RichText></div>}
+        {!!entry.related.length && <p className="api-related">See also: {entry.related.map((id, index) => {
+          const related = entries.find(other => other.id === id);
+          return related ? <span key={id}>{index > 0 && ' · '}{methodLink(related)}</span> : null;
+        })}</p>}
+      </article>)}
+      {category.notes && <details className="api-notes"><summary>More about {category.title.toLowerCase()}</summary><RichText links={links}>{category.notes}</RichText></details>}
+    </section>;
+  }
+
+  return (
+    <main className="api-content" id="page-content" tabIndex={-1}>
+      {categories.filter(category => category.id !== 'advanced').map(renderCategory)}
+      <details className="api-advanced" open={advancedOpen} onToggle={event => setAdvancedOpen(event.currentTarget.open)}>
+        <summary>Advanced lifecycle and extension hooks</summary>
+        {categories.filter(category => category.id === 'advanced').map(renderCategory)}
+      </details>
+      <footer className="api-source">Reference maintained with the readable framework in your starter. <Link href="/learn">Learn through the tutorials</Link></footer>
+    </main>
+  );
+});
+
 export function ApiReference({ categories, links }: { categories: Category[]; links: Record<string, string | null> }) {
   const [query, setQuery] = useState('');
   const [active, setActive] = useState('');
@@ -52,11 +97,10 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
     observer.observe(header);
     return () => observer.disconnect();
   }, []);
-  const entries = categories.flatMap(category => category.entries);
-  const results = searchApiReference(categories, query) as (Entry & { categoryId: string; categoryTitle: string })[];
+  const results = useMemo(() => searchApiReference(categories, query), [categories, query]) as (Entry & { categoryId: string; categoryTitle: string })[];
   const searching = query.trim().length > 0;
 
-  function reveal(id: string) {
+  const reveal = useCallback((id: string) => {
     const target = aliases[id] ?? id;
     const category = categories.find(c => c.id === target || c.entries.some(e => e.id === target));
     if (category) {
@@ -65,8 +109,8 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
     }
     setActive(target);
     return target;
-  }
-  function jump(id: string) {
+  }, [categories]);
+  const jump = useCallback((id: string) => {
     const target = reveal(id);
     setQuery('');
     setMobileOpen(false);
@@ -77,7 +121,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
       element?.scrollIntoView({ block: 'start', behavior: 'instant' });
       element?.focus({ preventScroll: true });
     });
-  }
+  }, [reveal]);
   useEffect(() => {
     function followHash() {
       let id = window.location.hash.slice(1);
@@ -110,32 +154,10 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
     return () => { window.removeEventListener('scroll', onScroll); cancelAnimationFrame(frame); };
   }, []);
 
-  function entryLabel(entry: Entry) {
-    return `${entry.name}${entry.kind === 'field' ? '' : '()'}`;
-  }
   function methodLink(entry: Entry, label = entryLabel(entry)) {
     return <a href={`#${entry.id}`} aria-current={active === entry.id ? 'location' : undefined}
       onClick={event => { event.preventDefault(); jump(entry.id); }}>{label}</a>;
   }
-  function renderCategory(category: Category) {
-    return <section className="api-category" id={category.id} key={category.id} tabIndex={-1}>
-      <div className="api-category-heading"><h2>{category.title}</h2></div>
-      {category.entries.map(entry => <article className="api-entry" id={entry.id} data-api-entry key={entry.id} tabIndex={-1}>
-        <div className="api-method-title"><h3><a href={`#${entry.id}`} onClick={event => { event.preventDefault(); jump(entry.id); }}>{entryLabel(entry)}</a></h3><span className="api-owner">{entry.owner}</span></div>
-        <div className="api-description"><RichText links={links}>{entry.description}</RichText></div>
-        <div className="api-signature"><CodeBlock><Code value={entry.signature} /></CodeBlock></div>
-        {!!entry.parameters.length && <dl className="api-parameters">{entry.parameters.map(parameter => <div key={parameter.name}><dt><code>{parameter.name}</code></dt><dd>{parameter.description}</dd></div>)}</dl>}
-        {entry.example && <><h4>Example</h4><div className="api-example"><CodeBlock><Code value={entry.example} /></CodeBlock></div></>}
-        {entry.note && <div className="api-method-note"><RichText links={links}>{entry.note}</RichText></div>}
-        {!!entry.related.length && <p className="api-related">See also: {entry.related.map((id, index) => {
-          const related = entries.find(other => other.id === id);
-          return related ? <span key={id}>{index > 0 && ' · '}{methodLink(related)}</span> : null;
-        })}</p>}
-      </article>)}
-      {category.notes && <details className="api-notes"><summary>More about {category.title.toLowerCase()}</summary><RichText links={links}>{category.notes}</RichText></details>}
-    </section>;
-  }
-
   return <div className="api-workspace">
     <aside className="api-sidebar" aria-label="API reference navigation">
       <h1>API reference</h1>
@@ -162,13 +184,6 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
           <div className="api-guide-links"><Link href="/learn">Tutorials</Link><Link href="/help/setup">Setup help</Link><Link href="/teachers">For teachers</Link></div>
         </div>}
     </aside>
-    <main className="api-content" id="page-content" tabIndex={-1}>
-      {categories.filter(category => category.id !== 'advanced').map(renderCategory)}
-      <details className="api-advanced" open={advancedOpen} onToggle={event => setAdvancedOpen(event.currentTarget.open)}>
-        <summary>Advanced lifecycle and extension hooks</summary>
-        {categories.filter(category => category.id === 'advanced').map(renderCategory)}
-      </details>
-      <footer className="api-source">Reference maintained with the readable framework in your starter. <Link href="/learn">Learn through the tutorials</Link></footer>
-    </main>
+    <ApiContent categories={categories} links={links} active={active} jump={jump} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} />
   </div>;
 }

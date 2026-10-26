@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 Codepet. MIT license: ../LICENSE.
+/* Copyright (c) 2026 Codepet Inc. MIT license: ../LICENSE.
  * Your repository owns this copy. No framework, build step, credentials or CDN. */
 'use strict';
 const byId = id => document.getElementById(id);
