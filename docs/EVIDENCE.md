@@ -1,5 +1,299 @@
 # Delivery evidence index
 
+## Zero Dev Publish prerequisite: native JDK17 / browser JDK21 — 2026-10-26
+
+Owner reported Publish app failure in the Zero Dev window opened on my-study.
+Actual native error said standalone JDK21 with matching java/javac was missing
+from JAVA_HOME. Targeted process diagnosis (only JAVA_HOME reported) showed the
+Dev hosts inherited Homebrew JDK17. Zero’s already-installed private Temurin21
+was present and usable, but Mac discovery skipped it whenever JAVA_HOME existed.
+Reproduced the same failure through read-only saved-builder runtime inspection.
+
+Sourceef947ca570d4ce648c80465cf91b5982154f27c0 from base044900ea tries the existing
+private JDK locations after a configured JDK fails the required version checks.
+Compatible configured JAVA_HOME remains preferred. No system preference or
+student saved-builder upgrade; selected JAVA_HOME is scoped to the sanitized
+browser child environment. Both java and javac must match the saved requirement.
+The unavailable diagnostic mentions the private-runtime fallback. Dev docs now
+distinguish the simulated scratch game from normal explicit connected-project
+publishing, and native JDK17 from browser JDK21.
+
+22 focused project-builder tests pass, including fallback, configured preference,
+mismatched/missing private compiler rejection and credential/preload filtering.
+58 publish/export UI regressions pass; configuration/syntax/contracts/doc links
+and diff checks pass. Real runtime probing with the inherited JDK17 selects
+private Node22.21.1 + Temurin21.0.12.1, matching saved tested pins. Mac CUA reloaded
+the exact isolated development host, retained my-study/editors/tutorial, invoked
+Export for Web, and observed compatibility checks → GWT zero_web compilation →
+Export ready. Source worktree in my-study remains clean. Screenshot:
+.verification/student-explorer/screenshots/publish-runtime-export-ready.png.
+This proves the failed local prerequisite is repaired; no live upload/Pages run
+was started, and hosted publishing success is not claimed. No publication or
+account/credential change was performed.
+
+Independent review: review_publish_jdk, requested GPT-6 Sol/high, inspected the
+complete4-file delta and runtime/sanitization/authorization/Publish callers;
+clean,0findings. Reviewer reran22builder tests successfully. One launch/wave,
+0fix batches; under10minutes reported, exact elapsed/tokens and effective model
+unknown. Configured-compatible preference, private fallback, matched majors and
+clean child environment independently checked. Windows/Linux/live publishing
+unverified for this delta. Allowance90% weekly remaining; fresh storage230.22GB
+healthy, no cleanup. Account usage is not attributable task cost. Bulky test
+receipts remain ignored under .verification/student-explorer.
+
+## Project toolbar overflow — 2026-10-26
+
+Owner requested moving Project’s Refresh/Show All/etc. icons into its three-dot
+menu while keeping New (+). Reviewed source25512c6fff7dfd9e15617a582184a6dddc41d63e
+from base48b4e35b leaves only New in the navigation group; Refresh, Show All
+Project Files and Collapse All are secondary menu actions. The host collapse
+icon is disabled; the menu command focuses Project before calling the native
+list collapse command and stops after disposal. No filesystem behavior changed.
+
+20 focused student-explorer/project-menu/extension checks and configuration,
+syntax, command-contract, local-doc-link and diff checks pass. Actual Mac CUA
+verified header with only +/overflow, all three relocated menu items, Collapse All
+collapsing Project roots, Refresh preserving the view and Show All → full native
+Explorer → Back to Zero. Main remains open, java expanded. Screenshot:
+.verification/student-explorer/screenshots/project-overflow-tools.png. Prior
+file/Java/WebFX/browser evidence is reused for untouched surfaces. Windows and
+minimum-host interaction remain unproven. Native menu placement follows the
+[VS Code tree-view guide](https://code.visualstudio.com/api/extension-guides/tree-view).
+
+One fresh GPT-6 Sol/medium reviewer, review_project_toolbar, inspected the complete
+six-file diff and registration/navigation/disposal callers: clean,0findings,
+1launch/1wave/0fix batches. Requested model/effort known; effective configuration,
+elapsed and token telemetry unknown. Native proof was completed by coordinator;
+reviewer reused reported focused checks and made no edits. Final docs only add
+this receipt and current behavior. No push, release or publication occurred.
+
+## Standard folder names in Student Explorer — 2026-10-26
+
+Owner requested java/resources instead of Code/Assets, with Libraries unchanged.
+Sourceb8134c5479516932752df5f659e38a1c0b53cefb updates app/local/retained roots,
+location choices, tooltips, header destinations, prompts and area-specific errors.
+Physical paths, namespace rules, context IDs and write behavior stay intact.
+70 focused controller/model/file/rename/assets checks pass, including library
+resources selection, matching declarations, actual destination paths and retained
+read-only behavior. Configuration/syntax/contracts/docs and diff checks pass.
+Actual Mac CUA reload shows java/resources and a contextual New file prompt
+“In resources”; cancelled without creating a file. Screenshot:
+.verification/student-explorer/screenshots/standard-folder-labels.png.
+The isolated default-project remains open with Main selected.
+
+One GPT-6 Luna/medium independent reviewer, review_standard_labels, inspected
+0af2ba74→b8134c54. It initially reported a library-header issue, then withdrew it
+after re-evaluating the kind==='library' condition: resources folders use the
+correct area-aware helper. Existing controller coverage now explicitly exercises
+that selection. Final verdict clean;0accepted/1withdrawn finding, one reviewer,
+two turns, no production fix batches. Requested model/effort known; effective
+configuration, elapsed and token telemetry unknown. Prior Java/WebFX/browser
+proof is reused for this naming-only refinement. No publication occurred.
+
+## Student Explorer local default adoption — 2026-10-26
+
+After receiving the working explorer refinements and screenshot, the owner said
+“continue.” The coordinator announced applying that continuation to the local
+default, retaining Standard Explorer. Source0aace0a0366862ff8ecb3c80a03d4074f8e2b03e
+from based3a18a8fadfe3c8c3dca6ea7b21f67de16b2f6a9 makes the reviewed Student Explorer
+the local default. Existing false workspace preferences stay false. A one-time
+introduction reveals the new sidebar for existing student-mode workspaces,
+without replacing their editors. Back to Zero uses the selected mode. Public
+labels now say Zero / Use Student Explorer; legacy internal command and workspace
+keys remain compatible. Source publication and releases remain unauthorized.
+
+82 focused student-explorer, extension, onboarding, sidebar-refresh, project-menu,
+prompts and workflow-UI tests pass; check and diff checks pass. Regression tests
+cover default mode, workspace preference across reconstruction, explicit standard
+mode and migration preserving open editors. Prior197 focused checks and scoped
+native/WebFX/browser acceptance remain applicable to untouched authoring/runtime.
+Actual Mac CUA reloaded the previous fixture and observed its saved Standard
+Explorer choice preserved. Opening the new ignored default-project fixture
+selected Zero → Code/Assets automatically, without a preview command. Main opens
+from the tree; Show all project files and Back to Zero return correctly. Window
+remains open on that fresh fixture with Main selected. Native input was initially
+interrupted by owner activity; owner confirmed usage and explicitly authorized
+continued testing. Original editor and public/student projects were untouched.
+Screenshots: .verification/student-explorer/screenshots/student-explorer-default.png
+and default-standard-persist.png; focused log default-final-tests.tap.
+
+One fresh GPT-6 Sol/medium independent reviewer, review_explorer_default, inspected
+complete base→head and immediate startup/mode callers. No code blocker; one P2
+found stale active CURRENT wording. This documentation correction resolves it.
+One launch/wave, zero code fix batches, one documentation correction; no targeted
+source rereview needed. Requested configuration known, effective model, tokens
+and elapsed telemetry unknown. Reviewer reused checks and did not run native UI.
+Standard-risk budget remains within7launches/4fix batches/60minutes. Allowance
+reading90% weekly remaining; storage223.59GB healthy. Those account readings are
+not task costs. Windows/minimum-host/fresh-Mac validation remains unclaimed.
+All six local plan phases are complete in the recorded scope; no push/PR/merge,
+publication, deployment, account change or release occurred.
+
+## Explorer dropdown, simplified locations and file rename — 2026-10-26
+
+Owner requested visible-tree destination names, a real dropdown and file-context
+rename/new siblings. Isolated branch codex/student-explorer, base
+c86359eb376bcb3701ddb1d9169b4433b5bb0070; source commits 010796fc72ece5facee69b42ca77409fb66330ba
+and e8747259a6eb2096735274d63a02c43b624baca7. Project (+) now opens a supported native
+submenu; choices follow selected Code, Assets, local library or Other folder.
+A selected file supplies its parent. Prompts/tooltips describe the visible
+hierarchy, including library titles, while physical Java/resource paths stay
+unchanged. File context menus expose sibling creation and guarded native
+WorkspaceEdit rename, with no overwrite, move or Java symbol rewriting. Java
+prompts explain declaration/reference repair. Local Java basename mismatch keeps
+source navigable with a repair hint and withholds library imports. Only the
+read-only model opts into unambiguous name-mismatch inspection; canonical
+mutation/Check/share/publication validation stays strict.
+
+197 focused model/controller/manifest/file/rename/assets/sharing-authoring/source-
+diagnostics/editor/extension/sidebar/prompts/workflow/onboarding checks pass;
+`npm run check` and diff check pass. Tests include actual post-rename tree reload,
+repair/rename back, strict authoring refusal while broken, missing selected file,
+parent semantics during a prompt and final Other-to-Code/Assets boundary checks.
+Mac CUA on the actual isolated Code host verified anchored dropdown choices,
+Code/package/location text, Assets-only choices, keyboard Down/Enter/cancel,
+light/dark rendering, file right-click choices, New folder beside a file,
+saved text rename/open-tab tracking and exact retained bytes. Java warning/cancel
+passed. Local NativeMarker.java → RenamedMarker.java remained visible/openable
+with the repair hint; renaming back restored the normal library through the same
+tree. The isolated preview was brought forward, fitted to the display and left in
+Light Modern with a saved note open. Original editor/profile/project stay intact.
+
+Screenshots under ignored .verification/student-explorer/screenshots include
+native-friendly-location-final.png (complete final prompt),
+native-file-context-rename.png, native-java-file-rename-warning.png,
+native-library-rename-repair.png and light/dark/Assets dropdown snapshots.
+Native OS popup menus are verified through AX state; window-only screenshots do
+not composite those popup windows. Test receipts: dropdown-tests-final.tap and
+prior dropdown-tests.tap. No Java/runtime API changed; previous scoped native /
+WebFX/browser proof is reused, not rerun. Windows/minimum-host interaction and
+complex malformed Java recovery are unproven; name-mismatch recovery requires
+one unambiguous top-level declaration. No public source or release was published.
+
+Independent review ledger: risk assessed as new file-mutation authority, two
+fresh GPT-6 Sol/high assignments (safety and native compatibility), followed by
+one targeted safety/integration turn. Requested configuration recorded; effective
+configuration, per-turn tokens and individual elapsed telemetry were not exposed.
+Three reviewer turns / two waves / one fix batch, within the 7-launch, 4-batch,
+60-minute session budget. Receipts: review_dropdown_safety initial at010796fc
+completed with two accepted P2 findings (final area boundaries and stale-file /
+parent semantics); review_dropdown_compat initial at010796fc completed with one
+accepted P2 (local Java rename navigation); review_dropdown_safety targeted at
+e8747259 completed clean after the fixes. No rejected findings or further fixes.
+Reviewers reused reported checks, did not edit or perform native acceptance.
+Implementation worker rename_files delivered the bounded rename module/tests;
+coordinator inspected/integrated and verified it. Per-worker effort unknown.
+Latest reused weekly allowance reading was93% remaining; storage223.65GB free,
+no cleanup. DeepSeek pause honored. Standard Explorer remains default pending
+owner visual acceptance of the wider preview; no source push/PR/merge authority.
+
+## Project creation menu refinement — 2026-10-26
+
+Owner requested moving ZeroHub/New from the controls panel into the native
+Student Explorer. Local reviewed implementation
+`feeeb0fee3d57d1e75a3b9184d3bd6898118090d`, base
+`ce60122cf7de5d3c67f22595bdfbd65d27dba644`, same isolated worktree/branch.
+Preview controls now omit both controls; native Project **New… (+)** opens the
+creation picker for selected Code/Assets folders. Existing tree right-click
+creation remains. Project overflow exposes the existing guarded ZeroHub picker.
+Without a writable selection, creation choices state app defaults or use the
+existing location picker. Stale project/tree targets, cancelled menus, duplicate
+menus and busy states remain guarded. The standard Explorer remains the default
+while the overall visual decision is pending; no publication occurred.
+
+111 focused controller/manifest/render/file/assets/sidebar/onboarding/workflow-UI/
+playground checks pass; `npm run check` and `git diff --check` pass. Actual Mac CUA
+verified controls removal, keyboard creation-menu choice, creation of menu_notes
+from Project New and notes.txt from a folder right-click, opening that exact file,
+and ZeroHub → Projects/Libraries via Project overflow with cancellation. Saved
+screenshots: `.verification/student-explorer/screenshots/native-project-menu-light.png`
+and `native-project-context-light.png`. No Java/runtime/export code changed, so
+prior scoped native/WebFX/browser proof remains applicable; it was not repeated.
+
+One fresh GPT-6 Sol/high independent reviewer inspected the complete10-file delta
+and immediate canonical-target/two-view callers: clean, no findings/fix batches.
+Requested configuration recorded; effective model/tokens and individual elapsed
+telemetry unknown. Reviewer reused reported checks and Mac proof. Windows/minimum
+host interaction remains untested. This refinement does not approve the full
+preview as default or authorize source push/PR/merge/release.
+
+## Student explorer preview ready for owner visual review — 2026-10-26
+
+Local branch `codex/student-explorer`, reviewed implementation
+`c8ce5cb289893e5c61f66aa922749b5c7c3c9cba`, full review base
+`07e1bbe356a311895a65fd80485004e80900e13d`. New isolated managed worktree from
+exact handoff b03ecdaa. Standard Explorer remains the default; only the disposable
+workspace enables Preview Student Explorer. No source push/PR/merge, hosted
+activation, deployment, account grant or release occurred.
+
+Implemented: native Code/Assets, conditional versioned Libraries and local/published
+mode, other authored files, full Explorer escape/Zero return, package-aware class
+creation, selected app/component asset destinations and copyable resource paths,
+explicit exact-release/local-source imports/examples, existing guarded library
+Check/Share/mode actions, scoped refresh and independent controls lifecycles.
+
+Verification:
+- `npm run check` and `git diff --check` pass.
+- 167 focused explorer/file/assets/model/sharing/extension/onboarding/workflow-UI/
+  sidebar/playground tests pass. The later reference-tab-only delta passes the
+  52 sharing tests; those are a subset, not additional unique coverage.
+- Website API-reference checks pass20/20. No public Java API changed; `/docs`
+  remains the existing API entry. Local APP-GUIDE and command/development docs
+  describe the preview; no published template/site bytes changed.
+- `npm run dev:smoke` passes with `ZERO_DEV_SMOKE_OK`, real Coin Game movement,
+  win/restart/recollection and native framework/input/media checks. A mistakenly
+  started root suite was stopped when it repeated the handoff-excluded Git
+  recovery matrix; no full-root-suite pass is claimed.
+- Real Mac CUA, isolated source host: preview on/off/on, package and selected
+  class creation with exact declarations, native compiler error/Problems line4,
+  correction/first game frame ready/Stop, selected nested image import and exact
+  copied literal, full Explorer/Zero return, project switch, local library class
+  namespace, local public imports, Check library modal then independent JAR and
+  both examples passed, arrow-key expansion/Enter-to-open, light and dark host
+  themes with visible focus. Final version/mode reference tab is verified and
+  typing is refused with Cannot edit in read-only editor. New component app
+  reaches native App UI ready.
+  The transient Java process is not a selectable CUA app; no new physical
+  JavaFX button-click claim is made.
+- Disposable packaged App/local-component fixture includes app and namespaced
+  PNG assets, native-created NativeMarker and package Player. Native compilation
+  and real saved-builder WebFX export/retained validation pass. Final build
+  `bdabb593-6c8a-4672-85bb-a15e7c084d30`, sourceHash
+  `4a124df30d5dc258e4ddc6b20015895427cedbc7057d07c9f3bea041bafa637f`,61 files.
+  Actual local browser showed `Explorer proof: 7 / Player`; clicking Check
+  explorer changed it to `Clicked: 7 / Player`. Both assets are present and startup
+  checks resolve them. This is local browser proof, not hosted publication.
+
+Independent review ledger: requested GPT-6 Sol/high, effective configuration and
+worker token/elapsed telemetry unknown. Initial two fresh reviews (write safety,
+native/API compatibility) of07e1bbe3→88a2960d found five distinct P2s. One combined
+fix batch72f23d1f addressed initial-error recovery, stale expanded local-mode state,
+Share's descriptor-modal race, example-directory traversal bounds and withdrawn
+exact-release metadata. Targeted safety review clean;22 focused tests run by the
+reviewer. A second tiny batchc8ce5cb2 gives reference tabs readable version/mode
+names; targeted compatibility review clean. Four reviewer turns total, one initial
+wave, two targeted waves, two fix batches; no unresolved finding or integration
+gap. Initial unchanged coverage plus targeted coverage establishes the current
+implementation. No extra cumulative wave was needed. Source review is not owner
+visual acceptance.
+
+Evidence and preview stay ignored in `.verification/student-explorer/`:
+`screenshots/native-light.png`, `screenshots/native-dark.png`,
+`screenshots/browser-proof.png`, portability scripts/receipt/export, and finite
+check logs. Source watcher3154 and browser proof3155 stay local. CUA uses a
+byte-for-byte disposable copy of installed VS Code at
+`.verification/student-explorer/Zero Explorer Preview.app`, with this checkout's
+`~/.zero-dev/9f89a72a9898/` profile, to distinguish older same-bundle instances.
+Original profiles/projects/checkouts and3153/3025 previews were preserved. All
+workers completed; no supported worker-runtime close API exists.
+
+Remaining: required owner visual review before default replacement. Physical
+Windows, minimum VS Code1.95, fresh Mac/school network, native transient-app
+pointer input and hosted authenticated library actions were not established by
+this scope. Existing release/ZeroJams holds remain. The matching tool-backed goal
+exists but its service status remains blocked after startup capacity failure;
+explicit user resume authorized the work, and the API exposes no resume action.
+Do not replace or falsely complete that goal.
 ## Owner-authorized active Terms and prospective use agreement — 2026-10-25
 
 After PR205 publication, owner requested removing draft status/rolling out Terms,
@@ -10877,6 +11171,137 @@ and fresh WebFX preview pass. Two early Run stops remain an unresolved QA
 observation; no student-rollout approval or production update-delivery claim.
 Publishing remains held.
 
+## Local branches and explicit GitHub Sync — 2026-10-25
+
+Owner approved local New branch, explicit Sync, fewer repeated transfer checks and
+correct Source Control tracking. Local source on `codex/local-git-workflow`, base
+`3bab71a0272552e4234db9baf3f0eccbe3f8982d`, reviewed implementation
+`41837be7f54f29cd469bbc59875a736206bca5cc`. No source push, PR, merge, release,
+website/template publication or Pages deployment in this phase. Existing native
+Git credential prototype remains default OFF; the live pilot used guarded Zero
+transport with its existing session.
+
+New branch now uses local Git state with no authentication, GitHub access request
+or upload fingerprint. Signed-out local branching and no-origin original projects
+are tested. Sync explicitly downloads reviewed GitHub main into the current main
+or feature, preserving conflict recovery without upload. Merge uses a nonforce
+push and one exact-SHA confirmation; rejected pushes direct students to Sync,
+Run and retry. Repository access is checked at the first actual transfer and
+reused only within that operation; session/project guards still apply. Confirmed
+remote SHAs refresh only the origin tracking cache through guarded CAS. Existing
+upstream configuration remains unchanged; new feature branches can still show
+native Publish Branch until an upstream is configured.
+
+Checks: root suite at `a90be934` passed1236/1239 with3existing skips, no failures.
+An earlier run found2menu regressions (empty-window/practice gating), corrected
+before review; one premature rerun was stopped. The subsequent two-file session
+fix passes39UI/upload tests and root configuration/syntax/command/link checks.
+Independent real-Git workflow22 and tracking25 tests pass; broader UI/onboarding
+96tests and extension3tests pass. All3tutorial template scaffolds retain their
+published source evidence and readiness checks. Java/API/WebFX/toolchain files
+are unchanged; no new browser-framework proof is claimed.
+
+Independent initial full16file wave: Astra/high security/correctness identified
+one acceptedP2, Sol6.1/high compatibility was clean. Signing out or replacing the
+session during a Sync fetch previously allowed applying incoming main afterward.
+One fix batch adds captured-session validation to connected mutation/cleanup
+callbacks while local branching remains auth-free. Astra/high targeted review
+is clean, including an independent local real-Git reproduction showing session
+invalidation preserves HEAD/main. Ledger:3reviewer turns/launches,1initial wave,
+1targeted wave,1fix batch, no separate integration wave needed for the isolated
+guard delta. Effective configurations, elapsed reviewer time and token usage were
+not exposed. Unchanged initial coverage plus targeted review covers41837be7.
+
+Actual Mac CUA pilot used the existing owner-owned disposable repository
+<https://github.com/armorup/zero-git-flow-pilot-20261025>. Sync corrected its stale
+origin/main cache from the initial commit to confirmed `cfa7f70b`. Through the
+real Zero controls: New branch `pilot-local-fast`, edit Main.java greeting, native
+Run → App UI ready → Stop, Commit & push, Merge to main, automatic local branch
+cleanup, native SCM inspection and persistent Zero return all passed. The final
+local main, origin/main, feature tracking cache and read-only remote main/feature
+resolve to `e37d39dfda0c59ea49a1ca87066551680d246483`; worktree is clean and only
+local main remains. Remote test branches remain recoverable. Native SCM shows
+main/origin/main together and no false outgoing commit count. No JavaFX button
+interaction is claimed; the native app readiness marker and Stop were observed.
+
+Single current-connection samples, CUA submission/click timestamp to a read-only
+HEAD/ref observer: branch599ms (prior13815ms); merge6007ms (prior19778ms).
+These are illustrative observations, not a network benchmark or school acceptance.
+The observer was stopped. Original `my-greeting` was reopened and its recorded
+HEAD `2909872c993b311e74cd1b3331f46a5baea57a42`, main and clean status are unchanged.
+Raw local receipts live in ignored `.verification/local-git-workflow/`.
+
+Physical Windows, Git2.31 binary, minimum VSCode, fresh Mac, school network and
+successful real-account native adapter transfer remain unproven. User confirmed
+this connection is not the school network. Published Mac50/core0.3.0/manualkit17/
+Windows21 and the ZeroJams publication hold remain unchanged.
+
+## Git recovery implementation and partial Mac acceptance — 2026-10-26
+
+Reviewed local code645504c, base7e97103c, implements explicit main/current-feature
+updates, checkpoints, guided text and whole-file conflicts, safe cancellation,
+native fallback, saved-push recovery and exact confirmation. Root1277pass/3existing
+skips; focused UI/auth/gallery55pass; root checks pass. Two independent initial
+reviews and two targeted passes resolved one work-preservationP1 and twoP2s;
+remaining source blockers none. No source push/PR, publishing or release.
+
+All30non-PR cases exercised real disposable Git repositories with constrained
+injected transport:29backend passes and one busy partial, subsequently covered
+by actual Mac progress/duplicate-action/release. Genuine offline Maven compiler
+failure, correction and explicit upload pass. Four PR-only states deferred.
+Actual Mac interface:12scenario passes, one interrupted-confirmation partial,
+17pending. The Mac locked before the expired-sign-in case; owner unlock requested.
+Do not treat source/backend completion as full native acceptance. Full matrix,
+limits and continuation are in [Git recovery acceptance](GIT-RECOVERY-ACCEPTANCE.md).
+Raw `.verification/git-recovery-flow/` retains fixture manifests/ref/file hashes,
+source-bound tests/reviews, events, snapshots, failed setup attempts and QA-only
+harness corrections. Original student project/public pilot HEAD/status unchanged.
+
+## Git recovery Mac continuation and live pilot — 2026-10-26
+
+Owner unlocked Mac and authorized remaining interface tests, with PR integration,
+publishing and releases separate. Actual Mac CUA completed the remaining17rows
+and interrupted-confirmation row: all30non-PR functional scenarios exercised.
+Signed-out/no-origin Run and local commits/branches work; dirty branch guidance
+and initial account-change wording have nonblocking UX observations. Exact prior
+upload confirmation remained available after a newer native local commit, with
+no repeat push or local work loss. Compiler failure/correction and rejected-merge
+Update/Run/retry passed through real controls.
+
+Separate live GitHub happy path on existing disposable armorup/zero-git-flow-pilot-20261025
+passed Update, local branch, Mac edit, native App UI ready/Stop, Commit & push,
+Merge and local feature cleanup. Local/remote main and retained remote feature
+pilot-recovery-20261026 confirm ba318d05203466744f0366a37bb7bc89735a975a.
+Original my-greeting reopened unchanged at clean main2909872c. Source645504c is
+unchanged; root1277pass/3skip and completed independent review remain applicable.
+No source push/PR/CI, publication or release. Service-failure injections are not
+live provider-failure proof; four PR states and physical/fresh-Mac/school-network
+limits remain separate. Full matrix: [Git recovery acceptance](GIT-RECOVERY-ACCEPTANCE.md).
+Resumed evidence lives under ignored .verification/git-recovery-flow/.
+
+## Git recovery wording follow-up — 2026-10-26
+
+Owner authorized the two wording fixes after the completed Mac matrix. Code
+`c74d406d`, base `b8a6031f`, changes only clean-work guidance and shared changed-upload
+copy plus existing test assertions. Initial/dirty/missing-main messages now explain
+local Source Control commits without requiring a push; upload recovery names a
+changed project or GitHub sign-in and retains Check GitHub status. Guards,
+authentication boundaries, Git operations and recovery actions are unchanged.
+
+Focused workflow/panel/UI suite passes 27/27; npm run check and diff checks pass.
+Actual Mac controls confirmed dirty signed-out/no-origin guidance and account-change
+recovery with exact local/remote preservation. Original my-greeting and live pilot
+remain clean at their recorded heads; original Zero Dev reloaded. One ignored QA
+fixture-preparation failure followed the previous live pilot greeting edit; pinning
+the seed to its original e37d39df commit fixed test setup, then Mac smoke passed.
+
+One fresh independent GPT-6 Luna/medium review covered the complete four-file
+`b8a6031f..c74d406d` delta and immediate recovery semantics; clean, no findings.
+One launch/one initial wave, zero corrective batches. Effective model, reviewer
+elapsed time and tokens unavailable. Existing reviewed recovery coverage remains
+valid beneath the copy-only delta. Ignored wording-tests.log, wording-check.log,
+wording-native.ndjson and wording-review.json contain scoped receipts. No source
+push/PR/CI, PR integration, publishing or release; native Git auth stays OFF.
 ## Remove practice-library notice — 2026-10-26
 
 Owner requested removal of the confusing CreditsBadge copied-work/cleanup
@@ -10889,3 +11314,29 @@ Review budget:1launch,1initialwave,0fixbatches; elapsed/tokens not exposed.
 Owner authorized PR and merge on2026-10-26. No access controls, private storage,
 repository visibility or installer changes are included. Final publication/CI/live
 receipts are retained in ignored `.verification/remove-practice-notice/`.
+
+## Mac51 release source review — 2026-10-26
+
+Owner's “Do it” authorizes final source/CI/merge and signed Mac51 publication plus
+fresh isolated installed-extension Run/Publish acceptance. Main2d42a295 merged;
+version51/nativebuild51 selected, existing published50 feed retained during staging.
+Initial full source wave reviewed2d42a295..f419222f in two fresh GPT-6 Sol/high
+contexts: release51_git_review completed Git/auth/recovery/caller inspection clean;
+release51_compat_review completed explorer/files/runtime/integration inspection,
+108focused tests passed. Both identified duplicate stale bundled explorer prose;
+accepted as one documentation remediation batch in APP-GUIDE/README. No code blocker.
+Native-updater menu assertion was scoped to both supported control views before
+review;8focused tests pass. Effective models/tokens unavailable; review elapsed
+approximately8minutes (manual wall estimate). Review ledger:2launches,1initial
+wave,1fixbatch; targeted prose/candidate review next. Budgets7launches/4fixbatches/
+60minutes session/30minutes reviewer. Physical Windows not newly tested; prior
+Git30-scenario Mac acceptance retained, no new failure-matrix claim.
+
+Mac51 follow-up review turns: release51_compat_review turn2 inspectedf419222f..
+eeecce6a, requested Sol/high, original prose mismatch substantially resolved with
+three exact-label/default clarifications accepted. Turn3 inspectedeeecce6a..
+849a3527 complete/clean, same model/effort, original finding resolved. Code
+coverage108tests retained. Ledger4review turns,1initial+2targetedwaves,2prosefix
+batches. Per-turn elapsed/tokens unavailable. Root rerun1338pass/3skip, website
+243pass/typecheck/build and final check pass. Signed/stapled candidate proof in
+MAC-CANDIDATE-0.5.51.md; sourcePR208 remains draft during exact artifact/QA gates.

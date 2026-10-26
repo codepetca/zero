@@ -18,3 +18,33 @@ test('development sidebar leaves tutorial, setup and project selection on the St
  assert.ok(!manifest.contributes.menus['view/title'].some(c=>c.command==='zero.startProject'));
  assert.ok(manifest.contributes.menus['view/title'].some(c=>c.command==='zero.showSetup'));
 });
+test('student explorer owns New and ZeroHub while its controls stay minimal',async()=>{
+ const {sidebarSource}=await import('../../design/playground/sidebar-source.mjs');
+ for(const connected of [false,true]) {
+  const controls=sidebarSource('ready',{connected,studentExplorer:true});
+  assert.match(controls,/zero.toggleApp/);
+  assert.doesNotMatch(controls,/data-command="zero\.(?:newClass|newPackage|newFile|newFolder|importAssets|browseZeroHub)"|id="files-menu-button"/);
+  if(connected)assert.match(controls,/zero.chooseRepository/);
+ }
+ const menus=require('../package.json').contributes.menus;
+ assert.ok(menus['view/title'].some(item=>item.submenu==='zero.projectNewMenu'&&item.when==='view == zero.studentProject'&&item.group==='navigation@0'));
+ const project=menus['view/title'].filter(item=>item.when==='view == zero.studentProject');
+ assert.deepEqual(project.filter(item=>item.group.startsWith('navigation')).map(item=>item.submenu||item.command),['zero.projectNewMenu']);
+ for(const command of ['zero.refreshStudentExplorer','zero.showAllProjectFiles','zero.collapseStudentExplorer'])assert.ok(project.some(item=>item.command===command&&!item.group.startsWith('navigation')));
+ assert.ok(menus['view/title'].some(item=>item.command==='zero.browseZeroHub'&&item.when==='view == zero.studentProject'));
+ for(const command of ['zero.explorerNewFile','zero.explorerNewFolder'])assert.ok(menus['view/item/context'].some(item=>item.command===command));
+});
+
+test('Project New is a supported dropdown with selected-area choices and file context rename',()=>{
+ const {commands,menus,submenus}=require('../package.json').contributes;
+ assert.deepEqual(submenus.find(s=>s.id==='zero.projectNewMenu'),{id:'zero.projectNewMenu',label:'New',icon:'$(add)'});
+ assert.deepEqual(menus['zero.projectNewMenu'].map(x=>x.command),['zero.projectNewClass','zero.projectNewPackage','zero.projectNewFile','zero.projectNewFolder','zero.projectImportAssets']);
+ assert.equal(menus['zero.projectNewMenu'][0].when,'zero.explorerCodeTarget');
+ assert.equal(menus['zero.projectNewMenu'][4].when,'zero.explorerAssetTarget');
+ assert.ok(!commands.some(c=>c.command==='zero.explorerNew'));
+ for(const suffix of ['NewClass','NewPackage','NewFile','NewFolder','ImportAssets','RenameFile']) {
+  const entry=menus['view/item/context'].find(c=>c.command==='zero.explorer'+suffix);
+  assert.match(entry.when,/zeroCodeFile/);
+  assert.doesNotMatch(entry.when,/zeroReadonly/);
+ }
+});

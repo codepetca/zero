@@ -4896,3 +4896,77 @@ manual47→48upgrade, clean-folder setup, browser sign-in, native compiler recov
 and fresh WebFX preview pass. Two early Run stops remain an unresolved QA
 observation; no student-rollout approval or production update-delivery claim.
 Publishing remains held.
+
+## Local branch / explicit Sync acceptance — 2026-10-25
+
+Reviewed local implementation41837be7, base3bab71a0: root1236pass/3existing skips
+at pre-remediation a90be934; isolated session-guard remediation39UI/upload tests
+and root checks pass. Workflow22, tracking25 and broader UI/onboarding96tests pass.
+Two initial full-diff reviewers and one targeted reviewer resolved oneP2; no
+remaining source blockers. All3tutorial template readiness checks remain valid.
+See [evidence](EVIDENCE.md#local-branches-and-explicit-github-sync--2026-10-25).
+
+Actual Mac existing-session guarded-transport pilot passes Sync, local New branch,
+Zero-only edit, native UI-ready/Stop, Commit & push, Merge, local branch cleanup,
+SCM tracking and persistent Zero return. Disposable repository final main is
+`e37d39dfda0c59ea49a1ca87066551680d246483`. Single local branch sample599ms versus
+prior13815ms; merge6007ms versus19778ms. Original my-greeting restored unchanged.
+No publishing/releases or new source PR/CI. School network, fresh Mac, physical
+Windows/minimum host and successful real native-auth transfer remain separate.
+
+## Git recovery source / incomplete native matrix — 2026-10-26
+
+Code645504c:1277root tests pass,3existing skips;55focused UI/auth/gallery tests and
+root configuration/syntax/command/link checks pass. Independent initial and
+targeted reviews report no remaining source blockers after two correction batches.
+All30non-PR scenarios have actual disposable-Git backend evidence (29passes; busy
+partial supplemented by actual Mac verification). Service faults are injected.
+Native Mac:12passes,1partial,17pending because host locked. Four PR-only cases
+remain deferred. This is no release/publishing or full live-GitHub acceptance.
+See [the scenario-by-scenario record](GIT-RECOVERY-ACCEPTANCE.md) before continuing.
+
+## Git recovery native matrix complete — 2026-10-26
+
+Owner unlocked Mac and authorized remaining interface tests, with PR integration,
+publishing and releases separate. Actual Mac CUA completed the remaining17rows
+and interrupted-confirmation row: all30non-PR functional scenarios exercised.
+Signed-out/no-origin Run and local commits/branches work; dirty branch guidance
+and initial account-change wording have nonblocking UX observations. Exact prior
+upload confirmation remained available after a newer native local commit, with
+no repeat push or local work loss. Compiler failure/correction and rejected-merge
+Update/Run/retry passed through real controls.
+
+Separate live GitHub happy path on existing disposable armorup/zero-git-flow-pilot-20261025
+passed Update, local branch, Mac edit, native App UI ready/Stop, Commit & push,
+Merge and local feature cleanup. Local/remote main and retained remote feature
+pilot-recovery-20261026 confirm ba318d05203466744f0366a37bb7bc89735a975a.
+Original my-greeting reopened unchanged at clean main2909872c. Source645504c is
+unchanged; root1277pass/3skip and completed independent review remain applicable.
+No source push/PR/CI, publication or release. Service-failure injections are not
+live provider-failure proof; four PR states and physical/fresh-Mac/school-network
+limits remain separate. Full matrix: [Git recovery acceptance](GIT-RECOVERY-ACCEPTANCE.md).
+Resumed evidence lives under ignored .verification/git-recovery-flow/.
+
+## Git recovery wording follow-up — 2026-10-26
+
+Owner authorized the two wording fixes after the completed Mac matrix. Code
+`c74d406d`, base `b8a6031f`, changes only clean-work guidance and shared changed-upload
+copy plus existing test assertions. Initial/dirty/missing-main messages now explain
+local Source Control commits without requiring a push; upload recovery names a
+changed project or GitHub sign-in and retains Check GitHub status. Guards,
+authentication boundaries, Git operations and recovery actions are unchanged.
+
+Focused workflow/panel/UI suite passes 27/27; npm run check and diff checks pass.
+Actual Mac controls confirmed dirty signed-out/no-origin guidance and account-change
+recovery with exact local/remote preservation. Original my-greeting and live pilot
+remain clean at their recorded heads; original Zero Dev reloaded. One ignored QA
+fixture-preparation failure followed the previous live pilot greeting edit; pinning
+the seed to its original e37d39df commit fixed test setup, then Mac smoke passed.
+
+One fresh independent GPT-6 Luna/medium review covered the complete four-file
+`b8a6031f..c74d406d` delta and immediate recovery semantics; clean, no findings.
+One launch/one initial wave, zero corrective batches. Effective model, reviewer
+elapsed time and tokens unavailable. Existing reviewed recovery coverage remains
+valid beneath the copy-only delta. Ignored wording-tests.log, wording-check.log,
+wording-native.ndjson and wording-review.json contain scoped receipts. No source
+push/PR/CI, PR integration, publishing or release; native Git auth stays OFF.

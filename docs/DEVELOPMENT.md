@@ -205,15 +205,19 @@ no real sign-in, upload or account/configuration changes are authorized by a
 local development check. Live is the student default; simulation tests must explicitly select it. Signing in is separate
 from manually configuring per-repository Git commit identity.
 
-The individual workflow adds reviewed start/finish plans. Test real local Git
-against injected disposable bare remotes: baseline, branch progress, main updates,
-pause/run/review after updates, preserved conflict state, failed push/retry and
-safe optional local branch deletion. Never redirect production transport through
-Git URL rewriting or introduce a real GitHub test. Simulation must skip saves,
-auth, network and Git mutations for Upload, Start and Finish. Native transport
-accepts only the exact reviewed HTTPS destination and narrow push/head-query/
-SHA-pinned-fetch commands; session/root/rewrite checks remain required. UI tests
-cover cancellation, operation serialization, source-control guidance and drift.
+The individual workflow uses reviewed local start/finish and explicit update plans.
+Test actual local Git with injected disposable bare remotes: local/main/feature
+updates, multi-hunk text choices preserving automatic merges, binary/deletion and
+native-only cases, cancellation/reload, checkpoints and exact-SHA confirmation.
+No production URL rewrites or credential changes are permitted. Simulation must
+skip saves, auth, network and Git mutations for all new recovery actions too.
+Transport accepts only reviewed HTTPS destinations and narrow push/head-query/
+SHA-pinned-fetch commands with session/root/rewrite guards. UI checks cover stale
+choice tokens, unsaved editor buffers, serialization, signed-out local work,
+checkpoint cancellation and Source Control return. An explicit owner-authorized
+live pilot is separate from the injected fixture service; report both accurately.
+Managed recovery metadata is local to .git and stale operation locks require
+native review rather than automatic deletion. PR integration remains deferred.
 
 Run `git diff --check` before handoff. Record checks actually performed in
 [VERIFICATION.md](VERIFICATION.md); configuration/ZIP checks alone do not prove
@@ -532,8 +536,8 @@ onboarding has not been verified.
 ## Native Git sign-in prototype
 
 Current local source includes a default-off credential adapter for the built-in
-`vscode.git` APIv1 `registerCredentialsProvider`. Student New branch, Commit &
-push and Merge to main keep their existing simple interface and guarded transport.
+`vscode.git` APIv1 `registerCredentialsProvider`. Student controls keep their simple interface. New branch is local; Sync from
+GitHub, Commit & push and Merge to main retain guarded transport.
 This prototype does not migrate those actions to native Git or alter account
 permissions, release settings or external-terminal authentication.
 
@@ -586,17 +590,31 @@ provider supplies credentials, VS Code may show its generic Git credential promp
 Do not interpret that prompt as Zero sign-in or promise immediate native-cache
 revocation. Routine Zero transport retains its separate synchronous final guard.
 
-Captured Zero operations now reuse verified identity only within their private
-session receipt. Every assertion still rereads locked storage, checks expiry and
-retains the existing 60-second App metadata validation policy. New captures and
-standard session lookups verify `/user`; repository access stays checked by the
-transport at dispatch. The workflow's earlier guard checks the session without
-duplicating repository requests. Remote API/Git refusal remains authoritative.
-An existing exact main commit skips download, while missing commits still use
-the pinned fetch and all mutation/source-drift guards.
+Local New branch performs no authentication or network operation and no full
+source/asset hash. Explicit Sync reviews/downloads GitHub main without uploading;
+main fast-forwards only, a feature can merge main and must be run again. Merge
+preparation is local and execution performs only one nonforce push and one SHA
+confirmation. Rejected stale-main pushes preserve local work and direct students
+to Sync, Run and retry. Simulation remains mutation-free for all actions.
+
+Captured operations reuse verified identity only within their private session
+receipt. Every assertion still rereads locked storage and checks expiry. Upload
+access is checked at the first actual transfer; the paired confirmation reuses
+that operation's access while rechecking session/project state. Commit & push
+pins identity before its input and compares again at transfer. New operations
+always establish their own access; no blanket permission cache or OAuth fallback.
+
+After confirmed success, git-tracking updates only the matching origin tracking
+ref, with origin/root/ref/object guards and OID CAS. It suppresses reference hooks,
+refuses partial/promisor clones to avoid implicit credential-bearing fetches, and
+never changes upstream configuration, HEAD, source or index. Refused metadata
+refresh is a warning after remote success. Git 2.31 cannot atomically verify ref
+symbolic type: an unobserved last-moment symbolic replacement may itself be
+replaced, but --no-deref prevents changing its target branch. Configuration can
+also change after final inspection; the helper never rewrites it.
 
 Focused checks:
-`node --test extension/test/authentication.test.js extension/test/github-app-provider.test.js extension/test/github-app-browser-provider.test.js extension/test/native-git-authentication.test.js extension/test/workflow.test.js extension/test/workflow-ui.test.js extension/test/transport.test.js extension/test/extension-upload-auth.test.js`.
+`node --test extension/test/authentication.test.js extension/test/github-app-provider.test.js extension/test/github-app-browser-provider.test.js extension/test/native-git-authentication.test.js extension/test/workflow.test.js extension/test/git-tracking.test.js extension/test/workflow-ui.test.js extension/test/transport.test.js extension/test/extension-upload-auth.test.js`.
 Mocked authority tests, real local bare-repository cycles and actual VS Code
 credential callbacks are distinct from live GitHub upload acceptance. No release
 or production activation follows from these tests.
@@ -613,6 +631,53 @@ installer bytes. Use the existing website/design/installer checks plus actual
 light/dark web inspection; physical Windows icon rendering remains separate.
 
 ## Native Explorer integration
+
+Local source defaults to the Student Explorer after the owner’s reviewed-preview
+continuation on2026-10-26. **Zero: Use Standard Explorer** and **Zero: Use Student
+Explorer** persist a workspace choice; an explicit Standard Explorer preference
+is preserved on upgrade. An existing workspace receives the new sidebar once,
+without replacing its open editors. The supported `zero-student-explorer` view container combines
+`zero.studentControls` and the native `zero.studentProject` TreeDataProvider.
+Both control views share the renderer but keep independent document lifecycles.
+The student controls omit the ZeroHub and New dropdowns. The native Project
+header keeps only the anchored **New (+)** dropdown for the selected folder.
+Refresh, Show All Project Files and Collapse All live in Project’s three-dot menu. A
+selected file targets its containing folder; without a selection, creation starts
+in java. Its description and name prompts use the visible hierarchy, such as
+**java › game › characters** or **Libraries › Health bar › resources**, while the
+project keeps its ordinary Java source/resource layout. The dropdown limits
+choices to that area. Right-click files or folders for contextual creation;
+editable files also expose **Rename file…**. Rename uses a guarded native
+WorkspaceEdit, refuses collisions/unsaved changes, and never moves files between
+folders. Java file names change without rewriting class names or references;
+the prompt explains that limitation. A local library with a basename/declaration
+mismatch stays navigable and shows a repair hint; imports are withheld until
+repaired. Namespace/path containment checks remain strict. Published retained
+source remains read-only.
+Project overflow retains ZeroHub's guarded browser. Actions revalidate current
+project/tree targets before opening the name prompt. File creation then targets
+the containing folder, revalidated before mutation; subsequent removal of the
+original sibling file does not change that destination.
+**Show all project files** opens the full Explorer without changing the selected mode;
+the Zero status-bar action returns to the active controls. **Zero: Use Standard
+Explorer** selects the standard layout. No host layout storage or private APIs are used.
+
+java and resources map to actual source/resource roots. Selected file actions
+re-resolve current project, Java package, local library identity and mode through
+the authoring resolver. Installed dependencies have no editable source tree;
+retained authored source in published mode is labeled inactive. Tree expansion
+only reads bounded ordinary files. Exact published imports/examples require an
+explicit catalog lookup, with no artifact download or dependency change.
+Root-scoped file watching refreshes authored changes and ignores build output.
+
+Focused checks: `node --test extension/test/student-explorer.test.js
+extension/test/project-explorer-model.test.js extension/test/file-actions.test.js
+extension/test/assets.test.js extension/test/file-rename.test.js
+extension/test/project-menu.test.js extension/test/sharing-explorer.test.js
+extension/test/sharing-editor.test.js extension/test/extension.test.js
+extension/test/sidebar-refresh.test.js`. Use Zero Dev for actual light/dark,
+keyboard, context-menu, error-recovery and project-switch acceptance. Native and
+WebFX/browser proofs remain separate. No source publication or release follows.
 
 Zero contributes the `zero.controls` webview to `contributes.views.explorer`.
 `Zero: Show Sidebar` reveals Explorer and expands the controls using its generated

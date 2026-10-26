@@ -48,6 +48,7 @@ async function start(f, name = 'add-score') {
   const plan = await workflow.prepareStart(f.root, name, f.options);
   return workflow.startPrepared(plan, f.options);
 }
+async function sync(f) { return workflow.syncPrepared(await workflow.prepareSync(f.root, f.options), f.options); }
 async function finish(f) { return workflow.finishPrepared(await workflow.prepareFinish(f.root, f.options), f.options); }
 async function remoteChange(f, filename, content) {
   const other = path.join(f.parent, 'other');
@@ -70,15 +71,18 @@ test('individual start/finish cycle uploads exact feature SHA to main and safely
   assert.equal(result.finished, true); assert.equal(result.branch, 'main'); assert.equal(result.head, feature);
   assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), feature);
   assert.equal(await fs.readFile(path.join(f.root, 'secret.txt'), 'utf8'), 'kept locally');
-  assert.ok(!f.calls.some(args => args[0] === 'fetch'), 'An existing reviewed commit needs no download');
+  assert.deepEqual(f.calls.map(args => args[0]), ['push', 'ls-remote']);
+  assert.deepEqual(f.calls[0], ['push', remote, `${feature}:refs/heads/main`]);
+  assert.ok(!f.calls.some(args => args.includes('--force') || args.includes('--force-with-lease')));
   await assert.rejects(fs.access(path.join(f.root, '.git', 'FETCH_HEAD')));
   await workflow.deleteFinishedBranch(f.root, result.finishedBranch, result.head, {run: f.run});
   await assert.rejects(core.git(f.root, ['show-ref', '--verify', 'refs/heads/add-score']));
   assert.equal(await core.git(f.bare, ['for-each-ref', '--format=%(refname)']), 'refs/heads/main');
 });
-test('Start fast-forwards a clean main to pinned newer remote main', async t => {
+test('explicit Sync fast-forwards a clean main to pinned newer remote main', async t => {
   const f = await fixture(t); const updated = await remoteChange(f, 'Remote.java', 'class Remote {}');
-  const result = await start(f); assert.equal(result.head, updated);
+  const result = await sync(f); assert.equal(result.head, updated);
+  assert.equal(result.synced, true); assert.equal(result.remoteBranch, 'main'); assert.equal(result.remoteHead, updated);
   assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), updated);
   assert.equal(await fs.readFile(path.join(f.root, 'Remote.java'), 'utf8'), 'class Remote {}');
   assert.deepEqual(f.calls.find(args => args[0] === 'fetch'), ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, updated]);
@@ -89,8 +93,8 @@ test('disjoint updated main merges into feature and stops for a fresh app run/re
   const feature = await commit(f.root, 'Score.java', 'class Score {}');
   const remoteHead = await remoteChange(f, 'Remote.java', 'class Remote {}');
   const localMain = await core.git(f.root, ['rev-parse', 'refs/heads/main']);
-  const result = await finish(f);
-  assert.equal(result.updated, true); assert.equal(result.finished, false); assert.equal(result.branch, 'add-score');
+  const result = await sync(f);
+  assert.equal(result.updated, true); assert.equal(result.synced, true); assert.equal(result.branch, 'add-score');
   assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), localMain);
   assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), remoteHead);
   await core.git(f.root, ['merge-base', '--is-ancestor', feature, result.head]);
@@ -103,7 +107,9 @@ test('conflict preserves merge state and original main, then resolution can Fini
   await commit(f.root, 'Main.java', 'class Main { int score; }\n');
   const initialMain = await core.git(f.root, ['rev-parse', 'refs/heads/main']);
   await remoteChange(f, 'Main.java', 'class Main { int lives; }\n');
-  await assert.rejects(finish(f), error => error.conflict === true && /Resolve conflicts/.test(error.message));
+  const pending = await sync(f);
+  assert.equal(pending.synced, false);
+  assert.equal(pending.recovery.files[0].kind, 'text');
   assert.equal(await core.git(f.root, ['branch', '--show-current']), 'add-score');
   assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), initialMain);
   assert.ok(await core.git(f.root, ['rev-parse', '--verify', 'MERGE_HEAD']));
@@ -127,18 +133,18 @@ test('remote racing the final push rejects non-fast-forward; retry integrates ma
   await assert.rejects(finish(f), /GitHub main changed and refused/);
   assert.equal(await core.git(f.root, ['branch', '--show-current']), 'add-score');
   assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), remoteHead);
-  assert.equal((await finish(f)).updated, true);
+  assert.equal((await sync(f)).updated, true);
   assert.equal((await finish(f)).finished, true);
 });
 test('cancelled executor and forged plans leave refs and files untouched', async t => {
   const f = await fixture(t); const plan = await workflow.prepareStart(f.root, 'feature', f.options);
   const refs = await core.git(f.root, ['show-ref']); const before = f.calls.length;
-  await assert.rejects(workflow.startPrepared(plan, {...f.options, beforeNetwork: async () => { throw new Error('Cancelled'); }}), /Cancelled/);
+  await assert.rejects(workflow.startPrepared(plan, {...f.options, beforeMutation: async () => { throw new Error('Cancelled'); }}), /Cancelled/);
   assert.equal(await core.git(f.root, ['show-ref']), refs); assert.equal(f.calls.length, before);
   await assert.rejects(workflow.startPrepared({...plan}, f.options), /Review this project/);
 });
-test('post-review file, branch, destination, main and remote drift invalidate before mutation', async t => {
-  for (const kind of ['file', 'branch', 'destination', 'main', 'remote']) {
+test('post-review file, branch, destination and main drift invalidate before mutation', async t => {
+  for (const kind of ['file', 'branch', 'destination', 'main']) {
     const f = await fixture(t); await start(f); await commit(f.root, 'Score.java', 'class Score {}');
     const plan = await workflow.prepareFinish(f.root, f.options);
     if (kind === 'file') await write(f.root, 'Score.java', 'changed');
@@ -153,9 +159,9 @@ test('post-review file, branch, destination, main and remote drift invalidate be
 });
 test('drift introduced during pinned fetch stops before main/feature mutation', async t => {
   const f = await fixture(t); await remoteChange(f, 'Remote.java', 'class Remote {}');
-  const plan = await workflow.prepareStart(f.root, 'feature', f.options);
+  const plan = await workflow.prepareSync(f.root, f.options);
   f.setHook(async (_, args) => { if (args[0] === 'fetch') await write(f.root, 'Main.java', 'edited during fetch'); });
-  await assert.rejects(workflow.startPrepared(plan, f.options), /changed after review/);
+  await assert.rejects(workflow.syncPrepared(plan, f.options), /changed after review/);
   assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
   await assert.rejects(core.git(f.root, ['show-ref', '--verify', 'refs/heads/feature']));
 });
@@ -163,18 +169,19 @@ test('unsafe/duplicate names, dirty/unborn/main/detached and pending-operation g
   const f = await fixture(t);
   for (const name of ['main', '-x', 'x..y', 'x@{1}', 'HEAD~1', 'x//y', 'x.lock', '', 'a b', 'x:main', '../x']) await assert.rejects(workflow.prepareStart(f.root, name, f.options), /name|valid feature/);
   await assert.rejects(workflow.prepareFinish(f.root, f.options), /Start a feature/);
-  await write(f.root, 'Main.java', 'dirty'); await assert.rejects(workflow.prepareStart(f.root, 'feature', f.options), /Use Commit & push/);
+  await write(f.root, 'Main.java', 'dirty'); await assert.rejects(workflow.prepareStart(f.root, 'feature', f.options), /local commit.*Source Control → Commit.*Pushing is not required/);
   await core.git(f.root, ['restore', 'Main.java']);
   await start(f); await assert.rejects(workflow.prepareStart(f.root, 'other', f.options), /Switch to main/);
   await core.git(f.root, ['checkout', 'main']); await assert.rejects(workflow.prepareStart(f.root, 'add-score', f.options), /already exists/);
   await core.git(f.root, ['checkout', '--detach']); await assert.rejects(workflow.prepareStart(f.root, 'other', f.options), /detached HEAD/);
   await core.git(f.root, ['checkout', 'main']); await write(f.root, '.git/MERGE_HEAD', 'pending');
   await assert.rejects(workflow.prepareStart(f.root, 'other', f.options), /current Git merge/);
-  const u = await fixture(t, {unborn: true}); await assert.rejects(workflow.prepareStart(u.root, 'feature', u.options), /Commit & push on main/);
+  const u = await fixture(t, {unborn: true}); await assert.rejects(workflow.prepareStart(u.root, 'feature', u.options), /local commit on main.*Pushing is not required/);
 });
-test('local main divergence and unrelated history are refused while empty remote can accept initial baseline', async t => {
+test('Sync keeps locally ahead main and Merge refuses missing local main while empty remote accepts baseline', async t => {
   const f = await fixture(t); await commit(f.root, 'Local.java', 'local');
-  await assert.rejects(start(f), /cannot fast-forward/);
+  assert.equal((await sync(f)).updated, false);
+  await start(f); await core.git(f.root, ['checkout', 'main']);
   await core.git(f.root, ['checkout', '-b', 'feature', 'HEAD~1']);
   await assert.rejects(workflow.prepareFinish(f.root, f.options), /Local main contains changes/);
   const e = await fixture(t, {empty: true}); await start(e); await commit(e.root, 'Score.java', 'score');
@@ -183,7 +190,7 @@ test('local main divergence and unrelated history are refused while empty remote
 test('cleanup refuses modified feature, missing commits and a dirty/non-main worktree', async t => {
   const f = await fixture(t); await start(f); const head = await commit(f.root, 'Score.java', 'score'); await finish(f);
   await assert.rejects(workflow.deleteFinishedBranch(f.root, 'main', head, {run: f.run}), /exact finished/);
-  await write(f.root, 'Main.java', 'dirty'); await assert.rejects(workflow.deleteFinishedBranch(f.root, 'add-score', head, {run: f.run}), /Use Commit & push/);
+  await write(f.root, 'Main.java', 'dirty'); await assert.rejects(workflow.deleteFinishedBranch(f.root, 'add-score', head, {run: f.run}), /local commit.*Source Control → Commit.*Pushing is not required/);
   await core.git(f.root, ['restore', 'Main.java']); await core.git(f.root, ['checkout', 'add-score']);
   await assert.rejects(workflow.deleteFinishedBranch(f.root, 'add-score', head, {run: f.run}), /Switch to clean main/);
   const changed = await commit(f.root, 'More.java', 'more'); await core.git(f.root, ['checkout', 'main']);
@@ -196,20 +203,22 @@ test('incoming main cannot overwrite ignored local files and no helper/network f
   const other = path.join(f.parent, 'other'); await remoteChange(f, 'Remote.java', 'remote');
   await write(other, '.gitignore', ''); await core.git(other, ['add', '.gitignore']);
   await commit(other, 'secret.txt', 'remote file'); await core.git(other, ['push', f.bare, 'HEAD:refs/heads/main']);
-  await assert.rejects(start(f), /overwrite a local ignored file/);
+  await assert.rejects(sync(f), /overwrite a local ignored file/);
   assert.equal(await fs.readFile(path.join(f.root, 'secret.txt'), 'utf8'), 'kept locally');
-  await assert.rejects(workflow.prepareStart(f.root, 'feature'), /native GitHub connection/);
+  await assert.rejects(workflow.prepareSync(f.root), /native GitHub connection/);
 });
 
-test('existing remote feature name is refused at review and if it appears after review', async t => {
+test('New branch ignores remote branch names and works offline without origin or authentication', async t => {
   const f = await fixture(t); const head = await core.git(f.root, ['rev-parse', 'HEAD']);
   await core.git(f.root, ['push', f.bare, `${head}:refs/heads/old-feature`]);
-  await assert.rejects(workflow.prepareStart(f.root, 'old-feature', f.options), /already exists on GitHub/);
-  const plan = await workflow.prepareStart(f.root, 'new-feature', f.options);
-  await core.git(f.root, ['push', f.bare, `${head}:refs/heads/new-feature`]);
-  const refs = await core.git(f.root, ['show-ref']);
-  await assert.rejects(workflow.startPrepared(plan, f.options), /now exists on GitHub/);
-  assert.equal(await core.git(f.root, ['show-ref']), refs);
+  const never = async () => { throw new Error('Network or authentication must not run'); };
+  const plan = await workflow.prepareStart(f.root, 'old-feature', {run: f.run, networkRun: never});
+  assert.equal((await workflow.startPrepared(plan, {run: f.run, networkRun: never, beforeNetwork: never})).head, head);
+  assert.equal(f.calls.length, 0);
+  await core.git(f.root, ['checkout', 'main']); await core.git(f.root, ['remote', 'remove', 'origin']);
+  const offline = await workflow.prepareStart(f.root, 'offline', {run: f.run});
+  assert.equal((await workflow.startPrepared(offline, {run: f.run})).branch, 'offline');
+  assert.equal(await fs.readFile(path.join(f.root, 'secret.txt'), 'utf8'), 'kept locally');
 });
 
 test('cleanup compare-and-delete preserves a branch concurrently moved to unmerged work', async t => {
@@ -241,16 +250,82 @@ test('exact project root, additional worktrees and unrelated remote main are ref
   await core.git(other, ['add', '.']); await core.git(other, ['commit', '-m', 'Unrelated root']);
   const foreign = await core.git(other, ['rev-parse', 'HEAD']);
   await core.git(other, ['push', f.bare, 'HEAD:refs/heads/unrelated']); await core.git(f.bare, ['update-ref', 'refs/heads/main', foreign]);
-  await assert.rejects(finish(f), /unrelated histories/);
+  await assert.rejects(sync(f), /unrelated histories/);
   assert.equal(await core.git(f.root, ['branch', '--show-current']), 'add-score');
   assert.ok(!f.calls.some(args => args[0] === 'push'));
 });
 
-test('remote main changing during fetch invalidates Start before local main or branch mutation', async t => {
-  const f = await fixture(t); await remoteChange(f, 'Remote.java', 'first remote change');
-  const plan = await workflow.prepareStart(f.root, 'feature', f.options);
-  const refs = await core.git(f.root, ['show-ref']);
-  f.setHook(async (_, args) => { if (args[0] === 'fetch') { f.setHook(null); await remoteChange(f, 'Remote.java', 'remote'); } });
-  await assert.rejects(workflow.startPrepared(plan, f.options), /GitHub main changed after review/);
+test('Sync downloads the immutable reviewed main even if the remote advances during fetch', async t => {
+  const f = await fixture(t); const reviewed = await remoteChange(f, 'Remote.java', 'first remote change');
+  const plan = await workflow.prepareSync(f.root, f.options);
+  let latest;
+  f.setHook(async (_, args) => { if (args[0] === 'fetch') { f.setHook(null); latest = await remoteChange(f, 'Remote.java', 'remote'); } });
+  const result = await workflow.syncPrepared(plan, f.options);
+  assert.equal(result.head, reviewed); assert.equal(result.remoteHead, reviewed);
+  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), latest);
+  assert.equal((await sync(f)).head, latest);
+});
+
+test('New branch uses current local main despite newer GitHub main and never snapshots source assets', async t => {
+  const f = await fixture(t); const head = await core.git(f.root, ['rev-parse', 'HEAD']);
+  await remoteChange(f, 'Remote.java', 'remote');
+  const run = async (root, args) => {
+    assert.ok(!args.includes('--cached'), 'Local branch creation must not request the full upload/source snapshot');
+    return f.run(root, args);
+  };
+  const plan = await workflow.prepareStart(f.root, 'offline', {run});
+  assert.equal((await workflow.startPrepared(plan, {run})).head, head);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), head);
+  assert.equal(f.calls.length, 0);
+});
+
+test('New branch refuses stale HEAD, branch, dirty files and local main before creating a branch', async t => {
+  for (const kind of ['head', 'branch', 'dirty', 'main']) {
+    const f = await fixture(t); const plan = await workflow.prepareStart(f.root, 'feature', f.options);
+    if (kind === 'head') await commit(f.root, 'New.java', 'new');
+    if (kind === 'branch') await core.git(f.root, ['checkout', '-b', 'other']);
+    if (kind === 'dirty') await write(f.root, 'Main.java', 'unsaved');
+    if (kind === 'main') await core.git(f.root, ['update-ref', '-d', 'refs/heads/main', plan.head]);
+    await assert.rejects(workflow.startPrepared(plan, f.options), /changed after review/);
+    await assert.rejects(core.git(f.root, ['show-ref', '--verify', 'refs/heads/feature']));
+    assert.equal(f.calls.length, 0);
+  }
+});
+
+test('Sync checks session and project guards before downloading and before mutating', async t => {
+  const f = await fixture(t); await remoteChange(f, 'Remote.java', 'remote');
+  const plan = await workflow.prepareSync(f.root, f.options);
+  const calls = f.calls.length; const refs = await core.git(f.root, ['show-ref']);
+  await assert.rejects(workflow.syncPrepared(plan, {...f.options, beforeNetwork: async () => { throw new Error('Session ended'); }}), /Session ended/);
+  assert.equal(f.calls.length, calls); assert.equal(await core.git(f.root, ['show-ref']), refs);
+  await assert.rejects(workflow.syncPrepared(plan, {...f.options, beforeMutation: async () => { throw new Error('Project closed'); }}), /Project closed/);
   assert.equal(await core.git(f.root, ['show-ref']), refs);
+  assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
+});
+
+test('Merge preparation is local, session failure blocks push, and a normal merge uses four source snapshots', async t => {
+  const f = await fixture(t); await start(f); const head = await commit(f.root, 'Score.java', 'score');
+  let snapshots = 0;
+  const run = async (root, args) => { if (args[0] === 'ls-files' && args.includes('--cached') && args.includes('--ignored')) snapshots++; return f.run(root, args); };
+  const plan = await workflow.prepareFinish(f.root, {run});
+  assert.equal(f.calls.length, 0);
+  await assert.rejects(workflow.finishPrepared(plan, {...f.options, run, beforeNetwork: async () => { throw new Error('Session ended'); }}), /Session ended/);
+  assert.equal(f.calls.length, 0); assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), head);
+  snapshots = 0;
+  const retry = await workflow.prepareFinish(f.root, {run});
+  const result = await workflow.finishPrepared(retry, {...f.options, run});
+  assert.equal(result.finished, true); assert.equal(snapshots, 4);
+  assert.deepEqual(f.calls.map(args => args[0]), ['push', 'ls-remote']);
+});
+
+test('Sync refuses dirty main and merges diverged main without uploading or losing commits', async t => {
+  const f = await fixture(t); await write(f.root, 'Main.java', 'dirty');
+  await assert.rejects(workflow.prepareSync(f.root, f.options), /local commit.*Source Control → Commit.*Pushing is not required/);
+  assert.equal(f.calls.length, 0);
+  await core.git(f.root, ['restore', 'Main.java']); const head = await commit(f.root, 'Local.java', 'local');
+  await remoteChange(f, 'Remote.java', 'remote');
+  const result = await sync(f);
+  assert.equal(result.synced, true);
+  await core.git(f.root, ['merge-base', '--is-ancestor', head, result.head]);
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
 });

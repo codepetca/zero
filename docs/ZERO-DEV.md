@@ -33,6 +33,10 @@ copied credentials or installed Zero extension. Java language-server completion
 is optional; Run/build works without it. Git integration is off, the sample is
 local-only and uploads are simulated. Live Publish acceptance uses a separate,
 explicitly authorized test repository and profile.
+A connected project opened in Zero Dev can use live publishing through its normal
+explicit actions. Browser builds require Node22 and JDK21 even when native Run
+uses JDK17. On Mac, browser tooling prefers a compatible JAVA_HOME and can then
+use Zero’s installed private JDK21; it does not change the native JDK setting.
 
 ## Iterate
 

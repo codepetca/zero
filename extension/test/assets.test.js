@@ -129,3 +129,56 @@ test('continual exclusive-create races stop after a bounded number of distinct c
   assert.equal(candidates.length,MAX_NAME_ATTEMPTS);assert.equal(new Set(candidates).size,MAX_NAME_ATTEMPTS);assert.equal(await fs.readFile(path.join(f.folder,'keep.wav'),'utf8'),'untouched');assert.equal(await fs.readFile(sources[0].filename,'utf8'),'original coin.wav');
  }finally{mock.mock.restore();}
 });
+
+test('selected app resources folder imports and copies classpath paths, with collisions scoped to that folder',async t=>{
+ const f=await uiFixture(t),nested=path.join(f.folder,'images');await fs.mkdir(nested,{recursive:true});
+ await fs.writeFile(path.join(f.folder,'coin.wav'),'unrelated app asset');await fs.writeFile(path.join(nested,'COIN.wav'),'existing nested asset');
+ f.setChoice({policy:'keep'});
+ const result=await f.commands.commands['zero.importAssets']({root:f.root,area:'assets',relative:'src/main/resources/images'});
+ assert.equal(result.imported[0].path,path.join(nested,'coin (2).wav'));assert.equal(result.imported[0].javaPath,'"/images/coin (2).wav"');
+ assert.equal(await fs.readFile(path.join(nested,'COIN.wav'),'utf8'),'existing nested asset');assert.equal(await fs.readFile(path.join(f.folder,'coin.wav'),'utf8'),'unrelated app asset');
+ await f.commands.commands['zero.copyImportedAssetPaths']();assert.equal(f.copied,'"/images/coin (2).wav"');assert.match(f.logs[0],/src\/main\/resources\/images/);assert.equal(f.dialogs.length,1);assert.equal(f.dialogs[0].title,'Import assets into resources › images');
+});
+async function localLibrary(f) {
+ const {previewExtraction,applyPlan}=require('../src/sharing/authoring');
+ await fs.mkdir(path.join(f.root,'src/main/java'),{recursive:true});await fs.writeFile(path.join(f.root,'zero.json'),'{}');
+ await fs.copyFile(path.resolve(__dirname,'../../student-template/pom.xml'),path.join(f.root,'pom.xml'));
+ await fs.writeFile(path.join(f.root,'src/main/java/Health.java'),'public class Health {}\n');
+ await applyPlan(await previewExtraction(f.root,{repository:{id:'12345',ownerId:'123',owner:'student',name:'game',url:'https://github.com/student/game'},descriptor:{schema:1,kind:'library',slug:'health-bar',version:'1.0.0',title:'Health bar',description:'An ordinary helper.',license:'MIT',libraryKind:'helper'},sources:['src/main/java/Health.java']}));
+ return {root:f.root,area:'library-assets',libraryFolder:'libraries/health-bar',relative:'libraries/health-bar/src/main/resources/zero/contrib/r12345/health_bar'};
+}
+test('local library import uses its derived namespace and classpath root, including a selected nested folder',async t=>{
+ const f=await fixture(t),destination=await localLibrary(f),sources=await f.files(['badge.png']);
+ let result=await f.run({sources,destination});assert.equal(result.imported[0].javaPath,'"/zero/contrib/r12345/health_bar/badge.png"');
+ const nested={...destination,relative:destination.relative+'/images'};await fs.mkdir(path.join(f.root,nested.relative));
+ result=await f.run({sources,destination:nested});assert.equal(result.imported[0].path,path.join(f.root,nested.relative,'badge.png'));assert.equal(result.imported[0].javaPath,'"/zero/contrib/r12345/health_bar/images/badge.png"');
+ await assert.rejects(fs.stat(path.join(f.folder,'badge.png')),/ENOENT/);
+});
+test('New asset from a library java folder selects namespaced resources without another chooser',async t=>{
+ const f=await uiFixture(t),assets=await localLibrary(f),destination={...assets,area:'library-code',relative:'libraries/health-bar/src/main/java/zero/contrib/r12345/health_bar'};
+ const result=await f.commands.commands['zero.importAssets'](destination);assert.equal(result.imported[0].javaPath,'"/zero/contrib/r12345/health_bar/coin.wav"');assert.equal(f.dialogs.length,1);assert.equal(f.dialogs[0].title,'Import assets into Libraries › Health bar › resources');assert.equal(f.busy(),false);
+});
+test('selected destination refuses foreign project, traversal, source/core areas, symlinks and stale folders before picker',async t=>{
+ const f=await uiFixture(t);await fs.mkdir(f.folder,{recursive:true});await fs.symlink(f.source,path.join(f.folder,'linked'));
+ for(const destination of [
+  {root:f.root+'-other',area:'assets',relative:'src/main/resources'},
+  {root:f.root,area:'assets',relative:'src/main/resources/../java'},
+  {root:f.root,area:'assets',relative:'src/main/java/zero'},
+  {root:f.root,area:'assets',relative:'src/main/resources/linked'},
+  {root:f.root,area:'assets',relative:'src/main/resources/deleted'}
+ ])await assert.rejects(f.commands.commands['zero.importAssets'](destination));
+ assert.equal(f.dialogs.length,0);assert.deepEqual(await fs.readdir(f.folder),['linked']);assert.equal(f.busy(),false);
+});
+test('library import rejects unnamespaced and published destinations without changing files',async t=>{
+ const f=await fixture(t),destination=await localLibrary(f),sources=await f.files();
+ await assert.rejects(f.run({sources,destination:{...destination,relative:'libraries/health-bar/src/main/resources'}}),/selected java or resources area/);
+ const {previewMode,applyPlan}=require('../src/sharing/authoring');await applyPlan(await previewMode(f.root,{slug:'health-bar',mode:'published',version:'1.0.0'}));
+ await assert.rejects(f.run({sources,destination}),/local mode/);await assert.rejects(fs.stat(path.join(f.root,destination.relative,'coin.wav')),/ENOENT/);
+});
+test('library metadata loss between imports reports completed paths and stops the next write',async t=>{
+ const f=await fixture(t),destination=await localLibrary(f),sources=await f.files(['a.wav','b.wav']);
+ await assert.rejects(f.run({sources,destination,onImported:()=>require('node:fs').renameSync(path.join(f.root,'libraries/health-bar/zero-library.json'),path.join(f.root,'libraries/health-bar/zero-library.json.saved'))}),error=>{
+  assert.equal(error.assetResult.imported.length,1);assert.equal(error.assetResult.imported[0].javaPath,'"/zero/contrib/r12345/health_bar/a.wav"');return /Missing project file/.test(error.message);
+ });
+ assert.deepEqual(await fs.readdir(path.join(f.root,destination.relative)),['a.wav']);assert.equal(await fs.readFile(path.join(f.source,'b.wav'),'utf8'),'original b.wav');
+});

@@ -8,6 +8,21 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner toolbar refinement,2026-10-26: keep only New (+) in the Project title bar.
+Refresh, Show All Project Files and Collapse All belong in its three-dot menu.
+
+Owner naming refinement,2026-10-26: show `java` and `resources` in the student
+project tree and destination prompts, matching the real folder basenames. Keep
+Libraries and its grouping unchanged.
+
+Owner refinement,2026-10-26: in the Student Explorer, remove the ZeroHub
+and New controls from the controls panel. Creation belongs in the native Project
+header's New menu and tree context menus; ZeroHub belongs in the Project overflow.
+Keep the existing guards and supported host controls. After reviewing the working
+preview and its requested refinements, the owner continued with local adoption
+on2026-10-26. Student Explorer is the local source default; explicit Standard
+Explorer choices are preserved. Publication and releases stay separate.
+
 Owner decisions consolidated through 2026-10-21. These are the current rules and
 supersede conflicting wording in the older dated notes below. Preserve them
 when adding features; a new feature does not reset the agreed interaction style.
@@ -84,7 +99,12 @@ when adding features; a new feature does not reset the agreed interaction style.
   open Zero Start Page available as a tab alongside the destination project.
   Sign-out
   preserves local folders, Git history and the open project.
-- Use clear Git labels: **New branch**, **Commit & push**, **Merge to main**.
+- Use clear Git labels: **New branch**, **Update from main**, **Commit & push**, **Merge to main**.
+  New branch is local and remains available while signed out. Update from main
+  brings GitHub main into the current branch without uploading. Update branch
+  from GitHub separately gets the same remote feature. Keep routine actions direct
+  with native progress. Explicit checkpoint and conflict choices are the required
+  exception: preserve work, state the local commit, and allow cancellation.
   Use the **Commit Message** title and an empty field, with the same small keyboard helper below the input.
   Keep repository and branch in the sidebar. Show an inline
   spinner and **Preparing commit…** on the button during preparation, then

@@ -2,17 +2,20 @@
 const fs = require('node:fs/promises');
 const {constants} = require('node:fs');
 const path = require('node:path');
+const {resolveAuthoringTarget,packageNameError} = require('./file-targets');
+const {authoringLocation} = require('./explorer-labels');
 
-const hidden = new Set(['.git','target','node_modules','.ds_store','.zero-sharing-recovery','.zero','.zero-web']);
+const hidden = new Set(['.git','target','node_modules','.ds_store','.zero-sharing-recovery','.zero','.zero-build','.zero-web']);
 const keywords = new Set(('abstract assert boolean break byte case catch char class const continue default do double else enum extends final finally float for goto if implements import instanceof int interface long native new package private protected public return short static strictfp super switch synchronized this throw throws transient try void volatile while true false null _ var yield record sealed permits').split(' '));
 const locations = [
-  {label:'Java source',relative:'src/main/java'},
-  {label:'Resources',relative:'src/main/resources'},
-  {label:'Project files',relative:''}
+  {label:'java',relative:'src/main/java'},
+  {label:'resources',relative:'src/main/resources'},
+  {label:'Other project files',relative:''}
 ];
 const key = value => value.normalize('NFC').toLowerCase();
 const identity = stat => `${stat.dev}:${stat.ino}`;
 function nameError(value, kind) {
+  if (kind === 'package') return packageNameError(value);
   if (!value || value !== value.trim()) return 'Enter a name without spaces at the beginning or end.';
   if (kind === 'class') {
     const name = value.endsWith('.java') ? value.slice(0,-5) : value;
@@ -45,11 +48,14 @@ async function collision(directory, name) {
 
 function createFileCommands(vscode, {project,isBusy,setBusy,setState,output,refreshFiles = () => {}}) {
   let running = false, disposed = false;
-  async function create(kind) {
+  async function create(kind, context) {
     if (disposed || running || isBusy()) return;
     running = true; setBusy(true);
     try {
       const root = await project();
+      // Capture the selected tree folder, never a mutable caller-owned object.
+      let targetContext = context == null ? undefined : {root:context.root,area:context.area,relative:context.relative,libraryFolder:context.libraryFolder};
+      let target;
       const assertCurrent = async () => {
         if (disposed) throw Error('Creating the file or folder stopped.');
         if (vscode.workspace.isTrusted === false) throw Error('Trust your own project before adding files or folders.');
@@ -60,20 +66,39 @@ function createFileCommands(vscode, {project,isBusy,setBusy,setState,output,refr
       const validateRoot = async () => {
         await assertCurrent(); await plainAncestors(root);
         if (identity(await ordinaryDirectory(root)) !== rootId) throw Error('The project folder changed. Try again in the current project.');
+        if (target && JSON.stringify(await resolveAuthoringTarget(root,targetContext,kind)) !== JSON.stringify(target)) throw Error('The selected folder changed. Choose it again before adding files.');
       };
       const title = `${kind[0].toUpperCase()}${kind.slice(1)} name`;
-      const location = kind === 'class' ? locations[0] : await vscode.window.showQuickPick(locations,{title:'Location'});
-      if (!location) return;
-      await validateRoot();
-      // Locations come from this native picker, never from the sidebar's messages.
-      if (!locations.includes(location)) throw Error('Choose a project location from the list.');
-      const base = path.join(root,location.relative);
-      const relativeName = value => kind === 'class' ? `${value.replace(/\.java$/,'')}.java` : value;
+      if (!targetContext && !['class','package'].includes(kind)) {
+        const location = await vscode.window.showQuickPick(locations,{title:'Location'});
+        if (!location) return;
+        await validateRoot();
+        // Locations come from this native picker, never from sidebar messages.
+        if (!locations.includes(location)) throw Error('Choose a project location from the list.');
+        targetContext = {root,area:location.relative === 'src/main/java' ? 'code' : location.relative ? 'assets' : 'project',relative:location.relative};
+      }
+      target = await resolveAuthoringTarget(root,targetContext,kind);
+      const base = path.join(root,target.baseRelative);
+      const relativeName = value => kind === 'class' ? `${value.replace(/\.java$/,'')}.java` : kind === 'package' ? value.replaceAll('.','/') : value;
+      const destinationError = destination => {
+        const relative = path.relative(root,destination).split(path.sep).join('/');
+        if (relative === '..' || relative.startsWith('../') || path.isAbsolute(relative) || relative.split('/').some(part=>hidden.has(key(part)))) return 'Choose a location inside this project.';
+        if (target.area === 'project' && /^(?:src\/main\/(?:java|resources)|libraries)(?:\/|$)/i.test(relative)) return 'Choose java, resources, or a local library folder for this file.';
+        if (/^src\/main\/java\/zero(?:\/|$)/i.test(relative)) return 'The zero package belongs to the framework. Choose your own package.';
+        if (/^libraries(?:\/|$)/i.test(relative) && !target.libraryFolder) return 'Choose a local library folder before adding library files.';
+        if (kind === 'package') {
+          const packageName = [target.packageName,valueForPackage(destination)].filter(Boolean).join('.');
+          if (packageNameError(packageName)) return packageNameError(packageName);
+        }
+      };
+      const valueForPackage = destination => path.relative(base,destination).split(path.sep).join('.');
       const validateName = async value => {
         const invalid = nameError(value,kind);
         if (invalid) return invalid;
         await validateRoot();
         const destination = path.join(base,relativeName(value));
+        const invalidDestination = destinationError(destination);
+        if (invalidDestination) return invalidDestination;
         try {
           await plainAncestors(path.dirname(destination));
           if (await collision(path.dirname(destination),path.basename(destination))) return 'That name already exists. Choose another name.';
@@ -81,13 +106,14 @@ function createFileCommands(vscode, {project,isBusy,setBusy,setState,output,refr
           if (error.code !== 'ENOENT') return error.message;
         }
       };
-      const value = await vscode.window.showInputBox({placeHolder:title,ignoreFocusOut:true,validateInput:validateName});
+      const value = await vscode.window.showInputBox({placeHolder:title,prompt:`In ${authoringLocation(target)}`,ignoreFocusOut:true,validateInput:validateName});
       if (value === undefined) return;
       const invalid = await validateName(value);
       if (invalid) throw Error(invalid);
       const destination = path.join(base,relativeName(value));
       const relative = path.relative(root,destination);
-      if (path.isAbsolute(relative) || (relative === '..' || relative.startsWith(`..${path.sep}`)) || relative.split(path.sep).some(part=>hidden.has(key(part)))) throw Error('Choose a location inside this project.');
+      const invalidDestination = destinationError(destination);
+      if (invalidDestination) throw Error(invalidDestination);
       // Create parents one at a time so existing links cannot redirect a write.
       let parent = root;
       for (const part of path.relative(root,path.dirname(destination)).split(path.sep).filter(Boolean)) {
@@ -102,12 +128,12 @@ function createFileCommands(vscode, {project,isBusy,setBusy,setState,output,refr
       }
       await validateRoot(); await plainAncestors(parent);
       if (await collision(parent,path.basename(destination))) throw Error('That name already exists. Choose another name.');
-      if (kind === 'folder') {
+      if (kind === 'folder' || kind === 'package') {
         await fs.mkdir(destination);
       } else {
         const handle = await fs.open(destination,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|(constants.O_NOFOLLOW || 0),0o644);
         try {
-          if (kind === 'class') await handle.writeFile(`public class ${path.basename(destination,'.java')} {\n\n}\n`);
+          if (kind === 'class') await handle.writeFile(`${target.packageName ? `package ${target.packageName};\n\n` : ''}public class ${path.basename(destination,'.java')} {\n\n}\n`);
         } catch (error) {
           error.message = `Could not finish writing ${path.basename(destination)}. Check the new file in Files before trying again. ${error.message}`;
           throw error;
@@ -116,7 +142,7 @@ function createFileCommands(vscode, {project,isBusy,setBusy,setState,output,refr
       refreshFiles();
       setState(`Created ${path.basename(destination)}`);
       output?.appendLine(`Created ${relative.split(path.sep).join('/')}`);
-      if (kind !== 'folder') {
+      if (kind !== 'folder' && kind !== 'package') {
         // A changed workspace never opens a file in a different project.
         await validateRoot(); await plainAncestors(parent);
         if ((await fs.lstat(destination)).isSymbolicLink()) throw Error('The new file changed. Open it again from Files.');
@@ -127,6 +153,6 @@ function createFileCommands(vscode, {project,isBusy,setBusy,setState,output,refr
       throw error;
     } finally {running = false; setBusy(false);}
   }
-  return {commands:{'zero.newClass':()=>create('class'),'zero.newFile':()=>create('file'),'zero.newFolder':()=>create('folder')},dispose(){disposed=true;}};
+  return {commands:{'zero.newClass':context=>create('class',context),'zero.newPackage':context=>create('package',context),'zero.newFile':context=>create('file',context),'zero.newFolder':context=>create('folder',context)},dispose(){disposed=true;}};
 }
 module.exports = {createFileCommands,nameError};

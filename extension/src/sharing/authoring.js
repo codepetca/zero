@@ -55,7 +55,7 @@ async function javaFiles(root, directory) {
 }
 // A declaration scanner, not a Java refactoring engine. Refuse unicode escapes so
 // edits never disagree with the compiler's pre-lexing Unicode translation.
-function declaration(source, filename) {
+function declaration(source, filename, {allowNameMismatch=false}={}) {
   if (/\\u+[0-9a-fA-F]{4}/.test(source)) fail(`Unicode-escaped Java needs manual package preparation: ${filename}`);
   // JLS 3.8 ignores these controls and Unicode format characters in identifiers.
   // Refuse raw occurrences before comment/literal masking, without rewriting bytes
@@ -64,8 +64,18 @@ function declaration(source, filename) {
   const masked = source.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*|"""[\s\S]*?"""|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, s => s.replace(/[^\r\n]/g, ' '));
   const packages = [...masked.matchAll(/\bpackage\s+([A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)\s*;/g)];
   if (packages.length > 1) fail(`Ambiguous package declaration: ${filename}`);
-  const simple = path.basename(filename, '.java');
-  if (!/^[A-Za-z_$][\w$]*$/.test(simple) || !new RegExp(`\\b(?:class|interface|record|enum)\\s+${simple}\\b`).test(masked)) fail(`Expected an ordinary class named ${simple}: ${filename}`);
+  let simple = path.basename(filename, '.java');
+  if (!/^[A-Za-z_$][\w$]*$/.test(simple) || !new RegExp(`\\b(?:class|interface|record|enum)\\s+${simple}\\b`).test(masked)) {
+    // Read-only navigation may inspect a file while its name/declaration is
+    // being repaired. Mutation/publication callers retain the strict default.
+    const types=[];let depth=0,cursor=0;
+    if(allowNameMismatch)for(const match of masked.matchAll(/\b(?:class|interface|record|enum)\s+([A-Za-z_$][\w$]*)\b/g)) {
+      for(;cursor<match.index;cursor++){if(masked[cursor]==='{')depth++;else if(masked[cursor]==='}')depth--;}
+      if(depth===0)types.push(match[1]);
+    }
+    if(types.length!==1)fail(`Expected an ordinary class named ${simple}: ${filename}`);
+    simple=types[0];
+  }
   const packageName = packages[0]?.[1].replace(/\s/g, '') || '';
   return {simple, packageName, className: packageName ? `${packageName}.${simple}` : simple, packageRange: packages[0] && [packages[0].index, packages[0].index + packages[0][0].length], masked};
 }
@@ -79,8 +89,8 @@ function isReviewedCoreSource(source, filename) {
   if (hash(source.replace(/\r\n/g, '\n')) !== expected) fail(`This Zero helper differs from the reviewed browser adapter: ${filename}`);
   return true;
 }
-function applicationDeclaration(source, filename) {
-  if (!isReviewedCoreSource(source, filename)) return declaration(source, filename);
+function applicationDeclaration(source, filename, options) {
+  if (!isReviewedCoreSource(source, filename)) return declaration(source, filename, options);
   const name = filename.startsWith('src/main/java/') ? filename.slice('src/main/java/'.length) : filename;
   const simple = path.posix.basename(name, '.java'), packageName = path.posix.dirname(name).replaceAll('/', '.');
   return {simple, packageName, className: packageName + '.' + simple};
@@ -180,13 +190,13 @@ async function snapshot(root) {
   for (const name of names.sort()) entries.push({path:name, hash:hash(await read(root,name))});
   return entries;
 }
-async function checkShadows(root, state, changes) {
+async function checkShadows(root, state, changes, options) {
   const files = new Map((await snapshot(root)).map(x => [x.path, null]));
   for (const change of changes) if (change.path.endsWith('.java')) { if (change.after === null) files.delete(change.path); else files.set(change.path, change.after); }
   const classes = new Map();
   for (const [filename, updated] of files) {
     const contents = updated === null ? await read(root,filename) : updated;
-    const decl = applicationDeclaration(contents,filename);
+    const decl = applicationDeclaration(contents,filename,options);
     if (classes.has(decl.className)) fail(`Duplicate class ${decl.className}: ${classes.get(decl.className)} and ${filename}`);
     classes.set(decl.className,filename);
     for (const lib of state.libraries) {
@@ -259,14 +269,14 @@ async function previewMode(root, {slug,mode,version,publishedRelease}) {
   await checkShadows(project.root,state,changes);
   return {schema:1,root:project.root,kind:'mode',changes,sourceSnapshot:await snapshot(project.root),coreDescriptorPath:descriptorPath,coreDescriptorText:descriptorText,...(core?{coreDescriptor,coreExact:mode==='local',coreSnapshot:core.snapshot}:{})};
 }
-async function discoverLibraries(root) {
+async function discoverLibraries(root, {allowNameMismatch=false}={}) {
   const project = await base(root), results = [];
   for (const lib of project.state.libraries) {
     const folder = `libraries/${lib.slug}`, descriptor = contracts().validateDescriptor(JSON.parse(await read(project.root,`${folder}/zero-library.json`)));
     if (descriptor.kind !== 'library' || descriptor.slug !== lib.slug) fail('Library metadata does not match its folder.');
     results.push({...lib,folder,descriptor,identity:contracts().identity('library',lib.repositoryId,lib.slug),sources:await javaFiles(project.root,`${folder}/src/main/java`)});
   }
-  await checkShadows(project.root,project.state,[]);
+  await checkShadows(project.root,project.state,[],{allowNameMismatch});
   return results;
 }
 async function verifyPlan(plan) {

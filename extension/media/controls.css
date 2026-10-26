@@ -20,3 +20,7 @@ body.vscode-high-contrast button,body.vscode-high-contrast-light button { border
 @media(forced-colors:active) { button,button.secondary,button.link,button.account,button.repo-choice { background:ButtonFace; color:ButtonText; border:1px solid ButtonText; } .files-dropdown,.zero-menu { background:Canvas; color:CanvasText; border-color:CanvasText; } .files-dropdown button,.zero-menu button { background:Canvas; color:CanvasText; } .files-dropdown button:focus-visible,.files-dropdown button:hover:not(:disabled),.zero-menu button:focus-visible,.zero-menu button:hover:not(:disabled) { background:Highlight; color:HighlightText; } }
 .zero-menu { width:100%; box-sizing:border-box; }
 .zero-menu-trigger { justify-content:space-between; }
+/* Guided Git updates reuse the sidebar's controls and host theme. */
+.update-choices { margin-top:10px; }
+.update-choices > button { margin-top:6px; }
+.update-choices pre { white-space:pre-wrap; overflow-wrap:anywhere; margin:4px 0 8px; padding:7px; color:var(--vscode-editor-foreground,var(--vscode-foreground)); background:var(--vscode-textCodeBlock-background,var(--vscode-editor-background)); font-family:var(--vscode-editor-font-family,monospace); font-size:var(--vscode-editor-font-size,13px); }

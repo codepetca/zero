@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "A small local Java teaching sidebar.",
-  "version": "0.5.50",
+  "version": "0.5.51",
   "publisher": "zero",
   "license": "MIT",
   "engines": {
@@ -168,6 +168,10 @@
         "title": "Zero: Merge to Main"
       },
       {
+        "command": "zero.syncProject",
+        "title": "Zero: Update from Main"
+      },
+      {
         "command": "zero.sharingActions",
         "title": "Zero: Libraries and Games",
         "icon": "$(library)"
@@ -268,6 +272,145 @@
       {
         "command": "zero.disableBrowserChecks",
         "title": "Zero: Disable Browser Checks"
+      },
+      {
+        "command": "zero.updateBranchFromGitHub",
+        "title": "Zero: Update Branch from GitHub"
+      },
+      {
+        "command": "zero.keepLocalUpdate",
+        "title": "Zero: Keep Local Update Changes"
+      },
+      {
+        "command": "zero.useIncomingUpdate",
+        "title": "Zero: Use Incoming Update Changes"
+      },
+      {
+        "command": "zero.cancelUpdate",
+        "title": "Zero: Cancel Update"
+      },
+      {
+        "command": "zero.compareUpdate",
+        "title": "Zero: Compare Update Changes"
+      },
+      {
+        "command": "zero.checkPush",
+        "title": "Zero: Check GitHub Push Status"
+      },
+      {
+        "command": "zero.reconnectGitHub",
+        "title": "Zero: Reconnect GitHub"
+      },
+      {
+        "command": "zero.openGitSourceControl",
+        "title": "Zero: Open Source Control"
+      },
+      {
+        "command": "zero.newPackage",
+        "title": "Zero: New package\u2026"
+      },
+      {
+        "command": "zero.previewStudentExplorer",
+        "title": "Zero: Use Student Explorer"
+      },
+      {
+        "command": "zero.standardExplorer",
+        "title": "Zero: Use Standard Explorer"
+      },
+      {
+        "command": "zero.showAllProjectFiles",
+        "title": "Zero: Show All Project Files",
+        "icon": "$(files)"
+      },
+      {
+        "command": "zero.refreshStudentExplorer",
+        "title": "Zero: Refresh Project",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "zero.libraryReference",
+        "title": "Zero: Library Imports and Examples"
+      },
+      {
+        "command": "zero.explorerOpenFile",
+        "title": "Zero: Open File"
+      },
+      {
+        "command": "zero.explorerAction",
+        "title": "Zero: Project Action"
+      },
+      {
+        "command": "zero.explorerNewClass",
+        "title": "New class\u2026",
+        "category": "Zero"
+      },
+      {
+        "command": "zero.explorerNewPackage",
+        "title": "New package\u2026",
+        "category": "Zero"
+      },
+      {
+        "command": "zero.explorerNewFile",
+        "title": "New file\u2026",
+        "category": "Zero"
+      },
+      {
+        "command": "zero.explorerNewFolder",
+        "title": "New folder\u2026",
+        "category": "Zero"
+      },
+      {
+        "command": "zero.explorerImportAssets",
+        "title": "Import assets\u2026",
+        "category": "Zero"
+      },
+      {
+        "command": "zero.explorerCopyAssetPath",
+        "title": "Zero: Copy Asset Path"
+      },
+      {
+        "command": "zero.copyLibraryImports",
+        "title": "Zero: Copy Library Imports"
+      },
+      {
+        "command": "zero.projectNewClass",
+        "title": "New class\u2026",
+        "category": "Zero"
+      },
+      {
+        "command": "zero.projectNewPackage",
+        "title": "New package\u2026",
+        "category": "Zero"
+      },
+      {
+        "command": "zero.projectNewFile",
+        "title": "New file\u2026",
+        "category": "Zero"
+      },
+      {
+        "command": "zero.projectNewFolder",
+        "title": "New folder\u2026",
+        "category": "Zero"
+      },
+      {
+        "command": "zero.projectImportAssets",
+        "title": "Import assets\u2026",
+        "category": "Zero"
+      },
+      {
+        "command": "zero.explorerRenameFile",
+        "title": "Rename file\u2026",
+        "category": "Zero"
+      },
+      {
+        "command": "zero.renameStudentFile",
+        "title": "Rename student file",
+        "category": "Zero"
+      },
+      {
+        "command": "zero.collapseStudentExplorer",
+        "title": "Collapse All",
+        "category": "Zero"
       }
     ],
     "views": {
@@ -276,7 +419,21 @@
           "type": "webview",
           "id": "zero.controls",
           "name": "Zero",
-          "icon": "media/zero.svg"
+          "icon": "media/zero.svg",
+          "when": "!zero.studentExplorerPreview"
+        }
+      ],
+      "zero-student-explorer": [
+        {
+          "type": "webview",
+          "id": "zero.studentControls",
+          "name": "Zero",
+          "when": "zero.studentExplorerPreview"
+        },
+        {
+          "id": "zero.studentProject",
+          "name": "Project",
+          "when": "zero.studentExplorerPreview"
         }
       ]
     },
@@ -380,6 +537,70 @@
         {
           "command": "zero.updateSettings",
           "when": "isMac || isWindows"
+        },
+        {
+          "command": "zero.explorerOpenFile",
+          "when": "false"
+        },
+        {
+          "command": "zero.explorerAction",
+          "when": "false"
+        },
+        {
+          "command": "zero.explorerNewClass",
+          "when": "false"
+        },
+        {
+          "command": "zero.explorerNewPackage",
+          "when": "false"
+        },
+        {
+          "command": "zero.explorerNewFile",
+          "when": "false"
+        },
+        {
+          "command": "zero.explorerNewFolder",
+          "when": "false"
+        },
+        {
+          "command": "zero.explorerImportAssets",
+          "when": "false"
+        },
+        {
+          "command": "zero.explorerCopyAssetPath",
+          "when": "false"
+        },
+        {
+          "command": "zero.projectNewClass",
+          "when": "false"
+        },
+        {
+          "command": "zero.projectNewPackage",
+          "when": "false"
+        },
+        {
+          "command": "zero.projectNewFile",
+          "when": "false"
+        },
+        {
+          "command": "zero.projectNewFolder",
+          "when": "false"
+        },
+        {
+          "command": "zero.projectImportAssets",
+          "when": "false"
+        },
+        {
+          "command": "zero.explorerRenameFile",
+          "when": "false"
+        },
+        {
+          "command": "zero.renameStudentFile",
+          "when": "false"
+        },
+        {
+          "command": "zero.collapseStudentExplorer",
+          "when": "false"
         }
       ],
       "view/title": [
@@ -427,6 +648,150 @@
           "command": "zero.showOutput",
           "when": "view == zero.controls",
           "group": "zero-help@3"
+        },
+        {
+          "command": "zero.githubAccount",
+          "when": "view == zero.studentControls",
+          "group": "zero-account@1"
+        },
+        {
+          "command": "zero.chooseRepository",
+          "when": "view == zero.studentControls",
+          "group": "zero-project@1"
+        },
+        {
+          "command": "zero.exportWeb",
+          "when": "view == zero.studentControls",
+          "group": "zero-web@1"
+        },
+        {
+          "command": "zero.copyPublishedWebLink",
+          "when": "view == zero.studentControls",
+          "group": "zero-web@2"
+        },
+        {
+          "command": "zero.openPublishedWeb",
+          "when": "view == zero.studentControls",
+          "group": "zero-web@3"
+        },
+        {
+          "command": "zero.openFirstLesson",
+          "when": "view == zero.studentControls",
+          "group": "zero-help@1"
+        },
+        {
+          "command": "zero.showSetup",
+          "when": "view == zero.studentControls",
+          "group": "zero-help@2"
+        },
+        {
+          "command": "zero.startPage",
+          "when": "view == zero.studentControls",
+          "group": "zero-help@0"
+        },
+        {
+          "command": "zero.showOutput",
+          "when": "view == zero.studentControls",
+          "group": "zero-help@3"
+        },
+        {
+          "command": "zero.showAllProjectFiles",
+          "when": "view == zero.studentProject",
+          "group": "1_project@2"
+        },
+        {
+          "command": "zero.refreshStudentExplorer",
+          "when": "view == zero.studentProject",
+          "group": "1_project@1"
+        },
+        {
+          "command": "zero.standardExplorer",
+          "when": "view == zero.studentProject",
+          "group": "zero-preview@1"
+        },
+        {
+          "command": "zero.previewStudentExplorer",
+          "when": "view == zero.controls",
+          "group": "zero-preview@1"
+        },
+        {
+          "submenu": "zero.projectNewMenu",
+          "when": "view == zero.studentProject",
+          "group": "navigation@0"
+        },
+        {
+          "command": "zero.browseZeroHub",
+          "when": "view == zero.studentProject",
+          "group": "zero-libraries@1"
+        },
+        {
+          "command": "zero.collapseStudentExplorer",
+          "when": "view == zero.studentProject",
+          "group": "1_project@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "zero.explorerNewClass",
+          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile)",
+          "group": "zero-create@1"
+        },
+        {
+          "command": "zero.explorerNewPackage",
+          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile)",
+          "group": "zero-create@2"
+        },
+        {
+          "command": "zero.explorerNewFile",
+          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroAssets || viewItem == zeroAssetFile || viewItem == zeroProject || viewItem == zeroProjectFile)",
+          "group": "zero-create@3"
+        },
+        {
+          "command": "zero.explorerNewFolder",
+          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroAssets || viewItem == zeroAssetFile || viewItem == zeroProject || viewItem == zeroProjectFile)",
+          "group": "zero-create@4"
+        },
+        {
+          "command": "zero.explorerImportAssets",
+          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroAssets || viewItem == zeroAssetFile)",
+          "group": "zero-create@5"
+        },
+        {
+          "command": "zero.explorerCopyAssetPath",
+          "when": "view == zero.studentProject && viewItem == zeroAssetFile",
+          "group": "zero-assets@1"
+        },
+        {
+          "command": "zero.explorerRenameFile",
+          "when": "view == zero.studentProject && (viewItem == zeroCodeFile || viewItem == zeroAssetFile || viewItem == zeroProjectFile)",
+          "group": "zero-file@1"
+        }
+      ],
+      "zero.projectNewMenu": [
+        {
+          "command": "zero.projectNewClass",
+          "when": "zero.explorerCodeTarget",
+          "group": "1_create@1"
+        },
+        {
+          "command": "zero.projectNewPackage",
+          "when": "zero.explorerCodeTarget",
+          "group": "1_create@2"
+        },
+        {
+          "command": "zero.projectNewFile",
+          "when": "zero.explorerWritable",
+          "group": "1_create@3"
+        },
+        {
+          "command": "zero.projectNewFolder",
+          "when": "zero.explorerWritable",
+          "group": "1_create@4"
+        },
+        {
+          "command": "zero.projectImportAssets",
+          "when": "zero.explorerAssetTarget",
+          "group": "1_create@5"
         }
       ]
     },
@@ -434,6 +799,22 @@
       {
         "id": "zero-github",
         "label": "Zero GitHub"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "zero-student-explorer",
+          "title": "Zero",
+          "icon": "media/zero.svg"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "zero.projectNewMenu",
+        "label": "New",
+        "icon": "$(add)"
       }
     ]
   }

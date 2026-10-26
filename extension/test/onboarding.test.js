@@ -16,7 +16,7 @@ const settle = async predicate => {
     await new Promise(resolve=>setImmediate(resolve));
   }
 };
-async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, empty=false, profile, initialSession, githubAccess=async()=>{}, unpublishedTutorials=false, staleTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
+async function fixture(t, {studentExplorer=false, lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, empty=false, profile, initialSession, githubAccess=async()=>{}, unpublishedTutorials=false, staleTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
   if (typeof profile === 'function') profile=profile(root);
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
@@ -40,6 +40,10 @@ async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEd
     ViewColumn:{One:1,Beside:2},Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ProcessExecution:class{},ShellExecution:class{},
     EventEmitter:class{event(){}fire(){}dispose(){}},env:{openExternal:async uri=>{calls.push(['openExternal',uri]);return externalResult;}},Uri:{file:fsPath=>({fsPath}),parse:value=>({value})}
   };
+  if(studentExplorer) {
+    vscode.window.createTreeView=()=>({dispose(){}});
+    vscode.TreeItemCollapsibleState={None:0,Collapsed:1,Expanded:2};
+  }
   const filename=require.resolve('../src/extension'), oldCache=require.cache[filename], load=Module._load;
   delete require.cache[filename];
   Module._load=function(id,...args){if(id==='vscode')return textInputs(vscode);if(id==='./project-folders'){const mod=load.call(this,id,...args);return {createProjectFolders:(vscode,options)=>mod.createProjectFolders(vscode,{...options,home:root})};}if(id==='./setup-project'&&setupCheck)return {isSetupProject:candidate=>candidate===root,findSetupProject:async()=>root};if(id==='./core')return {...core,assertRepositoryRoot:async()=>{throw new Error('No repository');}};return load.call(this,id,...args);};
@@ -570,4 +574,20 @@ test('stale tutorial evidence blocks the editor flow before forms or repository 
  await f.commands.get('zero.startProject')();
  assert.match(f.errors.at(-1),/has not been verified/);assert.equal(inputs,0);
  assert.equal(f.calls.some(([id])=>['createRepository','cloneRepository','vscode.openFolder'].includes(id)),false);
+});
+
+test('student explorer is the first Zero sidebar and migrates a previously introduced workspace once',async t=>{
+ const remembered=new Map([['zero.explorerShown',true]]),f=await fixture(t,{studentExplorer:true,remembered,activeEditor:true});
+ await settle(()=>remembered.get('zero.studentExplorerShown')===true);
+ const shown=f.calls.filter(([id])=>['workbench.view.extension.zero-student-explorer','zero.studentControls.focus'].includes(id));
+ assert.deepEqual(shown.map(([id])=>id),['workbench.view.extension.zero-student-explorer','zero.studentControls.focus']);
+ assert.ok(!f.calls.some(([id])=>id==='showTextDocument'),'Migration preserves the current editor');
+ assert.ok(!f.calls.some(([id])=>id==='zero.controls.focus'));
+});
+test('an explicit standard Explorer preference does not get migrated to the student sidebar',async t=>{
+ const remembered=new Map([['zero.explorerShown',true],['zero.sidebarShown',true],['zero.studentExplorerPreview',false]]),f=await fixture(t,{studentExplorer:true,remembered,activeEditor:true});
+ await f.commands.get('zero.showSidebar')();
+ assert.deepEqual(f.calls.slice(-2).map(([id])=>id),['workbench.view.explorer','zero.controls.focus']);
+ assert.ok(!f.calls.some(([id])=>id==='workbench.view.extension.zero-student-explorer'));
+ assert.equal(remembered.has('zero.studentExplorerShown'),false);
 });

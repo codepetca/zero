@@ -2,8 +2,10 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const core = require('./core');
+const recovery = require('./git-update-recovery');
+const os = require('node:os');
 const {assertShareable} = require('./lesson-projects');
-const {prepareUpload} = require('./github');
+const {prepareUpload, assertNoUrlRewrites} = require('./github');
 const plans = new WeakSet();
 const shaPattern = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/;
 const drift = () => new Error('The project, branch, main, repository, or files changed after review. Review this step again. Your commits are preserved.');
@@ -26,31 +28,61 @@ async function ancestor(run, root, older, newer) {
   try { await run(root, ['merge-base', '--is-ancestor', older, newer]); return true; }
   catch (error) { if (error.code === 1) return false; throw new Error('Git could not check commit ancestry. Check this project with native Source Control.'); }
 }
-async function state(project, run) {
-  const current = await prepareUpload(project, run);
-  const gitDir = await run(current.root, ['rev-parse', '--absolute-git-dir']);
-  const commonDir = await run(current.root, ['rev-parse', '--git-common-dir']);
-  if (await fs.realpath(path.resolve(current.root, commonDir)) !== await fs.realpath(gitDir) ||
-      (await run(current.root, ['worktree', 'list', '--porcelain'])).split('\n').filter(line => line.startsWith('worktree ')).length !== 1) {
-    throw new Error('This project uses multiple Git worktrees. Use a standalone student repository for Start and Finish.');
+// Local branch creation keeps the same tree. Inspect refs and worktree state without
+// reading every asset; source hashing belongs at content-changing boundaries.
+async function state(project, run, {full = false, connected = false, allowMerge = false} = {}) {
+  const root = await core.assertRepositoryRoot(project, run);
+  if (!(await fs.stat(path.join(root, 'zero.json'))).isFile()) throw new Error('Open a standalone student project containing zero.json.');
+  const gitDir = await run(root, ['rev-parse', '--absolute-git-dir']);
+  const commonDir = await run(root, ['rev-parse', '--git-common-dir']);
+  const worktrees = (await run(root, ['worktree', 'list', '--porcelain'])).split('\n').filter(line => line.startsWith('worktree ')).join('\n');
+  if (await fs.realpath(path.resolve(root, commonDir)) !== await fs.realpath(gitDir) ||
+      worktrees.split('\n').filter(line => line.startsWith('worktree ')).length !== 1) {
+    throw new Error('This project uses multiple Git worktrees. Use a standalone student repository for New branch and Merge to main.');
   }
-  let mainHead = null;
-  try { mainHead = await run(current.root, ['rev-parse', '--verify', 'refs/heads/main^{commit}']); }
+  for (const marker of [...(allowMerge ? [] : ['MERGE_HEAD']), 'CHERRY_PICK_HEAD', 'REVERT_HEAD', 'rebase-merge', 'rebase-apply', 'sequencer', 'BISECT_LOG']) {
+    try { await fs.access(path.join(gitDir, marker)); throw new Error('Finish or cancel the current Git merge, rebase, or other operation before continuing.'); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+  }
+  let branch;
+  try { branch = await run(root, ['symbolic-ref', '--quiet', '--short', 'HEAD']); }
+  catch { throw new Error('This project has a detached HEAD. Switch to your student branch before continuing.'); }
+  if (!branch || branch.startsWith('-')) throw new Error('Choose a normal named Git branch.');
+  let head = null, mainHead = null;
+  try { head = await run(root, ['rev-parse', '--verify', 'HEAD^{commit}']); }
+  catch (error) { if (error.code !== 128) throw error; }
+  try { mainHead = await run(root, ['rev-parse', '--verify', 'refs/heads/main^{commit}']); }
   catch (error) { if (error.code !== 128) throw new Error('Git could not inspect main. Check native Source Control.'); }
-  if (current.head && !shaPattern.test(current.head) || mainHead && !shaPattern.test(mainHead)) throw new Error('Git returned an unexpected commit. Check native Source Control.');
-  return {...current, mainHead};
+  if (head && !shaPattern.test(head) || mainHead && !shaPattern.test(mainHead)) throw new Error('Git returned an unexpected commit. Check native Source Control.');
+  await assertNoUrlRewrites(root, run);
+  let repository = {page: null, remote: null};
+  const remotes = (await run(root, ['remote'])).split('\n');
+  if (remotes.includes('origin')) {
+    const urls = (await run(root, ['remote', 'get-url', '--all', 'origin'])).split('\n');
+    const pushUrls = (await run(root, ['remote', 'get-url', '--push', '--all', 'origin'])).split('\n');
+    if (urls.length !== 1 || pushUrls.length !== 1) throw new Error('Origin has multiple destinations. Use one GitHub HTTPS repository for fetching and pushing.');
+    repository = core.parseRepositoryUrl(urls[0]);
+    if (core.parseRepositoryUrl(pushUrls[0]).remote !== repository.remote) throw new Error('Origin pushes to a different repository. Correct its push URL before continuing.');
+  } else if (connected || full) throw new Error('Connect this student project to its GitHub repository before syncing or merging.');
+  const status = await run(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all']);
+  if ((await run(root, ['ls-files', '--stage', '-z'])).split('\0').some(entry => entry.startsWith('160000 '))) throw new Error('Nested repositories or submodules are not supported. Open a standalone student project.');
+  const current = {root, ...repository, branch, head, mainHead, status, gitDir: await fs.realpath(gitDir), worktrees};
+  if (!full) return current;
+  const source = await prepareUpload(root, run);
+  if (!['root', 'page', 'remote', 'branch', 'head', 'status'].every(key => source[key] === current[key])) throw drift();
+  return {...source, ...current};
 }
 function clean(current) {
-  if (!current.head) throw new Error('Use Commit & push on main to save the initial project, then New branch.');
-  if (current.status) throw new Error('Use Commit & push first, then review New branch or Merge to main again. For the initial project, commit and push on main.');
-  if (!current.mainHead) throw new Error('This project needs a committed main branch. Save the initial project on main with Commit & push first.');
+  if (!current.head) throw new Error('Save the initial project as a local commit on main using Source Control → Commit, then try New branch again. Pushing is not required.');
+  if (current.status) throw new Error('Save your changes as a local commit using Source Control → Commit, then try again. Pushing is not required.');
+  if (!current.mainHead) throw new Error('This project needs a committed main branch. Save the initial project as a local commit on main using Source Control → Commit. Pushing is not required.');
 }
 function same(a, b) {
-  return ['root', 'page', 'remote', 'branch', 'head', 'mainHead', 'status', 'fingerprint'].every(key => a[key] === b[key]);
+  return ['root', 'page', 'remote', 'branch', 'head', 'mainHead', 'status', 'gitDir', 'worktrees'].every(key => a[key] === b[key]);
 }
-async function recheck(expected, run) {
-  const current = await state(expected.root, run);
-  if (!same(expected, current)) throw drift();
+async function recheck(expected, run, {full = false} = {}) {
+  const current = await state(expected.root, run, {full});
+  if (!same(expected, current) || full && expected.fingerprint !== current.fingerprint) throw drift();
   return current;
 }
 function networkRequired(networkRun) {
@@ -60,8 +92,8 @@ async function network(networkRun, root, args) {
   try { return await networkRun(root, args); }
   catch (error) {
     const detail = String(error.stderr || error.message || '');
-    if (/non-fast-forward|fetch first|rejected.*behind|changes missing locally/i.test(detail)) throw new Error('GitHub main changed and refused this upload. Your feature remains checked out and your commits are preserved. Review Finish again to merge the new main.');
-    throw new Error('GitHub could not complete this step. Check your native GitHub sign-in, repository access and network, then review again. Your feature and commits are preserved; no upload was confirmed.');
+    if (/non-fast-forward|fetch first|rejected.*behind|changes missing locally/i.test(detail)) throw Object.assign(new Error('GitHub main changed and refused this upload. Your feature remains checked out and your commits are preserved. Update from main, run the app, then merge again.'),{kind:'behind'});
+    throw Object.assign(new Error('GitHub could not complete this step. Check your native GitHub sign-in, repository access and network, then review again. Your feature and commits are preserved; no upload was confirmed.'),{kind:error.kind||'network'});
   }
 }
 async function remoteBranch(current, branch, networkRun) {
@@ -87,61 +119,57 @@ function planFor(kind, current, extra) {
   plans.add(plan);
   return plan;
 }
-async function prepareStart(project, name, {run = core.git, networkRun, onProgress = () => {}} = {}) {
+async function prepareStart(project, name, {run = core.git} = {}) {
   await assertShareable(project);
-  networkRequired(networkRun);
   run = safeRunner(run);
   const current = await state(project, run);
   clean(current);
   if (current.branch !== 'main') throw new Error('Switch to main in native Source Control before starting another feature.');
   await validName(name, current.root, run);
-  onProgress('Checking branch names on GitHub…');
-  const remoteMainHead = await remoteMain(current, networkRun);
-  if (await remoteBranch(current, name, networkRun)) throw new Error('That feature name already exists on GitHub. Choose a fresh unique name for your new feature.');
-  await recheck(current, run);
-  return planFor('start', current, {name, remoteMainHead, summary: `Update main from GitHub, then create ${name} from the completed main baseline.`});
+  return planFor('start', current, {name, summary: `Create ${name} from your current local main.`});
 }
-async function prepareFinish(project, {run = core.git, networkRun} = {}) {
+async function prepareFinish(project, {run = core.git} = {}) {
   await assertShareable(project);
-  networkRequired(networkRun);
   run = safeRunner(run);
-  const current = await state(project, run);
+  const current = await state(project, run, {full: true});
   clean(current);
-  if (current.branch === 'main') throw new Error('Start a feature first. Finish is for a completed feature branch.');
-  if (!(await ancestor(run, current.root, current.mainHead, current.head))) throw new Error('Local main contains changes missing from this feature. Merge main into your feature with native Source Control, then review Finish again.');
-  const remoteMainHead = await remoteMain(current, networkRun);
+  if (current.branch === 'main') throw new Error('Start a feature first. Merge to main is for a completed feature branch.');
+  if (!(await ancestor(run, current.root, current.mainHead, current.head))) throw new Error('Local main contains changes missing from this feature. Merge main into your feature with native Source Control, then review Merge to main again.');
   const changedPaths = Object.freeze((await run(current.root, ['diff', '--name-only', '-z', current.mainHead, current.head])).split('\0').filter(Boolean));
   const commitCount = await run(current.root, ['rev-list', '--count', `${current.mainHead}..${current.head}`]);
   await recheck(current, run);
-  return planFor('finish', current, {remoteMainHead, changedPaths, commitCount: Number(commitCount), summary: `Finish ${current.branch} into main: ${commitCount} feature commit(s), ${changedPaths.length} changed path(s). If GitHub main needs merging, stop on this feature so you can Run App and review Finish again. Otherwise upload the completed main and switch to main.`});
+  return planFor('finish', current, {changedPaths, commitCount: Number(commitCount), summary: `Merge ${current.branch} to main: ${commitCount} feature commit(s), ${changedPaths.length} changed path(s). Upload the completed main and switch to main. If GitHub main changed, Update from main, run the app, then merge again.`});
 }
-async function protectedNetwork(expected, options, operation) {
+async function protectedNetwork(expected, options, operation, {full = false} = {}) {
   await options.beforeNetwork();
-  await recheck(expected, options.run);
+  await recheck(expected, options.run, {full});
   const result = await operation();
   await recheck(expected, options.run);
   return result;
 }
-async function ensureRemote(expected, options) {
-  const head = await protectedNetwork(expected, options, () => remoteMain(expected, options.networkRun));
-  if (head !== expected.remoteMainHead) throw new Error('GitHub main changed after review. Review this step again. Your commits are preserved.');
+async function prepareSync(project, options = {}) {
+  const opts = {beforeNetwork: async () => {}, ...options, run: safeRunner(options.run || core.git)};
+  networkRequired(opts.networkRun);
+  const current = await state(project, opts.run, {full: true});
+  if (!(await fs.lstat(path.join(current.root, '.git'))).isDirectory()) throw new Error('Use native Source Control for this separate Git directory. Guided updates need a standalone student repository with its own .git folder.');
+  clean(current);
+  const target = opts.target === undefined ? 'main' : opts.target;
+  if (!['main', 'branch'].includes(target)) throw new Error('Choose main or the current branch to update.');
+  const remoteBranchName = target === 'branch' ? current.branch : 'main';
+  const remoteHead = await protectedNetwork(current, opts, () => remoteBranch(current, remoteBranchName, opts.networkRun));
+  if (!remoteHead) throw new Error(`GitHub ${remoteBranchName} has no completed commit to update from.`);
+  return planFor('sync', current, {target, remoteBranch: remoteBranchName, remoteMainHead: remoteHead, summary: `Download and merge GitHub ${remoteBranchName} into ${current.branch}, preserving your local commits.`});
 }
 async function fetchMain(expected, options) {
-  if (!expected.remoteMainHead) return;
-  // A reviewed SHA already present in the object database needs no download.
-  // ensureRemote still checks the live branch before and after this step, and
-  // the normal source/ref guards still run before any working-tree mutation.
   try {
     const present = await options.run(expected.root, ['rev-parse', '--verify', `${expected.remoteMainHead}^{commit}`]);
     if (present !== expected.remoteMainHead) throw drift();
     return;
-  } catch (error) {
-    if (error.code !== 128) throw error;
-  }
-  await protectedNetwork(expected, options, () => network(options.networkRun, expected.root, ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', expected.remote, expected.remoteMainHead]));
+  } catch (error) { if (error.code !== 128) throw error; }
+  options.onProgress('Downloading the reviewed GitHub main…');
+  await network(options.networkRun, expected.root, ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', expected.remote, expected.remoteMainHead]);
   const commit = await local(options.run, expected.root, ['rev-parse', '--verify', `${expected.remoteMainHead}^{commit}`], 'inspect the fetched main commit');
   if (commit !== expected.remoteMainHead) throw new Error('GitHub main did not resolve to the reviewed commit. Review this step again.');
-  await recheck(expected, options.run);
 }
 async function preserveIgnored(expected, target, run) {
   const ignored = (await run(expected.root, ['ls-files', '--others', '--ignored', '--exclude-standard', '-z'])).split('\0').filter(Boolean);
@@ -151,97 +179,87 @@ async function preserveIgnored(expected, target, run) {
 }
 function executorOptions(plan, kind, options) {
   if (!plans.has(plan) || plan.kind !== kind) throw new Error('Review this project step before continuing.');
-  networkRequired(options.networkRun);
-  return {beforeNetwork: async () => {}, onProgress: () => {}, ...options, run: safeRunner(options.run || core.git)};
+  if (kind !== 'start') networkRequired(options.networkRun);
+  return {beforeNetwork: async () => {}, beforeMutation: async () => {}, onProgress: () => {}, ...options, run: safeRunner(options.run || core.git)};
 }
 async function startPrepared(plan, options = {}) {
-  await assertShareable(plan.root);
   const opts = executorOptions(plan, 'start', options);
-  opts.onProgress('Checking main on GitHub…');
-  await ensureRemote(plan, opts);
-  if (plan.remoteMainHead) opts.onProgress('Fetching main from GitHub…');
-  await fetchMain(plan, opts);
-  opts.onProgress('Checking the new branch…');
-  await ensureRemote(plan, opts);
-  if (await protectedNetwork(plan, opts, () => remoteBranch(plan, plan.name, opts.networkRun))) throw new Error('That feature name now exists on GitHub. Choose a fresh unique name and review Start again.');
+  await assertShareable(plan.root);
+  opts.onProgress('Checking local main…');
   await validName(plan.name, plan.root, opts.run);
-  let current = await recheck(plan, opts.run);
-  if (plan.remoteMainHead && plan.remoteMainHead !== plan.head) {
-    if (!(await ancestor(opts.run, plan.root, plan.head, plan.remoteMainHead))) throw new Error('Local main cannot fast-forward to GitHub main. Bring the two histories together using native Source Control before Start. No branch was created.');
-    await preserveIgnored(current, plan.remoteMainHead, opts.run);
-    await recheck(plan, opts.run);
-    opts.onProgress('Updating main to the reviewed GitHub commit…');
-    await local(opts.run, plan.root, ['merge', '--ff-only', '--no-edit', '--no-overwrite-ignore', plan.remoteMainHead], 'fast-forward main');
-    const updated = await state(plan.root, opts.run);
-    if (updated.branch !== 'main' || updated.head !== plan.remoteMainHead || updated.mainHead !== plan.remoteMainHead || updated.status || updated.remote !== plan.remote) throw drift();
-    current = updated;
-  }
-  await validName(plan.name, plan.root, opts.run);
-  await recheck(current, opts.run);
-  opts.onProgress('Creating your feature branch…');
-  await local(opts.run, plan.root, ['checkout', '--no-overwrite-ignore', '-b', plan.name, current.head], 'create the reviewed feature branch');
+  await opts.beforeMutation();
+  await recheck(plan, opts.run);
+  opts.onProgress('Creating your local feature branch…');
+  await local(opts.run, plan.root, ['checkout', '--no-overwrite-ignore', '-b', plan.name, plan.head], 'create the reviewed feature branch');
   const final = await state(plan.root, opts.run);
-  if (final.branch !== plan.name || final.head !== current.head || final.mainHead !== current.mainHead || final.remote !== plan.remote || final.status || final.fingerprint !== current.fingerprint) throw drift();
+  if (!same({...plan, branch: plan.name}, final)) throw drift();
   plans.delete(plan);
   return Object.freeze({branch: final.branch, head: final.head, page: plan.page});
 }
-async function finishPrepared(plan, options = {}) {
+async function syncPrepared(plan, options = {}) {
+  const opts = executorOptions(plan, 'sync', options);
   await assertShareable(plan.root);
-  const opts = executorOptions(plan, 'finish', options);
-  await ensureRemote(plan, opts);
-  await fetchMain(plan, opts);
-  await ensureRemote(plan, opts);
-  let current = await recheck(plan, opts.run);
-  if (plan.remoteMainHead && !(await ancestor(opts.run, plan.root, plan.remoteMainHead, plan.head))) {
-    // Refuse unrelated repositories, preserving the feature and every local file.
-    try { await opts.run(plan.root, ['merge-base', plan.head, plan.remoteMainHead]); }
-    catch { throw new Error('GitHub main and this feature have unrelated histories. Check the connected repository before finishing.'); }
-    await preserveIgnored(current, plan.remoteMainHead, opts.run);
-    await recheck(plan, opts.run);
-    opts.onProgress('Merging the reviewed GitHub main into your feature…');
-    try { await opts.run(plan.root, ['merge', '--no-edit', '--no-overwrite-ignore', plan.remoteMainHead]); }
+  opts.onProgress('Checking the reviewed GitHub main…');
+  await protectedNetwork(plan, opts, () => fetchMain(plan, opts));
+  const current = await recheck(plan, opts.run, {full: true});
+  const remoteHead = plan.remoteMainHead;
+  const unchanged = await ancestor(opts.run, plan.root, remoteHead, current.head);
+  if (!unchanged) {
+    try { await opts.run(plan.root, ['merge-base', current.head, remoteHead]); }
+    catch { throw new Error('GitHub main and this project have unrelated histories. Check the connected repository before syncing.'); }
+    await preserveIgnored(current, remoteHead, opts.run);
+    const expectedMerge = await recovery.preview(current, remoteHead, opts.run);
+    await opts.beforeMutation();
+    await recheck(current, opts.run, {full: true});
+    opts.onProgress(current.branch === 'main' ? 'Updating local main…' : 'Merging GitHub main into your feature…');
+    try { await opts.run(plan.root, ['-c', `core.hooksPath=${os.devNull}`, '-c', 'merge.conflictStyle=merge', '-c', 'merge.autoStash=false', '-c', 'rerere.enabled=false', 'merge', '--ff', '--no-gpg-sign', '--no-edit', '--no-overwrite-ignore', remoteHead]); }
     catch {
       let pending = false;
       try { await opts.run(plan.root, ['rev-parse', '--verify', 'MERGE_HEAD']); pending = true; } catch {}
-      const error = new Error(pending ? 'GitHub main needs a merge resolution. Resolve conflicts in native Source Control, stage and commit the merge, then review Finish again. Your feature remains checked out; main was not uploaded.' : 'Git could not merge main into your feature. Check native Source Control and Git identity, then review Finish again. Your files and commits are preserved.');
-      error.conflict = pending;
-      error.branch = plan.branch;
-      throw error;
+      if (pending) {
+        const managed = await recovery.create(current, remoteHead, plan.remoteBranch, opts.run, recoveryInspect, expectedMerge);
+        plans.delete(plan);
+        return {synced: false, updated: false, branch: plan.branch, remote: plan.remote, remoteBranch: plan.remoteBranch, remoteHead, recovery: managed};
+      }
+      throw new Error('Git could not update this branch. Check native Source Control and Git identity, then review again. Your files and commits are preserved.');
     }
-    current = await state(plan.root, opts.run);
-    if (current.branch !== plan.branch || current.mainHead !== plan.mainHead || current.remote !== plan.remote || current.status || !(await ancestor(opts.run, plan.root, plan.head, current.head)) || !(await ancestor(opts.run, plan.root, plan.remoteMainHead, current.head))) throw drift();
-    plans.delete(plan);
-    return Object.freeze({updated: true, finished: false, branch: current.branch, head: current.head, page: plan.page});
   }
-  // Merge hooks or concurrent work cannot move main or substitute the reviewed branch.
-  await recheck(current, opts.run);
-  await ensureRemote({...current, remoteMainHead: plan.remoteMainHead}, opts);
+  const final = await state(plan.root, opts.run, {full: true});
+  if (final.branch !== current.branch || final.remote !== plan.remote || final.status || final.gitDir !== plan.gitDir || final.worktrees !== plan.worktrees ||
+      (final.branch === 'main' ? final.mainHead !== final.head : final.mainHead !== plan.mainHead) ||
+      !(await ancestor(opts.run, plan.root, current.head, final.head)) || !(await ancestor(opts.run, plan.root, remoteHead, final.head))) throw drift();
+  if (unchanged && (final.head !== current.head || final.fingerprint !== current.fingerprint)) throw drift();
+  plans.delete(plan);
+  return Object.freeze({synced: true, updated: final.head !== current.head, branch: final.branch, head: final.head, page: plan.page, remote: plan.remote, remoteBranch: plan.remoteBranch, remoteHead});
+}
+async function finishPrepared(plan, options = {}) {
+  const opts = executorOptions(plan, 'finish', options);
+  await assertShareable(plan.root);
+  await opts.beforeMutation();
+  const current = await recheck(plan, opts.run, {full: true});
   if (!(await ancestor(opts.run, plan.root, current.mainHead, current.head))) throw drift();
-  await recheck(current, opts.run);
   opts.onProgress('Saving completed work on local main…');
   await local(opts.run, plan.root, ['update-ref', 'refs/heads/main', current.head, current.mainHead], 'fast-forward local main');
-  const ready = {...current, mainHead: current.head, remoteMainHead: plan.remoteMainHead};
-  await recheck(ready, opts.run);
+  const ready = {...current, mainHead: current.head};
   opts.onProgress('Pushing the merged main…');
   let confirmed;
   try {
-    await protectedNetwork(ready, opts, () => network(opts.networkRun, plan.root, ['push', plan.remote, `${ready.head}:refs/heads/main`]));
+    await protectedNetwork(ready, opts, () => network(opts.networkRun, plan.root, ['push', plan.remote, `${ready.head}:refs/heads/main`]), {full: true});
     opts.onProgress('Confirming main on GitHub…');
     confirmed = await protectedNetwork(ready, opts, () => remoteMain(ready, opts.networkRun));
   } catch (error) {
-    throw new Error(`${error.message} Local main already contains the completed commit; your feature remains available. Review Finish again to retry.`);
+    throw Object.assign(new Error(`${error.message} Local main already contains the completed commit; your feature remains available. Update from main, run the app, then merge again.`),{workflowRecovery:{root:plan.root,remote:plan.remote,page:plan.page,branch:plan.branch,head:ready.head,committed:false,kind:error.kind||'network',operation:'merge'}});
   }
-  if (confirmed !== ready.head) throw new Error('GitHub did not confirm the completed main commit. Your feature remains checked out and local main keeps the completed commit. Review Finish again.');
-  await recheck(ready, opts.run);
-  await preserveIgnored(ready, ready.head, opts.run);
-  await recheck(ready, opts.run);
+  if (confirmed !== ready.head) throw new Error('GitHub did not confirm the completed main commit. Your feature remains checked out and local main keeps the completed commit. Review Merge to main again.');
+  await opts.beforeMutation();
+  await recheck(ready, opts.run, {full: true});
   await local(opts.run, plan.root, ['checkout', '--no-overwrite-ignore', 'main'], 'switch to completed main');
   const final = await state(plan.root, opts.run);
-  if (final.branch !== 'main' || final.head !== ready.head || final.mainHead !== ready.head || final.remote !== plan.remote || final.status || final.fingerprint !== ready.fingerprint) throw drift();
+  if (!same({...ready, branch: 'main'}, final)) throw drift();
   plans.delete(plan);
-  return Object.freeze({finished: true, branch: 'main', head: final.head, page: plan.page, finishedBranch: plan.branch});
+  return Object.freeze({finished: true, branch: 'main', head: final.head, page: plan.page, finishedBranch: plan.branch, remote: plan.remote});
 }
-async function deleteFinishedBranch(root, branch, expectedHead, {run = core.git} = {}) {
+async function deleteFinishedBranch(root, branch, expectedHead, {run = core.git, beforeMutation = async () => {}} = {}) {
   await assertShareable(root);
   run = safeRunner(run);
   if (!shaPattern.test(expectedHead) || typeof branch !== 'string' || branch === 'main' || !/^[a-zA-Z0-9][a-zA-Z0-9/_-]*$/.test(branch)) throw new Error('Choose the exact finished feature branch for local cleanup.');
@@ -252,6 +270,7 @@ async function deleteFinishedBranch(root, branch, expectedHead, {run = core.git}
   try { actual = await run(current.root, ['rev-parse', '--verify', `refs/heads/${branch}^{commit}`]); }
   catch { throw new Error('The finished feature branch is no longer available for cleanup.'); }
   if (actual !== expectedHead || !(await ancestor(run, current.root, actual, current.mainHead))) throw new Error('This feature branch changed or has work missing from main. Keep it and inspect native Source Control.');
+  await beforeMutation();
   await recheck(current, run);
   if (await run(current.root, ['rev-parse', '--verify', `refs/heads/${branch}^{commit}`]) !== expectedHead) throw drift();
   // Compare-and-delete the exact reviewed SHA; branch -d bases its decision on
@@ -259,4 +278,14 @@ async function deleteFinishedBranch(root, branch, expectedHead, {run = core.git}
   await local(run, current.root, ['update-ref', '-d', `refs/heads/${branch}`, expectedHead], 'delete the finished local feature');
   return Object.freeze({deleted: true, branch});
 }
-module.exports = {prepareStart, startPrepared, prepareFinish, finishPrepared, deleteFinishedBranch};
+function recoveryInspect(root, run) { return state(root, run, {allowMerge: true}); }
+function recoveryOptions(options = {}) { return {beforeMutation: async () => {}, ...options, run: safeRunner(options.run || core.git), inspect: recoveryInspect}; }
+async function readRecovery(root, options = {}) { return recovery.read(root, recoveryOptions(options)); }
+async function resolveRecovery(root, choice, options = {}) { return recovery.resolve(root, choice, recoveryOptions(options)); }
+async function cancelRecovery(root, options = {}) { return recovery.cancel(root, recoveryOptions(options)); }
+async function checkpoint(root, options = {}) {
+  const opts = recoveryOptions(options);
+  opts.inspect = (project, run) => state(project, run);
+  return recovery.checkpoint(root, opts);
+}
+module.exports = {readRecovery, resolveRecovery, cancelRecovery, checkpoint, prepareStart, startPrepared, prepareSync, syncPrepared, prepareFinish, finishPrepared, deleteFinishedBranch};

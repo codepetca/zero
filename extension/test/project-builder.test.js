@@ -89,3 +89,20 @@ test('cached checks require the exact approved builder and cannot authorize expo
  const result=await adapter.checkSavedSources({projectRoot:h,approvedBuilderHash:savedBuilder.profileHash});assert.equal(result.status,'unavailable');assert.equal(seen.operation,'compatibilityCached');assert.equal(launches,1);
  await assert.rejects(adapter.ensureValidatedExport({projectRoot:h,approvedBuilderHash:savedBuilder.profileHash}),/trusted workspace/);await assert.rejects(adapter.prepareBrowserChecks({projectRoot:h,approvedBuilderHash:savedBuilder.profileHash}),/trusted workspace/);assert.equal(launches,1);
 });
+
+test('Mac browser builds fall back from native JAVA_HOME to a compatible private JDK',async t=>{
+ const dir=await root(t),home=path.join(dir,'home'),bin=path.join(dir,'host-bin'),configured=path.join(dir,'configured-jdk'),privateJdk=path.join(home,'Library/Application Support/Zero/runtime','jdk-'+'a'.repeat(64),'jdk-21.0.12+7','Contents/Home');
+ for(const file of [path.join(bin,'node'),...[configured,privateJdk].flatMap(jdk=>['java','javac'].map(name=>path.join(jdk,'bin',name)))]){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,'fixture only');}
+ let configuredMajor=17,privateCompilerMajor=21;const probes=[];
+ const execute=async(command,args,options)=>{
+  assert.equal(options.env.GITHUB_TOKEN,undefined);assert.equal(options.env.NODE_OPTIONS,undefined);probes.push(command);
+  if(path.basename(command)==='node')return {stdout:JSON.stringify({node:'22.21.1',electron:null,platform:'darwin',arch:'arm64'})};
+  const major=command.startsWith(configured+path.sep)?configuredMajor:path.basename(command)==='javac'?privateCompilerMajor:21;
+  return path.basename(command)==='javac'?{stdout:`javac ${major}.0.1`}:{stderr:`openjdk version "${major}.0.1"`};
+ };
+ const options={runtime:{requirements:{nodeMajor:22,javaMajor:21},pins:[]},projectRoot:path.join(dir,'student'),platform:'darwin',arch:'arm64',environment:{HOME:home,PATH:bin,JAVA_HOME:configured,GITHUB_TOKEN:'secret',NODE_OPTIONS:'--require untrusted'},execute};
+ let found=await locateRuntimes(options);assert.equal(found.javaHome,privateJdk);assert.equal(found.env.JAVA_HOME,privateJdk);assert.equal(options.environment.JAVA_HOME,configured);
+ configuredMajor=21;probes.length=0;found=await locateRuntimes(options);assert.equal(found.javaHome,configured);assert.ok(!probes.some(command=>command.startsWith(privateJdk+path.sep)),'A compatible configured JDK remains preferred');
+ configuredMajor=17;privateCompilerMajor=17;await assert.rejects(locateRuntimes(options),/standalone JDK 21.*JAVA_HOME or Zero/);
+ await fs.rm(privateJdk,{recursive:true});await assert.rejects(locateRuntimes(options),/standalone JDK 21/);
+});

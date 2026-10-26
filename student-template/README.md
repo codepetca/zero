@@ -1,6 +1,6 @@
 # My Zero App
 
-This source is included in the local Mac candidate **0.5.50** with core **0.3.0**.
+This source is included in the local Mac candidate **0.5.51** with core **0.3.0**.
 Older downloads keep their own bundled instructions and API.
 
 Zero 0.5.27 uses a native JavaFX window for Run App. Mac 0.5.26 and other
@@ -215,20 +215,27 @@ component base class, scene routing, or object discovery.
 
 ## Add classes, files and folders
 
-Click **Files ▾** in Zero's sidebar:
+Use **New… (+)** in the Project header, or right-click a file or folder in the
+tree. **java** maps to `src/main/java`; **resources** maps to
+`src/main/resources`. Select a folder to create there, or a file to create beside it:
 
 - **New class…**: enter `Player` (or `Player.java`). Zero creates an ordinary
-  `public class Player` beside Main in `src/main/java` and opens it. Create and
+  `public class Player` in the selected Java package (beside Main by default) and opens it. Create and
   call its objects from Main; no registration or build configuration is needed.
-- **New file…**: choose **Java source**, **Resources** or **Project files**, then
-  enter a filename. Zero opens the empty file for editing.
-- **New folder…**: choose the location and enter a folder name.
+- **New package…**: enter a Java package such as `game.characters`.
+- **New file…**: enter a filename in the selected location. Zero opens it for editing.
+- **New folder…**: enter a folder name in the selected location.
 
 Use `/` for subfolders, such as `data/questions.txt` or `images/backgrounds`.
 Existing files and folders are preserved; choose another name if one exists.
 Cancel leaves the project unchanged. The file list refreshes automatically.
-**New asset…** copies existing images/audio into Resources; use **Copy asset
-paths** afterward for the paths to use in Java. Click **Run** to rebuild after
+Right-click resources or a folder inside it to import existing images/audio.
+Right-click an asset and choose **Copy Asset Path** for its path in Java.
+**Rename file…** changes an editable file's name; Java declarations and references
+need their own source edits. The Project **⋯** menu contains Refresh, Collapse
+All, Show all project files and ZeroHub. **Zero: Use Standard Explorer** restores
+the ordinary file tree; **Zero: Use Student Explorer** returns here.
+Click **Run** to rebuild after
 editing (stop the current preview first if it is running).
 
 ## Try an example
@@ -335,13 +342,16 @@ For a new repository, Commit & push once on **main** to save the starter.
 Then use this individual flow for each improvement:
 
 1. Click **New branch** in the repository menu, name your branch (for example `quiz-feedback`)
-   and press Enter to create it. Commit & push pending edits first. Main is updated
-   from GitHub when it can be advanced without combining separate histories.
+   and press Enter to create it. Commit & push pending edits first. Current source
+   creates the branch locally from main, with no GitHub request or sign-in needed.
+   Choose **Update from main** first if you want the latest completed main.
 2. Edit and Run App. **Commit & push** creates a commit when needed and pushes your current branch;
    repeat as needed.
 3. Click **Merge to main** beside the branch name. Commit & push pending edits first, run the
-   app before clicking. **Merge to main** merges your branch into main and pushes main. If newer main code is added
-   to your branch, Zero pauses: run and check the combined app, then choose Merge to main again.
+   app before clicking. **Merge to main** merges your branch into main and pushes
+   main. If GitHub refuses because main has newer work, choose **Update from main**.
+   It merges GitHub main into the current feature without uploading; run and
+   check the combined app, then retry Merge to main.
 4. After confirmed success, you are back on main. Zero safely removes the
    unchanged finished local branch; its GitHub branch remains. If cleanup cannot
    be completed safely, Zero keeps the local branch and tells you to check Output.
@@ -350,10 +360,19 @@ Older kits may use different account/repository controls, with **Start a change*
 and different labels for committing, pushing and merging. Their installed controls remain
 unchanged; the steps above describe the current editor.
 
-If an update conflicts, your work and merge state remain. In VS Code Source
-Control, inspect the conflicted files/Merge Editor, combine the intended changes,
-save and stage them, then commit the merge. Run App and review Merge to main again.
-Ask your teacher for help with an unclear conflict or diverged main history.
+**Update from main** combines completed GitHub main with your local main or
+feature, keeping unpublished commits. **Update branch from GitHub** separately
+gets work made on the same feature branch on another computer. Neither uploads.
+**Save checkpoint & update/switch** explicitly saves uncommitted work locally
+before continuing. Older editor kits retain their bundled controls.
+
+For text conflicts, choose the local or incoming conflicting section in Zero's
+sidebar. Automatically combined edits are kept. Images and deleted files use
+whole-file choices; complex conflicts use native Source Control. **Cancel update**
+restores the starting checkpoint only while no external edits/ref changes would
+be lost. Run the combined app, then Commit & push. A saved commit whose push fails
+remains local; use its Update/retry/sign-in action. **Check GitHub status** verifies
+an interrupted push without uploading. Ask your teacher if a conflict is unclear.
 A failed main push can leave local main advanced while your change branch
 remains selected; repair the network/access problem and review Merge to main again.
 Zero does not force-push or automatically discard work.
