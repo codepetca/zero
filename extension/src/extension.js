@@ -94,7 +94,7 @@ function activate(context, services = {}) {
   let exportReadyRoot;
   let branch = '';
   let branchDetached = false;
-  let updateRecovery, updateRecoveryError, pendingUpload, pendingDirty = false;
+  let updateRecovery, updateRecoveryError, pendingUpload, pendingDirty = false, pendingMatchesHead = false;
   const pendingUploads = new Map();
   const updatePreviews = new Map();
   if (vscode.workspace.registerTextDocumentContentProvider) context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider('zero-update-preview',{provideTextDocumentContent:uri=>updatePreviews.get(uri.toString()) || ''}));
@@ -306,7 +306,7 @@ function activate(context, services = {}) {
   }
   async function repositoryStatus() {
     const generation = ++statusGeneration;
-    let nextRepository = 'No repository connected', nextBranch = '', nextDetached = false, nextRecovery, nextRecoveryError, nextPending, nextDirty = false;
+    let nextRepository = 'No repository connected', nextBranch = '', nextDetached = false, nextRecovery, nextRecoveryError, nextPending, nextDirty = false, nextMatchesHead = false;
     try {
       const root = await project();
       if (localPractice) {nextRepository = 'Local practice'; throw new Error('Local practice');}
@@ -318,16 +318,15 @@ function activate(context, services = {}) {
       const stored = pendingUploads.get(key) || context.workspaceState?.get(key);
       if (stored && typeof stored === 'object' && stored.root === root && stored.branch === nextBranch && /^[a-f0-9]{40,64}$/.test(stored.head)) {
         try {
-          if (await core.git(root,['rev-parse','--verify','HEAD']) === stored.head) {
-            nextPending = stored;
-            nextDirty = Boolean(await core.git(root,['status','--porcelain=v1','-z','--untracked-files=all']));
-          }
+          nextPending = stored;
+          nextMatchesHead = await core.git(root,['rev-parse','--verify','HEAD']) === stored.head;
+          nextDirty = Boolean(await core.git(root,['status','--porcelain=v1','-z','--untracked-files=all']));
         } catch {}
       }
       nextRepository = core.parseRepositoryUrl(await core.git(root, ['remote', 'get-url', 'origin'])).page;
       if (nextPending && core.parseRepositoryUrl(nextPending.remote).page !== nextRepository) nextPending = undefined;
     } catch (error) { if (!localPractice) nextRepository = error.message.includes('different Git repository') ? 'Standalone student copy needed to connect' : 'No repository connected'; }
-    if (generation === statusGeneration) {repository = nextRepository; branch = nextBranch; branchDetached = nextDetached;updateRecovery=nextRecovery;updateRecoveryError=nextRecoveryError;pendingUpload=nextPending;pendingDirty=nextDirty; refresh();}
+    if (generation === statusGeneration) {repository = nextRepository; branch = nextBranch; branchDetached = nextDetached;updateRecovery=nextRecovery;updateRecoveryError=nextRecoveryError;pendingUpload=nextPending;pendingDirty=nextDirty;pendingMatchesHead=nextMatchesHead; refresh();}
   }
   async function stop() {
     if (!execution) return;
@@ -654,6 +653,7 @@ function activate(context, services = {}) {
       await repositoryStatus();
       const record=pendingUpload;
       if(!record||record.root!==root)throw new Error('There is no matching pending push for this branch. Review Commit & push again.');
+      if(record.operation==='merge')throw new Error('Use Retry Merge to main to confirm the completed main update. The feature push is separate.');
       const ticket=await auth.capture();
       if(record.accountId&&record.accountId!==ticket.session.accountId)throw new Error('The GitHub account changed. Review the account and repository before starting a new upload.');
       const assertProject=()=>assertGitProject(root);
@@ -714,6 +714,7 @@ function activate(context, services = {}) {
           return;
         }
         const tracking = await updateTracking(root,result.remote || plan.remote,'main',result.head);
+        await clearPush(root,result.finishedBranch);await clearPush(root,'main');
         let cleanupError;
         if (result.finished) {
           try {await beforeMutation();await workflow.deleteFinishedBranch(root,result.finishedBranch,result.head,{beforeMutation});}
@@ -1149,7 +1150,7 @@ function activate(context, services = {}) {
     const repoControl = `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Project actions')}" aria-label="${escape(`Project: ${repoName}. Open project actions`)}" aria-haspopup="dialog" ${disabled}><span class="repo-label">${escape(repoName).replace('/', '/<wbr>')}</span>${icon('ChevronDown')}</button>`;
     const gitDisabled = isBusy() || updateRecovery || updateRecoveryError ? 'disabled' : '';
     const branchControl = (branch || branchDetached) ? `<div class="branch-row"><span class="branch" title="${escape(branch ? `Current branch: ${branch}` : 'Detached HEAD. Use Switch branch in repository actions.')}">${icon('GitBranch')}${escape(branch || 'Detached HEAD')}</span>${ready && connected && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${gitDisabled}>Merge to main</button>` : ''}</div>` : '';
-    const githubActions = connected && ready && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${uploadProgress ? 'aria-busy="true"' : ''} ${gitDisabled}>${uploadProgress ? '<span class="busy-indicator" aria-hidden="true"></span>' : icon('CloudUpload')}${uploadProgress ? escape(uploadProgress) : pendingUpload&&pendingUpload.operation!=='merge'&&!pendingDirty ? 'Push commits' : 'Commit &amp; push'}</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
+    const githubActions = connected && ready && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${uploadProgress ? 'aria-busy="true"' : ''} ${gitDisabled}>${uploadProgress ? '<span class="busy-indicator" aria-hidden="true"></span>' : icon('CloudUpload')}${uploadProgress ? escape(uploadProgress) : pendingUpload&&pendingUpload.operation!=='merge'&&pendingMatchesHead&&!pendingDirty ? 'Push commits' : 'Commit &amp; push'}</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
     const gitRecoveryActions=projectRoot&&!localPractice?gitRecoveryPanel.panel({recovery:updateRecovery,pending:pendingUpload,error:updateRecoveryError,disabled:isBusy()}):'';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
     const published = context.workspaceState?.get('zero.webPublish.lastLive');
@@ -1186,11 +1187,15 @@ function activate(context, services = {}) {
   context.subscriptions.push(output);
   const watcher = vscode.workspace.createFileSystemWatcher('**/zero.json');
   for(const method of ['onDidCreate','onDidChange','onDidDelete']) watcher[method](uri=>{if(path.basename(uri.fsPath)==='zero.json')browserRun.stop();},undefined,context.subscriptions);
-  const metadataWatcher = vscode.workspace.createFileSystemWatcher('**/.git/{HEAD,config}');
+  let metadataRefreshTimer;
+  const metadataWatcher = vscode.workspace.createFileSystemWatcher('**/.git/{HEAD,config,index,MERGE_HEAD,packed-refs,zero-update-recovery.json,refs/heads/**}');
   for (const method of ['onDidCreate','onDidChange','onDidDelete']) metadataWatcher[method](uri => {
     if (!projectRoot) return;
     const filename = path.resolve(uri.fsPath);
-    if (['HEAD','config'].some(name => filename === path.join(projectRoot, '.git', name))) void repositoryStatus();
+    const gitRoot=path.join(projectRoot,'.git');
+    if (!['HEAD','config','index','MERGE_HEAD','packed-refs','zero-update-recovery.json'].some(name=>filename===path.join(gitRoot,name)) && !filename.startsWith(path.join(gitRoot,'refs','heads')+path.sep))return;
+    clearTimeout(metadataRefreshTimer);
+    metadataRefreshTimer=setTimeout(()=>{if(!disposed&&!isBusy())void repositoryStatus();},60);
   }, undefined, context.subscriptions);
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {if (event.affectsConfiguration('zero.uploadMode')) refresh();}));
   // The Start Page owns onboarding; authentication remains explicit and local work stays available.
@@ -1199,7 +1204,7 @@ function activate(context, services = {}) {
   });
   if (!(vscode.workspace.workspaceFolders || []).length) void introduceProject().catch(error=>output.appendLine(`Start Page: ${error.message}`));
   const introduceAfterConnection = () => startup.then(async() => {if (!disposed) {try {await rememberOpened({projectPath:await project()});}catch{}await projectWindow.restore();await introduceProject();}}).catch(error => output.appendLine(`Getting started: ${error.message}`));
-  context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {
+  context.subscriptions.push(watcher, metadataWatcher,{dispose:()=>clearTimeout(metadataRefreshTimer)}, vscode.workspace.onDidChangeWorkspaceFolders(() => {
     runGeneration++;
     if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));
     savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;savedProblems?.clear();

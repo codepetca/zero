@@ -214,3 +214,64 @@ test('an edit introduced while staging a choice is detected and never accepted a
   await assert.rejects(workflow.cancelRecovery(f.root, {run: f.options.run}), /changed/);
   assert.equal(await fs.readFile(path.join(f.root, 'outside.java'), 'utf8'), 'external work');
 });
+test('merge-to-record edits never become an owned cancellation baseline', async t => {
+  for (const kind of ['conflict-append', 'nonconflict-edit', 'staged-edit', 'untracked', 'ignored-untracked', 'orig-head', 'merge-message']) {
+    const f = await fixture(t);
+    if (kind === 'ignored-untracked') {
+      await commit(f.root, 'Removed.java', 'original tracked work'); await core.git(f.root, ['push', f.bare, 'main']); await core.git(f.other, ['pull', f.bare, 'main']);
+      await fs.unlink(path.join(f.other, 'Removed.java')); await write(f.other, '.gitignore', 'private.txt\nRemoved.java\n');
+    }
+    await commit(f.root, 'Main.java', 'class Main { int localScore; }\n');
+    await commit(f.other, 'Main.java', 'class Main { int incomingScore; }\n'); await f.publish();
+    let injected = false;
+    const run = async (root, args) => {
+      try { return await f.options.run(root, args); }
+      catch (error) {
+        if (args.includes('merge')) {
+          injected = true;
+          if (kind === 'conflict-append' || kind === 'staged-edit') {
+            await fs.appendFile(path.join(root, 'Main.java'), 'EXTERNAL EDIT WHILE UPDATE FINISHES\n');
+            if (kind === 'staged-edit') await core.git(root, ['add', '--', 'Main.java']);
+          }
+          if (kind === 'nonconflict-edit') await write(root, 'zero.json', '{"externalEdit":true}\n');
+          if (kind === 'untracked') await write(root, 'outside.java', 'EXTERNAL UNTRACKED WORK\n');
+          if (kind === 'ignored-untracked') await write(root, 'Removed.java', 'EXTERNAL IGNORED WORK\n');
+          if (kind === 'orig-head') await write(root, '.git/ORIG_HEAD', f.original + '\n');
+          if (kind === 'merge-message') await fs.appendFile(path.join(root, '.git/MERGE_MSG'), 'EXTERNAL MERGE MESSAGE EDIT\n');
+        }
+        throw error;
+      }
+    };
+    await assert.rejects(update(f, {run}), /could not be verified as unchanged/);
+    assert.equal(injected, true);
+    assert.equal(await workflow.readRecovery(f.root, {run: f.options.run}), null);
+    const filename = kind === 'nonconflict-edit' ? 'zero.json' : kind === 'untracked' ? 'outside.java' : kind === 'ignored-untracked' ? 'Removed.java' : kind === 'orig-head' ? '.git/ORIG_HEAD' : kind === 'merge-message' ? '.git/MERGE_MSG' : 'Main.java';
+    const bytes = await fs.readFile(path.join(f.root, filename));
+    await assert.rejects(workflow.cancelRecovery(f.root, {run: f.options.run}), /no managed update/);
+    assert.deepEqual(await fs.readFile(path.join(f.root, filename)), bytes);
+    assert.ok(await core.git(f.root, ['rev-parse', '--verify', 'MERGE_HEAD']));
+    if (kind === 'staged-edit') assert.equal(await core.git(f.root, ['ls-files', '--unmerged', '-z']), '');
+  }
+});
+
+test('legacy unverified recovery is refused while active and ignored after native abort', async t => {
+  const f = await fixture(t); await conflict(f);
+  const record = path.join(f.root, '.git', 'zero-update-recovery.json');
+  const saved = JSON.parse(await fs.readFile(record, 'utf8')); saved.version = 1; delete saved.provenance; await fs.writeFile(record, JSON.stringify(saved));
+  await assert.rejects(workflow.readRecovery(f.root, {run: f.options.run}), /changed/);
+  await assert.rejects(workflow.cancelRecovery(f.root, {run: f.options.run}), /changed/);
+  await core.git(f.root, ['merge', '--abort']);
+  assert.equal(await workflow.readRecovery(f.root, {run: () => { throw new Error('Stale record should need no Git'); }}), null);
+  const again = await update(f); assert.equal(again.recovery.files[0].kind, 'text');
+  assert.equal((await workflow.cancelRecovery(f.root, {run: f.options.run})).cancelled, true);
+});
+test('project-specific external merge drivers cannot define a managed cancellation baseline', async t => {
+  const f = await fixture(t);
+  await commit(f.root, '.gitattributes', 'Main.java merge=project-driver\n'); await core.git(f.root, ['push', f.bare, 'main']); await core.git(f.other, ['pull', f.bare, 'main']);
+  await core.git(f.root, ['config', 'merge.project-driver.driver', 'false']);
+  await commit(f.root, 'Main.java', 'local project driver input\n'); await commit(f.other, 'Main.java', 'incoming project driver input\n'); await f.publish();
+  await assert.rejects(update(f), /could not be verified as unchanged/);
+  assert.equal(await workflow.readRecovery(f.root, {run: f.options.run}), null);
+  assert.equal(await fs.readFile(path.join(f.root, 'Main.java'), 'utf8'), 'local project driver input\n');
+  await assert.rejects(workflow.cancelRecovery(f.root, {run: f.options.run}), /no managed update/);
+});

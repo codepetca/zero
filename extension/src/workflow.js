@@ -208,6 +208,7 @@ async function syncPrepared(plan, options = {}) {
     try { await opts.run(plan.root, ['merge-base', current.head, remoteHead]); }
     catch { throw new Error('GitHub main and this project have unrelated histories. Check the connected repository before syncing.'); }
     await preserveIgnored(current, remoteHead, opts.run);
+    const expectedMerge = await recovery.preview(current, remoteHead, opts.run);
     await opts.beforeMutation();
     await recheck(current, opts.run, {full: true});
     opts.onProgress(current.branch === 'main' ? 'Updating local main…' : 'Merging GitHub main into your feature…');
@@ -216,7 +217,7 @@ async function syncPrepared(plan, options = {}) {
       let pending = false;
       try { await opts.run(plan.root, ['rev-parse', '--verify', 'MERGE_HEAD']); pending = true; } catch {}
       if (pending) {
-        const managed = await recovery.create(current, remoteHead, plan.remoteBranch, opts.run, recoveryInspect);
+        const managed = await recovery.create(current, remoteHead, plan.remoteBranch, opts.run, recoveryInspect, expectedMerge);
         plans.delete(plan);
         return {synced: false, updated: false, branch: plan.branch, remote: plan.remote, remoteBranch: plan.remoteBranch, remoteHead, recovery: managed};
       }

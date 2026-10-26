@@ -7,6 +7,9 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const os = require('node:os');
 const core = require('./core');
+const {execFile} = require('node:child_process');
+const {promisify} = require('node:util');
+const execute = promisify(execFile);
 const recordName = 'zero-update-recovery.json';
 const oid = value => typeof value === 'string' && /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value);
 const changed = () => new Error('The pending update, repository, index, or files changed. Keep your work and inspect native Source Control before continuing.');
@@ -82,7 +85,7 @@ async function readRecord(gitDir) {
   if (raw === null) return null;
   let saved;
   try { saved = JSON.parse(raw); } catch { throw changed(); }
-  if (saved.version !== 1 || !oid(saved.head) || !oid(saved.remoteHead) || !/^[a-f0-9]{32}$/.test(saved.id) || typeof saved.fingerprint !== 'string') throw changed();
+  if (saved.version !== 2 || saved.provenance !== 'isolated-merge-preview-v1' || !oid(saved.head) || !oid(saved.remoteHead) || !/^[a-f0-9]{32}$/.test(saved.id) || typeof saved.fingerprint !== 'string') throw changed();
   return saved;
 }
 async function save(gitDir, saved) {
@@ -166,15 +169,48 @@ async function describe(root, saved, run) {
   }
   return {id: saved.id, branch: saved.branch, head: saved.head, remote: saved.remote, remoteBranch: saved.remoteBranch, remoteHead: saved.remoteHead, files, nativeRequired: !files.length || files.some(file => file.nativeRequired)};
 }
-async function create(current, remoteHead, remoteBranch, run, inspect) {
+// A post-merge snapshot alone cannot prove ownership: another editor may have
+// added work before Git returned its conflict result. Reproduce the pinned merge
+// independently in disposable storage, without the project's executable Git
+// configuration, and compare exact produced bytes and index before owning abort.
+async function preview(current, remoteHead, run) {
+  const refs = await run(current.root, ['for-each-ref', '--format=%(refname) %(objectname) %(symref)']);
+  const ignored = await run(current.root, ['ls-files', '--others', '--ignored', '--exclude-standard', '-z']);
+  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), 'zero-merge-preview-'));
+  const environment = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/^GIT_/i.test(key)));
+  Object.assign(environment, {GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: os.devNull, GIT_ATTR_NOSYSTEM: '1', GIT_TERMINAL_PROMPT: '0'});
+  const isolated = async (root, args) => {
+    const {stdout} = await execute('git', ['-c', `core.hooksPath=${os.devNull}`, '-c', 'commit.gpgSign=false', '-c', 'core.autocrlf=false', '-c', 'core.attributesFile=' + os.devNull, '-c', 'merge.conflictStyle=merge', '-c', 'merge.autoStash=false', '-c', 'rerere.enabled=false', ...args], {cwd: root, env: environment, timeout: 15000, maxBuffer: 1024 * 1024});
+    return args.includes('-z') ? stdout : stdout.trim();
+  };
+  try {
+    await isolated(temporary, ['init', '--template=', '--object-format=' + (current.head.length === 64 ? 'sha256' : 'sha1'), '-b', current.branch]);
+    await fs.writeFile(path.join(temporary, '.git', 'objects', 'info', 'alternates'), path.join(current.gitDir, 'objects') + '\n');
+    await isolated(temporary, ['update-ref', `refs/heads/${current.branch}`, current.head]);
+    await isolated(temporary, ['read-tree', '--reset', '-u', current.head]);
+    try {
+      await isolated(temporary, ['-c', 'user.name=Zero merge preview', '-c', 'user.email=preview@example.invalid', 'merge', '--ff', '--no-gpg-sign', '--no-edit', '--no-commit', remoteHead]);
+      return null; // No conflict; no managed recovery provenance is needed.
+    } catch (error) { if (error.code !== 1) return null; }
+    if (!(await isolated(temporary, ['ls-files', '--unmerged', '-z']))) return null;
+    const expected = await snapshot(temporary, isolated, async () => ({...current, root: temporary, gitDir: path.join(temporary, '.git')}));
+    return {refs, ignored, index: expected.index, manifest: expected.manifest, markers: expected.markers};
+  } catch {
+    // Config-dependent, unsupported or unavailable preview stays native. Never
+    // adopt the real merge's arbitrary resulting bytes as an abort baseline.
+    return null;
+  } finally { await fs.rm(temporary, {recursive: true, force: true}); }
+}
+async function create(current, remoteHead, remoteBranch, run, inspect, expected) {
   const after = await snapshot(current.root, run, inspect);
+  if (!expected || after.index !== expected.index || after.refs !== expected.refs || after.ignored !== expected.ignored || JSON.stringify(after.markers) !== JSON.stringify(expected.markers) || JSON.stringify(after.manifest) !== JSON.stringify(expected.manifest)) throw new Error('The merge result could not be verified as unchanged. Your files and edits are preserved. Resolve or cancel carefully in native Source Control; Zero will not offer a managed cancel.');
   if (after.head !== current.head || after.branch !== current.branch || after.remote !== current.remote || after.mainHead !== current.mainHead || (await marker(after.gitDir, 'MERGE_HEAD'))?.trim() !== remoteHead) throw changed();
   // Detect renames on both sides rather than guessing how multi-path conflicts
   // should map to a student's whole-file choice.
   const base = await run(current.root, ['merge-base', current.head, remoteHead]);
   const topology = await Promise.all([current.head, remoteHead].map(head => run(current.root, ['diff', '--name-status', '-M', '-z', base, head])));
   const complex = topology.some(output => nul(output).some(part => /^R\d+$/.test(part)));
-  const saved = {version: 1, id: crypto.randomBytes(16).toString('hex'), root: current.root, gitDir: current.gitDir, branch: current.branch, mainHead: current.mainHead, head: current.head, remote: current.remote, page: current.page, remoteHead, remoteBranch, complex, fingerprint: after.fingerprint};
+  const saved = {version: 2, provenance: 'isolated-merge-preview-v1', id: crypto.randomBytes(16).toString('hex'), root: current.root, gitDir: current.gitDir, branch: current.branch, mainHead: current.mainHead, head: current.head, remote: current.remote, page: current.page, remoteHead, remoteBranch, complex, fingerprint: after.fingerprint};
   await save(current.gitDir, saved);
   return describe(current.root, saved, run);
 }
@@ -184,10 +220,11 @@ async function pending(root, run, inspect) {
   try { if (!(await fs.lstat(path.join(root, '.git'))).isDirectory()) return null; }
   catch (error) { if (error.code === 'ENOENT') return null; throw error; }
   if (await marker(path.join(root, '.git'), recordName) === null) return null;
+  if (await marker(path.join(root, '.git'), 'MERGE_HEAD') === null) return null;
   const current = await snapshot(root, run, inspect);
+  if (await marker(current.gitDir, 'MERGE_HEAD') === null) return null;
   const saved = await readRecord(current.gitDir);
   if (!saved) return null;
-  if (await marker(current.gitDir, 'MERGE_HEAD') === null) return null;
   if (saved.root !== current.root || saved.gitDir !== current.gitDir || saved.branch !== current.branch || saved.head !== current.head || saved.mainHead !== current.mainHead || saved.remote !== current.remote || saved.fingerprint !== current.fingerprint || (await marker(current.gitDir, 'MERGE_HEAD'))?.trim() !== saved.remoteHead) throw changed();
   return {saved, current};
 }
@@ -288,4 +325,4 @@ async function locked(root, options, operation) {
   try { return await operation(); }
   finally { await handle.close(); await fs.unlink(lock); }
 }
-module.exports = {create, read, resolve: (root, choice, options) => locked(root, options, () => resolve(root, choice, options)), cancel: (root, options) => locked(root, options, () => cancel(root, options)), checkpoint: (root, options) => locked(root, options, () => checkpoint(root, options))};
+module.exports = {preview, create, read, resolve: (root, choice, options) => locked(root, options, () => resolve(root, choice, options)), cancel: (root, options) => locked(root, options, () => cancel(root, options)), checkpoint: (root, options) => locked(root, options, () => checkpoint(root, options))};

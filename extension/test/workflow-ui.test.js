@@ -22,17 +22,17 @@ const waitFor = async (condition, message) => {
 test('local branches, explicit Sync and merges stay serialized and recover conflicts through native Git', async t => {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-workflow-ui-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));await fs.writeFile(path.join(root,'zero.json'),'{}');
-  const original = {git:core.git,resolve:core.resolveProject,assert:core.assertRepositoryRoot,prepare:github.prepareUpload,...workflow};
-  t.after(()=>{core.git=original.git;core.resolveProject=original.resolve;core.assertRepositoryRoot=original.assert;github.prepareUpload=original.prepare;for(const key of Object.keys(workflow))workflow[key]=original[key];});
+  const original = {git:core.git,resolve:core.resolveProject,assert:core.assertRepositoryRoot,prepare:github.prepareUpload,check:github.checkUpload,...workflow};
+  t.after(()=>{core.git=original.git;core.resolveProject=original.resolve;core.assertRepositoryRoot=original.assert;github.prepareUpload=original.prepare;github.checkUpload=original.check;for(const key of Object.keys(workflow))workflow[key]=original[key];});
   let projectResolves=0;
   core.resolveProject=(...args)=>{projectResolves++;return original.resolve(...args);};
   let branch='main',remote='https://github.com/student/app.git',mode='simulation',session={id:'session',account:{id:'1',label:'student'},accessToken:'NEVER_RENDER_TOKEN'},authEvent,provider,publishedState;
-  let accessFailure,repositoryId=12,installationId=99,gitStatus='',warningChoice,pendingRecovery;const accesses=[];
+  let accessFailure,repositoryId=12,installationId=99,gitStatus='',warningChoice,pendingRecovery,storedPending,currentHead='f'.repeat(40);const accesses=[];
   let saved=0,authCalls=0,prepared=0,uploadSnapshots=0,transportDispatches=0,synced=0,syncError,syncUpdates=false,startGate,syncGate,afterSyncFetch,syncApplied=0,executed=0,deleted=0,input,choice,prepareGate,pickGate,warningGate,finishError,cleanupError,nativeScm=true;
   const transportCalls=[];
   const commands=new Map(),picks=[],reviews=[],warnings=[],errors=[],notices=[],dispatch=[],deletions=[],logs=[],metadata={},progressRuns=[];
   core.assertRepositoryRoot=async()=>root;
-  core.git=async(_,args)=>{if(args[0]==='remote'){if(!remote)throw new Error('No origin');return remote;};if(args[0]==='symbolic-ref')return branch;if(args[0]==='status')return gitStatus;throw new Error('Unexpected Git mutation');};
+  core.git=async(_,args)=>{if(args[0]==='remote'){if(!remote)throw new Error('No origin');return remote;};if(args[0]==='symbolic-ref')return branch;if(args[0]==='status')return gitStatus;if(args[0]==='rev-parse')return currentHead;throw new Error('Unexpected Git mutation');};
   github.prepareUpload=async()=>{uploadSnapshots++;return {remote:'https://github.com/student/app.git',page:'https://github.com/student/app',branch,changes:[],summary:'No changes'};};
   const plan = () => ({root,remote:'https://github.com/student/app.git',page:'https://github.com/student/app',branch,head:'f'.repeat(40),mainHead:'a'.repeat(40),remoteMainHead:'a'.repeat(40),summary:'Reviewed change',changedPaths:['Main.java']});
   workflow.prepareStart=async()=>{prepared++;if(startGate)await startGate;return plan();};workflow.prepareFinish=async()=>{prepared++;const captured=plan();if(prepareGate)await prepareGate;return captured;};
@@ -45,7 +45,7 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   const vscode={
     ProgressLocation:{Notification:15},
     authentication:{getSession:async(provider,scopes)=>{assert.equal(provider,'zero-github');assert.deepEqual(scopes,[]);authCalls++;return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();},registerAuthenticationProvider:(id,label,provider,options)=>{assert.equal(id,'zero-github');assert.equal(label,'Zero GitHub');assert.deepEqual(options,{supportsMultipleAccounts:false});return disposable();}},
-    workspace:{isTrusted:true,registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saved++;return true;},createFileSystemWatcher:pattern=>pattern==='**/.git/{HEAD,config}'?{onDidCreate:fn=>{metadata.create=fn;return disposable();},onDidChange:fn=>{metadata.change=fn;return disposable();},onDidDelete:fn=>{metadata.delete=fn;return disposable();},dispose(){}}:{onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}},onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
+    workspace:{isTrusted:true,registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saved++;return true;},createFileSystemWatcher:pattern=>pattern.startsWith('**/.git/{HEAD,config,')?{onDidCreate:fn=>{metadata.create=fn;return disposable();},onDidChange:fn=>{metadata.change=fn;return disposable();},onDidDelete:fn=>{metadata.delete=fn;return disposable();},dispose(){}}:{onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}},onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
     window:{withProgress:async(options,work)=>{const run={options,messages:[],active:true};progressRuns.push(run);try{return await work({report:({message})=>run.messages.push(message)});}finally{run.active=false;}},createOutputChannel:()=>({appendLine(text){logs.push(text);},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,value)=>{provider=value;return disposable();},registerTreeDataProvider:disposable,
       showQuickPick:async(items,options)=>{picks.push({items,options});if(pickGate)await pickGate;return choice===undefined?undefined:items.find(item=>item.action===choice || item.command===choice);},showInputBox:async()=>input,
       showWarningMessage:async text=>{warnings.push(text);if(warningGate)await warningGate;return warningChoice;},
@@ -55,7 +55,7 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   };
   const oldLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){if(id==='./git-tracking')return {updateRemoteTracking:async()=>({updated:true})};if(id==='./transport')return {createTransport:(_remote,authenticate,{assertCurrentNow})=>async(_root,args)=>{await authenticate();assertCurrentNow();transportDispatches++;transportCalls.push(args);return args[0]==='ls-remote'?`${plan().head}\trefs/heads/main`:'';}};return id==='vscode'?textInputs(vscode):oldLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
-  const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:key=>key==='zero.webPublish.lastLive'?publishedState:true}},{provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{async checkSetup(){return {};},async access(url,{ticket,permissions}){accesses.push({url,ticket,permissions});assert.equal(url,'https://github.com/student/app');assert.deepEqual(permissions,{contents:'write'});assert.equal(ticket.session.accountId,'1');assert.equal(ticket.session.accessToken,'NEVER_RENDER_TOKEN');if(accessFailure)throw accessFailure;return {ticket,repository:{id:repositoryId},installation:{id:installationId}};}}});
+  const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:key=>key==='zero.webPublish.lastLive'?publishedState:key.startsWith('zero.gitUploadRecovery:')?storedPending:true,update:async(key,value)=>{if(key.startsWith('zero.gitUploadRecovery:'))storedPending=value;}}},{provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{async checkSetup(){return {};},async access(url,{ticket,permissions}){accesses.push({url,ticket,permissions});assert.equal(url,'https://github.com/student/app');assert.deepEqual(permissions,{contents:'write'});assert.equal(ticket.session.accountId,'1');assert.equal(ticket.session.accessToken,'NEVER_RENDER_TOKEN');if(accessFailure)throw accessFailure;return {ticket,repository:{id:repositoryId},installation:{id:installationId}};}}});
   const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes(`Current branch: ${branch}`));
   assert.match(webview.html,/id="files-menu-button"[^>]*aria-haspopup="menu"[^>]*aria-expanded="false"[^>]*aria-controls="files-menu"/);
   assert.match(webview.html,/id="files-menu"[^>]*role="menu"[^>]*hidden/);
@@ -180,9 +180,21 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   vscode.workspace.textDocuments=[{isDirty:true,uri:{scheme:'file',fsPath:path.join(root,'Coin.java')}}];
   await commands.get('zero.useIncomingUpdate')(choiceToken());assert.equal(resolutions,1);assert.match(errors.at(-1),/unsaved edits/);vscode.workspace.textDocuments=[];
   workflow.cancelRecovery=async(_root,options)=>{await options.beforeMutation();cancellations++;pendingRecovery=undefined;return {cancelled:true};};
+  const nativeRecovery=pendingRecovery;pendingRecovery=undefined;metadata.delete({fsPath:path.join(root,'.git','MERGE_HEAD')});await waitFor(()=>!webview.html.includes('zero.keepLocalUpdate'));assert.match(webview.html,/data-command="zero.toggleApp"(?![^>]*disabled)/,'Native completion clears cached conflict controls without a menu or reload');pendingRecovery=nativeRecovery;metadata.change({fsPath:path.join(root,'.git','index')});await waitFor(()=>webview.html.includes('zero.keepLocalUpdate'));
   await commands.get('zero.cancelUpdate')(choiceToken());assert.equal(cancellations,1);assert.doesNotMatch(webview.html,/zero.keepLocalUpdate/);assert.match(webview.html,/starting checkpoint restored/);
   workflow.checkpoint=async(_root,options)=>{await options.beforeMutation();checkpoints++;gitStatus='';return {checkpointed:true,branch,head:'f'.repeat(40)};};
   gitStatus=' M Main.java\0';warningChoice=undefined;const beforeCancelledUpdate=synced;await commands.get('zero.syncProject')();assert.equal(synced,beforeCancelledUpdate);assert.equal(checkpoints,0,'Cancelling the checkpoint prompt changes no Git state');
   warningChoice='Save checkpoint & update';await commands.get('zero.syncProject')();assert.equal(checkpoints,1);assert.equal(synced,beforeCancelledUpdate+1);assert.equal(gitStatus,'');
+
+  // Checking a previous accepted push remains possible after newer native
+  // commits and mixed staged/working changes, without uploading those changes.
+  storedPending={root,remote,page:'https://github.com/student/app',branch,head:'f'.repeat(40),kind:'unconfirmed',accountId:'1',committed:true};
+  currentHead='b'.repeat(40);gitStatus='MM Player.java\0';let checkedRecorded;
+  github.checkUpload=async(_root,record,options)=>{checkedRecorded=record.head;await options.beforeNetwork();await options.networkRun(root,['ls-remote','--heads',remote,`refs/heads/${branch}`]);return {confirmed:true,head:record.head};};
+  metadata.change({fsPath:path.join(root,'.git','refs','heads',branch)});await waitFor(()=>webview.html.includes('Check GitHub status'));
+  assert.match(webview.html,/Commit &amp; push/,'Newer local work retains the normal save action');
+  const dispatchesBeforeCheck=transportCalls.length;await commands.get('zero.checkPush')();
+  assert.equal(checkedRecorded,'f'.repeat(40));assert.equal(currentHead,'b'.repeat(40));assert.equal(gitStatus,'MM Player.java\0');assert.equal(storedPending,undefined);
+  assert.deepEqual(transportCalls.slice(dispatchesBeforeCheck).map(args=>args[0]),['ls-remote'],'Exact status checking cannot push newer local commits');
 
 });
