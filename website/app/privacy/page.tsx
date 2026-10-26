@@ -71,7 +71,7 @@ export default function Privacy() {
       <section id="contact">
         <h2>8. Contact and changes</h2>
         <p>Send privacy questions, requests or concerns to Codepet Inc. at <a href="mailto:info@codepet.ca">info@codepet.ca</a>. Describe the relevant service and record without including secrets or unnecessary personal information.</p>
-        <p>We will update the date on this notice when it changes. Material new information uses will require an appropriate notice and consent where applicable. Reading this page is not recorded as consent to new uses or agreement to the proposed terms.</p>
+        <p>We will update the date on this notice when it changes. Material new information uses will require an appropriate notice and consent where applicable. The use-based agreement in the <a href="/terms">Terms</a> does not authorize new uses of personal information or replace consent required by privacy law. Reading this page is not recorded as an explicit consent event.</p>
       </section>
     </main>
   </LearnTheme>;

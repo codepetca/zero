@@ -14,11 +14,14 @@ policy links. The footer copyright keeps2026 as the initial year and adds the
 current year as a range on later visits, without changing source-license years.
 The privacy notice follows the [source inventory](PRIVACY-DATA.md), including
 GitHub credentials, cookies/local storage, public sharing, aggregate Play counts,
-providers and retention/deletion limits. The local terms
-draft covers desktop tools and hosted services after beta as well as during it;
-it is explicitly not yet effective and records no agreement. Legal review,
-commercial decisions and any required age-appropriate agreement flow remain
-separate from this local draft. See [draft status and sources](LEGAL-TERMS.md).
+providers and retention/deletion limits. Owner-authorized Terms version2026-10-25
+takes effect on publication. A footer notice and the Terms state prospective
+use-based agreement for Zero/ZeroHub and related Codepet-operated services that
+expressly link to them, after notice is brought to the user’s attention. This
+is not a claim that past visitors, unrelated products or guardians have accepted,
+and does not replace privacy consent required by law or separately licensed
+software rights. No explicit acceptance registry is implemented. See
+[rollout status and sources](LEGAL-TERMS.md).
 
 Mobile website navigation opens as an overlay dropdown without shifting page
 content. Outside interaction, focus leaving the menu, Escape and selecting a link

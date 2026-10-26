@@ -9,8 +9,8 @@ export default function Terms() {
   return <LearnTheme active="">
     <main id="page-content" tabIndex={-1} className="legal-page">
       <h1>Terms &amp; disclaimer</h1>
-      <p>Zero and ZeroHub · Codepet Inc. · Version October 25, 2026</p>
-      <p className="legal-draft"><strong>Draft for review.</strong> These proposed terms are not yet in effect. This page does not record your agreement.</p>
+      <p>Zero and ZeroHub · Codepet Inc. · Version 2026-10-25</p>
+      <p><strong>Effective <time dateTime="2026-10-25">October 25, 2026</time>, upon publication of this version.</strong></p>
       <div className="legal-summary">
         <h2>Please understand the risks</h2>
         <p>Zero is a learning tool. It is provided as is, without a promise that it will always work, save your work or keep your data. Keep independent backups and check your uploads and published apps.</p>
@@ -19,7 +19,8 @@ export default function Terms() {
       </div>
       <section id="scope">
         <h2>1. Scope and eligibility</h2>
-        <p>These proposed terms cover Zero desktop tools, Zero websites, ZeroHub and related Codepet-operated services (the “Services”). “Codepet”, “we” and “us” mean Codepet Inc. They are intended to apply to all releases, including beta, preview and later stable versions.</p>
+        <p>These terms cover Zero websites, ZeroHub and related Codepet-operated services that display or expressly link to these terms (the “Services”). “Codepet”, “we” and “us” mean Codepet Inc. They apply during beta, preview and later stable releases. They also explain risks associated with Zero desktop tools, subject to the separate software licenses below.</p>
+        <p><strong>By accessing or using the Services after this version is published and these terms are brought to your attention, you agree to these terms.</strong> If you do not agree, do not use the Services. This applies to future use; it does not treat past visits or use of unrelated products as acceptance.</p>
         <p>Use only services and GitHub accounts you are entitled to use. If you are under the age of majority where you live, review these terms with a parent or legal guardian and obtain any permission required by law. A teacher or school cannot agree for a student unless legally authorized to do so. These terms do not override GitHub’s age or account requirements.</p>
         <p>Separately licensed software remains governed by its applicable license, including the MIT license for original Zero code and notices for third-party components. These terms do not remove rights granted by those licenses. Any separately signed agreement with Codepet controls where it expressly conflicts with these terms.</p>
       </section>
@@ -55,7 +56,7 @@ export default function Terms() {
       </section>
       <section>
         <h2>7. Changes, governing law and remaining terms</h2>
-        <p>Future terms will identify their version and effective date. Material changes will be brought to users’ attention, with consent sought where required. Publishing an updated page alone does not establish that you accepted it. Changes do not retroactively remove accrued rights.</p>
+        <p>Updated terms will identify their version and effective date. Material changes will be brought to users’ attention, with express consent sought where required. The use-based agreement above applies to use after the updated terms have been brought to your attention; publication alone is not evidence of earlier acceptance. Changes do not retroactively remove accrued rights or replace express consent required by law.</p>
         <p>Subject to mandatory protections that apply where you live, Ontario law and applicable Canadian federal law govern these terms, and disputes may be brought before competent courts in Ontario. Nothing here requires arbitration, waives class proceedings or prevents you from using a court or remedy available under mandatory law.</p>
         <p>If a provision is unenforceable, the remaining provisions continue to the extent permitted by law. Failure to enforce a provision is not a waiver of it.</p>
       </section>

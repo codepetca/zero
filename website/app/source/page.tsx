@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { sources } from "@/lib/content";
 import { PageHeader } from "@/components/PageHeader";
 import { CodeBlock } from "@/components/CodeBlock";
+import { LegalFooter } from "@/components/LegalFooter";
 export const metadata = { title: "Readable source" };
 export default async function Source({
   searchParams,
@@ -25,6 +26,7 @@ export default async function Source({
           <code>{sources[file]}</code>
         </CodeBlock>
       </main>
+      <LegalFooter />
     </>
   );
 }
