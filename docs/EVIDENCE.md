@@ -1,5 +1,46 @@
 # Delivery evidence index
 
+## Zero Dev Publish prerequisite: native JDK17 / browser JDK21 — 2026-10-26
+
+Owner reported Publish app failure in the Zero Dev window opened on my-study.
+Actual native error said standalone JDK21 with matching java/javac was missing
+from JAVA_HOME. Targeted process diagnosis (only JAVA_HOME reported) showed the
+Dev hosts inherited Homebrew JDK17. Zero’s already-installed private Temurin21
+was present and usable, but Mac discovery skipped it whenever JAVA_HOME existed.
+Reproduced the same failure through read-only saved-builder runtime inspection.
+
+Sourceef947ca570d4ce648c80465cf91b5982154f27c0 from base044900ea tries the existing
+private JDK locations after a configured JDK fails the required version checks.
+Compatible configured JAVA_HOME remains preferred. No system preference or
+student saved-builder upgrade; selected JAVA_HOME is scoped to the sanitized
+browser child environment. Both java and javac must match the saved requirement.
+The unavailable diagnostic mentions the private-runtime fallback. Dev docs now
+distinguish the simulated scratch game from normal explicit connected-project
+publishing, and native JDK17 from browser JDK21.
+
+22 focused project-builder tests pass, including fallback, configured preference,
+mismatched/missing private compiler rejection and credential/preload filtering.
+58 publish/export UI regressions pass; configuration/syntax/contracts/doc links
+and diff checks pass. Real runtime probing with the inherited JDK17 selects
+private Node22.21.1 + Temurin21.0.12.1, matching saved tested pins. Mac CUA reloaded
+the exact isolated development host, retained my-study/editors/tutorial, invoked
+Export for Web, and observed compatibility checks → GWT zero_web compilation →
+Export ready. Source worktree in my-study remains clean. Screenshot:
+.verification/student-explorer/screenshots/publish-runtime-export-ready.png.
+This proves the failed local prerequisite is repaired; no live upload/Pages run
+was started, and hosted publishing success is not claimed. No publication or
+account/credential change was performed.
+
+Independent review: review_publish_jdk, requested GPT-6 Sol/high, inspected the
+complete4-file delta and runtime/sanitization/authorization/Publish callers;
+clean,0findings. Reviewer reran22builder tests successfully. One launch/wave,
+0fix batches; under10minutes reported, exact elapsed/tokens and effective model
+unknown. Configured-compatible preference, private fallback, matched majors and
+clean child environment independently checked. Windows/Linux/live publishing
+unverified for this delta. Allowance90% weekly remaining; fresh storage230.22GB
+healthy, no cleanup. Account usage is not attributable task cost. Bulky test
+receipts remain ignored under .verification/student-explorer.
+
 ## Project toolbar overflow — 2026-10-26
 
 Owner requested moving Project’s Refresh/Show All/etc. icons into its three-dot
