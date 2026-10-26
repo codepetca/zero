@@ -287,7 +287,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   startPanels.at(-1).dispose();assert.equal(sidebarShortcut.visible,false,'Closing the last Zero surface immediately hides the shortcut in an unrelated project');
 });
 
-test("Zero keeps standard Explorer default and offers a native switchable student preview",()=>{
+test("Zero offers the native student explorer with a standard Explorer escape",()=>{
   const manifest=require("../package.json");
   assert.deepEqual(manifest.contributes.views.explorer.map(view=>view.id),["zero.controls"]);
   assert.equal(manifest.contributes.views.explorer[0].name,"Zero");
@@ -295,6 +295,8 @@ test("Zero keeps standard Explorer default and offers a native switchable studen
   assert.deepEqual(manifest.contributes.views['zero-student-explorer'].map(item=>item.id),['zero.studentControls','zero.studentProject']);
   assert.ok(manifest.contributes.views['zero-student-explorer'].every(item=>item.when==='zero.studentExplorerPreview'));
   assert.deepEqual(manifest.contributes.viewsContainers.activitybar.map(item=>item.id),['zero-student-explorer']);
+  assert.equal(manifest.contributes.viewsContainers.activitybar[0].title,'Zero');
+  assert.equal(manifest.contributes.commands.find(item=>item.command==='zero.previewStudentExplorer').title,'Zero: Use Student Explorer');
   const standard=manifest.contributes.menus['view/title'].filter(item=>item.when==='view == zero.controls').map(item=>item.command);
   assert.deepEqual(standard,["zero.githubAccount","zero.chooseRepository","zero.exportWeb","zero.copyPublishedWebLink","zero.openPublishedWeb","zero.openFirstLesson","zero.showSetup","zero.startPage","zero.showOutput","zero.previewStudentExplorer"]);
   const preview=manifest.contributes.menus['view/title'].filter(item=>item.when==='view == zero.studentControls').map(item=>item.command);

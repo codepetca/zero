@@ -200,7 +200,7 @@ function activate(context, services = {}) {
       return;
     }
     if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
-    if (launchedForZero || !context.workspaceState.get('zero.explorerShown')) {
+    if (launchedForZero || !context.workspaceState.get('zero.explorerShown') || (studentExplorer?.isPreview() && !context.workspaceState.get('zero.studentExplorerShown'))) {
       await actions['zero.showSidebar']();
       await context.workspaceState.update('zero.explorerShown', true);
       await context.workspaceState.update('zero.sidebarShown', true);
@@ -1016,6 +1016,7 @@ function activate(context, services = {}) {
       const preview=studentExplorer?.isPreview();
       await vscode.commands.executeCommand(preview?'workbench.view.extension.zero-student-explorer':'workbench.view.explorer');
       await vscode.commands.executeCommand(preview?'zero.studentControls.focus':'zero.controls.focus');
+      if(preview)await context.workspaceState.update('zero.studentExplorerShown',true);
       if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
     },
     'zero.uploadToGitHub': () => uploadProject(),

@@ -632,9 +632,11 @@ light/dark web inspection; physical Windows icon rendering remains separate.
 
 ## Native Explorer integration
 
-Local source offers **Zero: Preview Student Explorer** as an explicit,
-workspace-scoped switch. The standard Explorer stays the default pending owner
-visual review. The supported `zero-student-explorer` view container combines
+Local source defaults to the Student Explorer after the owner’s reviewed-preview
+continuation on2026-10-26. **Zero: Use Standard Explorer** and **Zero: Use Student
+Explorer** persist a workspace choice; an explicit Standard Explorer preference
+is preserved on upgrade. An existing workspace receives the new sidebar once,
+without replacing its open editors. The supported `zero-student-explorer` view container combines
 `zero.studentControls` and the native `zero.studentProject` TreeDataProvider.
 Both control views share the renderer but keep independent document lifecycles.
 The student controls omit the ZeroHub and New dropdowns. The native Project

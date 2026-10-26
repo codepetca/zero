@@ -10,7 +10,7 @@ remain separate. Existing Git recovery work and public student projects stay int
 ## Student experience
 
 Creation uses the native Project header’s New… (+) menu and tree context menus.
-ZeroHub lives in Project’s overflow; neither control appears in the preview
+ZeroHub lives in Project’s overflow; neither control appears in the student
 controls panel (owner refinement,2026-10-26). New opens an anchored dropdown,
 uses the selected file’s parent or selected folder, and names destinations using
 the visible Code/Assets/package hierarchy. File right-click menus also offer
@@ -59,18 +59,18 @@ used, storage224.9GB available; account readings are not task cost.
 
 ## Local rollout
 
-First deliver a switchable Preview Student Explorer in Zero Dev, using current
-native themes and controls. Preserve the existing Explorer as the default until
-the owner sees and accepts the concrete native proposal required by AGENTS.md.
-The preview must be fully functional before asking for that final review. A visual
-acceptance gate does not stop backend implementation or independent testing.
+The working switchable preview and requested menu/location/rename refinements
+were shown to the owner. The owner’s continuation on2026-10-26 advances local
+adoption: Student Explorer becomes the default, with explicit Use Standard
+Explorer / Use Student Explorer workspace switches. Preserve existing Standard
+Explorer choices and open editors. Publication remains separately authorized.
 
-Status: implementation and scoped local acceptance complete through reviewed
-feeeb0fe (including the owner-requested Project menu refinement); required owner visual decision remains. Phases1–5 pass locally in the
-scope recorded in docs/EVIDENCE.md; phase6 source review/docs pass, with concrete
-native light/dark screenshots ready. Standard Explorer remains default. No source
-publication, account changes or release. Use the native preview and exact evidence
-rather than treating a successful WebFX build alone as browser play.
+Status: phases1–5 and independent review pass through e8747259; reviewed native
+light/dark/keyboard evidence and bounded platform limits are in docs/EVIDENCE.md.
+Phase6 owner review is accepted for this local adoption. Verify fresh-workspace
+default, existing-workspace introduction, persisted standard choice and full
+Explorer/Zero return before marking the source adoption complete. No source
+publication, account changes or release follows from that acceptance.
 
 Continuation orchestration receipt (2026-10-26): first GPT-6.1 Sol/high worker
 launch failed at capacity without edits. GPT-6 Sol/high workers delivered model

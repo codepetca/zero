@@ -10,7 +10,8 @@ function createStudentExplorer(vscode, host) {
   const events = new vscode.EventEmitter();
   const known = new WeakSet();
   let generation=0, pending, model, disposed=false, watcher, timer;
-  let preview=host.workspaceState.get('zero.studentExplorerPreview',false) === true;
+  // Keep the persisted key so an explicit Standard Explorer choice survives upgrades.
+  let preview=host.workspaceState.get('zero.studentExplorerPreview',true) !== false;
   const collapsed=vscode.TreeItemCollapsibleState.Collapsed, expanded=vscode.TreeItemCollapsibleState.Expanded;
   const node = fields => {const value={generation,...fields};known.add(value);return value;};
   const action = (label,command,context) => node({kind:'action',label,command,context});

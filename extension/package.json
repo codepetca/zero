@@ -311,7 +311,7 @@
       },
       {
         "command": "zero.previewStudentExplorer",
-        "title": "Zero: Preview Student Explorer"
+        "title": "Zero: Use Student Explorer"
       },
       {
         "command": "zero.standardExplorer",
@@ -791,7 +791,7 @@
       "activitybar": [
         {
           "id": "zero-student-explorer",
-          "title": "Zero (Preview)",
+          "title": "Zero",
           "icon": "media/zero.svg"
         }
       ]

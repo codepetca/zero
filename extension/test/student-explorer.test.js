@@ -7,7 +7,7 @@ const {createRenameCommands}=require('../src/file-rename');
 const authoring=require('../src/sharing/authoring');
 async function put(root,name,text=''){await fs.mkdir(path.dirname(path.join(root,name)),{recursive:true});await fs.writeFile(path.join(root,name),text);}
 const disposable=()=>({dispose(){}});
-async function fixture(t){
+async function fixture(t,{remembered=new Map()}={}){
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-tree-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await put(root,'zero.json','{"name":"Student app"}');await fs.copyFile(path.resolve(__dirname,'../../student-template/pom.xml'),path.join(root,'pom.xml'));
   await put(root,'src/main/java/Main.java','public class Main {}');
@@ -17,7 +17,7 @@ async function fixture(t){
     Uri:{file:fsPath=>({fsPath})},env:{clipboard:{writeText:async text=>copied.push(text)}},commands:{executeCommand:async(...args)=>calls.push(args)},
     workspace:{isTrusted:true,onDidChangeWorkspaceFolders:fn=>{folderChange=fn;return disposable();},createFileSystemWatcher:pattern=>{const callbacks={};const w={pattern,callbacks,dispose(){w.disposed=true;}};for(const method of ['onDidCreate','onDidChange','onDidDelete'])w[method]=fn=>{callbacks[method]=fn;return disposable();};watchers.push(w);return w;}},
     window:{createTreeView:(_,options)=>({options,onDidChangeSelection:fn=>{selectionChange=fn;return disposable();},dispose(){}}),showInputBox:async()=>name,showQuickPick:async items=>items[0]}};
-  const workspaceState={get:(_,fallback)=>fallback,update:async(...args)=>calls.push(['state',...args])};
+  const workspaceState={get:(key,fallback)=>remembered.has(key)?remembered.get(key):fallback,update:async(key,value)=>{remembered.set(key,value);calls.push(['state',key,value]);}};
   const host={project:async()=>current,isBusy:()=>busy,output:{appendLine:text=>logs.push(text)},workspaceState};
   const files=createFileCommands(vscode,{...host,setBusy:value=>{busy=value;},setState:()=>{}});
   host.execute=async(command,arg)=>{calls.push([command,arg]);return files.commands[command]?.(arg);};
@@ -117,10 +117,12 @@ test('external edits refresh, generated output does not, and project switches di
   assert.ok((await f.children(roots[0])).some(node=>node.label==='External.java'),'Expanded identities still read fresh children during host refresh');
   f.folderChange();assert.equal(f.watchers.at(-1).disposed,true);assert.equal(refreshed,2);
 });
-test('preview is explicitly switchable and all-files escape keeps Zero return in the preview',async t=>{
-  const f=await fixture(t);assert.equal(f.tree.isPreview(),false);await f.tree.commands['zero.previewStudentExplorer']();assert.equal(f.tree.isPreview(),true);
+test('student explorer defaults on and an explicit Standard Explorer choice persists across reload',async t=>{
+  const remembered=new Map(),f=await fixture(t,{remembered});assert.equal(f.tree.isPreview(),true);await f.tree.commands['zero.previewStudentExplorer']();assert.equal(f.tree.isPreview(),true);
   assert.ok(f.calls.some(c=>c[0]==='workbench.view.extension.zero-student-explorer'));await f.tree.commands['zero.showAllProjectFiles']();assert.equal(f.tree.isPreview(),true);
   await f.tree.commands['zero.standardExplorer']();assert.equal(f.tree.isPreview(),false);assert.deepEqual(f.calls.at(-1),['zero.controls.focus']);
+  const reloaded=await fixture(t,{remembered});assert.equal(reloaded.tree.isPreview(),false);
+  await reloaded.tree.commands['zero.previewStudentExplorer']();assert.equal(remembered.get('zero.studentExplorerPreview'),true);
 });
 test('bounded view errors retain a full-Explorer escape',async t=>{
   const f=await fixture(t);await put(f.root,'zero.json','{');const roots=await f.children();assert.deepEqual(roots.map(n=>n.label),['Project view unavailable','Show all project files']);assert.equal(f.logs.length,1);
