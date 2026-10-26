@@ -20,7 +20,7 @@ Mac; no fresh physical device, school network, Intel or Sparkle delivery claim.
 This change promotes only native manifests and the exact signed51 feed. Keep
 Windows21/manualkit17, immutable public assets, primary funding work, original
 actor checkout, normal profiles/student projects and production ZeroJams hold.
-Review/CI/merge and final hosted-byte proof for this promotion are recorded on its
-attached PR; see docs/MAC-CANDIDATE-0.5.51.md and docs/EVIDENCE.md. No credential
+Promotion review/CI/merge and final hosted-byte proof remain pending. Record their
+results on PR209 after completion; see docs/MAC-CANDIDATE-0.5.51.md and docs/EVIDENCE.md. No credential
 changes, new manual kit release or production ZeroJams activation. DeepSeek paused.
 Zero Dev source watchers remain; user uses its isolated dev window on my-study.
