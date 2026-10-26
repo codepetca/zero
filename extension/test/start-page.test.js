@@ -8,7 +8,7 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
 function deferred() {let resolve, reject;const promise = new Promise((yes, no) => {resolve = yes;reject = no;});return {promise, resolve, reject};}
 function fake(initial = {phase:'ready', accountId:'42', accountLabel:'student'}) {
   let state = initial;
-  const panels = [], commands = [], opens = [], reports = [], serializers = new Map(), listings = [];
+  const panels = [], commands = [], opens = [], reports = [], serializers = new Map(), listings = [], openChanges = [];
   const vscode = {ViewColumn:{Active:1}, commands:{executeCommand:async command => {commands.push(command);}}, window:{
     registerWebviewPanelSerializer(type, serializer) {serializers.set(type, serializer);return {dispose:() => serializers.delete(type)};},
     createWebviewPanel(kind, title, show, options) {
@@ -23,8 +23,8 @@ function fake(initial = {phase:'ready', accountId:'42', accountLabel:'student'})
       panels.push(panel);return panel;
     }
   }};
-  const dependencies = {getState:() => state, listRecent:async accountId => {listings.push(accountId);return [];}, openRecent:async (item, accountId) => opens.push({item, accountId}), report:(...args) => reports.push(args)};
-  return {vscode, dependencies, panels, commands, opens, reports, serializers, listings, setState:value => {state = value;},
+  const dependencies = {onDidChangeOpen:open=>openChanges.push(open), getState:() => state, listRecent:async accountId => {listings.push(accountId);return [];}, openRecent:async (item, accountId) => opens.push({item, accountId}), report:(...args) => reports.push(args)};
+  return {vscode, dependencies, panels, commands, opens, reports, serializers, listings, openChanges, setState:value => {state = value;},
     message(panel, value) {return panel.receive({...value, token:panel.messages.at(-1)?.token});}};
 }
 async function open(f) {
@@ -36,6 +36,7 @@ const payload = panel => panel.messages.at(-1).state;
 
 test('one reusable native start tab, stable document, explicit focus and lifecycle', async () => {
   const f = fake(), {page, panel} = await open(f);
+  assert.deepEqual(f.openChanges,[true]);
   assert.equal(panel.kind, 'zero.startPage');assert.equal(panel.title, 'Zero Start Page');
   assert.deepEqual(panel.show, {viewColumn:1, preserveFocus:false});
   assert.equal(panel.options.enableCommandUris, false);assert.deepEqual(panel.options.localResourceRoots, []);
@@ -47,10 +48,10 @@ test('one reusable native start tab, stable document, explicit focus and lifecyc
   assert.equal(panel.webview.html, html);assert.equal(panel.htmlWrites, 1);assert.equal(page.isOpen(), true);
   assert.equal(page.owns({input:{viewType:'zero.startPage'}}), true);
   assert.equal(page.owns({input:{viewType:'zero.tutorials'}}), false);
-  panel.dispose();assert.equal(page.isOpen(), false);
+  panel.dispose();assert.equal(page.isOpen(), false);assert.deepEqual(f.openChanges,[true,false]);
   const reopened = page.show({preserveFocus:true});assert.notEqual(reopened, panel);
   page.dispose();assert.equal(reopened.disposed, true);assert.equal(page.show(), undefined);
-  assert.equal(f.serializers.size, 0);
+  assert.equal(f.serializers.size, 0);assert.deepEqual(f.openChanges,[true,false,true,false]);
 });
 
 test('cloud choices require verified ready access; local is available through setup states', async () => {
@@ -142,11 +143,12 @@ test('restoration reuses the supplied panel without focus changes or duplicate t
   const f = fake(), page = createStartPage(f.vscode, f.dependencies), serializer = f.serializers.get('zero.startPage');
   const restored = f.vscode.window.createWebviewPanel('zero.startPage', 'Old', {}, {});
   await serializer.deserializeWebviewPanel(restored, {path:'/untrusted'});await tick();await restored.receive({type:'ready'});
+  assert.deepEqual(f.openChanges,[true],'Restored panels notify their host');
   assert.equal(page.isOpen(), true);assert.equal(restored.title, 'Zero Start Page');assert.deepEqual(restored.reveals, []);
   const duplicate = f.vscode.window.createWebviewPanel('zero.startPage', 'Duplicate', {}, {});
   await serializer.deserializeWebviewPanel(duplicate);assert.equal(duplicate.disposed, true);
   assert.equal(page.show(), restored);assert.equal(restored.htmlWrites, 1);
-  page.dispose();
+  page.dispose();assert.deepEqual(f.openChanges,[true,false]);
   const late = f.vscode.window.createWebviewPanel('zero.startPage', 'Late', {}, {});
   await serializer.deserializeWebviewPanel(late);assert.equal(late.disposed, true);
   const legacy = fake();delete legacy.vscode.window.registerWebviewPanelSerializer;

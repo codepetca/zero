@@ -16,12 +16,18 @@ const CLOUD = new Set(['tutorial', 'new', 'clone']);
 
 // This view owns navigation only. The existing commands retain setup, account,
 // destination and project checks; recent entries come only from the host's list.
-function createStartPage(vscode, {getState = () => ({}), listRecent = async () => [], openRecent = async () => {}, report = () => {}} = {}) {
+function createStartPage(vscode, {getState = () => ({}), listRecent = async () => [], openRecent = async () => {}, report = () => {}, onDidChangeOpen = () => {}} = {}) {
   let panel, disposed = false, ready = false, inFlight = false, revision = 0;
   let token, signature, choiceSignature, recentAccount, recent = [], recentState = 'empty', recentRequest = 0, loading;
   let failure, retry;
   const choices = new Map();
   const current = target => !disposed && panel === target;
+  let reportedOpen = false;
+  function reportOpen() {
+    const open = Boolean(panel) && !disposed;
+    if (open === reportedOpen) return;
+    reportedOpen = open;onDidChangeOpen(open);
+  }
 
   function state() {
     let value;
@@ -174,9 +180,11 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
       recentRequest++;
       loading = undefined;
       choices.clear();
+      reportOpen();
     });
     target.webview.html = documentHtml();
     void refresh({recent:true});
+    reportOpen();
     return target;
   }
 
@@ -197,7 +205,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     show, refresh,
     isOpen: () => Boolean(panel) && !disposed,
     owns: tab => Boolean(panel) && (tab === panel || tab?.input?.viewType === 'zero.startPage'),
-    dispose() {if (disposed) return;disposed = true;recentRequest++;choices.clear();serializer?.dispose();panel?.dispose();panel = undefined;}
+    dispose() {if (disposed) return;disposed = true;recentRequest++;choices.clear();serializer?.dispose();panel?.dispose();panel = undefined;reportOpen();}
   };
 }
 

@@ -18,8 +18,9 @@ marks a preferred pattern with documented, task-specific exceptions.
   artifact architecture or retained cross-platform source is not a support claim.
 - MUST offer Windows alongside Mac in download choices. The owner authorized the
   unsigned Windows installer preview and its matching **Manual setup (ZIP)**
-  secondary link on 2026-10-19. Keep the unsigned warning visible and both primary
-  buttons centered. Release metadata determines availability. Distinguish the Windows support
+  secondary link on 2026-10-19. Keep signature status explicit in the button label
+  and both primary buttons centered. Owner correction2026-10-25 removes the extra
+  warning sentence below downloads. Release metadata determines availability. Distinguish the Windows support
   target from physical Windows verification, which remains pending.
 
 - MUST retain ordinary Java/JavaFX controls and explicit student-owned state.

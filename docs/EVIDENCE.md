@@ -295,6 +295,471 @@ Exact ignored receipts: `.verification/zerojams-guided/pr200-checks.json`,
 `pr200-publication.json`, `pr200-production.json`, `pr200-preview.json` and
 `pr200-live-hold.json`. Post-merge completion receipt remains local/uncommitted;
 no additional public source change was made to publish these notes.
+## Owner-authorized active Terms and prospective use agreement — 2026-10-25
+
+After PR205 publication, owner requested removing draft status/rolling out Terms,
+then requested use-based acceptance for Zero/related Codepet services. Version
+2026-10-25 now takes effect on publication. Terms/footer state agreement through
+future use after publication and notice; scope is Zero/ZeroHub and related
+Codepet-operated services displaying/expressly linking these terms. This is not
+a claim of historical assent, unrelated-product assent or guaranteed enforceability.
+No acceptance store, permission/auth change, new collector or privacy/guardian
+consent claim is added. Existing non-waivable-rights, MIT, liability-cap and
+jurisdiction text is preserved. Source viewer gets the same visible footer.
+Privacy copy distinguishes use-based terms from consent required by privacy law.
+
+All243website tests,3focused rendered legal-page checks, TypeScript, webpack
+production build, rootcheck and whitespace pass. New contract checks verify active
+version/no draft wording, prospective scope, non-waivable/software rights and
+privacy-consent separation. Chromium Terms1280/390/320px light/dark checks pass
+for effective date, no draft wording/overflow, visible footer/one Terms link;
+Privacy/Source/footer navigation and no duplicate landing link pass.390px dark
+screenshots inspected; ignored `output/playwright/terms-*`, logs `/tmp/zero-terms-rollout-*`.
+Deployment and physical Safari/iPhone/assistive technology not established by these
+local checks. Policy source-review/counsel limits are explicit in LEGAL-TERMS.md.
+
+Canadian primary guidance was checked for mandatory rights, clause enforceability
+and distinct meaningful privacy consent. Owner approval supersedes the agent's
+prior advice to await counsel; no repository rule required lawyer approval.
+73%weeklyremaining and healthy229.2GB observed; no task-cost attribution. Independent
+fixed-head policy/integration reviews and selected CI remain publication gates;
+final PR/merge/deployment proof is recorded in the task and ignored rollout receipt.
+No native installer/release, third-party license or production Jams change.
+
+## Docs contents responsiveness and owner-authorized PR — 2026-10-25
+
+Owner authorized PR/merge, then reported slow expand/collapse in Docs. Source
+showed navigation state re-rendering every Markdown entry. `ApiContent` is now a
+memoized document boundary; reveal/jump callbacks are stable and search results
+memoized. Active-link/Advanced changes still update the document; sidebar Contents,
+category and query changes reuse it. No Java/API content or anchors removed.
+
+Chromium390px dev,6xCPU, click→secondanimationframe,6samples: before912/393/887/
+412/867/384ms; after101/92/83/95/100/101ms. Both193entries/6784documentnodes. This
+is simulated local CPU evidence, not actual iPhone/touch or production latency.
+Scripts and before-source/timings are ignored in `output/playwright/docs-*` and
+`.verification/docs-contents-lag/`. Browser checks pass category expand/collapse,
+search→anchor+focus, Advanced hash/entry jump/closed-section reopening and desktop
+search. Harness fixes used stable category controls and direct summary selectors;
+no production behavior was weakened for those selectors.
+
+All240website tests,20focused API-reference tests, typecheck, productionwebpack
+build, npmcheck and whitespace pass. Rebased onto3bab71a0 after preserving both
+EVIDENCE histories in the only conflict; PRODUCT merged cleanly. Earlier complete
+policy/license reviews and targeted UI reviews remain applicable to unchanged
+source. Final integration/performance review and exact-head selected CI remain
+merge gates; PR/CI/merge receipts are recorded in the task and ignored publication
+receipt. No new collector, legal agreement activation or release/version change.
+Weekly74%remaining and healthy229.6GB at PR start; account-wide usage is not task
+cost. Owner's nativeGit prototype/pilot/release/Jams holds remain unchanged.
+
+## Windows sentence removal and shared mobile dropdown — 2026-10-25
+
+Owner removed the separate Windows unsigned-warning sentence, then requested a
+mobile options dropdown instead of in-flow navigation. Downloads removes the
+sentence and its aria-describedby reference; unsigned button label, exact release
+URLs, manualZIP and detailed requirements remain. Updated UI guideline records
+owner override. Typecheck,9focused download tests and whitespace pass; independent
+beta_review/windows-removal requested GPT6Luna/medium complete/clean.
+
+Navigation now uses an absolute mobile dropdown shared by every PageHeader,
+including the unthemed readable-source viewer. Desktop links remain inline.
+Pointer/focus outside, Escape, link choice and leaving mobile breakpoint close it;
+Escape restores toggle focus. Listeners are cleaned up. Generic shared CSS owns
+positioning/bounds/themefallback/scroll/shadow, learned theme only overrides gap.
+No new dependency, account action, publication or broad source behavior change.
+
+Chromium390/320light/dark verifies unchanged heading position, bounds, outside/
+Escape/focus restoration, keyboardTab/focusout and desktop→mobile reset. Docs/
+Learn/Hub verify unobscured hit targets and account/dropdown mutual dismissal;
+600x320landscape fits. Source Main.java route390/320 verifies absoluteposition,
+unchanged mainy/nooverflow andEscape. Warning sentence absent, unsignedbutton
+present. Screenshots visually inspected; ignored `output/playwright/mobile-dropdown-*`.
+An initial Hub network-idle wait timed out on background requests; harness now
+waits for known theme hydration instead. No product timeout weakening.
+
+Independent terms_review/mobile-initial requested GPT6.1Sol/high found1P2: initial
+styles covered learned shell only, missing source viewer. Coordinator inspected
+its PageHeader caller, moved styles to globals in1fixbatch and verified source.
+terms_review/mobile-css targeted review complete/clean;0remaining findings.
+Final typecheck/whitespace pass. Effective models/token/time telemetry unknown.
+Prior legal/license evidence reused; no duplicate full suite/installer build.
+Tailnet3148dev preview updated. Physical iPhone/Safari and assistive technology
+remain untested; no claim of public deployment or selected OS/device acceptance.
+
+## Clean landing and automatic footer year — 2026-10-25
+
+Owner requested removing extra landing Privacy/Terms and asked for automatic
+copyright. Downloads paragraph/unused CSS removed, footer links retained. Display
+is ©2026Zero by Codepet; client mount updates to2026–current when later, retaining
+first-publication year and hydration-stable initial markup on static pages.
+No legal effective dates or source-license years change. Canadian CIPO guidance
+confirms notice optional and identifies first-publication year; this is displayed
+attribution, not a claim of automatic copyright renewal/registration.
+Website typecheck,9focused download tests and whitespace pass. Chromium320/390px
+checks confirm no policy links in main/downloads, footer links/layout/no overflow;
+390px screenshot inspected. Browser clock2027 +reload gives2026–2027 without a
+build. Artifact ignored `output/playwright/footer-year-check.cjs` and
+`landing-clean-390.png`; logs `/tmp/zero-footer-year-*`. Independent beta_review/5
+GPT6Luna/medium requested targeted review complete/clean,0findings/fixbatches;
+effective model/tokens/elapsed unknown. No full-suite duplication, source-license
+change, publication or account action. Same tailnet3148dev preview; no physical
+Safari/iPhone claim.
+
+## Plain separate policy pages — 2026-10-25
+
+Owner rejected confusing boxed Privacy/Terms overview/navigation. Removed overview
+cards, LegalNavigation, in-page policy TOCs and policy summary/draft box styling;
+account policy item removed. Footer Privacy/Terms and download/Beta notices link
+directly to the separate pages. Old `/legal` redirects to `/privacy`. Legal/privacy
+wording and strong draft status retained. Product/inventory/status docs match.
+Website typecheck,9focused published-kit tests and whitespace pass. Chromium12cases
+(two pages ×light/dark×1280/390/320) verify no extra main nav/cards/boxes, no overflow,
+draft status, redirect and footer links.390px screenshots visually inspected;
+ignored `output/playwright/policy-simple-*`. Tailnet dev3148 refreshed; no deploy.
+Independent beta_review/4 requested GPT6Luna/medium complete targeted UI/link review
+clean,1turn/0findings/0fixbatches; effective model/tokens/elapsed unknown. Prior
+content/license review retained; no duplicated full suite. Safari/physical iPhone
+and assistive technology remain untested. No publication or account changes.
+
+## Footer rule and short links — 2026-10-25
+
+Owner requested a horizontal rule with Privacy, Terms and Zero by Codepet below.
+`LegalFooter.tsx` now uses a semantic hr and one centered wrapping row; footer
+CSS uses the shared line/muted tokens and44px link targets. Legal content is
+unchanged. Website typecheck/whitespace pass; Chromium1280/390/320px light/dark
+verifies separator order, exact labels/destinations and no horizontal overflow.
+390px footer screenshots inspected, ignored `output/playwright/footer-*`.
+Independent beta_review/3 requested GPT6Luna/medium complete two-file/footer-shell
+review clean; one targeted turn,0findings/fixbatches, effective model/usage/elapsed
+unknown. No repeated full suite or installer build for this styling-only delta.
+Tailnet-only100.123.28.60:3148 now runs the source dev preview for iPhone refresh;
+loopback3147 retains the previous production build. No public deploy or Git push.
+Safari/physicaliPhone not directly tested. Previous policy/license evidence retained.
+
+## Privacy and Terms section with corporate MIT notice — 2026-10-25
+
+Owner requested implementation of the agreed recommendations. Local `/legal`
+overview links permanent `/privacy` and `/terms` pages; shared footer has direct
+Privacy/Terms links and account/download/Beta links open the overview. Terms
+remain conspicuous draft/not effective with no recorded agreement. Privacy covers
+browser/desktop GitHub identity and credentials, local state, public sharing,
+aggregate counters, providers, retention/deletion limits, young users and requests.
+[Source inventory](PRIVACY-DATA.md) separates implemented behavior from unknown
+live provider/retention/region/backup settings and operational arrangements.
+No new collector, auth/API behavior, consent registry, guardian flow or Jam
+production activation. No claim of legal compliance or immunity.
+
+MIT standard body unchanged; root, current Zero web-export notice and Jam template
+LICENSE clarify Codepet Inc. and match byte-for-byte. Jam source copyright comment
+and corresponding assertion match. Older/migrated library and third-party notices,
+immutable release assets and public downloads are preserved.11kit tests verify
+current assembled-license propagation without a new installer or version bump.
+
+Checks: npmruncheck, website typecheck, all240website tests,14focused published-kit/
+Jam-template tests,11kit tests, final webpack production build and whitespace pass.
+First kit invocation lacked rootfflate; reused same pinned actor dependencies
+through an ignored rootnode_modules symlink, then all11passed. No install needed.
+Chromium18route/theme/viewport cases: legal/privacy/terms ×light/dark×1280/390/320,
+internal anchors, footer links, download→overview, account/Beta link visibility/
+Escape, overview→privacy and footer→terms; no horizontal overflow.320px dark with
+root200% and body32px remains readable and final contact reachable. Desktop light
+and enlarged dark screenshots inspected; final production routes return successfully.
+Safari/WebKit, physical touch, assistive tech, deployed-settings and legal review
+remain unverified. Preview3147 serves final build; ignored `output/playwright/policy-*`
+and `/tmp/zero-privacy-*` contain scripts/screenshots/logs.
+
+Bounded privacy_inventory/1 requested GPT6.1Sol/medium, read-only source audit;
+coordinator verified representative auth/counter/log/permission paths before use.
+Independent terms_review/3 requested GPT6.1Sol/high, full cumulative diff against
+010ae629 complete/clean; reviewer independently ran14focused tests/whitespace and
+verified policy sources/notices. This phase1initial wave,0review findings/fixbatches;
+effective models/tokens/elapsed unavailable. Prior two terms/beta phases retain
+their receipts. Healthy229.5GB at start; weekly allowance checked, task-cost
+attribution unavailable. Primary checkout and unrelated work preserved. No push,
+PR, merge, deploy, public release/account writes, new task/goal/automation.
+
+## Proposed enduring terms and disclaimer — 2026-10-25
+
+Owner requested user awareness/protection for Codepet beyond beta. Local draft
+`/terms` covers desktop tools, ZeroHub/websites, data loss/backups, student-owned
+repositories, public material, acceptable use, third parties, warranty exclusions,
+proposed liability cap and mandatory-law exceptions. Prominent draft/not-effective
+status; no agreement recorded, OAuth change, publication or claim of immunity.
+Permanent footer/account/download links are independent of the Beta chip; beta
+links to the same terms. Counsel/commercial/minor/consent/privacy decisions and
+primary legal sources are recorded in [LEGAL-TERMS.md](LEGAL-TERMS.md).
+
+Final website240tests, typecheck, webpack production build and whitespace pass.
+Two old download assertions counted every link and disallowed every paragraph;
+updated to preserve exactly two platform button links and require the legal
+notice, with9focused tests then all240passing. Chromium terms page checks:
+light/dark1280/390/320px, section anchors, download/footer/beta navigation,
+account-menu link visibility/Escape, no page horizontal overflow. Final production
+320px dark text-enlargement check explicitly doubles body to32px and root to200%,
+waits for repaint, captures top/liability and reaches final contact section.
+Desktop light and enlarged dark screenshots visually inspected. Initial screenshot
+was mid-scroll/root-only sizing and is superseded. A dev-navigation hydration race
+in the harness was resolved by waiting for network idle before clicking Beta;
+no product-code workaround. Safari/WebKit, physical touch, screen readers and
+legal enforceability remain unverified. Ignored artifacts `output/playwright/terms-*`;
+logs `/tmp/zero-terms-*`. Preview3147 serves the final production build.
+
+Independent terms_review/1 requested GPT6.1Sol/high: complete cumulative diff
+against010ae629 reviewed clean, focused9tests and whitespace independently pass.
+One launch/initial wave, no findings or review fixes; effective model/tokens/elapsed
+unknown. Earlier beta-review coverage retained. No pushes, PR, deploys, external
+messages, account/data writes, new task/goal/automation. Primary funding work is
+preserved; task changes remain on local `codex/website-beta-notice`.
+
+## Website beta notice — 2026-10-25
+
+Local change based on `010ae629`, isolated in `website-beta-notice/zero`;
+primary funding checkout preserved. Shared header adds a Beta chip and native
+modal explaining Zero/ZeroHub beta availability, possible data loss/removal,
+backups and user responsibility for GitHub repositories and published apps.
+Product wording is synchronized. No push, PR, merge, deployment or account writes.
+
+Verification: website TypeScript and all240tests pass; production webpack build
+passes. Chromium browser checks cover `/`, `/hub`, `/docs`, `/learn` at1280/390/320px,
+modal open/Close/Escape, focus restoration, no background control focus or page
+horizontal overflow, and200%text in the320px notice. Light/dark screenshots
+inspected. Physical touch, Safari/WebKit and assistive technology remain untested.
+Shared dependencies were reused from the actor worktree; Turbopack rejects this
+outside-root symlink, so preview/build use supported `--webpack` without source
+configuration changes. Screenshots/check script: ignored `output/playwright/`;
+full test/build logs: `/tmp/zero-beta-*.log`.
+
+Independent GPT6Luna/medium review: complete three-file initial review clean;
+coordinator screenshot caught inherited mobile Brand ordering, fixed with one
+specificity override. Targeted CSS review clean; final browser checks repeated.
+Two reviewer turns, one fixbatch, no remaining findings. Effective model, tokens
+and reviewer elapsed unavailable. Weekly80%remaining and healthy230GB cached
+storage at start; no task-cost inference. Browser harness corrections covered
+native browser-chrome focus and geometric comparisons, with no production change.
+
+## Git checks and native Git prototype accepted locally — 2026-10-25
+
+Reviewed implementation head9d68fc860a44af9021253597d721f79f157e66fe,
+basea9fb85c4; branch `codex/git-flow-efficiency`. Local only: no source push,
+new PR/update to PR203, merge, deployment, publication or release. Student UI
+keeps its existing guarded actions. Native Git adapter remains defaultOFF.
+
+Independent initial complete-diff review: Astra/high security2P2 and Sol6.1/high
+compatibility1P2. One combined correction batch closes pending-signout session
+resurrection before lock acquisition, retries delayed Git initialization via the
+public enablement event, and explicitly documents persistent Git-helper storage
+separately from Askpass's60s cache. Empty effective helpers are a maintainer
+prototype prerequisite; fresh editor profiles alone do not isolate host Git config.
+Astra/high targeted review of the complete7file delta and interactions is clean,
+0remaining findings;7independent targeted regressions pass.3review launches,
+1initialwave/1targetedwave/1fixbatch; no redundant integration wave needed per
+reviewer. Effective models, attributable tokens/cost and elapsed review time are
+unknown. Completed workers remain retained; no supported runtime-close control.
+
+Current correction checks:147focused tests pass plus npmcheck. The earlier full
+suite1201pass/3skip remains valid for unchanged paths; targeted coverage handles
+the corrections. Full actual Mac command-level student-flow and real native
+Askpass fixture proof above remain distinct from successful live-account uploads,
+minimumVSCode/Windows and full click acceptance. The owned isolated QAhost was
+retired; fixtures/receipts retained. Source changes require their own future CI.
+Request-count comparison remains22/25REST vs144/180; see comparison/provenance
+receipts rather than the copied baseline label inside raw study output. No live
+speed-up timing is claimed. Remaining full-byte scans are deliberate drift guards.
+
+Existing Zero Dev was reloaded through the native Command Palette after review.
+Actual sidebar/Start Page returned ready for armorup/my-greeting on main, with
+Run/Commit & push and existing two unpushed commits retained. No prototype opt-in
+or settings change was applied to that profile.
+
+Final receipts `.verification/git-flow-efficiency/review-ledger.json`,
+`review-fixes-focused.log`, `check-review-fixes.log`, `native-acceptance.json`,
+`comparison.json`, `counts-current-provenance.json`, `qa-retired.json`.
+
+
+## Git validation efficiency and native Git prototype — 2026-10-25
+
+Local implementation based on a9fb85c4, branch `codex/git-flow-efficiency`.
+Owner authorized implementation, prototype and student-flow checks; no source
+push/PR update, merge, publishing, deployment, account changes or release.
+PR203 remains unchanged at7e4c2231, open/unmerged; its prior CI is not evidence
+for these changes. No Java/framework/build-tool/version changes.
+
+Private operation receipts reuse verified identity only for the exact provider
+session, complete credential record/configuration and invalidation generation.
+Every assertion rereads locked SecretStorage; normal capture/session lookup
+still validates remotely. Signout invalidates captured tickets before its storage
+clear. Transport still checks live repository/installation access and dispatches
+with the final synchronous guard. Workflow no longer repeats that access check
+in beforeNetwork. Existing reviewed main objects skip redundant pinned fetches;
+missing objects still fetch, and drift/concurrency/ignored-file guards remain.
+
+Instrumented real-code local fixtures: New branch REST144→22, Git remote6→5,
+full fingerprints15→12, local Git247→199 (tutorial310→250). Merge+cleanup
+REST180→25, remote7→6, fingerprints25→22, local Git405→357 (tutorial501→441).
+HTTP/remote spawn/session storage mocked, warm valid token, one-page membership,
+clean main/descendant feature, tiny files. These are conditional counts, not live
+latency; after timings competed with the full test suite. Baselinea9fb85c4 retained.
+Receipt `.verification/git-flow-efficiency/comparison.json`, runnable
+`probe-current.cjs`, original study receipts in `.verification/git-flow-study/`.
+
+Native bridge defaultOFF, application/User Settings opt-in only; trusted window,
+integrated Askpass, terminalAuthentication=false, github.gitAuthentication=false.
+No settings mutation or OAuth fallback. Host-only API deliberately broadens native
+Git authority compared with Zero's exact URL/SHA transport; ambient helpers may
+win, native cache can survive signout60s, generic Git prompts remain possible.
+Student controls continue using guarded transport. See DEVELOPMENT for limits.
+
+Actual Mac VSCode1.143.1/JDK17 command-level integration passed in disposable
+profile: fixture sign-in → New branch → edit → native Run/UI_READY → Stop →
+Commit & push to local bare → Merge to main → confirmed local cleanup → native
+SCM → Show Zero → signout. Real native Git Askpass requested the same fixture
+Zero credential during read-only nonexistent GitHub repository access, then
+received expected refusal. No real account credential or GitHub upload used.
+Full click walkthrough unproven: Mac controller kept selecting existing Dev,
+so actual public editor commands drove the isolated host with fixture text inputs.
+Native source trace `.verification/git-flow-efficiency/native-acceptance.json`.
+Unrelated my-greeting and existing profiles/watcher preserved. Two fixture setup
+errors (module path/JAVA_HOME) corrected before successful run.
+
+Validation: npm run check passes; npm test1201pass/3skip (1204total), no failures.
+Auth/provider/browser/native/UI/upload focused108pass; worker final auth57pass;
+real Git/transport/UI initial29pass/1failure from now-skipped cached fetch fixture;
+updated focused fetch regressions4pass, updated workflow UI1pass. Remaining
+unchanged realGit cases passed in full suite. Windows/minimumVSCode/live-account
+native upload, fresh Mac/school-network and click acceptance remain separate.
+Independent auth/security and compatibility review pending at this receipt.
+Requested workers Sol6.1/high (2 implementation assignments); effective model,
+attributable token/time cost unknown. Weekly81%remaining at start, storage230GB
+healthy. Shared usage is not task cost. Bulky outputs remain ignored.
+
+
+## Branch progress and Zero navigation PR203 ready — 2026-10-25
+
+[PR203](https://github.com/codepetca/zero/pull/203) is ready, open and mergeable at
+reviewed head7e4c2231a690540c4209a96cfa092af0136ff1dd, base010ae629. All11checks pass:
+[source](https://github.com/codepetca/zero/actions/runs/40237189497),
+[WebFX/browser](https://github.com/codepetca/zero/actions/runs/40237189441),
+[Windows](https://github.com/codepetca/zero/actions/runs/40237189461). No unresolved
+threads or changes-requested review. Source PR/CI delivery is complete; owner
+merge decision and publishing/releases remain separate. No production/version/
+feed/framework inputs changed, and no new installer was built or released.
+
+Final Sol6.1/high independent integration review covers the complete11file diff
+and immediate callers, including plain Zero label, progress/serialization/errors,
+StartPage and navigation lifecycle. Clean, no findings or new remediation; prior
+three scoped turns/one lifecycle fix are reused. One final integration turn;
+effective model, attributable time and token cost unknown. Current root+65focused
+tests pass. Prior realGit/native Mac proof remains scoped as recorded below.
+Final receipts `.verification/ux-source-pr/{progress,ci-final,pr-final}.json` and
+PR description record exact head/checks/holds. This local completion note is not
+pushed into the ready PR; its reviewed head remains unchanged.
+
+
+## Branch progress and Zero navigation source PR preparation — 2026-10-25
+
+Owner authorized a source PR and CI for both local Dev fixes, with publishing
+kept separate. This authorizes the source push/PR, not merging, an installer
+build or release. Existing published Mac0.5.50 assets/feed remain unchanged.
+The PR uses current main010ae629 and includes native branch activity feedback,
+the persistent status-bar Zero return action, and its StartPage lifecycle fix.
+Owner's final label refinement removes the arrow; visible text is simply Zero.
+Existing scoped reviews and actual native Mac checks below are reused. One final
+independent integration pass checks the combined source/docs and label delta;
+required CI runs on its fixed head. No new feature/framework/package/version,
+auth permission, student-repository write or ZeroJams activation is included.
+The existing local Mac50 completion record is retained as maintainer evidence.
+Ignored PR/review/CI receipts: `.verification/ux-source-pr/`.
+
+
+## Return to Zero navigation in Dev — 2026-10-25
+
+User lost Zero after Review changes opened native Source Control while the
+ActivityBar was hidden. Local source9bc584e0 adds native **← Zero** at bottomleft,
+accessiblelabel Back to Zero, existingzero.showSidebar command. It opens Explorer
+and expands/focuses Zero independently of auth or busy work. Native host styling
+and the hiddenActivityBar/minimal sidebar remain; no Git/file action runs.
+
+One Sol6.1/medium complete4file review370d0dc8→9bc584e0 found a P2: opening/closing
+StartPage outside a Zero folder did not refresh shortcut visibility. One batch
+3f37e4ea adds deduped open/restore/close/dispose notifications and regression
+coverage. Targetedreview9bc584e0→3f37e4ea completeclean; unchanged initialcoverage
+reused, no extra fullwave. Two reviewturns,oneinitial/onetargeted,onefixbatch;
+effective configuration, tokens and attributabletime unknown.
+Rootchecks pass; initial extension/onboarding/recovery65tests pass; corrected
+extension/onboarding/StartPage64tests pass (including unrelatedfolder visibility
+without other events and restoredpanel lifecycle). NativeMacDev reload and actual
+Reviewchanges→SourceControl→BacktoZero click pass: button remains available,
+Explorer/expandedZero/Run/projectcontrols restore. All95tracked studentfiles,
+HEAD/branch/status unchanged; no Git/network write. Screenshots/receipts ignored
+under `.verification/sidebar-return/`. Windows, assistivetechnology and broader
+physical/theme coverage notclaimed. LocalDev sourceonly; no push/PR/release.
+Earlierbranchprogress fixes and publicMac50 remain separate/preserved.
+
+
+## Branch activity feedback in Zero Dev — 2026-10-25
+
+User reported New branch looked frozen; logs confirmed their tester branch had
+completed. Local source196fac7c on codex/branch-progress wraps the existing guarded
+New branch/Merge to main operation in native VSCode noncancellable progress after
+name confirmation. Sidebar and notification report GitHub access/project/repository,
+branch-name/main/fetch/create stages. No percentage or completion is invented;
+existing auth/snapshot/Git mutations/serialization/conflict/cleanup checks stay.
+Public Mac50 bytes/feed are unchanged; no push/PR/release was authorized here.
+
+Root configuration/docs checks pass. Corrected workflowUI+extension4tests pass;
+17realGitworkflow cases passed in original combined run (its separate newUI
+selector assertion initially failed, corrected to the actual repository control).
+Current focused realGit2/2 also pass. One Sol6.1/high independent complete4file
+review3dd1d69b→196fac7c is clean,1launch/1wave/0reviewfixbatches; effective model,
+tokens and attributable time unavailable. No broader suite/remoteCI/release run.
+
+Actual native Dev reload/restoration passes. New Branch using the existing tester
+name visibly exposes native progress/checking stages, then the existing feature
+branch guard refuses and progress ends/controls reenable. No branch or network
+write occurred; all95tracked student files, HEAD, tester and cleanstatus match
+baseline. An isolated mock-profile fixture was first opened but the controller
+selected the userDev process; only the owned QA app was stopped and its files kept.
+The real Dev guard path provided native acceptance. Final reload clears test
+feedback and keeps Main/Tutorials tabs. No full successful live branch creation was
+performed by the agent. Proof `.verification/branch-progress/acceptance.json`;
+Mac visual/focus/animation/theme breadth and Windows remain outside this check.
+
+
+## Mac0.5.50 delivery complete — 2026-10-25
+
+[SourcePR199](https://github.com/codepetca/zero/pull/199) merged2de6bc54 after11greenchecks
+at reviewedc923d2a4; [promotionPR201](https://github.com/codepetca/zero/pull/201) merged
+010ae629 after11greenchecks at reviewed9f8826d3. Promotion had2Sol/high independent
+complete/clean reviews, one initialwave/0fixbatches; no extra integrationwave was
+needed for unchanged head. Actual model/token/elapsed cost remain unknown.
+Local root/typecheck/240website/build and11updater tests pass,2optional signing
+skips separate from actual signed/notarized artifact proof. Final exact-head CI:
+[source](https://github.com/codepetca/zero/actions/runs/40212449012),
+[browser](https://github.com/codepetca/zero/actions/runs/40212449086),
+[Windows](https://github.com/codepetca/zero/actions/runs/40212448958).
+
+The [public Mac50release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.50)
+retains one immutable5918971byteDMG/SHA256
+7effba8ea273dbff3629b6dca3ee84f0d3d9243d1fe67ada7d6ea892b67ae6c1,
+targetprep66e6ce90/built4675e862. Production deploymentGAdRJ1W3hvpPFvZsLzGoMk38G16X
+succeeded. At2026-10-25T16:48:27Z the anonymous live homepage/downloads anchors and
+DMG bytes verify; live1178bytefeed exactly matches sealedSHA256
+ca5036bada568573ba93bd857db1ac4ae3ac8529059259698490900e785b090a and its Ed25519
+signature verifies. Windows21/manual21links, retainedkit17 and canonicaljam404hold
+remain. Proof `.verification/mac50/live-verification.json`; PRdescriptions also
+carry final delivery. No distributed or sealed asset was replaced.
+
+Local probe rework: initial homepage assertion allowed only a chooser; corrected
+to the documented direct-anchor-or-chooser contract after observing approved direct
+anchors. Firstprobe precededrollout and saw49; finalprobe validates50. No product
+or gate was weakened. InstalledQA/124sourcefiles/249preservedfiles/settings/note
+and realbrowserlogin/RunStop proof are retained in corrected candidate record.
+FreshMac/schoolnetwork/novice/physicalgameplay/actualSparkledelivery remain pilot
+limits; publication does not mark them passed. This completion receipt is local
+maintainer history; no additional release or metadata change follows it.
+
+
 ## Mac0.5.50 published; download/feed promotion — 2026-10-25
 
 [SourcePR199](https://github.com/codepetca/zero/pull/199) merged2de6bc54 after all11checks

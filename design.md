@@ -25,6 +25,9 @@ when adding features; a new feature does not reset the agreed interaction style.
   retain browser compatibility checks and production compilation; explicit export
   preview remains available. Mac 0.5.34 ships native Run; earlier
   downloads retain their bundled Run behavior.
+- Keep a native **Zero** status-bar action in Zero windows so students can
+  return from Source Control or other panels to Explorer and the Zero controls.
+  It is navigation only, available independently of sign-in or busy work.
 - Keep the current panel height; show the Zero mark only in its existing native
   activity-bar/view icon. Do not add an in-panel heading or alter host CSS/DOM.
 - Use one short title above routine text inputs, such as **Class name** or

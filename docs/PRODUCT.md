@@ -1,5 +1,32 @@
 # Zero: local Java teaching MVP
 
+The shared website header shows a Beta chip. It opens a notice that Zero and
+ZeroHub are in beta, features may change or be unavailable, and data may not be
+saved or retained. Users should keep their own backups and are responsible for
+repositories created in their GitHub accounts, including contents, visibility,
+access, maintenance and published apps.
+
+Permanent Privacy and Terms footer links open separate plain pages at `/privacy`
+and `/terms`, independently of beta status. There is no boxed overview, policy
+tab navigation or extra table of contents; `/legal` redirects to Privacy. The beta
+notice also links directly to the pages. Landing downloads have no duplicate
+policy links. The footer copyright keeps2026 as the initial year and adds the
+current year as a range on later visits, without changing source-license years.
+The privacy notice follows the [source inventory](PRIVACY-DATA.md), including
+GitHub credentials, cookies/local storage, public sharing, aggregate Play counts,
+providers and retention/deletion limits. Owner-authorized Terms version2026-10-25
+takes effect on publication. A footer notice and the Terms state prospective
+use-based agreement for Zero/ZeroHub and related Codepet-operated services that
+expressly link to them, after notice is brought to the user’s attention. This
+is not a claim that past visitors, unrelated products or guardians have accepted,
+and does not replace privacy consent required by law or separately licensed
+software rights. No explicit acceptance registry is implemented. See
+[rollout status and sources](LEGAL-TERMS.md).
+
+Mobile website navigation opens as an overlay dropdown without shifting page
+content. Outside interaction, focus leaving the menu, Escape and selecting a link
+close it; Escape returns focus to the toggle. Desktop navigation stays inline.
+
 ## Outcome
 
 Maintainers iterate locally through [Zero Dev](ZERO-DEV.md): a separate source
@@ -571,7 +598,11 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   activity-bar/view icon. VS Code owns the native title; no content heading is added.
 - The native Explorer handles all file browsing, selection, editor tracking and file operations.
   A Zero view in the same Explorer container holds Run/Stop, repository actions and teaching helpers,
-  without extra GitHub/ZeroHub headings. VS Code owns the view order: drag Zero above the file tree
+  without extra GitHub/ZeroHub headings. Current local source keeps a native
+  **Zero** action at the bottom left in Zero windows. It restores Explorer and
+  focuses/expands Zero when Source Control or another panel replaces the sidebar;
+  no file or Git action runs. Published downloads retain their bundled navigation.
+  VS Code owns the view order: drag Zero above the file tree
   once if needed; the editor remembers it. No private layout commands or state edits are used.
   Idle status is empty; app progress/errors
   appear when there is a message. Signed-out GitHub controls lead to the Start Page browser sign-in;
@@ -757,7 +788,11 @@ The individual flow uses main for completed work and one short-lived branch per
 change. A new empty repository starts with Commit & push on main.
 Choose New branch in the repository menu and enter its name to create it directly. New branch
 requires clean committed main and brings in remote main only by fast-forward;
-diverged histories require manual repair. Commit & push commits/pushes progress
+diverged histories require manual repair. Current local source shows native
+activity progress after naming a branch, with stages for GitHub access, branch
+checks and fetching main. Merge to main uses the same native progress surface;
+success or failure ends it. Published downloads retain their bundled feedback.
+Commit & push commits/pushes progress
 to the current branch. Run and check the app before finishing.
 
 Click Merge to main beside the change branch. Commit & push pending edits first.
@@ -779,8 +814,13 @@ unusual histories require normal Git tools. No automatic source rollback occurs.
 Live transport uses transient credentials from the captured Zero GitHub App session.
 It requires Git 2.31+ for runtime credential configuration and rejects older Git
 before credential dispatch.
-The session is revalidated before network actions, so account/session changes
-require another review. Expiring tokens are stored in VS Code SecretStorage.
+Capture verifies the account remotely once. Checks within that operation reread
+SecretStorage under the cross-window lock using a private receipt bound to the
+exact verified session, credentials and App configuration. Changes, expiry and
+sign-out invalidate it; ordinary session lookups still verify remotely. Each
+credential-bearing transport checks repository/installation access immediately
+before dispatch. Remote revocation is enforced by actual server requests, not
+the local receipt. Expiring tokens are stored in VS Code SecretStorage.
 Git transport injects them only into guarded credential-bearing children
 temporarily; they do not appear in Git configuration files, command arguments,
 URLs or logs. No client secret or App
@@ -790,9 +830,15 @@ The same guarded transport permits only exact-destination pushes, branch-head
 queries and SHA-pinned fetches needed to update main. Local Git receives no native
 credentials. Zero's separate clone service also authenticates only its exact
 verified destination. General Source Control and terminal network commands do
-not automatically inherit Zero's credentials; their normal Git configuration and
-authentication remain separate. Preparation queries remote main without changing local files/refs;
+not automatically inherit Zero's credentials. An experimental, default-off
+native Git bridge is available only through explicit User Settings in a trusted
+window; its broader authority and acceptance limits are documented in
+[Development](DEVELOPMENT.md#native-git-sign-in-prototype).
+The student buttons continue to use guarded transport independently of that
+prototype. Preparation queries remote main without changing local files/refs;
 the reviewed executor performs updates, with drift/session checks throughout.
+An exact reviewed main commit already present locally is not fetched again;
+live remote-head checks and source/ref mutation guards remain in force.
 
 Copy Repository Link returns a page URL for separate Pika submission. A copied
 link does not establish that code was uploaded or that the remote is current.

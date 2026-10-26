@@ -29,3 +29,7 @@ Next: Preview deploy/migrate/livelegacy
 close (no event changes),15production404 cases,CI/finalreceipt. Review3turns/1fixbatch complete, no findings.
 No secret/invite/protection changes. Local3025/other checkouts preserved.
 Packet docs/ZEROJAMS-PILOT.md settlement section. DeepSeek paused.
+
+Main d5c01bb1 integrated for current legal/beta/Git-flow baseline; only CURRENT/
+EVIDENCE conflict resolution, both evidence histories retained. Integration
+review and refreshed website/jam checks pending before final CI push.

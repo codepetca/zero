@@ -424,7 +424,8 @@ use the same window policy. Creation recovery stays saved through the switch: vs
 after a native unload veto. Clear it only after the matching account/repository
 project is the actual active workspace. It requires the pinned Codepet App
 configuration and never falls back to the built-in broad GitHub OAuth provider.
-General Git/terminal network actions do not inherit Zero’s credentials. Open local project
+General Git/terminal network actions do not inherit Zero’s credentials by default;
+see the [opt-in native Git prototype](#native-git-sign-in-prototype). Open local project
 validates and opens an existing Zero folder without cloning, moving it or creating
 the default folder. Website/tutorial instructions use these visible labels.
 
@@ -527,6 +528,78 @@ registered App and disposable student-owned repositories. GitHub’s **Only sele
 repositories** installation form requires at least one repository; empty-account
 onboarding has not been verified.
 
+
+## Native Git sign-in prototype
+
+Current local source includes a default-off credential adapter for the built-in
+`vscode.git` APIv1 `registerCredentialsProvider`. Student New branch, Commit &
+push and Merge to main keep their existing simple interface and guarded transport.
+This prototype does not migrate those actions to native Git or alter account
+permissions, release settings or external-terminal authentication.
+
+Test in a fresh isolated VS Code profile with no credentials or existing terminals,
+and verify **no effective Git credential helpers** in the disposable environment.
+A fresh editor profile still reads system, global and repository Git configuration;
+it does not isolate Keychain or other credential storage. This helper prerequisite
+is a maintainer check: the host-only credentials API cannot enforce it.
+Use these **User Settings** before opening that window:
+
+```json
+{
+  "zero.nativeGitAuthentication": true,
+  "git.enabled": true,
+  "git.useIntegratedAskPass": true,
+  "git.terminalAuthentication": false,
+  "github.gitAuthentication": false
+}
+```
+
+The Zero setting has application scope; project/workspace opt-in is rejected.
+The bridge requires workspace trust and an existing Zero sign-in. It never opens
+OAuth or asks for a token, changes settings, or falls back to a different account.
+Zero Output explains checked prerequisites. Disabled or unavailable Git APIs
+leave ordinary Zero actions working; public Git enablement events retry delayed
+initialization and invalidate registration when Git becomes unavailable.
+Registering the bridge alone does not prove
+which account native Git used: ambient Git helpers or another credential provider
+can take precedence. Use a disposable repository with empty credential-helper
+configuration and verify the actual account/access separately for live acceptance.
+
+The API supplies a **host**, not a reviewed repository/operation. Credentials can
+therefore serve native HTTPS `github.com` operations in that trusted window,
+subject to GitHub's own token permissions. HTTP, SSH, foreign hosts, user information
+and explicit ports are rejected. This has a broader boundary than Zero's exact
+URL/SHA transport. Treat project execution as untrusted even after editor trust.
+Terminal authentication is kept off; existing terminals can retain their earlier
+environment, which is why a fresh window/profile is required. Other extensions
+are outside this adapter's isolation guarantees.
+
+Sign-out, account/trust/configuration changes and disposal stop new bridge credentials.
+VS Code Askpass can retain a returned username/password pair for up to 60 seconds.
+Separately, successful Git authentication can send that pair to configured helpers
+for persistent storage. Such credentials may remain usable after sign-out until
+the token expires or is revoked; 60 seconds is not an overall retention limit.
+The bridge cannot clear helper storage, the Askpass cache or an in-flight Git
+process. This is why empty effective helper configuration is required for prototype
+tests, rather than just a new editor profile. If no
+provider supplies credentials, VS Code may show its generic Git credential prompt.
+Do not interpret that prompt as Zero sign-in or promise immediate native-cache
+revocation. Routine Zero transport retains its separate synchronous final guard.
+
+Captured Zero operations now reuse verified identity only within their private
+session receipt. Every assertion still rereads locked storage, checks expiry and
+retains the existing 60-second App metadata validation policy. New captures and
+standard session lookups verify `/user`; repository access stays checked by the
+transport at dispatch. The workflow's earlier guard checks the session without
+duplicating repository requests. Remote API/Git refusal remains authoritative.
+An existing exact main commit skips download, while missing commits still use
+the pinned fetch and all mutation/source-drift guards.
+
+Focused checks:
+`node --test extension/test/authentication.test.js extension/test/github-app-provider.test.js extension/test/github-app-browser-provider.test.js extension/test/native-git-authentication.test.js extension/test/workflow.test.js extension/test/workflow-ui.test.js extension/test/transport.test.js extension/test/extension-upload-auth.test.js`.
+Mocked authority tests, real local bare-repository cycles and actual VS Code
+credential callbacks are distinct from live GitHub upload acceptance. No release
+or production activation follows from these tests.
 
 ## Shared branding assets
 

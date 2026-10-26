@@ -1,5 +1,227 @@
 # Verification
 
+## Git checks and native Git prototype accepted locally — 2026-10-25
+
+Reviewed implementation head9d68fc860a44af9021253597d721f79f157e66fe,
+basea9fb85c4; branch `codex/git-flow-efficiency`. Local only: no source push,
+new PR/update to PR203, merge, deployment, publication or release. Student UI
+keeps its existing guarded actions. Native Git adapter remains defaultOFF.
+
+Independent initial complete-diff review: Astra/high security2P2 and Sol6.1/high
+compatibility1P2. One combined correction batch closes pending-signout session
+resurrection before lock acquisition, retries delayed Git initialization via the
+public enablement event, and explicitly documents persistent Git-helper storage
+separately from Askpass's60s cache. Empty effective helpers are a maintainer
+prototype prerequisite; fresh editor profiles alone do not isolate host Git config.
+Astra/high targeted review of the complete7file delta and interactions is clean,
+0remaining findings;7independent targeted regressions pass.3review launches,
+1initialwave/1targetedwave/1fixbatch; no redundant integration wave needed per
+reviewer. Effective models, attributable tokens/cost and elapsed review time are
+unknown. Completed workers remain retained; no supported runtime-close control.
+
+Current correction checks:147focused tests pass plus npmcheck. The earlier full
+suite1201pass/3skip remains valid for unchanged paths; targeted coverage handles
+the corrections. Full actual Mac command-level student-flow and real native
+Askpass fixture proof above remain distinct from successful live-account uploads,
+minimumVSCode/Windows and full click acceptance. The owned isolated QAhost was
+retired; fixtures/receipts retained. Source changes require their own future CI.
+Request-count comparison remains22/25REST vs144/180; see comparison/provenance
+receipts rather than the copied baseline label inside raw study output. No live
+speed-up timing is claimed. Remaining full-byte scans are deliberate drift guards.
+
+Existing Zero Dev was reloaded through the native Command Palette after review.
+Actual sidebar/Start Page returned ready for armorup/my-greeting on main, with
+Run/Commit & push and existing two unpushed commits retained. No prototype opt-in
+or settings change was applied to that profile.
+
+Final receipts `.verification/git-flow-efficiency/review-ledger.json`,
+`review-fixes-focused.log`, `check-review-fixes.log`, `native-acceptance.json`,
+`comparison.json`, `counts-current-provenance.json`, `qa-retired.json`.
+
+
+## Git validation efficiency and native Git prototype — 2026-10-25
+
+Local implementation based on a9fb85c4, branch `codex/git-flow-efficiency`.
+Owner authorized implementation, prototype and student-flow checks; no source
+push/PR update, merge, publishing, deployment, account changes or release.
+PR203 remains unchanged at7e4c2231, open/unmerged; its prior CI is not evidence
+for these changes. No Java/framework/build-tool/version changes.
+
+Private operation receipts reuse verified identity only for the exact provider
+session, complete credential record/configuration and invalidation generation.
+Every assertion rereads locked SecretStorage; normal capture/session lookup
+still validates remotely. Signout invalidates captured tickets before its storage
+clear. Transport still checks live repository/installation access and dispatches
+with the final synchronous guard. Workflow no longer repeats that access check
+in beforeNetwork. Existing reviewed main objects skip redundant pinned fetches;
+missing objects still fetch, and drift/concurrency/ignored-file guards remain.
+
+Instrumented real-code local fixtures: New branch REST144→22, Git remote6→5,
+full fingerprints15→12, local Git247→199 (tutorial310→250). Merge+cleanup
+REST180→25, remote7→6, fingerprints25→22, local Git405→357 (tutorial501→441).
+HTTP/remote spawn/session storage mocked, warm valid token, one-page membership,
+clean main/descendant feature, tiny files. These are conditional counts, not live
+latency; after timings competed with the full test suite. Baselinea9fb85c4 retained.
+Receipt `.verification/git-flow-efficiency/comparison.json`, runnable
+`probe-current.cjs`, original study receipts in `.verification/git-flow-study/`.
+
+Native bridge defaultOFF, application/User Settings opt-in only; trusted window,
+integrated Askpass, terminalAuthentication=false, github.gitAuthentication=false.
+No settings mutation or OAuth fallback. Host-only API deliberately broadens native
+Git authority compared with Zero's exact URL/SHA transport; ambient helpers may
+win, native cache can survive signout60s, generic Git prompts remain possible.
+Student controls continue using guarded transport. See DEVELOPMENT for limits.
+
+Actual Mac VSCode1.143.1/JDK17 command-level integration passed in disposable
+profile: fixture sign-in → New branch → edit → native Run/UI_READY → Stop →
+Commit & push to local bare → Merge to main → confirmed local cleanup → native
+SCM → Show Zero → signout. Real native Git Askpass requested the same fixture
+Zero credential during read-only nonexistent GitHub repository access, then
+received expected refusal. No real account credential or GitHub upload used.
+Full click walkthrough unproven: Mac controller kept selecting existing Dev,
+so actual public editor commands drove the isolated host with fixture text inputs.
+Native source trace `.verification/git-flow-efficiency/native-acceptance.json`.
+Unrelated my-greeting and existing profiles/watcher preserved. Two fixture setup
+errors (module path/JAVA_HOME) corrected before successful run.
+
+Validation: npm run check passes; npm test1201pass/3skip (1204total), no failures.
+Auth/provider/browser/native/UI/upload focused108pass; worker final auth57pass;
+real Git/transport/UI initial29pass/1failure from now-skipped cached fetch fixture;
+updated focused fetch regressions4pass, updated workflow UI1pass. Remaining
+unchanged realGit cases passed in full suite. Windows/minimumVSCode/live-account
+native upload, fresh Mac/school-network and click acceptance remain separate.
+Independent auth/security and compatibility review pending at this receipt.
+Requested workers Sol6.1/high (2 implementation assignments); effective model,
+attributable token/time cost unknown. Weekly81%remaining at start, storage230GB
+healthy. Shared usage is not task cost. Bulky outputs remain ignored.
+
+
+## Branch progress and Zero navigation PR203 ready — 2026-10-25
+
+[PR203](https://github.com/codepetca/zero/pull/203) is ready, open and mergeable at
+reviewed head7e4c2231a690540c4209a96cfa092af0136ff1dd, base010ae629. All11checks pass:
+[source](https://github.com/codepetca/zero/actions/runs/40237189497),
+[WebFX/browser](https://github.com/codepetca/zero/actions/runs/40237189441),
+[Windows](https://github.com/codepetca/zero/actions/runs/40237189461). No unresolved
+threads or changes-requested review. Source PR/CI delivery is complete; owner
+merge decision and publishing/releases remain separate. No production/version/
+feed/framework inputs changed, and no new installer was built or released.
+
+Final Sol6.1/high independent integration review covers the complete11file diff
+and immediate callers, including plain Zero label, progress/serialization/errors,
+StartPage and navigation lifecycle. Clean, no findings or new remediation; prior
+three scoped turns/one lifecycle fix are reused. One final integration turn;
+effective model, attributable time and token cost unknown. Current root+65focused
+tests pass. Prior realGit/native Mac proof remains scoped as recorded below.
+Final receipts `.verification/ux-source-pr/{progress,ci-final,pr-final}.json` and
+PR description record exact head/checks/holds. This local completion note is not
+pushed into the ready PR; its reviewed head remains unchanged.
+
+
+## Branch progress and Zero navigation source PR preparation — 2026-10-25
+
+Owner authorized a source PR and CI for both local Dev fixes, with publishing
+kept separate. This authorizes the source push/PR, not merging, an installer
+build or release. Existing published Mac0.5.50 assets/feed remain unchanged.
+The PR uses current main010ae629 and includes native branch activity feedback,
+the persistent status-bar Zero return action, and its StartPage lifecycle fix.
+Owner's final label refinement removes the arrow; visible text is simply Zero.
+Existing scoped reviews and actual native Mac checks below are reused. One final
+independent integration pass checks the combined source/docs and label delta;
+required CI runs on its fixed head. No new feature/framework/package/version,
+auth permission, student-repository write or ZeroJams activation is included.
+The existing local Mac50 completion record is retained as maintainer evidence.
+Ignored PR/review/CI receipts: `.verification/ux-source-pr/`.
+
+
+## Return to Zero navigation in Dev — 2026-10-25
+
+User lost Zero after Review changes opened native Source Control while the
+ActivityBar was hidden. Local source9bc584e0 adds native **← Zero** at bottomleft,
+accessiblelabel Back to Zero, existingzero.showSidebar command. It opens Explorer
+and expands/focuses Zero independently of auth or busy work. Native host styling
+and the hiddenActivityBar/minimal sidebar remain; no Git/file action runs.
+
+One Sol6.1/medium complete4file review370d0dc8→9bc584e0 found a P2: opening/closing
+StartPage outside a Zero folder did not refresh shortcut visibility. One batch
+3f37e4ea adds deduped open/restore/close/dispose notifications and regression
+coverage. Targetedreview9bc584e0→3f37e4ea completeclean; unchanged initialcoverage
+reused, no extra fullwave. Two reviewturns,oneinitial/onetargeted,onefixbatch;
+effective configuration, tokens and attributabletime unknown.
+Rootchecks pass; initial extension/onboarding/recovery65tests pass; corrected
+extension/onboarding/StartPage64tests pass (including unrelatedfolder visibility
+without other events and restoredpanel lifecycle). NativeMacDev reload and actual
+Reviewchanges→SourceControl→BacktoZero click pass: button remains available,
+Explorer/expandedZero/Run/projectcontrols restore. All95tracked studentfiles,
+HEAD/branch/status unchanged; no Git/network write. Screenshots/receipts ignored
+under `.verification/sidebar-return/`. Windows, assistivetechnology and broader
+physical/theme coverage notclaimed. LocalDev sourceonly; no push/PR/release.
+Earlierbranchprogress fixes and publicMac50 remain separate/preserved.
+
+
+## Branch activity feedback in Zero Dev — 2026-10-25
+
+User reported New branch looked frozen; logs confirmed their tester branch had
+completed. Local source196fac7c on codex/branch-progress wraps the existing guarded
+New branch/Merge to main operation in native VSCode noncancellable progress after
+name confirmation. Sidebar and notification report GitHub access/project/repository,
+branch-name/main/fetch/create stages. No percentage or completion is invented;
+existing auth/snapshot/Git mutations/serialization/conflict/cleanup checks stay.
+Public Mac50 bytes/feed are unchanged; no push/PR/release was authorized here.
+
+Root configuration/docs checks pass. Corrected workflowUI+extension4tests pass;
+17realGitworkflow cases passed in original combined run (its separate newUI
+selector assertion initially failed, corrected to the actual repository control).
+Current focused realGit2/2 also pass. One Sol6.1/high independent complete4file
+review3dd1d69b→196fac7c is clean,1launch/1wave/0reviewfixbatches; effective model,
+tokens and attributable time unavailable. No broader suite/remoteCI/release run.
+
+Actual native Dev reload/restoration passes. New Branch using the existing tester
+name visibly exposes native progress/checking stages, then the existing feature
+branch guard refuses and progress ends/controls reenable. No branch or network
+write occurred; all95tracked student files, HEAD, tester and cleanstatus match
+baseline. An isolated mock-profile fixture was first opened but the controller
+selected the userDev process; only the owned QA app was stopped and its files kept.
+The real Dev guard path provided native acceptance. Final reload clears test
+feedback and keeps Main/Tutorials tabs. No full successful live branch creation was
+performed by the agent. Proof `.verification/branch-progress/acceptance.json`;
+Mac visual/focus/animation/theme breadth and Windows remain outside this check.
+
+
+## Mac0.5.50 delivery complete — 2026-10-25
+
+[SourcePR199](https://github.com/codepetca/zero/pull/199) merged2de6bc54 after11greenchecks
+at reviewedc923d2a4; [promotionPR201](https://github.com/codepetca/zero/pull/201) merged
+010ae629 after11greenchecks at reviewed9f8826d3. Promotion had2Sol/high independent
+complete/clean reviews, one initialwave/0fixbatches; no extra integrationwave was
+needed for unchanged head. Actual model/token/elapsed cost remain unknown.
+Local root/typecheck/240website/build and11updater tests pass,2optional signing
+skips separate from actual signed/notarized artifact proof. Final exact-head CI:
+[source](https://github.com/codepetca/zero/actions/runs/40212449012),
+[browser](https://github.com/codepetca/zero/actions/runs/40212449086),
+[Windows](https://github.com/codepetca/zero/actions/runs/40212448958).
+
+The [public Mac50release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.50)
+retains one immutable5918971byteDMG/SHA256
+7effba8ea273dbff3629b6dca3ee84f0d3d9243d1fe67ada7d6ea892b67ae6c1,
+targetprep66e6ce90/built4675e862. Production deploymentGAdRJ1W3hvpPFvZsLzGoMk38G16X
+succeeded. At2026-10-25T16:48:27Z the anonymous live homepage/downloads anchors and
+DMG bytes verify; live1178bytefeed exactly matches sealedSHA256
+ca5036bada568573ba93bd857db1ac4ae3ac8529059259698490900e785b090a and its Ed25519
+signature verifies. Windows21/manual21links, retainedkit17 and canonicaljam404hold
+remain. Proof `.verification/mac50/live-verification.json`; PRdescriptions also
+carry final delivery. No distributed or sealed asset was replaced.
+
+Local probe rework: initial homepage assertion allowed only a chooser; corrected
+to the documented direct-anchor-or-chooser contract after observing approved direct
+anchors. Firstprobe precededrollout and saw49; finalprobe validates50. No product
+or gate was weakened. InstalledQA/124sourcefiles/249preservedfiles/settings/note
+and realbrowserlogin/RunStop proof are retained in corrected candidate record.
+FreshMac/schoolnetwork/novice/physicalgameplay/actualSparkledelivery remain pilot
+limits; publication does not mark them passed. This completion receipt is local
+maintainer history; no additional release or metadata change follows it.
+
+
 ## Mac0.5.50 published; download/feed promotion — 2026-10-25
 
 [SourcePR199](https://github.com/codepetca/zero/pull/199) merged2de6bc54 after all11checks
