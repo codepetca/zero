@@ -87,7 +87,7 @@ function planFor(kind, current, extra) {
   plans.add(plan);
   return plan;
 }
-async function prepareStart(project, name, {run = core.git, networkRun} = {}) {
+async function prepareStart(project, name, {run = core.git, networkRun, onProgress = () => {}} = {}) {
   await assertShareable(project);
   networkRequired(networkRun);
   run = safeRunner(run);
@@ -95,6 +95,7 @@ async function prepareStart(project, name, {run = core.git, networkRun} = {}) {
   clean(current);
   if (current.branch !== 'main') throw new Error('Switch to main in native Source Control before starting another feature.');
   await validName(name, current.root, run);
+  onProgress('Checking branch names on GitHub…');
   const remoteMainHead = await remoteMain(current, networkRun);
   if (await remoteBranch(current, name, networkRun)) throw new Error('That feature name already exists on GitHub. Choose a fresh unique name for your new feature.');
   await recheck(current, run);
@@ -146,8 +147,11 @@ function executorOptions(plan, kind, options) {
 async function startPrepared(plan, options = {}) {
   await assertShareable(plan.root);
   const opts = executorOptions(plan, 'start', options);
+  opts.onProgress('Checking main on GitHub…');
   await ensureRemote(plan, opts);
+  if (plan.remoteMainHead) opts.onProgress('Fetching main from GitHub…');
   await fetchMain(plan, opts);
+  opts.onProgress('Checking the new branch…');
   await ensureRemote(plan, opts);
   if (await protectedNetwork(plan, opts, () => remoteBranch(plan, plan.name, opts.networkRun))) throw new Error('That feature name now exists on GitHub. Choose a fresh unique name and review Start again.');
   await validName(plan.name, plan.root, opts.run);
