@@ -3,6 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
 const {createStudentExplorer}=require('../src/student-explorer');
 const {createFileCommands}=require('../src/file-actions');
+const {createRenameCommands}=require('../src/file-rename');
 const authoring=require('../src/sharing/authoring');
 async function put(root,name,text=''){await fs.mkdir(path.dirname(path.join(root,name)),{recursive:true});await fs.writeFile(path.join(root,name),text);}
 const disposable=()=>({dispose(){}});
@@ -137,4 +138,27 @@ test('initial model errors retain watching and recover after external repair wit
   assert.deepEqual((await f.children()).slice(0,2).map(n=>n.label),['Code','Assets']);
   await put(f.root,'zero.json','{');f.tree.invalidate();assert.equal((await f.children())[0].kind,'message');
   await put(f.root,'zero.json','{}');assert.equal((await f.children())[0].label,'Code','Failed loads are not permanently cached');
+});
+
+test('a local library file-only rename keeps source navigable until its Java declaration is repaired',async t=>{
+ const f=await fixture(t);await put(f.root,'src/main/java/Health.java','public class Health {}');await put(f.root,'LICENSE','MIT');
+ await authoring.applyPlan(await authoring.previewExtraction(f.root,{repository:{id:'12345',ownerId:'123',owner:'student',name:'app',url:'https://github.com/student/app'},descriptor:{schema:1,kind:'library',slug:'health-bar',version:'1.0.0',title:'Health bar',description:'Health helper',license:'MIT',libraryKind:'helper'},sources:['src/main/java/Health.java']}));
+ let roots=await f.children(),library=(await f.children(roots.find(n=>n.kind==='libraries')))[0],code=(await f.children(library)).find(n=>n.label==='Code'),health=(await f.children(code)).find(n=>n.label==='Health.java');
+ f.vscode.WorkspaceEdit=class{renameFile(from,to){this.from=from;this.to=to;}};
+ f.vscode.workspace.applyEdit=async edit=>{await fs.rename(edit.from.fsPath,edit.to.fsPath);return true;};
+ const renamer=createRenameCommands(f.vscode,{project:async()=>f.root,isBusy:()=>false,setBusy:()=>{},setState:()=>{},refreshFiles:()=>f.tree.invalidate()});t.after(()=>renamer.dispose());
+ f.name='Better.java';await renamer.commands['zero.renameStudentFile']({root:f.root,relative:health.relative,area:health.area,libraryFolder:health.libraryFolder});
+ roots=await f.children();assert.equal(roots[0].label,'Code');library=(await f.children(roots.find(n=>n.kind==='libraries')))[0];
+ assert.match(f.item(library).description,/Fix Java names/);const details=await f.children(library);assert.ok(details.some(n=>n.label==='Match Java class and file names'));
+ code=details.find(n=>n.label==='Code');const better=(await f.children(code)).find(n=>n.label==='Better.java');
+ await f.tree.commands['zero.explorerOpenFile'](better);assert.match(f.calls.at(-1)[1].fsPath,/Better.java$/);
+ // The same guarded rename can restore the filename without requiring full Explorer.
+ f.name='Health.java';await renamer.commands['zero.renameStudentFile']({root:f.root,relative:better.relative,area:better.area,libraryFolder:better.libraryFolder});
+ library=(await f.children((await f.children()).find(n=>n.kind==='libraries')))[0];assert.doesNotMatch(f.item(library).description,/Fix Java names/);
+});
+test('file-context creation refuses an already missing file, then targets its parent while prompting',async t=>{
+ const f=await fixture(t);await put(f.root,'src/main/java/Note.txt','note');let code=(await f.children())[0],note=(await f.children(code)).find(n=>n.label==='Note.txt');
+ await fs.unlink(path.join(f.root,note.relative));await assert.rejects(f.tree.commands['zero.explorerNewFile'](note),/selected file changed/);
+ await put(f.root,note.relative,'note');f.vscode.window.showInputBox=async()=>{await fs.unlink(path.join(f.root,note.relative));return 'Sibling.txt';};
+ await f.tree.commands['zero.explorerNewFile'](note);assert.equal(await fs.readFile(path.join(f.root,'src/main/java/Sibling.txt'),'utf8'),'');
 });

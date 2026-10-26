@@ -102,7 +102,7 @@ test('package names are portable Java identifiers and framework packages remain 
   for(const name of ['zero','zero.ui','Zero.contrib.mine']){f.name=name;await assert.rejects(f.run('Package'),/framework/);}
   await fs.mkdir(path.join(f.root,'src/main/java/zero/ui'),{recursive:true});
   f.name='Player';await assert.rejects(f.run('Class',{root:f.root,area:'code',relative:'src/main/java/zero/ui'}),/framework/);
-  f.location=2;f.name='src/main/java/zero/New.java';await assert.rejects(f.run('File'),/framework/);
+  f.location=2;f.name='src/main/java/zero/New.java';await assert.rejects(f.run('File'),/Choose Code/);
   f.name='libraries/unmanaged/Other.java';await assert.rejects(f.run('File'),/local library/);
 });
 test('selected assets and project folders bypass the picker but cannot forge code or library targets',async t=>{
@@ -152,4 +152,13 @@ test('library mode changes during the prompt stop creation and published librari
   await assert.rejects(f.run('Class',context),/local mode/);
   await assert.rejects(fs.access(path.join(f.root,context.relative,'Meter.java')));
   await assert.rejects(resolveAuthoringTarget(f.root,context,'folder'),/local mode/);
+});
+
+test('Other project files cannot enter Code or Assets through slash-separated names',async t=>{
+ const f=await fixture(t);await fs.mkdir(path.join(f.root,'src/main/web'),{recursive:true});
+ for(const name of ['java/game/Extra.java','resources/image.png']) {
+  f.name=name;await assert.rejects(f.run('File',{root:f.root,area:'project',relative:'src/main'}),/Choose Code, Assets/);
+ }
+ f.name='src/main/java/Extra.java';await assert.rejects(f.run('File',{root:f.root,area:'project',relative:''}),/Choose Code, Assets/);
+ assert.deepEqual(await fs.readdir(path.join(f.root,'src/main')),['web']);
 });

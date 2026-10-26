@@ -3,7 +3,6 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const {nameError} = require('./file-actions');
-const {resolveAuthoringTarget} = require('./file-targets');
 const {readProjectModel,ordinaryEntries,isToolingPath} = require('./project-explorer-model');
 
 const inside = (relative, base) => relative.startsWith(`${base}/`);
@@ -73,11 +72,6 @@ async function selectedFile(root, context, model) {
         : `${library.folder}/src/main/resources/${namespace}`;
       if (!inside(relative,libraryBase))
         throw Error('Select a file inside the local library namespace.');
-    }
-    if (!base) {
-      const target = await resolveAuthoringTarget(root,{root,area,relative:parent,libraryFolder},'file');
-      if (target.baseRelative !== parent)
-        throw Error('The selected file is outside its authoring area.');
     }
     const entries = await ordinaryEntries(root,parent,{hideCorePaths:model.corePaths,excludePaths:model.excludePaths});
     if (!entries.some(entry => entry.relative === relative && !entry.directory))

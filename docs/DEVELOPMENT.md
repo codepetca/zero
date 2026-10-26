@@ -647,9 +647,14 @@ choices to that area. Right-click files or folders for contextual creation;
 editable files also expose **Rename file…**. Rename uses a guarded native
 WorkspaceEdit, refuses collisions/unsaved changes, and never moves files between
 folders. Java file names change without rewriting class names or references;
-the prompt explains that limitation. Published retained source remains read-only.
+the prompt explains that limitation. A local library with a basename/declaration
+mismatch stays navigable and shows a repair hint; imports are withheld until
+repaired. Namespace/path containment checks remain strict. Published retained
+source remains read-only.
 Project overflow retains ZeroHub's guarded browser. Actions revalidate current
-project/tree targets and refuse stale selections before mutation.
+project/tree targets before opening the name prompt. File creation then targets
+the containing folder, revalidated before mutation; subsequent removal of the
+original sibling file does not change that destination.
 **Show all project files** opens the full Explorer without disabling the preview;
 the Zero status-bar action returns to the active controls. **Zero: Use Standard
 Explorer** disables the preview. No host layout storage or private APIs are used.

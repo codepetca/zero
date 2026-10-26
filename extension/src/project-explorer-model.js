@@ -167,21 +167,25 @@ async function readProjectModel(projectRoot) {
       await readText(root,`libraries/${lib.slug}/zero-library.json`);
       await boundedSources(root,`libraries/${lib.slug}/src/main/java`,budget);
     }
-    authored=await authoring.discoverLibraries(root);
+    authored=await authoring.discoverLibraries(root,{allowNameMismatch:true});
   }
   const libraries=[];
   for (const lib of authored) {
-    const imports=[];
+    const imports=[],sourceIssues=[];
     for (const name of lib.sources) {
-      const declaration=authoring.declaration(await readText(root,name,{maximum:LIMITS.sourceBytes}),name);
-      if ((declaration.packageName !== lib.identity.namespace && !declaration.packageName.startsWith(lib.identity.namespace+'.')) || name !== `${lib.folder}/src/main/java/${declaration.className.replaceAll('.','/')}.java`) fail(`Library source differs from its namespace: ${name}.`);
+      const declaration=authoring.declaration(await readText(root,name,{maximum:LIMITS.sourceBytes}),name,{allowNameMismatch:true});
+      const expected=`${lib.folder}/src/main/java/${declaration.className.replaceAll('.','/')}.java`;
+      if ((declaration.packageName !== lib.identity.namespace && !declaration.packageName.startsWith(lib.identity.namespace+'.')) || path.posix.dirname(name)!==path.posix.dirname(expected)) fail(`Library source differs from its namespace: ${name}.`);
+      // A basename-only rename temporarily disagrees with the Java declaration.
+      // Keep its source reachable for repair, but do not advertise broken imports.
+      if(name!==expected){sourceIssues.push(`${path.posix.basename(name)} declares ${declaration.simple}; match the Java class and file names.`);continue;}
       if (new RegExp(`\\bpublic\\s+(?:(?:abstract|final|sealed|non-sealed|static)\\s+)*(?:class|interface|enum|record)\\s+${declaration.simple}\\b`).test(declaration.masked)) imports.push(declaration.className);
     }
     libraries.push({id:lib.identity.id,title:lib.descriptor.title,slug:lib.slug,mode:lib.mode,version:lib.version,folder:lib.folder,namespace:lib.identity.namespace,
       sourceRoot:`${lib.folder}/src/main/java`,localVersion:lib.descriptor.version,localSourceActive:lib.mode==='local',
       resourceRoot:await existing(root,`${lib.folder}/src/main/resources`,true),checksRoot:await existing(root,`${lib.folder}/src/test/java`,true),
       examplesRoot:await existing(root,`${lib.folder}/examples`,true),readme:await existing(root,`${lib.folder}/README.md`),
-      description:lib.descriptor.description,imports:lib.mode==='local'?imports.sort():[],localImports:imports.sort()});
+      description:lib.descriptor.description,sourceIssues,imports:lib.mode==='local'&&!sourceIssues.length?imports.sort():[],localImports:sourceIssues.length?[]:imports.sort()});
   }
   for (const pin of pom.includes('zero-sharing') ? inspectManagedLibraryPins(pom) : []) {
     if (libraries.some(lib=>lib.id===pin.identity.id)) fail(`Authored and installed library modes overlap: ${pin.identity.id}.`);
@@ -197,6 +201,7 @@ async function readProjectModel(projectRoot) {
 function libraryDetails(library) {
   const lines=[library.title,`Version: ${library.version}`,`Mode: ${library.mode === 'local' ? 'Local source (used by this project)' : 'Published dependency (used by this project)'}`,`Namespace: ${library.namespace}`];
   if (library.description) lines.push('',library.description);
+  if (library.sourceIssues?.length) lines.push('','Local source needs repair:',...library.sourceIssues);
   if (library.folder && library.mode === 'published') lines.push('',`Retained local source: ${library.folder} (${library.localVersion}); not compiled in published mode.`);
   if (library.imports.length) lines.push('','Imports:',...library.imports.map(name=>`import ${name};`));
   else if (library.mode==='published') lines.push('','Exact published API/import examples are not retained in this project. Open ZeroHub for this exact library version.');

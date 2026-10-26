@@ -7,6 +7,7 @@ const path = require('node:path');
 const os = require('node:os');
 const {createRenameCommands} = require('../src/file-rename');
 const authoring = require('../src/sharing/authoring');
+const {readProjectModel}=require('../src/project-explorer-model');
 
 async function put(root,relative,content='') {
   const filename = path.join(root,relative);
@@ -156,6 +157,10 @@ test('local library namespace permits rename; retained source and library metada
   f.input='Better.java';await f.run(f.context(relative,'library-code',libraryFolder));
   assert.equal(await fs.readFile(path.join(f.root,path.posix.dirname(relative),'Better.java'),'utf8').then(text=>text.includes('class Health')),true);
   await assert.rejects(f.run(f.context(`${libraryFolder}/zero-library.json`,'project')));
+  const broken=(await readProjectModel(f.root)).libraries[0];
+  assert.match(broken.sourceIssues[0],/Better.java declares Health/);assert.deepEqual(broken.imports,[]);
+  await assert.rejects(authoring.discoverLibraries(f.root),/Expected an ordinary class/);
+  await assert.rejects(authoring.previewMode(f.root,{slug:'health-bar',mode:'published',version:'1.2.3'}),/Expected an ordinary class/);
   // The file-only rename leaves the Java declaration for the student to edit.
   await put(f.root,`${libraryFolder}/src/main/java/zero/contrib/r12345/health_bar/Better.java`,'package zero.contrib.r12345.health_bar; public class Better {}');
   await authoring.applyPlan(await authoring.previewMode(f.root,{slug:'health-bar',mode:'published',version:'1.2.3'}));

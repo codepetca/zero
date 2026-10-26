@@ -73,12 +73,12 @@ function createStudentExplorer(vscode, host) {
       if(!known.has(parent)||parent.root!==snapshot.root)return [];
       const attempt=generation;
       if(parent.kind==='libraries')return snapshot.libraries.map(library=>node({kind:'library',root:snapshot.root,label:library.title,libraryId:library.id,
-        description:`${library.version} · ${library.mode==='local'?'Local source':library.folder?'Published active':'Added'}`}));
+        description:`${library.version} · ${library.mode==='local'?'Local source':library.folder?'Published active':'Added'}${library.sourceIssues?.length?' · Fix Java names':''}`}));
       if(parent.kind==='library') {
         const library=snapshot.libraries.find(item=>item.id===parent.libraryId);
         if(!library)return [];
         const context={root:snapshot.root,libraryId:library.id};
-        const result=[action('Imports and examples…','zero.libraryReference',context),action('Copy imports','zero.copyLibraryImports',context)];
+        const result=[...(library.sourceIssues?.length?[node({kind:'message',label:'Match Java class and file names',detail:library.sourceIssues.join('\n')})]:[]),action('Imports and examples…','zero.libraryReference',context),action('Copy imports','zero.copyLibraryImports',context)];
         if(library.folder) {
           const retained=library.mode!=='local',namespace=library.namespace.replaceAll('.','/');
           result.push(folder(snapshot,retained?'Retained code (inactive)':'Code',`${library.sourceRoot}/${namespace}`,'library-code',library,retained));
@@ -130,6 +130,10 @@ function createStudentExplorer(vscode, host) {
   async function create(command,value) {
     if(host.isBusy())return;
     const snapshot=await fresh(value);
+    if(value.kind==='file') {
+      const entries=await ordinaryEntries(snapshot.root,path.posix.dirname(value.relative)==='.'?'':path.posix.dirname(value.relative),{hideCorePaths:snapshot.corePaths,excludePaths:snapshot.excludePaths});
+      if(!entries.some(entry=>entry.relative===value.relative&&!entry.directory))throw Error('The selected file changed. Select its folder again.');
+    }
     const relative=value.kind==='file'?(path.posix.dirname(value.relative)==='.'?'':path.posix.dirname(value.relative)):value.relative;
     const context=value.kind==='other'?{root:snapshot.root,area:'project',relative:''}:{root:snapshot.root,area:value.area,relative,libraryFolder:value.libraryFolder};
     if(value.retained)throw Error('Use Develop local library before adding files to its source.');
