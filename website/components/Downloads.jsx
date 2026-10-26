@@ -13,12 +13,11 @@ export function Downloads() {
       <div className="hub-actions">
         {mac && <a className="button primary compact" href={mac}><DownloadIcon />Download for Mac Silicon{installer.publication.status === 'local' && ' (local preview)'}</a>}
         {windows && <div className="windows-download">
-          <a className="button primary compact" href={windows} aria-describedby={unsigned ? 'windows-unsigned-note' : undefined}><DownloadIcon />Download for Windows{unsigned && ' (unsigned)'}</a>
+          <a className="button primary compact" href={windows}><DownloadIcon />Download for Windows{unsigned && ' (unsigned)'}</a>
           {manual && <a className="manual-download" href={manual}>Manual setup (ZIP)</a>}
         </div>}
         {!windows && kit && <a className="button primary compact" href={downloadHref()} aria-label={`Download for Windows (ZIP), manual setup${kit.publication.status === 'local' ? ', local preview' : ''}`}><DownloadIcon />Download for Windows (ZIP){kit.publication.status === 'local' && ' (local preview)'}</a>}
       </div>
-      {windows && unsigned && <p className="source-note" id="windows-unsigned-note">Unsigned preview. Windows may show a security warning.</p>}
     </section>
   );
 }

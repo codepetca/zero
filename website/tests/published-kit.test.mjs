@@ -80,8 +80,9 @@ test('downloads show only supported platform buttons with exact published URLs',
   assert.ok(html.includes(`href="${publishedNative.asset.url}"`));
   assert.match(html,/Download for Mac Silicon<\/a>/);
   assert.match(html,/Download for Windows \(ZIP\)<\/a>/);
-  assert.equal((html.match(/<a /g)||[]).length,2);
-  assert.doesNotMatch(html,/<p[ >]|<h[1-6][ >]|<details[ >]|<summary[ >]/);
+  assert.equal((html.match(/<a class="button /g)||[]).length,2);
+  assert.doesNotMatch(html,/href="\/(privacy|terms)"|download-legal/);
+  assert.doesNotMatch(html,/<h[1-6][ >]|<details[ >]|<summary[ >]/);
   assert.doesNotMatch(html,/Zero Setup|Other downloads|local preview|href="\/download\/|\.exe/);
   assert.equal(landingDownloadHref(fallback.assets.kit.url,publishedNative),'/downloads');
 });
@@ -143,8 +144,7 @@ test('unsigned Windows download is explicit before clicking and setup help state
   const html=await render(current,fallback,null,false,url,null,true);
   assert.ok(html.includes(`href="${url}"`));
   assert.match(html,/Download for Windows \(unsigned\)<\/a>/);
-  assert.match(html,/aria-describedby="windows-unsigned-note"/);
-  assert.match(html,/id="windows-unsigned-note">Unsigned preview\. Windows may show a security warning\./);
+  assert.doesNotMatch(html,/windows-unsigned-note|Windows may show a security warning/);
   assert.doesNotMatch(html,/Windows \(ZIP\)|zero-bootstrap.zip/);
   const help=await render(current,fallback,null,false,url,null,true,true);
   assert.match(help,/Windows 0\.5\.21: x64, Windows 10 \(build 19041\) or later/);
@@ -176,7 +176,8 @@ test('a staged Mac candidate preserves both published platform choices without p
     assert.ok(html.includes(`href="${fallback.assets.kit.url}"`));
     assert.match(html, /Download for Mac Silicon<\/a>/);
     assert.match(html, /Download for Windows \(ZIP\)<\/a>/);
-    assert.equal((html.match(/<a /g)||[]).length, 2);
+    assert.equal((html.match(/<a class="button /g)||[]).length, 2);
+    assert.doesNotMatch(html, /href="\/(privacy|terms)"/);
     assert.doesNotMatch(html, /local preview|href="\/download\//);
   }
   const local = await render(current, fallback, native, true, null, publishedNative);
