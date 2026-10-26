@@ -28,7 +28,7 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   core.resolveProject=(...args)=>{projectResolves++;return original.resolve(...args);};
   let branch='main',remote='https://github.com/student/app.git',mode='simulation',session={id:'session',account:{id:'1',label:'student'},accessToken:'NEVER_RENDER_TOKEN'},authEvent,provider,publishedState;
   let accessFailure,repositoryId=12,installationId=99;const accesses=[];
-  let saved=0,authCalls=0,prepared=0,uploadSnapshots=0,transportDispatches=0,synced=0,syncError,syncUpdates=false,startGate,syncGate,executed=0,deleted=0,input,choice,prepareGate,pickGate,warningGate,finishError,cleanupError,nativeScm=true;
+  let saved=0,authCalls=0,prepared=0,uploadSnapshots=0,transportDispatches=0,synced=0,syncError,syncUpdates=false,startGate,syncGate,afterSyncFetch,syncApplied=0,executed=0,deleted=0,input,choice,prepareGate,pickGate,warningGate,finishError,cleanupError,nativeScm=true;
   const transportCalls=[];
   const commands=new Map(),picks=[],reviews=[],warnings=[],errors=[],notices=[],dispatch=[],deletions=[],logs=[],metadata={},progressRuns=[];
   core.assertRepositoryRoot=async()=>root;
@@ -38,7 +38,7 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   workflow.prepareStart=async()=>{prepared++;if(startGate)await startGate;return plan();};workflow.prepareFinish=async()=>{prepared++;const captured=plan();if(prepareGate)await prepareGate;return captured;};
   workflow.startPrepared=async(_,options)=>{await options.beforeMutation();executed++;branch='add-score';return {branch,head:'f'.repeat(40)};};
   workflow.prepareSync=async(_,options)=>{synced++;options.onProgress('Reading main on GitHub…');if(syncGate)await syncGate;await options.networkRun(root,['ls-remote','--heads',plan().remote,'refs/heads/main']);return plan();};
-  workflow.syncPrepared=async(_,options)=>{await options.beforeNetwork();if(syncError)throw syncError;if(syncUpdates)await options.networkRun(root,['fetch','--no-tags','--no-recurse-submodules','--no-write-fetch-head',plan().remote,plan().remoteMainHead]);return {updated:syncUpdates,branch,head:'f'.repeat(40)};};
+  workflow.syncPrepared=async(_,options)=>{await options.beforeNetwork();if(syncError)throw syncError;if(syncUpdates){await options.networkRun(root,['fetch','--no-tags','--no-recurse-submodules','--no-write-fetch-head',plan().remote,plan().remoteMainHead]);afterSyncFetch?.();await options.beforeMutation();syncApplied++;}return {updated:syncUpdates,branch,head:'f'.repeat(40)};};
   workflow.finishPrepared=async(_,options)=>{const beforeAccess=accesses.length;await options.beforeNetwork();assert.equal(accesses.length,beforeAccess,'The early session guard must not duplicate transport repository requests');if(finishError){executed++;throw finishError;}await options.networkRun(root,['push',plan().remote,`${plan().head}:refs/heads/main`]);await options.networkRun(root,['ls-remote','--heads',plan().remote,'refs/heads/main']);executed++;branch='main';return {finished:true,branch,finishedBranch:'add-score',head:'f'.repeat(40)};};
   workflow.deleteFinishedBranch=async(...args)=>{deletions.push(args);if(cleanupError)throw cleanupError;deleted++;};
   const vscode={
@@ -156,4 +156,14 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   const changedSync=commands.get('zero.syncProject')();await waitFor(()=>synced>syncBeforeChangedSession);
   session={...session,id:'changed-during-sync'};authEvent({provider:{id:'zero-github'}});releaseChangedSync();await changedSync;syncGate=undefined;
   assert.equal(transportDispatches,dispatchesBeforeChangedSession,'A changed session cannot dispatch Sync transport');assert.match(errors.at(-1),/sign-in changed/);assert.equal(progressRuns.at(-1).active,false);
+  for(const invalidation of ['signout','replacement']) {
+    const originalSession=session, appliedBefore=syncApplied, dispatchesBefore=transportDispatches;
+    syncUpdates=true;
+    afterSyncFetch=()=>{session=invalidation==='signout'?undefined:{...session,id:'replacement-after-fetch'};authEvent({provider:{id:'zero-github'}});};
+    await commands.get('zero.syncProject')();
+    assert.equal(transportDispatches,dispatchesBefore+2,'The session changes after the reviewed read and fetch');
+    assert.equal(syncApplied,appliedBefore,'Signing out or replacing the session during fetch cannot apply incoming main');
+    assert.match(errors.at(-1),/sign-in changed|sign in/i);assert.equal(progressRuns.at(-1).active,false);
+    afterSyncFetch=undefined;session=originalSession;authEvent({provider:{id:'zero-github'}});await new Promise(resolve=>setImmediate(resolve));
+  }
 });

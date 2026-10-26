@@ -595,12 +595,12 @@ function activate(context, services = {}) {
         const reportProgress = message => {state=message;refresh();progress?.report({message});};
         await assertGitProject(root);
         if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before changing the project.');
-        const beforeMutation = () => assertGitProject(root);
+        const beforeLocalMutation = () => assertGitProject(root);
         if (kind === 'start') {
           reportProgress('Checking local main…');
-          const options = {beforeMutation,onProgress:reportProgress};
+          const options = {beforeMutation:beforeLocalMutation,onProgress:reportProgress};
           const plan = await workflow.prepareStart(root,name,options);
-          await beforeMutation();
+          await beforeLocalMutation();
           const result = await workflow.startPrepared(plan,options);
           await refreshNativeGit(root);
           report(`Created ${result.branch}`,`Started ${result.branch} locally. Make your changes, then Commit & push. Use Sync from GitHub to get updated main.`);
@@ -612,6 +612,7 @@ function activate(context, services = {}) {
         const assertProject = () => assertGitProject(root);
         const networkRun = operationTransport(destination.remote,{authentication:auth,ticket,assertProject,assertProjectNow:()=>assertGitProjectNow(root)});
         const beforeNetwork = async () => {await assertProject();await auth.assertCurrent(ticket);};
+        const beforeMutation = beforeNetwork;
         const options = {networkRun,beforeNetwork,beforeMutation,onProgress:reportProgress};
         const plan = kind === 'sync' ? await workflow.prepareSync(root,options) : await workflow.prepareFinish(root,options);
         if (plan.remote !== destination.remote) throw new Error('The connected repository changed. Review this step again.');
