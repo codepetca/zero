@@ -1,5 +1,32 @@
 # Delivery evidence index
 
+## Docs contents responsiveness and owner-authorized PR — 2026-10-25
+
+Owner authorized PR/merge, then reported slow expand/collapse in Docs. Source
+showed navigation state re-rendering every Markdown entry. `ApiContent` is now a
+memoized document boundary; reveal/jump callbacks are stable and search results
+memoized. Active-link/Advanced changes still update the document; sidebar Contents,
+category and query changes reuse it. No Java/API content or anchors removed.
+
+Chromium390px dev,6xCPU, click→secondanimationframe,6samples: before912/393/887/
+412/867/384ms; after101/92/83/95/100/101ms. Both193entries/6784documentnodes. This
+is simulated local CPU evidence, not actual iPhone/touch or production latency.
+Scripts and before-source/timings are ignored in `output/playwright/docs-*` and
+`.verification/docs-contents-lag/`. Browser checks pass category expand/collapse,
+search→anchor+focus, Advanced hash/entry jump/closed-section reopening and desktop
+search. Harness fixes used stable category controls and direct summary selectors;
+no production behavior was weakened for those selectors.
+
+All240website tests,20focused API-reference tests, typecheck, productionwebpack
+build, npmcheck and whitespace pass. Rebased onto3bab71a0 after preserving both
+EVIDENCE histories in the only conflict; PRODUCT merged cleanly. Earlier complete
+policy/license reviews and targeted UI reviews remain applicable to unchanged
+source. Final integration/performance review and exact-head selected CI remain
+merge gates; PR/CI/merge receipts are recorded in the task and ignored publication
+receipt. No new collector, legal agreement activation or release/version change.
+Weekly74%remaining and healthy229.6GB at PR start; account-wide usage is not task
+cost. Owner's nativeGit prototype/pilot/release/Jams holds remain unchanged.
+
 ## Windows sentence removal and shared mobile dropdown — 2026-10-25
 
 Owner removed the separate Windows unsigned-warning sentence, then requested a
