@@ -519,3 +519,11 @@ Chrome same lost-close flow pass. No unresolved review findings.
 NEXT: protected Preview deployment, explicit migration, settle the existing legacy
 test request without changing either closed event, verify production15jam404/
 Hub200/no jam link and exact-head CI. No main merge or production rollout.
+
+Integration update —2026-10-26: current main d5c01bb1 advanced while this phase
+was in progress, causing CURRENT/EVIDENCE conflicts and withholding PR CI.
+Integration10150f20 preserves both evidence histories and incoming approved
+legal/beta/Git-flow changes; settlement source is unchanged. Sol6.1/high integration
+review is clean (20focused checks). Refreshed154jam/275website/7preflight/
+typecheck/build pass. The exact source for the reviewed settlement is still
+04da7ce1; deployment/migration/CI receipt follows.

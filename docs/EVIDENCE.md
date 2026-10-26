@@ -10,7 +10,7 @@ Client saves close mode atomically with the key, refuses dispatch on storage
 failure, preserves drafts, and retries closing after lost replies/reload. Normal
 closed-key replay409 protects older clients. No new auth/role/invitation grant.
 
-154 jam tests,272 website tests,7 preflight tests and typecheck/build pass.
+154 jam tests,275 website tests,7 preflight tests and typecheck/build pass.
 Eight actual loopback GitHTTP/service/source cases supplement12 adapter cases
 and11 service fence cases. Both winner orders, held verification, missing events,
 provider reply loss/timeouts, strict migration drift, byte/capacity bounds and
@@ -40,8 +40,13 @@ no additional review wave needed. Effective model, worker token/time cost unknow
 Start account weekly73%remaining is not task-specific cost; storage229GB healthy.
 
 Read-only migration plan: isolated pilot headce130103b5b84968c83982516104826c88a260a0,
-2 existing event blob SHAs and guard recorded, not applied. Protected Preview
-delivery, guarded migration, existing legacy test-request closure with unchanged
+2 existing event blob SHAs and guard recorded, not applied. Main advanced to d5c01bb1 and caused PR conflicts, withholdingCI. Integration
+10150f20 merges main into the pilot (no main publication), resolves only CURRENT/
+EVIDENCE conflicts, preserves both dated histories, and leaves settlement files
+byte-identical. Sol6.1/high final integration review is clean;20 focused tests
+pass. Refreshed154jam/275website/7preflight/typecheck/build pass. Review totals:
+4turns,1fixbatch,1targeted+1integration wave.
+Protected Preview delivery, guarded migration, existing legacy test-request closure with unchanged
 event bytes, production15jam404/Hub200/no link and exact-head CI are next.
 Production hold, originalclosedfixtures, App/secret/protection settings retained.
 
