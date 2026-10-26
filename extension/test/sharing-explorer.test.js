@@ -31,6 +31,7 @@ test('selected local reference reads public source and labels the local README a
  await fs.writeFile(path.join(f.root,folder,'examples/Example.java'),'public class Example { Health h; }\n');
  const result=await f.makeEditor().commands['zero.libraryReference'](f.context);
  assert.equal(f.shown.length,1);assert.match(f.shown[0].content,/Active mode: Local source/);
+ assert.match(String(f.shown[0].uri),/^zero-library-reference:\/health-bar-1\.0\.0-local-reference\.txt\?view=/);
  assert.match(f.shown[0].content,/Active version: 1\.0\.0/);
  assert.match(f.shown[0].content,/import zero\.contrib\.r12345\.health_bar\.Health;/);
  assert.match(f.shown[0].content,/Local README:[\s\S]*Use Health/);

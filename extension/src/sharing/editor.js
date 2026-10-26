@@ -106,7 +106,7 @@ function createSharingEditor(vscode,host,options={}) {
   await referenceCurrent(root,context,stamp);
   if(copy){if(!imports)fail('No authoritative import statements are available for this active library version.');if(!vscode.env?.clipboard?.writeText)fail('The clipboard is unavailable.');await vscode.env.clipboard.writeText(imports);await referenceCurrent(root,context,stamp);return;}
   if(!referenceProvider)fail('The native read-only library reference view is unavailable.');
-  const uri=vscode.Uri.parse(`zero-library-reference:/library-${randomUUID()}.txt`);if(references.size>=16)references.delete(references.keys().next().value);references.set(uri.toString(),content);
+  const uri=vscode.Uri.parse(`zero-library-reference:/${lib.slug}-${lib.version}-${lib.mode}-reference.txt?view=${randomUUID()}`);if(references.size>=16)references.delete(references.keys().next().value);references.set(uri.toString(),content);
   const document=await vscode.workspace.openTextDocument(uri);
   await referenceCurrent(root,context,stamp);
   await vscode.window.showTextDocument(document,{preview:false});
