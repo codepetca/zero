@@ -12,13 +12,19 @@ Check/Share/mode actions; independent control-view refresh and scoped watching.
 Standard Explorer remains default pending required owner light/dark/keyboard
 review. No source push, PR, merge, hosted activation, deploy or release authorized.
 
-Checks: focused162 pass, npm run check pass, Zero Dev smoke pass. Ignored scoped
-package/app/component fixture compiles natively and exports/validates real WebFX.
-Native CUA package/class creation and compile-error/source-linked Problems tested;
-correction/Run/Stop, asset/component walkthrough, browser interaction and
-independent source review remain in progress. New isolated profile only; CUA
-selects a disposable exact copy of installed VS Code by app path to avoid old
-same-bundle instances. Source watcher on3154; original3153/3025 unchanged.
+Reviewed implementation c8ce5cb2; initial2 + targeted2 reviews clean after2fix
+batches. Focused167 pass, reference-only52subset pass, API docs20pass, check/diff
+pass, Zero Dev smoke pass. Real Mac CUA package/class/assets, compiler recovery,
+Run/Stop, project switch, full Explorer return, component class/imports/Check,
+keyboard and light/dark host acceptance pass. Saved-builder WebFX export and
+actual browser callback pass. Exact evidence/limits: docs/EVIDENCE.md. Only owner
+visual acceptance/default replacement remains; no active implementation workers.
+
+Preview is open in disposable exact installed-Code copy
+.verification/student-explorer/Zero Explorer Preview.app and isolated profile
+~/.zero-dev/9f89a72a9898. Source watcher3154 and browser proof3155 stay available.
+Original3153/3025, profiles/projects/checkouts are preserved. New transient JavaFX
+pointer input, Windows/minhost/freshMac/schoolnetwork/hosted actions unproven.
 
 Tool-backed matching goal exists; service reports blocked after interrupted
 startup despite explicit user resume; API exposes no agent-side resume action.

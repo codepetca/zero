@@ -90,3 +90,16 @@ Current connection is NOT school network. Fresh Mac/Windows/min host separate.
 Public Mac50/core0.3.0/manualkit17/Windows21 and ZeroJams hold unchanged. DeepSeek
 pilot is paused through2026-12-31; check current skill/record if policy changes.
 No new library hosting, telemetry or framework upgrade is authorized.
+
+
+## Continuation checkpoint — 2026-10-26
+
+The isolated `student-explorer/zero` owner implemented and reviewed the remaining
+native preview through c8ce5cb2. The canonical plan now records pending owner visual
+review; detailed accepted tests and limits are in docs/EVIDENCE.md. Do not restart
+from the historical Remaining implementation list above. Code/Assets, Libraries,
+selected commands, reference metadata and existing guarded actions are integrated.
+Native Mac, scoped native/WebFX/browser and independent source checks pass within
+the recorded limits. Concrete native light/dark screenshots and the live isolated
+preview are ready. Standard Explorer remains default until owner acceptance.
+Source publication/release/account/ZeroJams holds are unchanged.

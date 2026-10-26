@@ -1,5 +1,83 @@
 # Delivery evidence index
 
+## Student explorer preview ready for owner visual review — 2026-10-26
+
+Local branch `codex/student-explorer`, reviewed implementation
+`c8ce5cb289893e5c61f66aa922749b5c7c3c9cba`, full review base
+`07e1bbe356a311895a65fd80485004e80900e13d`. New isolated managed worktree from
+exact handoff b03ecdaa. Standard Explorer remains the default; only the disposable
+workspace enables Preview Student Explorer. No source push/PR/merge, hosted
+activation, deployment, account grant or release occurred.
+
+Implemented: native Code/Assets, conditional versioned Libraries and local/published
+mode, other authored files, full Explorer escape/Zero return, package-aware class
+creation, selected app/component asset destinations and copyable resource paths,
+explicit exact-release/local-source imports/examples, existing guarded library
+Check/Share/mode actions, scoped refresh and independent controls lifecycles.
+
+Verification:
+- `npm run check` and `git diff --check` pass.
+- 167 focused explorer/file/assets/model/sharing/extension/onboarding/workflow-UI/
+  sidebar/playground tests pass. The later reference-tab-only delta passes the
+  52 sharing tests; those are a subset, not additional unique coverage.
+- Website API-reference checks pass20/20. No public Java API changed; `/docs`
+  remains the existing API entry. Local APP-GUIDE and command/development docs
+  describe the preview; no published template/site bytes changed.
+- `npm run dev:smoke` passes with `ZERO_DEV_SMOKE_OK`, real Coin Game movement,
+  win/restart/recollection and native framework/input/media checks. A mistakenly
+  started root suite was stopped when it repeated the handoff-excluded Git
+  recovery matrix; no full-root-suite pass is claimed.
+- Real Mac CUA, isolated source host: preview on/off/on, package and selected
+  class creation with exact declarations, native compiler error/Problems line4,
+  correction/first game frame ready/Stop, selected nested image import and exact
+  copied literal, full Explorer/Zero return, project switch, local library class
+  namespace, local public imports, Check library modal then independent JAR and
+  both examples passed, arrow-key expansion/Enter-to-open, light and dark host
+  themes with visible focus. Final version/mode reference tab is verified and
+  typing is refused with Cannot edit in read-only editor. New component app
+  reaches native App UI ready.
+  The transient Java process is not a selectable CUA app; no new physical
+  JavaFX button-click claim is made.
+- Disposable packaged App/local-component fixture includes app and namespaced
+  PNG assets, native-created NativeMarker and package Player. Native compilation
+  and real saved-builder WebFX export/retained validation pass. Final build
+  `bdabb593-6c8a-4672-85bb-a15e7c084d30`, sourceHash
+  `4a124df30d5dc258e4ddc6b20015895427cedbc7057d07c9f3bea041bafa637f`,61 files.
+  Actual local browser showed `Explorer proof: 7 / Player`; clicking Check
+  explorer changed it to `Clicked: 7 / Player`. Both assets are present and startup
+  checks resolve them. This is local browser proof, not hosted publication.
+
+Independent review ledger: requested GPT-6 Sol/high, effective configuration and
+worker token/elapsed telemetry unknown. Initial two fresh reviews (write safety,
+native/API compatibility) of07e1bbe3→88a2960d found five distinct P2s. One combined
+fix batch72f23d1f addressed initial-error recovery, stale expanded local-mode state,
+Share's descriptor-modal race, example-directory traversal bounds and withdrawn
+exact-release metadata. Targeted safety review clean;22 focused tests run by the
+reviewer. A second tiny batchc8ce5cb2 gives reference tabs readable version/mode
+names; targeted compatibility review clean. Four reviewer turns total, one initial
+wave, two targeted waves, two fix batches; no unresolved finding or integration
+gap. Initial unchanged coverage plus targeted coverage establishes the current
+implementation. No extra cumulative wave was needed. Source review is not owner
+visual acceptance.
+
+Evidence and preview stay ignored in `.verification/student-explorer/`:
+`screenshots/native-light.png`, `screenshots/native-dark.png`,
+`screenshots/browser-proof.png`, portability scripts/receipt/export, and finite
+check logs. Source watcher3154 and browser proof3155 stay local. CUA uses a
+byte-for-byte disposable copy of installed VS Code at
+`.verification/student-explorer/Zero Explorer Preview.app`, with this checkout's
+`~/.zero-dev/9f89a72a9898/` profile, to distinguish older same-bundle instances.
+Original profiles/projects/checkouts and3153/3025 previews were preserved. All
+workers completed; no supported worker-runtime close API exists.
+
+Remaining: required owner visual review before default replacement. Physical
+Windows, minimum VS Code1.95, fresh Mac/school network, native transient-app
+pointer input and hosted authenticated library actions were not established by
+this scope. Existing release/ZeroJams holds remain. The matching tool-backed goal
+exists but its service status remains blocked after startup capacity failure;
+explicit user resume authorized the work, and the API exposes no resume action.
+Do not replace or falsely complete that goal.
+
 ## Git checks and native Git prototype accepted locally — 2026-10-25
 
 Reviewed implementation head9d68fc860a44af9021253597d721f79f157e66fe,

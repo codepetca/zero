@@ -56,21 +56,19 @@ the owner sees and accepts the concrete native proposal required by AGENTS.md.
 The preview must be fully functional before asking for that final review. A visual
 acceptance gate does not stop backend implementation or independent testing.
 
-Status: continuation owns isolated `student-explorer/zero` from exact local
-handoff b03ecdaa. Native preview/controller/manifest and selected library reference
-integration are implemented locally. Standard Explorer remains default. Focused
-162 checks, configuration/syntax check, Zero Dev smoke and scoped package/asset/
-local-component native compile plus real WebFX export pass. Real Mac package/class
-creation and source-linked compiler-error recovery are in progress; browser play,
-independent review and concrete owner visual review remain required.
+Status: implementation and scoped local acceptance complete through reviewed
+c8ce5cb2; required owner visual decision remains. Phases1–5 pass locally in the
+scope recorded in docs/EVIDENCE.md; phase6 source review/docs pass, with concrete
+native light/dark screenshots ready. Standard Explorer remains default. No source
+publication, account changes or release. Use the native preview and exact evidence
+rather than treating a successful WebFX build alone as browser play.
 
-Continuation orchestration receipt (2026-10-26): GPT-6.1 Sol/high model-hardening
-launch failed at capacity without edits; GPT-6 Sol/high completed the bounded
-model correction and a later ignored portability fixture; separate GPT-6 Sol/high
-worker completed sharing-editor contextual actions/reference guards (48 focused
-checks). Coordinator inspected the diffs and integrated them without conflicts.
-Requested configurations recorded; effective model/tokens are unknown. Startup
-weekly allowance 96% remaining and storage 227GB healthy; account usage is not
-task cost. The broad root suite was stopped after discovering it repeated the
-handoff-excluded Git recovery matrix; no full-suite pass is claimed. Detailed
-logs and the native preview are ignored under `.verification/student-explorer`.
+Continuation orchestration receipt (2026-10-26): first GPT-6.1 Sol/high worker
+launch failed at capacity without edits. GPT-6 Sol/high workers delivered model
+hardening, an ignored portability fixture and selected library/reference integration;
+coordinator inspected and tested delivery without conflicts. Four independent
+reviewer turns, two fix batches, clean final source. Effective model/tokens and
+individual worker elapsed time unknown. Startup allowance96% remaining; later93%
+remaining is account-wide, not task cost. Storage227GB healthy. Detailed logs,
+fixture scripts and native screenshots are ignored under
+`.verification/student-explorer`; docs/EVIDENCE.md records exact scope and limits.
