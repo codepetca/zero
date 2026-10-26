@@ -8,8 +8,8 @@ const {authoringLocation} = require('./explorer-labels');
 const hidden = new Set(['.git','target','node_modules','.ds_store','.zero-sharing-recovery','.zero','.zero-build','.zero-web']);
 const keywords = new Set(('abstract assert boolean break byte case catch char class const continue default do double else enum extends final finally float for goto if implements import instanceof int interface long native new package private protected public return short static strictfp super switch synchronized this throw throws transient try void volatile while true false null _ var yield record sealed permits').split(' '));
 const locations = [
-  {label:'Code',relative:'src/main/java'},
-  {label:'Assets',relative:'src/main/resources'},
+  {label:'java',relative:'src/main/java'},
+  {label:'resources',relative:'src/main/resources'},
   {label:'Other project files',relative:''}
 ];
 const key = value => value.normalize('NFC').toLowerCase();
@@ -83,7 +83,7 @@ function createFileCommands(vscode, {project,isBusy,setBusy,setState,output,refr
       const destinationError = destination => {
         const relative = path.relative(root,destination).split(path.sep).join('/');
         if (relative === '..' || relative.startsWith('../') || path.isAbsolute(relative) || relative.split('/').some(part=>hidden.has(key(part)))) return 'Choose a location inside this project.';
-        if (target.area === 'project' && /^(?:src\/main\/(?:java|resources)|libraries)(?:\/|$)/i.test(relative)) return 'Choose Code, Assets, or a local library folder for this file.';
+        if (target.area === 'project' && /^(?:src\/main\/(?:java|resources)|libraries)(?:\/|$)/i.test(relative)) return 'Choose java, resources, or a local library folder for this file.';
         if (/^src\/main\/java\/zero(?:\/|$)/i.test(relative)) return 'The zero package belongs to the framework. Choose your own package.';
         if (/^libraries(?:\/|$)/i.test(relative) && !target.libraryFolder) return 'Choose a local library folder before adding library files.';
         if (kind === 'package') {

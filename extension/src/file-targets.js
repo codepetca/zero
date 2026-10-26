@@ -38,7 +38,7 @@ async function resolveAuthoringTarget(root, context, kind) {
     if (!['code','assets','library-code','library-assets','project'].includes(context.area) || relativeError(context.relative)) throw Error('Choose a valid project folder.');
     area = context.area; relative = context.relative; libraryFolder = context.libraryFolder;
     if (area === 'project') {
-      if (libraryFolder !== undefined || /^(?:src\/main\/(?:java|resources)|libraries)(?:\/|$)/.test(relative)) throw Error('Choose Code, Assets, or a local library folder.');
+      if (libraryFolder !== undefined || /^(?:src\/main\/(?:java|resources)|libraries)(?:\/|$)/.test(relative)) throw Error('Choose java, resources, or a local library folder.');
       if (source || asset) {area = asset ? 'assets' : 'code'; relative = asset ? 'src/main/resources' : 'src/main/java';}
     } else if (!area.startsWith('library-') && libraryFolder !== undefined) throw Error('Choose a valid project folder.');
   }
@@ -57,7 +57,7 @@ async function resolveAuthoringTarget(root, context, kind) {
   }
   const assetBase = namespace ? `${resourceBaseRelative}/${namespace.replaceAll('.','/')}` : resourceBaseRelative;
   const selectedBase = area.endsWith('code') ? codeBase : area.endsWith('assets') ? assetBase : '';
-  if (area !== 'project' && !inside(relative,selectedBase)) throw Error('Choose a folder inside the selected Code or Assets area.');
+  if (area !== 'project' && !inside(relative,selectedBase)) throw Error('Choose a folder inside the selected java or resources area.');
   await validateDirectory(root,relative);
   if (context != null && relative !== selectedBase) {
     try {await fs.lstat(path.join(root,relative));} catch (error) {
@@ -66,7 +66,7 @@ async function resolveAuthoringTarget(root, context, kind) {
     }
   }
   if (asset && area.endsWith('code')) {relative = assetBase; area = libraryFolder ? 'library-assets' : 'assets';}
-  if (source && !area.endsWith('code')) throw Error('Choose Code or a Java package before adding a class or package.');
+  if (source && !area.endsWith('code')) throw Error('Choose java or a Java package before adding a class or package.');
   await validateDirectory(root,relative);
   let packageName;
   if (area.endsWith('code')) {

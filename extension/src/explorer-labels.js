@@ -7,8 +7,8 @@ function authoringLocation({area,baseRelative='',libraryFolder,libraryTitle}={})
   if(!code&&!assets)return ['Other project files',...baseRelative.split('/').filter(Boolean)].join(' › ');
   const base=`${libraryFolder?libraryFolder+'/':''}src/main/${code?'java':'resources'}`;
   let suffix=baseRelative===base?'':baseRelative.startsWith(base+'/')?baseRelative.slice(base.length+1):'';
-  // A local component's identity namespace is its virtual Code/Assets root.
+  // A local component's identity namespace is its virtual java/resources root.
   if(libraryFolder)suffix=suffix.split('/').slice(4).join('/');
-  return [...(libraryFolder?['Libraries',libraryTitle||libraryFolder.split('/').at(-1)]:[]),code?'Code':'Assets',...suffix.split('/').filter(Boolean)].join(' › ');
+  return [...(libraryFolder?['Libraries',libraryTitle||libraryFolder.split('/').at(-1)]:[]),code?'java':'resources',...suffix.split('/').filter(Boolean)].join(' › ');
 }
 module.exports={authoringLocation};

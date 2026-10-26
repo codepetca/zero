@@ -24,9 +24,9 @@ async function fixture(t,{remembered=new Map()}={}){
   const tree=createStudentExplorer(vscode,host);t.after(()=>{tree.dispose();files.dispose();});
   return {root,tree,vscode,calls,copied,logs,watchers,children:node=>tree.provider.getChildren(node),item:node=>tree.provider.getTreeItem(node),folderChange:()=>folderChange(),select:node=>{tree.tree.selection=node?[node]:[];selectionChange();},set current(v){current=v;},set busy(v){busy=v;},set name(v){name=v;}};
 }
-test('native roots lead with Code/Assets, conditionally show libraries and preserve other authored files',async t=>{
+test('native roots lead with java/resources, conditionally show libraries and preserve other authored files',async t=>{
   const f=await fixture(t);await put(f.root,'notes.txt','notes');await put(f.root,'.zero-build/tool.cjs');await put(f.root,'src/main/java/zero/contrib/r88/helper/Mine.java');
-  const roots=await f.children();assert.deepEqual(roots.map(n=>n.label),['Code','Assets','Other project files','Show all project files']);
+  const roots=await f.children();assert.deepEqual(roots.map(n=>n.label),['java','resources','Other project files','Show all project files']);
   const code=await f.children(roots[0]);assert.deepEqual(code.map(n=>n.label),['zero','Main.java']);
   assert.equal(f.item(code[1]).command.command,'zero.explorerOpenFile');
   assert.deepEqual((await f.children(roots[2])).map(n=>n.label),['notes.txt']);
@@ -43,8 +43,8 @@ test('selected packages create matching declarations through the guarded file co
 test('Project dropdown follows selected files and folders using simplified destinations',async t=>{
  const f=await fixture(t);await put(f.root,'src/main/java/game/characters/Existing.java','package game.characters; class Existing {}');
  let roots=await f.children();const game=(await f.children(roots[0])).find(n=>n.label==='game'),characters=(await f.children(game))[0],existing=(await f.children(characters))[0];
- f.select(existing);assert.equal(f.tree.tree.description,'Code › game › characters');
- assert.equal(f.item(existing).tooltip,'Code › game › characters › Existing.java');
+ f.select(existing);assert.equal(f.tree.tree.description,'java › game › characters');
+ assert.equal(f.item(existing).tooltip,'java › game › characters › Existing.java');
  assert.equal(f.item(existing).contextValue,'zeroCodeFile');
  f.name='MenuHelper';await f.tree.commands['zero.projectNewClass']();
  assert.match(await fs.readFile(path.join(f.root,characters.relative,'MenuHelper.java'),'utf8'),/^package game.characters;/);
@@ -52,7 +52,7 @@ test('Project dropdown follows selected files and folders using simplified desti
  assert.equal((await fs.stat(path.join(f.root,'src/main/resources/images'))).isDirectory(),true);
  assert.ok(f.calls.some(c=>c[0]==='setContext'&&c[1]==='zero.explorerCodeTarget'&&c[2]===false));
 });
-test('Project dropdown defaults to Code and refuses stale or foreign selections',async t=>{
+test('Project dropdown defaults to java and refuses stale or foreign selections',async t=>{
  const f=await fixture(t);f.name='DefaultHelper';await f.tree.commands['zero.projectNewClass']();
  assert.match(await fs.readFile(path.join(f.root,'src/main/java/DefaultHelper.java'),'utf8'),/public class DefaultHelper/);
  const roots=await f.children();f.select(roots[0]);f.tree.invalidate();
@@ -85,16 +85,16 @@ test('selected asset files copy exact classpath literals; previews use supported
 test('authored library virtual roots use identity namespaces and published copies cannot receive files',async t=>{
   const f=await fixture(t);await put(f.root,'src/main/java/Health.java','public class Health {}');await put(f.root,'LICENSE','MIT');
   await authoring.applyPlan(await authoring.previewExtraction(f.root,{repository:{id:'12345',ownerId:'123',owner:'student',name:'app',url:'https://github.com/student/app'},descriptor:{schema:1,kind:'library',slug:'health-bar',version:'1.0.0',title:'Health bar',description:'Health helper',license:'MIT',libraryKind:'helper'},sources:['src/main/java/Health.java']}));
-  const roots=await f.children(),library=(await f.children(roots[2]))[0],details=await f.children(library),code=details.find(n=>n.label==='Code'),assets=details.find(n=>n.label==='Assets');
-  assert.match(f.item(library).description,/1.0.0 · Local source/);assert.equal(f.item(code).tooltip,'Libraries › Health bar › Code');
+  const roots=await f.children(),library=(await f.children(roots[2]))[0],details=await f.children(library),code=details.find(n=>n.label==='java'),assets=details.find(n=>n.label==='resources');
+  assert.match(f.item(library).description,/1.0.0 · Local source/);assert.equal(f.item(code).tooltip,'Libraries › Health bar › java');
   assert.match(code.relative,/src\/main\/java\/zero\/contrib\/r12345\/health_bar$/);
   f.name='Extra';await f.tree.commands['zero.explorerNewClass'](code);assert.match(await fs.readFile(path.join(f.root,code.relative,'Extra.java'),'utf8'),/^package zero.contrib.r12345.health_bar;/);
   await authoring.applyPlan(await authoring.previewMode(f.root,{slug:'health-bar',mode:'published',version:'1.2.3'}));f.tree.invalidate();
   const library2=(await f.children((await f.children()).find(n=>n.kind==='libraries')))[0],published=await f.children(library2);
-  assert.match(f.item(library2).description,/1.2.3 · Published active/);assert.ok(published.some(n=>n.label==='Retained code (inactive)'));
-  assert.equal(f.item(published.find(n=>n.label==='Retained code (inactive)')).contextValue,'zeroReadonly');
-  await assert.rejects(f.tree.commands['zero.explorerNewClass'](published.find(n=>n.label==='Retained code (inactive)')),/Develop local/);
-  const retainedCode=published.find(n=>n.label==='Retained code (inactive)');
+  assert.match(f.item(library2).description,/1.2.3 · Published active/);assert.ok(published.some(n=>n.label==='java (retained, inactive)'));
+  assert.equal(f.item(published.find(n=>n.label==='java (retained, inactive)')).contextValue,'zeroReadonly');
+  await assert.rejects(f.tree.commands['zero.explorerNewClass'](published.find(n=>n.label==='java (retained, inactive)')),/Develop local/);
+  const retainedCode=published.find(n=>n.label==='java (retained, inactive)');
   await authoring.applyPlan(await authoring.previewMode(f.root,{slug:'health-bar',mode:'local'}));f.tree.invalidate();
   const activeChildren=await f.children(retainedCode),activeClass=activeChildren.find(n=>n.label==='Extra.java');
   assert.equal(f.item(activeClass).contextValue,'zeroCodeFile','Expanded old retained nodes derive writable state from current mode');
@@ -137,22 +137,22 @@ test('initial model errors retain watching and recover after external repair wit
   await put(f.root,'zero.json','{}');
   f.watchers[0].callbacks.onDidChange({fsPath:path.join(f.root,'zero.json')});
   await new Promise(resolve=>setTimeout(resolve,150));
-  assert.deepEqual((await f.children()).slice(0,2).map(n=>n.label),['Code','Assets']);
+  assert.deepEqual((await f.children()).slice(0,2).map(n=>n.label),['java','resources']);
   await put(f.root,'zero.json','{');f.tree.invalidate();assert.equal((await f.children())[0].kind,'message');
-  await put(f.root,'zero.json','{}');assert.equal((await f.children())[0].label,'Code','Failed loads are not permanently cached');
+  await put(f.root,'zero.json','{}');assert.equal((await f.children())[0].label,'java','Failed loads are not permanently cached');
 });
 
 test('a local library file-only rename keeps source navigable until its Java declaration is repaired',async t=>{
  const f=await fixture(t);await put(f.root,'src/main/java/Health.java','public class Health {}');await put(f.root,'LICENSE','MIT');
  await authoring.applyPlan(await authoring.previewExtraction(f.root,{repository:{id:'12345',ownerId:'123',owner:'student',name:'app',url:'https://github.com/student/app'},descriptor:{schema:1,kind:'library',slug:'health-bar',version:'1.0.0',title:'Health bar',description:'Health helper',license:'MIT',libraryKind:'helper'},sources:['src/main/java/Health.java']}));
- let roots=await f.children(),library=(await f.children(roots.find(n=>n.kind==='libraries')))[0],code=(await f.children(library)).find(n=>n.label==='Code'),health=(await f.children(code)).find(n=>n.label==='Health.java');
+ let roots=await f.children(),library=(await f.children(roots.find(n=>n.kind==='libraries')))[0],code=(await f.children(library)).find(n=>n.label==='java'),health=(await f.children(code)).find(n=>n.label==='Health.java');
  f.vscode.WorkspaceEdit=class{renameFile(from,to){this.from=from;this.to=to;}};
  f.vscode.workspace.applyEdit=async edit=>{await fs.rename(edit.from.fsPath,edit.to.fsPath);return true;};
  const renamer=createRenameCommands(f.vscode,{project:async()=>f.root,isBusy:()=>false,setBusy:()=>{},setState:()=>{},refreshFiles:()=>f.tree.invalidate()});t.after(()=>renamer.dispose());
  f.name='Better.java';await renamer.commands['zero.renameStudentFile']({root:f.root,relative:health.relative,area:health.area,libraryFolder:health.libraryFolder});
- roots=await f.children();assert.equal(roots[0].label,'Code');library=(await f.children(roots.find(n=>n.kind==='libraries')))[0];
+ roots=await f.children();assert.equal(roots[0].label,'java');library=(await f.children(roots.find(n=>n.kind==='libraries')))[0];
  assert.match(f.item(library).description,/Fix Java names/);const details=await f.children(library);assert.ok(details.some(n=>n.label==='Match Java class and file names'));
- code=details.find(n=>n.label==='Code');const better=(await f.children(code)).find(n=>n.label==='Better.java');
+ code=details.find(n=>n.label==='java');const better=(await f.children(code)).find(n=>n.label==='Better.java');
  await f.tree.commands['zero.explorerOpenFile'](better);assert.match(f.calls.at(-1)[1].fsPath,/Better.java$/);
  // The same guarded rename can restore the filename without requiring full Explorer.
  f.name='Health.java';await renamer.commands['zero.renameStudentFile']({root:f.root,relative:better.relative,area:better.area,libraryFolder:better.libraryFolder});

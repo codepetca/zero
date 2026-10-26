@@ -44,7 +44,7 @@ async function selectedFile(root, context, model) {
   if (area === 'project') {
     if (libraryFolder !== undefined || inside(relative,'src/main/java') ||
         inside(relative,'src/main/resources') || inside(relative,'libraries'))
-      throw Error('Select this file from its Code, Assets, or local library area.');
+      throw Error('Select this file from its java, resources, or local library area.');
     // A nested query alone can bypass a hidden ancestor. Walk the same filtered
     // hierarchy that builds Other project files, including the root entry.
     let directory = '';

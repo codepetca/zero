@@ -64,7 +64,7 @@ function createStudentExplorer(vscode, host) {
       const snapshot=await load();
       if(!snapshot)return [];
       if(!parent) {
-        const result=[folder(snapshot,'Code',snapshot.codeRoot,'code'),folder(snapshot,'Assets',snapshot.assetsRoot,'assets')];
+        const result=[folder(snapshot,'java',snapshot.codeRoot,'code'),folder(snapshot,'resources',snapshot.assetsRoot,'assets')];
         if(snapshot.libraries.length)result.push(node({kind:'libraries',root:snapshot.root,label:'Libraries'}));
         if(snapshot.otherEntries.length)result.push(node({kind:'other',root:snapshot.root,label:'Other project files'}));
         result.push(allFiles());return result;
@@ -82,8 +82,8 @@ function createStudentExplorer(vscode, host) {
         const result=[...(library.sourceIssues?.length?[node({kind:'message',label:'Match Java class and file names',detail:library.sourceIssues.join('\n')})]:[]),action('Imports and examples…','zero.libraryReference',context),action('Copy imports','zero.copyLibraryImports',context)];
         if(library.folder) {
           const retained=library.mode!=='local',namespace=library.namespace.replaceAll('.','/');
-          result.push(folder(snapshot,retained?'Retained code (inactive)':'Code',`${library.sourceRoot}/${namespace}`,'library-code',library,retained));
-          result.push(folder(snapshot,retained?'Retained assets (inactive)':'Assets',`${library.folder}/src/main/resources/${namespace}`,'library-assets',library,retained));
+          result.push(folder(snapshot,retained?'java (retained, inactive)':'java',`${library.sourceRoot}/${namespace}`,'library-code',library,retained));
+          result.push(folder(snapshot,retained?'resources (retained, inactive)':'resources',`${library.folder}/src/main/resources/${namespace}`,'library-assets',library,retained));
           for(const [label,relative]of [['README',library.readme],['Examples',library.examplesRoot],['Checks',library.checksRoot]])if(relative) {
             if(label==='README')result.push(node({kind:'file',root:snapshot.root,label,relative,retained:true}));
             else result.push(folder(snapshot,retained?`${label} (retained)`:label,relative,undefined,library,true));
@@ -108,7 +108,7 @@ function createStudentExplorer(vscode, host) {
   }
   function item(value) {
     const branch=['folder','libraries','library','other'].includes(value.kind);
-    const result=new vscode.TreeItem(value.label,branch ? (['Code','Assets'].includes(value.label)&&!value.libraryId?expanded:collapsed) : vscode.TreeItemCollapsibleState.None);
+    const result=new vscode.TreeItem(value.label,branch ? (['java','resources'].includes(value.label)&&!value.libraryId?expanded:collapsed) : vscode.TreeItemCollapsibleState.None);
     result.id=`${value.root||''}:${value.kind}:${value.relative||value.libraryId||value.command||value.label}`;
     result.description=value.description;
     result.tooltip=value.detail||(value.relative?authoringLocation({area:value.area,baseRelative:value.relative,libraryFolder:value.libraryFolder,libraryTitle:value.libraryTitle}):value.description||value.label);
@@ -153,7 +153,7 @@ function createStudentExplorer(vscode, host) {
     const writable=!selected||!selected.retained&&(selected.kind!=='library'||library?.mode==='local');
     const area=selected?.kind==='other'?'project':selected?.area;
     const relative=selected?.kind==='file'?path.posix.dirname(selected.relative):selected?.relative;
-    tree.description=library?`Libraries › ${library.title} › Code`:authoringLocation({area:area||'code',baseRelative:relative??(area==='project'?'':'src/main/java'),libraryFolder:selected?.libraryFolder,libraryTitle:selected?.libraryTitle});
+    tree.description=library?`Libraries › ${library.title} › java`:authoringLocation({area:area||'code',baseRelative:relative??(area==='project'?'':'src/main/java'),libraryFolder:selected?.libraryFolder,libraryTitle:selected?.libraryTitle});
     for(const [key,value]of [['zero.explorerWritable',writable],['zero.explorerCodeTarget',writable&&(!selected||area?.endsWith('code')||selected.kind==='library')],['zero.explorerAssetTarget',writable&&area!=='project']])void vscode.commands.executeCommand('setContext',key,Boolean(value));
   }
   async function createSelected(command) {
@@ -162,11 +162,11 @@ function createStudentExplorer(vscode, host) {
     if(target?.kind==='library') {
       const snapshot=await fresh(target),library=snapshot.libraries.find(lib=>lib.id===target.libraryId);
       if(!library||library.mode!=='local')throw Error('Use Develop local library before adding files to its source.');
-      target=folder(snapshot,'Code',`${library.sourceRoot}/${library.namespace.replaceAll('.','/')}`,'library-code',library);
+      target=folder(snapshot,'java',`${library.sourceRoot}/${library.namespace.replaceAll('.','/')}`,'library-code',library);
     }
     if(!target) {
       const snapshot=await load();if(!snapshot||disposed)throw Error('The project view changed. Select a folder again.');
-      target=folder(snapshot,'Code',snapshot.codeRoot,'code');
+      target=folder(snapshot,'java',snapshot.codeRoot,'code');
     }
     return create(command,target);
   }

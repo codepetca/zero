@@ -130,14 +130,14 @@ test('continual exclusive-create races stop after a bounded number of distinct c
  }finally{mock.mock.restore();}
 });
 
-test('selected app Assets folder imports and copies classpath paths, with collisions scoped to that folder',async t=>{
+test('selected app resources folder imports and copies classpath paths, with collisions scoped to that folder',async t=>{
  const f=await uiFixture(t),nested=path.join(f.folder,'images');await fs.mkdir(nested,{recursive:true});
  await fs.writeFile(path.join(f.folder,'coin.wav'),'unrelated app asset');await fs.writeFile(path.join(nested,'COIN.wav'),'existing nested asset');
  f.setChoice({policy:'keep'});
  const result=await f.commands.commands['zero.importAssets']({root:f.root,area:'assets',relative:'src/main/resources/images'});
  assert.equal(result.imported[0].path,path.join(nested,'coin (2).wav'));assert.equal(result.imported[0].javaPath,'"/images/coin (2).wav"');
  assert.equal(await fs.readFile(path.join(nested,'COIN.wav'),'utf8'),'existing nested asset');assert.equal(await fs.readFile(path.join(f.folder,'coin.wav'),'utf8'),'unrelated app asset');
- await f.commands.commands['zero.copyImportedAssetPaths']();assert.equal(f.copied,'"/images/coin (2).wav"');assert.match(f.logs[0],/src\/main\/resources\/images/);assert.equal(f.dialogs.length,1);assert.equal(f.dialogs[0].title,'Import assets into Assets › images');
+ await f.commands.commands['zero.copyImportedAssetPaths']();assert.equal(f.copied,'"/images/coin (2).wav"');assert.match(f.logs[0],/src\/main\/resources\/images/);assert.equal(f.dialogs.length,1);assert.equal(f.dialogs[0].title,'Import assets into resources › images');
 });
 async function localLibrary(f) {
  const {previewExtraction,applyPlan}=require('../src/sharing/authoring');
@@ -154,9 +154,9 @@ test('local library import uses its derived namespace and classpath root, includ
  result=await f.run({sources,destination:nested});assert.equal(result.imported[0].path,path.join(f.root,nested.relative,'badge.png'));assert.equal(result.imported[0].javaPath,'"/zero/contrib/r12345/health_bar/images/badge.png"');
  await assert.rejects(fs.stat(path.join(f.folder,'badge.png')),/ENOENT/);
 });
-test('New asset from a library Code folder selects namespaced resources without another chooser',async t=>{
+test('New asset from a library java folder selects namespaced resources without another chooser',async t=>{
  const f=await uiFixture(t),assets=await localLibrary(f),destination={...assets,area:'library-code',relative:'libraries/health-bar/src/main/java/zero/contrib/r12345/health_bar'};
- const result=await f.commands.commands['zero.importAssets'](destination);assert.equal(result.imported[0].javaPath,'"/zero/contrib/r12345/health_bar/coin.wav"');assert.equal(f.dialogs.length,1);assert.equal(f.dialogs[0].title,'Import assets into Libraries › Health bar › Assets');assert.equal(f.busy(),false);
+ const result=await f.commands.commands['zero.importAssets'](destination);assert.equal(result.imported[0].javaPath,'"/zero/contrib/r12345/health_bar/coin.wav"');assert.equal(f.dialogs.length,1);assert.equal(f.dialogs[0].title,'Import assets into Libraries › Health bar › resources');assert.equal(f.busy(),false);
 });
 test('selected destination refuses foreign project, traversal, source/core areas, symlinks and stale folders before picker',async t=>{
  const f=await uiFixture(t);await fs.mkdir(f.folder,{recursive:true});await fs.symlink(f.source,path.join(f.folder,'linked'));
@@ -171,7 +171,7 @@ test('selected destination refuses foreign project, traversal, source/core areas
 });
 test('library import rejects unnamespaced and published destinations without changing files',async t=>{
  const f=await fixture(t),destination=await localLibrary(f),sources=await f.files();
- await assert.rejects(f.run({sources,destination:{...destination,relative:'libraries/health-bar/src/main/resources'}}),/selected Code or Assets area/);
+ await assert.rejects(f.run({sources,destination:{...destination,relative:'libraries/health-bar/src/main/resources'}}),/selected java or resources area/);
  const {previewMode,applyPlan}=require('../src/sharing/authoring');await applyPlan(await previewMode(f.root,{slug:'health-bar',mode:'published',version:'1.0.0'}));
  await assert.rejects(f.run({sources,destination}),/local mode/);await assert.rejects(fs.stat(path.join(f.root,destination.relative,'coin.wav')),/ENOENT/);
 });

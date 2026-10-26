@@ -92,7 +92,7 @@ test('New package uses dotted folders and selected classes declare their exact p
   assert.equal(await fs.readFile(path.join(f.root,context.relative,'Player.java'),'utf8'),'package game.characters;\n\npublic class Player {\n\n}\n');
   f.name='enemies.bosses';await f.run('Package',context);
   assert.equal((await fs.stat(path.join(f.root,context.relative,'enemies/bosses'))).isDirectory(),true);
-  assert.equal(f.pickers.length,0);assert.equal(f.prompts.at(-1).prompt,'In Code › game › characters');
+  assert.equal(f.pickers.length,0);assert.equal(f.prompts.at(-1).prompt,'In java › game › characters');
   f.name='game.characters';await assert.rejects(f.run('Package'),/already exists/);
 });
 test('package names are portable Java identifiers and framework packages remain protected',async t=>{
@@ -102,7 +102,7 @@ test('package names are portable Java identifiers and framework packages remain 
   for(const name of ['zero','zero.ui','Zero.contrib.mine']){f.name=name;await assert.rejects(f.run('Package'),/framework/);}
   await fs.mkdir(path.join(f.root,'src/main/java/zero/ui'),{recursive:true});
   f.name='Player';await assert.rejects(f.run('Class',{root:f.root,area:'code',relative:'src/main/java/zero/ui'}),/framework/);
-  f.location=2;f.name='src/main/java/zero/New.java';await assert.rejects(f.run('File'),/Choose Code/);
+  f.location=2;f.name='src/main/java/zero/New.java';await assert.rejects(f.run('File'),/Choose java/);
   f.name='libraries/unmanaged/Other.java';await assert.rejects(f.run('File'),/local library/);
 });
 test('selected assets and project folders bypass the picker but cannot forge code or library targets',async t=>{
@@ -110,12 +110,12 @@ test('selected assets and project folders bypass the picker but cannot forge cod
   const context={root:f.root,area:'assets',relative:'src/main/resources/images'};
   f.name='notes.txt';await f.run('File',context);assert.equal(await fs.readFile(path.join(f.root,context.relative,'notes.txt'),'utf8'),'');
   f.name='nested';await f.run('Folder',context);assert.equal(f.pickers.length,0);
-  await assert.rejects(f.run('Class',context),/Choose Code/);
+  await assert.rejects(f.run('Class',context),/Choose java/);
   for(const forged of [
     {...context,root:f.base}, {...context,relative:'../outside'}, {...context,relative:'/tmp'}, {...context,relative:'src/main/java'},
     {...context,relative:'src/main/resources/missing'}, {...context,area:'project',relative:'libraries/nope'},
     {...context,libraryFolder:'libraries/nope'}, {...context,area:'library-code',libraryFolder:'../outside'}
-  ])await assert.rejects(f.run('File',forged),/project|folder|Code|Assets|library/);
+  ])await assert.rejects(f.run('File',forged),/project|folder|java|resources|library/);
 });
 test('selected descendant deletion and symlink replacement while prompting are refused',async t=>{
   for(const change of ['delete','symlink']) {
@@ -140,11 +140,11 @@ test('validated local library namespace permits classes and dotted subpackages w
   f.name='display.styles';await f.run('Package',context);
   f.name='Widget';await f.run('Class',{...context,relative:context.relative+'/display/styles'});
   assert.match(await fs.readFile(path.join(f.root,context.relative,'display/styles/Widget.java'),'utf8'),/^package zero.contrib.r12345.health_bar.display.styles;/);
-  for(const relative of ['libraries/health-bar/src/main/java','libraries/health-bar/src/main/java/zero/ui','libraries/health-bar/src/main/java/zero/contrib/r999/health_bar'])await assert.rejects(f.run('Class',{...context,relative}),/selected Code/);
+  for(const relative of ['libraries/health-bar/src/main/java','libraries/health-bar/src/main/java/zero/ui','libraries/health-bar/src/main/java/zero/contrib/r999/health_bar'])await assert.rejects(f.run('Class',{...context,relative}),/selected java/);
   const asset=await resolveAuthoringTarget(f.root,context,'asset');
   assert.equal(asset.baseRelative,'libraries/health-bar/src/main/resources/zero/contrib/r12345/health_bar');
   assert.equal(asset.resourceBaseRelative,'libraries/health-bar/src/main/resources');
-  await assert.rejects(resolveAuthoringTarget(f.root,{...context,area:'library-assets',relative:asset.resourceBaseRelative},'asset'),/selected Code or Assets/);
+  await assert.rejects(resolveAuthoringTarget(f.root,{...context,area:'library-assets',relative:asset.resourceBaseRelative},'asset'),/selected java or resources/);
 });
 test('library mode changes during the prompt stop creation and published libraries reject authoring',async t=>{
   const f=await fixture(t),context=await localLibrary(f);
@@ -154,11 +154,11 @@ test('library mode changes during the prompt stop creation and published librari
   await assert.rejects(resolveAuthoringTarget(f.root,context,'folder'),/local mode/);
 });
 
-test('Other project files cannot enter Code or Assets through slash-separated names',async t=>{
+test('Other project files cannot enter java or resources through slash-separated names',async t=>{
  const f=await fixture(t);await fs.mkdir(path.join(f.root,'src/main/web'),{recursive:true});
  for(const name of ['java/game/Extra.java','resources/image.png']) {
-  f.name=name;await assert.rejects(f.run('File',{root:f.root,area:'project',relative:'src/main'}),/Choose Code, Assets/);
+  f.name=name;await assert.rejects(f.run('File',{root:f.root,area:'project',relative:'src/main'}),/Choose java, resources/);
  }
- f.name='src/main/java/Extra.java';await assert.rejects(f.run('File',{root:f.root,area:'project',relative:''}),/Choose Code, Assets/);
+ f.name='src/main/java/Extra.java';await assert.rejects(f.run('File',{root:f.root,area:'project',relative:''}),/Choose java, resources/);
  assert.deepEqual(await fs.readdir(path.join(f.root,'src/main')),['web']);
 });

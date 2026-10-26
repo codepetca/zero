@@ -8,6 +8,10 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner naming refinement,2026-10-26: show `java` and `resources` in the student
+project tree and destination prompts, matching the real folder basenames. Keep
+Libraries and its grouping unchanged.
+
 Owner refinement,2026-10-26: in the Student Explorer, remove the ZeroHub
 and New controls from the controls panel. Creation belongs in the native Project
 header's New menu and tree context menus; ZeroHub belongs in the Project overflow.

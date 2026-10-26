@@ -642,8 +642,8 @@ Both control views share the renderer but keep independent document lifecycles.
 The student controls omit the ZeroHub and New dropdowns. The native Project
 header supplies an anchored **New (+)** dropdown for the selected folder. A
 selected file targets its containing folder; without a selection, creation starts
-in Code. Its description and name prompts use the visible hierarchy, such as
-**Code › game › characters** or **Libraries › Health bar › Assets**, while the
+in java. Its description and name prompts use the visible hierarchy, such as
+**java › game › characters** or **Libraries › Health bar › resources**, while the
 project keeps its ordinary Java source/resource layout. The dropdown limits
 choices to that area. Right-click files or folders for contextual creation;
 editable files also expose **Rename file…**. Rename uses a guarded native
@@ -657,11 +657,11 @@ Project overflow retains ZeroHub's guarded browser. Actions revalidate current
 project/tree targets before opening the name prompt. File creation then targets
 the containing folder, revalidated before mutation; subsequent removal of the
 original sibling file does not change that destination.
-**Show all project files** opens the full Explorer without disabling the preview;
+**Show all project files** opens the full Explorer without changing the selected mode;
 the Zero status-bar action returns to the active controls. **Zero: Use Standard
-Explorer** disables the preview. No host layout storage or private APIs are used.
+Explorer** selects the standard layout. No host layout storage or private APIs are used.
 
-Code and Assets map to actual source/resource roots. Selected file actions
+java and resources map to actual source/resource roots. Selected file actions
 re-resolve current project, Java package, local library identity and mode through
 the authoring resolver. Installed dependencies have no editable source tree;
 retained authored source in published mode is labeled inactive. Tree expansion

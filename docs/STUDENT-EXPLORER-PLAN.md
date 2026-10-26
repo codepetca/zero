@@ -13,13 +13,13 @@ Creation uses the native Project header’s New… (+) menu and tree context men
 ZeroHub lives in Project’s overflow; neither control appears in the student
 controls panel (owner refinement,2026-10-26). New opens an anchored dropdown,
 uses the selected file’s parent or selected folder, and names destinations using
-the visible Code/Assets/package hierarchy. File right-click menus also offer
+the visible java/resources/package hierarchy. File right-click menus also offer
 Rename file; this changes the basename only and explicitly leaves Java class
 names/references for the student to update. No cross-folder moves or automatic
 Java refactor engine are included.
 
-Code and Assets are always visible. Code presents Main, student classes and Java
-packages; Assets maps to the app's real resource directory. Libraries appears only
+java and resources are always visible. java presents Main, student classes and Java
+packages; resources maps to the app's real resource directory. Libraries appears only
 when a project has an added or authored component. Added libraries show their exact
 version; authored components show whether local code or a published pin is active.
 Component details expose existing development, check and sharing actions only when
@@ -41,7 +41,7 @@ rename rewriting, editable forks, automatic dependency updates or new publicatio
 
 | Phase | Deliverable | Acceptance |
 | --- | --- | --- |
-| 1 | Native Code/Assets tree, conditional Libraries, other authored files and full Explorer | Source roots are simple; exact core files hidden without hiding student zero.contrib; project switches/external edits refresh; no file access lost |
+| 1 | Native java/resources tree, conditional Libraries, other authored files and full Explorer | Source roots are simple; exact core files hidden without hiding student zero.contrib; project switches/external edits refresh; no file access lost |
 | 2 | New package and selected-package New class/file/folder | Matching Java declarations/directories; default Main-adjacent creation preserved; source boundaries, symlinks, collisions and stale roots refused |
 | 3 | Selected app/component asset destinations | Correct classpath-relative strings, namespaced library resources, cancellation/keep-both/skip and no-overwrite guards retained |
 | 4 | Contextual library details/imports/examples and existing actions | Exact active version/mode is visible; source inspection cannot silently modify installed dependency; no network merely expanding tree; same checker/publication gates |

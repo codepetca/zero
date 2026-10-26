@@ -30,7 +30,7 @@ function pin(pom) {
     .replace('</dependencies>',`<!-- zero-sharing lib-r88-score-display dependency start -->\n<dependency><groupId>ca.codepet.zero.contrib.r88</groupId><artifactId>score-display</artifactId><version>1.2.3</version></dependency>\n<!-- zero-sharing lib-r88-score-display dependency end -->\n</dependencies>`)
     .replace('</project>',`<repositories>\n<!-- zero-sharing repository start -->\n<repository><id>zero-sharing</id><url>https://artifacts.example/maven</url><releases><enabled>true</enabled></releases><snapshots><enabled>false</enabled></snapshots></repository>\n<!-- zero-sharing repository end -->\n</repositories></project>`);
 }
-test('ordinary legacy project: Code, Assets and unknown authored files remain accessible',async t=>{
+test('ordinary legacy project: java, resources and unknown authored files remain accessible',async t=>{
   const root=await fixture(t);
   await put(root,'src/main/resources/pictures/player.png','asset');
   await put(root,'notes/design.txt','student design');

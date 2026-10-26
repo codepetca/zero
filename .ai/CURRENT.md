@@ -9,7 +9,7 @@ activation, deploy, credential change or release is authorized.
 
 Owner continued after the functional native preview and requested refinements.
 Local source now defaults to Student Explorer, preserving an explicit Standard
-Explorer preference per workspace. Supported native Code/Assets tree, conditional
+Explorer preference per workspace. Supported native java/resources tree, conditional
 Libraries, Other files/full Explorer return, package-aware creation, selected
 asset destinations, exact imports/examples and guarded existing library actions
 are integrated. Project New is a native dropdown; destinations use the visible
