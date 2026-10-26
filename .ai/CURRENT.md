@@ -1,33 +1,29 @@
-# Git checks and native Git prototype accepted locally
+# Website beta, policies and mobile interaction — PR preparation
 
-Worktree `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/git-flow-efficiency`.
-Reviewed sourcehead9d68fc86, basea9fb85c4. Owner authorized implementation/prototype
-and full student-flow testing. No sourcepush, PRupdate/merge, publishing or release.
-PR203 stays open/unmerged at7e4c2231 with prior11greenchecks; those are not CI for
-this new source. Current completion receipt is local only.
+Worktree `website-beta-notice/zero`, branch `codex/website-beta-notice`.
+Owner requested PR and merge2026-10-25 for the reviewed website changes. Rebased
+onto current main3bab71a0; documentation conflict retains both evidence histories.
 
-Implemented: private exact-session identity receipts with locked storage rereads,
-full capture validation; pending-signout gate closes fresh-session resurrection.
-No duplicate repository access before guarded transport; exact existing main SHA
-skips download. Student UI/guarded actions preserved. DefaultOFF native Git
-adapter requires explicit UserSettings/trust/Askpass isolation. Public Git
-readiness events retry registration; signout/config/trust/disposal invalidate it.
-Prototype requires verified empty effective Githelpers: helpers can persist tokens,
-Askpass separately caches60s, host-wide authority and generic prompts remain.
+Beta chip opens risks/backups/repository responsibility. Separate plain Privacy
+and Terms pages use footer links under a rule; Terms stays explicitly draft/not
+an effective agreement. Privacy source inventory documents unknown deployed
+retention/provider settings; no new collector, assent or guardian flow. Root and
+current export/Jam MIT notices clarify Codepet Inc.; MIT body and old releases stay.
+Landing duplicates/Windows warning sentence removed; unsigned button label stays.
+Mobile shared navigation overlays without layout shift, including readable source.
 
-Accepted: initialAstrahigh+Sol6.1high review3P2 fixed in1batch, Astrahigh targeted
-review clean/7independentregressions.3launches/1initialwave/1targetedwave/1batch.
-Current147focusedtests+npmcheck pass; priorfullsuite1201pass/3skip reused for
-unchangedpaths. SyntheticREST144→22newbranch/180→25merge, not livelatency.
-Actual isolatedMac public-command flow passed sign-in/branch/edit/nativeRun/UI_READY/
-Stop/localbarecommitpushmergecleanup/SCMreturn/signout. Actual nativeAskpass
-requested samefixtureZero credential onread-onlyGitHubrefusal; no realtoken/upload.
-Owned QA host retired. Existing Zero Dev reloaded; actual sidebar/Start Page ready
-for armorup/my-greeting, main and two unpushed commits retained. No prototype
-opt-in or settings changes in that profile. Receipts `.verification/git-flow-efficiency/`, docsEVIDENCE/
-VERIFICATION. Fullclick/minVSCode/Windows/liveupload/school-network gaps remain.
+Owner reported slow Docs contents. Memoized document boundary and stable jump
+callbacks stop navigation-only state from re-rendering all193entries. Simulated
+6xCPU mobile dev toggle samples384–912ms before,83–101ms after; same6784nodes.
+Search/category/hash/Advanced focus/navigation checks pass; not physicaliPhone data.
+Final local240website tests/typecheck/build, npmcheck and20API-reference tests pass.
+Prior kit/license11tests and all UI/source reviews are retained in docs/EVIDENCE.md.
+Next: fixed-head integration/performance review, draft PR, full selected CI and
+merge, then verify merged revision and resulting website deployment.
 
-Next: owner sourcePR/CI decision, then separate live-account pilot/release.
-Keep my-greeting and existingDev3153/profiles, primaryfundingwork, preview3025,
-backups/sealedartifacts. PublishedMac50/core0.3.0/manualkit17/Windows21/ZeroJams
-hold unchanged. DeepSeek paused through2026-12-31. No newgoal/task/automation.
+Prior Git-flow work is in mergedPR203/204 and docs/EVIDENCE.md. Its native Git
+prototype stays defaultOFF. Preserve my-greeting/Dev3153/profiles, primary funding
+work, preview3025, private backups and sealed assets. Tailnet3148 source preview
+remains useful. PublishedMac50/core0.3.0/manualkit17/Windows21 and production
+ZeroJams hold unchanged. DeepSeek paused through2026-12-31. No installer release,
+account/permission/settings changes, newgoal/task/automation are authorized here.

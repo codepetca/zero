@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { AccountMenu } from "@/components/AccountMenu";
 import { HubGitHubProvider } from "@/components/HubGitHub";
+import { LegalFooter } from "@/components/LegalFooter";
 
 const key = "zero-learn-theme";
 const choices = new Set(["system", "light", "dark"]);
@@ -55,6 +56,7 @@ export function LearnTheme({ children, active }) {
     <HubGitHubProvider><div className="learn-theme" data-theme={theme}>
       <PageHeader active={active} actions={<AccountMenu dark={dark} onToggleTheme={toggleTheme} />} />
       {children}
+      <LegalFooter />
     </div></HubGitHubProvider>
   );
 }

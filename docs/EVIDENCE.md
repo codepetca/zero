@@ -1,5 +1,217 @@
 # Delivery evidence index
 
+## Docs contents responsiveness and owner-authorized PR — 2026-10-25
+
+Owner authorized PR/merge, then reported slow expand/collapse in Docs. Source
+showed navigation state re-rendering every Markdown entry. `ApiContent` is now a
+memoized document boundary; reveal/jump callbacks are stable and search results
+memoized. Active-link/Advanced changes still update the document; sidebar Contents,
+category and query changes reuse it. No Java/API content or anchors removed.
+
+Chromium390px dev,6xCPU, click→secondanimationframe,6samples: before912/393/887/
+412/867/384ms; after101/92/83/95/100/101ms. Both193entries/6784documentnodes. This
+is simulated local CPU evidence, not actual iPhone/touch or production latency.
+Scripts and before-source/timings are ignored in `output/playwright/docs-*` and
+`.verification/docs-contents-lag/`. Browser checks pass category expand/collapse,
+search→anchor+focus, Advanced hash/entry jump/closed-section reopening and desktop
+search. Harness fixes used stable category controls and direct summary selectors;
+no production behavior was weakened for those selectors.
+
+All240website tests,20focused API-reference tests, typecheck, productionwebpack
+build, npmcheck and whitespace pass. Rebased onto3bab71a0 after preserving both
+EVIDENCE histories in the only conflict; PRODUCT merged cleanly. Earlier complete
+policy/license reviews and targeted UI reviews remain applicable to unchanged
+source. Final integration/performance review and exact-head selected CI remain
+merge gates; PR/CI/merge receipts are recorded in the task and ignored publication
+receipt. No new collector, legal agreement activation or release/version change.
+Weekly74%remaining and healthy229.6GB at PR start; account-wide usage is not task
+cost. Owner's nativeGit prototype/pilot/release/Jams holds remain unchanged.
+
+## Windows sentence removal and shared mobile dropdown — 2026-10-25
+
+Owner removed the separate Windows unsigned-warning sentence, then requested a
+mobile options dropdown instead of in-flow navigation. Downloads removes the
+sentence and its aria-describedby reference; unsigned button label, exact release
+URLs, manualZIP and detailed requirements remain. Updated UI guideline records
+owner override. Typecheck,9focused download tests and whitespace pass; independent
+beta_review/windows-removal requested GPT6Luna/medium complete/clean.
+
+Navigation now uses an absolute mobile dropdown shared by every PageHeader,
+including the unthemed readable-source viewer. Desktop links remain inline.
+Pointer/focus outside, Escape, link choice and leaving mobile breakpoint close it;
+Escape restores toggle focus. Listeners are cleaned up. Generic shared CSS owns
+positioning/bounds/themefallback/scroll/shadow, learned theme only overrides gap.
+No new dependency, account action, publication or broad source behavior change.
+
+Chromium390/320light/dark verifies unchanged heading position, bounds, outside/
+Escape/focus restoration, keyboardTab/focusout and desktop→mobile reset. Docs/
+Learn/Hub verify unobscured hit targets and account/dropdown mutual dismissal;
+600x320landscape fits. Source Main.java route390/320 verifies absoluteposition,
+unchanged mainy/nooverflow andEscape. Warning sentence absent, unsignedbutton
+present. Screenshots visually inspected; ignored `output/playwright/mobile-dropdown-*`.
+An initial Hub network-idle wait timed out on background requests; harness now
+waits for known theme hydration instead. No product timeout weakening.
+
+Independent terms_review/mobile-initial requested GPT6.1Sol/high found1P2: initial
+styles covered learned shell only, missing source viewer. Coordinator inspected
+its PageHeader caller, moved styles to globals in1fixbatch and verified source.
+terms_review/mobile-css targeted review complete/clean;0remaining findings.
+Final typecheck/whitespace pass. Effective models/token/time telemetry unknown.
+Prior legal/license evidence reused; no duplicate full suite/installer build.
+Tailnet3148dev preview updated. Physical iPhone/Safari and assistive technology
+remain untested; no claim of public deployment or selected OS/device acceptance.
+
+## Clean landing and automatic footer year — 2026-10-25
+
+Owner requested removing extra landing Privacy/Terms and asked for automatic
+copyright. Downloads paragraph/unused CSS removed, footer links retained. Display
+is ©2026Zero by Codepet; client mount updates to2026–current when later, retaining
+first-publication year and hydration-stable initial markup on static pages.
+No legal effective dates or source-license years change. Canadian CIPO guidance
+confirms notice optional and identifies first-publication year; this is displayed
+attribution, not a claim of automatic copyright renewal/registration.
+Website typecheck,9focused download tests and whitespace pass. Chromium320/390px
+checks confirm no policy links in main/downloads, footer links/layout/no overflow;
+390px screenshot inspected. Browser clock2027 +reload gives2026–2027 without a
+build. Artifact ignored `output/playwright/footer-year-check.cjs` and
+`landing-clean-390.png`; logs `/tmp/zero-footer-year-*`. Independent beta_review/5
+GPT6Luna/medium requested targeted review complete/clean,0findings/fixbatches;
+effective model/tokens/elapsed unknown. No full-suite duplication, source-license
+change, publication or account action. Same tailnet3148dev preview; no physical
+Safari/iPhone claim.
+
+## Plain separate policy pages — 2026-10-25
+
+Owner rejected confusing boxed Privacy/Terms overview/navigation. Removed overview
+cards, LegalNavigation, in-page policy TOCs and policy summary/draft box styling;
+account policy item removed. Footer Privacy/Terms and download/Beta notices link
+directly to the separate pages. Old `/legal` redirects to `/privacy`. Legal/privacy
+wording and strong draft status retained. Product/inventory/status docs match.
+Website typecheck,9focused published-kit tests and whitespace pass. Chromium12cases
+(two pages ×light/dark×1280/390/320) verify no extra main nav/cards/boxes, no overflow,
+draft status, redirect and footer links.390px screenshots visually inspected;
+ignored `output/playwright/policy-simple-*`. Tailnet dev3148 refreshed; no deploy.
+Independent beta_review/4 requested GPT6Luna/medium complete targeted UI/link review
+clean,1turn/0findings/0fixbatches; effective model/tokens/elapsed unknown. Prior
+content/license review retained; no duplicated full suite. Safari/physical iPhone
+and assistive technology remain untested. No publication or account changes.
+
+## Footer rule and short links — 2026-10-25
+
+Owner requested a horizontal rule with Privacy, Terms and Zero by Codepet below.
+`LegalFooter.tsx` now uses a semantic hr and one centered wrapping row; footer
+CSS uses the shared line/muted tokens and44px link targets. Legal content is
+unchanged. Website typecheck/whitespace pass; Chromium1280/390/320px light/dark
+verifies separator order, exact labels/destinations and no horizontal overflow.
+390px footer screenshots inspected, ignored `output/playwright/footer-*`.
+Independent beta_review/3 requested GPT6Luna/medium complete two-file/footer-shell
+review clean; one targeted turn,0findings/fixbatches, effective model/usage/elapsed
+unknown. No repeated full suite or installer build for this styling-only delta.
+Tailnet-only100.123.28.60:3148 now runs the source dev preview for iPhone refresh;
+loopback3147 retains the previous production build. No public deploy or Git push.
+Safari/physicaliPhone not directly tested. Previous policy/license evidence retained.
+
+## Privacy and Terms section with corporate MIT notice — 2026-10-25
+
+Owner requested implementation of the agreed recommendations. Local `/legal`
+overview links permanent `/privacy` and `/terms` pages; shared footer has direct
+Privacy/Terms links and account/download/Beta links open the overview. Terms
+remain conspicuous draft/not effective with no recorded agreement. Privacy covers
+browser/desktop GitHub identity and credentials, local state, public sharing,
+aggregate counters, providers, retention/deletion limits, young users and requests.
+[Source inventory](PRIVACY-DATA.md) separates implemented behavior from unknown
+live provider/retention/region/backup settings and operational arrangements.
+No new collector, auth/API behavior, consent registry, guardian flow or Jam
+production activation. No claim of legal compliance or immunity.
+
+MIT standard body unchanged; root, current Zero web-export notice and Jam template
+LICENSE clarify Codepet Inc. and match byte-for-byte. Jam source copyright comment
+and corresponding assertion match. Older/migrated library and third-party notices,
+immutable release assets and public downloads are preserved.11kit tests verify
+current assembled-license propagation without a new installer or version bump.
+
+Checks: npmruncheck, website typecheck, all240website tests,14focused published-kit/
+Jam-template tests,11kit tests, final webpack production build and whitespace pass.
+First kit invocation lacked rootfflate; reused same pinned actor dependencies
+through an ignored rootnode_modules symlink, then all11passed. No install needed.
+Chromium18route/theme/viewport cases: legal/privacy/terms ×light/dark×1280/390/320,
+internal anchors, footer links, download→overview, account/Beta link visibility/
+Escape, overview→privacy and footer→terms; no horizontal overflow.320px dark with
+root200% and body32px remains readable and final contact reachable. Desktop light
+and enlarged dark screenshots inspected; final production routes return successfully.
+Safari/WebKit, physical touch, assistive tech, deployed-settings and legal review
+remain unverified. Preview3147 serves final build; ignored `output/playwright/policy-*`
+and `/tmp/zero-privacy-*` contain scripts/screenshots/logs.
+
+Bounded privacy_inventory/1 requested GPT6.1Sol/medium, read-only source audit;
+coordinator verified representative auth/counter/log/permission paths before use.
+Independent terms_review/3 requested GPT6.1Sol/high, full cumulative diff against
+010ae629 complete/clean; reviewer independently ran14focused tests/whitespace and
+verified policy sources/notices. This phase1initial wave,0review findings/fixbatches;
+effective models/tokens/elapsed unavailable. Prior two terms/beta phases retain
+their receipts. Healthy229.5GB at start; weekly allowance checked, task-cost
+attribution unavailable. Primary checkout and unrelated work preserved. No push,
+PR, merge, deploy, public release/account writes, new task/goal/automation.
+
+## Proposed enduring terms and disclaimer — 2026-10-25
+
+Owner requested user awareness/protection for Codepet beyond beta. Local draft
+`/terms` covers desktop tools, ZeroHub/websites, data loss/backups, student-owned
+repositories, public material, acceptable use, third parties, warranty exclusions,
+proposed liability cap and mandatory-law exceptions. Prominent draft/not-effective
+status; no agreement recorded, OAuth change, publication or claim of immunity.
+Permanent footer/account/download links are independent of the Beta chip; beta
+links to the same terms. Counsel/commercial/minor/consent/privacy decisions and
+primary legal sources are recorded in [LEGAL-TERMS.md](LEGAL-TERMS.md).
+
+Final website240tests, typecheck, webpack production build and whitespace pass.
+Two old download assertions counted every link and disallowed every paragraph;
+updated to preserve exactly two platform button links and require the legal
+notice, with9focused tests then all240passing. Chromium terms page checks:
+light/dark1280/390/320px, section anchors, download/footer/beta navigation,
+account-menu link visibility/Escape, no page horizontal overflow. Final production
+320px dark text-enlargement check explicitly doubles body to32px and root to200%,
+waits for repaint, captures top/liability and reaches final contact section.
+Desktop light and enlarged dark screenshots visually inspected. Initial screenshot
+was mid-scroll/root-only sizing and is superseded. A dev-navigation hydration race
+in the harness was resolved by waiting for network idle before clicking Beta;
+no product-code workaround. Safari/WebKit, physical touch, screen readers and
+legal enforceability remain unverified. Ignored artifacts `output/playwright/terms-*`;
+logs `/tmp/zero-terms-*`. Preview3147 serves the final production build.
+
+Independent terms_review/1 requested GPT6.1Sol/high: complete cumulative diff
+against010ae629 reviewed clean, focused9tests and whitespace independently pass.
+One launch/initial wave, no findings or review fixes; effective model/tokens/elapsed
+unknown. Earlier beta-review coverage retained. No pushes, PR, deploys, external
+messages, account/data writes, new task/goal/automation. Primary funding work is
+preserved; task changes remain on local `codex/website-beta-notice`.
+
+## Website beta notice — 2026-10-25
+
+Local change based on `010ae629`, isolated in `website-beta-notice/zero`;
+primary funding checkout preserved. Shared header adds a Beta chip and native
+modal explaining Zero/ZeroHub beta availability, possible data loss/removal,
+backups and user responsibility for GitHub repositories and published apps.
+Product wording is synchronized. No push, PR, merge, deployment or account writes.
+
+Verification: website TypeScript and all240tests pass; production webpack build
+passes. Chromium browser checks cover `/`, `/hub`, `/docs`, `/learn` at1280/390/320px,
+modal open/Close/Escape, focus restoration, no background control focus or page
+horizontal overflow, and200%text in the320px notice. Light/dark screenshots
+inspected. Physical touch, Safari/WebKit and assistive technology remain untested.
+Shared dependencies were reused from the actor worktree; Turbopack rejects this
+outside-root symlink, so preview/build use supported `--webpack` without source
+configuration changes. Screenshots/check script: ignored `output/playwright/`;
+full test/build logs: `/tmp/zero-beta-*.log`.
+
+Independent GPT6Luna/medium review: complete three-file initial review clean;
+coordinator screenshot caught inherited mobile Brand ordering, fixed with one
+specificity override. Targeted CSS review clean; final browser checks repeated.
+Two reviewer turns, one fixbatch, no remaining findings. Effective model, tokens
+and reviewer elapsed unavailable. Weekly80%remaining and healthy230GB cached
+storage at start; no task-cost inference. Browser harness corrections covered
+native browser-chrome focus and geometric comparisons, with no production change.
+
 ## Git checks and native Git prototype accepted locally — 2026-10-25
 
 Reviewed implementation head9d68fc860a44af9021253597d721f79f157e66fe,
