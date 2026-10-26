@@ -37,8 +37,9 @@ Official state is separate from game/library sharing. The hosted writer uses
 
 `migrate()` is an explicit operator method, never called by runtime requests. It
 atomically copies existing legacy event bytes, creates the ledger, and replaces
-the old `jams/` tree with the marker; other files/history remain. Conflicts recopy
-from a fresh snapshot. Old writers cannot change the v2 event namespace. If an
+the old `jams/` tree with the marker; other files/history remain. The guarded operator call supplies `expectedRevision` and aborts on drift or
+publication conflict; inspect a fresh plan before applying again. Unguarded test
+migrations can recopy from a fresh snapshot. Old writers cannot change the v2 event namespace. If an
 unexpected legacy write replaces the marker, v2 fails closed rather than importing
 it. GitHub's exact Contents parent-file traversal behavior remains a provider
 acceptance limit; correctness does not rely on that request being rejected.
@@ -150,9 +151,16 @@ inside creator frames. Top-level pages have anti-framing headers. No tokens pass
 through parent messages; plain secure links/popups suffice. Preserve blocked-popup
 fallback and readable unavailable state. Do not fake successful joins in previews.
 
-Client recovery stores only the public form, operation ID and close intent in
-session storage. A lost close reply/reload retries closing, never the original
+Client recovery stores only the public form and an atomic operation-ID/close-mode
+value in session storage. If saving/readback fails, no new request is dispatched;
+editing still works and the existing uncertain request is retained. A lost close reply/reload retries closing, never the original
 action. Clear keys only after matching configured operation/scope/outcome; an
 ordinary 4xx retry,503, malformed response or authentication error does not settle
 an unknown. Not-applied outcomes preserve drafts and refresh current details.
 A later new action uses a fresh ID. Controls work only on a direct trusted page.
+
+Normal HTTP requests remain bounded to16384 bytes. Close accepts up to17408 bytes
+for its wrapper, while reconstructing and enforcing the original16384-byte request
+bound. Large valid multibyte forms can therefore close without changing their
+immutable payload. The read-only preflight recognizes the exact public v2 marker
+and audits its pinned event namespace; legacy layout explicitly requires migration.

@@ -5,6 +5,8 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {resolve} from 'node:path';
+import {createHash} from 'node:crypto';
+import {JAM_REGISTRY_PROTOCOL_MARKER} from '../jams/registry-protocol.mjs';
 import {jamDeploymentPolicy} from '../website/lib/jams-pilot-policy.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -90,17 +92,30 @@ export async function pilotPreflight({env = process.env, pilot, audit = false,
       {status:'pass',publicRecords:true} : null);
   await inspect('registryBranch','gh',gh(`/repos/${target.repository}/git/ref/heads/${target.registryBranch}`),data =>
     data?.ref === `refs/heads/${target.registryBranch}` && /^[a-f0-9]{40}$/.test(data.object?.sha || '') ?
-      {status:'pass',exists:true} : null);
-  await inspect('registryNamespace','gh',gh(`/repos/${target.repository}/contents/jams?ref=${target.registryBranch}`),data => {
+      {status:'pass',exists:true,head:data.object.sha} : null);
+  await inspect('registryNamespace','gh',gh(`/repos/${target.repository}/contents/jams?ref=${report.audit.registryBranch?.head||target.registryBranch}`),data => {
     if (data?.httpStatus === 404) return report.audit.registryBranch?.exists === true ?
-      {status:'pass',empty:true,records:0} : {status:'unknown',reason:'namespace-404-without-verified-branch'};
+      {status:'blocked',protocol:'legacy',migrationRequired:true,empty:true,records:0,reason:'atomic-protocol-migration-required'} : {status:'unknown',reason:'namespace-404-without-verified-branch'};
+    if(data?.type==='file'&&data.path==='jams'&&data.encoding==='base64'&&typeof data.content==='string'&&data.content.length<=2048){
+      const bytes=Buffer.from(data.content,'base64'),sha=createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
+      return bytes.toString('base64')===data.content.replace(/[\r\n]/g,'')&&bytes.equals(Buffer.from(JAM_REGISTRY_PROTOCOL_MARKER))&&data.sha===sha&&data.size===bytes.length?{status:'observed',protocol:'atomic-v2'}:{status:'blocked',reason:'registry-protocol-marker-invalid'};
+    }
     if (!Array.isArray(data)) return null;
     const valid = data.length <= 2 && data.every(item => item?.type === 'file' &&
       /^jam-[1-9][0-9]{0,19}\.json$/.test(item.name || '') && item.path === `jams/${item.name}` &&
       /^[a-f0-9]{40}$/.test(item.sha || '')) && new Set(data.map(item => item.name)).size === data.length;
-    return valid ? {status:'pass',empty:data.length === 0,records:data.length} :
+    return valid ? {status:'blocked',protocol:'legacy',migrationRequired:true,empty:data.length===0,records:data.length,reason:'atomic-protocol-migration-required'} :
       {status:'blocked',reason:'registry-namespace-invalid-or-over-capacity'};
   });
+  if(report.audit.registryNamespace?.protocol==='atomic-v2') {
+    const head=report.audit.registryBranch?.head;
+    if(!head)report.audit.registryNamespace={status:'unknown',reason:'atomic-namespace-without-verified-branch'};
+    else await inspect('registryNamespace','gh',gh(`/repos/${target.repository}/contents/zero-jams-v2/events?ref=${head}`),data=>{
+      if(data?.httpStatus===404)return {status:'pass',protocol:'atomic-v2',empty:true,records:0};
+      const valid=Array.isArray(data)&&data.length<=2&&data.every(item=>item?.type==='file'&&/^jam-[1-9][0-9]{0,19}\.json$/.test(item.name||'')&&item.path===`zero-jams-v2/events/${item.name}`&&/^[a-f0-9]{40}$/.test(item.sha||''))&&new Set(data.map(item=>item.name)).size===data.length;
+      return valid?{status:'pass',protocol:'atomic-v2',empty:data.length===0,records:data.length}:{status:'blocked',reason:'atomic-namespace-invalid-or-over-capacity'};
+    });
+  }
   await inspect('writerApp','gh',gh(`/apps/${writerAppSlug || 'codepet-zero'}`),data => {
     if (!writerAppSlug) return {status:'unknown',reason:'dedicated-writer-app-slug-required'};
     if (!id(env.ZERO_JAMS_APP_ID) || String(data?.id) !== env.ZERO_JAMS_APP_ID ||

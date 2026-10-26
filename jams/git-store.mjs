@@ -4,7 +4,8 @@ import {decodeGitHubBlob} from './github-source.mjs';
 import {credential,githubRequest} from './github-transport.mjs';
 import {JAM_REGISTRY_REPOSITORY,JAM_REGISTRY_BRANCH,JAM_PILOT_REGISTRY_BRANCH} from './github-store.mjs';
 
-export const JAM_REGISTRY_PROTOCOL_MARKER='{"schema":2,"protocol":"zero-jams-atomic-git-v1","events":"zero-jams-v2/events","settlements":"zero-jams-v2/settlements.json"}\n';
+import {JAM_REGISTRY_PROTOCOL_MARKER} from './registry-protocol.mjs';
+export {JAM_REGISTRY_PROTOCOL_MARKER} from './registry-protocol.mjs';
 const ROOT=`/repos/${JAM_REGISTRY_REPOSITORY}`;
 const V2='zero-jams-v2',EVENTS=`${V2}/events`,SETTLEMENTS=`${V2}/settlements.json`;
 const unavailable=()=>fail(503,'Official jam records are unavailable.');
@@ -120,9 +121,12 @@ export function createAtomicGitHubJamStore({token,fetchImpl=fetch,timeoutMs=8000
     if(ledger!==undefined)changes.push([SETTLEMENTS,bytesFor(ledger)]);
     return publish(base,changes,id===null?'ZeroJams close request':`ZeroJams ${id}`);
   }
-  async function migrate(){
+  async function migrate({expectedRevision}={}){
+    if(expectedRevision!==undefined&&!SHA.test(expectedRevision))fail(400,'An exact planned registry revision is required.');
     for(let attempt=0;attempt<LIMITS.retries;attempt++){
-      const base=await rootAt(await head()),legacy=base.root.get('jams');
+      const revision=await head();
+      if(expectedRevision!==undefined&&revision!==expectedRevision)fail(409,'The registry changed. Inspect a fresh migration plan before applying.');
+      const base=await rootAt(revision),legacy=base.root.get('jams');
       if(legacy?.type==='blob'){
         const bytes=await blob(regular(legacy),1024);
         if(!bytes.equals(Buffer.from(JAM_REGISTRY_PROTOCOL_MARKER)))fail(503,'The jam registry protocol marker is invalid.');
@@ -138,6 +142,7 @@ export function createAtomicGitHubJamStore({token,fetchImpl=fetch,timeoutMs=8000
       }
       changes.push([SETTLEMENTS,bytesFor(validateSettlements({schema:1,operations:{}}))],['jams',Buffer.from(JAM_REGISTRY_PROTOCOL_MARKER)]);
       if(await publish(base,changes,'ZeroJams atomic registry migration'))return snapshot();
+      if(expectedRevision!==undefined)fail(409,'The registry changed. Inspect a fresh migration plan before applying.');
     }
     fail(409,'The jam registry changed repeatedly. Retry migration after checking active writers.');
   }

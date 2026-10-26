@@ -11,9 +11,10 @@ final registration joined. Recovery stays available after reload and distinguish
 historical confirmation from new intent, including another-device Leave.
 
 The local durable-settlement candidate adds explicit close/recover outcomes,
-atomic branch transactions and a guarded registry migration.147 jam/269 website
+atomic branch transactions and a guarded registry migration.154 jam/272 website
 tests, typecheck/build and actual Chrome lost-close/reload recovery pass locally.
-Two independent reviews and protected-preview activation are next. Cross-browser,
+Two independent reviews identified three corrected P2s; targeted delta review
+and protected-preview activation are next. Cross-browser,
 school-network and provider-cost acceptance remain open. No production rollout
 or main merge is authorized.
 

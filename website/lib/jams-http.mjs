@@ -30,7 +30,7 @@ async function serviceFor(options, sourceToken) {
   return options.service ?? await createJamRuntime({...options,sourceToken});
 }
 
-async function bodyJson(request) {
+async function bodyJson(request,maxBytes=16_384) {
   const reader = request.body?.getReader();
   if (!reader) throw new JamError(400,'Enter the request details.');
   const chunks = []; let size = 0;
@@ -39,7 +39,7 @@ async function bodyJson(request) {
       const value = await reader.read();
       if (value.done) break;
       size += value.value.byteLength;
-      if (size > 16_384) throw new JamError(413,'This request is too large. Shorten the project details.');
+      if (size > maxBytes) throw new JamError(413,'This request is too large. Shorten the project details.');
       chunks.push(value.value);
     }
   } finally { await reader.cancel().catch(() => {}); }
@@ -111,10 +111,11 @@ async function postResponse(request, id, proposal, inputOptions,settlement=false
   if (!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(request.headers.get('content-type') || ''))
     return json({error:'Expected JSON request details.'},415);
   try {
-    const body = await bodyJson(request);
+    const body = await bodyJson(request,settlement?17_408:16_384);
     const allowed = settlement?new Set(['operationId','scope','payload']):proposal ? proposalKeys : actionKeys;
     if (Object.keys(body).some(key => !allowed.has(key)) || !proposal && !settlement && !actions.has(body.action))
       return json({error:'This jam request contains unsupported details.'},400);
+    if(settlement&&Buffer.byteLength(JSON.stringify({operationId:body.operationId,...body.payload}))>16_384)return json({error:'The original request is too large.',configured:true},413);
     // Session identity is sealed, but an expired/revoked GitHub authorization
     // must not continue accepting official actions for the remaining cookie age.
     const user = await githubUser(session.token,options.fetchImpl);

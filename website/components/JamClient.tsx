@@ -67,7 +67,12 @@ function useTopLevel() {
 const pendingOperations=new Map<string,string>(),closingOperations=new Set<string>(),mutationLocks=new Set<string>(),mutationListeners=new Set<()=>void>();
 const operationPrefix='zero-jam-operation:';
 function operationRecords(actor:string,path:string) {
-  try {for(let i=0;i<sessionStorage.length;i++) {const key=sessionStorage.key(i);if(key?.startsWith(operationPrefix)){const signature=key.slice(operationPrefix.length),value=sessionStorage.getItem(key);if(value&&/^[0-9a-f-]{36}$/.test(value))pendingOperations.set(signature,value);}}}catch {/* In-memory recovery remains available. */}
+  try {for(let i=0;i<sessionStorage.length;i++) {
+    const key=sessionStorage.key(i);if(!key?.startsWith(operationPrefix))continue;
+    const signature=key.slice(operationPrefix.length),saved=sessionStorage.getItem(key);let operationId=saved,closing=false;
+    if(saved&&!/^[0-9a-f-]{36}$/.test(saved))try {const record=JSON.parse(saved);if(record?.closing===true){operationId=record.operationId;closing=true;}}catch {/* Ignore malformed records. */}
+    if(typeof operationId==='string'&&/^[0-9a-f-]{36}$/.test(operationId)){pendingOperations.set(signature,operationId);if(closing)closingOperations.add(signature);}
+  }}catch {/* Existing in-memory recovery remains available, but sending requires saved intent. */}
   const records:{signature:string;operationId:string;payload:Mutation}[]=[];
   for(const [signature,operationId] of pendingOperations)try {const [owner,endpoint,payload]=JSON.parse(signature);if(owner===actor&&endpoint===path&&payload&&typeof payload==='object'&&!Array.isArray(payload)){try{if(sessionStorage.getItem('zero-jam-closing:'+signature)===operationId)closingOperations.add(signature);}catch{/* Memory remains available. */}records.push({signature,operationId,payload});}}catch {/* Ignore invalid legacy records. */}
   return records;
@@ -90,9 +95,12 @@ function useMutation(path:string) {
     closing=closing||closingOperations.has(signature);
     const requestScope=path==='/api/jams/proposals'?'proposals':/^\/api\/jams\/(jam-[1-9][0-9]{0,19})\/actions$/.exec(path)?.[1];
     if(!requestScope){feedbackFor('This request cannot be safely resolved here. Open the official Zero page.');return null;}
-    if(closing){closingOperations.add(signature);try{sessionStorage.setItem('zero-jam-closing:'+signature,operationId);}catch{/* Keep the close intent in memory. */}}
-    pendingOperations.set(signature,operationId);
-    try{sessionStorage.setItem(operationPrefix+signature,operationId);}catch {/* Retry still retains its in-memory key. */}
+    // One atomic value carries identity and close intent. Do not send if a
+    // reload could lose that intent and accidentally resume the original action.
+    const saved=closing?JSON.stringify({operationId,closing:true}):operationId;
+    try {sessionStorage.setItem(operationPrefix+signature,saved);if(sessionStorage.getItem(operationPrefix+signature)!==saved)throw new Error('Recovery storage unavailable');}
+    catch {feedbackFor('Your browser could not save this request for recovery. No new request was sent. Keep this page open and make session storage available, then retry.');return null;}
+    pendingOperations.set(signature,operationId);if(closing)closingOperations.add(signature);
     setRestored(true);mutationLocks.add(scope);notifyMutations();feedbackFor('');
     function clear(){pendingOperations.delete(signature);closingOperations.delete(signature);try{sessionStorage.removeItem(operationPrefix+signature);sessionStorage.removeItem('zero-jam-closing:'+signature);}catch {/* No credential data is stored. */}}
     try {

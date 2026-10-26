@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {JAM_REGISTRY_PROTOCOL_MARKER} from '../jams/registry-protocol.mjs';
 import {pilotPreflight,main,target} from './zerojams-pilot-preflight.mjs';
 const sentinel = 'SENTINEL_PRIVATE_VALUE_DO_NOT_RETURN';
 const policy = () => ({schema:1,status:'enabled',origin:'https://pilot-test.vercel.app',projectId:target.projectId,
@@ -116,12 +118,20 @@ test('registry audit rejects source checkout namespace and treats 404 as empty o
     const audit = await auditNamespace(namespace);
     assert.equal(audit.registryNamespace.status,'blocked'); noSecrets(audit);
   }
-  assert.equal((await auditNamespace([valid])).registryNamespace.status,'pass');
+  assert.equal((await auditNamespace([valid])).registryNamespace.migrationRequired,true);
   const empty = await auditNamespace({httpStatus:404});
-  assert.equal(empty.registryNamespace.status,'pass'); assert.equal(empty.registryNamespace.empty,true);
+  assert.equal(empty.registryNamespace.status,'blocked');assert.equal(empty.registryNamespace.migrationRequired,true); assert.equal(empty.registryNamespace.empty,true);
   const unknown = await auditNamespace({httpStatus:404},false);
   assert.equal(unknown.registryBranch.status,'unknown');
   assert.equal(unknown.registryNamespace.status,'unknown'); noSecrets(unknown);
   // A normal successful object saying 'Not Found' is not a directory or HTTP proof.
   assert.equal((await auditNamespace({message:'Not Found'})).registryNamespace.status,'unknown');
+});
+
+
+test('atomic registry audit recognizes the verified marker and reads only the pinned v2 namespace',async()=>{
+  const bytes=Buffer.from(JAM_REGISTRY_PROTOCOL_MARKER),marker={type:'file',path:'jams',encoding:'base64',size:bytes.length,sha:createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex'),content:bytes.toString('base64')},head='a'.repeat(40),calls=[];
+  const runner=async(_cmd,args)=>{calls.push(args[1]);if(args[1]?.includes('/git/ref/'))return {ref:`refs/heads/${target.registryBranch}`,object:{sha:head}};if(args[1]?.includes('/contents/jams?'))return marker;if(args[1]?.includes('/contents/zero-jams-v2/events?'))return [{type:'file',name:'jam-1.json',path:'zero-jams-v2/events/jam-1.json',sha:'b'.repeat(40)}];throw Error(sentinel);};
+  const result=await pilotPreflight({env:environment(),pilot:policy(),audit:true,runner});assert.equal(result.audit.registryNamespace.status,'pass');assert.equal(result.audit.registryNamespace.records,1);assert.equal(result.audit.registryNamespace.protocol,'atomic-v2');assert.ok(calls.includes(`/repos/${target.repository}/contents/zero-jams-v2/events?ref=${head}`));noSecrets(result);
+  const invalid=await pilotPreflight({env:environment(),pilot:policy(),audit:true,runner:async(cmd,args)=>args[1]?.includes('/contents/jams?')?{...marker,sha:'f'.repeat(40)}:runner(cmd,args)});assert.equal(invalid.audit.registryNamespace.status,'blocked');noSecrets(invalid);
 });

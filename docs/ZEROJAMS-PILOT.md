@@ -479,7 +479,8 @@ requests with no verified numeric event ID can therefore be closed safely.
 Migration plan is prepared, not applied: branch zero-jams-pilot-registry at
 ce130103b5b84968c83982516104826c88a260a0; event blobs da80b9e90e7ede6fa2b217addda0f8d544e2661f
 and4c4d7639b8f3d1637604acfdcaabca77bf4837ec; guard44b8ccc2c1613f96ecc1c434ed0232f32a4c726f.
-The explicit operator migration copies them unchanged into zero-jams-v2/events,
+The explicit operator migration pins that planned head through publication and
+aborts on drift/conflict. It copies them unchanged into zero-jams-v2/events,
 adds the bounded ledger and replaces the legacy jams directory with an exact
 protocol marker. The old namespace never supplies v2 authority. If an unexpected
 legacy write recreates that directory, the missing marker halts v2; no data is
@@ -488,7 +489,7 @@ GitHub [trees](https://docs.github.com/en/rest/git/trees) and
 [non-forced ref updates](https://docs.github.com/en/rest/git/refs) define the new
 commit mechanism. Its sibling conflicts are exercised by the loopback fixture.
 
-All147 jam/269 website tests and typecheck/build pass locally. Tests include
+All154 jam/272 website tests and typecheck/build pass locally. Tests include
 both race orders, paused proposal/submission source verification, no fake event,
 missing events, lost socket/malformed/timed-out close replies, capacity separation,
 malformed state, current identity/CSRF, cross-scope key reuse, older-client409
@@ -505,7 +506,13 @@ reaches/activates Close. Physical mobile/WebKit/zoom/school networks remain open
 Ignored evidence: settlement-browser/receipt.json, screenshots and settlement-*.log
 under .verification/zerojams-pilot.
 
-NEXT: two independent source reviews (correctness/security and compatibility),
-then protected Preview deployment, explicit migration, settle the existing legacy
+Two independent reviews of5117611d completed: Astra/high correctness/security
+and Sol6.1/high compatibility. Three deduplicated P2s were accepted: enforce
+planned head through actual migration publication, allow bounded close-wrapper
+overhead for valid near16KiB multibyte forms, and persist close mode atomically
+with its key (block dispatch on storage failure). One remediation batch adds
+regressions for all three. Read-only preflight also recognizes/pins v2 namespace
+metadata so migration does not leave a false legacy-layout audit failure.
+Targeted independent delta review is next, then protected Preview deployment, explicit migration, settle the existing legacy
 test request without changing either closed event, verify production15jam404/
 Hub200/no jam link and exact-head CI. No main merge or production rollout.

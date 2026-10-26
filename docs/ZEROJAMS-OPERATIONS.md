@@ -127,7 +127,9 @@ Use **Resolve earlier request** to retry the same action. If the request cannot
 be completed, **Close earlier request** atomically recovers its accepted result
 or durably prevents it from applying. This does not undo a completed Join or
 submission; review current details afterward. A lost close reply/reload keeps
-closing, even if the event becomes eligible again. Keep drafts and do not manually
+closing, even if the event becomes eligible again. Closing mode and operation ID
+are one saved value; if recovery storage cannot be confirmed, Zero sends no new
+request and explains that storage must be made available first. Keep drafts and do not manually
 clear keys or invent fresh ones until the outcome is confirmed. Authentication,
 provider failures and exhausted settlement capacity retain the pending request.
 
@@ -141,7 +143,8 @@ fixed branch/head, event blob hashes and deployment guard, then within applicabl
 owner authority run `--apply --expected-head=<planned SHA>`. The CLI uses the
 existing GitHub CLI session without exporting credentials. New runtime fails
 closed until migration; expect a brief controlled-preview maintenance interval.
-Migration copies event bytes and preserves unrelated files/history. Record the
+The planned head is enforced through publication; drift/conflict aborts and
+requires a fresh plan. Migration copies event bytes and preserves unrelated files/history. Record the
 new head and matching file/guard hashes. Never roll back to the old Contents
 writer or recreate `jams/`; disable the pilot if a rollback is needed and retain
 the v2 ledger/marker. Production and all invitation/App/secret settings stay held.

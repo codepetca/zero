@@ -306,3 +306,17 @@ test('a durable409 terminal closes the pending key while keeping a moderation re
   let mode='unknown';const storage=new Map(),h=harness({storage,effects:true,fetcher:async(url,init)=>{if(mode==='unknown')throw Error('unknown');const body=JSON.parse(init.body);return Response.json({configured:true,eventId:'jam-42',operationId:body.operationId,scope:'jam-42',settlement:'not-applied',status:'not-applied'},{status:409});}});
   const props={id:'jam-42',event:{revision:'accepted',moderation:{status:'active'}},onChanged:async()=>{}};const render=()=>h.render('Moderation',props);render();h.flushEffects();elements(render()).find(n=>n.type==='textarea').props.onChange({target:{value:'Keep this public reason'}});elements(render()).find(n=>n.type==='button'&&n.props.children==='Suspend jam').props.onClick();await new Promise(setImmediate);mode='closed';elements(render()).find(n=>n.type==='button'&&n.props.children==='Suspend jam').props.onClick();await new Promise(setImmediate);assert.equal(elements(render()).find(n=>n.type==='textarea').props.value,'Keep this public reason');assert.ok([...storage.keys()].every(key=>!key.startsWith('zero-jam-operation:')));
 });
+
+
+test('quota failure blocks closing before dispatch; saved close intent remains atomic and survives loss/reload',async()=>{
+  class QuotaStorage extends Map {blocked=false;set(key,value){if(this.blocked&&key.startsWith('zero-jam-operation:')&&value.startsWith('{'))throw Error('quota');return super.set(key,value);}}
+  const storage=new QuotaStorage(),calls=[];let confirm=false;const fetcher=async(url,init)=>{const body=JSON.parse(init.body);calls.push({url,...body});if(!confirm)throw Error('lost before commit');return Response.json({configured:true,operationId:body.operationId,scope:'jam-42',settlement:'not-applied',status:'not-applied'});};
+  let h=harness({storage,fetcher});await h.render().send({action:'join',revision:'a'});const id=calls[0].operationId;storage.blocked=true;
+  assert.equal(await h.render().close(),null);assert.equal(calls.length,1,'unpersisted close is never dispatched');assert.match(h.render().error,/No new request was sent/);assert.equal(h.render().closing,false);
+  storage.blocked=false;await h.render().close();assert.equal(calls.length,2);assert.equal(calls[1].url,'/api/jams/settlements');assert.deepEqual(JSON.parse([...storage.values()][0]),{operationId:id,closing:true});assert.equal(storage.size,1,'identity and close mode use one atomic value');
+  h=harness({storage,fetcher});confirm=true;await h.render().retry();assert.equal(calls.at(-1).url,'/api/jams/settlements');assert.equal(calls.at(-1).operationId,id);assert.equal(storage.size,0);
+});
+test('unavailable recovery storage blocks a new consequential request before dispatch',async()=>{
+  class Unavailable extends Map {set(){throw Error('unavailable');}}
+  let calls=0;const h=harness({storage:new Unavailable(),fetcher:async()=>{calls++;return Response.json({});}});assert.equal(await h.render().send({action:'join',revision:'a'}),null);assert.equal(calls,0);assert.match(h.render().error,/No new request was sent/);assert.equal(h.render().pending,undefined);
+});

@@ -38,9 +38,9 @@ export async function atomicGitHttpFixture(t,{maxEvents=100,timeoutMs=2000}={}){
     const data={tree,parents,message,serial:++serial},sha=hash('commit',Buffer.from(JSON.stringify(data)));
     commits.set(sha,data);return sha;
   }
-  const initial=new Map([['README.md',addBlob(Buffer.from('preserve this registry readme\n'))],['website/vercel.json',addBlob(Buffer.from('{"cleanUrls":true}\n'))]]);
+  const initial=new Map([['README.md',addBlob(Buffer.from('preserve this registry readme\n'))],['website/vercel.json',addBlob(Buffer.from(JSON.stringify({git:{deploymentEnabled:{[ATOMIC_REGISTRY_BRANCH]:false}}})+'\n'))]]);
   f.head=addCommit(addTree(initial),[],'fixture initial');
-  const filesAt=()=>flatten(commits.get(f.head).tree);
+  const filesAt=(revision=f.head)=>flatten(commits.get(revision).tree);
   Object.defineProperty(f,'files',{get:()=>new Map([...filesAt()].map(([path,sha])=>[path,Buffer.from(blobs.get(sha))]))});
   Object.defineProperty(f,'records',{get:()=>new Map([...f.files].flatMap(([path,bytes])=>{const match=/^(?:zero-jams-v2\/events|jams)\/(jam-[1-9][0-9]*)\.json$/.exec(path);return match?[[match[1],bytes]]:[];}))});
   f.state=(id='jam-101')=>JSON.parse(f.records.get(id));
@@ -87,7 +87,7 @@ export async function atomicGitHttpFixture(t,{maxEvents=100,timeoutMs=2000}={}){
       const contentPath=path.startsWith(`${ROOT}/contents/`)?path.slice(`${ROOT}/contents/`.length):null;
       if(contentPath!==null){
         if(req.method==='GET'){
-          assert.equal(url.searchParams.get('ref'),ATOMIC_REGISTRY_BRANCH);const files=filesAt(),sha=files.get(contentPath);
+          const ref=url.searchParams.get('ref');assert.ok(ref===ATOMIC_REGISTRY_BRANCH||commits.has(ref));const files=filesAt(ref===ATOMIC_REGISTRY_BRANCH?f.head:ref),sha=files.get(contentPath);
           if(sha){const bytes=blobs.get(sha);return json(res,200,{path:contentPath,name:contentPath.split('/').at(-1),type:'file',sha,size:bytes.length,encoding:'base64',content:bytes.toString('base64')});}
           const items=[...files].filter(([name])=>name.startsWith(contentPath+'/')&&!name.slice(contentPath.length+1).includes('/')).map(([name,sha])=>({name:name.slice(contentPath.length+1),path:name,type:'file',sha}));
           return items.length?json(res,200,items):json(res,404,{});

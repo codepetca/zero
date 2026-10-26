@@ -22,21 +22,21 @@ export async function githubCliFetch(input,options={}) {
   const body=output.slice(end+(output[end]==='\r'?4:2));
   const response=new Response(body,{status:Number(match[1]),headers:{'Content-Type':'application/json'}});Object.defineProperty(response,'url',{value:url.href});return response;
 }
-async function api(path){const response=await githubCliFetch('https://api.github.com'+prefix+path);if(!response.ok)throw Error('The pilot registry could not be inspected.');return response.json();}
-async function files(path,head){const entries=await api(`/contents/${path}?ref=${head}`);if(!Array.isArray(entries)||entries.length>2||entries.some(item=>!/^jam-[1-9][0-9]{0,19}\.json$/.test(item.name)||item.type!=='file'||!/^[a-f0-9]{40}$/.test(item.sha)))throw Error('Unexpected pilot registry layout.');return Object.fromEntries(entries.map(item=>[item.name,item.sha]));}
-export async function migratePilot(args) {
+async function api(path,fetchImpl=githubCliFetch){const response=await fetchImpl('https://api.github.com'+prefix+path);if(!response.ok)throw Error('The pilot registry could not be inspected.');return response.json();}
+async function files(path,head,fetchImpl){const entries=await api(`/contents/${path}?ref=${head}`,fetchImpl);if(!Array.isArray(entries)||entries.length>2||entries.some(item=>!/^jam-[1-9][0-9]{0,19}\.json$/.test(item.name)||item.type!=='file'||!/^[a-f0-9]{40}$/.test(item.sha)))throw Error('Unexpected pilot registry layout.');return Object.fromEntries(entries.map(item=>[item.name,item.sha]));}
+export async function migratePilot(args,{fetchImpl=githubCliFetch}={}) {
   if(args.some(arg=>!['--plan','--apply'].includes(arg)&&!/^--expected-head=[a-f0-9]{40}$/.test(arg))||args.includes('--plan')&&args.includes('--apply'))throw Error('Use --plan or --apply --expected-head=<exact SHA>. Only the pilot branch is supported.');
   const apply=args.includes('--apply'),expected=args.find(arg=>arg.startsWith('--expected-head='))?.split('=')[1];
   if(apply&&!expected)throw Error('Inspect --plan and provide its exact --expected-head before applying.');
-  const ref=await api(`/git/ref/heads/${branch}`),head=ref.object?.sha;if(!/^[a-f0-9]{40}$/.test(head||'')||ref.ref!==`refs/heads/${branch}`)throw Error('Invalid pilot branch.');
+  const ref=await api(`/git/ref/heads/${branch}`,fetchImpl),head=ref.object?.sha;if(!/^[a-f0-9]{40}$/.test(head||'')||ref.ref!==`refs/heads/${branch}`)throw Error('Invalid pilot branch.');
   if(apply&&head!==expected)throw Error('The pilot changed. Inspect a fresh plan before applying.');
-  const marker=await api(`/contents/jams?ref=${head}`),migrated=!Array.isArray(marker);
+  const marker=await api(`/contents/jams?ref=${head}`,fetchImpl),migrated=!Array.isArray(marker);
   if(migrated&&Buffer.from(marker.content||'','base64').toString('utf8')!==JAM_REGISTRY_PROTOCOL_MARKER)throw Error('Unexpected pilot protocol marker.');
-  const before=await files(migrated?'zero-jams-v2/events':'jams',head),guard=await api(`/contents/website/vercel.json?ref=${head}`);
+  const before=await files(migrated?'zero-jams-v2/events':'jams',head,fetchImpl),guard=await api(`/contents/website/vercel.json?ref=${head}`,fetchImpl);
   if(JSON.parse(Buffer.from(guard.content||'','base64').toString('utf8')).git?.deploymentEnabled?.[branch]!==false)throw Error('Registry deployment exclusion must be retained.');
   if(!apply)return {mode:'plan',branch,head,migrated,files:before,guardSha:guard.sha};
-  const store=createAtomicGitHubJamStore({token:'operator-github-cli-transport-only',fetchImpl:githubCliFetch,registryBranch:branch,maxEvents:2});
-  const after=await store.migrate(),copied=await files('zero-jams-v2/events',after.revision),afterGuard=await api(`/contents/website/vercel.json?ref=${after.revision}`);
+  const store=createAtomicGitHubJamStore({token:'operator-github-cli-transport-only',fetchImpl,registryBranch:branch,maxEvents:2});
+  const after=await store.migrate({expectedRevision:expected}),copied=await files('zero-jams-v2/events',after.revision,fetchImpl),afterGuard=await api(`/contents/website/vercel.json?ref=${after.revision}`,fetchImpl);
   if(Object.keys(before).length!==Object.keys(copied).length||Object.entries(before).some(([id,sha])=>copied[id]!==sha)||afterGuard.sha!==guard.sha)throw Error('Migration committed but source bytes changed during the operation. Inspect the branch; do not reset it.');
   return {mode:'applied',branch,before:head,head:after.revision,files:copied,guardSha:afterGuard.sha};
 }
