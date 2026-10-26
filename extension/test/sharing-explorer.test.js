@@ -55,6 +55,19 @@ test('selected published reference shows only the exact active catalog component
  assert.doesNotMatch(f.shown[0].content,/Local README/);
 });
 
+test('withdrawn exact pinned release keeps documented imports and examples with status',async t=>{
+ const f=await fixture(t);
+ await authoring.applyPlan(await authoring.previewMode(f.root,{slug:'health-bar',mode:'published',version:'1.2.3'}));
+ const release={kind:'library',id:f.context.libraryId,version:'1.2.3',status:'withdrawn',components:[{className:'zero.contrib.r12345.health_bar.Health',description:'Old helper',usage:'Health h = new Health();',api:['public Health()']}]};
+ const editor=f.makeEditor({consumer:{loadCatalog:async()=>({catalog:{releases:[release]}})}});
+ await editor.commands['zero.libraryReference'](f.context);
+ assert.match(f.shown[0].content,/Release status: Withdrawn from new installs/);
+ assert.match(f.shown[0].content,/import zero\.contrib\.r12345\.health_bar\.Health;/);
+ assert.match(f.shown[0].content,/Health h = new Health\(\);/);
+ await editor.commands['zero.copyLibraryImports'](f.context);
+ assert.deepEqual(f.copied,['import zero.contrib.r12345.health_bar.Health;']);
+});
+
 test('offline published reference and missing exact inventory show no fabricated imports',async t=>{
  const f=await fixture(t);
  await authoring.applyPlan(await authoring.previewMode(f.root,{slug:'health-bar',mode:'published',version:'1.2.3'}));
@@ -136,4 +149,35 @@ test('read-only reference provider retains a bounded number of documents',async 
  for(let index=0;index<17;index++)await editor.commands['zero.libraryReference'](f.context);
  assert.equal(f.provided(f.shown[0].uri),'');
  assert.match(f.provided(f.shown.at(-1).uri),/Active mode: Local source/);
+});
+
+test('local example lookup truncates directory-heavy trees',async t=>{
+ const f=await fixture(t),folder=path.join(f.root,'libraries/health-bar/examples');
+ await fs.mkdir(folder,{recursive:true});
+ await Promise.all(Array.from({length:140},(_,index)=>fs.mkdir(path.join(folder,`folder-${String(index).padStart(3,'0')}`))));
+ await f.makeEditor().commands['zero.libraryReference'](f.context);
+ assert.match(f.shown[0].content,/Additional examples or directories were omitted from this bounded view/);
+ assert.match(f.shown[0].content,/import zero\.contrib\.r12345\.health_bar\.Health;/);
+});
+
+test('contextual Share rechecks selection at descriptor write after modal review',async t=>{
+ const f=await fixture(t),filename=path.join(f.root,'libraries/health-bar/zero-library.json'),before=await fs.readFile(filename,'utf8');
+ let edits=0;f.vscode.window.showInputBox=async()=> '1.0.1';
+ f.vscode.window.showInformationMessage=async message=>{if(message==='Save sharing details?'){await authoring.applyPlan(await authoring.previewMode(f.root,{slug:'health-bar',mode:'published',version:'1.2.3'}));return 'Save details';}};
+ f.vscode.workspace.openTextDocument=async uri=>({uri,isDirty:false,getText:()=>before});
+ f.vscode.window.showTextDocument=async()=>({edit:async()=>{edits++;return true;}});
+ await assert.rejects(f.makeEditor().commands['zero.shareLibrary'](f.context),/selected library changed/);
+ assert.equal(edits,0);assert.equal(await fs.readFile(filename,'utf8'),before);
+});
+
+test('contextual Share accepts its own reviewed sharing-version edit',async t=>{
+ const f=await fixture(t),filename=path.join(f.root,'libraries/health-bar/zero-library.json');
+ let text=await fs.readFile(filename,'utf8');f.vscode.window.showInputBox=async()=> '1.0.1';
+ f.vscode.window.showInformationMessage=async message=>message==='Save sharing details?'?'Save details':undefined;
+ f.vscode.Range=class{};
+ const document={isDirty:false,getText:()=>text,positionAt:offset=>offset,save:async()=>{await fs.writeFile(filename,text);document.isDirty=false;return true;}};
+ f.vscode.workspace.openTextDocument=async()=>document;
+ f.vscode.window.showTextDocument=async()=>({edit:async callback=>{callback({replace:(_range,after)=>{text=after;document.isDirty=true;}});return true;}});
+ await assert.rejects(f.makeEditor().commands['zero.shareLibrary'](f.context),/active reviewed policy/);
+ assert.equal(JSON.parse(await fs.readFile(filename,'utf8')).version,'1.0.1');
 });

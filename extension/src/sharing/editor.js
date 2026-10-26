@@ -82,7 +82,7 @@ function createSharingEditor(vscode,host,options={}) {
   const lines=[lib.title,`Active mode: Local source`,`Active version: ${lib.version}`,'',`Namespace: ${lib.namespace}`,'','Public imports from current source:'];
   if(lib.imports.length)lines.push(...lib.imports.map(name=>`import ${name};`));else lines.push('No public class declarations were found in this library source.');
   if(lib.readme){lines.push('','Local README:',lib.readme);const contents=await boundedLocalText(root,lib.readme,32768);if(contents!==null)lines.push('',contents);else lines.push('README is larger than the reference view. Open the file to read it.');}
-  if(lib.examplesRoot){lines.push('','Local examples:');let count=0,more=false;async function visit(folder,depth){if(depth>8||more)return;for(const entry of await ordinaryEntries(root,folder)){if(more)return;if(entry.directory){await visit(entry.relative,depth+1);continue;}if(count>=16){more=true;return;}count++;lines.push('',`Example: ${entry.relative}`);if(/\.(java|md|txt)$/.test(entry.relative)){const contents=await boundedLocalText(root,entry.relative,16384);if(contents!==null)lines.push(contents);else lines.push('Open this file to read the full example.');}}}await visit(lib.examplesRoot,0);if(more)lines.push('Additional examples: open the local examples folder.');}
+  if(lib.examplesRoot){lines.push('','Local examples:');let count=0,visited=0,more=false;async function visit(folder,depth){if(disposed)fail('The library reference view has closed. Select it again.');if(depth>8||more){more=true;return;}for(const entry of await ordinaryEntries(root,folder)){if(disposed)fail('The library reference view has closed. Select it again.');if(more)return;if(++visited>128){more=true;return;}if(entry.directory){await visit(entry.relative,depth+1);continue;}if(count>=16){more=true;return;}count++;lines.push('',`Example: ${entry.relative}`);if(/\.(java|md|txt)$/.test(entry.relative)){const contents=await boundedLocalText(root,entry.relative,16384);if(contents!==null)lines.push(contents);else lines.push('Open this file to read the full example.');}}}await visit(lib.examplesRoot,0);if(more)lines.push('Additional examples or directories were omitted from this bounded view. Open the local examples folder.');}
   return {content:lines.join('\n')+'\n',imports:lib.imports.map(name=>`import ${name};`).join('\n')};
  }
  async function libraryReference(context,{copy=false}={}){
@@ -93,8 +93,9 @@ function createSharingEditor(vscode,host,options={}) {
   if(lib.mode==='local'){if(copy)imports=lib.imports.map(name=>`import ${name};`).join('\n');else {const local=await localReference(root,lib);content=local.content;imports=local.imports;}}
   else {
    let contextCatalog,catalogError;try{contextCatalog=await api.consumer.loadCatalog(catalogSettings(lib.slug===PRACTICE_SLUG),{fetcher:options.fetcher});}catch(error){catalogError=error;}
-   const release=contextCatalog?.catalog.releases.find(item=>item.kind==='library'&&item.id===lib.id&&item.version===lib.version&&item.status==='available');
+   const release=contextCatalog?.catalog.releases.find(item=>item.kind==='library'&&item.id===lib.id&&item.version===lib.version);
    const lines=[lib.title,'Active mode: Published dependency',`Active version: ${lib.version}`,'',`Namespace: ${lib.namespace}`,''];
+   if(release?.status==='withdrawn')lines.push('Release status: Withdrawn from new installs. This project retains the exact version.','');
    if(catalogError)lines.push('The published catalog is unavailable. No import or API example is shown.',`Reason: ${catalogError.message}`);
    else if(!release)lines.push('Exact active release metadata is unavailable in the current catalog. No import or API example is shown.');
    else if(!release.components?.length)lines.push('This exact release has no published component inventory. No import or API example is shown.');
@@ -199,12 +200,12 @@ function createSharingEditor(vscode,host,options={}) {
   if(await vscode.window.showInformationMessage('Restore original files?',{modal:true,detail:picked.receipt.changes.map(c=>c.path).join('\n')+'\n\nNewer edits prevent restoration and are preserved.'},'Restore originals')!=='Restore originals')return;
   await current(root);await api.authoring.recover(root,picked.filename);report('Files restored','Original files restored. Run App to check your project.');
  }
- async function saveDescriptor(root,filename,descriptor) {
+ async function saveDescriptor(root,filename,descriptor,beforeWrite) {
   const before=await authoring.read(root,filename,true),after=JSON.stringify(c.validateDescriptor(descriptor),null,2)+'\n';if(before===after)return;
   if(await vscode.window.showInformationMessage('Save sharing details?',{modal:true,detail:`${practiceDetail(descriptor)}${descriptor.title} ${descriptor.version}\n${descriptor.description}${descriptor.controls?'\nControls: '+descriptor.controls:''}\nLicense: ${descriptor.license}\n\n${filename}\nCommit & push uploads these details with your source.`},'Save details')!=='Save details')return false;
   await current(root);
-  if(before===null)await fs.writeFile(await authoring.safePath(root,filename,{missing:true}),after,{flag:'wx'});
-  else {const document=await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(root,filename)));if(document.isDirty||document.getText()!==before)fail('Sharing metadata changed during review.');const editor=await vscode.window.showTextDocument(document,{preview:false});if(!await editor.edit(edit=>edit.replace(new vscode.Range(document.positionAt(0),document.positionAt(before.length)),after)))fail('Sharing metadata changed during the edit.');if(!await document.save())fail('Save the sharing metadata before Commit & push.');}
+  if(before===null){if(beforeWrite)await beforeWrite();await fs.writeFile(await authoring.safePath(root,filename,{missing:true}),after,{flag:'wx'});}
+  else {const document=await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(root,filename)));if(document.isDirty||document.getText()!==before)fail('Sharing metadata changed during review.');const editor=await vscode.window.showTextDocument(document,{preview:false});if(beforeWrite)await beforeWrite();if(document.isDirty||document.getText()!==before)fail('Sharing metadata changed during review.');if(!await editor.edit(edit=>edit.replace(new vscode.Range(document.positionAt(0),document.positionAt(before.length)),after)))fail('Sharing metadata changed during the edit.');if(!await document.save())fail('Save the sharing metadata before Commit & push.');}
   return true;
  }
  async function gameDescriptor(root,creation) {
@@ -245,7 +246,7 @@ function createSharingEditor(vscode,host,options={}) {
   if(kind==='game'&&!descriptor.preview){const preview=await gameScreenshot(root);if(!preview)return;descriptor={...descriptor,preview};if(await saveDescriptor(root,filename,descriptor)===false)return;}
   if(!creation.created) {
    const requestedVersion=await input('Sharing version',descriptor.version,c.validateVersion);if(!requestedVersion)return;
-   if(requestedVersion!==descriptor.version) {if(selectedLibrary)await selectedStillCurrent(root,selectedLibrary,context);descriptor={...descriptor,version:requestedVersion};if(await saveDescriptor(root,filename,descriptor)===false)return;if(selectedLibrary&&context!==undefined){const refreshed=(await api.authoring.discoverLibraries(root)).find(item=>item.identity.id===context.libraryId);if(!refreshed||refreshed.mode!==selectedLibrary.mode||refreshed.slug!==selectedLibrary.slug||JSON.stringify(refreshed.descriptor)!==JSON.stringify(descriptor))fail('The selected library changed. Select it again.');selectedLibrary=refreshed;}}
+   if(requestedVersion!==descriptor.version) {if(selectedLibrary)await selectedStillCurrent(root,selectedLibrary,context);descriptor={...descriptor,version:requestedVersion};if(await saveDescriptor(root,filename,descriptor,selectedLibrary?()=>selectedStillCurrent(root,selectedLibrary,context):undefined)===false)return;if(selectedLibrary&&context!==undefined){const refreshed=(await api.authoring.discoverLibraries(root)).find(item=>item.identity.id===context.libraryId);if(!refreshed||refreshed.mode!==selectedLibrary.mode||refreshed.slug!==selectedLibrary.slug||JSON.stringify(refreshed.descriptor)!==JSON.stringify(descriptor))fail('The selected library changed. Select it again.');selectedLibrary=refreshed;}}
   }
   const policyRevision=operatorSetting('sharingPolicyRevision',bundled.policyRevision,'');if(!/^[a-f0-9]{40}$/.test(policyRevision))fail('Sharing setup needs an active reviewed policy. This kit can prepare local libraries; public sharing is not active yet.');
   let previous;

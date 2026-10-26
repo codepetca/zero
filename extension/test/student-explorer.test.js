@@ -56,6 +56,12 @@ test('authored library virtual roots use identity namespaces and published copie
   assert.match(f.item(library2).description,/1.2.3 · Published active/);assert.ok(published.some(n=>n.label==='Retained code (inactive)'));
   assert.equal(f.item(published.find(n=>n.label==='Retained code (inactive)')).contextValue,'zeroReadonly');
   await assert.rejects(f.tree.commands['zero.explorerNewClass'](published.find(n=>n.label==='Retained code (inactive)')),/Develop local/);
+  const retainedCode=published.find(n=>n.label==='Retained code (inactive)');
+  await authoring.applyPlan(await authoring.previewMode(f.root,{slug:'health-bar',mode:'local'}));f.tree.invalidate();
+  const activeChildren=await f.children(retainedCode),activeClass=activeChildren.find(n=>n.label==='Extra.java');
+  assert.equal(f.item(activeClass).contextValue,'zeroCode','Expanded old retained nodes derive writable state from current mode');
+  f.name='Another';await f.tree.commands['zero.explorerNewClass'](activeClass);
+  assert.match(await fs.readFile(path.join(f.root,code.relative,'Another.java'),'utf8'),/^package zero.contrib.r12345.health_bar;/);
   assert.equal(assets.area,'library-assets');
 });
 test('root switches, links, disposal and busy states cannot dispatch writes or open foreign files',async t=>{
@@ -81,4 +87,17 @@ test('preview is explicitly switchable and all-files escape keeps Zero return in
 test('bounded view errors retain a full-Explorer escape',async t=>{
   const f=await fixture(t);await put(f.root,'zero.json','{');const roots=await f.children();assert.deepEqual(roots.map(n=>n.label),['Project view unavailable','Show all project files']);assert.equal(f.logs.length,1);
   await f.tree.commands['zero.explorerAction'](roots[1]);assert.deepEqual(f.calls.at(-1),['workbench.view.explorer']);
+});
+test('initial model errors retain watching and recover after external repair without manual refresh',async t=>{
+  const f=await fixture(t);await put(f.root,'pom.xml','broken XML');
+  // Use malformed JSON, which is always parsed even without library pins.
+  await put(f.root,'zero.json','{');assert.equal((await f.children())[0].kind,'message');
+  assert.equal(f.watchers.length,1);
+  await fs.copyFile(path.resolve(__dirname,'../../student-template/pom.xml'),path.join(f.root,'pom.xml'));
+  await put(f.root,'zero.json','{}');
+  f.watchers[0].callbacks.onDidChange({fsPath:path.join(f.root,'zero.json')});
+  await new Promise(resolve=>setTimeout(resolve,150));
+  assert.deepEqual((await f.children()).slice(0,2).map(n=>n.label),['Code','Assets']);
+  await put(f.root,'zero.json','{');f.tree.invalidate();assert.equal((await f.children())[0].kind,'message');
+  await put(f.root,'zero.json','{}');assert.equal((await f.children())[0].label,'Code','Failed loads are not permanently cached');
 });

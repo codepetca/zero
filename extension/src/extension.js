@@ -1212,7 +1212,7 @@ function activate(context, services = {}) {
   for(const id of ['zero.controls','zero.studentControls'])context.subscriptions.push(vscode.window.registerWebviewViewProvider(id,controlsProvider));
   context.subscriptions.push(output);
   const watcher = vscode.workspace.createFileSystemWatcher('**/zero.json');
-  for(const method of ['onDidCreate','onDidChange','onDidDelete']) watcher[method](uri=>{if(path.basename(uri.fsPath)==='zero.json')browserRun.stop();},undefined,context.subscriptions);
+  for(const method of ['onDidCreate','onDidChange','onDidDelete']) watcher[method](uri=>{if(path.basename(uri.fsPath)==='zero.json'){browserRun.stop();studentExplorer?.invalidate();}},undefined,context.subscriptions);
   let metadataRefreshTimer;
   const metadataWatcher = vscode.workspace.createFileSystemWatcher('**/.git/{HEAD,config,index,MERGE_HEAD,packed-refs,zero-update-recovery.json,refs/heads/**}');
   for (const method of ['onDidCreate','onDidChange','onDidDelete']) metadataWatcher[method](uri => {

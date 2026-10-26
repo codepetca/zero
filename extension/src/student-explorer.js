@@ -37,13 +37,19 @@ function createStudentExplorer(vscode, host) {
     if (disposed) return;
     if (!pending) {
       const attempt=generation;
-      pending=(async()=>{
+      const work=(async()=>{
         const root=await host.project();
+        if(disposed||generation!==attempt)return;
+        // Watch before parsing metadata so an external repair refreshes a
+        // first-load error, including a missing POM or library descriptor.
+        watch(root);
         const next=await readProjectModel(root);
         if (disposed || generation!==attempt || await host.project()!==root) return;
         if (disposed || generation!==attempt) return;
-        model=next;watch(root);return next;
+        model=next;return next;
       })();
+      pending=work;
+      void work.catch(()=>{if(pending===work)pending=undefined;});
     }
     return pending;
   }
@@ -90,7 +96,8 @@ function createStudentExplorer(vscode, host) {
       const library=parent.libraryId?snapshot.libraries.find(item=>item.id===parent.libraryId):undefined;
       if(parent.libraryId&&!library)return [];
       return entries.map(entry=>node({kind:entry.directory?'folder':'file',root:snapshot.root,label:entry.name,relative:entry.relative,
-        area:parent.area,libraryId:parent.libraryId,libraryFolder:parent.libraryFolder,retained:parent.retained||Boolean(library&&library.mode!=='local')}));
+        area:parent.area,libraryId:parent.libraryId,libraryFolder:parent.libraryFolder,
+        retained:library&&parent.area?.startsWith('library-')?library.mode!=='local':parent.retained}));
     } catch(error) {
       if(disposed)return [];
       host.output.appendLine(`Student Explorer: ${error.message}`);
