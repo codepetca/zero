@@ -1,5 +1,63 @@
 # Delivery evidence index
 
+## Explorer dropdown, simplified locations and file rename — 2026-10-26
+
+Owner requested visible-tree destination names, a real dropdown and file-context
+rename/new siblings. Isolated branch codex/student-explorer, base
+c86359eb376bcb3701ddb1d9169b4433b5bb0070; source commits 010796fc72ece5facee69b42ca77409fb66330ba
+and e8747259a6eb2096735274d63a02c43b624baca7. Project (+) now opens a supported native
+submenu; choices follow selected Code, Assets, local library or Other folder.
+A selected file supplies its parent. Prompts/tooltips describe the visible
+hierarchy, including library titles, while physical Java/resource paths stay
+unchanged. File context menus expose sibling creation and guarded native
+WorkspaceEdit rename, with no overwrite, move or Java symbol rewriting. Java
+prompts explain declaration/reference repair. Local Java basename mismatch keeps
+source navigable with a repair hint and withholds library imports. Only the
+read-only model opts into unambiguous name-mismatch inspection; canonical
+mutation/Check/share/publication validation stays strict.
+
+197 focused model/controller/manifest/file/rename/assets/sharing-authoring/source-
+diagnostics/editor/extension/sidebar/prompts/workflow/onboarding checks pass;
+`npm run check` and diff check pass. Tests include actual post-rename tree reload,
+repair/rename back, strict authoring refusal while broken, missing selected file,
+parent semantics during a prompt and final Other-to-Code/Assets boundary checks.
+Mac CUA on the actual isolated Code host verified anchored dropdown choices,
+Code/package/location text, Assets-only choices, keyboard Down/Enter/cancel,
+light/dark rendering, file right-click choices, New folder beside a file,
+saved text rename/open-tab tracking and exact retained bytes. Java warning/cancel
+passed. Local NativeMarker.java → RenamedMarker.java remained visible/openable
+with the repair hint; renaming back restored the normal library through the same
+tree. The isolated preview was brought forward, fitted to the display and left in
+Light Modern with a saved note open. Original editor/profile/project stay intact.
+
+Screenshots under ignored .verification/student-explorer/screenshots include
+native-friendly-location-final.png (complete final prompt),
+native-file-context-rename.png, native-java-file-rename-warning.png,
+native-library-rename-repair.png and light/dark/Assets dropdown snapshots.
+Native OS popup menus are verified through AX state; window-only screenshots do
+not composite those popup windows. Test receipts: dropdown-tests-final.tap and
+prior dropdown-tests.tap. No Java/runtime API changed; previous scoped native /
+WebFX/browser proof is reused, not rerun. Windows/minimum-host interaction and
+complex malformed Java recovery are unproven; name-mismatch recovery requires
+one unambiguous top-level declaration. No public source or release was published.
+
+Independent review ledger: risk assessed as new file-mutation authority, two
+fresh GPT-6 Sol/high assignments (safety and native compatibility), followed by
+one targeted safety/integration turn. Requested configuration recorded; effective
+configuration, per-turn tokens and individual elapsed telemetry were not exposed.
+Three reviewer turns / two waves / one fix batch, within the 7-launch, 4-batch,
+60-minute session budget. Receipts: review_dropdown_safety initial at010796fc
+completed with two accepted P2 findings (final area boundaries and stale-file /
+parent semantics); review_dropdown_compat initial at010796fc completed with one
+accepted P2 (local Java rename navigation); review_dropdown_safety targeted at
+e8747259 completed clean after the fixes. No rejected findings or further fixes.
+Reviewers reused reported checks, did not edit or perform native acceptance.
+Implementation worker rename_files delivered the bounded rename module/tests;
+coordinator inspected/integrated and verified it. Per-worker effort unknown.
+Latest reused weekly allowance reading was93% remaining; storage223.65GB free,
+no cleanup. DeepSeek pause honored. Standard Explorer remains default pending
+owner visual acceptance of the wider preview; no source push/PR/merge authority.
+
 ## Project creation menu refinement — 2026-10-26
 
 Owner requested moving ZeroHub/New from the controls panel into the native

@@ -26,11 +26,15 @@ Preview is open in disposable exact installed-Code copy
 Original3153/3025, profiles/projects/checkouts are preserved. New transient JavaFX
 pointer input, Windows/minhost/freshMac/schoolnetwork/hosted actions unproven.
 
-Owner-requested menu refinement feeeb0fe: preview controls omit New/ZeroHub;
-Project New… (+) uses selected folders, right-click actions remain, ZeroHub is in
-Project overflow. 111 focused checks + check/diff pass; real Mac header-folder,
-right-click-file/open and moved ZeroHub/cancel proof pass. One fresh independent
-GPT-6 Sol/high delta review clean. Screenshots/receipt in docs/EVIDENCE.md.
+Owner menu refinement feeeb0fe moved New/ZeroHub into Project. Further owner
+refinement010796fc + e8747259 adds anchored native New dropdown, visible-tree
+locations and file-context sibling creation/guarded file-only rename. Local Java
+filename mismatch stays navigable with repair hints; imports withheld and strict
+mutation/publication validation retained. 197 focused checks + check/diff pass;
+real Mac light/dark/keyboard/dropdown/text rename/sibling creation and library
+rename/restore pass. Independent2 initial reviews +1targeted review clean after
+1fix batch. Exact receipts, limits and screenshots: docs/EVIDENCE.md. Preview is
+open and ready; wider default replacement still needs owner visual acceptance.
 
 Tool-backed matching goal exists; service reports blocked after interrupted
 startup despite explicit user resume; API exposes no agent-side resume action.
