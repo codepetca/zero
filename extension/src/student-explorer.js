@@ -205,6 +205,11 @@ function createStudentExplorer(vscode, host) {
     await vscode.env.clipboard.writeText(literal);host.report?.('Asset path copied',literal);
   }
   async function showAll(){return vscode.commands.executeCommand('workbench.view.explorer');}
+  async function collapseAll(){
+    if(disposed)return;
+    await vscode.commands.executeCommand('zero.studentProject.focus');
+    if(!disposed)return vscode.commands.executeCommand('list.collapseAll');
+  }
   async function setPreview(enabled) {
     if(disposed)return;
     preview=enabled;
@@ -215,13 +220,13 @@ function createStudentExplorer(vscode, host) {
     else {await showAll();await vscode.commands.executeCommand('zero.controls.focus');}
   }
   const provider={onDidChangeTreeData:events.event,getChildren:children,getTreeItem:item};
-  const tree=vscode.window.createTreeView('zero.studentProject',{treeDataProvider:provider,showCollapseAll:true,canSelectMany:false});
+  const tree=vscode.window.createTreeView('zero.studentProject',{treeDataProvider:provider,showCollapseAll:false,canSelectMany:false});
   const selectionEvents=tree.onDidChangeSelection?.(updateSelection);updateSelection();
   const folders=vscode.workspace.onDidChangeWorkspaceFolders(()=>{watcher?.dispose();watcher=undefined;invalidate();});
   void vscode.commands.executeCommand('setContext','zero.studentExplorerPreview',preview);
   return {provider,tree,invalidate,isPreview:()=>preview,
     commands:{'zero.previewStudentExplorer':()=>setPreview(true),'zero.standardExplorer':()=>setPreview(false),'zero.showAllProjectFiles':showAll,
-      'zero.refreshStudentExplorer':invalidate,'zero.explorerOpenFile':open,'zero.explorerAction':invoke,'zero.explorerRenameFile':rename,
+      'zero.refreshStudentExplorer':invalidate,'zero.collapseStudentExplorer':collapseAll,'zero.explorerOpenFile':open,'zero.explorerAction':invoke,'zero.explorerRenameFile':rename,
       'zero.explorerCopyAssetPath':copyAsset,
       ...Object.fromEntries(['newClass','newPackage','newFile','newFolder','importAssets'].flatMap(name=>[[`zero.explorer${name[0].toUpperCase()+name.slice(1)}`,value=>create(`zero.${name}`,value)],[`zero.project${name[0].toUpperCase()+name.slice(1)}`,()=>createSelected(`zero.${name}`)]]))},
     dispose(){disposed=true;generation++;clearTimeout(timer);watcher?.dispose();folders.dispose();selectionEvents?.dispose();tree.dispose();events.dispose();}

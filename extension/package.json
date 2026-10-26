@@ -406,6 +406,11 @@
         "command": "zero.renameStudentFile",
         "title": "Rename student file",
         "category": "Zero"
+      },
+      {
+        "command": "zero.collapseStudentExplorer",
+        "title": "Collapse All",
+        "category": "Zero"
       }
     ],
     "views": {
@@ -592,6 +597,10 @@
         {
           "command": "zero.renameStudentFile",
           "when": "false"
+        },
+        {
+          "command": "zero.collapseStudentExplorer",
+          "when": "false"
         }
       ],
       "view/title": [
@@ -688,12 +697,12 @@
         {
           "command": "zero.showAllProjectFiles",
           "when": "view == zero.studentProject",
-          "group": "navigation@2"
+          "group": "1_project@2"
         },
         {
           "command": "zero.refreshStudentExplorer",
           "when": "view == zero.studentProject",
-          "group": "navigation@1"
+          "group": "1_project@1"
         },
         {
           "command": "zero.standardExplorer",
@@ -714,6 +723,11 @@
           "command": "zero.browseZeroHub",
           "when": "view == zero.studentProject",
           "group": "zero-libraries@1"
+        },
+        {
+          "command": "zero.collapseStudentExplorer",
+          "when": "view == zero.studentProject",
+          "group": "1_project@3"
         }
       ],
       "view/item/context": [

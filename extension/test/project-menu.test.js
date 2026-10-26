@@ -28,6 +28,9 @@ test('student explorer owns New and ZeroHub while its controls stay minimal',asy
  }
  const menus=require('../package.json').contributes.menus;
  assert.ok(menus['view/title'].some(item=>item.submenu==='zero.projectNewMenu'&&item.when==='view == zero.studentProject'&&item.group==='navigation@0'));
+ const project=menus['view/title'].filter(item=>item.when==='view == zero.studentProject');
+ assert.deepEqual(project.filter(item=>item.group.startsWith('navigation')).map(item=>item.submenu||item.command),['zero.projectNewMenu']);
+ for(const command of ['zero.refreshStudentExplorer','zero.showAllProjectFiles','zero.collapseStudentExplorer'])assert.ok(project.some(item=>item.command===command&&!item.group.startsWith('navigation')));
  assert.ok(menus['view/title'].some(item=>item.command==='zero.browseZeroHub'&&item.when==='view == zero.studentProject'));
  for(const command of ['zero.explorerNewFile','zero.explorerNewFolder'])assert.ok(menus['view/item/context'].some(item=>item.command===command));
 });

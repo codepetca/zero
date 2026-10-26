@@ -640,7 +640,8 @@ without replacing its open editors. The supported `zero-student-explorer` view c
 `zero.studentControls` and the native `zero.studentProject` TreeDataProvider.
 Both control views share the renderer but keep independent document lifecycles.
 The student controls omit the ZeroHub and New dropdowns. The native Project
-header supplies an anchored **New (+)** dropdown for the selected folder. A
+header keeps only the anchored **New (+)** dropdown for the selected folder.
+Refresh, Show All Project Files and Collapse All live in Project’s three-dot menu. A
 selected file targets its containing folder; without a selection, creation starts
 in java. Its description and name prompts use the visible hierarchy, such as
 **java › game › characters** or **Libraries › Health bar › resources**, while the

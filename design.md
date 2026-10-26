@@ -8,6 +8,9 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner toolbar refinement,2026-10-26: keep only New (+) in the Project title bar.
+Refresh, Show All Project Files and Collapse All belong in its three-dot menu.
+
 Owner naming refinement,2026-10-26: show `java` and `resources` in the student
 project tree and destination prompts, matching the real folder basenames. Keep
 Libraries and its grouping unchanged.

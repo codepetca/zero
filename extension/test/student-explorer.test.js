@@ -119,7 +119,9 @@ test('external edits refresh, generated output does not, and project switches di
   f.folderChange();assert.equal(f.watchers.at(-1).disposed,true);assert.equal(refreshed,2);
 });
 test('student explorer defaults on and an explicit Standard Explorer choice persists across reload',async t=>{
-  const remembered=new Map(),f=await fixture(t,{remembered});assert.equal(f.tree.isPreview(),true);await f.tree.commands['zero.previewStudentExplorer']();assert.equal(f.tree.isPreview(),true);
+  const remembered=new Map(),f=await fixture(t,{remembered});assert.equal(f.tree.tree.options.showCollapseAll,false);
+  await f.tree.commands['zero.collapseStudentExplorer']();assert.deepEqual(f.calls.slice(-2),[['zero.studentProject.focus'],['list.collapseAll']]);
+  assert.equal(f.tree.isPreview(),true);await f.tree.commands['zero.previewStudentExplorer']();assert.equal(f.tree.isPreview(),true);
   assert.ok(f.calls.some(c=>c[0]==='workbench.view.extension.zero-student-explorer'));await f.tree.commands['zero.showAllProjectFiles']();assert.equal(f.tree.isPreview(),true);
   await f.tree.commands['zero.standardExplorer']();assert.equal(f.tree.isPreview(),false);assert.deepEqual(f.calls.at(-1),['zero.controls.focus']);
   const reloaded=await fixture(t,{remembered});assert.equal(reloaded.tree.isPreview(),false);
