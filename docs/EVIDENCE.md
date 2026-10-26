@@ -11314,3 +11314,20 @@ Review budget:1launch,1initialwave,0fixbatches; elapsed/tokens not exposed.
 Owner authorized PR and merge on2026-10-26. No access controls, private storage,
 repository visibility or installer changes are included. Final publication/CI/live
 receipts are retained in ignored `.verification/remove-practice-notice/`.
+
+## Mac51 release source review — 2026-10-26
+
+Owner's “Do it” authorizes final source/CI/merge and signed Mac51 publication plus
+fresh isolated installed-extension Run/Publish acceptance. Main2d42a295 merged;
+version51/nativebuild51 selected, existing published50 feed retained during staging.
+Initial full source wave reviewed2d42a295..f419222f in two fresh GPT-6 Sol/high
+contexts: release51_git_review completed Git/auth/recovery/caller inspection clean;
+release51_compat_review completed explorer/files/runtime/integration inspection,
+108focused tests passed. Both identified duplicate stale bundled explorer prose;
+accepted as one documentation remediation batch in APP-GUIDE/README. No code blocker.
+Native-updater menu assertion was scoped to both supported control views before
+review;8focused tests pass. Effective models/tokens unavailable; review elapsed
+approximately8minutes (manual wall estimate). Review ledger:2launches,1initial
+wave,1fixbatch; targeted prose/candidate review next. Budgets7launches/4fixbatches/
+60minutes session/30minutes reviewer. Physical Windows not newly tested; prior
+Git30-scenario Mac acceptance retained, no new failure-matrix claim.

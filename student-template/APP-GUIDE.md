@@ -41,18 +41,18 @@ The source is the authority if you change your local framework.
 
 ## Grow the existing tutorial projects
 
-The local **Zero: Preview Student Explorer** command switches to a native Code
-and Assets view. It remains a preview; released kits keep their bundled Explorer.
-Right-click Code or a package and choose **New package…** or **New class…**.
+Student Explorer is the default view. Its **java** and **resources** roots show
+`src/main/java` and `src/main/resources` without the extra parent folders.
+Right-click java or a package and choose **New package…** or **New class…**.
 The **New… (+)** button in the Project header opens the same creation choices;
-select a Code or Assets folder first to use that destination. With no folder
+select a java or resources folder first to use that destination. With no folder
 selected, the menu states the app defaults or offers the ordinary location picker.
 For example, creating `game.characters` and then `Player` inside it writes
 `package game.characters;` in `game/characters/Player.java`. A package organizes
 ordinary Java; it does not create or publish a library. When the menu says
-**In app Code**, new classes start beside Main.
+**In app java**, new classes start beside Main.
 
-Right-click an Assets folder to import images or sounds there. **Copy Asset Path**
+Right-click a resources folder to import images or sounds there. **Copy Asset Path**
 copies the selected file's quoted classpath path for Java. Local component assets
 use their component namespace. Libraries appears only after adding or extracting
 a library; its exact version and local/published active mode stay visible.
@@ -62,7 +62,11 @@ metadata is unavailable, inspect the library documentation; Zero invents no API.
 Open **Project → ⋯ → ZeroHub** for library browsing and Add/Update/Revert. Check/Share retain their
 existing review steps. **Show all project files** opens the full Explorer; the
 Zero status-bar action returns to your active controls. **Zero: Use Standard
-Explorer** switches the preview off.
+Explorer** switches to the ordinary Explorer and remembers your choice.
+**Zero: Use Student Explorer** returns to the simplified view.
+Right-click an editable file and choose **Rename…** to change its filename.
+Renaming a Java file does not rewrite its class name or references; update those
+in your source as needed before running it.
 
 The [tutorial](lessons/README.md) keeps three small continuing projects: Greeting,
 Study quiz and Coin game. In [lesson 10](lessons/10-components.md), refactor a busy

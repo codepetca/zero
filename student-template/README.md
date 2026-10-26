@@ -215,20 +215,27 @@ component base class, scene routing, or object discovery.
 
 ## Add classes, files and folders
 
-Click **Files ▾** in Zero's sidebar:
+Use **New… (+)** in the Project header, or right-click a file or folder in the
+tree. **java** maps to `src/main/java`; **resources** maps to
+`src/main/resources`. Select a folder to create there, or a file to create beside it:
 
 - **New class…**: enter `Player` (or `Player.java`). Zero creates an ordinary
-  `public class Player` beside Main in `src/main/java` and opens it. Create and
+  `public class Player` in the selected Java package (beside Main by default) and opens it. Create and
   call its objects from Main; no registration or build configuration is needed.
-- **New file…**: choose **Java source**, **Resources** or **Project files**, then
-  enter a filename. Zero opens the empty file for editing.
-- **New folder…**: choose the location and enter a folder name.
+- **New package…**: enter a Java package such as `game.characters`.
+- **New file…**: enter a filename in the selected location. Zero opens it for editing.
+- **New folder…**: enter a folder name in the selected location.
 
 Use `/` for subfolders, such as `data/questions.txt` or `images/backgrounds`.
 Existing files and folders are preserved; choose another name if one exists.
 Cancel leaves the project unchanged. The file list refreshes automatically.
-**New asset…** copies existing images/audio into Resources; use **Copy asset
-paths** afterward for the paths to use in Java. Click **Run** to rebuild after
+Right-click resources or a folder inside it to import existing images/audio.
+Right-click an asset and choose **Copy Asset Path** for its path in Java.
+**Rename…** changes an editable file's name; Java declarations and references
+need their own source edits. The Project **⋯** menu contains Refresh, Collapse
+All, Show all project files and ZeroHub. **Zero: Use Standard Explorer** restores
+the ordinary file tree; **Zero: Use Student Explorer** returns here.
+Click **Run** to rebuild after
 editing (stop the current preview first if it is running).
 
 ## Try an example
