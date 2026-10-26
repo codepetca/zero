@@ -591,7 +591,7 @@ Verified:
   signed-in closed-event page. Both Game/App Pages and demo URLs returned200 over
   this school connection; public GitHub source metadata returned200. No TLS/proxy
   bypass was used. This establishes these paths for one connection/account today;
-  fresh maintainer sign-in, write latency and other school devices remain separate.
+  write latency and other school devices remain separate.
 - Hosted participate at actual320 CSS px had client/scroll width309 px, no horizontal
   overflow. Real Chrome delayed-provider fixture uses75 ms per provider request:
   unknownJoin→expiredResolve→Close with lost reply→reload keeps closing→finishClose
@@ -640,3 +640,19 @@ provider-failures/{receipt.json,test-jams.tap}. Reproducible fixture scripts are
 stored beside those receipts. Temporary fixture listeners/tabs are retired after
 verification; original pilot/local3025/user tabs remain. New tests/docs remain
 local to avoid a source-identical Preview deployment; PR202 stays draft/unmerged.
+
+Same-pass final checks also selected existing armorup through normal OAuth and
+verified the listing and Maintainer moderation disclosure/public reason form
+without submitting it. Restored stewchan and the original protected pilot tab.
+Game demo completed after 5 target clicks; App demo incremented 0→1 and Reset 1→0.
+Ignored maintainer-receipt.json/demo-receipt.json and screenshots capture these
+additional read/local-browser-only checks. Registry head remains db8a7d2b;
+latest Vercel deployment still `619ca729`. Fixture listener stopped; temporary test
+tabs retired. Local3025 was not touched and had no listener at the final check.
+
+Independent Sol6.1/high reviewed complete 7-file delta `523be528`→`88734458`, relevant
+callers/fixtures and receipts;40/40 tests independently pass in 2.45 s, no findings.
+1 initial reviewer turn,0 remediation/fix batches; effective model, reviewer wall
+time and isolated tokens unknown. No hosted replay by reviewer. Subsequent final
+receipt docs are coordinator-verified; application/test code unchanged since
+that reviewed head. No new CI/push/deployment was needed for this local test pass.

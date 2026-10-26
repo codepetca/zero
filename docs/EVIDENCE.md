@@ -11231,3 +11231,13 @@ remain that deployed head's evidence, not new local-head CI. PR202 draft/unmerge
 Full ignored receipts: .verification/zerojams-pilot/browser-network/,
 provider-acceptance/, provider-failures/. Detailed current acceptance in PILOT;
 provider call counts/remaining gates in OPERATIONS. No wider rollout accepted.
+
+Final additions: normal armorup OAuth and read-only maintainer controls pass on
+the school connection; restored stewchan. Game demo Finished after 5 clicks; App
+counter 0→1→0. Registry db8a7d2b and latest deployment `619ca729` unchanged. Temporary
+fixture listener/tabs retired. Local3025 not touched; no listener at final check.
+Independent Sol6.1/high complete7-file delta review `523be528`→`88734458` clean;
+40/40 independent tests in 2.45 s,0 findings,1 initial reviewer turn,0 fix batches. Actual
+reviewer wall time/tokens/effective configuration unknown; no hosted replay.
+Review receipt browser-network/review.json. Final receipt documentation follows
+locally; test/application code is unchanged from reviewed `88734458`.
