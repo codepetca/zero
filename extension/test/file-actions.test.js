@@ -5,6 +5,8 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
 const {createFileCommands,nameError} = require('../src/file-actions');
+const {resolveAuthoringTarget,packageNameError} = require('../src/file-targets');
+const {previewExtraction,previewMode,applyPlan} = require('../src/sharing/authoring');
 
 async function fixture(t) {
   const base = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-create-')));
@@ -18,7 +20,7 @@ async function fixture(t) {
   }};
   let refreshes=0;
   const commands=createFileCommands(vscode,{project:async()=>current,isBusy:()=>busy,setBusy:value=>{busy=value;},setState:state=>states.push(state),output:{appendLine:line=>logs.push(line)},refreshFiles:()=>refreshes++});
-  return {base,root,vscode,commands,opened,states,logs,prompts,pickers,run:kind=>commands.commands[`zero.new${kind}`](),set name(value){name=value;},set location(value){location=value;},set current(value){current=value;},set busy(value){busy=value;},get busy(){return busy;},get refreshes(){return refreshes;}};
+  return {base,root,vscode,commands,opened,states,logs,prompts,pickers,run:(kind,context)=>commands.commands[`zero.new${kind}`](context),set name(value){name=value;},set location(value){location=value;},set current(value){current=value;},set busy(value){busy=value;},get busy(){return busy;},get refreshes(){return refreshes;}};
 }
 test('New class creates ordinary Java beside Main, opens it and refreshes without a popup',async t=>{
   const f=await fixture(t);await f.run('Class');
@@ -82,4 +84,72 @@ test('parent replaced with a symlink during the prompt is refused before writing
   const f=await fixture(t),outside=path.join(f.base,'outside');await fs.mkdir(outside);await fs.mkdir(path.join(f.root,'src/main/java'),{recursive:true});
   f.vscode.window.showInputBox=async()=>{await fs.rmdir(path.join(f.root,'src/main/java'));await fs.symlink(outside,path.join(f.root,'src/main/java'));return 'Player';};
   await assert.rejects(f.run('Class'),/ordinary folder/);assert.deepEqual(await fs.readdir(outside),[]);
+});
+test('New package uses dotted folders and selected classes declare their exact package',async t=>{
+  const f=await fixture(t);f.name='game.characters';await f.run('Package');
+  const context={root:f.root,area:'code',relative:'src/main/java/game/characters'};
+  f.name='Player';await f.run('Class',context);
+  assert.equal(await fs.readFile(path.join(f.root,context.relative,'Player.java'),'utf8'),'package game.characters;\n\npublic class Player {\n\n}\n');
+  f.name='enemies.bosses';await f.run('Package',context);
+  assert.equal((await fs.stat(path.join(f.root,context.relative,'enemies/bosses'))).isDirectory(),true);
+  assert.equal(f.pickers.length,0);assert.match(f.prompts.at(-1).placeHolder,/inside game.characters/);
+  f.name='game.characters';await assert.rejects(f.run('Package'),/already exists/);
+});
+test('package names are portable Java identifiers and framework packages remain protected',async t=>{
+  for(const value of ['','a..b','a/b','a\\b','../x','bad name','game.class','CON.ui','a.true','game.1bad','a._','a.','game.ü'])assert.ok(packageNameError(value),value);
+  assert.equal(packageNameError('game.characters_2'),undefined);
+  const f=await fixture(t);
+  for(const name of ['zero','zero.ui','Zero.contrib.mine']){f.name=name;await assert.rejects(f.run('Package'),/framework/);}
+  await fs.mkdir(path.join(f.root,'src/main/java/zero/ui'),{recursive:true});
+  f.name='Player';await assert.rejects(f.run('Class',{root:f.root,area:'code',relative:'src/main/java/zero/ui'}),/framework/);
+  f.location=2;f.name='src/main/java/zero/New.java';await assert.rejects(f.run('File'),/framework/);
+  f.name='libraries/unmanaged/Other.java';await assert.rejects(f.run('File'),/local library/);
+});
+test('selected assets and project folders bypass the picker but cannot forge code or library targets',async t=>{
+  const f=await fixture(t);await fs.mkdir(path.join(f.root,'src/main/resources/images'),{recursive:true});
+  const context={root:f.root,area:'assets',relative:'src/main/resources/images'};
+  f.name='notes.txt';await f.run('File',context);assert.equal(await fs.readFile(path.join(f.root,context.relative,'notes.txt'),'utf8'),'');
+  f.name='nested';await f.run('Folder',context);assert.equal(f.pickers.length,0);
+  await assert.rejects(f.run('Class',context),/Choose Code/);
+  for(const forged of [
+    {...context,root:f.base}, {...context,relative:'../outside'}, {...context,relative:'/tmp'}, {...context,relative:'src/main/java'},
+    {...context,relative:'src/main/resources/missing'}, {...context,area:'project',relative:'libraries/nope'},
+    {...context,libraryFolder:'libraries/nope'}, {...context,area:'library-code',libraryFolder:'../outside'}
+  ])await assert.rejects(f.run('File',forged),/project|folder|Code|Assets|library/);
+});
+test('selected descendant deletion and symlink replacement while prompting are refused',async t=>{
+  for(const change of ['delete','symlink']) {
+    const f=await fixture(t),relative='src/main/java/game',selected=path.join(f.root,relative),outside=path.join(f.base,'outside');
+    await fs.mkdir(selected,{recursive:true});await fs.mkdir(outside);
+    f.vscode.window.showInputBox=async()=>{await fs.rmdir(selected);if(change==='symlink')await fs.symlink(outside,selected);return 'Player';};
+    await assert.rejects(f.run('Class',{root:f.root,area:'code',relative}),/no longer exists|ordinary folder/);
+    assert.deepEqual(await fs.readdir(outside),[]);
+  }
+});
+async function localLibrary(f) {
+  await fs.writeFile(path.join(f.root,'zero.json'),'{}');
+  await fs.copyFile(path.resolve(__dirname,'../../student-template/pom.xml'),path.join(f.root,'pom.xml'));
+  await fs.mkdir(path.join(f.root,'src/main/java'),{recursive:true});
+  await fs.writeFile(path.join(f.root,'src/main/java/Health.java'),'public class Health {}\n');
+  await applyPlan(await previewExtraction(f.root,{repository:{id:'12345',ownerId:'123',owner:'student',name:'game',url:'https://github.com/student/game'},descriptor:{schema:1,kind:'library',slug:'health-bar',version:'1.0.0',title:'Health bar',description:'An ordinary helper.',license:'MIT',libraryKind:'helper'},sources:['src/main/java/Health.java']}));
+  return {root:f.root,area:'library-code',relative:'libraries/health-bar/src/main/java/zero/contrib/r12345/health_bar',libraryFolder:'libraries/health-bar'};
+}
+test('validated local library namespace permits classes and dotted subpackages without touching framework source',async t=>{
+  const f=await fixture(t),context=await localLibrary(f);f.name='Meter';await f.run('Class',context);
+  assert.equal(await fs.readFile(path.join(f.root,context.relative,'Meter.java'),'utf8'),'package zero.contrib.r12345.health_bar;\n\npublic class Meter {\n\n}\n');
+  f.name='display.styles';await f.run('Package',context);
+  f.name='Widget';await f.run('Class',{...context,relative:context.relative+'/display/styles'});
+  assert.match(await fs.readFile(path.join(f.root,context.relative,'display/styles/Widget.java'),'utf8'),/^package zero.contrib.r12345.health_bar.display.styles;/);
+  for(const relative of ['libraries/health-bar/src/main/java','libraries/health-bar/src/main/java/zero/ui','libraries/health-bar/src/main/java/zero/contrib/r999/health_bar'])await assert.rejects(f.run('Class',{...context,relative}),/selected Code/);
+  const asset=await resolveAuthoringTarget(f.root,context,'asset');
+  assert.equal(asset.baseRelative,'libraries/health-bar/src/main/resources/zero/contrib/r12345/health_bar');
+  assert.equal(asset.resourceBaseRelative,'libraries/health-bar/src/main/resources');
+  await assert.rejects(resolveAuthoringTarget(f.root,{...context,area:'library-assets',relative:asset.resourceBaseRelative},'asset'),/selected Code or Assets/);
+});
+test('library mode changes during the prompt stop creation and published libraries reject authoring',async t=>{
+  const f=await fixture(t),context=await localLibrary(f);
+  f.vscode.window.showInputBox=async()=>{await applyPlan(await previewMode(f.root,{slug:'health-bar',mode:'published',version:'1.0.0'}));return 'Meter';};
+  await assert.rejects(f.run('Class',context),/local mode/);
+  await assert.rejects(fs.access(path.join(f.root,context.relative,'Meter.java')));
+  await assert.rejects(resolveAuthoringTarget(f.root,context,'folder'),/local mode/);
 });

@@ -2,6 +2,7 @@
 const fs = require('node:fs/promises');
 const {constants} = require('node:fs');
 const path = require('node:path');
+const {resolveAuthoringTarget} = require('./file-targets');
 
 const EXTENSIONS = ['png','jpg','jpeg','gif','bmp','webp','wav','mp3','aiff','aif','m4a','ogg'];
 const LIMITS = Object.freeze({files:100, fileBytes:25*1024*1024, totalBytes:100*1024*1024});
@@ -35,10 +36,18 @@ async function validateRoot(snapshot, assertCurrent) {
   await assertCurrent();await plainAncestors(snapshot.root);
   if(identity(await regularDirectory(snapshot.root))!==snapshot.id)throw Error('The project folder changed. Add assets again in the current project.');
 }
-async function resourcesFolder(snapshot, assertCurrent, create=false) {
+async function assetDestination(snapshot, assertCurrent, destination) {
   await validateRoot(snapshot,assertCurrent);
+  if(destination===undefined)return {baseRelative:'src/main/resources',resourceBaseRelative:'src/main/resources'};
+  const target=await resolveAuthoringTarget(snapshot.root,destination,'asset');
+  if(!['assets','library-assets'].includes(target.area) || !target.resourceBaseRelative)throw Error('Choose an asset folder in the current project.');
+  return target;
+}
+const destinationKey = target => JSON.stringify([target.area,target.baseRelative,target.resourceBaseRelative,target.libraryFolder]);
+async function resourcesFolder(snapshot, assertCurrent, create=false, destination) {
+  const target=await assetDestination(snapshot,assertCurrent,destination);
   let cursor=snapshot.root;
-  for(const part of ['src','main','resources']) {
+  for(const part of target.baseRelative.split('/')) {
     cursor=path.join(cursor,part);
     try {await regularDirectory(cursor);} catch(error) {
       if(!missing(error) || !create)throw error;
@@ -69,20 +78,25 @@ async function inspectSources(filenames, limits=LIMITS) {
   }
   return sources;
 }
-async function hasCollisions(snapshot,sources,assertCurrent) {
+async function hasCollisions(snapshot,sources,assertCurrent,destination) {
   let folder;
-  try {folder=await resourcesFolder(snapshot,assertCurrent);} catch(error) {if(missing(error))return false;throw error;}
+  try {folder=await resourcesFolder(snapshot,assertCurrent,false,destination);} catch(error) {if(missing(error))return false;throw error;}
   const names=new Set((await fs.readdir(folder)).map(collisionKey));
   for(const source of sources) {const key=collisionKey(source.name);if(names.has(key))return true;names.add(key);}
   return false;
 }
-async function importFiles({snapshot,sources,assertCurrent,policy='keep',cancelled=()=>false,onImported=()=>{},limits=LIMITS}) {
+async function importFiles({snapshot,sources,assertCurrent,destination,policy='keep',cancelled=()=>false,onImported=()=>{},limits=LIMITS}) {
   const result={imported:[],skipped:[],cancelled:false,incomplete:[]};
   try {
     if(!['keep','skip'].includes(policy))throw Error('Choose Keep both or Skip existing assets.');
+    const target=await assetDestination(snapshot,assertCurrent,destination);
+    const checkCurrent=async()=>{
+      await assertCurrent();
+      if(destination!==undefined && destinationKey(await resolveAuthoringTarget(snapshot.root,destination,'asset'))!==destinationKey(target))throw Error('The asset destination changed. Add assets again.');
+    };
     for(const source of sources) {
       if(cancelled()){result.cancelled=true;break;}
-      await validateRoot(snapshot,assertCurrent);
+      await validateRoot(snapshot,checkCurrent);
       await plainAncestors(path.dirname(source.filename));
       const input=await fs.open(source.filename,constants.O_RDONLY | (constants.O_NOFOLLOW || 0));
       let data;
@@ -96,24 +110,24 @@ async function importFiles({snapshot,sources,assertCurrent,policy='keep',cancell
         data=buffer.subarray(0,used);
       } finally {await input.close();}
       if(cancelled()){result.cancelled=true;break;}
-      const folder=await resourcesFolder(snapshot,assertCurrent,true);
+      const folder=await resourcesFolder(snapshot,checkCurrent,true,destination);
       const folderId=identity(await regularDirectory(folder));
-      let destination,handle,name=source.name,number=1;
+      let destinationPath,handle,name=source.name,number=1;
       const ext=path.extname(source.name);
       const nextName=()=>`${path.basename(source.name,ext)} (${++number})${ext}`;
       for(let attempt=0;;attempt++) {
         if(attempt>=MAX_NAME_ATTEMPTS)throw Error('Too many matching asset names or concurrent changes. Rename the selected asset and add it again.');
-        await validateRoot(snapshot,assertCurrent);await plainAncestors(folder);
+        await validateRoot(snapshot,checkCurrent);await plainAncestors(folder);
         if(identity(await regularDirectory(folder))!==folderId)throw Error('The resources folder changed. Add assets again.');
         if(cancelled()){result.cancelled=true;break;}
         const names=new Set((await fs.readdir(folder)).map(collisionKey));
-        destination=path.join(folder,name);
-        if(path.dirname(destination)!==folder)throw Error('Invalid asset filename.');
+        destinationPath=path.join(folder,name);
+        if(path.dirname(destinationPath)!==folder)throw Error('Invalid asset filename.');
         if(names.has(collisionKey(name))) {
           if(policy==='skip'){result.skipped.push(source.name);break;}
           name=nextName();continue;
         }
-        try {handle=await fs.open(destination,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|(constants.O_NOFOLLOW || 0),0o644);break;}
+        try {handle=await fs.open(destinationPath,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|(constants.O_NOFOLLOW || 0),0o644);break;}
         catch(error){
           if(error.code!=='EEXIST')throw error;
           // Directory enumeration can miss filesystem aliases or racing writes.
@@ -126,22 +140,22 @@ async function importFiles({snapshot,sources,assertCurrent,policy='keep',cancell
       if(!handle)continue;
       const createdId=identity(await handle.stat());
       try {
-        await validateRoot(snapshot,assertCurrent);await plainAncestors(folder);
+        await validateRoot(snapshot,checkCurrent);await plainAncestors(folder);
         if(identity(await regularDirectory(folder))!==folderId)throw Error('The resources folder changed. Add assets again.');
         await handle.writeFile(data);await handle.close();handle=undefined;
       }catch(error){
         await handle?.close().catch(()=>{});
         // Remove only the new file we created, never an existing/replaced file.
-        const stat=await fs.lstat(destination).catch(()=>undefined);
+        const stat=await fs.lstat(destinationPath).catch(()=>undefined);
         if(stat && identity(stat)===createdId) {
-          try {await fs.unlink(destination);} catch {
-            result.incomplete.push(destination);
-            error.message+=' An incomplete asset remains at '+destination+'. Remove it before retrying.';
+          try {await fs.unlink(destinationPath);} catch {
+            result.incomplete.push(destinationPath);
+            error.message+=' An incomplete asset remains at '+destinationPath+'. Remove it before retrying.';
           }
         }
         throw error;
       }
-      result.imported.push({name,path:destination,javaPath:javaResourcePath(name)});
+      result.imported.push({name,path:destinationPath,javaPath:javaResourcePath(path.posix.join(path.posix.relative(target.resourceBaseRelative,target.baseRelative),name))});
       onImported(result.imported.at(-1));
     }
     return result;
@@ -154,7 +168,7 @@ function createAssetCommands(vscode,{project,isBusy=()=>false,setBusy=()=>{},set
     if(vscode.workspace.isTrusted===false || await project()!==last.root)throw Error('Add assets in the current trusted project before copying paths.');
     await vscode.env.clipboard.writeText(last.paths.join('\n'));setState('Asset paths copied');
   }
-  async function addAssets() {
+  async function addAssets(destination) {
     if(disposed || running || isBusy())return;
     running=true;setBusy(true);let root,result;
     try {
@@ -165,18 +179,20 @@ function createAssetCommands(vscode,{project,isBusy=()=>false,setBusy=()=>{},set
         if(await project()!==root)throw Error('The student project changed. Add assets in the current project.');
       };
       await assertCurrent();const snapshot=await captureRoot(root);
+      // A native tree supplies its selected folder; the plain New menu keeps the app default.
+      await assetDestination(snapshot,assertCurrent,destination);
       const selected=await vscode.window.showOpenDialog({title:'New asset',openLabel:'Import',canSelectFiles:true,canSelectFolders:false,canSelectMany:true,filters:{'Images and audio':EXTENSIONS}});
       if(!selected?.length)return;
       await assertCurrent();
       if(selected.some(uri=>uri.scheme && uri.scheme!=='file'))throw Error('Choose local image or audio files.');
       const sources=await inspectSources(selected.map(uri=>uri.fsPath));
       let policy='keep';
-      if(await hasCollisions(snapshot,sources,assertCurrent)) {
+      if(await hasCollisions(snapshot,sources,assertCurrent,destination)) {
         const choice=await vscode.window.showQuickPick([{label:'Keep both',policy:'keep',description:'Numbered copy'},{label:'Skip existing',policy:'skip',description:'Keep existing'}],{placeHolder:'Matching asset names'});
         if(!choice)return;policy=choice.policy;
       }
       await assertCurrent();setState('Adding assets…');
-      const work=async(progress,token)=>importFiles({snapshot,sources,assertCurrent,policy,cancelled:()=>disposed || Boolean(token?.isCancellationRequested),onImported:item=>progress?.report({message:item.name})});
+      const work=async(progress,token)=>importFiles({snapshot,sources,assertCurrent,destination,policy,cancelled:()=>disposed || Boolean(token?.isCancellationRequested),onImported:item=>progress?.report({message:item.name})});
       result=vscode.window.withProgress ? await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title:'Import assets',cancellable:true},work):await work();
       report(result,root);
       return result;
@@ -191,7 +207,7 @@ function createAssetCommands(vscode,{project,isBusy=()=>false,setBusy=()=>{},set
   function report(result,root,failed=false) {
     if(result.imported.length) {
       last={root,paths:result.imported.map(item=>item.javaPath)};
-      output?.appendLine('Assets added to src/main/resources. Use these Java paths:');
+      output?.appendLine('Assets added to '+path.relative(root,path.dirname(result.imported[0].path)).split(path.sep).join('/')+'. Use these Java paths:');
       for(const item of result.imported)output?.appendLine(item.javaPath);
       output?.appendLine('Use Zero: Copy Asset Paths to copy them.');
     }
@@ -200,4 +216,4 @@ function createAssetCommands(vscode,{project,isBusy=()=>false,setBusy=()=>{},set
   }
   return {commands:{'zero.importAssets':addAssets,'zero.copyImportedAssetPaths':copyPaths},canCopyPaths(){return Boolean(last) && !disposed;},dispose(){disposed=true;last=undefined;}};
 }
-module.exports={createAssetCommands,javaResourcePath,captureRoot,inspectSources,hasCollisions,importFiles,LIMITS,MAX_NAME_ATTEMPTS};
+module.exports={createAssetCommands,javaResourcePath,captureRoot,inspectSources,resourcesFolder,hasCollisions,importFiles,LIMITS,MAX_NAME_ATTEMPTS};
