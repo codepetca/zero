@@ -163,11 +163,11 @@ verify the service contracts; review drafts now survive reload. The client now
 resolves an uncertain request before sending another action; a subsequent new
 action receives a fresh operation ID. Recovery stays available after reload, with
 account-scoped public request details. Independent review and the actual Chrome
-loopback regression pass. The local settlement candidate can durably close an
+loopback regression pass. The protected pilot can durably close an
 unknown request without applying it, or recover its accepted result, using an
 atomic Git registry transaction. Lost close replies retain the close intent.
-Source review and local recovery acceptance pass; protected-preview migration
-and live acceptance are pending; broader
+Source review, guarded migration and live closure of two legacy test requests
+pass with unchanged event bytes; broader
 provider/browser/network acceptance remains open. See the
 [phased plan](ZEROJAMS-PLAN.md) and [operator guide](ZEROJAMS-OPERATIONS.md).
 

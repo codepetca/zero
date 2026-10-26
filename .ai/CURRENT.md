@@ -1,36 +1,33 @@
-# Durable unknown-request settlement — reviewed candidate2026-10-26
+# Durable request settlement live — 2026-10-26
 
-Owner authorizes safe settlement/recovery; production remains hidden. DraftPR202,
-branch codex/zerojams-controlled-pilot. No live writes/migration yet.
+Owner-authorized phase complete; ZeroJams production hold remains. Draft PR202
+is unmerged. Reviewed settlement04da7ce1 + main integration10150f20 deployed as
+619ca729b5d4844b32c0294706406d3c79183881, Vercel dpl_Gq9Fz6yHtugW3p2ZmwASyTzk7qPC.
+All11 exact-head CI pass; final receipt follows deployed source locally.
 
-Candidate: atomic Git branch CAS, pinned snapshots, global bounded rejection
-ledger, explicit Close earlier request with persisted close intent. Accepted
-original wins/recovered, or rejection fence wins/late action cannot apply. Covers
-missing events and proposals before numeric ID verification. Old clients receive
-409 terminal message. Current actor/Origin/CSRF/role boundaries preserved.
+Atomic branch CAS closes unknowns by recovering accepted outcome or storing a
+not-applied fence; missing-event/proposal cases included. Client close mode/key
+are one saved value; storage failure blocks dispatch. Lost close/reload continues
+closing. Payload/draft/actor isolation and older-client409 handling are verified.
 
-Explicit migration preserves existing bytes/history/guard, moves records to
-zero-jams-v2/events, initializes ledger and replaces old jams tree with marker.
-V2 never falls back/imports old namespace; marker loss halts service. New runtime
-unavailable until migration. Rollback disables pilot; never restore old writer.
-Read-only plan headce130103b5b84968c83982516104826c88a260a0,2 closed fixture blobs
-unchanged; guard retained. Source deployment stays Preview only, no merge.
+Guarded migration77066b52fcd7367e669ae35f933bac9fef2f923b copied both closed event
+blobs unchanged to zero-jams-v2/events and retained deployment guard. stewchan's
+two queued Game test requests closed via normal authenticated UI; reload has no
+pending control. Current registrydb8a7d2b3a52d84afc523c00b84a31beddf361ec contains
+2 fences, event blobs/guard unchanged.4 exact public-ledger service replays return
+not-applied with0source/0write calls (read-only audit, not forged web access).
 
-154 jam/275 website tests, typecheck/build pass. Actual React/Chrome loopback:
-unknown expiredJoin→close loses reply→reload keepsclosing→confirmednotapplied→
-freshJoin;1 fence+1join,2 commits, finaljoined.320/390px + Tab/Enter pass.
-One Sol6.1/high worker delivered atomic adapter/12tests; coordinator verified.
-Initial5117611d reviews(Astra/high security,Sol6.1/high compat) complete:3dedupP2.
-One correction batch pinsplannedmigrationHEAD, allowsboundedclosewrapper, persists
-closemodeatomically and blocksdispatchifstoragefails. Preflight understandsv2.
-TargetedAstra/high5117611d→04da7ce1 passesall16deltafiles/8regressions.
-Full154jam/275website/7preflight/typecheck/build +correctedChrome flow pass.
-Next: Preview deploy/migrate/livelegacy
-close (no event changes),15production404 cases,CI/finalreceipt. Review3turns/1fixbatch complete, no findings.
-No secret/invite/protection changes. Local3025/other checkouts preserved.
-Packet docs/ZEROJAMS-PILOT.md settlement section. DeepSeek paused.
+154jam/275website/7preflight/typecheck/build pass.10new-route access cases pass.
+Astra+Sol initial reviews, Astra delta, Sol integration clean;4turns/1fixbatch,
+3P2s fixed. Real Chrome lost-close/reload/freshJoin,320/390px+Tab/Enter pass.
+Production existing13cases +settlementGET404; undeployedsettlementPOST405; Hub200
+with no jam link. New handler's production404 guard tested.0deployments for3new
+registry commits; historical initial1709d161 error is unrelated. No account,
+secret, invitation or protection changes. Local3025/other checkouts preserved.
 
-Main d5c01bb1 integrated for current legal/beta/Git-flow baseline; only CURRENT/
-EVIDENCE conflict resolution, both evidence histories retained. Sol6.1/high
-integration review10150f20 clean (20focused). Refreshed154jam/275website/7preflight/
-typecheck/build pass. Review4turns/1fixbatch complete. Final CI push next.
+NEXT: browser/school-network and provider quota/latency/cost acceptance before
+wider trial; no extra invite/public rollout without owner scope. Keep v2 fences
+and marker; rollback disables pilot, never restores legacy writer. Physical
+mobile/WebKit/zoom and retired-path provider behavior remain unverified (marker
+loss fails closed). Packet docs/ZEROJAMS-PILOT.md; ignored final receipt
+.verification/zerojams-pilot/settlement-verification.json. DeepSeek paused.

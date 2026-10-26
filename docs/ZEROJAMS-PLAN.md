@@ -1,22 +1,23 @@
 # ZeroJams architecture and user flow
 
-Status: protected two-account preview activated; production remains hidden,
-2026-10-25. Both `stewchan` (creator, no maintainer role) and `armorup` (approver)
-completed live GitHub sign-in. The Game/App lifecycle passed with24 durable
-operations and zero registry-triggered Vercel builds. Reviewed reconciliation
-source `d5a60666` is deployed in preview revision `70de6ba8`; all11 exact-head CI
-checks pass.111 jam/264 website tests, independent review and Chrome loopback
-regression pass: lost Join reply → recover → Leave → new Join, with3 commits and
-final registration joined. Recovery stays available after reload and distinguishes
-historical confirmation from new intent, including another-device Leave.
+Status: protected two-account preview active; production remains hidden,
+2026-10-26. Creator/participant `stewchan` and independent approver `armorup` retain
+their verified separate roles. Reviewed durable-settlement source `04da7ce1`, with
+current main integration `10150f20`, is deployed as `619ca729`; all11 exact-head CI
+checks pass.154 jam/275 website/7 preflight tests, typecheck/build, independent
+reviews and actual Chrome recovery acceptance pass.
 
-The local durable-settlement candidate adds explicit close/recover outcomes,
-atomic branch transactions and a guarded registry migration.154 jam/275 website
-tests, typecheck/build and actual Chrome lost-close/reload recovery pass locally.
-Two independent reviews, targeted correction review and main integration review pass. Three P2s
-were fixed in one batch. Protected-preview delivery and guarded migration are next. Cross-browser,
-school-network and provider-cost acceptance remain open. No production rollout
-or main merge is authorized.
+The unknown-request blocker is resolved: Close recovers an accepted outcome or
+atomically fences an uncommitted request, including proposals with no event ID.
+Lost close replies/reload retain close intent; a fresh action gets a fresh key.
+The guarded v2 registry migration preserved both closed event files and build
+exclusion. Two queued legacy test submissions were closed through normal signed-in
+UI without changing event data. No Vercel deployments match the3 new state commits.
+
+Wider-trial acceptance still requires browser/school-network and provider quota,
+latency and cost evidence. Physical mobile/WebKit/zoom and provider-specific
+legacy-path traversal remain unverified; marker loss fails v2 closed. No added
+invitation, production rollout or main merge is authorized.
 
 The pilot is restricted to the fixed Preview project, branch, origin and invited
 numeric identities. Production always returns 404 for jam pages, panels, APIs and

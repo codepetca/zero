@@ -50,6 +50,24 @@ Protected Preview delivery, guarded migration, existing legacy test-request clos
 event bytes, production15jam404/Hub200/no link and exact-head CI are next.
 Production hold, originalclosedfixtures, App/secret/protection settings retained.
 
+Activation completion2026-10-26: source619ca729 READY,
+dpl_Gq9Fz6yHtugW3p2ZmwASyTzk7qPC, all11 exact-head CI pass. Guarded migration
+77066b52 preserved event blob hashes and deployment guard. Normal authenticated
+stewchan UI closes2queued invalid submissions; no pending control after reload.
+Registrydb8a7d2b contains2fences, all event bytes unchanged.4 exact public-ledger
+service replays are not-applied with0source/0write calls and unchanged head;
+read-only audit only, not a forged session/HTTP access test.
+
+Production existing13jam cases +settlementGET404; undeployedsettlementPOST405
+(current main's GET-only dynamic router), no action accepted, Hub200/no jam link.
+10 actual new-route/real access-guard scenarios pass; its production methods404
+before dependencies.0 Vercel deployment matches for3new registry SHAs; the list's
+historical1709d161 setup ERROR predates the guard. No account/secret/invite/
+protection changes. Final settlement-verification.json and related snapshots/
+images/logs are ignored under the same evidence directory. Permanently invalid
+unknown settlement blocker resolved; remaining browser/network/provider gates
+are unchanged. Final receipt docs stay local after deployed619ca729.
+
 ## Pending-request reconciliation — 2026-10-25
 
 Source671dc0aa, test correction9dec4f1e, final wording delta d5a60666. The client resolves uncertain mutations

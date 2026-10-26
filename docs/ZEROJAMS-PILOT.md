@@ -2,7 +2,7 @@
 
 Prepared 2026-10-25; activation subsequently authorized by the owner. Production
 remains hidden regardless of flags or credentials. Local policy is `enabled` and
-pinned to the approved origin. Preview revision `70de6ba8` is active; the
+pinned to the approved origin. Preview revision `619ca729` is active; the
 checkpoint below distinguishes verified hosted access from remaining pilot
 acceptance.
 
@@ -527,3 +527,47 @@ legal/beta/Git-flow changes; settlement source is unchanged. Sol6.1/high integra
 review is clean (20focused checks). Refreshed154jam/275website/7preflight/
 typecheck/build pass. The exact source for the reviewed settlement is still
 04da7ce1; deployment/migration/CI receipt follows.
+
+
+### Settlement activation receipt — 2026-10-26
+
+Deployed619ca729b5d4844b32c0294706406d3c79183881 is READY at
+dpl_Gq9Fz6yHtugW3p2ZmwASyTzk7qPC; all11 exact-head CI pass. The draft PR remains
+unmerged. Source review covers04da7ce1 and main integration10150f20; no settlement
+code changed during integration.154jam/275website/7preflight/typecheck/build pass.
+
+Guarded migration fromce130103 to77066b52 copied both existing blobs exactly:
+da80b9e90e7ede6fa2b217addda0f8d544e2661f and4c4d7639b8f3d1637604acfdcaabca77bf4837ec.
+The registry build guard remains44b8ccc2c1613f96ecc1c434ed0232f32a4c726f. Normal
+Chrome sign-in asstewchan then closed two queued invalid Game submission requests
+without applying them. Reload has no pending control; registration remains left,
+entries/approval/history bytes unchanged. Close commits0233f28c anddb8a7d2b add
+only two actor-scoped fences. Current registry head:
+db8a7d2b3a52d84afc523c00b84a31beddf361ec.
+
+Four exact public-payload service replays against that canonical ledger return
+not-applied, with source verification and mutation methods independently disabled:
+0source calls/0write calls, unchanged head. This is a read-only backend/ledger
+audit, not an authenticated HTTP replay or fabricated access acceptance. Live
+authenticated closure itself used the ordinary protected browser/session/CSRF flow.
+
+Production's13 existing jam cases and settlementGET remain404; Hub200 has no jam
+link. The new settlementPOST is not deployed on production and returns405 through
+its older GET-only dynamic route. It cannot accept an action. Executing the new
+actual route with the real access guard passes10production/invitation/method
+scenarios and invokes no service when blocked; both new production methods404.
+No production deployment was made merely to change an unsupported-method status.
+
+The Vercel deployment list contains0matches for the3 new registry commit SHAs.
+It also contains the historical initial1709d161 setup ERROR, before build exclusion;
+that is not a new build. No source/settings/permissions change weakened protection
+or added invitations. Local3025 and other checkouts remain.
+
+Final ignored receipt: settlement-verification.json, migration plan/result,
+registry-after/live-result/live-replay, route-hold/production-hold, deployment audit
+and CI snapshots under .verification/zerojams-pilot. Screenshots include
+settlement-live-closed.png and settlement-browser/. This closes the permanent-
+unknown settlement blocker; wider browser/network/provider acceptance still holds.
+Rollback disables the pilot while retaining v2 records/marker/fences; never restore
+the retired Contents writer. Final receipt docs follow the deployed head locally
+to avoid another unchanged-source CI/deployment run.
