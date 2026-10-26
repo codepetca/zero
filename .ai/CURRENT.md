@@ -1,42 +1,33 @@
-# Student explorer — isolated continuation
+# Student explorer — local default complete
 
-Own /Users/stew/.codex/worktrees/student-explorer/zero from b03ecdaa.
-Canonical plan: docs/STUDENT-EXPLORER-PLAN.md. Earlier contracts/holds are in
-.ai/STUDENT-EXPLORER-HANDOFF.md. Primary funding work and original actor checkout,
-student projects/profiles, public releases and ZeroJams hold remain untouched.
+Own /Users/stew/.codex/worktrees/student-explorer/zero, branch
+codex/student-explorer from b03ecdaa. Canonical plan:
+docs/STUDENT-EXPLORER-PLAN.md; exact acceptance/review history: docs/EVIDENCE.md.
+Primary funding work, original actor checkout, student projects/profiles, public
+releases and ZeroJams hold remain untouched. No source push/PR/merge, hosted
+activation, deploy, credential change or release is authorized.
 
-Implemented locally: supported native switchable Code/Assets tree; conditional
-Libraries; Other project files/full Explorer return; selected package/file/asset
-commands and resource paths; exact local/published references; existing guarded
-Check/Share/mode actions; independent control-view refresh and scoped watching.
-Standard Explorer remains default pending required owner light/dark/keyboard
-review. No source push, PR, merge, hosted activation, deploy or release authorized.
+Owner continued after the functional native preview and requested refinements.
+Local source now defaults to Student Explorer, preserving an explicit Standard
+Explorer preference per workspace. Supported native Code/Assets tree, conditional
+Libraries, Other files/full Explorer return, package-aware creation, selected
+asset destinations, exact imports/examples and guarded existing library actions
+are integrated. Project New is a native dropdown; destinations use the visible
+hierarchy. File context supports sibling creation and guarded file-only rename.
+Java prompts explain class/reference repair; local filename mismatch stays
+navigable, with strict mutation/publication validation retained.
 
-Reviewed original implementation c8ce5cb2; initial2 + targeted2 reviews clean after2fix
-batches. Focused167 pass, reference-only52subset pass, API docs20pass, check/diff
-pass, Zero Dev smoke pass. Real Mac CUA package/class/assets, compiler recovery,
-Run/Stop, project switch, full Explorer return, component class/imports/Check,
-keyboard and light/dark host acceptance pass. Saved-builder WebFX export and
-actual browser callback pass. Exact evidence/limits: docs/EVIDENCE.md. Only owner
-visual acceptance/default replacement remains; no active implementation workers.
+Reviewed default-adoption source0aace0a0; 82 focused startup/switching/sidebar
+checks + check/diff pass. One fresh independent Sol/medium review found no code
+blocker; its stale CURRENT finding is corrected here. Real Mac fresh-workspace
+default, saved Standard preference after reload, Main open, full Explorer escape
+and Back to Zero pass. Prior sourcee8747259 retains197 focused checks and native
+light/dark/keyboard/menu/rename/library-repair acceptance, plus scoped native /
+WebFX/browser proof. Platform gaps: Windows/minhost/freshMac/schoolnetwork and
+hosted actions; complex malformed Java recovery remains bounded.
 
-Preview is open in disposable exact installed-Code copy
-.verification/student-explorer/Zero Explorer Preview.app and isolated profile
-~/.zero-dev/9f89a72a9898. Source watcher3154 and browser proof3155 stay available.
-Original3153/3025, profiles/projects/checkouts are preserved. New transient JavaFX
-pointer input, Windows/minhost/freshMac/schoolnetwork/hosted actions unproven.
-
-Owner menu refinement feeeb0fe moved New/ZeroHub into Project. Further owner
-refinement010796fc + e8747259 adds anchored native New dropdown, visible-tree
-locations and file-context sibling creation/guarded file-only rename. Local Java
-filename mismatch stays navigable with repair hints; imports withheld and strict
-mutation/publication validation retained. 197 focused checks + check/diff pass;
-real Mac light/dark/keyboard/dropdown/text rename/sibling creation and library
-rename/restore pass. Independent2 initial reviews +1targeted review clean after
-1fix batch. Exact receipts, limits and screenshots: docs/EVIDENCE.md. Preview is
-open and ready; wider default replacement still needs owner visual acceptance.
-
-Tool-backed matching goal exists; service reports blocked after interrupted
-startup despite explicit user resume; API exposes no agent-side resume action.
-Continue authorized work; do not invent an active status or replace the goal.
-DeepSeek remains paused. No implementation workers remain active.
+Isolated Zero window is open at .verification/student-explorer/default-project,
+Main.java selected, Student Explorer active. The richer portability/project
+fixture and its workspace preference remain preserved. Source watcher3154 stays
+available; original3153/3025 and profiles remain intact. DeepSeek is paused.
+No active implementation or review workers and no remaining local plan work.

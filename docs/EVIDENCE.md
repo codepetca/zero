@@ -1,5 +1,44 @@
 # Delivery evidence index
 
+## Student Explorer local default adoption — 2026-10-26
+
+After receiving the working explorer refinements and screenshot, the owner said
+“continue.” The coordinator announced applying that continuation to the local
+default, retaining Standard Explorer. Source0aace0a0366862ff8ecb3c80a03d4074f8e2b03e
+from based3a18a8fadfe3c8c3dca6ea7b21f67de16b2f6a9 makes the reviewed Student Explorer
+the local default. Existing false workspace preferences stay false. A one-time
+introduction reveals the new sidebar for existing student-mode workspaces,
+without replacing their editors. Back to Zero uses the selected mode. Public
+labels now say Zero / Use Student Explorer; legacy internal command and workspace
+keys remain compatible. Source publication and releases remain unauthorized.
+
+82 focused student-explorer, extension, onboarding, sidebar-refresh, project-menu,
+prompts and workflow-UI tests pass; check and diff checks pass. Regression tests
+cover default mode, workspace preference across reconstruction, explicit standard
+mode and migration preserving open editors. Prior197 focused checks and scoped
+native/WebFX/browser acceptance remain applicable to untouched authoring/runtime.
+Actual Mac CUA reloaded the previous fixture and observed its saved Standard
+Explorer choice preserved. Opening the new ignored default-project fixture
+selected Zero → Code/Assets automatically, without a preview command. Main opens
+from the tree; Show all project files and Back to Zero return correctly. Window
+remains open on that fresh fixture with Main selected. Native input was initially
+interrupted by owner activity; owner confirmed usage and explicitly authorized
+continued testing. Original editor and public/student projects were untouched.
+Screenshots: .verification/student-explorer/screenshots/student-explorer-default.png
+and default-standard-persist.png; focused log default-final-tests.tap.
+
+One fresh GPT-6 Sol/medium independent reviewer, review_explorer_default, inspected
+complete base→head and immediate startup/mode callers. No code blocker; one P2
+found stale active CURRENT wording. This documentation correction resolves it.
+One launch/wave, zero code fix batches, one documentation correction; no targeted
+source rereview needed. Requested configuration known, effective model, tokens
+and elapsed telemetry unknown. Reviewer reused checks and did not run native UI.
+Standard-risk budget remains within7launches/4fix batches/60minutes. Allowance
+reading90% weekly remaining; storage223.59GB healthy. Those account readings are
+not task costs. Windows/minimum-host/fresh-Mac validation remains unclaimed.
+All six local plan phases are complete in the recorded scope; no push/PR/merge,
+publication, deployment, account change or release occurred.
+
 ## Explorer dropdown, simplified locations and file rename — 2026-10-26
 
 Owner requested visible-tree destination names, a real dropdown and file-context

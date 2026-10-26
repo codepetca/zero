@@ -67,9 +67,10 @@ Explorer choices and open editors. Publication remains separately authorized.
 
 Status: phases1–5 and independent review pass through e8747259; reviewed native
 light/dark/keyboard evidence and bounded platform limits are in docs/EVIDENCE.md.
-Phase6 owner review is accepted for this local adoption. Verify fresh-workspace
-default, existing-workspace introduction, persisted standard choice and full
-Explorer/Zero return before marking the source adoption complete. No source
+Phase6 owner review is accepted for this local adoption. Source0aace0a0 completes
+the local default. Fresh-workspace default, persisted standard choice and full
+Explorer/Zero return pass in the native Mac host; existing-workspace one-time
+introduction and editor preservation also have focused regression coverage. No source
 publication, account changes or release follows from that acceptance.
 
 Continuation orchestration receipt (2026-10-26): first GPT-6.1 Sol/high worker
