@@ -1,33 +1,32 @@
-# ZeroJams provider controls — 2026-10-26
+# ZeroJams provider controls ready for protected pilot — 2026-10-26
 
-Active owner scope: reduce GitHub overhead, aggregate quota observation/pacing,
-hosting cost evidence. Production hidden; Safari/device/zoom paused. Sponsor,
-merch and payments parked. Draft PR202 unmerged; no new invite/credential/provider/
-paid setting or registry migration. Existing hosted source619ca729 remains until
-reviewed protected-pilot update; live registry db8a7d2b is untouched.
+Owner scope: overhead reduction, provider quota visibility/pacing and cost checks.
+Production hidden; Safari/device/zoom paused; sponsor/merch/payments parked.
+PR202 remains draft/unmerged. No extra invite, credential, paid service/account
+setting, database or registry migration. Current live registrydb8a7d2b untouched.
 
-Local implementation: private issued-base CAS reuse/fresh snapshots, pinned list,
-pilot shared accepted-intent pools (ordinary 2/min20/h; safety/closures separately
-2/min10/h),2 CAS attempts/jitter, provider header observation/circuits/process pacing,
-18s context deadline, token-mint single-flight and maintainer-only diagnostics.
-These do not impose a hard fleet-wide outbound quota. Older writers/read floods
-remain outside accepted-intent caps. Unknown outcomes retain keys/close intent.
+Reviewed application39364209: fresh-head private CAS-base reuse and pinned lists;
+accepted-intent pools ordinary2/min20/h, safety/closures separately2/min10/h;
+2CASattempts/jitter; observed headers, process circuits/spacing/body-aware permits,
+18scontext deadline; coalesced token setup; maintainer-only provider diagnostics.
+These are not a hard fleet-wide outbound quota. Older writers/read floods remain
+outside accepted-intent caps. Recovery and fences precede new-admission checks.
 
-Corrected offline252 jam/282 website tests, typecheck and build pass. External
-fetches blocked except loopback; monitor module asserts zero global fetch calls.
-Two initial reviews (Astra/Sol high) found two deduplicated blockers: test transport
-isolation and consecutive body-failure reset. Both fixed in one batch; targeted
-review follows. Initial counter test made unauthenticated GitHub calls without
-credentials; registrydb8a7d2b unchanged. No accepted live writes.
-Generic Join 27→13, list 2 events 23→9; enabled two-event pilot Join14,
-23 including warm identity/refresh. Recovery 8 unchanged.
-Read-only hosting usage: shared Zero7 day2.4K invocations/5m33sCPU/0.36GBh, buildCPU
-11h42m. Not isolated Jam spend; billingAPI404, actual incremental cost unknown.
+Corrected offline252jam/282website tests +typecheck/build pass. Astra/Sol full
+initial reviews and Astra targeted correction clean:3turns,1fixbatch,2dedup issues.
+Initial test transport isolation and body-failure counter defects resolved; tests
+now block external fetches and assert no default-network call in monitor tests.
+Live registry remained unchanged after initial unauthenticated test requests.
 
-NEXT: complete targeted correction review, then update only
-the existing protected pilot and verify actual dedicated-installation observations,
-role/production hold and unchanged event state. No main merge/wider rollout.
-Docs: jams/CONTRACT.md, OPERATIONS, PRIVACY-DATA and PLAN updated locally.
-Evidence .verification/zerojams-pilot/quota-implementation/, quota-design/ and
-provider-acceptance/measurements-optimized.json. Start weekly98% remaining,
-storagehealthy~225GB; attributable tokens/time unknown. No tool-backed goal added.
+Actual Chrome/real HTTP loopback proof: lost acceptedJoin recovered despite full
+ordinary pool; lostLeave429reply→retry429→reload keeps request/draft→close in
+separate pool→freshLeave→freshJoin. Exactly4fixturecommits (3business+1fence),
+registered final, draft retained. Default write spacing used; no live write.
+Two-event pilot Join14registrycalls,23including warm identity/refresh (was36);
+list2events23→9; read/recovery8unchanged. Generic unpaced Join27→13.
+
+Shared Zero7day usage2.4Kinvocations/5m33sCPU/0.36GBh; buildCPU11h42m. Actual
+incremental Jam spend unknown (billingAPI404), not zero. No paid settings changed.
+NEXT: one source push to existing protected pilot, exact-head CI and read-only
+live installation/role/production/state verification. No main merge/wider trial.
+Evidence quota-implementation/, quota-design/, provider-acceptance/ optimized run.

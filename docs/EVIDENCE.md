@@ -11301,3 +11301,31 @@ is superseded for acceptance by that corrected offline run. Typecheck/build pass
 No CI/pilot publication occurred before this correction. Targeted review follows;
 review ledger:2initial reviewer turns,1fix batch,2deduplicated findings, no other
 initial-scope blocker. Reviewer elapsed time/tokens/effective model unknown.
+
+
+Provider-control correction review is clean at3936420971e8c609f443855e8a5ed781993f46d2.
+Astra reviewed all6correction files/direct body consumers and independently ran
+31/31monitor tests in4.309s with zero global-fetch calls. Prior complete initial
+Astra/Sol coverage remains valid for unchanged source; no redundant integration
+wave. Ledger:3reviewer turns (2initial+1target),1fix batch,2deduplicated findings
+resolved, no remaining scoped blocker. Actual reviewer wall time/tokens/effective
+model unknown. No hosted acceptance is implied by these source reviews.
+
+Chrome loopback acceptance now exercises real HTTP helpers, provider monitor,
+Git/source contracts and actual JamParticipate: committedJoin reply lost→same-key
+recovery despite full ordinary pool→newLeave rejection reply lost→same-key429
+retains request/draft across reload→Close uses separate capacity→freshLeave→
+freshJoin. Exactly4newfixture commits (3business intents+1fence), registered final,
+new IDs after confirmed outcomes, draft retained. Explicit first429 also correctly
+clears only the known-rejected new intent and retains draft. Native provider
+write spacing enabled; all external fetches blocked. Dummy fixture identity/
+clock and injected provider responses are not authenticated live acceptance.
+Ignored browser/receipt.json, screenshots and explicit-rejection receipt capture
+these cases; fixture listener/tab retired. Two harmless fixture setup/expectation
+repairs and one ephemeral-tab replay are recorded as coordination rework, with
+no application change from browser testing.
+
+Local corrected aggregate252jam/282website tests, typecheck/build pass. Source
+39364209 is stable; following receipt documentation is source-equivalent. Existing
+protected-pilot publication and exact-head CI/live read-only verification follow.
+No production deployment, invitation, payment/merch or main merge is authorized.
