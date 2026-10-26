@@ -2,6 +2,7 @@ import {JamError, LIMITS, ID, ACCOUNT, SAFETY_SLOT_BYTES, safetySlots, operation
 export {JamError} from './schema.mjs';
 
 import {requestPayload,requestDigest,REVIEW,MODERATION,SAFETY} from './requests.mjs';
+import {pacingPolicy,admitJamIntent} from './pacing.mjs';
 
 const operationKey = (actor,id) => `${actor.id}:${id}`;
 function operationId(value) { if (typeof value !== 'string' || !/^[A-Za-z0-9_-]{8,100}$/.test(value)) fail(400,'Use a valid operation ID.'); return value; }
@@ -11,23 +12,26 @@ function initial(id,actor,repositoryId,time) {
   return {schema:1,id,creator:actor,repositoryId,proposals:[],accepted:null,moderation:{status:'active'},registrations:{},entries:{},operations:{},history:[],updatedAt:time};
 }
 
-export function createJamService({store,verifySource,maintainerIds=[],now=Date.now,limits={}}={}) {
+export function createJamService({store,verifySource,maintainerIds=[],now=Date.now,limits={},pacing=null}={}) {
   if (!store?.read || !store?.compareAndSwap || !store?.list || typeof verifySource !== 'function') fail(503,'ZeroJams is unavailable.');
   if (!Array.isArray(maintainerIds) || maintainerIds.some(id=>typeof id!=='string'||!ACCOUNT.test(id))) fail(503,'Jam maintainers are not configured.');
   const maintainers=new Set(maintainerIds), bound={...LIMITS,...limits};
   if (Object.keys(limits).some(key=>!Object.hasOwn(LIMITS,key)) || Object.entries(bound).some(([key,value])=>!Number.isSafeInteger(value)||value<1||value>LIMITS[key])) fail(503,'Invalid jam pilot limits.');
   if(bound.entryHistory<2||bound.stateBytes-safetySlots(bound)*SAFETY_SLOT_BYTES<65536)fail(503,'Jam limits must preserve ordinary capacity and reserved moderation space.');
+  const pace=pacingPolicy(pacing);
+  if(pace&&typeof store.snapshot!=='function')fail(503,'Shared jam pacing requires the current registry protocol.');
+  const conflictPause=()=>pace?new Promise(resolve=>setTimeout(resolve,100+Math.floor(Math.random()*301))):Promise.resolve();
   async function safeCall(work) { try{return await work();}catch(error){if(error instanceof JamError)throw error;fail(503,'Official jam records are unavailable. Retry with the same operation ID.');} }
-  async function load(id) {
+  async function load(id,pinnedSnapshot) {
     if(typeof id!=='string'||!ID.test(id))fail(400,'Invalid jam ID.');
-    const snapshot=typeof store.snapshot==='function'?await safeCall(()=>store.snapshot()):null;
+    const snapshot=pinnedSnapshot||(typeof store.snapshot==='function'?await safeCall(()=>store.snapshot()):null);
     const value=snapshot?{...await safeCall(()=>snapshot.read(id)),revision:snapshot.revision}:await safeCall(()=>store.read(id));
     if(!value || value.state===null&&value.revision!==null&&!snapshot || value.state!==null&&(typeof value.revision!=='string'||!value.revision))fail(503,'Official jam records are unavailable.');
     if(snapshot)validateSettlements(snapshot.settlements,bound);
     return {...value,snapshot,state:value.state===null?null:validateState(value.state,id,bound)};
   }
-  async function ids() {
-    const result=await safeCall(()=>store.list());
+  async function ids(snapshot) {
+    const result=snapshot?snapshot.ids:await safeCall(()=>store.list());
     if(!Array.isArray(result)||result.length>bound.events||result.some(id=>typeof id!=='string'||!ID.test(id))||new Set(result).size!==result.length)fail(503,'The jam registry listing is unavailable.');
     return result;
   }
@@ -78,9 +82,11 @@ export function createJamService({store,verifySource,maintainerIds=[],now=Date.n
     }
     return result;
   }
-  async function commitLoop(id,actor,op,payloadDigest,change,{create=false,pool='ordinary',scope=id}={}) {
+  async function commitLoop(id,actor,op,payloadDigest,change,{create=false,pool='ordinary',scope=id,firstLoad}={}) {
     for(let attempt=0;attempt<bound.retries;attempt++) {
-      const {state,revision,snapshot}=await load(id);
+      // Reuse this request's preflight only for its first CAS. The store checks
+      // the fresh head; a conflict reloads the full authority boundary.
+      const {state,revision,snapshot}=attempt===0&&firstLoad?firstLoad:await load(id);
       const rejected=fenced(snapshot,scope,actor,op,payloadDigest);
       const previous=scope==='proposals'&&snapshot?await proposalResult(snapshot,actor,op,payloadDigest):recover(state,actor,op,payloadDigest);
       if(rejected&&previous)fail(503,'Official request history is inconsistent.');
@@ -108,15 +114,19 @@ export function createJamService({store,verifySource,maintainerIds=[],now=Date.n
       if(pool==='safety'&&nextBytes-previousBytes>SAFETY_SLOT_BYTES)fail(413,'This safety action exceeds its reserved record capacity.');
       if(nextBytes>stateBudget(next,bound))fail(413,'This jam has reached its ordinary record capacity; safety moderation space is reserved.');
       validateState(next,id,bound);
+      await safeCall(()=>admitJamIntent(snapshot,pool,time,pace,bound));
       if(await safeCall(()=>store.compareAndSwap(id,revision,next)))return structuredClone(result);
+      if(attempt+1<bound.retries)await conflictPause();
     }
     fail(409,'This jam changed repeatedly. Retry with the same operation ID.');
   }
   async function list(actor) {
     if(actor)actor=actorIdentity(actor);
     const events=[],proposals=[],canMaintain=!!actor&&maintainers.has(actor.id),time=currentTime(now);
-    for(const id of await ids()) {
-      const {state}=await load(id);
+    const snapshot=typeof store.snapshot==='function'?await safeCall(()=>store.snapshot()):null;
+    if(snapshot)validateSettlements(snapshot.settlements,bound);
+    for(const id of await ids(snapshot)) {
+      const {state}=await load(id,snapshot);
       if(state?.accepted&&state.moderation.status==='active')events.push(summary(state,time));
       const proposal=state?.proposals.at(-1);
       if(canMaintain&&proposal&&['submitted','changes-requested'].includes(proposal.status))proposals.push({id,title:proposal.manifest.title,type:proposal.manifest.type,revision:proposal.revision,status:proposal.status,organizerLogin:state.creator.login,submittedAt:proposal.proposedAt});
@@ -142,8 +152,9 @@ export function createJamService({store,verifySource,maintainerIds=[],now=Date.n
     const actor=actorIdentity(input.actor),op=operationId(input.operationId);
     const {actor:ignoredActor,operationId:ignoredOperation,...publicInput}=input;
     const payload=requestPayload('proposals',publicInput),url=payload.repositoryUrl,payloadDigest=digest(payload);
+    let snapshot;
     if(typeof store.snapshot==='function') {
-      const snapshot=await safeCall(()=>store.snapshot());validateSettlements(snapshot.settlements,bound);
+      snapshot=await safeCall(()=>store.snapshot());validateSettlements(snapshot.settlements,bound);
       const rejected=fenced(snapshot,'proposals',actor,op,payloadDigest),previous=await proposalResult(snapshot,actor,op,payloadDigest);
       if(rejected&&previous)fail(503,'Official request history is inconsistent.');
       if(rejected||previous)return rejected||previous;
@@ -168,7 +179,7 @@ export function createJamService({store,verifySource,maintainerIds=[],now=Date.n
       next.creator.login=actor.login;
       next.proposals.push({revision:proposalRevision,...verified,status:'submitted',reason:'',proposedAt:stamp});
       return {revision:proposalRevision,status:'submitted'};
-    },{create:true,scope:'proposals'});
+    },{create:true,scope:'proposals',firstLoad:snapshot?await load(id,snapshot):undefined});
   }
   async function mutate(input) {
     keys(input,['id','actor','operationId','action','revision','reason','participantId','source','title','description','demoUrl','instructions'],['id','actor','operationId','action']);
@@ -247,7 +258,7 @@ export function createJamService({store,verifySource,maintainerIds=[],now=Date.n
       }
       if(action==='leave') {registration.status='left';registration.updatedAt=stamp;}
       return {status:action==='leave'?'left':'withdrawn'};
-    },{pool:SAFETY.has(action)?'safety':'ordinary'});
+    },{pool:SAFETY.has(action)?'safety':'ordinary',firstLoad:loaded});
   }
   async function settle(input) {
     keys(input,['actor','scope','operationId','payload']);
@@ -267,10 +278,12 @@ export function createJamService({store,verifySource,maintainerIds=[],now=Date.n
       const time=currentTime(now),operations=Object.values(ledger.operations),own=operations.filter(item=>item.actorId===actor.id);
       if(operations.length>=bound.settlements||own.length>=bound.actorSettlements)fail(429,'Request settlement capacity is exhausted. Keep the earlier request and contact the maintainer.');
       if(own.filter(item=>item.settledAt>time-bound.writeWindowMs).length>=bound.actorWrites)fail(429,'Too many request settlements. Wait a minute and retry.');
+      await safeCall(()=>admitJamIntent(snapshot,'settlement',time,pace,bound));
       ledger.operations[settlementKey(scope,actor,op)]={scope,actorId:actor.id,operationId:op,payloadDigest,settledAt:time};
       if(Buffer.byteLength(JSON.stringify(ledger))>bound.settlementBytes)fail(413,'Request settlement storage is full. Keep the earlier request and contact the maintainer.');
       validateSettlements(ledger,bound);
       if(await safeCall(()=>store.compareAndSwap(null,snapshot.revision,null,{settlements:ledger})))return closedResult(scope,op);
+      if(attempt+1<bound.retries)await conflictPause();
     }
     fail(409,'Official records changed repeatedly. Keep the earlier request and retry closing it.');
   }

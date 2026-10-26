@@ -68,3 +68,15 @@ test('opaque stateless installation tokens survive caching; unsafe or oversized 
       fetchImpl:async()=>Response.json(++count===1?installation:{...result,token})}),/unavailable/);
   }
 });
+
+test('concurrent installation setup shares one verified mint and evicts failures',async()=>{
+  const config=jamServiceConfig(env),cache=new Map();let calls=0;
+  const fetchImpl=async()=>{calls++;await new Promise(resolve=>setTimeout(resolve,5));return Response.json(calls===1?installation:result);};
+  assert.deepEqual(await Promise.all(Array.from({length:4},()=>jamInstallationToken(config,{now,cache,fetchImpl}))),Array(4).fill(result.token));
+  assert.equal(calls,2);
+  const cold=new Map();let failures=0;
+  const failed=async()=>{failures++;await new Promise(resolve=>setTimeout(resolve,5));return Response.json({}, {status:503});};
+  const rejected=await Promise.allSettled([1,2].map(()=>jamInstallationToken(config,{now,cache:cold,fetchImpl:failed})));
+  assert.ok(rejected.every(item=>item.status==='rejected'));assert.equal(failures,1);
+  calls=0;assert.equal(await jamInstallationToken(config,{now,cache:cold,fetchImpl}),result.token);assert.equal(calls,2);
+});

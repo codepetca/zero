@@ -2,28 +2,15 @@
 
 Status: protected two-account preview active; production remains hidden,
 2026-10-26. Creator/participant `stewchan` and independent approver `armorup` retain
-their verified separate roles. Reviewed durable-settlement source `04da7ce1`, with
-current main integration `10150f20`, is deployed as `619ca729`; all11 exact-head CI
-checks pass.154 jam/275 website/7 preflight tests, typecheck/build, independent
-reviews and actual Chrome recovery acceptance pass.
+verified separate roles. Hosted source `619ca729` remains the previous accepted
+settlement/lifecycle checkpoint, with11 exact-head CI checks passing.
 
-The unknown-request blocker is resolved: Close recovers an accepted outcome or
-atomically fences an uncommitted request, including proposals with no event ID.
-Lost close replies/reload retain close intent; a fresh action gets a fresh key.
-The guarded v2 registry migration preserved both closed event files and build
-exclusion. Two queued legacy test submissions were closed through normal signed-in
-UI without changing event data. No Vercel deployments match the3 new state commits.
-
-The next acceptance pass adds40 atomic-provider fault regressions (194 jam tests
-pass) and verifies Chrome OAuth/hosted reads/creator fallback on the owner's
-confirmed school network. Hosted320 px reflow and delayed-provider browser recovery
-pass. Current Vercel metadata confirms Hobby/Fluid/iad1; billing API404 leaves
-expense unknown. Join uses27 service GitHub calls,36 including warm web identity
-and refresh. Aggregate quota/pacing and Preview cost acceptance remain open.
-Safari work is owner-paused; physical mobile/WebKit/real zoom and provider-specific
-legacy-path traversal remain unverified. Marker loss fails v2 closed. No added
-invitation, production rollout or main merge is authorized. See the newest pilot
-receipt and measured provider budgets in OPERATIONS.
+Current local provider-control implementation passes246 jam/282 website tests,
+typecheck/build. It reduces duplicated GitHub reads, adds aggregate accepted-intent
+pacing in the existing registry CAS and process-scoped quota visibility/circuits.
+Independent review and protected-pilot delivery follow. No extra invitations,
+production rollout or main merge is authorized. Safari/device/zoom remain paused;
+actual isolated Preview spend and wider capacity acceptance remain open.
 
 The pilot is restricted to the fixed Preview project, branch, origin and invited
 numeric identities. Production always returns 404 for jam pages, panels, APIs and
@@ -33,6 +20,18 @@ separate. No main merge or production rollout is part of pilot activation. See
 [the pilot operator packet](ZEROJAMS-PILOT.md) for configuration, live results and
 remaining acceptance. The preparation snapshots below record earlier states;
 they do not supersede this current authorization and activation record.
+
+## Current provider-control work — 2026-10-26
+
+Owner authorized request reduction, aggregate quota visibility/pacing and cost
+assessment. Local implementation reuses verified immutable snapshots, adds pilot
+accepted-intent caps in the existing CAS domain, per-process provider circuits/
+write pacing and a maintainer-only quota endpoint. No new database, paid service,
+permission or registry schema. Safeguards preserve accepted-result/fence recovery.
+Generic Join 27→13calls; enabled two-event pilot Join14calls,23 including warm web
+identity/refresh. Independent review and protected-pilot verification follow;
+local completion is not a live quota or wider-rollout claim. Current source/CI,
+results and remaining gates are tracked in CURRENT/PILOT. Sponsor/merch are parked.
 
 ## Goal and agreed decisions
 

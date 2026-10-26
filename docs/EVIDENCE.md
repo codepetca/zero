@@ -11241,3 +11241,42 @@ Independent Sol6.1/high complete7-file delta review `523be528`→`88734458` clea
 reviewer wall time/tokens/effective configuration unknown; no hosted replay.
 Review receipt browser-network/review.json. Final receipt documentation follows
 locally; test/application code is unchanged from reviewed `88734458`.
+
+
+## ZeroJams provider-control implementation — 2026-10-26
+
+Baseline da418855; owner-authorized overhead/pacing/quota/cost work. Production
+hidden; Safari/device/zoom paused; sponsor/merch/payment ideas parked. No new paid
+service/database, credential, invitation or registry schema/migration.
+
+Optimizer: private issued-base CAS reuse after fresh head, per-snapshot cloned
+memo, one-snapshot list and request preflight reuse. Source/fence races preserved.
+Five generic fixture runs Join 27→13, submit 29→15, list 2 events 23→9, raced Joins 73→39.
+Read/recovery 8 unchanged. Two-event pilot admission makes Join 14 registry calls,
+23 including warm identity/refresh. No live throughput or hard fleet-cap claim.
+
+Pilot accepted-intent pools ordinary 2/min20/h; safety/closures separately 2/min10/h;
+recovery precedes caps;2 CAS attempts and 100–400 ms jitter. Header monitor has scoped
+circuits, immediate503/Retry-After, process concurrency/body-lifetime/queue/write
+spacing,18 s request deadline and safe per-request/process method counters.
+Maintainer diagnostic probes actual installation quota; production/invite/role
+and current identity guards pass. No participant personal quota in persisted
+summary; privacy source inventory updated. Token setup coalesces verified mints.
+
+246 jam/282 website tests, typecheck/build pass; unchanged tracing warnings remain.
+New 52 tests cover budget/freshness/cache isolation, cross-instance accepted caps,
+clock rollback/reserved pools/recovery, streamed failures/deadlines/redaction,
+real HTTP Retry-After, provider role/production guards and pilot runtime wiring.
+Provider inspection: authenticated Zero project7 day usage2.4K invocations,5m33sCPU,
+0.36GBh,85.02 MB,11h42m build CPU; combinedproject traffic, no isolated cost claim.
+Hobby/Fluid/iad1/protection unchanged; billingAPI404 => incremental spend unknown.
+
+Delegation: Sol6.1/high optimizer; Astra/high read-only design followed by isolated
+monitor implementation. Coordinator owns pacing/runtime/HTTP/docs/integration.
+No shared-file conflict; no app fix batch yet. Effective model/attributable tokens
+and per-worker wall time unknown. Start accountweekly98% remaining (not task cost),
+storage225 GB healthy; fresh build check227 GB healthy. DeepSeek remained paused.
+Review session delta starts da418855; planned two independent fresh reviewers,
+no review launches yet. Protected pilot update follows reviewed source/CI only;
+no main merge or wider rollout. Evidence .verification/zerojams-pilot/
+quota-implementation/,quota-design/,provider-acceptance/measurements-optimized.json.

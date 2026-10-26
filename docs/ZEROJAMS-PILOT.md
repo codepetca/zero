@@ -656,3 +656,62 @@ callers/fixtures and receipts;40/40 tests independently pass in 2.45 s, no findi
 time and isolated tokens unknown. No hosted replay by reviewer. Subsequent final
 receipt docs are coordinator-verified; application/test code unchanged since
 that reviewed head. No new CI/push/deployment was needed for this local test pass.
+
+
+## Provider efficiency, quota visibility and pacing — 2026-10-26
+
+Owner authorized the next provider-control work from local baseline `da418855`.
+Production stays hidden; Safari/device/zoom remain paused. Sponsor/merch/payment
+ideas are parked. No new provider, database, paid setting, credential, invitation
+or registry schema/migration. Existing hosted source619ca729 and registry db8a7d2b
+remain unchanged pending reviewed protected-pilot delivery.
+
+Local implementation and verification:
+
+- Private immutable issued-base reuse requires a fresh matching CAS head; each
+  new snapshot still verifies current marker/ledger/trees. Event memoization is
+  defensive and evicts failures; listing shares one pinned snapshot. Source,
+  fence and global event-cap races remain safe. Caller mutations cannot populate
+  the private issued cache, and publication/conflict/unknown invalidates it.
+- Five generic fixture runs: Join 27→13calls, submit 29→15, empty proposal 25→14,
+  new close 19→13, two-event list 23→9, raced Joins 73→39. Recovery/read stays 8.
+  Enabled two-event pilot admission adds one event read: Join 14 registry calls,
+  warm web Join including current identity/refresh23calls. Four write-method
+  calls per publication remain; these are budgets, not live throughput claims.
+- Pilot-only accepted-intent pools share the branch transaction: ordinary 2/min,
+ 20/hour; safety and new closures separately 2/min,10/hour. Idempotent results and
+  fences bypass new-admission checks. Future stamps count; rollback>30s blocks new
+  work. Runtime has2 CAS attempts with 100–400 ms jitter. No quota-reservation writes.
+- Monitor captures installation headers before body parsing, immediately propagates
+  recognized throttles with503/Retry-After, keeps ordinary and safety/recovery
+  headroom, bounds process concurrency/queue/write spacing and request deadline.
+  Participant quota/circuits remain request-local; persistent summaries omit
+  personal quota, identity, URL, operation ID, forms and credentials. Per-request
+  counts and process totals are explicitly separate. Cold token mint is coalesced.
+- `/api/jams/provider` verifies current maintainer identity and normal pilot guards,
+  exposes safe observed quota/staleness/scoped counters, and performs bounded
+  read-only installation probes. Eight actual new-route guard scenarios, current
+  identity drift, participant403, throttle propagation and unknown-header tests
+  pass. Pilot runtime integration proves real configured caps and two attempts.
+-246 jam tests (52 new from the194 baseline),282 website tests, typecheck and build
+  pass. Existing filesystem-tracing warnings in unchanged updater/template files
+  remain; no new build error. Source changes are entirely Jam service/provider
+  code, tests and supporting documents. No UI redesign or framework/API release.
+
+Read-only authenticated Vercel dashboard usage now provides actual resource totals:
+Zero project's Last 7 Days (displayed Oct 19–26) roughly 2.4K function invocations,
+5m33s active CPU,0.36 GB-hours memory,85.02 MB transfer and11h42m build CPU. It combines
+production/other Zero work/previews; it is not an isolated Jam invoice or marginal
+cost. Billing API404 still leaves actual incremental Preview expense unknown.
+Hobby/Fluid/iad1/protection are unchanged. No financial/account setting was changed.
+
+Scope limits: accepted-intent caps require cooperating writers and valid clocks;
+reads, failed staging and older code are not a hard fleet-wide outbound cap.
+Provider header observations can be stale; counters/circuits are process-local.
+No promise of unlimited/free hosting or wider student capacity. The shared usage
+sample and local tests alone do not remove the wider-trial hold.
+
+Evidence: ignored quota-implementation/ (unit/HTTP/type/build logs, hosting usage
+receipt/screenshot), quota-design/ (design/monitor receipts), provider-acceptance/
+measurements-optimized.json (five runs; original baseline retained). Independent
+reviews and hosted observation receipts follow at the delivered source head.

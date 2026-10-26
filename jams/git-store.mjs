@@ -19,6 +19,9 @@ export function createAtomicGitHubJamStore({token,fetchImpl=fetch,timeoutMs=8000
   credential(token);
   if(![JAM_REGISTRY_BRANCH,JAM_PILOT_REGISTRY_BRANCH].includes(registryBranch)||!Number.isSafeInteger(maxEvents)||maxEvents<1||maxEvents>LIMITS.events)fail(503,'Invalid jam registry target or limit.');
   const ref=`refs/heads/${registryBranch}`;
+  // Only bases validated and issued by this store may skip immutable rereads
+  // during CAS. Every snapshot and CAS still checks the authoritative head.
+  const issuedBases=new Map(),maxIssuedBases=16;
   const request=(route,options={})=>githubRequest(ROOT+route,{token,fetchImpl,timeoutMs,maxBytes:3_000_000,...options});
   function validId(id){if(typeof id!=='string'||!ID.test(id))fail(400,'Invalid jam ID.');}
   async function head(){
@@ -80,10 +83,20 @@ export function createAtomicGitHubJamStore({token,fetchImpl=fetch,timeoutMs=8000
   }
   async function snapshot(){
     const base=await atomicAt(await head());
+    issuedBases.delete(base.revision);issuedBases.set(base.revision,{revision:base.revision,treeSha:base.treeSha,files:base.files});
+    while(issuedBases.size>maxIssuedBases)issuedBases.delete(issuedBases.keys().next().value);
     const ids=[...base.files.keys()].sort();
+    const reads=new Map();
     return {revision:base.revision,ids,settlements:structuredClone(base.settlements),async read(id){
-      validId(id);const entry=base.files.get(id);
-      return {state:entry?validateState(await jsonBlob(entry,LIMITS.stateBytes+1),id,LIMITS,{enforceReserve:false}):null};
+      validId(id);
+      const entry=base.files.get(id);if(!entry)return {state:null};
+      let pending=reads.get(id);
+      if(!pending){
+        pending=jsonBlob(entry,LIMITS.stateBytes+1).then(state=>validateState(state,id,LIMITS,{enforceReserve:false}));
+        reads.set(id,pending);
+      }
+      try{return {state:structuredClone(await pending)};}
+      catch(error){if(reads.get(id)===pending)reads.delete(id);throw error;}
     }};
   }
   async function stageBlob(bytes){
@@ -112,14 +125,15 @@ export function createAtomicGitHubJamStore({token,fetchImpl=fetch,timeoutMs=8000
     if(id===null&&nextState!==null||id!==null&&nextState===null||id===null&&settlements===undefined)fail(400,'Invalid atomic jam update.');
     const state=id===null?null:validateState(nextState,id,LIMITS,{enforceReserve:false});
     const ledger=settlements===undefined?undefined:validateSettlements(settlements);
-    if(await head()!==expectedRevision)return false;
-    const base=await atomicAt(expectedRevision),changes=[];
+    if(await head()!==expectedRevision){issuedBases.delete(expectedRevision);return false;}
+    const base=issuedBases.get(expectedRevision)||await atomicAt(expectedRevision),changes=[];
     if(id!==null){
       if(!base.files.has(id)&&base.files.size>=maxEvents)fail(429,'The jam pilot is at event capacity.');
       changes.push([`${EVENTS}/${id}.json`,bytesFor(state)]);
     }
     if(ledger!==undefined)changes.push([SETTLEMENTS,bytesFor(ledger)]);
-    return publish(base,changes,id===null?'ZeroJams close request':`ZeroJams ${id}`);
+    try{return await publish(base,changes,id===null?'ZeroJams close request':`ZeroJams ${id}`);}
+    finally{issuedBases.delete(expectedRevision);}
   }
   async function migrate({expectedRevision}={}){
     if(expectedRevision!==undefined&&!SHA.test(expectedRevision))fail(400,'An exact planned registry revision is required.');

@@ -30,7 +30,10 @@ Official state is separate from game/library sharing. The hosted writer uses
   the immutable commit. `read(id)` in a snapshot returns `{state:null|object}`.
 - `compareAndSwap(id|null,expectedHead,nextState|null,{settlements?}) -> boolean`
   stages blobs/tree against that commit and creates one commit with exactly that
-  parent. Non-forced ref publication makes concurrent sibling transactions conflict.
+  parent. A private bounded cache of issued immutable bases avoids re-reading
+  that base only after a fresh exact-head check; caller snapshot objects cannot
+  supply the cache. Publication attempts invalidate that issued base.
+  Non-forced ref publication makes concurrent sibling transactions conflict.
   A null event ID updates only the settlement ledger, without inventing an event.
 - Standalone `read(id)` returns `{state,revision:branchHead}`; `list()` returns IDs.
   No missing-branch creation, fallback namespace or alternate writer credential.
@@ -115,13 +118,61 @@ the UI explicitly identifies a newer accepted rules/schedule version and makes
 previous accepted facts inspectable before renewed acknowledgment.
 
 Errors: export `JamError` with `.status` (400,401,403,404,409,413,429,503) and
-safe public message. No credentials/operational payloads in errors. Same operation
+safe public message and optional bounded integer `.retryAfterSeconds`.
+No credentials/operational payloads in errors. Same operation
 key + actor/event + same payload recovers result; changed payload rejects. Clock
 is rechecked before each CAS attempt. Existing accepted result recovers after
 deadline, while newly accepted writes require current half-open window.
 
+## Pilot provider controls
+
+Hosted pilot construction enables `PILOT_PROVIDER_PACING` and two CAS attempts
+(one retry with 100–400 ms jitter). Other direct service fixtures default to no
+pacing, and generic limits retain their existing retry defaults.
+
+Before a new accepted intent, scan the bounded pinned event operations and
+settlement ledger in the same CAS domain. Ordinary intents are capped at2/minute
+and20/hour across actors/events; safety intents and new settlements each have
+separate2/minute,10/hour pools. Completed results/fences recover before pacing.
+A lost/contended publication reloads and rechecks counts. Future timestamps count;
+more than30s of clock rollback fails new admission closed without changing event
+deadlines. This bounds accepted intents of cooperating writers of one branch,
+not failed staging, reads, older deployments or all installation HTTP requests.
+No quota reservation record, new storage service, schema or migration is added.
+
+The runtime fetch monitor captures only allowlisted provider quota headers before
+body parsing, including failures. Installation/setup process circuits are separate;
+participant circuits/observations are request-local. Primary remaining=0, recognized
+403throttling and429 propagate safe503/Retry-After immediately with no automatic
+HTTP retry. Ordinary installation writes preserve max(100,10%of observed limit)
+requests; safety/recovery writes preserve32. Reads remain available above zero.
+Missing/malformed headers mean unknown; older/out-of-order samples cannot raise
+remaining within a known window. These are observations, not quota reservations.
+
+Per-process installation calls allow at most4 in-flight response bodies, mutation
+starts at least1s apart, a4s maximum local queue, caller8s timeout signals and an
+18 s request-context deadline. Two provider failures open a short15s circuit.
+Permit release follows body consumption/cancellation, not just response headers.
+Single-flight installation-token setup preserves existing selected repository/
+permission verification; it is not a cross-instance token cache.
+
+One structured `zerojams-provider` summary per HTTP operation contains a fixed
+route label, status, per-request method counts/duration, explicitly process-scoped
+counters/circuits and installation/setup quota observations with time/staleness.
+No URL, actor, operation ID, form, token, key, cookie or participant personal quota
+is persisted in that summary. Native hosting logs remain separately configured.
+The monitor/state/cache are bounded process memory, not a shared outbound limiter.
+
 ## HTTP (coordinator)
 
+- GET `/api/jams/provider`: maintainer-only diagnostics after current GitHub
+  identity verification, normal invitation/origin/production guards. Returns
+  `{configured,provider,acceptedIntentPacing,pacingScope}`; provider distinguishes
+  request/process counters from header-derived installation observations with
+  explicit null/stale values. Probes dedicated installation `/rate_limit` only
+  when no recent valid observation/probe exists (30s per process, single-flight).
+  A normal participant gets403 before any provider work. POST is405 after guards;
+  both production methods404. The endpoint does not write the registry.
 - GET `/api/jams`: `{configured,events,canMaintain,proposals?}`; unavailable503
   when unconfigured. Optional session; pending inbox only for maintainers.
 - GET `/api/jams/<id>`: `{configured,event,registration,entry,canMaintain,proposal?}`.
@@ -138,7 +189,9 @@ deadline, while newly accepted writes require current half-open window.
   GitHub identity verification. Use `x-hub-csrf` from existing session endpoint.
 - GET `/api/jams/template?type=game|app`: complete standalone template ZIP.
 
-Service responses carry `configured:true`; errors `{error,configured?}`. No-store
+Service responses carry `configured:true`; errors `{error,configured?,retryAfterSeconds?}`.
+A validated retry delay is also sent as HTTP `Retry-After`; it never clears an
+uncertain client request or automatically repeats a mutation. No-store
 for authenticated data/mutations. Public summaries may have bounded caching.
 Session endpoint and sign-in unchanged at `/api/hub/github/session` and login
 `/api/hub/github/login?returnTo=/hub/jams/...`.

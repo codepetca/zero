@@ -169,9 +169,14 @@ atomic Git registry transaction. Lost close replies retain the close intent.
 Source review, guarded migration and live closure of two legacy test requests
 pass with unchanged event bytes. Chrome sign-in, hosted reads and creator fallback
 also pass on the owner-confirmed school network, with hosted320 px reflow and
-synthetic delayed-provider recovery. Safari work is owner-paused. Aggregate
-provider pacing/quota, Preview cost, physical-device and real zoom acceptance
-remain open; the existing pilot caps do not establish classroom capacity. See the
+synthetic delayed-provider recovery. Safari work is owner-paused. Local provider
+controls reduce redundant immutable reads, pace accepted intents across the same
+registry CAS, and add process circuits plus maintainer-only quota diagnostics.
+They preserve separate safety/closure capacity and same-key recovery, with no new
+database or registry migration. These are awaiting reviewed pilot delivery; they
+are not a hard fleet-wide outbound request budget. Shared hosting usage is now
+observed, while isolated Preview spend, physical-device and real zoom acceptance
+remain open. Current evidence does not establish classroom capacity. See the
 [phased plan](ZEROJAMS-PLAN.md) and [operator guide](ZEROJAMS-OPERATIONS.md).
 
 ## Core goal: students grow the framework
