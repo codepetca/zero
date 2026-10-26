@@ -12,7 +12,7 @@ import gitRecoveryPanel from '../../extension/src/git-recovery-panel.js';
 // production code. Fail visibly if its function boundary changes.
 const source = readFileSync(new URL('../../extension/src/extension.js', import.meta.url), 'utf8');
 const start = source.indexOf('  function render(webview) {');
-const end = source.indexOf('  context.subscriptions.push(vscode.window.registerWebviewViewProvider', start);
+const end = source.indexOf('  const controlsProvider=', start);
 if (start < 0 || end < 0) throw new Error('Sidebar renderer changed; update the review adapter.');
 const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 export function sidebarSource(state = 'ready', {connected = false} = {}) {
@@ -21,7 +21,7 @@ export function sidebarSource(state = 'ready', {connected = false} = {}) {
   const signedIn = phase !== 'signed-out';
   runInNewContext(`${source.slice(start, end)}\nrender(webview);`, {
     path,isSetupProject:setupProject.isSetupProject,assets:{canCopyPaths:()=>false},context:{workspaceState:{get:()=>undefined}},exportReadyRoot:undefined,savedChecksRoot:undefined,savedChecksState:undefined,browserRun:{canOpenInBrowser:state==='running'},
-    projectRoot: state === 'empty' ? undefined : '/fixture/project', renderedWebview: undefined, sidebarScript: sidebarClient.sidebarScript, crypto, webview, escape, icon:sidebarIcons.icon, sidebarStyles: sidebarStyle.sidebarStyles, isBusy: () => ['building','stopping','busy'].includes(state),
+    projectRoot: state === 'empty' ? undefined : '/fixture/project', renderedWebviews: new WeakSet(), sidebarScript: sidebarClient.sidebarScript, crypto, webview, escape, icon:sidebarIcons.icon, sidebarStyles: sidebarStyle.sidebarStyles, isBusy: () => ['building','stopping','busy'].includes(state),
     githubReady:()=>connected && phase === 'ready', githubReadiness:{phase},
     repository: connected ? 'https://github.com/student/greeting' : 'No repository connected', auth: { signedIn: signedIn, accountLabel: signedIn ? 'armorup' : '' },
     branch: '', branchDetached: false, updateRecovery:undefined,updateRecoveryError:undefined,pendingUpload:undefined,pendingDirty:false,pendingMatchesHead:false,gitRecoveryPanel,uploadProgress: '', uploadMode: () => 'simulation', execution: null, pendingLaunch:undefined, nativeStarting:0, stopPromise:state==='stopping'?Promise.resolve():undefined, browserBusy:state==='building', browserActive:['building','running'].includes(state), localPractice: state === 'practice', originalWork: state !== 'practice',

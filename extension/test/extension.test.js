@@ -162,6 +162,16 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
       await new Promise(resolve=>setImmediate(resolve));
     }
   };await settle(()=>authCalls.length>0 && /GitHub setup/.test(webview.html));
+  const previewUpdates=[],previewWebview={html:'',onDidReceiveMessage:disposable,postMessage:message=>{previewUpdates.push(message);return Promise.resolve(true);}};
+  let disposePreview;
+  webviewProvider.resolveWebviewView({webview:previewWebview,onDidDispose:callback=>{disposePreview=callback;return disposable();}});
+  assert.match(previewWebview.html,/zero.newPackage/);
+  previewWebview.html='Independent live controls document';
+  webviewProvider.resolveWebviewView(candidate);
+  assert.equal(previewWebview.html,'Independent live controls document','Refreshing standard controls must not reload a second live controls document');
+  assert.ok(previewUpdates.some(message=>message.type==='sidebar.update'));
+  disposePreview();const disposedUpdates=previewUpdates.length;
+  webviewProvider.resolveWebviewView(candidate);assert.equal(previewUpdates.length,disposedUpdates,'Disposed controls no longer receive updates');
   assert.match(webview.html,/GitHub setup/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
   assert.equal(sidebarShortcut.visible,true,'The return button remains available while signed out');
   assert.equal(sidebarShortcut.command,'zero.showSidebar');
@@ -276,13 +286,18 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   startPanels.at(-1).dispose();assert.equal(sidebarShortcut.visible,false,'Closing the last Zero surface immediately hides the shortcut in an unrelated project');
 });
 
-test("Zero controls live in native Explorer with minimal overflow",()=>{
+test("Zero keeps standard Explorer default and offers a native switchable student preview",()=>{
   const manifest=require("../package.json");
   assert.deepEqual(manifest.contributes.views.explorer.map(view=>view.id),["zero.controls"]);
   assert.equal(manifest.contributes.views.explorer[0].name,"Zero");
-  assert.equal(manifest.contributes.viewsContainers,undefined);
-  assert.ok(manifest.contributes.menus["view/title"].every(item=>item.when === "view == zero.controls"));
-  assert.deepEqual(manifest.contributes.menus["view/title"].map(item=>item.command),["zero.githubAccount","zero.chooseRepository","zero.exportWeb","zero.copyPublishedWebLink","zero.openPublishedWeb","zero.openFirstLesson","zero.showSetup","zero.startPage","zero.showOutput"]);
+  assert.equal(manifest.contributes.views.explorer[0].when,'!zero.studentExplorerPreview');
+  assert.deepEqual(manifest.contributes.views['zero-student-explorer'].map(item=>item.id),['zero.studentControls','zero.studentProject']);
+  assert.ok(manifest.contributes.views['zero-student-explorer'].every(item=>item.when==='zero.studentExplorerPreview'));
+  assert.deepEqual(manifest.contributes.viewsContainers.activitybar.map(item=>item.id),['zero-student-explorer']);
+  const standard=manifest.contributes.menus['view/title'].filter(item=>item.when==='view == zero.controls').map(item=>item.command);
+  assert.deepEqual(standard,["zero.githubAccount","zero.chooseRepository","zero.exportWeb","zero.copyPublishedWebLink","zero.openPublishedWeb","zero.openFirstLesson","zero.showSetup","zero.startPage","zero.showOutput","zero.previewStudentExplorer"]);
+  const preview=manifest.contributes.menus['view/title'].filter(item=>item.when==='view == zero.studentControls').map(item=>item.command);
+  assert.deepEqual(preview,standard.filter(command=>command!=='zero.previewStudentExplorer'));
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startChange").title,"Zero: New Branch");
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startProject").title,"Zero: Start Tutorial");
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.cloneRepository").title,"Zero: Clone from GitHub");

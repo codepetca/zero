@@ -3,7 +3,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const {discoverLibraries} = require('./sharing/authoring');
 
-const hidden = new Set(['.git','target','node_modules','.ds_store','.zero-sharing-recovery','.zero','.zero-web']);
+const hidden = new Set(['.git','target','node_modules','.ds_store','.zero-sharing-recovery','.zero','.zero-build','.zero-web']);
 const keywords = new Set(('abstract assert boolean break byte case catch char class const continue default do double else enum extends final finally float for goto if implements import instanceof int interface long native new package private protected public return short static strictfp super switch synchronized this throw throws transient try void volatile while true false null _ var yield record sealed permits').split(' '));
 const inside = (relative, base) => relative === base || relative.startsWith(base + '/');
 const reserved = name => /^zero(?:\.|$)/i.test(name);

@@ -1,6 +1,7 @@
 'use strict';
-const fs=require('node:fs/promises');const path=require('node:path');
+const fs=require('node:fs/promises');const {constants}=require('node:fs');const path=require('node:path');const {randomUUID}=require('node:crypto');
 const {validateGamePreview,MAX_BYTES}=require('./game-preview');
+const {readProjectModel,ordinaryEntries}=require('../project-explorer-model');
 const {SLUG: PRACTICE_SLUG,isTutorialPractice,practiceCatalogUrl}=require('./tutorial-practice');
 const core=require('../core');const {assertShareable,assertOriginalProject,assertContributionProject,tutorialMarker}=require('../lesson-projects');const c=require('./contracts');const authoring=require('./authoring');const checks=require('./local-check');const consumer=require('./consumer');const {createGitHubReader}=require('./github');const {parseXml,single,value}=require('../project-pom');
 const fail=message=>{throw new Error(message);};
@@ -38,6 +39,9 @@ function createSharingEditor(vscode,host,options={}) {
  const report=(message,detail=message)=>{host.output.appendLine(detail);host.setState?.(message);};
  const api={authoring:options.authoring||authoring,checks:options.checks||checks,consumer:options.consumer||consumer,reader:options.reader||createGitHubReader,git:options.git||core.git};
  const diagnostics=vscode.languages?.createDiagnosticCollection('zero-library-check');
+ let disposed=false;const references=new Map(),referenceProvider=vscode.workspace.registerTextDocumentContentProvider?.('zero-library-reference',{provideTextDocumentContent:uri=>references.get(uri.toString())||''});
+ const closeReference=vscode.workspace.onDidCloseTextDocument?.(document=>references.delete(document.uri?.toString()));
+ const referenceLifetime={dispose(){disposed=true;references.clear();closeReference?.dispose();referenceProvider?.dispose();}};
  function fileDiagnostics(text,root) {
   if(!diagnostics||!vscode.Diagnostic||!vscode.Range)return;const files=new Map();
   for(const line of text.split(/\r?\n/)) {
@@ -66,7 +70,48 @@ function createSharingEditor(vscode,host,options={}) {
  async function current(root){if(await host.project()!==root)fail('The project changed during review. Prepare this action again.');assertSaved(vscode,root);}
  let running=false;
  async function busy(action){if(running||host.isBusy())return;running=true;host.setBusy(true);try{return await action();}finally{running=false;host.setBusy(false);}}
- async function pickLibrary(root){const libraries=await api.authoring.discoverLibraries(root);if(!libraries.length)fail('Extract a library from this game first.');const chosen=await vscode.window.showQuickPick(libraries.map(l=>({label:l.descriptor.title,description:`${isTutorialPractice(l.descriptor)?'Tutorial practice · ':''}${l.slug} · ${l.mode} · ${l.descriptor.version}`,library:l})),{title:'Library'});return chosen?.library;}
+ function assertContext(root,context){if(context===undefined)return;if(!context||typeof context!=='object'||Array.isArray(context)||typeof context.root!=='string'||typeof context.libraryId!=='string'||!context.libraryId||context.root!==root)fail('The selected library belongs to another project. Select it again.');}
+ const libraryStamp=lib=>JSON.stringify([lib.identity.id,lib.slug,lib.mode,lib.version,lib.descriptor]);
+ async function selectedStillCurrent(root,lib,context){if(context===undefined)return;await current(root);const latest=(await api.authoring.discoverLibraries(root)).find(item=>item.identity.id===context.libraryId);if(!latest||libraryStamp(latest)!==libraryStamp(lib))fail('The selected library changed. Select it again.');}
+ async function pickLibrary(root,context){assertContext(root,context);const libraries=await api.authoring.discoverLibraries(root);if(context!==undefined){const selected=libraries.find(l=>l.identity.id===context.libraryId);if(!selected)fail('The selected library is no longer in this project. Select it again.');return selected;}if(!libraries.length)fail('Extract a library from this game first.');const chosen=await vscode.window.showQuickPick(libraries.map(l=>({label:l.descriptor.title,description:`${isTutorialPractice(l.descriptor)?'Tutorial practice · ':''}${l.slug} · ${l.mode} · ${l.descriptor.version}`,library:l})),{title:'Library'});return chosen?.library;}
+ const projectModel=options.readProjectModel||readProjectModel;
+ const referenceStamp=lib=>JSON.stringify([lib.id,lib.mode,lib.version,lib.folder,lib.namespace,lib.localVersion,lib.imports]);
+ async function referenceCurrent(root,context,stamp){if(disposed)fail('The library reference view has closed. Select it again.');if(await host.project()!==root)fail('The project changed while preparing the library reference. Select it again.');const model=await projectModel(root),lib=model.libraries.find(item=>item.id===context.libraryId);if(disposed)fail('The library reference view has closed. Select it again.');if(!lib||referenceStamp(lib)!==stamp)fail('The library mode or version changed while preparing its reference. Select it again.');return lib;}
+ async function boundedLocalText(root,relative,maximum){const filename=await api.authoring.safePath(root,relative),handle=await fs.open(filename,constants.O_RDONLY|(constants.O_NOFOLLOW||0));try{const stat=await handle.stat();if(!stat.isFile()||stat.size>maximum)return null;const bytes=Buffer.alloc(maximum+1);let length=0;while(length<bytes.length){const next=await handle.read(bytes,length,bytes.length-length,null);if(!next.bytesRead)break;length+=next.bytesRead;}if(length>maximum)return null;return new TextDecoder('utf-8',{fatal:true}).decode(bytes.subarray(0,length));}finally{await handle.close();}}
+ async function localReference(root,lib){
+  const lines=[lib.title,`Active mode: Local source`,`Active version: ${lib.version}`,'',`Namespace: ${lib.namespace}`,'','Public imports from current source:'];
+  if(lib.imports.length)lines.push(...lib.imports.map(name=>`import ${name};`));else lines.push('No public class declarations were found in this library source.');
+  if(lib.readme){lines.push('','Local README:',lib.readme);const contents=await boundedLocalText(root,lib.readme,32768);if(contents!==null)lines.push('',contents);else lines.push('README is larger than the reference view. Open the file to read it.');}
+  if(lib.examplesRoot){lines.push('','Local examples:');let count=0,more=false;async function visit(folder,depth){if(depth>8||more)return;for(const entry of await ordinaryEntries(root,folder)){if(more)return;if(entry.directory){await visit(entry.relative,depth+1);continue;}if(count>=16){more=true;return;}count++;lines.push('',`Example: ${entry.relative}`);if(/\.(java|md|txt)$/.test(entry.relative)){const contents=await boundedLocalText(root,entry.relative,16384);if(contents!==null)lines.push(contents);else lines.push('Open this file to read the full example.');}}}await visit(lib.examplesRoot,0);if(more)lines.push('Additional examples: open the local examples folder.');}
+  return {content:lines.join('\n')+'\n',imports:lib.imports.map(name=>`import ${name};`).join('\n')};
+ }
+ async function libraryReference(context,{copy=false}={}){
+  if(disposed)fail('The library reference view has closed. Select it again.');
+  const root=await host.project();assertContext(root,context);if(context===undefined)fail('Select a library in the project Explorer.');
+  const model=await projectModel(root),lib=model.libraries.find(item=>item.id===context.libraryId);if(!lib)fail('The selected library is no longer in this project. Select it again.');
+  const stamp=referenceStamp(lib);let content,imports='';
+  if(lib.mode==='local'){if(copy)imports=lib.imports.map(name=>`import ${name};`).join('\n');else {const local=await localReference(root,lib);content=local.content;imports=local.imports;}}
+  else {
+   let contextCatalog,catalogError;try{contextCatalog=await api.consumer.loadCatalog(catalogSettings(lib.slug===PRACTICE_SLUG),{fetcher:options.fetcher});}catch(error){catalogError=error;}
+   const release=contextCatalog?.catalog.releases.find(item=>item.kind==='library'&&item.id===lib.id&&item.version===lib.version&&item.status==='available');
+   const lines=[lib.title,'Active mode: Published dependency',`Active version: ${lib.version}`,'',`Namespace: ${lib.namespace}`,''];
+   if(catalogError)lines.push('The published catalog is unavailable. No import or API example is shown.',`Reason: ${catalogError.message}`);
+   else if(!release)lines.push('Exact active release metadata is unavailable in the current catalog. No import or API example is shown.');
+   else if(!release.components?.length)lines.push('This exact release has no published component inventory. No import or API example is shown.');
+   else {lines.push('Imports and examples from the exact published release:');for(const component of release.components){lines.push('',`Class: ${component.className}`,`import ${component.className};`);if(component.description)lines.push(component.description);if(component.usage)lines.push('',`Usage example:\n${component.usage}`);if(component.api?.length)lines.push('','Published API signatures:',...component.api);}imports=release.components.map(item=>`import ${item.className};`).join('\n');}
+   if(lib.folder)lines.push('','Retained local source is inactive in published mode.');
+   content=lines.join('\n')+'\n';
+  }
+  await referenceCurrent(root,context,stamp);
+  if(copy){if(!imports)fail('No authoritative import statements are available for this active library version.');if(!vscode.env?.clipboard?.writeText)fail('The clipboard is unavailable.');await vscode.env.clipboard.writeText(imports);await referenceCurrent(root,context,stamp);return;}
+  if(!referenceProvider)fail('The native read-only library reference view is unavailable.');
+  const uri=vscode.Uri.parse(`zero-library-reference:/library-${randomUUID()}.txt`);if(references.size>=16)references.delete(references.keys().next().value);references.set(uri.toString(),content);
+  const document=await vscode.workspace.openTextDocument(uri);
+  await referenceCurrent(root,context,stamp);
+  await vscode.window.showTextDocument(document,{preview:false});
+  await referenceCurrent(root,context,stamp);
+  return {imports};
+ }
  async function repository(root) {
   await core.assertRepositoryRoot(root,api.git);const parsed=core.parseRepositoryUrl(await api.git(root,['remote','get-url','origin']));
   const ticket=await host.auth.capture(),reader=api.reader({token:ticket.session.accessToken,fetcher:options.fetcher});
@@ -119,17 +164,17 @@ function createSharingEditor(vscode,host,options={}) {
   }
  }
  async function input(title,initial,validate) {return vscode.window.showInputBox({title,value:initial,validateInput:text=>{try{if(!text.trim())return 'Enter a value.';validate?.(text);}catch(error){return error.message;}}});}
- async function check() {
-  trusted(vscode);const root=await host.project();assertSaved(vscode,root);const lib=await pickLibrary(root);if(!lib)return;
+ async function check(context) {
+  trusted(vscode);const root=await host.project();assertSaved(vscode,root);const lib=await pickLibrary(root,context);if(!lib)return;
   if(await vscode.window.showInformationMessage(`Check ${lib.descriptor.title}?`,{modal:true,detail:practiceDetail(lib.descriptor)+'Builds the library JAR and runs your checks and both examples with Run App permissions.'},'Check library')!=='Check library')return;
-  await current(root);diagnostics?.clear();
+  await current(root);await selectedStillCurrent(root,lib,context);diagnostics?.clear();
   await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title:`Check ${lib.descriptor.title}`,cancellable:true},async(progress,cancellation)=>{
    const controller=new AbortController(),subscription=cancellation.onCancellationRequested(()=>controller.abort());
-   let plan;try{progress.report({message:'Building the independent library and its behavior checks…'});plan=await api.checks.prepareLocalCheck(root,lib.slug);const result=await api.checks.runLocalCheck(plan,{signal:controller.signal});for(const output of result.outputs)host.output.appendLine(output.output);report(`${lib.descriptor.title}: checks passed`,`${lib.descriptor.title} ${result.version}: local JAR checks and both examples passed.`);}catch(error){fileDiagnostics(error.message,root);host.output.appendLine(error.message);host.output.show?.(true);throw error;}finally{subscription.dispose();}
+   let plan;try{progress.report({message:'Building the independent library and its behavior checks…'});await selectedStillCurrent(root,lib,context);plan=await api.checks.prepareLocalCheck(root,lib.slug);const result=await api.checks.runLocalCheck(plan,{signal:controller.signal});for(const output of result.outputs)host.output.appendLine(output.output);report(`${lib.descriptor.title}: checks passed`,`${lib.descriptor.title} ${result.version}: local JAR checks and both examples passed.`);}catch(error){fileDiagnostics(error.message,root);host.output.appendLine(error.message);host.output.show?.(true);throw error;}finally{subscription.dispose();}
   });
  }
- async function mode() {
-  trusted(vscode);const root=await host.project();assertSaved(vscode,root);const lib=await pickLibrary(root);if(!lib)return;
+ async function mode(context) {
+  trusted(vscode);const root=await host.project();assertSaved(vscode,root);const lib=await pickLibrary(root,context);if(!lib)return;
   const selected=await vscode.window.showQuickPick([{label:'Develop local library',mode:'local'},{label:'Use published version',mode:'published'}],{title:lib.descriptor.title});if(!selected)return;
   const modeSettings=selected.mode==='published'?catalogSettings(isTutorialPractice(lib.descriptor)):undefined;
   let version,published;if(selected.mode==='published') {
@@ -137,9 +182,9 @@ function createSharingEditor(vscode,host,options={}) {
    const picked=await vscode.window.showQuickPick(versions.map(release=>({label:release.version,description:release.title,release})),{title:'Published version'});if(!picked)return;
    await api.consumer.verifyLibrary(context,picked.release);version=picked.release.version;published={context,release:picked.release};
   }
-  const plan=await api.authoring.previewMode(root,{slug:lib.slug,mode:selected.mode,version,...(published?{publishedRelease:published.release}:{})});
+  await selectedStillCurrent(root,lib,context);const plan=await api.authoring.previewMode(root,{slug:lib.slug,mode:selected.mode,version,...(published?{publishedRelease:published.release}:{})});
   if(published) {const pom=plan.changes.find(c=>c.path==='pom.xml');pom.after=api.consumer.addArtifactRepository(pom.after,published.context.artifactOrigin);}
-  const revalidate=published?async()=>{const fresh=await api.consumer.loadCatalog(catalogSettings(isTutorialPractice(lib.descriptor)),{fetcher:options.fetcher});if(fresh.fingerprint!==published.context.fingerprint)fail('The catalog changed during mode review. Choose the published version again.');await api.consumer.verifyLibrary(fresh,published.release);}:undefined;
+  const revalidate=async()=>{await selectedStillCurrent(root,lib,context);if(published){const fresh=await api.consumer.loadCatalog(catalogSettings(isTutorialPractice(lib.descriptor)),{fetcher:options.fetcher});if(fresh.fingerprint!==published.context.fingerprint)fail('The catalog changed during mode review. Choose the published version again.');await api.consumer.verifyLibrary(fresh,published.release);}};
   if(await reviewPlan(root,plan,`${isTutorialPractice(lib.descriptor)?'Tutorial practice · ':''}${selected.label}: ${lib.descriptor.title}?`,revalidate))report('Library mode changed','Library mode changed. Run App to check your game. Editable library source was preserved.');
  }
  async function recovery() {
@@ -192,15 +237,15 @@ function createSharingEditor(vscode,host,options={}) {
   const updated={...descriptor,title,description,version,license};if(descriptor.kind==='game')updated.controls=controls;if(preview)updated.preview=preview;else delete updated.preview;
   if(await saveDescriptor(root,filename,updated)!==false)report('Sharing details saved','Sharing details saved. Commit & push separately, then Share the committed version.');
  }
- async function share(kind) {
+ async function share(kind,context) {
   trusted(vscode);const root=await host.project();await assertShareable(root);const tutorial=await tutorialMarker(root);if(kind==='game'||tutorial&&tutorial.tutorialProjectId!=='game')await assertOriginalProject(root);assertSaved(vscode,root);let folder='.',filename='zero-game.json',descriptor;const creation={};
-  if(kind==='library'){const lib=await pickLibrary(root);if(!lib)return;folder=lib.folder;filename=`${folder}/zero-library.json`;descriptor=lib.descriptor;}else descriptor=await gameDescriptor(root,creation);
+  let selectedLibrary;if(kind==='library'){selectedLibrary=await pickLibrary(root,context);if(!selectedLibrary)return;folder=selectedLibrary.folder;filename=`${folder}/zero-library.json`;descriptor=selectedLibrary.descriptor;}else descriptor=await gameDescriptor(root,creation);
   if(!descriptor)return;
   await assertContributionProject(root,descriptor);
   if(kind==='game'&&!descriptor.preview){const preview=await gameScreenshot(root);if(!preview)return;descriptor={...descriptor,preview};if(await saveDescriptor(root,filename,descriptor)===false)return;}
   if(!creation.created) {
    const requestedVersion=await input('Sharing version',descriptor.version,c.validateVersion);if(!requestedVersion)return;
-   if(requestedVersion!==descriptor.version) {descriptor={...descriptor,version:requestedVersion};if(await saveDescriptor(root,filename,descriptor)===false)return;}
+   if(requestedVersion!==descriptor.version) {if(selectedLibrary)await selectedStillCurrent(root,selectedLibrary,context);descriptor={...descriptor,version:requestedVersion};if(await saveDescriptor(root,filename,descriptor)===false)return;if(selectedLibrary&&context!==undefined){const refreshed=(await api.authoring.discoverLibraries(root)).find(item=>item.identity.id===context.libraryId);if(!refreshed||refreshed.mode!==selectedLibrary.mode||refreshed.slug!==selectedLibrary.slug||JSON.stringify(refreshed.descriptor)!==JSON.stringify(descriptor))fail('The selected library changed. Select it again.');selectedLibrary=refreshed;}}
   }
   const policyRevision=operatorSetting('sharingPolicyRevision',bundled.policyRevision,'');if(!/^[a-f0-9]{40}$/.test(policyRevision))fail('Sharing setup needs an active reviewed policy. This kit can prepare local libraries; public sharing is not active yet.');
   let previous;
@@ -221,7 +266,7 @@ function createSharingEditor(vscode,host,options={}) {
    if(previous)previous={...previous,ticket:fresh};
   }
   async function prepare() {
-   trusted(vscode);await current(root);
+   trusted(vscode);await current(root);if(selectedLibrary)await selectedStillCurrent(root,selectedLibrary,context);
    if((await api.git(root,['status','--porcelain','-z'])).length)fail('Commit & push your changes before sharing this version.');
    const resolved=await freshRepository(),commit=(await api.git(root,['rev-parse','HEAD'])).trim();
    if(!/^[a-f0-9]{40}$/.test(commit))fail('Commit & push your first version before sharing.');
@@ -262,7 +307,7 @@ function createSharingEditor(vscode,host,options={}) {
   const {resolved,commit,request,web}=prepared;
   const webDetail=kind==='game' ? web ? `\nPlay latest: ${web.url}\nThe student-hosted live app can update; the source snapshot stays at this version.` : '\nSource only.' : '';
   const approved=await vscode.window.showInformationMessage(`Open the ${isTutorialPractice(descriptor)?'practice library':kind} publication form?`,{modal:true,detail:`${practiceDetail(descriptor)}${descriptor.title} ${descriptor.version}\n${resolved.repository.url}\nRevision ${commit}\nFolder ${folder}\nGitHub: ${resolved.requester.login}${webDetail}\n\nReview and submit on GitHub. Uncommitted files are excluded.`},'Open GitHub form');if(approved!=='Open GitHub form')return;
-  trusted(vscode);await current(root);await assertContributionProject(root,descriptor);await host.auth.assertCurrent(resolved.ticket);
+  trusted(vscode);await current(root);if(selectedLibrary)await selectedStillCurrent(root,selectedLibrary,context);await assertContributionProject(root,descriptor);await host.auth.assertCurrent(resolved.ticket);
   if((await api.git(root,['rev-parse','HEAD'])).trim()!==commit||(await api.git(root,['status','--porcelain','-z'])).length)fail('The committed revision or files changed during review. Share again.');
   if(!await vscode.env.openExternal(vscode.Uri.parse(c.publicationUrl(request))))fail('Could not open the GitHub publication form.');
   report('Form opened · submit on GitHub');
@@ -312,10 +357,10 @@ function createSharingEditor(vscode,host,options={}) {
  }
  const actions={extract,check,mode,recovery,editDetails,shareGame:()=>share('game'),shareLibrary:()=>share('library'),browseHub:()=>browse('library'),browsePractice:()=>browse('library',true),browseGames:()=>browse('game')};
  const commands={
-  'zero.editSharingDetails':()=>busy(editDetails),'zero.recoverLibraryChange':()=>busy(recovery),'zero.extractLibrary':()=>busy(extract),'zero.checkLibrary':()=>busy(check),'zero.switchLibraryMode':()=>busy(mode),'zero.shareLibrary':()=>busy(()=>share('library')),'zero.shareGame':()=>busy(()=>share('game')),
+  'zero.editSharingDetails':()=>busy(editDetails),'zero.recoverLibraryChange':()=>busy(recovery),'zero.extractLibrary':()=>busy(extract),'zero.checkLibrary':context=>busy(()=>check(context)),'zero.switchLibraryMode':context=>busy(()=>mode(context)),'zero.shareLibrary':context=>busy(()=>share('library',context)),'zero.libraryReference':context=>busy(()=>libraryReference(context)),'zero.copyLibraryImports':context=>busy(()=>libraryReference(context,{copy:true})),'zero.shareGame':()=>busy(()=>share('game')),
   'zero.browseHub':()=>busy(()=>browse('library')),'zero.browseTutorialPractice':()=>busy(()=>browse('library',true)),'zero.browseGames':()=>busy(()=>browse('game')),'zero.openProject':()=>busy(()=>browse('game')),
   'zero.sharingActions':()=>busy(async()=>{const picked=await vscode.window.showQuickPick([{label:'Browse libraries',command:'zero.browseHub'},{label:'Browse tutorial practice',command:'zero.browseTutorialPractice'},{label:'Browse games / Open project',command:'zero.browseGames'},{label:'Extract library',command:'zero.extractLibrary'},{label:'Check library',command:'zero.checkLibrary'},{label:'Share library',command:'zero.shareLibrary'},{label:'Share game',command:'zero.shareGame'},{label:'Develop local / Use published library',command:'zero.switchLibraryMode'},{label:'Recover a library change',command:'zero.recoverLibraryChange'},{label:'Edit sharing details',command:'zero.editSharingDetails'}],{title:'Libraries and games'});if(picked){const selected={'zero.browseHub':actions.browseHub,'zero.browseTutorialPractice':actions.browsePractice,'zero.browseGames':actions.browseGames,'zero.extractLibrary':extract,'zero.checkLibrary':check,'zero.shareLibrary':actions.shareLibrary,'zero.shareGame':actions.shareGame,'zero.switchLibraryMode':mode,'zero.recoverLibraryChange':recovery,'zero.editSharingDetails':editDetails}[picked.command];if(selected)await selected();}})
  };
- return {commands,importEdits,disposables:diagnostics?[diagnostics]:[]};
+ return {commands,importEdits,disposables:[diagnostics,referenceLifetime].filter(Boolean)};
 }
 module.exports={createSharingEditor,importEdits,assertSaved};

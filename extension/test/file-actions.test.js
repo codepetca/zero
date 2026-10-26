@@ -49,7 +49,7 @@ test('invalid and existing names stay in the native input; final checks never ov
   f.name='caf\u00e9.txt';f.location=2;await f.run('File');f.name='cafe\u0301.txt';await assert.rejects(f.run('File'),/already exists/);
 });
 test('portable names reject traversal, absolute paths, reserved names and hidden generated paths',()=>{
-  for (const value of ['','../outside','/tmp/escape','a/../../b','a\\b','C:/temp/file','a//b','.git/config','target/file','src/main/java/node_modules/x','a/.zero/file','nul.txt','COM1','bad:thing','bad\nname','a.',' folder','folder ']) assert.ok(nameError(value,'file'),value);
+  for (const value of ['','../outside','/tmp/escape','a/../../b','a\\b','C:/temp/file','a//b','.git/config','target/file','src/main/java/node_modules/x','a/.zero/file','.zero-build/new.js','.zero-web/new.js','nul.txt','COM1','bad:thing','bad\nname','a.',' folder','folder ']) assert.ok(nameError(value,'file'),value);
   for (const value of ['class','record','true','_','var','bad name','1Player','../Player','Player.class','CON','nul.java']) assert.ok(nameError(value,'class'),value);
   for (const value of ['Player','Player.java','ScoreDisplay','counter2']) assert.equal(nameError(value,'class'),undefined,value);
   assert.equal(nameError('images/backgrounds','folder'),undefined);

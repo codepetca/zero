@@ -4,7 +4,7 @@ const {constants} = require('node:fs');
 const path = require('node:path');
 const {resolveAuthoringTarget,packageNameError} = require('./file-targets');
 
-const hidden = new Set(['.git','target','node_modules','.ds_store','.zero-sharing-recovery','.zero','.zero-web']);
+const hidden = new Set(['.git','target','node_modules','.ds_store','.zero-sharing-recovery','.zero','.zero-build','.zero-web']);
 const keywords = new Set(('abstract assert boolean break byte case catch char class const continue default do double else enum extends final finally float for goto if implements import instanceof int interface long native new package private protected public return short static strictfp super switch synchronized this throw throws transient try void volatile while true false null _ var yield record sealed permits').split(' '));
 const locations = [
   {label:'Java source',relative:'src/main/java'},

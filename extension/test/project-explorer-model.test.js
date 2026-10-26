@@ -38,20 +38,29 @@ test('ordinary legacy project: Code, Assets and unknown authored files remain ac
   await put(root,'README.md','My game');
   await put(root,'target/classes/Main.class','generated');
   await put(root,'.zero/web-export/pom.xml','generated');
+  await put(root,'.zero-build/run.cjs','generated');
+  await put(root,'.zero-web/README.md','generated');
+  await put(root,'notes/pom.xml','student build notes');
+  await put(root,'notes/zero-library.json','student notes');
   const model=await readProjectModel(root);
   assert.equal(model.title,'My Game'); assert.equal(model.codeRoot,'src/main/java');assert.equal(model.assetsRoot,'src/main/resources');
   assert.deepEqual(model.libraries,[]);assert.deepEqual(model.corePaths,[]);
   assert.deepEqual(new Set(model.otherEntries),new Set(['.my-settings','README.md','notes']));
   assert.deepEqual((await ordinaryEntries(root,model.codeRoot)).map(entry=>entry.name),['Main.java']);
-  assert.deepEqual((await ordinaryEntries(root,'notes')).map(entry=>entry.relative),['notes/design.txt']);
+  assert.deepEqual((await ordinaryEntries(root,'notes')).map(entry=>entry.relative),['notes/design.txt','notes/pom.xml','notes/zero-library.json']);
   assert.equal(isToolingPath('libraries/example/target/classes'),true);
+  assert.equal(isToolingPath('.zero-build/run.cjs'),true);
+  assert.equal(isToolingPath('.zero-web/README.md'),true);
+  assert.equal(isToolingPath('notes/pom.xml'),false);
+  assert.equal(isToolingPath('notes/zero-library.json'),false);
+  assert.equal(isToolingPath('notes/.DS_Store'),true);
   assert.equal(isToolingPath('src/main/java/zero/contrib/MyCode.java'),false);
   assert.equal(isToolingPath('custom-tooling/readme.txt'),false);
 });
 test('exact core hiding preserves zero.contrib and custom zero classes, including older project records',async t=>{
   const root=await fixture(t),sources={};
   for (const name of core.coreSourcePaths) {
-    sources[name]=await fs.readFile(path.resolve(__dirname,'../../student-template',name),'utf8');
+    sources[name]=await fs.readFile(path.resolve(__dirname,'../../framework',name),'utf8');
     await put(root,name,sources[name]);
   }
   await put(root,'zero-core.json',JSON.stringify(core.makeCoreRecord(sources)));
@@ -71,7 +80,7 @@ test('exact core hiding preserves zero.contrib and custom zero classes, includin
 });
 test('without a core record only exact reviewed helper bytes are hidden',async t=>{
   const root=await fixture(t),name='src/main/java/zero/Actor.java';
-  await put(root,name,await fs.readFile(path.resolve(__dirname,'../../student-template',name)));
+  await put(root,name,await fs.readFile(path.resolve(__dirname,'../../framework',name)));
   let model=await readProjectModel(root);assert.deepEqual(model.corePaths,[name]);
   assert.deepEqual((await ordinaryEntries(root,'src/main/java',{hideCorePaths:model.corePaths})).map(entry=>entry.name),['Main.java']);
   await fs.appendFile(path.join(root,name),'// student change\n');
@@ -117,7 +126,7 @@ test('authored namespace mismatch and malformed or oversized metadata fail visib
 test('path traversal, linked files/directories and linked metadata never enter the simple explorer',async t=>{
   const root=await fixture(t),outside=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-explorer-outside-')));
   t.after(()=>fs.rm(outside,{recursive:true,force:true}));await put(outside,'secret.txt','secret');
-  for (const relative of ['../','../secret.txt','/tmp','src/../other','src\\main','C:/outside']) await assert.rejects(ordinaryEntries(root,relative),/relative project path/);
+  for (const relative of ['../','../secret.txt','/tmp','src/../other','src\\main','C:/outside','nested/'.repeat(LIMITS.depth)+'file.txt']) await assert.rejects(ordinaryEntries(root,relative),/relative project path/);
   await fs.symlink(outside,path.join(root,'linked'));
   await assert.rejects(ordinaryEntries(root),/Symbolic links/);await assert.rejects(ordinaryEntries(root,'linked'),/Symbolic links/);
   await fs.unlink(path.join(root,'linked'));await fs.symlink(path.join(outside,'secret.txt'),path.join(root,'src/main/java/Linked.java'));

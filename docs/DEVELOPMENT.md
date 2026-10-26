@@ -632,6 +632,31 @@ light/dark web inspection; physical Windows icon rendering remains separate.
 
 ## Native Explorer integration
 
+Local source offers **Zero: Preview Student Explorer** as an explicit,
+workspace-scoped switch. The standard Explorer stays the default pending owner
+visual review. The supported `zero-student-explorer` view container combines
+`zero.studentControls` and the native `zero.studentProject` TreeDataProvider.
+Both control views share the renderer but keep independent document lifecycles.
+**Show all project files** opens the full Explorer without disabling the preview;
+the Zero status-bar action returns to the active controls. **Zero: Use Standard
+Explorer** disables the preview. No host layout storage or private APIs are used.
+
+Code and Assets map to actual source/resource roots. Selected file actions
+re-resolve current project, Java package, local library identity and mode through
+the authoring resolver. Installed dependencies have no editable source tree;
+retained authored source in published mode is labeled inactive. Tree expansion
+only reads bounded ordinary files. Exact published imports/examples require an
+explicit catalog lookup, with no artifact download or dependency change.
+Root-scoped file watching refreshes authored changes and ignores build output.
+
+Focused checks: `node --test extension/test/student-explorer.test.js
+extension/test/project-explorer-model.test.js extension/test/file-actions.test.js
+extension/test/assets.test.js extension/test/sharing-explorer.test.js
+extension/test/sharing-editor.test.js extension/test/extension.test.js
+extension/test/sidebar-refresh.test.js`. Use Zero Dev for actual light/dark,
+keyboard, context-menu, error-recovery and project-switch acceptance. Native and
+WebFX/browser proofs remain separate. No source publication or release follows.
+
 Zero contributes the `zero.controls` webview to `contributes.views.explorer`.
 `Zero: Show Sidebar` reveals Explorer and expands the controls using its generated
 focus command. Existing marked workspaces receive this introduction once under

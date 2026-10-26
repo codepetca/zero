@@ -12,19 +12,21 @@ const contracts = require('./sharing/contracts');
 const {inspectManagedLibraryPins} = require('./sharing/consumer');
 
 const LIMITS = Object.freeze({entries:500, files:1000, depth:24, metadataBytes:65536, sourceBytes:1048576, totalSourceBytes:16777216});
-const toolingDirectories = new Set(['.git','.github','.vscode','.mvn','.zero','.zero-sharing-recovery','target','node_modules']);
-const toolingFiles = new Set(['zero.json','zero-core.json','zero-libraries.json','zero-library.json','pom.xml','mvnw','mvnw.cmd','.gitignore','.DS_Store']);
+const toolingDirectories = new Set(['.git','.github','.vscode','.mvn','.zero','.zero-build','.zero-web','.zero-sharing-recovery','target','node_modules']);
+const rootToolingFiles = new Set(['zero.json','zero-core.json','zero-libraries.json','zero-library.json','pom.xml','mvnw','mvnw.cmd','.gitignore']);
 const fail = message => { throw new Error(`${message} Open the full Explorer to see all project files.`); };
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 
 function relativePath(input, {empty=false}={}) {
   if (empty && input === '') return input;
-  if (typeof input !== 'string' || input.length > 2048 || input.includes('\\') || input.includes(':') || input.startsWith('/') || input.split('/').some(part => !part || part === '.' || part === '..' || /[\x00-\x1f\x7f]/.test(part))) fail('Use an ordinary relative project path.');
+  if (typeof input !== 'string' || input.length > 2048 || input.includes('\\') || input.includes(':') || input.startsWith('/')) fail('Use an ordinary relative project path.');
+  const parts=input.split('/');
+  if (parts.length > LIMITS.depth || parts.some(part => !part || part === '.' || part === '..' || /[\x00-\x1f\x7f]/.test(part))) fail('Use an ordinary relative project path.');
   return input;
 }
 function isToolingPath(relative) {
   const parts = relativePath(relative).split('/');
-  return parts.some(part => toolingDirectories.has(part)) || toolingFiles.has(parts.at(-1));
+  return parts.some(part => toolingDirectories.has(part)) || rootToolingFiles.has(relative) || parts.at(-1) === '.DS_Store';
 }
 async function ordinaryPath(root, relative='', {missing=false}={}) {
   relativePath(relative,{empty:true});

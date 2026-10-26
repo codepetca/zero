@@ -41,6 +41,26 @@ The source is the authority if you change your local framework.
 
 ## Grow the existing tutorial projects
 
+The local **Zero: Preview Student Explorer** command switches to a native Code
+and Assets view. It remains a preview; released kits keep their bundled Explorer.
+Right-click Code or a package and choose **New package…** or **New class…**.
+For example, creating `game.characters` and then `Player` inside it writes
+`package game.characters;` in `game/characters/Player.java`. A package organizes
+ordinary Java; it does not create or publish a library. Classes created from the
+New menu still start beside Main unless you select a package in the tree.
+
+Right-click an Assets folder to import images or sounds there. **Copy Asset Path**
+copies the selected file's quoted classpath path for Java. Local component assets
+use their component namespace. Libraries appears only after adding or extracting
+a library; its exact version and local/published active mode stay visible.
+**Imports and examples…** reads local public source or explicitly looks up the
+exact published release. **Copy imports** copies those declarations. If exact
+metadata is unavailable, inspect the library documentation; Zero invents no API.
+Add/Update/Revert remain in ZeroHub's library browser, and Check/Share retain their
+existing review steps. **Show all project files** opens the full Explorer; the
+Zero status-bar action returns to your active controls. **Zero: Use Standard
+Explorer** switches the preview off.
+
 The [tutorial](lessons/README.md) keeps three small continuing projects: Greeting,
 Study quiz and Coin game. In [lesson 10](lessons/10-components.md), refactor a busy
 Main by extracting PlayerInput and ScoreDisplay. [Lesson 11](lessons/11-zerohub.md)
