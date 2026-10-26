@@ -10876,3 +10876,16 @@ manual47→48upgrade, clean-folder setup, browser sign-in, native compiler recov
 and fresh WebFX preview pass. Two early Run stops remain an unresolved QA
 observation; no student-rollout approval or production update-delivery claim.
 Publishing remains held.
+
+## Remove practice-library notice — 2026-10-26
+
+Owner requested removal of the confusing CreditsBadge copied-work/cleanup
+paragraph. Removed only that paragraph from HubDiscovery and its obsolete test
+assertions; practice filtering, cards and editor navigation remain unchanged.
+All11 sharing-client tests and website typecheck pass; diff whitespace check clean.
+Independent GPT-6 Luna/low source review (notice_removal_review) covered base
+`d5c01bb1` plus the complete two-file working diff: no blockers, no fixes.
+Review budget:1launch,1initialwave,0fixbatches; elapsed/tokens not exposed.
+Owner authorized PR and merge on2026-10-26. No access controls, private storage,
+repository visibility or installer changes are included. Final publication/CI/live
+receipts are retained in ignored `.verification/remove-practice-notice/`.

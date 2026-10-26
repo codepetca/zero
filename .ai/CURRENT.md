@@ -1,25 +1,17 @@
-# Active Terms rollout — owner authorized2026-10-25
+# Remove confusing library notice — 2026-10-26
 
-Worktree `website-beta-notice/zero`, branch `codex/terms-rollout`, base7252c538.
-PR205 is merged/live with beta/policies/footer/mobile dropdown and Docs performance
-fix. Owner now requested removing draft status and rolling out Terms, then asked
-for use-based acceptance language covering Zero/related Codepet services.
+Worktree `website-beta-notice/zero`, branch `codex/remove-practice-notice`,
+base `d5c01bb1` (PR206 active Terms rollout already merged).
 
-Version2026-10-25 takes effect on publication. Explicit clause covers use after
-publication/notice for Zero/ZeroHub and Codepet-operated services expressly linking
-the Terms. Footer gives visible notice; readable-source page now has it too.
-No fabricated past acceptance, unrelated-product acceptance, privacy/guardian
-consent or acceptance registry. Mandatory rights, MIT licenses and existing
-liability/governing-law clauses preserved. Legal review remains advice, not a
-publication hold; no claim of legal certification or immunity.
+Owner requested removing the CreditsBadge copied-work/periodic-cleanup paragraph
+from tutorial practice libraries. Paragraph and obsolete copy assertions removed.
+Practice filtering/cards/navigation unchanged. All11 sharing-client tests, website
+typecheck and diff whitespace check pass. Independent Luna/low source review clean.
+Owner authorized PR and merge on2026-10-26. Publish this removal after the
+reviewed commit passes selected CI; verify the website after its deployment.
+See docs/EVIDENCE.md and ignored `.verification/remove-practice-notice/` receipts.
 
-Local243website tests,3renderedpolicy contract checks, typecheck, productionbuild,
-npmcheck and320/390/1280 light/dark reflow/link checks pass. Next: independent
-policy/integration review→draftPR→selectedCI→merge→verify liveeffectiveTerms.
-Source proof/logs in ignored `.verification/terms-rollout/` and `output/playwright/`.
-
-Preserve primaryfundingwork, my-greeting/Dev3153/profiles, preview3025 and private
-backups/sealedassets. Tailnet3148 source preview stays useful; loopback3147 must be
-restarted after final build for latest source. NativeGit remains defaultOFF.
-No installer/native release, account/permission/settings change or production
-ZeroJams activation. DeepSeek paused through2026-12-31. No newgoal/task/automation.
+Preserve primary checkout funding work and private/local development state.
+No account/access/download restrictions requested; owner chose existing access.
+No native release, credentials/settings changes or production Jams activation.
+DeepSeek paused through2026-12-31. No new goal/task/automation.
