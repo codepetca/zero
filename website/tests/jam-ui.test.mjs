@@ -7,7 +7,10 @@ import {webcrypto} from 'node:crypto';
 import ts from 'typescript';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {githubHttpFixture} from '../../jams/test/github-http-fixture.mjs';
-import {participant} from '../../jams/test/fixtures.mjs';
+import {creator,maintainer,participant} from '../../jams/test/fixtures.mjs';
+import {atomicGitHttpFixture} from '../../jams/test/git-http-fixture.mjs';
+import {createJamService} from '../../jams/service.mjs';
+import {createGitHubSourceVerifier} from '../../jams/github-source.mjs';
 const require=createRequire(import.meta.url);
 const clientSource=await readFile(new URL('../components/JamClient.tsx',import.meta.url),'utf8');
 const panelSource=await readFile(new URL('../app/hub/jams/[id]/panel/route.ts',import.meta.url),'utf8');
@@ -276,4 +279,30 @@ test('unapproved or unavailable panel grants no creator framing and exposes no w
     assert.equal(response.status,503);assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'self'$/);
     const html=await response.text();assert.doesNotMatch(html,/private operational details|Pending secret|unapproved\.example|<button|<form/);
   }
+});
+
+
+test('lost close reply → reload → retry keeps closing; an expired unknown Join never applies and a fresh Join works', {timeout:10000},async t=>{
+  const git=await atomicGitHttpFixture(t),sources=await githubHttpFixture(t);await git.store.migrate();let time=Date.parse('2030-01-02T12:00Z');
+  const service=createJamService({store:git.store,verifySource:createGitHubSourceVerifier({token:'http-fixture-only-token',fetchImpl:sources.fetchImpl}),maintainerIds:[maintainer.id],now:()=>time});
+  const proposal=await service.propose({actor:creator,operationId:'fixture-propose',repositoryUrl:'https://github.com/creator/jam',commit:'a'.repeat(40)});await service.mutate({id:'jam-101',actor:maintainer,operationId:'fixture-approve',action:'approve',revision:proposal.revision});
+  const storage=new Map(),calls=[];let loseOriginal=true,loseClose=true;
+  const fetcher=async(url,init)=>{const body=JSON.parse(init.body);calls.push({url,...body});assert.equal(body.actor,undefined);assert.equal(init.headers['x-hub-csrf'],'fixture-csrf');if(loseOriginal){loseOriginal=false;throw Error('request lost before commit');}
+    try{const result=url==='/api/jams/settlements'?await service.settle({...body,actor:participant}):await service.mutate({...body,id:'jam-101',actor:participant});if(url==='/api/jams/settlements'&&loseClose){loseClose=false;return new Response('{lost');}return Response.json({configured:true,...result},{status:result.settlement==='not-applied'&&url!=='/api/jams/settlements'?409:200});}catch(e){return Response.json({configured:true,error:e.message},{status:e.status||503});}};
+  const make=()=>{const h=harness({storage,fetcher});h.setActor({...participant,csrfToken:'fixture-csrf'});return h;},payload={action:'join',revision:proposal.revision};let h=make();
+  await h.render('useMutation','/api/jams/jam-101/actions').send(payload);time=Date.parse('2030-01-05');
+  assert.equal(await h.render('useMutation','/api/jams/jam-101/actions').retry(),null);assert.equal(h.render('useMutation','/api/jams/jam-101/actions').pending.action,'join');
+  assert.equal(await h.render('useMutation','/api/jams/jam-101/actions').close(),null);assert.equal(h.render('useMutation','/api/jams/jam-101/actions').closing,true);assert.equal(git.state().registrations[participant.id],undefined);
+  time=Date.parse('2030-01-02T12:00Z');h=make();const result=await h.render('useMutation','/api/jams/jam-101/actions').retry();assert.equal(result.settlement,'not-applied');assert.equal(calls.at(-1).url,'/api/jams/settlements');assert.equal(calls.at(-1).operationId,calls[0].operationId);assert.equal(storage.size,0);assert.match(h.render('useMutation','/api/jams/jam-101/actions').success,/closed without being applied/);
+  assert.equal(git.state().registrations[participant.id],undefined);await h.render('useMutation','/api/jams/jam-101/actions').send(payload);assert.equal(git.state().registrations[participant.id].status,'joined');assert.notEqual(calls.at(-1).operationId,calls[0].operationId);
+});
+test('close errors, wrong terminal identities and account changes retain the exact close intent',async()=>{
+  const storage=new Map(),calls=[];let mode='unknown';const fetcher=async(url,init)=>{const body=JSON.parse(init.body);calls.push({url,...body});if(mode==='unknown')throw Error('unknown');if(mode==='auth')return Response.json({error:'Sign in again'},{status:401});return Response.json({configured:true,operationId:mode==='wrong-id'?'wrong':body.operationId,scope:mode==='wrong-scope'?'jam-99':'jam-42',settlement:'not-applied',status:'not-applied'},{status:mode==='wrong-status'?503:200});};
+  const h=harness({storage,fetcher});await h.render().send({action:'join',revision:'a'});mode='auth';await h.render().close();const id=calls[0].operationId;assert.equal(h.render().closing,true);
+  for(mode of ['wrong-id','wrong-scope','wrong-status']){assert.equal(await h.render().retry(),null);assert.equal(h.render().closing,true);}
+  h.setActor({id:'99',login:'other',csrfToken:'other'});assert.equal(h.render().pending,undefined);assert.equal(h.render().closing,false);h.setActor({id:'12',login:'creator',csrfToken:'csrf'});mode='ok';await h.render().send({action:'join',revision:'a'});assert.equal(calls.at(-1).url,'/api/jams/settlements');assert.equal(calls.at(-1).operationId,id);assert.equal(storage.size,0);
+});
+test('a durable409 terminal closes the pending key while keeping a moderation reason draft',async()=>{
+  let mode='unknown';const storage=new Map(),h=harness({storage,effects:true,fetcher:async(url,init)=>{if(mode==='unknown')throw Error('unknown');const body=JSON.parse(init.body);return Response.json({configured:true,eventId:'jam-42',operationId:body.operationId,scope:'jam-42',settlement:'not-applied',status:'not-applied'},{status:409});}});
+  const props={id:'jam-42',event:{revision:'accepted',moderation:{status:'active'}},onChanged:async()=>{}};const render=()=>h.render('Moderation',props);render();h.flushEffects();elements(render()).find(n=>n.type==='textarea').props.onChange({target:{value:'Keep this public reason'}});elements(render()).find(n=>n.type==='button'&&n.props.children==='Suspend jam').props.onClick();await new Promise(setImmediate);mode='closed';elements(render()).find(n=>n.type==='button'&&n.props.children==='Suspend jam').props.onClick();await new Promise(setImmediate);assert.equal(elements(render()).find(n=>n.type==='textarea').props.value,'Keep this public reason');assert.ok([...storage.keys()].every(key=>!key.startsWith('zero-jam-operation:')));
 });

@@ -1,10 +1,8 @@
-import {JamError, LIMITS, ID, SHA, ACCOUNT, SAFETY_SLOT_BYTES, safetySlots, operationCounts, stateBudget, actorIdentity, digest, fail, keys, manifestData, repositoryData, repositoryUrl, text, httpsUrl, validateState} from './schema.mjs';
+import {JamError, LIMITS, ID, ACCOUNT, SAFETY_SLOT_BYTES, safetySlots, operationCounts, stateBudget, actorIdentity, digest, fail, keys, manifestData, repositoryData, repositoryUrl, validateState, validateSettlements} from './schema.mjs';
 export {JamError} from './schema.mjs';
 
-const ACTIONS = ['approve','request-changes','reject','suspend','resume','cancel','withdraw-entry','join','leave','submit','withdraw'];
-const REVIEW = new Set(['approve','request-changes','reject']);
-const MODERATION = new Set(['suspend','resume','cancel']);
-const SAFETY = new Set(['suspend','cancel','withdraw-entry']);
+import {requestPayload,requestDigest,REVIEW,MODERATION,SAFETY} from './requests.mjs';
+
 const operationKey = (actor,id) => `${actor.id}:${id}`;
 function operationId(value) { if (typeof value !== 'string' || !/^[A-Za-z0-9_-]{8,100}$/.test(value)) fail(400,'Use a valid operation ID.'); return value; }
 function currentTime(now) { const value=now();if(!Number.isSafeInteger(value))fail(503,'Jam clock is unavailable.');return value; }
@@ -22,9 +20,11 @@ export function createJamService({store,verifySource,maintainerIds=[],now=Date.n
   async function safeCall(work) { try{return await work();}catch(error){if(error instanceof JamError)throw error;fail(503,'Official jam records are unavailable. Retry with the same operation ID.');} }
   async function load(id) {
     if(typeof id!=='string'||!ID.test(id))fail(400,'Invalid jam ID.');
-    const value=await safeCall(()=>store.read(id));
-    if(!value || value.state===null&&value.revision!==null || value.state!==null&&(typeof value.revision!=='string'||!value.revision))fail(503,'Official jam records are unavailable.');
-    return {...value,state:value.state===null?null:validateState(value.state,id,bound)};
+    const snapshot=typeof store.snapshot==='function'?await safeCall(()=>store.snapshot()):null;
+    const value=snapshot?{...await safeCall(()=>snapshot.read(id)),revision:snapshot.revision}:await safeCall(()=>store.read(id));
+    if(!value || value.state===null&&value.revision!==null&&!snapshot || value.state!==null&&(typeof value.revision!=='string'||!value.revision))fail(503,'Official jam records are unavailable.');
+    if(snapshot)validateSettlements(snapshot.settlements,bound);
+    return {...value,snapshot,state:value.state===null?null:validateState(value.state,id,bound)};
   }
   async function ids() {
     const result=await safeCall(()=>store.list());
@@ -53,13 +53,43 @@ export function createJamService({store,verifySource,maintainerIds=[],now=Date.n
     if(previous.payloadDigest!==payloadDigest)fail(409,'This operation ID was used for different information.');
     return structuredClone(previous.result);
   }
-  async function commitLoop(id,actor,op,payloadDigest,change,{create=false,pool='ordinary'}={}) {
+  const settlementKey=(scope,actor,op)=>`${scope}:${actor.id}:${op}`;
+  const closedResult=(scope,op)=>({operationId:op,scope,settlement:'not-applied',status:'not-applied',...(scope==='proposals'?{}:{eventId:scope})});
+  function fenced(snapshot,scope,actor,op,payloadDigest) {
+    const previous=snapshot?.settlements.operations[settlementKey(scope,actor,op)];
+    if(!previous)return null;
+    if(previous.payloadDigest!==payloadDigest)fail(409,'This operation ID was used for different information.');
+    return closedResult(scope,op);
+  }
+  async function proposalResult(snapshot,actor,op,payloadDigest) {
+    let result=null;
+    for(const id of snapshot.ids) {
+      const {state}=await safeCall(()=>snapshot.read(id));
+      if(!state)fail(503,'Official jam records are unavailable.');
+      validateState(state,id,bound);
+      const previous=state.creator.id===actor.id&&state.operations[operationKey(actor,op)];
+      // Legacy operation records have no explicit action field. Proposal results
+      // reference a proposal revision, unlike entry submissions/review actions.
+      if(previous?.result.status==='submitted'&&state.proposals.some(p=>p.revision===previous.result.revision)) {
+        const recovered=recover(state,actor,op,payloadDigest);
+        if(result)fail(503,'Official request history is ambiguous.');
+        result=recovered;
+      }
+    }
+    return result;
+  }
+  async function commitLoop(id,actor,op,payloadDigest,change,{create=false,pool='ordinary',scope=id}={}) {
     for(let attempt=0;attempt<bound.retries;attempt++) {
-      const {state,revision}=await load(id);
-      const previous=recover(state,actor,op,payloadDigest);if(previous)return previous;
+      const {state,revision,snapshot}=await load(id);
+      const rejected=fenced(snapshot,scope,actor,op,payloadDigest);
+      const previous=scope==='proposals'&&snapshot?await proposalResult(snapshot,actor,op,payloadDigest):recover(state,actor,op,payloadDigest);
+      if(rejected&&previous)fail(503,'Official request history is inconsistent.');
+      if(rejected||previous)return rejected||previous;
+      // An event operation key remains immutable even across endpoint scopes.
+      if(scope==='proposals'&&state?.operations[operationKey(actor,op)])recover(state,actor,op,payloadDigest);
       const time=currentTime(now),stamp=new Date(time).toISOString();
       if(!state&&!create)fail(404,'Jam not found.');
-      if(!state&&(await ids()).length>=bound.events)fail(429,'The jam pilot is at event capacity.');
+      if(!state&&(snapshot?snapshot.ids:await ids()).length>=bound.events)fail(429,'The jam pilot is at event capacity.');
       const next=state?structuredClone(state):initial(id,actor,id.slice(4),stamp);
       const counts=operationCounts(next);
       if(pool==='safety') {
@@ -109,13 +139,19 @@ export function createJamService({store,verifySource,maintainerIds=[],now=Date.n
   }
   async function propose(input) {
     keys(input,['actor','operationId','repositoryUrl','commit']);
-    const actor=actorIdentity(input.actor),op=operationId(input.operationId),url=repositoryUrl(input.repositoryUrl).url;
-    if(!SHA.test(input.commit||''))fail(400,'Choose an exact 40-character source commit.');
-    const payloadDigest=digest({action:'propose',repositoryUrl:url,commit:input.commit});
+    const actor=actorIdentity(input.actor),op=operationId(input.operationId);
+    const {actor:ignoredActor,operationId:ignoredOperation,...publicInput}=input;
+    const payload=requestPayload('proposals',publicInput),url=payload.repositoryUrl,payloadDigest=digest(payload);
+    if(typeof store.snapshot==='function') {
+      const snapshot=await safeCall(()=>store.snapshot());validateSettlements(snapshot.settlements,bound);
+      const rejected=fenced(snapshot,'proposals',actor,op,payloadDigest),previous=await proposalResult(snapshot,actor,op,payloadDigest);
+      if(rejected&&previous)fail(503,'Official request history is inconsistent.');
+      if(rejected||previous)return rejected||previous;
+    }
     // Proposal requests do not carry an event ID. The bounded pilot listing
     // lets a retry recover its already committed result without relying on the
     // creator repository still being available, unchanged or in the same hands.
-    for(const existingId of await ids()) {
+    if(typeof store.snapshot!=='function')for(const existingId of await ids()) {
       const existing=(await load(existingId)).state;
       if(existing?.creator.id===actor.id&&existing.proposals.some(proposal=>`https://github.com/${proposal.repository.fullName}`.toLowerCase()===url.toLowerCase())) {
         const previous=recover(existing,actor,op,payloadDigest);if(previous)return previous;
@@ -132,31 +168,21 @@ export function createJamService({store,verifySource,maintainerIds=[],now=Date.n
       next.creator.login=actor.login;
       next.proposals.push({revision:proposalRevision,...verified,status:'submitted',reason:'',proposedAt:stamp});
       return {revision:proposalRevision,status:'submitted'};
-    },{create:true});
+    },{create:true,scope:'proposals'});
   }
   async function mutate(input) {
     keys(input,['id','actor','operationId','action','revision','reason','participantId','source','title','description','demoUrl','instructions'],['id','actor','operationId','action']);
     const actor=actorIdentity(input.actor),op=operationId(input.operationId),{id,action}=input;
-    if(!ACTIONS.includes(action))fail(400,'Unknown jam action.');
-    const allowed=['id','actor','operationId','action',...(REVIEW.has(action)?['revision','reason']:MODERATION.has(action)?['reason']:action==='withdraw-entry'?['participantId','reason']:action==='join'?['revision']:action==='submit'?['revision','source','title','description','demoUrl','instructions']:[])];
-    if(Object.keys(input).some(key=>!allowed.includes(key)))fail(400,'Unexpected fields for this action.');
-    const payload={action};
-    if(REVIEW.has(action)||action==='join'||action==='submit') { if(!/^[a-f0-9]{64}$/.test(input.revision||''))fail(400,'A reviewed event revision is required.');payload.revision=input.revision; }
-    if(MODERATION.has(action)||['request-changes','reject','withdraw-entry'].includes(action))payload.reason=text(input.reason,SAFETY.has(action)?256:2000);
-    else if(Object.hasOwn(input,'reason'))payload.reason=text(input.reason,2000,true);
-    if(action==='withdraw-entry') {if(typeof input.participantId!=='string'||!ACCOUNT.test(input.participantId))fail(400,'Choose a valid participant ID.');payload.participantId=input.participantId;}
-    if(action==='submit') {
-      keys(input.source,['repositoryUrl','commit']);
-      if(!SHA.test(input.source.commit||''))fail(400,'Choose an exact 40-character source commit.');
-      payload.source={repositoryUrl:repositoryUrl(input.source.repositoryUrl).url,commit:input.source.commit};
-      Object.assign(payload,{title:text(input.title,120),description:text(input.description,2000),demoUrl:httpsUrl(input.demoUrl),instructions:text(input.instructions === undefined ? '' : input.instructions,4000,true)});
-    }
+    const {id:ignoredId,actor:ignoredActor,operationId:ignoredOperation,...publicInput}=input;
+    const payload=requestPayload(id,publicInput);
     const payloadDigest=digest(payload);
     // Read before expensive source verification so accepted retries still recover
     // if the source becomes unavailable or the deadline passes.
-    const before=(await load(id)).state;
+    const loaded=await load(id),before=loaded.state;
+    const rejected=fenced(loaded.snapshot,id,actor,op,payloadDigest),previous=recover(before,actor,op,payloadDigest);
+    if(rejected&&previous)fail(503,'Official request history is inconsistent.');
+    if(rejected||previous)return rejected||previous;
     if(!before)fail(404,'Jam not found.');
-    const previous=recover(before,actor,op,payloadDigest);if(previous)return previous;
     if((REVIEW.has(action)||MODERATION.has(action)||action==='withdraw-entry')&&!maintainers.has(actor.id))fail(403,'A Zero maintainer must perform this action.');
     if(action==='approve'&&before.creator.id===actor.id)fail(403,'A different maintainer must approve your jam.');
     const verified=action==='submit'?await source({...payload.source,actor,manifest:false}):null;
@@ -223,5 +249,31 @@ export function createJamService({store,verifySource,maintainerIds=[],now=Date.n
       return {status:action==='leave'?'left':'withdrawn'};
     },{pool:SAFETY.has(action)?'safety':'ordinary'});
   }
-  return {list,read,propose,mutate};
+  async function settle(input) {
+    keys(input,['actor','scope','operationId','payload']);
+    const actor=actorIdentity(input.actor),op=operationId(input.operationId),{scope}=input;
+    if(scope!=='proposals'&&(typeof scope!=='string'||!ID.test(scope)))fail(400,'Invalid request scope.');
+    if(typeof store.snapshot!=='function')fail(503,'Safe request settlement requires the current registry protocol.');
+    const payloadDigest=requestDigest(scope,input.payload,{allowInvalid:true});
+    for(let attempt=0;attempt<bound.retries;attempt++) {
+      const snapshot=await safeCall(()=>store.snapshot()),ledger=validateSettlements(snapshot.settlements,bound);
+      const rejected=fenced(snapshot,scope,actor,op,payloadDigest);
+      const state=scope==='proposals'?null:(await safeCall(()=>snapshot.read(scope))).state;
+      if(state)validateState(state,scope,bound);
+      const accepted=scope==='proposals'?await proposalResult(snapshot,actor,op,payloadDigest):recover(state,actor,op,payloadDigest);
+      if(rejected&&accepted)fail(503,'Official request history is inconsistent.');
+      if(rejected)return rejected;
+      if(accepted)return {...accepted,scope,settlement:'applied'};
+      const time=currentTime(now),operations=Object.values(ledger.operations),own=operations.filter(item=>item.actorId===actor.id);
+      if(operations.length>=bound.settlements||own.length>=bound.actorSettlements)fail(429,'Request settlement capacity is exhausted. Keep the earlier request and contact the maintainer.');
+      if(own.filter(item=>item.settledAt>time-bound.writeWindowMs).length>=bound.actorWrites)fail(429,'Too many request settlements. Wait a minute and retry.');
+      ledger.operations[settlementKey(scope,actor,op)]={scope,actorId:actor.id,operationId:op,payloadDigest,settledAt:time};
+      if(Buffer.byteLength(JSON.stringify(ledger))>bound.settlementBytes)fail(413,'Request settlement storage is full. Keep the earlier request and contact the maintainer.');
+      validateSettlements(ledger,bound);
+      if(await safeCall(()=>store.compareAndSwap(null,snapshot.revision,null,{settlements:ledger})))return closedResult(scope,op);
+    }
+    fail(409,'Official records changed repeatedly. Keep the earlier request and retry closing it.');
+  }
+  return {list,read,propose,mutate,settle};
+
 }

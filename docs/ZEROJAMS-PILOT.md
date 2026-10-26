@@ -466,3 +466,46 @@ viewport, not a physical mobile test). Final reviewed source `d5a60666` is deplo
 hosted read-only smoke and production hold pass again. The registry is unchanged.
 Final ignored receipt: `.verification/zerojams-pilot/pending-verification.json`.
 Closed live fixtures and registry branch are preserved. No main merge or production rollout is authorized.
+
+
+## Durable unknown-request settlement — 2026-10-25
+
+Owner authorized safe settlement/recovery with production hidden. Local candidate
+adds Close earlier request: accepted result wins or a durable not-applied fence
+wins; no uncertain key is simply discarded. Every hosted mutation uses an atomic
+Git branch transaction across event records and global rejection ledger. Proposal
+requests with no verified numeric event ID can therefore be closed safely.
+
+Migration plan is prepared, not applied: branch zero-jams-pilot-registry at
+ce130103b5b84968c83982516104826c88a260a0; event blobs da80b9e90e7ede6fa2b217addda0f8d544e2661f
+and4c4d7639b8f3d1637604acfdcaabca77bf4837ec; guard44b8ccc2c1613f96ecc1c434ed0232f32a4c726f.
+The explicit operator migration copies them unchanged into zero-jams-v2/events,
+adds the bounded ledger and replaces the legacy jams directory with an exact
+protocol marker. The old namespace never supplies v2 authority. If an unexpected
+legacy write recreates that directory, the missing marker halts v2; no data is
+imported. Provider-specific parent-file behavior is not claimed as verified.
+GitHub [trees](https://docs.github.com/en/rest/git/trees) and
+[non-forced ref updates](https://docs.github.com/en/rest/git/refs) define the new
+commit mechanism. Its sibling conflicts are exercised by the loopback fixture.
+
+All147 jam/269 website tests and typecheck/build pass locally. Tests include
+both race orders, paused proposal/submission source verification, no fake event,
+missing events, lost socket/malformed/timed-out close replies, capacity separation,
+malformed state, current identity/CSRF, cross-scope key reuse, older-client409
+terminal response, and retained close intent after reload. Global event admission
+is now atomic in the hosted adapter; the older advisory-cap statements above
+belong to the retired per-file implementation.
+
+Actual React/Chrome local fixture: uncommitted Join loses reply, expires, normal
+retry409 retains it, Close writes fence but loses reply, reload resumes closing
+after eligibility reopens, terminal outcome clears the key, fresh Join commits.
+Receipt:1 fence+1 fresh Join,2 commits, final joined; original/recovery IDs match,
+new Join differs. Real320/390px viewports have no horizontal overflow; Tab/Enter
+reaches/activates Close. Physical mobile/WebKit/zoom/school networks remain open.
+Ignored evidence: settlement-browser/receipt.json, screenshots and settlement-*.log
+under .verification/zerojams-pilot.
+
+NEXT: two independent source reviews (correctness/security and compatibility),
+then protected Preview deployment, explicit migration, settle the existing legacy
+test request without changing either closed event, verify production15jam404/
+Hub200/no jam link and exact-head CI. No main merge or production rollout.

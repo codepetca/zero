@@ -64,12 +64,12 @@ function useTopLevel() {
 }
 // Pending public request details only; never persist sessions or CSRF tokens.
 // Share locks across controls for the same account and endpoint in this tab.
-const pendingOperations=new Map<string,string>(),mutationLocks=new Set<string>(),mutationListeners=new Set<()=>void>();
+const pendingOperations=new Map<string,string>(),closingOperations=new Set<string>(),mutationLocks=new Set<string>(),mutationListeners=new Set<()=>void>();
 const operationPrefix='zero-jam-operation:';
 function operationRecords(actor:string,path:string) {
   try {for(let i=0;i<sessionStorage.length;i++) {const key=sessionStorage.key(i);if(key?.startsWith(operationPrefix)){const signature=key.slice(operationPrefix.length),value=sessionStorage.getItem(key);if(value&&/^[0-9a-f-]{36}$/.test(value))pendingOperations.set(signature,value);}}}catch {/* In-memory recovery remains available. */}
   const records:{signature:string;operationId:string;payload:Mutation}[]=[];
-  for(const [signature,operationId] of pendingOperations)try {const [owner,endpoint,payload]=JSON.parse(signature);if(owner===actor&&endpoint===path&&payload&&typeof payload==='object'&&!Array.isArray(payload))records.push({signature,operationId,payload});}catch {/* Ignore invalid legacy records. */}
+  for(const [signature,operationId] of pendingOperations)try {const [owner,endpoint,payload]=JSON.parse(signature);if(owner===actor&&endpoint===path&&payload&&typeof payload==='object'&&!Array.isArray(payload)){try{if(sessionStorage.getItem('zero-jam-closing:'+signature)===operationId)closingOperations.add(signature);}catch{/* Memory remains available. */}records.push({signature,operationId,payload});}}catch {/* Ignore invalid legacy records. */}
   return records;
 }
 function notifyMutations(){for(const listener of mutationListeners)listener();}
@@ -80,37 +80,50 @@ function useMutation(path:string) {
   useEffect(()=>{const update=()=>redraw(n=>n+1);mutationListeners.add(update);setRestored(true);update();return()=>{mutationListeners.delete(update);};},[scope]);
   const pending=user?operationRecords(user.id,path)[0]:undefined,busy=mutationLocks.has(scope);
   function feedbackFor(error:string,success=''){if(currentScope.current===scope)setFeedback({scope,error,success});}
-  async function send(payload:Mutation,recovering=false) {
+  async function send(payload:Mutation,recovering=false,closing=false) {
     if(mutationLocks.has(scope))return null;
     if(window.self!==window.top){feedbackFor('Open this page directly on Zero to confirm this action.');return null;}
     if(!user){feedbackFor('Sign in to GitHub on Zero, then retry. Your form is kept.');return null;}
     const signature=JSON.stringify([user.id,path,payload]),earlier=operationRecords(user.id,path)[0];
     if(earlier&&earlier.signature!==signature){feedbackFor('Resolve your earlier request before making another change. Your form is kept.');return null;}
     const operationId=earlier?.operationId||crypto.randomUUID(),wasPending=Boolean(earlier);
+    closing=closing||closingOperations.has(signature);
+    const requestScope=path==='/api/jams/proposals'?'proposals':/^\/api\/jams\/(jam-[1-9][0-9]{0,19})\/actions$/.exec(path)?.[1];
+    if(!requestScope){feedbackFor('This request cannot be safely resolved here. Open the official Zero page.');return null;}
+    if(closing){closingOperations.add(signature);try{sessionStorage.setItem('zero-jam-closing:'+signature,operationId);}catch{/* Keep the close intent in memory. */}}
     pendingOperations.set(signature,operationId);
     try{sessionStorage.setItem(operationPrefix+signature,operationId);}catch {/* Retry still retains its in-memory key. */}
     setRestored(true);mutationLocks.add(scope);notifyMutations();feedbackFor('');
-    function clear(){pendingOperations.delete(signature);try{sessionStorage.removeItem(operationPrefix+signature);}catch {/* No credential data is stored. */}}
+    function clear(){pendingOperations.delete(signature);closingOperations.delete(signature);try{sessionStorage.removeItem(operationPrefix+signature);sessionStorage.removeItem('zero-jam-closing:'+signature);}catch {/* No credential data is stored. */}}
     try {
-      const response=await fetch(path,{method:'POST',credentials:'same-origin',redirect:'error',headers:{'Content-Type':'application/json','x-hub-csrf':user.csrfToken},body:JSON.stringify({...payload,operationId}),signal:AbortSignal.timeout(20000)});
+      const response=await fetch(closing?'/api/jams/settlements':path,{method:'POST',credentials:'same-origin',redirect:'error',headers:{'Content-Type':'application/json','x-hub-csrf':user.csrfToken},body:JSON.stringify(closing?{scope:requestScope,payload,operationId}:{...payload,operationId}),signal:AbortSignal.timeout(20000)});
       let body;try{body=await response.json();}catch{throw new Error('ZeroJams returned an unreadable response. Resolve the earlier request to check its outcome.');}
-      if(!response.ok||body.configured===false){
+      const terminal=[200,409].includes(response.status)&&body?.settlement==='not-applied'&&body.status==='not-applied'&&body.scope===requestScope;
+      if(body?.settlement!==undefined&&(body.scope!==requestScope||!['applied','not-applied'].includes(body.settlement)))throw new Error('Zero did not confirm the earlier request outcome. Keep it and retry.');
+      if((!response.ok&&!terminal)||body.configured===false){
         // A first, explicit rejection made no change. A rejection of a retry
         // (including expired sign-in) cannot settle an earlier unknown outcome.
         if(!wasPending&&response.status>=400&&response.status<500&&body.configured===true)clear();
         throw new Error(typeof body.error==='string'?body.error:'ZeroJams is unavailable. Keep your work and try again later.');
       }
-      if(body.configured!==true||body.operationId!==operationId)throw new Error('Zero did not confirm this operation. Resolve the earlier request to check its outcome.');
-      clear();feedbackFor('',recovering||wasPending?'Earlier request confirmed. Review the current details before making another change.':'Confirmed by Zero.');return body;
+      if(body.configured!==true||body.operationId!==operationId||closing&&!['applied','not-applied'].includes(body.settlement)||body.settlement==='not-applied'&&!terminal)throw new Error('Zero did not confirm this operation. Resolve the earlier request to check its outcome.');
+      clear();feedbackFor('',terminal?'Earlier request closed without being applied. Your form is kept. Review current details before trying again.':recovering||wasPending?'Earlier request confirmed. Review the current details before making another change.':'Confirmed by Zero.');return body;
     }catch(e){feedbackFor(message(e));return null;}finally{mutationLocks.delete(scope);notifyMutations();}
   }
   async function retry(){const earlier=user?operationRecords(user.id,path)[0]:undefined;return earlier?send(earlier.payload,true):null;}
-  return {send,retry,pending:restored?pending?.payload:undefined,busy,error:feedback.scope===scope?feedback.error:'',success:feedback.scope===scope?feedback.success:''};
+  async function close(){const earlier=user?operationRecords(user.id,path)[0]:undefined;return earlier?send(earlier.payload,true,true):null;}
+  return {send,retry,close,closing:Boolean(pending&&closingOperations.has(pending.signature)),pending:restored?pending?.payload:undefined,busy,error:feedback.scope===scope?feedback.error:'',success:feedback.scope===scope?feedback.success:''};
 }
 type MutationControl=ReturnType<typeof useMutation>;
 function Feedback({error,success,mutation,onRecovered}:{error?:string;success?:string;mutation?:MutationControl;onRecovered?:(result:Mutation)=>void|Promise<void>}) {
   const pending=mutation?.pending;
-  return <>{error&&<p role="alert" className="jam-error">{error}</p>}{success&&<p role="status">{success}</p>}{pending&&<div className="jam-notice"><p role="status">Your earlier {typeof pending.action==='string'?pending.action:'proposal'} request needs confirmation before another change.</p><details><summary>Earlier request details</summary><pre className="jam-source">{JSON.stringify(pending,null,2)}</pre></details><button type="button" disabled={mutation.busy} onClick={async()=>{const result=await mutation.retry();if(result)await onRecovered?.(result);}}>Resolve earlier request</button><p>Checks the same request safely. Your current form stays here. Then review the current details before acting again.</p></div>}</>;
+  return <>{error&&<p role="alert" className="jam-error">{error}</p>}{success&&<p role="status">{success}</p>}{pending&&<div className="jam-notice">
+    <p role="status">Your earlier {typeof pending.action==='string'?pending.action:'proposal'} request needs confirmation before another change.</p>
+    <details><summary>Earlier request details</summary><pre className="jam-source">{JSON.stringify(pending,null,2)}</pre></details>
+    {mutation.closing?<p>Closing is pending. Retry closing; this page will keep the original action blocked until Zero confirms the outcome.</p>:<p>Resolve retries the same action. Close recovers its result if it already completed; otherwise Zero permanently prevents that request from applying. Your current form stays here.</p>}
+    <div className="jam-actions"><button type="button" disabled={mutation.busy} onClick={async()=>{const result=await mutation.retry();if(result)await onRecovered?.(result);}}>{mutation.closing?'Finish closing earlier request':'Resolve earlier request'}</button>
+    {!mutation.closing&&<button type="button" disabled={mutation.busy} onClick={async()=>{const result=await mutation.close();if(result)await onRecovered?.(result);}}>Close earlier request</button>}</div>
+  </div>}</>;
 }
 function SourceFields({source,setSource,disabled=false,fixedRepository}:{source:Source;setSource:(source:Source)=>void;disabled?:boolean;fixedRepository?:string}) {
   return <><label>Public GitHub repository<input name="repositoryUrl" type="url" required maxLength={500} placeholder="https://github.com/your-name/your-jam" value={fixedRepository||source.repositoryUrl} readOnly={Boolean(fixedRepository)} onChange={e=>setSource({...source,repositoryUrl:e.target.value})} disabled={disabled}/></label><label>Full commit SHA<input name="commit" required pattern="[0-9a-fA-F]{40}" minLength={40} maxLength={40} spellCheck={false} autoCapitalize="none" value={source.commit} onChange={e=>setSource({...source,commit:e.target.value})} disabled={disabled}/><small>The exact 40-character commit in your own public repository.</small></label></>;
@@ -151,13 +164,13 @@ function Proposal({id,data,onChanged}:{id:string;data:Detail;onChanged:()=>Promi
   const [reason,setReason]=useReasonDraft(`review:${id}:${data.proposal?.revision||'none'}`,2000),[source,setSource]=useDraft<Source>(`update-source:${id}`,{repositoryUrl:'',commit:''});
   const proposal=data.proposal; const creator=Boolean(user&&proposal?.repository.ownerId===user.id);
   if(!top)return null;
-  async function review(action:string){const result=await mutation.send({action,revision:proposal?.revision,...(reason?{reason}:{})});if(result){setReason('');await onChanged();}}
+  async function review(action:string){const result=await mutation.send({action,revision:proposal?.revision,...(reason?{reason}:{})});if(result){if(result.settlement!=='not-applied')setReason('');await onChanged();}}
   async function update(e:FormEvent){e.preventDefault();const result=await proposeMutation.send({...source,repositoryUrl:`https://github.com/${proposal!.repository.fullName}`});if(result)await onChanged();}
   return <>{proposal&&<details className="jam-review" open={!data.event.revision}><summary>Proposal · {reviewLabel(proposal.status)}</summary><p className="jam-source">Source: <a href={`https://github.com/${proposal.repository.fullName}/tree/${proposal.repository.commit}`} target="_blank" rel="noopener noreferrer">{proposal.repository.fullName} at {proposal.repository.commit}</a></p>{proposal.reason&&<p className="jam-notice">Review note: {proposal.reason}</p>}<h2>{proposal.manifest.title}</h2><EventFacts event={proposal.manifest}/><p><a href={proposal.manifest.websiteUrl} target="_blank" rel="noopener noreferrer">Proposed creator page</a></p>{data.canMaintain&&proposal.status==='submitted'&&<div className="jam-form"><p>Review the exact proposed details above. Approval makes this revision official. Existing accepted details stay active until a replacement is approved.</p><label>Review reason<textarea value={reason} onChange={e=>setReason(e.target.value)} maxLength={2000} disabled={mutation.busy}/></label>{creator&&<p>A different Zero maintainer must review your proposal.</p>}<div className="jam-actions"><button className="jam-primary" disabled={creator||mutation.busy} onClick={()=>void review('approve')}>Approve this revision</button><button disabled={creator||mutation.busy||!reason.trim()} onClick={()=>void review('request-changes')}>Request changes</button><button disabled={creator||mutation.busy||!reason.trim()} onClick={()=>void review('reject')}>Reject proposal</button></div></div>}</details>}<Feedback error={mutation.error} success={mutation.success} mutation={mutation} onRecovered={()=>onChanged()}/>{creator&&<section><h2>Propose an update</h2><p>Commit your changed manifest, then send the new exact source. Approved details stay active while the update is reviewed.</p><form className="jam-form" onSubmit={e=>void update(e)}><SourceFields source={source} setSource={setSource} disabled={proposeMutation.busy} fixedRepository={`https://github.com/${proposal!.repository.fullName}`}/><button disabled={proposeMutation.busy||!user}>{proposeMutation.busy?'Sending update…':'Send updated source for review'}</button><Feedback error={proposeMutation.error} success={proposeMutation.success} mutation={proposeMutation} onRecovered={()=>onChanged()}/></form></section>}{data.canMaintain&&data.event.revision&&<Moderation id={id} event={data.event} onChanged={onChanged}/>}</>;
 }
 function Moderation({id,event,onChanged}:{id:string;event:Event;onChanged:()=>Promise<void>}) {
   const [reason,setReason]=useReasonDraft(`moderation:${id}:${event.revision}:${event.moderation.status}:${event.moderation.updatedAt||'initial'}`,256),mutation=useMutation(`/api/jams/${id}/actions`);
-  async function act(action:string){const result=await mutation.send({action,reason});if(result){setReason('');await onChanged();}}
+  async function act(action:string){const result=await mutation.send({action,reason});if(result){if(result.settlement!=='not-applied')setReason('');await onChanged();}}
   return <details className="jam-review"><summary>Maintainer moderation</summary><div className="jam-form"><label>Public reason<textarea value={reason} onChange={e=>setReason(e.target.value)} maxLength={256} disabled={mutation.busy}/></label><p>Suspension stops participation. Cancellation closes this event. The reason is visible on its official page.</p><div className="jam-actions">{event.moderation.status==='active'&&<button disabled={!reason.trim()||mutation.busy} onClick={()=>void act('suspend')}>Suspend jam</button>}{event.moderation.status==='suspended'&&<button disabled={!reason.trim()||mutation.busy} onClick={()=>void act('resume')}>Resume jam</button>}{event.moderation.status!=='cancelled'&&<button disabled={!reason.trim()||mutation.busy} onClick={()=>void act('cancel')}>Cancel jam</button>}</div><Feedback error={mutation.error} success={mutation.success} mutation={mutation} onRecovered={()=>onChanged()}/></div></details>;
 }
 function EntryModeration({id,participantId,revision,onChanged}:{id:string;participantId:string;revision:string;onChanged:()=>Promise<void>}) {
@@ -166,7 +179,7 @@ function EntryModeration({id,participantId,revision,onChanged}:{id:string;partic
     e.preventDefault();
     if(!reason.trim())return;
     const result=await mutation.send({action:'withdraw-entry',participantId,reason});
-    if(result){setReason('');await onChanged();}
+    if(result){if(result.settlement!=='not-applied')setReason('');await onChanged();}
   }
   if(!top)return null;
   return <details className="jam-review"><summary>Maintainer review</summary><form className="jam-form" onSubmit={e=>void withdraw(e)}><label>Public reason<textarea required value={reason} onChange={e=>setReason(e.target.value)} maxLength={256} disabled={mutation.busy}/></label><p>This removes the active entry from the gallery and keeps its withdrawal history. The participant stays registered and can submit a corrected entry while submissions are open.</p><button disabled={!reason.trim()||mutation.busy}>{mutation.busy?'Withdrawing entry…':'Withdraw this entry'}</button><Feedback error={mutation.error} success={mutation.success} mutation={mutation} onRecovered={()=>onChanged()}/></form></details>;

@@ -1,28 +1,26 @@
-# Pending-request reconciliation verified — 2026-10-25
+# Durable unknown-request settlement — local candidate 2026-10-25
 
-Owner authorized lost Join reply → Leave → Join fix; production remains hidden.
-Reviewed source d5a60666 deployed as70de6ba815f79a6aca413284ba9217c0585cce59,
-Vercel dpl_3po4TiFqJSx4JqemyqLm1UnctNTv. All11 exact-head CI pass.
-Draft PR202 stays unmerged. Final receipt follows deployed source locally.
+Owner authorizes safe settlement/recovery; production remains hidden. DraftPR202,
+branch codex/zerojams-controlled-pilot. No live writes/migration yet.
 
-Client serializes uncertain requests per actor/endpoint within a tab, saves exact
-public payload/key and exposes independent recovery after reload/disappeared
-controls. Historical retries say Earlier request confirmed, including retries
-through the original button; the next new action gets a fresh ID. No backend
-authority changes. Actual React/Chrome loopback sequence: lost Join reply, reload,
-blocked Leave, exact recovery, Leave, new Join;3 commits and final joined.
-Another-device Leave/historical recovery/new Join also passes the HTTP test.
+Candidate: atomic Git branch CAS, pinned snapshots, global bounded rejection
+ledger, explicit Close earlier request with persisted close intent. Accepted
+original wins/recovered, or rejection fence wins/late action cannot apply. Covers
+missing events and proposals before numeric ID verification. Old clients receive
+409 terminal message. Current actor/Origin/CSRF/role boundaries preserved.
 
-111 jam/264 website tests, typecheck/build and Sol6.1/high independent review pass.
-3 reviewer turns/2 correction batches: test refresh timing and historical label.
-Hosted read-only legacy restore passes.320 CSS px content column wraps correctly;
-physical mobile/zoom/WebKit/school networks remain unverified. Production13jam404,
-Hub200/no jam link. Registry ce130103b5b84968c83982516104826c88a260a0 unchanged,
-two closed fixtures preserved, no live fault writes or added invitations.
+Explicit migration preserves existing bytes/history/guard, moves records to
+zero-jams-v2/events, initializes ledger and replaces old jams tree with marker.
+V2 never falls back/imports old namespace; marker loss halts service. New runtime
+unavailable until migration. Rollback disables pilot; never restore old writer.
+Read-only plan headce130103b5b84968c83982516104826c88a260a0,2 closed fixture blobs
+unchanged; guard retained. Source deployment stays Preview only, no merge.
 
-NEXT wider-trial blocker: safely settle permanently invalid unknown requests.
-A durable server rejection/fence is needed before abandoning them; never clear
-unknown keys or generate fresh ones blindly. Keep production hidden. Prior
-provider-cost/global event admission/browser acceptance limits also remain.
-Packet docs/ZEROJAMS-PILOT.md; ignored pending-verification.json/logs/screenshots
-under .verification/zerojams-pilot. Local3025/other checkouts retained; DeepSeek paused.
+147 jam/269 website tests, typecheck/build pass. Actual React/Chrome loopback:
+unknown expiredJoin→close loses reply→reload keepsclosing→confirmednotapplied→
+freshJoin;1 fence+1join,2 commits, finaljoined.320/390px + Tab/Enter pass.
+One Sol6.1/high worker delivered atomic adapter/12tests; coordinator verified.
+Next: two independent fixed-head reviews, then Preview deploy/migrate/livelegacy
+close (no event changes),15production404 cases,CI/finalreceipt. Review not started.
+No secret/invite/protection changes. Local3025/other checkouts preserved.
+Packet docs/ZEROJAMS-PILOT.md settlement section. DeepSeek paused.

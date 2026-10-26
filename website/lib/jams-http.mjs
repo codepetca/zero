@@ -97,10 +97,10 @@ export async function getJamResponse(request, id, inputOptions = {}) {
   } catch (error) { return failure(error); }
 }
 
-async function postResponse(request, id, proposal, inputOptions) {
+async function postResponse(request, id, proposal, inputOptions,settlement=false) {
   const options = optionsFor(inputOptions);
   if (!enabled(options)) return unavailable();
-  if (!proposal && !validId(id)) return json({error:'Unknown jam.'},404);
+  if (!proposal && !settlement && !validId(id)) return json({error:'Unknown jam.'},404);
   const config = hubConfig(options.env);
   if (!config) return json({error:'GitHub sign-in is unavailable.'},503);
   if (!sameOrigin(request,config)) return json({error:'Open this action on Zero to continue.'},403);
@@ -112,8 +112,8 @@ async function postResponse(request, id, proposal, inputOptions) {
     return json({error:'Expected JSON request details.'},415);
   try {
     const body = await bodyJson(request);
-    const allowed = proposal ? proposalKeys : actionKeys;
-    if (Object.keys(body).some(key => !allowed.has(key)) || !proposal && !actions.has(body.action))
+    const allowed = settlement?new Set(['operationId','scope','payload']):proposal ? proposalKeys : actionKeys;
+    if (Object.keys(body).some(key => !allowed.has(key)) || !proposal && !settlement && !actions.has(body.action))
       return json({error:'This jam request contains unsupported details.'},400);
     // Session identity is sealed, but an expired/revoked GitHub authorization
     // must not continue accepting official actions for the remaining cookie age.
@@ -122,11 +122,15 @@ async function postResponse(request, id, proposal, inputOptions) {
       return json({error:'Your GitHub account changed. Reconnect to continue.'},401);
     const actor = {id:session.id,login:user.login};
     const service = await serviceFor(options,session.token);
-    const result = proposal ? await service.propose({...body,actor}) : await service.mutate({...body,id,actor});
+    const result = settlement?await service.settle({...body,actor}):proposal ? await service.propose({...body,actor}) : await service.mutate({...body,id,actor});
     publicCache.clear();
+    // Older clients must see an error rather than mistake a closed request for
+    // a completed Join/submission. New clients verify this terminal envelope.
+    if(!settlement&&result.settlement==='not-applied')return json({configured:true,...result,error:'This earlier request was closed without being applied. Reload Zero to start a new action.'},409);
     return json({configured:true,...result});
   } catch (error) { return failure(error); }
 }
 
+export const postJamSettlementResponse = (request,options={})=>postResponse(request,null,false,options,true);
 export const postJamProposalResponse = (request, options = {}) => postResponse(request,null,true,options);
 export const postJamActionResponse = (request, id, options = {}) => postResponse(request,id,false,options);

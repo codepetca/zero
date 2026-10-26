@@ -10,10 +10,12 @@ regression pass: lost Join reply → recover → Leave → new Join, with3 commi
 final registration joined. Recovery stays available after reload and distinguishes
 historical confirmation from new intent, including another-device Leave.
 
-Permanently invalid unknown requests still need a durable server rejection fence
-before a wider trial. Cross-browser, school-network, provider-cost and atomic
-global event admission acceptance also remain open. No production rollout or
-main merge is authorized.
+The local durable-settlement candidate adds explicit close/recover outcomes,
+atomic branch transactions and a guarded registry migration.147 jam/269 website
+tests, typecheck/build and actual Chrome lost-close/reload recovery pass locally.
+Two independent reviews and protected-preview activation are next. Cross-browser,
+school-network and provider-cost acceptance remain open. No production rollout
+or main merge is authorized.
 
 The pilot is restricted to the fixed Preview project, branch, origin and invited
 numeric identities. Production always returns 404 for jam pages, panels, APIs and
@@ -439,8 +441,9 @@ Live publication/permission acceptance remains separate and unauthorized.
   to participant credentials. The service stays unavailable until explicitly
   configured. [Operator setup](ZEROJAMS-OPERATIONS.md) records exact boundaries.
 - Pilot per-event caps and durable write rates are implemented. The global
-  event-count admission cap is advisory under simultaneous new events; over-cap
-  listings fail closed. Discovery/proposal retry recovery can read up to one
+  legacy event-count cap was advisory; the new hosted atomic adapter shares
+  branch admission/CAS across events, with a simultaneous final-slot test. Over-cap
+  listings still fail closed. Discovery/proposal retry recovery can read up to one
   record per event. These are measured pilot limits, not a large-scale database.
 
 Review remediation batch 1 addresses three accepted P2 findings from the complete

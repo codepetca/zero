@@ -1,6 +1,6 @@
 import {createHash, createPrivateKey, sign} from 'node:crypto';
 import {boundedJson} from './hub-github-auth.mjs';
-import {createGitHubJamStore} from '../../jams/github-store.mjs';
+import {createAtomicGitHubJamStore} from '../../jams/git-store.mjs';
 import {createGitHubSourceVerifier} from '../../jams/github-source.mjs';
 import {createJamService} from '../../jams/service.mjs';
 import {jamDeploymentPolicy} from './jams-pilot-policy.mjs';
@@ -83,7 +83,7 @@ export async function createJamRuntime({env = process.env, fetchImpl = fetch,
   const config = jamServiceConfig(env,pilot);
   if (!config) return null;
   const token = await jamInstallationToken(config, {fetchImpl,now:now()});
-  return createJamService({store:createGitHubJamStore({token,fetchImpl,registryBranch:config.registryBranch,maxEvents:config.limits?.events}),
+  return createJamService({store:createAtomicGitHubJamStore({token,fetchImpl,registryBranch:config.registryBranch,maxEvents:config.limits?.events}),
     verifySource:createGitHubSourceVerifier({token:sourceToken,fetchImpl}),
     maintainerIds:config.maintainerIds,limits:config.limits, now});
 }

@@ -5,12 +5,10 @@ returns404 for `/hub/jams` descendants and `/api/jams`, including panels and tem
 downloads. Credentials or pilot flags cannot lift that hold. Public navigation and
 unreleased editor shortcuts stay hidden/deferred.
 
-Local development remains available. The prepared controlled-pilot policy also
-keeps every hosted preview closed by default: `jams/pilot.json` has status prepared
-and no origin. A separately reviewed enabled policy can admit only the fixed Vercel
-preview project/branch/origin and sealed numeric GitHub invitations. See the
-[controlled pilot packet](ZEROJAMS-PILOT.md) for audited gaps, exact operator changes,
-read-only preflight and acceptance/rollback. No pilot has been deployed or activated.
+Local development remains available. The owner-authorized protected pilot admits
+only stewchan and armorup at the fixed Preview project/branch/origin. Production
+is still closed. See the [pilot packet](ZEROJAMS-PILOT.md) for the current deployed
+revision, exact operator steps and separately unproven expansion acceptance.
 
 The underlying service is also default off. This document describes setup prerequisites, not
 authorization to activate a service or change a GitHub App. The
@@ -78,10 +76,12 @@ permission scope. Do not grant all-repository access or silently add scopes.
 ## Registry and privacy
 
 Official state uses the dedicated existing `zero-jams-registry` branch in
-`codepetca/zero`, with one `jams/<event-id>.json` file per event. An operator must
+`codepetca/zero`, with one `zero-jams-v2/events/<event-id>.json` file per event after the explicit
+atomic-registry migration. `jams` becomes an exact regular-file protocol marker;
+`zero-jams-v2/settlements.json` contains bounded rejection fences. An operator must
 provision and validate the branch separately after authorization. The prepared
 pilot instead selects only `zero-jams-pilot-registry`. Initialize that as a state-only
-orphan branch, with any README outside `jams/`; do not branch from main, whose
+orphan branch, with any README outside legacy `jams/`; do not branch from main, whose
 `jams/` directory contains service source rather than event records. There is no
 fallback between pilot and normal registries. It is not the
 game/library sharing branch. Initial absence is an error, not permission to write
@@ -103,10 +103,11 @@ the migration/transfer explicitly, retaining accepted event and participant IDs.
 
 Pilot event/participant/operation/history limits are deliberately bounded; exact
 values are in `jams/schema.mjs`. Per-event limits are enforced in atomic updates.
-The global event-count admission check is advisory under simultaneous new-event
-creation: different event files do not share a quota transaction. Listing fails
-closed above its configured bound. A strict global quota needs a shared index
-reservation and is not claimed by this MVP.
+The atomic registry pins event-count admission and each commit to one branch
+snapshot, so simultaneous different-event creations share the quota transaction.
+The legacy per-file adapter did not provide that guarantee. Listing still fails
+closed above its configured bound. This is a bounded pilot, not a load-tested
+database or a provider-capacity promise.
 
 Participant and ordinary administrative writes cannot consume the reserved
 safety operation/storage pool. Suspension, cancellation and entry removal use
@@ -121,6 +122,29 @@ After a timeout, retry the same request identity/payload to recover the result;
 do not invent a new success or manually replay it with another operation key.
 Conflicting changes require a fresh review. Deadlines are checked by the service
 on current authoritative state; stale public summaries never authorize writes.
+
+Use **Resolve earlier request** to retry the same action. If the request cannot
+be completed, **Close earlier request** atomically recovers its accepted result
+or durably prevents it from applying. This does not undo a completed Join or
+submission; review current details afterward. A lost close reply/reload keeps
+closing, even if the event becomes eligible again. Keep drafts and do not manually
+clear keys or invent fresh ones until the outcome is confirmed. Authentication,
+provider failures and exhausted settlement capacity retain the pending request.
+
+Fences have separate limits (1000 total,50/account,512000 bytes,10 new/account/
+minute), protecting ordinary and reserved safety capacity. They are never evicted
+to free space. At exhaustion, stop that flow and plan an authorized capacity or
+protocol transition. No cleanup script may discard fences.
+
+Explicit pilot migration: run `node jams/migrate-registry.mjs --plan`, inspect the
+fixed branch/head, event blob hashes and deployment guard, then within applicable
+owner authority run `--apply --expected-head=<planned SHA>`. The CLI uses the
+existing GitHub CLI session without exporting credentials. New runtime fails
+closed until migration; expect a brief controlled-preview maintenance interval.
+Migration copies event bytes and preserves unrelated files/history. Record the
+new head and matching file/guard hashes. Never roll back to the old Contents
+writer or recreate `jams/`; disable the pilot if a rollback is needed and retain
+the v2 ledger/marker. Production and all invitation/App/secret settings stay held.
 
 Non-pilot anonymous discovery caching is bounded to thirty seconds per warm server
 instance. The invited pilot disables that public cache and checks current invitations
