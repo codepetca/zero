@@ -2,7 +2,8 @@
 
 Status2026-10-26: implemented locally; all 30 non-PR scenarios have now been
 exercised through the actual Mac interface after owner unlock. No blocking
-work-preservation failures were found; two wording observations remain below.
+work-preservation failures were found. The two wording observations were fixed
+locally in the subsequent copy-only follow-up below.
 PR integration, source publication,
 publishing and releases remain separate. Reviewed code: `645504c7b0f596d7f2867a1bd1b2ec25473ae663`,
 base `7e97103c074a43c1f338ab1734562a590ae02a8e`.
@@ -42,8 +43,8 @@ injected at a constrained transport boundary. This is not live GitHub expiration
 permission or school-network acceptance. Java/API/WebFX source is unchanged.
 
 Actual Mac controls used an isolated QA profile. All 30 non-PR rows now pass their
-functional checks, with wording limitations on dirty signed-out/local-only work
-and account-change guidance. Reconnection-ready and main fast-forward wording
+functional checks. The wording limitations on dirty signed-out/local-only work
+and account-change guidance were subsequently corrected. Reconnection-ready and main fast-forward wording
 were observed in the reviewed source. Native Run evidence means App UI ready
 and Stop, not JavaFX button gameplay. Four PR-only states are deferred.
 
@@ -112,13 +113,25 @@ remote feature remains. GitHub refs were independently read through its API.
 Original my-greeting was reopened at unchanged clean main2909872c. Source and
 release repositories were not pushed. No PR, website or app was published.
 
-Two nonblocking UX observations remain for a small follow-up:
+The copy-only follow-up at `c74d406d` resolves the two UX observations:
 
-- Dirty New branch says Commit & push first even while signed out or without a
-  remote. The guard preserves work, and native local commit or an explicit local
-  checkpoint enables branching, but the message should explain that route.
-- An account change during dispatch initially says the project changed. Checking
-  status then gives the precise account-changed error and refuses the wrong account.
+- Dirty New branch now directs students to Source Control → Commit and explicitly
+  says pushing is not required. Initial/unborn and missing-main guidance use the
+  same local-commit vocabulary.
+- The shared changed-upload state names a changed project or GitHub sign-in and
+  asks students to check the account and received commit. The state can represent
+  either cause, so it does not assert that an account switch definitely occurred.
+  Check GitHub status remains available and still refuses a different account.
+
+The affected workflow, panel and UI checks pass 27/27; configuration, syntax,
+command-contract and local documentation-link checks pass. Actual Mac controls
+confirmed dirty signed-out/no-origin guidance and changed-account recovery, with
+unchanged local work and bare main. The ignored QA seed is now pinned to its
+original reviewed public-pilot commit: the live smoke had intentionally changed
+its greeting, causing one subsequent fixture-preparation failure. That attempt
+was retained as a setup incident, and the Mac checks passed after pinning.
+One independent GPT-6 Luna/medium review of the complete four-file delta is clean.
+No Git/authentication guard, operation or recovery action changed in this follow-up.
 
 The service-failure cases remain constrained injections around real disposable
 Git/bare repositories, not live GitHub expiration/permission/branch-rule evidence.
@@ -131,6 +144,7 @@ Raw fixtures, before/after hashes, command/fault traces, reviews and native rece
 are ignored under `.verification/git-recovery-flow/`, especially mac-results.json,
 mac-resumed.ndjson, live-before.json, live-after.json and uncertain-*-check.json.
 Initial gallery adapter failures and QA harness incidents remain recorded. Source
-code645504c is unchanged, so its completed independent review and 1,277 pass/3 skip
-suite remain applicable. PR integration, source PR/CI, publishing and releases
+code645504c retains its completed independent review and 1,277 pass/3 skip suite
+for the underlying recovery behavior; the copy-only delta has its own scoped
+checks and independent review receipt. PR integration, source PR/CI, publishing and releases
 need their separate authorization.

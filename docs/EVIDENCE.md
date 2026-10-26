@@ -10741,3 +10741,27 @@ No source push/PR/CI, publication or release. Service-failure injections are not
 live provider-failure proof; four PR states and physical/fresh-Mac/school-network
 limits remain separate. Full matrix: [Git recovery acceptance](GIT-RECOVERY-ACCEPTANCE.md).
 Resumed evidence lives under ignored .verification/git-recovery-flow/.
+
+## Git recovery wording follow-up — 2026-10-26
+
+Owner authorized the two wording fixes after the completed Mac matrix. Code
+`c74d406d`, base `b8a6031f`, changes only clean-work guidance and shared changed-upload
+copy plus existing test assertions. Initial/dirty/missing-main messages now explain
+local Source Control commits without requiring a push; upload recovery names a
+changed project or GitHub sign-in and retains Check GitHub status. Guards,
+authentication boundaries, Git operations and recovery actions are unchanged.
+
+Focused workflow/panel/UI suite passes 27/27; npm run check and diff checks pass.
+Actual Mac controls confirmed dirty signed-out/no-origin guidance and account-change
+recovery with exact local/remote preservation. Original my-greeting and live pilot
+remain clean at their recorded heads; original Zero Dev reloaded. One ignored QA
+fixture-preparation failure followed the previous live pilot greeting edit; pinning
+the seed to its original e37d39df commit fixed test setup, then Mac smoke passed.
+
+One fresh independent GPT-6 Luna/medium review covered the complete four-file
+`b8a6031f..c74d406d` delta and immediate recovery semantics; clean, no findings.
+One launch/one initial wave, zero corrective batches. Effective model, reviewer
+elapsed time and tokens unavailable. Existing reviewed recovery coverage remains
+valid beneath the copy-only delta. Ignored wording-tests.log, wording-check.log,
+wording-native.ndjson and wording-review.json contain scoped receipts. No source
+push/PR/CI, PR integration, publishing or release; native Git auth stays OFF.
