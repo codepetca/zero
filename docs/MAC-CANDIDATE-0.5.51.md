@@ -42,6 +42,6 @@ not fresh hardware, school-network, novice, physical Windows/Intel or Sparkle de
 The separate native metadata promotion copies the exact sealed signed XML and
 changes only feed JSON publication.status. Native manifests retain measured source,
 size/hash/signer and add the independently verified public asset URL. Final promotion
-CI/merge and deployed feed/download proof remain pending; record them on PR209 and ignored
+CI/merge and deployed feed/download verification belong on PR209; retain completed receipts in ignored
 `.verification/mac51/` receipts. Windows21/manualkit17 and production ZeroJams hold
 remain unchanged. No new account credentials or permissions were configured.
