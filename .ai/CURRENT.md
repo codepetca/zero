@@ -13,14 +13,18 @@ pilot shared accepted-intent pools (ordinary 2/min20/h; safety/closures separate
 These do not impose a hard fleet-wide outbound quota. Older writers/read floods
 remain outside accepted-intent caps. Unknown outcomes retain keys/close intent.
 
-Final local246 jam/282 website tests, typecheck and build pass. Build retains
-existing filesystem-tracing warnings in unchanged updater/template code.
+Corrected offline252 jam/282 website tests, typecheck and build pass. External
+fetches blocked except loopback; monitor module asserts zero global fetch calls.
+Two initial reviews (Astra/Sol high) found two deduplicated blockers: test transport
+isolation and consecutive body-failure reset. Both fixed in one batch; targeted
+review follows. Initial counter test made unauthenticated GitHub calls without
+credentials; registrydb8a7d2b unchanged. No accepted live writes.
 Generic Join 27→13, list 2 events 23→9; enabled two-event pilot Join14,
 23 including warm identity/refresh. Recovery 8 unchanged.
 Read-only hosting usage: shared Zero7 day2.4K invocations/5m33sCPU/0.36GBh, buildCPU
 11h42m. Not isolated Jam spend; billingAPI404, actual incremental cost unknown.
 
-NEXT: complete two independent reviews, then update only
+NEXT: complete targeted correction review, then update only
 the existing protected pilot and verify actual dedicated-installation observations,
 role/production hold and unchanged event state. No main merge/wider rollout.
 Docs: jams/CONTRACT.md, OPERATIONS, PRIVACY-DATA and PLAN updated locally.

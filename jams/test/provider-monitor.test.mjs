@@ -1,14 +1,20 @@
-import test from 'node:test';
+import test, {after,mock} from 'node:test';
 import assert from 'node:assert/strict';
 import {performance} from 'node:perf_hooks';
 import {createJamProviderContext} from '../provider-monitor.mjs';
+
+// No fixture in this module may reach a real network, even if a caller forgets
+// its injected fetch. The final assertion catches errors masked by the monitor.
+const networkGuard=mock.method(globalThis,'fetch',()=>{throw Error('Live network is disabled in provider monitor tests.');});
+after(()=>{try{assert.equal(networkGuard.mock.callCount(),0,'A test attempted global fetch.');}finally{networkGuard.mock.restore();}});
+const missingFetch=()=>{throw Error('Inject a synthetic fetchImpl in provider monitor tests.');};
 
 const TIME=1800000000000;
 const config={appId:'11',installationId:'22'};
 const api='https://api.github.com/repos/codepetca/zero/git/blobs';
 const headers=(remaining=4000,reset=TIME+3600000,extra={})=>({'x-ratelimit-limit':'5000','x-ratelimit-remaining':String(remaining),'x-ratelimit-used':String(5000-remaining),'x-ratelimit-reset':String(Math.floor(reset/1000)),'x-ratelimit-resource':'core',...extra});
 const reply=(status=200,h={},body='{}')=>new Response(body,{status,headers:{'content-type':'application/json',...h}});
-const context=(options={})=>createJamProviderContext(config,{states:new Map(),now:()=>TIME,writeIntervalMs:0,emit:()=>{},...options});
+const context=(options={})=>createJamProviderContext(config,{states:new Map(),now:()=>TIME,writeIntervalMs:0,emit:()=>{},fetchImpl:missingFetch,...options});
 const consume=async promise=>{const response=await promise;await response.text();return response;};
 const rejection=async(promise,seconds)=>assert.rejects(promise,error=>error.status===503&&Number.isInteger(error.retryAfterSeconds)&&error.retryAfterSeconds>=1&&error.retryAfterSeconds<=86400&&(seconds===undefined||error.retryAfterSeconds===seconds));
 
@@ -105,7 +111,8 @@ test('installation/setup circuits are shared by public config; participant circu
 test('two upstream/network failures open15s circuit; successful response resets consecutive failures',async()=>{
   let calls=0;const responses=[reply(503),reply(),reply(503),reply(502)];
   const c=context({fetchImpl:async()=>{calls++;return responses.shift();}});
-  for(let i=0;i<4;i++)await consume(c.fetch('installation')(api));
+  for(let i=0;i<3;i++)await consume(c.fetch('installation')(api));
+  await rejection(c.fetch('installation')(api),15);
   await rejection(c.fetch('installation')(api),15);assert.equal(calls,4);
   const n=context({fetchImpl:async()=>{throw Error('secret provider error');}});
   await rejection(n.fetch('installation')(api));await rejection(n.fetch('installation')(api),15);await rejection(n.fetch('installation')(api),15);
@@ -245,7 +252,7 @@ test('persistent summaries omit participant personal quota observations',async()
 });
 
 test('concurrent contexts distinguish their own calls from shared process counters',async()=>{
-  const states=new Map(),a=context({states,writeIntervalMs:0}),b=context({states,writeIntervalMs:0});
+  const states=new Map(),fetchImpl=async()=>reply(),a=context({states,writeIntervalMs:0,fetchImpl}),b=context({states,writeIntervalMs:0,fetchImpl});
   await Promise.all([consume(a.fetch('installation')(api)),consume(b.fetch('installation')(api))]);
   await consume(a.fetch('installation')(api,{method:'POST'}));
   assert.equal(a.snapshot().installation.counters.dispatched,3);
@@ -253,4 +260,74 @@ test('concurrent contexts distinguish their own calls from shared process counte
   assert.deepEqual(a.snapshot().request.calls.installation,{reads:1,writes:1});
   assert.deepEqual(b.snapshot().request.calls.installation,{reads:1,writes:0});
   assert.equal(a.snapshot().request.scope,'request');assert.ok(a.snapshot().request.elapsedMs>=0);
+});
+
+for(const mode of ['error','timeout'])test(`two200 body ${mode}s across shared contexts open circuit and release permits`,async()=>{
+  const states=new Map();let dispatched=0;
+  for(let attempt=0;attempt<2;attempt++) {
+    let bodyController;
+    const aborter=new AbortController();
+    const c=context({states,fetchImpl:async()=>{
+      dispatched++;
+      return new Response(new ReadableStream({start(controller){bodyController=controller;}},{highWaterMark:0}));
+    }});
+    const response=await c.fetch('installation')(api,{signal:aborter.signal});
+    const pending=response.text();
+    if(mode==='timeout')aborter.abort(new DOMException('Synthetic timeout','TimeoutError'));
+    else bodyController.error(Error('Private body failure details'));
+    await rejection(pending,attempt===0?1:15);
+    assert.equal(c.snapshot().installation.counters.failed,attempt+1);
+    assert.equal(c.snapshot().installation.inFlight,0);
+    assert.equal(c.snapshot().installation.counters.timeouts,mode==='timeout'?attempt+1:0);
+  }
+  const third=context({states,fetchImpl:async()=>{dispatched++;return reply();}});
+  await rejection(third.fetch('installation')(api),15);
+  assert.equal(dispatched,2);assert.equal(third.snapshot().installation.circuitUntil,TIME+15000);
+});
+
+test('only a fully completed healthy body resets the consecutive failure sequence',async()=>{
+  const states=new Map();
+  async function broken(expectedWait) {
+    let controller;
+    const c=context({states,fetchImpl:async()=>new Response(new ReadableStream({start(value){controller=value;}},{highWaterMark:0}))});
+    const response=await c.fetch('installation')(api),pending=response.text();
+    controller.error(Error('Synthetic body failure'));await rejection(pending,expectedWait);
+    assert.equal(c.snapshot().installation.inFlight,0);
+  }
+  await broken(1);
+  const healthy=context({states,fetchImpl:async()=>reply()});
+  await consume(healthy.fetch('installation')(api));
+  await broken(1);
+  assert.equal(healthy.snapshot().installation.circuitUntil,null);
+  await broken(15);
+  assert.equal(healthy.snapshot().installation.counters.failed,3);
+});
+
+test('a5xx response followed by body failure counts once and carries current circuit guidance',async()=>{
+  const states=new Map();let controller;
+  const first=context({states,fetchImpl:async()=>new Response(new ReadableStream({start(value){controller=value;}},{highWaterMark:0}),{status:503})});
+  const response=await first.fetch('installation')(api),pending=response.text();
+  assert.equal(first.snapshot().installation.counters.failed,1);
+  controller.error(Error('Synthetic5xx body failure'));await rejection(pending,1);
+  assert.equal(first.snapshot().installation.counters.failed,1);assert.equal(first.snapshot().installation.inFlight,0);
+  const second=context({states,fetchImpl:async()=>reply(502)});
+  await rejection(second.fetch('installation')(api),15);
+  assert.equal(second.snapshot().installation.counters.failed,2);assert.equal(second.snapshot().installation.inFlight,0);
+});
+
+test('explicit stream cancellation neither resets a prior failure nor creates another failure',async()=>{
+  const states=new Map();const failed=context({states,fetchImpl:async()=>{throw Error('Synthetic network failure');}});
+  await rejection(failed.fetch('installation')(api),1);
+  const cancelled=context({states,fetchImpl:async()=>reply()});
+  const response=await cancelled.fetch('installation')(api);await response.body.cancel();
+  assert.equal(cancelled.snapshot().installation.counters.cancelled,1);
+  assert.equal(cancelled.snapshot().installation.counters.failed,1);
+  assert.equal(cancelled.snapshot().installation.circuitUntil,null);
+  await rejection(failed.fetch('installation')(api),15);
+  assert.equal(failed.snapshot().installation.inFlight,0);
+});
+
+test('test helper refuses missing synthetic fetch without reaching global fetch',async()=>{
+  await rejection(context().fetch('installation')(api),1);
+  assert.equal(networkGuard.mock.callCount(),0);
 });

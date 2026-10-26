@@ -69,8 +69,6 @@ function observe(target,response,time) {
       retryAt===null&&reset===null?time+60000:0);
     return true;
   }
-  if(status>=500)failure(target,time);
-  else target.failures=0;
   return false;
 }
 function failure(target,time) {
@@ -104,22 +102,22 @@ function waitForChange(target,milliseconds,signal) {
   });
 }
 
-function guardedResponse(response,signal,release,failed) {
-  if(!response.body){release();return response;}
+function guardedResponse(response,signal,release,failed,completed,cancelled) {
+  if(!response.body){completed();release();return response;}
   const reader=response.body.getReader();
   let ended=false,streamController;
   function finish(){if(ended)return;ended=true;signal.removeEventListener('abort',abort);release();}
-  function abort(){if(ended)return;failed();streamController.error(unavailable());void reader.cancel().catch(()=>{});finish();}
+  function abort(){if(ended)return;streamController.error(failed());void reader.cancel().catch(()=>{});finish();}
   signal.addEventListener('abort',abort,{once:true});
   const stream=new ReadableStream({
     start(controller){streamController=controller;},
     async pull(controller){
       try {
         const {done,value}=await reader.read();
-        if(done){controller.close();finish();}else controller.enqueue(value);
-      }catch(error){if(!ended)failed();controller.error(error);finish();}
+        if(done){completed();controller.close();finish();}else controller.enqueue(value);
+      }catch{controller.error(ended?unavailable():failed());finish();}
     },
-    async cancel(reason){try{await reader.cancel(reason);}finally{finish();}}
+    async cancel(reason){cancelled();try{await reader.cancel(reason);}finally{finish();}}
   },{highWaterMark:0});
   const result=new Response(stream,{status:response.status,statusText:response.statusText,headers:response.headers});
   Object.defineProperties(result,{url:{value:response.url},redirected:{value:response.redirected},type:{value:response.type}});
@@ -205,12 +203,22 @@ export function createJamProviderContext(config,{fetchImpl=fetch,now=Date.now,st
         if(released)return;released=true;target.inFlight--;
         for(const wake of [...target.waiters])wake();
       };
-      const failed=()=>{
-        if(signal.aborted&&signal.reason?.name!=='TimeoutError')target.counters.cancelled++;
-        else {
-          if(signal.aborted)target.counters.timeouts++;
+      // Headers establish quota/status, not successful body completion. One
+      // dispatch has one terminal outcome, even if a5xx body later also fails.
+      let outcome=null;
+      const terminal=kind=>{
+        if(outcome!==null)return;
+        outcome=kind;
+        if(kind==='cancelled')target.counters.cancelled++;
+        else if(kind==='failure'||kind==='timeout') {
+          if(kind==='timeout')target.counters.timeouts++;
           failure(target,clock());
-        }
+        } else if(kind==='success')target.failures=0;
+      };
+      const currentError=()=>unavailable(Math.max(1,(target.circuitUntil-clock())/1000));
+      const failed=()=>{
+        terminal(signal.aborted?(signal.reason?.name==='TimeoutError'?'timeout':'cancelled'):'failure');
+        return currentError();
       };
       try {
         target.counters.dispatched++;
@@ -218,16 +226,22 @@ export function createJamProviderContext(config,{fetchImpl=fetch,now=Date.now,st
         target.counters[category]++;requestCalls[scope][category]++;
         let response;
         try {response=await fetchImpl(input,{...options,redirect:'error',signal});}
-        catch {
-          failed();
-          throw unavailable(target.circuitUntil>clock()?(target.circuitUntil-clock())/1000:1);
-        }
+        catch {throw failed();}
         const limited=observe(target,response,clock());
         if(limited) {
+          terminal('throttled');
           await response.body?.cancel().catch(()=>{});
-          throw unavailable((target.circuitUntil-clock())/1000);
+          throw currentError();
         }
-        return guardedResponse(response,signal,release,failed);
+        if(response.status>=500) {
+          terminal('failure');
+          if(target.circuitUntil>clock()) {
+            await response.body?.cancel().catch(()=>{});
+            throw currentError();
+          }
+        }
+        return guardedResponse(response,signal,release,failed,
+          ()=>terminal(response.ok?'success':'neutral'),()=>terminal('cancelled'));
       } catch(error) {release();throw error;}
     };
   }

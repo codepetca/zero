@@ -715,3 +715,24 @@ Evidence: ignored quota-implementation/ (unit/HTTP/type/build logs, hosting usag
 receipt/screenshot), quota-design/ (design/monitor receipts), provider-acceptance/
 measurements-optimized.json (five runs; original baseline retained). Independent
 reviews and hosted observation receipts follow at the delivered source head.
+
+
+Provider-control review correction (same pass): Astra security/correctness and
+Sol compatibility independently inspected complete20-file delta da418855→4981bd79.
+Two deduplicated blockers accepted: a counter test inherited global fetch, and
+successful200headers reset consecutive failures before body completion. One fix
+batch now records one terminal outcome per dispatch, resets only after complete
+healthy bodies, preserves cancellation neutrality and carries circuit Retry-After.
+Six injected regressions cover repeated streamed timeouts/errors across contexts,
+healthy reset,5xx/body double counting, neutral cancellation and helper isolation.
+
+The counter test had run twice locally, each making two GETs and one POST to the
+public GitHub blob endpoint without Authorization. No credentials were supplied;
+registry head db8a7d2b remains unchanged. The corrected test injects a synthetic
+transport, the helper fails closed, and a module-global guard asserts zero default
+fetch calls. Full acceptance rerun blocks every external fetch while allowing
+loopback fixtures:252jam and282website tests pass. The initial246-test receipt
+is superseded for acceptance by that corrected offline run. Typecheck/build pass.
+No CI/pilot publication occurred before this correction. Targeted review follows;
+review ledger:2initial reviewer turns,1fix batch,2deduplicated findings, no other
+initial-scope blocker. Reviewer elapsed time/tokens/effective model unknown.

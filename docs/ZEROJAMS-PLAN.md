@@ -5,7 +5,7 @@ Status: protected two-account preview active; production remains hidden,
 verified separate roles. Hosted source `619ca729` remains the previous accepted
 settlement/lifecycle checkpoint, with11 exact-head CI checks passing.
 
-Current local provider-control implementation passes246 jam/282 website tests,
+Current local provider-control implementation passes252 offline jam/282 website tests,
 typecheck/build. It reduces duplicated GitHub reads, adds aggregate accepted-intent
 pacing in the existing registry CAS and process-scoped quota visibility/circuits.
 Independent review and protected-pilot delivery follow. No extra invitations,
