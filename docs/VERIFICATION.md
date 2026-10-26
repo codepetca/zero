@@ -4924,3 +4924,25 @@ partial supplemented by actual Mac verification). Service faults are injected.
 Native Mac:12passes,1partial,17pending because host locked. Four PR-only cases
 remain deferred. This is no release/publishing or full live-GitHub acceptance.
 See [the scenario-by-scenario record](GIT-RECOVERY-ACCEPTANCE.md) before continuing.
+
+## Git recovery native matrix complete — 2026-10-26
+
+Owner unlocked Mac and authorized remaining interface tests, with PR integration,
+publishing and releases separate. Actual Mac CUA completed the remaining17rows
+and interrupted-confirmation row: all30non-PR functional scenarios exercised.
+Signed-out/no-origin Run and local commits/branches work; dirty branch guidance
+and initial account-change wording have nonblocking UX observations. Exact prior
+upload confirmation remained available after a newer native local commit, with
+no repeat push or local work loss. Compiler failure/correction and rejected-merge
+Update/Run/retry passed through real controls.
+
+Separate live GitHub happy path on existing disposable armorup/zero-git-flow-pilot-20261025
+passed Update, local branch, Mac edit, native App UI ready/Stop, Commit & push,
+Merge and local feature cleanup. Local/remote main and retained remote feature
+pilot-recovery-20261026 confirm ba318d05203466744f0366a37bb7bc89735a975a.
+Original my-greeting reopened unchanged at clean main2909872c. Source645504c is
+unchanged; root1277pass/3skip and completed independent review remain applicable.
+No source push/PR/CI, publication or release. Service-failure injections are not
+live provider-failure proof; four PR states and physical/fresh-Mac/school-network
+limits remain separate. Full matrix: [Git recovery acceptance](GIT-RECOVERY-ACCEPTANCE.md).
+Resumed evidence lives under ignored .verification/git-recovery-flow/.
