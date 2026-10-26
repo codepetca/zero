@@ -168,6 +168,10 @@
         "title": "Zero: Merge to Main"
       },
       {
+        "command": "zero.syncProject",
+        "title": "Zero: Sync from GitHub"
+      },
+      {
         "command": "zero.sharingActions",
         "title": "Zero: Libraries and Games",
         "icon": "$(library)"

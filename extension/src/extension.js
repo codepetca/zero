@@ -10,6 +10,7 @@ const {createNativeCompilerDiagnostics} = require('./native-compiler-diagnostics
 const lessonProjects = require('./lesson-projects');
 const github = require('./github');
 const workflow = require('./workflow');
+const {updateRemoteTracking} = require('./git-tracking');
 const {createAuthentication,ownedProviderApi} = require('./authentication');
 const {createNativeGitAuthentication} = require('./native-git-authentication');
 const {githubAppConfiguration} = require('./github-app/config');
@@ -305,9 +306,9 @@ function activate(context, services = {}) {
       const root = await project();
       if (localPractice) {nextRepository = 'Local practice'; throw new Error('Local practice');}
       await core.assertRepositoryRoot(root);
-      nextRepository = core.parseRepositoryUrl(await core.git(root, ['remote', 'get-url', 'origin'])).page;
       try {nextBranch = (await core.git(root, ['symbolic-ref', '--short', 'HEAD'])).trim();}
       catch {try {nextDetached = /^[a-f0-9]{40,64}$/.test(await core.git(root, ['rev-parse', '--verify', 'HEAD']));} catch {}}
+      nextRepository = core.parseRepositoryUrl(await core.git(root, ['remote', 'get-url', 'origin'])).page;
     } catch (error) { if (!localPractice) nextRepository = error.message.includes('different Git repository') ? 'Standalone student copy needed to connect' : 'No repository connected'; }
     if (generation === statusGeneration) {repository = nextRepository; branch = nextBranch; branchDetached = nextDetached; refresh();}
   }
@@ -537,63 +538,108 @@ function activate(context, services = {}) {
     } catch {}
     void vscode.window.showInformationMessage('Open Source Control from the VS Code Activity Bar to resolve and commit the merge.');
   }
+  async function assertGitProject(root) {
+    if (disposed || await project() !== root) throw new Error('The student project changed. Review this step again.');
+    assertGitProjectNow(root);
+  }
+  function assertGitProjectNow(root) {
+    if (disposed || projectRoot !== root) throw new Error('The student project changed. Review this step again.');
+    if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before changing its Git history.');
+    if (uploadMode(root) !== 'live') throw new Error('Live Git actions were disabled. Review this step again.');
+  }
+  function operationTransport(remote, {authentication, ticket, permissions = {contents:'write'}, identity,
+    assertProject, assertProjectNow}) {
+    let accessChecked = false;
+    return createTransport(remote, async () => {
+      await assertProject();
+      await authentication.assertCurrent(ticket);
+      // Capture access at the first real transfer, after local preparation. One
+      // push and its confirmation share this operation's identity; server refusal
+      // and immediate session invalidation remain authoritative on every call.
+      if (!accessChecked) {
+        const access = await repositories.access(core.parseRepositoryUrl(remote).page,{ticket,permissions});
+        if (identity) assertRepositoryIdentity(identity,access);
+        else identity = repositoryIdentity(access);
+        await assertProject();
+        await authentication.assertCurrent(ticket);
+        accessChecked = true;
+      }
+      await assertProject();
+      return authentication.assertCurrent(ticket);
+    }, {assertCurrentNow:() => {assertProjectNow();return authentication.assertCurrentNow(ticket);}});
+  }
+  async function updateTracking(root, remote, branchName, head) {
+    try {
+      await assertGitProject(root);
+      await updateRemoteTracking(root,{remote,branch:branchName,head});
+      return true;
+    } catch(error) {
+      output.appendLine(`GitHub confirmed the update, but Source Control tracking was not refreshed: ${error.message}`);
+      return false;
+    }
+  }
   async function change(kind) {
     if (isBusy()) return;
     changing = true; refresh();
     try {
       const root = await project();
       await lessonProjects.assertShareable(root);
-      if (uploadMode(root) !== 'live') {simulation(kind === 'start' ? 'New branch' : 'Merge to main'); return;}
+      if (uploadMode(root) !== 'live') {simulation(kind === 'start' ? 'New branch' : kind === 'sync' ? 'Sync from GitHub' : 'Merge to main');return;}
       let name;
       if (kind === 'start') {
-        name = await vscode.window.showInputBox({title:'Branch name', validateInput:value => /^[a-z0-9][a-z0-9-]*$/.test(value) ? undefined : 'Use lowercase letters, numbers and dashes, starting with a letter or number.'});
+        name = await vscode.window.showInputBox({title:'Branch name',validateInput:value=>/^[a-z0-9][a-z0-9-]*$/.test(value)?undefined:'Use lowercase letters, numbers and dashes, starting with a letter or number.'});
         if (!name) return;
         if (!/^[a-z0-9][a-z0-9-]*$/.test(name)) throw new Error('Use lowercase letters, numbers and dashes for your change name.');
       }
       const execute = async progress => {
         const reportProgress = message => {state=message;refresh();progress?.report({message});};
-        reportProgress('Checking GitHub access…');
-        const ticket = await auth.capture();
-        reportProgress('Checking your project…');
-        if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before reviewing the change.');
-        const destination = await github.prepareUpload(root);
-        reportProgress('Checking repository access…');
-        const identity=repositoryIdentity(await repositories.access(destination.page,{ticket,permissions:{contents:'write'}}));
-        const assertCurrent = async () => {assertRepositoryIdentity(identity,await repositories.access(destination.page,{ticket,permissions:{contents:'write'}}));return auth.assertCurrent(ticket);};
-        const networkRun = createTransport(destination.remote, assertCurrent, {assertCurrentNow:() => auth.assertCurrentNow(ticket)});
-        // Transport checks repository access at the last credential boundary.
-        // The workflow's earlier guard only needs to reread the captured session;
-        // repeating the same remote access check here multiplies API requests.
-        const options = {networkRun, beforeNetwork:() => auth.assertCurrent(ticket), onProgress:reportProgress};
-        const plan = kind === 'start' ? await workflow.prepareStart(root, name, options) : await workflow.prepareFinish(root, options);
-        if (plan.remote !== destination.remote) throw new Error('The connected repository changed. Review your change again.');
-        if (await project() !== root) throw new Error('The student project changed. Review your change again.');
-        await assertCurrent();
-        const result = kind === 'start' ? await workflow.startPrepared(plan, options) : await workflow.finishPrepared(plan, options);
-        if (kind === 'finish' && result.updated && !result.finished) {
-          report('Branch updated. Run App, then Merge to main.', 'Main updates added to your change. Run App, then choose Merge to main again to review.');
+        await assertGitProject(root);
+        if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before changing the project.');
+        const beforeMutation = () => assertGitProject(root);
+        if (kind === 'start') {
+          reportProgress('Checking local main…');
+          const options = {beforeMutation,onProgress:reportProgress};
+          const plan = await workflow.prepareStart(root,name,options);
+          await beforeMutation();
+          const result = await workflow.startPrepared(plan,options);
+          await refreshNativeGit(root);
+          report(`Created ${result.branch}`,`Started ${result.branch} locally. Make your changes, then Commit & push. Use Sync from GitHub to get updated main.`);
           return;
         }
+        reportProgress('Checking GitHub access…');
+        const ticket = await auth.capture();
+        const destination = core.parseRepositoryUrl(await core.git(root,['remote','get-url','origin']));
+        const assertProject = () => assertGitProject(root);
+        const networkRun = operationTransport(destination.remote,{authentication:auth,ticket,assertProject,assertProjectNow:()=>assertGitProjectNow(root)});
+        const beforeNetwork = async () => {await assertProject();await auth.assertCurrent(ticket);};
+        const options = {networkRun,beforeNetwork,beforeMutation,onProgress:reportProgress};
+        const plan = kind === 'sync' ? await workflow.prepareSync(root,options) : await workflow.prepareFinish(root,options);
+        if (plan.remote !== destination.remote) throw new Error('The connected repository changed. Review this step again.');
+        await beforeNetwork();
+        const result = kind === 'sync' ? await workflow.syncPrepared(plan,options) : await workflow.finishPrepared(plan,options);
+        if (kind === 'sync') {
+          const tracking = !result.remoteHead || await updateTracking(root,result.remote || plan.remote,result.remoteBranch,result.remoteHead);
+          await refreshNativeGit(root);
+          report(result.updated ? 'Synced from GitHub · run app' : 'Already up to date with GitHub main');
+          if (!tracking) void vscode.window.showWarningMessage('Synced from GitHub · Source Control tracking needs refresh; see Zero Output.');
+          return;
+        }
+        const tracking = await updateTracking(root,result.remote || plan.remote,'main',result.head);
         let cleanupError;
-        if (kind === 'finish' && result.finished) {
-          try {
-            if (await project() !== root) throw new Error('The student project changed.');
-            await workflow.deleteFinishedBranch(root, result.finishedBranch, result.head);
-          } catch(error) {
-            cleanupError = error;
-            output.appendLine(`Main was merged and pushed. Finished local branch kept: ${error.message}`);
-          }
+        if (result.finished) {
+          try {await beforeMutation();await workflow.deleteFinishedBranch(root,result.finishedBranch,result.head,{beforeMutation});}
+          catch(error){cleanupError=error;output.appendLine(`Main was merged and pushed. Finished local branch kept: ${error.message}`);}
         }
         await refreshNativeGit(root);
-        state = kind === 'start' ? `Created ${result.branch}` : cleanupError ? 'Merged to main · local branch kept; see Output' : 'Merged to main';
-        if (cleanupError) void vscode.window.showWarningMessage(state);
-        else report(state, kind === 'start' ? `Started ${result.branch}. Make your changes, then Commit & push.` : `Merged ${result.finishedBranch} to main and pushed ${result.head}. Finished local branch deleted.`);
+        state = cleanupError ? 'Merged to main · local branch kept; see Output' : !tracking ? 'Merged to main · tracking needs refresh; see Output' : 'Merged to main';
+        if (cleanupError || !tracking) void vscode.window.showWarningMessage(state);
+        else report(state,`Merged ${result.finishedBranch} to main and pushed ${result.head}. Finished local branch deleted.`);
       };
-      const title = kind === 'start' ? `Creating branch ${name}` : 'Merging to main';
+      const title = kind === 'start' ? `Creating branch ${name}` : kind === 'sync' ? 'Syncing from GitHub' : 'Merging to main';
       if (vscode.window.withProgress) return await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title,cancellable:false},execute);
       return await execute();
-    } catch(error) {if (error.conflict) await conflictHelp(); throw error;}
-    finally {await repositoryStatus(); changing = false; refresh();}
+    } catch(error) {if (error.conflict) await conflictHelp();throw error;}
+    finally {await repositoryStatus();changing=false;refresh();}
   }
   async function refreshNativeGit(root) {
     try {
@@ -636,11 +682,15 @@ function activate(context, services = {}) {
         if (!message) return;
         uploadProgress = 'Committing & pushing…'; refresh();
         if (await project() !== root) throw new Error('The student project changed. Review the upload again.');
-        const assertCurrent = async () => {await assertCurrentProject();assertRepositoryIdentity(selectedAuth.identity,await repositories.access(plan.page,{ticket,permissions:selectedAuth.permissions}));await assertCurrentProject();return activeAuth.assertCurrent(ticket);};
-        const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => {assertPublishCurrentNow();return activeAuth.assertCurrentNow(ticket);}}), onProgress:text => {state=text; refresh();}});
+        const assertProject = async () => {await assertGitProject(root);await assertCurrentProject();};
+        const assertProjectNow = () => {assertGitProjectNow(root);assertPublishCurrentNow();};
+        const beforeUpload = async () => {await assertProject();return activeAuth.assertCurrent(ticket);};
+        const networkRun = operationTransport(plan.remote,{authentication:activeAuth,ticket,permissions:selectedAuth.permissions,identity:selectedAuth.identity,assertProject,assertProjectNow});
+        const result = await github.uploadPrepared(plan,message,{beforeUpload,networkRun,onProgress:text=>{state=text;refresh();}});
+        const tracking = await updateTracking(root,plan.remote,result.branch,result.head);
         await refreshNativeGit(root);
         await repositoryStatus();
-        report(`Pushed to ${result.branch}`, `Pushed ${result.head} to ${result.branch}. Copy your repository link for Pika.`);
+        report(`Pushed to ${result.branch}${tracking?'':' · tracking needs refresh; see Output'}`, `Pushed ${result.head} to ${result.branch}. Copy your repository link for Pika.`);
         return result;
       } finally {selectedAuth?.dispose();await repositoryStatus(); uploadProgress = ''; uploading = false; refresh();}
   }
@@ -662,24 +712,27 @@ function activate(context, services = {}) {
       }
     },
     'zero.chooseRepository': async () => {
-      if (isBusy() || !auth.signedIn) return;
+      if (isBusy()) return;
       await repositoryStatus();
       const root = projectRoot;
+      if ((!root || localPractice) && !auth.signedIn) return;
       const tutorial = root && !localPractice && await lessonProjects.tutorialMarker(root);
       if (isBusy()) return;
       const connected = repository.startsWith('https://github.com/');
     const ready = githubReady();
     const phase = auth.signedIn ? githubReadiness.phase : 'signed-out';
       const currentRepository = repository, currentBranch = branch;
+      const localChoices = !connected && !tutorial && !localPractice && branch ? [...(branch==='main'?[{label:'New branch…',action:'start'}]:[]),{label:'Switch branch…',action:'switch'}] : [];
       const items = connected ? [
         {label:'Open on GitHub', action:'open'},
         {label:'Copy repository link', description:'Submit the link separately in Pika', action:'copy'},
         ...(auth.signedIn ? [{label:'Publish app', action:'publish'}] : []),
         ...(branch === 'main' ? [{label:'New branch…', action:'start'}] : []),
+        ...(auth.signedIn ? [{label:'Sync from GitHub',description:'Get completed main into this branch; no upload',action:'sync'}] : []),
         {label:'Switch branch…', action:'switch'},
-        ...(!tutorial ? [{label:'Connect to GitHub…', action:'connect'}] : [])
+        ...(!tutorial && auth.signedIn ? [{label:'Connect to GitHub…', action:'connect'}] : [])
       ] : [
-        ...(!root || tutorial || localPractice ? [] : [
+        ...(!root || tutorial || localPractice || !auth.signedIn ? [] : [
           {label:'Connect to GitHub…', action:'connect'},
           {label:'Create a repository…', description:'Create and connect this project', action:'create'}
         ])
@@ -687,7 +740,7 @@ function activate(context, services = {}) {
       const recovery=context.globalState?.get('zero.repositoryCreationRecovery');
       const recoveryUrl=recovery&&typeof recovery.repositoryUrl==='string'?recovery.repositoryUrl:undefined;
       const projectChoices = [...(recoveryUrl?[{label:'Resume created project…',description:recoveryUrl,action:'recover'}]:[])];
-      if (connected) items.push(...projectChoices); else items.unshift(...projectChoices);
+      if (connected) items.push(...projectChoices);else items.unshift(...localChoices,...projectChoices);
       if (root) items.push({label:'Review or restore changes…', action:'recovery'});
       items.push({label:'GitHub account…', action:'account'});
       const choice = await quickPick(items, {title:connected ? repository : root ? path.basename(root) : 'Project'});
@@ -706,6 +759,7 @@ function activate(context, services = {}) {
       if (choice?.action === 'publish') await actions['zero.publishWeb']();
       if (choice?.action === 'open' && !await vscode.env.openExternal(vscode.Uri.parse(currentRepository))) throw new Error('Could not open the repository. Try Open on GitHub again.');
       if (choice?.action === 'start') await actions['zero.startChange']();
+      if (choice?.action === 'sync') await actions['zero.syncProject']();
       if (choice?.action === 'switch') await actions['zero.switchBranch']();
       if (choice?.action === 'create') {
         if (!auth.signedIn) await actions['zero.signInToGitHub']();
@@ -744,6 +798,7 @@ function activate(context, services = {}) {
     },
     'zero.startChange': () => change('start'),
     'zero.finishChange': () => change('finish'),
+    'zero.syncProject': () => change('sync'),
     'zero.switchBranch': async () => {
       if (isBusy()) return;
       changing = true; refresh();
@@ -761,6 +816,7 @@ function activate(context, services = {}) {
         if (!gitApi.repositories.some(candidate => candidate.rootUri.fsPath === nativeRepository.rootUri.fsPath)) throw new Error('This project was closed in Source Control. Reopen it, then try Switch branch again.');
         // Native Git owns branch selection and dirty-file/conflict recovery.
         // Pass the exact project URI instead of asking it to choose a repository.
+        await assertGitProject(root);
         await vscode.commands.executeCommand('git.checkout', vscode.Uri.file(root));
         if (await project() !== root) return;
         await repositoryStatus();
@@ -983,15 +1039,16 @@ function activate(context, services = {}) {
     const phase = auth.signedIn ? githubReadiness.phase : 'signed-out';
     const repoName = connected ? repository.slice('https://github.com/'.length) : projectRoot ? path.basename(projectRoot) : 'Project';
     const repoControl = `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Project actions')}" aria-label="${escape(`Project: ${repoName}. Open project actions`)}" aria-haspopup="dialog" ${disabled}><span class="repo-label">${escape(repoName).replace('/', '/<wbr>')}</span>${icon('ChevronDown')}</button>`;
-    const branchControl = auth.signedIn && connected && (branch || branchDetached) ? `<div class="branch-row"><span class="branch" title="${escape(branch ? `Current branch: ${branch}` : 'Detached HEAD. Use Switch branch in repository actions.')}">${icon('GitBranch')}${escape(branch || 'Detached HEAD')}</span>${auth.signedIn && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${disabled}>Merge to main</button>` : ''}</div>` : '';
-    const githubActions = connected && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${uploadProgress ? 'aria-busy="true"' : ''} ${disabled}>${uploadProgress ? '<span class="busy-indicator" aria-hidden="true"></span>' : icon('CloudUpload')}${uploadProgress ? escape(uploadProgress) : 'Commit &amp; push'}</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
+    const branchControl = (branch || branchDetached) ? `<div class="branch-row"><span class="branch" title="${escape(branch ? `Current branch: ${branch}` : 'Detached HEAD. Use Switch branch in repository actions.')}">${icon('GitBranch')}${escape(branch || 'Detached HEAD')}</span>${ready && connected && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${disabled}>Merge to main</button>` : ''}</div>` : '';
+    const githubActions = connected && ready && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${uploadProgress ? 'aria-busy="true"' : ''} ${disabled}>${uploadProgress ? '<span class="busy-indicator" aria-hidden="true"></span>' : icon('CloudUpload')}${uploadProgress ? escape(uploadProgress) : 'Commit &amp; push'}</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
     const published = context.workspaceState?.get('zero.webPublish.lastLive');
     const publishedActions = auth.signedIn && connected && uploadMode() === 'live' && published && published.root === projectRoot && published.account === auth.accountId && published.resume?.repository === repository ? `<div class="row"><button class="link" data-command="zero.openPublishedWeb" ${disabled}>Open app</button><button class="link" data-command="zero.copyPublishedWebLink" ${disabled}>Copy playable link</button></div>` : '';
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const browserCheckStatus=savedChecksRoot===projectRoot&&savedChecksState?`<p class="muted status" title="${escape(savedChecksState.message||'')}">Browser checks: ${escape(savedChecksState.status)}</p>`:'';
     const browserAction = browserActive && !stopPromise && browserRun.canOpenInBrowser ? `<button class="secondary browser-open" data-command="zero.openRunningAppInBrowser" title="Open in browser" aria-label="Open in browser" ${disabled}>${icon('ExternalLink')}</button>` : '';
-    const githubPanel = !ready || !projectRoot ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;
+    const showRepository = projectRoot && (ready || connected || branch || branchDetached);
+    const githubPanel = !showRepository ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;
     const fileActions=projectRoot ? `<h2 id="files-heading"><button id="files-menu-button" class="link files-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="files-menu" ${disabled}>New${icon('ChevronDown')}</button></h2><div id="files-menu" class="files-dropdown" role="menu" aria-labelledby="files-menu-button" hidden>${[['zero.newClass','New class…'],['zero.newFile','New file…'],['zero.newFolder','New folder…'],['zero.importAssets','New asset…'],...(assets.canCopyPaths() ? [['zero.copyImportedAssetPaths','Copy asset paths']] : [])].map(([command,label])=>`<button role="menuitem" tabindex="-1" data-command="${command}" ${disabled}>${label}</button>`).join('')}</div>` : '';
     const activeRun = execution || pendingLaunch || nativeStarting || browserActive || browserBusy;
     const setupCheck = projectRoot && isSetupProject(projectRoot);
@@ -999,7 +1056,7 @@ function activate(context, services = {}) {
     const runDisabled = stopPromise ? 'aria-disabled="true"' : !activeRun && isBusy() ? 'disabled' : '';
     const publishMenu = !setupCheck && ready && auth.signedIn && connected ? `<button id="run-menu-button" class="run-menu-button" aria-label="Run options" title="Run options" aria-haspopup="menu" aria-expanded="false" aria-controls="run-menu" ${isBusy() || activeRun ? 'disabled' : ''}>${icon('ChevronDown')}</button><div id="run-menu" class="files-dropdown run-dropdown" role="menu" aria-labelledby="run-menu-button" hidden><button role="menuitem" tabindex="-1" data-command="zero.publishWeb" ${isBusy() || activeRun ? 'disabled' : ''}>Publish app</button></div>` : '';
     const runControl = `<div class="run-split"><button class="${ready ? 'run' : 'secondary'}" data-command="zero.toggleApp" ${runDisabled}>${icon(activeRun || stopPromise ? 'Square' : 'Play')}${runLabel}</button>${publishMenu}</div>`;
-    const controls = !projectRoot ? `<button class="link" data-command="zero.startPage" ${disabled}>Open Start Page</button>` : `${setupCheck ? '<p class="muted">Installation test · Hello World</p>' : ''}${!ready ? `<button class="link" data-command="zero.startPage" ${disabled}>GitHub setup</button>` : ''}<div class="main-controls"><div class="run-controls">${runControl}${browserAction}</div>${exportActions}${browserCheckStatus}</div>${ready ? `<section class="repository">${githubPanel}</section>` : ''}<section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`;
+    const controls = !projectRoot ? `<button class="link" data-command="zero.startPage" ${disabled}>Open Start Page</button>` : `${setupCheck ? '<p class="muted">Installation test · Hello World</p>' : ''}${!ready ? `<button class="link" data-command="zero.startPage" ${disabled}>GitHub setup</button>` : ''}<div class="main-controls"><div class="run-controls">${runControl}${browserAction}</div>${exportActions}${browserCheckStatus}</div>${showRepository ? `<section class="repository">${githubPanel}</section>` : ''}<section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`;
     // Keep the controls document alive across progress updates; VS Code owns the file tree.
     if (renderedWebview === webview && webview.postMessage) {
       void webview.postMessage({type:'sidebar.update',controls,fileActions,status:state,failed:buildFailed}); return;

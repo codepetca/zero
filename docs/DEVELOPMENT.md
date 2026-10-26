@@ -532,8 +532,8 @@ onboarding has not been verified.
 ## Native Git sign-in prototype
 
 Current local source includes a default-off credential adapter for the built-in
-`vscode.git` APIv1 `registerCredentialsProvider`. Student New branch, Commit &
-push and Merge to main keep their existing simple interface and guarded transport.
+`vscode.git` APIv1 `registerCredentialsProvider`. Student controls keep their simple interface. New branch is local; Sync from
+GitHub, Commit & push and Merge to main retain guarded transport.
 This prototype does not migrate those actions to native Git or alter account
 permissions, release settings or external-terminal authentication.
 
@@ -586,17 +586,31 @@ provider supplies credentials, VS Code may show its generic Git credential promp
 Do not interpret that prompt as Zero sign-in or promise immediate native-cache
 revocation. Routine Zero transport retains its separate synchronous final guard.
 
-Captured Zero operations now reuse verified identity only within their private
-session receipt. Every assertion still rereads locked storage, checks expiry and
-retains the existing 60-second App metadata validation policy. New captures and
-standard session lookups verify `/user`; repository access stays checked by the
-transport at dispatch. The workflow's earlier guard checks the session without
-duplicating repository requests. Remote API/Git refusal remains authoritative.
-An existing exact main commit skips download, while missing commits still use
-the pinned fetch and all mutation/source-drift guards.
+Local New branch performs no authentication or network operation and no full
+source/asset hash. Explicit Sync reviews/downloads GitHub main without uploading;
+main fast-forwards only, a feature can merge main and must be run again. Merge
+preparation is local and execution performs only one nonforce push and one SHA
+confirmation. Rejected stale-main pushes preserve local work and direct students
+to Sync, Run and retry. Simulation remains mutation-free for all actions.
+
+Captured operations reuse verified identity only within their private session
+receipt. Every assertion still rereads locked storage and checks expiry. Upload
+access is checked at the first actual transfer; the paired confirmation reuses
+that operation's access while rechecking session/project state. Commit & push
+pins identity before its input and compares again at transfer. New operations
+always establish their own access; no blanket permission cache or OAuth fallback.
+
+After confirmed success, git-tracking updates only the matching origin tracking
+ref, with origin/root/ref/object guards and OID CAS. It suppresses reference hooks,
+refuses partial/promisor clones to avoid implicit credential-bearing fetches, and
+never changes upstream configuration, HEAD, source or index. Refused metadata
+refresh is a warning after remote success. Git 2.31 cannot atomically verify ref
+symbolic type: an unobserved last-moment symbolic replacement may itself be
+replaced, but --no-deref prevents changing its target branch. Configuration can
+also change after final inspection; the helper never rewrites it.
 
 Focused checks:
-`node --test extension/test/authentication.test.js extension/test/github-app-provider.test.js extension/test/github-app-browser-provider.test.js extension/test/native-git-authentication.test.js extension/test/workflow.test.js extension/test/workflow-ui.test.js extension/test/transport.test.js extension/test/extension-upload-auth.test.js`.
+`node --test extension/test/authentication.test.js extension/test/github-app-provider.test.js extension/test/github-app-browser-provider.test.js extension/test/native-git-authentication.test.js extension/test/workflow.test.js extension/test/git-tracking.test.js extension/test/workflow-ui.test.js extension/test/transport.test.js extension/test/extension-upload-auth.test.js`.
 Mocked authority tests, real local bare-repository cycles and actual VS Code
 credential callbacks are distinct from live GitHub upload acceptance. No release
 or production activation follows from these tests.

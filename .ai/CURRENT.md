@@ -1,33 +1,32 @@
-# Git checks and native Git prototype accepted locally
+# Local Git workflow implementation: verification and review
 
-Worktree `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/git-flow-efficiency`.
-Reviewed sourcehead9d68fc86, basea9fb85c4. Owner authorized implementation/prototype
-and full student-flow testing. No sourcepush, PRupdate/merge, publishing or release.
-PR203 stays open/unmerged at7e4c2231 with prior11greenchecks; those are not CI for
-this new source. Current completion receipt is local only.
+Worktree /Users/stew/.codex/worktrees/actor/zero, branch codex/local-git-workflow,
+base main3bab71a0 (PR203 and204 already merged). Owner approved local New branch,
+explicit Sync, consolidated push checks and tracking correction through Yes do it.
+Implementation and testing only; no new source push/PR/merge, release or publishing.
+Old codex/git-flow-efficiency preserves local pilot completion receipts945197fe.
 
-Implemented: private exact-session identity receipts with locked storage rereads,
-full capture validation; pending-signout gate closes fresh-session resurrection.
-No duplicate repository access before guarded transport; exact existing main SHA
-skips download. Student UI/guarded actions preserved. DefaultOFF native Git
-adapter requires explicit UserSettings/trust/Askpass isolation. Public Git
-readiness events retry registration; signout/config/trust/disposal invalidate it.
-Prototype requires verified empty effective Githelpers: helpers can persist tokens,
-Askpass separately caches60s, host-wide authority and generic prompts remain.
+Implemented locally: New branch uses local state only, no auth/network/asset hash.
+Project menu/branch controls usable while signed out; existing empty/practice gates
+preserved. Explicit Sync gets GitHub main into current main/feature without upload.
+Merge performs one nonforce push and one SHA confirmation, with four full snapshots.
+Transport validates access at first actual transfer and rereads session/project for
+confirmation; Commit & push pins pre-input identity and compares at transfer.
+Tracking helper updates origin cache ref only after confirmation, with OID CAS,
+origin/root/object/symref checks, hook suppression and no lazy partial-clone fetch.
+No upstream settings changed. Native Git auth prototype remains default OFF.
 
-Accepted: initialAstrahigh+Sol6.1high review3P2 fixed in1batch, Astrahigh targeted
-review clean/7independentregressions.3launches/1initialwave/1targetedwave/1batch.
-Current147focusedtests+npmcheck pass; priorfullsuite1201pass/3skip reused for
-unchangedpaths. SyntheticREST144→22newbranch/180→25merge, not livelatency.
-Actual isolatedMac public-command flow passed sign-in/branch/edit/nativeRun/UI_READY/
-Stop/localbarecommitpushmergecleanup/SCMreturn/signout. Actual nativeAskpass
-requested samefixtureZero credential onread-onlyGitHubrefusal; no realtoken/upload.
-Owned QA host retired. Existing Zero Dev reloaded; actual sidebar/Start Page ready
-for armorup/my-greeting, main and two unpushed commits retained. No prototype
-opt-in or settings changes in that profile. Receipts `.verification/git-flow-efficiency/`, docsEVIDENCE/
-VERIFICATION. Fullclick/minVSCode/Windows/liveupload/school-network gaps remain.
+Authors Sol6.1/high: workflow22tests, tracking25tests, UI/upload39tests passed.
+Wider UI practice/onboarding gates corrected and focused suite passes; root final
+suite running. Initial root1234pass/2fail/3skip identified menu regressions; one
+premature rerun stopped. Current check/template evidence pass. No template scaffold,
+Java framework/API/toolchain/version, website deployment or publication pins changed.
+Docs explain local branch, explicit Sync, rejected-push recovery and older-kit limits.
 
-Next: owner sourcePR/CI decision, then separate live-account pilot/release.
-Keep my-greeting and existingDev3153/profiles, primaryfundingwork, preview3025,
-backups/sealedartifacts. PublishedMac50/core0.3.0/manualkit17/Windows21/ZeroJams
-hold unchanged. DeepSeek paused through2026-12-31. No newgoal/task/automation.
+Next: independent fixed-revision security/correctness and compatibility review,
+complete root suite, then current-connection live pilot and timings on owned
+armorup/zero-git-flow-pilot-20261025 only. Preserve my-greeting/profile/source and
+primary dirty funding work, Dev3153/watcher, preview3025/backups/sealed artifacts.
+Current connection is NOT school network (owner confirmed); fresh Mac/school and
+live native-adapter acceptance remain separate. PublishedMac50/core0.3.0/manualkit17/
+Windows21/ZeroJams hold unchanged. No new goal/task/automation. DeepSeek paused.

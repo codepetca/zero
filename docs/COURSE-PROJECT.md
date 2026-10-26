@@ -92,14 +92,17 @@ automatically.
 1. Write one small task in your README or as a GitHub issue. State what someone
    should be able to do when it works.
 2. Choose **New branch** (**Start a change** in older kits) and give it a descriptive name.
+   Current source creates it locally from main; use **Sync from GitHub** first
+   when you want newer completed work. New branch does not require sign-in.
 3. Implement the feature and **Run App**. Check the usual result and one likely
    mistake or edge case. Update the README to describe the working feature.
 4. **Commit & push** with a commit message explaining the change. Read your
    files and commit on GitHub so you can see what was pushed.
 5. **Merge to main** merges your current branch into main and pushes main
-   through Zero's reviewed individual workflow. If Zero pauses
-   after combining updated main with your branch, run the combined app before
-   continuing. Check the completed files on GitHub main.
+   through Zero's reviewed individual workflow. If GitHub refuses a stale-main
+   push, use **Sync from GitHub** to bring main into your feature without
+   uploading. Resolve conflicts if needed, run the combined app and retry.
+   Check the completed files on GitHub main.
 
 Repeat this loop in the same repository. A new feature does not need a new
 repository. Submit **your own repository link** separately in Pika, and give
@@ -116,8 +119,8 @@ you checked it, respond to feedback, then merge the pull request. Follow
 For this exercise, use GitHub's pull request merge **instead of Zero's Merge to
 main**. Merge to main merges the current branch into main and pushes main; it
 does not create a pull request. After merging on GitHub, use ordinary Git or VS Code Source
-Control to switch to main and pull the updated main before starting another
-change. Zero currently has no team or pull request mode.
+Control to switch to main, then choose **Sync from GitHub** to download the
+updated main before starting another change (use ordinary Git pull in older kits). Zero currently has no team or pull request mode.
 
 ## Explore Drawing Pad
 

@@ -384,23 +384,29 @@ For each improvement:
 
 1. Click **New branch** in the repository menu. Give it a short name such as `quiz-feedback`
    using lowercase letters, numbers and dashes. Press Enter to create it.
-   Commit & push pending edits first. Zero updates main from GitHub when it can do so
-   without combining separate histories, then creates the branch.
+   Commit & push pending edits first. The branch starts from your current local
+   main without contacting GitHub, so this step also works while signed out.
 2. Edit and **Run App**. Check your change.
 3. **Commit & push** creates a commit when needed and pushes the current branch.
    Check the repository and branch in the sidebar, describe what changed, then
    press Enter. You can repeat this while building; it does not yet add the change to main.
 4. Click **Merge to main** beside the branch name. Commit & push any pending edits first.
    Run and check your app before clicking. **Merge to main** merges the current
-   branch into main and pushes main. If GitHub
-   has newer main changes, Zero incorporates them into your change branch and
-   pauses. Run and check the combined app, then choose Merge to main again to
-   merge and push it to main.
+   branch into main and pushes main. If GitHub refuses because its main has moved
+   ahead, choose **Sync from GitHub** in the project menu. It brings GitHub main
+   into your current branch without uploading. Run and check the combined app,
+   then choose Merge to main again.
 5. After confirmed success, Zero returns to main and safely removes the unchanged
    finished local branch. Its GitHub branch remains available. If cleanup cannot
    be completed safely, Zero keeps the local branch and tells you to check Output.
 
-If an update creates conflicts, Zero keeps your work and opens VS Code's Source
+Use **Sync from GitHub** on main whenever you want to download completed work
+before creating a branch. It fast-forwards main when possible and preserves
+unpublished local commits; diverged main histories need Git help. On a feature,
+Sync merges GitHub main into that feature. It never uploads. Older editor kits
+may still update main automatically during New branch/Merge to main.
+
+If a Sync creates conflicts, Zero keeps your work and opens VS Code's Source
 Control. Open the conflicted files or Merge Editor, inspect both changes and
 choose/edit the combined result. Save, stage the resolved files and commit the
 merge through Source Control. Run the app, then choose **Merge to main** again

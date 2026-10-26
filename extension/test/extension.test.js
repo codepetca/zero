@@ -27,7 +27,7 @@ test('commands simulate upload without Git and native Run App tasks retain resta
     Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ShellQuoting:{Strong:2},ProcessExecution:class{constructor(command,args,options){Object.assign(this,{command,args,options});}},ShellExecution:class{},
     EventEmitter:class{event(){}fire(){}dispose(){}},Uri:{file:fsPath=>({fsPath})}
   };
-  const originalLoad=Module._load;Module._load=function(id,...args){if(id==='./native-update-reload')return {createNativeUpdateReload:(_v,options)=>{reloadIsBusy=options.isBusy;return disposable();}};return id==='vscode'?textInputs(vscode):originalLoad.call(this,id,...args);};
+  const originalLoad=Module._load;Module._load=function(id,...args){if(id==='./git-tracking')return {updateRemoteTracking:async()=>({updated:true})};if(id==='./native-update-reload')return {createNativeUpdateReload:(_v,options)=>{reloadIsBusy=options.isBusy;return disposable();}};return id==='vscode'?textInputs(vscode):originalLoad.call(this,id,...args);};
   let extension;try {extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];t.after(()=>{subscriptions.forEach(item=>item.dispose());delete require.cache[require.resolve('../src/extension')];});
   const accessCalls=[];
@@ -177,7 +177,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   assert.equal(typeof commands.get('zero.importAssets'),'function');assert.equal(typeof commands.get('zero.recovery'),'function');
   assert.doesNotMatch(webview.html,/zero.checkForUpdates|zero.updateSettings/,'Native update commands stay out of the sidebar');
   assert.match(webview.html,/data-command="zero.startPage"[^>]*>GitHub setup/);
-  assert.match(webview.html,/>GitHub setup<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"/);assert.doesNotMatch(webview.html,/data-command="zero.cloneRepository"|data-command="zero.startChange"/);
+  assert.match(webview.html,/>GitHub setup<\/button>/);assert.match(webview.html,/data-command="zero.chooseRepository"/,'Local project actions remain available while signed out');assert.doesNotMatch(webview.html,/data-command="zero.cloneRepository"|data-command="zero.startChange"/);
   const githubSection=()=>(webview.html.match(/<section class="repository">([\s\S]*?)<\/section>/)||[])[1]||'';
   assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"/);
   assert.doesNotMatch(webview.html.split('<section class="repository">')[0],/zero.publishWeb/,'Run controls stay separate from GitHub publishing');
@@ -188,10 +188,10 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   nextChoice='starters';await commands.get('zero.browseZeroHub')();assert.equal(opened.length,0,'Retired starters cannot open an old catalog route');
   nextChoice=undefined;
   await commands.get('zero.chooseRepository')();
-  assert.equal(picks.at(-1).options.title,'ZeroHub','Signed-out Project menu is unavailable');
+  assert.equal(picks.at(-1).options.title,path.basename(root),'Signed-out users can open local project actions');
   assert.equal(inputCount,0,'Cancelled repository menu has no input or mutation');
   nextChoice='connect';await commands.get('zero.chooseRepository')();
-  assert.equal(inputCount,0,'Signed-out project menu remains hidden');
+  assert.equal(inputCount,0,'Signed-out remote actions remain unavailable');
   let simulationFinished=false;const simulation=commands.get('zero.uploadToGitHub')().then(()=>{simulationFinished=true;});
   await warningShown;await settle(()=>simulationFinished);assert.equal(simulationFinished,true,'Simulation must release commands while its notification is still open');
   assert.doesNotMatch(webview.html,/data-command="zero.githubAccount"[^>]* disabled/,'Account icon must remain available before notification dismissal');
@@ -210,7 +210,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['change','signOut']);
   const dispatchCount=dispatched.length;nextChoice='signOut';await commands.get('zero.githubAccount')();
   assert.deepEqual(removed,['student-session']);assert.equal(dispatched.length,dispatchCount,'Signing out removes only Zero’s App session');assert.match(webview.html,/GitHub setup/);
-  session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE',scopes:[]};authEvent({provider:{id:'zero-github'}});await settle(()=>webview.html.includes('zero.chooseRepository'));
+  session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE',scopes:[]};authEvent({provider:{id:'zero-github'}});await settle(()=>!webview.html.includes('>GitHub setup</button>'));
   connectionSession={...session,id:'replacement-session'};nextChoice='change';await commands.get('zero.githubAccount')();
   assert.deepEqual(removed,['student-session','student-session']);assert.equal(authCalls.findLast(call=>call.options.createIfNone).options.createIfNone,true);assert.equal(authCalls.findLast(call=>call.options.createIfNone).options.clearSessionPreference,undefined,'Account replacement stays within Zero’s provider');
   repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle(()=>/Commit &amp; push/.test(webview.html) && /class="repo-label">student\/<wbr>app/.test(webview.html));
@@ -230,19 +230,19 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   pickEffect=undefined;await fs.writeFile(path.join(root,'zero.json'),'{}');
   pickEffect=async()=>{session=undefined;authEvent({provider:{id:'zero-github'}});};
   await commands.get('zero.browseZeroHub')();assert.equal(shareCalls,1,'Signing out while the ZeroHub menu is open cancels sharing');
-  pickEffect=undefined;session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE'};authEvent({provider:{id:'zero-github'}});await settle(()=>webview.html.includes('zero.chooseRepository'));
+  pickEffect=undefined;session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE'};authEvent({provider:{id:'zero-github'}});await settle(()=>!webview.html.includes('>GitHub setup</button>'));
   nextChoice='account';await commands.get('zero.chooseRepository')();assert.equal(picks.at(-1).options.title,'GitHub: student','Native account actions remain reachable inside the project menu');
   nextChoice='recovery';await commands.get('zero.chooseRepository')();assert.equal(recoveryCalls,1,'The repository menu dispatches the existing guarded file recovery command');
   pickEffect=async()=>{repo='https://github.com/student/changed.git';};await commands.get('zero.chooseRepository')();assert.equal(recoveryCalls,1,'Changing repository cancels pending file recovery');pickEffect=undefined;repo='https://github.com/student/app.git';
   nextChoice='copy';await commands.get('zero.chooseRepository')();assert.equal(copied.at(-1),'https://github.com/student/app');
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','connect','recovery','account']);
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','sync','switch','connect','recovery','account']);
   const beforePublishAuth=authCalls.length;nextChoice='publish';await commands.get('zero.chooseRepository')();assert.match(webview.html,/Simulation only — no publishing files/);assert.equal(authCalls.length,beforePublishAuth,'Repository menu dispatch preserves publishing simulation isolation');
-  session={...session,account:{id:'1',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'zero-github'}});await settle(()=>webview.html.includes('zero.chooseRepository'));
+  session={...session,account:{id:'1',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'zero-github'}});await settle(()=>!webview.html.includes('>GitHub setup</button>'));
   assert.doesNotMatch(webview.html,/<img|&lt;img|PRIVATE/,'Account labels and tokens stay out of sidebar HTML');
   connectionSession=undefined;session=undefined;authEvent({provider:{id:'zero-github'}});await settle(()=>/GitHub setup/.test(webview.html) && !/data-command="zero.uploadToGitHub"/.test(webview.html));assert.match(webview.html,/GitHub setup/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"/);
-  assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"|Current branch:|student\/app/,'Signed-out GitHub area contains only Sign in');
-  nextChoice=undefined;const signedOutPicks=picks.length;await commands.get('zero.chooseRepository')();assert.equal(picks.length,signedOutPicks);
-  session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE'};authEvent({provider:{id:'zero-github'}});await settle(()=>webview.html.includes('zero.chooseRepository'));
+  assert.match(webview.html,/data-command="zero.chooseRepository"/,'Signed-out users retain local Git actions');assert.match(webview.html,/Current branch: main/);
+  nextChoice=undefined;const signedOutPicks=picks.length;await commands.get('zero.chooseRepository')();assert.equal(picks.length,signedOutPicks+1);assert.ok(picks.at(-1).items.some(item=>item.action==='start'));assert.ok(!picks.at(-1).items.some(item=>item.action==='sync'));
+  session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE'};authEvent({provider:{id:'zero-github'}});await settle(()=>!webview.html.includes('>GitHub setup</button>'));
   nextChoice='open';await commands.get('zero.chooseRepository')();assert.equal(opened.at(-1).url,'https://github.com/student/app');
   const beforeSwitch=dispatched.length;nextChoice='switch';await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeSwitch,'Simulation does not switch a branch');
   mode='live';checkout=async()=>{currentBranch='add-score';};const beforeSwitchAuth=authCalls.length;
@@ -261,7 +261,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   nextChoice='clone';pickEffect=async()=>{repo='https://github.com/student/changed.git';};const beforeDrift=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeDrift,'A changed destination invalidates a pending menu selection');pickEffect=undefined;repo='https://github.com/student/app.git';currentBranch='main';
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',repositoryRequired:true,lessonId:'0'}));
   nextChoice=undefined;await commands.get('zero.chooseRepository')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','recovery','account'],'A cloned tutorial keeps repository actions without offering rejected origin replacement');
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','sync','switch','recovery','account'],'A cloned tutorial keeps repository actions without offering rejected origin replacement');
   await commands.get('zero.browseZeroHub')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries'],'Tutorial projects do not offer Share project');
   repo=undefined;webviewProvider.resolveWebviewView(candidate);await settle(()=>!webview.html.includes('student/app'));
   await commands.get('zero.chooseRepository')();

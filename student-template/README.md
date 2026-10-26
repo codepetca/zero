@@ -335,13 +335,16 @@ For a new repository, Commit & push once on **main** to save the starter.
 Then use this individual flow for each improvement:
 
 1. Click **New branch** in the repository menu, name your branch (for example `quiz-feedback`)
-   and press Enter to create it. Commit & push pending edits first. Main is updated
-   from GitHub when it can be advanced without combining separate histories.
+   and press Enter to create it. Commit & push pending edits first. Current source
+   creates the branch locally from main, with no GitHub request or sign-in needed.
+   Choose **Sync from GitHub** first if you want the latest completed main.
 2. Edit and Run App. **Commit & push** creates a commit when needed and pushes your current branch;
    repeat as needed.
 3. Click **Merge to main** beside the branch name. Commit & push pending edits first, run the
-   app before clicking. **Merge to main** merges your branch into main and pushes main. If newer main code is added
-   to your branch, Zero pauses: run and check the combined app, then choose Merge to main again.
+   app before clicking. **Merge to main** merges your branch into main and pushes
+   main. If GitHub refuses because main has newer work, choose **Sync from GitHub**.
+   It merges GitHub main into the current feature without uploading; run and
+   check the combined app, then retry Merge to main.
 4. After confirmed success, you are back on main. Zero safely removes the
    unchanged finished local branch; its GitHub branch remains. If cleanup cannot
    be completed safely, Zero keeps the local branch and tells you to check Output.
@@ -350,7 +353,12 @@ Older kits may use different account/repository controls, with **Start a change*
 and different labels for committing, pushing and merging. Their installed controls remain
 unchanged; the steps above describe the current editor.
 
-If an update conflicts, your work and merge state remain. In VS Code Source
+**Sync from GitHub** on main downloads completed work by fast-forward when
+possible; it preserves unpublished local commits and refuses diverged main.
+On a feature it merges GitHub main into that feature. Older editor kits retain
+their bundled automatic update behavior.
+
+If a Sync conflicts, your work and merge state remain. In VS Code Source
 Control, inspect the conflicted files/Merge Editor, combine the intended changes,
 save and stage them, then commit the merge. Run App and review Merge to main again.
 Ask your teacher for help with an unclear conflict or diverged main history.

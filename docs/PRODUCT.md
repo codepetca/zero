@@ -738,36 +738,51 @@ then checks the remote branch before reporting success. A failed push can leave
 a local commit. Ordinary per-repository Git name/email identity is configured
 manually; signing in does not configure commit identity. Optional explicit
 `simulation` remains available for maintainer/teacher testing: Commit & push,
-New branch, Merge to main and Publish simulate without saving files or performing
+New branch, Sync from GitHub, Merge to main and Publish simulate without saving files or performing
 Git/network actions.
 Tutorial repositories use the same GitHub workflow; only legacy local-only markers remain blocked.
 
 The individual flow uses main for completed work and one short-lived branch per
 change. A new empty repository starts with Commit & push on main.
-Choose New branch in the repository menu and enter its name to create it directly. New branch
-requires clean committed main and brings in remote main only by fast-forward;
-diverged histories require manual repair. Current local source shows native
-activity progress after naming a branch, with stages for GitHub access, branch
-checks and fetching main. Merge to main uses the same native progress surface;
-success or failure ends it. Published downloads retain their bundled feedback.
-Commit & push commits/pushes progress
-to the current branch. Run and check the app before finishing.
+New branch creates a feature from clean committed **local main**. It does not
+contact GitHub, download main, check remote name availability or require sign-in.
+Its local validation checks root/refs/worktree/operation state without reading
+all source and asset bytes. Repository actions remain visible for local Git
+projects while signed out; uploading and publishing keep their connection gates.
 
-Click Merge to main beside the change branch. Commit & push pending edits first.
-Merge to main runs directly from its button and requires a clean committed change
-branch. Account, destination and source snapshots are checked before execution. Updated remote main is merged into the change
-branch, then the action pauses for Run App and another Merge to main review before
-pushing the combined version. No rebase/force push is used. Conflicts preserve the branch and merge
-state, open native Source Control and require resolution/staging/commit before
-running the app and reviewing Merge to main again. Local main may not contain separate
-unpublished work outside the change branch. The action advances local main, pushes
-the exact completed SHA to remote main and confirms it before switching to main.
-A failed push can leave main advanced locally while retaining the change branch
-for another Finish review. After confirmed success, cleanup automatically removes
-only the unchanged local finished branch. If its safety checks fail, main stays
-completed and the local branch is kept with a concise notice and Zero Output
-details. The uploaded remote change branch remains. Shared worktrees and
-unusual histories require normal Git tools. No automatic source rollback occurs.
+**Sync from GitHub** is a separate repository-menu action. It downloads the
+reviewed GitHub main commit and never uploads. On main it permits a fast-forward,
+keeps unpublished ahead commits, and refuses diverged histories. On a feature it
+merges GitHub main into that feature. After an update, Run App before continuing.
+Sync uses a pinned reviewed SHA; GitHub may advance again and a later Sync gets
+that newer state. An already present exact commit needs no download. Sync does
+not pull other students' feature branches or implement team/PR synchronization.
+
+Commit & push saves and uploads the current branch. Run and check the app before
+Merge to main. A clean completed feature must contain local main's commits.
+Merge to main advances local main with a compare-and-swap, pushes the exact
+feature SHA without force, confirms that SHA on GitHub, and switches to main.
+It performs no automatic fetch or incoming merge. If GitHub refuses a stale-main
+push, the feature and local commits remain: choose Sync from GitHub, resolve any
+conflicts, run the combined app, then retry Merge to main. No rebase/reset or
+silent source rollback occurs. A failed push can leave local main advanced.
+
+Full byte snapshots protect reviewed source at actual content/ref mutation
+boundaries; read-only network checks use lighter state guards. Sync conflicts
+retain the merge state and open native Source Control for resolution/staging and
+local commit. After confirmed success, cleanup deletes only the unchanged local
+finished feature with a compare-and-delete; its remote branch remains. Refused
+cleanup keeps the branch and reports a concise warning. Shared worktrees and
+unusual histories require normal Git tools.
+
+After confirmed pushes and Sync, Zero refreshes only the matching origin remote-
+tracking ref using guarded compare-and-swap, without fetching or changing user
+upstream configuration. That corrects native SCM ahead counts for existing
+upstreams. A newer/divergent/symbolic tracking ref or changed origin is preserved
+and produces a metadata warning; remote success remains reported truthfully.
+Native Git may still offer Publish Branch for a feature with no configured
+upstream. The source and published downloads remain separate; older kits retain
+their bundled flow and feedback.
 
 Live transport uses transient credentials from the captured Zero GitHub App session.
 It requires Git 2.31+ for runtime credential configuration and rejects older Git
@@ -775,9 +790,11 @@ before credential dispatch.
 Capture verifies the account remotely once. Checks within that operation reread
 SecretStorage under the cross-window lock using a private receipt bound to the
 exact verified session, credentials and App configuration. Changes, expiry and
-sign-out invalidate it; ordinary session lookups still verify remotely. Each
-credential-bearing transport checks repository/installation access immediately
-before dispatch. Remote revocation is enforced by actual server requests, not
+sign-out invalidate it; ordinary session lookups still verify remotely. The first real transfer in each explicit operation checks repository/installation
+access. Commit & push also compares this with the identity captured before its
+message input. Subsequent confirmation in that same operation reuses access
+validation while rechecking the session and project; GitHub server refusal remains
+authoritative. There is no cross-operation permission cache. Remote revocation is enforced by actual server requests, not
 the local receipt. Expiring tokens are stored in VS Code SecretStorage.
 Git transport injects them only into guarded credential-bearing children
 temporarily; they do not appear in Git configuration files, command arguments,
@@ -795,7 +812,7 @@ window; its broader authority and acceptance limits are documented in
 The student buttons continue to use guarded transport independently of that
 prototype. Preparation queries remote main without changing local files/refs;
 the reviewed executor performs updates, with drift/session checks throughout.
-An exact reviewed main commit already present locally is not fetched again;
+An exact main commit reviewed by Sync and already present locally is not fetched again;
 live remote-head checks and source/ref mutation guards remain in force.
 
 Copy Repository Link returns a page URL for separate Pika submission. A copied
