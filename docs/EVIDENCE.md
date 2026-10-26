@@ -1,5 +1,28 @@
 # Delivery evidence index
 
+## Standard folder names in Student Explorer — 2026-10-26
+
+Owner requested java/resources instead of Code/Assets, with Libraries unchanged.
+Sourceb8134c5479516932752df5f659e38a1c0b53cefb updates app/local/retained roots,
+location choices, tooltips, header destinations, prompts and area-specific errors.
+Physical paths, namespace rules, context IDs and write behavior stay intact.
+70 focused controller/model/file/rename/assets checks pass, including library
+resources selection, matching declarations, actual destination paths and retained
+read-only behavior. Configuration/syntax/contracts/docs and diff checks pass.
+Actual Mac CUA reload shows java/resources and a contextual New file prompt
+“In resources”; cancelled without creating a file. Screenshot:
+.verification/student-explorer/screenshots/standard-folder-labels.png.
+The isolated default-project remains open with Main selected.
+
+One GPT-6 Luna/medium independent reviewer, review_standard_labels, inspected
+0af2ba74→b8134c54. It initially reported a library-header issue, then withdrew it
+after re-evaluating the kind==='library' condition: resources folders use the
+correct area-aware helper. Existing controller coverage now explicitly exercises
+that selection. Final verdict clean;0accepted/1withdrawn finding, one reviewer,
+two turns, no production fix batches. Requested model/effort known; effective
+configuration, elapsed and token telemetry unknown. Prior Java/WebFX/browser
+proof is reused for this naming-only refinement. No publication occurred.
+
 ## Student Explorer local default adoption — 2026-10-26
 
 After receiving the working explorer refinements and screenshot, the owner said

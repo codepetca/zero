@@ -30,4 +30,7 @@ Isolated Zero window is open at .verification/student-explorer/default-project,
 Main.java selected, Student Explorer active. The richer portability/project
 fixture and its workspace preference remain preserved. Source watcher3154 stays
 available; original3153/3025 and profiles remain intact. DeepSeek is paused.
-No active implementation or review workers and no remaining local plan work.
+Naming refinementb8134c54 uses java/resources across the app and local library
+tree, prompts and errors; Libraries is unchanged. 70 focused checks and Mac
+root/prompt verification pass; independent Luna/medium review is clear. Evidence
+and updated screenshot: docs/EVIDENCE.md. No remaining local plan work.

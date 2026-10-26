@@ -87,6 +87,7 @@ test('authored library virtual roots use identity namespaces and published copie
   await authoring.applyPlan(await authoring.previewExtraction(f.root,{repository:{id:'12345',ownerId:'123',owner:'student',name:'app',url:'https://github.com/student/app'},descriptor:{schema:1,kind:'library',slug:'health-bar',version:'1.0.0',title:'Health bar',description:'Health helper',license:'MIT',libraryKind:'helper'},sources:['src/main/java/Health.java']}));
   const roots=await f.children(),library=(await f.children(roots[2]))[0],details=await f.children(library),code=details.find(n=>n.label==='java'),assets=details.find(n=>n.label==='resources');
   assert.match(f.item(library).description,/1.0.0 · Local source/);assert.equal(f.item(code).tooltip,'Libraries › Health bar › java');
+  f.select(assets);assert.equal(f.tree.tree.description,'Libraries › Health bar › resources');
   assert.match(code.relative,/src\/main\/java\/zero\/contrib\/r12345\/health_bar$/);
   f.name='Extra';await f.tree.commands['zero.explorerNewClass'](code);assert.match(await fs.readFile(path.join(f.root,code.relative,'Extra.java'),'utf8'),/^package zero.contrib.r12345.health_bar;/);
   await authoring.applyPlan(await authoring.previewMode(f.root,{slug:'health-bar',mode:'published',version:'1.2.3'}));f.tree.invalidate();
