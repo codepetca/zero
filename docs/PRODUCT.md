@@ -738,7 +738,7 @@ then checks the remote branch before reporting success. A failed push can leave
 a local commit. Ordinary per-repository Git name/email identity is configured
 manually; signing in does not configure commit identity. Optional explicit
 `simulation` remains available for maintainer/teacher testing: Commit & push,
-New branch, Sync from GitHub, Merge to main and Publish simulate without saving files or performing
+New branch, Update from main, Merge to main and Publish simulate without saving files or performing
 Git/network actions.
 Tutorial repositories use the same GitHub workflow; only legacy local-only markers remain blocked.
 
@@ -750,32 +750,50 @@ Its local validation checks root/refs/worktree/operation state without reading
 all source and asset bytes. Repository actions remain visible for local Git
 projects while signed out; uploading and publishing keep their connection gates.
 
-**Sync from GitHub** is a separate repository-menu action. It downloads the
-reviewed GitHub main commit and never uploads. On main it permits a fast-forward,
-keeps unpublished ahead commits, and refuses diverged histories. On a feature it
-merges GitHub main into that feature. After an update, Run App before continuing.
-Sync uses a pinned reviewed SHA; GitHub may advance again and a later Sync gets
-that newer state. An already present exact commit needs no download. Sync does
-not pull other students' feature branches or implement team/PR synchronization.
+**Update from main** is a separate repository-menu action. It gets the reviewed
+GitHub main commit without uploading. On main or a feature, it fast-forwards or
+combines both committed histories; ahead local commits are kept. Run the combined
+app before pushing. The reviewed SHA is pinned; later remote advances require a
+later update. **Update branch from GitHub** separately gets changes to the same
+remote feature branch, for example from another computer.
+
+When Update or Switch branch encounters uncommitted work, Zero offers an explicit
+**Save checkpoint & update/switch**. This makes a local commit without uploading;
+cancelling the prompt makes no Git change. Routine New branch/Commit & push/Merge
+still have no extra confirmation. Clean retries push saved commits without asking
+for another commit message. The sidebar says **Push commits** for matching pending
+commits and **Commit & push** when new file changes need saving.
+
+Text conflicts offer local versus incoming choices for one conflicting section
+at a time, keeping automatically combined edits. Main uses **Keep my changes** /
+**Use GitHub’s changes**; a feature updating from main uses **Keep this branch’s
+changes** / **Use main’s changes**. Binary and modify/delete conflicts use explicit
+whole-file choices. Complex rename, unusual-mode, oversized or ambiguous marker
+content stays in native Source Control. Full text comparisons use read-only
+virtual documents. A managed merge records only local IDs/fingerprints in .git;
+a window reload can resume it. **Cancel update** restores its starting committed
+checkpoint only if refs, index and files still match. Later external edits stop
+automatic recovery and are kept for native review. No central storage or backups
+service is required. Crashed operation locks conservatively require native review.
 
 Commit & push saves and uploads the current branch. Run and check the app before
-Merge to main. A clean completed feature must contain local main's commits.
-Merge to main advances local main with a compare-and-swap, pushes the exact
-feature SHA without force, confirms that SHA on GitHub, and switches to main.
-It performs no automatic fetch or incoming merge. If GitHub refuses a stale-main
-push, the feature and local commits remain: choose Sync from GitHub, resolve any
-conflicts, run the combined app, then retry Merge to main. No rebase/reset or
-silent source rollback occurs. A failed push can leave local main advanced.
+Merge to main. Merge advances local main with a compare-and-swap, pushes the exact
+feature SHA without force, confirms it, and switches to main. A rejected stale-main
+push keeps the feature and commits: Update from main, resolve if needed, Run and
+retry Merge. A failed push can leave local main advanced. Confirmed cleanup deletes
+only the unchanged finished local feature; its remote branch remains recoverable.
 
-Full byte snapshots protect reviewed source at actual content/ref mutation
-boundaries; read-only network checks use lighter state guards. Sync conflicts
-retain the merge state and open native Source Control for resolution/staging and
-local commit. After confirmed success, cleanup deletes only the unchanged local
-finished feature with a compare-and-delete; its remote branch remains. Refused
-cleanup keeps the branch and reports a concise warning. Shared worktrees and
-unusual histories require normal Git tools.
+After a push failure, Zero distinguishes saved local work from remote success.
+Behind-main failures offer Update from main; behind-feature failures offer Update
+branch from GitHub. Offline/auth/access/protected-main failures retain the local
+commit and give a retry, sign-in, access or feature-branch action. Interrupted
+confirmation offers **Check GitHub status**, which reads the exact recorded branch
+and SHA without pushing. Newer local work is preserved. Confirmed success followed
+by a local edit remains remote success, with newer local work reported separately.
+Account, destination, source, trust and live-mode guards remain in force. PR
+integration is deferred; repositories requiring a PR use GitHub/native tools.
 
-After confirmed pushes and Sync, Zero refreshes only the matching origin remote-
+After confirmed pushes and updates, Zero refreshes only the matching origin remote-
 tracking ref using guarded compare-and-swap, without fetching or changing user
 upstream configuration. That corrects native SCM ahead counts for existing
 upstreams. A newer/divergent/symbolic tracking ref or changed origin is preserved

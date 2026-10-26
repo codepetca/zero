@@ -102,7 +102,7 @@ test('App account drift while checking repository access rejects before commit i
 });
 test('App account and permission removal after commit input reject the final upload guard',async t=>{
   for(const change of ['account','permission','repository'])await t.test(change,async t=>{
-    const h=await harness(t);h.afterInput=async()=>{if(change==='account')h.accountId='2';else if(change==='repository')h.selected=false;else h.removePermission('workflows');};
+    const h=await harness(t,{dirty:true});h.afterInput=async()=>{if(change==='account')h.accountId='2';else if(change==='repository')h.selected=false;else h.removePermission('workflows');};
     await h.commands.get('zero.uploadToGitHub')();assert.equal(h.inputs,1);assert.equal(h.pushes,0);
     assert.equal(h.transportDispatches,0,'Revocation must stop before credential-bearing transport dispatch');
     assert.match(h.errors[0],/account|sign-in changed|permission was removed|selected repositories/);assert.ok(h.errors.every(text=>!text.includes('TEST_ONLY')));
@@ -110,8 +110,23 @@ test('App account and permission removal after commit input reject the final upl
 });
 test('ordinary native uploads require only App Contents access',async t=>{
   const h=await harness(t,{kit:false,capabilities:{contents:'write'}});await h.commands.get('zero.uploadToGitHub')();
-  assert.equal(h.pushes,1);assert.equal(h.disposed,0);assert.ok(h.accessCalls.length>0);
+  assert.equal(h.pushes,1);assert.equal(h.inputs,0,'Pushing saved commits needs no new commit message');assert.equal(h.disposed,0);assert.ok(h.accessCalls.length>0);
   assert.ok(h.accessCalls.every(call=>JSON.stringify(call.permissions)===JSON.stringify({contents:'write'})));assert.ok(h.calls.every(call=>call.scopes.length===0));
+});
+test('no-file-change push still rejects account, access and repository identity drift at transfer without prompting',async t=>{
+  for(const change of ['account','permission','repository','installation'])await t.test(change,async t=>{
+    const h=await harness(t);
+    h.afterUpload=async()=>{
+      if(change==='account')h.accountId='2';
+      else if(change==='permission')h.removePermission('workflows');
+      else if(change==='repository')h.repositoryId=13;
+      else h.installationId=100;
+    };
+    await h.commands.get('zero.uploadToGitHub')();
+    assert.equal(h.inputs,0);assert.equal(h.uploads,1);assert.equal(h.pushes,0);assert.equal(h.transportDispatches,0);
+    assert.match(h.errors.at(-1),/account|sign-in changed|permission was removed|repository or Zero installation changed/);
+    assert.ok(h.errors.every(text=>!text.includes('TEST_ONLY')));
+  });
 });
 test('simulation skips managed kit authentication, saves, App access and upload preparation',async t=>{
   const h=await harness(t,{mode:'simulation',selected:false});const before=h.calls.length;await h.commands.get('zero.uploadToGitHub')();
@@ -120,7 +135,7 @@ test('simulation skips managed kit authentication, saves, App access and upload 
 
 test('unset upload mode is live but activation and cancelled commit message never upload',async t=>{
   assert.equal(require('../package.json').contributes.configuration.properties['zero.uploadMode'].default,'live');
-  const h=await harness(t,{kit:false,cancelMessage:true});
+  const h=await harness(t,{kit:false,dirty:true,cancelMessage:true});
   assert.equal(h.saves,0);assert.equal(h.reviews,0);assert.equal(h.uploads,0);assert.equal(h.accessCalls.length,0);
   assert.ok(h.calls.every(call=>call.options.silent),'Activation only inspects existing sessions');
   await h.commands.get('zero.uploadToGitHub')();
@@ -138,7 +153,7 @@ test('legacy local-only practice blocks GitHub actions even with the default liv
 });
 
 test('repository-required tutorial reaches default live Upload review and preserves cancellation',async t=>{
-  const h=await harness(t,{kit:false,tutorial:true,cancelMessage:true});
+  const h=await harness(t,{kit:false,tutorial:true,dirty:true,cancelMessage:true});
   await h.commands.get('zero.uploadToGitHub')();assert.equal(h.reviews,1);assert.equal(h.inputs,1);assert.equal(h.uploads,0);assert.equal(h.errors.length,0);
   assert.ok(!h.notices.includes('Commit and push this version to GitHub?'));
 });
@@ -163,7 +178,7 @@ test('original project keeps Share project inside the ZeroHub menu',async t=>{
 
 test('unchanged URL and account cannot push to a replacement repository or installation after review',async t=>{
  for(const kind of ['repository','installation'])await t.test(kind,async t=>{
-  const h=await harness(t);h.afterInput=async()=>{if(kind==='repository'){h.repositoryId=13;h.privacy=false;}else h.installationId=100;};
+  const h=await harness(t,{dirty:true});h.afterInput=async()=>{if(kind==='repository'){h.repositoryId=13;h.privacy=false;}else h.installationId=100;};
   await h.commands.get('zero.uploadToGitHub')();assert.equal(h.inputs,1);assert.equal(h.pushes,0);assert.equal(h.transportDispatches,0);assert.match(h.errors.at(-1),/repository or Zero installation changed/);
  });
 });
@@ -183,7 +198,7 @@ function uploadButton(webview) {
 }
 
 test('Commit & push shows preparation during slow access, rejects duplicates and resets after message cancellation',async t=>{
-  const h=await harness(t,{kit:false,tutorial:true,cancelMessage:true}),webview=await uploadSidebar(h);
+  const h=await harness(t,{kit:false,tutorial:true,dirty:true,cancelMessage:true}),webview=await uploadSidebar(h);
   let releaseAccess,accessStarted;
   const started=new Promise(resolve=>{accessStarted=resolve;});
   const accessGate=new Promise(resolve=>{releaseAccess=resolve;});
@@ -213,7 +228,7 @@ test('Commit & push clears its indicator on preparation failure and after a conf
     assert.doesNotMatch(uploadButton(webview),/Preparing commit…|aria-busy="true"|data-command="zero.uploadToGitHub"[^>]*disabled/);
   });
   for(const fail of [false,true])await t.test(fail?'push failed':'push completed',async t=>{
-    const h=await harness(t,{kit:false,tutorial:true}),webview=await uploadSidebar(h);h.failPush=fail;
+    const h=await harness(t,{kit:false,tutorial:true,dirty:true}),webview=await uploadSidebar(h);h.failPush=fail;
     let releaseUpload,uploadStarted;
     const started=new Promise(resolve=>{uploadStarted=resolve;});
     const uploadGate=new Promise(resolve=>{releaseUpload=resolve;});

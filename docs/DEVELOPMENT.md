@@ -205,15 +205,19 @@ no real sign-in, upload or account/configuration changes are authorized by a
 local development check. Live is the student default; simulation tests must explicitly select it. Signing in is separate
 from manually configuring per-repository Git commit identity.
 
-The individual workflow adds reviewed start/finish plans. Test real local Git
-against injected disposable bare remotes: baseline, branch progress, main updates,
-pause/run/review after updates, preserved conflict state, failed push/retry and
-safe optional local branch deletion. Never redirect production transport through
-Git URL rewriting or introduce a real GitHub test. Simulation must skip saves,
-auth, network and Git mutations for Upload, Start and Finish. Native transport
-accepts only the exact reviewed HTTPS destination and narrow push/head-query/
-SHA-pinned-fetch commands; session/root/rewrite checks remain required. UI tests
-cover cancellation, operation serialization, source-control guidance and drift.
+The individual workflow uses reviewed local start/finish and explicit update plans.
+Test actual local Git with injected disposable bare remotes: local/main/feature
+updates, multi-hunk text choices preserving automatic merges, binary/deletion and
+native-only cases, cancellation/reload, checkpoints and exact-SHA confirmation.
+No production URL rewrites or credential changes are permitted. Simulation must
+skip saves, auth, network and Git mutations for all new recovery actions too.
+Transport accepts only reviewed HTTPS destinations and narrow push/head-query/
+SHA-pinned-fetch commands with session/root/rewrite guards. UI checks cover stale
+choice tokens, unsaved editor buffers, serialization, signed-out local work,
+checkpoint cancellation and Source Control return. An explicit owner-authorized
+live pilot is separate from the injected fixture service; report both accurately.
+Managed recovery metadata is local to .git and stale operation locks require
+native review rather than automatic deletion. PR integration remains deferred.
 
 Run `git diff --check` before handoff. Record checks actually performed in
 [VERIFICATION.md](VERIFICATION.md); configuration/ZIP checks alone do not prove

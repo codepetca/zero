@@ -43,7 +43,7 @@ test('secret child errors and malformed confirmation output are redacted and con
     assert.equal(options.env.GIT_CONFIG_COUNT,undefined);
   }
   const run=createTransport(remote,async()=>nativeSession(),{assertCurrentNow:nativeSession,spawn:async()=>({stdout:token})});
-  await assert.rejects(run(root,['ls-remote','--heads',remote,'refs/heads/main']),/transport failed/);
+  await assert.rejects(run(root,['ls-remote','--heads',remote,'refs/heads/main']),error=>error.kind==='unconfirmed'&&!error.message.includes(token));
 });
 test('native account removal/drift stops before credential-bearing process; revoke between push and confirmation never reports success', async t => {
   for (const revokeAt of ['review','push']) {
@@ -204,7 +204,11 @@ test('pinned fetch gets isolated credentials and no stdout, while arbitrary fetc
     ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, 'a'.repeat(41)],
     ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', 'https://github.com/other/app.git', sha],
     ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, sha, '--prune'],
-    ['push', remote, `${'a'.repeat(41)}:refs/heads/main`]
+    ['push', remote, `${'a'.repeat(41)}:refs/heads/main`],
+    ['push', remote, `${sha}:refs/heads/main:refs/heads/other`],
+    ['push', remote, `${sha}:refs/heads/main..other`],
+    ['ls-remote', '--heads', remote, 'refs/heads/main.lock'],
+    ['ls-remote', '--heads', remote, 'refs/heads/main:refs/heads/other']
   ]) await assert.rejects(run(root, args), /Only the reviewed/);
   assert.equal(calls, 1);
   const failed = createTransport(remote, async () => nativeSession(), {assertCurrentNow: nativeSession, spawn: async () => { throw Object.assign(new Error(token), {stderr: token}); }});

@@ -27,12 +27,12 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   let projectResolves=0;
   core.resolveProject=(...args)=>{projectResolves++;return original.resolve(...args);};
   let branch='main',remote='https://github.com/student/app.git',mode='simulation',session={id:'session',account:{id:'1',label:'student'},accessToken:'NEVER_RENDER_TOKEN'},authEvent,provider,publishedState;
-  let accessFailure,repositoryId=12,installationId=99;const accesses=[];
+  let accessFailure,repositoryId=12,installationId=99,gitStatus='',warningChoice,pendingRecovery;const accesses=[];
   let saved=0,authCalls=0,prepared=0,uploadSnapshots=0,transportDispatches=0,synced=0,syncError,syncUpdates=false,startGate,syncGate,afterSyncFetch,syncApplied=0,executed=0,deleted=0,input,choice,prepareGate,pickGate,warningGate,finishError,cleanupError,nativeScm=true;
   const transportCalls=[];
   const commands=new Map(),picks=[],reviews=[],warnings=[],errors=[],notices=[],dispatch=[],deletions=[],logs=[],metadata={},progressRuns=[];
   core.assertRepositoryRoot=async()=>root;
-  core.git=async(_,args)=>{if(args[0]==='remote'){if(!remote)throw new Error('No origin');return remote;};if(args[0]==='symbolic-ref')return branch;throw new Error('Unexpected Git mutation');};
+  core.git=async(_,args)=>{if(args[0]==='remote'){if(!remote)throw new Error('No origin');return remote;};if(args[0]==='symbolic-ref')return branch;if(args[0]==='status')return gitStatus;throw new Error('Unexpected Git mutation');};
   github.prepareUpload=async()=>{uploadSnapshots++;return {remote:'https://github.com/student/app.git',page:'https://github.com/student/app',branch,changes:[],summary:'No changes'};};
   const plan = () => ({root,remote:'https://github.com/student/app.git',page:'https://github.com/student/app',branch,head:'f'.repeat(40),mainHead:'a'.repeat(40),remoteMainHead:'a'.repeat(40),summary:'Reviewed change',changedPaths:['Main.java']});
   workflow.prepareStart=async()=>{prepared++;if(startGate)await startGate;return plan();};workflow.prepareFinish=async()=>{prepared++;const captured=plan();if(prepareGate)await prepareGate;return captured;};
@@ -40,6 +40,7 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   workflow.prepareSync=async(_,options)=>{synced++;options.onProgress('Reading main on GitHub…');if(syncGate)await syncGate;await options.networkRun(root,['ls-remote','--heads',plan().remote,'refs/heads/main']);return plan();};
   workflow.syncPrepared=async(_,options)=>{await options.beforeNetwork();if(syncError)throw syncError;if(syncUpdates){await options.networkRun(root,['fetch','--no-tags','--no-recurse-submodules','--no-write-fetch-head',plan().remote,plan().remoteMainHead]);afterSyncFetch?.();await options.beforeMutation();syncApplied++;}return {updated:syncUpdates,branch,head:'f'.repeat(40)};};
   workflow.finishPrepared=async(_,options)=>{const beforeAccess=accesses.length;await options.beforeNetwork();assert.equal(accesses.length,beforeAccess,'The early session guard must not duplicate transport repository requests');if(finishError){executed++;throw finishError;}await options.networkRun(root,['push',plan().remote,`${plan().head}:refs/heads/main`]);await options.networkRun(root,['ls-remote','--heads',plan().remote,'refs/heads/main']);executed++;branch='main';return {finished:true,branch,finishedBranch:'add-score',head:'f'.repeat(40)};};
+  workflow.readRecovery=async()=>pendingRecovery;
   workflow.deleteFinishedBranch=async(...args)=>{deletions.push(args);if(cleanupError)throw cleanupError;deleted++;};
   const vscode={
     ProgressLocation:{Notification:15},
@@ -47,7 +48,7 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
     workspace:{isTrusted:true,registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saved++;return true;},createFileSystemWatcher:pattern=>pattern==='**/.git/{HEAD,config}'?{onDidCreate:fn=>{metadata.create=fn;return disposable();},onDidChange:fn=>{metadata.change=fn;return disposable();},onDidDelete:fn=>{metadata.delete=fn;return disposable();},dispose(){}}:{onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}},onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
     window:{withProgress:async(options,work)=>{const run={options,messages:[],active:true};progressRuns.push(run);try{return await work({report:({message})=>run.messages.push(message)});}finally{run.active=false;}},createOutputChannel:()=>({appendLine(text){logs.push(text);},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,value)=>{provider=value;return disposable();},registerTreeDataProvider:disposable,
       showQuickPick:async(items,options)=>{picks.push({items,options});if(pickGate)await pickGate;return choice===undefined?undefined:items.find(item=>item.action===choice || item.command===choice);},showInputBox:async()=>input,
-      showWarningMessage:async text=>{warnings.push(text);if(warningGate)await warningGate;},
+      showWarningMessage:async text=>{warnings.push(text);if(warningGate)await warningGate;return warningChoice;},
       showInformationMessage:async(text,options)=>{notices.push(text);if(options?.modal){reviews.push({text,options});assert.fail('Branch creation, merge and finished-branch cleanup must not confirm');}},showErrorMessage:async text=>{errors.push(text);}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async id=>{dispatch.push(id);},getCommands:async()=>nativeScm?['workbench.view.scm']:[]},
     env:{clipboard:{writeText:async()=>{}},openExternal:async()=>true},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}
@@ -81,7 +82,7 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   branch='main';metadata.change({fsPath:path.join(root,'.git','config')});await waitFor(()=>webview.html.includes('Current branch: main'), 'Origin configuration update should render');
   assert.match(webview.html,/Current branch: main/,'Origin configuration changes refresh the repository and branch');
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['start']);
-  await commands.get('zero.chooseRepository')();assert.ok(picks.at(-1).items.some(item=>item.action==='sync'&&item.label==='Sync from GitHub'));
+  await commands.get('zero.chooseRepository')();assert.ok(picks.at(-1).items.some(item=>item.action==='sync'&&item.label==='Update from main'));
   let releaseWarning;warningGate=new Promise(resolve=>{releaseWarning=resolve;});const authBefore=authCalls;
   await commands.get('zero.startChange')();await commands.get('zero.finishChange')();await commands.get('zero.syncProject')();await commands.get('zero.uploadToGitHub')();
   assert.equal(saved,0);assert.equal(prepared,0);assert.equal(executed,0);assert.equal(authCalls,authBefore);assert.equal(accesses.length,0);assert.equal(synced,0);assert.match(warnings[0],/nothing changed/);
@@ -142,10 +143,10 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   assert.equal(progressRuns.at(-1).active,false,'Failure closes native progress');assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"[^>]* disabled/,'Failure releases busy controls');
   accessFailure=undefined;
   const uploadSnapshotsBeforeSync=uploadSnapshots,dispatchesBeforeSync=transportDispatches,accessesBeforeSync=accesses.length;
-  syncUpdates=true;await commands.get('zero.syncProject')();assert.equal(synced,1);assert.equal(uploadSnapshots,uploadSnapshotsBeforeSync,'Sync never prepares an upload');assert.equal(transportDispatches,dispatchesBeforeSync+2);assert.equal(accesses.length,accessesBeforeSync+1,'Read and pinned fetch share one access check');assert.deepEqual(transportCalls.at(-2),['ls-remote','--heads',remote,'refs/heads/main']);assert.deepEqual(transportCalls.at(-1),['fetch','--no-tags','--no-recurse-submodules','--no-write-fetch-head',remote,'a'.repeat(40)]);assert.equal(branch,'add-score');assert.match(webview.html,/Synced from GitHub · run app/);
+  syncUpdates=true;await commands.get('zero.syncProject')();assert.equal(synced,1);assert.equal(uploadSnapshots,uploadSnapshotsBeforeSync,'Sync never prepares an upload');assert.equal(transportDispatches,dispatchesBeforeSync+2);assert.equal(accesses.length,accessesBeforeSync+1,'Read and pinned fetch share one access check');assert.deepEqual(transportCalls.at(-2),['ls-remote','--heads',remote,'refs/heads/main']);assert.deepEqual(transportCalls.at(-1),['fetch','--no-tags','--no-recurse-submodules','--no-write-fetch-head',remote,'a'.repeat(40)]);assert.equal(branch,'add-score');assert.match(webview.html,/Changes combined locally · run your app/);
   syncError=Object.assign(new Error('Merge conflicts need your attention'),{conflict:true});nativeScm=true;await commands.get('zero.syncProject')();assert.equal(dispatch.at(-1),'workbench.view.scm');assert.match(notices.at(-1),/Run your app/);syncError=undefined;
   syncUpdates=false;await commands.get('zero.syncProject')();assert.match(webview.html,/Already up to date with GitHub main/);
-  let releaseSync;syncGate=new Promise(resolve=>{releaseSync=resolve;});const pendingSync=commands.get('zero.syncProject')();await waitFor(()=>synced===4);assert.deepEqual(progressRuns.at(-1).options,{location:15,title:'Syncing from GitHub',cancellable:false});assert.equal(progressRuns.at(-1).active,true);assert.match(webview.html,/Reading main on GitHub…/);
+  let releaseSync;syncGate=new Promise(resolve=>{releaseSync=resolve;});const pendingSync=commands.get('zero.syncProject')();await waitFor(()=>synced===4);assert.deepEqual(progressRuns.at(-1).options,{location:15,title:'Updating from main',cancellable:false});assert.equal(progressRuns.at(-1).active,true);assert.match(webview.html,/Reading main on GitHub…/);
   const syncBusyBefore={saved,prepared,synced};for(const id of ['zero.startChange','zero.finishChange','zero.syncProject','zero.uploadToGitHub','zero.chooseBranch'])await commands.get(id)();assert.deepEqual({saved,prepared,synced},syncBusyBefore);releaseSync();await pendingSync;syncGate=undefined;
   assert.equal(progressRuns.at(-1).active,false);
   accessFailure=new Error('Add this repository to Zero’s selected repositories on GitHub.');
@@ -166,4 +167,22 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
     assert.match(errors.at(-1),/sign-in changed|sign in/i);assert.equal(progressRuns.at(-1).active,false);
     afterSyncFetch=undefined;session=originalSession;authEvent({provider:{id:'zero-github'}});await new Promise(resolve=>setImmediate(resolve));
   }
+  // Guided choices carry a snapshot token, survive sidebar refresh and never
+  // apply a stale click to the next conflicting section.
+  branch='add-score';let resolutions=0,cancellations=0,checkpoints=0;
+  pendingRecovery={id:'a'.repeat(32),branch,remote,remoteBranch:'main',files:[{path:'Player.java',kind:'text',conflicts:[{id:'first',local:'speed = 5;',incoming:'speed = 3;'}]}]};
+  metadata.change({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>webview.html.includes('Keep this branch’s changes'));
+  const choiceToken=()=>/data-command="zero.keepLocalUpdate" data-recovery="([a-f0-9]+)"/.exec(webview.html)[1];
+  const firstToken=choiceToken();
+  workflow.resolveRecovery=async(_root,choice,options)=>{await options.beforeMutation();resolutions++;assert.equal(choice.path,'Player.java');pendingRecovery={...pendingRecovery,files:[{path:'Coin.java',kind:'text',conflicts:[{id:'second',local:'points = 20;',incoming:'points = 10;'}]}]};return {recovery:pendingRecovery};};
+  await commands.get('zero.keepLocalUpdate')(firstToken);assert.equal(resolutions,1);assert.match(webview.html,/Coin.java/);
+  await commands.get('zero.keepLocalUpdate')(firstToken);assert.equal(resolutions,1);assert.match(errors.at(-1),/choice changed/);
+  vscode.workspace.textDocuments=[{isDirty:true,uri:{scheme:'file',fsPath:path.join(root,'Coin.java')}}];
+  await commands.get('zero.useIncomingUpdate')(choiceToken());assert.equal(resolutions,1);assert.match(errors.at(-1),/unsaved edits/);vscode.workspace.textDocuments=[];
+  workflow.cancelRecovery=async(_root,options)=>{await options.beforeMutation();cancellations++;pendingRecovery=undefined;return {cancelled:true};};
+  await commands.get('zero.cancelUpdate')(choiceToken());assert.equal(cancellations,1);assert.doesNotMatch(webview.html,/zero.keepLocalUpdate/);assert.match(webview.html,/starting checkpoint restored/);
+  workflow.checkpoint=async(_root,options)=>{await options.beforeMutation();checkpoints++;gitStatus='';return {checkpointed:true,branch,head:'f'.repeat(40)};};
+  gitStatus=' M Main.java\0';warningChoice=undefined;const beforeCancelledUpdate=synced;await commands.get('zero.syncProject')();assert.equal(synced,beforeCancelledUpdate);assert.equal(checkpoints,0,'Cancelling the checkpoint prompt changes no Git state');
+  warningChoice='Save checkpoint & update';await commands.get('zero.syncProject')();assert.equal(checkpoints,1);assert.equal(synced,beforeCancelledUpdate+1);assert.equal(gitStatus,'');
+
 });

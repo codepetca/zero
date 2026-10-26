@@ -213,7 +213,8 @@ test('HEAD changed at dispatch cannot replace the captured reviewed commit', asy
     assert.notEqual(await core.git(cwd, ['rev-parse', 'HEAD']), dispatchedHead);
   }});
   const plan = await prepareUpload(root, mock.run);
-  await assert.rejects(uploadPrepared(plan, 'Save reviewed project', {run: mock.run}), /local project changed during upload/);
+  const result = await uploadPrepared(plan, 'Save reviewed project', {run: mock.run});
+  assert.equal(result.uploaded, true); assert.equal(result.localChanged, true); assert.equal(result.head, dispatchedHead);
   assert.deepEqual(mock.calls.find(args => args[0] === 'push'), ['push', plan.remote, `${dispatchedHead}:refs/heads/main`]);
   assert.deepEqual(mock.calls.find(args => args[0] === 'ls-remote'), ['ls-remote', '--heads', plan.remote, 'refs/heads/main']);
 });
@@ -223,7 +224,8 @@ test('origin changed at dispatch cannot replace the captured reviewed destinatio
     await core.git(cwd, ['remote', 'set-url', 'origin', 'https://github.com/foreign/other.git']);
   }});
   const plan = await prepareUpload(root, mock.run);
-  await assert.rejects(uploadPrepared(plan, 'Save reviewed project', {run: mock.run}), /local project changed during upload/);
+  const result = await uploadPrepared(plan, 'Save reviewed project', {run: mock.run});
+  assert.equal(result.uploaded, true); assert.equal(result.localChanged, true); assert.equal(result.page, plan.page);
   assert.equal(mock.calls.find(args => args[0] === 'push')[1], plan.remote);
   assert.equal(mock.calls.find(args => args[0] === 'ls-remote')[2], plan.remote);
 });

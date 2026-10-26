@@ -47,7 +47,7 @@ function sidebarClient() {
     const button = event.target.closest('button[data-command]');
     if (button && !button.disabled && button.getAttribute('aria-disabled') !== 'true') {
       for (const config of menus) if (menuElement(config)?.contains(button)) closeMenu(config,true);
-      api.postMessage({command:button.dataset.command});
+      api.postMessage({command:button.dataset.command,...(button.dataset.recovery?{recovery:button.dataset.recovery}:{})});
     }
   });
   document.addEventListener('keydown', event => {

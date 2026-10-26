@@ -393,24 +393,32 @@ For each improvement:
 4. Click **Merge to main** beside the branch name. Commit & push any pending edits first.
    Run and check your app before clicking. **Merge to main** merges the current
    branch into main and pushes main. If GitHub refuses because its main has moved
-   ahead, choose **Sync from GitHub** in the project menu. It brings GitHub main
+   ahead, choose **Update from main** in the project menu. It brings GitHub main
    into your current branch without uploading. Run and check the combined app,
    then choose Merge to main again.
 5. After confirmed success, Zero returns to main and safely removes the unchanged
    finished local branch. Its GitHub branch remains available. If cleanup cannot
    be completed safely, Zero keeps the local branch and tells you to check Output.
 
-Use **Sync from GitHub** on main whenever you want to download completed work
-before creating a branch. It fast-forwards main when possible and preserves
-unpublished local commits; diverged main histories need Git help. On a feature,
-Sync merges GitHub main into that feature. It never uploads. Older editor kits
-may still update main automatically during New branch/Merge to main.
+Use **Update from main** on main or your feature whenever GitHub main has
+newer work. It combines both committed histories and never uploads. If you have
+uncommitted work, **Save checkpoint & update** saves a local commit first.
+Choose **Update branch from GitHub** when the same feature branch changed on
+another computer. Older kits retain their bundled controls and update behavior.
 
-If a Sync creates conflicts, Zero keeps your work and opens VS Code's Source
-Control. Open the conflicted files or Merge Editor, inspect both changes and
-choose/edit the combined result. Save, stage the resolved files and commit the
-merge through Source Control. Run the app, then choose **Merge to main** again
-for a fresh review. Ask your teacher if the correct result is unclear.
+If changes conflict, choose **Keep my changes / Use GitHub’s changes** on main,
+or **Keep this branch’s changes / Use main’s changes** on a feature. Each text
+choice keeps one conflicting section; other combined edits stay intact. Images
+and deletions use whole-file choices. Run your app, then Commit & push. **Cancel
+update** restores the starting checkpoint if nothing else has changed; later
+edits are preserved for native review. Complex conflicts use Source Control.
+Ask your teacher if the correct result is unclear.
+
+If a push fails after committing, the local commit stays saved. Zero shows the
+appropriate Update, retry, sign-in or access action. **Push commits** retries saved
+work without another message. **Check GitHub status** reads an interrupted push's
+exact commit without uploading again. Save and Run remain available offline after
+your build tools are cached.
 
 A failed push can leave a local commit. A failed main push can also leave
 main updated locally, with your change branch still selected. Read the error,

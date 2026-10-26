@@ -6,6 +6,7 @@ import sidebarStyle from '../../extension/src/sidebar-style.js';
 import sidebarClient from '../../extension/src/sidebar-script.js';
 import sidebarIcons from '../../extension/src/sidebar-icons.js';
 import setupProject from '../../extension/src/setup-project.js';
+import gitRecoveryPanel from '../../extension/src/git-recovery-panel.js';
 
 // Reuse the trusted extension's renderer without activating VS Code or changing
 // production code. Fail visibly if its function boundary changes.
@@ -23,7 +24,7 @@ export function sidebarSource(state = 'ready', {connected = false} = {}) {
     projectRoot: state === 'empty' ? undefined : '/fixture/project', renderedWebview: undefined, sidebarScript: sidebarClient.sidebarScript, crypto, webview, escape, icon:sidebarIcons.icon, sidebarStyles: sidebarStyle.sidebarStyles, isBusy: () => ['building','stopping','busy'].includes(state),
     githubReady:()=>connected && phase === 'ready', githubReadiness:{phase},
     repository: connected ? 'https://github.com/student/greeting' : 'No repository connected', auth: { signedIn: signedIn, accountLabel: signedIn ? 'armorup' : '' },
-    branch: '', branchDetached: false, uploadProgress: '', uploadMode: () => 'simulation', execution: null, pendingLaunch:undefined, nativeStarting:0, stopPromise:state==='stopping'?Promise.resolve():undefined, browserBusy:state==='building', browserActive:['building','running'].includes(state), localPractice: state === 'practice', originalWork: state !== 'practice',
+    branch: '', branchDetached: false, updateRecovery:undefined,updateRecoveryError:undefined,pendingUpload:undefined,pendingDirty:false,gitRecoveryPanel,uploadProgress: '', uploadMode: () => 'simulation', execution: null, pendingLaunch:undefined, nativeStarting:0, stopPromise:state==='stopping'?Promise.resolve():undefined, browserBusy:state==='building', browserActive:['building','running'].includes(state), localPractice: state === 'practice', originalWork: state !== 'practice',
     state: state === 'error' ? 'Your app could not build. Main.java, line 8: add a semicolon after the greeting. Choose Show Problems to find the line.' : '',
     buildFailed: state === 'error',
   }, { timeout: 1000 });

@@ -337,12 +337,12 @@ Then use this individual flow for each improvement:
 1. Click **New branch** in the repository menu, name your branch (for example `quiz-feedback`)
    and press Enter to create it. Commit & push pending edits first. Current source
    creates the branch locally from main, with no GitHub request or sign-in needed.
-   Choose **Sync from GitHub** first if you want the latest completed main.
+   Choose **Update from main** first if you want the latest completed main.
 2. Edit and Run App. **Commit & push** creates a commit when needed and pushes your current branch;
    repeat as needed.
 3. Click **Merge to main** beside the branch name. Commit & push pending edits first, run the
    app before clicking. **Merge to main** merges your branch into main and pushes
-   main. If GitHub refuses because main has newer work, choose **Sync from GitHub**.
+   main. If GitHub refuses because main has newer work, choose **Update from main**.
    It merges GitHub main into the current feature without uploading; run and
    check the combined app, then retry Merge to main.
 4. After confirmed success, you are back on main. Zero safely removes the
@@ -353,15 +353,19 @@ Older kits may use different account/repository controls, with **Start a change*
 and different labels for committing, pushing and merging. Their installed controls remain
 unchanged; the steps above describe the current editor.
 
-**Sync from GitHub** on main downloads completed work by fast-forward when
-possible; it preserves unpublished local commits and refuses diverged main.
-On a feature it merges GitHub main into that feature. Older editor kits retain
-their bundled automatic update behavior.
+**Update from main** combines completed GitHub main with your local main or
+feature, keeping unpublished commits. **Update branch from GitHub** separately
+gets work made on the same feature branch on another computer. Neither uploads.
+**Save checkpoint & update/switch** explicitly saves uncommitted work locally
+before continuing. Older editor kits retain their bundled controls.
 
-If a Sync conflicts, your work and merge state remain. In VS Code Source
-Control, inspect the conflicted files/Merge Editor, combine the intended changes,
-save and stage them, then commit the merge. Run App and review Merge to main again.
-Ask your teacher for help with an unclear conflict or diverged main history.
+For text conflicts, choose the local or incoming conflicting section in Zero's
+sidebar. Automatically combined edits are kept. Images and deleted files use
+whole-file choices; complex conflicts use native Source Control. **Cancel update**
+restores the starting checkpoint only while no external edits/ref changes would
+be lost. Run the combined app, then Commit & push. A saved commit whose push fails
+remains local; use its Update/retry/sign-in action. **Check GitHub status** verifies
+an interrupted push without uploading. Ask your teacher if a conflict is unclear.
 A failed main push can leave local main advanced while your change branch
 remains selected; repair the network/access problem and review Merge to main again.
 Zero does not force-push or automatically discard work.

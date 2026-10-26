@@ -84,10 +84,12 @@ when adding features; a new feature does not reset the agreed interaction style.
   open Zero Start Page available as a tab alongside the destination project.
   Sign-out
   preserves local folders, Git history and the open project.
-- Use clear Git labels: **New branch**, **Sync from GitHub**, **Commit & push**, **Merge to main**.
-  New branch is local and remains available while signed out. Sync is an explicit
-  project-menu download of completed GitHub main into the current branch; it does
-  not upload. Keep routine actions direct, with native progress and no new dialogs.
+- Use clear Git labels: **New branch**, **Update from main**, **Commit & push**, **Merge to main**.
+  New branch is local and remains available while signed out. Update from main
+  brings GitHub main into the current branch without uploading. Update branch
+  from GitHub separately gets the same remote feature. Keep routine actions direct
+  with native progress. Explicit checkpoint and conflict choices are the required
+  exception: preserve work, state the local commit, and allow cancellation.
   Use the **Commit Message** title and an empty field, with the same small keyboard helper below the input.
   Keep repository and branch in the sidebar. Show an inline
   spinner and **Preparing commit…** on the button during preparation, then

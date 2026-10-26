@@ -169,7 +169,7 @@
       },
       {
         "command": "zero.syncProject",
-        "title": "Zero: Sync from GitHub"
+        "title": "Zero: Update from Main"
       },
       {
         "command": "zero.sharingActions",
@@ -230,19 +230,19 @@
       },
       {
         "command": "zero.newClass",
-        "title": "Zero: New class\u2026"
+        "title": "Zero: New class…"
       },
       {
         "command": "zero.newFile",
-        "title": "Zero: New file\u2026"
+        "title": "Zero: New file…"
       },
       {
         "command": "zero.newFolder",
-        "title": "Zero: New folder\u2026"
+        "title": "Zero: New folder…"
       },
       {
         "command": "zero.importAssets",
-        "title": "Zero: New asset\u2026"
+        "title": "Zero: New asset…"
       },
       {
         "command": "zero.copyImportedAssetPaths",
@@ -250,7 +250,7 @@
       },
       {
         "command": "zero.recovery",
-        "title": "Zero: Review or restore changes\u2026"
+        "title": "Zero: Review or restore changes…"
       },
       {
         "command": "zero.newProject",
@@ -272,6 +272,38 @@
       {
         "command": "zero.disableBrowserChecks",
         "title": "Zero: Disable Browser Checks"
+      },
+      {
+        "command": "zero.updateBranchFromGitHub",
+        "title": "Zero: Update Branch from GitHub"
+      },
+      {
+        "command": "zero.keepLocalUpdate",
+        "title": "Zero: Keep Local Update Changes"
+      },
+      {
+        "command": "zero.useIncomingUpdate",
+        "title": "Zero: Use Incoming Update Changes"
+      },
+      {
+        "command": "zero.cancelUpdate",
+        "title": "Zero: Cancel Update"
+      },
+      {
+        "command": "zero.compareUpdate",
+        "title": "Zero: Compare Update Changes"
+      },
+      {
+        "command": "zero.checkPush",
+        "title": "Zero: Check GitHub Push Status"
+      },
+      {
+        "command": "zero.reconnectGitHub",
+        "title": "Zero: Reconnect GitHub"
+      },
+      {
+        "command": "zero.openGitSourceControl",
+        "title": "Zero: Open Source Control"
       }
     ],
     "views": {

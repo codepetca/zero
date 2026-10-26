@@ -107,7 +107,9 @@ test('conflict preserves merge state and original main, then resolution can Fini
   await commit(f.root, 'Main.java', 'class Main { int score; }\n');
   const initialMain = await core.git(f.root, ['rev-parse', 'refs/heads/main']);
   await remoteChange(f, 'Main.java', 'class Main { int lives; }\n');
-  await assert.rejects(sync(f), error => error.conflict === true && /Resolve conflicts/.test(error.message));
+  const pending = await sync(f);
+  assert.equal(pending.synced, false);
+  assert.equal(pending.recovery.files[0].kind, 'text');
   assert.equal(await core.git(f.root, ['branch', '--show-current']), 'add-score');
   assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), initialMain);
   assert.ok(await core.git(f.root, ['rev-parse', '--verify', 'MERGE_HEAD']));
@@ -316,13 +318,14 @@ test('Merge preparation is local, session failure blocks push, and a normal merg
   assert.deepEqual(f.calls.map(args => args[0]), ['push', 'ls-remote']);
 });
 
-test('Sync refuses dirty and divergent main without uploading or losing commits', async t => {
+test('Sync refuses dirty main and merges diverged main without uploading or losing commits', async t => {
   const f = await fixture(t); await write(f.root, 'Main.java', 'dirty');
   await assert.rejects(workflow.prepareSync(f.root, f.options), /Use Commit & push/);
   assert.equal(f.calls.length, 0);
   await core.git(f.root, ['restore', 'Main.java']); const head = await commit(f.root, 'Local.java', 'local');
   await remoteChange(f, 'Remote.java', 'remote');
-  await assert.rejects(sync(f), /diverged/);
-  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), head);
+  const result = await sync(f);
+  assert.equal(result.synced, true);
+  await core.git(f.root, ['merge-base', '--is-ancestor', head, result.head]);
   assert.ok(!f.calls.some(args => args[0] === 'push'));
 });
