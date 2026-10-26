@@ -11,6 +11,7 @@ const lessonProjects = require('./lesson-projects');
 const github = require('./github');
 const workflow = require('./workflow');
 const {createAuthentication,ownedProviderApi} = require('./authentication');
+const {createNativeGitAuthentication} = require('./native-git-authentication');
 const {githubAppConfiguration} = require('./github-app/config');
 const {createGitHubAppProvider} = require('./github-app/provider');
 const {createGitHubAppRepositories,repositoryIdentity,assertRepositoryIdentity} = require('./github-app/repositories');
@@ -199,7 +200,7 @@ function activate(context, services = {}) {
     // Preserve text editors and non-text tabs, including other lesson previews.
     if (!context.workspaceState.get(key) && !hasOpenEditors() && await openFirstLesson(root, true)) await context.workspaceState.update(key, true);
   }
-  let githubReadiness,projectPicker;
+  let githubReadiness,projectPicker,nativeGitAuthentication;
   const appConfiguration = githubAppConfiguration();
   const appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({vscode,context,configuration:appConfiguration,onDiagnostic:message=>output.appendLine(message)}) : null);
   const auth = createAuthentication(ownedProviderApi(appProvider), () => {
@@ -207,12 +208,18 @@ function activate(context, services = {}) {
     // have replaced it while browser sign-in was pending.
     if (state.startsWith('Signed in as ') || (auth.signedIn && state === authFeedback)) {state='';authFeedback=undefined;}
     githubReadiness?.sync();projectPicker?.sessionChanged();refresh();
+    void nativeGitAuthentication?.refresh();
   });
   context.subscriptions.push(auth);
   if (appProvider) {
     context.subscriptions.push(appProvider);
     context.subscriptions.push(vscode.authentication.registerAuthenticationProvider('zero-github','Zero GitHub',appProvider,{supportsMultipleAccounts:false}));
   }
+  nativeGitAuthentication = createNativeGitAuthentication({vscode,authentication:auth,
+    getGitAPI:services.getGitAPI,
+    onChange:status => {if(status.phase !== 'disabled')output.appendLine(`Native Git prototype: ${status.message}`);}});
+  context.subscriptions.push(nativeGitAuthentication);
+  void nativeGitAuthentication.refresh();
   const repositories = services.repositories || createGitHubAppRepositories({authentication:auth,configuration:appConfiguration});
   githubReadiness = createGitHubReadiness({authentication:auth,repositories,installationUrl:appConfiguration && `https://github.com/apps/${appConfiguration.slug}/installations/new`,active:()=>!disposed,onChange:()=>{if (/^(?:Checking GitHub|GitHub sign-in|GitHub setup paused|GitHub is ready for your projects|Install Zero for GitHub\.)/.test(state)) state='';refresh();}});
   context.subscriptions.push(githubReadiness);
@@ -554,7 +561,10 @@ function activate(context, services = {}) {
         const identity=repositoryIdentity(await repositories.access(destination.page,{ticket,permissions:{contents:'write'}}));
         const assertCurrent = async () => {assertRepositoryIdentity(identity,await repositories.access(destination.page,{ticket,permissions:{contents:'write'}}));return auth.assertCurrent(ticket);};
         const networkRun = createTransport(destination.remote, assertCurrent, {assertCurrentNow:() => auth.assertCurrentNow(ticket)});
-        const options = {networkRun, beforeNetwork:assertCurrent, onProgress:reportProgress};
+        // Transport checks repository access at the last credential boundary.
+        // The workflow's earlier guard only needs to reread the captured session;
+        // repeating the same remote access check here multiplies API requests.
+        const options = {networkRun, beforeNetwork:() => auth.assertCurrent(ticket), onProgress:reportProgress};
         const plan = kind === 'start' ? await workflow.prepareStart(root, name, options) : await workflow.prepareFinish(root, options);
         if (plan.remote !== destination.remote) throw new Error('The connected repository changed. Review your change again.');
         if (await project() !== root) throw new Error('The student project changed. Review your change again.');

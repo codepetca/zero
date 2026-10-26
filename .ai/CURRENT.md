@@ -1,31 +1,33 @@
-# Branch progress and Zero navigation: source PR and CI
+# Git checks and native Git prototype accepted locally
 
-Worktree: `/Users/stew/.codex/worktrees/actor/zero`.
-Branch: `codex/branch-progress`; current main is 010ae629.
-Owner authorized the source push, PR and CI on 2026-10-25. Keep publishing
-separate. Do not merge, build an installer or release without further authority.
+Worktree `/Users/stew/.codex/worktrees/actor/zero`, branch `codex/git-flow-efficiency`.
+Reviewed sourcehead9d68fc86, basea9fb85c4. Owner authorized implementation/prototype
+and full student-flow testing. No sourcepush, PRupdate/merge, publishing or release.
+PR203 stays open/unmerged at7e4c2231 with prior11greenchecks; those are not CI for
+this new source. Current completion receipt is local only.
 
-Implemented and loaded in Dev:
-- Native branch/merge activity with GitHub, project, branch and fetch stages.
-  Existing authentication, Git safety checks and serialization are preserved.
-- Persistent native Zero button at bottom left, with Back to Zero accessibility
-  label. It restores Explorer and expands Zero from Source Control/other panels.
-  StartPage open, restore, close and disposal update its visibility immediately.
-- Owner's final refinement: visible label Zero, with no arrow.
+Implemented: private exact-session identity receipts with locked storage rereads,
+full capture validation; pending-signout gate closes fresh-session resurrection.
+No duplicate repository access before guarded transport; exact existing main SHA
+skips download. Student UI/guarded actions preserved. DefaultOFF native Git
+adapter requires explicit UserSettings/trust/Askpass isolation. Public Git
+readiness events retry registration; signout/config/trust/disposal invalidate it.
+Prototype requires verified empty effective Githelpers: helpers can persist tokens,
+Askpass separately caches60s, host-wide authority and generic prompts remain.
 
-Previous source reviews: branch progress clean; sidebar review found one lifecycle
-P2, fixed and clean on targeted review. Reuse that coverage and actual native Mac
-checks. Final combined integration review and exact-head CI are the next gates.
-Local evidence includes corrected UI/extension tests, 17 real-Git cases and two
-current focused Git cases; navigation has 65 initial/64 corrected tests. Native
-progress/guard closure and Review changes -> Source Control -> Zero return pass.
-All 95 tracked student files, HEAD, tester branch and status were preserved.
-Proof: `.verification/branch-progress/`, `.verification/sidebar-return/` and
-`.verification/ux-source-pr/`. No full successful live branch creation, Windows,
-assistive-technology or broad theme/device acceptance is claimed.
+Accepted: initialAstrahigh+Sol6.1high review3P2 fixed in1batch, Astrahigh targeted
+review clean/7independentregressions.3launches/1initialwave/1targetedwave/1batch.
+Current147focusedtests+npmcheck pass; priorfullsuite1201pass/3skip reused for
+unchangedpaths. SyntheticREST144→22newbranch/180→25merge, not livelatency.
+Actual isolatedMac public-command flow passed sign-in/branch/edit/nativeRun/UI_READY/
+Stop/localbarecommitpushmergecleanup/SCMreturn/signout. Actual nativeAskpass
+requested samefixtureZero credential onread-onlyGitHubrefusal; no realtoken/upload.
+Owned QA host retired. Existing Zero Dev reloaded; actual sidebar/Start Page ready
+for armorup/my-greeting, main and two unpushed commits retained. No prototype
+opt-in or settings changes in that profile. Receipts `.verification/git-flow-efficiency/`, docsEVIDENCE/
+VERIFICATION. Fullclick/minVSCode/Windows/liveupload/school-network gaps remain.
 
-Keep Dev watcher3153, profiles, my-greeting/tester, primary funding work, other
-preview3025, private backups and old sealed artifacts. Published Mac50/PR199+201,
-core0.3.0, manual kit17, Windows21 and the production ZeroJams hold stay unchanged.
-Fresh-Mac/school/novice/gameplay/Sparkle pilot gaps remain separate. DeepSeek is
-paused through2026-12-31. No new goal, task or automation.
+Next: owner sourcePR/CI decision, then separate live-account pilot/release.
+Keep my-greeting and existingDev3153/profiles, primaryfundingwork, preview3025,
+backups/sealedartifacts. PublishedMac50/core0.3.0/manualkit17/Windows21/ZeroJams
+hold unchanged. DeepSeek paused through2026-12-31. No newgoal/task/automation.
