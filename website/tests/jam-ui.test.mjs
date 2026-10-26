@@ -6,18 +6,23 @@ import {createRequire} from 'node:module';
 import {webcrypto} from 'node:crypto';
 import ts from 'typescript';
 import {renderToStaticMarkup} from 'react-dom/server';
+import {githubHttpFixture} from '../../jams/test/github-http-fixture.mjs';
+import {creator,maintainer,participant} from '../../jams/test/fixtures.mjs';
+import {atomicGitHttpFixture} from '../../jams/test/git-http-fixture.mjs';
+import {createJamService} from '../../jams/service.mjs';
+import {createGitHubSourceVerifier} from '../../jams/github-source.mjs';
 const require=createRequire(import.meta.url);
 const clientSource=await readFile(new URL('../components/JamClient.tsx',import.meta.url),'utf8');
 const panelSource=await readFile(new URL('../app/hub/jams/[id]/panel/route.ts',import.meta.url),'utf8');
 function compile(source){return ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;}
-function harness({storage=new Map(),fetcher=async()=>{throw new Error('network');},participateData=null}={}) {
-  let actor={id:'12',login:'creator',csrfToken:'csrf'},index=0,slots=[];
+function harness({storage=new Map(),fetcher=async()=>{throw new Error('network');},participateData=null,onRefresh=async()=>{},effects=false}={}) {
+  let actor={id:'12',login:'creator',csrfToken:'csrf'},index=0,slots=[],pendingEffects=[];
   const self={},window={self,top:self};
-  const react={useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(){index++;}};
+  const react={useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(fn,deps){const i=index++;if(effects&&(!slots[i]||deps.some((value,n)=>!Object.is(value,slots[i][n])))){pendingEffects.push(fn);slots[i]=deps;}}};
   const module={exports:{}};
-  const context={participateData,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return ()=>null;return require(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
-  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData,error:"",loading:false,refresh:async()=>{}});useTopLevel=()=>true;}exports.testing={useMutation,useResource,JamParticipate,ApprovedVersions};',context);
-  return {render(kind='useMutation',path='/api/jams/jam-42/actions'){index=0;return module.exports.testing[kind](path);},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
+  const context={participateData,onRefresh,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return ()=>null;return require(name);},window,crypto:webcrypto,sessionStorage:{get length(){return storage.size;},key:i=>[...storage.keys()][i]??null,getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
+  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData,error:"",loading:false,refresh:onRefresh});useTopLevel=()=>true;}exports.testing={useMutation,useResource,JamParticipate,ApprovedVersions,Proposal,Moderation,EntryModeration,Feedback,JamCreate};',context);
+  return {render(kind='useMutation',path='/api/jams/jam-42/actions'){index=0;return module.exports.testing[kind](path);},flushEffects(){const work=pendingEffects;pendingEffects=[];work.forEach(fn=>fn());},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
 }
 function elements(node) {
   if(Array.isArray(node))return node.flatMap(elements);
@@ -39,13 +44,160 @@ test('mutation retries preserve operation identity through errors and reload; su
   assert.equal(JSON.parse(calls[1].init.body).actor,undefined);assert.equal(storage.size,0);
   assert.deepEqual(payload,{action:'join',revision:'accepted-revision'});
 });
+for(const kind of ['Proposal','Moderation','EntryModeration']) {
+  test(`${kind} retains an uncertain reason and operation through reload, scopes drafts and clears only on confirmation`,{timeout:10000},async()=>{
+    const storage=new Map(),calls=[],reason='Public test reason, preserved exactly.  ',actor={id:'22',login:'maintainer',csrfToken:'csrf'};
+    let failing=true,finished,finishResponse;
+    const fetcher=async(url,init)=>{calls.push(JSON.parse(init.body));if(failing)throw Error('unknown outcome');await new Promise(resolve=>{finishResponse=resolve;});return confirmed(init);};
+    const props={id:'jam-42',participantId:'33',revision:'a'.repeat(64),event:{revision:'event-A',moderation:{status:'active'}},data:{event:{},canMaintain:true,proposal:{status:'submitted',revision:'a'.repeat(64),repository:{ownerId:'11',fullName:'creator/jam',commit:'a'.repeat(40)},manifest:{}}},onChanged:async()=>finished?.()};
+    const render=h=>h.render(kind,props),field=tree=>elements(tree).find(node=>node.type==='textarea');
+    const act=tree=>kind==='EntryModeration'?elements(tree).find(node=>node.type==='form').props.onSubmit({preventDefault(){}}):elements(tree).find(node=>node.type==='button'&&node.props.children===(kind==='Proposal'?'Request changes':'Suspend jam')).props.onClick();
+    const first=harness({storage,fetcher,effects:true});first.setActor(actor);render(first);first.flushEffects();
+    field(render(first)).props.onChange({target:{value:reason}});act(render(first));await new Promise(setImmediate);
+    assert.equal(calls.length,1);assert.ok(elements(render(first)).find(node=>Boolean(node.props?.error)));
+    const second=harness({storage,fetcher,effects:true});second.setActor(actor);render(second);second.flushEffects();
+    assert.equal(field(render(second)).props.value,reason);
+    if(kind==='Proposal')props.data.proposal.revision='b'.repeat(64);
+    if(kind==='Moderation')props.event.moderation.status='suspended';
+    if(kind==='EntryModeration')props.revision='b'.repeat(64);
+    assert.equal(field(render(second)).props.value,'','a changed review subject never inherits the old reason');second.flushEffects();
+    if(kind==='Proposal')props.data.proposal.revision='a'.repeat(64);
+    if(kind==='Moderation')props.event.moderation.status='active';
+    if(kind==='EntryModeration')props.revision='a'.repeat(64);
+    render(second);second.flushEffects();assert.equal(field(render(second)).props.value,reason);
+    second.setActor({...actor,id:'99'});assert.equal(field(render(second)).props.value,'','another actor cannot see the draft, even before effects');second.flushEffects();
+    field(render(second)).props.onChange({target:{value:'Another actor public draft'}});
+    second.setActor(actor);render(second);second.flushEffects();assert.equal(field(render(second)).props.value,reason);
+    failing=false;const done=new Promise(resolve=>{finished=resolve;});act(render(second));await new Promise(setImmediate);
+    second.setActor({...actor,id:'99'});render(second);second.flushEffects();assert.equal(field(render(second)).props.value,'Another actor public draft');
+    finishResponse();await done;
+    assert.equal(calls.length,2);assert.equal(calls[1].operationId,calls[0].operationId);assert.equal(calls[1].reason,reason);
+    assert.equal(field(render(second)).props.value,'Another actor public draft','late confirmation clears only its original account/context');
+    second.setActor(actor);render(second);second.flushEffects();
+    assert.equal(field(render(second)).props.value,'');
+    const third=harness({storage,fetcher,effects:true});third.setActor(actor);render(third);third.flushEffects();assert.equal(field(render(third)).props.value,'');
+  });
+}
+for(const mode of ['unreadable success','unconfigured success','wrong operation confirmation']) {
+  test(`client reload recovers one actual stored join after ${mode}`,{timeout:10000},async t=>{
+    const f=await githubHttpFixture(t),revision=await f.approve(),storage=new Map(),calls=[];
+    let damaged=true;
+    const fetcher=async(url,init)=>{
+      assert.equal(url,'/api/jams/jam-101/actions');const body=JSON.parse(init.body);calls.push(body);
+      assert.equal(body.actor,undefined);
+      const result=await f.service.mutate({...body,id:'jam-101',actor:participant});
+      if(damaged) {
+        if(mode==='unreadable success')return new Response('{broken',{headers:{'Content-Type':'application/json'}});
+        return Response.json({...result,configured:mode!=='unconfigured success',...(mode==='wrong operation confirmation'?{operationId:'wrong-operation'}:{})});
+      }
+      return Response.json({configured:true,...result});
+    };
+    const first=harness({storage,fetcher});first.setActor({...participant,csrfToken:'fixture-csrf'});
+    const payload={action:'join',revision},before=f.commits.length;
+    assert.equal(await first.render('useMutation','/api/jams/jam-101/actions').send(payload),null);
+    assert.equal(first.render('useMutation','/api/jams/jam-101/actions').success,'');assert.equal(f.commits.length,before+1);
+    const reloaded=harness({storage,fetcher});reloaded.setActor({...participant,csrfToken:'fixture-csrf'});damaged=false;
+    f.sourceUnavailable=true;f.time=Date.parse('2030-01-05T00:00:00Z');
+    assert.equal((await reloaded.render('useMutation','/api/jams/jam-101/actions').send(payload)).status,'joined');
+    assert.equal(calls[1].operationId,calls[0].operationId);assert.equal(f.commits.length,before+1);
+    assert.equal(Object.keys(f.state().registrations).length,1);assert.equal(storage.size,0);
+  });
+}
+
+test('lost Join reply must resolve before Leave; the next Join is a new stored operation', {timeout:10000},async t=>{
+  const f=await githubHttpFixture(t),revision=await f.approve(),calls=[];let lose=true;
+  const h=harness({fetcher:async(url,init)=>{
+    const body=JSON.parse(init.body);calls.push(body);
+    const result=await f.service.mutate({...body,id:'jam-101',actor:participant});
+    if(lose){lose=false;return new Response('{broken',{headers:{'Content-Type':'application/json'}});}
+    return Response.json({configured:true,...result});
+  }});h.setActor({...participant,csrfToken:'fixture-csrf'});
+  const render=()=>h.render('useMutation','/api/jams/jam-101/actions'),payload={action:'join',revision};
+  assert.equal(await render().send(payload),null);assert.equal(f.state().registrations[participant.id].status,'joined');
+  assert.equal(await render().send({action:'leave'}),null);
+  assert.equal(calls.length,1,'an unresolved Join blocks an intervening Leave');
+  assert.match(render().error,/Resolve your earlier request/);
+  assert.equal((await render().retry()).status,'joined');
+  assert.equal(calls[1].operationId,calls[0].operationId,'recovery uses exactly the uncertain operation');
+  assert.equal((await render().send({action:'leave'})).status,'left');
+  assert.equal(f.state().registrations[participant.id].status,'left');
+  assert.equal((await render().send(payload)).status,'joined');
+  assert.notEqual(calls[3].operationId,calls[0].operationId,'a new Join gets a fresh operation');
+  assert.equal(f.state().registrations[participant.id].status,'joined');
+  assert.equal(render().success,'Confirmed by Zero.');
+});
+test('retry through the original Join button identifies historical recovery after another device leaves', {timeout:10000},async t=>{
+  const f=await githubHttpFixture(t),revision=await f.approve(),calls=[];let lose=true;
+  const h=harness({fetcher:async(url,init)=>{const body=JSON.parse(init.body);calls.push(body);const result=await f.service.mutate({...body,id:'jam-101',actor:participant});if(lose){lose=false;return new Response('{lost');}return Response.json({configured:true,...result});}});h.setActor({...participant,csrfToken:'fixture-csrf'});
+  const render=()=>h.render('useMutation','/api/jams/jam-101/actions'),join={action:'join',revision};
+  await render().send(join);
+  await f.service.mutate({id:'jam-101',actor:participant,operationId:'other-device-leave',action:'leave'});
+  assert.equal((await render().send(join)).status,'joined');assert.equal(calls[1].operationId,calls[0].operationId);
+  assert.match(render().success,/^Earlier request confirmed/,'historical recovery does not claim the new intent completed');
+  assert.equal(f.state().registrations[participant.id].status,'left','historical retry never reverses the other device');
+  await render().send(join);assert.notEqual(calls[2].operationId,calls[0].operationId);assert.equal(f.state().registrations[participant.id].status,'joined');
+});
+test('participation UI recovers a lost Join after reload and authoritative refresh, then Leave → Join commits once each', {timeout:10000},async t=>{
+  const f=await githubHttpFixture(t);await f.approve();const storage=new Map(),calls=[];let lose=true,h,finishRefresh;
+  const read=()=>f.service.read('jam-101',participant);
+  const refresh=async()=>{h.setDetail({configured:true,...await read()});finishRefresh?.();finishRefresh=null;};
+  const fetcher=async(url,init)=>{const body=JSON.parse(init.body);calls.push(body);const result=await f.service.mutate({...body,id:'jam-101',actor:participant});if(lose){lose=false;return new Response('{broken');}return Response.json({configured:true,...result});};
+  const make=async()=>{h=harness({storage,fetcher,effects:true,participateData:{configured:true,...await read()},onRefresh:refresh});h.setActor({...participant,csrfToken:'fixture-csrf'});render();h.flushEffects();};
+  const render=()=>h.render('JamParticipate',{id:'jam-101'}),button=(tree,name)=>elements(tree).find(n=>n.type==='button'&&n.props.children===name);
+  const acknowledge=()=>elements(render()).find(n=>n.type==='input'&&n.props.type==='checkbox').props.onChange({target:{checked:true}});
+  const click=async name=>{button(render(),name).props.onClick();await new Promise(setImmediate);};
+  const before=f.commits.length;await make();acknowledge();await click('Join this jam');
+  // The UI handler is void; wait for the actual loopback request to complete.
+  // Await transport completion without timing assumptions using the shared lock.
+  const settled=async()=>{for(let i=0;i<200;i++){const feedback=elements(render()).find(n=>n.props?.mutation);if(!feedback.props.mutation.busy)return;await new Promise(resolve=>setTimeout(resolve,5));}assert.fail('request did not settle');};
+  await settled();assert.equal(f.state().registrations[participant.id].status,'joined');
+  await make();assert.equal(button(render(),'Join this jam'),undefined,'authoritative refresh removes the original Join button');
+  await click('Leave jam and withdraw my entry');await settled();assert.equal(calls.length,1,'Leave is blocked by the pending Join');
+  const feedback=elements(render()).find(n=>n.props?.mutation),recovery=h.render('Feedback',feedback.props);
+  await button(recovery,'Resolve earlier request').props.onClick();assert.equal(calls[1].operationId,calls[0].operationId);
+  let changed=new Promise(resolve=>finishRefresh=resolve);await click('Leave jam and withdraw my entry');await changed;assert.equal(f.state().registrations[participant.id].status,'left');
+  acknowledge();changed=new Promise(resolve=>finishRefresh=resolve);await click('Join this jam');await changed;assert.equal(f.state().registrations[participant.id].status,'joined');
+  assert.notEqual(calls[3].operationId,calls[0].operationId);assert.equal(f.commits.length,before+3,'Join, Leave and new Join each commit once; resolution only reads the historical result');
+});
 test('operation identity changes for payload, actor and endpoint; duplicate in-flight writes are suppressed',async()=>{
   const ids=[],fetcher=async(url,init)=>{ids.push(JSON.parse(init.body).operationId);throw new Error('unknown');};
   const h=harness({fetcher});await h.render().send({action:'join',revision:'a'});await h.render().send({action:'join',revision:'b'});
   h.setActor({id:'99',login:'other',csrfToken:'other'});await h.render().send({action:'join',revision:'b'});await h.render('useMutation','/api/jams/jam-88/actions').send({action:'join',revision:'b'});
-  assert.equal(new Set(ids).size,4);
+  assert.equal(new Set(ids).size,3);assert.equal(ids.length,3,'changed payload is blocked until the earlier intent resolves');
   let finish;const active=harness({fetcher:async(url,init)=>{await new Promise(resolve=>{finish=resolve;});return confirmed(init);}}).render();
   const pending=active.send({action:'join',revision:'a'});assert.equal(await active.send({action:'join',revision:'a'}),null);finish();assert.ok(await pending);
+});
+test('legacy pending requests restore an independent recovery control even when the original action disappears',async()=>{
+  const storage=new Map(),payload={action:'join',revision:'approved'},operationId=webcrypto.randomUUID(),path='/api/jams/jam-42/actions';
+  storage.set('zero-jam-operation:'+JSON.stringify(['12',path,payload]),operationId);
+  const calls=[],h=harness({storage,effects:true,fetcher:async(url,init)=>{calls.push(JSON.parse(init.body));return confirmed(init);}});
+  h.render();h.flushEffects();const mutation=h.render();assert.equal(mutation.pending.action,'join');
+  let refreshed=0;
+  const tree=h.render('Feedback',{mutation,onRecovered:async()=>refreshed++});
+  const retry=elements(tree).find(n=>n.type==='button'&&n.props.children==='Resolve earlier request');assert.ok(retry);
+  await retry.props.onClick();assert.equal(refreshed,1);assert.equal(calls[0].operationId,operationId);assert.equal(storage.size,0);
+});
+test('all legacy unknown intents are settled in order, including across same-endpoint controls',async()=>{
+  const storage=new Map(),path='/api/jams/jam-42/actions',ids=[webcrypto.randomUUID(),webcrypto.randomUUID()];
+  for(const [i,payload] of [{action:'join',revision:'a'},{action:'leave'}].entries())storage.set('zero-jam-operation:'+JSON.stringify(['12',path,payload]),ids[i]);
+  const calls=[],h=harness({storage,effects:true,fetcher:async(url,init)=>{calls.push(JSON.parse(init.body));return confirmed(init);}});
+  assert.equal(await h.render().send({action:'submit'}),null);
+  await h.render().retry();assert.equal(h.render().pending.action,'leave');await h.render().retry();assert.equal(h.render().pending,undefined);
+  assert.deepEqual(calls.map(c=>c.operationId),ids);
+});
+test('first explicit rejection allows correction; rejection after an unknown outcome retains recovery',async()=>{
+  const calls=[];let mode='reject';const h=harness({fetcher:async(url,init)=>{calls.push(JSON.parse(init.body));if(mode==='lost')throw Error('lost');if(mode==='ok')return confirmed(init);return Response.json({configured:true,error:'Review the current rules'},{status:409});}});
+  assert.equal(await h.render().send({action:'join',revision:'old'}),null);assert.equal(h.render().pending,undefined);
+  mode='lost';await h.render().send({action:'join',revision:'new'});const id=calls.at(-1).operationId;
+  mode='reject';await h.render().retry();assert.equal(h.render().pending.revision,'new');
+  mode='ok';await h.render().retry();assert.equal(calls.at(-1).operationId,id);assert.equal(h.render().pending,undefined);
+});
+test('pending requests and late feedback stay with their original actor and endpoint',async()=>{
+  let finish;const storage=new Map(),h=harness({storage,fetcher:async(url,init)=>{await new Promise(resolve=>finish=resolve);return confirmed(init);}});
+  const first=h.render(),request=first.send({action:'join',revision:'a'});
+  assert.equal(await h.render().send({action:'leave'}),null,'a sibling control shares the lock');
+  h.setActor({id:'99',login:'other',csrfToken:'other'});assert.equal(h.render().pending,undefined);assert.equal(h.render().busy,false);
+  finish();await request;assert.equal(h.render().success,'');assert.equal(storage.size,0);
 });
 test('frames and signed-out callers cannot mutate; unconfigured or unconfirmed responses never succeed',async()=>{
   let writes=0;const fetcher=async()=>{writes++;return Response.json({configured:false,error:'Not configured'},{status:503});};
@@ -64,7 +216,7 @@ test('submission contract requires a demo URL and preserves exact source and dem
   const {operationId,...sent}=received;assert.deepEqual(sent,payload);assert.ok(operationId);
 });
 test('entry moderation is maintainer-only in the gallery and sends the public reason and participant identity',async()=>{
-  assert.match(clientSource,/data\.canMaintain&&<EntryModeration id=\{id\} participantId=\{entry\.participantId\} onChanged=\{refresh\}/);
+  assert.match(clientSource,/data\.canMaintain&&<EntryModeration id=\{id\} participantId=\{entry\.participantId\} revision=\{entry\.revision\} onChanged=\{refresh\}/);
   assert.match(clientSource,/<summary>Maintainer review<\/summary>/);
   assert.match(clientSource,/<label>Public reason<textarea required/);
   assert.match(clientSource,/mutation\.send\(\{action:'withdraw-entry',participantId,reason\}\)/);
@@ -111,7 +263,7 @@ test('fetched private data is unavailable immediately after actor changes, while
 });
 function panelModule(reply,seen) {
   const module={exports:{}};
-  const context={module,exports:module.exports,require:name=>name.includes('jams-visibility')?{hiddenJamsResponse:()=>null}:{getJamResponse:async(request,id)=>{seen.push({request,id});return Response.json(reply.body,{status:reply.status||200});}},Request,Response,URL};
+  const context={module,exports:module.exports,require:name=>name.includes('jams-access')?{authorizeJamRequest:()=>null}:name.includes('jams-pilot-policy')?{jamOfficialOrigin:()=> 'https://zero.codepet.ca'}:{getJamResponse:async(request,id)=>{seen.push({request,id});return Response.json(reply.body,{status:reply.status||200});}},Request,Response,URL};
   vm.runInNewContext(compile(panelSource),context);return module.exports;
 }
 test('public panel strips caller credentials, escapes content and allows only approved creator origin',async()=>{
@@ -127,4 +279,44 @@ test('unapproved or unavailable panel grants no creator framing and exposes no w
     assert.equal(response.status,503);assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'self'$/);
     const html=await response.text();assert.doesNotMatch(html,/private operational details|Pending secret|unapproved\.example|<button|<form/);
   }
+});
+
+
+test('lost close reply → reload → retry keeps closing; an expired unknown Join never applies and a fresh Join works', {timeout:10000},async t=>{
+  const git=await atomicGitHttpFixture(t),sources=await githubHttpFixture(t);await git.store.migrate();let time=Date.parse('2030-01-02T12:00Z');
+  const service=createJamService({store:git.store,verifySource:createGitHubSourceVerifier({token:'http-fixture-only-token',fetchImpl:sources.fetchImpl}),maintainerIds:[maintainer.id],now:()=>time});
+  const proposal=await service.propose({actor:creator,operationId:'fixture-propose',repositoryUrl:'https://github.com/creator/jam',commit:'a'.repeat(40)});await service.mutate({id:'jam-101',actor:maintainer,operationId:'fixture-approve',action:'approve',revision:proposal.revision});
+  const storage=new Map(),calls=[];let loseOriginal=true,loseClose=true;
+  const fetcher=async(url,init)=>{const body=JSON.parse(init.body);calls.push({url,...body});assert.equal(body.actor,undefined);assert.equal(init.headers['x-hub-csrf'],'fixture-csrf');if(loseOriginal){loseOriginal=false;throw Error('request lost before commit');}
+    try{const result=url==='/api/jams/settlements'?await service.settle({...body,actor:participant}):await service.mutate({...body,id:'jam-101',actor:participant});if(url==='/api/jams/settlements'&&loseClose){loseClose=false;return new Response('{lost');}return Response.json({configured:true,...result},{status:result.settlement==='not-applied'&&url!=='/api/jams/settlements'?409:200});}catch(e){return Response.json({configured:true,error:e.message},{status:e.status||503});}};
+  const make=()=>{const h=harness({storage,fetcher});h.setActor({...participant,csrfToken:'fixture-csrf'});return h;},payload={action:'join',revision:proposal.revision};let h=make();
+  await h.render('useMutation','/api/jams/jam-101/actions').send(payload);time=Date.parse('2030-01-05');
+  assert.equal(await h.render('useMutation','/api/jams/jam-101/actions').retry(),null);assert.equal(h.render('useMutation','/api/jams/jam-101/actions').pending.action,'join');
+  assert.equal(await h.render('useMutation','/api/jams/jam-101/actions').close(),null);assert.equal(h.render('useMutation','/api/jams/jam-101/actions').closing,true);assert.equal(git.state().registrations[participant.id],undefined);
+  time=Date.parse('2030-01-02T12:00Z');h=make();const result=await h.render('useMutation','/api/jams/jam-101/actions').retry();assert.equal(result.settlement,'not-applied');assert.equal(calls.at(-1).url,'/api/jams/settlements');assert.equal(calls.at(-1).operationId,calls[0].operationId);assert.equal(storage.size,0);assert.match(h.render('useMutation','/api/jams/jam-101/actions').success,/closed without being applied/);
+  assert.equal(git.state().registrations[participant.id],undefined);await h.render('useMutation','/api/jams/jam-101/actions').send(payload);assert.equal(git.state().registrations[participant.id].status,'joined');assert.notEqual(calls.at(-1).operationId,calls[0].operationId);
+});
+test('close errors, wrong terminal identities and account changes retain the exact close intent',async()=>{
+  const storage=new Map(),calls=[];let mode='unknown';const fetcher=async(url,init)=>{const body=JSON.parse(init.body);calls.push({url,...body});if(mode==='unknown')throw Error('unknown');if(mode==='auth')return Response.json({error:'Sign in again'},{status:401});return Response.json({configured:true,operationId:mode==='wrong-id'?'wrong':body.operationId,scope:mode==='wrong-scope'?'jam-99':'jam-42',settlement:'not-applied',status:'not-applied'},{status:mode==='wrong-status'?503:200});};
+  const h=harness({storage,fetcher});await h.render().send({action:'join',revision:'a'});mode='auth';await h.render().close();const id=calls[0].operationId;assert.equal(h.render().closing,true);
+  for(mode of ['wrong-id','wrong-scope','wrong-status']){assert.equal(await h.render().retry(),null);assert.equal(h.render().closing,true);}
+  h.setActor({id:'99',login:'other',csrfToken:'other'});assert.equal(h.render().pending,undefined);assert.equal(h.render().closing,false);h.setActor({id:'12',login:'creator',csrfToken:'csrf'});mode='ok';await h.render().send({action:'join',revision:'a'});assert.equal(calls.at(-1).url,'/api/jams/settlements');assert.equal(calls.at(-1).operationId,id);assert.equal(storage.size,0);
+});
+test('a durable409 terminal closes the pending key while keeping a moderation reason draft',async()=>{
+  let mode='unknown';const storage=new Map(),h=harness({storage,effects:true,fetcher:async(url,init)=>{if(mode==='unknown')throw Error('unknown');const body=JSON.parse(init.body);return Response.json({configured:true,eventId:'jam-42',operationId:body.operationId,scope:'jam-42',settlement:'not-applied',status:'not-applied'},{status:409});}});
+  const props={id:'jam-42',event:{revision:'accepted',moderation:{status:'active'}},onChanged:async()=>{}};const render=()=>h.render('Moderation',props);render();h.flushEffects();elements(render()).find(n=>n.type==='textarea').props.onChange({target:{value:'Keep this public reason'}});elements(render()).find(n=>n.type==='button'&&n.props.children==='Suspend jam').props.onClick();await new Promise(setImmediate);mode='closed';elements(render()).find(n=>n.type==='button'&&n.props.children==='Suspend jam').props.onClick();await new Promise(setImmediate);assert.equal(elements(render()).find(n=>n.type==='textarea').props.value,'Keep this public reason');assert.ok([...storage.keys()].every(key=>!key.startsWith('zero-jam-operation:')));
+});
+
+
+test('quota failure blocks closing before dispatch; saved close intent remains atomic and survives loss/reload',async()=>{
+  class QuotaStorage extends Map {blocked=false;set(key,value){if(this.blocked&&key.startsWith('zero-jam-operation:')&&value.startsWith('{'))throw Error('quota');return super.set(key,value);}}
+  const storage=new QuotaStorage(),calls=[];let confirm=false;const fetcher=async(url,init)=>{const body=JSON.parse(init.body);calls.push({url,...body});if(!confirm)throw Error('lost before commit');return Response.json({configured:true,operationId:body.operationId,scope:'jam-42',settlement:'not-applied',status:'not-applied'});};
+  let h=harness({storage,fetcher});await h.render().send({action:'join',revision:'a'});const id=calls[0].operationId;storage.blocked=true;
+  assert.equal(await h.render().close(),null);assert.equal(calls.length,1,'unpersisted close is never dispatched');assert.match(h.render().error,/No new request was sent/);assert.equal(h.render().closing,false);
+  storage.blocked=false;await h.render().close();assert.equal(calls.length,2);assert.equal(calls[1].url,'/api/jams/settlements');assert.deepEqual(JSON.parse([...storage.values()][0]),{operationId:id,closing:true});assert.equal(storage.size,1,'identity and close mode use one atomic value');
+  h=harness({storage,fetcher});confirm=true;await h.render().retry();assert.equal(calls.at(-1).url,'/api/jams/settlements');assert.equal(calls.at(-1).operationId,id);assert.equal(storage.size,0);
+});
+test('unavailable recovery storage blocks a new consequential request before dispatch',async()=>{
+  class Unavailable extends Map {set(){throw Error('unavailable');}}
+  let calls=0;const h=harness({storage:new Unavailable(),fetcher:async()=>{calls++;return Response.json({});}});assert.equal(await h.render().send({action:'join',revision:'a'}),null);assert.equal(calls,0);assert.match(h.render().error,/No new request was sent/);assert.equal(h.render().pending,undefined);
 });

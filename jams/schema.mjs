@@ -6,7 +6,7 @@ export const ID = /^jam-[1-9][0-9]{0,19}$/;
 export const SHA = /^[a-f0-9]{40}$/;
 export const ACCOUNT = /^[1-9][0-9]{0,19}$/;
 export const LOGIN = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/;
-export const LIMITS = Object.freeze({events:100, participants:200, operations:1000, safetyOperations:202, proposals:50, entryHistory:30, retries:8, stateBytes:2_000_000, actorWrites:10, writeWindowMs:60000});
+export const LIMITS = Object.freeze({events:100, participants:200, operations:1000, safetyOperations:202, proposals:50, entryHistory:30, retries:8, stateBytes:2_000_000, actorWrites:10, writeWindowMs:60000, settlements:1000, actorSettlements:50, settlementBytes:512000});
 export const SAFETY_SLOT_BYTES=4096;
 export const safetySlots=limit=>Math.min(limit.safetyOperations,limit.participants+2);
 export const operationCounts=state=>Object.values(state.operations).reduce((counts,operation)=>{counts[operation.pool]=(counts[operation.pool]||0)+1;return counts;},{ordinary:0,safety:0});
@@ -70,4 +70,20 @@ export function validateState(state, id, limit = LIMITS, {enforceReserve=true} =
     }
     return structuredClone(state);
   } catch { fail(503,'Official jam records are unavailable.'); }
+}
+
+// Global, bounded fences live outside event/safety budgets and are never evicted.
+export function validateSettlements(value,limit=LIMITS) {
+  try {
+    keys(value,['schema','operations']);
+    if(value.schema!==1||!object(value.operations)||Object.keys(value.operations).length>limit.settlements||Buffer.byteLength(JSON.stringify(value))>limit.settlementBytes)throw Error();
+    const actors=new Map();
+    for(const [key,item]of Object.entries(value.operations)) {
+      keys(item,['scope','actorId','operationId','payloadDigest','settledAt']);
+      if(!(item.scope==='proposals'||ID.test(item.scope))||!ACCOUNT.test(item.actorId)||typeof item.operationId!=='string'||!/^[A-Za-z0-9_-]{8,100}$/.test(item.operationId)||key!==`${item.scope}:${item.actorId}:${item.operationId}`||!/^[a-f0-9]{64}$/.test(item.payloadDigest)||!Number.isSafeInteger(item.settledAt)||item.settledAt<0)throw Error();
+      actors.set(item.actorId,(actors.get(item.actorId)||0)+1);
+      if(actors.get(item.actorId)>limit.actorSettlements)throw Error();
+    }
+    return structuredClone(value);
+  }catch {fail(503,'Official request settlements are unavailable. Keep the earlier request and retry.');}
 }

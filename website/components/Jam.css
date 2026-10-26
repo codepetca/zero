@@ -28,6 +28,7 @@
 .jam-facts dt { font-weight:600; }
 .jam-facts dd { margin:0; }
 .jam-prose { white-space:pre-wrap; }
+.jam-notice pre.jam-source { white-space:pre-wrap; overflow-wrap:anywhere; max-width:100%; }
 .jam-source { font-size:14px; overflow-wrap:anywhere; }
 .jam-entries { padding-left:24px; }
 .jam-entries li { padding-block:12px; }

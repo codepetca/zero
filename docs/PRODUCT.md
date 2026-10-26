@@ -150,10 +150,33 @@ Every Game Jam and App Jam requires students to use GitHub: sign in on Zero to
 join and submit their own public GitHub repository at an exact commit. This
 platform requirement is separate from creator eligibility rules. Browsing and
 site preparation remain available before sign-in.
-ZeroJams currently remains local-development-only: production pages, panels,
-APIs, template downloads and navigation are hidden under the owner hold. Editor
-shortcuts are deferred until the public product is ready. Local implementation
-and live activation are separate. See the
+ZeroJams has an owner-authorized, protected preview for creator stewchan and
+independent approver armorup. Both GitHub sign-ins and their separate roles are
+verified. Production pages, panels, APIs, template downloads and navigation remain
+hidden under the owner hold. Editor shortcuts are deferred until the public
+product is ready. The two-account Chrome Game/App lifecycle is verified, including
+creator hosting, independent approval, submissions, updates, withdrawal and
+closure. Registry writes no longer create Vercel deployments. Protected-preview
+frames are blocked; the official top-level link works. Wider browser/network and
+provider-cost acceptance remain pending. Controlled recovery/concurrency tests
+verify the service contracts; review drafts now survive reload. The client now
+resolves an uncertain request before sending another action; a subsequent new
+action receives a fresh operation ID. Recovery stays available after reload, with
+account-scoped public request details. Independent review and the actual Chrome
+loopback regression pass. The protected pilot can durably close an
+unknown request without applying it, or recover its accepted result, using an
+atomic Git registry transaction. Lost close replies retain the close intent.
+Source review, guarded migration and live closure of two legacy test requests
+pass with unchanged event bytes. Chrome sign-in, hosted reads and creator fallback
+also pass on the owner-confirmed school network, with hosted320 px reflow and
+synthetic delayed-provider recovery. Safari work is owner-paused. Local provider
+controls reduce redundant immutable reads, pace accepted intents across the same
+registry CAS, and add process circuits plus maintainer-only quota diagnostics.
+They preserve separate safety/closure capacity and same-key recovery, with no new
+database or registry migration. These are awaiting reviewed pilot delivery; they
+are not a hard fleet-wide outbound request budget. Shared hosting usage is now
+observed, while isolated Preview spend, physical-device and real zoom acceptance
+remain open. Current evidence does not establish classroom capacity. See the
 [phased plan](ZEROJAMS-PLAN.md) and [operator guide](ZEROJAMS-OPERATIONS.md).
 
 ## Core goal: students grow the framework

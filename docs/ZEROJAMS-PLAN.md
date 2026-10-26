@@ -1,18 +1,37 @@
 # ZeroJams architecture and user flow
 
-Status: local development only; owner hold on production visibility,2026-10-25.
+Status: protected two-account preview active; production remains hidden,
+2026-10-26. Creator/participant `stewchan` and independent approver `armorup` retain
+verified separate roles. Hosted source `619ca729` remains the previous accepted
+settlement/lifecycle checkpoint, with11 exact-head CI checks passing.
 
-Owner authorized source PR and merge on2026-10-25, with ZeroJams hidden in
-production because it is not ready. Production builds (including deployment
-previews) return404 for every jam page, public panel, API and template download,
-even if service credentials/activation flags are present. ZeroHub hides its link;
-unreleased editor shortcuts are deferred. Local `next dev` retains the preview.
-Removing this source-level visibility hold needs a subsequent explicit decision.
-No GitHub App permissions, credentials, registry provisioning or live pilot are
-authorized by the source PR/merge.
-Implementation is authorized locally from 2026-10-25; live activation is separate. Publication, deployment,
-GitHub App permission changes and account configuration require separate explicit
-authorization. Existing game/library sharing and Pika submission stay separate.
+Current local provider-control implementation passes252 offline jam/282 website tests,
+typecheck/build. It reduces duplicated GitHub reads, adds aggregate accepted-intent
+pacing in the existing registry CAS and process-scoped quota visibility/circuits.
+Independent review and protected-pilot delivery follow. No extra invitations,
+production rollout or main merge is authorized. Safari/device/zoom remain paused;
+actual isolated Preview spend and wider capacity acceptance remain open.
+
+The pilot is restricted to the fixed Preview project, branch, origin and invited
+numeric identities. Production always returns 404 for jam pages, panels, APIs and
+template downloads, even with activation flags. ZeroHub hides its production link;
+editor shortcuts remain deferred. Existing sharing and Pika submission stay
+separate. No main merge or production rollout is part of pilot activation. See
+[the pilot operator packet](ZEROJAMS-PILOT.md) for configuration, live results and
+remaining acceptance. The preparation snapshots below record earlier states;
+they do not supersede this current authorization and activation record.
+
+## Current provider-control work — 2026-10-26
+
+Owner authorized request reduction, aggregate quota visibility/pacing and cost
+assessment. Local implementation reuses verified immutable snapshots, adds pilot
+accepted-intent caps in the existing CAS domain, per-process provider circuits/
+write pacing and a maintainer-only quota endpoint. No new database, paid service,
+permission or registry schema. Safeguards preserve accepted-result/fence recovery.
+Generic Join 27→13calls; enabled two-event pilot Join14calls,23 including warm web
+identity/refresh. Independent review and protected-pilot verification follow;
+local completion is not a live quota or wider-rollout claim. Current source/CI,
+results and remaining gates are tracked in CURRENT/PILOT. Sponsor/merch are parked.
 
 ## Goal and agreed decisions
 
@@ -149,7 +168,7 @@ Implementation contract for this slice:
 - New `JamPreparation` component owns type/details, validation, preview/edit,
   download/error recovery and next hosting steps. Persist public draft fields
   in sessionStorage only. Keep one primary action per step, associated errors,
-  keyboard/focus and320px reflow. Clearly distinguish download from publication.
+  keyboard/focus and320 px reflow. Clearly distinguish download from publication.
   `JamCreate` retains its existing source-bound approval form separately below.
 
 Ownership: coordinator writes shared draft/schema/template helpers, HTTP routes,
@@ -334,11 +353,11 @@ introduce a database speculatively or treat Git as an unlimited transactional DB
 User authorized phased local implementation and orchestration. Coordinator goal:
 deliver a verified local MVP ready for independent review, with complete creator
 website template, preparation/admission, official discovery and participation.
-Source push/PR/merge is now authorized with the production hold; permission/
-credential changes and a live pilot remain unauthorized.
+Source publication retains the production hold. The owner subsequently authorized
+the narrow controlled pilot described above; general rollout remains held.
 
 Active checkout: `/Users/stew/.codex/worktrees/zerojams/zero`, branch
-`codex/zerojams`, base `77b371db`. Primary checkout's unrelated work is preserved.
+`codex/zerojams-controlled-pilot`, deployed source `f50942b0`. Primary checkout's unrelated work is preserved.
 Canonical template directory: `jam-template/`; shared pure service: `jams/`;
 website entry point: `/hub/jams`. Template copying starts with a downloadable
 complete ZIP; it must not claim a separate hosted template repository exists.
@@ -352,7 +371,7 @@ only when a pinned public template is actually available and verified.
 | 2: Creator admission and discovery | Locally delivered | Source-bound proposal, maintainer-only approval, immutable accepted metadata |
 | 3: Participation | Locally delivered | Authenticated join/leave, reviewed entry updates/withdrawal, cached gallery |
 | 4: Reliability, UI verification and independent review | Locally verified and reviewed | Meaningful failure/security checks, actual local browser proof, clean reviews |
-| 5: Live pilot | Awaiting separate authorization | Real deployment/permissions/provider usage and participant acceptance |
+| 5: Live pilot | Two-account Chrome lifecycle verified | Both types prepared/hosted/proposed/approved/participated/submitted/updated/closed; 24 operations and zero registry builds; expansion checks remain |
 
 Worker receipt: source-map (GPT-6.1 Sol/high) completed read-only mapping of
 existing auth, CAS, navigation and editor seams; coordinator verified principal
@@ -429,8 +448,9 @@ Live publication/permission acceptance remains separate and unauthorized.
   to participant credentials. The service stays unavailable until explicitly
   configured. [Operator setup](ZEROJAMS-OPERATIONS.md) records exact boundaries.
 - Pilot per-event caps and durable write rates are implemented. The global
-  event-count admission cap is advisory under simultaneous new events; over-cap
-  listings fail closed. Discovery/proposal retry recovery can read up to one
+  legacy event-count cap was advisory; the new hosted atomic adapter shares
+  branch admission/CAS across events, with a simultaneous final-slot test. Over-cap
+  listings still fail closed. Discovery/proposal retry recovery can read up to one
   record per event. These are measured pilot limits, not a large-scale database.
 
 Review remediation batch 1 addresses three accepted P2 findings from the complete
@@ -438,6 +458,64 @@ initial reviews: reserve operation/storage capacity for safety moderation after
 ordinary capacity exhaustion; verify exact commits with the metadata-only Git
 commit endpoint; expose approved rule/schedule history and explicit changed-version
 notice before renewed participant acknowledgment. Targeted and cumulative reviews are complete and clean.
+
+## Controlled pilot preparation snapshot — 2026-10-25
+
+Owner authorized read-only setup audit and local source preparation, retaining
+production denial. No new push/deploy, App/permission/secret changes, registry
+provisioning or live writes are part of preparation. This extends the prior
+all-preview hold only through a reviewed, default-disabled invited preview policy.
+
+Live audit: Vercel project `zero`, root `website`, Node22, production branch main;
+protection `all_except_custom_domains`. Hub OAuth variable names exist only in
+production; no ZERO_JAMS variables exist. Registry `zero-jams-registry` is absent
+(404). Codepet Zero App5367740 public metadata grants broad desktop permissions.
+The connector installation84608113 belongs to a different integration, and CLI
+Codepet App installation enumeration is403; its installation/callbacks remain
+unknown. Never substitute the connector installation or claim missing access is
+proof no installation exists. Only metadata/presence was recorded, no secret values.
+
+Fixed prepared policy `jams/pilot.json`: creator/participant stewchan35233916,
+approver armorup4050555; status prepared and origin null until separately reviewed.
+Invitations use numeric IDs, roles remain separate; no self approval. Pilot registry
+is fixed `codepetca/zero` branch `zero-jams-pilot-registry`, distinct from the future
+normal registry. Records in this public Git repository are public-safe test data,
+not confidential records. Creator/participant repositories remain public too.
+
+Source contract:
+- `jamDeploymentPolicy(env,pilot)` is null for production or malformed/disabled
+  hosted policy. Local development retains current behavior. Invited mode requires
+  Vercel preview, exact project ID/branch, enabled prepared policy, fixed HTTPS
+  branch origin matching VERCEL_BRANCH_URL and ZERO_HUB_ORIGIN, numeric invitations
+  and maintainers. Pilot/service flags cannot override production denial.
+- Every page/API/template/panel checks deployed policy then sealed GitHub numeric
+  invitation before event/file/service reads or params. Wrong origin/unknown users
+  fail closed. A neutral sign-in page bootstraps existing OAuth with no event data.
+  Invitation removal applies on every request. Existing CSRF/fresh identity checks
+  remain on writes. Preview session encryption binds its configured origin.
+- An unsigned cross-site panel returns neutral top-level sign-in links without
+  event reads. Keep SameSite=Lax/HttpOnly/Secure; no bearer tokens in creator sites.
+  Framing of event data remains limited to an accepted creator origin.
+- Only trusted server policy supplies official origin to generated ZIP/preview and
+  panel links. Template generators accept an options object `{officialOrigin}`:
+  jamTemplateFiles(type,root,customManifest,options),
+  createJamTemplateZip(type,customManifest,options),
+  createJamTemplatePreview(manifest,options). Defaults retain canonical public URL.
+  preparedJamResponse(request,{preview,officialOrigin}) forwards this trusted value;
+  request manifests/query never choose official origin.
+- Store accepts only reviewed normal/pilot branch constants selected server-side.
+  Pilot runtime requires a separate minimal Contents-write/Metadata-read writer,
+  never the broad desktop App; no automatic branch creation or production fallback.
+  Use small fixed limits and include mode/origin/registry in cache identities.
+- Read-only preflight reports metadata/presence/readiness without secret values,
+  writes, token minting, login/config changes, or installing dependencies. A concrete
+  operator packet lists unresolved callback/installation/origin setup and acceptance
+  and rollback steps. Preparation cannot report a live pilot has succeeded.
+
+Ownership: coordinator policy/auth/routes/runtime/store/docs integration; template
+worker only jam-template helper/http helper and focused template tests; preflight
+worker only operator preflight tool/tests and new pilot runbook. Independent risk-
+matched source review follows proportionate tests; production hold is an exit gate.
 
 ## Remaining rollout decisions
 

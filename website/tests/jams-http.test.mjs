@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
 import zeroApp from '../../extension/src/github-app/config.json' with {type:'json'};
 import {hubConfig,newSession} from '../lib/hub-github-auth.mjs';
-import {getJamsResponse,getJamResponse,postJamProposalResponse,postJamActionResponse} from '../lib/jams-http.mjs';
+import {getJamsResponse,getJamResponse,postJamProposalResponse,postJamActionResponse,postJamSettlementResponse} from '../lib/jams-http.mjs';
 import {JamError} from '../../jams/service.mjs';
+import {requestPayload} from '../../jams/requests.mjs';
 
 const now = 1_800_000_000_000;
 const env = {NODE_ENV:'test',ZERO_JAMS_ENABLED:'1',ZERO_HUB_ORIGIN:'http://127.0.0.1:3000',
@@ -100,4 +101,32 @@ test('service errors retain useful safe correction and infrastructure errors dis
   f.service.mutate = async () => {throw new Error('private-key/token/source-secret');};
   const failed = await postJamActionResponse(request(join),'jam-55',f);
   assert.equal(failed.status,503);assert.doesNotMatch(JSON.stringify(await failed.json()),/private-key|source-secret/);
+});
+
+
+test('settlement retains Origin/session/CSRF/current identity guards and derives only its own actor',async()=>{
+  const f=fixture();f.service.settle=async input=>{f.calls.push(['settle',input]);return {operationId:input.operationId,scope:input.scope,settlement:'not-applied',status:'not-applied'};};
+  const input={operationId:'earlier-operation',scope:'jam-55',payload:{action:'join',revision:'a'.repeat(64)}};
+  for(const [headers,status]of [[{Origin:'https://evil.test'},403],[{Cookie:''},401],[{'X-Hub-CSRF':'wrong'},403],[{'Content-Type':'text/plain'},415]])assert.equal((await postJamSettlementResponse(request(input,headers),f)).status,status);
+  assert.equal(f.calls.length,0);assert.equal((await postJamSettlementResponse(request({...input,actor:{id:'999'}}),f)).status,400);
+  const response=await postJamSettlementResponse(request(input),f);assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'no-store');assert.equal((await response.json()).settlement,'not-applied');assert.deepEqual(f.calls.at(-1),['settle',{...input,actor:{id:'123',login:'renamed'}}]);
+  const before=f.calls.length;await postJamSettlementResponse(request(input),{...f,fetchImpl:async()=>Response.json({id:999,login:'other'})});assert.equal(f.calls.length,before);
+});
+test('normal action replay of a closed request is explicit409 for older clients while close returns200',async()=>{
+  const f=fixture(),result={scope:'jam-55',operationId:join.operationId,eventId:'jam-55',settlement:'not-applied',status:'not-applied'};f.service.mutate=async()=>result;
+  const response=await postJamActionResponse(request(join),'jam-55',f);assert.equal(response.status,409);const body=await response.json();assert.equal(body.operationId,join.operationId);assert.equal(body.settlement,'not-applied');assert.match(body.error,/closed without being applied/);
+});
+
+
+test('a maximum-size multibyte original request can close within bounded wrapper overhead',async()=>{
+  const f=fixture(),operationId='o'.repeat(100),scope='jam-'+'9'.repeat(20);
+  const payload={action:'submit',revision:'a'.repeat(64),source:{repositoryUrl:'https://github.com/student/project',commit:'a'.repeat(40)},title:'Entry',description:'é'.repeat(1800)+'a'.repeat(400),instructions:'界'.repeat(4000),demoUrl:'https://student.github.io/project/'};
+  // Keep both text fields valid while placing the exact original body near16KiB.
+  payload.description='é'.repeat(1800)+'a'.repeat(200);
+  while(Buffer.byteLength(JSON.stringify({...payload,operationId}))<16370)payload.demoUrl+='x';
+  assert.doesNotThrow(()=>requestPayload(scope,payload));assert.ok(Buffer.byteLength(JSON.stringify({...payload,operationId}))<=16384);
+  const input={scope,operationId,payload};assert.ok(Buffer.byteLength(JSON.stringify(input))>16384);f.service.settle=async body=>({operationId:body.operationId,scope:body.scope,settlement:'not-applied',status:'not-applied'});
+  assert.equal((await postJamActionResponse(request({...payload,operationId}),scope,f)).status,200);assert.equal((await postJamSettlementResponse(request(input),f)).status,200);
+  payload.demoUrl+='x'.repeat(100);assert.equal((await postJamSettlementResponse(request({...input,payload}),f)).status,413,'original-payload limit remains16KiB');
+  assert.equal((await postJamSettlementResponse(request({scope,operationId,payload:{junk:'x'.repeat(17500)}}),f)).status,413,'wrapper itself is also bounded');
 });

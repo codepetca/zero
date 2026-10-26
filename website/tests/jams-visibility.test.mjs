@@ -36,7 +36,8 @@ test('every jam API/panel route returns 404 before calling services, reading tem
   for(const [path,method] of routes) {
     const source=await readFile(new URL(`../app/${path}`,import.meta.url),'utf8');
     const route=load(source,{
-      '@/lib/jams-visibility.mjs':{hiddenJamsResponse:()=>hiddenJamsResponse({NODE_ENV:'production'})},
+      '@/lib/jams-access.mjs':{authorizeJamRequest:()=>hiddenJamsResponse({NODE_ENV:'production'})},
+      '@/lib/jams-pilot-policy.mjs':{jamOfficialOrigin:()=> 'https://zero.codepet.ca'},
       '@/lib/jams-http.mjs':{getJamsResponse:blocked,getJamResponse:blocked,postJamActionResponse:blocked,postJamProposalResponse:blocked},
       '@/lib/jam-template.mjs':{createJamTemplateZip:blocked},
       '@/lib/jam-template-http.mjs':{preparedJamResponse:blocked}
@@ -50,10 +51,13 @@ test('every jam API/panel route returns 404 before calling services, reading tem
 test('one server layout hides discovery, preparation, details and participation; local children remain usable',async()=>{
   const source=await readFile(new URL('../app/hub/jams/layout.tsx',import.meta.url),'utf8');
   for(const visible of [false,true]) {
-    const layout=load(source,{'@/lib/jams-visibility.mjs':{jamsPreviewAvailable:()=>visible},
+    const layout=load(source,{'@/lib/jams-pilot-policy.mjs':{jamDeploymentPolicy:()=>visible?{mode:'local'}:null},
+      '@/lib/jams-access.mjs':{authorizeJamRequest:()=>null},
+      '@/components/JamShell':{JamShell:()=>null},'@/components/HubGitHub':{HubAccount:()=>null},
+      'next/headers':{headers:()=>{throw Error('Local/hidden layout must not read headers');}},
       'next/navigation':{notFound:()=>{throw new Error('not-found');}}});
-    if(visible)assert.equal(layout.default({children:'local preview'}),'local preview');
-    else assert.throws(()=>layout.default({children:'private preview'}),/not-found/);
+    if(visible)assert.equal(await layout.default({children:'local preview'}),'local preview');
+    else await assert.rejects(()=>layout.default({children:'private preview'}),/not-found/);
   }
 });
 

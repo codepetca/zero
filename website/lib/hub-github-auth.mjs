@@ -34,7 +34,8 @@ export function hubConfig(env = process.env) {
   if (/^[a-fA-F0-9]{64}$/.test(secret)) key = Buffer.from(secret, 'hex');
   else if (/^[A-Za-z0-9_-]{43}$/.test(secret)) key = Buffer.from(secret, 'base64url');
   if (!key || key.length !== 32) return null;
-  return {origin, clientId, clientSecret, key, secure: origin.startsWith('https:')};
+  return {origin, clientId, clientSecret, key, secure: origin.startsWith('https:'),
+    ...(env.VERCEL_ENV === 'preview' ? {sessionBinding:origin} : {})};
 }
 
 export function safeHubReturnTo(value) {
@@ -62,7 +63,7 @@ export function equalSecret(a, b) {
 export function seal(payload, purpose, config) {
   const iv = randomBytes(12);
   const cipher = createCipheriv('aes-256-gcm', config.key, iv);
-  cipher.setAAD(Buffer.from(`zero-hub:${purpose}:v1`));
+  cipher.setAAD(Buffer.from(`zero-hub:${purpose}:v1${config.sessionBinding ? `:${config.sessionBinding}` : ''}`));
   const ciphertext = Buffer.concat([cipher.update(JSON.stringify(payload)), cipher.final()]);
   return Buffer.concat([iv, cipher.getAuthTag(), ciphertext]).toString('base64url');
 }
@@ -73,7 +74,7 @@ export function unseal(value, purpose, config) {
     const bytes = Buffer.from(value, 'base64url');
     if (bytes.length < 29) return null;
     const decipher = createDecipheriv('aes-256-gcm', config.key, bytes.subarray(0, 12));
-    decipher.setAAD(Buffer.from(`zero-hub:${purpose}:v1`));
+    decipher.setAAD(Buffer.from(`zero-hub:${purpose}:v1${config.sessionBinding ? `:${config.sessionBinding}` : ''}`));
     decipher.setAuthTag(bytes.subarray(12, 28));
     return JSON.parse(Buffer.concat([decipher.update(bytes.subarray(28)), decipher.final()]).toString('utf8'));
   } catch { return null; }

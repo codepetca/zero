@@ -1,6 +1,6 @@
 # Zero privacy data inventory
 
-Source snapshot:2026-10-25, base010ae629 plus this task's local policy UI.
+Source snapshot:2026-10-25, base010ae629 plus local policy UI; Jam runtime rows refreshed2026-10-26.
 Public notice: `website/app/privacy/page.tsx`; separate terms `/terms`. Old `/legal` redirects to Privacy.
 This inventory verifies source behavior, not live provider settings or legal
 compliance. No new collector, consent record or data store is added by the pages.
@@ -19,7 +19,8 @@ compliance. No new collector, consent record or data store is added by the pages
 | Public requests/releases/artifacts | Public GitHub issues, catalog source/contributor metadata, artifacts and Git history. Delisting is not erasure of history/distributed licensed copies. | `website/components/HubPrepare.tsx`, `extension/src/sharing/contracts.js`, `sharing/editor.js`, `website/lib/sharing-catalog.mjs` |
 | Avatar / external destinations | Browser loads signed-in avatar from GitHub with no-referrer; Play/source/demo links go to external creators/GitHub/Pages. | `website/components/AccountMenu.tsx`, `HubProjectCard.tsx` |
 | Public reachability status | Server checks GitHub/public Pages; process caches15m success/1m failure/catalog1m. | `website/lib/hub-project-status.mjs` |
-| Local-only Jam preparation | Session-storage drafts/retry IDs; sandboxed preview. Production Jams pages/API remain hidden regardless of service credentials; no activation authorized. | `website/components/JamClient.tsx`, `JamPreparation.tsx`, `website/lib/jams-visibility.mjs`, `jams-runtime.mjs` |
+| Jam preparation and controlled pilot | Account-scoped session-storage drafts/retry IDs; sandboxed preview. Two invited pilot accounts use public GitHub event/registration/submission/fence records and history. Production pages/API remain hidden. | `website/components/JamClient.tsx`, `JamPreparation.tsx`, `website/lib/jams-visibility.mjs`, `jams-runtime.mjs`, `jams/CONTRACT.md` |
+| Jam provider diagnostics | Bounded ephemeral process circuits/counters and provider quota headers. One fixed-route/status/method-count/duration/installation-quota summary per API operation goes to hosting logs. No actor, URL, operation ID, form, credential or participant personal quota in that summary. Maintainer-only response can show its own request-local participant quota; no new durable telemetry store. Hosting retention/settings remain separately unverified. | `jams/provider-monitor.mjs`, `website/lib/jams-http.mjs`, `website/app/api/jams/provider/route.ts` |
 
 Current website source has no ad/session-replay/marketing analytics integration
 identified by the source audit. This does not verify dashboard-injected analytics,

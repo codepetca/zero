@@ -1,25 +1,32 @@
-# Active Terms rollout — owner authorized2026-10-25
+# ZeroJams provider controls ready for protected pilot — 2026-10-26
 
-Worktree `website-beta-notice/zero`, branch `codex/terms-rollout`, base7252c538.
-PR205 is merged/live with beta/policies/footer/mobile dropdown and Docs performance
-fix. Owner now requested removing draft status and rolling out Terms, then asked
-for use-based acceptance language covering Zero/related Codepet services.
+Owner scope: overhead reduction, provider quota visibility/pacing and cost checks.
+Production hidden; Safari/device/zoom paused; sponsor/merch/payments parked.
+PR202 remains draft/unmerged. No extra invite, credential, paid service/account
+setting, database or registry migration. Current live registrydb8a7d2b untouched.
 
-Version2026-10-25 takes effect on publication. Explicit clause covers use after
-publication/notice for Zero/ZeroHub and Codepet-operated services expressly linking
-the Terms. Footer gives visible notice; readable-source page now has it too.
-No fabricated past acceptance, unrelated-product acceptance, privacy/guardian
-consent or acceptance registry. Mandatory rights, MIT licenses and existing
-liability/governing-law clauses preserved. Legal review remains advice, not a
-publication hold; no claim of legal certification or immunity.
+Reviewed application39364209: fresh-head private CAS-base reuse and pinned lists;
+accepted-intent pools ordinary2/min20/h, safety/closures separately2/min10/h;
+2CASattempts/jitter; observed headers, process circuits/spacing/body-aware permits,
+18scontext deadline; coalesced token setup; maintainer-only provider diagnostics.
+These are not a hard fleet-wide outbound quota. Older writers/read floods remain
+outside accepted-intent caps. Recovery and fences precede new-admission checks.
 
-Local243website tests,3renderedpolicy contract checks, typecheck, productionbuild,
-npmcheck and320/390/1280 light/dark reflow/link checks pass. Next: independent
-policy/integration review→draftPR→selectedCI→merge→verify liveeffectiveTerms.
-Source proof/logs in ignored `.verification/terms-rollout/` and `output/playwright/`.
+Corrected offline252jam/282website tests +typecheck/build pass. Astra/Sol full
+initial reviews and Astra targeted correction clean:3turns,1fixbatch,2dedup issues.
+Initial test transport isolation and body-failure counter defects resolved; tests
+now block external fetches and assert no default-network call in monitor tests.
+Live registry remained unchanged after initial unauthenticated test requests.
 
-Preserve primaryfundingwork, my-greeting/Dev3153/profiles, preview3025 and private
-backups/sealedassets. Tailnet3148 source preview stays useful; loopback3147 must be
-restarted after final build for latest source. NativeGit remains defaultOFF.
-No installer/native release, account/permission/settings change or production
-ZeroJams activation. DeepSeek paused through2026-12-31. No newgoal/task/automation.
+Actual Chrome/real HTTP loopback proof: lost acceptedJoin recovered despite full
+ordinary pool; lostLeave429reply→retry429→reload keeps request/draft→close in
+separate pool→freshLeave→freshJoin. Exactly4fixturecommits (3business+1fence),
+registered final, draft retained. Default write spacing used; no live write.
+Two-event pilot Join14registrycalls,23including warm identity/refresh (was36);
+list2events23→9; read/recovery8unchanged. Generic unpaced Join27→13.
+
+Shared Zero7day usage2.4Kinvocations/5m33sCPU/0.36GBh; buildCPU11h42m. Actual
+incremental Jam spend unknown (billingAPI404), not zero. No paid settings changed.
+NEXT: one source push to existing protected pilot, exact-head CI and read-only
+live installation/role/production/state verification. No main merge/wider trial.
+Evidence quota-implementation/, quota-design/, provider-acceptance/ optimized run.

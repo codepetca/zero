@@ -136,7 +136,7 @@ export function JamPreparation() {
     const timeout=setTimeout(()=>pending.controller.abort(),20000);
     try {
       const response=await fetch('/api/jams/template/preview',{
-        method:'POST', credentials:'omit', redirect:'error', cache:'no-store',
+        method:'POST', credentials:'same-origin', redirect:'error', cache:'no-store',
         headers:{'Content-Type':'application/json'}, body:JSON.stringify({manifest:prepared.manifest}),
         signal:pending.controller.signal,
       });
@@ -162,7 +162,7 @@ export function JamPreparation() {
     const timeout=setTimeout(()=>pending.controller.abort(),20000);
     try {
       const response=await fetch('/api/jams/template',{
-        method:'POST', credentials:'omit', redirect:'error', cache:'no-store',
+        method:'POST', credentials:'same-origin', redirect:'error', cache:'no-store',
         headers:{'Content-Type':'application/json'}, body:JSON.stringify({manifest:preview.manifest}),
         signal:pending.controller.signal,
       });

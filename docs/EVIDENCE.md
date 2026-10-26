@@ -1,5 +1,323 @@
 # Delivery evidence index
 
+## Durable unknown-request settlement — 2026-10-25
+
+Local reviewed candidate04da7ce1 (base9a88a7fc, initial5117611d). Atomic Git
+branch snapshots/CAS serialize accepted event operations with a bounded global
+not-applied ledger. Close recovers an accepted result or fences an uncommitted
+actor/scope/key/digest. Covers missing events and proposals before verified ID.
+Client saves close mode atomically with the key, refuses dispatch on storage
+failure, preserves drafts, and retries closing after lost replies/reload. Normal
+closed-key replay409 protects older clients. No new auth/role/invitation grant.
+
+154 jam tests,275 website tests,7 preflight tests and typecheck/build pass.
+Eight actual loopback GitHTTP/service/source cases supplement12 adapter cases
+and11 service fence cases. Both winner orders, held verification, missing events,
+provider reply loss/timeouts, strict migration drift, byte/capacity bounds and
+auth/scope/storage failures are covered. The global final-event-slot race also
+passes under the hosted atomic adapter. Existing per-file fixtures are historical
+compatibility checks, not the hosted transaction implementation.
+
+Actual reviewed React bundle/Chrome: unknown Join receives unreadable reply before
+commit, expires, retry409 retains it, Close fence commits but reply is unreadable,
+reload keeps closing after eligibility reopens, terminal not-applied clears the
+key, fresh Join commits. Exactly2 commits (1fence+1join), final joined.320/390px
+and Tab/Enter acceptance pass; physical mobile/WebKit/zoom/network unverified.
+An initial corrected-bundle socket-loss run was retried transparently by Chrome
+and returned a definite409; the fixture now uses deterministic unreadable replies
+for that boundary. No application correction was needed. Local artifacts are
+ignored under .verification/zerojams-pilot/settlement-*.log and settlement-browser/.
+
+One Sol6.1/high worker supplied adapter/HTTP fixture/tests; coordinator verified.
+Independent initial reviews: Astra/high correctness/security and Sol6.1/high
+compatibility,9a88a7fc→5117611d.3 deduplicated P2s accepted and fixed in one batch:
+publication pins inspected migration head; bounded wrapper accommodates near16KiB
+valid multibyte originals; saved close mode is atomic and storage failure blocks
+dispatch. Related read-only preflight now recognizes exact public protocol and
+pinned v2 namespace. Astra/high targeted5117611d→04da7ce1 reviews all16delta files
+and independently passes8 regressions, no findings.3 reviewer turns/1 fix batch;
+no additional review wave needed. Effective model, worker token/time cost unknown.
+Start account weekly73%remaining is not task-specific cost; storage229GB healthy.
+
+Read-only migration plan: isolated pilot headce130103b5b84968c83982516104826c88a260a0,
+2 existing event blob SHAs and guard recorded, not applied. Main advanced to d5c01bb1 and caused PR conflicts, withholdingCI. Integration
+10150f20 merges main into the pilot (no main publication), resolves only CURRENT/
+EVIDENCE conflicts, preserves both dated histories, and leaves settlement files
+byte-identical. Sol6.1/high final integration review is clean;20 focused tests
+pass. Refreshed154jam/275website/7preflight/typecheck/build pass. Review totals:
+4turns,1fixbatch,1targeted+1integration wave.
+Protected Preview delivery, guarded migration, existing legacy test-request closure with unchanged
+event bytes, production15jam404/Hub200/no link and exact-head CI are next.
+Production hold, originalclosedfixtures, App/secret/protection settings retained.
+
+Activation completion2026-10-26: source619ca729 READY,
+dpl_Gq9Fz6yHtugW3p2ZmwASyTzk7qPC, all11 exact-head CI pass. Guarded migration
+77066b52 preserved event blob hashes and deployment guard. Normal authenticated
+stewchan UI closes2queued invalid submissions; no pending control after reload.
+Registrydb8a7d2b contains2fences, all event bytes unchanged.4 exact public-ledger
+service replays are not-applied with0source/0write calls and unchanged head;
+read-only audit only, not a forged session/HTTP access test.
+
+Production existing13jam cases +settlementGET404; undeployedsettlementPOST405
+(current main's GET-only dynamic router), no action accepted, Hub200/no jam link.
+10 actual new-route/real access-guard scenarios pass; its production methods404
+before dependencies.0 Vercel deployment matches for3new registry SHAs; the list's
+historical1709d161 setup ERROR predates the guard. No account/secret/invite/
+protection changes. Final settlement-verification.json and related snapshots/
+images/logs are ignored under the same evidence directory. Permanently invalid
+unknown settlement blocker resolved; remaining browser/network/provider gates
+are unchanged. Final receipt docs stay local after deployed619ca729.
+
+## Pending-request reconciliation — 2026-10-25
+
+Source671dc0aa, test correction9dec4f1e, final wording delta d5a60666. The client resolves uncertain mutations
+before another intent for the same actor/endpoint, using the saved public payload
+and operation ID. Independent recovery controls survive reload and disappearance
+of the original action; new confirmed intents receive fresh IDs. Server authority
+and historical idempotency remain unchanged.
+
+111 jam/264 website tests, typecheck/build pass. A full-suite test timing race
+was corrected to await caller refresh; focused23 pass. macOS Chrome uses the
+actual React JamParticipate component with a loopback GitHub HTTP fixture and
+real service/source/store/transport. Join commits with unreadable reply, reload
+removes Join, Leave is blocked until exact recovery, then Leave and new Join
+commit. Receipt shows3 commits/final joined, initial/recovery keys equal and new
+Join key different. No live fixture writes. Bulk artifacts remain ignored under
+.verification/zerojams-pilot/pending-*.log and pending-browser/.
+
+Independent Sol6.1/high reviewer: full170564eb→671dc0aa, focused22 pass, one
+accepted test synchronization finding; targeted671dc0aa→9dec4f1e and9dec4f1e→d5a60666 clean.3 reviewer
+turns,2 remediation waves/fix batches, no conflicts. Effective model/timing/tokens
+unavailable. Start weekly80%remaining is account-wide, not task cost; storage
+healthy230GB. Source coverage reused across bounded deltas; the final regression verifies
+original-button recovery after another-device Leave without claiming a new Join.
+
+Remaining limits: permanently invalid unknown requests conservatively stay
+blocked pending a future durable rejection/fencing protocol. Tab-local locks
+do not serialize separate tabs/devices. These and previous browser/network/cost
+limits prevent claiming wider-trial readiness. Production hold remains. Protected
+preview67221e75 is READY (dpl_2RNdyJCUL2vkCQQFykQnxrBbkERB). Hosted
+read-only legacy recovery control smoke passes with no writes. Production13jam404/
+Hub200/no link; registry unchanged.320 CSS px content column fits recovery text
+and long revision; real mobile/zoom remains unverified. Final reviewed source `d5a60666` is deployed in `70de6ba8`,
+`dpl_3po4TiFqJSx4JqemyqLm1UnctNTv`; all11 exact-head CI pass. Hosted read-only
+smoke and production13jam404/Hub200/no link pass again. Registry remains
+ce130103b5b84968c83982516104826c88a260a0. Final ignored receipt is
+`pending-verification.json` under the same evidence directory. No main merge.
+
+## Failure recovery and concurrent registry writes — 2026-10-25
+
+Owner authorized recovery/concurrency testing with production hidden and the
+closed pilot fixtures preserved. Candidate791a8482:24 deterministic loopback HTTP
+cases combine actual service/source verifier/store/transport with real fetch/blob
+SHA CAS, controlled concurrent PUTs, socket loss/malformed replies/wrong success
+SHA, actual pre/postcommit timeouts, outages, bounded conflicts and moderation/
+approval/deadline/leave races. Same-key commits remain exactly once; conflicts
+preserve both valid writers. Tests use only dummy credentials/local identities.
+
+Client-hook/real-adapter cases verify retry identity through unreadable200,
+configuredfalse and wrong-operation replies. Reason-draft loss was reproduced
+first, then fixed for review/moderation/entry reasons. Account/subject scopes,
+confirmed clearing and late-callback safety pass. Gallery entry revision is a
+read-only contract addition, with no mutation/authorization change.
+
+105jamtests,258website tests,typecheck/build pass. One Sol6.1/high read-only audit
+worker reused for independent review;41 focused cases pass. Accepted review
+corrections:10s test bounds, exact subject scope and stale-callback guard. No
+reviewer edits or integration conflict. Effective model/token cost unavailable;
+weekly82%remaining at start is account-wide, not task cost; storagehealthy229GB.
+
+Open finding: an uncertain committed join, then leave, then a new identical join
+can reuse the old key and show historical confirmation while storage remains left.
+The characterization test records this known UI gap; passing tests do not clear
+it. Wider student trial blocked pending explicit old-request/new-intent resolution.
+Hosted preview5059fd9c (dpl_BvRcpQGmS2FJrUNiF6HEKWDNrR2d) verifies reason
+restore/clear and gallery revision without any action submission. Registry still
+ce130103b5b84968c83982516104826c88a260a0; production13jam404/Hub200/nojamlink.
+All11 exact-headCI pass. No live provider outage/contention claim, main merge or
+production rollout.
+Runbook docs/ZEROJAMS-PILOT.md; ignored recovery verification packet/logs.
+
+## Registry build exclusion and live Game/App lifecycle — 2026-10-25
+
+Owner authorized registry build prevention and complete controlled-pilot lifecycle,
+keeping production hidden. Registry-only `website/vercel.json` exact-branch guard
+commit a39b3bdd, README probe5a4eb284; no shared project setting or source/main
+branch deployment exclusion changed. Independent Sol6.1/high config review clean.
+After 24 durable event operations, Vercel records zero registry deployments since
+the guard; only expected source preview f50942b0 appears (pagination complete).
+
+Live UI exposed omitted cookies on preparation POSTs. Two same-origin credential
+changes in JamPreparation.tsx fixed preview and ZIP for invited sessions without
+weakening server gates, redirect policy or sandbox. Separate Sol6.1/high review
+clean (24 reviewer tests), coordinator13 focused tests/build pass. All11CI checks
+pass on deployed f50942b01a3e7b715380fd663a026e341089bfc3,
+Vercel dpl_4r7w2mfNCkGhJx7PQHBmU8rDEXkZ. Two targeted review launches, one code fix
+batch this phase; effective worker models/token totals unavailable. Repository
+fixture editor input error was corrected and bytes verified before acceptance.
+
+Actual Chrome/macOS, real stewchan/armorup OAuth: both complete templates downloaded,
+public personal repos/Pages sites and tiny HTML demos verified, exact-source
+proposals independently approved. Required acknowledgment, both joins/submissions,
+wrong-owner rejection, replacement/withdrawal/leave/rejoin, no resurrected entry,
+fixed history cap, pending versus accepted updates and changed-rule acknowledgment
+passed. App suspend/resume and maintainer entry withdrawal/resubmission passed.
+Game closes on approved real-past deadline, participant left/entry withdrawn;
+App cancelled with one final active showcase entry. Twelve durable operations each;
+Game history5, App history4. Two pilot slots remain occupied by closed fixtures.
+
+Protected-preview iframe is blocked; actual creator-page top-level fallback opens
+signed-in official participation. No security bypass or false iframe success claim.
+Production13jamchecks404, Hub200/nojamlink; protection all_except_custom_domains,
+main production, no main merge/production rollout. Third-account, Safari/mobile/
+school-network, concurrency and request/latency/cost thresholds remain unverified.
+Details and exact fixture links: docs/ZEROJAMS-PILOT.md. Ignored lifecycle packet
+.verification/zerojams-pilot/lifecycle/final-receipt.json plus source/record/CI/hold
+receipts and screenshots. Final registry ce130103b5b84968c83982516104826c88a260a0.
+
+## Controlled preview activation and both account roles — 2026-10-25
+
+Owner confirmed security-access changes and completed the writer key download.
+Preview source3c68f391 is READY in dpl_6hfCqZG9HXDKNtZA1fV9tcnz3w8S at the fixed
+branch origin recorded in docs/ZEROJAMS-PILOT.md. Dedicated writer5470616,
+installation175232591 is selected onlycodepetca/zero, Contentswrite/Metadataread;
+real RSA/App validation and narrowed token mint/read of empty pilot registry pass.
+All10server settings are exact-branch Preview only; sensitive values were not
+logged/committed. Existing browser secret retained; local download mode0600.
+
+Real GitHub stateless token exposed obsolete runtime regex. Fix treats returned
+token as opaque with prefix/header-safeASCII/1024bound; scope/expiry/repo checks
+unchanged. Targeted independent Sol6.1/high review complete/clean (~2min; actual
+tokens/effective runtime model unknown). Reviewer4runtime tests pass. One targeted
+review launch/fix batch this turn; no integration conflicts or reviewer rework.
+251website tests, typecheck/build pass; accountweekly86%remaining is not taskcost.
+
+Actual Chrome/macOS: signed-out page neutral, API no records; armorupOAuthcallback
+succeeds and API configuredtrue/canMaintaintrue/events[]/proposals[]. Signout
+restores gate. stewchan OAuth succeeds, API configuredtrue/canMaintainfalse;
+preparation and public-repository/exact-commit proposal controls available.
+No full event lifecycle or uninvited third-account acceptance claim. Production
+13canonical jamGET/POST404, Hub200/nojamlink; protection unchanged, main held.
+DraftPR202 source3c68f391 published; all11 exact-sourceCI checks pass.
+No merge/publicrelease. Both account roles are verified; no event was created.
+Ignored receipts writer-validation.json, active-preview.json, live-production-hold.json
+live-access.json, live-approver.png and live-creator.png. Registry Vercel
+build-trigger cost gap recorded in pilotpacket.
+
+## Controlled pilot activation checkpoint — 2026-10-25
+
+Owner authorized actual setup/activation, production held. Draft PR202 at39562271
+contains the reviewed disabled preparation; protected Vercel preview READY with
+branchAlias zero-git-codex-zerojams-contr-11f1f5-stewarts-projects-cc2722c4.vercel.app.
+State-only registry zero-jams-pilot-registry created with orphan root1709d161 and
+README-only tree7bff485a, no application source/workflows. Branch-only Preview
+origin/client-ID/maintainer and new independent sensitive session-secret rows
+confirmed by metadata; production rows/protection/main unchanged. No plaintext
+session key persisted or printed. No pilot flags/writer/browser secret yet.
+
+Local activation2b512953 exact-origin config/test delta independently reviewed by
+GPT6.1Sol/high, complete/clean;6pilot tests and actual-policy positives/negatives
+rerun by reviewer.73focused/6preflight and new build pass. Enabled-policy local
+production and actual public production13jam cases404each, Hub200/nojamlink.
+Owner completed GitHub sudo. Callback/minimal-writer forms are prepared but
+unsubmitted: browser policy requires action-time confirmation of new security-
+sensitive access. Pending batched question remains unanswered, so GitHub changes
+and final activation are paused. No existing credential revoked, permission or
+callback saved; current deployed pilot remains404. Screenshots and deployment,
+initial-CI/registry/hold metadata remain ignored under .verification/zerojams-pilot/.
+No live authenticated pilot success is claimed. No production activation/merge.
+
+## Controlled pilot preparation independently accepted — 2026-10-25
+
+Prepared source a226038f on codex/zerojams-controlled-pilot (base5f3cf77c) passed
+both independent GPT6.1Sol/high reviews: security/correctness and compatibility.
+Both reviewed complete30file diff and immediate callers, with no actionable
+findings. Security reran16pilot/auth/runtime and14preflight/source/store tests;
+compatibility reran23pilot/template/preparation/preflight tests. Review ledger:
+2launches,1initial wave,0fix batches/targeted waves; no extra integration wave
+needed for unchanged source. Effective configurations, attributable time/tokens
+unknown. All reported wider checks reused against this unchanged implementation.
+
+Coordinator73focused/250website/6preflight tests, typecheck/build/root check pass.
+Actual Chromium local details→canonical preview and320/1280reflow pass; preview
+retains sandbox allow-scripts and disabled anchors. Compiled local production with
+both activation flags and Vercel production markers returns404 in13canonical jam
+GET/POST cases; current public production does likewise, Hub200/nojamlink in both.
+These live requests validate the existing hold, not a deployed pilot. New source
+has not been pushed or deployed. Invited/anonymous/removed/expired/wrong-origin
+access, neutral page layout and route ordering are local fixture proof only.
+
+Read-only preflight --audit executed against existing CLIs with filtered output:
+fixed public policy passes; ready=false, missing configuration/manual evidence
+remain explicit. Public App/repository/Vercel metadata observed; pilot branch/
+namespace and writer installation stay unknown where inaccessible/unverified.
+No token minted, secret pulled, login/permissions/config changed, branch created,
+or participant write attempted. The operator packet is concrete but unexecuted:
+protected stable preview origin, exact callback/new branch-scoped session secrets,
+separate selected-repository minimal writer and state-only orphan pilot branch.
+Public Git records require public-safe test information despite invited web access.
+Ignored evidence: .verification/zerojams-pilot/setup-audit.json and production-hold.json.
+Account/provider/Safari/mobile/framing/school/live-flow acceptance remains pending.
+
+## Controlled pilot audit and local preparation — 2026-10-25
+
+Owner authorized audit/preparation with production hidden, not account/config/
+deployment activation. Current main010ae629 synchronized; prior completion and
+Mac50 histories retained. Read-only metadata confirms Vercel zero project/root/
+Node22/main/protection, production-only Hub auth variable names and no jam names;
+normal registry404. Codepet Zero5367740 public permissions are broad desktop
+scope. CLI installation listing403 is unknown, and connector installation84608113
+is another integration. No secret values printed; filtered preflight audit remains
+not ready. User selected stewchan35233916 creator and armorup4050555 approver;
+creator also exercises participant flow for the initial two-account pilot.
+
+Local prepared policy remains disabled/origin null. Source gates only one fixed
+preview/project/branch/canonical origin and sealed numeric invitations, retains
+unconditional production404, isolates preview session origin, fixes a separate
+state-only pilot registry branch and narrow writer/caps, and generates trusted
+pilot links without accepting client origin overrides. No database added or live
+writes attempted. Dedicated writer/callback/preview secrets/orphan registry remain
+concrete operator steps in ZEROJAMS-PILOT.md, separate from preparation.
+
+Template GPT6.1Sol/medium worker delivered four owned helper/test files with11
+passing focused tests. Preflight GPT6.1Sol/medium worker delivered tool/tests/
+runbook; one coordinator-requested namespace-proof correction prevents treating
+an orphanless/source-filled branch as ready.6tests pass and no online worker
+operations performed. Coordinator verified worker output and ran metadata-only
+audit.73focused/250website tests, root check, typecheck/build pass. Independent
+source review and final surface/production verification pending at this receipt.
+Effective worker model/time/token telemetry unavailable; start account weekly88%
+remaining is shared allowance, not task cost. No writer conflicts. No push/PR,
+credentials/permissions changes, branch provisioning or deployment performed.
+
+## Guided preparation PR200 merged with production held — 2026-10-25
+
+Owner authorized source PR/merge, with live pilot still separate. [PR200](https://github.com/codepetca/zero/pull/200)
+merged aa6d58c5f2641c4522cdf049432a9a5cf8ac3f69 at16:19:30UTC from reviewed
+head e135c82d132fffa7251d8f8ab163eac5f7f2a258. All11checks passed, including
+actual Windows install/JavaFX, WebFX browser, source/native/examples/lessons,
+website and final gates. Runs40210186817(browser),40210186818(Windows),
+40210186832(source). No review threads or changes-requested reviews remained.
+Current-main73847c88 sync preserved both delivery histories; no executable
+conflict fixes. Independent GPT6.1Sol/medium integration review complete/clean,
+one launch/zero fixes, about3minutes reported by reviewer; effective model and
+attributable tokens unknown. Prior feature and wording review coverage reused.
+Local62focused/240website tests, root check, website typecheck/build pass. Main
+integration tree equals reviewed feature and upstream extension source exactly.
+Merged tree equals the checked head; current worktree/local main fast-forwarded.
+Primary funding and actor worktrees preserved; local preview worktree retained.
+
+Vercel Production deployment7315783838 succeeded for the exact merge commit.
+Actual https://zero.codepet.ca canonical13jam route/method cases return404;
+Hub200 with no jam link and local3025preparation200. The PR deployment was behind
+Vercel authentication (page302/API401), so no application-route claim was inferred
+from it. Local flag-on production13case smoke also passed. No credentials/App
+permissions, registry provisioning, live participant pilot or installer release
+were performed. Existing separately recorded encoded-Hub500behavior is unchanged.
+Exact ignored receipts: `.verification/zerojams-guided/pr200-checks.json`,
+`pr200-publication.json`, `pr200-production.json`, `pr200-preview.json` and
+`pr200-live-hold.json`. Post-merge completion receipt remains local/uncommitted;
+no additional public source change was made to publish these notes.
 ## Owner-authorized active Terms and prospective use agreement — 2026-10-25
 
 After PR205 publication, owner requested removing draft status/rolling out Terms,
@@ -10876,3 +11194,138 @@ manual47→48upgrade, clean-folder setup, browser sign-in, native compiler recov
 and fresh WebFX preview pass. Two early Run stops remain an unresolved QA
 observation; no student-rollout approval or production update-delivery claim.
 Publishing remains held.
+
+
+## ZeroJams school-network/provider checks — 2026-10-26
+
+Source523be528; hosted application619ca729 unchanged. Owner confirmed intended
+school connection; Chrome existing stewchan OAuth refresh, hosted event read,
+creator Pages/official top-level fallback pass. Three visible-ready GET reloads
+2.092–2.680 s including automation; actual hosted320 px has309 px client/scroll width.
+Both Game/App Pages/demo URLs and GitHub source metadata200. Protected frame stays
+blocked by normal Vercel login; no cookie/protection bypass. Owner paused Safari;
+physical-device/WebKit/actual200%/400% zoom unverified.
+
+Delayed75 ms/provider HTTP Chrome fixture: lostJoin→expiredResolve→lostClose→reload
+→finishClose→freshJoin;1 fence + 1 Join, distinct fresh key, draft reload retained.
+40 new current-atomic-provider regressions pass; canonical194 jam tests pass.
+403/429/500/503, socket/timeout/malformed loss, source/event/ledger refusal preserve
+state and exact-key recovery; no application change. Coordinator independently
+reran40; provider measurement worker reused20existing targeted checks.
+
+Five synthetic runs stable: warm Join service 27 calls; web identity+refresh 36;
+8 forced conflicts: 160 calls/32 write methods/0 published commits. Aggregate provider
+quota/backoff/header observation is absent. Public registry `db8a7d2b` unchanged,
+27795 current file bytes excluding history. Read-only Vercel confirms Hobby/Fluid/
+iad1/READY/protection unchanged. Billing API404 leaves cost unknown. Operations
+records measured budgets and proposed supervised thresholds, no configuration or
+spending acceptance. No live writes/load/new branches/accounts/deployments.
+Production13existing+settlement GET404; undeployedsettlement POST405; Hub200/no link.
+
+Two bounded Sol6.1/high assignments (provider assessment read-only; new test file
+only), no shared edits/conflicts/app fixes. Requested configuration known;
+effective model/attributable tokens/wall-time unknown. Start account weekly100%
+remaining, storage227.47 GB healthy; not task cost. DeepSeek remained paused.
+Independent final delta review recorded below. Source/CI prior11checks for619ca729
+remain that deployed head's evidence, not new local-head CI. PR202 draft/unmerged.
+Full ignored receipts: .verification/zerojams-pilot/browser-network/,
+provider-acceptance/, provider-failures/. Detailed current acceptance in PILOT;
+provider call counts/remaining gates in OPERATIONS. No wider rollout accepted.
+
+Final additions: normal armorup OAuth and read-only maintainer controls pass on
+the school connection; restored stewchan. Game demo Finished after 5 clicks; App
+counter 0→1→0. Registry db8a7d2b and latest deployment `619ca729` unchanged. Temporary
+fixture listener/tabs retired. Local3025 not touched; no listener at final check.
+Independent Sol6.1/high complete7-file delta review `523be528`→`88734458` clean;
+40/40 independent tests in 2.45 s,0 findings,1 initial reviewer turn,0 fix batches. Actual
+reviewer wall time/tokens/effective configuration unknown; no hosted replay.
+Review receipt browser-network/review.json. Final receipt documentation follows
+locally; test/application code is unchanged from reviewed `88734458`.
+
+
+## ZeroJams provider-control implementation — 2026-10-26
+
+Baseline da418855; owner-authorized overhead/pacing/quota/cost work. Production
+hidden; Safari/device/zoom paused; sponsor/merch/payment ideas parked. No new paid
+service/database, credential, invitation or registry schema/migration.
+
+Optimizer: private issued-base CAS reuse after fresh head, per-snapshot cloned
+memo, one-snapshot list and request preflight reuse. Source/fence races preserved.
+Five generic fixture runs Join 27→13, submit 29→15, list 2 events 23→9, raced Joins 73→39.
+Read/recovery 8 unchanged. Two-event pilot admission makes Join 14 registry calls,
+23 including warm identity/refresh. No live throughput or hard fleet-cap claim.
+
+Pilot accepted-intent pools ordinary 2/min20/h; safety/closures separately 2/min10/h;
+recovery precedes caps;2 CAS attempts and 100–400 ms jitter. Header monitor has scoped
+circuits, immediate503/Retry-After, process concurrency/body-lifetime/queue/write
+spacing,18 s request deadline and safe per-request/process method counters.
+Maintainer diagnostic probes actual installation quota; production/invite/role
+and current identity guards pass. No participant personal quota in persisted
+summary; privacy source inventory updated. Token setup coalesces verified mints.
+
+246 jam/282 website tests, typecheck/build pass; unchanged tracing warnings remain.
+New 52 tests cover budget/freshness/cache isolation, cross-instance accepted caps,
+clock rollback/reserved pools/recovery, streamed failures/deadlines/redaction,
+real HTTP Retry-After, provider role/production guards and pilot runtime wiring.
+Provider inspection: authenticated Zero project7 day usage2.4K invocations,5m33sCPU,
+0.36GBh,85.02 MB,11h42m build CPU; combinedproject traffic, no isolated cost claim.
+Hobby/Fluid/iad1/protection unchanged; billingAPI404 => incremental spend unknown.
+
+Delegation: Sol6.1/high optimizer; Astra/high read-only design followed by isolated
+monitor implementation. Coordinator owns pacing/runtime/HTTP/docs/integration.
+No shared-file conflict; no app fix batch yet. Effective model/attributable tokens
+and per-worker wall time unknown. Start accountweekly98% remaining (not task cost),
+storage225 GB healthy; fresh build check227 GB healthy. DeepSeek remained paused.
+Review session delta starts da418855; planned two independent fresh reviewers,
+no review launches yet. Protected pilot update follows reviewed source/CI only;
+no main merge or wider rollout. Evidence .verification/zerojams-pilot/
+quota-implementation/,quota-design/,provider-acceptance/measurements-optimized.json.
+
+
+Provider-control review correction (same pass): Astra security/correctness and
+Sol compatibility independently inspected complete20-file delta da418855→4981bd79.
+Two deduplicated blockers accepted: a counter test inherited global fetch, and
+successful200headers reset consecutive failures before body completion. One fix
+batch now records one terminal outcome per dispatch, resets only after complete
+healthy bodies, preserves cancellation neutrality and carries circuit Retry-After.
+Six injected regressions cover repeated streamed timeouts/errors across contexts,
+healthy reset,5xx/body double counting, neutral cancellation and helper isolation.
+
+The counter test had run twice locally, each making two GETs and one POST to the
+public GitHub blob endpoint without Authorization. No credentials were supplied;
+registry head db8a7d2b remains unchanged. The corrected test injects a synthetic
+transport, the helper fails closed, and a module-global guard asserts zero default
+fetch calls. Full acceptance rerun blocks every external fetch while allowing
+loopback fixtures:252jam and282website tests pass. The initial246-test receipt
+is superseded for acceptance by that corrected offline run. Typecheck/build pass.
+No CI/pilot publication occurred before this correction. Targeted review follows;
+review ledger:2initial reviewer turns,1fix batch,2deduplicated findings, no other
+initial-scope blocker. Reviewer elapsed time/tokens/effective model unknown.
+
+
+Provider-control correction review is clean at3936420971e8c609f443855e8a5ed781993f46d2.
+Astra reviewed all6correction files/direct body consumers and independently ran
+31/31monitor tests in4.309s with zero global-fetch calls. Prior complete initial
+Astra/Sol coverage remains valid for unchanged source; no redundant integration
+wave. Ledger:3reviewer turns (2initial+1target),1fix batch,2deduplicated findings
+resolved, no remaining scoped blocker. Actual reviewer wall time/tokens/effective
+model unknown. No hosted acceptance is implied by these source reviews.
+
+Chrome loopback acceptance now exercises real HTTP helpers, provider monitor,
+Git/source contracts and actual JamParticipate: committedJoin reply lost→same-key
+recovery despite full ordinary pool→newLeave rejection reply lost→same-key429
+retains request/draft across reload→Close uses separate capacity→freshLeave→
+freshJoin. Exactly4newfixture commits (3business intents+1fence), registered final,
+new IDs after confirmed outcomes, draft retained. Explicit first429 also correctly
+clears only the known-rejected new intent and retains draft. Native provider
+write spacing enabled; all external fetches blocked. Dummy fixture identity/
+clock and injected provider responses are not authenticated live acceptance.
+Ignored browser/receipt.json, screenshots and explicit-rejection receipt capture
+these cases; fixture listener/tab retired. Two harmless fixture setup/expectation
+repairs and one ephemeral-tab replay are recorded as coordination rework, with
+no application change from browser testing.
+
+Local corrected aggregate252jam/282website tests, typecheck/build pass. Source
+39364209 is stable; following receipt documentation is source-equivalent. Existing
+protected-pilot publication and exact-head CI/live read-only verification follow.
+No production deployment, invitation, payment/merch or main merge is authorized.

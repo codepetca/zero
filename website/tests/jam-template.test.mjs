@@ -47,7 +47,7 @@ test('both template ZIPs contain every independent source byte, with only manife
     assert.deepEqual(Object.keys(decoded).sort(),JAM_TEMPLATE_FILES.map(path=>`zero-${type}-jam/${path}`).sort());
     for(const path of JAM_TEMPLATE_FILES) {
       assert.deepEqual(decoded[`zero-${type}-jam/${path}`],files[path],path);
-      if(path!=='zero-jam.json')assert.deepEqual(files[path],new Uint8Array(await readFile(new URL(path,sourceRoot))),path);
+      if(path!=='zero-jam.json'||type==='game')assert.deepEqual(files[path],new Uint8Array(await readFile(new URL(path,sourceRoot))),path);
     }
     const manifest=JSON.parse(strFromU8(files['zero-jam.json']));
     assert.equal(manifest.type,type);assert.equal(manifest.schema,1);assert.equal(manifest.templateVersion,JAM_TEMPLATE_VERSION);
@@ -80,4 +80,30 @@ test('independent copies retain the exact canonical MIT notice and publish it wi
   assert.deepEqual(files.LICENSE,new Uint8Array(await readFile(new URL('../../LICENSE',import.meta.url))));
   assert.match(strFromU8(files['assets/jam.js']),/Copyright \(c\) 2026 Codepet Inc\. MIT license/);
   assert.match(strFromU8(files['README.md']),/Keep its notice with reused/);
+});
+
+test('trusted pilot origin rewrites every official link only in generated site copies',async()=>{
+  const officialOrigin='https://zero-pilot-codepet.vercel.app';
+  for(const type of ['game','app']) {
+    const canonical=await jamTemplateFiles(type),files=await jamTemplateFiles(type,undefined,undefined,{officialOrigin});
+    const archive=unzipSync(await createJamTemplateZip(type,undefined,{officialOrigin}));
+    for(const path of JAM_TEMPLATE_FILES) {
+      assert.deepEqual(archive[`zero-${type}-jam/${path}`],files[path],path);
+      if(['index.html','assets/jam.js','README.md'].includes(path)) {
+        assert.equal(strFromU8(files[path]),strFromU8(canonical[path]).replaceAll('https://zero.codepet.ca',officialOrigin));
+        assert.doesNotMatch(strFromU8(files[path]),/https:\/\/zero\.codepet\.ca/);
+        assert.match(strFromU8(files[path]),/https:\/\/zero-pilot-codepet\.vercel\.app\/hub\/jams/);
+      } else assert.deepEqual(files[path],canonical[path],`${path} is origin-independent`);
+      // Generating a pilot copy must never mutate the canonical source.
+      if(path!=='zero-jam.json')assert.deepEqual(canonical[path],new Uint8Array(await readFile(new URL(path,sourceRoot))));
+    }
+    assert.deepEqual(canonical,await jamTemplateFiles(type,undefined,undefined,{officialOrigin:'https://zero.codepet.ca'}));
+  }
+});
+
+test('official template origin accepts only exact public HTTPS origins',async()=>{
+  for(const officialOrigin of [null,42,'','http://zero-pilot.vercel.app','https://zero-pilot.vercel.app/','https://zero-pilot.vercel.app/path','https://zero-pilot.vercel.app?x=1','https://zero-pilot.vercel.app#x','https://user:pass@zero-pilot.vercel.app','https://zero-pilot.vercel.app:443','https://zero-pilot.vercel.app:8443','https://ZERO-pilot.vercel.app',' https://zero-pilot.vercel.app','https://zero-pilot.vercel.app\n','https://localhost','https://a.localhost','https://a.local','https://a.internal','https://a.test','https://a.invalid','https://a.example','https://127.0.0.1','https://2130706433','https://[::1]','https://singlehost','https://bad_.vercel.app','https://bad-.vercel.app','https://zero-pilot.vercel.app.']) {
+    await assert.rejects(()=>jamTemplateFiles('game',undefined,undefined,{officialOrigin}),/canonical public HTTPS official origin/,String(officialOrigin));
+    await assert.rejects(()=>createJamTemplateZip('game',undefined,{officialOrigin}),/canonical public HTTPS official origin/);
+  }
 });
