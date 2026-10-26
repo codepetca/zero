@@ -637,6 +637,12 @@ workspace-scoped switch. The standard Explorer stays the default pending owner
 visual review. The supported `zero-student-explorer` view container combines
 `zero.studentControls` and the native `zero.studentProject` TreeDataProvider.
 Both control views share the renderer but keep independent document lifecycles.
+The student controls omit the ZeroHub and New dropdowns. The native Project
+header supplies **New… (+)** with a native picker for the selected Code/Assets
+folder, alongside existing context menus. Its overflow retains ZeroHub's guarded
+browser. Without a writable selection, the picker states app destinations;
+selected retained source is refused. Root/generation checks after the picker
+prevent project switches or external refreshes from reusing a stale target.
 **Show all project files** opens the full Explorer without disabling the preview;
 the Zero status-bar action returns to the active controls. **Zero: Use Standard
 Explorer** disables the preview. No host layout storage or private APIs are used.

@@ -8,7 +8,7 @@ const {resolveAuthoringTarget} = require('./file-targets');
 function createStudentExplorer(vscode, host) {
   const events = new vscode.EventEmitter();
   const known = new WeakSet();
-  let generation=0, pending, model, disposed=false, watcher, timer;
+  let generation=0, pending, model, disposed=false, watcher, timer, choosing=false;
   let preview=host.workspaceState.get('zero.studentExplorerPreview',false) === true;
   const collapsed=vscode.TreeItemCollapsibleState.Collapsed, expanded=vscode.TreeItemCollapsibleState.Expanded;
   const node = fields => {const value={generation,...fields};known.add(value);return value;};
@@ -137,6 +137,35 @@ function createStudentExplorer(vscode, host) {
     await resolveAuthoringTarget(snapshot.root,context,kind);
     try {await host.execute(command,context);}finally{invalidate();}
   }
+  async function newItem() {
+    if(disposed||choosing||host.isBusy())return;
+    choosing=true;
+    try {
+      const root=await host.project(),attempt=generation;
+      const selected=tree.selection?.[0];
+      const target=selected&&(selected.area||selected.kind==='other')?selected:undefined;
+      if(target) {
+        await fresh(target);
+        if(target.retained)throw Error('Use Develop local library before adding files to its source.');
+      }
+      const relative=target?.kind==='file'?path.posix.dirname(target.relative):target?.relative;
+      const description=target?`In ${relative||'project root'}`:undefined;
+      const code=!target||target.area?.endsWith('code');
+      const choices=[
+        ...(code?[{label:'New class…',command:'zero.newClass',description:description||'In app Code'},{label:'New package…',command:'zero.newPackage',description:description||'In app Code'}]:[]),
+        {label:'New file…',command:'zero.newFile',description:description||'Choose an app location'},
+        {label:'New folder…',command:'zero.newFolder',description:description||'Choose an app location'},
+        ...(!target||target.area?[{label:'Import assets…',command:'zero.importAssets',description:target?.area?.endsWith('code')?'In the matching Assets area':description||'In app Assets'}]:[])
+      ];
+      const picked=await vscode.window.showQuickPick(choices,{title:'New',matchOnDescription:true});
+      if(!picked||disposed)return;
+      if(!choices.includes(picked))throw Error('Choose a New action from the project menu.');
+      if(attempt!==generation||await host.project()!==root)throw Error('The project view changed. Open New again.');
+      if(host.isBusy())return;
+      if(target)return await create(picked.command,target);
+      try {return await host.execute(picked.command);}finally{invalidate();}
+    }finally{choosing=false;}
+  }
   async function open(value) {
     const snapshot=await fresh(value);
     const entries=await ordinaryEntries(snapshot.root,path.posix.dirname(value.relative)==='.'?'':path.posix.dirname(value.relative));
@@ -179,7 +208,7 @@ function createStudentExplorer(vscode, host) {
   void vscode.commands.executeCommand('setContext','zero.studentExplorerPreview',preview);
   return {provider,tree,invalidate,isPreview:()=>preview,
     commands:{'zero.previewStudentExplorer':()=>setPreview(true),'zero.standardExplorer':()=>setPreview(false),'zero.showAllProjectFiles':showAll,
-      'zero.refreshStudentExplorer':invalidate,'zero.explorerOpenFile':open,'zero.explorerAction':invoke,
+      'zero.refreshStudentExplorer':invalidate,'zero.explorerNew':newItem,'zero.explorerOpenFile':open,'zero.explorerAction':invoke,
       'zero.explorerCopyAssetPath':copyAsset,
       ...Object.fromEntries(['newClass','newPackage','newFile','newFolder','importAssets'].map(name=>[`zero.explorer${name[0].toUpperCase()+name.slice(1)}`,value=>create(`zero.${name}`,value)]))},
     dispose(){disposed=true;generation++;clearTimeout(timer);watcher?.dispose();folders.dispose();tree.dispose();events.dispose();}

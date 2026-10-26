@@ -8,6 +8,12 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner refinement,2026-10-26: in the Student Explorer preview, remove the ZeroHub
+and New controls from the controls panel. Creation belongs in the native Project
+header's New menu and tree context menus; ZeroHub belongs in the Project overflow.
+Keep the existing guards and supported host controls. Default replacement still
+awaits the overall visual decision.
+
 Owner decisions consolidated through 2026-10-21. These are the current rules and
 supersede conflicting wording in the older dated notes below. Preserve them
 when adding features; a new feature does not reset the agreed interaction style.

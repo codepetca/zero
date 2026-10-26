@@ -39,6 +39,35 @@ test('selected packages create matching declarations through the guarded file co
   await assert.rejects(f.tree.commands['zero.explorerNewClass'](characters),/view changed/);
   await assert.rejects(f.tree.commands['zero.explorerNewClass']({...characters}),/view changed/);
 });
+test('Project New menu uses selected package and asset folders with canonical file actions',async t=>{
+ const f=await fixture(t);await put(f.root,'src/main/java/game/characters/Existing.java','package game.characters; class Existing {}');
+ const roots=await f.children(),game=(await f.children(roots[0])).find(n=>n.label==='game'),characters=(await f.children(game))[0];
+ f.tree.tree.selection=[characters];f.name='MenuHelper';let choices;
+ f.vscode.window.showQuickPick=async items=>{choices=items;return items.find(item=>item.command==='zero.newClass');};
+ await f.tree.commands['zero.explorerNew']();
+ assert.match(await fs.readFile(path.join(f.root,characters.relative,'MenuHelper.java'),'utf8'),/^package game.characters;/);
+ assert.ok(choices.some(item=>item.command==='zero.newPackage'));
+ const assets=(await f.children())[1];f.tree.tree.selection=[assets];f.name='images';
+ f.vscode.window.showQuickPick=async items=>{choices=items;return items.find(item=>item.command==='zero.newFolder');};
+ await f.tree.commands['zero.explorerNew']();
+ assert.equal((await fs.stat(path.join(f.root,'src/main/resources/images'))).isDirectory(),true);
+ assert.deepEqual(choices.map(item=>item.command),['zero.newFile','zero.newFolder','zero.importAssets']);
+});
+test('Project New menu keeps defaults explicit and rejects drift, duplicates and cancelled choices',async t=>{
+ const f=await fixture(t);f.name='DefaultHelper';let choices;
+ f.vscode.window.showQuickPick=async items=>{choices=items;return items[0];};
+ await f.tree.commands['zero.explorerNew']();assert.match(await fs.readFile(path.join(f.root,'src/main/java/DefaultHelper.java'),'utf8'),/public class DefaultHelper/);
+ assert.equal(choices[0].description,'In app Code');
+ let release,picks=0;f.vscode.window.showQuickPick=items=>{picks++;return new Promise(resolve=>{release=()=>resolve(items[0]);});};
+ const pending=f.tree.commands['zero.explorerNew']();while(!release)await new Promise(resolve=>setImmediate(resolve));
+ await f.tree.commands['zero.explorerNew']();assert.equal(picks,1);
+ f.current=f.root+'-elsewhere';release();await assert.rejects(pending,/view changed/);f.current=f.root;
+ f.vscode.window.showQuickPick=async()=>undefined;await f.tree.commands['zero.explorerNew']();
+ assert.deepEqual((await fs.readdir(path.join(f.root,'src/main/java'))).sort(),['DefaultHelper.java','Main.java']);
+ const roots=await f.children();f.tree.tree.selection=[roots[0]];
+ f.vscode.window.showQuickPick=async items=>{f.tree.invalidate();return items[0];};
+ await assert.rejects(f.tree.commands['zero.explorerNew'](),/view changed/);
+});
 test('selected asset files copy exact classpath literals; previews use supported file opens',async t=>{
   const f=await fixture(t);await put(f.root,'src/main/resources/images/player.png','image');const roots=await f.children(),images=(await f.children(roots[1]))[0],asset=(await f.children(images))[0];
   await f.tree.commands['zero.explorerCopyAssetPath'](asset);assert.deepEqual(f.copied,['"/images/player.png"']);

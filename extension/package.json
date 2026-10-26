@@ -366,6 +366,12 @@
       {
         "command": "zero.copyLibraryImports",
         "title": "Zero: Copy Library Imports"
+      },
+      {
+        "command": "zero.explorerNew",
+        "title": "Zero: New\u2026",
+        "shortTitle": "New\u2026",
+        "icon": "$(add)"
       }
     ],
     "views": {
@@ -524,6 +530,10 @@
         {
           "command": "zero.explorerCopyAssetPath",
           "when": "false"
+        },
+        {
+          "command": "zero.explorerNew",
+          "when": "zero.studentExplorerPreview"
         }
       ],
       "view/title": [
@@ -636,6 +646,16 @@
           "command": "zero.previewStudentExplorer",
           "when": "view == zero.controls",
           "group": "zero-preview@1"
+        },
+        {
+          "command": "zero.explorerNew",
+          "when": "view == zero.studentProject",
+          "group": "navigation@0"
+        },
+        {
+          "command": "zero.browseZeroHub",
+          "when": "view == zero.studentProject",
+          "group": "zero-libraries@1"
         }
       ],
       "view/item/context": [

@@ -164,8 +164,9 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   };await settle(()=>authCalls.length>0 && /GitHub setup/.test(webview.html));
   const previewUpdates=[],previewWebview={html:'',onDidReceiveMessage:disposable,postMessage:message=>{previewUpdates.push(message);return Promise.resolve(true);}};
   let disposePreview;
-  webviewProvider.resolveWebviewView({webview:previewWebview,onDidDispose:callback=>{disposePreview=callback;return disposable();}});
-  assert.match(previewWebview.html,/zero.newPackage/);
+  webviewProvider.resolveWebviewView({viewType:'zero.studentControls',webview:previewWebview,onDidDispose:callback=>{disposePreview=callback;return disposable();}});
+  assert.match(previewWebview.html,/zero.toggleApp/);
+  assert.doesNotMatch(previewWebview.html,/data-command="zero\.(?:newClass|newPackage|importAssets|browseZeroHub)"/);
   previewWebview.html='Independent live controls document';
   webviewProvider.resolveWebviewView(candidate);
   assert.equal(previewWebview.html,'Independent live controls document','Refreshing standard controls must not reload a second live controls document');
