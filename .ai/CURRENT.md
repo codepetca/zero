@@ -1,35 +1,26 @@
-# Zero 0.5.51 Mac release — active
+# Mac0.5.51 — public DMG verified; native metadata promotion
 
 Worktree /Users/stew/.codex/worktrees/student-explorer/zero, branch
-codex/student-explorer. Owner’s “Do it” on2026-10-26 authorizes syncing current
-main, final source review/CI/merge, signed/notarized Mac candidate preparation,
-fresh-profile Run/Publish acceptance and publication/promotion of this update.
-Includes reviewed student explorer, inherited guarded Git recovery, and browser
-JDK21 fallback. This supersedes the prior source-publication/release hold for
-this scope. No credential/account changes or production ZeroJams activation.
-Preserve primary /Users/stew/Repos/zero funding work, original actor checkout,
-student projects/profiles, public immutable assets and Windows21/manualkit17.
+codex/mac51-downloads. Owner's2026-10-26 “Do it” authorized source/CI/merge,
+signed/notarized Mac51 release, fresh-profile Run/Publish and native feed promotion.
+SourcePR208 merged6cdd208e with11green checks after two source reviewers and
+bounded targeted/artifact review. Root1338pass/3skip, website243pass/typecheck/build.
+Explorer java/resources, Project New/context rename/overflow, guarded Git recovery
+and private JDK21 browser fallback are included; saved Standard choices survive.
 
-Integrating main2d42a295 (policy/website/tutorial notice changes). Merge conflicts
-are only CURRENT/EVIDENCE; retain all delivery records and main’s content.
-Explorer default is approved locally: java/resources, conditional Libraries,
-Project New (+), overflow tools/ZeroHub, selected create/import/rename helpers.
-Saved Standard preference is retained. Authoritative current HEAD and individual reviewed receipts are in docs/EVIDENCE.md; do not infer release from
-local acceptance. Publish JDK fixef947ca5 passes22builder/58UI checks and actual
-my-study local WebFX export. Underlying Git recovery has reviewed1277-test and
-30-scenario Mac acceptance; PR-only states remain deferred.
+Published setup-v0.5.51 targets prep997c0843, built849a3527. Its one DMG matches
+5,969,017bytes/SHA2567a6930188772673544f11462242aef6f4f239dc7eb75161a300557534110ef6b
+on authenticated draft and anonymous public download; Ed25519 passes. Signed,
+AppleAccepted/stapled/Gatekeeper checks and13seal hashes/41protected paths pass.
+Fresh pinned Code1.141.0 profile with exact installed VSIX and bundled starter in
+disposable armorup/zero-release-smoke-0-5-51 passed sign-in, Run UI ready/Stop,
+guarded push and Publish. Actual public page renders Hello, world! Same maintainer
+Mac; no fresh physical device, school network, Intel or Sparkle delivery claim.
 
-Next: unused version0.5.51/nativebuild51; inexpensive/focused checks, two bounded
-independent cumulative source reviewers, source draftPR/selectedCI, candidate
-sign/notary/seal and fresh isolated installed-VSIX Run/Publish smoke, then merge /
-single-DMG publication and reviewed native metadata/feed promotion. Use current
-repo Mac-release scripts; preserve existing0.5.50 published installer/feed until
-promotion. No new three-asset manual-kit release is requested.
-
-Use orchestrate/pr-review workflows. Review ledger not yet launched; max7launches,
-1initialwave,4targetedwaves,1integrationwave,4fixbatches,60minutes per session,
-30minutes per reviewer. DeepSeek remains paused. Startup weekly remaining89%,
-storage230GB healthy; account usage is not task cost. Zero Dev source watcher3154
-and original3153/3025 remain; current user uses isolated dev window on my-study.
-Do not automate original student/profile cleanup. Saved app/runtime evidence in
-.verification/student-explorer; new release evidence in .verification/mac51.
+This change promotes only native manifests and the exact signed51 feed. Keep
+Windows21/manualkit17, immutable public assets, primary funding work, original
+actor checkout, normal profiles/student projects and production ZeroJams hold.
+Track promotion review/CI/merge and hosted-byte verification on PR209; record each
+result there after completion. See docs/MAC-CANDIDATE-0.5.51.md and docs/EVIDENCE.md. No credential
+changes, new manual kit release or production ZeroJams activation. DeepSeek paused.
+Zero Dev source watchers remain; user uses its isolated dev window on my-study.

@@ -11340,3 +11340,29 @@ coverage108tests retained. Ledger4review turns,1initial+2targetedwaves,2prosefix
 batches. Per-turn elapsed/tokens unavailable. Root rerun1338pass/3skip, website
 243pass/typecheck/build and final check pass. Signed/stapled candidate proof in
 MAC-CANDIDATE-0.5.51.md; sourcePR208 remains draft during exact artifact/QA gates.
+
+## Mac51 source merge/publication and promotion — 2026-10-26
+
+SourcePR208 merged6cdd208eb096296805f8343f2bf83b0fc86191fb after11green selected
+checks at997c0843. Source run40395961692 attempt1 was coordinator-cancelled after
+9minutes very slow Azure Ubuntu package downloads; unchanged attempt2 passed.
+Browser40395961704 and Windows40395961724 passed initially. Installed fresh-profile
+sign-in, bundled-starter Run UI ready/Stop, guarded push, Project/context/overflow
+menus and real Publish passed. Public Pages deployment40396711338 and Hello, world!
+were observed; see MAC-CANDIDATE-0.5.51.md for exact scope/limits.
+
+Final independent artifact/integration review mac_release_audit completed clean at
+997c0843, requested Sol/medium,13hashes/41protected paths and signed feed/DMG receipts
+agree; actual native verification logs reused. Source review ledger totals5turns,
+1initial+2targeted+1integrationwave,2prosefixbatches, no unresolved blocker; effective
+model, per-turn elapsed and token cost unavailable. Detailed ignored review/QA receipts
+retain actual scope; account usage is not task cost.
+
+Native setup-v0.5.51 published with one exact sealed DMG targeting997c0843, built849a3527.
+Draft and anonymous public bytes match5,969,017bytes/
+SHA2567a6930188772673544f11462242aef6f4f239dc7eb75161a300557534110ef6b;
+public Ed25519 verification passes. This native metadata change promotes measured
+installer/snapshot and exact signed XML, changing only feed JSON publication.status.
+Publication does not update Windows21/manualkit17 or activate production ZeroJams.
+Promotion review, all selected CI, merge and final deployed feed/download verification
+are separate gates recorded on that PR; no old asset was replaced.
