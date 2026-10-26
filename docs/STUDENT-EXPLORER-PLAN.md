@@ -10,6 +10,8 @@ remain separate. Existing Git recovery work and public student projects stay int
 ## Student experience
 
 Creation uses the native Project header’s New… (+) menu and tree context menus.
+Only New stays inline; Refresh, Show All Project Files and Collapse All live in
+Project’s three-dot menu.
 ZeroHub lives in Project’s overflow; neither control appears in the student
 controls panel (owner refinement,2026-10-26). New opens an anchored dropdown,
 uses the selected file’s parent or selected folder, and names destinations using

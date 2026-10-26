@@ -33,4 +33,7 @@ available; original3153/3025 and profiles remain intact. DeepSeek is paused.
 Naming refinementb8134c54 uses java/resources across the app and local library
 tree, prompts and errors; Libraries is unchanged. 70 focused checks and Mac
 root/prompt verification pass; independent Luna/medium review is clear. Evidence
-and updated screenshot: docs/EVIDENCE.md. No remaining local plan work.
+and updated screenshot: docs/EVIDENCE.md. Toolbar refinement25512c6f leaves only
+New (+) visible; Refresh, Show All and Collapse All are in Project overflow.
+20 focused checks/check/diff, independent Sol/medium review and real Mac menu /
+collapse/refresh/full-Explorer-return proof pass. No remaining local plan work.

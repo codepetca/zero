@@ -1,5 +1,31 @@
 # Delivery evidence index
 
+## Project toolbar overflow — 2026-10-26
+
+Owner requested moving Project’s Refresh/Show All/etc. icons into its three-dot
+menu while keeping New (+). Reviewed source25512c6fff7dfd9e15617a582184a6dddc41d63e
+from base48b4e35b leaves only New in the navigation group; Refresh, Show All
+Project Files and Collapse All are secondary menu actions. The host collapse
+icon is disabled; the menu command focuses Project before calling the native
+list collapse command and stops after disposal. No filesystem behavior changed.
+
+20 focused student-explorer/project-menu/extension checks and configuration,
+syntax, command-contract, local-doc-link and diff checks pass. Actual Mac CUA
+verified header with only +/overflow, all three relocated menu items, Collapse All
+collapsing Project roots, Refresh preserving the view and Show All → full native
+Explorer → Back to Zero. Main remains open, java expanded. Screenshot:
+.verification/student-explorer/screenshots/project-overflow-tools.png. Prior
+file/Java/WebFX/browser evidence is reused for untouched surfaces. Windows and
+minimum-host interaction remain unproven. Native menu placement follows the
+[VS Code tree-view guide](https://code.visualstudio.com/api/extension-guides/tree-view).
+
+One fresh GPT-6 Sol/medium reviewer, review_project_toolbar, inspected the complete
+six-file diff and registration/navigation/disposal callers: clean,0findings,
+1launch/1wave/0fix batches. Requested model/effort known; effective configuration,
+elapsed and token telemetry unknown. Native proof was completed by coordinator;
+reviewer reused reported focused checks and made no edits. Final docs only add
+this receipt and current behavior. No push, release or publication occurred.
+
 ## Standard folder names in Student Explorer — 2026-10-26
 
 Owner requested java/resources instead of Code/Assets, with Libraries unchanged.
