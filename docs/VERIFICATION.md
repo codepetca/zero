@@ -4913,3 +4913,14 @@ SCM tracking and persistent Zero return. Disposable repository final main is
 prior13815ms; merge6007ms versus19778ms. Original my-greeting restored unchanged.
 No publishing/releases or new source PR/CI. School network, fresh Mac, physical
 Windows/minimum host and successful real native-auth transfer remain separate.
+
+## Git recovery source / incomplete native matrix — 2026-10-26
+
+Code645504c:1277root tests pass,3existing skips;55focused UI/auth/gallery tests and
+root configuration/syntax/command/link checks pass. Independent initial and
+targeted reviews report no remaining source blockers after two correction batches.
+All30non-PR scenarios have actual disposable-Git backend evidence (29passes; busy
+partial supplemented by actual Mac verification). Service faults are injected.
+Native Mac:12passes,1partial,17pending because host locked. Four PR-only cases
+remain deferred. This is no release/publishing or full live-GitHub acceptance.
+See [the scenario-by-scenario record](GIT-RECOVERY-ACCEPTANCE.md) before continuing.

@@ -10698,3 +10698,24 @@ Physical Windows, Git2.31 binary, minimum VSCode, fresh Mac, school network and
 successful real-account native adapter transfer remain unproven. User confirmed
 this connection is not the school network. Published Mac50/core0.3.0/manualkit17/
 Windows21 and the ZeroJams publication hold remain unchanged.
+
+## Git recovery implementation and partial Mac acceptance — 2026-10-26
+
+Reviewed local code645504c, base7e97103c, implements explicit main/current-feature
+updates, checkpoints, guided text and whole-file conflicts, safe cancellation,
+native fallback, saved-push recovery and exact confirmation. Root1277pass/3existing
+skips; focused UI/auth/gallery55pass; root checks pass. Two independent initial
+reviews and two targeted passes resolved one work-preservationP1 and twoP2s;
+remaining source blockers none. No source push/PR, publishing or release.
+
+All30non-PR cases exercised real disposable Git repositories with constrained
+injected transport:29backend passes and one busy partial, subsequently covered
+by actual Mac progress/duplicate-action/release. Genuine offline Maven compiler
+failure, correction and explicit upload pass. Four PR-only states deferred.
+Actual Mac interface:12scenario passes, one interrupted-confirmation partial,
+17pending. The Mac locked before the expired-sign-in case; owner unlock requested.
+Do not treat source/backend completion as full native acceptance. Full matrix,
+limits and continuation are in [Git recovery acceptance](GIT-RECOVERY-ACCEPTANCE.md).
+Raw `.verification/git-recovery-flow/` retains fixture manifests/ref/file hashes,
+source-bound tests/reviews, events, snapshots, failed setup attempts and QA-only
+harness corrections. Original student project/public pilot HEAD/status unchanged.
