@@ -39,7 +39,9 @@ Human request handling and legal/retention procedures need operational follow-up
 no automatic request/deletion or guardian-verification service is claimed.
 
 A new purpose or collector requires updating this inventory/notice and obtaining
-appropriate consent where required; a page visit or GitHub grant is not proof
-of policy/terms acceptance. Relevant primary guidance: [OPC meaningful consent](https://www.priv.gc.ca/en/privacy-topics/collecting-personal-information/consent/gl_omc_201805/),
+appropriate consent where required. Version2026-10-25 Terms use prospective
+use-based agreement language after notice, but no explicit assent registry is
+implemented. A page view or GitHub grant is not a recorded privacy-consent or
+guardian-consent event. Relevant primary guidance: [OPC meaningful consent](https://www.priv.gc.ca/en/privacy-topics/collecting-personal-information/consent/gl_omc_201805/),
 [OPC retention/accountability principles](https://www.priv.gc.ca/en/privacy-topics/privacy-laws-in-canada/the-personal-information-protection-and-electronic-documents-act-pipeda/pipeda-compliance-help/pipeda-compliance-and-training-tools/pipeda_sa_tool_200807/).
 These support policy design, not a compliance certification.

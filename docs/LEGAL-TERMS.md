@@ -1,60 +1,57 @@
-# Proposed Zero terms and disclaimer
+# Zero terms and disclaimer — owner-authorized rollout
 
-Local draft, 2026-10-25. Owner requested enduring notice and protection for
-Codepet beyond beta. Source: `website/app/terms/page.tsx`; route `/terms`.
-No legal agreement is activated, no acceptance is recorded, and no publication
-is authorized by this document. The page explicitly identifies that status.
+Owner authorized removing draft status and rolling out the existing terms on
+2026-10-25, then requested language that users accept through use. Public source:
+`website/app/terms/page.tsx`, version2026-10-25, effective on publication of this
+active version. Publication is performed through reviewed PR/CI/merge; this file
+is not proof of deployment or an individual user's acceptance.
 
-The draft covers Zero desktop tools/websites/ZeroHub/Codepet-operated services, all release
-stages, student-owned repositories, independent backups, public material,
-third parties, acceptable use, service changes, as-is warranties, excluded loss
-categories and a proposed aggregate liability cap. It preserves mandatory rights,
-privacy duties and separately licensed software. No forced arbitration, class
-waiver, broad student indemnity or promise of immunity from claims is included.
+## Agreement language and boundaries
 
-Persistent footer links open separate plain Privacy and Terms pages. The beta
-notice also links directly to them; landing downloads have no duplicate links. The boxed overview and policy navigation
-are removed; `/legal` redirects to `/privacy` for old previews/bookmarks. Linking/visiting/downloading is not
-represented as contractual assent. Existing released desktop apps and GitHub
-OAuth consent do not record agreement to these new terms.
+The Terms state that access/use after publication and after the terms are brought
+to the user's attention constitutes agreement. The shared footer visibly states
+“By using this site, you agree to the Terms”, alongside its direct Terms link.
+The readable-source page also includes that footer. Scope covers Zero/ZeroHub and
+related Codepet-operated services that display or expressly link to these terms;
+association with Codepet alone does not bring an unrelated product under them.
+Past visits, guardian consent and new personal-information uses are not deemed
+accepted retrospectively. Required express consent and mandatory rights remain.
 
-## Decisions to confirm before making terms effective
+This is a prospective contractual condition, not an assertion that every visitor
+has actually read/agreed, nor a promise of enforceability or immunity from claims.
+No acceptance cookie, click-through/account registry, guardian-verification flow
+or new collector is added. Do not fabricate historical assent records. Existing
+released desktop apps and GitHub authorization are not evidence of acceptance of
+this version. Separately licensed software remains governed by its licenses;
+MIT rights and third-party notices are preserved.
 
-Have qualified Canadian counsel review scope, consumer applicability, minors,
-contributor coverage, warranty exclusions, liability limits and jurisdiction.
-The proposed cap is the greater of CA$100 and fees paid directly to Codepet for
-the affected Service during the preceding twelve months; this is a drafting
-proposal, not an owner-confirmed commercial policy. Ontario/Canadian governing
-law is proposed based on the recorded Ontario business address; federal
-incorporation does not itself decide governing law.
+## Owner approval and ongoing review
 
-Confirm and implement an age-appropriate agreement flow wherever agreement is
-needed, including whether/when a guardian must agree and how existing users are
-notified. Set the effective date only after approval. If acceptance evidence is
-needed, separately design minimal version/account/time records, retention,
-re-consent and withdrawal behavior. A local checkbox or GitHub permission grant
-alone should not be represented as proof of enforceable agreement.
+The owner approved publication of the current text, including its existing cap
+(greater of CA$100 or affected-service fees paid directly to Codepet in the prior
+12months), Ontario/Canadian governing-law provision, risk/disclaimer language and
+mandatory-law exceptions. The prior draft was an agent recommendation for legal
+review, not a repository requirement for lawyer approval or a user-imposed hold.
+Qualified legal review remains advisable; no legal certification is claimed.
+The policy does not introduce forced arbitration, a class waiver or blanket
+student indemnity, and does not exclude fraud/wilful misconduct/non-waivable rights.
 
-The privacy notice now has a [source-backed inventory](PRIVACY-DATA.md) covering
-browser/editor data, providers, GitHub access, storage/cookies, public sharing,
-aggregate counters, controls and retention limits. Unknown deployed provider
-retention/regions/backups and operational request/child arrangements remain
-explicit; do not treat source inspection as live configuration verification.
-Counsel review and operational privacy/retention procedures remain needed before
-claiming compliance. Terms cannot substitute for safeguards or required consent.
+Operational privacy/retention requests, child/guardian arrangements and any
+future evidence-backed assent flow remain separate work. The [privacy inventory](PRIVACY-DATA.md)
+distinguishes implemented data handling from unknown deployed provider settings.
+An updated public Terms page does not authorize undisclosed personal-data uses.
 
-Owner requested implementation of the recommendations on2026-10-25. MIT text
-is unchanged; the corporate holder is clarified to Codepet Inc. in root LICENSE
-and the current original-Zero export/Jam template notices. Retained migrated
-library and third-party copyright notices are preserved, as are immutable public
-release assets. This is a naming clarification, not a transfer of copyright.
+Root and current original-Zero export/Jam MIT notices already clarify Codepet Inc.
+without changing MIT's body. This rollout does not change them or immutable
+published assets, collect permissions, activate production Jams or release an
+installer. Independent source review is not independent legal advice.
 
 ## Sources checked 2026-10-25
 
 - [Ontario Consumer Protection Act, 2002, section 7](https://www.ontario.ca/laws/statute/02c30):
   statutory consumer rights can apply despite an agreement or waiver. Search
-  excerpts were accessible; direct current consolidation returned403. Verify
-  current commencement/replacement and applicability during legal review.
+  excerpts were accessible; direct current consolidation returned403. Legal
+  applicability and enforceability remain context-dependent.
 - [Tercon, 2010 SCC4](https://decisions.scc-csc.ca/scc-csc/scc-csc/en/item/7843/index.do):
   exclusion-clause interpretation, unconscionability and public-policy limits;
   a commercial tender decision, not proof of enforceability for students.

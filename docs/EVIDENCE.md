@@ -1,5 +1,36 @@
 # Delivery evidence index
 
+## Owner-authorized active Terms and prospective use agreement — 2026-10-25
+
+After PR205 publication, owner requested removing draft status/rolling out Terms,
+then requested use-based acceptance for Zero/related Codepet services. Version
+2026-10-25 now takes effect on publication. Terms/footer state agreement through
+future use after publication and notice; scope is Zero/ZeroHub and related
+Codepet-operated services displaying/expressly linking these terms. This is not
+a claim of historical assent, unrelated-product assent or guaranteed enforceability.
+No acceptance store, permission/auth change, new collector or privacy/guardian
+consent claim is added. Existing non-waivable-rights, MIT, liability-cap and
+jurisdiction text is preserved. Source viewer gets the same visible footer.
+Privacy copy distinguishes use-based terms from consent required by privacy law.
+
+All243website tests,3focused rendered legal-page checks, TypeScript, webpack
+production build, rootcheck and whitespace pass. New contract checks verify active
+version/no draft wording, prospective scope, non-waivable/software rights and
+privacy-consent separation. Chromium Terms1280/390/320px light/dark checks pass
+for effective date, no draft wording/overflow, visible footer/one Terms link;
+Privacy/Source/footer navigation and no duplicate landing link pass.390px dark
+screenshots inspected; ignored `output/playwright/terms-*`, logs `/tmp/zero-terms-rollout-*`.
+Deployment and physical Safari/iPhone/assistive technology not established by these
+local checks. Policy source-review/counsel limits are explicit in LEGAL-TERMS.md.
+
+Canadian primary guidance was checked for mandatory rights, clause enforceability
+and distinct meaningful privacy consent. Owner approval supersedes the agent's
+prior advice to await counsel; no repository rule required lawyer approval.
+73%weeklyremaining and healthy229.2GB observed; no task-cost attribution. Independent
+fixed-head policy/integration reviews and selected CI remain publication gates;
+final PR/merge/deployment proof is recorded in the task and ignored rollout receipt.
+No native installer/release, third-party license or production Jams change.
+
 ## Docs contents responsiveness and owner-authorized PR — 2026-10-25
 
 Owner authorized PR/merge, then reported slow expand/collapse in Docs. Source
