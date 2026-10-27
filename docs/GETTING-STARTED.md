@@ -3,7 +3,7 @@
 This guide describes Mac setup 0.5.49, including guided GitHub sign-in and
 project access before tutorial choices or repository details. The shared GitHub
 App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
-source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
+source. Windows keeps the unsigned 0.5.54 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
 Local Mac candidate **0.5.51** includes Zero core **0.3.0**, the Zero-first
@@ -32,7 +32,7 @@ IT if installation is blocked. Automatic Zero updates are off, and interactive
 Windows installation testing is still pending. Download a newer installer
 manually when needed.
 Choose **Manual setup (ZIP)** beside the Windows installer on the download page
-for the matching 0.5.21 complete kit. You can skip its setup scripts and follow
+for the matching 0.5.54 complete kit. You can skip its setup scripts and follow
 **One-time setup** below using existing tools or help from IT. The ZIP also
 supports manual setup on a supported Mac;
 it includes the starter, extension, profile and keyboard shortcuts. A separate

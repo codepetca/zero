@@ -1,5 +1,22 @@
 # Windows automatic setup and updates
 
+## Windows0.5.54 Java isolation preview — 2026-10-27
+
+The owner requested the Windows installer update with the reviewed bundled-Java
+fix. Windows0.5.54 remains an unsigned preview with automatic updates disabled.
+It ships PR217’s managed Java21 selection, isolated settings repair and managed
+terminal, preserving system Java, shell files and ordinary VS Code settings.
+A matching manual ZIP contains the exact kit bytes embedded in that installer.
+Mac0.5.54 and all older release assets remain unchanged.
+
+The candidate comes from successful hosted-Windows run40549637565; its actual
+clean synthetic merge source0c417cc03a597ec29582189059e9416ed8f55834 has the same
+tree as canonical maincbcbb51e. Automated install/bootstrap/reopen and real
+private-Java JavaFX/offline checks passed; this does not set
+`nativeWindowsTested:true` or claim interactive/school-device acceptance.
+See [candidate evidence](WINDOWS-CANDIDATE-0.5.54.md).
+
+
 ## Unsigned preview — owner decision, 2026-10-19
 
 The owner authorized publishing the existing unsigned 0.5.21 development EXE on

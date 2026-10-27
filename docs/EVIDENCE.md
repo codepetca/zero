@@ -1,5 +1,58 @@
 # Delivery evidence index
 
+## Windows0.5.54 preview public bytes — 2026-10-27
+
+[Unsigned installer](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.54)
+and [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.54)
+are public prereleases, each with exactlyone measured asset, actualtagtarget
+0c417cc03a597ec29582189059e9416ed8f55834. Both authenticated draft downloads and
+anonymous public downloads match sealed local sizes/hashes in the candidate doc.
+Macsetup54 remains latest; no earlier assets/feed or signing controls changed.
+
+Artifact Sol/high java_review/5 complete/clean atb2203adf; metadata Terra/high
+windows_promotion_review/1 complete with1accepted stale Product version reference,
+fixedf00831ea and targetedwindows_promotion_review/2 complete/clean. Unchanged
+artifact/source coverage reused; no runtime changes. Windowsphase3reviewerturns,
+1fixbatch; earlierJava4turns retained.243website tests/typecheck/production build,
+9manifestchecks and config/doc/syntax pass. Rendered download anchors resolve to
+Windows54EXE/manualZIP and unchangedMac54; existing unsigned label/setup help
+retained. Updater-off is a manifest/release-note fact, not new download-page copy.
+
+Website promotion and final exact-head CI/merge remain next. Detailed publicbyte,
+localrender and original GitHubartifact/report evidence:.verification/windows54/.
+NativeWindowsTested=false, signedupdatesoff; no physical/school/SmartScreen or
+interactiveWindowsRun/terminal acceptance claimed.
+
+## Windows0.5.54 preview preparation — 2026-10-27
+
+Owner asked this chat to update the Windows installer with the bundled-Java fix.
+Existing unsigned-preview/updater-off model is retained; signed feeds, Mac54
+assets and system/normal editor settings remain untouched. Terra/medium bounded
+read-only Windows release-path worker identified matching-manual schema and
+newest successful hosted artifact run40549637565. Coordinator verified the
+actual clean synthetic source0c417cc03a597ec29582189059e9416ed8f55834 tree equals
+canonical maincbcbb51e (treecacb0c7b07efcdb3bb0c377be03bed664b7b1f34).
+
+Exact EXE14719218bytes/SHA25610ea389c11572f77fe3aa54a0f1d895f5be5d4d15e630983893c4fb130c263f9
+embeds the measured full package; its app contains one exact kit matching
+4363743bytes/SHA2562d7e218f49dfc8c7861a51b5725a9ec1f14a73ff2dde358524c3cf39545ab994.
+135VSIXsourcefiles match current source; actual app’s disabled updater bytes and
+package identity verified. Install/reopen and JavaFX/offline receipts bind this
+Setup/source/version and pass. Keep nativeWindowsTested=false; hosted Server
+automation does not prove physical/interactive Windows acceptance.
+
+Matching EXE/ZIP will use separate windows-preview-v0.5.54/windows-manual-v0.5.54
+prereleases, then a metadata-only PR promotes existing warning/download controls.
+No runtime/API/schema/version/signing changes. Local9manifesttests,243website
+tests, typecheck and config/syntax/doc-link checks pass; build/review/publication
+pending. Detailed candidate/proof and hosted receipts:.verification/windows54/.
+Initial storage225.99GB healthy; accountmetadata100% but normal execution works,
+existing lowusage waiver honored, no reset/account/model-setting change or bypass.
+Windows review ledger:2initial reviewers (Sol/high provenance/safety, Terra/high
+metadata/compatibility),0fixbatches; reuse original Java source reviews. Previous
+Java phase4reviewerturns remains recorded; no silent counter reset. Effective
+models/tokens/elapsed unknown; no claimed savings or destructive cleanup.
+
 ## Mac54 promotion review and local checks — 2026-10-27
 
 mac54_candidate_review targetedturn, requestedGPT-6.1Sol/high: complete/clean,
@@ -11897,3 +11950,16 @@ proof reused for identical component/CSS. Full website tests and real final CI
 recorded at PR delivery; production verification follows merge. Logs remain
 .verification/footer-removal/. This receipt/CURRENT update only documents review.
 No app release, account changes or ZeroJams activation authorized.
+
+Windows54 initial review receipts atb2203adf: Sol/high java_review/5 complete
+artifact/provenance/security review clean. Independently verified all3remote
+artifact ZIP GitHub digests and6contained files, named CLR ZeroKit.zip and
+WindowsUpdater.json resource binding, absent PE signatures,135sourcefiles and
+Setup/package/kit/report lineage. Terra/high windows_promotion_review/1 complete
+9-filemetadata/consumer review accepted1P2 stale current Product Windows version
+reference; corrected in batch1. Dated/historical Windows21 records preserved.
+243website tests/typecheck/production build and9manifesttests pass. Both exact
+authenticated draft downloads match local sealed bytes and each draft has one
+asset, actualsource0c417cc0, prerelease=true. Public-byte gates still pending.
+Ledger: priorJava4turns + Windows2initialturns;1Windowsfixbatch, targeted doc review
+next. No actual elapsed/token telemetry or savings claim.
