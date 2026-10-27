@@ -1,51 +1,52 @@
-# Mac 0.5.54 — sealed candidate, publication authorized
+# Mac 0.5.54 published; download/feed promotion — 2026-10-27
 
-Combines bundled Java isolation from [PR217](https://github.com/codepetca/zero/pull/217)
-with publishing stage feedback, Open published app below Run and Tutorial docs
-wording from [PR215](https://github.com/codepetca/zero/pull/215). The website footer
-removal [PR216](https://github.com/codepetca/zero/pull/216) is already live.
-Owner explicitly approved source PR/CI/merge and combined Mac0.5.54 publication.
+[Native release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.54) is
+public with one immutable DMG. It includes bundled Java isolation from
+[PR217](https://github.com/codepetca/zero/pull/217), plus publishing stage feedback,
+Open published app below Run and Tutorial docs from
+[PR215](https://github.com/codepetca/zero/pull/215). Footer removal
+[PR216](https://github.com/codepetca/zero/pull/216) is already live.
 
-Clean built source:5f5a80d4089679a2645f0ec40df4928b456cec46. Preparation source:
-2c7d6692368e0bbb51ccae39a3ddd206172f6ab2. JavaPR217 merged
-39e7d32896b78a35f4c8c6fc76145ebf6a449063 after all11checks passed; its source
-matches reviewed1936dd3a. The candidate's protected packaged/native sources match
-the integrated tree; only version/build staging and measured native metadata are
-new in this release PR. Core0.3.0 and verified tutorial scaffolds remain unchanged.
+JavaPR217 merged39e7d328 after all11checks. Mac source
+[PR218](https://github.com/codepetca/zero/pull/218) merged
+6e2061b58bf7965e25682ad1c89e862dee3bba85 after all11final-headchecks passed.
+Its first source job hit20minutes during Ubuntu mirror downloads; unchanged-head
+attempt2 passed. No code/check/credential change or gate bypass was used.
+Core0.3.0 and the three verified95filetutorial scaffolds remain unchanged.
 
-Exact stapled DMG: `Zero-0.5.54-macos.dmg`,5999134bytes, SHA256
+Clean built source5f5a80d4089679a2645f0ec40df4928b456cec46; sealed preparation
+and actual native tag target2c7d6692368e0bbb51ccae39a3ddd206172f6ab2.
+`Zero-0.5.54-macos.dmg`:5999134bytes, SHA256
 `53f2ba45064b22cb232e14cb1b1ae296c4cd81285d7e789a49ef46e5e669725a`.
-Apple Accepted submission9bf1ee0c-f932-458b-838a-2b66cfef777a. Developer ID,
-arm64/x86_64 signatures, staple, Gatekeeper, exact kit payload/source/licenses,
-wrapper modes and extracted Maven compile passed. Build54 archive and feed
-Ed25519 signatures are sealed locally; publicMac53 feed/downloads stay unchanged.
-Seal: `dist/candidates/mac-0.5.54-2c7d6692368e/`; never rebuild or edit sealed bytes.
+AppleAccepted9bf1ee0c-f932-458b-838a-2b66cfef777a. Developer ID, both architecture
+signatures, staple, Gatekeeper, exact payload/source/licenses/wrapper modes and
+extracted Maven compile pass. Independent candidate review complete/clean verified
+all13sealed hashes,135VSIXsources, source equivalence and archive/feedEd25519.
+Seal retained at `dist/candidates/mac-0.5.54-2c7d6692368e/`; no rebuild or edits.
+
+Authenticated draft and anonymous public downloads equal the exact sealed DMG;
+archive signature verifies. GitHub confirms the exact preparation tag target.
+Promotion copies the exact signed build54 XML, changes only feedJSON publication
+status, and publishes installer/snapshot metadata using the verified actual URL.
+Promotion independent Sol/high review is complete/clean throughe93c029e; current
+website243tests/typecheck and configuration checks pass. Final promotionPRCI/merge
+and deployed download/feed-byte verification remain; publicMac53 selectors stay
+until that deployment.
 
 Same-Mac installed53→54 preparation reached Opening Zero and final native
-readiness reports ready=1, javaHomeBlocked=0. Installed bundle ordinary bytes,
-modes and symlinks match the readonly DMG; installed extension135sourcefiles match
-source. A separate officialCode1.143.1 QA profile loaded the exactVSIX while its
-host carried staleJava17/oldZeroJava markers. An original standalone starter app
-using only Zero/Java reached App UI ready and stopped through the sidebar. Actual
-new terminal output showed private JAVA_HOME, java21.0.12.1 and javac21.0.12.1.
-Installed-module checks also verified inherited JVM/Maven flags are removed,
-stale-editor selection recovers, parent environment stays unchanged and a missing
-private runtime gives a repair error. All recorded shell/ordinaryVSCode files and
-unrelated Zero/terminal preferences are preserved.
+readiness reports ready=1, javaHomeBlocked=0. Installed bundle bytes/modes/links
+and135extension sources match the candidate. A separate officialCode1.143.1 QA
+profile with staleJava17/oldZeroJava markers ran a Zero-only original starter app
+through App UI ready→Stop. Actual new terminal showed privateJava/javac21.0.12.1.
+Installed-helper checks additionally verify JVM/Maven flag removal, stale-editor
+recovery, unchanged parent environment and missing-private-runtime repair errors.
+Global shell/ordinaryCode files and unrelatedZero/terminal preferences are preserved.
+StartPage signed-out button, Tutorialdocs label and opening bundled lesson0 worked.
+Uncloned tutorial Run correctly rejected; no bypass/newGitHubrepo. OwnedQAwindow
+closed. FreshMac/schoolnetwork, physicalIntel/Windows, actualSparkledelivery and
+newlivePublish/historicallink retrieval are not claimed by this acceptance.
 
-Installed StartPage shows Sign in to GitHub while signed out. Tutorial docs
-label and opening bundled lesson0 worked. An unpacked tutorial without its student
-repository was correctly rejected; no tutorial guard bypass or GitHub repository
-recreation. QA used local fixtures and ended with its owned editor window closed.
-Fresh device/school network, physicalIntel/Windows, actualSparkle delivery and new
-live app publication/historical-link retrieval are not claimed by this smoke.
-
-Version staging independently reviewed clean (Luna/medium). Local release
-contracts11passed/1explicit fixture skip; current configuration checks and3template
-readiness records passed. Earlier UI/Java reviews and their exact-head CI are
-reused for unchanged runtime source. Independent Sol/high candidate review is complete/clean through832b3eac; all13
-sealed hashes, source equivalence, signatures and public fallback selection
-checked. Website243tests/typecheck pass. This source
-PR's final CI/merge remain required before immutable DMG publication and separate
-reviewed download/feed promotion. Evidence:ignored `.verification/mac54/`.
-Preserve Mac53/older assets, Windows21/manualkit17, student projects and ZeroJams hold.
+Localwebsite243tests/typecheck, configuration,3template readiness and11release
+contracts (1explicit fixture skip) pass. Owner approved source/publication and
+promotion. Preserve old native assets, Windows21/manualkit17, primary/student work
+and productionZeroJams hold. Receipts/logs:.verification/mac54/.
