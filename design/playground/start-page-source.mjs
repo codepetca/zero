@@ -1,6 +1,7 @@
+import {publishingSnapshots,publishingStates} from './publishing-source.mjs';
 import startPage from '../../extension/src/start-page.js';
 
-export const componentStates = ['ready', 'signed-out', 'install', 'checking', 'unavailable', 'busy'];
+export const componentStates = ['ready', 'signed-out', 'install', 'checking', 'unavailable', 'busy', ...publishingStates];
 export const componentThemes = ['light', 'dark', 'hc'];
 
 // Render the real panel with an in-memory host. No extension activation, command,
@@ -15,13 +16,14 @@ export async function startPageSource(state = 'ready') {
       postMessage(message) { snapshot = message; return Promise.resolve(true); }
     }
   };
-  const phase = state === 'busy' ? 'ready' : state;
+  const publishing=publishingSnapshots[state];
+  const phase = state === 'busy' || publishing ? 'ready' : state;
   const controller = startPage.createStartPage({
     ViewColumn: {Active: 1},
     window: {createWebviewPanel: () => panel},
     commands: {executeCommand() { throw new Error('Commands are unavailable in the design fixture'); }}
   }, {
-    getState: () => ({phase, accountId: phase === 'signed-out' ? undefined : '123456', accountLabel: 'armorup', busy: state === 'busy', status: state === 'busy' ? 'Fixture: creating a project…' : ''}),
+    getState: () => ({phase, accountId: phase === 'signed-out' ? undefined : '123456', accountLabel: 'armorup', busy: state === 'busy' || Boolean(publishing?.publishProgress||publishing?.busy), status: publishing?.status || (state === 'busy' ? 'Fixture: creating a project…' : ''),publishProgress:publishing?.publishProgress}),
     listRecent: async () => [{path: '/Students/armorup/Greeting App'}, {path: '/Students/armorup/Study Quiz'}]
   });
   controller.show();

@@ -8,12 +8,24 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner publishing progress refinement,2026-10-27 (local source only): retain the
+changing publishing status and add one slim native-theme stage bar beneath it.
+Completed stages fill; the current stage moves while its duration is unknown.
+Reuse and resumed runs count only their applicable stages. Keep it active through
+live-page verification and browser launch, then clear it before the final result.
+Errors, cancellation, required actions and stopped local monitoring clear it.
+Respect reduced motion and high contrast. No installer or website publication.
+
 Owner publishing refinement,2026-10-26: the Run dropdown has one **Publish & open
 app** action. Save and verify the latest app, reuse its verified current publication
 without compiling/uploading, otherwise publish it before opening. Never open an
-outdated page after cancellation, failure or intervening edits. Remove the standalone
-Open app and Copy playable link controls; the browser address is the shareable URL.
-Advanced saved-link commands remain in the palette. Current source only; published
+outdated page after cancellation, failure or intervening edits. Latest owner
+refinement,2026-10-27: after a verified publication, show a quiet **Open published
+app ↗** action immediately below Run. It opens the previously published version
+after read-only verification, even with newer local edits; it never republishes.
+Hide it for another project/repository/account and disable it while busy. Keep
+Copy playable link in the advanced palette; the browser address is shareable.
+Current source only; published
 kits keep their bundled behavior until a separately authorized release.
 
 Owner toolbar refinement,2026-10-26: keep only New (+) in the Project title bar.

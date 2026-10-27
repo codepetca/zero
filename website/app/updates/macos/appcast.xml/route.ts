@@ -1,4 +1,4 @@
-import snapshot from '../../../../.generated/content.json';
+import snapshot from '../../../../.generated/release.json';
 import {publishedFeedResponse} from '../../../../../scripts/mac-update-feed.mjs';
 
 export const runtime = 'nodejs';

@@ -1,21 +1,22 @@
-# Bundled Java isolation — implemented locally
+# Bundled Java — authorized source publication
 
-Branch codex/bundled-java, base9b030d24; reviewed source94c2cac9.
-Owner requested Zero use its bundled Java without changing students' system Java
-or settings. Native Run/browser builds select verified private Java21 explicitly;
-old editor processes recover current selection from native identity/kit receipt.
-Zero-only terminals/settings are repaired; ordinary/manual installations retain
-their own tools. BOM/JSONC preferences and invalid existing files are preserved.
+Owner authorized continuation2026-10-27 in Zero Architecture: “approved. Try now.
+Continue with the Java PR, CI and merge, then publish the combined Mac0.5.54
+release.” Human turn01a17e09-176e-7311-a127-1bc438609555 verified via read_thread.
+Existing account execution works; low-usage/workflow stops waived. Do not consume
+resets/credits purchases, change accounts/settings or bypass an actual rejection.
 
-Verification:96focused JS/dev tests,357Mac native assertions,2238Windows wrapper
-checks+updater; full initial1365pass/3skip reused for unchanged boundaries. Real
-Temurin21 starter20-source compile (release17), runtime selection, zsh-f oldrc
-isolation and old-editor handoff checks pass. Independent complete initial review
-plus2targeted turns clean at94c2cac9 after2fixbatches. No further code changes.
-Evidence:docs/EVIDENCE.md and ignored .verification/bundled-java/.
+This chat owns source PR/CI/merge on codex/bundled-java. Architecture owns the
+single combined Mac0.5.54/build54 release in codex/mac54-release. Keep source kit
+version unchanged; no installer build/assets/feed changes in this chat.
+Integrating mainfa0d6b74: PR215 publishing feedback/Open published app/Tutorial
+docs label and PR216 footer removal are retained, along with Mac53 metadata.
+Only CURRENT/EVIDENCE conflicts require manual resolution; code merges cleanly.
 
-No push/PR/merge/installer release. Next publication needs owner authorization
-and current CI/release gates. Keep this task worktree for review; primary funding
-work and other active worktrees are untouched. Mac53 sealed assets, Windows21/
-manualkit17 and productionZeroJams hold remain unchanged. Physical Windows,
-fresh-device/school-network and actual VSCode terminal/update UI untested.
+Reuse complete source review94c2cac9 and96focused/357Mac/2238Windows+updater,
+initial1365pass/3skip. Review actual integration delta and run exact-head CI.
+Evidence:docs/EVIDENCE.md and .verification/bundled-java/. No new public API,
+project pins, global Java/shell/ordinary Code settings or credentials changed.
+Preserve all artifacts/primary funding/student projects and productionZeroJams
+hold. Physical Windows and real editor terminal/upgrade acceptance remain gaps;
+provide precise isolated smoke handoff for the release coordinator.

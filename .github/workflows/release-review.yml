@@ -123,6 +123,8 @@ jobs:
           npm run typecheck --prefix website
           npm test --prefix website
           npm run build --prefix website
+          npm run audit:bundles --prefix website
+          npm run check:runtime --prefix website
       - name: Package and verify new local version
         if: steps.release.outputs.status == 'local'
         env:

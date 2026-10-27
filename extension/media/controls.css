@@ -24,3 +24,14 @@ body.vscode-high-contrast button,body.vscode-high-contrast-light button { border
 .update-choices { margin-top:10px; }
 .update-choices > button { margin-top:6px; }
 .update-choices pre { white-space:pre-wrap; overflow-wrap:anywhere; margin:4px 0 8px; padding:7px; color:var(--vscode-editor-foreground,var(--vscode-foreground)); background:var(--vscode-textCodeBlock-background,var(--vscode-editor-background)); font-family:var(--vscode-editor-font-family,monospace); font-size:var(--vscode-editor-font-size,13px); }
+
+/* Completed stages stay filled; only the current, unmeasured stage moves. */
+.publish-progress{display:flex;gap:2px;height:4px;margin:8px 0 12px;overflow:hidden}
+.publish-segment{flex:1;position:relative;overflow:hidden;background:var(--vscode-progressBar-background,var(--vscode-focusBorder));opacity:.18}
+.publish-segment.complete,.publish-segment.active{opacity:1}
+.publish-segment.active{background:transparent;outline:1px solid var(--vscode-progressBar-background,var(--vscode-focusBorder));outline-offset:-1px}
+.publish-segment.active::after{content:"";position:absolute;inset:0;background:var(--vscode-progressBar-background,var(--vscode-focusBorder));transform:translateX(-100%);animation:zero-publish-stage 1.4s ease-in-out infinite}
+@keyframes zero-publish-stage{to{transform:translateX(100%)}}
+@media(prefers-reduced-motion:reduce){.publish-segment.active::after{animation:none;transform:none;inset:0 40% 0 0}}
+.vscode-high-contrast .publish-progress,.vscode-high-contrast-light .publish-progress{outline:1px solid var(--vscode-contrastBorder,var(--vscode-foreground))}
+@media(forced-colors:active){.publish-progress{outline:1px solid CanvasText}.publish-segment{background:Highlight;forced-color-adjust:none}.publish-segment.active{background:Canvas;outline-color:Highlight}.publish-segment.active::after{background:Highlight}}

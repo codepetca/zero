@@ -315,3 +315,15 @@ function domHarness(html) {
     event:(type,target)=>emit(documentEvents,type,{target}), blur:()=>emit(events,'blur'),
     key:(key,target=document.activeElement)=>{let prevented=false;emit(documentEvents,'keydown',{key,target,preventDefault(){prevented=true;}});return prevented;}};
 }
+
+test('open Start Page mirrors stage progress, preserves animation through status updates and clears on completion',async()=>{
+  const f=fake({phase:'ready',accountId:'42',publishProgress:{stages:['preparing','building','verifying','opening'],index:1},status:'Building…'});
+  const {page,panel}=await open(f),browser=domHarness(panel.webview.html);browser.update(panel.messages.at(-1));
+  const container=browser.elements.get('publishing-progress'),bar=container.children[0];
+  assert.equal(bar.attributes.role,'progressbar');assert.equal(bar.attributes['aria-valuenow'],'1');assert.match(bar.attributes['aria-valuetext'],/Stage 2 of 4: Building app/);
+  assert.equal(bar.children.filter(child=>child.className.includes('active')).length,1);
+  f.setState({phase:'ready',accountId:'42',publishProgress:{stages:['preparing','building','verifying','opening'],index:1},status:'Still building…'});await page.refresh();browser.update(panel.messages.at(-1));
+  assert.equal(container.children[0],bar,'Status chatter must not restart the active segment');
+  f.setState({phase:'ready',accountId:'42',status:'App opened'});await page.refresh();browser.update(panel.messages.at(-1));
+  assert.equal(container.children.length,0);page.dispose();
+});

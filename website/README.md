@@ -12,7 +12,7 @@ npm run build
 npm run dev -- --port 3000
 ```
 
-Preparation reads release metadata and canonical repository documents, lessons and teaching media. It writes ignored `.generated/content.json` and `public/generated/` assets, including optional game media from the shared project manifest. Tutorial project ZIPs are no longer generated; tutorial template publication metadata is separate from the five existing example templates. Re-run preparation/restart after changing canonical docs. Builds need the Zero repository sources outside `website/`; no sibling repository is required. The supplied logo paths come from `extension/media/zero.svg`, with the approved purple colour. Lucide SVGs supply navigation, disclosure, download and theme icons.
+Preparation reads release metadata and canonical repository documents, lessons and teaching media. It writes ignored `.generated/content.json` (docs/source), `.generated/release.json` (validated download/update metadata), and `public/generated/` assets, including optional game media from the shared project manifest. Tutorial project ZIPs are no longer generated; tutorial template publication metadata is separate from the five existing example templates. Re-run preparation/restart after changing canonical docs. Builds need the Zero repository sources outside `website/`; no sibling repository is required. The supplied logo paths come from `extension/media/zero.svg`, with the approved purple colour. Lucide SVGs supply navigation, disclosure, download and theme icons.
 
 ## Learning routes
 
@@ -146,3 +146,13 @@ The existing theme/navigation and click/keyboard code-copy controls are retained
 Learning explanations live in the relevant tutorials. Setup help and teacher
 notes have separate navigation; old guide URLs resolve to their new destinations.
 Old API section fragments remain supported.
+
+
+After `npm run build`, run `npm run audit:bundles` to check emitted route traces.
+Run `npm run check:runtime` to execute the emitted download/feed/template handlers
+from an isolated copy containing only traced files. It checks feed bytes, hosted
+refusal/local receipt downloads, hidden production routes and both template types.
+The audit rejects test/build metadata, raw UI/build sources and duplicate public assets in the five
+filesystem-reading download/feed/template routes, checks their canonical template
+files, and catches large documentation chunks returning to download/feed paths.
+Its deduplicated local trace sizes are build evidence, not Vercel billed storage.

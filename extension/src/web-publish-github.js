@@ -181,7 +181,7 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     reviews.delete(reviewed);
     return {status:'upload-required',message:'Publishing files updated. Commit & push on main, then publish to the same page. The previous files remain in Git history.'};
   }
-  async function publish(reviewed,{signal,onProgress=()=>{},onStaging=async()=>{},onPending=async()=>{}}={}) {
+  async function publish(reviewed,{signal,onProgress=()=>{},onStage=()=>{},onStaging=async()=>{},onPending=async()=>{}}={}) {
     if(isSimulation())return simulation();
     const state=reviews.get(reviewed);if(!state)throw new Error('Review the public destination before publishing.');
     if(state.upgrade)return action('Update the older publishing files and Commit & push on main, then publish.');
@@ -200,11 +200,13 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
         throw error;
       }
     }
+    onStage('building');
     onProgress('Validating the browser app locally…');
     const resultBuild=await localBuild({projectRoot:state.root,cacheRoot,signal,onProgress});
     await guard(state,signal);
     await assertBuildInputsAtCommit({projectRoot:state.root,result:resultBuild,sourceSha:state.plan.head,git});
     const bundle=await pack({projectRoot:state.root,result:resultBuild,sourceSha:state.plan.head,validateExport,signal});
+    onStage('uploading');
     if(!pages) {
       // Do not take over a site that appeared while the local compiler ran.
       if(await api(state,'GET','/pages',null,{allow404:true,signal}))throw Error('Pages settings changed after review. Review publishing again.');
@@ -249,6 +251,7 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
       await assertBuildInputsAtCommit({projectRoot:state.root,result:resultBuild,sourceSha:state.plan.head,git});
       const current=await api(state,'GET','/git/ref/heads/main',null,{signal});
       if(current.object?.sha!==state.plan.head)throw Error('GitHub main changed during app staging. Review publishing again.');
+      onStage('deploying');
       onProgress('Deploying the validated local browser app on GitHub…');
       const finalPages=await api(state,'GET','/pages',null,{signal});
       const approvedDestination=assertDestination(finalPages,state.approvedDestination);
@@ -287,7 +290,7 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(release.id!==staging.releaseId||release.draft!==true||release.tag_name!==staging.tag||String(release.author?.id)!==String(state.ticket.session.accountId)||release.target_commitish!==(state.cleanupSha || staging.sourceSha || state.plan.head))throw Error('The temporary staging release changed; preserve it for review.');
     await cleanupRequest('DELETE');
   }
-  async function check(resume,{signal,onProgress=()=>{},cleanup=true}={}) {
+  async function check(resume,{signal,onProgress=()=>{},onStage=()=>{},cleanup=true}={}) {
     if(isSimulation())return simulation();
     const state=resumptions.get(resume);if(!state)throw new Error('This publishing run is no longer tracked. Open repository Actions to check it.');
     const run=await api(state,'GET','/actions/runs/'+resume.runId,null,{signal,tracking:true});
@@ -296,6 +299,7 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(run.status!=='completed')return pending('GitHub is deploying your locally built app.');
     if(cleanup)await cleanupStaging({...state,cleanupSha:resume.sha},resume.staging);
     if(run.conclusion!=='success')return {status:'failed',resume,message:'The new game was not confirmed published. Open this GitHub run to fix its build or deployment error. Your previous game may still be live.',action:{url:state.plan.page+'/actions/runs/'+resume.runId,message:'Open publishing run'}};
+    onStage('verifying');
     const pages=await api(state,'GET','/pages',null,{signal,tracking:true});
     const {url}=assertDestination(pages,resume.destination);
     onProgress('Checking that the public page serves your reviewed version…');
@@ -307,14 +311,14 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(!response.ok || Number(response.headers?.get('content-length')||0)>100 || (await boundedText(response))!==resume.sha+'\n'+resume.runId)return pending('Deployment succeeded; waiting for the public page to serve this version.');
     return {status:'live',url,sha:resume.sha,resume,message:'Your playable game is live.'};
   }
-  async function restore(root,saved,{signal}={}) {
+  async function restore(root,saved,{signal,onStage=()=>{},onProgress=()=>{}}={}) {
     if(isSimulation())return simulation();
     if(!Number.isSafeInteger(saved?.runId) || saved.runId<1 || !shaPattern.test(saved.sha||''))throw new Error('The saved publishing run is invalid. Check repository Actions.');
     // Following an already authorized run is read-only. Students may keep
     // editing locally while GitHub deploys the earlier reviewed source.
-    return verifyLink(root,{sha:saved.sha,resume:saved},{signal,cleanup:true});
+    return verifyLink(root,{sha:saved.sha,resume:saved},{signal,cleanup:true,onStage,onProgress});
   }
-  async function verifyLink(root,saved,{signal,cleanup=false}={}) {
+  async function verifyLink(root,saved,{signal,cleanup=false,onStage=()=>{},onProgress=()=>{}}={}) {
     if(isSimulation())return simulation();
     if(!saved?.resume || !shaPattern.test(saved.sha||'') || (!Number.isSafeInteger(saved.resume.runId) || saved.resume.runId<1) || saved.resume.sha!==saved.sha)throw new Error('Publish this game before copying its playable link.');
     const plan=await prepareUpload(root,git);
@@ -328,7 +332,7 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     const repo=await api(state,'GET','',null,{signal,tracking:true});
     if((saved.resume.repositoryId && repo.id!==saved.resume.repositoryId) || String(repo.owner?.id)!==String(ticket.session.accountId) || repo.owner?.type!=='User')throw new Error('Sign in to the GitHub account that owns this game.');
     const resume=Object.freeze({...saved.resume});resumptions.set(resume,state);
-    return check(resume,{signal,cleanup});
+    return check(resume,{signal,cleanup,onStage,onProgress});
   }
   // Current-page reuse is stricter than retrieving a historical playable link.
   // All checks are read-only: no compiler, saved project module or upload runs here.

@@ -252,7 +252,7 @@ test('Publish commits dirty main through guarded native upload and retains the v
   assert.deepEqual(h.errors,[]);assert.equal(h.inputs,1);assert.equal(h.pushes,1);assert.equal(h.deploys,1);
   assert.equal(h.stored.get('zero.webPublish.lastLive').url,'https://student.github.io/app/');
   assert.match(h.results.at(-1),/https:\/\/student.github.io\/app\//);
-  const webview=await uploadSidebar(h);assert.doesNotMatch(webview.html,/data-command="zero.openPublishedWeb"|Copy playable link/);assert.match(webview.html,/data-command="zero.publishAndOpenWeb"/);
+  const webview=await uploadSidebar(h);assert.match(webview.html,/class="link published-app-link" data-command="zero.openPublishedWeb"/);assert.doesNotMatch(webview.html,/Copy playable link/);assert.match(webview.html,/data-command="zero.publishAndOpenWeb"/);
 });
 test('Publish pushes already committed main without asking for another commit message',async t=>{
   const h=await harness(t,{publishing:true});

@@ -15,12 +15,14 @@ current year as a range on later visits, without changing source-license years.
 The privacy notice follows the [source inventory](PRIVACY-DATA.md), including
 GitHub credentials, cookies/local storage, public sharing, aggregate Play counts,
 providers and retention/deletion limits. Owner-authorized Terms version2026-10-25
-takes effect on publication. A footer notice and the Terms state prospective
+takes effect on publication. The Terms state prospective
 use-based agreement for Zero/ZeroHub and related Codepet-operated services that
 expressly link to them, after notice is brought to the user’s attention. This
 is not a claim that past visitors, unrelated products or guardians have accepted,
 and does not replace privacy consent required by law or separately licensed
-software rights. No explicit acceptance registry is implemented. See
+software rights. Owner refinement2026-10-27 removes the shared footer agreement
+sentence while retaining its direct Privacy and Terms links. No explicit
+acceptance registry is implemented. See
 [rollout status and sources](LEGAL-TERMS.md).
 
 Mobile website navigation opens as an overlay dropdown without shifting page
@@ -190,8 +192,14 @@ A current publication opens without compiling or uploading. Otherwise the existi
 publish flow runs first and opens only the latest verified version. Pending older
 runs finish before a newer version can be published. Continued editing stops an
 outdated page from opening and asks for another explicit action. Normal local Run
-is unchanged. The sidebar and title overflow omit Open app/Copy playable link;
-the browser address is shareable and advanced saved-link palette commands remain.
+is unchanged. After a verified live publication, local source adds **Open published
+app ↗** immediately below Run for the same connected project/repository/account.
+It verifies and opens the previously published app without saving, building,
+uploading or deploying newer local edits. Its saved receipt survives editor
+restart and failed updates; a failed first publication creates no link. The link
+is disabled while busy, and checking/browser opening use the existing progress
+bar until completion. Copy playable link remains an advanced palette command;
+the browser address is shareable.
 
 Current delivery, checked 2026-10-21: Mac 0.5.43 ships native Explorer and the teaching New dropdown, native Run App, Start Page sign-in
 and GitHub setup. Windows remains the unsigned 0.5.21
@@ -718,6 +726,16 @@ hashes, sizes and longer guidance stay in Zero Output. Verified published apps
 open through Run options → Publish & open app; completed exports keep
 Preview export/Save ZIP/Share export actions there. Errors, warnings, required
 choices and the first-publication warning remain visible through native prompts.
+
+Local source adds a slim publishing stage bar beneath this status, mirrored on an
+open Start Page. Real build, upload, deployment, verification and browser-opening
+boundaries advance it; its moving current segment represents unknown duration,
+with no estimated time percentage. Reusing a current app or resuming a saved run
+counts only the work followed. “Checking live app” and “Opening in browser” stay
+active until verification and browser launch settle. Final success, failures,
+cancellation, required actions and the end of local polling clear the bar; a
+remote run can still be pending for a later explicit recheck. Project switches
+hide the previous project's bar. Released kits retain their bundled behavior.
 
 ## Repository and upload contract
 

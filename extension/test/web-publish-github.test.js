@@ -465,3 +465,17 @@ test('the final input proof follows project checks and dispatch checks session a
     assert.equal(opened,false,mode);
   }
 });
+
+test('publisher emits measured build/upload/deploy/check boundaries, including missing Pages and build failure',async t=>{
+  for(const missing of [false,true]){
+    const h=await fixture(t);if(missing)h.pages=null;
+    const stages=[];const review=await h.publisher.review(h.root);
+    const result=await h.publisher.publish(review,{onStage:name=>stages.push(name)});
+    assert.deepEqual(stages,['building','uploading','deploying']);
+    assert.equal((await h.publisher.check(result.resume,{onStage:name=>stages.push(name)})).status,'live');
+    assert.deepEqual(stages,['building','uploading','deploying','verifying']);
+  }
+  const h=await fixture(t,{publisherOptions:{localBuild:async()=>{throw Error('Compile failed');}}}),stages=[];
+  await assert.rejects(h.publisher.publish(await h.publisher.review(h.root),{onStage:name=>stages.push(name)}),/Compile failed/);
+  assert.deepEqual(stages,['building']);
+});

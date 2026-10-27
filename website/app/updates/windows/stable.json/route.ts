@@ -1,4 +1,4 @@
-import snapshot from '../../../../.generated/content.json';
+import snapshot from '../../../../.generated/release.json';
 import {publishedWindowsFeedResponse} from '../../../../lib/windows-installer.mjs';
 
 export const runtime = 'nodejs';

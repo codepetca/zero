@@ -52,6 +52,162 @@ fixture correction and subsequent startup/case-key integration corrections;
 no integration conflicts. Worker/coordinator token usage and active time unknown.
 No claimed savings, new goal/task/automation, publication or account change.
 
+## Publishing feedback source integration — 2026-10-27
+
+Owner authorized source PR/CI/merge; native publishing/releases remain separate.
+PR215: https://github.com/codepetca/zero/pull/215. Integration headfc4dfe7c88355c1088ba36bb75ee4611a7af0f40 merges main9f19b9b8.
+Independent publishing_progress_review integration turn, requested Sol/medium:
+complete/clean,0findings. Inspected b98a395b→fc4dfe7c plus final diff against main;
+extension/design trees equal previously reviewedf471bf4f, website/release/workflow/
+student-template/teaching trees equal main. Both additive evidence histories
+preserved; no separate footer work entered. Effective config/time/tokens unknown.
+Reuses prior progress/link reviews; one integration wave, no remediation batches.
+Coordinator merged-head98UI/preview checks, configuration/syntax/contracts/doc
+links, all3template readiness records and cumulative diff check pass. Logs:
+.verification/published-app-link/merge-{ui,check,templates}.log. Final CI/merge
+remain required. This receipt and CURRENT update only document that evidence.
+No new native-installed/live publication acceptance or release is claimed.
+
+## Below-Run published link — final independent review
+
+Turn publishing_progress_review, requested Sol/medium, base0e4312a2 through
+f471bf4f96862c8c82092ee73b031084ea725467: complete/clean over17changedfiles plus
+receiptstorage,provider,renderer andcommandcallers.4focused reviewer tests and
+cumulative diff check pass. Inspected captured92UI/54integration/configuration
+logs under .verification/published-app-link/.1reviewturn/1initialwave/0fixes;
+effectiveconfiguration/time/tokens unavailable. Existingpublisher API sequence
+is unchanged; outer authentication.capture adds identity validation before the
+provider's internalcapture, so this is not zero additional read requests. No
+build/save/upload/deploy occurs when opening a historical app. Parent observed
+actual local renderer belowRun in dark/light and disabledwhenbusy; fixture click
+checks/opening progress clears before success and reports0build/upload/deploy.
+No native/live retrieval or real browser-launch acceptance claimed; no release.
+
+
+## Published-app link below Run — 2026-10-27, local source only
+
+Owner requested a link below Run after publication. Implementation starts from
+0e4312a2 and preserves the Tutorial docs label and reviewed stage progress.
+**Open published app ↗** is a quiet native-theme action immediately below Run.
+The pure controller getter reads the existing lastLive receipt with exact project,
+repository and account matching, valid SHA/run fields and a normal HTTPS URL;
+malformed/mismatched/missing receipts fail closed. No render-time network probe
+or repository-derived URL is introduced. Current cloud readiness/sign-in gates
+apply, and busy work disables the action. Existing valid publication survives a
+failed update and editor restart; a failed first publication creates no link.
+
+The action reuses the historical `zero.openPublishedWeb` command and existing
+`verifyLink` read-only provider path. New local or unsaved source remains intact:
+no save, review, build, upload, deployment or staging-release cleanup occurs.
+Checking and browser opening use the existing stage bar, retained through the
+browser promise and cleared before final success. Final synchronous captured-
+session/project/trust/live-mode guards run immediately before browser dispatch.
+No publisher GitHub API implementation or request sequence was changed.
+
+Focused UI/renderer tests pass92/92. They cover publish success/failure, old-link
+retention, restart, malformed receipts, root/repository/account mismatches, newer
+dirty code, duplicate/busy actions, browser-promise progress and final guards.
+The integration suite passes54/54; an initial failure was the old assertion that
+Open published app must be absent after publication, updated for the owner's new
+requirement. Configuration/syntax/contracts/documentation checks also pass.
+Exact commands and captured output are in ignored local receipts:
+
+- `node --test extension/test/web-publish-ui.test.js extension/test/sidebar-refresh.test.js extension/test/start-page.test.js design/playground/playground.test.mjs` → `.verification/published-app-link/ui-final.log`
+- `node --test extension/test/extension.test.js extension/test/extension-upload-auth.test.js extension/test/web-publish-verification.test.js extension/test/web-publish-upload-auth.test.js` → `.verification/published-app-link/integration-final.log` (initial old-contract failure retained in `integration.log`)
+- `npm run check` → `.verification/published-app-link/check-final.log`
+
+Coordinator browser proof on the actual source renderer: dark `state=published`
+places the action directly below Run; the light standalone fixture click shows
+“Checking published app…” with the bar, then “Published app opened” without it.
+The in-memory real-command fixture has newer local code and records0builds,
+0uploads,0deployments for historical opening. Dark `published-busy` disables the
+link. Preview remains at127.0.0.1:3267 using the existing UI-only watcher.
+This is local browser/fixture proof; native installation, live hosted retrieval
+and real browser launch are not newly accepted. No live GitHub repositories,
+account access, installed Zero, normal editor, release/version/template inputs,
+push, PR, merge, deploy or publication were changed. Independent review remains
+with the coordinator. No nested workers; inherited model/configuration and exact
+cost remain unknown. Existing human usage/review-stop waiver and provider holds
+remain applicable.
+
+## Publishing stage progress — 2026-10-27, local source only
+
+Final independent turn publishing_progress_review, requested Sol/medium, inspected
+complete24-file delta6b5cfcc6..46f0c800 and production callers/proof/lock ordering,
+renderers/CSP/styles/fixtures/docs: complete/clean,0findings.7targeted reviewer tests
+and diff check pass.1initialwave/1reviewlaunch/0reviewfixes; effectiveconfiguration,
+time and tokens unavailable. Worker137/87/11results were reported in tool output;
+reviewer did not inspect persisted full-run logs. Coordinator independently ran9
+progress/terminal/renderer tests, allpass (119.8ms), saved ignored
+.verification/publish-progress/coordinator-targeted.log. All3actual tutorial
+publication records still validate; no framework/student-template/teaching/release
+input changed. Final browser preview retains the corrected opening text, active
+light/dark/high-contrast bar and error-without-bar state. No native installation,
+live GitHub upload or actual browser-launch timing claim. Formatting-shortcut
+request was rescinded and no formatting change was made.
+
+
+Owner requested a slim linear indicator because publishing text appeared stalled
+and “App published” appeared before final verification/browser opening finished.
+Branchcodex/tutorial-docs-label, implementation based on6b5cfcc6; earlier one-line
+Tutorial docs label and its independent clean review are preserved. No merge with
+released Mac53 metadata, version changes or template-evidence refresh was needed.
+
+Publisher callbacks identify actual local build, upload/deployment and live-page
+checking boundaries. The UI counts applicable stages, keeps the current segment
+moving without estimated percentages, and retains existing useful status text.
+Current-app reuse skips build/upload; saved deployments start with checking that
+run. Final verification and the browser-open promise keep progress active; final
+success clears it before reporting. Error/cancel/simulation/action-required/end
+of local polling/disposal clear it, and both renderers scope it to the project.
+The synchronous final browser-dispatch guards and existing locks remain intact.
+Repeated status text updates preserve bar DOM so compiler output cannot restart
+its animation. Shared native-theme CSS includes reduced-motion and contrast rules.
+
+87focused UI/Start Page/sidebar/playground tests and11extension/verification/upload-
+auth integration tests pass. Coverage includes pending browser promise/no early
+success, reuse/resumed tracking, setup+commit, terminal cleanup, project drift,
+disposal, actual persistent renderer updates, accessible stage counts and scoped
+progress. The combined137-test publisher/UI fixture run passes in227.4seconds, including
+real local Git fixtures and measured missing-Pages/build-failure stage callbacks.
+Final UI ordering/fixture refinements were rechecked with the87-test focused suite;
+the publisher callback source was unchanged after its combined run began.
+`npm run check` passes configuration, syntax, command contracts and local
+documentation links; `git diff --check` passes. Tests use in-memory services or
+temporary local Git repositories; no GitHub test
+repository was created or recreated. No live API request, account/access change,
+push, PR, merge, deploy, installer, release or normal-user editor action occurred.
+
+Zero Dev UI-only watcher: `ZERO_DESIGN_PORT=3267 npm run dev:ui`; isolated preview
+`http://127.0.0.1:3267/components?theme=dark&state=publish-building`. Other states:
+`publish-uploading`, `publish-deploying`, `publish-verifying`, `publish-opening`,
+`publish-error`, `publish-stopped`; light/dark/hc use actual source renderers/CSS.
+Sidebar `&cycle=1` replays a labeled timed simulation captured by the real command
+coordinator with an in-memory publisher/browser. It performs no live action.
+Coordinator observed the actual local browser renderer: dark building was minimal
+and clear; corrected light opening reads “Opening in browser…” while active;
+high-contrast deploying is visible; error has no progress indicator. This is
+local browser proof, separate from native installation/live upload acceptance.
+Coordinator owns the independent source-review receipt. Physical native editor,
+Windows/Linux, real browser-launch timing and live GitHub publishing are untested
+for this delta; existing source authority guards are covered by local fixtures.
+
+Implementation worker used inherited configured model/reasoning (effective
+configuration/tokens unknown), no nested delegation. Reused coordinator's recent
+healthy227GB storage/10%weekly-remaining readings; account usage is not task cost.
+DeepSeek remains paused. Human task instruction “Disregards budget caps. Complete
+the goal” preserves the workflow/usage-stop waiver, not publication authority.
+
+
+## Tutorial docs menu label — 2026-10-27
+
+Owner requested local-only dropdown wording Tutorials → Tutorial docs. One visible
+menuitem text changed in start-page.js; action/attributes/reader title retained.
+15existingStartPagetests and diffcheck pass. Independent footer_review turn,
+requested Luna/low, basebe449afd plus one-line working diff: complete/clean,
+1launch/1wave/0fixes; effectiveconfiguration/time/tokens unavailable. No push,
+merge, publication or release; separate from sealedMac53/SourcePR212.
+
 ## Zero Dev Publish prerequisite: native JDK17 / browser JDK21 — 2026-10-26
 
 Owner reported Publish app failure in the Zero Dev window opened on my-study.
@@ -11556,6 +11712,16 @@ public checkouts and logs. Source push/PR/CI/merge,3template publication/verifie
 records, positive installed first-tutorial acceptance and a corrected signed Mac
 release/promotion require owner authorization. No such external changes performed.
 
+## Function payload reduction — 2026-10-27
+
+Separated release/feed metadata from learner content and trimmed five route traces.
+Current-main local trace union is about41% smaller; metadata/feed bytes and learner
+content match the pre-change baseline. Existing website tests/typecheck/build and
+traced-only runtime checks pass. CI runs the bundle audits after building. Production
+ZeroJams stays unconditionally hidden; pilot work is excluded from this publication.
+Hosted savings require the publication PR's Linux deployment/resource comparison;
+see [website plan](WEBSITE-PLAN.md#function-bundle-reduction--2026-10-27).
+
 
 ## Mac0.5.53 tutorial-readiness release — 2026-10-27
 
@@ -11590,3 +11756,31 @@ are remaininggates recordedonpromotionPR and .verification/mac53/final-delivery.
 Allpublicproofs/reviews/native/CIreceipts retainedignored. SameMac/cache/session,
 no freshdevice/schoolnetwork/physicalIntelWindows/actualSparkleclaim. Preserveold
 assets,Windows21/manualkit17,primarywork,studentprofiles/projects andZeroJams hold.
+
+## Footer notice removal — 2026-10-27
+
+Owner requested removal of the footer's use-based agreement sentence. Removed
+the shared paragraph and unused style; retained copyright, Privacy and Terms.
+Existing legal-page tests updated:3passed; website typecheck and diff check pass.
+Local browser `/terms` footer exposes copyright and both links without the notice.
+Independent review `footer_review`, requested GPT-6 Luna/low, base779af4d4 plus
+three-file working diff: complete/clean,1launch/1wave/0fixes; effective configuration,
+review time and tokens unavailable. No source push, merge or deployment performed.
+
+## Footer removal source PR preparation — 2026-10-27
+
+Owner authorized PR/CI/merge for the shared website footer sentence removal,
+keeping native app release separate. Rebased earlier reviewed patch onto
+maina357a471 (PR215); the3footer source/test blobs exactly matchea35e266.
+Updated PRODUCT/LEGAL-TERMS descriptions, retaining actual Terms page text.
+Independent footer_merge_review, requested GPT-6 Luna/medium, inspected complete
+seven-file diffa357a471→5813dc9a37e49df3568710373a11b2d6ba823b05 and immediate
+legal-page callers: complete/clean,0findings,1launch/1wave/0fixes. Reused3passing
+focused legal tests, current website typecheck and configuration/syntax/contracts/
+doc-link checks; independent cumulative diff check passed. Terms/Privacy page
+sources, layout/public assets and app/release inputs unchanged. Effective model,
+elapsed reviewer time and tokens unavailable. Prior actual local footer visual
+proof reused for identical component/CSS. Full website tests and real final CI
+recorded at PR delivery; production verification follows merge. Logs remain
+.verification/footer-removal/. This receipt/CURRENT update only documents review.
+No app release, account changes or ZeroJams activation authorized.

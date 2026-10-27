@@ -35,3 +35,5 @@ h2 { font:inherit; font-weight:500; color:var(--zero-muted); margin:0 0 4px; }
 @media(max-width:220px) { .row,.branch-row { flex-direction:column; align-items:stretch; } .branch-row { gap:2px; } }
 
 .file-actions h2 { margin:0; }
+
+button.published-app-link{justify-content:flex-start;text-align:left;margin-top:6px}
