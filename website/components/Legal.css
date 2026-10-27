@@ -15,7 +15,6 @@
 }
 .legal-footer a { display: inline-flex; align-items: center; min-height: 44px; }
 .legal-footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 20px; }
-.legal-use-notice { max-width: 68ch; margin: 0 auto 16px; font-size: .875rem; line-height: 1.5; text-align: center; }
 .legal-page {
   width: 100%;
   max-width: 800px;

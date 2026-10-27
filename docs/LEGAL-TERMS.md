@@ -9,9 +9,10 @@ is not proof of deployment or an individual user's acceptance.
 ## Agreement language and boundaries
 
 The Terms state that access/use after publication and after the terms are brought
-to the user's attention constitutes agreement. The shared footer visibly states
-“By using this site, you agree to the Terms”, alongside its direct Terms link.
-The readable-source page also includes that footer. Scope covers Zero/ZeroHub and
+to the user's attention constitutes agreement. Owner refinement2026-10-27 removes
+the shared footer's agreement sentence while retaining direct Privacy and Terms
+links, including on the readable-source page. The Terms page text is unchanged.
+Scope covers Zero/ZeroHub and
 related Codepet-operated services that display or expressly link to these terms;
 association with Codepet alone does not bring an unrelated product under them.
 Past visits, guardian consent and new personal-information uses are not deemed

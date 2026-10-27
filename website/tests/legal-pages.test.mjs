@@ -32,9 +32,9 @@ test('active terms state prospective agreement and retain mandatory rights and s
   assert.match(content, /replace express consent required by law/);
 });
 
-test('footer presents the use-based notice with one direct Terms and Privacy link', async () => {
+test('footer presents one direct Terms and Privacy link without the use-based notice', async () => {
   const html = await render('components/LegalFooter.tsx', 'LegalFooter');
-  assert.match(text(html), /By using this site, you agree to the Terms/);
+  assert.doesNotMatch(text(html), /By using this site, you agree/i);
   assert.equal((html.match(/href="\/terms"/g) || []).length, 1);
   assert.equal((html.match(/href="\/privacy"/g) || []).length, 1);
 });

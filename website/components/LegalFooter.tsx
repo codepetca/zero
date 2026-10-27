@@ -14,6 +14,5 @@ export function LegalFooter() {
       <span>© {years} Zero by Codepet</span>
       <nav aria-label="Privacy and terms"><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
     </div>
-    <p className="legal-use-notice">By using this site, you agree to the Terms.</p>
   </footer>;
 }
