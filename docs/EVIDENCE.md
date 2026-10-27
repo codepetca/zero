@@ -1,5 +1,26 @@
 # Delivery evidence index
 
+## Mac54 native publication and promotion preparation — 2026-10-27
+
+SourcePR218 merged6e2061b58bf7965e25682ad1c89e862dee3bba85, reviewedhead7e01c7bb,
+all11checks passed. First source job timed out20minutes during slow UbuntuAzure
+package downloads; unsuccessful-source-only attempt2 passed unchanged code/gates.
+Native setup-v0.5.54 published from sealpreparation2c7d6692, actualtagverified.
+Exactly oneDMG; authenticateddraft and anonymouspublic bytes match seal5999134 /
+SHA25653f2ba45064b22cb232e14cb1b1ae296c4cd81285d7e789a49ef46e5e669725a;
+archiveEd25519 verifies. Public URL:
+https://github.com/codepetca/zero/releases/download/setup-v0.5.54/Zero-0.5.54-macos.dmg.
+No asset replacement or separatekitpublication. Release API/draft/public/source
+receipts:.verification/mac54/{source-merged,draft-byte-proof,public-release,
+public-byte-proof}.json. Native candidate/source review coverage remains valid.
+
+Promotion changes only installer/snapshot publication+verifiedURL, exact sealed
+signedXML and feedJSON publicationstatus. Generated from actualpublic byte proof
+with archive/feed signature validation. Windows21/manualkit17, source/kit/extension/
+updaterconfig and sharing flags unchanged. Targeted review, finalCI/merge and
+liveMac54 anchor/feed exactbyte verification remain. No new nativebuild or UI/
+account actions required. Details:docs/MAC-CANDIDATE-0.5.54.md.
+
 ## Mac54 independent candidate review — 2026-10-27
 
 mac54_candidate_review, requestedGPT-6.1Sol/high: complete/clean,0findings.
