@@ -1,25 +1,25 @@
-# Publish & open app — local implementation
+# Publish & open app — authorized Mac52 release
 
 Worktree /Users/stew/.codex/worktrees/student-explorer/zero, branch
-codex/publish-and-open. Owner2026-10-26 requests one Run dropdown action that opens
-the latest app: reuse a verified current publication, otherwise publish then open.
-Remove standalone Open app/Copy playable link sidebar controls; the browser address
-is shareable. Keep palette retrieval commands and ordinary local Run/Stop.
+codex/publish-and-open. Owner-authorized2026-10-26 via architecture coordination:
+ship completed feature through source PR/selected CI/merge and next unused signed
+Mac release, exact installed candidate QA, publication and reviewed download/feed
+promotion. No new account credentials or permission grants. Main remains7253a217;
+no integration conflicts. Existing feature code6c31857c independently reviewed,
+root1357pass/3skip, controller55/publisher58 and actual source Dev reuse/open pass.
+Reuse valid evidence; independently review integration/release deltas.
 
-Implementation uses existing clean-main/upload/publication guards and the read-only
-host retained-input-to-commit proof. Pending older runs must settle before a newer
-publication. Never open on failed/pending/cancelled, account/project drift, or source
-edits. Preserve first-publication consent, simulation/no-write behavior and owned locks.
-Project-owned publishing README/owner hash remain pinned; UI help changes there would
-invalidate existing kits. Update current editor docs instead; no automatic kit upgrade.
+Plan: (1) prepare0.5.52/build52 source and draft PR; (2) build/sign/notarize/staple,
+record measured installer, sign feed and seal immutable candidate; (3) exact installed
+Run and Publish & open acceptance in disposable project; (4) independent release
+review and selected CI, source merge; (5) publish exact sealed Mac asset; (6) reviewed
+promotion PR/CI/merge, anonymous live-byte/signature/download verification.
+Current phase: version preparation; public Mac51 and its sealed candidate intact.
 
-Implementation6c31857c is independently reviewed with no remaining findings;
-controller55/publisher58 tests and native isolated source-host reuse/open pass
-without a new deployment. Final full suite1357pass/3skip, zero failures; npmcheck
-and whitespace checks pass. Details and limits: docs/EVIDENCE.md, Publish & open app local completion section. No new push, merge, native release, feed promotion or credential
-change is authorized by this request. Public Mac0.5.51 remains the verified release
-from PR208/209; source6cdd208e, metadata7253a217, final delivery receipt on PR209.
 Preserve primary funding work, normal profiles/student projects, original actor
-checkout, immutable assets, Windows21/legacykit17 and production ZeroJams hold.
-DeepSeek paused; weekly remaining85%, storage227GB healthy at start. Existing Dev
-watchers/user's my-study window stay intact; use a separate source preview for UI.
+checkout, Windows21/manualkit17, immutable existing assets and production ZeroJams
+hold. Keep source watcher/user my-study window intact. QA uses owned isolated Code
+copy and QA profile; no claim of fresh hardware/school network/Intel/Windows or
+actual Sparkle delivery unless exercised. DeepSeek paused. Weekly remaining84%,
+storage228GB healthy at start. Detailed prior evidence: docs/EVIDENCE.md and ignored
+.verification/mac51/publish-open-*; new release receipts: .verification/mac52/.

@@ -1,6 +1,6 @@
 # Start with Zero
 
-This local Mac candidate **0.5.51** includes core **0.3.0**, targeting **Mac with Apple Silicon** and **Windows**.
+This local Mac candidate **0.5.52** includes core **0.3.0**, targeting **Mac with Apple Silicon** and **Windows**.
 Use the guide bundled with an older download for its controls. Linux and Intel
 Macs are unsupported; physical Windows/classroom testing remains pending.
 
@@ -59,8 +59,8 @@ reading without changing your code. **Start tutorial** creates a separate new
 repository, not a reset of existing work. With a local folder that has no origin,
 use **Project → Connect to GitHub…** for your own existing repository URL.
 Signed-out Git controls show only **Sign in to GitHub**; local Run and Files remain.
-Connected projects keep their repository and branch controls, with **Publish app**
-in the repository menu. Keep tutorial source visibility under your teacher's rules.
+Connected projects keep their repository and branch controls, with **Publish & open app**
+in the Run dropdown and repository menu. Keep tutorial source visibility under your teacher's rules.
 
 ## Zero app for Mac
 
@@ -112,7 +112,7 @@ lesson 0, then create and clone your own tutorial repository.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.51.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.52.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors
@@ -142,7 +142,7 @@ A failed build does not start the previous build as a successful new run.
 
 The terminal equivalent inside starter is **./mvnw clean compile javafx:run**
 on Mac or **.\mvnw.cmd clean compile javafx:run** on Windows. Native Run does
-not check browser compatibility. Publish app or advanced Export for web performs
+not check browser compatibility. Publish & open app or advanced Export for web performs
 the browser API checks and compilation before sharing a playable browser app.
 
 After the initial tutorial clone, local Run needs no active GitHub sign-in.
@@ -155,7 +155,7 @@ separately in Pika.
 ## Publish a playable app
 
 In your own project, Run App and test the version you want to publish. Finish and
-upload it on **main**, then choose **Publish app** in Zero’s **repository menu**.
+upload it on **main**, then choose **Publish & open app** in the arrow beside Run.
 Use the same GitHub account in Zero and any browser authorization. The first
 publish reviews the public destination, asks for GitHub workflow permission when
 needed, and uses the normal reviewed upload for its publishing files. The app and
@@ -163,10 +163,12 @@ included assets will be public; your source repository keeps its visibility.
 The first publish confirms its destination. Later explicit Publish actions revalidate
 and update that approved site without another destination dialog.
 
-Zero publishes the locally checked build. Wait for **App published**,
-then choose **Open app** or **Copy playable link**. Later use **Zero: Open Published
-App** or **Zero: Copy Playable Link** in the Command Palette. If publishing is still
-running, choose Publish app again to recheck; an error keeps the old live page.
+Zero publishes the locally checked build and opens the verified live app. If the
+latest saved version is already published, **Publish & open app** opens it without
+another deployment. Copy the browser address to share it. The Command Palette
+retains **Zero: Open Published App** and **Zero: Copy Playable Link** for retrieving
+the previously published version. If publishing is pending or fails, follow the
+stated next action; Zero keeps the previous live page and does not open stale output.
 This game link is separate from **Copy repository link** for Pika.
 
 **Share project** prepares a separate ZeroHub source submission. This candidate
