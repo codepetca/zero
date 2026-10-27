@@ -22,8 +22,10 @@ promotion. Version0.5.53/build53 verified unused. Templates worker owns only3ign
 clones; coordinator owns Zero source/build/QA. Template/menu placement unchanged. Positive packaging/installed real Start tutorial/create/clone/Run for
 all3 templates must pass before promotion. Do not bypass readiness or modify an
 installed signed payload. Existing projects/Clone/Run remain available.
-Current phase: publishing exact template drafts through reviewed PRs; preparing
-Mac53 source. Old release assets remain immutable. No Mac53 publication yet. Footer removal is
+Current phase: all3template PR2 merged; publicarchives and metadata verified.
+SourcePR212 draft, built6fbca695 signed/notarized/stapled; recording/sealing
+measured candidate, installed3tutorial QA and finalartifactreview next.
+Full1358pass/3skip,website243pass,typecheckpass. No Mac53 publication yet. Footer removal is
 separate committed branch codex/remove-footer-agreement ea35e266, not published.
 Preserve primary funding work, profiles/student projects, existing release assets,
 Windows21/manualkit17 and production ZeroJams hold. No fresh-device/school-network/
