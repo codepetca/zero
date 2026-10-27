@@ -11704,3 +11704,13 @@ are remaininggates recordedonpromotionPR and .verification/mac53/final-delivery.
 Allpublicproofs/reviews/native/CIreceipts retainedignored. SameMac/cache/session,
 no freshdevice/schoolnetwork/physicalIntelWindows/actualSparkleclaim. Preserveold
 assets,Windows21/manualkit17,primarywork,studentprofiles/projects andZeroJams hold.
+
+## Footer notice removal — 2026-10-27
+
+Owner requested removal of the footer's use-based agreement sentence. Removed
+the shared paragraph and unused style; retained copyright, Privacy and Terms.
+Existing legal-page tests updated:3passed; website typecheck and diff check pass.
+Local browser `/terms` footer exposes copyright and both links without the notice.
+Independent review `footer_review`, requested GPT-6 Luna/low, base779af4d4 plus
+three-file working diff: complete/clean,1launch/1wave/0fixes; effective configuration,
+review time and tokens unavailable. No source push, merge or deployment performed.
