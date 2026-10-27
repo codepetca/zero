@@ -12,7 +12,13 @@ reviewed local94c2cac9/receipt9202743d; source publication now authorized there.
 No competing writer/build in that checkout. Our codex/mac54-release checkout
 starts atmainfa0d6b74; only release preparation here until Java merges.
 
-Next: integrate its reviewed/green source, bump/pin new candidate, build/sign/
+Blocked at Java source publication: both task snapshots report weekly100% and
+ordinaryUsageAllowed:false/rate_limit_reached. This is the actual provider gate,
+not the waived workflow/review budget. No reset/credit purchase or alternate
+provider was used. Java task is idle with reviewed source and saved handoff;
+PR/CI/merge not started. Resume after provider execution is available.
+
+Then integrate its reviewed/green source, bump/pin new candidate, build/sign/
 notarize/staple, verify isolated editor and upgrade/terminal behavior, seal and
 sourcePR/CI/merge. Then publish exact immutable DMG, anonymously verify, promote
 signed feed/download metadata through reviewed CI/merge and verify live bytes.
