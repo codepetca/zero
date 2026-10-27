@@ -13,8 +13,10 @@ configuration, tutorial readiness and actual-renderer light/dark/high-contrast
 browser previews pass. Historical link verifies the saved publication without
 saving/building/uploading newer edits. Extra identity validation may add reads.
 No native-installed/live publication acceptance is claimed for these UI changes.
-Merge resolves only CURRENT/EVIDENCE; preserve both histories. Next: verify merged
-interaction delta, independent integration review, source PR/final CI/merge.
+Merge resolves only CURRENT/EVIDENCE; preserve both histories. Integration review throughfc4dfe7c complete/clean; runtime/design match prior
+review, release/website/workflows match main. Merged-head98UI/preview checks,
+configuration/doc checks and3template readiness records pass. SourcePR215 open;
+next: final GitHub CI and owner-authorized merge.
 Evidence logs: .verification/publish-progress/ and .verification/published-app-link/.
 Zero Dev UI-only preview127.0.0.1:3267; normal installed Zero0.5.53 unchanged.
 

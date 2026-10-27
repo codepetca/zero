@@ -1,5 +1,21 @@
 # Delivery evidence index
 
+## Publishing feedback source integration — 2026-10-27
+
+Owner authorized source PR/CI/merge; native publishing/releases remain separate.
+PR215: https://github.com/codepetca/zero/pull/215. Integration headfc4dfe7c88355c1088ba36bb75ee4611a7af0f40 merges main9f19b9b8.
+Independent publishing_progress_review integration turn, requested Sol/medium:
+complete/clean,0findings. Inspected b98a395b→fc4dfe7c plus final diff against main;
+extension/design trees equal previously reviewedf471bf4f, website/release/workflow/
+student-template/teaching trees equal main. Both additive evidence histories
+preserved; no separate footer work entered. Effective config/time/tokens unknown.
+Reuses prior progress/link reviews; one integration wave, no remediation batches.
+Coordinator merged-head98UI/preview checks, configuration/syntax/contracts/doc
+links, all3template readiness records and cumulative diff check pass. Logs:
+.verification/published-app-link/merge-{ui,check,templates}.log. Final CI/merge
+remain required. This receipt and CURRENT update only document that evidence.
+No new native-installed/live publication acceptance or release is claimed.
+
 ## Below-Run published link — final independent review
 
 Turn publishing_progress_review, requested Sol/medium, base0e4312a2 through
