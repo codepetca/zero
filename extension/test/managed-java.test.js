@@ -12,6 +12,7 @@ test('an old native editor reload resolves the current verified kit without a ne
   const platform=process.platform==='win32'?'win32':'darwin',kit=path.join(root,'kit'),home=path.join(root,'home');
   await fs.mkdir(path.join(kit,'setup'),{recursive:true});
   const environment={ZERO_KIT_DIR:kit,JAVA_HOME:path.join(root,'old-system-jdk17'),HOME:home,LOCALAPPDATA:home,PATH:''};
+  const sourceDirectory=path.join(home,...(platform==='darwin'?['Library','Application Support','Zero']:['ZeroData']),'editor','extensions','zero.zero-0.5.54','src');
   const metadata=path.join(kit,'setup',platform==='darwin'?'mac-downloads.json':'windows-downloads.json');
   const install=async hash=>{
     const asset={sha256:hash.repeat(64),version:'jdk-21.0.12.1+1'};
@@ -20,7 +21,9 @@ test('an old native editor reload resolves the current verified kit without a ne
     await fs.mkdir(folder,{recursive:true});await fs.writeFile(path.join(folder,platform==='darwin'?'.zero-asset.json':'.zero-asset.sha256'),asset.sha256);
     return platform==='darwin'?path.join(folder,asset.version,'Contents','Home'):folder;
   };
-  const first=await install('a');assert.equal(managedJavaHome(environment,platform),first);
+  const first=await install('a');assert.equal(managedJavaHome(environment,platform,sourceDirectory),first);
+  const inherited=await verifyManagedJava({environment,platform,sourceDirectory,execute:async command=>({stdout:command.endsWith('javac.exe')||command.endsWith('javac')?'javac 21.0.12.1':'openjdk version "21.0.12.1"'})});
+  assert.equal(inherited.JAVA_HOME,first);
   // Reload Window keeps the old marker (or lacks it entirely on old releases).
   environment.ZERO_JAVA_HOME=first;
   const current=await install('b');assert.equal(managedJavaHome(environment,platform),current);
@@ -72,4 +75,19 @@ test('ordinary extension and developer installations keep their selected Java en
   const env={JAVA_HOME:'/my/jdk25',PATH:'/my/bin',JAVA_TOOL_OPTIONS:'my flags'};
   assert.equal(managedJavaHome(env),undefined);assert.deepEqual(managedJavaEnvironment(env),env);
   assert.equal(await verifyManagedJava({environment:env,execute:()=>assert.fail('No Zero runtime was selected')}),undefined);
+  // Both shipped manual launchers export a kit path, without private runtimes.
+  for(const platform of ['darwin','win32']) {
+    const manual={...env,ZERO_KIT_DIR:platform==='win32'?'C:\\Manual Zero':'/manual/zero'};
+    assert.equal(managedJavaHome(manual,platform),undefined);assert.deepEqual(managedJavaEnvironment(manual,platform),manual);
+    assert.equal(await verifyManagedJava({environment:manual,platform,execute:()=>assert.fail('Manual setup must retain its system JDK')}),undefined);
+  }
+});
+
+test('nonordinary native metadata cannot block the editor host before file validation', {skip:process.platform==='win32'}, async t => {
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-java-fifo-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+  const kit=path.join(root,'kit');await fs.mkdir(path.join(kit,'setup'),{recursive:true});
+  const cp=require('node:child_process');cp.execFileSync('mkfifo',[path.join(kit,'setup','mac-downloads.json')]);
+  const script=`try {require(${JSON.stringify(require.resolve('../src/managed-java'))}).managedJavaHome(${JSON.stringify({ZERO_KIT_DIR:kit,ZERO_JAVA_HOME:'/native/jdk',HOME:root})},'darwin');process.exitCode=1;}catch(e){console.log(e.message);}`;
+  const result=cp.spawnSync(process.execPath,['-e',script],{encoding:'utf8',timeout:2000});
+  assert.ifError(result.error);assert.equal(result.status,0);assert.match(result.stdout,/bounded ordinary file/);
 });

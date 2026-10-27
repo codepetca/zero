@@ -26,8 +26,16 @@ prefs. Batch1 resolves current native kit/asset receipt independently of stale
 process env; preserves BOM; and keeps invalid settings byte-identical on both
 platforms. Delta95focused tests,357Mac assertions and2238Windows checks+updater
 pass. Actual installed-kit handoff with absent/stale markers selects verified
-Java21 and browser tools. Targeted review pending;2launches planned,1fixbatch,
-no additional full-diff wave. Review elapsed/token telemetry unknown.
+Java21 and browser tools. Review2, java_review/2, requested GPT6.1Sol/high, complete10-filef9004a5f→4109391e
+delta/immediate-caller coverage, confirms original3fixed and finds2new accepted
+blockers: manual setup also exports ZERO_KIT_DIR; FIFO metadata can block before
+ordinary-file checks. Batch2 scopes old-process recovery to the native isolated
+extension location (or explicit native marker), retains manual JDK selection,
+and uses nonblocking metadata opens.96focused tests pass, including a timed
+FIFO probe and manual/native identity fixtures; real private Java verification
+passes with native location supplied explicitly and an absent process marker.
+Targeted delta review pending;3reviewerturns planned,2fixbatches, no additional
+full-diff wave. Review elapsed/token telemetry unknown.
 Logs/real-runtime receipts: .verification/bundled-java/. Physical Windows,
 fresh-device/school-network and actual editor terminal UI remain untested.
 

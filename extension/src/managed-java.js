@@ -10,7 +10,7 @@ function environmentValue(environment, name, platform) {
 }
 
 function readRuntimeFile(filename, limit) {
-  const fd = fs.openSync(filename, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0));
+  const fd = fs.openSync(filename, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0) | (fs.constants.O_NONBLOCK || 0));
   try {
     const info = fs.fstatSync(fd);
     if (!info.isFile() || info.size > limit) throw new Error('Runtime metadata must be a bounded ordinary file.');
@@ -23,18 +23,25 @@ function readRuntimeFile(filename, limit) {
 
 // Read the current native kit rather than relying only on process variables:
 // VS Code keeps an existing window's environment when Reload Window updates it.
-function nativeJavaHome(environment, platform) {
+function nativeJavaHome(environment, platform, sourceDirectory) {
   const kit = environmentValue(environment, 'ZERO_KIT_DIR', platform);
   if (kit === undefined) return undefined;
   const paths = platform === 'win32' ? path.win32 : path;
+  const home = platform === 'win32' ? environmentValue(environment, 'LOCALAPPDATA', platform) : environmentValue(environment, 'HOME', platform) || os.homedir();
+  const privateRoot = typeof home === 'string' && paths.isAbsolute(home) ? paths.join(home, ...(platform === 'darwin' ? ['Library','Application Support','Zero'] : ['ZeroData'])) : undefined;
+  const nativeExtensions = privateRoot && paths.join(privateRoot, 'editor','extensions');
+  const extensionParent = paths.dirname(paths.dirname(sourceDirectory));
+  const installedNative = nativeExtensions && (platform === 'win32' ? extensionParent.toLowerCase() === nativeExtensions.toLowerCase() : extensionParent === nativeExtensions);
+  // Manual setup also exports ZERO_KIT_DIR. Only a native launcher marker or
+  // this module's actual isolated installation identifies a managed host.
+  if (environmentValue(environment, 'ZERO_JAVA_HOME', platform) === undefined && !installedNative) return undefined;
   if (!['darwin','win32'].includes(platform) || typeof kit !== 'string' || !paths.isAbsolute(kit) || /[\0\r\n]/.test(kit)) throw new Error('Zero’s native kit location is invalid. Reopen Zero to repair its runtime.');
   try {
     const manifest = JSON.parse(readRuntimeFile(paths.join(kit, 'setup', platform === 'win32' ? 'windows-downloads.json' : 'mac-downloads.json'), 64*1024));
     const asset = manifest.architectures?.[platform === 'darwin' && process.arch === 'arm64' ? 'arm64' : 'x64']?.jdk;
     if (manifest.schemaVersion !== 1 || !/^[a-f0-9]{64}$/.test(asset?.sha256 || '') || !/^jdk-21\.\d+\.\d+(?:\.\d+)?\+\d+$/.test(asset?.version || '')) throw new Error('Unrecognized Java download metadata.');
-    const home = platform === 'win32' ? environmentValue(environment, 'LOCALAPPDATA', platform) : environmentValue(environment, 'HOME', platform) || os.homedir();
-    if (typeof home !== 'string' || !paths.isAbsolute(home)) throw new Error('Zero’s private runtime directory is unavailable.');
-    const folder = paths.join(home, ...(platform === 'darwin' ? ['Library','Application Support','Zero','runtime'] : ['ZeroData','runtime']), 'jdk-' + asset.sha256);
+    if (!privateRoot) throw new Error('Zero’s private runtime directory is unavailable.');
+    const folder = paths.join(privateRoot, 'runtime', 'jdk-' + asset.sha256);
     const receipt = readRuntimeFile(paths.join(folder, platform === 'darwin' ? '.zero-asset.json' : '.zero-asset.sha256'), 128);
     if ((platform === 'win32' ? receipt.trim() : receipt) !== asset.sha256) throw new Error('Private Java receipt differs from the current kit.');
     return platform === 'darwin' ? paths.join(folder, asset.version, 'Contents','Home') : folder;
@@ -45,8 +52,8 @@ function nativeJavaHome(environment, platform) {
 
 // A native kit takes precedence even when an old editor process retains an old
 // ZERO_JAVA_HOME. Standalone managed hosts can also supply the explicit marker.
-function managedJavaHome(environment = process.env, platform = process.platform) {
-  const current = nativeJavaHome(environment, platform);
+function managedJavaHome(environment = process.env, platform = process.platform, sourceDirectory = __dirname) {
+  const current = nativeJavaHome(environment, platform, sourceDirectory);
   if (current) return current;
   const entry = Object.entries(environment).find(([key]) => platform === 'win32' ? key.toUpperCase() === 'ZERO_JAVA_HOME' : key === 'ZERO_JAVA_HOME');
   if (!entry) return undefined; // Ordinary extension/developer installations keep their own toolchain.
@@ -55,8 +62,8 @@ function managedJavaHome(environment = process.env, platform = process.platform)
   return home;
 }
 
-function managedJavaEnvironment(environment = process.env, platform = process.platform) {
-  const home = managedJavaHome(environment, platform), result = {...environment};
+function managedJavaEnvironment(environment = process.env, platform = process.platform, sourceDirectory = __dirname) {
+  const home = managedJavaHome(environment, platform, sourceDirectory), result = {...environment};
   if (!home) return result;
   const paths = platform === 'win32' ? path.win32 : path, delimiter = platform === 'win32' ? ';' : path.delimiter;
   const currentPath = Object.entries(environment).find(([key]) => platform === 'win32' ? key.toUpperCase() === 'PATH' : key === 'PATH')?.[1] || '';
@@ -71,10 +78,10 @@ function managedJavaEnvironment(environment = process.env, platform = process.pl
   return result;
 }
 
-async function verifyManagedJava({environment = process.env, platform = process.platform, execute = executeFile} = {}) {
-  const home = managedJavaHome(environment, platform);
+async function verifyManagedJava({environment = process.env, platform = process.platform, execute = executeFile, sourceDirectory = __dirname} = {}) {
+  const home = managedJavaHome(environment, platform, sourceDirectory);
   if (!home) return undefined;
-  const env = managedJavaEnvironment(environment, platform), paths = platform === 'win32' ? path.win32 : path;
+  const env = managedJavaEnvironment(environment, platform, sourceDirectory), paths = platform === 'win32' ? path.win32 : path;
   try {
     const versions = await Promise.all(['java','javac'].map(async name => {
       const result = await execute(paths.join(home, 'bin', name + (platform === 'win32' ? '.exe' : '')), ['-version'], {env,timeout:10000,maxBuffer:64*1024,windowsHide:true});
