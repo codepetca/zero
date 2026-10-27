@@ -1,5 +1,28 @@
 # Delivery evidence index
 
+## Windows0.5.54 preview public bytes — 2026-10-27
+
+[Unsigned installer](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.54)
+and [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.54)
+are public prereleases, each with exactlyone measured asset, actualtagtarget
+0c417cc03a597ec29582189059e9416ed8f55834. Both authenticated draft downloads and
+anonymous public downloads match sealed local sizes/hashes in the candidate doc.
+Macsetup54 remains latest; no earlier assets/feed or signing controls changed.
+
+Artifact Sol/high java_review/5 complete/clean atb2203adf; metadata Terra/high
+windows_promotion_review/1 complete with1accepted stale Product version reference,
+fixedf00831ea and targetedwindows_promotion_review/2 complete/clean. Unchanged
+artifact/source coverage reused; no runtime changes. Windowsphase3reviewerturns,
+1fixbatch; earlierJava4turns retained.243website tests/typecheck/production build,
+9manifestchecks and config/doc/syntax pass. Rendered download anchors resolve to
+Windows54EXE/manualZIP and unchangedMac54; existing unsigned label/setup help
+retained. Updater-off is a manifest/release-note fact, not new download-page copy.
+
+Website promotion and final exact-head CI/merge remain next. Detailed publicbyte,
+localrender and original GitHubartifact/report evidence:.verification/windows54/.
+NativeWindowsTested=false, signedupdatesoff; no physical/school/SmartScreen or
+interactiveWindowsRun/terminal acceptance claimed.
+
 ## Windows0.5.54 preview preparation — 2026-10-27
 
 Owner asked this chat to update the Windows installer with the bundled-Java fix.
