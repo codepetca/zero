@@ -1,5 +1,21 @@
 # Delivery evidence index
 
+## Below-Run published link — final independent review
+
+Turn publishing_progress_review, requested Sol/medium, base0e4312a2 through
+f471bf4f96862c8c82092ee73b031084ea725467: complete/clean over17changedfiles plus
+receiptstorage,provider,renderer andcommandcallers.4focused reviewer tests and
+cumulative diff check pass. Inspected captured92UI/54integration/configuration
+logs under .verification/published-app-link/.1reviewturn/1initialwave/0fixes;
+effectiveconfiguration/time/tokens unavailable. Existingpublisher API sequence
+is unchanged; outer authentication.capture adds identity validation before the
+provider's internalcapture, so this is not zero additional read requests. No
+build/save/upload/deploy occurs when opening a historical app. Parent observed
+actual local renderer belowRun in dark/light and disabledwhenbusy; fixture click
+checks/opening progress clears before success and reports0build/upload/deploy.
+No native/live retrieval or real browser-launch acceptance claimed; no release.
+
+
 ## Published-app link below Run — 2026-10-27, local source only
 
 Owner requested a link below Run after publication. Implementation starts from
