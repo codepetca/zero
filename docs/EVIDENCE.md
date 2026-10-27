@@ -1,3 +1,27 @@
+# View published app in Run options — 2026-10-27
+
+Owner follow-up adds a second Run dropdown item after a successful publication.
+View published app uses the saved site URL for this project and connected
+repository. It validates the saved HTTPS Pages destination, opens directly,
+and never saves edits, authenticates, checks source/GitHub/public availability,
+builds or publishes. Existing verified Open/Copy palette actions stay unchanged;
+there is no separate link below Run. Browser availability/version is deliberately
+not asserted. Publishing and releases remain separate; no remote mutations.
+
+134 scoped command/menu/extension-renderer/playground tests and configuration
+pass. Coverage includes unsaved local changes plus unavailable authentication,
+no verification/publish calls, malformed/disconnected receipts, browser launch
+failure, duplicate protection and progress cleanup, simulation, project/repository
+scope and two-item keyboard selection. Actual source-rendered dark browser preview
+shows both actions; Down selects View and Escape closes/restores trigger focus.
+This is local preview/command verification, not installed-app acceptance.
+
+Independent requested Sol/high review3cbf8af5→4779c4a8 completed clean,0blockers,
+covering the full follow-up diff and immediate URL/command/renderer dependencies.
+Effective model, tokens and elapsed time unknown. Overall feature ledger now
+4reviewer turns,1initial wave,2targeted follow-ups,1correction batch. Prior reviewed
+publishing/source proof unchanged. Receipts: ignored .verification/publish-fast/.
+
 # Faster unchanged published-app checks — 2026-10-27
 
 Local source only; publishing and releases excluded. A read-only fast path compares

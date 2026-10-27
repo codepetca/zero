@@ -4,7 +4,10 @@ Owner follow-up: add View published app to Run options after a successful publis
 Local source now opens only this project/repository’s saved validated HTTPS URL
 directly: no save, auth, Git/source check, public-page check, build or publication.
 Existing verified Open/Copy palette commands remain intact. Separate Run link
-stays removed. Follow-up targeted tests133 pass, keyboard test/review in progress.
+stays removed. Follow-up134 tests and configuration pass. Actual source-rendered dropdown
+shows both actions; keyboard Down selects View and Escape restores trigger focus.
+Independent Sol/high review3cbf8af5→4779c4a8 completed clean,0blockers.
+Local implementation complete; ignored evidence in .verification/publish-fast/.
 No push, PR, publishing or releases authorized by this follow-up.
 
 Owner authorized local implementation, timing and changed-project verification;
