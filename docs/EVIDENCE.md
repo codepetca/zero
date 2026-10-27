@@ -2,6 +2,21 @@
 
 ## Publishing stage progress — 2026-10-27, local source only
 
+Final independent turn publishing_progress_review, requested Sol/medium, inspected
+complete24-file delta6b5cfcc6..46f0c800 and production callers/proof/lock ordering,
+renderers/CSP/styles/fixtures/docs: complete/clean,0findings.7targeted reviewer tests
+and diff check pass.1initialwave/1reviewlaunch/0reviewfixes; effectiveconfiguration,
+time and tokens unavailable. Worker137/87/11results were reported in tool output;
+reviewer did not inspect persisted full-run logs. Coordinator independently ran9
+progress/terminal/renderer tests, allpass (119.8ms), saved ignored
+.verification/publish-progress/coordinator-targeted.log. All3actual tutorial
+publication records still validate; no framework/student-template/teaching/release
+input changed. Final browser preview retains the corrected opening text, active
+light/dark/high-contrast bar and error-without-bar state. No native installation,
+live GitHub upload or actual browser-launch timing claim. Formatting-shortcut
+request was rescinded and no formatting change was made.
+
+
 Owner requested a slim linear indicator because publishing text appeared stalled
 and “App published” appeared before final verification/browser opening finished.
 Branchcodex/tutorial-docs-label, implementation based on6b5cfcc6; earlier one-line

@@ -9,7 +9,10 @@ locally stopped paths clear the bar. Preserve source/session proof and locks.
 
 Branchcodex/tutorial-docs-label basebe449afd, implementation based on6b5cfcc6.
 The earlier Tutorials→Tutorial docs menu label and its clean independent review
-remain intact. Coordinator owns independent final review and actual renderer QA.
+remain intact. Coordinator actual-renderer browser QA passed in light/dark/high contrast.
+Independent Sol/medium review through46f0c800 complete/clean;7focused reviewer
+tests and9coordinator progress tests pass. All3template readiness records still
+validate; framework/student-template/teaching/release inputs unchanged.
 87focused UI/preview and11integration checks pass. The combined137-test publisher/
 UI fixture run passes; configuration/syntax/contracts/doc links and diff checks pass.
 Zero Dev UI-only preview on127.0.0.1:3267; no normal editor or installedZero changed.
