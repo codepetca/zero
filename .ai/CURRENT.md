@@ -1,23 +1,23 @@
-# Mac52 release and download/feed promotion
+# Website function bundle publication — 2026-10-27
 
-Owner-authorized2026-10-26 via architecture coordination: ship Publish & open app,
-source PR/selected CI/merge, signed Mac release, installed QA and reviewed promotion.
-Source PR210 merged1be89393 after11green checks at02c000bb; clean built source88182843.
-Public setup-v0.5.52 has exactly the sealed DMG,5964580bytes,
-SHA2566a8235a99c05e66bef50e10c6a64e8ca03a01b12c160e704ce54e32c61aece12.
-Draft/anonymous public bytes and signatures verified. Feature/release/artifact
-reviews complete/clean. Full local1357pass/3skip; installed Run/Stop and saved-edit
-Publish & open pass; repeat open causes no deployment or retained-manifest change.
+Owner authorized PR/merge/deploy and hosted storage verification, keeping ZeroJams
+hidden. Branch is based on main779af4d4; unfinished pilotPR202 is excluded. Release
+and update metadata is separated from learner docs/source; five route traces omit
+unnecessary test/build/UI copies and duplicate public assets, retaining runtime
+libraries and canonical templates. Metadata/feed bytes and all learner records
+match the fresh baseline before adding audit receipts. New audits run in CI.
 
-This branch promotes exact signed build52 feed and verified native download only.
-Final delivery gates are independent promotion review, selected CI, merge and live
-feed/download byte/signature checks. Consult the promotion PR and ignored
-.verification/mac52/final-delivery.json for their final status before repeating work.
-Detailed source/QA/limits: docs/MAC-CANDIDATE-0.5.52.md and docs/EVIDENCE.md.
-No rebuild or replacement of existing immutable assets; project-owned kits remain.
+Local current-main traces about12.66MB→7.4MB (~41%); these are not hosted billing.
+Website243tests/build/typecheck and isolated compiled-handler checks pass. Compiled
+production Jam endpoints remain404 even after changing process env; Game/App source
+generators separately verify staged assets. Keep real CI/independent review gates.
+Before rollout, productionFtNWgLgRL reports3.18MB download/template function sizes;
+Usage209.53MBdeployments/515.12MBfunctions/14.55MBBlob may lag. Check publication
+PR/Vercel receipts for final rollout and hosted savings; don't infer billing from
+local bytes or sum repeated/shared function sizes. Evidence .verification/function-bundles/.
 
-Preserve primary funding work, normal profiles/student projects, source Dev watcher,
-original actor checkout, Windows21/manualkit17 and production ZeroJams hold. No new
-credentials/permissions or unrelated deployment. No fresh-device/school-network/
-physical Intel/Windows/Sparkle-delivery claim. DeepSeek paused; weekly remaining84%,
-storage228GB healthy at release start. No new task/automation/tool-backed goal.
+Mac52 remains public via PR210/211 and immutable setup-v0.5.52: preserve manifests,
+update feed, signatures and GitHub assets. Native/student/Windows work is unchanged.
+Keep current production and active pilot/recovery copies; no credential, protection,
+invitation or Jam-cap change. Primary funding work/profiles/Dev watcher remain.
+Safari/device/zoom and sponsor/merch work stay paused; no new task or automation.

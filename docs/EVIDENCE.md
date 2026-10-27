@@ -11471,3 +11471,14 @@ configuration/contracts and whitespace pass. Actual published-feed loader, publi
 DMG Ed25519 and exact XML/feed-JSON status-only proof pass. Signed XML SHA256
 0b0f02355f30385ae7b93deaae6da26cc24c5f18d3ff86ce12725cc3a48fc496.
 Independent promotion review and selected CI belong to the promotion PR gate.
+
+
+## Function payload reduction — 2026-10-27
+
+Separated release/feed metadata from learner content and trimmed five route traces.
+Current-main local trace union is about41% smaller; metadata/feed bytes and learner
+content match the pre-change baseline. Existing website tests/typecheck/build and
+traced-only runtime checks pass. CI runs the bundle audits after building. Production
+ZeroJams stays unconditionally hidden; pilot work is excluded from this publication.
+Hosted savings require the publication PR's Linux deployment/resource comparison;
+see [website plan](WEBSITE-PLAN.md#function-bundle-reduction--2026-10-27).
