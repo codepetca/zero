@@ -438,3 +438,28 @@ test('historical browser opening keeps final project/session/mode/trust guards a
     assert.deepEqual(h.opened,[],mode);assert.equal(h.progress.at(-1),undefined,mode);assert.equal(h.busy,false,mode);
   }
 });
+
+test('unchanged fast reuse opens without another review, upload or deployment',async t=>{
+  const h=fixture(t);h.choices.push('Publish app');await h.api.publish();let fast=0;
+  h.publisher.verifyUnchanged=async(root,saved,options)=>{fast++;assert.equal(root,'/student');await options.beforeFinalCheck();const live={status:'live',url:saved.url,sha:saved.sha,resume:saved.resume};options.onCurrent(live);return live;};
+  const result=await h.api.publishAndOpen();assert.equal(result.alreadyCurrent,true);assert.equal(fast,1);assert.equal(h.reviewed,1);assert.equal(h.published,1);assert.equal(h.uploaded,0);assert.equal(h.opened.length,1);assert.equal(h.busy,false);assert.equal(h.progress.at(-1),undefined);
+});
+test('changed project leaves fast reuse and completes the guarded publish/open flow',async t=>{
+  const h=fixture(t);h.choices.push('Publish app');await h.api.publish();h.sha='b'.repeat(40);
+  h.publisher.verifyUnchanged=async()=>({status:'stale'});
+  const result=await h.api.publishAndOpen();assert.equal(result.sha,'b'.repeat(40));assert.equal(h.reviewed,3);assert.equal(h.published,2);assert.equal(h.opened.length,1);assert.equal(h.stored.get('zero.webPublish.lastLive').sha,'b'.repeat(40));
+});
+test('fast reuse failure preserves the old publication without opening or deploying',async t=>{
+  for(const kind of ['pending','network','project','dirty'])await t.test(kind,async t=>{
+    const h=fixture(t);h.choices.push('Publish app');await h.api.publish();const saved=h.stored.get('zero.webPublish.lastLive');
+    h.publisher.verifyUnchanged=async(_root,_saved,options)=>{
+      if(kind==='pending')return {status:'pending',message:'Page unavailable'};
+      if(kind==='network')throw Error('Offline');
+      if(kind==='project')h.active='/other';
+      if(kind==='dirty')h.vscode.workspace.textDocuments=[{isDirty:true}];
+      await options.beforeFinalCheck();const live={status:'live',url:saved.url};options.onCurrent(live);return live;
+    };
+    if(kind==='pending')assert.equal((await h.api.publishAndOpen()).status,'pending');else await assert.rejects(h.api.publishAndOpen());
+    assert.equal(h.published,1);assert.deepEqual(h.opened,[]);assert.deepEqual(h.stored.get('zero.webPublish.lastLive'),saved);assert.equal(h.busy,false);assert.equal(h.progress.at(-1),undefined);
+  });
+});

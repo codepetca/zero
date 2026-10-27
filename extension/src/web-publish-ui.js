@@ -61,10 +61,11 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},authen
     }
     return result;
   }
-  async function verifyAndOpen(reviewed,saved,expected) {
+  async function verifyAndOpen(reviewed,saved,expected,{fast=false}={}) {
     let opening;
     stage('verifying');progress('Checking live app…');
-    const current=await publisher.verifyCurrent(reviewed,saved,{
+    const verify=fast?publisher.verifyUnchanged.bind(publisher,expected):publisher.verifyCurrent.bind(publisher,reviewed);
+    const current=await verify(saved,{
       signal:controller.signal,
       beforeFinalCheck:()=>stillPublishable(expected),
       // Called synchronously after the publisher's final source/session proof.
@@ -157,6 +158,12 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},authen
         await stillCurrent(expected);
       }
       await stillPublishable(expected);
+      const previous=lastLive || workspaceState?.get('zero.webPublish.lastLive');
+      if(reuse && previous && publisher.verifyUnchanged) {
+        const current=await verifyAndOpen(undefined,previous,expected,{fast:true});
+        if(current.status==='live')return {...current,alreadyCurrent:true};
+        if(current.status!=='stale'){await showAction(current);return current;}
+      }
       let review,uploadedSource;
       try {review=await publisher.review(expected,{signal:controller.signal});}
       catch(error) {
@@ -169,7 +176,6 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},authen
       }
       await stillCurrent(expected);
       if(review.status!=='review'){await showAction(review);return review;}
-      const previous=lastLive || workspaceState?.get('zero.webPublish.lastLive');
       if(reuse) {
         startProgress(['verifying']);
         progress('Checking published app…');

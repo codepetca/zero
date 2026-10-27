@@ -200,13 +200,12 @@ test('publishing fixtures exercise real coordinator stages and root-scoped rende
   assert.doesNotMatch(sidebarSource('publish-building',{connected:true,projectRoot:'/other/project'}),/role="progressbar"/);
 });
 
-test('published link sits below Run, follows cloud/busy visibility and its fixture opens historical output read-only',async()=>{
+test('publishing stays in Run options without a duplicate published link; palette retrieval stays read-only',async()=>{
   const {publishedLinkProof}=await import('./publishing-source.mjs');
   const html=sidebarSource('published',{connected:true});
-  assert.match(html,/class="link published-app-link" data-command="zero.openPublishedWeb"/);
-  assert.ok(html.indexOf('class="run-split"')<html.indexOf('class="link published-app-link"'));
-  assert.ok(html.indexOf('class="link published-app-link"')<html.indexOf('class="repository"'));
-  assert.match(sidebarSource('published-busy',{connected:true}),/data-command="zero.openPublishedWeb" disabled/);
+  assert.doesNotMatch(html,/published-app-link|Open published app/);
+  assert.doesNotMatch(sidebarSource('published-busy',{connected:true}),/data-command="zero.openPublishedWeb"/);
+  assert.match(html,/data-command="zero.publishAndOpenWeb"/);
   assert.doesNotMatch(sidebarSource('published',{connected:false}),/data-command="zero.openPublishedWeb"/);
   assert.doesNotMatch(sidebarSource('published',{connected:true,projectRoot:'/other'}),/data-command="zero.openPublishedWeb"/);
   assert.notEqual(publishedLinkProof.localSha,publishedLinkProof.openedSha);

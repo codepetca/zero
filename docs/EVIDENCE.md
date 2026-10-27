@@ -1,3 +1,34 @@
+# Faster unchanged published-app checks — 2026-10-27
+
+Local source only; publishing and releases excluded. A read-only fast path compares
+clean main and exact committed browser inputs, verifies current App access once per
+command, checks Pages/run/public marker/remote main, and performs final source,
+project, session, simulation and cancellation checks before opening. No access
+proof persists between commands; mutation authorization remains unchanged. The
+separate sidebar link is removed; Publish & open app stays in Run options.
+Host commit proof now works without a retained build result, while a supplied
+build result must still match source. Exact ignored/untracked inputs remain denied.
+
+Controlled before/after benchmark, three samples each, real disposable Git,
+mocked GitHub/public HTTP and25ms per App access, stubbed input proof to isolate
+orchestration: before2225/2196/2169ms, after259/252/252ms; median2196→252ms
+(88.5%reduction). Per invocation: App access7→1, Git198→22, publisher/public
+HTTP7→4. These are local orchestration results, not live GitHub latency claims.
+Receipts/harness are retained in ignored `.verification/publish-fast/`.
+
+Fast-path tests cover repeated-command reauthorization, stale receipts, branches,
+new commits, local edits, remote main, replaced installation/account/origin,
+Pages/run mismatch, unavailable public output, cancellation and final ignored input
+drift. Real commit/input proof opens with no retained browser build. A real command
+coordinator/publisher integration test uses disposable Git and real input proofs:
+first publish → unchanged open without rebuild → edited Java → commit/upload →
+second build/staging/dispatch → exact new marker → browser open. GitHub and browser
+build outputs in that integration test are simulated; no hosted repository changes.
+Focused fast tests17, UI/snapshot99, sidebar/design52 and configuration pass.
+The actual source renderer in the dark browser preview shows no separate link and
+retains Publish & open app in Run options. Native host/live-network/physicalWindows
+acceptance and actual hosting remain separate. Full regression/review follows.
+
 # Delivery evidence index
 
 ## Mac54 promotion review and local checks — 2026-10-27

@@ -192,14 +192,20 @@ A current publication opens without compiling or uploading. Otherwise the existi
 publish flow runs first and opens only the latest verified version. Pending older
 runs finish before a newer version can be published. Continued editing stops an
 outdated page from opening and asks for another explicit action. Normal local Run
-is unchanged. After a verified live publication, local source adds **Open published
-app ↗** immediately below Run for the same connected project/repository/account.
-It verifies and opens the previously published app without saving, building,
-uploading or deploying newer local edits. Its saved receipt survives editor
-restart and failed updates; a failed first publication creates no link. The link
-is disabled while busy, and checking/browser opening use the existing progress
-bar until completion. Copy playable link remains an advanced palette command;
-the browser address is shareable.
+is unchanged. Current local source keeps **Publish & open app** in Run options,
+without a separate link below Run. An unchanged project takes a read-only fast
+path: compare the clean main commit and exact Java/assets/library/build inputs,
+verify account/repository/installation access once for this command, read Pages
+and the recorded run concurrently, then confirm the public commit/run marker and
+GitHub main. Final source, project, session, mode and cancellation checks precede
+browser opening. No access proof survives the command. Missing or changed source
+receipts return to the existing guarded publish flow; unavailable or unverified
+public pages stop without starting another deployment. Pending runs and temporary
+staging recovery still run first. No compiler or saved project code executes on
+the unchanged path, and it needs no retained local web output. Saved publication
+receipts survive editor restart and failed updates. Historical Open/Copy commands
+remain in the command palette. Checking and browser opening retain the existing
+progress bar until completion; the browser address is shareable.
 
 Current delivery, checked 2026-10-21: Mac 0.5.43 ships native Explorer and the teaching New dropdown, native Run App, Start Page sign-in
 and GitHub setup. Windows remains the unsigned 0.5.21

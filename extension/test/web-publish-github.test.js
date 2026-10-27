@@ -479,3 +479,93 @@ test('publisher emits measured build/upload/deploy/check boundaries, including m
   await assert.rejects(h.publisher.publish(await h.publisher.review(h.root),{onStage:name=>stages.push(name)}),/Compile failed/);
   assert.deepEqual(stages,['building']);
 });
+
+function currentReceipt(h) {
+  return {root:h.root,account:'1',url:h.pages.html_url,sha:h.head,resume:{runId:42,sha:h.head,repository:'https://github.com/student/game',repositoryId:12,installationId:99,destination:{url:h.pages.html_url,cname:h.pages.cname||null,buildType:'workflow',public:true}}};
+}
+test('fast reuse checks access once per command and opens only the exact public commit/run with GETs',async t=>{
+  const h=await fixture(t),saved=currentReceipt(h);let opened=0;
+  for(let i=0;i<2;i++) {
+    const before=h.accessCalls.length,requests=h.calls.length;
+    assert.equal((await h.publisher.verifyUnchanged(h.root,saved,{onCurrent:()=>opened++})).status,'live');
+    assert.equal(h.accessCalls.length-before,1);
+    assert.deepEqual(h.accessCalls.at(-1).permissions,{contents:'read',actions:'read',pages:'read'});
+    assert.equal(h.calls.length-requests,4);assert.ok(h.calls.slice(requests).every(c=>c.options.method==='GET'));
+    assert.equal(h.calls.at(-2).options.headers,undefined,'Public marker never receives credentials');
+  }
+  assert.equal(opened,2);
+  h.allowed=false;await assert.rejects(h.publisher.verifyUnchanged(h.root,saved),/access was removed/);assert.equal(opened,2);
+});
+test('fast reuse falls back for missing/older receipts, branch, edits, new commits and remote main drift',async t=>{
+  const h=await fixture(t),saved=currentReceipt(h);
+  for(const value of [undefined,{...saved,account:'2'},{...saved,root:'/other'},{...saved,resume:{...saved.resume,installationId:undefined}}])assert.equal((await h.publisher.verifyUnchanged(h.root,value)).status,'stale');
+  await fs.writeFile(path.join(h.root,'Main.java'),'class Main {}');assert.equal((await h.publisher.verifyUnchanged(h.root,saved)).status,'stale');
+  await h.git(['add','.']);await h.git(['commit','-m','Edit']);assert.equal((await h.publisher.verifyUnchanged(h.root,saved)).status,'stale');
+  await h.git(['reset','--hard',h.head]);await h.git(['switch','-c','work']);assert.equal((await h.publisher.verifyUnchanged(h.root,saved)).status,'stale');
+  await h.git(['switch','main']);h.remoteHead='f'.repeat(40);assert.equal((await h.publisher.verifyUnchanged(h.root,saved)).status,'stale');
+  assert.ok(h.calls.every(c=>c.options.method==='GET'));
+});
+test('fast reuse keeps account, installation, destination, run and public availability checks',async t=>{
+  for(const kind of ['account','installation','destination','run','public','failed'])await t.test(kind,async t=>{
+    const h=await fixture(t),saved=currentReceipt(h);let opened=false;
+    if(kind==='account')h.current=false;
+    if(kind==='installation')h.installationId=100;
+    if(kind==='destination')h.pages={...h.pages,html_url:'https://other.invalid/',cname:'other.invalid'};
+    if(kind==='run')h.run.head_sha='f'.repeat(40);
+    if(kind==='public')h.publicStatus=503;
+    if(kind==='failed')h.run.conclusion='failure';
+    if(['public','failed'].includes(kind))assert.equal((await h.publisher.verifyUnchanged(h.root,saved,{onCurrent:()=>opened=true})).status,kind==='public'?'pending':'stale');
+    else await assert.rejects(h.publisher.verifyUnchanged(h.root,saved,{onCurrent:()=>opened=true}));
+    assert.equal(opened,false);assert.ok(h.calls.every(c=>c.options.method==='GET'));
+  });
+});
+test('fast reuse final guards reject source, origin, mode, account and cancellation drift',async t=>{
+  for(const kind of ['source','origin','mode','account','cancel'])await t.test(kind,async t=>{
+    const h=await fixture(t),saved=currentReceipt(h),controller=new AbortController();let opened=false;
+    await assert.rejects(h.publisher.verifyUnchanged(h.root,saved,{signal:controller.signal,onCurrent:()=>opened=true,beforeFinalCheck:async()=>{
+      if(kind==='source')await fs.writeFile(path.join(h.root,'Main.java'),'class Main {}');
+      if(kind==='origin')await h.git(['remote','set-url','origin','https://github.com/student/other.git']);
+      if(kind==='mode')h.simulation=true;
+      if(kind==='account')h.current=false;
+      if(kind==='cancel')controller.abort();
+    }}));
+    assert.equal(opened,false);assert.ok(h.calls.every(c=>c.options.method==='GET'));
+  });
+});
+test('fast reuse executes real commit/input checks without any retained browser build',async t=>{
+  const snapshot=require('../src/web-export/snapshot');
+  const h=await fixture(t,{publisherOptions:{assertBuildInputsAtCommit:snapshot.assertBuildInputsAtCommit}});
+  for(const [name,data] of [['src/main/java/Main.java','class Main {}'],['src/main/resources/sprite.png','PNG bytes'],['.mvn/wrapper/maven-wrapper.properties','pinned'],['pom.xml','<project/>']]){
+    await fs.mkdir(path.dirname(path.join(h.root,name)),{recursive:true});await fs.writeFile(path.join(h.root,name),data);
+  }
+  await h.git(['add','.']);await h.git(['commit','-m','Real browser inputs']);
+  const head=await h.git(['rev-parse','HEAD']),saved=currentReceipt(h);saved.sha=head;saved.resume.sha=head;h.remoteHead=head;h.run.head_sha=head;h.marker=head+'\n42\n';
+  let opened=0;assert.equal((await h.publisher.verifyUnchanged(h.root,saved,{onCurrent:()=>opened++})).status,'live');assert.equal(opened,1);
+  await fs.appendFile(path.join(h.root,'.git/info/exclude'),'src/main/resources/ignored.png\n');
+  await fs.writeFile(path.join(h.root,'src/main/resources/ignored.png'),'unpublished image');
+  assert.equal((await h.publisher.verifyUnchanged(h.root,saved,{onCurrent:()=>opened++})).status,'stale');assert.equal(opened,1);
+  await fs.rm(path.join(h.root,'src/main/resources/ignored.png'));
+  await assert.rejects(h.publisher.verifyUnchanged(h.root,saved,{onCurrent:()=>opened++,beforeFinalCheck:()=>fs.writeFile(path.join(h.root,'src/main/resources/ignored.png'),'late ignored image')}),/missing from the uploaded commit/);
+  assert.equal(opened,1);
+});
+
+test('real command/publisher integration reuses unchanged source, then uploads and publishes an edited commit',async t=>{
+  const snapshot=require('../src/web-export/snapshot');let h,builds=0,uploads=0;
+  h=await fixture(t,{publisherOptions:{assertBuildInputsAtCommit:snapshot.assertBuildInputsAtCommit,localBuild:async()=>{builds++;h.result.sourceHash=(await snapshot.captureBuildInputs(h.root)).sourceHash;return h.result;}}});
+  for(const [name,data] of [['src/main/java/Main.java','class Main {}'],['src/main/resources/sprite.png','PNG bytes'],['.mvn/wrapper/maven-wrapper.properties','pinned'],['pom.xml','<project/>']]){
+    await fs.mkdir(path.dirname(path.join(h.root,name)),{recursive:true});await fs.writeFile(path.join(h.root,name),data);
+  }
+  await h.git(['add','.']);await h.git(['commit','-m','Browser inputs']);
+  async function remoteAtHead(){const head=await h.git(['rev-parse','HEAD']);h.remoteHead=head;h.run.head_sha=head;h.marker=head+'\n42\n';return head;}
+  await remoteAtHead();
+  const stored=new Map(),opened=[];let busy=false;
+  const vscode={workspace:{isTrusted:true,textDocuments:[]},window:{showInformationMessage:async()=> 'Publish app'},env:{openExternal:async uri=>{opened.push(uri);return true;}},Uri:{parse:url=>url}};
+  const api=require('../src/web-publish-ui').createWebPublishCommands(vscode,{project:async()=>h.root,assertProjectNow:root=>assert.equal(root,h.root),authentication:h.authentication,isSimulation:()=>false,isBusy:()=>busy,setBusy:value=>busy=value,workspaceState:{get:key=>stored.get(key),update:async(key,value)=>{if(value===undefined)stored.delete(key);else stored.set(key,JSON.parse(JSON.stringify(value)));}},publisherFactory:()=>h.publisher,pollIntervalMs:0,maxChecks:1,uploadChanges:async()=>{uploads++;await h.git(['add','.']);await h.git(['commit','-m','Student edit']);return {uploaded:true,head:await remoteAtHead()};}});
+  t.after(()=>api.disposables.forEach(d=>d.dispose()));
+  const first=await api.publishAndOpen();assert.equal(first.status,'live');assert.equal(builds,1);assert.equal(uploads,0);const previous=first.sha;
+  const unchanged=await api.publishAndOpen();assert.equal(unchanged.alreadyCurrent,true);assert.equal(builds,1);assert.equal(uploads,0);
+  await fs.writeFile(path.join(h.root,'src/main/java/Main.java'),'class Main { int score=10; }');
+  const changed=await api.publishAndOpen();assert.equal(changed.status,'live');assert.notEqual(changed.sha,previous);assert.equal(builds,2);assert.equal(uploads,1);assert.equal(opened.length,3);assert.equal(stored.get('zero.webPublish.lastLive').sha,changed.sha);assert.equal(busy,false);
+  const dispatches=h.calls.filter(c=>c.url.endsWith('/dispatches')).map(c=>JSON.parse(c.options.body).inputs.source_sha);
+  assert.deepEqual(dispatches,[previous,changed.sha]);
+});

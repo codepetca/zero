@@ -97,6 +97,12 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     // after it completes before sending any publishing request.
     if(cleanup){const now=await prepareUpload(review.root,git);if(now.root!==review.plan.root||now.remote!==review.plan.remote)throw Error('The repository changed; temporary app cleanup needs its original repository.');}
     else await guard(review,signal,{tracking});
+    return sendApi(review,method,suffix,body,{signal,uploadUrl,onRequest,allow404});
+  }
+  // Only trusted callers select endpoints. A read-only current-app check shares
+  // one operation-local access proof; every mutating caller retains api's guards.
+  async function sendApi(review,method,suffix,body,{signal,uploadUrl,onRequest,allow404=false}={}) {
+    await authentication.assertCurrent(review.ticket);
     // Mode can change while authentication and Git validation are awaited.
     if(isSimulation())throw new Error('Live publishing is disabled. Review again after choosing live uploads.');
     const token=authentication.assertCurrentNow(review.ticket).accessToken;
@@ -290,11 +296,21 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(release.id!==staging.releaseId||release.draft!==true||release.tag_name!==staging.tag||String(release.author?.id)!==String(state.ticket.session.accountId)||release.target_commitish!==(state.cleanupSha || staging.sourceSha || state.plan.head))throw Error('The temporary staging release changed; preserve it for review.');
     await cleanupRequest('DELETE');
   }
+  function assertRun(state,resume,run) {
+    if(run.id!==resume.runId || (resume.repositoryId && run.repository?.id!==resume.repositoryId) || run.head_sha!==resume.sha || run.path!==workflowPath || run.event!=='workflow_dispatch' || run.head_branch!=='main' || run.repository?.full_name?.toLowerCase()!==state.slug.toLowerCase())throw new Error('GitHub returned a different publishing run. Check repository Actions.');
+  }
+  async function publicVersion(resume,url,signal) {
+    if(isSimulation())throw Error('Live publishing is disabled. Review again after choosing live uploads.');
+    let response;
+    try {response=await (request===globalThis.fetch?publicReadiness:request)(new URL('zero-source-sha.txt',url.endsWith('/')?url:url+'/').href,{method:'GET',redirect:'error',cache:'no-store',signal:AbortSignal.any([AbortSignal.timeout(timeoutMs),...(signal?[signal]:[])])});}
+    catch {return false;}
+    return response.ok && Number(response.headers?.get('content-length')||0)<=100 && (await boundedText(response))===resume.sha+'\n'+resume.runId;
+  }
   async function check(resume,{signal,onProgress=()=>{},onStage=()=>{},cleanup=true}={}) {
     if(isSimulation())return simulation();
     const state=resumptions.get(resume);if(!state)throw new Error('This publishing run is no longer tracked. Open repository Actions to check it.');
     const run=await api(state,'GET','/actions/runs/'+resume.runId,null,{signal,tracking:true});
-    if(run.id!==resume.runId || (resume.repositoryId && run.repository?.id!==resume.repositoryId) || run.head_sha!==resume.sha || run.path!==workflowPath || run.event!=='workflow_dispatch' || run.head_branch!=='main' || run.repository?.full_name?.toLowerCase()!==state.slug.toLowerCase())throw new Error('GitHub returned a different publishing run. Check repository Actions.');
+    assertRun(state,resume,run);
     const pending=message=>({status:'pending',resume,message});
     if(run.status!=='completed')return pending('GitHub is deploying your locally built app.');
     if(cleanup)await cleanupStaging({...state,cleanupSha:resume.sha},resume.staging);
@@ -304,11 +320,9 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     const {url}=assertDestination(pages,resume.destination);
     onProgress('Checking that the public page serves your reviewed version…');
     if(isSimulation())throw new Error('Live publishing is disabled. Review again after choosing live uploads.');
-    let response;
-    try {response=await (request===globalThis.fetch?publicReadiness:request)(new URL('zero-source-sha.txt',url.endsWith('/')?url:url+'/').href,{method:'GET',redirect:'error',cache:'no-store',signal:AbortSignal.any([AbortSignal.timeout(timeoutMs),...(signal?[signal]:[])])});}
-    catch {return pending('Deployment succeeded; waiting for the public game to become reachable.');}
+    const matches=await publicVersion(resume,url,signal);
     await guard(state,signal,{tracking:true});
-    if(!response.ok || Number(response.headers?.get('content-length')||0)>100 || (await boundedText(response))!==resume.sha+'\n'+resume.runId)return pending('Deployment succeeded; waiting for the public page to serve this version.');
+    if(!matches)return pending('Deployment succeeded; waiting for the public page to serve this version.');
     return {status:'live',url,sha:resume.sha,resume,message:'Your playable game is live.'};
   }
   async function restore(root,saved,{signal,onStage=()=>{},onProgress=()=>{}}={}) {
@@ -333,6 +347,53 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if((saved.resume.repositoryId && repo.id!==saved.resume.repositoryId) || String(repo.owner?.id)!==String(ticket.session.accountId) || repo.owner?.type!=='User')throw new Error('Sign in to the GitHub account that owns this game.');
     const resume=Object.freeze({...saved.resume});resumptions.set(resume,state);
     return check(resume,{signal,cleanup,onStage,onProgress});
+  }
+  // Fast, read-only reuse of an already published commit. Nothing is cached
+  // across commands: verify access once, batch independent reads, then recheck
+  // exact local inputs, identity and destination immediately before opening.
+  async function verifyUnchanged(root,saved,{signal,beforeFinalCheck=async()=>{},onCurrent=()=>{}}={}) {
+    if(isSimulation())return simulation();
+    const receipt=saved?.resume;
+    if(saved?.root!==root || !shaPattern.test(saved?.sha||'') || receipt?.sha!==saved.sha ||
+       !Number.isSafeInteger(receipt?.runId) || receipt.runId<1 ||
+       !Number.isSafeInteger(receipt.repositoryId) || receipt.repositoryId<1 ||
+       !Number.isSafeInteger(receipt.installationId) || receipt.installationId<1 ||
+       saved.url!==receipt.destination?.url)return {status:'stale'};
+    const plan=await prepareUpload(root,git);
+    if(plan.branch!=='main' || plan.status || plan.head!==saved.sha || plan.page!==receipt.repository)return {status:'stale'};
+    const ticket=await authentication.capture();
+    if(saved.account!==ticket.session.accountId)return {status:'stale'};
+    const state={root:plan.root,plan,ticket,slug:plan.page.slice('https://github.com/'.length),repositoryId:receipt.repositoryId,installationId:receipt.installationId};
+    const files=providedFiles || await publishingFiles(engineRoot);
+    const inspection=migration.inspect(plan.root,files);
+    if(inspection.missing.length || inspection.upgrade)return {status:'stale'};
+    let proof;
+    try {proof=await assertBuildInputsAtCommit({projectRoot:state.root,sourceSha:plan.head,git});}
+    catch {await guard(state,signal);return {status:'stale'};}
+    if(!/^[a-f0-9]{64}$/.test(proof?.sourceHash||''))return {status:'stale'};
+    const repo=await access(state,{contents:'read',actions:'read',pages:'read'},signal);
+    if(repo.default_branch!=='main' || !repo.permissions?.push)throw Error('The publishing repository changed. Review publishing again.');
+    const [pages,run]=await Promise.all([
+      sendApi(state,'GET','/pages',null,{signal}),
+      sendApi(state,'GET','/actions/runs/'+receipt.runId,null,{signal})
+    ]);
+    const {url}=assertDestination(pages,receipt.destination);
+    assertRun(state,receipt,run);
+    if(run.status!=='completed')return {status:'pending',message:'GitHub is deploying your locally built app.'};
+    if(run.conclusion!=='success')return {status:'stale'};
+    if(!await publicVersion(receipt,url,signal))return {status:'pending',message:'The published app could not be verified. Try Publish & open app again.'};
+    const remote=await sendApi(state,'GET','/git/ref/heads/main',null,{signal});
+    if(remote.object?.sha!==saved.sha)return {status:'stale'};
+    await beforeFinalCheck();
+    await guard(state,signal);
+    const finalProof=await assertBuildInputsAtCommit({projectRoot:state.root,sourceSha:plan.head,git});
+    if(finalProof?.sourceHash!==proof.sourceHash)throw Error('The app changed while checking its published version. Choose Publish & open app again.');
+    authentication.assertCurrentNow(ticket);
+    if(signal?.aborted)throw Error('Web publishing cancelled.');
+    if(isSimulation())throw Error('Live publishing is disabled. Review again after choosing live uploads.');
+    const live={status:'live',url,sha:saved.sha,resume:receipt,message:'Your playable game is live.'};
+    onCurrent(live);
+    return live;
   }
   // Current-page reuse is stricter than retrieving a historical playable link.
   // All checks are read-only: no compiler, saved project module or upload runs here.
@@ -375,6 +436,6 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     await cleanupStaging({root:plan.root,plan,ticket,slug:plan.page.slice('https://github.com/'.length),cleanupSha:saved.sha},saved.staging);
     unresolvedStages.delete(plan.root);
   }
-  return {review,setup,update,publish,check,restore,verifyLink,verifyCurrent,cleanup};
+  return {review,setup,update,publish,check,restore,verifyLink,verifyCurrent,verifyUnchanged,cleanup};
 }
 module.exports={createGitHubPagesPublisher,publishingFiles,workflowPath,pagesPublishWorkflow:compiledWorkflow,publicAddress,_test:{publicReadiness,boundedText}};

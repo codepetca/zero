@@ -68,6 +68,7 @@ test('publish binds every build input to committed Git blobs, including ignored 
  const {assertBuildInputsAtCommit}=require('../src/web-export/snapshot');
  let result=await validateExport(f.options);
  assert.equal((await assertBuildInputsAtCommit({projectRoot:f.root,result,sourceSha,git})).inputCount,6);
+ const current=await assertBuildInputsAtCommit({projectRoot:f.root,sourceSha,git});assert.equal(current.sourceHash,(await captureBuildInputs(f.root)).sourceHash);assert.equal(current.inputCount,6);
  await fs.writeFile(path.join(f.root,'src/main/java/Main.java'),'class Main {}\r\n');
  await assert.rejects(assertBuildInputsAtCommit({projectRoot:f.root,result,sourceSha,git}),/project changed/);
  await fs.writeFile(path.join(f.root,'src/main/java/Main.java'),'class Main {}');
