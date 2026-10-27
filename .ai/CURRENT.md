@@ -9,12 +9,17 @@ resets/credits purchases, change accounts/settings or bypass an actual rejection
 This chat owns source PR/CI/merge on codex/bundled-java. Architecture owns the
 single combined Mac0.5.54/build54 release in codex/mac54-release. Keep source kit
 version unchanged; no installer build/assets/feed changes in this chat.
-Integrating mainfa0d6b74: PR215 publishing feedback/Open published app/Tutorial
+Integrated mainfa0d6b74: PR215 publishing feedback/Open published app/Tutorial
 docs label and PR216 footer removal are retained, along with Mac53 metadata.
-Only CURRENT/EVIDENCE conflicts require manual resolution; code merges cleanly.
+CURRENT/EVIDENCE conflicts preserved both histories; code merged cleanly.
+PR217:https://github.com/codepetca/zero/pull/217. Integration source8eb025b0
+reviewed complete/clean by java_review/4 (GPT6.1Sol/high),179focused tests and
+configuration checks pass. Final receipt-only commit follows; exact-head CI
+and merge are next. No new code changes after this integration review.
+Release smoke handoff:docs/BUNDLED-JAVA-ACCEPTANCE.md.
 
 Reuse complete source review94c2cac9 and96focused/357Mac/2238Windows+updater,
-initial1365pass/3skip. Review actual integration delta and run exact-head CI.
+initial1365pass/3skip. Reuse completed integration review and run exact-head CI.
 Evidence:docs/EVIDENCE.md and .verification/bundled-java/. No new public API,
 project pins, global Java/shell/ordinary Code settings or credentials changed.
 Preserve all artifacts/primary funding/student projects and productionZeroJams

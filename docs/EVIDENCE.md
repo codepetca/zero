@@ -1,5 +1,33 @@
 # Delivery evidence index
 
+## Bundled Java source publication — 2026-10-27
+
+Owner production continuation verified in Zero Architecture human turn
+01a17e09-176e-7311-a127-1bc438609555: Java PR/CI/merge, then combinedMac54release.
+This chat owns source only; Architecture owns Mac0.5.54/build54 installer/feed.
+No kit-version bump or artifact removal here. Existing account execution works;
+no reset, credit purchase, credential/model/settings change or rejection bypass.
+
+PR217:https://github.com/codepetca/zero/pull/217. Mergeac0a94c4 integrates
+mainfa0d6b74 into reviewed9202743d delivery, retaining PR215publishing feedback/
+Open published app/Tutorialdocs, PR216footer removal and Mac53metadata.
+Native/helper/setup/browser source blobs are unchanged by integration; the only
+production overlap is extension.js, which retains the exact reviewed Java task
+environment additions. CURRENT/EVIDENCE conflicts preserve both histories.
+Acceptance handoff8eb025b0 documents exact isolated real-editor terminal/upgrade
+prerequisites and commands in BUNDLED-JAVA-ACCEPTANCE.md, separating that smoke
+from native installer/update UI acceptance and physicalWindows.
+
+java_review/4 requested GPT6.1Sol/high: complete scoped9202743d→8eb025b0 actual
+integration/conflict/handoff review clean,0findings, no edits. Incoming unrelated
+modules match current main; unchanged prior complete+targeted coverage reused.
+179focused Java/setup/dev/publishing/sidebar tests and configuration/doc-link/
+syntax checks pass. Native357/Windows2238+updater and initial1365pass/3skip reused
+for unchanged source. Cumulative4reviewerturns,1initial+2targeted+1integration,
+2fixbatches; telemetry unknown. Receipt-only follow-up; no code changes after
+review. Exact-head final CI and source merge pending at this receipt. Retain
+ignored .verification/bundled-java/ and all prior Mac53QA artifacts.
+
 ## Bundled Java isolation — 2026-10-27 (local)
 
 Base9b030d24; branch codex/bundled-java in the dedicated bundled-java worktree.
