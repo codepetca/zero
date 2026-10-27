@@ -57,7 +57,7 @@ async function inspectFiles(root, files) {
   }
   return missing;
 }
-function createGitHubPagesPublisher({authentication,repositories,fetch:request=globalThis.fetch,git=core.git,isSimulation=()=>true,engineRoot=path.join(__dirname,'web-export'),files:providedFiles,timeoutMs=15000,uploadTimeoutMs=180000,cacheRoot,localBuild=options=>require('./web-export/snapshot').ensureValidatedExport(options),validateExport=options=>require('./web-export/snapshot').validateExport(options),assertBuildInputsAtCommit=options=>require('./web-export/snapshot').assertBuildInputsAtCommit(options)}={}) {
+function createGitHubPagesPublisher({authentication,repositories,fetch:request=globalThis.fetch,git=core.git,isSimulation=()=>true,engineRoot=path.join(__dirname,'web-export'),files:providedFiles,timeoutMs=15000,uploadTimeoutMs=180000,cacheRoot,localBuild=options=>require('./web-export/snapshot').ensureValidatedExport(options),validateExport=options=>require('./web-export/snapshot').validateExport(options),assertBuildInputsAtCommit=options=>require('./project-builder').createProjectBuilder().assertBuildInputsAtCommit(options)}={}) {
   const reviews=new WeakMap(), resumptions=new WeakMap(), unresolvedStages=new Map();
   function simulation() {return {status:'simulated',message:'Simulation only — no publishing files, sign-in, upload or public website changed.'};}
   async function guard(review,signal,{tracking=false}={}) {

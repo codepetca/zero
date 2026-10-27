@@ -533,11 +533,11 @@ test('fast reuse final guards reject source, origin, mode, account and cancellat
   });
 });
 test('fast reuse executes real commit/input checks without any retained browser build',async t=>{
-  const snapshot=require('../src/web-export/snapshot');
-  const h=await fixture(t,{publisherOptions:{assertBuildInputsAtCommit:snapshot.assertBuildInputsAtCommit}});
+  const h=await fixture(t,{publisherOptions:{assertBuildInputsAtCommit:undefined}});
   for(const [name,data] of [['src/main/java/Main.java','class Main {}'],['src/main/resources/sprite.png','PNG bytes'],['.mvn/wrapper/maven-wrapper.properties','pinned'],['pom.xml','<project/>']]){
     await fs.mkdir(path.dirname(path.join(h.root,name)),{recursive:true});await fs.writeFile(path.join(h.root,name),data);
   }
+  await (await import('../../scripts/prepare-project-builder.mjs')).prepareProjectBuilder({destination:path.join(h.root,'.zero-build')});
   await h.git(['add','.']);await h.git(['commit','-m','Real browser inputs']);
   const head=await h.git(['rev-parse','HEAD']),saved=currentReceipt(h);saved.sha=head;saved.resume.sha=head;h.remoteHead=head;h.run.head_sha=head;h.marker=head+'\n42\n';
   let opened=0;assert.equal((await h.publisher.verifyUnchanged(h.root,saved,{onCurrent:()=>opened++})).status,'live');assert.equal(opened,1);
@@ -545,16 +545,17 @@ test('fast reuse executes real commit/input checks without any retained browser 
   await fs.writeFile(path.join(h.root,'src/main/resources/ignored.png'),'unpublished image');
   assert.equal((await h.publisher.verifyUnchanged(h.root,saved,{onCurrent:()=>opened++})).status,'stale');assert.equal(opened,1);
   await fs.rm(path.join(h.root,'src/main/resources/ignored.png'));
-  await assert.rejects(h.publisher.verifyUnchanged(h.root,saved,{onCurrent:()=>opened++,beforeFinalCheck:()=>fs.writeFile(path.join(h.root,'src/main/resources/ignored.png'),'late ignored image')}),/missing from the uploaded commit/);
+  await assert.rejects(h.publisher.verifyUnchanged(h.root,saved,{onCurrent:()=>opened++,beforeFinalCheck:()=>fs.writeFile(path.join(h.root,'src/main/resources/ignored.png'),'late ignored image')}),/Upload all exact/);
   assert.equal(opened,1);
 });
 
 test('real command/publisher integration reuses unchanged source, then uploads and publishes an edited commit',async t=>{
-  const snapshot=require('../src/web-export/snapshot');let h,builds=0,uploads=0;
-  h=await fixture(t,{publisherOptions:{assertBuildInputsAtCommit:snapshot.assertBuildInputsAtCommit,localBuild:async()=>{builds++;h.result.sourceHash=(await snapshot.captureBuildInputs(h.root)).sourceHash;return h.result;}}});
+  const snapshot=require('../src/web-export/snapshot'),adapter=require('../src/project-builder').createProjectBuilder();let h,builds=0,uploads=0;
+  h=await fixture(t,{publisherOptions:{assertBuildInputsAtCommit:options=>options.result?snapshot.assertBuildInputsAtCommit(options):adapter.assertBuildInputsAtCommit(options),localBuild:async()=>{builds++;h.result.sourceHash=(await snapshot.captureBuildInputs(h.root)).sourceHash;return h.result;}}});
   for(const [name,data] of [['src/main/java/Main.java','class Main {}'],['src/main/resources/sprite.png','PNG bytes'],['.mvn/wrapper/maven-wrapper.properties','pinned'],['pom.xml','<project/>']]){
     await fs.mkdir(path.dirname(path.join(h.root,name)),{recursive:true});await fs.writeFile(path.join(h.root,name),data);
   }
+  await (await import('../../scripts/prepare-project-builder.mjs')).prepareProjectBuilder({destination:path.join(h.root,'.zero-build')});
   await h.git(['add','.']);await h.git(['commit','-m','Browser inputs']);
   async function remoteAtHead(){const head=await h.git(['rev-parse','HEAD']);h.remoteHead=head;h.run.head_sha=head;h.marker=head+'\n42\n';return head;}
   await remoteAtHead();

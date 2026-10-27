@@ -194,7 +194,7 @@ async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git}={}) 
   if(typeof git!=='function')throw new Error('Commit verification requires the host Git operation.');
   if(!/^[a-f0-9]{40}$/.test(sourceSha||''))throw new Error('Invalid uploaded source commit.');
   const inputs=await captureBuildInputs(projectRoot);
-  if(result && inputs.sourceHash!==(result.manifest?.localSourceHash||result.sourceHash))throw new Error('The project changed since its browser build. Choose Export for web or Publish app again.');
+  if(inputs.sourceHash!==(result?.manifest?.localSourceHash||result?.sourceHash))throw new Error('The project changed since its browser build. Choose Export for web or Publish app again.');
   const raw=await git(projectRoot,['ls-tree','-r','-z',sourceSha,'--','src/main/java','src/main/resources','pom.xml','mvnw','mvnw.cmd','.mvn','zero-core.json','zero-libraries.json','libraries','.zero-build']);
   const committed=new Map();
   for(const entry of String(raw).split('\0').filter(Boolean)) {
@@ -217,6 +217,6 @@ async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git}={}) 
     throw new Error('The browser input '+file.path+' differs from the uploaded commit or is ignored/untracked. Upload the exact source and resources before publishing.');
   }
   if((await captureBuildInputs(projectRoot)).sourceHash!==inputs.sourceHash)throw new Error('The project changed while checking its uploaded source. Choose Export for web or Publish app again.');
-  return {sourceSha,sourceHash:inputs.sourceHash,inputCount:inputs.files.length,normalizedSourceLineEndings:normalized};
+  return {sourceSha,sourceHash:result.sourceHash,inputCount:inputs.files.length,normalizedSourceLineEndings:normalized};
 }
 module.exports={commitInputMetadata,assertSelectedBuilder,readSavedBuilder,browserExternalFiles,captureBuildInputs,buildProfileHash,boundSourceHash,validateExport,ensureValidatedExport,assertBuildInputsAtCommit,_test:{digest,inventoryMatches,tree}};

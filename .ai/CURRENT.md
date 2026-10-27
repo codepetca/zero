@@ -23,6 +23,13 @@ Details in docs/EVIDENCE.md and ignored .verification/publish-fast/ receipts.
 Sync latest origin/main38a1198c (Windows54 preview source) before PR; only CURRENT
 conflicted and was rewritten as this handoff. Preserve all upstream Windows54
 release metadata and evidence. Runtime feature files remain equal to reviewed
-3cc1d456. Next: focused integration checks/review, draft PR, exact-head CI, merge.
+3cc1d456. PR221 is open, currently draft for one CI correction. Integration review clean
+at acd9b13b;179 focused tests passed. Initial Windows CI correctly rejected changed
+tutorial checksums caused by editing shared snapshot.js. Restore that pinned
+project-builder source byte-for-byte and use the host adapter as the publisher’s
+default proof. Production injection already uses that host adapter.3 published
+template checks,70 builder/library/snapshot/lesson tests and3 integration tests
+pass; default host-proof test passes. No metadata/gate/template-publication changes.
+Next: targeted review of this correction, push, exact-head full CI and merge.
 No new release or hosted student app is part of this source delivery. Preserve
 Mac54 seals, installed app, primary checkout user work and paused DeepSeek pilot.

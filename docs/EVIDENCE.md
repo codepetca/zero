@@ -1,3 +1,20 @@
+# PR221 packaging boundary correction — 2026-10-27
+
+Initial Windows run40601348467 on acd9b13b correctly rejected the changed template
+scaffold checksums during packaging. The editor improvement must not alter the
+pinned project-owned builder or require a tutorial publication. Restore the shared
+web-export/snapshot.js source to main exactly; keep no-result/current-input proof
+inside the host project-builder adapter, and use that adapter as the publisher’s
+default as well as the existing production injection. No recorded template hashes,
+publication evidence or gate are changed. All release files remain equal to main.
+
+Read-only published-template check verifies all3 scaffolds.70 builder/library/
+snapshot/lesson tests,3 real Git/current-input integrations and the focused default
+host-proof test pass. The edited-project integration uses the host for no-result
+checks and the unchanged snapshot validator for its simulated generated build.
+Targeted correction review and new exact-head CI follow. No hosted template,
+student app, installer or release publication is part of this correction.
+
 # View published app in Run options — 2026-10-27
 
 Owner follow-up adds a second Run dropdown item after a successful publication.
