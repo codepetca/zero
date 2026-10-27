@@ -10,7 +10,10 @@ import {prepareLessonProjects} from './lesson-projects.mjs';
 import {starterMembers, setupMembers} from './kit.mjs';
 import {root, releaseDefinition, writeReleaseMetadata} from './release.mjs';
 import {sharingConfigurationBytes} from './release-review.mjs';
+import {checkPublishedTutorialTemplates} from './check-tutorial-templates.mjs';
 
+// Reject stale tutorial evidence before generating or writing any release assets.
+checkPublishedTutorialTemplates();
 prepareStarter();
 prepareLessonProjects();
 prepareDesign();

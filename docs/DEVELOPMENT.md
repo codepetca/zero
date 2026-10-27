@@ -337,6 +337,13 @@ New Start tutorial checks the bundled template's recorded source digest before
 creating a repository. Old Open/Clone/Run remain independent; no project is
 upgraded. This evidence check is not live verification of mutable remote main,
 and direct GitHub template creation/manual Clone can still select old content.
+`npm run package` requires coherent recorded tutorial evidence before generating
+release assets. `npm run verify:kit` also checks the actual VSIX tutorial bundle
+for readiness and exact parity with current scaffolds and publication records.
+The existing packaging CI lane enforces these checks. Even notice-only changes
+inside a scaffold require verified template publication and refreshed records
+before another installer is packaged; never stamp a digest from local drafts as
+proof of publication. Local editing and existing student projects remain usable.
 Community catalog admission policy and its installed clients are unchanged.
 
 ## Browser export

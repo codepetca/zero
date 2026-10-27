@@ -12,7 +12,7 @@ import {execFileSync} from 'node:child_process';
 import {unzipSync} from 'fflate';
 import {lessonProjects, lessonProjectZip, prepareLessonProjects, gameAssetFiles} from './lesson-projects.mjs';
 import {prepareTutorialTemplates} from './prepare-tutorial-templates.mjs';
-import {checkTutorialTemplateDirectory,checkPublishedTutorialTemplates} from './check-tutorial-templates.mjs';
+import {checkTutorialTemplateDirectory,checkPublishedTutorialTemplates,checkPackagedTutorialTemplates} from './check-tutorial-templates.mjs';
 import readiness from '../extension/src/tutorial-template-readiness.js';
 import lessonModule from '../extension/src/lesson-projects.js';
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -223,6 +223,23 @@ test('publication coherence gate binds exact source and mode without upgrading p
   const metadata={schema:1,templates:structuredClone(tutorialTemplateDefinitions)};
   metadata.templates[0].publication.scaffoldSha256='invalid';
   assert.throws(()=>validateTutorialTemplates(metadata),/source evidence/);
+});
+
+test('release payload gate checks readiness and exact packaged scaffolds independently',()=>{
+  // Explicit unit fixture; this never writes publication evidence for real templates.
+  const expected=JSON.parse(JSON.stringify(bundle));
+  for(const project of expected.projects)project.template.scaffoldSha256=readiness.tutorialScaffoldSha256(project.files);
+  assert.equal(checkPackagedTutorialTemplates(structuredClone(expected),expected),3);
+  const stale=structuredClone(expected);
+  stale.projects[0].files.find(file=>file.path==='LICENSE').content=Buffer.from('Changed copyright notice\n').toString('base64');
+  assert.throws(()=>checkPackagedTutorialTemplates(stale,expected),/greeting:.*not been verified/);
+  // Self-consistent evidence in an old/tampered payload still cannot replace the
+  // current source bundle. The independently expected inventory must match too.
+  stale.projects[0].template.scaffoldSha256=readiness.tutorialScaffoldSha256(stale.projects[0].files);
+  assert.throws(()=>checkPackagedTutorialTemplates(stale,expected),/Packaged tutorials differ/);
+  const missing=structuredClone(expected);
+  delete missing.projects[1].template.scaffoldSha256;
+  assert.throws(()=>checkPackagedTutorialTemplates(missing,expected),/study:.*not been verified/);
 });
 
 test('intermediate refactoring extracts input without growing the tutorial or changing core', () => {

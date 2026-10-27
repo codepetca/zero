@@ -10,6 +10,7 @@ import {starterMembers, setupMembers} from './kit.mjs';
 import {coreSources} from './prepare-starter.mjs';
 import {extractProject, maven} from './verification-project.mjs';
 import {sharingConfigurationBytes} from './release-review.mjs';
+import {checkPackagedTutorialTemplates} from './check-tutorial-templates.mjs';
 
 const release = releaseDefinition(), receipt = JSON.parse(readFileSync(path.join(root, 'dist/release.json'), 'utf8'));
 const license = new Uint8Array(readFileSync(path.join(root, 'LICENSE')));
@@ -33,6 +34,8 @@ assert.deepEqual(kit[`zero-kit/${release.assets.extension.filename}`], new Uint8
 assert.ok(!Object.keys(kit).some(name => /\/website\/|SmokeLauncher|\.zip$|\/scripts\/|\/target\//.test(name)));
 for (const name of coreSources) assert.deepEqual(kit[`zero-kit/starter/src/main/java/zero/${name}`], new Uint8Array(readFileSync(path.join(root, 'framework/src/main/java/zero', name))));
 const vsix = unzipSync(readFileSync(path.join(root, 'dist', release.assets.extension.filename)));
+// Check the actual installed payload, not just the source used by unit fixtures.
+checkPackagedTutorialTemplates(JSON.parse(new TextDecoder().decode(vsix['extension/media/lesson-projects.json'])));
 function verifyExtensionSource(directory, relative='') {
   for(const entry of readdirSync(directory,{withFileTypes:true})) {
     assert.ok(!entry.isSymbolicLink(),'Extension source must not contain symlinks');
