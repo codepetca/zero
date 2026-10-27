@@ -15,7 +15,7 @@ with `<Enter> to confirm · <Esc> to cancel` below it.
 The signed, notarized Mac 0.5.43 app prepares Java and the editor, then guides
 GitHub sign-in and project access before the tutorial choices. The current MVP
 targets **Mac with Apple Silicon** and **Windows**. Linux and Intel Macs are
-unsupported. Windows keeps the unsigned 0.5.21 installer preview and its matching
+unsupported. Windows keeps the unsigned 0.5.54 installer preview and its matching
 manual ZIP; automatic Windows updates and physical acceptance remain pending.
 The general manual kit fallback remains 0.5.17. Each download retains its bundled
 instructions. See [Windows installation and updates](WINDOWS-INSTALLER.md).
@@ -229,6 +229,6 @@ Native installers embed the complete kit and use a small window with one replaci
 status line. Published Mac0.5.7 is signed and notarized; it automatically prepares
 Java and a separate Zero editor configuration. It uses `~/Zero`, asks before
 updating an existing kit and preserves student projects. Windows development
-installers remain unsigned and local; physical Windows testing is deferred.
+installers remain unsigned previews; physical Windows testing is deferred.
 Keep the ZIP/manual path for managed machines; see
 [installer direction](INSTALLER.md).

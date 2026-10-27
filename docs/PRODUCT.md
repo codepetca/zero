@@ -234,7 +234,7 @@ installers remain unchanged.
 The download website is a separately built part of this repository. Its landing
 page has the shared app header, **Learn Java**, **Starting from zero.**, and two
 direct download buttons: **Download for Mac Silicon** and **Download for Windows
-(unsigned)**. The Windows button offers the owner-authorized 0.5.21 installer
+(unsigned)**. The Windows button offers the owner-authorized 0.5.54 installer
 preview, labels its unsigned status and links to setup limits. Automatic Windows
 updates remain disabled; the signed installer/feed contract is separate.
 The secondary **Manual setup (ZIP)** link beside Windows offers the exact kit
@@ -931,7 +931,8 @@ unchanged. Its Zero Java terminal skips user shell startup overrides. Missing
 private Java requires repairing Zero rather than silently selecting a system
 JDK. Java 17 remains the source compatibility target. The Java editor extension
 uses its own bundled tooling runtime, which can require a newer Java version.
-This source improvement is not a published installer update.
+This behavior ships in Mac0.5.54 and the Windows0.5.54 unsigned preview; older
+immutable installers retain their original behavior.
 
 ## Verification and distribution limits
 
@@ -943,7 +944,7 @@ repositories, renewal/revocation, account switching, Pages setup/repeat publishi
 and browser identity still need observed acceptance. Registration, mocks and a
 released installer do not establish those live results. The current MVP targets
 Mac with Apple Silicon and Windows; Linux and Intel Macs are unsupported.
-Windows offers an unsigned 0.5.21 native preview and its matching manual ZIP;
+Windows offers an unsigned 0.5.54 native preview and its matching manual ZIP;
 automatic updates remain disabled. Signed production Windows releases still need
 signing, physical acceptance and authorization; see
 [the Windows contract](WINDOWS-INSTALLER.md).

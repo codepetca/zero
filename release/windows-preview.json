@@ -1,31 +1,31 @@
 {
   "schema": 1,
   "kind": "unsigned-preview",
-  "kitVersion": "0.5.21",
-  "sourceRevision": "bf27c09528ab39a2c07ce22343a477c2fee522f8",
+  "kitVersion": "0.5.54",
+  "sourceRevision": "0c417cc03a597ec29582189059e9416ed8f55834",
   "publication": {
     "status": "published",
     "repository": "codepetca/zero",
-    "tag": "windows-preview-v0.5.21"
+    "tag": "windows-preview-v0.5.54"
   },
   "asset": {
-    "filename": "Zero-Setup-0.5.21-windows-development.exe",
+    "filename": "Zero-Setup-0.5.54-windows-development.exe",
     "platform": "windows",
     "architectures": [
       "x64"
     ],
-    "size": 13289143,
-    "sha256": "538ac64174f5d2296451d6e406574f2f8b207d581fac49ee83a0bdf7f05d159a",
+    "size": 14719218,
+    "sha256": "10ea389c11572f77fe3aa54a0f1d895f5be5d4d15e630983893c4fb130c263f9",
     "minimumOS": "10.0.19041",
-    "url": "https://github.com/codepetca/zero/releases/download/windows-preview-v0.5.21/Zero-Setup-0.5.21-windows-development.exe"
+    "url": "https://github.com/codepetca/zero/releases/download/windows-preview-v0.5.54/Zero-Setup-0.5.54-windows-development.exe"
   },
   "authenticodeSigned": false,
   "updaterEnabled": false,
   "nativeWindowsTested": false,
   "manualSetup": {
     "filename": "zero-bootstrap.zip",
-    "size": 2996690,
-    "sha256": "e2951a504bd04ae77077698b717afefa968f624f81928b03357542a5ffb5c85d",
-    "url": "https://github.com/codepetca/zero/releases/download/windows-manual-v0.5.21/zero-bootstrap.zip"
+    "size": 4363743,
+    "sha256": "2d7e218f49dfc8c7861a51b5725a9ec1f14a73ff2dde358524c3cf39545ab994",
+    "url": "https://github.com/codepetca/zero/releases/download/windows-manual-v0.5.54/zero-bootstrap.zip"
   }
 }
