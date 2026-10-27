@@ -1,18 +1,27 @@
-# Footer notice removal — 2026-10-27
+# Bundled Java — authorized source publication
 
-Owner authorized source PR/CI/merge for removing “By using this site, you agree…”
-from the shared website footer; app releases remain separate. Branch
-codex/remove-footer-agreement rebases the previously reviewed footer patch onto
-maina357a471 (PR215 publishing feedback merged, all11checks passed). Only footer
-paragraph/unused CSS, existing render assertion and matching docs are in scope.
-Keep copyright, Privacy/Terms links and Terms page text. No app/release changes.
+Owner authorized continuation2026-10-27 in Zero Architecture: “approved. Try now.
+Continue with the Java PR, CI and merge, then publish the combined Mac0.5.54
+release.” Human turn01a17e09-176e-7311-a127-1bc438609555 verified via read_thread.
+Existing account execution works; low-usage/workflow stops waived. Do not consume
+resets/credits purchases, change accounts/settings or bypass an actual rejection.
 
-Prior footer_review Luna/low source review complete/clean at779af4d4 plus exact
-three-file patch; production/test blobs unchanged by rebase. Current3legal tests, website typecheck and configuration checks pass. Independent
-footer_merge_review Luna/medium complete/clean through5813dc9a,0findings;
-receipt-only docs update follows. Next: source PR/final CI/merge.
-Earlier local visual footer check passed; current production verification follows
-merge. Preserve normal installedZero0.5.53, user projects, private/ignored release
-proofs, primary funding work and production ZeroJams hold. No account changes,
-new release or repository recreation. Human task waiver of workflow/usage stops
-persists; actual provider limits and paused DeepSeek remain. See docs/EVIDENCE.md.
+This chat owns source PR/CI/merge on codex/bundled-java. Architecture owns the
+single combined Mac0.5.54/build54 release in codex/mac54-release. Keep source kit
+version unchanged; no installer build/assets/feed changes in this chat.
+Integrated mainfa0d6b74: PR215 publishing feedback/Open published app/Tutorial
+docs label and PR216 footer removal are retained, along with Mac53 metadata.
+CURRENT/EVIDENCE conflicts preserved both histories; code merged cleanly.
+PR217:https://github.com/codepetca/zero/pull/217. Integration source8eb025b0
+reviewed complete/clean by java_review/4 (GPT6.1Sol/high),179focused tests and
+configuration checks pass. Final receipt-only commit follows; exact-head CI
+and merge are next. No new code changes after this integration review.
+Release smoke handoff:docs/BUNDLED-JAVA-ACCEPTANCE.md.
+
+Reuse complete source review94c2cac9 and96focused/357Mac/2238Windows+updater,
+initial1365pass/3skip. Reuse completed integration review and run exact-head CI.
+Evidence:docs/EVIDENCE.md and .verification/bundled-java/. No new public API,
+project pins, global Java/shell/ordinary Code settings or credentials changed.
+Preserve all artifacts/primary funding/student projects and productionZeroJams
+hold. Physical Windows and real editor terminal/upgrade acceptance remain gaps;
+provide precise isolated smoke handoff for the release coordinator.

@@ -7,6 +7,7 @@ const crypto = require('node:crypto');
 const {publishProgressHtml} = require('./publish-progress');
 const core = require('./core');
 const {nativeBuildIdentity,createNativeRuntimeExecution} = require('./native-runtime-task');
+const {verifyManagedJava} = require('./managed-java');
 const {createNativeCompilerDiagnostics} = require('./native-compiler-diagnostics');
 const lessonProjects = require('./lesson-projects');
 const github = require('./github');
@@ -397,6 +398,7 @@ function activate(context, services = {}) {
     await core.assertTutorialRepository(root);
     const spec = core.runSpecification(root);
     await fs.access(spec.command);
+    const javaEnv = await verifyManagedJava({environment:services.nativeRuntime?.env || process.env,platform:services.nativeRuntime?.platform || process.platform});
     const metadata = {generation:runGeneration,root,failed:false};
     let task, transport;
     const compiler = createNativeCompilerDiagnostics({root,onChange:items=>{
@@ -404,13 +406,14 @@ function activate(context, services = {}) {
     }});
     const processExecution = typeof vscode.CustomExecution === 'function'
       ? (transport = createNativeRuntimeExecution({vscode,spec,buildId:await nativeBuildIdentity(root),...services.nativeRuntime,
+          ...(javaEnv ? {env:javaEnv} : {}),
           isCurrent:()=>!disposed && metadata.generation === runGeneration && vscode.workspace.isTrusted !== false,
           onEvent:event => nativeRuntimeState(task,event),onOutput:(text,stream)=>compiler.push(text,stream),
           onExit:code => {compiler.end();metadata.exitCode = code;}
         })).execution
       : spec.shell
-        ? new vscode.ShellExecution({value: spec.command, quoting: vscode.ShellQuoting.Strong}, spec.args, {cwd: root})
-        : new vscode.ProcessExecution(spec.command, spec.args, {cwd: root});
+        ? new vscode.ShellExecution({value: spec.command, quoting: vscode.ShellQuoting.Strong}, spec.args, {cwd: root,...(javaEnv ? {env:javaEnv} : {})})
+        : new vscode.ProcessExecution(spec.command, spec.args, {cwd: root,...(javaEnv ? {env:javaEnv} : {})});
     // CustomExecution owns compiler diagnostics. A finite task matcher cannot
     // refresh them until the long-lived JavaFX process exits.
     task = new vscode.Task(definition, scope, 'Run App', 'Zero', processExecution, transport ? [] : '$zero-java-fallback');

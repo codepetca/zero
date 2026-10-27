@@ -12,6 +12,14 @@ const framed = value => NATIVE_PREFIX + JSON.stringify(value) + '\n';
 class Emitter {constructor(){this.inner=new EventEmitter();this.event=listener=>{this.inner.on('event',listener);return {dispose:()=>this.inner.off('event',listener)};};}fire(value){this.inner.emit('event',value);}dispose(){this.inner.removeAllListeners();}}
 const vscode = {EventEmitter:Emitter,CustomExecution:class {constructor(callback){this.callback=callback;}}};
 function fakeChild(pid=42) {const child=new EventEmitter();Object.assign(child,{pid,stdout:new EventEmitter(),stderr:new EventEmitter(),stdin:{writable:true,write:data=>{child.input=data;}},kill(signal){child.emit('close',0,signal);}});return child;}
+test('native Run pins launcher Java independently of inherited shell and terminal settings', async () => {
+ const env={ZERO_JAVA_HOME:'/Zero/jdk21',JAVA_HOME:'/system/jdk17',PATH:'/system/bin',_JAVA_OPTIONS:'-Djava.home=/system/jdk25'};
+ let childEnv;const child=fakeChild();
+ const transport=createNativeRuntimeExecution({vscode,spec:{command:'/project/mvnw',args:['compile'],cwd:'/project'},buildId:'b',env,platform:'darwin',spawn:(_,__,options)=>{childEnv=options.env;return child;},killProcess:()=>{}});
+ const pty=await transport.execution.callback();pty.open();
+ assert.equal(childEnv.JAVA_HOME,'/Zero/jdk21');assert.equal(childEnv.PATH,'/Zero/jdk21/bin:/system/bin');assert.equal(childEnv._JAVA_OPTIONS,undefined);
+ assert.equal(env.JAVA_HOME,'/system/jdk17');assert.equal(env._JAVA_OPTIONS,'-Djava.home=/system/jdk25');child.emit('close',0);transport.dispose();
+});
 test('native decoder preserves human output and accepts split ordered local records only', () => {
  const writes=[],events=[];const d=createRecordDecoder({runId:'r',buildId:'b',write:x=>writes.push(x),onEvent:e=>events.push(e)});
  d.push('prompt without newline: ');assert.equal(writes.join(''),'prompt without newline: ');d.push('answer\n');

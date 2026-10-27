@@ -67,9 +67,10 @@ internal static class RuntimeHarness
             Runs++; Commands.Add(info);
             Assert(!info.WorkingDirectory.Contains(Path.DirectorySeparatorChar + "kit"), "child working folder outside temporary bundled kit");
             Assert(!info.UseShellExecute && info.RedirectStandardError && info.RedirectStandardOutput && info.RedirectStandardInput, "bounded native commands avoid shells");
-            Assert(info.EnvironmentVariables["JAVA_HOME"].Contains("jdk-"), "private Java propagated to every command");
+            Assert(info.EnvironmentVariables["JAVA_HOME"].Contains("jdk-") && info.EnvironmentVariables["ZERO_JAVA_HOME"] == info.EnvironmentVariables["JAVA_HOME"], "private Java and managed runtime hint propagated to every command");
             Assert(info.EnvironmentVariables["PATH"].StartsWith(Path.Combine(info.EnvironmentVariables["JAVA_HOME"], "bin") + ";", StringComparison.Ordinal), "private Java first in child PATH");
             Assert(info.EnvironmentVariables["VSCODE_PORTABLE"] == null, "portable environment removed");
+            Assert(new[] { "JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "MAVEN_OPTS", "MAVEN_ARGS" }.All(key => info.EnvironmentVariables[key] == null) && info.EnvironmentVariables["MAVEN_SKIP_RC"] == "1", "native children clear inherited JVM/Maven startup flags and skip Maven rc");
             Assert(info.EnvironmentVariables["NODE_OPTIONS"] == null && info.EnvironmentVariables["NODE_PATH"] == null, "Node preload/module injection removed from private child environment");
             string output;
             if (info.FileName.EndsWith("javac.exe", StringComparison.Ordinal)) output = "javac " + JavaVersion + "\n";
@@ -160,11 +161,46 @@ internal static class RuntimeHarness
             Assert(!f.Host.Launched.Arguments.Contains("--new-window") && !f.Host.Launched.Arguments.Contains(f.Project), "resume lets isolated editor restore last session");
             string jsonc = settings.TrimEnd().TrimEnd('}') + ",\n// A normal VS Code settings edit\n\"editor.fontSize\": 17,\n\"java.jdt.ls.java.home\": \"old-tooling-jdk\",\n\"java.home\": \"legacy-tooling-jdk\",\n}\n";
             File.WriteAllText(settingsPath, jsonc);
-            runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
-            Assert(f.Host.Launched != null, "readiness accepts JSONC comments and trailing commas before repair");
+            Reject(() => runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult(), "stale tooling overrides block readiness before repair");
             f.Prepare(); f.Prepare();
             settings = File.ReadAllText(settingsPath);
-            Assert(settings.Contains("\"editor.fontSize\": 17") && !settings.Contains("java.jdt.ls.java.home") && !settings.Contains("\"java.home\""), "repeated JSONC preparation preserves ordinary settings and removes obsolete tooling overrides");
+            Assert(settings.Contains("\"editor.fontSize\": 17") && settings.Contains("// A normal VS Code settings edit") && !settings.Contains("java.jdt.ls.java.home") && !settings.Contains("\"java.home\""), "repeated JSONC preparation preserves ordinary settings/comments and removes obsolete tooling overrides");
+            var configured = Newtonsoft.Json.Linq.JObject.Parse(settings);
+            configured["window.restoreWindows"] = "none";
+            var terminal = (Newtonsoft.Json.Linq.JObject)configured["terminal.integrated.env.windows"];
+            terminal["CUSTOM"] = "keep"; terminal["JAVA_HOME"] = "C:/old/java17";
+            terminal["Java_Home"] = "C:/old/mixed-java17"; terminal["Path"] = "C:/old/bin"; terminal["java_tool_options"] = "old startup flags";
+            var profiles = (Newtonsoft.Json.Linq.JObject)configured["terminal.integrated.profiles.windows"];
+            profiles["Student shell"] = new Newtonsoft.Json.Linq.JObject { ["path"] = "student-shell.exe" };
+            File.WriteAllText(settingsPath, configured.ToString());
+            Reject(() => runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult(), "stale terminal Java blocks readiness");
+            f.Prepare();
+            configured = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(settingsPath));
+            Assert(configured["terminal.integrated.env.windows"]["Java_Home"] == null && configured["terminal.integrated.env.windows"]["Path"] == null && configured["terminal.integrated.env.windows"]["java_tool_options"] == null, "Java repair removes case-insensitive Windows environment conflicts");
+            Assert((string)configured["window.restoreWindows"] == "none", "Java settings repair preserves explicit window restoration preference");
+            Assert((string)configured["terminal.integrated.env.windows"]["CUSTOM"] == "keep" && configured["terminal.integrated.profiles.windows"]["Student shell"] != null, "repair preserves unrelated terminal environment and profiles");
+            Assert((string)configured["terminal.integrated.profiles.windows"]["Zero Java"]["args"][0] == "/d", "Zero cmd profile skips user AutoRun");
+            Assert(new[] { "JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "MAVEN_OPTS", "MAVEN_ARGS" }.All(key => configured["terminal.integrated.env.windows"][key].Type == Newtonsoft.Json.Linq.JTokenType.Null) && (string)configured["terminal.integrated.env.windows"]["MAVEN_SKIP_RC"] == "1", "Zero terminals clear JVM/Maven startup options and skip Maven rc");
+            ((Newtonsoft.Json.Linq.JArray)configured["java.configuration.runtimes"]).Add(new Newtonsoft.Json.Linq.JObject { ["name"] = "JavaSE-17", ["path"] = "C:/old/java17", ["default"] = true });
+            File.WriteAllText(settingsPath, configured.ToString());
+            Reject(() => runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult(), "conflicting runtime defaults block readiness");
+            f.Prepare();
+            foreach (string inherited in new[] { "17", "25" })
+            {
+                string hint = Environment.GetEnvironmentVariable("ZERO_JAVA_HOME");
+                var flags = new[] { "JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "MAVEN_OPTS", "MAVEN_ARGS" }.ToDictionary(key => key, key => Environment.GetEnvironmentVariable(key));
+                foreach (string key in flags.Keys) Environment.SetEnvironmentVariable(key, "fixture inherited startup option");
+                Environment.SetEnvironmentVariable("JAVA_HOME", "C:/fixture/java" + inherited);
+                Environment.SetEnvironmentVariable("ZERO_JAVA_HOME", "C:/stale/zero-java" + inherited);
+                try
+                {
+                    runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
+                    Assert(f.Host.Launched.EnvironmentVariables["JAVA_HOME"].Contains("jdk-") && f.Host.Launched.EnvironmentVariables["ZERO_JAVA_HOME"] == f.Host.Launched.EnvironmentVariables["JAVA_HOME"], "private Java overrides inherited " + inherited);
+                    Assert(flags.Keys.All(key => f.Host.Launched.EnvironmentVariables[key] == null && Environment.GetEnvironmentVariable(key) == "fixture inherited startup option") && f.Host.Launched.EnvironmentVariables["MAVEN_SKIP_RC"] == "1", "native launch isolates startup options without changing parent");
+                    Assert(Environment.GetEnvironmentVariable("JAVA_HOME") == "C:/fixture/java" + inherited && Environment.GetEnvironmentVariable("PATH") == parentPath, "launch preserves parent Java/PATH");
+                }
+                finally { Environment.SetEnvironmentVariable("JAVA_HOME", parentJava); Environment.SetEnvironmentVariable("ZERO_JAVA_HOME", hint); foreach (var flag in flags) Environment.SetEnvironmentVariable(flag.Key, flag.Value); }
+            }
             Assert(f.Host.Downloads == 3 && f.Host.Installs == 2, "JSONC repair reuses tools and extensions");
             int runs = f.Host.Runs;
             var warm = f.Runtime(); warm.Prepare(null, CancellationToken.None).GetAwaiter().GetResult(); warm.Open(true, CancellationToken.None).GetAwaiter().GetResult();
@@ -183,6 +219,16 @@ internal static class RuntimeHarness
             f.Host.ZeroVersion = "0.5.18"; f.Host.RedhatVersion = "1.50.0"; f.Prepare();
             Assert(f.Host.Downloads == 2 && f.Host.Installs == 0, "compatible installed stable editor reused");
             f.Runtime().Open(false, CancellationToken.None).GetAwaiter().GetResult(); Assert(f.Host.Launched.FileName == Path.Combine(installed, "Code.exe"), "reused editor receives isolated Zero environment");
+        }
+        using (var f = new Fixture(parent))
+        {
+            f.Prepare();
+            string oldJdk = Directory.GetDirectories(Path.Combine(f.Data, "runtime"), "jdk-*").Single();
+            f.Host.Jdk = Zip("jdk-21/bin/java.exe", "new java", "jdk-21/bin/javac.exe", "new javac", "jdk-21/release", "JAVA_VERSION=21\nOS_ARCH=amd64"); f.WriteManifest();
+            Reject(() => f.Runtime().Open(true, CancellationToken.None).GetAwaiter().GetResult(), "changed private Java digest is not silently replaced with a system runtime");
+            f.Prepare(); f.Runtime().Open(true, CancellationToken.None).GetAwaiter().GetResult();
+            string selected = f.Host.Launched.EnvironmentVariables["JAVA_HOME"];
+            Assert(selected != oldJdk && Directory.Exists(oldJdk) && File.ReadAllText(Path.Combine(f.Data, "editor", "user-data", "User", "settings.json")).Contains(selected.Replace("\\", "\\\\")), "changed Java digest repairs profile path and keeps prior private JDK");
         }
         string legacy = Path.Combine(parent, "legacy-editor"); Directory.CreateDirectory(legacy);
         string legacyZip = Path.Combine(legacy, "fixture.zip");
@@ -211,9 +257,16 @@ internal static class RuntimeHarness
             f.Host.JavaVersion = "17.0.1"; f.Host.RepairJavaOnDownload = true;
             f.Prepare();
             Assert(f.Host.JavaVersion == "21.0.12" && f.Host.Downloads == 6, "failed cached Java version probe triggers one verified replacement");
-            string settings = Path.Combine(f.Data, "editor", "user-data", "User", "settings.json"); File.WriteAllText(settings, "{ broken JSONC");
+            string settings = Path.Combine(f.Data, "editor", "user-data", "User", "settings.json");
+            byte[] savedSettings = File.ReadAllBytes(settings);
+            foreach (byte[] invalid in new[] { Encoding.UTF8.GetBytes("{ broken JSONC"), Encoding.UTF8.GetBytes("{\"student.setting\":\"").Concat(new byte[] { 0xff }).Concat(Encoding.UTF8.GetBytes("\"}")).ToArray(), new byte[] { 0xef, 0xbb, 0xbf }.Concat(Encoding.UTF8.GetBytes("{\"student.setting\":\"")).Concat(new byte[] { 0xff }).Concat(Encoding.UTF8.GetBytes("\"}")).ToArray(), Encoding.UTF8.GetBytes("{\"student.setting\":true} unexpected") })
+            {
+                File.WriteAllBytes(settings, invalid);
+                Reject(f.Prepare, "unreadable existing settings block preparation");
+                Assert(File.ReadAllBytes(settings).SequenceEqual(invalid), "unreadable JSON/UTF-8 settings stay byte-identical");
+            }
+            File.WriteAllBytes(settings, savedSettings);
             var runtime = f.Runtime(); runtime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult(); runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
-            Assert(File.ReadAllText(settings).Contains("JavaSE-21") && File.ReadAllText(settings).Contains("chat.disableAIFeatures"), "malformed isolated settings reset to shipped defaults and mandatory Java settings");
             Assert(!f.Host.Launched.Arguments.Contains("--new-window") && File.ReadAllText(saved) == "session" && f.Host.Installs == 2, "repair preserves saved editor session and installed extensions");
             Assert(!Directory.GetDirectories(Path.Combine(f.Data, "runtime"), ".repair-*").Any(), "successful repairs remove only quarantined old tools");
             File.Delete(Path.Combine(jdk, "bin", "javac.exe")); f.Host.BrokenDownload = true;

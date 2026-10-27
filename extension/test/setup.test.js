@@ -11,6 +11,19 @@ const defaults = {
   getExtension:() => ({}),
   execute:async command => ({stderr:command.endsWith('javac') ? 'javac 17.0.12' : command === 'git' ? '' : 'openjdk version "17.0.12"',stdout:command === 'git' ? 'git version 2.31.0' : ''})
 };
+test('managed setup probes Zero Java rather than inherited Java and ignores terminal overrides for Run', async () => {
+  for (const inherited of [17,25]) {
+    const env={ZERO_JAVA_HOME:'/Zero/jdk21',JAVA_HOME:'/old/jdk'+inherited,PATH:'/old/bin',JAVA_TOOL_OPTIONS:'-Djava.home=/old'};
+    const report=await inspectSetup({...defaults,env,getTaskEnvironment:()=>({JAVA_HOME:'/workspace/old-jdk',PATH:'/old/bin'}),execute:async (file,args,options)=>{
+      if(file==='git')return defaults.execute(file);
+      assert.ok(file.startsWith('/Zero/jdk21/bin/'));assert.equal(options.env.JAVA_HOME,'/Zero/jdk21');assert.equal(options.env.JAVA_TOOL_OPTIONS,undefined);
+      return {stdout:file.endsWith('javac')?'javac 21.0.12.1':'openjdk version "21.0.12.1"'};
+    }});
+    assert.equal(report.runReady,true);assert.equal(report.source,'Zero bundled Java');assert.equal(report.taskEnvironment.verified,true);assert.equal(env.JAVA_HOME,'/old/jdk'+inherited);
+    const broken=await inspectSetup({...defaults,env,execute:async file=>file==='git'?defaults.execute(file):{stdout:file.endsWith('javac')?'javac 25.0.1':'openjdk version "25.0.1"'}});
+    assert.equal(broken.runReady,false);assert.match(broken.jdkDetail,/bundled JDK 21 needs repair/);
+  }
+});
 test('parses Java vendor output, legacy Java and Git platform suffixes conservatively', () => {
   for (const text of ['openjdk version "17.0.12"','java version "17.0.12"','openjdk 21.0.4 2024-07-16','java 25 2025-09-16']) assert.ok(javaMajor(text) >= 17);
   assert.equal(javaMajor('java version "1.8.0_392"'),8);
