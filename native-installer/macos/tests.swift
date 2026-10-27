@@ -768,11 +768,12 @@ struct SetupTests {
           "terminal.integrated.profiles.osx": {"Student shell": {"path": "/bin/bash"}},
         }
         """
-        try custom.write(to: settings, atomically: true, encoding: .utf8)
+        try (Data([0xef, 0xbb, 0xbf]) + Data(custom.utf8)).write(to: settings)
         try expect(try !runtime.settingsReady(selected), "stale Java settings block readiness")
         try runtime.seedSettings(selected)
         let repairedText = try String(contentsOf: settings)
         let repaired = try MacRuntime.readSettings(repairedText)
+        try expect(try Data(contentsOf: settings).starts(with: [0xef, 0xbb, 0xbf]) && runtime.settingsReady(selected), "valid UTF-8 BOM survives managed JSONC repair")
         try expect(repairedText.contains("// Keep this student preference and comment.") && repairedText.contains("\"student.setting\": true"), "Java repair preserves unrelated JSONC text and comments")
         try expect((repaired["terminal.integrated.env.osx"] as? [String: Any])?["CUSTOM"] as? String == "keep" && (repaired["terminal.integrated.profiles.osx"] as? [String: Any])?["Student shell"] != nil, "Java repair preserves unrelated terminal environment and profiles")
         try expect(repaired["java.home"] == nil && repaired["java.jdt.ls.java.home"] == nil && ((repaired["terminal.integrated.profiles.osx"] as? [String: Any])?["Zero Java"] as? [String: Any])?["path"] as? String == "/bin/zsh" && repairedText.contains("-f"), "repair removes obsolete tooling overrides and skips user terminal startup files")
@@ -783,6 +784,11 @@ struct SetupTests {
         try rejected("concurrent Java settings repair") { try runtime.seedSettings(selected) }
         runtime.testBeforeExchange = nil
         try expect(try String(contentsOf: settings) == "{\"student.concurrent\": true}", "Java repair rollback preserves concurrent editor settings")
+        for invalid in [Data("{ broken JSONC".utf8), Data("{\"student.setting\":\"".utf8) + Data([0xff]) + Data("\"}".utf8), Data("{\"student.setting\":true} unexpected".utf8)] {
+            try invalid.write(to: settings)
+            try rejected("unreadable existing settings") { try runtime.seedSettings(selected) }
+            try expect(try Data(contentsOf: settings) == invalid && !runtime.settingsReady(selected), "unreadable JSON/UTF-8 settings stay byte-identical and block readiness")
+        }
         let outside = temporary.appendingPathComponent("outside settings")
         try "student".write(to: outside, atomically: true, encoding: .utf8)
         try manager.removeItem(at: settings); try manager.createSymbolicLink(at: settings, withDestinationURL: outside)

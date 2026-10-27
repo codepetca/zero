@@ -257,9 +257,16 @@ internal static class RuntimeHarness
             f.Host.JavaVersion = "17.0.1"; f.Host.RepairJavaOnDownload = true;
             f.Prepare();
             Assert(f.Host.JavaVersion == "21.0.12" && f.Host.Downloads == 6, "failed cached Java version probe triggers one verified replacement");
-            string settings = Path.Combine(f.Data, "editor", "user-data", "User", "settings.json"); File.WriteAllText(settings, "{ broken JSONC");
+            string settings = Path.Combine(f.Data, "editor", "user-data", "User", "settings.json");
+            byte[] savedSettings = File.ReadAllBytes(settings);
+            foreach (byte[] invalid in new[] { Encoding.UTF8.GetBytes("{ broken JSONC"), Encoding.UTF8.GetBytes("{\"student.setting\":\"").Concat(new byte[] { 0xff }).Concat(Encoding.UTF8.GetBytes("\"}")).ToArray(), new byte[] { 0xef, 0xbb, 0xbf }.Concat(Encoding.UTF8.GetBytes("{\"student.setting\":\"")).Concat(new byte[] { 0xff }).Concat(Encoding.UTF8.GetBytes("\"}")).ToArray(), Encoding.UTF8.GetBytes("{\"student.setting\":true} unexpected") })
+            {
+                File.WriteAllBytes(settings, invalid);
+                Reject(f.Prepare, "unreadable existing settings block preparation");
+                Assert(File.ReadAllBytes(settings).SequenceEqual(invalid), "unreadable JSON/UTF-8 settings stay byte-identical");
+            }
+            File.WriteAllBytes(settings, savedSettings);
             var runtime = f.Runtime(); runtime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult(); runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
-            Assert(File.ReadAllText(settings).Contains("JavaSE-21") && File.ReadAllText(settings).Contains("chat.disableAIFeatures"), "malformed isolated settings reset to shipped defaults and mandatory Java settings");
             Assert(!f.Host.Launched.Arguments.Contains("--new-window") && File.ReadAllText(saved) == "session" && f.Host.Installs == 2, "repair preserves saved editor session and installed extensions");
             Assert(!Directory.GetDirectories(Path.Combine(f.Data, "runtime"), ".repair-*").Any(), "successful repairs remove only quarantined old tools");
             File.Delete(Path.Combine(jdk, "bin", "javac.exe")); f.Host.BrokenDownload = true;

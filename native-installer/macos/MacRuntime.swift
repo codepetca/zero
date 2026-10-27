@@ -254,9 +254,17 @@ struct MacRuntime {
         let publication = try AnchoredZeroFile(directory: user)
         let previous = try publication.identity("settings.json")
         let existing = try previous.map { try publication.read("settings.json", expected: $0) }
-        var text = existing.flatMap { String(data: $0, encoding: .utf8) }
+        var text = existing.flatMap { bytes -> String? in
+            guard String(data: bytes, encoding: .utf8) != nil else { return nil }
+            // Foundation's data-to-string initializer strips the BOM. Preserve
+            // the validated original bytes for the surgical JSONC editor.
+            return String(decoding: bytes, as: UTF8.self)
+        }
         var values = text.flatMap { try? Self.readSettings($0) }
-        if values == nil {
+        if previous != nil && (text == nil || values == nil) {
+            throw SetupFailure(message: "Zero's editor settings could not be read. Correct User/settings.json and retry setup; your file was kept.")
+        }
+        if previous == nil {
             #if ZERO_SETUP_TESTS
             let suppliedProfile = kit.appendingPathComponent("optional/Zero.code-profile")
             #else
@@ -427,7 +435,8 @@ struct MacRuntime {
 private enum ZeroSettingsJSONC {
     struct Member { let key: String; let start: Int; let value: Int; let end: Int; let comma: Int? }
     static func scan(_ bytes: [UInt8]) throws -> ([Member], Int) {
-        var i = 0
+        // JSONSerialization accepts a UTF-8 BOM; retain it during text edits.
+        var i = bytes.starts(with: [0xef, 0xbb, 0xbf]) ? 3 : 0
         func trivia() {
             while i < bytes.count {
                 if [9, 10, 13, 32].contains(bytes[i]) { i += 1; continue }

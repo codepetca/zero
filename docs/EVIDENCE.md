@@ -18,8 +18,17 @@ files; coordinator inspected integration and reused350Mac native assertions and
 passes with real private Temurin21.0.12.1 and source release17 despite injected
 oldJAVA_HOME/JVM flags. Real host runtime/browser selection and disposable zsh
 startup-file override checks pass; parent env is retained. Syntax/contracts/doc
-links and diff whitespace checks pass. Full regression and independent review
-pending. Logs/real-runtime receipt: .verification/bundled-java/. Physical Windows,
+links and diff whitespace checks pass. Full initial regression1365pass/3skip/0fail in437.247s. Review1, java_review/1,
+requested GPT6.1Sol/high, complete21-file9b030d24→f9004a5f source/caller coverage,
+found3accepted blockers: old-process update handoff could miss the new marker,
+Mac JSONC patch rejected UTF8BOM, and invalid Mac settings could lose unrelated
+prefs. Batch1 resolves current native kit/asset receipt independently of stale
+process env; preserves BOM; and keeps invalid settings byte-identical on both
+platforms. Delta95focused tests,357Mac assertions and2238Windows checks+updater
+pass. Actual installed-kit handoff with absent/stale markers selects verified
+Java21 and browser tools. Targeted review pending;2launches planned,1fixbatch,
+no additional full-diff wave. Review elapsed/token telemetry unknown.
+Logs/real-runtime receipts: .verification/bundled-java/. Physical Windows,
 fresh-device/school-network and actual editor terminal UI remain untested.
 
 Review budget:standard risk, one initial GPT6.1Sol/high source reviewer; maximum

@@ -2,6 +2,34 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {managedJavaHome,managedJavaEnvironment,verifyManagedJava} = require('../src/managed-java');
+const fs = require('node:fs/promises');
+const os = require('node:os');
+const path = require('node:path');
+
+test('an old native editor reload resolves the current verified kit without a new process environment', async t => {
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-native-java-handoff-'));
+  t.after(()=>fs.rm(root,{recursive:true,force:true}));
+  const platform=process.platform==='win32'?'win32':'darwin',kit=path.join(root,'kit'),home=path.join(root,'home');
+  await fs.mkdir(path.join(kit,'setup'),{recursive:true});
+  const environment={ZERO_KIT_DIR:kit,JAVA_HOME:path.join(root,'old-system-jdk17'),HOME:home,LOCALAPPDATA:home,PATH:''};
+  const metadata=path.join(kit,'setup',platform==='darwin'?'mac-downloads.json':'windows-downloads.json');
+  const install=async hash=>{
+    const asset={sha256:hash.repeat(64),version:'jdk-21.0.12.1+1'};
+    await fs.writeFile(metadata,JSON.stringify({schemaVersion:1,architectures:{arm64:{jdk:asset},x64:{jdk:asset}}}));
+    const folder=path.join(home,...(platform==='darwin'?['Library','Application Support','Zero','runtime']:['ZeroData','runtime']),'jdk-'+asset.sha256);
+    await fs.mkdir(folder,{recursive:true});await fs.writeFile(path.join(folder,platform==='darwin'?'.zero-asset.json':'.zero-asset.sha256'),asset.sha256);
+    return platform==='darwin'?path.join(folder,asset.version,'Contents','Home'):folder;
+  };
+  const first=await install('a');assert.equal(managedJavaHome(environment,platform),first);
+  // Reload Window keeps the old marker (or lacks it entirely on old releases).
+  environment.ZERO_JAVA_HOME=first;
+  const current=await install('b');assert.equal(managedJavaHome(environment,platform),current);
+  const env=await verifyManagedJava({environment,platform,execute:async command=>{
+    assert.ok(command.startsWith(current+path.sep));return {stdout:command.endsWith('javac.exe')||command.endsWith('javac')?'javac 21.0.12.1':'openjdk version "21.0.12.1"'};
+  }});
+  assert.equal(env.JAVA_HOME,current);assert.equal(env.ZERO_JAVA_HOME,current);assert.equal(environment.ZERO_JAVA_HOME,first);
+  await fs.writeFile(metadata,'{}');assert.throws(()=>managedJavaHome(environment,platform),/selection is unavailable.*system Java will not be substituted/);
+});
 
 test('Zero child Java ignores inherited older/newer Java and injected JVM flags without editing its parent', async () => {
   for (const major of [17,21,25]) {

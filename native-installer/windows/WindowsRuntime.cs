@@ -69,7 +69,13 @@ namespace ZeroSetup
             using (var input = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 if (input.Length > maximum) throw new IOException("Zero configuration is too large.");
-                using (var reader = new StreamReader(input, Encoding.UTF8, true)) return reader.ReadToEnd();
+                using (var buffer = new MemoryStream())
+                {
+                    input.CopyTo(buffer); byte[] bytes = buffer.ToArray();
+                    int offset = bytes.Length >= 3 && bytes[0] == 0xef && bytes[1] == 0xbb && bytes[2] == 0xbf ? 3 : 0;
+                    try { return new UTF8Encoding(false, true).GetString(bytes, offset, bytes.Length - offset); }
+                    catch (DecoderFallbackException error) { throw new IOException("Zero's configuration is not valid UTF-8. Correct " + Path.GetFileName(path) + " and retry; your file was kept.", error); }
+                }
             }
         }
         private static void ValidateAsset(string kind, WindowsRuntimeAsset asset)
@@ -322,9 +328,13 @@ namespace ZeroSetup
             {
                 // VS Code settings are JSONC, including comments and trailing commas.
                 using (var reader = new JsonTextReader(new StringReader(text)) { MaxDepth = 32, DateParseHandling = DateParseHandling.None })
-                    return JObject.Load(reader);
+                {
+                    var values = JObject.Load(reader);
+                    while (reader.Read()) if (reader.TokenType != JsonToken.Comment) throw new JsonReaderException("Unexpected content after editor settings.");
+                    return values;
+                }
             }
-            catch (JsonException error) { throw new IOException("Zero's editor settings could not be read. Check settings.json and retry setup.", error); }
+            catch (JsonException error) { throw new IOException("Zero's editor settings could not be read. Correct settings.json and retry setup; your file was kept.", error); }
         }
         private sealed class SettingSpan
         {
@@ -412,12 +422,10 @@ namespace ZeroSetup
             string original = null, source = null;
             if (File.Exists(path))
             {
-                // A malformed settings edit must not trap Try again outside the
-                // editor. Zero owns this isolated profile; restore its defaults.
-                // Filesystem/access errors still propagate without replacement.
+                // Never replace existing unreadable settings with defaults.
+                // Keep the owner's bytes for correction, including invalid UTF-8.
                 original = ReadText(path, 1024 * 1024);
-                try { values = ReadSettings(original); source = original; }
-                catch (IOException error) when (error.InnerException is JsonException) { }
+                values = ReadSettings(original); source = original;
             }
             if (values == null)
             {
