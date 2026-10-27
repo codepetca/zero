@@ -1,18 +1,26 @@
-# Footer notice removal — 2026-10-27
+# Combined Mac54 delivery — 2026-10-27
 
-Owner authorized source PR/CI/merge for removing “By using this site, you agree…”
-from the shared website footer; app releases remain separate. Branch
-codex/remove-footer-agreement rebases the previously reviewed footer patch onto
-maina357a471 (PR215 publishing feedback merged, all11checks passed). Only footer
-paragraph/unused CSS, existing render assertion and matching docs are in scope.
-Keep copyright, Privacy/Terms links and Terms page text. No app/release changes.
+Owner now authorizes coordinating Check VS Code Java version to get both sets of
+changes into production. This supersedes earlier app-release separation for this
+combined delivery. Website footer removal PR216 is mergedfa0d6b74 and verified
+live on /,/terms,/privacy. App UI PR215 mergeda357a471 passed all11checks; it adds
+publishing stage feedback, Open published app below Run and Tutorial docs label.
 
-Prior footer_review Luna/low source review complete/clean at779af4d4 plus exact
-three-file patch; production/test blobs unchanged by rebase. Current3legal tests, website typecheck and configuration checks pass. Independent
-footer_merge_review Luna/medium complete/clean through5813dc9a,0findings;
-receipt-only docs update follows. Next: source PR/final CI/merge.
-Earlier local visual footer check passed; current production verification follows
-merge. Preserve normal installedZero0.5.53, user projects, private/ignored release
-proofs, primary funding work and production ZeroJams hold. No account changes,
-new release or repository recreation. Human task waiver of workflow/usage stops
-persists; actual provider limits and paused DeepSeek remain. See docs/EVIDENCE.md.
+Ownership: Java task01a17d5a-e783-7683-a760-c3e606f55233 owns bundled-Java source
+PR/review/CI/merge; this chat owns one combined Mac0.5.54/build54 release. Java
+reviewed local94c2cac9/receipt9202743d; source publication now authorized there.
+No competing writer/build in that checkout. Our codex/mac54-release checkout
+starts atmainfa0d6b74; only release preparation here until Java merges.
+
+Next: integrate its reviewed/green source, bump/pin new candidate, build/sign/
+notarize/staple, verify isolated editor and upgrade/terminal behavior, seal and
+sourcePR/CI/merge. Then publish exact immutable DMG, anonymously verify, promote
+signed feed/download metadata through reviewed CI/merge and verify live bytes.
+Mac53 remains current until then. Evidence/progress:.verification/mac54/.
+
+Preserve user projects/unsaved work, primary funding checkout, actor ignored
+Mac53 proofs, all old release assets, Windows21/manualkit17 and ZeroJams hold.
+No student system Java, shell files, ordinary VSCode/settings or account changes;
+no recreation of owner-deleted QA repositories. Task waiver of workflow/usage
+stops persists; provider limits and paused DeepSeek remain. Do not claim fresh
+Mac/school/physicalIntel/Windows or actual Sparkle delivery without proof.
