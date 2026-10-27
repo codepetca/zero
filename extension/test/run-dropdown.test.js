@@ -52,3 +52,14 @@ test('actual renderer offers publishing only for ready connected projects and di
   assert.match(html,state==='stopping'?/Stopping…<\/button>/:/Stop<\/button>/);
  }
 });
+
+test('Run menu can navigate to View published app and dispatch it without publishing',()=>{
+ const h=fixture(),view=h.document.createElement('button');view.dataset.command='zero.viewPublishedWeb';view.setAttribute('role','menuitem');h.menu.append(view);
+ h.key(h.trigger,'ArrowDown');assert.equal(h.document.activeElement,h.publish);
+ h.key(h.publish,'ArrowDown');assert.equal(h.document.activeElement,view);
+ h.key(view,'ArrowDown');assert.equal(h.document.activeElement,h.publish);
+ h.key(h.publish,'End');assert.equal(h.document.activeElement,view);
+ h.clickCommand(view);assert.equal(h.menu.hidden,true);assert.equal(h.document.activeElement,h.trigger);
+ assert.deepEqual(h.sent.filter(message=>message.command).map(message=>message.command),['zero.viewPublishedWeb']);
+ view.disabled=true;h.key(h.trigger,'ArrowUp');assert.equal(h.document.activeElement,h.publish);h.key(h.publish,'Escape');assert.equal(h.menu.hidden,true);
+});

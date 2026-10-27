@@ -152,6 +152,9 @@ when adding features; a new feature does not reset the agreed interaction style.
   palette commands remain available without duplicate sidebar or overflow controls.
   Owner refinement2026-10-27 removes the separate Open published app link below
   Run; keep the faster unchanged-app check within Publish & open app.
+  Subsequent owner refinement adds **View published app** to that dropdown after
+  a successful publication: open the saved site directly without publishing or
+  checking local edits, account access or the live page.
 
 These are student-product interaction decisions. They do not authorize agent
 pushes, merges to the integration branch, public publication, releases or account

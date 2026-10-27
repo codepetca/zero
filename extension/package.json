@@ -106,6 +106,10 @@
         "title": "Zero: Copy Playable Link"
       },
       {
+        "command": "zero.viewPublishedWeb",
+        "title": "Zero: View Published App"
+      },
+      {
         "command": "zero.openPublishedWeb",
         "title": "Zero: Open Published App"
       },

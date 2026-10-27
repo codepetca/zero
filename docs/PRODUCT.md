@@ -193,7 +193,14 @@ publish flow runs first and opens only the latest verified version. Pending olde
 runs finish before a newer version can be published. Continued editing stops an
 outdated page from opening and asks for another explicit action. Normal local Run
 is unchanged. Current local source keeps **Publish & open app** in Run options,
-without a separate link below Run. An unchanged project takes a read-only fast
+without a separate link below Run. After a successful publication, **View published
+app** appears in that dropdown. It immediately opens the saved HTTPS Pages URL
+for this connected project without saving edits, authenticating, checking local
+source or checking GitHub/the public page. The browser shows whatever version is
+currently live; this action does not claim that version matches local code or is
+still available. Local dirty edits and GitHub API failures do not prevent viewing.
+Missing, disconnected or malformed receipts cannot supply the menu destination.
+An unchanged project takes a read-only fast
 path: compare the clean main commit and exact Java/assets/library/build inputs,
 verify account/repository/installation access once for this command, read Pages
 and the recorded run concurrently, then confirm the public commit/run marker and

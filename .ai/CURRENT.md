@@ -1,4 +1,11 @@
-# Faster unchanged publication checks — 2026-10-27
+# Published-app actions — 2026-10-27
+
+Owner follow-up: add View published app to Run options after a successful publish.
+Local source now opens only this project/repository’s saved validated HTTPS URL
+directly: no save, auth, Git/source check, public-page check, build or publication.
+Existing verified Open/Copy palette commands remain intact. Separate Run link
+stays removed. Follow-up targeted tests133 pass, keyboard test/review in progress.
+No push, PR, publishing or releases authorized by this follow-up.
 
 Owner authorized local implementation, timing and changed-project verification;
 remove the duplicate Open published app link. Publishing/releases remain separate:
