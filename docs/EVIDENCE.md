@@ -1,5 +1,35 @@
 # Delivery evidence index
 
+## Windows0.5.54 preview preparation — 2026-10-27
+
+Owner asked this chat to update the Windows installer with the bundled-Java fix.
+Existing unsigned-preview/updater-off model is retained; signed feeds, Mac54
+assets and system/normal editor settings remain untouched. Terra/medium bounded
+read-only Windows release-path worker identified matching-manual schema and
+newest successful hosted artifact run40549637565. Coordinator verified the
+actual clean synthetic source0c417cc03a597ec29582189059e9416ed8f55834 tree equals
+canonical maincbcbb51e (treecacb0c7b07efcdb3bb0c377be03bed664b7b1f34).
+
+Exact EXE14719218bytes/SHA25610ea389c11572f77fe3aa54a0f1d895f5be5d4d15e630983893c4fb130c263f9
+embeds the measured full package; its app contains one exact kit matching
+4363743bytes/SHA2562d7e218f49dfc8c7861a51b5725a9ec1f14a73ff2dde358524c3cf39545ab994.
+135VSIXsourcefiles match current source; actual app’s disabled updater bytes and
+package identity verified. Install/reopen and JavaFX/offline receipts bind this
+Setup/source/version and pass. Keep nativeWindowsTested=false; hosted Server
+automation does not prove physical/interactive Windows acceptance.
+
+Matching EXE/ZIP will use separate windows-preview-v0.5.54/windows-manual-v0.5.54
+prereleases, then a metadata-only PR promotes existing warning/download controls.
+No runtime/API/schema/version/signing changes. Local9manifesttests,243website
+tests, typecheck and config/syntax/doc-link checks pass; build/review/publication
+pending. Detailed candidate/proof and hosted receipts:.verification/windows54/.
+Initial storage225.99GB healthy; accountmetadata100% but normal execution works,
+existing lowusage waiver honored, no reset/account/model-setting change or bypass.
+Windows review ledger:2initial reviewers (Sol/high provenance/safety, Terra/high
+metadata/compatibility),0fixbatches; reuse original Java source reviews. Previous
+Java phase4reviewerturns remains recorded; no silent counter reset. Effective
+models/tokens/elapsed unknown; no claimed savings or destructive cleanup.
+
 ## Mac54 promotion review and local checks — 2026-10-27
 
 mac54_candidate_review targetedturn, requestedGPT-6.1Sol/high: complete/clean,
