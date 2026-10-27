@@ -1,26 +1,26 @@
-# Mac0.5.51 — public DMG verified; native metadata promotion
+# Publish & open app — authorized Mac52 release
 
 Worktree /Users/stew/.codex/worktrees/student-explorer/zero, branch
-codex/mac51-downloads. Owner's2026-10-26 “Do it” authorized source/CI/merge,
-signed/notarized Mac51 release, fresh-profile Run/Publish and native feed promotion.
-SourcePR208 merged6cdd208e with11green checks after two source reviewers and
-bounded targeted/artifact review. Root1338pass/3skip, website243pass/typecheck/build.
-Explorer java/resources, Project New/context rename/overflow, guarded Git recovery
-and private JDK21 browser fallback are included; saved Standard choices survive.
+codex/publish-and-open. Owner-authorized2026-10-26 via architecture coordination:
+ship completed feature through source PR/selected CI/merge and next unused signed
+Mac release, exact installed candidate QA, publication and reviewed download/feed
+promotion. No new account credentials or permission grants. Main remains7253a217;
+no integration conflicts. Existing feature code6c31857c independently reviewed,
+root1357pass/3skip, controller55/publisher58 and actual source Dev reuse/open pass.
+Reuse valid evidence; independently review integration/release deltas.
 
-Published setup-v0.5.51 targets prep997c0843, built849a3527. Its one DMG matches
-5,969,017bytes/SHA2567a6930188772673544f11462242aef6f4f239dc7eb75161a300557534110ef6b
-on authenticated draft and anonymous public download; Ed25519 passes. Signed,
-AppleAccepted/stapled/Gatekeeper checks and13seal hashes/41protected paths pass.
-Fresh pinned Code1.141.0 profile with exact installed VSIX and bundled starter in
-disposable armorup/zero-release-smoke-0-5-51 passed sign-in, Run UI ready/Stop,
-guarded push and Publish. Actual public page renders Hello, world! Same maintainer
-Mac; no fresh physical device, school network, Intel or Sparkle delivery claim.
+Plan: (1) prepare0.5.52/build52 source and draft PR; (2) build/sign/notarize/staple,
+record measured installer, sign feed and seal immutable candidate; (3) exact installed
+Run and Publish & open acceptance in disposable project; (4) independent release
+review and selected CI, source merge; (5) publish exact sealed Mac asset; (6) reviewed
+promotion PR/CI/merge, anonymous live-byte/signature/download verification.
+Current phase: measured notarized candidate recorded; sign feed/seal, exact installed
+QA and final artifact review next. Public Mac51 and its sealed candidate intact.
 
-This change promotes only native manifests and the exact signed51 feed. Keep
-Windows21/manualkit17, immutable public assets, primary funding work, original
-actor checkout, normal profiles/student projects and production ZeroJams hold.
-Track promotion review/CI/merge and hosted-byte verification on PR209; record each
-result there after completion. See docs/MAC-CANDIDATE-0.5.51.md and docs/EVIDENCE.md. No credential
-changes, new manual kit release or production ZeroJams activation. DeepSeek paused.
-Zero Dev source watchers remain; user uses its isolated dev window on my-study.
+Preserve primary funding work, normal profiles/student projects, original actor
+checkout, Windows21/manualkit17, immutable existing assets and production ZeroJams
+hold. Keep source watcher/user my-study window intact. QA uses owned isolated Code
+copy and QA profile; no claim of fresh hardware/school network/Intel/Windows or
+actual Sparkle delivery unless exercised. DeepSeek paused. Weekly remaining84%,
+storage228GB healthy at start. Detailed prior evidence: docs/EVIDENCE.md and ignored
+.verification/mac51/publish-open-*; new release receipts: .verification/mac52/.

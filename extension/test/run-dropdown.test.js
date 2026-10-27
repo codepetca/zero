@@ -7,7 +7,7 @@ test('Run options opens without launching; Publish closes and dispatches the exi
  assert.equal(h.menu.hidden,false);assert.equal(h.trigger.getAttribute('aria-expanded'),'true');assert.equal(h.document.activeElement,h.publish);
  assert.equal(h.sent.some(message=>message.command),false);
  h.clickCommand(h.publish);assert.equal(h.menu.hidden,true);assert.equal(h.document.activeElement,h.trigger);
- assert.deepEqual(h.sent.filter(message=>message.command).map(message=>message.command),['zero.publishWeb']);
+ assert.deepEqual(h.sent.filter(message=>message.command).map(message=>message.command),['zero.publishAndOpenWeb']);
  const run=h.document.createElement('button');run.dataset.command='zero.toggleApp';h.clickCommand(run);
  assert.equal(h.sent.at(-1).command,'zero.toggleApp','Main Run remains a direct action');
 });
@@ -43,12 +43,12 @@ test('actual renderer offers publishing only for ready connected projects and di
  const ready=sidebarSource('ready',{connected:true});
  assert.match(ready,/class="run-split"><button class="run" data-command="zero.toggleApp"/);
  assert.match(ready,/id="run-menu-button"[^>]*aria-haspopup="menu"[^>]*aria-controls="run-menu"/);
- assert.match(ready,/data-command="zero.publishWeb"[^>]*>Publish app<\/button>/);
+ assert.match(ready,/data-command="zero.publishAndOpenWeb"[^>]*>Publish &amp; open app<\/button>/);
  assert.doesNotMatch(sidebarSource('ready'),/id="run-menu-button"/,'Signed-out local Run needs no publishing account');
  assert.doesNotMatch(sidebarSource('empty',{connected:true}),/id="run-menu-button"/);
  for(const state of ['building','running','stopping']) {
   const html=sidebarSource(state,{connected:true});
-  assert.match(html,/id="run-menu-button"[^>]* disabled/);assert.match(html,/data-command="zero.publishWeb"[^>]* disabled/);
+  assert.match(html,/id="run-menu-button"[^>]* disabled/);assert.match(html,/data-command="zero.publishAndOpenWeb"[^>]* disabled/);
   assert.match(html,state==='stopping'?/Stopping…<\/button>/:/Stop<\/button>/);
  }
 });

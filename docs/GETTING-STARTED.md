@@ -14,7 +14,7 @@ remains0.5.49. Existing saved sessions retain their renewal path. Editor
 updates preserve existing projects’ framework source and build versions.
 
 Mac 0.5.47 uses native JavaFX for Run App. To publish, stop the app, open the
-arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
+arrow beside **Run**, then choose **Publish & open app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
 compatibility checks and compilation.
@@ -100,7 +100,7 @@ While signed out, local Run and Files stay available. Cloud repository, push and
 sharing controls appear after access is ready. An
 original local project without an origin offers **⋯ → Repository Actions → Create a repository…** to
 create and connect an empty remote, or **⋯ → Repository Actions → Connect to GitHub…** for an existing URL. Connected
-projects show owner/repository and retain branch actions; **Publish app** is available from the arrow beside **Run**.
+projects show owner/repository and retain branch actions; **Publish & open app** is available from the arrow beside **Run**.
 
 Zero needs no separate account. Cancelling setup leaves the current Start Page
 step available to retry; an existing local project's Run remains available. **⋯ → Troubleshooting → Test
@@ -435,7 +435,7 @@ does not push code, establish that the remote is current or submit in Pika.
 ## Publish your playable app
 
 In your own project, **Run App** and test the version you want other people to
-play. Stop the app and choose **Publish app** from the arrow beside Run. Publish
+play. Stop the app and choose **Publish & open app** from the arrow beside Run. Publish
 saves open files, asks for a commit message when needed, then commits and pushes
 your changes before deploying. Already committed work needs no new message; an
 already uploaded main skips the upload. If you are on a change branch, finish it
@@ -454,11 +454,12 @@ Pages. The playable app and its included assets are public, even if your source
 repository is private and your GitHub plan supports Pages. Zero keeps the
 repository’s visibility unchanged.
 
-Wait for **App published**, then choose **Open app** or **Copy
-playable link**. You can retrieve the checked link later with **Zero: Open
-Published App** or **Zero: Copy Playable Link** in the Command Palette. Later
+Choose **Publish & open app** in Run options. It checks the latest version, opens
+it directly when already published, or publishes changes before opening. Copy the
+browser address to share the same playable link. Advanced **Zero: Open Published App**
+and **Zero: Copy Playable Link** palette commands retrieve a saved verified publication. Later
 publishes revalidate and update the same approved destination without another
-destination dialog. If a run is still pending, choose Publish
+destination dialog. If a run is still pending, choose Publish & open
 app again to recheck it. Follow any specific GitHub action or permission error;
 an unsuccessful update keeps the previous live page.
 

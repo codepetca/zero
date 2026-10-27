@@ -11366,3 +11366,61 @@ installer/snapshot and exact signed XML, changing only feed JSON publication.sta
 Publication does not update Windows21/manualkit17 or activate production ZeroJams.
 Promotion review, all selected CI, merge and final deployed feed/download verification
 are separate gates recorded on that PR; no old asset was replaced.
+
+## Publish & open app — local source completion, 2026-10-26
+
+Owner requested one Run dropdown action that opens the latest published app,
+publishing it first when necessary. Base7253a217 -> implementation1a41fa5c ->
+corrected6c31857c. The Run menu and repository action now use Publish & open app;
+standalone sidebar/overflow Open app and Copy playable link controls are removed.
+Historical retrieval commands remain in the Command Palette; the browser address
+is the same playable/shareable URL. Ordinary local Run/Stop is unchanged.
+
+Current reuse requires exact project/account/repository/commit/destination plus
+host-retained build-input proof (including ignored inputs), successful owned run,
+public marker and remote main. It performs read-only checks without a build,
+upload, dispatch or staging cleanup. Stale output follows existing guarded save,
+commit/push/setup/consent/publication flow. Failed, pending, unavailable, cancelled,
+untrusted, simulation and changed-source checks do not open a stale page. Pending
+older runs settle before at most one newer publication; continued edits stop.
+Final async project checks precede the final input proof, then synchronous session,
+mode, cancellation, cached-root, trust and dirty-buffer checks directly dispatch
+the browser. No async project-resolution gap remains after verification.
+
+Project-owned publishing README bytes and ownership hashes stay pinned: changing
+editor labels in that file would break existing-kit recognition. Updated current
+editor/template help instead; no automatic publishing-kit migration or Java API
+change. Existing palettes keep the older guide's commands usable.
+
+Independent initial wave: fresh requested GPT-6.1 Sol/high correctness/security and
+compatibility contexts covered the complete7253a217..1a41fa5c diff and callers.
+Safety found one P2 blocking saved-source race at the final UI project lookup;
+compatibility found one nonblocking stale template README paragraph. Accepted both
+in one fix batch. Safety targeted review of1a41fa5c..6c31857c and immediate callers
+is complete/clean, including both reuse/new-publication dispatch boundaries and
+the README. Two independent controller regressions pass; compatibility initially
+ran59 focused tests. Initial coverage plus the targeted delta covers corrected
+head; no extra integration wave adds coverage. Ledger3review turns,1initial wave,
+1targeted wave,1fix batch. Effective model/per-turn elapsed time/tokens unavailable.
+
+Final controller55tests and publisher58tests pass; npmcheck and diffcheck pass.
+Initial implementation full suite1353pass/3skip; corrected full suite1357pass/
+3skip, zero failures (447.9seconds). Earlier unchanged menu/integration/builder checks
+remain valid (136focused and50integration tests). Ignored logs and review receipts
+are under .verification/mac51/publish-open-*.
+
+Corrected native acceptance used a separate source Development Host with the
+installed51 QA profile; installedVSIX/normal student windows remain unchanged.
+Actual dropdown screenshot publish-open-corrected-menu.png shows the single item.
+Click opened armorup/zero-release-smoke-0-5-51 at existing sourcec59a044a and deployment
+40396711338, rendered Hello, world!, and sidebar reported App opened. Before/after
+GitHub run lists are identical; zero new deployments. Disposable project remains
+clean and pinned kit inspection has no missing files/upgrade. No newly stale/first
+version live upload was performed; those paths use controller/backend tests.
+Windows interactive behavior was not re-exercised.
+
+Local source commits only: no feature push, PR, merge, installer/feed promotion,
+credential change or public source/app mutation. Public Mac0.5.51 remains the
+previously verified release from PR208/209. Preserved primary funding work, normal
+profiles/projects, original actor checkout, Windows21/legacykit17, immutable release
+assets and production ZeroJams hold.

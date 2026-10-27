@@ -106,3 +106,12 @@ test('Mac browser builds fall back from native JAVA_HOME to a compatible private
  configuredMajor=17;privateCompilerMajor=17;await assert.rejects(locateRuntimes(options),/standalone JDK 21.*JAVA_HOME or Zero/);
  await fs.rm(privateJdk,{recursive:true});await assert.rejects(locateRuntimes(options),/standalone JDK 21/);
 });
+
+test('current-source commit proof works without a build invocation and detects ignored additions',async t=>{
+ const h=await currentOutput(t),blob=bytes=>require('node:crypto').createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+ const git=async()=>h.inputs.map(file=>'100644 blob '+blob(file.bytes)+'\t'+file.path).join('\0')+'\0';
+ const adapter=createProjectBuilder({spawn:()=>assert.fail('Freshness must not execute a builder')});
+ const result=await adapter.assertBuildInputsAtCommit({projectRoot:h.dir,sourceSha:'a'.repeat(40),git});assert.equal(result.inputCount,h.inputs.length);
+ await fs.writeFile(path.join(h.dir,'src/main/resources/ignored.png'),'unpublished');
+ await assert.rejects(adapter.assertBuildInputsAtCommit({projectRoot:h.dir,sourceSha:'a'.repeat(40),git}),/absent from the browser receipt/);
+});

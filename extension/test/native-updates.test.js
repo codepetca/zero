@@ -63,7 +63,7 @@ test('native update contributions are Mac/Windows Palette-only and retain the mi
       if (location !== 'commandPalette') assert.ok(entries.every(entry => entry.command !== command));
     }
   }
-  const controlsMenu = ['zero.githubAccount', 'zero.chooseRepository', 'zero.exportWeb', 'zero.copyPublishedWebLink', 'zero.openPublishedWeb', 'zero.openFirstLesson', 'zero.showSetup', 'zero.startPage', 'zero.showOutput'];
+  const controlsMenu = ['zero.githubAccount', 'zero.chooseRepository', 'zero.exportWeb', 'zero.openFirstLesson', 'zero.showSetup', 'zero.startPage', 'zero.showOutput'];
   for (const view of ['zero.controls', 'zero.studentControls']) {
     const entries = manifest.contributes.menus['view/title'].filter(entry => entry.when === `view == ${view}`);
     assert.deepEqual(entries.map(entry => entry.command), view === 'zero.controls' ? [...controlsMenu, 'zero.previewStudentExplorer'] : controlsMenu);

@@ -87,6 +87,8 @@ jobs:
         id: deployment
 `;
 
+// This guide is part of the project-owned publishing kit and its owner hash.
+// Keep its bytes pinned across editor-only UI changes; update it through a kit migration.
 function publishingGuide(repositoryPage) {
   return `# Share your app
 

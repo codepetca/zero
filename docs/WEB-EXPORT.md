@@ -1,7 +1,7 @@
 # Browser games and playable links
 
 Mac 0.5.43 uses native JavaFX for Run App. To publish, stop the app, open the
-arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
+arrow beside **Run**, then choose **Publish & open app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
 compatibility checks and compilation.
@@ -133,7 +133,7 @@ simple labels, and a timer advanced from `update(seconds)` instead of sleeping.
 
 ## Student flow
 
-Choose **Publish app** from the arrow beside Run after testing the app.
+Choose **Publish & open app** from the arrow beside Run after testing the app.
 Sign in and connect your repository to enable it. Publish saves open files, commits
 pending changes through the normal message input, pushes any unuploaded commits,
 and validates that the deployed source matches the uploaded commit. A clean,
@@ -146,7 +146,7 @@ deployment-only publishing kit, asks VS Code for GitHub workflow permission,
 and uses the Commit & push message input. Zero validates the uploaded version
 and continues publishing without another confirmation.
 When an unchanged publishing kit from a recognized earlier Zero version needs
-an update, **Publish app** offers **Update publishing files**. The review lists
+an update, **Publish & open app** offers **Update publishing files**. The review lists
 the affected deployment files; the app source and public destination stay the
 same. The old files remain recoverable in project
 history. Zero then uses ordinary **Commit & push** and checks the exact uploaded
@@ -162,9 +162,12 @@ Later publishes reuse the approved destination and stable URL. Repository
 visibility is never changed. The deployed game and its included assets are public,
 including when the source repository is private and the account supports Pages.
 
-Wait for **App published** in the sidebar, then use its **Open app**
-or **Copy playable link** buttons. Successful actions no longer show popups. These commands also live in the Zero title menu and Command
-Palette. Pika still receives the separate source repository link. Publishing
+Use **Run options → Publish & open app**. Zero opens an already current, verified
+publication without rebuilding; otherwise it publishes first and opens only after
+checking that the live page matches the latest source. Cancelled, failed or pending
+updates do not open an older page. Copy the browser address to share the app. Advanced
+**Zero: Open Published App** and **Zero: Copy Playable Link** commands remain in the
+Command Palette for retrieving a saved verified publication. Pika still receives the separate source repository link. Publishing
 tracks the exact GitHub workflow run and checks an unauthenticated public marker
 containing both source SHA and run ID before offering the link. A previous live
 page remains available when an update fails. Pending runs and the last verified
