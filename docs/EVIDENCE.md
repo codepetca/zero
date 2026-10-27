@@ -1,3 +1,87 @@
+# PR221 packaging boundary correction — 2026-10-27
+
+Initial Windows run40601348467 on acd9b13b correctly rejected the changed template
+scaffold checksums during packaging. The editor improvement must not alter the
+pinned project-owned builder or require a tutorial publication. Restore the shared
+web-export/snapshot.js source to main exactly; keep no-result/current-input proof
+inside the host project-builder adapter, and use that adapter as the publisher’s
+default as well as the existing production injection. No recorded template hashes,
+publication evidence or gate are changed. All release files remain equal to main.
+
+Read-only published-template check verifies all3 scaffolds.70 builder/library/
+snapshot/lesson tests,3 real Git/current-input integrations and the focused default
+host-proof test pass. The edited-project integration uses the host for no-result
+checks and the unchanged snapshot validator for its simulated generated build.
+Targeted correction review and new exact-head CI follow. No hosted template,
+student app, installer or release publication is part of this correction.
+
+# View published app in Run options — 2026-10-27
+
+Owner follow-up adds a second Run dropdown item after a successful publication.
+View published app uses the saved site URL for this project and connected
+repository. It validates the saved HTTPS Pages destination, opens directly,
+and never saves edits, authenticates, checks source/GitHub/public availability,
+builds or publishes. Existing verified Open/Copy palette actions stay unchanged;
+there is no separate link below Run. Browser availability/version is deliberately
+not asserted. Publishing and releases remain separate; no remote mutations.
+
+134 scoped command/menu/extension-renderer/playground tests and configuration
+pass. Coverage includes unsaved local changes plus unavailable authentication,
+no verification/publish calls, malformed/disconnected receipts, browser launch
+failure, duplicate protection and progress cleanup, simulation, project/repository
+scope and two-item keyboard selection. Actual source-rendered dark browser preview
+shows both actions; Down selects View and Escape closes/restores trigger focus.
+This is local preview/command verification, not installed-app acceptance.
+
+Independent requested Sol/high review3cbf8af5→4779c4a8 completed clean,0blockers,
+covering the full follow-up diff and immediate URL/command/renderer dependencies.
+Effective model, tokens and elapsed time unknown. Overall feature ledger now
+4reviewer turns,1initial wave,2targeted follow-ups,1correction batch. Prior reviewed
+publishing/source proof unchanged. Receipts: ignored .verification/publish-fast/.
+
+# Faster unchanged published-app checks — 2026-10-27
+
+Local source only; publishing and releases excluded. A read-only fast path compares
+clean main and exact committed browser inputs, verifies current App access once per
+command, checks Pages/run/public marker/remote main, and performs final source,
+project, session, simulation and cancellation checks before opening. No access
+proof persists between commands; mutation authorization remains unchanged. The
+separate sidebar link is removed; Publish & open app stays in Run options.
+Host commit proof now works without a retained build result, while a supplied
+build result must still match source. Exact ignored/untracked inputs remain denied.
+
+Controlled before/after benchmark, three samples each, real disposable Git,
+mocked GitHub/public HTTP and25ms per App access, stubbed input proof to isolate
+orchestration: before2225/2196/2169ms, after259/252/252ms; median2196→252ms
+(88.5%reduction). Per invocation: App access7→1, Git198→22, publisher/public
+HTTP7→4. These are local orchestration results, not live GitHub latency claims.
+Receipts/harness are retained in ignored `.verification/publish-fast/`.
+
+Fast-path tests cover repeated-command reauthorization, stale receipts, branches,
+new commits, local edits, remote main, replaced installation/account/origin,
+Pages/run mismatch, unavailable public output, cancellation and final ignored input
+drift. Real commit/input proof opens with no retained browser build. A real command
+coordinator/publisher integration test uses disposable Git and real input proofs:
+first publish → unchanged open without rebuild → edited Java → commit/upload →
+second build/staging/dispatch → exact new marker → browser open. GitHub and browser
+build outputs in that integration test are simulated; no hosted repository changes.
+Focused fast tests17, UI/snapshot99, sidebar/design52 and configuration pass.
+The actual source renderer in light/dark browser previews shows no separate link,
+retains Publish & open app in Run options, and closes the menu with Escape.
+Broader publishing regressions273 pass at0ea5d042. Initial independent Sol/high
+security/correctness and Terra/high compatibility full-diff review found2unique
+blockers: an awaited session callback after the final mutation guard, and the
+installed editor's saved-builder adapter still requiring retained output. One
+batched correction preserves synchronous mutation dispatch and adds bounded
+host-only input discovery for no-result proofs; supplied-result validation stays
+strict. Production saved-builder/local-library/deleted-output and delayed-auth
+source/origin tests5 pass; adapter/library tests33 pass, including ordinary-file
+and size restrictions. Configuration passes. Independent Sol/high targeted review of0ea5d042→022ee2aa
+completed clean and covered both fixes and their immediate interactions, reusing
+unchanged initial review coverage. Ledger:2initial reviewers,1targeted follow-up,
+1correction batch. Effective model, token usage and reviewer elapsed are unknown. No live GitHub publication,
+native installed-app or physical Windows acceptance is claimed for this change.
+
 # Delivery evidence index
 
 ## Windows0.5.54 preview public bytes — 2026-10-27

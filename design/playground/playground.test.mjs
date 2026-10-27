@@ -200,15 +200,17 @@ test('publishing fixtures exercise real coordinator stages and root-scoped rende
   assert.doesNotMatch(sidebarSource('publish-building',{connected:true,projectRoot:'/other/project'}),/role="progressbar"/);
 });
 
-test('published link sits below Run, follows cloud/busy visibility and its fixture opens historical output read-only',async()=>{
+test('publishing stays in Run options without a duplicate published link; palette retrieval stays read-only',async()=>{
   const {publishedLinkProof}=await import('./publishing-source.mjs');
   const html=sidebarSource('published',{connected:true});
-  assert.match(html,/class="link published-app-link" data-command="zero.openPublishedWeb"/);
-  assert.ok(html.indexOf('class="run-split"')<html.indexOf('class="link published-app-link"'));
-  assert.ok(html.indexOf('class="link published-app-link"')<html.indexOf('class="repository"'));
-  assert.match(sidebarSource('published-busy',{connected:true}),/data-command="zero.openPublishedWeb" disabled/);
-  assert.doesNotMatch(sidebarSource('published',{connected:false}),/data-command="zero.openPublishedWeb"/);
-  assert.doesNotMatch(sidebarSource('published',{connected:true,projectRoot:'/other'}),/data-command="zero.openPublishedWeb"/);
+  assert.doesNotMatch(html,/published-app-link|Open published app/);
+  assert.doesNotMatch(sidebarSource('published-busy',{connected:true}),/data-command="zero.openPublishedWeb"/);
+  assert.match(sidebarSource('published-busy',{connected:true}),/data-command="zero.viewPublishedWeb" disabled/);
+  assert.doesNotMatch(sidebarSource('ready',{connected:true}),/data-command="zero.viewPublishedWeb"/);
+  assert.match(html,/data-command="zero.publishAndOpenWeb"/);
+  assert.match(html,/role="menuitem"[^>]*data-command="zero.viewPublishedWeb"[^>]*>View published app<\/button>/);
+  assert.doesNotMatch(sidebarSource('published',{connected:false}),/data-command="zero.viewPublishedWeb"/);
+  assert.doesNotMatch(sidebarSource('published',{connected:true,projectRoot:'/other'}),/data-command="zero.viewPublishedWeb"/);
   assert.notEqual(publishedLinkProof.localSha,publishedLinkProof.openedSha);
   assert.deepEqual([publishedLinkProof.builds,publishedLinkProof.uploads,publishedLinkProof.deploys],[0,0,0]);
 });

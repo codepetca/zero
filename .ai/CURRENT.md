@@ -1,23 +1,35 @@
-# Windows0.5.54 preview publication
+# Published-app actions: source PR/CI/merge — 2026-10-27
 
-Owner2026-10-27: update Windows installer with bundled-Java fix. This supersedes
-prior Mac-release-only scope for this new Windows work; Mac54 stays immutable.
-Branchcodex/windows54-bundled-java frommaincbcbb51e. Current source includes
-reviewedJava217; no runtime/API/version/signing/global settings changes needed.
-Preserve unsigned-preview model, updateroff and nativeWindowsTested=false.
+Owner authorized source PR, CI and merge for faster unchanged publication checks
+and View published app. App publishing, installers, feeds and releases stay out
+of scope. Current branch codex/published-app-fast-check in tutorial-docs-label/zero.
 
-Reuse hostedWindows candidate40549637565: actualclean source0c417cc0, tree equals
-mainCBC. Measured EXE and matching embedded manual ZIP verified;135VSIXsources
-match source; actual updater configdisabled; install/reopen and privateJavaFX/
-offline receipts pass and bind same EXE/source. No physical acceptance claim.
-Local details:.verification/windows54/ and WINDOWS-CANDIDATE-0.5.54.md.
+Source ready: verifyUnchanged proves clean main/exact browser inputs and fresh
+operation-scoped access, checks live run/Pages/marker/main, then final project,
+source/session/mode guards. No permission cache or build required. Production
+saved-builder proof works without generated output; mutations retain their final
+synchronous guards. View published app opens a scoped saved HTTPS URL directly
+without saving/auth/source/network/build checks. Both actions are in Run options;
+no duplicate link below Run. Verified historical palette actions stay intact.
 
-Both releases public and exact authenticated draft/anonymous public bytes verified:
-windows-preview-v0.5.54 (EXE only), windows-manual-v0.5.54 (matching ZIP only).
-Sol/high artifact review clean; Terra/high metadata review fixed1stale Product
-reference and targeted delta clean.243website tests/typecheck/build and9manifest
-checks pass; rendered unsigned controls/manual/Mac anchors correct. No new UI.
-Next: metadataPR/finalCI/merge, verify live54Windowslinks and unchangedMac/feed.
-Keep all Mac/oldWindows/manual assets and ZeroJams production hold. No resets,
-credit purchases, account/model changes or bypass of actual provider rejection;
-low-usage workflow waiver persists; DeepSeek remains paused.
+Prior independent Sol/high and Terra/high complete-diff reviews and targeted
+corrections are clean through022ee2aa; View follow-up clean through4779c4a8.
+273 publishing regressions, remediated adapter/library33 and targeted guards5,
+View134 plus configuration pass. Controlled orchestration timing2196→252ms
+(mocks/25ms access delay; not live-network timing). Actual light/dark source
+preview and dropdown keyboard checks pass; installed/native acceptance separate.
+Details in docs/EVIDENCE.md and ignored .verification/publish-fast/ receipts.
+
+Sync latest origin/main38a1198c (Windows54 preview source) before PR; only CURRENT
+conflicted and was rewritten as this handoff. Preserve all upstream Windows54
+release metadata and evidence. Runtime feature files remain equal to reviewed
+3cc1d456. PR221 is open, currently draft for one CI correction. Integration review clean
+at acd9b13b;179 focused tests passed. Initial Windows CI correctly rejected changed
+tutorial checksums caused by editing shared snapshot.js. Restore that pinned
+project-builder source byte-for-byte and use the host adapter as the publisher’s
+default proof. Production injection already uses that host adapter.3 published
+template checks,70 builder/library/snapshot/lesson tests and3 integration tests
+pass; default host-proof test passes. No metadata/gate/template-publication changes.
+Next: targeted review of this correction, push, exact-head full CI and merge.
+No new release or hosted student app is part of this source delivery. Preserve
+Mac54 seals, installed app, primary checkout user work and paused DeepSeek pilot.

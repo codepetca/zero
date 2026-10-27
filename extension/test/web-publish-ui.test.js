@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test');const assert=require('node:assert/strict');
 const {createWebPublishCommands}=require('../src/web-publish-ui');
-function fixture(t,{resolveProject,cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)},uploadError}={}) {
+function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/student/game',cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)},uploadError}={}) {
   let simulation=false,busy=false,active='/student',reviewed=0,published=0,checks=0,setup=false,upgrade=false,uploaded=0,sha='a'.repeat(40);
   const progress=[],messages=[],states=[],copied=[],opened=[],authCalls=[],choices=[];
   const stored=new Map(),workspaceState={get:key=>stored.get(key),update:async(key,value)=>{if(value===undefined)stored.delete(key);else stored.set(key,JSON.parse(JSON.stringify(value)));}};
@@ -20,7 +20,7 @@ function fixture(t,{resolveProject,cancelUpload=false,uploadResult={uploaded:tru
     if(reviewed.sha!==sha)throw Error('The app changed while checking its published version.');
     const live=await publisher.check();if(live.status==='live')onCurrent?.(live);return live;
   };
-  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),assertProjectNow:expected=>{if(active!==expected)throw Error('The project changed.');},authentication:auth,repositories,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),setProgress:value=>progress.push(value),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
+  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),connectedRepository,assertProjectNow:expected=>{if(active!==expected)throw Error('The project changed.');},authentication:auth,repositories,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),setProgress:value=>progress.push(value),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
   return {api,auth,progress,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set upgrade(v){upgrade=v;},set active(v){active=v;},set sha(v){sha=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
 }
@@ -437,4 +437,55 @@ test('historical browser opening keeps final project/session/mode/trust guards a
     if(mode==='pending')await h.api.commands['zero.openPublishedWeb']();else await assert.rejects(h.api.commands['zero.openPublishedWeb']());
     assert.deepEqual(h.opened,[],mode);assert.equal(h.progress.at(-1),undefined,mode);assert.equal(h.busy,false,mode);
   }
+});
+
+test('unchanged fast reuse opens without another review, upload or deployment',async t=>{
+  const h=fixture(t);h.choices.push('Publish app');await h.api.publish();let fast=0;
+  h.publisher.verifyUnchanged=async(root,saved,options)=>{fast++;assert.equal(root,'/student');await options.beforeFinalCheck();const live={status:'live',url:saved.url,sha:saved.sha,resume:saved.resume};options.onCurrent(live);return live;};
+  const result=await h.api.publishAndOpen();assert.equal(result.alreadyCurrent,true);assert.equal(fast,1);assert.equal(h.reviewed,1);assert.equal(h.published,1);assert.equal(h.uploaded,0);assert.equal(h.opened.length,1);assert.equal(h.busy,false);assert.equal(h.progress.at(-1),undefined);
+});
+test('changed project leaves fast reuse and completes the guarded publish/open flow',async t=>{
+  const h=fixture(t);h.choices.push('Publish app');await h.api.publish();h.sha='b'.repeat(40);
+  h.publisher.verifyUnchanged=async()=>({status:'stale'});
+  const result=await h.api.publishAndOpen();assert.equal(result.sha,'b'.repeat(40));assert.equal(h.reviewed,3);assert.equal(h.published,2);assert.equal(h.opened.length,1);assert.equal(h.stored.get('zero.webPublish.lastLive').sha,'b'.repeat(40));
+});
+test('fast reuse failure preserves the old publication without opening or deploying',async t=>{
+  for(const kind of ['pending','network','project','dirty'])await t.test(kind,async t=>{
+    const h=fixture(t);h.choices.push('Publish app');await h.api.publish();const saved=h.stored.get('zero.webPublish.lastLive');
+    h.publisher.verifyUnchanged=async(_root,_saved,options)=>{
+      if(kind==='pending')return {status:'pending',message:'Page unavailable'};
+      if(kind==='network')throw Error('Offline');
+      if(kind==='project')h.active='/other';
+      if(kind==='dirty')h.vscode.workspace.textDocuments=[{isDirty:true}];
+      await options.beforeFinalCheck();const live={status:'live',url:saved.url};options.onCurrent(live);return live;
+    };
+    if(kind==='pending')assert.equal((await h.api.publishAndOpen()).status,'pending');else await assert.rejects(h.api.publishAndOpen());
+    assert.equal(h.published,1);assert.deepEqual(h.opened,[]);assert.deepEqual(h.stored.get('zero.webPublish.lastLive'),saved);assert.equal(h.busy,false);assert.equal(h.progress.at(-1),undefined);
+  });
+});
+
+test('View published app opens the saved site immediately despite dirty edits and unavailable GitHub',async t=>{
+ const h=fixture(t);h.choices.push('Publish app');await h.api.publish();const saved=h.stored.get('zero.webPublish.lastLive'),before={reviewed:h.reviewed,published:h.published,uploaded:h.uploaded,checks:h.checks};
+ h.sha='b'.repeat(40);h.vscode.workspace.textDocuments=[{isDirty:true}];h.vscode.workspace.saveAll=()=>assert.fail('Viewing must not save');
+ h.auth.capture=()=>assert.fail('Viewing must not authenticate');h.auth.assertCurrent=()=>assert.fail('Viewing must not authenticate');h.auth.assertCurrentNow=()=>assert.fail('Viewing must not authenticate');
+ h.publisher.verifyLink=()=>assert.fail('Viewing must not check the public site');h.publisher.verifyUnchanged=()=>assert.fail('Viewing must not check local source');
+ const result=await h.api.commands['zero.viewPublishedWeb']();assert.equal(result.status,'opened');assert.deepEqual(h.opened,[saved.url]);assert.deepEqual(h.stored.get('zero.webPublish.lastLive'),saved);assert.deepEqual({reviewed:h.reviewed,published:h.published,uploaded:h.uploaded,checks:h.checks},before);assert.equal(h.busy,false);assert.equal(h.progress.at(-1),undefined);
+});
+test('View published app rejects missing or disconnected receipts and unsafe URL data without network calls',async t=>{
+ const base={root:'/student',account:'1',sha:'a'.repeat(40),url:'https://student.github.io/game/',resume:{sha:'a'.repeat(40),runId:42,repository:'https://github.com/student/game'}};
+ for(const saved of [undefined,{...base,root:'/other'},{...base,url:'javascript:alert(1)'},{...base,url:'https://user:password@student.github.io/game/'},{...base,url:'https://127.0.0.1/'},{...base,resume:{...base.resume,repository:'https://github.com/student/other'}},{...base,resume:{...base.resume,destination:{url:'https://other.github.io/'}}}]){
+  const h=fixture(t);if(saved)h.stored.set('zero.webPublish.lastLive',saved);h.auth.capture=()=>assert.fail('No authentication expected');
+  await assert.rejects(h.api.commands['zero.viewPublishedWeb'](),/Publish this project/);assert.deepEqual(h.opened,[]);assert.equal(h.busy,false);assert.equal(h.progress.at(-1),undefined);
+ }
+});
+test('View published app keeps opening progress, duplicate protection and useful browser failure feedback',async t=>{
+ const h=fixture(t);h.choices.push('Publish app');await h.api.publish();const gate=deferred(),started=deferred();h.vscode.env.openExternal=()=>{started.resolve();return gate.promise;};
+ const open=h.api.commands['zero.viewPublishedWeb']();await started.promise;assert.equal(h.busy,true);assert.deepEqual(h.progress.at(-1).stages,['opening']);assert.equal(await h.api.commands['zero.viewPublishedWeb'](),undefined);
+ gate.resolve(false);assert.equal((await open).status,'failed');assert.match(h.states.at(-1),/browser could not be opened/);assert.ok(h.stored.get('zero.webPublish.lastLive'));assert.equal(h.busy,false);assert.equal(h.progress.at(-1),undefined);
+});
+test('View published app respects simulation, current project and repository guards',async t=>{
+ let repository='https://github.com/student/game';const h=fixture(t,{connectedRepository:()=>repository});h.choices.push('Publish app');await h.api.publish();
+ repository='https://github.com/student/other';await assert.rejects(h.api.commands['zero.viewPublishedWeb'](),/Publish this project/);repository='https://github.com/student/game';
+ h.simulation=true;await h.api.commands['zero.viewPublishedWeb']();assert.deepEqual(h.opened,[]);h.simulation=false;
+ h.active='/other';await assert.rejects(h.api.commands['zero.viewPublishedWeb'](),/Publish this project/);assert.equal(h.busy,false);
 });

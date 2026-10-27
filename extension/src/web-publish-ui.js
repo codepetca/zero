@@ -1,8 +1,9 @@
 'use strict';
 const path = require('node:path');
 const {createGitHubPagesPublisher} = require('./web-publish-github');
+const {safePagesUrl}=require('./web-pages-verification');
 
-function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setProgress=()=>{},output,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
+function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connectedRepository=()=>undefined,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setProgress=()=>{},output,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
   let disposed=false,controller,publishing=false,resume,recheckRequested=false,lastLive;
   let root,stageProgress,openingRequested=false;
   const clearProgress=()=>{stageProgress=undefined;setProgress(undefined);};
@@ -61,10 +62,11 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},authen
     }
     return result;
   }
-  async function verifyAndOpen(reviewed,saved,expected) {
+  async function verifyAndOpen(reviewed,saved,expected,{fast=false}={}) {
     let opening;
     stage('verifying');progress('Checking live app…');
-    const current=await publisher.verifyCurrent(reviewed,saved,{
+    const verify=fast?publisher.verifyUnchanged.bind(publisher,expected):publisher.verifyCurrent.bind(publisher,reviewed);
+    const current=await verify(saved,{
       signal:controller.signal,
       beforeFinalCheck:()=>stillPublishable(expected),
       // Called synchronously after the publisher's final source/session proof.
@@ -157,6 +159,12 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},authen
         await stillCurrent(expected);
       }
       await stillPublishable(expected);
+      const previous=lastLive || workspaceState?.get('zero.webPublish.lastLive');
+      if(reuse && previous && publisher.verifyUnchanged) {
+        const current=await verifyAndOpen(undefined,previous,expected,{fast:true});
+        if(current.status==='live')return {...current,alreadyCurrent:true};
+        if(current.status!=='stale'){await showAction(current);return current;}
+      }
       let review,uploadedSource;
       try {review=await publisher.review(expected,{signal:controller.signal});}
       catch(error) {
@@ -169,7 +177,6 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},authen
       }
       await stillCurrent(expected);
       if(review.status!=='review'){await showAction(review);return review;}
-      const previous=lastLive || workspaceState?.get('zero.webPublish.lastLive');
       if(reuse) {
         startProgress(['verifying']);
         progress('Checking published app…');
@@ -261,6 +268,30 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},authen
     try {const url=new URL(saved.url);return url.protocol==='https:' && Boolean(url.hostname) && !url.username && !url.password && !url.search && !url.hash;}catch{return false;}
   }
   const publishAndOpen=()=>publish({open:true});
+  async function viewPublishedApp() {
+    if(disposed || publishing || isBusy())return;
+    publishing=true;setBusy(true);controller=new AbortController();openingRequested=false;
+    try {
+      root=await project();
+      const expected=root;
+      await stillCurrent(expected);
+      if(isSimulation(expected)){progress('Simulation only — no published app was opened.');return;}
+      const saved=lastLive || workspaceState?.get('zero.webPublish.lastLive');
+      if(!hasPublishedApp({root:expected,repository:connectedRepository(),account:saved?.account}) ||
+         !safePagesUrl(saved.url,saved.resume?.destination?.cname) ||
+         (saved.resume?.destination && saved.resume.destination.url!==saved.url))throw Error('Publish this project before viewing its published app.');
+      startProgress(['opening']);progress('Opening in browser…');
+      // The saved URL is data from a successful publication. No source checks,
+      // authentication, remote verification, saving or publishing precede opening.
+      assertProjectNow(expected);
+      if(disposed || controller.signal.aborted || isSimulation(expected))throw Error('Opening the published app was cancelled.');
+      if(connectedRepository()!==saved.resume.repository)throw Error('The connected repository changed. Choose View published app again.');
+      const opened=await vscode.env.openExternal(vscode.Uri.parse(saved.url));
+      await stillCurrent(expected);clearProgress();
+      progress(opened===false?'The browser could not be opened. See Zero Output for the published app link.':'Published app opened',`Published site: ${saved.url}`);
+      return {status:opened===false?'failed':'opened',url:saved.url,opened:opened!==false};
+    }finally{clearProgress();controller=undefined;publishing=false;setBusy(false);}
+  }
   async function publishedLink(open) {
     if(disposed || publishing || isBusy())return;
     publishing=true;setBusy(true);controller=new AbortController();openingRequested=open;
@@ -320,6 +351,6 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},authen
       return {provider:'github-pages',url:checked.url,commit,runId:checked.resume.runId};
     } finally {controller=undefined;publishing=false;setBusy(false);}
   }
-  return {publish,publishAndOpen,hasPublishedApp,verifiedPublication,commands:{'zero.publishWeb':()=>publish(),'zero.publishAndOpenWeb':publishAndOpen,'zero.copyPublishedWebLink':()=>publishedLink(false),'zero.openPublishedWeb':()=>publishedLink(true)},disposables:[{dispose(){disposed=true;controller?.abort();clearProgress();}}]};
+  return {publish,publishAndOpen,hasPublishedApp,verifiedPublication,commands:{'zero.publishWeb':()=>publish(),'zero.publishAndOpenWeb':publishAndOpen,'zero.copyPublishedWebLink':()=>publishedLink(false),'zero.openPublishedWeb':()=>publishedLink(true),'zero.viewPublishedWeb':viewPublishedApp},disposables:[{dispose(){disposed=true;controller?.abort();clearProgress();}}]};
 }
 module.exports={createWebPublishCommands};
