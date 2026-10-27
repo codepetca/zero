@@ -1,27 +1,29 @@
-# Bundled Java — authorized source publication
+# Mac54 sealed; source release PR next — 2026-10-27
 
-Owner authorized continuation2026-10-27 in Zero Architecture: “approved. Try now.
-Continue with the Java PR, CI and merge, then publish the combined Mac0.5.54
-release.” Human turn01a17e09-176e-7311-a127-1bc438609555 verified via read_thread.
-Existing account execution works; low-usage/workflow stops waived. Do not consume
-resets/credits purchases, change accounts/settings or bypass an actual rejection.
+Owner explicitly approves JavaPR/CI/merge and combinedMac0.5.54 publication.
+Java task completed PR217 merge39e7d328, all11CI, reviewed1936dd3a exacttree.
+This chat owns codex/mac54-release, built5f5a80d4 and sealed2c7d6692; protected
+sources unchanged after actualmainmerge. UI215/footer216 included; footer is live.
 
-This chat owns source PR/CI/merge on codex/bundled-java. Architecture owns the
-single combined Mac0.5.54/build54 release in codex/mac54-release. Keep source kit
-version unchanged; no installer build/assets/feed changes in this chat.
-Integrated mainfa0d6b74: PR215 publishing feedback/Open published app/Tutorial
-docs label and PR216 footer removal are retained, along with Mac53 metadata.
-CURRENT/EVIDENCE conflicts preserved both histories; code merged cleanly.
-PR217:https://github.com/codepetca/zero/pull/217. Integration source8eb025b0
-reviewed complete/clean by java_review/4 (GPT6.1Sol/high),179focused tests and
-configuration checks pass. Final receipt-only commit follows; exact-head CI
-and merge are next. No new code changes after this integration review.
-Release smoke handoff:docs/BUNDLED-JAVA-ACCEPTANCE.md.
+LocalMac54 installer measured/stapled5999134bytes, SHA25653f2ba45064b22cb232e14cb1b1ae296c4cd81285d7e789a49ef46e5e669725a.
+AppleAccepted9bf1ee0c-f932-458b-838a-2b66cfef777a. Payload, licenses, modes,
+Maven, signatures, Gatekeeper and archive/feed Ed25519 proof pass. Seal immutable:
+dist/candidates/mac-0.5.54-2c7d6692368e/. Never rebuild/replace sealedbytes.
+Installed53→54/readiness,135sourcefiles, actual isolatedRun/Stop, terminaljava+
+javac21.0.12.1 with stalehost, Tutorialdocs→lesson0 and settings preservation pass.
+OwnedQAwindow closed; normalstudent/Codework retained. Details:MAC-CANDIDATE doc.
 
-Reuse complete source review94c2cac9 and96focused/357Mac/2238Windows+updater,
-initial1365pass/3skip. Reuse completed integration review and run exact-head CI.
-Evidence:docs/EVIDENCE.md and .verification/bundled-java/. No new public API,
-project pins, global Java/shell/ordinary Code settings or credentials changed.
-Preserve all artifacts/primary funding/student projects and productionZeroJams
-hold. Physical Windows and real editor terminal/upgrade acceptance remain gaps;
-provide precise isolated smoke handoff for the release coordinator.
+Independent Sol/high candidate review through832b3eac complete/clean;13sealed
+hashes, protectedsource, signatures, VSIX135files and publicMac53 fallback proof
+checked. Website243tests/typecheck and configuration pass.
+Next: sourcePR/finalCI/merge; publish
+one exactDMG and anonymousbyte proof; separately reviewed signed-feed/download
+promotionPRCI/merge and livebyte/signature verification. NativeMac53 remains
+public until promotion; installed maintainerapp is tested54. No separatekitrelease.
+Review/version/evidence logs:.verification/mac54/. Keep CURRENT short.
+
+Preserve old assets, Windows21/manualkit17, primaryfunding/studentprojects and
+ZeroJams hold. No globalJava/shell/ordinaryCode/account changes or recreation of
+deletedQA repos. No freshMac/school/physicalIntel/Windows/actualSparkledelivery
+claim. Human workflow/usage waiver persists; normaltools execute, no reset/credit
+purchase/account routing; respect actual provider rejection and pausedDeepSeek.
