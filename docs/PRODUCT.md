@@ -221,7 +221,7 @@ installers remain unchanged.
 The download website is a separately built part of this repository. Its landing
 page has the shared app header, **Learn Java**, **Starting from zero.**, and two
 direct download buttons: **Download for Mac Silicon** and **Download for Windows
-(unsigned)**. The Windows button offers the owner-authorized 0.5.21 installer
+(unsigned)**. The Windows button offers the owner-authorized 0.5.54 installer
 preview, labels its unsigned status and links to setup limits. Automatic Windows
 updates remain disabled; the signed installer/feed contract is separate.
 The secondary **Manual setup (ZIP)** link beside Windows offers the exact kit
