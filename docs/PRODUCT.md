@@ -719,6 +719,16 @@ open through Run options → Publish & open app; completed exports keep
 Preview export/Save ZIP/Share export actions there. Errors, warnings, required
 choices and the first-publication warning remain visible through native prompts.
 
+Local source adds a slim publishing stage bar beneath this status, mirrored on an
+open Start Page. Real build, upload, deployment, verification and browser-opening
+boundaries advance it; its moving current segment represents unknown duration,
+with no estimated time percentage. Reusing a current app or resuming a saved run
+counts only the work followed. “Checking live app” and “Opening in browser” stay
+active until verification and browser launch settle. Final success, failures,
+cancellation, required actions and the end of local polling clear the bar; a
+remote run can still be pending for a later explicit recheck. Project switches
+hide the previous project's bar. Released kits retain their bundled behavior.
+
 ## Repository and upload contract
 
 Current local desktop source uses Zero's `zero-github` provider with browser

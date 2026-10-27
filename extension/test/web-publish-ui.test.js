@@ -3,7 +3,7 @@ const test=require('node:test');const assert=require('node:assert/strict');
 const {createWebPublishCommands}=require('../src/web-publish-ui');
 function fixture(t,{resolveProject,cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)},uploadError}={}) {
   let simulation=false,busy=false,active='/student',reviewed=0,published=0,checks=0,setup=false,upgrade=false,uploaded=0,sha='a'.repeat(40);
-  const messages=[],states=[],copied=[],opened=[],authCalls=[],choices=[];
+  const progress=[],messages=[],states=[],copied=[],opened=[],authCalls=[],choices=[];
   const stored=new Map(),workspaceState={get:key=>stored.get(key),update:async(key,value)=>{if(value===undefined)stored.delete(key);else stored.set(key,JSON.parse(JSON.stringify(value)));}};
   const session={id:'native',account:{id:'1',label:'student'},accessToken:'TEST',scopes:[]};
   const vscode={workspace:{isTrusted:true},authentication:{getSession:async(...args)=>{authCalls.push(args);return session;},onDidChangeSessions:()=>({dispose(){}})},window:{showInformationMessage:async(...args)=>{messages.push(args);return choices.shift();}},env:{clipboard:{writeText:async url=>copied.push(url)},openExternal:async uri=>{opened.push(uri);return true;}},Uri:{parse:url=>url}};
@@ -20,9 +20,9 @@ function fixture(t,{resolveProject,cancelUpload=false,uploadResult={uploaded:tru
     if(reviewed.sha!==sha)throw Error('The app changed while checking its published version.');
     const live=await publisher.check();if(live.status==='live')onCurrent?.(live);return live;
   };
-  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),assertProjectNow:expected=>{if(active!==expected)throw Error('The project changed.');},authentication:auth,repositories,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
+  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),assertProjectNow:expected=>{if(active!==expected)throw Error('The project changed.');},authentication:auth,repositories,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),setProgress:value=>progress.push(value),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
-  return {api,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set upgrade(v){upgrade=v;},set active(v){active=v;},set sha(v){sha=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
+  return {api,progress,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set upgrade(v){upgrade=v;},set active(v){active=v;},set sha(v){sha=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
 }
 test('simulation publish never saves, authenticates, writes setup or calls publisher',async t=>{
   const h=fixture(t);h.simulation=true;const result=await h.api.publish();assert.equal(result.status,'simulated');assert.deepEqual(h.calls,[]);assert.deepEqual(h.authCalls,[]);assert.equal(h.busy,false);
@@ -337,4 +337,55 @@ test('dirty buffers at the final verified dispatch stop the browser',async t=>{
   const h=fixture(t);h.choices.push('Publish app');await h.api.publish();
   const verify=h.publisher.verifyCurrent;h.publisher.verifyCurrent=(review,saved,options)=>verify(review,saved,{...options,onCurrent:live=>{h.vscode.workspace.textDocuments=[{isDirty:true}];options.onCurrent(live);}});
   await assert.rejects(h.api.publishAndOpen(),/app changed/);assert.deepEqual(h.opened,[]);assert.equal(h.busy,false);
+});
+
+function deferred() {let resolve;const promise=new Promise(yes=>{resolve=yes;});return {promise,resolve};}
+test('publishing stages remain active through final verification and browser promise without early success',async t=>{
+  const h=fixture(t),opened=deferred(),dispatch=deferred();h.choices.push('Publish app');
+  const publish=h.publisher.publish;h.publisher.publish=async(review,options)=>{for(const name of ['building','uploading','deploying'])options.onStage(name);return publish(review,options);};
+  h.vscode.env.openExternal=()=>{dispatch.resolve();return opened.promise;};
+  const operation=h.api.publishAndOpen();await dispatch.promise;
+  assert.equal(h.busy,true);assert.equal(h.progress.at(-1).stages[h.progress.at(-1).index],'opening');
+  assert.match(h.states.at(-1),/Opening in browser/);assert.ok(!h.states.includes('App published'));assert.ok(!h.states.includes('App opened'));
+  const actual=h.progress.filter(Boolean).map(value=>value.stages[value.index]);
+  for(const name of ['building','uploading','deploying','verifying','opening'])assert.ok(actual.includes(name),name);
+  opened.resolve(true);await operation;assert.equal(h.progress.at(-1),undefined);assert.equal(h.states.at(-1),'App opened');
+});
+test('current-page reuse and resumed deployment only count the stages actually followed',async t=>{
+  const h=fixture(t);h.choices.push('Publish app');await h.api.publish();h.progress.length=0;
+  await h.api.publishAndOpen();
+  assert.ok(h.progress.filter(Boolean).every(value=>!value.stages.includes('building')&&!value.stages.includes('uploading')));
+  assert.deepEqual(h.progress.filter(Boolean).at(-1).stages,['verifying','opening']);
+  h.progress.length=0;h.stored.set('zero.webPublish.pending',{root:'/student',account:'1',value:{runId:42}});
+  await h.api.publishAndOpen();assert.ok(h.progress.some(value=>value?.stages.join(',')==='deploying,verifying,opening'));
+  assert.ok(h.progress.filter(Boolean).every(value=>!value.stages.includes('building')));assert.equal(h.progress.at(-1),undefined);
+});
+test('all publishing exits clear active progress, including timeout, browser rejection, cancellation and source/build/access failure',async t=>{
+  for(const mode of ['pending','browser','consent','simulation','build','access','source']){
+    const h=fixture(t);if(mode!=='consent')h.choices.push('Publish app');
+    if(mode==='pending')h.publisher.check=async value=>({status:'pending',resume:value,message:'Waiting for GitHub'});
+    if(mode==='browser')h.vscode.env.openExternal=async()=>{throw Error('Browser refused');};
+    if(mode==='simulation')h.simulation=true;
+    if(mode==='build')h.publisher.publish=async(_review,{onStage})=>{onStage('building');throw Error('Build failed');};
+    if(mode==='access')h.publisher.review=async()=>{throw Error('Access removed');};
+    if(mode==='source'){requireUploadOnce(h);h.vscode.workspace.saveAll=async()=>false;h.vscode.workspace.textDocuments=[{isDirty:true}];}
+    if(['browser','build','access','source'].includes(mode))await assert.rejects(h.api.publishAndOpen());else await h.api.publishAndOpen();
+    assert.equal(h.progress.at(-1),undefined,mode);assert.equal(h.busy,false,mode);
+    if(mode==='pending')assert.match(h.states.at(-1),/Choose Publish & open app again/);
+  }
+});
+test('project switch or disposal during browser opening clears progress and cannot report old-project success',async t=>{
+  for(const mode of ['project','dispose']){
+    const h=fixture(t),opened=deferred(),dispatch=deferred();h.choices.push('Publish app');
+    h.vscode.env.openExternal=()=>{dispatch.resolve();return opened.promise;};
+    const operation=h.api.publishAndOpen();await dispatch.promise;
+    if(mode==='project')h.active='/other';else h.api.disposables[0].dispose();
+    opened.resolve(true);await assert.rejects(operation,/project changed|cancelled/);
+    assert.equal(h.progress.at(-1),undefined);assert.ok(!h.states.includes('App opened'));
+  }
+});
+test('action-required pauses progress before opening its recovery prompt',async t=>{
+  const h=fixture(t);h.publisher.review=async()=>({status:'action-required',message:'Enable Pages',action:{message:'Open GitHub',url:'https://github.com/student/game'}});
+  h.vscode.window.showInformationMessage=async()=>{assert.equal(h.progress.at(-1),undefined);};
+  await h.api.publishAndOpen();assert.equal(h.progress.at(-1),undefined);
 });

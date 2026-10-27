@@ -1,5 +1,58 @@
 # Delivery evidence index
 
+## Publishing stage progress — 2026-10-27, local source only
+
+Owner requested a slim linear indicator because publishing text appeared stalled
+and “App published” appeared before final verification/browser opening finished.
+Branchcodex/tutorial-docs-label, implementation based on6b5cfcc6; earlier one-line
+Tutorial docs label and its independent clean review are preserved. No merge with
+released Mac53 metadata, version changes or template-evidence refresh was needed.
+
+Publisher callbacks identify actual local build, upload/deployment and live-page
+checking boundaries. The UI counts applicable stages, keeps the current segment
+moving without estimated percentages, and retains existing useful status text.
+Current-app reuse skips build/upload; saved deployments start with checking that
+run. Final verification and the browser-open promise keep progress active; final
+success clears it before reporting. Error/cancel/simulation/action-required/end
+of local polling/disposal clear it, and both renderers scope it to the project.
+The synchronous final browser-dispatch guards and existing locks remain intact.
+Repeated status text updates preserve bar DOM so compiler output cannot restart
+its animation. Shared native-theme CSS includes reduced-motion and contrast rules.
+
+87focused UI/Start Page/sidebar/playground tests and11extension/verification/upload-
+auth integration tests pass. Coverage includes pending browser promise/no early
+success, reuse/resumed tracking, setup+commit, terminal cleanup, project drift,
+disposal, actual persistent renderer updates, accessible stage counts and scoped
+progress. The combined137-test publisher/UI fixture run passes in227.4seconds, including
+real local Git fixtures and measured missing-Pages/build-failure stage callbacks.
+Final UI ordering/fixture refinements were rechecked with the87-test focused suite;
+the publisher callback source was unchanged after its combined run began.
+`npm run check` passes configuration, syntax, command contracts and local
+documentation links; `git diff --check` passes. Tests use in-memory services or
+temporary local Git repositories; no GitHub test
+repository was created or recreated. No live API request, account/access change,
+push, PR, merge, deploy, installer, release or normal-user editor action occurred.
+
+Zero Dev UI-only watcher: `ZERO_DESIGN_PORT=3267 npm run dev:ui`; isolated preview
+`http://127.0.0.1:3267/components?theme=dark&state=publish-building`. Other states:
+`publish-uploading`, `publish-deploying`, `publish-verifying`, `publish-opening`,
+`publish-error`, `publish-stopped`; light/dark/hc use actual source renderers/CSS.
+Sidebar `&cycle=1` replays a labeled timed simulation captured by the real command
+coordinator with an in-memory publisher/browser. It performs no live action.
+Coordinator observed the actual local browser renderer: dark building was minimal
+and clear; corrected light opening reads “Opening in browser…” while active;
+high-contrast deploying is visible; error has no progress indicator. This is
+local browser proof, separate from native installation/live upload acceptance.
+Coordinator owns the independent source-review receipt. Physical native editor,
+Windows/Linux, real browser-launch timing and live GitHub publishing are untested
+for this delta; existing source authority guards are covered by local fixtures.
+
+Implementation worker used inherited configured model/reasoning (effective
+configuration/tokens unknown), no nested delegation. Reused coordinator's recent
+healthy227GB storage/10%weekly-remaining readings; account usage is not task cost.
+DeepSeek remains paused. Human task instruction “Disregards budget caps. Complete
+the goal” preserves the workflow/usage-stop waiver, not publication authority.
+
 ## Zero Dev Publish prerequisite: native JDK17 / browser JDK21 — 2026-10-26
 
 Owner reported Publish app failure in the Zero Dev window opened on my-study.

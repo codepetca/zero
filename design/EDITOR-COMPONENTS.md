@@ -24,6 +24,16 @@ prototype with the relevant states.
 | Menu trigger | `zero-menu-trigger` | `files-menu` | Existing chevron rotates when expanded |
 | Menu panel | `zero-menu` | `files-dropdown` | Shared border, surface, shadow, 4px inset, 5px/8px item padding and 28px minimum item height |
 
+Publishing progress reuses `extension/src/publish-progress.js` and
+`extension/media/controls.css` in the sidebar and Start Page. One slim stage bar
+sits beneath existing status text; accessibility exposes stage counts, while only
+the current segment animates. Status updates preserve that segment's DOM. Reduced
+motion leaves a static partial current segment; native high-contrast/forced colors
+retain a visible outline. `/components?state=publish-building` and the other
+`publish-` states use snapshots from the real command coordinator with an entirely
+in-memory publisher/browser. `/sidebar?state=publish-building&cycle=1` plays a
+clearly labeled timed fixture cycle; those timings are not production estimates.
+
 Screen layout stays local: Start tutorial's whole split control and Project are
 180px wide, filling narrow Start Page views. The sidebar follows its panel width.
 Keep app commands, allowed actions and authorization checks in each host. Sharing

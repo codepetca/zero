@@ -119,8 +119,8 @@ test('Start Page fixture renders the production panel and its actual phase snaps
     assert.match(html, /aria-controls="project-menu"/);
     assert.match(html, /script-src 'nonce-/);
     assert.match(html, /connect-src 'none'/);
-    assert.equal(snapshot.state.phase, state === 'busy' ? 'ready' : state);
-    assert.equal(snapshot.state.busy, state === 'busy');
+    assert.equal(snapshot.state.phase, state === 'busy' || state.startsWith('publish-') ? 'ready' : state);
+    assert.equal(snapshot.state.busy, state === 'busy' || Boolean(snapshot.state.publishProgress));
     assert.equal(snapshot.state.accountId, state === 'signed-out' ? undefined : '123456');
     assert.equal(snapshot.state.recent.length, state === 'signed-out' ? 0 : 2);
     const fixture = await startPageView('hc', state);
@@ -185,4 +185,17 @@ test('sidebar gallery phases retain access gating and busy disables existing con
   assert.match(busy, /id="run-menu-button"[^>]*disabled/);
   assert.match(busy, /id="files-menu-button"[^>]*disabled/);
   assert.match(busy, /data-command="zero.toggleApp"[^>]*disabled/);
+});
+
+test('publishing fixtures exercise real coordinator stages and root-scoped renderer with reduced-motion and contrast rules',async()=>{
+  const {publishingSnapshots}=await import('./publishing-source.mjs');
+  for(const stage of ['building','uploading','deploying','verifying','opening']){
+    const snapshot=publishingSnapshots['publish-'+stage],html=sidebarSource('publish-'+stage,{connected:true});
+    assert.equal(snapshot.publishProgress.stages[snapshot.publishProgress.index],stage);
+    assert.match(html,/role="progressbar"/);assert.match(html,/aria-valuetext="Stage \d of \d:/);
+    assert.match(html,/prefers-reduced-motion:reduce/);assert.match(html,/forced-colors:active/);
+    assert.equal((html.match(/class="publish-segment active"/g)||[]).length,1);
+  }
+  for(const state of ['publish-error','publish-stopped'])assert.doesNotMatch(sidebarSource(state),/role="progressbar"/);
+  assert.doesNotMatch(sidebarSource('publish-building',{connected:true,projectRoot:'/other/project'}),/role="progressbar"/);
 });

@@ -19,3 +19,11 @@ test('focusable unavailable run control blocks activation until shutdown finishe
   button.setAttribute('aria-disabled','false');h.clickCommand(button);
   assert.equal(h.sent.filter(message=>message.command==='zero.toggleApp').length,1);
 });
+
+test('publishing bar updates and clears in the persistent sidebar without moving focus',()=>{
+  const h=sidebarDOM();h.nodes['run-status'].focus();
+  h.emit({type:'sidebar.update',status:'Building app',publishingProgress:'<div role="progressbar">Building</div>'});
+  assert.match(h.nodes['publishing-progress'].innerHTML,/progressbar/);
+  h.emit({type:'sidebar.update',status:'Failed',failed:true});
+  assert.equal(h.nodes['publishing-progress'].innerHTML,'');assert.equal(h.document.activeElement,h.nodes['run-status']);
+});

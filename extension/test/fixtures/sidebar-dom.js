@@ -20,7 +20,7 @@ function sidebarDOM() {
     querySelector(selector){return this.querySelectorAll(selector)[0]||null;}
     addEventListener(type,listener){this.listeners[type]=listener;} focus(){document.activeElement=this;}
   }
-  const nodes=Object.fromEntries(['controls','file-actions','run-status','recovery','files-menu-button','files-menu','run-menu-button','run-menu'].map(id=>[id,new Element()]));
+  const nodes=Object.fromEntries(['controls','file-actions','run-status','publishing-progress','recovery','files-menu-button','files-menu','run-menu-button','run-menu'].map(id=>[id,new Element()]));
   document={body:new Element(),getElementById:id=>nodes[id],createElement:()=>new Element(),addEventListener(type,listener){documentListeners[type]=listener;}};
   document.activeElement=document.body;document.body.append(...Object.values(nodes));
   for(const [id,node]of Object.entries(nodes))node.id=id;

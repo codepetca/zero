@@ -2,6 +2,7 @@
 const crypto = require('node:crypto');
 const {controlsStyles} = require('./ui-controls');
 const {icon} = require('./sidebar-icons');
+const {publishProgressDetails,updatePublishProgress} = require('./publish-progress');
 
 const COMMANDS = Object.freeze({
   tutorial: 'zero.startProject',
@@ -38,7 +39,8 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
       phase, accountId,
       accountLabel: accountId && typeof value.accountLabel === 'string' ? value.accountLabel : '',
       busy: Boolean(value.busy || inFlight),
-      status: typeof value.status === 'string' ? value.status : ''
+      status: typeof value.status === 'string' ? value.status : '',
+      publishProgress:value.publishProgress
     };
   }
 
@@ -230,9 +232,11 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
 <div class="actions"><div class="project-actions" id="project-actions"><button class="secondary zero-menu-trigger" id="project-button" aria-haspopup="menu" aria-expanded="false" aria-controls="project-menu" disabled>Project ${icon('ChevronDown')}</button><div class="zero-menu" id="project-menu" role="menu" aria-labelledby="project-button" hidden><button role="menuitem" tabindex="-1" data-action="new" disabled>New</button><button role="menuitem" tabindex="-1" data-action="clone" disabled>Clone</button><button role="menuitem" tabindex="-1" data-action="local" disabled>Open</button></div></div></div>
 <section id="github-section" aria-label="GitHub"><h2 id="github-heading">GitHub<span id="account-group" hidden> <span class="muted" aria-hidden="true">·</span> <span id="account" class="muted"></span></span></h2><p id="guidance">Checking GitHub access…</p><button class="primary" data-action="setup" hidden>Install Zero for GitHub</button></section>
 <section id="recent-section" aria-labelledby="recent-heading" hidden><h2 id="recent-heading">Recent projects</h2><p id="recent-status" class="muted"></p><ul id="recent-list"></ul><button id="retry-recent" hidden>Try again</button></section>
-<p id="status" role="status" aria-live="polite"></p><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button></div>
+<p id="status" role="status" aria-live="polite"></p><div id="publishing-progress"></div><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button></div>
 </main><script nonce="${nonce}">
 (() => {
+  const publishProgressDetails = ${publishProgressDetails.toString()};
+  const updatePublishProgress = ${updatePublishProgress.toString()};
   const vscode = acquireVsCodeApi();
   let token, revision = -1, recentKey;
   const byId = id => document.getElementById(id);
@@ -306,6 +310,7 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
     byId('guidance').hidden = ready || state.phase === 'signed-out';
     byId('guidance').textContent = state.phase === 'install' ? 'Give Zero access to your selected repositories on GitHub, then return here.' : state.phase === 'checking' ? 'Checking GitHub access…' : 'GitHub access could not be checked. Try again, or open a local project.';
     byId('status').textContent = state.status;
+    updatePublishProgress(byId('publishing-progress'),state.publishProgress);
     byId('error-region').hidden = !state.error;
     byId('error').textContent = state.error;
     byId('retry').hidden = !state.canRetry;

@@ -94,6 +94,8 @@ function sidebarClient() {
         }
       }
       document.getElementById('run-status').textContent = message.status;
+      const publishingProgress=document.getElementById('publishing-progress'),progressMarkup=message.publishingProgress || '';
+      if(publishingProgress.dataset.content!==progressMarkup){publishingProgress.innerHTML=progressMarkup;publishingProgress.dataset.content=progressMarkup;}
       const recovery = document.getElementById('recovery');
       recovery.hidden = !message.failed;
       if (!message.failed) recovery.replaceChildren();
