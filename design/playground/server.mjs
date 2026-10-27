@@ -34,7 +34,7 @@ export async function handle(request, response) {
     else if (url.pathname === '/components') body = componentsPage(editorTheme, url.searchParams.get('state'));
     else if (url.pathname === '/start-page') body = await startPageView(editorTheme, url.searchParams.get('state'));
     else if (url.pathname === '/web') body = webView(theme, downloads, ["home", "learn", "downloads"].includes(url.searchParams.get("screen")) ? url.searchParams.get("screen") : "learn");
-    else if (url.pathname === '/sidebar') body = sidebarView(editorTheme, ['empty','error','building','running','stopping', ...componentStates].includes(url.searchParams.get('state')) ? url.searchParams.get('state') : 'ready', url.searchParams.get('host') !== 'none', url.searchParams.get('connected') === '1');
+    else if (url.pathname === '/sidebar') body = sidebarView(editorTheme, ['empty','error','building','running','stopping', ...componentStates].includes(url.searchParams.get('state')) ? url.searchParams.get('state') : 'ready', url.searchParams.get('host') !== 'none', url.searchParams.get('connected') === '1',url.searchParams.get('cycle') === '1');
     else if (url.pathname === '/tokens-web.css') { type = 'text/css'; body = webThemeCss(theme); }
     else if (url.pathname === '/tokens-vscode.css') { type = 'text/css'; body = vscodeThemeCss(); }
     else if (url.pathname === '/host-fixture.css') {

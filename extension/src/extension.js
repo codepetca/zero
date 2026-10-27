@@ -4,6 +4,7 @@ const {minimalPrompts} = require('./prompts');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const {publishProgressHtml} = require('./publish-progress');
 const core = require('./core');
 const {nativeBuildIdentity,createNativeRuntimeExecution} = require('./native-runtime-task');
 const {createNativeCompilerDiagnostics} = require('./native-compiler-diagnostics');
@@ -94,7 +95,7 @@ function activate(context, services = {}) {
   let exportingWeb = false;
   let browserBusy = false;
   let browserActive = false;
-  let publishingWeb = false;
+  let publishingWeb = false, publishProgress;
   let exportReadyRoot;
   let branch = '';
   let branchDetached = false;
@@ -261,7 +262,7 @@ function activate(context, services = {}) {
   context.subscriptions.push(projectFolders,githubProjects,projectPicker);
   startPage=createStartPage(vscode,{
     onDidChangeOpen:refreshSidebarShortcut,
-    getState:()=>({phase:githubReady()?'ready':auth.signedIn?githubReadiness.phase:'signed-out',accountId:auth.accountId,accountLabel:auth.accountLabel,busy:disposed||isBusy(),status:state}),
+    getState:()=>({phase:githubReady()?'ready':auth.signedIn?githubReadiness.phase:'signed-out',accountId:auth.accountId,accountLabel:auth.accountLabel,busy:disposed||isBusy(),status:state,publishProgress:publishProgress?.root===projectRoot?publishProgress:undefined}),
     listRecent:accountId=>recentProjects.list(accountId),
     openRecent:async(item,accountId)=>{
       if(disposed||isBusy()||auth.accountId!==accountId)return;
@@ -1119,7 +1120,7 @@ function activate(context, services = {}) {
     if (!isBusy()) return actions['zero.runApp']();
   };
   context.subscriptions.push(...browserRun.disposables);
-  const webPublish=createWebPublishCommands(vscode,{project,assertProjectNow:assertGitProjectNow,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,localBuild:buildWithSavedProject,validateExport:validateWithSavedProject,assertBuildInputsAtCommit:savedBuilder.assertBuildInputsAtCommit,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
+  const webPublish=createWebPublishCommands(vscode,{project,assertProjectNow:assertGitProjectNow,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},setProgress:value=>{publishProgress=value;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,localBuild:buildWithSavedProject,validateExport:validateWithSavedProject,assertBuildInputsAtCommit:savedBuilder.assertBuildInputsAtCommit,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
   Object.assign(actions,webPublish.commands);
   context.subscriptions.push(...webPublish.disposables);
   const sharingHandoff=async(root,action)=>{
@@ -1194,13 +1195,15 @@ function activate(context, services = {}) {
     const runDisabled = stopPromise ? 'aria-disabled="true"' : !activeRun && (isBusy()||updateRecovery||updateRecoveryError) ? 'disabled' : '';
     const publishMenu = !setupCheck && ready && auth.signedIn && connected ? `<button id="run-menu-button" class="run-menu-button" aria-label="Run options" title="Run options" aria-haspopup="menu" aria-expanded="false" aria-controls="run-menu" ${isBusy() || activeRun ? 'disabled' : ''}>${icon('ChevronDown')}</button><div id="run-menu" class="files-dropdown run-dropdown" role="menu" aria-labelledby="run-menu-button" hidden><button role="menuitem" tabindex="-1" data-command="zero.publishAndOpenWeb" ${isBusy() || activeRun ? 'disabled' : ''}>Publish &amp; open app</button></div>` : '';
     const runControl = `<div class="run-split"><button class="${ready ? 'run' : 'secondary'}" data-command="zero.toggleApp" ${runDisabled}>${icon(activeRun || stopPromise ? 'Square' : 'Play')}${runLabel}</button>${publishMenu}</div>`;
-    const controls = !projectRoot ? `<button class="link" data-command="zero.startPage" ${disabled}>Open Start Page</button>` : `${setupCheck ? '<p class="muted">Installation test · Hello World</p>' : ''}${!ready ? `<button class="link" data-command="zero.startPage" ${disabled}>GitHub setup</button>` : ''}<div class="main-controls"><div class="run-controls">${runControl}${browserAction}</div>${exportActions}${browserCheckStatus}</div>${showRepository ? `<section class="repository">${githubPanel}</section>` : ''}${studentView ? '' : `<section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`}`;
+    const publishedAppLink=!setupCheck && ready && auth.signedIn && connected && webPublish.hasPublishedApp({root:projectRoot,repository,account:auth.accountId}) ? `<button class="link published-app-link" data-command="zero.openPublishedWeb" ${disabled}>Open published app ${icon('ExternalLink')}</button>` : '';
+    const controls = !projectRoot ? `<button class="link" data-command="zero.startPage" ${disabled}>Open Start Page</button>` : `${setupCheck ? '<p class="muted">Installation test · Hello World</p>' : ''}${!ready ? `<button class="link" data-command="zero.startPage" ${disabled}>GitHub setup</button>` : ''}<div class="main-controls"><div class="run-controls">${runControl}${browserAction}</div>${publishedAppLink}${exportActions}${browserCheckStatus}</div>${showRepository ? `<section class="repository">${githubPanel}</section>` : ''}${studentView ? '' : `<section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`}`;
+    const publishingProgress=publishProgressHtml(publishProgress?.root===projectRoot?publishProgress:undefined);
     // Keep the controls document alive across progress updates; VS Code owns the file tree.
     if (renderedWebviews.has(webview) && webview.postMessage) {
-      void webview.postMessage({type:'sidebar.update',controls,fileActions,status:state,failed:buildFailed}); return;
+      void webview.postMessage({type:'sidebar.update',controls,fileActions,status:state,failed:buildFailed,publishingProgress}); return;
     }
     renderedWebviews.add(webview);
-    webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">${sidebarStyles()}</style></head><body><div id="controls">${controls}</div><div class="feedback"><p id="run-status" class="muted status" role="status" aria-live="polite">${escape(state)}</p><div id="recovery" ${buildFailed ? '' : 'hidden'}>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button><button class="link" data-command="zero.showOutput">Show Output</button>' : ''}</div></div><div id="file-actions" class="file-actions">${fileActions}</div><script nonce="${nonce}">${sidebarScript()}</script></body></html>`;
+    webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">${sidebarStyles()}</style></head><body><div id="controls">${controls}</div><div class="feedback"><p id="run-status" class="muted status" role="status" aria-live="polite">${escape(state)}</p><div id="publishing-progress">${publishingProgress}</div><div id="recovery" ${buildFailed ? '' : 'hidden'}>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button><button class="link" data-command="zero.showOutput">Show Output</button>' : ''}</div></div><div id="file-actions" class="file-actions">${fileActions}</div><script nonce="${nonce}">${sidebarScript()}</script></body></html>`;
   }
   const controlsProvider={resolveWebviewView(candidate) {
     controlViews.add(candidate); candidate.webview.options = {enableScripts:true, localResourceRoots:[]};

@@ -9,6 +9,11 @@ window.acquireVsCodeApi = () => ({
   getState:()=>fixtureState,setState:value=>{fixtureState=value;},
   postMessage: message => {
     if (message.type === 'sidebar.ready') return;
+    if(message.command==='zero.openPublishedWeb' && window.zeroPublishedLinkFixture){
+      const {frames,proof}=window.zeroPublishedLinkFixture;
+      frames.forEach((data,index)=>setTimeout(()=>window.dispatchEvent(new MessageEvent('message',{data})),index*800));
+      feedback(`Opened previous published version with newer local edits; ${proof.builds} builds, ${proof.uploads} uploads, ${proof.deploys} deployments (in-memory simulation)`);return;
+    }
     feedback(message.command === 'zero.showProblems' ? 'Show Problems would focus Main.java, line 8: missing semicolon' : `${message.command} selected`);
   }
 });

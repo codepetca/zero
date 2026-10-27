@@ -1,30 +1,28 @@
-# Website function bundle publication — 2026-10-27
+# Publishing feedback source merge — 2026-10-27
 
-Owner authorized PR/merge/deploy and hosted storage verification, keeping ZeroJams
-hidden. PR213 is synchronized with main9b030d24 (PR212 tutorial repair and PR214
-Mac53 promotion); unfinished pilotPR202 is excluded. Release/feed metadata is
-separated from learner docs/source. Five route traces omit unnecessary build/UI,
-test and duplicate static copies while retaining runtime libraries/templates.
-Metadata/feed bytes and learner content match the baseline for the same release.
-New trace/runtime audits run in CI; do not skip real merge gates.
+Owner authorized source PR, CI and merge for Tutorial docs menu label, linear
+publishing stage feedback through browser opening, and Open published app below
+Run. Native installers, release assets and separate footer work remain separate.
+Branch codex/tutorial-docs-label integrates main9f19b9b8 (PR213 website function
+bundles and PR214 Mac53 promotion). Preserve their exact release/feed metadata,
+trace/runtime audits and production ZeroJams hold.
 
-Local original-main trace union12.66MB→about7.4MB (~41%); not hosted billing.
-Website243tests/build/typecheck and traced-only runtime checks passed before the
-latest release-only base sync; rerun relevant metadata/website checks on that sync.
-Compiled production Jam endpoints remain404 even after changing process env;
-Game/App source generators separately verify staged canonical assets.
-Vercel before: download/template functions3.18MB. Reviewed preview29803919:
-874kB each (~73% smaller); final production measurements remain pending.
-Usage209.53MB deployments/515.12MB functions/14.55MB Blob may lag and include
-retained deployments. Do not infer billed savings from local traces or sum shared
-function rows. Receipts/PR updates: .verification/function-bundles/ and PR213.
+Runtime changes reviewed independently throughf471bf4f (Sol/medium, clean).
+Progress UI87/combined137/integration11 and link UI92/integration54 tests pass;
+configuration, tutorial readiness and actual-renderer light/dark/high-contrast
+browser previews pass. Historical link verifies the saved publication without
+saving/building/uploading newer edits. Extra identity validation may add reads.
+No native-installed/live publication acceptance is claimed for these UI changes.
+Merge resolves only CURRENT/EVIDENCE; preserve both histories. Integration review throughfc4dfe7c complete/clean; runtime/design match prior
+review, release/website/workflows match main. Merged-head98UI/preview checks,
+configuration/doc checks and3template readiness records pass. SourcePR215 open;
+next: final GitHub CI and owner-authorized merge.
+Evidence logs: .verification/publish-progress/ and .verification/published-app-link/.
+Zero Dev UI-only preview127.0.0.1:3267; normal installed Zero0.5.53 unchanged.
 
-Mac53 is public through PR214/main9b030d24: preserve exact published installer,
-signed feed, immutable assets and tutorial metadata. This bundle PR does not
-publish native assets or reverse that promotion. Details:
-docs/MAC-CANDIDATE-0.5.53.md and docs/EVIDENCE.md. Native Windows21/manualkit17,
-older Mac assets, primary funding work, student projects/profiles and Dev watcher
-remain. Separate local Tutorial-label/footer work is outside this PR. Normal
-Greeting project was edited by the owner; preserve it. Keep active pilot/recovery
-copies; no credential, protection, invitation or Jam-cap change. Safari/device/zoom
-and sponsor/merch work stay paused; no new task or automation.
+Do not recreate owner-deleted test repositories. Preserve student projects,
+primary funding work, actor checkout ignored release/template evidence and pilot
+copies. Windows21/manualkit17 and older Mac assets unchanged. Account/credential,
+protection and ZeroJams activation are excluded. Human task instruction
+“Disregards budget caps. Complete the goal” waives workflow/usage stops; provider
+limits, paused DeepSeek and publication gates remain. See docs/EVIDENCE.md.
