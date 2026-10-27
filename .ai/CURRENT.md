@@ -16,12 +16,14 @@ expected. Independent Sol/medium review tutorial_gate_review complete/clean over
 Effective model/time/tokens unavailable. Details: docs/EVIDENCE.md; ignored
 .verification/tutorial-readiness/ includes exact drafts, public checkouts/logs.
 
-Next: owner authorization for3template source PRs/CI/merges and verified publication
+Owner authorized2026-10-27:3template source PRs/CI/merges and verified publication
 records, Zero source PR/CI/merge, next unused signed Mac release and download/feed
-promotion. Positive packaging/installed real Start tutorial/create/clone/Run for
+promotion. Version0.5.53/build53 verified unused. Templates worker owns only3ignored
+clones; coordinator owns Zero source/build/QA. Template/menu placement unchanged. Positive packaging/installed real Start tutorial/create/clone/Run for
 all3 templates must pass before promotion. Do not bypass readiness or modify an
 installed signed payload. Existing projects/Clone/Run remain available.
-No publishing/push/merge/release performed for this repair. Footer removal is
+Current phase: publishing exact template drafts through reviewed PRs; preparing
+Mac53 source. Old release assets remain immutable. No Mac53 publication yet. Footer removal is
 separate committed branch codex/remove-footer-agreement ea35e266, not published.
 Preserve primary funding work, profiles/student projects, existing release assets,
 Windows21/manualkit17 and production ZeroJams hold. No fresh-device/school-network/
