@@ -11503,3 +11503,13 @@ Ignored .verification/tutorial-readiness/ retains exact local drafts, read-only
 public checkouts and logs. Source push/PR/CI/merge,3template publication/verified
 records, positive installed first-tutorial acceptance and a corrected signed Mac
 release/promotion require owner authorization. No such external changes performed.
+
+
+## Tutorial docs menu label — 2026-10-27
+
+Owner requested local-only dropdown wording Tutorials → Tutorial docs. One visible
+menuitem text changed in start-page.js; action/attributes/reader title retained.
+15existingStartPagetests and diffcheck pass. Independent footer_review turn,
+requested Luna/low, basebe449afd plus one-line working diff: complete/clean,
+1launch/1wave/0fixes; effectiveconfiguration/time/tokens unavailable. No push,
+merge, publication or release; separate from sealedMac53/SourcePR212.
