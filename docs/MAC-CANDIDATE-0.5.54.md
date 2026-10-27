@@ -28,8 +28,10 @@ Authenticated draft and anonymous public downloads equal the exact sealed DMG;
 archive signature verifies. GitHub confirms the exact preparation tag target.
 Promotion copies the exact signed build54 XML, changes only feedJSON publication
 status, and publishes installer/snapshot metadata using the verified actual URL.
-Current promotion independent review/CI/merge and deployed download/feed-byte
-verification remain required; publicMac53 selectors stay until that deployment.
+Promotion independent Sol/high review is complete/clean throughe93c029e; current
+website243tests/typecheck and configuration checks pass. Final promotionPRCI/merge
+and deployed download/feed-byte verification remain; publicMac53 selectors stay
+until that deployment.
 
 Same-Mac installed53→54 preparation reached Opening Zero and final native
 readiness reports ready=1, javaHomeBlocked=0. Installed bundle bytes/modes/links

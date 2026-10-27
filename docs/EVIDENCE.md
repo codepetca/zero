@@ -1,5 +1,19 @@
 # Delivery evidence index
 
+## Mac54 promotion review and local checks — 2026-10-27
+
+mac54_candidate_review targetedturn, requestedGPT-6.1Sol/high: complete/clean,
+0findings, all7files6e2061b5→e93c029e946e37264202a2513c21565bf9282f5a plus
+production selectors/feed/source validators. Independently verified publiconeDMG,
+actualpreparationtag, anonymousbytes equal seal, archive/feedEd25519, installer/
+snapshot publication+actualURL only, XMLexactseal and feedJSONstatus-only vsseal.
+Production selectors chooseMac54/build54; source/kit/key/build/Windows21/manual17/
+sharing unchanged; priornative/kit assets remain with recorded hashes. Reused
+candidate/native coverage. One targetedwave/0fixbatches; effectiveconfig/time/
+tokens unavailable. Localwebsite243tests/typecheck and configuration checks pass.
+Only receipt/completion docs follow; no metadata/runtime delta. FinalPRCI/merge
+and actualdeployed Mac54 anchor/feed-byte verification remain required.
+
 ## Mac54 native publication and promotion preparation — 2026-10-27
 
 SourcePR218 merged6e2061b58bf7965e25682ad1c89e862dee3bba85, reviewedhead7e01c7bb,
