@@ -35,8 +35,10 @@ batched correction preserves synchronous mutation dispatch and adds bounded
 host-only input discovery for no-result proofs; supplied-result validation stays
 strict. Production saved-builder/local-library/deleted-output and delayed-auth
 source/origin tests5 pass; adapter/library tests33 pass, including ordinary-file
-and size restrictions. Configuration passes. Targeted review follows; effective
-model, token usage and reviewer elapsed are unknown. No live GitHub publication,
+and size restrictions. Configuration passes. Independent Sol/high targeted review of0ea5d042→022ee2aa
+completed clean and covered both fixes and their immediate interactions, reusing
+unchanged initial review coverage. Ledger:2initial reviewers,1targeted follow-up,
+1correction batch. Effective model, token usage and reviewer elapsed are unknown. No live GitHub publication,
 native installed-app or physical Windows acceptance is claimed for this change.
 
 # Delivery evidence index
