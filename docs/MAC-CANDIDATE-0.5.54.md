@@ -43,7 +43,9 @@ live app publication/historical-link retrieval are not claimed by this smoke.
 Version staging independently reviewed clean (Luna/medium). Local release
 contracts11passed/1explicit fixture skip; current configuration checks and3template
 readiness records passed. Earlier UI/Java reviews and their exact-head CI are
-reused for unchanged runtime source. Independent candidate review and this source
+reused for unchanged runtime source. Independent Sol/high candidate review is complete/clean through832b3eac; all13
+sealed hashes, source equivalence, signatures and public fallback selection
+checked. Website243tests/typecheck pass. This source
 PR's final CI/merge remain required before immutable DMG publication and separate
 reviewed download/feed promotion. Evidence:ignored `.verification/mac54/`.
 Preserve Mac53/older assets, Windows21/manualkit17, student projects and ZeroJams hold.

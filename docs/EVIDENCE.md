@@ -1,5 +1,21 @@
 # Delivery evidence index
 
+## Mac54 independent candidate review — 2026-10-27
+
+mac54_candidate_review, requestedGPT-6.1Sol/high: complete/clean,0findings.
+Full8filediff39e7d328→832b3eacc43fbdfbff5a4d8bce40d33caf8afa9a and immediate
+release/download/feed/provenance dependencies inspected. Independently checked
+all13sealed hashes/fourartifact records, protectedsource equivalence, current/
+sealed metadata and build receipt, all135VSIXsources, archive/feedEd25519 and
+build54>53. ExactsealedDMG codesign/staple/Gatekeeper pass. Website still selects
+publishedMac53/feed53; Windows21/manualkit17/sharing config preserved. Reused
+valid kit/Maven/payload/license/mode/appsignature and native/globalpreferences
+proofs. Limits in candidate doc accurate. One candidate launch/wave,0fixbatches;
+earlierLuna version-stage review remains applicable. Effective config/time/tokens
+unavailable. Currentwebsite243tests/typecheck and configuration checks pass.
+This receipt/CURRENT/candidate-doc completion wording introduces no runtime or
+metadata change. Final stable-headPRCI/merge and live publication/promotion remain.
+
 ## Combined Mac54 sealed candidate — 2026-10-27
 
 Owner explicitly approved Java sourcePR/CI/merge and combined Mac0.5.54 release.

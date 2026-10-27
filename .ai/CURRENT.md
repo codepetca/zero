@@ -13,7 +13,10 @@ Installed53→54/readiness,135sourcefiles, actual isolatedRun/Stop, terminaljava
 javac21.0.12.1 with stalehost, Tutorialdocs→lesson0 and settings preservation pass.
 OwnedQAwindow closed; normalstudent/Codework retained. Details:MAC-CANDIDATE doc.
 
-Next: independent candidate/provenance review, sourcePR/finalCI/merge; publish
+Independent Sol/high candidate review through832b3eac complete/clean;13sealed
+hashes, protectedsource, signatures, VSIX135files and publicMac53 fallback proof
+checked. Website243tests/typecheck and configuration pass.
+Next: sourcePR/finalCI/merge; publish
 one exactDMG and anonymousbyte proof; separately reviewed signed-feed/download
 promotionPRCI/merge and livebyte/signature verification. NativeMac53 remains
 public until promotion; installed maintainerapp is tested54. No separatekitrelease.
