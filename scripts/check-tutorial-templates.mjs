@@ -3,6 +3,7 @@ import {readFileSync,lstatSync,readdirSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
+import assert from 'node:assert/strict';
 import {lessonProjects} from './lesson-projects.mjs';
 const require=createRequire(import.meta.url);
 const {validateBundle}=require('../extension/src/lesson-projects.js');
@@ -46,6 +47,12 @@ export function checkPublishedTutorialTemplates(projects=validateBundle(lessonPr
   const failures=[];
   for(const project of projects){try{assertTutorialTemplateReady(project);}catch(error){failures.push(`${project.id}: ${error.message} Required scaffoldSha256: ${tutorialScaffoldSha256(project.files)}`);}}
   if(failures.length)throw Error(failures.join('\n')+'\nPrepare local drafts with node scripts/prepare-project-templates.mjs --tutorials. Publication and verified metadata updates require separate authorization.');
+  return projects.length;
+}
+export function checkPackagedTutorialTemplates(bundle,expected=lessonProjects(root)){
+  const projects=validateBundle(bundle);
+  checkPublishedTutorialTemplates(projects);
+  assert.deepEqual(bundle,expected,'Packaged tutorials differ from the current lesson scaffolds and publication records.');
   return projects.length;
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){

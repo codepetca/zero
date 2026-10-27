@@ -9,9 +9,9 @@
         "visibility": "public",
         "isTemplate": true,
         "defaultBranch": "main",
-        "commit": "6c8bb13c7bd79c887152d7984eaafbd730c4b321",
-        "tree": "5c08b56dc2d1a00b94b92bf08824e1a481d406cd",
-        "scaffoldSha256": "d9eece8a06fcd946fdcb6a27284c84568b47b428d339e84e829cd11204dc0c6e"
+        "commit": "b008aec3a4169d89ba90c506b91f08794efebbad",
+        "tree": "1053a0c71e95dc85a81bf7e53a3e08c6aa1e7c57",
+        "scaffoldSha256": "f2da684bf9c26496491e3470ac6b51b28c43d5d0be33c7dd113df0e7e6d82528"
       }
     },
     {
@@ -22,9 +22,9 @@
         "visibility": "public",
         "isTemplate": true,
         "defaultBranch": "main",
-        "commit": "7abe7590496a2a4c40583a50ef70b0ec4c8a9cb6",
-        "tree": "b7700ddf4707e6c6734efd64ca29ad6a8ea7b2ee",
-        "scaffoldSha256": "6d76fa70648cdbee646782f8ce5e654e0141f8990ad7706671fb3c424c96a0f7"
+        "commit": "5fdb5716c3651e9583a6efc5cccd59a07391a584",
+        "tree": "6da1e59daeb23cce820b9f22490058f0275efc2b",
+        "scaffoldSha256": "b708e224da354e51ab07f25db5f216a0983583deeb6d97c96d2783a314bf40be"
       }
     },
     {
@@ -35,9 +35,9 @@
         "visibility": "public",
         "isTemplate": true,
         "defaultBranch": "main",
-        "commit": "aed2f3e9d2f3630acd4fc558c070ad020037d522",
-        "tree": "6cab0ab54e82353d172122ede9d91c9a54cfe10f",
-        "scaffoldSha256": "2b613948dc5d1d4afb44d540203dde3a7ccc0498d2e0cacc870997e8e33079b9"
+        "commit": "b2d3fb8436ccffa887895b97331ae18586930b94",
+        "tree": "e20f4100bf40a219847e1cc864ed03a9de881c59",
+        "scaffoldSha256": "976f9950dd01b9f7936e65bf89137dae7268fd9f26b4a73c52104836cc9cc60e"
       }
     }
   ]
