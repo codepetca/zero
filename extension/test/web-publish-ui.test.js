@@ -14,8 +14,13 @@ function fixture(t,{resolveProject,cancelUpload=false,uploadResult={uploaded:tru
   const publisher={review:async()=>{calls.push('review');reviewed++;return review();},setup:async()=>{calls.push('setup');return {status:'upload-required',message:'Upload setup'};},publish:async()=>{calls.push('publish');published++;return {status:'pending',resume:{runId:42}};},check:async()=>{checks++;return {status:'live',url:'https://student.github.io/game/',sha,resume:{runId:42,sha,repository:'https://github.com/student/game'}};}};
   publisher.update=async()=>{calls.push('update');return {status:'upload-required',message:'Updated publishing files'};};
   publisher.verifyLink=async()=>publisher.check();
-  publisher.verifyCurrent=async(reviewed,saved)=>!saved || saved.root!==active || saved.account!==reviewed.account || saved.sha!==reviewed.sha || saved.url!==reviewed.publicUrl || saved.resume?.repository!==reviewed.repository || reviewed.setup || reviewed.upgrade ? {status:'stale'} : publisher.check();
-  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),authentication:auth,repositories,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
+  publisher.verifyCurrent=async(reviewed,saved,{beforeFinalCheck,onCurrent}={})=>{
+    if(!saved || saved.root!==active || saved.account!==reviewed.account || saved.sha!==reviewed.sha || saved.url!==reviewed.publicUrl || saved.resume?.repository!==reviewed.repository || reviewed.setup || reviewed.upgrade)return {status:'stale'};
+    await beforeFinalCheck?.();
+    if(reviewed.sha!==sha)throw Error('The app changed while checking its published version.');
+    const live=await publisher.check();if(live.status==='live')onCurrent?.(live);return live;
+  };
+  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),assertProjectNow:expected=>{if(active!==expected)throw Error('The project changed.');},authentication:auth,repositories,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
   return {api,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set upgrade(v){upgrade=v;},set active(v){active=v;},set sha(v){sha=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
 }
@@ -307,7 +312,7 @@ test('continued editing is bounded and never opens an outdated page',async t=>{
 test('freshness failure or project/mode drift cannot open a remembered link',async t=>{
   for(const mode of ['offline','project','simulation']){
     const h=fixture(t);h.choices.push('Publish app');await h.api.publish();
-    h.publisher.verifyCurrent=async()=>{if(mode==='offline')throw Error('Offline');if(mode==='project')h.active='/other';else h.simulation=true;return {status:'live',url:'https://student.github.io/game/',sha:'a'.repeat(40)};};
+    h.publisher.verifyCurrent=async(_review,_saved,{onCurrent})=>{if(mode==='offline')throw Error('Offline');if(mode==='project')h.active='/other';else h.simulation=true;const live={status:'live',url:'https://student.github.io/game/',sha:'a'.repeat(40)};onCurrent(live);return live;};
     await assert.rejects(h.api.publishAndOpen(),/Offline|project changed|disabled/);assert.deepEqual(h.opened,[]);assert.equal(h.busy,false);
   }
 });
@@ -319,4 +324,17 @@ test('a browser launch failure preserves published success without republishing'
 test('an unavailable remembered page stops read-only and gives an explicit retry without starting a deployment',async t=>{
  const h=fixture(t);h.choices.push('Publish app');await h.api.publish();h.publisher.verifyCurrent=async()=>({status:'pending',message:'Public page not reachable'});
  const result=await h.api.publishAndOpen();assert.equal(result.status,'pending');assert.equal(h.published,1);assert.deepEqual(h.opened,[]);assert.match(h.states.at(-1),/could not be verified.*Try Publish & open/);assert.equal(h.busy,false);
+});
+
+// Simulate a saved disk/HEAD change during the final asynchronous root lookup.
+test('saved source drift during final project resolution prevents browser dispatch',async t=>{
+  let h,checking=false;h=fixture(t,{resolveProject:async()=>{if(checking)h.sha='b'.repeat(40);return '/student';}});
+  h.choices.push('Publish app');await h.api.publish();
+  const verify=h.publisher.verifyCurrent;h.publisher.verifyCurrent=async(...args)=>{checking=true;return verify(...args);};
+  await assert.rejects(h.api.publishAndOpen(),/app changed/);assert.deepEqual(h.opened,[]);assert.equal(h.published,1);assert.equal(h.busy,false);
+});
+test('dirty buffers at the final verified dispatch stop the browser',async t=>{
+  const h=fixture(t);h.choices.push('Publish app');await h.api.publish();
+  const verify=h.publisher.verifyCurrent;h.publisher.verifyCurrent=(review,saved,options)=>verify(review,saved,{...options,onCurrent:live=>{h.vscode.workspace.textDocuments=[{isDirty:true}];options.onCurrent(live);}});
+  await assert.rejects(h.api.publishAndOpen(),/app changed/);assert.deepEqual(h.opened,[]);assert.equal(h.busy,false);
 });

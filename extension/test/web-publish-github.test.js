@@ -450,3 +450,18 @@ test('a failed remembered deployment needs a new publication instead of opening 
  const h=await fixture(t),saved=await savedPublication(h),reviewed=await h.publisher.review(h.root);h.run.conclusion='failure';
  const before=h.calls.length;assert.equal((await h.publisher.verifyCurrent(reviewed,saved)).status,'stale');assert.ok(h.calls.slice(before).every(call=>call.options.method==='GET'));
 });
+
+test('saved edits during the final UI project check invalidate opening before the final source proof',async t=>{
+  const h=await fixture(t),saved=await savedPublication(h),reviewed=await h.publisher.review(h.root);let opened=false;
+  await assert.rejects(h.publisher.verifyCurrent(reviewed,saved,{beforeFinalCheck:()=>fs.writeFile(path.join(h.root,'zero.json'),'{}\n'),onCurrent:()=>{opened=true;}}),/files changed/);
+  assert.equal(opened,false);
+});
+test('the final input proof follows project checks and dispatch checks session and mode synchronously',async t=>{
+  for(const mode of ['account','simulation','cancel','source']) {
+    let final=false,h;const controller=new AbortController();
+    h=await fixture(t,{publisherOptions:{assertBuildInputsAtCommit:async()=>{if(final){if(mode==='account')h.current=false;if(mode==='simulation')h.simulation=true;if(mode==='cancel')controller.abort();}return {sourceHash:(final&&mode==='source'?'d':'b').repeat(64)};}}});
+    const saved=await savedPublication(h),reviewed=await h.publisher.review(h.root);let opened=false;
+    await assert.rejects(h.publisher.verifyCurrent(reviewed,saved,{signal:controller.signal,beforeFinalCheck:async()=>{final=true;},onCurrent:()=>{opened=true;}}),/Account changed|disabled|cancelled|app changed/);
+    assert.equal(opened,false,mode);
+  }
+});

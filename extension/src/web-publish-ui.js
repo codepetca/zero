@@ -2,7 +2,7 @@
 const path = require('node:path');
 const {createGitHubPagesPublisher} = require('./web-publish-github');
 
-function createWebPublishCommands(vscode,{project,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},output,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
+function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},output,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
   let disposed=false,controller,publishing=false,resume,recheckRequested=false,lastLive;
   let root;
   const publisher=publisherFactory({authentication,repositories,isSimulation:()=>!root || isSimulation(root),engineRoot,cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit});
@@ -11,6 +11,8 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
   }
   function assertPublishCurrentNow(expected) {
     if(disposed || controller?.signal.aborted)throw new Error('Publishing was cancelled. Check GitHub Actions for any run already started.');
+    assertProjectNow(expected);
+    if(vscode.workspace.isTrusted===false)throw new Error('Trust your own project before publishing its browser game.');
     if(isSimulation(expected))throw new Error('Live publishing was disabled. Choose Publish & open app again after enabling live uploads.');
   }
   async function stillPublishable(expected) {
@@ -45,6 +47,24 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
     }
     return result;
   }
+  async function verifyAndOpen(reviewed,saved,expected) {
+    let opening;
+    const current=await publisher.verifyCurrent(reviewed,saved,{
+      signal:controller.signal,
+      beforeFinalCheck:()=>stillPublishable(expected),
+      // Called synchronously after the publisher's final source/session proof.
+      // Request the browser here: no awaited project lookup may follow the proof.
+      onCurrent:verified=>{
+        assertPublishCurrentNow(expected);
+        if(vscode.workspace.textDocuments?.some(document=>document.isDirty))throw Error('Your app changed while publishing. Choose Publish & open app again.');
+        opening=vscode.env.openExternal(vscode.Uri.parse(verified.url));
+      }
+    });
+    if(current.status!=='live')return current;
+    const opened=await opening;
+    progress(opened===false?'App published — the browser could not be opened. See Zero Output for its link.':'App opened',`Your playable app is live: ${current.url}`);
+    return {...current,opened:opened!==false};
+  }
   async function publish({open=false}={}) {
     if(disposed || publishing || isBusy())return;
     publishing=true;setBusy(true);controller=new AbortController();
@@ -65,6 +85,7 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
         }
         const result=await publishOnce(expected,{reuse:open});
         if(!open || result?.status!=='live')return result;
+        if(result.alreadyCurrent)return result;
         let current=result;
         if(!result.alreadyCurrent) {
           let reviewed;
@@ -72,17 +93,14 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
           catch(error) {if(error.code==='WEB_PUBLISH_UPLOAD_REQUIRED' && attempt===0)continue;throw error;}
           await stillPublishable(expected);
           if(reviewed.status!=='review'){await showAction(reviewed);return reviewed;}
-          current=await publisher.verifyCurrent(reviewed,lastLive,{signal:controller.signal});
+          current=await verifyAndOpen(reviewed,lastLive,expected);
         }
-        await stillPublishable(expected);
-        if(current.status==='stale' || vscode.workspace.textDocuments?.some(document=>document.isDirty)) {
+        if(current.status==='stale') {
           if(attempt===0)continue;
           throw Error('Your app changed while publishing. Choose Publish & open app again to open the latest version.');
         }
         if(current.status!=='live'){await showAction(current);return current;}
-        const opened=await vscode.env.openExternal(vscode.Uri.parse(current.url));
-        progress(opened===false?'App published — the browser could not be opened. See Zero Output for its link.':'App opened',`Your playable app is live: ${current.url}`);
-        return {...current,opened:opened!==false};
+        return current;
       }
     } finally {controller=undefined;publishing=false;setBusy(false);if(recheckRequested && !disposed){recheckRequested=false;queueMicrotask(()=>{void publish({open}).catch(error=>progress(error.message));});}}
   }
@@ -133,8 +151,7 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
       const previous=lastLive || workspaceState?.get('zero.webPublish.lastLive');
       if(reuse) {
         progress('Checking published app…');
-        result=await publisher.verifyCurrent(review,previous,{signal:controller.signal});
-        await stillPublishable(expected);
+        result=await verifyAndOpen(review,previous,expected);
         if(result.status==='stale')result=undefined;
         else {
           if(result.status==='live')return {...result,alreadyCurrent:true};

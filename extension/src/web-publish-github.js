@@ -332,7 +332,7 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
   }
   // Current-page reuse is stricter than retrieving a historical playable link.
   // All checks are read-only: no compiler, saved project module or upload runs here.
-  async function verifyCurrent(reviewed,saved,{signal}={}) {
+  async function verifyCurrent(reviewed,saved,{signal,beforeFinalCheck=async()=>{},onCurrent=()=>{}}={}) {
     const state=reviews.get(reviewed);
     if(!state)throw Error('Review publishing before checking the latest app.');
     await guard(state,signal);
@@ -352,9 +352,14 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(live.sha!==reviewed.sha || live.url!==reviewed.publicUrl)throw Error('The published app changed. Review publishing again.');
     const remote=await api(state,'GET','/git/ref/heads/main',null,{signal});
     if(remote?.object?.sha!==reviewed.sha)throw Error('GitHub main changed. Choose Publish & open app again.');
+    await beforeFinalCheck();
+    await guard(state,signal);
     const finalProof=await assertBuildInputsAtCommit({projectRoot:state.root,sourceSha:reviewed.sha,git});
     if(finalProof?.sourceHash!==proof.sourceHash)throw Error('The app changed while checking its published version. Choose Publish & open app again.');
-    await guard(state,signal);
+    authentication.assertCurrentNow(state.ticket);
+    if(signal?.aborted)throw Error('Web publishing cancelled.');
+    if(isSimulation())throw Error('Live publishing is disabled. Review publishing again.');
+    onCurrent(live);
     return live;
   }
   async function cleanup(root,saved) {

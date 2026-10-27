@@ -399,11 +399,12 @@ publishing. The app and included assets will be
 public; your source repository keeps its visibility. Later explicit Publish actions
 revalidate and update that same approved site without another destination dialog.
 
-Zero deploys the locally checked build. Wait for **App published**,
-then choose **Open app** or **Copy playable link**. Later use **Zero: Open Published
-App** or **Zero: Copy Playable Link** in the Command Palette. Choose Publish app
-again to recheck a pending run; follow the stated next action if publication
-fails. The previous live page remains available after an unsuccessful update.
+Zero deploys the locally checked build and opens the verified live app. If the
+latest saved version is already published, **Publish & open app** opens it without
+another deployment. Copy the browser address to share it. The Command Palette
+also retains **Zero: Open Published App** and **Zero: Copy Playable Link** for the
+previously published version. If publishing is pending or fails, follow the
+stated next action; the previous live page remains available.
 The playable link is separate from your repository link for Pika.
 
 **Share project** prepares a separate ZeroHub source submission. Zero attaches
