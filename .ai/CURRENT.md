@@ -1,6 +1,13 @@
-# Publishing stage progress — local only
+# Published-app link below Run — local only
 
-Owner2026-10-27 requested a slim linear publishing indicator beneath existing
+Owner2026-10-27 additionally requested a quiet Open published app link below Run.
+Implementation based on0e4312a2 uses the existing verified historical-link command
+and a pure same-root/repository/account receipt getter; newer local edits never
+trigger saving/building/uploading/deployment. Persist valid prior links across
+restart/failed updates, hide mismatches and disable while busy. Checking/opening
+use the existing progress bar and final native session/project guards.
+
+Earlier owner request added a slim linear publishing indicator beneath existing
 status, active through verification/browser opening. Implemented local source
 callbacks, applicable reuse/resume stage plans, animated unknown current stage,
 reduced-motion/high-contrast support and root-scoped sidebar/open-Start-Page state.
@@ -13,8 +20,11 @@ remain intact. Coordinator actual-renderer browser QA passed in light/dark/high 
 Independent Sol/medium review through46f0c800 complete/clean;7focused reviewer
 tests and9coordinator progress tests pass. All3template readiness records still
 validate; framework/student-template/teaching/release inputs unchanged.
-87focused UI/preview and11integration checks pass. The combined137-test publisher/
-UI fixture run passes; configuration/syntax/contracts/doc links and diff checks pass.
+Prior progress87UI/11integration/137combined fixture proofs remain recorded.
+New link92focused UI/preview and54integration checks pass; configuration/syntax/
+contracts/doc links and diff checks pass. Coordinator dark/light click/busy preview
+proof passed; independent review pending for this new link delta. Logs in ignored
+.verification/published-app-link/. No publisher GitHub source change.
 Zero Dev UI-only preview on127.0.0.1:3267; no normal editor or installedZero changed.
 No push/PR/merge/release/deploy or live repository/account actions authorized.
 Do not recreate owner-deleted Zero test repositories. Preserve primary funding

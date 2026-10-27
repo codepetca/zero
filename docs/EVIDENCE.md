@@ -1,5 +1,51 @@
 # Delivery evidence index
 
+## Published-app link below Run — 2026-10-27, local source only
+
+Owner requested a link below Run after publication. Implementation starts from
+0e4312a2 and preserves the Tutorial docs label and reviewed stage progress.
+**Open published app ↗** is a quiet native-theme action immediately below Run.
+The pure controller getter reads the existing lastLive receipt with exact project,
+repository and account matching, valid SHA/run fields and a normal HTTPS URL;
+malformed/mismatched/missing receipts fail closed. No render-time network probe
+or repository-derived URL is introduced. Current cloud readiness/sign-in gates
+apply, and busy work disables the action. Existing valid publication survives a
+failed update and editor restart; a failed first publication creates no link.
+
+The action reuses the historical `zero.openPublishedWeb` command and existing
+`verifyLink` read-only provider path. New local or unsaved source remains intact:
+no save, review, build, upload, deployment or staging-release cleanup occurs.
+Checking and browser opening use the existing stage bar, retained through the
+browser promise and cleared before final success. Final synchronous captured-
+session/project/trust/live-mode guards run immediately before browser dispatch.
+No publisher GitHub API implementation or request sequence was changed.
+
+Focused UI/renderer tests pass92/92. They cover publish success/failure, old-link
+retention, restart, malformed receipts, root/repository/account mismatches, newer
+dirty code, duplicate/busy actions, browser-promise progress and final guards.
+The integration suite passes54/54; an initial failure was the old assertion that
+Open published app must be absent after publication, updated for the owner's new
+requirement. Configuration/syntax/contracts/documentation checks also pass.
+Exact commands and captured output are in ignored local receipts:
+
+- `node --test extension/test/web-publish-ui.test.js extension/test/sidebar-refresh.test.js extension/test/start-page.test.js design/playground/playground.test.mjs` → `.verification/published-app-link/ui-final.log`
+- `node --test extension/test/extension.test.js extension/test/extension-upload-auth.test.js extension/test/web-publish-verification.test.js extension/test/web-publish-upload-auth.test.js` → `.verification/published-app-link/integration-final.log` (initial old-contract failure retained in `integration.log`)
+- `npm run check` → `.verification/published-app-link/check-final.log`
+
+Coordinator browser proof on the actual source renderer: dark `state=published`
+places the action directly below Run; the light standalone fixture click shows
+“Checking published app…” with the bar, then “Published app opened” without it.
+The in-memory real-command fixture has newer local code and records0builds,
+0uploads,0deployments for historical opening. Dark `published-busy` disables the
+link. Preview remains at127.0.0.1:3267 using the existing UI-only watcher.
+This is local browser/fixture proof; native installation, live hosted retrieval
+and real browser launch are not newly accepted. No live GitHub repositories,
+account access, installed Zero, normal editor, release/version/template inputs,
+push, PR, merge, deploy or publication were changed. Independent review remains
+with the coordinator. No nested workers; inherited model/configuration and exact
+cost remain unknown. Existing human usage/review-stop waiver and provider holds
+remain applicable.
+
 ## Publishing stage progress — 2026-10-27, local source only
 
 Final independent turn publishing_progress_review, requested Sol/medium, inspected

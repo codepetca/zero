@@ -119,8 +119,8 @@ test('Start Page fixture renders the production panel and its actual phase snaps
     assert.match(html, /aria-controls="project-menu"/);
     assert.match(html, /script-src 'nonce-/);
     assert.match(html, /connect-src 'none'/);
-    assert.equal(snapshot.state.phase, state === 'busy' || state.startsWith('publish-') ? 'ready' : state);
-    assert.equal(snapshot.state.busy, state === 'busy' || Boolean(snapshot.state.publishProgress));
+    assert.equal(snapshot.state.phase, state === 'busy' || state.startsWith('publish') ? 'ready' : state);
+    assert.equal(snapshot.state.busy, state === 'busy' || Boolean(snapshot.state.publishProgress)||state==='published-busy');
     assert.equal(snapshot.state.accountId, state === 'signed-out' ? undefined : '123456');
     assert.equal(snapshot.state.recent.length, state === 'signed-out' ? 0 : 2);
     const fixture = await startPageView('hc', state);
@@ -198,4 +198,17 @@ test('publishing fixtures exercise real coordinator stages and root-scoped rende
   }
   for(const state of ['publish-error','publish-stopped'])assert.doesNotMatch(sidebarSource(state),/role="progressbar"/);
   assert.doesNotMatch(sidebarSource('publish-building',{connected:true,projectRoot:'/other/project'}),/role="progressbar"/);
+});
+
+test('published link sits below Run, follows cloud/busy visibility and its fixture opens historical output read-only',async()=>{
+  const {publishedLinkProof}=await import('./publishing-source.mjs');
+  const html=sidebarSource('published',{connected:true});
+  assert.match(html,/class="link published-app-link" data-command="zero.openPublishedWeb"/);
+  assert.ok(html.indexOf('class="run-split"')<html.indexOf('class="link published-app-link"'));
+  assert.ok(html.indexOf('class="link published-app-link"')<html.indexOf('class="repository"'));
+  assert.match(sidebarSource('published-busy',{connected:true}),/data-command="zero.openPublishedWeb" disabled/);
+  assert.doesNotMatch(sidebarSource('published',{connected:false}),/data-command="zero.openPublishedWeb"/);
+  assert.doesNotMatch(sidebarSource('published',{connected:true,projectRoot:'/other'}),/data-command="zero.openPublishedWeb"/);
+  assert.notEqual(publishedLinkProof.localSha,publishedLinkProof.openedSha);
+  assert.deepEqual([publishedLinkProof.builds,publishedLinkProof.uploads,publishedLinkProof.deploys],[0,0,0]);
 });

@@ -1,4 +1,4 @@
-import {publishingSnapshots,publishingProgressHtml} from './publishing-source.mjs';
+import {publishingSnapshots,publishingProgressHtml,publishedLinkPlayback,publishedLinkProof} from './publishing-source.mjs';
 import { readFileSync } from 'node:fs';
 import { lessons } from '../../website/lib/learning.mjs';
 import { sidebarSource } from './sidebar-source.mjs';
@@ -72,6 +72,7 @@ export function sidebarView(theme, state, host = true, connected = false, cycle 
 </script>
 </head>`);
   html = html.replace(/(<body[^>]*>)/, `$1${label(`Zero sidebar · ${state[0].toUpperCase() + state.slice(1)} · ${theme} · ${host ? 'simulated host colors' : 'adapter fallback'}`)}`);
+  if(state.startsWith('published'))html=html.replace('</head>',`<script>window.zeroPublishedLinkFixture=${JSON.stringify({frames:publishedLinkPlayback,proof:publishedLinkProof}).replaceAll('<','\\u003c')};</script></head>`);
   if(cycle){
     const steps=['building','uploading','deploying','verifying','opening','stopped'].map(stage=>{const value=publishingSnapshots['publish-'+stage];return {type:'sidebar.update',status:'Simulation: '+value.status,publishingProgress:publishingProgressHtml(value.publishProgress)};});
     html=html.replace('</body>',`<script>window.addEventListener('DOMContentLoaded',()=>{const steps=${JSON.stringify(steps).replaceAll('<','\\u003c')};let index=0;const timer=setInterval(()=>{window.dispatchEvent(new MessageEvent('message',{data:steps[index++]}));if(index===steps.length)clearInterval(timer);},2200);});</script></body>`);

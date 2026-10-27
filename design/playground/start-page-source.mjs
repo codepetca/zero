@@ -23,7 +23,7 @@ export async function startPageSource(state = 'ready') {
     window: {createWebviewPanel: () => panel},
     commands: {executeCommand() { throw new Error('Commands are unavailable in the design fixture'); }}
   }, {
-    getState: () => ({phase, accountId: phase === 'signed-out' ? undefined : '123456', accountLabel: 'armorup', busy: state === 'busy' || Boolean(publishing?.publishProgress), status: publishing?.status || (state === 'busy' ? 'Fixture: creating a project…' : ''),publishProgress:publishing?.publishProgress}),
+    getState: () => ({phase, accountId: phase === 'signed-out' ? undefined : '123456', accountLabel: 'armorup', busy: state === 'busy' || Boolean(publishing?.publishProgress||publishing?.busy), status: publishing?.status || (state === 'busy' ? 'Fixture: creating a project…' : ''),publishProgress:publishing?.publishProgress}),
     listRecent: async () => [{path: '/Students/armorup/Greeting App'}, {path: '/Students/armorup/Study Quiz'}]
   });
   controller.show();

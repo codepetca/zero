@@ -34,6 +34,11 @@ retain a visible outline. `/components?state=publish-building` and the other
 in-memory publisher/browser. `/sidebar?state=publish-building&cycle=1` plays a
 clearly labeled timed fixture cycle; those timings are not production estimates.
 
+Published-app fixtures use `state=published` and `state=published-busy`. The
+quiet below-Run action replays the real historical-link command with an in-memory
+verified receipt and newer local code; its fixture records zero builds, uploads
+and deployments. It opens no real browser.
+
 Screen layout stays local: Start tutorial's whole split control and Project are
 180px wide, filling narrow Start Page views. The sidebar follows its panel width.
 Keep app commands, allowed actions and authorization checks in each host. Sharing

@@ -251,24 +251,44 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},authen
     else {resume=undefined;await workspaceState?.update('zero.webPublish.pending',undefined);await showAction(result);}
     return result;
   }
+  // Rendering reads only a previously verified receipt. It never infers a URL
+  // from the current repository or probes GitHub from a webview refresh.
+  function hasPublishedApp({root:expected,repository,account}={}) {
+    if(disposed || typeof expected!=='string' || !path.isAbsolute(expected) || typeof repository!=='string' || typeof account!=='string')return false;
+    const saved=lastLive || workspaceState?.get('zero.webPublish.lastLive');
+    if(!saved || saved.root!==expected || saved.account!==account || !/^[1-9]\d*$/.test(account) || !/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository) || saved.resume?.repository!==repository || !/^[a-f0-9]{40}$/.test(saved.sha || '') || saved.resume?.sha!==saved.sha || !Number.isSafeInteger(saved.resume?.runId) || saved.resume.runId<1)return false;
+    if(typeof saved.url!=='string')return false;
+    try {const url=new URL(saved.url);return url.protocol==='https:' && Boolean(url.hostname) && !url.username && !url.password && !url.search && !url.hash;}catch{return false;}
+  }
   const publishAndOpen=()=>publish({open:true});
   async function publishedLink(open) {
     if(disposed || publishing || isBusy())return;
-    publishing=true;setBusy(true);controller=new AbortController();
+    publishing=true;setBusy(true);controller=new AbortController();openingRequested=open;
     try {
       root=await project();
       if(disposed || controller.signal.aborted)return;
       if(isSimulation(root)){progress(open ? 'Simulation only — no public page was checked or opened.' : 'Simulation only — no public link was checked or copied.');return;}
       const saved=lastLive || workspaceState?.get('zero.webPublish.lastLive');
-      if(!saved || saved.root!==root)throw new Error('Publish this game before copying its playable link.');
+      if(!saved || saved.root!==root)throw new Error(open?'Publish this app before opening its published version.':'Publish this game before copying its playable link.');
       const expected=root;
+      startProgress(['verifying']);progress('Checking published app…');
+      const ticket=await authentication.capture();
+      if(!hasPublishedApp({root:expected,repository:saved.resume?.repository,account:ticket.session.accountId}))throw Error('Publish this app with the connected GitHub account before opening its published version.');
       const verified=await publisher.verifyLink(expected,saved,{signal:controller.signal});
       await stillCurrent(expected);
       if(verified.status!=='live'){await showAction(verified);return verified;}
-      if(open)await vscode.env.openExternal(vscode.Uri.parse(verified.url));
-      else {await vscode.env.clipboard.writeText(verified.url);progress('Playable link copied','Playable game link copied.');}
+      if(open){
+        stage('opening');progress('Opening in browser…');
+        assertPublishCurrentNow(expected);authentication.assertCurrentNow(ticket);
+        const opened=await vscode.env.openExternal(vscode.Uri.parse(verified.url));
+        await stillCurrent(expected);clearProgress();
+        progress(opened===false?'The browser could not be opened. See Zero Output for the published app link.':'Published app opened',`Your published app: ${verified.url}`);
+        return {...verified,opened:opened!==false};
+      }
+      assertPublishCurrentNow(expected);authentication.assertCurrentNow(ticket);
+      await vscode.env.clipboard.writeText(verified.url);clearProgress();progress('Playable link copied','Playable game link copied.');
       return verified;
-    } finally {controller=undefined;publishing=false;setBusy(false);if(recheckRequested && !disposed){recheckRequested=false;queueMicrotask(()=>{void publishedLink(open).catch(error=>progress(error.message));});}}
+    } finally {clearProgress();controller=undefined;publishing=false;setBusy(false);if(recheckRequested && !disposed){recheckRequested=false;queueMicrotask(()=>{void publishedLink(open).catch(error=>progress(error.message));});}}
   }
   // Sharing already holds the coordinator's component lock. This nested read
   // claims our own lock but deliberately does not reject that outer busy flag.
@@ -300,6 +320,6 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},authen
       return {provider:'github-pages',url:checked.url,commit,runId:checked.resume.runId};
     } finally {controller=undefined;publishing=false;setBusy(false);}
   }
-  return {publish,publishAndOpen,verifiedPublication,commands:{'zero.publishWeb':()=>publish(),'zero.publishAndOpenWeb':publishAndOpen,'zero.copyPublishedWebLink':()=>publishedLink(false),'zero.openPublishedWeb':()=>publishedLink(true)},disposables:[{dispose(){disposed=true;controller?.abort();clearProgress();}}]};
+  return {publish,publishAndOpen,hasPublishedApp,verifiedPublication,commands:{'zero.publishWeb':()=>publish(),'zero.publishAndOpenWeb':publishAndOpen,'zero.copyPublishedWebLink':()=>publishedLink(false),'zero.openPublishedWeb':()=>publishedLink(true)},disposables:[{dispose(){disposed=true;controller?.abort();clearProgress();}}]};
 }
 module.exports={createWebPublishCommands};
