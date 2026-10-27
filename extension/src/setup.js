@@ -4,6 +4,7 @@ const path = require('node:path');
 const {tutorialMarker} = require('./lesson-projects');
 const {execFile} = require('node:child_process');
 const {promisify} = require('node:util');
+const {managedJavaHome,managedJavaEnvironment} = require('./managed-java');
 const executeFile = promisify(execFile);
 const JDK_URL = 'https://adoptium.net/temurin/releases/?version=17&package=jdk';
 const GIT_URL = 'https://git-scm.com/downloads/';
@@ -49,15 +50,16 @@ async function inspectSetup(options) {
     getExtension = () => undefined, checkProject:check = checkProject,
     getTaskEnvironment = () => ({})} = options;
   const paths = platform === 'win32' ? path.win32 : path;
-  const home = platform === 'win32'
+  const managedHome = managedJavaHome(env,platform), selectedEnv = managedJavaEnvironment(env,platform);
+  const home = managedHome || (platform === 'win32'
     ? Object.entries(env).find(([key]) => key.toUpperCase() === 'JAVA_HOME')?.[1]
-    : env.JAVA_HOME;
-  const source = home ? 'JAVA_HOME' : 'PATH';
+    : env.JAVA_HOME);
+  const source = managedHome ? 'Zero bundled Java' : home ? 'JAVA_HOME' : 'PATH';
   const command = name => home ? paths.join(home,'bin',name + (platform === 'win32' ? '.exe' : '')) : name;
   const inspect = async (name,args) => {
     const executable = name === 'git' ? name : command(name);
     try {
-      const result = await execute(executable,args,{env,timeout:10000,maxBuffer:64 * 1024,windowsHide:true});
+      const result = await execute(executable,args,{env:selectedEnv,timeout:10000,maxBuffer:64 * 1024,windowsHide:true});
       return {ok:true, command:executable, text:[result.stdout,result.stderr].filter(Boolean).join('\n').trim()};
     } catch (error) {
       return {ok:false, command:executable, text:error.killed || error.code === 'ETIMEDOUT' ? 'Check timed out.' : error.message};
@@ -73,20 +75,20 @@ async function inspectSetup(options) {
   java.major = java.ok ? javaMajor(java.text) : undefined;
   javac.major = javac.ok ? javaMajor(javac.text,true) : undefined;
   git.version = git.ok ? gitVersion(git.text) : undefined;
-  const jdkReady = java.ok && javac.ok && java.major >= 17 && javac.major >= 17 && java.major === javac.major;
+  const jdkReady = java.ok && javac.ok && (managedHome ? java.major === 21 && javac.major === 21 : java.major >= 17 && javac.major >= 17 && java.major === javac.major);
   const gitReady = Boolean(git.version && (git.version[0] > 2 || (git.version[0] === 2 && git.version[1] >= 31)));
   const extensions = EXTENSIONS.map(extension => ({...extension,available:Boolean(getExtension(extension.id))}));
-  let jdkDetail = jdkReady ? `JDK ${java.major} from ${source}` : `JDK 17+ with matching java and javac required (${source})`;
-  if (!jdkReady && home) jdkDetail += '; repair JAVA_HOME if it points to an old or invalid JDK';
+  let jdkDetail = jdkReady ? `JDK ${java.major} from ${source}` : managedHome ? 'Zero’s bundled JDK 21 needs repair; reopen Zero. System Java is unchanged.' : `JDK 17+ with matching java and javac required (${source})`;
+  if (!jdkReady && home && !managedHome) jdkDetail += '; repair JAVA_HOME if it points to an old or invalid JDK';
   if (java.major && javac.major && java.major !== javac.major) jdkDetail += `; java ${java.major} / javac ${javac.major} mismatch`;
   let taskEnvironment = {verified:true,keys:[]};
-  if (studentProject.root) {
+  if (studentProject.root && !managedHome) {
     try {
       const keys = taskEnvironmentOverrides(await getTaskEnvironment(studentProject.root,platform),platform);
       if (keys.length) taskEnvironment = {verified:false,keys,text:`Run environment unverified: terminal environment overrides ${keys.join(', ')}. These host-process checks do not verify the Run task's Java or Maven environment. Review the project-scoped terminal.integrated.env setting with your teacher or IT; ordinary Run App remains available.`};
     } catch {taskEnvironment = {verified:false,keys:[],text:'Run environment unverified: terminal environment settings could not be read. Review them with your teacher or IT; ordinary Run App remains available.'};}
   }
-  return {platform,source,java,javac,git,project:studentProject,extensions,jdkReady,gitReady,jdkDetail,
+  return {platform,source,managedJava:Boolean(managedHome),java,javac,git,project:studentProject,extensions,jdkReady,gitReady,jdkDetail,
     taskEnvironment,runReady:Boolean(jdkReady && studentProject.ok && taskEnvironment.verified && (!studentProject.requiresGit || gitReady)),editorReady:extensions[0].available};
 }
 
@@ -108,7 +110,7 @@ function checklist(report) {
   return [
     {label:report.taskEnvironment?.verified === false ? '$(warning) Run environment unverified' : report.runReady ? '$(check) Run prerequisites ready' : '$(warning) Run prerequisites need attention', description:report.taskEnvironment?.verified === false ? report.taskEnvironment.text : 'Build and desktop window still need a first run',action:'details'},
     {label:'$(check) VS Code',description:'Already running — no reinstall needed',action:'details'},
-    {label:`${report.jdkReady ? '$(check)' : '$(warning)'} Java JDK — host process`,description:report.jdkDetail,action:report.jdkReady ? 'details' : 'jdk'},
+    {label:`${report.jdkReady ? '$(check)' : '$(warning)'} Java JDK — ${report.managedJava ? 'bundled with Zero' : 'host process'}`,description:report.jdkDetail,action:report.jdkReady ? 'details' : 'jdk'},
     {label:`${report.project.ok ? '$(check)' : '$(warning)'} Student project`,description:report.project.text,action:report.project.ok ? 'details' : 'project'},
     ...report.extensions.map(extension => ({label:`${extension.available ? '$(check)' : '$(warning)'} ${extension.name}`,description:extension.available ? `Available — ${extension.purpose}` : `Install or enable in this profile — ${extension.purpose}`,action:extension.available ? 'details' : extension.id})),
     {label:`${report.gitReady ? '$(check)' : report.project.requiresGit ? '$(warning)' : '$(info)'} Git — tutorials and uploads`,description:report.gitReady ? 'Git 2.31+ available; account/repository setup is separate' : report.project.requiresGit ? 'Tutorial setup incomplete — install or update Git 2.31+' : 'Sharing incomplete — install or update Git 2.31+; ordinary local apps still run',action:report.gitReady ? 'details' : 'git'},
@@ -163,6 +165,10 @@ function createSetupHelp(vscode,{project,output,run,testInstallation,uploadMode 
           await check(); continue;
         }
         if (choice.action === 'jdk' || choice.action === 'git') {
+          if (choice.action === 'jdk' && report.managedJava) {
+            await vscode.window.showWarningMessage('Zero’s bundled Java needs repair. Close this Zero window and reopen the Zero app. Your system Java and settings stay unchanged.');
+            continue;
+          }
           const jdk = choice.action === 'jdk', url = jdk ? JDK_URL : GIT_URL;
           const platform = report.platform === 'win32' ? 'Windows' : report.platform === 'darwin' ? 'macOS' : 'Linux';
           const guidance = `${jdk ? 'Use a JDK 17 or newer (JDK, not JRE)' : 'Use Git 2.31 or newer'} for ${platform}. Keep a working school-provided installation. On a managed school laptop, ask your teacher or IT if installation is blocked. ${report.platform === 'linux' ? 'Follow the official Linux instructions manually. ' : 'Follow the official installer instructions. '}${jdk ? 'If JAVA_HOME is set, it must point to that JDK; otherwise java and javac must be on PATH. Ask IT to repair an old or invalid JAVA_HOME. ' : ''}Fully quit and reopen VS Code after installation or environment repair, then use Troubleshooting → Check again.`;

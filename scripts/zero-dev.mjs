@@ -126,6 +126,7 @@ export function prepareDev() {
 export function developmentEnvironment(env = process.env, home = homedir()) {
   const result = {...env};
   delete result.ZERO_KIT_DIR;
+  delete result.ZERO_JAVA_HOME;
   delete result.VSCODE_IPC_HOOK_CLI;
   if (!result.JAVA_HOME && process.platform === 'darwin') {
     const runtime = path.join(home, 'Library/Application Support/Zero/runtime');

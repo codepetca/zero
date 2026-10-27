@@ -25,6 +25,8 @@ namespace ZeroSetup
         private readonly string version, minimum;
         private string java, editor, editorApp, node;
         private const string NodeVersion = "22.21.1";
+        private static readonly string[] JavaStartupVariables = { "JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "MAVEN_OPTS", "MAVEN_ARGS" };
+        private static readonly string[] TerminalOwnedVariables = JavaStartupVariables.Concat(new[] { "JAVA_HOME", "ZERO_JAVA_HOME", "PATH", "MAVEN_SKIP_RC" }).ToArray();
         private sealed class Manifest
         {
             public int schemaVersion { get; set; }
@@ -115,6 +117,9 @@ namespace ZeroSetup
                 RedirectStandardOutput = cli, RedirectStandardError = cli, RedirectStandardInput = cli
             };
             info.EnvironmentVariables["JAVA_HOME"] = java;
+            info.EnvironmentVariables["ZERO_JAVA_HOME"] = java;
+            foreach (string key in JavaStartupVariables) info.EnvironmentVariables.Remove(key);
+            info.EnvironmentVariables["MAVEN_SKIP_RC"] = "1";
             info.EnvironmentVariables["ZERO_KIT_DIR"] = kit;
             info.EnvironmentVariables["PATH"] = Path.Combine(java, "bin") + ";" + (node == null ? "" : Path.GetDirectoryName(node) + ";") + (Environment.GetEnvironmentVariable("PATH") ?? "");
             if (node != null) info.EnvironmentVariables["ZERO_NODE_EXECUTABLE"] = node;
@@ -321,18 +326,97 @@ namespace ZeroSetup
             }
             catch (JsonException error) { throw new IOException("Zero's editor settings could not be read. Check settings.json and retry setup.", error); }
         }
+        private sealed class SettingSpan
+        {
+            public string Key; public int Start, Value, End, Comma;
+        }
+        private static void SkipTrivia(string text, ref int i)
+        {
+            while (i < text.Length)
+            {
+                if (char.IsWhiteSpace(text[i])) { i++; continue; }
+                if (i + 1 < text.Length && text[i] == '/' && text[i + 1] == '/')
+                { i += 2; while (i < text.Length && text[i] != '\n') i++; continue; }
+                if (i + 1 < text.Length && text[i] == '/' && text[i + 1] == '*')
+                { i += 2; while (i + 1 < text.Length && !(text[i] == '*' && text[i + 1] == '/')) i++; i = Math.Min(i + 2, text.Length); continue; }
+                break;
+            }
+        }
+        private static void SkipQuoted(string text, ref int i)
+        {
+            if (i >= text.Length || text[i] != '"') throw new IOException("Use quoted JSON settings keys in Zero's editor settings.");
+            i++;
+            while (i < text.Length)
+            {
+                if (text[i] == '\\') i += 2;
+                else if (text[i++] == '"') return;
+            }
+            throw new IOException("Zero's editor settings contain an incomplete string.");
+        }
+        private static List<SettingSpan> SettingSpans(string text, out int close)
+        {
+            int i = 0; SkipTrivia(text, ref i);
+            if (i >= text.Length || text[i++] != '{') throw new IOException("Zero's editor settings must be an object.");
+            var spans = new List<SettingSpan>();
+            for (;;)
+            {
+                SkipTrivia(text, ref i);
+                if (i >= text.Length) throw new IOException("Zero's editor settings are incomplete.");
+                if (text[i] == '}') { close = i; return spans; }
+                int start = i; SkipQuoted(text, ref i);
+                string key = JsonConvert.DeserializeObject<string>(text.Substring(start, i - start));
+                SkipTrivia(text, ref i);
+                if (i >= text.Length || text[i++] != ':') throw new IOException("Invalid editor setting.");
+                SkipTrivia(text, ref i); int value = i, end = i, depth = 0;
+                while (i < text.Length)
+                {
+                    SkipTrivia(text, ref i); if (i >= text.Length) break;
+                    char ch = text[i];
+                    if (depth == 0 && (ch == ',' || ch == '}')) break;
+                    if (ch == '"') SkipQuoted(text, ref i);
+                    else { if (ch == '{' || ch == '[') depth++; if (ch == '}' || ch == ']') depth--; i++; }
+                    end = i;
+                }
+                int comma = i < text.Length && text[i] == ',' ? i++ : -1;
+                spans.Add(new SettingSpan { Key = key, Start = start, Value = value, End = end, Comma = comma });
+            }
+        }
+        private static string PatchSettings(string text, JObject values)
+        {
+            foreach (string key in new[] { "java.home", "java.jdt.ls.java.home", "java.configuration.runtimes", "java.import.gradle.java.home", "terminal.integrated.env.windows", "terminal.integrated.profiles.windows", "terminal.integrated.defaultProfile.windows" })
+            {
+                int close; var spans = SettingSpans(text, out close); var matching = spans.Where(span => span.Key == key).ToList();
+                if (matching.Count > 1) throw new IOException("Zero's editor settings repeat " + key + ". Remove the duplicate and retry.");
+                var value = values[key];
+                if (matching.Count == 1)
+                {
+                    var span = matching[0];
+                    if (value != null) text = text.Remove(span.Value, span.End - span.Value).Insert(span.Value, value.ToString(Formatting.None));
+                    else if (span.Comma >= 0) text = text.Remove(span.Start, span.Comma + 1 - span.Start);
+                    else if (spans.Count > 1) { int previous = spans[spans.Count - 2].Comma; text = text.Remove(previous, span.End - previous); }
+                    else text = text.Remove(span.Start, span.End - span.Start);
+                }
+                else if (value != null)
+                {
+                    string separator = spans.Count > 0 && spans[spans.Count - 1].Comma < 0 ? "," : "";
+                    text = text.Insert(close, separator + "\n  " + JsonConvert.SerializeObject(key) + ": " + value.ToString(Formatting.None) + "\n");
+                }
+            }
+            ReadSettings(text); return text;
+        }
         private void Settings(WindowsRuntimeFolders folders)
         {
             string user = Path.Combine(UserData, "User"); folders.Ensure(user); folders.Ensure(Extensions);
             string path = Path.Combine(user, "settings.json");
             JObject values = null;
+            string original = null, source = null;
             if (File.Exists(path))
             {
                 // A malformed settings edit must not trap Try again outside the
                 // editor. Zero owns this isolated profile; restore its defaults.
                 // Filesystem/access errors still propagate without replacement.
-                string text = ReadText(path, 1024 * 1024);
-                try { values = ReadSettings(text); }
+                original = ReadText(path, 1024 * 1024);
+                try { values = ReadSettings(original); source = original; }
                 catch (IOException error) when (error.InnerException is JsonException) { }
             }
             if (values == null)
@@ -347,16 +431,34 @@ namespace ZeroSetup
             values.Remove("java.jdt.ls.java.home");
             values.Remove("java.home");
             values["java.import.gradle.java.home"] = java;
-            values["terminal.integrated.env.windows"] = new JObject { ["JAVA_HOME"] = java, ["PATH"] = Path.Combine(java, "bin") + ";${env:PATH}" };
+            var terminal = values["terminal.integrated.env.windows"] as JObject ?? new JObject();
+            // Windows environment names are case-insensitive even though JSON keys are not.
+            foreach (var property in terminal.Properties().Where(property => TerminalOwnedVariables.Contains(property.Name, StringComparer.OrdinalIgnoreCase)).ToArray()) property.Remove();
+            terminal["JAVA_HOME"] = java; terminal["ZERO_JAVA_HOME"] = java; terminal["PATH"] = JavaPath;
+            terminal["MAVEN_SKIP_RC"] = "1";
+            foreach (string key in JavaStartupVariables) terminal[key] = JValue.CreateNull();
+            values["terminal.integrated.env.windows"] = terminal;
+            var profiles = values["terminal.integrated.profiles.windows"] as JObject ?? new JObject();
+            profiles["Zero Java"] = TerminalProfile();
+            values["terminal.integrated.profiles.windows"] = profiles;
+            values["terminal.integrated.defaultProfile.windows"] = "Zero Java";
             // Zero owns this isolated profile; tools never import into Default.
-            values["window.restoreWindows"] = "all";
+            if (source == null && values["window.restoreWindows"] == null) values["window.restoreWindows"] = "all";
             string temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
             try
             {
                 WindowsRuntimeFolders.Check(path);
+                string updated = source == null ? values.ToString(Formatting.Indented) : PatchSettings(source, values);
+                if (updated == original) return;
                 using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-                using (var writer = new StreamWriter(output, new UTF8Encoding(false))) writer.Write(values.ToString(Formatting.Indented));
-                if (File.Exists(path)) File.Replace(temporary, path, null);
+                using (var writer = new StreamWriter(output, new UTF8Encoding(false))) writer.Write(updated);
+                WindowsRuntimeFolders.Check(path);
+                if (File.Exists(path))
+                {
+                    if (original == null || ReadText(path, 1024 * 1024) != original) throw new IOException("Zero's editor settings changed during setup. Your edit was kept; retry setup.");
+                    File.Replace(temporary, path, null);
+                }
+                else if (original != null) throw new IOException("Zero's editor settings changed during setup. Retry setup.");
                 else File.Move(temporary, path);
             }
             finally { if (File.Exists(temporary)) File.Delete(temporary); }
@@ -417,6 +519,14 @@ namespace ZeroSetup
                 }
             }
         }
+        private string JavaPath { get { return Path.Combine(java, "bin") + ";${env:PATH}"; } }
+        private JObject TerminalProfile()
+        {
+            // /d prevents a user's cmd AutoRun from replacing the private Java.
+            var environment = new JObject { ["JAVA_HOME"] = java, ["ZERO_JAVA_HOME"] = java, ["PATH"] = JavaPath, ["MAVEN_SKIP_RC"] = "1" };
+            foreach (string key in JavaStartupVariables) environment[key] = JValue.CreateNull();
+            return new JObject { ["path"] = "${env:windir}\\System32\\cmd.exe", ["args"] = new JArray("/d"), ["env"] = environment };
+        }
         private bool SettingsReady()
         {
             WindowsRuntimeFolders.Check(Extensions);
@@ -425,7 +535,14 @@ namespace ZeroSetup
             if (!File.Exists(path)) return false;
             var values = ReadSettings(ReadText(path, 1024 * 1024));
             var runtimes = values["java.configuration.runtimes"] as JArray;
-            return runtimes != null && runtimes.OfType<JObject>().Any(runtime =>
+            var terminal = values["terminal.integrated.env.windows"] as JObject;
+            var profiles = values["terminal.integrated.profiles.windows"] as JObject;
+            return values["java.home"] == null && values["java.jdt.ls.java.home"] == null &&
+                (string)values["java.import.gradle.java.home"] == java &&
+                (string)values["terminal.integrated.defaultProfile.windows"] == "Zero Java" &&
+                terminal != null && !terminal.Properties().Any(property => TerminalOwnedVariables.Any(key => string.Equals(key, property.Name, StringComparison.OrdinalIgnoreCase) && key != property.Name)) && (string)terminal["MAVEN_SKIP_RC"] == "1" && JavaStartupVariables.All(key => terminal[key]?.Type == JTokenType.Null) && (string)terminal["JAVA_HOME"] == java && (string)terminal["ZERO_JAVA_HOME"] == java && (string)terminal["PATH"] == JavaPath &&
+                profiles != null && JToken.DeepEquals(profiles["Zero Java"], TerminalProfile()) &&
+                runtimes != null && runtimes.Count == 1 && runtimes.OfType<JObject>().Any(runtime =>
                 (string)runtime["name"] == "JavaSE-21" && runtime["default"]?.Type == JTokenType.Boolean &&
                 (bool)runtime["default"] && runtime["path"]?.Type == JTokenType.String &&
                 string.Equals((string)runtime["path"], java, StringComparison.OrdinalIgnoreCase));

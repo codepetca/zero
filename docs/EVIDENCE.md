@@ -1,5 +1,35 @@
 # Delivery evidence index
 
+## Bundled Java isolation — 2026-10-27 (local)
+
+Base9b030d24; branch codex/bundled-java in the dedicated bundled-java worktree.
+Owner authorized implementation only. Native launchers export ZERO_JAVA_HOME;
+Run verifies private Java/java compiler21 and explicitly selects it for owned
+children. Browser tooling ignores inherited JAVA_HOME when managed. JVM/Maven
+startup overrides are removed only in owned children; Maven skips user rc files.
+Zero isolated settings repair Java-owned keys and stale hash paths, retaining
+unrelated preferences/JSONC comments. Zero terminal profiles use zsh-f or cmd/d.
+The RedHat extension retains its own tooling runtime. No added download, project
+API/source-level change, global Java/settings edit, credential or release change.
+
+94focused JS/dev tests pass. Native worker GPT6.1Sol/high delivered four native
+files; coordinator inspected integration and reused350Mac native assertions and
+2107Windows wrapper checks plus updater harness. Starter20-source Maven compile
+passes with real private Temurin21.0.12.1 and source release17 despite injected
+oldJAVA_HOME/JVM flags. Real host runtime/browser selection and disposable zsh
+startup-file override checks pass; parent env is retained. Syntax/contracts/doc
+links and diff whitespace checks pass. Full regression and independent review
+pending. Logs/real-runtime receipt: .verification/bundled-java/. Physical Windows,
+fresh-device/school-network and actual editor terminal UI remain untested.
+
+Review budget:standard risk, one initial GPT6.1Sol/high source reviewer; maximum
+7launches/4fixbatches/60minutes under docs/AI-WORKFLOW.md and pr-review skill.
+Implementation split: coordinator owns JS/docs, worker owns native code; no
+writer overlap. Initial weekly remaining79%, storage healthy227.5GB. One native
+fixture correction and subsequent startup/case-key integration corrections;
+no integration conflicts. Worker/coordinator token usage and active time unknown.
+No claimed savings, new goal/task/automation, publication or account change.
+
 ## Zero Dev Publish prerequisite: native JDK17 / browser JDK21 — 2026-10-26
 
 Owner reported Publish app failure in the Zero Dev window opened on my-study.

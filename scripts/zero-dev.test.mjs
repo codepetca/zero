@@ -73,8 +73,9 @@ test('launch keeps source extension, project and editor state separate from inst
   const settings = JSON.parse(readFileSync(path.join(result.game, '.vscode/settings.json')));
   assert.equal(settings['zero.uploadMode'], 'simulation');
   assert.equal(settings['git.enabled'], false);
-  const env = developmentEnvironment({ZERO_KIT_DIR:'/installed/student/kit', VSCODE_IPC_HOOK_CLI:'normal-profile', PATH:'/bin'});
+  const env = developmentEnvironment({ZERO_KIT_DIR:'/installed/student/kit', ZERO_JAVA_HOME:'/installed/student/jdk', VSCODE_IPC_HOOK_CLI:'normal-profile', PATH:'/bin'});
   assert.equal(env.ZERO_KIT_DIR, undefined);
+  assert.equal(env.ZERO_JAVA_HOME, undefined);
   assert.equal(env.VSCODE_IPC_HOOK_CLI, undefined);
 });
 test('watcher notices authored changes while ignoring generated game/editor state', t => {

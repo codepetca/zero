@@ -1,22 +1,19 @@
-# Mac53 public; download/feed promotion
+# Bundled Java isolation — local implementation
 
-Owner authorized2026-10-27 corrected3templates/sourcePR/CI/merge/signedMacrelease/
-promotion and installedtutorial flow. SourcePR212 merged35567ce8 after11green checks
-at reviewedbe449afd, builtclean6fbca695. Publicsetup-v0.5.53 exactsealedDMG5966342bytes
-SHA25656a6978708c61cd2ac86d26a0bc958f2cee369cea0b002cad6cbcdbfd5e374fe.
-All3templatePR2merged; anonymous95fileproof/recordscoherent. Packagegate and actual
-VSIXreadiness/sourceparity enforced.1358pass/3skip,website243pass,typecheckpass,
-release99pass/2skip. Gate/source/artifact independentreviews complete/clean.
+Task branch codex/bundled-java, base origin/main9b030d24 (Mac53 promotion).
+Owner requested Zero always use its bundled Java without changing students'
+system Java/settings. Scope: native launcher/settings repair, managed Run/browser
+build environments, Zero-only terminal profiles and truthful setup diagnostics.
+Public API, project source/build pins, global settings and credentials unchanged.
 
-InstallednormalMac52-to53setuphandoff and isolated3tutorialcreate/clone/nativeRun/
-Stop pass; correctreaders0/3/8 and9–11 opened. Did notmanuallyretypeeverylesson.
-Details docs/MAC-CANDIDATE-0.5.53.md; ignored .verification/mac53/ receipts.
-Currentphase: promoteexactsignedbuild53feed andverifiednative download through
-independentreview/CI/merge andlivebyteverification. No rebuildaftersealing.
+Local verification:94focused JS/dev tests,350Mac native assertions,2107Windows
+wrapper checks plus updater harness; starter20-source Maven compile passes with
+private Temurin21.0.12.1 and source release17. Real runtime/browser-selection and
+zsh-f startup-override checks pass. Full regression suite and independent source
+review pending. Logs in ignored .verification/bundled-java/.
 
-Preserveprimaryfundingwork,studentprojects/profiles,immutableMac52/olderassets,
-Windows21/manualkit17 andproductionZeroJams hold. NormalprofileGreeting project
-subsequentlyeditedbyuser; leaveunchanged. QAusesownedCodecopy/existingprofile.
-No freshdevice/schoolnetwork/physicalIntelWindows/Sparkledeliveryclaim.
-Local-onlyTutorialdocslabel6b5cfcc6 inseparateworktree/branch; footerremovalea35e266
-alsoseparateunpublished. Do not includeinthissealedrelease. Menurelocationrescinded.
+Use docs/EVIDENCE.md for delivery/review receipts. No push, PR, merge or installer
+release authorized by this implementation request. Mac53 sealed assets, Windows21/
+manualkit17 and productionZeroJams hold remain unchanged. Preserve primary funding
+work, existing student projects/profiles and all other active worktrees. Physical
+Windows, fresh-device/school-network and actual VSCode terminal UI untested.

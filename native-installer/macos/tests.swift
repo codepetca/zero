@@ -712,7 +712,23 @@ struct SetupTests {
         try expect(try manager.destinationOfSymbolicLink(atPath:runtime.nodeBinary.deletingLastPathComponent().appendingPathComponent("npm").path) == "../lib/node_modules/npm/bin/npm-cli.js", "Node npm link extracted only as a contained link, never executed")
         let selected = try runtime.javaHome()!
         try expect(selected.path.hasPrefix(runtime.root.path), "private verified Java selected independently of host JAVA_HOME")
-        try expect(runtime.environment(selected)["JAVA_HOME"] == selected.path, "editor and task environment receives private Java")
+        let inheritedJava = ProcessInfo.processInfo.environment["JAVA_HOME"], inheritedPath = ProcessInfo.processInfo.environment["PATH"], inheritedZeroJava = ProcessInfo.processInfo.environment["ZERO_JAVA_HOME"]
+        let inheritedFlags = Dictionary(uniqueKeysWithValues: MacRuntime.javaStartupVariables.map { ($0, ProcessInfo.processInfo.environment[$0]) })
+        for key in MacRuntime.javaStartupVariables { setenv(key, "fixture inherited startup option", 1) }
+        defer {
+            for key in MacRuntime.javaStartupVariables {
+                if let value = inheritedFlags[key] ?? nil { setenv(key, value, 1) } else { unsetenv(key) }
+            }
+        }
+        try expect(try runtime.javaHome() == selected && MacRuntime.javaStartupVariables.allSatisfy { runtime.environment(selected)[$0] == nil && ProcessInfo.processInfo.environment[$0] == "fixture inherited startup option" } && runtime.environment(selected)["MAVEN_SKIP_RC"] == "1", "Java verification/launch clear inherited startup options only in owned children")
+        for version in ["17", "25"] {
+            setenv("JAVA_HOME", "/fixture/java" + version, 1); setenv("ZERO_JAVA_HOME", "/stale/zero/java" + version, 1)
+            try expect(runtime.environment(selected)["JAVA_HOME"] == selected.path && runtime.environment(selected)["ZERO_JAVA_HOME"] == selected.path, "private Java overrides inherited Java " + version)
+            try expect(ProcessInfo.processInfo.environment["JAVA_HOME"] == "/fixture/java" + version, "selection does not mutate parent Java")
+        }
+        if let inheritedJava { setenv("JAVA_HOME", inheritedJava, 1) } else { unsetenv("JAVA_HOME") }
+        if let inheritedZeroJava { setenv("ZERO_JAVA_HOME", inheritedZeroJava, 1) } else { unsetenv("ZERO_JAVA_HOME") }
+        try expect(ProcessInfo.processInfo.environment["PATH"] == inheritedPath, "selection never mutates parent PATH")
         try expect(runtime.environment(selected)["ZERO_KIT_DIR"] == runtimeKit.root.path, "editor receives kit location for explicit installation testing")
         try expect(runtime.environment(selected)["ZERO_NODE_EXECUTABLE"] == runtime.nodeBinary.path && runtime.environment(selected)["PATH"]!.contains(runtime.nodeBinary.deletingLastPathComponent().path), "private Node hint and child PATH reach only Zero editor environment")
         try expect(!(try SetupSnapshot.parse(snapshot(["node":0]))).ready, "missing browser runtime prevents ready while Java remains available")
@@ -738,9 +754,35 @@ struct SetupTests {
         let settingsJSON = try JSONSerialization.jsonObject(with: Data(contentsOf: settings)) as! [String: Any]
         try expect(settingsJSON["files.autoSaveDelay"] as? Int == 500 && settingsJSON["workbench.activityBar.location"] as? String == "hidden", "minimal supplied settings seeded automatically")
         try expect(settingsJSON["java.jdt.ls.java.home"] == nil, "Java extension uses its compatible embedded tooling runtime")
-        try "{\"student.setting\": true}".write(to: settings, atomically: true, encoding: .utf8)
+        try expect(try runtime.settingsReady(selected), "fresh settings verify all managed Java and terminal keys")
+        let terminalEnv = settingsJSON["terminal.integrated.env.osx"] as! [String: Any]
+        try expect(MacRuntime.javaStartupVariables.allSatisfy { terminalEnv[$0] is NSNull } && terminalEnv["MAVEN_SKIP_RC"] as? String == "1", "Zero terminals remove inherited JVM/Maven startup flags and skip Maven rc")
+        let custom = """
+        {
+          // Keep this student preference and comment.
+          "student.setting": true,
+          "java.home": "/old/java17",
+          "java.jdt.ls.java.home": "/old/java25",
+          "java.import.gradle.java.home": "/old/java17",
+          "terminal.integrated.env.osx": {"CUSTOM": "keep", "JAVA_HOME": "/old/java25"},
+          "terminal.integrated.profiles.osx": {"Student shell": {"path": "/bin/bash"}},
+        }
+        """
+        try custom.write(to: settings, atomically: true, encoding: .utf8)
+        try expect(try !runtime.settingsReady(selected), "stale Java settings block readiness")
         try runtime.seedSettings(selected)
-        try expect(try String(contentsOf: settings) == "{\"student.setting\": true}", "later student editor configuration preserved byte-for-byte")
+        let repairedText = try String(contentsOf: settings)
+        let repaired = try MacRuntime.readSettings(repairedText)
+        try expect(repairedText.contains("// Keep this student preference and comment.") && repairedText.contains("\"student.setting\": true"), "Java repair preserves unrelated JSONC text and comments")
+        try expect((repaired["terminal.integrated.env.osx"] as? [String: Any])?["CUSTOM"] as? String == "keep" && (repaired["terminal.integrated.profiles.osx"] as? [String: Any])?["Student shell"] != nil, "Java repair preserves unrelated terminal environment and profiles")
+        try expect(repaired["java.home"] == nil && repaired["java.jdt.ls.java.home"] == nil && ((repaired["terminal.integrated.profiles.osx"] as? [String: Any])?["Zero Java"] as? [String: Any])?["path"] as? String == "/bin/zsh" && repairedText.contains("-f"), "repair removes obsolete tooling overrides and skips user terminal startup files")
+        try runtime.seedSettings(selected)
+        try expect(try runtime.settingsReady(selected) && String(contentsOf: settings) == repairedText, "repeated Java repair is stable and ready")
+        runtime.testBeforeExchange = { try "{\"student.concurrent\": true}".write(to: settings, atomically: true, encoding: .utf8) }
+        try "{\"student.setting\": false}".write(to: settings, atomically: true, encoding: .utf8)
+        try rejected("concurrent Java settings repair") { try runtime.seedSettings(selected) }
+        runtime.testBeforeExchange = nil
+        try expect(try String(contentsOf: settings) == "{\"student.concurrent\": true}", "Java repair rollback preserves concurrent editor settings")
         let outside = temporary.appendingPathComponent("outside settings")
         try "student".write(to: outside, atomically: true, encoding: .utf8)
         try manager.removeItem(at: settings); try manager.createSymbolicLink(at: settings, withDestinationURL: outside)
@@ -773,7 +815,9 @@ struct SetupTests {
         try manifest(String(repeating: "b", count: 64))
         var badHash = try MacRuntime(kit: runtimeKit.root, home: runtimeHome)
         try badHash.seedSettings(badHash.jdk.appendingPathComponent("jdk/Home"))
-        try expect(try Data(contentsOf: settings) == oldPinSettings && manager.fileExists(atPath: selected.path), "changed Java digest preserves existing settings bytes and referenced old JDK")
+        let newJava = badHash.jdk.appendingPathComponent("jdk/Home")
+        try expect(try !badHash.settingsReady(selected) && badHash.settingsReady(newJava) && manager.fileExists(atPath: selected.path), "changed Java digest repairs managed paths while keeping previous private JDK")
+        try expect(try MacRuntime.readSettings(String(contentsOf: settings))["student.setting"] as? Bool == true, "changed Java digest preserves unrelated preference")
         badHash.testDownload = { target, _ in try manager.copyItem(at: archive, to: target) }
         try rejected("checksum mismatch") { try badHash.install("jdk") }
         try expect(!manager.fileExists(atPath: badHash.jdk.path), "unverified download never installed")
@@ -810,7 +854,7 @@ struct SetupTests {
         let generated = try String(contentsOf: launcher)
         try expect(generated.contains("export ZERO_NODE_EXECUTABLE=" + MacRuntime.quote(runtime.nodeBinary.path)) && generated.contains("NODE_OPTIONS NODE_PATH"), "owned launcher carries private Node path and clears inherited injection")
         try expect(generated.contains("--new-window") && !generated.contains(runtimeKit.root.appendingPathComponent("starter").path), "standalone fallback opens empty tutorial window")
-        try expect(generated.contains("--user-data-dir") && generated.contains("--extensions-dir") && generated.contains("export JAVA_HOME=") && generated.contains("export ZERO_KIT_DIR=" + MacRuntime.quote(runtimeKit.root.path)), "standalone launcher preserves private editor, Java and kit location after DMG closes")
+        try expect(generated.contains("--user-data-dir") && generated.contains("--extensions-dir") && generated.contains("export JAVA_HOME=") && generated.contains("export ZERO_JAVA_HOME=") && generated.contains("export ZERO_KIT_DIR=" + MacRuntime.quote(runtimeKit.root.path)), "standalone launcher preserves private editor, Java and kit location after DMG closes")
         try manager.removeItem(at: launcher)
         runtime.testBeforeExchange = { try "student newly created launcher".write(to: launcher, atomically: true, encoding: .utf8) }
         try rejected("concurrent launcher creation") { try runtime.launcher(cli: URL(fileURLWithPath: "/fake code"), java: selected) }

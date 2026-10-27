@@ -54,7 +54,16 @@ or installs a verified copy for Zero in that private directory. Downloads are
 pinned by URL and SHA256 in `setup/mac-downloads.json`; changed bytes are refused.
 Normal system Java, VS Code profiles and student source are preserved. Initial
 quiet settings are copied only when Zero's settings file is absent; later theme
-and editor choices are kept. This editor configuration is separate from a named
+and editor choices are kept. Current source repairs Java-owned settings in that
+isolated editor whenever readiness detects stale paths or overrides, preserving
+unrelated preferences and JSONC comments. Run and browser builds use the private
+JDK selected by the native launcher, independently of inherited `JAVA_HOME`.
+Missing or incompatible private Java stops the operation with repair guidance;
+it never substitutes system Java. The Zero Java terminal uses a private runtime
+environment and skips user shell startup files that could select another JDK.
+The Java language extension keeps its own bundled tooling runtime; the project
+JDK is not assigned as `java.jdt.ls.java.home`.
+This editor configuration is separate from a named
 Zero profile in an ordinary VS Code window. Open **Zero** in Applications to return to the configured editor.
 **Open Zero.command** remains an optional manual fallback.
 

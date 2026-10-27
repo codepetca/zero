@@ -115,3 +115,21 @@ test('current-source commit proof works without a build invocation and detects i
  await fs.writeFile(path.join(h.dir,'src/main/resources/ignored.png'),'unpublished');
  await assert.rejects(adapter.assertBuildInputsAtCommit({projectRoot:h.dir,sourceSha:'a'.repeat(40),git}),/absent from the browser receipt/);
 });
+
+test('managed builds use only launcher Java even when a compatible system JDK or stale JAVA_HOME exists',async t=>{
+ const dir=await root(t),bin=path.join(dir,'bin'),bundled=path.join(dir,'Zero private jdk'),system=path.join(dir,'system jdk');
+ for(const file of [path.join(bin,'node'),...[bundled,system].flatMap(home=>['java','javac'].map(name=>path.join(home,'bin',name)))]){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,'fixture');}
+ let bundledMajor=21;const probes=[];
+ const execute=async(file,args,options)=>{
+  probes.push(file);assert.equal(options.env.JAVA_TOOL_OPTIONS,undefined);assert.equal(options.env.GITHUB_TOKEN,undefined);
+  if(path.basename(file)==='node')return {stdout:JSON.stringify({node:'22.21.1',electron:null})};
+  assert.ok(file.startsWith(bundled+path.sep),'A managed build must not probe system Java');
+  return path.basename(file)==='javac'?{stdout:`javac ${bundledMajor}.0.12`}:{stderr:`openjdk version "${bundledMajor}.0.12"`};
+ };
+ const environment={PATH:bin,ZERO_JAVA_HOME:bundled,JAVA_HOME:system,JAVA_TOOL_OPTIONS:'-Djava.home=old',GITHUB_TOKEN:'secret'};
+ const options={runtime:{requirements:{nodeMajor:22,javaMajor:21},pins:[]},projectRoot:path.join(dir,'student'),platform:'linux',arch:'x64',environment,execute};
+ const selected=await locateRuntimes(options);assert.equal(selected.javaHome,bundled);assert.equal(selected.env.JAVA_HOME,bundled);assert.equal(selected.env.MAVEN_SKIP_RC,'1');assert.equal(environment.JAVA_HOME,system);
+ for(const major of [17,25]){bundledMajor=major;await assert.rejects(locateRuntimes(options),/bundled JDK 21.*repair.*system Java will not be substituted/);}
+ await fs.rm(bundled,{recursive:true});await assert.rejects(locateRuntimes(options),/bundled JDK 21.*repair/);
+ assert.ok(!probes.some(file=>file.startsWith(system+path.sep)));
+});
