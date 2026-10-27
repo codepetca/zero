@@ -1,32 +1,22 @@
-# Tutorial startup regression — local repair prepared
+# Mac53 public; download/feed promotion
 
-Owner reports Mac0.5.52 Start tutorial rejects Greeting as unverified. All3
-current scaffolds differ from Oct24 publication evidence. Public template main
-commits still match teaching/tutorial-templates.json. Exact95-file comparison
-finds4changed files per project: LICENSE, saved MIT notice, saved authoring.js
-(explorer navigation), and its builder manifest. No student Java API change.
+Owner authorized2026-10-27 corrected3templates/sourcePR/CI/merge/signedMacrelease/
+promotion and installedtutorial flow. SourcePR212 merged35567ce8 after11green checks
+at reviewedbe449afd, builtclean6fbca695. Publicsetup-v0.5.53 exactsealedDMG5966342bytes
+SHA25656a6978708c61cd2ac86d26a0bc958f2cee369cea0b002cad6cbcdbfd5e374fe.
+All3templatePR2merged; anonymous95fileproof/recordscoherent. Packagegate and actual
+VSIXreadiness/sourceparity enforced.1358pass/3skip,website243pass,typecheckpass,
+release99pass/2skip. Gate/source/artifact independentreviews complete/clean.
 
-Branch codex/tutorial-readiness-fix, base779af4d4. Package now checks tutorial
-publication coherence before generation/assets; verify:kit checks actual VSIX
-readiness and exact source/record parity. Regression fixtures explicit; no real
-publication metadata stamped from drafts.95focused tests, configuration checks,
-3generated native Maven builds pass. Actual package now fails stale records as
-expected. Independent Sol/medium review tutorial_gate_review complete/clean over
-5code/test/docs files;18lesson tests independently pass,1launch/1wave/0fixes.
-Effective model/time/tokens unavailable. Details: docs/EVIDENCE.md; ignored
-.verification/tutorial-readiness/ includes exact drafts, public checkouts/logs.
+InstallednormalMac52-to53setuphandoff and isolated3tutorialcreate/clone/nativeRun/
+Stop pass; correctreaders0/3/8 and9–11 opened. Did notmanuallyretypeeverylesson.
+Details docs/MAC-CANDIDATE-0.5.53.md; ignored .verification/mac53/ receipts.
+Currentphase: promoteexactsignedbuild53feed andverifiednative download through
+independentreview/CI/merge andlivebyteverification. No rebuildaftersealing.
 
-Owner authorized2026-10-27:3template source PRs/CI/merges and verified publication
-records, Zero source PR/CI/merge, next unused signed Mac release and download/feed
-promotion. Version0.5.53/build53 verified unused. Templates worker owns only3ignored
-clones; coordinator owns Zero source/build/QA. Template/menu placement unchanged. Positive packaging/installed real Start tutorial/create/clone/Run for
-all3 templates must pass before promotion. Do not bypass readiness or modify an
-installed signed payload. Existing projects/Clone/Run remain available.
-Current phase: all3template PR2 merged; publicarchives and metadata verified.
-SourcePR212 draft, built6fbca695 signed/notarized/stapled; recording/sealing
-measured candidate, installed3tutorial QA and finalartifactreview next.
-Full1358pass/3skip,website243pass,typecheckpass. No Mac53 publication yet. Footer removal is
-separate committed branch codex/remove-footer-agreement ea35e266, not published.
-Preserve primary funding work, profiles/student projects, existing release assets,
-Windows21/manualkit17 and production ZeroJams hold. No fresh-device/school-network/
-actual Sparkle claim. DeepSeek paused; no new task, automation or goal.
+Preserveprimaryfundingwork,studentprojects/profiles,immutableMac52/olderassets,
+Windows21/manualkit17 andproductionZeroJams hold. NormalprofileGreeting project
+subsequentlyeditedbyuser; leaveunchanged. QAusesownedCodecopy/existingprofile.
+No freshdevice/schoolnetwork/physicalIntelWindows/Sparkledeliveryclaim.
+Local-onlyTutorialdocslabel6b5cfcc6 inseparateworktree/branch; footerremovalea35e266
+alsoseparateunpublished. Do not includeinthissealedrelease. Menurelocationrescinded.
