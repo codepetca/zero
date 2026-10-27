@@ -12,11 +12,12 @@ reviewed local94c2cac9/receipt9202743d; source publication now authorized there.
 No competing writer/build in that checkout. Our codex/mac54-release checkout
 starts atmainfa0d6b74; only release preparation here until Java merges.
 
-Blocked at Java source publication: both task snapshots report weekly100% and
-ordinaryUsageAllowed:false/rate_limit_reached. This is the actual provider gate,
-not the waived workflow/review budget. No reset/credit purchase or alternate
-provider was used. Java task is idle with reviewed source and saved handoff;
-PR/CI/merge not started. Resume after provider execution is available.
+Owner explicitly approved retry/continuation and combined Mac54 publication.
+Usage metadata still100%/ordinaryUsageAllowed:false, but current tool execution
+succeeds. Resume authorized normal execution; do not infer a runtime rejection
+from metadata alone, consume a reset, purchase credits or change account settings.
+Respect actual provider/runtime rejection. Java source owner has been asked to
+resume its existing task with this exact human instruction.
 
 Then integrate its reviewed/green source, bump/pin new candidate, build/sign/
 notarize/staple, verify isolated editor and upgrade/terminal behavior, seal and
