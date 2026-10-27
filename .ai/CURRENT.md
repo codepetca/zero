@@ -14,7 +14,8 @@ record measured installer, sign feed and seal immutable candidate; (3) exact ins
 Run and Publish & open acceptance in disposable project; (4) independent release
 review and selected CI, source merge; (5) publish exact sealed Mac asset; (6) reviewed
 promotion PR/CI/merge, anonymous live-byte/signature/download verification.
-Current phase: version preparation; public Mac51 and its sealed candidate intact.
+Current phase: measured notarized candidate recorded; sign feed/seal, exact installed
+QA and final artifact review next. Public Mac51 and its sealed candidate intact.
 
 Preserve primary funding work, normal profiles/student projects, original actor
 checkout, Windows21/manualkit17, immutable existing assets and production ZeroJams
