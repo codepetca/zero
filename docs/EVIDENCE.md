@@ -11424,3 +11424,50 @@ credential change or public source/app mutation. Public Mac0.5.51 remains the
 previously verified release from PR208/209. Preserved primary funding work, normal
 profiles/projects, original actor checkout, Windows21/legacykit17, immutable release
 assets and production ZeroJams hold.
+
+## Mac52 source release and promotion — 2026-10-26
+
+Owner authorized shipping Publish & open app through source PR/CI/merge, signed
+Mac release, exact installed acceptance and reviewed download/feed promotion.
+Main remained7253a217: no integration conflict, reviewed feature unchanged.
+Release delta6c31857c..88182843 independently reviewed clean (requested Sol/high,
+17focused pass/2explicit skips); all source/bundled version52 and build52 agree.
+Final artifact/integration review88182843..02c000bb complete/clean (Sol/medium):
+13new/13old sealed checksums,41protected source paths, installer/build/feed/key and
+Ed25519 agreement, retained public51, Windows21/manual17 and ZeroJams hold verified.
+159installed files byte-identical plus package.json normalized only for Code metadata.
+Release ledger2turns,1initial+1integration wave,0fix batches. Effective model,
+per-turn elapsed/time/tokens unavailable; earlier completed feature review retained.
+
+Installed sealed-DMG payload in isolated official pinnedCode1.141.0 QA profile,
+no development override. Native App UI ready/Stop observed. Saved edit autoasked
+commit message, guarded-pushed d3dbe888, reviewed public Pages destination, built
+and deployed40440788285success, opened browser Hello from Zero 0.5.52!/App opened.
+Repeat open had identical run lists and retained-manifest mtime/size; project clean.
+Normal profiles/projects preserved; no new credentials/permissions. Same maintainer
+Mac/existing QA session; native Run preceded greeting edit. No fresh-device,
+school-network, physical Intel/Windows or actual Sparkle-delivery evidence.
+
+SourcePR210 merged1be8939398c3b7c74c2f05299e6c5db9d6cde4e9 after all11selected
+checks at02c000bb passed, including full source/native/WebFX/Windows lanes.
+Local feature suite1357pass/3skip, controller55/publisher58, check/kit parity/extracted
+Maven and actual Developer ID/staple/Gatekeeper proof pass. AppleAccepted
+98589efd-54ef-4eec-838b-62c44e3204a4. Published setup-v0.5.52 targets02c000bb,
+built88182843, exactly one sealed5964580byte DMG SHA256
+6a8235a99c05e66bef50e10c6a64e8ca03a01b12c160e704ce54e32c61aece12.
+Draft and anonymous public bytes/Ed25519 verified; no rebuild after seal.
+One early feed-sign attempt rejected an uncommitted metadata tree while DMG detach
+was finishing; after the existing commit completed, signing/sealing passed unchanged.
+
+Promotion copies exact sealed signed XML and changes only feed JSON publication
+status; native snapshots retain measured source/size/hash/signer and verified URL.
+Promotion independent review/selected CI/merge/live feed-download verification remain
+separate gates recorded on that PR and .verification/mac52/final-delivery.json.
+Mac51 immutable assets/seal remain intact, Windows21/manualkit17 and production
+ZeroJams hold unchanged. Detailed ignored source/QA/review/build receipts retained.
+
+Promotion local checks:32passed/1explicit signer-fixture skip, website typecheck,
+configuration/contracts and whitespace pass. Actual published-feed loader, public
+DMG Ed25519 and exact XML/feed-JSON status-only proof pass. Signed XML SHA256
+0b0f02355f30385ae7b93deaae6da26cc24c5f18d3ff86ce12725cc3a48fc496.
+Independent promotion review and selected CI belong to the promotion PR gate.
