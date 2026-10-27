@@ -11513,3 +11513,38 @@ traced-only runtime checks pass. CI runs the bundle audits after building. Produ
 ZeroJams stays unconditionally hidden; pilot work is excluded from this publication.
 Hosted savings require the publication PR's Linux deployment/resource comparison;
 see [website plan](WEBSITE-PLAN.md#function-bundle-reduction--2026-10-27).
+
+
+## Mac0.5.53 tutorial-readiness release — 2026-10-27
+
+Owner authorized template/sourcePR/CI/merge, signedMacrelease anddownload/feed
+promotion. All3templatePR2merged; anonymous exact95filebyte/mode/provenance checks
+pass. Refreshed actualpubliccommit/tree/digests in teaching/tutorial-templates.json.
+SourcePR212 merged35567ce8 after11finalgreenchecks atbe449afd; cleanbuilt6fbca695.
+Gate5files independentlyreviewed before9b7d2a01; unchanged gatecoverage reused.
+Final integration turn mac53_release_review requestedSol/high complete/clean over
+14files, all13sealhashes/protectedsourcepaths, actualVSIXreadytutorials, publicarchives,
+notary/staple/Gatekeeper andsignedfeed/archive.1integrationwave/1launch/0fixes;
+effectiveconfiguration/time/tokens unavailable. Templateindependentreview separate.
+
+Local1358pass/3skip;95focus;all3generatednativebuilds;18lesson tests with finalrecords;
+website243pass/typecheck;release99pass/2skip;package/actualVSIX/kitparity/Mavenpass.
+Existing maintainerDMG helper was absent; installed pinnedhashes in ignoredvenv and
+rebuilt before seal. AppleAccepted4e29a6c6-ae56-49df-92e8-c51f69a20cff. SingleDMG
+5966342bytesSHA25656a6978708c61cd2ac86d26a0bc958f2cee369cea0b002cad6cbcdbfd5e374fe.
+Publicsetup-v0.5.53 draft/anonymousdownload equal sealedbytes and Ed25519 passes.
+
+NormalinstalledMac52-to53launcherhandoff passes; installed133sources/tutorialbundle
+byteidentical. IsolatedofficialCode1.143.1/existingQAsign-in: Starttutorialcreated/
+clonedGreeting,Study,Coinrepositories; each95trackedbytes/modesmatchtemplate.
+NativeUI/firstframe andStop pass all3. Readers0/3/8 and9–11 open; didnotmanuallyretype
+alllessons. The normalprofileGreetingsmokeprojectwastheneditedbyuser,preserved;
+remainingchecks movedtoisolatedwindow. IgnoredJava targetexcludedfrompristineGit
+sourceproof; pristine-template checker deliberatelyretainsitsstrictinventoryrule.
+
+Promotion copies exactsignedXML andfeedJSONstatus-onlychange; publishedinstaller
+measuredsource/hash/signer/URLretained. Independentpromotionreview/CI/merge/livebytes
+are remaininggates recordedonpromotionPR and .verification/mac53/final-delivery.json.
+Allpublicproofs/reviews/native/CIreceipts retainedignored. SameMac/cache/session,
+no freshdevice/schoolnetwork/physicalIntelWindows/actualSparkleclaim. Preserveold
+assets,Windows21/manualkit17,primarywork,studentprofiles/projects andZeroJams hold.
