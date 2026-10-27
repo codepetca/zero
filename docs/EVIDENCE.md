@@ -1,5 +1,85 @@
 # Delivery evidence index
 
+## Bundled Java source publication — 2026-10-27
+
+Owner production continuation verified in Zero Architecture human turn
+01a17e09-176e-7311-a127-1bc438609555: Java PR/CI/merge, then combinedMac54release.
+This chat owns source only; Architecture owns Mac0.5.54/build54 installer/feed.
+No kit-version bump or artifact removal here. Existing account execution works;
+no reset, credit purchase, credential/model/settings change or rejection bypass.
+
+PR217:https://github.com/codepetca/zero/pull/217. Mergeac0a94c4 integrates
+mainfa0d6b74 into reviewed9202743d delivery, retaining PR215publishing feedback/
+Open published app/Tutorialdocs, PR216footer removal and Mac53metadata.
+Native/helper/setup/browser source blobs are unchanged by integration; the only
+production overlap is extension.js, which retains the exact reviewed Java task
+environment additions. CURRENT/EVIDENCE conflicts preserve both histories.
+Acceptance handoff8eb025b0 documents exact isolated real-editor terminal/upgrade
+prerequisites and commands in BUNDLED-JAVA-ACCEPTANCE.md, separating that smoke
+from native installer/update UI acceptance and physicalWindows.
+
+java_review/4 requested GPT6.1Sol/high: complete scoped9202743d→8eb025b0 actual
+integration/conflict/handoff review clean,0findings, no edits. Incoming unrelated
+modules match current main; unchanged prior complete+targeted coverage reused.
+179focused Java/setup/dev/publishing/sidebar tests and configuration/doc-link/
+syntax checks pass. Native357/Windows2238+updater and initial1365pass/3skip reused
+for unchanged source. Cumulative4reviewerturns,1initial+2targeted+1integration,
+2fixbatches; telemetry unknown. Receipt-only follow-up; no code changes after
+review. Exact-head final CI and source merge pending at this receipt. Retain
+ignored .verification/bundled-java/ and all prior Mac53QA artifacts.
+
+## Bundled Java isolation — 2026-10-27 (local)
+
+Base9b030d24; branch codex/bundled-java in the dedicated bundled-java worktree.
+Owner authorized implementation only. Native launchers export ZERO_JAVA_HOME;
+Run verifies private Java/java compiler21 and explicitly selects it for owned
+children. Browser tooling ignores inherited JAVA_HOME when managed. JVM/Maven
+startup overrides are removed only in owned children; Maven skips user rc files.
+Zero isolated settings repair Java-owned keys and stale hash paths, retaining
+unrelated preferences/JSONC comments. Zero terminal profiles use zsh-f or cmd/d.
+The RedHat extension retains its own tooling runtime. No added download, project
+API/source-level change, global Java/settings edit, credential or release change.
+
+94focused JS/dev tests pass. Native worker GPT6.1Sol/high delivered four native
+files; coordinator inspected integration and reused350Mac native assertions and
+2107Windows wrapper checks plus updater harness. Starter20-source Maven compile
+passes with real private Temurin21.0.12.1 and source release17 despite injected
+oldJAVA_HOME/JVM flags. Real host runtime/browser selection and disposable zsh
+startup-file override checks pass; parent env is retained. Syntax/contracts/doc
+links and diff whitespace checks pass. Full initial regression1365pass/3skip/0fail in437.247s. Review1, java_review/1,
+requested GPT6.1Sol/high, complete21-file9b030d24→f9004a5f source/caller coverage,
+found3accepted blockers: old-process update handoff could miss the new marker,
+Mac JSONC patch rejected UTF8BOM, and invalid Mac settings could lose unrelated
+prefs. Batch1 resolves current native kit/asset receipt independently of stale
+process env; preserves BOM; and keeps invalid settings byte-identical on both
+platforms. Delta95focused tests,357Mac assertions and2238Windows checks+updater
+pass. Actual installed-kit handoff with absent/stale markers selects verified
+Java21 and browser tools. Review2, java_review/2, requested GPT6.1Sol/high, complete10-filef9004a5f→4109391e
+delta/immediate-caller coverage, confirms original3fixed and finds2new accepted
+blockers: manual setup also exports ZERO_KIT_DIR; FIFO metadata can block before
+ordinary-file checks. Batch2 scopes old-process recovery to the native isolated
+extension location (or explicit native marker), retains manual JDK selection,
+and uses nonblocking metadata opens.96focused tests pass, including a timed
+FIFO probe and manual/native identity fixtures; real private Java verification
+passes with native location supplied explicitly and an absent process marker.
+Review3, java_review/3, requested GPT6.1Sol/high, complete4109391e→94c2cac9
+four-file delta and immediate Run/browser/default-argument coverage, confirms
+both fixed and reports no remaining actionable findings. Independently reran
+6managed-Java tests (6pass). Initial plus targeted coverage covers final source
+94c2cac9; no extra integration wave needed. Final totals:3reviewerturns,1initial
+full-diff wave,2targeted waves,2fixbatches; review elapsed/tokens unknown.
+Follow-up commit changes delivery receipts only; no code changes after review.
+Logs/real-runtime receipts: .verification/bundled-java/. Physical Windows,
+fresh-device/school-network and actual editor terminal UI remain untested.
+
+Review budget:standard risk, one initial GPT6.1Sol/high source reviewer; maximum
+7launches/4fixbatches/60minutes under docs/AI-WORKFLOW.md and pr-review skill.
+Implementation split: coordinator owns JS/docs, worker owns native code; no
+writer overlap. Initial weekly remaining79%, storage healthy227.5GB. One native
+fixture correction and subsequent startup/case-key integration corrections;
+no integration conflicts. Worker/coordinator token usage and active time unknown.
+No claimed savings, new goal/task/automation, publication or account change.
+
 ## Publishing feedback source integration — 2026-10-27
 
 Owner authorized source PR/CI/merge; native publishing/releases remain separate.

@@ -5,6 +5,7 @@ const crypto = require('node:crypto');
 const childProcess = require('node:child_process');
 const {StringDecoder} = require('node:string_decoder');
 const {parseNativeRecord, NATIVE_PREFIX, MAX_RECORD_BYTES} = require('./runtime-events');
+const {managedJavaEnvironment} = require('./managed-java');
 
 async function nativeBuildIdentity(root) {
   root = await fs.realpath(root);
@@ -103,7 +104,7 @@ function createNativeRuntimeExecution({vscode, spec, buildId, onEvent = () => {}
       writes.fire(normalized);
     };
     const decoder = createRecordDecoder({runId, buildId, write, onEvent:event => {if (isCurrent() && !cancelled && !closed) onEvent(event);}});
-    const childEnv = {...env, ZERO_RUNTIME_RUN_ID: runId, ZERO_RUNTIME_BUILD_ID: buildId};
+    const childEnv = {...managedJavaEnvironment(env, platform), ZERO_RUNTIME_RUN_ID: runId, ZERO_RUNTIME_BUILD_ID: buildId};
     const systemRoot = Object.entries(childEnv).find(([key]) => key.toUpperCase() === 'SYSTEMROOT')?.[1];
     function kill(force) {
       if (!child?.pid || force && forceKilled) return;

@@ -909,7 +909,16 @@ The extension TaskProvider owns sidebar and shortcut runs. A separate wrapper
 task supports running without Zero. Java language diagnostics require
 `redhat.java`; `vscjava.vscode-java-debug` supplies Java debugging support.
 The starter targets Java 17, uses pinned JavaFX 21.0.12 and needs a supported
-JDK 17+ for builds. JDK 17 was tested; editor runtime requirements may differ.
+JDK 17+ for the manual/developer path. The native Zero app manages a separate
+verified Java 21 installation for its Run and browser-build commands. Launcher
+selection overrides inherited Java settings only in Zero child processes.
+Zero repairs Java-owned settings in its isolated editor, preserving other
+preferences; ordinary VS Code profiles, shell files and system Java remain
+unchanged. Its Zero Java terminal skips user shell startup overrides. Missing
+private Java requires repairing Zero rather than silently selecting a system
+JDK. Java 17 remains the source compatibility target. The Java editor extension
+uses its own bundled tooling runtime, which can require a newer Java version.
+This source improvement is not a published installer update.
 
 ## Verification and distribution limits
 

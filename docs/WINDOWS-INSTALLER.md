@@ -62,16 +62,25 @@ a verified private copy. Java comes from the pinned private Temurin 21 ZIP.
 URLs, sizes and SHA-256 hashes are authored in `setup/windows-downloads.json`.
 Global PATH/JAVA_HOME, ordinary VS Code profiles and account credentials are not
 modified. Zero sets Java and editor isolation on its owned child processes.
-Project compilation uses Java 21 through `java.configuration.runtimes`; the Java
+The native launcher exports a separate `ZERO_JAVA_HOME` selection. Zero Run and
+browser builds use that verified private JDK even if inherited `JAVA_HOME`
+selects Java17, Java25 or a different Java21. A missing private JDK requires Zero
+repair; system Java is never substituted. The Zero Java terminal runs `cmd /d`
+with private Java selected, so a user AutoRun command cannot replace it.
+Only Zero's isolated Java/terminal configuration is repaired; other preferences,
+terminal profiles, environment entries and JSONC comments are preserved.
+Project compilation uses Java21; `java.configuration.runtimes` configures its
+editor project runtime. The Java
 extension uses its bundled tooling runtime. The isolated settings support VS Code's
 JSONC comments and trailing commas when reopening or repairing setup.
-Malformed isolated settings reset to the shipped defaults on retry. Recognized
+Malformed isolated settings are kept for correction; defaults are seeded only
+when settings are absent. Recognized
 damaged private Java/editor folders are replaced from verified downloads; a
 cancelled or failed replacement keeps the old folder available for another try.
 Ordinary installed VS Code folders are never replaced by this repair path.
 
-The owner waived preservation/migration requirements for existing student work
-and settings in this implementation. Existing safe kit placement remains; no
+The Java isolation change preserves student work and unrelated editor settings.
+Existing safe kit placement remains; no
 arbitrary-folder replacement or deletion was introduced. Recognizable older
 support is refreshed, identical support is a no-op, and older installers cannot
 replace newer support. The automatic path reads trusted configuration from its

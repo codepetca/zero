@@ -1,5 +1,14 @@
 # Guided student setup
 
+Current source keeps Zero's verified Java21 separate from system Java. Open the
+Zero app to use its configured editor. Run and browser builds select that private
+JDK explicitly; the Zero Java terminal skips startup scripts that could replace
+it. Repairing Zero updates only Java-owned settings in its isolated editor.
+Your ordinary VS Code profiles, shell files and global Java settings are kept.
+If private Java is unavailable, reopen Zero to repair it. This change does not
+add another JDK download or change the Java17 source compatibility target; it
+needs a new installer release before existing downloads acquire the behavior.
+
 Mac 0.5.43 corrects text prompts: **Commit Message** appears above an empty field,
 with `<Enter> to confirm · <Esc> to cancel` below it.
 

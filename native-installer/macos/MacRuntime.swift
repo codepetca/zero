@@ -6,6 +6,7 @@ import Darwin
 struct MacRuntime {
     static let fm = FileManager.default
     static let nodeVersion = "22.21.1"
+    static let javaStartupVariables = ["JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "MAVEN_OPTS", "MAVEN_ARGS"]
     let kit: URL
     let home: URL
     let root: URL
@@ -85,14 +86,17 @@ struct MacRuntime {
         guard contents.count == 2, let folder = contents.first(where: { $0.lastPathComponent != ".zero-asset.json" }) else { throw SetupFailure(message: "Unexpected Java runtime contents.") }
         let home = folder.appendingPathComponent("Contents/Home")
         try KitUpdatePlan.realDirectory(home)
-        let java = try Self.execute(home.appendingPathComponent("bin/java").path, ["-version"])
-        let javac = try Self.execute(home.appendingPathComponent("bin/javac").path, ["-version"])
+        let java = try Self.execute(home.appendingPathComponent("bin/java").path, ["-version"], environment: environment(home))
+        let javac = try Self.execute(home.appendingPathComponent("bin/javac").path, ["-version"], environment: environment(home))
         guard java.contains("version \"21."), javac.hasPrefix("javac 21.") else { throw SetupFailure(message: "The private Java 21 runtime is incomplete.") }
         return home
     }
     func environment(_ java: URL) -> [String: String] {
         var env = ProcessInfo.processInfo.environment
         env["JAVA_HOME"] = java.path
+        env["ZERO_JAVA_HOME"] = java.path
+        for key in Self.javaStartupVariables { env.removeValue(forKey: key) }
+        env["MAVEN_SKIP_RC"] = "1"
         env["ZERO_KIT_DIR"] = kit.path
         env["ZERO_NODE_EXECUTABLE"] = nodeBinary.path
         env["PATH"] = java.appendingPathComponent("bin").path + ":" + nodeBinary.deletingLastPathComponent().path + ":" + (env["PATH"] ?? "/usr/bin:/bin")
@@ -172,8 +176,8 @@ struct MacRuntime {
             let home = children[0].appendingPathComponent("Contents/Home")
             try KitUpdatePlan.realDirectory(home)
             for name in ["java", "javac"] { _ = try KitUpdatePlan.regular(home.appendingPathComponent("bin/" + name)) }
-            guard try Self.execute(home.appendingPathComponent("bin/java").path, ["-version"]).contains("version \"21."),
-                  try Self.execute(home.appendingPathComponent("bin/javac").path, ["-version"]).hasPrefix("javac 21.") else { throw SetupFailure(message: "Downloaded Java 21 is incomplete.") }
+            guard try Self.execute(home.appendingPathComponent("bin/java").path, ["-version"], environment: environment(home)).contains("version \"21."),
+                  try Self.execute(home.appendingPathComponent("bin/javac").path, ["-version"], environment: environment(home)).hasPrefix("javac 21.") else { throw SetupFailure(message: "Downloaded Java 21 is incomplete.") }
         } else if kind == "node" {
             guard children[0].lastPathComponent == nodeDirectory else { throw SetupFailure(message: "Unexpected browser runtime archive layout.") }
             _ = try verifyNodeBinary(children[0].appendingPathComponent("bin/node"))
@@ -248,28 +252,77 @@ struct MacRuntime {
         let user = userData.appendingPathComponent("User")
         try Self.mkdir(user); try Self.mkdir(extensions)
         let publication = try AnchoredZeroFile(directory: user)
-        if try publication.identity("settings.json") != nil { _ = try publication.regular("settings.json"); return }
+        let previous = try publication.identity("settings.json")
+        let existing = try previous.map { try publication.read("settings.json", expected: $0) }
+        var text = existing.flatMap { bytes -> String? in
+            guard String(data: bytes, encoding: .utf8) != nil else { return nil }
+            // Foundation's data-to-string initializer strips the BOM. Preserve
+            // the validated original bytes for the surgical JSONC editor.
+            return String(decoding: bytes, as: UTF8.self)
+        }
+        var values = text.flatMap { try? Self.readSettings($0) }
+        if previous != nil && (text == nil || values == nil) {
+            throw SetupFailure(message: "Zero's editor settings could not be read. Correct User/settings.json and retry setup; your file was kept.")
+        }
+        if previous == nil {
+            #if ZERO_SETUP_TESTS
+            let suppliedProfile = kit.appendingPathComponent("optional/Zero.code-profile")
+            #else
+            // Existing optional files in ~/Zero belong to the student and may have
+            // been edited. Seed a new isolated editor from the installer payload.
+            guard let resources = Bundle.main.resourceURL else { throw SetupFailure(message: "The supplied editor settings are unavailable.") }
+            let suppliedProfile = resources.appendingPathComponent("kit/optional/Zero.code-profile")
+            #endif
+            _ = try KitUpdatePlan.regular(suppliedProfile)
+            let profile = try JSONSerialization.jsonObject(with: Data(contentsOf: suppliedProfile)) as? [String: Any]
+            guard let wrapper = profile?["settings"] as? String,
+                  let wrapped = try JSONSerialization.jsonObject(with: Data(wrapper.utf8)) as? [String: String],
+                  let plain = wrapped["settings"],
+                  let supplied = try JSONSerialization.jsonObject(with: Data(plain.utf8)) as? [String: Any] else { throw SetupFailure(message: "The supplied editor settings are incomplete.") }
+            values = supplied
+            text = String(data: try JSONSerialization.data(withJSONObject: supplied, options: [.prettyPrinted, .sortedKeys]), encoding: .utf8)
+        }
+        let managed = managedSettings(java, existing: values!)
+        let updated = try ZeroSettingsJSONC.updating(text!, changes: managed, removing: ["java.home", "java.jdt.ls.java.home"])
+        guard updated != text else { return }
+        let data = Data(updated.utf8)
         #if ZERO_SETUP_TESTS
-        let suppliedProfile = kit.appendingPathComponent("optional/Zero.code-profile")
+        try publication.publish(data, leaf: "settings.json", mode: 0o600, expected: previous, beforeCommit: testBeforePublish, beforeExchange: testBeforeExchange, afterExchange: testAfterExchange)
         #else
-        // Existing optional files in ~/Zero belong to the student and may have
-        // been edited. Seed a new isolated editor from the installer payload.
-        guard let resources = Bundle.main.resourceURL else { throw SetupFailure(message: "The supplied editor settings are unavailable.") }
-        let suppliedProfile = resources.appendingPathComponent("kit/optional/Zero.code-profile")
+        try publication.publish(data, leaf: "settings.json", mode: 0o600, expected: previous)
         #endif
-        _ = try KitUpdatePlan.regular(suppliedProfile)
-        let profile = try JSONSerialization.jsonObject(with: Data(contentsOf: suppliedProfile)) as? [String: Any]
-        guard let wrapper = profile?["settings"] as? String,
-              let wrapped = try JSONSerialization.jsonObject(with: Data(wrapper.utf8)) as? [String: String],
-              let plain = wrapped["settings"],
-              var values = try JSONSerialization.jsonObject(with: Data(plain.utf8)) as? [String: Any] else { throw SetupFailure(message: "The supplied editor settings are incomplete.") }
-        values["java.configuration.runtimes"] = [["name": "JavaSE-21", "path": java.path, "default": true]]
-        let data = try JSONSerialization.data(withJSONObject: values, options: [.prettyPrinted, .sortedKeys])
-        #if ZERO_SETUP_TESTS
-        try publication.publish(data, leaf: "settings.json", mode: 0o600, expected: nil, beforeCommit: testBeforePublish, beforeExchange: testBeforeExchange, afterExchange: testAfterExchange)
-        #else
-        try publication.publish(data, leaf: "settings.json", mode: 0o600, expected: nil)
-        #endif
+    }
+    static func readSettings(_ text: String) throws -> [String: Any] {
+        guard let values = try JSONSerialization.jsonObject(with: Data(text.utf8), options: [.json5Allowed]) as? [String: Any] else { throw SetupFailure(message: "Zero's editor settings are incomplete.") }
+        return values
+    }
+    func managedSettings(_ java: URL, existing: [String: Any]) -> [String: Any] {
+        let path = java.appendingPathComponent("bin").path + ":${env:PATH}"
+        var env = existing["terminal.integrated.env.osx"] as? [String: Any] ?? [:]
+        env["JAVA_HOME"] = java.path; env["ZERO_JAVA_HOME"] = java.path; env["PATH"] = path
+        env["MAVEN_SKIP_RC"] = "1"
+        for key in Self.javaStartupVariables { env[key] = NSNull() }
+        var profileEnv: [String: Any] = ["JAVA_HOME": java.path, "ZERO_JAVA_HOME": java.path, "PATH": path, "MAVEN_SKIP_RC": "1"]
+        for key in Self.javaStartupVariables { profileEnv[key] = NSNull() }
+        var profiles = existing["terminal.integrated.profiles.osx"] as? [String: Any] ?? [:]
+        // Skip user startup files that could replace the private Java selection.
+        profiles["Zero Java"] = ["path": "/bin/zsh", "args": ["-f"], "env": profileEnv]
+        return ["java.configuration.runtimes": [["name": "JavaSE-21", "path": java.path, "default": true]],
+                "java.import.gradle.java.home": java.path, "terminal.integrated.env.osx": env,
+                "terminal.integrated.profiles.osx": profiles, "terminal.integrated.defaultProfile.osx": "Zero Java"]
+    }
+    func settingsReady(_ java: URL) throws -> Bool {
+        let user = userData.appendingPathComponent("User")
+        guard try KitUpdatePlan.identity(user) != nil else { return false }
+        let publication = try AnchoredZeroFile(directory: user)
+        guard let previous = try publication.identity("settings.json") else { return false }
+        let bytes = try publication.read("settings.json", expected: previous)
+        guard let text = String(data: bytes, encoding: .utf8), let values = try? Self.readSettings(text),
+              values["java.home"] == nil, values["java.jdt.ls.java.home"] == nil else { return false }
+        return managedSettings(java, existing: values).allSatisfy { key, value in
+            guard let actual = values[key] else { return false }
+            return NSDictionary(dictionary: ["value": actual]).isEqual(to: ["value": value])
+        }
     }
     func extensionState(_ cli: URL, java: URL) throws -> [String: String] {
         let output = try Self.execute(cli.path, isolated + ["--list-extensions", "--show-versions"], environment: environment(java))
@@ -302,9 +355,9 @@ struct MacRuntime {
     func check() throws -> Bool {
         // Read-only: do not launch CLI with absent user-data-dir (it creates files).
         let java = try javaHome(); let node = nodeReady(); let cli = try editorCLI(java)
-        let settingsExist = try KitUpdatePlan.identity(userData.appendingPathComponent("User/settings.json")) != nil
+        let settingsConfigured = try java.map(settingsReady) ?? false
         let extensionsExist = try KitUpdatePlan.identity(extensions) != nil
-        let configured = settingsExist && extensionsExist
+        let configured = settingsConfigured && extensionsExist
         var state: [String: String] = [:]
         if configured, let java, let cli { _ = try KitUpdatePlan.regular(userData.appendingPathComponent("User/settings.json")); try KitUpdatePlan.realDirectory(extensions); state = try extensionState(cli, java: java) }
         let zero = Self.atLeast(state["zero.zero"] ?? "", version), redhat = state["redhat.java"] != nil
@@ -353,7 +406,7 @@ struct MacRuntime {
     func launcher(cli: URL, java: URL) throws {
         let publication = try AnchoredZeroFile(directory: kit)
         let previous = try launcherIdentity(publication)
-        let text = "#!/bin/bash\n# Generated by Zero Setup.\nunset ELECTRON_RUN_AS_NODE NODE_OPTIONS NODE_PATH\nexport JAVA_HOME=\(Self.quote(java.path))\nexport ZERO_KIT_DIR=\(Self.quote(kit.path))\nexport ZERO_NODE_EXECUTABLE=\(Self.quote(nodeBinary.path))\nexport PATH=\(Self.quote(java.appendingPathComponent("bin").path)):\(Self.quote(nodeBinary.deletingLastPathComponent().path)):\"$PATH\"\nexec \(Self.quote(cli.path)) \((isolated + ["--new-window"]).map(Self.quote).joined(separator: " "))\n"
+        let text = "#!/bin/bash\n# Generated by Zero Setup.\nunset ELECTRON_RUN_AS_NODE NODE_OPTIONS NODE_PATH JAVA_TOOL_OPTIONS JDK_JAVA_OPTIONS _JAVA_OPTIONS MAVEN_OPTS MAVEN_ARGS\nexport MAVEN_SKIP_RC=1\nexport JAVA_HOME=\(Self.quote(java.path))\nexport ZERO_JAVA_HOME=\(Self.quote(java.path))\nexport ZERO_KIT_DIR=\(Self.quote(kit.path))\nexport ZERO_NODE_EXECUTABLE=\(Self.quote(nodeBinary.path))\nexport PATH=\(Self.quote(java.appendingPathComponent("bin").path)):\(Self.quote(nodeBinary.deletingLastPathComponent().path)):\"$PATH\"\nexec \(Self.quote(cli.path)) \((isolated + ["--new-window"]).map(Self.quote).joined(separator: " "))\n"
         #if ZERO_SETUP_TESTS
         try publication.publish(Data(text.utf8), leaf: "Open Zero.command", mode: 0o755, expected: previous, beforeCommit: testBeforePublish, beforeExchange: testBeforeExchange, afterExchange: testAfterExchange)
         #else
@@ -375,6 +428,85 @@ struct MacRuntime {
             }
             return 0
         } catch { fputs("\(error.localizedDescription)\n", stderr); return 1 }
+    }
+}
+
+/// Edit only managed top-level properties; preserve unrelated JSONC text/comments.
+private enum ZeroSettingsJSONC {
+    struct Member { let key: String; let start: Int; let value: Int; let end: Int; let comma: Int? }
+    static func scan(_ bytes: [UInt8]) throws -> ([Member], Int) {
+        // JSONSerialization accepts a UTF-8 BOM; retain it during text edits.
+        var i = bytes.starts(with: [0xef, 0xbb, 0xbf]) ? 3 : 0
+        func trivia() {
+            while i < bytes.count {
+                if [9, 10, 13, 32].contains(bytes[i]) { i += 1; continue }
+                if i + 1 < bytes.count && bytes[i] == 47 && bytes[i + 1] == 47 {
+                    i += 2; while i < bytes.count && bytes[i] != 10 { i += 1 }; continue
+                }
+                if i + 1 < bytes.count && bytes[i] == 47 && bytes[i + 1] == 42 {
+                    i += 2; while i + 1 < bytes.count && !(bytes[i] == 42 && bytes[i + 1] == 47) { i += 1 }; i = min(i + 2, bytes.count); continue
+                }
+                break
+            }
+        }
+        func quoted() throws {
+            guard i < bytes.count && bytes[i] == 34 else { throw SetupFailure(message: "Use quoted JSON settings keys in Zero's editor settings.") }
+            i += 1
+            while i < bytes.count {
+                if bytes[i] == 92 { i += 2 }
+                else if bytes[i] == 34 { i += 1; return }
+                else { i += 1 }
+            }
+            throw SetupFailure(message: "Zero's editor settings contain an incomplete string.")
+        }
+        trivia(); guard i < bytes.count && bytes[i] == 123 else { throw SetupFailure(message: "Zero's editor settings must be an object.") }; i += 1
+        var members: [Member] = []
+        while true {
+            trivia(); guard i < bytes.count else { throw SetupFailure(message: "Zero's editor settings are incomplete.") }
+            if bytes[i] == 125 { return (members, i) }
+            let start = i; try quoted()
+            guard let key = try JSONSerialization.jsonObject(with: Data(bytes[start..<i]), options: [.fragmentsAllowed]) as? String else { throw SetupFailure(message: "Invalid editor settings key.") }
+            trivia(); guard i < bytes.count && bytes[i] == 58 else { throw SetupFailure(message: "Invalid editor setting.") }; i += 1; trivia()
+            let value = i
+            var depth = 0, end = i
+            while i < bytes.count {
+                trivia(); if i >= bytes.count { break }
+                let ch = bytes[i]
+                if depth == 0 && (ch == 44 || ch == 125) { break }
+                if ch == 34 { try quoted() }
+                else { if ch == 123 || ch == 91 { depth += 1 }; if ch == 125 || ch == 93 { depth -= 1 }; i += 1 }
+                end = i
+            }
+            let comma = i < bytes.count && bytes[i] == 44 ? i : nil
+            members.append(Member(key: key, start: start, value: value, end: end, comma: comma))
+            if comma != nil { i += 1 }
+        }
+    }
+    static func updating(_ original: String, changes: [String: Any], removing: [String]) throws -> String {
+        var bytes = Array(original.utf8)
+        // Validation happens before touching any existing file.
+        _ = try MacRuntime.readSettings(original)
+        for key in removing + changes.keys.sorted() {
+            let (members, close) = try scan(bytes)
+            let matching = members.filter { $0.key == key }
+            // Repeated settings keys are ambiguous. Preserve them for correction.
+            guard matching.count <= 1 else { throw SetupFailure(message: "Zero's editor settings repeat \(key). Remove the duplicate and retry.") }
+            let encoded = try changes[key].map { try JSONSerialization.data(withJSONObject: $0, options: [.fragmentsAllowed, .sortedKeys]) }
+            if let member = matching.first {
+                if let encoded { bytes.replaceSubrange(member.value..<member.end, with: encoded) }
+                else if let comma = member.comma { bytes.removeSubrange(member.start...comma) }
+                else if let previous = members.dropLast().last?.comma { bytes.removeSubrange(previous..<member.end) }
+                else { bytes.removeSubrange(member.start..<member.end) }
+            } else if let encoded {
+                let keyBytes = try JSONSerialization.data(withJSONObject: key, options: [.fragmentsAllowed])
+                let separator = members.last.map { $0.comma == nil ? "," : "" } ?? ""
+                let addition = Array((separator + "\n  ").utf8) + keyBytes + Array(": ".utf8) + encoded + Array("\n".utf8)
+                bytes.insert(contentsOf: addition, at: close)
+            }
+        }
+        let result = String(decoding: bytes, as: UTF8.self)
+        _ = try MacRuntime.readSettings(result)
+        return result
     }
 }
 
