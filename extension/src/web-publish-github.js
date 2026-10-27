@@ -102,7 +102,8 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
   // Only trusted callers select endpoints. A read-only current-app check shares
   // one operation-local access proof; every mutating caller retains api's guards.
   async function sendApi(review,method,suffix,body,{signal,uploadUrl,onRequest,allow404=false}={}) {
-    await authentication.assertCurrent(review.ticket);
+    // Keep request dispatch synchronous after api's final source guard.
+    // Fast GET callers already established this command's access/session proof.
     // Mode can change while authentication and Git validation are awaited.
     if(isSimulation())throw new Error('Live publishing is disabled. Review again after choosing live uploads.');
     const token=authentication.assertCurrentNow(review.ticket).accessToken;

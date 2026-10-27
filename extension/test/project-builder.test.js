@@ -113,7 +113,7 @@ test('current-source commit proof works without a build invocation and detects i
  const adapter=createProjectBuilder({spawn:()=>assert.fail('Freshness must not execute a builder')});
  const result=await adapter.assertBuildInputsAtCommit({projectRoot:h.dir,sourceSha:'a'.repeat(40),git});assert.equal(result.inputCount,h.inputs.length);
  await fs.writeFile(path.join(h.dir,'src/main/resources/ignored.png'),'unpublished');
- await assert.rejects(adapter.assertBuildInputsAtCommit({projectRoot:h.dir,sourceSha:'a'.repeat(40),git}),/absent from the browser receipt/);
+ await assert.rejects(adapter.assertBuildInputsAtCommit({projectRoot:h.dir,sourceSha:'a'.repeat(40),git}),/Upload all exact/);
 });
 
 test('managed builds use only launcher Java even when a compatible system JDK or stale JAVA_HOME exists',async t=>{
@@ -132,4 +132,26 @@ test('managed builds use only launcher Java even when a compatible system JDK or
  for(const major of [17,25]){bundledMajor=major;await assert.rejects(locateRuntimes(options),/bundled JDK 21.*repair.*system Java will not be substituted/);}
  await fs.rm(bundled,{recursive:true});await assert.rejects(locateRuntimes(options),/bundled JDK 21.*repair/);
  assert.ok(!probes.some(file=>file.startsWith(system+path.sep)));
+});
+
+
+test('current commit proof needs saved tooling and exact inputs but no retained web output',async t=>{
+ const h=await currentOutput(t),blob=bytes=>require('node:crypto').createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+ const git=async()=>h.inputs.map(file=>'100644 blob '+blob(file.bytes)+'\t'+file.path).join('\0')+'\0';
+ const adapter=createProjectBuilder({spawn:()=>assert.fail('Current input proof must not launch project code')});
+ await fs.rm(h.folder,{recursive:true});
+ const result=await adapter.assertBuildInputsAtCommit({projectRoot:h.dir,sourceSha:'a'.repeat(40),git});assert.equal(result.inputCount,h.inputs.length);assert.equal(result.sourceHash,h.manifest.localSourceHash);
+ await assert.rejects(adapter.assertBuildInputsAtCommit({projectRoot:h.dir,result:{buildId:h.manifest.buildId},sourceSha:'a'.repeat(40),git}),/ENOENT/);
+ await fs.writeFile(path.join(h.dir,'src/main/resources/player sprite.png'),'different');
+ await assert.rejects(adapter.assertBuildInputsAtCommit({projectRoot:h.dir,sourceSha:'a'.repeat(40),git}),/differs from the uploaded commit/);
+});
+
+
+test('current commit proof preserves ordinary-file and size restrictions without retained output',async t=>{
+ for(const mode of ['hardlink','oversized']){
+  const h=await currentOutput(t);await fs.rm(h.folder,{recursive:true});const resource=path.join(h.dir,'src/main/resources/player sprite.png');
+  if(mode==='hardlink')await fs.link(resource,path.join(h.dir,'linked-resource'));
+  else await fs.truncate(resource,256*1024*1024+1);
+  await assert.rejects(createProjectBuilder().assertBuildInputsAtCommit({projectRoot:h.dir,sourceSha:'a'.repeat(40),git:()=>assert.fail('Unsafe inputs must fail before commit lookup')}),/bounded ordinary/);
+ }
 });

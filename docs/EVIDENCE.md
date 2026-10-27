@@ -25,9 +25,19 @@ first publish → unchanged open without rebuild → edited Java → commit/uplo
 second build/staging/dispatch → exact new marker → browser open. GitHub and browser
 build outputs in that integration test are simulated; no hosted repository changes.
 Focused fast tests17, UI/snapshot99, sidebar/design52 and configuration pass.
-The actual source renderer in the dark browser preview shows no separate link and
-retains Publish & open app in Run options. Native host/live-network/physicalWindows
-acceptance and actual hosting remain separate. Full regression/review follows.
+The actual source renderer in light/dark browser previews shows no separate link,
+retains Publish & open app in Run options, and closes the menu with Escape.
+Broader publishing regressions273 pass at0ea5d042. Initial independent Sol/high
+security/correctness and Terra/high compatibility full-diff review found2unique
+blockers: an awaited session callback after the final mutation guard, and the
+installed editor's saved-builder adapter still requiring retained output. One
+batched correction preserves synchronous mutation dispatch and adds bounded
+host-only input discovery for no-result proofs; supplied-result validation stays
+strict. Production saved-builder/local-library/deleted-output and delayed-auth
+source/origin tests5 pass; adapter/library tests33 pass, including ordinary-file
+and size restrictions. Configuration passes. Targeted review follows; effective
+model, token usage and reviewer elapsed are unknown. No live GitHub publication,
+native installed-app or physical Windows acceptance is claimed for this change.
 
 # Delivery evidence index
 

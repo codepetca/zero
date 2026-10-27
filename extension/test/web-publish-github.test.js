@@ -6,7 +6,7 @@ const os=require('node:os');
 const path=require('node:path');
 const core=require('../src/core');
 const {createGitHubPagesPublisher,pagesPublishWorkflow,publishingFiles}=require('../src/web-publish-github');
-async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoizeGit=false}={}) {
+async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoizeGit=false,onFetch=()=>{}}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-pages-test-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   const git=args=>core.git(root,args);
   await git(['init','-b','main']);await git(['config','user.name','Test']);await git(['config','user.email','test@example.invalid']);await git(['remote','add','origin','https://github.com/student/game.git']);
@@ -32,7 +32,7 @@ async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoize
   const response=(value,status=200)=>new Response(status===204?null:JSON.stringify(value),{status,headers:{'content-type':'application/json'}});
   const fetch=async(url,options)=>{
     if(options.signal?.aborted)throw options.signal.reason;
-    calls.push({url,options});assert.equal(options.redirect,'error');
+    onFetch(url,options);calls.push({url,options});assert.equal(options.redirect,'error');
     if(url.startsWith('https://student.github.io/') || url.startsWith('https://play.example.org/')){assert.equal(options.headers,undefined);return new Response(marker,{status:publicStatus});}
     assert.equal(options.headers.Authorization,'Bearer TEST_SECRET');assert.equal(options.headers['X-GitHub-Api-Version'],'2026-03-10');
     if(url.startsWith('https://uploads.github.com/')) {asset={id:8,digest:'sha256:'+require('../src/web-publish-bundle').hash(options.body),size:options.body.length,state:'uploaded',name:'zero-web-bundle.json.gz',...assetPatch};await afterUpload();return response(asset,201);}
@@ -568,4 +568,44 @@ test('real command/publisher integration reuses unchanged source, then uploads a
   const changed=await api.publishAndOpen();assert.equal(changed.status,'live');assert.notEqual(changed.sha,previous);assert.equal(builds,2);assert.equal(uploads,1);assert.equal(opened.length,3);assert.equal(stored.get('zero.webPublish.lastLive').sha,changed.sha);assert.equal(busy,false);
   const dispatches=h.calls.filter(c=>c.url.endsWith('/dispatches')).map(c=>JSON.parse(c.options.body).inputs.source_sha);
   assert.deepEqual(dispatches,[previous,changed.sha]);
+});
+
+
+test('mutation requests follow the final Git proof without another awaited authentication callback',async t=>{
+ const events=[];const h=await fixture(t,{onFetch:(_url,options)=>{if(options.method==='POST')assert.equal(events.at(-1),'git','No awaited callback may interpose between the final Git proof and mutation dispatch');},publisherOptions:{git:async(...args)=>{const result=await core.git(...args);events.push('git');return result;}}});
+ const original=h.authentication.assertCurrent;h.authentication.assertCurrent=async ticket=>{await original(ticket);events.push('authentication');};
+ assert.equal((await h.publisher.publish(await h.publisher.review(h.root))).status,'pending');
+ assert.equal(h.calls.filter(c=>c.url.endsWith('/dispatches')).length,1);
+});
+test('production saved-project callback reuses a published app with a local library after deleting all retained output',async t=>{
+ const adapter=require('../src/project-builder').createProjectBuilder({spawn:()=>assert.fail('Fast check must not execute project code')});
+ const h=await fixture(t,{publisherOptions:{assertBuildInputsAtCommit:adapter.assertBuildInputsAtCommit}});
+ await fs.cp(path.resolve(__dirname,'../../student-template/.mvn'),path.join(h.root,'.mvn'),{recursive:true});
+ for(const name of ['pom.xml','mvnw','mvnw.cmd'])await fs.copyFile(path.resolve(__dirname,'../../student-template',name),path.join(h.root,name));
+ await fs.mkdir(path.join(h.root,'src/main/java'),{recursive:true});await fs.mkdir(path.join(h.root,'src/main/resources'),{recursive:true});
+ await fs.writeFile(path.join(h.root,'src/main/java/Main.java'),'class Main {}');await fs.writeFile(path.join(h.root,'src/main/java/Health.java'),'public class Health { public int value() { return 7; } }');
+ const authoring=require('../src/sharing/authoring'),repository={id:'12345',ownerId:'1',owner:'student',name:'game',url:'https://github.com/student/game'};
+ await authoring.applyPlan(await authoring.previewExtraction(h.root,{repository,descriptor:{schema:1,kind:'library',slug:'health-bar',version:'0.1.0',title:'Health bar',description:'Browser helper',license:'MIT',libraryKind:'helper'},sources:['src/main/java/Health.java']}));
+ await (await import('../../scripts/prepare-project-builder.mjs')).prepareProjectBuilder({destination:path.join(h.root,'.zero-build')});
+ await h.git(['add','.']);await h.git(['commit','-m','Saved tooling and library']);
+ const head=await h.git(['rev-parse','HEAD']),saved=currentReceipt(h);saved.sha=head;saved.resume.sha=head;h.remoteHead=head;h.run.head_sha=head;h.marker=head+'\n42\n';
+ await fs.rm(path.join(h.root,'.zero/web-export'),{recursive:true});
+ let opened=0;assert.equal((await h.publisher.verifyUnchanged(h.root,saved,{onCurrent:()=>opened++})).status,'live');assert.equal(opened,1);
+ const resource='libraries/health-bar/src/main/resources/zero/contrib/r12345/health_bar/data.txt';await fs.mkdir(path.dirname(path.join(h.root,resource)),{recursive:true});await fs.writeFile(path.join(h.root,resource),'unpublished library asset');
+ assert.equal((await h.publisher.verifyUnchanged(h.root,saved,{onCurrent:()=>opened++})).status,'stale');assert.equal(opened,1);assert.ok(h.calls.every(c=>c.options.method==='GET'));
+});
+
+
+test('source or origin edits during delayed mutation authentication prevent workflow dispatch',async t=>{
+ for(const kind of ['source','origin'])await t.test(kind,async t=>{
+  const h=await fixture(t),reviewed=await h.publisher.review(h.root);let remaining=0;
+  h.afterAccess=async()=>{if(h.accessCalls.at(-1).permissions.actions==='write')remaining=2;};
+  const original=h.authentication.assertCurrent;h.authentication.assertCurrent=async ticket=>{
+   const session=await original(ticket);
+   if(remaining && --remaining===0){await new Promise(resolve=>setTimeout(resolve,5));if(kind==='source')await fs.writeFile(path.join(h.root,'Main.java'),'class Main { int changed; }');else await h.git(['remote','set-url','origin','https://github.com/student/other.git']);}
+   return session;
+  };
+  await assert.rejects(h.publisher.publish(reviewed),/project.*changed|files changed/i);
+  assert.ok(!h.calls.some(call=>call.url.endsWith('/dispatches')));
+ });
 });

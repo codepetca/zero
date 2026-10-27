@@ -21,8 +21,15 @@ proof): medians2196ms→252ms, 88.5%less; access checks7→1, Git198→22,
 publisher/public HTTP7→4. This is orchestration evidence, not live-network timing.
 New fast-path/drift tests and integrated real Git/real input proof with simulated
 build/GitHub pass. UI/snapshot99 and sidebar/design52 pass. Config check passes.
-Local source-backed dark preview confirms no duplicate link and Run menu item.
-Evidence/logs: .verification/publish-fast/. Full regressions and independent
-review next. No releases or published student apps touched; installedMac54 intact.
+Source-backed light/dark preview confirms no duplicate link and Run menu item.
+Broader publishing regression273 pass at initial head0ea5d042. Sol/high security
+and Terra/high compatibility full-diff review found2unique blockers: an awaited
+auth callback after the final mutation guard, and the production saved-builder
+adapter still requiring retained output. Batched corrections preserve synchronous
+mutation dispatch and add bounded host input discovery without generated output.
+Production callback/saved-builder/local-library/deleted-output and delayed source/
+origin auth tests pass5; adapter/library suite33 pass; config passes. One correction
+batch;2initial reviewer launches; targeted review next. Effective models/tokens
+unknown. Evidence/logs: .verification/publish-fast/. No releases or published student apps touched; installedMac54 intact.
 Task-scoped prior budget/low-usage waiver persists; no account changes/reset.
 DeepSeek pilot remains paused. Preserve sealed Mac54 candidates and primary work.
