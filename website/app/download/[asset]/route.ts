@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { localDownloadsEnabled, release, installer } from '@/lib/content';
+import { localDownloadsEnabled, release, installer } from '@/lib/release';
 import { verifiedLocalInstaller } from '@/lib/local-installer.mjs';
 import { verifiedLocalAsset } from '@/lib/local-download.mjs';
 export const runtime = 'nodejs';

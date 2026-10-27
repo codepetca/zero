@@ -11504,6 +11504,16 @@ public checkouts and logs. Source push/PR/CI/merge,3template publication/verifie
 records, positive installed first-tutorial acceptance and a corrected signed Mac
 release/promotion require owner authorization. No such external changes performed.
 
+## Function payload reduction — 2026-10-27
+
+Separated release/feed metadata from learner content and trimmed five route traces.
+Current-main local trace union is about41% smaller; metadata/feed bytes and learner
+content match the pre-change baseline. Existing website tests/typecheck/build and
+traced-only runtime checks pass. CI runs the bundle audits after building. Production
+ZeroJams stays unconditionally hidden; pilot work is excluded from this publication.
+Hosted savings require the publication PR's Linux deployment/resource comparison;
+see [website plan](WEBSITE-PLAN.md#function-bundle-reduction--2026-10-27).
+
 
 ## Mac0.5.53 tutorial-readiness release — 2026-10-27
 

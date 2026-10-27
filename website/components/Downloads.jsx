@@ -1,5 +1,5 @@
 import { DownloadIcon } from "./Brand";
-import { downloadHref, downloadableKit, downloadableInstaller, macDownloadHref, downloadableWindowsInstaller, windowsDownloadHref, windowsDownloadIsUnsigned, windowsManualDownloadHref } from "@/lib/content";
+import { downloadHref, downloadableKit, downloadableInstaller, macDownloadHref, downloadableWindowsInstaller, windowsDownloadHref, windowsDownloadIsUnsigned, windowsManualDownloadHref } from "@/lib/release";
 export function Downloads() {
   const kit = downloadableKit();
   const installer = downloadableInstaller();

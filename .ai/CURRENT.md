@@ -1,22 +1,30 @@
-# Mac53 public; download/feed promotion
+# Website function bundle publication — 2026-10-27
 
-Owner authorized2026-10-27 corrected3templates/sourcePR/CI/merge/signedMacrelease/
-promotion and installedtutorial flow. SourcePR212 merged35567ce8 after11green checks
-at reviewedbe449afd, builtclean6fbca695. Publicsetup-v0.5.53 exactsealedDMG5966342bytes
-SHA25656a6978708c61cd2ac86d26a0bc958f2cee369cea0b002cad6cbcdbfd5e374fe.
-All3templatePR2merged; anonymous95fileproof/recordscoherent. Packagegate and actual
-VSIXreadiness/sourceparity enforced.1358pass/3skip,website243pass,typecheckpass,
-release99pass/2skip. Gate/source/artifact independentreviews complete/clean.
+Owner authorized PR/merge/deploy and hosted storage verification, keeping ZeroJams
+hidden. PR213 is synchronized with main9b030d24 (PR212 tutorial repair and PR214
+Mac53 promotion); unfinished pilotPR202 is excluded. Release/feed metadata is
+separated from learner docs/source. Five route traces omit unnecessary build/UI,
+test and duplicate static copies while retaining runtime libraries/templates.
+Metadata/feed bytes and learner content match the baseline for the same release.
+New trace/runtime audits run in CI; do not skip real merge gates.
 
-InstallednormalMac52-to53setuphandoff and isolated3tutorialcreate/clone/nativeRun/
-Stop pass; correctreaders0/3/8 and9–11 opened. Did notmanuallyretypeeverylesson.
-Details docs/MAC-CANDIDATE-0.5.53.md; ignored .verification/mac53/ receipts.
-Currentphase: promoteexactsignedbuild53feed andverifiednative download through
-independentreview/CI/merge andlivebyteverification. No rebuildaftersealing.
+Local original-main trace union12.66MB→about7.4MB (~41%); not hosted billing.
+Website243tests/build/typecheck and traced-only runtime checks passed before the
+latest release-only base sync; rerun relevant metadata/website checks on that sync.
+Compiled production Jam endpoints remain404 even after changing process env;
+Game/App source generators separately verify staged canonical assets.
+Vercel before: download/template functions3.18MB. Reviewed preview29803919:
+874kB each (~73% smaller); final production measurements remain pending.
+Usage209.53MB deployments/515.12MB functions/14.55MB Blob may lag and include
+retained deployments. Do not infer billed savings from local traces or sum shared
+function rows. Receipts/PR updates: .verification/function-bundles/ and PR213.
 
-Preserveprimaryfundingwork,studentprojects/profiles,immutableMac52/olderassets,
-Windows21/manualkit17 andproductionZeroJams hold. NormalprofileGreeting project
-subsequentlyeditedbyuser; leaveunchanged. QAusesownedCodecopy/existingprofile.
-No freshdevice/schoolnetwork/physicalIntelWindows/Sparkledeliveryclaim.
-Local-onlyTutorialdocslabel6b5cfcc6 inseparateworktree/branch; footerremovalea35e266
-alsoseparateunpublished. Do not includeinthissealedrelease. Menurelocationrescinded.
+Mac53 is public through PR214/main9b030d24: preserve exact published installer,
+signed feed, immutable assets and tutorial metadata. This bundle PR does not
+publish native assets or reverse that promotion. Details:
+docs/MAC-CANDIDATE-0.5.53.md and docs/EVIDENCE.md. Native Windows21/manualkit17,
+older Mac assets, primary funding work, student projects/profiles and Dev watcher
+remain. Separate local Tutorial-label/footer work is outside this PR. Normal
+Greeting project was edited by the owner; preserve it. Keep active pilot/recovery
+copies; no credential, protection, invitation or Jam-cap change. Safari/device/zoom
+and sponsor/merch work stay paused; no new task or automation.
