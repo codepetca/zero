@@ -1,39 +1,26 @@
-# Published-app link below Run — local only
+# Publishing feedback source merge — 2026-10-27
 
-Owner2026-10-27 additionally requested a quiet Open published app link below Run.
-Implementation based on0e4312a2 uses the existing verified historical-link command
-and a pure same-root/repository/account receipt getter; newer local edits never
-trigger saving/building/uploading/deployment. Persist valid prior links across
-restart/failed updates, hide mismatches and disable while busy. Checking/opening
-use the existing progress bar and final native session/project guards.
+Owner authorized source PR, CI and merge for Tutorial docs menu label, linear
+publishing stage feedback through browser opening, and Open published app below
+Run. Native installers, release assets and separate footer work remain separate.
+Branch codex/tutorial-docs-label integrates main9f19b9b8 (PR213 website function
+bundles and PR214 Mac53 promotion). Preserve their exact release/feed metadata,
+trace/runtime audits and production ZeroJams hold.
 
-Earlier owner request added a slim linear publishing indicator beneath existing
-status, active through verification/browser opening. Implemented local source
-callbacks, applicable reuse/resume stage plans, animated unknown current stage,
-reduced-motion/high-contrast support and root-scoped sidebar/open-Start-Page state.
-Final success waits for browser launch and clears progress first. All terminal or
-locally stopped paths clear the bar. Preserve source/session proof and locks.
+Runtime changes reviewed independently throughf471bf4f (Sol/medium, clean).
+Progress UI87/combined137/integration11 and link UI92/integration54 tests pass;
+configuration, tutorial readiness and actual-renderer light/dark/high-contrast
+browser previews pass. Historical link verifies the saved publication without
+saving/building/uploading newer edits. Extra identity validation may add reads.
+No native-installed/live publication acceptance is claimed for these UI changes.
+Merge resolves only CURRENT/EVIDENCE; preserve both histories. Next: verify merged
+interaction delta, independent integration review, source PR/final CI/merge.
+Evidence logs: .verification/publish-progress/ and .verification/published-app-link/.
+Zero Dev UI-only preview127.0.0.1:3267; normal installed Zero0.5.53 unchanged.
 
-Branchcodex/tutorial-docs-label basebe449afd, implementation based on6b5cfcc6.
-The earlier Tutorials→Tutorial docs menu label and its clean independent review
-remain intact. Coordinator actual-renderer browser QA passed in light/dark/high contrast.
-Independent Sol/medium review through46f0c800 complete/clean;7focused reviewer
-tests and9coordinator progress tests pass. All3template readiness records still
-validate; framework/student-template/teaching/release inputs unchanged.
-Prior progress87UI/11integration/137combined fixture proofs remain recorded.
-New link92focused UI/preview and54integration checks pass; configuration/syntax/
-contracts/doc links and diff checks pass. Coordinator dark/light click/busy preview
-proof passed; independent review pending for this new link delta. Logs in ignored
-.verification/published-app-link/. No publisher GitHub source change.
-Zero Dev UI-only preview on127.0.0.1:3267; no normal editor or installedZero changed.
-No push/PR/merge/release/deploy or live repository/account actions authorized.
-Do not recreate owner-deleted Zero test repositories. Preserve primary funding
-work, release/template evidence and production ZeroJams hold. Human instruction
-“Disregards budget caps. Complete the goal” waives task workflow/usage stops;
-provider limits, paused DeepSeek and publication gates remain. See EVIDENCE.
-
-Below-Run link source reviewed throughf471bf4f: publishing_progress_review
-Sol/medium complete/clean;4focused reviewer checks pass,92UI/54integration logs
-inspected. Existingpublisher request sequence retained; added outer authentication
-identity validation before its existing internalcapture. No zero-extra-reads claim.
-Native/live retrieval remains separate. No publication authorized.
+Do not recreate owner-deleted test repositories. Preserve student projects,
+primary funding work, actor checkout ignored release/template evidence and pilot
+copies. Windows21/manualkit17 and older Mac assets unchanged. Account/credential,
+protection and ZeroJams activation are excluded. Human task instruction
+“Disregards budget caps. Complete the goal” waives workflow/usage stops; provider
+limits, paused DeepSeek and publication gates remain. See docs/EVIDENCE.md.

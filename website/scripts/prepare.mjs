@@ -125,7 +125,12 @@ prepareLessonProjects(root, { website: true, extension: false });
 await mkdir(resolve(site, "public/generated"), { recursive: true });
 await writeFile(
   resolve(site, ".generated/content.json"),
-  JSON.stringify({ release, publishedKit, installer, publishedInstaller, updateFeed, windowsInstaller, windowsUpdateFeed, windowsPreview, docs, sources }, null, 2) + "\n",
+  JSON.stringify({ docs, sources }, null, 2) + "\n",
+);
+// Download/update routes must not bundle the learner documentation/source snapshot.
+await writeFile(
+  resolve(site, ".generated/release.json"),
+  JSON.stringify({ release, publishedKit, installer, publishedInstaller, updateFeed, windowsInstaller, windowsUpdateFeed, windowsPreview }, null, 2) + "\n",
 );
 await prepareBrandAssets(root,site);
 await copyFile(

@@ -14,7 +14,9 @@
     "start": "next start --hostname 127.0.0.1",
     "pretypecheck": "npm run prepare",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "audit:bundles": "node scripts/audit-function-bundles.mjs --check",
+    "check:runtime": "node scripts/check-function-runtime.mjs"
   },
   "dependencies": {
     "fflate": "0.8.3",
