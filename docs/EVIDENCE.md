@@ -34,8 +34,13 @@ extension location (or explicit native marker), retains manual JDK selection,
 and uses nonblocking metadata opens.96focused tests pass, including a timed
 FIFO probe and manual/native identity fixtures; real private Java verification
 passes with native location supplied explicitly and an absent process marker.
-Targeted delta review pending;3reviewerturns planned,2fixbatches, no additional
-full-diff wave. Review elapsed/token telemetry unknown.
+Review3, java_review/3, requested GPT6.1Sol/high, complete4109391e→94c2cac9
+four-file delta and immediate Run/browser/default-argument coverage, confirms
+both fixed and reports no remaining actionable findings. Independently reran
+6managed-Java tests (6pass). Initial plus targeted coverage covers final source
+94c2cac9; no extra integration wave needed. Final totals:3reviewerturns,1initial
+full-diff wave,2targeted waves,2fixbatches; review elapsed/tokens unknown.
+Follow-up commit changes delivery receipts only; no code changes after review.
 Logs/real-runtime receipts: .verification/bundled-java/. Physical Windows,
 fresh-device/school-network and actual editor terminal UI remain untested.
 

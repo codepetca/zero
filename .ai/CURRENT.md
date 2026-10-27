@@ -1,23 +1,21 @@
-# Bundled Java isolation — local implementation
+# Bundled Java isolation — implemented locally
 
-Task branch codex/bundled-java, base origin/main9b030d24 (Mac53 promotion).
-Owner requested Zero always use its bundled Java without changing students'
-system Java/settings. Scope: native launcher/settings repair, managed Run/browser
-build environments, Zero-only terminal profiles and truthful setup diagnostics.
-Public API, project source/build pins, global settings and credentials unchanged.
+Branch codex/bundled-java, base9b030d24; reviewed source94c2cac9.
+Owner requested Zero use its bundled Java without changing students' system Java
+or settings. Native Run/browser builds select verified private Java21 explicitly;
+old editor processes recover current selection from native identity/kit receipt.
+Zero-only terminals/settings are repaired; ordinary/manual installations retain
+their own tools. BOM/JSONC preferences and invalid existing files are preserved.
 
-Local verification:96focused JS/dev tests,357Mac native assertions,2238Windows
-wrapper checks plus updater harness; starter20-source Maven compile passes with
-private Temurin21.0.12.1 and source release17. Real runtime/browser-selection and
-zsh-f startup-override and old-editor handoff checks pass. Full initial regression
-1365pass/3skip. Initial complete source review found3blockers; batch1 fixes old
-editor environment handoff, UTF8BOM and invalid-settings preservation. Targeted
-review found2additional blockers; batch2 distinguishes native isolated editor
-from manual kits and rejects FIFO metadata without blocking. Targeted delta
-review pending. Logs in ignored .verification/bundled-java/.
+Verification:96focused JS/dev tests,357Mac native assertions,2238Windows wrapper
+checks+updater; full initial1365pass/3skip reused for unchanged boundaries. Real
+Temurin21 starter20-source compile (release17), runtime selection, zsh-f oldrc
+isolation and old-editor handoff checks pass. Independent complete initial review
+plus2targeted turns clean at94c2cac9 after2fixbatches. No further code changes.
+Evidence:docs/EVIDENCE.md and ignored .verification/bundled-java/.
 
-Use docs/EVIDENCE.md for delivery/review receipts. No push, PR, merge or installer
-release authorized by this implementation request. Mac53 sealed assets, Windows21/
-manualkit17 and productionZeroJams hold remain unchanged. Preserve primary funding
-work, existing student projects/profiles and all other active worktrees. Physical
-Windows, fresh-device/school-network and actual VSCode terminal UI untested.
+No push/PR/merge/installer release. Next publication needs owner authorization
+and current CI/release gates. Keep this task worktree for review; primary funding
+work and other active worktrees are untouched. Mac53 sealed assets, Windows21/
+manualkit17 and productionZeroJams hold remain unchanged. Physical Windows,
+fresh-device/school-network and actual VSCode terminal/update UI untested.
