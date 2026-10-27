@@ -1,23 +1,28 @@
-# Mac52 release and download/feed promotion
+# Tutorial startup regression — local repair prepared
 
-Owner-authorized2026-10-26 via architecture coordination: ship Publish & open app,
-source PR/selected CI/merge, signed Mac release, installed QA and reviewed promotion.
-Source PR210 merged1be89393 after11green checks at02c000bb; clean built source88182843.
-Public setup-v0.5.52 has exactly the sealed DMG,5964580bytes,
-SHA2566a8235a99c05e66bef50e10c6a64e8ca03a01b12c160e704ce54e32c61aece12.
-Draft/anonymous public bytes and signatures verified. Feature/release/artifact
-reviews complete/clean. Full local1357pass/3skip; installed Run/Stop and saved-edit
-Publish & open pass; repeat open causes no deployment or retained-manifest change.
+Owner reports Mac0.5.52 Start tutorial rejects Greeting as unverified. All3
+current scaffolds differ from Oct24 publication evidence. Public template main
+commits still match teaching/tutorial-templates.json. Exact95-file comparison
+finds4changed files per project: LICENSE, saved MIT notice, saved authoring.js
+(explorer navigation), and its builder manifest. No student Java API change.
 
-This branch promotes exact signed build52 feed and verified native download only.
-Final delivery gates are independent promotion review, selected CI, merge and live
-feed/download byte/signature checks. Consult the promotion PR and ignored
-.verification/mac52/final-delivery.json for their final status before repeating work.
-Detailed source/QA/limits: docs/MAC-CANDIDATE-0.5.52.md and docs/EVIDENCE.md.
-No rebuild or replacement of existing immutable assets; project-owned kits remain.
+Branch codex/tutorial-readiness-fix, base779af4d4. Package now checks tutorial
+publication coherence before generation/assets; verify:kit checks actual VSIX
+readiness and exact source/record parity. Regression fixtures explicit; no real
+publication metadata stamped from drafts.95focused tests, configuration checks,
+3generated native Maven builds pass. Actual package now fails stale records as
+expected. Independent Sol/medium review tutorial_gate_review complete/clean over
+5code/test/docs files;18lesson tests independently pass,1launch/1wave/0fixes.
+Effective model/time/tokens unavailable. Details: docs/EVIDENCE.md; ignored
+.verification/tutorial-readiness/ includes exact drafts, public checkouts/logs.
 
-Preserve primary funding work, normal profiles/student projects, source Dev watcher,
-original actor checkout, Windows21/manualkit17 and production ZeroJams hold. No new
-credentials/permissions or unrelated deployment. No fresh-device/school-network/
-physical Intel/Windows/Sparkle-delivery claim. DeepSeek paused; weekly remaining84%,
-storage228GB healthy at release start. No new task/automation/tool-backed goal.
+Next: owner authorization for3template source PRs/CI/merges and verified publication
+records, Zero source PR/CI/merge, next unused signed Mac release and download/feed
+promotion. Positive packaging/installed real Start tutorial/create/clone/Run for
+all3 templates must pass before promotion. Do not bypass readiness or modify an
+installed signed payload. Existing projects/Clone/Run remain available.
+No publishing/push/merge/release performed for this repair. Footer removal is
+separate committed branch codex/remove-footer-agreement ea35e266, not published.
+Preserve primary funding work, profiles/student projects, existing release assets,
+Windows21/manualkit17 and production ZeroJams hold. No fresh-device/school-network/
+actual Sparkle claim. DeepSeek paused; no new task, automation or goal.

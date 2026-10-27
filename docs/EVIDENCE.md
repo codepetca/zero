@@ -11471,3 +11471,35 @@ configuration/contracts and whitespace pass. Actual published-feed loader, publi
 DMG Ed25519 and exact XML/feed-JSON status-only proof pass. Signed XML SHA256
 0b0f02355f30385ae7b93deaae6da26cc24c5f18d3ff86ce12725cc3a48fc496.
 Independent promotion review and selected CI belong to the promotion PR gate.
+
+
+## Tutorial startup regression — 2026-10-27
+
+Mac0.5.52 reproduces ZERO_TUTORIAL_TEMPLATE_STALE for all3 maintained projects.
+Public main commits/trees still match Oct24 records. Exact comparison against
+current generated95-file drafts identifies4changed paths each: LICENSE,
+.zero-build/src/web-export/notices/Zero-MIT.txt, .zero-build/src/sharing/authoring.js,
+and .zero-build/builder.json. Copyright and explorer-helper edits changed the
+source digest; no student Java API changed. The release tests had checked explicit
+verified fixtures, not release readiness of actual production metadata.
+
+Repair based on779af4d4: package requires coherent real tutorial records before
+any generation/assets; verify:kit validates the actual VSIX lesson-projects.json
+for readiness and exact source/record parity. Existing release and Windows
+packaging CI call both. Tests cover stale notice bytes, missing evidence and a
+self-consistent changed payload that must still fail parity. Existing projects
+and local editing are unaffected. No real publication records stamped locally.
+
+Focused95/95pass, configuration/syntax/doc-links and diff checks pass; all3
+generated projects compile with the existing Zero JDK21. Initial focused run
+lacked generated tutorial media and the new fixture retained shared object
+references; prepared media and serialized the fixture, then95passed. Actual
+npm run package rejects the real stale metadata as intended. Independent review
+turn tutorial_gate_review, requested GPT-6.1Sol/medium: complete/clean over5file
+diff, callers/import side effects and CI; independently18lesson tests pass.
+1launch/1wave/0review-fix batches; effective model/time/tokens unavailable.
+
+Ignored .verification/tutorial-readiness/ retains exact local drafts, read-only
+public checkouts and logs. Source push/PR/CI/merge,3template publication/verified
+records, positive installed first-tutorial acceptance and a corrected signed Mac
+release/promotion require owner authorization. No such external changes performed.
