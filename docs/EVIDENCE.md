@@ -1,5 +1,39 @@
 # Delivery evidence index
 
+## Combined Mac54 sealed candidate — 2026-10-27
+
+Owner explicitly approved Java sourcePR/CI/merge and combined Mac0.5.54 release.
+JavaPR217 merged39e7d328 after all11checks; source equals reviewed1936dd3a.
+AppUI PR215 is merged; website footerPR216 is merged/live. This release stages
+version54/build54 consistently, core0.3.0 unchanged. Five-file stage review:
+footer_merge_review Luna/medium, basefa0d6b74→5227d007, complete/clean,0findings,
+1launch/1wave/0fixes. Effective config/time/tokens unavailable. Release contracts
+11pass/1explicit fixture skip, configuration and3template readiness records pass.
+
+Clean build5f5a80d4; seal preparation2c7d6692. Exact stapledDMG5999134bytes,
+SHA25653f2ba45064b22cb232e14cb1b1ae296c4cd81285d7e789a49ef46e5e669725a;
+AppleAccepted9bf1ee0c-f932-458b-838a-2b66cfef777a. Initial native build needed the
+repository's pinned ignoredPython layout helper; installing it and unchanged-source
+retry succeeded. First seal attempt found our readonlyQA mount busy; unmounting
+it allowed unchanged-byte sealing. Neither attempt created/replaced a public asset.
+Signature/staple/Gatekeeper/payload/license/modes/extractedMaven/source-equivalence
+proofs and local archive/feed Ed25519 signatures pass. Seal directory:
+dist/candidates/mac-0.5.54-2c7d6692368e/. No further build/byte mutation allowed.
+
+Installed53→54 preparation/readiness passes; exact bundle and135extension sources
+match candidate. Actual isolated editor:originalZeroAppRun→UIready→Stop, terminal
+privatejava/javac21.0.12.1 despite staleJava17 host, StartPageTutorialdocs→lesson0.
+Installed helper additionally verifies stale marker recovery, inherited JVM flags,
+parent-environment preservation and missing-private-runtime repair error. Global
+shell/ordinaryVSCode hashes and unrelatedZero/terminal preferences preserved.
+Tutorial without studentGit repository correctly rejected; localoriginal fixture
+used instead. No newGitHub repository. OwnedQAwindow closed after manualMacunlock.
+
+No freshMac/school/physicalIntel/Windows or actualSparkledelivery/newlivePublish
+claim. Complete details/limits:docs/MAC-CANDIDATE-0.5.54.md. Final independent
+candidate review/sourcePRCI/merge, immutable publication, anonymousbytes and
+separate reviewed download/feed promotion are next. Logs/proofs:.verification/mac54/.
+
 ## Bundled Java source publication — 2026-10-27
 
 Owner production continuation verified in Zero Architecture human turn
