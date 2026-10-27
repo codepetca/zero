@@ -183,6 +183,16 @@ Mac 0.5.43 includes a split Run control: the main button runs locally and its
 arrow opens **Publish app** for connected, ready projects. Stop the app before
 publishing; the arrow is unavailable while running or stopping.
 
+Current unreleased source replaces that menu item with **Publish & open app**.
+It saves editor buffers and checks the clean uploaded main version, exact retained
+browser inputs/tooling, account/destination and verified public version marker.
+A current publication opens without compiling or uploading. Otherwise the existing
+publish flow runs first and opens only the latest verified version. Pending older
+runs finish before a newer version can be published. Continued editing stops an
+outdated page from opening and asks for another explicit action. Normal local Run
+is unchanged. The sidebar and title overflow omit Open app/Copy playable link;
+the browser address is shareable and advanced saved-link palette commands remain.
+
 Current delivery, checked 2026-10-21: Mac 0.5.43 ships native Explorer and the teaching New dropdown, native Run App, Start Page sign-in
 and GitHub setup. Windows remains the unsigned 0.5.21
 preview and matching manual ZIP, with updates disabled and physical acceptance
@@ -705,7 +715,7 @@ Routine Git, publishing, export and library results appear in the sidebar's live
 status and Zero Output, without success notifications. Routine status uses short
 results such as “Pushed to main”, “Merged to main” and “Export ready”; commit
 hashes, sizes and longer guidance stay in Zero Output. Verified published apps
-keep Open app/Copy playable link actions in the sidebar; completed exports keep
+open through Run options → Publish & open app; completed exports keep
 Preview export/Save ZIP/Share export actions there. Errors, warnings, required
 choices and the first-publication warning remain visible through native prompts.
 
@@ -737,8 +747,9 @@ through the existing message input when needed, pushes unuploaded commits, then
 deploys that exact version. Already committed work needs no new message; a clean
 uploaded main skips uploading. Cancellation or upload failure stops deployment.
 On a change branch, Publish asks the student to finish with Merge to main first;
-it never switches or merges branches. After verified deployment, Open app and
-Copy playable link appear in the sidebar and Zero Output includes the actual URL.
+it never switches or merges branches. Publish & open app opens the latest verified
+deployment and Zero Output includes the actual URL. The browser address is the
+playable link; saved-link commands remain available in the palette.
 First/new-destination Publish shows a short warning
 that the app and included assets will be public;
 later explicit Publish actions revalidate and update that approved site without

@@ -163,7 +163,7 @@ test('tutorial sidebar retains normal GitHub controls and hides original-only Sh
   const deadline=Date.now()+5000;
   while(!webview.html.includes('data-command="zero.uploadToGitHub"')) {assert.ok(Date.now()<deadline,'Tutorial repository controls should finish rendering');await new Promise(resolve=>setImmediate(resolve));}
   for(const command of ['zero.chooseRepository','zero.uploadToGitHub','zero.browseZeroHub']) assert.ok(webview.html.includes(`data-command="${command}"`),command);
-  assert.match(webview.html,/<div id="run-menu"[^>]*hidden><button[^>]*data-command="zero.publishWeb"[^>]*>Publish app<\/button>/);
+  assert.match(webview.html,/<div id="run-menu"[^>]*hidden><button[^>]*data-command="zero.publishAndOpenWeb"[^>]*>Publish &amp; open app<\/button>/);
   assert.doesNotMatch(webview.html,/data-command="zero.shareGame"|data-command="zero.startChange"|Local practice/);
   assert.doesNotMatch(webview.html,/id="project-menu"|data-command="zero.cloneRepository"/);
   assert.match(webview.html,/Current branch: main/);
@@ -244,7 +244,7 @@ test('Commit & push clears its indicator on preparation failure and after a conf
   });
 });
 
-test('Publish commits dirty main through guarded native upload, then exposes the verified playable link',async t=>{
+test('Publish commits dirty main through guarded native upload and retains the verified playable link',async t=>{
   const h=await harness(t,{publishing:true,dirty:true});
   // Public-destination consent is the only publication dialog.
   h.stored.set('zero.webPublish.approval',{root:h.plan.root,account:'1',repository:h.plan.page,url:'https://student.github.io/app/'});
@@ -252,7 +252,7 @@ test('Publish commits dirty main through guarded native upload, then exposes the
   assert.deepEqual(h.errors,[]);assert.equal(h.inputs,1);assert.equal(h.pushes,1);assert.equal(h.deploys,1);
   assert.equal(h.stored.get('zero.webPublish.lastLive').url,'https://student.github.io/app/');
   assert.match(h.results.at(-1),/https:\/\/student.github.io\/app\//);
-  const webview=await uploadSidebar(h);assert.match(webview.html,/data-command="zero.openPublishedWeb"/);assert.match(webview.html,/Copy playable link/);
+  const webview=await uploadSidebar(h);assert.doesNotMatch(webview.html,/data-command="zero.openPublishedWeb"|Copy playable link/);assert.match(webview.html,/data-command="zero.publishAndOpenWeb"/);
 });
 test('Publish pushes already committed main without asking for another commit message',async t=>{
   const h=await harness(t,{publishing:true});

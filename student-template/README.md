@@ -385,7 +385,7 @@ private. Zero does not submit assignments or change Pika grades.
 ## Publish a playable app
 
 Use your own original project with Git **2.31+** and your own GitHub account.
-**Run App** and test it, then choose **Publish app** from the arrow beside Run.
+**Run App** and test it, then choose **Publish & open app** from the arrow beside Run.
 Publish saves open files, asks for a commit message when there are changes, and
 commits and pushes before deploying. Already committed work is pushed without
 another message; an already uploaded version goes straight to publication.

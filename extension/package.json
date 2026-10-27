@@ -98,6 +98,10 @@
         "title": "Zero: Publish App"
       },
       {
+        "command": "zero.publishAndOpenWeb",
+        "title": "Zero: Publish & Open App"
+      },
+      {
         "command": "zero.copyPublishedWebLink",
         "title": "Zero: Copy Playable Link"
       },
@@ -620,16 +624,6 @@
           "group": "zero-web@1"
         },
         {
-          "command": "zero.copyPublishedWebLink",
-          "when": "view == zero.controls",
-          "group": "zero-web@2"
-        },
-        {
-          "command": "zero.openPublishedWeb",
-          "when": "view == zero.controls",
-          "group": "zero-web@3"
-        },
-        {
           "command": "zero.openFirstLesson",
           "when": "view == zero.controls",
           "group": "zero-help@1"
@@ -663,16 +657,6 @@
           "command": "zero.exportWeb",
           "when": "view == zero.studentControls",
           "group": "zero-web@1"
-        },
-        {
-          "command": "zero.copyPublishedWebLink",
-          "when": "view == zero.studentControls",
-          "group": "zero-web@2"
-        },
-        {
-          "command": "zero.openPublishedWeb",
-          "when": "view == zero.studentControls",
-          "group": "zero-web@3"
         },
         {
           "command": "zero.openFirstLesson",

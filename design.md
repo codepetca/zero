@@ -8,6 +8,14 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner publishing refinement,2026-10-26: the Run dropdown has one **Publish & open
+app** action. Save and verify the latest app, reuse its verified current publication
+without compiling/uploading, otherwise publish it before opening. Never open an
+outdated page after cancellation, failure or intervening edits. Remove the standalone
+Open app and Copy playable link controls; the browser address is the shareable URL.
+Advanced saved-link commands remain in the palette. Current source only; published
+kits keep their bundled behavior until a separately authorized release.
+
 Owner toolbar refinement,2026-10-26: keep only New (+) in the Project title bar.
 Refresh, Show All Project Files and Collapse All belong in its three-dot menu.
 
@@ -30,7 +38,7 @@ when adding features; a new feature does not reset the agreed interaction style.
 - Use one primary **Run**/**Stop** button. It offers Stop while queued, checking,
   compiling or running; show disabled **Stopping…** until owned work settles.
   A connected, ready project adds an adjacent **Run options** arrow with
-  **Publish app**. The main click still runs locally; disable the publishing
+  **Publish & open app**. The main click still runs locally; disable the publishing
   dropdown while running or stopping. Mac 0.5.34 includes this split control.
   Failures and closing the native JavaFX window return to Run. Preserve explicit
   Run App/Stop App palette commands and existing cancellation/generation guards.
@@ -127,10 +135,9 @@ when adding features; a new feature does not reset the agreed interaction style.
   include the next step: for example, **“Branch updated. Run App, then Merge to
   main.”** or **“Merged to main · local branch kept; see Output”**. A concise
   message must still describe the actual outcome accurately.
-- Preserve useful follow-up actions in the sidebar: **Open app / Copy playable
-  link** for the saved verified publication and **Preview export / Save ZIP /
-  Share export** for the current project's completed export. Reuse their guarded
-  commands; removing a popup must not remove access to an action.
+- Keep **Publish & open app** in Run options and **Preview export / Save ZIP /
+  Share export** for completed exports. The browser address shares the app; saved-link
+  palette commands remain available without duplicate sidebar or overflow controls.
 
 These are student-product interaction decisions. They do not authorize agent
 pushes, merges to the integration branch, public publication, releases or account

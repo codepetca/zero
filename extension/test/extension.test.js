@@ -227,8 +227,9 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle(()=>/Commit &amp; push/.test(webview.html) && /class="repo-label">student\/<wbr>app/.test(webview.html));
   assert.match(webview.html,/Commit &amp; push/);assert.match(webview.html,/class="repo-label">student\/<wbr>app/);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
   assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"/,'Publishing is not a separate GitHub-area button');
+  assert.doesNotMatch(webview.html,/data-command="zero.openPublishedWeb"|data-command="zero.copyPublishedWebLink"/);
   assert.match(webview.html,/id="run-menu-button"[^>]*aria-label="Run options"/);
-  assert.match(webview.html,/<div id="run-menu"[^>]*hidden><button[^>]*data-command="zero.publishWeb"[^>]*>Publish app<\/button>/);
+  assert.match(webview.html,/<div id="run-menu"[^>]*hidden><button[^>]*data-command="zero.publishAndOpenWeb"[^>]*>Publish &amp; open app<\/button>/);
   assert.match(webview.html,/aria-haspopup="dialog"[^>]*><span class="repo-label">/);
   assert.match(webview.html.match(/<button class="repo-choice"[\s\S]*?<\/button>/)[0],/lucide-chevron-down[\s\S]*aria-hidden="true"/,'A decorative right-pointing chevron identifies the project menu');
   assert.doesNotMatch(webview.html,/Browse ZeroHub|data-command="zero.shareGame"/,'Sharing belongs inside the single ZeroHub menu');
@@ -298,7 +299,7 @@ test("Zero offers the native student explorer with a standard Explorer escape",(
   assert.equal(manifest.contributes.viewsContainers.activitybar[0].title,'Zero');
   assert.equal(manifest.contributes.commands.find(item=>item.command==='zero.previewStudentExplorer').title,'Zero: Use Student Explorer');
   const standard=manifest.contributes.menus['view/title'].filter(item=>item.when==='view == zero.controls').map(item=>item.command);
-  assert.deepEqual(standard,["zero.githubAccount","zero.chooseRepository","zero.exportWeb","zero.copyPublishedWebLink","zero.openPublishedWeb","zero.openFirstLesson","zero.showSetup","zero.startPage","zero.showOutput","zero.previewStudentExplorer"]);
+  assert.deepEqual(standard,["zero.githubAccount","zero.chooseRepository","zero.exportWeb","zero.openFirstLesson","zero.showSetup","zero.startPage","zero.showOutput","zero.previewStudentExplorer"]);
   const preview=manifest.contributes.menus['view/title'].filter(item=>item.when==='view == zero.studentControls').map(item=>item.command);
   assert.deepEqual(preview,standard.filter(command=>command!=='zero.previewStudentExplorer'));
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startChange").title,"Zero: New Branch");

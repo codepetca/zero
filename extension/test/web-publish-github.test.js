@@ -57,7 +57,7 @@ async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoize
   const localBuild=async()=>result;let validationError;const validateExport=async()=>{if(validationError)throw validationError;const siteFiles=[];for(const file of outputFiles)siteFiles.push({path:file.path,bytes:await fs.readFile(path.join(site,file.path))});if(siteFiles.some(file=>require('../src/web-publish-bundle').hash(file.bytes)!==outputFiles.find(output=>output.path===file.path).sha256))throw Error('browser output changed');return {...result,manifest:{files:outputFiles},siteFiles};};
   const gitReads=new Map();const guardedGit=memoizeGit?((cwd,args)=>{const key=JSON.stringify([cwd,args]);if(!gitReads.has(key))gitReads.set(key,core.git(cwd,args));return gitReads.get(key);}):core.git;
   const publisher=createGitHubPagesPublisher({git:guardedGit,authentication,repositories,fetch,files,isSimulation:()=>simulation,localBuild,validateExport,assertBuildInputsAtCommit:validateExport,...publisherOptions});
-  return {root,git,head,files,publisher,calls,authentication,result,accessCalls,set afterAccess(v){afterAccess=v;},set allowed(v){allowed=v;},set installationId(v){installationId=v;},set deniedPermission(v){deniedPermission=v;},set validationError(value){validationError=value;},set afterUpload(value){afterUpload=value;},set loseCreationResponse(value){loseCreationResponse=value;},set listError(value){listError=value;},set assetPatch(value){assetPatch=value;},set losePagesResponse(v){losePagesResponse=v;},set createdPages(v){createdPages=v;},get pages(){return pages;},set pages(v){pages=v;},get repo(){return repo;},set repo(v){repo=v;},get run(){return run;},set marker(v){marker=v;},set current(v){current=v;},set simulation(v){simulation=v;},set remoteHead(v){remoteHead=v;},set dispatchStatus(v){dispatchStatus=v;},set createStatus(v){createStatus=v;},set publicStatus(v){publicStatus=v;}};
+  return {root,git,head,files,publisher,calls,authentication,result,accessCalls,set afterAccess(v){afterAccess=v;},set allowed(v){allowed=v;},set installationId(v){installationId=v;},set deniedPermission(v){deniedPermission=v;},set validationError(value){validationError=value;},set afterUpload(value){afterUpload=value;},set loseCreationResponse(value){loseCreationResponse=value;},set listError(value){listError=value;},set assetPatch(value){assetPatch=value;},set losePagesResponse(v){losePagesResponse=v;},set createdPages(v){createdPages=v;},get pages(){return pages;},get release(){return release;},set release(v){release=v;},set pages(v){pages=v;},get repo(){return repo;},set repo(v){repo=v;},get run(){return run;},set marker(v){marker=v;},set current(v){current=v;},set simulation(v){simulation=v;},set remoteHead(v){remoteHead=v;},set dispatchStatus(v){dispatchStatus=v;},set createStatus(v){createStatus=v;},set publicStatus(v){publicStatus=v;}};
 }
 test('simulation never looks up auth, reads repository, creates files or requests network',async()=>{
   const no=()=>assert.fail('Unexpected side effect');const p=createGitHubPagesPublisher({authentication:{capture:no},fetch:no,git:no});
@@ -406,4 +406,47 @@ test('invalid local browser source never creates a first Pages site',async t=>{
 });
 test('publisher exposes no automatic helper migration entrypoint',()=>{
  const publisher=createGitHubPagesPublisher();assert.equal(publisher.prepare,undefined);
+});
+
+
+async function savedPublication(h) {
+  const reviewed=await h.publisher.review(h.root),pending=await h.publisher.publish(reviewed),live=await h.publisher.check(pending.resume);
+  return {root:h.root,account:reviewed.account,url:live.url,sha:live.sha,resume:live.resume};
+}
+test('current publication verification reuses a live version with read-only requests and exact local commit proof',async t=>{
+  let proofs=0;const h=await fixture(t,{publisherOptions:{assertBuildInputsAtCommit:async()=>{proofs++;return {sourceHash:'b'.repeat(64)};}}});
+  const saved=await savedPublication(h),reviewed=await h.publisher.review(h.root),before=h.calls.length,proofsBefore=proofs;
+  const result=await h.publisher.verifyCurrent(reviewed,saved);assert.equal(result.status,'live');assert.equal(result.sha,h.head);assert.equal(proofs-proofsBefore,2);assert.ok(h.calls.slice(before).every(call=>call.options.method==='GET')); // no dispatch, upload or compiler
+});
+test('current verification rejects stale receipt, missing local proof and drift after remote verification',async t=>{
+  const h=await fixture(t),saved=await savedPublication(h),reviewed=await h.publisher.review(h.root);
+  for(const changed of [{sha:'f'.repeat(40)},{account:'other'},{root:'/other'},{url:'https://other.invalid/'}])assert.equal((await h.publisher.verifyCurrent(reviewed,{...saved,...changed})).status,'stale');
+  h.validationError=Error('Retained build missing');assert.equal((await h.publisher.verifyCurrent(reviewed,saved)).status,'stale');h.validationError=undefined;
+  h.remoteHead='f'.repeat(40);await assert.rejects(h.publisher.verifyCurrent(reviewed,saved),/GitHub main changed/);
+});
+test('current verification never treats authentication or public availability failures as permission to publish',async t=>{
+  const h=await fixture(t),saved=await savedPublication(h),reviewed=await h.publisher.review(h.root);
+  h.current=false;await assert.rejects(h.publisher.verifyCurrent(reviewed,saved));h.current=true;h.publicStatus=503;
+  const start=h.calls.length;assert.equal((await h.publisher.verifyCurrent(reviewed,saved)).status,'pending');assert.ok(h.calls.slice(start).every(call=>call.options.method==='GET'));
+});
+
+test('current publication detects ignored-source drift after the public check and requires an input proof',async t=>{
+  for(const mode of ['missing','drift']) {
+    let calls=0;const h=await fixture(t,{publisherOptions:{assertBuildInputsAtCommit:async({result}={})=>{if(result)return {sourceHash:'b'.repeat(64)};calls++;return mode==='missing'?undefined:{sourceHash:(calls===1?'b':'d').repeat(64)};}}});
+    const saved=await savedPublication(h),reviewed=await h.publisher.review(h.root);
+    if(mode==='missing')assert.equal((await h.publisher.verifyCurrent(reviewed,saved)).status,'stale');else await assert.rejects(h.publisher.verifyCurrent(reviewed,saved),/app changed/);
+  }
+});
+
+test('current-page reuse never deletes a staging draft, while pending recovery can clean its owned draft',async t=>{
+  const h=await fixture(t),saved=await savedPublication(h),stage=saved.resume.staging;
+  h.release={id:stage.releaseId,draft:true,tag_name:stage.tag,author:{id:1},target_commitish:saved.sha};
+  const reviewed=await h.publisher.review(h.root),before=h.calls.length;
+  assert.equal((await h.publisher.verifyCurrent(reviewed,saved)).status,'live');assert.ok(h.release);assert.ok(h.calls.slice(before).every(call=>call.options.method==='GET'));
+  await h.publisher.restore(h.root,saved.resume);assert.equal(h.release,undefined,'Explicit pending-run recovery retains its owned cleanup');
+});
+
+test('a failed remembered deployment needs a new publication instead of opening its old page',async t=>{
+ const h=await fixture(t),saved=await savedPublication(h),reviewed=await h.publisher.review(h.root);h.run.conclusion='failure';
+ const before=h.calls.length;assert.equal((await h.publisher.verifyCurrent(reviewed,saved)).status,'stale');assert.ok(h.calls.slice(before).every(call=>call.options.method==='GET'));
 });

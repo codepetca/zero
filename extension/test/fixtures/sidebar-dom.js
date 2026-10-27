@@ -31,7 +31,7 @@ function sidebarDOM() {
   }
   nodes.controls.append(nodes['run-menu-button'],nodes['run-menu']);
   nodes['run-menu-button'].setAttribute('aria-expanded','false');nodes['run-menu'].hidden=true;
-  const publish=new Element();publish.dataset.command='zero.publishWeb';publish.setAttribute('role','menuitem');nodes['run-menu'].append(publish);
+  const publish=new Element();publish.dataset.command='zero.publishAndOpenWeb';publish.setAttribute('role','menuitem');nodes['run-menu'].append(publish);
   const listeners={},sent=[];let saved,handler;
   const window={scrollY:0,scrollTo(){},addEventListener:(type,listener)=>listeners[type]=listener};
   vm.runInNewContext(sidebarScript(),{window,document,acquireVsCodeApi:()=>({getState:()=>null,setState:value=>{saved=value;},postMessage:message=>{sent.push(message);handler?.(message);}})});

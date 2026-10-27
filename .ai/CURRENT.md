@@ -1,26 +1,23 @@
-# Mac0.5.51 — public DMG verified; native metadata promotion
+# Publish & open app — local implementation
 
 Worktree /Users/stew/.codex/worktrees/student-explorer/zero, branch
-codex/mac51-downloads. Owner's2026-10-26 “Do it” authorized source/CI/merge,
-signed/notarized Mac51 release, fresh-profile Run/Publish and native feed promotion.
-SourcePR208 merged6cdd208e with11green checks after two source reviewers and
-bounded targeted/artifact review. Root1338pass/3skip, website243pass/typecheck/build.
-Explorer java/resources, Project New/context rename/overflow, guarded Git recovery
-and private JDK21 browser fallback are included; saved Standard choices survive.
+codex/publish-and-open. Owner2026-10-26 requests one Run dropdown action that opens
+the latest app: reuse a verified current publication, otherwise publish then open.
+Remove standalone Open app/Copy playable link sidebar controls; the browser address
+is shareable. Keep palette retrieval commands and ordinary local Run/Stop.
 
-Published setup-v0.5.51 targets prep997c0843, built849a3527. Its one DMG matches
-5,969,017bytes/SHA2567a6930188772673544f11462242aef6f4f239dc7eb75161a300557534110ef6b
-on authenticated draft and anonymous public download; Ed25519 passes. Signed,
-AppleAccepted/stapled/Gatekeeper checks and13seal hashes/41protected paths pass.
-Fresh pinned Code1.141.0 profile with exact installed VSIX and bundled starter in
-disposable armorup/zero-release-smoke-0-5-51 passed sign-in, Run UI ready/Stop,
-guarded push and Publish. Actual public page renders Hello, world! Same maintainer
-Mac; no fresh physical device, school network, Intel or Sparkle delivery claim.
+Implementation uses existing clean-main/upload/publication guards and the read-only
+host retained-input-to-commit proof. Pending older runs must settle before a newer
+publication. Never open on failed/pending/cancelled, account/project drift, or source
+edits. Preserve first-publication consent, simulation/no-write behavior and owned locks.
+Project-owned publishing README/owner hash remain pinned; UI help changes there would
+invalidate existing kits. Update current editor docs instead; no automatic kit upgrade.
 
-This change promotes only native manifests and the exact signed51 feed. Keep
-Windows21/manualkit17, immutable public assets, primary funding work, original
-actor checkout, normal profiles/student projects and production ZeroJams hold.
-Track promotion review/CI/merge and hosted-byte verification on PR209; record each
-result there after completion. See docs/MAC-CANDIDATE-0.5.51.md and docs/EVIDENCE.md. No credential
-changes, new manual kit release or production ZeroJams activation. DeepSeek paused.
-Zero Dev source watchers remain; user uses its isolated dev window on my-study.
+Current phase: focused tests, native isolated source-host verification, bounded
+independent review. No new push, merge, native release, feed promotion or credential
+change is authorized by this request. Public Mac0.5.51 remains the verified release
+from PR208/209; source6cdd208e, metadata7253a217, final delivery receipt on PR209.
+Preserve primary funding work, normal profiles/student projects, original actor
+checkout, immutable assets, Windows21/legacykit17 and production ZeroJams hold.
+DeepSeek paused; weekly remaining85%, storage227GB healthy at start. Existing Dev
+watchers/user's my-study window stay intact; use a separate source preview for UI.

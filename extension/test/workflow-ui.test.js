@@ -109,10 +109,9 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   branch='add-score';cleanupError=new Error('The finished branch changed; keep its new work.');const errorsBeforeCleanup=errors.length;
   await commands.get('zero.finishChange')();assert.equal(deleted,1);assert.equal(deletions.length,2);assert.equal(errors.length,errorsBeforeCleanup);assert.equal(reviews.length,0);assert.match(warnings.at(-1),/Merged to main.*local branch kept; see Output/);assert.match(logs.at(-1),/finished branch changed/);assert.equal(branch,'main');cleanupError=undefined;
   publishedState={root,account:'1',resume:{repository:'https://github.com/student/app'}};provider.resolveWebviewView(candidate);
-  assert.match(webview.html,/data-command="zero.openPublishedWeb"/);assert.match(webview.html,/data-command="zero.copyPublishedWebLink"/);
-  session={...session,account:{id:'1',label:'renamed-student'}};authEvent({provider:{id:'zero-github'}});await waitFor(()=>webview.html.includes('data-command="zero.openPublishedWeb"'));assert.match(webview.html,/data-command="zero.openPublishedWeb"/,'Numeric identity survives username changes');assert.doesNotMatch(webview.html,/renamed-student/,'Account refresh does not restore the removed username row');
-  session={...session,account:{id:'2',label:'renamed-student'}};authEvent({provider:{id:'zero-github'}});await waitFor(()=>!webview.html.includes('data-command="zero.openPublishedWeb"'));
-  session={...session,account:{id:'1',label:'student'}};authEvent({provider:{id:'zero-github'}});await waitFor(()=>webview.html.includes('data-command="zero.openPublishedWeb"'));
+  assert.doesNotMatch(webview.html,/data-command="zero.openPublishedWeb"|data-command="zero.copyPublishedWebLink"/);
+  assert.match(webview.html,/data-command="zero.publishAndOpenWeb"/);
+  assert.ok(commands.has('zero.openPublishedWeb') && commands.has('zero.copyPublishedWebLink'),'Advanced saved-link commands remain available');
   for(const changed of [{root:'/other'}, {account:'other'}, {resume:{repository:'https://github.com/student/other'}}]) {
     const saved=publishedState;publishedState={...saved,...changed};provider.resolveWebviewView(candidate);assert.doesNotMatch(webview.html,/data-command="zero.openPublishedWeb"/);publishedState=saved;
   }
