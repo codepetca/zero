@@ -20,6 +20,7 @@ $summary = [ordered]@{
     candidateRunId = '40742412970'
     candidateSha256 = $expectedHash; candidateVersion = $packageVersion
     original = 'not-run'; control = 'not-run'; controlDpi = 'not-run'
+    controlApi = 'not-run'; controlApiDpi = 'not-run'; controlApiInitialization = $null
     result = 'failed'; cleanupVerified = $false
     osVersion = [Environment]::OSVersion.Version.ToString()
     runnerImage = $env:ImageOS; runnerImageVersion = $env:ImageVersion
@@ -162,7 +163,18 @@ using System.Windows.Forms;
 internal static class ControlProgram {
     [DllImport("user32.dll")] static extern IntPtr GetWindowDpiAwarenessContext(IntPtr hwnd);
     [DllImport("user32.dll")] static extern bool AreDpiAwarenessContextsEqual(IntPtr a, IntPtr b);
+#if API_CONTROL
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    static extern bool SetProcessDpiAwarenessContext(IntPtr context);
+#endif
     [STAThread] static void Main(string[] args) {
+#if API_CONTROL
+        // Diagnostic alternative only; initialize before any WinForms/UI calls.
+        bool apiSet = SetProcessDpiAwarenessContext(new IntPtr(-4));
+        int apiError = Marshal.GetLastWin32Error();
+        if (!apiSet) throw new System.ComponentModel.Win32Exception(apiError, "SetProcessDpiAwarenessContext failed");
+#endif
         Application.EnableVisualStyles();
         using (var form = new Form { Text = "WACK diagnostic control", Width = 360, Height = 140 })
         using (var timer = new Timer { Interval = 2000 }) {
@@ -170,6 +182,10 @@ internal static class ControlProgram {
                 if (args.Length == 2 && args[0] == "/probe") {
                     bool pmv2 = AreDpiAwarenessContextsEqual(GetWindowDpiAwarenessContext(form.Handle), new IntPtr(-4));
                     File.WriteAllText(args[1], pmv2 ? "PerMonitorV2" : "Unexpected DPI context");
+#if API_CONTROL
+                    // GetLastError is diagnostic only on success; BOOL determines success.
+                    File.WriteAllText(args[1] + ".api.json", "{\"setProcessDpiAwarenessContext\":true,\"observedWin32Error\":" + apiError.ToString(System.Globalization.CultureInfo.InvariantCulture) + "}");
+#endif
                 }
                 timer.Start();
             };
@@ -211,6 +227,48 @@ internal static class ControlProgram {
     $summary.controlPackageSha256 = (Get-FileHash -LiteralPath $controlPackage -Algorithm SHA256).Hash.ToLowerInvariant()
     $controlPassed = Invoke-Validation 'control' $controlPackage
     $summary.control = if ($controlPassed) { 'passed' } else { 'failed' }
+
+    # A third control isolates modern API initialization from WACK's manifest reader.
+    # Preserve the baseline above and remove only these two DPI declarations here.
+    $apiManifest = Join-Path $work 'control-api.manifest'
+    $apiManifestDocument = [System.Xml.XmlDocument]::new()
+    $apiManifestDocument.PreserveWhitespace = $true
+    $apiManifestDocument.Load((Resolve-Path -LiteralPath $manifest).ProviderPath)
+    $dpiNodes = @($apiManifestDocument.SelectNodes("//*[local-name()='dpiAware' and namespace-uri()='http://schemas.microsoft.com/SMI/2005/WindowsSettings'] | //*[local-name()='dpiAwareness' and namespace-uri()='http://schemas.microsoft.com/SMI/2016/WindowsSettings']"))
+    if ($dpiNodes.Count -ne 2) { throw 'Expected exactly two baseline DPI manifest declarations.' }
+    foreach ($node in $dpiNodes) { $node.ParentNode.RemoveChild($node) | Out-Null }
+    $apiManifestDocument.Save($apiManifest)
+    Copy-Item -LiteralPath $apiManifest -Destination (Join-Path $outputPath 'control-api-source.manifest')
+    & $csc /nologo /target:winexe /platform:x64 /define:API_CONTROL /reference:System.Windows.Forms.dll /reference:System.Drawing.dll "/win32manifest:$apiManifest" "/out:$exe" $source
+    if ($LASTEXITCODE -ne 0) { throw 'API control compilation failed.' }
+    & $mt "-inputresource:$exe;#1" "-out:$(Join-Path $outputPath 'control-api-win32.manifest')"
+    if ($LASTEXITCODE -ne 0) { throw 'API control manifest extraction failed.' }
+    & $mt -manifest (Join-Path $outputPath 'control-api-win32.manifest') -validate_manifest
+    if ($LASTEXITCODE -ne 0) { throw 'API control manifest validation failed.' }
+    $apiProbePath = Join-Path $work 'control-api-dpi.txt'
+    $process = Start-Process -FilePath $exe -ArgumentList @('/probe', ('"' + $apiProbePath + '"')) -PassThru
+    try {
+        if (-not $process.WaitForExit(10000)) {
+            & taskkill.exe /PID $process.Id /T /F | Out-Null
+            throw 'API control DPI probe timed out.'
+        }
+        $process.Refresh()
+        if ($process.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $apiProbePath -PathType Leaf)) { throw 'API control DPI probe failed.' }
+        $summary.controlApiDpi = (Get-Content -LiteralPath $apiProbePath -Raw).Trim()
+        $summary.controlApiInitialization = Get-Content -LiteralPath ($apiProbePath + '.api.json') -Raw | ConvertFrom-Json
+        if ($summary.controlApiDpi -ne 'PerMonitorV2' -or $summary.controlApiInitialization.setProcessDpiAwarenessContext -ne $true) { throw 'API control initialization or HWND PerMonitorV2 proof failed.' }
+    } finally { $process.Dispose() }
+    foreach ($name in @('AppxBlockMap.xml', '[Content_Types].xml', 'AppxSignature.p7x')) {
+        $path = Join-Path $payload $name
+        if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Force }
+    }
+    $apiControlPackage = Join-Path $work 'control-api-only.msix'
+    & $makeAppx pack /d $payload /p $apiControlPackage
+    if ($LASTEXITCODE -ne 0) { throw 'API control-only package creation failed.' }
+    $summary.controlApiExeSha256 = (Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+    $summary.controlApiPackageSha256 = (Get-FileHash -LiteralPath $apiControlPackage -Algorithm SHA256).Hash.ToLowerInvariant()
+    $apiControlPassed = Invoke-Validation 'control-api' $apiControlPackage
+    $summary.controlApi = if ($apiControlPassed) { 'passed' } else { 'failed' }
 } catch {
     $failure = $_
     $summary.error = Protect-DiagnosticText $_.Exception.Message

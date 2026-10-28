@@ -12165,3 +12165,20 @@ keys are never uploaded. Review retracted a preliminary identical-Add-Type
 collision concern after checking documented WindowsPowerShell caching behavior;
 no accepted code findings. actionlint, npm check and12CI scope/gate tests pass.
 Actual WindowsPowerShell execution pending; effective model/time/tokens unknown.
+
+Diagnostic run40744913896 completed both original and minimal-control checks on
+WindowsServer2022 build20348. The control's live HWND was PerMonitorV2, both
+SDK-extracted executable manifests validated, and cleanup passed. Both packages
+hit the same WACK infrastructure COM E_FAIL in
+BinaryInfoClass.IsPerMonitorV2DPIAwarenessSet(), called by
+AppManifestContainsDPIAwarenesElement. This identifies a shared scanner failure;
+it does not establish Store acceptance or waive the required DPI warning.
+Sanitized detailed traces and native-to-retained hash mappings are retained in
+.verification/wack-40744913896/diagnostics and the CI diagnostics artifact.
+Next diagnostic-only control initializes PMv2 through the documented checked
+SetProcessDpiAwarenessContext API before any UI, removes only its own manifest DPI
+elements and requires live PMv2 proof. It does not change Zero or its gate.
+SolHigh targeted dpi_gate_review completed clean over e04746eb plus the third
+control delta: checked BOOL/error ordering, exact manifest-node removal, live
+proof, unchanged original/control and strict gate/cleanup. Both generated C#
+variants compile locally. Effective model/time/tokens unknown; Windows pending.
