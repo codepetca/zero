@@ -10,7 +10,11 @@ Open your **Study** project from lesson 3. Keep its question and Check action.
 
 ## 1. Add attempts fields above `setup()`
 
-In `Main`, above `setup()` and beside your `answer` and `feedback` fields, add:
+In `Main`, find:
+
+`private Label feedback;`
+
+Add below it:
 
 ```java
 private int attempts = 0;
@@ -19,7 +23,11 @@ private Label attemptsLabel;
 
 ## 2. Create the attempts label in `setup()`
 
-In `setup()`, after `feedback = new Label("");`, create the new label:
+In `setup()`, find:
+
+`feedback = new Label("");`
+
+Add below it:
 
 ```java
 attemptsLabel = new Label("Attempts: 0");
@@ -27,7 +35,11 @@ attemptsLabel = new Label("Attempts: 0");
 
 ## 3. Add the attempts label to the layout
 
-Add `attemptsLabel` as the **last** item in the existing `Column`:
+Find:
+
+`show(new Column(10, question, answer, check, feedback));`
+
+Replace with:
 
 ```java
 show(new Column(10, question, answer, check, feedback, attemptsLabel));
@@ -35,8 +47,11 @@ show(new Column(10, question, answer, check, feedback, attemptsLabel));
 
 ## 4. Count each check before the `if` statement
 
-Inside the **existing** `check.onClick(...)` block, put these two lines
-*before* the `if` statement:
+Inside the existing `check.onClick(...)` block, find:
+
+`if (answer.getText().equals("5")) {`
+
+Add above it:
 
 ```java
 attempts = attempts + 1;

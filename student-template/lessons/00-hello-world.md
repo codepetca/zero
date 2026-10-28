@@ -12,7 +12,11 @@ Target illustration: your greeting after you write it.
 
 The new `Main.java` has `Main extends App`, `settings()` with `padding(20)`, an empty
 `setup()` and a `main` method. Keep those lines. The empty setup opens a blank window, so your
-first control is yours to write. Add this import above `public class Main`:
+first control is yours to write. Find this existing import:
+
+`import zero.App;`
+
+Add below it:
 
 ```java
 import zero.ui.Label;
@@ -20,7 +24,11 @@ import zero.ui.Label;
 
 ## 2. Write the greeting inside `setup()`
 
-Inside the two braces of `setup()`, write:
+Find the empty method:
+
+`@Override public void setup() {` `// Build your interface here.` `}`
+
+Replace the comment inside its braces with:
 
 ```java
 Label greeting = new Label("Hello, world!");
@@ -44,8 +52,11 @@ Your Main extends `zero.App`. Zero uses JavaFX underneath to display the interfa
 point; you do not need to construct another Main.
 
 The starter already uses `padding(20)` to leave space around the content.
-For an optional window title and initial size, edit its existing `settings()`
-method:
+For an optional window title and initial size, find the existing method:
+
+`@Override public void settings() { padding(20); }`
+
+Replace it with:
 
 ```java
 @Override public void settings() {

@@ -11,7 +11,7 @@ Previous: [Refactor a busy Main](10-components.md).
 ## 1. Retain the displayed value
 
 In `ScoreDisplay.java`, keep the private Label and Element view from lesson 10.
-Add two fields beside the label:
+Find `private final Label label = new Label("Score: 0");` inside the class. Add these two fields immediately below that line (above `setScore`):
 
 ```java
 private String caption = "Score";
@@ -19,8 +19,7 @@ private int points;
 ```
 
 The game Main and StudyQuiz still own their real scores and when they change. These fields remember only
-what this display was last told to show. Replace the existing setScore method
-and add a private refresh method:
+what this display was last told to show. Find the existing `setScore` method, which contains `label.setText("Score: " + points);`. Replace the entire method, from `public void setScore(int points) {` through its closing `}`, with both methods below. Keep the following `view()` method:
 
 ```java
 public void setScore(int points) {
@@ -38,7 +37,7 @@ by the calling class. One refresh method keeps formatting in one place.
 
 ## 2. Add a caption method
 
-Add this ordinary Java method inside ScoreDisplay:
+In `ScoreDisplay.java`, find the closing brace of `refresh()`, immediately before `public Element view()`. Add this method between them, still inside the class:
 
 ```java
 public void setCaption(String caption) {
@@ -75,15 +74,14 @@ To check changing a caption **after** a value, temporarily add
 coin: the display should show `Coins: 1`, proving the caption change kept that
 value. Stay on the coin and check it still shows 1.
 
-Remove that experimental line and **restore `score.setCaption("Score")` in both
-Main setup methods before continuing**. Keep view() and setScore(int) as the
+Remove that experimental line and **restore `score.setCaption("Score")` in the game’s Main `setup()` and the study app’s `StudyQuiz` constructor before continuing**. Keep view() and setScore(int) as the
 public ways to mount and update the display.
 
 ## 4. Optionally improve PlayerInput with WASD
 
 The game now has one place to improve keyboard input. As an optional feature,
 let A/D and W/S work alongside the arrow keys. In the game's `PlayerInput.java`,
-replace only its two direction methods:
+find `public int horizontal()` after the constructor and `public int vertical()` immediately after it. Replace both complete methods, from `horizontal()` through the closing brace of `vertical()`, with the following. Keep the final class brace:
 
 ```java
 public int horizontal() {
@@ -168,13 +166,13 @@ This class formats a message and creates a small Zero label. It does not read
 input, move the player, change scores or run a timer. Each call to `view()` creates
 its own label, so two places can display a badge without sharing a UI parent.
 
-Import `zero.ui.Column` in Main. In setup, after creating message, add:
+In the game’s `Main.java`, add `import zero.ui.Column;` alongside the other imports at the top. In `setup()`, find `message = new Label("");` and add this line immediately below it, before the Restart button is created:
 
 ```java
 var badge = new CreditsBadge("Coin game");
 ```
 
-Replace only the controls call with:
+Still in `setup()`, find `controls(new Row(12, score.view(), message, restartButton));`. Replace that entire call with:
 
 ```java
 controls(new Column(8,
