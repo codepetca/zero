@@ -16,7 +16,11 @@ exports through pinned WebFX/GWT with BUILD SUCCESS and is played in the browser
 wrong4→tryagain/attempt1/score0; trimmed5→score1/attempt2;1 and TRUE→score3;
 lastNext disables input and shows3/3; Restart restores question1/zero counts.
 No hosted app publication, installed-editor or physical Windows proof is claimed.
-Ignored logs/browser receipt: .verification/study-classes/. Independent review next.
+Independent requested Terra/medium review of6d40f99b→ebdd4083 completed clean,
+0blockers, tracing5→6→7→10→11, imports/constructors/ownership/retained views and
+restart behavior against the checkpoints. Native/browser evidence reused, not
+rerun by the reviewer; effective model/time/tokens unknown.1review turn,0fixes.
+Ignored logs/browser receipt: .verification/study-classes/. Local source only.
 
 # PR221 packaging boundary correction — 2026-10-27
 

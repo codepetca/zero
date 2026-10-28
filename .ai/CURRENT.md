@@ -14,8 +14,10 @@ No shared project-builder/template-byte or publication-record edits intended.
 
 Native finite6/7/10study/11study,53 focused tests, source checks, website prepare
 and all3 pinned-template checks pass. Checkpoint7 real WebFX/GWT build and actual
-browser wrong/right/Next/3-of-3/restart pass. Next: independent teaching/correctness
-review, then report student code. No installed editor/Windows/publication claim.
+browser wrong/right/Next/3-of-3/restart pass. Independent Terra/medium review
+at ebdd4083 completed clean,0blockers, covering5→6→7→10→11 and checkpoints.
+Local implementation complete; no push/PR/merge/release. No installed editor or
+physical Windows claim. Effective model/time/tokens unknown;1reviewer turn,0fixes.
 Keep all prior source delivery receipts in .verification/publish-fast/; PR221 is
 merged6d40f99b with11checks passed; those changes are still separate from releases.
 Evidence for this local work: .verification/study-classes/. Source/installedMac54
