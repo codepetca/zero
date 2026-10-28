@@ -12224,3 +12224,12 @@ SolHigh dpi_gate_review completed the Server2025 delta clean: explicit mutually
 exclusive host guards, hard runner allowlist, unchanged defaults/product/gate,
 shared strict call forwarding and honest server-vs-desktop limits. actionlint/
 diff checks passed; service_wack staysfalse. Effective model/time/tokens unknown.
+
+Initial Server2025 dispatch40750952433 stopped before testing: the actual official
+image tag is win25-vs2026/20261021.278, while the new guard allowed only win25.
+The job log confirms WindowsServer2025/10.0.26100/Datacenter. The diagnostic-only
+allowlist now recognizes exactly win25 and win25-vs2026 while retaining all other
+manual/hosted/X64/kernel/ProductType guards. No validation pass is inferred.
+SolHigh targeted image-allowlist review complete/clean over0f47f0be plus the two
+matching guard lines and actual job metadata. All other platform checks remain.
+Effective model/time/tokens unavailable; actual rerun pending.

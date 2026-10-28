@@ -125,7 +125,7 @@ try {
     } elseif ($Windows2025Diagnostic) {
         if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or
             $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:RUNNER_OS -ne 'Windows' -or
-            $env:RUNNER_ARCH -ne 'X64' -or $env:ImageOS -ne 'win25' -or
+            $env:RUNNER_ARCH -ne 'X64' -or $env:ImageOS -notin @('win25', 'win25-vs2026') -or
             -not [Environment]::Is64BitOperatingSystem -or [Environment]::OSVersion.Version.Build -lt 26100) {
             throw 'Windows Server 2025 diagnostic requires manual dispatch on a disposable hosted Windows Server 2025 x64 runner.'
         }
