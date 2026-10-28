@@ -12120,3 +12120,15 @@ Desktop Bridge guidance; every required non-PASS still fails. Exact byte-range
 inspection of the previous candidate found rEg/csI matches only inside the
 measured embedded kit. Actual WACK rerun and physical scaled-display acceptance
 remain separate; no clean or Store-certification claim is made from local checks.
+
+Windows run40739916693 stopped at locked restore before WACK: explicit x64
+compilation caused SDK runtime inference to select win-x64, absent from the
+Store lock. Follow-up pins RuntimeIdentifier=win-x64 in MSIX publishing on every
+host and regenerates only the Store lock's empty runtime target; package
+versions/content hashes and ordinary EXE lock remain unchanged. Exact local
+locked restore and net48 publish passed with the emitted AMD64 launcher/config;
+seven MSIX tests and npm check passed. Real Windows validation remains required.
+Targeted review dpi_gate_review (requested SolHigh, fourth DPI correction batch)
+completed clean over ca4361e1 plus the runtime-target/lock delta and its docs.
+It independently checked conditional lock selection, unchanged dependency graph,
+AMD64 output and emitted config. Effective model, elapsed and tokens unavailable.

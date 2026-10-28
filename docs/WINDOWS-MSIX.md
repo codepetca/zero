@@ -224,7 +224,9 @@ fails. No WACK test is excluded. Store certification remains Microsoft's decisio
 A follow-up candidate with DPI settings embedded still produced WACK's
 'Failed to process the binary' message. The Store launcher build is therefore
 explicitly x64, matching its package architecture; its PE machine header is
-verified as AMD64. Earlier AnyCPU CLR images could run on x64 and are not declared
+verified as AMD64. Store publishing explicitly selects `win-x64` on every build
+host and retains that target in its separate NuGet lock; locked restore remains
+enabled and dependency versions/hashes are unchanged. Earlier AnyCPU CLR images could run on x64 and are not declared
 invalid merely by this change. Actual WACK results must establish whether the
 explicit build resolves the static-analysis issue. The ordinary EXE build keeps
 its existing architecture. CI performs EXE runtime/DPI/JavaFX checks before WACK
