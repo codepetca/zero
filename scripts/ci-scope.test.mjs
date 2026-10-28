@@ -23,6 +23,16 @@ test('known UI selects source checks and shared styles also select website', () 
   const s=classify(['extension/src/start-page.js']); assert.equal(s.source,true); assert.equal(s.windows,false); assert.equal(s.browser,false);
   assert.equal(classify(['extension/media/controls.css']).website,true);
 });
+test('classifier changes narrow only alongside a verified kit publication promotion', () => {
+  const expected={source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false};
+  for(const files of [['scripts/ci-scope.mjs'],['scripts/ci-scope.test.mjs'],['scripts/ci-scope.mjs','scripts/ci-scope.test.mjs','docs/FAST-DEV-FLOW.md']]) {
+    assert.ok(Object.values(classify(files)).every(Boolean),'standalone classifier edits stay full');
+    assert.deepEqual(classify(['release/kit.json',...files],{kitPublicationPromotion:true}),expected);
+  }
+  for(const file of ['scripts/ci-gate.mjs','scripts/ci-gate.test.mjs','scripts/ci-browser.mjs','scripts/ci-scope-new.mjs','.github/workflows/ci-scope.yml','.github/workflows/windows-native.yml','.github/workflows/web-export.yml','native-installer/windows/Program.cs','extension/src/web-export/index.js','extension/src/web-publishing.js','extension/src/core.js']) {
+    assert.ok(Object.values(classify(['release/kit.json','scripts/ci-scope.mjs',file],{kitPublicationPromotion:true})).every(Boolean),file);
+  }
+});
 test('public Java, exports, auth and transitive shared inputs retain full checks', () => {
   for(const file of ['framework/src/main/java/zero/App.java','framework/checks/zero/GameHelpersCheck.java','student-template/README.md','student-template/.mvn/wrapper/maven-wrapper.properties','teaching/projects.mjs','website/lib/learning.mjs','website/lib/project-curriculum.mjs','website/lib/installer.mjs','website/lib/local-installer.mjs','website/lib/update-feed.mjs','website/lib/contracts.mjs','website/lib/new-helper.mjs','design/brand/zero.svg','scripts/process-specification.mjs','extension/src/core.js','extension/src/web-export/index.js','extension/src/web-publishing.js','extension/src/github-app/auth.js','profile/Zero.code-profile','release/kit.json','package-lock.json','.github/workflows/web-export.yml']) {
     assert.ok(Object.values(classify([file])).every(v=>v===true),file);
@@ -88,11 +98,15 @@ test('real Git publication diff scopes metadata while mixed runtime and CI chang
     for(const asset of Object.values(after.assets))Object.assign(asset,{size:123,sha256:'a'.repeat(64),url:`https://github.com/codepetca/zero/releases/download/v0.5.55/${asset.filename}`});
     const scope=baseSha=>scopeForEvent({pull_request:{base:{sha:baseSha||base},head:{sha:git('rev-parse','HEAD')}}},root);
     const publish=()=>{write('release/kit.json',after);git('add','.');git('commit','-qm','publish measured metadata');};
+    write('scripts/ci-scope.mjs','standalone classifier change');git('add','.');git('commit','-qm','classifier only');assert.ok(Object.values(scope()).every(Boolean));git('reset','--hard',base);
     publish();const promotedHead=git('rev-parse','HEAD');
     assert.deepEqual(scope(),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
     write('README.md','updated public download');git('add','.');git('commit','-qm','document download');assert.equal(scope().windows,false);
-    for(const file of ['extension/src/native-updates.js','native-installer/windows/Program.cs','framework/src/main/java/zero/App.java','student-template/README.md','release/START-HERE.md','scripts/ci-scope.mjs','scripts/ci-scope.test.mjs','.github/workflows/windows-native.yml','unknown.cfg']) {
-      git('reset','--hard',promotedHead);write(file,'changed executable or unknown input');git('add','.');git('commit','-qm','mixed change');
+    git('reset','--hard',promotedHead);write('scripts/ci-scope.mjs','classifier change');write('scripts/ci-scope.test.mjs','selection regressions');write('docs/FAST-DEV-FLOW.md','document dependency scope');git('add','.');git('commit','-qm','promotion and classifier contracts');
+    const recovery=git('rev-parse','HEAD');
+    assert.deepEqual(scope(),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
+    for(const file of ['extension/src/native-updates.js','native-installer/windows/Program.cs','framework/src/main/java/zero/App.java','student-template/README.md','release/START-HERE.md','scripts/ci-gate.mjs','scripts/ci-scope-new.mjs','.github/workflows/windows-native.yml','.github/workflows/web-export.yml','.github/workflows/ci-scope.yml','extension/src/web-export/index.js','extension/src/web-publishing.js','extension/src/core.js','unknown.cfg']) {
+      git('reset','--hard',recovery);write(file,'changed executable or unknown input');git('add','.');git('commit','-qm','mixed change');
       assert.ok(Object.values(scope()).every(Boolean),file);
     }
     git('reset','--hard',base);const changed=structuredClone(after);changed.coreVersion='0.4.0';write('release/kit.json',changed);git('add','.');git('commit','-qm','mixed manifest change');assert.ok(Object.values(scope()).every(Boolean));

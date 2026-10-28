@@ -11,6 +11,7 @@ const ui=new Set(['extension/src/start-page.js','extension/src/sidebar-style.js'
 const sharedDesign=new Set(['design/tokens.json','design/adapters.mjs','design/prepare.mjs','extension/media/controls.css','extension/media/sidebar.css']);
 const dev=new Set(['Zero Dev.command','scripts/zero-dev.test.mjs','.vscode/launch.json']);
 const websiteConfig=new Set(['website/package.json','website/package-lock.json','website/tsconfig.json','website/next.config.ts']);
+const scopeTools=new Set(['scripts/ci-scope.mjs','scripts/ci-scope.test.mjs']);
 
 // Deliberately a small allowlist. Unknown/shared executable inputs retain every
 // existing lane. Renames are read as a deletion plus addition, so the old scope
@@ -27,6 +28,10 @@ export function classify(files, {kitPublicationPromotion = false} = {}) {
     // Source release guards and website validation still run; no immutable kit
     // is rebuilt. Any other changed shared/runtime input retains full coverage.
     if(file==='release/kit.json'&&kitPublicationPromotion){add('source','website');continue;}
+    // A verified publication promotion may carry its classifier correction;
+    // selection/gate contracts still run. Standalone CI edits, caller workflows,
+    // gates and all other CI tooling retain the existing full matrix.
+    if(kitPublicationPromotion&&scopeTools.has(file)){add('source','website');continue;}
     if(dev.has(file))continue; // Always-run Dev contracts cover these inputs.
     if(file==='scripts/zero-dev.mjs'||file.startsWith('scripts/dev/')){add('native');continue;}
     if(ui.has(file)||file.startsWith('design/playground/')){add('source');continue;}
