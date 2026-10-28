@@ -20,7 +20,9 @@ async function fixture(t, {studentExplorer=false, lesson=true, lessonFile='00-he
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
   if (typeof profile === 'function') profile=profile(root);
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
-  await fs.writeFile(path.join(root,'zero.json'),practice?JSON.stringify({localOnly:true,practiceProjectId:'study',lessonId:'3',templateVersion:'0.1.0',mainClass:'Main'}):tutorial?JSON.stringify({repositoryRequired:true,tutorialProjectId:'greeting',lessonId:'0',templateVersion:'0.1.0',mainClass:'Main'}):'{}');
+  const tutorialId=typeof tutorial==='string'?tutorial:'greeting';
+  const tutorialLesson={greeting:'0',study:'3',game:'8',pet:'13'}[tutorialId];
+  await fs.writeFile(path.join(root,'zero.json'),practice?JSON.stringify({localOnly:true,practiceProjectId:'study',lessonId:'3',templateVersion:'0.1.0',mainClass:'Main'}):tutorial?JSON.stringify({repositoryRequired:true,tutorialProjectId:tutorialId,lessonId:tutorialLesson,templateVersion:'0.1.0',mainClass:'Main'}):'{}');
   if(practice||tutorial) {await fs.mkdir(path.join(root,'src/main/java'),{recursive:true});await fs.writeFile(path.join(root,'src/main/java/Main.java'),'class Main {}\n');}
   await fs.writeFile(path.join(root,'mvnw'),'');
   if(lesson && !practice) {await fs.mkdir(path.join(root,'lessons')); await fs.writeFile(path.join(root,'lessons',lessonFile),'# First lesson');if(lessonFile==='00-hello-world.md')await fs.writeFile(path.join(root,'lessons/01-quiz.md'),'# Quiz');}
@@ -58,8 +60,8 @@ async function fixture(t, {studentExplorer=false, lesson=true, lessonFile='00-he
   const {tutorialScaffoldSha256}=require('../src/tutorial-template-readiness');
   for (const project of bundle.projects) {
     if(unpublishedTutorials)project.template=null;
-    else if(!staleTutorials)project.template.scaffoldSha256=tutorialScaffoldSha256(project.files);
-    else delete project.template.scaffoldSha256;
+    else if(project.template){if(!staleTutorials)project.template.scaffoldSha256=tutorialScaffoldSha256(project.files);
+    else delete project.template.scaffoldSha256;}
   }
   await fs.writeFile(path.join(extensionPath,'media/lesson-projects.json'),JSON.stringify(bundle));
   extension.activate({extensionPath,subscriptions,globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{checkSetup:githubAccess,async create(value){calls.push(['createRepository',value]);return {repository:{html_url:'https://github.com/student/my-project'}};}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
@@ -80,6 +82,17 @@ test('first lesson opens once per project and can be reopened without modifying 
   assert.equal(previews().length,2);
   assert.doesNotMatch(f.webview.html,/data-command="zero.openFirstLesson"/,'Tutorials live in the native view menu');
   assert.equal(await fs.readFile(path.join(f.root,'lessons/00-hello-world.md'),'utf8'),'# First lesson');
+});
+test('existing tutorial markers and Pet open their stable first lesson without checking template readiness',async t=>{
+  for(const [tutorial,id] of Object.entries({greeting:'0',study:'3',game:'8',pet:'13'})) {
+    const f=await fixture(t,{tutorial,lesson:false,unpublishedTutorials:true});
+    await settle(()=>f.remembered.get(`zero.firstLessonShown:${f.root}`));
+    const panel=f.panels.find(panel=>panel.type==='zero.tutorials');
+    await panel.message({type:'ready'});assert.equal(panel.restored.state.lessonId,id);
+    assert.equal(f.calls.filter(([command])=>command==='showTextDocument').length,1);
+    assert.equal(f.calls.filter(([command])=>['createRepository','cloneRepository','openExternal'].includes(command)).length,0);
+    assert.deepEqual(f.errors,[]);
+  }
 });
 test('existing projects migrate once to native Explorer and expand the Zero controls',async t=>{
   const remembered=new Map([['zero.sidebarShown',true]]);

@@ -2,7 +2,7 @@ import {readFileSync, writeFileSync, mkdirSync, readdirSync, copyFileSync, statS
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {lessons} from '../website/lib/learning.mjs';
-import {practiceProjects} from '../teaching/projects.mjs';
+import tutorialCatalog from '../extension/src/tutorial-catalog.js';
 const repository = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MAX_FILE_BYTES = 256 * 1024;
 function read(root, relative) {
@@ -14,12 +14,10 @@ function read(root, relative) {
 // manifest is generated from the same authored curriculum as the public reader.
 export function prepareTutorials({root = repository, check = false} = {}) {
   const directory = path.join(root, 'extension/media');
-  const sources = readdirSync(path.join(root, 'student-template/lessons'));
-  const result = {schema:1, groups:practiceProjects.map(({id,title,lessons}) => ({id,title,lessons})), lessons:[]};
+  const result = {schema:1, groups:tutorialCatalog.tutorialGroups, lessons:[]};
   const assets = [];
   for (const metadata of lessons) {
-    if (!/^(?:[0-9]|1[0-2])$/.test(metadata.id)) throw new Error('Invalid canonical tutorial identifier.');
-    const name = sources.find(item => item.startsWith(`${metadata.id.padStart(2,'0')}-`) && item.endsWith('.md'));
+    const name = tutorialCatalog.lessonFiles[metadata.id];
     if (!name) throw new Error(`Missing canonical lesson ${metadata.id}.`);
     const source = `student-template/lessons/${name}`;
     const markdown = read(root, source);
@@ -28,7 +26,7 @@ export function prepareTutorials({root = repository, check = false} = {}) {
       const href = match[1].split('#')[0];
       if (/^(?:[a-z]+:|\/)/i.test(href)) continue;
       const target = path.posix.normalize(path.posix.join(path.posix.dirname(source), href));
-      if (/^teaching\/checkpoints\/(?:[0-9]|1[0-2])\/(?:[a-z]+\/)?[A-Za-z]+\.java$/.test(target)) references[target] = read(root, target);
+      if (target.startsWith('teaching/checkpoints/') && tutorialCatalog.referencePath(target)) references[target] = read(root, target);
       if (/^student-template\/examples\/[a-z-]+\/README\.md$/.test(target)) {
         // Later optional references remain readable offline, including their
         // complete Java files, rather than sending students to a network page.

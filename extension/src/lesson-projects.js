@@ -4,8 +4,9 @@ const path = require('node:path');
 const core = require('./core-contract');
 const builderFormat = require('./project-builder-format');
 const {isTutorialPractice} = require('./sharing/tutorial-practice');
+const tutorialCatalog = require('./tutorial-catalog');
 
-const PROJECT_LESSONS = new Map([['greeting','0'],['study','3'],['game','8']]);
+const PROJECT_LESSONS = new Map(Object.entries(tutorialCatalog.PROJECT_LESSONS));
 const PROJECT_FILES = new Set(['zero-core.json','zero.json','.gitignore','README.md','LICENSE','pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE','.vscode/tasks.json','.vscode/settings.json','src/main/java/Main.java','src/main/java/zero/App.java','src/main/java/zero/GameApp.java','src/main/java/zero/Actor.java','src/main/java/zero/AnimationSource.java','src/main/java/zero/AnimationPlayback.java','src/main/java/zero/ImageRegion.java','src/main/java/zero/SpriteAnimation.java','src/main/java/zero/Collisions.java','src/main/java/zero/Sound.java','src/main/java/zero/Music.java','src/main/java/zero/Color.java','src/main/java/zero/Key.java','src/main/java/zero/ui/Element.java','src/main/java/zero/ui/Label.java','src/main/java/zero/ui/Button.java','src/main/java/zero/ui/Column.java','src/main/java/zero/ui/Row.java','src/main/java/zero/ui/TextField.java']);
 const LOCAL_MESSAGE = 'This is local lesson practice. Create your own separate student project before using GitHub or sharing.';
 const isRecord = value => value && typeof value === 'object' && !Array.isArray(value);

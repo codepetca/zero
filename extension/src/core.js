@@ -54,7 +54,7 @@ async function assertTutorialRepository(project, run = git) {
   let repository;
   try {repository = parseRepositoryUrl(await run(expected, ['remote', 'get-url', 'origin']));}
   catch {throw new Error(`This tutorial needs your ordinary GitHub HTTPS origin. ${help}`);}
-  if (/^https:\/\/github\.com\/codepetca\/zero-tutorial-(?:greeting|study|game)$/i.test(repository.page)) throw new Error(`This is a teacher tutorial template origin. ${help}`);
+  if (/^https:\/\/github\.com\/codepetca\/zero-tutorial-(?:greeting|study|game|pet)$/i.test(repository.page)) throw new Error(`This is a teacher tutorial template origin. ${help}`);
   return repository;
 }
 async function assertRepositoryRoot(project, run = git) {

@@ -10,6 +10,7 @@ import {
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lessonAssets } from "../lib/learning.mjs";
+import tutorialCatalog from '../../extension/src/tutorial-catalog.js';
 import { validateInstallerManifest } from "../lib/installer.mjs";
 import { validatePublishedInstaller } from "../lib/published-installer.mjs";
 import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
@@ -25,19 +26,7 @@ const root = resolve(site, "..");
 const documentPaths = {
   teachers: "student-template/lessons/TEACHER.md",
   "lesson-guide": "student-template/lessons/README.md",
-  "lesson-0": "student-template/lessons/00-hello-world.md",
-  "lesson-1": "student-template/lessons/01-hello-button.md",
-  "lesson-2": "student-template/lessons/02-hello-name.md",
-  "lesson-3": "student-template/lessons/03-quiz.md",
-  "lesson-4": "student-template/lessons/04-counter.md",
-  "lesson-5": "student-template/lessons/05-methods.md",
-  "lesson-6": "student-template/lessons/06-objects.md",
-  "lesson-7": "student-template/lessons/07-study-app.md",
-  "lesson-8": "student-template/lessons/08-movement.md",
-  "lesson-9": "student-template/lessons/09-coin-game.md",
-  "lesson-10": "student-template/lessons/10-components.md",
-  "lesson-11": "student-template/lessons/11-zerohub.md",
-  "lesson-12": "student-template/lessons/12-media.md",
+  ...Object.fromEntries(Object.entries(tutorialCatalog.lessonFiles).map(([id,file]) => [`lesson-${id}`,`student-template/lessons/${file}`])),
   setup: "docs/GETTING-STARTED.md",
   "course-project": "docs/COURSE-PROJECT.md",
   api: "student-template/API.md",

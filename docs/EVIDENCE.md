@@ -12071,3 +12071,9 @@ authenticated draft downloads match local sealed bytes and each draft has one
 asset, actualsource0c417cc0, prerelease=true. Public-byte gates still pending.
 Ledger: priorJava4turns + Windows2initialturns;1Windowsfixbatch, targeted doc review
 next. No actual elapsed/token telemetry or savings claim.
+
+### Tutorial pathway local integration — 2026-10-28
+
+Local uncommitted work on `codex/study-quiz-classes` adds Greeting → Coin → Pet → original-project navigation and retains Study and component practice as optional; legacy lesson addresses and original three verified scaffold hashes remain. Pet is intentionally unpublished and strict package readiness rejects it. Live `codepetca/zero-starter` lacks Color, Zero UI and project-owned browser tooling; lesson 14 is explicitly unavailable until its separate original-template update and verification. No PR, push, template publication, website deployment or release was performed.
+
+Full `npm test`: 1426 pass, three skipped; website suite: 244 pass. After the reviewed text corrections, the 16 reader tests, 21 website learning/project tests and source checks passed. Pet checkpoint: real pinned WebFX browser build, visible animation and key movement; audio resource loaded and playback requested, audibility unverified. Lesson 14: local generated original starter compiled and its saved WebFX builder produced a browser app; Start, Back and pointer movement verified. Independent Sol/high review of the working diff found missing stop-before-publish text and the stale original starter; corrections and the conditional availability message passed targeted review. Actual student GitHub actions, Pages, physical Windows and school network remain untested. Worker effective model, elapsed time and token usage unknown.

@@ -116,8 +116,12 @@ separate check for mobile reflow, keyboard/focus and accessible states; builds
 and fixtures do not prove hosted artifact delivery, public publication or physical
 Windows setup.
 
-Tutorials now opens lesson 0 directly at `/learn`, with all thirteen lessons in
-the desktop sidebar and a lesson selector on narrow screens. Sidebar selection
+Tutorials opens lesson 0 directly at `/learn`, with all fifteen lessons in
+the desktop sidebar and a lesson selector on narrow screens. The main path follows
+Greeting → Coin → animated Pet → an original project. Study, component/sharing
+practice and Coin media remain optional, at their existing lesson addresses.
+Pet's template is unavailable until separately published and verified; an
+original project uses Project → New without a tutorial marker. Sidebar selection
 updates the reading pane and bookmarkable lesson URL; there is no overview landing.
 The tutorial reader shares the approved appearance controls with Downloads.
 

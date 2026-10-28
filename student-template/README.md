@@ -240,11 +240,13 @@ editing (stop the current preview first if it is running).
 
 ## Try an example
 
-The `examples/` shelf is outside compiled `src/`. For Lessons 0–12, use
-**Start tutorial** from Zero’s welcome or **…** menu at lessons 0, 3 and 8 to create your own
-repository from the matching empty template and clone it. Keep the same Greeting, Study or Game
-repository for its following lessons. Students write
-their own controls and classes; lesson 12 offers only optional image/sound assets. Some reference examples use native JavaFX APIs outside the browser subset;
+The `examples/` shelf is outside compiled `src/`. In the [tutorials](lessons/README.md),
+use **Start tutorial** to create your own Greeting, Coin or Pet repository from
+its matching verified template. Keep the same repository for its lessons. If a
+template is not available yet, ask your teacher. The fourth tutorial uses
+**Project → New** for your own original project. Study and component-sharing
+lessons are optional. Students write their own controls and classes, and the Pet
+tutorial uses downloadable artwork and sound. Some reference examples use native JavaFX APIs outside the browser subset;
 these run natively with Run App. Publish app or Export for web reports unsupported
 browser calls before browser compilation.
 For another example, make a fresh local copy of the starter and copy only that example's

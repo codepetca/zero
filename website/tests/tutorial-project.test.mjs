@@ -18,7 +18,7 @@ const render = (lesson, template = null) => renderToStaticMarkup(createElement(T
 }));
 
 test("only starting lessons offer the published template and a concise own-repository path", () => {
-  for (const lesson of ["0", "3", "8"]) {
+  for (const lesson of ["0", "3", "8", "13"]) {
     const project = projectForLesson(lesson);
     const repository = `fixture-owner/tutorial-${project.id}`;
     const template = {repository, repositoryUrl: `https://github.com/${repository}`, templateHref: `https://github.com/${repository}/generate`};
@@ -34,7 +34,7 @@ test("only starting lessons offer the published template and a concise own-repos
 });
 
 test("unpublished templates explain recovery without a guessed GitHub link or ZIP bypass", () => {
-  for (const lesson of ["0", "3", "8"]) {
+  for (const lesson of ["0", "3", "8", "13"]) {
     const html = render(lesson);
     assert.match(html, /Template not available yet/);
     assert.ok(html.includes(`Ask your teacher for the published ${projectForLesson(lesson).title} tutorial template`));
@@ -59,4 +59,12 @@ test("reuse keeps two existing repositories and optional game media remains the 
   assert.ok(html.includes(`href="${sampleGameAssets.href}" download="${sampleGameAssets.filename}"`));
   assert.match(html, /ZIP contains only media files/);
   for (let id = 0; id < 12; id++) assert.doesNotMatch(render(String(id)), /download=|\.zip/);
+});
+
+test("own-project explains the unverified starter without offering a tutorial template",()=>{
+  const html=render('14');
+  assert.match(html,/Project → New/);
+  assert.match(html,/Updated starter not available yet/);
+  assert.match(html,/Once the updated original starter is published and verified/);
+  assert.doesNotMatch(html,/Use template|Template not available|github\.com|download=|\.zip/);
 });
