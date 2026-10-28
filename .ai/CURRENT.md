@@ -1,33 +1,35 @@
-# Store MSIX validation — 2026-10-28
+# Store MSIX — required WACK validation unresolved, 2026-10-28
 
-User authorizes package corrections and Windows validation to deliver a ready-to-
-upload MSIX. Store submission and public app/site releases remain separate.
-Branch codex/msix-wack, draft PR229, base mainb6a9acbc. Product0.5.56 maps to
-Store1.5.56.0. Preserve existing public releases and prior candidate bytes.
-Beginner guide and ZeroJams remain held.
+User authorizes package corrections/Windows validation for a ready-to-upload MSIX.
+Store submission/public app/site releases are separate; beginner guide/ZeroJams held.
+Branch codex/msix-wack, draft PR229, mainbaseb6a9acbc. No merge while gate fails.
+Product0.5.56→Store1.5.56.0. Existing releases/prior candidate bytes immutable.
 
-WACK gate, strict Centennial identity/result parsing, required-test enforcement,
-optional-only informational results and retained reports are implemented/reviewed.
-Launcher has PMv2 WinForms config,96-DPI form baselines, paired legacy/modern DPI
-manifest declarations, and an explicit x64 Store target with locked win-x64 restore.
-Normal EXE updater/dependency selection is preserved. Actual Windows EXE install,
-bootstrap/reopen, HWND PMv2, JavaFX/offline and signed-copy MSIX install/integrity/
-cleanup pass. WACK still reports required DPIWARNING despite valid embedded
-manifest/resource1 and AMD64 PE; the optional blocked-executablesFAIL is retained.
-No required warning is waived; no candidate is declared WACK-ready or certified.
+Corrected Store x64 PE + config, PMv2/96-DPI launcher setup, explicit locked
+win-x64 restore, strict WACK execution/report binding/retention are reviewed.
+Windows SDK pack/unpack/hash/block-map and test-signed MSIX deploy/integrity/
+cleanup pass. Shared EXE launcher actual HWNDPMv2, real install/bootstrap/reopen,
+private-Java JavaFX window/offline rebuild pass. Do not claim installed-MSIX
+runtime, physical scaled/multimonitor or Windows10/11 desktop acceptance.
 
-Latest product source371aa6cf, Windows run40742412970. Ignored exact artifacts/
-reports: .verification/wack-40742412970. Candidate SHA256
+Required WACK DPIWARNING persists; detailed traces show infrastructure COM E_FAIL
+in BinaryInfoClass.IsPerMonitorV2DPIAwarenessSet for Zero AND both minimal controls.
+Controls prove livePMv2 (checked APIcontrol alsoTRUE). Reproduced native x64
+Server2022 andServer2025, tool26100.7705/.9457. All required non-PASS still fail;
+optional blocked-executables finding retained separately. Windows11ARM image lacks
+WACK and its emulatedcontrol startup timedout: NOcertification proof there.
+
+Exact candidate from run40742412970, cleancheckout20cc47e5/producthead371aa6cf:
 73423da90df584b6b989f3a4ac9f742160de5bf32a3e477385cb2f20ae27530d.
-Detailed diagnostics40744913896/40746112232 and serviced26100.9457 toolkit run
-40747486065 reproduce the same infrastructure COM E_FAIL in IsPerMonitorV2DPIAwarenessSet
-for original and both manifest/API controls, despite SDK-valid manifests and
-livePMv2 HWNDs. No further product change is justified by those results.
-Next: guarded opt-in Windows11 desktop ARM64 diagnostic, unchanged x64 package
-under emulation, with the native-x64/ARM-support limits recorded explicitly.
-SolHigh worker wack_diagnostics owns only diagnostic script/workflow delta; root
-owns integration/docs; SolHigh dpi_gate_review provides independent delta review.
-DPI follow-up has five targeted fix batches. Existing task-scoped owner workflow-
-cap waiver applies; correctness/CI/merge gates remain. Avoid speculative product
-changes. Physical Windows10/11, Store certification/update and school-policy tests
-remain separate acceptance, not established by the hosted Server2022 run.
+Downloads/Zero-Store-0.5.56-validation-pending contains immutable MSIX, receipts,
+reports,checksums, nextcheck instructions and unsentMicrosoftsupportdraft.
+Latest native diagnostic40751347336/source431ccad4 retained ignored in
+.verification/wack-40751347336; prior diagnostics indexed in docs/EVIDENCE.md.
+
+Next requires native Intel/AMD Windows10/11 WACK or Microsoft's guidance on the
+shared COM error. Avoid speculative product changes or weakening the gate.
+SolHigh implementation/review receipts and cumulative corrections are in EVIDENCE;
+existing owner task-scoped workflow-cap waiver retained, correctness gates intact.
+Current diagnostic helpers are manual-only, guarded disposable hosts, read-only
+artifact credentials, exact package binding, temporary signing/control cleanup.
+No Store submission, release, public website change or certification success.

@@ -12233,3 +12233,20 @@ manual/hosted/X64/kernel/ProductType guards. No validation pass is inferred.
 SolHigh targeted image-allowlist review complete/clean over0f47f0be plus the two
 matching guard lines and actual job metadata. All other platform checks remain.
 Effective model/time/tokens unavailable; actual rerun pending.
+
+Native Server2025 comparison40751347336 completed all three exact matched24-test
+reports with install/payload/cleanup verified, both live control HWNDsPMv2 and
+API-control initializationTRUE. Every comparison still reports requiredDPIWARNING
+with the same infrastructure COM E_FAIL. SolHigh independent evidence assessment
+confirmed classification: MSIX build/deployment and EXE runtime/HWND/JavaFX proof
+are distinct; no installed-MSIX runtime/scaled-display/desktop acceptance claim.
+The shared failure implicates tooling/environment or shared packaging behavior,
+not a uniquely established root cause. No further speculative product changes.
+
+Corrected immutable candidate73423da90df584b6b989f3a4ac9f742160de5bf32a3e477385cb2f20ae27530d
+and98-file receipt/report/checksum/support-draft bundle saved to
+/Users/stew/Downloads/Zero-Store-0.5.56-validation-pending. No control executables,
+certificates or signing keys retained. Ready-to-upload acceptance remains blocked
+on required WACK DPI validation. Next useful step: native Intel/AMD Windows10/11
+WACK per Microsoft's prerequisites, or Microsoft support guidance for COM E_FAIL.
+PR229 remains draft/unmerged; no app/site release or Store submission performed.
