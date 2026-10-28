@@ -12211,3 +12211,16 @@ allowlist, exact opt-in desktop/architecture guards, unchanged default guards,
 all-three-run forwarding, strict gate and honest emulation labeling. actionlint/
 diff checks passed. service_wack staysfalse on ARM. Actual execution pending;
 effective model/time/tokens unknown.
+
+Windows11 ARM diagnostic40748963521 verified the actual desktop image
+win11-vs2026-arm64, OS26200/ProductType1/ARM64. SDK manifest extraction and
+compilation were available, but appcert.exe was absent: original preflight failed
+without installation or signing. The emulated x64 control's startup timed out.
+Cleanup passed. This is not WACK/installation or Windows11 acceptance. Evidence:
+.verification/wack-40748963521/diagnostics. Next final available native-host
+comparison is WindowsServer2025 x64 (kernel26100), with its own explicit manual
+hosted/architecture/desktop-vs-server guards; defaults and product remain unchanged.
+SolHigh dpi_gate_review completed the Server2025 delta clean: explicit mutually
+exclusive host guards, hard runner allowlist, unchanged defaults/product/gate,
+shared strict call forwarding and honest server-vs-desktop limits. actionlint/
+diff checks passed; service_wack staysfalse. Effective model/time/tokens unknown.

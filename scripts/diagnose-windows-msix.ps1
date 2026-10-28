@@ -3,7 +3,8 @@
 param(
     [Parameter(Mandatory)][string] $Package,
     [Parameter(Mandatory)][string] $Output,
-    [switch] $Windows11ArmDiagnostic
+    [switch] $Windows11ArmDiagnostic,
+    [switch] $Windows2025Diagnostic
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -77,7 +78,7 @@ function Invoke-Validation([string] $Label, [string] $Path) {
     $start = [DateTime]::UtcNow
     $passed = $false
     try {
-        & (Join-Path $PSScriptRoot 'test-windows-msix.ps1') -Package $Path -PackageVersion $packageVersion -Receipt $receipt -RunWack -Windows11ArmDiagnostic:$Windows11ArmDiagnostic | Out-Host
+        & (Join-Path $PSScriptRoot 'test-windows-msix.ps1') -Package $Path -PackageVersion $packageVersion -Receipt $receipt -RunWack -Windows11ArmDiagnostic:$Windows11ArmDiagnostic -Windows2025Diagnostic:$Windows2025Diagnostic | Out-Host
         $passed = $true
     } catch {
         # Do not convert a gate failure into success; capture only a sanitized message.
@@ -106,6 +107,7 @@ function Invoke-Validation([string] $Label, [string] $Path) {
 }
 
 try {
+    if ($Windows11ArmDiagnostic -and $Windows2025Diagnostic) { throw 'Diagnostic platform switches are mutually exclusive.' }
     if ($Windows11ArmDiagnostic) {
         if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or
             $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:RUNNER_OS -ne 'Windows' -or
@@ -119,6 +121,20 @@ try {
             runnerArch = $env:RUNNER_ARCH; productType = $operatingSystem.ProductType
             execution = 'x64 package under ARM64 emulation; Windows 11 desktop diagnostic only'
             limit = 'Does not establish native x64 Windows 11 acceptance or ARM64 product support.'
+        }
+    } elseif ($Windows2025Diagnostic) {
+        if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or
+            $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:RUNNER_OS -ne 'Windows' -or
+            $env:RUNNER_ARCH -ne 'X64' -or $env:ImageOS -ne 'win25' -or
+            -not [Environment]::Is64BitOperatingSystem -or [Environment]::OSVersion.Version.Build -lt 26100) {
+            throw 'Windows Server 2025 diagnostic requires manual dispatch on a disposable hosted Windows Server 2025 x64 runner.'
+        }
+        $operatingSystem = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
+        if ($operatingSystem.ProductType -ne 3) { throw 'Windows Server 2025 diagnostic requires a verified server operating system.' }
+        $summary['platformDiagnostic'] = [ordered]@{
+            runnerArch = $env:RUNNER_ARCH; productType = $operatingSystem.ProductType
+            execution = 'native x64 package on Windows Server 2025; diagnostic only'
+            limit = 'Does not establish physical Windows 10/11 desktop acceptance.'
         }
     } else {
         if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or

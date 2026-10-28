@@ -14,6 +14,7 @@ on:
         options:
           - windows-2022
           - windows-11-arm
+          - windows-2025
       service_wack:
         description: Service Microsoft WACK on the disposable diagnostic runner
         type: boolean
@@ -238,7 +239,7 @@ jobs:
     permissions:
       contents: read
       actions: read
-    runs-on: ${{ inputs.diagnostic_os == 'windows-11-arm' && 'windows-11-arm' || 'windows-2022' }}
+    runs-on: ${{ inputs.diagnostic_os == 'windows-11-arm' && 'windows-11-arm' || inputs.diagnostic_os == 'windows-2025' && 'windows-2025' || 'windows-2022' }}
     timeout-minutes: 55
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -263,9 +264,10 @@ jobs:
         run: |
           $packages = @(Get-ChildItem -LiteralPath (Join-Path $env:RUNNER_TEMP 'zero-msix-diagnostic-input') -Filter '*.msix' -File)
           if ($packages.Count -ne 1) { throw 'Expected exactly one candidate MSIX.' }
-          if ($env:DIAGNOSTIC_OS -notin @('windows-2022', 'windows-11-arm')) { throw 'Unsupported diagnostic runner selection.' }
+          if ($env:DIAGNOSTIC_OS -notin @('windows-2022', 'windows-11-arm', 'windows-2025')) { throw 'Unsupported diagnostic runner selection.' }
           $windows11Arm = $env:DIAGNOSTIC_OS -eq 'windows-11-arm'
-          & ./scripts/diagnose-windows-msix.ps1 -Package $packages[0].FullName -Output (Join-Path $env:RUNNER_TEMP 'zero-msix-diagnostic-reports') -Windows11ArmDiagnostic:$windows11Arm
+          $windows2025 = $env:DIAGNOSTIC_OS -eq 'windows-2025'
+          & ./scripts/diagnose-windows-msix.ps1 -Package $packages[0].FullName -Output (Join-Path $env:RUNNER_TEMP 'zero-msix-diagnostic-reports') -Windows11ArmDiagnostic:$windows11Arm -Windows2025Diagnostic:$windows2025
       - name: Retain reports and sanitized diagnostics only
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
