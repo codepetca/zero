@@ -235,7 +235,7 @@ test("course starter contains canonical Main, shared scaffold and framework only
 
 test("all four assemblers retain every canonical saved-builder byte without fixture fallback", async t => {
   const directory=await fixture(t);
-  const extra=['student-template/zero.json','student-template/.vscode/settings.json',
+  const extra=['scripts/tutorial-license-MIT.txt','student-template/zero.json','student-template/.vscode/settings.json',
     ...['app','game'].map(id=>`teaching/starters/${id}/Main.java`),
     ...['Main.java','CounterActor.java','zero/contrib/r12345/actor_containers/ActorCollection.java',
       'zero/contrib/r12345/actor_containers/OrderedActors.java','zero/contrib/r12345/actor_containers/SnapshotActors.java']
