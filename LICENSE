@@ -1,6 +1,93 @@
+Zero Source-Available License 1.0
+
+Copyright (c) 2026 Codepet Inc. All rights reserved except as expressly granted below.
+
+1. Scope
+
+This license applies to original Zero software, documentation and assets supplied
+with this license (the "Software"), subject to the prior-license and third-party
+rights in section 6. It is a source-available license, not an open source license.
+
+2. Permitted noncommercial use
+
+You may download, inspect, compile and run the Software for personal learning,
+noncommercial teaching, and other noncommercial purposes. You may make copies
+reasonably necessary for those uses, including sharing unmodified copies with
+learners, provided you retain this complete license and all applicable notices.
+Ordinary compensation of a teacher does not by itself make classroom teaching
+commercial use; selling training or offering paid services using Zero does.
+
+3. Student projects and examples
+
+For the noncommercial purposes in section 2, you may modify the app starter,
+examples and exercises supplied in student-template, and use them to create,
+run, submit and publicly share your own noncommercial apps, including source
+repositories and compiled or browser-based apps. You may include unmodified Zero
+framework code and runtime files as necessary to run those apps. Retain this
+license and applicable notices with distributed Zero code and runtime files.
+
+This permission does not allow modifications to Zero's framework, extension,
+website or maintainer tooling. Framework code remains framework code when copied
+into a starter, including student-template/src/main/java/zero. Your own original
+code and assets remain yours; this license does not claim ownership of them.
+Commercial use of an app that includes or uses Zero requires the permission below.
+
+4. Prior express written consent required
+
+Except for the specific permissions above, you must obtain prior express written
+consent from Codepet Inc., acting through the copyright holder or an expressly
+authorized representative, before:
+
+(a) modifying, adapting, translating, or creating derivative works of the
+    Software, including the Zero framework, extension, website and tooling;
+(b) using the Software for any commercial purpose, including selling, licensing,
+    renting, monetizing, operating a paid service, providing paid training, or
+    using it in a commercial product or business operation; or
+(c) redistributing, sublicensing or otherwise exploiting the Software beyond
+    the permissions in sections 2 and 3.
+
+Consent must expressly identify the permitted activity and its scope. Public
+source access, silence, an issue or pull request submission, a donation, or
+payment for something else does not constitute consent. Requests may be made
+through the Zero repository's maintainer contact channels. No additional rights,
+including trademark rights, are granted by implication.
+
+5. Notices and mandatory rights
+
+Do not remove copyright, license or attribution notices from supplied Zero code.
+Nothing in this license restricts rights that applicable law makes non-waivable,
+or rights independently granted by applicable hosting-platform terms.
+
+6. Prior licenses and third-party materials
+
+These restrictions do not revoke, narrow or replace rights already granted for
+Zero code distributed under MIT. Previously MIT-licensed portions remain available
+under MIT, including when included in a later version. The historical MIT notice
+is reproduced below for those portions only; it does not license new material
+that has not been offered under MIT. New original material offered solely under
+this license is subject to sections 1 through 5.
+
+Third-party software, dependencies, wrapper files and separately licensed
+community components retain their own licenses and notices. This license does
+not impose additional restrictions on rights granted by those licenses.
+
+7. Disclaimer
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. TO THE MAXIMUM EXTENT
+PERMITTED BY LAW, IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Historical MIT notice -- previously MIT-licensed portions only
+------------------------------------------------------------
+
 MIT License
 
 Copyright (c) 2026 Codepet Inc.
+Copyright (c) 2026 Codepet
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

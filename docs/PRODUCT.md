@@ -957,7 +957,10 @@ Physical Windows, school
 restrictions and novice classroom pilots still need verification. Retained
 universal/cross-platform artifacts and historical checks do not expand support.
 First-time builds need internet for Maven/JavaFX. Use the [pilot checklist](CLASSROOM-PILOT.md) before
-cohort adoption. Original Zero code uses the [MIT license](../LICENSE);
+cohort adoption. Current source uses the [Zero Source-Available License](../LICENSE); student
+starter/example editing and noncommercial app sharing are permitted. Changes to
+Zero itself and commercial use require prior express written consent for material
+offered solely under that license; prior MIT rights remain intact;
 upstream wrapper notices apply separately to the wrapper.
 
 

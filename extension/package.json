@@ -4,7 +4,7 @@
   "description": "A small local Java teaching sidebar.",
   "version": "0.5.55",
   "publisher": "zero",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "vscode": "^1.95.0"
   },

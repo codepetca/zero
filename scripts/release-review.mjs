@@ -73,7 +73,6 @@ export function verifyReviewAssets(directory, release, sourceRoot = root) {
   const vsix = unzipSync(readFileSync(path.join(directory, release.assets.extension.filename)));
   const manifest = JSON.parse(new TextDecoder().decode(vsix['extension/package.json']));
   assert.equal(manifest.version, release.kitVersion);
-  assert.equal(manifest.license, 'MIT');
   assert.deepEqual(manifest, JSON.parse(readFileSync(path.join(sourceRoot, 'extension/package.json'), 'utf8')), 'VSIX manifest drift.');
   assert.deepEqual(vsix['extension/LICENSE.txt'], new Uint8Array(readFileSync(path.join(sourceRoot, 'LICENSE'))));
   const sourceNames = [];
