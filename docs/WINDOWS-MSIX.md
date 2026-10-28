@@ -193,3 +193,30 @@ covers this observed schema. Exit0 alone only establishes that WACK ran.
 
 Product DPI remediation and review of optional launch warnings are distinct next
 changes. A WACK warning is not a Microsoft Store certification rejection.
+
+### DPI correction and informational launch findings
+
+The native launcher now declares PerMonitorV2 in its executable manifest and
+opts in to the matching .NET Framework4.8 WinForms DPI improvements in App.config.
+The settings agree; the manifest governs process awareness. MSIX packaging and
+installation verification require the emitted Zero.exe.config. The native forms use a96-DPI design baseline during suspended construction.
+CI checks the actual launcher HWND awareness context as PerMonitorV2. Physical
+scaled and multi-monitor UI checks remain separate from that context check and
+WACK's static inspection.
+
+[Microsoft's Desktop Bridge test guidance](https://learn.microsoft.com/en-us/windows/uwp/debug-test-perf/windows-desktop-bridge-app-tests)
+says optional tests are informational and do not determine Store onboarding.
+Zero intentionally launches the Java compiler/runtime and editor, and uses cmd
+for its Windows terminal. These operations are incompatible with Windows S-mode
+restrictions. The static scanner also reported some executable-name bytes inside
+the compressed embedded kit; for the inspected candidate, rEg and csI matches
+occurred only within that archive's measured byte range. This does not establish
+that every possible finding is harmless; retain each native report for review.
+
+The gate accepts optional-only findings only when every required test passes,
+the run is complete and exactly matched to the installed package, the process
+succeeds, and any overall WARNING is explained solely by explicitly optional
+nonpassing tests. It records `passed-with-optional-findings`, preserving the
+native overall verdict and test details. Any required warning/failure, partial
+or unknown result, unmatched identity, or unexplained overall warning still
+fails. No WACK test is excluded. Store certification remains Microsoft's decision.

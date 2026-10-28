@@ -32,6 +32,7 @@ namespace ZeroSetup
 
         internal MainForm(string dataRoot, LauncherRequest initial)
         {
+            SuspendLayout();
             Text = "Zero";
             Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
             ClientSize = new Size(440, 190);
@@ -39,6 +40,7 @@ namespace ZeroSetup
             StartPosition = FormStartPosition.CenterScreen;
             Font = new Font("Segoe UI", 10);
             AutoScaleMode = AutoScaleMode.Dpi;
+            AutoScaleDimensions = new SizeF(96F, 96F);
             MaximizeBox = false;
             var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(24), ColumnCount = 1, RowCount = 4 };
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
@@ -79,6 +81,8 @@ namespace ZeroSetup
                 }
             };
             FormClosed += (sender, args) => { lifetime.Cancel(); DisposeUpdates(); backend.Dispose(); lifetime.Dispose(); };
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         [DllImport("user32.dll", SetLastError = true)]
@@ -221,14 +225,24 @@ namespace ZeroSetup
             Hide(); settingsVisible = true;
             try
             {
-                using (var dialog = new Form { Text = "Zero update settings", ClientSize = new Size(410, 180), StartPosition = FormStartPosition.CenterScreen, Font = Font, AutoScaleMode = AutoScaleMode.Dpi, MinimizeBox = false, MaximizeBox = false })
+                using (var dialog = new Form())
                 {
+                    dialog.SuspendLayout();
+                    dialog.Text = "Zero update settings";
+                    dialog.ClientSize = new Size(410, 180);
+                    dialog.StartPosition = FormStartPosition.CenterScreen;
+                    dialog.Font = Font;
+                    dialog.AutoScaleMode = AutoScaleMode.Dpi;
+                    dialog.AutoScaleDimensions = new SizeF(96F, 96F);
+                    dialog.MinimizeBox = false; dialog.MaximizeBox = false;
                     var check = new CheckBox { Text = "Check automatically when Zero opens", Checked = updates.CheckEnabled, AutoSize = true, Location = new Point(20, 20) };
                     var download = new CheckBox { Text = "Download and install updates automatically", Checked = updates.DownloadEnabled, AutoSize = true, Location = new Point(20, 55) };
                     var note = new Label { Text = "Checks happen after your editor opens. School policies may restrict updates.", Location = new Point(20, 87), Size = new Size(370, 40) };
                     var done = new Button { Text = "Done", DialogResult = DialogResult.OK, Location = new Point(290, 137), Size = new Size(100, 28) };
                     dialog.Controls.AddRange(new Control[] { check, download, note, done });
                     dialog.AcceptButton = done; dialog.CancelButton = done;
+                    dialog.ResumeLayout(false);
+                    dialog.PerformLayout();
                     if (dialog.ShowDialog() == DialogResult.OK) { updates.CheckEnabled = check.Checked; updates.DownloadEnabled = download.Checked; }
                 }
             }

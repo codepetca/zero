@@ -12106,3 +12106,17 @@ release or clean-certification claim follows. Native reports are retained under
 ignored .verification/wack-40724961277 and in the attempt-specific CI artifact.
 The observedCentennial schema prompted strict nested-identity binding and a
 sanitized real-report fixture. Product remediations remain outstanding.
+
+DPI remediation follow-up, owner-authorized2026-10-28: added consistent
+PerMonitorV2 process/WinForms configuration and96-DPI suspended-construction
+baselines for both native forms. Packaging requires the config. Actual Windows
+installer trial now probes the new launcher's HWND for the PMv2 context.
+TerraHigh implemented native changes; SolHigh independently reviewed and found
+one baseline issue that was corrected. Local native harnesses passed2608wrapper
+and2353each Store-channel checks plus updater cases; MSIX tests, actionlint and
+configuration checks passed. PowerShell runtime fixtures await Windows.
+Optional-only WACK findings are retained as informational under Microsoft's
+Desktop Bridge guidance; every required non-PASS still fails. Exact byte-range
+inspection of the previous candidate found rEg/csI matches only inside the
+measured embedded kit. Actual WACK rerun and physical scaled-display acceptance
+remain separate; no clean or Store-certification claim is made from local checks.

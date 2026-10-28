@@ -63,7 +63,7 @@ function Assert-WackReport {
     param([Parameter(Mandatory)][Xml.XmlDocument] $Document, [Parameter(Mandatory)][System.Collections.IDictionary] $Summary,
         [Parameter(Mandatory)][int] $ExitCode)
     if ($ExitCode -ne 0) { throw 'WACK test process failed.' }
-    if ($Summary.overallResult -cne 'PASS' -or $Summary.partialRun -cne 'FALSE' -or -not $Summary.matchedIdentity -or
+    if ($Summary.overallResult -cnotin @('PASS', 'WARNING') -or $Summary.partialRun -cne 'FALSE' -or -not $Summary.matchedIdentity -or
         [string]::IsNullOrWhiteSpace($Summary.kitVersion) -or [string]::IsNullOrWhiteSpace($Summary.validationType)) {
         throw 'WACK report is incomplete, failed, unknown, or does not identify the tested package.'
     }
@@ -82,4 +82,11 @@ function Assert-WackReport {
         } elseif ($testResult -cnotin @('PASS', 'FAIL', 'WARNING')) { throw 'Unknown optional WACK test result.' }
     }
     if ($requiredCount -eq 0) { throw 'WACK report contains no required tests.' }
+    # Microsoft documents Desktop Bridge optional tests as informational.
+    # A WARNING is acceptable only when every required test passed and all
+    # nonpassing findings are explicitly optional; unexplained warnings fail.
+    if ($Summary.overallResult -ceq 'WARNING' -and
+        ($Summary.nonPassingTests.Count -eq 0 -or @($Summary.nonPassingTests | Where-Object { $_.optional -cne 'TRUE' }).Count -ne 0)) {
+        throw 'WACK warning is not explained solely by optional test findings.'
+    }
 }

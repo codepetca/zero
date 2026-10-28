@@ -49,7 +49,7 @@ for (const name of readdirSync(stage)) {
   if (!['Zero.exe','Zero.exe.config','Newtonsoft.Json.dll'].includes(name) || !lstatSync(path.join(stage,name)).isFile() || lstatSync(path.join(stage,name)).isSymbolicLink()) throw new Error(`Unexpected MSIX runtime payload: ${name}`);
   files[name]=readFileSync(path.join(stage,name));
 }
-if (!files['Zero.exe']) throw new Error('MSIX launcher was not compiled');
+if (!files['Zero.exe'] || !files['Zero.exe.config']) throw new Error('MSIX launcher and DPI configuration must be present');
 files['AppxManifest.xml']=Buffer.from(msixManifest(release.kitVersion,identity));
 mkdirSync(path.join(stage,'Assets'));
 const brand=readBrand(root);

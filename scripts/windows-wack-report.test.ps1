@@ -22,6 +22,16 @@ try {
     $valid.DocumentElement.SetAttribute('OVERALL_RESULT','PASS')
     $valid.SelectSingleNode("//TEST[@NAME='DPIAwarenessValidation']/RESULT").InnerText = 'PASS'
     Assert-WackReport -Document $valid -Summary (Summary $valid) -ExitCode 0
+    $optionalOnly = [xml]$valid.OuterXml
+    $optionalOnly.DocumentElement.SetAttribute('OVERALL_RESULT','WARNING')
+    Assert-WackReport -Document $optionalOnly -Summary (Summary $optionalOnly) -ExitCode 0
+    $unexplained = [xml]$optionalOnly.OuterXml
+    foreach ($result in $unexplained.SelectNodes('//TEST/RESULT')) { $result.InnerText = 'PASS' }
+    Expect-Failure 'unexplained overall warning' $unexplained 0
+    $requiredWarning = [xml]$valid.OuterXml
+    $requiredWarning.DocumentElement.SetAttribute('OVERALL_RESULT','WARNING')
+    $requiredWarning.SelectSingleNode("//TEST[@NAME='DPIAwarenessValidation']/RESULT").InnerText = 'WARNING'
+    Expect-Failure 'required warning remains blocked' $requiredWarning 0
     Expect-Failure 'nonzero exit' $valid 1
     foreach ($attribute in @('PackageFullName', 'Name', 'Publisher', 'Version', 'ProcessorArchitecture')) {
         $copy = [xml]$valid.OuterXml

@@ -105,7 +105,7 @@ public static class ZeroWts {
         foreach ($name in @('Zero.exe', 'Zero.exe.config', 'Newtonsoft.Json.dll', 'Assets/StoreLogo.png', 'Assets/Square44x44Logo.png', 'Assets/Square150x150Logo.png')) {
             $entry = $archive.GetEntry($name)
             if (-not $entry) {
-                if ($name -in @('Zero.exe.config', 'Newtonsoft.Json.dll')) { continue }
+                if ($name -eq 'Newtonsoft.Json.dll') { continue }
                 throw 'Required candidate payload missing.'
             }
             $stream = $entry.Open()
@@ -191,7 +191,7 @@ public static class ZeroWts {
         } while ($true)
         Assert-WackReport -Document $document -Summary $receiptData.wack.summary -ExitCode $receiptData.wack.testExitCode
         $receiptData.wack.reportVersion = $receiptData.wack.summary.kitVersion
-        $receiptData.wack.result = 'passed'
+        $receiptData.wack.result = if ($receiptData.wack.summary.nonPassingTests.Count -gt 0) { 'passed-with-optional-findings' } else { 'passed' }
     }
 } catch {
     $failure = $_

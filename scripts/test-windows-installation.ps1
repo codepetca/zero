@@ -38,7 +38,7 @@ $stage = 'validate-build'
 $report = [ordered]@{
     schema = 1; startedUtc = $started.ToString('o'); status = 'failed'; stage = $stage
     osVersion = [Environment]::OSVersion.Version.ToString(); powershell = $PSVersionTable.PSVersion.ToString()
-    version = $null; sourceRevision = $null; setupSha256 = $null; events = $events
+    version = $null; sourceRevision = $null; setupSha256 = $null; events = $events; dpiAwareness = $null
     # This receipt cannot promote a release or substitute for the interactive trial.
     interactiveJavaFxTested = $false; signedUpdateTested = $false; nativeWindowsTested = $false
 }
@@ -136,7 +136,7 @@ try {
     # Velopack 1.2.161 --silent suppresses the post-install application launch.
     $null = Invoke-Bounded $setup @('--silent', '--log', (Join-Path $OutputDirectory 'setup.log')) 180
     Mark 'installed-layout-and-shortcut'
-    foreach ($relative in @('Zero.exe', 'Update.exe', 'current\Zero.exe', 'current\Velopack.dll', 'current\sq.version')) {
+    foreach ($relative in @('Zero.exe', 'Update.exe', 'current\Zero.exe', 'current\Zero.exe.config', 'current\Velopack.dll', 'current\sq.version')) {
         if (-not (Test-Path -LiteralPath (Join-Path $install $relative) -PathType Leaf)) { throw "Installed layout is missing $relative." }
     }
     if (-not (Test-Path -LiteralPath $shortcut -PathType Leaf)) { throw 'Zero Start-menu shortcut was not created.' }
@@ -147,6 +147,33 @@ try {
     if ([Diagnostics.FileVersionInfo]::GetVersionInfo((Join-Path $install 'current\Zero.exe')).FileVersion -ne "$($receipt.kitVersion).0") { throw 'Installed launcher version does not match the candidate.' }
     Mark 'first-launch-real-bootstrap'
     Open-Launcher (Join-Path $install 'Zero.exe')
+    Mark 'launcher-dpi-awareness'
+    Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class ZeroDpiProbe {
+    [DllImport("user32.dll")] public static extern IntPtr GetWindowDpiAwarenessContext(IntPtr window);
+    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool AreDpiAwarenessContextsEqual(IntPtr first, IntPtr second);
+}
+'@
+    Wait-Until {
+        $observed = $false
+        foreach ($item in @(Get-CimInstance Win32_Process -Filter "Name='Zero.exe'")) {
+            if ($item.ExecutablePath -ne (Join-Path $install 'current\Zero.exe') -or $item.CreationDate.ToUniversalTime() -lt $started) { continue }
+            $process = Get-Process -Id $item.ProcessId -ErrorAction SilentlyContinue
+            if (-not $process) { continue }
+            try {
+                $window = $process.MainWindowHandle
+                if ($window -eq [IntPtr]::Zero) { continue }
+                $context = [ZeroDpiProbe]::GetWindowDpiAwarenessContext($window)
+                if (-not [ZeroDpiProbe]::AreDpiAwarenessContextsEqual($context, [IntPtr](-4))) { throw 'Launcher window is not PerMonitorV2 DPI aware.' }
+                $report.dpiAwareness = 'PerMonitorV2'
+                $observed = $true
+            } finally { $process.Dispose() }
+        }
+        return $observed
+    } 30 'actual launcher window with PerMonitorV2 DPI awareness'
     $marker = Join-Path $data 'editor-opened'
     Wait-Until { (Test-Path -LiteralPath $marker) -and @(Editor-Roots).Count -gt 0 } $BootstrapTimeoutSeconds 'real Java/editor/extension preparation and editor handoff'
     Mark 'private-java-and-installed-support'

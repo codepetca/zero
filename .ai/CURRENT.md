@@ -20,5 +20,9 @@ Native Windows10/11 interactive acceptance and Store updates remain separate.
 Actual first run40724961277 executed WACK and retained XML/HTML;24tests,
 overallWARNING, required DPI-awareness warning and optional blocked-executables
 failure. Installation and cleanup passed. Do not merge while the new gate fails
-or call this clean certification. Refining nativeCentennial identity parsing and
-failure summaries against a sanitized real fixture; no productDPI changes made.
+or call this clean certification. NativeCentennial parsing and summaries are verified by the second real run
+40726661389. Owner now authorizes DPI remediation and optional-warning review.
+Pending manifest/App.config PerMonitorV2 support and required-config packaging;
+optional-only findings are informational under Microsoft guidance, retained with
+passed-with-optional-findings. Required non-PASS or unknown/incomplete results
+still fail. Rerun actual WACK and complete review/CI before merging PR229.
