@@ -10,6 +10,9 @@ with separate Study/Game consumers at 10 and 11, and optional media/scrolling at
 They are outside every practice download. Public source comparison links are
 optional references after students write their code. Keep narrative snippets and
 these checkpoints aligned; do not use a completed checkpoint as a student scaffold.
+Lesson6 moves the working one-question quiz into an ordinary StudyQuiz class,
+leaving Main to create/show it;7 grows that class and introduces Question.
+Lessons10–11 update StudyQuiz for score presentation without growing Main.
 Lessons 10–11 refactor input/score presentation in the existing small projects,
 then improve a component and practise sharing a harmless CreditsBadge. The badge
 uses a reserved practice name; duplicates are expected and do not enter ordinary

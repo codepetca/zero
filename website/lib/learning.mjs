@@ -58,9 +58,9 @@ export const lessons = [
   },
   {
     "id": "6",
-    encouragement: "You wrote a reusable Counter class!",
-    "title": "Counter object",
-    "description": "Move the attempt count into an ordinary Counter object.",
+    encouragement: "You organized your quiz with your own classes!",
+    "title": "Classes and a smaller Main",
+    "description": "Use Counter and StudyQuiz to move related code out of Main.",
     "topic": "Classes, constructors, object methods",
     "doc": "api",
     "anchor": "ordinary-javafx-and-reusable-objects"
@@ -69,7 +69,7 @@ export const lessons = [
     "id": "7",
     encouragement: "You built a study quiz. Try it with your own questions!",
     "title": "Study quiz",
-    "description": "Add more questions, Next and Restart to your study quiz.",
+    "description": "Grow StudyQuiz with Question objects, Next and Restart; keep Main unchanged.",
     "topic": "Question objects, arrays, scoring, session state",
     "doc": "api",
     "anchor": "ordinary-javafx-and-reusable-objects"

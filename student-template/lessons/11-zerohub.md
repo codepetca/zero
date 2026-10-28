@@ -18,7 +18,7 @@ private String caption = "Score";
 private int points;
 ```
 
-Main still owns the real score and when it changes. These fields remember only
+The game Main and StudyQuiz still own their real scores and when they change. These fields remember only
 what this display was last told to show. Replace the existing setScore method
 and add a private refresh method:
 
@@ -34,7 +34,7 @@ private void refresh() {
 ```
 
 `this.points` is the display's field; the parameter points is the value supplied
-by Main. One refresh method keeps formatting in one place.
+by the calling class. One refresh method keeps formatting in one place.
 
 ## 2. Add a caption method
 
@@ -56,8 +56,10 @@ a useful error and leaves the previous caption and value intact. No Zero core
 change or access to the private Label is needed.
 
 Copy the changed `ScoreDisplay.java` into the other project's `src/main/java/`
-folder. In **both** Main classes, immediately after `score = new ScoreDisplay();`,
-add `score.setCaption("Score");`. Keep all scoring rules and setScore calls in Main.
+folder. In the game's Main `setup()` and the study app's StudyQuiz constructor,
+immediately after `score = new ScoreDisplay();`, add
+`score.setCaption("Score");`. Keep scoring rules and setScore calls in those
+classes. The study Main stays unchanged.
 
 ## 3. Run both apps and check the component
 
@@ -117,12 +119,13 @@ and reset behaviour should still work. Update Main's drawn help text to
 
 If both projects compile after copying ScoreDisplay, you have a small
 two-consumer API check. Record what you checked in README, including the expected
-result and what you observed. Record this API in a comment: `view()` gives Main an
-Element; `setScore(int)` displays Main's score; `setCaption(String)` changes the
+result and what you observed. Record this API in a comment: `view()` gives the
+calling class an Element; `setScore(int)` displays the supplied score; `setCaption(String)` changes the
 caption while retaining that displayed value. Existing `new ScoreDisplay()` calls
 still work, as do view() and setScore(int); this is a compatible improvement.
 
 After adding the badge in the next steps, compare your [game Main](../../teaching/checkpoints/11/game/Main.java),
+[StudyQuiz](../../teaching/checkpoints/11/study/StudyQuiz.java),
 [study Main](../../teaching/checkpoints/11/study/Main.java) and
 [ScoreDisplay.java](../../teaching/checkpoints/11/game/ScoreDisplay.java) with
 checkpoint 11 (shown before library extraction). Its [PlayerInput.java](../../teaching/checkpoints/11/game/PlayerInput.java)

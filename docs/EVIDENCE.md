@@ -1,3 +1,23 @@
+# Study class refactoring — local source
+
+Lesson6 now moves the working quiz into ordinary StudyQuiz after extracting
+Counter. Main keeps App/padding/startup and shows quiz.view(), whose concrete
+return type is the already-taught Zero Column. Lesson7 grows StudyQuiz and adds
+Question while Main stays byte-identical. Lessons10–11 continue score-display
+work in StudyQuiz. No new project, framework API, extra App or student JavaFX
+imports. Class ownership and constructor/view roles are explained explicitly.
+The four affected checkpoints and finite behavior harness remain aligned.
+
+Native finite behavior passes for6,7,10/study,11/study: Check/wrong/right counts,
+Reset/Next/restart, no duplicate score, completion/enablement and independent
+retained StudyQuiz views.53 focused tutorial/content/website tests, source checks,
+website preparation and all3 pinned-template checks pass. Actual checkpoint7
+exports through pinned WebFX/GWT with BUILD SUCCESS and is played in the browser:
+wrong4→tryagain/attempt1/score0; trimmed5→score1/attempt2;1 and TRUE→score3;
+lastNext disables input and shows3/3; Restart restores question1/zero counts.
+No hosted app publication, installed-editor or physical Windows proof is claimed.
+Ignored logs/browser receipt: .verification/study-classes/. Independent review next.
+
 # PR221 packaging boundary correction — 2026-10-27
 
 Initial Windows run40601348467 on acd9b13b correctly rejected the changed template

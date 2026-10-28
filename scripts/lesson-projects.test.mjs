@@ -66,10 +66,19 @@ test('Study teaching path keeps quiz rules in ordinary Java and uses Zero UI', (
       assert.doesNotMatch(text, /import javafx\.|setOnAction|new VBox\(|answer\.clear\(|\.setDisable\(/);
     }
     assert.match(source, /extends App/);
-    assert.match(source, /check\.onClick\(\(\) ->/);
-    if (offset >= 2) assert.match(source, /answer\.setText\(""\)/);
+    const quiz = offset >= 3 ? readFileSync(path.join(root, `teaching/checkpoints/${offset + 3}/StudyQuiz.java`), 'utf8') : source;
+    assert.doesNotMatch(quiz, /import javafx\.|new Main/);
+    if (offset >= 3) assert.doesNotMatch(quiz, /extends App/);
+    assert.match(quiz, /check\.onClick\(\(\) ->/);
+    if (offset >= 2) assert.match(quiz, /answer\.setText\(""\)/);
+    if (offset >= 3) {
+      assert.match(source, /quiz = new StudyQuiz\(\)/);
+      assert.match(source, /show\(quiz\.view\(\)\)/);
+      assert.doesNotMatch(source, /Button|TextField|questionIndex|checkAnswer/);
+      assert.match(quiz, /public Column view\(\)/);
+    }
   }
-  const session = readFileSync(path.join(root, 'teaching/checkpoints/7/Main.java'), 'utf8');
+  const session = readFileSync(path.join(root, 'teaching/checkpoints/7/StudyQuiz.java'), 'utf8');
   assert.match(session, /if \(answered \|\| finished\) return;/);
   assert.match(session, /check\.setEnabled\(false\)/);
   assert.match(session, /next\.setEnabled\(true\)/);
@@ -100,14 +109,15 @@ test('shared component teaching path uses Zero views in both consumers', () => {
       const directory = path.join(root, `teaching/checkpoints/${id}/${kind}`);
       const main = readFileSync(path.join(directory, 'Main.java'), 'utf8');
       const display = readFileSync(path.join(directory, 'ScoreDisplay.java'), 'utf8');
+      const owner = kind === 'study' ? readFileSync(path.join(directory, 'StudyQuiz.java'), 'utf8') : main;
       sources.push(display);
-      for (const text of [main, display]) assert.doesNotMatch(text, /import javafx\.|setOnAction|new VBox|new HBox|\.setDisable\(|answer\.clear\(|canvas\(\)\.requestFocus|setTextFill|setStyle/);
+      for (const text of [main, owner, display]) assert.doesNotMatch(text, /import javafx\.|setOnAction|new VBox|new HBox|\.setDisable\(|answer\.clear\(|canvas\(\)\.requestFocus|setTextFill|setStyle/);
       assert.match(display, /public Element view\(\)/);
       assert.match(display, /import zero\.ui\.Label;/);
-      assert.match(main, /score\.setScore\(points\)/);
+      assert.match(owner, /score\.setScore\(points\)/);
       if (id === 11) {
         assert.match(display, /void setCaption\(String caption\)/);
-        assert.match(main, /score\.setCaption\("Score"\)/);
+        assert.match(owner, /score\.setCaption\("Score"\)/);
       }
     }
     assert.equal(sources[0], sources[1], 'Study and Game reuse the same component source');
@@ -288,4 +298,12 @@ test('practice contribution uses a harmless badge, not duplicate input utilities
     assert.match(source,/CreditsBadge/);
     assert.match(source,/throw new AssertionError/);
   }
+});
+
+
+test('Study Main stays unchanged as the quiz and score component grow', () => {
+  const first = readFileSync(path.join(root, 'teaching/checkpoints/6/Main.java'), 'utf8');
+  for (const id of ['7', '10/study', '11/study']) assert.equal(readFileSync(path.join(root, 'teaching/checkpoints', id, 'Main.java'), 'utf8'), first);
+  const lesson = readFileSync(path.join(root, 'student-template/lessons/06-objects.md'), 'utf8');
+  for (const name of ['Main.java', 'StudyQuiz.java']) assert.ok(lesson.includes(readFileSync(path.join(root, 'teaching/checkpoints/6', name), 'utf8').trim()), name + ' refactor reference matches the runnable checkpoint');
 });

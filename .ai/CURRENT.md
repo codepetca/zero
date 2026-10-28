@@ -1,35 +1,22 @@
-# Published-app actions: source PR/CI/merge — 2026-10-27
+# Study class-refactoring tutorial — 2026-10-28
 
-Owner authorized source PR, CI and merge for faster unchanged publication checks
-and View published app. App publishing, installers, feeds and releases stay out
-of scope. Current branch codex/published-app-fast-check in tutorial-docs-label/zero.
+Owner asks for clearer use of classes to simplify Study tutorial Main. Local
+implementation only; source PR/merge, template publishing and releases remain
+separate. Branch codex/study-quiz-classes from main6d40f99b in this coordinator.
+Do not touch the separate beginner-editor-guide worktree or parked ZeroJams.
 
-Source ready: verifyUnchanged proves clean main/exact browser inputs and fresh
-operation-scoped access, checks live run/Pages/marker/main, then final project,
-source/session/mode guards. No permission cache or build required. Production
-saved-builder proof works without generated output; mutations retain their final
-synchronous guards. View published app opens a scoped saved HTTPS URL directly
-without saving/auth/source/network/build checks. Both actions are in Run options;
-no duplicate link below Run. Verified historical palette actions stay intact.
+Lesson6 first extracts Counter, then moves existing quiz controls/actions into
+ordinary StudyQuiz. Main creates/shows its retained Column;7 grows StudyQuiz and
+adds Question while Main stays unchanged. Lessons10–11 Study ScoreDisplay edits
+now target StudyQuiz. No new framework API or inheritance. Checkpoints6/7/10study/
+11study and finite harness stay aligned; behavior/independent views must pass.
+No shared project-builder/template-byte or publication-record edits intended.
 
-Prior independent Sol/high and Terra/high complete-diff reviews and targeted
-corrections are clean through022ee2aa; View follow-up clean through4779c4a8.
-273 publishing regressions, remediated adapter/library33 and targeted guards5,
-View134 plus configuration pass. Controlled orchestration timing2196→252ms
-(mocks/25ms access delay; not live-network timing). Actual light/dark source
-preview and dropdown keyboard checks pass; installed/native acceptance separate.
-Details in docs/EVIDENCE.md and ignored .verification/publish-fast/ receipts.
-
-Sync latest origin/main38a1198c (Windows54 preview source) before PR; only CURRENT
-conflicted and was rewritten as this handoff. Preserve all upstream Windows54
-release metadata and evidence. Runtime feature files remain equal to reviewed
-3cc1d456. PR221 is open, currently draft for one CI correction. Integration review clean
-at acd9b13b;179 focused tests passed. Initial Windows CI correctly rejected changed
-tutorial checksums caused by editing shared snapshot.js. Restore that pinned
-project-builder source byte-for-byte and use the host adapter as the publisher’s
-default proof. Production injection already uses that host adapter.3 published
-template checks,70 builder/library/snapshot/lesson tests and3 integration tests
-pass; default host-proof test passes. No metadata/gate/template-publication changes.
-Next: targeted review of this correction, push, exact-head full CI and merge.
-No new release or hosted student app is part of this source delivery. Preserve
-Mac54 seals, installed app, primary checkout user work and paused DeepSeek pilot.
+Native finite6/7/10study/11study,53 focused tests, source checks, website prepare
+and all3 pinned-template checks pass. Checkpoint7 real WebFX/GWT build and actual
+browser wrong/right/Next/3-of-3/restart pass. Next: independent teaching/correctness
+review, then report student code. No installed editor/Windows/publication claim.
+Keep all prior source delivery receipts in .verification/publish-fast/; PR221 is
+merged6d40f99b with11checks passed; those changes are still separate from releases.
+Evidence for this local work: .verification/study-classes/. Source/installedMac54
+seals preserved; ordinary usage currently available; no credits/reset purchases.

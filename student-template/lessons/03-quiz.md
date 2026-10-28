@@ -76,8 +76,8 @@ check.onClick(() -> {
 ## 6. Run App and check wrong and right answers
 
 The braces after `if` run when the typed text is exactly `5`; `else` handles
-other text. Click **Run App**. Check `4`: feedback should say **Try again.**. Change it to `5` and check again: feedback should say **Correct!**. Do not copy a new `Main.java` when you continue. You will grow this
-same quiz through lesson 7. If you need to compare after trying it yourself,
+other text. Click **Run App**. Check `4`: feedback should say **Try again.**. Change it to `5` and check again: feedback should say **Correct!**. Keep this same Study project through lesson 7. You will grow the quiz, then
+move its working controls and actions into StudyQuiz to keep Main short. If you need to compare after trying it yourself,
 see the [completed lesson 3 checkpoint](../../teaching/checkpoints/3/Main.java).
 
 Next: [Count attempts](04-counter.md).

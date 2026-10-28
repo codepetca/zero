@@ -73,9 +73,15 @@ public class CheckpointHarness extends Application {
         return found;
     }
 
+    private static Object quizOwner(Main app) throws Exception {
+        if (id.equals("6") || id.equals("7") || id.endsWith("/study")) return field(app, "quiz");
+        return app;
+    }
+
     private static Label score(Main app) throws Exception {
-        if (id.equals("7") || id.equals("9")) return (Label) node(field(app, "scoreLabel"));
-        Object display = field(app, "score");
+        Object owner = quizOwner(app);
+        if (id.equals("7") || id.equals("9")) return (Label) node(field(owner, "scoreLabel"));
+        Object display = field(owner, "score");
         return (Label) node(display.getClass().getMethod("view").invoke(display));
     }
 
@@ -104,10 +110,11 @@ public class CheckpointHarness extends Application {
     }
 
     private static void checkSingleQuiz(Main app, Stage stage) throws Exception {
+        Object owner = quizOwner(app);
         VBox screen = (VBox) ((BorderPane) stage.getScene().getRoot()).getCenter();
         Label prompt = (Label) screen.getChildren().get(0);
-        TextField answer = (TextField) node(field(app, "answer"));
-        Label feedback = (Label) node(field(app, "feedback"));
+        TextField answer = (TextField) node(field(owner, "answer"));
+        Label feedback = (Label) node(field(owner, "feedback"));
         Button check = button(stage, "Check");
         require(prompt.getText().equals("What is 2 + 3?"), "same question continues through lessons 3–6");
         answer.setText("4"); check.fire();
@@ -115,7 +122,7 @@ public class CheckpointHarness extends Application {
         answer.setText("5"); check.fire();
         require(feedback.getText().equals("Correct!"), "correct answer updates feedback");
         if (id.equals("3")) return;
-        Label attemptsLabel = (Label) node(field(app, "attemptsLabel"));
+        Label attemptsLabel = (Label) node(field(owner, "attemptsLabel"));
         require(attemptsLabel.getText().equals("Attempts: 2"), "two checks count as two attempts");
         if (id.equals("4")) return;
         button(stage, "Reset").fire();
@@ -124,7 +131,13 @@ public class CheckpointHarness extends Application {
         answer.setText("5"); check.fire();
         require(attemptsLabel.getText().equals("Attempts: 1"), "check works after Reset");
         if (id.equals("6")) {
-            Object counter = field(app, "attempts");
+            Object quizView = owner.getClass().getMethod("view").invoke(owner);
+            require(node(quizView) == screen && owner.getClass().getMethod("view").invoke(owner) == quizView,
+                    "Main shows the retained StudyQuiz layout");
+            Object secondQuiz = owner.getClass().getConstructor().newInstance();
+            require(node(secondQuiz.getClass().getMethod("view").invoke(secondQuiz)) != screen,
+                    "each StudyQuiz builds independent controls");
+            Object counter = field(owner, "attempts");
             require((int) counter.getClass().getMethod("value").invoke(counter) == 1, "Counter owns current value");
             Object other = counter.getClass().getConstructor().newInstance();
             other.getClass().getMethod("increment").invoke(other);
@@ -136,10 +149,11 @@ public class CheckpointHarness extends Application {
     }
 
     private static void checkStudy(Main app, Stage stage) throws Exception {
-        TextField answer = (TextField) node(field(app, "answer"));
-        Label question = (Label) node(field(app, "questionLabel"));
-        Label feedback = (Label) node(field(app, "feedback"));
-        Label attempts = (Label) node(field(app, "attemptsLabel"));
+        Object owner = quizOwner(app);
+        TextField answer = (TextField) node(field(owner, "answer"));
+        Label question = (Label) node(field(owner, "questionLabel"));
+        Label feedback = (Label) node(field(owner, "feedback"));
+        Label attempts = (Label) node(field(owner, "attemptsLabel"));
         Label score = score(app);
         Button check = button(stage, "Check");
         Button next = button(stage, "Next");
@@ -155,7 +169,7 @@ public class CheckpointHarness extends Application {
         require(score.getText().equals("Score: 1") && attempts.getText().equals("Attempts: 2")
                 && check.isDisabled() && !next.isDisabled(), "trimmed correct answer scores once and unlocks Next");
         check.fire();
-        require((int) field(app, "points") == 1, "repeat check cannot add a point");
+        require((int) field(owner, "points") == 1, "repeat check cannot add a point");
         next.fire();
         require(question.getText().startsWith("Question 2 of 3") && answer.getText().isEmpty()
                 && feedback.getText().isEmpty() && next.isDisabled(), "Next clears old answer and locks itself");
@@ -169,7 +183,7 @@ public class CheckpointHarness extends Application {
         require(question.getText().startsWith("Question 1 of 3") && score.getText().equals("Score: 0")
                 && attempts.getText().equals("Attempts: 0") && answer.getText().isEmpty()
                 && !answer.isDisabled() && !check.isDisabled() && next.isDisabled(), "Restart resets all visible state");
-        require((int) field(app, "points") == 0 && !(boolean) field(app, "finished"), "Restart resets owned rule state");
+        require((int) field(owner, "points") == 0 && !(boolean) field(owner, "finished"), "Restart resets owned rule state");
         if (id.equals("7")) {
             for (String response : new String[] {"5", "1", " TRUE "}) {
                 answer.setText(response);
@@ -177,16 +191,16 @@ public class CheckpointHarness extends Application {
                 require(check.isDisabled() && !next.isDisabled(), "second session still locks Check and unlocks Next");
                 next.fire();
             }
-            require((boolean) field(app, "finished") && score.getText().equals("Score: 3")
+            require((boolean) field(owner, "finished") && score.getText().equals("Score: 3")
                     && answer.isDisabled(), "second complete session reuses controls and scores normally");
             restart.fire();
             require(score.getText().equals("Score: 0") && !answer.isDisabled()
                     && !check.isDisabled() && next.isDisabled(), "second Restart restores enabled state again");
         }
-        if (id.startsWith("10/") || id.startsWith("11/")) checkScoreDisplay(app);
+        if (id.startsWith("10/") || id.startsWith("11/")) checkScoreDisplay(owner);
     }
 
-    private static void checkScoreDisplay(Main app) throws Exception {
+    private static void checkScoreDisplay(Object app) throws Exception {
         Object display = field(app, "score");
         Label view = (Label) node(display.getClass().getMethod("view").invoke(display));
         Object second = display.getClass().getConstructor().newInstance();

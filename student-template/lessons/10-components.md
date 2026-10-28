@@ -116,7 +116,7 @@ reuse it in the Study quiz you already wrote.
 
 ## 5. Extract the display from your study quiz
 
-Open the `src/main/java/Main.java` you wrote in lesson 7. Main owns `points`, and its `refreshStats()` currently sets `scoreLabel.setText("Score: " + points);`. Create `src/main/java/ScoreDisplay.java` in that **study** folder:
+Open `src/main/java/StudyQuiz.java` from lesson 7. StudyQuiz owns `points`, and its `refreshStats()` currently sets `scoreLabel.setText("Score: " + points);`. Main already just creates the quiz and shows its view; leave it unchanged. Create `src/main/java/ScoreDisplay.java` in that **study** folder:
 
 ```java
 import zero.ui.Element;
@@ -135,15 +135,15 @@ public class ScoreDisplay {
 }
 ```
 
-## 6. Replace the study Main display calls
+## 6. Replace the StudyQuiz display calls
 
-In study Main, change the field `private Label scoreLabel;` to `private ScoreDisplay score;`. In `setup()`, replace `scoreLabel = new Label("");` with `score = new ScoreDisplay();` and place `score.view()` in the existing `Column` where `scoreLabel` was. In `refreshStats()`, replace `scoreLabel.setText("Score: " + points);` with `score.setScore(points);`. Keep `points`, question rules, `Counter`, and Restart in Main.
+In StudyQuiz, change the field `private Label scoreLabel;` to `private ScoreDisplay score;`. In the `StudyQuiz()` constructor, replace `scoreLabel = new Label("");` with `score = new ScoreDisplay();` and place `score.view()` in the existing `Column` where `scoreLabel` was. In `refreshStats()`, replace `scoreLabel.setText("Score: " + points);` with `score.setScore(points);`. Keep `points`, question rules, `Counter`, and Restart in StudyQuiz.
 
 ## 7. Run App and test the study quiz
 
 Run App: a wrong answer leaves score 0; answer `5` for the first question to reach 1; Restart returns to 0. The quiz has more questions; finish and restart it again.
 
-Each `new ScoreDisplay()` creates one Label through the field initializer. Java supplies the no-argument constructor because you have not written another constructor. `view()` returns an Element that Main can place in a Column or Row. Label is an Element; ScoreDisplay remains an ordinary class. `setScore(int)` changes the label explicitly. No framework registration, component subclass or hidden update is involved.
+Each `new ScoreDisplay()` creates one Label through the field initializer. Java supplies the no-argument constructor because you have not written another constructor. `view()` returns an Element that the caller can place in a Column or Row. Label is an Element; ScoreDisplay remains an ordinary class. `setScore(int)` changes the label explicitly. No framework registration, component subclass or hidden update is involved.
 
 ## 8. Use the same class in your Coin game
 
@@ -165,14 +165,14 @@ public void setScore(int points) {
 }
 ```
 
-Copy that one changed class into the other project. Leave Main's score and rules alone.
+Copy that one changed class into the other project. Leave the game Main and StudyQuiz scoring rules alone.
 
 ## 11. Run both apps and check the shared change
 
-Run both. Each now says Points, while scoring and Restart still work. If one project still looks unchanged, check which copy of `ScoreDisplay.java` you edited and rerun that project. **Restore Score in both the initializer and setScore, then copy the restored class to the other project before lesson 11.** After writing your own code, compare the [study Main](../../teaching/checkpoints/10/study/Main.java), [game Main](../../teaching/checkpoints/10/game/Main.java) and their identical [ScoreDisplay.java](../../teaching/checkpoints/10/study/ScoreDisplay.java). Compare the game's [PlayerInput.java](../../teaching/checkpoints/10/game/PlayerInput.java)
+Run both. Each now says Points, while scoring and Restart still work. If one project still looks unchanged, check which copy of `ScoreDisplay.java` you edited and rerun that project. **Restore Score in both the initializer and setScore, then copy the restored class to the other project before lesson 11.** After writing your own code, compare [StudyQuiz](../../teaching/checkpoints/10/study/StudyQuiz.java), the unchanged [study Main](../../teaching/checkpoints/10/study/Main.java), [game Main](../../teaching/checkpoints/10/game/Main.java) and their identical [ScoreDisplay.java](../../teaching/checkpoints/10/study/ScoreDisplay.java). Compare the game's [PlayerInput.java](../../teaching/checkpoints/10/game/PlayerInput.java)
 too; checkpoint 10 keeps arrow-only input.
 
-PlayerInput owns direction queries; ScoreDisplay owns presentation; each Main owns its score and rules. These helpers belong to your project, alongside Main (or in your own package when you learn packages). Do not put them in `zero.*` or edit Zero's framework source to add them. In [lesson 11](11-zerohub.md), practise evaluating and sharing a small CreditsBadge component; copies of that practice library are expected. The optional extension then applies the same checks to your own original idea.
+PlayerInput owns direction queries; ScoreDisplay owns presentation; the game Main and StudyQuiz each own their score and rules. These helpers belong to your project, alongside Main (or in your own package when you learn packages). Do not put them in `zero.*` or edit Zero's framework source to add them. In [lesson 11](11-zerohub.md), practise evaluating and sharing a small CreditsBadge component; copies of that practice library are expected. The optional extension then applies the same checks to your own original idea.
 
 ### Reusable views
 
@@ -201,8 +201,9 @@ is an object inside that application, not another App to launch.
 For a later study-app welcome or result screen, an ordinary class can build a
 layout and return it from `view()`. Main can call `show(startScreen.view())`
 and later `show(quizScreen.view())` in an action. `show(...)` replaces App's
-visible content; Main must keep the question index, score and current-screen
-state itself. Use named methods such as `checkAnswer()`, `nextQuestion()` and
+visible content. Main can choose the current screen while StudyQuiz keeps the
+question index and score in the same quiz object. Showing another view does not
+automatically reset that object. Use named methods such as `checkAnswer()`, `nextQuestion()` and
 `restart()` to change state and refresh existing controls. Disable actions that
 would score an answer twice or advance beyond the final question.
 

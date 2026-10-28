@@ -7,7 +7,7 @@ Illustrations show the intended result; native controls vary by platform.
 | Project | Lessons | What grows |
 | --- | --- | --- |
 | Greeting app | [0](00-hello-world.md), [1](01-hello-button.md), [2](02-hello-name.md) | Label → button → name input |
-| Study quiz | [3](03-quiz.md), [4](04-counter.md), [5](05-methods.md), [6](06-objects.md), [7](07-study-app.md) | One question → attempts → reset methods → Counter object → question array and scoring |
+| Study quiz | [3](03-quiz.md), [4](04-counter.md), [5](05-methods.md), [6](06-objects.md), [7](07-study-app.md) | One question → attempts → reset methods → Counter and StudyQuiz classes → Question objects and scoring |
 | Coin game | [8](08-movement.md), [9](09-coin-game.md), [10](10-components.md), [11](11-zerohub.md), [12](12-media.md) | Player → coins/win/restart → refactor input and score display → improve/check/practise sharing → optional media |
 
 The intermediate steps stay in these same small projects. Lesson 10 refactors
