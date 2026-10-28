@@ -12145,3 +12145,23 @@ current-task workflow-cap waiver; Windows/WACK must still prove the change.
 SolHigh dpi_gate_review completed the fifth targeted delta clean, checking
 Microsoft's element precedence and unchanged scaling/gate semantics. Exact local
 locked Store publish and npm check passed. Effective model/time/tokens unknown.
+
+Run40742412970 tested source371aa6cf with both DPI declarations. It again passed
+real runtime/install/JavaFX checks and signed-copy MSIX installation/cleanup, but
+required DPIWARNING remained. The executable was independently inspected as
+AMD64 with a well-formed RT_MANIFEST type24/resource1/lang0 containing both
+Microsoft DPI declarations. Candidate SHA256
+73423da90df584b6b989f3a4ac9f742160de5bf32a3e477385cb2f20ae27530d.
+Further speculative product changes are paused pending detailed tool diagnostics
+and a minimal known-DPI-aware control on the disposable Windows runner.
+
+Diagnostic harness, SolHigh implementation wack_diagnostics and independent
+SolHigh dpi_gate_review: complete clean over371aa6cf plus additive manual input/
+job and new script. Hash-pinned original candidate, read-only artifact access,
+SDK manifest extraction/validation, strict existing original gate, livePMv2
+minimal control and separately retained bounded/redacted diagnostics. A control
+pass cannot clear the original failure. Temporary control binaries and signing
+keys are never uploaded. Review retracted a preliminary identical-Add-Type
+collision concern after checking documented WindowsPowerShell caching behavior;
+no accepted code findings. actionlint, npm check and12CI scope/gate tests pass.
+Actual WindowsPowerShell execution pending; effective model/time/tokens unknown.
