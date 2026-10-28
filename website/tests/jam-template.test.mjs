@@ -77,7 +77,7 @@ test('source inventory includes local assets, README and only commit-pinned depl
 
 test('independent copies retain the exact canonical MIT notice and publish it with public source',async()=>{
   const files=await jamTemplateFiles('game');
-  assert.deepEqual(files.LICENSE,new Uint8Array(await readFile(new URL('../../LICENSE',import.meta.url))));
+  assert.deepEqual(files.LICENSE,new Uint8Array(await readFile(new URL('../../jam-template/LICENSE',import.meta.url))));
   assert.match(strFromU8(files['assets/jam.js']),/Copyright \(c\) 2026 Codepet Inc\. MIT license/);
   assert.match(strFromU8(files['README.md']),/Keep its notice with reused/);
 });

@@ -249,7 +249,7 @@ in quiz, practice and study, retaining the caption enhancement and existing
 no-argument constructor. Include meaningful behavior checks and a short explanation
 another student can follow; seek review before cohort adoption.
 
-Advanced contributions can introduce ordinary Java packages/interfaces when a concrete app needs them. Shared libraries and automated submission are described in [COMPONENTS.md](COMPONENTS.md). Original source uses [MIT](../LICENSE); upstream notices retain their terms.
+Advanced contributions can introduce ordinary Java packages/interfaces when a concrete app needs them. Shared libraries and automated submission are described in [COMPONENTS.md](COMPONENTS.md). Current source uses the [Zero Source-Available License](../LICENSE); previously granted MIT rights remain intact; upstream notices retain their terms.
 
 ## Maintained libraries
 

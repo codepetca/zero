@@ -29,7 +29,8 @@ export function lessonProjects(root = repository) {
   settings['git.enabled'] = true;
   add(common, '.vscode/settings.json', JSON.stringify(settings, null, 2) + '\n');
   add(common, '.gitignore', read(root, 'student-template/.gitignore'));
-  add(common, 'LICENSE', read(root, 'LICENSE'));
+  // Published tutorial scaffolds retain their verified historical MIT notice.
+  add(common, 'LICENSE', read(root, 'scripts/tutorial-license-MIT.txt'));
   for (const name of coreSources) add(common, `src/main/java/zero/${name}`, read(root, `framework/src/main/java/zero/${name}`));
   for (const file of projectBuilderFilesSync({sourceRoot:root})) add(common,'.zero-build/' + file.path,file.bytes);
   add(common, 'zero-core.json', JSON.stringify(core.makeCoreRecord(Object.fromEntries(core.coreSourcePaths.map(name =>

@@ -47,7 +47,7 @@ function verifyExtensionSource(directory, relative='') {
 verifyExtensionSource(path.join(root,'extension/src'));
 // vsce normalizes the extension's LICENSE filename to LICENSE.txt in the VSIX.
 assert.deepEqual(vsix['extension/LICENSE.txt'], license);
-assert.equal(JSON.parse(new TextDecoder().decode(vsix['extension/package.json'])).license, 'MIT');
+assert.equal(JSON.parse(new TextDecoder().decode(vsix['extension/package.json'])).license, 'SEE LICENSE IN LICENSE');
 assert.deepEqual(vsix['extension/media/sharing-harness/ZeroLibraryHarness.java'],new Uint8Array(readFileSync(path.join(root,'sharing/harness/ZeroLibraryHarness.java'))));
 assert.deepEqual(vsix['extension/media/sharing-config.json'],sharingConfigurationBytes(root), 'VSIX sharing configuration drift.');
 const starter = unzipSync(readFileSync(path.join(root, 'dist', release.assets.starter.filename)));
@@ -59,4 +59,4 @@ const permissions = spawnSync('python3', ['-c', 'import sys,zipfile; z=zipfile.Z
 assert.equal(permissions.status, 0, permissions.stderr);
 const project = extractProject(kitBytes, 'zero-kit/starter', tmpdir());
 try {maven(project, ['-q', 'clean', 'compile']);} finally {rmSync(project, {recursive:true, force:true});}
-console.log('Measured release assets, exact MIT licenses in kit/starter/VSIX, SPDX manifest, flat ZIP bytes, canonical source parity, executable wrapper and extracted Maven build passed.');
+console.log('Measured release assets, exact Zero licenses in kit/starter/VSIX, license manifest, flat ZIP bytes, canonical source parity, executable wrapper and extracted Maven build passed.');

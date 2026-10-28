@@ -162,5 +162,5 @@ Hold adoption when a target OS or required sharing flow remains untested, setup
 needs unresolved proxy workarounds, input or state is unreliable, or students
 cannot explain their changes with reasonable teaching support. Resolve and repeat
 the failed steps; do not replace physical/student evidence with mocked results.
-Original Zero code uses the [MIT license](../LICENSE). Third-party notices
+Current source uses the [Zero Source-Available License](../LICENSE); previously granted MIT rights remain intact. Third-party notices
 remain separate; ZeroHub/sample source uses MIT; public hub activation is pending.

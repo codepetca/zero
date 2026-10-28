@@ -40,8 +40,8 @@ are unsupported. Physical Windows and novice student trials remain unverified; s
 
 The Windows installer remains an unsigned preview with automatic updates off.
 It uses Zero’s private Java21 without changing system Java or ordinary editor
-settings. Interactive Windows acceptance is still pending. Original Zero code is
-MIT licensed.
+settings. Interactive Windows acceptance is still pending. These published downloads
+retain their MIT license.
 
 ## Start here
 
@@ -105,5 +105,8 @@ recovery and the read-only `--verify-only` option.
 
 Start contributions with one understandable helper, example or useful error.
 Try a shared change in two apps and seek review before a cohort adopts it.
-Original Zero code is available under the [MIT license](LICENSE). Bundled
+Current source is offered under the [Zero Source-Available License](LICENSE).
+Student starter/example editing and noncommercial app sharing are permitted;
+changes to Zero itself and commercial use require prior express written consent
+for material offered solely under the current license. Prior MIT rights remain intact. Bundled
 upstream dependencies and wrapper notices retain their own terms. Migrated sample libraries retain their MIT notices.
