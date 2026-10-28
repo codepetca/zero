@@ -43,7 +43,15 @@
     {
       "id": "pet",
       "repository": "codepetca/zero-tutorial-pet",
-      "publication": null
+      "publication": {
+        "repositoryId": 1437060766,
+        "visibility": "public",
+        "isTemplate": true,
+        "defaultBranch": "main",
+        "commit": "d633a67634af3b6c71599ba08eced0f09940f5f2",
+        "tree": "9f390ad1f6fa5587402570ec740c658bad329881",
+        "scaffoldSha256": "d5e8314dfb4a7650072c511dd7da184fbd488d74f29860297d824218807ae742"
+      }
     }
   ]
 }

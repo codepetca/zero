@@ -15,10 +15,11 @@ Existing student projects and their versioned framework remain untouched.
 
 Local integration and independent Sol/high review complete. Main/optional
 navigation preserves old IDs; existing three tutorial scaffold hashes match.
-Pet publication metadata is null and the strict package gate rejects it. Live
-`codepetca/zero-starter` also lacks Color, Zero UI and saved browser tooling;
-lesson 14 and its website card explain it is unavailable until its original
-starter is separately published and verified. No source PR or publication.
+Source draft PR #222 is open. Owner authorized template publication and source
+merge; app release/website rollout remain separate. Pet template PR #1 merged
+as d633a676 and original starter PR #2 merged as be4e47a5. Both anonymous public
+archives match all 95 reviewed files and executable modes. Update exact
+publication records, review the delta, run CI and merge #222 only when green.
 
 Full npm test: 1426 pass, 3 skipped; website: 244 pass; post-correction
 reader16 and website21 pass, source checks pass. Pet animation/movement and
@@ -33,8 +34,6 @@ unknown. Draft asset/checkpoint verification: `node teaching/new-curriculum/pet/
 
 Working branch `codex/study-quiz-classes` includes completed but unmerged Study
 refactor, independently reviewed and WebFX-tested. Preserve it as optional work.
-Lessons 10–11 require Study and Coin and state that prerequisite. Pet template
-must remain unavailable until genuinely published and verified; no fabricated
-public metadata. Retain separate beginner
+Lessons 10–11 require Study and Coin and state that prerequisite. Retain separate beginner
 editor guide worktree and parked ZeroJams. Prior evidence in
 `.verification/study-classes/` and `.verification/publish-fast/`.

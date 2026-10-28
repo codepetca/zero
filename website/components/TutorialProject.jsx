@@ -2,7 +2,7 @@
 // template URL from an unpublished repository name here.
 export function TutorialProject({ project, lesson, template, assets }) {
   if (project?.start === 'original') return <section className="lesson-start" aria-label="Your own project">
-    <p><strong>Updated starter not available yet.</strong> Ask your teacher for a suitable verified project. Once the updated original starter is published and verified, use <strong>Project → New</strong> to create your own project.</p>
+    <p>On Zero’s Start Page, choose <strong>Project → New</strong> to create your own project.</p>
   </section>;
   if (!project) return null;
   const starting = lesson === project.firstLesson;

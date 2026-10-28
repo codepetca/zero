@@ -228,7 +228,7 @@ test('local tutorial drafts pass pristine inventory checks without claiming publ
   t.after(()=>rmSync(drafts.directory,{recursive:true,force:true}));
   const projects=lessonModule.validateBundle(bundle);
   assert.deepEqual(drafts.templates.map(item=>item.id),['greeting','study','game','pet']);
-  assert.equal(drafts.templates.find(item=>item.id==='pet').publication,null);
+  assert.equal(drafts.templates.find(item=>item.id==='pet').publication.commit,'d633a67634af3b6c71599ba08eced0f09940f5f2');
   for(const draft of drafts.templates){
     const project=projects.find(item=>item.id===draft.id);
     assert.equal(checkTutorialTemplateDirectory(project,draft.directory),draft.scaffoldSha256);
@@ -244,7 +244,7 @@ test('publication coherence gate binds exact source and mode without upgrading p
   for(const project of projects)delete project.template.scaffoldSha256;
   assert.throws(()=>checkPublishedTutorialTemplates(projects),/not been verified/);
   for(const project of projects)project.template.scaffoldSha256=readiness.tutorialScaffoldSha256(project.files);
-  assert.equal(checkPublishedTutorialTemplates(projects),3);
+  assert.equal(checkPublishedTutorialTemplates(projects),4);
   projects[0].files.find(file=>file.path==='mvnw').mode=0o644;
   assert.throws(()=>checkPublishedTutorialTemplates(projects),/greeting:/);
   const metadata={schema:1,templates:structuredClone(tutorialTemplateDefinitions)};
@@ -272,11 +272,13 @@ test('release payload gate checks readiness and exact packaged scaffolds indepen
   assert.throws(()=>checkPackagedTutorialTemplates(missing,expected),/study:.*not been verified/);
 });
 
-test('unpublished Pet blocks the unchanged strict publication and package gates',()=>{
-  assert.equal(bundle.projects.find(project=>project.id==='pet').template,null);
-  assert.equal(publishedTutorialTemplate('pet'),null);
-  assert.throws(()=>checkPublishedTutorialTemplates(),/pet:.*not published/);
-  assert.throws(()=>checkPackagedTutorialTemplates(structuredClone(bundle),bundle),/pet:.*not published/);
+test('verified Pet passes while unpublished Pet blocks publication and package gates',()=>{
+  assert.ok(publishedTutorialTemplate('pet'));
+  assert.equal(checkPublishedTutorialTemplates(),4);
+  const unavailable=structuredClone(bundle);
+  unavailable.projects.find(project=>project.id==='pet').template=null;
+  assert.throws(()=>checkPublishedTutorialTemplates(lessonModule.validateBundle(unavailable)),/pet:.*not published/);
+  assert.throws(()=>checkPackagedTutorialTemplates(unavailable,unavailable),/pet:.*not published/);
 });
 
 test('intermediate refactoring extracts input without growing the tutorial or changing core', () => {

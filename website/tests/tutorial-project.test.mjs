@@ -61,10 +61,10 @@ test("reuse keeps two existing repositories and optional game media remains the 
   for (let id = 0; id < 12; id++) assert.doesNotMatch(render(String(id)), /download=|\.zip/);
 });
 
-test("own-project explains the unverified starter without offering a tutorial template",()=>{
+test("own-project directs students to create a project without offering a tutorial template",()=>{
   const html=render('14');
   assert.match(html,/Project → New/);
-  assert.match(html,/Updated starter not available yet/);
-  assert.match(html,/Once the updated original starter is published and verified/);
+  assert.match(html,/Start Page/);
+  assert.doesNotMatch(html,/not available yet|published and verified/);
   assert.doesNotMatch(html,/Use template|Template not available|github\.com|download=|\.zip/);
 });

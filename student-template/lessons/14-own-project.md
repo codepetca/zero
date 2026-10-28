@@ -4,15 +4,10 @@
 
 Create an original game project and give it a welcome screen. Your screen will have a title, a small illustration and a **Start** button. Start opens a simple game scene; **Back** returns to the title. Then make the idea yours.
 
-**Starter availability:** the currently published original-project starter does
-not yet contain the Zero classes and browser tooling used below. This lesson
-requires the updated starter to be published and verified separately. Until then,
-ask your teacher for a suitable project; do not assume Project → New provides it.
-
 ## 1. Create your project
 
 1. Complete Zero and GitHub setup, including Git name and email. Ask your teacher about what may be shared publicly. A public repository and a published app can be seen by anyone; do not put secrets or private information in them.
-2. Once the updated starter has been published and verified, on Zero's Start Page choose **Project ▾ → New**. Sign in if asked. Give your repository a name, choose a clone location, and choose **Clone here**. Zero creates your own repository and opens its clone. If creation succeeds but cloning fails, use **Project ▾ → Clone** with your new repository URL. Until then, use a suitable teacher-provided project.
+2. On Zero's Start Page choose **Project ▾ → New**. Sign in if asked. Give your repository a name, choose a clone location, and choose **Clone here**. Zero creates your own repository and opens its clone. If creation succeeds but cloning fails, use **Project ▾ → Clone** with your new repository URL.
 3. Open `src/main/java/Main.java`. This is your project, so choose a game idea and a title. You can run locally after setup without GitHub once the needed dependencies are cached.
 
 ## 2. Make a canvas

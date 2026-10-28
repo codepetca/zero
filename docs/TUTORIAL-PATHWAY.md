@@ -1,9 +1,9 @@
 # Tutorial pathway: implementation plan
 
-Status: local work in progress. This plan does not claim a published tutorial,
-template or release. Existing student projects retain their own source and builds.
-The public original-project starter currently lacks APIs and browser tooling used
-by lesson 14; its updated draft needs separate publication and verification.
+Status: curriculum integration remains local. The Pet tutorial template and updated
+original-project starter have been published and verified. Delivery of the updated
+lessons and Pet assets requires a separate website and app rollout. Existing student
+projects retain their own source and builds.
 
 ## Student path
 

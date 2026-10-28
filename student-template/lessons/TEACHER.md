@@ -2,12 +2,11 @@
 
 The main path has four projects: Greeting (lessons 0–2), Coin (8–9), Pet (13), and an original project (14). Students create their own repositories, clone them, and write and explain their own code. Keep each continuing project for its lessons. Illustrations are teaching drawings, not native-window screenshots; pacing has not been measured with novice students.
 
-**Pet availability:** the Pet template and assets are not published until separately verified and published. Do not promise the Pet starter or download is live based on local curriculum files. Check their actual availability before assigning lesson 13; if unavailable, defer it and tell students not to clone Zero's shared template directly.
-
-**Own-project availability:** the currently published `zero-starter` repository
-does not contain the newer Zero UI/Color classes and project-owned browser tooling
-used in lesson 14. The updated original-project starter must be separately
-published and verified before Project → New can reliably start this lesson.
+**Lesson availability:** the Pet and original-project templates have been published
+and verified. The updated lessons and Pet asset download require a separate website
+and app rollout. Check that the lesson and assets are available to students before
+assigning lesson 13 or 14. Students create and clone their own repositories, not
+Zero’s shared template repositories.
 
 ## Before starting
 
