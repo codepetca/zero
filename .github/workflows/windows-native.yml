@@ -7,6 +7,10 @@ on:
         description: Compare the pinned candidate with a minimal WACK control
         type: boolean
         default: false
+      service_wack:
+        description: Service Microsoft WACK on the disposable diagnostic runner
+        type: boolean
+        default: false
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -240,6 +244,11 @@ jobs:
           run-id: '40742412970'
           name: zero-windows-msix-40742412970-1
           path: ${{ runner.temp }}/zero-msix-diagnostic-input
+      - name: Service the diagnostic certification toolkit
+        if: inputs.service_wack == true
+        shell: powershell
+        timeout-minutes: 17
+        run: ./scripts/refresh-windows-wack.ps1 -Receipt (Join-Path $env:RUNNER_TEMP 'zero-wack-servicing-reports/servicing.json')
       - name: Compare original WACK validation with a minimal control
         shell: powershell
         run: |
@@ -253,4 +262,6 @@ jobs:
           name: zero-windows-msix-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: warn
           retention-days: 14
-          path: ${{ runner.temp }}/zero-msix-diagnostic-reports
+          path: |
+            ${{ runner.temp }}/zero-msix-diagnostic-reports
+            ${{ runner.temp }}/zero-wack-servicing-reports

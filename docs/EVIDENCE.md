@@ -12182,3 +12182,16 @@ SolHigh targeted dpi_gate_review completed clean over e04746eb plus the third
 control delta: checked BOOL/error ordering, exact manifest-node removal, live
 proof, unchanged original/control and strict gate/cleanup. Both generated C#
 variants compile locally. Effective model/time/tokens unknown; Windows pending.
+
+Diagnostic run40746112232 also tested the API-initialized control: the API
+returned TRUE and its live HWND was PerMonitorV2. WACK recognized the exact
+user32.dll!SetProcessDpiAwarenessContext call, then still threw the same manifest-
+reader COM E_FAIL and emitted required DPIWARNING. All three checks cleaned up.
+No API-based product change is justified by this experiment. Next diagnostic
+services only the disposable runner's Microsoft toolkit from its official
+10.0.26100.9457 release (current26100 servicing line), hash-pinned installer with
+Microsoft Authenticode verification; the package and required gate stay unchanged.
+SolHigh dpi_gate_review completed the servicing delta clean: official URL,
+pre-execution trust checks, hosted/manual scope, bounded install and failure/
+cleanup/receipt semantics; no product or normal-gate changes. actionlint and diff
+checks passed. Effective model/time/tokens unknown; actual servicing pending.
