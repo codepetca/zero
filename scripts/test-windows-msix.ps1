@@ -5,7 +5,8 @@ param(
     [Parameter(Mandatory)][string] $Package,
     [Parameter(Mandatory)][string] $PackageVersion,
     [Parameter(Mandatory)][string] $Receipt,
-    [switch] $RunWack
+    [switch] $RunWack,
+    [switch] $Windows11ArmDiagnostic
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -44,9 +45,26 @@ $receiptData = [ordered]@{
         'Does not establish Store signing, certification, update, setup, or interactive acceptance.')
 }
 try {
-    if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or
-        $env:RUNNER_OS -ne 'Windows' -or $env:ImageOS -ne 'win22' -or
-        -not [Environment]::Is64BitOperatingSystem) { throw 'Disposable GitHub-hosted windows-2022 x64 runner required.' }
+    if ($Windows11ArmDiagnostic) {
+        if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or
+            $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:RUNNER_OS -ne 'Windows' -or
+            $env:RUNNER_ARCH -ne 'ARM64' -or $env:ImageOS -notmatch '^win11' -or
+            -not [Environment]::Is64BitOperatingSystem -or [Environment]::OSVersion.Version.Build -lt 22000) {
+            throw 'Windows 11 ARM diagnostic requires manual dispatch on a disposable hosted Windows 11 ARM64 runner.'
+        }
+        $operatingSystem = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
+        if ($operatingSystem.ProductType -ne 1) { throw 'Windows 11 ARM diagnostic requires a verified desktop operating system.' }
+        $receiptData['platformDiagnostic'] = [ordered]@{
+            runnerArch = $env:RUNNER_ARCH; runnerImage = $env:ImageOS
+            osVersion = [Environment]::OSVersion.Version.ToString(); productType = $operatingSystem.ProductType
+            execution = 'x64 package under ARM64 emulation; Windows 11 desktop diagnostic only'
+        }
+        $receiptData.limits += 'x64 package under ARM64 emulation; does not establish native x64 Windows 11 acceptance or ARM64 product support.'
+    } else {
+        if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or
+            $env:RUNNER_OS -ne 'Windows' -or $env:ImageOS -ne 'win22' -or
+            -not [Environment]::Is64BitOperatingSystem) { throw 'Disposable GitHub-hosted windows-2022 x64 runner required.' }
+    }
     if ($PackageVersion -notmatch '^[1-9][0-9]{0,4}\.[0-9]{1,5}\.[0-9]{1,5}\.0$') { throw 'Invalid expected Store version.' }
     $parsedVersion = [version]$PackageVersion
     if ($parsedVersion.Major -gt 65535 -or $parsedVersion.Minor -gt 65535 -or $parsedVersion.Build -gt 65535) { throw 'Version component exceeds MSIX limit.' }

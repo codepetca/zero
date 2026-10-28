@@ -12195,3 +12195,19 @@ SolHigh dpi_gate_review completed the servicing delta clean: official URL,
 pre-execution trust checks, hosted/manual scope, bounded install and failure/
 cleanup/receipt semantics; no product or normal-gate changes. actionlint and diff
 checks passed. Effective model/time/tokens unknown; actual servicing pending.
+
+Serviced-tool diagnostic40747486065 completed: the pinned Microsoft installer
+exited0 and replaced WACK26100.7705 with26100.9457 (hash2fadeef57da86c82d3edaeee26f2f3981578a85afbcf2b7e9ab4a8b916df3dfa).
+Original, manifest control and API control still returned the same infrastructure
+COM E_FAIL in the manifest reader; both control HWNDs remained PerMonitorV2.
+Cleanup passed. Product DPI initialization stays unchanged. Evidence retained in
+.verification/wack-40747486065/diagnostics, including servicing and detailed logs.
+Next opt-in comparison uses the actual GitHub-hosted Windows11 desktop ARM64
+image with the unchanged x64 package under emulation. It keeps the Server2022
+default guards/gates unchanged, verifies desktop/build/architecture at runtime,
+and labels the emulation limit. It is not native x64 Windows11 acceptance.
+SolHigh dpi_gate_review completed the ARM diagnostic delta clean: hard runner
+allowlist, exact opt-in desktop/architecture guards, unchanged default guards,
+all-three-run forwarding, strict gate and honest emulation labeling. actionlint/
+diff checks passed. service_wack staysfalse on ARM. Actual execution pending;
+effective model/time/tokens unknown.

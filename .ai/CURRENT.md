@@ -19,9 +19,13 @@ No required warning is waived; no candidate is declared WACK-ready or certified.
 Latest product source371aa6cf, Windows run40742412970. Ignored exact artifacts/
 reports: .verification/wack-40742412970. Candidate SHA256
 73423da90df584b6b989f3a4ac9f742160de5bf32a3e477385cb2f20ae27530d.
-Next: diagnostic-only hosted Windows run, original candidate plus a minimal
-known-DPI-aware control, retained SDK manifest extraction and bounded WACK logs.
-SolHigh worker wack_diagnostics owns only new diagnostic script/workflow; root
+Detailed diagnostics40744913896/40746112232 and serviced26100.9457 toolkit run
+40747486065 reproduce the same infrastructure COM E_FAIL in IsPerMonitorV2DPIAwarenessSet
+for original and both manifest/API controls, despite SDK-valid manifests and
+livePMv2 HWNDs. No further product change is justified by those results.
+Next: guarded opt-in Windows11 desktop ARM64 diagnostic, unchanged x64 package
+under emulation, with the native-x64/ARM-support limits recorded explicitly.
+SolHigh worker wack_diagnostics owns only diagnostic script/workflow delta; root
 owns integration/docs; SolHigh dpi_gate_review provides independent delta review.
 DPI follow-up has five targeted fix batches. Existing task-scoped owner workflow-
 cap waiver applies; correctness/CI/merge gates remain. Avoid speculative product

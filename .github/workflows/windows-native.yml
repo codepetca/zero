@@ -7,6 +7,13 @@ on:
         description: Compare the pinned candidate with a minimal WACK control
         type: boolean
         default: false
+      diagnostic_os:
+        description: Disposable runner OS for the WACK diagnostic job only
+        type: choice
+        default: windows-2022
+        options:
+          - windows-2022
+          - windows-11-arm
       service_wack:
         description: Service Microsoft WACK on the disposable diagnostic runner
         type: boolean
@@ -231,7 +238,7 @@ jobs:
     permissions:
       contents: read
       actions: read
-    runs-on: windows-2022
+    runs-on: ${{ inputs.diagnostic_os == 'windows-11-arm' && 'windows-11-arm' || 'windows-2022' }}
     timeout-minutes: 55
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -251,10 +258,14 @@ jobs:
         run: ./scripts/refresh-windows-wack.ps1 -Receipt (Join-Path $env:RUNNER_TEMP 'zero-wack-servicing-reports/servicing.json')
       - name: Compare original WACK validation with a minimal control
         shell: powershell
+        env:
+          DIAGNOSTIC_OS: ${{ inputs.diagnostic_os || 'windows-2022' }}
         run: |
           $packages = @(Get-ChildItem -LiteralPath (Join-Path $env:RUNNER_TEMP 'zero-msix-diagnostic-input') -Filter '*.msix' -File)
           if ($packages.Count -ne 1) { throw 'Expected exactly one candidate MSIX.' }
-          & ./scripts/diagnose-windows-msix.ps1 -Package $packages[0].FullName -Output (Join-Path $env:RUNNER_TEMP 'zero-msix-diagnostic-reports')
+          if ($env:DIAGNOSTIC_OS -notin @('windows-2022', 'windows-11-arm')) { throw 'Unsupported diagnostic runner selection.' }
+          $windows11Arm = $env:DIAGNOSTIC_OS -eq 'windows-11-arm'
+          & ./scripts/diagnose-windows-msix.ps1 -Package $packages[0].FullName -Output (Join-Path $env:RUNNER_TEMP 'zero-msix-diagnostic-reports') -Windows11ArmDiagnostic:$windows11Arm
       - name: Retain reports and sanitized diagnostics only
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

@@ -2,7 +2,8 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string] $Package,
-    [Parameter(Mandatory)][string] $Output
+    [Parameter(Mandatory)][string] $Output,
+    [switch] $Windows11ArmDiagnostic
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -76,7 +77,7 @@ function Invoke-Validation([string] $Label, [string] $Path) {
     $start = [DateTime]::UtcNow
     $passed = $false
     try {
-        & (Join-Path $PSScriptRoot 'test-windows-msix.ps1') -Package $Path -PackageVersion $packageVersion -Receipt $receipt -RunWack | Out-Host
+        & (Join-Path $PSScriptRoot 'test-windows-msix.ps1') -Package $Path -PackageVersion $packageVersion -Receipt $receipt -RunWack -Windows11ArmDiagnostic:$Windows11ArmDiagnostic | Out-Host
         $passed = $true
     } catch {
         # Do not convert a gate failure into success; capture only a sanitized message.
@@ -105,10 +106,26 @@ function Invoke-Validation([string] $Label, [string] $Path) {
 }
 
 try {
-    if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or
-        $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:RUNNER_OS -ne 'Windows' -or
-        $env:ImageOS -ne 'win22' -or -not [Environment]::Is64BitOperatingSystem) {
-        throw 'Manual workflow on a disposable GitHub-hosted windows-2022 x64 runner required.'
+    if ($Windows11ArmDiagnostic) {
+        if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or
+            $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:RUNNER_OS -ne 'Windows' -or
+            $env:RUNNER_ARCH -ne 'ARM64' -or $env:ImageOS -notmatch '^win11' -or
+            -not [Environment]::Is64BitOperatingSystem -or [Environment]::OSVersion.Version.Build -lt 22000) {
+            throw 'Windows 11 ARM diagnostic requires manual dispatch on a disposable hosted Windows 11 ARM64 runner.'
+        }
+        $operatingSystem = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
+        if ($operatingSystem.ProductType -ne 1) { throw 'Windows 11 ARM diagnostic requires a verified desktop operating system.' }
+        $summary['platformDiagnostic'] = [ordered]@{
+            runnerArch = $env:RUNNER_ARCH; productType = $operatingSystem.ProductType
+            execution = 'x64 package under ARM64 emulation; Windows 11 desktop diagnostic only'
+            limit = 'Does not establish native x64 Windows 11 acceptance or ARM64 product support.'
+        }
+    } else {
+        if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or
+            $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:RUNNER_OS -ne 'Windows' -or
+            $env:ImageOS -ne 'win22' -or -not [Environment]::Is64BitOperatingSystem) {
+            throw 'Manual workflow on a disposable GitHub-hosted windows-2022 x64 runner required.'
+        }
     }
     $packagePath = (Resolve-Path -LiteralPath $Package).ProviderPath
     if ((Get-FileHash -LiteralPath $packagePath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expectedHash) { throw 'Candidate SHA-256 mismatch.' }
