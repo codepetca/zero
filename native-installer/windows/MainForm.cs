@@ -17,11 +17,16 @@ namespace ZeroSetup
         private readonly Button done;
         private readonly NativeSetupBackend backend;
         private readonly AutomaticSetupController controller;
+#if !ZERO_STORE
         private readonly UpdateCoordinator updates;
+#endif
         private readonly Queue<LauncherRequest> requests = new Queue<LauncherRequest>();
         private readonly CancellationTokenSource lifetime = new CancellationTokenSource();
+#if !ZERO_STORE
         private CancellationTokenSource background;
-        private bool pumping, closing, settingsVisible, foregroundUpdate;
+        private bool settingsVisible, foregroundUpdate;
+#endif
+        private bool pumping, closing;
         private LauncherRequest active;
         private string errorDetails = "";
 
@@ -52,8 +57,12 @@ namespace ZeroSetup
             Controls.Add(layout); AcceptButton = retry;
             backend = new NativeSetupBackend(dataRoot);
             controller = new AutomaticSetupController(backend);
+#if ZERO_STORE
+            backend.ApproveDependencies = () => MessageBox.Show(this, DependencyConsent.Message, "Prepare Zero", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes;
+#else
             updates = new UpdateCoordinator(dataRoot);
             updates.StatusChanged += message => OnUI(() => { if (Visible && foregroundUpdate) status.Text = message; });
+#endif
             controller.Changed += () => OnUI(() => { status.Text = controller.Status; progress.Visible = controller.Busy; });
             retry.Click += (sender, args) => Request(active);
             done.Click += (sender, args) => { Hide(); if (!pumping) Finish(); };
@@ -64,12 +73,12 @@ namespace ZeroSetup
                 if (!closing && pumping)
                 {
                     args.Cancel = true;
-                    lifetime.Cancel(); background?.Cancel();
+                    lifetime.Cancel(); CancelUpdateCheck();
                     status.Text = "Closing Zero after this step…";
                     retry.Visible = false; details.Visible = false;
                 }
             };
-            FormClosed += (sender, args) => { lifetime.Cancel(); background?.Dispose(); updates.Dispose(); backend.Dispose(); lifetime.Dispose(); };
+            FormClosed += (sender, args) => { lifetime.Cancel(); DisposeUpdates(); backend.Dispose(); lifetime.Dispose(); };
         }
 
         [DllImport("user32.dll", SetLastError = true)]
@@ -89,11 +98,13 @@ namespace ZeroSetup
         internal void Request(LauncherRequest request)
         {
             if (closing || lifetime.IsCancellationRequested) return;
+#if !ZERO_STORE
             if (settingsVisible && request == LauncherRequest.Settings) { Activate(); return; }
+#endif
             // Reopening during preparation already has a pending editor handoff.
             if (pumping && controller.Busy && request == LauncherRequest.Open) return;
             if (!requests.Contains(request)) requests.Enqueue(request);
-            background?.Cancel();
+            CancelUpdateCheck();
             if (!pumping) { var operation = Pump(); }
         }
 
@@ -106,8 +117,16 @@ namespace ZeroSetup
                 {
                     active = requests.Dequeue();
                     retry.Visible = false; details.Visible = false; done.Visible = false; errorDetails = "";
+#if ZERO_STORE
+                    if (active == LauncherRequest.Settings || active == LauncherRequest.Check)
+                    {
+                        using (var opened = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Distribution.StoreUri) { UseShellExecute = true })) { }
+                        Hide();
+                    }
+#else
                     if (active == LauncherRequest.Settings) ShowUpdateSettings();
                     else if (active == LauncherRequest.Check) await CheckUpdates(true);
+#endif
                     else
                     {
                         Show(); Activate();
@@ -119,7 +138,9 @@ namespace ZeroSetup
                         }
                         Hide();
                         // Pending explicit requests take precedence over an automatic check.
+#if !ZERO_STORE
                         if (requests.Count == 0 && updates.Enabled && updates.IsDue) await CheckUpdates(false);
+#endif
                     }
                 }
             }
@@ -132,6 +153,7 @@ namespace ZeroSetup
             }
         }
 
+#if !ZERO_STORE
         private async Task CheckUpdates(bool manual)
         {
             bool installApproved = false;
@@ -211,6 +233,22 @@ namespace ZeroSetup
                 }
             }
             finally { settingsVisible = false; }
+        }
+
+#endif
+        private void CancelUpdateCheck()
+        {
+#if !ZERO_STORE
+            background?.Cancel();
+#endif
+        }
+
+        private void DisposeUpdates()
+        {
+#if !ZERO_STORE
+            background?.Dispose();
+            updates.Dispose();
+#endif
         }
 
         private void ShowCloseButton()

@@ -70,6 +70,16 @@ internal static class Harness
             Directory.CreateDirectory(extracted);
             using (var archive = Archive()) KitFiles.Extract(archive, extracted, CancellationToken.None);
             Assert(File.ReadAllText(Path.Combine(extracted, "starter", "zero.json")) == "trusted fixture", "valid extraction");
+            string retainedRoot = Path.Combine(root, "retained");
+            byte[] firstArchive; using (var archive = Archive()) firstArchive = archive.ToArray();
+            string firstKit; using (var archive = new MemoryStream(firstArchive)) firstKit = KitFiles.RetainEmbeddedKit(archive, retainedRoot, CancellationToken.None);
+            string again; using (var archive = new MemoryStream(firstArchive)) again = KitFiles.RetainEmbeddedKit(archive, retainedRoot, CancellationToken.None);
+            Assert(firstKit == again && File.ReadAllText(Path.Combine(firstKit, "starter", "zero.json")) == "trusted fixture", "retained embedded kit survives reuse for an open editor");
+            string secondKit; using (var archive = Archive("zero-kit/extra.txt")) secondKit = KitFiles.RetainEmbeddedKit(archive, retainedRoot, CancellationToken.None);
+            Assert(firstKit != secondKit && File.Exists(Path.Combine(firstKit, "starter", "zero.json")), "new embedded kit retains old editor version");
+            File.WriteAllText(Path.Combine(firstKit, "starter", "zero.json"), "tampered");
+            using (var archive = new MemoryStream(firstArchive)) Reject(() => KitFiles.RetainEmbeddedKit(archive, retainedRoot, CancellationToken.None), "modified retained kit fails closed");
+            Assert(File.ReadAllText(Path.Combine(firstKit, "starter", "zero.json")) == "tampered" && File.Exists(Path.Combine(secondKit, "starter", "zero.json")), "failed validation preserves both snapshots");
             foreach (string name in new[] { "../escape", "zero-kit/../escape", "zero-kit/a/../../escape", "zero-kit/C:/escape", "zero-kit/a\\b", "zero-kit/NUL.txt", "zero-kit/a./b", "zero-kit//empty", "other/file", "zero-kit/SETUP/setup.ps1", "zero-kit/setup", "zero-kit/starter/zero.json/child" })
             {
                 string output = Path.Combine(root, Guid.NewGuid().ToString("N"));

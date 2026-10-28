@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {managedJavaHome,managedJavaEnvironment,verifyManagedJava} = require('../src/managed-java');
+const {managedJavaHome,managedJavaEnvironment,verifyManagedJava,windowsNativeRoot} = require('../src/managed-java');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
@@ -35,30 +35,40 @@ test('an old native editor reload resolves the current verified kit without a ne
 });
 
 test('Zero child Java ignores inherited older/newer Java and injected JVM flags without editing its parent', async () => {
+  const platform = process.platform === 'win32' ? 'win32' : 'darwin';
+  const home = platform === 'win32' ? 'C:\\Zero private\\JDK21' : '/Zero private/JDK21';
+  const system = platform === 'win32' ? 'C:\\system' : '/system';
+  const suffix = platform === 'win32' ? '.exe' : '';
   for (const major of [17,21,25]) {
-    const original = {ZERO_JAVA_HOME:'/Zero private/JDK21',JAVA_HOME:'/system/jdk'+major,PATH:'/system/jdk'+major+'/bin:/usr/bin',JAVA_TOOL_OPTIONS:'-Djava.home=/old',JDK_JAVA_OPTIONS:'--class-path /old',_JAVA_OPTIONS:'-javaagent:/old',MAVEN_OPTS:'-Djava.home=/old',MAVEN_ARGS:'-Djava.home=/old',COLOR:'blue'};
+    const systemJdk = path.join(system, 'jdk'+major);
+    const original = {ZERO_JAVA_HOME:home,JAVA_HOME:systemJdk,PATH:path.join(systemJdk,'bin')+path.delimiter+system,JAVA_TOOL_OPTIONS:'-Djava.home=/old',JDK_JAVA_OPTIONS:'--class-path /old',_JAVA_OPTIONS:'-javaagent:/old',MAVEN_OPTS:'-Djava.home=/old',MAVEN_ARGS:'-Djava.home=/old',COLOR:'blue'};
     const before = {...original}, calls = [];
-    const selected = await verifyManagedJava({environment:original,platform:'darwin',execute:async (file,args,options) => {
+    const selected = await verifyManagedJava({environment:original,platform,execute:async (file,args,options) => {
       calls.push(file); assert.deepEqual(args,['-version']);assert.equal(options.env.JAVA_HOME,original.ZERO_JAVA_HOME);
       assert.equal(options.env.JAVA_TOOL_OPTIONS,undefined);assert.equal(options.env.MAVEN_OPTS,undefined);assert.equal(options.shell,undefined);
-      return file.endsWith('javac') ? {stdout:'javac 21.0.12.1'} : {stderr:'openjdk version "21.0.12.1"'};
+      return file.endsWith('javac'+suffix) ? {stdout:'javac 21.0.12.1'} : {stderr:'openjdk version "21.0.12.1"'};
     }});
-    assert.deepEqual(calls,['/Zero private/JDK21/bin/java','/Zero private/JDK21/bin/javac']);
-    assert.equal(selected.PATH.split(':')[0],'/Zero private/JDK21/bin');assert.equal(selected.COLOR,'blue');assert.equal(selected.MAVEN_SKIP_RC,'1');
+    assert.deepEqual(calls,[path.join(home,'bin','java'+suffix),path.join(home,'bin','javac'+suffix)]);
+    assert.equal(selected.PATH.split(path.delimiter)[0],path.join(home,'bin'));assert.equal(selected.COLOR,'blue');assert.equal(selected.MAVEN_SKIP_RC,'1');
     assert.deepEqual(original,before);
   }
 });
 
 test('managed Java is required exactly; missing/old/newer/mismatched tools never fall back to system Java', async () => {
+  const platform = process.platform === 'win32' ? 'win32' : 'darwin';
+  const home = platform === 'win32' ? 'C:\\Zero\\jdk' : '/Zero/jdk';
+  const system = platform === 'win32' ? 'C:\\working\\system\\jdk21' : '/working/system/jdk21';
+  const suffix = platform === 'win32' ? '.exe' : '';
   for (const [java,javac] of [[17,17],[25,25],[21,17],[17,21],[21,25]]) {
     const calls=[];
-    await assert.rejects(verifyManagedJava({environment:{ZERO_JAVA_HOME:'/Zero/jdk',JAVA_HOME:'/working/system/jdk21',PATH:'/working/system/jdk21/bin'},execute:async file=>{
-      calls.push(file);return file.endsWith('javac') ? {stdout:`javac ${javac}.0.1`} : {stderr:`openjdk version "${java}.0.1"`};
+    await assert.rejects(verifyManagedJava({environment:{ZERO_JAVA_HOME:home,JAVA_HOME:system,PATH:path.join(system,'bin')},platform,execute:async file=>{
+      calls.push(file);return file.endsWith('javac'+suffix) ? {stdout:`javac ${javac}.0.1`} : {stderr:`openjdk version "${java}.0.1"`};
     }}),/bundled Java 21.*repair/);
-    assert.ok(calls.every(file=>file.startsWith('/Zero/jdk/bin/')));
+    assert.deepEqual(calls,[path.join(home,'bin','java'+suffix),path.join(home,'bin','javac'+suffix)]);
   }
-  await assert.rejects(verifyManagedJava({environment:{ZERO_JAVA_HOME:'/missing'},execute:async()=>{throw new Error('ENOENT');}}),/bundled Java 21.*repair.*ENOENT/);
-  for (const home of ['', 'relative/jdk','/Zero/jdk\nother']) assert.throws(()=>managedJavaHome({ZERO_JAVA_HOME:home}),/location is invalid/);
+  const missing = platform === 'win32' ? 'C:\\missing' : '/missing';
+  await assert.rejects(verifyManagedJava({environment:{ZERO_JAVA_HOME:missing},platform,execute:async()=>{throw new Error('ENOENT');}}),/bundled Java 21.*repair.*ENOENT/);
+  for (const invalid of ['', 'relative/jdk',home+'\nother']) assert.throws(()=>managedJavaHome({ZERO_JAVA_HOME:invalid},platform),/location is invalid/);
 });
 
 test('Windows Java environment keys are normalized only in Zero children', async () => {
@@ -90,4 +100,33 @@ test('nonordinary native metadata cannot block the editor host before file valid
   const script=`try {require(${JSON.stringify(require.resolve('../src/managed-java'))}).managedJavaHome(${JSON.stringify({ZERO_KIT_DIR:kit,ZERO_JAVA_HOME:'/native/jdk',HOME:root})},'darwin');process.exitCode=1;}catch(e){console.log(e.message);}`;
   const result=cp.spawnSync(process.execPath,['-e',script],{encoding:'utf8',timeout:2000});
   assert.ifError(result.error);assert.equal(result.status,0);assert.match(result.stdout,/bounded ordinary file/);
+});
+
+test('Windows channel root follows installed extension profile and rejects mismatched or spoofed markers', () => {
+  const root = 'C:\\Users\\Student\\AppData\\Local';
+  const src = folder => path.win32.join(root, folder, 'editor','extensions','zero.zero-1.0','src');
+  assert.equal(windowsNativeRoot(root,src('ZeroData')),path.win32.join(root,'ZeroData'));
+  assert.equal(windowsNativeRoot(root,src('ZeroStudioStoreData'),'store'),path.win32.join(root,'ZeroStudioStoreData'));
+  assert.equal(windowsNativeRoot(root,src('ZEROSTUDIOSTOREDATA')),path.win32.join(root,'ZeroStudioStoreData'));
+  assert.equal(windowsNativeRoot(root,src('ZeroMsixFeasibility'),'msix-feasibility'),path.win32.join(root,'ZeroMsixFeasibility'));
+  assert.throws(()=>windowsNativeRoot(root,src('ZeroData'),'store'),/does not match/);
+  assert.throws(()=>windowsNativeRoot(root,src('ZeroStudioStoreData'),'msix-feasibility'),/does not match/);
+  assert.throws(()=>windowsNativeRoot(root,'C:\\other\\extension\\src','store'),/profile is unavailable/);
+  assert.throws(()=>windowsNativeRoot(root,src('ZeroData'),'STORE'),/marker is invalid/);
+});
+
+test('Windows coexisting channels resolve their own real retained manifest and Java receipt', {skip:process.platform !== 'win32'}, async t => {
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-channel-runtime-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+  const kit=path.join(root,'trusted-kit');await fs.mkdir(path.join(kit,'setup'),{recursive:true});
+  const asset={sha256:'a'.repeat(64),version:'jdk-21.0.12.1+1'};
+  await fs.writeFile(path.join(kit,'setup','windows-downloads.json'),JSON.stringify({schemaVersion:1,architectures:{x64:{jdk:asset}}}));
+  for (const [folder,marker] of [['ZeroData',undefined],['ZeroStudioStoreData','store'],['ZeroMsixFeasibility','msix-feasibility']]) {
+    const runtime=path.join(root,folder,'runtime','jdk-'+asset.sha256);
+    await fs.mkdir(runtime,{recursive:true});await fs.writeFile(path.join(runtime,'.zero-asset.sha256'),asset.sha256);
+    const source=path.join(root,folder,'editor','extensions','zero.zero-1.0','src');
+    const env={LOCALAPPDATA:root,ZERO_KIT_DIR:kit,...(marker ? {Zero_Windows_Distribution:marker}:{})};
+    assert.equal(managedJavaHome(env,'win32',source),runtime);
+  }
+  const store=path.join(root,'ZeroStudioStoreData','editor','extensions','zero.zero-1.0','src');
+  assert.throws(()=>managedJavaHome({LOCALAPPDATA:root,ZERO_KIT_DIR:kit,ZERO_WINDOWS_DISTRIBUTION:'msix-feasibility'},'win32',store),/does not match/);
 });

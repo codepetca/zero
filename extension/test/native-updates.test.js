@@ -155,3 +155,47 @@ test('Windows stalled spawn signaling is bounded without killing the native upda
   children[0].emit('error', new Error('PRIVATE delayed error'));
   assert.equal(errors.length, 1);
 });
+
+test('MSIX feasibility update commands open only the Store library without direct EXE handoff', async () => {
+  const opened = [], errors = [], spawns = [];
+  const commands = createNativeUpdateCommands({
+    env:{openExternal:async uri => {opened.push(uri); return true;}},
+    Uri:{parse:value => value}, window:{showErrorMessage:async text => errors.push(text)}
+  }, {platform:'win32', environment:{ZERO_WINDOWS_DISTRIBUTION:'msix-feasibility'}, spawnProcess:(...args) => spawns.push(args)});
+  await commands['zero.checkForUpdates']('https://attacker.invalid');
+  await commands['zero.updateSettings']();
+  assert.deepEqual(opened, ['ms-windows-store://downloadsandupdates', 'ms-windows-store://downloadsandupdates']);
+  assert.deepEqual(spawns, []);
+  assert.deepEqual(errors, []);
+});
+
+test('unrecognized Windows distribution marker retains the direct EXE route', async () => {
+  const {commands, children, spawns} = windowsFixture({environment:{LOCALAPPDATA:'C:\\Users\\Student\\AppData\\Local', ZERO_WINDOWS_DISTRIBUTION:'other'}});
+  const pending = commands['zero.checkForUpdates']();
+  children[0].emit('spawn');
+  await pending;
+  assert.equal(spawns[0][0], 'C:\\Users\\Student\\AppData\\Local\\Zero\\Zero.exe');
+});
+
+test('blocked Store handoff explains Library recovery and never falls back to direct installation', async () => {
+  for (const openExternal of [async () => false, async () => {throw new Error('PRIVATE failure');}]) {
+    const errors = [], spawns = [];
+    const commands = createNativeUpdateCommands({
+      env:{openExternal}, Uri:{parse:value => value}, window:{showErrorMessage:async text => errors.push(text)}
+    }, {platform:'win32', environment:{ZERO_WINDOWS_DISTRIBUTION:'msix-feasibility'}, spawnProcess:(...args) => spawns.push(args)});
+    await commands['zero.checkForUpdates']();
+    assert.deepEqual(spawns, []);
+    assert.equal(errors.length, 1);
+    assert.match(errors[0], /Microsoft Store.*Library/);
+    assert.ok(!errors[0].includes('PRIVATE'));
+  }
+});
+
+test('production Store marker routes update commands to the Store', async () => {
+  const opened = [];
+  const vscode = {Uri:{parse:value => value}, env:{openExternal:async value => { opened.push(value); return true; }}, window:{showErrorMessage:async () => { throw new Error('unexpected error'); }}};
+  const commands = createNativeUpdateCommands(vscode, {platform:'win32', environment:{ZERO_WINDOWS_DISTRIBUTION:'store'}, spawnProcess:() => { throw new Error('direct updater must not run'); }});
+  await commands['zero.checkForUpdates']();
+  await commands['zero.updateSettings']();
+  assert.deepEqual(opened, ['ms-windows-store://downloadsandupdates','ms-windows-store://downloadsandupdates']);
+});
