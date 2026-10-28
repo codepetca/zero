@@ -30,7 +30,16 @@ scope job fails the final gate. Mixed changes select the union.
 | Explicit Start Page/sidebar render/style/control files and tests, design/playground | Broad extension/setup/design/kit contract suite |
 | Shared control CSS and design tokens/adapters/preparation | Source contract suite and website |
 | Website app/components/styles/tests/public/content and explicit package/build configuration | Website |
+| Strict local-to-published kit metadata promotion with unchanged version and asset identity | Source release guards and website |
+| The exact CI scope implementation/test files accompanying a strict verified kit publication promotion | Source suite, including always-running real-Git selection/gate contracts, and website |
 | Website libraries/scripts, shared curriculum metadata, framework, starter, teaching, export/Publish/auth, installer/profile/release, manifests, workflow changes and any unknown input | Full existing matrix |
+
+A kit promotion is recognized only from committed before/after manifests with canonical URLs, hashes and sizes; mixed changes still select the union. Published kit assets are never rebuilt.
+Only a strict verified publication promotion can carry a narrow correction to
+`scripts/ci-scope.mjs` and `scripts/ci-scope.test.mjs`, which do not ship in a runtime.
+Standalone classifier changes, caller workflows, gate implementation/tests,
+other CI tooling and mixed runtime changes retain the full matrix. Manual
+dispatches still select every lane.
 
 The exact allowlist lives in `scripts/ci-scope.mjs`; a new file defaults to full
 coverage until its dependencies have been reviewed. In particular, shared
