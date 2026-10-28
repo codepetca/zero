@@ -38,7 +38,7 @@ $receiptData = [ordered]@{
     activation = 'not attempted'; activationReason = 'No unattended consent or tool acquisition is authorized.'
     wack = [ordered]@{ requested = [bool]$RunWack; result = 'not-run'; toolSha256 = $null; toolFileVersion = $null
         sessionId = $null; sourceRevision = $null; reportVersion = $null; xmlSha256 = $null; htmlSha256 = $null
-        resetExitCode = $null; testExitCode = $null }
+        resetExitCode = $null; testExitCode = $null; summary = $null }
     limits = @('Self-signed temporary copy; original unsigned candidate is unchanged.',
         'Temporary test trust affects the disposable machine until cleanup.',
         'Does not establish Store signing, certification, update, setup, or interactive acceptance.')
@@ -179,16 +179,19 @@ public static class ZeroWts {
         $deadline = [DateTime]::UtcNow.AddSeconds(30)
         do {
             try {
-                $version = Assert-WackReport -Path $nativeXml -ExitCode $receiptData.wack.testExitCode -Identity $identity -Version $PackageVersion
-                if (-not (Test-Path -LiteralPath $nativeHtml -PathType Leaf)) { throw 'WACK HTML report is missing.' }
-                $receiptData.wack.reportVersion = $version
-                $receiptData.wack.result = 'passed'
+                $document = Read-WackReportDocument -Path $nativeXml
+                $receiptData.wack.summary = Get-WackReportSummary -Document $document -Identity $identity -Version $PackageVersion -Publisher $publisher -Architecture 'x64' -PackageFullName $packageFullName
+                if ([string]::IsNullOrWhiteSpace($receiptData.wack.summary.validationType) -or
+                    -not (Test-Path -LiteralPath $nativeHtml -PathType Leaf)) { throw 'WACK final reports are not ready.' }
                 break
             } catch {
                 if ([DateTime]::UtcNow -ge $deadline) { throw }
                 Start-Sleep -Seconds 1
             }
         } while ($true)
+        Assert-WackReport -Document $document -Summary $receiptData.wack.summary -ExitCode $receiptData.wack.testExitCode
+        $receiptData.wack.reportVersion = $receiptData.wack.summary.kitVersion
+        $receiptData.wack.result = 'passed'
     }
 } catch {
     $failure = $_
@@ -199,6 +202,10 @@ public static class ZeroWts {
     if ($RunWack -and (Get-Variable -Name nativeXml -ErrorAction SilentlyContinue)) {
         try {
             if (Test-Path -LiteralPath $nativeXml -PathType Leaf) {
+                try {
+                    $document = Read-WackReportDocument -Path $nativeXml
+                    $receiptData.wack.summary = Get-WackReportSummary -Document $document -Identity $identity -Version $PackageVersion -Publisher $publisher -Architecture 'x64' -PackageFullName $packageFullName
+                } catch { $receiptData.wack.summary = $null }
                 Copy-Item -LiteralPath $nativeXml -Destination $wackXml -ErrorAction Stop
                 $receiptData.wack.xmlSha256 = (Get-FileHash -LiteralPath $wackXml -Algorithm SHA256).Hash.ToLowerInvariant()
             }
@@ -239,7 +246,7 @@ public static class ZeroWts {
     if ($cleanupErrors.Count -ne 0) { $receiptData['cleanupErrors'] = @($cleanupErrors); if (-not $failure) { $receiptData.stage = 'cleanup' } }
     if (-not $failure -and $cleanupErrors.Count -eq 0 -and $receiptData.installVerified) { $receiptData.result = 'passed'; $receiptData.stage = 'complete' }
     if (Get-Variable -Name receiptPath -ErrorAction SilentlyContinue) {
-        $json = $receiptData | ConvertTo-Json -Depth 5
+        $json = $receiptData | ConvertTo-Json -Depth 9
         $file = [IO.File]::Open($receiptPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
         try { $writer = [IO.StreamWriter]::new($file, [Text.UTF8Encoding]::new($false)); try { $writer.WriteLine($json) } finally { $writer.Dispose() } }
         finally { $file.Dispose() }

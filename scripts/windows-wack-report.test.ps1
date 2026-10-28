@@ -4,31 +4,46 @@ $dir = Join-Path ([IO.Path]::GetTempPath()) ('zero-wack-unit-' + [guid]::NewGuid
 New-Item -ItemType Directory -Path $dir | Out-Null
 try {
     $path = Join-Path $dir 'report.xml'
-    $valid = '<REPORT OVERALL_RESULT="PASS" PARTIAL_RUN="FALSE" APP_NAME="Codepet.zerostudio" APP_VERSION="1.2.3.0" VERSION="10.0.26100.1" VALIDATION_TYPE="UI"><REQUIREMENTS><REQUIREMENT><TEST NAME="Test"><RESULT>PASS</RESULT></TEST></REQUIREMENT></REQUIREMENTS></REPORT>'
-    function Expect-Failure([string] $Label, [AllowNull()][object] $Content, [int] $ExitCode) {
-        if ($null -ne $Content) { [IO.File]::WriteAllText($path, $Content) }
-        elseif (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path }
+    $fixture = Join-Path $PSScriptRoot 'fixtures/wack-centennial-sanitized.xml'
+    $identity = 'Codepet.zerostudio'; $version = '1.5.56.0'; $publisher = 'CN=DC9AEBC0-4CAE-4681-9E52-20B0B1C14919'
+    $fullName = 'Codepet.zerostudio_1.5.56.0_x64__g62pw1js6rhjp'
+    function Summary($Document) { Get-WackReportSummary -Document $Document -Identity $identity -Version $version -Publisher $publisher -Architecture 'x64' -PackageFullName $fullName }
+    function Expect-Failure([string] $Label, $Document, [int] $ExitCode) {
         $failed = $false
-        try { Assert-WackReport -Path $path -ExitCode $ExitCode -Identity 'Codepet.zerostudio' -Version '1.2.3.0' | Out-Null }
+        try { Assert-WackReport -Document $Document -Summary (Summary $Document) -ExitCode $ExitCode }
         catch { $failed = $true }
         if (-not $failed) { throw "Expected failure: $Label" }
     }
-    [IO.File]::WriteAllText($path, $valid)
-    if ((Assert-WackReport -Path $path -ExitCode 0 -Identity 'Codepet.zerostudio' -Version '1.2.3.0') -ne '10.0.26100.1') { throw 'Pass result rejected.' }
-    Expect-Failure 'interim report' $valid.Replace(' VALIDATION_TYPE="UI"', '') 0
-    Expect-Failure 'empty completion marker' $valid.Replace('VALIDATION_TYPE="UI"', 'VALIDATION_TYPE=""') 0
-    Expect-Failure 'no tests' $valid.Replace('<REQUIREMENTS><REQUIREMENT><TEST NAME="Test"><RESULT>PASS</RESULT></TEST></REQUIREMENT></REQUIREMENTS>', '') 0
-    Expect-Failure 'required test failure' $valid.Replace('<RESULT>PASS</RESULT>', '<RESULT>FAIL</RESULT>') 0
-    Expect-Failure 'missing test result' $valid.Replace('<RESULT>PASS</RESULT>', '') 0
-    $optionalFailure = $valid.Replace('</REQUIREMENT>', '<TEST NAME="Optional" OPTIONAL="TRUE"><RESULT>FAIL</RESULT></TEST></REQUIREMENT>')
-    [IO.File]::WriteAllText($path, $optionalFailure)
-    Assert-WackReport -Path $path -ExitCode 0 -Identity 'Codepet.zerostudio' -Version '1.2.3.0' | Out-Null
-    Expect-Failure 'failed overall' $valid.Replace('OVERALL_RESULT="PASS"', 'OVERALL_RESULT="FAIL"') 0
-    Expect-Failure 'partial run' $valid.Replace('PARTIAL_RUN="FALSE"', 'PARTIAL_RUN="TRUE"') 0
-    Expect-Failure 'different package' $valid.Replace('Codepet.zerostudio', 'Other.App') 0
-    Expect-Failure 'unknown result' $valid.Replace('OVERALL_RESULT="PASS"', 'OVERALL_RESULT="WARNING"') 0
-    Expect-Failure 'malformed' '<REPORT' 0
-    Expect-Failure 'missing' $null 0
+    $real = Read-WackReportDocument $fixture
+    $summary = Summary $real
+    if (-not $summary.matchedIdentity -or $summary.overallResult -cne 'WARNING' -or $summary.testCount -ne 24 -or $summary.nonPassingTests.Count -ne 2) { throw 'Real fixture summary mismatch.' }
+    Expect-Failure 'real warning is not a clean pass' $real 0
+    $valid = Read-WackReportDocument $fixture
+    $valid.DocumentElement.SetAttribute('OVERALL_RESULT','PASS')
+    $valid.SelectSingleNode("//TEST[@NAME='DPIAwarenessValidation']/RESULT").InnerText = 'PASS'
+    Assert-WackReport -Document $valid -Summary (Summary $valid) -ExitCode 0
     Expect-Failure 'nonzero exit' $valid 1
+    foreach ($attribute in @('PackageFullName', 'Name', 'Publisher', 'Version', 'ProcessorArchitecture')) {
+        $copy = [xml]$valid.OuterXml
+        $node = if ($attribute -eq 'PackageFullName') { $copy.SelectSingleNode('//PackageManifest') } else { $copy.SelectSingleNode('//PackageManifest/Package/Identity') }
+        $node.SetAttribute($attribute, 'different')
+        Expect-Failure "mismatched $attribute" $copy 0
+    }
+    foreach ($attribute in @('APP_NAME', 'APP_VERSION')) {
+        $copy = [xml]$valid.OuterXml; $copy.DocumentElement.SetAttribute($attribute, 'different')
+        Expect-Failure "mismatched root $attribute" $copy 0
+    }
+    $copy = [xml]$valid.OuterXml; $copy.DocumentElement.RemoveAttribute('VALIDATION_TYPE')
+    Expect-Failure 'interim report' $copy 0
+    $copy = [xml]$valid.OuterXml; $copy.DocumentElement.SetAttribute('PARTIAL_RUN', 'TRUE')
+    Expect-Failure 'partial run' $copy 0
+    $copy = [xml]$valid.OuterXml; $copy.DocumentElement.RemoveChild($copy.SelectSingleNode('/REPORT/REQUIREMENTS')) | Out-Null
+    Expect-Failure 'no tests' $copy 0
+    $copy = [xml]$valid.OuterXml; $copy.SelectSingleNode("//TEST[@NAME='DPIAwarenessValidation']/RESULT").InnerText = 'FAIL'
+    Expect-Failure 'required failure' $copy 0
+    [IO.File]::WriteAllText($path, '<REPORT')
+    try { Read-WackReportDocument $path | Out-Null; throw 'Malformed report accepted.' } catch { if ($_.Exception.Message -eq 'Malformed report accepted.') { throw } }
+    Remove-Item -LiteralPath $path
+    try { Read-WackReportDocument $path | Out-Null; throw 'Missing report accepted.' } catch { if ($_.Exception.Message -eq 'Missing report accepted.') { throw } }
     Write-Output 'WACK report tests passed.'
 } finally { Remove-Item -LiteralPath $dir -Recurse -Force }

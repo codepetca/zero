@@ -7,7 +7,7 @@ EXE bootstrap/reopen and JavaFX/offline; source and WebFX also passed. Verified
 unsigned candidate is in Downloads/Zero-Store-0.5.56-verified. Partner Center
 upload still returns generic errors; no certification submission is authorized.
 
-Current work: required WACK execution within temporary signed-copy installation,
+PR229 adds required WACK execution within temporary signed-copy installation,
 actual semantic report validation, report retention and cleanup on failure.
 Coordinator Sol High; bounded script/parser implementation Terra High. Root owns
 workflow/docs. Missing tooling/session/report must not silently pass. Do not
@@ -16,3 +16,9 @@ exclude failing tests or alter installed student environments to obtain success.
 Keep existing public releases and prior candidate bytes immutable. No app or
 website release, Store submission, beginner-guide or ZeroJams changes belong here.
 Native Windows10/11 interactive acceptance and Store updates remain separate.
+
+Actual first run40724961277 executed WACK and retained XML/HTML;24tests,
+overallWARNING, required DPI-awareness warning and optional blocked-executables
+failure. Installation and cleanup passed. Do not merge while the new gate fails
+or call this clean certification. Refining nativeCentennial identity parsing and
+failure summaries against a sanitized real fixture; no productDPI changes made.

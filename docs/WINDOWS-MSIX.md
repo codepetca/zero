@@ -175,3 +175,21 @@ trust are removed even when validation fails. Physical Windows10/11 testing,
 Microsoft Store certification and Store-delivered upgrades remain separate.
 
 Reference: [Microsoft's WACK command-line instructions](https://learn.microsoft.com/en-us/windows/uwp/debug-test-perf/windows-app-certification-kit).
+
+### First executed WACK result
+
+Hosted Windows run40724961277 executed WACK10.0.26100.7705 in active session2.
+The24-test Centennial report returned `OVERALL_RESULT=WARNING`: required
+DPIAwarenessValidation warned that Zero is not DPI aware and that its binary
+could not be processed; the optional Blocked executables test flagged process
+launching and executable-name references. These findings have not been suppressed
+or established as the cause of Partner Center's upload error. CI remains non-clean.
+
+Centennial reports can leave root APP_NAME/APP_VERSION empty. The parser instead
+requires the report's nested package identity, publisher, version, architecture
+and full package name to match the installed package. It records a sanitized
+summary on failure and preserves the native reports. A sanitized24-test fixture
+covers this observed schema. Exit0 alone only establishes that WACK ran.
+
+Product DPI remediation and review of optional launch warnings are distinct next
+changes. A WACK warning is not a Microsoft Store certification rejection.

@@ -12089,3 +12089,20 @@ Source publication-record delta independently reviewed Sol/high: no blockers; 58
 Preparing 0.5.55/build55 from main bd350b19, including merged fast-publish and tutorial work. Partner Center provided the Zero Studio identity; Store support is isolated from the direct installer and its updater. First-run consent includes Java, Node, VS Code when needed, Java extension support, Maven and JavaFX. Embedded kit snapshots persist outside private-tool roots and are checked against the embedded archive before reuse, preserving older editor sessions without modifying student projects. Separate channel profile paths select their own managed Java.
 
 Independent initial Sol/high security and Terra/high compatibility reviews identified missing Node disclosure, wrong Store Java root and removal of a kit needed by an open editor. First fix exposed an incompatible nested-kit location; a second fix moved retained snapshots to isolated sibling roots and added actual retained-kit → runtime constructor → prepare/open harness coverage. Independent targeted Sol/high review accepted that fix with no remaining blockers. Direct Windows harness 2608 checks, two Store harnesses 2353 checks each, updater harness and 24 focused JS tests pass; one real-Windows Java coexistence test is intentionally skipped on Mac and selected by Windows CI. Separate workflow review passed actionlint and nine CI scope/gate tests. Exact effective worker models, time and token usage unavailable. Native Windows Store installation, Store update/virtualization and certification are not established by these tests.
+
+
+## WACK validation gate — 2026-10-28
+
+PR229 introduces Microsoft WACK execution against the installed temporary signed
+MSIX copy, exact unsigned-candidate integrity checks, native XML/HTML retention,
+strict completion/identity/result parsing and cleanup. TerraHigh implemented;
+SolHigh independently reviewed. Local six MSIX tests, configuration checks,
+actionlint and diff checks passed; Mac PowerShell tests are explicitly skipped.
+Actual Windows run40724961277 ran the parser fixtures and WACK10.0.26100.7705,
+with signed Microsoft tool and active session2. MSIX installation/cleanup passed.
+WACK returned overallWARNING across24tests: required DPI awareness warning and
+optional blocked-executables failure. CI failed as intended; no Store submission,
+release or clean-certification claim follows. Native reports are retained under
+ignored .verification/wack-40724961277 and in the attempt-specific CI artifact.
+The observedCentennial schema prompted strict nested-identity binding and a
+sanitized real-report fixture. Product remediations remain outstanding.
