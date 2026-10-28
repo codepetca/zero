@@ -156,3 +156,22 @@ uses the mapping above and tests rollover/overflow. The upload timeout did not
 identify this as its cause. Prior Windows installation receipts tested the EXE,
 not MSIX deployment; Windows App Certification Kit and actual Store installation
 remain separate gates. See [Store requirements](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements).
+
+## Windows App Certification Kit gate
+
+Windows CI invokes the deployment check with `-RunWack`. After installing a
+separately test-signed copy, it runs Microsoft's `appcert.exe reset` and
+`appcert.exe test -packagefullname <installed package> -reportoutputpath <report>`.
+The original unsigned candidate remains unchanged. WACK receives no test exclusions.
+The runner must provide the Microsoft-signed certification tool and an elevated
+active user session. Missing prerequisites, process errors, timeout, missing or
+unrecognized XML, and an explicit failed result do not pass the gate.
+
+The sanitized installation receipt records the package hash and certification
+result; CI retains the generated XML and HTML alongside that receipt under the
+attempt-specific MSIX installation artifact. These are disposable-runner reports;
+no temporary certificate or signing key is uploaded. The package and temporary
+trust are removed even when validation fails. Physical Windows10/11 testing,
+Microsoft Store certification and Store-delivered upgrades remain separate.
+
+Reference: [Microsoft's WACK command-line instructions](https://learn.microsoft.com/en-us/windows/uwp/debug-test-perf/windows-app-certification-kit).

@@ -4,7 +4,8 @@
 param(
     [Parameter(Mandatory)][string] $Package,
     [Parameter(Mandatory)][string] $PackageVersion,
-    [Parameter(Mandatory)][string] $Receipt
+    [Parameter(Mandatory)][string] $Receipt,
+    [switch] $RunWack
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -12,6 +13,8 @@ $identity = 'Codepet.zerostudio'
 $publisher = 'CN=DC9AEBC0-4CAE-4681-9E52-20B0B1C14919'
 $family = 'Codepet.zerostudio_g62pw1js6rhjp'
 $signTool = 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe'
+. (Join-Path $PSScriptRoot 'windows-wack-report.ps1')
+$wackTool = 'C:\Program Files (x86)\Windows Kits\10\App Certification Kit\appcert.exe'
 $stage = 'preflight'
 $originalHash = $null
 $signedHash = $null
@@ -33,6 +36,9 @@ $receiptData = [ordered]@{
     installAttempted = $false; installVerified = $false; cleanupVerified = $false
     trustScope = 'LocalMachine/TrustedPeople, temporary public certificate'; signingKeyScope = 'CurrentUser/My only'
     activation = 'not attempted'; activationReason = 'No unattended consent or tool acquisition is authorized.'
+    wack = [ordered]@{ requested = [bool]$RunWack; result = 'not-run'; toolSha256 = $null; toolFileVersion = $null
+        sessionId = $null; sourceRevision = $null; reportVersion = $null; xmlSha256 = $null; htmlSha256 = $null
+        resetExitCode = $null; testExitCode = $null }
     limits = @('Self-signed temporary copy; original unsigned candidate is unchanged.',
         'Temporary test trust affects the disposable machine until cleanup.',
         'Does not establish Store signing, certification, update, setup, or interactive acceptance.')
@@ -50,6 +56,40 @@ try {
     if (-not (Test-Path -LiteralPath (Split-Path -Parent $receiptPath) -PathType Container)) { throw 'Receipt parent must exist.' }
     $originalHash = (Get-FileHash -LiteralPath $packagePath -Algorithm SHA256).Hash.ToLowerInvariant()
     $receiptData.candidateSha256 = $originalHash
+    if ($RunWack) {
+        $wackDir = Join-Path (Split-Path -Parent $receiptPath) 'wack'
+        $wackXml = Join-Path $wackDir 'report.xml'
+        $wackHtml = Join-Path $wackDir 'report.html'
+        if ($packagePath -in @($wackXml, $wackHtml) -or $receiptPath -in @($wackXml, $wackHtml) -or
+            (Test-Path -LiteralPath $wackDir)) { throw 'WACK report paths must be new and distinct.' }
+        if ($env:GITHUB_SHA -notmatch '^[0-9a-fA-F]{40}$') { throw 'A full source revision is required for WACK.' }
+        $receiptData.wack.sourceRevision = $env:GITHUB_SHA.ToLowerInvariant()
+        if (-not (Test-Path -LiteralPath $wackTool -PathType Leaf)) { throw 'Windows App Certification Kit is missing.' }
+        $wackSignature = Get-AuthenticodeSignature -LiteralPath $wackTool
+        if ($wackSignature.Status -ne 'Valid' -or -not $wackSignature.SignerCertificate -or
+            $wackSignature.SignerCertificate.Subject -notmatch '(?:^|,\s*)O=Microsoft Corporation(?:,|$)') { throw 'WACK signature is not valid Microsoft Authenticode.' }
+        $receiptData.wack.toolSha256 = (Get-FileHash -LiteralPath $wackTool -Algorithm SHA256).Hash.ToLowerInvariant()
+        $receiptData.wack.toolFileVersion = (Get-Item -LiteralPath $wackTool).VersionInfo.FileVersion
+        $principal = [Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())
+        if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw 'WACK requires an elevated process.' }
+        Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class ZeroWts {
+    [DllImport("wtsapi32.dll", SetLastError=true)] public static extern bool WTSQuerySessionInformation(IntPtr server, int session, int info, out IntPtr buffer, out int bytes);
+    [DllImport("wtsapi32.dll")] public static extern void WTSFreeMemory(IntPtr buffer);
+}
+'@
+        $sessionId = [Diagnostics.Process]::GetCurrentProcess().SessionId
+        $receiptData.wack.sessionId = $sessionId
+        if ($sessionId -le 0 -or -not [Environment]::UserInteractive) { throw 'WACK requires an active non-Session-0 user session.' }
+        $buffer = [IntPtr]::Zero; $bytes = 0
+        if (-not [ZeroWts]::WTSQuerySessionInformation([IntPtr]::Zero, $sessionId, 8, [ref]$buffer, [ref]$bytes)) { throw 'Cannot establish session state.' }
+        try { if ($bytes -lt 4 -or [Runtime.InteropServices.Marshal]::ReadInt32($buffer) -ne 0) { throw 'WACK session is not active.' } }
+        finally { [ZeroWts]::WTSFreeMemory($buffer) }
+        New-Item -ItemType Directory -Path $wackDir -ErrorAction Stop | Out-Null
+        $receiptData.wack.result = 'pending'
+    }
     if (-not (Test-Path -LiteralPath $signTool -PathType Leaf)) { throw 'Pinned Windows SDK SignTool missing.' }
     $sig = Get-AuthenticodeSignature -LiteralPath $signTool
     if ($sig.Status -ne 'Valid' -or -not $sig.SignerCertificate -or $sig.SignerCertificate.Subject -notmatch '(?:^|,\s*)O=Microsoft Corporation(?:,|$)') { throw 'SignTool signature is not valid Microsoft Authenticode.' }
@@ -111,11 +151,64 @@ try {
         if ($actual -ne $payloadHashes[$name]) { throw 'Installed payload differs from the unsigned candidate.' }
     }
     $receiptData.installVerified = $true
+    if ($RunWack) {
+        $stage = 'wack'
+        $receiptData.activation = 'WACK may launch the installed app'
+        $receiptData.activationReason = 'WACK runs its default tests without unattended consent or tool acquisition.'
+        # Start-Process allows a bounded wait. Kill the process tree on timeout.
+        function Invoke-WackProcess([string[]] $Arguments, [int] $TimeoutSeconds) {
+            $process = Start-Process -FilePath $wackTool -ArgumentList $Arguments -PassThru -WindowStyle Hidden
+            if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
+                & taskkill.exe /PID $process.Id /T /F | Out-Null
+                if ($LASTEXITCODE -ne 0 -or -not $process.WaitForExit(30000)) { throw 'WACK timed out and its process tree could not be stopped.' }
+                throw 'WACK process timed out.'
+            }
+            $process.Refresh()
+            return $process.ExitCode
+        }
+        $receiptData.wack.resetExitCode = Invoke-WackProcess @('reset') 120
+        if ($receiptData.wack.resetExitCode -ne 0) { throw 'WACK reset failed.' }
+        # The HTML rendering is written to LocalAppData with the requested XML basename.
+        $wackBase = 'zero-wack-' + [guid]::NewGuid().ToString('N')
+        $nativeXml = Join-Path $tempDir ($wackBase + '.xml')
+        $nativeHtml = Join-Path (Join-Path $env:LOCALAPPDATA 'Microsoft\AppCertKit') ($wackBase + '.htm')
+        $receiptData.wack.testExitCode = Invoke-WackProcess @('test', '-packagefullname', ('"' + $packageFullName + '"'), '-reportoutputpath', ('"' + $nativeXml + '"')) 1200
+        if ($receiptData.wack.testExitCode -ne 0) { throw 'WACK test process failed.' }
+        # Final XML and rendering can arrive after appcert exits; an interim XML
+        # must never count as a pass. Retry only for this short bounded interval.
+        $deadline = [DateTime]::UtcNow.AddSeconds(30)
+        do {
+            try {
+                $version = Assert-WackReport -Path $nativeXml -ExitCode $receiptData.wack.testExitCode -Identity $identity -Version $PackageVersion
+                if (-not (Test-Path -LiteralPath $nativeHtml -PathType Leaf)) { throw 'WACK HTML report is missing.' }
+                $receiptData.wack.reportVersion = $version
+                $receiptData.wack.result = 'passed'
+                break
+            } catch {
+                if ([DateTime]::UtcNow -ge $deadline) { throw }
+                Start-Sleep -Seconds 1
+            }
+        } while ($true)
+    }
 } catch {
     $failure = $_
+    if ($RunWack) { $receiptData.wack.result = 'failed' }
     $receiptData.stage = $stage
     $receiptData.errorHResult = ('0x{0:X8}' -f ([uint32]([int64]$_.Exception.HResult -band 4294967295L)))
 } finally {
+    if ($RunWack -and (Get-Variable -Name nativeXml -ErrorAction SilentlyContinue)) {
+        try {
+            if (Test-Path -LiteralPath $nativeXml -PathType Leaf) {
+                Copy-Item -LiteralPath $nativeXml -Destination $wackXml -ErrorAction Stop
+                $receiptData.wack.xmlSha256 = (Get-FileHash -LiteralPath $wackXml -Algorithm SHA256).Hash.ToLowerInvariant()
+            }
+            if (Test-Path -LiteralPath $nativeHtml -PathType Leaf) {
+                Copy-Item -LiteralPath $nativeHtml -Destination $wackHtml -ErrorAction Stop
+                $receiptData.wack.htmlSha256 = (Get-FileHash -LiteralPath $wackHtml -Algorithm SHA256).Hash.ToLowerInvariant()
+                Remove-Item -LiteralPath $nativeHtml -Force -ErrorAction Stop
+            }
+        } catch { $receiptData.wack.result = 'failed'; $cleanupErrors.Add('WACK report preservation') }
+    }
     if ($preflightClean -and $installAttempted) {
         try {
             foreach ($pkg in @(Get-AppxPackage -Name $identity)) {
