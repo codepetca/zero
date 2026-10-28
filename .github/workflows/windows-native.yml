@@ -140,6 +140,18 @@ jobs:
             dist/msix/${{ steps.store-msix.outputs.filename }}
             dist/msix/build-msix.json
             dist/msix/source-and-kit.json
+      - name: Real install, private runtime bootstrap and editor reopening
+        # This is a disposable GitHub-hosted account. Never target a self-hosted
+        # runner or pass credentials. GUI/network failures remain failing evidence.
+        shell: powershell
+        timeout-minutes: 22
+        run: |
+          if ($env:RUNNER_ENVIRONMENT -ne 'github-hosted') { throw 'Disposable GitHub-hosted runner required.' }
+          & ./scripts/test-windows-installation.ps1 -DisposableAccount
+      - name: Real private-Java JavaFX window and cached offline rebuild
+        # Node is maintainer/CI tooling only. No student Node/global Maven install.
+        timeout-minutes: 12
+        run: node scripts/test-windows-javafx.mjs --disposable-account
       - name: Install and validate a separately test-signed MSIX copy with WACK
         shell: powershell
         timeout-minutes: 25
@@ -157,18 +169,6 @@ jobs:
             dist/msix/install-msix.json
             dist/msix/wack/report.xml
             dist/msix/wack/report.html
-      - name: Real install, private runtime bootstrap and editor reopening
-        # This is a disposable GitHub-hosted account. Never target a self-hosted
-        # runner or pass credentials. GUI/network failures remain failing evidence.
-        shell: powershell
-        timeout-minutes: 22
-        run: |
-          if ($env:RUNNER_ENVIRONMENT -ne 'github-hosted') { throw 'Disposable GitHub-hosted runner required.' }
-          & ./scripts/test-windows-installation.ps1 -DisposableAccount
-      - name: Real private-Java JavaFX window and cached offline rebuild
-        # Node is maintainer/CI tooling only. No student Node/global Maven install.
-        timeout-minutes: 12
-        run: node scripts/test-windows-javafx.mjs --disposable-account
       - name: Retain Windows JavaFX receipt
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

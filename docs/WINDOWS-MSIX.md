@@ -220,3 +220,12 @@ nonpassing tests. It records `passed-with-optional-findings`, preserving the
 native overall verdict and test details. Any required warning/failure, partial
 or unknown result, unmatched identity, or unexplained overall warning still
 fails. No WACK test is excluded. Store certification remains Microsoft's decision.
+
+A follow-up candidate with DPI settings embedded still produced WACK's
+'Failed to process the binary' message. The Store launcher build is therefore
+explicitly x64, matching its package architecture; its PE machine header is
+verified as AMD64. Earlier AnyCPU CLR images could run on x64 and are not declared
+invalid merely by this change. Actual WACK results must establish whether the
+explicit build resolves the static-analysis issue. The ordinary EXE build keeps
+its existing architecture. CI performs EXE runtime/DPI/JavaFX checks before WACK
+so a static warning cannot hide the runtime DPI-context evidence.

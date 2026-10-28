@@ -41,7 +41,7 @@ const run=(command,arguments_,timeout=240000) => {
 };
 const icon=path.join(work,'Zero.ico'); buildWindowsIcon(root,icon);
 run('dotnet',['publish',path.join(root,'native-installer/windows/ZeroSetup.csproj'),'-c','Release','-o',stage,
-  `-p:ZeroDistribution=${channel === 'store' ? 'Store' : 'StoreFeasibility'}`,`-p:ZeroIcon=${icon}`,`-p:ZeroKitZip=${kitFile}`,`-p:Version=${release.kitVersion}`,`-p:AssemblyVersion=${msixVersion(release.kitVersion)}`,
+  `-p:ZeroDistribution=${channel === 'store' ? 'Store' : 'StoreFeasibility'}`,'-p:PlatformTarget=x64',`-p:ZeroIcon=${icon}`,`-p:ZeroKitZip=${kitFile}`,`-p:Version=${release.kitVersion}`,`-p:AssemblyVersion=${msixVersion(release.kitVersion)}`,
   `-p:BaseIntermediateOutputPath=${path.join(work,'obj')}${path.sep}`,`-p:BaseOutputPath=${path.join(work,'bin')}${path.sep}`,
   `-p:RestorePackagesPath=${path.join(root,'.verification/native-installer/nuget')}`,'-p:NuGetAudit=false','-p:RestoreLockedMode=true']);
 const files={};
