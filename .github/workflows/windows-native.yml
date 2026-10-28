@@ -123,13 +123,27 @@ jobs:
       - name: Retain measured Store MSIX candidate
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: zero-windows-msix-${{ github.run_id }}
+          name: zero-windows-msix-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: error
           retention-days: 14
           path: |
             dist/msix/${{ steps.store-msix.outputs.filename }}
             dist/msix/build-msix.json
             dist/msix/source-and-kit.json
+      - name: Install and verify a separately test-signed MSIX copy
+        shell: powershell
+        timeout-minutes: 8
+        run: |
+          $receipt = Get-Content -LiteralPath 'dist/msix/build-msix.json' -Raw | ConvertFrom-Json
+          & ./scripts/test-windows-msix.ps1 -Package (Join-Path 'dist/msix' $receipt.artifact.filename) -PackageVersion $receipt.packageVersion -Receipt 'dist/msix/install-msix.json'
+      - name: Retain sanitized MSIX deployment result
+        if: always() && steps.store-msix.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: zero-windows-msix-installation-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: error
+          retention-days: 14
+          path: dist/msix/install-msix.json
       - name: Real install, private runtime bootstrap and editor reopening
         # This is a disposable GitHub-hosted account. Never target a self-hosted
         # runner or pass credentials. GUI/network failures remain failing evidence.
@@ -146,7 +160,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: zero-windows-javafx-${{ github.run_id }}
+          name: zero-windows-javafx-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: warn
           retention-days: 14
           # Raw Maven logs contain account paths and remain on the disposable
@@ -156,7 +170,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: zero-windows-installation-${{ github.run_id }}
+          name: zero-windows-installation-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: warn
           retention-days: 14
           path: |
@@ -166,7 +180,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: zero-windows-development-${{ github.run_id }}
+          name: zero-windows-development-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: error
           retention-days: 14
           path: |
