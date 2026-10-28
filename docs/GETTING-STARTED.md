@@ -1,17 +1,16 @@
 # Getting started with Zero
 
-This guide describes Mac setup 0.5.49, including guided GitHub sign-in and
-project access before tutorial choices or repository details. The shared GitHub
-App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
-source. Windows keeps the unsigned 0.5.54 preview and its matching manual ZIP.
-Each published download retains its bundled behavior.
+This guide describes Zero 0.5.55, including guided GitHub sign-in and project
+access before tutorial choices or repository details. The shared GitHub App is
+registered as Codepet Zero under `codepetca`. Windows has an unsigned 0.5.55
+preview and its matching manual ZIP. Each published download retains its bundled
+behavior.
 
-Local Mac candidate **0.5.51** includes Zero core **0.3.0**, the Zero-first
-Greeting/Study/Coin tutorials and browser-only GitHub sign-in for new connections.
-The main button says Sign in to GitHub while signed out, then Start tutorial
-once authenticated and ready. It is not published; the public Mac download
-remains0.5.49. Existing saved sessions retain their renewal path. Editor
-updates preserve existing projects’ framework source and build versions.
+Zero 0.5.55 includes Zero core **0.3.0**, the current Zero-first tutorials and
+browser GitHub sign-in for new connections. The main button says Sign in to GitHub
+while signed out, then Start tutorial once authenticated and ready. Existing saved
+sessions retain their renewal path. Editor updates preserve existing projects’
+framework source and build versions.
 
 Mac 0.5.47 uses native JavaFX for Run App. To publish, stop the app, open the
 arrow beside **Run**, then choose **Publish & open app**. GitHub setup and a connected
@@ -32,14 +31,14 @@ IT if installation is blocked. Automatic Zero updates are off, and interactive
 Windows installation testing is still pending. Download a newer installer
 manually when needed.
 Choose **Manual setup (ZIP)** beside the Windows installer on the download page
-for the matching 0.5.54 complete kit. You can skip its setup scripts and follow
+for the matching 0.5.55 complete kit. You can skip its setup scripts and follow
 **One-time setup** below using existing tools or help from IT. The ZIP also
 supports manual setup on a supported Mac;
 it includes the starter, extension, profile and keyboard shortcuts. A separate
 starter-only ZIP is available from [GitHub releases](https://github.com/codepetca/zero/releases).
 See [verification evidence](VERIFICATION.md) for completed checks and platform limits.
 
-The Project dropdown offers New, Clone, and Open. The Tutorials link opens the
+The Project dropdown offers New, Clone, and Open. The Tutorial docs menu item opens the
 reader without creating a project or signing in. Start tutorial begins the guided
 project setup.
 
