@@ -11,7 +11,11 @@ Target illustration: a correct answer to your first quiz question.
 ## 1. Add these imports above `public class Main`
 
 Keep the generated `Main extends App`, `setup()` and `main(...)` lines.
-Add these imports above the class, beside the existing `zero.App` import:
+Find:
+
+`import zero.App;`
+
+Add below it:
 
 ```java
 import zero.ui.Button;
@@ -22,8 +26,11 @@ import zero.ui.Column;
 
 ## 2. Add answer and feedback fields above `setup()`
 
-The button action will need the answer and feedback later. Add these fields
-inside `Main`, **above** `setup()`:
+The button action will need the answer and feedback later. Find:
+
+`public class Main extends App {`
+
+Add below it:
 
 ```java
 private TextField answer;
@@ -34,7 +41,7 @@ private Label feedback;
 
 Your starter already has this method inside `Main`, above `setup()`. Keep it
 to leave space around the window edges. If you started with an older template,
-add it once:
+add it once inside `Main`, above `setup()`:
 
 ```java
 @Override public void settings() {
@@ -49,7 +56,11 @@ are needed for the quiz.
 
 ## 4. Create and show the controls inside `setup()`
 
-Inside `setup()`, write the controls and put them in the window:
+Find the empty method:
+
+`@Override public void setup() {` `// Build your interface here.` `}`
+
+Replace the comment inside its braces with the following code to create and show the controls:
 
 ```java
 Label question = new Label("What is 2 + 3?");
@@ -61,7 +72,11 @@ show(new Column(10, question, answer, check, feedback));
 
 ## 5. Give Check an action before `show(...)`
 
-Before the `show(...)` line, give the button an action:
+Find:
+
+`show(new Column(10, question, answer, check, feedback));`
+
+Add above it:
 
 ```java
 check.onClick(() -> {

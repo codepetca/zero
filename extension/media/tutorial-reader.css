@@ -44,3 +44,7 @@ select { max-width: 100%; width: 100%; padding: 7px; background: var(--vscode-dr
 @media(max-width:400px) { header, main, #lesson-index { padding-inline: 16px; } h1 { font-size: 1.7em; } }
 @media(forced-colors:active) { button, select, .code-block { border: 1px solid ButtonText; } }
 @media(prefers-reduced-motion:reduce) { * { scroll-behavior: auto; } }
+
+.code-label { position: absolute; top: 8px; left: 14px; color: var(--vscode-descriptionForeground); font-size: .85em; }
+.code-block code { counter-reset: code-line; }
+.code-line::before { counter-increment: code-line; content: counter(code-line); display: inline-block; width: 3ch; margin-right: 2ch; text-align: right; color: var(--vscode-editorLineNumber-foreground, var(--vscode-descriptionForeground)); user-select: none; }

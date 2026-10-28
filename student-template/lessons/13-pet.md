@@ -14,7 +14,7 @@ Start on **main**. The checkpoints here are complete reference files: type the c
 
 ## 2. Show your pet
 
-Write this in your project’s `Main.java`: `settings` sets canvas size, `setup` loads the picture once, and `draw` paints the background and picture each frame. `280, 150` is the top-left position; `80, 64` is its drawn size. The sheet has four poses; `imageRegion` selects the first pose. Run: you should see a bird. Try another background color or size. If the resource cannot load, check spelling, capitalization and the resource folder, then stop and run again.
+Open `src/main/java/Main.java`, select its entire contents, and replace them with the complete file below. `settings` sets canvas size, `setup` loads the picture once, and `draw` paints the background and picture each frame. `280, 150` is the top-left position; `80, 64` is its drawn size. The sheet has four poses; `imageRegion` selects the first pose. Run: you should see a bird. Try another background color or size. If the resource cannot load, check spelling, capitalization and the resource folder, then stop and run again.
 
 ```java
 import zero.Color;
@@ -105,7 +105,7 @@ With the working game on **main**, choose **Commit & push**. Review the files in
 
 ## 5. Give the pet its own class
 
-`Main` now knows the pet's position and animation as well as input and sound. Create `Pet.java` beside `Main.java` and write the first class below. Then replace Main with the second class. A class describes a kind of object; `new Pet(new SpriteAnimation(8, frames))` creates one pet and gives it an animation. The constructor saves that animation. The position `x` and animation clock belong to that pet. Its `update` changes those fields, and `draw` uses them to paint the pet.
+`Main` now knows the pet's position and animation as well as input and sound. Create `Pet.java` beside `Main.java` and put the entire first class below in that new file. Then select the entire contents of `Main.java` and replace them with the second complete class below. A class describes a kind of object; `new Pet(new SpriteAnimation(8, frames))` creates one pet and gives it an animation. The constructor saves that animation. The position `x` and animation clock belong to that pet. Its `update` changes those fields, and `draw` uses them to paint the pet.
 
 Update `Main.java` to match `3/Main.java`: replace the old animation and `x` fields with `Pet pet`; create it in `setup`; pass a direction, elapsed seconds and width to `pet.update`; and call `pet.draw(this)`. `this` is the running game that supplies drawing methods. Main still handles input and sound and calls the pet's update **once** per frame. Both arrows held together produce direction 0. Run again: the image, flapping, movement and Space sound should behave as before. Explain which data belongs to the pet and why Main no longer needs the animation update details. Try changing the speed in `Pet`.
 
@@ -131,6 +131,8 @@ public class Pet {
     }
 }
 ```
+
+Replace the entire contents of `Main.java` with this second file:
 
 ```java
 import zero.Color;

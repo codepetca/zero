@@ -10,7 +10,11 @@ Open your **Greeting** project from lesson 0. Keep its `Main.java`.
 
 ## 1. Add the Button and Column imports
 
-In `Main.java`, add two imports beside the `Label` import:
+In `Main.java`, find:
+
+`import zero.ui.Label;`
+
+Add below it:
 
 ```java
 import zero.ui.Button;
@@ -19,7 +23,11 @@ import zero.ui.Column;
 
 ## 2. Create a button after the greeting in `setup()`
 
-Keep your existing `greeting` line in `setup()`. After it, write:
+In `setup()`, find the greeting line (its text may be your own):
+
+`Label greeting = new Label("Hello, Java!");`
+
+Add below it:
 
 ```java
 Button button = new Button("Say hello");
@@ -28,8 +36,11 @@ button.onClick(() -> greeting.setText("You did it!"));
 
 ## 3. Replace `show(greeting)` with a vertical layout
 
-`Column` stacks the label and button with 10 pixels between them. Replace only
-`show(greeting);` with:
+`Column` stacks the label and button with 10 pixels between them. Find:
+
+`show(greeting);`
+
+Replace with:
 
 ```java
 show(new Column(10, greeting, button));

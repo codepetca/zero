@@ -46,7 +46,32 @@ The `Math.max`/`Math.min` lines keep the whole square on screen. `x` and `y` are
 
 ## 2. Connect Player to your existing Main
 
-Add `import zero.Key;` and `import zero.Color;` above Main. `Key` names the four arrow keys. `Color.rgb(red, green, blue)` mixes amounts from 0 to 255; `Color.BLUE` and `Color.GOLD` are ready-made colours. Add `private Player player;` inside the class. Fill your starter's **existing** methods:
+In `Main.java`, **find:**
+
+`import zero.GameApp;`
+
+**Add above:**
+
+```java
+import zero.Key;
+import zero.Color;
+```
+
+`Key` names the four arrow keys. `Color.rgb(red, green, blue)` mixes amounts from 0 to 255; `Color.BLUE` and `Color.GOLD` are ready-made colours. **Find:**
+
+`public class Main extends GameApp {`
+
+**Add below:**
+
+```java
+private Player player;
+```
+
+**Find the three empty methods** in the starter:
+
+`@Override public void setup() {` `// Create your game objects here.` `}`  `@Override public void update(double seconds) {` `// Update your objects here.` `}`  `@Override public void draw() {` `// Draw your game here.` `}`
+
+**Replace those methods with:**
 
 ```java
 @Override public void setup() {

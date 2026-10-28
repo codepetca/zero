@@ -11,7 +11,11 @@ Open the **same Study project** from lesson 4.
 ## 1. Create a Reset button beside Check
 
 The answer, feedback and attempts labels are already fields, so your new
-methods can use them. In `setup()`, create a button beside `check`:
+methods can use them. In `setup()`, find:
+
+`Button check = new Button("Check");`
+
+Add below it:
 
 ```java
 Button reset = new Button("Reset");
@@ -19,7 +23,11 @@ Button reset = new Button("Reset");
 
 ## 2. Replace the old Check action with method calls
 
-Replace the old `check.onClick(...)` block with two short actions:
+Find the entire existing Check action, including its closing `});`:
+
+`check.onClick(() -> {` `attempts = attempts + 1;` `attemptsLabel.setText("Attempts: " + attempts);` `if (answer.getText().equals("5")) {` `feedback.setText("Correct!");` `} else {` `feedback.setText("Try again.");` `}` `});`
+
+Replace with:
 
 ```java
 check.onClick(() -> checkAnswer());
@@ -28,7 +36,11 @@ reset.onClick(() -> resetQuiz());
 
 ## 3. Put Reset after Check in the layout
 
-Put `reset` after `check` in the existing `Column`:
+Find:
+
+`show(new Column(10, question, answer, check, feedback, attemptsLabel));`
+
+Replace with:
 
 ```java
 show(new Column(10, question, answer, check, reset, feedback, attemptsLabel));
@@ -36,8 +48,12 @@ show(new Column(10, question, answer, check, reset, feedback, attemptsLabel));
 
 ## 4. Move the checking code into `checkAnswer()`
 
-Below `setup()` but **inside** `Main`, write a named method with the code you
-removed from the old Check action:
+Find the end of `setup()`, immediately after the layout line:
+
+`show(new Column(10, question, answer, check, reset, feedback, attemptsLabel));` `}`
+
+Add below that closing brace, still inside `Main`. This named method uses the
+code you removed from the old Check action:
 
 ```java
 private void checkAnswer() {
@@ -53,7 +69,11 @@ private void checkAnswer() {
 
 ## 5. Add `resetQuiz()` beside `checkAnswer()`
 
-Add a second method beside it:
+Find the closing lines of `checkAnswer()`:
+
+`feedback.setText("Try again.");` `}` `}`
+
+Add below that method, still inside `Main`:
 
 ```java
 private void resetQuiz() {

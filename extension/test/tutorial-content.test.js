@@ -38,11 +38,14 @@ test('rendered lessons show numbered code actions directly and keep comparison r
   for (const lesson of bundle.lessons) {
     const article = result.articles.split(`data-lesson-id="${lesson.id}"`)[1].split('</article>')[0];
     const body = article.split('<div class="lesson-content">')[1].split('<section class="references"')[0];
-    assert.doesNotMatch(body,/<details|<summary/);
+    assert.doesNotMatch(body,/<details|<summary|class="code-line"|&lt;br&gt;/);
     assert.match(body,/<h2>1\. /);
     for (const match of lesson.markdown.matchAll(/^```[^\n]*\n([\s\S]*?)^```/gm)) assert.ok([...result.copies.values()].includes(match[1].replace(/\n$/,'')),`Lesson ${lesson.id} exact code copy`);
   }
   assert.match(result.articles,/Compare your code/);
+  assert.match(result.articles,/Reference file lines/);
+  assert.match(result.articles,/<span class="code-line">import /);
+  assert.match(result.articles,/line numbers may differ from your own file/);
   assert.match(result.navigation,/<optgroup label="Study quiz \(optional\)">/);
   const exact = bundle.lessons[3].references['teaching/checkpoints/3/Main.java'];
   assert.ok([...result.copies.values()].includes(exact));
