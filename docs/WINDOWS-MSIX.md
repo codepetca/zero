@@ -156,3 +156,88 @@ uses the mapping above and tests rollover/overflow. The upload timeout did not
 identify this as its cause. Prior Windows installation receipts tested the EXE,
 not MSIX deployment; Windows App Certification Kit and actual Store installation
 remain separate gates. See [Store requirements](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements).
+
+## Windows App Certification Kit gate
+
+Windows CI invokes the deployment check with `-RunWack`. After installing a
+separately test-signed copy, it runs Microsoft's `appcert.exe reset` and
+`appcert.exe test -packagefullname <installed package> -reportoutputpath <report>`.
+The original unsigned candidate remains unchanged. WACK receives no test exclusions.
+The runner must provide the Microsoft-signed certification tool and an elevated
+active user session. Missing prerequisites, process errors, timeout, missing or
+unrecognized XML, and an explicit failed result do not pass the gate.
+
+The sanitized installation receipt records the package hash and certification
+result; CI retains the generated XML and HTML alongside that receipt under the
+attempt-specific MSIX installation artifact. These are disposable-runner reports;
+no temporary certificate or signing key is uploaded. The package and temporary
+trust are removed even when validation fails. Physical Windows10/11 testing,
+Microsoft Store certification and Store-delivered upgrades remain separate.
+
+Reference: [Microsoft's WACK command-line instructions](https://learn.microsoft.com/en-us/windows/uwp/debug-test-perf/windows-app-certification-kit).
+
+### First executed WACK result
+
+Hosted Windows run40724961277 executed WACK10.0.26100.7705 in active session2.
+The24-test Centennial report returned `OVERALL_RESULT=WARNING`: required
+DPIAwarenessValidation warned that Zero is not DPI aware and that its binary
+could not be processed; the optional Blocked executables test flagged process
+launching and executable-name references. These findings have not been suppressed
+or established as the cause of Partner Center's upload error. CI remains non-clean.
+
+Centennial reports can leave root APP_NAME/APP_VERSION empty. The parser instead
+requires the report's nested package identity, publisher, version, architecture
+and full package name to match the installed package. It records a sanitized
+summary on failure and preserves the native reports. A sanitized24-test fixture
+covers this observed schema. Exit0 alone only establishes that WACK ran.
+
+Product DPI remediation and review of optional launch warnings are distinct next
+changes. A WACK warning is not a Microsoft Store certification rejection.
+
+### DPI correction and informational launch findings
+
+The native launcher now declares PerMonitorV2 in its executable manifest and
+opts in to the matching .NET Framework4.8 WinForms DPI improvements in App.config.
+The settings agree; the manifest governs process awareness. MSIX packaging and
+installation verification require the emitted Zero.exe.config. The native forms use a96-DPI design baseline during suspended construction.
+CI checks the actual launcher HWND awareness context as PerMonitorV2. Physical
+scaled and multi-monitor UI checks remain separate from that context check and
+WACK's static inspection.
+
+[Microsoft's Desktop Bridge test guidance](https://learn.microsoft.com/en-us/windows/uwp/debug-test-perf/windows-desktop-bridge-app-tests)
+says optional tests are informational and do not determine Store onboarding.
+Zero intentionally launches the Java compiler/runtime and editor, and uses cmd
+for its Windows terminal. These operations are incompatible with Windows S-mode
+restrictions. The static scanner also reported some executable-name bytes inside
+the compressed embedded kit; for the inspected candidate, rEg and csI matches
+occurred only within that archive's measured byte range. This does not establish
+that every possible finding is harmless; retain each native report for review.
+
+The gate accepts optional-only findings only when every required test passes,
+the run is complete and exactly matched to the installed package, the process
+succeeds, and any overall WARNING is explained solely by explicitly optional
+nonpassing tests. It records `passed-with-optional-findings`, preserving the
+native overall verdict and test details. Any required warning/failure, partial
+or unknown result, unmatched identity, or unexplained overall warning still
+fails. No WACK test is excluded. Store certification remains Microsoft's decision.
+
+A follow-up candidate with DPI settings embedded still produced WACK's
+'Failed to process the binary' message. The Store launcher build is therefore
+explicitly x64, matching its package architecture; its PE machine header is
+verified as AMD64. Store publishing explicitly selects `win-x64` on every build
+host and retains that target in its separate NuGet lock; locked restore remains
+enabled and dependency versions/hashes are unchanged. Earlier AnyCPU CLR images could run on x64 and are not declared
+invalid merely by this change. Actual WACK results must establish whether the
+explicit build resolves the static-analysis issue. The ordinary EXE build keeps
+its existing architecture. CI performs EXE runtime/DPI/JavaFX checks before WACK
+so a static warning cannot hide the runtime DPI-context evidence.
+
+Run40741291972 built and installed the explicit x64 candidate, and its actual
+launcher HWND was PerMonitorV2, but WACK still warned that it could not process
+the DPI declaration. The executable manifest now also includes Microsoft's
+documented legacy `dpiAware=true` declaration alongside `dpiAwareness=PerMonitorV2`.
+Windows10 version1607+ gives the modern element precedence; the legacy declaration
+does not lower the supported systems' awareness. This follows
+[Microsoft's dual-declaration example](https://learn.microsoft.com/en-us/windows/win32/hidpi/setting-the-default-dpi-awareness-for-a-process).
+The required-test gate remains unchanged; a fresh actual WACK result must verify
+whether this resolves the scanner warning.

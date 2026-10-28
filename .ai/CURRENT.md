@@ -1,24 +1,33 @@
-# Microsoft Store package correction — 2026-10-28
+# Store MSIX validation — 2026-10-28
 
-Owner authorizes correcting the Store package and validating actual MSIX behavior;
-coordinator Sol High, suitable bounded work/review Terra Medium or High. Keep
-beginner guide and ZeroJams held. Public Mac/Windows preview/kit0.5.55 and updated
-tutorials/templates are released; PRs223,224,226 merged. Store upload0.5.55 failed
-with generic transfer/processing errors, not a specific validation diagnosis.
+User authorizes package corrections and Windows validation to deliver a ready-to-
+upload MSIX. Store submission and public app/site releases remain separate.
+Branch codex/msix-wack, draft PR229, base mainb6a9acbc. Product0.5.56 maps to
+Store1.5.56.0. Preserve existing public releases and prior candidate bytes.
+Beginner guide and ZeroJams remain held.
 
-Audit found actual manifest version0.5.55.0 violates documented Store positive-major
-requirements, despite Windows SDK packing/unpacking and exact archive/block hashes
-passing. Existing Windows install/JavaFX receipts exercised EXE, not MSIX. Assigned
-identity/publisher match Partner Center. Package remains unsigned and uncertified.
+WACK gate, strict Centennial identity/result parsing, required-test enforcement,
+optional-only informational results and retained reports are implemented/reviewed.
+Launcher has PMv2 WinForms config,96-DPI form baselines, paired legacy/modern DPI
+manifest declarations, and an explicit x64 Store target with locked win-x64 restore.
+Normal EXE updater/dependency selection is preserved. Actual Windows EXE install,
+bootstrap/reopen, HWND PMv2, JavaFX/offline and signed-copy MSIX install/integrity/
+cleanup pass. WACK still reports required DPIWARNING despite valid embedded
+manifest/resource1 and AMD64 PE; the optional blocked-executablesFAIL is retained.
+No required warning is waived; no candidate is declared WACK-ready or certified.
 
-Branch codex/store-package-version starts from main5cddd93d (license PR227,
-next local kit0.5.56 already prepared there). Map product major+1 for Store
-versions:0.5.56→1.5.56.0,1.0.0→2.0.0.0; enforce upper bound and ordering tests.
-Do not overwrite prior artifacts. No new Mac release is part of this correction.
-
-In progress: real disposable Windows MSIX installation check, independently
-reviewed source, required CI and new source-bound candidate. Keep original unsigned
-candidate immutable; any ephemeral test signing uses a separate copy only in a
-throwaway hosted runner. Store certification, physical Windows/school acceptance
-and Store-delivered upgrades remain distinct. No final certification submission
-without explicit user instruction.
+Latest product source371aa6cf, Windows run40742412970. Ignored exact artifacts/
+reports: .verification/wack-40742412970. Candidate SHA256
+73423da90df584b6b989f3a4ac9f742160de5bf32a3e477385cb2f20ae27530d.
+Detailed diagnostics40744913896/40746112232 and serviced26100.9457 toolkit run
+40747486065 reproduce the same infrastructure COM E_FAIL in IsPerMonitorV2DPIAwarenessSet
+for original and both manifest/API controls, despite SDK-valid manifests and
+livePMv2 HWNDs. No further product change is justified by those results.
+Next: guarded opt-in Windows11 desktop ARM64 diagnostic, unchanged x64 package
+under emulation, with the native-x64/ARM-support limits recorded explicitly.
+SolHigh worker wack_diagnostics owns only diagnostic script/workflow delta; root
+owns integration/docs; SolHigh dpi_gate_review provides independent delta review.
+DPI follow-up has five targeted fix batches. Existing task-scoped owner workflow-
+cap waiver applies; correctness/CI/merge gates remain. Avoid speculative product
+changes. Physical Windows10/11, Store certification/update and school-policy tests
+remain separate acceptance, not established by the hosted Server2022 run.

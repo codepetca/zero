@@ -12089,3 +12089,147 @@ Source publication-record delta independently reviewed Sol/high: no blockers; 58
 Preparing 0.5.55/build55 from main bd350b19, including merged fast-publish and tutorial work. Partner Center provided the Zero Studio identity; Store support is isolated from the direct installer and its updater. First-run consent includes Java, Node, VS Code when needed, Java extension support, Maven and JavaFX. Embedded kit snapshots persist outside private-tool roots and are checked against the embedded archive before reuse, preserving older editor sessions without modifying student projects. Separate channel profile paths select their own managed Java.
 
 Independent initial Sol/high security and Terra/high compatibility reviews identified missing Node disclosure, wrong Store Java root and removal of a kit needed by an open editor. First fix exposed an incompatible nested-kit location; a second fix moved retained snapshots to isolated sibling roots and added actual retained-kit → runtime constructor → prepare/open harness coverage. Independent targeted Sol/high review accepted that fix with no remaining blockers. Direct Windows harness 2608 checks, two Store harnesses 2353 checks each, updater harness and 24 focused JS tests pass; one real-Windows Java coexistence test is intentionally skipped on Mac and selected by Windows CI. Separate workflow review passed actionlint and nine CI scope/gate tests. Exact effective worker models, time and token usage unavailable. Native Windows Store installation, Store update/virtualization and certification are not established by these tests.
+
+
+## WACK validation gate — 2026-10-28
+
+PR229 introduces Microsoft WACK execution against the installed temporary signed
+MSIX copy, exact unsigned-candidate integrity checks, native XML/HTML retention,
+strict completion/identity/result parsing and cleanup. TerraHigh implemented;
+SolHigh independently reviewed. Local six MSIX tests, configuration checks,
+actionlint and diff checks passed; Mac PowerShell tests are explicitly skipped.
+Actual Windows run40724961277 ran the parser fixtures and WACK10.0.26100.7705,
+with signed Microsoft tool and active session2. MSIX installation/cleanup passed.
+WACK returned overallWARNING across24tests: required DPI awareness warning and
+optional blocked-executables failure. CI failed as intended; no Store submission,
+release or clean-certification claim follows. Native reports are retained under
+ignored .verification/wack-40724961277 and in the attempt-specific CI artifact.
+The observedCentennial schema prompted strict nested-identity binding and a
+sanitized real-report fixture. Product remediations remain outstanding.
+
+DPI remediation follow-up, owner-authorized2026-10-28: added consistent
+PerMonitorV2 process/WinForms configuration and96-DPI suspended-construction
+baselines for both native forms. Packaging requires the config. Actual Windows
+installer trial now probes the new launcher's HWND for the PMv2 context.
+TerraHigh implemented native changes; SolHigh independently reviewed and found
+one baseline issue that was corrected. Local native harnesses passed2608wrapper
+and2353each Store-channel checks plus updater cases; MSIX tests, actionlint and
+configuration checks passed. PowerShell runtime fixtures await Windows.
+Optional-only WACK findings are retained as informational under Microsoft's
+Desktop Bridge guidance; every required non-PASS still fails. Exact byte-range
+inspection of the previous candidate found rEg/csI matches only inside the
+measured embedded kit. Actual WACK rerun and physical scaled-display acceptance
+remain separate; no clean or Store-certification claim is made from local checks.
+
+Windows run40739916693 stopped at locked restore before WACK: explicit x64
+compilation caused SDK runtime inference to select win-x64, absent from the
+Store lock. Follow-up pins RuntimeIdentifier=win-x64 in MSIX publishing on every
+host and regenerates only the Store lock's empty runtime target; package
+versions/content hashes and ordinary EXE lock remain unchanged. Exact local
+locked restore and net48 publish passed with the emitted AMD64 launcher/config;
+seven MSIX tests and npm check passed. Real Windows validation remains required.
+Targeted review dpi_gate_review (requested SolHigh, fourth DPI correction batch)
+completed clean over ca4361e1 plus the runtime-target/lock delta and its docs.
+It independently checked conditional lock selection, unchanged dependency graph,
+AMD64 output and emitted config. Effective model, elapsed and tokens unavailable.
+
+Run40741291972 (reviewed source1c84ec60; clean PR checkoutd82974f0) passed
+SDK packing/unpacking, real EXE install/bootstrap/reopen with HWND PerMonitorV2,
+JavaFX/offline, and exact MSIX signed-copy deployment/cleanup. WACK again returned
+24 tests with required DPIWARNING and optional blocked-executablesFAIL. Explicit
+x64 therefore did not fix that scanner result. Required-test rejection remains.
+The next manifest correction adds Microsoft's documented legacy dpiAware=true
+beside modern PerMonitorV2, which takes precedence on supported Windows versions.
+This is a fifth targeted DPI correction batch, within the owner's existing
+current-task workflow-cap waiver; Windows/WACK must still prove the change.
+SolHigh dpi_gate_review completed the fifth targeted delta clean, checking
+Microsoft's element precedence and unchanged scaling/gate semantics. Exact local
+locked Store publish and npm check passed. Effective model/time/tokens unknown.
+
+Run40742412970 tested source371aa6cf with both DPI declarations. It again passed
+real runtime/install/JavaFX checks and signed-copy MSIX installation/cleanup, but
+required DPIWARNING remained. The executable was independently inspected as
+AMD64 with a well-formed RT_MANIFEST type24/resource1/lang0 containing both
+Microsoft DPI declarations. Candidate SHA256
+73423da90df584b6b989f3a4ac9f742160de5bf32a3e477385cb2f20ae27530d.
+Further speculative product changes are paused pending detailed tool diagnostics
+and a minimal known-DPI-aware control on the disposable Windows runner.
+
+Diagnostic harness, SolHigh implementation wack_diagnostics and independent
+SolHigh dpi_gate_review: complete clean over371aa6cf plus additive manual input/
+job and new script. Hash-pinned original candidate, read-only artifact access,
+SDK manifest extraction/validation, strict existing original gate, livePMv2
+minimal control and separately retained bounded/redacted diagnostics. A control
+pass cannot clear the original failure. Temporary control binaries and signing
+keys are never uploaded. Review retracted a preliminary identical-Add-Type
+collision concern after checking documented WindowsPowerShell caching behavior;
+no accepted code findings. actionlint, npm check and12CI scope/gate tests pass.
+Actual WindowsPowerShell execution pending; effective model/time/tokens unknown.
+
+Diagnostic run40744913896 completed both original and minimal-control checks on
+WindowsServer2022 build20348. The control's live HWND was PerMonitorV2, both
+SDK-extracted executable manifests validated, and cleanup passed. Both packages
+hit the same WACK infrastructure COM E_FAIL in
+BinaryInfoClass.IsPerMonitorV2DPIAwarenessSet(), called by
+AppManifestContainsDPIAwarenesElement. This identifies a shared scanner failure;
+it does not establish Store acceptance or waive the required DPI warning.
+Sanitized detailed traces and native-to-retained hash mappings are retained in
+.verification/wack-40744913896/diagnostics and the CI diagnostics artifact.
+Next diagnostic-only control initializes PMv2 through the documented checked
+SetProcessDpiAwarenessContext API before any UI, removes only its own manifest DPI
+elements and requires live PMv2 proof. It does not change Zero or its gate.
+SolHigh targeted dpi_gate_review completed clean over e04746eb plus the third
+control delta: checked BOOL/error ordering, exact manifest-node removal, live
+proof, unchanged original/control and strict gate/cleanup. Both generated C#
+variants compile locally. Effective model/time/tokens unknown; Windows pending.
+
+Diagnostic run40746112232 also tested the API-initialized control: the API
+returned TRUE and its live HWND was PerMonitorV2. WACK recognized the exact
+user32.dll!SetProcessDpiAwarenessContext call, then still threw the same manifest-
+reader COM E_FAIL and emitted required DPIWARNING. All three checks cleaned up.
+No API-based product change is justified by this experiment. Next diagnostic
+services only the disposable runner's Microsoft toolkit from its official
+10.0.26100.9457 release (current26100 servicing line), hash-pinned installer with
+Microsoft Authenticode verification; the package and required gate stay unchanged.
+SolHigh dpi_gate_review completed the servicing delta clean: official URL,
+pre-execution trust checks, hosted/manual scope, bounded install and failure/
+cleanup/receipt semantics; no product or normal-gate changes. actionlint and diff
+checks passed. Effective model/time/tokens unknown; actual servicing pending.
+
+Serviced-tool diagnostic40747486065 completed: the pinned Microsoft installer
+exited0 and replaced WACK26100.7705 with26100.9457 (hash2fadeef57da86c82d3edaeee26f2f3981578a85afbcf2b7e9ab4a8b916df3dfa).
+Original, manifest control and API control still returned the same infrastructure
+COM E_FAIL in the manifest reader; both control HWNDs remained PerMonitorV2.
+Cleanup passed. Product DPI initialization stays unchanged. Evidence retained in
+.verification/wack-40747486065/diagnostics, including servicing and detailed logs.
+Next opt-in comparison uses the actual GitHub-hosted Windows11 desktop ARM64
+image with the unchanged x64 package under emulation. It keeps the Server2022
+default guards/gates unchanged, verifies desktop/build/architecture at runtime,
+and labels the emulation limit. It is not native x64 Windows11 acceptance.
+SolHigh dpi_gate_review completed the ARM diagnostic delta clean: hard runner
+allowlist, exact opt-in desktop/architecture guards, unchanged default guards,
+all-three-run forwarding, strict gate and honest emulation labeling. actionlint/
+diff checks passed. service_wack staysfalse on ARM. Actual execution pending;
+effective model/time/tokens unknown.
+
+Windows11 ARM diagnostic40748963521 verified the actual desktop image
+win11-vs2026-arm64, OS26200/ProductType1/ARM64. SDK manifest extraction and
+compilation were available, but appcert.exe was absent: original preflight failed
+without installation or signing. The emulated x64 control's startup timed out.
+Cleanup passed. This is not WACK/installation or Windows11 acceptance. Evidence:
+.verification/wack-40748963521/diagnostics. Next final available native-host
+comparison is WindowsServer2025 x64 (kernel26100), with its own explicit manual
+hosted/architecture/desktop-vs-server guards; defaults and product remain unchanged.
+SolHigh dpi_gate_review completed the Server2025 delta clean: explicit mutually
+exclusive host guards, hard runner allowlist, unchanged defaults/product/gate,
+shared strict call forwarding and honest server-vs-desktop limits. actionlint/
+diff checks passed; service_wack staysfalse. Effective model/time/tokens unknown.
+
+Initial Server2025 dispatch40750952433 stopped before testing: the actual official
+image tag is win25-vs2026/20261021.278, while the new guard allowed only win25.
+The job log confirms WindowsServer2025/10.0.26100/Datacenter. The diagnostic-only
+allowlist now recognizes exactly win25 and win25-vs2026 while retaining all other
+manual/hosted/X64/kernel/ProductType guards. No validation pass is inferred.
+SolHigh targeted image-allowlist review complete/clean over0f47f0be plus the two
+matching guard lines and actual job metadata. All other platform checks remain.
+Effective model/time/tokens unavailable; actual rerun pending.

@@ -68,7 +68,8 @@ export function verifyMsixArchive(bytes, {version, files, kit, identity = feasib
   const exe = Buffer.from(archive['Zero.exe']);
   if (exe.length < 64 || exe.readUInt16LE(0) !== 0x5a4d) throw new Error('MSIX launcher is not a Windows PE');
   const offset = exe.readUInt32LE(0x3c);
-  if (offset > exe.length - 4 || exe.readUInt32LE(offset) !== 0x00004550) throw new Error('MSIX launcher PE header is invalid');
+  if (offset > exe.length - 6 || exe.readUInt32LE(offset) !== 0x00004550) throw new Error('MSIX launcher PE header is invalid');
+  if (exe.readUInt16LE(offset + 4) !== 0x8664) throw new Error('MSIX launcher must be an x64 PE matching the package architecture');
   if (exe.indexOf(kit) < 0) throw new Error('MSIX launcher lost its measured embedded kit');
   const blockMap = Buffer.from(archive['AppxBlockMap.xml']).toString('utf8');
   if (!blockMap.includes('HashMethod="http://www.w3.org/2001/04/xmlenc#sha256"')) throw new Error('MSIX block map must use SHA-256');

@@ -2,6 +2,23 @@ name: Windows launcher checks
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      wack_diagnostics:
+        description: Compare the pinned candidate with a minimal WACK control
+        type: boolean
+        default: false
+      diagnostic_os:
+        description: Disposable runner OS for the WACK diagnostic job only
+        type: choice
+        default: windows-2022
+        options:
+          - windows-2022
+          - windows-11-arm
+          - windows-2025
+      service_wack:
+        description: Service Microsoft WACK on the disposable diagnostic runner
+        type: boolean
+        default: false
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -24,6 +41,15 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - name: Inspect Windows certification environment
+        shell: powershell
+        run: |
+          $tool = 'C:\Program Files (x86)\Windows Kits\10\App Certification Kit\appcert.exe'
+          [ordered]@{
+            appcertAvailable = (Test-Path -LiteralPath $tool -PathType Leaf)
+            sessionId = (Get-Process -Id $PID).SessionId
+            userInteractive = [Environment]::UserInteractive
+          } | ConvertTo-Json
       - name: Restore pinned build tools
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
@@ -58,6 +84,7 @@ jobs:
           node --test extension/test/managed-java.test.js
           node --test extension/test/process-specification.test.js
           node --test scripts/test-windows-javafx.test.mjs
+          node --test scripts/windows-wack-report.test.mjs
           node --test setup/tests/windows-checkout.test.mjs
       - name: Build measured development installer
         run: |
@@ -130,20 +157,6 @@ jobs:
             dist/msix/${{ steps.store-msix.outputs.filename }}
             dist/msix/build-msix.json
             dist/msix/source-and-kit.json
-      - name: Install and verify a separately test-signed MSIX copy
-        shell: powershell
-        timeout-minutes: 8
-        run: |
-          $receipt = Get-Content -LiteralPath 'dist/msix/build-msix.json' -Raw | ConvertFrom-Json
-          & ./scripts/test-windows-msix.ps1 -Package (Join-Path 'dist/msix' $receipt.artifact.filename) -PackageVersion $receipt.packageVersion -Receipt 'dist/msix/install-msix.json'
-      - name: Retain sanitized MSIX deployment result
-        if: always() && steps.store-msix.outcome == 'success'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: zero-windows-msix-installation-${{ github.run_id }}-${{ github.run_attempt }}
-          if-no-files-found: error
-          retention-days: 14
-          path: dist/msix/install-msix.json
       - name: Real install, private runtime bootstrap and editor reopening
         # This is a disposable GitHub-hosted account. Never target a self-hosted
         # runner or pass credentials. GUI/network failures remain failing evidence.
@@ -156,6 +169,23 @@ jobs:
         # Node is maintainer/CI tooling only. No student Node/global Maven install.
         timeout-minutes: 12
         run: node scripts/test-windows-javafx.mjs --disposable-account
+      - name: Install and validate a separately test-signed MSIX copy with WACK
+        shell: powershell
+        timeout-minutes: 25
+        run: |
+          $receipt = Get-Content -LiteralPath 'dist/msix/build-msix.json' -Raw | ConvertFrom-Json
+          & ./scripts/test-windows-msix.ps1 -Package (Join-Path 'dist/msix' $receipt.artifact.filename) -PackageVersion $receipt.packageVersion -Receipt 'dist/msix/install-msix.json' -RunWack
+      - name: Retain sanitized MSIX deployment result
+        if: always() && steps.store-msix.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: zero-windows-msix-installation-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            dist/msix/install-msix.json
+            dist/msix/wack/report.xml
+            dist/msix/wack/report.html
       - name: Retain Windows JavaFX receipt
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -203,3 +233,48 @@ jobs:
           SCOPE_RESULT: ${{ needs.scope.result }}
           SELECTED: ${{ needs.scope.outputs.windows || 'true' }}
           JOB_RESULT: ${{ needs.windows-tests.result }}
+
+  msix-diagnostics:
+    if: github.event_name == 'workflow_dispatch' && inputs.wack_diagnostics == true
+    permissions:
+      contents: read
+      actions: read
+    runs-on: ${{ inputs.diagnostic_os == 'windows-11-arm' && 'windows-11-arm' || inputs.diagnostic_os == 'windows-2025' && 'windows-2025' || 'windows-2022' }}
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Obtain the existing immutable candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: '40742412970'
+          name: zero-windows-msix-40742412970-1
+          path: ${{ runner.temp }}/zero-msix-diagnostic-input
+      - name: Service the diagnostic certification toolkit
+        if: inputs.service_wack == true
+        shell: powershell
+        timeout-minutes: 17
+        run: ./scripts/refresh-windows-wack.ps1 -Receipt (Join-Path $env:RUNNER_TEMP 'zero-wack-servicing-reports/servicing.json')
+      - name: Compare original WACK validation with a minimal control
+        shell: powershell
+        env:
+          DIAGNOSTIC_OS: ${{ inputs.diagnostic_os || 'windows-2022' }}
+        run: |
+          $packages = @(Get-ChildItem -LiteralPath (Join-Path $env:RUNNER_TEMP 'zero-msix-diagnostic-input') -Filter '*.msix' -File)
+          if ($packages.Count -ne 1) { throw 'Expected exactly one candidate MSIX.' }
+          if ($env:DIAGNOSTIC_OS -notin @('windows-2022', 'windows-11-arm', 'windows-2025')) { throw 'Unsupported diagnostic runner selection.' }
+          $windows11Arm = $env:DIAGNOSTIC_OS -eq 'windows-11-arm'
+          $windows2025 = $env:DIAGNOSTIC_OS -eq 'windows-2025'
+          & ./scripts/diagnose-windows-msix.ps1 -Package $packages[0].FullName -Output (Join-Path $env:RUNNER_TEMP 'zero-msix-diagnostic-reports') -Windows11ArmDiagnostic:$windows11Arm -Windows2025Diagnostic:$windows2025
+      - name: Retain reports and sanitized diagnostics only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-windows-msix-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/zero-msix-diagnostic-reports
+            ${{ runner.temp }}/zero-wack-servicing-reports
