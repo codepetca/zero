@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {managedJavaHome,managedJavaEnvironment,verifyManagedJava} = require('../src/managed-java');
+const {managedJavaHome,managedJavaEnvironment,verifyManagedJava,windowsNativeRoot} = require('../src/managed-java');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
@@ -90,4 +90,33 @@ test('nonordinary native metadata cannot block the editor host before file valid
   const script=`try {require(${JSON.stringify(require.resolve('../src/managed-java'))}).managedJavaHome(${JSON.stringify({ZERO_KIT_DIR:kit,ZERO_JAVA_HOME:'/native/jdk',HOME:root})},'darwin');process.exitCode=1;}catch(e){console.log(e.message);}`;
   const result=cp.spawnSync(process.execPath,['-e',script],{encoding:'utf8',timeout:2000});
   assert.ifError(result.error);assert.equal(result.status,0);assert.match(result.stdout,/bounded ordinary file/);
+});
+
+test('Windows channel root follows installed extension profile and rejects mismatched or spoofed markers', () => {
+  const root = 'C:\\Users\\Student\\AppData\\Local';
+  const src = folder => path.win32.join(root, folder, 'editor','extensions','zero.zero-1.0','src');
+  assert.equal(windowsNativeRoot(root,src('ZeroData')),path.win32.join(root,'ZeroData'));
+  assert.equal(windowsNativeRoot(root,src('ZeroStudioStoreData'),'store'),path.win32.join(root,'ZeroStudioStoreData'));
+  assert.equal(windowsNativeRoot(root,src('ZEROSTUDIOSTOREDATA')),path.win32.join(root,'ZeroStudioStoreData'));
+  assert.equal(windowsNativeRoot(root,src('ZeroMsixFeasibility'),'msix-feasibility'),path.win32.join(root,'ZeroMsixFeasibility'));
+  assert.throws(()=>windowsNativeRoot(root,src('ZeroData'),'store'),/does not match/);
+  assert.throws(()=>windowsNativeRoot(root,src('ZeroStudioStoreData'),'msix-feasibility'),/does not match/);
+  assert.throws(()=>windowsNativeRoot(root,'C:\\other\\extension\\src','store'),/profile is unavailable/);
+  assert.throws(()=>windowsNativeRoot(root,src('ZeroData'),'STORE'),/marker is invalid/);
+});
+
+test('Windows coexisting channels resolve their own real retained manifest and Java receipt', {skip:process.platform !== 'win32'}, async t => {
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-channel-runtime-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+  const kit=path.join(root,'trusted-kit');await fs.mkdir(path.join(kit,'setup'),{recursive:true});
+  const asset={sha256:'a'.repeat(64),version:'jdk-21.0.12.1+1'};
+  await fs.writeFile(path.join(kit,'setup','windows-downloads.json'),JSON.stringify({schemaVersion:1,architectures:{x64:{jdk:asset}}}));
+  for (const [folder,marker] of [['ZeroData',undefined],['ZeroStudioStoreData','store'],['ZeroMsixFeasibility','msix-feasibility']]) {
+    const runtime=path.join(root,folder,'runtime','jdk-'+asset.sha256);
+    await fs.mkdir(runtime,{recursive:true});await fs.writeFile(path.join(runtime,'.zero-asset.sha256'),asset.sha256);
+    const source=path.join(root,folder,'editor','extensions','zero.zero-1.0','src');
+    const env={LOCALAPPDATA:root,ZERO_KIT_DIR:kit,...(marker ? {Zero_Windows_Distribution:marker}:{})};
+    assert.equal(managedJavaHome(env,'win32',source),runtime);
+  }
+  const store=path.join(root,'ZeroStudioStoreData','editor','extensions','zero.zero-1.0','src');
+  assert.throws(()=>managedJavaHome({LOCALAPPDATA:root,ZERO_KIT_DIR:kit,ZERO_WINDOWS_DISTRIBUTION:'msix-feasibility'},'win32',store),/does not match/);
 });

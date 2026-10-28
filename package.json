@@ -38,6 +38,8 @@
     "test:jams": "node --test jams/test/*.test.mjs website/tests/jams-*.test.mjs website/tests/jam-*.test.mjs",
     "sharing": "node sharing/cli.mjs",
     "prepare:design": "node design/prepare.mjs",
+    "test:msix": "node --test scripts/windows-msix.test.mjs",
+    "package:windows:msix": "node scripts/build-windows-msix.mjs",
     "test:windows": "node scripts/test-windows.mjs",
     "test:updates:windows": "node --test setup/tests/windows-updater.test.mjs setup/tests/windows-package.test.mjs setup/tests/windows-key-provisioning.test.mjs setup/tests/windows-signing.test.mjs",
     "setup:updates:windows": "node scripts/provision-windows-updater.mjs",

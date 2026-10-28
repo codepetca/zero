@@ -21,6 +21,17 @@ function readRuntimeFile(filename, limit) {
   } finally {fs.closeSync(fd);}
 }
 
+function windowsNativeRoot(home, sourceDirectory, marker) {
+  if (typeof home !== 'string' || !path.win32.isAbsolute(home)) return undefined;
+  const roots = {direct:'ZeroData', store:'ZeroStudioStoreData', 'msix-feasibility':'ZeroMsixFeasibility'};
+  const extensionParent = path.win32.dirname(path.win32.dirname(sourceDirectory));
+  const detected = Object.entries(roots).find(([,folder]) => extensionParent.toLowerCase() === path.win32.join(home, folder, 'editor', 'extensions').toLowerCase());
+  if (marker !== undefined && !['store','msix-feasibility'].includes(marker)) throw new Error('Zero’s Windows distribution marker is invalid. Reopen Zero.');
+  if (detected && marker !== undefined && detected[0] !== marker) throw new Error('Zero’s Windows distribution does not match its editor profile. Reopen Zero.');
+  if (!detected && marker !== undefined) throw new Error('Zero’s Windows editor profile is unavailable. Reopen Zero.');
+  return path.win32.join(home, detected ? roots[detected[0]] : roots.direct);
+}
+
 // Read the current native kit rather than relying only on process variables:
 // VS Code keeps an existing window's environment when Reload Window updates it.
 function nativeJavaHome(environment, platform, sourceDirectory) {
@@ -28,7 +39,7 @@ function nativeJavaHome(environment, platform, sourceDirectory) {
   if (kit === undefined) return undefined;
   const paths = platform === 'win32' ? path.win32 : path;
   const home = platform === 'win32' ? environmentValue(environment, 'LOCALAPPDATA', platform) : environmentValue(environment, 'HOME', platform) || os.homedir();
-  const privateRoot = typeof home === 'string' && paths.isAbsolute(home) ? paths.join(home, ...(platform === 'darwin' ? ['Library','Application Support','Zero'] : ['ZeroData'])) : undefined;
+  const privateRoot = platform === 'win32' ? windowsNativeRoot(home, sourceDirectory, environmentValue(environment, 'ZERO_WINDOWS_DISTRIBUTION', platform)) : typeof home === 'string' && paths.isAbsolute(home) ? paths.join(home, 'Library','Application Support','Zero') : undefined;
   const nativeExtensions = privateRoot && paths.join(privateRoot, 'editor','extensions');
   const extensionParent = paths.dirname(paths.dirname(sourceDirectory));
   const installedNative = nativeExtensions && (platform === 'win32' ? extensionParent.toLowerCase() === nativeExtensions.toLowerCase() : extensionParent === nativeExtensions);
@@ -95,4 +106,4 @@ async function verifyManagedJava({environment = process.env, platform = process.
   return env;
 }
 
-module.exports = {managedJavaHome,managedJavaEnvironment,verifyManagedJava};
+module.exports = {managedJavaHome,managedJavaEnvironment,verifyManagedJava,windowsNativeRoot};

@@ -32,7 +32,7 @@ namespace ZeroSetup
             home = System.IO.Path.GetFullPath(home);
             RejectReparseAncestors(home);
             if (!Directory.Exists(home)) throw new IOException("Your home folder is unavailable. See Details, then retry.");
-            string path = System.IO.Path.Combine(home, "Zero");
+            string path = System.IO.Path.Combine(home, Distribution.KitFolder);
             RejectReparseAncestors(path);
             if (!EntryExists(path)) return new KitTarget { Path = path };
             if (!Directory.Exists(path)) throw new IOException("Your home Zero path is a file. Move it safely before retrying.");
@@ -310,6 +310,77 @@ namespace ZeroSetup
                 PropagationFlags.None, AccessControlType.Allow));
             Directory.CreateDirectory(path, security);
             return path;
+        }
+
+        // Retain a content-addressed snapshot for editors that outlive the launcher.
+        // Always extract and compare the embedded archive before reuse; the editable
+        // student kit is never a source of runtime metadata. Older snapshots remain
+        // available to open editors across upgrades.
+        internal static string RetainEmbeddedKit(Stream source, string dataRoot, CancellationToken cancellation)
+        {
+            byte[] bytes;
+            using (var copy = new MemoryStream())
+            {
+                var buffer = new byte[65536]; int read;
+                while ((read = source.Read(buffer, 0, buffer.Length)) != 0)
+                {
+                    cancellation.ThrowIfCancellationRequested();
+                    if (copy.Length + read > 32 * 1024 * 1024) throw new InvalidDataException("The embedded kit exceeds its size limit.");
+                    copy.Write(buffer, 0, read);
+                }
+                bytes = copy.ToArray();
+            }
+            string digest;
+            using (var sha = SHA256.Create()) digest = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
+            using (var folders = new WindowsRuntimeFolders())
+            {
+                string parent = Path.GetFullPath(dataRoot).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + "-embedded-kits";
+                folders.Ensure(parent);
+                string destination = Path.Combine(parent, digest);
+                string stage = Path.Combine(parent, ".stage-" + Guid.NewGuid().ToString("N"));
+                try
+                {
+                    Directory.CreateDirectory(stage);
+                    using (var input = new MemoryStream(bytes, false)) Extract(input, stage, cancellation);
+                    cancellation.ThrowIfCancellationRequested();
+                    RejectReparseAncestors(destination);
+                    if (!Directory.Exists(destination))
+                    {
+                        try { Directory.Move(stage, destination); }
+                        catch (IOException) { if (!Directory.Exists(destination)) throw; }
+                    }
+                    VerifyRetainedKit(stage, destination, cancellation);
+                    return destination;
+                }
+                finally { DeleteOwnedDirectory(stage); }
+            }
+        }
+        private static void VerifyRetainedKit(string stage, string destination, CancellationToken cancellation)
+        {
+            // A successful atomic move made stage disappear and installed the exact
+            // freshly extracted bytes. Existing snapshots must match every file.
+            if (!Directory.Exists(stage)) return;
+            RejectReparseAncestors(destination);
+            var expected = RetainedFiles(stage, stage).OrderBy(p => p, StringComparer.Ordinal).ToArray();
+            var actual = RetainedFiles(destination, destination).OrderBy(p => p, StringComparer.Ordinal).ToArray();
+            if (!expected.SequenceEqual(actual, StringComparer.Ordinal)) throw new IOException("Retained Zero kit differs from its embedded source. Your files were kept.");
+            foreach (string relative in expected)
+            {
+                cancellation.ThrowIfCancellationRequested();
+                string file = Path.Combine(destination, relative); RejectReparseAncestors(file);
+                using (var sha = SHA256.Create())
+                using (var expectedFile = File.OpenRead(Path.Combine(stage, relative)))
+                using (var actualFile = File.OpenRead(file))
+                    if (!sha.ComputeHash(expectedFile).SequenceEqual(sha.ComputeHash(actualFile))) throw new IOException("Retained Zero kit differs from its embedded source. Your files were kept.");
+            }
+        }
+
+        private static IEnumerable<string> RetainedFiles(string root, string directory)
+        {
+            RejectReparseAncestors(directory);
+            foreach (string file in Directory.GetFiles(directory)) { RejectReparseAncestors(file); yield return file.Substring(root.Length + 1); }
+            foreach (string child in Directory.GetDirectories(directory))
+                foreach (string file in RetainedFiles(root, child)) yield return file;
         }
 
         // The archive is part of the reviewed executable, never a downloaded/user-selected ZIP.
