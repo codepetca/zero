@@ -231,3 +231,13 @@ invalid merely by this change. Actual WACK results must establish whether the
 explicit build resolves the static-analysis issue. The ordinary EXE build keeps
 its existing architecture. CI performs EXE runtime/DPI/JavaFX checks before WACK
 so a static warning cannot hide the runtime DPI-context evidence.
+
+Run40741291972 built and installed the explicit x64 candidate, and its actual
+launcher HWND was PerMonitorV2, but WACK still warned that it could not process
+the DPI declaration. The executable manifest now also includes Microsoft's
+documented legacy `dpiAware=true` declaration alongside `dpiAwareness=PerMonitorV2`.
+Windows10 version1607+ gives the modern element precedence; the legacy declaration
+does not lower the supported systems' awareness. This follows
+[Microsoft's dual-declaration example](https://learn.microsoft.com/en-us/windows/win32/hidpi/setting-the-default-dpi-awareness-for-a-process).
+The required-test gate remains unchanged; a fresh actual WACK result must verify
+whether this resolves the scanner warning.

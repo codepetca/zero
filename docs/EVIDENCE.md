@@ -12132,3 +12132,16 @@ Targeted review dpi_gate_review (requested SolHigh, fourth DPI correction batch)
 completed clean over ca4361e1 plus the runtime-target/lock delta and its docs.
 It independently checked conditional lock selection, unchanged dependency graph,
 AMD64 output and emitted config. Effective model, elapsed and tokens unavailable.
+
+Run40741291972 (reviewed source1c84ec60; clean PR checkoutd82974f0) passed
+SDK packing/unpacking, real EXE install/bootstrap/reopen with HWND PerMonitorV2,
+JavaFX/offline, and exact MSIX signed-copy deployment/cleanup. WACK again returned
+24 tests with required DPIWARNING and optional blocked-executablesFAIL. Explicit
+x64 therefore did not fix that scanner result. Required-test rejection remains.
+The next manifest correction adds Microsoft's documented legacy dpiAware=true
+beside modern PerMonitorV2, which takes precedence on supported Windows versions.
+This is a fifth targeted DPI correction batch, within the owner's existing
+current-task workflow-cap waiver; Windows/WACK must still prove the change.
+SolHigh dpi_gate_review completed the fifth targeted delta clean, checking
+Microsoft's element precedence and unchanged scaling/gate semantics. Exact local
+locked Store publish and npm check passed. Effective model/time/tokens unknown.
