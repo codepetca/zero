@@ -69,6 +69,13 @@ internal static class RuntimeHarness
             Assert(!info.UseShellExecute && info.RedirectStandardError && info.RedirectStandardOutput && info.RedirectStandardInput, "bounded native commands avoid shells");
             Assert(info.EnvironmentVariables["JAVA_HOME"].Contains("jdk-") && info.EnvironmentVariables["ZERO_JAVA_HOME"] == info.EnvironmentVariables["JAVA_HOME"], "private Java and managed runtime hint propagated to every command");
             Assert(info.EnvironmentVariables["PATH"].StartsWith(Path.Combine(info.EnvironmentVariables["JAVA_HOME"], "bin") + ";", StringComparison.Ordinal), "private Java first in child PATH");
+#if ZERO_STORE_PRODUCTION
+            Assert(info.EnvironmentVariables[Distribution.Marker] == "store", "Store marker propagated to every child");
+#elif ZERO_STORE
+            Assert(info.EnvironmentVariables[Distribution.Marker] == "msix-feasibility", "Store marker propagated to every child");
+#else
+            Assert(info.EnvironmentVariables[Distribution.Marker] == null, "direct child has no inherited Store distribution marker");
+#endif
             Assert(info.EnvironmentVariables["VSCODE_PORTABLE"] == null, "portable environment removed");
             Assert(new[] { "JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "MAVEN_OPTS", "MAVEN_ARGS" }.All(key => info.EnvironmentVariables[key] == null) && info.EnvironmentVariables["MAVEN_SKIP_RC"] == "1", "native children clear inherited JVM/Maven startup flags and skip Maven rc");
             Assert(info.EnvironmentVariables["NODE_OPTIONS"] == null && info.EnvironmentVariables["NODE_PATH"] == null, "Node preload/module injection removed from private child environment");
@@ -129,12 +136,46 @@ internal static class RuntimeHarness
     {
         checks = 0;
         string parent = Path.Combine(Directory.GetCurrentDirectory(), ".verification", "zero-runtime-harness-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(parent);
+        string inheritedDistribution = Environment.GetEnvironmentVariable(Distribution.Marker);
+        Environment.SetEnvironmentVariable(Distribution.Marker, "msix-feasibility");
         try
         {
-            TestLifecycle(parent); TestRecovery(parent); TestNodeRecovery(parent); TestFailures(parent); TestArchives(parent);
+            TestRetainedKitIntegration(parent); TestLifecycle(parent); TestRecovery(parent); TestNodeRecovery(parent); TestFailures(parent); TestArchives(parent);
         }
-        finally { WindowsRuntimeArchive.DeleteStaging(parent); }
+        finally { Environment.SetEnvironmentVariable(Distribution.Marker, inheritedDistribution); WindowsRuntimeArchive.DeleteStaging(parent); }
         return checks;
+    }
+    private static void TestRetainedKitIntegration(string parent)
+    {
+        using (var f = new Fixture(parent))
+        {
+            foreach (string relative in new[] { "setup/Setup.ps1", "setup/Setup.cmd", "setup/README.md", "starter/zero.json", "START-HERE.md" })
+            {
+                string file = Path.Combine(f.Kit, relative.Replace('/', Path.DirectorySeparatorChar));
+                Directory.CreateDirectory(Path.GetDirectoryName(file)); File.WriteAllText(file, "fixture");
+            }
+            string student = Path.Combine(f.Project, "student.txt"); File.WriteAllText(student, "student work");
+            byte[] archive;
+            using (var buffer = new MemoryStream())
+            {
+                using (var zip = new ZipArchive(buffer, ZipArchiveMode.Create, true))
+                    foreach (string file in Directory.GetFiles(f.Kit, "*", SearchOption.AllDirectories))
+                    {
+                        string relative = file.Substring(f.Kit.Length + 1).Replace(Path.DirectorySeparatorChar, '/');
+                        using (var output = zip.CreateEntry("zero-kit/" + relative).Open())
+                        using (var input = File.OpenRead(file)) input.CopyTo(output);
+                    }
+                archive = buffer.ToArray();
+            }
+            string retained;
+            using (var input = new MemoryStream(archive)) retained = KitFiles.RetainEmbeddedKit(input, f.Data, CancellationToken.None);
+            Assert(retained.StartsWith(Path.GetFullPath(f.Data) + "-embedded-kits" + Path.DirectorySeparatorChar, StringComparison.Ordinal), "retained kit is in channel-specific sibling");
+            var runtime = new WindowsRuntime(retained, f.Data, f.Project, f.Host);
+            runtime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult();
+            runtime.Open(false, CancellationToken.None).GetAwaiter().GetResult();
+            Assert(f.Host.Launched.EnvironmentVariables["ZERO_KIT_DIR"] == retained, "real runtime launches with retained kit");
+            Assert(File.ReadAllText(student) == "student work" && File.Exists(Path.Combine(retained, "setup", "windows-downloads.json")), "runtime preserves student work and retained metadata");
+        }
     }
     private static void TestLifecycle(string parent)
     {
@@ -153,6 +194,14 @@ internal static class RuntimeHarness
             runtime.Open(false, CancellationToken.None).GetAwaiter().GetResult();
             Assert(f.Host.Launched.Arguments.Contains("--new-window") && !f.Host.Launched.Arguments.Contains(f.Project), "first editor opens empty tutorial window");
             Assert(f.Host.Launched.WorkingDirectory == f.Project, "editor working directory uses persistent project");
+            Assert(f.Host.Launched.Arguments.Contains(Processes.QuoteArgument(Path.Combine(f.Data, "editor", "user-data"))) && f.Host.Launched.Arguments.Contains(Processes.QuoteArgument(Path.Combine(f.Data, "editor", "extensions"))), "editor launch uses this channel's isolated user data and extensions");
+#if ZERO_STORE_PRODUCTION
+            Assert(f.Host.Launched.EnvironmentVariables[Distribution.Marker] == "store", "Store editor receives update route");
+#elif ZERO_STORE
+            Assert(f.Host.Launched.EnvironmentVariables[Distribution.Marker] == "msix-feasibility", "Store editor receives update route");
+#else
+            Assert(f.Host.Launched.EnvironmentVariables[Distribution.Marker] == null, "direct editor clears inherited Store route");
+#endif
             Assert(f.Host.Launched.EnvironmentVariables["ZERO_KIT_DIR"] == f.Kit, "editor receives installed kit path for explicit installation testing");
             string node = Directory.GetDirectories(Path.Combine(f.Data,"runtime"),"node-*").Single();
             Assert(f.Host.Launched.EnvironmentVariables["ZERO_NODE_EXECUTABLE"] == Path.Combine(node,"node.exe") && f.Host.Launched.EnvironmentVariables["PATH"].Contains(node + ";"), "editor receives verified private standalone Node hint and child PATH");

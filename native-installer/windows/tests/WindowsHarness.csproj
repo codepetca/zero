@@ -7,7 +7,7 @@
     <DebugType>none</DebugType>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Harness.cs;ControllerHarness.cs;EnvironmentHarness.cs;AutomaticControllerHarness.cs;RuntimeHarness.cs;../AutomaticSetupController.cs;../InstanceBroker.cs;../WindowsRuntime.cs;../WindowsRuntimeFiles.cs;../WindowsRuntimeHost.cs;../KitFiles.cs;../Processes.cs;../CloseGate.cs;../SetupController.cs;../WindowsToolEnvironment.cs" />
+    <Compile Include="Harness.cs;ControllerHarness.cs;EnvironmentHarness.cs;AutomaticControllerHarness.cs;RuntimeHarness.cs;../Distribution.cs;../AutomaticSetupController.cs;../InstanceBroker.cs;../WindowsRuntime.cs;../WindowsRuntimeFiles.cs;../WindowsRuntimeHost.cs;../KitFiles.cs;../Processes.cs;../CloseGate.cs;../SetupController.cs;../WindowsToolEnvironment.cs" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Net.Http" />

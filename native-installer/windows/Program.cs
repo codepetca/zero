@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Windows.Forms;
+#if !ZERO_STORE
 using Velopack;
+#endif
 
 namespace ZeroSetup
 {
@@ -12,7 +14,9 @@ namespace ZeroSetup
         {
             // Hooks exit here before any setup/UI. Never let an unauthenticated
             // cached package auto-apply before our signed descriptor is checked.
+#if !ZERO_STORE
             VelopackApp.Build().SetAutoApplyOnStartup(false).Run();
+#endif
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             try
@@ -20,7 +24,7 @@ namespace ZeroSetup
                 LauncherRequest request = InstanceBroker.Parse(args);
                 string local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 if (string.IsNullOrWhiteSpace(local)) throw new IOException("Your Windows app-data folder is unavailable. Ask your teacher or IT for help.");
-                string data = Path.Combine(local, "ZeroData");
+                string data = Path.Combine(local, Distribution.DataFolder);
                 KitFiles.RejectReparseAncestors(data);
                 using (var broker = new InstanceBroker())
                 {

@@ -47,6 +47,11 @@ function createNativeUpdateCommands(vscode, {
       return;
     }
     try {
+      if (platform === 'win32' && ['store', 'msix-feasibility'].includes(environment.ZERO_WINDOWS_DISTRIBUTION)) {
+        const opened = await vscode.env.openExternal(vscode.Uri.parse('ms-windows-store://downloadsandupdates'));
+        if (!opened) throw new Error('Store could not open');
+        return;
+      }
       if (platform === 'win32') {
         await launchWindowsUpdater(windowsUpdaterPath(environment), argument, spawnProcess);
         return;
@@ -61,6 +66,10 @@ function createNativeUpdateCommands(vscode, {
     } catch {
       // Native launch errors include machine-specific details. Keep recovery
       // useful without surfacing process output or interpreting it as a command.
+      if (platform === 'win32' && ['store', 'msix-feasibility'].includes(environment.ZERO_WINDOWS_DISTRIBUTION)) {
+        await vscode.window.showErrorMessage('Zero: Could not open Microsoft Store. Open its Library to manage updates, or ask your teacher or IT if the Store is blocked.');
+        return;
+      }
       if (platform === 'win32') {
         await vscode.window.showErrorMessage('Zero: Could not open Zero’s update controls. Install the latest Zero for Windows, then try again. On a school computer, ask your teacher or IT if opening Zero is blocked.');
         return;

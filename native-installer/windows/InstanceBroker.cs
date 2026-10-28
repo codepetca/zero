@@ -33,7 +33,7 @@ namespace ZeroSetup
         {
             user = WindowsIdentity.GetCurrent().User;
             if (user == null) throw new IOException("Could not identify your Windows account.");
-            pipeName = "Codepet.Zero.Launcher." + user.Value;
+            pipeName = Distribution.BrokerPrefix + user.Value;
             var access = new MutexSecurity();
             access.AddAccessRule(new MutexAccessRule(user, MutexRights.FullControl, AccessControlType.Allow));
             mutex = new Mutex(false, "Local\\" + pipeName, out bool created, access);

@@ -122,6 +122,7 @@ namespace ZeroSetup
                 UseShellExecute = false, WorkingDirectory = cli ? data : project, CreateNoWindow = cli,
                 RedirectStandardOutput = cli, RedirectStandardError = cli, RedirectStandardInput = cli
             };
+            Distribution.SetChildEnvironment(info);
             info.EnvironmentVariables["JAVA_HOME"] = java;
             info.EnvironmentVariables["ZERO_JAVA_HOME"] = java;
             foreach (string key in JavaStartupVariables) info.EnvironmentVariables.Remove(key);

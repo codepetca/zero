@@ -13,6 +13,7 @@ namespace ZeroSetup
         private readonly string dataRoot;
         private string bundledKit;
         private WindowsRuntime runtime;
+        internal Func<bool> ApproveDependencies { get; set; }
         internal NativeSetupBackend(string dataRoot)
         {
             this.dataRoot = dataRoot;
@@ -21,31 +22,24 @@ namespace ZeroSetup
         private async Task EnsureKit(CancellationToken cancellation)
         {
             if (bundledKit != null) return;
-            string created = null;
-            try
+            using (Stream archive = Assembly.GetExecutingAssembly().GetManifestResourceStream("ZeroKit.zip"))
             {
-                created = KitFiles.CreatePrivateTemporaryDirectory();
-                await Task.Run(() =>
-                {
-                    using (Stream archive = Assembly.GetExecutingAssembly().GetManifestResourceStream("ZeroKit.zip"))
-                    {
-                        if (archive == null) throw new InvalidDataException("This build is missing its embedded Zero kit.");
-                        KitFiles.Extract(archive, created, cancellation);
-                    }
-                });
-                cancellation.ThrowIfCancellationRequested();
-                bundledKit = created;
+                if (archive == null) throw new InvalidDataException("This build is missing its embedded Zero kit.");
+                bundledKit = await Task.Run(() => KitFiles.RetainEmbeddedKit(archive, dataRoot, cancellation), cancellation);
             }
-            catch { KitFiles.DeleteOwnedDirectory(created); throw; }
         }
+
         public async Task Prepare(Action<string> progress, CancellationToken cancellation)
         {
+#if ZERO_STORE
+            if (!DependencyConsent.Ensure(dataRoot, ApproveDependencies)) throw new OperationCanceledException("Dependency download declined.");
+#endif
             await EnsureKit(cancellation);
             progress("Preparing Zero…");
             var target = KitFiles.InspectDefaultFolder(home);
             await Task.Run(() => target.Existing
                 ? KitFiles.UpdateKit(bundledKit, target, cancellation)
-                : KitFiles.PlaceFreshKit(bundledKit, home, "Zero", cancellation), cancellation);
+                : KitFiles.PlaceFreshKit(bundledKit, home, Distribution.KitFolder, cancellation), cancellation);
             // Configuration is always trusted from this installed app's payload,
             // rather than from an editable student copy of the support files.
             runtime = new WindowsRuntime(bundledKit, dataRoot, Path.Combine(target.Path, "starter"));
@@ -59,6 +53,6 @@ namespace ZeroSetup
             await runtime.Open(File.Exists(marker), cancellation);
             File.WriteAllText(marker, "1");
         }
-        public void Dispose() { KitFiles.DeleteOwnedDirectory(bundledKit); bundledKit = null; }
+        public void Dispose() { bundledKit = null; }
     }
 }
