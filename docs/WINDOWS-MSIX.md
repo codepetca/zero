@@ -14,7 +14,12 @@ identity and isolated data for local experiments. Neither is certified or publis
   Velopack, its startup hook, private update-feed resources and app replacement.
   The ordinary EXE build retains its existing behavior and dependency lock.
 - The production identity is listed above, application ID `Zero`, with a version
-  ending in 0. Feasibility builds retain their separate temporary identity.
+  ending in 0. Store package versions offset the Zero major by one: Zero0.5.56
+  maps to1.5.56.0, and Zero1.0.0 maps to2.0.0.0. This keeps the first component
+  positive and upgrades ordered; product/kit versions remain unchanged. The
+  maximum supported Zero major is65533; minor/patch are limited to65534
+  because the mapped version also supplies .NET AssemblyVersion. Feasibility builds use the same mapping
+  with their separate temporary identity.
 - The manifest declares `Windows.FullTrustApplication`, `runFullTrust`, x64 and
   Windows10 build19041+. It adds a Start entry named **Zero Studio** for the Store channel.
   `MaxVersionTested` is a manifest compatibility setting, not a Windows test receipt.
@@ -141,3 +146,13 @@ Draft listing opening for certification review:
 > compile and run their own Java programs.
 
 This is a proposed description, not a submitted listing or vendor approval.
+
+## Version correction after the first upload attempt
+
+The0.5.55 candidate used Store version0.5.55.0. Microsoft Store requirements
+require a positive first component, unlike the general OS package schema. SDK
+pack/unpack success therefore did not establish Store readiness. The correction
+uses the mapping above and tests rollover/overflow. The upload timeout did not
+identify this as its cause. Prior Windows installation receipts tested the EXE,
+not MSIX deployment; Windows App Certification Kit and actual Store installation
+remain separate gates. See [Store requirements](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements).

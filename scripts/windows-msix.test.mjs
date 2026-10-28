@@ -18,9 +18,19 @@ function fixture() {
   return {files,kit,members,bytes:zipSync(members)};
 }
 test('Store version uses reserved zero component and rejects invalid/overflowing versions',() => {
-  assert.equal(msixVersion(version),'0.5.47.0');
-  assert.equal(msixVersion('65535.65535.65535'),'65535.65535.65535.0');
-  for(const value of ['1.2','1.2.3.4','1.2.65536','01.2.3','1.-2.3','1.2.3<script>',null]) assert.throws(() => msixVersion(value));
+  assert.equal(msixVersion(version),'1.5.47.0');
+  assert.equal(msixVersion('65533.65534.65534'),'65534.65534.65534.0');
+  for(const value of ['65534.0.0','0.65535.0','0.0.65535','65535.0.0','1.2','1.2.3.4','1.2.65536','01.2.3','1.-2.3','1.2.3<script>',null]) assert.throws(() => msixVersion(value));
+});
+test('Store versions stay ordered across product minor and major boundaries', () => {
+  const versions=['0.0.0','0.5.55','0.5.56','0.6.0','1.0.0','2.0.0'];
+  const mapped=versions.map(msixVersion).map(v=>v.split('.').map(Number));
+  for(const v of mapped) { assert.ok(v[0]>0); assert.equal(v[3],0); }
+  for(let i=1;i<mapped.length;i++) {
+    const firstDifference=mapped[i].findIndex((v,j)=>v!==mapped[i-1][j]);
+    assert.ok(mapped[i][firstDifference]>mapped[i-1][firstDifference]);
+  }
+  assert.equal(msixVersion('1.0.0'),'2.0.0.0');
 });
 test('feasibility manifest has a temporary identity, desktop entry point and only full-trust capability',() => {
   const xml=msixManifest(version);
