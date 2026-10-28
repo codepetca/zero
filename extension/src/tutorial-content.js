@@ -1,24 +1,24 @@
 'use strict';
 const path = require('node:path');
 const fs = require('node:fs/promises');
-const LESSON_IDS = Object.freeze(Array.from({length:13}, (_,index) => String(index)));
+const {LESSON_IDS,lessonFiles,tutorialGroups,navigationIds,referencePath,EXTERNAL_LINKS} = require('./tutorial-catalog');
 const escapeHtml = text => String(text).replace(/[&<>"']/g, value => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[value]));
 const record = value => value && typeof value === 'object' && !Array.isArray(value);
-const referencePath = value => /^teaching\/checkpoints\/(?:[0-9]|1[0-2])\/(?:[a-z]+\/)?[A-Za-z]+\.java$/.test(value) || /^student-template\/examples\/[a-z-]+\/(?:README\.md|[A-Za-z]+\.java)$/.test(value);
 function validateContent(value) {
-  if (!record(value) || value.schema !== 1 || !Array.isArray(value.lessons) || value.lessons.length !== 13 || !Array.isArray(value.groups) || value.groups.length !== 3) throw new Error('Tutorials are unavailable. Reinstall Zero to restore the bundled lessons.');
+  if (!record(value) || value.schema !== 1 || !Array.isArray(value.lessons) || value.lessons.length !== LESSON_IDS.length || !Array.isArray(value.groups) || value.groups.length !== tutorialGroups.length) throw new Error('Tutorials are unavailable. Reinstall Zero to restore the bundled lessons.');
   const seen = new Set();
   for (const lesson of value.lessons) {
-    if (!record(lesson) || !LESSON_IDS.includes(lesson.id) || seen.has(lesson.id) || typeof lesson.title !== 'string' || lesson.title.length > 200 || typeof lesson.markdown !== 'string' || Buffer.byteLength(lesson.markdown) > 256 * 1024 || !/^student-template\/lessons\/\d{2}-[a-z-]+\.md$/.test(lesson.source) || lesson.asset !== `${lesson.id.padStart(2,'0')}.svg` || !record(lesson.references) || Object.keys(lesson.references).length > 100) throw new Error('The bundled tutorial content is invalid. Reinstall Zero.');
+    if (!record(lesson) || !LESSON_IDS.includes(lesson.id) || seen.has(lesson.id) || typeof lesson.title !== 'string' || lesson.title.length > 200 || typeof lesson.markdown !== 'string' || Buffer.byteLength(lesson.markdown) > 256 * 1024 || lesson.source !== `student-template/lessons/${lessonFiles[lesson.id]}` || lesson.asset !== `${lesson.id.padStart(2,'0')}.svg` || !record(lesson.references) || Object.keys(lesson.references).length > 100) throw new Error('The bundled tutorial content is invalid. Reinstall Zero.');
     for (const [name, text] of Object.entries(lesson.references)) if (!referencePath(name) || typeof text !== 'string' || Buffer.byteLength(text) > 256 * 1024) throw new Error('The bundled tutorial reference is invalid. Reinstall Zero.');
     seen.add(lesson.id);
   }
   const ids = [];
-  for (const group of value.groups) {
-    if (!record(group) || !['greeting','study','game'].includes(group.id) || typeof group.title !== 'string' || group.title.length > 100 || !Array.isArray(group.lessons) || group.lessons.some(id => !LESSON_IDS.includes(id))) throw new Error('The bundled tutorial groups are invalid.');
+  for (const [index,group] of value.groups.entries()) {
+    const expected = tutorialGroups[index];
+    if (!record(group) || group.id !== expected.id || group.title !== expected.title || !Array.isArray(group.lessons) || group.lessons.join(',') !== expected.lessons.join(',')) throw new Error('The bundled tutorial groups are invalid.');
     ids.push(...group.lessons);
   }
-  if (ids.length !== 13 || new Set(ids).size !== 13) throw new Error('The bundled tutorial groups are incomplete.');
+  if (ids.length !== LESSON_IDS.length || new Set(ids).size !== LESSON_IDS.length) throw new Error('The bundled tutorial groups are incomplete.');
   return value;
 }
 async function loadContent(extensionPath) {
@@ -35,8 +35,7 @@ function browserUrl(id) {
 // command URI, file URI or HTML from Markdown is passed through to the webview.
 function resolveLink(lesson, href, bundle) {
   const [file,fragment] = String(href).split('#');
-  if (file === 'https://zero.codepet.ca/hub' || file === 'https://zero.codepet.ca/hub?kind=practice') return {external:file};
-  if (file === 'https://zero.codepet.ca/generated/learning-assets/game-assets.zip') return {external:file};
+  if (EXTERNAL_LINKS.includes(file)) return {external:file};
   if (/^[a-z]+:|^\//i.test(file)) return null;
   const target = path.posix.normalize(path.posix.join(path.posix.dirname(lesson.source),file));
   const other = bundle.lessons.find(item => item.source === target);
@@ -115,8 +114,9 @@ function renderLessons(bundle,{assetUri}) {
     };
     const body = lesson.markdown.replace(/^# .+\n/,'').replace(/^(?:Next|Previous): .*$/gm,'').replace(/^Target illustration:.*$/gm,'');
     const group = bundle.groups.find(item => item.lessons.includes(lesson.id));
+    const {previous,next} = navigationIds(lesson.id);
     const references = Object.entries(lesson.references).map(([name,text]) => `<details id="${referenceIds[name]}" class="reference"><summary>${escapeHtml(name.replace(/^teaching\/checkpoints\//,'Checkpoint ').replace(/^student-template\/examples\//,'Example '))}</summary>${name.endsWith('.java') ? code(text) : renderMarkdown(text,{code})}</details>`).join('');
-    return `<article class="lesson" data-lesson-id="${lesson.id}" hidden><p class="eyebrow">${escapeHtml(group.title)} · Lesson ${lesson.id}</p><h1 tabindex="-1">${escapeHtml(lesson.title)}</h1><div class="lesson-content">${renderMarkdown(body,options)}</div>${references ? `<section class="references" aria-label="Full code references"><h2>Compare your code</h2><p>Try the task first. These completed references do not change your project.</p>${references}</section>` : ''}<nav class="pagination" aria-label="Lesson navigation">${Number(lesson.id) > 0 ? `<button type="button" class="text-button" data-lesson="${Number(lesson.id)-1}">← Previous lesson</button>` : '<span></span>'}${Number(lesson.id) < 12 ? `<button type="button" class="primary" data-lesson="${Number(lesson.id)+1}">Next lesson →</button>` : '<span>End of tutorials</span>'}</nav></article>`;
+    return `<article class="lesson" data-lesson-id="${lesson.id}" hidden><p class="eyebrow">${escapeHtml(group.title)} · Lesson ${lesson.id}</p><h1 tabindex="-1">${escapeHtml(lesson.title)}</h1><div class="lesson-content">${renderMarkdown(body,options)}</div>${references ? `<section class="references" aria-label="Full code references"><h2>Compare your code</h2><p>Try the task first. These completed references do not change your project.</p>${references}</section>` : ''}<nav class="pagination" aria-label="Lesson navigation">${previous ? `<button type="button" class="text-button" data-lesson="${previous}">← Previous lesson</button>` : '<span></span>'}${next ? `<button type="button" class="primary" data-lesson="${next}">Next lesson →</button>` : '<button type="button" class="text-button" data-index="true">All tutorials →</button>'}</nav></article>`;
   }).join('');
   const navigation = bundle.groups.map(group => `<optgroup label="${escapeHtml(group.title)}">${group.lessons.map(id => `<option value="${id}">${id}. ${escapeHtml(bundle.lessons.find(lesson => lesson.id === id).title)}</option>`).join('')}</optgroup>`).join('');
   return {articles,navigation,copies};

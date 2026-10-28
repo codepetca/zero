@@ -2,7 +2,7 @@
 const path = require('node:path');
 const {randomBytes,createHash} = require('node:crypto');
 const {LESSON_IDS,escapeHtml,loadContent,browserUrl,renderLessons} = require('./tutorial-content');
-const EXTERNAL_LINKS = new Set(['https://zero.codepet.ca/hub','https://zero.codepet.ca/hub?kind=practice','https://zero.codepet.ca/generated/learning-assets/game-assets.zip']);
+const EXTERNAL_LINKS = new Set(require('./tutorial-catalog').EXTERNAL_LINKS);
 function rootKey(root) {return `zero.tutorialReader.${createHash('sha256').update(root ? path.resolve(root) : 'no-project').digest('hex')}`;}
 function cleanState(value, fallback = '0') {
   const state = {lessonId:LESSON_IDS.includes(value?.lessonId) ? value.lessonId : LESSON_IDS.includes(fallback) ? fallback : '0',scroll:{},details:{}};
@@ -11,7 +11,7 @@ function cleanState(value, fallback = '0') {
     if (Number.isFinite(scroll) && scroll >= 0 && scroll <= 1000000) state.scroll[id] = scroll;
   }
   if (value?.details && typeof value.details === 'object') {
-    for (const [id,open] of Object.entries(value.details).slice(0,300)) if (/^(?:explanation-(?:[0-9]|1[0-2])|reference-(?:[0-9]|1[0-2])-\d{1,3})$/.test(id) && typeof open === 'boolean') state.details[id] = open;
+    for (const [id,open] of Object.entries(value.details).slice(0,300)) if (/^(?:explanation-(?:[0-9]|1[0-4])|reference-(?:[0-9]|1[0-4])-\d{1,3})$/.test(id) && typeof open === 'boolean') state.details[id] = open;
   }
   return state;
 }

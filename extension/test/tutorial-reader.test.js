@@ -66,6 +66,20 @@ test('browser and clipboard messages are fixed allowlists with no project writes
   assert.match(f.errors[0],/browser could not open/);
   reader.dispose();
 });
+
+test('new lessons preserve bounded state and explicit browser and Pet-asset actions',async()=>{
+  const f=fake(),key=rootKey('/pet');
+  f.saved.set(key,{lessonId:'13',scroll:{13:123},details:{'reference-13-0':true,'reference-15-0':true}});
+  const reader=createTutorialReader(f.vscode,{context:f.context}),panel=await reader.open('/pet','13');
+  await panel.receive({type:'ready'});
+  assert.equal(panel.messages[0].state.lessonId,'13');
+  assert.deepEqual(panel.messages[0].state.details,{'reference-13-0':true});
+  await panel.receive({type:'browser',lessonId:'14'});
+  await panel.receive({type:'external',url:'https://zero.codepet.ca/generated/learning-assets/pet-assets.zip'});
+  await panel.receive({type:'external',url:'https://zero.codepet.ca/generated/learning-assets/pet-assets.zip?redirect=evil'});
+  assert.deepEqual(f.external,['https://zero.codepet.ca/tutorials/14','https://zero.codepet.ca/generated/learning-assets/pet-assets.zip']);
+  reader.dispose();
+});
 test('empty workspace, concurrent opens, invalid states and disposal stay bounded',async () => {
   const f=fake();const bundle=await loadContent(f.context.extensionPath);let resolve;
   const reader=createTutorialReader(f.vscode,{context:f.context,project:async()=>{throw new Error('no project');},load:()=>new Promise(done=>{resolve=done;})});

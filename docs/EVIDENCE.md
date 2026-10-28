@@ -1,3 +1,27 @@
+# Study class refactoring — local source
+
+Lesson6 now moves the working quiz into ordinary StudyQuiz after extracting
+Counter. Main keeps App/padding/startup and shows quiz.view(), whose concrete
+return type is the already-taught Zero Column. Lesson7 grows StudyQuiz and adds
+Question while Main stays byte-identical. Lessons10–11 continue score-display
+work in StudyQuiz. No new project, framework API, extra App or student JavaFX
+imports. Class ownership and constructor/view roles are explained explicitly.
+The four affected checkpoints and finite behavior harness remain aligned.
+
+Native finite behavior passes for6,7,10/study,11/study: Check/wrong/right counts,
+Reset/Next/restart, no duplicate score, completion/enablement and independent
+retained StudyQuiz views.53 focused tutorial/content/website tests, source checks,
+website preparation and all3 pinned-template checks pass. Actual checkpoint7
+exports through pinned WebFX/GWT with BUILD SUCCESS and is played in the browser:
+wrong4→tryagain/attempt1/score0; trimmed5→score1/attempt2;1 and TRUE→score3;
+lastNext disables input and shows3/3; Restart restores question1/zero counts.
+No hosted app publication, installed-editor or physical Windows proof is claimed.
+Independent requested Terra/medium review of6d40f99b→ebdd4083 completed clean,
+0blockers, tracing5→6→7→10→11, imports/constructors/ownership/retained views and
+restart behavior against the checkpoints. Native/browser evidence reused, not
+rerun by the reviewer; effective model/time/tokens unknown.1review turn,0fixes.
+Ignored logs/browser receipt: .verification/study-classes/. Local source only.
+
 # PR221 packaging boundary correction — 2026-10-27
 
 Initial Windows run40601348467 on acd9b13b correctly rejected the changed template
@@ -12047,3 +12071,15 @@ authenticated draft downloads match local sealed bytes and each draft has one
 asset, actualsource0c417cc0, prerelease=true. Public-byte gates still pending.
 Ledger: priorJava4turns + Windows2initialturns;1Windowsfixbatch, targeted doc review
 next. No actual elapsed/token telemetry or savings claim.
+
+### Tutorial pathway local integration — 2026-10-28
+
+Local uncommitted work on `codex/study-quiz-classes` adds Greeting → Coin → Pet → original-project navigation and retains Study and component practice as optional; legacy lesson addresses and original three verified scaffold hashes remain. Pet is intentionally unpublished and strict package readiness rejects it. Live `codepetca/zero-starter` lacks Color, Zero UI and project-owned browser tooling; lesson 14 is explicitly unavailable until its separate original-template update and verification. No PR, push, template publication, website deployment or release was performed.
+
+Full `npm test`: 1426 pass, three skipped; website suite: 244 pass. After the reviewed text corrections, the 16 reader tests, 21 website learning/project tests and source checks passed. Pet checkpoint: real pinned WebFX browser build, visible animation and key movement; audio resource loaded and playback requested, audibility unverified. Lesson 14: local generated original starter compiled and its saved WebFX builder produced a browser app; Start, Back and pointer movement verified. Independent Sol/high review of the working diff found missing stop-before-publish text and the stale original starter; corrections and the conditional availability message passed targeted review. Actual student GitHub actions, Pages, physical Windows and school network remain untested. Worker effective model, elapsed time and token usage unknown.
+
+### Tutorial template publication — 2026-10-28
+
+Owner authorized the Pet and original-project templates and source PR/CI/merge; app release and website rollout remain separate. Pet template [PR 1](https://github.com/codepetca/zero-tutorial-pet/pull/1) merged d633a67634af3b6c71599ba08eced0f09940f5f2, tree 9f390ad1f6fa5587402570ec740c658bad329881; public repository 1437060766 is a template on main. Its anonymous archive matches all 95 generated files and executable modes, scaffold SHA256 d5e8314dfb4a7650072c511dd7da184fbd488d74f29860297d824218807ae742. Pet candidate compiled; independent Terra/medium full and targeted README review clean. Original [PR 2](https://github.com/codepetca/zero-starter/pull/2) merged be4e47a5ad2e04b1c7186063681ec550a468cb4e, tree 68ca304e49bb52ab9ceff574ca54df7580696502. Its anonymous archive matches all 95 reviewed files and executable modes; independent Sol/high fixed-diff review clean. Earlier exact candidate native compile and WebFX/Chromium Start/Back evidence applies. Neither template repo had configured CI; source PR #222 CI remains the integration gate. Actual per-worker usage, effective model and time are unavailable. Public lessons/assets and app distribution are not implied by template publication.
+
+Source publication-record delta independently reviewed Sol/high: no blockers; 58 focused tests passed, all four readiness records passed, and stale or missing Pet metadata still fails both source and package gates. Effective model, per-worker usage and time were not exposed. The original 0.5.54 installer assets were not rebuilt or overwritten locally.

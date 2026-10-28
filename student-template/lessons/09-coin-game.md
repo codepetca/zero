@@ -143,4 +143,17 @@ if (points == coins.length) {
 
 Replace `coin.draw(this);` with `for (Coin each : coins) each.draw(this);`. Main still explicitly updates Player and draws every object. Click **Run App**. Try Restart before collecting, after one coin and after winning. Each run should return to 0 with all three coins visible; winning stops movement until Restart. Change a coin's coordinates to make your own level. Keep each 24-pixel square within x 0–616 and y 0–376.
 
-After writing it, compare with checkpoint 9's [Main.java](../../teaching/checkpoints/9/Main.java), [Player.java](../../teaching/checkpoints/9/Player.java) and [Coin.java](../../teaching/checkpoints/9/Coin.java). Keep this project open for [lesson 10](10-components.md); there is no new game starter.
+After writing it, compare with checkpoint 9's [Main.java](../../teaching/checkpoints/9/Main.java), [Player.java](../../teaching/checkpoints/9/Player.java) and [Coin.java](../../teaching/checkpoints/9/Coin.java). Keep this project if you later try the optional [component lessons](10-components.md).
+
+## 12. Save and publish your game
+
+Choose **Commit & push** in Zero, review the changed files, and use a message
+such as `Finish coin game`. Check that your latest code is in your GitHub
+repository. When your teacher has approved what you are sharing, stop the running app, then choose
+**Publish & open app** from the Run dropdown and wait for it to open. Play the
+game in your browser and try Restart. The published page and its contents are
+public, so include only material you have permission to share. If publication
+is unavailable for your repository or school account, ask your teacher for an
+alternative rather than changing visibility without approval.
+
+Next: [Make a pet game](13-pet.md).

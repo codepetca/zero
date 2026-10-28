@@ -1,6 +1,7 @@
-import {practiceProjects, projectForLesson, publishedTutorialTemplate, sampleGameAssets} from "../../teaching/projects.mjs";
-export {projectForLesson, publishedTutorialTemplate, sampleGameAssets};
-export const lessonGroups = practiceProjects.map(({id, title, lessons}) => ({id, title, lessons}));
+import {tutorialGroups, projectForLesson, publishedTutorialTemplate, sampleGameAssets, petAssets} from "../../teaching/projects.mjs";
+import tutorialCatalog from '../../extension/src/tutorial-catalog.js';
+export {projectForLesson, publishedTutorialTemplate, sampleGameAssets, petAssets};
+export const lessonGroups = tutorialGroups;
 export const lessons = [
   {
     "id": "0",
@@ -58,9 +59,9 @@ export const lessons = [
   },
   {
     "id": "6",
-    encouragement: "You wrote a reusable Counter class!",
-    "title": "Counter object",
-    "description": "Move the attempt count into an ordinary Counter object.",
+    encouragement: "You organized your quiz with your own classes!",
+    "title": "Classes and a smaller Main",
+    "description": "Use Counter and StudyQuiz to move related code out of Main.",
     "topic": "Classes, constructors, object methods",
     "doc": "api",
     "anchor": "ordinary-javafx-and-reusable-objects"
@@ -69,7 +70,7 @@ export const lessons = [
     "id": "7",
     encouragement: "You built a study quiz. Try it with your own questions!",
     "title": "Study quiz",
-    "description": "Add more questions, Next and Restart to your study quiz.",
+    "description": "Grow StudyQuiz with Question objects, Next and Restart; keep Main unchanged.",
     "topic": "Question objects, arrays, scoring, session state",
     "doc": "api",
     "anchor": "ordinary-javafx-and-reusable-objects"
@@ -119,10 +120,22 @@ export const lessons = [
     doc: "api",
     anchor: "images-and-resources",
   },
+  {
+    id:'13',title:'Make an animated pet',
+    description:'Animate a pet, give it its own class, and practise a safe Git workflow.',
+    encouragement:'You animated your own pet and organized its behaviour in a class!',
+    topic:'Images, animation, sound, classes, branches and recovery',doc:'api',anchor:'animation',
+  },
+  {
+    id:'14',title:'Make your own project',
+    description:'Give an original project a polished welcome screen and a playable beginning.',
+    encouragement:'Keep building your own idea!',
+    topic:'Drawing, controls, navigation and your own design',doc:'api',anchor:'gameapp-frames-and-canvas',
+  },
 ];
 // Fixed teaching assets copied from canonical source at build time.
 export const lessonAssets = {
-  ...Object.fromEntries(Array.from({ length: 13 }, (_, id) => {
+  ...Object.fromEntries(tutorialCatalog.LESSON_IDS.map(id => {
     const name = String(id).padStart(2, "0");
     return [`student-template/lessons/visuals/${name}.svg`, `/generated/learning-assets/lessons/${name}.svg`];
   })),
@@ -133,9 +146,10 @@ export function isLessonDocumentId(id) {
   return lessons.some((lesson) => id === `lesson-${lesson.id}`);
 }
 export function lessonNavigation(id) {
-  const index = lessons.findIndex((lesson) => lesson.id === id);
-  if (index < 0) return {};
-  return { related: lessons[index], previous: lessons[index - 1], next: lessons[index + 1] };
+  const related = lessons.find(lesson => lesson.id === id);
+  if (!related) return {};
+  const {previous,next} = tutorialCatalog.navigationIds(id);
+  return {related,previous:lessons.find(lesson => lesson.id === previous),next:lessons.find(lesson => lesson.id === next)};
 }
 const gameResources = [
   { file: "media-demo/resources/media-demo/player.png", destination: "src/main/resources/media-demo/player.png" },

@@ -9,8 +9,9 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {unzipSync} from 'fflate';
-import {lessonProjects, lessonProjectZip, prepareLessonProjects, gameAssetFiles} from './lesson-projects.mjs';
+import {lessonProjects, lessonProjectZip, prepareLessonProjects, gameAssetFiles, petAssetFiles} from './lesson-projects.mjs';
 import {prepareTutorialTemplates} from './prepare-tutorial-templates.mjs';
 import {checkTutorialTemplateDirectory,checkPublishedTutorialTemplates,checkPackagedTutorialTemplates} from './check-tutorial-templates.mjs';
 import readiness from '../extension/src/tutorial-template-readiness.js';
@@ -19,9 +20,9 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const bundle = lessonProjects(root);
 const content = (project, filename) => Buffer.from(project.files.find(file => file.path === filename).content, 'base64');
 
-test('three continuing projects cover every lesson without distributing solutions', () => {
-  assert.deepEqual(bundle.projects.map(project => project.id), ['greeting','study','game']);
-  const first = {greeting:'0',study:'3',game:'8'};
+test('four tutorial scaffolds omit solutions and own-project remains an original project', () => {
+  assert.deepEqual(bundle.projects.map(project => project.id), ['greeting','study','game','pet']);
+  const first = {greeting:'0',study:'3',game:'8',pet:'13'};
   const expected = ['.gitignore','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE','.vscode/settings.json','.vscode/tasks.json','LICENSE','README.md','mvnw','mvnw.cmd','pom.xml','src/main/java/Main.java',...coreSources.map(name => `src/main/java/zero/${name}`),...projectBuilderFilesSync({sourceRoot:root}).map(file => '.zero-build/' + file.path),'zero.json','zero-core.json'].sort();
   for (const project of bundle.projects) {
     assert.deepEqual(project.files.map(file => file.path).sort(),expected);
@@ -40,6 +41,16 @@ test('three continuing projects cover every lesson without distributing solution
     assert.match(main,/void setup\(\)/);
     assert.match(content(project,'README.md').toString(),/blank window or canvas/);
   }
+});
+test('existing published scaffolds retain their exact pre-pathway file inventories',()=>{
+  const expected={greeting:'b37df540bca026cdc8a852c32c962eb81e04c8eb7391ebd95412dfa2d7c2590e',study:'38da66a7d5fcd597a5ee7065504d9ec8d19d1a7e7e62c07fa4920eb6fa0a00bc',game:'3ef12936c66103dfe742b95328b5ae38adce9fc324ed11c739e93ea1250cbe11'};
+  for(const project of bundle.projects.filter(project=>project.id!=='pet')) {
+    assert.equal(createHash('sha256').update(JSON.stringify(project.files)).digest('hex'),expected[project.id],project.id);
+    assert.doesNotThrow(()=>readiness.assertTutorialTemplateReady(lessonModule.validateBundle(bundle).find(item=>item.id===project.id)));
+  }
+  const own=JSON.parse(readFileSync(path.join(root,'student-template/zero.json'),'utf8'));
+  assert.equal(own.tutorialProjectId,undefined);
+  assert.equal(own.repositoryRequired,undefined);
 });
 test('Greeting teaching path uses Zero UI with ordinary Java callbacks', () => {
   const starter = readFileSync(path.join(root, 'student-template/src/main/java/Main.java'), 'utf8');
@@ -66,10 +77,19 @@ test('Study teaching path keeps quiz rules in ordinary Java and uses Zero UI', (
       assert.doesNotMatch(text, /import javafx\.|setOnAction|new VBox\(|answer\.clear\(|\.setDisable\(/);
     }
     assert.match(source, /extends App/);
-    assert.match(source, /check\.onClick\(\(\) ->/);
-    if (offset >= 2) assert.match(source, /answer\.setText\(""\)/);
+    const quiz = offset >= 3 ? readFileSync(path.join(root, `teaching/checkpoints/${offset + 3}/StudyQuiz.java`), 'utf8') : source;
+    assert.doesNotMatch(quiz, /import javafx\.|new Main/);
+    if (offset >= 3) assert.doesNotMatch(quiz, /extends App/);
+    assert.match(quiz, /check\.onClick\(\(\) ->/);
+    if (offset >= 2) assert.match(quiz, /answer\.setText\(""\)/);
+    if (offset >= 3) {
+      assert.match(source, /quiz = new StudyQuiz\(\)/);
+      assert.match(source, /show\(quiz\.view\(\)\)/);
+      assert.doesNotMatch(source, /Button|TextField|questionIndex|checkAnswer/);
+      assert.match(quiz, /public Column view\(\)/);
+    }
   }
-  const session = readFileSync(path.join(root, 'teaching/checkpoints/7/Main.java'), 'utf8');
+  const session = readFileSync(path.join(root, 'teaching/checkpoints/7/StudyQuiz.java'), 'utf8');
   assert.match(session, /if \(answered \|\| finished\) return;/);
   assert.match(session, /check\.setEnabled\(false\)/);
   assert.match(session, /next\.setEnabled\(true\)/);
@@ -100,14 +120,15 @@ test('shared component teaching path uses Zero views in both consumers', () => {
       const directory = path.join(root, `teaching/checkpoints/${id}/${kind}`);
       const main = readFileSync(path.join(directory, 'Main.java'), 'utf8');
       const display = readFileSync(path.join(directory, 'ScoreDisplay.java'), 'utf8');
+      const owner = kind === 'study' ? readFileSync(path.join(directory, 'StudyQuiz.java'), 'utf8') : main;
       sources.push(display);
-      for (const text of [main, display]) assert.doesNotMatch(text, /import javafx\.|setOnAction|new VBox|new HBox|\.setDisable\(|answer\.clear\(|canvas\(\)\.requestFocus|setTextFill|setStyle/);
+      for (const text of [main, owner, display]) assert.doesNotMatch(text, /import javafx\.|setOnAction|new VBox|new HBox|\.setDisable\(|answer\.clear\(|canvas\(\)\.requestFocus|setTextFill|setStyle/);
       assert.match(display, /public Element view\(\)/);
       assert.match(display, /import zero\.ui\.Label;/);
-      assert.match(main, /score\.setScore\(points\)/);
+      assert.match(owner, /score\.setScore\(points\)/);
       if (id === 11) {
         assert.match(display, /void setCaption\(String caption\)/);
-        assert.match(main, /score\.setCaption\("Score"\)/);
+        assert.match(owner, /score\.setCaption\("Score"\)/);
       }
     }
     assert.equal(sources[0], sources[1], 'Study and Game reuse the same component source');
@@ -139,6 +160,11 @@ test('optional asset archive contains only the two media resources', () => {
   const extracted=unzipSync(lessonProjectZip({folder:'',files}));
   for (const file of files) assert.deepEqual(Buffer.from(extracted[file.path]),readFileSync(path.join(root,'student-template/examples/media-demo/resources',file.path)));
   assert.equal(Object.keys(extracted).length,2);
+});
+test('pet asset archive contains only the maintained image sheet and sound',()=>{
+  const files=petAssetFiles(root),extracted=unzipSync(lessonProjectZip({folder:'',files}));
+  assert.deepEqual(Object.keys(extracted),['pet/bird-flap-sheet.png','pet/chime.wav']);
+  for(const file of files)assert.deepEqual(Buffer.from(extracted[file.path]),readFileSync(path.join(root,'teaching/new-curriculum/pet/resources',file.path)));
 });
 test('ZIPs round-trip every source byte and preserve runnable wrapper permissions', () => {
   for (const project of bundle.projects) {
@@ -201,7 +227,8 @@ test('local tutorial drafts pass pristine inventory checks without claiming publ
   const drafts=await prepareTutorialTemplates(root);
   t.after(()=>rmSync(drafts.directory,{recursive:true,force:true}));
   const projects=lessonModule.validateBundle(bundle);
-  assert.deepEqual(drafts.templates.map(item=>item.id),['greeting','study','game']);
+  assert.deepEqual(drafts.templates.map(item=>item.id),['greeting','study','game','pet']);
+  assert.equal(drafts.templates.find(item=>item.id==='pet').publication.commit,'d633a67634af3b6c71599ba08eced0f09940f5f2');
   for(const draft of drafts.templates){
     const project=projects.find(item=>item.id===draft.id);
     assert.equal(checkTutorialTemplateDirectory(project,draft.directory),draft.scaffoldSha256);
@@ -213,11 +240,11 @@ test('local tutorial drafts pass pristine inventory checks without claiming publ
 });
 
 test('publication coherence gate binds exact source and mode without upgrading projects',()=>{
-  const projects=lessonModule.validateBundle(bundle);
+  const projects=lessonModule.validateBundle(bundle).filter(project=>project.template);
   for(const project of projects)delete project.template.scaffoldSha256;
   assert.throws(()=>checkPublishedTutorialTemplates(projects),/not been verified/);
   for(const project of projects)project.template.scaffoldSha256=readiness.tutorialScaffoldSha256(project.files);
-  assert.equal(checkPublishedTutorialTemplates(projects),3);
+  assert.equal(checkPublishedTutorialTemplates(projects),4);
   projects[0].files.find(file=>file.path==='mvnw').mode=0o644;
   assert.throws(()=>checkPublishedTutorialTemplates(projects),/greeting:/);
   const metadata={schema:1,templates:structuredClone(tutorialTemplateDefinitions)};
@@ -228,8 +255,11 @@ test('publication coherence gate binds exact source and mode without upgrading p
 test('release payload gate checks readiness and exact packaged scaffolds independently',()=>{
   // Explicit unit fixture; this never writes publication evidence for real templates.
   const expected=JSON.parse(JSON.stringify(bundle));
-  for(const project of expected.projects)project.template.scaffoldSha256=readiness.tutorialScaffoldSha256(project.files);
-  assert.equal(checkPackagedTutorialTemplates(structuredClone(expected),expected),3);
+  for(const project of expected.projects){
+    project.template??={repository:`codepetca/zero-tutorial-${project.id}`,repositoryUrl:`https://github.com/codepetca/zero-tutorial-${project.id}`,templateHref:`https://github.com/codepetca/zero-tutorial-${project.id}/generate`};
+    project.template.scaffoldSha256=readiness.tutorialScaffoldSha256(project.files);
+  }
+  assert.equal(checkPackagedTutorialTemplates(structuredClone(expected),expected),4);
   const stale=structuredClone(expected);
   stale.projects[0].files.find(file=>file.path==='LICENSE').content=Buffer.from('Changed copyright notice\n').toString('base64');
   assert.throws(()=>checkPackagedTutorialTemplates(stale,expected),/greeting:.*not been verified/);
@@ -240,6 +270,15 @@ test('release payload gate checks readiness and exact packaged scaffolds indepen
   const missing=structuredClone(expected);
   delete missing.projects[1].template.scaffoldSha256;
   assert.throws(()=>checkPackagedTutorialTemplates(missing,expected),/study:.*not been verified/);
+});
+
+test('verified Pet passes while unpublished Pet blocks publication and package gates',()=>{
+  assert.ok(publishedTutorialTemplate('pet'));
+  assert.equal(checkPublishedTutorialTemplates(),4);
+  const unavailable=structuredClone(bundle);
+  unavailable.projects.find(project=>project.id==='pet').template=null;
+  assert.throws(()=>checkPublishedTutorialTemplates(lessonModule.validateBundle(unavailable)),/pet:.*not published/);
+  assert.throws(()=>checkPackagedTutorialTemplates(unavailable,unavailable),/pet:.*not published/);
 });
 
 test('intermediate refactoring extracts input without growing the tutorial or changing core', () => {
@@ -288,4 +327,12 @@ test('practice contribution uses a harmless badge, not duplicate input utilities
     assert.match(source,/CreditsBadge/);
     assert.match(source,/throw new AssertionError/);
   }
+});
+
+
+test('Study Main stays unchanged as the quiz and score component grow', () => {
+  const first = readFileSync(path.join(root, 'teaching/checkpoints/6/Main.java'), 'utf8');
+  for (const id of ['7', '10/study', '11/study']) assert.equal(readFileSync(path.join(root, 'teaching/checkpoints', id, 'Main.java'), 'utf8'), first);
+  const lesson = readFileSync(path.join(root, 'student-template/lessons/06-objects.md'), 'utf8');
+  for (const name of ['Main.java', 'StudyQuiz.java']) assert.ok(lesson.includes(readFileSync(path.join(root, 'teaching/checkpoints/6', name), 'utf8').trim()), name + ' refactor reference matches the runnable checkpoint');
 });

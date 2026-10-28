@@ -109,7 +109,7 @@ test("retired authored example links stay unlinked while external references rem
   assert.equal(resolveContentLink(source, "https://example.com/hub?kind=example&example=zero-starter", {}, {}), "https://example.com/hub?kind=example&example=zero-starter");
 });
 
-test("lesson navigation starts at zero and reaches the button, name then quiz without looping", () => {
+test("main lesson navigation follows Greeting, Coin, Pet and an original project", () => {
   const first = lessonNavigation("0");
   assert.equal(first.related.title, "Hello, world!");
   assert.equal(first.previous, undefined);
@@ -118,27 +118,33 @@ test("lesson navigation starts at zero and reaches the button, name then quiz wi
   assert.equal(lessonNavigation("1").previous.id, "0");
   assert.equal(lessonNavigation("1").next.id, "2");
   assert.equal(lessonNavigation("2").related.title, "Greet by name");
-  assert.equal(lessonNavigation("2").next.id, "3");
+  assert.equal(lessonNavigation("2").next.id, "8");
+  assert.equal(lessonNavigation("8").previous.id, "2");
+  assert.equal(lessonNavigation("9").next.id, "13");
+  assert.equal(lessonNavigation("13").next.id, "14");
+  assert.equal(lessonNavigation("14").next, undefined);
   assert.equal(lessonNavigation("3").related.title, "A tiny quiz");
   assert.equal(lessonNavigation("12").next, undefined);
   assert.deepEqual(lessonNavigation(""), {});
 });
 
 test("quiet project groups retain every lesson once in reading order", () => {
-  assert.deepEqual(lessonGroups.map(group => group.title), ["Greeting app", "Study quiz", "Coin game"]);
-  assert.deepEqual(lessonGroups.flatMap(group => group.lessons), lessons.map(lesson => lesson.id));
-  for (const group of lessonGroups) {
-    for (const id of group.lessons) assert.equal(projectForLesson(id).id, group.id);
-  }
+  assert.deepEqual(lessonGroups.map(group => group.id), ['greeting','game','pet','own-project','study','practice','media']);
+  assert.deepEqual([...lessonGroups.flatMap(group => group.lessons)].sort(),lessons.map(lesson => lesson.id).sort());
+  assert.ok(lessonGroups.slice(4).every(group=>group.title.includes('(optional)')));
+  assert.equal(projectForLesson('10').id,'game');
+  assert.equal(projectForLesson('14').start,'original');
 });
 
-test("the curriculum ends at twelve and routes two-digit lessons without truncation", () => {
-  assert.deepEqual(lessons.map((lesson) => lesson.id), Array.from({ length: 13 }, (_, id) => String(id)));
-  assert.equal(lessonNavigation("9").next.id, "10");
+test("existing lesson addresses remain stable and optional paths have their own ends", () => {
+  assert.deepEqual(lessons.map((lesson) => lesson.id), Array.from({ length: 15 }, (_, id) => String(id)));
   assert.equal(lessonNavigation("10").next.id, "11");
   assert.equal(lessonNavigation("11").previous.id, "10");
-  assert.equal(lessonNavigation("11").next.id, "12");
-  assert.deepEqual(lessonNavigation("13"), {});
+  assert.equal(lessonNavigation("11").next,undefined);
+  assert.equal(lessonNavigation("3").previous,undefined);
+  assert.equal(lessonNavigation("7").next,undefined);
+  assert.deepEqual(lessonNavigation("15"), {});
+  for(let id=0;id<15;id++)assert.equal(documentHref(`lesson-${id}`),`/tutorials/${id}`);
   assert.equal(documentHref("lesson-10"), "/tutorials/10");
   assert.equal(documentHref("lesson-11"), "/tutorials/11");
   assert.equal(isLessonDocumentId("lesson-11"), true);
@@ -232,7 +238,7 @@ test("legacy starter links retain hosted setup and Pika destinations after sourc
   assert.match(prepare,/"your-repository-and-pika": "your-individual-workflow"/);
 });
 
-test("only three lessons start a project, without generic setup or continuation cards", () => {
+test("tutorial starts and the original project use distinct setup actions", () => {
   const document = readFileSync(new URL("../components/Document.jsx", import.meta.url), "utf8");
   const tutorialProject = readFileSync(new URL("../components/TutorialProject.jsx", import.meta.url), "utf8");
   const prepare = readFileSync(new URL("../scripts/prepare.mjs", import.meta.url), "utf8");
@@ -246,9 +252,9 @@ test("only three lessons start a project, without generic setup or continuation 
   assert.doesNotMatch(document + tutorialProject, /generated\/projects\/|zero-project-|Start project|Start Project/);
   assert.match(prepare, /prepareLessonProjects\(root, \{ website: true, extension: false \}\)/);
   assert.match(prepare, /collect\("teaching\/checkpoints"\)/);
-  assert.deepEqual(lessons.filter(({id})=>projectForLesson(id)?.firstLesson===id).map(({id})=>id),["0","3","8"]);
+  assert.deepEqual(lessons.filter(({id})=>projectForLesson(id)?.firstLesson===id).map(({id})=>id),["0","3","8","13","14"]);
   for (const lesson of lessons) assert.ok(projectForLesson(lesson.id));
-  for (const id of ["greeting","study","game"]) {
+  for (const id of ["greeting","study","game","pet"]) {
     const url = `/generated/projects/zero-project-${id}.zip`;
     assert.equal(resolveContentLink("student-template/lessons/README.md",url,{},{}),null);
     assert.equal(resolveContentLink("student-template/lessons/README.md",`https://zero.codepet.ca${url}`,{},{}),null);
@@ -264,7 +270,7 @@ test("only three lessons start a project, without generic setup or continuation 
 test("practice downloads contain foundations but no completed lesson examples", async () => {
   const {lessonProjects} = await import("../../scripts/lesson-projects.mjs");
   const bundle = lessonProjects();
-  assert.deepEqual(bundle.projects.map(({id})=>id),["greeting","study","game"]);
+  assert.deepEqual(bundle.projects.map(({id})=>id),["greeting","study","game","pet"]);
   for (const project of bundle.projects) {
     const paths = project.files.map(file=>file.path);
     assert.ok(paths.includes("src/main/java/Main.java"),project.id);
@@ -279,8 +285,8 @@ test("practice downloads contain foundations but no completed lesson examples", 
 });
 
 test("intermediate lessons keep the existing three small projects and a proposal path", () => {
-  assert.equal(lessons.length,13);
-  assert.deepEqual(lessonGroups.map(group=>group.id),['greeting','study','game']);
+  assert.equal(lessons.length,15);
+  assert.deepEqual(lessonGroups.find(group=>group.id==='practice').lessons,['10','11']);
   assert.equal(lessons.find(lesson=>lesson.id==='10').title,'Refactor a busy Main');
   assert.equal(lessons.find(lesson=>lesson.id==='11').title,'Practise sharing a component');
   for (const [id,name] of [['10','10-components'],['11','11-zerohub']]) {

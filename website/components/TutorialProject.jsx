@@ -1,6 +1,10 @@
 // Publication metadata is supplied by the teaching manifest. Never construct a
 // template URL from an unpublished repository name here.
 export function TutorialProject({ project, lesson, template, assets }) {
+  if (project?.start === 'original') return <section className="lesson-start" aria-label="Your own project">
+    <p>On Zero’s Start Page, choose <strong>Project → New</strong> to create your own project.</p>
+  </section>;
+  if (!project) return null;
   const starting = lesson === project.firstLesson;
   if (!starting && lesson !== "10" && lesson !== "12") return null;
   return <section className="lesson-start" aria-label={`${project.title} project`}>

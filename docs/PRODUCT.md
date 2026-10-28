@@ -131,7 +131,12 @@ its earlier exact revision. Current scoped input and game behavior proof is
 recorded separately in EVIDENCE. This does not publish or release the framework.
 
 The tutorial remains three small continuing projects: Greeting (0–2), Study
-(3–7), Coin (8–12). Intermediate lesson 10 explicitly refactors Main into a
+(3–7), Coin (8–12). Local Study lessons6–7 explicitly refactor controls/actions
+into an ordinary student-owned StudyQuiz with a Column-returning view() method.
+Main keeps App startup/padding and creates/shows that quiz; Counter counts and
+Question stores/checks one prompt. The same quiz behavior is retained. Later
+Study score-component lessons edit StudyQuiz while keeping Main small. These
+student classes add no framework API, inheritance requirement or new project. Intermediate lesson 10 explicitly refactors Main into a
 student-owned PlayerInput helper and the existing reusable ScoreDisplay. Lesson
 11 checks a compatible improvement, optionally adds WASD, and practises sharing a
 small CreditsBadge in a separate Tutorial practice area. An original community/core

@@ -6,11 +6,24 @@
 
 Target illustration: question 1 answered correctly after one wrong try.
 
-Open the **same Study project** from lessons 3–6. Keep its `Counter.java` and `Main.java`.
+Open the **same Study project** from lesson 6. Keep Main's small startup code,
+StudyQuiz.java and Counter.java. If your Main still holds the Check/Reset code,
+finish [moving that code into StudyQuiz](06-objects.md#6-move-the-quiz-out-of-main)
+first. In this lesson, Main stays unchanged: you grow StudyQuiz and add Question.
+
+| Class | Job |
+| --- | --- |
+| `Main` | Show the quiz |
+| `StudyQuiz` | Own controls, score and question progression |
+| `Question` | Store one prompt/answer/explanation and check a response |
+| `Counter` | Count attempts |
+
+Question and Counter are smaller objects used by StudyQuiz. Neither needs to
+extend StudyQuiz or App.
 
 ## 1. Give each question its own data
 
-Create `src/main/java/Question.java` beside Main and Counter. Write this
+Create `src/main/java/Question.java` beside Main, StudyQuiz and Counter. Write this
 ordinary Java class. Its `accepts(...)` method ignores surrounding spaces and
 letter case, so ` TRUE ` can answer `true`.
 
@@ -34,11 +47,11 @@ public class Question {
 }
 ```
 
-## 2. Add session state to your existing Main
+## 2. Add session state to StudyQuiz
 
-Keep your `settings()` method with `padding(20)` from lesson 3, and the
-`Counter attempts`, `answer`, `feedback` and `attemptsLabel` fields.
-Add these fields beside them, above `setup()`:
+Keep `settings()` and `padding(20)` in Main. In **StudyQuiz.java**, keep the
+`layout`, `Counter attempts`, `answer`, `feedback` and `attemptsLabel` fields.
+Add these fields beside them, above the `StudyQuiz()` constructor:
 
 ```java
 private final Question[] questions = {
@@ -58,12 +71,12 @@ private Button restart;
 ```
 
 The array stores three ordinary Question objects. `questionIndex` selects one.
-`points` stays in Main because Main owns the quiz rules. `answered` stops a
+`points` stays in StudyQuiz because StudyQuiz owns the quiz rules. `answered` stops a
 second point for the same question; `finished` stops checking after completion.
 
-## 3. Create the question label in `setup()`
+## 3. Update the StudyQuiz constructor
 
-In `setup()`, change the old local `Label question` to the field:
+In `public StudyQuiz()`, change the old local `Label question` to the field:
 
 ```java
 questionLabel = new Label("");
@@ -84,20 +97,20 @@ scoreLabel = new Label("");
 
 Keep your `answer`, `feedback` and `attemptsLabel` creation lines. Replace
 the old Reset action and layout with these lines. Put `showQuestion()` and
-`refreshStats()` after `show(...)` so the existing controls are initialized:
+`refreshStats()` after assigning `layout` so the existing controls are initialized:
 
 ```java
 check.onClick(() -> checkAnswer());
 next.onClick(() -> nextQuestion());
 restart.onClick(() -> restartSession());
-show(new Column(10, questionLabel, answer, check, next, restart,
-        feedback, attemptsLabel, scoreLabel));
+layout = new Column(10, questionLabel, answer, check, next, restart,
+        feedback, attemptsLabel, scoreLabel);
 showQuestion();
 refreshStats();
 ```
 
 There should be one `check.onClick(...)` line. Remove the old
-`reset.onClick(...)` and old `show(...)` line.
+`reset.onClick(...)` and old `layout = ...` line. Keep `view()` unchanged.
 
 ## 6. Check once, then move forward
 
@@ -127,7 +140,7 @@ quiz rules. Disabling a button reflects that state; it does not replace it.
 
 ## 7. Add methods to advance and show questions
 
-Add these methods below it, still inside Main:
+Add these methods below it, still inside StudyQuiz:
 
 ```java
 private void nextQuestion() {
@@ -159,8 +172,7 @@ private void showQuestion() {
 
 At the last question, Next shows the completion message. At any new question,
 `showQuestion()` clears the previous answer and keeps Next disabled until the
-new answer is correct. The controls are reused; Main does not call `setup()`
-again.
+new answer is correct. The controls are reused; StudyQuiz does not rebuild them or create another App.
 
 ## 8. Add methods to restart and refresh stats
 
@@ -193,11 +205,12 @@ answer, try Check again: the button is disabled and the score stays at 1.
 
 If you need to compare after making your edits, see the completed lesson 7
 [Main](../../teaching/checkpoints/7/Main.java),
+[StudyQuiz](../../teaching/checkpoints/7/StudyQuiz.java),
 [Counter](../../teaching/checkpoints/7/Counter.java) and
 [Question](../../teaching/checkpoints/7/Question.java). They are reference
 checkpoints, not files you need to replace your project with.
 
-**Challenge:** Add a fourth `Question` to the array, including its answer and
+**Challenge:** Add a fourth `Question` to the array in StudyQuiz, including its answer and
 explanation. `questions.length` makes the labels and completion count adjust.
 
 Next: [Start a movement game](08-movement.md).

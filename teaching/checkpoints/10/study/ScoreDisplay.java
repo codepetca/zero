@@ -1,7 +1,7 @@
 import zero.ui.Element;
 import zero.ui.Label;
 
-/** Main owns the score. This class presents it in either app. */
+/** The calling class owns the score. This class presents it in either app. */
 public class ScoreDisplay {
     private final Label label = new Label("Score: 0");
 

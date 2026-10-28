@@ -12,7 +12,7 @@ const {tutorialScaffoldSha256}=require('../src/tutorial-template-readiness');
 let maintainedBundle;
 function bundle(){
  const result=structuredClone(maintainedBundle);
- for(const project of result.projects)project.template.scaffoldSha256=tutorialScaffoldSha256(project.files);
+ for(const project of result.projects)if(project.template)project.template.scaffoldSha256=tutorialScaffoldSha256(project.files);
  return result;
 }
 async function fixture(t){
@@ -22,7 +22,7 @@ async function fixture(t){
  const calls=[],progress=[],recovery=[],inputs=[],picks=[];let name='my-project',tutorialChoice=true,parent={fsPath:root},current=root,enabled=true,afterName=()=>{},afterPick=()=>{},afterCreate=()=>{},cloneFailure,cloneResult=path.join(root,'my-project');
  let session={id:'session',account:{id:'1',label:'student'},accessToken:'TEST_SECRET',scopes:[]};
  const auth=createAuthentication({getSession:async()=>session,onDidChangeSessions:()=>({dispose(){}})});t.after(()=>auth.dispose());
- const vscode={window:{showInputBox:async options=>{inputs.push(options);afterName();return name;},showQuickPick:async(items,options)=>{picks.push({items,options});afterPick(options);return options.title==='Start tutorial'?(tutorialChoice?items[0]:undefined):undefined;}}};
+ const vscode={window:{showInputBox:async options=>{inputs.push(options);afterName();return name;},showQuickPick:async(items,options)=>{picks.push({items,options});afterPick(options);return options.title==='Start tutorial'?(typeof tutorialChoice==='string'?items.find(item=>item.project.id===tutorialChoice):tutorialChoice?items[0]:undefined):undefined;}}};
  const folders={chooseCloneParent:async()=>{calls.push(['parent']);return parent;},clone:async({signal,...input})=>{assert.ok(signal instanceof AbortSignal);calls.push(['clone',input]);if(cloneFailure)throw cloneFailure;return cloneResult;}};
  const repositories={access:async(url,options)=>{calls.push(['access',url,options]);return {};},create:async(input,options)=>{calls.push(['create',input,options]);await afterCreate(options);return {repository:{html_url:remote}};}};
  const commands=createGitHubProjectCommands({vscode,authentication:auth,repositories,folders,extensionPath:root,project:async()=>current,active:()=>enabled,onProgress:value=>progress.push(value),onRecovery:value=>recovery.push(value)});
@@ -48,6 +48,22 @@ test('invalid names are rejected even when host input validation is bypassed',as
 });
 test('tutorial creation uses verified bundle template rather than original starter',async t=>{
  const f=await fixture(t);await f.commands.startTutorial();assert.equal(f.inputs[0].value,'my-greeting');assert.equal(f.picks.length,1);assert.equal(f.picks[0].options.title,'Start tutorial');assert.equal(f.calls.find(call=>call[0]==='create')[1].private,false);assert.deepEqual(f.calls.find(call=>call[0]==='create')[1].template,{owner:'codepetca',repo:'zero-tutorial-greeting'});
+});
+test('tutorial selection follows the main projects and labels optional Study and unavailable Pet',async t=>{
+ const f=await fixture(t),data=bundle();data.projects.find(project=>project.id==='pet').template=null;
+ await fs.writeFile(path.join(f.root,'media','lesson-projects.json'),JSON.stringify(data));
+ f.tutorialChoice=false;await f.commands.startTutorial();
+ const choices=f.picks[0].items;
+ assert.deepEqual(choices.map(item=>item.project.id),['greeting','game','pet','study']);
+ assert.match(choices.find(item=>item.project.id==='study').description,/Optional/);
+ assert.match(choices.find(item=>item.project.id==='pet').description,/Template unavailable/);
+ assert.ok(!choices.some(item=>item.project.id==='own-project'));
+ f.tutorialChoice='pet';await assert.rejects(f.commands.startTutorial(),/not published yet/);
+ assert.deepEqual(f.calls,[]);assert.deepEqual(f.inputs,[]);assert.deepEqual(f.recovery,[]);
+});
+test('verified Pet creates from its published tutorial template',async t=>{
+ const f=await fixture(t);f.tutorialChoice='pet';await f.commands.startTutorial();
+ assert.deepEqual(f.calls.find(call=>call[0]==='create')[1].template,{owner:'codepetca',repo:'zero-tutorial-pet'});
 });
 test('cancelled tutorial selection and unpublished or forged template metadata cannot POST',async t=>{
  const f=await fixture(t);f.tutorialChoice=false;await f.commands.startTutorial();assert.equal(f.calls.length,0);

@@ -1,3 +1,4 @@
+import tutorialCatalog from '../../extension/src/tutorial-catalog.js';
 // Tutorials teach; /docs is the API. Old guide URLs remain bookmarkable aliases.
 export const helpItems = [
   { id: 'setup', title: 'Setup and troubleshooting', href: '/help/setup' },
@@ -53,7 +54,7 @@ const sections = {
 };
 
 export function documentDestination(id, fragment = '') {
-  if (/^lesson-(?:[0-9]|1[0-2])$/.test(id)) return lesson(id.slice(7), fragment);
+  if (typeof id === 'string' && id.startsWith('lesson-') && tutorialCatalog.LESSON_IDS.includes(id.slice(7))) return lesson(id.slice(7), fragment);
   if (!Object.hasOwn(defaults, id)) return null;
   const destination = defaults[id];
   if (Object.hasOwn(sections, id)) {

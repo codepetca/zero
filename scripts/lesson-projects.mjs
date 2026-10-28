@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {deflateRawSync} from 'node:zlib';
 
 const repository = fileURLToPath(new URL('../', import.meta.url));
-import {practiceProjects, sampleGameAssets, publishedTutorialTemplate} from '../teaching/projects.mjs';
+import {practiceProjects, sampleGameAssets, petAssets, publishedTutorialTemplate} from '../teaching/projects.mjs';
 function read(root, relative) {
   const parts = relative.split('/');
   if (path.isAbsolute(relative) || parts.some(p => !p || p === '.' || p === '..')) throw new Error(`Invalid maintained lesson path: ${relative}`);
@@ -39,12 +39,16 @@ export function lessonProjects(root = repository) {
     add(files, 'src/main/java/Main.java', read(root, `teaching/starters/${project.kind}/Main.java`));
     add(files, 'zero.json', JSON.stringify({name:project.title,templateVersion:'0.1.0',mainClass:'Main',repositoryRequired:true,tutorialProjectId:project.id,lessonId:project.firstLesson}, null, 2) + '\n');
     add(files, 'README.md', `# ${project.title}\n\nBefore lesson 0, have your own verified GitHub account, Git 2.31+ and school-approved access/privacy. Read the [account and privacy setup](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy). Choose Private unless teacher/school policy says otherwise, invite your teacher as a collaborator and verify access; collaborators can edit. Use a teacher-approved commit identity and the exact GitHub noreply email for email privacy. Publishing is optional/public; private-repository Pages depends on the plan. No paid plan is needed for tutorial source work.\n\nCreate your own GitHub repository from the published tutorial template, then copy YOUR repository’s HTTPS URL. Sign in to Zero and choose **Project → Clone from GitHub…**. Paste that URL in **Clone from GitHub**. In **Clone location**, keep the default ~/Zero Projects or choose another folder outside any Git repository, then choose **Clone here**. Zero opens the clone in the current window. For an already-cloned Zero folder, use **Project → Open local project…** to open it in the current window without cloning again. A ZIP or a folder inside another repository cannot start this tutorial.\n\nKeep using your repository for lessons ${project.lessons[0]}–${project.lessons.at(-1)} as you write your own code. The scaffold contains only setup and an empty Main; the first run opens a blank window or canvas.\n\nOpen src/main/java/Main.java and read the [first lesson](https://zero.codepet.ca/tutorials/${project.firstLesson}). After edits, click **Run App again**. Run uses local Git checks and needs no GitHub sign-in. Sign in when you want to Commit & push, start a New branch, or Merge to main. Submit your repository link separately in Pika.\n\nLesson 11 uses the tutorial-credits-badge practice library from the Coin game. Keep other ZeroHub contributions in a separate original project.\n`);
+    if (project.id === 'pet') add(files, 'README.md', '# Animated pet\n\nBefore starting, complete the [account/privacy and Zero setup](https://zero.codepet.ca/help/setup). Create your own repository from this template. On Zero’s Start Page, choose Project → Clone, enter YOUR repository URL and choose Clone here.\n\nThe scaffold contains only setup and an empty Main; the first run opens a blank window or canvas. You write the pet, animation and input. Follow [the animated pet lesson](https://zero.codepet.ca/tutorials/13) when the updated tutorials are available, including its separate asset download and attribution. Ask your teacher if the lesson or assets are not available yet. Keep completed checkpoint programs outside this starter.\n\nRun App after each change. Commit & push meaningful checkpoints; review the account, repository and visibility before publishing. Submit your own repository link separately in Pika.\n');
     return {id:project.id,lesson:project.firstLesson,title:project.title,folder:`zero-project-${project.id}`,template:publishedTutorialTemplate(project.id),files:[...files.values()].sort((a,b) => a.path.localeCompare(b.path))};
   });
   return {schema:2, projects};
 }
 export function gameAssetFiles(root = repository) {
   return sampleGameAssets.files.map(filename => ({path:filename,content:read(root, `student-template/examples/media-demo/resources/${filename}`).toString('base64'),mode:0o644}));
+}
+export function petAssetFiles(root = repository) {
+  return petAssets.files.map(filename => ({path:filename,content:read(root, `teaching/new-curriculum/pet/resources/${filename}`).toString('base64'),mode:0o644}));
 }
 
 const crcTable = Array.from({length:256}, (_, index) => {
@@ -100,6 +104,9 @@ export function prepareLessonProjects(root = repository, {extension = true, webs
     const assetDestination = path.join(root, 'website/public',sampleGameAssets.href.slice(1));
     mkdirSync(path.dirname(assetDestination), {recursive:true});
     writeFileSync(assetDestination, lessonProjectZip({folder:'',files:gameAssetFiles(root)}));
+    const petDestination = path.join(root, 'website/public',petAssets.href.slice(1));
+    mkdirSync(path.dirname(petDestination), {recursive:true});
+    writeFileSync(petDestination, lessonProjectZip({folder:'',files:petAssetFiles(root)}));
   }
   return bundle;
 }

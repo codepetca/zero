@@ -45,8 +45,7 @@ show(new Column(10, greeting, name, button));
 ## 5. Run App and try two names
 
 `name.getText()` reads what is in the field **when the button is clicked**.
-Click **Run App**, type `Sam`, then click **Say hello**. The label should say **Hello, Sam!**. Try your own name and check that the greeting changes. You have now grown one project across three lessons. The
-next lesson starts a new **Study** project, which you will keep through lesson 7.
+Click **Run App**, type `Sam`, then click **Say hello**. The label should say **Hello, Sam!**. Try your own name and check that the greeting changes. You have now grown one project across three lessons. Next you will start a new **Coin game** project.
 
 ### Layout and appearance
 
@@ -72,4 +71,17 @@ you do not need JavaFX imports for this project. Normal **Run App** opens the
 native app. Browser export and publishing are separate actions with their own
 compatibility checks. Use Zero’s API reference to inspect the available methods rather than assuming every JavaFX method is also a Zero method.
 
-Next: [Start a tiny quiz](03-quiz.md).
+## 6. Save and publish your greeting
+
+In Zero, choose **Commit & push**, review the changed files, and use a message
+such as `Finish greeting app`. This saves your work in your GitHub repository.
+Check the repository on GitHub to see your latest source.
+
+When your teacher has approved what you are sharing, stop the running app, then choose **Publish & open
+app** from the Run dropdown. Follow the prompts and wait for the app to open in
+your browser. Try the button there, too. Your published page and its contents
+are public; include only material you have permission to share. If publishing
+is unavailable for your repository or school account, ask your teacher for the
+appropriate alternative rather than changing its visibility without approval.
+
+Next: [Start the Coin game](08-movement.md).

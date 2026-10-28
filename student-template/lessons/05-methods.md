@@ -73,4 +73,4 @@ handler. `checkAnswer()` and `resetQuiz()` name the two actions, and both
 change the state and the visible controls. Click **Run App**, check twice, click **Reset**, then check once more. Attempts should go **2 → 0 → 1**; Reset should clear the answer and feedback. For comparison after building,
 see the [completed lesson 5 checkpoint](../../teaching/checkpoints/5/Main.java).
 
-Next: [Make a Counter object](06-objects.md).
+Next: [Use classes to simplify Main](06-objects.md).

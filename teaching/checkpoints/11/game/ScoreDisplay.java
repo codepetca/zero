@@ -1,7 +1,7 @@
 import zero.ui.Element;
 import zero.ui.Label;
 
-/** Main owns scoring rules; this component retains only its displayed values. */
+/** The calling class owns scoring rules; this component retains only its displayed values. */
 public class ScoreDisplay {
     private final Label label = new Label("Score: 0");
     private String caption = "Score";

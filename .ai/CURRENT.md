@@ -1,35 +1,39 @@
-# Published-app actions: source PR/CI/merge — 2026-10-27
+# Tutorial pathway — 2026-10-28
 
-Owner authorized source PR, CI and merge for faster unchanged publication checks
-and View published app. App publishing, installers, feeds and releases stay out
-of scope. Current branch codex/published-app-fast-check in tutorial-docs-label/zero.
+Outcome: four guided projects: Greeting, Coin, animated Pet, and a student's own
+polished welcome-screen project. Keep Study and the clearly labelled ZeroHub
+practice contribution available as optional tutorials. Teach commit/push at
+meaningful checkpoints and publish at each project end; Pet also teaches branch,
+refactor, merge, safe local deletion and re-cloning. Students use Zero and Java.
 
-Source ready: verifyUnchanged proves clean main/exact browser inputs and fresh
-operation-scoped access, checks live run/Pages/marker/main, then final project,
-source/session/mode guards. No permission cache or build required. Production
-saved-builder proof works without generated output; mutations retain their final
-synchronous guards. View published app opens a scoped saved HTTPS URL directly
-without saving/auth/source/network/build checks. Both actions are in Run options;
-no duplicate link below Run. Verified historical palette actions stay intact.
+Phases: (1) prepare and verify Pet and own-project lessons and checkpoints;
+(2) integrate the main and optional paths, editor reader, website, starter
+selection and legacy URLs/markers without fabricating template publication;
+(3) verify progression, native and WebFX/browser behavior, Git workflow and
+independent review. Source PR, template publication and releases are separate.
+Existing student projects and their versioned framework remain untouched.
 
-Prior independent Sol/high and Terra/high complete-diff reviews and targeted
-corrections are clean through022ee2aa; View follow-up clean through4779c4a8.
-273 publishing regressions, remediated adapter/library33 and targeted guards5,
-View134 plus configuration pass. Controlled orchestration timing2196→252ms
-(mocks/25ms access delay; not live-network timing). Actual light/dark source
-preview and dropdown keyboard checks pass; installed/native acceptance separate.
-Details in docs/EVIDENCE.md and ignored .verification/publish-fast/ receipts.
+Local integration and independent Sol/high review complete. Main/optional
+navigation preserves old IDs; existing three tutorial scaffold hashes match.
+Source draft PR #222 is open. Owner authorized template publication and source
+merge; app release/website rollout remain separate. Pet template PR #1 merged
+as d633a676 and original starter PR #2 merged as be4e47a5. Both anonymous public
+archives match all 95 reviewed files and executable modes. Update exact
+publication records, review the delta, run CI and merge #222 only when green.
 
-Sync latest origin/main38a1198c (Windows54 preview source) before PR; only CURRENT
-conflicted and was rewritten as this handoff. Preserve all upstream Windows54
-release metadata and evidence. Runtime feature files remain equal to reviewed
-3cc1d456. PR221 is open, currently draft for one CI correction. Integration review clean
-at acd9b13b;179 focused tests passed. Initial Windows CI correctly rejected changed
-tutorial checksums caused by editing shared snapshot.js. Restore that pinned
-project-builder source byte-for-byte and use the host adapter as the publisher’s
-default proof. Production injection already uses that host adapter.3 published
-template checks,70 builder/library/snapshot/lesson tests and3 integration tests
-pass; default host-proof test passes. No metadata/gate/template-publication changes.
-Next: targeted review of this correction, push, exact-head full CI and merge.
-No new release or hosted student app is part of this source delivery. Preserve
-Mac54 seals, installed app, primary checkout user work and paused DeepSeek pilot.
+Full npm test: 1426 pass, 3 skipped; website: 244 pass; post-correction
+reader16 and website21 pass, source checks pass. Pet animation/movement and
+sound request passed actual WebFX/Chromium; audible audio was not confirmed.
+Lesson14 passed actual WebFX/Chromium from an isolated generated original
+starter draft. Real student GitHub/Trash/re-clone, published Pages, physical
+Windows and school-network flows are untested. A Pet native Maven run launched
+without reported errors, but its window could not be observed through the UI
+tool; native movement, sound and clean exit remain unverified. Review found missing stop-before-publish and original-starter
+availability; targeted corrections reviewed clean. Actual model/time/usage
+unknown. Draft asset/checkpoint verification: `node teaching/new-curriculum/pet/verify.mjs`.
+
+Working branch `codex/study-quiz-classes` includes completed but unmerged Study
+refactor, independently reviewed and WebFX-tested. Preserve it as optional work.
+Lessons 10–11 require Study and Coin and state that prerequisite. Retain separate beginner
+editor guide worktree and parked ZeroJams. Prior evidence in
+`.verification/study-classes/` and `.verification/publish-fast/`.

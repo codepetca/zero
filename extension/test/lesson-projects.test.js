@@ -14,7 +14,7 @@ const coreContract = require('../src/core-contract');
 const sourceFiles = Object.fromEntries(coreContract.coreSourcePaths.map(name => [name,require('node:fs').readFileSync(path.resolve(__dirname,'../../framework',name))]));
 const coreFiles = [...Object.entries(sourceFiles).map(([name,content])=>({path:name,content:content.toString('base64'),mode:420})),
   {path:'zero-core.json',content:Buffer.from(JSON.stringify(coreContract.makeCoreRecord(sourceFiles))).toString('base64'),mode:420}];
-const sample = () => ({schema:2,projects:[['greeting','0','Greeting app'],['study','3','Study quiz'],['game','8','Coin game']].map(([id,lesson,title])=>({id,lesson,title,folder:`zero-project-${id}`,template:null,files:[
+const sample = () => ({schema:2,projects:[['greeting','0','Greeting app'],['study','3','Study quiz'],['game','8','Coin game'],['pet','13','Animated pet']].map(([id,lesson,title])=>({id,lesson,title,folder:`zero-project-${id}`,template:null,files:[
   {path:'zero.json',content:Buffer.from(JSON.stringify({name:id,templateVersion:'0.1.0',mainClass:'Main',repositoryRequired:true,tutorialProjectId:id,lessonId:lesson})).toString('base64'),mode:420},
   {path:'.gitignore',content:Buffer.from('target/\n').toString('base64'),mode:420},
   {path:'.vscode/settings.json',content:Buffer.from('{"git.enabled":true}').toString('base64'),mode:420},
@@ -23,7 +23,7 @@ const sample = () => ({schema:2,projects:[['greeting','0','Greeting app'],['stud
 ]}))});
 async function temporary(t){const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-lessons-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));return root;}
 test('bundle validation rejects traversal, bad base64, duplicate paths and false practice marker', () => {
-  assert.equal(lessons.validateBundle(sample()).length,3);
+  assert.equal(lessons.validateBundle(sample()).length,4);
   for(const unsafe of ['../secret','/secret','a/../../secret','a\\secret','.git/config','CON.txt','a:stream','trailing.','a/aux','bad?name','examples/Main.java','src/main/java/Question.java','src/main/resources/media-demo/player.png']) {
     const bundle=sample();bundle.projects[0].files[3].path=unsafe;
     assert.throws(()=>lessons.validateBundle(bundle));
@@ -179,4 +179,21 @@ test('lesson core record is required and bound to the actual included helper byt
  assert.throws(()=>lessons.validateBundle(drift),/differs/);
  const forged=sample(),manifest=forged.projects[0].files.find(file=>file.path==='zero-core.json');const value=JSON.parse(Buffer.from(manifest.content,'base64'));value.sourceSha256='a'.repeat(64);manifest.content=Buffer.from(JSON.stringify(value)).toString('base64');
  assert.throws(()=>lessons.validateBundle(forged),/mismatched/);
+});
+
+test('legacy tutorial markers and Pet retain their exact entry while an own project remains original',async t=>{
+ const root=await temporary(t);
+ for(const [id,lesson] of Object.entries({greeting:'0',study:'3',game:'8',pet:'13'})) {
+  const marker={tutorialProjectId:id,repositoryRequired:true,lessonId:lesson};
+  await fs.writeFile(path.join(root,'zero.json'),JSON.stringify(marker));
+  assert.deepEqual(await lessons.tutorialMarker(root),marker);
+  await assert.rejects(lessons.assertOriginalProject(root),/separate original project/);
+  await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({...marker,lessonId:'14'}));
+  await assert.rejects(lessons.tutorialMarker(root),/invalid tutorial repository marker/);
+ }
+ await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({name:'My own game',mainClass:'Main'}));
+ assert.equal(await lessons.tutorialMarker(root),null);
+ await assert.doesNotReject(lessons.assertOriginalProject(root));
+ const unexpected=sample();unexpected.projects.push({...unexpected.projects[3],id:'own-project',lesson:'14'});
+ assert.throws(()=>lessons.validateBundle(unexpected));
 });

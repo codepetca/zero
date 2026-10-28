@@ -59,7 +59,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   try{
     const args=process.argv.slice(2),projects=validateBundle(lessonProjects(root));
     if(!args.length)console.log(`Verified publication source evidence for ${checkPublishedTutorialTemplates(projects)} tutorial templates.`);
-    else if(args.length===2){const project=projects.find(item=>item.id===args[0]);if(!project)throw Error('Choose greeting, study or game.');console.log(JSON.stringify({id:project.id,scaffoldSha256:checkTutorialTemplateDirectory(project,path.resolve(args[1]))}));}
-    else throw Error('Usage: node scripts/check-tutorial-templates.mjs [greeting|study|game /pristine-template-directory]');
+    else if(args.length===2){const project=projects.find(item=>item.id===args[0]);if(!project)throw Error('Choose greeting, study, game or pet.');console.log(JSON.stringify({id:project.id,scaffoldSha256:checkTutorialTemplateDirectory(project,path.resolve(args[1]))}));}
+    else throw Error('Usage: node scripts/check-tutorial-templates.mjs [greeting|study|game|pet /pristine-template-directory]');
   }catch(error){console.error(error.message);process.exitCode=1;}
 }

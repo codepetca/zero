@@ -13,7 +13,7 @@ export function documentHref(id, fragment = '') {
   return documentDestination(id, fragment) ?? `/docs/${id}`;
 }
 export function resolveContentLink(source, href, documents, sources, assets = {}) {
-  const lessonDownload = href?.match(/^(?:https:\/\/zero\.codepet\.ca)?(\/generated\/learning-assets\/game-assets\.zip)$/);
+  const lessonDownload = href?.match(/^(?:https:\/\/zero\.codepet\.ca)?(\/generated\/learning-assets\/(?:game|pet)-assets\.zip)$/);
   if (lessonDownload) return lessonDownload[1];
   if (href?.startsWith("/generated/") || href?.startsWith("https://zero.codepet.ca/generated/")) return null;
   // Retired example selectors must not become live links in older authored prose.

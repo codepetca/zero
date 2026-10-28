@@ -2,6 +2,7 @@
 const path=require('node:path');
 const lessonProjects=require('../lesson-projects');
 const {assertTutorialTemplateReady}=require('../tutorial-template-readiness');
+const {tutorialGroups}=require('../tutorial-catalog');
 const core=require('../core');
 const {createProjectProgress,throwIfCancelled}=require('../project-folders');
 const ORIGINAL_TEMPLATE=Object.freeze({owner:'codepetca',repo:'zero-starter'});
@@ -65,7 +66,13 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
     const preparedTicket=prepare?await prepare():undefined;
     if(prepare&&!preparedTicket)return;
     if(!isActive())return;
-    const choice=await vscode.window.showQuickPick(projects.map(item=>({label:item.title,description:`Lessons ${{greeting:'0–2',study:'3–7',game:'8–12'}[item.id]}`,project:item})),{title:'Start tutorial'});
+    const choices=tutorialGroups.flatMap(group=>{
+      const item=projects.find(project=>project.id===group.id);
+      if(!item)return [];
+      const lessons=group.lessons.length===1?`Lesson ${group.lessons[0]}`:`Lessons ${group.lessons[0]}–${group.lessons.at(-1)}`;
+      return [{label:item.title,description:`${lessons}${group.id==='study'?' · Optional':''}${item.template?'':' · Template unavailable'}`,project:item}];
+    });
+    const choice=await vscode.window.showQuickPick(choices,{title:'Start tutorial'});
     if(!choice||!isActive())return;
     assertTutorialTemplateReady(choice.project);
     const [owner,repo]=choice.project.template.repository.split('/');

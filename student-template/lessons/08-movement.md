@@ -6,7 +6,7 @@
 
 [Start the Coin game project](README.md#start-a-lesson) once. Its `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` methods, and no Player class. Keep this folder for lessons 9–12; there is no new game download for the next lesson.
 
-Previous: [Your study quiz](07-study-app.md).
+Previous: [Your Greeting app](02-hello-name.md).
 
 ## 1. Write Player.java
 
