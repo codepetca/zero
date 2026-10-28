@@ -10,7 +10,11 @@ Open the **same Greeting project** you changed in lessons 0 and 1.
 
 ## 1. Add this import beside your other Zero imports
 
-Add this import beside your other Zero imports:
+Find:
+
+`import zero.ui.Label;`
+
+Add below it:
 
 ```java
 import zero.ui.TextField;
@@ -18,7 +22,11 @@ import zero.ui.TextField;
 
 ## 2. Create a text field before the button in `setup()`
 
-In `setup()`, after the `greeting` line and before the `button` line, write:
+In `setup()`, find:
+
+`Button button = new Button("Say hello");`
+
+Add above it:
 
 ```java
 TextField name = new TextField();
@@ -27,7 +35,11 @@ name.setPromptText("Your name");
 
 ## 3. Change the button action to read the name
 
-Change the button's existing action to:
+Find the existing action (your message may differ):
+
+`button.onClick(() -> greeting.setText("You did it!"));`
+
+Replace with:
 
 ```java
 button.onClick(() ->
@@ -36,7 +48,11 @@ button.onClick(() ->
 
 ## 4. Put the field between the label and button
 
-Replace the `show(...)` line so the field appears between the other controls:
+Find:
+
+`show(new Column(10, greeting, button));`
+
+Replace with:
 
 ```java
 show(new Column(10, greeting, name, button));

@@ -11,7 +11,7 @@ Previous: [Practise sharing a component](11-zerohub.md).
 ## 1. Draw an image from Player
 
 Add `import zero.ImageRegion;` to your existing Player. Keep its shape-drawing
-method for the drawing route, and add:
+method for the drawing route. Find the existing `public void draw(GameApp app)` method near the end of `Player.java`. Add the following method after its closing brace and before the final class brace:
 
 ```java
 public void drawImage(GameApp app, ImageRegion sprite) {
@@ -26,7 +26,7 @@ still one Player, with the same movement and collision rules.
 ## 2. Add fields to Main
 
 Import `zero.ImageRegion`, `zero.Sound` and `zero.ui.Column`. Keep the existing
-Zero Label, Button and Row imports. Add:
+Zero Label, Button and Row imports. In `Main.java`, find `private Label message;` among the fields at the top of the class. Add the following fields immediately below it, before `settings()`:
 
 ```java
 private ImageRegion sprite;
@@ -38,7 +38,7 @@ private int plays;
 
 ## 3. Add an explicit artwork action
 
-Add this method to Main:
+In `Main.java`, find the end of `setup()` (after its `restart();` call). Add the following method after `setup()`’s closing brace and before `public void restart()`, inside the class:
 
 ```java
 public void loadAssets() {
@@ -76,7 +76,7 @@ The ready label means the action selected resources, not that sound was heard.
 
 ## 4. Add controls once in setup
 
-Replace the existing `controls(new Column(...))` call with:
+In `Main.java` inside `setup()`, find the `controls(new Column(8, ...)` call containing `new Row(12, score.view(), message, restartButton), badge.view()`. Replace the entire call, including its closing `));`, with:
 
 ```java
 soundStatus = new Label("");
@@ -93,7 +93,7 @@ The second row gives the action and its result room below the score. The game
 starts in drawing mode, even when resources are bundled.
 
 At the start of `restart()`, add `if (chime != null) chime.stop();`. After resetting
-points, reset the request counter:
+points, find `points = 0;` and add the following lines immediately below it, before `won = false;`:
 
 ```java
 plays = 0;
@@ -146,7 +146,7 @@ your code. The API reference describes additional image and sound methods.
 
 ## 8. Optional stage 2: scroll a wider world
 
-Keep editing this folder. Add a new `Camera.java` class with a private `double x`, `double x()` getter, and this method:
+Keep editing this folder. Create `Camera.java` beside `Main.java` in `src/main/java/`. Inside `public class Camera { ... }`, add a private `double x` field and `double x()` getter. Add this method after the getter and before the class’s final closing brace:
 
 ```java
 public void follow(double playerX, double viewportWidth, double worldWidth) {

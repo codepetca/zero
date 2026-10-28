@@ -91,9 +91,10 @@ function renderMarkdown(text, {link, image, code} = {}) {
 function renderLessons(bundle,{assetUri}) {
   const copies = new Map();
   let count = 0;
-  const code = text => {
+  const code = (text, fullFile = false) => {
     const id = `code-${count++}`; copies.set(id,text);
-    return `<div class="code-block"><button type="button" class="copy" data-copy="${id}" aria-label="Copy code">Copy</button><pre data-copy="${id}" tabindex="0" aria-label="Code; press Enter to copy"><code>${escapeHtml(text)}</code></pre></div>`;
+    const lines = fullFile ? text.replace(/\n$/, '').split('\n').map(line => `<span class="code-line">${escapeHtml(line)}</span>`).join('\n') : escapeHtml(text);
+    return `<div class="code-block">${fullFile ? '<span class="code-label">Reference file lines</span>' : ''}<button type="button" class="copy" data-copy="${id}" aria-label="Copy code">Copy</button><pre data-copy="${id}" tabindex="0" aria-label="Code; press Enter to copy"><code>${lines}</code></pre></div>`;
   };
   const articles = bundle.lessons.map(lesson => {
     let refCount = 0;
@@ -115,8 +116,8 @@ function renderLessons(bundle,{assetUri}) {
     const body = lesson.markdown.replace(/^# .+\n/,'').replace(/^(?:Next|Previous): .*$/gm,'').replace(/^Target illustration:.*$/gm,'');
     const group = bundle.groups.find(item => item.lessons.includes(lesson.id));
     const {previous,next} = navigationIds(lesson.id);
-    const references = Object.entries(lesson.references).map(([name,text]) => `<details id="${referenceIds[name]}" class="reference"><summary>${escapeHtml(name.replace(/^teaching\/checkpoints\//,'Checkpoint ').replace(/^student-template\/examples\//,'Example '))}</summary>${name.endsWith('.java') ? code(text) : renderMarkdown(text,{code})}</details>`).join('');
-    return `<article class="lesson" data-lesson-id="${lesson.id}" hidden><p class="eyebrow">${escapeHtml(group.title)} · Lesson ${lesson.id}</p><h1 tabindex="-1">${escapeHtml(lesson.title)}</h1><div class="lesson-content">${renderMarkdown(body,options)}</div>${references ? `<section class="references" aria-label="Full code references"><h2>Compare your code</h2><p>Try the task first. These completed references do not change your project.</p>${references}</section>` : ''}<nav class="pagination" aria-label="Lesson navigation">${previous ? `<button type="button" class="text-button" data-lesson="${previous}">← Previous lesson</button>` : '<span></span>'}${next ? `<button type="button" class="primary" data-lesson="${next}">Next lesson →</button>` : '<button type="button" class="text-button" data-index="true">All tutorials →</button>'}</nav></article>`;
+    const references = Object.entries(lesson.references).map(([name,text]) => `<details id="${referenceIds[name]}" class="reference"><summary>${escapeHtml(name.replace(/^teaching\/checkpoints\//,'Checkpoint ').replace(/^student-template\/examples\//,'Example '))}</summary>${name.endsWith('.java') ? code(text,true) : renderMarkdown(text,{code})}</details>`).join('');
+    return `<article class="lesson" data-lesson-id="${lesson.id}" hidden><p class="eyebrow">${escapeHtml(group.title)} · Lesson ${lesson.id}</p><h1 tabindex="-1">${escapeHtml(lesson.title)}</h1><div class="lesson-content">${renderMarkdown(body,options)}</div>${references ? `<section class="references" aria-label="Full code references"><h2>Compare your code</h2><p>Try the task first. These completed references do not change your project. Their line numbers may differ from your own file.</p>${references}</section>` : ''}<nav class="pagination" aria-label="Lesson navigation">${previous ? `<button type="button" class="text-button" data-lesson="${previous}">← Previous lesson</button>` : '<span></span>'}${next ? `<button type="button" class="primary" data-lesson="${next}">Next lesson →</button>` : '<button type="button" class="text-button" data-index="true">All tutorials →</button>'}</nav></article>`;
   }).join('');
   const navigation = bundle.groups.map(group => `<optgroup label="${escapeHtml(group.title)}">${group.lessons.map(id => `<option value="${id}">${id}. ${escapeHtml(bundle.lessons.find(lesson => lesson.id === id).title)}</option>`).join('')}</optgroup>`).join('');
   return {articles,navigation,copies};

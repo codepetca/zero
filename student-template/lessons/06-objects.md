@@ -11,7 +11,8 @@ Open your **Study project** from lesson 5. Keep its controls and methods.
 ## 1. Create `Counter.java` beside `Main.java`
 
 Create `src/main/java/Counter.java` beside `Main.java`. Write an ordinary class
-with one private number and three public methods:
+with one private number and three public methods. Paste this complete code into
+the new file:
 
 ```java
 public class Counter {
@@ -25,8 +26,11 @@ public class Counter {
 
 ## 2. Replace the attempts number with a Counter field
 
-No special framework registration is needed. In `Main`, replace the old field
-`private int attempts = 0;` with:
+No special framework registration is needed. In `Main`, find:
+
+`private int attempts = 0;`
+
+Replace with:
 
 ```java
 private final Counter attempts = new Counter();
@@ -34,7 +38,11 @@ private final Counter attempts = new Counter();
 
 ## 3. Ask Counter to increment in `checkAnswer()`
 
-In `checkAnswer()`, replace the two attempt-counting lines with:
+In `checkAnswer()`, find:
+
+`attempts = attempts + 1;` `attemptsLabel.setText("Attempts: " + attempts);`
+
+Replace with:
 
 ```java
 attempts.increment();
@@ -43,7 +51,11 @@ attemptsLabel.setText("Attempts: " + attempts.value());
 
 ## 4. Ask Counter to reset in `resetQuiz()`
 
-In `resetQuiz()`, replace `attempts = 0;` and the next label update with:
+In `resetQuiz()`, find:
+
+`attempts = 0;` `attemptsLabel.setText("Attempts: 0");`
+
+Replace with:
 
 ```java
 attempts.reset();
@@ -83,7 +95,7 @@ These are the changes to the code you already wrote:
    calling `show(...)` in this class.
 5. Add `view()` to return that Column. Main will show it.
 
-Here is the complete StudyQuiz after moving the code; compare it to your old
+Paste this complete code into the new `StudyQuiz.java` file. Compare it to your old
 Main and notice that the two quiz actions are unchanged:
 
 ```java
@@ -142,8 +154,9 @@ registering a component with Zero.
 
 ## 7. Leave only app startup in Main
 
-Remove the moved quiz fields, controls and action methods from Main. Its only
-remaining field is the quiz object. Your complete Main is now:
+Replace the entire contents of `Main.java` with the complete code below. This
+removes the moved quiz fields, controls and action methods; its only remaining
+field is the quiz object:
 
 ```java
 import zero.App;

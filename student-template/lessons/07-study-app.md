@@ -51,7 +51,11 @@ public class Question {
 
 Keep `settings()` and `padding(20)` in Main. In **StudyQuiz.java**, keep the
 `layout`, `Counter attempts`, `answer`, `feedback` and `attemptsLabel` fields.
-Add these fields beside them, above the `StudyQuiz()` constructor:
+Find this field in `StudyQuiz.java`:
+
+`private Label attemptsLabel;`
+
+**Add below:**
 
 ```java
 private final Question[] questions = {
@@ -76,7 +80,11 @@ second point for the same question; `finished` stops checking after completion.
 
 ## 3. Update the StudyQuiz constructor
 
-In `public StudyQuiz()`, change the old local `Label question` to the field:
+In `public StudyQuiz()`, **find this:**
+
+`Label question = new Label("What is 2 + 3?");`
+
+**Replace with:**
 
 ```java
 questionLabel = new Label("");
@@ -84,20 +92,27 @@ questionLabel = new Label("");
 
 ## 4. Create Next, Restart and score controls
 
-Change the old local `Button check` to `check = new Button("Check");`.
-Replace the old Reset button with two fields, and create a score label:
+**Find these lines** in the constructor:
+
+`Button check = new Button("Check");` `Button reset = new Button("Reset");`
+
+**Replace with:**
 
 ```java
+check = new Button("Check");
 next = new Button("Next");
 restart = new Button("Restart");
 scoreLabel = new Label("");
 ```
 
+
 ## 5. Connect the actions and replace the layout
 
-Keep your `answer`, `feedback` and `attemptsLabel` creation lines. Replace
-the old Reset action and layout with these lines. Put `showQuestion()` and
-`refreshStats()` after assigning `layout` so the existing controls are initialized:
+Keep your `answer`, `feedback` and `attemptsLabel` creation lines. **Find these lines** in the constructor:
+
+`check.onClick(() -> checkAnswer());` `reset.onClick(() -> resetQuiz());` `layout = new Column(10, question, answer, check, reset, feedback, attemptsLabel);`
+
+**Replace with:**
 
 ```java
 check.onClick(() -> checkAnswer());
@@ -114,8 +129,11 @@ There should be one `check.onClick(...)` line. Remove the old
 
 ## 6. Check once, then move forward
 
-Replace the old `checkAnswer()` method with this version. It still counts each
-try through your Counter from lesson 6:
+**Find this entire method** in StudyQuiz:
+
+`private void checkAnswer() {` `attempts.increment();` `attemptsLabel.setText("Attempts: " + attempts.value());` `if (answer.getText().equals("5")) {` `feedback.setText("Correct!");` `} else {` `feedback.setText("Try again.");` `}` `}`
+
+**Replace with:**
 
 ```java
 private void checkAnswer() {
@@ -140,7 +158,7 @@ quiz rules. Disabling a button reflects that state; it does not replace it.
 
 ## 7. Add methods to advance and show questions
 
-Add these methods below it, still inside StudyQuiz:
+**Find** the closing brace of the `checkAnswer()` method you just replaced. **Add below** that method, still inside StudyQuiz:
 
 ```java
 private void nextQuestion() {
@@ -176,7 +194,11 @@ new answer is correct. The controls are reused; StudyQuiz does not rebuild them 
 
 ## 8. Add methods to restart and refresh stats
 
-Replace the old `resetQuiz()` with `restartSession()` and add `refreshStats()`:
+**Find this entire method:**
+
+`private void resetQuiz() {` `attempts.reset();` `attemptsLabel.setText("Attempts: " + attempts.value());` `answer.setText("");` `feedback.setText("");` `}`
+
+**Replace with:**
 
 ```java
 private void restartSession() {

@@ -16,14 +16,7 @@ A **refactor** changes how code is organized while preserving its behaviour.
 Run the unchanged game using the checks in step 4 and record the results first.
 Then start with the six input lines inside Main's `update(double seconds)`:
 
-```java
-int horizontal = 0;
-int vertical = 0;
-if (keyDown(Key.LEFT)) horizontal--;
-if (keyDown(Key.RIGHT)) horizontal++;
-if (keyDown(Key.UP)) vertical--;
-if (keyDown(Key.DOWN)) vertical++;
-```
+`int horizontal = 0;` `int vertical = 0;` `if (keyDown(Key.LEFT)) horizontal--;` `if (keyDown(Key.RIGHT)) horizontal++;` `if (keyDown(Key.UP)) vertical--;` `if (keyDown(Key.DOWN)) vertical++;`
 
 They answer two questions: which horizontal direction and which vertical direction
 is held? Player already accepts those answers. Give input its own class without
@@ -67,24 +60,37 @@ PlayerInput is your ordinary Java class, with no superclass or framework callbac
 
 ## 3. Make Main ask for directions
 
-Add `private PlayerInput input;` beside Main's other fields. At the beginning of
-its existing `setup()`, create the helper once:
+In the game `Main.java`, **find:**
+
+`private Player player;`
+
+**Add below:**
+
+```java
+private PlayerInput input;
+```
+
+In `setup()`, **find:**
+
+`@Override public void setup() {`
+
+**Add below** to create the helper once:
 
 ```java
 input = new PlayerInput(this);
 ```
 
 As with `player.draw(this)`, `this` is the running Main object, which is a GameApp.
-Remove `import zero.Key;` from Main; PlayerInput now uses that import. In update,
-replace the six input lines with the two calls below. Keep the existing win guard,
-Player call and coin checks in their existing order:
+Remove `import zero.Key;` from Main; PlayerInput now uses that import. In `update()`, **find** the six input lines shown in step 1. **Replace those six lines with:**
 
 ```java
-if (won) return;
 int horizontal = input.horizontal();
 int vertical = input.vertical();
-player.update(horizontal, vertical, seconds, width(), height());
 ```
+
+The surrounding code should now read:
+
+`if (won) return;` `int horizontal = input.horizontal();` `int vertical = input.vertical();` `player.update(horizontal, vertical, seconds, width(), height());`
 
 Read directions on every update. Reading them once in setup would remember only
 startup input. Keep the same PlayerInput when Restart creates a new Player:
@@ -137,7 +143,48 @@ public class ScoreDisplay {
 
 ## 6. Replace the StudyQuiz display calls
 
-In StudyQuiz, change the field `private Label scoreLabel;` to `private ScoreDisplay score;`. In the `StudyQuiz()` constructor, replace `scoreLabel = new Label("");` with `score = new ScoreDisplay();` and place `score.view()` in the existing `Column` where `scoreLabel` was. In `refreshStats()`, replace `scoreLabel.setText("Score: " + points);` with `score.setScore(points);`. Keep `points`, question rules, `Counter`, and Restart in StudyQuiz.
+In `StudyQuiz.java`, **find:**
+
+`private Label scoreLabel;`
+
+**Replace with:**
+
+```java
+private ScoreDisplay score;
+```
+
+In the constructor, **find:**
+
+`scoreLabel = new Label("");`
+
+**Replace with:**
+
+```java
+score = new ScoreDisplay();
+```
+
+In that constructor, **find:**
+
+`layout = new Column(10, questionLabel, answer, check, next, restart,` `feedback, attemptsLabel, scoreLabel);`
+
+**Replace with:**
+
+```java
+layout = new Column(10, questionLabel, answer, check, next, restart,
+        feedback, attemptsLabel, score.view());
+```
+
+In `refreshStats()`, **find:**
+
+`scoreLabel.setText("Score: " + points);`
+
+**Replace with:**
+
+```java
+score.setScore(points);
+```
+
+Keep `points`, question rules, `Counter`, and Restart in StudyQuiz.
 
 ## 7. Run App and test the study quiz
 
@@ -147,7 +194,57 @@ Each `new ScoreDisplay()` creates one Label through the field initializer. Java 
 
 ## 8. Use the same class in your Coin game
 
-Copy **your own** `ScoreDisplay.java` from the study folder into your existing Coin game's `src/main/java/`. Do not copy a new Main or Player. In the game's Main, change `private Label scoreLabel;` to `private ScoreDisplay score;`. In `setup()`, use `score = new ScoreDisplay();` and replace `scoreLabel` in the existing `Row` with `score.view()`. In `restart()` and after `points++`, change each score-label update to `score.setScore(points);`. Keep that reset call after setting `points = 0`, and keep `showGame()` at the end of Restart.
+Copy **your own** `ScoreDisplay.java` from the study folder into your existing Coin game's `src/main/java/` as a new file. Do not copy a new Main or Player. In the game's `Main.java`, **find:**
+
+`private Label scoreLabel;`
+
+**Replace with:**
+
+```java
+private ScoreDisplay score;
+```
+
+In `setup()`, **find:**
+
+`scoreLabel = new Label("");`
+
+**Replace with:**
+
+```java
+score = new ScoreDisplay();
+```
+
+In `setup()`, **find:**
+
+`controls(new Row(12, scoreLabel, message, restartButton));`
+
+**Replace with:**
+
+```java
+controls(new Row(12, score.view(), message, restartButton));
+```
+
+In `restart()`, after `points = 0`, **find:**
+
+`scoreLabel.setText("Score: 0");`
+
+**Replace with:**
+
+```java
+score.setScore(points);
+```
+
+In `update()`, after `points++`, **find:**
+
+`scoreLabel.setText("Score: " + points);`
+
+**Replace with:**
+
+```java
+score.setScore(points);
+```
+
+Keep `showGame()` at the end of Restart.
 
 ## 9. Run App and test the Coin game
 
@@ -155,7 +252,11 @@ Leave the message Label and game rules in Main. Run App: collect a coin and stay
 
 ## 10. Improve one class, then check both uses
 
-Try changing the displayed word from Score to Points. In ScoreDisplay, change both the label initializer and setScore text:
+Try changing the displayed word from Score to Points. In `ScoreDisplay.java`, **find** the field and method:
+
+`private final Label label = new Label("Score: 0");`  `public void setScore(int points) {` `label.setText("Score: " + points);` `}`
+
+**Replace with:**
 
 ```java
 private final Label label = new Label("Points: 0");
