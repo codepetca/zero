@@ -2,6 +2,7 @@ import {appendFileSync, readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {isDeepStrictEqual} from 'node:util';
 
 export const groups=['source','native','browser','windows','website','sharing','lessons'];
 const full=()=>Object.fromEntries(groups.map(name=>[name,true]));
@@ -14,7 +15,7 @@ const websiteConfig=new Set(['website/package.json','website/package-lock.json',
 // Deliberately a small allowlist. Unknown/shared executable inputs retain every
 // existing lane. Renames are read as a deletion plus addition, so the old scope
 // cannot disappear when a file moves into a narrower category.
-export function classify(files) {
+export function classify(files, {kitPublicationPromotion = false} = {}) {
   if(!Array.isArray(files)||!files.length)return full();
   const selected=Object.fromEntries(groups.map(name=>[name,false]));
   const add=(...names)=>names.forEach(name=>selected[name]=true);
@@ -22,6 +23,10 @@ export function classify(files) {
     if(typeof file!=='string'||/[\\\x00-\x1f\x7f]/.test(file)||file.split('/').some(part=>!part||part==='.'||part==='..'))return full();
     if(file==='AGENTS.md'||file==='design.md'||/^\.ai\/.*\.md$/.test(file))continue;
     if(file==='README.md'||/^docs\/.*\.(md|png|jpe?g|svg|css)$/.test(file)){add('website');continue;}
+    // Only scopeForEvent can establish this from both committed manifests.
+    // Source release guards and website validation still run; no immutable kit
+    // is rebuilt. Any other changed shared/runtime input retains full coverage.
+    if(file==='release/kit.json'&&kitPublicationPromotion){add('source','website');continue;}
     if(dev.has(file))continue; // Always-run Dev contracts cover these inputs.
     if(file==='scripts/zero-dev.mjs'||file.startsWith('scripts/dev/')){add('native');continue;}
     if(ui.has(file)||file.startsWith('design/playground/')){add('source');continue;}
@@ -33,6 +38,37 @@ export function classify(files) {
   }
   return selected;
 }
+export function isKitPublicationPromotion(before, after) {
+  const keys=(value,names)=>value&&typeof value==='object'&&!Array.isArray(value)&&
+    isDeepStrictEqual(Object.keys(value).sort(),[...names].sort());
+  if(!keys(before,['schema','kitVersion','coreVersion','publication','assets'])||
+      !keys(after,['schema','kitVersion','coreVersion','publication','assets'])||before.schema!==1||
+      !/^\d+\.\d+\.\d+$/.test(before.kitVersion)||
+      !keys(before.publication,['status','repository','tag'])||!keys(after.publication,['status','repository','tag'])||
+      before.publication.status!=='local'||after.publication.status!=='published'||
+      before.publication.repository!=='codepetca/zero'||before.publication.tag!==`v${before.kitVersion}`||
+      !keys(before.assets,['kit','starter','extension'])||!keys(after.assets,['kit','starter','extension']))return false;
+  const filenames={kit:'zero-bootstrap.zip',starter:'zero-starter.zip',extension:`zero-${before.kitVersion}.vsix`};
+  const stripped=structuredClone(after);
+  stripped.publication.status='local';
+  for(const [key,filename] of Object.entries(filenames)) {
+    const old=before.assets[key],asset=after.assets[key];
+    if(!keys(old,['filename','label'])||!keys(asset,['filename','label','size','sha256','url'])||
+        old.filename!==filename||typeof old.label!=='string'||!old.label||
+        !Number.isSafeInteger(asset.size)||asset.size<=0||typeof asset.sha256!=='string'||!/^[a-f0-9]{64}$/.test(asset.sha256)||
+        asset.url!==`https://github.com/codepetca/zero/releases/download/${before.publication.tag}/${filename}`)return false;
+    stripped.assets[key]={filename:asset.filename,label:asset.label};
+  }
+  return isDeepStrictEqual(before,stripped);
+}
+function committedKitPromotion(base,head,cwd) {
+  const read=ref=>{
+    const result=spawnSync('git',['show',`${ref}:release/kit.json`],{cwd,encoding:'utf8',maxBuffer:128*1024});
+    if(result.status!==0||result.error)throw new Error('Unavailable kit manifest history');
+    return JSON.parse(result.stdout);
+  };
+  try {return isKitPublicationPromotion(read(base),read(head));} catch {return false;}
+}
 export function scopeForEvent(event,cwd=process.cwd()) {
   try {
     if(!event.pull_request)return full(); // Manual invocations always run all lanes.
@@ -40,7 +76,14 @@ export function scopeForEvent(event,cwd=process.cwd()) {
     if(![base,head].every(value=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value)))return full();
     const result=spawnSync('git',['diff','--name-only','--no-renames','-z',`${base}...${head}`],{cwd,encoding:'utf8',maxBuffer:8*1024*1024});
     if(result.status!==0||result.error)return full();
-    return classify(result.stdout.split('\0').filter(Boolean));
+    const files=result.stdout.split('\0').filter(Boolean);
+    let kitPublicationPromotion=false;
+    if(files.includes('release/kit.json')) {
+      const ancestor=spawnSync('git',['merge-base',base,head],{cwd,encoding:'utf8',maxBuffer:1024});
+      if(ancestor.status!==0||ancestor.error||!/^[a-f0-9]{40}$/.test(ancestor.stdout.trim()))return full();
+      kitPublicationPromotion=committedKitPromotion(ancestor.stdout.trim(),head,cwd);
+    }
+    return classify(files,{kitPublicationPromotion});
   } catch {return full();}
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)) {

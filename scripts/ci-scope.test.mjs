@@ -4,7 +4,7 @@ import {mkdtempSync, writeFileSync, mkdirSync, rmSync, readFileSync} from 'node:
 import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
-import {classify, scopeForEvent} from './ci-scope.mjs';
+import {classify, scopeForEvent, isKitPublicationPromotion} from './ci-scope.mjs';
 
 test('guidance and docs avoid unrelated native/export/install checks', () => {
   for (const file of ['AGENTS.md', '.ai/CURRENT.md', 'docs/DEVELOPMENT.md']) {
@@ -54,5 +54,54 @@ test('PR diff reads actual commits with deletion/rename and fails closed on unav
     const event={pull_request:{base:{sha:base},head:{sha:head}}};assert.ok(Object.values(scopeForEvent(event,root)).every(v=>v===true));
     assert.ok(Object.values(scopeForEvent({pull_request:{base:{sha:'a'.repeat(40)},head:{sha:head}}},root)).every(v=>v===true));
     assert.ok(Object.values(scopeForEvent({},root)).every(v=>v===true));
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
+test('only exact three-asset local-to-published kit metadata qualifies for promotion', () => {
+  const before={schema:1,kitVersion:'0.5.55',coreVersion:'0.3.0',publication:{status:'local',repository:'codepetca/zero',tag:'v0.5.55'},assets:{
+    kit:{filename:'zero-bootstrap.zip',label:'Complete Zero kit'},starter:{filename:'zero-starter.zip',label:'Starter project'},extension:{filename:'zero-0.5.55.vsix',label:'Zero extension'}}};
+  const after=structuredClone(before);after.publication.status='published';
+  for(const asset of Object.values(after.assets))Object.assign(asset,{size:123,sha256:'a'.repeat(64),url:`https://github.com/codepetca/zero/releases/download/v0.5.55/${asset.filename}`});
+  assert.equal(isKitPublicationPromotion(before,after),true);
+  for(const mutate of [
+    value=>value.kitVersion='0.5.56',value=>value.coreVersion='0.4.0',value=>value.publication.tag='v0.5.56',
+    value=>value.publication.repository='other/zero',value=>value.publication.status='local',
+    value=>value.assets.kit.filename='replacement.zip',value=>value.assets.kit.label='Changed label',
+    value=>value.assets.kit.size=0,value=>value.assets.kit.size=1.5,value=>value.assets.kit.sha256='bad',value=>value.assets.kit.sha256=['a'.repeat(64)],
+    value=>value.assets.kit.url+='?redirect=elsewhere',value=>value.assets.kit.url=value.assets.kit.url.replace('codepetca','other'),
+    value=>delete value.assets.starter,value=>value.assets.extra={filename:'unexpected.zip'},value=>value.unexpected=true,
+    value=>value.assets.kit.unexpected=true
+  ]) {const invalid=structuredClone(after);mutate(invalid);assert.equal(isKitPublicationPromotion(before,invalid),false);}
+  assert.equal(isKitPublicationPromotion(after,after),false,'published asset edits are not promotions');
+  assert.equal(isKitPublicationPromotion(null,after),false);
+  assert.ok(Object.values(classify(['release/kit.json'])).every(Boolean),'a path alone cannot establish safe metadata');
+});
+test('real Git publication diff scopes metadata while mixed runtime and CI changes remain full', () => {
+  const root=mkdtempSync(path.join(os.tmpdir(),'zero-ci-kit-promotion-'));
+  const git=(...args)=>{const r=spawnSync('git',args,{cwd:root,encoding:'utf8'});assert.equal(r.status,0,r.stderr);return r.stdout.trim();};
+  const write=(file,value)=>{mkdirSync(path.dirname(path.join(root,file)),{recursive:true});writeFileSync(path.join(root,file),typeof value==='string'?value:JSON.stringify(value));};
+  try {
+    git('init','-q');git('config','maintenance.auto','false');git('config','user.name','CI fixture');git('config','user.email','ci@example.invalid');
+    const before={schema:1,kitVersion:'0.5.55',coreVersion:'0.3.0',publication:{status:'local',repository:'codepetca/zero',tag:'v0.5.55'},assets:{
+      kit:{filename:'zero-bootstrap.zip',label:'Kit'},starter:{filename:'zero-starter.zip',label:'Starter'},extension:{filename:'zero-0.5.55.vsix',label:'Extension'}}};
+    write('release/kit.json',before);git('add','.');git('commit','-qm','local kit');const base=git('rev-parse','HEAD');
+    const after=structuredClone(before);after.publication.status='published';
+    for(const asset of Object.values(after.assets))Object.assign(asset,{size:123,sha256:'a'.repeat(64),url:`https://github.com/codepetca/zero/releases/download/v0.5.55/${asset.filename}`});
+    const scope=baseSha=>scopeForEvent({pull_request:{base:{sha:baseSha||base},head:{sha:git('rev-parse','HEAD')}}},root);
+    const publish=()=>{write('release/kit.json',after);git('add','.');git('commit','-qm','publish measured metadata');};
+    publish();const promotedHead=git('rev-parse','HEAD');
+    assert.deepEqual(scope(),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
+    write('README.md','updated public download');git('add','.');git('commit','-qm','document download');assert.equal(scope().windows,false);
+    for(const file of ['extension/src/native-updates.js','native-installer/windows/Program.cs','framework/src/main/java/zero/App.java','student-template/README.md','release/START-HERE.md','scripts/ci-scope.mjs','scripts/ci-scope.test.mjs','.github/workflows/windows-native.yml','unknown.cfg']) {
+      git('reset','--hard',promotedHead);write(file,'changed executable or unknown input');git('add','.');git('commit','-qm','mixed change');
+      assert.ok(Object.values(scope()).every(Boolean),file);
+    }
+    git('reset','--hard',base);const changed=structuredClone(after);changed.coreVersion='0.4.0';write('release/kit.json',changed);git('add','.');git('commit','-qm','mixed manifest change');assert.ok(Object.values(scope()).every(Boolean));
+    write('release/kit.json','invalid JSON');git('add','.');git('commit','-qm','malformed manifest');assert.ok(Object.values(scope()).every(Boolean));
+    git('reset','--hard',base);git('rm','release/kit.json');git('commit','-qm','remove manifest');assert.ok(Object.values(scope()).every(Boolean));
+    git('reset','--hard',promotedHead);assert.ok(Object.values(scopeForEvent({},root)).every(Boolean),'manual runs stay full');
+    // Compare publication metadata at the merge base, matching the path diff,
+    // even when the target branch has advanced independently.
+    git('checkout','-qb','advanced-base',base);write('docs/advance.md','new base docs');git('add','.');git('commit','-qm','advance target');const advanced=git('rev-parse','HEAD');
+    git('checkout','--detach',promotedHead);assert.equal(scope(advanced).windows,false);
   } finally {rmSync(root,{recursive:true,force:true});}
 });
