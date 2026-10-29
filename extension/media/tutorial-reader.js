@@ -5,7 +5,6 @@
   const articles = Array.from(document.querySelectorAll('.lesson'));
   const ids = new Set(articles.map(article => article.dataset.lessonId));
   const picker = document.getElementById('lesson-picker');
-  const index = document.getElementById('lesson-index');
   let current = null, ready = false, timer, restoring = false;
   let state = {lessonId:'0',scroll:{},details:{}};
   const status = text => {document.getElementById('status').textContent = text;};
@@ -21,7 +20,7 @@
     save(); restoring = true;
     current = id; state.lessonId = id; picker.value = id;
     articles.forEach(article => {article.hidden = article.dataset.lessonId !== id;});
-    document.title = `Tutorials — Lesson ${id}`;
+    document.title = `Tutorial Docs — Lesson ${id}`;
     const article = articles.find(item => item.dataset.lessonId === id);
     if (focus) article.querySelector('h1').focus({preventScroll:true});
     requestAnimationFrame(() => {
@@ -42,8 +41,7 @@
   document.addEventListener('click',event => {
     const button = event.target.closest('button,a,pre[data-copy]');
     if (!button) return;
-    if (button.dataset.lesson) {index.hidden = true;show(button.dataset.lesson);}
-    else if (button.dataset.index) {index.hidden = !index.hidden;if (!index.hidden) picker.focus();}
+    if (button.dataset.lesson) {show(button.dataset.lesson);}
     else if (button.dataset.browserLesson) vscode.postMessage({type:'browser',lessonId:button.dataset.browserLesson});
     else if (button.id === 'browser') vscode.postMessage({type:'browser',lessonId:current});
     else if (button.dataset.external) vscode.postMessage({type:'external',url:button.dataset.external});
@@ -65,7 +63,7 @@
     const id = event.target.dataset.detail || event.target.id;
     state.details[id] = event.target.open;save();
   },true);
-  picker.addEventListener('change',() => {index.hidden = true;show(picker.value);});
+  picker.addEventListener('change',() => {show(picker.value);});
   window.addEventListener('scroll',() => {clearTimeout(timer);timer = setTimeout(save,150);},{passive:true});
   window.addEventListener('pagehide',save);
   document.addEventListener('visibilitychange',() => {if (document.hidden) save();});

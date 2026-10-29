@@ -74,7 +74,7 @@ test('main and optional navigation share explicit edges without renumbering old 
   const pagination=id=>articles.split(`data-lesson-id="${id}"`)[1].split('</article>')[0].split('<nav class="pagination"')[1];
   for(const [from,to] of [['0','1'],['1','2'],['2','8'],['8','9'],['9','13'],['13','14'],['3','4'],['6','7'],['10','11']]) assert.match(pagination(from),new RegExp(`class="primary" data-lesson="${to}"`));
   for(const end of ['7','11','12','14']) {
-    assert.match(pagination(end),/data-index="true"/);
+    assert.doesNotMatch(pagination(end),/data-index="true"/);
     assert.doesNotMatch(pagination(end),/class="primary" data-lesson=/);
   }
   const pet=bundle.lessons.find(lesson=>lesson.id==='13');
