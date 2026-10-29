@@ -12163,3 +12163,10 @@ checked against every generated scaffold file and executable mode; verified comm
 tree and scaffold hashes are recorded in teaching/tutorial-templates.json. Each
 repository is public, remains a template and has main as its default branch. Template
 repositories had no configured CI. Zero source changes remain local until merged.
+
+The first CI run exposed that changing the generated publishing guide also changes
+its ownership fingerprint. The migration accepts two exact, independently verified
+historical fingerprints and matching markers; unknown or edited files remain blocked.
+Focused migration and publishing tests passed, including both historical upgrades,
+recovery bytes and forged/mixed marker rejection. Independent review compared the
+fixtures against canonical Git source and found no unresolved issue.
