@@ -15,14 +15,25 @@ App, Vercel secret or account-setting change is needed. Publication uses your
 existing CLI account; CI preparation retains read-only GitHub permissions.
 
 1. Create a feature branch from current `main`. Choose an unused numeric version,
-   for example `0.5.2`. Set the kit/extension versions, tag and filename together:
-   `release/kit.json` → `kitVersion`, `publication.tag` and extension filename;
-   `extension/package.json` → `version`. Set publication status to `local` and
+   for example `0.5.57`. When `release/kit.json` is already local, run
+   `npm run release:version -- 0.5.57` to update the aligned kit/extension version,
+   tag and VSIX filename. Check the guide edits and working tree. This command
+   does not choose a version, verify remote availability, build or publish.
+   For a published manifest first prepare a new local manifest; never overwrite
+   published release metadata or assets. Set publication status to `local` and
    clear the main assets' old `url`, `size` and `sha256` values. Keep optional
    components local. Update the VSIX filename in `release/START-HERE.md`,
    `docs/GETTING-STARTED.md` and `student-template/README.md`. Change core versions
    only when the core actually changes. Keep the last verified README download
    until the new release is public.
+
+After independently preparing the signed, notarized Mac candidate and Windows
+Store MSIX candidate from the same clean source and kit, `npm run release:pair --
+--mac <mac-candidate-dir> --windows <windows-candidate-dir> --version <version>
+--source <full-commit-sha> --output <new-receipt-path>` verifies their receipts,
+artifact hashes, Store mapping and embedded Windows kit bytes. It records the
+limits of Mac receipt evidence; it does not build the artifacts or establish WACK,
+installation, certification or publication. Existing checks and release holds apply.
 2. Complete the normal source PR review and CI, then merge it to `main`.
 3. Approve publishing that exact version by running this once from a Zero checkout:
 
