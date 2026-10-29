@@ -16,7 +16,7 @@ const settle = async predicate => {
     await new Promise(resolve=>setImmediate(resolve));
   }
 };
-async function fixture(t, {studentExplorer=false, lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, empty=false, profile, initialSession, githubAccess=async()=>{}, unpublishedTutorials=false, staleTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
+async function fixture(t, {studentExplorer=false, lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, integratedBrowser=false, empty=false, profile, initialSession, githubAccess=async()=>{}, unpublishedTutorials=false, staleTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
   if (typeof profile === 'function') profile=profile(root);
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
@@ -36,7 +36,7 @@ async function fixture(t, {studentExplorer=false, lesson=true, lessonFile='00-he
     workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:empty?[]:[{uri:{fsPath:root}}],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>true,onDidChangeConfiguration:disposable,
       onDidChangeWorkspaceFolders:fn=>{folderChanged=fn;return disposable();},openTextDocument:async uri=>({uri}),createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}})},
     window:{createWebviewPanel:(type,title,column,options)=>{const panel={type,title,column,options,messages:[],reveals:[],reveal(...args){this.reveals.push(args);},onDidDispose:disposable,dispose(){},webview:{html:'',cspSource:'https://resources.invalid',asWebviewUri:uri=>({toString:()=>`https://resources.invalid/${path.basename(uri.fsPath)}`}),postMessage:async message=>{panel.messages.push(message);panel.restored=message;return true;},onDidReceiveMessage:fn=>{panel.message=fn;return disposable();}}};panels.push(panel);if(type==='zero.startPage')queueMicrotask(()=>panel.message?.({type:'ready'}));return panel;},tabGroups:{get all(){tabReads++;return [{tabs:tabsDuringPreparation&&tabReads>1?[{}]:openTabs.concat(trackPanelTabs?panels.map(panel=>({input:{viewType:panel.type}})):[])}];}},activeTextEditor:activeEditor?{}:undefined,createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:pick,showInputBox:async options=>options.title==='GitHub repository URL'?'https://github.com/student/app':input(options),showOpenDialog:async()=>[{fsPath:root}],showInformationMessage:async(text,...choices)=>{notices.push({text,choices});return information(text,...choices);},showErrorMessage:text=>errors.push(text),showTextDocument:async(document,options)=>{calls.push(['showTextDocument',document.uri,options]);}},
-    commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(...args)=>{calls.push(args);return execute(...args);}},
+    commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},getCommands:async()=>integratedBrowser?['workbench.action.browser.open']:[],executeCommand:async(...args)=>{calls.push(args);return execute(...args);}},
     tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTask:fn=>{ends.push(fn);return disposable();},onDidEndTaskProcess:fn=>{processEnds.push(fn);return disposable();},registerTaskProvider:disposable,
       executeTask:async task=>{const active={task,terminate(){processEnds.forEach(fn=>fn({execution:active,exitCode:undefined}));ends.forEach(fn=>fn({execution:active}));}};launches.push(active);starts.forEach(fn=>fn({execution:active}));return active;}},
     ViewColumn:{One:1,Beside:2},Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ProcessExecution:class{},ShellExecution:class{},
@@ -79,7 +79,8 @@ test('first lesson opens once per project and can be reopened without modifying 
   f.folderChanged(); await new Promise(resolve=>setTimeout(resolve,30));
   assert.equal(previews().length,1,'Already introduced project must not reopen the lesson');
   await f.commands.get('zero.openFirstLesson')();
-  assert.equal(previews().length,2);
+  assert.equal(previews().length,1);
+  assert.equal(f.calls.filter(([id])=>id==='openExternal').length,1);
   assert.doesNotMatch(f.webview.html,/data-command="zero.openFirstLesson"/,'Tutorials live in the native view menu');
   assert.equal(await fs.readFile(path.join(f.root,'lessons/00-hello-world.md'),'utf8'),'# First lesson');
 });
@@ -87,12 +88,17 @@ test('existing tutorial markers and Pet open their stable first lesson without c
   for(const [tutorial,id] of Object.entries({greeting:'0',study:'3',game:'8',pet:'13'})) {
     const f=await fixture(t,{tutorial,lesson:false,unpublishedTutorials:true});
     await settle(()=>f.remembered.get(`zero.firstLessonShown:${f.root}`));
-    const panel=f.panels.find(panel=>panel.type==='zero.tutorials');
-    await panel.message({type:'ready'});assert.equal(panel.restored.state.lessonId,id);
+    assert.equal(f.calls.find(([command])=>command==='openExternal')[1].value,`https://zero.codepet.ca/tutorials/${id}`);
     assert.equal(f.calls.filter(([command])=>command==='showTextDocument').length,1);
-    assert.equal(f.calls.filter(([command])=>['createRepository','cloneRepository','openExternal'].includes(command)).length,0);
+    assert.equal(f.calls.filter(([command])=>['createRepository','cloneRepository'].includes(command)).length,0);
     assert.deepEqual(f.errors,[]);
   }
+});
+test('Tutorial Docs opens the matching website lesson beside the editor when integrated browser is available',async t=>{
+  const f=await fixture(t,{tutorial:'pet',lesson:false,activeEditor:true,integratedBrowser:true});
+  await f.commands.get('zero.openFirstLesson')();
+  assert.deepEqual(f.calls.find(([id])=>id==='workbench.action.browser.open'),['workbench.action.browser.open',{url:'https://zero.codepet.ca/tutorials/13',openToSide:true}]);
+  assert.equal(f.calls.filter(([id])=>id==='openExternal').length,0);
 });
 test('existing projects migrate once to native Explorer and expand the Zero controls',async t=>{
   const remembered=new Map([['zero.sidebarShown',true]]);
@@ -121,9 +127,10 @@ test('Start Page Tutorials link opens the reader without a project or GitHub sig
   const f=await fixture(t,{empty:true,execute:async id=>f.commands.get(id)?.()});
   await settle(()=>f.startState?.phase==='signed-out');
   await f.startPage.message({type:'action',action:'tutorials',token:f.startPage.restored.token});
-  assert.deepEqual(f.panels.map(panel=>panel.type),['zero.startPage','zero.tutorials']);
+  assert.deepEqual(f.panels.map(panel=>panel.type),['zero.startPage']);
+  assert.equal(f.calls.find(([id])=>id==='openExternal')[1].value,'https://zero.codepet.ca/tutorials/0');
   assert.equal(f.launches.length,0);assert.ok(f.authCalls.every(call=>call.options.silent));
-  assert.equal(f.calls.filter(([id])=>['createRepository','cloneRepository','vscode.openFolder','openExternal'].includes(id)).length,0);
+  assert.equal(f.calls.filter(([id])=>['createRepository','cloneRepository','vscode.openFolder'].includes(id)).length,0);
   assert.deepEqual(f.errors,[]);
 });
 test('local and cloned projects persist the Start Page handoff before replacing the workspace',async t=>{
@@ -152,7 +159,8 @@ test('destination activation retains Start Page while opening Main and Tutorials
   }]])});
   await settle(()=>f.remembered.get(`zero.firstLessonShown:${f.root}`));
   assert.equal(f.calls.filter(([id])=>id==='showTextDocument').length,1);
-  assert.deepEqual(f.panels.map(panel=>panel.type),['zero.startPage','zero.tutorials']);
+  assert.deepEqual(f.panels.map(panel=>panel.type),['zero.startPage']);
+  assert.equal(f.calls.find(([id])=>id==='openExternal')[1].value,'https://zero.codepet.ca/tutorials/0');
   assert.deepEqual(f.startPage.column,{viewColumn:1,preserveFocus:true});
   assert.equal(profile.get('zero.startPageHandoff'),undefined);
   f.folderChanged();await new Promise(resolve=>setTimeout(resolve,30));
@@ -203,9 +211,9 @@ test('canceling initial access check creates nothing and retry reuses the saved 
 });
 test('own tutorial opens Main and its lesson while installation check never opens a lesson',async t=>{
   const tutorial=await fixture(t,{tutorial:true});
-  await settle(()=>tutorial.panels.length===1&&tutorial.remembered.get(`zero.firstLessonShown:${tutorial.root}`));
+  await settle(()=>tutorial.remembered.get(`zero.firstLessonShown:${tutorial.root}`));
   assert.ok(tutorial.calls.some(([id,uri])=>id==='showTextDocument'&&uri.fsPath===path.join(tutorial.root,'src/main/java/Main.java')));
-  assert.equal(tutorial.panels[0].title,'Tutorials');
+  assert.equal(tutorial.calls.find(([id])=>id==='openExternal')[1].value,'https://zero.codepet.ca/tutorials/0');
   assert.equal(tutorial.calls.filter(([id])=>id==='markdown.showPreview').length,0);
   const setup=await fixture(t,{setupCheck:true});
   await settle(()=>setup.webview.html.includes('Installation test · Hello World'));
@@ -222,7 +230,7 @@ test('older kits retain their quiz first-lesson entry point', async t=>{
 test('installing during source editing does not replace the active editor', async t=>{
   const f=await fixture(t,{activeEditor:true});
   await f.commands.get('zero.openFirstLesson')();
-  assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,1,'Only the explicit command opens the lesson');
+  assert.equal(f.calls.filter(([id])=>id==='openExternal').length,1,'Only the explicit command opens Tutorial Docs');
   assert.deepEqual(f.errors,[]);
 });
 test('an existing Markdown preview is preserved on first activation', async t=>{
@@ -230,7 +238,7 @@ test('an existing Markdown preview is preserved on first activation', async t=>{
   await settle(()=>f.tabReads()>0);
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
   await f.commands.get('zero.openFirstLesson')();
-  assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,1,'Explicit reopen remains available');
+  assert.equal(f.calls.filter(([id])=>id==='openExternal').length,1,'Explicit reopen remains available');
 });
 test('a tab opened during asynchronous lesson preparation is preserved', async t=>{
   const f=await fixture(t,{tabsDuringPreparation:true});
@@ -238,7 +246,7 @@ test('a tab opened during asynchronous lesson preparation is preserved', async t
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
   assert.equal(f.remembered.get(`zero.firstLessonShown:${f.root}`),undefined);
   await f.commands.get('zero.openFirstLesson')();
-  assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,1);
+  assert.equal(f.calls.filter(([id])=>id==='openExternal').length,1);
 });
 test('lessonless projects support native Run App and bundled Tutorials', async t=>{
   const f=await fixture(t,{lesson:false});
@@ -246,10 +254,8 @@ test('lessonless projects support native Run App and bundled Tutorials', async t
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
   assert.equal(f.calls.filter(([id])=>id==='openExternal').length,0);
   await f.commands.get('zero.openFirstLesson')();assert.deepEqual(f.errors,[]);
-  assert.equal(f.panels.length,1);assert.equal(f.panels[0].type,'zero.tutorials');
-  assert.match(f.panels[0].webview.html,/Open in browser/);
-  assert.equal(f.calls.filter(([id])=>id==='openExternal').length,0);
-  assert.equal(f.remembered.get(`zero.firstLessonShown:${f.root}`),undefined);
+  assert.equal(f.calls.filter(([id])=>id==='openExternal').length,1);
+  assert.equal(f.remembered.get(`zero.firstLessonShown:${f.root}`),true);
 });
 test('only failed owned native tasks offer Problems; success and Stop are normal exits', async t=>{
   const f=await fixture(t,{lesson:false});
@@ -271,15 +277,12 @@ test('new local project opens its bundled guide beside Main without replacing an
   const f=await fixture(t,{practice:true});
   await settle(()=>f.remembered.get(`zero.firstLessonShown:${f.root}`));
   assert.equal(f.calls.filter(([id])=>id==='showTextDocument').length,1);
-  assert.equal(f.panels.length,1);assert.equal(f.panels[0].column.viewColumn,2);
-  await f.panels[0].message({type:'ready'});assert.equal(f.panels[0].restored.state.lessonId,'3');
-  assert.equal(f.calls.filter(([id])=>id==='openExternal').length,0);
+  assert.equal(f.calls.find(([id])=>id==='openExternal')[1].value,'https://zero.codepet.ca/tutorials/3');
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
   const editing=await fixture(t,{practice:true,activeEditor:true});
   await editing.commands.get('zero.openFirstLesson')();
   assert.equal(editing.calls.filter(([id])=>id==='showTextDocument').length,0);
-  assert.equal(editing.panels.length,1);await editing.panels[0].message({type:'ready'});
-  assert.equal(editing.panels[0].restored.state.lessonId,'3');
+  assert.equal(editing.calls.find(([id])=>id==='openExternal')[1].value,'https://zero.codepet.ca/tutorials/3');
 });
 
 test('idle status stays empty and a refused tutorial launch explains recovery',async t=>{
@@ -287,9 +290,7 @@ test('idle status stays empty and a refused tutorial launch explains recovery',a
   assert.match(f.webview.html,/aria-live="polite"><\/p>/);
   assert.doesNotMatch(f.webview.html,/Ready to run/);
   await f.commands.get('zero.openFirstLesson')();
-  assert.deepEqual(f.errors,[]);assert.equal(f.panels.length,1);
-  await f.panels[0].message({type:'browser',lessonId:'0'});
-  assert.match(f.errors.at(-1),/Could not open Tutorials:.*browser.*Open in browser again/);
+  assert.match(f.errors.at(-1),/Could not open Tutorial Docs in your browser/);
   assert.equal(f.remembered.get(`zero.firstLessonShown:${f.root}`),undefined);
 });
 

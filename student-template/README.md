@@ -134,7 +134,7 @@ Create **Study quiz** at lesson 3 and continue it through lesson 7. Create
 Study and Game to reuse your own class. Lesson 12's only optional download is
 an image/sound ZIP; your own assets or drawing fallback work too.
 
-**Zero: Open First Lesson** opens the project's first online lesson. The website sidebar
+**Zero: Tutorial docs** opens the project's first online lesson. The website sidebar
 lets you choose your next lesson. A failed Run offers **Show Problems**.
 See the [lesson guide](lessons/README.md) or optional [beginner toolkit](BEGINNER.md).
 Complete examples are separate references; run them only in their own local copy.

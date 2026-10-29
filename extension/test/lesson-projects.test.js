@@ -120,9 +120,9 @@ test('local practice sharing commands stop before authentication, saves, Git or 
   assert.equal(saves,0);assert.equal(external,0);assert.equal(authCalls,1,'Only activation may inspect native sign-in silently');
   await fs.writeFile(path.join(root,'zero.json'),'{broken');
   await commands.get('zero.openFirstLesson')();
-  assert.match(errors.at(-1),/zero\.json is damaged.*Restore its project marker.*start a new project/i);
+  assert.equal(external,1,'Tutorial Docs remains available when the project marker is damaged');
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({localOnly:true,lessonId:0}));
-  await commands.get('zero.openFirstLesson')();assert.match(errors.at(-1),/no valid lessonId.*Restore its project marker/i);
+  await commands.get('zero.openFirstLesson')();assert.equal(external,2);
   await fs.writeFile(path.join(root,'zero.json'),'{broken');
   await commands.get('zero.shareGame')();assert.match(errors.at(-1),/local lesson practice/i);
   await commands.get('zero.runNativeApp')();assert.match(errors.at(-1),/zero.json is damaged/);assert.equal(launches,0);

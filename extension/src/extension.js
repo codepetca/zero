@@ -42,6 +42,7 @@ const {createSavedSourceStatus}=require('./saved-source-status');
 const {createSavedSourceHost}=require('./saved-source-host');
 const {runtimeDiagnostics}=require('./runtime-session');
 const {createTutorialReader} = require('./tutorial-reader');
+const {openTutorialDocs} = require('./tutorial-browser');
 const {createStartPage} = require('./start-page');
 const {createWebPublishCommands} = require('./web-publish-ui');
 const {createAssetCommands} = require('./assets');
@@ -154,7 +155,7 @@ function activate(context, services = {}) {
     if (tutorial) {
       if (await project() !== root || (onlyWhenEmpty && hasOpenEditors())) return false;
       if (!hasOpenEditors()) await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(root,'src/main/java/Main.java'))), {preview:false});
-      await tutorials.open(root, tutorial.lessonId);
+      await openTutorialDocs(vscode, tutorial.lessonId);
       return true;
     }
     if (practice) {
@@ -169,7 +170,7 @@ function activate(context, services = {}) {
           const main = path.join(root, 'src', 'main', 'java', 'Main.java');
           await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(vscode.Uri.file(main)), {preview:false});
         }
-        await tutorials.open(root, marker.lessonId);
+        await openTutorialDocs(vscode, marker.lessonId);
         return true;
       }
     }
@@ -958,11 +959,24 @@ function activate(context, services = {}) {
     'zero.runNativeApp': expectedRoot => actions['zero.runApp'](expectedRoot),
     'zero.stopApp': stopRequested,
     'zero.openFirstLesson': async () => {
-      if (!(vscode.workspace.workspaceFolders || []).length) {await tutorials.open(undefined,'0');return;}
-      const root = await project();
-      if (await openFirstLesson(root)) {
-        await context.workspaceState.update(`zero.firstLessonShown:${root}`, true);
-      } else await tutorials.open(root);
+      let lessonId = '0';
+      let root;
+      if ((vscode.workspace.workspaceFolders || []).length) {
+        try {
+          root = await project();
+          const marker = JSON.parse(await fs.readFile(path.join(root,'zero.json'),'utf8'));
+          if (['greeting','study','game','pet'].includes(marker.tutorialProjectId) || ['greeting','study','game'].includes(marker.practiceProjectId)) {
+            const first = {greeting:'0',study:'3',game:'8',pet:'13'};
+            lessonId = first[marker.tutorialProjectId || marker.practiceProjectId];
+          }
+        } catch { /* Tutorial Docs is available without a valid project marker. */ }
+      }
+      await openTutorialDocs(vscode, lessonId);
+      if (root) {
+        let currentRoot;
+        try { currentRoot = await project(); } catch { /* The project may have closed while the browser opened. */ }
+        if (currentRoot === root) await context.workspaceState.update(`zero.firstLessonShown:${root}`, true);
+      }
     },
     'zero.startProject': async () => {
       if (disposed || isBusy()) return;
