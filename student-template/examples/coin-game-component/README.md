@@ -31,4 +31,4 @@ HBox. After changing points, Main calls `score.setScore(points)` explicitly.
 ScoreDisplay owns its Label; Main owns points, the goal and the win rule.
 Player and Coin are the unchanged Lesson 6 classes. Neither the display nor
 the game objects extend App; Main extends GameApp and hosts ordinary
-JavaFX nodes around its canvas. See [Lesson 9](../../lessons/10-components.md).
+JavaFX nodes around its canvas. See [Lesson 9](https://zero.codepet.ca/tutorials/10).

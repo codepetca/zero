@@ -55,7 +55,6 @@ async function fixture(t, {studentExplorer=false, lesson=true, lessonFile='00-he
   // stamping the real public-template records, which intentionally remain stale.
   const extensionPath=path.join(root,'extension-fixture');
   await fs.mkdir(path.join(extensionPath,'media'),{recursive:true});
-  await fs.copyFile(path.join(__dirname,'../media/tutorial-content.json'),path.join(extensionPath,'media/tutorial-content.json'));
   const bundle=JSON.parse(await fs.readFile(path.join(__dirname,'../media/lesson-projects.json'),'utf8'));
   const {tutorialScaffoldSha256}=require('../src/tutorial-template-readiness');
   for (const project of bundle.projects) {
@@ -70,19 +69,15 @@ async function fixture(t, {studentExplorer=false, lesson=true, lessonFile='00-he
   const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
   return {root,commands,calls,errors,launches,webview,panels,get startPage(){return panels.find(panel=>panel.type==='zero.startPage');},get startState(){return this.startPage?.restored?.state;},remembered,finish,vscode,notices,authCalls,subscriptions,setSession(value){session=value;sessionChanged({provider:{id:'zero-github'}});},setInteractiveSession(value){interactiveSession=value;},setFailure(value){authFailure=value;},tabReads:()=>tabReads,folderChanged:()=>folderChanged()};
 }
-test('first lesson opens once per project and can be reopened without modifying student source', async t=>{
-  const f=await fixture(t);
+test('tutorial opens online once per project and can be reopened', async t=>{
+  const f=await fixture(t,{tutorial:'greeting',lesson:false});
   await settle(()=>f.remembered.get(`zero.firstLessonShown:${f.root}`));
-  const previews=()=>f.calls.filter(([id])=>id==='markdown.showPreview');
-  assert.equal(previews().length,1);
-  assert.equal(previews()[0][1].fsPath,path.join(f.root,'lessons/00-hello-world.md'));
-  f.folderChanged(); await new Promise(resolve=>setTimeout(resolve,30));
-  assert.equal(previews().length,1,'Already introduced project must not reopen the lesson');
-  await f.commands.get('zero.openFirstLesson')();
-  assert.equal(previews().length,1);
   assert.equal(f.calls.filter(([id])=>id==='openExternal').length,1);
-  assert.doesNotMatch(f.webview.html,/data-command="zero.openFirstLesson"/,'Tutorials live in the native view menu');
-  assert.equal(await fs.readFile(path.join(f.root,'lessons/00-hello-world.md'),'utf8'),'# First lesson');
+  f.folderChanged(); await new Promise(resolve=>setTimeout(resolve,30));
+  assert.equal(f.calls.filter(([id])=>id==='openExternal').length,1);
+  await f.commands.get('zero.openFirstLesson')();
+  assert.equal(f.calls.filter(([id])=>id==='openExternal').length,2);
+  assert.equal(await fs.readFile(path.join(f.root,'src/main/java/Main.java'),'utf8'),'class Main {}\n');
 });
 test('existing tutorial markers and Pet open their stable first lesson without checking template readiness',async t=>{
   for(const [tutorial,id] of Object.entries({greeting:'0',study:'3',game:'8',pet:'13'})) {
@@ -221,12 +216,6 @@ test('own tutorial opens Main and its lesson while installation check never open
   assert.match(setup.webview.html,/Run test<\/button>/);
   assert.equal(setup.panels.length,0);assert.equal(setup.calls.filter(([id])=>id==='markdown.showPreview').length,0);
 });
-test('older kits retain their quiz first-lesson entry point', async t=>{
-  const f=await fixture(t,{lessonFile:'01-quiz.md'});
-  await settle(()=>f.remembered.get(`zero.firstLessonShown:${f.root}`));
-  const preview=f.calls.find(([id])=>id==='markdown.showPreview');
-  assert.equal(preview[1].fsPath,path.join(f.root,'lessons/01-quiz.md'));
-});
 test('installing during source editing does not replace the active editor', async t=>{
   const f=await fixture(t,{activeEditor:true});
   await f.commands.get('zero.openFirstLesson')();
@@ -241,14 +230,14 @@ test('an existing Markdown preview is preserved on first activation', async t=>{
   assert.equal(f.calls.filter(([id])=>id==='openExternal').length,1,'Explicit reopen remains available');
 });
 test('a tab opened during asynchronous lesson preparation is preserved', async t=>{
-  const f=await fixture(t,{tabsDuringPreparation:true});
+  const f=await fixture(t,{tabsDuringPreparation:true,tutorial:'greeting',lesson:false});
   await settle(()=>f.tabReads()>=2);
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
   assert.equal(f.remembered.get(`zero.firstLessonShown:${f.root}`),undefined);
   await f.commands.get('zero.openFirstLesson')();
   assert.equal(f.calls.filter(([id])=>id==='openExternal').length,1);
 });
-test('lessonless projects support native Run App and bundled Tutorials', async t=>{
+test('lessonless projects support native Run App and online Tutorial Docs', async t=>{
   const f=await fixture(t,{lesson:false});
   await f.commands.get('zero.runApp')();assert.equal(f.launches.length,1);
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
@@ -271,18 +260,6 @@ test('only failed owned native tasks offer Problems; success and Stop are normal
   await f.commands.get('zero.runApp')();await f.commands.get('zero.stopApp')();
   assert.match(f.webview.html,/App stopped/);assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
   assert.match(f.webview.html,/data-command="zero.toggleApp"[^>]*>[\s\S]*Run<\/button>/);
-});
-
-test('new local project opens its bundled guide beside Main without replacing an editor', async t=>{
-  const f=await fixture(t,{practice:true});
-  await settle(()=>f.remembered.get(`zero.firstLessonShown:${f.root}`));
-  assert.equal(f.calls.filter(([id])=>id==='showTextDocument').length,1);
-  assert.equal(f.calls.find(([id])=>id==='openExternal')[1].value,'https://zero.codepet.ca/tutorials/3');
-  assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
-  const editing=await fixture(t,{practice:true,activeEditor:true});
-  await editing.commands.get('zero.openFirstLesson')();
-  assert.equal(editing.calls.filter(([id])=>id==='showTextDocument').length,0);
-  assert.equal(editing.calls.find(([id])=>id==='openExternal')[1].value,'https://zero.codepet.ca/tutorials/3');
 });
 
 test('idle status stays empty and a refused tutorial launch explains recovery',async t=>{

@@ -1,6 +1,6 @@
 # Build, extract, reuse, contribute
 
-Use the [lesson sequence](lessons/README.md) for the guided app/game builds.
+Use the [lesson sequence](https://zero.codepet.ca/learn) for the guided app/game builds.
 These are optional later exercises.
 For these later exercises, copy `examples/quiz/Main.java` and
 `examples/shared/ScoreDisplay.java` into `src/main/java/`. Keep changes small enough
@@ -34,7 +34,7 @@ switching examples; the exact copy list is in [README.md](README.md#try-an-examp
    event handlers. Add one Question to the array without changing the handlers.
    Try a wrong answer, success, another check, Next, the final summary and
    Restart. Verify the new question appears and the score resets. See the
-   [Study Quiz lesson](lessons/07-study-app.md) for the rules and reusable objects.
+   [Study Quiz lesson](https://zero.codepet.ca/tutorials/7) for the rules and reusable objects.
 7. **Animate an ordinary object.** Copy both animation Main and Player exactly
    as listed. Identify the explicit update/draw calls. Replace the smoothing
    formula in Player with `x = targetX; y = targetY;` and compare. Restore it,

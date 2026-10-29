@@ -6,7 +6,7 @@ The complete public/protected API declared by `zero.App`, `zero.GameApp`,
 Actor, zero.Color, zero.Key and zero.ui are local source additions and are unreleased. Mac setup 0.5.23 includes
 the earlier image, animation, collision and audio helpers with core 0.2.1. Older downloads keep
 their bundled API; use their own reference when working with an older kit.
-Learn through the [tutorials](lessons/00-hello-world.md); use this reference to
+Learn through the [tutorials](https://zero.codepet.ca/tutorials/0); use this reference to
 look up methods. Installation and troubleshooting are in [setup help](README.md).
 
 [App](#app) · [GameApp](#gameapp) · [Game flow](#game-flow) ·
@@ -672,8 +672,8 @@ The readable [App source](src/main/java/zero/App.java) and
 [GameApp source](src/main/java/zero/GameApp.java) are the authority for a
 locally modified framework. Ordinary JavaFX controls and example classes such as
 ScoreDisplay, Player and Question have their own APIs; see the
-[object lesson](lessons/06-objects.md), [Player lesson](lessons/08-movement.md#how-player-uses-the-app-to-draw)
-and [reusable views lesson](lessons/10-components.md#reusable-views) for their use.
+[object lesson](https://zero.codepet.ca/tutorials/6), [Player lesson](https://zero.codepet.ca/tutorials/8#how-player-uses-the-app-to-draw)
+and [reusable views lesson](https://zero.codepet.ca/tutorials/10#reusable-views) for their use.
 
 The source starter includes JavaFX controls, graphics and media. Use `loadSound` for effects and `loadMusic` for tracks; see the
 [audio reference](#audio). Raw JavaFX AudioClip/MediaPlayer

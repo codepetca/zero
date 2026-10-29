@@ -6,7 +6,6 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {coreSources} from './prepare-starter.mjs';
 import {prepareLessonProjects} from './lesson-projects.mjs';
-import {prepareTutorials} from './prepare-tutorials.mjs';
 import {prepareDesign} from '../design/prepare.mjs';
 import {processSpecification} from './process-specification.mjs';
 
@@ -117,7 +116,6 @@ export function prepareDev() {
   const result = prepareGame();
   prepareDesign({website:false});
   prepareLessonProjects();
-  prepareTutorials();
   console.log(`Zero Dev · framework ${result.sourceHash.slice(0, 12)} · ${result.game}`);
   if (result.preserved.length) console.log(`Kept your edits: ${result.preserved.join(', ')}`);
   return result;

@@ -1,5 +1,4 @@
 import {prepareDesign} from '../design/prepare.mjs';
-import {prepareTutorials} from './prepare-tutorials.mjs';
 import {mkdirSync, readFileSync, writeFileSync, readdirSync, copyFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import path from 'node:path';
@@ -17,7 +16,6 @@ checkPublishedTutorialTemplates();
 prepareStarter();
 prepareLessonProjects();
 prepareDesign();
-prepareTutorials();
 const license = new Uint8Array(readFileSync(path.join(root, 'LICENSE')));
 // vsce packages its extension directory; retain the canonical license in every VSIX.
 copyFileSync(path.join(root, 'LICENSE'), path.join(root, 'extension/LICENSE'));
@@ -61,6 +59,7 @@ for (const [source, destination] of [
 ]) kit[`zero-kit/${destination}`] = [new Uint8Array(readFileSync(path.join(root, source))), {os:3, attrs:(0o100644 << 16) >>> 0}];
 const combined = archive(kit, release.assets.kit.filename);
 assert.ok(combined['zero-kit/START-HERE.md']);
+assert.ok(!Object.keys(combined).some(key => key.startsWith('zero-kit/starter/lessons/')));
 assert.deepEqual(combined['zero-kit/LICENSE'], license);
 assert.deepEqual(combined['zero-kit/starter/LICENSE'], license);
 assert.ok(combined['zero-kit/starter/src/main/java/Main.java']);

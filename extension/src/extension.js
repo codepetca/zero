@@ -41,7 +41,6 @@ const {createBrowserRunCommands,sourceDiagnostics} = require('./web-run-ui');
 const {createSavedSourceStatus}=require('./saved-source-status');
 const {createSavedSourceHost}=require('./saved-source-host');
 const {runtimeDiagnostics}=require('./runtime-session');
-const {createTutorialReader} = require('./tutorial-reader');
 const {openTutorialDocs} = require('./tutorial-browser');
 const {createStartPage} = require('./start-page');
 const {createWebPublishCommands} = require('./web-publish-ui');
@@ -142,58 +141,16 @@ function activate(context, services = {}) {
     for(const view of controlViews)render(view.webview,view.viewType==='zero.studentControls');startPage?.refresh();
   };
   const report = (text, detail = text) => {state=text;output.appendLine(detail);refresh();};
-  const tutorials = createTutorialReader(vscode,{context,output,project});
-  context.subscriptions.push(tutorials);
   const hasOpenEditors = () => Boolean(vscode.window.activeTextEditor) || Boolean(vscode.window.tabGroups?.all.some(group => group.tabs.some(tab => !startPage?.owns(tab))));
   async function openFirstLesson(root, onlyWhenEmpty = false) {
     if (isSetupProject(root)) return false;
-    let filename;
-    // Older kits start with the quiz; preserve their first-lesson entry point.
-    const practice = await lessonProjects.isLocalPractice(root);
-    let marker = null;
-    const tutorial = practice ? null : await lessonProjects.tutorialMarker(root);
-    if (tutorial) {
-      if (await project() !== root || (onlyWhenEmpty && hasOpenEditors())) return false;
-      if (!hasOpenEditors()) await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(root,'src/main/java/Main.java'))), {preview:false});
-      await openTutorialDocs(vscode, tutorial.lessonId);
-      return true;
-    }
-    if (practice) {
-      try {marker = JSON.parse(await fs.readFile(path.join(root, 'zero.json'), 'utf8'));}
-      catch {throw new Error('This practice project’s zero.json is damaged. Restore its project marker or start a new project to open the guide. GitHub sharing stays blocked until the marker is restored.');}
-      if (!marker || typeof marker.lessonId !== 'string' || !/^(?:[0-9]|1[0-2])(?:-[a-z]+)?$/.test(marker.lessonId)) throw new Error('This project’s zero.json has no valid lessonId. Restore its project marker or start a new project to open the guide.');
-      if (['greeting','study','game'].includes(marker.practiceProjectId)) {
-        const firstLessons = {greeting:'0',study:'3',game:'8'};
-        if (marker.lessonId !== firstLessons[marker.practiceProjectId]) throw new Error('This project’s zero.json has an invalid first lesson. Restore its project marker or start a new project.');
-        if (await project() !== root || (onlyWhenEmpty && hasOpenEditors())) return false;
-        if (!hasOpenEditors()) {
-          const main = path.join(root, 'src', 'main', 'java', 'Main.java');
-          await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(vscode.Uri.file(main)), {preview:false});
-        }
-        await openTutorialDocs(vscode, marker.lessonId);
-        return true;
-      }
-    }
-    const lessonPrefix = marker ? `${marker.lessonId.split('-')[0].padStart(2,'0')}-` : '';
-    const lessonNames = practice
-      ? (await fs.readdir(path.join(root, 'lessons')).catch(() => [])).filter(name => name.startsWith(lessonPrefix) && name.endsWith('.md')).sort()
-      : ['00-hello-world.md', '01-quiz.md'];
-    for (const name of lessonNames) {
-      const candidate = path.join(root, 'lessons', name);
-      try {if ((await fs.stat(candidate)).isFile()) {filename = candidate; break;}}
-      catch (error) {if (error.code !== 'ENOENT') throw error;}
-    }
-    if (!filename) return false;
-    // A folder switch during preparation must not open another project's lesson.
-    if (await project() !== root) return false;
-    if (onlyWhenEmpty && hasOpenEditors()) return false;
-    if (practice) {
-      const main = path.join(root, 'src', 'main', 'java', 'Main.java');
-      await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(vscode.Uri.file(main)), {preview:false});
-    }
-    await vscode.commands.executeCommand('markdown.showPreview', vscode.Uri.file(filename));
+    const tutorial = await lessonProjects.tutorialMarker(root);
+    if (!tutorial || await project() !== root || (onlyWhenEmpty && hasOpenEditors())) return false;
+    if (!hasOpenEditors()) await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(root,'src/main/java/Main.java'))), {preview:false});
+    await openTutorialDocs(vscode, tutorial.lessonId);
     return true;
   }
+
   async function introduceProject() {
     const folders = vscode.workspace.workspaceFolders || [];
     if (!folders.length && hasOpenEditors() && !launchedForZero) return;
@@ -1116,7 +1073,7 @@ function activate(context, services = {}) {
   const buildWithSavedProject=options=>savedBuilder.ensureValidatedExport({...options,explicitAction:true});
   const validateWithSavedProject=options=>savedBuilder.validateExport({...options,explicitAction:true});
   const runnableProject=async()=>{const root=await project();await core.assertTutorialRepository(root);return root;};
-  const browserRun=createBrowserRunCommands(vscode,{project:runnableProject,output,ensureValidatedExport:buildWithSavedProject,validateExport:validateWithSavedProject,validateRetainedExport:savedBuilder.validateRetainedExport,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested,preferredPreviewColumn:root=>tutorials.columnFor(root)});
+  const browserRun=createBrowserRunCommands(vscode,{project:runnableProject,output,ensureValidatedExport:buildWithSavedProject,validateExport:validateWithSavedProject,validateRetainedExport:savedBuilder.validateRetainedExport,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested});
   Object.assign(actions,browserRun.commands);
   actions['zero.runApp']=expectedRoot=>{
     if (stopPromise) return stopPromise;

@@ -34,6 +34,8 @@ assert.deepEqual(kit[`zero-kit/${release.assets.extension.filename}`], new Uint8
 assert.ok(!Object.keys(kit).some(name => /\/website\/|SmokeLauncher|\.zip$|\/scripts\/|\/target\//.test(name)));
 for (const name of coreSources) assert.deepEqual(kit[`zero-kit/starter/src/main/java/zero/${name}`], new Uint8Array(readFileSync(path.join(root, 'framework/src/main/java/zero', name))));
 const vsix = unzipSync(readFileSync(path.join(root, 'dist', release.assets.extension.filename)));
+assert.ok(!Object.keys(vsix).some(name => /^extension\/media\/(?:tutorial-content\.json|tutorial-assets\/)/.test(name)), 'VSIX must not contain bundled tutorial lessons');
+assert.ok(!Object.keys(kit).some(name => name.startsWith('zero-kit/starter/lessons/')), 'Kit must not contain bundled tutorial lessons');
 // Check the actual installed payload, not just the source used by unit fixtures.
 checkPackagedTutorialTemplates(JSON.parse(new TextDecoder().decode(vsix['extension/media/lesson-projects.json'])));
 function verifyExtensionSource(directory, relative='') {

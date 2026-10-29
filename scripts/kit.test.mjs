@@ -259,10 +259,7 @@ test('assembled ZIP is a standalone editable Java project with canonical source 
     new Uint8Array(readFileSync(path.join(root, 'framework/src/main/java/zero', name))));
   assert.equal(Object.keys(entries).some(name => /(?:^|\/)(?:SketchApp|SimpleApp)\.java$/.test(name)), false);
   assert.deepEqual(entries['zero-starter/LICENSE'], new Uint8Array(readFileSync(path.join(root, 'LICENSE'))));
-  const lessonFiles = readdirSync(path.join(root, 'student-template/lessons')).filter(name => /^\d{2}-.*\.md$/.test(name)).sort();
-  assert.deepEqual(lessonFiles.map(name => name.slice(0, 2)), Array.from({length:16}, (_, id) => String(id).padStart(2, '0')));
-  for (const name of lessonFiles) assert.deepEqual(entries[`zero-starter/lessons/${name}`],
-    new Uint8Array(readFileSync(path.join(root, 'student-template/lessons', name))));
+  assert.ok(!Object.keys(entries).some(name => name.startsWith('zero-starter/lessons/')));
   for (const folder of ['click-counter', 'reset-counter', 'object-counter', 'movement', 'coin-game', 'media-demo', 'scrolling-game', 'platform-game', 'level-game', 'full-game']) {
     for (const name of readdirSync(path.join(root, 'student-template/examples', folder)).filter(name => name.endsWith('.java') || name === 'README.md')) {
       assert.deepEqual(entries[`zero-starter/examples/${folder}/${name}`],

@@ -1,5 +1,9 @@
 'use strict';
-const {browserUrl} = require('./tutorial-content');
+const {LESSON_IDS} = require('./tutorial-catalog');
+function browserUrl(id) {
+  if (!LESSON_IDS.includes(id)) throw new Error('Unknown tutorial.');
+  return `https://zero.codepet.ca/tutorials/${id}`;
+}
 
 // Older supported VS Code versions do not have the desktop integrated browser.
 async function openTutorialDocs(vscode, lessonId = '15') {

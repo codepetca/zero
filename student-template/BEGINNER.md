@@ -1,12 +1,12 @@
 # Start small
 
-Zero helps you make Java apps and games. Follow the [tutorials](lessons/00-hello-world.md)
+Zero helps you make Java apps and games. Follow the [tutorials](https://zero.codepet.ca/tutorials/0)
 as the learning path; the first app and game lessons explain these ideas in context.
 This source overview remains available for older kits and contributor reference.
 Use ordinary Java fields, methods and objects to hold your app's state.
 You can learn more JavaFX when your project needs it.
 
-The starter opens with **Hello, world!**. Start with [Lesson 0](lessons/00-hello-world.md),
+The starter opens with **Hello, world!**. Start with [Lesson 0](https://zero.codepet.ca/tutorials/0),
 then continue the tutorials to build your own app or game.
 
 A GameApp can host ordinary buttons, labels and component views around its canvas.
@@ -16,7 +16,7 @@ See [UI and app/game flow](UI.md) for the shared pattern.
 ## Apps: controls that respond to events
 
 Choose `App` for a quiz, calculator, study tool or small form. Start with
-the [Greeting App tutorial](lessons/02-hello-name.md). Its ordinary JavaFX
+the [Greeting App tutorial](https://zero.codepet.ca/tutorials/2). Its ordinary JavaFX
 controls use the platform theme; no external stylesheet is required.
 
 ```text
@@ -73,7 +73,7 @@ change its colours and spacing.
 ## Games: update the state, then draw it
 
 Choose `GameApp` for a drawing, moving objects or a small game. Start with
-the [Coin Game tutorial](lessons/08-movement.md).
+the [Coin Game tutorial](https://zero.codepet.ca/tutorials/8).
 
 ```text
 launch → settings() → create canvas → setup() → show the window
@@ -136,7 +136,7 @@ player.draw(this);
 In `player.draw(this)`, `this` is the running Main object. Main extends `GameApp`,
 so Player can receive it in `draw(GameApp app)` and call `app.fill(...)` or
 `app.rect(...)` on the same canvas. Player stays an ordinary class; passing the
-app creates no new window. See [how Player uses the app to draw](lessons/08-movement.md#how-player-uses-the-app-to-draw)
+app creates no new window. See [how Player uses the app to draw](https://zero.codepet.ca/tutorials/8#how-player-uses-the-app-to-draw)
 in lesson 8 for the matching Player method.
 
 Zero never discovers Player or updates it automatically. In Reach the coin,
