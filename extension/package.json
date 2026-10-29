@@ -147,8 +147,8 @@
       },
       {
         "command": "zero.openFirstLesson",
-        "title": "Zero: Tutorials",
-        "shortTitle": "Tutorials"
+        "title": "Zero: Tutorial docs",
+        "shortTitle": "Tutorial docs"
       },
       {
         "command": "zero.showProblems",
