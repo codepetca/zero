@@ -666,16 +666,12 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   no hot reload or browser compilation on local Run. The existing native command
   ID remains a compatibility alias. Browser preview remains available explicitly
   through Export for web; local Run has no Open in browser action.
-- A tutorial repository opens its bundled Tutorials editor tab beside Main.java
-  once when the editor is empty. Tutorials in the view menu or Command Palette
-  reopens it; ordinary older-kit Markdown guides remain supported. All13 lessons,
-  illustrations, code and linked Java references are bundled for offline reading.
-  Its numbered instructions and code stay visible; only completed code references
-  use optional disclosures.
-  The tab retains the selected lesson, scroll and disclosures per project. It
-  supports native floating windows and moves back into editor groups. Open in
-  browser opens the current canonical lesson on the website; website navigation
-  does not synchronize back into the editor. Start tutorial stays in the ready empty sidebar and
+- A tutorial repository opens the current online lesson beside Main.java once
+  when the editor is empty. Tutorial docs in the menu or Command Palette opens
+  the website in VS Code's integrated browser when available; older hosts or
+  failed browser commands fall back to the regular browser. Internet access is
+  required for the current lessons. Older-kit Markdown guides remain supported
+  for automatic first-open. Start tutorial stays in the ready empty sidebar and
   overflow; Clone from GitHub is in the project menu. Neither lesson navigation nor opening
   a browser writes student Java, signs in, pushes or publishes anything.
 - A run that exits with an error offers Show Problems for source navigation;

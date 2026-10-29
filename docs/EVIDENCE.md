@@ -12089,3 +12089,26 @@ Source publication-record delta independently reviewed Sol/high: no blockers; 58
 Preparing 0.5.55/build55 from main bd350b19, including merged fast-publish and tutorial work. Partner Center provided the Zero Studio identity; Store support is isolated from the direct installer and its updater. First-run consent includes Java, Node, VS Code when needed, Java extension support, Maven and JavaFX. Embedded kit snapshots persist outside private-tool roots and are checked against the embedded archive before reuse, preserving older editor sessions without modifying student projects. Separate channel profile paths select their own managed Java.
 
 Independent initial Sol/high security and Terra/high compatibility reviews identified missing Node disclosure, wrong Store Java root and removal of a kit needed by an open editor. First fix exposed an incompatible nested-kit location; a second fix moved retained snapshots to isolated sibling roots and added actual retained-kit → runtime constructor → prepare/open harness coverage. Independent targeted Sol/high review accepted that fix with no remaining blockers. Direct Windows harness 2608 checks, two Store harnesses 2353 checks each, updater harness and 24 focused JS tests pass; one real-Windows Java coexistence test is intentionally skipped on Mac and selected by Windows CI. Separate workflow review passed actionlint and nine CI scope/gate tests. Exact effective worker models, time and token usage unavailable. Native Windows Store installation, Store update/virtualization and certification are not established by these tests.
+
+## Project Explorer command names — 2026-10-29
+
+PR #231 renames the two explorer commands while retaining their IDs and the existing
+Project focus behavior. Independent review of 48022dc3..f9e22f6c found no blocker;
+reviewer model/effort and elapsed time were not exposed on the reused reviewer.
+The 17 focused extension/explorer tests and diff whitespace check passed after
+preparing the generated theme. The tests assert command dispatch, not actual
+restoration of a manually hidden view in the VS Code interface; that Mac acceptance
+remains outstanding. No release follows from this source change.
+
+## Online Tutorial Docs — 2026-10-29
+
+Local review of the Tutorial Docs browser transition used a Terra High reviewer
+(requested; effective configuration and task cost unavailable). Review identified
+starter-lesson selection, outdated offline documentation and a duplicate-open
+race; corrections were reviewed with no remaining blocking finding. Seventy-eight
+focused tests pass, including unavailable/rejected integrated browser and external
+failure. In VS Code 1.144 on Mac, the real extension host invoked the Zero command
+and observed the integrated browser tab in a second editor group. The live lesson
+URL returned HTTP 200 separately; visual page rendering and an actual older VS Code
+fallback remain unverified. The integrated browser command is a VS Code workbench
+command, not a documented stable extension API. No publication follows.

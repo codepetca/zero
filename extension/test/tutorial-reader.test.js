@@ -19,7 +19,7 @@ test('reader opens beside Java with bounded resources/CSP and restores per-root 
   f.saved.set(rootKey('/project-a'),{lessonId:'5',scroll:{5:420},details:{'explanation-5':true}});
   const reader=createTutorialReader(f.vscode,{context:f.context,project:async()=>'/project-a'});
   const panel=await reader.open('/project-a','3');
-  assert.equal(panel.title,'Tutorials');
+  assert.equal(panel.title,'Tutorial Docs');
   assert.equal(reader.columnFor('/project-a'),2);
   assert.equal(reader.columnFor('/project-other'),undefined);
   assert.equal(panel.show.viewColumn,-2);
@@ -30,6 +30,9 @@ test('reader opens beside Java with bounded resources/CSP and restores per-root 
   assert.match(panel.webview.html,/connect-src 'none'/);
   assert.match(panel.webview.html,/nonce-[A-Za-z0-9+/]+=*/);
   assert.match(panel.webview.html,/Open in browser/);
+  assert.match(panel.webview.html,/<h1>Tutorial Docs<\/h1>/);
+  assert.match(panel.webview.html,/<select id="lesson-picker">/);
+  assert.doesNotMatch(panel.webview.html,/All tutorials|id="lesson-index"/);
   assert.match(panel.webview.html,/tutorial-reader\.js/);
   await panel.receive({type:'ready'});
   assert.equal(panel.messages[0].state.lessonId,'5');
@@ -99,7 +102,8 @@ test('serializer rehydrates the host panel and root-matched lesson, scroll and d
   await serializer.deserializeWebviewPanel(panel,{readerKey:key,lessonId:'4',scroll:{4:512},details:{'explanation-4':true}});
   assert.equal(f.panels.length,1);
   assert.equal(await reader.open('/project-a'),panel);
-  assert.match(panel.webview.html,/Tutorials/);
+  assert.equal(panel.title,'Tutorial Docs');
+  assert.match(panel.webview.html,/<h1>Tutorial Docs<\/h1>/);
   await panel.receive({type:'ready'});
   assert.deepEqual(panel.messages[0].state,{readerKey:key,lessonId:'4',scroll:{4:512},details:{'explanation-4':true}});
   assert.equal(panel.webview.options.enableCommandUris,false);

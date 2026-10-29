@@ -29,6 +29,7 @@ function createTutorialReader(vscode,{context,output,project,load = loadContent}
     return root;
   }
   function attach(panel,key,initialLessonId,serialized) {
+    panel.title = 'Tutorial Docs';
     const saved = serialized?.readerKey === key ? serialized : context.workspaceState.get(key);
     const state = {...cleanState(saved,initialLessonId),readerKey:key};
     const item = {panel,state,ready:false,closed:false,queue:Promise.resolve()};
@@ -64,7 +65,7 @@ function createTutorialReader(vscode,{context,output,project,load = loadContent}
           }
         } catch (error) {await report(error);}
       });
-      panel.webview.html = `<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${escapeHtml(panel.webview.cspSource)}; style-src ${escapeHtml(panel.webview.cspSource)}; script-src 'nonce-${nonce}'; connect-src 'none'; base-uri 'none'; form-action 'none';"><link rel="stylesheet" href="${escapeHtml(resource('tutorial-reader.css'))}"><title>Tutorials</title></head><body><header><button type="button" class="text-button" data-index="true">← All tutorials</button><button type="button" class="text-button" id="browser">Open in browser ↗</button></header><div id="lesson-index" hidden><label for="lesson-picker">Choose a tutorial</label><select id="lesson-picker">${rendered.navigation}</select></div><main id="tutorial-content">${rendered.articles}</main><p class="sr-only" role="status" aria-live="polite" id="status"></p><script nonce="${nonce}" src="${escapeHtml(resource('tutorial-reader.js'))}"></script></body></html>`;
+      panel.webview.html = `<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${escapeHtml(panel.webview.cspSource)}; style-src ${escapeHtml(panel.webview.cspSource)}; script-src 'nonce-${nonce}'; connect-src 'none'; base-uri 'none'; form-action 'none';"><link rel="stylesheet" href="${escapeHtml(resource('tutorial-reader.css'))}"><title>Tutorial Docs</title></head><body><header><h1>Tutorial Docs</h1><label for="lesson-picker">Choose a tutorial</label><select id="lesson-picker">${rendered.navigation}</select><button type="button" class="inline-link" id="browser">Open in browser ↗</button></header><main id="tutorial-content">${rendered.articles}</main><p class="sr-only" role="status" aria-live="polite" id="status"></p><script nonce="${nonce}" src="${escapeHtml(resource('tutorial-reader.js'))}"></script></body></html>`;
       return panel;
     })();
     return item;
@@ -83,7 +84,7 @@ function createTutorialReader(vscode,{context,output,project,load = loadContent}
       return existing.panel;
     }
     const media = vscode.Uri.file(path.join(extensionPath,'media'));
-    const panel = vscode.window.createWebviewPanel('zero.tutorials','Tutorials',{viewColumn:vscode.ViewColumn.Beside,preserveFocus:true},{enableScripts:true,enableCommandUris:false,retainContextWhenHidden:true,localResourceRoots:[media]});
+    const panel = vscode.window.createWebviewPanel('zero.tutorials','Tutorial Docs',{viewColumn:vscode.ViewColumn.Beside,preserveFocus:true},{enableScripts:true,enableCommandUris:false,retainContextWhenHidden:true,localResourceRoots:[media]});
     try {return await attach(panel,key,initialLessonId).initializing;}
     catch (error) {panel.dispose();throw error;}
   }
