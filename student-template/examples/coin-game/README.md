@@ -5,7 +5,7 @@ To run the completed example, create a new local project from a fresh Zero start
 Run App, click the canvas and move with arrows. Touch each gold square to collect
 it once. Collect all three to win; movement then stops. The ordinary JavaFX
 Restart button resets position, coins, score and message. See
-[Lesson 9](../../lessons/09-coin-game.md) for the progressive build and fourth coin.
+[Lesson 9](https://zero.codepet.ca/tutorials/9) for the progressive build and fourth coin.
 
 Main owns points and the win rule; Player owns movement; each Coin remembers
 collection. Main explicitly updates Player and draws Player/Coins. The whole

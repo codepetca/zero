@@ -12139,3 +12139,12 @@ choices, lesson-to-guide navigation and reload persistence; the website suite pa
 248 tests. Independent Terra High review identified lost ZIP and older Mac upgrade
 notes; both were restored and the fixes reviewed. Physical Windows and mobile Safari
 were not tested. This source change is not merged or published.
+
+## Online-only tutorial reader — local source
+
+The extension opens Tutorial Docs on the website using the integrated browser or
+regular-browser fallback. The obsolete bundled reader and generated lesson payload
+are removed; starter kit archives omit the lesson folder and packaged guides link to
+the website. Canonical lesson files remain inputs to the website. Local focused
+onboarding, kit and website tests and source checks passed; a local VSIX was inspected
+to confirm the old reader and lesson assets are absent. These changes are not released.

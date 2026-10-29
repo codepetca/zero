@@ -7,6 +7,7 @@ export function starterMembers(root, prefix = 'zero-starter') {
   const members = {};
   function collect(directory, relative = '') {
     for (const entry of readdirSync(directory, {withFileTypes:true})) {
+      if (!relative && entry.name === 'lessons') continue;
       if (['target', '.git', '.DS_Store', 'node_modules', '__pycache__'].includes(entry.name)) continue;
       if (entry.isSymbolicLink()) throw new Error(`No symlinks in starter: ${entry.name}`);
       const name = relative ? `${relative}/${entry.name}` : entry.name;
