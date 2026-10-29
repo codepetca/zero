@@ -50,7 +50,7 @@ export function resolveContentLink(source, href, documents, sources, assets = {}
   return null;
 }
 // Fold parsed blocks, preserving fenced code and nested Markdown exactly.
-export function foldSections({ lesson = false, encouragement = "" } = {}) {
+export function foldSections({ lesson = false, encouragement = "", platformSetup = false } = {}) {
   return (tree) => {
     const counts = new Map();
     function visit(node) {
@@ -118,6 +118,7 @@ export function foldSections({ lesson = false, encouragement = "" } = {}) {
       if (node.type === "element" && node.tagName === "h1") continue;
       if (node.type === "element" && node.tagName === "h2") {
         current = wrap(node, []);
+        if (platformSetup && nodeText(node) === "Zero app for Mac") current.properties.className.push("platform-mac");
         sections.push(current);
       } else if (current) current.children[1].children.push(node);
       else intro.push(node);

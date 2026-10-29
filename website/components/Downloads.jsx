@@ -22,7 +22,7 @@ export function Downloads() {
   );
 }
 
-export function DownloadRequirements() {
+export function DownloadRequirements({ platformAware = false } = {}) {
   const kit = downloadableKit();
   const installer = downloadableInstaller();
   const mac = macDownloadHref();
@@ -32,9 +32,9 @@ export function DownloadRequirements() {
   if (!mac && !windows && !kit) return null;
   return (
     <p className="source-note" aria-label="Download requirements">
-      {mac && installer && <>Mac {installer.kitVersion}: Apple Silicon, macOS {installer.asset.minimumOS}+.<br /></>}
-      {windows && windowsInstaller ? <>Windows {windowsInstaller.kitVersion}: x64, Windows 10 (build 19041) or later.</> : kit && <>Windows {kit.kitVersion}: ZIP with manual setup.</>}
-      {windows && unsigned && <><br />Unsigned preview; automatic updates are off. Interactive Windows testing is pending.</>}
+      {mac && installer && <span className={platformAware ? "platform-mac" : undefined}>Mac {installer.kitVersion}: Apple Silicon, macOS {installer.asset.minimumOS}+.{!platformAware && <br />}</span>}
+      <span className={platformAware ? "platform-windows" : undefined}>{windows && windowsInstaller ? <>Windows {windowsInstaller.kitVersion}: x64, Windows 10 (build 19041) or later.</> : kit && <>Windows {kit.kitVersion}: ZIP with manual setup.</>}
+      {windows && unsigned && <><br />Unsigned preview; automatic updates are off. Interactive Windows testing is pending.</>}</span>
     </p>
   );
 }
