@@ -7,11 +7,13 @@ import { HubGitHubProvider } from "@/components/HubGitHub";
 import { LegalFooter } from "@/components/LegalFooter";
 
 const key = "zero-learn-theme";
+const platformKey = "zero-docs-platform";
 const choices = new Set(["system", "light", "dark"]);
 
 export function LearnTheme({ children, active }) {
   const [theme, setTheme] = useState("system");
   const [systemDark, setSystemDark] = useState(false);
+  const [platform, setPlatform] = useState("mac");
 
   useEffect(() => {
     // Preserve old downloads bookmarks and links without keeping downloads
@@ -20,6 +22,9 @@ export function LearnTheme({ children, active }) {
       window.location.replace("/downloads");
       return;
     }
+    let savedPlatform;
+    try { savedPlatform = localStorage.getItem(platformKey); } catch {}
+    setPlatform(savedPlatform === "mac" || savedPlatform === "windows" ? savedPlatform : /Windows/i.test(navigator.userAgent) ? "windows" : "mac");
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const updateSystem = () => setSystemDark(media.matches);
     updateSystem();
@@ -52,9 +57,14 @@ export function LearnTheme({ children, active }) {
     }
   }
 
+  function changePlatform(next) {
+    setPlatform(next);
+    try { localStorage.setItem(platformKey, next); } catch {}
+  }
+
   return (
-    <HubGitHubProvider><div className="learn-theme" data-theme={theme}>
-      <PageHeader active={active} actions={<AccountMenu dark={dark} onToggleTheme={toggleTheme} />} />
+    <HubGitHubProvider><div className="learn-theme" data-theme={theme} data-platform={platform}>
+      <PageHeader active={active} actions={<AccountMenu dark={dark} onToggleTheme={toggleTheme} platform={platform} onChangePlatform={changePlatform} />} />
       {children}
       <LegalFooter />
     </div></HubGitHubProvider>

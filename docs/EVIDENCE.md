@@ -12127,3 +12127,15 @@ website build passed; local browser checks covered the recovery and Greeting pag
 and a legacy quiz URL. Real student/school trials remain outstanding. The new
 `/tutorials/15` website route must be published before an editor using it is
 released. No website, template or app publication is implied by this local work.
+
+
+## Documentation platform choice — local, 2026-10-29
+
+The profile menu now offers a Mac/Windows documentation choice, remembers it locally,
+and shows matching recovery and run shortcuts and setup commands. A website-only transformation
+preserves the bundled lesson source. The setup guide hides the Mac installer section
+for Windows and retains shared ZIP guidance. Local browser checks exercised both
+choices, lesson-to-guide navigation and reload persistence; the website suite passed
+248 tests. Independent Terra High review identified lost ZIP and older Mac upgrade
+notes; both were restored and the fixes reviewed. Physical Windows and mobile Safari
+were not tested. This source change is not merged or published.

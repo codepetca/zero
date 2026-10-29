@@ -18,6 +18,7 @@ import { ReaderNavigation } from "./ReaderNavigation";
 import { CodeBlock } from "./CodeBlock";
 import { TutorialProject } from "./TutorialProject";
 import { DownloadRequirements } from "./Downloads";
+import { platformMarkdown } from "@/lib/platform-content.mjs";
 import { helpItems, teacherItems } from '@/lib/document-navigation.mjs';
 export function Document({ id, lesson = "" }) {
   const doc = docs[id];
@@ -57,7 +58,7 @@ export function Document({ id, lesson = "" }) {
           <h2 className="page-subtitle" id={slugify(lesson && lesson !== '15' ? `${lesson}. ${title}` : (doc.markdown.match(/^# (.+)$/m)?.[1] || title))}>
             {lesson && lessonNumber(lesson) ? `Lesson ${lessonNumber(lesson)}: ${title}` : title}
           </h2>
-          {id === "setup" && <DownloadRequirements />}
+          {id === "setup" && <DownloadRequirements platformAware />}
           {practiceProject && (lesson === practiceProject.firstLesson || lesson === "10" || lesson === "12") && (
             <TutorialProject project={practiceProject} lesson={lesson}
               template={publishedTutorialTemplate(practiceProject.id)} assets={sampleGameAssets} />
@@ -65,7 +66,7 @@ export function Document({ id, lesson = "" }) {
           <FoldingReader key={id}>
             <Markdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[[foldSections, { lesson: !!lesson, encouragement: related?.encouragement }]]}
+              rehypePlugins={[[foldSections, { lesson: !!lesson, encouragement: related?.encouragement, platformSetup: id === "setup" || id === "starter" }]]}
               components={{
                 pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
                 img: ({ src, alt }) => {
@@ -81,6 +82,7 @@ export function Document({ id, lesson = "" }) {
                   </summary>
                 ),
                 a: ({ href, children }) => {
+                  if (href === "#zero-platform-mac" || href === "#zero-platform-windows") return <span className={href.slice(6)}>{children}</span>;
                   const target = resolveContentLink(
                     doc.source,
                     href,
@@ -101,7 +103,7 @@ export function Document({ id, lesson = "" }) {
                 },
               }}
             >
-              {doc.markdown}
+              {platformMarkdown(id, doc.markdown)}
             </Markdown>
           </FoldingReader>
           {related && related.doc !== "api" && (

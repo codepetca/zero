@@ -14,7 +14,7 @@ function GitHubAvatar({id, login}: {id:string; login:string}) {
   </span>;
 }
 
-export function AccountMenu({dark, onToggleTheme}: {dark:boolean; onToggleTheme:()=>void}) {
+export function AccountMenu({dark, onToggleTheme, platform, onChangePlatform}: {dark:boolean; onToggleTheme:()=>void; platform:'mac'|'windows'; onChangePlatform:(platform:'mac'|'windows')=>void}) {
   const {user, error, callbackError} = useHubGitHub();
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null), trigger = useRef<HTMLButtonElement>(null);
@@ -50,6 +50,11 @@ export function AccountMenu({dark, onToggleTheme}: {dark:boolean; onToggleTheme:
     </button>
     <div id={id} hidden={!open} className="account-dropdown" aria-label="Account and appearance">
       <HubAccount onSignedOut={() => {setOpen(false); trigger.current?.focus();}} onRetryComplete={() => trigger.current?.focus()} />
+      <fieldset className="platform-setting">
+        <legend>Documentation platform</legend>
+        <label><input type="radio" name="documentation-platform" value="mac" checked={platform === 'mac'} onChange={() => onChangePlatform('mac')} /> Mac</label>
+        <label><input type="radio" name="documentation-platform" value="windows" checked={platform === 'windows'} onChange={() => onChangePlatform('windows')} /> Windows</label>
+      </fieldset>
       <button type="button" className="appearance-action" onClick={onToggleTheme}>
         <Icon name={dark ? 'sun' : 'moon'} />{dark ? 'Switch to light mode' : 'Switch to dark mode'}
       </button>

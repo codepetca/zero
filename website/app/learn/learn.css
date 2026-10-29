@@ -381,3 +381,6 @@ html:has(.learn-theme),
   flex-direction: column;
 }
 .learn-theme .home-page .button { width: 100%; }
+
+/* Show the selected operating system's documentation. */
+.learn-theme[data-platform="mac"] .platform-windows, .learn-theme[data-platform="windows"] .platform-mac { display: none; }
