@@ -116,14 +116,11 @@ separate check for mobile reflow, keyboard/focus and accessible states; builds
 and fixtures do not prove hosted artifact delivery, public publication or physical
 Windows setup.
 
-Tutorials opens lesson 0 directly at `/learn`, with all fifteen lessons in
-the desktop sidebar and a lesson selector on narrow screens. The main path follows
-Greeting → Coin → animated Pet → an original project. Study, component/sharing
-practice and Coin media remain optional, at their existing lesson addresses.
-Pet's template is unavailable until separately published and verified; an
-original project uses Project → New without a tutorial marker. Sidebar selection
-updates the reading pane and bookmarkable lesson URL; there is no overview landing.
-The tutorial reader shares the approved appearance controls with Downloads.
+Tutorials opens the recovery guide at `/learn`. The selector numbers the visible
+lessons 1–11: recovery, Greeting, Coin, Pet, an original project, then optional
+component and media lessons. Earlier quiz URLs remain accessible to existing links,
+but are not in the current selector. Stable URL identifiers do not change with
+display numbering. Sidebar selection updates the reading pane and lesson URL.
 
 Website control icons use pinned `lucide-react` SVGs through `components/Icon.tsx`.
 Decorative icons inherit text color and remain hidden from assistive technology;

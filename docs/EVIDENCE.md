@@ -12112,3 +12112,18 @@ and observed the integrated browser tab in a second editor group. The live lesso
 URL returned HTTP 200 separately; visual page rendering and an actual older VS Code
 fallback remain unverified. The integrated browser command is a VS Code workbench
 command, not a documented stable extension API. No publication follows.
+
+## Tutorial recovery and visible numbering — 2026-10-29
+
+Local curriculum adds a first recovery guide and numbers the visible lessons 1–11.
+Study is removed from current tutorial choices, while its old lesson URLs and
+project markers remain readable. The optional component/practice lessons now use
+only Coin. The earlier public lesson IDs and existing page heading fragments stay
+stable; numbers displayed to students are separate. A Terra High independent
+review found stale guide text, metadata, hidden legacy selection and fragments;
+those corrections received a targeted review with no remaining blocker. The
+focused extension and website tests, standalone starter archive check and local
+website build passed; local browser checks covered the recovery and Greeting pages
+and a legacy quiz URL. Real student/school trials remain outstanding. The new
+`/tutorials/15` website route must be published before an editor using it is
+released. No website, template or app publication is implied by this local work.

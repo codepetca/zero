@@ -1,10 +1,10 @@
-# 12. Add artwork and sound
+# 11. Add artwork and sound
 
 **First checkpoint: your moving player becomes a sprite and a collected coin rings.**
 
-![The lesson 9 Coin game with a robot player, three coins and a native score below the canvas](visuals/12.svg)
+![The lesson 6 Coin game with a robot player, three coins and a native score below the canvas](visuals/12.svg)
 
-Reopen the **same Coin game** you wrote in lessons 8–11. Keep your Player, Coin, PlayerInput, ScoreDisplay, CreditsBadge and Main. This lesson changes your current project in place and supplies no later stage project ZIPs. Optionally download the small [game assets ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip) and place `media-demo/player.png` and `media-demo/chime.wav` under `src/main/resources/`. You may use your own PNG and short WAV at those paths, or use the drawing route below without assets.
+Reopen the **same Coin game** you wrote in lessons 5, 6, 9 and 10. Keep your Player, Coin, PlayerInput, ScoreDisplay, CreditsBadge and Main. This lesson changes your current project in place and supplies no later stage project ZIPs. Optionally download the small [game assets ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip) and place `media-demo/player.png` and `media-demo/chime.wav` under `src/main/resources/`. You may use your own PNG and short WAV at those paths, or use the drawing route below without assets.
 
 Previous: [Practise sharing a component](11-zerohub.md).
 
@@ -155,7 +155,7 @@ public void follow(double playerX, double viewportWidth, double worldWidth) {
 }
 ```
 
-Add `public double x() { return x; }` to Player. In Main add `private final double worldWidth = 1600;` and `private Camera camera;`. Create `camera = new Camera();` in `restart()` and move two coins farther away, for example x 840 and 1360. Pass `worldWidth` instead of `width()` to `player.update(...)`, then call `camera.follow(player.x(), width(), worldWidth);` after movement. To draw world objects, add overloads `Player.draw(GameApp app, double cameraX)`, `Player.drawImage(GameApp app, ImageRegion sprite, double cameraX)` and `Coin.draw(GameApp app, double cameraX)`. In each, use `x - cameraX` for the image or rectangle's horizontal drawing coordinate; keep the original methods and collection positions unchanged. In Main's `draw()`, pass `camera.x()` to those new methods. Zero ScoreDisplay and Restart stay outside the canvas and do not scroll. Check both world edges and collect a far coin. Compare your edits with the optional [scrolling checkpoint Main](../../teaching/checkpoints/12/scrolling/Main.java) and [Camera.java](../../teaching/checkpoints/12/scrolling/Camera.java), then return to **your own code**. Keep the PlayerInput helper from lessons 10–11; it still supplies horizontal and vertical directions, while Main owns the update and camera calls.
+Add `public double x() { return x; }` to Player. In Main add `private final double worldWidth = 1600;` and `private Camera camera;`. Create `camera = new Camera();` in `restart()` and move two coins farther away, for example x 840 and 1360. Pass `worldWidth` instead of `width()` to `player.update(...)`, then call `camera.follow(player.x(), width(), worldWidth);` after movement. To draw world objects, add overloads `Player.draw(GameApp app, double cameraX)`, `Player.drawImage(GameApp app, ImageRegion sprite, double cameraX)` and `Coin.draw(GameApp app, double cameraX)`. In each, use `x - cameraX` for the image or rectangle's horizontal drawing coordinate; keep the original methods and collection positions unchanged. In Main's `draw()`, pass `camera.x()` to those new methods. Zero ScoreDisplay and Restart stay outside the canvas and do not scroll. Check both world edges and collect a far coin. Compare your edits with the optional [scrolling checkpoint Main](../../teaching/checkpoints/12/scrolling/Main.java) and [Camera.java](../../teaching/checkpoints/12/scrolling/Camera.java), then return to **your own code**. Keep the PlayerInput helper from lessons 9 and 10; it still supplies horizontal and vertical directions, while Main owns the update and camera calls.
 
 ## 9. Choose one next improvement
 
@@ -166,8 +166,8 @@ PlayerInput and ScoreDisplay responsibilities separate from Main’s game rules.
 
 Choose one small improvement of your own: change the controls, add a score
 caption, or write clearer instructions. Use the refactor → test → improve →
-proposal process from [lesson 10](10-components.md) and
-[lesson 11](11-zerohub.md). A larger platformer, enemy system or level manager
+proposal process from [lesson 9](10-components.md) and
+[lesson 10](11-zerohub.md). A larger platformer, enemy system or level manager
 can be a later original project; you do not need one to complete this tutorial.
 
 Return to the [lesson index](README.md).

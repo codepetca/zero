@@ -959,7 +959,7 @@ function activate(context, services = {}) {
     'zero.runNativeApp': expectedRoot => actions['zero.runApp'](expectedRoot),
     'zero.stopApp': stopRequested,
     'zero.openFirstLesson': async () => {
-      let lessonId = '0';
+      let lessonId = '15';
       let root;
       if ((vscode.workspace.workspaceFolders || []).length) {
         try {

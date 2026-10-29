@@ -1,10 +1,10 @@
-# 10. Refactor a busy Main
+# 9. Refactor a busy Main
 
 **First checkpoint: move input into one ordinary class and keep the game behaving the same.**
 
-![One ScoreDisplay class copied between the study quiz and Coin game, with a separate instance in each](visuals/10.svg)
+![One ScoreDisplay class can create separate instances for different layouts](visuals/10.svg)
 
-Reopen your **Coin game** from lesson 9. Later, reopen your **Study quiz** from lesson 7. Keep both existing tutorial repositories; lesson 10 has no starter download or new game.
+Reopen your **Coin game** from lesson 6. Keep using this repository; lesson 9 has no starter download or new game.
 
 Previous: [Build a coin game](09-coin-game.md).
 
@@ -117,12 +117,12 @@ is faster than travel along one axis. Preserve that rule in this refactor.
 Changing the speed rule would be a separate feature with its own checks.
 If behaviour changed, compare the old and new direction calculations first.
 
-You have made one responsibility smaller. Next extract the score presentation and
-reuse it in the Study quiz you already wrote.
+You have made one responsibility smaller. Next extract score presentation into a
+reusable class while Main keeps the game rules.
 
-## 5. Extract the display from your study quiz
+## 5. Create ScoreDisplay.java
 
-Open `src/main/java/StudyQuiz.java` from lesson 7. StudyQuiz owns `points`, and its `refreshStats()` currently sets `scoreLabel.setText("Score: " + points);`. Main already just creates the quiz and shows its view; leave it unchanged. Create `src/main/java/ScoreDisplay.java` in that **study** folder:
+Create `src/main/java/ScoreDisplay.java` in the Coin game folder:
 
 ```java
 import zero.ui.Element;
@@ -141,60 +141,16 @@ public class ScoreDisplay {
 }
 ```
 
-## 6. Replace the StudyQuiz display calls
+Each `new ScoreDisplay()` creates one Label through the field initializer. Java
+supplies the no-argument constructor because you have not written another
+constructor. `view()` returns an Element that the caller can place in a Row or
+Column. Label is an Element; ScoreDisplay remains an ordinary class.
+`setScore(int)` changes the label explicitly. No framework registration,
+component subclass or hidden update is involved.
 
-In `StudyQuiz.java`, **find:**
+## 6. Use the display in your Coin game
 
-`private Label scoreLabel;`
-
-**Replace with:**
-
-```java
-private ScoreDisplay score;
-```
-
-In the constructor, **find:**
-
-`scoreLabel = new Label("");`
-
-**Replace with:**
-
-```java
-score = new ScoreDisplay();
-```
-
-In that constructor, **find:**
-
-`layout = new Column(10, questionLabel, answer, check, next, restart,` `feedback, attemptsLabel, scoreLabel);`
-
-**Replace with:**
-
-```java
-layout = new Column(10, questionLabel, answer, check, next, restart,
-        feedback, attemptsLabel, score.view());
-```
-
-In `refreshStats()`, **find:**
-
-`scoreLabel.setText("Score: " + points);`
-
-**Replace with:**
-
-```java
-score.setScore(points);
-```
-
-Keep `points`, question rules, `Counter`, and Restart in StudyQuiz.
-
-## 7. Run App and test the study quiz
-
-Run App: a wrong answer leaves score 0; answer `5` for the first question to reach 1; Restart returns to 0. The quiz has more questions; finish and restart it again.
-
-Each `new ScoreDisplay()` creates one Label through the field initializer. Java supplies the no-argument constructor because you have not written another constructor. `view()` returns an Element that the caller can place in a Column or Row. Label is an Element; ScoreDisplay remains an ordinary class. `setScore(int)` changes the label explicitly. No framework registration, component subclass or hidden update is involved.
-
-## 8. Use the same class in your Coin game
-
-Copy **your own** `ScoreDisplay.java` from the study folder into your existing Coin game's `src/main/java/` as a new file. Do not copy a new Main or Player. In the game's `Main.java`, **find:**
+In the game's `Main.java`, **find:**
 
 `private Label scoreLabel;`
 
@@ -244,36 +200,36 @@ In `update()`, after `points++`, **find:**
 score.setScore(points);
 ```
 
-Keep `showGame()` at the end of Restart.
+Keep `showGame()` at the end of Restart and the message Label and game rules in Main.
 
-## 9. Run App and test the Coin game
+## 7. Run App and test the Coin game
 
-Leave the message Label and game rules in Main. Run App: collect a coin and stay on it (`Score: 1`), Restart during play (`Score: 0`), collect all three (`Score: 3`), then Restart after winning. Each running app has its own ScoreDisplay object and Zero Label. An Element belongs to one parent, so you reuse the **class source**, not one live Label across windows.
+Collect a coin and stay on it (`Score: 1`), Restart during play (`Score: 0`),
+collect all three (`Score: 3`), then Restart after winning. Check that movement
+still works. Main owns the points and tells ScoreDisplay when they change.
 
-## 10. Improve one class, then check both uses
+## 8. Improve the display and check it
 
-Try changing the displayed word from Score to Points. In `ScoreDisplay.java`, **find** the field and method:
+Try changing the displayed word from Score to Points. In `ScoreDisplay.java`,
+change both `"Score: 0"` and `"Score: "` to `"Points: 0"` and `"Points: "`.
+Run the game and check the initial display, a collected coin and Restart. You
+changed presentation in one class without changing the scoring rules in Main.
+**Restore Score in both places before lesson 10.**
 
-`private final Label label = new Label("Score: 0");`  `public void setScore(int points) {` `label.setText("Score: " + points);` `}`
+After writing your own code, compare [game Main](../../teaching/checkpoints/10/game/Main.java),
+[ScoreDisplay.java](../../teaching/checkpoints/10/game/ScoreDisplay.java) and
+[PlayerInput.java](../../teaching/checkpoints/10/game/PlayerInput.java). Checkpoint
+10 keeps arrow-only input.
 
-**Replace with:**
-
-```java
-private final Label label = new Label("Points: 0");
-
-public void setScore(int points) {
-    label.setText("Points: " + points);
-}
-```
-
-Copy that one changed class into the other project. Leave the game Main and StudyQuiz scoring rules alone.
-
-## 11. Run both apps and check the shared change
-
-Run both. Each now says Points, while scoring and Restart still work. If one project still looks unchanged, check which copy of `ScoreDisplay.java` you edited and rerun that project. **Restore Score in both the initializer and setScore, then copy the restored class to the other project before lesson 11.** After writing your own code, compare [StudyQuiz](../../teaching/checkpoints/10/study/StudyQuiz.java), the unchanged [study Main](../../teaching/checkpoints/10/study/Main.java), [game Main](../../teaching/checkpoints/10/game/Main.java) and their identical [ScoreDisplay.java](../../teaching/checkpoints/10/study/ScoreDisplay.java). Compare the game's [PlayerInput.java](../../teaching/checkpoints/10/game/PlayerInput.java)
-too; checkpoint 10 keeps arrow-only input.
-
-PlayerInput owns direction queries; ScoreDisplay owns presentation; the game Main and StudyQuiz each own their score and rules. These helpers belong to your project, alongside Main (or in your own package when you learn packages). Do not put them in `zero.*` or edit Zero's framework source to add them. In [lesson 11](11-zerohub.md), practise evaluating and sharing a small CreditsBadge component; copies of that practice library are expected. The optional extension then applies the same checks to your own original idea.
+PlayerInput owns direction queries; ScoreDisplay owns presentation; game Main
+owns the score and rules. These helpers belong to your project, alongside Main
+(or in your own package when you learn packages). Do not put them in `zero.*` or
+edit Zero's framework source to add them. You could copy your ScoreDisplay source
+into another project and create a separate instance there; each project owns its
+copy and can improve it independently. In [lesson 10](11-zerohub.md), practise
+evaluating and sharing a small CreditsBadge component. Copies of that practice
+library are expected. The optional extension applies the same checks to your own
+original idea.
 
 ### Reusable views
 
@@ -290,23 +246,19 @@ Main can supply its action through the constructor, for example a `Runnable`
 parameter passed to `button.onClick(onRestart)`.
 
 Player uses a different useful convention: Main calls its `update(...)` and
-`draw(GameApp app)` methods. A Question holds data and checks an answer. Neither
-needs a `view()` unless it actually provides UI elements. These are ordinary
-classes with methods chosen for their jobs.
+`draw(GameApp app)` methods. Player does not need a `view()` because it draws
+onto the canvas. These are ordinary classes with methods chosen for their jobs.
 
 ### Screens and app flow
 
 Keep one running Main application. GameApp already extends App; a screen or HUD
 is an object inside that application, not another App to launch.
 
-For a later study-app welcome or result screen, an ordinary class can build a
-layout and return it from `view()`. Main can call `show(startScreen.view())`
-and later `show(quizScreen.view())` in an action. `show(...)` replaces App's
-visible content. Main can choose the current screen while StudyQuiz keeps the
-question index and score in the same quiz object. Showing another view does not
-automatically reset that object. Use named methods such as `checkAnswer()`, `nextQuestion()` and
-`restart()` to change state and refresh existing controls. Disable actions that
-would score an answer twice or advance beyond the final question.
+For a later welcome or result screen, an ordinary class can build a layout and
+return it from `view()`. Main can call `show(startScreen.view())` and later
+`show(resultScreen.view())` in an action. `show(...)` replaces App's visible
+content. Showing another view does not automatically reset game state; use
+explicit methods such as `restart()` to change state and refresh controls.
 
 In GameApp, mount a live HUD with `controls(new Row(...))` or a Column. Build
 controls once in setup rather than rebuilding them each frame. Updating those
@@ -320,6 +272,6 @@ without navigating away or creating another application.
 A drawn screen can instead define `draw(GameApp app)`. Main calls
 `gameScreen.draw(this)` from its draw method. If that screen owns a Player, it
 can call `player.draw(app)` inside its own method, passing the same reference
-onward. As in [lesson 8](08-movement.md#how-player-uses-the-app-to-draw), both draw
+onward. As in [lesson 5](08-movement.md#how-player-uses-the-app-to-draw), both draw
 onto the existing canvas; neither creates another application. Keep state changes
 in explicit actions or update methods rather than hiding them in drawing.

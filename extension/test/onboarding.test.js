@@ -128,7 +128,7 @@ test('Start Page Tutorials link opens the reader without a project or GitHub sig
   await settle(()=>f.startState?.phase==='signed-out');
   await f.startPage.message({type:'action',action:'tutorials',token:f.startPage.restored.token});
   assert.deepEqual(f.panels.map(panel=>panel.type),['zero.startPage']);
-  assert.equal(f.calls.find(([id])=>id==='openExternal')[1].value,'https://zero.codepet.ca/tutorials/0');
+  assert.equal(f.calls.find(([id])=>id==='openExternal')[1].value,'https://zero.codepet.ca/tutorials/15');
   assert.equal(f.launches.length,0);assert.ok(f.authCalls.every(call=>call.options.silent));
   assert.equal(f.calls.filter(([id])=>['createRepository','cloneRepository','vscode.openFolder'].includes(id)).length,0);
   assert.deepEqual(f.errors,[]);

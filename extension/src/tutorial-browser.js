@@ -2,7 +2,7 @@
 const {browserUrl} = require('./tutorial-content');
 
 // Older supported VS Code versions do not have the desktop integrated browser.
-async function openTutorialDocs(vscode, lessonId = '0') {
+async function openTutorialDocs(vscode, lessonId = '15') {
   const url = browserUrl(lessonId);
   const command = 'workbench.action.browser.open';
   let commands = [];

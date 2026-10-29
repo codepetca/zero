@@ -5,18 +5,12 @@ Main shells. `scripts/lesson-projects.mjs` assembles the same minimal project by
 for website ZIPs and the native extension bundle. Optional game assets come from
 the canonical `student-template/examples/media-demo/resources/` source.
 
-`checkpoints/` contains completed maintainer programs for the end of each lesson,
-with separate Study/Game consumers at 10 and 11, and optional media/scrolling at 12.
-They are outside every practice download. Public source comparison links are
-optional references after students write their code. Keep narrative snippets and
-these checkpoints aligned; do not use a completed checkpoint as a student scaffold.
-Lesson6 moves the working one-question quiz into an ordinary StudyQuiz class,
-leaving Main to create/show it;7 grows that class and introduces Question.
-Lessons10–11 update StudyQuiz for score presentation without growing Main.
-Lessons 10–11 refactor input/score presentation in the existing small projects,
-then improve a component and practise sharing a harmless CreditsBadge. The badge
-uses a reserved practice name; duplicates are expected and do not enter ordinary
-community discovery. An original/core proposal remains an optional extension. Main keeps game rules and explicit updates.
+`checkpoints/` contains completed maintainer programs, outside student starters.
+Their directory numbers are stable historical identifiers, not the displayed lesson
+numbers. Public comparison links are optional references after students write code.
+Current lessons 9–10 refactor the Coin game and practise sharing a harmless
+CreditsBadge; duplicates belong in the reserved practice area. Historical Study
+checkpoints remain for existing links and are not a current tutorial prerequisite.
 Checkpoint 10 has arrow-only PlayerInput; 11 and 12 include the optional WASD
 improvement. Media and scrolling preserve that source unchanged, along with CreditsBadge.
 `checkpoints/11/practice/` contains three small actual-JAR

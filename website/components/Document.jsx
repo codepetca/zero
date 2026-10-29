@@ -5,7 +5,7 @@ import "@/app/learn/learn.css";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { docs, sources } from "@/lib/content";
-import { lessons, lessonGroups, lessonNavigation, lessonAssets, projectForLesson, publishedTutorialTemplate, sampleGameAssets } from "@/lib/learning.mjs";
+import { lessons, lessonGroups, lessonNavigation, lessonNumber, lessonAssets, projectForLesson, publishedTutorialTemplate, sampleGameAssets } from "@/lib/learning.mjs";
 import {
   foldSections,
   resolveContentLink,
@@ -34,7 +34,7 @@ export function Document({ id, lesson = "" }) {
   const items = lesson
     ? lessons.map((item) => ({
         id: item.id,
-        title: `${item.id}. ${item.title}`,
+        title: lessonNumber(item.id) ? `${lessonNumber(item.id)}. ${item.title}` : item.title,
         href: `/tutorials/${item.id}`,
       }))
     : teacher ? teacherItems : helpItems;
@@ -54,8 +54,8 @@ export function Document({ id, lesson = "" }) {
         </aside>
         <article className="reader-content">
           <h1>{pageTitle}</h1>
-          <h2 className="page-subtitle" id={slugify(doc.markdown.match(/^# (.+)$/m)?.[1] || title)}>
-            {lesson ? `Lesson ${lesson}: ${title}` : title}
+          <h2 className="page-subtitle" id={slugify(lesson && lesson !== '15' ? `${lesson}. ${title}` : (doc.markdown.match(/^# (.+)$/m)?.[1] || title))}>
+            {lesson && lessonNumber(lesson) ? `Lesson ${lessonNumber(lesson)}: ${title}` : title}
           </h2>
           {id === "setup" && <DownloadRequirements />}
           {practiceProject && (lesson === practiceProject.firstLesson || lesson === "10" || lesson === "12") && (
@@ -107,7 +107,7 @@ export function Document({ id, lesson = "" }) {
           {related && related.doc !== "api" && (
             <section className="compact-related" aria-label="Related docs">
               <a href={documentHref(related.doc, related.anchor)}>
-                Contribution guide
+                {related.doc === 'setup' ? 'Setup guide' : 'Contribution guide'}
               </a>
             </section>
           )}

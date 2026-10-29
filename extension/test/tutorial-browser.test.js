@@ -14,7 +14,7 @@ test('opens the requested tutorial beside code in the integrated browser',async(
 test('uses the regular browser when the integrated browser is absent or fails',async()=>{
   for(const options of [{available:false},{failure:true}]) {
     const h=host(options);await openTutorialDocs(h.vscode);
-    assert.deepEqual(h.calls.at(-1),['external','https://zero.codepet.ca/tutorials/0']);
+    assert.deepEqual(h.calls.at(-1),['external','https://zero.codepet.ca/tutorials/15']);
   }
 });
 test('reports failure to open the fallback and rejects invalid lesson IDs',async()=>{

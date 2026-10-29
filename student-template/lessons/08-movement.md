@@ -1,10 +1,10 @@
-# 8. Move a player
+# 5. Move a player
 
 **First checkpoint: a square you can move.**
 
 ![A blue square on the canvas with an arrow showing movement](visuals/08.svg)
 
-[Start the Coin game project](README.md#start-a-lesson) once. Its `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` methods, and no Player class. Keep this folder for lessons 9–12; there is no new game download for the next lesson.
+[Start the Coin game project](README.md#start-a-lesson) once. Its `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` methods, and no Player class. Keep this folder for lessons 6 and 9–11; there is no new game download for the next lesson.
 
 Previous: [Your Greeting app](02-hello-name.md).
 
@@ -162,6 +162,6 @@ not need to extend `GameApp`.
 
 ## 3. Run App and check movement
 
-Click **Run App**, click the canvas, then hold and release an arrow key. The square should move while held and stop when released. Try every edge, Right + Up, Left + Right, and releasing all keys. Change `speed` to 90, run again, compare, then restore 180. Change `size` to 40 and check that the whole square remains visible; restore 24 before lesson 9. If you remove only `player.update(...)`, the square still draws but cannot move. Explain why.
+Click **Run App**, click the canvas, then hold and release an arrow key. The square should move while held and stop when released. Try every edge, Right + Up, Left + Right, and releasing all keys. Change `speed` to 90, run again, compare, then restore 180. Change `size` to 40 and check that the whole square remains visible; restore 24 before lesson 6. If you remove only `player.update(...)`, the square still draws but cannot move. Explain why.
 
-After writing your own code, compare with checkpoint 8's [Main.java](../../teaching/checkpoints/8/Main.java) and [Player.java](../../teaching/checkpoints/8/Player.java). Continue editing **this Coin game folder** in [lesson 9](09-coin-game.md).
+After writing your own code, compare with checkpoint 8's [Main.java](../../teaching/checkpoints/8/Main.java) and [Player.java](../../teaching/checkpoints/8/Player.java). Continue editing **this Coin game folder** in [lesson 6](09-coin-game.md).

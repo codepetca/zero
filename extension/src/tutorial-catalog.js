@@ -7,19 +7,22 @@ const lessonFiles = Object.freeze({
   '3':'03-quiz.md', '4':'04-counter.md', '5':'05-methods.md', '6':'06-objects.md',
   '7':'07-study-app.md', '8':'08-movement.md', '9':'09-coin-game.md',
   '10':'10-components.md', '11':'11-zerohub.md', '12':'12-media.md',
-  '13':'13-pet.md', '14':'14-own-project.md',
+  '13':'13-pet.md', '14':'14-own-project.md', '15':'15-recover-zero.md',
 });
 const LESSON_IDS = Object.freeze(Object.keys(lessonFiles));
-const MAIN_LESSONS = Object.freeze(['0','1','2','8','9','13','14']);
+const MAIN_LESSONS = Object.freeze(['15','0','1','2','8','9','13','14']);
+const DISPLAY_NUMBERS = Object.freeze({'15':1,'0':2,'1':3,'2':4,'8':5,'9':6,'13':7,'14':8,'10':9,'11':10,'12':11});
 const tutorialGroups = Object.freeze([
+  {id:'getting-started',title:'Getting started',lessons:['15']},
   {id:'greeting',title:'Greeting app',lessons:['0','1','2']},
   {id:'game',title:'Coin game',lessons:['8','9']},
   {id:'pet',title:'Animated pet',lessons:['13']},
   {id:'own-project',title:'Your own project',lessons:['14']},
-  {id:'study',title:'Study quiz (optional)',lessons:['3','4','5','6','7']},
-  {id:'practice',title:'Components and sharing (optional)',lessons:['10','11']},
-  {id:'media',title:'Coin artwork and sound (optional)',lessons:['12']},
+  {id:'study',title:'Study quiz',lessons:['3','4','5','6','7']},
+  {id:'practice',title:'Components and sharing',lessons:['10','11']},
+  {id:'media',title:'Coin artwork and sound',lessons:['12']},
 ].map(group => Object.freeze({...group,lessons:Object.freeze(group.lessons)})));
+const visibleTutorialGroups = Object.freeze(tutorialGroups.filter(group => group.id !== 'study'));
 const PROJECT_LESSONS = Object.freeze({greeting:'0',study:'3',game:'8',pet:'13'});
 const EXTERNAL_LINKS = Object.freeze([
   'https://zero.codepet.ca/hub',
@@ -40,4 +43,4 @@ function referencePath(value) {
     || /^teaching\/checkpoints\/14\/Main\.java$/.test(value)
     || /^student-template\/examples\/[a-z-]+\/(?:README\.md|[A-Za-z]+\.java)$/.test(value);
 }
-module.exports = {lessonFiles,LESSON_IDS,MAIN_LESSONS,tutorialGroups,PROJECT_LESSONS,EXTERNAL_LINKS,navigationIds,referencePath};
+module.exports = {lessonFiles,LESSON_IDS,MAIN_LESSONS,DISPLAY_NUMBERS,tutorialGroups,visibleTutorialGroups,PROJECT_LESSONS,EXTERNAL_LINKS,navigationIds,referencePath};

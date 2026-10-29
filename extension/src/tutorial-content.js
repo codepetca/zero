@@ -1,7 +1,7 @@
 'use strict';
 const path = require('node:path');
 const fs = require('node:fs/promises');
-const {LESSON_IDS,lessonFiles,tutorialGroups,navigationIds,referencePath,EXTERNAL_LINKS} = require('./tutorial-catalog');
+const {LESSON_IDS,lessonFiles,tutorialGroups,visibleTutorialGroups,DISPLAY_NUMBERS,navigationIds,referencePath,EXTERNAL_LINKS} = require('./tutorial-catalog');
 const escapeHtml = text => String(text).replace(/[&<>"']/g, value => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[value]));
 const record = value => value && typeof value === 'object' && !Array.isArray(value);
 function validateContent(value) {
@@ -117,9 +117,9 @@ function renderLessons(bundle,{assetUri}) {
     const group = bundle.groups.find(item => item.lessons.includes(lesson.id));
     const {previous,next} = navigationIds(lesson.id);
     const references = Object.entries(lesson.references).map(([name,text]) => `<details id="${referenceIds[name]}" class="reference"><summary>${escapeHtml(name.replace(/^teaching\/checkpoints\//,'Checkpoint ').replace(/^student-template\/examples\//,'Example '))}</summary>${name.endsWith('.java') ? code(text,true) : renderMarkdown(text,{code})}</details>`).join('');
-    return `<article class="lesson" data-lesson-id="${lesson.id}" hidden><p class="eyebrow">${escapeHtml(group.title)} · Lesson ${lesson.id}</p><h1 tabindex="-1">${escapeHtml(lesson.title)}</h1><div class="lesson-content">${renderMarkdown(body,options)}</div>${references ? `<section class="references" aria-label="Full code references"><h2>Compare your code</h2><p>Try the task first. These completed references do not change your project. Their line numbers may differ from your own file.</p>${references}</section>` : ''}<nav class="pagination" aria-label="Lesson navigation">${previous ? `<button type="button" class="text-button" data-lesson="${previous}">← Previous lesson</button>` : '<span></span>'}${next ? `<button type="button" class="primary" data-lesson="${next}">Next lesson →</button>` : '<span></span>'}</nav></article>`;
+    return `<article class="lesson" data-lesson-id="${lesson.id}" data-display-number="${DISPLAY_NUMBERS[lesson.id] || ''}" hidden><p class="eyebrow">${escapeHtml(group.title)}${DISPLAY_NUMBERS[lesson.id] ? ` · Lesson ${DISPLAY_NUMBERS[lesson.id]}` : ''}</p><h1 tabindex="-1">${escapeHtml(lesson.title)}</h1><div class="lesson-content">${renderMarkdown(body,options)}</div>${references ? `<section class="references" aria-label="Full code references"><h2>Compare your code</h2><p>Try the task first. These completed references do not change your project. Their line numbers may differ from your own file.</p>${references}</section>` : ''}<nav class="pagination" aria-label="Lesson navigation">${previous ? `<button type="button" class="text-button" data-lesson="${previous}">← Previous lesson</button>` : '<span></span>'}${next ? `<button type="button" class="primary" data-lesson="${next}">Next lesson →</button>` : '<span></span>'}</nav></article>`;
   }).join('');
-  const navigation = bundle.groups.map(group => `<optgroup label="${escapeHtml(group.title)}">${group.lessons.map(id => `<option value="${id}">${id}. ${escapeHtml(bundle.lessons.find(lesson => lesson.id === id).title)}</option>`).join('')}</optgroup>`).join('');
+  const navigation = visibleTutorialGroups.map(group => `<optgroup label="${escapeHtml(group.title)}">${group.lessons.map(id => `<option value="${id}">${DISPLAY_NUMBERS[id]}. ${escapeHtml(bundle.lessons.find(lesson => lesson.id === id).title)}</option>`).join('')}</optgroup>`).join('') + `<optgroup label="Earlier lessons" hidden>${bundle.groups.find(group => group.id === 'study').lessons.map(id => `<option value="${id}">${escapeHtml(bundle.lessons.find(lesson => lesson.id === id).title)}</option>`).join('')}</optgroup>`;
   return {articles,navigation,copies};
 }
 module.exports = {LESSON_IDS,escapeHtml,validateContent,loadContent,browserUrl,resolveLink,renderMarkdown,renderLessons};

@@ -6,26 +6,20 @@ the intended result; native controls vary by platform.
 
 | Tutorial | Lessons | What you will make |
 | --- | --- | --- |
-| 1. Greeting app | [0](00-hello-world.md), [1](01-hello-button.md), [2](02-hello-name.md) | A greeting with a button and name field. |
-| 2. Coin game | [8](08-movement.md), [9](09-coin-game.md) | A moving player, coins, a score and Restart. |
-| 3. Pet game | [13](13-pet.md) | An animated bird, a sound and your own Pet class. Practise a branch, merge and re-clone. |
-| 4. Your own project | [14](14-own-project.md) | A personalized game welcome screen and a starting scene. |
+| Getting started | [1](15-recover-zero.md) | Find the sidebar, project files and tutorials. |
+| 1. Greeting app | [2](00-hello-world.md), [3](01-hello-button.md), [4](02-hello-name.md) | A greeting with a button and name field. |
+| 2. Coin game | [5](08-movement.md), [6](09-coin-game.md) | A moving player, coins, a score and Restart. |
+| 3. Pet game | [7](13-pet.md) | An animated bird, a sound and your own Pet class. Practise a branch, merge and re-clone. |
+| 4. Your own project | [8](14-own-project.md) | A personalized game welcome screen and a starting scene. |
 
 ## Optional tutorials
 
-- [Study quiz](03-quiz.md): build an app over lessons 3–7, including classes
-  that make Main easier to read.
-- [Components and practice sharing](10-components.md): continue with lessons
-  10–11 after completing both the Coin game and Study quiz. Refactor input and
-  practise sharing a clearly labelled CreditsBadge in ZeroHub's separate
-  tutorial-practice area. Copies are expected; hosted acceptance may be paused.
-  An optional extension proposes original work.
-- [Coin artwork and sound](12-media.md): continue the earlier component lessons
-  in the same Coin project and optionally try scrolling.
+- [Components and practice sharing](10-components.md): continue with lessons 9–10 after the Coin game. Refactor input and practise sharing a clearly labelled CreditsBadge in ZeroHub's separate tutorial-practice area. Copies are expected; hosted acceptance may be paused. An optional extension proposes original work.
+- [Coin artwork and sound](12-media.md): continue the component lessons in the same Coin project and optionally try scrolling.
 
 ## Start a lesson
 
-Before lesson 0, complete [account/privacy setup](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy)
+Before starting a project, complete [account/privacy setup](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy)
 and [Zero setup](../README.md#first-setup): your own verified GitHub account,
 Git 2.31+, school access and teacher approval for public source. Repositories
 created through Zero are public, including source and included files; keep
@@ -37,9 +31,8 @@ Enter a name and clone location, then choose **Clone here**. Zero creates your
 own repository from the matching verified template and opens its clone. A
 template that is not yet published and verified is unavailable; ask your teacher
 instead of cloning the shared template directly. To reopen your own clone, use
-**Project → Open local project…**. Lesson 14 uses **Project → New** for your own
-original project, not a tutorial repository. Study has its own optional tutorial
-starter. Keep the same repository throughout each project's lessons.
+**Project → Open local project…**. Lesson 8 uses **Project → New** for your own
+original project, not a tutorial repository. Keep the same repository throughout each project's lessons.
 
 The tutorial starters contain setup and an empty runnable Main. You write the
 controls, game objects and logic. Save, Run App, then **Commit & push** at the

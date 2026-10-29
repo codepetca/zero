@@ -1,4 +1,4 @@
-# 2. Greet by name
+# 4. Greet by name
 
 **Let someone type the greeting.**
 
@@ -6,7 +6,7 @@
 
 Target illustration: typing `Sam` and clicking **Say hello**.
 
-Open the **same Greeting project** you changed in lessons 0 and 1.
+Open the **same Greeting project** you changed in lessons 2 and 3.
 
 ## 1. Add this import beside your other Zero imports
 
@@ -71,7 +71,7 @@ focus and platform behavior. In `new Column(10, greeting, name, button)`, 10 is
 the gap between controls. The column arranges them without individual coordinates.
 
 For space around the whole interface, keep `padding(20)` in Main's `settings()`
-as in [lesson 0](00-hello-world.md#app-startup). It also works in `setup()` or a
+as in [lesson 2](00-hello-world.md#app-startup). It also works in `setup()` or a
 button action; each call replaces the previous amount, and `padding(0)` removes
 it. Padding uses some of the window's configured size, so enlarge `size(...)`
 in settings if the content needs room.

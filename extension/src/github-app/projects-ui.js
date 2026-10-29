@@ -2,7 +2,7 @@
 const path=require('node:path');
 const lessonProjects=require('../lesson-projects');
 const {assertTutorialTemplateReady}=require('../tutorial-template-readiness');
-const {tutorialGroups}=require('../tutorial-catalog');
+const {visibleTutorialGroups,DISPLAY_NUMBERS}=require('../tutorial-catalog');
 const core=require('../core');
 const {createProjectProgress,throwIfCancelled}=require('../project-folders');
 const ORIGINAL_TEMPLATE=Object.freeze({owner:'codepetca',repo:'zero-starter'});
@@ -66,11 +66,11 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
     const preparedTicket=prepare?await prepare():undefined;
     if(prepare&&!preparedTicket)return;
     if(!isActive())return;
-    const choices=tutorialGroups.flatMap(group=>{
+    const choices=visibleTutorialGroups.flatMap(group=>{
       const item=projects.find(project=>project.id===group.id);
       if(!item)return [];
-      const lessons=group.lessons.length===1?`Lesson ${group.lessons[0]}`:`Lessons ${group.lessons[0]}–${group.lessons.at(-1)}`;
-      return [{label:item.title,description:`${lessons}${group.id==='study'?' · Optional':''}${item.template?'':' · Template unavailable'}`,project:item}];
+      const lessons=group.lessons.length===1?`Lesson ${DISPLAY_NUMBERS[group.lessons[0]]}`:`Lessons ${DISPLAY_NUMBERS[group.lessons[0]]}–${DISPLAY_NUMBERS[group.lessons.at(-1)]}`;
+      return [{label:item.title,description:`${lessons}${item.template?'':' · Template unavailable'}`,project:item}];
     });
     const choice=await vscode.window.showQuickPick(choices,{title:'Start tutorial'});
     if(!choice||!isActive())return;

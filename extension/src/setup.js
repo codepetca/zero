@@ -103,7 +103,7 @@ function writeDetails(output,report,mode) {
   for (const extension of report.extensions) output.appendLine(`${extension.id}: ${extension.available ? 'available in this profile' : 'missing or disabled in this profile'} — ${extension.purpose}`);
   output.appendLine(`${report.runReady ? 'Run prerequisites ready' : 'Run prerequisites need attention'}; ${report.gitReady ? 'Git 2.31+ available for tutorials and uploads' : 'tutorials and uploads need Git 2.31+'}.`);
   output.appendLine(`Checks do not build the project or open its desktop window. ${report.runReady ? 'Choose Run current app, then confirm the JavaFX window opens.' : 'Review setup issues before using Run App.'} First builds may download Maven and JavaFX dependencies; read failures in the task terminal and Problems.`);
-  output.appendLine(`Upload mode: ${mode}. Simulation makes no Git changes. Uploads need native GitHub sign-in, a connected repository and your per-repository Git name/email. Account setup is required before tutorial lesson 0; public game publishing is optional. Zero does not change identity or credentials.`);
+  output.appendLine(`Upload mode: ${mode}. Simulation makes no Git changes. Uploads need native GitHub sign-in, a connected repository and your per-repository Git name/email. Account setup is required before creating a tutorial project; public game publishing is optional. Zero does not change identity or credentials.`);
 }
 
 function checklist(report) {
