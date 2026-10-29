@@ -41,3 +41,21 @@ test('rejects missing source evidence and a package that does not embed the kit'
  const f=fixture(); try {rmSync(join(f.windowsDir,'source-and-kit.json'));await assert.rejects(pairCandidates(f));} finally {rmSync(f.root,{recursive:true,force:true});}
  const g=fixture(); try {const bytes=Buffer.from(zipSync({'AppxManifest.xml':Buffer.from(msixManifest(version,storeIdentity)),'Zero.exe':Buffer.from('different')}));writeFileSync(join(g.windowsDir,g.win.artifact.filename),bytes);g.win.artifact=item(g.win.artifact.filename,bytes);g.put(g.windowsDir,'build-msix.json',g.win);await assert.rejects(pairCandidates(g),/does not contain/);} finally {rmSync(g.root,{recursive:true,force:true});}
 });
+
+test('bounds and validates MSIX inventory before decompression', async () => {
+ const {readCandidateMsix} = await import('./pair-release-candidates.mjs');
+ const make = extra => Buffer.from(zipSync({'AppxManifest.xml':Buffer.from('manifest'),'Zero.exe':Buffer.alloc(4096),...extra}));
+ assert.throws(() => readCandidateMsix(make({'unexpected':Buffer.from('x')})), /unsupported member/);
+ const truncated = make({}).subarray(0,20); assert.throws(() => readCandidateMsix(truncated), /missing end record/);
+ const oversized = make({});
+ const eocd = oversized.length - 22, central = oversized.readUInt32LE(eocd + 16);
+ oversized.writeUInt32LE(129 * 1024 * 1024, central + 24);
+ assert.throws(() => readCandidateMsix(oversized), /decoded size limit/);
+ // Forge a small declared size around an actually larger deflate stream. The
+ // decoder itself must enforce the limit rather than trusting the ZIP header.
+ const forged = make({});
+ let entry = forged.readUInt32LE(forged.length - 6);
+ entry += 46 + forged.readUInt16LE(entry + 28) + forged.readUInt16LE(entry + 30) + forged.readUInt16LE(entry + 32);
+ forged.writeUInt32LE(8, entry + 24);
+ assert.throws(() => readCandidateMsix(forged), /larger than|buffer|size/i);
+});

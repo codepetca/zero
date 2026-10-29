@@ -27,6 +27,19 @@ existing CLI account; CI preparation retains read-only GitHub permissions.
    only when the core actually changes. Keep the last verified README download
    until the new release is public.
 
+For a local paired build on macOS, start from a clean committed source tree with
+no `dist` directory and an available SDK `makemsix` binary, then run:
+
+```sh
+npm run release:build:pair -- --version <version> --source <full-commit-sha> --sign-identity <developer-id-sha1> --packager <absolute-makemsix-path> --output <new-receipt-path>
+```
+
+This builds one kit, then uses those same measured bytes for both a signed Mac DMG
+and a Windows Store MSIX. It does not notarize the Mac DMG, run WACK or publish;
+the normal signing, native validation and release gates still apply. Each output
+is new and existing builds are never replaced. The identity is a certificate's
+public SHA-1 identifier, not a password.
+
 After independently preparing the signed, notarized Mac candidate and Windows
 Store MSIX candidate from the same clean source and kit, `npm run release:pair --
 --mac <mac-candidate-dir> --windows <windows-candidate-dir> --version <version>
@@ -34,6 +47,9 @@ Store MSIX candidate from the same clean source and kit, `npm run release:pair -
 artifact hashes, Store mapping and embedded Windows kit bytes. It records the
 limits of Mac receipt evidence; it does not build the artifacts or establish WACK,
 installation, certification or publication. Existing checks and release holds apply.
+The existing Windows CI builds its own kit; it cannot be assumed byte-identical
+to a separately built Mac kit. Transfer and verify the original measured kit
+before attempting to pair a Windows SDK/WACK run with a Mac release candidate.
 2. Complete the normal source PR review and CI, then merge it to `main`.
 3. Approve publishing that exact version by running this once from a Zero checkout:
 

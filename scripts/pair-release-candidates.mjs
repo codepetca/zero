@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {writeFileSync, realpathSync} from 'node:fs';
 import {resolve, relative, isAbsolute, dirname, basename, join, sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {unzipSync} from 'fflate';
+import {inflateRawSync} from 'node:zlib';
 import {boundedFile} from '../website/lib/local-installer.mjs';
 import {validateInstallerManifest} from '../website/lib/installer.mjs';
 import {msixManifest, msixVersion, sha256, storeIdentity} from './windows-msix.mjs';
@@ -19,6 +19,85 @@ const measured = async (dir, item) => {
   return bytes;
 };
 const fields = item => ({filename:item.filename,size:item.size,sha256:item.sha256});
+
+// Parse and bound the central directory before decompressing any member.
+// Multi-disk, duplicate and unexpected members are outside the MSIX contract.
+export function readCandidateMsix(bytes) {
+  const allowed = new Set(['AppxManifest.xml','Zero.exe','Zero.exe.config','Newtonsoft.Json.dll',
+    'Assets/Square44x44Logo.png','Assets/Square150x150Logo.png','Assets/StoreLogo.png',
+    'AppxBlockMap.xml','[Content_Types].xml']);
+  const fail = message => { throw new Error(`Invalid MSIX archive: ${message}`); };
+  const requireRange = (offset, size, end = bytes.length) => {
+    if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(size) || offset < 0 || size < 0 || offset + size > end) fail('truncated structure');
+  };
+  let eocd = -1;
+  for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--) {
+    if (bytes.readUInt32LE(i) === 0x06054b50 && i + 22 + bytes.readUInt16LE(i + 20) === bytes.length) { eocd = i; break; }
+  }
+  if (eocd < 0) fail('missing end record');
+  const u64 = offset => { requireRange(offset,8); const value = bytes.readBigUInt64LE(offset); if (value > BigInt(Number.MAX_SAFE_INTEGER)) fail('oversized ZIP64 value'); return Number(value); };
+  let disk = bytes.readUInt16LE(eocd + 4), cdDisk = bytes.readUInt16LE(eocd + 6);
+  let count = bytes.readUInt16LE(eocd + 10), onDisk = bytes.readUInt16LE(eocd + 8);
+  let cdSize = bytes.readUInt32LE(eocd + 12), cdOffset = bytes.readUInt32LE(eocd + 16), directoryEnd = eocd;
+  if (count === 0xffff || cdOffset === 0xffffffff || cdSize === 0xffffffff) {
+    const locator = eocd - 20; requireRange(locator,20,eocd);
+    if (bytes.readUInt32LE(locator) !== 0x07064b50 || bytes.readUInt32LE(locator + 4) !== 0 || bytes.readUInt32LE(locator + 16) !== 1) fail('invalid ZIP64 locator');
+    const record = u64(locator + 8); requireRange(record,56,locator);
+    if (bytes.readUInt32LE(record) !== 0x06064b50 || u64(record + 4) !== 44 || record + 56 !== locator) fail('invalid ZIP64 record');
+    disk = bytes.readUInt32LE(record + 16); cdDisk = bytes.readUInt32LE(record + 20);
+    onDisk = u64(record + 24); count = u64(record + 32); cdSize = u64(record + 40); cdOffset = u64(record + 48); directoryEnd = record;
+  }
+  if (disk || cdDisk || count !== onDisk || count < 2 || count > allowed.size || cdOffset + cdSize !== directoryEnd) fail('invalid directory');
+  requireRange(cdOffset, cdSize, directoryEnd);
+  let offset = cdOffset, total = 0;
+  const entries = new Map(), intervals = [];
+  for (let i = 0; i < count; i++) {
+    requireRange(offset, 46, eocd);
+    if (bytes.readUInt32LE(offset) !== 0x02014b50) fail('invalid directory entry');
+    const flags = bytes.readUInt16LE(offset + 8), method = bytes.readUInt16LE(offset + 10);
+    let compressed = bytes.readUInt32LE(offset + 20), size = bytes.readUInt32LE(offset + 24);
+    const nameLength = bytes.readUInt16LE(offset + 28), extraLength = bytes.readUInt16LE(offset + 30), commentLength = bytes.readUInt16LE(offset + 32);
+    let local = bytes.readUInt32LE(offset + 42);
+    requireRange(offset, 46 + nameLength + extraLength + commentLength, eocd);
+    const name = bytes.subarray(offset + 46, offset + 46 + nameLength).toString('utf8');
+    if (size === 0xffffffff || compressed === 0xffffffff || local === 0xffffffff) {
+      let extra = offset + 46 + nameLength, extraEnd = extra + extraLength, found = false;
+      while (extra < extraEnd) {
+        requireRange(extra,4,extraEnd); const id = bytes.readUInt16LE(extra), length = bytes.readUInt16LE(extra + 2); extra += 4; requireRange(extra,length,extraEnd);
+        if (id === 1) {
+          if (found) fail('duplicate ZIP64 extra'); found = true; let cursor = extra;
+          const next = () => { requireRange(cursor,8,extra + length); const n = u64(cursor); cursor += 8; return n; };
+          if (size === 0xffffffff) size = next(); if (compressed === 0xffffffff) compressed = next(); if (local === 0xffffffff) local = next();
+        }
+        extra += length;
+      }
+      if (!found) fail('missing ZIP64 extra');
+    }
+    if (!allowed.has(name) || entries.has(name) || flags & ~0x808 || ![0,8].includes(method) || bytes.readUInt16LE(offset + 34) !== 0) fail('unsupported member');
+    total += size;
+    if (size > limit || total > limit || (name === 'AppxManifest.xml' && size > 1024 * 1024) || (method === 0 && size !== compressed)) fail('decoded size limit');
+    requireRange(local, 30, cdOffset);
+    if (bytes.readUInt32LE(local) !== 0x04034b50 || bytes.readUInt16LE(local + 6) !== flags || bytes.readUInt16LE(local + 8) !== method) fail('local header mismatch');
+    const localNameLength = bytes.readUInt16LE(local + 26), localExtraLength = bytes.readUInt16LE(local + 28);
+    requireRange(local, 30 + localNameLength + localExtraLength + compressed, cdOffset);
+    if (!bytes.subarray(local + 30, local + 30 + localNameLength).equals(bytes.subarray(offset + 46, offset + 46 + nameLength))) fail('member name mismatch');
+    const start = local + 30 + localNameLength + localExtraLength, end = start + compressed;
+    if (intervals.some(([a,b]) => local < b && end > a)) fail('overlapping members');
+    intervals.push([local,end]); entries.set(name, {method,size,start,end});
+    offset += 46 + nameLength + extraLength + commentLength;
+  }
+  if (offset !== directoryEnd || !entries.has('AppxManifest.xml') || !entries.has('Zero.exe')) fail('incomplete inventory');
+  const result = {};
+  for (const name of ['AppxManifest.xml','Zero.exe']) {
+    const entry = entries.get(name), compressed = bytes.subarray(entry.start,entry.end);
+    // zlib enforces the bound even when a malicious stream expands beyond its
+    // claimed central-directory size; verify exact size after decompression.
+    const data = entry.method === 0 ? compressed : inflateRawSync(compressed, {maxOutputLength: Math.max(1, entry.size)});
+    if (data.length !== entry.size) fail('decoded size mismatch');
+    result[name] = data;
+  }
+  return result;
+}
 
 // Pairing validates receipts and actual bytes. It does not rerun native signature,
 // notarization, WACK, installation or certification checks.
@@ -70,7 +149,7 @@ export async function pairCandidates({macDir, windowsDir, version, sourceRevisio
   assert.equal(source.packager?.sha256,win.packager.sha256); assert.equal(source.packager?.signatureStatus,'Valid');
   assert.equal(win.artifact.filename,`Zero-${version}-msix-store-x64.msix`);
   const msixBytes = await measured(windowsDir,win.artifact);
-  const archive = unzipSync(msixBytes);
+  const archive = readCandidateMsix(msixBytes);
   assert.equal(Buffer.from(archive['AppxManifest.xml'] || []).toString('utf8'),msixManifest(version,storeIdentity));
   assert.ok(Buffer.from(archive['Zero.exe'] || []).includes(kitBytes),'MSIX launcher does not contain the measured kit bytes');
   const receipt = {schema:1,kind:'zero-paired-local-candidate',kitVersion:version,packageVersion,sourceRevision,

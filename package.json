@@ -29,7 +29,7 @@
     "test:updates": "node --test scripts/mac-updater.test.mjs scripts/mac-update-feed.test.mjs",
     "test:updates:live": "node scripts/test-mac-updater-live.mjs",
     "release:publish": "node scripts/release-publish.mjs",
-    "test:release": "node --test scripts/release-review.test.mjs scripts/release-publish.test.mjs",
+    "test:release": "node --test scripts/release-review.test.mjs scripts/release-publish.test.mjs scripts/set-release-version.test.mjs scripts/build-release-pair.test.mjs scripts/pair-release-candidates.test.mjs",
     "verify:kit": "node scripts/verify-kit.mjs",
     "verify:framework": "node scripts/verify-framework.mjs",
     "verify:web": "node scripts/verify-web-export.mjs --browser",
@@ -47,6 +47,8 @@
     "verify:games": "node scripts/verify-basic-games.mjs --native --export",
     "release:version": "node scripts/set-release-version.mjs",
     "test:release:version": "node --test scripts/set-release-version.test.mjs",
+    "release:build:pair": "node scripts/build-release-pair.mjs",
+    "test:release:build:pair": "node --test scripts/build-release-pair.test.mjs",
     "release:pair": "node scripts/pair-release-candidates.mjs",
     "test:release:pair": "node --test scripts/pair-release-candidates.test.mjs"
   },
