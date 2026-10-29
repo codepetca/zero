@@ -8,7 +8,7 @@ const {validateContent,loadContent,browserUrl,renderMarkdown,renderLessons,resol
 const root = path.resolve(__dirname,'../..');
 async function prepared() {
   const {prepareTutorials} = await import(pathToFileURL(path.join(root,'scripts/prepare-tutorials.mjs')));
-  return prepareTutorials();
+  return prepareTutorials({check:true});
 }
 test('all sixteen retained lessons preserve canonical bodies, titles, illustrations and checkpoints',async () => {
   const bundle = await prepared();
