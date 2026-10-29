@@ -22,7 +22,7 @@ projects retain their own source and builds.
 Optional tutorials: the Study quiz and a clearly labelled tutorial-practice
 component contribution. Preserve the existing legacy lessons and accessible
 addresses; explain any prerequisite projects rather than silently changing them.
-Publication of personal work is public and requires school/teacher permission;
+Publishing personal work makes it public; follow applicable school and device policies;
 provide an appropriate alternative where a school account cannot use Pages.
 
 ## Delivery and acceptance

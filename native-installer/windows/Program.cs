@@ -23,7 +23,7 @@ namespace ZeroSetup
             {
                 LauncherRequest request = InstanceBroker.Parse(args);
                 string local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                if (string.IsNullOrWhiteSpace(local)) throw new IOException("Your Windows app-data folder is unavailable. Ask your teacher or IT for help.");
+                if (string.IsNullOrWhiteSpace(local)) throw new IOException("Your Windows app-data folder is unavailable. Ask your device administrator or IT for help.");
                 string data = Path.Combine(local, Distribution.DataFolder);
                 KitFiles.RejectReparseAncestors(data);
                 using (var broker = new InstanceBroker())
@@ -40,7 +40,7 @@ namespace ZeroSetup
             }
             catch (Exception error)
             {
-                MessageBox.Show("Zero could not open. Try again from the Start menu. If software is blocked on your school device, ask your teacher or IT.\r\n\r\n" + error.Message,
+                MessageBox.Show("Zero could not open. Try again from the Start menu. If software is blocked on your school device, ask your device administrator or IT.\r\n\r\n" + error.Message,
                     "Zero", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

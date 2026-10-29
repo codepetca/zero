@@ -18,11 +18,11 @@ The instructions below describe the **ZIP/manual launchers** and Windows setup.
 
 Extract the **whole** Zero kit first. Keep the `setup`, `starter` and `optional`
 folders beside the kit's Zero VSIX. Choose a folder you can write to, such as
-Documents. On a school laptop, your teacher or IT may need to install software.
+Documents. On a school laptop, your device administrator or IT may need to install software.
 
 - **Windows:** double-click `Setup.cmd`.
 - **Mac:** double-click `Setup.command`. If macOS blocks the file, follow your
-  school's approved process or ask your teacher. Do not disable security controls.
+  school's approved process or ask your device administrator or IT. Do not disable security controls.
 
 Setup first shows what is ready and what needs attention. Choose install help
 only for tools you need: a compatible **VS Code** and a **JDK 17 or newer** run your apps.
@@ -31,7 +31,7 @@ setup accepts newer stable versions in the same major. A missing, failed or
 unreadable version does not pass. Setup reports the selected version and path,
 plus old or unusable candidates. It checks the PATH command and standard stable
 VS Code application locations on Windows and Mac; custom installations may need
-teacher/IT help to expose their supported CLI.
+help from a device administrator or IT to expose their supported CLI.
 **Git 2.31 or newer** is part of setup before tutorial lesson 0 because lessons
 use authenticated Zero uploads. Ordinary local starter apps can run without Git;
 after tutorial cloning, Run needs no active GitHub sign-in. A JDK
@@ -42,7 +42,7 @@ Each installation needs its own yes/no choice. Setup can use **existing**
 Windows winget or Mac Homebrew, with the normal installer consent/admin prompts.
 It does not install a package manager. Alternatively it offers an official
 download page. If installation is blocked, show the check summary to your
-teacher/IT; do not try to bypass school restrictions. After an install, close
+device administrator or IT; do not try to bypass school restrictions. After an install, close
 VS Code completely and reopen setup. Windows may need a restart to update
 PATH/JAVA_HOME. An installer exit code does not mean setup is ready: check again.
 For a package already recorded by the manager, setup offers a specific upgrade
@@ -51,7 +51,7 @@ inventory cannot be checked, setup asks for configuration/restart help instead
 of reinstalling. It displays the proposed package command before your choice and
 checks again after a package operation.
 
-If the check mentions a broken/old `JAVA_HOME`, ask your teacher/IT to select
+If the check mentions a broken/old `JAVA_HOME`, ask your device administrator or IT to select
 the installed JDK. Setup honours that choice and does not change saved system
 variables. On Mac, if `JAVA_HOME` is unset, setup selects an installed JDK 17+
 for this setup process. The same environment is passed to the editor it opens;
@@ -59,7 +59,7 @@ close all existing VS Code windows first so they do not retain an old environmen
 An incompatible explicit `JAVA_HOME` always needs manual correction before any
 JDK installation through setup. Java and Git checks show the selected command
 paths. Git uses the first PATH installation; setup does not inventory every Git
-or JDK on the machine. If another installation should be selected, ask teacher/IT
+or JDK on the machine. If another installation should be selected, ask a device administrator or IT
 to review PATH or JAVA_HOME, then restart and check again.
 
 ## Your Zero profile (ZIP/manual setup)
@@ -85,7 +85,7 @@ the project's pinned Maven and JavaFX dependencies. Setup readiness checks tools
 the profile's installed extensions and required project files; it does not build
 your app, prove that extensions are enabled, or test school network permissions.
 If Java/editor support reports an additional runtime requirement, use Zero's
-in-editor **Setup Help** or ask your teacher. GitHub sign-in is separate and is
+in-editor **Setup Help** or ask your device administrator or IT. GitHub sign-in is separate and is
 not required for local running.
 
 ## Read-only checks and troubleshooting
@@ -108,8 +108,8 @@ setup. Windows offers **Run normally** or an explicit **one-process allowance**
 for this trusted downloaded script. The latter uses process-only execution
 policy and is unavailable if MachinePolicy/UserPolicy is configured (or cannot
 be checked). It never changes saved policy. Choose it only where your school
-permits running this kit; enforced school policy requires teacher/IT help.
-Read-only checks use normal policy and may be blocked too. Your teacher/IT can install
+permits running this kit; enforced school policy requires help from a device administrator or IT.
+Read-only checks use normal policy and may be blocked too. Your device administrator or IT can install
 the same tools and extensions using the normal interfaces.
 
 Primary vendor guidance: [VS Code downloads](https://code.visualstudio.com/download),

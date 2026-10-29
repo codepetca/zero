@@ -12148,3 +12148,18 @@ are removed; starter kit archives omit the lesson folder and packaged guides lin
 the website. Canonical lesson files remain inputs to the website. Local focused
 onboarding, kit and website tests and source checks passed; a local VSIX was inspected
 to confirm the old reader and lesson assets are absent. These changes are not released.
+
+## Student guidance wording — local source
+
+Student tutorial, setup and installer guidance now gives direct next steps without
+assigning responsibility to teachers. Managed-device restrictions point to the
+device administrator or IT. Educator-specific material, legal facts and historical
+records are retained. Local website build, 248 website tests, focused onboarding/
+setup and installer tests, and browser inspection of the recovery lesson passed;
+independent review and targeted corrections completed. Physical Windows and school
+network testing remain separate. The four public template README updates merged via
+Greeting PR3, Study PR3, Game PR3 and Pet PR2. Their anonymous commit archives were
+checked against every generated scaffold file and executable mode; verified commit,
+tree and scaffold hashes are recorded in teaching/tutorial-templates.json. Each
+repository is public, remains a template and has main as its default branch. Template
+repositories had no configured CI. Zero source changes remain local until merged.

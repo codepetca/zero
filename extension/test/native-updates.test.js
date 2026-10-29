@@ -49,7 +49,7 @@ test('missing app, denied opening and timeout errors give usable recovery withou
     const {commands, errors} = fixture({execute:async () => {throw failure;}});
     for (const action of Object.values(commands)) await action();
     assert.equal(errors.length, 2);
-    assert.ok(errors.every(text => /latest Zero.app in Applications/.test(text) && /teacher or IT/.test(text)));
+    assert.ok(errors.every(text => /latest Zero.app in Applications/.test(text) && /device administrator or IT/.test(text)));
     assert.ok(errors.every(text => !text.includes('PRIVATE')));
   }
 });
@@ -119,7 +119,7 @@ test('Windows invalid or missing local application data cannot launch another pa
     for (const action of Object.values(commands)) await action();
     assert.deepEqual(spawns, []);
     assert.equal(errors.length, 2);
-    assert.ok(errors.every(text => /Install the latest Zero for Windows/.test(text) && /teacher or IT/.test(text)));
+    assert.ok(errors.every(text => /Install the latest Zero for Windows/.test(text) && /device administrator or IT/.test(text)));
     assert.ok(errors.every(text => !text.includes('PRIVATE')));
   }
 });
@@ -132,7 +132,7 @@ test('Windows spawn failures report recovery without exposing child details', as
     await pending;
     assert.equal(errors.length, 1);
     assert.match(errors[0], /Install the latest Zero for Windows/);
-    assert.match(errors[0], /teacher or IT/);
+    assert.match(errors[0], /device administrator or IT/);
     assert.ok(!errors[0].includes('PRIVATE'));
   }
   const {commands, errors} = windowsFixture({spawnProcess:() => {throw new Error('PRIVATE synchronous failure');}});

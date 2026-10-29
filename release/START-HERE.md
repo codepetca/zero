@@ -8,18 +8,18 @@ Macs are unsupported; physical Windows/classroom testing remains pending.
 
 Tutorials require **your own GitHub account and Git 2.31+**. Before starting:
 
-1. Follow your teacher's username/email rules. Create your account at
+1. Follow school username/email policies. Create your account at
    [github.com/signup](https://github.com/signup), verify its email, and keep
    your password private. Use your own account for the template repository,
    VS Code cloning and Zero uploads.
 2. Check GitHub access, Zero browser sign-in and compiler downloads on your
-   school machine/network. Use Setup help for missing Git; ask teacher/IT about
+   school machine/network. Use Setup help for missing Git; contact school IT about
    restrictions rather than bypassing them.
-3. Zero creates public tutorial repositories. Check your teacher's privacy rules
-   before creating one; ask your teacher if private work is required. For a
-   private repository, invite your teacher's confirmed GitHub username and verify
+3. Zero creates public tutorial repositories. Check school privacy policies
+   before creating one. If private work is required, create a private repository
+   on GitHub, invite the intended reviewer’s confirmed GitHub username and verify
    access. A link alone does not grant access.
-4. Configure a teacher-approved Git name/email in each cloned repository before
+4. Configure a Git name/email that follows school policy in each cloned repository before
    uploading. For email privacy, copy your exact GitHub `noreply` address from
    Settings → Emails; do not put passwords or tokens in the project.
 
@@ -60,7 +60,7 @@ repository, not a reset of existing work. With a local folder that has no origin
 use **Project → Connect to GitHub…** for your own existing repository URL.
 Signed-out Git controls show only **Sign in to GitHub**; local Run and Files remain.
 Connected projects keep their repository and branch controls, with **Publish & open app**
-in the Run dropdown and repository menu. Keep tutorial source visibility under your teacher's rules.
+in the Run dropdown and repository menu. Follow school privacy and visibility policies for tutorial source.
 
 ## Zero app for Mac
 
@@ -90,8 +90,8 @@ Setup checks your existing tools first. Choose an installation or help action
 only for items that need attention. It can help install missing tools through an
 existing system package manager, install the Zero/Java extensions, and open the
 tutorial welcome. It does not install a package manager or silently replace working tools.
-Your computer may ask for permission; if a school policy blocks setup, ask your
-teacher or IT. Follow the setup prompts about choosing/importing a VS Code profile.
+Your computer may ask for permission; if a school policy blocks setup, contact
+school IT. Follow the setup prompts about choosing/importing a VS Code profile.
 
 Inside VS Code, choose **Zero: Setup Help**, or **Setup help** in the sidebar.
 The checklist explains what is ready, offers extension installation and official
@@ -147,10 +147,10 @@ the browser API checks and compilation before sharing a playable browser app.
 
 After the initial tutorial clone, local Run needs no active GitHub sign-in.
 GitHub actions are live by default;
-nothing uploads automatically. Follow teacher visibility instructions, connect
+nothing uploads automatically. Follow school privacy and visibility policies, connect
 your own repository, then review Upload and branch changes. Tutorial projects
 require their own template-created repository and clone. Git **2.31+** and your own GitHub account are required for upload and publishing. Submit the repository link
-separately in Pika.
+separately in Pika if your course uses it.
 
 ## Publish a playable app
 

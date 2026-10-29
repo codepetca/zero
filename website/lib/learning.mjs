@@ -336,5 +336,4 @@ export const quickLinks = [
   { title: "Tutorials", description: "Build your app one step at a time.", href: "/learn" },
   { title: "API reference", description: "Look up Zero classes and methods.", href: "/docs" },
   { title: "Setup help", description: "Install Zero and troubleshoot running.", href: "/help/setup" },
-  { title: "For teachers", description: "Teaching notes and classroom checks.", href: "/teachers" },
 ];

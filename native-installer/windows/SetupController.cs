@@ -120,7 +120,7 @@ namespace ZeroSetup
             var result = await backend.Run(Root, action, target, approved, cancellation);
             Record("Action: " + action + " " + target + "\r\nExit: " + result.ExitCode + "\r\n" + result.Output);
             if (result.Cancelled || result.TimedOut || result.OutputIncomplete || result.ExitCode != 0)
-                throw new IOException(result.TimedOut ? "Setup timed out. Readiness is unverified." : "Setup could not finish. Readiness is unverified. If normal PowerShell policy blocked setup, read setup\\README.md or ask your teacher/IT. Setup does not change policy.");
+                throw new IOException(result.TimedOut ? "Setup timed out. Readiness is unverified." : "Setup could not finish. Readiness is unverified. If normal PowerShell policy blocked setup, read setup\\README.md or ask your device administrator or IT. Setup does not change policy.");
             return result;
         }
         private async Task Operation(string message, Func<Task> work)
@@ -150,7 +150,7 @@ namespace ZeroSetup
             if (!snapshot["code"]) { await Plan("code"); return; }
             if (!snapshot["java"])
             {
-                if (snapshot["javaHomeBlocked"]) { needsAttention = true; Record("JAVA_HOME selects an incompatible or missing JDK. Ask your teacher/IT to select an installed matching JDK 17+. Setup preserves this environment choice."); Set(SetupStage.BlockedJava, "Java needs help. See Details."); }
+                if (snapshot["javaHomeBlocked"]) { needsAttention = true; Record("JAVA_HOME selects an incompatible or missing JDK. Ask your device administrator or IT to select an installed matching JDK 17+. Setup preserves this environment choice."); Set(SetupStage.BlockedJava, "Java needs help. See Details."); }
                 else await Plan("java");
                 return;
             }

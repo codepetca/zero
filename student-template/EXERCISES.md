@@ -58,7 +58,7 @@ which checks were actual GUI actions or synthetic events. A compile alone does
 not verify focus, layout, or student-machine restrictions.
 
 Use your own repository and Zero's reviewed GitHub workflow; upload is simulated
-by default. Submit its link separately in Pika. Ask for teacher/peer review before
+by default. Submit its link separately in Pika if your course uses it. Seek peer review before
 another cohort adopts your change. A future shared library release needs a
 version and compatibility review so it does not unexpectedly change existing
 projects; this starter currently ships readable source.

@@ -221,7 +221,7 @@ function Help-Tool([string]$Tool) {
     switch ($Tool) {
         code { Find-Kit; Find-Code; if (-not $VsCodeMinimum) { return }; if ($Code) { Write-Host 'VS Code is already available. Use Check again.'; return } }
         java { Find-Java; if ($JavaOK) { Write-Host 'A suitable JDK is already available. Use Check again.'; return }
-            if ($env:JAVA_HOME) { Write-Host 'JAVA_HOME selects an incompatible/missing JDK. Ask your teacher/IT to select an installed matching JDK 17+; no installation attempted.'; return } }
+            if ($env:JAVA_HOME) { Write-Host 'JAVA_HOME selects an incompatible/missing JDK. Ask your device administrator or IT to select an installed matching JDK 17+; no installation attempted.'; return } }
         git { Find-Git; if ($GitOK) { Write-Host 'A suitable Git is already available. Use Check again.'; return } }
     }
     switch ($Tool) {
@@ -229,19 +229,19 @@ function Help-Tool([string]$Tool) {
         java { $title = 'Temurin JDK 17'; $id = 'EclipseAdoptium.Temurin.17.JDK'; $url = 'https://adoptium.net/temurin/releases/?version=17' }
         git { $title = 'Git (optional sharing)'; $id = 'Git.Git'; $url = 'https://git-scm.com/downloads' }
     }
-    Write-Host "`n$title`: school laptops may need your teacher or IT to install software."
+    Write-Host "`n$title`: school laptops may need your device administrator or IT to install software."
     Write-Host 'If blocked, stop and show them the check summary. Do not bypass school restrictions.'
     $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
     if ($winget) {
         # Listing commands never install. If inventory cannot be read, do not guess.
         $inventory = Invoke-Tool $winget.Source @('list', '--source', 'winget', '--disable-interactivity')
-        if ($inventory.Exit -ne 0) { Write-Host 'Could not read winget inventory. Ask your teacher/IT or use the official download page; no installation attempted.'; return }
+        if ($inventory.Exit -ne 0) { Write-Host 'Could not read winget inventory. Ask your device administrator or IT or use the official download page; no installation attempted.'; return }
         $operation = 'install'
         $idPattern = '(?m)(?<![\w.-])' + [regex]::Escape($id) + '(?![\w.-])'
         if ($inventory.Output -match $idPattern) {
             $updates = Invoke-Tool $winget.Source @('upgrade', '--source', 'winget', '--disable-interactivity')
             if ($updates.Exit -ne 0 -or $updates.Output -notmatch $idPattern) {
-                Write-Host "winget already knows $id and no update was verified. Review PATH/JAVA_HOME or the selected installation with your teacher/IT; restart and check again. No reinstall attempted."; return
+                Write-Host "winget already knows $id and no update was verified. Review PATH/JAVA_HOME or the selected installation with your device administrator or IT; restart and check again. No reinstall attempted."; return
             }
             $operation = 'upgrade'
         }
@@ -324,7 +324,7 @@ try {
     if ($Check) { if (Is-Ready) { exit 0 } else { exit 1 } }
     Write-Host "`nWelcome! Nothing is installed until you choose an action."
     Write-Host 'You do not need Node.js, Python or global Maven.'
-    Write-Host 'If JAVA_HOME points to an old/missing JDK, ask your teacher/IT to correct it.'
+    Write-Host 'If JAVA_HOME points to an old/missing JDK, ask your device administrator or IT to correct it.'
     Write-Host 'Optional quiet profile: import BEFORE installing extensions, using VS Code Profiles > Import Profile > Select File:'
     Write-Host (Join-Path $KitDir 'optional\Zero.code-profile')
     Write-Host 'Choose the name Zero. Action 4 instead creates an empty Zero profile without those optional settings.'
@@ -374,4 +374,4 @@ try {
         }
     }
     if (Is-Ready) { exit 0 } else { exit 1 }
-} catch { Write-Host "Setup could not complete: $($_.Exception.Message). Ask your teacher/IT and see setup/README.md."; exit 1 }
+} catch { Write-Host "Setup could not complete: $($_.Exception.Message). Ask your device administrator or IT and see setup/README.md."; exit 1 }

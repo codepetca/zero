@@ -226,7 +226,7 @@ explicit separate action; local browser preview is enough to practise checking.
 
 ## 9. Practise submitting and using a classmate's badge
 
-The hosted library service must be enabled by your teacher/maintainers before a
+The hosted library service must be enabled by the maintainers before a
 submission can be accepted. **Library publication is currently paused.** While
 it is paused, finish extraction and Check locally, save the README, and prepare
 the submission; an opened form is not a listing. Do not rename the badge or use
@@ -253,7 +253,7 @@ keep your own library in local mode and keep the game rules unchanged. Run App
 and check the displayed message. Use a new exact version for an improvement and
 review Update/Revert deliberately; editor updates never replace it automatically.
 
-Teachers/maintainers may periodically clear practice listings. That removes them
+Maintainers may periodically clear practice listings. That removes them
 from practice discovery. Your GitHub source, local extracted source and already
 added JARs are not deleted. Keep your project and its version records. Re-fetching
 or checking a withdrawn dependency follows Zero's normal availability rules;

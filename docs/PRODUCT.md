@@ -501,11 +501,11 @@ Start tutorial supplies only empty Main boilerplate and build/framework setup.
 There are three scaffolds: Greeting (0–2), Study (3–7), Game (8–12). Website start
 buttons appear at 0, 3 and 8; later pages say to continue the existing project.
 Before lesson 0, students complete account/privacy setup: their own verified GitHub
-account, Git 2.31+, school GitHub/VS Code/compilation access and teacher-approved
+account, Git 2.31+, school GitHub/VS Code/compilation access and a configured Git
 commit identity. Repositories created through Zero are public, including their
 source and included files; students should keep secrets and private material out.
-Existing or GitHub-created repositories may retain their visibility, with teacher
-collaborator access where needed. Public game publishing remains optional. On the Zero Start Page, **Start tutorial**
+Existing or GitHub-created repositories may retain their visibility, with collaborator
+access granted where needed. Public game publishing remains optional. On the Zero Start Page, **Start tutorial**
 is primary; **New project** skips the tutorial and creates original work. The **…** menu also opens **Tutorials** for existing projects. The action
 selects the matching verified tutorial scaffold. The flow collects a repository
 name and parent folder before creating a public copy in
@@ -522,7 +522,7 @@ available from the empty sidebar. Reopen **Tutorials** to continue reading; less
 scroll position and disclosure state persist locally per project. This is reading
 state only, not completion or grading. Choose the first lesson through **All
 tutorials** to restart the reading sequence without changing student code.
-**Start tutorial** creates a new repository and is not a reset for the existing one. Completed teacher
+**Start tutorial** creates a new repository and is not a reset for the existing one. Completed reference
 checkpoints and optional references stay outside the empty template scaffolds. Lesson 12 optionally downloads only two
 media resources; students may use their own assets or drawing fallback.
 Click Run App again after editing: Zero saves, stops the previous process and
@@ -530,7 +530,7 @@ rebuilds. No normal lesson switching, source replacement or helper removal is ne
 Tutorial projects carry a tutorial identifier and repository-required marker,
 normal Git ignores and enabled Git controls. Run and repository actions require
 an existing standalone Git repository with a valid commit and GitHub origin;
-cloning the shared teacher template directly is rejected. These are local teaching
+cloning the shared tutorial template directly is rejected. These are local teaching
 checks, not cryptographic proof of a clone or online account ownership. Once cloned,
 Run works offline without an active GitHub session. Upload, branch changes and
 Publish use the ordinary live GitHub flow. Ordinary ZeroHub contributions still require

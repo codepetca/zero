@@ -10,8 +10,8 @@ function tutorialScaffoldSha256(files){
   return createHash('sha256').update(JSON.stringify(inventory)).digest('hex');
 }
 function assertTutorialTemplateReady(project){
-  if(!project?.template)throw Error(`The ${project?.title||'selected'} tutorial template is not published yet. Ask your teacher when it is available; no project was created.`);
-  if(project.template.scaffoldSha256!==tutorialScaffoldSha256(project.files))throw Object.assign(Error(`The published ${project.title} tutorial template has not been verified against these lessons and their Zero helpers. Ask your teacher for the updated template before starting. No project was created; existing projects can still run.`),{code:'ZERO_TUTORIAL_TEMPLATE_STALE'});
+  if(!project?.template)throw Error(`The ${project?.title||'selected'} tutorial template is not published yet. Try again when it is available; no project was created.`);
+  if(project.template.scaffoldSha256!==tutorialScaffoldSha256(project.files))throw Object.assign(Error(`The published ${project.title} tutorial template has not been verified against these lessons and their Zero helpers. Try again when the updated template is available. No project was created; existing projects can still run.`),{code:'ZERO_TUTORIAL_TEMPLATE_STALE'});
   return true;
 }
 module.exports={tutorialScaffoldSha256,assertTutorialTemplateReady};

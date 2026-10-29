@@ -8,8 +8,8 @@ Run App configuration. You choose the interface, data and behaviour.
 Before tutorial lesson 0, complete [GitHub account, school access and privacy setup](GETTING-STARTED.md#before-lesson-0-github-and-privacy).
 Use your own verified account and Git 2.31+. Repositories created through Zero
 are public, including source and included files; keep private material out.
-Existing or GitHub-created repositories may be private under your teacher's policy;
-invite the teacher as a collaborator when needed and check access. Publishing a
+Existing or GitHub-created repositories may be private according to school policy;
+invite the intended reviewer as a collaborator when needed and check access. Publishing a
 playable game remains optional.
 
 ## Create your own repository and clone it
@@ -17,7 +17,7 @@ playable game remains optional.
 1. Open the [minimal starter template](https://github.com/codepetca/zero-starter/generate).
    On GitHub, select
    your personal account as the owner, give the project your own name and follow
-   your teacher's visibility instructions. Create the repository.
+   school privacy and visibility policies. Create the repository.
 2. In **your new repository**, choose **Code → HTTPS** and copy its URL.
    Return to Zero, sign in, and choose **Project → Clone from GitHub…**. Paste
    your URL in **Clone from GitHub**. In **Clone location**, keep `~/Zero Projects`
@@ -59,9 +59,9 @@ Enter a name and choose a clone location (default `~/Zero Projects`). Zero creat
 a public repository in your GitHub account from the verified template, then clones
 and opens it. Its source and included files are public. The lesson page's
 **Use template** action offers a separate GitHub creation route; follow your
-teacher's visibility instructions there, then clone your own repository with
+school privacy and visibility policies there, then clone your own repository with
 **Project → Clone from GitHub…**. Use **Project → Open local project…** for an
-already-cloned Zero folder. Do not clone the teacher's shared repository directly. Open
+already-cloned Zero folder. Create your own repository from the template instead of cloning the template directly. Open
 `src/main/java/Main.java`, write the lesson’s ordinary Java and choose **Run App**.
 Template links follow verified publication metadata; unavailable templates show
 that state rather than an invented working link.
@@ -84,7 +84,7 @@ public. Ordinary ZeroHub contributions remain for separate original work. Lesson
 the Coin repository belongs only in Tutorial practice, when hosted library
 acceptance is enabled. Other tutorial games/libraries stay out of the community
 catalogue. Submit tutorial
-repository links in Pika only when the teacher assigns them; nothing is submitted
+repository links in Pika if your course uses it and requests them; nothing is submitted
 automatically.
 
 ## Build one feature at a time
@@ -105,8 +105,8 @@ automatically.
    Check the completed files on GitHub main.
 
 Repeat this loop in the same repository. A new feature does not need a new
-repository. Submit **your own repository link** separately in Pika, and give
-your teacher access if it is private. A source-example link, a simulated push
+repository. Submit **your own repository link** separately in Pika if your course uses it, and give
+the intended reviewer access if it is private. A source-example link, a simulated push
 or a branch push alone is not the completed project on main.
 
 ## Pull request practice

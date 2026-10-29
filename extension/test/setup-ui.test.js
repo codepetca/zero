@@ -51,7 +51,7 @@ test('explicit selected extension installs with supported native command, then c
 test('blocked school extension install preserves help and shows actionable guidance',async () => {
   const {help,records} = await fixture(['vscjava.vscode-java-debug','check'],{installError:true});await help();
   assert.equal(records.commands.length,1);assert.equal(records.checks,3);
-  assert.match(records.warnings[0],/School policy.*teacher or IT/);
+  assert.match(records.warnings[0],/School policy.*device administrator or IT/);
 });
 test('working installed tools have no repair actions; show details remains read only',async () => {
   const {help,records} = await fixture(['details'],{available:['redhat.java','vscjava.vscode-java-debug']});await help();
@@ -61,13 +61,13 @@ test('working installed tools have no repair actions; show details remains read 
 test('selected missing JDK opens official page and explains school/manual Linux repair and restart',async () => {
   const {help,records} = await fixture(['jdk'],{platform:'linux',report:{jdkReady:false,runReady:false,jdkDetail:'JAVA_HOME invalid'}});await help();
   assert.deepEqual(records.urls,['https://adoptium.net/temurin/releases/?version=17&package=jdk']);
-  assert.match(records.notices[0],/JDK, not JRE.*teacher or IT.*Linux instructions manually.*JAVA_HOME.*Fully quit and reopen/);
+  assert.match(records.notices[0],/JDK, not JRE.*device administrator or IT.*Linux instructions manually.*JAVA_HOME.*Fully quit and reopen/);
   assert.deepEqual(records.commands,[]);assert.deepEqual(records.runs,[]);
 });
 test('optional Git repair opens official page and never signs in or changes identity',async () => {
   const {help,records} = await fixture(['git'],{platform:'win32',report:{gitReady:false}});await help();
   assert.deepEqual(records.urls,['https://git-scm.com/downloads/']);
-  assert.match(records.notices[0],/Git 2.31.*Windows.*teacher or IT.*Fully quit and reopen/);
+  assert.match(records.notices[0],/Git 2.31.*Windows.*device administrator or IT.*Fully quit and reopen/);
   assert.deepEqual(records.commands,[]);assert.deepEqual(records.runs,[]);
 });
 test('selected Java and Git download help opens without waiting for notice dismissal',async t => {
