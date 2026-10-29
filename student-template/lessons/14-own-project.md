@@ -6,7 +6,7 @@ Create an original game project and give it a welcome screen. Your screen will h
 
 ## 1. Create your project
 
-1. Complete Zero and GitHub setup, including Git name and email. Ask your teacher about what may be shared publicly. A public repository and a published app can be seen by anyone; do not put secrets or private information in them.
+1. Complete Zero and GitHub setup, including Git name and email. Check what you have permission to share publicly and follow applicable school policies. A public repository and a published app can be seen by anyone; do not put secrets or private information in them.
 2. On Zero's Start Page choose **Project ▾ → New**. Sign in if asked. Give your repository a name, choose a clone location, and choose **Clone here**. Zero creates your own repository and opens its clone. If creation succeeds but cloning fails, use **Project ▾ → Clone** with your new repository URL.
 3. Open `src/main/java/Main.java`. This is your project, so choose a game idea and a title. You can run locally after setup without GitHub once the needed dependencies are cached.
 
@@ -142,6 +142,6 @@ score field and update it when the player earns points.
 
 ## 5. Save and share
 
-Review your code and README for private information. Use **Commit & push**, enter a useful message such as `Create welcome screen`, and confirm the action. This saves a commit and pushes your current branch to your repository. If you are working on a branch, review and use **Merge to main** when ready. Give your teacher the repository link separately in Pika as instructed.
+Review your code and README for private information. Use **Commit & push**, enter a useful message such as `Create welcome screen`, and confirm the action. This saves a commit and pushes your current branch to your repository. If you are working on a branch, review and use **Merge to main** when ready. Submit your repository link separately in Pika if assigned.
 
 To share a playable browser version, stop the app, commit and push the version you want, then choose **Run ▾ → Publish & open app** and follow Zero's prompts. Publishing makes the app and included assets public. Open the resulting page and test Start and Back. If your installed Zero offers **Publish app** instead, use that action and open the resulting link. Publication requires the connected GitHub/Pages setup; a local run alone does not publish anything.

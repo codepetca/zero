@@ -336,7 +336,9 @@ test('local source changing while App access awaits blocks staging before any wr
 });
 
 test('verified historical kit can update an existing Pages site without changing source, history or destination',async t=>{
-  const {current,legacy}=await require('./web-publish-legacy-fixture')();
+  const baselines=await require('./web-publish-legacy-fixture')();
+  for(const kit of ['legacy','previous'])await t.test(kit,async t=>{
+  const current=baselines.current,legacy=baselines[kit];
   const h=await fixture(t,{publisherOptions:{files:current},sourceFiles:legacy});
   const {isManagedPublishingSetup}=require('../src/web-publish-upload-auth');
   assert.equal(await isManagedPublishingSetup(h.root),false);
@@ -355,6 +357,7 @@ test('verified historical kit can update an existing Pages site without changing
   await assert.rejects(h.publisher.review(h.root),/Commit & push/);
   await h.git(['add','.']);await h.git(['commit','-m','Update publishing files']);h.remoteHead=await h.git(['rev-parse','HEAD']);
   const ready=await h.publisher.review(h.root);assert.equal(ready.upgrade,undefined);assert.equal(ready.sha,await h.git(['rev-parse','HEAD']));
+  });
 });
 
 test('older kit update refuses source, session, repository, remote and Pages drift without writes',async t=>{
@@ -378,11 +381,14 @@ test('older kit update refuses source, session, repository, remote and Pages dri
 });
 
 test('upgrade review refuses legacy bytes that are not recoverable tracked regular files',async t=>{
-  const {current,legacy}=await require('./web-publish-legacy-fixture')();
+  const baselines=await require('./web-publish-legacy-fixture')();
+  for(const kit of ['legacy','previous'])await t.test(kit,async t=>{
+  const current=baselines.current,legacy=baselines[kit];
   const h=await fixture(t,{publisherOptions:{files:current},sourceFiles:legacy});
   await h.git(['rm','--cached','.zero-web/README.md']);await fs.appendFile(path.join(h.root,'.git/info/exclude'),'.zero-web/README.md\n');
   await h.git(['commit','-m','Untrack guide']);h.remoteHead=await h.git(['rev-parse','HEAD']);
   await assert.rejects(h.publisher.review(h.root),/saved unchanged in Git history/);
+  });
 });
 
 

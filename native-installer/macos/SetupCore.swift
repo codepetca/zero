@@ -231,7 +231,7 @@ struct SetupKit {
     func validate() throws {
         var directory: ObjCBool = false
         guard manager.fileExists(atPath: root.path, isDirectory: &directory), directory.boolValue else {
-            throw SetupFailure(message: "The bundled kit is missing. Get a complete Zero Setup package from your teacher.")
+            throw SetupFailure(message: "The bundled kit is missing. Download a complete Zero Setup package and try again.")
         }
         try rejectSymlink(root)
         let required = ["START-HERE.md", "setup/setup.sh", "setup/Setup.command", "setup/kit.properties",

@@ -24,7 +24,7 @@ namespace ZeroSetup
         public void ValidatePlatform()
         {
             if (Environment.OSVersion.Platform != PlatformID.Win32NT || Environment.OSVersion.Version.Major < 10)
-                throw new IOException("Automatic Zero setup needs Windows 10 or later on an Intel or AMD 64-bit computer. Ask your teacher or IT for help.");
+                throw new IOException("Automatic Zero setup needs Windows 10 or later on an Intel or AMD 64-bit computer. Ask your device administrator or IT for help.");
         }
         public IEnumerable<string> InstalledEditors()
         {

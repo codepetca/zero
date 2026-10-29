@@ -26,8 +26,7 @@ for x64 Windows 10 (build 19041) or later. Run the Setup EXE; Zero prepares Java
 and its configured editor on first launch, then opens the editor. Internet is
 required for initial setup. Later, open Zero from the Start menu.
 Windows may show an unknown-publisher or SmartScreen warning because this
-preview is unsigned. Follow your school or device policies; ask your teacher or
-IT if installation is blocked. Automatic Zero updates are off, and interactive
+preview is unsigned. Follow your school or device policies; contact school IT if installation is blocked. Automatic Zero updates are off, and interactive
 Windows installation testing is still pending. Download a newer installer
 manually when needed.
 Choose **Manual setup (ZIP)** beside the Windows installer on the download page
@@ -124,11 +123,11 @@ This baseline supports the real push workflow used in the lessons.
 The kit's ordinary Hello World setup check can run without an account; the
 continuing tutorials start from your own template-created repository and clone.
 
-1. Ask your teacher which username and email to use, and confirm that public
-   tutorial source is allowed. For existing or GitHub-created repositories,
-   follow your teacher's visibility instructions. Also
+1. Follow school username, email and privacy policies, and confirm that public
+   tutorial source is allowed. Choose visibility for existing or GitHub-created
+   repositories according to those policies. Also
    confirm that GitHub browser sign-in is allowed on your school device/network.
-   If access is blocked, ask your teacher or IT; do not bypass school restrictions.
+   If access is blocked, contact school IT; do not bypass school restrictions.
 2. [Create a personal GitHub account](https://github.com/signup) if you do not
    already have one, and verify its email; [GitHub's account guide](https://docs.github.com/en/account-and-profile/how-tos/account-management/creating-an-account-on-github) explains this step. Use an email you can access under the
    school's instructions. Keep the account yours; never share its password or
@@ -139,9 +138,9 @@ continuing tutorials start from your own template-created repository and clone.
    your repository, cloning and Zero pushes. Nothing pushes just by signing in.
 4. Repositories created through Zero are public. Keep passwords, personal data
    and other private files out of your project. If you create a private repository
-   separately on GitHub, invite your teacher's confirmed GitHub username as a
+   separately on GitHub, invite the intended reviewer’s confirmed GitHub username as a
    [collaborator](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/repository-access-and-collaboration/inviting-collaborators-to-a-personal-repository) through repository
-   Settings → Collaborators → Add people. The teacher must accept; check they can
+   Settings → Collaborators → Add people. The collaborator must accept; check they can
    open it. Collaborator access to a personal repository includes writing code.
    A private repository link alone does not grant access.
 
@@ -156,7 +155,7 @@ its spelling. This setting does not rewrite old commits. See
 public; existing or GitHub-created source can stay private. GitHub Free supports private repositories
 and collaborators, but Pages from a private repository needs an eligible plan.
 Keep existing repository visibility; if Pages is unavailable, skip Publish or
-ask your teacher about an approved option. No paid plan is needed to complete
+use an option permitted by your school. No paid plan is needed to complete
 the tutorial repository/push workflow. See [GitHub's Pages availability](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site).
 After cloning and caching compiler dependencies, editing and Run App work offline
 without an active GitHub session; pushes still need sign-in and internet.
@@ -245,8 +244,8 @@ confirm its native JavaFX window, since tool detection is not a build test.
    Zero opens your clone with `Main.java` and **Tutorials** ready for lesson 0.
    Review its source and build scripts before granting workspace trust.
 4. Follow lesson 0 in your project. The first build needs internet to download
-   compiler dependencies into Zero’s local cache. Record school proxy/firewall
-   problems with your teacher; do not place credentials in the project.
+   compiler dependencies into Zero’s local cache. Report school proxy/firewall
+   problems to school IT; do not place credentials in the project.
 
 The bundled `starter` is a completed installation check, available through
 **⋯ → Troubleshooting → Test installation**. It is separate from your tutorial repository.
@@ -320,8 +319,8 @@ not verify browser compatibility.
 ## Your GitHub repository
 
 Local running needs no GitHub sign-in. Live push and publishing need Git
-**2.31+** and your own GitHub account. For sharing work, follow your teacher's
-privacy and account instructions. Repositories created through Zero are public;
+**2.31+** and your own GitHub account. For sharing work, follow school
+privacy and account policies. Repositories created through Zero are public;
 existing/cloned repositories keep their visibility. If you used **Start tutorial** or
 **Start Page → Project → New**, Zero already created and cloned **your repository**.
 That clone already has Git history and its own origin: keep that repository,
@@ -343,7 +342,7 @@ The empty-repository steps below apply to an extracted source ZIP:
    existing origin. This local connection does not prove remote ownership,
    existence or access. Before remote work, Zero checks your personal ownership,
    App permissions and explicit installation membership.
-4. Set your Git commit identity if needed, using your teacher-approved display
+4. Set your Git commit identity if needed, using a display
    name and commit email (the exact GitHub `noreply` address for email privacy). These commands configure this repository
    only, from the student folder:
 
@@ -411,7 +410,7 @@ choice keeps one conflicting section; other combined edits stay intact. Images
 and deletions use whole-file choices. Run your app, then Commit & push. **Cancel
 update** restores the starting checkpoint if nothing else has changed; later
 edits are preserved for native review. Complex conflicts use Source Control.
-Ask your teacher if the correct result is unclear.
+If the correct result is unclear, review the conflicting changes and seek help before continuing.
 
 If a push fails after committing, the local commit stays saved. Zero shows the
 appropriate Update, retry, sign-in or access action. **Push commits** retries saved
@@ -428,7 +427,7 @@ or unfinished Git operations need normal Git help before continuing.
 After a successful Merge to main, open GitHub and check the files and commit on main.
 Click the connected repository name, choose **Copy repository link**, and paste
 the link separately into the assignment
-in **Pika**. Give your teacher access if the repository is private. Copying a URL
+in **Pika** if your course uses it. Grant the intended reviewer access if the repository is private. Copying a URL
 does not push code, establish that the remote is current or submit in Pika.
 
 ## Publish your playable app
@@ -489,5 +488,5 @@ it and include the checks you ran. ScoreDisplay's caption constructor is a shipp
 example of a compatible contribution: its no-argument constructor keeps the quiz
 working while the tracker displays “Completed”. The study app reuses that class
 and adds ordinary Question objects; see its bundled guide. Review a shared change
-with the teacher and verify both apps before a cohort adopts it. Ordinary Java
+and verify both apps before others adopt it. Ordinary Java
 packages, interfaces and JavaFX properties are available as later steps.

@@ -5,9 +5,13 @@ const crypto=require('node:crypto');
 
 const ownerPath='.zero-web/owner.json';
 const kitPaths=['.zero-web/run.cjs','.zero-web/web-publish-bundle.js','.zero-web/README.md','.github/workflows/zero-web.yml',ownerPath];
-// Canonical publishingFiles at 44e50e4 (before f719d18's README-only identity
-// wording change). This allowlist is independent of the project's owner marker.
-const legacyHash='56217bc19e0f9009202e3096274d035810b3ecb46c33d862d52a63ae76d3fd92';
+// Canonical publishingFiles at 44e50e44 (before f719d184's README-only identity
+// wording change), and f719d184 through 84c56394 (before the README's device
+// administrator wording). This allowlist is independent of the owner marker.
+const legacyHashes=new Set([
+  '56217bc19e0f9009202e3096274d035810b3ecb46c33d862d52a63ae76d3fd92',
+  '292808492ceceb80fefcc6ac8f0e756275cc357aee6bd2d22f3d0f2195631805'
+]);
 const limit=256*1024;
 function conflict(name) {return Error(`Publishing file ${name} has different content. Preserve it and resolve the conflict before publishing; Zero will not replace an edited or unknown kit.`);}
 function identity(stat) {return [stat.dev,stat.ino,stat.mode,stat.size,stat.mtimeMs,stat.ctimeMs].join(':');}
@@ -59,8 +63,8 @@ function inspect(root,files) {
   if(!missing.length&&files.size===kitPaths.length&&kitPaths.every(name=>files.has(name))) {
     const digest=crypto.createHash('sha256');
     for(const [name,data] of [...original.entries].filter(([name])=>name!==ownerPath).sort(([a],[b])=>a.localeCompare(b)))digest.update(name).update('\0').update(data);
-    const marker=Buffer.from(JSON.stringify({format:1,toolHash:legacyHash})+'\n');
-    if(digest.digest('hex')===legacyHash&&original.entries.get(ownerPath).equals(marker))return {missing,original,upgrade:true,changed:different};
+    const hash=digest.digest('hex'),marker=Buffer.from(JSON.stringify({format:1,toolHash:hash})+'\n');
+    if(legacyHashes.has(hash)&&original.entries.get(ownerPath).equals(marker))return {missing,original,upgrade:true,changed:different};
   }
   throw conflict(different[0]);
 }

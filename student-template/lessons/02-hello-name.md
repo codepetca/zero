@@ -93,11 +93,10 @@ In Zero, choose **Commit & push**, review the changed files, and use a message
 such as `Finish greeting app`. This saves your work in your GitHub repository.
 Check the repository on GitHub to see your latest source.
 
-When your teacher has approved what you are sharing, stop the running app, then choose **Publish & open
+After checking that you have permission to share the contents, stop the running app, then choose **Publish & open
 app** from the Run dropdown. Follow the prompts and wait for the app to open in
 your browser. Try the button there, too. Your published page and its contents
 are public; include only material you have permission to share. If publishing
-is unavailable for your repository or school account, ask your teacher for the
-appropriate alternative rather than changing its visibility without approval.
+is unavailable for your repository or school account, follow your school or account policy and keep your repository visibility unchanged.
 
 Next: [Start the Coin game](08-movement.md).

@@ -42,8 +42,8 @@ test('four tutorial scaffolds omit solutions and own-project remains an original
     assert.match(content(project,'README.md').toString(),/blank window or canvas/);
   }
 });
-test('existing published scaffolds retain their exact pre-pathway file inventories',()=>{
-  const expected={greeting:'b37df540bca026cdc8a852c32c962eb81e04c8eb7391ebd95412dfa2d7c2590e',study:'38da66a7d5fcd597a5ee7065504d9ec8d19d1a7e7e62c07fa4920eb6fa0a00bc',game:'3ef12936c66103dfe742b95328b5ae38adce9fc324ed11c739e93ea1250cbe11'};
+test('published scaffolds match their verified file inventories',()=>{
+  const expected={greeting:'b87b66b1b47d705bc699ddc09ef98881b4ed88c5398e7aa94ce56156128fba64',study:'3f4b99332bc1793d89583eb7df4ad2614c3421f44104bdcfeba44d70ac6333d6',game:'f15f3cab16b4d00736ab83e69a5f31fc08401ae36cbcb45fd96073242d98f0e7'};
   for(const project of bundle.projects.filter(project=>project.id!=='pet')) {
     assert.equal(createHash('sha256').update(JSON.stringify(project.files)).digest('hex'),expected[project.id],project.id);
     assert.doesNotThrow(()=>readiness.assertTutorialTemplateReady(lessonModule.validateBundle(bundle).find(item=>item.id===project.id)));
@@ -228,7 +228,7 @@ test('local tutorial drafts pass pristine inventory checks without claiming publ
   t.after(()=>rmSync(drafts.directory,{recursive:true,force:true}));
   const projects=lessonModule.validateBundle(bundle);
   assert.deepEqual(drafts.templates.map(item=>item.id),['greeting','study','game','pet']);
-  assert.equal(drafts.templates.find(item=>item.id==='pet').publication.commit,'d633a67634af3b6c71599ba08eced0f09940f5f2');
+  assert.equal(drafts.templates.find(item=>item.id==='pet').publication.commit,'cab6ad76711541851c027d9f2fd73f7121733083');
   for(const draft of drafts.templates){
     const project=projects.find(item=>item.id===draft.id);
     assert.equal(checkTutorialTemplateDirectory(project,draft.directory),draft.scaffoldSha256);

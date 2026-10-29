@@ -17,7 +17,7 @@ set "policy_status=UNKNOWN"
 for /f "delims=" %%P in ('powershell.exe -NoLogo -NoProfile -Command "if ((Get-ExecutionPolicy -Scope MachinePolicy) -eq 'Undefined' -and (Get-ExecutionPolicy -Scope UserPolicy) -eq 'Undefined') { 'UNMANAGED' } else { 'MANAGED' }"') do set "policy_status=%%P"
 if not "%policy_status%"=="UNMANAGED" (
   echo A managed school policy is present, or policy could not be checked.
-  echo Setup will not request a process exception. Ask your teacher or IT.
+  echo Setup will not request a process exception. Ask your device administrator or IT.
   pause
   exit /b 1
 )
@@ -32,6 +32,6 @@ exit /b %errorlevel%
 :finish
 set "setup_result=%errorlevel%"
 echo.
-echo If school policy blocked setup, ask your teacher or IT. See setup\README.md.
+echo If school policy blocked setup, ask your device administrator or IT. See setup\README.md.
 pause
 exit /b %setup_result%

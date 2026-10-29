@@ -34,7 +34,7 @@ internal static class AutomaticControllerHarness
         assert(controller.Opened && !controller.Busy && !controller.Failed && fake.Prepares == 1 && fake.Opens == 1, "ready only after open");
         fake.FailPrepare = true;
         assert(!controller.Open(CancellationToken.None).GetAwaiter().GetResult() && controller.Failed && fake.Opens == 1, "failure never opens or retries itself");
-        assert(controller.Details.Contains("fixture network error") && controller.Details.Contains("teacher"), "useful diagnostics and recovery");
+        assert(controller.Details.Contains("fixture network error") && controller.Details.Contains("device administrator"), "useful diagnostics and recovery");
         fake.FailPrepare = false; fake.FailOpen = true;
         assert(!controller.Open(CancellationToken.None).GetAwaiter().GetResult() && fake.Opens == 2, "launch failure is visible");
         fake.FailOpen = false;

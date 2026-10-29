@@ -37,7 +37,7 @@ test("unpublished templates explain recovery without a guessed GitHub link or ZI
   for (const lesson of ["0", "3", "8", "13"]) {
     const html = render(lesson);
     assert.match(html, /Template not available yet/);
-    assert.ok(html.includes(`Ask your teacher for the published ${projectForLesson(lesson).title} tutorial template`));
+    assert.ok(html.includes(`Try again when the ${projectForLesson(lesson).title} tutorial template is available`));
     assert.match(html, /your own already-cloned repository/);
     assert.match(html, /href="\/help\/setup#start-here">Setup<\/a>/);
     assert.doesNotMatch(html, /href="https:\/\/github\.com|class="button"|\.zip|download=/);

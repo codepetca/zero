@@ -181,7 +181,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
               <ul hidden={!isOpen} id={`nav-${category.id}`}>{category.entries.map(entry => <li key={entry.id}>{methodLink(entry, `${entryLabel(entry)}${entry.id === 'image-scaled' ? ' · scaled' : ''}${category.id === 'advanced' ? ` · ${entry.owner}` : ''}`)}</li>)}</ul>
             </div>;
           })}</nav>
-          <div className="api-guide-links"><Link href="/learn">Tutorials</Link><Link href="/help/setup">Setup help</Link><Link href="/teachers">For teachers</Link></div>
+          <div className="api-guide-links"><Link href="/learn">Tutorials</Link><Link href="/help/setup">Setup help</Link></div>
         </div>}
     </aside>
     <ApiContent categories={categories} links={links} active={active} jump={jump} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} />

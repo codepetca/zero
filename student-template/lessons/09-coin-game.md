@@ -266,11 +266,10 @@ After writing it, compare with checkpoint 9's [Main.java](../../teaching/checkpo
 
 Choose **Commit & push** in Zero, review the changed files, and use a message
 such as `Finish coin game`. Check that your latest code is in your GitHub
-repository. When your teacher has approved what you are sharing, stop the running app, then choose
+repository. After checking that you have permission to share the contents, stop the running app, then choose
 **Publish & open app** from the Run dropdown and wait for it to open. Play the
 game in your browser and try Restart. The published page and its contents are
 public, so include only material you have permission to share. If publication
-is unavailable for your repository or school account, ask your teacher for an
-alternative rather than changing visibility without approval.
+is unavailable for your repository or school account, follow your school or account policy and keep your repository visibility unchanged.
 
 Next: [Make a pet game](13-pet.md).

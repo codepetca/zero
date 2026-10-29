@@ -39,14 +39,14 @@ for web perform those checks and browser compilation when requested.
 ## First setup
 
 Before creating a tutorial project, have **your own verified GitHub account and Git 2.31+**.
-Use [github.com/signup](https://github.com/signup) if needed. Follow your teacher's
+Use [github.com/signup](https://github.com/signup) if needed. Follow school
 username/email policy and check GitHub access, Zero browser sign-in and compiler
-downloads on your school machine; ask teacher/IT about restrictions. Confirm that
+downloads on your school machine; contact school IT about restrictions. Confirm that
 public tutorial source is allowed before creating through Zero. Keep private files
 out of public repositories. For an existing or GitHub-created private repository,
-invite the teacher's confirmed username as a collaborator and verify access;
+invite the intended reviewer’s confirmed username as a collaborator and verify access;
 a private link alone grants none, and collaborators can edit.
-Set your teacher-approved Git name/email per repository; for email privacy, copy
+Set a Git name/email that follows school policy per repository; for email privacy, copy
 the exact GitHub `noreply` address from Settings → Emails. Keep passwords/tokens
 out of projects. See [the account/privacy guide](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy).
 The ordinary local Hello World check below needs no account. After cloning and
@@ -93,8 +93,7 @@ and **Check again**. School IT can provide the tools before students start.
 4. Run App. The first run needs internet to download the pinned Maven and JavaFX
    dependencies; later runs reuse the local cache. You do
    not need Node.js, global Maven or a separate JavaFX installation.
-   A school proxy/firewall can block these downloads; ask your teacher rather
-   than adding passwords or tokens to project files.
+   A school proxy/firewall can block these downloads; contact school IT for help; do not add passwords or tokens to project files.
 
 Your saved `.zero-build` folder contains the browser compiler rules and adapters
 for this project. Keep it unchanged when updating the Zero editor. Its README
@@ -240,7 +239,7 @@ editing (stop the current preview first if it is running).
 The `examples/` shelf is outside compiled `src/`. In the [tutorials](https://zero.codepet.ca/learn),
 use **Start tutorial** to create your own Greeting, Coin or Pet repository from
 its matching verified template. Keep the same repository for its lessons. If a
-template is not available yet, ask your teacher. The fourth tutorial uses
+template is not available yet, choose another available tutorial and check back later. The fourth tutorial uses
 **Project → New** for your own original project. Study and component-sharing
 lessons are optional. Students write their own controls and classes, and the Pet
 tutorial uses downloadable artwork and sound. Some reference examples use native JavaFX APIs outside the browser subset;
@@ -305,14 +304,14 @@ If you created your own repository from a ZeroHub template and cloned it,
 keep that clone and its existing origin; skip creating an empty repository.
 For an extracted ZIP, open GitHub's new-repository page in your browser.
 Create your own **empty repository** on GitHub (leave README, license and
-gitignore uninitialized). Use your own account and follow your teacher's
-visibility instructions; there is no GitHub Classroom step. Connect its HTTPS
+gitignore uninitialized). Use your own account and follow school
+privacy and visibility policies; there is no GitHub Classroom step. Connect its HTTPS
 page URL through **Project → Connect to GitHub…** with the local Zero folder open. Connect initializes Git in this standalone student folder if
 needed and adds origin; it asks before replacing origin. It does not authenticate
 or push. Local running works without GitHub sign-in.
 
 Before a real push, configure Git's per-repository name/email identity.
-In your project terminal, replace the examples with your teacher-approved display
+In your project terminal, replace the examples with a display
 name and commit email. For email privacy, use the exact GitHub `noreply` address
 shown in Settings → Emails, rather than your personal email:
 
@@ -322,8 +321,7 @@ git config user.email "your-email@example.com"
 ```
 
 These commands apply only to this repository. For more help, read
-[the online repository setup guide](https://zero.codepet.ca/docs/setup#your-github-repository)
-or ask your teacher.
+[the online repository setup guide](https://zero.codepet.ca/docs/setup#your-github-repository).
 Signing in does not configure commit identity. Zero supplies the selected native
 GitHub session to its network operations without storing a token in your project
 or Git configuration. Account/session changes require a fresh push review.
@@ -334,7 +332,7 @@ Commit & push saves files and asks for a commit message, showing your repository
 and branch in the input. Check your changes, enter a short message and press
 Enter. This creates a local commit when needed and pushes
 the current branch with Git HTTPS transport using your native sign-in; ignored files stay local. A failed push may
-leave a local commit. A Mac teacher trial verified native sign-in and a private repository push;
+leave a local commit. A Mac trial verified native sign-in and a private repository push;
 other platforms and school environments still need trials.
 
 For a new repository, Commit & push once on **main** to save the starter.
@@ -371,14 +369,14 @@ whole-file choices; complex conflicts use native Source Control. **Cancel update
 restores the starting checkpoint only while no external edits/ref changes would
 be lost. Run the combined app, then Commit & push. A saved commit whose push fails
 remains local; use its Update/retry/sign-in action. **Check GitHub status** verifies
-an interrupted push without uploading. Ask your teacher if a conflict is unclear.
+an interrupted push without uploading. If a conflict is unclear, review the conflicting changes and seek help before continuing.
 A failed main push can leave local main advanced while your change branch
 remains selected; repair the network/access problem and review Merge to main again.
 Zero does not force-push or automatically discard work.
 
 After a successful Merge to main, check the files on GitHub's main branch. Click the connected
 repository name and choose **Copy repository link**, then submit it separately
-in Pika. Give your teacher access if it is
+in Pika if your course uses it. Give the intended reviewer access if it is
 private. Zero does not submit assignments or change Pika grades.
 
 ## Publish a playable app

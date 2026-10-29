@@ -23,7 +23,7 @@ guard can be left if an editor crashes immediately after reserving the file.
    On macOS, use Quit and check Activity Monitor. On Windows, exit all editor
    windows and check Task Manager. Do not move locks while any editor/extension
    host remains or when you cannot establish that it has stopped; ask your
-   teacher or IT for help instead.
+   device administrator or IT for help instead.
 3. With all editors closed, open the exact diagnostic directory in Finder or
    File Explorer. Rename each of these files, if present, by appending a unique
    suffix such as `.closed-editor-backup-20261018-143000`:

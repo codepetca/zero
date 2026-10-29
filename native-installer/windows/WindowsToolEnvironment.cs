@@ -85,7 +85,7 @@ namespace ZeroSetup
             }
             catch (Exception error)
             {
-                throw new IOException("Windows tool environment could not be refreshed. Close Zero Setup and reopen it, or ask your teacher/IT. Readiness remains unverified.", error);
+                throw new IOException("Windows tool environment could not be refreshed. Close Zero Setup and reopen it, or ask your device administrator or IT. Readiness remains unverified.", error);
             }
         }
         private static Dictionary<string, string> Copy(IDictionary<string, string> values)

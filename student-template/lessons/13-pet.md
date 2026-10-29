@@ -2,11 +2,11 @@
 
 ![Illustration of a bird pet game](visuals/13.svg)
 
-Make a bird pet that flaps, moves, and chimes, then give it its own `Pet` class. Start the Pet tutorial in Zero. If its starter is unavailable, ask your teacher for the verified Pet template; do not clone Zero’s shared template as your own project.
+Make a bird pet that flaps, moves, and chimes, then give it its own `Pet` class. Start the Pet tutorial in Zero. If its starter is unavailable, wait until the verified Pet template is published; do not clone Zero’s shared template as your own project.
 
 ## 1. Start your own project
 
-In Zero choose **Start tutorial → Animated pet**, sign in, name your project and choose a clone location. Zero creates your own repository and opens its clone. If your teacher provides the verified matching template link, you can instead use **Use this template** on GitHub, then choose **Project → Clone** in Zero and clone your own repository. Open that clone, not the shared template repository. After setup, editing and local Run work offline; GitHub actions and publishing need a connection. Submit your repository link separately in Pika if your teacher asks.
+In Zero choose **Start tutorial → Animated pet**, sign in, name your project and choose a clone location. Zero creates your own repository and opens its clone. If the verified matching template link is available, you can instead use **Use this template** on GitHub, then choose **Project → Clone** in Zero and clone your own repository. Open that clone, not the shared template repository. After setup, editing and local Run work offline; GitHub actions and publishing need a connection. Submit your repository link separately in Pika if assigned.
 
 Download the [Pet assets ZIP](https://zero.codepet.ca/generated/learning-assets/pet-assets.zip) and unzip it. In Zero's file tree, right-click **resources**, choose **New folder…** and name it `pet`. Right-click the new **pet** folder, choose **New asset…**, and select both files from the unzipped `pet` folder. The imported files belong in `src/main/resources/pet/` and must be named `bird-flap-sheet.png` and `chime.wav`. The leading `/` in `/pet/bird-flap-sheet.png` means the root of the project's resources, not your computer. The bird and chime are Zero assets supplied under the project license. For your own replacements, use a PNG and a short PCM WAV and retain permission and attribution.
 
@@ -189,7 +189,7 @@ Compare with [Pet.java](../../teaching/checkpoints/13/3/Pet.java) and [Main.java
 
 Run and check your game, then choose **Commit & push**, review the branch and changed files, enter a useful message, and confirm. This sends your branch to your repository. Commit & push remaining edits before **Merge to main**. Merge to main merges the current branch into main and pushes main; it does not create a pull request. If Zero brings in newer main code, Run App again, resolve reported conflicts carefully, and choose Merge to main again. Never discard work just to make a merge succeed.
 
-To publish, stop the game, ensure the intended main version is committed and pushed, then use the Run dropdown's **Publish & open app** (or **Publish app** in an older released Zero). Review the account, repository, visibility and GitHub Pages prompts before confirming. Publishing makes the app available at its public URL; wait for success and open the link on another browser/device. If the command is unavailable or a build fails, keep your source and ask your teacher; do not assume a public page exists. Local edits after publishing are not automatically the published version.
+To publish, stop the game, ensure the intended main version is committed and pushed, then use the Run dropdown's **Publish & open app** (or **Publish app** in an older released Zero). Review the account, repository, visibility and GitHub Pages prompts before confirming. Publishing makes the app available at its public URL; wait for success and open the link on another browser/device. If the command is unavailable or a build fails, keep your source and check the publishing guidance; do not assume a public page exists. Local edits after publishing are not automatically the published version.
 
 ## 7. Practise recovering your project
 

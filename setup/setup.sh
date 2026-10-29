@@ -148,7 +148,7 @@ detect_kit() {
   for member in "$VSIX" "$KIT_DIR/optional/Zero.code-profile" "$STARTER/zero.json" "$STARTER/pom.xml" "$STARTER/mvnw" "$STARTER/mvnw.cmd" "$STARTER/.mvn/wrapper/maven-wrapper.properties" "$STARTER/.vscode/tasks.json"; do
     if [ ! -f "$member" ]; then printf 'Missing kit file: %s\nExtract the complete kit again.\n' "$member"; return; fi
   done
-  if [ ! -x "$STARTER/mvnw" ]; then echo 'Starter mvnw is not executable. Extract with an archive tool that preserves permissions; ask your teacher for help.'; return; fi
+  if [ ! -x "$STARTER/mvnw" ]; then echo 'Starter mvnw is not executable. Extract with an archive tool that preserves permissions; ask your device administrator or IT for help.'; return; fi
   KIT_OK=1
 }
 detect_extensions() {
@@ -184,7 +184,7 @@ help_tool() {
   case "$1" in
     code) detect_kit; detect_code; if [ -z "$VSCODE_MINIMUM" ]; then return; fi; if [ -n "$CODE" ]; then echo 'VS Code is already available. Use Check again.'; return; fi ;;
     java) detect_java; if [ "$JAVA_OK" = 1 ]; then echo 'A suitable JDK is already available. Use Check again.'; return; fi
-      if [ -n "${JAVA_HOME:-}" ]; then echo 'JAVA_HOME selects an incompatible/missing JDK. Ask your teacher/IT to select an installed matching JDK 17+; setup will not install over this environment choice.'; return; fi ;;
+      if [ -n "${JAVA_HOME:-}" ]; then echo 'JAVA_HOME selects an incompatible/missing JDK. Ask your device administrator or IT to select an installed matching JDK 17+; setup will not install over this environment choice.'; return; fi ;;
     git) detect_git; if [ "$GIT_OK" = 1 ]; then echo 'A suitable Git is already available. Use Check again.'; return; fi ;;
   esac
   case "$1" in
@@ -192,13 +192,13 @@ help_tool() {
     java) title='Temurin JDK 17'; url='https://adoptium.net/temurin/releases/?version=17'; package=temurin@17; package_kind=(--cask) ;;
     git) title='Git (optional sharing)'; url='https://git-scm.com/downloads'; package=git; package_kind=(--formula) ;;
   esac
-  printf '\n%s: school laptops may require your teacher or IT to install software.\n' "$title"
+  printf '\n%s: school laptops may require your device administrator or IT to install software.\n' "$title"
   echo 'If blocked, stop here and show the check summary to them. Do not bypass school restrictions.'
   if [ "$OS" = Darwin ] && command -v brew >/dev/null 2>&1; then
     operation=install
     # Inventory queries cannot trigger Homebrew's automatic update.
     if ! inventory=$(HOMEBREW_NO_AUTO_UPDATE=1 probe brew list --versions "${package_kind[@]}"); then
-      echo 'Could not read Homebrew inventory. Ask your teacher/IT or use the official download page; no installation attempted.'; return
+      echo 'Could not read Homebrew inventory. Ask your device administrator or IT or use the official download page; no installation attempted.'; return
     fi
     installed=$(printf '%s\n' "$inventory" | awk -v name="$package" '$1==name {print}')
     if [ -n "$installed" ]; then
@@ -207,11 +207,11 @@ help_tool() {
       # Named outdated returns exit 1 when updates exist. Query the kind without
       # names, include auto-updating casks, then select this exact fixed package.
       if ! outdated_inventory=$(HOMEBREW_NO_AUTO_UPDATE=1 probe brew outdated "${outdated_options[@]}"); then
-        echo 'Could not verify package update status. Ask your teacher/IT; no installation was attempted.'; return
+        echo 'Could not verify package update status. Ask your device administrator or IT; no installation was attempted.'; return
       fi
       outdated=$(printf '%s\n' "$outdated_inventory" | awk -v name="$package" '$0==name {print}')
       if [ -z "$outdated" ]; then
-        echo "Homebrew already has $package current. Review PATH/JAVA_HOME or the selected installation with your teacher/IT; restart and check again. No reinstall attempted."; return
+        echo "Homebrew already has $package current. Review PATH/JAVA_HOME or the selected installation with your device administrator or IT; restart and check again. No reinstall attempted."; return
       fi
       operation=upgrade
     fi
@@ -298,7 +298,7 @@ if [ "$CHECK_ONLY" = 1 ]; then ready; exit $?; fi
 if [ ! -t 0 ]; then echo 'Interactive setup needs a terminal. Use --check for a read-only summary.'; exit 2; fi
 printf '\nWelcome! Nothing is installed until you choose an action.\n'
 echo 'Use the check summary above. You do not need Node.js, Python or global Maven.'
-echo 'If JAVA_HOME points to an old/missing JDK, ask your teacher/IT to correct it before proceeding.'
+echo 'If JAVA_HOME points to an old/missing JDK, ask your device administrator or IT to correct it before proceeding.'
 echo 'The optional quiet profile must be imported BEFORE extension installation:'
 echo "In VS Code: Profiles > Import Profile > Select File: $KIT_DIR/optional/Zero.code-profile"
 echo 'Choose the name Zero. Or use action 4 for an empty Zero profile without those optional settings.'
