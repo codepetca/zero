@@ -233,8 +233,9 @@ Right-click resources or a folder inside it to import existing images/audio.
 Right-click an asset and choose **Copy Asset Path** for its path in Java.
 **Rename file…** changes an editable file's name; Java declarations and references
 need their own source edits. The Project **⋯** menu contains Refresh, Collapse
-All, Show all project files and ZeroHub. **Zero: Use Standard Explorer** restores
-the ordinary file tree; **Zero: Use Student Explorer** returns here.
+All, Show all project files and ZeroHub. **Zero: Show Standard Explorer** opens
+the ordinary file tree; **Zero: Show Project Explorer** returns here and reveals
+the Project section if it was hidden.
 Click **Run** to rebuild after
 editing (stop the current preview first if it is running).
 

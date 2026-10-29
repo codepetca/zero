@@ -126,6 +126,8 @@ test('student explorer defaults on and an explicit Standard Explorer choice pers
   await f.tree.commands['zero.standardExplorer']();assert.equal(f.tree.isPreview(),false);assert.deepEqual(f.calls.at(-1),['zero.controls.focus']);
   const reloaded=await fixture(t,{remembered});assert.equal(reloaded.tree.isPreview(),false);
   await reloaded.tree.commands['zero.previewStudentExplorer']();assert.equal(remembered.get('zero.studentExplorerPreview'),true);
+  await reloaded.tree.commands['zero.previewStudentExplorer']();
+  assert.deepEqual(reloaded.calls.slice(-2),[['workbench.view.extension.zero-student-explorer'],['zero.studentProject.focus']], 'Showing the project again focuses the view even when already selected');
 });
 test('bounded view errors retain a full-Explorer escape',async t=>{
   const f=await fixture(t);await put(f.root,'zero.json','{');const roots=await f.children();assert.deepEqual(roots.map(n=>n.label),['Project view unavailable','Show all project files']);assert.equal(f.logs.length,1);

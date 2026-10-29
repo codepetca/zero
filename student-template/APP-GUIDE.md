@@ -61,9 +61,9 @@ exact published release. **Copy imports** copies those declarations. If exact
 metadata is unavailable, inspect the library documentation; Zero invents no API.
 Open **Project → ⋯ → ZeroHub** for library browsing and Add/Update/Revert. Check/Share retain their
 existing review steps. **Show all project files** opens the full Explorer; the
-Zero status-bar action returns to your active controls. **Zero: Use Standard
+Zero status-bar action returns to your active controls. **Zero: Show Standard
 Explorer** switches to the ordinary Explorer and remembers your choice.
-**Zero: Use Student Explorer** returns to the simplified view.
+**Zero: Show Project Explorer** returns to the simplified view and reveals the Project section if it was hidden.
 Right-click an editable file and choose **Rename file…** to change its filename.
 Renaming a Java file does not rewrite its class name or references; update those
 in your source as needed before running it.

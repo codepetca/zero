@@ -319,11 +319,11 @@
       },
       {
         "command": "zero.previewStudentExplorer",
-        "title": "Zero: Use Student Explorer"
+        "title": "Zero: Show Project Explorer"
       },
       {
         "command": "zero.standardExplorer",
-        "title": "Zero: Use Standard Explorer"
+        "title": "Zero: Show Standard Explorer"
       },
       {
         "command": "zero.showAllProjectFiles",
