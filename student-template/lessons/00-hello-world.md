@@ -1,4 +1,4 @@
-# 0. Hello, world!
+# 2. Hello, world!
 
 **Make your first greeting.**
 
@@ -41,7 +41,7 @@ window.
 ## 3. Run App, then change the greeting
 
 Click **Run App**. The window says **Hello, world!**. Edit the quoted words to `Hello, Java!` and click **Run App** again. The window should now say **Hello, Java!**.
-Keep this **same Greeting project** for lessons 1 and 2. You will add to this
+Keep this **same Greeting project** for lessons 3 and 4. You will add to this
 code rather than replace `Main.java`.
 
 ### App startup

@@ -1,4 +1,4 @@
-# 1. Say hello with a button
+# 3. Say hello with a button
 
 **Make a click change your greeting.**
 
@@ -6,7 +6,7 @@
 
 Target illustration: the label after clicking **Say hello**.
 
-Open your **Greeting** project from lesson 0. Keep its `Main.java`.
+Open your **Greeting** project from lesson 2. Keep its `Main.java`.
 
 ## 1. Add the Button and Column imports
 
@@ -54,6 +54,6 @@ The button's action changes the **existing** label. The label must stay in
 ## 4. Run App and click Say hello
 
 Click **Run App**, then click **Say hello**. The label should change from **Hello, Java!** to **You did it!**. Try changing `You did it!` to your own short message and rerun. Keep this
-Greeting project for lesson 2.
+Greeting project for lesson 4.
 
 Next: [Greet by name](02-hello-name.md).

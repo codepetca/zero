@@ -1,16 +1,16 @@
-# 11. Practise sharing a component
+# 10. Practise sharing a component
 
 **First checkpoint: keep your component working, then prepare a clearly labelled practice contribution.**
 
 ![The same Coin game with a small CreditsBadge, shared in Tutorial practice](visuals/11.svg)
 
-Reopen the **Study quiz** and **Coin game** from lesson 10. There is no lesson 11 download or new tutorial project. Keep practising in these folders. This lesson shares a tiny **CreditsBadge** in a separate **Tutorial practice** area. Copies are expected: you are learning the workflow, not claiming to have invented a new utility. PlayerInput stays in your game; you do not submit it.
+Reopen the **Coin game** from lesson 9. There is no lesson 10 download or new tutorial project. Keep practising in this folder. This lesson shares a tiny **CreditsBadge** in a separate **Tutorial practice** area. Copies are expected: you are learning the workflow, not claiming to have invented a new utility. PlayerInput stays in your game; you do not submit it.
 
 Previous: [Refactor a busy Main](10-components.md).
 
 ## 1. Retain the displayed value
 
-In `ScoreDisplay.java`, keep the private Label and Element view from lesson 10.
+In `ScoreDisplay.java`, keep the private Label and Element view from lesson 9.
 Find `private final Label label = new Label("Score: 0");` inside the class. Add these two fields immediately below that line (above `setScore`):
 
 ```java
@@ -18,7 +18,7 @@ private String caption = "Score";
 private int points;
 ```
 
-The game Main and StudyQuiz still own their real scores and when they change. These fields remember only
+The game Main still owns the real score and when it changes. These fields remember only
 what this display was last told to show. Find the existing `setScore` method, which contains `label.setText("Score: " + points);`. Replace the entire method, from `public void setScore(int points) {` through its closing `}`, with both methods below. Keep the following `view()` method:
 
 ```java
@@ -54,27 +54,21 @@ points. The null check runs before either field changes, so a bad argument gives
 a useful error and leaves the previous caption and value intact. No Zero core
 change or access to the private Label is needed.
 
-Copy the changed `ScoreDisplay.java` into the other project's `src/main/java/`
-folder. In the game's Main `setup()` and the study app's StudyQuiz constructor,
-immediately after `score = new ScoreDisplay();`, add
-`score.setCaption("Score");`. Keep scoring rules and setScore calls in those
-classes. The study Main stays unchanged.
+In the game's Main `setup()`, immediately after `score = new ScoreDisplay();`,
+add `score.setCaption("Score");`. Keep the scoring rules and setScore calls in Main.
 
-## 3. Run both apps and check the component
+## 3. Run the game and check the component
 
-Try `score.setCaption("Correct")` in the study app and `score.setCaption("Coins")`
-in the game. Run both apps. Answer the first study question or collect one coin;
-the caption and displayed value should agree. Finish and restart each app twice.
-Each app has its own ScoreDisplay instance, so changing one does not change the
-other running app.
+Try `score.setCaption("Coins")` in setup. Run App and collect a coin; the display
+should read `Coins: 1`. Finish and restart the game twice. Change the setup
+caption back to `Score`. To check changing a caption **after** a value, temporarily add `score.setCaption("Coins");`
+immediately after the existing `score.setScore(points);` inside the game's
+coin-collection block. Collect one coin: the display should show `Coins: 1`,
+proving the caption change kept that value. Stay on the coin and check it still
+shows 1.
 
-To check changing a caption **after** a value, temporarily add
-`score.setCaption("Coins");` immediately after the existing
-`score.setScore(points);` inside the game's coin-collection block. Collect one
-coin: the display should show `Coins: 1`, proving the caption change kept that
-value. Stay on the coin and check it still shows 1.
-
-Remove that experimental line and **restore `score.setCaption("Score")` in the game’s Main `setup()` and the study app’s `StudyQuiz` constructor before continuing**. Keep view() and setScore(int) as the
+Remove that experimental line and **restore `score.setCaption("Score")` in the
+game's Main `setup()` before continuing**. Keep view() and setScore(int) as the
 public ways to mount and update the display.
 
 ## 4. Optionally improve PlayerInput with WASD
@@ -102,7 +96,7 @@ public int vertical() {
 `||` means “or.” Right + D contributes +1 once, rather than +2. Left or A
 opposes Right or D, so A + Right cancels just as Left + Right does. Main still
 asks for two directions; Player still owns movement. Keep the constructor and
-`GameApp game` field from lesson 10. No Zero framework change is needed.
+`GameApp game` field from lesson 9. No Zero framework change is needed.
 
 Run App and check all arrows still work, each WASD direction, W + D diagonally,
 Right + D at the same speed as Right, A + Right cancelling horizontal motion,
@@ -115,23 +109,22 @@ and reset behaviour should still work. Update Main's drawn help text to
 
 ## 5. Record the API and save your tested changes
 
-If both projects compile after copying ScoreDisplay, you have a small
-two-consumer API check. Record what you checked in README, including the expected
-result and what you observed. Record this API in a comment: `view()` gives the
-calling class an Element; `setScore(int)` displays the supplied score; `setCaption(String)` changes the
-caption while retaining that displayed value. Existing `new ScoreDisplay()` calls
-still work, as do view() and setScore(int); this is a compatible improvement.
+Record what you checked in README, including the expected result and what you
+observed. Record this API in a comment: `view()` gives the calling class an
+Element; `setScore(int)` displays the supplied score; `setCaption(String)` changes
+the caption while retaining that displayed value. Existing `new ScoreDisplay()`
+calls still work, as do view() and setScore(int); this is a compatible improvement.
+A separate instance can use a different caption without changing this one. When
+you reuse the class in another project, test that caller too.
 
-After adding the badge in the next steps, compare your [game Main](../../teaching/checkpoints/11/game/Main.java),
-[StudyQuiz](../../teaching/checkpoints/11/study/StudyQuiz.java),
-[study Main](../../teaching/checkpoints/11/study/Main.java) and
-[ScoreDisplay.java](../../teaching/checkpoints/11/game/ScoreDisplay.java) with
+After adding the badge in the next steps, compare your [game Main](../../teaching/checkpoints/11/game/Main.java)
+and [ScoreDisplay.java](../../teaching/checkpoints/11/game/ScoreDisplay.java) with
 checkpoint 11 (shown before library extraction). Its [PlayerInput.java](../../teaching/checkpoints/11/game/PlayerInput.java)
 includes the optional WASD change; checkpoint 10 is the arrow-only comparison if
 you skipped it. Checkpoint 12 carries that same WASD helper forward.
 
 Save your tested changes through the normal reviewed **Commit & push** and
-**Merge to main** workflow for each tutorial repository. A useful method, clear
+**Merge to main** workflow for your tutorial repository. A useful method, clear
 error and unchanged caller matter more than making a large library.
 
 ## 6. Add a harmless practice badge
@@ -289,4 +282,4 @@ Maintainers may adopt or adapt it, keep it as a community library, or defer it.
 A practice submission, listing or popularity never promotes code automatically.
 Existing project versions stay unchanged until users deliberately upgrade.
 
-Continue growing your **same Coin game** with media in [lesson 12](12-media.md).
+Continue growing your **same Coin game** with media in [lesson 11](12-media.md).

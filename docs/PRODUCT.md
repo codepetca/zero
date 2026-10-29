@@ -297,10 +297,11 @@ A saved session receives a read-only check on launch without opening a browser o
 starting sign-in. Local Run and Files remain usable while signed out or offline;
 cloud repository, push and sharing controls stay hidden until access is ready.
 Publication and uploads remain explicit.
-`/learn` opens lesson 0 directly in the tutorial reader. All thirteen lessons (0–12)
-are listed under three quiet project headings (Greeting app, Study quiz and Coin
-game); selecting one updates the reading pane and its bookmarkable
-`/tutorials/[lesson]` URL. Narrow screens use a selector with the same groups.
+`/learn` opens the recovery guide, lesson 1. The visible sequence continues
+through Greeting, Coin, Pet and an original project, with optional component and
+media lessons numbered 9–11. Prior quiz addresses remain readable for existing
+links but the quiz is not offered in the current tutorial chooser. Stable internal
+lesson IDs and project markers are unchanged; display numbers are separate.
 Code blocks in tutorials, docs, source views and ZeroHub copy their exact text when
 clicked, with a keyboard-accessible Copy button and success/failure feedback.
 Dragging to select text keeps manual copying available.
@@ -427,24 +428,12 @@ kits keep their original source and build files until explicitly upgraded.
 Zero controls and calls `show(...)`. The tutorial uses Zero buttons, labels,
 text fields and layouts without direct JavaFX imports.
 The installed kit's default app shows Hello, world!; the learning projects start
-with empty runnable boilerplate. Lessons 0–2 grow one Greeting app from label to
-button to name input. Lessons 3–7 grow one Study quiz: answer feedback, attempts,
-reset methods, a Counter object, then Question objects/arrays and scoring. Lessons
-8–12 grow one Coin game with student-authored Player/Coin, win/restart, ScoreDisplay
-reuse, and optional media/scrolling. Lesson 10 extracts PlayerInput from a busy
-game Main, then reopens Study and Game to extract and reuse ScoreDisplay. Lesson
-11 practises compatible changes, optionally adds WASD controls, then extracts
-a harmless CreditsBadge for explicitly labelled Tutorial practice sharing. Copies
-are expected and excluded from ordinary catalogue search. An original community
-or core contribution remains an optional extension with attribution, licensing
-and checks.
-Lesson 12 adds optional artwork, sound and a small scrolling extension to the
-same Coin game. Larger game references are maintainer completeness checks,
-not additional tutorial requirements; see [basic games](BASIC-GAMES.md).
-The scored quiz remains a later reuse example.
-The new local tutorial pass inserts one-coin native controls before arrays/win,
-then reuses unchanged ScoreDisplay in the study app and coin game.
-[Lesson 10](../student-template/lessons/10-components.md#screens-and-app-flow) explains controls/components and screen flow in games;
+with empty runnable boilerplate. The current path begins with navigation
+recovery, then Greeting (lessons 2–4), Coin (5–6), Pet (7) and an original
+project (8). Optional lessons 9–10 refactor the Coin game and practise sharing a
+clearly labelled CreditsBadge; lesson 11 adds media and optional scrolling.
+Existing quiz routes and project markers remain available for older links.
+[Lesson 9](../student-template/lessons/10-components.md#screens-and-app-flow) explains controls and components;
 [the teaching plan](TUTORIAL-PLAN.md) distinguishes current conventions from proposed
 welcome/result/countdown helpers. Existing published kits keep their original bytes.
 Tutorial pages use the current project name as their main heading: Greeting App,

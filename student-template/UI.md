@@ -1,6 +1,6 @@
 # UI and app/game flow
 
-Learn reusable views and screen flow in [lesson 10](lessons/10-components.md#screens-and-app-flow).
+Learn reusable views and screen flow in [lesson 9](lessons/10-components.md#screens-and-app-flow).
 This source guide remains available for older kits and contributor reference.
 
 Use the same ordinary JavaFX controls in apps and games. A game can have buttons,
@@ -78,8 +78,8 @@ score.setScore(points);
 ```
 
 Create it in setup; call `setScore` after changing points and after resetting.
-Follow [Lesson 10](lessons/10-components.md) to try the exact same class in both
-programs and improve it without changing the app's scoring rules.
+Follow [Lesson 9](lessons/10-components.md) to extract and reuse the class in the
+Coin game without changing its scoring rules.
 A drawn object such as Player can instead have ordinary update/draw methods,
 which Main calls explicitly. A data helper does not need a visual view.
 
@@ -126,13 +126,11 @@ guard your update logic with an app-owned state. Zero does not pause when you
 show another node or switch focus. Start/menu/pause/result helpers are proposals,
 not extra APIs required by these tutorials.
 
-## Try the pair
+## Try the game
 
-1. Run [the study app](lessons/07-study-app.md); check a wrong answer, advance,
-   finish and restart.
-2. Run [one coin with controls](lessons/09-coin-game.md#4-add-a-native-score-and-restart).
-3. Run [the shared score display lesson](lessons/10-components.md) in both the
-   study app and coin game. Change its presentation once and try both again.
+1. Run [the Coin game](lessons/09-coin-game.md#4-add-a-native-score-and-restart).
+2. Follow [the score display lesson](lessons/10-components.md), then change its
+   presentation and check that the game still scores and restarts correctly.
 
 These source examples are local tutorial work until a future kit release. Existing
 published installers keep their original bundled files; do not assume an older

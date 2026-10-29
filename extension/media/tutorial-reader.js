@@ -20,8 +20,8 @@
     save(); restoring = true;
     current = id; state.lessonId = id; picker.value = id;
     articles.forEach(article => {article.hidden = article.dataset.lessonId !== id;});
-    document.title = `Tutorial Docs — Lesson ${id}`;
     const article = articles.find(item => item.dataset.lessonId === id);
+    document.title = article.dataset.displayNumber ? `Tutorial Docs — Lesson ${article.dataset.displayNumber}` : 'Tutorial Docs';
     if (focus) article.querySelector('h1').focus({preventScroll:true});
     requestAnimationFrame(() => {
       window.scrollTo(0,state.scroll[id] || 0);

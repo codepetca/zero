@@ -1,4 +1,4 @@
-# 14. Make your own project
+# 8. Make your own project
 
 ![An illustrated game welcome screen](visuals/14.svg)
 

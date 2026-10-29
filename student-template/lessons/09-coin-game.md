@@ -1,10 +1,10 @@
-# 9. Build a coin game
+# 6. Build a coin game
 
 **First checkpoint: collect one coin exactly once.**
 
 ![A blue player approaching one gold coin, with score text on the canvas](visuals/09.svg)
 
-Reopen the **same Coin game project** from lesson 8. Keep the Player and Main you wrote.
+Reopen the **same Coin game project** from lesson 5. Keep the Player and Main you wrote.
 
 Previous: [Move a player](08-movement.md).
 

@@ -49,13 +49,14 @@ test('invalid names are rejected even when host input validation is bypassed',as
 test('tutorial creation uses verified bundle template rather than original starter',async t=>{
  const f=await fixture(t);await f.commands.startTutorial();assert.equal(f.inputs[0].value,'my-greeting');assert.equal(f.picks.length,1);assert.equal(f.picks[0].options.title,'Start tutorial');assert.equal(f.calls.find(call=>call[0]==='create')[1].private,false);assert.deepEqual(f.calls.find(call=>call[0]==='create')[1].template,{owner:'codepetca',repo:'zero-tutorial-greeting'});
 });
-test('tutorial selection follows the main projects and labels optional Study and unavailable Pet',async t=>{
+test('tutorial selection shows current projects with consistent lesson numbers',async t=>{
  const f=await fixture(t),data=bundle();data.projects.find(project=>project.id==='pet').template=null;
  await fs.writeFile(path.join(f.root,'media','lesson-projects.json'),JSON.stringify(data));
  f.tutorialChoice=false;await f.commands.startTutorial();
  const choices=f.picks[0].items;
- assert.deepEqual(choices.map(item=>item.project.id),['greeting','game','pet','study']);
- assert.match(choices.find(item=>item.project.id==='study').description,/Optional/);
+ assert.deepEqual(choices.map(item=>item.project.id),['greeting','game','pet']);
+ assert.match(choices.find(item=>item.project.id==='greeting').description,/Lessons 2–4/);
+ assert.match(choices.find(item=>item.project.id==='game').description,/Lessons 5–6/);
  assert.match(choices.find(item=>item.project.id==='pet').description,/Template unavailable/);
  assert.ok(!choices.some(item=>item.project.id==='own-project'));
  f.tutorialChoice='pet';await assert.rejects(f.commands.startTutorial(),/not published yet/);

@@ -68,9 +68,9 @@ Right-click an editable file and choose **Rename file…** to change its filenam
 Renaming a Java file does not rewrite its class name or references; update those
 in your source as needed before running it.
 
-The [tutorial](lessons/README.md) keeps three small continuing projects: Greeting,
-Study quiz and Coin game. In [lesson 10](lessons/10-components.md), refactor a busy
-Main by extracting PlayerInput and ScoreDisplay. [Lesson 11](lessons/11-zerohub.md)
+The [tutorial](lessons/README.md) uses Greeting, Coin game, Pet and an original
+project. In [lesson 9](lessons/10-components.md), refactor a busy
+Main by extracting PlayerInput and ScoreDisplay. [Lesson 10](lessons/11-zerohub.md)
 checks improvements and practises sharing a small CreditsBadge in Tutorial
 practice, with an optional original-contribution proposal. Larger reference games
 are maintainer completeness checks, not additional required tutorial projects.

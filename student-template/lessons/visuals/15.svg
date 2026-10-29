@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 300" role="img" aria-label="Command Palette showing a Zero command">
+  <rect width="640" height="300" rx="16" fill="#20243d"/>
+  <rect x="65" y="42" width="510" height="170" rx="9" fill="#fff"/>
+  <rect x="78" y="55" width="484" height="46" rx="4" fill="#f4f1ff" stroke="#7658c9" stroke-width="2"/>
+  <text x="94" y="85" fill="#352a55" font-family="sans-serif" font-size="20">&gt; Zero: Show Sidebar</text>
+  <rect x="78" y="112" width="484" height="46" rx="4" fill="#e5ddfa"/>
+  <text x="94" y="142" fill="#352a55" font-family="sans-serif" font-size="19">Zero: Show Sidebar</text>
+  <text x="320" y="255" text-anchor="middle" fill="#e5ddfa" font-family="sans-serif" font-size="18">Find a command, then press Enter</text>
+</svg>

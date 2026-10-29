@@ -53,8 +53,8 @@ test("continuing lessons omit repeated generic setup and workflow cards", () => 
   }
 });
 
-test("reuse keeps two existing repositories and optional game media remains the only tutorial ZIP", () => {
-  assert.match(render("10"), /Study quiz and Coin game repositories/);
+test("reuse continues the Coin game and optional game media remains the only tutorial ZIP", () => {
+  assert.match(render("10"), /Reopen your Coin game/);
   const html = render("12");
   assert.ok(html.includes(`href="${sampleGameAssets.href}" download="${sampleGameAssets.filename}"`));
   assert.match(html, /ZIP contains only media files/);

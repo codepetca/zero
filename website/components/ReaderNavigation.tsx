@@ -45,6 +45,9 @@ export function ReaderNavigation({
             if (item) router.push(item.href);
           }}
         >
+          {grouped && !grouped.some(group => group.items.some(item => item.id === current)) && items.find(item => item.id === current) && (
+            <option value={current} hidden>{items.find(item => item.id === current)?.title}</option>
+          )}
           {grouped ? grouped.map(group => (
             <optgroup key={group.id} label={group.title}>
               {group.items.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}

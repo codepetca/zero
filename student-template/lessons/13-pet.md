@@ -1,4 +1,4 @@
-# 13. Make a pet game
+# 7. Make a pet game
 
 ![Illustration of a bird pet game](visuals/13.svg)
 
