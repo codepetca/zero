@@ -12099,3 +12099,16 @@ The 17 focused extension/explorer tests and diff whitespace check passed after
 preparing the generated theme. The tests assert command dispatch, not actual
 restoration of a manually hidden view in the VS Code interface; that Mac acceptance
 remains outstanding. No release follows from this source change.
+
+## Online Tutorial Docs — 2026-10-29
+
+Local review of the Tutorial Docs browser transition used a Terra High reviewer
+(requested; effective configuration and task cost unavailable). Review identified
+starter-lesson selection, outdated offline documentation and a duplicate-open
+race; corrections were reviewed with no remaining blocking finding. Seventy-eight
+focused tests pass, including unavailable/rejected integrated browser and external
+failure. In VS Code 1.144 on Mac, the real extension host invoked the Zero command
+and observed the integrated browser tab in a second editor group. The live lesson
+URL returned HTTP 200 separately; visual page rendering and an actual older VS Code
+fallback remain unverified. The integrated browser command is a VS Code workbench
+command, not a documented stable extension API. No publication follows.
