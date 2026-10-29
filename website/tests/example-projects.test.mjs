@@ -281,7 +281,7 @@ test("starter and featured downloads give concrete changes and the actual indivi
     assert.match(readme, /explanatory commit message/);
     assert.match(readme, /Merge to main/);
     assert.match(readme, /GitHub's.*main.*branch/);
-    assert.match(readme, /own repository.*\n.*link separately in Pika/);
+    assert.match(readme, /If your course uses Pika, submit your repository link there separately/);
     assert.doesNotMatch(readme, /github\.com\/[^\s)]+\/generate|git clone|pull request/i);
   }
 });
@@ -388,7 +388,7 @@ test("trusted templates clone the student's own repository and keep ZIP setup se
     assert.match(readme, /New branch.*repository menu/);
     assert.match(readme, /Commit & push any pending edits before finishing/);
     assert.match(readme, /Merge to main merges the current branch into main and pushes main; it does not create a pull request/);
-    assert.match(readme, /link separately in Pika/);
+    assert.match(readme, /If your course uses Pika, submit your repository link there separately/);
     assert.match(readme, /\.\/mvnw clean compile javafx:run/);
     assert.match(readme, /\.\\mvnw\.cmd clean compile javafx:run/);
     assert.doesNotMatch(readme, /git clone https:\/\/github.com\/codepetca|push to codepetca|Connect[^\n]*codepetca/);
