@@ -13,6 +13,7 @@ Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Collections.Generic;
 [ComImport, Guid("2e941141-7f97-4756-ba1d-9decde894a3d"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 interface IZeroActivationManager {
     [PreserveSig] int ActivateApplication([MarshalAs(UnmanagedType.LPWStr)] string appUserModelId, [MarshalAs(UnmanagedType.LPWStr)] string arguments, uint options, out uint processId);
@@ -32,6 +33,16 @@ public static class ZeroFocus {
     [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr hwnd);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern IntPtr SendMessageTimeout(IntPtr hwnd, uint message, IntPtr wParam, StringBuilder text, uint flags, uint timeout, out UIntPtr result);
     [DllImport("user32.dll")] private static extern bool PostMessage(IntPtr hwnd, uint message, IntPtr wParam, IntPtr lParam);
+    public static string DescribeChildren(IntPtr parent) {
+        var items = new List<string>();
+        EnumChildWindows(parent, (hwnd, unused) => {
+            var name = new StringBuilder(128); var cls = new StringBuilder(128); UIntPtr read;
+            SendMessageTimeout(hwnd, 0x000D, (IntPtr)name.Capacity, name, 2, 1000, out read); GetClassName(hwnd, cls, cls.Capacity);
+            if (IsWindowVisible(hwnd)) items.Add(cls.ToString() + ":" + name.ToString());
+            return true;
+        }, IntPtr.Zero);
+        return string.Join("|", items.ToArray());
+    }
     public static bool OpenDetails(IntPtr parent, uint expectedPid) {
         IntPtr found = IntPtr.Zero; int count = 0;
         EnumChildWindows(parent, (hwnd, unused) => {
@@ -173,6 +184,12 @@ if (-not (Test-Path -LiteralPath $marker)) {
         }
     }
     $titles = @($windows | Where-Object { $_.Current.ProcessId -eq $activatedPid -or $_.Current.Name -match 'java|javac' } | ForEach-Object { $_.Current.Name } | Select-Object -First 8)
+    foreach ($w in $windows) {
+        if ($w.Current.ProcessId -ne $activatedPid) { continue }
+        $names = @($w.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition) | ForEach-Object { $_.Current.ControlType.ProgrammaticName + ':' + $_.Current.Name } | Select-Object -First 20)
+        Write-Host ('Zero UIA: ' + (($names -join '|').Replace($env:USERPROFILE, '<user>')))
+        Write-Host ('Zero HWND: ' + ([ZeroFocus]::DescribeChildren([IntPtr]$w.Current.NativeWindowHandle).Replace($env:USERPROFILE, '<user>')))
+    }
     Add-Type -AssemblyName System.Drawing
     $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
     $bitmap = New-Object System.Drawing.Bitmap($bounds.Width, $bounds.Height)
