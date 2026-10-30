@@ -8,6 +8,7 @@ if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hoste
 if ($PackageFamily -ne 'Codepet.zerostudio_g62pw1js6rhjp') { throw 'Unexpected package family.' }
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
+Add-Type -AssemblyName System.Windows.Forms
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
@@ -17,6 +18,11 @@ interface IZeroActivationManager {
 }
 [ComImport, Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C")]
 class ZeroActivationManager { }
+public static class ZeroFocus {
+    [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hwnd);
+    [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
+}
 public static class ZeroActivation {
     public static uint Launch(string id) {
         var manager = (IZeroActivationManager)new ZeroActivationManager();
@@ -59,6 +65,17 @@ while ([DateTime]::UtcNow -lt $deadline) {
             if ($button) {
                 $pattern = $button.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
                 $pattern.Invoke(); $accepted = $true
+            } else {
+                $hwnd = [IntPtr]$window.Current.NativeWindowHandle
+                if ($hwnd -eq [IntPtr]::Zero -or -not [ZeroFocus]::SetForegroundWindow($hwnd)) { throw 'Could not focus the packaged consent dialog.' }
+                $foregroundPid = [uint32]0
+                [void][ZeroFocus]::GetWindowThreadProcessId([ZeroFocus]::GetForegroundWindow(), [ref]$foregroundPid)
+                if ($foregroundPid -ne $activatedPid -or [ZeroFocus]::GetForegroundWindow() -ne $hwnd) { throw 'Consent dialog did not own foreground focus.' }
+                # The Yes/No dialog defaults to No. Select Yes, then activate it.
+                [System.Windows.Forms.SendKeys]::SendWait('{LEFT}')
+                if ([ZeroFocus]::GetForegroundWindow() -ne $hwnd) { throw 'Consent dialog lost focus before confirmation.' }
+                [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+                $accepted = $true
             }
         }
     }
