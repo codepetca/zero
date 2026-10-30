@@ -63,7 +63,15 @@ while ([DateTime]::UtcNow -lt $deadline) {
     if (-not $accepted -and [DateTime]::UtcNow -ge $consentDeadline) {
         $live = @(Get-Process -Id $activatedPid -ErrorAction SilentlyContinue).Count -gt 0
         $zeroWindows = @($windows | Where-Object { $_.Current.Name -match '^(Zero|Prepare Zero|java|javac)' } | ForEach-Object { $_.Current.Name.Substring(0, [Math]::Min($_.Current.Name.Length, 80)) })
-        throw ('Consent not found after activation; processAlive={0}; relevantWindowTitles={1}' -f $live, ($zeroWindows -join '|'))
+        $windowText = @()
+        foreach ($window in $windows) {
+            if ($window.Current.Name -ne 'Zero' -or $window.Current.ProcessId -ne $activatedPid) { continue }
+            $children = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
+            $windowText += @($children | ForEach-Object { $_.Current.Name } | Where-Object { $_ -match 'Preparing|Try again|Details|could not open|error|Java|download' } | Select-Object -First 4)
+        }
+        $summary = (($windowText -join '|').Replace($env:USERPROFILE, '<user>'))
+        if ($summary.Length -gt 160) { $summary = $summary.Substring(0, 160) }
+        throw ('Consent absent; alive={0}; titles={1}; text={2}' -f $live, ($zeroWindows -join '|'), $summary)
     }
     Start-Sleep -Seconds 1
 }

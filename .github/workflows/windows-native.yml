@@ -162,6 +162,7 @@ jobs:
             dist/msix/build-msix.json
             dist/msix/source-and-kit.json
       - name: Real install, private runtime bootstrap and editor reopening
+        if: github.event.inputs.msix_first_run != 'true'
         # This is a disposable GitHub-hosted account. Never target a self-hosted
         # runner or pass credentials. GUI/network failures remain failing evidence.
         shell: powershell
@@ -170,6 +171,7 @@ jobs:
           if ($env:RUNNER_ENVIRONMENT -ne 'github-hosted') { throw 'Disposable GitHub-hosted runner required.' }
           & ./scripts/test-windows-installation.ps1 -DisposableAccount
       - name: Real private-Java JavaFX window and cached offline rebuild
+        if: github.event.inputs.msix_first_run != 'true'
         # Node is maintainer/CI tooling only. No student Node/global Maven install.
         timeout-minutes: 12
         run: node scripts/test-windows-javafx.mjs --disposable-account
