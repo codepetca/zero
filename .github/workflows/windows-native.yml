@@ -229,14 +229,67 @@ jobs:
             dist/installers/Zero-*-full.nupkg
             dist/installers/build-windows.json
 
+  msix-first-run-wack:
+    # A separate clean runner tests the *same* unsigned candidate that passed
+    # first-run, rather than rebuilding a potentially different package.
+    needs: windows-tests
+    if: github.event_name == 'workflow_dispatch' && inputs.msix_first_run == true && needs.windows-tests.result == 'success'
+    runs-on: windows-2022
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Retrieve the first-run candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: zero-windows-msix-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dist/msix
+      - name: Retrieve the first-run receipt
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: zero-windows-msix-installation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: first-run-receipt
+      - name: Validate candidate identity and run WACK
+        shell: powershell
+        timeout-minutes: 25
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $build = Get-Content -LiteralPath 'dist/msix/build-msix.json' -Raw | ConvertFrom-Json
+          $receipts = @(Get-ChildItem -LiteralPath 'first-run-receipt' -Recurse -File -Filter 'install-msix.json')
+          if ($receipts.Count -ne 1) { throw 'Expected exactly one first-run receipt.' }
+          $first = Get-Content -LiteralPath $receipts[0].FullName -Raw | ConvertFrom-Json
+          if ($build.sourceRevision -ne $env:GITHUB_SHA -or $build.sourceDirty -ne $false -or $build.kind -ne 'msix-store') { throw 'Candidate does not match the clean source revision.' }
+          if ($build.artifact.filename -ne "Zero-$($build.kitVersion)-msix-store-x64.msix") { throw 'Unexpected candidate name.' }
+          $candidate = Join-Path 'dist/msix' $build.artifact.filename
+          $hash = (Get-FileHash -LiteralPath $candidate -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne $build.artifact.sha256 -or $hash -ne $first.candidateSha256 -or $first.result -ne 'passed' -or $first.firstRun.result -ne 'passed' -or $first.version -ne $build.packageVersion) { throw 'First-run receipt does not bind this candidate.' }
+          & ./scripts/test-windows-msix.ps1 -Package $candidate -PackageVersion $build.packageVersion -Receipt 'dist/msix/wack-install.json' -RunWack
+      - name: Retain same-candidate WACK evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-windows-msix-first-run-wack-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            dist/msix/wack-install.json
+            dist/msix/wack/report.xml
+            dist/msix/wack/report.html
+
   windows:
     if: ${{ always() }}
-    needs: [scope, windows-tests]
+    needs: [scope, windows-tests, msix-first-run-wack]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - name: Require same-candidate WACK for first-run dispatch
+        if: github.event_name == 'workflow_dispatch' && inputs.msix_first_run == true
+        env:
+          WACK_RESULT: ${{ needs.msix-first-run-wack.result }}
+        run: test "$WACK_RESULT" = success
       - name: Require selected windows checks
         run: node scripts/ci-gate.mjs
         env:
