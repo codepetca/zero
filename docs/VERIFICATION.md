@@ -1,5 +1,16 @@
 # Verification
 
+## Pet sprite sheet explanation — 2026-10-30
+
+Against base `32732dd10a8c8e9f488e32e682363e5f7e5200f3`, Pet lessons and both
+checkpoint sets use `loadImage` before selecting animation frames with
+`imageRegion`. The Pet lesson verifier and native Maven compile passed.
+One independent Terra/medium reviewer inspected implementation revision
+`208edd51`, the affected lessons, checkpoints and image API; no actionable
+findings. The reviewer did not independently run the specific artwork in a
+browser. Effective model, elapsed time and token use were not exposed. Review
+ledger: one initial launch and wave, no remediation batches.
+
 ## Pet lessons and Coin game revisited — 2026-10-29
 
 Local curriculum changes based on `6036272466e8c1fcc55cb068c11785f86d024538`
