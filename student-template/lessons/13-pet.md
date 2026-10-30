@@ -24,8 +24,8 @@ public class Main extends GameApp {
 
     @Override public void settings() { size(640, 400); }
     @Override public void setup() {
-        var sheet = loadImageRegion("/pet/bird-flap-sheet.png");
-        petImage = imageRegion(sheet.image(), 0, 0, 701, 561);
+        var sheet = loadImage("/pet/bird-flap-sheet.png");
+        petImage = imageRegion(sheet, 0, 0, 701, 561);
     }
 
     @Override public void draw() {

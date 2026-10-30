@@ -9,7 +9,7 @@ Continue the same Pet project from [lesson 6](13-pet.md). Open `java/Main.java`.
 Replace `Main.java` with the version below, then read and try each change:
 
 1. Find `x` in the field and `image` call. In `update`, left and right change `x`. Multiplying by `seconds` makes speed depend on elapsed time, not the number of frames. The `Math.max`/`Math.min` line keeps the 80-pixel pet inside the canvas. After running, click the canvas and hold the arrows.
-2. In `setup`, the sheet loads once and four `ImageRegion` frames describe its poses. Each region selects a 701 × 561 rectangle from the same picture; the lower poses begin at y = 531 to compensate for the artwork’s offset. `SpriteAnimation(8, frames)` sets eight frames per second. `petAnimation.update(seconds)` advances it once in `update`; `image` draws its current frame without advancing it. Watch the wings flap; then try a different frame rate.
+2. In `setup`, `loadImage` loads the sprite sheet once. Each `imageRegion(sheet, x, y, width, height)` selects a rectangle from that picture: `x` and `y` are the top-left corner, and `width` and `height` are its size in pixels. The four regions select four poses for the animation. The lower poses start at y = 531 to fit the artwork. `SpriteAnimation(8, frames)` sets eight frames per second. `petAnimation.update(seconds)` advances it once in `update`; `image` draws its current frame without advancing it. Watch the wings flap; then try a different frame rate.
 3. Find where the chime loads once in `setup`. In `update`, `keyPressed` fires on a new press, while `keyDown` stays true while held. Stop and play the chime on a Space press. Click the canvas and press Space. Browser sound may need a user gesture and the device must not be muted.
 
 ```java
@@ -27,12 +27,12 @@ public class Main extends GameApp {
 
     @Override public void settings() { size(640, 400); }
     @Override public void setup() {
-        var sheet = loadImageRegion("/pet/bird-flap-sheet.png");
+        var sheet = loadImage("/pet/bird-flap-sheet.png");
         ImageRegion[] frames = {
-            imageRegion(sheet.image(), 0, 0, 701, 561),
-            imageRegion(sheet.image(), 701, 0, 701, 561),
-            imageRegion(sheet.image(), 0, 531, 701, 561),
-            imageRegion(sheet.image(), 701, 531, 701, 561)
+            imageRegion(sheet, 0, 0, 701, 561),
+            imageRegion(sheet, 701, 0, 701, 561),
+            imageRegion(sheet, 0, 531, 701, 561),
+            imageRegion(sheet, 701, 531, 701, 561)
         };
         petAnimation = new SpriteAnimation(8, frames);
         chime = loadSound("/pet/chime.wav");
