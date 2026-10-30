@@ -12,6 +12,7 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 [ComImport, Guid("2e941141-7f97-4756-ba1d-9decde894a3d"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 interface IZeroActivationManager {
     [PreserveSig] int ActivateApplication([MarshalAs(UnmanagedType.LPWStr)] string appUserModelId, [MarshalAs(UnmanagedType.LPWStr)] string arguments, uint options, out uint processId);
@@ -24,6 +25,25 @@ public static class ZeroFocus {
     [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
     [DllImport("user32.dll")] public static extern bool SetPhysicalCursorPos(int x, int y);
     [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
+    private delegate bool EnumChildProc(IntPtr hwnd, IntPtr extra);
+    [DllImport("user32.dll")] private static extern bool EnumChildWindows(IntPtr parent, EnumChildProc callback, IntPtr extra);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetWindowText(IntPtr hwnd, StringBuilder text, int max);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetClassName(IntPtr hwnd, StringBuilder text, int max);
+    [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr hwnd);
+    [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr hwnd, uint message, IntPtr wParam, IntPtr lParam);
+    public static bool OpenDetails(IntPtr parent, uint expectedPid) {
+        IntPtr found = IntPtr.Zero; int count = 0;
+        EnumChildWindows(parent, (hwnd, unused) => {
+            uint pid; GetWindowThreadProcessId(hwnd, out pid);
+            var name = new StringBuilder(128); var cls = new StringBuilder(128);
+            GetWindowText(hwnd, name, name.Capacity); GetClassName(hwnd, cls, cls.Capacity);
+            if (pid == expectedPid && IsWindowVisible(hwnd) && cls.ToString().Equals("Button", StringComparison.OrdinalIgnoreCase) && (name.ToString() == "Details…" || name.ToString() == "Details...")) { found = hwnd; count++; }
+            return true;
+        }, IntPtr.Zero);
+        if (count != 1) return false;
+        SendMessage(found, 0x00F5, IntPtr.Zero, IntPtr.Zero); // BM_CLICK
+        return true;
+    }
 }
 public static class ZeroActivation {
     public static uint Launch(string id) {
@@ -68,15 +88,8 @@ while ([DateTime]::UtcNow -lt $deadline) {
 
         }
         if ($accepted -and $window.Current.ProcessId -eq $activatedPid -and $title -eq 'Zero') {
-            $detailsCondition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, 'Details…')
-            $details = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $detailsCondition)
-            if ($details -and -not $details.Current.IsOffscreen) {
-                $hwnd = [IntPtr]$window.Current.NativeWindowHandle
-                if (-not [ZeroFocus]::SetForegroundWindow($hwnd) -or [ZeroFocus]::GetForegroundWindow() -ne $hwnd) { throw 'Could not focus the setup error.' }
-                $rect = $details.Current.BoundingRectangle; $outer = $window.Current.BoundingRectangle
-                $x = [int]($rect.X + $rect.Width / 2); $y = [int]($rect.Y + $rect.Height / 2)
-                if ($rect.IsEmpty -or $x -lt $outer.Left -or $x -ge $outer.Right -or $y -lt $outer.Top -or $y -ge $outer.Bottom -or -not [ZeroFocus]::SetPhysicalCursorPos($x, $y)) { throw 'Setup details control is not safely clickable.' }
-                [ZeroFocus]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero); [ZeroFocus]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero)
+            $hwnd = [IntPtr]$window.Current.NativeWindowHandle
+            if ($hwnd -ne [IntPtr]::Zero -and [ZeroFocus]::OpenDetails($hwnd, $activatedPid)) {
                 Start-Sleep -Seconds 2
                 $roots = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Children, [System.Windows.Automation.Condition]::TrueCondition)
                 $messages = @()
