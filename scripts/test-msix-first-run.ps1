@@ -22,6 +22,8 @@ public static class ZeroFocus {
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hwnd);
     [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
     [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
+    [DllImport("user32.dll")] public static extern bool SetPhysicalCursorPos(int x, int y);
+    [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
 }
 public static class ZeroActivation {
     public static uint Launch(string id) {
@@ -52,7 +54,17 @@ while ([DateTime]::UtcNow -lt $deadline) {
     foreach ($window in $windows) {
         $title = $window.Current.Name
         if ($title -match 'java\.exe.*(System Error|Application Error)' -or $title -match 'javac\.exe.*(System Error|Application Error)') {
-            throw 'Java displayed a Windows system error during packaged first-run setup.'
+            $messages = @($window.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition) | ForEach-Object { $_.Current.Name } | Where-Object { $_ } | Select-Object -First 8)
+            Add-Type -AssemblyName System.Drawing
+            $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $bitmap = New-Object System.Drawing.Bitmap($bounds.Width, $bounds.Height)
+            $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+            try {
+                $graphics.CopyFromScreen($bounds.Location, [Drawing.Point]::Empty, $bounds.Size)
+                $bitmap.Save((Join-Path $env:RUNNER_TEMP 'zero-msix-consent-diagnostic.png'), [Drawing.Imaging.ImageFormat]::Png)
+            } finally { $graphics.Dispose(); $bitmap.Dispose() }
+            throw ('Java displayed a Windows system error during packaged first-run setup: ' + (($messages -join '|').Replace($env:USERPROFILE, '<user>')))
+
         }
         if (-not $accepted -and $window.Current.ProcessId -eq $activatedPid -and $title -in @('Prepare Zero', 'Zero')) {
             $descendants = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
@@ -71,10 +83,17 @@ while ([DateTime]::UtcNow -lt $deadline) {
                 $foregroundPid = [uint32]0
                 [void][ZeroFocus]::GetWindowThreadProcessId([ZeroFocus]::GetForegroundWindow(), [ref]$foregroundPid)
                 if ($foregroundPid -ne $activatedPid -or [ZeroFocus]::GetForegroundWindow() -ne $hwnd) { throw 'Consent dialog did not own foreground focus.' }
-                # The Yes/No dialog defaults to No. Select Yes, then activate it.
-                [System.Windows.Forms.SendKeys]::SendWait('{LEFT}')
-                if ([ZeroFocus]::GetForegroundWindow() -ne $hwnd) { throw 'Consent dialog lost focus before confirmation.' }
-                [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+                # The accessible tree exposes the Yes label, but not its button.
+                # On this disposable desktop click the center of that exact label.
+                $yes = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $nameCondition)
+                if (-not $yes) { throw 'Consent Yes label was not found.' }
+                $rect = $yes.Current.BoundingRectangle
+                $outer = $window.Current.BoundingRectangle
+                $x = [int]($rect.X + $rect.Width / 2); $y = [int]($rect.Y + $rect.Height / 2)
+                if ($rect.IsEmpty -or $rect.Width -le 0 -or $rect.Height -le 0 -or $x -lt $outer.Left -or $x -ge $outer.Right -or $y -lt $outer.Top -or $y -ge $outer.Bottom) { throw 'Consent Yes label is outside the activated window.' }
+                if ([ZeroFocus]::GetForegroundWindow() -ne $hwnd -or -not [ZeroFocus]::SetPhysicalCursorPos($x, $y)) { throw 'Consent dialog lost focus before clicking.' }
+                [ZeroFocus]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero)
+                [ZeroFocus]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero)
                 $accepted = $true
             }
         }
