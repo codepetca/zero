@@ -60,7 +60,11 @@ while ([DateTime]::UtcNow -lt $deadline) {
     $found = @($dataPaths | Where-Object { Test-Path -LiteralPath (Join-Path $_ 'editor-opened') })
     if ($found.Count -gt 1) { throw 'Ambiguous package data paths.' }
     if ($found.Count -eq 1 -and $accepted) { $data = $found[0]; $marker = Join-Path $data 'editor-opened'; $extensions = Join-Path $data 'editor\extensions'; break }
-    if (-not $accepted -and [DateTime]::UtcNow -ge $consentDeadline) { throw 'The dependency consent dialog was not found within 120 seconds after MSIX activation.' }
+    if (-not $accepted -and [DateTime]::UtcNow -ge $consentDeadline) {
+        $live = @(Get-Process -Id $activatedPid -ErrorAction SilentlyContinue).Count -gt 0
+        $zeroWindows = @($windows | Where-Object { $_.Current.Name -match '^(Zero|Prepare Zero|java|javac)' } | ForEach-Object { $_.Current.Name.Substring(0, [Math]::Min($_.Current.Name.Length, 80)) })
+        throw ('Consent not found after activation; processAlive={0}; relevantWindowTitles={1}' -f $live, ($zeroWindows -join '|'))
+    }
     Start-Sleep -Seconds 1
 }
 if (-not $accepted) { throw 'The dependency consent dialog was not found and accepted.' }
