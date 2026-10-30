@@ -1,65 +1,40 @@
-# 7. Make your own project
+# 9. Add a welcome screen
 
 ![An illustrated game welcome screen](visuals/14.svg)
 
-Create an original game project and give it a welcome screen. Your screen will have a title, a small illustration and a **Start** button. Start opens a simple game scene; **Back** returns to the title. Then make the idea yours.
+Continue the same Pet project and `pet-refactor` branch from [lesson 8](17-pet-class.md); keep both `java/Main.java` and `java/Pet.java`. These changes start from the lesson 8 checkpoint. If you changed it, adapt the matching lines to your version.
 
-## 1. Create your project
+## 1. Add a button and remember the scene
 
-1. Complete Zero and GitHub setup, including Git name and email. Check what you have permission to share publicly and follow applicable school policies. A public repository and a published app can be seen by anyone; do not put secrets or private information in them.
-2. On Zero's Start Page choose **Project ▾ → New**. Sign in if asked. Give your repository a name, choose a clone location, and choose **Clone here**. Zero creates your own repository and opens its clone. If creation succeeds but cloning fails, use **Project ▾ → Clone** with your new repository URL.
-3. Open `java/Main.java`. This is your project, so choose a game idea and a title. You can run locally after setup without GitHub once the needed dependencies are cached.
+In `Main.java`, add the import after the existing imports. Copy each block over its matching lines; highlighted additions are part of the copied code.
 
-## 2. Make a canvas
-
-Replace the contents of `Main.java` with the code below. Save and click **Run App**. You should see a dark canvas with a moon and a title. Stop the app before changing code and run again after each checkpoint.
-
-```java
-import zero.Color;
-import zero.GameApp;
-
-public class Main extends GameApp {
-    @Override public void settings() {
-        title("Moonlight Mission");
-        size(640, 360);
-    }
-
-    @Override public void draw() {
-        background(Color.rgb(19, 24, 55));
-        fill(Color.rgb(255, 224, 145));
-        circle(520, 70, 70);
-        fill(Color.WHITE);
-        textSize(38);
-        text("MOONLIGHT MISSION", 55, 205);
-    }
-
-    public static void main(String[] args) { launch(args); }
-}
+```java-after-2
+import zero.SpriteAnimation;
+import zero.ui.Button;
 ```
 
-`GameApp` calls `draw()` repeatedly. `background` clears the canvas, `fill` chooses the colour for the shapes and text that follow, and `circle(x, y, diameter)` uses a centre position. `text` uses a baseline position. `Color.rgb` takes red, green and blue values from 0 to 255.
+Add two fields beside the existing fields. `playing` starts false, so the welcome screen appears first.
 
-## 3. Add a button and two scenes
-
-Replace the whole file with the code below. Save and run. Click **Start**: the picture changes and a circle follows your pointer over the canvas. Click **Back**: the welcome screen returns. Try Start and Back again.
-
-```java
-import zero.Color;
-import zero.GameApp;
-import zero.ui.Button;
-
-public class Main extends GameApp {
+```java-after-3-4
+    private Pet pet;
+    private Sound chime;
     private boolean playing = false;
     private Button navigation;
+```
 
-    @Override public void settings() {
-        title("Moonlight Mission");
-        size(640, 360);
-    }
+At the end of `setup()`, create a button in the controls area and give it an action:
 
-    @Override public void setup() {
+```java-after-2-3-4
+        chime.setVolume(0.25);
         navigation = new Button("Start");
         navigation.onClick(this::switchScreen);
+        controls(navigation);
+    }
+```
+
+Add this method after `setup()`. Each click changes the scene and the button label.
+
+```java-after-4-5-6-7
         controls(navigation);
     }
 
@@ -67,81 +42,47 @@ public class Main extends GameApp {
         playing = !playing;
         navigation.setText(playing ? "Back" : "Start");
     }
-
-    @Override public void draw() {
-        if (playing) {
-            drawGame();
-        } else {
-            drawTitle();
-        }
-    }
-
-    private void drawTitle() {
-        background(Color.rgb(19, 24, 55));
-        fill(Color.rgb(56, 66, 115));
-        circle(535, 80, 110);
-        fill(Color.rgb(255, 224, 145));
-        circle(520, 70, 70);
-        fill(Color.rgb(124, 151, 207));
-        circle(90, 65, 5);
-        circle(170, 120, 7);
-        circle(390, 45, 5);
-        circle(570, 180, 7);
-        fill(Color.WHITE);
-        textSize(38);
-        text("MOONLIGHT MISSION", 55, 205);
-        fill(Color.rgb(189, 210, 247));
-        textSize(18);
-        text("A small adventure by your name", 57, 242);
-        text("Press Start to explore", 57, 276);
-    }
-
-    private void drawGame() {
-        background(Color.rgb(27, 55, 74));
-        fill(Color.rgb(68, 122, 112));
-        rect(0, 260, 640, 100);
-        fill(Color.rgb(255, 224, 145));
-        circle(500, 75, 65);
-        fill(Color.WHITE);
-        textSize(24);
-        text("Your adventure begins here!", 35, 55);
-        textSize(16);
-        text("Move your pointer across the scene.", 35, 85);
-        fill(Color.rgb(241, 164, 116));
-        circle(mouseX(), mouseY(), 32);
-    }
-
-    public static void main(String[] args) { launch(args); }
-}
 ```
 
-After trying it, compare your file with the [full checkpoint](../../teaching/checkpoints/14/Main.java).
+## 2. Pause the game on the welcome screen
 
-Read the changes in order:
+At the start of `update`, return while the welcome screen is showing. The existing input, pet animation and sound code stays below it. The same `Pet` object keeps its position when you return.
 
-- `playing` remembers which scene to draw. It begins as `false`.
-- `setup()` creates a Zero `Button`, gives it an action and puts it in the game controls area. `this::switchScreen` means run that method when clicked.
-- `switchScreen()` changes the boolean and changes the button label. The button stays in the controls area while the canvas changes.
-- `draw()` chooses `drawTitle()` or `drawGame()` each frame. These are ordinary methods you own. `mouseX()` and `mouseY()` give the pointer's canvas position.
+```java-after-2
+    @Override public void update(double seconds) {
+        if (!playing) return;
+```
 
-The game scene is a starting point, not a finished game. The button is a native control outside the drawn canvas, so its appearance may differ between platforms.
+## 3. Draw each scene
 
-## 4. Make it yours
+Replace the matching start of `draw` with this block. Keep the existing background, instructions and `pet.draw(this)` below it; those lines draw the game scene when `playing` is true.
 
-Change the window title, the large title and the author line. Pick a setting: space, ocean, forest or something else. Change RGB colours and add at least two shapes with `circle` or `rect`. Change the scene's message to explain your future game. Run again and check both scenes and both button labels. Keep text short enough to fit inside the canvas.
+```java-after-2-3-4-5-6-7-8-9-10-11-12
+    @Override public void draw() {
+        if (!playing) {
+            background(Color.rgb(19, 24, 55));
+            fill(Color.rgb(255, 224, 145));
+            circle(520, 70, 70);
+            fill(Color.WHITE);
+            textSize(38);
+            text("MY PET GAME", 55, 205);
+            textSize(18);
+            text("Press Start to meet your pet", 57, 242);
+            return;
+        }
+        background(Color.rgb(240, 248, 255));
+```
 
-Try changing one number at a time: in `rect(x, y, width, height)`, the first two numbers are the upper-left position; in `circle`, the first two are its centre. If Java reports an error, check quotation marks, semicolons and matching braces, then save and run again. You can compare your file with the checkpoint.
+Save and **Run App**. Click **Start**, click the canvas and use the arrows and Space. Click **Back**, then **Start** again: the pet should resume from its saved position. The button stays in the controls area while the canvas changes. Change the welcome title, colours or shapes to make it yours, then check both scenes again.
 
-## Optional: add a simple HUD
+## 4. Save and share deliberately
 
-A HUD shows useful information while a game is running. Inside `drawGame()`,
-immediately after `text("Move your pointer across the scene.", 35, 85);`, add
-`text("Score: 0", 35, 120);` and run again. The existing white fill makes the
-label easy to read. This first label is fixed text; later, you can create a
-score field and update it when the player earns points.
+Review your code and README for private information before sharing publicly. Run and check your game, then choose **Commit & push**, review the branch and changed files, enter a useful message, and confirm. This sends your branch to your repository. Commit & push remaining edits before **Merge to main**. Merge to main merges the current branch into main and pushes main; it does not create a pull request. If Zero brings in newer main code, Run App again, resolve reported conflicts carefully, and choose Merge to main again. Never discard work just to make a merge succeed. Submit your repository link separately in Pika if assigned.
 
-## 5. Save and share
+To publish, stop the game, ensure the intended main version is committed and pushed, then use the Run dropdown's **Publish & open app** (or **Publish app** in an older released Zero). Review the account, repository, visibility and GitHub Pages prompts before confirming. Publishing makes the app available at its public URL; wait for success and open the link on another browser/device. Test Start, Back, movement and sound. If the command is unavailable or a build fails, keep your source and check the publishing guidance; do not assume a public page exists. Local edits after publishing are not automatically the published version.
 
-Review your code and README for private information. Use **Commit & push**, enter a useful message such as `Create welcome screen`, and confirm the action. This saves a commit and pushes your current branch to your repository. If you are working on a branch, review and use **Merge to main** when ready. Submit your repository link separately in Pika if assigned.
+## 5. Practise recovering your project
 
-To share a playable browser version, stop the app, commit and push the version you want, then choose **Run ▾ → Publish & open app** and follow Zero's prompts. Publishing makes the app and included assets public. Open the resulting page and test Start and Back. If your installed Zero offers **Publish app** instead, use that action and open the resulting link. Publication requires the connected GitHub/Pages setup; a local run alone does not publish anything.
+First verify on GitHub that the merged main contains both Java files and both assets, and check the published app actually opens and works. Review the changes and push status in Zero for uncommitted, untracked or unpushed work. Also look through the project folder for files Git ignores: they may not appear in the change list. Commit and push what belongs in your repository, and copy any private or ignored files you need to a separate safe backup. Confirm that backup opens. GitHub cannot restore files you never uploaded.
+
+Close the project. Move the original project folder to your computer’s Trash; **do not empty the Trash**. It remains recoverable there (unless your system automatically empties it), and you should retain another backup. Now use **Project → Clone** to clone your own repository into a different empty location. Open the new clone and Run App. Confirm the welcome screen, Start and Back, picture, flapping, movement and chime. If anything is missing or the clone fails, restore the original folder from Trash or your backup; do not overwrite either copy. A future rebuild may need pinned tools and dependency hosts; keep a copy of your source and finished web output too.

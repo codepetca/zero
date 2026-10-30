@@ -1,7 +1,5 @@
 # 1. Hello, world!
 
-**Make your first greeting.**
-
 ![A window saying Hello, Java!](visuals/00.svg)
 
 Target illustration: your greeting after you write it.
@@ -34,7 +32,14 @@ app window, replacing whatever UI was shown there before.
 
 ## 3. Run App, then change the greeting
 
-Click **Run App**. The window says **Hello, world!**. Edit the quoted words to `Hello, Java!` and click **Run App** again. The window should now say **Hello, Java!**.
+Click **Run App**. The window says **Hello, world!**. Replace the matching line with the copied code:
+
+```java-after-2-r1
+        Label greeting = new Label("Hello, world!");
+        Label greeting = new Label("Hello, Java!");
+```
+
+Click **Run App** again. The window should now say **Hello, Java!**.
 Keep this **same Greeting project** for lessons 2 and 3. You will add to this
 code rather than replace `Main.java`.
 
@@ -46,18 +51,15 @@ Your Main extends `zero.App`. The starter's
 point; you do not need to construct another Main.
 
 The starter already uses `padding(20)` to leave space around the content.
-For an optional window title and initial size, find the existing method:
+For an optional window title and initial size, replace the matching method with the copied code:
 
-`@Override public void settings() { padding(20); }`
-
-Replace it with:
-
-```java
-@Override public void settings() {
-    title("Greeting");
-    size(420, 240);
-    padding(20);
-}
+```java-after-2-3-4-5-6-r1
+    @Override public void settings() { padding(20); }
+    @Override public void settings() {
+        title("Greeting");
+        size(420, 240);
+        padding(20);
+    }
 ```
 
 Keep one `settings()` method. Call `title(...)` and `size(...)` there, before

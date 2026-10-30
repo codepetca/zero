@@ -1,6 +1,6 @@
 # UI and app/game flow
 
-Learn reusable views and screen flow in [lesson 8](https://zero.codepet.ca/tutorials/10#screens-and-app-flow).
+Learn reusable views and screen flow in [lesson 10](https://zero.codepet.ca/tutorials/10#screens-and-app-flow).
 This source guide remains available for older kits and contributor reference.
 
 Use the same ordinary JavaFX controls in apps and games. A game can have buttons,
@@ -78,7 +78,7 @@ score.setScore(points);
 ```
 
 Create it in setup; call `setScore` after changing points and after resetting.
-Follow [Lesson 8](https://zero.codepet.ca/tutorials/10) to extract and reuse the class in the
+Follow [Lesson 10](https://zero.codepet.ca/tutorials/10) to extract and reuse the class in the
 Coin game without changing its scoring rules.
 A drawn object such as Player can instead have ordinary update/draw methods,
 which Main calls explicitly. A data helper does not need a visual view.

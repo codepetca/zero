@@ -68,9 +68,9 @@ Right-click an editable file and choose **Rename file…** to change its filenam
 Renaming a Java file does not rewrite its class name or references; update those
 in your source as needed before running it.
 
-The [tutorial](https://zero.codepet.ca/learn) uses Greeting, Coin game, Pet and an original
-project. In [lesson 8](https://zero.codepet.ca/tutorials/10), refactor a busy
-Main by extracting PlayerInput and ScoreDisplay. [Lesson 9](https://zero.codepet.ca/tutorials/11)
+The [tutorial](https://zero.codepet.ca/learn) uses Greeting, Coin game and Pet
+projects. In [lesson 10](https://zero.codepet.ca/tutorials/10), refactor a busy
+Main by extracting PlayerInput and ScoreDisplay. [Lesson 11](https://zero.codepet.ca/tutorials/11)
 checks improvements and practises sharing a small CreditsBadge in Tutorial
 practice, with an optional original-contribution proposal. Larger reference games
 are maintainer completeness checks, not additional required tutorial projects.
@@ -818,8 +818,7 @@ resources give a useful path; asynchronous music failures report that path once
 and dispose the player. The [API reference](API.md#audio) lists exact signatures.
 Raw JavaFX [AudioClip](https://openjfx.io/javadoc/21/javafx.media/javafx/scene/media/AudioClip.html)
 and MediaPlayer remain available for advanced needs; manage those resources yourself.
-The older [Lesson 10](https://zero.codepet.ca/tutorials/12) examples demonstrate ordinary AudioClip
-and the additional dependency needed by older kits.
+The [artwork and sound challenge](https://zero.codepet.ca/tutorials/12) lets you apply these ideas to the Coin game.
 
 ### Input methods
 

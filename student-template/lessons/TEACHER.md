@@ -1,11 +1,11 @@
 # Teacher notes: Zero tutorials
 
-The main path starts with recovery (lesson 0), then has four projects: Greeting (lessons 1–3), Coin (4–5), Pet (6), and an original project (7). Students create their own repositories, clone them, and write and explain their own code. Keep each continuing project for its lessons. Illustrations are teaching drawings, not native-window screenshots; pacing has not been measured with novice students.
+The main path starts with recovery (lesson 0), then has three projects: Greeting (lessons 1–3), Coin (4–5), and Pet (6–9). Students create their own repositories, clone them, and write and explain their own code. Keep each continuing project for its lessons. Illustrations are teaching drawings, not native-window screenshots; pacing has not been measured with novice students.
 
 **Lesson availability:** the Pet and original-project templates have been published
 and verified. The updated lessons and Pet asset download require a separate website
 and app rollout. Check that the lesson and assets are available to students before
-assigning lesson 6 or 7. Students create and clone their own repositories, not
+assigning the Pet lessons. Students create and clone their own repositories, not
 Zero’s shared template repositories.
 
 ## Before starting
@@ -14,7 +14,7 @@ Recovery can be practised without a project or account. Before creating a tutori
 
 Repositories created through Zero are public, including source and included files. Obtain school approval before creation, and keep private material, passwords, tokens and recovery codes out of source, logs and pilot evidence. For an existing or GitHub-created private repository, invite the teacher by verified GitHub username and confirm access; personal-repository collaborators have write access, not view-only access. Use a school-approved per-repository Git name and email. If using a GitHub noreply address, copy the exact address from GitHub Settings → Emails; do not guess it. Zero sign-in does not configure Git identity.
 
-Greeting, Coin and Pet use their matching verified tutorial templates; lesson 7 uses **Project → New** for an original project. A student creates their own repository from the matching template and clones that repository, never the shared template itself. A local starter smoke is useful for setup but is not the tutorial start. After cloning and caching dependencies, local Run works offline; GitHub operations and publishing require a connection.
+Greeting, Coin and Pet use their matching verified tutorial templates. A student creates their own repository from the matching template and clones that repository, never the shared template itself. A local starter smoke is useful for setup but is not the tutorial start. After cloning and caching dependencies, local Run works offline; GitHub operations and publishing require a connection.
 
 ## Main path and checkpoints
 
@@ -23,15 +23,14 @@ Greeting, Coin and Pet use their matching verified tutorial templates; lesson 7 
 | 0 Recovery | Students reopen the sidebar, Project Explorer, Start Page and tutorial reader using the Command Palette. |
 | 1–3 Greeting | A label, button and name field work; another name changes the greeting. |
 | 4–5 Coin | Held arrows move the player within the edges; each coin scores once; all three win and Restart restores the game. |
-| 6 Pet | The bird displays and flaps, arrows move it, Space plays a chime, and extracting `Pet` preserves that behavior. |
-| 7 Own project | A personalized welcome screen has Start; the game scene appears, and Back restores the welcome screen. |
+| 6–9 Pet | The bird displays, flaps, moves and chimes; extracting `Pet` preserves its behavior. A welcome screen has Start and Back. |
 
 In the project lessons, have students save and run at each checkpoint, explain one change, and investigate a compiler error. For games, click the canvas before using keys. Compare the Pet's behavior before and after extracting its class: Main handles input and sound, while the pet owns its position and animation and is updated once per frame. Reference checkpoints are for comparison after trying the work, not completed starters.
 
 ## Optional paths
 
-- **Components and practice sharing, 8–9:** continue the Coin project. Check PlayerInput extraction against movement, opposing keys, edges, focus loss and Restart. Lesson 9's copied CreditsBadge belongs only in the labelled Tutorial practice area from the Coin repository. Local extraction and checks can continue when hosted acceptance is paused; do not promise a listing. An original contribution proposal is optional.
-- **Coin media, 10:** continue the existing Coin project after the component lessons. Drawing fallback should still work; media and scrolling are optional. Keep the HUD fixed when exploring scrolling.
+- **Coin game revisited, 10–11:** continue the Coin project. Check PlayerInput extraction against movement, opposing keys, edges, focus loss and Restart. Lesson 11's copied CreditsBadge belongs only in the labelled Tutorial practice area from the Coin repository. Local extraction and checks can continue when hosted acceptance is paused; do not promise a listing. An original contribution proposal is optional.
+- **Coin artwork and sound, 12:** use the supplied assets as an open-ended challenge, drawing on the Pet lessons. Check scoring, Restart, browser behavior and an understandable experience without sound.
 
 ## Save, share and recover
 

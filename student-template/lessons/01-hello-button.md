@@ -1,7 +1,5 @@
 # 2. Say hello with a button
 
-**Make a click change your greeting.**
-
 ![You did it! above a Say hello button](visuals/01.svg)
 
 Target illustration: the label after clicking **Say hello**.

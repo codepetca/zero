@@ -2,8 +2,6 @@
 
 ![The Command Palette with a Zero command](visuals/15.svg)
 
-If a panel or page disappears, you can open it again with the Command Palette. These steps do not change your project files.
-
 ## 1. Open the Command Palette
 
 In Zero, press **Cmd+Shift+P** on a Mac or **Ctrl+Shift+P** on Windows. A box opens near the top of the window. This is different from **Cmd+P**, which opens a file picker.

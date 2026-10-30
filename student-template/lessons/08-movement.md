@@ -1,10 +1,8 @@
 # 4. Move a player
 
-**First checkpoint: a square you can move.**
-
 ![A blue square on the canvas with an arrow showing movement](visuals/08.svg)
 
-Your **Coin game** project's `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` methods, and no Player class. Keep this folder for lessons 5 and 8–10; there is no new game download for the next lesson.
+Your **Coin game** project's `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` methods, and no Player class. Keep this folder for lessons 5 and 10–12; there is no new game download for the next lesson.
 
 Previous: [Your Greeting app](02-hello-name.md).
 
@@ -104,6 +102,26 @@ square on the canvas. Creating a Player alone does not draw it.
 
 ## 3. Run App and check movement
 
-Click **Run App**, click the canvas, then hold and release an arrow key. The square should move while held and stop when released. Try every edge, Right + Up, Left + Right, and releasing all keys. After switching windows, click the canvas again for keyboard focus. Change `speed` to 90, run again, compare, then restore 180. Change `size` to 40 and check that the whole square remains visible; restore 24 before lesson 5. If you remove only `player.update(...)`, the square still draws but cannot move. Explain why.
+Click **Run App**, click the canvas, then hold and release an arrow key. The square should move while held and stop when released. Try every edge, Right + Up, Left + Right, and releasing all keys. After switching windows, click the canvas again for keyboard focus.
+
+In `Player.java`, try a larger square and slower speed. If you changed these values earlier, adapt the matching lines to your version:
+
+```java-after-2-4-r1-3
+    private final double size = 24;
+    private final double size = 40;
+    private final double speed = 180;
+    private final double speed = 90;
+```
+
+Run again and check the speed and edges. Restore the original values before lesson 5:
+
+```java-after-2-4-r1-3
+    private final double size = 40;
+    private final double size = 24;
+    private final double speed = 90;
+    private final double speed = 180;
+```
+
+If you remove only `player.update(...)`, the square still draws but cannot move. Explain why.
 
 After writing your own code, compare with checkpoint 8's [Main.java](../../teaching/checkpoints/8/Main.java) and [Player.java](../../teaching/checkpoints/8/Player.java). Continue editing **this Coin game folder** in [lesson 5](09-coin-game.md).

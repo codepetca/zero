@@ -129,17 +129,19 @@ In `setup()`, replace the two assignments with controls created once and a call 
 
 ## 7. Move the starting state into `restart()`
 
-The two assignments you replaced now belong in `restart()`. **Find** the end of `setup()`, just before `update()`. **Add below `setup()`**, inside Main:
+The two assignments you replaced now belong in `restart()`. Add the method below `setup()` by replacing the matching lines with the copied code:
 
-```java
-public void restart() {
-    player = new Player(40, 180);
-    coin = new Coin(220, 180);
-    points = 0;
-    scoreLabel.setText("Score: 0");
-    message.setText("Collect the gold square.");
-    showGame();
-}
+```java-after-3-4-5-6-7-8-9-10
+        restart();
+    }
+    public void restart() {
+        player = new Player(40, 180);
+        coin = new Coin(220, 180);
+        points = 0;
+        scoreLabel.setText("Score: 0");
+        message.setText("Collect the gold square.");
+        showGame();
+    }
 ```
 
 ## 8. Update the score label after collection
@@ -184,14 +186,11 @@ In `restart()`, **find and remove** the earlier message line:
 
 `message.setText("Collect the gold square.");`
 
-**Find** the start of `update()`:
+At the start of `update()`, replace the matching line with the copied code:
 
-`@Override public void update(double seconds) {`
-
-**Add below:**
-
-```java
-if (won) return;
+```java-after-2
+    @Override public void update(double seconds) {
+        if (won) return;
 ```
 
 In `update()`, copy the block over the existing coin collection check:

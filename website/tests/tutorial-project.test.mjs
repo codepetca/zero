@@ -22,7 +22,7 @@ test("starting lessons direct students to Zero without project-start links", () 
     const html = render(lesson);
     assert.match(html, /Start tutorial →/);
     assert.ok(html.includes(projectForLesson(lesson).title));
-    assert.match(html, /If the tutorial is unavailable/);
+    assert.doesNotMatch(html, /If the tutorial is unavailable/);
     assert.doesNotMatch(html, /<a |Use template|github\.com|\.zip|download=/);
   }
   assert.match(render("3"), /Open your existing <strong>Study<\/strong> project/);
@@ -37,18 +37,13 @@ test("continuing lessons omit repeated generic setup and workflow cards", () => 
   }
 });
 
-test("reuse continues the Coin game and optional game media remains the only tutorial ZIP", () => {
-  assert.match(render("10"), /Reopen your Coin game/);
-  const html = render("12");
-  assert.ok(html.includes(`href="${sampleGameAssets.href}" download="${sampleGameAssets.filename}"`));
-  assert.match(html, /ZIP contains only media files/);
-  for (let id = 0; id < 12; id++) assert.doesNotMatch(render(String(id)), /download=|\.zip/);
+test("continuing Coin lessons do not repeat starter cards", () => {
+  for (const id of ['10','11','12']) assert.equal(render(id), '');
 });
 
-test("own-project directs students to create a project without offering a tutorial template",()=>{
-  const html=render('14');
-  assert.match(html,/Project → New/);
-  assert.match(html,/Start Page/);
-  assert.doesNotMatch(html,/not available yet|published and verified/);
-  assert.doesNotMatch(html,/Use template|Template not available|github\.com|download=|\.zip/);
+test("later Pet lessons continue the same project without another setup card",()=>{
+  for (const id of ['16','17','14']) {
+    assert.equal(projectForLesson(id).id, 'pet');
+    assert.equal(render(id), '');
+  }
 });

@@ -8,19 +8,18 @@ const lessonFiles = Object.freeze({
   '7':'07-study-app.md', '8':'08-movement.md', '9':'09-coin-game.md',
   '10':'10-components.md', '11':'11-zerohub.md', '12':'12-media.md',
   '13':'13-pet.md', '14':'14-own-project.md', '15':'15-recover-zero.md',
+  '16':'16-pet-motion.md', '17':'17-pet-class.md',
 });
 const LESSON_IDS = Object.freeze(Object.keys(lessonFiles));
-const MAIN_LESSONS = Object.freeze(['15','0','1','2','8','9','13','14']);
-const DISPLAY_NUMBERS = Object.freeze({'15':0,'0':1,'1':2,'2':3,'8':4,'9':5,'13':6,'14':7,'10':8,'11':9,'12':10});
+const MAIN_LESSONS = Object.freeze(['15','0','1','2','8','9','13','16','17','14']);
+const DISPLAY_NUMBERS = Object.freeze({'15':0,'0':1,'1':2,'2':3,'8':4,'9':5,'13':6,'16':7,'17':8,'14':9,'10':10,'11':11,'12':12});
 const tutorialGroups = Object.freeze([
   {id:'getting-started',title:'Getting started',lessons:['15']},
   {id:'greeting',title:'Greeting app',lessons:['0','1','2']},
   {id:'game',title:'Coin game',lessons:['8','9']},
-  {id:'pet',title:'Animated pet',lessons:['13']},
-  {id:'own-project',title:'Your own project',lessons:['14']},
+  {id:'pet',title:'Animated pet',lessons:['13','16','17','14']},
   {id:'study',title:'Study quiz',lessons:['3','4','5','6','7']},
-  {id:'practice',title:'Components and sharing',lessons:['10','11']},
-  {id:'media',title:'Coin artwork and sound',lessons:['12']},
+  {id:'practice',title:'Coin game revisited',lessons:['10','11','12']},
 ].map(group => Object.freeze({...group,lessons:Object.freeze(group.lessons)})));
 const visibleTutorialGroups = Object.freeze(tutorialGroups.filter(group => group.id !== 'study'));
 const PROJECT_LESSONS = Object.freeze({greeting:'0',study:'3',game:'8',pet:'13'});

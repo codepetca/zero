@@ -1,21 +1,22 @@
-# 9. Practise sharing a component
+# 11. Practise sharing a component
 
 **First checkpoint: keep your component working, then prepare a clearly labelled practice contribution.**
 
 ![The same Coin game with a small CreditsBadge, shared in Tutorial practice](visuals/11.svg)
 
-Reopen the **Coin game** from lesson 8. There is no lesson 9 download or new tutorial project. Keep practising in this folder. This lesson shares a tiny **CreditsBadge** in a separate **Tutorial practice** area. Copies are expected: you are learning the workflow, not claiming to have invented a new utility. PlayerInput stays in your game; you do not submit it.
+Reopen the **Coin game** from lesson 10. There is no lesson 11 download or new tutorial project. Keep practising in this folder. This lesson shares a tiny **CreditsBadge** in a separate **Tutorial practice** area. Copies are expected: you are learning the workflow, not claiming to have invented a new utility. PlayerInput stays in your game; you do not submit it.
 
 Previous: [Refactor a busy Main](10-components.md).
 
 ## 1. Retain the displayed value
 
-In `ScoreDisplay.java`, keep the private Label and Element view from lesson 8.
-Find `private final Label label = new Label("Score: 0");` inside the class. Add these two fields immediately below that line (above `setScore`):
+In `ScoreDisplay.java`, keep the private Label and Element view from lesson 10.
+Add the two fields by replacing the matching line with the copied code:
 
-```java
-private String caption = "Score";
-private int points;
+```java-after-2-3
+    private final Label label = new Label("Score: 0");
+    private String caption = "Score";
+    private int points;
 ```
 
 The game Main still owns the score. In `ScoreDisplay.java`, replace `setScore` with the copied code:
@@ -56,16 +57,38 @@ points. The null check runs before either field changes, so a bad argument gives
 a useful error and leaves the previous caption and value intact. No Zero core
 change or access to the private Label is needed.
 
-In the game's Main `setup()`, immediately after `score = new ScoreDisplay();`,
-add `score.setCaption("Score");`. Keep the scoring rules and setScore calls in Main.
+In the game's Main `setup()`, add the caption by replacing the matching line with the copied code. Keep the scoring rules and setScore calls in Main:
+
+```java-after-2
+        score = new ScoreDisplay();
+        score.setCaption("Score");
+```
 
 ## 3. Run the game and check the component
 
-Try `score.setCaption("Coins")` in setup. Run App and collect a coin; the display
-should read `Coins: 1`. Finish and restart the game twice. Change the setup
-caption back to `Score`. To check changing a caption **after** a value, temporarily add `score.setCaption("Coins");`
-immediately after the existing `score.setScore(points);` inside the game's
-coin-collection block. Collect one coin: the display should show `Coins: 1`,
+Try a different caption in setup by replacing the matching line with the copied code:
+
+```java-after-2-r1
+        score.setCaption("Score");
+        score.setCaption("Coins");
+```
+
+Run App and collect a coin; the display
+should read `Coins: 1`. Finish and restart the game twice. Restore the setup caption by replacing the matching line with the copied code:
+
+```java-after-2-r1
+        score.setCaption("Coins");
+        score.setCaption("Score");
+```
+
+To check changing a caption **after** a value, temporarily replace the matching line inside the game's coin-collection block with the copied code:
+
+```java-after-2
+                score.setScore(points);
+                score.setCaption("Coins");
+```
+
+Collect one coin: the display should show `Coins: 1`,
 proving the caption change kept that value. Stay on the coin and check it still
 shows 1.
 
@@ -101,7 +124,7 @@ let A/D and W/S work alongside the arrow keys. In `PlayerInput.java`, replace bo
 `||` means “or.” Right + D contributes +1 once, rather than +2. Left or A
 opposes Right or D, so A + Right cancels just as Left + Right does. Main still
 asks for two directions; Player still owns movement. Keep the constructor and
-`GameApp game` field from lesson 8. No Zero framework change is needed.
+`GameApp game` field from lesson 10. No Zero framework change is needed.
 
 Run App and check all arrows still work, each WASD direction, W + D diagonally,
 Right + D at the same speed as Right, A + Right cancelling horizontal motion,
@@ -109,8 +132,12 @@ and W + Down cancelling vertical motion. Try both opposing arrows too. Preserve
 Player's existing diagonal speed rule. Release all keys, switch windows while
 holding a key, return and click the canvas, and test Restart during play and after
 winning. Input should clear on focus loss and Restart; all three coins, scoring
-and reset behaviour should still work. Update Main's drawn help text to
-`Click the canvas, then hold arrows or WASD.` so the player can discover the keys.
+and reset behaviour should still work. Update Main's drawn help text by replacing the matching line with the copied code so the player can discover the keys:
+
+```java-after-2-r1
+        text("Click the canvas, then hold the arrow keys.", 20, 30);
+        text("Click the canvas, then hold arrows or WASD.", 20, 30);
+```
 
 ## 5. Record the API and save your tested changes
 
@@ -160,7 +187,14 @@ public class CreditsBadge {
 }
 ```
 
-In the game’s `Main.java`, add `import zero.ui.Column;` alongside the other imports. In `setup()`, create the badge; replace the matching lines with the copied code:
+In the game’s `Main.java`, add the import by replacing the matching line with the copied code:
+
+```java-after-2
+import zero.ui.Button;
+import zero.ui.Column;
+```
+
+In `setup()`, create the badge; replace the matching lines with the copied code:
 
 ```java-after-2
         message = new Label("");
@@ -269,7 +303,7 @@ a configurable input mapping, a useful animation helper or another component you
 can explain. Keep PlayerInput and copied CreditsBadge out of the ordinary
 community catalogue. Build an original or meaningfully adapted component in an
 original project you own, outside `zero.*`, and credit sources and licences.
-This extension is optional; it is not a required fourth tutorial project.
+This extension is optional; it is not a required tutorial project.
 
 Document its public methods and ownership, meaningful behaviour checks and two
 small consumers. Run Check library and record the exact source/version. For
@@ -284,4 +318,4 @@ Maintainers may adopt or adapt it, keep it as a community library, or defer it.
 A practice submission, listing or popularity never promotes code automatically.
 Existing project versions stay unchanged until users deliberately upgrade.
 
-Continue growing your **same Coin game** with media in [lesson 10](12-media.md).
+Continue growing your **same Coin game** with media in [lesson 12](12-media.md).

@@ -1,5 +1,52 @@
 # Verification
 
+## Pet lessons and Coin game revisited — 2026-10-29
+
+Local curriculum changes based on `6036272466e8c1fcc55cb068c11785f86d024538`
+split Pet into four lessons in one project and make Coin media an open-ended
+challenge. Existing routes and published scaffold inventories remain unchanged.
+Terra/high reconstructed the screen lesson from its preceding checkpoint: native
+Maven compilation and WebFX export passed. Chrome runtime checks confirmed Start,
+Back, movement, pause on the welcome screen and retained position; the sound
+playback promise resolved and playback advanced, but audible output was not verified.
+The 254 website tests, 31 project-picker tests, 22 scaffold tests, 27 focused
+navigation/tutorial tests and website build passed. Sol/high independently reviewed
+the complete diff; stale guide references were corrected. Physical iPhone, Windows,
+and a student GitHub/publishing walkthrough were not tested. Effective models,
+elapsed time and task-specific usage are unknown. No PR, merge or publication.
+
+Tutorial sidebar headings: increased section-heading emphasis using existing
+theme colours. Website build and a dark-mode browser visual check passed;
+Sol/high source review found no actionable issues and checked both theme colours.
+The subsequent subtle heading backgrounds passed a website build, dark-mode visual
+check and Sol/high source review of light/dark contrast and forced-colours behavior.
+Tutorial intro wording was shortened and unavailable-template advice removed from
+lesson start cards; Sol/high source review, 24 focused tests and the build passed.
+
+Tutorial navigation and code-context follow-up: the sidebar retains its position
+across lesson changes and reveals the selected lesson, including after direct entry
+or a mobile-to-desktop resize. Browser checks covered selection, Back, direct entry
+and resize. Sol/high review identified and verified a responsive correction.
+The full visible curriculum was audited for fixed code edits lacking context;
+added diff blocks were independently checked against the preceding lesson states.
+The website build, 27 focused website tests, 22 scaffold tests and Pet verifier
+passed. Physical-device and screen-reader checks remain separate.
+
+Lesson purpose cards: each tutorial displays its short description immediately
+after its title; duplicate introductory wording was removed. Sol/high review
+found and verified corrections to one description and two duplicate sentences,
+and checked both theme contrasts. The website build, 27 focused tests and a
+dark-mode browser visual check passed. Light-mode was reviewed from theme values.
+
+Combined tutorial PR: independent Sol/high cumulative review against `60362724`
+found no actionable issues, including Pet progression, contextual edits, sidebar
+behavior, links and preserved scaffold inventories. Reviewer checks passed; the
+coordinator also ran 255 website tests, 31 project-picker tests, 22 scaffold
+tests, the Pet verifier and the website build. Prior WebFX/Chrome runtime evidence
+is recorded above. Physical-device, audible-output and authenticated publishing
+checks were not repeated. Effective model, elapsed time and attributable usage
+are unknown.
+
 ## Tutorial code context — 2026-10-29
 
 Local changes based on `1aca5bb6d3896b7d6af53c9a4db9a0904cd939a3` add

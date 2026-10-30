@@ -1,10 +1,10 @@
-# 8. Refactor a busy Main
+# 10. Refactor a busy Main
 
 **First checkpoint: move input into one ordinary class and keep the game behaving the same.**
 
 ![One ScoreDisplay class can create separate instances for different layouts](visuals/10.svg)
 
-Reopen your **Coin game** from lesson 5. Keep using this repository; lesson 8 has no starter download or new game.
+Reopen your **Coin game** from lesson 5. In the **Zero Start Page**, choose **Project → Open local project…** and select your existing Coin project folder. If you do not have a local clone, choose **Project → Clone** to clone your own Coin repository from GitHub first. Continue in that same repository, rather than starting a new project.
 
 Previous: [Build a coin game](09-coin-game.md).
 
@@ -14,9 +14,7 @@ Your Coin game's Main now reads keys, moves Player, checks coins, tracks points,
 changes labels and draws. Those jobs work, but the class is getting busy.
 A **refactor** changes how code is organized while preserving its behaviour.
 Run the unchanged game using the checks in step 4 and record the results first.
-Then start with the six input lines inside Main's `update(double seconds)`:
-
-`int horizontal = 0;` `int vertical = 0;` `if (keyDown(Key.LEFT)) horizontal--;` `if (keyDown(Key.RIGHT)) horizontal++;` `if (keyDown(Key.UP)) vertical--;` `if (keyDown(Key.DOWN)) vertical++;`
+Then extract the input handling from Main's `update(double seconds)`.
 
 They answer two questions: which horizontal direction and which vertical direction
 is held? Player already accepts those answers. Give input its own class without
@@ -186,11 +184,31 @@ still works. Main owns the points and tells ScoreDisplay when they change.
 
 ## 8. Improve the display and check it
 
-Try changing the displayed word from Score to Points. In `ScoreDisplay.java`,
-change both `"Score: 0"` and `"Score: "` to `"Points: 0"` and `"Points: "`.
+Try changing the displayed word from Score to Points. In `ScoreDisplay.java`, replace each matching line with the copied code:
+
+```java-after-2-r1
+    private final Label label = new Label("Score: 0");
+    private final Label label = new Label("Points: 0");
+```
+
+```java-after-2-r1
+        label.setText("Score: " + points);
+        label.setText("Points: " + points);
+```
+
 Run the game and check the initial display, a collected coin and Restart. You
 changed presentation in one class without changing the scoring rules in Main.
-**Restore Score in both places before lesson 9.**
+Before lesson 11, restore Score by replacing each matching line with the copied code:
+
+```java-after-2-r1
+    private final Label label = new Label("Points: 0");
+    private final Label label = new Label("Score: 0");
+```
+
+```java-after-2-r1
+        label.setText("Points: " + points);
+        label.setText("Score: " + points);
+```
 
 After writing your own code, compare [game Main](../../teaching/checkpoints/10/game/Main.java),
 [ScoreDisplay.java](../../teaching/checkpoints/10/game/ScoreDisplay.java) and
@@ -202,7 +220,7 @@ owns the score and rules. These helpers belong to your project, alongside Main
 (or in your own package when you learn packages). Do not put them in `zero.*` or
 edit Zero's framework source to add them. You could copy your ScoreDisplay source
 into another project and create a separate instance there; each project owns its
-copy and can improve it independently. In [lesson 9](11-zerohub.md), practise
+copy and can improve it independently. In [lesson 11](11-zerohub.md), practise
 evaluating and sharing a small CreditsBadge component. Copies of that practice
 library are expected. The optional extension applies the same checks to your own
 original idea.
