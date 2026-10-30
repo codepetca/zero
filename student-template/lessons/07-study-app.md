@@ -23,7 +23,7 @@ extend StudyQuiz or App.
 
 ## 1. Give each question its own data
 
-Create `src/main/java/Question.java` beside Main, StudyQuiz and Counter. Write this
+Create `java/Question.java` beside Main, StudyQuiz and Counter. Write this
 ordinary Java class. Its `accepts(...)` method ignores surrounding spaces and
 letter case, so ` TRUE ` can answer `true`.
 

@@ -55,8 +55,8 @@ test('tutorial selection shows current projects with consistent lesson numbers',
  f.tutorialChoice=false;await f.commands.startTutorial();
  const choices=f.picks[0].items;
  assert.deepEqual(choices.map(item=>item.project.id),['greeting','game','pet']);
- assert.match(choices.find(item=>item.project.id==='greeting').description,/Lessons 2–4/);
- assert.match(choices.find(item=>item.project.id==='game').description,/Lessons 5–6/);
+ assert.match(choices.find(item=>item.project.id==='greeting').description,/Lessons 1–3/);
+ assert.match(choices.find(item=>item.project.id==='game').description,/Lessons 4–5/);
  assert.match(choices.find(item=>item.project.id==='pet').description,/Template unavailable/);
  assert.ok(!choices.some(item=>item.project.id==='own-project'));
  f.tutorialChoice='pet';await assert.rejects(f.commands.startTutorial(),/not published yet/);

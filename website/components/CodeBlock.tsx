@@ -1,8 +1,9 @@
 "use client";
 import {useEffect, useRef, useState, type ReactNode} from "react";
+import {copyCode} from "@/lib/copy-code.mjs";
 
 /** Copy the rendered code verbatim; controls and feedback stay outside the pre. */
-export function CodeBlock({children}: {children: ReactNode}) {
+export function CodeBlock({children, copyText, hasRemovedLines = false}: {children: ReactNode; copyText?: string; hasRemovedLines?: boolean}) {
   const pre = useRef<HTMLPreElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const copying = useRef(false);
@@ -17,12 +18,12 @@ export function CodeBlock({children}: {children: ReactNode}) {
   }, []);
 
   async function copy() {
-    const text = pre.current?.querySelector("code")?.textContent;
+    const text = copyText ?? pre.current?.querySelector("code")?.textContent;
     if (text == null || copying.current) return;
     copying.current = true;
     if (timer.current) clearTimeout(timer.current);
     try {
-      await navigator.clipboard.writeText(text);
+      if (!await copyCode(text)) throw new Error("Copy unavailable");
       if (!mounted.current) return;
       setStatus("copied");
       timer.current = setTimeout(() => setStatus("idle"), 2000);
@@ -43,7 +44,7 @@ export function CodeBlock({children}: {children: ReactNode}) {
       onClick={() => { void copy(); }}>{status === "copied" ? "Copied" : "Copy"}</button>
     <span role="status" className={status === "error" ? "code-copy-error" : "sr-only"}>
       {status === "copied" ? "Code copied to clipboard." : status === "error"
-        ? "Could not copy. Select the code and copy it manually." : ""}
+        ? hasRemovedLines ? "Could not copy. Copy the code manually, leaving out the removed lines." : "Could not copy. Select the code and copy it manually." : ""}
     </span>
   </div>;
 }

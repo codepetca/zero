@@ -4,7 +4,7 @@ export {projectForLesson, publishedTutorialTemplate, sampleGameAssets, petAssets
 export const lessonGroups = tutorialCatalog.visibleTutorialGroups;
 export const lessonNumber = id => tutorialCatalog.DISPLAY_NUMBERS[id];
 export const lessons = [
-  {id:'15', title:'Find your way back to Zero', description:'Find the sidebar, project files, Start Page and tutorials again.', encouragement:'You know how to find your way back!', topic:'Command Palette and navigation', doc:'setup', anchor:''},
+  {id:'15', title:'Back to Zero', description:'Find the sidebar, project files, Start Page and tutorials again.', encouragement:'You know how to find your way back!', topic:'Command Palette and navigation', doc:'setup', anchor:''},
   {
     "id": "0",
     encouragement: "You wrote your first Zero program!",

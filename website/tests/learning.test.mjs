@@ -9,6 +9,47 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { lessons, lessonGroups, lessonNavigation, lessonNumber, isLessonDocumentId, lessonAssets, examples, projectForLesson, publishedTutorialTemplate, sampleGameAssets } from "../lib/learning.mjs";
 import { documentHref, foldSections, resolveContentLink } from "../lib/markdown.mjs";
+import { tutorialAfterLines, tutorialAfterCopyText } from "../lib/tutorial-after-code.mjs";
+
+test("copying contextual examples omits display markers and preserves indentation", () => {
+  const lines = tutorialAfterLines("    void setup() {\n        // old\n        show(greeting);\n    }\n", "language-java-after-3-r2");
+  assert.deepEqual(lines.map((line) => line.added), [false, false, true, false]);
+  assert.deepEqual(lines.map((line) => line.removed), [false, true, false, false]);
+  assert.equal(tutorialAfterCopyText(lines), "    void setup() {\n        show(greeting);\n    }\n");
+});
+
+test("tutorial change blocks mark real distinct lines and copy their finished code", () => {
+  const folder = new URL("../../student-template/lessons/", import.meta.url);
+  let blocks = 0;
+  for (const name of readdirSync(folder).filter((entry) => entry.endsWith(".md"))) {
+    const source = readFileSync(new URL(name, folder), "utf8");
+    for (const match of source.matchAll(/```(java-after-([^\n]+))\n([\s\S]*?)```/g)) {
+      blocks++;
+      assert.match(match[2], /^\d+(?:-\d+)*(?:-r\d+(?:-\d+)*)?$/, name);
+      const [added, removed = ""] = match[2].split("-r");
+      const indices = [...added.split("-"), ...removed.split("-").filter(Boolean)].map(Number);
+      const lineCount = match[3].replace(/\n$/, "").split("\n").length;
+      assert.equal(new Set(indices).size, indices.length, name);
+      assert.ok(indices.every((index) => index >= 1 && index <= lineCount), name);
+      const lines = tutorialAfterLines(match[3], `language-${match[1]}`);
+      assert.equal(tutorialAfterCopyText(lines), lines.filter((line) => !line.removed).map((line) => line.code).join("\n") + "\n", name);
+    }
+  }
+  assert.ok(blocks > 0);
+});
+
+test("tutorial file directions use the Project Explorer labels", () => {
+  const lesson = (name) => readFileSync(new URL(`../../student-template/lessons/${name}`, import.meta.url), "utf8");
+  for (const name of ["00-hello-world.md", "08-movement.md", "09-coin-game.md", "13-pet.md", "14-own-project.md"]) {
+    assert.doesNotMatch(lesson(name), /(?:Open|Create) `src\/main\/java\//, name);
+  }
+  assert.match(lesson("00-hello-world.md"), /java → Main\.java/);
+  for (const name of ["12-media.md", "13-pet.md"]) {
+    assert.match(lesson(name), /\*\*Import assets…\*\*/, name);
+  }
+  assert.match(lesson("11-zerohub.md"), /Tutorial practice: CreditsBadge → Checks/);
+  assert.match(lesson("11-zerohub.md"), /Tutorial practice: CreditsBadge → Examples → first/);
+});
 
 test("folds parsed sections without splitting code, preserving unique deep-link ids", () => {
   const markdown =
@@ -138,7 +179,7 @@ test("quiet project groups retain every lesson once in reading order", () => {
 });
 
 test("existing lesson addresses remain stable and optional paths have their own ends", () => {
-  assert.deepEqual(['15','0','1','2','8','9','13','14','10','11','12'].map(lessonNumber),[1,2,3,4,5,6,7,8,9,10,11]);
+  assert.deepEqual(['15','0','1','2','8','9','13','14','10','11','12'].map(lessonNumber),[0,1,2,3,4,5,6,7,8,9,10]);
   assert.equal(lessonNumber('3'),undefined,'Retained quiz routes are not part of the current sequence');
   assert.deepEqual(lessons.map((lesson) => lesson.id), ["15",...Array.from({ length: 15 }, (_, id) => String(id))]);
   assert.equal(lessonNavigation("10").next.id, "11");
@@ -146,7 +187,7 @@ test("existing lesson addresses remain stable and optional paths have their own 
   assert.equal(lessonNavigation("11").next,undefined);
   assert.equal(lessonNavigation("3").previous,undefined);
   assert.equal(lessonNavigation("7").next,undefined);
-  assert.equal(lessonNavigation("15").related.title, "Find your way back to Zero");
+  assert.equal(lessonNavigation("15").related.title, "Back to Zero");
   for(let id=0;id<16;id++)assert.equal(documentHref(`lesson-${id}`),`/tutorials/${id}`);
   assert.equal(documentHref("lesson-10"), "/tutorials/10");
   assert.equal(documentHref("lesson-11"), "/tutorials/11");

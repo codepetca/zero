@@ -320,6 +320,14 @@ html:has(.learn-theme),
 .learn-theme .reader-layout pre { background: var(--zero-surface); color: var(--zero-text); }
 .learn-theme .reader-layout pre code { background: none; }
 .learn-theme .reader-layout pre { max-width: 100%; }
+.tutorial-after-code { margin: 1em 0; min-width: 0; }
+.learn-theme .reader-layout .tutorial-after-code pre { margin: 0; padding: 52px 0 14px; }
+.tutorial-after-line { display: block; width: max-content; min-width: 100%; padding: 0 20px 0 0; }
+.tutorial-after-line.added { background: color-mix(in srgb, #18a35b 24%, transparent); font-weight: 700; }
+.tutorial-after-line.removed { background: color-mix(in srgb, #db524c 24%, transparent); text-decoration: line-through; user-select: none; }
+.tutorial-after-line::before { content: ""; display: inline-block; width: 2.5em; text-align: center; }
+.tutorial-after-line.added::before { content: "+"; }
+.tutorial-after-line.removed::before { content: "−"; }
 .learn-theme .reader-layout .button {
   background: var(--zero-accent);
   border-color: var(--zero-accent);

@@ -1,16 +1,16 @@
-# 5. Move a player
+# 4. Move a player
 
 **First checkpoint: a square you can move.**
 
 ![A blue square on the canvas with an arrow showing movement](visuals/08.svg)
 
-Your **Coin game** project's `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` methods, and no Player class. Keep this folder for lessons 6 and 9–11; there is no new game download for the next lesson.
+Your **Coin game** project's `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` methods, and no Player class. Keep this folder for lessons 5 and 8–10; there is no new game download for the next lesson.
 
 Previous: [Your Greeting app](02-hello-name.md).
 
 ## 1. Write Player.java
 
-Create `src/main/java/Player.java`. Player owns position; Main decides when to update and draw it. Type this class, then try changing its color or speed:
+In Project Explorer, right-click **java** and choose **New class…** to create `Player.java`. Player owns position; Main decides when to update and draw it. Type this class, then try changing its color or speed:
 
 ```java
 import zero.Color;
@@ -46,58 +46,51 @@ The `Math.max`/`Math.min` lines keep the whole square on screen. `x` and `y` are
 
 ## 2. Connect Player to your existing Main
 
-In `Main.java`, **find:**
+In `Main.java`, add the `Key` and `Color` imports; replace the matching lines with the copied code:
 
-`import zero.GameApp;`
-
-**Add above:**
-
-```java
+```java-after-1-2
 import zero.Key;
 import zero.Color;
+import zero.GameApp;
 ```
 
-`Key` names the four arrow keys. `Color.rgb(red, green, blue)` mixes amounts from 0 to 255; `Color.BLUE` and `Color.GOLD` are ready-made colours. **Find:**
+`Key` names the four arrow keys. `Color.rgb(red, green, blue)` mixes amounts from 0 to 255; `Color.BLUE` and `Color.GOLD` are ready-made colours. Add the `player` field to `Main`; replace the matching lines with the copied code:
 
-`public class Main extends GameApp {`
-
-**Add below:**
-
-```java
-private Player player;
+```java-after-2
+public class Main extends GameApp {
+    private Player player;
 ```
 
-**Find the three empty methods** in the starter:
+In `Main.java`, replace the three starter methods with the copied code:
 
-`@Override public void setup() {` `// Create your game objects here.` `}`  `@Override public void update(double seconds) {` `// Update your objects here.` `}`  `@Override public void draw() {` `// Draw your game here.` `}`
+```java-after-3-8-9-10-11-12-13-14-19-20-21-22-23-r2-7-18
+    @Override public void setup() {
+        // Create your game objects here.
+        player = new Player(40, 180);
+    }
 
-**Replace those methods with:**
+    @Override public void update(double seconds) {
+        // Update your objects here.
+        int horizontal = 0;
+        int vertical = 0;
+        if (keyDown(Key.LEFT)) horizontal--;
+        if (keyDown(Key.RIGHT)) horizontal++;
+        if (keyDown(Key.UP)) vertical--;
+        if (keyDown(Key.DOWN)) vertical++;
+        player.update(horizontal, vertical, seconds, width(), height());
+    }
 
-```java
-@Override public void setup() {
-    player = new Player(40, 180);
-}
-
-@Override public void update(double seconds) {
-    int horizontal = 0;
-    int vertical = 0;
-    if (keyDown(Key.LEFT)) horizontal--;
-    if (keyDown(Key.RIGHT)) horizontal++;
-    if (keyDown(Key.UP)) vertical--;
-    if (keyDown(Key.DOWN)) vertical++;
-    player.update(horizontal, vertical, seconds, width(), height());
-}
-
-@Override public void draw() {
-    background(Color.rgb(240, 248, 255));
-    fill(Color.rgb(47, 79, 79));
-    textSize(20);
-    text("Click the canvas, then hold the arrow keys.", 20, 30);
-    player.draw(this);
-}
+    @Override public void draw() {
+        // Draw your game here.
+        background(Color.rgb(240, 248, 255));
+        fill(Color.rgb(47, 79, 79));
+        textSize(20);
+        text("Click the canvas, then hold the arrow keys.", 20, 30);
+        player.draw(this);
+    }
 ```
 
-Keep the starter's `settings()` and `main(...)`. `GameApp` calls update and draw each frame; it does not find Player automatically. Main reads keys and explicitly calls Player. Click the canvas for keyboard focus. Switching windows clears held keys; click the canvas again to resume.
+Keep the starter's `settings()` and `main(...)`. `GameApp` calls update and draw each frame; it does not find Player automatically. Main reads keys and explicitly calls `player.draw(this)`. That calls Player's `draw` method, where `app.rect(...)` paints its square on the canvas. Creating a Player alone does not draw it. Click the canvas for keyboard focus. Switching windows clears held keys; click the canvas again to resume.
 
 ### Frames, input and canvas
 
@@ -162,6 +155,6 @@ not need to extend `GameApp`.
 
 ## 3. Run App and check movement
 
-Click **Run App**, click the canvas, then hold and release an arrow key. The square should move while held and stop when released. Try every edge, Right + Up, Left + Right, and releasing all keys. Change `speed` to 90, run again, compare, then restore 180. Change `size` to 40 and check that the whole square remains visible; restore 24 before lesson 6. If you remove only `player.update(...)`, the square still draws but cannot move. Explain why.
+Click **Run App**, click the canvas, then hold and release an arrow key. The square should move while held and stop when released. Try every edge, Right + Up, Left + Right, and releasing all keys. Change `speed` to 90, run again, compare, then restore 180. Change `size` to 40 and check that the whole square remains visible; restore 24 before lesson 5. If you remove only `player.update(...)`, the square still draws but cannot move. Explain why.
 
-After writing your own code, compare with checkpoint 8's [Main.java](../../teaching/checkpoints/8/Main.java) and [Player.java](../../teaching/checkpoints/8/Player.java). Continue editing **this Coin game folder** in [lesson 6](09-coin-game.md).
+After writing your own code, compare with checkpoint 8's [Main.java](../../teaching/checkpoints/8/Main.java) and [Player.java](../../teaching/checkpoints/8/Player.java). Continue editing **this Coin game folder** in [lesson 5](09-coin-game.md).

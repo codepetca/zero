@@ -1,21 +1,23 @@
-# 11. Add artwork and sound
+# 10. Add artwork and sound
 
 **First checkpoint: your moving player becomes a sprite and a collected coin rings.**
 
-![The lesson 6 Coin game with a robot player, three coins and a native score below the canvas](visuals/12.svg)
+![The lesson 5 Coin game with a robot player, three coins and a native score below the canvas](visuals/12.svg)
 
-Reopen the **same Coin game** you wrote in lessons 5, 6, 9 and 10. Keep your Player, Coin, PlayerInput, ScoreDisplay, CreditsBadge and Main. This lesson changes your current project in place and supplies no later stage project ZIPs. Optionally download the small [game assets ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip) and place `media-demo/player.png` and `media-demo/chime.wav` under `src/main/resources/`. You may use your own PNG and short WAV at those paths, or use the drawing route below without assets.
+Reopen the **same Coin game** you wrote in lessons 4, 5, 8 and 9. Keep your Player, Coin, PlayerInput, ScoreDisplay, CreditsBadge and Main. This lesson changes your current project in place and supplies no later stage project ZIPs. If you want to use the supplied artwork and sound, download the small [game assets ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip) and unzip it. In Project Explorer, right-click **resources**, choose **New folder…**, and name it `media-demo`. Right-click **media-demo**, choose **Import assets…**, and import `player.png` and `chime.wav` from the unzipped `media-demo` folder. The files appear at `resources/media-demo/player.png` and `resources/media-demo/chime.wav`. You may use your own PNG and short WAV at those paths, or use the drawing route below without assets.
 
 Previous: [Practise sharing a component](11-zerohub.md).
 
 ## 1. Draw an image from Player
 
-Add `import zero.ImageRegion;` to your existing Player. Keep its shape-drawing
-method for the drawing route. Find the existing `public void draw(GameApp app)` method near the end of `Player.java`. Add the following method after its closing brace and before the final class brace:
+Add `import zero.ImageRegion;` to `Player.java`. Keep its shape-drawing method and add `drawImage`; replace the matching lines with the copied code:
 
-```java
-public void drawImage(GameApp app, ImageRegion sprite) {
-    app.image(sprite, x, y, size, size);
+```java-after-3-4-5
+        app.rect(x, y, size, size);
+    }
+    public void drawImage(GameApp app, ImageRegion sprite) {
+        app.image(sprite, x, y, size, size);
+    }
 }
 ```
 
@@ -38,25 +40,28 @@ private int plays;
 
 ## 3. Add an explicit artwork action
 
-In `Main.java`, find the end of `setup()` (after its `restart();` call). Add the following method after `setup()`’s closing brace and before `public void restart()`, inside the class:
+In `Main.java`, add `loadAssets()` between `setup()` and `restart()`; replace the matching lines with the copied code:
 
-```java
-public void loadAssets() {
-    try {
-        ImageRegion nextSprite = loadImageRegion("/media-demo/player.png");
-        Sound nextChime = loadSound("/media-demo/chime.wav");
-        nextChime.setVolume(0.25);
-        sprite = nextSprite;
-        chime = nextChime;
-        assetStatus.setText("Artwork and sound ready");
-    } catch (IllegalArgumentException failure) {
-        assetStatus.setText(failure.getMessage());
+```java-after-3-4-5-6-7-8-9-10-11-12-13-14-15
+        restart();
     }
-    showGame();
-}
+    public void loadAssets() {
+        try {
+            ImageRegion nextSprite = loadImageRegion("/media-demo/player.png");
+            Sound nextChime = loadSound("/media-demo/chime.wav");
+            nextChime.setVolume(0.25);
+            sprite = nextSprite;
+            chime = nextChime;
+            assetStatus.setText("Artwork and sound ready");
+        } catch (IllegalArgumentException failure) {
+            assetStatus.setText(failure.getMessage());
+        }
+        showGame();
+    }
+    public void restart() {
 ```
 
-The `/` starts at `src/main/resources/`. Load both candidates before changing the
+The `/` starts at `resources/`. Load both candidates before changing the
 fields. If a requested file is missing or invalid, the error names its path and
 the existing game stays playable. The catch handles this expected resource error
 and shows it; it does not silently ignore it. Other programming errors still surface.
@@ -76,16 +81,18 @@ The ready label means the action selected resources, not that sound was heard.
 
 ## 4. Add controls once in setup
 
-In `Main.java` inside `setup()`, find the `controls(new Column(8, ...)` call containing `new Row(12, score.view(), message, restartButton), badge.view()`. Replace the entire call, including its closing `));`, with:
+In `Main.java` inside `setup()`, replace the existing controls call with the copied code:
 
-```java
-soundStatus = new Label("");
-assetStatus = new Label("Drawing mode");
-var artworkButton = new Button("Use artwork and sound");
-artworkButton.onClick(() -> loadAssets());
-controls(new Column(8,
-        new Row(12, score.view(), soundStatus, message, restartButton),
-        new Row(12, artworkButton, assetStatus), badge.view()));
+```java-after-3-4-5-6-7-8-9-r1-2
+        controls(new Column(8,
+                new Row(12, score.view(), message, restartButton), badge.view()));
+        soundStatus = new Label("");
+        assetStatus = new Label("Drawing mode");
+        var artworkButton = new Button("Use artwork and sound");
+        artworkButton.onClick(() -> loadAssets());
+        controls(new Column(8,
+                new Row(12, score.view(), soundStatus, message, restartButton),
+                new Row(12, artworkButton, assetStatus), badge.view()));
 ```
 
 Keep the existing score, message, badge, Restart callback and final `restart()` call.
@@ -102,16 +109,16 @@ soundStatus.setText("Chimes: 0");
 
 ## 5. Request a chime after collection
 
-Inside the existing coin-collection block, immediately after
-`score.setScore(points);`, add:
+Inside the coin-collection block, add the chime code; replace the matching lines with the copied code:
 
-```java
-if (chime != null) {
-    chime.stop();
-    chime.play();
-    plays++;
-    soundStatus.setText("Chimes: " + plays);
-}
+```java-after-2-3-4-5-6-7
+                score.setScore(points);
+                if (chime != null) {
+                    chime.stop();
+                    chime.play();
+                    plays++;
+                    soundStatus.setText("Chimes: " + plays);
+                }
 ```
 
 Main's collected check still prevents repeated scoring and sound requests while
@@ -120,11 +127,12 @@ and media support determine whether you hear the sound.
 
 ## 6. Choose the image or drawing
 
-At the end of Main's existing draw method, replace `player.draw(this);` with:
+At the end of Main's `draw()`, replace the matching line with the copied code:
 
-```java
-if (sprite == null) player.draw(this);
-else player.drawImage(this, sprite);
+```java-after-2-3-r1
+        player.draw(this);
+        if (sprite == null) player.draw(this);
+        else player.drawImage(this, sprite);
 ```
 
 ## 7. Run both routes and test Restart
@@ -146,7 +154,7 @@ your code. The API reference describes additional image and sound methods.
 
 ## 8. Optional stage 2: scroll a wider world
 
-Keep editing this folder. Create `Camera.java` beside `Main.java` in `src/main/java/`. Inside `public class Camera { ... }`, add a private `double x` field and `double x()` getter. Add this method after the getter and before the class’s final closing brace:
+Keep editing this folder. Create `Camera.java` beside `Main.java` in `java/`. Inside `public class Camera { ... }`, add a private `double x` field and `double x()` getter. Add this method after the getter and before the class’s final closing brace:
 
 ```java
 public void follow(double playerX, double viewportWidth, double worldWidth) {
@@ -155,7 +163,7 @@ public void follow(double playerX, double viewportWidth, double worldWidth) {
 }
 ```
 
-Add `public double x() { return x; }` to Player. In Main add `private final double worldWidth = 1600;` and `private Camera camera;`. Create `camera = new Camera();` in `restart()` and move two coins farther away, for example x 840 and 1360. Pass `worldWidth` instead of `width()` to `player.update(...)`, then call `camera.follow(player.x(), width(), worldWidth);` after movement. To draw world objects, add overloads `Player.draw(GameApp app, double cameraX)`, `Player.drawImage(GameApp app, ImageRegion sprite, double cameraX)` and `Coin.draw(GameApp app, double cameraX)`. In each, use `x - cameraX` for the image or rectangle's horizontal drawing coordinate; keep the original methods and collection positions unchanged. In Main's `draw()`, pass `camera.x()` to those new methods. Zero ScoreDisplay and Restart stay outside the canvas and do not scroll. Check both world edges and collect a far coin. Compare your edits with the optional [scrolling checkpoint Main](../../teaching/checkpoints/12/scrolling/Main.java) and [Camera.java](../../teaching/checkpoints/12/scrolling/Camera.java), then return to **your own code**. Keep the PlayerInput helper from lessons 9 and 10; it still supplies horizontal and vertical directions, while Main owns the update and camera calls.
+Add `public double x() { return x; }` to Player. In Main add `private final double worldWidth = 1600;` and `private Camera camera;`. Create `camera = new Camera();` in `restart()` and move two coins farther away, for example x 840 and 1360. Pass `worldWidth` instead of `width()` to `player.update(...)`, then call `camera.follow(player.x(), width(), worldWidth);` after movement. To draw world objects, add overloads `Player.draw(GameApp app, double cameraX)`, `Player.drawImage(GameApp app, ImageRegion sprite, double cameraX)` and `Coin.draw(GameApp app, double cameraX)`. In each, use `x - cameraX` for the image or rectangle's horizontal drawing coordinate; keep the original methods and collection positions unchanged. In Main's `draw()`, pass `camera.x()` to those new methods. Zero ScoreDisplay and Restart stay outside the canvas and do not scroll. Check both world edges and collect a far coin. Compare your edits with the optional [scrolling checkpoint Main](../../teaching/checkpoints/12/scrolling/Main.java) and [Camera.java](../../teaching/checkpoints/12/scrolling/Camera.java), then return to **your own code**. Keep the PlayerInput helper from lessons 8 and 9; it still supplies horizontal and vertical directions, while Main owns the update and camera calls.
 
 ## 9. Choose one next improvement
 
@@ -166,8 +174,8 @@ PlayerInput and ScoreDisplay responsibilities separate from Main’s game rules.
 
 Choose one small improvement of your own: change the controls, add a score
 caption, or write clearer instructions. Use the refactor → test → improve →
-proposal process from [lesson 9](10-components.md) and
-[lesson 10](11-zerohub.md). A larger platformer, enemy system or level manager
+proposal process from [lesson 8](10-components.md) and
+[lesson 9](11-zerohub.md). A larger platformer, enemy system or level manager
 can be a later original project; you do not need one to complete this tutorial.
 
 Return to the [lesson index](README.md).

@@ -1,5 +1,78 @@
 # Verification
 
+## Tutorial code context — 2026-10-29
+
+Local changes based on `1aca5bb6d3896b7d6af53c9a4db9a0904cd939a3` add
+non-copyable, highlighted after-excerpts alongside the existing copyable snippets
+in active tutorials. The website production build and 248 website tests passed;
+the Greeting lesson was inspected in the local browser. Independent complete-diff
+review requested Terra/high: no outstanding findings (one initial concern was
+withdrawn after checking the preceding lesson). Unused older lessons were then
+removed from the diff. Effective model, elapsed time and task-specific usage are
+unknown. Changes remain local; no PR, merge, deployment or release.
+
+Follow-up: clarified insertion headings and shortened the context label. Terra/high
+review identified that Markdown readers also need the label; it was moved into the
+lessons and the targeted re-review found no remaining issues. The production build,
+four focused navigation/emphasis tests, and the local Greeting reader check passed.
+Effective model, elapsed time and attributable usage are unknown.
+
+Lesson-zero follow-up: recovery now displays as 0 and the remaining current
+sequence as 1–10; stable lesson routes and published scaffold inventories are
+unchanged. Terra/medium reviewed the numbering and identified setup wording,
+which was corrected while retaining the existing account-setup link anchor.
+Website learning/navigation tests (19), extension project-picker tests (31),
+and lesson-project tests (22) passed; the recovery page and numbering were
+checked in the browser over Tailscale. Published template READMEs retain their
+historical numbering until a separately authorized template update. Effective
+model, elapsed time and attributable usage are unknown; changes remain local.
+
+Project Explorer lesson paths: tutorial directions now use the visible java,
+resources and library tree labels, including Import assets. Terra/medium review
+confirmed the explorer mapping; its test-scope and optional-media wording findings
+were fixed and the targeted re-review was clean. Website learning tests (17),
+lesson-project tests (22), production build and a browser check of Greeting passed.
+Published template inventories were not changed. Effective model, elapsed time
+and attributable usage are unknown; these changes are local.
+
+Lesson 0 title follow-up: renamed it to Back to Zero in the lesson, navigation
+and page metadata. Terra/medium review found no remaining title issues. The 17
+learning tests, website build and served-page title check passed. Effective model,
+elapsed time and attributable usage are unknown; the change remains local.
+
+Tutorial change blocks: consolidated incremental examples into copyable context
+blocks with additions and removals; copy omits removed lines and display markers.
+Terra/high review found two lesson-boundary issues; both were fixed and targeted
+re-review was clean. Website learning tests (19), lesson-project tests (22) and
+production build passed. Browser showed Copy success and accessible Add/Remove
+labels; the browser clipboard readback was unavailable, so byte-for-byte clipboard
+verification relies on the focused copy-text test. Screen-reader interaction was
+not tested. Effective model, elapsed time and attributable usage are unknown.
+
+Copy fallback follow-up: the code-copy control now falls back to a selected
+temporary textarea when Clipboard API access is unavailable or denied, and
+reports failure if neither path succeeds. Terra/high review found no actionable
+issues. The 22 focused copy/tutorial tests and production build passed; clicking
+the contextual setup block over Tailscale HTTP displayed Copy success in the
+in-app browser. The automation clipboard could not paste or read the resulting
+system clipboard, so pasted bytes and iPhone Safari remain unverified. Effective
+model, elapsed time and attributable usage are unknown; changes are local.
+
+Tutorial explanation follow-up: Greeting explains `show()` as displaying UI;
+the Coin game explains the explicit Player draw call and canvas rectangle. A
+Terra/high review confirmed the API descriptions against the lesson code. The
+19 website learning tests passed after the requested removal of canvas references
+from Greeting. Effective model, elapsed time and attributable usage are unknown.
+
+Combined tutorial PR review: independent Sol/high full-diff review against
+`1aca5bb6d3896b7d6af53c9a4db9a0904cd939a3` found no actionable blockers;
+reviewer ran 84 focused tests. Coordinator checks passed: 254 website tests,
+31 project-picker tests, 22 lesson-project tests, website production build and
+`git diff --check`. Browser checks covered the lesson reader and copy feedback;
+system clipboard paste and physical iPhone Safari remain unverified. Published
+template README numbering is historical; scaffold inventories are unchanged.
+Effective model, elapsed time and attributable usage are unknown.
+
 ## Git checks and native Git prototype accepted locally — 2026-10-25
 
 Reviewed implementation head9d68fc860a44af9021253597d721f79f157e66fe,

@@ -20,6 +20,7 @@ import { TutorialProject } from "./TutorialProject";
 import { DownloadRequirements } from "./Downloads";
 import { platformMarkdown } from "@/lib/platform-content.mjs";
 import { documentEmphasisKind } from "@/lib/document-emphasis.mjs";
+import { tutorialAfterLines, tutorialAfterCopyText } from "@/lib/tutorial-after-code.mjs";
 import { helpItems, teacherItems } from '@/lib/document-navigation.mjs';
 export function Document({ id, lesson = "" }) {
   const doc = docs[id];
@@ -36,7 +37,7 @@ export function Document({ id, lesson = "" }) {
   const items = lesson
     ? lessons.map((item) => ({
         id: item.id,
-        title: lessonNumber(item.id) ? `${lessonNumber(item.id)}. ${item.title}` : item.title,
+        title: lessonNumber(item.id) !== undefined ? `${lessonNumber(item.id)}. ${item.title}` : item.title,
         href: `/tutorials/${item.id}`,
       }))
     : teacher ? teacherItems : helpItems;
@@ -57,7 +58,7 @@ export function Document({ id, lesson = "" }) {
         <article className="reader-content">
           <h1>{pageTitle}</h1>
           <h2 className="page-subtitle" id={slugify(lesson && lesson !== '15' ? `${lesson}. ${title}` : (doc.markdown.match(/^# (.+)$/m)?.[1] || title))}>
-            {lesson && lessonNumber(lesson) ? `Lesson ${lessonNumber(lesson)}: ${title}` : title}
+            {lesson && lessonNumber(lesson) !== undefined ? `Lesson ${lessonNumber(lesson)}: ${title}` : title}
           </h2>
           {id === "setup" && <DownloadRequirements platformAware />}
           {practiceProject && (lesson === practiceProject.firstLesson || lesson === "10" || lesson === "12") && (
@@ -75,7 +76,25 @@ export function Document({ id, lesson = "" }) {
                     : kind === "command" ? <code className="doc-command">{children}</code>
                     : <strong>{children}</strong>;
                 },
-                pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
+                pre: ({ node, children }) => {
+                  const code = node?.children?.find((child) => child.tagName === "code");
+                  const afterLanguage = code?.properties?.className?.find((name) => /^language-java-after-\d+(?:-\d+)*(?:-r\d+(?:-\d+)*)?$/.test(name));
+                  if (afterLanguage) {
+                    const lines = tutorialAfterLines(code.children.map((child) => child.value || "").join(""), afterLanguage);
+                    const copyText = tutorialAfterCopyText(lines);
+                    return <div className="tutorial-after-code">
+                      <CodeBlock copyText={copyText} hasRemovedLines={lines.some((line) => line.removed)}><code>{lines.map((line, index) => {
+                        const {added, removed, code: lineCode} = line;
+                        return <span className={`tutorial-after-line${added ? " added" : removed ? " removed" : ""}`} key={index}
+                          role={added || removed ? "img" : undefined}
+                          aria-label={added ? `Add: ${lineCode}` : removed ? `Remove: ${lineCode}` : undefined}>
+                          {lineCode}{"\n"}
+                        </span>;
+                      })}</code></CodeBlock>
+                    </div>;
+                  }
+                  return <CodeBlock>{children}</CodeBlock>;
+                },
                 img: ({ src, alt }) => {
                   const target = resolveContentLink(doc.source, src, {}, {}, lessonAssets);
                   return target && Object.values(lessonAssets).includes(target) ? (

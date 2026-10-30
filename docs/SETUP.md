@@ -51,10 +51,10 @@ Zero reopens and loads the updated extension when its editor work is idle. The
 first upgrade from 0.5.33 or earlier needs one manual Zero reopen/editor reload;
 later updates use the corrected handoff.
 
-## Before tutorial lesson 0
+## Before starting a tutorial project
 
 Complete [GitHub account and privacy setup](GETTING-STARTED.md#before-lesson-0-github-and-privacy)
-before the first tutorial: student-owned verified account, Git 2.31+, school
+before starting a tutorial project: student-owned verified account, Git 2.31+, school
 GitHub device sign-in and compiler-download access, awareness that repositories
 created through Zero are public, and reviewer access where needed. Keep secrets and
 private files out of those repositories. Existing or GitHub-created private repositories
@@ -130,7 +130,7 @@ downloads and platform limits.
 3. Check existing installations. Choose installation/help only for missing or
    incompatible items. A working school/personal installation should be reused.
 4. Follow profile prompts, install Zero and Java extensions, and open Zero.
-5. Complete the account/privacy preflight above before lesson 0. Choose
+5. Complete the account/privacy preflight above before starting your first project. Choose
    **Start tutorial**, connect GitHub if needed, then name and save your own
    **Greeting app** repository. Zero opens your clone with Main and Tutorials.
    Submit repository links in Pika separately when assigned.
@@ -158,7 +158,7 @@ Java and its compiler need compatible matching JDK17+ versions. In manual setup,
 a bad JAVA_HOME must not be hidden by a working PATH installation. The new native
 Mac launcher explicitly selects Zero’s private JDK only for its own editor and
 child processes; it does not repair or change the system JAVA_HOME.
-Git 2.31+ is required before tutorial lesson 0 because the lessons use real
+Git 2.31+ is required before starting a tutorial project because the lessons use real
 uploads. Troubleshooting includes Git in tutorial Run readiness; ordinary local apps
 can run without Git. Java editor support and the debugger are checked in the
 active VS Code profile; debugger absence does not block Run App. Installed
@@ -176,7 +176,7 @@ must not be reported as ready. On a supported Mac, the wrapper must also have
 execute permission; re-extract the complete kit or follow the reported local
 permission repair guidance. Checks do not execute the project's Maven build.
 
-Before tutorial lesson 0, students complete the GitHub account, school access
+Before starting a tutorial project, students complete the GitHub account, school access
 and privacy steps, then create and clone their own tutorial repository. In that
 clone, configure a Git identity that follows school policy before the first upload.
 After cloning and caching the build tools, local Run works offline
