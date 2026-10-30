@@ -56,9 +56,8 @@ Click **Run App**, type `Sam`, then click **Say hello**. The label should say **
 ### Layout and appearance
 
 `Label`, `TextField`, `Button` and `Column` come from Zero's `zero.ui`
-package. Zero uses JavaFX underneath, so these controls keep ordinary keyboard
-focus and platform behavior. In `new Column(10, greeting, name, button)`, 10 is
-the gap between controls. The column arranges them without individual coordinates.
+package. In `new Column(10, greeting, name, button)`, 10 is the gap between
+controls. The column arranges them without individual coordinates.
 
 For space around the whole interface, keep `padding(20)` in Main's `settings()`
 as in [lesson 1](00-hello-world.md#app-startup). It also works in `setup()` or a
@@ -71,11 +70,6 @@ field and button, then Space to activate the focused button. Type a second name
 and check that the action reads the current text, rather than remembering the
 first name. Keep keyboard focus visible and use words as well as colour to
 explain results.
-
-These controls need no stylesheet. Advanced JavaFX styling is a separate path;
-you do not need JavaFX imports for this project. Normal **Run App** opens the
-native app. Browser export and publishing are separate actions with their own
-compatibility checks. Use Zero’s API reference to inspect the available methods rather than assuming every JavaFX method is also a Zero method.
 
 ## 6. Save and publish your greeting
 
