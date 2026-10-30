@@ -6,6 +6,7 @@ param(
     [Parameter(Mandatory)][string] $PackageVersion,
     [Parameter(Mandatory)][string] $Receipt,
     [switch] $RunWack,
+    [switch] $RunFirstRun,
     [switch] $Windows11ArmDiagnostic,
     [switch] $Windows2025Diagnostic
 )
@@ -38,11 +39,13 @@ $receiptData = [ordered]@{
     installAttempted = $false; installVerified = $false; cleanupVerified = $false
     trustScope = 'LocalMachine/TrustedPeople, temporary public certificate'; signingKeyScope = 'CurrentUser/My only'
     activation = 'not attempted'; activationReason = 'No unattended consent or tool acquisition is authorized.'
+    firstRun = [ordered]@{ requested = [bool]$RunFirstRun; result = 'not-run'; failureReason = $null }
     wack = [ordered]@{ requested = [bool]$RunWack; result = 'not-run'; toolSha256 = $null; toolFileVersion = $null
         sessionId = $null; sourceRevision = $null; reportVersion = $null; xmlSha256 = $null; htmlSha256 = $null
         resetExitCode = $null; testExitCode = $null; summary = $null }
     limits = @('Self-signed temporary copy; original unsigned candidate is unchanged.',
         'Temporary test trust affects the disposable machine until cleanup.',
+        'First-run may leave isolated editor processes and data on this disposable runner; cleanupVerified covers only package, certificate, temporary files and candidate integrity.',
         'Does not establish Store signing, certification, update, setup, or interactive acceptance.')
 }
 try {
@@ -186,6 +189,16 @@ public static class ZeroWts {
         if ($actual -ne $payloadHashes[$name]) { throw 'Installed payload differs from the unsigned candidate.' }
     }
     $receiptData.installVerified = $true
+    if ($RunFirstRun) {
+        $stage = 'first-run'
+        $receiptData.firstRun.result = 'pending'
+        $receiptData.activation = 'first-run requested'
+        $kit = Get-Content -LiteralPath (Join-Path (Split-Path -Parent $packagePath) 'build-msix.json') -Raw | ConvertFrom-Json
+        & (Join-Path $PSScriptRoot 'test-msix-first-run.ps1') -PackageFamily $family -KitVersion $kit.kitVersion
+        $receiptData.firstRun.result = 'passed'
+        $receiptData.activation = 'first-run passed'
+        $receiptData.activationReason = 'Consent, private Java, VS Code and Java extension verified on the hosted runner.'
+    }
     if ($RunWack) {
         $stage = 'wack'
         $receiptData.activation = 'WACK may launch the installed app'
@@ -231,6 +244,11 @@ public static class ZeroWts {
 } catch {
     $failure = $_
     if ($RunWack) { $receiptData.wack.result = 'failed' }
+    if ($RunFirstRun -and $receiptData.firstRun.result -eq 'pending') {
+        $receiptData.firstRun.result = 'failed'
+        $reason = $_.Exception.Message.Replace($env:USERPROFILE, '<user>').Replace($env:RUNNER_TEMP, '<temp>')
+        $receiptData.firstRun.failureReason = $reason.Substring(0, [Math]::Min($reason.Length, 300))
+    }
     $receiptData.stage = $stage
     $receiptData.errorHResult = ('0x{0:X8}' -f ([uint32]([int64]$_.Exception.HResult -band 4294967295L)))
 } finally {

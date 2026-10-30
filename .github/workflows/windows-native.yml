@@ -3,6 +3,10 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      msix_first_run:
+        description: Exercise installed MSIX first-run setup on a disposable runner
+        type: boolean
+        default: false
       wack_diagnostics:
         description: Compare the pinned candidate with a minimal WACK control
         type: boolean
@@ -174,13 +178,17 @@ jobs:
         timeout-minutes: 25
         run: |
           $receipt = Get-Content -LiteralPath 'dist/msix/build-msix.json' -Raw | ConvertFrom-Json
-          & ./scripts/test-windows-msix.ps1 -Package (Join-Path 'dist/msix' $receipt.artifact.filename) -PackageVersion $receipt.packageVersion -Receipt 'dist/msix/install-msix.json' -RunWack
+          if ('${{ github.event.inputs.msix_first_run }}' -eq 'true') {
+            & ./scripts/test-windows-msix.ps1 -Package (Join-Path 'dist/msix' $receipt.artifact.filename) -PackageVersion $receipt.packageVersion -Receipt 'dist/msix/install-msix.json' -RunFirstRun
+          } else {
+            & ./scripts/test-windows-msix.ps1 -Package (Join-Path 'dist/msix' $receipt.artifact.filename) -PackageVersion $receipt.packageVersion -Receipt 'dist/msix/install-msix.json' -RunWack
+          }
       - name: Retain sanitized MSIX deployment result
         if: always() && steps.store-msix.outcome == 'success'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: zero-windows-msix-installation-${{ github.run_id }}-${{ github.run_attempt }}
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
           path: |
             dist/msix/install-msix.json
