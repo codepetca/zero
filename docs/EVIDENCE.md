@@ -12170,3 +12170,21 @@ historical fingerprints and matching markers; unknown or edited files remain blo
 Focused migration and publishing tests passed, including both historical upgrades,
 recovery bytes and forged/mixed marker rejection. Independent review compared the
 fixtures against canonical Git source and found no unresolved issue.
+
+## Documentation command highlights — local source
+
+The website reader displays keyboard shortcuts as inline keycaps and Command
+Palette names as inline code-style labels. Mac/Windows filtering remains in place;
+ordinary bold labels and Java examples retain their existing treatment. Local
+browser inspection covered the recovery lesson in light and dark themes, both
+platform selections, and the Mac setup update command. Focused tests and website
+build passed. Independent review found the update command lost its emphasis in a
+platform variant; it was corrected and the delta reviewed. Mobile Safari, physical
+Windows and assistive-technology behavior were not tested. Not merged or published.
+
+Tutorial project-start links and template buttons were replaced with plain Start
+Page directions for Greeting, Coin and Pet; the retired Study lesson directs
+readers to their existing project. Ordinary lesson navigation and media links stay
+available. Website build and 248 website tests passed, and the Greeting lesson was
+inspected in the browser. Independent review confirmed menu labels and found no
+remaining issue. No app or template release is included.

@@ -17,31 +17,15 @@ const render = (lesson, template = null) => renderToStaticMarkup(createElement(T
   project: projectForLesson(lesson), lesson, template, assets: sampleGameAssets,
 }));
 
-test("only starting lessons offer the published template and a concise own-repository path", () => {
-  for (const lesson of ["0", "3", "8", "13"]) {
-    const project = projectForLesson(lesson);
-    const repository = `fixture-owner/tutorial-${project.id}`;
-    const template = {repository, repositoryUrl: `https://github.com/${repository}`, templateHref: `https://github.com/${repository}/generate`};
-    const html = render(lesson, template);
-    assert.ok(html.includes(`href="${template.templateHref}">Use template</a>`));
-    assert.match(html, /Create your own GitHub repository from the template/);
-    assert.match(html, /Project → Clone from GitHub…<\/strong> in Zero/);
-    assert.match(html, /paste your URL and choose <strong>Clone here<\/strong>/);
-    assert.match(html, /href="\/help\/setup#start-here">Setup<\/a>/);
-    assert.equal((html.match(/<p>/g) || []).length, 1);
-    assert.doesNotMatch(html, /Template not available yet|\.zip|download=|<ol|Publish app|New branch|Open in browser/);
-  }
-});
-
-test("unpublished templates explain recovery without a guessed GitHub link or ZIP bypass", () => {
-  for (const lesson of ["0", "3", "8", "13"]) {
+test("starting lessons direct students to Zero without project-start links", () => {
+  for (const lesson of ["0", "8", "13"]) {
     const html = render(lesson);
-    assert.match(html, /Template not available yet/);
-    assert.ok(html.includes(`Try again when the ${projectForLesson(lesson).title} tutorial template is available`));
-    assert.match(html, /your own already-cloned repository/);
-    assert.match(html, /href="\/help\/setup#start-here">Setup<\/a>/);
-    assert.doesNotMatch(html, /href="https:\/\/github\.com|class="button"|\.zip|download=/);
+    assert.match(html, /Start tutorial →/);
+    assert.ok(html.includes(projectForLesson(lesson).title));
+    assert.match(html, /If the tutorial is unavailable/);
+    assert.doesNotMatch(html, /<a |Use template|github\.com|\.zip|download=/);
   }
+  assert.match(render("3"), /Open your existing <strong>Study<\/strong> project/);
 });
 
 test("continuing lessons omit repeated generic setup and workflow cards", () => {

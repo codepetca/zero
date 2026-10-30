@@ -248,7 +248,8 @@ test("tutorial starts and the original project use distinct setup actions", () =
   assert.match(document, /<TutorialProject project=\{practiceProject\}/);
   assert.match(document, /lesson === practiceProject.firstLesson/);
   assert.doesNotMatch(document + tutorialProject, /First time\?|If you have not started it yet|className="lesson-help"|className="reader-subtitle"|Continue your/);
-  assert.match(document, /publishedTutorialTemplate\(practiceProject.id\)/);
+  assert.match(tutorialProject, /Start tutorial →/);
+  assert.doesNotMatch(tutorialProject, /templateHref|Use template/);
   assert.match(tutorialProject, /lesson === project.firstLesson/);
   assert.match(tutorialProject, /lesson === "10"/);
   assert.match(tutorialProject, /lesson === "12"/);

@@ -384,3 +384,19 @@ html:has(.learn-theme),
 
 /* Show the selected operating system's documentation. */
 .learn-theme[data-platform="mac"] .platform-windows, .learn-theme[data-platform="windows"] .platform-mac { display: none; }
+
+/* Recognizable inline instructions, without making ordinary bold text into controls. */
+.learn-theme .markdown .doc-shortcut,
+.learn-theme .markdown .doc-command {
+  display: inline;
+  padding: .12em .35em;
+  border: 1px solid var(--zero-border);
+  border-radius: .3em;
+  background: var(--zero-surface);
+  color: var(--zero-text);
+  font-size: .92em;
+  overflow-wrap: anywhere;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.learn-theme .markdown .doc-shortcut { font-family: inherit; font-weight: 650; }

@@ -6,7 +6,7 @@
 
 Target illustration: a correct answer to your first quiz question.
 
-[Start Study project](README.md#start-a-lesson) in a new **Study** project. Open its empty `setup()` in `Main.java`.
+Open the empty `setup()` in your **Study** project’s `Main.java`.
 
 ## 1. Add these imports above `public class Main`
 
