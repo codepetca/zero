@@ -9,7 +9,7 @@ earlier downloads retain their bundled Run behavior.
 This bundled Hello World project is an installation check, not your tutorial
 repository. Use it to check local setup; create your own tutorial clone for
 [Lesson 1: Hello, world!](https://zero.codepet.ca/tutorials/0). The [lesson guide](https://zero.codepet.ca/learn)
-starts with navigation, then uses Greeting, Coin and Pet projects and your own project.
+starts with navigation, then uses Greeting, Coin and Pet projects.
 Choose **Start tutorial** from Zero’s welcome or **…** menu to create each matching
 tutorial project once. Enter a name and choose a clone location (default
 `~/Zero Projects`), then choose **Clone here**. Zero creates a public repository
@@ -128,8 +128,8 @@ Hello, world! demonstration in its own JavaFX window. Then choose
 to begin [Lesson 1](https://zero.codepet.ca/tutorials/0) with your own empty Main. Write the
 label, then continue lessons 2 and 3 in that same Greeting folder.
 
-Create **Coin game** for lessons 4 and 5. Optional lessons 8 and 9 refactor and
-practise sharing a component in that game. Lesson 10's optional download is
+Create **Coin game** for lessons 4 and 5. Optional lessons 10 and 11 refactor and
+practise sharing a component in that game. Lesson 12's optional download is
 an image/sound ZIP; your own assets or drawing fallback work too.
 
 **Zero: Tutorial docs** opens the project's first online lesson. The website sidebar
@@ -239,8 +239,7 @@ editing (stop the current preview first if it is running).
 The `examples/` shelf is outside compiled `src/`. In the [tutorials](https://zero.codepet.ca/learn),
 use **Start tutorial** to create your own Greeting, Coin or Pet repository from
 its matching verified template. Keep the same repository for its lessons. If a
-template is not available yet, choose another available tutorial and check back later. The fourth tutorial uses
-**Project → New** for your own original project. Study and component-sharing
+template is not available yet, choose another available tutorial and check back later. You can also use **Project → New** to start an original project. Study and component-sharing
 lessons are optional. Students write their own controls and classes, and the Pet
 tutorial uses downloadable artwork and sound. Some reference examples use native JavaFX APIs outside the browser subset;
 these run natively with Run App. Publish app or Export for web reports unsupported
@@ -260,17 +259,17 @@ tutorial path. ZeroHub contributions use original projects of your own.
 | Reset counter | `examples/reset-counter/Main.java` | Reset clears the count; methods name each action. |
 | Counter object | `examples/object-counter/Main.java`, `examples/object-counter/Counter.java` | Main explicitly uses an ordinary Counter. |
 | One coin with controls | `examples/coin-game-controls/Main.java`, plus Player and Coin from `examples/coin-game/` | Native score/message/Restart beneath the canvas. See [Lesson 5](https://zero.codepet.ca/tutorials/9). |
-| Shared component in a game | `examples/coin-game-component/Main.java`, Player/Coin from `examples/coin-game/`, and `examples/shared/ScoreDisplay.java` | Reuse a display in a game. See [Lesson 8](https://zero.codepet.ca/tutorials/10). |
+| Shared component in a game | `examples/coin-game-component/Main.java`, Player/Coin from `examples/coin-game/`, and `examples/shared/ScoreDisplay.java` | Reuse a display in a game. See [Lesson 10](https://zero.codepet.ca/tutorials/10). |
 | Composed study app | Main from `examples/composed-study/`, Question from `examples/study/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Start, answer questions, finish and restart using shared views. [Exact copy list](examples/composed-study/README.md). |
 | Composed coin game | Main from `examples/composed-game/`, Player/Coin from `examples/coin-game/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Use the same views with an explicitly gated canvas game. [Exact copy list](examples/composed-game/README.md). |
 | Move a player | `examples/movement/Main.java`, `examples/movement/Player.java` | Arrow keys move a square. See [Lesson 4](https://zero.codepet.ca/tutorials/8). |
 | Sprite playground | `examples/sprite-playground/Main.java` → `src/main/java/Main.java`; `examples/sprite-playground/src/main/resources/bird-flap-sheet.png` → `src/main/resources/bird-flap-sheet.png` | Independent sprite clocks share one image; arrows move, Space/click pauses, R resets, geometry changes the target colour. [Copy/run instructions](examples/sprite-playground/README.md). Included in Mac setup 0.5.23/core 0.2.1; older kits retain their bundled API. |
 | Audio playground | `examples/audio-playground/Main.java` → `src/main/java/Main.java`; `examples/audio-playground/resources/audio-playground/` → `src/main/resources/audio-playground/` | Load once, trigger an effect and loop/pause/resume/stop/mute music with native buttons. [Copy/run instructions](examples/audio-playground/README.md). Included in Mac setup 0.5.23/core 0.2.1; older kits retain their bundled API. |
-| Sprite and sound | `examples/media-demo/Main.java`; its `resources/media-demo/` → `src/main/resources/media-demo/` | Draw your PNG, play your WAV. See [Lesson 10 stage 1](https://zero.codepet.ca/tutorials/12#1-your-sprite-and-sound). |
-| Scrolling game | `examples/scrolling-game/`: Main.java, Camera.java, Player.java, Coin.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Scroll a wide world with a fixed native HUD. See [stage 2](https://zero.codepet.ca/tutorials/12#2-a-scrolling-world-and-fixed-score). |
-| Platform game | `examples/platform-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Jump, land and collide with platforms. See [stage 3](https://zero.codepet.ca/tutorials/12#3-gravity-platforms-and-collisions). |
-| Two-level game | `examples/level-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java, Level.java, Enemy.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Collect coins, avoid enemies and advance levels. See [stage 4](https://zero.codepet.ca/tutorials/12#4-enemies-and-two-levels). |
-| Full platform game | `examples/full-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java, Level.java, Enemy.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Win or lose, then Restart a fresh game. See [stage 5](https://zero.codepet.ca/tutorials/12#5-win-lose-and-restart). |
+| Sprite and sound | `examples/media-demo/Main.java`; its `resources/media-demo/` → `src/main/resources/media-demo/` | Draw your PNG, play your WAV. See the [artwork and sound challenge](https://zero.codepet.ca/tutorials/12). |
+| Scrolling game | `examples/scrolling-game/`: Main.java, Camera.java, Player.java, Coin.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Scroll a wide world with a fixed native HUD. See the [example guide](examples/scrolling-game/README.md). |
+| Platform game | `examples/platform-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Jump, land and collide with platforms. See the [example guide](examples/platform-game/README.md). |
+| Two-level game | `examples/level-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java, Level.java, Enemy.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Collect coins, avoid enemies and advance levels. See the [example guide](examples/level-game/README.md). |
+| Full platform game | `examples/full-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java, Level.java, Enemy.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Win or lose, then Restart a fresh game. See the [example guide](examples/full-game/README.md). |
 | Collect the coins | `examples/coin-game/Main.java`, `examples/coin-game/Player.java`, `examples/coin-game/Coin.java` | Collect three coins, win, Restart. See [Lesson 5](https://zero.codepet.ca/tutorials/9). |
 | Tiny quiz | `examples/tiny-quiz/Main.java` | Answer 2 + 3, click Check, then try again. |
 | Scored quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
@@ -282,7 +281,7 @@ tutorial path. ZeroHub contributions use original projects of your own.
 | Drawing | `examples/drawing/Main.java` | Primary button paints; secondary clears. Separate strokes stay separate. |
 
 There is one reusable example source, `examples/shared/ScoreDisplay.java`; quiz,
-practice, study and Lesson 10 game stages do not contain independent copies. The default compiled starter
+practice, study and the reference game examples do not contain independent copies. The default compiled starter
 contains the same file. If improving it for a contribution, update the shared
 source and copy it into `src/main/java/ScoreDisplay.java`, then try the affected apps.
 The no-argument constructor keeps the quiz's “Score” caption; the tracker passes

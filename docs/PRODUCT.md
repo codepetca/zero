@@ -429,11 +429,11 @@ Zero controls and calls `show(...)`. The tutorial uses Zero buttons, labels,
 text fields and layouts without direct JavaFX imports.
 The installed kit's default app shows Hello, world!; the learning projects start
 with empty runnable boilerplate. The current path begins with navigation
-recovery, then Greeting (lessons 2–4), Coin (5–6), Pet (7) and an original
-project (8). Optional lessons 9–10 refactor the Coin game and practise sharing a
-clearly labelled CreditsBadge; lesson 11 adds media and optional scrolling.
+recovery (lesson 0), then Greeting (1–3), Coin (4–5) and Pet (6–9), including
+its welcome screen. Coin game revisited (10–12) refactors the game, practises
+sharing a clearly labelled CreditsBadge and challenges students to add media.
 Existing quiz routes and project markers remain available for older links.
-[Lesson 9](../student-template/lessons/10-components.md#screens-and-app-flow) explains controls and components;
+[Lesson 10](../student-template/lessons/10-components.md#screens-and-app-flow) explains controls and components;
 [the teaching plan](TUTORIAL-PLAN.md) distinguishes current conventions from proposed
 welcome/result/countdown helpers. Existing published kits keep their original bytes.
 Tutorial pages use the current project name as their main heading: Greeting App,

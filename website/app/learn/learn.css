@@ -289,8 +289,17 @@ html:has(.learn-theme),
   flex-direction: column;
   gap: 4px;
 }
-.learn-theme .lesson-navigation-group + .lesson-navigation-group { margin-top: 14px; }
-.learn-theme .lesson-navigation-group h2 { margin: 0 12px 2px; letter-spacing: normal; }
+.learn-theme .lesson-navigation-group + .lesson-navigation-group { margin-top: 18px; }
+.learn-theme .lesson-navigation-group h2 {
+  margin: 0 0 2px;
+  padding: 5px 12px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--zero-accent) 9%, var(--zero-page));
+  color: var(--zero-text);
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: normal;
+}
 .learn-theme .reader-menu nav a { color: var(--zero-muted); }
 .learn-theme .reader-menu nav a:hover { color: var(--zero-link); }
 .learn-theme .reader-menu nav a[aria-current="page"] {
@@ -299,6 +308,20 @@ html:has(.learn-theme),
   font-weight: 650;
 }
 .learn-theme .lesson-start { margin: var(--zero-space-4) 0 var(--zero-space-5); }
+.learn-theme .lesson-purpose {
+  margin: var(--zero-space-4) 0;
+  padding: var(--zero-space-4);
+  border-radius: 6px;
+  background: var(--zero-surface);
+  color: var(--zero-text);
+  font-size: 1.375rem;
+}
+.learn-theme .reader-content .lesson-purpose .page-subtitle {
+  margin: 0 0 var(--zero-space-2);
+  font-size: clamp(28px, 3vw, 36px);
+  line-height: 1.2;
+}
+.learn-theme .lesson-purpose p { margin: 0; }
 .learn-theme .lesson-start .button { min-height: 48px; max-width: 100%; text-align: center; white-space: normal; }
 .learn-theme .lesson-start p { margin: var(--zero-space-3) 0 0; color: var(--zero-muted); font-size: .875rem; }
 .learn-theme .lesson-start p a { color: inherit; }

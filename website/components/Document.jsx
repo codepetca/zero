@@ -41,6 +41,9 @@ export function Document({ id, lesson = "" }) {
         href: `/tutorials/${item.id}`,
       }))
     : teacher ? teacherItems : helpItems;
+  const titleHeading = <h2 className="page-subtitle" id={slugify(lesson && lesson !== '15' ? `${lesson}. ${title}` : (doc.markdown.match(/^# (.+)$/m)?.[1] || title))}>
+    {lesson && lessonNumber(lesson) !== undefined ? `Lesson ${lessonNumber(lesson)}: ${title}` : title}
+  </h2>;
   const content = (
       <main
         id="page-content"
@@ -57,13 +60,13 @@ export function Document({ id, lesson = "" }) {
         </aside>
         <article className="reader-content">
           <h1>{pageTitle}</h1>
-          <h2 className="page-subtitle" id={slugify(lesson && lesson !== '15' ? `${lesson}. ${title}` : (doc.markdown.match(/^# (.+)$/m)?.[1] || title))}>
-            {lesson && lessonNumber(lesson) !== undefined ? `Lesson ${lessonNumber(lesson)}: ${title}` : title}
-          </h2>
+          {lesson ? <div className="lesson-purpose">
+            {titleHeading}
+            {related?.description && <p>{related.description}</p>}
+          </div> : titleHeading}
           {id === "setup" && <DownloadRequirements platformAware />}
-          {practiceProject && (lesson === practiceProject.firstLesson || lesson === "10" || lesson === "12") && (
-            <TutorialProject project={practiceProject} lesson={lesson}
-              assets={sampleGameAssets} />
+          {practiceProject && lesson === practiceProject.firstLesson && (
+            <TutorialProject project={practiceProject} lesson={lesson} />
           )}
           <FoldingReader key={id}>
             <Markdown

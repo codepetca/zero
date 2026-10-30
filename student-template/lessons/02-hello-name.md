@@ -1,7 +1,5 @@
 # 3. Greet by name
 
-**Let someone type the greeting.**
-
 ![Hello, Sam! above a Sam input and Say hello button](visuals/02.svg)
 
 Target illustration: typing `Sam` and clicking **Say hello**.

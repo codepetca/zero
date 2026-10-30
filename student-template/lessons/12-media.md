@@ -1,181 +1,19 @@
-# 10. Add artwork and sound
-
-**First checkpoint: your moving player becomes a sprite and a collected coin rings.**
+# 12. Add artwork and sound
 
 ![The lesson 5 Coin game with a robot player, three coins and a native score below the canvas](visuals/12.svg)
 
-Reopen the **same Coin game** you wrote in lessons 4, 5, 8 and 9. Keep your Player, Coin, PlayerInput, ScoreDisplay, CreditsBadge and Main. This lesson changes your current project in place and supplies no later stage project ZIPs. If you want to use the supplied artwork and sound, download the small [game assets ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip) and unzip it. In Project Explorer, right-click **resources**, choose **New folder…**, and name it `media-demo`. Right-click **media-demo**, choose **Import assets…**, and import `player.png` and `chime.wav` from the unzipped `media-demo` folder. The files appear at `resources/media-demo/player.png` and `resources/media-demo/chime.wav`. You may use your own PNG and short WAV at those paths, or use the drawing route below without assets.
+Continue the same Coin repository from [lesson 11](11-zerohub.md).
 
-Previous: [Practise sharing a component](11-zerohub.md).
+## 1. Choose your assets
 
-## 1. Draw an image from Player
+You can use your own artwork and sound, or download and unzip the optional [game assets ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip), which includes `player.png` and `chime.wav`. In Zero's Project Explorer, right-click **resources**, choose **New folder…**, and name it `media-demo`. Right-click **media-demo**, choose **Import assets…**, and select the files you want from the unzipped folder. Use artwork and audio you created or have permission to redistribute, and include any required licence information.
 
-Add `import zero.ImageRegion;` to `Player.java`. Keep its shape-drawing method and add `drawImage`; replace the matching lines with the copied code:
+## 2. Make the game yours
 
-```java-after-3-4-5
-        app.rect(x, y, size, size);
-    }
-    public void drawImage(GameApp app, ImageRegion sprite) {
-        app.image(sprite, x, y, size, size);
-    }
-}
-```
+Decide where to load an image and sound, how to draw the image, and when to play the sound. Revisit [Show your pet](13-pet.md) and [Animate your pet](16-pet-motion.md) for examples of loading and using assets. Adapt those ideas to your own Coin game; keep its movement, scoring and Restart working. Make the game understandable without sound, and consider whether your artwork and text are easy to see.
 
-An ImageRegion describes a rectangle in shared image pixels. This lesson loads
-the whole image, then draws it at Player's existing position and size. There is
-still one Player, with the same movement and collision rules.
+## 3. Test and share
 
-## 2. Add fields to Main
-
-Import `zero.ImageRegion`, `zero.Sound` and `zero.ui.Column`. Keep the existing
-Zero Label, Button and Row imports. In `Main.java`, find `private Label message;` among the fields at the top of the class. Add the following fields immediately below it, before `settings()`:
-
-```java
-private ImageRegion sprite;
-private Sound chime;
-private Label soundStatus;
-private Label assetStatus;
-private int plays;
-```
-
-## 3. Add an explicit artwork action
-
-In `Main.java`, add `loadAssets()` between `setup()` and `restart()`; replace the matching lines with the copied code:
-
-```java-after-3-4-5-6-7-8-9-10-11-12-13-14-15
-        restart();
-    }
-    public void loadAssets() {
-        try {
-            ImageRegion nextSprite = loadImageRegion("/media-demo/player.png");
-            Sound nextChime = loadSound("/media-demo/chime.wav");
-            nextChime.setVolume(0.25);
-            sprite = nextSprite;
-            chime = nextChime;
-            assetStatus.setText("Artwork and sound ready");
-        } catch (IllegalArgumentException failure) {
-            assetStatus.setText(failure.getMessage());
-        }
-        showGame();
-    }
-    public void restart() {
-```
-
-The `/` starts at `resources/`. Load both candidates before changing the
-fields. If a requested file is missing or invalid, the error names its path and
-the existing game stays playable. The catch handles this expected resource error
-and shows it; it does not silently ignore it. Other programming errors still surface.
-`showGame()` returns keyboard focus to the retained canvas after the button.
-
-Zero caches the image pixels and owns the Sound's cleanup when the app closes.
-A repeated load may create a new immutable ImageRegion over the same cached
-pixels. Restart reuses these resources; do not close the borrowed Sound there.
-Load in setup or an action, never every frame. Use artwork/audio you created or
-have permission to redistribute, and include required licence files in the
-project. These are bundled paths, not absolute paths on your computer.
-
-In browsers, packaged images preload before setup. A corrupt packaged PNG can
-therefore report a startup error before the button appears. Audio may fail later
-during decoding or playback; keep Zero's named audio notices and gesture prompt.
-The ready label means the action selected resources, not that sound was heard.
-
-## 4. Add controls once in setup
-
-In `Main.java` inside `setup()`, replace the existing controls call with the copied code:
-
-```java-after-3-4-5-6-7-8-9-r1-2
-        controls(new Column(8,
-                new Row(12, score.view(), message, restartButton), badge.view()));
-        soundStatus = new Label("");
-        assetStatus = new Label("Drawing mode");
-        var artworkButton = new Button("Use artwork and sound");
-        artworkButton.onClick(() -> loadAssets());
-        controls(new Column(8,
-                new Row(12, score.view(), soundStatus, message, restartButton),
-                new Row(12, artworkButton, assetStatus), badge.view()));
-```
-
-Keep the existing score, message, badge, Restart callback and final `restart()` call.
-The second row gives the action and its result room below the score. The game
-starts in drawing mode, even when resources are bundled.
-
-At the start of `restart()`, add `if (chime != null) chime.stop();`. After resetting
-points, find `points = 0;` and add the following lines immediately below it, before `won = false;`:
-
-```java
-plays = 0;
-soundStatus.setText("Chimes: 0");
-```
-
-## 5. Request a chime after collection
-
-Inside the coin-collection block, add the chime code; replace the matching lines with the copied code:
-
-```java-after-2-3-4-5-6-7
-                score.setScore(points);
-                if (chime != null) {
-                    chime.stop();
-                    chime.play();
-                    plays++;
-                    soundStatus.setText("Chimes: " + plays);
-                }
-```
-
-Main's collected check still prevents repeated scoring and sound requests while
-standing on one coin. The counter records requests; your ears, device volume
-and media support determine whether you hear the sound.
-
-## 6. Choose the image or drawing
-
-At the end of Main's `draw()`, replace the matching line with the copied code:
-
-```java-after-2-3-r1
-        player.draw(this);
-        if (sprite == null) player.draw(this);
-        else player.drawImage(this, sprite);
-```
-
-## 7. Run both routes and test Restart
-
-Run App before importing assets. The blue square can collect all three coins and
-Restart. Click **Use artwork and sound**: a missing path should appear, and you
-can still play. If you choose a drawing-only game, keep drawing and remove the
-artwork button and media fields from your finished version.
-
-For the artwork route, import the two files at the paths above, run again and
-click the button. The player becomes the supplied image. Collect one coin and
-stay there: score and chime count rise once. Finish and Restart twice. Score and
-chime count return to 0; the artwork stays loaded. Repeated artwork clicks reuse
-resources and keep the same Player and control objects. If playback is blocked,
-follow the browser's click/key prompt. Check actual sound separately from the
-counter. Compare your [Main.java](../../teaching/checkpoints/12/media/Main.java)
-and [Player.java](../../teaching/checkpoints/12/media/Player.java) after writing
-your code. The API reference describes additional image and sound methods.
-
-## 8. Optional stage 2: scroll a wider world
-
-Keep editing this folder. Create `Camera.java` beside `Main.java` in `java/`. Inside `public class Camera { ... }`, add a private `double x` field and `double x()` getter. Add this method after the getter and before the class’s final closing brace:
-
-```java
-public void follow(double playerX, double viewportWidth, double worldWidth) {
-    x = Math.max(0, Math.min(playerX - viewportWidth / 2,
-            worldWidth - viewportWidth));
-}
-```
-
-Add `public double x() { return x; }` to Player. In Main add `private final double worldWidth = 1600;` and `private Camera camera;`. Create `camera = new Camera();` in `restart()` and move two coins farther away, for example x 840 and 1360. Pass `worldWidth` instead of `width()` to `player.update(...)`, then call `camera.follow(player.x(), width(), worldWidth);` after movement. To draw world objects, add overloads `Player.draw(GameApp app, double cameraX)`, `Player.drawImage(GameApp app, ImageRegion sprite, double cameraX)` and `Coin.draw(GameApp app, double cameraX)`. In each, use `x - cameraX` for the image or rectangle's horizontal drawing coordinate; keep the original methods and collection positions unchanged. In Main's `draw()`, pass `camera.x()` to those new methods. Zero ScoreDisplay and Restart stay outside the canvas and do not scroll. Check both world edges and collect a far coin. Compare your edits with the optional [scrolling checkpoint Main](../../teaching/checkpoints/12/scrolling/Main.java) and [Camera.java](../../teaching/checkpoints/12/scrolling/Camera.java), then return to **your own code**. Keep the PlayerInput helper from lessons 8 and 9; it still supplies horizontal and vertical directions, while Main owns the update and camera calls.
-
-## 9. Choose one next improvement
-
-Finish by testing your same small Coin game: collect each coin once, win,
-Restart, and play again. Check the drawing fallback and any assets you chose.
-If you added scrolling, check both world edges and the fixed HUD. Keep your
-PlayerInput and ScoreDisplay responsibilities separate from Main’s game rules.
-
-Choose one small improvement of your own: change the controls, add a score
-caption, or write clearer instructions. Use the refactor → test → improve →
-proposal process from [lesson 8](10-components.md) and
-[lesson 9](11-zerohub.md). A larger platformer, enemy system or level manager
-can be a later original project; you do not need one to complete this tutorial.
+Run App and collect a coin while staying on it: it should score once, and any collection sound should play once. Win, Restart and play again. Check your chosen artwork and listen for your sound. Test in the browser too, following any browser prompt needed to enable audio. When you are ready, save your work and publish your app if you choose.
 
 Return to the [lesson index](README.md).

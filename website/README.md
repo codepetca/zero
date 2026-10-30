@@ -117,8 +117,8 @@ and fixtures do not prove hosted artifact delivery, public publication or physic
 Windows setup.
 
 Tutorials opens the recovery guide at `/learn`. The selector numbers the visible
-lessons 0–10: recovery, Greeting, Coin, Pet, an original project, then optional
-component and media lessons. Earlier quiz URLs remain accessible to existing links,
+lessons 0–12: recovery, Greeting, Coin, Pet including its welcome screen, then
+Coin game revisited. Earlier quiz URLs remain accessible to existing links,
 but are not in the current selector. Stable URL identifiers do not change with
 display numbering. Sidebar selection updates the reading pane and lesson URL.
 
