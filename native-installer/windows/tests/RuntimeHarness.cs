@@ -374,6 +374,7 @@ internal static class RuntimeHarness
             Reject(() => f.Runtime("arm64"), "ARM not silently treated as x64"); Reject(() => f.Runtime("x86"), "32-bit rejected");
             f.Host.Unsupported = true; Reject(() => f.Runtime(), "unsupported OS rejected"); f.Host.Unsupported = false;
             Reject(() => new WindowsRuntime(f.Kit, Path.Combine(f.Kit, "inside-app"), f.Project, f.Host), "runtime never placed inside replaceable app/kit");
+            Reject(() => new WindowsRuntime(f.Kit, f.Data, f.Project, f.Host, null, Path.Combine(f.Kit, "inside-app")), "runtime storage never placed inside replaceable app/kit");
             string path = Path.Combine(f.Kit, "setup", "windows-downloads.json");
             string manifest = File.ReadAllText(path); File.WriteAllText(path, manifest.Replace("https://github.com", "http://github.com")); Reject(() => f.Runtime(), "non-HTTPS metadata rejected"); File.WriteAllText(path, manifest.Replace("github.com/adoptium", "example.com/adoptium")); Reject(() => f.Runtime(), "unofficial URL rejected");
             File.WriteAllText(path,manifest.Replace("nodejs.org/dist","nodejs.org.evil.test/dist")); Reject(()=>f.Runtime(),"Node origin lookalike rejected");

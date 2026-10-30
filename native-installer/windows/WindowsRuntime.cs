@@ -18,7 +18,7 @@ namespace ZeroSetup
     // machine-wide installer is needed.
     internal sealed class WindowsRuntime
     {
-        private readonly string kit, data, project, architecture;
+        private readonly string kit, data, storage, project, architecture;
         private readonly IWindowsRuntimeHost host;
         private readonly JavaScriptSerializer json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024, RecursionLimit = 32 };
         private readonly Dictionary<string, WindowsRuntimeAsset> assets;
@@ -32,16 +32,16 @@ namespace ZeroSetup
             public int schemaVersion { get; set; }
             public Dictionary<string, Dictionary<string, WindowsRuntimeAsset>> architectures { get; set; }
         }
-        public WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, string architecture = null)
-            : this(kitRoot, dataRoot, projectRoot, new WindowsRuntimeHost(), architecture) { }
-        internal WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, IWindowsRuntimeHost host, string architecture = null)
+        public WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, string architecture = null, string storageRoot = null)
+            : this(kitRoot, dataRoot, projectRoot, new WindowsRuntimeHost(), architecture, storageRoot) { }
+        internal WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, IWindowsRuntimeHost host, string architecture = null, string storageRoot = null)
         {
             this.host = host ?? throw new ArgumentNullException("host");
             host.ValidatePlatform();
             this.architecture = NormalizeArchitecture(architecture ?? host.Architecture);
             if (this.architecture != "x64") throw new IOException("Automatic Zero setup currently supports Windows on Intel or AMD 64-bit computers. Windows ARM and 32-bit computers need teacher or IT help.");
-            kit = FullPath(kitRoot); data = FullPath(dataRoot); project = FullPath(projectRoot);
-            if (Inside(data, kit) || Inside(kit, data)) throw new IOException("Zero's private tools must be outside the replaceable launcher and kit folders.");
+            kit = FullPath(kitRoot); data = FullPath(dataRoot); storage = FullPath(storageRoot ?? dataRoot); project = FullPath(projectRoot);
+            if (Inside(data, kit) || Inside(kit, data) || Inside(storage, kit) || Inside(kit, storage)) throw new IOException("Zero's private tools must be outside the replaceable launcher and kit folders.");
             var manifest = json.Deserialize<Manifest>(ReadText(Path.Combine(kit, "setup", "windows-downloads.json"), 65536));
             if (manifest == null || manifest.schemaVersion != 1 || manifest.architectures == null || !manifest.architectures.TryGetValue(this.architecture, out assets) || assets.Count != 3 || !assets.ContainsKey("jdk") || !assets.ContainsKey("vscode") || !assets.ContainsKey("node"))
                 throw new IOException("Verified Windows download metadata is missing. Reinstall Zero.");
@@ -103,6 +103,10 @@ namespace ZeroSetup
             else official = false;
             if (!official || !uri.AbsolutePath.EndsWith(".zip", StringComparison.Ordinal)) throw new IOException("Zero's download must use its official pinned vendor URL.");
         }
+        // Extract through the shorter virtual view, then execute through the
+        // physical view so native DLL resolution sees each tool's siblings.
+        private string StoragePath(string path) { return Inside(path, data) ? storage + path.Substring(data.Length) : path; }
+        private string ExecutionPath(string path) { return Inside(path, storage) ? data + path.Substring(storage.Length) : path; }
         private string UserData { get { return Path.Combine(data, "editor", "user-data"); } }
         private string Extensions { get { return Path.Combine(data, "editor", "extensions"); } }
         private string AssetFolder(string kind) { return Path.Combine(data, "runtime", kind + "-" + assets[kind].sha256); }
@@ -162,10 +166,10 @@ namespace ZeroSetup
         }
         private async Task Install(string kind, Action<string> progress, CancellationToken cancellation)
         {
-            string destination = AssetFolder(kind);
+            string destination = StoragePath(AssetFolder(kind));
             WindowsRuntimeFolders.Check(destination);
             if (Directory.Exists(destination)) { Marker(destination, kind); return; }
-            string staging = Path.Combine(data, "runtime", ".install-" + Guid.NewGuid().ToString("N"));
+            string staging = Path.Combine(storage, "runtime", ".install-" + Guid.NewGuid().ToString("N"));
             using (var folders = new WindowsRuntimeFolders())
             {
                 folders.Ensure(staging);
@@ -210,12 +214,12 @@ namespace ZeroSetup
         }
         private async Task Repair(string kind, Action<string> progress, CancellationToken cancellation)
         {
-            string destination = AssetFolder(kind);
+            string destination = StoragePath(AssetFolder(kind));
             // Only replace a recognized private runtime, never an installed editor
             // or an unrecognized directory. Keep the old copy until replacement
             // succeeds so a cancelled/offline repair can be retried.
             Marker(destination, kind);
-            string previous = Path.Combine(data, "runtime", ".repair-" + Guid.NewGuid().ToString("N"));
+            string previous = Path.Combine(storage, "runtime", ".repair-" + Guid.NewGuid().ToString("N"));
             WindowsRuntimeFolders.Check(destination); WindowsRuntimeFolders.Check(previous);
             cancellation.ThrowIfCancellationRequested();
             Directory.Move(destination, previous);
@@ -253,7 +257,7 @@ namespace ZeroSetup
         }
         private async Task VerifyNodeBinary(string executable, CancellationToken cancellation)
         {
-            string output = await Execute(executable, new[] { "--version" }, 30000, cancellation);
+            string output = await Execute(ExecutionPath(executable), new[] { "--version" }, 30000, cancellation);
             if (output.Trim() != "v" + NodeVersion) throw new IOException("Zero's private browser runtime could not be verified. Run setup again.");
         }
         private async Task VerifyNode(CancellationToken cancellation)
