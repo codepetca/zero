@@ -4,7 +4,7 @@
 
 ![A blue square on the canvas with an arrow showing movement](visuals/08.svg)
 
-[Start the Coin game project](README.md#start-a-lesson) once. Its `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` methods, and no Player class. Keep this folder for lessons 6 and 9–11; there is no new game download for the next lesson.
+Your **Coin game** project's `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` methods, and no Player class. Keep this folder for lessons 6 and 9–11; there is no new game download for the next lesson.
 
 Previous: [Your Greeting app](02-hello-name.md).
 

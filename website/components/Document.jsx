@@ -5,7 +5,7 @@ import "@/app/learn/learn.css";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { docs, sources } from "@/lib/content";
-import { lessons, lessonGroups, lessonNavigation, lessonNumber, lessonAssets, projectForLesson, publishedTutorialTemplate, sampleGameAssets } from "@/lib/learning.mjs";
+import { lessons, lessonGroups, lessonNavigation, lessonNumber, lessonAssets, projectForLesson, sampleGameAssets } from "@/lib/learning.mjs";
 import {
   foldSections,
   resolveContentLink,
@@ -19,6 +19,7 @@ import { CodeBlock } from "./CodeBlock";
 import { TutorialProject } from "./TutorialProject";
 import { DownloadRequirements } from "./Downloads";
 import { platformMarkdown } from "@/lib/platform-content.mjs";
+import { documentEmphasisKind } from "@/lib/document-emphasis.mjs";
 import { helpItems, teacherItems } from '@/lib/document-navigation.mjs';
 export function Document({ id, lesson = "" }) {
   const doc = docs[id];
@@ -61,13 +62,19 @@ export function Document({ id, lesson = "" }) {
           {id === "setup" && <DownloadRequirements platformAware />}
           {practiceProject && (lesson === practiceProject.firstLesson || lesson === "10" || lesson === "12") && (
             <TutorialProject project={practiceProject} lesson={lesson}
-              template={publishedTutorialTemplate(practiceProject.id)} assets={sampleGameAssets} />
+              assets={sampleGameAssets} />
           )}
           <FoldingReader key={id}>
             <Markdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[[foldSections, { lesson: !!lesson, encouragement: related?.encouragement, platformSetup: id === "setup" || id === "starter" }]]}
               components={{
+                strong: ({ node, children }) => {
+                  const kind = documentEmphasisKind(node);
+                  return kind === "shortcut" ? <kbd className="doc-shortcut">{children}</kbd>
+                    : kind === "command" ? <code className="doc-command">{children}</code>
+                    : <strong>{children}</strong>;
+                },
                 pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
                 img: ({ src, alt }) => {
                   const target = resolveContentLink(doc.source, src, {}, {}, lessonAssets);

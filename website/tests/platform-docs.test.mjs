@@ -13,7 +13,7 @@ test('platform variants preserve recovery lesson instructions and offer both sho
 test('setup and style use the correct wrappers and retain ordinary content', () => {
   for (const id of ['setup', 'starter']) {
     const text = platformMarkdown(id, source('docs/GETTING-STARTED.md'));
-    for (const part of ['[Cmd+Shift+B](#zero-platform-mac)', '[Ctrl+Shift+B](#zero-platform-windows)', '`setup/Setup.command`](#zero-platform-mac)', '`setup/Setup.cmd`](#zero-platform-windows)', '`.\\mvnw.cmd clean compile javafx:run`](#zero-platform-windows)', 'your GitHub repository']) assert.ok(text.toLowerCase().includes(part.toLowerCase()), part);
+    for (const part of ['**Zero: Check for Updates**', '[Cmd+Shift+B](#zero-platform-mac)', '[Ctrl+Shift+B](#zero-platform-windows)', '`setup/Setup.command`](#zero-platform-mac)', '`setup/Setup.cmd`](#zero-platform-windows)', '`.\\mvnw.cmd clean compile javafx:run`](#zero-platform-windows)', 'your GitHub repository']) assert.ok(text.toLowerCase().includes(part.toLowerCase()), part);
   }
   assert.match(platformMarkdown('style', source('student-template/STYLE.md')), /mvnw\.cmd clean compile javafx:run/);
 });

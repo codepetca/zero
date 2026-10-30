@@ -6,7 +6,7 @@
 
 Target illustration: your greeting after you write it.
 
-[Start Greeting project](README.md#start-a-lesson) once. Open `src/main/java/Main.java` in your **Greeting** project.
+Open `src/main/java/Main.java` in your **Greeting** project.
 
 ## 1. Add this import above `public class Main`
 
