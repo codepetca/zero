@@ -109,7 +109,16 @@ namespace ZeroSetup
         private string ExecutionPath(string path) { return Inside(path, storage) ? data + path.Substring(storage.Length) : path; }
         private string UserData { get { return Path.Combine(data, "editor", "user-data"); } }
         private string Extensions { get { return Path.Combine(data, "editor", "extensions"); } }
-        private string AssetFolder(string kind) { return Path.Combine(data, "runtime", kind + "-" + assets[kind].sha256); }
+        private string AssetFolder(string kind)
+        {
+            string digest = assets[kind].sha256;
+#if ZERO_STORE_PRODUCTION
+            // Keep the verifier executable below the Windows path limit. The
+            // complete digest remains mandatory in the download and receipt.
+            if (kind == "vscode") digest = digest.Substring(0, 20);
+#endif
+            return Path.Combine(data, "runtime", kind + "-" + digest);
+        }
         private string[] Isolated { get { return new[] { "--user-data-dir", UserData, "--extensions-dir", Extensions }; } }
         internal static bool AtLeast(string installed, string required)
         {

@@ -179,6 +179,20 @@ internal static class RuntimeHarness
     }
     private static void TestLifecycle(string parent)
     {
+#if ZERO_STORE_PRODUCTION
+        using (var collision = new Fixture(parent))
+        {
+            string hash; using (var sha = SHA256.Create()) hash = BitConverter.ToString(sha.ComputeHash(collision.Host.Editor)).Replace("-", "").ToLowerInvariant();
+            string folder = Path.Combine(collision.Data, "runtime", "vscode-" + hash.Substring(0, 20));
+            string legacyEditor = Path.Combine(collision.Data, "runtime", "vscode-" + hash);
+            string foreignReceipt = hash.Substring(0, 20) + new string('0', 44);
+            Directory.CreateDirectory(folder); Directory.CreateDirectory(legacyEditor);
+            File.WriteAllText(Path.Combine(folder, ".zero-asset.sha256"), foreignReceipt);
+            File.WriteAllText(Path.Combine(legacyEditor, "keep"), "existing editor");
+            Reject(collision.Prepare, "short locator with mismatched full receipt is rejected");
+            Assert(File.ReadAllText(Path.Combine(folder, ".zero-asset.sha256")) == foreignReceipt && File.ReadAllText(Path.Combine(legacyEditor, "keep")) == "existing editor", "collision and legacy editor remain untouched");
+        }
+#endif
         using (var mapped = new Fixture(parent))
         {
             string realKit = Path.Combine(mapped.Root, "real-kit");
@@ -192,6 +206,13 @@ internal static class RuntimeHarness
             string parentJava = Environment.GetEnvironmentVariable("JAVA_HOME"), parentPath = Environment.GetEnvironmentVariable("PATH");
             var progress = new List<string>(); var runtime = f.Runtime(); runtime.Prepare(progress.Add, CancellationToken.None).GetAwaiter().GetResult();
             Assert(f.Host.Downloads == 3 && f.Host.Installs == 2, "fresh setup downloads pinned Java/Node/editor and installs extensions");
+            string editorFolder = Directory.GetDirectories(Path.Combine(f.Data, "runtime"), "vscode-*").Single();
+#if ZERO_STORE_PRODUCTION
+            Assert(Path.GetFileName(editorFolder).Length == "vscode-".Length + 20, "Store editor path uses short digest locator");
+#else
+            Assert(Path.GetFileName(editorFolder).Length == "vscode-".Length + 64, "non-Store editor retains full digest locator");
+#endif
+            Assert(File.ReadAllText(Path.Combine(editorFolder, ".zero-asset.sha256")).Trim().Length == 64, "editor receipt retains full digest");
             Assert(progress.Contains("Downloading Java…") && progress.Contains("Checking Zero…"), "real preparation progress reaches verification");
             Assert(!Directory.EnumerateDirectories(Path.Combine(f.Data, "runtime"), ".install-*").Any(), "successful staging removed");
             string settingsPath = Path.Combine(f.Data, "editor", "user-data", "User", "settings.json");
