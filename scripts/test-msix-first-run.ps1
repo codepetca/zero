@@ -108,7 +108,27 @@ while ([DateTime]::UtcNow -lt $deadline) {
     Start-Sleep -Seconds 1
 }
 if (-not $accepted) { throw 'The dependency consent dialog was not found and accepted.' }
-if (-not (Test-Path -LiteralPath $marker)) { throw 'MSIX first-run setup did not reach editor handoff.' }
+if (-not (Test-Path -LiteralPath $marker)) {
+    $state = @()
+    foreach ($path in $dataPaths) {
+        $runtime = Join-Path $path 'runtime'
+        if (Test-Path -LiteralPath $runtime) {
+            $state += @(Get-ChildItem -LiteralPath $runtime -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+                '{0}:java={1}:jli={2}:node={3}:code={4}' -f $_.Name, (Test-Path (Join-Path $_.FullName 'bin\java.exe')), (Test-Path (Join-Path $_.FullName 'bin\jli.dll')), (Test-Path (Join-Path $_.FullName 'node.exe')), (Test-Path (Join-Path $_.FullName 'Code.exe'))
+            })
+        }
+    }
+    $titles = @($windows | Where-Object { $_.Current.ProcessId -eq $activatedPid -or $_.Current.Name -match 'java|javac' } | ForEach-Object { $_.Current.Name } | Select-Object -First 8)
+    Add-Type -AssemblyName System.Drawing
+    $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+    $bitmap = New-Object System.Drawing.Bitmap($bounds.Width, $bounds.Height)
+    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+    try {
+        $graphics.CopyFromScreen($bounds.Location, [Drawing.Point]::Empty, $bounds.Size)
+        $bitmap.Save((Join-Path $env:RUNNER_TEMP 'zero-msix-consent-diagnostic.png'), [Drawing.Imaging.ImageFormat]::Png)
+    } finally { $graphics.Dispose(); $bitmap.Dispose() }
+    throw ('MSIX setup did not reach editor handoff; windows={0}; runtime={1}' -f ($titles -join '|'), ($state -join '|'))
+}
 $settings = Get-Content -LiteralPath (Join-Path $data 'editor\user-data\User\settings.json') -Raw | ConvertFrom-Json
 $runtimes = @($settings.'java.configuration.runtimes' | Where-Object { $_.name -eq 'JavaSE-21' -and $_.default -eq $true })
 if ($runtimes.Count -ne 1) { throw 'Expected one default Java 21 runtime.' }
