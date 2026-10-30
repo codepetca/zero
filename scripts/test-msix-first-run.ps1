@@ -108,6 +108,16 @@ while ([DateTime]::UtcNow -lt $deadline) {
                 Add-Type -AssemblyName System.Drawing
                 $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds; $bitmap = New-Object System.Drawing.Bitmap($bounds.Width, $bounds.Height); $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
                 try { $graphics.CopyFromScreen($bounds.Location, [Drawing.Point]::Empty, $bounds.Size); $bitmap.Save((Join-Path $env:RUNNER_TEMP 'zero-msix-consent-diagnostic.png'), [Drawing.Imaging.ImageFormat]::Png) } finally { $graphics.Dispose(); $bitmap.Dispose() }
+                foreach ($base in $dataPaths) {
+                    $runtime = Join-Path $base 'runtime'
+                    if (-not (Test-Path -LiteralPath $runtime)) { continue }
+                    foreach ($vscode in @(Get-ChildItem -LiteralPath $runtime -Directory -Filter 'vscode-*' -ErrorAction SilentlyContinue)) {
+                        foreach ($signer in @(Get-ChildItem -LiteralPath $vscode.FullName -File -Filter 'vsce-sign.exe' -Recurse -ErrorAction SilentlyContinue)) {
+                            $path = $signer.FullName.Replace($env:USERPROFILE, '<user>')
+                            Write-Host ('VS Code signer: path={0}; length={1}' -f $path, $signer.FullName.Length)
+                        }
+                    }
+                }
                 throw ('Zero setup reported an error: ' + (($messages -join '|').Replace($env:USERPROFILE, '<user>')))
             }
         }
