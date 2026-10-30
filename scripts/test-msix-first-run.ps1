@@ -30,19 +30,19 @@ public static class ZeroFocus {
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetWindowText(IntPtr hwnd, StringBuilder text, int max);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetClassName(IntPtr hwnd, StringBuilder text, int max);
     [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr hwnd);
-    [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr hwnd, uint message, IntPtr wParam, IntPtr lParam);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern IntPtr SendMessageTimeout(IntPtr hwnd, uint message, IntPtr wParam, StringBuilder text, uint flags, uint timeout, out UIntPtr result);
+    [DllImport("user32.dll")] private static extern bool PostMessage(IntPtr hwnd, uint message, IntPtr wParam, IntPtr lParam);
     public static bool OpenDetails(IntPtr parent, uint expectedPid) {
         IntPtr found = IntPtr.Zero; int count = 0;
         EnumChildWindows(parent, (hwnd, unused) => {
             uint pid; GetWindowThreadProcessId(hwnd, out pid);
             var name = new StringBuilder(128); var cls = new StringBuilder(128);
-            GetWindowText(hwnd, name, name.Capacity); GetClassName(hwnd, cls, cls.Capacity);
+            UIntPtr read; SendMessageTimeout(hwnd, 0x000D, (IntPtr)name.Capacity, name, 2, 1000, out read); GetClassName(hwnd, cls, cls.Capacity);
             if (pid == expectedPid && IsWindowVisible(hwnd) && (cls.ToString().Equals("Button", StringComparison.OrdinalIgnoreCase) || cls.ToString().IndexOf(".BUTTON.", StringComparison.OrdinalIgnoreCase) >= 0) && (name.ToString() == "Details…" || name.ToString() == "Details...")) { found = hwnd; count++; }
             return true;
         }, IntPtr.Zero);
         if (count != 1) return false;
-        SendMessage(found, 0x00F5, IntPtr.Zero, IntPtr.Zero); // BM_CLICK
-        return true;
+        return PostMessage(found, 0x00F5, IntPtr.Zero, IntPtr.Zero); // BM_CLICK
     }
 }
 public static class ZeroActivation {
