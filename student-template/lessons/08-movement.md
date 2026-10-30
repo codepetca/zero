@@ -102,7 +102,7 @@ objects explicitly. App alone has no frame loop.
 `seconds` measures elapsed time, so `speed * seconds` gives movement in pixels
 at a speed measured in pixels per second. Frame rate can vary. The first frame
 receives 0 seconds; later values are capped at 0.1 after a long delay. Keep frame
-methods short so JavaFX can handle input and display the next frame.
+methods short so the game can handle input and display the next frame.
 
 Canvas coordinates start at `(0, 0)` in the top left: x increases rightward and
 y downward. `width()` and `height()` return canvas dimensions, available in setup
@@ -116,13 +116,13 @@ field belongs to that control. Focus loss clears held input but does not pause
 the frame loop. For pointer experiments, `mouseX()` and `mouseY()` report the
 tracked canvas position. For the primary pointer button, `mouseDown()` reports
 whether it is held and `mousePressed()` reports a new press during the current
-update. These queries need no JavaFX import.
+update.
 
 The canvas keeps its pixels until you draw over them. `background(...)` clears
 it for each fresh frame; `fill(...)` chooses the colour for following filled
 shapes and text. Drawing styles persist until changed. `textSize(...)` chooses
 the default font at that size, and the y coordinate in `text(...)` is its
-baseline. A JavaFX control stylesheet does not style these drawn pixels.
+baseline.
 
 ### How Player uses the app to draw
 
