@@ -77,6 +77,15 @@ while ([DateTime]::UtcNow -lt $deadline) {
         }
         $summary = (($windowText -join '|').Replace($env:USERPROFILE, '<user>'))
         if ($summary.Length -gt 160) { $summary = $summary.Substring(0, 160) }
+        Add-Type -AssemblyName System.Windows.Forms
+        Add-Type -AssemblyName System.Drawing
+        $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+        $bitmap = New-Object System.Drawing.Bitmap($bounds.Width, $bounds.Height)
+        $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+        try {
+            $graphics.CopyFromScreen($bounds.Location, [Drawing.Point]::Empty, $bounds.Size)
+            $bitmap.Save((Join-Path $env:RUNNER_TEMP 'zero-msix-consent-diagnostic.png'), [Drawing.Imaging.ImageFormat]::Png)
+        } finally { $graphics.Dispose(); $bitmap.Dispose() }
         throw ('Consent absent; alive={0}; titles={1}; text={2}' -f $live, ($zeroWindows -join '|'), $summary)
     }
     Start-Sleep -Seconds 1

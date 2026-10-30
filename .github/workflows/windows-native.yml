@@ -196,6 +196,7 @@ jobs:
             dist/msix/install-msix.json
             dist/msix/wack/report.xml
             dist/msix/wack/report.html
+            ${{ runner.temp }}/zero-msix-consent-diagnostic.png
       - name: Retain Windows JavaFX receipt
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
