@@ -18,7 +18,7 @@ namespace ZeroSetup
     // machine-wide installer is needed.
     internal sealed class WindowsRuntime
     {
-        private readonly string kit, data, storage, project, architecture;
+        private readonly string kit, executionKit, data, storage, project, architecture;
         private readonly IWindowsRuntimeHost host;
         private readonly JavaScriptSerializer json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024, RecursionLimit = 32 };
         private readonly Dictionary<string, WindowsRuntimeAsset> assets;
@@ -32,15 +32,15 @@ namespace ZeroSetup
             public int schemaVersion { get; set; }
             public Dictionary<string, Dictionary<string, WindowsRuntimeAsset>> architectures { get; set; }
         }
-        public WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, string architecture = null, string storageRoot = null)
-            : this(kitRoot, dataRoot, projectRoot, new WindowsRuntimeHost(), architecture, storageRoot) { }
-        internal WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, IWindowsRuntimeHost host, string architecture = null, string storageRoot = null)
+        public WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, string architecture = null, string storageRoot = null, string executionKitRoot = null)
+            : this(kitRoot, dataRoot, projectRoot, new WindowsRuntimeHost(), architecture, storageRoot, executionKitRoot) { }
+        internal WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, IWindowsRuntimeHost host, string architecture = null, string storageRoot = null, string executionKitRoot = null)
         {
             this.host = host ?? throw new ArgumentNullException("host");
             host.ValidatePlatform();
             this.architecture = NormalizeArchitecture(architecture ?? host.Architecture);
             if (this.architecture != "x64") throw new IOException("Automatic Zero setup currently supports Windows on Intel or AMD 64-bit computers. Windows ARM and 32-bit computers need teacher or IT help.");
-            kit = FullPath(kitRoot); data = FullPath(dataRoot); storage = FullPath(storageRoot ?? dataRoot); project = FullPath(projectRoot);
+            kit = FullPath(kitRoot); executionKit = FullPath(executionKitRoot ?? kitRoot); data = FullPath(dataRoot); storage = FullPath(storageRoot ?? dataRoot); project = FullPath(projectRoot);
             if (Inside(data, kit) || Inside(kit, data) || Inside(storage, kit) || Inside(kit, storage)) throw new IOException("Zero's private tools must be outside the replaceable launcher and kit folders.");
             var manifest = json.Deserialize<Manifest>(ReadText(Path.Combine(kit, "setup", "windows-downloads.json"), 65536));
             if (manifest == null || manifest.schemaVersion != 1 || manifest.architectures == null || !manifest.architectures.TryGetValue(this.architecture, out assets) || assets.Count != 3 || !assets.ContainsKey("jdk") || !assets.ContainsKey("vscode") || !assets.ContainsKey("node"))
@@ -131,7 +131,7 @@ namespace ZeroSetup
             info.EnvironmentVariables["ZERO_JAVA_HOME"] = java;
             foreach (string key in JavaStartupVariables) info.EnvironmentVariables.Remove(key);
             info.EnvironmentVariables["MAVEN_SKIP_RC"] = "1";
-            info.EnvironmentVariables["ZERO_KIT_DIR"] = kit;
+            info.EnvironmentVariables["ZERO_KIT_DIR"] = executionKit;
             info.EnvironmentVariables["PATH"] = Path.Combine(java, "bin") + ";" + (node == null ? "" : Path.GetDirectoryName(node) + ";") + (Environment.GetEnvironmentVariable("PATH") ?? "");
             if (node != null) info.EnvironmentVariables["ZERO_NODE_EXECUTABLE"] = node;
             else info.EnvironmentVariables.Remove("ZERO_NODE_EXECUTABLE");
@@ -520,7 +520,7 @@ namespace ZeroSetup
                         progress("Preparing Zero support…");
                         string vsix = Path.Combine(kit, "zero-" + version + ".vsix"); WindowsRuntimeFolders.Check(vsix);
                         if (!File.Exists(vsix)) throw new IOException("Zero's bundled editor support is missing. Reinstall Zero.");
-                        await Code(new[] { "--install-extension", vsix }, 600000, cancellation);
+                        await Code(new[] { "--install-extension", Path.Combine(executionKit, Path.GetFileName(vsix)) }, 600000, cancellation);
                         installed = true;
                     }
                     if (!state.ContainsKey("redhat.java")) { progress("Preparing Java support…"); await Code(new[] { "--install-extension", "redhat.java" }, 600000, cancellation); installed = true; }

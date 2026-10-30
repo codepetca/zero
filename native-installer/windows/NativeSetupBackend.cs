@@ -44,7 +44,11 @@ namespace ZeroSetup
                 : KitFiles.PlaceFreshKit(bundledKit, home, Distribution.KitFolder, cancellation), cancellation);
             // Configuration is always trusted from this installed app's payload,
             // rather than from an editable student copy of the support files.
-            runtime = new WindowsRuntime(bundledKit, runtimeRoot, Path.Combine(target.Path, "starter"), storageRoot: dataRoot);
+            // The package's child editor may run without the virtual file view.
+            // Retain and copy through the short path, but hand the real snapshot
+            // location to the editor and its extension host.
+            string executionKit = Path.Combine(runtimeRoot + "-embedded-kits", Path.GetFileName(bundledKit));
+            runtime = new WindowsRuntime(bundledKit, runtimeRoot, Path.Combine(target.Path, "starter"), storageRoot: dataRoot, executionKitRoot: executionKit);
             await runtime.Prepare(progress, cancellation);
         }
         public async Task Open(CancellationToken cancellation)

@@ -179,6 +179,14 @@ internal static class RuntimeHarness
     }
     private static void TestLifecycle(string parent)
     {
+        using (var mapped = new Fixture(parent))
+        {
+            string realKit = Path.Combine(mapped.Root, "real-kit");
+            var mappedRuntime = new WindowsRuntime(mapped.Kit, mapped.Data, mapped.Project, mapped.Host, null, null, realKit);
+            mappedRuntime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult();
+            Assert(mapped.Host.Commands.All(command => command.EnvironmentVariables["ZERO_KIT_DIR"] == realKit), "children use execution kit path");
+            Assert(mapped.Host.Commands.Any(command => command.Arguments.Contains("--install-extension") && command.Arguments.Contains(Path.Combine(realKit, "zero-0.5.18.vsix"))), "editor installs bundled VSIX from execution kit");
+        }
         using (var f = new Fixture(parent))
         {
             string parentJava = Environment.GetEnvironmentVariable("JAVA_HOME"), parentPath = Environment.GetEnvironmentVariable("PATH");
