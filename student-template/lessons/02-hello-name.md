@@ -1,61 +1,49 @@
-# 2. Greet by name
-
-**Let someone type the greeting.**
+# 3. Greet by name
 
 ![Hello, Sam! above a Sam input and Say hello button](visuals/02.svg)
 
 Target illustration: typing `Sam` and clicking **Say hello**.
 
-Open the **same Greeting project** you changed in lessons 0 and 1.
+Open the **same Greeting project** you changed in lessons 1 and 2.
 
-## 1. Add this import beside your other Zero imports
+## 1. Add this import after `import zero.ui.Label;`
 
-Find:
+Add the `TextField` import in `Main.java`; replace the matching lines with the copied code:
 
-`import zero.ui.Label;`
-
-Add below it:
-
-```java
+```java-after-2
+import zero.ui.Label;
 import zero.ui.TextField;
 ```
 
 ## 2. Create a text field before the button in `setup()`
 
-In `setup()`, find:
+In `setup()`, add the text field before the button by replacing the matching lines with the copied code. Keep your own greeting text if you changed it:
 
-`Button button = new Button("Say hello");`
-
-Add above it:
-
-```java
-TextField name = new TextField();
-name.setPromptText("Your name");
+```java-after-2-3
+        Label greeting = new Label("Hello, Java!");
+        TextField name = new TextField();
+        name.setPromptText("Your name");
+        Button button = new Button("Say hello");
 ```
 
 ## 3. Change the button action to read the name
 
-Find the existing action (your message may differ):
+Copy the block over the matching lines in `setup()`. Your existing button message may differ:
 
-`button.onClick(() -> greeting.setText("You did it!"));`
-
-Replace with:
-
-```java
-button.onClick(() ->
-        greeting.setText("Hello, " + name.getText() + "!"));
+```java-after-3-4-r2
+        Button button = new Button("Say hello");
+        button.onClick(() -> greeting.setText("You did it!"));
+        button.onClick(() ->
+                greeting.setText("Hello, " + name.getText() + "!"));
 ```
 
 ## 4. Put the field between the label and button
 
-Find:
+Copy the block over the matching line in `setup()`:
 
-`show(new Column(10, greeting, button));`
-
-Replace with:
-
-```java
-show(new Column(10, greeting, name, button));
+```java-after-2-r1
+        show(new Column(10, greeting, button));
+        show(new Column(10, greeting, name, button));
 ```
 
 ## 5. Run App and try two names
@@ -66,12 +54,11 @@ Click **Run App**, type `Sam`, then click **Say hello**. The label should say **
 ### Layout and appearance
 
 `Label`, `TextField`, `Button` and `Column` come from Zero's `zero.ui`
-package. Zero uses JavaFX underneath, so these controls keep ordinary keyboard
-focus and platform behavior. In `new Column(10, greeting, name, button)`, 10 is
-the gap between controls. The column arranges them without individual coordinates.
+package. In `new Column(10, greeting, name, button)`, 10 is the gap between
+controls. The column arranges them without individual coordinates.
 
 For space around the whole interface, keep `padding(20)` in Main's `settings()`
-as in [lesson 0](00-hello-world.md#app-startup). It also works in `setup()` or a
+as in [lesson 1](00-hello-world.md#app-startup). It also works in `setup()` or a
 button action; each call replaces the previous amount, and `padding(0)` removes
 it. Padding uses some of the window's configured size, so enlarge `size(...)`
 in settings if the content needs room.
@@ -82,22 +69,16 @@ and check that the action reads the current text, rather than remembering the
 first name. Keep keyboard focus visible and use words as well as colour to
 explain results.
 
-These controls need no stylesheet. Advanced JavaFX styling is a separate path;
-you do not need JavaFX imports for this project. Normal **Run App** opens the
-native app. Browser export and publishing are separate actions with their own
-compatibility checks. Use Zero’s API reference to inspect the available methods rather than assuming every JavaFX method is also a Zero method.
-
 ## 6. Save and publish your greeting
 
 In Zero, choose **Commit & push**, review the changed files, and use a message
 such as `Finish greeting app`. This saves your work in your GitHub repository.
 Check the repository on GitHub to see your latest source.
 
-When your teacher has approved what you are sharing, stop the running app, then choose **Publish & open
+After checking that you have permission to share the contents, stop the running app, then choose **Publish & open
 app** from the Run dropdown. Follow the prompts and wait for the app to open in
 your browser. Try the button there, too. Your published page and its contents
 are public; include only material you have permission to share. If publishing
-is unavailable for your repository or school account, ask your teacher for the
-appropriate alternative rather than changing its visibility without approval.
+is unavailable for your repository or school account, follow your school or account policy and keep your repository visibility unchanged.
 
 Next: [Start the Coin game](08-movement.md).

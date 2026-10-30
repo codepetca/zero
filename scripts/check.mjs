@@ -1,5 +1,4 @@
 import {prepareDesign} from '../design/prepare.mjs';
-import {prepareTutorials} from './prepare-tutorials.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -16,7 +15,6 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 prepareStarter();
 prepareLessonProjects();
 prepareDesign();
-prepareTutorials();
 verifyWebProfiles();
 const checkedRelease=releaseDefinition();
 for (const match of readFileSync(path.join(root,'release/START-HERE.md'),'utf8').matchAll(/zero-\d+\.\d+\.\d+\.vsix/g)) {

@@ -39,7 +39,7 @@ namespace ZeroSetup
             this.host = host ?? throw new ArgumentNullException("host");
             host.ValidatePlatform();
             this.architecture = NormalizeArchitecture(architecture ?? host.Architecture);
-            if (this.architecture != "x64") throw new IOException("Automatic Zero setup currently supports Windows on Intel or AMD 64-bit computers. Windows ARM and 32-bit computers need teacher or IT help.");
+            if (this.architecture != "x64") throw new IOException("Automatic Zero setup currently supports Windows on Intel or AMD 64-bit computers. Windows ARM and 32-bit computers need a device administrator or IT help.");
             kit = FullPath(kitRoot); executionKit = FullPath(executionKitRoot ?? kitRoot); data = FullPath(dataRoot); storage = FullPath(storageRoot ?? dataRoot); project = FullPath(projectRoot);
             if (Inside(data, kit) || Inside(kit, data) || Inside(storage, kit) || Inside(kit, storage)) throw new IOException("Zero's private tools must be outside the replaceable launcher and kit folders.");
             var manifest = json.Deserialize<Manifest>(ReadText(Path.Combine(kit, "setup", "windows-downloads.json"), 65536));
@@ -262,7 +262,7 @@ namespace ZeroSetup
             // The pinned Temurin ZIP's top directory is flattened at install.
             string javaVersion = await Execute(Path.Combine(java, "bin", "java.exe"), new[] { "-version" }, 30000, cancellation);
             string javacVersion = await Execute(Path.Combine(java, "bin", "javac.exe"), new[] { "-version" }, 30000, cancellation);
-            if (!Regex.IsMatch(javaVersion, @"version ""21\.") || !Regex.IsMatch(javacVersion, @"^javac 21\.", RegexOptions.Multiline)) throw new IOException("Zero's private Java 21 could not be verified. Try again; if your device blocks software, ask your teacher or IT for help.");
+            if (!Regex.IsMatch(javaVersion, @"version ""21\.") || !Regex.IsMatch(javacVersion, @"^javac 21\.", RegexOptions.Multiline)) throw new IOException("Zero's private Java 21 could not be verified. Try again; if your device blocks software, ask your device administrator or IT for help.");
         }
         private async Task VerifyNodeBinary(string executable, CancellationToken cancellation)
         {

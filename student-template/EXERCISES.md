@@ -1,6 +1,6 @@
 # Build, extract, reuse, contribute
 
-Use the [lesson sequence](lessons/README.md) for the guided app/game builds.
+Use the [lesson sequence](https://zero.codepet.ca/learn) for the guided app/game builds.
 These are optional later exercises.
 For these later exercises, copy `examples/quiz/Main.java` and
 `examples/shared/ScoreDisplay.java` into `src/main/java/`. Keep changes small enough
@@ -34,7 +34,7 @@ switching examples; the exact copy list is in [README.md](README.md#try-an-examp
    event handlers. Add one Question to the array without changing the handlers.
    Try a wrong answer, success, another check, Next, the final summary and
    Restart. Verify the new question appears and the score resets. See the
-   [Study Quiz lesson](lessons/07-study-app.md) for the rules and reusable objects.
+   [Study Quiz lesson](https://zero.codepet.ca/tutorials/7) for the rules and reusable objects.
 7. **Animate an ordinary object.** Copy both animation Main and Player exactly
    as listed. Identify the explicit update/draw calls. Replace the smoothing
    formula in Player with `x = targetX; y = targetY;` and compare. Restore it,
@@ -58,7 +58,7 @@ which checks were actual GUI actions or synthetic events. A compile alone does
 not verify focus, layout, or student-machine restrictions.
 
 Use your own repository and Zero's reviewed GitHub workflow; upload is simulated
-by default. Submit its link separately in Pika. Ask for teacher/peer review before
+by default. Submit its link separately in Pika if your course uses it. Seek peer review before
 another cohort adopts your change. A future shared library release needs a
 version and compatibility review so it does not unexpectedly change existing
 projects; this starter currently ships readable source.

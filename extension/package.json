@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "A small local Java teaching sidebar.",
-  "version": "0.5.57",
+  "version": "0.5.58",
   "publisher": "zero",
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
@@ -26,8 +26,8 @@
   "scripts": {
     "test": "node --test",
     "package": "vsce package --no-dependencies --allow-missing-repository",
-    "vscode:prepublish": "node ../scripts/lesson-projects.mjs && node ../scripts/prepare-tutorials.mjs && node ../design/prepare.mjs --extension",
-    "pretest": "node ../scripts/lesson-projects.mjs && node ../scripts/prepare-tutorials.mjs && node ../design/prepare.mjs --extension"
+    "vscode:prepublish": "node ../scripts/lesson-projects.mjs && node ../design/prepare.mjs --extension",
+    "pretest": "node ../scripts/lesson-projects.mjs && node ../design/prepare.mjs --extension"
   },
   "contributes": {
     "commands": [
@@ -147,8 +147,8 @@
       },
       {
         "command": "zero.openFirstLesson",
-        "title": "Zero: Tutorials",
-        "shortTitle": "Tutorials"
+        "title": "Zero: Tutorial docs",
+        "shortTitle": "Tutorial docs"
       },
       {
         "command": "zero.showProblems",
@@ -319,11 +319,11 @@
       },
       {
         "command": "zero.previewStudentExplorer",
-        "title": "Zero: Use Student Explorer"
+        "title": "Zero: Show Project Explorer"
       },
       {
         "command": "zero.standardExplorer",
-        "title": "Zero: Use Standard Explorer"
+        "title": "Zero: Show Standard Explorer"
       },
       {
         "command": "zero.showAllProjectFiles",

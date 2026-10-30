@@ -26,8 +26,7 @@ for x64 Windows 10 (build 19041) or later. Run the Setup EXE; Zero prepares Java
 and its configured editor on first launch, then opens the editor. Internet is
 required for initial setup. Later, open Zero from the Start menu.
 Windows may show an unknown-publisher or SmartScreen warning because this
-preview is unsigned. Follow your school or device policies; ask your teacher or
-IT if installation is blocked. Automatic Zero updates are off, and interactive
+preview is unsigned. Follow your school or device policies; contact school IT if installation is blocked. Automatic Zero updates are off, and interactive
 Windows installation testing is still pending. Download a newer installer
 manually when needed.
 Choose **Manual setup (ZIP)** beside the Windows installer on the download page
@@ -87,7 +86,7 @@ return to it. The sidebar stays focused on Run, Files and project development.
    clones it and opens the project in the current VS Code window. No repository is created
    until you have chosen its name and location.
 5. Follow the **Tutorials** tab beside `Main.java`, write the ordinary Java from
-   lesson 0 and choose **Run App** to open your native JavaFX window. The Tutorials
+   lesson 1 and choose **Run App** to open your native JavaFX window. The Tutorials
    tab’s **Open in browser** opens the lesson in your default browser. Keep this repository for the following Greeting lessons.
 
 Already cloned your project? Choose **Start Page → Project → Open** to open it without cloning again. Choose the **Tutorials** link to open the reader;
@@ -119,16 +118,16 @@ uses Zero's guarded authenticated clone service.
 
 ## Before lesson 0: GitHub and privacy
 
-Tutorials require **your own GitHub account and Git 2.31+ before lesson 0**.
+Lesson 0 works without a project or account. Before starting your first project, you need **your own GitHub account and Git 2.31+**.
 This baseline supports the real push workflow used in the lessons.
 The kit's ordinary Hello World setup check can run without an account; the
 continuing tutorials start from your own template-created repository and clone.
 
-1. Ask your teacher which username and email to use, and confirm that public
-   tutorial source is allowed. For existing or GitHub-created repositories,
-   follow your teacher's visibility instructions. Also
+1. Follow school username, email and privacy policies, and confirm that public
+   tutorial source is allowed. Choose visibility for existing or GitHub-created
+   repositories according to those policies. Also
    confirm that GitHub browser sign-in is allowed on your school device/network.
-   If access is blocked, ask your teacher or IT; do not bypass school restrictions.
+   If access is blocked, contact school IT; do not bypass school restrictions.
 2. [Create a personal GitHub account](https://github.com/signup) if you do not
    already have one, and verify its email; [GitHub's account guide](https://docs.github.com/en/account-and-profile/how-tos/account-management/creating-an-account-on-github) explains this step. Use an email you can access under the
    school's instructions. Keep the account yours; never share its password or
@@ -139,9 +138,9 @@ continuing tutorials start from your own template-created repository and clone.
    your repository, cloning and Zero pushes. Nothing pushes just by signing in.
 4. Repositories created through Zero are public. Keep passwords, personal data
    and other private files out of your project. If you create a private repository
-   separately on GitHub, invite your teacher's confirmed GitHub username as a
+   separately on GitHub, invite the intended reviewer’s confirmed GitHub username as a
    [collaborator](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/repository-access-and-collaboration/inviting-collaborators-to-a-personal-repository) through repository
-   Settings → Collaborators → Add people. The teacher must accept; check they can
+   Settings → Collaborators → Add people. The collaborator must accept; check they can
    open it. Collaborator access to a personal repository includes writing code.
    A private repository link alone does not grant access.
 
@@ -156,7 +155,7 @@ its spelling. This setting does not rewrite old commits. See
 public; existing or GitHub-created source can stay private. GitHub Free supports private repositories
 and collaborators, but Pages from a private repository needs an eligible plan.
 Keep existing repository visibility; if Pages is unavailable, skip Publish or
-ask your teacher about an approved option. No paid plan is needed to complete
+use an option permitted by your school. No paid plan is needed to complete
 the tutorial repository/push workflow. See [GitHub's Pages availability](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site).
 After cloning and caching compiler dependencies, editing and Run App work offline
 without an active GitHub session; pushes still need sign-in and internet.
@@ -174,14 +173,14 @@ GitHub setup on the Zero Start Page. Older published downloads keep their origin
    GitHub**, then **Install Zero for GitHub** if requested. Once ready, choose
    **Start tutorial** and create your **Greeting app** repository. Zero opens
    your clone with `Main.java` beside **Tutorials**. Review your project
-   before granting workspace trust if VS Code asks, then follow lesson 0.
+   before granting workspace trust if VS Code asks, then follow lesson 1.
    The first build needs internet for compiler dependencies, cached for reuse.
 
 You can eject the DMG after copying Zero. Later, open **Zero** from Applications
 or the Dock to return to the saved Zero editor session. Reopening checks readiness
 without repeating preparation when the current installation is ready.
 
-Complete the GitHub account/privacy steps above before starting tutorial lesson 0.
+Complete the GitHub account/privacy steps above before starting your first tutorial project.
 The optional **⋯ → Troubleshooting → Test installation** opens the bundled completed
 Hello World project in a separate window marked **Installation test**. It does
 not require GitHub and is separate from your tutorial; tutorial creation,
@@ -242,11 +241,11 @@ confirm its native JavaFX window, since tool detection is not a build test.
    Zero is not published in the Marketplace.
 3. Open Zero using its setup launcher, then choose **Start tutorial**. Connect
    GitHub when asked, choose **Greeting app**, and name and save your repository.
-   Zero opens your clone with `Main.java` and **Tutorials** ready for lesson 0.
+   Zero opens your clone with `Main.java` and **Tutorials** ready for lesson 1.
    Review its source and build scripts before granting workspace trust.
-4. Follow lesson 0 in your project. The first build needs internet to download
-   compiler dependencies into Zero’s local cache. Record school proxy/firewall
-   problems with your teacher; do not place credentials in the project.
+4. Follow lesson 1 in your project. The first build needs internet to download
+   compiler dependencies into Zero’s local cache. Report school proxy/firewall
+   problems to school IT; do not place credentials in the project.
 
 The bundled `starter` is a completed installation check, available through
 **⋯ → Troubleshooting → Test installation**. It is separate from your tutorial repository.
@@ -262,21 +261,7 @@ Disable automatic detection to keep a fixed theme.
 
 ## Edit and run
 
-Open [the online lessons](https://zero.codepet.ca/tutorials/0). At lesson 0,
-choose **Start tutorial → Greeting app** in Zero to create and clone a repository
-in your own GitHub account after selecting its name and location. It is public.
-Use **your repository**, not Zero's shared template. The template has empty `setup()`; its first native JavaFX window is
-blank. Write your label following the lesson and Run App again after edits.
-Keep that repository for lessons 1 and 2 as you add a button and name field.
-GitHub/Git setup is part of the tutorial; see [tutorial repository setup](COURSE-PROJECT.md#tutorial-repositories).
-After cloning, local Run needs no current GitHub sign-in or network connection
-once compiler dependencies are cached.
-
-At lesson 3, start **Study** once. Continue the same quiz through lesson 7,
-adding attempts, reset methods, Counter and Question objects. At lesson 8,
-start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Study
-and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
-an image and sound ZIP; your own assets or the drawing fallback also work.
+Open [the online lessons](https://zero.codepet.ca/tutorials/15). Lesson 0 helps you find your way around Zero without an account. For lesson 1, choose **Start tutorial → Greeting app** in Zero to create and clone a repository in your own GitHub account. It is public. Use **your repository**, not Zero's shared template. The template has an empty `setup()`; its first window is blank. Write your label following the lesson, then keep that repository for lessons 2 and 3 as you add a button and name field. Continue with the Coin game in lessons 4–5 and the Pet game in lessons 6–9, including its welcome screen. GitHub/Git setup is part of the project tutorials; see [tutorial repository setup](COURSE-PROJECT.md#tutorial-repositories). After cloning, local Run needs no current GitHub sign-in or network connection once compiler dependencies are cached.
 
 In Mac 0.5.47, **Start tutorial** on the **Zero Start Page**
 checks project access before using the matching verified template to
@@ -320,8 +305,8 @@ not verify browser compatibility.
 ## Your GitHub repository
 
 Local running needs no GitHub sign-in. Live push and publishing need Git
-**2.31+** and your own GitHub account. For sharing work, follow your teacher's
-privacy and account instructions. Repositories created through Zero are public;
+**2.31+** and your own GitHub account. For sharing work, follow school
+privacy and account policies. Repositories created through Zero are public;
 existing/cloned repositories keep their visibility. If you used **Start tutorial** or
 **Start Page → Project → New**, Zero already created and cloned **your repository**.
 That clone already has Git history and its own origin: keep that repository,
@@ -343,7 +328,7 @@ The empty-repository steps below apply to an extracted source ZIP:
    existing origin. This local connection does not prove remote ownership,
    existence or access. Before remote work, Zero checks your personal ownership,
    App permissions and explicit installation membership.
-4. Set your Git commit identity if needed, using your teacher-approved display
+4. Set your Git commit identity if needed, using a display
    name and commit email (the exact GitHub `noreply` address for email privacy). These commands configure this repository
    only, from the student folder:
 
@@ -411,7 +396,7 @@ choice keeps one conflicting section; other combined edits stay intact. Images
 and deletions use whole-file choices. Run your app, then Commit & push. **Cancel
 update** restores the starting checkpoint if nothing else has changed; later
 edits are preserved for native review. Complex conflicts use Source Control.
-Ask your teacher if the correct result is unclear.
+If the correct result is unclear, review the conflicting changes and seek help before continuing.
 
 If a push fails after committing, the local commit stays saved. Zero shows the
 appropriate Update, retry, sign-in or access action. **Push commits** retries saved
@@ -428,7 +413,7 @@ or unfinished Git operations need normal Git help before continuing.
 After a successful Merge to main, open GitHub and check the files and commit on main.
 Click the connected repository name, choose **Copy repository link**, and paste
 the link separately into the assignment
-in **Pika**. Give your teacher access if the repository is private. Copying a URL
+in **Pika** if your course uses it. Grant the intended reviewer access if the repository is private. Copying a URL
 does not push code, establish that the remote is current or submit in Pika.
 
 ## Publish your playable app
@@ -489,5 +474,5 @@ it and include the checks you ran. ScoreDisplay's caption constructor is a shipp
 example of a compatible contribution: its no-argument constructor keeps the quiz
 working while the tracker displays “Completed”. The study app reuses that class
 and adds ordinary Question objects; see its bundled guide. Review a shared change
-with the teacher and verify both apps before a cohort adopts it. Ordinary Java
+and verify both apps before others adopt it. Ordinary Java
 packages, interfaces and JavaFX properties are available as later steps.

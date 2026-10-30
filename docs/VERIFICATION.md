@@ -1,5 +1,136 @@
 # Verification
 
+## Pet sprite sheet explanation — 2026-10-30
+
+Against base `32732dd10a8c8e9f488e32e682363e5f7e5200f3`, Pet lessons and both
+checkpoint sets use `loadImage` before selecting animation frames with
+`imageRegion`. The Pet lesson verifier and native Maven compile passed.
+One independent Terra/medium reviewer inspected implementation revision
+`208edd51`, the affected lessons, checkpoints and image API; no actionable
+findings. The reviewer did not independently run the specific artwork in a
+browser. Effective model, elapsed time and token use were not exposed. Review
+ledger: one initial launch and wave, no remediation batches.
+
+## Pet lessons and Coin game revisited — 2026-10-29
+
+Local curriculum changes based on `6036272466e8c1fcc55cb068c11785f86d024538`
+split Pet into four lessons in one project and make Coin media an open-ended
+challenge. Existing routes and published scaffold inventories remain unchanged.
+Terra/high reconstructed the screen lesson from its preceding checkpoint: native
+Maven compilation and WebFX export passed. Chrome runtime checks confirmed Start,
+Back, movement, pause on the welcome screen and retained position; the sound
+playback promise resolved and playback advanced, but audible output was not verified.
+The 254 website tests, 31 project-picker tests, 22 scaffold tests, 27 focused
+navigation/tutorial tests and website build passed. Sol/high independently reviewed
+the complete diff; stale guide references were corrected. Physical iPhone, Windows,
+and a student GitHub/publishing walkthrough were not tested. Effective models,
+elapsed time and task-specific usage are unknown. No PR, merge or publication.
+
+Tutorial sidebar headings: increased section-heading emphasis using existing
+theme colours. Website build and a dark-mode browser visual check passed;
+Sol/high source review found no actionable issues and checked both theme colours.
+The subsequent subtle heading backgrounds passed a website build, dark-mode visual
+check and Sol/high source review of light/dark contrast and forced-colours behavior.
+Tutorial intro wording was shortened and unavailable-template advice removed from
+lesson start cards; Sol/high source review, 24 focused tests and the build passed.
+
+Tutorial navigation and code-context follow-up: the sidebar retains its position
+across lesson changes and reveals the selected lesson, including after direct entry
+or a mobile-to-desktop resize. Browser checks covered selection, Back, direct entry
+and resize. Sol/high review identified and verified a responsive correction.
+The full visible curriculum was audited for fixed code edits lacking context;
+added diff blocks were independently checked against the preceding lesson states.
+The website build, 27 focused website tests, 22 scaffold tests and Pet verifier
+passed. Physical-device and screen-reader checks remain separate.
+
+Lesson purpose cards: each tutorial displays its short description immediately
+after its title; duplicate introductory wording was removed. Sol/high review
+found and verified corrections to one description and two duplicate sentences,
+and checked both theme contrasts. The website build, 27 focused tests and a
+dark-mode browser visual check passed. Light-mode was reviewed from theme values.
+
+Combined tutorial PR: independent Sol/high cumulative review against `60362724`
+found no actionable issues, including Pet progression, contextual edits, sidebar
+behavior, links and preserved scaffold inventories. Reviewer checks passed; the
+coordinator also ran 255 website tests, 31 project-picker tests, 22 scaffold
+tests, the Pet verifier and the website build. Prior WebFX/Chrome runtime evidence
+is recorded above. Physical-device, audible-output and authenticated publishing
+checks were not repeated. Effective model, elapsed time and attributable usage
+are unknown.
+
+## Tutorial code context — 2026-10-29
+
+Local changes based on `1aca5bb6d3896b7d6af53c9a4db9a0904cd939a3` add
+non-copyable, highlighted after-excerpts alongside the existing copyable snippets
+in active tutorials. The website production build and 248 website tests passed;
+the Greeting lesson was inspected in the local browser. Independent complete-diff
+review requested Terra/high: no outstanding findings (one initial concern was
+withdrawn after checking the preceding lesson). Unused older lessons were then
+removed from the diff. Effective model, elapsed time and task-specific usage are
+unknown. Changes remain local; no PR, merge, deployment or release.
+
+Follow-up: clarified insertion headings and shortened the context label. Terra/high
+review identified that Markdown readers also need the label; it was moved into the
+lessons and the targeted re-review found no remaining issues. The production build,
+four focused navigation/emphasis tests, and the local Greeting reader check passed.
+Effective model, elapsed time and attributable usage are unknown.
+
+Lesson-zero follow-up: recovery now displays as 0 and the remaining current
+sequence as 1–10; stable lesson routes and published scaffold inventories are
+unchanged. Terra/medium reviewed the numbering and identified setup wording,
+which was corrected while retaining the existing account-setup link anchor.
+Website learning/navigation tests (19), extension project-picker tests (31),
+and lesson-project tests (22) passed; the recovery page and numbering were
+checked in the browser over Tailscale. Published template READMEs retain their
+historical numbering until a separately authorized template update. Effective
+model, elapsed time and attributable usage are unknown; changes remain local.
+
+Project Explorer lesson paths: tutorial directions now use the visible java,
+resources and library tree labels, including Import assets. Terra/medium review
+confirmed the explorer mapping; its test-scope and optional-media wording findings
+were fixed and the targeted re-review was clean. Website learning tests (17),
+lesson-project tests (22), production build and a browser check of Greeting passed.
+Published template inventories were not changed. Effective model, elapsed time
+and attributable usage are unknown; these changes are local.
+
+Lesson 0 title follow-up: renamed it to Back to Zero in the lesson, navigation
+and page metadata. Terra/medium review found no remaining title issues. The 17
+learning tests, website build and served-page title check passed. Effective model,
+elapsed time and attributable usage are unknown; the change remains local.
+
+Tutorial change blocks: consolidated incremental examples into copyable context
+blocks with additions and removals; copy omits removed lines and display markers.
+Terra/high review found two lesson-boundary issues; both were fixed and targeted
+re-review was clean. Website learning tests (19), lesson-project tests (22) and
+production build passed. Browser showed Copy success and accessible Add/Remove
+labels; the browser clipboard readback was unavailable, so byte-for-byte clipboard
+verification relies on the focused copy-text test. Screen-reader interaction was
+not tested. Effective model, elapsed time and attributable usage are unknown.
+
+Copy fallback follow-up: the code-copy control now falls back to a selected
+temporary textarea when Clipboard API access is unavailable or denied, and
+reports failure if neither path succeeds. Terra/high review found no actionable
+issues. The 22 focused copy/tutorial tests and production build passed; clicking
+the contextual setup block over Tailscale HTTP displayed Copy success in the
+in-app browser. The automation clipboard could not paste or read the resulting
+system clipboard, so pasted bytes and iPhone Safari remain unverified. Effective
+model, elapsed time and attributable usage are unknown; changes are local.
+
+Tutorial explanation follow-up: Greeting explains `show()` as displaying UI;
+the Coin game explains the explicit Player draw call and canvas rectangle. A
+Terra/high review confirmed the API descriptions against the lesson code. The
+19 website learning tests passed after the requested removal of canvas references
+from Greeting. Effective model, elapsed time and attributable usage are unknown.
+
+Combined tutorial PR review: independent Sol/high full-diff review against
+`1aca5bb6d3896b7d6af53c9a4db9a0904cd939a3` found no actionable blockers;
+reviewer ran 84 focused tests. Coordinator checks passed: 254 website tests,
+31 project-picker tests, 22 lesson-project tests, website production build and
+`git diff --check`. Browser checks covered the lesson reader and copy feedback;
+system clipboard paste and physical iPhone Safari remain unverified. Published
+template README numbering is historical; scaffold inventories are unchanged.
+Effective model, elapsed time and attributable usage are unknown.
+
 ## Git checks and native Git prototype accepted locally — 2026-10-25
 
 Reviewed implementation head9d68fc860a44af9021253597d721f79f157e66fe,

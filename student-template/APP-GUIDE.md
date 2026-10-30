@@ -20,7 +20,7 @@ or a game frame completed; a title screen or paused game is not a failure. These
 source capabilities are separate from older released kits.
 
 
-Learn step by step through the [tutorials](lessons/00-hello-world.md).
+Learn step by step through the [tutorials](https://zero.codepet.ca/tutorials/0).
 This source guide remains available for older kits and contributor reference;
 the [API reference](API.md) is the canonical method lookup. The tutorials introduce
 the small set you need for each project:
@@ -31,8 +31,8 @@ the small set you need for each project:
 | A game | `GameApp`: the same startup, plus `update(seconds)`, `draw()`, `keyDown(...)`, `width()`, `height()`, `background(...)`, `fill(...)`, `rect(...)`, `circle(...)`, `textSize(...)`, `text(...)`. |
 | Improve appearance | Zero `Color`, `Column`/`Row` spacing, app padding and canvas `textSize(...)`. Advanced projects can use the supported JavaFX escape hatch. |
 
-Follow the [Greeting App tutorial](lessons/02-hello-name.md) for controls or
-the [Coin Game tutorial](lessons/08-movement.md) for a canvas game.
+Follow the [Greeting App tutorial](https://zero.codepet.ca/tutorials/2) for controls or
+the [Coin Game tutorial](https://zero.codepet.ca/tutorials/8) for a canvas game.
 
 This reference describes the bundled [App source](src/main/java/zero/App.java)
 and [GameApp source](src/main/java/zero/GameApp.java). Use these classes for
@@ -61,16 +61,16 @@ exact published release. **Copy imports** copies those declarations. If exact
 metadata is unavailable, inspect the library documentation; Zero invents no API.
 Open **Project → ⋯ → ZeroHub** for library browsing and Add/Update/Revert. Check/Share retain their
 existing review steps. **Show all project files** opens the full Explorer; the
-Zero status-bar action returns to your active controls. **Zero: Use Standard
+Zero status-bar action returns to your active controls. **Zero: Show Standard
 Explorer** switches to the ordinary Explorer and remembers your choice.
-**Zero: Use Student Explorer** returns to the simplified view.
+**Zero: Show Project Explorer** returns to the simplified view and reveals the Project section if it was hidden.
 Right-click an editable file and choose **Rename file…** to change its filename.
 Renaming a Java file does not rewrite its class name or references; update those
 in your source as needed before running it.
 
-The [tutorial](lessons/README.md) keeps three small continuing projects: Greeting,
-Study quiz and Coin game. In [lesson 10](lessons/10-components.md), refactor a busy
-Main by extracting PlayerInput and ScoreDisplay. [Lesson 11](lessons/11-zerohub.md)
+The [tutorial](https://zero.codepet.ca/learn) uses Greeting, Coin game and Pet
+projects. In [lesson 10](https://zero.codepet.ca/tutorials/10), refactor a busy
+Main by extracting PlayerInput and ScoreDisplay. [Lesson 11](https://zero.codepet.ca/tutorials/11)
 checks improvements and practises sharing a small CreditsBadge in Tutorial
 practice, with an optional original-contribution proposal. Larger reference games
 are maintainer completeness checks, not additional required tutorial projects.
@@ -818,8 +818,7 @@ resources give a useful path; asynchronous music failures report that path once
 and dispose the player. The [API reference](API.md#audio) lists exact signatures.
 Raw JavaFX [AudioClip](https://openjfx.io/javadoc/21/javafx.media/javafx/scene/media/AudioClip.html)
 and MediaPlayer remain available for advanced needs; manage those resources yourself.
-The older [Lesson 12](lessons/12-media.md) examples demonstrate ordinary AudioClip
-and the additional dependency needed by older kits.
+The [artwork and sound challenge](https://zero.codepet.ca/tutorials/12) lets you apply these ideas to the Coin game.
 
 ### Input methods
 
@@ -872,7 +871,7 @@ In that draw call, `this` is the running Main object, which extends `GameApp`.
 Player receives the same object as the parameter in `draw(GameApp app)` and
 calls drawing methods through it, such as `app.circle(x, y, 44)`. Player owns its
 position; the app provides the canvas. Player does not need to extend `GameApp`.
-See [lesson 8's explanation and example](lessons/08-movement.md#how-player-uses-the-app-to-draw).
+See [lesson 4's explanation and example](https://zero.codepet.ca/tutorials/8#how-player-uses-the-app-to-draw).
 Zero never calls a Player's methods automatically.
 
 ## Threading, errors and advanced Java

@@ -42,7 +42,7 @@ namespace ZeroSetup
 #if ZERO_STORE_PRODUCTION
             local = (redirected ?? PhysicalLocalAppData)();
 #endif
-            if (string.IsNullOrWhiteSpace(local) || !Path.IsPathRooted(local)) throw new IOException("Your Windows app-data folder is unavailable. Ask your teacher or IT for help.");
+            if (string.IsNullOrWhiteSpace(local) || !Path.IsPathRooted(local)) throw new IOException("Your Windows app-data folder is unavailable. Ask your device administrator or IT for help.");
             return Path.Combine(local, DataFolder);
         }
         internal const string Marker = "ZERO_WINDOWS_DISTRIBUTION";

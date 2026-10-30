@@ -7,8 +7,50 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { lessons, lessonGroups, lessonNavigation, isLessonDocumentId, lessonAssets, examples, projectForLesson, publishedTutorialTemplate, sampleGameAssets } from "../lib/learning.mjs";
+import { lessons, lessonGroups, lessonNavigation, lessonNumber, isLessonDocumentId, lessonAssets, examples, projectForLesson, publishedTutorialTemplate, sampleGameAssets } from "../lib/learning.mjs";
 import { documentHref, foldSections, resolveContentLink } from "../lib/markdown.mjs";
+import { tutorialAfterLines, tutorialAfterCopyText } from "../lib/tutorial-after-code.mjs";
+import { orderGroupLessons } from "../lib/lesson-navigation.mjs";
+
+test("copying contextual examples omits display markers and preserves indentation", () => {
+  const lines = tutorialAfterLines("    void setup() {\n        // old\n        show(greeting);\n    }\n", "language-java-after-3-r2");
+  assert.deepEqual(lines.map((line) => line.added), [false, false, true, false]);
+  assert.deepEqual(lines.map((line) => line.removed), [false, true, false, false]);
+  assert.equal(tutorialAfterCopyText(lines), "    void setup() {\n        show(greeting);\n    }\n");
+});
+
+test("tutorial change blocks mark real distinct lines and copy their finished code", () => {
+  const folder = new URL("../../student-template/lessons/", import.meta.url);
+  let blocks = 0;
+  for (const name of readdirSync(folder).filter((entry) => entry.endsWith(".md"))) {
+    const source = readFileSync(new URL(name, folder), "utf8");
+    for (const match of source.matchAll(/```(java-after-([^\n]+))\n([\s\S]*?)```/g)) {
+      blocks++;
+      assert.match(match[2], /^\d+(?:-\d+)*(?:-r\d+(?:-\d+)*)?$/, name);
+      const [added, removed = ""] = match[2].split("-r");
+      const indices = [...added.split("-"), ...removed.split("-").filter(Boolean)].map(Number);
+      const lineCount = match[3].replace(/\n$/, "").split("\n").length;
+      assert.equal(new Set(indices).size, indices.length, name);
+      assert.ok(indices.every((index) => index >= 1 && index <= lineCount), name);
+      const lines = tutorialAfterLines(match[3], `language-${match[1]}`);
+      assert.equal(tutorialAfterCopyText(lines), lines.filter((line) => !line.removed).map((line) => line.code).join("\n") + "\n", name);
+    }
+  }
+  assert.ok(blocks > 0);
+});
+
+test("tutorial file directions use the Project Explorer labels", () => {
+  const lesson = (name) => readFileSync(new URL(`../../student-template/lessons/${name}`, import.meta.url), "utf8");
+  for (const name of ["00-hello-world.md", "08-movement.md", "09-coin-game.md", "13-pet.md", "14-own-project.md"]) {
+    assert.doesNotMatch(lesson(name), /(?:Open|Create) `src\/main\/java\//, name);
+  }
+  assert.match(lesson("00-hello-world.md"), /java → Main\.java/);
+  for (const name of ["12-media.md", "13-pet.md"]) {
+    assert.match(lesson(name), /\*\*Import assets…\*\*/, name);
+  }
+  assert.match(lesson("11-zerohub.md"), /Tutorial practice: CreditsBadge → Checks/);
+  assert.match(lesson("11-zerohub.md"), /Tutorial practice: CreditsBadge → Examples → first/);
+});
 
 test("folds parsed sections without splitting code, preserving unique deep-link ids", () => {
   const markdown =
@@ -109,10 +151,11 @@ test("retired authored example links stay unlinked while external references rem
   assert.equal(resolveContentLink(source, "https://example.com/hub?kind=example&example=zero-starter", {}, {}), "https://example.com/hub?kind=example&example=zero-starter");
 });
 
-test("main lesson navigation follows Greeting, Coin, Pet and an original project", () => {
+test("main lesson navigation follows Greeting, Coin and the continuing Pet project", () => {
   const first = lessonNavigation("0");
   assert.equal(first.related.title, "Hello, world!");
-  assert.equal(first.previous, undefined);
+  assert.equal(first.previous.id, "15");
+  assert.equal(lessonNavigation("15").next.id,"0");
   assert.equal(first.next.id, "1");
   assert.equal(first.next.title, "Say hello with a button");
   assert.equal(lessonNavigation("1").previous.id, "0");
@@ -121,7 +164,9 @@ test("main lesson navigation follows Greeting, Coin, Pet and an original project
   assert.equal(lessonNavigation("2").next.id, "8");
   assert.equal(lessonNavigation("8").previous.id, "2");
   assert.equal(lessonNavigation("9").next.id, "13");
-  assert.equal(lessonNavigation("13").next.id, "14");
+  assert.equal(lessonNavigation("13").next.id, "16");
+  assert.equal(lessonNavigation("16").next.id, "17");
+  assert.equal(lessonNavigation("17").next.id, "14");
   assert.equal(lessonNavigation("14").next, undefined);
   assert.equal(lessonNavigation("3").related.title, "A tiny quiz");
   assert.equal(lessonNavigation("12").next, undefined);
@@ -129,22 +174,29 @@ test("main lesson navigation follows Greeting, Coin, Pet and an original project
 });
 
 test("quiet project groups retain every lesson once in reading order", () => {
-  assert.deepEqual(lessonGroups.map(group => group.id), ['greeting','game','pet','own-project','study','practice','media']);
-  assert.deepEqual([...lessonGroups.flatMap(group => group.lessons)].sort(),lessons.map(lesson => lesson.id).sort());
-  assert.ok(lessonGroups.slice(4).every(group=>group.title.includes('(optional)')));
+  assert.deepEqual(lessonGroups.map(group => group.id), ['getting-started','greeting','game','pet','practice']);
+  assert.deepEqual([...lessonGroups.flatMap(group => group.lessons)].sort(),lessons.filter(lesson => !['3','4','5','6','7'].includes(lesson.id)).map(lesson => lesson.id).sort());
+  assert.ok(lessonGroups.every(group=>!group.title.includes('(optional)')));
   assert.equal(projectForLesson('10').id,'game');
-  assert.equal(projectForLesson('14').start,'original');
+  for (const id of ['13','16','17','14']) assert.equal(projectForLesson(id).id,'pet');
+  const pet = lessonGroups.find(group => group.id === 'pet');
+  assert.deepEqual(orderGroupLessons(lessons, pet.lessons).map(item => item.id), ['13','16','17','14']);
+  const revisited = lessonGroups.find(group => group.id === 'practice');
+  assert.equal(revisited.title, 'Coin game revisited');
+  assert.deepEqual(revisited.lessons, ['10','11','12']);
 });
 
 test("existing lesson addresses remain stable and optional paths have their own ends", () => {
-  assert.deepEqual(lessons.map((lesson) => lesson.id), Array.from({ length: 15 }, (_, id) => String(id)));
+  assert.deepEqual(['15','0','1','2','8','9','13','16','17','14','10','11','12'].map(lessonNumber),[0,1,2,3,4,5,6,7,8,9,10,11,12]);
+  assert.equal(lessonNumber('3'),undefined,'Retained quiz routes are not part of the current sequence');
+  assert.deepEqual(lessons.map((lesson) => lesson.id), ["15",...Array.from({ length: 15 }, (_, id) => String(id)),"16","17"]);
   assert.equal(lessonNavigation("10").next.id, "11");
   assert.equal(lessonNavigation("11").previous.id, "10");
-  assert.equal(lessonNavigation("11").next,undefined);
+  assert.equal(lessonNavigation("11").next.id,"12");
   assert.equal(lessonNavigation("3").previous,undefined);
   assert.equal(lessonNavigation("7").next,undefined);
-  assert.deepEqual(lessonNavigation("15"), {});
-  for(let id=0;id<15;id++)assert.equal(documentHref(`lesson-${id}`),`/tutorials/${id}`);
+  assert.equal(lessonNavigation("15").related.title, "Back to Zero");
+  for(let id=0;id<18;id++)assert.equal(documentHref(`lesson-${id}`),`/tutorials/${id}`);
   assert.equal(documentHref("lesson-10"), "/tutorials/10");
   assert.equal(documentHref("lesson-11"), "/tutorials/11");
   assert.equal(isLessonDocumentId("lesson-11"), true);
@@ -160,6 +212,18 @@ test("lesson media links use only the explicit build-time asset mapping", () => 
   assert.equal(resolveContentLink(source, "../examples/media-demo/resources/media-demo/private.wav", {}, {}, lessonAssets), null);
 });
 
+test("Coin game revisited reopens the project and leaves media as a student challenge", () => {
+  const folder = new URL("../../student-template/lessons/", import.meta.url);
+  const refactor = readFileSync(new URL("10-components.md", folder), "utf8");
+  const challenge = readFileSync(new URL("12-media.md", folder), "utf8");
+  assert.match(refactor, /Project → Open local project…/);
+  assert.match(refactor, /Project → Clone/);
+  assert.match(challenge, /game-assets\.zip/);
+  assert.match(challenge, /13-pet\.md/);
+  assert.match(challenge, /16-pet-motion\.md/);
+  assert.doesNotMatch(challenge, /```java/);
+});
+
 test("every tutorial shows numbered instructions and exact code without a summary or explanation disclosure", () => {
   for (const lesson of lessons) {
     const name = String(lesson.id).padStart(2, "0");
@@ -171,7 +235,8 @@ test("every tutorial shows numbered instructions and exact code without a summar
     }));
     assert.doesNotMatch(html, /<details|<summary|Code and explanation|Done:|lesson-summary/);
     assert.match(html, /<h2 id="1-/);
-    assert.ok(html.includes(`<img src="visuals/${name}.svg"`), `Lesson ${name} retains its illustration`);
+    const image = ['16','17'].includes(name) ? '13' : name;
+    assert.ok(html.includes(`<img src="visuals/${image}.svg"`), `Lesson ${name} retains its illustration`);
     assert.ok(html.endsWith(`<p class="lesson-encouragement">${lesson.encouragement}</p>`));
     assert.equal((html.match(/class="lesson-encouragement"/g) || []).length, 1);
     assert.doesNotMatch(html, /<p>Previous:\s/);
@@ -179,7 +244,7 @@ test("every tutorial shows numbered instructions and exact code without a summar
     assert.deepEqual(steps,steps.map((_,index)=>index+1));
     const unwrapped = renderToStaticMarkup(React.createElement(Markdown, {remarkPlugins:[remarkGfm],children:markdown}));
     assert.deepEqual([...html.matchAll(/<pre>([\s\S]*?)<\/pre>/g)].map(m=>m[1]), [...unwrapped.matchAll(/<pre>([\s\S]*?)<\/pre>/g)].map(m=>m[1]), `Lesson ${name} keeps all fenced code intact`);
-    assert.equal(resolveContentLink(`student-template/lessons/${file}`, `visuals/${name}.svg`, {}, {}, lessonAssets), `/generated/learning-assets/lessons/${name}.svg`);
+    assert.equal(resolveContentLink(`student-template/lessons/${file}`, `visuals/${image}.svg`, {}, {}, lessonAssets), `/generated/learning-assets/lessons/${image}.svg`);
   }
 });
 
@@ -238,22 +303,21 @@ test("legacy starter links retain hosted setup and Pika destinations after sourc
   assert.match(prepare,/"your-repository-and-pika": "your-individual-workflow"/);
 });
 
-test("tutorial starts and the original project use distinct setup actions", () => {
+test("tutorial starts use distinct setup actions from continuing lessons", () => {
   const document = readFileSync(new URL("../components/Document.jsx", import.meta.url), "utf8");
   const tutorialProject = readFileSync(new URL("../components/TutorialProject.jsx", import.meta.url), "utf8");
   const prepare = readFileSync(new URL("../scripts/prepare.mjs", import.meta.url), "utf8");
   assert.match(document, /<TutorialProject project=\{practiceProject\}/);
   assert.match(document, /lesson === practiceProject.firstLesson/);
   assert.doesNotMatch(document + tutorialProject, /First time\?|If you have not started it yet|className="lesson-help"|className="reader-subtitle"|Continue your/);
-  assert.match(document, /publishedTutorialTemplate\(practiceProject.id\)/);
+  assert.match(tutorialProject, /Start tutorial →/);
+  assert.doesNotMatch(tutorialProject, /templateHref|Use template/);
   assert.match(tutorialProject, /lesson === project.firstLesson/);
-  assert.match(tutorialProject, /lesson === "10"/);
-  assert.match(tutorialProject, /lesson === "12"/);
   assert.doesNotMatch(document + tutorialProject, /generated\/projects\/|zero-project-|Start project|Start Project/);
   assert.match(prepare, /prepareLessonProjects\(root, \{ website: true, extension: false \}\)/);
   assert.match(prepare, /collect\("teaching\/checkpoints"\)/);
-  assert.deepEqual(lessons.filter(({id})=>projectForLesson(id)?.firstLesson===id).map(({id})=>id),["0","3","8","13","14"]);
-  for (const lesson of lessons) assert.ok(projectForLesson(lesson.id));
+  assert.deepEqual(lessons.filter(({id})=>projectForLesson(id)?.firstLesson===id).map(({id})=>id),["0","3","8","13"]);
+  for (const lesson of lessons.filter(item=>item.id!=="15")) assert.ok(projectForLesson(lesson.id));
   for (const id of ["greeting","study","game","pet"]) {
     const url = `/generated/projects/zero-project-${id}.zip`;
     assert.equal(resolveContentLink("student-template/lessons/README.md",url,{},{}),null);
@@ -285,8 +349,8 @@ test("practice downloads contain foundations but no completed lesson examples", 
 });
 
 test("intermediate lessons keep the existing three small projects and a proposal path", () => {
-  assert.equal(lessons.length,15);
-  assert.deepEqual(lessonGroups.find(group=>group.id==='practice').lessons,['10','11']);
+  assert.equal(lessons.length,18);
+  assert.deepEqual(lessonGroups.find(group=>group.id==='practice').lessons,['10','11','12']);
   assert.equal(lessons.find(lesson=>lesson.id==='10').title,'Refactor a busy Main');
   assert.equal(lessons.find(lesson=>lesson.id==='11').title,'Practise sharing a component');
   for (const [id,name] of [['10','10-components'],['11','11-zerohub']]) {

@@ -5,7 +5,7 @@ To run the completed example, create a new local project from a fresh Zero start
 Main reads the arrows, calls Player.update, then calls Player.draw. Player keeps
 the 24 × 24 square inside the fixed 640 × 400 canvas. Its speed is 180 pixels per
 second on each axis; diagonal movement is faster overall. Release stops movement;
-losing canvas/window focus clears input. See [Lesson 8](../../lessons/08-movement.md)
+losing canvas/window focus clears input. See [Lesson 8](https://zero.codepet.ca/tutorials/8)
 for the progressive build.
 
 `checks/MovementCheck.java` is a finite maintainer harness. It is not part of the

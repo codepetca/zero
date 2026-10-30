@@ -6,7 +6,7 @@
 
 Target illustration: a correct answer to your first quiz question.
 
-[Start Study project](README.md#start-a-lesson) in a new **Study** project. Open its empty `setup()` in `Main.java`.
+Open the empty `setup()` in your **Study** project’s `Main.java`.
 
 ## 1. Add these imports above `public class Main`
 
@@ -51,8 +51,7 @@ add it once inside `Main`, above `setup()`:
 
 `padding(20)` leaves 20 pixels on every edge. Keep this method as you grow the Study app.
 The `10` in `new Column(10, ...)` sets the gaps **between** controls.
-These controls come from Zero, just like the Greeting project; no JavaFX imports
-are needed for the quiz.
+These controls come from Zero, just like the Greeting project.
 
 ## 4. Create and show the controls inside `setup()`
 

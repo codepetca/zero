@@ -11,12 +11,12 @@ public class Main extends GameApp {
 
     @Override public void settings() { size(640, 400); }
     @Override public void setup() {
-        var sheet = loadImageRegion("/pet/bird-flap-sheet.png");
+        var sheet = loadImage("/pet/bird-flap-sheet.png");
         ImageRegion[] frames = {
-            imageRegion(sheet.image(), 0, 0, 701, 561),
-            imageRegion(sheet.image(), 701, 0, 701, 561),
-            imageRegion(sheet.image(), 0, 531, 701, 561),
-            imageRegion(sheet.image(), 701, 531, 701, 561)
+            imageRegion(sheet, 0, 0, 701, 561),
+            imageRegion(sheet, 701, 0, 701, 561),
+            imageRegion(sheet, 0, 531, 701, 561),
+            imageRegion(sheet, 701, 531, 701, 561)
         };
         pet = new Pet(new SpriteAnimation(8, frames));
         chime = loadSound("/pet/chime.wav");

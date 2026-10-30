@@ -5,7 +5,7 @@ import "@/app/learn/learn.css";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { docs, sources } from "@/lib/content";
-import { lessons, lessonGroups, lessonNavigation, lessonAssets, projectForLesson, publishedTutorialTemplate, sampleGameAssets } from "@/lib/learning.mjs";
+import { lessons, lessonGroups, lessonNavigation, lessonNumber, lessonAssets, projectForLesson, sampleGameAssets } from "@/lib/learning.mjs";
 import {
   foldSections,
   resolveContentLink,
@@ -18,6 +18,9 @@ import { ReaderNavigation } from "./ReaderNavigation";
 import { CodeBlock } from "./CodeBlock";
 import { TutorialProject } from "./TutorialProject";
 import { DownloadRequirements } from "./Downloads";
+import { platformMarkdown } from "@/lib/platform-content.mjs";
+import { documentEmphasisKind } from "@/lib/document-emphasis.mjs";
+import { tutorialAfterLines, tutorialAfterCopyText } from "@/lib/tutorial-after-code.mjs";
 import { helpItems, teacherItems } from '@/lib/document-navigation.mjs';
 export function Document({ id, lesson = "" }) {
   const doc = docs[id];
@@ -34,10 +37,13 @@ export function Document({ id, lesson = "" }) {
   const items = lesson
     ? lessons.map((item) => ({
         id: item.id,
-        title: `${item.id}. ${item.title}`,
+        title: lessonNumber(item.id) !== undefined ? `${lessonNumber(item.id)}. ${item.title}` : item.title,
         href: `/tutorials/${item.id}`,
       }))
     : teacher ? teacherItems : helpItems;
+  const titleHeading = <h2 className="page-subtitle" id={slugify(lesson && lesson !== '15' ? `${lesson}. ${title}` : (doc.markdown.match(/^# (.+)$/m)?.[1] || title))}>
+    {lesson && lessonNumber(lesson) !== undefined ? `Lesson ${lessonNumber(lesson)}: ${title}` : title}
+  </h2>;
   const content = (
       <main
         id="page-content"
@@ -54,20 +60,44 @@ export function Document({ id, lesson = "" }) {
         </aside>
         <article className="reader-content">
           <h1>{pageTitle}</h1>
-          <h2 className="page-subtitle" id={slugify(doc.markdown.match(/^# (.+)$/m)?.[1] || title)}>
-            {lesson ? `Lesson ${lesson}: ${title}` : title}
-          </h2>
-          {id === "setup" && <DownloadRequirements />}
-          {practiceProject && (lesson === practiceProject.firstLesson || lesson === "10" || lesson === "12") && (
-            <TutorialProject project={practiceProject} lesson={lesson}
-              template={publishedTutorialTemplate(practiceProject.id)} assets={sampleGameAssets} />
+          {lesson ? <div className="lesson-purpose">
+            {titleHeading}
+            {related?.description && <p>{related.description}</p>}
+          </div> : titleHeading}
+          {id === "setup" && <DownloadRequirements platformAware />}
+          {practiceProject && lesson === practiceProject.firstLesson && (
+            <TutorialProject project={practiceProject} lesson={lesson} />
           )}
           <FoldingReader key={id}>
             <Markdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[[foldSections, { lesson: !!lesson, encouragement: related?.encouragement }]]}
+              rehypePlugins={[[foldSections, { lesson: !!lesson, encouragement: related?.encouragement, platformSetup: id === "setup" || id === "starter" }]]}
               components={{
-                pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
+                strong: ({ node, children }) => {
+                  const kind = documentEmphasisKind(node);
+                  return kind === "shortcut" ? <kbd className="doc-shortcut">{children}</kbd>
+                    : kind === "command" ? <code className="doc-command">{children}</code>
+                    : <strong>{children}</strong>;
+                },
+                pre: ({ node, children }) => {
+                  const code = node?.children?.find((child) => child.tagName === "code");
+                  const afterLanguage = code?.properties?.className?.find((name) => /^language-java-after-\d+(?:-\d+)*(?:-r\d+(?:-\d+)*)?$/.test(name));
+                  if (afterLanguage) {
+                    const lines = tutorialAfterLines(code.children.map((child) => child.value || "").join(""), afterLanguage);
+                    const copyText = tutorialAfterCopyText(lines);
+                    return <div className="tutorial-after-code">
+                      <CodeBlock copyText={copyText} hasRemovedLines={lines.some((line) => line.removed)}><code>{lines.map((line, index) => {
+                        const {added, removed, code: lineCode} = line;
+                        return <span className={`tutorial-after-line${added ? " added" : removed ? " removed" : ""}`} key={index}
+                          role={added || removed ? "img" : undefined}
+                          aria-label={added ? `Add: ${lineCode}` : removed ? `Remove: ${lineCode}` : undefined}>
+                          {lineCode}{"\n"}
+                        </span>;
+                      })}</code></CodeBlock>
+                    </div>;
+                  }
+                  return <CodeBlock>{children}</CodeBlock>;
+                },
                 img: ({ src, alt }) => {
                   const target = resolveContentLink(doc.source, src, {}, {}, lessonAssets);
                   return target && Object.values(lessonAssets).includes(target) ? (
@@ -81,6 +111,7 @@ export function Document({ id, lesson = "" }) {
                   </summary>
                 ),
                 a: ({ href, children }) => {
+                  if (href === "#zero-platform-mac" || href === "#zero-platform-windows") return <span className={href.slice(6)}>{children}</span>;
                   const target = resolveContentLink(
                     doc.source,
                     href,
@@ -101,13 +132,13 @@ export function Document({ id, lesson = "" }) {
                 },
               }}
             >
-              {doc.markdown}
+              {platformMarkdown(id, doc.markdown)}
             </Markdown>
           </FoldingReader>
           {related && related.doc !== "api" && (
             <section className="compact-related" aria-label="Related docs">
               <a href={documentHref(related.doc, related.anchor)}>
-                Contribution guide
+                {related.doc === 'setup' ? 'Setup guide' : 'Contribution guide'}
               </a>
             </section>
           )}

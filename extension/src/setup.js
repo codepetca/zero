@@ -30,7 +30,7 @@ async function checkProject(root, platform) {
   }
   if (platform !== 'win32') {
     try {await fs.access(path.join(root,'mvnw'),fs.constants.X_OK);}
-    catch {throw new Error('The starter mvnw file is not executable. Re-extract the complete Zero kit preserving file permissions, or ask your teacher or IT to restore its execute permission.');}
+    catch {throw new Error('The starter mvnw file is not executable. Re-extract the complete Zero kit preserving file permissions, or ask your device administrator or IT to restore its execute permission.');}
   }
 }
 
@@ -85,8 +85,8 @@ async function inspectSetup(options) {
   if (studentProject.root && !managedHome) {
     try {
       const keys = taskEnvironmentOverrides(await getTaskEnvironment(studentProject.root,platform),platform);
-      if (keys.length) taskEnvironment = {verified:false,keys,text:`Run environment unverified: terminal environment overrides ${keys.join(', ')}. These host-process checks do not verify the Run task's Java or Maven environment. Review the project-scoped terminal.integrated.env setting with your teacher or IT; ordinary Run App remains available.`};
-    } catch {taskEnvironment = {verified:false,keys:[],text:'Run environment unverified: terminal environment settings could not be read. Review them with your teacher or IT; ordinary Run App remains available.'};}
+      if (keys.length) taskEnvironment = {verified:false,keys,text:`Run environment unverified: terminal environment overrides ${keys.join(', ')}. These host-process checks do not verify the Run task's Java or Maven environment. Review the project-scoped terminal.integrated.env setting with your device administrator or IT; ordinary Run App remains available.`};
+    } catch {taskEnvironment = {verified:false,keys:[],text:'Run environment unverified: terminal environment settings could not be read. Review them with your device administrator or IT; ordinary Run App remains available.'};}
   }
   return {platform,source,managedJava:Boolean(managedHome),java,javac,git,project:studentProject,extensions,jdkReady,gitReady,jdkDetail,
     taskEnvironment,runReady:Boolean(jdkReady && studentProject.ok && taskEnvironment.verified && (!studentProject.requiresGit || gitReady)),editorReady:extensions[0].available};
@@ -103,7 +103,7 @@ function writeDetails(output,report,mode) {
   for (const extension of report.extensions) output.appendLine(`${extension.id}: ${extension.available ? 'available in this profile' : 'missing or disabled in this profile'} — ${extension.purpose}`);
   output.appendLine(`${report.runReady ? 'Run prerequisites ready' : 'Run prerequisites need attention'}; ${report.gitReady ? 'Git 2.31+ available for tutorials and uploads' : 'tutorials and uploads need Git 2.31+'}.`);
   output.appendLine(`Checks do not build the project or open its desktop window. ${report.runReady ? 'Choose Run current app, then confirm the JavaFX window opens.' : 'Review setup issues before using Run App.'} First builds may download Maven and JavaFX dependencies; read failures in the task terminal and Problems.`);
-  output.appendLine(`Upload mode: ${mode}. Simulation makes no Git changes. Uploads need native GitHub sign-in, a connected repository and your per-repository Git name/email. Account setup is required before tutorial lesson 0; public game publishing is optional. Zero does not change identity or credentials.`);
+  output.appendLine(`Upload mode: ${mode}. Simulation makes no Git changes. Uploads need native GitHub sign-in, a connected repository and your per-repository Git name/email. Account setup is required before creating a tutorial project; public game publishing is optional. Zero does not change identity or credentials.`);
 }
 
 function checklist(report) {
@@ -161,7 +161,7 @@ function createSetupHelp(vscode,{project,output,run,testInstallation,uploadMode 
           try {
             await vscode.commands.executeCommand('workbench.extensions.installExtension',choice.action);
             await vscode.window.showInformationMessage('Use VS Code’s install or enable prompts for this profile. If it requests a reload, reload the window, then open Troubleshooting and Check again.');
-          } catch (error) {await vscode.window.showWarningMessage(`VS Code could not install this extension: ${error.message}. On a school laptop, ask your teacher or IT to enable it in this profile.`);}
+          } catch (error) {await vscode.window.showWarningMessage(`VS Code could not install this extension: ${error.message}. On a school laptop, ask your device administrator or IT to enable it in this profile.`);}
           await check(); continue;
         }
         if (choice.action === 'jdk' || choice.action === 'git') {
@@ -171,7 +171,7 @@ function createSetupHelp(vscode,{project,output,run,testInstallation,uploadMode 
           }
           const jdk = choice.action === 'jdk', url = jdk ? JDK_URL : GIT_URL;
           const platform = report.platform === 'win32' ? 'Windows' : report.platform === 'darwin' ? 'macOS' : 'Linux';
-          const guidance = `${jdk ? 'Use a JDK 17 or newer (JDK, not JRE)' : 'Use Git 2.31 or newer'} for ${platform}. Keep a working school-provided installation. On a managed school laptop, ask your teacher or IT if installation is blocked. ${report.platform === 'linux' ? 'Follow the official Linux instructions manually. ' : 'Follow the official installer instructions. '}${jdk ? 'If JAVA_HOME is set, it must point to that JDK; otherwise java and javac must be on PATH. Ask IT to repair an old or invalid JAVA_HOME. ' : ''}Fully quit and reopen VS Code after installation or environment repair, then use Troubleshooting → Check again.`;
+          const guidance = `${jdk ? 'Use a JDK 17 or newer (JDK, not JRE)' : 'Use Git 2.31 or newer'} for ${platform}. Keep a working school-provided installation. On a managed school laptop, ask your device administrator or IT if installation is blocked. ${report.platform === 'linux' ? 'Follow the official Linux instructions manually. ' : 'Follow the official installer instructions. '}${jdk ? 'If JAVA_HOME is set, it must point to that JDK; otherwise java and javac must be on PATH. Ask IT to repair an old or invalid JAVA_HOME. ' : ''}Fully quit and reopen VS Code after installation or environment repair, then use Troubleshooting → Check again.`;
           void vscode.window.showInformationMessage(guidance);
           if (!(await vscode.env.openExternal(vscode.Uri.parse(url)))) await vscode.window.showWarningMessage(`Open ${url} in your browser. ${guidance}`);
         }

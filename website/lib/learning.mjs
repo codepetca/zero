@@ -1,8 +1,10 @@
-import {tutorialGroups, projectForLesson, publishedTutorialTemplate, sampleGameAssets, petAssets} from "../../teaching/projects.mjs";
+import {projectForLesson, publishedTutorialTemplate, sampleGameAssets, petAssets} from "../../teaching/projects.mjs";
 import tutorialCatalog from '../../extension/src/tutorial-catalog.js';
 export {projectForLesson, publishedTutorialTemplate, sampleGameAssets, petAssets};
-export const lessonGroups = tutorialGroups;
+export const lessonGroups = tutorialCatalog.visibleTutorialGroups;
+export const lessonNumber = id => tutorialCatalog.DISPLAY_NUMBERS[id];
 export const lessons = [
+  {id:'15', title:'Back to Zero', description:'Get back to Zero if its panel or page disappears.', encouragement:'You know how to find your way back!', topic:'Command Palette and navigation', doc:'setup', anchor:''},
   {
     "id": "0",
     encouragement: "You wrote your first Zero program!",
@@ -106,7 +108,7 @@ export const lessons = [
     "id": "11",
     encouragement: "You checked a component and prepared a practice contribution!",
     "title": "Practise sharing a component",
-    "description": "Check a compatible improvement and write a contribution proposal.",
+    "description": "Practise checking and sharing a component.",
     "topic": "Compatibility, tests, reuse, credit, optional ZeroHub sharing",
     "doc": "components",
     "anchor": ""
@@ -115,27 +117,29 @@ export const lessons = [
     id: "12",
     encouragement: "Keep experimenting with your game!",
     title: "Add artwork and sound",
-    description: "Add optional artwork and sound to your existing Coin game.",
+    description: "Use what you learned with the Pet game to add artwork and sound to Coin game.",
     topic: "Zero images and sound, drawing fallback, optional scrolling",
     doc: "api",
     anchor: "images-and-resources",
   },
   {
-    id:'13',title:'Make an animated pet',
-    description:'Animate a pet, give it its own class, and practise a safe Git workflow.',
-    encouragement:'You animated your own pet and organized its behaviour in a class!',
-    topic:'Images, animation, sound, classes, branches and recovery',doc:'api',anchor:'animation',
+    id:'13',title:'Show your pet',
+    description:'Start your pet game and draw a picture.',
+    encouragement:'You showed your pet!',
+    topic:'Images and game drawing',doc:'api',anchor:'images-and-resources',
   },
   {
-    id:'14',title:'Make your own project',
-    description:'Give an original project a polished welcome screen and a playable beginning.',
-    encouragement:'Keep building your own idea!',
-    topic:'Drawing, controls, navigation and your own design',doc:'api',anchor:'gameapp-frames-and-canvas',
+    id:'14',title:'Add a welcome screen',
+    description:'Add a welcome screen to your pet game, then share it.',
+    encouragement:'You made your pet game your own!',
+    topic:'Drawing, controls and navigation',doc:'api',anchor:'gameapp-frames-and-canvas',
   },
+  {id:'16',title:'Animate your pet',description:'Make your pet move, flap and play a sound.',encouragement:'Your pet is moving!',topic:'Animation, input and sound',doc:'api',anchor:'animation'},
+  {id:'17',title:'Give your pet a class',description:'Move the pet’s animation and position into its own class.',encouragement:'Your pet has its own class!',topic:'Classes and refactoring',doc:'api',anchor:'animation'},
 ];
 // Fixed teaching assets copied from canonical source at build time.
 export const lessonAssets = {
-  ...Object.fromEntries(tutorialCatalog.LESSON_IDS.map(id => {
+  ...Object.fromEntries(tutorialCatalog.LESSON_IDS.filter(id => Number(id) <= 15).map(id => {
     const name = String(id).padStart(2, "0");
     return [`student-template/lessons/visuals/${name}.svg`, `/generated/learning-assets/lessons/${name}.svg`];
   })),
@@ -334,5 +338,4 @@ export const quickLinks = [
   { title: "Tutorials", description: "Build your app one step at a time.", href: "/learn" },
   { title: "API reference", description: "Look up Zero classes and methods.", href: "/docs" },
   { title: "Setup help", description: "Install Zero and troubleshoot running.", href: "/help/setup" },
-  { title: "For teachers", description: "Teaching notes and classroom checks.", href: "/teachers" },
 ];

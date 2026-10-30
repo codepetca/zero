@@ -53,7 +53,7 @@ function templateSetup(template) {
 
 1. Open [Use this template](${template.templateHref}), then choose **Create a new
    repository**. Select your personal account as owner, choose your own project
-   name and follow your teacher's visibility instructions.
+   name and choose the repository visibility that suits your project.
 2. Open the repository you just created in your own account. Choose **Code →
    HTTPS** and copy its URL. Sign in to Zero and choose **Project → Clone from GitHub…**.
    Paste your URL in **Clone from GitHub**. In **Clone location**, keep the default
@@ -108,10 +108,10 @@ function templateWorkflow() {
 5. Click **Merge to main** beside your branch to merge and push the completed change.
    If Zero brings in newer main code, Run App again, then click Merge to main again.
    Merge to main merges the current branch into main and pushes main; it does not create a pull request.
-6. Check your actual files on GitHub's **main** branch. Submit your own repository
-   link separately in Pika, giving your teacher access if it is private.
+6. Check your actual files on GitHub's **main** branch. If your course uses Pika, submit your repository link there separately, granting
+   access to anyone who needs it if the repository is private.
 
-Run App does not require GitHub sign-in. Ask your teacher for help with setup,
+Run App does not require GitHub sign-in. See Zero Troubleshooting for help with setup,
 conflicts or failed pushes. See the [repository and push guide](https://github.com/codepetca/zero/blob/main/docs/GETTING-STARTED.md#your-individual-workflow).
 `;
 }
@@ -119,8 +119,7 @@ conflicts or failed pushes. See the [repository and push guide](https://github.c
 function repositoryWorkflow() {
   return `## Your GitHub repository and Pika
 
-1. Create your own empty GitHub repository in your personal account. Follow your
-   teacher's visibility instructions; leave README, license and gitignore
+1. Create your own empty GitHub repository in your personal account. Choose the repository visibility that suits your project; leave README, license and gitignore
    uninitialized. This downloaded ZIP becomes the files in your repository.
 2. Sign in through the account control in Zero’s sidebar. Use **Project → Connect to GitHub…** with your own repository's HTTPS URL. Connection
    alone does not push files.
@@ -138,10 +137,10 @@ function repositoryWorkflow() {
    after an incorrect answer". Review the destination and changed files.
 7. Click **Merge to main** beside your branch to merge and push main.
    If Zero brings in newer main code, Run App again, then click Merge to main again.
-8. Check your actual files on GitHub's **main** branch. Submit your own repository
-   link separately in Pika, giving your teacher access if it is private.
+8. Check your actual files on GitHub's **main** branch. If your course uses Pika, submit your repository link there separately, granting
+   access to anyone who needs it if the repository is private.
 
-Run App does not require GitHub sign-in. Ask your teacher for help with setup,
+Run App does not require GitHub sign-in. See Zero Troubleshooting for help with setup,
 conflicts or failed pushes. See the [repository and push guide](https://github.com/codepetca/zero/blob/main/docs/GETTING-STARTED.md#your-individual-workflow).
 `;
 }

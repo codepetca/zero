@@ -12250,3 +12250,102 @@ certificates or signing keys retained. Ready-to-upload acceptance remains blocke
 on required WACK DPI validation. Next useful step: native Intel/AMD Windows10/11
 WACK per Microsoft's prerequisites, or Microsoft support guidance for COM E_FAIL.
 PR229 remains draft/unmerged; no app/site release or Store submission performed.
+
+## Project Explorer command names — 2026-10-29
+
+PR #231 renames the two explorer commands while retaining their IDs and the existing
+Project focus behavior. Independent review of 48022dc3..f9e22f6c found no blocker;
+reviewer model/effort and elapsed time were not exposed on the reused reviewer.
+The 17 focused extension/explorer tests and diff whitespace check passed after
+preparing the generated theme. The tests assert command dispatch, not actual
+restoration of a manually hidden view in the VS Code interface; that Mac acceptance
+remains outstanding. No release follows from this source change.
+
+## Online Tutorial Docs — 2026-10-29
+
+Local review of the Tutorial Docs browser transition used a Terra High reviewer
+(requested; effective configuration and task cost unavailable). Review identified
+starter-lesson selection, outdated offline documentation and a duplicate-open
+race; corrections were reviewed with no remaining blocking finding. Seventy-eight
+focused tests pass, including unavailable/rejected integrated browser and external
+failure. In VS Code 1.144 on Mac, the real extension host invoked the Zero command
+and observed the integrated browser tab in a second editor group. The live lesson
+URL returned HTTP 200 separately; visual page rendering and an actual older VS Code
+fallback remain unverified. The integrated browser command is a VS Code workbench
+command, not a documented stable extension API. No publication follows.
+
+## Tutorial recovery and visible numbering — 2026-10-29
+
+Local curriculum adds a first recovery guide and numbers the visible lessons 1–11.
+Study is removed from current tutorial choices, while its old lesson URLs and
+project markers remain readable. The optional component/practice lessons now use
+only Coin. The earlier public lesson IDs and existing page heading fragments stay
+stable; numbers displayed to students are separate. A Terra High independent
+review found stale guide text, metadata, hidden legacy selection and fragments;
+those corrections received a targeted review with no remaining blocker. The
+focused extension and website tests, standalone starter archive check and local
+website build passed; local browser checks covered the recovery and Greeting pages
+and a legacy quiz URL. Real student/school trials remain outstanding. The new
+`/tutorials/15` website route must be published before an editor using it is
+released. No website, template or app publication is implied by this local work.
+
+
+## Documentation platform choice — local, 2026-10-29
+
+The profile menu now offers a Mac/Windows documentation choice, remembers it locally,
+and shows matching recovery and run shortcuts and setup commands. A website-only transformation
+preserves the bundled lesson source. The setup guide hides the Mac installer section
+for Windows and retains shared ZIP guidance. Local browser checks exercised both
+choices, lesson-to-guide navigation and reload persistence; the website suite passed
+248 tests. Independent Terra High review identified lost ZIP and older Mac upgrade
+notes; both were restored and the fixes reviewed. Physical Windows and mobile Safari
+were not tested. This source change is not merged or published.
+
+## Online-only tutorial reader — local source
+
+The extension opens Tutorial Docs on the website using the integrated browser or
+regular-browser fallback. The obsolete bundled reader and generated lesson payload
+are removed; starter kit archives omit the lesson folder and packaged guides link to
+the website. Canonical lesson files remain inputs to the website. Local focused
+onboarding, kit and website tests and source checks passed; a local VSIX was inspected
+to confirm the old reader and lesson assets are absent. These changes are not released.
+
+## Student guidance wording — local source
+
+Student tutorial, setup and installer guidance now gives direct next steps without
+assigning responsibility to teachers. Managed-device restrictions point to the
+device administrator or IT. Educator-specific material, legal facts and historical
+records are retained. Local website build, 248 website tests, focused onboarding/
+setup and installer tests, and browser inspection of the recovery lesson passed;
+independent review and targeted corrections completed. Physical Windows and school
+network testing remain separate. The four public template README updates merged via
+Greeting PR3, Study PR3, Game PR3 and Pet PR2. Their anonymous commit archives were
+checked against every generated scaffold file and executable mode; verified commit,
+tree and scaffold hashes are recorded in teaching/tutorial-templates.json. Each
+repository is public, remains a template and has main as its default branch. Template
+repositories had no configured CI. Zero source changes remain local until merged.
+
+The first CI run exposed that changing the generated publishing guide also changes
+its ownership fingerprint. The migration accepts two exact, independently verified
+historical fingerprints and matching markers; unknown or edited files remain blocked.
+Focused migration and publishing tests passed, including both historical upgrades,
+recovery bytes and forged/mixed marker rejection. Independent review compared the
+fixtures against canonical Git source and found no unresolved issue.
+
+## Documentation command highlights — local source
+
+The website reader displays keyboard shortcuts as inline keycaps and Command
+Palette names as inline code-style labels. Mac/Windows filtering remains in place;
+ordinary bold labels and Java examples retain their existing treatment. Local
+browser inspection covered the recovery lesson in light and dark themes, both
+platform selections, and the Mac setup update command. Focused tests and website
+build passed. Independent review found the update command lost its emphasis in a
+platform variant; it was corrected and the delta reviewed. Mobile Safari, physical
+Windows and assistive-technology behavior were not tested. Not merged or published.
+
+Tutorial project-start links and template buttons were replaced with plain Start
+Page directions for Greeting, Coin and Pet; the retired Study lesson directs
+readers to their existing project. Ordinary lesson navigation and media links stay
+available. Website build and 248 website tests passed, and the Greeting lesson was
+inspected in the browser. Independent review confirmed menu labels and found no
+remaining issue. No app or template release is included.

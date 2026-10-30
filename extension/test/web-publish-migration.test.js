@@ -2,20 +2,27 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const migration=require('../src/web-publish-migration');
 const baseline=require('./web-publish-legacy-fixture');
-async function fixture(t) {
+async function fixture(t,kit='legacy') {
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'zero-kit-migration-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
   fs.mkdirSync(path.join(root,'.git'));
-  const {current,legacy}=await baseline();
+  const baselines=await baseline(),current=baselines.current,legacy=baselines[kit];
   for(const [name,data]of legacy){fs.mkdirSync(path.dirname(path.join(root,name)),{recursive:true});fs.writeFileSync(path.join(root,name),data);}
   return {root,current,legacy};
 }
 function unchanged(h){for(const [name,data]of h.legacy)assert.deepEqual(fs.readFileSync(path.join(h.root,name)),data);}
-test('only the complete pinned legacy baseline is an upgrade; edited, forged, unknown and incomplete kits fail closed',async t=>{
-  for(const kind of ['edited','forged','unknown','incomplete','large','directory','symlink','parent-symlink'])await t.test(kind,async t=>{
-    const h=await fixture(t),readme=path.join(h.root,'.zero-web/README.md');
+test('only complete pinned historical baselines upgrade; edited, forged, unknown and incomplete kits fail closed',async t=>{
+  for(const kit of ['legacy','previous'])for(const kind of ['edited','forged','mixed-marker','self-signed','unknown','incomplete','large','directory','symlink','parent-symlink'])await t.test(kit+' '+kind,async t=>{
+    const h=await fixture(t,kit),readme=path.join(h.root,'.zero-web/README.md');
     assert.equal(migration.inspect(h.root,h.current).upgrade,true);
     if(kind==='edited')fs.appendFileSync(readme,'Student edit\n');
     if(kind==='forged')fs.writeFileSync(path.join(h.root,'.zero-web/owner.json'),'{}');
+    if(kind==='mixed-marker')fs.writeFileSync(path.join(h.root,'.zero-web/owner.json'),(await baseline())[kit==='legacy'?'previous':'legacy'].get('.zero-web/owner.json'));
+    if(kind==='self-signed'){
+      fs.appendFileSync(readme,'Student edit\n');
+      const digest=require('node:crypto').createHash('sha256');
+      for(const name of [...h.legacy.keys()].filter(name=>name!=='.zero-web/owner.json').sort((a,b)=>a.localeCompare(b)))digest.update(name).update('\0').update(fs.readFileSync(path.join(h.root,name)));
+      fs.writeFileSync(path.join(h.root,'.zero-web/owner.json'),JSON.stringify({format:1,toolHash:digest.digest('hex')})+'\n');
+    }
     if(kind==='unknown')fs.writeFileSync(readme,'Unknown kit');
     if(kind==='incomplete')fs.unlinkSync(path.join(h.root,'.zero-web/run.cjs'));
     if(kind==='large')fs.writeFileSync(readme,Buffer.alloc(256*1024+1));
@@ -24,6 +31,16 @@ test('only the complete pinned legacy baseline is an upgrade; edited, forged, un
     if(kind==='parent-symlink'){fs.renameSync(path.join(h.root,'.zero-web'),path.join(h.root,'outside'));fs.symlinkSync(path.join(h.root,'outside'),path.join(h.root,'.zero-web'));}
     assert.throws(()=>migration.inspect(h.root,h.current),/different content|symbolic link|regular file/);
   });
+});
+test('the previous current kit upgrades only the guide and marker and retains its exact recovery bytes',async t=>{
+  const h=await fixture(t,'previous'),review=migration.inspect(h.root,h.current);
+  assert.equal(review.upgrade,true);
+  assert.deepEqual(review.changed,['.zero-web/README.md','.zero-web/owner.json']);
+  migration.apply(h.root,h.current,review.original);
+  for(const [name,data]of h.current)assert.deepEqual(fs.readFileSync(path.join(h.root,name)),data);
+  assert.equal(migration.inspect(h.root,h.current).upgrade,false);
+  const saved=copies(h)[0];
+  for(const name of review.changed)assert.deepEqual(fs.readFileSync(path.join(saved,'original-'+path.basename(name))),h.legacy.get(name));
 });
 test('same-content path replacement and post-review byte drift are refused without writing',async t=>{
   for(const kind of ['bytes','file','directory'])await t.test(kind,async t=>{

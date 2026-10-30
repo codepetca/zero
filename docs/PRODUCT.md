@@ -297,10 +297,11 @@ A saved session receives a read-only check on launch without opening a browser o
 starting sign-in. Local Run and Files remain usable while signed out or offline;
 cloud repository, push and sharing controls stay hidden until access is ready.
 Publication and uploads remain explicit.
-`/learn` opens lesson 0 directly in the tutorial reader. All thirteen lessons (0–12)
-are listed under three quiet project headings (Greeting app, Study quiz and Coin
-game); selecting one updates the reading pane and its bookmarkable
-`/tutorials/[lesson]` URL. Narrow screens use a selector with the same groups.
+`/learn` opens the recovery guide, lesson 1. The visible sequence continues
+through Greeting, Coin, Pet and an original project, with optional component and
+media lessons numbered 9–11. Prior quiz addresses remain readable for existing
+links but the quiz is not offered in the current tutorial chooser. Stable internal
+lesson IDs and project markers are unchanged; display numbers are separate.
 Code blocks in tutorials, docs, source views and ZeroHub copy their exact text when
 clicked, with a keyboard-accessible Copy button and success/failure feedback.
 Dragging to select text keeps manual copying available.
@@ -427,24 +428,12 @@ kits keep their original source and build files until explicitly upgraded.
 Zero controls and calls `show(...)`. The tutorial uses Zero buttons, labels,
 text fields and layouts without direct JavaFX imports.
 The installed kit's default app shows Hello, world!; the learning projects start
-with empty runnable boilerplate. Lessons 0–2 grow one Greeting app from label to
-button to name input. Lessons 3–7 grow one Study quiz: answer feedback, attempts,
-reset methods, a Counter object, then Question objects/arrays and scoring. Lessons
-8–12 grow one Coin game with student-authored Player/Coin, win/restart, ScoreDisplay
-reuse, and optional media/scrolling. Lesson 10 extracts PlayerInput from a busy
-game Main, then reopens Study and Game to extract and reuse ScoreDisplay. Lesson
-11 practises compatible changes, optionally adds WASD controls, then extracts
-a harmless CreditsBadge for explicitly labelled Tutorial practice sharing. Copies
-are expected and excluded from ordinary catalogue search. An original community
-or core contribution remains an optional extension with attribution, licensing
-and checks.
-Lesson 12 adds optional artwork, sound and a small scrolling extension to the
-same Coin game. Larger game references are maintainer completeness checks,
-not additional tutorial requirements; see [basic games](BASIC-GAMES.md).
-The scored quiz remains a later reuse example.
-The new local tutorial pass inserts one-coin native controls before arrays/win,
-then reuses unchanged ScoreDisplay in the study app and coin game.
-[Lesson 10](../student-template/lessons/10-components.md#screens-and-app-flow) explains controls/components and screen flow in games;
+with empty runnable boilerplate. The current path begins with navigation
+recovery (lesson 0), then Greeting (1–3), Coin (4–5) and Pet (6–9), including
+its welcome screen. Coin game revisited (10–12) refactors the game, practises
+sharing a clearly labelled CreditsBadge and challenges students to add media.
+Existing quiz routes and project markers remain available for older links.
+[Lesson 10](../student-template/lessons/10-components.md#screens-and-app-flow) explains controls and components;
 [the teaching plan](TUTORIAL-PLAN.md) distinguishes current conventions from proposed
 welcome/result/countdown helpers. Existing published kits keep their original bytes.
 Tutorial pages use the current project name as their main heading: Greeting App,
@@ -512,11 +501,11 @@ Start tutorial supplies only empty Main boilerplate and build/framework setup.
 There are three scaffolds: Greeting (0–2), Study (3–7), Game (8–12). Website start
 buttons appear at 0, 3 and 8; later pages say to continue the existing project.
 Before lesson 0, students complete account/privacy setup: their own verified GitHub
-account, Git 2.31+, school GitHub/VS Code/compilation access and teacher-approved
+account, Git 2.31+, school GitHub/VS Code/compilation access and a configured Git
 commit identity. Repositories created through Zero are public, including their
 source and included files; students should keep secrets and private material out.
-Existing or GitHub-created repositories may retain their visibility, with teacher
-collaborator access where needed. Public game publishing remains optional. On the Zero Start Page, **Start tutorial**
+Existing or GitHub-created repositories may retain their visibility, with collaborator
+access granted where needed. Public game publishing remains optional. On the Zero Start Page, **Start tutorial**
 is primary; **New project** skips the tutorial and creates original work. The **…** menu also opens **Tutorials** for existing projects. The action
 selects the matching verified tutorial scaffold. The flow collects a repository
 name and parent folder before creating a public copy in
@@ -533,7 +522,7 @@ available from the empty sidebar. Reopen **Tutorials** to continue reading; less
 scroll position and disclosure state persist locally per project. This is reading
 state only, not completion or grading. Choose the first lesson through **All
 tutorials** to restart the reading sequence without changing student code.
-**Start tutorial** creates a new repository and is not a reset for the existing one. Completed teacher
+**Start tutorial** creates a new repository and is not a reset for the existing one. Completed reference
 checkpoints and optional references stay outside the empty template scaffolds. Lesson 12 optionally downloads only two
 media resources; students may use their own assets or drawing fallback.
 Click Run App again after editing: Zero saves, stops the previous process and
@@ -541,7 +530,7 @@ rebuilds. No normal lesson switching, source replacement or helper removal is ne
 Tutorial projects carry a tutorial identifier and repository-required marker,
 normal Git ignores and enabled Git controls. Run and repository actions require
 an existing standalone Git repository with a valid commit and GitHub origin;
-cloning the shared teacher template directly is rejected. These are local teaching
+cloning the shared tutorial template directly is rejected. These are local teaching
 checks, not cryptographic proof of a clone or online account ownership. Once cloned,
 Run works offline without an active GitHub session. Upload, branch changes and
 Publish use the ordinary live GitHub flow. Ordinary ZeroHub contributions still require
@@ -666,16 +655,12 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   no hot reload or browser compilation on local Run. The existing native command
   ID remains a compatibility alias. Browser preview remains available explicitly
   through Export for web; local Run has no Open in browser action.
-- A tutorial repository opens its bundled Tutorials editor tab beside Main.java
-  once when the editor is empty. Tutorials in the view menu or Command Palette
-  reopens it; ordinary older-kit Markdown guides remain supported. All13 lessons,
-  illustrations, code and linked Java references are bundled for offline reading.
-  Its numbered instructions and code stay visible; only completed code references
-  use optional disclosures.
-  The tab retains the selected lesson, scroll and disclosures per project. It
-  supports native floating windows and moves back into editor groups. Open in
-  browser opens the current canonical lesson on the website; website navigation
-  does not synchronize back into the editor. Start tutorial stays in the ready empty sidebar and
+- A tutorial repository opens the current online lesson beside Main.java once
+  when the editor is empty. Tutorial docs in the menu or Command Palette opens
+  the website in VS Code's integrated browser when available; older hosts or
+  failed browser commands fall back to the regular browser. Internet access is
+  required for the current lessons. Older-kit Markdown guides remain supported
+  for automatic first-open. Start tutorial stays in the ready empty sidebar and
   overflow; Clone from GitHub is in the project menu. Neither lesson navigation nor opening
   a browser writes student Java, signs in, pushes or publishes anything.
 - A run that exits with an error offers Show Problems for source navigation;

@@ -1,9 +1,9 @@
 # Make it look good
 
-Learn layout and appearance in the [Greeting App tutorial](lessons/02-hello-name.md#layout-and-appearance).
+Learn layout and appearance in the [Greeting App tutorial](https://zero.codepet.ca/tutorials/2#layout-and-appearance).
 This source guide retains additional experiments for older kits and contributors.
-Start with the [Greeting App tutorial](lessons/02-hello-name.md) for controls or
-[Coin Game tutorial](lessons/08-movement.md) for a canvas game.
+Start with the [Greeting App tutorial](https://zero.codepet.ca/tutorials/2) for controls or
+[Coin Game tutorial](https://zero.codepet.ca/tutorials/8) for a canvas game.
 Keep the layout clear, then change a few deliberate values.
 
 ## A small visual recipe
@@ -46,7 +46,7 @@ use one place for the outer margin.
 
 ## Optional native JavaFX stylesheets
 
-The [Greeting App tutorial](lessons/02-hello-name.md) runs in the browser with
+The [Greeting App tutorial](https://zero.codepet.ca/tutorials/2) runs in the browser with
 ordinary JavaFX controls and an explicit heading `Font`; it needs no stylesheet.
 The following is an advanced **native JavaFX** experiment. External stylesheets
 and `getStylesheets()` are outside Zero's supported browser profile. Use an

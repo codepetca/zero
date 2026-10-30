@@ -45,7 +45,7 @@ namespace ZeroSetup
             catch (Exception error)
             {
                 Failed = true; Status = "Could not prepare Zero. Try again or open Details.";
-                Details = error.Message + "\r\n\r\nCheck your internet connection and available disk space. On a school device, ask your teacher or IT if software is blocked.";
+                Details = error.Message + "\r\n\r\nCheck your internet connection and available disk space. On a school device, ask your device administrator or IT if software is blocked.";
                 return false;
             }
             finally { Busy = false; Changed?.Invoke(); }

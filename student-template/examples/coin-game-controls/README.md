@@ -22,4 +22,4 @@ Restart requests canvas focus; click the canvas if keys are inactive.
 places ordinary JavaFX controls beneath the canvas. Main owns the number and
 explicitly updates the score Label after collection and reset. Coin owns its
 collected flag. Restart creates fresh game objects and reuses the controls;
-it does not call setup. See [Lesson 9 stage 3](../../lessons/09-coin-game.md#3-add-native-controls-and-restart).
+it does not call setup. See [Lesson 9 stage 3](https://zero.codepet.ca/tutorials/9#3-add-native-controls-and-restart).

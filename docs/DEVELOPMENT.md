@@ -640,7 +640,7 @@ light/dark web inspection; physical Windows icon rendering remains separate.
 ## Native Explorer integration
 
 Local source defaults to the Student Explorer after the owner’s reviewed-preview
-continuation on2026-10-26. **Zero: Use Standard Explorer** and **Zero: Use Student
+continuation on2026-10-26. **Zero: Show Standard Explorer** and **Zero: Show Project
 Explorer** persist a workspace choice; an explicit Standard Explorer preference
 is preserved on upgrade. An existing workspace receives the new sidebar once,
 without replacing its open editors. The supported `zero-student-explorer` view container combines
@@ -666,7 +666,7 @@ project/tree targets before opening the name prompt. File creation then targets
 the containing folder, revalidated before mutation; subsequent removal of the
 original sibling file does not change that destination.
 **Show all project files** opens the full Explorer without changing the selected mode;
-the Zero status-bar action returns to the active controls. **Zero: Use Standard
+the Zero status-bar action returns to the active controls. **Zero: Show Standard
 Explorer** selects the standard layout. No host layout storage or private APIs are used.
 
 java and resources map to actual source/resource roots. Selected file actions

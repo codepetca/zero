@@ -30,11 +30,10 @@ JDK **17+**, with no global Maven or Node.js installation. The first build needs
 internet for Maven and JavaFX dependency downloads; later runs reuse the local
 cache.
 
-Tutorial repositories open **Tutorials** beside `Main.java`. Use the lesson picker,
-and full numbered instructions to read the bundled lessons offline.
-**Open in browser** opens the current website lesson. Native tab controls can move
-Tutorials into a floating window and back; the selected lesson and reading position
-are kept for that project. Tutorials is also available in Zero's **…** menu.
+Tutorial repositories open their first online lesson beside `Main.java` in VS Code's
+integrated browser when available. **Tutorial docs** in Zero's menu or Command
+Palette opens the website; older hosts fall back to the regular browser. An internet
+connection is needed to read the current lessons.
 
 The default build shortcut uses the same native run action:
 

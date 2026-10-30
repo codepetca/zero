@@ -67,8 +67,8 @@ test('tutorial gate uses only local Git and accepts an own-origin clone without 
   assert.equal(run(clone,['status','--porcelain']),'');assert.ok(calls.length>0);
   for(const teacher of ['greeting','study','game','pet']) {
     run(clone,['remote','set-url','origin',`https://github.com/codepetca/zero-tutorial-${teacher}.git`]);
-    await assert.rejects(core.assertTutorialRepository(clone,readOnly),/teacher tutorial template origin/);
-    await assert.rejects(core.connectRepository(clone,'https://github.com/student/new',async()=>true,readOnly),/teacher tutorial template origin/);
+    await assert.rejects(core.assertTutorialRepository(clone,readOnly),/shared tutorial template origin/);
+    await assert.rejects(core.connectRepository(clone,'https://github.com/student/new',async()=>true,readOnly),/shared tutorial template origin/);
   }
   run(clone,['remote','set-url','origin','git@github.com:student/app.git']);await assert.rejects(core.assertTutorialRepository(clone,readOnly),/ordinary GitHub HTTPS origin/);
   run(clone,['remote','remove','origin']);await assert.rejects(core.assertTutorialRepository(clone,readOnly),/ordinary GitHub HTTPS origin/);

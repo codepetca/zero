@@ -2,3 +2,6 @@ node_modules/**
 test/**
 package-lock.json
 *.vsix
+
+media/tutorial-content.json
+media/tutorial-assets/**

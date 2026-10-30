@@ -6,10 +6,10 @@ Older downloads keep their own bundled instructions and API.
 Zero 0.5.27 uses a native JavaFX window for Run App. Mac 0.5.26 and other
 earlier downloads retain their bundled Run behavior.
 
-This bundled Hello World project is an installation check, not your lesson 0
+This bundled Hello World project is an installation check, not your tutorial
 repository. Use it to check local setup; create your own tutorial clone for
-[Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
-uses three continuing projects: Greeting (0–2), Study (3–7) and Game (8–12).
+[Lesson 1: Hello, world!](https://zero.codepet.ca/tutorials/0). The [lesson guide](https://zero.codepet.ca/learn)
+starts with navigation, then uses Greeting, Coin and Pet projects.
 Choose **Start tutorial** from Zero’s welcome or **…** menu to create each matching
 tutorial project once. Enter a name and choose a clone location (default
 `~/Zero Projects`), then choose **Clone here**. Zero creates a public repository
@@ -38,15 +38,15 @@ for web perform those checks and browser compilation when requested.
 
 ## First setup
 
-Before tutorial lesson 0, have **your own verified GitHub account and Git 2.31+**.
-Use [github.com/signup](https://github.com/signup) if needed. Follow your teacher's
+Before creating a tutorial project, have **your own verified GitHub account and Git 2.31+**.
+Use [github.com/signup](https://github.com/signup) if needed. Follow school
 username/email policy and check GitHub access, Zero browser sign-in and compiler
-downloads on your school machine; ask teacher/IT about restrictions. Confirm that
+downloads on your school machine; contact school IT about restrictions. Confirm that
 public tutorial source is allowed before creating through Zero. Keep private files
 out of public repositories. For an existing or GitHub-created private repository,
-invite the teacher's confirmed username as a collaborator and verify access;
+invite the intended reviewer’s confirmed username as a collaborator and verify access;
 a private link alone grants none, and collaborators can edit.
-Set your teacher-approved Git name/email per repository; for email privacy, copy
+Set a Git name/email that follows school policy per repository; for email privacy, copy
 the exact GitHub `noreply` address from Settings → Emails. Keep passwords/tokens
 out of projects. See [the account/privacy guide](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy).
 The ordinary local Hello World check below needs no account. After cloning and
@@ -93,8 +93,7 @@ and **Check again**. School IT can provide the tools before students start.
 4. Run App. The first run needs internet to download the pinned Maven and JavaFX
    dependencies; later runs reuse the local cache. You do
    not need Node.js, global Maven or a separate JavaFX installation.
-   A school proxy/firewall can block these downloads; ask your teacher rather
-   than adding passwords or tokens to project files.
+   A school proxy/firewall can block these downloads; contact school IT for help; do not add passwords or tokens to project files.
 
 Your saved `.zero-build` folder contains the browser compiler rules and adapters
 for this project. Keep it unchanged when updating the Zero editor. Its README
@@ -126,26 +125,22 @@ artifact code do not make those platforms supported in this MVP.
 Use the installed starter's **Run App** once to check setup: it opens a short
 Hello, world! demonstration in its own JavaFX window. Then choose
 **Start tutorial → Greeting app** from Zero’s welcome or **…** menu
-to begin [Lesson 0](lessons/00-hello-world.md) with your own empty Main. Write the
-label, then continue lessons 1 and 2 in that same Greeting folder.
+to begin [Lesson 1](https://zero.codepet.ca/tutorials/0) with your own empty Main. Write the
+label, then continue lessons 2 and 3 in that same Greeting folder.
 
-Create **Study quiz** at lesson 3 and continue it through lesson 7. Create
-**Coin game** at lesson 8 and continue it through lesson 12. Lesson 10 reopens
-Study and Game to reuse your own class. Lesson 12's only optional download is
+Create **Coin game** for lessons 4 and 5. Optional lessons 10 and 11 refactor and
+practise sharing a component in that game. Lesson 12's optional download is
 an image/sound ZIP; your own assets or drawing fallback work too.
 
-**Zero: Open First Lesson** opens the project's first online lesson. The website sidebar
+**Zero: Tutorial docs** opens the project's first online lesson. The website sidebar
 lets you choose your next lesson. A failed Run offers **Show Problems**.
-See the [lesson guide](lessons/README.md) or optional [beginner toolkit](BEGINNER.md).
+See the [lesson guide](https://zero.codepet.ca/learn) or optional [beginner toolkit](BEGINNER.md).
 Complete examples are separate references; run them only in their own local copy.
 The [appearance guide](STYLE.md) covers fonts, colours, layouts and editable styles.
 
-The default is a short greeting with a single Label. Lesson 3 uses a tiny quiz
-with `if`/`else` and feedback. The later scored quiz teaches fields, objects and
-methods called by events. `settings()` sets the window title and initial content
-size. `setup()` builds the interface once and calls `show(screen)` with an
-ordinary JavaFX node. A button's `setOnAction(event -> checkAnswer())` means
-“when clicked, call this method.” The method body is ordinary Java.
+The Greeting lessons start with a Label, then add a button and a name field.
+`settings()` sets the window title and initial content size. `setup()` builds the
+interface once. Event handlers run ordinary Java when the student clicks a button.
 
 `App` does not run an animation loop. The window is resizable; JavaFX
 layouts such as VBox/HBox arrange and resize their children. The scored quiz uses
@@ -233,18 +228,18 @@ Right-click resources or a folder inside it to import existing images/audio.
 Right-click an asset and choose **Copy Asset Path** for its path in Java.
 **Rename file…** changes an editable file's name; Java declarations and references
 need their own source edits. The Project **⋯** menu contains Refresh, Collapse
-All, Show all project files and ZeroHub. **Zero: Use Standard Explorer** restores
-the ordinary file tree; **Zero: Use Student Explorer** returns here.
+All, Show all project files and ZeroHub. **Zero: Show Standard Explorer** opens
+the ordinary file tree; **Zero: Show Project Explorer** returns here and reveals
+the Project section if it was hidden.
 Click **Run** to rebuild after
 editing (stop the current preview first if it is running).
 
 ## Try an example
 
-The `examples/` shelf is outside compiled `src/`. In the [tutorials](lessons/README.md),
+The `examples/` shelf is outside compiled `src/`. In the [tutorials](https://zero.codepet.ca/learn),
 use **Start tutorial** to create your own Greeting, Coin or Pet repository from
 its matching verified template. Keep the same repository for its lessons. If a
-template is not available yet, ask your teacher. The fourth tutorial uses
-**Project → New** for your own original project. Study and component-sharing
+template is not available yet, choose another available tutorial and check back later. You can also use **Project → New** to start an original project. Study and component-sharing
 lessons are optional. Students write their own controls and classes, and the Pet
 tutorial uses downloadable artwork and sound. Some reference examples use native JavaFX APIs outside the browser subset;
 these run natively with Run App. Publish app or Export for web reports unsupported
@@ -258,35 +253,35 @@ tutorial path. ZeroHub contributions use original projects of your own.
 | --- | --- | --- |
 | Hello, Java | `examples/hello-app/Main.java` → `src/main/java/Main.java`; `examples/hello-app/theme.css` → `src/main/resources/hello-app/theme.css` | Type a name, say hello, reset, then change the theme. See [copy/run instructions](examples/hello-app/README.md). |
 | Reach the coin | `examples/reach-the-coin/Main.java` and `examples/reach-the-coin/Player.java` | Move with arrows, touch the gold square to win, press R to restart. See [copy/run instructions](examples/reach-the-coin/README.md). |
-| Say hello | `examples/hello-button/Main.java` | Click one button to change a greeting. See [Lesson 1](lessons/01-hello-button.md). |
-| Greet by name | `examples/hello-name/Main.java` | Type your name, then click Say hello. See [Lesson 2](lessons/02-hello-name.md). |
-| Click counter | `examples/click-counter/Main.java` | +1 counts clicks. See [Lesson 4](lessons/04-counter.md). |
-| Reset counter | `examples/reset-counter/Main.java` | Reset clears the count; methods name each action. See [Lesson 5](lessons/05-methods.md). |
-| Counter object | `examples/object-counter/Main.java`, `examples/object-counter/Counter.java` | Main explicitly uses an ordinary Counter. See [Lesson 6](lessons/06-objects.md). |
-| One coin with controls | `examples/coin-game-controls/Main.java`, plus Player and Coin from `examples/coin-game/` | Native score/message/Restart beneath the canvas. See [Lesson 9](lessons/09-coin-game.md). |
-| Shared component in a game | `examples/coin-game-component/Main.java`, Player/Coin from `examples/coin-game/`, and `examples/shared/ScoreDisplay.java` | Reuse the study app's display in a game. See [Lesson 10](lessons/10-components.md). |
+| Say hello | `examples/hello-button/Main.java` | Click one button to change a greeting. See [Lesson 2](https://zero.codepet.ca/tutorials/1). |
+| Greet by name | `examples/hello-name/Main.java` | Type your name, then click Say hello. See [Lesson 3](https://zero.codepet.ca/tutorials/2). |
+| Click counter | `examples/click-counter/Main.java` | +1 counts clicks. |
+| Reset counter | `examples/reset-counter/Main.java` | Reset clears the count; methods name each action. |
+| Counter object | `examples/object-counter/Main.java`, `examples/object-counter/Counter.java` | Main explicitly uses an ordinary Counter. |
+| One coin with controls | `examples/coin-game-controls/Main.java`, plus Player and Coin from `examples/coin-game/` | Native score/message/Restart beneath the canvas. See [Lesson 5](https://zero.codepet.ca/tutorials/9). |
+| Shared component in a game | `examples/coin-game-component/Main.java`, Player/Coin from `examples/coin-game/`, and `examples/shared/ScoreDisplay.java` | Reuse a display in a game. See [Lesson 10](https://zero.codepet.ca/tutorials/10). |
 | Composed study app | Main from `examples/composed-study/`, Question from `examples/study/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Start, answer questions, finish and restart using shared views. [Exact copy list](examples/composed-study/README.md). |
 | Composed coin game | Main from `examples/composed-game/`, Player/Coin from `examples/coin-game/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Use the same views with an explicitly gated canvas game. [Exact copy list](examples/composed-game/README.md). |
-| Move a player | `examples/movement/Main.java`, `examples/movement/Player.java` | Arrow keys move a square. See [Lesson 8](lessons/08-movement.md). |
+| Move a player | `examples/movement/Main.java`, `examples/movement/Player.java` | Arrow keys move a square. See [Lesson 4](https://zero.codepet.ca/tutorials/8). |
 | Sprite playground | `examples/sprite-playground/Main.java` → `src/main/java/Main.java`; `examples/sprite-playground/src/main/resources/bird-flap-sheet.png` → `src/main/resources/bird-flap-sheet.png` | Independent sprite clocks share one image; arrows move, Space/click pauses, R resets, geometry changes the target colour. [Copy/run instructions](examples/sprite-playground/README.md). Included in Mac setup 0.5.23/core 0.2.1; older kits retain their bundled API. |
 | Audio playground | `examples/audio-playground/Main.java` → `src/main/java/Main.java`; `examples/audio-playground/resources/audio-playground/` → `src/main/resources/audio-playground/` | Load once, trigger an effect and loop/pause/resume/stop/mute music with native buttons. [Copy/run instructions](examples/audio-playground/README.md). Included in Mac setup 0.5.23/core 0.2.1; older kits retain their bundled API. |
-| Sprite and sound | `examples/media-demo/Main.java`; its `resources/media-demo/` → `src/main/resources/media-demo/` | Draw your PNG, play your WAV. See [Lesson 12 stage 1](lessons/12-media.md#1-your-sprite-and-sound). |
-| Scrolling game | `examples/scrolling-game/`: Main.java, Camera.java, Player.java, Coin.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Scroll a wide world with a fixed native HUD. See [stage 2](lessons/12-media.md#2-a-scrolling-world-and-fixed-score). |
-| Platform game | `examples/platform-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Jump, land and collide with platforms. See [stage 3](lessons/12-media.md#3-gravity-platforms-and-collisions). |
-| Two-level game | `examples/level-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java, Level.java, Enemy.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Collect coins, avoid enemies and advance levels. See [stage 4](lessons/12-media.md#4-enemies-and-two-levels). |
-| Full platform game | `examples/full-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java, Level.java, Enemy.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Win or lose, then Restart a fresh game. See [stage 5](lessons/12-media.md#5-win-lose-and-restart). |
-| Collect the coins | `examples/coin-game/Main.java`, `examples/coin-game/Player.java`, `examples/coin-game/Coin.java` | Collect three coins, win, Restart. See [Lesson 9](lessons/09-coin-game.md). |
-| Tiny quiz | `examples/tiny-quiz/Main.java` | Answer 2 + 3, click Check, then try again. See [Lesson 3](lessons/03-quiz.md). |
+| Sprite and sound | `examples/media-demo/Main.java`; its `resources/media-demo/` → `src/main/resources/media-demo/` | Draw your PNG, play your WAV. See the [artwork and sound challenge](https://zero.codepet.ca/tutorials/12). |
+| Scrolling game | `examples/scrolling-game/`: Main.java, Camera.java, Player.java, Coin.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Scroll a wide world with a fixed native HUD. See the [example guide](examples/scrolling-game/README.md). |
+| Platform game | `examples/platform-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Jump, land and collide with platforms. See the [example guide](examples/platform-game/README.md). |
+| Two-level game | `examples/level-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java, Level.java, Enemy.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Collect coins, avoid enemies and advance levels. See the [example guide](examples/level-game/README.md). |
+| Full platform game | `examples/full-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java, Level.java, Enemy.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Win or lose, then Restart a fresh game. See the [example guide](examples/full-game/README.md). |
+| Collect the coins | `examples/coin-game/Main.java`, `examples/coin-game/Player.java`, `examples/coin-game/Coin.java` | Collect three coins, win, Restart. See [Lesson 5](https://zero.codepet.ca/tutorials/9). |
+| Tiny quiz | `examples/tiny-quiz/Main.java` | Answer 2 + 3, click Check, then try again. |
 | Scored quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
 | Practice tracker | `examples/practice/Main.java` and **the same** `examples/shared/ScoreDisplay.java` | Complete exercises, reset, then complete another. |
-| Study app | `examples/study/Main.java`, `examples/study/Question.java` and **the same** `examples/shared/ScoreDisplay.java` | Retry answers, advance through the questions, finish and restart. See [the full app tutorial](lessons/07-study-app.md). |
+| Study app | `examples/study/Main.java`, `examples/study/Question.java` and **the same** `examples/shared/ScoreDisplay.java` | Retry answers, advance through the questions, finish and restart. |
 | Follow the mouse | `examples/animation/Main.java` and `examples/animation/Player.java` | Move the mouse; hold Space to pull toward centre. |
 | Keyboard | `examples/keyboard/Main.java` and `examples/keyboard/Mover.java` | Arrow keys move/clamp the circle; diagonal movement is faster. |
 | Counter | `examples/counter/Main.java` | Native buttons beside a canvas change its displayed count. |
 | Drawing | `examples/drawing/Main.java` | Primary button paints; secondary clears. Separate strokes stay separate. |
 
 There is one reusable example source, `examples/shared/ScoreDisplay.java`; quiz,
-practice, study and Lesson 12 game stages do not contain independent copies. The default compiled starter
+practice, study and the reference game examples do not contain independent copies. The default compiled starter
 contains the same file. If improving it for a contribution, update the shared
 source and copy it into `src/main/java/ScoreDisplay.java`, then try the affected apps.
 The no-argument constructor keeps the quiz's “Score” caption; the tracker passes
@@ -308,14 +303,14 @@ If you created your own repository from a ZeroHub template and cloned it,
 keep that clone and its existing origin; skip creating an empty repository.
 For an extracted ZIP, open GitHub's new-repository page in your browser.
 Create your own **empty repository** on GitHub (leave README, license and
-gitignore uninitialized). Use your own account and follow your teacher's
-visibility instructions; there is no GitHub Classroom step. Connect its HTTPS
+gitignore uninitialized). Use your own account and follow school
+privacy and visibility policies; there is no GitHub Classroom step. Connect its HTTPS
 page URL through **Project → Connect to GitHub…** with the local Zero folder open. Connect initializes Git in this standalone student folder if
 needed and adds origin; it asks before replacing origin. It does not authenticate
 or push. Local running works without GitHub sign-in.
 
 Before a real push, configure Git's per-repository name/email identity.
-In your project terminal, replace the examples with your teacher-approved display
+In your project terminal, replace the examples with a display
 name and commit email. For email privacy, use the exact GitHub `noreply` address
 shown in Settings → Emails, rather than your personal email:
 
@@ -325,8 +320,7 @@ git config user.email "your-email@example.com"
 ```
 
 These commands apply only to this repository. For more help, read
-[the online repository setup guide](https://zero.codepet.ca/docs/setup#your-github-repository)
-or ask your teacher.
+[the online repository setup guide](https://zero.codepet.ca/docs/setup#your-github-repository).
 Signing in does not configure commit identity. Zero supplies the selected native
 GitHub session to its network operations without storing a token in your project
 or Git configuration. Account/session changes require a fresh push review.
@@ -337,7 +331,7 @@ Commit & push saves files and asks for a commit message, showing your repository
 and branch in the input. Check your changes, enter a short message and press
 Enter. This creates a local commit when needed and pushes
 the current branch with Git HTTPS transport using your native sign-in; ignored files stay local. A failed push may
-leave a local commit. A Mac teacher trial verified native sign-in and a private repository push;
+leave a local commit. A Mac trial verified native sign-in and a private repository push;
 other platforms and school environments still need trials.
 
 For a new repository, Commit & push once on **main** to save the starter.
@@ -374,14 +368,14 @@ whole-file choices; complex conflicts use native Source Control. **Cancel update
 restores the starting checkpoint only while no external edits/ref changes would
 be lost. Run the combined app, then Commit & push. A saved commit whose push fails
 remains local; use its Update/retry/sign-in action. **Check GitHub status** verifies
-an interrupted push without uploading. Ask your teacher if a conflict is unclear.
+an interrupted push without uploading. If a conflict is unclear, review the conflicting changes and seek help before continuing.
 A failed main push can leave local main advanced while your change branch
 remains selected; repair the network/access problem and review Merge to main again.
 Zero does not force-push or automatically discard work.
 
 After a successful Merge to main, check the files on GitHub's main branch. Click the connected
 repository name and choose **Copy repository link**, then submit it separately
-in Pika. Give your teacher access if it is
+in Pika if your course uses it. Give the intended reviewer access if it is
 private. Zero does not submit assignments or change Pika grades.
 
 ## Publish a playable app

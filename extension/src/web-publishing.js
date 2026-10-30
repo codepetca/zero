@@ -96,7 +96,7 @@ Choose **Publish app** in the Zero sidebar to publish a completed version using 
 
 Wait for **Your app is live**. Then choose **Open app** or **Copy playable link**. You can retrieve the verified link later with **Zero: Copy Playable Link** or **Zero: Open Published App** in the command palette. This playable link is separate from the source repository link submitted in Pika.
 
-If Zero reports one setup step, follow that specific action and choose **Recheck**. Zero preserves repository visibility, existing websites and custom domains. School policies, account permissions or private-repository plans can require help from your teacher or IT. The first publish confirms its destination. Later explicit Publish actions revalidate and update that approved site without another destination dialog. If optional simulation is configured for testing, it makes no upload or public website change.
+If Zero reports one setup step, follow that specific action and choose **Recheck**. Zero preserves repository visibility, existing websites and custom domains. School policies, account permissions or private-repository plans can require help from your device administrator or IT. The first publish confirms its destination. Later explicit Publish actions revalidate and update that approved site without another destination dialog. If optional simulation is configured for testing, it makes no upload or public website change.
 
 Your completed version must be saved and uploaded. If Zero asks you to finish a change or upload current work, use its ordinary workflow and try **Publish app** again. A failed build preserves the previously published page. Zero shows a new link only after the exact publishing run succeeds and the public site serves that version.
 
