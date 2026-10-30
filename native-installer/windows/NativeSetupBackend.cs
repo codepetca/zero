@@ -11,12 +11,14 @@ namespace ZeroSetup
     {
         private readonly string home;
         private readonly string dataRoot;
+        private readonly string runtimeRoot;
         private string bundledKit;
         private WindowsRuntime runtime;
         internal Func<bool> ApproveDependencies { get; set; }
-        internal NativeSetupBackend(string dataRoot)
+        internal NativeSetupBackend(string dataRoot, string runtimeRoot = null)
         {
             this.dataRoot = dataRoot;
+            this.runtimeRoot = runtimeRoot ?? dataRoot;
             home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         }
         private async Task EnsureKit(CancellationToken cancellation)
@@ -42,7 +44,7 @@ namespace ZeroSetup
                 : KitFiles.PlaceFreshKit(bundledKit, home, Distribution.KitFolder, cancellation), cancellation);
             // Configuration is always trusted from this installed app's payload,
             // rather than from an editable student copy of the support files.
-            runtime = new WindowsRuntime(bundledKit, dataRoot, Path.Combine(target.Path, "starter"));
+            runtime = new WindowsRuntime(bundledKit, runtimeRoot, Path.Combine(target.Path, "starter"));
             await runtime.Prepare(progress, cancellation);
         }
         public async Task Open(CancellationToken cancellation)

@@ -30,7 +30,7 @@ namespace ZeroSetup
         private LauncherRequest active;
         private string errorDetails = "";
 
-        internal MainForm(string dataRoot, LauncherRequest initial)
+        internal MainForm(string dataRoot, LauncherRequest initial, string runtimeRoot)
         {
             SuspendLayout();
             Text = "Zero";
@@ -57,7 +57,7 @@ namespace ZeroSetup
             actions.Controls.Add(done); actions.Controls.Add(retry); actions.Controls.Add(details);
             layout.Controls.Add(status, 0, 0); layout.Controls.Add(progress, 0, 1); layout.Controls.Add(actions, 0, 3);
             Controls.Add(layout); AcceptButton = retry;
-            backend = new NativeSetupBackend(dataRoot);
+            backend = new NativeSetupBackend(dataRoot, runtimeRoot);
             controller = new AutomaticSetupController(backend);
 #if ZERO_STORE
             backend.ApproveDependencies = () => MessageBox.Show(this, DependencyConsent.Message, "Prepare Zero", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes;
