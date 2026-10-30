@@ -37,7 +37,7 @@ public static class ZeroFocus {
             uint pid; GetWindowThreadProcessId(hwnd, out pid);
             var name = new StringBuilder(128); var cls = new StringBuilder(128);
             GetWindowText(hwnd, name, name.Capacity); GetClassName(hwnd, cls, cls.Capacity);
-            if (pid == expectedPid && IsWindowVisible(hwnd) && cls.ToString().Equals("Button", StringComparison.OrdinalIgnoreCase) && (name.ToString() == "Details…" || name.ToString() == "Details...")) { found = hwnd; count++; }
+            if (pid == expectedPid && IsWindowVisible(hwnd) && (cls.ToString().Equals("Button", StringComparison.OrdinalIgnoreCase) || cls.ToString().IndexOf(".BUTTON.", StringComparison.OrdinalIgnoreCase) >= 0) && (name.ToString() == "Details…" || name.ToString() == "Details...")) { found = hwnd; count++; }
             return true;
         }, IntPtr.Zero);
         if (count != 1) return false;
