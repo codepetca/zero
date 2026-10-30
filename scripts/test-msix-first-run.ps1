@@ -44,6 +44,7 @@ foreach ($path in @($dataPaths + @($project))) { if (Test-Path -LiteralPath $pat
 $marker = Join-Path $data 'editor-opened'
 $extensions = Join-Path $data 'editor\extensions'
 $accepted = $false
+$attempted = $false
 $activatedPid = [ZeroActivation]::Launch("$PackageFamily!Zero")
 if (-not $activatedPid) { throw 'MSIX activation returned no process ID.' }
 $consentDeadline = [DateTime]::UtcNow.AddSeconds(120)
@@ -66,7 +67,7 @@ while ([DateTime]::UtcNow -lt $deadline) {
             throw ('Java displayed a Windows system error during packaged first-run setup: ' + (($messages -join '|').Replace($env:USERPROFILE, '<user>')))
 
         }
-        if (-not $accepted -and $window.Current.ProcessId -eq $activatedPid -and $title -in @('Prepare Zero', 'Zero')) {
+        if (-not $attempted -and $window.Current.ProcessId -eq $activatedPid -and $title -in @('Prepare Zero', 'Zero')) {
             $descendants = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
             $hasConsentText = @($descendants | Where-Object { $_.Current.Name -like 'Zero needs to download Java*' }).Count -gt 0
             if (-not $hasConsentText) { continue }
@@ -76,7 +77,7 @@ while ([DateTime]::UtcNow -lt $deadline) {
             $button = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $buttonCondition)
             if ($button) {
                 $pattern = $button.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-                $pattern.Invoke(); $accepted = $true
+                $pattern.Invoke(); $attempted = $true
             } else {
                 $hwnd = [IntPtr]$window.Current.NativeWindowHandle
                 if ($hwnd -eq [IntPtr]::Zero -or -not [ZeroFocus]::SetForegroundWindow($hwnd)) { throw 'Could not focus the packaged consent dialog.' }
@@ -94,10 +95,11 @@ while ([DateTime]::UtcNow -lt $deadline) {
                 if ([ZeroFocus]::GetForegroundWindow() -ne $hwnd -or -not [ZeroFocus]::SetPhysicalCursorPos($x, $y)) { throw 'Consent dialog lost focus before clicking.' }
                 [ZeroFocus]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero)
                 [ZeroFocus]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero)
-                $accepted = $true
+                $attempted = $true
             }
         }
     }
+    if ($attempted -and @($dataPaths | Where-Object { Test-Path -LiteralPath (Join-Path $_ 'dependency-consent-v1') }).Count -gt 0) { $accepted = $true }
     $found = @($dataPaths | Where-Object { Test-Path -LiteralPath (Join-Path $_ 'editor-opened') })
     if ($found.Count -gt 1) { throw 'Ambiguous package data paths.' }
     if ($found.Count -eq 1 -and $accepted) { $data = $found[0]; $marker = Join-Path $data 'editor-opened'; $extensions = Join-Path $data 'editor\extensions'; break }
