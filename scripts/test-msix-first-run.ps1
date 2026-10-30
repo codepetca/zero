@@ -72,7 +72,8 @@ while ([DateTime]::UtcNow -lt $deadline) {
         foreach ($window in $windows) {
             if ($window.Current.Name -ne 'Zero' -or $window.Current.ProcessId -ne $activatedPid) { continue }
             $children = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
-            $windowText += @($children | ForEach-Object { $_.Current.Name } | Where-Object { $_ -match 'Preparing|Try again|Details|could not open|error|Java|download' } | Select-Object -First 4)
+            $windowText += @($children | Where-Object { $_.Current.ControlType -eq [System.Windows.Automation.ControlType]::Button } | ForEach-Object { 'button:' + $_.Current.Name } | Select-Object -First 8)
+            $windowText += @($children | ForEach-Object { $_.Current.Name } | Where-Object { $_ -match 'Preparing|Try again|Details|could not open|error|Java|download' } | Select-Object -First 2)
         }
         $summary = (($windowText -join '|').Replace($env:USERPROFILE, '<user>'))
         if ($summary.Length -gt 160) { $summary = $summary.Substring(0, 160) }
