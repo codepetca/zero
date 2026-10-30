@@ -52,7 +52,9 @@ while ([DateTime]::UtcNow -lt $deadline) {
             $descendants = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
             $hasConsentText = @($descendants | Where-Object { $_.Current.Name -like 'Zero needs to download Java*' }).Count -gt 0
             if (-not $hasConsentText) { continue }
-            $buttonCondition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, 'Yes')
+            $nameCondition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, 'Yes')
+            $typeCondition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button)
+            $buttonCondition = New-Object System.Windows.Automation.AndCondition($nameCondition, $typeCondition)
             $button = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $buttonCondition)
             if ($button) {
                 $pattern = $button.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
