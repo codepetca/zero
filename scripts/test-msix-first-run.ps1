@@ -8,6 +8,25 @@ if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hoste
 if ($PackageFamily -ne 'Codepet.zerostudio_g62pw1js6rhjp') { throw 'Unexpected package family.' }
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+[ComImport, Guid("2e941141-7f97-4756-ba1d-9decde894a3d"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+interface IZeroActivationManager {
+    [PreserveSig] int ActivateApplication([MarshalAs(UnmanagedType.LPWStr)] string appUserModelId, [MarshalAs(UnmanagedType.LPWStr)] string arguments, uint options, out uint processId);
+}
+[ComImport, Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C")]
+class ZeroActivationManager { }
+public static class ZeroActivation {
+    public static uint Launch(string id) {
+        var manager = (IZeroActivationManager)new ZeroActivationManager();
+        uint processId;
+        int result = manager.ActivateApplication(id, null, 0, out processId);
+        if (result != 0) Marshal.ThrowExceptionForHR(result);
+        return processId;
+    }
+}
+'@
 $started = [DateTime]::UtcNow
 $dataPaths = @((Join-Path $env:LOCALAPPDATA 'ZeroStudioStoreData'), (Join-Path $env:LOCALAPPDATA 'Packages\Codepet.zerostudio_g62pw1js6rhjp\LocalCache\Local\ZeroStudioStoreData'))
 $logicalData = $dataPaths[0]
@@ -17,7 +36,9 @@ foreach ($path in @($dataPaths + @($project))) { if (Test-Path -LiteralPath $pat
 $marker = Join-Path $data 'editor-opened'
 $extensions = Join-Path $data 'editor\extensions'
 $accepted = $false
-Start-Process explorer.exe -ArgumentList "shell:AppsFolder\$PackageFamily!Zero"
+$activatedPid = [ZeroActivation]::Launch("$PackageFamily!Zero")
+if (-not $activatedPid) { throw 'MSIX activation returned no process ID.' }
+$consentDeadline = [DateTime]::UtcNow.AddSeconds(120)
 $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
 while ([DateTime]::UtcNow -lt $deadline) {
     $root = [System.Windows.Automation.AutomationElement]::RootElement
@@ -39,6 +60,7 @@ while ([DateTime]::UtcNow -lt $deadline) {
     $found = @($dataPaths | Where-Object { Test-Path -LiteralPath (Join-Path $_ 'editor-opened') })
     if ($found.Count -gt 1) { throw 'Ambiguous package data paths.' }
     if ($found.Count -eq 1 -and $accepted) { $data = $found[0]; $marker = Join-Path $data 'editor-opened'; $extensions = Join-Path $data 'editor\extensions'; break }
+    if (-not $accepted -and [DateTime]::UtcNow -ge $consentDeadline) { throw 'The dependency consent dialog was not found within 120 seconds after MSIX activation.' }
     Start-Sleep -Seconds 1
 }
 if (-not $accepted) { throw 'The dependency consent dialog was not found and accepted.' }
