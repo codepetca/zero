@@ -90,71 +90,20 @@ In `Main.java`, replace the three starter methods with the copied code:
     }
 ```
 
-Keep the starter's `settings()` and `main(...)`. `GameApp` calls update and draw each frame; it does not find Player automatically. Main reads keys and explicitly calls `player.draw(this)`. That calls Player's `draw` method, where `app.rect(...)` paints its square on the canvas. Creating a Player alone does not draw it. Click the canvas for keyboard focus. Switching windows clears held keys; click the canvas again to resume.
+Keep the starter's `settings()` and `main(...)`.
 
 ### Frames, input and canvas
 
-GameApp extends App. Startup runs `settings()`, creates the canvas, runs
-`setup()`, then shows the window and starts frames. Create your objects once in
-setup. Each frame calls Main's `update(seconds)` before `draw()`; Main calls its
-objects explicitly. App alone has no frame loop.
-
-`seconds` measures elapsed time, so `speed * seconds` gives movement in pixels
-at a speed measured in pixels per second. Frame rate can vary. The first frame
-receives 0 seconds; later values are capped at 0.1 after a long delay. Keep frame
-methods short so the game can handle input and display the next frame.
-
-Canvas coordinates start at `(0, 0)` in the top left: x increases rightward and
-y downward. `width()` and `height()` return canvas dimensions, available in setup
-and later. `size(...)` in settings chooses those fixed dimensions; resizing the
-window does not scale the canvas. The starter’s `padding(20)` leaves space
-around it. Initial padding grows the game window while preserving the
-640 by 400 canvas dimensions and all game coordinates.
-
-`keyDown(...)` reports a held key while the canvas has focus. Typing in a text
-field belongs to that control. Focus loss clears held input but does not pause
-the frame loop. For pointer experiments, `mouseX()` and `mouseY()` report the
-tracked canvas position. For the primary pointer button, `mouseDown()` reports
-whether it is held and `mousePressed()` reports a new press during the current
-update.
-
-The canvas keeps its pixels until you draw over them. `background(...)` clears
-it for each fresh frame; `fill(...)` chooses the colour for following filled
-shapes and text. Drawing styles persist until changed. `textSize(...)` chooses
-the default font at that size, and the y coordinate in `text(...)` is its
-baseline.
+`setup()` creates the player once; each frame, `update(seconds)` moves it and `draw()` paints it. `seconds` keeps movement tied to elapsed time. Canvas coordinates start at the top left, and `background(...)` clears the canvas each frame.
 
 ### How Player uses the app to draw
 
-Main extends `GameApp`, so it can call drawing methods such as `background(...)`
-directly. Player is an ordinary Java class. To draw, it needs access to the
-running app and its canvas. This line inside Main's `draw()` provides that access:
-
-```java
-player.draw(this);
-```
-
-Here, `this` means the current Main object. Since Main extends `GameApp`, Java
-allows it as the argument to Player's `draw(GameApp app)` method. The parameter
-`app` refers to that same Main object; passing it creates no new app or canvas.
-
-Look again at the method you already wrote in Player:
-
-```java
-public void draw(GameApp app) {
-    app.fill(Color.rgb(100, 149, 237));
-    app.rect(x, y, size, size);
-}
-```
-
-`app.fill(...)` chooses the colour on the app's canvas, and `app.rect(...)` draws
-Player's square there using Player's own position and size. Main draws the
-background first, then Player draws on the same canvas. Keep Player as
-`public class Player`: it uses the existing app through a parameter, so it does
-not need to extend `GameApp`.
+`player.draw(this)` calls Player's `draw` method and passes it the running app.
+Inside Player, `app.fill(...)` chooses the colour and `app.rect(...)` paints the
+square on the canvas. Creating a Player alone does not draw it.
 
 ## 3. Run App and check movement
 
-Click **Run App**, click the canvas, then hold and release an arrow key. The square should move while held and stop when released. Try every edge, Right + Up, Left + Right, and releasing all keys. Change `speed` to 90, run again, compare, then restore 180. Change `size` to 40 and check that the whole square remains visible; restore 24 before lesson 5. If you remove only `player.update(...)`, the square still draws but cannot move. Explain why.
+Click **Run App**, click the canvas, then hold and release an arrow key. The square should move while held and stop when released. Try every edge, Right + Up, Left + Right, and releasing all keys. After switching windows, click the canvas again for keyboard focus. Change `speed` to 90, run again, compare, then restore 180. Change `size` to 40 and check that the whole square remains visible; restore 24 before lesson 5. If you remove only `player.update(...)`, the square still draws but cannot move. Explain why.
 
 After writing your own code, compare with checkpoint 8's [Main.java](../../teaching/checkpoints/8/Main.java) and [Player.java](../../teaching/checkpoints/8/Player.java). Continue editing **this Coin game folder** in [lesson 5](09-coin-game.md).
