@@ -1,4 +1,4 @@
-# 1. Find your way back to Zero
+# 0. Back to Zero
 
 ![The Command Palette with a Zero command](visuals/15.svg)
 

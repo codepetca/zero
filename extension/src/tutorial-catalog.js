@@ -11,7 +11,7 @@ const lessonFiles = Object.freeze({
 });
 const LESSON_IDS = Object.freeze(Object.keys(lessonFiles));
 const MAIN_LESSONS = Object.freeze(['15','0','1','2','8','9','13','14']);
-const DISPLAY_NUMBERS = Object.freeze({'15':1,'0':2,'1':3,'2':4,'8':5,'9':6,'13':7,'14':8,'10':9,'11':10,'12':11});
+const DISPLAY_NUMBERS = Object.freeze({'15':0,'0':1,'1':2,'2':3,'8':4,'9':5,'13':6,'14':7,'10':8,'11':9,'12':10});
 const tutorialGroups = Object.freeze([
   {id:'getting-started',title:'Getting started',lessons:['15']},
   {id:'greeting',title:'Greeting app',lessons:['0','1','2']},

@@ -10,7 +10,7 @@ Open your **Study project** from lesson 5. Keep its controls and methods.
 
 ## 1. Create `Counter.java` beside `Main.java`
 
-Create `src/main/java/Counter.java` beside `Main.java`. Write an ordinary class
+Create `java/Counter.java` beside `Main.java`. Write an ordinary class
 with one private number and three public methods. Paste this complete code into
 the new file:
 
@@ -83,7 +83,7 @@ quiz actions. Afterward:
 | `StudyQuiz` | Build quiz controls and handle Check/Reset |
 | `Counter` | Remember the number of attempts |
 
-Create `src/main/java/StudyQuiz.java` beside Main and Counter. Move the quiz's
+Create `java/StudyQuiz.java` beside Main and Counter. Move the quiz's
 fields, controls, `checkAnswer()` and `resetQuiz()` into it. Keep Counter.java.
 These are the changes to the code you already wrote:
 

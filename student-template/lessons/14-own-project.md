@@ -1,4 +1,4 @@
-# 8. Make your own project
+# 7. Make your own project
 
 ![An illustrated game welcome screen](visuals/14.svg)
 
@@ -8,7 +8,7 @@ Create an original game project and give it a welcome screen. Your screen will h
 
 1. Complete Zero and GitHub setup, including Git name and email. Check what you have permission to share publicly and follow applicable school policies. A public repository and a published app can be seen by anyone; do not put secrets or private information in them.
 2. On Zero's Start Page choose **Project ▾ → New**. Sign in if asked. Give your repository a name, choose a clone location, and choose **Clone here**. Zero creates your own repository and opens its clone. If creation succeeds but cloning fails, use **Project ▾ → Clone** with your new repository URL.
-3. Open `src/main/java/Main.java`. This is your project, so choose a game idea and a title. You can run locally after setup without GitHub once the needed dependencies are cached.
+3. Open `java/Main.java`. This is your project, so choose a game idea and a title. You can run locally after setup without GitHub once the needed dependencies are cached.
 
 ## 2. Make a canvas
 

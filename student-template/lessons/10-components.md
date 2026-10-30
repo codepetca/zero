@@ -1,10 +1,10 @@
-# 9. Refactor a busy Main
+# 8. Refactor a busy Main
 
 **First checkpoint: move input into one ordinary class and keep the game behaving the same.**
 
 ![One ScoreDisplay class can create separate instances for different layouts](visuals/10.svg)
 
-Reopen your **Coin game** from lesson 6. Keep using this repository; lesson 9 has no starter download or new game.
+Reopen your **Coin game** from lesson 5. Keep using this repository; lesson 8 has no starter download or new game.
 
 Previous: [Build a coin game](09-coin-game.md).
 
@@ -24,7 +24,7 @@ changing Player's movement, coin positions, scoring, win rule or Restart.
 
 ## 2. Write PlayerInput.java
 
-Create `src/main/java/PlayerInput.java` in the same game folder as Main and Player:
+Create `java/PlayerInput.java` in the same game folder as Main and Player:
 
 ```java
 import zero.GameApp;
@@ -60,44 +60,35 @@ PlayerInput is your ordinary Java class, with no superclass or framework callbac
 
 ## 3. Make Main ask for directions
 
-In the game `Main.java`, **find:**
+In the game `Main.java`, add the input field; replace the matching lines with the copied code:
 
-`private Player player;`
-
-**Add below:**
-
-```java
-private PlayerInput input;
+```java-after-2
+    private Player player;
+    private PlayerInput input;
 ```
 
-In `setup()`, **find:**
+In `setup()`, create the helper once; replace the matching lines with the copied code:
 
-`@Override public void setup() {`
-
-**Add below** to create the helper once:
-
-```java
-input = new PlayerInput(this);
+```java-after-2
+    @Override public void setup() {
+        input = new PlayerInput(this);
 ```
 
 As with `player.draw(this)`, `this` is the running Main object, which is a GameApp.
-Remove `import zero.Key;` from Main; PlayerInput now uses that import. In `update()`, **find** the six input lines shown in step 1. **Replace those six lines with:**
+Remove `import zero.Key;` from Main; PlayerInput now uses it. In `update()`, replace the full matching range from `if (won) return;` through `player.update(...)` with the copied code:
 
-```java
-int horizontal = input.horizontal();
-int vertical = input.vertical();
+```java-after-8-9-r2-3-4-5-6-7
+        if (won) return;
+        int horizontal = 0;
+        int vertical = 0;
+        if (keyDown(Key.LEFT)) horizontal--;
+        if (keyDown(Key.RIGHT)) horizontal++;
+        if (keyDown(Key.UP)) vertical--;
+        if (keyDown(Key.DOWN)) vertical++;
+        int horizontal = input.horizontal();
+        int vertical = input.vertical();
+        player.update(horizontal, vertical, seconds, width(), height());
 ```
-
-The surrounding code should now read:
-
-`if (won) return;` `int horizontal = input.horizontal();` `int vertical = input.vertical();` `player.update(horizontal, vertical, seconds, width(), height());`
-
-Read directions on every update. Reading them once in setup would remember only
-startup input. Keep the same PlayerInput when Restart creates a new Player:
-it refers to the app, not that Player. Main still calls Player's update exactly
-once per frame. PlayerInput reads keys only; it starts no timer and never moves
-Player. A second update owner could move Player twice and make speed depend on
-which paths ran.
 
 ## 4. Run App and prove the refactor kept behaviour
 
@@ -122,7 +113,7 @@ reusable class while Main keeps the game rules.
 
 ## 5. Create ScoreDisplay.java
 
-Create `src/main/java/ScoreDisplay.java` in the Coin game folder:
+Create `java/ScoreDisplay.java` in the Coin game folder:
 
 ```java
 import zero.ui.Element;
@@ -150,54 +141,39 @@ component subclass or hidden update is involved.
 
 ## 6. Use the display in your Coin game
 
-In the game's `Main.java`, **find:**
+In `Main.java`, replace the matching line with the copied code:
 
-`private Label scoreLabel;`
-
-**Replace with:**
-
-```java
-private ScoreDisplay score;
+```java-after-2-r1
+    private Label scoreLabel;
+    private ScoreDisplay score;
 ```
 
-In `setup()`, **find:**
+In `setup()`, replace the matching line with the copied code:
 
-`scoreLabel = new Label("");`
-
-**Replace with:**
-
-```java
-score = new ScoreDisplay();
+```java-after-2-r1
+        scoreLabel = new Label("");
+        score = new ScoreDisplay();
 ```
 
-In `setup()`, **find:**
+In `setup()`, replace the matching line with the copied code:
 
-`controls(new Row(12, scoreLabel, message, restartButton));`
-
-**Replace with:**
-
-```java
-controls(new Row(12, score.view(), message, restartButton));
+```java-after-2-r1
+        controls(new Row(12, scoreLabel, message, restartButton));
+        controls(new Row(12, score.view(), message, restartButton));
 ```
 
-In `restart()`, after `points = 0`, **find:**
+In `restart()`, replace the matching line with the copied code:
 
-`scoreLabel.setText("Score: 0");`
-
-**Replace with:**
-
-```java
-score.setScore(points);
+```java-after-2-r1
+        scoreLabel.setText("Score: 0");
+        score.setScore(points);
 ```
 
-In `update()`, after `points++`, **find:**
+In `update()`, replace the matching line with the copied code:
 
-`scoreLabel.setText("Score: " + points);`
-
-**Replace with:**
-
-```java
-score.setScore(points);
+```java-after-2-r1
+                scoreLabel.setText("Score: " + points);
+                score.setScore(points);
 ```
 
 Keep `showGame()` at the end of Restart and the message Label and game rules in Main.
@@ -214,7 +190,7 @@ Try changing the displayed word from Score to Points. In `ScoreDisplay.java`,
 change both `"Score: 0"` and `"Score: "` to `"Points: 0"` and `"Points: "`.
 Run the game and check the initial display, a collected coin and Restart. You
 changed presentation in one class without changing the scoring rules in Main.
-**Restore Score in both places before lesson 10.**
+**Restore Score in both places before lesson 9.**
 
 After writing your own code, compare [game Main](../../teaching/checkpoints/10/game/Main.java),
 [ScoreDisplay.java](../../teaching/checkpoints/10/game/ScoreDisplay.java) and
@@ -226,7 +202,7 @@ owns the score and rules. These helpers belong to your project, alongside Main
 (or in your own package when you learn packages). Do not put them in `zero.*` or
 edit Zero's framework source to add them. You could copy your ScoreDisplay source
 into another project and create a separate instance there; each project owns its
-copy and can improve it independently. In [lesson 10](11-zerohub.md), practise
+copy and can improve it independently. In [lesson 9](11-zerohub.md), practise
 evaluating and sharing a small CreditsBadge component. Copies of that practice
 library are expected. The optional extension applies the same checks to your own
 original idea.
@@ -272,6 +248,6 @@ without navigating away or creating another application.
 A drawn screen can instead define `draw(GameApp app)`. Main calls
 `gameScreen.draw(this)` from its draw method. If that screen owns a Player, it
 can call `player.draw(app)` inside its own method, passing the same reference
-onward. As in [lesson 5](08-movement.md#how-player-uses-the-app-to-draw), both draw
+onward. As in [lesson 4](08-movement.md#how-player-uses-the-app-to-draw), both draw
 onto the existing canvas; neither creates another application. Keep state changes
 in explicit actions or update methods rather than hiding them in drawing.

@@ -86,7 +86,7 @@ return to it. The sidebar stays focused on Run, Files and project development.
    clones it and opens the project in the current VS Code window. No repository is created
    until you have chosen its name and location.
 5. Follow the **Tutorials** tab beside `Main.java`, write the ordinary Java from
-   lesson 0 and choose **Run App** to open your native JavaFX window. The Tutorials
+   lesson 1 and choose **Run App** to open your native JavaFX window. The Tutorials
    tab’s **Open in browser** opens the lesson in your default browser. Keep this repository for the following Greeting lessons.
 
 Already cloned your project? Choose **Start Page → Project → Open** to open it without cloning again. Choose the **Tutorials** link to open the reader;
@@ -118,7 +118,7 @@ uses Zero's guarded authenticated clone service.
 
 ## Before lesson 0: GitHub and privacy
 
-Tutorials require **your own GitHub account and Git 2.31+ before lesson 0**.
+Lesson 0 works without a project or account. Before starting your first project, you need **your own GitHub account and Git 2.31+**.
 This baseline supports the real push workflow used in the lessons.
 The kit's ordinary Hello World setup check can run without an account; the
 continuing tutorials start from your own template-created repository and clone.
@@ -173,14 +173,14 @@ GitHub setup on the Zero Start Page. Older published downloads keep their origin
    GitHub**, then **Install Zero for GitHub** if requested. Once ready, choose
    **Start tutorial** and create your **Greeting app** repository. Zero opens
    your clone with `Main.java` beside **Tutorials**. Review your project
-   before granting workspace trust if VS Code asks, then follow lesson 0.
+   before granting workspace trust if VS Code asks, then follow lesson 1.
    The first build needs internet for compiler dependencies, cached for reuse.
 
 You can eject the DMG after copying Zero. Later, open **Zero** from Applications
 or the Dock to return to the saved Zero editor session. Reopening checks readiness
 without repeating preparation when the current installation is ready.
 
-Complete the GitHub account/privacy steps above before starting tutorial lesson 0.
+Complete the GitHub account/privacy steps above before starting your first tutorial project.
 The optional **⋯ → Troubleshooting → Test installation** opens the bundled completed
 Hello World project in a separate window marked **Installation test**. It does
 not require GitHub and is separate from your tutorial; tutorial creation,
@@ -241,9 +241,9 @@ confirm its native JavaFX window, since tool detection is not a build test.
    Zero is not published in the Marketplace.
 3. Open Zero using its setup launcher, then choose **Start tutorial**. Connect
    GitHub when asked, choose **Greeting app**, and name and save your repository.
-   Zero opens your clone with `Main.java` and **Tutorials** ready for lesson 0.
+   Zero opens your clone with `Main.java` and **Tutorials** ready for lesson 1.
    Review its source and build scripts before granting workspace trust.
-4. Follow lesson 0 in your project. The first build needs internet to download
+4. Follow lesson 1 in your project. The first build needs internet to download
    compiler dependencies into Zero’s local cache. Report school proxy/firewall
    problems to school IT; do not place credentials in the project.
 
@@ -261,21 +261,7 @@ Disable automatic detection to keep a fixed theme.
 
 ## Edit and run
 
-Open [the online lessons](https://zero.codepet.ca/tutorials/0). At lesson 0,
-choose **Start tutorial → Greeting app** in Zero to create and clone a repository
-in your own GitHub account after selecting its name and location. It is public.
-Use **your repository**, not Zero's shared template. The template has empty `setup()`; its first native JavaFX window is
-blank. Write your label following the lesson and Run App again after edits.
-Keep that repository for lessons 1 and 2 as you add a button and name field.
-GitHub/Git setup is part of the tutorial; see [tutorial repository setup](COURSE-PROJECT.md#tutorial-repositories).
-After cloning, local Run needs no current GitHub sign-in or network connection
-once compiler dependencies are cached.
-
-At lesson 3, start **Study** once. Continue the same quiz through lesson 7,
-adding attempts, reset methods, Counter and Question objects. At lesson 8,
-start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Study
-and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
-an image and sound ZIP; your own assets or the drawing fallback also work.
+Open [the online lessons](https://zero.codepet.ca/tutorials/15). Lesson 0 helps you find your way around Zero without an account. For lesson 1, choose **Start tutorial → Greeting app** in Zero to create and clone a repository in your own GitHub account. It is public. Use **your repository**, not Zero's shared template. The template has an empty `setup()`; its first window is blank. Write your label following the lesson, then keep that repository for lessons 2 and 3 as you add a button and name field. Continue with the Coin game, Pet game and your own project in lessons 4–7. GitHub/Git setup is part of the project tutorials; see [tutorial repository setup](COURSE-PROJECT.md#tutorial-repositories). After cloning, local Run needs no current GitHub sign-in or network connection once compiler dependencies are cached.
 
 In Mac 0.5.47, **Start tutorial** on the **Zero Start Page**
 checks project access before using the matching verified template to

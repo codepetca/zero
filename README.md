@@ -25,7 +25,7 @@ Commit & push → Merge to main into main, using VS Code's native GitHub session
 First Publish confirms a public destination; later explicit Publish actions update
 that approved site without another destination dialog. Published downloads retain
 their original behavior and bundled instructions.
-Before tutorial lesson 0, students need their own verified GitHub account, Git 2.31+
+Before starting a tutorial project, students need their own verified GitHub account, Git 2.31+
 and school-approved access/privacy setup. See [account and privacy setup](docs/GETTING-STARTED.md#before-lesson-0-github-and-privacy).
 A Mac teacher trial verified real sign-in/create/connect/cancel/upload/copy-link.
 The current MVP targets Mac with Apple Silicon and Windows; Linux and Intel Macs

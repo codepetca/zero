@@ -1,4 +1,4 @@
-# 7. Make a pet game
+# 6. Make a pet game
 
 ![Illustration of a bird pet game](visuals/13.svg)
 
@@ -8,13 +8,13 @@ Make a bird pet that flaps, moves, and chimes, then give it its own `Pet` class.
 
 In Zero choose **Start tutorial → Animated pet**, sign in, name your project and choose a clone location. Zero creates your own repository and opens its clone. After setup, editing and local Run work offline; GitHub actions and publishing need a connection. Submit your repository link separately in Pika if assigned.
 
-Download the [Pet assets ZIP](https://zero.codepet.ca/generated/learning-assets/pet-assets.zip) and unzip it. In Zero's file tree, right-click **resources**, choose **New folder…** and name it `pet`. Right-click the new **pet** folder, choose **New asset…**, and select both files from the unzipped `pet` folder. The imported files belong in `src/main/resources/pet/` and must be named `bird-flap-sheet.png` and `chime.wav`. The leading `/` in `/pet/bird-flap-sheet.png` means the root of the project's resources, not your computer. The bird and chime are Zero assets supplied under the project license. For your own replacements, use a PNG and a short PCM WAV and retain permission and attribution.
+Download the [Pet assets ZIP](https://zero.codepet.ca/generated/learning-assets/pet-assets.zip) and unzip it. In Zero's file tree, right-click **resources**, choose **New folder…** and name it `pet`. Right-click the new **pet** folder, choose **Import assets…**, and select both files from the unzipped `pet` folder. The imported files belong in `resources/pet/` and must be named `bird-flap-sheet.png` and `chime.wav`. The leading `/` in `/pet/bird-flap-sheet.png` means the root of the project's resources, not your computer. The bird and chime are Zero assets supplied under the project license. For your own replacements, use a PNG and a short PCM WAV and retain permission and attribution.
 
-Start on **main**. The checkpoints here are complete reference files: type the changes yourself, or compare them when stuck. Java files go in `src/main/java/`, not `resources`. Save and **Run App** after each step; stop the app before changing and running again.
+Start on **main**. The checkpoints here are complete reference files: type the changes yourself, or compare them when stuck. Java files go in `java/`, not `resources`. Save and **Run App** after each step; stop the app before changing and running again.
 
 ## 2. Show your pet
 
-Open `src/main/java/Main.java`, select its entire contents, and replace them with the complete file below. `settings` sets canvas size, `setup` loads the picture once, and `draw` paints the background and picture each frame. `280, 150` is the top-left position; `80, 64` is its drawn size. The sheet has four poses; `imageRegion` selects the first pose. Run: you should see a bird. Try another background color or size. If the resource cannot load, check spelling, capitalization and the resource folder, then stop and run again.
+Open `java/Main.java`, select its entire contents, and replace them with the complete file below. `settings` sets canvas size, `setup` loads the picture once, and `draw` paints the background and picture each frame. `280, 150` is the top-left position; `80, 64` is its drawn size. The sheet has four poses; `imageRegion` selects the first pose. Run: you should see a bird. Try another background color or size. If the resource cannot load, check spelling, capitalization and the resource folder, then stop and run again.
 
 ```java
 import zero.Color;

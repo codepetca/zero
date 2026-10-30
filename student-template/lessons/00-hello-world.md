@@ -1,4 +1,4 @@
-# 2. Hello, world!
+# 1. Hello, world!
 
 **Make your first greeting.**
 
@@ -6,47 +6,41 @@
 
 Target illustration: your greeting after you write it.
 
-Open `src/main/java/Main.java` in your **Greeting** project.
+In the Project Explorer of your **Greeting** project, open **java → Main.java** (`java/Main.java`).
 
-## 1. Add this import above `public class Main`
+## 1. Add this import after `import zero.App;`
 
-The new `Main.java` has `Main extends App`, `settings()` with `padding(20)`, an empty
-`setup()` and a `main` method. Keep those lines. The empty setup opens a blank window, so your
-first control is yours to write. Find this existing import:
+The new `Main.java` has `Main extends App`, `settings()` with `padding(20)`, an empty `setup()` and a `main` method. Keep those lines. The empty setup opens a blank window, so your first control is yours to write. Add the `Label` import in `Main.java`; replace the matching lines with the copied code:
 
-`import zero.App;`
-
-Add below it:
-
-```java
+```java-after-2
+import zero.App;
 import zero.ui.Label;
 ```
 
 ## 2. Write the greeting inside `setup()`
 
-Find the empty method:
+Replace the empty `setup()` method with the copied code:
 
-`@Override public void setup() {` `// Build your interface here.` `}`
-
-Replace the comment inside its braces with:
-
-```java
-Label greeting = new Label("Hello, world!");
-show(greeting);
+```java-after-3-4-r2
+    @Override public void setup() {
+        // Build your interface here.
+        Label greeting = new Label("Hello, world!");
+        show(greeting);
+    }
 ```
 
-`new Label(...)` creates text. `show(greeting)` puts that label in the
-window.
+`new Label(...)` creates a UI component. `show(greeting)` displays it in the
+app window, replacing whatever UI was shown there before.
 
 ## 3. Run App, then change the greeting
 
 Click **Run App**. The window says **Hello, world!**. Edit the quoted words to `Hello, Java!` and click **Run App** again. The window should now say **Hello, Java!**.
-Keep this **same Greeting project** for lessons 3 and 4. You will add to this
+Keep this **same Greeting project** for lessons 2 and 3. You will add to this
 code rather than replace `Main.java`.
 
 ### App startup
 
-Your Main extends `zero.App`. Zero uses JavaFX underneath to display the interface. The starter's
+Your Main extends `zero.App`. The starter's
 `main(...)` calls `launch(args)`. Zero then calls `settings()` once, calls
 `setup()` once to build your interface, and shows the window. Keep that entry
 point; you do not need to construct another Main.
@@ -74,6 +68,6 @@ Label; later lessons arrange several controls before calling `show(...)`.
 App responds to events rather than calling an automatic `update()` or `draw()`.
 In the next lesson, a button action changes your existing label with `setText(...)`,
 and Zero displays the change. Keep setup and actions short so the window can
-respond; sleeping or a long loop blocks its JavaFX application thread.
+respond; sleeping or a long loop can make the window stop responding.
 
 Next: [Add a button](01-hello-button.md).

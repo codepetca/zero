@@ -5,7 +5,7 @@ or another small interface. Start with the [minimal Zero starter template](https
 It supplies a working Hello, world! app, the Zero library, pinned build tools and
 Run App configuration. You choose the interface, data and behaviour.
 
-Before tutorial lesson 0, complete [GitHub account, school access and privacy setup](GETTING-STARTED.md#before-lesson-0-github-and-privacy).
+Before starting a tutorial project, complete [GitHub account, school access and privacy setup](GETTING-STARTED.md#before-lesson-0-github-and-privacy).
 Use your own verified account and Git 2.31+. Repositories created through Zero
 are public, including source and included files; keep private material out.
 Existing or GitHub-created repositories may be private according to school policy;
