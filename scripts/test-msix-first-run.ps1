@@ -67,6 +67,26 @@ while ([DateTime]::UtcNow -lt $deadline) {
             throw ('Java displayed a Windows system error during packaged first-run setup: ' + (($messages -join '|').Replace($env:USERPROFILE, '<user>')))
 
         }
+        if ($accepted -and $window.Current.ProcessId -eq $activatedPid -and $title -eq 'Zero') {
+            $detailsCondition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, 'Details…')
+            $details = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $detailsCondition)
+            if ($details -and -not $details.Current.IsOffscreen) {
+                $hwnd = [IntPtr]$window.Current.NativeWindowHandle
+                if (-not [ZeroFocus]::SetForegroundWindow($hwnd) -or [ZeroFocus]::GetForegroundWindow() -ne $hwnd) { throw 'Could not focus the setup error.' }
+                $rect = $details.Current.BoundingRectangle; $outer = $window.Current.BoundingRectangle
+                $x = [int]($rect.X + $rect.Width / 2); $y = [int]($rect.Y + $rect.Height / 2)
+                if ($rect.IsEmpty -or $x -lt $outer.Left -or $x -ge $outer.Right -or $y -lt $outer.Top -or $y -ge $outer.Bottom -or -not [ZeroFocus]::SetPhysicalCursorPos($x, $y)) { throw 'Setup details control is not safely clickable.' }
+                [ZeroFocus]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero); [ZeroFocus]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero)
+                Start-Sleep -Seconds 2
+                $roots = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Children, [System.Windows.Automation.Condition]::TrueCondition)
+                $messages = @()
+                foreach ($w in $roots) { if ($w.Current.ProcessId -eq $activatedPid) { $messages += @($w.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition) | ForEach-Object { $_.Current.Name } | Where-Object { $_ } | Select-Object -First 12) } }
+                Add-Type -AssemblyName System.Drawing
+                $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds; $bitmap = New-Object System.Drawing.Bitmap($bounds.Width, $bounds.Height); $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+                try { $graphics.CopyFromScreen($bounds.Location, [Drawing.Point]::Empty, $bounds.Size); $bitmap.Save((Join-Path $env:RUNNER_TEMP 'zero-msix-consent-diagnostic.png'), [Drawing.Imaging.ImageFormat]::Png) } finally { $graphics.Dispose(); $bitmap.Dispose() }
+                throw ('Zero setup reported an error: ' + (($messages -join '|').Replace($env:USERPROFILE, '<user>')))
+            }
+        }
         if (-not $attempted -and $window.Current.ProcessId -eq $activatedPid -and $title -in @('Prepare Zero', 'Zero')) {
             $descendants = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
             $hasConsentText = @($descendants | Where-Object { $_.Current.Name -like 'Zero needs to download Java*' }).Count -gt 0
