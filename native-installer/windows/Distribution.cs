@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace ZeroSetup
 {
@@ -19,6 +20,31 @@ namespace ZeroSetup
         internal const string KitFolder = "Zero";
         internal const string BrokerPrefix = "Codepet.Zero.Launcher.";
 #endif
+#if ZERO_STORE_PRODUCTION
+        private static readonly Guid LocalAppData = new Guid("F1B32785-6FBA-4FCF-9D55-7B8E7F157091");
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+        private static extern int SHGetKnownFolderPath(ref Guid folder, uint flags, IntPtr token, out IntPtr path);
+        private static string PhysicalLocalAppData()
+        {
+            Guid folder = LocalAppData; IntPtr result = IntPtr.Zero;
+            try
+            {
+                // Return the package's real redirected location, not the virtual view.
+                int hr = SHGetKnownFolderPath(ref folder, 0x00040000 | 0x00004000, IntPtr.Zero, out result);
+                if (hr != 0) Marshal.ThrowExceptionForHR(hr);
+                return Marshal.PtrToStringUni(result);
+            }
+            finally { if (result != IntPtr.Zero) Marshal.FreeCoTaskMem(result); }
+        }
+#endif
+        internal static string DataRoot(string local, Func<string> redirected = null)
+        {
+#if ZERO_STORE_PRODUCTION
+            local = (redirected ?? PhysicalLocalAppData)();
+#endif
+            if (string.IsNullOrWhiteSpace(local) || !Path.IsPathRooted(local)) throw new IOException("Your Windows app-data folder is unavailable. Ask your teacher or IT for help.");
+            return Path.Combine(local, DataFolder);
+        }
         internal const string Marker = "ZERO_WINDOWS_DISTRIBUTION";
         internal const string StoreUri = "ms-windows-store://downloadsandupdates";
         internal static void SetChildEnvironment(ProcessStartInfo info)

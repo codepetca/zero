@@ -25,11 +25,15 @@ function windowsNativeRoot(home, sourceDirectory, marker) {
   if (typeof home !== 'string' || !path.win32.isAbsolute(home)) return undefined;
   const roots = {direct:'ZeroData', store:'ZeroStudioStoreData', 'msix-feasibility':'ZeroMsixFeasibility'};
   const extensionParent = path.win32.dirname(path.win32.dirname(sourceDirectory));
-  const detected = Object.entries(roots).find(([,folder]) => extensionParent.toLowerCase() === path.win32.join(home, folder, 'editor', 'extensions').toLowerCase());
+  const candidates = Object.entries(roots).map(([channel,folder]) => [channel,path.win32.join(home,folder)]);
+  // Store virtualizes LocalAppData; the launcher uses the physical package path
+  // so native child processes can load their own adjacent runtime libraries.
+  candidates.push(['store',path.win32.join(home,'Packages','Codepet.zerostudio_g62pw1js6rhjp','LocalCache','Local',roots.store)]);
+  const detected = candidates.find(([,root]) => extensionParent.toLowerCase() === path.win32.join(root, 'editor', 'extensions').toLowerCase());
   if (marker !== undefined && !['store','msix-feasibility'].includes(marker)) throw new Error('Zero’s Windows distribution marker is invalid. Reopen Zero.');
   if (detected && marker !== undefined && detected[0] !== marker) throw new Error('Zero’s Windows distribution does not match its editor profile. Reopen Zero.');
   if (!detected && marker !== undefined) throw new Error('Zero’s Windows editor profile is unavailable. Reopen Zero.');
-  return path.win32.join(home, detected ? roots[detected[0]] : roots.direct);
+  return detected ? detected[1] : path.win32.join(home, roots.direct);
 }
 
 // Read the current native kit rather than relying only on process variables:

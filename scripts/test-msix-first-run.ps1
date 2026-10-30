@@ -54,7 +54,7 @@ while ([DateTime]::UtcNow -lt $deadline) {
     $windows = $root.FindAll([System.Windows.Automation.TreeScope]::Children, [System.Windows.Automation.Condition]::TrueCondition)
     foreach ($window in $windows) {
         $title = $window.Current.Name
-        if ($title -match 'java\.exe.*(System Error|Application Error)' -or $title -match 'javac\.exe.*(System Error|Application Error)') {
+        if ($title -match 'java\.exe.*(System Error|Application Error|Entry Point Not Found)' -or $title -match 'javac\.exe.*(System Error|Application Error|Entry Point Not Found)') {
             $messages = @($window.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition) | ForEach-Object { $_.Current.Name } | Where-Object { $_ } | Select-Object -First 8)
             Add-Type -AssemblyName System.Drawing
             $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
@@ -154,8 +154,9 @@ $settings = Get-Content -LiteralPath (Join-Path $data 'editor\user-data\User\set
 $runtimes = @($settings.'java.configuration.runtimes' | Where-Object { $_.name -eq 'JavaSE-21' -and $_.default -eq $true })
 if ($runtimes.Count -ne 1) { throw 'Expected one default Java 21 runtime.' }
 $java = [IO.Path]::GetFullPath($runtimes[0].path)
-if (-not $java.StartsWith((Join-Path $logicalData 'runtime\jdk-'), [StringComparison]::OrdinalIgnoreCase)) { throw 'Java is outside the private runtime.' }
-$physicalJava = Join-Path $data $java.Substring($logicalData.Length).TrimStart('\')
+if ($java.StartsWith((Join-Path $data 'runtime\jdk-'), [StringComparison]::OrdinalIgnoreCase)) { $physicalJava = $java }
+elseif ($java.StartsWith((Join-Path $logicalData 'runtime\jdk-'), [StringComparison]::OrdinalIgnoreCase)) { $physicalJava = Join-Path $data $java.Substring($logicalData.Length).TrimStart('\') }
+else { throw 'Java is outside the private runtime.' }
 foreach ($relative in @('bin\java.exe','bin\javac.exe','bin\jli.dll')) { if (-not (Test-Path -LiteralPath (Join-Path $physicalJava $relative) -PathType Leaf)) { throw "Private Java is missing $relative." } }
 foreach ($exe in @('java.exe', 'javac.exe')) {
     $process = Start-Process -FilePath (Join-Path $physicalJava ('bin\' + $exe)) -ArgumentList '-version' -PassThru -WindowStyle Hidden
@@ -166,5 +167,5 @@ foreach ($exe in @('java.exe', 'javac.exe')) {
 }
 $manifests = @(Get-ChildItem -LiteralPath $extensions -Directory | ForEach-Object { $p = Join-Path $_.FullName 'package.json'; if (Test-Path -LiteralPath $p) { Get-Content -LiteralPath $p -Raw | ConvertFrom-Json } })
 if (-not @($manifests | Where-Object { $_.publisher -eq 'zero' -and $_.name -eq 'zero' -and $_.version -eq $KitVersion }).Count -or -not @($manifests | Where-Object { $_.publisher -eq 'redhat' -and $_.name -eq 'java' }).Count) { throw 'Zero or Java extension was not installed.' }
-if (-not @(Get-CimInstance Win32_Process -Filter "Name='Code.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine.Contains($logicalData) -and $_.CreationDate.ToUniversalTime() -ge $started }).Count) { throw 'The isolated VS Code process was not observed.' }
+if (-not @(Get-CimInstance Win32_Process -Filter "Name='Code.exe'" | Where-Object { $_.CommandLine -and ($_.CommandLine.Contains($logicalData) -or $_.CommandLine.Contains($data)) -and $_.CreationDate.ToUniversalTime() -ge $started }).Count) { throw 'The isolated VS Code process was not observed.' }
 Write-Host 'MSIX first-run setup, private Java, VS Code and Java extension verified.'

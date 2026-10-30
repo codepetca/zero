@@ -23,8 +23,7 @@ namespace ZeroSetup
             {
                 LauncherRequest request = InstanceBroker.Parse(args);
                 string local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                if (string.IsNullOrWhiteSpace(local)) throw new IOException("Your Windows app-data folder is unavailable. Ask your teacher or IT for help.");
-                string data = Path.Combine(local, Distribution.DataFolder);
+                string data = Distribution.DataRoot(local);
                 KitFiles.RejectReparseAncestors(data);
                 using (var broker = new InstanceBroker())
                 {

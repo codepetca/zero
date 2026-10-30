@@ -109,6 +109,11 @@ test('Windows channel root follows installed extension profile and rejects misma
   assert.equal(windowsNativeRoot(root,src('ZeroStudioStoreData'),'store'),path.win32.join(root,'ZeroStudioStoreData'));
   assert.equal(windowsNativeRoot(root,src('ZEROSTUDIOSTOREDATA')),path.win32.join(root,'ZeroStudioStoreData'));
   assert.equal(windowsNativeRoot(root,src('ZeroMsixFeasibility'),'msix-feasibility'),path.win32.join(root,'ZeroMsixFeasibility'));
+  const physical = path.win32.join(root,'Packages','Codepet.zerostudio_g62pw1js6rhjp','LocalCache','Local','ZeroStudioStoreData');
+  const physicalSrc = path.win32.join(physical,'editor','extensions','zero.zero-1.0','src');
+  assert.equal(windowsNativeRoot(root,physicalSrc,'store'),physical);
+  assert.throws(()=>windowsNativeRoot(root,physicalSrc,'msix-feasibility'),/does not match/);
+  assert.throws(()=>windowsNativeRoot(root,physicalSrc.replace('g62pw1js6rhjp','other'),'store'),/profile is unavailable/);
   assert.throws(()=>windowsNativeRoot(root,src('ZeroData'),'store'),/does not match/);
   assert.throws(()=>windowsNativeRoot(root,src('ZeroStudioStoreData'),'msix-feasibility'),/does not match/);
   assert.throws(()=>windowsNativeRoot(root,'C:\\other\\extension\\src','store'),/profile is unavailable/);
