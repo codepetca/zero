@@ -48,7 +48,10 @@ while ([DateTime]::UtcNow -lt $deadline) {
         if ($title -match 'java\.exe.*(System Error|Application Error)' -or $title -match 'javac\.exe.*(System Error|Application Error)') {
             throw 'Java displayed a Windows system error during packaged first-run setup.'
         }
-        if (-not $accepted -and $title -eq 'Prepare Zero') {
+        if (-not $accepted -and $window.Current.ProcessId -eq $activatedPid -and $title -in @('Prepare Zero', 'Zero')) {
+            $descendants = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
+            $hasConsentText = @($descendants | Where-Object { $_.Current.Name -like 'Zero needs to download Java*' }).Count -gt 0
+            if (-not $hasConsentText) { continue }
             $buttonCondition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, 'Yes')
             $button = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $buttonCondition)
             if ($button) {
