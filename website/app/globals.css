@@ -507,7 +507,7 @@ pre code {
 }
 .copyable-code { position: relative; min-width: 0; margin: 1em 0; }
 /* Reserve the control row even inside readers with their own pre padding. */
-.copyable-code > pre[title] { margin: 0; padding-top: 52px; cursor: copy; }
+.copyable-code > pre[title] { margin: 0; padding-top: 52px; }
 .code-copy-button {
   position: absolute;
   top: 4px;
