@@ -8,7 +8,7 @@ permission to publish from this ledger.
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
 | Website | Tutorial changes through PR #239 (`88295b04`) deployed automatically from main on October 30. | Confirm the live deployment when reporting later changes. |
-| Mac installer | [0.5.55](https://github.com/codepetca/zero/releases/tag/setup-v0.5.55) published October 28. | Merged app changes since 0.5.55 need a separately authorized release. |
+| Mac installer | [0.5.59](https://github.com/codepetca/zero/releases/tag/setup-v0.5.59) published October 31. | Verify deployment of its signed update feed and the live download page. |
 | Windows Store | Product 0.5.58 candidate at `f74ed9ce` was submitted October 30. On October 31 Partner Center showed certification in progress; publishing is held for **Publish now**. The candidate includes main through PR #239. | Recheck Partner Center before reporting or taking any action. Certification approval and public availability are not yet confirmed. |
 | Windows standalone download | [0.5.59 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.59) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.59) published October 31. | Physical Windows and school-device acceptance remains outstanding; updates are disabled. |
 
@@ -21,15 +21,13 @@ The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
 
-## In-progress Mac candidate (2026-10-31)
+## Mac 0.5.59 verification
 
-0.5.59 has been built, Apple-notarized, stapled and sealed locally at
-`dist/candidates/mac-0.5.59-4bb9ba15c24d`. The installer metadata is in draft
-[PR #242](https://github.com/codepetca/zero/pull/242). The existing Mac launcher was replaced from the candidate DMG after backing up
-0.5.55; the installed app, managed kit and extension report 0.5.59. The existing
-Coin project opened and reached its first game frame when launched from the DMG,
-and the installed launcher reopened the editor. Automatic update delivery and a
-fresh Mac remain untested. The candidate and update feed are not yet published.
+The 0.5.59 candidate was signed, Apple-notarized and stapled. The existing Mac
+launcher was replaced after backing up 0.5.55; the installed app, managed kit
+and extension reported 0.5.59. The existing Coin project reached its first game
+frame when launched from the candidate. Automatic update delivery and a fresh
+Mac remain untested. The public DMG hash matches the sealed candidate.
 
 ## Updating this record
 
