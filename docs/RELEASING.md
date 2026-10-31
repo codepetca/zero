@@ -1,5 +1,7 @@
 # Releasing Zero
 
+Check and update the dated [release ledger](RELEASE-LEDGER.md) when reconciling or preparing releases. Verify live publication status independently.
+
 `release/kit.json` is the release source of truth. Published versions and their
 asset bytes are immutable. A kit release has exactly three public assets: the complete
 kit, standalone starter and versioned VSIX. Optional component archives stay local.
