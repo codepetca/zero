@@ -21,6 +21,16 @@ The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
 
+## In-progress Mac candidate (2026-10-31)
+
+0.5.59 has been built, Apple-notarized, stapled and sealed locally at
+`dist/candidates/mac-0.5.59-4bb9ba15c24d`. The installer metadata is in draft
+[PR #242](https://github.com/codepetca/zero/pull/242). The existing Mac launcher was replaced from the candidate DMG after backing up
+0.5.55; the installed app, managed kit and extension report 0.5.59. The existing
+Coin project opened and reached its first game frame when launched from the DMG,
+and the installed launcher reopened the editor. Automatic update delivery and a
+fresh Mac remain untested. The candidate and update feed are not yet published.
+
 ## Updating this record
 
 - When app changes merge, record their PRs and affected surfaces as pending until
