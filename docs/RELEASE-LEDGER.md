@@ -21,6 +21,14 @@ The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
 
+## In-progress Mac candidate (2026-10-31)
+
+0.5.59 has been built, Apple-notarized, stapled and sealed locally at
+`dist/candidates/mac-0.5.59-4bb9ba15c24d`. The installer metadata is in draft
+[PR #242](https://github.com/codepetca/zero/pull/242). Interactive Mac install
+and upgrade tests remain pending while the Mac is locked. The candidate and
+update feed have not been published. The Windows 0.5.59 preview is separate.
+
 ## Updating this record
 
 - When app changes merge, record their PRs and affected surfaces as pending until
