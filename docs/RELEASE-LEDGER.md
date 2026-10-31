@@ -10,7 +10,7 @@ permission to publish from this ledger.
 | Website | Tutorial changes through PR #239 (`88295b04`) deployed automatically from main on October 30. | Confirm the live deployment when reporting later changes. |
 | Mac installer | [0.5.55](https://github.com/codepetca/zero/releases/tag/setup-v0.5.55) published October 28. | Merged app changes since 0.5.55 need a separately authorized release. |
 | Windows Store | Product 0.5.58 candidate at `f74ed9ce` was submitted October 30. On October 31 Partner Center showed certification in progress; publishing is held for **Publish now**. The candidate includes main through PR #239. | Recheck Partner Center before reporting or taking any action. Certification approval and public availability are not yet confirmed. |
-| Windows standalone download | [0.5.55 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.55) published October 28. | A newer Store package does not update this download; a separate release is needed. |
+| Windows standalone download | [0.5.59 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.59) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.59) published October 31. | Physical Windows and school-device acceptance remains outstanding; updates are disabled. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
 updates, recent tutorial changes, and Store Java/VS Code startup fixes. Its exact
