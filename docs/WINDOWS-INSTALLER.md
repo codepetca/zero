@@ -1,5 +1,10 @@
 # Windows automatic setup and updates
 
+## Windows 0.5.59 unsigned preview — 2026-10-31
+
+The [0.5.59 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.59) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.59) use the same embedded kit bytes. The [Windows run](https://github.com/codepetca/zero/actions/runs/41197562332) built from synthetic merge `74b867aefd93faeaf480f33955de5086f7fe3fdc`, whose tree matches merged source `928ac5a58832ada7f3c08e7071175ec6f78d010f`. Hosted Windows installation, bootstrap, reopen, private JavaFX and offline rebuild checks passed. Physical Windows and school-device acceptance remain outstanding. The installer is unsigned and automatic updates are disabled.
+
+
 ## Windows0.5.54 Java isolation preview — 2026-10-27
 
 The owner requested the Windows installer update with the reviewed bundled-Java
