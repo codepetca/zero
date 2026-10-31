@@ -255,6 +255,7 @@
     "zero.Actor#text(java.lang.String,double,double)",
     "zero.Actor#textCentered(java.lang.String,double,double)",
     "zero.Actor#textSize(double)",
+    "zero.Actor#touches(zero.Actor)",
     "zero.Actor#update(double)",
     "zero.Actor#width()",
     "zero.Actor#x()",

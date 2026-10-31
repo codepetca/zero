@@ -102,6 +102,7 @@ function parameterDescription(name, method) {
     content: method === 'show' ? 'JavaFX node to display; must not be null.' : 'Root layout containing the app content.',
     source: 'Non-null AnimationSource that creates fresh independent playback.',
     actor: 'Non-null Actor to draw explicitly; no update or registration.',
+    other: 'Non-null Actor to test for contact.',
     app: 'GameApp canvas to draw on; must not be null.',
     dx: 'Finite horizontal movement in pixels.', dy: 'Finite vertical movement in pixels.',
     targetX: 'Finite target horizontal centre in canvas pixels.', targetY: 'Finite target vertical centre in canvas pixels.',
@@ -221,7 +222,7 @@ export function buildApiReference(markdown) {
         Actor: sourceType === 'double' ? 'Actor actor = new Actor(100, 80);' : `Actor actor = new Actor(${argument}, 100, 80);`,
         x: 'double centreX = actor.x();', y: 'double centreY = actor.y();',
         width: 'double left = actor.x() - actor.width() / 2;', height: 'double top = actor.y() - actor.height() / 2;',
-        rotation: 'double facing = actor.rotation();', setPosition: 'actor.setPosition(100, 80);',
+        rotation: 'double facing = actor.rotation();', touches: 'boolean hit = player.touches(coin);', setPosition: 'actor.setPosition(100, 80);',
         setSize: 'actor.setSize(48, 48);', setRotation: 'actor.setRotation(90);',
         move: 'actor.move(100 * seconds, 0);', moveForward: 'actor.moveForward(100, seconds);',
         rotate: 'actor.rotate(90 * seconds);', face: 'actor.face(mouseX(), mouseY());',
@@ -333,8 +334,8 @@ export function buildApiReference(markdown) {
   }
   for (const category of categories) category.notes = noteLines[category.id].join('\n').trim();
   const entries = categories.flatMap(category => category.entries);
-  if (seenSections.size !== 25 || entries.length !== 193 || categories.some(category => !category.entries.length)) {
-    throw new Error(`Incomplete API reference: expected twenty-five sections and 193 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
+  if (seenSections.size !== 25 || entries.length !== 194 || categories.some(category => !category.entries.length)) {
+    throw new Error(`Incomplete API reference: expected twenty-five sections and 194 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
   }
   const ids = new Set(categories.map(category => category.id));
   for (const entry of entries) {

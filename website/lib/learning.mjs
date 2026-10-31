@@ -136,6 +136,7 @@ export const lessons = [
   },
   {id:'16',title:'Animate your pet',description:'Make your pet move, flap and play a sound.',encouragement:'Your pet is moving!',topic:'Animation, input and sound',doc:'api',anchor:'animation'},
   {id:'17',title:'Give your pet a class',description:'Move the pet’s animation and position into its own class.',encouragement:'Your pet has its own class!',topic:'Classes and refactoring',doc:'api',anchor:'animation'},
+  {id:'18',title:'Meet Actor',description:'Refactor the Coin game using actors and contact.',encouragement:'Your Coin game uses actors!',topic:'Actor, inheritance, movement and contact',doc:'api',anchor:'actor'},
 ];
 // Fixed teaching assets copied from canonical source at build time.
 export const lessonAssets = {

@@ -4,7 +4,7 @@
   "sources": [
     {
       "path": "framework/src/main/java/zero/Actor.java",
-      "sha256": "8ee940c7d877571ba80d2adb7323956207a8961e62b00e5742c84ee3b991a797"
+      "sha256": "6455d32b652900ef7ad7df897d9c20570441bbd9be4162a98afa113c3d56a7d4"
     },
     {
       "path": "framework/src/main/java/zero/AnimationPlayback.java",
@@ -288,9 +288,9 @@
         "protected"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 193,
-      "start": 8038,
-      "end": 8167,
+      "line": 208,
+      "start": 8882,
+      "end": 9011,
       "declarationSha256": "7bb48a223b64813a135eb9f07c5902513f88555404b7ed87d405d2fd17fbb0c4",
       "evidence": {
         "native": [
@@ -320,9 +320,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 182,
-      "start": 7297,
-      "end": 7438,
+      "line": 197,
+      "start": 8141,
+      "end": 8282,
       "declarationSha256": "6df8090a2cba66714dfafcf760abbb56ce20f1bfcd85e9812015d76a12f502f2",
       "evidence": {
         "native": [
@@ -352,9 +352,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 164,
-      "start": 6570,
-      "end": 7182,
+      "line": 179,
+      "start": 7414,
+      "end": 8026,
       "declarationSha256": "fef24f1a253d5b2f6b268dc17d1862f1ab42cbe742ce8751a698a2bc3a6e15a0",
       "evidence": {
         "native": [
@@ -425,9 +425,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 81,
-      "start": 2808,
-      "end": 3318,
+      "line": 96,
+      "start": 3652,
+      "end": 4162,
       "declarationSha256": "8d304c096c428e2d584a0d7276aba3dbe4c4d7f1ffc71d667e202a5aa293e65a",
       "evidence": {
         "native": [
@@ -458,9 +458,9 @@
         "protected"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 187,
-      "start": 7444,
-      "end": 7517,
+      "line": 202,
+      "start": 8288,
+      "end": 8361,
       "declarationSha256": "88ff0102f8154ec479647642458ab0ce5d8d8925a9d94a9c1a71bfeeaede9c5a",
       "evidence": {
         "native": [
@@ -524,9 +524,9 @@
         "protected"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 194,
-      "start": 8172,
-      "end": 8280,
+      "line": 209,
+      "start": 9016,
+      "end": 9124,
       "declarationSha256": "e60117e07ad86291dc39419dbefb2c7e6014aa3758e4c92e154273ea175ccd09",
       "evidence": {
         "native": [
@@ -557,9 +557,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 61,
-      "start": 1971,
-      "end": 2122,
+      "line": 76,
+      "start": 2815,
+      "end": 2966,
       "declarationSha256": "b5bd3ffe0bf4f5314506eefafc9f4aeffc8f4ce1d2ec8c36794e10ab407bf5eb",
       "evidence": {
         "native": [
@@ -590,9 +590,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 67,
-      "start": 2210,
-      "end": 2575,
+      "line": 82,
+      "start": 3054,
+      "end": 3419,
       "declarationSha256": "3489d3a75bde961038dc36433aa66435097896f342145476906a94f8ae849759",
       "evidence": {
         "native": [
@@ -623,9 +623,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 94,
-      "start": 3412,
-      "end": 4772,
+      "line": 109,
+      "start": 4256,
+      "end": 5616,
       "declarationSha256": "991361ec38eb36bd44e8fe1261c8d25d23b3136722f09f3dc2a594d1ef9b71ee",
       "evidence": {
         "native": [
@@ -655,9 +655,9 @@
         "protected"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 155,
-      "start": 6154,
-      "end": 6197,
+      "line": 170,
+      "start": 6998,
+      "end": 7041,
       "declarationSha256": "891817664cfe7a838f696c38ab9b244e26664efe8eb584aba94e366154bff3e5",
       "evidence": {
         "native": [
@@ -688,9 +688,9 @@
         "protected"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 192,
-      "start": 7901,
-      "end": 8033,
+      "line": 207,
+      "start": 8745,
+      "end": 8877,
       "declarationSha256": "63552f393eb5e6260ddbcc084ffc5c62bc8b89e7f274407e63d40ff31a879cb4",
       "evidence": {
         "native": [
@@ -721,9 +721,9 @@
         "protected"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 191,
-      "start": 7778,
-      "end": 7896,
+      "line": 206,
+      "start": 8622,
+      "end": 8740,
       "declarationSha256": "c9f75372c79943ad221d95b0daf773f0e8bb71e900ec1260e856e325901b7f17",
       "evidence": {
         "native": [
@@ -754,9 +754,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 75,
-      "start": 2581,
-      "end": 2720,
+      "line": 90,
+      "start": 3425,
+      "end": 3564,
       "declarationSha256": "5c2e0c3cd9489f1a7269ce3b53c4f9d8b4f4e4af242531655ff2f04123176294",
       "evidence": {
         "native": [
@@ -820,9 +820,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 122,
-      "start": 4858,
-      "end": 4941,
+      "line": 137,
+      "start": 5702,
+      "end": 5785,
       "declarationSha256": "694eba1131dc414485698b28294bf90ef9cebf5266a2f40e8594972c1c4e39b4",
       "evidence": {
         "native": [
@@ -853,9 +853,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 135,
-      "start": 5289,
-      "end": 5718,
+      "line": 150,
+      "start": 6133,
+      "end": 6562,
       "declarationSha256": "99a1d448378eebae588a338a24e3a0d979ef62956e9092e66af7323606f1e3ef",
       "evidence": {
         "native": [
@@ -886,9 +886,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 126,
-      "start": 4947,
-      "end": 5114,
+      "line": 141,
+      "start": 5791,
+      "end": 5958,
       "declarationSha256": "57a630e218d9f7d2c92fcdfa0e99625b15d6c200ec2702a84a0440039b3e8103",
       "evidence": {
         "native": [
@@ -919,9 +919,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 131,
-      "start": 5120,
-      "end": 5283,
+      "line": 146,
+      "start": 5964,
+      "end": 6127,
       "declarationSha256": "ab91fe88ca226383e41c4b3e213c62f9d6a869890f67028f5ccf0daccf77aea1",
       "evidence": {
         "native": [
@@ -952,9 +952,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 45,
-      "start": 1407,
-      "end": 1548,
+      "line": 60,
+      "start": 2251,
+      "end": 2392,
       "declarationSha256": "bbdcdab5fae8aab9af62aa8ed545ea6f804ab62894600eb226065f3c809210f7",
       "evidence": {
         "native": [
@@ -985,9 +985,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 55,
-      "start": 1746,
-      "end": 1882,
+      "line": 70,
+      "start": 2590,
+      "end": 2726,
       "declarationSha256": "110017e462cea35a448df56a44352f0ade071a1967cce9fc31d17a4dd9ffe846",
       "evidence": {
         "native": [
@@ -1018,9 +1018,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 50,
-      "start": 1554,
-      "end": 1740,
+      "line": 65,
+      "start": 2398,
+      "end": 2584,
       "declarationSha256": "94b9c37cba2ddc4896b9b483acbd7d3e5fdbe964d1c6a965b633f29bd7f9c4fd",
       "evidence": {
         "native": [
@@ -1051,9 +1051,9 @@
         "protected"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 188,
-      "start": 7522,
-      "end": 7599,
+      "line": 203,
+      "start": 8366,
+      "end": 8443,
       "declarationSha256": "9340c37f40032b5aec7aaeb3f18a8fae723cfd398f50b83f8f2d78eb07c0e365",
       "evidence": {
         "native": [
@@ -1084,9 +1084,9 @@
         "protected"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 189,
-      "start": 7604,
-      "end": 7689,
+      "line": 204,
+      "start": 8448,
+      "end": 8533,
       "declarationSha256": "9d2d0138bc96679863b7919e7f5764de0cd1093dcc39a84c64bc2bba41cb1ede",
       "evidence": {
         "native": [
@@ -1117,9 +1117,9 @@
         "protected"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 195,
-      "start": 8285,
-      "end": 8380,
+      "line": 210,
+      "start": 9129,
+      "end": 9224,
       "declarationSha256": "f79090ce1a426d4ae8cee1e079966c2125542fa18993220456e79f886b114d81",
       "evidence": {
         "native": [
@@ -1150,9 +1150,9 @@
         "protected"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 196,
-      "start": 8385,
-      "end": 8496,
+      "line": 211,
+      "start": 9229,
+      "end": 9340,
       "declarationSha256": "8052d1c7f048046ec31a086c952b9ab9ff6b035ee04855e35a7d9c4492d4f563",
       "evidence": {
         "native": [
@@ -1183,9 +1183,9 @@
         "protected"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 190,
-      "start": 7694,
-      "end": 7773,
+      "line": 205,
+      "start": 8538,
+      "end": 8617,
       "declarationSha256": "e21aa08129a308c37eabc7ba166a8eac36b640a96062cec6f307b52d9d48fe58",
       "evidence": {
         "native": [
@@ -1205,6 +1205,58 @@
       }
     },
     {
+      "id": "zero.Actor#touches(zero.Actor)",
+      "owner": "zero.Actor",
+      "signature": "touches(zero.Actor)",
+      "kind": "method",
+      "name": "touches",
+      "returnType": "boolean",
+      "modifiers": [
+        "public"
+      ],
+      "source": "framework/src/main/java/zero/Actor.java",
+      "line": 46,
+      "start": 1507,
+      "end": 1741,
+      "declarationSha256": "4d6c9a4ce2a241ee076478d46de288bbbc226d16a16dcbe97243e0d0c24e8b4c",
+      "evidence": {
+        "native": [
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-touches",
+            "postcondition": "Touching centred bounds count as contact"
+          },
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-separated",
+            "postcondition": "Separated centred bounds do not touch"
+          },
+          {
+            "caseId": "native/ActorCheck",
+            "assertionId": "actor-rotated",
+            "postcondition": "Rotation does not change rectangular contact"
+          }
+        ],
+        "browser": [
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-touches",
+            "postcondition": "Touching centred bounds count as contact"
+          },
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-separated",
+            "postcondition": "Separated centred bounds do not touch"
+          },
+          {
+            "caseId": "browser/helpers",
+            "assertionId": "actor-rotated",
+            "postcondition": "Rotation does not change rectangular contact"
+          }
+        ]
+      }
+    },
+    {
       "id": "zero.Actor#update(double)",
       "owner": "zero.Actor",
       "signature": "update(double)",
@@ -1216,9 +1268,9 @@
         "public"
       ],
       "source": "framework/src/main/java/zero/Actor.java",
-      "line": 145,
-      "start": 5813,
-      "end": 6060,
+      "line": 160,
+      "start": 6657,
+      "end": 6904,
       "declarationSha256": "c82457ba3c502404ae402329b7a7563a3f77ee1585f39d32965286535cf24803",
       "evidence": {
         "native": [

@@ -10,7 +10,7 @@ const helperHashes = Object.freeze({
   'zero/ui/Row.java': '75be7cf9339fe60df6308509d4a8116d328b0dc3bd636e8d3620002861da306a',
   'zero/Key.java': 'ba68495fd911017c8ca84a53ec0211c94cf9e14796fb8462cbc6c32cbf6835f8',
   'zero/ui/TextField.java': 'b5b26ea3e0f64e6b5ceb8f225b9c89691a615fa213c13723d28b42f3bb983188',
-  'zero/Actor.java': '8ee940c7d877571ba80d2adb7323956207a8961e62b00e5742c84ee3b991a797',
+  'zero/Actor.java': '6455d32b652900ef7ad7df897d9c20570441bbd9be4162a98afa113c3d56a7d4',
   'zero/App.java': '8402997e9d6228ffdb2a13d90f87c8baa6ca3452b75e057e7f91df74c0a0d386',
   'zero/Collisions.java': '1d1cc1c57fcbbcb8421bf469c6d74e5f1707c5542c265d1819f38e59fb4e67fe',
   'zero/Color.java': 'ac3e62480b526e4505c5640ce857757c13cec6134ec7d6d759c4321b785e07d7',

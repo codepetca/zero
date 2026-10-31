@@ -47,6 +47,13 @@ public final class ApiSignatureChecks {
         eq("zero.Actor#<init>(zero.SpriteAnimation,double,double)","actor-sprite","Sprite construction uses initial playback dimensions",()->geometry(new Actor(source,10,20)),"10,20,1,1");
         AnimationSource definition = source;
         eq("zero.Actor#<init>(zero.AnimationSource,double,double)","actor-source","Source construction uses initial playback dimensions",()->geometry(new Actor(definition,10,20)),"10,20,1,1");
+        Actor left = new Actor(0, 0), right = new Actor(10, 0);
+        left.setSize(10, 10); right.setSize(10, 10);
+        eq("zero.Actor#touches(zero.Actor)","actor-touches","Touching centred bounds count as contact",()->""+left.touches(right),"true");
+        right.setPosition(10.01, 0);
+        eq("zero.Actor#touches(zero.Actor)","actor-separated","Separated centred bounds do not touch",()->""+left.touches(right),"false");
+        right.setPosition(0, 10); right.setRotation(45);
+        eq("zero.Actor#touches(zero.Actor)","actor-rotated","Rotation does not change rectangular contact",()->""+left.touches(right),"true");
         Actor actor = new Actor(10,20);
         eq("zero.Actor#x()","actor-x","Horizontal centre is readable",()->""+n(actor.x()),"10");
         eq("zero.Actor#y()","actor-y","Vertical centre is readable",()->""+n(actor.y()),"20");

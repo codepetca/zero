@@ -169,7 +169,8 @@ test("main lesson navigation follows Greeting, Coin and the continuing Pet proje
   assert.equal(lessonNavigation("17").next.id, "14");
   assert.equal(lessonNavigation("14").next, undefined);
   assert.equal(lessonNavigation("3").related.title, "A tiny quiz");
-  assert.equal(lessonNavigation("12").next, undefined);
+  assert.equal(lessonNavigation("12").next.id, "18");
+  assert.equal(lessonNavigation("18").next, undefined);
   assert.deepEqual(lessonNavigation(""), {});
 });
 
@@ -183,13 +184,13 @@ test("quiet project groups retain every lesson once in reading order", () => {
   assert.deepEqual(orderGroupLessons(lessons, pet.lessons).map(item => item.id), ['13','16','17','14']);
   const revisited = lessonGroups.find(group => group.id === 'practice');
   assert.equal(revisited.title, 'Coin game revisited');
-  assert.deepEqual(revisited.lessons, ['10','11','12']);
+  assert.deepEqual(revisited.lessons, ['10','11','12','18']);
 });
 
 test("existing lesson addresses remain stable and optional paths have their own ends", () => {
   assert.deepEqual(['15','0','1','2','8','9','13','16','17','14','10','11','12'].map(lessonNumber),[0,1,2,3,4,5,6,7,8,9,10,11,12]);
   assert.equal(lessonNumber('3'),undefined,'Retained quiz routes are not part of the current sequence');
-  assert.deepEqual(lessons.map((lesson) => lesson.id), ["15",...Array.from({ length: 15 }, (_, id) => String(id)),"16","17"]);
+  assert.deepEqual(lessons.map((lesson) => lesson.id), ["15",...Array.from({ length: 15 }, (_, id) => String(id)),"16","17","18"]);
   assert.equal(lessonNavigation("10").next.id, "11");
   assert.equal(lessonNavigation("11").previous.id, "10");
   assert.equal(lessonNavigation("11").next.id,"12");
@@ -235,7 +236,7 @@ test("every tutorial shows numbered instructions and exact code without a summar
     }));
     assert.doesNotMatch(html, /<details|<summary|Code and explanation|Done:|lesson-summary/);
     assert.match(html, /<h2 id="1-/);
-    const image = ['16','17'].includes(name) ? '13' : name;
+    const image = ['16','17'].includes(name) ? '13' : name === '18' ? '09' : name;
     assert.ok(html.includes(`<img src="visuals/${image}.svg"`), `Lesson ${name} retains its illustration`);
     assert.ok(html.endsWith(`<p class="lesson-encouragement">${lesson.encouragement}</p>`));
     assert.equal((html.match(/class="lesson-encouragement"/g) || []).length, 1);
@@ -349,8 +350,8 @@ test("practice downloads contain foundations but no completed lesson examples", 
 });
 
 test("intermediate lessons keep the existing three small projects and a proposal path", () => {
-  assert.equal(lessons.length,18);
-  assert.deepEqual(lessonGroups.find(group=>group.id==='practice').lessons,['10','11','12']);
+  assert.equal(lessons.length,19);
+  assert.deepEqual(lessonGroups.find(group=>group.id==='practice').lessons,['10','11','12','18']);
   assert.equal(lessons.find(lesson=>lesson.id==='10').title,'Refactor a busy Main');
   assert.equal(lessons.find(lesson=>lesson.id==='11').title,'Practise sharing a component');
   for (const [id,name] of [['10','10-components'],['11','11-zerohub']]) {

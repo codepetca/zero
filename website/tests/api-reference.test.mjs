@@ -27,7 +27,7 @@ test('every class-level public/protected Java declaration has an exact canonical
       expected.push(`${owner}:${normalizeSignature(match[1])}`);
     }
   }
-  assert.equal(expected.length, 193);
+  assert.equal(expected.length, 194);
   assert.deepEqual(entries.map(item => `${item.owner}:${normalizeSignature(item.signature)}`).sort(), expected.sort());
   assert.ok(!entries.some(item => item.name === 'handle'));
   assert.equal(JSON.parse(JSON.stringify(categories)).length, 15);
@@ -85,8 +85,8 @@ test('keeps canonical class defaults, constructors and lifecycle caveats', () =>
 
 test('search handles aliases, case, multiple terms, whitespace and empty results', () => {
   const search = query => searchApiReference(categories, query);
-  assert.equal(search('').length, 193);
-  assert.equal(search(' \n\t ').length, 193);
+  assert.equal(search('').length, 194);
+  assert.equal(search(' \n\t ').length, 194);
   assert.ok(search('KEYBOARD').some(item => item.id === 'keyDown'));
   assert.deepEqual(search('rectangle').slice(0, 2).map(item => item.id), ['rect', 'outlineRect']);
   assert.ok(search('mouse').some(item => item.id === 'mouseDown'));
@@ -221,7 +221,7 @@ test('audio declarations use owner-qualified anchors and preserve app lifecycle 
 
 
 test('Actor has exact overload anchors, explicit lifecycle examples and movement guidance', async () => {
-  assert.equal(category('actors').entries.length, 36);
+  assert.equal(category('actors').entries.length, 37);
   for (const suffix of ['', '-region', '-animation', '-source']) {
     assert.equal(entry(`actor-constructor${suffix}`).owner, 'Actor');
     assert.equal(entry(`actor-constructor${suffix}`).parameters.length, 3);
@@ -255,7 +255,8 @@ test('Actor has exact overload anchors, explicit lifecycle examples and movement
   assert.match(guide, /enemy.update\(seconds\)/);
   assert.match(guide, /draw\(enemy\)/);
   assert.match(guide, /onUpdate\(seconds\)/);
-  assert.match(guide, /actor.x\(\) - actor.width\(\) \/ 2/);
+  assert.match(guide, /player\.touches\(coin\)/);
+  assert.equal(entry('actor-touches').example, 'boolean hit = player.touches(coin);');
 });
 
 
