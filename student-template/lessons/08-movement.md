@@ -92,7 +92,7 @@ Keep the starter's `settings()` and `main(...)`.
 
 ### Frames, input and canvas
 
-`setup()` creates the player once; each frame, `update(seconds)` moves it and `draw()` paints it. `seconds` keeps movement tied to elapsed time. Canvas coordinates start at the top left, and `background(...)` clears the canvas each frame.
+`setup()` creates the player once. Each frame, `update(seconds)` moves it and `draw()` paints it. Zero supplies `seconds`: the time since the previous frame, in seconds. Game developers often call this **delta time**. Multiplying speed by `seconds` keeps movement approximately consistent at different frame rates. Canvas coordinates start at the top left, and `background(...)` clears the canvas each frame.
 
 ### How Player uses the app to draw
 
