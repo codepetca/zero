@@ -8,7 +8,7 @@ Continue the same Pet project from [lesson 6](13-pet.md). Open `java/Main.java`.
 
 Replace `Main.java` with the version below, then read and try each change:
 
-1. Find `x` in the field and `image` call. In `update`, left and right change `x`. Multiplying by `seconds` makes speed depend on elapsed time, not the number of frames. The `Math.max`/`Math.min` line keeps the 80-pixel pet inside the canvas. After running, click the canvas and hold the arrows.
+1. Find `x` in the field and `image` call. In `update`, left and right change `x`. Zero supplies `seconds`, the elapsed time since the last frame (also called delta time). Multiplying by it keeps movement approximately consistent at different frame rates. The `Math.max`/`Math.min` line keeps the 80-pixel pet inside the canvas. After running, click the canvas and hold the arrows.
 2. In `setup`, `loadImage` loads the sprite sheet once. Each `imageRegion(sheet, x, y, width, height)` selects a rectangle from that picture: `x` and `y` are the top-left corner, and `width` and `height` are its size in pixels. The four regions select four poses for the animation. The lower poses start at y = 531 to fit the artwork. `SpriteAnimation(8, frames)` sets eight frames per second. `petAnimation.update(seconds)` advances it once in `update`; `image` draws its current frame without advancing it. Watch the wings flap; then try a different frame rate.
 3. Find where the chime loads once in `setup`. In `update`, `keyPressed` fires on a new press, while `keyDown` stays true while held. Stop and play the chime on a Space press. Click the canvas and press Space. Browser sound may need a user gesture and the device must not be muted.
 
