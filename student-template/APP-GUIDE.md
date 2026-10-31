@@ -543,6 +543,10 @@ edges count. Coordinates must be finite; dimensions/radii are non-negative and
 finite. These predicates leave movement, scoring and collision response in your
 own Java objects. The [API reference](API.md) lists every overload and constructor.
 
+### Actor contact
+
+`player.touches(coin)` checks whether their rectangular size bounds touch or overlap. Actor positions are centres; Zero handles the coordinates. Set each actor’s size, including actors that draw themselves. Rotation and artwork shape do not change these bounds. The check does not move objects; override `touches` or use `Collisions` for different rules.
+
 ### Drawing your own Actor
 
 The current local source lets a class extend `zero.Actor` and draw itself using
@@ -767,10 +771,9 @@ images are not closed when playback is replaced.
 Use finite numbers, strictly positive sizes and non-negative elapsed seconds.
 `moveToward` also needs non-negative speed. Invalid arguments or non-finite
 movement results throw IllegalArgumentException without changing the actor;
-null references throw NullPointerException. Actor has no collision geometry.
-For a simple axis-aligned rectangle, call Collisions using
-`actor.x() - actor.width() / 2`, `actor.y() - actor.height() / 2`,
-`actor.width()` and `actor.height()`. That rectangle does not rotate with the art.
+null references throw NullPointerException. `touches(other)` checks the actors’
+centred rectangular bounds, which do not rotate with the art. For other shapes,
+use Collisions directly or override `touches`.
 See the [Actor API](API.md#actor) for every constructor and method.
 
 ### Short sound effects

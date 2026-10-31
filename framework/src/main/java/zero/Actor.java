@@ -42,6 +42,21 @@ public class Actor {
     public final double height() { return height; }
     public final double rotation() { return rotation; }
 
+    /** Whether the centred, axis-aligned size rectangles touch or overlap. Rotation is ignored. */
+    public boolean touches(Actor other) {
+        Objects.requireNonNull(other, "Other actor must not be null.");
+        return overlaps(x, width, other.x, other.width)
+                && overlaps(y, height, other.y, other.height);
+    }
+
+    private static boolean overlaps(double a, double sizeA, double b, double sizeB) {
+        double distance = Math.abs(a - b), twiceDistance = distance * 2, sizes = sizeA + sizeB;
+        if (Double.isFinite(twiceDistance) && Double.isFinite(sizes)) return twiceDistance <= sizes;
+        double halfSizes = sizeA / 2 + sizeB / 2;
+        if (Double.isFinite(distance) && Double.isFinite(halfSizes)) return distance <= halfSizes;
+        return Math.abs(a / 2 - b / 2) <= sizeA / 4 + sizeB / 4;
+    }
+
     public final void setPosition(double x, double y) {
         finite(x, "Actor x"); finite(y, "Actor y");
         this.x = x; this.y = y;

@@ -9,9 +9,9 @@
         "visibility": "public",
         "isTemplate": true,
         "defaultBranch": "main",
-        "commit": "3aa36228860428f1e173491c0d39491d4a40e5ef",
-        "tree": "642a91f45015d1b50771a514bbde4620f899a13c",
-        "scaffoldSha256": "520686c36bf8cfe3bf2203bd5e62a67b03441db1e2f26988f0c9c13e1b428466"
+        "commit": "bd5c2a6c7d9c4fdc55f3fd934c244b459a71e741",
+        "tree": "1b40a79cc2641d98ece444bb6cf73fa1d2790985",
+        "scaffoldSha256": "637bd2a9abe05b924ac12fcb1d426ad50514466a4fffa9a4b39154b7fc823bb8"
       }
     },
     {
@@ -22,9 +22,9 @@
         "visibility": "public",
         "isTemplate": true,
         "defaultBranch": "main",
-        "commit": "6fdb98acdb52c23bb531877049ca770b84209f39",
-        "tree": "01320105bf7c949cedee714f324c6a609b871acb",
-        "scaffoldSha256": "1e14d76fdd3f005b67ba0d661b794d6c08d6884ea196cbd6b7297b3c53d0f9be"
+        "commit": "f367964f6a95b9fe32964ff7eaa091837968925d",
+        "tree": "ae18f7e8c72e1687a6d5f45af30c5c04a2175d24",
+        "scaffoldSha256": "22c4f41c88bf54321ed0adcf30cf10841459fab172bd2ed5a5f2d412cf810e70"
       }
     },
     {
@@ -35,9 +35,9 @@
         "visibility": "public",
         "isTemplate": true,
         "defaultBranch": "main",
-        "commit": "902462246bca712cd97012a0b1b37bbe8b1a0efd",
-        "tree": "86ce19ecfd90b7b29bba7992a01457fa5a8ee1ac",
-        "scaffoldSha256": "175bcfebdf1ad5f3682981ea4ee18818f88bc5b95212850bf1e8edd3f2036492"
+        "commit": "fb30c0ab9bf399da6da91019311451e12718fe33",
+        "tree": "3baea20465d24ba4558c7f9b7a51662327b31b88",
+        "scaffoldSha256": "fee0aca6eab487bc4bf5d9e3e7291055c3a08dd252146c5fb70d7c3efb807d96"
       }
     },
     {
@@ -48,9 +48,9 @@
         "visibility": "public",
         "isTemplate": true,
         "defaultBranch": "main",
-        "commit": "cab6ad76711541851c027d9f2fd73f7121733083",
-        "tree": "7a631d5106ce9fc1c348bb27d13e08a9972f3559",
-        "scaffoldSha256": "85dab8c3a1a73937b15d7733f5691ab06930eea06265187be7182dbd3701ff15"
+        "commit": "dc01584c60ef496c128e373eb67a2ced88558b36",
+        "tree": "71d45c8b7d88b2b14af68a8a63a064ea2c1599dc",
+        "scaffoldSha256": "0cad9c35eb225be2a6881a66b411a8512d899ee72aa5e34f6f505a7a64d08f06"
       }
     }
   ]

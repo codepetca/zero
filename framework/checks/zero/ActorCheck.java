@@ -28,12 +28,26 @@ public final class ActorCheck extends GameApp {
             ApiNative.observePixels(this);
             ApiDrawingChecks.paint(this,ApiNative.atlasImage(),true);
             ApiSignatureChecks.actors(new WritableImage(4,2),4,2);
-            verifyMovement(); verifyImagesAndInheritance(); verifyPlaybackContract(); verifyPixels();
+            verifyMovement(); verifyContact(); verifyImagesAndInheritance(); verifyPlaybackContract(); verifyPixels();
             verifyDrawingCallbacks(); verifyNestedDrawing(); verifyDrawingMisuse();
             ApiNative.emit();
             System.out.println("ZERO_ACTOR_OK movement/aiming/clamping, validation/atomicity, sprites, local shape pixels, isolated styles, nested apps and failure cleanup");
             Platform.exit();
         } catch (Throwable failure) { failure.printStackTrace(); System.exit(1); }
+    }
+
+    private void verifyContact() {
+        Actor a = new Actor(0, 0), b = new Actor(10, 0);
+        a.setSize(10, 10); b.setSize(10, 10);
+        require(a.touches(b) && b.touches(a), "edge contact is symmetric");
+        b.setPosition(10.01, 0); require(!a.touches(b), "separated actors do not touch");
+        b.setPosition(0, 10); b.setRotation(45); require(a.touches(b), "rotation does not change bounds");
+        expectNull(() -> a.touches(null));
+        a.setPosition(-Double.MAX_VALUE, 0); b.setPosition(Double.MAX_VALUE, 0);
+        require(!a.touches(b), "extreme centres do not overflow into a collision");
+        a.setPosition(0, 0); b.setPosition(Double.MIN_VALUE, 0);
+        a.setSize(Double.MIN_VALUE, 1); b.setSize(Double.MIN_VALUE, 1);
+        require(a.touches(b), "smallest positive sizes retain edge contact");
     }
 
     private void verifyMovement() {

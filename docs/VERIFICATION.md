@@ -1,5 +1,34 @@
 # Verification
 
+## Actor contact and Coin lesson — 2026-10-31
+
+Local work adds overridable `Actor.touches` using axis-aligned centred size
+bounds; touching edges count and rotation is ignored. `ActorCheck` and the
+shared browser API probes cover contact and separation. The real WebFX helper
+fixture passed in headless Chrome. Both the Actor-only and student-owned World
+Coin games compiled natively, exported with WebFX, and were played in the
+in-app browser through collecting all three coins, winning and Restart. The World
+experiment was removed at the owner's direction; no World API is introduced. Physical-device and other
+browser testing remain separate.
+
+Owner clarified on 2026-10-31 that Zero is prerelease with no users, so prior
+project backwards compatibility is not required for this work. The lesson is
+now in the local tutorial sequence. Local testing found that the updated editor's
+exact core fingerprint rejects an older 0.5.59 Coin project's core for some
+managed-library sharing operations; the project-owned source remains untouched.
+The owner waived that backwards-compatibility requirement. Four tutorial template
+PRs were subsequently authorized, independently reviewed and merged: greeting,
+study and game PR 4, pet PR 3. Anonymous public archives matched all 95 files and
+executable modes per template; `teaching/tutorial-templates.json` records verified
+commits, trees and digests. The website deploys on source merge; the app release
+remains separate. Independent review initially identified the old-project and
+template mismatches; the owner waived the former and authorized the latter rollout.
+Final source review: GPT-6.1 Sol/high independently reviewed the complete staged
+tree `47106d0d` against `e17979f7`, including collision behavior, lesson flow,
+WebFX coverage and template readiness; no blocking findings. Effective model,
+reviewer time and token usage were unavailable. The new lesson rendered locally
+and its copy control worked; full Mac editor walkthrough was not completed.
+
 ## Pet sprite sheet explanation — 2026-10-30
 
 Against base `32732dd10a8c8e9f488e32e682363e5f7e5200f3`, Pet lessons and both

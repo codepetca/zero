@@ -7,7 +7,7 @@ export const {tutorialGroups} = tutorialCatalog;
 export const practiceProjects = [
   {id:'greeting',title:'Greeting app',firstLesson:'0',lessons:['0','1','2'],kind:'app'},
   {id:'study',title:'Study quiz',firstLesson:'3',lessons:['3','4','5','6','7'],kind:'app'},
-  {id:'game',title:'Coin game',firstLesson:'8',lessons:['8','9','10','11','12'],kind:'game'},
+  {id:'game',title:'Coin game',firstLesson:'8',lessons:['8','9','10','11','12','18'],kind:'game'},
   {id:'pet',title:'Animated pet',firstLesson:'13',lessons:['13','16','17','14'],kind:'game'},
 ];
 export function projectForLesson(id) {

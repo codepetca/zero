@@ -418,9 +418,10 @@ movement results throw `IllegalArgumentException` without changing actor state.
 Image replacements keep position, size and rotation. Assigning an animation source
 creates fresh playback at its initial frame; a static image detaches playback. A target at the current position leaves rotation unchanged.
 
-Actor adds no collision shape or automatic collision response. Use Collisions
-explicitly; for a rectangular test use top-left `actor.x() - actor.width() / 2`
-and `actor.y() - actor.height() / 2`. Rotation does not rotate that test rectangle.
+`touches(other)` checks centred, axis-aligned rectangles using each actor’s size.
+Touching edges count; rotation and artwork shape are ignored. It returns a boolean
+and does not move actors or resolve collisions. Override it for custom behavior,
+or use `Collisions` directly for other shapes.
 This class is an unreleased local source addition; older kits are unchanged.
 
 | Signature | Behavior |
@@ -430,6 +431,7 @@ This class is an unreleased local source addition; older kits are unchanged.
 | `Actor(ImageRegion region, double x, double y)` | Create an actor centred at x/y using the region's natural dimensions. |
 | `Actor(SpriteAnimation animation, double x, double y)` | Create fresh independent playback at frame zero, using its initial frame's natural dimensions. The source's legacy clock is unchanged. |
 | `Actor(AnimationSource source, double x, double y)` | Create independent playback from a non-null source, with initial frame dimensions and centre x/y. |
+| `boolean touches(Actor other)` | Test whether centred size rectangles touch or overlap; rotation is ignored. A null actor throws `NullPointerException`. Override for custom collision rules. |
 | `final double x()` | Read the horizontal centre in canvas pixels. |
 | `final double y()` | Read the vertical centre in canvas pixels. |
 | `final double width()` | Read the drawing width in pixels. |
