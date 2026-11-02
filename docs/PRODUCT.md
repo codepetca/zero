@@ -235,10 +235,8 @@ installers remain unchanged.
 
 The download website is a separately built part of this repository. Its landing
 page has the shared app header, **Learn Java**, **Starting from zero.**, and two
-direct download buttons: **Download for Mac Silicon** and **Download for Windows**.
-The Windows action downloads Microsoft's Store web installer for Zero; a Store
-listing link is available below it.
-The web installer retrieves the Store app when run. Store installation and updates
+platform buttons: **Install for Mac Silicon** and **Install for Windows**.
+The Windows action opens Zero Studio’s Store listing. Store installation and updates
 still need physical Windows acceptance.
 Home and Downloads keep both primary buttons centered
 at the same width regardless of warning length.
