@@ -1,6 +1,6 @@
 name: Store upgrade candidate test
 on:
-  workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
