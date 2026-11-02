@@ -1,14 +1,14 @@
 # Zero release ledger
 
-Last reconciled: 2026-10-31 (America/Toronto). This is a dated working record,
+Last reconciled: 2026-11-02 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| Website | Tutorial changes through PR #239 (`88295b04`) deployed automatically from main on October 30. | Confirm the live deployment when reporting later changes. |
-| Mac installer | [0.5.60](https://github.com/codepetca/zero/releases/tag/setup-v0.5.60) published October 31. | Verify deployment of its signed update feed and the live download page. |
+| Website | Actor lesson from PR #246 and Mac 0.5.60 download/feed from PR #249 deployed automatically from main. | Simplified Setup Help is in this source change; verify its deployment after merge. |
+| Mac installer | [0.5.60](https://github.com/codepetca/zero/releases/tag/setup-v0.5.60) published October 31; its download page and signed update feed were verified live. | Actual automatic upgrade and fresh Mac installation remain untested. |
 | Windows Store | Product 0.5.58 candidate at `f74ed9ce` was submitted October 30. On October 31 Partner Center showed certification in progress; publishing is held for **Publish now**. The candidate includes main through PR #239. | Recheck Partner Center before reporting or taking any action. Certification approval and public availability are not yet confirmed. |
 | Windows standalone download | [0.5.59 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.59) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.59) published October 31. | Physical Windows and school-device acceptance remains outstanding; updates are disabled. |
 
@@ -20,6 +20,10 @@ blocked-executables finding, disclosed with the submission. See the
 The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
+
+## Setup Help simplification
+
+A concise version-free guide and platform-specific instructions passed 36 focused tests, website build and a Mac/Windows browser check. Independent Terra/medium review identified broken links and missing Git identity help; both were corrected and the targeted review was clean. Deployment is verified separately after merge.
 
 ## Mac 0.5.60 verification
 

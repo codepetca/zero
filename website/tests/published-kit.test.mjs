@@ -117,18 +117,12 @@ test('hosted starter and setup share download-aware guidance rather than package
   assert.match(prepare,/setup: "docs\/GETTING-STARTED\.md"/);
   assert.match(prepare,/starter: "docs\/GETTING-STARTED\.md"/);
   const guide=await readFile(new URL('../../docs/GETTING-STARTED.md',import.meta.url),'utf8');
-  assert.match(guide,/Zero \.vsix included with your downloaded kit/);
-  assert.match(guide,/If your extracted complete kit includes a `setup\/` folder/);
-  assert.match(guide,/Use the versioned Zero VSIX included with your/);
-  assert.match(guide,/Start Page → Project → Clone/);
-  assert.match(guide,/\*\*Clone location\*\*.*`~\/Zero Projects`/s);
-  assert.match(guide,/choose \*\*Clone here\*\*/);
-  assert.match(guide,/Start Page → Project → Open/);
-  assert.match(guide,/VS Code 1\.95 fallback/);
-  assert.match(guide,/⋯ → Troubleshooting → Test installation/);
-  assert.doesNotMatch(guide,/Setup help|Project → (?:Resume created project|Create a repository|Connect to GitHub)/);
-  assert.match(guide,/⋯ → Repository Actions → Connect to GitHub…/);
-  assert.doesNotMatch(guide,/Clone repository|Connect a repository|Connect GitHub/);
+  assert.match(guide,/\[downloads page\]\(https:\/\/zero\.codepet\.ca\/downloads\)/);
+  assert.match(guide,/\*\*Project → Open\*\*/);
+  assert.match(guide,/\*\*Project → Clone\*\*/);
+  assert.match(guide,/\*\*Tutorial docs\*\*/);
+  assert.match(guide,/\*\*Troubleshooting → Test installation\*\*/);
+  assert.doesNotMatch(guide,/\b\d+\.\d+\.\d+\b/);
 });
 
 test('verified Windows installer replaces manual ZIP as the primary Windows download', async () => {
