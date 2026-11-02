@@ -73,40 +73,28 @@ test('current publication and explicit local preview take precedence, hosted fla
   assert.equal(availableKitRelease(current,fallback,localDownloadsAllowed({ZERO_LOCAL_DOWNLOADS:'1',VERCEL:'1'})),fallback);
   assert.equal(landingDownloadHref(releaseAssetHref(fallback,'kit'),native),'/downloads');
 });
-test('downloads show only supported platform buttons with exact published URLs', async () => {
+test('downloads offer the Microsoft Store installer and Mac download', async () => {
   const publishedNative={...native,publication:{...native.publication,status:'published'},asset:{...native.asset,url:`https://github.com/codepetca/zero/releases/download/${native.publication.tag}/${native.asset.filename}`}};
   const html=await render(current,fallback,publishedNative,false);
-  assert.ok(html.includes(`href="${fallback.assets.kit.url}"`));
   assert.ok(html.includes(`href="${publishedNative.asset.url}"`));
   assert.match(html,/Download for Mac Silicon<\/a>/);
-  assert.match(html,/Download for Windows \(ZIP\)<\/a>/);
+  assert.match(html,/href="https:\/\/get\.microsoft\.com\/installer\/download\/9mxkd6dqlfgx\?referrer=appbadge"/);
+  assert.match(html,/Download for Windows<\/a>/);
+  assert.match(html,/href="https:\/\/apps\.microsoft\.com\/detail\/9mxkd6dqlfgx"/);
+  assert.match(html,/View in Microsoft Store<\/a>/);
+  assert.doesNotMatch(html,/Manual setup \(ZIP\)/);
   assert.equal((html.match(/<a class="button /g)||[]).length,2);
-  assert.doesNotMatch(html,/href="\/(privacy|terms)"|download-legal/);
-  assert.doesNotMatch(html,/<h[1-6][ >]|<details[ >]|<summary[ >]/);
-  assert.doesNotMatch(html,/Zero Setup|Other downloads|local preview|href="\/download\/|\.exe/);
+  assert.doesNotMatch(html,/Download for Windows \(unsigned\)|href="\/(privacy|terms)"|download-legal/);
   assert.equal(landingDownloadHref(fallback.assets.kit.url,publishedNative),'/downloads');
 });
-test('local, published, fallback and missing states offer only available verified platform buttons', async () => {
+test('Store link is available independently of local or published kit', async () => {
   const local=await render(current,fallback,native,true);
   assert.match(local,/Download for Mac Silicon \(local preview\)/);
-  assert.match(local,/Download for Windows \(ZIP\) \(local preview\)/);
-  assert.match(local,/href="\/download\/kit"/);
-  const fallbackHtml=await render(current,fallback,native,false);
-  assert.match(fallbackHtml,/Download for Windows \(ZIP\)/);
-  assert.doesNotMatch(fallbackHtml,/Download for Mac Silicon|local preview/);
-  const published=structuredClone(current);
-  published.publication.status='published';
-  for (const key of ['kit','starter','extension']) published.assets[key].url=`https://github.com/codepetca/zero/releases/download/v${published.kitVersion}/${published.assets[key].filename}`;
-  const publishedHtml=await render(published,fallback,null,false);
-  assert.ok(publishedHtml.includes('Download for Windows (ZIP)'));
-  assert.ok(publishedHtml.includes(`href="${published.assets.kit.url}"`));
-  // Immutable download URLs contain versions; visible button labels stay plain.
-  assert.doesNotMatch(publishedHtml.replace(/href="[^"]*"/g,''),/\b\d+\.\d+\.\d+\b|local preview/);
-  assert.equal(await render(current,null,null,false),'');
-  const macOnly={...native,publication:{...native.publication,status:'published'},asset:{...native.asset,url:`https://github.com/codepetca/zero/releases/download/${native.publication.tag}/${native.asset.filename}`}};
-  const macOnlyHtml=await render(current,null,macOnly,false);
-  assert.match(macOnlyHtml,/Download for Mac Silicon/);
-  assert.doesNotMatch(macOnlyHtml,/Download for Windows/);
+  assert.doesNotMatch(local,/Manual setup \(ZIP\)/);
+  const withoutKit=await render(current,null,null,false);
+  assert.match(withoutKit,/Download for Windows<\/a>/);
+  assert.match(withoutKit,/View in Microsoft Store<\/a>/);
+  assert.doesNotMatch(withoutKit,/Manual setup \(ZIP\)|Download for Mac/);
   const route=await readFile(new URL('../app/download/[asset]/route.ts',import.meta.url),'utf8');
   assert.match(route,/verifiedLocalAsset\([^\n]+asset, release\)/);
   assert.doesNotMatch(route,/publishedKit|downloadableKit/);
@@ -125,51 +113,20 @@ test('hosted starter and setup share download-aware guidance rather than package
   assert.doesNotMatch(guide,/\b\d+\.\d+\.\d+\b/);
 });
 
-test('verified Windows installer replaces manual ZIP as the primary Windows download', async () => {
-  const url='https://github.com/codepetca/zero/releases/download/windows-v0.5.18/Zero-Setup-0.5.18-windows.exe';
-  const html=await render(current,fallback,null,false,url);
-  assert.ok(html.includes(`href="${url}"`));
-  assert.match(html,/Download for Windows<\/a>/);
-  assert.doesNotMatch(html,/Windows \(ZIP\)|zero-bootstrap.zip/);
+test('Windows requirements describe Store installation without the unsigned preview warning', async () => {
+  const help=await render(current,fallback,null,false,null,null,false,true);
+  assert.match(help,/Windows: x64, Windows 10 \(build 19041\) or later/);
+  assert.match(help,/installer downloads Zero from Microsoft Store/);
+  assert.doesNotMatch(help,/Unsigned preview|automatic updates are off/);
 });
-
-test('unsigned Windows download is explicit before clicking and setup help states its limits', async () => {
-  const url='https://github.com/codepetca/zero/releases/download/windows-preview-v0.5.21/Zero-Setup-0.5.21-windows-development.exe';
-  const html=await render(current,fallback,null,false,url,null,true);
-  assert.ok(html.includes(`href="${url}"`));
-  assert.match(html,/Download for Windows \(unsigned\)<\/a>/);
-  assert.doesNotMatch(html,/windows-unsigned-note|Windows may show a security warning/);
-  assert.doesNotMatch(html,/Windows \(ZIP\)|zero-bootstrap.zip/);
-  const help=await render(current,fallback,null,false,url,null,true,true);
-  assert.match(help,/Windows 0\.5\.21: x64, Windows 10 \(build 19041\) or later/);
-  assert.match(help,/automatic updates are off/);
-  assert.match(help,/Interactive Windows testing is pending/);
-  const signed=await render(current,fallback,null,false,url);
-  assert.doesNotMatch(signed,/unsigned|security warning|windows-unsigned-note/);
-});
-
-test('matching manual ZIP is a secondary action grouped with the Windows installer', async () => {
-  const installer='https://github.com/codepetca/zero/releases/download/windows-preview-v0.5.21/Zero-Setup-0.5.21-windows-development.exe';
-  const manual='https://github.com/codepetca/zero/releases/download/windows-manual-v0.5.21/zero-bootstrap.zip';
-  const html=await render(current,fallback,null,false,installer,null,true,false,manual);
-  assert.match(html,/class="windows-download">.*Download for Windows \(unsigned\)<\/a><a class="manual-download"/);
-  assert.ok(html.includes(`href="${manual}">Manual setup (ZIP)</a>`));
-  assert.equal((html.match(/Manual setup \(ZIP\)/g)||[]).length,1);
-  assert.doesNotMatch(html,/Windows \(ZIP\)/);
-  const noInstaller=await render(current,fallback,null,false,null,null,false,false,manual);
-  assert.doesNotMatch(noInstaller,/Manual setup \(ZIP\)/);
-  assert.match(noInstaller,/Download for Windows \(ZIP\)/);
-});
-
-
 test('a staged Mac candidate preserves both published platform choices without preview labels', async () => {
   const publishedNative = JSON.parse(await readFile(new URL('../../release/published-installer.json', import.meta.url)));
   for (const env of [{}, {ZERO_LOCAL_DOWNLOADS:'1', VERCEL:'1'}]) {
     const html = await render(current, fallback, native, localDownloadsAllowed(env), null, publishedNative);
     assert.ok(html.includes(`href="${publishedNative.asset.url}"`));
-    assert.ok(html.includes(`href="${fallback.assets.kit.url}"`));
+    assert.doesNotMatch(html,/Manual setup \(ZIP\)/);
     assert.match(html, /Download for Mac Silicon<\/a>/);
-    assert.match(html, /Download for Windows \(ZIP\)<\/a>/);
+    assert.match(html, /Download for Windows<\/a>/);
     assert.equal((html.match(/<a class="button /g)||[]).length, 2);
     assert.doesNotMatch(html, /href="\/(privacy|terms)"/);
     assert.doesNotMatch(html, /local preview|href="\/download\//);
