@@ -219,12 +219,9 @@ receipts survive editor restart and failed updates. Historical Open/Copy command
 remain in the command palette. Checking and browser opening retain the existing
 progress bar until completion; the browser address is shareable.
 
-Current delivery, checked 2026-10-21: Mac 0.5.43 ships native Explorer and the teaching New dropdown, native Run App, Start Page sign-in
-and GitHub setup. Windows remains the unsigned 0.5.21
-preview and matching manual ZIP, with updates disabled and physical acceptance
-pending. The general manual kit fallback remains 0.5.17. Source availability,
-released versions and observed student/provider acceptance are separate; see
-[the goal audit](VERIFICATION.md#goal-and-gap-audit--2026-10-19).
+Current delivery: Zero for Mac and Zero Studio on Microsoft Store are available.
+Source availability, released versions and observed student acceptance are separate;
+see the [release ledger](RELEASE-LEDGER.md) for verified versions and outstanding checks.
 GitHub setup verifies project access before tutorial choices and repository details.
 
 The shared Zero brand uses the softened, thicker slashed-circle mark from
@@ -238,12 +235,12 @@ installers remain unchanged.
 
 The download website is a separately built part of this repository. Its landing
 page has the shared app header, **Learn Java**, **Starting from zero.**, and two
-direct download buttons: **Download for Mac Silicon** and **Download for Windows
-(unsigned)**. The Windows button offers the owner-authorized 0.5.54 installer
-preview, labels its unsigned status and links to setup limits. Automatic Windows
-updates remain disabled; the signed installer/feed contract is separate.
-The secondary **Manual setup (ZIP)** link beside Windows offers the exact kit
-embedded in that installer. Home and Downloads keep both primary buttons centered
+direct download buttons: **Download for Mac Silicon** and **Download for Windows**.
+The Windows action downloads Microsoft's Store web installer for Zero; a Store
+listing link is available below it.
+The web installer retrieves the Store app when run. Store installation and updates
+still need physical Windows acceptance.
+Home and Downloads keep both primary buttons centered
 at the same width regardless of warning length.
 It uses the shared light/dark toggle and
 centered full-viewport layout. The old `/get-started` address redirects to Downloads.
@@ -699,8 +696,8 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   and Zero operations defer reload; ordinary Code profiles are untouched.
   Upgrading from0.5.33 or earlier still needs one manual Zero reopen/editor reload
   because those installed updaters contain the previous handoff.
-  Signed/notarized Mac0.5.43 is published; Windows0.5.21 is a published unsigned
-  preview with automatic updates disabled. Native setup uses a `Zero` folder
+  Earlier releases included signed/notarized Mac0.5.43 and an unsigned Windows
+  preview. Native setup uses a `Zero` folder
   in the user’s home with no location/name picker. Current native source starts
   with Preparing Zero and automatically places or updates installer files while
   preserving the entire student project; an unrelated folder named Zero is
@@ -934,10 +931,9 @@ repositories, renewal/revocation, account switching, Pages setup/repeat publishi
 and browser identity still need observed acceptance. Registration, mocks and a
 released installer do not establish those live results. The current MVP targets
 Mac with Apple Silicon and Windows; Linux and Intel Macs are unsupported.
-Windows offers an unsigned 0.5.54 native preview and its matching manual ZIP;
-automatic updates remain disabled. Signed production Windows releases still need
-signing, physical acceptance and authorization; see
-[the Windows contract](WINDOWS-INSTALLER.md).
+Zero Studio is available from Microsoft Store; an older standalone preview and
+manual ZIP remain separate. Physical Store installation and update acceptance
+remain pending; see [the release ledger](RELEASE-LEDGER.md).
 Physical Windows, school
 restrictions and novice classroom pilots still need verification. Retained
 universal/cross-platform artifacts and historical checks do not expand support.

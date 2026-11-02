@@ -9,7 +9,7 @@ permission to publish from this ledger.
 | --- | --- | --- |
 | Website | Actor lesson from PR #246 and Mac 0.5.60 download/feed from PR #249 deployed automatically from main. | Simplified Setup Help is in this source change; verify its deployment after merge. |
 | Mac installer | [0.5.60](https://github.com/codepetca/zero/releases/tag/setup-v0.5.60) published October 31; its download page and signed update feed were verified live. | Actual automatic upgrade and fresh Mac installation remain untested. |
-| Windows Store | Product 0.5.58 candidate at `f74ed9ce` was submitted October 30. On October 31 Partner Center showed certification in progress; publishing is held for **Publish now**. The candidate includes main through PR #239. | Recheck Partner Center before reporting or taking any action. Certification approval and public availability are not yet confirmed. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) is publicly listed; the owner confirmed publication on November 2. | Verify the installed version and test Store installation and updates on Windows. |
 | Windows standalone download | [0.5.59 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.59) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.59) published October 31. | Physical Windows and school-device acceptance remains outstanding; updates are disabled. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs

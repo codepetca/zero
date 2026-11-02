@@ -1,40 +1,33 @@
 import { DownloadIcon } from "./Brand";
-import { downloadHref, downloadableKit, downloadableInstaller, macDownloadHref, downloadableWindowsInstaller, windowsDownloadHref, windowsDownloadIsUnsigned, windowsManualDownloadHref } from "@/lib/release";
+import { downloadableInstaller, macDownloadHref } from "@/lib/release";
+
+// Microsoft supplies a small Store web installer; it downloads the app when run.
+const WINDOWS_STORE_INSTALLER = 'https://get.microsoft.com/installer/download/9mxkd6dqlfgx?referrer=appbadge';
+const WINDOWS_STORE_LISTING = 'https://apps.microsoft.com/detail/9mxkd6dqlfgx';
+
 export function Downloads() {
-  const kit = downloadableKit();
   const installer = downloadableInstaller();
   const mac = macDownloadHref();
-  const windows = windowsDownloadHref();
-  const unsigned = windowsDownloadIsUnsigned();
-  const manual = windowsManualDownloadHref();
-  if (!mac && !windows && !kit) return null;
   return (
     <section className="download-section" id="downloads" aria-label="Downloads">
       <div className="hub-actions">
         {mac && <a className="button primary compact" href={mac}><DownloadIcon />Download for Mac Silicon{installer.publication.status === 'local' && ' (local preview)'}</a>}
-        {windows && <div className="windows-download">
-          <a className="button primary compact" href={windows}><DownloadIcon />Download for Windows{unsigned && ' (unsigned)'}</a>
-          {manual && <a className="manual-download" href={manual}>Manual setup (ZIP)</a>}
-        </div>}
-        {!windows && kit && <a className="button primary compact" href={downloadHref()} aria-label={`Download for Windows (ZIP), manual setup${kit.publication.status === 'local' ? ', local preview' : ''}`}><DownloadIcon />Download for Windows (ZIP){kit.publication.status === 'local' && ' (local preview)'}</a>}
+        <div className="windows-download">
+          <a className="button primary compact" href={WINDOWS_STORE_INSTALLER}><DownloadIcon />Download for Windows</a>
+          <a className="manual-download" href={WINDOWS_STORE_LISTING}>View in Microsoft Store</a>
+        </div>
       </div>
     </section>
   );
 }
 
 export function DownloadRequirements({ platformAware = false } = {}) {
-  const kit = downloadableKit();
   const installer = downloadableInstaller();
   const mac = macDownloadHref();
-  const windows = windowsDownloadHref();
-  const windowsInstaller = downloadableWindowsInstaller();
-  const unsigned = windowsDownloadIsUnsigned();
-  if (!mac && !windows && !kit) return null;
   return (
     <p className="source-note" aria-label="Download requirements">
       {mac && installer && <span className={platformAware ? "platform-mac" : undefined}>Mac {installer.kitVersion}: Apple Silicon, macOS {installer.asset.minimumOS}+.{!platformAware && <br />}</span>}
-      <span className={platformAware ? "platform-windows" : undefined}>{windows && windowsInstaller ? <>Windows {windowsInstaller.kitVersion}: x64, Windows 10 (build 19041) or later.</> : kit && <>Windows {kit.kitVersion}: ZIP with manual setup.</>}
-      {windows && unsigned && <><br />Unsigned preview; automatic updates are off. Interactive Windows testing is pending.</>}</span>
+      <span className={platformAware ? "platform-windows" : undefined}>Windows: x64, Windows 10 (build 19041) or later. The installer downloads Zero from Microsoft Store.</span>
     </p>
   );
 }

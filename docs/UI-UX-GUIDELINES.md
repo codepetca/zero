@@ -16,12 +16,10 @@ marks a preferred pattern with documented, task-specific exceptions.
 - MUST label the current MVP support as **Mac with Apple Silicon** and
   **Windows**. Linux and Intel Macs are unsupported in this MVP. Universal
   artifact architecture or retained cross-platform source is not a support claim.
-- MUST offer Windows alongside Mac in download choices. The owner authorized the
-  unsigned Windows installer preview and its matching **Manual setup (ZIP)**
-  secondary link on 2026-10-19. Keep signature status explicit in the button label
-  and both primary buttons centered. Owner correction2026-10-25 removes the extra
-  warning sentence below downloads. Release metadata determines availability. Distinguish the Windows support
-  target from physical Windows verification, which remains pending.
+- MUST offer Windows alongside Mac in download choices. The Windows button
+  downloads Microsoft's Store web installer; provide the Store listing as a
+  secondary link. Keep both primary buttons centered and distinguish
+  Store publication from physical Windows installation and update testing.
 
 - MUST retain ordinary Java/JavaFX controls and explicit student-owned state.
   Main updates and draws objects explicitly; UI polish does not authorize a new

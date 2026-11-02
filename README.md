@@ -35,13 +35,11 @@ are unsupported. Physical Windows and novice student trials remain unverified; s
 ## Download Zero
 
 - [Download for Mac with Apple Silicon — Zero 0.5.55](https://github.com/codepetca/zero/releases/download/setup-v0.5.55/Zero-0.5.55-macos.dmg)
-- [Download for Windows — unsigned Zero 0.5.55 installer](https://github.com/codepetca/zero/releases/download/windows-preview-v0.5.55/Zero-Setup-0.5.55-windows-development.exe)
-- [Windows manual setup ZIP 0.5.55](https://github.com/codepetca/zero/releases/download/windows-manual-v0.5.55/zero-bootstrap.zip); follow `START-HERE.md` for manual setup.
+- [Download for Windows — Microsoft Store installer](https://get.microsoft.com/installer/download/9mxkd6dqlfgx?referrer=appbadge) ([view in Microsoft Store](https://apps.microsoft.com/detail/9mxkd6dqlfgx))
 
-The Windows installer remains an unsigned preview with automatic updates off.
-It uses Zero’s private Java21 without changing system Java or ordinary editor
-settings. Interactive Windows acceptance is still pending. These published downloads
-retain their MIT license.
+The Microsoft Store installer downloads and installs Zero. Store installation and
+updates still need a physical Windows check.
+These published downloads retain their MIT license.
 
 ## Start here
 
