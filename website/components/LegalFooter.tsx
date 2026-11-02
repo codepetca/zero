@@ -9,7 +9,6 @@ export function LegalFooter() {
   const years = year === 2026 ? '2026' : `2026–${year}`;
 
   return <footer className="legal-footer">
-    <hr />
     <div className="legal-footer-row">
       <span>© {years} Zero by Codepet</span>
       <nav aria-label="Privacy and terms"><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
