@@ -4,7 +4,6 @@
   color: var(--muted);
   font-size: .8rem;
 }
-.legal-footer hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
 .legal-footer-row {
   display: flex;
   flex-wrap: wrap;
