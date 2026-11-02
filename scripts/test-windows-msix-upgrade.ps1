@@ -47,13 +47,14 @@ $report = [ordered]@{
     newInstallVerified = $false; newActivationVerified = $false
     preservedBeforeActivation = $false; preservedAfterActivation = $false
     privateJavaVerified = $false; zeroExtensionVersion = $null; newKitVersion = $null
-    consentPromptOnReopen = $false; newEditorObserved = $false
+    consentPromptOnReopen = $false; newEditorObserved = $false; newEditorWindowVerified = $false
+    extensionEvidence = 'Installed extension package.json version only; extension-host activation and complete extension-content equality are unverified.'
     stateSha256 = [ordered]@{}; cleanupVerified = $false
     trustScope = 'Temporary public certificate in LocalMachine/TrustedPeople; key only in CurrentUser/My'
     limits = @('Original unsigned candidates are unchanged; signed copies use one ephemeral certificate.',
         'Local Windows Server 2022 x64 MSIX upgrade; does not establish Store signing, certification, licensing, download delivery, Windows desktop or school-device acceptance.',
-        'Observes a fresh isolated editor process and extension manifest version; does not establish extension activation, interactive commands or a student game.',
-        'Cleanup covers package, owned processes, certificate and temporary copies; disposable user project/profile state is retained until runner disposal.')
+        'Verifies a fresh isolated editor GUI window and extension manifest version, not extension-host activation, interactive editor commands or a student game.',
+        'Cleanup covers package, owned processes, certificate and temporary copies; residual disposable user project/profile state is left to runner disposal.')
 }
 function Hash([string]$Path) { (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant() }
 function Check-Candidate([string]$Path, [string]$BuildPath, [string]$KitVersion, [string]$Version, [string]$Source) {
@@ -236,6 +237,9 @@ try {
     if (-not $activatedPid) { throw 'New packaged activation returned no process ID.' }
     $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
     $ready = $false
+    $editorWindowPid = $null
+    $editorWindowHandle = [IntPtr]::Zero
+    $editorWindowSince = $null
     while ([DateTime]::UtcNow -lt $deadline) {
         $windows = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Children, [System.Windows.Automation.Condition]::TrueCondition)
         foreach ($window in $windows) {
@@ -259,12 +263,34 @@ try {
                 }
             }
         }
+        # A CLI Electron process can share Code.exe/profile arguments. Require
+        # an actual visible top-level GUI window, with the same process/handle
+        # persisting for at least three seconds after package activation.
+        $gui = @($editor | Where-Object {
+            $candidatePid = $_.ProcessId
+            $process = Get-Process -Id $candidatePid -ErrorAction SilentlyContinue
+            if (-not $process -or $process.MainWindowHandle -eq [IntPtr]::Zero -or [string]::IsNullOrWhiteSpace($process.MainWindowTitle)) { return $false }
+            @($windows | Where-Object {
+                $_.Current.ProcessId -eq $candidatePid -and $_.Current.NativeWindowHandle -eq $process.MainWindowHandle.ToInt64() -and
+                -not $_.Current.IsOffscreen -and -not [string]::IsNullOrWhiteSpace($_.Current.Name)
+            }).Count -gt 0
+        })
+        if ($gui.Count -gt 0) {
+            $guiProcess = Get-Process -Id $gui[0].ProcessId -ErrorAction SilentlyContinue
+            if ($guiProcess -and $guiProcess.MainWindowHandle -ne [IntPtr]::Zero) {
+                if ($editorWindowPid -ne $guiProcess.Id -or $editorWindowHandle -ne $guiProcess.MainWindowHandle) {
+                    $editorWindowPid = $guiProcess.Id; $editorWindowHandle = $guiProcess.MainWindowHandle; $editorWindowSince = [DateTime]::UtcNow
+                }
+            } else { $editorWindowSince = $null }
+        } else { $editorWindowSince = $null; $editorWindowPid = $null; $editorWindowHandle = [IntPtr]::Zero }
         $kitMetadata = Get-Content -LiteralPath (Join-Path $project 'setup\kit.properties') -Raw
-        if ($editor.Count -gt 0 -and '0.5.60' -in $versions -and $kitMetadata -match '(?m)^kitVersion=0\.5\.60\r?$') { $ready = $true; break }
+        if ($editorWindowSince -and ([DateTime]::UtcNow - $editorWindowSince).TotalSeconds -ge 3 -and
+            '0.5.60' -in $versions -and $kitMetadata -match '(?m)^kitVersion=0\.5\.60\r?$') { $ready = $true; break }
         Start-Sleep -Seconds 1
     }
     if (-not $ready) { throw 'New activation did not open the isolated editor with the current extension and kit.' }
-    $report.newEditorObserved = $true; $report.zeroExtensionVersion = '0.5.60'; $report.newKitVersion = '0.5.60'
+    $report.newEditorObserved = $true; $report.newEditorWindowVerified = $true
+    $report.zeroExtensionVersion = '0.5.60'; $report.newKitVersion = '0.5.60'
     $stage = 'private-java'
     $settings = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json
     $runtimes = @($settings.'java.configuration.runtimes' | Where-Object { $_.name -eq 'JavaSE-21' -and $_.default -eq $true })
