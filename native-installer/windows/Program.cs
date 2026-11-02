@@ -25,11 +25,13 @@ namespace ZeroSetup
                 string local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 if (string.IsNullOrWhiteSpace(local)) throw new IOException("Your Windows app-data folder is unavailable. Ask your device administrator or IT for help.");
                 string data = Path.Combine(local, Distribution.DataFolder);
+                string runtimeData = Distribution.DataRoot(local);
                 KitFiles.RejectReparseAncestors(data);
+                KitFiles.RejectReparseAncestors(runtimeData);
                 using (var broker = new InstanceBroker())
                 {
                     if (!broker.IsOwner) { broker.Forward(request); return; }
-                    using (var window = new MainForm(data, request))
+                    using (var window = new MainForm(data, request, runtimeData))
                     {
                         // Handle exists before the pipe can deliver a request.
                         var handle = window.Handle;
