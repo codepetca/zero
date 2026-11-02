@@ -119,7 +119,7 @@ test('website offers the Store listing independently of standalone Windows publi
   const downloads = await readFile(new URL('../components/Downloads.jsx',import.meta.url),'utf8');
   assert.match(downloads,/apps\.microsoft\.com\/detail\/9mxkd6dqlfgx/);
   assert.doesNotMatch(downloads,/Manual setup \(ZIP\)/);
-  assert.match(downloads,/Install for Mac Silicon/);
+  assert.match(downloads,/Get Zero for Mac Silicon/);
   const route = await readFile(new URL('../app/updates/windows/stable.json/route.ts',import.meta.url),'utf8');
   assert.match(route,/dynamic = 'force-static'/);
   assert.match(route,/publishedWindowsFeedResponse\(snapshot.windowsUpdateFeed\)/);

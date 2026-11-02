@@ -153,21 +153,12 @@ ZERO_LOCAL_DOWNLOADS=1 npm run dev --prefix website
 Without the local preview flag, an unpublished kit uses the verified fallback
 when present. Published assets keep their verified public links
 even with the flag enabled. No guessed public release URL is shown.
-The optional `release/installer.json` adds **Install for Mac Silicon** on the Download page.
-When that installer is published or local downloads are enabled, the public
-Download Zero action on Home opens platform choices at `/downloads`. Mac setup
-and the unsigned Windows installer preview are the visible download controls, with no
-extra instructions or version prose. The complete ZIP, starter and VSIX remain
-available on GitHub releases with their own kit version, even when Mac setup
-and the published ZIP are different versions. Local-preview controls are labeled
-as such; unavailable platform buttons are omitted. The unsigned Windows button
-and its security-warning note are driven by strict `release/windows-preview.json`
-metadata. A signed Windows manifest takes precedence; the preview never supplies
-an update feed. Its optional strict `manualSetup` asset describes the byte-matched
-embedded kit, published separately under `windows-manual-v<version>` without
-changing earlier release assets. The secondary manual link is hidden if a signed
-installer replaces that preview. Without either installer manifest, Windows falls back to the
-published complete-kit ZIP. The current MVP supports Apple Silicon Macs and Windows.
+The homepage and Downloads page offer **Get Zero for Mac Silicon** when a
+verified Mac installer is available, and **Get Zero for Windows** links to the
+Microsoft Store listing. Local Mac preview downloads are labeled as such. The
+complete ZIP, starter and VSIX remain available on GitHub releases. Older Windows
+preview and manual-kit artifacts remain separate from the Store distribution.
+The current MVP supports Apple Silicon Macs and Windows.
 Local native download verifies bounded exact bytes, clean signed/notarized build
 provenance and unchanged packaged/native source. `VERCEL` always disables local
 filesystem downloads even with the preview flag set. A hosted build reads only

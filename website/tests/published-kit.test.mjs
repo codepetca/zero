@@ -77,9 +77,9 @@ test('downloads offer the Microsoft Store listing and Mac download', async () =>
   const publishedNative={...native,publication:{...native.publication,status:'published'},asset:{...native.asset,url:`https://github.com/codepetca/zero/releases/download/${native.publication.tag}/${native.asset.filename}`}};
   const html=await render(current,fallback,publishedNative,false);
   assert.ok(html.includes(`href="${publishedNative.asset.url}"`));
-  assert.match(html,/Install for Mac Silicon<\/a>/);
+  assert.match(html,/Get Zero for Mac Silicon<\/a>/);
   assert.match(html,/href="https:\/\/apps\.microsoft\.com\/detail\/9mxkd6dqlfgx"/);
-  assert.match(html,/Install for Windows<\/a>/);
+  assert.match(html,/Get Zero for Windows<\/a>/);
   assert.doesNotMatch(html,/Manual setup \(ZIP\)/);
   assert.equal((html.match(/<a class="button /g)||[]).length,2);
   assert.doesNotMatch(html,/Download for Windows \(unsigned\)|href="\/(privacy|terms)"|download-legal/);
@@ -87,10 +87,10 @@ test('downloads offer the Microsoft Store listing and Mac download', async () =>
 });
 test('Store link is available independently of local or published kit', async () => {
   const local=await render(current,fallback,native,true);
-  assert.match(local,/Install for Mac Silicon \(local preview\)/);
+  assert.match(local,/Get Zero for Mac Silicon \(local preview\)/);
   assert.doesNotMatch(local,/Manual setup \(ZIP\)/);
   const withoutKit=await render(current,null,null,false);
-  assert.match(withoutKit,/Install for Windows<\/a>/);
+  assert.match(withoutKit,/Get Zero for Windows<\/a>/);
   assert.doesNotMatch(withoutKit,/Manual setup \(ZIP\)|Download for Mac/);
   const route=await readFile(new URL('../app/download/[asset]/route.ts',import.meta.url),'utf8');
   assert.match(route,/verifiedLocalAsset\([^\n]+asset, release\)/);
@@ -122,14 +122,14 @@ test('a staged Mac candidate preserves both published platform choices without p
     const html = await render(current, fallback, native, localDownloadsAllowed(env), null, publishedNative);
     assert.ok(html.includes(`href="${publishedNative.asset.url}"`));
     assert.doesNotMatch(html,/Manual setup \(ZIP\)/);
-    assert.match(html, /Install for Mac Silicon<\/a>/);
-    assert.match(html, /Install for Windows<\/a>/);
+    assert.match(html, /Get Zero for Mac Silicon<\/a>/);
+    assert.match(html, /Get Zero for Windows<\/a>/);
     assert.equal((html.match(/<a class="button /g)||[]).length, 2);
     assert.doesNotMatch(html, /href="\/(privacy|terms)"/);
     assert.doesNotMatch(html, /local preview|href="\/download\//);
   }
   const local = await render(current, fallback, native, true, null, publishedNative);
   assert.match(local, /href="\/download\/installer"/);
-  assert.match(local, /Install for Mac Silicon \(local preview\)/);
+  assert.match(local, /Get Zero for Mac Silicon \(local preview\)/);
   assert.ok(!local.includes(publishedNative.asset.url));
 });
