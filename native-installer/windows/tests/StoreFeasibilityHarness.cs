@@ -26,6 +26,13 @@ internal static class StoreFeasibilityHarness
             Assert(Distribution.KitFolder == "Zero MSIX Feasibility", "Store home kit is isolated");
             Assert(Distribution.BrokerPrefix == "Codepet.Zero.MsixFeasibility.Launcher.", "Store broker is isolated");
 #endif
+#if ZERO_STORE_PRODUCTION
+            string redirected = Path.Combine(root, "redirected");
+            Assert(Distribution.DataRoot(root, () => redirected) == Path.Combine(redirected, Distribution.DataFolder), "Store uses physical redirected data root");
+            bool invalidRoot = false;
+            try { Distribution.DataRoot(root, () => ""); } catch (IOException) { invalidRoot = true; }
+            Assert(invalidRoot, "Store rejects unavailable redirected data root");
+#endif
             var child = new ProcessStartInfo();
             child.EnvironmentVariables[Distribution.Marker] = "inherited-other";
             Distribution.SetChildEnvironment(child);

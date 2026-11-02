@@ -1,0 +1,124 @@
+<?xml version='1.0' encoding='utf-8'?>
+<REPORT OVERALL_RESULT="WARNING" VERSION="10.0.26100.7705" APP_TYPE="Centennial" APP_NAME="" APP_VERSION="" PARTIAL_RUN="FALSE" VALIDATION_TYPE="CommandLine">
+  <APPLICATIONS>
+    <Installed_Programs>
+      <Program>
+        <Indicators>
+          <WindowsStoreAppManifestIndicators>
+            <PackageManifest PackageFullName="Codepet.zerostudio_1.5.56.0_x64__g62pw1js6rhjp">
+              <Package>
+                <Identity Name="Codepet.zerostudio" Publisher="CN=DC9AEBC0-4CAE-4681-9E52-20B0B1C14919" Version="1.5.56.0" ProcessorArchitecture="x64" />
+              </Package>
+            </PackageManifest>
+          </WindowsStoreAppManifestIndicators>
+        </Indicators>
+      </Program>
+    </Installed_Programs>
+  </APPLICATIONS>
+  <REQUIREMENTS>
+    <REQUIREMENT>
+      <TEST NAME="Install signed driver and executable files" OPTIONAL="TRUE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+    </REQUIREMENT>
+    <REQUIREMENT>
+      <TEST NAME="User account control run level" OPTIONAL="TRUE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+    </REQUIREMENT>
+    <REQUIREMENT>
+      <TEST NAME="Application count" OPTIONAL="TRUE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+      <TEST NAME="App manifest" OPTIONAL="FALSE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+      <TEST NAME="File association verbs" OPTIONAL="TRUE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+      <TEST NAME="Registry checks" OPTIONAL="TRUE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+      <TEST NAME="Enterprise Features" OPTIONAL="FALSE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+      <TEST NAME="Resource Packages" OPTIONAL="FALSE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+    </REQUIREMENT>
+    <REQUIREMENT>
+      <TEST NAME="Banned file analyzer" OPTIONAL="FALSE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+      <TEST NAME="Private code signing" OPTIONAL="FALSE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+    </REQUIREMENT>
+    <REQUIREMENT>
+      <TEST NAME="App resources" OPTIONAL="TRUE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+      <TEST NAME="Branding" OPTIONAL="FALSE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+    </REQUIREMENT>
+    <REQUIREMENT>
+      <TEST NAME="Debug configuration" OPTIONAL="TRUE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+    </REQUIREMENT>
+    <REQUIREMENT>
+      <TEST NAME="Special use capabilities" OPTIONAL="FALSE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+    </REQUIREMENT>
+    <REQUIREMENT>
+      <TEST NAME="ExclusiveTo attribute" OPTIONAL="FALSE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+      <TEST NAME="Type location" OPTIONAL="FALSE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+      <TEST NAME="Type name case-sensitivity" OPTIONAL="FALSE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+      <TEST NAME="Type name correctness" OPTIONAL="FALSE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+      <TEST NAME="General metadata correctness" OPTIONAL="TRUE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+      <TEST NAME="Properties" OPTIONAL="FALSE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+    </REQUIREMENT>
+    <REQUIREMENT>
+      <TEST NAME="Archive files usage" OPTIONAL="TRUE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+      <TEST NAME="Blocked executables" OPTIONAL="TRUE">
+        <RESULT>FAIL</RESULT>
+        <MESSAGES>
+          <MESSAGE TEXT="[sanitized]" />
+          <MESSAGE TEXT="[sanitized]" />
+          <MESSAGE TEXT="[sanitized]" />
+          <MESSAGE TEXT="[sanitized]" />
+          <MESSAGE TEXT="[sanitized]" />
+          <MESSAGE TEXT="[sanitized]" />
+        </MESSAGES>
+      </TEST>
+      <TEST NAME="Platform appropriate files" OPTIONAL="TRUE">
+        <RESULT>PASS</RESULT>
+      </TEST>
+    </REQUIREMENT>
+    <REQUIREMENT>
+      <TEST NAME="DPIAwarenessValidation" OPTIONAL="FALSE">
+        <RESULT>WARNING</RESULT>
+        <MESSAGES>
+          <MESSAGE TEXT="[sanitized]" />
+          <MESSAGE TEXT="[sanitized]" />
+        </MESSAGES>
+      </TEST>
+    </REQUIREMENT>
+  </REQUIREMENTS>
+</REPORT>

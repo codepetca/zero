@@ -179,11 +179,40 @@ internal static class RuntimeHarness
     }
     private static void TestLifecycle(string parent)
     {
+#if ZERO_STORE_PRODUCTION
+        using (var collision = new Fixture(parent))
+        {
+            string hash; using (var sha = SHA256.Create()) hash = BitConverter.ToString(sha.ComputeHash(collision.Host.Editor)).Replace("-", "").ToLowerInvariant();
+            string folder = Path.Combine(collision.Data, "runtime", "vscode-" + hash.Substring(0, 20));
+            string legacyEditor = Path.Combine(collision.Data, "runtime", "vscode-" + hash);
+            string foreignReceipt = hash.Substring(0, 20) + new string('0', 44);
+            Directory.CreateDirectory(folder); Directory.CreateDirectory(legacyEditor);
+            File.WriteAllText(Path.Combine(folder, ".zero-asset.sha256"), foreignReceipt);
+            File.WriteAllText(Path.Combine(legacyEditor, "keep"), "existing editor");
+            Reject(collision.Prepare, "short locator with mismatched full receipt is rejected");
+            Assert(File.ReadAllText(Path.Combine(folder, ".zero-asset.sha256")) == foreignReceipt && File.ReadAllText(Path.Combine(legacyEditor, "keep")) == "existing editor", "collision and legacy editor remain untouched");
+        }
+#endif
+        using (var mapped = new Fixture(parent))
+        {
+            string realKit = Path.Combine(mapped.Root, "real-kit");
+            var mappedRuntime = new WindowsRuntime(mapped.Kit, mapped.Data, mapped.Project, mapped.Host, null, null, realKit);
+            mappedRuntime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult();
+            Assert(mapped.Host.Commands.All(command => command.EnvironmentVariables["ZERO_KIT_DIR"] == realKit), "children use execution kit path");
+            Assert(mapped.Host.Commands.Any(command => command.Arguments.Contains("--install-extension") && command.Arguments.Contains(Path.Combine(realKit, "zero-0.5.18.vsix"))), "editor installs bundled VSIX from execution kit");
+        }
         using (var f = new Fixture(parent))
         {
             string parentJava = Environment.GetEnvironmentVariable("JAVA_HOME"), parentPath = Environment.GetEnvironmentVariable("PATH");
             var progress = new List<string>(); var runtime = f.Runtime(); runtime.Prepare(progress.Add, CancellationToken.None).GetAwaiter().GetResult();
             Assert(f.Host.Downloads == 3 && f.Host.Installs == 2, "fresh setup downloads pinned Java/Node/editor and installs extensions");
+            string editorFolder = Directory.GetDirectories(Path.Combine(f.Data, "runtime"), "vscode-*").Single();
+#if ZERO_STORE_PRODUCTION
+            Assert(Path.GetFileName(editorFolder).Length == "vscode-".Length + 20, "Store editor path uses short digest locator");
+#else
+            Assert(Path.GetFileName(editorFolder).Length == "vscode-".Length + 64, "non-Store editor retains full digest locator");
+#endif
+            Assert(File.ReadAllText(Path.Combine(editorFolder, ".zero-asset.sha256")).Trim().Length == 64, "editor receipt retains full digest");
             Assert(progress.Contains("Downloading Java…") && progress.Contains("Checking Zero…"), "real preparation progress reaches verification");
             Assert(!Directory.EnumerateDirectories(Path.Combine(f.Data, "runtime"), ".install-*").Any(), "successful staging removed");
             string settingsPath = Path.Combine(f.Data, "editor", "user-data", "User", "settings.json");
@@ -374,6 +403,7 @@ internal static class RuntimeHarness
             Reject(() => f.Runtime("arm64"), "ARM not silently treated as x64"); Reject(() => f.Runtime("x86"), "32-bit rejected");
             f.Host.Unsupported = true; Reject(() => f.Runtime(), "unsupported OS rejected"); f.Host.Unsupported = false;
             Reject(() => new WindowsRuntime(f.Kit, Path.Combine(f.Kit, "inside-app"), f.Project, f.Host), "runtime never placed inside replaceable app/kit");
+            Reject(() => new WindowsRuntime(f.Kit, f.Data, f.Project, f.Host, null, Path.Combine(f.Kit, "inside-app")), "runtime storage never placed inside replaceable app/kit");
             string path = Path.Combine(f.Kit, "setup", "windows-downloads.json");
             string manifest = File.ReadAllText(path); File.WriteAllText(path, manifest.Replace("https://github.com", "http://github.com")); Reject(() => f.Runtime(), "non-HTTPS metadata rejected"); File.WriteAllText(path, manifest.Replace("github.com/adoptium", "example.com/adoptium")); Reject(() => f.Runtime(), "unofficial URL rejected");
             File.WriteAllText(path,manifest.Replace("nodejs.org/dist","nodejs.org.evil.test/dist")); Reject(()=>f.Runtime(),"Node origin lookalike rejected");
