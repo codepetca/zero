@@ -2,12 +2,18 @@ name: Windows launcher checks
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      store_upgrade_test:
+        description: Run the disposable same-certificate Store upgrade test
+        type: boolean
+        default: false
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
+  actions: read
 jobs:
   scope:
     uses: ./.github/workflows/ci-scope.yml
@@ -203,3 +209,10 @@ jobs:
           SCOPE_RESULT: ${{ needs.scope.result }}
           SELECTED: ${{ needs.scope.outputs.windows || 'true' }}
           JOB_RESULT: ${{ needs.windows-tests.result }}
+
+  store-upgrade-test:
+    if: github.event_name == 'workflow_dispatch' && inputs.store_upgrade_test == true
+    uses: ./.github/workflows/store-upgrade-test.yml
+    permissions:
+      contents: read
+      actions: read
