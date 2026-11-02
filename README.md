@@ -35,9 +35,9 @@ are unsupported. Physical Windows and novice student trials remain unverified; s
 ## Download Zero
 
 - [Download for Mac with Apple Silicon — Zero 0.5.55](https://github.com/codepetca/zero/releases/download/setup-v0.5.55/Zero-0.5.55-macos.dmg)
-- [Download for Windows — Microsoft Store installer](https://get.microsoft.com/installer/download/9mxkd6dqlfgx?referrer=appbadge) ([view in Microsoft Store](https://apps.microsoft.com/detail/9mxkd6dqlfgx))
+- [Get Zero Studio from Microsoft Store](https://apps.microsoft.com/detail/9mxkd6dqlfgx)
 
-The Microsoft Store installer downloads and installs Zero. Store installation and
+Microsoft Store provides Zero for Windows. Store installation and
 updates still need a physical Windows check.
 These published downloads retain their MIT license.
 

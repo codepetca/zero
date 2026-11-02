@@ -113,13 +113,13 @@ test('Windows route serves exact verified envelope bytes or explicit temporary u
   assert.equal(await response.text(),text);
 });
 
-test('website offers the Store installer independently of standalone Windows publication', async () => {
+test('website offers the Store listing independently of standalone Windows publication', async () => {
   const root = new URL('../../',import.meta.url);
   assert.equal(await loadWindowsInstaller(root.pathname,kit),null);
   const downloads = await readFile(new URL('../components/Downloads.jsx',import.meta.url),'utf8');
-  assert.match(downloads,/get\.microsoft\.com\/installer\/download\/9mxkd6dqlfgx/);
+  assert.match(downloads,/apps\.microsoft\.com\/detail\/9mxkd6dqlfgx/);
   assert.doesNotMatch(downloads,/Manual setup \(ZIP\)/);
-  assert.match(downloads,/Download for Mac Silicon/);
+  assert.match(downloads,/Install for Mac Silicon/);
   const route = await readFile(new URL('../app/updates/windows/stable.json/route.ts',import.meta.url),'utf8');
   assert.match(route,/dynamic = 'force-static'/);
   assert.match(route,/publishedWindowsFeedResponse\(snapshot.windowsUpdateFeed\)/);

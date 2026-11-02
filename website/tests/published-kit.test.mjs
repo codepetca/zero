@@ -73,15 +73,13 @@ test('current publication and explicit local preview take precedence, hosted fla
   assert.equal(availableKitRelease(current,fallback,localDownloadsAllowed({ZERO_LOCAL_DOWNLOADS:'1',VERCEL:'1'})),fallback);
   assert.equal(landingDownloadHref(releaseAssetHref(fallback,'kit'),native),'/downloads');
 });
-test('downloads offer the Microsoft Store installer and Mac download', async () => {
+test('downloads offer the Microsoft Store listing and Mac download', async () => {
   const publishedNative={...native,publication:{...native.publication,status:'published'},asset:{...native.asset,url:`https://github.com/codepetca/zero/releases/download/${native.publication.tag}/${native.asset.filename}`}};
   const html=await render(current,fallback,publishedNative,false);
   assert.ok(html.includes(`href="${publishedNative.asset.url}"`));
-  assert.match(html,/Download for Mac Silicon<\/a>/);
-  assert.match(html,/href="https:\/\/get\.microsoft\.com\/installer\/download\/9mxkd6dqlfgx\?referrer=appbadge"/);
-  assert.match(html,/Download for Windows<\/a>/);
+  assert.match(html,/Install for Mac Silicon<\/a>/);
   assert.match(html,/href="https:\/\/apps\.microsoft\.com\/detail\/9mxkd6dqlfgx"/);
-  assert.match(html,/View in Microsoft Store<\/a>/);
+  assert.match(html,/Install for Windows<\/a>/);
   assert.doesNotMatch(html,/Manual setup \(ZIP\)/);
   assert.equal((html.match(/<a class="button /g)||[]).length,2);
   assert.doesNotMatch(html,/Download for Windows \(unsigned\)|href="\/(privacy|terms)"|download-legal/);
@@ -89,11 +87,10 @@ test('downloads offer the Microsoft Store installer and Mac download', async () 
 });
 test('Store link is available independently of local or published kit', async () => {
   const local=await render(current,fallback,native,true);
-  assert.match(local,/Download for Mac Silicon \(local preview\)/);
+  assert.match(local,/Install for Mac Silicon \(local preview\)/);
   assert.doesNotMatch(local,/Manual setup \(ZIP\)/);
   const withoutKit=await render(current,null,null,false);
-  assert.match(withoutKit,/Download for Windows<\/a>/);
-  assert.match(withoutKit,/View in Microsoft Store<\/a>/);
+  assert.match(withoutKit,/Install for Windows<\/a>/);
   assert.doesNotMatch(withoutKit,/Manual setup \(ZIP\)|Download for Mac/);
   const route=await readFile(new URL('../app/download/[asset]/route.ts',import.meta.url),'utf8');
   assert.match(route,/verifiedLocalAsset\([^\n]+asset, release\)/);
@@ -116,7 +113,7 @@ test('hosted starter and setup share download-aware guidance rather than package
 test('Windows requirements describe Store installation without the unsigned preview warning', async () => {
   const help=await render(current,fallback,null,false,null,null,false,true);
   assert.match(help,/Windows: x64, Windows 10 \(build 19041\) or later/);
-  assert.match(help,/installer downloads Zero from Microsoft Store/);
+  assert.match(help,/Install Zero from Microsoft Store/);
   assert.doesNotMatch(help,/Unsigned preview|automatic updates are off/);
 });
 test('a staged Mac candidate preserves both published platform choices without preview labels', async () => {
@@ -125,14 +122,14 @@ test('a staged Mac candidate preserves both published platform choices without p
     const html = await render(current, fallback, native, localDownloadsAllowed(env), null, publishedNative);
     assert.ok(html.includes(`href="${publishedNative.asset.url}"`));
     assert.doesNotMatch(html,/Manual setup \(ZIP\)/);
-    assert.match(html, /Download for Mac Silicon<\/a>/);
-    assert.match(html, /Download for Windows<\/a>/);
+    assert.match(html, /Install for Mac Silicon<\/a>/);
+    assert.match(html, /Install for Windows<\/a>/);
     assert.equal((html.match(/<a class="button /g)||[]).length, 2);
     assert.doesNotMatch(html, /href="\/(privacy|terms)"/);
     assert.doesNotMatch(html, /local preview|href="\/download\//);
   }
   const local = await render(current, fallback, native, true, null, publishedNative);
   assert.match(local, /href="\/download\/installer"/);
-  assert.match(local, /Download for Mac Silicon \(local preview\)/);
+  assert.match(local, /Install for Mac Silicon \(local preview\)/);
   assert.ok(!local.includes(publishedNative.asset.url));
 });

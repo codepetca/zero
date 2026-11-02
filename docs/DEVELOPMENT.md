@@ -153,7 +153,7 @@ ZERO_LOCAL_DOWNLOADS=1 npm run dev --prefix website
 Without the local preview flag, an unpublished kit uses the verified fallback
 when present. Published assets keep their verified public links
 even with the flag enabled. No guessed public release URL is shown.
-The optional `release/installer.json` adds **Download for Mac Silicon** on the Download page.
+The optional `release/installer.json` adds **Install for Mac Silicon** on the Download page.
 When that installer is published or local downloads are enabled, the public
 Download Zero action on Home opens platform choices at `/downloads`. Mac setup
 and the unsigned Windows installer preview are the visible download controls, with no

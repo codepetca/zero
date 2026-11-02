@@ -17,8 +17,7 @@ marks a preferred pattern with documented, task-specific exceptions.
   **Windows**. Linux and Intel Macs are unsupported in this MVP. Universal
   artifact architecture or retained cross-platform source is not a support claim.
 - MUST offer Windows alongside Mac in download choices. The Windows button
-  downloads Microsoft's Store web installer; provide the Store listing as a
-  secondary link. Keep both primary buttons centered and distinguish
+  opens Zero Studio’s Microsoft Store listing. Keep both primary buttons centered and distinguish
   Store publication from physical Windows installation and update testing.
 
 - MUST retain ordinary Java/JavaFX controls and explicit student-owned state.
