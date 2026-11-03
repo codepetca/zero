@@ -1057,7 +1057,7 @@ function activate(context, services = {}) {
     await current();
     if(!plan.changed)return false;
     const parts=[plan.coreChanged?'Java framework':null,plan.builderChanged?'browser tooling':null].filter(Boolean).join(' and ');
-    const detail=`This updates ${parts}. It may break your project. Commit or back up your work first, then test your app after updating.`;
+    const detail=`This updates the ${parts} which may break your project.`;
     if(await vscode.window.showWarningMessage(required?'Update Project to continue?':'Update this project?',{modal:true,detail},'Update')!=='Update') {
       if(required)throw new Error('Browser action cancelled. Update Project to continue.');
       return false;

@@ -24,7 +24,7 @@ async function fixture(t,{current=false,onPrompt=async()=> 'Update'}={}) {
 }
 
 test('accepting required update preserves the original before the build',async t=>{
- const h=await fixture(t);const files=['README.md','builder.json'];const originals=await Promise.all(files.map(name=>fs.readFile(path.join(h.root,'.zero-build',name))));await h.commands.get('zero.exportWeb')();assert.equal(h.prompts.length,1);assert.match(h.prompts[0][0],/Update Project to continue/);assert.match(h.prompts[0][1].detail,/may break your project/);assert.match(h.prompts[0][1].detail,/Commit or back up your work/);assert.equal(h.attempts,1);assert.equal(h.completed,1);assert.deepEqual(h.errors,[]);
+ const h=await fixture(t);const files=['README.md','builder.json'];const originals=await Promise.all(files.map(name=>fs.readFile(path.join(h.root,'.zero-build',name))));await h.commands.get('zero.exportWeb')();assert.equal(h.prompts.length,1);assert.match(h.prompts[0][0],/Update Project to continue/);assert.equal(h.prompts[0][1].detail,'This updates the browser tooling which may break your project.');assert.equal(h.attempts,1);assert.equal(h.completed,1);assert.deepEqual(h.errors,[]);
  const backup=(await fs.readdir(h.root)).find(name=>name.startsWith('.zero-update-'));assert.ok(backup);for(let i=0;i<files.length;i++)assert.deepEqual(await fs.readFile(path.join(h.root,backup,'before','.zero-build',files[i])),originals[i]);assert.notEqual((await readSavedBuilder(h.root)).profileHash,h.old.profileHash);
 });
 test('declining required update preserves the builder and does not build',async t=>{
