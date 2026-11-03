@@ -3,7 +3,7 @@ const fs=require('node:fs/promises');const {constants}=require('node:fs');const 
 const {validateGamePreview,MAX_BYTES}=require('./game-preview');
 const {readProjectModel,ordinaryEntries}=require('../project-explorer-model');
 const {SLUG: PRACTICE_SLUG,isTutorialPractice,practiceCatalogUrl}=require('./tutorial-practice');
-const core=require('../core');const {assertShareable,assertOriginalProject,assertContributionProject,tutorialMarker}=require('../lesson-projects');const c=require('./contracts');const authoring=require('./authoring');const checks=require('./local-check');const consumer=require('./consumer');const {createGitHubReader}=require('./github');const {parseXml,single,value}=require('../project-pom');
+const core=require('../core');const {assertShareable,assertOriginalProject,assertContributionProject,tutorialMarker}=require('../lesson-projects');const c=require('./contracts');const authoring=require('./authoring');const checks=require('./local-check');const consumer=require('./consumer');const ownedLibrary=require('./owned-library');const {createGitHubReader}=require('./github');const {parseXml,single,value}=require('../project-pom');
 const fail=message=>{throw new Error(message);};
 const escape=text=>text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 function assertSaved(vscode,root) {if((vscode.workspace.textDocuments||[]).some(d=>d.isDirty&&d.uri?.fsPath&&(d.uri.fsPath===root||d.uri.fsPath.startsWith(root+path.sep))))fail('Save your project files before reviewing this action.');}
@@ -37,7 +37,7 @@ async function importEdits(root,sources,namespace) {
 }
 function createSharingEditor(vscode,host,options={}) {
  const report=(message,detail=message)=>{host.output.appendLine(detail);host.setState?.(message);};
- const api={authoring:options.authoring||authoring,checks:options.checks||checks,consumer:options.consumer||consumer,reader:options.reader||createGitHubReader,git:options.git||core.git};
+ const api={authoring:options.authoring||authoring,checks:options.checks||checks,consumer:options.consumer||consumer,ownedLibrary:options.ownedLibrary||ownedLibrary,reader:options.reader||createGitHubReader,git:options.git||core.git};
  const diagnostics=vscode.languages?.createDiagnosticCollection('zero-library-check');
  let disposed=false;const references=new Map(),referenceProvider=vscode.workspace.registerTextDocumentContentProvider?.('zero-library-reference',{provideTextDocumentContent:uri=>references.get(uri.toString())||''});
  const closeReference=vscode.workspace.onDidCloseTextDocument?.(document=>references.delete(document.uri?.toString()));
@@ -240,6 +240,7 @@ function createSharingEditor(vscode,host,options={}) {
  }
  async function share(kind,context) {
   trusted(vscode);const root=await host.project();await assertShareable(root);const tutorial=await tutorialMarker(root);if(kind==='game'||tutorial&&tutorial.tutorialProjectId!=='game')await assertOriginalProject(root);assertSaved(vscode,root);let folder='.',filename='zero-game.json',descriptor;const creation={};
+  if(kind==='game'&&consumer.inspectManagedLibraryPins(await authoring.read(root,'pom.xml')).some(pin=>pin.storage==='owned'))fail('Sharing this game is not available yet: its saved libraries cannot be included in the shared game package.');
   let selectedLibrary;if(kind==='library'){selectedLibrary=await pickLibrary(root,context);if(!selectedLibrary)return;folder=selectedLibrary.folder;filename=`${folder}/zero-library.json`;descriptor=selectedLibrary.descriptor;}else descriptor=await gameDescriptor(root,creation);
   if(!descriptor)return;
   await assertContributionProject(root,descriptor);
@@ -316,13 +317,30 @@ function createSharingEditor(vscode,host,options={}) {
  async function applyDependency(root,context,release,operation) {
   trusted(vscode);assertSaved(vscode,root);
   const document=await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(root,'pom.xml')));if(document.isDirty)fail('Save pom.xml before reviewing a dependency change.');
-  const plan=await api.consumer.planChange(root,context,release,{operation}),version=document.version;if(document.getText()!==plan.beforeText)fail('The POM changed during preparation.');
-  if(await vscode.window.showInformationMessage(`${operation}: ${release.title} ${release.version}?`,{modal:true,detail:`${practiceDetail(release)}${plan.current||'Not installed'} → ${release.version}\nContributor: ${release.contributor.login}\nimport ${release.namespace}…\n\nUpdates pom.xml and previous-version history.`},'Apply')!=='Apply')return;
-  await current(root);await api.consumer.validatePlan(plan,context);
-  const editor=await vscode.window.showTextDocument(document,{preview:false});
-  if(document.version!==version||document.isDirty||document.getText()!==plan.beforeText)fail('The POM changed during review.');
+  const owned=operation==='add'||(api.consumer.inspectManagedLibraryPins||consumer.inspectManagedLibraryPins)(document.getText(),{artifactOrigin:context.artifactOrigin}).some(pin=>pin.identity.id===release.id&&pin.storage==='owned');
+  let saved;
+  if(owned&&api.ownedLibrary.readOwned)try{saved=await api.ownedLibrary.readOwned(root,release.id,release.version);}catch{/* install will validate any existing files before reuse or recovery */}
+  const plan=await api.consumer.planChange(root,context,release,{operation,owned,...(saved?{verifiedArtifacts:saved}:{})}),version=document.version;if(document.getText()!==plan.beforeText)fail('The POM changed during preparation.');
+  const storageDetail=plan.owned?`\nSaves the verified library, sources, POM and license in zero-dependencies/${release.id}/${release.version}/. Commit these files with your project. They remain after Undo. The first Run may need to download Maven dependencies again. Older saved browser builders may need a deliberate upgrade.`:'';
+  if(await vscode.window.showInformationMessage(`${operation}: ${release.title} ${release.version}?`,{modal:true,detail:`${practiceDetail(release)}${plan.current||'Not installed'} → ${release.version}\nContributor: ${release.contributor.login}\nimport ${release.namespace}…\n\nUpdates pom.xml and previous-version history.${storageDetail}`},'Apply')!=='Apply')return;
+  const unchanged=()=>{trusted(vscode);assertSaved(vscode,root);if(document.version!==version||document.isDirty||document.getText()!==plan.beforeText)fail('The POM changed during review.');};
+  await current(root);unchanged();await api.consumer.validatePlan(plan,context);unchanged();
+  let stored;
+  if(plan.owned) {
+   const verified=plan.verifiedArtifacts||await api.consumer.verifyLibrary(context,release);unchanged();await current(root);unchanged();
+   stored=await api.ownedLibrary.installOwned(root,context,release,verified);
+   if(stored.cleanupWarning)host.output.appendLine(stored.cleanupWarning);
+   // A saved bundle is inert until the POM is saved. Revalidate project and
+   // catalog after installation; on drift leave the bundle for the student.
+   await current(root);unchanged();await api.consumer.validatePlan(plan,context);unchanged();
+  }
+  const editor=await vscode.window.showTextDocument(document,{preview:false});unchanged();
+  if(plan.owned&&(await fs.readFile(path.join(root,'pom.xml'),'utf8'))!==plan.beforeText)fail('The saved POM changed during review. The downloaded library files remain in your project.');
+  unchanged();
   if(!await editor.edit(edit=>edit.replace(new vscode.Range(document.positionAt(0),document.positionAt(plan.beforeText.length)),plan.afterText)))fail('The POM changed during the edit.');
-  if(!await document.save())fail('Save pom.xml or Undo before running the app.');report(`${release.title} ${release.version} recorded`,`${release.title} ${release.version} recorded. Import its classes and choose Run App.`);
+  if(!await document.save())fail(plan.owned?'Could not save pom.xml. Undo or save the edit before running; the downloaded library files remain in your project.':'Save pom.xml or Undo before running the app.');
+  if(plan.owned&&(document.isDirty||document.getText()!==plan.afterText||(await fs.readFile(path.join(root,'pom.xml'),'utf8'))!==plan.afterText))fail('The saved POM differs from the reviewed change. Inspect pom.xml before running; the downloaded library files remain in your project.');
+  report(`${release.title} ${release.version} recorded`,`${release.title} ${release.version} recorded. Import its classes and choose Run App.${plan.owned?' Commit the saved zero-dependencies files with your project.':''}`);
  }
  async function openGame(context,release) {
   trusted(vscode);

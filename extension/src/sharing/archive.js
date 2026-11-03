@@ -8,6 +8,7 @@ const { inflateRawSync } = require('node:zlib');
 const contracts = require('./contracts');
 const {validateGameStructure,SAFE_GITIGNORE}=require('./game-structure');
 const builderFormat = require('../project-builder-format');
+const {inspectManagedLibraryPins} = require('./consumer');
 const byteHash = bytes => createHash('sha256').update(bytes).digest('hex');
 
 const required = ['zero.json','pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties'];
@@ -79,6 +80,10 @@ function normalizeGameFiles(files) {
     for (let end = 1; end < segments.length; end++) if (includedPaths.has(segments.slice(0,end).join('/'))) throw new Error('Game file shadows another file directory');
   }
   validateGameStructure(included);
+  // Saved dependency artifacts are not included by this archive policy. Refuse
+  // to ship (or open) a snapshot that declares they are needed for its build.
+  const pom = included.find(file => file.path === 'pom.xml').data.toString('utf8');
+  if (inspectManagedLibraryPins(pom).some(pin => pin.storage === 'owned')) throw new Error('Shared games cannot yet include project-owned library dependencies. The saved library artifacts would be missing from the shared package.');
   return included.sort((a,b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
 }
 

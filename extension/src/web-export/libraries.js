@@ -8,6 +8,7 @@ const core=require('../core-contract');
 const {isTutorialPractice,practiceCatalogUrl}=require('../sharing/tutorial-practice');
 
 const {inspectJar}=require('../sharing/jar');
+const {validateOwnedFiles}=require('../sharing/owned-library');
 const resourceExtension=/\.(?:png|jpe?g|gif|webp|bmp|svg|avif|ico|wav|mp3|ogg|txt|json|csv|properties|xml|fxml|css|ttf|otf|md)$/i;
 const fail=message=>{throw new Error('Browser library: '+message);};
 function add(target,name,bytes,kind,originalPath=name) {
@@ -51,7 +52,7 @@ async function resolveLibrarySources(projectRoot,captured,options={}) {
  const pom=captured.files.find(file=>file.path==='pom.xml')?.bytes.toString('utf8');
  if(!pom)fail('the project POM is missing');
  const libraries=captured.libraries||await discoverBrowserLibraries(projectRoot,pom),sources=[],resources=[],publishedLibraries=[];
- const published=libraries.filter(library=>library.mode==='published');
+ const published=libraries.filter(library=>library.mode==='published'&&library.storage!=='owned');
  const settings=options.sharingSettings||readKitConfiguration(path.resolve(__dirname,'../..'));
  const contexts=new Map();
  for(const library of published) {
@@ -78,12 +79,21 @@ async function resolveLibrarySources(projectRoot,captured,options={}) {
    }
    continue;
   }
-  const practice=isTutorialPractice(library.identity),context=contexts.get(practice);
-  if(library.source==='consumer'&&library.repositoryOrigin!==context.artifactOrigin)fail(`managed repository origin changed for ${library.slug}`);
-  const release=context.catalog.releases.find(item=>item.kind==='library'&&item.id===library.identity.id&&item.version===library.version&&item.status==='available'&&isTutorialPractice(item)===practice);
-  if(!release)fail(`published ${library.slug} ${library.version} is not an available accepted release`);
+  let release,verified,context;
+  if(library.storage==='owned') {
+   // Validate only the immutable snapshot, never a later read from the project.
+   const ownedPrefix=`zero-dependencies/${library.identity.id}/${library.version}/`;
+   verified=await validateOwnedFiles(library.identity.id,library.version,captured.files.filter(file=>file.path.startsWith(ownedPrefix)));
+   release=verified.release;
+   if(release.namespace!==namespace)fail(`owned library namespace differs: ${library.slug}`);
+  } else {
+   const practice=isTutorialPractice(library.identity);context=contexts.get(practice);
+   if(library.source==='consumer'&&library.repositoryOrigin!==context.artifactOrigin)fail(`managed repository origin changed for ${library.slug}`);
+   release=context.catalog.releases.find(item=>item.kind==='library'&&item.id===library.identity.id&&item.version===library.version&&item.status==='available'&&isTutorialPractice(item)===practice);
+   if(!release)fail(`published ${library.slug} ${library.version} is not an available accepted release`);
+   verified=await verifyLibrary(context,release,{signal:options.signal});
+  }
   if(release.schema===2)capturedCore(captured,release.coreRequirement);
-  const verified=await verifyLibrary(context,release,{signal:options.signal});
   const sourceEntries=inspectJar(verified.sources),binaryEntries=inspectJar(verified.jar);
   let count=0;
   for(const file of sourceEntries) {
@@ -105,7 +115,7 @@ async function resolveLibrarySources(projectRoot,captured,options={}) {
    if(!resourceExtension.test(file.path))fail(`unsupported published resource: ${file.path}`);
    add(resources,file.path,file.bytes,'resource',`published/${release.id}/${release.version}/${file.path}`);
   }
-  publishedLibraries.push({id:release.id,version:release.version,namespace,sourceCommit:release.source.commit,sourceDigest:release.source.sha256,catalogFingerprint:context.fingerprint,artifacts:Object.fromEntries(['jar','sources','pom'].map(kind=>[kind,{sha256:release.artifacts[kind].sha256,size:release.artifacts[kind].size}])),...(release.schema===2?{coreRequirement:release.coreRequirement,coreBuild:release.coreBuild}:{})});
+  publishedLibraries.push({id:release.id,version:release.version,namespace,sourceCommit:release.source.commit,sourceDigest:release.source.sha256,...(library.storage==='owned'?{storage:'owned'}:{catalogFingerprint:context.fingerprint}),artifacts:Object.fromEntries(['jar','sources','pom'].map(kind=>[kind,{sha256:release.artifacts[kind].sha256,size:release.artifacts[kind].size}])),...(release.schema===2?{coreRequirement:release.coreRequirement,coreBuild:release.coreBuild}:{})});
  }
  return {sources,resources,publishedLibraries};
 }

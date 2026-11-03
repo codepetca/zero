@@ -67,6 +67,31 @@ test('Windows wrapper path remains child environment data and taskkill owns the 
  assert.equal(calls[0][0],'C:\\Windows\\System32\\cmd.exe');assert.equal(calls[0][2].env.ZERO_NATIVE_MAVEN_WRAPPER,'C:\\class & %user%\\mvnw.cmd');assert.equal(calls[0][1].at(-1),'""%ZERO_NATIVE_MAVEN_WRAPPER%" clean compile javafx:run"');assert.equal(calls[0][2].windowsVerbatimArguments,true);
  assert.equal(calls[1][0],'C:\\Windows\\System32\\taskkill.exe');assert.deepEqual(calls[1][1],['/PID','123','/T','/F']);child.emit('close',0);
 });
+test('Windows owned repository stays child environment data inside one fixed quoted argument', async () => {
+ for(const repository of ['C:\\Zero cache\\repository','C:\\Zero & %USERPROFILE% !cache!\\repository','\\\\server\\shared cache\\repository']) {
+  const child=fakeChild(),calls=[],env={SystemRoot:'C:\\Windows',zero_native_maven_wrapper:'inherited wrapper',zero_native_maven_repository:'inherited repository'};
+  const transport=createNativeRuntimeExecution({vscode,spec:{command:'C:\\project\\mvnw.cmd',args:[`-Dmaven.repo.local=${repository}`,'clean','compile','javafx:run'],cwd:'C:\\project',shell:true},buildId:'b',platform:'win32',env,spawn:(...args)=>{calls.push(args);return calls.length===1?child:fakeChild(43);}});
+  const pty=await transport.createPty();pty.open();assert.equal(calls.length,1);
+  assert.equal(calls[0][1].at(-1),'""%ZERO_NATIVE_MAVEN_WRAPPER%" "-Dmaven.repo.local=%ZERO_NATIVE_MAVEN_REPOSITORY%" clean compile javafx:run"');
+  assert.ok(calls[0][1].includes('/v:off'));assert.equal(calls[0][2].env.ZERO_NATIVE_MAVEN_REPOSITORY,repository);
+  assert.equal(calls[0][2].env.zero_native_maven_wrapper,undefined);assert.equal(calls[0][2].env.zero_native_maven_repository,undefined);
+  assert.equal(env.zero_native_maven_repository,'inherited repository');assert.equal(env.ZERO_NATIVE_MAVEN_REPOSITORY,undefined);
+  child.emit('close',0);transport.dispose();
+ }
+});
+test('Windows rejects forged, repeated, misplaced and unsafe repository arguments before spawning', async () => {
+ const valid='-Dmaven.repo.local=C:\\cache\\repository';
+ const invalid=[
+  [valid,valid,'compile'],['compile',valid],['-Dmaven.repo.local=relative\\cache'],['-Dmaven.repo.local=\\rooted-without-drive'],
+  ['-Dmaven.repo.local=C:relative'],['-Dmaven.repo.local='],['-Dmaven.repo.localx=C:\\cache'],['-Dother=C:\\cache'],
+  ['-Dmaven.repo.local=C:\\cache" & echo injected'],['-Dmaven.repo.local=C:\\cache\ncompile'],['-Dmaven.repo.local=C:\\cache\rcompile'],
+  ['-Dmaven.repo.local=C:\\cache\0'],[valid,'compile&echo'],[null],['-Dmaven.repo.local=C:\\cache',{}]
+ ];
+ for(const args of invalid) {
+  let spawned=0;const exits=[],transport=createNativeRuntimeExecution({vscode,spec:{command:'C:\\project\\mvnw.cmd',args,cwd:'C:\\project',shell:true},buildId:'b',platform:'win32',spawn:()=>{spawned++;return fakeChild();},onExit:code=>exits.push(code)});
+  const pty=await transport.createPty();pty.open();assert.equal(spawned,0,JSON.stringify(args));assert.deepEqual(exits,[1]);transport.dispose();
+ }
+});
 test('spawn failures close truthfully and malformed Windows arguments cannot become shell code', async () => {
  for(const args of [[],['compile&bad']]){const exits=[],writes=[];let spawned=0;const transport=createNativeRuntimeExecution({vscode,spec:{command:'mvnw.cmd',args,cwd:'.',shell:true},buildId:'b',platform:'win32',spawn:()=>{spawned++;throw new Error('missing wrapper');},onExit:code=>exits.push(code)});const pty=await transport.execution.callback();pty.onDidWrite(x=>writes.push(x));pty.open();assert.deepEqual(exits,[1]);assert.match(writes.join(''),/Cannot start native Java/);assert.equal(spawned,args.length?0:1);}
 });

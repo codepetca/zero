@@ -3,6 +3,8 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const {zipFiles} = require('./zip');
+const contracts = require('../sharing/contracts');
+const {constants} = require('node:fs');
 const builderFormat = require('../project-builder-format');
 const {discoverBrowserLibraries,resolveLibrarySources}=require('./libraries');
 const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
@@ -86,6 +88,36 @@ async function assertSelectedBuilder(projectRoot,engineRoot=__dirname) {
   if(profileHash!==digest(saved.files))throw new Error('Project browser tooling unavailable: selected saved builder differs from the project’s complete closure.');
   return {builderRoot:ownRoot,profileHash,manifest:own.manifest};
 }
+// Capture exactly the active bundle bytes; later validation consumes these same
+// bytes, rather than reopening a project file after the snapshot was taken.
+async function captureOwnedFiles(projectRoot,libraries) {
+  const files=[];
+  for(const library of libraries.filter(item=>item.storage==='owned')) {
+    const identity=library.identity,version=library.version;
+    contracts.artifactPath(identity,version,'jar');
+    const prefix=`zero-dependencies/${identity.id}/${version}`,dir=path.join(projectRoot,...prefix.split('/'));
+    await safePath(dir);
+    const stat=await fs.lstat(dir);
+    if(!stat.isDirectory())throw new Error('Expected a project-owned library folder: '+dir);
+    const names=['library.jar','sources.jar','library.pom','LICENSE','manifest.json','.gitattributes'];
+    const actual=await fs.readdir(dir);
+    if(actual.length!==names.length||actual.some(name=>!names.includes(name)))throw new Error('Project-owned library has missing or unowned files: '+dir);
+    for(const name of names) {
+      const filename=path.join(dir,name),max=name==='manifest.json'?contracts.LIMITS.metadataBytes+4096:name==='LICENSE'?65536:contracts.LIMITS.artifactBytes;
+      const before=await fs.lstat(filename);
+      if(!before.isFile()||before.isSymbolicLink()||before.nlink!==1||before.size<1||before.size>max)throw new Error('Invalid project-owned library file: '+filename);
+      const handle=await fs.open(filename,constants.O_RDONLY|(constants.O_NOFOLLOW||0));
+      try {
+        const opened=await handle.stat();
+        if(!opened.isFile()||opened.nlink!==1||opened.dev!==before.dev||opened.ino!==before.ino||opened.size!==before.size)throw new Error('Project-owned library changed while reading: '+filename);
+        const bytes=await handle.readFile(),after=await handle.stat();
+        if(bytes.length!==before.size||after.size!==before.size||after.mtimeMs!==before.mtimeMs||after.ctimeMs!==before.ctimeMs)throw new Error('Project-owned library changed while reading: '+filename);
+        files.push({path:prefix+'/'+name,bytes});
+      } finally {await handle.close();}
+    }
+  }
+  return files;
+}
 async function captureBuildInputs(projectRoot) {
   await safePath(projectRoot);
   const files=[];
@@ -117,9 +149,10 @@ async function captureBuildInputs(projectRoot) {
           files.push({path:`${folder}/${name}/${file.path}`,bytes:file.bytes});
     }
   }
+  files.push(...await captureOwnedFiles(projectRoot,libraries));
   return {files,sourceHash:digest(files),libraries};
 }
-const browserExternalFiles=Object.freeze(['project-builder-format.js','core-contract.js','project-pom.js','sharing/contracts.js','sharing/authoring.js','sharing/consumer.js','sharing/jar.js','sharing/configuration.js','sharing/tutorial-practice.js']);
+const browserExternalFiles=Object.freeze(['project-builder-format.js','core-contract.js','project-pom.js','sharing/contracts.js','sharing/authoring.js','sharing/consumer.js','sharing/jar.js','sharing/owned-library.js','sharing/configuration.js','sharing/tutorial-practice.js']);
 async function buildProfileHash(engineRoot=__dirname,{externalRoot=path.resolve(__dirname,'..'),coreContractPath=path.join(externalRoot,'core-contract.js')}={}) {
   const savedRoot=await savedEngineRoot(engineRoot);
   if(savedRoot)return digest((await readSavedBuilder(savedRoot)).files);
@@ -195,12 +228,12 @@ async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git}={}) 
   if(!/^[a-f0-9]{40}$/.test(sourceSha||''))throw new Error('Invalid uploaded source commit.');
   const inputs=await captureBuildInputs(projectRoot);
   if(inputs.sourceHash!==(result?.manifest?.localSourceHash||result?.sourceHash))throw new Error('The project changed since its browser build. Choose Export for web or Publish app again.');
-  const raw=await git(projectRoot,['ls-tree','-r','-z',sourceSha,'--','src/main/java','src/main/resources','pom.xml','mvnw','mvnw.cmd','.mvn','zero-core.json','zero-libraries.json','libraries','.zero-build']);
+  const raw=await git(projectRoot,['ls-tree','-r','-z',sourceSha,'--','src/main/java','src/main/resources','pom.xml','mvnw','mvnw.cmd','.mvn','zero-core.json','zero-libraries.json','libraries','zero-dependencies','.zero-build']);
   const committed=new Map();
   for(const entry of String(raw).split('\0').filter(Boolean)) {
     const match=/^(100644|100755) blob ([a-f0-9]{40})\t([\s\S]+)$/.exec(entry);
     if(!match)throw new Error('Uploaded browser inputs must be ordinary tracked files.');
-    if(match[3]==='src/main/resources/.gitkeep'||match[3].startsWith('libraries/')&&!inputs.files.some(file=>file.path===match[3]))continue;
+    if(match[3]==='src/main/resources/.gitkeep'||(match[3].startsWith('libraries/')||match[3].startsWith('zero-dependencies/'))&&!inputs.files.some(file=>file.path===match[3]))continue;
     committed.set(match[3],match[2]);
   }
   const gitBlob=gitBlobHash;
@@ -219,4 +252,4 @@ async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git}={}) 
   if((await captureBuildInputs(projectRoot)).sourceHash!==inputs.sourceHash)throw new Error('The project changed while checking its uploaded source. Choose Export for web or Publish app again.');
   return {sourceSha,sourceHash:result.sourceHash,inputCount:inputs.files.length,normalizedSourceLineEndings:normalized};
 }
-module.exports={commitInputMetadata,assertSelectedBuilder,readSavedBuilder,browserExternalFiles,captureBuildInputs,buildProfileHash,boundSourceHash,validateExport,ensureValidatedExport,assertBuildInputsAtCommit,_test:{digest,inventoryMatches,tree}};
+module.exports={commitInputMetadata,assertSelectedBuilder,readSavedBuilder,browserExternalFiles,captureOwnedFiles,captureBuildInputs,buildProfileHash,boundSourceHash,validateExport,ensureValidatedExport,assertBuildInputsAtCommit,_test:{digest,inventoryMatches,tree}};

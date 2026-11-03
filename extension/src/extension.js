@@ -356,6 +356,11 @@ function activate(context, services = {}) {
     await core.assertTutorialRepository(root);
     const spec = core.runSpecification(root);
     await fs.access(spec.command);
+    const pomText = await fs.readFile(path.join(root, 'pom.xml'), 'utf8');
+    const owned = await require('./sharing/owned-native').prepareOwnedNative({
+      root, pomText, cacheRoot: context.globalStorageUri && path.join(context.globalStorageUri.fsPath, 'owned-maven')
+    });
+    if (owned) spec.args = [`-Dmaven.repo.local=${owned.repository}`, ...spec.args];
     const javaEnv = await verifyManagedJava({environment:services.nativeRuntime?.env || process.env,platform:services.nativeRuntime?.platform || process.platform});
     const metadata = {generation:runGeneration,root,failed:false};
     let task, transport;
@@ -1019,12 +1024,40 @@ function activate(context, services = {}) {
     'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),testInstallation:async()=>{const root=await findSetupProject();await vscode.commands.executeCommand('vscode.openFolder',vscode.Uri.file(root),{forceNewWindow:true});},uploadMode})
   };
   const webCacheRoot=context.globalStorageUri ? path.join(context.globalStorageUri.fsPath,'web-compiler') : undefined;
-  const savedBuilder=createProjectBuilder({isTrusted:()=>vscode.workspace.isTrusted===true});
+  const savedBuilder=createProjectBuilder({isTrusted:()=>vscode.workspace.isTrusted===true,extensionPath:context.extensionPath||path.resolve(__dirname,'..')});
+  async function updateBrowserTooling(root,{signal,required=false}={}) {
+    const current=async()=>{
+      const folders=JSON.stringify((vscode.workspace.workspaceFolders||[]).map(folder=>folder.uri.fsPath));
+      if(disposed||signal?.aborted||vscode.workspace.isTrusted!==true)throw new Error('The project changed or the browser action was cancelled.');
+      const selected=await project();
+      if(disposed||signal?.aborted||vscode.workspace.isTrusted!==true||selected!==root||folders!==JSON.stringify((vscode.workspace.workspaceFolders||[]).map(folder=>folder.uri.fsPath)))throw new Error('The project changed or the browser action was cancelled.');
+      require('./sharing/editor').assertSaved(vscode,root);
+    };
+    await current();
+    const upgrade=require('./project-builder-upgrade');
+    const plan=await upgrade.planUpgrade({projectRoot:root,extensionPath:context.extensionPath||path.resolve(__dirname,'..')});
+    await current();
+    if(!plan.changed)return false;
+    const detail=`Zero is changing quickly. This update may permanently break an existing project, even if you restore its files. Before updating, commit and push your work or make your own backup. ${plan.oldProfileHash?'Zero also keeps a local copy of the previous builder.':'This project has no saved browser builder yet.'} After updating, test the browser build and commit the changed .zero-build folder.`;
+    if(await vscode.window.showWarningMessage(required?'Update browser tooling to continue?':'Update this project’s browser tooling?',{modal:true,detail},'Update')!=='Update') {
+      if(required)throw new Error('Browser build cancelled. Update browser tooling to continue.');
+      return false;
+    }
+    await current();const result=await upgrade.applyUpgrade(plan,{assertCurrent:current});
+    try{await current();}catch(error){if(result.backupPath)error.message+=` The original browser builder is saved at ${result.backupPath}.`;throw error;}
+    if(result.cleanupWarning)output.appendLine(result.cleanupWarning);
+    report('Browser tooling updated · test and commit',`Browser tooling updated. ${result.backupPath?`Previous builder files saved at ${result.backupPath}; keeping them does not guarantee the project can be built again. `:''}Test the browser build and commit .zero-build.`);
+    return true;
+  }
+  async function withCurrentBrowserTooling(operation,options) {
+    try{return await operation({...options,explicitAction:true});}
+    catch(error){if(error.code!=='ZERO_BUILDER_UPDATE_REQUIRED')throw error;await updateBrowserTooling(options.projectRoot,{signal:options.signal,required:true});return operation({...options,explicitAction:true});}
+  }
   const savedProblems=vscode.languages?.createDiagnosticCollection('zero-browser-compatibility');
   const relevantSource=uri=>{
     if(!savedChecksRoot||!uri?.fsPath?.startsWith(savedChecksRoot+path.sep))return false;
     const relative=path.relative(savedChecksRoot,uri.fsPath).split(path.sep).join('/');
-    return /^(?:src\/main\/(?:java|resources)\/|libraries\/|\.zero-build\/|\.mvn\/|(?:pom\.xml|mvnw|mvnw\.cmd|zero-core\.json|zero-libraries\.json|zero\.json)$)/.test(relative);
+    return /^(?:src\/main\/(?:java|resources)\/|libraries\/|zero-dependencies\/|\.zero-build\/|\.mvn\/|(?:pom\.xml|mvnw|mvnw\.cmd|zero-core\.json|zero-libraries\.json|zero\.json)$)/.test(relative);
   };
   const hasDirtySource=()=>Boolean(vscode.workspace.textDocuments?.some(document=>document.isDirty&&relevantSource(document.uri)));
   const sourceChanged=uri=>{if(relevantSource(uri))savedChecks?.changed({dirty:hasDirtySource()});};
@@ -1045,7 +1078,7 @@ function activate(context, services = {}) {
       if(!current())return;
       savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=root;savedChecksState={status:'unavailable',message:'Preparing verified dependencies for browser checks.'};savedProblems?.clear();refresh();
       const work=async(progress,token)=>{const listener=token?.onCancellationRequested(()=>controller.abort());
-        try{await savedBuilder.prepareBrowserChecks({projectRoot:root,cacheRoot:webCacheRoot,explicitAction:true,signal:controller.signal,onProgress:message=>{if(!current())return;output.appendLine(message);progress?.report({message:String(message)});}});}finally{listener?.dispose();}};
+        try{await withCurrentBrowserTooling(savedBuilder.prepareBrowserChecks,{projectRoot:root,cacheRoot:webCacheRoot,signal:controller.signal,onProgress:message=>{if(!current())return;output.appendLine(message);progress?.report({message:String(message)});}});}finally{listener?.dispose();}};
       if(vscode.window.withProgress)await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title:'Prepare browser checks for this project',cancellable:true},work);else await work();
       if(!current())return;const selected=await project();if(!current()||selected!==root)return;
       const host=createSavedSourceHost({projectRoot:root,cacheRoot:webCacheRoot,builder:savedBuilder});
@@ -1070,7 +1103,7 @@ function activate(context, services = {}) {
     if(!savedChecks)savedChecksState={status:'unavailable',message:'Browser checks are disabled.'};refresh();
   };
 
-  const buildWithSavedProject=options=>savedBuilder.ensureValidatedExport({...options,explicitAction:true});
+  const buildWithSavedProject=options=>withCurrentBrowserTooling(savedBuilder.ensureValidatedExport,options);
   const validateWithSavedProject=options=>savedBuilder.validateExport({...options,explicitAction:true});
   const runnableProject=async()=>{const root=await project();await core.assertTutorialRepository(root);return root;};
   const browserRun=createBrowserRunCommands(vscode,{project:runnableProject,output,ensureValidatedExport:buildWithSavedProject,validateExport:validateWithSavedProject,validateRetainedExport:savedBuilder.validateRetainedExport,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested});
@@ -1094,7 +1127,7 @@ function activate(context, services = {}) {
     if (!isBusy()) return actions['zero.runApp']();
   };
   context.subscriptions.push(...browserRun.disposables);
-  const webPublish=createWebPublishCommands(vscode,{project,assertProjectNow:assertGitProjectNow,connectedRepository:()=>repository,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},setProgress:value=>{publishProgress=value;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,localBuild:buildWithSavedProject,validateExport:validateWithSavedProject,assertBuildInputsAtCommit:savedBuilder.assertBuildInputsAtCommit,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
+  const webPublish=createWebPublishCommands(vscode,{project,assertProjectNow:assertGitProjectNow,connectedRepository:()=>repository,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},setProgress:value=>{publishProgress=value;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,localBuild:options=>savedBuilder.ensureValidatedExport({...options,explicitAction:true}),validateExport:validateWithSavedProject,beforeBuildReview:(root,{signal})=>updateBrowserTooling(root,{signal,required:true}),assertBuildInputsAtCommit:savedBuilder.assertBuildInputsAtCommit,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
   Object.assign(actions,webPublish.commands);
   context.subscriptions.push(...webPublish.disposables);
   const sharingHandoff=async(root,action)=>{
@@ -1111,6 +1144,13 @@ function activate(context, services = {}) {
   const recovery=createRecoveryCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
   Object.assign(actions,assets.commands,recovery.commands);
   context.subscriptions.push(assets,recovery);
+  actions['zero.upgradeBrowserTooling']=async()=>{
+    if(disposed||isBusy())return;
+    maintenanceBusy=true;refresh();
+    try {
+      const root=await project();if(!await updateBrowserTooling(root))report('Browser tooling is already current or update cancelled');
+    } finally {maintenanceBusy=false;if(!disposed)refresh();}
+  };
   const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,setState:report,verifiedPublication:webPublish.verifiedPublication,uploadForSharing:root=>sharingHandoff(root,()=>uploadProject()),publishForSharing:root=>sharingHandoff(root,()=>webPublish.publish()),setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
   Object.assign(actions, sharing.commands);
   context.subscriptions.push(...sharing.disposables);

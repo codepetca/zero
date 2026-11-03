@@ -14,6 +14,7 @@ const disposable=()=>({dispose(){}});
 test('Run App, sidebar and configured tasks use native Java while web export retains its compiler',async t=>{
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-native-command-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
  await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,process.platform==='win32'?'mvnw.cmd':'mvnw'),'');
+ await fs.writeFile(path.join(root,'pom.xml'),'<project></project>');
  const commands=new Map(),errors=[],states=[],launches=[],starts=[],ends=[],processEnds=[],deferredStarts=[];let provider,saves=0,builds=0,validated=0,webview,saveGate,startGate,openGate,hashGate,hashSignal=false,deferStartEvent=false,preparations=0,checks=0,edited,savedDocument,checkStatus='compatible',prepareGate,prepareSignal,holdNativePipes=false,cloneConfiguredTask=false,earlyCompilerOutput=false,earlyExit,hostCacheMode=false;
  const sourceIdentity={builderHash:'b'.repeat(64),scopeHash:'a'.repeat(64)};
  const proof=Object.fromEntries(['sourceHash','coreHash','librariesHash','profileHash','checkerHash','contractHash','jdkHash'].map(key=>[key,key==='profileHash'?sourceIdentity.builderHash:'a'.repeat(64)]));

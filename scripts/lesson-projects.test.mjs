@@ -43,7 +43,7 @@ test('four tutorial scaffolds omit solutions and own-project remains an original
   }
 });
 test('published scaffolds match their verified file inventories',()=>{
-  const expected={greeting:'9bc97b78cfb438e8a8d7780371991113604b64bc731e9e79d3a8c675f4903df8',study:'def5193ab142134aa7070c135d70ca9644bafaacfddd2ebcfa69a612dfbc4de4',game:'2e9a2297140f61483c05120df34f857349aa164ddf7f77d0ab981b99b06efa08'};
+  const expected={greeting:'72e9285463582e067cae1bd2fc1d0872179940b0fd3a066c1355b5fa67cad301',study:'8623c6b94a303e0e5a48f78520f552f155fa236250f0f2f9bf1eb7d8f44cde8d',game:'b99f5747ac6b0a97e28ddf45bb8eea74c3760e57597f3926f78748629cd3d114'};
   for(const project of bundle.projects.filter(project=>project.id!=='pet')) {
     assert.equal(createHash('sha256').update(JSON.stringify(project.files)).digest('hex'),expected[project.id],project.id);
     assert.doesNotThrow(()=>readiness.assertTutorialTemplateReady(lessonModule.validateBundle(bundle).find(item=>item.id===project.id)));

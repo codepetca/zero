@@ -25,6 +25,7 @@ async function fixture(t, {studentExplorer=false, lesson=true, lessonFile='00-he
   await fs.writeFile(path.join(root,'zero.json'),practice?JSON.stringify({localOnly:true,practiceProjectId:'study',lessonId:'3',templateVersion:'0.1.0',mainClass:'Main'}):tutorial?JSON.stringify({repositoryRequired:true,tutorialProjectId:tutorialId,lessonId:tutorialLesson,templateVersion:'0.1.0',mainClass:'Main'}):'{}');
   if(practice||tutorial) {await fs.mkdir(path.join(root,'src/main/java'),{recursive:true});await fs.writeFile(path.join(root,'src/main/java/Main.java'),'class Main {}\n');}
   await fs.writeFile(path.join(root,'mvnw'),'');
+  await fs.writeFile(path.join(root,'pom.xml'),'<project></project>');
   if(lesson && !practice) {await fs.mkdir(path.join(root,'lessons')); await fs.writeFile(path.join(root,'lessons',lessonFile),'# First lesson');if(lessonFile==='00-hello-world.md')await fs.writeFile(path.join(root,'lessons/01-quiz.md'),'# Quiz');}
   const commands=new Map(),calls=[],errors=[],starts=[],ends=[],processEnds=[],launches=[],subscriptions=[],panels=[];
   let webviewProvider, folderChanged, sessionChanged, tabReads=0;

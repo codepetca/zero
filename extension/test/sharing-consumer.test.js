@@ -25,6 +25,16 @@ test('strict catalog origin, schema, bytes and cumulative deadlines have no fall
  let calls=0;await assert.rejects(consumer.loadCatalog(f.settings,{fetcher:async()=>{calls++;return new Response('',{status:400});}}),/unavailable/);assert.equal(calls,1);
  await assert.rejects(consumer.readBytes('https://files.example/x',{maximum:4,timeoutMs:20,fetcher:async()=>new Response(new ReadableStream({start(){}}))}),/timed out/);
 });
+test('owned planning downloads artifacts once and revalidates retained bytes without further downloads',async t=>{
+ const f=await fixture(t),release=f.releases[0],plan=await consumer.planChange(f.root,f.context,release,{owned:true});
+ assert.equal(f.calls.filter(url=>url.startsWith(f.settings.artifactOrigin)).length,3);
+ await consumer.validatePlan(plan,f.context);await consumer.validatePlan(plan,f.context);
+ assert.equal(f.calls.filter(url=>url.startsWith(f.settings.artifactOrigin)).length,3);
+ await consumer.planChange(f.root,f.context,release,{owned:true,verifiedArtifacts:plan.verifiedArtifacts});
+ assert.equal(f.calls.filter(url=>url.startsWith(f.settings.artifactOrigin)).length,3);
+ const changed={...plan.verifiedArtifacts,jar:Buffer.from(plan.verifiedArtifacts.jar)};changed.jar[4]^=1;
+ await assert.rejects(consumer.planChange(f.root,f.context,release,{owned:true,verifiedArtifacts:changed}),/differs/);
+});
 test('independent Add/Update/Revert pins preserve Java and other dependency history',async t=>{
  const f=await fixture(t),pom=path.join(f.root,'pom.xml');
  await fs.cp(path.resolve(__dirname,'../../framework/src/main/java/zero'),path.join(f.root,'src/main/java/zero'),{recursive:true});

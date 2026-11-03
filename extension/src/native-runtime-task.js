@@ -163,8 +163,25 @@ function createNativeRuntimeExecution({vscode, spec, buildId, onEvent = () => {}
             // Expand the wrapper path once via child-only environment data. This
             // preserves spaces/metacharacters without interpolating shell code.
             if (/[\0\r\n"]/.test(command)) throw new Error('Invalid native Maven wrapper path.');
-            if (args.some(value => !/^[A-Za-z0-9:_-]+$/.test(value))) throw new Error('Unexpected native Maven arguments.');
+            let repository;
+            args = args.map((value, index) => {
+              if (typeof value !== 'string') throw new Error('Unexpected native Maven arguments.');
+              if (value.startsWith('-Dmaven.repo.local=')) {
+                const location = value.slice('-Dmaven.repo.local='.length);
+                if (index !== 0 || repository !== undefined || !path.win32.isAbsolute(location) ||
+                    !/^(?:[A-Za-z]:[\\/]|\\\\[^\\/]+[\\/][^\\/]+(?:[\\/]|$))/.test(location) || /[\x00-\x1f"]/.test(location))
+                  throw new Error('Unexpected native Maven repository argument.');
+                repository = location;
+                return '"-Dmaven.repo.local=%ZERO_NATIVE_MAVEN_REPOSITORY%"';
+              }
+              if (!/^[A-Za-z0-9:_-]+$/.test(value)) throw new Error('Unexpected native Maven arguments.');
+              return value;
+            });
+            // Windows environment names are case-insensitive. Remove inherited
+            // aliases before supplying our child-only wrapper/cache values.
+            for (const key of Object.keys(childEnv)) if (['ZERO_NATIVE_MAVEN_WRAPPER','ZERO_NATIVE_MAVEN_REPOSITORY'].includes(key.toUpperCase())) delete childEnv[key];
             childEnv.ZERO_NATIVE_MAVEN_WRAPPER = command;
+            if (repository !== undefined) childEnv.ZERO_NATIVE_MAVEN_REPOSITORY = repository;
             command = systemRoot ? path.win32.join(systemRoot, 'System32', 'cmd.exe') : 'cmd.exe';
             args = ['/d', '/v:off', '/s', '/c', '""%ZERO_NATIVE_MAVEN_WRAPPER%" ' + args.join(' ') + '"'];
           }

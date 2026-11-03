@@ -1,5 +1,76 @@
 # Verification
 
+## Project-owned library Add prototype — 2026-11-03
+
+Subsequent owner direction selects one supported browser builder. Explicit
+browser builds and checks now require the current tooling; opening a project
+or viewing a retained site does not update it. On macOS, the host rejected a
+historical builder before spawning it; after an explicit update it preserved
+the original hash in a backup and completed a real WebFX export with Node 22
+and JDK 21. Mocked-editor tests exercise acceptance, cancellation, retry, trust
+and workspace changes. A physical editor confirmation and other operating
+systems remain untested. Published tutorial evidence was updated separately as
+recorded below.
+The later pre-release clarification removes historical compatibility promises.
+The update prompt and local beta notice warn that updates may permanently break
+projects and recommend a commit/push or independent backup first. Successful
+updates remove unchanged temporary staging files; failures and unexpected files
+are retained rather than recursively deleted. These changes are not published.
+
+The local prototype retains exact library, source, POM and license bytes in the
+student project, including scoped Git attributes to preserve them on checkout.
+An actual macOS VS Code extension host exercised Add, save, Undo, Redo and a
+second Add from retained files using fixture catalog responses and prompts. The
+first Add fetched each of three artifacts once; the second fetched none.
+
+Separate real fresh-clone proofs used `core.autocrlf=true` and an unavailable
+library host. Native Maven compiled the saved JAR and executed a probe returning
+42; a WebFX build compiled the saved source JAR and a nested-path browser page
+displayed its distinct value 37. Maven Central and normal WebFX dependencies
+remained available; this is not a completely offline build. A Git fixture also
+preserved an embedded CRLF license byte for byte. Focused tests cover interrupted
+bundle installation, conflict preservation, tampering and the explicit saved
+builder upgrade and backup. An older saved builder was explicitly upgraded in a
+copy, its original profile checked in the backup, and the updated copy built and
+validated with WebFX; that check called the upgrade backend, not its editor UI.
+Game sharing with owned libraries remains blocked
+until its archive can carry them safely.
+
+These are local prototype checks. They do not establish a physical Windows or
+Linux run, a native JavaFX window, a live ZeroHub account/service journey,
+Firefox/Safari behavior, update/revert builds, or complete offline rebuilding.
+The broader acceptance gates in [ZEROHUB-PLAN.md](ZEROHUB-PLAN.md) remain open.
+The initial full local suite exposed the published-tutorial scaffold gate: the
+changed saved builder changed scaffold fingerprints before the public templates
+were updated. That gate remained in place until the publication checks below.
+
+Local PR preparation: all four draft tutorial scaffolds passed exact inventory,
+byte and executable-mode checks. Relative to the recorded published commits,
+each adds the saved owned-library module and changes five browser-builder files;
+no lesson source or executable mode changed. A focused integration run passed
+194 tests. A separate 45-test editor run passed after fixing an independent
+review finding: trust is rechecked after project lookup and before bundle writes.
+The initial lesson-project run passed 20 of 22 tests; the remaining two required
+current published-template evidence.
+Raw Maven commands outside Zero do not seed the owned native library cache;
+the verified native path uses Zero's Run integration. Actual Windows execution,
+physical editor interaction and live service flows remain unverified.
+
+On 2026-11-03 the owner authorized publication of the four prepared tutorial
+drafts. Independently reviewed template PRs [greeting #5](https://github.com/codepetca/zero-tutorial-greeting/pull/5),
+[study #5](https://github.com/codepetca/zero-tutorial-study/pull/5),
+[game #5](https://github.com/codepetca/zero-tutorial-game/pull/5), and
+[pet #4](https://github.com/codepetca/zero-tutorial-pet/pull/4) were merged.
+Each resulting fixed commit was downloaded anonymously and checked against its
+exact generated scaffold, including bytes and executable modes. Repository IDs,
+public visibility, template status, main heads and Git trees were checked before
+updating `teaching/tutorial-templates.json`. The evidence identifies those fixed
+commits; it is not a guarantee that mutable remote main remains unchanged.
+An independent read-only review repeated the archive and GitHub metadata checks.
+The lesson-project and upload-auth suites passed 65 tests after recording the
+verified publications and updating the trusted-workspace test fixture.
+The subsequent full local `npm test` run passed 1,501 tests with four skipped.
+
 ## Library ownership planning and local proofs — 2026-11-02
 
 At base `f76d931e`, the owner selected source in the existing student project,

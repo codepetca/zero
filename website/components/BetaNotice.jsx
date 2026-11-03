@@ -29,6 +29,7 @@ export function BetaNotice() {
       <h2 id="beta-notice-title">Zero is in beta</h2>
       <div id="beta-notice-details">
         <p>Zero and ZeroHub are in beta. Features may change, break or be unavailable.</p>
+        <p>Updates may permanently break existing projects. Commit and push your work or keep your own backup before updating; a backup may not make an older project work again.</p>
         <p>Data may not be saved or retained, and may be lost or removed. Keep your own backups of code, assets and anything important.</p>
         <p>Repositories created in your GitHub account belong to you. You are responsible for their contents, visibility, access, backups and maintenance, including any apps published from them.</p>
         <p>These risks also apply after beta. Read the <a href="/terms">terms</a> and <a href="/privacy">privacy notice</a>.</p>

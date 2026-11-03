@@ -3,7 +3,7 @@ const path = require('node:path');
 const {createGitHubPagesPublisher} = require('./web-publish-github');
 const {safePagesUrl}=require('./web-pages-verification');
 
-function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connectedRepository=()=>undefined,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setProgress=()=>{},output,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
+function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connectedRepository=()=>undefined,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setProgress=()=>{},output,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,beforeBuildReview=async()=>{},publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
   let disposed=false,controller,publishing=false,resume,recheckRequested=false,lastLive;
   let root,stageProgress,openingRequested=false;
   const clearProgress=()=>{stageProgress=undefined;setProgress(undefined);};
@@ -165,6 +165,8 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
         if(current.status==='live')return {...current,alreadyCurrent:true};
         if(current.status!=='stale'){await showAction(current);return current;}
       }
+      await beforeBuildReview(expected,{signal:controller.signal});
+      await stillPublishable(expected);
       let review,uploadedSource;
       try {review=await publisher.review(expected,{signal:controller.signal});}
       catch(error) {

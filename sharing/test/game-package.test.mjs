@@ -133,3 +133,24 @@ test('untrusted ZIP traversal, symlinks, mismatched headers, huge sizes and chec
   assert.throws(()=>inspectGamePackage(understated),/larger than|CRC|size/i);
   await assert.rejects(extractGamePackage({bytes:normal.bytes,destination:'/unneeded',expectedSha256:'a'.repeat(64)}),/checksum/);
 });
+
+test('game packages reject active owned library pins instead of omitting their saved artifacts',()=>{
+  const base=minimalGameFiles(),pom=base.find(file=>file.path==='pom.xml').data.toString();
+  const id='lib-r12345-health-bar';
+  const managed=(label,node)=>`<!-- zero-sharing ${label} start -->\n${node}\n<!-- zero-sharing ${label} end -->`;
+  const history=managed(`${id} history`,`<zero.sharing.${id}.previous>none</zero.sharing.${id}.previous>`);
+  const ownership=managed(`${id} owned`,`<zero.sharing.${id}.owned>true</zero.sharing.${id}.owned>`);
+  const dependency=managed(`${id} dependency`,'<dependency><groupId>ca.codepet.zero.contrib.r12345</groupId><artifactId>health-bar</artifactId><version>0.1.0</version></dependency>');
+  const repository=managed('repository','<repository><id>zero-sharing</id><url>https://files.example/maven</url><releases><enabled>true</enabled></releases><snapshots><enabled>false</enabled></snapshots></repository>');
+  const legacy=pom.replace('</properties>',history+'</properties>').replace('</dependencies>',dependency+'</dependencies>').replace('</project>','<repositories>'+repository+'</repositories></project>');
+  const owned=legacy.replace('</properties>',ownership+'</properties>');
+  const filesWith=contents=>base.map(file=>file.path==='pom.xml'?{...file,data:Buffer.from(contents)}:file);
+  const normal=buildGamePackage({files:filesWith(legacy)});
+  assert.doesNotThrow(()=>inspectGamePackage(normal.bytes));
+  assert.throws(()=>buildGamePackage({files:[...filesWith(owned),{path:`zero-dependencies/${id}/0.1.0/library.jar`,data:Buffer.from('saved artifact')}]}),/project-owned library dependencies/);
+  const entries=Object.create(null);
+  for(const file of inspectGamePackage(normal.bytes))entries[file.path]=[file.path==='pom.xml'?Buffer.from(owned):file.data,{mtime:new Date(1980,0,1),os:3,attrs:file.mode<<16}];
+  assert.throws(()=>inspectGamePackage(Buffer.from(zipSync(entries))),/project-owned library dependencies/);
+  const partial=owned.replace('owned end','owned altered');
+  assert.throws(()=>buildGamePackage({files:filesWith(partial)}),/marker|block/);
+});
