@@ -18,6 +18,7 @@
     "prepare:tutorial-templates": "node scripts/prepare-project-templates.mjs --tutorials",
     "check:tutorial-templates": "node scripts/check-tutorial-templates.mjs",
     "check": "node scripts/check.mjs",
+    "check:core-version": "node scripts/check-core-version.mjs",
     "test": "node scripts/test-extension.mjs",
     "package": "node scripts/package.mjs",
     "package:installers": "npm run package && npm run verify:kit && node scripts/build-installers.mjs",

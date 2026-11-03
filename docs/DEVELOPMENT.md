@@ -48,6 +48,7 @@ npm ci
 npm run prepare:starter
 npm run prepare:lessons
 npm run check
+npm run check:core-version -- --base origin/main
 npm test
 python3 scripts/verify-examples.py
 node scripts/verify-lesson-projects.mjs

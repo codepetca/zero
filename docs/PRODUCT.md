@@ -86,6 +86,14 @@ framework source, native/browser build files, Zero-specific build tooling, versi
 records and exact dependencies. Opening a project never upgrades them automatically.
 Zero supports one current browser builder: an explicit browser build or check
 requires the student to update older saved browser tooling, preserving a backup.
+One **Update Project** action also updates the project's recorded, unmodified
+Zero Java framework files to the installed version. It stops before replacing
+customized or unrecognized framework files, preserves student code, assets, POM
+and library pins, and retains recovery data for an interrupted update. The
+project's own source inventory is a self-recorded baseline, not proof of an
+authenticated historic release. Warn that updates may break the game; test both
+native and browser builds afterward. Locally authored libraries may need their
+own deliberate review when their recorded core input no longer matches.
 No required central historical-kit storage, database or kit registry. Maintain the
 current release line without old-version branches/backports. During pre-release,
 updates can break existing projects, including after restoring saved files. Browser

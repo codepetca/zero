@@ -14,7 +14,7 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
   if(publishing || practice) {
     const {loadBundle}=require('../src/lesson-projects');
     // Exercise the real pre-publication builder review with an already-current project.
-    for(const file of (await loadBundle(path.resolve(__dirname,'..')))[0].files.filter(file=>file.path.startsWith('.zero-build/'))) {
+    for(const file of (await loadBundle(path.resolve(__dirname,'..')))[0].files.filter(file=>file.path.startsWith('.zero-build/')||file.path==='zero-core.json'||file.path.startsWith('src/main/java/zero/'))) {
       const destination=path.join(root,...file.path.split('/'));
       await fs.mkdir(path.dirname(destination),{recursive:true});await fs.writeFile(destination,file.content);
     }
