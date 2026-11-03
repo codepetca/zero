@@ -273,6 +273,10 @@ into `libraries/<slug>/` in that same GitHub repository, with a focused public A
 examples, licence/credit and exact version. Develop locally, demonstrate reuse in
 another project, and use the existing explicit sharing/checking flow. Others can
 inspect the code, import the library, choose its implementation and improve it.
+Accepted releases remain hosted by ZeroHub in Blob. The proposed consumer flow
+also saves a verified copy in each app that adds the library; see the
+[ZeroHub plan](ZEROHUB-PLAN.md). No separate contributor library repository is
+required.
 Keep the native dependency model as ordinary exact-version Maven imports; the
 browser path uses verified source/resources through the managed resolver.
 
@@ -358,9 +362,10 @@ Develop Zero quickly while retaining student ownership and a simple build path.
 6. **Make full offline backup optional.** Students may retain a separate bundle
    containing the project's build files, required redistributable dependencies/
    library sources/JARs/resources, licenses and documented tool requirements.
-   Zero need not centrally store or manage these bundles. Default projects use
-   exact dependencies from normal artifact hosts, including pinned source inputs
-   where needed; hashes and URLs do not guarantee those bytes remain available.
+   Zero need not centrally store or manage these bundles. The proposed ZeroHub
+   library flow additionally saves each added library release inside the project;
+   this is not a complete offline bundle. Other dependencies still use normal
+   artifact hosts; hashes and URLs do not guarantee their bytes remain available.
    Without a complete retained bundle and usable tools, indefinite rebuilding is
    best effort, especially for timestamped snapshot artifacts. Editing retained
    source and playing saved output are separate from successfully rebuilding it.

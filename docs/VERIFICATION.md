@@ -1,5 +1,29 @@
 # Verification
 
+## Library ownership planning and local proofs — 2026-11-02
+
+At base `f76d931e`, the owner selected source in the existing student project,
+ZeroHub Blob hosting for accepted releases, and proposed project-owned consumer
+copies. Monitor storage and compute; consider deprecation without automatic
+removal. The plan and tests are local only; no feature, publication, external
+service or policy change follows from them.
+
+The Add transaction prototype passed 13 tests, including process termination
+at 16 boundaries, drift, tampering and repeat recovery under cooperative POSIX
+locking. The project-owned bundle fixture compiled a clone with offline Maven
+and exercised JVM behavior; a WebFX/Chrome nested-path run used the same clone,
+an experimental bridge, warm caches and an external exporter. Five actual-code
+registry/publication and consumer integrity tests and 22 existing focused tests
+passed. These checks do not establish authenticated evidence, the GitHub Contents
+adapter, real VS Code integration, native JavaFX window, complete offline builds,
+resources, physical Windows/Linux, live account flows or production recovery.
+The phased implementation and acceptance gates remain open.
+
+Independent reviews led to fixes for transaction aliasing, clone/browser proof
+and late-upload coverage. Earlier creator-hosted and simulated release/recovery
+experiments explored alternatives and do not establish the selected Blob flow.
+No external state or product code changed.
+
 ## Actor contact and Coin lesson — 2026-10-31
 
 Local work adds overridable `Actor.touches` using axis-aligned centred size
