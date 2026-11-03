@@ -12188,3 +12188,15 @@ readers to their existing project. Ordinary lesson navigation and media links st
 available. Website build and 248 website tests passed, and the Greeting lesson was
 inspected in the browser. Independent review confirmed menu labels and found no
 remaining issue. No app or template release is included.
+
+## Project framework and browser update — local source
+
+One explicit project update replaces recorded, unmodified Java framework files
+and browser tooling, retaining a recovery journal and leaving student files and
+library pins intact. An independent review found interrupted-recovery retry and
+partial-marker issues; both were fixed and the corrections independently reviewed.
+A disposable project with a synthetic older baseline updated, compiled natively,
+and produced a validated browser export. In an isolated macOS VS Code host, the
+update notice, confirmation, update, simulated incomplete-marker recovery, and
+shortened confirmation were exercised. Physical interruption, Windows and Linux
+editor interaction were not tested. No kit or website was published.

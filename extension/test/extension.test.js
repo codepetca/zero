@@ -248,7 +248,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   nextChoice='recovery';await commands.get('zero.chooseRepository')();assert.equal(recoveryCalls,1,'The repository menu dispatches the existing guarded file recovery command');
   pickEffect=async()=>{repo='https://github.com/student/changed.git';};await commands.get('zero.chooseRepository')();assert.equal(recoveryCalls,1,'Changing repository cancels pending file recovery');pickEffect=undefined;repo='https://github.com/student/app.git';
   nextChoice='copy';await commands.get('zero.chooseRepository')();assert.equal(copied.at(-1),'https://github.com/student/app');
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','sync','switch','connect','recovery','account']);
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','sync','switch','connect','updateProject','recoverProjectUpdate','recovery','account']);
   const beforePublishAuth=authCalls.length;nextChoice='publish';await commands.get('zero.chooseRepository')();assert.match(webview.html,/Simulation only — no publishing files/);assert.equal(authCalls.length,beforePublishAuth,'Repository menu dispatch preserves publishing simulation isolation');
   session={...session,account:{id:'1',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'zero-github'}});await settle(()=>!webview.html.includes('>GitHub setup</button>'));
   assert.doesNotMatch(webview.html,/<img|&lt;img|PRIVATE/,'Account labels and tokens stay out of sidebar HTML');
@@ -274,11 +274,11 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   nextChoice='clone';pickEffect=async()=>{repo='https://github.com/student/changed.git';};const beforeDrift=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeDrift,'A changed destination invalidates a pending menu selection');pickEffect=undefined;repo='https://github.com/student/app.git';currentBranch='main';
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',repositoryRequired:true,lessonId:'0'}));
   nextChoice=undefined;await commands.get('zero.chooseRepository')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','sync','switch','recovery','account'],'A cloned tutorial keeps repository actions without offering rejected origin replacement');
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','sync','switch','updateProject','recoverProjectUpdate','recovery','account'],'A cloned tutorial keeps repository actions without offering rejected origin replacement');
   await commands.get('zero.browseZeroHub')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries'],'Tutorial projects do not offer Share project');
   repo=undefined;webviewProvider.resolveWebviewView(candidate);await settle(()=>!webview.html.includes('student/app'));
   await commands.get('zero.chooseRepository')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['recovery','account'],'An uncloned tutorial offers a new project, clone or opening an existing local copy');
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['updateProject','recoverProjectUpdate','recovery','account'],'An uncloned tutorial offers a new project, clone or opening an existing local copy');
   nextChoice='clone';const beforeClone=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeClone,'Cancelled clone URL does not launch Git');
   assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.toggleApp'),'Local Run is always available');
   for(const panel of startPanels)panel.dispose();

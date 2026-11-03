@@ -107,6 +107,8 @@ function activate(context, services = {}) {
   let statusGeneration = 0;
   const isBusy = () => Boolean(stopPromise) || uploading || connecting || startingTutorial || signingIn || changing || menuOpen || componentBusy || maintenanceBusy || exportingWeb || publishingWeb || browserBusy;
   let projectRoot;
+  let projectUpdateRoot, projectUpdateAvailable=false, projectUpdateGeneration=0;
+  let inspectProjectUpdate=()=>{};
   let startPage;
   const uploadMode = (root = projectRoot) => root ? vscode.workspace.getConfiguration('zero', vscode.Uri.file(root)).get('uploadMode', 'live') : 'live';
   let runQueue = Promise.resolve();
@@ -123,12 +125,13 @@ function activate(context, services = {}) {
   const project = async () => {
     let root;
     try {root = await core.resolveProject((vscode.workspace.workspaceFolders || []).map(folder => folder.uri.fsPath));}
-    catch(error) {projectRoot=undefined;localPractice=false;originalWork=false;throw error;}
+    catch(error) {projectRoot=undefined;projectUpdateRoot=undefined;projectUpdateAvailable=false;projectUpdateGeneration++;localPractice=false;originalWork=false;throw error;}
     const practice = await lessonProjects.isLocalPractice(root);
     const original = !practice && !await lessonProjects.tutorialMarker(root);
     if(savedBuilderInspectedRoot!==root){savedBuilderInspectedRoot=root;try{await readSavedBuilder(root,{metadataOnly:true});}catch(error){output.appendLine(error.message);}}
     if(savedChecksRoot&&savedChecksRoot!==root){savedChecks.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;}
     projectRoot = root; localPractice = practice; originalWork = original;
+    inspectProjectUpdate(root);
     return root;
   };
   const refreshSidebarShortcut = (pageOpen = startPage?.isOpen()) => {
@@ -822,7 +825,7 @@ function activate(context, services = {}) {
       const recoveryUrl=recovery&&typeof recovery.repositoryUrl==='string'?recovery.repositoryUrl:undefined;
       const projectChoices = [...(recoveryUrl?[{label:'Resume created project…',description:recoveryUrl,action:'recover'}]:[])];
       if (connected) items.push(...projectChoices);else items.unshift(...localChoices,...projectChoices);
-      if (root) items.push({label:'Review or restore changes…', action:'recovery'});
+      if (root) items.push({label:'Update Project…', description:'Update Zero core and browser tooling', action:'updateProject'},{label:'Recover Project Update…', description:'Restore files from an interrupted update', action:'recoverProjectUpdate'},{label:'Review or restore changes…', action:'recovery'});
       items.push({label:'GitHub account…', action:'account'});
       const choice = await quickPick(items, {title:connected ? repository : root ? path.basename(root) : 'Project'});
       if (isBusy() || !choice) return;
@@ -835,6 +838,8 @@ function activate(context, services = {}) {
       }
       if (choice?.action === 'account') await actions['zero.githubAccount']();
       if (choice?.action === 'recovery') await actions['zero.recovery']();
+      if (choice?.action === 'updateProject') await actions['zero.updateProject']();
+      if (choice?.action === 'recoverProjectUpdate') await actions['zero.recoverProjectUpdate']();
       if (choice?.action === 'connect') await actions['zero.connectRepository']();
       if (choice?.action === 'copy') await actions['zero.copyRepositoryLink']();
       if (choice?.action === 'publish') await actions['zero.publishAndOpenWeb']();
@@ -1025,33 +1030,47 @@ function activate(context, services = {}) {
   };
   const webCacheRoot=context.globalStorageUri ? path.join(context.globalStorageUri.fsPath,'web-compiler') : undefined;
   const savedBuilder=createProjectBuilder({isTrusted:()=>vscode.workspace.isTrusted===true,extensionPath:context.extensionPath||path.resolve(__dirname,'..')});
-  async function updateBrowserTooling(root,{signal,required=false}={}) {
-    const current=async()=>{
+  function projectUpdateGuard(root,signal) {
+    return async()=>{
       const folders=JSON.stringify((vscode.workspace.workspaceFolders||[]).map(folder=>folder.uri.fsPath));
-      if(disposed||signal?.aborted||vscode.workspace.isTrusted!==true)throw new Error('The project changed or the browser action was cancelled.');
+      if(disposed||signal?.aborted||vscode.workspace.isTrusted!==true)throw new Error('The project changed or the update was cancelled.');
       const selected=await project();
-      if(disposed||signal?.aborted||vscode.workspace.isTrusted!==true||selected!==root||folders!==JSON.stringify((vscode.workspace.workspaceFolders||[]).map(folder=>folder.uri.fsPath)))throw new Error('The project changed or the browser action was cancelled.');
+      if(disposed||signal?.aborted||vscode.workspace.isTrusted!==true||selected!==root||folders!==JSON.stringify((vscode.workspace.workspaceFolders||[]).map(folder=>folder.uri.fsPath)))throw new Error('The project changed or the update was cancelled.');
       require('./sharing/editor').assertSaved(vscode,root);
     };
+  }
+  // One read-only, bounded inspection per opened trusted project; no project code runs.
+  inspectProjectUpdate=root=>{
+    if(disposed||vscode.workspace.isTrusted!==true||isSetupProject(root)||projectUpdateRoot===root)return;
+    projectUpdateRoot=root;projectUpdateAvailable=false;const generation=++projectUpdateGeneration;
+    void require('./project-update').planUpdate({projectRoot:root,extensionPath:context.extensionPath||path.resolve(__dirname,'..')}).then(plan=>{
+      if(disposed||generation!==projectUpdateGeneration||projectRoot!==root||vscode.workspace.isTrusted!==true)return;
+      projectUpdateAvailable=plan.changed;refresh();
+    }).catch(()=>{}); // Explicit update reports conflicts and recovery instructions.
+  };
+  if(vscode.workspace.onDidGrantWorkspaceTrust)context.subscriptions.push(vscode.workspace.onDidGrantWorkspaceTrust(()=>{if(projectRoot)inspectProjectUpdate(projectRoot);}));
+  async function updateProject(root,{signal,required=false}={}) {
+    const current=projectUpdateGuard(root,signal);
     await current();
-    const upgrade=require('./project-builder-upgrade');
-    const plan=await upgrade.planUpgrade({projectRoot:root,extensionPath:context.extensionPath||path.resolve(__dirname,'..')});
+    const upgrade=require('./project-update');
+    const plan=await upgrade.planUpdate({projectRoot:root,extensionPath:context.extensionPath||path.resolve(__dirname,'..')});
     await current();
     if(!plan.changed)return false;
-    const detail=`Zero is changing quickly. This update may permanently break an existing project, even if you restore its files. Before updating, commit and push your work or make your own backup. ${plan.oldProfileHash?'Zero also keeps a local copy of the previous builder.':'This project has no saved browser builder yet.'} After updating, test the browser build and commit the changed .zero-build folder.`;
-    if(await vscode.window.showWarningMessage(required?'Update browser tooling to continue?':'Update this project’s browser tooling?',{modal:true,detail},'Update')!=='Update') {
-      if(required)throw new Error('Browser build cancelled. Update browser tooling to continue.');
+    const parts=[plan.coreChanged?'Java framework':null,plan.builderChanged?'browser tooling':null].filter(Boolean).join(' and ');
+    const detail=`This updates the ${parts} which may break your project.`;
+    if(await vscode.window.showWarningMessage(required?'Update Project to continue?':'Update this project?',{modal:true,detail},'Update')!=='Update') {
+      if(required)throw new Error('Browser action cancelled. Update Project to continue.');
       return false;
     }
-    await current();const result=await upgrade.applyUpgrade(plan,{assertCurrent:current});
-    try{await current();}catch(error){if(result.backupPath)error.message+=` The original browser builder is saved at ${result.backupPath}.`;throw error;}
+    await current();projectUpdateGeneration++;projectUpdateAvailable=false;const result=await upgrade.applyUpdate(plan,{assertCurrent:current});
+    try{await current();}catch(error){if(result.backupPath)error.message+=` The original project files are saved at ${result.backupPath}.`;throw error;}
     if(result.cleanupWarning)output.appendLine(result.cleanupWarning);
-    report('Browser tooling updated · test and commit',`Browser tooling updated. ${result.backupPath?`Previous builder files saved at ${result.backupPath}; keeping them does not guarantee the project can be built again. `:''}Test the browser build and commit .zero-build.`);
+    report('Project updated · test and commit',`Project updated. ${result.backupPath?`Previous files saved at ${result.backupPath}. `:''}Test the app and browser build, review local library requirements, and commit the changed project files.`);
     return true;
   }
   async function withCurrentBrowserTooling(operation,options) {
-    try{return await operation({...options,explicitAction:true});}
-    catch(error){if(error.code!=='ZERO_BUILDER_UPDATE_REQUIRED')throw error;await updateBrowserTooling(options.projectRoot,{signal:options.signal,required:true});return operation({...options,explicitAction:true});}
+    await updateProject(options.projectRoot,{signal:options.signal,required:true});
+    return operation({...options,explicitAction:true});
   }
   const savedProblems=vscode.languages?.createDiagnosticCollection('zero-browser-compatibility');
   const relevantSource=uri=>{
@@ -1127,7 +1146,7 @@ function activate(context, services = {}) {
     if (!isBusy()) return actions['zero.runApp']();
   };
   context.subscriptions.push(...browserRun.disposables);
-  const webPublish=createWebPublishCommands(vscode,{project,assertProjectNow:assertGitProjectNow,connectedRepository:()=>repository,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},setProgress:value=>{publishProgress=value;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,localBuild:options=>savedBuilder.ensureValidatedExport({...options,explicitAction:true}),validateExport:validateWithSavedProject,beforeBuildReview:(root,{signal})=>updateBrowserTooling(root,{signal,required:true}),assertBuildInputsAtCommit:savedBuilder.assertBuildInputsAtCommit,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
+  const webPublish=createWebPublishCommands(vscode,{project,assertProjectNow:assertGitProjectNow,connectedRepository:()=>repository,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},setProgress:value=>{publishProgress=value;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,localBuild:options=>savedBuilder.ensureValidatedExport({...options,explicitAction:true}),validateExport:validateWithSavedProject,beforeBuildReview:(root,{signal})=>updateProject(root,{signal,required:true}),assertBuildInputsAtCommit:savedBuilder.assertBuildInputsAtCommit,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
   Object.assign(actions,webPublish.commands);
   context.subscriptions.push(...webPublish.disposables);
   const sharingHandoff=async(root,action)=>{
@@ -1144,11 +1163,35 @@ function activate(context, services = {}) {
   const recovery=createRecoveryCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
   Object.assign(actions,assets.commands,recovery.commands);
   context.subscriptions.push(assets,recovery);
-  actions['zero.upgradeBrowserTooling']=async()=>{
+  actions['zero.updateProject']=async()=>{
     if(disposed||isBusy())return;
     maintenanceBusy=true;refresh();
     try {
-      const root=await project();if(!await updateBrowserTooling(root))report('Browser tooling is already current or update cancelled');
+      const root=await project();if(!await updateProject(root))report('Project is already current or update cancelled');
+    } finally {maintenanceBusy=false;if(!disposed)refresh();}
+  };
+  actions['zero.upgradeBrowserTooling']=actions['zero.updateProject'];
+  actions['zero.recoverProjectUpdate']=async()=>{
+    if(disposed||isBusy())return;
+    maintenanceBusy=true;refresh();
+    try {
+      const root=await project(),current=projectUpdateGuard(root);
+      await current();
+      const upgrade=require('./project-update');
+      const recoveries=(await upgrade.listRecoveries({projectRoot:root})).filter(item=>item.status==='incomplete');
+      await current();
+      if(!recoveries.length){report('No interrupted project update to recover');return;}
+      const choice=await quickPick(recoveries.map(item=>({label:item.label,description:path.basename(item.recoveryPath),recoveryPath:item.recoveryPath})),{title:'Recover an interrupted project update'});
+      if(!choice)return;
+      await current();
+      const detail=`Restore the files from ${choice.recoveryPath}. Zero checks for conflicting edits and refuses recovery if it cannot preserve them. Review your project after recovery.`;
+      if(await vscode.window.showWarningMessage('Recover this project update?',{modal:true,detail},'Recover')!=='Recover')return;
+      await current();
+      projectUpdateGeneration++;projectUpdateAvailable=false;
+      await upgrade.recoverUpdate({projectRoot:root,recoveryPath:choice.recoveryPath},{assertCurrent:current});
+      projectUpdateRoot=undefined;inspectProjectUpdate(root);
+      await current();
+      report('Project update recovered','The interrupted update was restored. Review your project files before updating again.');
     } finally {maintenanceBusy=false;if(!disposed)refresh();}
   };
   const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,setState:report,verifiedPublication:webPublish.verifiedPublication,uploadForSharing:root=>sharingHandoff(root,()=>uploadProject()),publishForSharing:root=>sharingHandoff(root,()=>webPublish.publish()),setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
@@ -1198,6 +1241,7 @@ function activate(context, services = {}) {
     const gitRecoveryActions=projectRoot&&!localPractice?gitRecoveryPanel.panel({recovery:updateRecovery,pending:pendingUpload,error:updateRecoveryError,disabled:isBusy()}):'';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
+    const projectUpdateNotice=typeof projectUpdateRoot!=='undefined'&&projectUpdateRoot===projectRoot&&projectUpdateAvailable?`<p class="muted status">Project update available <button class="link" data-command="zero.updateProject" ${disabled}>Update Project…</button></p>`:'';
     const browserCheckStatus=savedChecksRoot===projectRoot&&savedChecksState?`<p class="muted status" title="${escape(savedChecksState.message||'')}">Browser checks: ${escape(savedChecksState.status)}</p>`:'';
     const browserAction = browserActive && !stopPromise && browserRun.canOpenInBrowser ? `<button class="secondary browser-open" data-command="zero.openRunningAppInBrowser" title="Open in browser" aria-label="Open in browser" ${disabled}>${icon('ExternalLink')}</button>` : '';
     const showRepository = projectRoot && (ready || connected || branch || branchDetached);
@@ -1209,7 +1253,7 @@ function activate(context, services = {}) {
     const runDisabled = stopPromise ? 'aria-disabled="true"' : !activeRun && (isBusy()||updateRecovery||updateRecoveryError) ? 'disabled' : '';
     const publishMenu = !setupCheck && ready && auth.signedIn && connected ? `<button id="run-menu-button" class="run-menu-button" aria-label="Run options" title="Run options" aria-haspopup="menu" aria-expanded="false" aria-controls="run-menu" ${isBusy() || activeRun ? 'disabled' : ''}>${icon('ChevronDown')}</button><div id="run-menu" class="files-dropdown run-dropdown" role="menu" aria-labelledby="run-menu-button" hidden><button role="menuitem" tabindex="-1" data-command="zero.publishAndOpenWeb" ${isBusy() || activeRun ? 'disabled' : ''}>Publish &amp; open app</button>${webPublish.hasPublishedApp({root:projectRoot,repository,account:auth.accountId}) ? `<button role="menuitem" tabindex="-1" data-command="zero.viewPublishedWeb" ${isBusy() || activeRun ? 'disabled' : ''}>View published app</button>` : ''}</div>` : '';
     const runControl = `<div class="run-split"><button class="${ready ? 'run' : 'secondary'}" data-command="zero.toggleApp" ${runDisabled}>${icon(activeRun || stopPromise ? 'Square' : 'Play')}${runLabel}</button>${publishMenu}</div>`;
-    const controls = !projectRoot ? `<button class="link" data-command="zero.startPage" ${disabled}>Open Start Page</button>` : `${setupCheck ? '<p class="muted">Installation test · Hello World</p>' : ''}${!ready ? `<button class="link" data-command="zero.startPage" ${disabled}>GitHub setup</button>` : ''}<div class="main-controls"><div class="run-controls">${runControl}${browserAction}</div>${exportActions}${browserCheckStatus}</div>${showRepository ? `<section class="repository">${githubPanel}</section>` : ''}${studentView ? '' : `<section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`}`;
+    const controls = !projectRoot ? `<button class="link" data-command="zero.startPage" ${disabled}>Open Start Page</button>` : `${setupCheck ? '<p class="muted">Installation test · Hello World</p>' : ''}${!ready ? `<button class="link" data-command="zero.startPage" ${disabled}>GitHub setup</button>` : ''}<div class="main-controls"><div class="run-controls">${runControl}${browserAction}</div>${exportActions}${browserCheckStatus}${projectUpdateNotice}</div>${showRepository ? `<section class="repository">${githubPanel}</section>` : ''}${studentView ? '' : `<section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`}`;
     const publishingProgress=publishProgressHtml(publishProgress?.root===projectRoot?publishProgress:undefined);
     // Keep the controls document alive across progress updates; VS Code owns the file tree.
     if (renderedWebviews.has(webview) && webview.postMessage) {

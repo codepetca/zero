@@ -36,6 +36,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+          fetch-depth: 2
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
@@ -61,6 +62,11 @@ jobs:
         run: npm ci --prefix website
       - name: CI selection, gate, browser provisioning and Dev contracts
         run: node --test scripts/ci-*.test.mjs scripts/zero-dev.test.mjs
+      - name: Require a new version for framework changes
+        if: github.event_name == 'pull_request'
+        env:
+          ZERO_CORE_BASE: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/check-core-version.mjs --base "$ZERO_CORE_BASE"
       - name: Check version and immutable release boundary
         id: release
         run: node scripts/release-review.mjs plan

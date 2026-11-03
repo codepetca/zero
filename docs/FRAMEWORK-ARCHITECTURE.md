@@ -1,5 +1,16 @@
 # Framework architecture: learn, extend and contribute
 
+Project update direction, 2026-11-03: Zero has not rolled out to students; do
+not add a catalog or support matrix for historical framework versions. Offer one
+explicit Update Project action for the installed framework and browser builder.
+Before changing files, compare the project's recorded framework inventory with
+its actual files and stop for edits, collisions or unsafe paths. Keep student
+code, POM, assets and library pins intact. Preserve recovery data and warn that
+updates may permanently break a project. The project's own record is an
+ownership baseline, not independent authentication of historical Zero code.
+Future framework changes must receive a distinct framework version, even during
+pre-release, instead of assigning the same version to different source inventories.
+
 Owner clarification, 2026-11-03: Zero has not rolled out to students and can
 change rapidly. Zero supports one current browser builder, with no commitment
 to maintain old versions or preserve compatibility with existing projects.

@@ -225,8 +225,12 @@
         "title": "Zero: Recover Library Change"
       },
       {
-        "command": "zero.upgradeBrowserTooling",
-        "title": "Zero: Upgrade Browser Tooling"
+        "command": "zero.updateProject",
+        "title": "Zero: Update Project"
+      },
+      {
+        "command": "zero.recoverProjectUpdate",
+        "title": "Zero: Recover Project Update"
       },
       {
         "command": "zero.editSharingDetails",
