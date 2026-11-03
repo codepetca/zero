@@ -118,7 +118,15 @@ async function currentInputs(projectRoot,manifest){
  const files=[];let total=0;for(const entry of manifest.inputs){if(!relative(entry.path))throw unavailable('unsafe source inventory path.');const filename=path.join(projectRoot,...entry.path.split('/'));const stat=await ordinary(filename);total+=stat.size;if(total>256*1024*1024)throw unavailable('source inventory exceeds its byte limit.');files.push({path:entry.path,bytes:await fs.readFile(filename)});}
  if(!inventoryMatches(files,manifest.inputs))throw unavailable('project inputs changed since the browser build. Export again.');
  const expected=new Set(files.map(file=>file.path));const roots=new Set(['src/main/java','src/main/resources','.mvn','.zero-build']);
- for(const name of expected){const match=/^(libraries\/[^/]+)\/(src\/main\/(?:java|resources))\//.exec(name);if(match)roots.add(match[1]+'/'+match[2]);}
+ // A frozen older builder may not know about owned pins. Never accept a
+ // receipt that omits any bytes required by the current managed POM.
+ const pom=files.find(file=>file.path==='pom.xml');
+ if(!pom)throw unavailable('the browser receipt omits the project POM.');
+ const active=await require('./web-export/libraries').discoverBrowserLibraries(projectRoot,pom.bytes.toString('utf8'));
+ const owned=await require('./web-export/snapshot').captureOwnedFiles(projectRoot,active);
+ for(const item of owned){const captured=files.find(file=>file.path===item.path);if(!captured||!captured.bytes.equals(item.bytes))throw unavailable('the saved builder does not capture this project-owned library. Deliberately upgrade a copy of the project tooling.');}
+
+ for(const name of expected){const match=/^(libraries\/[^/]+)\/(src\/main\/(?:java|resources))\//.exec(name);if(match)roots.add(match[1]+'/'+match[2]);const owned=/^(zero-dependencies\/[^/]+\/[^/]+)\//.exec(name);if(owned)roots.add(owned[1]);}
  for(const folder of roots){let actual;try{actual=await readTree(path.join(projectRoot,folder));}catch(error){if(error.code==='ENOENT')continue;throw error;}for(const file of actual){const name=folder+'/'+file.path;if(name==='src/main/resources/.gitkeep')continue;if(!expected.has(name))throw unavailable('new build input is absent from the browser receipt: '+name);}}
  for(const name of ['pom.xml','mvnw','mvnw.cmd','zero-core.json','zero-libraries.json']){const stat=await fs.lstat(path.join(projectRoot,name)).catch(error=>{if(error.code==='ENOENT')return null;throw error;});if(stat&&!expected.has(name))throw unavailable('new build input is absent from the browser receipt: '+name);}
  if(digest(files)!==(manifest.localSourceHash||manifest.sourceHash))throw unavailable('the source digest differs from its exact input receipt.');return files;
@@ -146,21 +154,34 @@ async function currentInputManifest(projectRoot,saved){
   await file(library.folder+'/zero-library.json');
   if(library.mode==='local'){await tree(library.folder+'/src/main/java');await tree(library.folder+'/src/main/resources',true);}
  }
+ for(const item of await require('./web-export/snapshot').captureOwnedFiles(projectRoot,libraries))add(item);
  const sourceHash=digest(files);
  return {sourceHash,localSourceHash:sourceHash,inputs:files.map(file=>({path:file.path,bytes:file.bytes.length,sha256:format.sha256(file.bytes)}))};
 }
-function createProjectBuilder({isTrusted=()=>false,environment=process.env,platform=process.platform,arch=process.arch,spawn=spawnChild,execute=execFile,deadlineMs}={}){
+function createProjectBuilder({isTrusted=()=>false,environment=process.env,platform=process.platform,arch=process.arch,spawn=spawnChild,execute=execFile,deadlineMs,extensionPath=path.resolve(__dirname,'..'),getCurrentBuilderHash}={}){
  const authorize=(options,kind)=>{if((options.explicitAction!==true&&!(kind==='compatibilityCached'&&/^[a-f0-9]{64}$/.test(options.approvedBuilderHash||'')))||isTrusted()!==true)throw unavailable('choose Browser Run, Export or Publish explicitly, or enable browser checks for this exact tooling, in a trusted workspace.');if(options.signal?.aborted)throw aborted();};
+ const currentHash=getCurrentBuilderHash|| (async projectRoot=>(await require('./project-builder-upgrade').planUpgrade({projectRoot,extensionPath})).newProfileHash);
+ async function requireCurrent(projectRoot,saved){
+  if(await currentHash(projectRoot)!==saved.profileHash)throw Object.assign(Error('This project needs the current browser tooling before browser builds or checks. Update it at the browser action; Zero keeps a backup.'),{code:'ZERO_BUILDER_UPDATE_REQUIRED'});
+ }
  async function operation(options,operation){
-  authorize(options,operation);const projectRoot=path.resolve(options.projectRoot),before=await readSavedBuilder(projectRoot);if(options.approvedBuilderHash&&options.approvedBuilderHash!==before.profileHash)throw unavailable('saved tooling changed; enable browser checks again.');const runtime=await locateRuntimes({runtime:before.runtime,projectRoot,environment,platform,arch,execute,needsJava:operation!=='validate',signal:options.signal});
+  authorize(options,operation);const projectRoot=path.resolve(options.projectRoot);let before;
+  try{before=await readSavedBuilder(projectRoot);}catch(error){
+   const exists=await fs.lstat(path.join(projectRoot,'.zero-build')).catch(missing=>{if(missing.code==='ENOENT')return null;throw missing;});
+   if(!exists)throw Object.assign(Error('This project needs the current browser tooling before browser builds or checks.'),{code:'ZERO_BUILDER_UPDATE_REQUIRED'});
+   throw error;
+  }
+  if(options.approvedBuilderHash&&options.approvedBuilderHash!==before.profileHash)throw unavailable('saved tooling changed; enable browser checks again.');
+  await requireCurrent(projectRoot,before);
+  const runtime=await locateRuntimes({runtime:before.runtime,projectRoot,environment,platform,arch,execute,needsJava:operation!=='validate',signal:options.signal});
   const temporaryBase=await fs.realpath(os.tmpdir()),frozen=await fs.realpath(await fs.mkdtemp(path.join(temporaryBase,'zero-project-builder-')));
   try {
    for(const file of before.files){const target=path.join(frozen,...file.path.split('/'));await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,file.bytes,{flag:'wx',mode:0o600});}
-   if((await readSavedBuilder(projectRoot)).profileHash!==before.profileHash)throw unavailable('saved tooling changed before execution.');authorize(options,operation);
+   if((await readSavedBuilder(projectRoot)).profileHash!==before.profileHash)throw unavailable('saved tooling changed before execution.');await requireCurrent(projectRoot,before);authorize(options,operation);
    const cacheBase=path.resolve(options.cacheRoot||path.join(temporaryBase,'zero-web-cache')),identity=before.manifest.closureSha256+'-'+format.sha256(before.files.find(file=>file.path==='runtime-lock.json').bytes),cacheRoot=path.join(cacheBase,identity);
    if(cacheRoot===projectRoot||cacheRoot.startsWith(projectRoot+path.sep))throw unavailable('the browser cache must be outside the project.');
    const result=await runProtocol({node:runtime.node,entrypoint:path.join(frozen,'run.cjs'),request:{protocol:1,operation,projectRoot,cacheRoot},env:runtime.env,signal:options.signal,onProgress:options.onProgress,deadlineMs,spawn,platform,expectedLogPath:path.join(cacheRoot,before.manifest.closureSha256,'logs',format.sha256(projectRoot)+'.log')});
-   authorize(options,operation);if((await readSavedBuilder(projectRoot)).profileHash!==before.profileHash)throw unavailable('saved tooling changed during execution.');
+   authorize(options,operation);if((await readSavedBuilder(projectRoot)).profileHash!==before.profileHash)throw unavailable('saved tooling changed during execution.');await requireCurrent(projectRoot,before);
    if(operation==='compatibility'||operation==='compatibilityCached')return {...result,runtimeEvidence:runtime.evidence};
    if(options.result?.buildId&&result?.buildId!==options.result.buildId)throw unavailable('the browser build was replaced.');
    const validated=await validateRetainedExport({projectRoot,result,signal:options.signal});if(validated.profileHash!==before.profileHash)throw unavailable('the browser result belongs to another builder.');await currentInputs(projectRoot,validated.manifest);
@@ -175,8 +196,8 @@ function createProjectBuilder({isTrusted=()=>false,environment=process.env,platf
   const validated=result?await validateRetainedExport({projectRoot,result}):{profileHash:saved.profileHash,manifest:await currentInputManifest(projectRoot,saved)};
   if(saved.profileHash!==validated.profileHash)throw unavailable('the selected builder differs from the exported builder.');
   const files=await currentInputs(projectRoot,validated.manifest);
-  const raw=await git(projectRoot,['ls-tree','-r','-z',sourceSha,'--','src/main/java','src/main/resources','pom.xml','mvnw','mvnw.cmd','.mvn','zero-core.json','zero-libraries.json','libraries','.zero-build']),committed=new Map(),normalizable=name=>/(?:^|\/)src\/main\/java\/.+\.java$/.test(name)||['pom.xml','mvnw','mvnw.cmd','zero-core.json','zero-libraries.json'].includes(name)||/^libraries\/[^/]+\/zero-library\.json$/.test(name)||/^\.mvn\/.+\.(?:properties|xml|config)$/.test(name),blob=bytes=>require('node:crypto').createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
-  for(const entry of String(raw).split('\0').filter(Boolean)){const match=/^(100644|100755) blob ([a-f0-9]{40})\t([\s\S]+)$/.exec(entry);if(!match)throw Error('Uploaded browser inputs must be ordinary tracked files.');if(match[3]==='src/main/resources/.gitkeep'||match[3].startsWith('libraries/')&&!files.some(file=>file.path===match[3]))continue;committed.set(match[3],match[2]);}
+  const raw=await git(projectRoot,['ls-tree','-r','-z',sourceSha,'--','src/main/java','src/main/resources','pom.xml','mvnw','mvnw.cmd','.mvn','zero-core.json','zero-libraries.json','libraries','zero-dependencies','.zero-build']),committed=new Map(),normalizable=name=>/(?:^|\/)src\/main\/java\/.+\.java$/.test(name)||['pom.xml','mvnw','mvnw.cmd','zero-core.json','zero-libraries.json'].includes(name)||/^libraries\/[^/]+\/zero-library\.json$/.test(name)||/^\.mvn\/.+\.(?:properties|xml|config)$/.test(name),blob=bytes=>require('node:crypto').createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  for(const entry of String(raw).split('\0').filter(Boolean)){const match=/^(100644|100755) blob ([a-f0-9]{40})\t([\s\S]+)$/.exec(entry);if(!match)throw Error('Uploaded browser inputs must be ordinary tracked files.');if(match[3]==='src/main/resources/.gitkeep'||(match[3].startsWith('libraries/')||match[3].startsWith('zero-dependencies/'))&&!files.some(file=>file.path===match[3]))continue;committed.set(match[3],match[2]);}
   if(committed.size!==files.length)throw Error('Upload all exact Java, resources, Maven setup and saved .zero-build files before publishing.');const normalized=[];
   for(const file of files){const expected=committed.get(file.path);if(expected===blob(file.bytes))continue;if(normalizable(file.path)&&expected===blob(Buffer.from(file.bytes.toString('utf8').replace(/\r\n/g,'\n')))){normalized.push(file.path);continue;}throw Error('The browser input '+file.path+' differs from the uploaded commit.');}
   await currentInputs(projectRoot,validated.manifest);if((await readSavedBuilder(projectRoot)).profileHash!==saved.profileHash)throw unavailable('saved tooling changed during commit verification.');return {sourceSha,sourceHash:validated.sourceHash||validated.manifest.localSourceHash,inputCount:files.length,normalizedSourceLineEndings:normalized};

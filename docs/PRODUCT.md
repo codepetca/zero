@@ -6,6 +6,13 @@ saved or retained. Users should keep their own backups and are responsible for
 repositories created in their GitHub accounts, including contents, visibility,
 access, maintenance and published apps.
 
+Pre-release direction, 2026-11-03: Zero has not rolled out to students and may
+change rapidly. Warn students that updates can permanently break existing
+projects; recommend committing and pushing or keeping an independent backup
+before updating. Preserving files is not a promise that older projects will
+build again. Maintain one current browser builder without an old-version
+compatibility commitment.
+
 Permanent Privacy and Terms footer links open separate plain pages at `/privacy`
 and `/terms`, independently of beta status. There is no boxed overview, policy
 tab navigation or extra table of contents; `/legal` redirects to Privacy. The beta
@@ -76,10 +83,13 @@ instruments student-owned sites. No new collector or analytics deployment exists
 
 Project longevity, owner direction 2026-10-23: the student's repository owns its
 framework source, native/browser build files, Zero-specific build tooling, version
-records and exact dependencies. Editor updates never upgrade them automatically.
+records and exact dependencies. Opening a project never upgrades them automatically.
+Zero supports one current browser builder: an explicit browser build or check
+requires the student to update older saved browser tooling, preserving a backup.
 No required central historical-kit storage, database or kit registry. Maintain the
-current release line without old-version branches/backports. Stable same-major
-releases preserve the documented API; upgrades remain optional/reversible. Keep
+current release line without old-version branches/backports. During pre-release,
+updates can break existing projects, including after restoring saved files. Browser
+tooling updates retain a local copy of the old files but do not guarantee recovery. Keep
 editable source and a retained finished web build. Full offline backups are
 optional and student-retained; default future rebuilds depend on usable tools
 and availability of normal dependency hosts, not a promise of permanent support.

@@ -14,6 +14,7 @@ test('commands simulate upload without Git and native Run App tasks retain resta
   const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-extension-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
+  await fs.writeFile(path.join(root,'pom.xml'),'<project></project>');
   const commands = new Map();const starts=[];const ends=[];const launches=[];const notices=[],results=[],errors=[];let provider, saved=0, mutations=0, saveGate, mode='simulation', commitMessage, reloadIsBusy, authGate, authEvent;
   const originalGit=core.git;core.git=async(_,args)=>{if (args[0] === 'remote' || args[0] === 'rev-parse' || args[0] === 'symbolic-ref') throw new Error('No repository'); mutations++;throw new Error('Unexpected git');};t.after(()=>{core.git=originalGit;});
   class Task {constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}

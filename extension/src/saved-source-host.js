@@ -29,6 +29,12 @@ async function inspectSourceScope({projectRoot,cacheRoot,environment=process.env
  for(const name of ['src/main/java','src/main/resources','.mvn','pom.xml','mvnw','mvnw.cmd','zero-core.json','zero-libraries.json'])await visit(path.join(root,name),name);
  const libraries=path.join(root,'libraries');let libraryNames=[];try{await ordinary(libraries,{directory:true});libraryNames=await fs.readdir(libraries);}catch(error){if(error.code!=='ENOENT')throw error;}
  for(const name of libraryNames.sort())for(const child of ['zero-library.json','src/main/java','src/main/resources'])await visit(path.join(libraries,name,child),'libraries/'+name+'/'+child);
+ const pom=await fs.readFile(path.join(root,'pom.xml'),'utf8').catch(error=>{if(error.code==='ENOENT')return null;throw error;});
+ const active=pom===null?[]:await require('./web-export/libraries').discoverBrowserLibraries(root,pom);
+ for(const library of active.filter(item=>item.storage==='owned')) {
+  require('./sharing/contracts').artifactPath(library.identity,library.version,'jar');
+  const name=`zero-dependencies/${library.identity.id}/${library.version}`;await visit(path.join(root,...name.split('/')),name);
+ }
  const partition=cachePartition(saved,cacheRoot);
  for(const name of ['compatibility-artifacts','library-responses'])await visit(path.join(partition,name),'cache/'+name);
  const get=name=>Object.entries(environment).find(([key])=>key.toUpperCase()===name)?.[1],paths=platform==='win32'?path.win32:path,suffix=platform==='win32'?'.exe':'',delimiter=platform==='win32'?';':path.delimiter;

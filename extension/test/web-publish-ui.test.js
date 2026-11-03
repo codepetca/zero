@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test');const assert=require('node:assert/strict');
 const {createWebPublishCommands}=require('../src/web-publish-ui');
-function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/student/game',cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)},uploadError}={}) {
+function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/student/game',cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)},uploadError,beforeBuildReview}={}) {
   let simulation=false,busy=false,active='/student',reviewed=0,published=0,checks=0,setup=false,upgrade=false,uploaded=0,sha='a'.repeat(40);
   const progress=[],messages=[],states=[],copied=[],opened=[],authCalls=[],choices=[];
   const stored=new Map(),workspaceState={get:key=>stored.get(key),update:async(key,value)=>{if(value===undefined)stored.delete(key);else stored.set(key,JSON.parse(JSON.stringify(value)));}};
@@ -20,12 +20,25 @@ function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/s
     if(reviewed.sha!==sha)throw Error('The app changed while checking its published version.');
     const live=await publisher.check();if(live.status==='live')onCurrent?.(live);return live;
   };
-  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),connectedRepository,assertProjectNow:expected=>{if(active!==expected)throw Error('The project changed.');},authentication:auth,repositories,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),setProgress:value=>progress.push(value),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
+  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),connectedRepository,assertProjectNow:expected=>{if(active!==expected)throw Error('The project changed.');},authentication:auth,repositories,workspaceState,beforeBuildReview,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),setProgress:value=>progress.push(value),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
   return {api,auth,progress,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set upgrade(v){upgrade=v;},set active(v){active=v;},set sha(v){sha=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
 }
 test('simulation publish never saves, authenticates, writes setup or calls publisher',async t=>{
   const h=fixture(t);h.simulation=true;const result=await h.api.publish();assert.equal(result.status,'simulated');assert.deepEqual(h.calls,[]);assert.deepEqual(h.authCalls,[]);assert.equal(h.busy,false);
+});
+test('browser tooling review precedes review and upload for a new build',async t=>{
+  let hookCalls=0;const h=fixture(t,{beforeBuildReview:async(root,{signal})=>{hookCalls++;assert.equal(root,'/student');assert.equal(signal.aborted,false);assert.deepEqual(h.calls,[]);assert.equal(h.uploaded,0);}});
+  requireUploadOnce(h);h.choices.push('Publish app');const result=await h.api.publish();
+  assert.equal(result.status,'live');assert.equal(hookCalls,1);assert.equal(h.uploaded,1);assert.equal(h.published,1);
+});
+test('cancelled browser tooling review prevents publishing review and upload',async t=>{
+  const h=fixture(t,{beforeBuildReview:async()=>{throw Error('Browser tooling update cancelled');}});
+  await assert.rejects(h.api.publish(),/update cancelled/);assert.equal(h.reviewed,0);assert.equal(h.uploaded,0);assert.equal(h.published,0);assert.equal(h.busy,false);
+});
+test('simulation skips browser tooling review',async t=>{
+  let hookCalls=0;const h=fixture(t,{beforeBuildReview:async()=>{hookCalls++;}});h.simulation=true;
+  assert.equal((await h.api.publish()).status,'simulated');assert.equal(hookCalls,0);assert.equal(h.reviewed,0);assert.equal(h.uploaded,0);
 });
 test('publish completion reports in sidebar and its verified copy command remains available',async t=>{
   const h=fixture(t);h.choices.push('Publish app');const result=await h.api.publish();assert.equal(result.status,'live');assert.equal(h.reviewed,1);assert.equal(h.published,1);assert.equal(h.uploaded,0);assert.equal(h.checks,1);assert.deepEqual(h.copied,[]);assert.deepEqual(h.opened,[]);assert.equal(h.busy,false);
@@ -443,6 +456,11 @@ test('unchanged fast reuse opens without another review, upload or deployment',a
   const h=fixture(t);h.choices.push('Publish app');await h.api.publish();let fast=0;
   h.publisher.verifyUnchanged=async(root,saved,options)=>{fast++;assert.equal(root,'/student');await options.beforeFinalCheck();const live={status:'live',url:saved.url,sha:saved.sha,resume:saved.resume};options.onCurrent(live);return live;};
   const result=await h.api.publishAndOpen();assert.equal(result.alreadyCurrent,true);assert.equal(fast,1);assert.equal(h.reviewed,1);assert.equal(h.published,1);assert.equal(h.uploaded,0);assert.equal(h.opened.length,1);assert.equal(h.busy,false);assert.equal(h.progress.at(-1),undefined);
+});
+test('unchanged fast reuse skips browser tooling review',async t=>{
+  let hookCalls=0;const h=fixture(t,{beforeBuildReview:async()=>{hookCalls++;}});h.choices.push('Publish app');await h.api.publish();
+  h.publisher.verifyUnchanged=async(_root,saved,options)=>{await options.beforeFinalCheck();const live={status:'live',url:saved.url,sha:saved.sha,resume:saved.resume};options.onCurrent(live);return live;};
+  const result=await h.api.publishAndOpen();assert.equal(result.alreadyCurrent,true);assert.equal(hookCalls,1);assert.equal(h.reviewed,1);assert.equal(h.uploaded,0);
 });
 test('changed project leaves fast reuse and completes the guarded publish/open flow',async t=>{
   const h=fixture(t);h.choices.push('Publish app');await h.api.publish();h.sha='b'.repeat(40);

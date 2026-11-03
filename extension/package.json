@@ -225,6 +225,10 @@
         "title": "Zero: Recover Library Change"
       },
       {
+        "command": "zero.upgradeBrowserTooling",
+        "title": "Zero: Upgrade Browser Tooling"
+      },
+      {
         "command": "zero.editSharingDetails",
         "title": "Zero: Edit Sharing Details"
       },

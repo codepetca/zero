@@ -97,6 +97,7 @@ test('local practice blocks Git service entry points before Git or network calls
 test('local practice sharing commands stop before authentication, saves, Git or external pages; native diagnostic run remains local', async t => {
   const Module=require('node:module');
   const root=await temporary(t);await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({localOnly:true,practiceProjectId:'greeting',lessonId:'0'}));await fs.writeFile(path.join(root,'mvnw'),'');
+  await fs.writeFile(path.join(root,'pom.xml'),'<project></project>');
   const commands=new Map(),errors=[];let authCalls=0,saves=0,external=0,launches=0;const repositoryPicks=[];
   const disposable=()=>({dispose(){}});
   const appProvider={dispose(){},async removeSession(){assert.fail('Local practice must not remove a GitHub session');}};

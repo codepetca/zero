@@ -1,5 +1,17 @@
 # Framework architecture: learn, extend and contribute
 
+Owner clarification, 2026-11-03: Zero has not rolled out to students and can
+change rapidly. Zero supports one current browser builder, with no commitment
+to maintain old versions or preserve compatibility with existing projects.
+Warn that updates may permanently break projects and recommend committing and
+pushing or keeping an independent backup before updating; preserved files do
+not guarantee that an older project can be built again.
+Opening a project remains read-only, but an explicit browser build or source
+check requires the saved builder to be updated first. The update keeps a local
+backup; viewing a retained site does not require an update. This supersedes
+earlier statements below that browser tooling upgrades are optional. Framework
+source and native project files are not automatically upgraded by this policy.
+
 Owner direction,2026-10-23. This is the canonical runtime/extension plan, alongside
 [repository boundaries](ARCHITECTURE.md), [product goals](PRODUCT.md) and
 [ZeroHub sharing](COMPONENTS.md). It incorporates the first Astra architecture
@@ -326,29 +338,25 @@ Develop Zero quickly while retaining student ownership and a simple build path.
    identities and library pins; students need not maintain these by hand. Build
    tooling is supplied infrastructure, not another language students must learn.
    Keep actual build source/config tracked; generated outputs/caches stay ignored.
-2. **Separate editor updates from project upgrades.** Opening/editing a project
-   or updating Zero must not replace its framework, build files, pins or browser
-   rules. The editor is a launcher for the project's recorded build path where
-   supported; it does not resolve an old kit from a new central service. If the
-   path/tools cannot run, report a tooling limitation and show project-owned
-   instructions or an optional upgrade of a copy. Do not call old source broken
-   merely because it differs from the installed exporter. Do not promise that
-   the latest editor can execute every historical builder.
+2. **Update browser tooling on an explicit build.** Opening or editing a project
+   does not replace its files. A browser build or check requires the builder
+   bundled with the installed Zero version. Explain the potential for permanent
+   breakage and encourage students to commit and push or make their own backup
+   first. Preserve a local copy of replaced tooling as a convenience, without
+   promising it will restore compatibility. No central historical-kit service
+   or support for old builders is required.
 3. **Maintain one current line.** No historical maintenance branches, backport
    promise, per-student builders, all-version CI or old-API shims. Preserve normal
    published version identities/artifacts without creating a new kit-hosting
    obligation. Ordinary versioned dependency repositories and existing ZeroHub
    sharing remain available options; neither is a new historical-kit database.
    A teacher can select one tested classroom release while Dev work continues.
-4. **Version and upgrade deliberately.** Pin an exact framework release and exact
-   build/dependency inputs, never a major-only range, `latest` or mutable snapshot.
-   After 1.0, minor/patch releases preserve supported signatures and documented
-   behavior; breaking API changes require a major release. Explained bug fixes
-   may correct incorrect behavior. During 0.x, minors may break compatibility and
-   patches preserve it. Follow [Semantic Versioning](https://semver.org/).
-   Even compatible upgrades are explicit: preview changes on a branch, preserve
-   edits, run native/WebFX build and smoke checks, review behavior and retain the
-   old commit/output for rollback. Existing Commit & push/Merge permissions apply.
+4. **Record versions without promising compatibility.** Pin exact framework and
+   dependency inputs instead of mutable `latest` or snapshots. Before rollout,
+   Zero can change rapidly and updates may break existing projects regardless
+   of version number. A future stability policy can be decided before release.
+   Encourage a commit and independent backup before updating, then test native
+   and browser behavior. Existing Commit & push/Merge permissions apply.
    Core adoption never rewrites accepted ZeroHub releases, credit or installed pins.
 5. **Save the playable result.** Reuse the existing validated web-export ZIP/hash
    manifest. Offer a retained copy with the actual exported source snapshot/digest,
@@ -390,16 +398,12 @@ review and clone/build/rehost/upgrade/rollback acceptance pass locally.
 source and platform harness checks pass; real installation acceptance remains
 separate. No complete offline or indefinite rebuild guarantee is claimed.
 
-Acceptance stays bounded: current examples and a small fixed set of representative
-same-major projects, not every historical release. Clone one older project with
-its committed build files outside the development repository and rebuild with no
-central Zero kit service. Record cache reuse honestly: the accepted local proof
-uses verified normal dependency caches, not a cold installation or full offline
-archive. Check missing-cache/tool availability separately; cold setup remains a
-platform acceptance gate.
-Verify that a newer editor leaves inputs unchanged, explains unsupported tooling,
-and makes an optional upgrade reversible. Rehost the saved web ZIP with Zero
-services unavailable. If an optional full offline bundle is offered, separately
+Acceptance stays bounded: current examples and a small representative set of
+projects, without promising older versions remain compatible. Check that opening
+a project is read-only, and that an explicit browser build requires the current
+builder and warns about permanent breakage before updating. Record cache reuse
+honestly; cold setup remains a separate platform acceptance gate. Rehost a saved
+web ZIP with Zero services unavailable. If an optional full offline bundle is offered, separately
 restore it with upstream downloads disabled and verify its retained bytes and
 provenance. Missing dependencies must be reported honestly. No database, central
 kit mirror or all-old-version support is an acceptance prerequisite.
@@ -443,7 +447,7 @@ unchanged checks. Future phases start only when their dependencies are ready.
 | 0. Working baseline | Recover accepted App/GameApp/Actor/UI prototypes, source/export ownership and verification. Keep Main's explicit update/draw; one gameplay loop and no GameScreen. | Accepted locally: counter, structured/beginner Coin Quest and stress proof; prior native/browser receipts retained. |
 | 1. Make the student path Zero-first | Move maintained Greeting, Study and Coin teaching projects to Zero packages for normal UI/input/drawing/assets. Keep classes and callbacks ordinary Java. Add only controls needed by those lessons. Add a small simulation with live controls; preserve beginner Main/HUD and optional extraction. | Accepted locally through549db09f (slices1A–1F): teaching path0–12 and live-control simulation, native/WebFX/browser checks and independent reviews. Core16helpers/176declarations. Public templates/kits remain separately pinned. |
 | 2. Prove student extension and sharing | Demonstrate an ordinary steering helper, interchangeable UI component, default/alternative animation and container through public consumers without core edits. Share immutable data but independent mutable clocks, with one explicit update owner. Prove the same component through managed local and exact-version library consumption in App and GameApp, natively and in the browser. | 2A accepted locally at29118a74: typed text/bar replacement in App/GameApp, native/browser checks and independent review. 2B accepted locally at98b3a831: independent JAR and four native/WebFX consumers,38browser assertions. 2C accepted locally atdf47d667: replaceable animation/steering,18helpers183declarations, native/managed-JAR and browser behavior. 2D accepted locally: optional ordered/snapshot actor containers, native and13browser assertions; Phase2 complete. Add World/Screen/camera only for demonstrated examples, not as a prerequisite. Hosted acceptance remains gated. |
-| 3. Make projects self-contained and upgrades optional | Record exact framework/library/toolchain inputs and retain the complete reviewed browser-builder dependency closure with the project. Opening in a newer editor changes none of them. Explicit trusted build actions use project-owned tooling; missing tools get useful unavailable status. Upgrade a copy/branch deliberately and reversibly. Clone/build/rehost a representative older project and saved static export with no central Zero kit service. | 3A/3B accepted locally through05390785: standalone saved-builder closure and trusted editor selection; automatic Publish migration removed. Actual outside-repository export and13browser assertions pass. 3C accepted locally: old A clone/rebuild is byte-identical; finished-only play, explicit B upgrade and exact rollback pass. Full Phase3 preservation is accepted locally. Hashes never authorize execution by themselves. No required historical-kit database, all-version CI or old-maintenance branches. Full offline backup remains optional. |
+| 3. Keep project files and one current browser builder | Record exact project inputs. Opening a project is read-only; an explicit browser build requires current tooling and warns that updates may permanently break projects. Retain a local file copy as a recovery aid, not a compatibility guarantee. | Historical clone/build/rehost evidence remains useful but does not promise future compatibility. Current-builder update and real local export have been exercised; external publication and physical-platform checks remain separate. No historical-kit database, all-version CI or old-maintenance branches. |
 | 4. Catch failures during development | Complete exact-signature executed-evidence coverage; debounced saved-source browser compatibility, truthful native/managed-preview lifecycle and source-linked errors. Inject unsupported API, compiler, asset, startup, frame/UI/promise and stale-message failures; preserve the last good export. Native Run stays fast and usable offline. | Accepted locally through eef9960c: all183 declarations have current native/browser executed evidence,366/366 targets with zero gaps. Fresh current-profile seven native suites, four pinned GWT exports and four CUA API families pass, including57actual pixel samples. Earlier103ordinary+57helpers-mobile behavior/fault assertions remain retained for unchanged runtime code; that full harness was not repeated for the new builder profile. Private browser hooks now catch scheduled WebFX callbacks and preserve startup errors before shared-stage cleanup. Runtime status and compiler-failure preservation gates pass within the documented local scope. The actual Mac editor walkthrough closes saved-source acceptance through eef9960c: bounded external runtime hardlinks and exact-core declaration handling now work without weakening student/library namespace protections. Real compatible→dirty-stale→unsupported/source-linked Problems→corrected compatible passes, with native Run still usable.151 focused integration tests and independent targeted review pass; fresh current-profile native/browser API proof is retained in the final scanner evidence directories. Meaningful evidence exists from slice 1A onward. PostHog is an optional sanitized sink evaluated after local gates; Clarity is a possible website usability supplement. Neither is injected or activated by this plan. |
 | 5. Finish the student/contributor journey | Exercise create → code → native play → fix error → Git progress → browser export/preview and exact library reuse; keep public templates, kit, lessons, API and help coherent. Prepare a release candidate with scoped browser/platform limits and a core-adoption example retaining attribution. | Private Node setup source is implemented and platform-harness checked. A local VSIX/kit candidate passes source/archive/license checks and extracted Maven compilation;43 local Git/mocked-editor workflow contracts pass. A credited core-proposal example is prepared. Actual local editor class/asset/edit/error/native readiness/browser play/component replacement/local Git/ZIP journey is now observed, including a6/6 win. Authorized local scope is complete through eef9960c: the saved-checker cycle, actual CheckLibrary independent JAR/behavior/two examples, full WebFX export with the extracted ScoreView library, retained bar HUD/pause and final playable ZIP all pass. The upgraded copy has clean local source history; original project/output are preserved. Native physical input, installation and authenticated/hosted journey remain separate unproven gates. Public template updates, authenticated Pages publication, hosted checker activation, signed releases and a teacher/novice pilot require their separately authorized real acceptance; local mocks cannot satisfy them. |
 
@@ -530,14 +534,12 @@ from its standalone core module; no Maven install or unavailable core download.
 Hosted schema2 admission remains explicitly unavailable until separately reviewed.
 During this unreleased prototype series,0.3.0 names the draft core; exact source/
 recipe hashes distinguish revisions. Finalizing Actor update/animation ownership
-can change this draft before publication. Once published, the stated0.x minor/
-patch policy applies; do not silently rewrite a student project to follow drafts.
+can change this draft before publication. Pre-release updates do not promise
+compatibility; do not silently rewrite a student project to follow drafts.
 
-Phase 3 maintains only the current release line. Before 1.0, minor releases may
-break APIs while patches preserve them; after 1.0, same-major documented APIs
-remain compatible. Existing projects retain exact source/pins and published
-static output. Future rebuilding depends on usable tools and normal dependency
-hosts unless a student deliberately saves an optional full offline bundle.
+Phase 3 maintains only the current release line. Before rollout, updates may
+break projects regardless of version number. Existing projects retain their
+source and published static output, but future rebuilding is not guaranteed.
 
 The later [basic-game completeness pass](BASIC-GAMES.md) exercises the actual
 Zero-only game path with three worked games. It extends input by demonstrated
@@ -598,21 +600,19 @@ preservation.
 Deliver three bounded slices in order:
 
 1. **3A — saved builder:** closed standalone producer/CLI, complete inventory and
-   runtime pins, no automatic helper upgrade, and a build outside this repository
+   runtime pins, no automatic helper upgrade on open, and a build outside this repository
    with no parent source or `node_modules` dependency.
-2. **3B — editor selection:** shared trusted-action adapter/protocol, immutable
-   open behavior, useful missing/changed-tooling errors, cancellation, source and
-   commit binding, with no fallback to installed exporter code.
-3. **3C — preservation proof:** freeze project/builder A, advance the maintained
-   template to B, clone and rebuild A using available runtimes and verified normal
-   dependencies with no ZeroHub service. Rehost retained output without build
-   services. Deliberately upgrade a copy/branch to B, verify it, and demonstrate
-   recovery of the original. Do not promise permanent upstream availability.
+2. **3B — editor selection:** trusted-action adapter/protocol, read-only open,
+   required current-builder update at build time, clear breakage warning,
+   cancellation, source and commit binding.
+3. **3C — preservation proof:** verify the update retains an old file copy and
+   never overwrites unrelated project files. Rehost retained output without build
+   services. Do not promise an old project can be rebuilt or restored to working order.
 
-Only the current producer is maintained. Historical student repositories retain
-their own builder; no central kit store, database, old maintenance branches or
-automatic migrations are introduced. Optional full offline bundles remain a
-later student-owned backup choice.
+Only the current producer is maintained. Opening a project never upgrades it;
+browser build and check actions require the current builder. No central kit
+store, database or old maintenance branches are introduced. Optional full
+offline bundles remain a later student-owned backup choice.
 
 ### Phase 4 implementation contract
 

@@ -1,5 +1,61 @@
 # Verification
 
+## Project-owned library Add prototype — 2026-11-03
+
+Subsequent owner direction selects one supported browser builder. Explicit
+browser builds and checks now require the current tooling; opening a project
+or viewing a retained site does not update it. On macOS, the host rejected a
+historical builder before spawning it; after an explicit update it preserved
+the original hash in a backup and completed a real WebFX export with Node 22
+and JDK 21. Mocked-editor tests exercise acceptance, cancellation, retry, trust
+and workspace changes. A physical editor confirmation and other operating
+systems remain untested. This does not change published tutorial evidence.
+The later pre-release clarification removes historical compatibility promises.
+The update prompt and local beta notice warn that updates may permanently break
+projects and recommend a commit/push or independent backup first. Successful
+updates remove unchanged temporary staging files; failures and unexpected files
+are retained rather than recursively deleted. These changes are not published.
+
+The local prototype retains exact library, source, POM and license bytes in the
+student project, including scoped Git attributes to preserve them on checkout.
+An actual macOS VS Code extension host exercised Add, save, Undo, Redo and a
+second Add from retained files using fixture catalog responses and prompts. The
+first Add fetched each of three artifacts once; the second fetched none.
+
+Separate real fresh-clone proofs used `core.autocrlf=true` and an unavailable
+library host. Native Maven compiled the saved JAR and executed a probe returning
+42; a WebFX build compiled the saved source JAR and a nested-path browser page
+displayed its distinct value 37. Maven Central and normal WebFX dependencies
+remained available; this is not a completely offline build. A Git fixture also
+preserved an embedded CRLF license byte for byte. Focused tests cover interrupted
+bundle installation, conflict preservation, tampering and the explicit saved
+builder upgrade and backup. An older saved builder was explicitly upgraded in a
+copy, its original profile checked in the backup, and the updated copy built and
+validated with WebFX; that check called the upgrade backend, not its editor UI.
+Game sharing with owned libraries remains blocked
+until its archive can carry them safely.
+
+These are local prototype checks. They do not establish a physical Windows or
+Linux run, a native JavaFX window, a live ZeroHub account/service journey,
+Firefox/Safari behavior, update/revert builds, or complete offline rebuilding.
+The broader acceptance gates in [ZEROHUB-PLAN.md](ZEROHUB-PLAN.md) remain open.
+The full local suite also exposed the published-tutorial scaffold gate: the
+changed saved builder changes scaffold fingerprints, while the published
+templates and their verified evidence still describe the old builders. Do not
+replace that evidence without actually updating and verifying those templates.
+
+Local PR preparation: all four draft tutorial scaffolds passed exact inventory,
+byte and executable-mode checks. Relative to the recorded published commits,
+each adds the saved owned-library module and changes five browser-builder files;
+no lesson source or executable mode changed. A focused integration run passed
+194 tests. A separate 45-test editor run passed after fixing an independent
+review finding: trust is rechecked after project lookup and before bundle writes.
+The lesson-project suite passed 20 of 22 tests; the remaining two assert current
+published-template evidence and remain blocked on actual publication/verification.
+Raw Maven commands outside Zero do not seed the owned native library cache;
+the verified native path uses Zero's Run integration. Actual Windows execution,
+physical editor interaction and live service flows remain unverified.
+
 ## Library ownership planning and local proofs — 2026-11-02
 
 At base `f76d931e`, the owner selected source in the existing student project,

@@ -79,10 +79,16 @@ function checkPom(bytes,release) {
 }
 async function verifyLibrary(context,release,options={}) {
  if(release.kind!=='library')fail('Games open as separate projects.');
+ release=selected(context,release);
  const deadline=AbortSignal.timeout(options.timeoutMs||30000),signal=options.signal?AbortSignal.any([deadline,options.signal]):deadline;
  const verified={};
  for(const kind of ['jar','sources','pom']) {
-  const bytes=await downloadArtifact(context,release,kind,{signal,timeoutMs:options.timeoutMs||30000});
+  let bytes;
+  if(options.verifiedArtifacts) {
+   const saved=options.verifiedArtifacts[kind],artifact=release.artifacts[kind];
+   if(!Buffer.isBuffer(saved)||saved.length!==artifact.size||hash(saved)!==artifact.sha256)fail('The saved artifact differs from the catalog size or hash. Your project has not changed.');
+   bytes=Buffer.from(saved);
+  } else bytes=await downloadArtifact(context,release,kind,{signal,timeoutMs:options.timeoutMs||30000});
   if(kind==='pom')checkPom(bytes,release);else if(bytes.length<4||bytes.readUInt32LE(0)!==0x04034b50)fail('A library artifact is not an ordinary JAR.');
   verified[kind]=bytes;
  }
@@ -127,7 +133,7 @@ function inspectManagedLibraryPins(text,{artifactOrigin}={}) {
    if(node!==repos)fail('The managed artifact repository marker is misplaced.');
    repositoryMarked=true;continue;
   }
-  const label=/^(lib-r([1-9][0-9]{0,19})-([a-z][a-z0-9]*(?:-[a-z0-9]+)*)) (dependency|history)$/.exec(marker[1]);
+  const label=/^(lib-r([1-9][0-9]{0,19})-([a-z][a-z0-9]*(?:-[a-z0-9]+)*)) (dependency|history|owned)$/.exec(marker[1]);
   if(!label||node!==(label[4]==='dependency'?deps:properties))fail('A managed library marker is invalid or misplaced.');
   ids.add(label[1]);
  }
@@ -141,11 +147,23 @@ function inspectManagedLibraryPins(text,{artifactOrigin}={}) {
   try{repositoryOrigin=origin(new URL(url).origin);}catch{fail('The managed artifact repository URL is invalid.');}
   if(url!==repositoryOrigin+'/maven'||artifactOrigin&&repositoryOrigin!==origin(artifactOrigin))fail('The managed artifact repository changed.');
  }
+ // Owned properties are activation markers, not evidence that artifact files exist.
+ // Reject orphaned, misplaced, or manually edited markers, including outside project.
+ const ownedProperties=allNodes(project).filter(n=>/^zero\.sharing\..*\.owned$/.test(n.name));
+ const ownedComments=[...text.matchAll(/<!--([\s\S]*?)-->/g)].filter(m=>/zero-sharing.*\bowned\b/.test(m[1]));
+ const seenOwnedComments=allNodes(project).flatMap(n=>n.comments).filter(m=>/zero-sharing.*\bowned\b/.test(m.text));
+ if(ownedComments.length!==seenOwnedComments.length||seenOwnedComments.some(m=>!/^ zero-sharing lib-r[1-9][0-9]{0,19}-[a-z][a-z0-9]*(?:-[a-z0-9]+)* owned (?:start|end) $/.test(m.text)))fail('A managed library ownership marker is invalid or misplaced.');
+ for(const node of ownedProperties) {
+  const id=/^zero\.sharing\.(lib-r[1-9][0-9]{0,19}-[a-z][a-z0-9]*(?:-[a-z0-9]+)*)\.owned$/.exec(node.name)?.[1];
+  if(!id||node.parent!==properties||!ids.has(id))fail('A managed library ownership marker is invalid or misplaced.');
+ }
  const pins=[];
  for(const id of [...ids].sort()) {
   const parts=/^lib-r([1-9][0-9]{0,19})-([a-z][a-z0-9]*(?:-[a-z0-9]+)*)$/.exec(id),identity=c.identity('library',parts[1],parts[2]);
   if(identity.id!==id)fail('The managed library identity changed.');
-  const owned=deps&&managed(deps,text,`${id} dependency`),history=properties&&managed(properties,text,`${id} history`);
+  const owned=deps&&managed(deps,text,`${id} dependency`),history=properties&&managed(properties,text,`${id} history`),ownership=properties&&managed(properties,text,`${id} owned`);
+  const ownershipNodes=ownedProperties.filter(n=>n.name===`zero.sharing.${id}.owned`);
+  if(ownershipNodes.length!== (ownership?1:0)||ownership&&(ownership.node!==ownershipNodes[0]||text.slice(ownership.node.start,ownership.node.end)!==`<zero.sharing.${id}.owned>true</zero.sharing.${id}.owned>`))fail('The managed library ownership marker changed.');
   if(!owned||!history||owned.node.name!=='dependency'||owned.node.children.length!==3||history.node.name!==`zero.sharing.${id}.previous`)fail('The managed dependency or version history changed.');
   const group=value(single(owned.node,'groupId')),artifact=value(single(owned.node,'artifactId')),version=c.validateVersion(value(single(owned.node,'version')));
   const previous=value(history.node);
@@ -154,7 +172,7 @@ function inspectManagedLibraryPins(text,{artifactOrigin}={}) {
   const matches=allNodes(project).filter(n=>n.name==='dependency'&&value(single(n,'groupId'))===group&&value(single(n,'artifactId'))===artifact);
   const histories=allNodes(project).filter(n=>n.name===`zero.sharing.${id}.previous`);
   if(matches.length!==1||matches[0]!==owned.node||histories.length!==1||histories[0]!==history.node)fail('The managed dependency or version history changed.');
-  pins.push({identity,slug:identity.slug,mode:'published',version,source:'consumer',repositoryOrigin});
+  pins.push({identity,slug:identity.slug,mode:'published',version,source:'consumer',repositoryOrigin,...(ownership?{storage:'owned'}:{})});
  }
  return pins;
 }
@@ -179,7 +197,8 @@ async function assertNoShadow(root,release) {
   if(decl.packageName===release.namespace||decl.packageName.startsWith(release.namespace+'.'))fail(`Source shadows the published library: ${filename}. Keep your edits and choose the library's explicit local/published mode or move the copy.`);
  }
 }
-async function planChange(root,context,release,{operation='add',signal}={}) {
+async function planChange(root,context,release,{operation='add',owned:wantOwned=false,signal,verifiedArtifacts}={}) {
+ if(typeof wantOwned!=='boolean')fail('Choose an explicit library storage mode.');
  release=selected(context,release);if(release.kind!=='library'||!['add','update','revert'].includes(operation))fail('Choose Add, Update or Revert for a library.');
  root=path.resolve(root);await authoring.read(root,'zero.json');const beforeText=await authoring.read(root,'pom.xml');
  const coreInputs=release.schema===2?await coreSnapshot(root,release.coreRequirement):null;
@@ -187,6 +206,9 @@ async function planChange(root,context,release,{operation='add',signal}={}) {
  const doc=parseXml(beforeText),properties=single(doc,'properties'),deps=single(doc,'dependencies'),repos=single(doc,'repositories',true);
  if(value(single(properties,'maven.compiler.release'))!==c.JAVA_RELEASE||value(single(properties,'javafx.version'))!==c.JAVAFX_VERSION||properties.selfClosing||deps.selfClosing||repos?.selfClosing)fail('Use the ordinary Zero Java/JavaFX project POM.');
  if(allNodes(doc).some(n=>['parent','profiles','dependencyManagement','pluginManagement','sourceDirectory','testSourceDirectory'].includes(n.name)||(['release','source','target','compilerArgs','compilerArguments','jdkToolchain'].includes(n.name)&&n.parent.name==='configuration')))fail('Custom Maven projects need manual library integration.');
+ const hasOwnershipMarker=/zero-sharing[^<]*\bowned\b|<\/?zero\.sharing\.[^< >]*\.owned(?:\s|\/?>)/.test(beforeText);
+ const pins=hasOwnershipMarker?inspectManagedLibraryPins(beforeText,{artifactOrigin:context.artifactOrigin}):[];
+ const activeOwned=pins.some(pin=>pin.identity.id===release.id&&pin.storage==='owned');
  const id=release.id,owned=managed(deps,beforeText,`${id} dependency`),history=managed(properties,beforeText,`${id} history`),repo=repos&&managed(repos,beforeText,'repository');
  const matches=allNodes(doc).filter(n=>n.name==='dependency'&&value(single(n,'groupId'))===release.coordinate.groupId&&value(single(n,'artifactId'))===release.coordinate.artifactId);
  const histories=allNodes(doc).filter(n=>n.name===`zero.sharing.${id}.previous`),repositoryNodes=allNodes(doc).filter(n=>n.name==='repository'&&value(single(n,'id'))==='zero-sharing');
@@ -197,27 +219,29 @@ async function planChange(root,context,release,{operation='add',signal}={}) {
  } else if(matches.length||history||histories.length)fail('An existing manual/authored dependency needs its local/published mode or manual Maven changes.');
  if(repo&&(repositoryNodes.length!==1||repositoryNodes[0]!==repo.node||repo.node.children.length!==4||value(single(repo.node,'url'))!==context.artifactOrigin+'/maven'||value(single(single(repo.node,'releases'),'enabled'))!=='true'||value(single(single(repo.node,'snapshots'),'enabled'))!=='false'))fail('The managed artifact repository changed.');
  if(!repo&&repositoryNodes.length)fail('A manual artifact repository needs manual Maven changes.');
+ if(current&&activeOwned!==wantOwned)fail('Choose the existing library storage mode explicitly; manual migration is required.');
  if(operation==='add'&&current)fail('This library is installed. Choose Update or Revert.');
  if(operation!=='add'&&!current)fail('Add the library first.');
  if(operation==='revert'&&(!previous||release.version!==previous))fail('Choose the recorded preceding exact version to Revert.');
  if(current===release.version)fail('This exact version is already installed.');
  if(operation==='update') {const a=release.version.split('.').map(Number),b=current.split('.').map(Number);if(a[0]!==b[0]||a[1]!==b[1]||a[2]<=b[2])fail('Update supports a newer compatible patch. Choose another exact version manually for a larger API change.');}
- await verifyLibrary(context,release,{signal});
+ const verified=await verifyLibrary(context,release,{signal,verifiedArtifacts});
  if(coreInputs&&JSON.stringify(await coreSnapshot(root,release.coreRequirement))!==JSON.stringify(coreInputs))fail('Project Zero core changed during review. Choose the library again; no dependency edit applied.');
  const wrap=(label,body)=>`<!-- zero-sharing ${label} start -->\n${body}\n    <!-- zero-sharing ${label} end -->`,edits=[];
  function edit(parent,old,content){edits.push(old?{start:old.start,end:old.end,text:content}:{start:parent.close,end:parent.close,text:`\n    ${content}\n  `});}
  edit(deps,owned,wrap(`${id} dependency`,`    <dependency><groupId>${release.coordinate.groupId}</groupId><artifactId>${release.coordinate.artifactId}</artifactId><version>${release.version}</version></dependency>`));
  edit(properties,history,wrap(`${id} history`,`    <zero.sharing.${id}.previous>${current||'none'}</zero.sharing.${id}.previous>`));
+ if(wantOwned&&!activeOwned)edit(properties,null,wrap(`${id} owned`,`    <zero.sharing.${id}.owned>true</zero.sharing.${id}.owned>`));
  if(!repo){const content=wrap('repository',`    <repository><id>zero-sharing</id><url>${xml(context.artifactOrigin+'/maven')}</url><releases><enabled>true</enabled></releases><snapshots><enabled>false</enabled></snapshots></repository>`);if(repos)edit(repos,null,content);else edits.push({start:doc.close,end:doc.close,text:`\n  <repositories>\n    ${content}\n  </repositories>\n`});}
  let afterText=beforeText;for(const e of edits.sort((a,b)=>b.start-a.start))afterText=afterText.slice(0,e.start)+e.text+afterText.slice(e.end);parseXml(afterText);
- return {schema:1,root,beforeText,afterText,beforeHash:hash(beforeText),current,previous,release,operation,fingerprint:context.fingerprint,...(coreInputs?{coreInputs}:{})};
+ return {schema:1,root,beforeText,afterText,beforeHash:hash(beforeText),current,previous,release,operation,fingerprint:context.fingerprint,...(wantOwned?{owned:true,verifiedArtifacts:verified}:{}),...(coreInputs?{coreInputs}:{})};
 }
 async function validatePlan(plan,context,options={}) {
  const fresh=await loadCatalog({catalogUrl:context.catalogUrl,artifactOrigin:context.artifactOrigin},{fetcher:context.fetcher,...options});
  if(fresh.fingerprint!==plan.fingerprint)fail('The catalog changed during review. Choose the release again.');
  const release=fresh.catalog.releases.find(r=>r.id===plan.release.id&&r.version===plan.release.version);
  if(!release)fail('The selected exact release is no longer available.');
- const again=await planChange(plan.root,fresh,release,{operation:plan.operation,...options});
+ const again=await planChange(plan.root,fresh,release,{...options,operation:plan.operation,owned:plan.owned===true,verifiedArtifacts:plan.owned?plan.verifiedArtifacts:undefined});
  if(again.beforeText!==plan.beforeText||again.afterText!==plan.afterText)fail('The POM changed during review. No dependency edit applied.');
  if(JSON.stringify(again.coreInputs)!==JSON.stringify(plan.coreInputs))fail('Project Zero core changed after review. Choose the library again; no dependency edit applied.');
 }
