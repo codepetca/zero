@@ -11,6 +11,14 @@ const disposable=()=>({dispose(){}});
 async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutorial=false,selected=true,publishing=false,dirty=false,branch='main',lateTransport=false,capabilities={contents:'write',workflows:'write'}}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-native-upload-auth-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify(practice?{localOnly:true}:{}));
+  if(publishing || practice) {
+    const {loadBundle}=require('../src/lesson-projects');
+    // Exercise the real pre-publication builder review with an already-current project.
+    for(const file of (await loadBundle(path.resolve(__dirname,'..')))[0].files.filter(file=>file.path.startsWith('.zero-build/'))) {
+      const destination=path.join(root,...file.path.split('/'));
+      await fs.mkdir(path.dirname(destination),{recursive:true});await fs.writeFile(destination,file.content);
+    }
+  }
   if(tutorial || publishing){
     if(tutorial)await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'study',lessonId:'3',repositoryRequired:true}));
     const {execFileSync}=require('node:child_process'),git=args=>execFileSync('git',args,{cwd:root,stdio:'pipe'});
@@ -48,7 +56,7 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
     assert.deepEqual(scopes,[],'GitHub App sessions never request repo/workflow OAuth scopes');
     return {id:'zero-app-session-'+accountId,account:{id:accountId,label:accountId==='1'?'student':'other'},accessToken:'APP_TEST_ONLY',scopes:[]};
   },onDidChangeSessions:listener=>{listeners.add(listener);return {dispose(){disposed++;listeners.delete(listener);}};}},
-  workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saves++;await afterSave();return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
+  workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],isTrusted:true,textDocuments:[],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saves++;await afterSave();return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
   window:{createOutputChannel:()=>({appendLine:text=>results.push(text),dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:async(items,options)=>{picks.push({items,options});},showWarningMessage:async text=>notices.push(text),showInformationMessage:async(text,options)=>{notices.push(text);assert.ok(!options?.modal,'Routine push needs no confirmation');},showInputBox:async()=>{inputs++;await afterInput();return cancelMessage?undefined:'Retry my uploaded source';},showErrorMessage:async text=>errors.push(text)},
   tasks:{onDidStartTask:disposable,onDidEndTask:disposable,onDidEndTaskProcess:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}};
   let publishReviews=0,deploys=0,publishApi;

@@ -9,7 +9,8 @@ historical builder before spawning it; after an explicit update it preserved
 the original hash in a backup and completed a real WebFX export with Node 22
 and JDK 21. Mocked-editor tests exercise acceptance, cancellation, retry, trust
 and workspace changes. A physical editor confirmation and other operating
-systems remain untested. This does not change published tutorial evidence.
+systems remain untested. Published tutorial evidence was updated separately as
+recorded below.
 The later pre-release clarification removes historical compatibility promises.
 The update prompt and local beta notice warn that updates may permanently break
 projects and recommend a commit/push or independent backup first. Successful
@@ -39,10 +40,9 @@ These are local prototype checks. They do not establish a physical Windows or
 Linux run, a native JavaFX window, a live ZeroHub account/service journey,
 Firefox/Safari behavior, update/revert builds, or complete offline rebuilding.
 The broader acceptance gates in [ZEROHUB-PLAN.md](ZEROHUB-PLAN.md) remain open.
-The full local suite also exposed the published-tutorial scaffold gate: the
-changed saved builder changes scaffold fingerprints, while the published
-templates and their verified evidence still describe the old builders. Do not
-replace that evidence without actually updating and verifying those templates.
+The initial full local suite exposed the published-tutorial scaffold gate: the
+changed saved builder changed scaffold fingerprints before the public templates
+were updated. That gate remained in place until the publication checks below.
 
 Local PR preparation: all four draft tutorial scaffolds passed exact inventory,
 byte and executable-mode checks. Relative to the recorded published commits,
@@ -50,11 +50,26 @@ each adds the saved owned-library module and changes five browser-builder files;
 no lesson source or executable mode changed. A focused integration run passed
 194 tests. A separate 45-test editor run passed after fixing an independent
 review finding: trust is rechecked after project lookup and before bundle writes.
-The lesson-project suite passed 20 of 22 tests; the remaining two assert current
-published-template evidence and remain blocked on actual publication/verification.
+The initial lesson-project run passed 20 of 22 tests; the remaining two required
+current published-template evidence.
 Raw Maven commands outside Zero do not seed the owned native library cache;
 the verified native path uses Zero's Run integration. Actual Windows execution,
 physical editor interaction and live service flows remain unverified.
+
+On 2026-11-03 the owner authorized publication of the four prepared tutorial
+drafts. Independently reviewed template PRs [greeting #5](https://github.com/codepetca/zero-tutorial-greeting/pull/5),
+[study #5](https://github.com/codepetca/zero-tutorial-study/pull/5),
+[game #5](https://github.com/codepetca/zero-tutorial-game/pull/5), and
+[pet #4](https://github.com/codepetca/zero-tutorial-pet/pull/4) were merged.
+Each resulting fixed commit was downloaded anonymously and checked against its
+exact generated scaffold, including bytes and executable modes. Repository IDs,
+public visibility, template status, main heads and Git trees were checked before
+updating `teaching/tutorial-templates.json`. The evidence identifies those fixed
+commits; it is not a guarantee that mutable remote main remains unchanged.
+An independent read-only review repeated the archive and GitHub metadata checks.
+The lesson-project and upload-auth suites passed 65 tests after recording the
+verified publications and updating the trusted-workspace test fixture.
+The subsequent full local `npm test` run passed 1,501 tests with four skipped.
 
 ## Library ownership planning and local proofs — 2026-11-02
 

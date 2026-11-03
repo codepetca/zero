@@ -311,12 +311,12 @@ Internal lesson/example sources remain available to teaching and verification.
 The example generator, preview capture and template publication metadata remain
 maintainer tools. Run `node scripts/prepare-project-templates.mjs` to prepare
 legacy local template drafts; use `npm run prepare:tutorial-templates` (or the
-same script's `--tutorials` option) for the three current minimal tutorial drafts.
+same script's `--tutorials` option) for the four current minimal tutorial drafts.
 Run `npm run check:tutorial-templates` to check recorded publication source
 evidence, or `node scripts/check-tutorial-templates.mjs game /pristine/template`
-to check a local draft's exact files/bytes/modes. All three templates were updated
+to check a local draft's exact files/bytes/modes. All four templates were updated
 through reviewed PRs and their anonymous public archives passed exact-source
-verification on2026-10-24; publication records include the verified commit/tree
+verification on2026-11-03; publication records include the verified commit/tree
 and scaffold digest. Future updates require the same separate authorization and
 verification before stamping evidence. This does not
 generate public website downloads or publish
