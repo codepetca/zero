@@ -1,5 +1,10 @@
 # Zero GitHub sharing adoption plan
 
+> The [ZeroHub plan](ZEROHUB-PLAN.md) retains library source in the student's
+> existing project repository and accepted artifacts in ZeroHub Blob, and proposes
+> project-owned copies for consumers. This document describes the existing
+> adoption contract until that consumer change is implemented. Game sharing is unchanged.
+
 Status: adoption design, 2026-10-12. Target: 30–150 students across a few classes.
 Owner direction: replace existing code wholesale where useful; no legacy code,
 catalog, namespace, route or client compatibility requirement.
