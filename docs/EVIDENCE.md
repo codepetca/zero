@@ -12215,3 +12215,12 @@ browser export. Installed-editor interaction, actual Sparkle delivery, fresh-Mac
 and physical Windows acceptance remain unverified. The signed feed and download
 promotion in this change require live verification after deployment; the separate
 published manual kit remains unchanged.
+
+## Project-update notice — local source
+
+The sidebar presents an available project update as a full-width action. Its
+confirmation names the installed Zero version and warns that the project may stop
+working. In a macOS extension host with a disposable older project, Not Now
+left files unchanged; Update Project completed and retained the prior builder
+files. Focused tests and independent review passed. Windows and released builds
+were not tested; no release was published.

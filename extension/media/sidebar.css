@@ -9,6 +9,7 @@ body { margin:0; padding:10px 12px; background:var(--zero-page); color:var(--zer
 .row .secondary { flex:1; }
 .muted,.badge { color:var(--zero-muted); }
 .status { margin:6px 0 0; overflow-wrap:anywhere; }
+.project-update button { margin-top:6px; }
 .status:empty,.feedback:has(.status:empty):has(#recovery[hidden]) { display:none; }
 .badge { margin:5px 0; font-size:.92em; }
 .repository { padding:7px 0 0; }

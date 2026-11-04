@@ -1056,9 +1056,10 @@ function activate(context, services = {}) {
     const plan=await upgrade.planUpdate({projectRoot:root,extensionPath:context.extensionPath||path.resolve(__dirname,'..')});
     await current();
     if(!plan.changed)return false;
-    const parts=[plan.coreChanged?'Java framework':null,plan.builderChanged?'browser tooling':null].filter(Boolean).join(' and ');
-    const detail=`This updates the ${parts} which may break your project.`;
-    if(await vscode.window.showWarningMessage(required?'Update Project to continue?':'Update this project?',{modal:true,detail},'Update')!=='Update') {
+    const version=require('../package.json').version;
+    const detail='This may cause your project to stop working.';
+    const updateChoice={title:'Update Project'};
+    if(await vscode.window.showWarningMessage(`Update this project for Zero ${version}?`,{modal:true,detail},updateChoice,{title:'Not Now',isCloseAffordance:true})!==updateChoice) {
       if(required)throw new Error('Browser action cancelled. Update Project to continue.');
       return false;
     }
@@ -1241,7 +1242,7 @@ function activate(context, services = {}) {
     const gitRecoveryActions=projectRoot&&!localPractice?gitRecoveryPanel.panel({recovery:updateRecovery,pending:pendingUpload,error:updateRecoveryError,disabled:isBusy()}):'';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
-    const projectUpdateNotice=typeof projectUpdateRoot!=='undefined'&&projectUpdateRoot===projectRoot&&projectUpdateAvailable?`<p class="muted status">Project update available <button class="link" data-command="zero.updateProject" ${disabled}>Update Project…</button></p>`:'';
+    const projectUpdateNotice=typeof projectUpdateRoot!=='undefined'&&projectUpdateRoot===projectRoot&&projectUpdateAvailable?`<div class="project-update"><p class="status">Project update available</p><button class="secondary" data-command="zero.updateProject" ${disabled}>Update Project…</button></div>`:'';
     const browserCheckStatus=savedChecksRoot===projectRoot&&savedChecksState?`<p class="muted status" title="${escape(savedChecksState.message||'')}">Browser checks: ${escape(savedChecksState.status)}</p>`:'';
     const browserAction = browserActive && !stopPromise && browserRun.canOpenInBrowser ? `<button class="secondary browser-open" data-command="zero.openRunningAppInBrowser" title="Open in browser" aria-label="Open in browser" ${disabled}>${icon('ExternalLink')}</button>` : '';
     const showRepository = projectRoot && (ready || connected || branch || branchDetached);
