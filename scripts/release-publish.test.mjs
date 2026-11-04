@@ -92,6 +92,14 @@ async function fixture(t, changes = {}) {
         await writeFile(path.join(args[3], 'release/kit.json'), JSON.stringify(definition, null, 2) + '\n');
         return output('');}
       if (args[0] === 'diff') return output(args.includes('--check') || args.includes('--') ? '' : 'README.md\nrelease/kit.json\n');
+      if (args[0] === 'ls-tree') {
+        const found=[];
+        for (const name of args.slice(args.indexOf('--')+1)) {
+          try {await readFile(path.join(options.cwd,name)); found.push(name);}
+          catch(error) {if(error.code!=='ENOENT') throw error;}
+        }
+        return output(found.join('\n'));
+      }
       if (args[0] === 'show') {
         const name = args[1].slice(args[1].indexOf(':') + 1);
         if (changes.validBranch && args[1].startsWith(`${head}:`)) {
@@ -163,10 +171,10 @@ async function fixture(t, changes = {}) {
       const landing = new URL(url).pathname === '/';
       return {status:changes.failedPage ? 503 : 200, url:(landing ? changes.landingRedirect : changes.choicesRedirect) || url,
         text:async () => changes.choices ? changes.choices(macURL, windowsStoreURL) : changes.staleSite ?
-          platformPage('https://old.example/old.dmg') + `<script>"${macURL}"</script>` : platformPage()};
+          platformPage('https://old.example/old.dmg') + `<script>"${macURL}"</script>` : platformPage(changes.liveMac?.asset.url || macURL)};
     }
-    if (url === macURL) return {status:changes.failedMac ? 503 : 200,
-      arrayBuffer:async () => changes.corruptMac ? Buffer.alloc(macBytes.length) : macBytes};
+    if (url === (changes.liveMac?.asset.url || macURL)) return {status:changes.failedMac ? 503 : 200,
+      arrayBuffer:async () => changes.corruptMac ? Buffer.alloc(macBytes.length) : changes.liveMacBytes || macBytes};
     const i = release.assets.findIndex(asset => asset.browser_download_url === url);
     assert.ok(i >= 0, 'Fetch must use the exact public release URL.');
     return {status: changes.failedDownload ? 503 : 200,
@@ -197,6 +205,33 @@ test('full bounded lifecycle dispatches exact main, publishes three exact files,
   assert.equal(f.requests.filter(url => url === f.release.assets[0].browser_download_url).length, 1, 'Public manual kit fetched directly');
   assert.equal(f.requests.filter(url => url === macURL).length, 1, 'Actual live Mac button bytes verified separately');
   assert.ok(f.logs.some(value => value.includes(result.prUrl)));
+});
+
+for (const stale of [true,false]) test(`Mac promotion during kit publication ${stale ? 'rejects stale live platform bytes' : 'uses the fetched promoted target'}`,async t=>{
+  const newBytes=Buffer.from('new independently promoted Mac installer');
+  const advanced=structuredClone(publicMac);
+  advanced.kitVersion=version; advanced.publication.tag=`setup-v${version}`;
+  advanced.asset={...advanced.asset,filename:`Zero-${version}-macos.dmg`,size:newBytes.length,sha256:digest(newBytes),
+    url:`https://github.com/codepetca/zero/releases/download/setup-v${version}/Zero-${version}-macos.dmg`};
+  let fetchedMergedMain=false;
+  const f=await fixture(t,{...(stale ? {} : {liveMac:advanced,liveMacBytes:newBytes}),
+    intercept:async(command,args,options,environment)=>{
+      if(command!=='git') return;
+      if(args[0]==='fetch' && args[2]==='main' && environment.pr.state==='MERGED') {fetchedMergedMain=true;return '';}
+      if(fetchedMergedMain && args[0]==='ls-tree') {
+        assert.equal(args[2],mergedSha);
+        return 'release/installer.json\nrelease/published-installer.json\n';
+      }
+      if(fetchedMergedMain && args[0]==='show' && ['release/installer.json','release/published-installer.json'].some(name=>args[1]===`${mergedSha}:${name}`)) return advanced;
+    }});
+  if(stale) await assert.rejects(publishZero({version},f.dependencies),/Live platform verification timed out.*verified Mac installer link/);
+  else assert.equal((await publishZero({version},f.dependencies)).phase,'verified');
+  assert.equal(f.pr.state,'MERGED'); assert.equal(f.release.draft,false);
+  assert.ok(fetchedMergedMain);
+  assert.ok(!f.requests.includes(macURL),'stale checked-out Mac bytes must never satisfy verification');
+  assert.equal(f.requests.includes(advanced.asset.url),!stale);
+  assert.deepEqual(f.release.assets.map(asset=>asset.digest),keys.map(key=>`sha256:${f.receipt.assets[key].sha256}`),'manual-kit integrity remains unchanged');
+  for(const name of ['installer.json','published-installer.json']) assert.ok(f.calls.some(call=>call.command==='git' && call.args[0]==='show' && call.args[1]===`${mergedSha}:release/${name}`));
 });
 
 for (const published of [false, true]) test(`resumes exact existing ${published ? 'public release' : 'draft'} without reupload or dispatch`, async t => {

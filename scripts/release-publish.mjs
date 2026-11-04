@@ -84,11 +84,11 @@ export function promoteReadme(readme, version, url) {
 
 // The public website intentionally presents platform installers, not the manual kit.
 // Use the same public Mac fallback selection as the website; local candidates stay private.
-export async function readPlatformDownloads(directory, kit) {
-  const optional = async name => {
+export async function readPlatformDownloads(directory, kit, {readJSON} = {}) {
+  const optional = readJSON || (async name => {
     try {return json(await readFile(path.join(directory, 'release', name)));}
     catch (error) {if (error.code === 'ENOENT') return null; throw error;}
-  };
+  });
   const current = validateInstallerManifest(await optional('installer.json'), kit);
   const published = validatePublishedInstaller(await optional('published-installer.json'), kit);
   const mac = availableInstaller(current, published);
@@ -419,10 +419,18 @@ export async function publishZero(options, dependencies = {}) {
       assert.match(merged.mergeCommit?.oid || '', shaPattern, 'Missing merge commit.');
     }
     await command('git', ['fetch', 'origin', 'main']);
-    assert.equal(String(await command('git', ['show', 'origin/main:release/kit.json'])), promotedJson, 'Merged metadata readback drift.');
-    assert.equal(String(await command('git', ['show', 'origin/main:README.md'])), promotedReadme, 'Merged README readback drift.');
+    const mergedMainSha = String(await command('git', ['rev-parse', 'origin/main'])).trim();
+    assert.match(mergedMainSha, shaPattern, 'Invalid merged main commit.');
+    assert.equal(String(await command('git', ['show', `${mergedMainSha}:release/kit.json`])), promotedJson, 'Merged metadata readback drift.');
+    assert.equal(String(await command('git', ['show', `${mergedMainSha}:README.md`])), promotedReadme, 'Merged README readback drift.');
+    // A concurrent Mac promotion may have advanced main while the kit PR was pending.
+    // Read all final metadata from one fetched commit, without changing the checkout.
+    const platformFiles = new Set(String(await command('git', ['ls-tree', '--name-only', mergedMainSha, '--',
+      'release/installer.json', 'release/published-installer.json'])).trim().split('\n'));
+    const platforms = await readPlatformDownloads(source, promoted, {readJSON:async name =>
+      platformFiles.has(`release/${name}`) ? json(await command('git', ['show', `${mergedMainSha}:release/${name}`])) : null});
     state.phase = 'live platform verification';
-    await live(await readPlatformDownloads(source, promoted));
+    await live(platforms);
     succeeded = true;
     log(`Verified Zero ${options.version}: release assets, merged manual-kit metadata/README and platform downloads match.`);
     return {...state, phase: 'verified', prUrl};

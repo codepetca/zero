@@ -6,7 +6,7 @@ The publisher now targets README's general Manual setup kit link and validates
 that slot and public platform metadata before dispatch/publication. It preserves
 the website's Mac/Microsoft Store choices, separately verifies their visible
 links and exact Mac bytes, and retains all three kit asset/tag/source checks.
-All 84 release publisher/review tests and root configuration/syntax/documentation
+All 86 release publisher/review tests and root configuration/syntax/documentation
 checks passed; whitespace passed. Fixtures cover the actual README, Mac/Store-only
 markup, independent Mac fallback, hidden/stale/duplicate links, corrupt downloads,
 preflight failures and mutation-free verify-only. The suites use mocked GitHub/HTTP.
@@ -14,6 +14,11 @@ A subsequent real read-only `verifyOnly` run for 0.5.63 passed against current m
 public release/tag/README, all three anonymous manual assets, both live platform
 pages and exact public Mac bytes matched. No release publication, live publishing
 cycle or merge was performed. Independent review and exact-head CI remain pending.
+The targeted review correction pins the final fetched main commit for kit,
+README and platform metadata reads. Two concurrency regressions advance the
+remote Mac release during kit publication: stale live Mac bytes fail and the
+newly promoted target passes. Both fail against the prior implementation and
+pass with the correction; kit asset integrity and publication guards stay covered.
 
 ## Store first-run source integration — 2026-11-04
 
