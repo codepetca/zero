@@ -12227,6 +12227,15 @@ actual update-feed delivery, fresh-Mac setup, physical interruption and Windows
 acceptance were not tested in this trial. The candidate remains local until
 explicitly published.
 
+The signed and notarized 0.5.62 installer was published at
+[setup-v0.5.62](https://github.com/codepetca/zero/releases/tag/setup-v0.5.62)
+from preparation commit `d0b8075643b412a9a9cd239e94902cc437db2762`.
+Authenticated draft and anonymous public downloads matched the sealed image's
+6,324,137 bytes and SHA-256
+`0738d65a91dabf7af5128bd47527ad7970d2e2e04098a8d2f5da75b75fabea66`.
+The signed feed and download promotion require live verification after deployment;
+the separate published manual kit and Windows releases remain unchanged.
+
 ## Project-update notice — local source
 
 The sidebar presents an available project update as a full-width action. Its
