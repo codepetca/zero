@@ -12244,3 +12244,22 @@ working. In a macOS extension host with a disposable older project, Not Now
 left files unchanged; Update Project completed and retained the prior builder
 files. Focused tests and independent review passed. Windows and released builds
 were not tested; no release was published.
+
+## Mac 0.5.61 to 0.5.62 live update
+
+On the maintainer Mac, the installed 0.5.61 app discovered 0.5.62 through the
+production Sparkle feed, downloaded it, and completed Install and Relaunch. The
+installed app and managed kit then reported 0.5.62; Developer ID verification
+passed, setup completed its editor handoff, and the existing managed editor
+process remained running. Private rollback copies of the previous app, kit and
+editor state were retained. Unsaved-buffer preservation was not specifically
+tested, and this same-Mac trial does not establish fresh-Mac acceptance.
+
+## Zero 0.5.63 candidate — local source
+
+The aligned 0.5.63 candidate includes the Store setup fixes and the released
+project-update notice. The kit, signed Mac installer and unsigned Windows
+development installer were built from clean source `51b722eaf9beba3855a6492cbf73927c6b9bc8f6`.
+Apple accepted the Mac installer; its staple, Gatekeeper assessment, signatures
+and payload checks passed. Windows Store installation, upgrade, WACK and
+physical-device acceptance require separate evidence before Store submission.

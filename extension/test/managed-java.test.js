@@ -109,6 +109,11 @@ test('Windows channel root follows installed extension profile and rejects misma
   assert.equal(windowsNativeRoot(root,src('ZeroStudioStoreData'),'store'),path.win32.join(root,'ZeroStudioStoreData'));
   assert.equal(windowsNativeRoot(root,src('ZEROSTUDIOSTOREDATA')),path.win32.join(root,'ZeroStudioStoreData'));
   assert.equal(windowsNativeRoot(root,src('ZeroMsixFeasibility'),'msix-feasibility'),path.win32.join(root,'ZeroMsixFeasibility'));
+  const physical = path.win32.join(root,'Packages','Codepet.zerostudio_g62pw1js6rhjp','LocalCache','Local','ZeroStudioStoreData');
+  const physicalSrc = path.win32.join(physical,'editor','extensions','zero.zero-1.0','src');
+  assert.equal(windowsNativeRoot(root,physicalSrc,'store'),physical);
+  assert.throws(()=>windowsNativeRoot(root,physicalSrc,'msix-feasibility'),/does not match/);
+  assert.throws(()=>windowsNativeRoot(root,physicalSrc.replace('g62pw1js6rhjp','other'),'store'),/profile is unavailable/);
   assert.throws(()=>windowsNativeRoot(root,src('ZeroData'),'store'),/does not match/);
   assert.throws(()=>windowsNativeRoot(root,src('ZeroStudioStoreData'),'msix-feasibility'),/does not match/);
   assert.throws(()=>windowsNativeRoot(root,'C:\\other\\extension\\src','store'),/profile is unavailable/);
@@ -120,7 +125,7 @@ test('Windows coexisting channels resolve their own real retained manifest and J
   const kit=path.join(root,'trusted-kit');await fs.mkdir(path.join(kit,'setup'),{recursive:true});
   const asset={sha256:'a'.repeat(64),version:'jdk-21.0.12.1+1'};
   await fs.writeFile(path.join(kit,'setup','windows-downloads.json'),JSON.stringify({schemaVersion:1,architectures:{x64:{jdk:asset}}}));
-  for (const [folder,marker] of [['ZeroData',undefined],['ZeroStudioStoreData','store'],['ZeroMsixFeasibility','msix-feasibility']]) {
+  for (const [folder,marker] of [['ZeroData',undefined],['ZeroStudioStoreData','store'],[path.join('Packages','Codepet.zerostudio_g62pw1js6rhjp','LocalCache','Local','ZeroStudioStoreData'),'store'],['ZeroMsixFeasibility','msix-feasibility']]) {
     const runtime=path.join(root,folder,'runtime','jdk-'+asset.sha256);
     await fs.mkdir(runtime,{recursive:true});await fs.writeFile(path.join(runtime,'.zero-asset.sha256'),asset.sha256);
     const source=path.join(root,folder,'editor','extensions','zero.zero-1.0','src');

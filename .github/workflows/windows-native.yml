@@ -8,6 +8,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 jobs:
   scope:
     uses: ./.github/workflows/ci-scope.yml
@@ -58,6 +59,7 @@ jobs:
           node --test extension/test/managed-java.test.js
           node --test extension/test/process-specification.test.js
           node --test scripts/test-windows-javafx.test.mjs
+          node --test scripts/windows-wack-report.test.mjs scripts/windows-editor-window.test.mjs
           node --test setup/tests/windows-checkout.test.mjs
       - name: Build measured development installer
         run: |
@@ -135,7 +137,7 @@ jobs:
         timeout-minutes: 8
         run: |
           $receipt = Get-Content -LiteralPath 'dist/msix/build-msix.json' -Raw | ConvertFrom-Json
-          & ./scripts/test-windows-msix.ps1 -Package (Join-Path 'dist/msix' $receipt.artifact.filename) -PackageVersion $receipt.packageVersion -Receipt 'dist/msix/install-msix.json'
+          & ./scripts/test-windows-msix.ps1 -Package (Join-Path 'dist/msix' $receipt.artifact.filename) -PackageVersion $receipt.packageVersion -Receipt 'dist/msix/install-msix.json' -RunFirstRun
       - name: Retain sanitized MSIX deployment result
         if: always() && steps.store-msix.outcome == 'success'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

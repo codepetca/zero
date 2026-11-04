@@ -1,5 +1,51 @@
 # Verification
 
+## Store first-run source integration — 2026-11-04
+
+Integrated the four prior Store preparation commits (3e7de865, ffbe4de3,
+8f4b85a0, ed42e8bc) onto current main f726a77d with cherry-pick provenance.
+Store children now receive physical redirected runtime/kit paths while extraction
+uses the shorter virtual path; managed Java recognizes the actual package profile.
+The launcher has explicit DPI configuration and Store packaging requires an x64
+PE. Download receipts still require the complete SHA-256 even where the editor
+folder uses a shortened locator. No release version or published bytes changed.
+
+The one-off same-certificate upgrade diagnostic keeps the pinned 0.5.58 baseline
+and accepts explicit expected current kit/package versions instead of the
+obsolete 0.5.60 constant. The harness verifies an increasing package version,
+source-bound receipts, preserved student/profile state, private Java and a fresh
+visible editor window. This is a local MSIX upgrade test, not Store delivery.
+
+Local macOS checks passed: `npm run check`; actionlint for both changed workflows;
+12 CI selection/gate tests; 14 focused managed-Java/MSIX tests (two additional
+Windows/PowerShell tests skipped); and all four `npm run test:windows` C# harness
+builds/executions under Mono (2697 wrapper, 2442 Store feasibility and 2480 Store
+production assertions plus updater scenarios). An actual Store launcher build
+with a compile-only fixture kit passed locked restore and produced the expected
+x64 PE and DPI config. That build is not a releasable kit or MSIX candidate.
+`git diff --check` passed. Actual WACK execution, real Windows installation,
+first-run, same-certificate upgrade, Store signing/certification/delivery and
+physical school-device acceptance were not performed locally. Exact final-source
+CI and independent integration review remain required before publication.
+
+Review correction batch: first-run and upgrade now share an exact-profile,
+fresh-process visible editor-window proof. A window must retain its process and
+handle for three seconds; CLI-only, hidden, stale, wrong-profile, unnamed and
+unrelated windows fail, and disappearance or replacement resets the interval.
+Windows CI now requests real MSIX first-run and executes both the WACK parser and
+window-proof regression suites. Removed the proposed optional upgrade workflow
+because its pinned Actions artifact expires; no permanent gate depends on it.
+The strict diagnostic remains available only with retained exact .58 candidate
+bytes/receipt. A real upgrade run must be established separately before claiming
+upgrade acceptance; no durable artifact was uploaded in this correction.
+
+Verified all seven relevant PowerShell files parse. Official portable PowerShell
+7.4.6 for macOS ARM64 (SHA-256 a482d668787ef98c37f0a5a7696107dffdb3dc340c5be3d1c153ec9d239072a8,
+matched to the official release checksum) executed the 21 window-proof assertions
+and the WACK parser fixture suite locally. All 15 combined regression/CI tests
+passed without skips, plus configuration checks, actionlint and whitespace.
+This executes pure fixtures on macOS, not Windows UIAutomation or actual WACK.
+
 ## Project-owned library Add prototype — 2026-11-03
 
 Subsequent owner direction selects one supported browser builder. Explicit

@@ -5,9 +5,9 @@ import {zipSync,unzipSync} from 'fflate';
 import {msixVersion,msixManifest,verifyMsixArchive,storeIdentity} from './windows-msix.mjs';
 
 const version='0.5.47';
-function fixture() {
+function fixture(machine = 0x8664) {
   const kit=Buffer.from('measured teaching kit'), exe=Buffer.alloc(150000);
-  exe.writeUInt16LE(0x5a4d); exe.writeUInt32LE(64,0x3c); exe.writeUInt32LE(0x00004550,64); kit.copy(exe,100);
+  exe.writeUInt16LE(0x5a4d); exe.writeUInt32LE(64,0x3c); exe.writeUInt32LE(0x00004550,64); exe.writeUInt16LE(machine,68); kit.copy(exe,100);
   const files={'Zero.exe':exe,'AppxManifest.xml':Buffer.from(msixManifest(version))};
   const members={...files,'[Content_Types].xml':Buffer.from('<Types/>')};
   members['AppxBlockMap.xml']=Buffer.from(`<BlockMap HashMethod="http://www.w3.org/2001/04/xmlenc#sha256">${Object.entries(files).map(([name,data]) => {
@@ -56,6 +56,10 @@ test('verifier rejects unexpected updater files, changed identity and a missing 
   assert.throws(() => verifyMsixArchive(data.bytes,{version,files:data.files,kit:Buffer.from('different kit')}),/embedded kit/);
 });
 
+test('x64 packages reject a mismatched executable architecture even with valid block hashes', () => {
+  const data=fixture(0x14c);
+  assert.throws(() => verifyMsixArchive(data.bytes,{version,files:data.files,kit:data.kit}),/x64 PE/);
+});
 test('production manifest uses the assigned Store identity', () => {
   const xml = msixManifest(version, storeIdentity);
   assert.match(xml, /Name="Codepet\.zerostudio"/);
