@@ -1,0 +1,41 @@
+# Branch-only bounded architecture/DPI experiment. Never merge.
+name: One-off Store AnyCPU DPI experiment
+on:
+  workflow_call:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  compare:
+    runs-on: windows-2022
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: zero-store-upgrade-41921719677-1
+          run-id: 41921719677
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/zero-dpi-baseline
+      - name: Compare native manifests, run AnyCPU first-run and unchanged WACK gate
+        shell: powershell
+        timeout-minutes: 35
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = @(Get-ChildItem -LiteralPath (Join-Path $env:RUNNER_TEMP 'zero-dpi-baseline') -Recurse -File -Filter 'Zero-0.5.63-msix-store-x64.msix')
+          if ($files.Count -ne 1) { throw 'Expected one exact baseline MSIX.' }
+          & ./.github/scripts/store-dpi-experiment.ps1 -Original $files[0].FullName -Output (Join-Path $env:RUNNER_TEMP 'zero-dpi-results')
+      - name: Retain bounded experiment evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: zero-store-dpi-experiment-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: ${{ runner.temp }}/zero-dpi-results/
