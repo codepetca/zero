@@ -12254,3 +12254,12 @@ passed, setup completed its editor handoff, and the existing managed editor
 process remained running. Private rollback copies of the previous app, kit and
 editor state were retained. Unsaved-buffer preservation was not specifically
 tested, and this same-Mac trial does not establish fresh-Mac acceptance.
+
+## Zero 0.5.63 candidate — local source
+
+The aligned 0.5.63 candidate includes the Store setup fixes and the released
+project-update notice. The kit, signed Mac installer and unsigned Windows
+development installer were built from clean source `51b722eaf9beba3855a6492cbf73927c6b9bc8f6`.
+Apple accepted the Mac installer; its staple, Gatekeeper assessment, signatures
+and payload checks passed. Windows Store installation, upgrade, WACK and
+physical-device acceptance require separate evidence before Store submission.
