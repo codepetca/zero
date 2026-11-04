@@ -2,11 +2,23 @@
 
 ## Manual-kit publisher contract correction — 2026-11-04
 
+The next candidate is local 0.5.64 only, using the documented development-version
+transition after publication. The exact published 0.5.63 manifest is retained in
+`release/published-kit.json`; all three anonymous fallback assets match its sizes
+and SHA256 values. Public README links, native installer manifests and signed
+appcast/feed bytes remain pinned. The local Mac build counter advances to 64 as
+required by the existing build-order guard; no Mac 0.5.64 installer was built.
+Local kit/VSIX 0.5.64 packaging and extracted Maven/source/license verification
+passed. All 88 release tests, 253 website tests, website typecheck, root checks
+and whitespace passed. Added current-version-only verify-only regressions and
+refreshed exact published-fallback expectations. No CI worktree machinery, tag,
+release publication or merge was introduced; fresh CI/review remain required.
+
 The publisher now targets README's general Manual setup kit link and validates
 that slot and public platform metadata before dispatch/publication. It preserves
 the website's Mac/Microsoft Store choices, separately verifies their visible
 links and exact Mac bytes, and retains all three kit asset/tag/source checks.
-All 86 release publisher/review tests and root configuration/syntax/documentation
+All 88 release publisher/review tests and root configuration/syntax/documentation
 checks passed; whitespace passed. Fixtures cover the actual README, Mac/Store-only
 markup, independent Mac fallback, hidden/stale/duplicate links, corrupt downloads,
 preflight failures and mutation-free verify-only. The suites use mocked GitHub/HTTP.

@@ -96,6 +96,21 @@ If live platform links differ from published platform metadata, retry after that
 platform deployment is verified; a timeout does not undo the published manual-kit
 release or merged metadata PR.
 
+`--verify-only` targets the current version recorded on main and requires that
+manifest to be published. After main advances to a newer local candidate, it
+rejects both verification of that unpublished version and requests for the older
+published version; it does not switch to `release/published-kit.json`. Verify the
+older public assets and receipts directly when needed. The website can continue
+using its retained published fallback while local development proceeds.
+
+After publication, the next development cycle can use the normal new-local-version
+steps above. Preserve the exact last published kit manifest in
+`release/published-kit.json`, keep README's public link and all public native
+installer/feed metadata pinned, and update the new local kit/extension version,
+bundled VSIX references and local Mac build counter required by the build-order
+guard. Advancing that source counter does not change the public signed feed. A local candidate and CI review artifacts
+are not a release; publishing still requires explicit authorization.
+
 ## Preparation workflow and manual fallback
 
 Every source PR runs **Release checks and preparation**: configuration, release

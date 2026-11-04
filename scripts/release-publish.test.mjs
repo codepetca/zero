@@ -281,6 +281,26 @@ test('verify-only verifies public manual-kit assets and current Mac/Store pages 
   assert.ok(f.requests.some(url => new URL(url).pathname === '/downloads'));
 });
 
+test('verify-only rejects the current unpublished candidate without mutation',async t=>{
+  const f=await fixture(t);
+  await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),/Verify-only requires published metadata/);
+  assert.ok(!f.calls.some(call=>call.command==='gh'));
+});
+
+test('verify-only does not substitute a retained published kit for newer local main',async t=>{
+  const f=await fixture(t,{modify:async f=>{
+    const published=structuredClone(f.receipt);published.publication.status='published';
+    for(const asset of Object.values(published.assets)) asset.url=`https://github.com/codepetca/zero/releases/download/v${version}/${asset.filename}`;
+    await writeFile(path.join(f.template,'release/published-kit.json'),JSON.stringify(published));
+    const next=structuredClone(f.definition);next.kitVersion='1.2.4';next.publication.tag='v1.2.4';next.assets.extension.filename='zero-1.2.4.vsix';
+    await writeFile(path.join(f.template,'release/kit.json'),JSON.stringify(next));
+    const manifestFile=path.join(f.template,'extension/package.json'),manifest=JSON.parse(await readFile(manifestFile,'utf8'));manifest.version='1.2.4';
+    await writeFile(manifestFile,JSON.stringify(manifest));
+  }});
+  await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),/Requested version differs from current main/);
+  assert.ok(!f.calls.some(call=>call.command==='gh'));
+});
+
 test('current repository README works with the Mac/Store-only site, preserving platform links', async t => {
   const current = await readFile(new URL('../README.md',import.meta.url),'utf8');
   const f = await fixture(t,{readme:current});
