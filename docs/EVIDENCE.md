@@ -12263,3 +12263,26 @@ development installer were built from clean source `51b722eaf9beba3855a6492cbf73
 Apple accepted the Mac installer; its staple, Gatekeeper assessment, signatures
 and payload checks passed. Windows Store installation, upgrade, WACK and
 physical-device acceptance require separate evidence before Store submission.
+
+## Mac 0.5.63 download and signed-feed promotion — 2026-11-04
+
+The signed and notarized installer is public at
+[setup-v0.5.63](https://github.com/codepetca/zero/releases/tag/setup-v0.5.63).
+An anonymous download matches the sealed candidate from preparation commit
+`42c3b4b580e0fc921575cfc03523cc8207a10270`: 6,324,391 bytes, SHA-256
+`87a7b1c81883a769be60d2ac500c2d4f577889ab0a5e4d435aba63a7cfde82a9`.
+The download metadata retains clean build source
+`51b722eaf9beba3855a6492cbf73927c6b9bc8f6` and accepted notarization.
+This promotion uses the sealed signed XML unchanged and changes only its
+metadata publication status; the feed advances build 62→63. The separate
+published manual kit and Windows channels remain unchanged. Live download/feed
+verification after deployment, the 0.5.63 updater handoff, fresh-Mac setup and
+physical Windows/Store acceptance remain separate gates.
+
+Local validation: all 253 website tests, website typecheck and production build,
+root configuration/syntax/documentation checks, and seven Mac release/feed tests
+passed (the optional official-signer integration test was skipped). The anonymous
+DMG, both Ed25519 signatures, exact sealed XML, protected-source equivalence and
+build ordering passed direct verification. Built Downloads selects Mac 0.5.63 and
+the unchanged Microsoft Store link; the built update route serves the exact sealed
+XML. Independent promotion review, selected CI and merge remain pending.

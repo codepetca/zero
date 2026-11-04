@@ -7,8 +7,8 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| Website | Mac 0.5.61 download and signed feed verified live; 0.5.62 promotion is pending deployment. | Verify the 0.5.62 download and exact signed feed after this change is deployed. |
-| Mac installer | [0.5.62](https://github.com/codepetca/zero/releases/tag/setup-v0.5.62) published November 4; anonymous download matches the sealed candidate. | Actual automatic upgrade and fresh Mac installation remain untested. |
+| Website | Mac 0.5.62 download and exact signed feed verified live November 4; 0.5.63 promotion is pending deployment. | Verify the 0.5.63 download and exact signed feed after this change is deployed. |
+| Mac installer | [0.5.63](https://github.com/codepetca/zero/releases/tag/setup-v0.5.63) published November 4; anonymous download matches the sealed candidate. | The 0.5.61→0.5.62 live update passed on the maintainer Mac. The 0.5.63 update and fresh Mac installation remain untested. |
 | Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) is publicly listed; the owner confirmed publication on November 2. | Verify the installed version and test Store installation and updates on Windows. |
 | Windows standalone download | [0.5.59 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.59) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.59) published October 31. | Physical Windows and school-device acceptance remains outstanding; updates are disabled. |
 
