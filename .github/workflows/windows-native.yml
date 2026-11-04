@@ -205,3 +205,11 @@ jobs:
           SCOPE_RESULT: ${{ needs.scope.result }}
           SELECTED: ${{ needs.scope.outputs.windows || 'true' }}
           JOB_RESULT: ${{ needs.windows-tests.result }}
+
+  # Branch-only diagnostic against the immutable already-tested candidate.
+  store-wack-one-off:
+    if: github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/store-wack-one-off.yml
+    permissions:
+      contents: read
+      actions: read

@@ -1,0 +1,89 @@
+# Temporary branch-only diagnostic; never merge this workflow.
+name: One-off WACK against exact upgraded Store 0.5.63 candidate
+on:
+  workflow_call:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  wack:
+    runs-on: windows-2022
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Bind WACK harness source to reviewed release
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:RUNNER_ENVIRONMENT -ne 'github-hosted') { throw 'Disposable hosted runner required.' }
+          $base = '51b722eaf9beba3855a6492cbf73927c6b9bc8f6'
+          $source = (git rev-parse HEAD).Trim()
+          $allowed = @('.github/workflows/windows-native.yml', '.github/workflows/store-wack-one-off.yml')
+          $changed = @(git diff --name-only $base $source)
+          if ($LASTEXITCODE -ne 0 -or $changed.Count -ne 2 -or @($changed | Where-Object { $_ -notin $allowed }).Count -ne 0) { throw 'Only the two temporary workflows may differ from reviewed source.' }
+          git diff --quiet $base $source -- . ':(exclude).github/workflows/windows-native.yml' ':(exclude).github/workflows/store-wack-one-off.yml'
+          if ($LASTEXITCODE -ne 0 -or (git status --porcelain)) { throw 'WACK harness source differs from the reviewed release.' }
+          node --test scripts/windows-wack-report.test.mjs scripts/windows-editor-window.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'WACK and window-proof regression tests must pass.' }
+          $output = Join-Path $env:RUNNER_TEMP 'zero-wack-proof'
+          New-Item -ItemType Directory -Path $output -ErrorAction Stop | Out-Null
+          [ordered]@{
+            schema = 1; canonicalSourceRevision = $base; wackHarnessSourceRevision = $source
+            harnessSourceEquivalent = $true; differingPaths = $changed
+            candidateRunId = '41921719677'; candidateRunAttempt = '1'
+            candidateSourceRevision = '5952efd27cab104b2c9a088a1532fc36ba6e26ec'
+            candidateSha256 = 'c0a5a100d1a29f68cb5018af1a2d5694dc04d16ccd38f2ef8d415ec0bc8bab80'
+            runId = $env:GITHUB_RUN_ID; runAttempt = $env:GITHUB_RUN_ATTEMPT
+            runnerImage = $env:ImageOS; runnerImageVersion = $env:ImageVersion
+          } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $output 'wack-source-binding.json') -Encoding utf8
+      - name: Download exact previously upgraded MSIX
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: zero-store-upgrade-41921719677-1
+          run-id: 41921719677
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/zero-wack-candidate
+      - name: Verify exact candidate and source-bound receipts
+        id: candidate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $download = Join-Path $env:RUNNER_TEMP 'zero-wack-candidate'
+          $files = @(Get-ChildItem -LiteralPath $download -Recurse -File -Filter 'Zero-0.5.63-msix-store-x64.msix')
+          $builds = @(Get-ChildItem -LiteralPath $download -Recurse -File -Filter 'build-msix.json')
+          $bindings = @(Get-ChildItem -LiteralPath $download -Recurse -File -Filter 'source-binding.json')
+          $upgrades = @(Get-ChildItem -LiteralPath $download -Recurse -File -Filter 'zero-upgrade-report.json')
+          if ($files.Count -ne 1 -or $builds.Count -ne 1 -or $bindings.Count -ne 1 -or $upgrades.Count -ne 1) { throw 'Expected one exact candidate and each source/upgrade receipt.' }
+          $hash = (Get-FileHash -LiteralPath $files[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          $build = Get-Content -LiteralPath $builds[0].FullName -Raw | ConvertFrom-Json
+          $binding = Get-Content -LiteralPath $bindings[0].FullName -Raw | ConvertFrom-Json
+          $upgrade = Get-Content -LiteralPath $upgrades[0].FullName -Raw | ConvertFrom-Json
+          if ($hash -ne 'c0a5a100d1a29f68cb5018af1a2d5694dc04d16ccd38f2ef8d415ec0bc8bab80' -or $build.artifact.sha256 -ne $hash -or $build.artifact.size -ne $files[0].Length -or $build.sourceRevision -ne '5952efd27cab104b2c9a088a1532fc36ba6e26ec' -or $build.sourceDirty -ne $false -or $build.unsigned -ne $true -or $build.kind -ne 'msix-store' -or $build.kitVersion -ne '0.5.63' -or $build.packageVersion -ne '1.5.63.0' -or $build.kit.sha256 -ne '29381ea34518436265978e229d74989e83d18b8a3f84a2147d22b8014c3b1509') { throw 'Exact tested candidate or clean-source build receipt mismatch.' }
+          if ($binding.canonicalSourceRevision -ne '51b722eaf9beba3855a6492cbf73927c6b9bc8f6' -or $binding.testSourceRevision -ne $build.sourceRevision -or $binding.packagedSourceEquivalent -ne $true -or $upgrade.result -ne 'passed' -or $upgrade.cleanupVerified -ne $true -or $upgrade.newCandidateSha256 -ne $hash) { throw 'Prior canonical-source or upgrade proof mismatch.' }
+          $output = Join-Path $env:RUNNER_TEMP 'zero-wack-proof'
+          Copy-Item -LiteralPath $builds[0].FullName -Destination (Join-Path $output 'candidate-build-msix.json')
+          Copy-Item -LiteralPath $bindings[0].FullName -Destination (Join-Path $output 'candidate-source-binding.json')
+          Copy-Item -LiteralPath $upgrades[0].FullName -Destination (Join-Path $output 'candidate-upgrade-report.json')
+          "path=$($files[0].FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      - name: Initialize exact MSIX and run real Windows App Certification Kit
+        shell: powershell
+        timeout-minutes: 30
+        env:
+          CANDIDATE: ${{ steps.candidate.outputs.path }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & ./scripts/test-windows-msix.ps1 -Package $env:CANDIDATE -PackageVersion '1.5.63.0' -Receipt (Join-Path $env:RUNNER_TEMP 'zero-wack-proof/install-wack.json') -RunFirstRun -RunWack
+      - name: Retain bounded WACK reports and sanitized receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-store-wack-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: ${{ runner.temp }}/zero-wack-proof/
