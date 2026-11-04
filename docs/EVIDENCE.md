@@ -12216,6 +12216,17 @@ and physical Windows acceptance remain unverified. The signed feed and download
 promotion in this change require live verification after deployment; the separate
 published manual kit remains unchanged.
 
+## Mac 0.5.62 candidate — local source
+
+The 0.5.62 candidate includes the more prominent project-update action. Its
+packaged extension was tested in a macOS editor with a disposable older project:
+Not Now preserved files, Update Project completed with matching backups, and a
+second plan reported no changes. Apple accepted the signed installer; its staple,
+Gatekeeper assessment and payload checks passed. The installed private editor,
+actual update-feed delivery, fresh-Mac setup, physical interruption and Windows
+acceptance were not tested in this trial. The candidate remains local until
+explicitly published.
+
 ## Project-update notice — local source
 
 The sidebar presents an available project update as a full-width action. Its
