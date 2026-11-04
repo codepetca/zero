@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {zipSync, unzipSync} from 'fflate';
-import {publishZero, parseArguments, promoteDefinition, promoteReadme, verifyChecks, verifyPreparation} from './release-publish.mjs';
+import {publishZero, parseArguments, promoteDefinition, promoteReadme, verifyChecks, verifyPreparation, windowsStoreURL} from './release-publish.mjs';
 
 const sha = 'a'.repeat(40), head = 'b'.repeat(40), mergedSha = 'c'.repeat(40);
 const version = '1.2.3', runId = '123', uuid = 'fixture-request';
@@ -23,6 +23,14 @@ const sharingSettings = {schema: 1, catalogUrl: 'https://zero.codepet.ca/api/sha
   artifactOrigin: 'https://fixture.public.blob.vercel-storage.com', policyRevision: 'a'.repeat(40)};
 const sharing = JSON.stringify(sharingSettings, null, 2) + '\n';
 const exec = promisify(execFile);
+const macBytes = Buffer.from('verified public Mac installer bytes');
+const macURL = 'https://github.com/codepetca/zero/releases/download/setup-v1.2.2/Zero-1.2.2-macos.dmg';
+const publicMac = {schema:1, kitVersion:'1.2.2', publication:{status:'published',repository:'codepetca/zero',tag:'setup-v1.2.2'},
+  sourceRevision:sha, kit:{filename:'zero-bootstrap.zip',size:1,sha256:digest(Buffer.from('k'))},
+  asset:{filename:'Zero-1.2.2-macos.dmg',platform:'macos',architectures:['arm64','x86_64'],minimumOS:'12.0',size:macBytes.length,sha256:digest(macBytes),url:macURL},
+  signing:{identitySha1:'A'.repeat(40),teamIdentifier:'ABCDEFGHIJ'},notarizationSubmissionId:'11111111-1111-1111-1111-111111111111'};
+const platformPage = (mac = macURL, windows = windowsStoreURL) => `<main><section id="downloads"><a href="${mac}">Get Zero for Mac Silicon</a><a href="${windows}">Get Zero for Windows</a></section></main>`;
+
 
 async function fixture(t, changes = {}) {
   const sourceSha = changes.sourceSha || sha;
@@ -37,9 +45,9 @@ async function fixture(t, changes = {}) {
     assets: {kit: {filename: filenames[0], label: 'Kit'}, starter: {filename: filenames[1], label: 'Starter'},
       extension: {filename: filenames[2], label: 'Extension'}, components: {filename: 'zero-components.zip', label: 'Components', publicationStatus: 'local'}}};
   const manifest = JSON.stringify({version, license: 'MIT'}), license = 'MIT License\nfixture notice\n', js = 'module.exports = 42;\n';
-  await Promise.all(Object.entries({'release/kit.json': JSON.stringify(definition, null, 2) + '\n', 'extension/package.json': manifest,
+  await Promise.all(Object.entries({'release/published-installer.json':JSON.stringify(publicMac), 'release/kit.json': JSON.stringify(definition, null, 2) + '\n', 'extension/package.json': manifest,
     'extension/src/extension.js': js, [harnessSource]: harness, [sharingSource]: sharing, LICENSE: license, 'framework/pom.xml': '<artifactId>zero-core</artifactId>\n  <version>0.1.1</version>',
-    'README.md': '# Zero\n[Download for Windows — complete kit ZIP 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)\nUnrelated source and learning changes stay.\n'})
+    'README.md': changes.readme || '# Zero\n[Manual setup — complete kit ZIP 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)\nUnrelated source and learning changes stay.\n'})
     .map(([name, body]) => writeFile(path.join(template, name), body)));
   const bytes = [Buffer.from('reviewed kit bytes'), Buffer.from('reviewed starter bytes'), Buffer.from(zipSync({
     'extension/LICENSE.txt': Buffer.from(license), 'extension/src/extension.js': Buffer.from(js), 'extension/package.json': Buffer.from(manifest),
@@ -64,7 +72,7 @@ async function fixture(t, changes = {}) {
   if (promoted) {
     const metadata = promoteDefinition(definition, receipt, release.assets);
     await writeFile(path.join(template, 'release/kit.json'), JSON.stringify(metadata, null, 2) + '\n');
-    await writeFile(path.join(template, 'README.md'), `# Zero\n[Download for Windows — complete kit ZIP ${version}](${metadata.assets.kit.url})\n`);
+    await writeFile(path.join(template, 'README.md'), `# Zero\n[Manual setup — complete kit ZIP ${version}](${metadata.assets.kit.url})\n`);
   }
   const environment = {definition, receipt, release, prepared, pr, bytes, calls, requests, logs, root, template};
   if (changes.modify) await changes.modify(environment);
@@ -84,13 +92,21 @@ async function fixture(t, changes = {}) {
         await writeFile(path.join(args[3], 'release/kit.json'), JSON.stringify(definition, null, 2) + '\n');
         return output('');}
       if (args[0] === 'diff') return output(args.includes('--check') || args.includes('--') ? '' : 'README.md\nrelease/kit.json\n');
+      if (args[0] === 'ls-tree') {
+        const found=[];
+        for (const name of args.slice(args.indexOf('--')+1)) {
+          try {await readFile(path.join(options.cwd,name)); found.push(name);}
+          catch(error) {if(error.code!=='ENOENT') throw error;}
+        }
+        return output(found.join('\n'));
+      }
       if (args[0] === 'show') {
         const name = args[1].slice(args[1].indexOf(':') + 1);
         if (changes.validBranch && args[1].startsWith(`${head}:`)) {
           const promotedDefinition = promoteDefinition(definition, receipt, release.assets);
           if (name === 'release/kit.json') return output(JSON.stringify(promotedDefinition, null, 2) + '\n');
           if (name === 'README.md') return output((await readFile(path.join(options.cwd, name), 'utf8'))
-            .replace('[Download for Windows — complete kit ZIP 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)', `[Download for Windows — complete kit ZIP ${version}](${promotedDefinition.assets.kit.url})`));
+            .replace('[Manual setup — complete kit ZIP 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)', `[Manual setup — complete kit ZIP ${version}](${promotedDefinition.assets.kit.url})`));
         }
         return output(await readFile(path.join(options.cwd, name), 'utf8'));
       }
@@ -141,7 +157,7 @@ async function fixture(t, changes = {}) {
             const metadata = promoteDefinition(definition, receipt, release.assets);
             await writeFile(path.join(root, 'temporary/source/release/kit.json'), JSON.stringify(metadata, null, 2) + '\n');
             const readmeFile = path.join(root, 'temporary/source/README.md');
-            await writeFile(readmeFile, (await readFile(readmeFile, 'utf8')).replace('[Download for Windows — complete kit ZIP 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)', `[Download for Windows — complete kit ZIP ${version}](${metadata.assets.kit.url})`));
+            await writeFile(readmeFile, (await readFile(readmeFile, 'utf8')).replace('[Manual setup — complete kit ZIP 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)', `[Manual setup — complete kit ZIP ${version}](${metadata.assets.kit.url})`));
           }
           pr.state = 'MERGED'; promoted = true; return output('');
         }
@@ -151,16 +167,18 @@ async function fixture(t, changes = {}) {
   };
   const request = async url => {
     requests.push(url);
-    if (['https://zero.codepet.ca/learn','https://zero.codepet.ca/downloads'].includes(url) && changes.choices) return {status: 200, text: async () => changes.choices(release.assets[0].browser_download_url), url: changes.choicesRedirect || url};
-    if (url.startsWith('https://zero.codepet.ca/') && changes.choices) return {status: 200, url:changes.landingRedirect || url, text: async () => `<a href="${changes.choicesHref || '/learn#downloads'}">Download Zero</a>`};
-    if (url.startsWith('https://zero.codepet.ca/')) return {status: 200, text: async () => changes.staleSite ?
-      `<script>"${release.assets[0].browser_download_url}"</script><a href="https://old.example/old.zip">Download Zero</a>` :
-      `<a class="download" href="${release.assets[0].browser_download_url}"><span>Download Zero</span></a>`};
+    if (url.startsWith('https://zero.codepet.ca/')) {
+      const landing = new URL(url).pathname === '/';
+      return {status:changes.failedPage ? 503 : 200, url:(landing ? changes.landingRedirect : changes.choicesRedirect) || url,
+        text:async () => changes.choices ? changes.choices(macURL, windowsStoreURL) : changes.staleSite ?
+          platformPage('https://old.example/old.dmg') + `<script>"${macURL}"</script>` : platformPage(changes.liveMac?.asset.url || macURL)};
+    }
+    if (url === (changes.liveMac?.asset.url || macURL)) return {status:changes.failedMac ? 503 : 200,
+      arrayBuffer:async () => changes.corruptMac ? Buffer.alloc(macBytes.length) : changes.liveMacBytes || macBytes};
     const i = release.assets.findIndex(asset => asset.browser_download_url === url);
     assert.ok(i >= 0, 'Fetch must use the exact public release URL.');
     return {status: changes.failedDownload ? 503 : 200,
-      arrayBuffer: async () => changes.corruptPublic === i ? Buffer.from('corrupt') :
-        changes.corruptLive && i === 0 && requests.filter(item => item === url).length > 1 ? Buffer.alloc(bytes[i].length) : bytes[i]};
+      arrayBuffer: async () => changes.corruptPublic === i ? Buffer.from('corrupt') : bytes[i]};
   };
   return {...environment, dependencies: {runner, fetch: request, log: value => logs.push(value), uuid: () => uuid,
     makeTemp: async () => {const folder = path.join(root, 'temporary'); await mkdir(folder); return folder;},
@@ -184,8 +202,36 @@ test('full bounded lifecycle dispatches exact main, publishes three exact files,
   assert.deepEqual(create.args.filter(arg => arg.endsWith('.zip') || arg.endsWith('.vsix')).map(name => path.basename(name)), filenames);
   assert.equal(f.release.draft, false);
   assert.equal(f.pr.state, 'MERGED');
-  assert.equal(f.requests.filter(url => url === f.release.assets[0].browser_download_url).length, 2, 'Public and live kit both fetched');
+  assert.equal(f.requests.filter(url => url === f.release.assets[0].browser_download_url).length, 1, 'Public manual kit fetched directly');
+  assert.equal(f.requests.filter(url => url === macURL).length, 1, 'Actual live Mac button bytes verified separately');
   assert.ok(f.logs.some(value => value.includes(result.prUrl)));
+});
+
+for (const stale of [true,false]) test(`Mac promotion during kit publication ${stale ? 'rejects stale live platform bytes' : 'uses the fetched promoted target'}`,async t=>{
+  const newBytes=Buffer.from('new independently promoted Mac installer');
+  const advanced=structuredClone(publicMac);
+  advanced.kitVersion=version; advanced.publication.tag=`setup-v${version}`;
+  advanced.asset={...advanced.asset,filename:`Zero-${version}-macos.dmg`,size:newBytes.length,sha256:digest(newBytes),
+    url:`https://github.com/codepetca/zero/releases/download/setup-v${version}/Zero-${version}-macos.dmg`};
+  let fetchedMergedMain=false;
+  const f=await fixture(t,{...(stale ? {} : {liveMac:advanced,liveMacBytes:newBytes}),
+    intercept:async(command,args,options,environment)=>{
+      if(command!=='git') return;
+      if(args[0]==='fetch' && args[2]==='main' && environment.pr.state==='MERGED') {fetchedMergedMain=true;return '';}
+      if(fetchedMergedMain && args[0]==='ls-tree') {
+        assert.equal(args[2],mergedSha);
+        return 'release/installer.json\nrelease/published-installer.json\n';
+      }
+      if(fetchedMergedMain && args[0]==='show' && ['release/installer.json','release/published-installer.json'].some(name=>args[1]===`${mergedSha}:${name}`)) return advanced;
+    }});
+  if(stale) await assert.rejects(publishZero({version},f.dependencies),/Live platform verification timed out.*verified Mac installer link/);
+  else assert.equal((await publishZero({version},f.dependencies)).phase,'verified');
+  assert.equal(f.pr.state,'MERGED'); assert.equal(f.release.draft,false);
+  assert.ok(fetchedMergedMain);
+  assert.ok(!f.requests.includes(macURL),'stale checked-out Mac bytes must never satisfy verification');
+  assert.equal(f.requests.includes(advanced.asset.url),!stale);
+  assert.deepEqual(f.release.assets.map(asset=>asset.digest),keys.map(key=>`sha256:${f.receipt.assets[key].sha256}`),'manual-kit integrity remains unchanged');
+  for(const name of ['installer.json','published-installer.json']) assert.ok(f.calls.some(call=>call.command==='git' && call.args[0]==='show' && call.args[1]===`${mergedSha}:release/${name}`));
 });
 
 for (const published of [false, true]) test(`resumes exact existing ${published ? 'public release' : 'draft'} without reupload or dispatch`, async t => {
@@ -224,83 +270,110 @@ test('resumed draft accepts an annotated tag pinned to the prepared commit', asy
   assert.equal(f.calls.filter(call => call.args.includes('PATCH')).length, 1);
 });
 
-test('verify-only checks all public metadata/downloads and actual live anchor without mutations', async t => {
-  const f = await fixture(t, {existing: true, published: true, promoted: true});
-  assert.equal((await publishZero({version, verifyOnly: true}, f.dependencies)).phase, 'verified');
-  assert.ok(!f.calls.some(call => call.command === 'gh' && ['workflow', 'release', 'pr'].includes(call.args[0])));
-  assert.ok(!f.calls.some(call => call.args.includes('PATCH') || ['push', '-c', 'add', 'worktree'].includes(call.args[0])));
-  assert.equal(f.requests.length, 5);
+test('verify-only verifies public manual-kit assets and current Mac/Store pages without mutations', async t => {
+  const f = await fixture(t, {existing:true,published:true,promoted:true});
+  assert.equal((await publishZero({version,verifyOnly:true},f.dependencies)).phase,'verified');
+  assert.ok(!f.calls.some(call => call.command === 'gh' && ['workflow','release','pr'].includes(call.args[0])));
+  assert.ok(!f.calls.some(call => call.args.includes('PATCH') || ['push','-c','add','worktree'].includes(call.args[0])));
+  assert.equal(f.requests.length,6);
+  assert.equal(f.requests.filter(url => url === macURL).length,1);
+  assert.equal(f.requests.filter(url => url === f.release.assets[0].browser_download_url).length,1);
+  assert.ok(f.requests.some(url => new URL(url).pathname === '/downloads'));
 });
 
-test('verify-only follows the same-site download choices and measures the exact kit anchor', async t => {
-  const f = await fixture(t, {existing:true, published:true, promoted:true,
-    choices: url => `<section id="downloads"><a href="https://example.com/setup.dmg">Download for Mac</a><details><a href="${url}">Complete kit ZIP 1.2.3 — Windows, Linux or manual setup</a></details></section>`});
-  assert.equal((await publishZero({version, verifyOnly:true}, f.dependencies)).phase, 'verified');
-  assert.ok(f.requests.includes('https://zero.codepet.ca/learn'));
-  assert.equal(f.requests.filter(url => url === f.release.assets[0].browser_download_url).length, 2);
-  assert.ok(!f.calls.some(call => call.args.includes('PATCH') || ['push', '-c', 'add', 'worktree'].includes(call.args[0])));
+test('verify-only rejects the current unpublished candidate without mutation',async t=>{
+  const f=await fixture(t);
+  await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),/Verify-only requires published metadata/);
+  assert.ok(!f.calls.some(call=>call.command==='gh'));
 });
 
-for (const href of ['/downloads','https://zero.codepet.ca/downloads']) {
-  test(`verify-only follows the current Downloads page from ${href}`, async t => {
-    const f = await fixture(t, {existing:true,published:true,promoted:true,choicesHref:href,
-      choices: url => `<main><h1>Download Zero</h1><section id="downloads"><a href="https://example.com/setup.dmg">Download for Mac Silicon</a><a href="${url}">Download for Windows (ZIP)</a></section></main>`});
-    assert.equal((await publishZero({version,verifyOnly:true},f.dependencies)).phase,'verified');
-    assert.ok(f.requests.includes('https://zero.codepet.ca/downloads'));
-    assert.ok(!f.requests.includes('https://zero.codepet.ca/learn'));
-    assert.equal(f.requests.filter(url => url === f.release.assets[0].browser_download_url).length,2);
-    assert.ok(!f.calls.some(call => call.args.includes('PATCH') || ['push','-c','add','worktree'].includes(call.args[0])));
-  });
-}
+test('verify-only does not substitute a retained published kit for newer local main',async t=>{
+  const f=await fixture(t,{modify:async f=>{
+    const published=structuredClone(f.receipt);published.publication.status='published';
+    for(const asset of Object.values(published.assets)) asset.url=`https://github.com/codepetca/zero/releases/download/v${version}/${asset.filename}`;
+    await writeFile(path.join(f.template,'release/published-kit.json'),JSON.stringify(published));
+    const next=structuredClone(f.definition);next.kitVersion='1.2.4';next.publication.tag='v1.2.4';next.assets.extension.filename='zero-1.2.4.vsix';
+    await writeFile(path.join(f.template,'release/kit.json'),JSON.stringify(next));
+    const manifestFile=path.join(f.template,'extension/package.json'),manifest=JSON.parse(await readFile(manifestFile,'utf8'));manifest.version='1.2.4';
+    await writeFile(manifestFile,JSON.stringify(manifest));
+  }});
+  await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),/Requested version differs from current main/);
+  assert.ok(!f.calls.some(call=>call.command==='gh'));
+});
+
+test('current repository README works with the Mac/Store-only site, preserving platform links', async t => {
+  const current = await readFile(new URL('../README.md',import.meta.url),'utf8');
+  const f = await fixture(t,{readme:current});
+  assert.equal((await publishZero({version},f.dependencies)).phase,'verified');
+  const promoted = await readFile(path.join(f.root,'temporary/source/README.md'),'utf8').catch(() => null);
+  // Successful cleanup removes the temporary checkout; external source remains unchanged.
+  assert.equal(promoted,null);
+  assert.equal(await readFile(new URL('../README.md',import.meta.url),'utf8'),current);
+});
+
+for (const kind of ['missing','duplicate']) test(`README ${kind} manual-kit slot fails before dispatch or publication`, async t => {
+  const slot='[Manual setup — complete kit ZIP 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)';
+  const f=await fixture(t,{readme:kind==='missing' ? '# Zero\nGet Zero from Microsoft Store.\n' : `${slot}\n${slot}\n`});
+  await assert.rejects(publishZero({version},f.dependencies),/exactly one manual complete-kit link/);
+  assert.ok(!f.calls.some(call => call.command==='gh'));
+});
+
+test('public Mac fallback remains independent of a newer local installer and manual kit',async t=>{
+  const f=await fixture(t,{existing:true,published:true,promoted:true,modify:async f=>{
+    const local=structuredClone(publicMac);local.kitVersion=version;local.publication={status:'local',repository:'codepetca/zero',tag:`setup-v${version}`};
+    local.asset.filename=`Zero-${version}-macos.dmg`;delete local.asset.url;
+    await writeFile(path.join(f.template,'release/installer.json'),JSON.stringify(local));
+  }});
+  assert.equal((await publishZero({version,verifyOnly:true},f.dependencies)).phase,'verified');
+  assert.ok(f.requests.includes(macURL));
+});
+
+test('invalid platform metadata fails before release dispatch or publication',async t=>{
+  const f=await fixture(t,{modify:async f=>{
+    const wrong=structuredClone(publicMac);wrong.asset.url='https://evil.example/fake.dmg';
+    await writeFile(path.join(f.template,'release/published-installer.json'),JSON.stringify(wrong));
+  }});
+  await assert.rejects(publishZero({version},f.dependencies),/Invalid Mac installer/);
+  assert.ok(!f.calls.some(call=>call.command==='gh'));
+});
+
 for (const wrapper of ['template','div hidden','div hidden="false"','div inert','div aria-hidden="true"','div style="display: none"','div style="visibility:hidden"']) {
-  test(`modern download verification excludes ${wrapper} ancestors`,async t=>{
+  test(`platform verification cannot use a Mac link inside ${wrapper}`,async t=>{
     const close=wrapper.split(' ')[0];
-    const f=await fixture(t,{existing:true,published:true,promoted:true,choicesHref:'/downloads',
-      choices:url=>`<section id="downloads"><a href="https://example.com/stale-kit.zip">Download for Windows (ZIP)</a><${wrapper}><a href="${url}">old placeholder</a></${close}></section>`});
-    await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),/choices kit link is stale/);
-    assert.equal(f.requests.filter(url=>url===f.release.assets[0].browser_download_url).length,1);
-  });
-  test(`modern download verification cannot use only a ${wrapper} kit`,async t=>{
-    const close=wrapper.split(' ')[0];
-    const f=await fixture(t,{existing:true,published:true,promoted:true,choicesHref:'/downloads',
-      choices:url=>`<section id="downloads"><${wrapper}><a href="${url}">Download for Windows (ZIP)</a></${close}></section>`});
-    await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),/one kit candidate/);
+    const f=await fixture(t,{existing:true,published:true,promoted:true,
+      choices:url=>`<section id="downloads"><${wrapper}><a href="${url}">Get Zero for Mac</a></${close}><a href="${windowsStoreURL}">Get Zero for Windows</a></section>`});
+    await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),/exactly the Mac and Microsoft Store choices/);
+    assert.ok(!f.requests.includes(macURL));
   });
 }
 for (const redirect of ['https://evil.example/','https://zero.codepet.ca/hub']) {
   test(`live landing rejects redirect to ${redirect}`,async t=>{
-    const f=await fixture(t,{existing:true,published:true,promoted:true,choicesHref:'/downloads',landingRedirect:redirect,
-      choices:url=>`<section id="downloads"><a href="${url}">Download for Windows (ZIP)</a></section>`});
-    await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),/landing redirected outside/);
-    assert.ok(!f.requests.includes('https://zero.codepet.ca/downloads'));
+    const f=await fixture(t,{existing:true,published:true,promoted:true,landingRedirect:redirect});
+    await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),/redirected outside/);
+    assert.ok(!f.requests.some(url=>new URL(url).pathname==='/downloads'));
   });
 }
-
 for (const [label,changes,pattern] of [
-  ['stale modern kit',{choices:()=>'<section id="downloads"><a href="https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip">Download for Windows (ZIP)</a></section>'},/choices kit link is stale/],
-  ['modern page redirect to Learn',{choices:()=>'',choicesRedirect:'https://zero.codepet.ca/learn'},/redirected outside/],
-  ['external modern page redirect',{choices:()=>'',choicesRedirect:'https://evil.example/downloads'},/redirected outside/],
-  ['modern duplicate kit',{choices:url=>`<section id="downloads"><a href="${url}">Download for Windows (ZIP)</a><a href="${url}">Download for Windows (ZIP)</a></section>`},/one kit candidate/],
-]) test(`modern live download choices reject ${label}`,async t=>{
-  const f=await fixture(t,{existing:true,published:true,promoted:true,choicesHref:'/downloads',...changes});
+  ['stale Mac',{choices:()=>platformPage('https://old.example/old.dmg')},/one verified Mac installer link/],
+  ['stale Store',{choices:()=>platformPage(macURL,'https://apps.microsoft.com/detail/wrong')},/one Microsoft Store link/],
+  ['manual kit replacing Windows Store',{choices:()=>platformPage(macURL,`https://github.com/codepetca/zero/releases/download/v${version}/zero-bootstrap.zip`)},/one Microsoft Store link/],
+  ['duplicate downloads sections',{choices:()=>platformPage()+`<section id="downloads"><a href="${macURL}">Mac</a></section>`},/one downloads section/],
+  ['duplicate Mac links',{choices:()=>platformPage(macURL,macURL)},/one verified Mac installer link/],
+  ['duplicate Store links',{choices:()=>platformPage(windowsStoreURL,windowsStoreURL)},/one verified Mac installer link/],
+  ['extra kit',{choices:()=>platformPage().replace('</section>','<a href="https://example.com/kit.zip">Kit</a></section>')},/exactly the Mac and Microsoft Store choices/],
+  ['script-only Mac',{choices:()=>`<section id="downloads"><script><a href="${macURL}">Mac</a></script><a href="${windowsStoreURL}">Windows</a></section>`},/exactly the Mac and Microsoft Store choices/],
+  ['data attribute instead of href',{choices:()=>`<section id="downloads"><a data-href="${macURL}">Mac</a><a href="${windowsStoreURL}">Windows</a></section>`},/exactly the Mac and Microsoft Store choices/],
+  ['links outside downloads',{choices:()=>platformPage().replace('id="downloads"','data-id="downloads"')},/one downloads section/],
+  ['missing section',{choices:()=>'<p>No downloads</p>'},/one downloads section/],
+  ['downloads redirect',{choicesRedirect:'https://evil.example/downloads'},/redirected outside/],
+  ['wrong same-site page',{choicesRedirect:'https://zero.codepet.ca/learn'},/redirected outside/],
+  ['unavailable page',{failedPage:true},/platform downloads unavailable/],
+  ['corrupt Mac bytes',{corruptMac:true},/SHA256 drift/],
+  ['unavailable Mac bytes',{failedMac:true},/Public asset download failed/]
+]) test(`public platform verification rejects ${label}`,async t=>{
+  const f=await fixture(t,{existing:true,published:true,promoted:true,...changes});
   await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),pattern);
-  assert.equal(f.requests.filter(url=>url===f.release.assets[0].browser_download_url).length,1);
-});
-
-for (const [label, changes, pattern] of [
-  ['stale kit', {choices: () => '<section id="downloads"><a href="https://old.example/old.zip">Complete kit ZIP 1.2.2</a></section>'}, /choices kit link is stale/],
-  ['script-only kit', {choices: url => `<section id="downloads"><script><a href="${url}">Complete kit ZIP</a></script></section>`}, /one kit candidate/],
-  ['data attribute instead of href', {choices: url => `<section id="downloads"><a data-href="${url}">Complete kit ZIP</a></section>`}, /one kit candidate/],
-  ['data attribute instead of section id', {choices: url => `<section data-id="downloads"><a href="${url}">Complete kit ZIP</a></section>`}, /one downloads section/],
-  ['kit outside section', {choices: url => `<a href="${url}">Complete kit ZIP</a><section id="downloads"></section>`}, /one kit candidate/],
-  ['duplicate kit', {choices: url => `<section id="downloads"><a href="${url}">Complete kit ZIP</a><a href="${url}">Complete kit ZIP</a></section>`}, /one kit candidate/],
-  ['missing section', {choices: () => '<p>No downloads</p>'}, /one downloads section/],
-  ['external choice link', {choicesHref:'https://evil.example/learn#downloads', choices: () => ''}, /download link is stale/],
-  ['external choice redirect', {choicesRedirect:'https://evil.example/learn', choices: () => ''}, /redirected outside/]
-]) test(`live download choices reject ${label}`, async t => {
-  const f = await fixture(t, {existing:true, published:true, promoted:true, ...changes});
-  await assert.rejects(publishZero({version, verifyOnly:true}, f.dependencies), pattern);
-  assert.equal(f.requests.filter(url => url === f.release.assets[0].browser_download_url).length, 1, 'Only prior independent public verification fetched the kit');
+  assert.equal(f.requests.filter(url=>url===f.release.assets[0].browser_download_url).length,1,'Manual kit verified independently');
 });
 
 for (const [label, changes, pattern] of [
@@ -341,7 +414,7 @@ for (const [label, changes, pattern] of [
   ['denied merge', {deniedMerge: true}, /Merge denied/],
   ['failed public download', {failedDownload: true}, /download failed/],
   ['corrupt public bytes', {corruptPublic: 1}, /download size drift/],
-  ['stale live link despite expected URL in script', {staleSite: true}, /Live verification timed out.*stale/]
+  ['stale live link despite expected URL in script', {staleSite: true}, /Live platform verification timed out.*Mac installer link/]
 ]) test(`${label} leaves recoverable exact release/PR state`, async t => {
   const f = await fixture(t, changes);
   await assert.rejects(publishZero({version}, f.dependencies), pattern);
@@ -469,9 +542,9 @@ for (const [kind, source, original, updated] of [
   }
 });
 
-test('actual corrupt live kit times out after successful publication and metadata merge', async t => {
-  const f = await fixture(t, {corruptLive: true});
-  await assert.rejects(publishZero({version}, f.dependencies), /Live verification timed out.*SHA256 drift/);
+test('corrupt actual Mac button bytes fail after successful manual-kit publication and metadata merge', async t => {
+  const f = await fixture(t, {corruptMac:true});
+  await assert.rejects(publishZero({version}, f.dependencies), /Live platform verification timed out.*SHA256 drift/);
   assert.equal(f.pr.state, 'MERGED');
   assert.equal(f.release.draft, false);
 });
@@ -490,12 +563,12 @@ test('gating cannot accept green unrelated workflow, wrong head, skipped or miss
 
 test('README kit promotion preserves the independent Mac installer link and instructions', () => {
   const mac = '[Download for Mac with Apple Silicon — setup 0.5.7](https://github.com/codepetca/zero/releases/download/setup-v0.5.7/Zero-Setup-0.5.7-macos.dmg)';
-  const kit = '[Download for Windows — complete kit ZIP 0.5.3](https://github.com/codepetca/zero/releases/download/v0.5.3/zero-bootstrap.zip)';
-  const before = `# Zero\n- ${mac}\n- ${kit}; follow START-HERE.md.\nOther source stays.\n`;
+  const kit = '[Manual setup — complete kit ZIP 0.5.3](https://github.com/codepetca/zero/releases/download/v0.5.3/zero-bootstrap.zip)';
+  const before = `# Zero\n- ${mac}\n- [Get Zero Studio from Microsoft Store](${windowsStoreURL})\n- ${kit}; follow START-HERE.md.\nOther source stays.\n`;
   const url = 'https://github.com/codepetca/zero/releases/download/v0.5.8/zero-bootstrap.zip';
   const after = promoteReadme(before, '0.5.8', url);
-  assert.equal(after, before.replace(kit, `[Download for Windows — complete kit ZIP 0.5.8](${url})`));
+  assert.equal(after, before.replace(kit, `[Manual setup — complete kit ZIP 0.5.8](${url})`));
   assert.equal(promoteReadme(after, '0.5.8', url), after);
-  assert.throws(() => promoteReadme(mac, '0.5.8', url), /exactly one Windows complete-kit link/);
-  assert.throws(() => promoteReadme(`${before}\n${kit}`, '0.5.8', url), /exactly one Windows complete-kit link/);
+  assert.throws(() => promoteReadme(mac, '0.5.8', url), /exactly one manual complete-kit link/);
+  assert.throws(() => promoteReadme(`${before}\n${kit}`, '0.5.8', url), /exactly one manual complete-kit link/);
 });

@@ -8,9 +8,12 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {publicKeys, reviewPlan, verifyReviewAssets} from './release-review.mjs';
 import {downloadPage} from './release-download-page.mjs';
+import {validateInstallerManifest} from '../website/lib/installer.mjs';
+import {availableInstaller, validatePublishedInstaller} from '../website/lib/published-installer.mjs';
 
 export const repository = 'codepetca/zero';
 export const website = 'https://zero.codepet.ca';
+export const windowsStoreURL = 'https://apps.microsoft.com/detail/9mxkd6dqlfgx';
 const workflow = 'release-review.yml';
 const shaPattern = /^[a-f0-9]{40}$/;
 const definitionFiles = ['extension/package.json', 'framework/pom.xml'];
@@ -74,9 +77,34 @@ export function promoteDefinition(release, receipt, assets) {
 }
 
 export function promoteReadme(readme, version, url) {
-  const expression = /\[Download for Windows — complete kit ZIP [^\]\n]+\]\([^\)\n]+\)/g;
-  assert.equal([...readme.matchAll(expression)].length, 1, 'README must contain exactly one Windows complete-kit link.');
-  return readme.replace(expression, `[Download for Windows — complete kit ZIP ${version}](${url})`);
+  const expression = /\[Manual setup — complete kit ZIP [^\]\n]+\]\([^\)\n]+\)/g;
+  assert.equal([...readme.matchAll(expression)].length, 1, 'README must contain exactly one manual complete-kit link.');
+  return readme.replace(expression, `[Manual setup — complete kit ZIP ${version}](${url})`);
+}
+
+// The public website intentionally presents platform installers, not the manual kit.
+// Use the same public Mac fallback selection as the website; local candidates stay private.
+export async function readPlatformDownloads(directory, kit, {readJSON} = {}) {
+  const optional = readJSON || (async name => {
+    try {return json(await readFile(path.join(directory, 'release', name)));}
+    catch (error) {if (error.code === 'ENOENT') return null; throw error;}
+  });
+  const current = validateInstallerManifest(await optional('installer.json'), kit);
+  const published = validatePublishedInstaller(await optional('published-installer.json'), kit);
+  const mac = availableInstaller(current, published);
+  assert.ok(mac, 'Public platform verification requires published Mac installer metadata.');
+  return {mac, windows:windowsStoreURL};
+}
+export function verifyPlatformDownloadPage(html, platforms) {
+  const sections = downloadPage(html).sections;
+  assert.equal(sections.length, 1, 'Live page must have one downloads section.');
+  const anchors = sections[0].anchors;
+  assert.equal(anchors.length, 2, 'Live downloads must contain exactly the Mac and Microsoft Store choices.');
+  const mac = anchors.filter(anchor => anchor.href === platforms.mac.asset.url && anchor.text);
+  const windows = anchors.filter(anchor => anchor.href === platforms.windows && anchor.text);
+  assert.equal(mac.length, 1, 'Live downloads must have one verified Mac installer link.');
+  assert.equal(windows.length, 1, 'Live downloads must have one Microsoft Store link.');
+  return {mac:mac[0].href, windows:windows[0].href};
 }
 
 export function verifyRelease(release, receipt, sourceSha) {
@@ -173,47 +201,30 @@ export async function publishZero(options, dependencies = {}) {
     assert.equal(reference.object.type, 'commit', 'Unsupported release tag target.');
     assert.equal(reference.object.sha, sha, 'Release tag target drift.');
   }
-  async function live(kit) {
+  async function live(platforms) {
     const deadline = now() + (dependencies.liveTimeout ?? 10 * 60000);
-    let reason = 'The live website has not promoted this kit yet.';
+    let reason = 'The live platform download choices do not match published metadata yet.';
     while (now() < deadline) {
       try {
-        const response = await request(`${website}/?zero_release=${encodeURIComponent(options.version)}&check=${now()}`, {signal: AbortSignal.timeout(30000), headers: {'Cache-Control': 'no-cache'}});
-        assert.equal(response.status, 200, 'Live landing page unavailable.');
-        if (response.url) {
-          const destination = new URL(response.url);
-          assert.ok(destination.origin === website && destination.pathname === '/', 'Live landing redirected outside the expected page.');
-        }
-        const links = downloadPage(await response.text()).anchors.filter(anchor => /Download\s+Zero/i.test(anchor.text));
-        assert.equal(links.length, 1, 'Live landing must have one Download Zero link.');
-        let found = links[0].href;
-        if (found !== kit.url) {
-          const page = found === '/downloads' || found === `${website}/downloads` ? '/downloads' :
-            found === '/learn#downloads' || found === `${website}/learn#downloads` ? '/learn' : null;
-          assert.ok(page, 'Live download link is stale.');
-          const choices = await request(`${website}${page}`, {signal: AbortSignal.timeout(30000), headers: {'Cache-Control': 'no-cache'}});
-          assert.equal(choices.status, 200, 'Live download choices unavailable.');
-          if (choices.url) {
-            const destination = new URL(choices.url);
-            assert.ok(destination.origin === website && destination.pathname === page, 'Live download choices redirected outside the expected page.');
+        let found;
+        for (const page of ['/', '/downloads']) {
+          const response = await request(`${website}${page}?zero_release=${encodeURIComponent(options.version)}&check=${now()}`, {signal: AbortSignal.timeout(30000), headers: {'Cache-Control': 'no-cache'}});
+          assert.equal(response.status, 200, 'Live platform downloads unavailable.');
+          if (response.url) {
+            const destination = new URL(response.url);
+            assert.ok(destination.origin === website && destination.pathname === page, 'Live platform downloads redirected outside the expected page.');
           }
-          const sections = downloadPage(await choices.text()).sections;
-          assert.equal(sections.length, 1, 'Live page must have one downloads section.');
-          const candidates = sections[0].anchors.filter(anchor =>
-            /Complete\s+kit\s+ZIP|Download\s+Zero|Download\s+for\s+Windows\s*\(ZIP\)/i.test(anchor.text) ||
-            /(?:^|\/)zero-bootstrap\.zip(?:[?#]|$)/i.test(anchor.href) || anchor.href === kit.url);
-          assert.equal(candidates.length, 1, 'Live downloads must have one kit candidate.');
-          found = candidates[0].href;
-          assert.equal(found, kit.url, 'Live download choices kit link is stale.');
+          found = verifyPlatformDownloadPage(await response.text(), platforms);
         }
-        // Fetch the exact public kit anchor found on the live page and measure it.
-        await publicBytes({...kit, url: found});
+        // Measure the actual Mac button target. Store delivery has its own native acceptance.
+        await publicBytes({...platforms.mac.asset, url:found.mac});
         return;
       } catch (error) {reason = error.message;}
       await sleep(dependencies.pollInterval ?? 10000);
     }
-    throw new Error(`Live verification timed out: ${reason}`);
+    throw new Error(`Live platform verification timed out: ${reason}`);
   }
+
   try {
     await command('git', ['clone', '--no-checkout', '--single-branch', '--branch', 'main', `https://github.com/${repository}.git`, source], directory);
     const mainSha = String(await command('git', ['rev-parse', 'origin/main'])).trim();
@@ -221,6 +232,10 @@ export async function publishZero(options, dependencies = {}) {
     await command('git', ['checkout', '--detach', mainSha]);
     const initial = await readDefinition(source);
     assert.equal(initial.kitVersion, options.version, 'Requested version differs from current main.');
+    // Validate the promotion contract before dispatching or publishing any release.
+    promoteReadme(await readFile(path.join(source, 'README.md'), 'utf8'), options.version,
+      `https://github.com/${repository}/releases/download/${initial.publication.tag}/${initial.assets.kit.filename}`);
+    const initialPlatforms = await readPlatformDownloads(source, initial);
     if (options.verifyOnly || (initial.publication.status === 'published' && !options.runId)) {
       assert.equal(initial.publication.status, 'published', 'Verify-only requires published metadata.');
       const release = await findRelease(initial.publication.tag);
@@ -232,9 +247,9 @@ export async function publishZero(options, dependencies = {}) {
       const readme = await readFile(path.join(source, 'README.md'), 'utf8');
       assert.equal(promoteReadme(readme, options.version, initial.assets.kit.url), readme, 'Published README link drift.');
       await verifyPublic(release, initial);
-      await live(initial.assets.kit);
+      await live(initialPlatforms);
       succeeded = true;
-      log(`Verified Zero ${options.version}: public assets and live Download Zero bytes match.`);
+      log(`Verified Zero ${options.version}: public manual-kit assets, README and platform downloads match.`);
       return {...state, phase: 'verified', releaseUrl: release.html_url};
     }
     let sourceSha = mainSha, runId = options.runId, run, requestId;
@@ -404,12 +419,20 @@ export async function publishZero(options, dependencies = {}) {
       assert.match(merged.mergeCommit?.oid || '', shaPattern, 'Missing merge commit.');
     }
     await command('git', ['fetch', 'origin', 'main']);
-    assert.equal(String(await command('git', ['show', 'origin/main:release/kit.json'])), promotedJson, 'Merged metadata readback drift.');
-    assert.equal(String(await command('git', ['show', 'origin/main:README.md'])), promotedReadme, 'Merged README readback drift.');
-    state.phase = 'live website verification';
-    await live(promoted.assets.kit);
+    const mergedMainSha = String(await command('git', ['rev-parse', 'origin/main'])).trim();
+    assert.match(mergedMainSha, shaPattern, 'Invalid merged main commit.');
+    assert.equal(String(await command('git', ['show', `${mergedMainSha}:release/kit.json`])), promotedJson, 'Merged metadata readback drift.');
+    assert.equal(String(await command('git', ['show', `${mergedMainSha}:README.md`])), promotedReadme, 'Merged README readback drift.');
+    // A concurrent Mac promotion may have advanced main while the kit PR was pending.
+    // Read all final metadata from one fetched commit, without changing the checkout.
+    const platformFiles = new Set(String(await command('git', ['ls-tree', '--name-only', mergedMainSha, '--',
+      'release/installer.json', 'release/published-installer.json'])).trim().split('\n'));
+    const platforms = await readPlatformDownloads(source, promoted, {readJSON:async name =>
+      platformFiles.has(`release/${name}`) ? json(await command('git', ['show', `${mergedMainSha}:release/${name}`])) : null});
+    state.phase = 'live platform verification';
+    await live(platforms);
     succeeded = true;
-    log(`Verified Zero ${options.version}: release, merged metadata and live Download Zero bytes match.`);
+    log(`Verified Zero ${options.version}: release assets, merged manual-kit metadata/README and platform downloads match.`);
     return {...state, phase: 'verified', prUrl};
   } catch (error) {
     error.message = `${state.phase}: ${error.message}\nRelease: ${state.releaseUrl || 'not yet verified'}; PR: ${state.prUrl || 'not yet created'}; preparation: ${state.runId || options.runId || 'see request correlation above'}. Rerun the same version/run ID after resolving the failure; assets are never overwritten.`;

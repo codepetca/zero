@@ -36,7 +36,9 @@ npm run release:publish -- --version 0.5.2
 The publisher works in an isolated temporary checkout and leaves your current
 branch, working files and local `dist/` untouched. It selects the canonical remote
 `main`, starts the preparation workflow, correlates its run to the selected source
-and waits for successful checks. It downloads the sealed candidate and verifies
+and waits for successful checks. Before dispatch or publication, it validates the
+README manual-kit link slot and published platform download metadata. It downloads
+the sealed candidate and verifies
 its source/run receipt, exact filenames, licenses, sizes and SHA256 values.
 
 It creates and verifies a draft targeting that source commit, publishes precisely
@@ -50,11 +52,16 @@ run ID. Owner publication authority and independent source review remain require
 AI review does not impersonate a human approval. The owner removed main's branch
 protections; do not re-enable or bypass account rules as part of releasing.
 The resumed run merges the exact checked head
-through the normal PR path, then waits for Vercel's existing Git
-integration and checks the actual live kit anchor and downloaded bytes. The
-landing action may link directly to the exact kit URL or to the same-site
-`/downloads` chooser (or the retained `/learn#downloads` path); the chooser must contain one exact kit anchor inside
-its downloads section. A URL in script/JSON does not establish a download link.
+through the normal PR path and confirms the merged manual-kit metadata and
+README link. The website intentionally offers Mac and Microsoft Store buttons;
+it does not expose a general manual-kit button. Public platform verification
+checks the visible download choices on both `/` and `/downloads`, matches the Mac
+link to the current published installer (or its public fallback), measures that
+DMG's size/SHA256, and requires the exact Microsoft Store listing link. Hidden or
+script-only links, unexpected choices and redirected pages cannot satisfy it.
+This verifies the platform download surface separately from the three anonymous
+manual-kit assets; it does not claim the website exposes the manual kit, that a
+new kit version is observable on the website, or that Store installation passed.
 It reports release/PR URLs and a completion message; it never edits credentials,
 account settings, branch rules or community artifacts.
 
@@ -82,10 +89,27 @@ completed release. You can also request this explicitly with the read-only check
 npm run release:publish -- --version 0.5.1 --verify-only
 ```
 
-This checks the current published manifest, public downloads and live site; it
+This checks the published kit manifest, tag, README link, all three public asset
+size/SHA256 values and the independent live platform choices described above; it
 cannot dispatch a workflow, create/publish a release, change a branch or merge a PR.
-If the live site has not yet deployed after a successful merge, retry verification;
-a timeout does not undo the already published release or merged PR.
+If live platform links differ from published platform metadata, retry after that
+platform deployment is verified; a timeout does not undo the published manual-kit
+release or merged metadata PR.
+
+`--verify-only` targets the current version recorded on main and requires that
+manifest to be published. After main advances to a newer local candidate, it
+rejects both verification of that unpublished version and requests for the older
+published version; it does not switch to `release/published-kit.json`. Verify the
+older public assets and receipts directly when needed. The website can continue
+using its retained published fallback while local development proceeds.
+
+After publication, the next development cycle can use the normal new-local-version
+steps above. Preserve the exact last published kit manifest in
+`release/published-kit.json`, keep README's public link and all public native
+installer/feed metadata pinned, and update the new local kit/extension version,
+bundled VSIX references and local Mac build counter required by the build-order
+guard. Advancing that source counter does not change the public signed feed. A local candidate and CI review artifacts
+are not a release; publishing still requires explicit authorization.
 
 ## Preparation workflow and manual fallback
 
@@ -146,8 +170,9 @@ local. Update README's direct kit download link to that same verified kit URL.
 This promotion and link edit remain an explicit metadata change for owner review.
 Run configuration and website typecheck/tests/build; CI skips rebuilding
 this published version. The website reads the manifest during preparation/build,
-so merging the metadata PR updates its download links through the configured
-hosting path. Verify the live site's download retrieves the same measured kit.
+while its public buttons continue to select Mac and Microsoft Store downloads.
+Verify the README manual-kit link and all three anonymous asset hashes; verify
+platform links and Mac installer bytes separately as described above.
 Record the release URL, target commit, run ID, review verdict and public download
 verification in the short current handoff and tracked [evidence index](EVIDENCE.md).
 Keep logs/binaries ignored and archive phase detail. Future improvements start
