@@ -4,6 +4,7 @@ param([Parameter(Mandatory)][string]$PackageFamily, [Parameter(Mandatory)][strin
       [ValidateRange(60,1200)][int]$TimeoutSeconds = 900)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'windows-editor-window.ps1')
 if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:RUNNER_OS -ne 'Windows') { throw 'A disposable GitHub-hosted Windows runner is required.' }
 if ($PackageFamily -ne 'Codepet.zerostudio_g62pw1js6rhjp') { throw 'Unexpected package family.' }
 Add-Type -AssemblyName UIAutomationClient
@@ -227,5 +228,12 @@ foreach ($exe in @('java.exe', 'javac.exe')) {
 }
 $manifests = @(Get-ChildItem -LiteralPath $extensions -Directory | ForEach-Object { $p = Join-Path $_.FullName 'package.json'; if (Test-Path -LiteralPath $p) { Get-Content -LiteralPath $p -Raw | ConvertFrom-Json } })
 if (-not @($manifests | Where-Object { $_.publisher -eq 'zero' -and $_.name -eq 'zero' -and $_.version -eq $KitVersion }).Count -or -not @($manifests | Where-Object { $_.publisher -eq 'redhat' -and $_.name -eq 'java' }).Count) { throw 'Zero or Java extension was not installed.' }
-if (-not @(Get-CimInstance Win32_Process -Filter "Name='Code.exe'" | Where-Object { $_.CommandLine -and ($_.CommandLine.Contains($logicalData) -or $_.CommandLine.Contains($data)) -and $_.CreationDate.ToUniversalTime() -ge $started }).Count) { throw 'The isolated VS Code process was not observed.' }
+$editorWindowState = @{}
+$editorReady = $false
+while ([DateTime]::UtcNow -lt $deadline) {
+    $windows = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Children, [System.Windows.Automation.Condition]::TrueCondition)
+    if (Get-ZeroEditorWindowProof -State $editorWindowState -ProfilePaths @((Join-Path $logicalData 'editor\user-data'), (Join-Path $data 'editor\user-data')) -Started $started -Windows @($windows)) { $editorReady = $true; break }
+    Start-Sleep -Seconds 1
+}
+if (-not $editorReady) { throw 'The isolated editor did not show a fresh visible window stable for three seconds.' }
 Write-Host 'MSIX first-run setup, private Java, VS Code and Java extension verified.'

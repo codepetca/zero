@@ -1,4 +1,6 @@
 # In-place deployment and launcher proof on a clean, disposable Windows runner.
+# One-off diagnostic for retained, source-bound candidates; no permanent workflow
+# depends on the historical .58 Actions artifact, whose retention is limited.
 # Both immutable unsigned candidates are copied and signed with ONE temporary cert.
 # This proves a local MSIX upgrade, never Microsoft Store signing or delivery.
 [CmdletBinding()]
@@ -16,6 +18,7 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'windows-editor-window.ps1')
 $identity = 'Codepet.zerostudio'
 $publisher = 'CN=DC9AEBC0-4CAE-4681-9E52-20B0B1C14919'
 $family = 'Codepet.zerostudio_g62pw1js6rhjp'
@@ -240,9 +243,7 @@ try {
     if (-not $activatedPid) { throw 'New packaged activation returned no process ID.' }
     $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
     $ready = $false
-    $editorWindowPid = $null
-    $editorWindowHandle = [IntPtr]::Zero
-    $editorWindowSince = $null
+    $editorWindowState = @{}
     while ([DateTime]::UtcNow -lt $deadline) {
         $windows = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Children, [System.Windows.Automation.Condition]::TrueCondition)
         foreach ($window in $windows) {
@@ -252,9 +253,6 @@ try {
                 $report.consentPromptOnReopen = $true; throw 'Upgrade lost prior dependency consent.'
             }
         }
-        $editor = @(Get-CimInstance Win32_Process -Filter "Name='Code.exe'" | Where-Object {
-            $_.CommandLine -and $_.CommandLine.IndexOf((Join-Path $data 'editor\user-data'), [StringComparison]::OrdinalIgnoreCase) -ge 0 -and $_.CreationDate.ToUniversalTime() -ge $started
-        })
         $extensionRoot = Join-Path $data 'editor\extensions'
         $versions = @()
         if (Test-Path -LiteralPath $extensionRoot) {
@@ -266,28 +264,9 @@ try {
                 }
             }
         }
-        # A CLI Electron process can share Code.exe/profile arguments. Require
-        # an actual visible top-level GUI window, with the same process/handle
-        # persisting for at least three seconds after package activation.
-        $gui = @($editor | Where-Object {
-            $candidatePid = $_.ProcessId
-            $process = Get-Process -Id $candidatePid -ErrorAction SilentlyContinue
-            if (-not $process -or $process.MainWindowHandle -eq [IntPtr]::Zero -or [string]::IsNullOrWhiteSpace($process.MainWindowTitle)) { return $false }
-            @($windows | Where-Object {
-                $_.Current.ProcessId -eq $candidatePid -and $_.Current.NativeWindowHandle -eq $process.MainWindowHandle.ToInt64() -and
-                -not $_.Current.IsOffscreen -and -not [string]::IsNullOrWhiteSpace($_.Current.Name)
-            }).Count -gt 0
-        })
-        if ($gui.Count -gt 0) {
-            $guiProcess = Get-Process -Id $gui[0].ProcessId -ErrorAction SilentlyContinue
-            if ($guiProcess -and $guiProcess.MainWindowHandle -ne [IntPtr]::Zero) {
-                if ($editorWindowPid -ne $guiProcess.Id -or $editorWindowHandle -ne $guiProcess.MainWindowHandle) {
-                    $editorWindowPid = $guiProcess.Id; $editorWindowHandle = $guiProcess.MainWindowHandle; $editorWindowSince = [DateTime]::UtcNow
-                }
-            } else { $editorWindowSince = $null }
-        } else { $editorWindowSince = $null; $editorWindowPid = $null; $editorWindowHandle = [IntPtr]::Zero }
+        $editorWindowReady = Get-ZeroEditorWindowProof -State $editorWindowState -ProfilePaths @((Join-Path $data 'editor\user-data')) -Started $started -Windows @($windows)
         $kitMetadata = Get-Content -LiteralPath (Join-Path $project 'setup\kit.properties') -Raw
-        if ($editorWindowSince -and ([DateTime]::UtcNow - $editorWindowSince).TotalSeconds -ge 3 -and
+        if ($editorWindowReady -and
             $ExpectedNewKitVersion -in $versions -and $kitMetadata -match ('(?m)^kitVersion=' + [regex]::Escape($ExpectedNewKitVersion) + '\r?$')) { $ready = $true; break }
         Start-Sleep -Seconds 1
     }
