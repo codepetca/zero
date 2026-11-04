@@ -1,5 +1,20 @@
 # Verification
 
+## Manual-kit publisher contract correction — 2026-11-04
+
+The publisher now targets README's general Manual setup kit link and validates
+that slot and public platform metadata before dispatch/publication. It preserves
+the website's Mac/Microsoft Store choices, separately verifies their visible
+links and exact Mac bytes, and retains all three kit asset/tag/source checks.
+All 84 release publisher/review tests and root configuration/syntax/documentation
+checks passed; whitespace passed. Fixtures cover the actual README, Mac/Store-only
+markup, independent Mac fallback, hidden/stale/duplicate links, corrupt downloads,
+preflight failures and mutation-free verify-only. The suites use mocked GitHub/HTTP.
+A subsequent real read-only `verifyOnly` run for 0.5.63 passed against current main:
+public release/tag/README, all three anonymous manual assets, both live platform
+pages and exact public Mac bytes matched. No release publication, live publishing
+cycle or merge was performed. Independent review and exact-head CI remain pending.
+
 ## Store first-run source integration — 2026-11-04
 
 Integrated the four prior Store preparation commits (3e7de865, ffbe4de3,
