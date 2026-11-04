@@ -12200,3 +12200,18 @@ and produced a validated browser export. In an isolated macOS VS Code host, the
 update notice, confirmation, update, simulated incomplete-marker recovery, and
 shortened confirmation were exercised. Physical interruption, Windows and Linux
 editor interaction were not tested. No kit or website was published.
+
+## Mac 0.5.61 publication
+
+The signed and notarized 0.5.61 installer was sealed from preparation commit
+`f4eb39cc306346a4a6c5b379e005556eb79ec0ac` and published at
+[setup-v0.5.61](https://github.com/codepetca/zero/releases/tag/setup-v0.5.61).
+Authenticated draft and anonymous public downloads matched the sealed image's
+6,321,321 bytes and SHA-256
+`cced18146a60c22268128aa8b86ec4406826c47d24058dcafe6439e6a675ef72`.
+On the maintainer Mac, native setup and readiness passed; the installed extension
+updated a disposable 0.5.59 project, which compiled and produced a validated
+browser export. Installed-editor interaction, actual Sparkle delivery, fresh-Mac
+and physical Windows acceptance remain unverified. The signed feed and download
+promotion in this change require live verification after deployment; the separate
+published manual kit remains unchanged.

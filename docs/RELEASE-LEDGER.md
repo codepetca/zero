@@ -1,14 +1,14 @@
 # Zero release ledger
 
-Last reconciled: 2026-11-02 (America/Toronto). This is a dated working record,
+Last reconciled: 2026-11-03 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| Website | Actor lesson from PR #246 and Mac 0.5.60 download/feed from PR #249 deployed automatically from main. | Simplified Setup Help is in this source change; verify its deployment after merge. |
-| Mac installer | [0.5.60](https://github.com/codepetca/zero/releases/tag/setup-v0.5.60) published October 31; its download page and signed update feed were verified live. | Actual automatic upgrade and fresh Mac installation remain untested. |
+| Website | Mac 0.5.60 download/feed from PR #249 verified live; 0.5.61 promotion is pending deployment. | Verify the 0.5.61 download and exact signed feed after this change is deployed. |
+| Mac installer | [0.5.61](https://github.com/codepetca/zero/releases/tag/setup-v0.5.61) published November 3; anonymous download matches the sealed candidate. | Actual automatic upgrade and fresh Mac installation remain untested. |
 | Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) is publicly listed; the owner confirmed publication on November 2. | Verify the installed version and test Store installation and updates on Windows. |
 | Windows standalone download | [0.5.59 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.59) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.59) published October 31. | Physical Windows and school-device acceptance remains outstanding; updates are disabled. |
 
