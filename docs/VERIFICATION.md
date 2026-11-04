@@ -1,5 +1,33 @@
 # Verification
 
+## Store first-run source integration — 2026-11-04
+
+Integrated the four prior Store preparation commits (3e7de865, ffbe4de3,
+8f4b85a0, ed42e8bc) onto current main f726a77d with cherry-pick provenance.
+Store children now receive physical redirected runtime/kit paths while extraction
+uses the shorter virtual path; managed Java recognizes the actual package profile.
+The launcher has explicit DPI configuration and Store packaging requires an x64
+PE. Download receipts still require the complete SHA-256 even where the editor
+folder uses a shortened locator. No release version or published bytes changed.
+
+The manual same-certificate upgrade workflow keeps the pinned 0.5.58 baseline
+and derives its new target from the checked-out kit definition instead of the
+obsolete 0.5.60 constant. The harness verifies an increasing package version,
+source-bound receipts, preserved student/profile state, private Java and a fresh
+visible editor window. This is a local MSIX upgrade test, not Store delivery.
+
+Local macOS checks passed: `npm run check`; actionlint for both changed workflows;
+12 CI selection/gate tests; 14 focused managed-Java/MSIX tests (two additional
+Windows/PowerShell tests skipped); and all four `npm run test:windows` C# harness
+builds/executions under Mono (2697 wrapper, 2442 Store feasibility and 2480 Store
+production assertions plus updater scenarios). An actual Store launcher build
+with a compile-only fixture kit passed locked restore and produced the expected
+x64 PE and DPI config. That build is not a releasable kit or MSIX candidate.
+`git diff --check` passed. PowerShell/WACK execution, real Windows installation,
+first-run, same-certificate upgrade, Store signing/certification/delivery and
+physical school-device acceptance were not performed locally. Exact final-source
+CI and independent integration review remain required before publication.
+
 ## Project-owned library Add prototype — 2026-11-03
 
 Subsequent owner direction selects one supported browser builder. Explicit

@@ -57,10 +57,15 @@ jobs:
           npm run package:windows:msix -- --packager "$packager" --kind makeappx --channel store --output "$output"
           $kit = Get-Content -LiteralPath 'dist/release.json' -Raw | ConvertFrom-Json
           $receipt = Get-Content -LiteralPath (Join-Path $output 'build-msix.json') -Raw | ConvertFrom-Json
-          if ($kit.kitVersion -ne '0.5.60' -or $receipt.kitVersion -ne $kit.kitVersion -or $receipt.packageVersion -ne '1.5.60.0' -or $receipt.sourceRevision -ne $source -or $receipt.sourceDirty -ne $false -or $receipt.kind -ne 'msix-store' -or $receipt.kit.sha256 -ne $kit.assets.kit.sha256 -or $receipt.packager.sha256 -ne (Get-FileHash -LiteralPath $packager -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'Candidate receipt does not bind the required source, kit, version and packager.' }
-          $artifact = Join-Path $output 'Zero-0.5.60-msix-store-x64.msix'
+          $definition = Get-Content -LiteralPath 'release/kit.json' -Raw | ConvertFrom-Json
+          $packageVersion = node --input-type=module -e "import {msixVersion} from './scripts/windows-msix.mjs'; console.log(msixVersion(process.argv[1]));" $definition.kitVersion
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot map the checked-out kit version to a Store version.' }
+          if ($kit.kitVersion -ne $definition.kitVersion -or $receipt.kitVersion -ne $kit.kitVersion -or $receipt.packageVersion -ne $packageVersion -or $receipt.sourceRevision -ne $source -or $receipt.sourceDirty -ne $false -or $receipt.kind -ne 'msix-store' -or $receipt.kit.sha256 -ne $kit.assets.kit.sha256 -or $receipt.packager.sha256 -ne (Get-FileHash -LiteralPath $packager -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'Candidate receipt does not bind the required source, kit, version and packager.' }
+          $artifact = Join-Path $output ("Zero-{0}-msix-store-x64.msix" -f $definition.kitVersion)
           if ($receipt.artifact.filename -ne (Split-Path $artifact -Leaf) -or $receipt.artifact.sha256 -ne (Get-FileHash -LiteralPath $artifact -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'Candidate hash or filename does not match its receipt.' }
           "path=$artifact" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "kit-version=$($definition.kitVersion)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "package-version=$packageVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
       - name: Download pinned previous candidate
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
@@ -86,9 +91,11 @@ jobs:
           OLD_PACKAGE: ${{ steps.previous.outputs.path }}
           OLD_RECEIPT: ${{ steps.previous.outputs.receipt }}
           NEW_PACKAGE: ${{ steps.candidate.outputs.path }}
+          NEW_KIT_VERSION: ${{ steps.candidate.outputs.kit-version }}
+          NEW_PACKAGE_VERSION: ${{ steps.candidate.outputs.package-version }}
         run: |
           $ErrorActionPreference = 'Stop'
-          & ./scripts/test-windows-msix-upgrade.ps1 -OldPackage $env:OLD_PACKAGE -OldBuildReceipt $env:OLD_RECEIPT -NewPackage $env:NEW_PACKAGE -NewBuildReceipt (Join-Path $env:GITHUB_WORKSPACE 'dist/msix/build-msix.json') -ExpectedNewSourceRevision $env:GITHUB_SHA -Receipt (Join-Path $env:RUNNER_TEMP 'zero-upgrade-report.json')
+          & ./scripts/test-windows-msix-upgrade.ps1 -OldPackage $env:OLD_PACKAGE -OldBuildReceipt $env:OLD_RECEIPT -NewPackage $env:NEW_PACKAGE -NewBuildReceipt (Join-Path $env:GITHUB_WORKSPACE 'dist/msix/build-msix.json') -ExpectedNewSourceRevision $env:GITHUB_SHA -ExpectedNewKitVersion $env:NEW_KIT_VERSION -ExpectedNewPackageVersion $env:NEW_PACKAGE_VERSION -Receipt (Join-Path $env:RUNNER_TEMP 'zero-upgrade-report.json')
       - name: Retain candidate and sanitized upgrade receipt
         if: always() && steps.candidate.outcome == 'success'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -97,6 +104,6 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           path: |
-            dist/msix/Zero-0.5.60-msix-store-x64.msix
+            ${{ steps.candidate.outputs.path }}
             dist/msix/build-msix.json
             ${{ runner.temp }}/zero-upgrade-report.json

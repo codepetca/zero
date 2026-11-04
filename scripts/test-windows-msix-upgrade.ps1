@@ -8,6 +8,8 @@ param(
     [Parameter(Mandatory)][string]$NewPackage,
     [Parameter(Mandatory)][string]$NewBuildReceipt,
     [Parameter(Mandatory)][ValidatePattern('^[a-f0-9]{40}$')][string]$ExpectedNewSourceRevision,
+    [Parameter(Mandatory)][ValidatePattern('^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$')][string]$ExpectedNewKitVersion,
+    [Parameter(Mandatory)][ValidatePattern('^[1-9][0-9]*\.[0-9]+\.[0-9]+\.0$')][string]$ExpectedNewPackageVersion,
     [Parameter(Mandatory)][string]$Receipt,
     [string]$FirstRunScript = (Join-Path $PSScriptRoot 'test-msix-first-run.ps1'),
     [ValidateRange(120,1200)][int]$TimeoutSeconds = 600
@@ -39,7 +41,7 @@ $report = [ordered]@{
     kind = 'same-certificate-local-msix-upgrade'; identity = $identity; family = $family
     oldRunId = '41134687731'; oldRunAttempt = '1'; oldSourceRevision = $oldSource
     newSourceRevision = $ExpectedNewSourceRevision
-    oldVersion = '1.5.58.0'; newVersion = '1.5.60.0'
+    oldVersion = '1.5.58.0'; newVersion = $ExpectedNewPackageVersion
     oldCandidateSha256 = $null; newCandidateSha256 = $null
     oldSignedCopySha256 = $null; newSignedCopySha256 = $null
     signingThumbprint = $null; oldPackageFullName = $null; newPackageFullName = $null
@@ -162,7 +164,8 @@ try {
     if ($signature.Status -ne 'Valid' -or -not $signature.SignerCertificate -or $signature.SignerCertificate.Subject -notmatch '(?:^|,\s*)O=Microsoft Corporation(?:,|$)') { throw 'SignTool must have valid Microsoft Authenticode.' }
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $old = Check-Candidate $OldPackage $OldBuildReceipt '0.5.58' '1.5.58.0' $oldSource
-    $new = Check-Candidate $NewPackage $NewBuildReceipt '0.5.60' '1.5.60.0' $ExpectedNewSourceRevision
+    $new = Check-Candidate $NewPackage $NewBuildReceipt $ExpectedNewKitVersion $ExpectedNewPackageVersion $ExpectedNewSourceRevision
+    if ([version]$new.Version -le [version]$old.Version) { throw 'New package must advance the pinned previous version.' }
     $candidates = @($old, $new)
     if ($old.Hash -ne $oldHash -or $old.Path -eq $new.Path -or $receiptPath -in @($old.Path, $new.Path)) { throw 'Pinned old candidate or distinct path check failed.' }
     $report.oldCandidateSha256 = $old.Hash; $report.newCandidateSha256 = $new.Hash
@@ -285,12 +288,12 @@ try {
         } else { $editorWindowSince = $null; $editorWindowPid = $null; $editorWindowHandle = [IntPtr]::Zero }
         $kitMetadata = Get-Content -LiteralPath (Join-Path $project 'setup\kit.properties') -Raw
         if ($editorWindowSince -and ([DateTime]::UtcNow - $editorWindowSince).TotalSeconds -ge 3 -and
-            '0.5.60' -in $versions -and $kitMetadata -match '(?m)^kitVersion=0\.5\.60\r?$') { $ready = $true; break }
+            $ExpectedNewKitVersion -in $versions -and $kitMetadata -match ('(?m)^kitVersion=' + [regex]::Escape($ExpectedNewKitVersion) + '\r?$')) { $ready = $true; break }
         Start-Sleep -Seconds 1
     }
     if (-not $ready) { throw 'New activation did not open the isolated editor with the current extension and kit.' }
     $report.newEditorObserved = $true; $report.newEditorWindowVerified = $true
-    $report.zeroExtensionVersion = '0.5.60'; $report.newKitVersion = '0.5.60'
+    $report.zeroExtensionVersion = $ExpectedNewKitVersion; $report.newKitVersion = $ExpectedNewKitVersion
     $stage = 'private-java'
     $settings = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json
     $runtimes = @($settings.'java.configuration.runtimes' | Where-Object { $_.name -eq 'JavaSE-21' -and $_.default -eq $true })
@@ -321,7 +324,7 @@ try {
         try { Close-OwnedProcesses } catch { $cleanupErrors.Add('owned processes') }
         try {
             foreach ($package in @(Get-AppxPackage -Name $identity)) {
-                if ($package.Publisher -ne $publisher -or $package.PackageFamilyName -ne $family -or $package.Version.ToString() -notin @('1.5.58.0', '1.5.60.0')) { throw 'Unexpected package during cleanup.' }
+                if ($package.Publisher -ne $publisher -or $package.PackageFamilyName -ne $family -or $package.Version.ToString() -notin @('1.5.58.0', $ExpectedNewPackageVersion)) { throw 'Unexpected package during cleanup.' }
                 Remove-AppxPackage -Package $package.PackageFullName -ErrorAction Stop
             }
             if (@(Get-AppxPackage -Name $identity).Count -ne 0) { throw 'Package remains.' }
