@@ -115,6 +115,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
     setQuery('');
     setMobileOpen(false);
     window.history.pushState(null, '', `#${target}`);
+    window.dispatchEvent(new Event('zero:docs-location'));
     // Wait for a closed Advanced section to render before following its anchor.
     requestAnimationFrame(() => {
       const element = document.getElementById(target);

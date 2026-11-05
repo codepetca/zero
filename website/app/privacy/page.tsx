@@ -8,7 +8,7 @@ export default function Privacy() {
   return <LearnTheme active="">
     <main id="page-content" tabIndex={-1} className="legal-page">
       <h1>Privacy</h1>
-      <p>Codepet Inc. · Last updated October 25, 2026</p>
+      <p>Codepet Inc. · Last updated November 5, 2026</p>
       <div className="legal-summary">
         <h2>The essentials</h2>
         <p>You can browse Zero’s learning material without connecting GitHub. Connecting GitHub lets Zero process your account identity and credentials for the features you choose to use. Your GitHub password is entered on GitHub, not into Zero.</p>
@@ -35,6 +35,7 @@ export default function Privacy() {
           <li><strong>Website sign-in:</strong> an encrypted browser session cookie holds your GitHub ID, username, access token and a security token. It is unavailable to page JavaScript and is marked Secure on HTTPS. It expires within eight hours, or sooner if the GitHub token expires. A separate sign-in flow cookie expires after ten minutes. Signing out clears the website session cookie.</li>
           <li><strong>Desktop browser sign-in:</strong> short-lived verification cookies and tickets connect the browser sign-in to the requesting editor. They are separate from a ZeroHub browser session and expire within minutes.</li>
           <li><strong>Appearance:</strong> your theme choice is saved in the browser’s local storage until you clear it or change it. It has no automatic expiry.</li>
+          <li><strong>Documentation:</strong> your last visited tutorial or docs page and section are saved in that browser’s local storage so Zero Docs can reopen it. Query parameters are not saved. The entry has no automatic expiry and can be removed by clearing site data.</li>
           <li><strong>Local preparation previews:</strong> development-only preparation screens can keep draft form values and retry identifiers in the current browser tab’s session storage. Saving a draft there does not submit it. ZeroJams participation is not enabled on the production site.</li>
           <li><strong>Desktop credentials and history:</strong> Zero uses VS Code SecretStorage for GitHub credentials, including refresh credentials where provided. Recent-project history can retain up to twenty local project paths, timestamps and repository links per GitHub account in the editor’s local state. Projects, Git history, settings and diagnostic output also remain on your device. Local history has no automatic time-based expiry; expired credentials can remain stored until cleared or replaced.</li>
         </ul>
