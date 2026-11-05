@@ -16,7 +16,7 @@ function harness({storage=new Map(),fetcher=async()=>{throw new Error('network')
   const react={useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(fn){index++;effects.push(fn);}};
   const module={exports:{}};
   const context={participateData,refreshImpl,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return ()=>null;return require(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
-  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useMutation,useResource,JamPlanNotice,JamCreate,JamDiscovery,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,MaintainerTools};',context);
+  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useMutation,useResource,JamHelpLink,JamCreate,JamDiscovery,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,MaintainerTools};',context);
   return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},flushEffects(){const work=effects;effects=[];for(const fn of work)fn();},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
 }
 function elements(node) {
@@ -253,18 +253,41 @@ test('participation form remounts for event or signed-in identity changes',()=>{
   assert.match(clientSource,/entry-source:\$\{id\}:\$\{user\?\.id/);
 });
 
-test('participation shows the server-provided capacity before the join action',async()=>{
-  const source=await readFile(new URL('../components/JamClient.tsx',import.meta.url),'utf8');
-  assert.match(source,/room for up to \{data\.event\.participantLimit\} participants/);
-  assert.ok(source.indexOf('room for up to {data.event.participantLimit}')<source.indexOf("'Join this jam'"));
+test('Jam pages link to the rules without placing plan details in the main flow',()=>{
+  const h=harness(),link=h.render('JamHelpLink');
+  assert.ok(elements(link).some(node=>node.props?.href==='/hub/jams/rules'));
+  for(const page of ['JamDiscovery','JamCreate'])assert.ok(elements(h.render(page)).some(node=>node.type?.name==='JamHelpLink'));
+  assert.match(clientSource,/<JamHelpLink\/>(?=<div className="jam-actions">\{!joined\?)/);
+  assert.match(clientSource,/Participants: \{data\.event\.participantCount\} · Limit: \{data\.event\.participantLimit\}/);
+  assert.match(clientSource,/Create a jam<\/Link> <span className="jam-muted">Pro<\/span>/);
+  assert.doesNotMatch(clientSource,/JamPlanNotice|room for up to \{data\.event\.participantLimit\} participants/);
 });
 
-
-test('Jam discovery and creation explain free participation and manual Pro access',()=>{
-  const h=harness(),markup=renderToStaticMarkup(h.render('JamPlanNotice'));
-  assert.match(markup,/Joining a jam is free/);assert.match(markup,/Pro license/);assert.match(markup,/up to 100 participants/);
-  assert.match(markup,/href="mailto:info@codepet.ca"/);assert.match(markup,/enabled manually/);assert.match(markup,/no online checkout yet/);
-  for(const page of ['JamDiscovery','JamCreate'])assert.ok(elements(h.render(page)).some(node=>node.type?.name==='JamPlanNotice'));
+test('Jam rules page explains plans, access and timing',async()=>{
+  const source=await readFile(new URL('../app/hub/jams/rules/page.tsx',import.meta.url),'utf8');
+  const module={exports:{}},React=require('react');
+  vm.runInNewContext(compile(source),{module,exports:module.exports,require(name){
+    if(name==='next/link')return {default:({href,children})=>React.createElement('a',{href},children)};
+    if(name==='@/components/JamShell')return {JamShell:({children})=>React.createElement(React.Fragment,null,children)};
+    return require(name);
+  }});
+  const markup=renderToStaticMarkup(React.createElement(module.exports.default));
+  for(const phrase of ['Joining is free','Pro license','100 distinct GitHub accounts','enabled manually','automatically approved','one active jam','gallery opens','no online checkout','Accounts still count after leaving','Older jams may require an exact source commit'])assert.ok(markup.includes(phrase),phrase);
+  assert.match(markup,/href="mailto:info@codepet.ca"/);assert.match(markup,/href="\/hub\/jams"/);
+  // Exercise the actual Jam layout with the actual rules component; all Jam
+  // pages, including this route, share the same production/preview gate.
+  const {jamsPreviewAvailable}=await import('../lib/jams-visibility.mjs');
+  const layoutSource=await readFile(new URL('../app/hub/jams/layout.tsx',import.meta.url),'utf8');
+  for(const [env,visible] of [[{NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'1'},true],[{NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production'},false],[{NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'preview',ZERO_JAMS_PILOT_ENABLED:'1'},false]]){
+    const layout={exports:{}};vm.runInNewContext(compile(layoutSource),{module:layout,exports:layout.exports,require(name){
+      if(name==='@/lib/jams-visibility.mjs')return {jamsPreviewAvailable:()=>jamsPreviewAvailable(env)};
+      if(name==='next/navigation')return {notFound:()=>{throw Error('not-found');}};
+      return require(name);
+    }});
+    const child=React.createElement(module.exports.default);
+    if(visible)assert.match(renderToStaticMarkup(layout.exports.default({children:child})),/How ZeroJams works/);
+    else assert.throws(()=>layout.exports.default({children:child}),/not-found/);
+  }
 });
 
 test('server-denied Pro proposal shows its error and keeps the operation for retry',async()=>{
@@ -274,12 +297,11 @@ test('server-denied Pro proposal shows its error and keeps the operation for ret
   assert.equal(h.render('useMutation','/api/jams/proposals').error,denial);assert.equal(calls,1);assert.equal(storage.size,1);
 });
 
-test('creation explains automatic approval and one active jam without promising manual review',()=>{
-  const h=harness(),tree=h.render('JamCreate'),nodes=elements(tree);
-  const lead=nodes.find(node=>node.type==='p'&&node.props.className==='lead');
-  assert.match(lead.props.children,/automatically approved/);assert.match(lead.props.children,/one active jam at a time/);assert.match(lead.props.children,/gallery opens/);
+test('creation stays concise and historical manual review remains supported',()=>{
+  const h=harness(),nodes=elements(h.render('JamCreate'));
+  assert.ok(nodes.some(node=>node.type?.name==='JamHelpLink'));
   assert.doesNotMatch(clientSource,/Send for maintainer review|An independent Zero maintainer reviews your proposal/);
-  assert.match(clientSource,/data\.canMaintain&&proposal\.status==='submitted'/,'historical pending review remains supported');
+  assert.match(clientSource,/data\.canMaintain&&proposal\.status==='submitted'/);
 });
 
 test('a one-active-jam conflict preserves the server message and operation for retry',async()=>{
@@ -401,4 +423,12 @@ test('JamDetail retains one cancellation receipt across loading, failed refresh 
   assert.equal(nodes.filter(n=>n.props?.role==='status'&&n.props.children==='Cancellation confirmed by Zero.').length,1);child=nodes.find(n=>n.type?.name==='CreatorCancel');assert.equal(child.props.confirmedByParent,true);
   parent.setDetail({...initial,event:{...event,moderation:{status:'cancelled'}}});assert.equal(render().some(n=>n.props?.children==='Cancellation confirmed by Zero.'),false);
   parent.setDetail(initial);parent.setActor({id:'99',login:'other',csrfToken:'csrf'});assert.equal(render().some(n=>n.props?.children==='Cancellation confirmed by Zero.'),false);
+});
+
+test('participation shows the current server count and limit beside Join',()=>{
+  const event={id:'jam-42',type:'game',title:'Jam',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',timezone:'UTC',schedule:{},revision:'a',moderation:{status:'active'},registrationOpen:true,submissionsOpen:false,participantCount:8,participantLimit:100,participants:[],entries:[]};
+  const h=harness({participateData:{event,registration:null,entry:null,canMaintain:false}}),nodes=elements(h.render('JamParticipate',{id:'jam-42'}));
+  const count=nodes.findIndex(node=>node.type==='p'&&Array.isArray(node.props.children)&&node.props.children[0]==='Participants: ');
+  const join=nodes.findIndex(node=>node.type==='button'&&node.props.children==='Join this jam');
+  assert.ok(count>=0&&count<join);assert.deepEqual(Array.from(nodes[count].props.children),['Participants: ',8,' · Limit: ',100]);
 });
