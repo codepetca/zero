@@ -216,8 +216,11 @@ movement, coins, win and Restart still work. The badge has no game-state job.
 
 ## 7. Extract the practice library
 
-Keep this same tutorial repository. In **Libraries and games → Extract library**,
-select **only CreditsBadge.java**, choose **UI component**, and use the
+Keep this same tutorial repository. Choose:
+
+**Libraries and games → Extract library**
+
+Select **only CreditsBadge.java**, choose **UI component**, and use the
 exact library name **`tutorial-credits-badge`**, version **`0.1.0`**. Give it the
 title **Tutorial practice: CreditsBadge** and a short description saying it is
 from this lesson. Retain the supplied MIT licence and credit Zero's tutorial.
@@ -248,7 +251,11 @@ with the small practice sources below, retaining each filename:
 extraction added to your Main.** The reference uses a made-up repository ID;
 your own package will differ. Do not copy Zero framework source into the library.
 
-Under **Libraries → Tutorial practice: CreditsBadge**, choose **Check library…**. The checks verify
+In the project tree, open:
+
+**Libraries → Tutorial practice: CreditsBadge**
+
+Choose **Check library…**. The checks verify
 independent messages, correct label text, a fresh view for each mounting and a
 useful null-message error. The two finite examples use different caller messages.
 They compile separately against the actual library JAR. This is a local result,
@@ -281,8 +288,14 @@ They are labelled tutorial copies and excluded from ordinary Projects/Libraries
 search. Everyone is expected to have a similar badge. Completing the workflow is
 the achievement; these are not candidates for automatic inclusion in Zero.
 
-To try a classmate's accepted version, choose **Libraries and games → Browse
-tutorial practice** in Zero, select their badge, deliberately choose a version if offered, and **Add library → Apply**.
+To try a classmate's accepted version, choose:
+
+**Libraries and games → Browse tutorial practice**
+
+Select their badge, deliberately choose a version if offered, then choose:
+
+**Add library → Apply**
+
 Use the exact import shown for their package. In Main, replace only the badge
 construction with their fully qualified class name and the same message argument;
 keep your own library in local mode and keep the game rules unchanged. Run App

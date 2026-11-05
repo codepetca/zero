@@ -37,6 +37,7 @@ test('footer presents one direct Terms and Privacy link without the use-based no
   assert.doesNotMatch(text(html), /By using this site, you agree/i);
   assert.equal((html.match(/href="\/terms"/g) || []).length, 1);
   assert.equal((html.match(/href="\/privacy"/g) || []).length, 1);
+  assert.equal((html.match(/href="mailto:info@codepet\.ca"/g) || []).length, 1);
 });
 
 test('privacy notice distinguishes terms agreement from required personal-information consent', async () => {

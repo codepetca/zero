@@ -1,13 +1,16 @@
-import { ArrowRight, ChevronDown, ChevronRight, CircleCheck, CircleHelp, Info, Download, Flag, Menu, Moon, Play, Search, Star, Sun, TriangleAlert, UserRound, X } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronDown, ChevronRight, CircleCheck, CircleHelp, Info, Download, Flag, GraduationCap, GraphStar, Menu, Moon, Play, Search, Star, Sun, TriangleAlert, UserRound, X } from "lucide-react";
 
 const icons = {
   "arrow-right": ArrowRight,
+  "book-open": BookOpen,
   "chevron-down": ChevronDown,
   "chevron-right": ChevronRight,
   "circle-check": CircleCheck,
   "circle-help": CircleHelp,
   download: Download,
   flag: Flag,
+  "graduation-cap": GraduationCap,
+  "graph-star": GraphStar,
   info: Info,
   menu: Menu,
   play: Play,

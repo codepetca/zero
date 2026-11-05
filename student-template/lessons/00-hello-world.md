@@ -4,7 +4,13 @@
 
 Target illustration: your greeting after you write it.
 
-In Zero, sign in to GitHub and complete access setup if needed. Choose **Project → New**, name your project (for example, `greeting`) and choose a clone location. Zero creates your public repository and opens its clone. In Project Explorer, open **java → Main.java** (`java/Main.java`). Replace its contents with this starting file and save it:
+## 1. Create your project
+
+In Zero, sign in to GitHub and complete access setup if needed. On the Start Page, choose:
+
+**Project → New**
+
+Name your project (for example, `zero-greeting`) and choose a clone location. Zero creates your public repository and opens its clone. In Project Explorer, open **java → Main.java** (`java/Main.java`). Replace its contents with this starting file and save it:
 
 ```java
 import zero.App;
@@ -20,7 +26,7 @@ public class Main extends App {
 }
 ```
 
-## 1. Add this import after `import zero.App;`
+## 2. Add this import after `import zero.App;`
 
 This starting `Main.java` has `Main extends App`, `settings()` with `padding(20)`, an empty `setup()` and a `main` method. Keep those lines. The empty setup opens a blank window, so your first control is yours to write. Add the `Label` import in `Main.java`; replace the matching lines with the copied code:
 
@@ -29,7 +35,7 @@ import zero.App;
 import zero.ui.Label;
 ```
 
-## 2. Write the greeting inside `setup()`
+## 3. Write the greeting inside `setup()`
 
 Replace the empty `setup()` method with the copied code:
 
@@ -44,7 +50,7 @@ Replace the empty `setup()` method with the copied code:
 `new Label(...)` creates a UI component. `show(greeting)` displays it in the
 app window, replacing whatever UI was shown there before.
 
-## 3. Run App, then change the greeting
+## 4. Run App, then change the greeting
 
 Click **Run App**. The window says **Hello, world!**. Replace the matching line with the copied code:
 

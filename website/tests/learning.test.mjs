@@ -217,7 +217,7 @@ test("Coin game revisited reopens the project and leaves media as a student chal
   const folder = new URL("../../student-template/lessons/", import.meta.url);
   const refactor = readFileSync(new URL("10-components.md", folder), "utf8");
   const challenge = readFileSync(new URL("12-media.md", folder), "utf8");
-  assert.match(refactor, /Project → Open local project…/);
+  assert.match(refactor, /Project → Open\*\*/);
   assert.match(refactor, /Project → Clone/);
   assert.match(challenge, /game-assets\.zip/);
   assert.match(challenge, /13-pet\.md/);
@@ -306,15 +306,9 @@ test("legacy starter links retain hosted setup and Pika destinations after sourc
 
 test("tutorial starts use distinct setup actions from continuing lessons", () => {
   const document = readFileSync(new URL("../components/Document.jsx", import.meta.url), "utf8");
-  const tutorialProject = readFileSync(new URL("../components/TutorialProject.jsx", import.meta.url), "utf8");
   const prepare = readFileSync(new URL("../scripts/prepare.mjs", import.meta.url), "utf8");
-  assert.match(document, /<TutorialProject project=\{practiceProject\}/);
-  assert.match(document, /lesson === practiceProject.firstLesson/);
-  assert.doesNotMatch(document + tutorialProject, /First time\?|If you have not started it yet|className="lesson-help"|className="reader-subtitle"|Continue your/);
-  assert.match(tutorialProject, /Project → New/);
-  assert.doesNotMatch(tutorialProject, /templateHref|Use template/);
-  assert.match(tutorialProject, /lesson === project.firstLesson/);
-  assert.doesNotMatch(document + tutorialProject, /generated\/projects\/|zero-project-|Start project|Start Project/);
+  assert.doesNotMatch(document, /TutorialProject|className="lesson-start"/);
+  assert.doesNotMatch(document, /generated\/projects\/|zero-project-|Start project|Start Project/);
   assert.match(prepare, /prepareLessonProjects\(root, \{ website: true, extension: false \}\)/);
   assert.match(prepare, /collect\("teaching\/checkpoints"\)/);
   assert.deepEqual(lessons.filter(({id})=>projectForLesson(id)?.firstLesson===id).map(({id})=>id),["0","3","8","13"]);

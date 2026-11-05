@@ -6,7 +6,13 @@
 
 Target illustration: a correct answer to your first quiz question.
 
-Sign in to GitHub in Zero and complete access setup if needed. Choose **Project → New**, name your project (for example, `study`), and choose a clone location. Zero creates a public repository and opens its clone. Open **java → Main.java**, replace its contents with this starting file, and save it:
+## 1. Create your project
+
+Sign in to GitHub in Zero and complete access setup if needed. On the Start Page, choose:
+
+**Project → New**
+
+Name your project (for example, `zero-study`) and choose a clone location. Zero creates a public repository and opens its clone. Open **java → Main.java**, replace its contents with this starting file, and save it:
 
 ```java
 import zero.App;
@@ -22,7 +28,7 @@ public class Main extends App {
 
 Open the empty `setup()` in your **Study** project’s `Main.java`.
 
-## 1. Add these imports above `public class Main`
+## 2. Add these imports above `public class Main`
 
 Keep the generated `Main extends App`, `setup()` and `main(...)` lines.
 Find:
@@ -38,7 +44,7 @@ import zero.ui.TextField;
 import zero.ui.Column;
 ```
 
-## 2. Add answer and feedback fields above `setup()`
+## 3. Add answer and feedback fields above `setup()`
 
 The button action will need the answer and feedback later. Find:
 
@@ -51,7 +57,7 @@ private TextField answer;
 private Label feedback;
 ```
 
-## 3. Keep the starter’s padding
+## 4. Keep the starter’s padding
 
 Your starter already has this method inside `Main`, above `setup()`. Keep it
 to leave space around the window edges. If you started with an older template,
@@ -67,7 +73,7 @@ add it once inside `Main`, above `setup()`:
 The `10` in `new Column(10, ...)` sets the gaps **between** controls.
 These controls come from Zero, just like the Greeting project.
 
-## 4. Create and show the controls inside `setup()`
+## 5. Create and show the controls inside `setup()`
 
 Find the empty method:
 
@@ -83,7 +89,7 @@ feedback = new Label("");
 show(new Column(10, question, answer, check, feedback));
 ```
 
-## 5. Give Check an action before `show(...)`
+## 6. Give Check an action before `show(...)`
 
 Find:
 
@@ -101,7 +107,7 @@ check.onClick(() -> {
 });
 ```
 
-## 6. Run App and check wrong and right answers
+## 7. Run App and check wrong and right answers
 
 The braces after `if` run when the typed text is exactly `5`; `else` handles
 other text. Click **Run App**. Check `4`: feedback should say **Try again.**. Change it to `5` and check again: feedback should say **Correct!**. Keep this same Study project through lesson 7. You will grow the quiz, then

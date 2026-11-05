@@ -85,4 +85,8 @@ To publish, stop the game, ensure the intended main version is committed and pus
 
 First verify on GitHub that the merged main contains both Java files and both assets, and check the published app actually opens and works. Review the changes and push status in Zero for uncommitted, untracked or unpushed work. Also look through the project folder for files Git ignores: they may not appear in the change list. Commit and push what belongs in your repository, and copy any private or ignored files you need to a separate safe backup. Confirm that backup opens. GitHub cannot restore files you never uploaded.
 
-Close the project. Move the original project folder to your computer’s Trash; **do not empty the Trash**. It remains recoverable there (unless your system automatically empties it), and you should retain another backup. Now use **Project → Clone** to clone your own repository into a different empty location. Open the new clone and Run App. Confirm the welcome screen, Start and Back, picture, flapping, movement and chime. If anything is missing or the clone fails, restore the original folder from Trash or your backup; do not overwrite either copy. A future rebuild may need pinned tools and dependency hosts; keep a copy of your source and finished web output too.
+Close the project. Move the original project folder to your computer’s Trash; **do not empty the Trash**. It remains recoverable there (unless your system automatically empties it), and you should retain another backup. On the Zero Start Page, choose:
+
+**Project → Clone**
+
+Clone your own repository into a different empty location. Open the new clone and Run App. Confirm the welcome screen, Start and Back, picture, flapping, movement and chime. If anything is missing or the clone fails, restore the original folder from Trash or your backup; do not overwrite either copy. A future rebuild may need pinned tools and dependency hosts; keep a copy of your source and finished web output too.

@@ -19,4 +19,12 @@ You can switch between open editor tabs without closing your project. Try openin
 
 ## If no project is open
 
-The sidebar can appear without project files. Open **Zero: Start Page**, then choose **Project ▾ → Open local project…** to select an existing local Zero project. If you do not have one yet, you can still read the tutorials; choose **Project → New** on the Start Page to create a project. Opening these pages does not require creating an account or repository.
+The sidebar can appear without project files. To open an existing project, open **Zero: Start Page**, then choose:
+
+**Project → Open**
+
+Select your existing local Zero project folder. If you do not have a project yet, you can still read the tutorials. When you are ready to create one, sign in to GitHub, complete access setup if needed, and choose:
+
+**Project → New**
+
+Reading these pages does not require creating an account or repository.

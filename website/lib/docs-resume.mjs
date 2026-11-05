@@ -23,3 +23,11 @@ export function resumeLearningLocation(storage, origin) {
   try { return learningLocation(storage.getItem(DOCS_RESUME_KEY), origin) || DOCS_RESUME_DEFAULT; }
   catch { return DOCS_RESUME_DEFAULT; }
 }
+
+// This function is embedded in the early redirect response. Keep its inputs
+// explicit so bundling cannot change references to module-scoped bindings.
+export function resumeInBrowser(key, fallback, validate) {
+  let destination = fallback;
+  try { destination = validate(window.localStorage.getItem(key), window.location.origin) || fallback; } catch {}
+  window.location.replace(destination);
+}

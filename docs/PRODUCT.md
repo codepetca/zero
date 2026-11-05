@@ -32,9 +32,9 @@ sentence while retaining its direct Privacy and Terms links. No explicit
 acceptance registry is implemented. See
 [rollout status and sources](LEGAL-TERMS.md).
 
-Mobile website navigation opens as an overlay dropdown without shifting page
-content. Outside interaction, focus leaving the menu, Escape and selecting a link
-close it; Escape returns focus to the toggle. Desktop navigation stays inline.
+The website header shows Tutorials, Docs and ZeroHub with icons and labels on
+desktop. On small screens the same links remain visible as icons with tooltips
+and accessible names.
 
 ## Outcome
 

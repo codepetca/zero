@@ -8,6 +8,11 @@ test('recognizes shortcuts with platform variants and palette commands', () => {
   assert.equal(documentEmphasisKind(strong({type:'element', children:[text('Cmd+Shift+P')]}, {type:'element', children:[text('Ctrl+Shift+P')]})), 'shortcut');
   assert.equal(documentEmphasisKind(strong(text('Zero: Show Sidebar'))), 'command');
   assert.equal(documentEmphasisKind(strong(text('Preferences: Color Theme'))), 'command');
+  assert.equal(documentEmphasisKind(strong(text('Project → New'))), 'selection');
+  assert.equal(documentEmphasisKind(strong(text('New branch…'))), 'selection');
+  assert.equal(documentEmphasisKind(strong(text('Project ▾ → Open local project…'))), 'selection');
+  assert.equal(documentEmphasisKind(strong(text('Libraries and games → Extract library'))), 'selection');
+  assert.equal(documentEmphasisKind(strong(text('2 → 0 → 1'))), null);
   assert.equal(documentEmphasisKind(strong(text('Run App'))), null);
   assert.equal(documentEmphasisKind(strong(text('Main.java'))), null);
 });

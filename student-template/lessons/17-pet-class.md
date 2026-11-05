@@ -2,13 +2,21 @@
 
 ![Illustration of a bird pet game](visuals/13.svg)
 
-Continue the same Pet project on the `pet-refactor` branch from [lesson 7](16-pet-motion.md).
+Continue the same Pet project from [lesson 7](16-pet-motion.md). Your bird should move, flap and chime.
 
-## 1. Give the pet its own class
+## 1. Start a branch for this change
 
-`Main` now knows the pet's position and animation as well as input and sound. Create `Pet.java` beside `Main.java` and put the entire first class below in that new file. Then select the entire contents of `Main.java` and replace them with the second complete class below. A class describes a kind of object; `new Pet(new SpriteAnimation(8, frames))` creates one pet and gives it an animation. The constructor saves that animation. The position `x` and animation clock belong to that pet. Its `update` changes those fields, and `draw` uses them to paint the pet.
+Before you refactor, make sure your working game is committed and pushed on **main** as described at the end of lesson 7. In the Zero sidebar, click your project name to open its actions, then choose:
 
-Update `Main.java` to match `3/Main.java`: replace the old animation and `x` fields with `Pet pet`; create it in `setup`; pass a direction, elapsed seconds and width to `pet.update`; and call `pet.draw(this)`. `this` is the running game that supplies drawing methods. Main still handles input and sound and calls the pet's update **once** per frame. Both arrows held together produce direction 0. Run again: the image, flapping, movement and Space sound should behave as before. Explain which data belongs to the pet and why Main no longer needs the animation update details. Try changing the speed in `Pet`.
+**New branch…**
+
+Name it `pet-refactor` and confirm. Zero creates and switches to a local branch, so your refactor has its own place to grow. Check that `pet-refactor` appears as the current branch.
+
+## 2. Give the pet its own class
+
+`Main` currently handles the pet's position and animation as well as input and sound. A class lets the pet own its position and animation instead.
+
+Create `Pet.java` beside `Main.java` in the `java` folder. Put this complete class in the new file and save it:
 
 ```java
 import zero.GameApp;
@@ -33,7 +41,11 @@ public class Pet {
 }
 ```
 
-Replace the entire contents of `Main.java` with this second file:
+The constructor saves the animation, and `x` holds the pet's position. The `update` method moves and animates the pet; `draw` paints it using the game passed to it.
+
+## 3. Update Main to use your pet
+
+Open `java/Main.java`, select its entire contents and replace them with this complete file. Save it alongside `Pet.java`:
 
 ```java
 import zero.Color;
@@ -84,6 +96,12 @@ public class Main extends GameApp {
 }
 ```
 
-Compare with [Pet.java](../../teaching/checkpoints/13/3/Pet.java) and [Main.java](../../teaching/checkpoints/13/3/Main.java).
+Main creates one pet with `new Pet(new SpriteAnimation(8, frames))`. Each frame, it passes the direction, elapsed time and canvas width to `pet.update` **once**, then calls `pet.draw(this)`. Here `this` is the running game that supplies the drawing methods. Main still handles the keys and sound; holding both arrows gives direction 0.
+
+## 4. Test the refactor
+
+Run the app and click the canvas. Check that the bird still appears and flaps, the arrow keys move it, and Space plays the chime. Hold both arrows together and check that the bird stays in place. The game should behave as it did before the refactor.
+
+If something does not work, compare your files with [Pet.java](../../teaching/checkpoints/13/3/Pet.java) and [Main.java](../../teaching/checkpoints/13/3/Main.java). Explain which data belongs to the pet and why Main no longer needs the animation update details. Try changing the speed in `Pet`, then restore it before the next lesson so its examples match your code.
 
 Keep this project open for [the welcome screen](14-own-project.md).

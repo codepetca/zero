@@ -227,13 +227,10 @@ html:has(.learn-theme),
 
 @media (max-width: 760px) {
   .learn-theme .site-header { padding: 20px var(--zero-space-5); }
-  .learn-theme .site-header .menu-toggle { color: var(--zero-text); }
-  .learn-theme .site-header > nav { gap: 0; }
-  .learn-theme .site-header nav.nav-open { display: flex; }
-  .learn-theme .site-header { display: flex; flex-wrap: wrap; }
-  .learn-theme .site-header .brand { order: 1; }
-  .learn-theme .site-header .menu-toggle { order: 2; margin-left: auto; flex-shrink: 0; }
-  .learn-theme .site-header nav { order: 4; justify-content: flex-start; }
+  .learn-theme .site-header { display: flex; flex-wrap: nowrap; gap: 0; padding-inline: 12px; }
+  .learn-theme .site-header #site-nav { display: flex; position: static; order: 2; margin-left: auto; width: auto; max-height: none; overflow: visible; flex: none; flex-direction: row; align-items: center; justify-content: flex-end; gap: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  .learn-theme .site-header #site-nav a { width: 44px; min-height: 44px; padding: 0; justify-content: center; }
+  .learn-theme .site-header #site-nav a span { display: none; }
   .learn-theme .hub { padding: var(--zero-space-5) var(--zero-space-5) 36px; }
   .learn-theme .hub-columns { display: block; }
   .learn-theme .quick-links {
@@ -307,7 +304,6 @@ html:has(.learn-theme),
   background: var(--zero-surface);
   font-weight: 650;
 }
-.learn-theme .lesson-start { margin: var(--zero-space-4) 0 var(--zero-space-5); }
 .learn-theme .lesson-purpose {
   margin: var(--zero-space-4) 0;
   padding: var(--zero-space-4);
@@ -322,10 +318,6 @@ html:has(.learn-theme),
   line-height: 1.2;
 }
 .learn-theme .lesson-purpose p { margin: 0; }
-.learn-theme .lesson-start .button { min-height: 48px; max-width: 100%; text-align: center; white-space: normal; }
-.learn-theme .lesson-start p { margin: var(--zero-space-3) 0 0; color: var(--zero-muted); font-size: .875rem; }
-.learn-theme .lesson-start p a { color: inherit; }
-.learn-theme .lesson-start p a:hover { color: var(--zero-link); }
 .learn-theme .tutorial-reader .lesson-pagination { border: 0; }
 .learn-theme .tutorial-reader .markdown h2 {
   margin: var(--zero-space-5) 0 var(--zero-space-3);
