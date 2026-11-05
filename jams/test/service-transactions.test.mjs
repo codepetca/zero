@@ -44,9 +44,9 @@ function transactionStore() {
     }};
   return store;
 }
-function fixture({limits={},verifyRepository,pagesBindingReader}={}) {
+function fixture({canCreateJam=()=>true,limits={},verifyRepository,pagesBindingReader}={}) {
   const store=transactionStore();let time=Date.parse('2030-01-02T12:00:00Z'),repositoryCalls=0,pagesCalls=0;
-  const options={store,maintainerIds:[maintainer.id],limits,now:()=>time,
+  const options={canCreateJam,store,maintainerIds:[maintainer.id],limits,now:()=>time,
     verifySource:async()=>assert.fail('no source verification expected'),
     verifyRepository:async input=>{assert.equal(context.getStore(),undefined,'repository verification held the transaction');repositoryCalls++;return verifyRepository?verifyRepository(input):{repository:{id:String(1000+Number(input.actor.id)),ownerId:input.actor.id,fullName:`${input.actor.login}/project`}};},
     pagesBindingReader:async(repo,pagesUrl)=>{assert.equal(context.getStore(),undefined,'Pages verification held the transaction');pagesCalls++;return pagesBindingReader?pagesBindingReader(repo,pagesUrl):{status:'verified',pagesUrl,repositoryId:repo.id,ownerId:repo.ownerId};}};
@@ -183,7 +183,23 @@ test('cancellation after COMMIT dispatch remains unknown until same-ID recovery'
 test('invalid transaction facades and unexpected local CAS rejection fail closed',async()=>{
   for(const facade of [{}, {snapshot:async()=>({revision:'a'.repeat(40),ids:[],settlements:{schema:1,operations:{}},read:async()=>({state:null})}),compareAndSwap:async()=>false}]) {
     let transactions=0;const store={snapshot:async()=>assert.fail('root snapshot'),compareAndSwap:async()=>assert.fail('root CAS'),transact:async work=>{transactions++;return work(facade);}};
-    const service=createJamService({store,verifySource:async()=>{}});
+    const service=createJamService({canCreateJam:()=>true,store,verifySource:async()=>{}});
     await assert.rejects(service.propose({actor:creator,operationId:'transaction-invalid',manifest:hostedManifest()}),error=>error.status===503);assert.equal(transactions,1);
   }
+});
+
+
+test('queued Pro revocation denies new proposals but transaction recovery precedes entitlement checks',async()=>{
+  let pro=true,checks=0;
+  const f=fixture({canCreateJam:id=>{assert.equal(context.getStore(),'transaction');checks++;return pro&&id===creator.id;}});
+  const request={actor:creator,operationId:'transaction-pro-grant-001',manifest:hostedManifest()};
+  f.store.failAfterCommit=true;
+  await assert.rejects(f.service.propose(request),error=>error.status===503);
+  pro=false;checks=0;
+  const recovered=await f.service.propose(request);assert.equal(recovered.status,'submitted');assert.equal(checks,0);
+  assert.equal((await f.service.settle({actor:creator,scope:'proposals',operationId:request.operationId,payload:{manifest:request.manifest}})).settlement,'applied');
+  assert.equal(checks,0);assert.equal(f.store.commits,1);
+  pro=true;f.store.beforeTransaction=()=>{pro=false;};
+  await assert.rejects(f.service.propose({...request,operationId:'transaction-pro-revoked-001'}),error=>error.status===403);
+  assert.equal(f.store.commits,1);assert.equal((await f.store.snapshot()).ids.length,1);
 });

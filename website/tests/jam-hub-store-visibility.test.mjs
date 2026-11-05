@@ -11,7 +11,7 @@ const unavailable=/Project visibility is unavailable/;
 
 async function setup(){
   const store=memoryStore(),maintainer={id:'22',login:'maintainer'};
-  const service=createJamService({store,verifySource:async()=>{},maintainerIds:[maintainer.id],now:()=>now,
+  const service=createJamService({canCreateJam:()=>true,store,verifySource:async()=>{},maintainerIds:[maintainer.id],now:()=>now,
     verifyRepository:async({actor})=>({repository:{id:String(1000+Number(actor.id)),ownerId:actor.id,fullName:`${actor.login}/project`}})});
   const events=[];
   for(let i=0;i<2;i++){

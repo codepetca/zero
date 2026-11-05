@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {setImmediate as immediate} from 'node:timers/promises';
 import {createJamService} from '../service.mjs';
-import {digest} from '../schema.mjs';
+import {digest,operationCounts} from '../schema.mjs';
 import {projectVisibility} from '../project-visibility.mjs';
 import {fixture,creator,maintainer,participant,hostedManifest,verifiedPages} from './fixtures.mjs';
 import {createJamPagesAccess} from '../../website/lib/jam-pages-access.mjs';
@@ -14,8 +14,8 @@ import zeroApp from '../../extension/src/github-app/config.json' with {type:'jso
 // Synthetic scheduling only, not live GitHub capacity, quota or deployment
 // acceptance. Provider requests have fixed 250ms latency; the stable registry is
 // in memory and adds no modeled latency. Credentials and responses are fixtures.
-test('30 workflow entries traverse actual paginated HTTP in bounded 8/8/8/6 pages',async t=>{
-  const f=fixture({pagesBindingReader:verifiedPages});
+test('100 workflow entries traverse thirteen actual HTTP pages with complete final-page visibility and moderation',async t=>{
+  const f=fixture({limits:{participants:100},pagesBindingReader:verifiedPages});
   const proposal=await f.service.propose({actor:creator,operationId:'paged-capacity-proposal',manifest:hostedManifest()});
   const id=proposal.eventId,revision=proposal.revision;
   await f.service.mutate({id,actor:maintainer,operationId:'paged-capacity-approval',action:'approve',revision});
@@ -26,7 +26,7 @@ test('30 workflow entries traverse actual paginated HTTP in bounded 8/8/8/6 page
   // outside this test. All observations below use the actual read composition.
   const state=f.store.records.get(id).state,template=structuredClone(state.entries[participant.id][0]);
   state.registrations={};state.entries={};
-  for(let index=1;index<=30;index++) {
+  for(let index=1;index<=100;index++) {
     const ownerId=String(1000+index),login=`student${ownerId}`;
     const repository={id:String(10000+index),ownerId,fullName:`${login}/project`},pagesUrl=`https://${login}.github.io/project/`;
     state.registrations[ownerId]={id:ownerId,login,status:'joined',revision,
@@ -34,10 +34,17 @@ test('30 workflow entries traverse actual paginated HTTP in bounded 8/8/8/6 page
     state.entries[ownerId]=[{...template,participantId:ownerId,login,repository,demoUrl:pagesUrl,title:`Entry ${ownerId}`,
       revision:digest({ownerId}),pagesVerification:{...template.pagesVerification,pagesUrl,repositoryId:repository.id,ownerId}}];
   }
+  const prereveal=await f.service.readPage(id,undefined,{offset:0});
+  assert.deepEqual(prereveal.event.entries,[]);assert.equal(prereveal.event.galleryRevealed,false);
+  const held=await projectVisibility(await f.store.snapshot(),Date.parse('2030-01-04T12:00:00Z'));
+  assert.equal(held.isHeld('10100'),true,'the hundredth repository remains held before reveal');
+  const privateReview=await f.service.readModeration(id,maintainer);
+  assert.equal(privateReview.moderationEntries.length,100);
+  assert.equal(privateReview.moderationEntries.at(-1).participantId,'1100');
   const head=(await f.store.snapshot()).revision,epoch=Date.parse('2030-01-05T00:00:00Z');
   t.mock.timers.enable({apis:['setTimeout','Date'],now:epoch});
   let elapsed=0,calls=0,destinationCalls=0;
-  const proofs=new Map(),destinations=new Set(),durations=[],seen=[];
+  const proofs=new Map(),destinations=new Set(),durations=[],seen=[],offsets=[];
   const providerSecret='PRIVATE_SYNTHETIC_PROVIDER_BODY';
   const repo=ownerId=>({id:ownerId+9000,name:'project',full_name:`student${ownerId}/project`,
     html_url:`https://github.com/student${ownerId}/project`,private:false,visibility:'public',
@@ -74,8 +81,9 @@ test('30 workflow entries traverse actual paginated HTTP in bounded 8/8/8/6 page
       return result;
     }});
   const bind=createJamDestinationBindingReader({fetchImpl:transport});
-  const service=createJamService({store:f.store,pagesBindingReader,maintainerIds:[maintainer.id],now:Date.now,
+  const service=createJamService({store:f.store,limits:{participants:100},pagesBindingReader,maintainerIds:[maintainer.id],now:Date.now,
     verifySource:async()=>assert.fail('gallery reads do not verify source')});
+  const readPage=service.readPage;service.readPage=(id,actor,options)=>{offsets.push(options.offset);return readPage(id,actor,options);};
   const options={service,env:{NODE_ENV:'test',ZERO_JAMS_ENABLED:'1',ZERO_HUB_ORIGIN:'http://127.0.0.1:3000',
     ZERO_HUB_GITHUB_CLIENT_ID:zeroApp.clientId,ZERO_HUB_GITHUB_CLIENT_SECRET:'synthetic-client-secret-0000000000',
     ZERO_HUB_GITHUB_SESSION_SECRET:Buffer.alloc(32,7).toString('base64url')},
@@ -84,7 +92,8 @@ test('30 workflow entries traverse actual paginated HTTP in bounded 8/8/8/6 page
     visibilityReader:async()=>projectVisibility(await f.store.snapshot(),Date.now())};
 
   let cursor=null;
-  for(const [pageIndex,size] of [8,8,8,6].entries()) {
+  const sizes=[...Array(12).fill(8),4];
+  for(const [pageIndex,size] of sizes.entries()) {
     proofs.clear();destinations.clear();
     const query=new URLSearchParams({view:'gallery'});if(cursor)query.set('cursor',cursor);
     const request=new Request(`http://127.0.0.1:3000/api/jams/${id}?${query}`);
@@ -110,7 +119,7 @@ test('30 workflow entries traverse actual paginated HTTP in bounded 8/8/8/6 page
       seen.push(entry.participantId);
     }
     cursor=body.nextCursor;
-    if(pageIndex<3) {
+    if(pageIndex<sizes.length-1) {
       assert.equal(typeof cursor,'string');assert.match(cursor,/^[A-Za-z0-9_-]{40,4096}$/);
       assert.doesNotMatch(Buffer.from(cursor,'base64url').toString('utf8'),new RegExp(`${head}|"offset"|"revision"`));
     } else assert.equal(cursor,null);
@@ -118,8 +127,22 @@ test('30 workflow entries traverse actual paginated HTTP in bounded 8/8/8/6 page
     const completeCalls=calls;elapsed+=2000;t.mock.timers.tick(2000);await immediate();
     assert.equal(calls,completeCalls,'completed pages must not leave late provider work');
   }
-  assert.deepEqual(seen,Array.from({length:30},(_,index)=>String(1001+index)));
-  assert.equal(new Set(seen).size,30);assert.equal(destinationCalls,30);
-  assert.equal(calls,30*16+30,'each workflow proof makes 16 requests, plus one namespace GET');
-  assert.deepEqual(durations,[8500,8500,8500,8500]);
+  assert.deepEqual(seen,Array.from({length:100},(_,index)=>String(1001+index)));
+  assert.equal(new Set(seen).size,100);assert.equal(destinationCalls,100);
+  assert.equal(calls,100*16+100,'each workflow proof makes 16 requests, plus one namespace GET');
+  assert.deepEqual(durations,Array(12).fill(8500).concat(4250));
+  assert.deepEqual(offsets,Array.from({length:13},(_,index)=>index*8));
+  // Exercise more safety writes than the prior 30-account pool's 32 slots.
+  for(let index=61;index<=100;index++) {
+    const removed=await service.mutate({id,actor:maintainer,operationId:`capacity-remove-entry-${index}`,action:'withdraw-entry',participantId:String(1000+index),reason:'Synthetic moderation after closure.'});
+    assert.equal(removed.status,'withdrawn');
+  }
+  const moderation=await service.readModeration(id,maintainer);
+  assert.equal(moderation.moderationEntries.length,60);
+  assert.equal(moderation.moderationEntries.some(entry=>Number(entry.participantId)>1060),false);
+  const final=f.store.records.get(id).state;
+  assert.equal(operationCounts(final).safety,40);
+  const history=final.entries['1100'];
+  assert.equal(history.length,2);assert.equal(history[0].status,'active');
+  assert.equal(history[1].moderatedBy,maintainer.id);assert.equal(history[1].previousRevision,history[0].revision);
 });

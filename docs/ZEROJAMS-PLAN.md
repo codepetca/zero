@@ -1,15 +1,22 @@
 # ZeroJams architecture and user flow
 
-**Current direction, 2026-11-05:** The owner requested a 30-participant per-jam
-limit for the production pilot using the Neon authority, with armorup as the
-independent approver. Source enforces 30 distinct registrations, including
-departed accounts. Later on 2026-11-05 the owner explicitly waived the hosted
-30-person acceptance gate for deploying this expansion, extending the earlier
-waiver for the 10-person pilot. Live 30-person Neon/Pages capacity remains
-untested; the waiver is not a passing acceptance result. The live limit changes
-only through separate publication. The sections below preserve earlier
-development history; the current rollout and rollback requirements are in
+**Current direction, 2026-11-05:** The owner explicitly requested a 100-participant
+per-jam limit after being informed that the hosted 100-person flow is untested.
+Source enforces 100 distinct registrations, including departed accounts, with
+armorup as the independent approver. No 100-person Neon/Pages load test has been
+run; the request is not a passing acceptance result. The earlier 30-person
+acceptance waiver applies to the historical 30-account expansion. The live limit
+changes only through separate publication. The sections below preserve earlier
+development history; current rollout and rollback requirements are in
 [the operations guide](ZEROJAMS-OPERATIONS.md).
+
+The manual license policy keeps Free personal participation available and requires
+Pro to propose a jam for up to 100 participants. Licenses are enabled manually via
+verified immutable GitHub numeric IDs; contact `info@codepet.ca`. No automated
+checkout or subscription verification is implemented. Existing-event recovery and
+settlement survive revocation; environment grant changes require deployment and
+do not fence already-dispatched writes. See the operations guide for grant format,
+server trust boundaries and rollback requirements.
 
 ## Pages verification integration — 2026-11-04
 

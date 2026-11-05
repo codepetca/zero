@@ -7,7 +7,7 @@ import {creator,maintainer,hostedManifest} from './fixtures.mjs';
 const manifest=hostedManifest();
 const payload=(operationId,actor=creator)=>({operationId,actor,manifest});
 const status=code=>error=>error.status===code;
-function service(store,limits={}) {return createJamService({store,verifySource:async()=>{},maintainerIds:[maintainer.id],limits,now:()=>Date.parse('2030-01-02T12:00:00Z')});}
+function service(store,limits={}) {return createJamService({canCreateJam:()=>true,store,verifySource:async()=>{},maintainerIds:[maintainer.id],limits,now:()=>Date.parse('2030-01-02T12:00:00Z')});}
 
 test('branch CAS enforces pending creation capacity across simultaneous distinct IDs and permits retry recovery',async t=>{
   const f=await atomicGitHttpFixture(t);await f.store.migrate();const s=service(f.store,{actorCreations:1});

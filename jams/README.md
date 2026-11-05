@@ -3,7 +3,7 @@
 Local implementation only. No GitHub branch, credential, permission or deployment
 is created here. Runtime HTTP/auth/configuration belongs to the website adapter.
 
-`createJamService({store, verifySource, maintainerIds, now, limits})` exports the
+`createJamService({store, verifySource, maintainerIds, now, limits, canCreateJam})` exports the
 contract in `CONTRACT.md`. Actors are trusted server-derived GitHub identities;
 browser identity/role fields must never be forwarded as authority. New proposal
 intake is `{actor,operationId,manifest}` for Zero-hosted events, with no organizer
@@ -18,6 +18,21 @@ Organization/collaborator-only sources do not confer participant source ownershi
 a creator
 cannot approve their own event. Source and repository links are metadata, never
 instructions to execute code or fetch creator-controlled website content.
+
+Free personal users may join and submit; a manually enabled Pro license is
+required to propose a jam for up to 100 participants. Contact `info@codepet.ca`.
+The server-only `ZERO_JAMS_PRO_GITHUB_IDS` value lists verified immutable numeric
+GitHub IDs, not logins. Missing, malformed or duplicate entries deny creation.
+The synchronous trusted `canCreateJam(accountId)` hook defaults to deny; browser
+license claims cannot override it. This is not checkout or subscription billing.
+The operator guide records exact configuration bounds and deployment semantics.
+
+Accepted/fenced requests recover before entitlement checks, even after revocation;
+new writes recheck the grant inside the transaction and immediately before CAS.
+Settlement remains available and existing events/Free participation/Hub holds are
+preserved. Environment edits require redeployment; older instances and dispatched
+commits can retain previous authority. Retain uncertain operation IDs and reconcile
+outcomes. No real licenses or provider settings are activated by these changes.
 
 `createGitHubSourceVerifier({token, fetchImpl, timeoutMs})` returns `verifySource`.
 The token is supplied by the HTTP caller for its current GitHub session. It may
@@ -62,22 +77,24 @@ and approval-date snapshots. Pending proposals stay private. Approving new rules
 does not overwrite a participant's previous `registration.revision`; the next
 applicable action acknowledges the displayed current revision.
 
-Proposed hosted source fixes admission at 30 distinct accounts per jam,
-including departed registrations; it overrides injected participant limits.
-On 2026-11-05 the owner explicitly waived the hosted 30-person acceptance gate
-for deploying this expansion, extending the prior waiver for the 10-person
-pilot. Live 30-person Neon/Pages capacity remains untested; this waiver does not
-claim an acceptance pass. The live limit changes only through publication.
-The server projects this as `event.participantLimit` for the participation UI.
-The shared schema retains its 200-record physical maximum and standalone service
-default to preserve storage/readability and separately configured local fixtures.
-The hosted reserve grows to 32 safety slots (131,072 bytes); previously large
-records must fit the larger reserve. A rollback to 10-account admission cannot
-read events with more than ten recorded accounts or more than twelve accepted
-safety operations, including events with ten or fewer accounts. Validate complete state
-against the exact target version's operation pools, byte/reserve budget and other
-limits before rollback. See the operator guide for state-compatible rollout and
-rollback; hosted Neon/Pages throughput at 30 is unproven.
+Hosted source fixes admission at 100 distinct accounts per jam, including
+departed registrations; it overrides injected participant limits. On 2026-11-05
+the owner requested this expansion after disclosure that the 100-person hosted
+flow is untested. The earlier 30-person acceptance waiver remains historical;
+no 100-person Neon/Pages provider-capacity acceptance is claimed. The live limit
+changes only through publication. The service projects `event.participantLimit`
+for the participation UI. The shared schema retains its 200-record physical
+maximum and standalone service default for storage/readability and local fixtures.
+
+The hosted reserve grows to 102 safety slots (417,792 bytes); existing records
+must fit the larger reserve and initial 1,582,208-byte ordinary budget. Rollback
+to the prior 30-account service rejects more than 30 registrations or more than
+32 accepted safety operations. The older 10-account service rejects more than ten accounts
+or twelve safety operations, even when registration count fits. Validate complete
+state against the target version's operation pools, bytes/reserve budget and
+other limits. See the operator guide for state-compatible rollout/rollback.
+Local synthetic 100-entry pagination covers 13 pages, ending at offset 96 with
+four entries; this does not establish actual provider performance or quota.
 
 Standalone service defaults: 100 events per listing/new-event capacity check, 200 distinct
 participant records per event (including departed participants), 1,000 accepted

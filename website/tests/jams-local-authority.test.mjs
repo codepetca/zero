@@ -33,7 +33,7 @@ function storeFixture(){
   return store;
 }
 function fixture(extra={}){
-  const store=storeFixture(),env={NODE_ENV:'development',ZERO_JAMS_ENABLED:'1'};let time=Date.parse('2030-01-02T12:00:00Z');
+  const store=storeFixture(),env={NODE_ENV:'development',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11,4050555'};let time=Date.parse('2030-01-02T12:00:00Z');
   const options={env,store,now:()=>time,verifySource:async()=>assert.fail('no source fetch expected'),
     verifyRepository:async({actor})=>{assert.equal(store.locked,false);return {repository:{id:'202',ownerId:actor.id,fullName:`${actor.login}/project`}};},
     pagesBindingReader:async(repo,pagesUrl)=>{assert.equal(store.locked,false);return {status:'verified',pagesUrl,repositoryId:repo.id,ownerId:repo.ownerId};},...extra};
@@ -80,7 +80,7 @@ test('one local transactional authority carries shared holds through actual Jam 
 
 test('local composition requires explicit providers, one transaction store and a local environment',async()=>{
   const f=fixture();
-  for(const env of [{NODE_ENV:'production',ZERO_JAMS_ENABLED:'1'},{NODE_ENV:'development',VERCEL_ENV:'production',ZERO_JAMS_ENABLED:'1'},{NODE_ENV:'development',VERCEL_ENV:'preview',ZERO_JAMS_ENABLED:'1'},{}])
+  for(const env of [{NODE_ENV:'production',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11,4050555'},{NODE_ENV:'development',VERCEL_ENV:'production',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11,4050555'},{NODE_ENV:'development',VERCEL_ENV:'preview',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11,4050555'},{}])
     assert.throws(()=>createLocalJamAuthority({...f.options,env}),disabled);
   for(const patch of [{store:undefined},{store:{snapshot:async()=>{}}},{verifyRepository:undefined},{pagesBindingReader:undefined},{service:{}},{visibilityReader:()=>null}])
     assert.throws(()=>createLocalJamAuthority({...f.options,...patch}),disabled);
@@ -134,7 +134,7 @@ test('hosted seam restricts the real production process and denies writes withou
   const script=`import assert from 'node:assert/strict';
     import {createHostedJamAuthority,createLocalJamAuthority} from ${JSON.stringify(moduleUrl)};
     let calls=0;const store={snapshot:()=>{calls++;},compareAndSwap:()=>{calls++;},transact:()=>{calls++;}};
-    const options={env:{NODE_ENV:'production',ZERO_JAMS_ENABLED:'1'},store,now:Date.now,verifySource:()=>{},verifyRepository:()=>{},pagesBindingReader:()=>{}};
+    const options={env:{NODE_ENV:'production',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11,4050555'},store,now:Date.now,verifySource:()=>{},verifyRepository:()=>{},pagesBindingReader:()=>{}};
     if(process.env.VERCEL_ENV==='production'){const authority=createHostedJamAuthority(options);await assert.rejects(authority.service.propose({}),e=>e.status===503);}
     else assert.throws(()=>createHostedJamAuthority(options),e=>e.status===503);
     assert.throws(()=>createLocalJamAuthority(options),e=>e.status===503);
@@ -145,7 +145,7 @@ test('hosted seam restricts the real production process and denies writes withou
   }
 });
 
-test('hosted pilot transactionally caps thirty distinct registrations despite a larger injected limit',async()=>{
+test('hosted pilot transactionally caps one hundred distinct registrations despite a larger injected limit',async()=>{
   const {spawnSync}=await import('node:child_process');
   const moduleUrl=new URL('../lib/jams-local-authority.mjs',import.meta.url).href;
   const fixtures=new URL('../../jams/test/fixtures.mjs',import.meta.url).href;
@@ -153,33 +153,73 @@ test('hosted pilot transactionally caps thirty distinct registrations despite a 
     import {createHostedJamAuthority} from ${JSON.stringify(moduleUrl)};
     import {memoryStore,hostedManifest} from ${JSON.stringify(fixtures)};
     const store=memoryStore();let tail=Promise.resolve();store.transact=async fn=>{let release;const previous=tail;tail=new Promise(r=>release=r);await previous;try{return await fn(store);}finally{release();}};
-    const env={NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'1',ZERO_JAMS_ENABLED:'1'};
+    const env={NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'1',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11,4050555'};
     const authority=createHostedJamAuthority({env,store,now:()=>Date.parse('2030-01-02T12:00:00Z'),limits:{participants:200},
       verifySource:async()=>{},verifyRepository:async({actor})=>({repository:{id:String(1000+Number(actor.id)),ownerId:actor.id,fullName:actor.login+'/project'}}),pagesBindingReader:async()=>({status:'unverified'})});
     const proposal=await authority.service.propose({actor:{id:'11',login:'creator'},operationId:'pilot-proposal-0001',manifest:hostedManifest()});
     await authority.service.mutate({id:proposal.eventId,actor:{id:'4050555',login:'armorup'},operationId:'pilot-approval-0001',action:'approve',revision:proposal.revision});
-    const inputs=Array.from({length:31},(_,i)=>{const id=String(100+i),login='student'+i;return {id:proposal.eventId,actor:{id,login},operationId:'pilot-join-'+id,action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/'+login+'/project'};});
+    const inputs=Array.from({length:101},(_,i)=>{const id=String(100+i),login='student'+i;return {id:proposal.eventId,actor:{id,login},operationId:'pilot-join-'+id,action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/'+login+'/project'};});
     const attempts=await Promise.allSettled(inputs.map(input=>authority.service.mutate(input)));
-    assert.equal(attempts.filter(a=>a.status==='fulfilled').length,30);
-    const rejected=attempts.filter(a=>a.status==='rejected');assert.equal(rejected.length,1);assert.equal(rejected[0].reason.status,429);assert.match(rejected[0].reason.message,/capacity of 30 participants/);
-    const event=(await authority.service.list()).events[0];assert.equal(event.participantLimit,30);assert.equal(event.participantCount,30);
+    assert.equal(attempts.filter(a=>a.status==='fulfilled').length,100);
+    const rejected=attempts.filter(a=>a.status==='rejected');assert.equal(rejected.length,1);assert.equal(rejected[0].reason.status,429);assert.match(rejected[0].reason.message,/capacity of 100 participants/);
+    const event=(await authority.service.list()).events[0];assert.equal(event.participantLimit,100);assert.equal(event.participantCount,100);
     let state=(await (await store.snapshot()).read(proposal.eventId)).state;
-    assert.equal(Object.keys(state.registrations).length,30);assert.equal(Object.keys(state.operations).length,32);
-    assert.equal((await authority.service.read(proposal.eventId)).event.participantLimit,30);
+    assert.equal(Object.keys(state.registrations).length,100);assert.equal(Object.keys(state.operations).length,102);
+    assert.equal((await authority.service.read(proposal.eventId)).event.participantLimit,100);
     // A confirmed operation recovers at capacity; leaving does not free a slot
     // for another distinct identity, while the existing participant may rejoin.
     assert.deepEqual(await authority.service.mutate(inputs[0]),attempts[0].value);
     await authority.service.mutate({id:proposal.eventId,actor:inputs[0].actor,operationId:'pilot-leave-100',action:'leave'});
-    await assert.rejects(authority.service.mutate(inputs[30]),e=>e.status===429);
+    await assert.rejects(authority.service.mutate(inputs[100]),e=>e.status===429);
     assert.equal((await authority.service.mutate({...inputs[0],operationId:'pilot-rejoin-100'})).status,'joined');
     state=(await (await store.snapshot()).read(proposal.eventId)).state;
-    assert.equal(Object.keys(state.registrations).length,30);assert.equal(Object.keys(state.operations).length,34);
+    assert.equal(Object.keys(state.registrations).length,100);assert.equal(Object.keys(state.operations).length,104);
     const second=await authority.service.propose({actor:{id:'11',login:'creator'},operationId:'pilot-proposal-0002',manifest:hostedManifest()});
     await authority.service.mutate({id:second.eventId,actor:{id:'4050555',login:'armorup'},operationId:'pilot-approval-0002',action:'approve',revision:second.revision});
-    assert.equal((await authority.service.mutate({...inputs[30],id:second.eventId,revision:second.revision,operationId:'second-jam-join-130'})).status,'joined');
+    assert.equal((await authority.service.mutate({...inputs[100],id:second.eventId,revision:second.revision,operationId:'second-jam-join-200'})).status,'joined');
     assert.equal((await authority.service.read(second.eventId)).event.participantCount,1,'registration capacity is per jam');
     delete process.env.ZERO_JAMS_PILOT_ENABLED;await assert.rejects(authority.service.propose({}),e=>e.status===503);
     assert.equal((await authority.visibilityReader()).isHeld('1001'),false);`;
-  const child=spawnSync(process.execPath,['--input-type=module','-e',script],{env:{PATH:process.env.PATH||'/usr/bin:/bin',NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'1'},encoding:'utf8',timeout:10000});
+  const child=spawnSync(process.execPath,['--input-type=module','-e',script],{env:{PATH:process.env.PATH||'/usr/bin:/bin',NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11'},encoding:'utf8',timeout:10000});
   assert.equal(child.status,0,child.stderr);assert.equal(child.stdout,'');
+});
+
+test('local authority defaults to Free and rechecks manual numeric grants after queued recovery',async()=>{
+  for(const value of [undefined,'','creator','11,invalid']){
+    const f=fixture();if(value===undefined)delete f.env.ZERO_JAMS_PRO_GITHUB_IDS;else f.env.ZERO_JAMS_PRO_GITHUB_IDS=value;
+    const authority=f.compose();
+    await assert.rejects(authority.service.propose({actor:creator,operationId:'local-free-proposal',manifest:hostedManifest()}),error=>error.status===403&&/Pro license/.test(error.message));
+    assert.equal(f.store.commits,0);assert.equal((await authority.visibilityReader()).isHeld('202'),false);
+  }
+  const f=fixture(),authority=f.compose(),request={actor:creator,operationId:'local-pro-proposal',manifest:hostedManifest()};
+  const accepted=await authority.service.propose(request);delete f.env.ZERO_JAMS_PRO_GITHUB_IDS;
+  assert.deepEqual(await authority.service.propose(request),accepted);
+  assert.equal((await authority.service.settle({actor:creator,scope:'proposals',operationId:request.operationId,payload:{manifest:request.manifest}})).settlement,'applied');
+  await assert.rejects(authority.service.propose({...request,operationId:'local-free-new-proposal'}),error=>error.status===403);
+  f.env.ZERO_JAMS_PRO_GITHUB_IDS=creator.id;f.store.beforeTransaction=()=>{delete f.env.ZERO_JAMS_PRO_GITHUB_IDS;};
+  await assert.rejects(authority.service.propose({...request,operationId:'local-queued-revoked-proposal'}),error=>error.status===403);
+  assert.equal(f.store.commits,1);
+});
+
+test('hosted manual Pro grants use the actual server process, never a grant claimed by an injected env facade',async()=>{
+  const {spawnSync}=await import('node:child_process');
+  const moduleUrl=new URL('../lib/jams-local-authority.mjs',import.meta.url).href,fixtures=new URL('../../jams/test/fixtures.mjs',import.meta.url).href;
+  const script=`import assert from 'node:assert/strict';
+    import {createHostedJamAuthority} from ${JSON.stringify(moduleUrl)};
+    import {memoryStore,hostedManifest} from ${JSON.stringify(fixtures)};
+    const store=memoryStore();store.transact=fn=>fn(store);
+    const env={NODE_ENV:'production',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11'};
+    const authority=createHostedJamAuthority({env,store,now:()=>Date.parse('2030-01-02T12:00:00Z'),verifySource:async()=>{},verifyRepository:async()=>{},pagesBindingReader:async()=>{}});
+    const request={actor:{id:'11',login:'renamed'},operationId:'hosted-manual-pro-001',manifest:hostedManifest()};
+    if(process.env.ZERO_JAMS_PRO_GITHUB_IDS==='11'){
+      const result=await authority.service.propose(request);delete process.env.ZERO_JAMS_PRO_GITHUB_IDS;
+      assert.deepEqual(await authority.service.propose(request),result);
+      await assert.rejects(authority.service.propose({...request,operationId:'hosted-revoked-new-001'}),e=>e.status===403);
+      assert.equal(store.records.size,1);
+    }else{await assert.rejects(authority.service.propose(request),e=>e.status===403);assert.equal(store.records.size,0);}`;
+  for(const value of [undefined,'creator','11']){
+    const env={PATH:process.env.PATH||'/usr/bin:/bin',NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'1',...(value?{ZERO_JAMS_PRO_GITHUB_IDS:value}:{})};
+    const child=spawnSync(process.execPath,['--input-type=module','-e',script],{env,encoding:'utf8',timeout:5000});
+    assert.equal(child.status,0,child.stderr);assert.equal(child.stdout,'');
+  }
 });

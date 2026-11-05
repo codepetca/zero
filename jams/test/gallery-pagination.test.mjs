@@ -29,7 +29,7 @@ async function setup({count=30,ids,reader=verifiedPages}={}) {
   let time=Date.parse(reveal),calls=0,active=0,peak=0,snapshots=0;
   const originalSnapshot=f.store.snapshot.bind(f.store);
   const store={...f.store,snapshot:async options=>{snapshots++;return originalSnapshot(options);}};
-  const service=createJamService({store,maintainerIds:[maintainer.id],now:()=>time,
+  const service=createJamService({canCreateJam:()=>true,store,maintainerIds:[maintainer.id],now:()=>time,
     verifySource:async()=>assert.fail('page reads do not verify source'),
     pagesBindingReader:reader===null?undefined:async(...args)=>{
       calls++;active++;peak=Math.max(active,peak);

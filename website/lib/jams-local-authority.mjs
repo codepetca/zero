@@ -1,5 +1,6 @@
 // Compose Jam and Hub against the same trusted authority. This module does
 // not obtain credentials or provision state.
+import {hasManualJamPro} from '../../jams/entitlements.mjs';
 import {createJamService,JamError} from '../../jams/service.mjs';
 import {createJamHubVisibilityReader} from './jam-hub-visibility.mjs';
 import {ZERO_JAMS_APPROVER_ID} from './jams-runtime.mjs';
@@ -7,7 +8,7 @@ import {jamsPreviewAvailable} from './jams-visibility.mjs';
 
 const unavailable=()=>{throw new JamError(503,'The local jam authority is unavailable.');};
 const writes=new Set(['propose','mutate','settle']);
-const HOSTED_PARTICIPANT_LIMIT=30;
+const HOSTED_PARTICIPANT_LIMIT=100;
 const allowed=new Set(['env','store','now','verifySource','verifyRepository','pagesBindingReader','limits','visibilityTimeoutMs']);
 
 /** Explicitly compose both lanes from one already-provisioned, trusted store.
@@ -58,7 +59,7 @@ function compose(options,hosted) {
     }
   });
   const engine=createJamService({store:sharedStore,now,verifySource,verifyRepository,pagesBindingReader,
-    maintainerIds:[ZERO_JAMS_APPROVER_ID],...(hosted?{limits:{...limits,participants:HOSTED_PARTICIPANT_LIMIT}}:limits===undefined?{}:{limits})});
+    canCreateJam:id=>hasManualJamPro(id,hosted?process.env:env),maintainerIds:[ZERO_JAMS_APPROVER_ID],...(hosted?{limits:{...limits,participants:HOSTED_PARTICIPANT_LIMIT}}:limits===undefined?{}:{limits})});
   const service=Object.freeze(Object.fromEntries(Object.keys(engine).map(method=>[method,async(...args)=>{
     const check=writes.has(method)?writable:local;check();
     // This final check withholds confirmation after a mode change; it cannot

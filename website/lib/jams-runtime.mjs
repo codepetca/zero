@@ -3,6 +3,7 @@ import {boundedJson} from './hub-github-auth.mjs';
 import {createAtomicGitHubJamStore} from '../../jams/git-store.mjs';
 import {createGitHubSourceVerifier,createGitHubRepositoryVerifier} from '../../jams/github-source.mjs';
 import {createJamService} from '../../jams/service.mjs';
+import {hasManualJamPro} from '../../jams/entitlements.mjs';
 import {jamsPreviewAvailable} from './jams-visibility.mjs';
 import {createJamPagesRuntimeReader} from './jam-pages-runtime.mjs';
 import {selectJamPagesBinding} from './jam-pages-policy.mjs';
@@ -91,5 +92,5 @@ export async function createJamRuntime({env = process.env, fetchImpl = fetch,
   return createJamService({store:createAtomicGitHubJamStore({token,fetchImpl}),
     verifyRepository:createGitHubRepositoryVerifier({token:sourceToken,fetchImpl}),verifySource:createGitHubSourceVerifier({token:sourceToken,fetchImpl}),
     pagesBindingReader:selectJamPagesBinding({env,reader:pagesBindingReader ?? createJamPagesRuntimeReader({env,fetchImpl,now})}),
-    maintainerIds:config.maintainerIds, now});
+    canCreateJam:id=>hasManualJamPro(id,env),maintainerIds:config.maintainerIds, now});
 }

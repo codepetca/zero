@@ -16,6 +16,48 @@ fails Hub visibility closed. Hosted preview visibility-dependent Hub and catalog
 routes fail closed without production credentials; Jam routes remain hidden.
 Unaffected pages need not access the authority. Local tests are not live acceptance.
 
+## Manual Free and Pro licenses
+
+Free personal use includes joining and submitting to an approved jam under its
+ordinary rules. Pro is required only for proposing a new hosted jam, with up to
+100 distinct registered accounts. Contact `info@codepet.ca` to request access;
+licenses are enabled manually. Pro does not grant review authority: only the
+existing configured approver may approve another account's proposal. This is a
+manual service entitlement, not an automated billing, checkout or subscription
+integration. No owner account receives an automatic grant from its login or role.
+
+An authorized operator supplies the server-only `ZERO_JAMS_PRO_GITHUB_IDS`
+environment value as a comma-separated list of independently verified immutable
+GitHub numeric account IDs. Do not use logins, email addresses, a client-side
+`NEXT_PUBLIC_` variable, request fields or unverified user claims. Each ID must be
+a canonical positive decimal string of at most 20 digits, without leading zeroes.
+Whitespace around entries is allowed. The value is limited to 8,192 characters
+and 256 entries; duplicates, empty entries, missing/empty configuration or any
+malformed ID deny all new creation with the generic Pro-required response.
+Never return the grant list to clients. No real account grants or provider
+settings are configured by this source change.
+
+Production hosted composition uses the real server process environment; local
+and isolated test compositions use their trusted server environment. Sanitized
+Neon/staging environment facades keep the value non-enumerable and server-only.
+The trusted service constructor's synchronous `canCreateJam(accountId)` hook
+defaults to deny; only literal `true` grants creation. HTTP derives the actor from
+a current verified GitHub identity. Legacy creator-hosted intake remains closed.
+Grant configuration is separate from registry/visibility authority: missing or
+revoked Pro access must not disable existing events, participation or Hub holds.
+
+Provider environment edits require a new deployment to reach running code.
+Older instances retain their prior environment; redeployment is not proof that
+all earlier writers retired or a dispatched COMMIT was fenced. New proposals
+check the grant after accepted-result/settlement recovery in the write
+transaction and again immediately before CAS. Revocation before those new-write
+checks denies creation, but cannot cancel an already-dispatched transaction.
+Retain operation IDs and reconcile uncertain outcomes. Accepted same-payload
+requests still recover, and applied/not-applied settlement remains available
+after revocation. Existing proposals remain readable/reviewable; no participants,
+entries, histories or discovery holds are deleted. These semantics do not assert
+an immediate fleet-wide revocation guarantee or verify ongoing payment.
+
 ## Local work
 
 The local branch introduces Zero-hosted event proposals. The creator supplies
@@ -66,12 +108,13 @@ to verify its relative paths and editable source copy.
 ### Launch acceptance gates
 
 Review the exact source and configuration to be released. On 2026-11-05 the
-owner explicitly waived the hosted 30-person acceptance gate for deployment of
-the requested 30-participant per-jam limit. This later waiver extends beyond the
-prior waiver for the 10-person pilot. It permits proceeding without that
-acceptance result; it is not evidence that the target passed. Live 30-person
-Neon/Pages capacity remains untested. Local tests do not establish hosted
-throughput, classroom capacity or live GitHub installation/Pages behavior.
+owner explicitly requested the expansion to 100 participants per jam after being
+informed that the 100-person hosted flow is untested. This authorizes the limit
+change; it is not a provider-capacity acceptance result. The earlier waiver of
+the hosted 30-person acceptance gate applied to the prior 30-account expansion
+and remains historical. No 100-person Neon/Pages load test has been run. Local
+tests do not establish hosted throughput, classroom capacity or live provider
+behavior.
 
 1. **Pages identity and access:** finish and independently review a separate,
    Pages-read capability and participant installation flow using the existing
@@ -97,9 +140,11 @@ throughput, classroom capacity or live GitHub installation/Pages behavior.
    fence all legacy writers and in-flight requests, verify the target branch and
    rollback/suspension procedure, and confirm all active writers use the same
    branch-wide transaction. Do not assume a source deployment retires old instances.
-4. **Capacity and reliability:** the owner explicitly waived this hosted
-   30-person acceptance gate for deploying the 30-account limit on 2026-11-05.
-   The untested target remains 30 participants starting together, separately
+4. **Capacity and reliability:** the prior 30-person acceptance gate was waived
+   for the 30-account expansion on 2026-11-05. The later 100-account expansion
+   was explicitly requested after disclosure that its hosted flow is untested;
+   it does not establish a passing result. The historical untested target is
+   30 participants starting together, separately
    for join and submission, with 95% durably confirmed within five minutes and all within ten minutes,
    without lost, duplicate or falsely confirmed actions; also exercise the full
    gallery reveal. Use actual provider and deployment constraints. Record
@@ -137,39 +182,42 @@ the reviewed creator-membership pattern; those administrators can still change
 privileges. Admission checks do not fence concurrent administrative changes.
 A cloned epoch alone cannot prove branch identity.
 
-The proposed hosted source caps each event at 30 distinct GitHub accounts in
-the transactional service, including departed accounts. The 31st distinct account
+The hosted source caps each event at 100 distinct GitHub accounts in
+the transactional service, including departed accounts. The 101st distinct account
 is rejected; an existing account can recover its accepted request and rejoin
 within the normal schedule. The limit is shown before joining from the same
-service value. The owner waived the hosted acceptance blocker for this increase
-on 2026-11-05; the live limit changes only through separate publication. A local
-source change does not alter the live pilot. A single approved pilot
-event is an operational rule enforced by the sole approver, not a code-enforced global
+service value. The owner authorized this 100-account expansion on 2026-11-05
+after disclosure of its untested hosted flow. The live limit changes only
+through separate publication. A local source change does not alter the live
+pilot. A single approved pilot event is an operational rule enforced by the
+sole approver, not a code-enforced global
 one-event limit. Only `armorup` may approve, and cannot approve their own proposal.
 There is no participant allowlist; a person with the direct URL can participate
 within the event's rules and capacity. Do not publicly promote the pilot.
 
-The 30-account admission setting is not hosted Neon or GitHub Pages capacity
-acceptance. No 30-person live join/submission/reveal load test was run; local
-transaction and UI tests do not establish provider throughput or classroom
-reliability. The explicit 2026-11-05 owner waiver permits deployment of this
-30-account expansion without claiming that acceptance passed.
+The 100-account admission setting is not hosted Neon or GitHub Pages capacity
+acceptance. No 100-person live join/submission/reveal load test was run; local
+transaction, pagination and UI tests do not establish provider throughput or
+classroom reliability. The owner requested the expansion with this limitation
+disclosed; neither the request nor the historical 30-person waiver is a test pass.
 
 The service reserves `min(safetyOperations, participants + 2)` safety slots. At
-30 accounts that is 32 slots and 131,072 bytes, leaving an initial ordinary budget
-of 1,868,928 bytes within the unchanged 2,000,000-byte event limit. This replaces
-the 10-account setting's 12 slots and 49,152-byte reserve. Ordinary writes cannot
+100 accounts that is 102 slots and 417,792 bytes, leaving an initial ordinary
+budget of 1,582,208 bytes within the unchanged 2,000,000-byte event limit. The
+prior 30-account setting reserves 32 slots and 131,072 bytes; the older
+10-account setting reserves 12 slots and 49,152 bytes. Ordinary writes cannot
 consume unused safety capacity. Audit existing event sizes and operation pools
 before rollout: every authoritative service read applies the configured reserve,
 so an unusually large old event could fail validation under the larger reserve.
 Safety actions remain bounded; exhausted safety space requires operator recovery.
 
-Rollback is state-dependent. The old 10-account service rejects an event with
-more than ten distinct registrations or more than twelve accepted safety
-operations. Safety operations are retained; repeated suspension/cancellation or
-entry removal can exceed twelve even when no more than ten accounts registered.
-Either bound can make Jam reads unavailable after rollback. Registration count
-alone is not a sufficient compatibility check.
+Rollback is state-dependent. The prior 30-account service rejects an event with
+more than 30 distinct registrations or more than 32 accepted safety operations.
+The older 10-account service rejects more than ten registrations or more than
+twelve safety operations. Safety operations are retained; repeated suspension
+or entry removal can exceed the target's operation limit even when registration
+count fits. Either bound can make Jam reads unavailable after rollback.
+Registration count alone is not a sufficient compatibility check.
 
 Before rollback, validate every complete event and settlement record with the
 exact target version and its configured limits, including both operation pools,

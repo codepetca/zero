@@ -8,7 +8,7 @@ import {creator,maintainer,hostedManifest,verifiedPages} from './fixtures.mjs';
 test('30 participants contend and recover with bounded production retries', {timeout:120000}, async t=>{
   const f=await atomicGitHttpFixture(t,{timeoutMs:10000});
   await f.store.migrate();
-  const service=createJamService({store:f.store,verifySource:async()=>{},maintainerIds:[maintainer.id],now:()=>Date.parse('2030-01-02T12:00:00Z'),
+  const service=createJamService({canCreateJam:()=>true,store:f.store,verifySource:async()=>{},maintainerIds:[maintainer.id],now:()=>Date.parse('2030-01-02T12:00:00Z'),
     verifyRepository:async ({actor})=>({repository:{id:String(1000+Number(actor.id)),ownerId:actor.id,fullName:`${actor.login}/project`}}),
     pagesBindingReader:async (repo,url)=>verifiedPages({id:repo.id,ownerId:repo.ownerId},url)});
   const proposed=await service.propose({actor:creator,operationId:'classroom-propose',manifest:hostedManifest()});

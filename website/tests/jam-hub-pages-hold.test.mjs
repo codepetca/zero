@@ -37,7 +37,7 @@ const request=path=>new Request(`${env.ZERO_HUB_ORIGIN}${path}`);
 test('repository-only Join and failed Pages submission retain cross-event Hub holds without hiding independent releases',async t=>{
   const f=await atomicGitHttpFixture(t);await f.store.migrate();
   let time=Date.parse('2030-01-02T12:00:00Z'),proofCalls=0;
-  const service=createJamService({store:f.store,maintainerIds:[maintainer.id],now:()=>time,
+  const service=createJamService({canCreateJam:()=>true,store:f.store,maintainerIds:[maintainer.id],now:()=>time,
     verifySource:async()=>assert.fail('Hosted proposals and live entries have no exact-commit source lookup'),
     verifyRepository:async()=>({repository:{id:'202',ownerId:participant.id,fullName:'student/project202'}}),
     pagesBindingReader:async(repository,url,{signal})=>{

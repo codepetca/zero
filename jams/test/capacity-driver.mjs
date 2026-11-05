@@ -133,7 +133,7 @@ export async function runCapacityTest({token,transport,runId=randomBytes(16).toS
     if(migrated.ids.length||Object.keys(migrated.settlements.operations).length)throw new Error('Initial registry is not empty.');
     const creator={id:'900000000000001',login:`capacity-${runId.slice(0,8)}-creator`},maintainer={id:'900000000000002',login:`capacity-${runId.slice(0,8)}-maintainer`};
     const actors=Array.from({length:30},(_,i)=>({id:String(900000000000100+i),login:`capacity-${runId.slice(0,8)}-student${i}`}));
-    const service=createJamService({store,verifySource:async()=>{},maintainerIds:[maintainer.id],now:()=>Date.parse('2030-01-02T12:00:00Z'),
+    const service=createJamService({canCreateJam:()=>true,store,verifySource:async()=>{},maintainerIds:[maintainer.id],now:()=>Date.parse('2030-01-02T12:00:00Z'),
       verifyRepository:async({actor})=>({repository:{id:String(1000+Number(actor.id)),ownerId:actor.id,fullName:`${actor.login}/project`}}),
       pagesBindingReader:async(repo,pagesUrl)=>({status:'verified',pagesUrl,repositoryId:repo.id,ownerId:repo.ownerId})});
     const proposal=await service.propose({actor:creator,operationId:'capacity-propose-0001',manifest:hostedManifest()});

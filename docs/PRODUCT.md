@@ -165,6 +165,17 @@ is explicit and remains gated by hosted library acceptance.
 
 ## ZeroJams
 
+Free personal use includes joining jams and submitting work. A Pro license is
+required to propose a jam for up to 100 participants. Licenses are enabled
+manually; contact `info@codepet.ca` to request access. Creation access is bound to
+the verified GitHub account's immutable numeric ID. This source implements manual
+grants, with no automated checkout, payment or subscription-status verification.
+An existing event, participant action or accepted request is not removed when a
+creator's grant is revoked; new proposals are denied and prior requests can still
+be recovered or settled. Grant changes require deployment and do not cancel
+already-dispatched writes. This source change does not itself activate a license
+or change the deployed service.
+
 Local development includes a Zero-hosted Game Jam and App Jam proposal flow.
 A creator supplies the public event details without creating a website. A different
 Zero maintainer must approve the exact proposal before it becomes official or
@@ -176,9 +187,11 @@ repository before publishing. They submit a Pages site verified against that
 repository before the deadline; verified custom domains qualify. Coursework
 links still go separately to Pika.
 
-The owner authorized a small production pilot with a ten-participant limit per
-jam and independent approval by armorup. Production availability is controlled
-by a pilot flag; the pilot is shared by direct link. A reveal date is not a
+The owner authorized a 100-participant limit per jam, including departed
+registrations, with independent approval by armorup. This source limit changes
+the live service only through publication. The 100-person hosted Neon/Pages flow
+remains untested; the limit is not a provider-capacity acceptance result.
+Production availability is controlled by a pilot flag; the pilot is shared by direct link. A reveal date is not a
 promise that public GitHub repositories or Pages sites are secret. See [the plan](ZEROJAMS-PLAN.md) and
 [operator guide](ZEROJAMS-OPERATIONS.md).
 

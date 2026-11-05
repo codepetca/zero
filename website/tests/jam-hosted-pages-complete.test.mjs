@@ -15,7 +15,7 @@ for(const type of ['game','app']) test(`hosted ${type} creation, independent app
     fetchImpl:async url=>{assert.equal(url,'https://api.github.com/repos/student/project/pages');pagesCalls++;
       return pagesAvailable?Response.json({html_url:'https://play.example.org',public:true,status:'built'}):new Response(null,{status:404});}
   });
-  const service=createJamService({store:f.store,maintainerIds:[creator.id,maintainer.id],now:()=>time,pagesBindingReader,
+  const service=createJamService({canCreateJam:()=>true,store:f.store,maintainerIds:[creator.id,maintainer.id],now:()=>time,pagesBindingReader,
     verifySource:async()=>assert.fail('Hosted creation requires no organizer repository'),
     verifyRepository:async({actor})=>({repository:{id:'202',ownerId:actor.id,fullName:'student/project'}})});
   const proposed=await service.propose({actor:creator,operationId:`hosted-${type}-proposal`,manifest:hostedManifest({type})});

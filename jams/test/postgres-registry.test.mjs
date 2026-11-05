@@ -229,7 +229,7 @@ test('Postgres local transactions serialize, preserve snapshots and recover lost
   await pool.query(POSTGRES_REGISTRY_SEED,[epoch,JSON.stringify({events:{},settlements:{schema:1,operations:{}}})]);
   const empty=await store.snapshot();assert.equal(empty.revision,`${epoch}${'0'.repeat(16)}`);assert.deepEqual(empty.ids,[]);
   const creator={id:'11',login:'creator'},maintainer={id:'22',login:'maintainer'};
-  const serviceFor=store=>createJamService({store,verifySource:async()=>{},maintainerIds:[maintainer.id],now:()=>Date.parse('2030-01-02T12:00:00Z'),
+  const serviceFor=store=>createJamService({canCreateJam:()=>true,store,verifySource:async()=>{},maintainerIds:[maintainer.id],now:()=>Date.parse('2030-01-02T12:00:00Z'),
     verifyRepository:async({actor})=>({repository:{id:String(1000+Number(actor.id)),ownerId:actor.id,fullName:`${actor.login}/project`}}),
     pagesBindingReader:async(repo,pagesUrl)=>({status:'verified',pagesUrl,repositoryId:repo.id,ownerId:repo.ownerId})});
   const proposal=await store.transact(tx=>serviceFor(tx).propose({actor:creator,operationId:'pg-propose-0001',manifest:hostedManifest()}));
