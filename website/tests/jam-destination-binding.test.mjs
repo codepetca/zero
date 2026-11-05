@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createJamDestinationBindingReader} from '../lib/jam-destination-binding.mjs';
+import {createJamDestinationBindingReader, isMissingJamDestination} from '../lib/jam-destination-binding.mjs';
 
 const repositoryUrl = 'https://github.com/student/project';
 const apiUrl = 'https://api.github.com/repos/student/project';
@@ -286,4 +286,49 @@ test('pending timeout consumes the original deadline and never receives a new pr
   assert.equal(calls, 2);
   assert.equal(queuedSignal.aborted, true);
   assert.ok(performance.now() - before < 1300, '500ms admission wait did not restart the 1000ms total deadline');
+});
+
+
+test('only exact-endpoint nonredirected 404/410 observations carry a missing marker and discard untrusted bodies', async () => {
+  for (const status of [404,410]) {
+    let canceled = false, calls = 0;
+    const read = createJamDestinationBindingReader({fetchImpl:async url => {
+      calls++; assert.equal(url, apiUrl);
+      const result = new Response(new ReadableStream({cancel() {canceled = true;}}), {status});
+      Object.defineProperty(result, 'url', {value:apiUrl});
+      return result;
+    }});
+    await assert.rejects(read(repositoryUrl), error => isMissingJamDestination(error) &&
+      error.message === message && !error.cause && !Object.hasOwn(error, 'status'));
+    assert.equal(calls, 1);assert.equal(canceled, true);
+  }
+});
+
+test('uncertain 404/410, redirects, authorization/rate/provider failures and forged status errors are never missing observations', async () => {
+  const variants = [
+    ...[404,410].flatMap(status => [
+      () => response({}, {status}), // No effective URL: cannot establish authoritative absence.
+      () => {const r=response({}, {status});Object.defineProperty(r, 'url', {value:'https://api.github.com/repos/other/project'});return r;},
+      () => ({status, url:apiUrl, redirected:true, headers:new Headers()}),
+      () => ({status, url:apiUrl, headers:new Headers()})
+    ]),
+    ...[301,302,307,308,401,403,429,500,502,503].map(status => () => {
+      const r=response({}, {status});Object.defineProperty(r, 'url', {value:apiUrl});return r;
+    }),
+    () => {throw Object.assign(Error('private upstream detail'), {status:404});}
+  ];
+  for (const make of variants) {
+    const read=createJamDestinationBindingReader({fetchImpl:async () => make()});
+    await assert.rejects(read(repositoryUrl), error => !isMissingJamDestination(error) && error.message === message && !error.cause);
+  }
+  assert.equal(isMissingJamDestination({status:404,message}), false);
+});
+
+test('late or canceled exact-endpoint missing responses cannot turn a deadline failure into a missing observation', async () => {
+  const pending=deferred();let canceled=false;
+  const read=createJamDestinationBindingReader({timeoutMs:20,fetchImpl:async () => pending.promise});
+  await assert.rejects(read(repositoryUrl), error => !isMissingJamDestination(error) && error.message === message);
+  const result=new Response(new ReadableStream({cancel() {canceled=true;}}), {status:404});
+  Object.defineProperty(result, 'url', {value:apiUrl});pending.resolve(result);
+  await new Promise(resolve => setImmediate(resolve));assert.equal(canceled,true);
 });

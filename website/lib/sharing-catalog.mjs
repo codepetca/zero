@@ -4,7 +4,7 @@ import practice from '../../extension/src/sharing/tutorial-practice.js';
 import {readJamHubVisibility, assertJamVisibilityTime} from './jam-hub-visibility.mjs';
 import {projectHeldCatalog} from './jam-held-catalog.mjs';
 import {createHubRequestDeadline} from './hub-request-deadline.mjs';
-import {createJamDestinationBindingReader} from './jam-destination-binding.mjs';
+import {createJamDestinationBindingReader, isMissingJamDestination} from './jam-destination-binding.mjs';
 
 export const CATALOG_TIMEOUT_MS = 8000;
 export const REGISTRY_BYTES = 8 * 1024 * 1024;
@@ -26,7 +26,13 @@ async function bindJamCatalog(catalog, visibility, {deadline, visibilityReader, 
       while (next < urls.length) {
         signal.throwIfAborted();
         const url = urls[next++];
-        results.set(url, await destinationReader(url, {signal}));
+        try {results.set(url, await destinationReader(url, {signal}));}
+        catch (error) {
+          // A confirmed missing public destination suppresses only its releases.
+          // Provider/transport uncertainty must still reject the whole response.
+          if (!isMissingJamDestination(error)) throw error;
+          results.set(url, null);
+        }
       }
     }));
     return results;

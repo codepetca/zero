@@ -101,3 +101,52 @@ test('shared reader contention returns unavailable instead of a successful empty
   releaseFetch();
   const completed=await first;assert.equal(completed.status,200);assert.equal((await completed.json()).releases.length,1);
 });
+
+
+function observedDestinations(statuses, calls = []) {
+  return createJamDestinationBindingReader({fetchImpl:async (url, options) => {
+    calls.push({url, options});
+    const name=url.split('/').at(-1),id=name.slice('game'.length),status=statuses[id] ?? 200;
+    if (status instanceof Error) throw status;
+    const result=Response.json(status===200 ? {id:Number(id),owner:{id:7,type:'User',login:'student'},name,
+      full_name:`student/${name}`,html_url:`https://github.com/student/${name}`,private:false} : {message:'private upstream detail'}, {status});
+    Object.defineProperty(result,'url',{value:url});
+    return result;
+  }});
+}
+
+test('confirmed missing public repositories omit only their releases and leave the available catalog usable',async()=>{
+  const releases=[release('game','123'),release('game','123','0.2.0'),release('library','456'),release('game','789')],calls=[];
+  const response=await run(releases,{destinationReader:observedDestinations({'123':404,'456':410},calls)});
+  assert.equal(response.status,200);assert.deepEqual((await response.json()).releases,[releases[3]]);
+  assert.equal(response.headers.get('cache-control'),'no-store');assert.equal(calls.length,3);
+  assert.ok(calls.every(({url,options})=>url.startsWith('https://api.github.com/repos/')&&options.redirect==='manual'&&options.credentials==='omit'));
+});
+
+test('all confirmed missing repositories yield an empty catalog, while any uncertain provider failure still makes it unavailable',async()=>{
+  const releases=[release('game','123'),release('library','456')];
+  const empty=await run(releases,{destinationReader:observedDestinations({'123':404,'456':410})});
+  assert.equal(empty.status,200);assert.deepEqual((await empty.json()).releases,[]);
+  for(const failure of [401,403,429,500,502,503,Object.assign(Error('secret'),{status:404})]){
+    const response=await run(releases,{destinationReader:observedDestinations({'123':404,'456':failure})});
+    assert.equal(response.status,503);assert.deepEqual(await response.json(),{error:'ZeroHub is unavailable. Try again shortly.'});
+  }
+});
+
+test('missing destination omission does not bypass initial holds, refreshed holds or identity checks',async()=>{
+  const releases=[release('game','123'),release('game','124'),release('game','125'),release('library','456')],calls=[];
+  let reads=0;
+  const observe=observedDestinations({'123':404},calls);
+  const response=await run(releases,{
+    visibilityReader:async()=>++reads===1?decision(['125']):decision(['124','125']),
+    destinationReader:async(url,options)=>url.endsWith('456')?{...binding('456'),ownerId:'8'}:observe(url,options)
+  });
+  assert.equal(response.status,200);assert.deepEqual((await response.json()).releases,[]);assert.equal(reads,2);
+  assert.equal(calls.some(({url})=>url.endsWith('125')),false,'initially held repositories remain unread');
+  for(const latest of [null,Error('private authority failure')]){
+    let count=0;
+    const response=await run([releases[0]],{destinationReader:observedDestinations({'123':404}),
+      visibilityReader:async()=>{if(++count===1)return decision();if(latest instanceof Error)throw latest;return latest;}});
+    assert.equal(response.status,503,'missing-only catalogs still require fresh authority');
+  }
+});
