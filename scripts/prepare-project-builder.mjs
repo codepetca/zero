@@ -56,6 +56,10 @@ export function projectBuilderFilesSync({sourceRoot = repositoryRoot} = {}) {
   if(sharingBytes.length > 4096) throw new Error('Release sharing configuration exceeds limits.');
   validateKitConfiguration(JSON.parse(sharingBytes.toString('utf8')));
   files.push({path: 'media/sharing-config.json', bytes: sharingBytes});
+  const licensePath = path.join(sourceRoot, 'LICENSE'); regularPath(licensePath);
+  const licenseStat = fsSync.lstatSync(licensePath);
+  if (!licenseStat.isFile() || licenseStat.nlink !== 1 || licenseStat.size > format.LIMITS.fileBytes) throw new Error('Invalid Zero license: ' + licensePath);
+  files.push({path: 'src/web-export/notices/ZERO-LICENSE.txt', bytes: fsSync.readFileSync(licensePath)});
   const manifest = format.createBuilderManifest(files);
   return [...files, {path: 'builder.json', bytes: Buffer.from(JSON.stringify(manifest, null, 2) + '\n')}].sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
 }

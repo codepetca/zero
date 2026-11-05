@@ -436,7 +436,9 @@ Sources: [OpenJFX 21 release requirements](https://github.com/openjdk/jfx/blob/j
 The bundled Apache Maven Wrapper scripts retain their upstream attribution.
 See [wrapper license](.mvn/wrapper/LICENSE-APACHE-2.0.txt) and
 [wrapper notice](.mvn/wrapper/NOTICE). These apply to the wrapper. Original Zero source uses the bundled
-[Zero Source-Available License](LICENSE). Students may edit starter/examples
-and share noncommercial apps; framework changes and commercial use require prior
+[Zero Source-Available License](LICENSE). Individual personal use is free;
+organizations need an approved, paid license (contact info@codepet.ca for pricing).
+Individuals may edit starter/examples and share noncommercial apps for personal
+use; framework changes and commercial use require prior
 express written consent for material offered solely under that license. Prior MIT
 rights remain intact.

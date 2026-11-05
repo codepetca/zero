@@ -41,6 +41,9 @@ are unsupported. Physical Windows and novice student trials remain unverified; s
 Microsoft Store provides Zero for Windows. Store installation and
 updates still need a physical Windows check.
 Each published download retains the license shipped with it.
+Current Zero source is free for individual personal use. Schools and other
+organizations need an approved, paid license for use covered by the current
+license; [contact Codepet](mailto:info@codepet.ca) for pricing.
 
 ## Start here
 
@@ -105,7 +108,9 @@ recovery and the read-only `--verify-only` option.
 Start contributions with one understandable helper, example or useful error.
 Try a shared change in two apps and seek review before a cohort adopts it.
 Current source is offered under the [Zero Source-Available License](LICENSE).
-Student starter/example editing and noncommercial app sharing are permitted;
-changes to Zero itself and commercial use require prior express written consent
-for material offered solely under the current license. Prior MIT rights remain intact. Bundled
+Individual personal use and noncommercial starter app editing and sharing are
+permitted. Organizational use requires an approved, paid license; contact
+info@codepet.ca for pricing. For material offered solely under that license,
+changes to Zero itself and commercial use require prior express written consent.
+Prior MIT rights remain intact. Bundled
 upstream dependencies and wrapper notices retain their own terms. Migrated sample libraries retain their MIT notices.

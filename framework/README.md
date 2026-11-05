@@ -69,6 +69,9 @@ Game pause/focus/restart policy remains explicit in Main. See the
 [audio API](../student-template/API.md#audio) for thread, close and failure behavior.
 
 The JAR and sources JAR are generated in target/. No remote publishing target is
-configured. Current Zero source uses the [Zero Source-Available License](../LICENSE); prior MIT rights remain intact; public Maven coordinates remain unresolved.
+configured. Current Zero source uses the [Zero Source-Available License](../LICENSE).
+Individual personal use is free; organizations need an approved, paid license.
+Contact info@codepet.ca for pricing. Prior MIT rights remain intact; public Maven
+coordinates remain unresolved.
 Never add this JAR to a project that already compiles its own zero.App and
 zero.GameApp; pick one source of the framework classes.
