@@ -19,19 +19,23 @@ export function httpsUrl(value) {
   return url.href;
 }
 
-export function manifestData(input) {
-  keys(input,['schema','templateVersion','type','title','summary','theme','rules','eligibility','websiteUrl','timezone','schedule']);
+export function manifestData(input) { return normalizedManifest(input,false); }
+export function hostedManifestData(input) { return normalizedManifest(input,true); }
+function normalizedManifest(input,hosted) {
+  keys(input,['schema','templateVersion','type','title','summary','theme','rules','eligibility',...(hosted?[]:['websiteUrl']),'timezone','schedule']);
   if (input.schema !== 1 || input.templateVersion !== '1.0.0' || !['game','app'].includes(input.type)) fail(400,'Unsupported jam manifest.');
   const timezone = text(input.timezone,100);
   try { new Intl.DateTimeFormat('en',{timeZone:timezone}).format(); } catch { fail(400,'Use an IANA timezone.'); }
   const dateKeys = ['registrationOpensAt','registrationClosesAt','startsAt','submissionsOpenAt','submissionsCloseAt'];
-  keys(input.schedule,dateKeys);
+  const hasReveal=Object.hasOwn(input.schedule||{},'galleryRevealAt');
+  keys(input.schedule,[...dateKeys,'galleryRevealAt'],hosted?[...dateKeys,'galleryRevealAt']:dateKeys);
   const schedule = {}, times = {};
-  for (const key of dateKeys) {
+  for (const key of hasReveal?[...dateKeys,'galleryRevealAt']:dateKeys) {
     const date = input.schedule[key];
     if (typeof date !== 'string' || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/.test(date) || !Number.isFinite(Date.parse(date)) || new Date(date).toISOString().replace('.000Z','Z') !== date.replace('.000Z','Z')) fail(400,'Use valid ISO UTC schedule dates.');
     times[key] = Date.parse(date); schedule[key] = new Date(date).toISOString();
   }
   if (!(times.registrationOpensAt < times.registrationClosesAt && times.registrationOpensAt <= times.startsAt && times.startsAt <= times.submissionsOpenAt && times.submissionsOpenAt < times.submissionsCloseAt && times.registrationClosesAt <= times.submissionsCloseAt)) fail(400,'Jam schedule boundaries are inconsistent.');
-  return {schema:1,templateVersion:'1.0.0',type:input.type,title:text(input.title,120),summary:text(input.summary,1000),theme:text(input.theme,1000),rules:text(input.rules,8000),eligibility:text(input.eligibility,2000),websiteUrl:httpsUrl(input.websiteUrl),timezone,schedule};
+  if(hasReveal&&times.galleryRevealAt<=times.submissionsCloseAt)fail(400,'The gallery reveal must be after the submission deadline.');
+  return {schema:1,templateVersion:'1.0.0',type:input.type,title:text(input.title,120),summary:text(input.summary,1000),theme:text(input.theme,1000),rules:text(input.rules,8000),eligibility:text(input.eligibility,2000),...(hosted?{}:{websiteUrl:httpsUrl(input.websiteUrl)}),timezone,schedule};
 }

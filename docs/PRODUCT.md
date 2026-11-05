@@ -165,21 +165,22 @@ is explicit and remains gated by hosted library acceptance.
 
 ## ZeroJams
 
-ZeroJams supports planned Game Jam and App Jam events. Any user can propose an
-event for Zero maintainer approval. Zero supplies the complete versioned website
-template; creators keep an independent copy in their own repository and host it
-themselves. A shared Zero-owned panel/service handles official joining and project
-submission through GitHub-backed records. Zero owns approval, accepted rules and
-moderation; creator websites and participant demos remain independently hosted.
-Every Game Jam and App Jam requires students to use GitHub: sign in on Zero to
-join and submit their own public GitHub repository at an exact commit. This
-platform requirement is separate from creator eligibility rules. Browsing and
-site preparation remain available before sign-in.
-ZeroJams currently remains local-development-only: production pages, panels,
-APIs, template downloads and navigation are hidden under the owner hold. Editor
-shortcuts are deferred until the public product is ready. Local implementation
-and live activation are separate. See the
-[phased plan](ZEROJAMS-PLAN.md) and [operator guide](ZEROJAMS-OPERATIONS.md).
+Local development includes a Zero-hosted Game Jam and App Jam proposal flow.
+A creator supplies the public event details without creating a website. A different
+Zero maintainer must approve the exact proposal before it becomes official or
+participants can join. The official Zero page presents the accepted details and
+participation link. The earlier creator-hosted website preparation and submission
+path is retained in source but temporarily unavailable for new proposals; existing
+records remain readable. Participants can join with their own public GitHub
+repository before publishing. They submit a Pages site verified against that
+repository before the deadline; verified custom domains qualify. Coursework
+links still go separately to Pika.
+
+The owner authorized a small production pilot with a ten-participant limit per
+jam and independent approval by armorup. Production availability is controlled
+by a pilot flag; the pilot is shared by direct link. A reveal date is not a
+promise that public GitHub repositories or Pages sites are secret. See [the plan](ZEROJAMS-PLAN.md) and
+[operator guide](ZEROJAMS-OPERATIONS.md).
 
 ## Core goal: students grow the framework
 

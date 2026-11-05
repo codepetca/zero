@@ -1,7 +1,13 @@
-// Owner hold: ZeroJams is available only in local development until ready.
-// The service activation flag cannot publish the unfinished product.
-export function jamsPreviewAvailable(env = {NODE_ENV:process.env.NODE_ENV,VERCEL_ENV:process.env.VERCEL_ENV}) {
-  return env.NODE_ENV === 'development' && env.VERCEL_ENV !== 'production';
+// The production pilot requires a separate explicit server-side admission flag.
+// The write flag alone cannot expose routes or disable visibility enforcement.
+export function jamsPreviewAvailable(env = process.env) {
+  return env.NODE_ENV === 'development' && env.VERCEL_ENV !== 'production' && env.VERCEL_ENV !== 'preview' ||
+    env.NODE_ENV === 'production' && env.VERCEL === '1' && env.VERCEL_ENV === 'production' && env.ZERO_JAMS_PILOT_ENABLED === '1';
+}
+
+// The hosted pilot is shared by direct invitation, not promoted in Hub navigation.
+export function jamsNavigationAvailable(env=process.env) {
+  return env.NODE_ENV==='development'&&env.VERCEL_ENV!=='production'&&env.VERCEL_ENV!=='preview';
 }
 
 export function hiddenJamsResponse(env) {

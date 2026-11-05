@@ -1,8 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createHubMetricsService, hubMetricsResponse} from '../lib/hub-metrics.mjs';
+import {createHubMetricsService as createMetrics, hubMetricsResponse as metricsResponse} from '../lib/hub-metrics.mjs';
 import {REGISTRY_URL} from '../lib/sharing-catalog.mjs';
 import {loadMetricBatches} from '../lib/hub-metrics-client.mjs';
+import {createOpensStore} from '../lib/hub-opens.mjs';
+
+// Every transport/authority is synthetic; these tests never depend on process configuration.
+const createHubMetricsService = options => createMetrics({env:{}, visibilityReader:async () => null, ...options});
+const hubMetricsResponse = (request, options) => metricsResponse(request, {env:{}, visibilityReader:async () => null, ...options});
 
 const request = query => new Request(`https://zero.codepet.ca/api/hub/metrics?${query}`);
 const resolve = async ({kind, id}) => id === 'unknown' ? null : {kind, id, ...(kind === 'game' ? {playUrl: 'https://student.github.io/game/'} : {})};
@@ -35,13 +40,15 @@ test('one failed batch does not suppress later cards, and cancelled selections s
 
 test('metrics endpoint bounds/deduplicates selections before work and projects only known targets', async () => {
   let calls = 0;
-  const service = {metrics: async (kind, ids) => {calls++; return ids.map(id => ({id, kind, opens: 3}));}};
+  const service = {metricsSelection: async (kind, ids) => {calls++; return {
+    targets:ids.map(id => ({id, kind})), items:ids.map(id => ({id, kind, opens:3})),
+  };}};
   for (const query of ['', 'kind=game', 'kind=other&ids=a', 'kind=game&kind=game&ids=a', 'kind=game&ids=a,a', 'kind=game&ids=../evil', 'kind=game&ids=a&extra=1', `kind=game&ids=${Array.from({length: 13}, (_, i) => 'p' + i).join(',')}`])
     assert.equal((await hubMetricsResponse(request(query), {service})).status, 400);
   assert.equal(calls, 0);
   const response = await hubMetricsResponse(request('kind=game&ids=drawing-pad'), {service});
   assert.deepEqual(await response.json(), {schema: 1, items: [{kind: 'game', id: 'drawing-pad', opens: 3}]});
-  assert.equal(response.headers.get('cache-control'), 'public, max-age=60, s-maxage=60');
+  assert.equal(response.headers.get('cache-control'), 'no-store');
 });
 
 test('concurrent count requests share one MGET, cache is bounded in time and failures stay unknown', async () => {
@@ -86,7 +93,46 @@ test('missing registry configuration, legacy snapshots or registry outages never
 });
 
 test('failed resolution returns a retryable unavailable response without caching private errors', async () => {
-  const response = await hubMetricsResponse(request('kind=game&ids=drawing-pad'), {service: {metrics: async () => {throw Error('private details');}}});
+  const response = await hubMetricsResponse(request('kind=game&ids=drawing-pad'), {service: {metricsSelection: async () => {throw Error('private details');}}});
   assert.equal(response.status, 503); assert.equal(response.headers.get('cache-control'), 'no-store');
   assert.deepEqual(await response.json(), {error: 'Counts unavailable.'});
+});
+
+test('metric clients allow the 18-second server budget to finish within a 22-second timeout', async t => {
+  const delays = [];
+  t.mock.method(AbortSignal, 'timeout', delay => {delays.push(delay); return new AbortController().signal;});
+  const received = [];
+  await loadMetricBatches('game', ['drawing-pad'], {signal:new AbortController().signal,
+    onItems:items => received.push(...items), fetchImpl:async (_url, options) => {
+      assert.ok(options.signal instanceof AbortSignal);
+      return Response.json({schema:1, items:[{id:'drawing-pad', kind:'game', opens:2}]});
+    }});
+  assert.deepEqual(delays, [22_000]);
+  assert.deepEqual(received, [{id:'drawing-pad', kind:'game', opens:2}]);
+});
+
+test('actual metric batches and counter reads accept maximum maintained IDs without suppressing unrelated IDs',async()=>{
+  const ids=['unrelated-project','b'.repeat(101),...Array.from({length:12},(_,i)=>`id${i}`.padEnd(128,'a'))];
+  const records=ids.map((id,i)=>({id,kind:'game',repositoryId:String(321+i),ownerId:'7',
+    repositoryUrl:`https://github.com/student/game-${321+i}`,playUrl:`https://student.github.io/game-${321+i}/`}));
+  for(const active of [true,false]) {
+    const reads=[],received=[],batches=[];
+    const store=createOpensStore({env:{ZERO_HUB_OPENS_REDIS_URL:'https://counter.upstash.io',ZERO_HUB_OPENS_REDIS_TOKEN:'fixture-token'},
+      fetchImpl:async(_url,options)=>{const command=JSON.parse(options.body);assert.equal(command[0],'MGET');reads.push(command.slice(1));
+        return Response.json({result:command.slice(1).map(key=>String(ids.indexOf(key.slice('zero:hub:opens:v1:'.length))+1))});}});
+    const visibilityReader=async()=>active?{revision:'a'.repeat(40),observedAt:0,isHeld:()=>false}:null;
+    const destinationReader=async url=>{assert.equal(active,true);const [,owner,repo]=new URL(url).pathname.split('/');
+      return {repositoryUrl:url,owner,repo,repositoryId:repo.slice(5),ownerId:'7'};};
+    const service=createHubMetricsService({store,visibilityReader,destinationReader,
+      resolve:async({id})=>records.find(record=>record.id===id)});
+    await loadMetricBatches('game',ids,{signal:new AbortController().signal,onItems:items=>received.push(...items),
+      fetchImpl:async url=>{const batchRequest=new Request(`https://zero.codepet.ca${url}`);batches.push(batchRequest);
+        const response=await hubMetricsResponse(batchRequest,{service,visibilityReader,destinationReader});
+        assert.equal(response.status,200);return response;}});
+    assert.deepEqual(batches.map(req=>new URL(req.url).searchParams.get('ids').split(',').length),[12,2]);
+    assert.deepEqual(received,ids.map((id,i)=>({id,kind:'game',opens:i+1})));
+    assert.equal(reads.length,2);assert.equal(reads.flat().length,ids.length);
+    const invalid=await hubMetricsResponse(request(`kind=game&ids=unrelated-project,${'x'.repeat(129)}`),{service,visibilityReader,destinationReader});
+    assert.equal(invalid.status,400);assert.equal(reads.length,2);
+  }
 });

@@ -5,10 +5,17 @@ is created here. Runtime HTTP/auth/configuration belongs to the website adapter.
 
 `createJamService({store, verifySource, maintainerIds, now, limits})` exports the
 contract in `CONTRACT.md`. Actors are trusted server-derived GitHub identities;
-browser identity/role fields must never be forwarded as authority. Source checks
-bind public personal-account repository numeric ownership and exact commits.
-Organization/collaborator-only sources and repository transfers do not confer
-organizer authority. Maintainers use configured numeric account IDs; a creator
+browser identity/role fields must never be forwarded as authority. New proposal
+intake is `{actor,operationId,manifest}` for Zero-hosted events, with no organizer
+repository, website URL or hosting choice. The validated manifest requires a
+future gallery reveal strictly after its submission deadline. Proposal state has
+`hosting:'zero'`, `repository:null`; event state has `repositoryId:null`. IDs use
+the separate deterministic `jam-zero-<32 hex>` namespace. Same actor/operation
+and normalized manifest recover the stored result; changed information conflicts.
+A new operation creates a separate event, not an edit to an existing proposal.
+Source checks still bind participant public repositories and exact commits.
+Organization/collaborator-only sources do not confer participant source ownership. Maintainers use configured numeric account IDs;
+a creator
 cannot approve their own event. Source and repository links are metadata, never
 instructions to execute code or fetch creator-controlled website content.
 
@@ -21,20 +28,21 @@ but demo bytes and mutable hosted websites are not verified/frozen by Zero.
 Commit existence uses `/git/commits/<sha>` metadata, avoiding diff/patch payloads
 from large student commits.
 
-`createGitHubJamStore({token, fetchImpl, timeoutMs, maxEvents})` uses a separate
-server-only service credential. It is fixed to `codepetca/zero`, existing branch
-`zero-jams-registry`, and `jams/jam-<numeric-repository-id>.json`. The store never
-uses participant credentials or creates branches. An absent directory is empty
-only after the expected branch is verified. An absent branch requires explicit
-operator setup. Contents writes use the previous file blob SHA; a committed state
-and its operation result occupy the same file update. Transport errors and lost
-confirmation remain unknown; retry the same operation ID to recover acceptance.
-Proposal retry recovery scans only the bounded official listing before fetching
-creator source, so a committed proposal remains recoverable after source removal.
-It adds up to one record read per pilot event to proposal requests.
+`createAtomicGitHubJamStore` uses a server-only service credential, pinned
+commit snapshots and non-forced branch updates. The legacy layout requires an
+explicit operator migration and retirement of prior writers; this local work
+performs neither. Same-operation retries recover committed results. Settlement
+fences are stored atomically with registry updates; uncertain outcomes remain
+unknown until recovery or settlement. Template ZIP and preview routes are closed,
+while their underlying code remains available.
 
 Accepted metadata stays stable while a newer proposal is reviewed. Public reads
-expose accepted display fields and active participants/entries; only creators and
+expose accepted display fields and active participants; event entries with an
+explicit gallery reveal stay hidden until that server-clock instant. Participants
+can still inspect their own entry. Public Jam and Hub discovery use a complete pinned registry snapshot to hold
+a joined project repository across galleries until all applicable reveals.
+This is a discovery hold, not secrecy for independently public source or Pages.
+The separate experimental queue and controlled pilot remain unchanged. Only creators and
 maintainers see the pending proposal. Registration/submission windows are
 half-open UTC intervals and the server clock is checked again before every CAS
 attempt. Join and submission require the current accepted revision. Leaving
@@ -80,12 +88,11 @@ durable operation key. Exhausting the safety pool fails explicitly for operator
 intervention; moderation is bounded, not unlimited. Custom limits leaving less
 than 65,536 ordinary bytes or fewer than two entry-history slots are invalid.
 
-The global event cap is an advisory admission check, **not an atomic quota**:
-two new events may race because the contract has per-event CAS only. Over-cap
-listings fail closed. A strict global quota would need a separate shared atomic
-index/reservation protocol. Large discovery reads remain bounded by the pilot
-listing; this is not an unlimited Git-backed database or an activated live pilot.
-
+The total event cap and the default limit of three outstanding hosted proposals
+per creator are checked against the same branch snapshot used for CAS. Conflicts
+reload and recheck. Approval or rejection releases a pending-proposal slot;
+retries recover before limits. These bounds do not establish a strict wall-clock
+rate limit or authorize live activation.
 Run `node --test jams/test/*.test.mjs`. Fixtures exercise privacy, source-owner
 binding, no self-approval, accepted revision stability, stale acknowledgment,
 half-open deadlines, CAS races, unknown writes and retry recovery, moderation,

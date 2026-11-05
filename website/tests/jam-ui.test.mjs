@@ -16,8 +16,8 @@ function harness({storage=new Map(),fetcher=async()=>{throw new Error('network')
   const react={useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(){index++;}};
   const module={exports:{}};
   const context={participateData,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return ()=>null;return require(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
-  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData,error:"",loading:false,refresh:async()=>{}});useTopLevel=()=>true;}exports.testing={useMutation,useResource,JamParticipate,ApprovedVersions};',context);
-  return {render(kind='useMutation',path='/api/jams/jam-42/actions'){index=0;return module.exports.testing[kind](path);},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
+  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:async()=>{}});useTopLevel=()=>true;}exports.testing={useMutation,useResource,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,MaintainerTools};',context);
+  return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
 }
 function elements(node) {
   if(Array.isArray(node))return node.flatMap(elements);
@@ -25,6 +25,35 @@ function elements(node) {
   return [node,...elements(node.props?.children)];
 }
 function confirmed(init){const body=JSON.parse(init.body);return Response.json({configured:true,eventId:'jam-42',operationId:body.operationId});}
+test('a gallery with unavailable verification reports incompleteness rather than claiming no submissions',()=>{
+  const event={id:'jam-42',type:'game',title:'Jam',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',timezone:'UTC',
+    schedule:{galleryRevealAt:'2020-01-05T00:00:00Z'},revision:'a',moderation:{status:'active'},registrationOpen:false,
+    submissionsOpen:false,participantCount:1,participants:[],entries:[],galleryIncomplete:true};
+  const h=harness({participateData:{event,registration:null,entry:null,canMaintain:false}});
+  const nodes=elements(h.render('JamDetail',{id:'jam-42'}));
+  assert.ok(nodes.some(node=>node.props?.role==='status'&&String(node.props.children).includes('Some submissions could not be verified')));
+  assert.ok(nodes.some(node=>node.type==='p'&&node.props.children==='No verified submissions are available right now.'));
+  assert.equal(nodes.some(node=>node.type==='p'&&node.props.children==='No active submissions yet.'),false);
+});
+test('gallery navigation permits rechecking the current page and returning to earlier pages',()=>{
+  const event={id:'jam-42',type:'game',title:'Jam',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',timezone:'UTC',
+    schedule:{galleryRevealAt:'2020-01-05T00:00:00Z'},revision:'a',moderation:{status:'active'},registrationOpen:false,
+    submissionsOpen:false,participantCount:1,participants:[],entries:[],galleryIncomplete:true};
+  const h=harness({participateData:{event,registration:null,entry:null,canMaintain:false,nextCursor:'opaque-cursor'}});
+  const render=()=>elements(h.render('JamDetail',{id:'jam-42'}));
+  assert.ok(render().find(node=>node.type==='button'&&node.props.children==='Retry verification for this page'));
+  render().find(node=>node.type==='button'&&node.props.children==='Next gallery page').props.onClick();
+  assert.ok(render().find(node=>node.type==='button'&&node.props.children==='Start gallery again'));
+  render().find(node=>node.type==='button'&&node.props.children==='Previous gallery page').props.onClick();
+  assert.equal(render().some(node=>node.type==='button'&&node.props.children==='Start gallery again'),false);
+});
+test('a failed gallery refresh discards previously verified page data',async()=>{
+  let fail=false;
+  const h=harness({fetcher:async()=>fail?Response.json({error:'Start again'},{status:409}):Response.json({configured:true,event:{title:'Previous page'}})});
+  const render=()=>h.render('useResource','/api/jams/jam-42?view=gallery',true);
+  await render().refresh();assert.equal(render().data.event.title,'Previous page');
+  fail=true;await render().refresh();assert.equal(render().data,null);assert.match(render().error,/Start again/);
+});
 test('mutation retries preserve operation identity through errors and reload; success clears it',async()=>{
   const calls=[],storage=new Map();
   let fail=true;
@@ -55,8 +84,8 @@ test('frames and signed-out callers cannot mutate; unconfigured or unconfirmed r
   const malformed=harness({fetcher:async()=>Response.json({configured:true})});assert.equal(await malformed.render().send({action:'join'}),null);
 });
 test('submission contract requires a demo URL and preserves exact source and demo in the request',async()=>{
-  assert.match(clientSource,/<label>Demo URL<input type="url" required value=\{demoUrl\}/);
-  assert.match(clientSource,/act\('submit',\{source,title,description,demoUrl,/);
+  assert.match(clientSource,/Published GitHub Pages URL/);
+  assert.match(clientSource,/act\('submit',\{\.\.\.\(!showcase\?\{source\}:\{\}\),title,description,demoUrl,/);
   const payload={action:'submit',revision:'accepted',source:{repositoryUrl:'https://github.com/creator/project',commit:'a'.repeat(40)},title:'My app',description:'An app',demoUrl:'https://creator.github.io/project/'};
   let received;
   const h=harness({fetcher:async(url,init)=>{received=JSON.parse(init.body);return confirmed(init);}});
@@ -64,7 +93,7 @@ test('submission contract requires a demo URL and preserves exact source and dem
   const {operationId,...sent}=received;assert.deepEqual(sent,payload);assert.ok(operationId);
 });
 test('entry moderation is maintainer-only in the gallery and sends the public reason and participant identity',async()=>{
-  assert.match(clientSource,/data\.canMaintain&&<EntryModeration id=\{id\} participantId=\{entry\.participantId\} onChanged=\{refresh\}/);
+  assert.match(clientSource,/data\.canMaintain&&<EntryModeration id=\{id\} participantId=\{entry\.participantId\} onChanged=\{refreshAfterModeration\}/);
   assert.match(clientSource,/<summary>Maintainer review<\/summary>/);
   assert.match(clientSource,/<label>Public reason<textarea required/);
   assert.match(clientSource,/mutation\.send\(\{action:'withdraw-entry',participantId,reason\}\)/);
@@ -106,7 +135,7 @@ test('fetched private data is unavailable immediately after actor changes, while
   await h.render('useResource').refresh();assert.equal(h.render('useResource').data.canMaintain,true);
   h.setActor(null);assert.equal(h.render('useResource').data,null);
   h.setActor({id:'99',login:'other',csrfToken:'new'});assert.equal(h.render('useResource').data,null);
-  assert.match(clientSource,/useDraft<Source>\('create-source'/);
+  assert.match(clientSource,/useDraft\('hosted-create'/);
   assert.match(clientSource,/useDraft\(`entry-details:/);
 });
 function panelModule(reply,seen) {
@@ -127,4 +156,105 @@ test('unapproved or unavailable panel grants no creator framing and exposes no w
     assert.equal(response.status,503);assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'self'$/);
     const html=await response.text();assert.doesNotMatch(html,/private operational details|Pending secret|unapproved\.example|<button|<form/);
   }
+});
+
+test('hosted approved panel shows official status and links without an external framing origin',async()=>{
+  const id='jam-zero-'+'a'.repeat(32),seen=[];
+  const panel=panelModule({body:{configured:true,event:{revision:'abc',title:'Hosted Game Jam',moderation:{status:'active'},registrationOpen:true,submissionsOpen:false,participantCount:1}}},seen);
+  const response=await panel.GET(new Request('https://zero.codepet.ca'),{params:Promise.resolve({id})});
+  const html=await response.text();
+  assert.equal(response.status,200);assert.equal(seen[0].id,id);
+  assert.match(html,/Hosted Game Jam/);assert.match(html,/Registration open/);
+  assert.ok(html.includes(`/hub/jams/${id}/participate`));
+  assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'self'$/);
+});
+
+test('showcase Join sends only the owned repository and does not require publication or a commit',async()=>{
+  const detail={configured:true,event:{id:'jam-zero-'+'a'.repeat(32),title:'Hosted jam',revision:'A',schedule:{galleryRevealAt:'2030-01-20T00:00:00Z'},moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participants:[],entries:[]},registration:null,entry:null,canMaintain:false};
+  const calls=[],h=harness({participateData:detail,fetcher:async(url,init)=>{calls.push(JSON.parse(init.body));return confirmed(init);}});
+  const render=()=>h.render('JamParticipate',{id:detail.event.id});
+  let tree=render();assert.equal(elements(tree).some(node=>node.props?.name==='commit'),false);
+  elements(tree).find(node=>node.props?.type==='checkbox').props.onChange({target:{checked:true}});
+  tree=render();elements(tree).find(node=>node.props?.name==='repositoryUrl').props.onChange({target:{value:'https://github.com/creator/project'}});
+  assert.equal(elements(render()).some(node=>node.props?.name==='joinDemoUrl'),false);
+  tree=render();const join=elements(tree).find(node=>node.type==='button'&&node.props.children==='Join this jam');
+  assert.equal(join.props.disabled,false);join.props.onClick();await new Promise(resolve=>setImmediate(resolve));
+  const {operationId,...payload}=calls[0];assert.ok(operationId);
+  assert.deepEqual(payload,{action:'join',revision:'A',repositoryUrl:'https://github.com/creator/project'});
+  h.setDetail({...detail,registration:{status:'joined',revision:'A',repository:{id:'12',ownerId:'12',fullName:'creator/project'}},entry:{status:'active'}});
+  tree=render();assert.equal(elements(tree).some(node=>node.props?.name==='commit'),false);
+  await elements(tree).find(node=>node.type==='form').props.onSubmit({preventDefault(){}});
+  assert.equal(calls[1].source,undefined);assert.equal(calls[1].action,'submit');
+});
+
+test('held entries appear in a separate maintainer-only review section',()=>{
+  const entry={participantId:'33',login:'student',title:'Hidden project',description:'Private until reveal',demoUrl:'https://student.github.io/project/',instructions:'',repository:{id:'202',ownerId:'33',fullName:'student/project'}};
+  const event={id:'jam-42',title:'Jam',type:'game',timezone:'UTC',summary:'',theme:'',rules:'',eligibility:'',schedule:{},revision:'A',moderation:{status:'active'},registrationOpen:false,submissionsOpen:false,participants:[],participantCount:1,entries:[]};
+  const data={configured:true,event,entry:null,registration:null,canMaintain:true,moderationEntries:[entry]};
+  const h=harness({participateData:data});
+  assert.equal(elements(h.render('JamDetail',{id:'jam-42'})).filter(node=>node.type?.name==='MaintainerTools').length,1);
+  assert.equal(elements(h.render('MaintainerTools',{id:'jam-42',onChanged:async()=>{}})).filter(node=>node.type?.name==='ModerationInbox').length,1);
+  const inbox=h.render('ModerationInbox',{id:'jam-42',onChanged:async()=>{}});
+  const held=elements(inbox).filter(node=>node.type?.name==='HeldEntryModeration');
+  assert.equal(held.length,1);assert.equal(held[0].props.entries[0].title,'Hidden project');
+  const section=h.render('HeldEntryModeration',{id:'jam-42',entries:[entry],onChanged:async()=>{}});
+  assert.ok(elements(section).some(node=>node.type?.name==='EntryModeration'&&node.props.participantId==='33'));
+  h.setDetail({...data,canMaintain:false});assert.equal(elements(h.render('MaintainerTools',{id:'jam-42',onChanged:async()=>{}})).some(node=>node.type?.name==='ModerationInbox'),false);
+  h.setDetail({...data,moderationEntries:[]});assert.equal(elements(h.render('ModerationInbox',{id:'jam-42',onChanged:async()=>{}})).some(node=>node.type?.name==='HeldEntryModeration'),false);
+  h.setDetail(null);assert.ok(elements(h.render('JamDetail',{id:'jam-42'})).some(node=>node.type?.name==='MaintainerTools'),'gallery failure does not unmount the independent maintainer path');
+  h.setActor(null);assert.equal(elements(h.render('JamDetail',{id:'jam-42'})).some(node=>node.type?.name==='MaintainerTools'),false);
+});
+
+test('maintainer overview errors can be retried and gallery moderation refreshes the independent inbox',async()=>{
+  const entry={participantId:'33',login:'student',title:'Project',description:'Project',demoUrl:'https://student.github.io/project/',repository:{id:'202',ownerId:'33',fullName:'student/project'}};
+  const event={id:'jam-42',title:'Jam',type:'game',timezone:'UTC',summary:'',theme:'',rules:'',eligibility:'',schedule:{},revision:'A',moderation:{status:'active'},registrationOpen:false,submissionsOpen:false,participants:[],participantCount:1,entries:[entry]};
+  const data={configured:true,event,entry:null,registration:null,canMaintain:true,moderationEntries:[entry]};
+  const h=harness({participateData:data}),render=()=>elements(h.render('JamDetail',{id:'jam-42'}));
+  const first=render().find(node=>node.type?.name==='MaintainerTools');
+  await render().find(node=>node.type?.name==='EntryModeration').props.onChanged();
+  const next=render().find(node=>node.type?.name==='MaintainerTools');
+  assert.notEqual(first.key,next.key,'gallery moderation remounts the separately fetched inbox');
+  h.setDetail(null);
+  assert.ok(render().some(node=>node.props?.role==='status'&&node.props.children==='Most recent confirmed moderation: submission withdrawn.'),'confirmation survives an unavailable gallery');
+  h.setActor({id:'99',login:'other',csrfToken:'other'});
+  assert.equal(render().some(node=>node.props?.role==='status'&&node.props.children==='Most recent confirmed moderation: submission withdrawn.'),false,'confirmation is scoped to the signed-in identity');
+  h.setDetail({...data,testError:'Overview unavailable'});
+  const retry=elements(h.render('MaintainerTools',{id:'jam-42',onChanged:async()=>{}})).find(node=>node.type?.name==='Retry');
+  assert.equal(retry.props.error,'Overview unavailable');assert.equal(typeof retry.props.refresh,'function');
+  const sameError=elements(h.render('MaintainerTools',{id:'jam-42',onChanged:async()=>{},galleryError:'Overview unavailable'}));
+  assert.ok(sameError.some(node=>node.type==='button'&&node.props.children==='Retry account view'&&typeof node.props.onClick==='function'),
+    'the account view remains independently retryable without repeating the error');
+  assert.equal(sameError.some(node=>node.type?.name==='Retry'),false);
+});
+
+test('rejoining allows a renamed repository URL while retaining the recorded URL as an editable initial value',async()=>{
+  const detail={configured:true,event:{id:'jam-zero-'+'b'.repeat(32),title:'Hosted jam',revision:'A',schedule:{galleryRevealAt:'2030-01-20T00:00:00Z'},moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participants:[],entries:[]},registration:{status:'left',revision:'A',repository:{id:'202',ownerId:'12',fullName:'creator/old-name'}},entry:null,canMaintain:false};
+  const calls=[],h=harness({participateData:detail,fetcher:async(url,init)=>{calls.push(JSON.parse(init.body));return confirmed(init);}});
+  const render=()=>h.render('JamParticipate',{id:detail.event.id});let tree=render();
+  let field=elements(tree).find(node=>node.props?.name==='repositoryUrl');
+  assert.equal(field.props.value,'https://github.com/creator/old-name');assert.equal(field.props.readOnly,undefined);
+  elements(tree).find(node=>node.props?.type==='checkbox').props.onChange({target:{checked:true}});
+  field=elements(render()).find(node=>node.props?.name==='repositoryUrl');field.props.onChange({target:{value:''}});
+  assert.equal(elements(render()).find(node=>node.props?.name==='repositoryUrl').props.value,'');
+  elements(render()).find(node=>node.props?.name==='repositoryUrl').props.onChange({target:{value:'https://github.com/creator/new-name'}});
+  tree=render();elements(tree).find(node=>node.type==='button'&&node.props.children==='Join this jam').props.onClick();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(calls[0].repositoryUrl,'https://github.com/creator/new-name');
+  assert.match(clientSource,/must still be the same GitHub repository/);
+});
+
+
+test('participation form remounts for event or signed-in identity changes',()=>{
+  const h=harness();
+  assert.equal(h.render('JamParticipateWrapper',{id:'jam-1'}).key,'jam-1:12');
+  assert.equal(h.render('JamParticipateWrapper',{id:'jam-2'}).key,'jam-2:12');
+  h.setActor({id:'99',login:'other',csrfToken:'other'});
+  assert.equal(h.render('JamParticipateWrapper',{id:'jam-1'}).key,'jam-1:99');
+  assert.match(clientSource,/entry-source:\$\{id\}:\$\{user\?\.id/);
+});
+
+test('participation shows the server-provided capacity before the join action',async()=>{
+  const source=await readFile(new URL('../components/JamClient.tsx',import.meta.url),'utf8');
+  assert.match(source,/room for up to \{data\.event\.participantLimit\} participants/);
+  assert.ok(source.indexOf('room for up to {data.event.participantLimit}')<source.indexOf("'Join this jam'"));
 });

@@ -39,7 +39,7 @@ export function createGitHubJamStore({token,fetchImpl=fetch,timeoutMs=8000,maxEv
     if (response.status !== 200 || !Array.isArray(response.data) || response.data.length > maxEvents) fail(503,'The jam registry listing is unavailable or at capacity.');
     const ids=[];
     for (const item of response.data) {
-      const match = /^(jam-[1-9][0-9]{0,19})\.json$/.exec(item?.name||'');
+      const match = /^(jam-(?:[1-9][0-9]{0,19}|zero-[a-f0-9]{32}))\.json$/.exec(item?.name||'');
       if (!match || item.type !== 'file' || item.path !== `jams/${item.name}` || !SHA.test(item.sha||'')) fail(503,'The jam registry listing is invalid.');
       ids.push(match[1]);
     }

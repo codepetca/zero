@@ -16,7 +16,7 @@ export async function loadMetricBatches(kind, ids, {signal, onItems, fetchImpl =
     try {
       const response = await fetchImpl(`/api/hub/metrics?${new URLSearchParams({kind, ids: batch.join(',')})}`, {
         cache: 'no-store', redirect: 'error', credentials: 'omit',
-        signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]),
+        signal: AbortSignal.any([signal, AbortSignal.timeout(22000)]),
       });
       if (!response.ok) continue;
       const data = await response.json();

@@ -1,5 +1,56 @@
 # ZeroJams architecture and user flow
 
+**Current direction, 2026-11-05:** The owner authorized a small production pilot
+using the Neon authority, with up to ten participants per jam and armorup as
+the independent approver. The 30-person Neon load test is waived and capacity at
+that size is unproven. The sections below preserve earlier development history;
+the current rollout and rollback requirements are in
+[the operations guide](ZEROJAMS-OPERATIONS.md).
+
+## Pages verification integration — 2026-11-04
+
+The latest owner direction in the separate ZeroJams plan requires a Jam entry's
+Pages site to be verified against its participant-owned public repository; Join
+is allowed before publication and matching custom domains configured in GitHub qualify. The local
+hosted-creation branch integrates that rule with independent approval, atomic
+registry operations and delayed cross-gallery reveal. The observer uses GitHub
+metadata; a 404 or unavailable observation is unverified, not proof that no
+valid Pages site exists. No live provider or pilot acceptance is implied.
+
+The local deadline rule uses Zero's server clock: the Pages verification and the
+last admission check must both complete before the submission deadline. A write
+that passes those checks may be confirmed after the deadline if GitHub's ref
+update is delayed. It is not confirmed until the durable update succeeds; an
+unknown response must be recovered using the same operation ID. This rule does
+not claim GitHub published its ref before the deadline. It keeps a valid on-time
+request from being disqualified solely by provider latency while refusing new
+admission at or after the cutoff. The service clock and ambiguous-write recovery
+remain rollout requirements. No production, pilot or provider configuration was
+changed.
+
+A historical pre-reveal showcase registration can be schema-valid without the
+stable repository binding needed for cross-gallery holds. Discovery deliberately
+fails closed for such a record; the normal participation flow cannot currently
+repair it while discovery is unavailable. Before rollout, inventory affected
+records and design a reviewed owner-only recovery or separately authorized
+migration. No hosted records were inspected or changed.
+
+## Local Zero-hosted proposal change — 2026-11-04
+
+The current local branch implements a simpler Zero-hosted proposal path: creators
+provide public event details on Zero and a different maintainer approves the
+revision before participation opens. New creator-hosted proposals are temporarily
+blocked while their implementation and historical records are retained. The
+creator-hosted design below records the earlier direction and is not the current
+creation flow.
+
+This branch integrates cross-gallery visibility and atomic Git snapshot admission
+locally, with repository-bound joins and durable request settlement. The separate
+ZeroJams task continues its unexposed queue work; the controlled pilot remains
+unchanged. Live cutover and provider acceptance remain separate. Production
+visibility remains held. This local work does not authorize
+provider changes, publication or deployment.
+
 Status: local development only; owner hold on production visibility,2026-10-25.
 
 Owner authorized source PR and merge on2026-10-25, with ZeroJams hidden in
@@ -14,7 +65,13 @@ Implementation is authorized locally from 2026-10-25; live activation is separat
 GitHub App permission changes and account configuration require separate explicit
 authorization. Existing game/library sharing and Pika submission stay separate.
 
-## Goal and agreed decisions
+## Historical creator-hosted design
+
+The remainder of this document preserves the earlier creator-hosted design and
+its execution history. Where it differs from the dated Zero-hosted integration
+above or the current contract, it is historical, not launch guidance.
+
+### Goal and agreed decisions at that time
 
 Any user can create a jam website in their own repository, submit the event for
 Zero maintainer approval, and let others join and submit projects through that

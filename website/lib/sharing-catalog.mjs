@@ -1,10 +1,52 @@
 import {createHash} from 'node:crypto';
 import contracts from '../../extension/src/sharing/contracts.js';
 import practice from '../../extension/src/sharing/tutorial-practice.js';
+import {readJamHubVisibility, assertJamVisibilityTime} from './jam-hub-visibility.mjs';
+import {projectHeldCatalog} from './jam-held-catalog.mjs';
+import {createHubRequestDeadline} from './hub-request-deadline.mjs';
+import {createJamDestinationBindingReader} from './jam-destination-binding.mjs';
 
 export const CATALOG_TIMEOUT_MS = 8000;
 export const REGISTRY_BYTES = 8 * 1024 * 1024;
 export const REGISTRY_URL = 'https://raw.githubusercontent.com/codepetca/zero/zero-sharing-registry/registry/state.json';
+export const MAX_JAM_CATALOG_DESTINATIONS = 40;
+const readDestinationBinding = createJamDestinationBindingReader();
+
+// A source URL is mutable. During active Jam enforcement, verify each distinct
+// candidate on every response and then obtain a new authority decision.
+// The student-published Pages URL is a mutable external destination.
+async function bindJamCatalog(catalog, visibility, {deadline, visibilityReader, destinationReader, decisionNow, env}) {
+  assertJamVisibilityTime(visibility, decisionNow, env);
+  const initiallyVisible = projectHeldCatalog(catalog, visibility);
+  const urls = [...new Set(initiallyVisible.releases.map(item => item.repository.url))];
+  if (urls.length > MAX_JAM_CATALOG_DESTINATIONS) throw new Error('Too many catalog destinations.');
+  const bindings = await deadline.run(async signal => {
+    const results = new Map(); let next = 0;
+    await Promise.all(Array.from({length:Math.min(4, urls.length)}, async () => {
+      while (next < urls.length) {
+        signal.throwIfAborted();
+        const url = urls[next++];
+        results.set(url, await destinationReader(url, {signal}));
+      }
+    }));
+    return results;
+  });
+  // Never accept a transition to inactive authority as proof that a hold ended.
+  const fresh = await deadline.run(signal => visibilityReader({signal}));
+  if (fresh === null) throw new Error('Project visibility is unavailable.');
+  assertJamVisibilityTime(fresh, decisionNow, env);
+  const freshlyVisible = projectHeldCatalog(initiallyVisible, fresh);
+  const releases = freshlyVisible.releases.flatMap(release => {
+    const binding = bindings.get(release.repository.url);
+    if (!binding || typeof binding.repositoryId !== 'string' || !/^[1-9][0-9]*$/.test(binding.repositoryId) ||
+        typeof binding.ownerId !== 'string' || !/^[1-9][0-9]*$/.test(binding.ownerId)) return [];
+    const resolvedHeld = fresh.isHeld(binding.repositoryId);
+    if (typeof resolvedHeld !== 'boolean') throw new Error('Project visibility is unavailable.');
+    if (resolvedHeld || binding.repositoryId !== release.repository.id || binding.ownerId !== release.repository.ownerId) return [];
+    return [release];
+  });
+  return {catalog:{...freshlyVisible, releases}, visibility:fresh};
+}
 export function catalogConfiguration(env = process.env) {
   const catalogUrl = env.ZERO_SHARING_CATALOG_URL;
   const registryUrl = env.ZERO_SHARING_REGISTRY_URL;
@@ -120,14 +162,26 @@ export function legacyCatalog(catalog) {
 }
 /** Both catalog APIs use the same bounded reader and canonical schema.
  * @param {Request} request
- * @param {{includeWeb?: boolean, practiceOnly?: boolean, reader?: typeof readCatalog}} [options]
+ * @param {{includeWeb?: boolean, practiceOnly?: boolean, reader?: typeof readCatalog, visibilityReader?: typeof readJamHubVisibility, destinationReader?: typeof readDestinationBinding, pagesBindingReader?: Function, responseBudgetMs?: number, decisionNow?: () => number}} [options]
  */
-export async function catalogResponse(request,{includeWeb=false,practiceOnly=false,reader=readCatalog}={}) {
+export async function catalogResponse(request,{includeWeb=false,practiceOnly=false,reader=readCatalog,visibilityReader=readJamHubVisibility,destinationReader=readDestinationBinding,pagesBindingReader,env=process.env,responseBudgetMs=18_000,decisionNow=Date.now}={}) {
+  const deadline=createHubRequestDeadline({budgetMs:responseBudgetMs,signal:request.signal});
   try {
-    const catalog=contracts.validateCatalog(await reader({signal:request.signal}));
-    const selected={...catalog,releases:catalog.releases.filter(release=>practice.isTutorialPractice(release)===practiceOnly)};
-    return Response.json(practiceOnly||includeWeb?selected:legacyCatalog(selected),{headers:{'Cache-Control':'no-store'}});
+    const catalog=contracts.validateCatalog(await deadline.run(signal=>reader({signal})));
+    // Obtain authority after the catalog read. A previous negative decision or
+    // revealed response must never authorize this request's discovery results.
+    // Holds follow repository identity across games, libraries and practice.
+    const visibility=await deadline.run(signal=>visibilityReader({env,signal}));
+    assertJamVisibilityTime(visibility, decisionNow, env);
+    const candidates={...catalog,releases:catalog.releases.filter(release=>practice.isTutorialPractice(release)===practiceOnly)};
+    const bound=visibility===null?{catalog:candidates,visibility}:await bindJamCatalog(candidates,visibility,{deadline,visibilityReader:({signal})=>visibilityReader({env,signal}),destinationReader,decisionNow,env});
+    const selected=practiceOnly||includeWeb?bound.catalog:legacyCatalog(bound.catalog);
+    deadline.check();
+    // The clock can roll back after the final authority read or projection.
+    // Sample at serialization so a revealed decision cannot outlive its time.
+    assertJamVisibilityTime(bound.visibility, decisionNow, env);
+    return Response.json(selected,{headers:{'Cache-Control':'no-store'}});
   } catch {
     return Response.json({error:'ZeroHub is unavailable. Try again shortly.'},{status:503,headers:{'Cache-Control':'no-store'}});
-  }
+  } finally {deadline.dispose();}
 }

@@ -5,6 +5,7 @@ import zeroApp from '../../extension/src/github-app/config.json' with {type:'jso
 import {hubConfig,newSession} from '../lib/hub-github-auth.mjs';
 import {getJamsResponse,getJamResponse,postJamProposalResponse,postJamActionResponse} from '../lib/jams-http.mjs';
 import {JamError} from '../../jams/service.mjs';
+import {hostedManifest} from '../../jams/test/fixtures.mjs';
 
 const now = 1_800_000_000_000;
 const env = {NODE_ENV:'test',ZERO_JAMS_ENABLED:'1',ZERO_HUB_ORIGIN:'http://127.0.0.1:3000',
@@ -75,9 +76,10 @@ test('new GitHub identity, revocation and network failures cannot accept an acti
 
 test('proposal body is bounded and never dispatches client-supplied approval',async () => {
   const f = fixture();
-  const body = {operationId:'proposal-12345678',repositoryUrl:'https://github.com/student/jam',commit:'a'.repeat(40)};
+  const body = {operationId:'proposal-12345678',manifest:hostedManifest()};
   assert.equal((await postJamProposalResponse(request({...body,approve:true}),f)).status,400);
-  assert.equal((await postJamProposalResponse(request({...body,repositoryUrl:'a'.repeat(17000)}),f)).status,413);
+  assert.equal((await postJamProposalResponse(request({...body,manifest:{...body.manifest,rules:'a'.repeat(17000)}}),f)).status,413);
+  assert.equal((await postJamProposalResponse(request({operationId:body.operationId,repositoryUrl:'https://github.com/student/jam',commit:'a'.repeat(40)}),f)).status,400);
   assert.equal(f.calls.length,0);
   assert.equal((await postJamProposalResponse(request(body),f)).status,200);
   assert.deepEqual(f.calls.at(-1),['propose',{...body,actor:{id:'123',login:'renamed'}}]);
@@ -100,4 +102,57 @@ test('service errors retain useful safe correction and infrastructure errors dis
   f.service.mutate = async () => {throw new Error('private-key/token/source-secret');};
   const failed = await postJamActionResponse(request(join),'jam-55',f);
   assert.equal(failed.status,503);assert.doesNotMatch(JSON.stringify(await failed.json()),/private-key|source-secret/);
+});
+
+test('hosted event IDs are accepted on read and action paths while malformed IDs are rejected',async()=>{
+  const f=fixture(),id='jam-zero-'+'a'.repeat(32);
+  assert.equal((await getJamResponse(new Request(config.origin),id,f)).status,200);
+  assert.equal((await postJamActionResponse(request(join),id,f)).status,200);
+  for(const invalid of ['jam-zero-'+'a'.repeat(31),'jam-zero-'+'A'.repeat(32),'jam-zero-../secret'])assert.equal((await getJamResponse(new Request(config.origin),invalid,f)).status,404);
+});
+
+test('showcase repository and Pages Join reach the service with only server-derived identity',async()=>{
+  const f=fixture(),input={...join,repositoryUrl:'https://github.com/student/project',demoUrl:'https://student.github.io/project/'};
+  const response=await postJamActionResponse(request(input),'jam-55',f);
+  assert.equal(response.status,200);
+  assert.deepEqual(f.calls.at(-1),['mutate',{...input,id:'jam-55',actor:{id:'123',login:'renamed'}}]);
+});
+
+test('settlement endpoint authenticates current actor, retains payload identity and protects terminal envelopes',async()=>{
+  const {postJamSettlementResponse}=await import('../lib/jams-http.mjs');
+  const f=fixture(),id='jam-zero-'+'a'.repeat(32),body={scope:id,operationId:'closed-operation-001',payload:{action:'leave'}};
+  f.service.settle=async input=>{f.calls.push(['settle',input]);return {scope:input.scope,eventId:input.scope,operationId:input.operationId,status:'not-applied',settlement:'not-applied'};};
+  for(const [headers,expected] of [[{Origin:'https://evil.test'},403],[{Cookie:''},401],[{'X-Hub-CSRF':'wrong'},403]])assert.equal((await postJamSettlementResponse(request(body,headers),f)).status,expected);
+  assert.equal(f.calls.length,0);
+  assert.equal((await postJamSettlementResponse(request({...body,actor:{id:'999'}}),f)).status,400);
+  const closed=await postJamSettlementResponse(request(body),f);
+  assert.equal(closed.status,200);assert.equal((await closed.json()).settlement,'not-applied');
+  assert.deepEqual(f.calls.at(-1),['settle',{...body,actor:{id:'123',login:'renamed'}}]);
+  f.service.mutate=async()=>({eventId:id,operationId:body.operationId,settlement:'not-applied',status:'not-applied',scope:id});
+  assert.equal((await postJamActionResponse(request(join),id,f)).status,409,'older clients cannot mistake a durable close for Join success');
+  f.service.propose=async()=>({operationId:body.operationId,settlement:'not-applied',status:'not-applied',scope:'proposals'});
+  assert.equal((await postJamProposalResponse(request({operationId:body.operationId,manifest:hostedManifest()}),f)).status,409);
+});
+
+test('settlement and mutation expiry keep results unknown even when an injected service rejects late',async()=>{
+  const {postJamSettlementResponse}=await import('../lib/jams-http.mjs');
+  for(const settlement of [false,true]) {
+    const f=fixture();let finish;const pending=new Promise((resolve,reject)=>{finish=()=>reject(new JamError(409,'Too late'));});
+    f.service.settle=f.service.mutate=()=>pending;
+    const body=settlement?{scope:'jam-55',operationId:'unknown-operation-001',payload:{action:'leave'}}:join;
+    const call=settlement?postJamSettlementResponse(request(body),{...f,responseBudgetMs:10}):postJamActionResponse(request(body),'jam-55',{...f,responseBudgetMs:10});
+    const response=await call;assert.equal(response.status,503);assert.match((await response.json()).error,/same operation ID/);finish();
+  }
+});
+
+test('request cancellation reaches jam read and participation service calls',async()=>{
+  for (const kind of ['list','read','mutate']) {
+    const f=fixture(),controller=new AbortController();let dispatched;
+    const started=new Promise(resolve=>{dispatched=resolve;});let received;
+    f.service[kind]=async (...args)=>{received=args.at(-1).signal;dispatched();return await new Promise(resolve=>received.addEventListener('abort',()=>resolve({}),{once:true}));};
+    const req=kind==='mutate'?new Request(request(join),{signal:controller.signal}):new Request(config.origin,{signal:controller.signal});
+    const response=kind==='list'?getJamsResponse(req,f):kind==='read'?getJamResponse(req,'jam-55',f):postJamActionResponse(req,'jam-55',f);
+    await started;assert.ok(received instanceof AbortSignal);assert.equal(received.aborted,false);
+    controller.abort();assert.equal((await response).status,503);assert.equal(received.aborted,true);
+  }
 });

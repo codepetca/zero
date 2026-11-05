@@ -5342,3 +5342,21 @@ traced-only runtime checks pass. CI runs the bundle audits after building. Produ
 ZeroJams stays unconditionally hidden; pilot work is excluded from this publication.
 Hosted savings require the publication PR's Linux deployment/resource comparison;
 see [website plan](WEBSITE-PLAN.md#function-bundle-reduction--2026-10-27).
+
+## ZeroJams small pilot — 2026-11-05
+
+The owner authorized a ten-participant production pilot and waived the
+30-person Neon load test; classroom capacity remains unproven. Independent
+security and integration reviews covered the Neon authority, owner-only
+approval, atomic admission, cross-gallery holds, preview denial and rollback
+boundary. A disposable PostgreSQL 18 fixture exercised the runtime identity
+query and adversarial role changes; a local synthetic run completed 30 joins
+and 30 submissions. A restricted Vercel runtime connected to the production
+Neon registry and verified the empty seed. These checks do not constitute an
+authenticated real jam or gallery-reveal acceptance.
+
+The source and website suites, production build, bundle audit and traced
+runtime checks must pass for the release commit. Production Hub visibility
+depends on the Neon authority even when the pilot is disabled; previews deny
+visibility-dependent Hub paths. Preserve this authority during rollback, and
+do not route held projects through older deployments that omit those checks.

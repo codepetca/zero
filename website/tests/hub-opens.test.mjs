@@ -78,7 +78,21 @@ test('disabled counting, downtime and explicitly configured local development ar
   assert.equal((await recordOpen(request(), {store: null})).status, 204);
   assert.equal((await recordOpen(request(), {store: {increment: async () => {throw Error('down');}}, resolve: async () => ({playUrl: 'https://example.test'})})).status, 503);
   const local = new Request('http://127.0.0.1:3168/api/hub/opens', {method: 'POST', headers: {origin: 'http://127.0.0.1:3168', 'content-type': 'application/json'}, body: JSON.stringify({id: 'drawing-pad'})});
-  assert.equal((await recordOpen(local, {env: {NODE_ENV: 'development', ZERO_HUB_ORIGIN: 'http://127.0.0.1:3168'}, store: null})).status, 204);
+  assert.equal((await recordOpen(local, {env: {NODE_ENV: 'development', ZERO_HUB_ORIGIN: 'http://127.0.0.1:3168'}, store: null,
+    visibilityReader: async () => ({revision:'a'.repeat(40),observedAt:0,isHeld:()=>false}),
+    resolve:async () => ({repositoryId:'123',playUrl:'https://example.test'})})).status, 204);
+});
+
+test('open resolution receives the same visibility authority and destination reader', async () => {
+  const visibilityReader=async()=>({revision:'a'.repeat(40),observedAt:0,isHeld:()=>false});
+  const destinationReader=async()=>{throw Error('not called by this fixture');};
+  let observed;
+  const result=await recordOpen(request(),{env,visibilityReader,destinationReader,
+    store:{increment:async()=>assert.fail('unverified page must not be counted')},
+    resolve:async(_selection,options)=>{observed=options;return {repositoryId:'202'};}});
+  assert.equal(result.status,404);
+  assert.equal(observed.visibilityReader,visibilityReader);
+  assert.equal(observed.destinationReader,destinationReader);
 });
 
 test('client records without credentials and swallows errors without touching navigation', async () => {
@@ -98,4 +112,65 @@ test('labels distinguish opens, incomplete adoption coverage, unknown and observ
   assert.equal(metricLabel('library', {projects: 0, observedProjects: 0, totalProjects: 5}).text, 'Usage not measured yet');
   assert.equal(metricLabel('library', {projects: 0, observedProjects: 5, totalProjects: 5}).text, 'Used by 0 shared projects');
   assert.equal(metricLabel('library', {projects: null}), null);
+});
+
+test('stalled caller bodies finish before fresh authority can authorize a Play activation', async () => {
+  for (const outcome of ['held', 'offline']) {
+    let body, started, held=false, reads=0, resolved=0, writes=0;
+    const reading=new Promise(done=>{started=done;});
+    const stream=new ReadableStream({start(controller){body=controller;},pull(){started();}});
+    const slow=new Request('https://zero.codepet.ca/api/hub/opens',{method:'POST',duplex:'half',
+      headers:{Origin:'https://zero.codepet.ca','Content-Type':'application/json'},body:stream});
+    const result=recordOpen(slow,{env,visibilityReader:async()=>{
+      reads++;
+      if(held&&outcome==='offline')throw Error('private authority failure');
+      const captured=held;return {revision:'a'.repeat(40),observedAt:0,isHeld:()=>captured};
+    },resolve:async()=>{resolved++;return {repositoryId:'202',playUrl:'https://student.github.io/project/'};},
+    store:{increment:async()=>{writes++;}}});
+    await reading;await new Promise(done=>setImmediate(done));
+    assert.equal(reads,0,'No decision may precede completion of attacker-controlled body reads.');
+    held=true;body.enqueue(new TextEncoder().encode(JSON.stringify({id:'game-r202-project'})));body.close();
+    const response=await result;assert.equal(response.status,outcome==='held'?404:503);
+    assert.equal(response.headers.get('cache-control'),'no-store');assert.equal(await response.text(),'');
+    assert.equal(reads,1);assert.equal(resolved,outcome==='held'?1:0);assert.equal(writes,0);
+  }
+});
+
+test('a hold accepted during catalog resolution prevents the later counter write', async () => {
+  let resolveStarted, release, held=false, reads=0, writes=0;
+  const started=new Promise(done=>{resolveStarted=done;}),gate=new Promise(done=>{release=done;});
+  const pending=recordOpen(request({id:'game-r202-project'}),{env,visibilityReader:async()=>{
+    reads++;const captured=held;return {revision:'a'.repeat(40),observedAt:0,isHeld:()=>captured};
+  },resolve:async()=>{resolveStarted();await gate;return {repositoryId:'202',playUrl:'https://student.github.io/project/'};},
+  store:{increment:async()=>{writes++;}}});
+  await started;held=true;release();
+  assert.equal((await pending).status,404);assert.equal(reads,2);assert.equal(writes,0);
+});
+
+test('Play recording and the actual counter store preserve 100, 101 and 128-character IDs alongside unrelated projects',async()=>{
+  const ids=[...([100,101,128].map(length=>'a'.repeat(length))),'unrelated-project'];
+  for(const active of [true,false]) {
+    const values=new Map(),commands=[];
+    const store=createOpensStore({env,fetchImpl:async(_url,options)=>{
+      const command=JSON.parse(options.body);commands.push(command);
+      if(command[0]==='INCR'){const count=(values.get(command[1])??0)+1;values.set(command[1],count);return Response.json({result:count});}
+      return Response.json({result:command.slice(1).map(key=>values.get(key)??null)});
+    }});
+    const visibilityReader=async()=>active?{revision:'a'.repeat(40),observedAt:0,isHeld:()=>false}:null;
+    const options={env,store,visibilityReader,resolve:async({id})=>ids.includes(id)?
+      {id,kind:'game',repositoryId:'123',playUrl:'https://student.github.io/game/'}:null};
+    for(const id of ids) {
+      let pending;
+      recordPlayOpen(id,async(_url,init)=>{assert.ok(Buffer.byteLength(init.body)<=256);pending=recordOpen(request(init.body),options);return pending;});
+      assert.equal((await pending).status,204);
+    }
+    assert.deepEqual(await store.counts(ids),Object.fromEntries(ids.map(id=>[id,1])));
+    const before=commands.length;
+    assert.equal((await recordOpen(request({id:'z'.repeat(128)}),options)).status,404);
+    assert.equal((await recordOpen(request({id:'a'.repeat(129)}),options)).status,400);
+    assert.equal((await recordOpen(request('x'.repeat(257)),options)).status,413);
+    await assert.rejects(store.increment('a'.repeat(129)));
+    await assert.rejects(store.counts(['unrelated-project','a'.repeat(129)]));
+    assert.equal(commands.length,before,'Rejected selections must not reach the counter provider');
+  }
 });

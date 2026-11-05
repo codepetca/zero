@@ -7,6 +7,9 @@ export function defaultJamDraft(type='game',timezone='America/Toronto') {
     eligibility:'Open to beginning Java students working individually.',websiteUrl:'',timezone,
     registrationOpensAt:'',startsAt:'',submissionsCloseAt:'',registrationClosesAt:'',submissionsOpenAt:''};
 }
+export function defaultHostedJamDraft(type='game',timezone='America/Toronto') {
+  return {...defaultJamDraft(type,timezone),rules:'Make your own work during the jam. Credit collaborators, libraries and assets. Keep entries appropriate for a classroom. Link your public GitHub repository when you join, then submit its published GitHub Pages URL before submissions close.',galleryRevealAt:''};
+}
 const dateFields=['registrationOpensAt','startsAt','submissionsCloseAt','registrationClosesAt','submissionsOpenAt'];
 function utc(parts) { const d=new Date(0); d.setUTCFullYear(parts[0],parts[1]-1,parts[2]);d.setUTCHours(parts[3],parts[4],parts[5]||0,0);return d.getTime(); }
 function localInstant(value,timezone) {
@@ -48,4 +51,25 @@ export function prepareJamDraft(input) {
     if(new TextEncoder().encode(JSON.stringify({manifest})).length>32768)return {manifest:null,errors:{rules:'These details are too large together. Shorten the rules and other text.'}};
     return {manifest,errors:{}};
   }catch{return {manifest:null,errors:{form:'Check the jam details and schedule.'}};}
+}
+
+// Hosted proposals reuse the same date and text validation without requiring a
+// creator-owned website. The legacy preparation workflow keeps its contract.
+export function prepareHostedJamDraft(input) {
+  const result=prepareJamDraft({...input,websiteUrl:''});
+  const errors={...result.errors};
+  let galleryRevealAt;
+  if(!errors.timezone) {
+    try { galleryRevealAt=localInstant(input?.galleryRevealAt,input.timezone); }
+    catch(error) { errors.galleryRevealAt=error.message; }
+  }
+  if(galleryRevealAt&&result.manifest&&galleryRevealAt<=result.manifest.schedule.submissionsCloseAt)
+    errors.galleryRevealAt='The gallery must open after submissions close.';
+  if(Object.keys(errors).length||!result.manifest)return {manifest:null,errors};
+  const {websiteUrl,...manifest}=result.manifest;
+  const hosted={...manifest,schedule:{...manifest.schedule,galleryRevealAt}};
+  // The HTTP proposal includes a UUID operation ID; measure the complete UTF-8 envelope.
+  if(new TextEncoder().encode(JSON.stringify({manifest:hosted,operationId:'0'.repeat(36)})).length>16384)
+    return {manifest:null,errors:{rules:'These details are too large together. Shorten the rules and other text.'}};
+  return {manifest:hosted,errors:{}};
 }

@@ -1,5 +1,5 @@
 import {createHash} from 'node:crypto';
-import {actorIdentity, fail, manifestData, repositoryData, repositoryUrl, SHA} from './schema.mjs';
+import {ACCOUNT, actorIdentity, fail, manifestData, repositoryData, repositoryUrl, SHA} from './schema.mjs';
 import {credential, githubRequest} from './github-transport.mjs';
 
 export function decodeGitHubBlob(data,maxBytes) {
@@ -7,6 +7,32 @@ export function decodeGitHubBlob(data,maxBytes) {
   const bytes = Buffer.from(data.content.replace(/[\r\n]/g,''),'base64');
   if (bytes.length !== data.size || bytes.length > maxBytes || createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex') !== data.sha) fail(503,'Jam source integrity could not be verified.');
   return bytes;
+}
+/** Check current ownership without requiring a commit or accessing repository contents. */
+export function createGitHubRepositoryVerifier({token,fetchImpl=fetch,timeoutMs=8000}={}) {
+  return async function verifyRepository({repositoryUrl:url,repositoryId,actor}) {
+    credential(token);
+    actor = actorIdentity(actor);
+    if ((url == null) === (repositoryId == null)) fail(400,'Choose one public source repository.');
+    if (repositoryId != null && (typeof repositoryId !== 'string' || !ACCOUNT.test(repositoryId))) fail(400,'The repository ID is invalid.');
+    const parts = url == null ? null : repositoryUrl(url);
+    const route = parts ? `/repos/${parts.owner}/${parts.repo}` : `/repositories/${repositoryId}`;
+    const result = await githubRequest(route,{token,fetchImpl,timeoutMs,maxBytes:32768});
+    if (result.status === 404) fail(400,'The public source repository was not found.');
+    if (result.status !== 200) fail(503,'The public source could not be verified.');
+    const repo = result.data;
+    if (!Number.isSafeInteger(repo?.id) || !ACCOUNT.test(String(repo.id)) ||
+        !Number.isSafeInteger(repo?.owner?.id) || !ACCOUNT.test(String(repo.owner.id)) ||
+        repo.private !== false || (repo.visibility && repo.visibility !== 'public') ||
+        repo.owner.type !== 'User' || typeof repo.full_name !== 'string' ||
+        (parts && repo.full_name.toLowerCase() !== `${parts.owner}/${parts.repo}`.toLowerCase()) ||
+        (repositoryId != null && String(repo.id) !== repositoryId) ||
+        String(repo.owner.id) !== actor.id ||
+        !new RegExp(`^${actor.login.toLowerCase()}/[a-z0-9_.-]+$`).test(repo.full_name.toLowerCase())) {
+      fail(403,'Use a public repository owned by your personal GitHub account.');
+    }
+    return {repository:{id:String(repo.id),ownerId:String(repo.owner.id),fullName:repo.full_name}};
+  };
 }
 /** Fixed GitHub API requests only; never builds source or fetches websiteUrl. */
 export function createGitHubSourceVerifier({token,fetchImpl=fetch,timeoutMs=8000}={}) {
