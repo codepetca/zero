@@ -7,9 +7,30 @@ export function defaultJamDraft(type='game',timezone='America/Toronto') {
     eligibility:'Open to beginning Java students working individually.',websiteUrl:'',timezone,
     registrationOpensAt:'',startsAt:'',submissionsCloseAt:'',registrationClosesAt:'',submissionsOpenAt:''};
 }
-export function defaultHostedJamDraft(type='game',timezone='America/Toronto') {
+export function defaultHostedJamDraft(type='game',timezone='UTC') {
   return {...defaultJamDraft(type,timezone),rules:'Make your own work during the jam. Credit collaborators, libraries and assets. Keep entries appropriate for a classroom. Link your public GitHub repository when you join, then submit its published GitHub Pages URL before submissions close.',galleryRevealAt:''};
 }
+// Only call browser detection after hydration. Fresh drafts use UTC for the
+// deterministic server/initial client render and when browser detection fails.
+export function browserJamTimezone() {
+  try {
+    const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if(typeof zone!=='string'||!zone.trim()||zone.length>100)return 'UTC';
+    new Intl.DateTimeFormat('en-CA',{timeZone:zone}).format(0);
+    return zone;
+  }catch{return 'UTC';}
+}
+
+export function formatJamDateTime(value,timezone='UTC') {
+  try {
+    const date=new Date(value);
+    const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:timezone,
+      weekday:'short',month:'short',day:'numeric',year:'numeric'}).formatToParts(date).map(part=>[part.type,part.value]));
+    const time=new Intl.DateTimeFormat('en-CA',{timeZone:timezone,hour:'numeric',minute:'2-digit',hour12:true}).format(date);
+    return `${parts.weekday} ${parts.month} ${parts.day} · ${parts.year} · ${time}`;
+  }catch{return value;}
+}
+
 const dateFields=['registrationOpensAt','startsAt','submissionsCloseAt','registrationClosesAt','submissionsOpenAt'];
 function utc(parts) { const d=new Date(0); d.setUTCFullYear(parts[0],parts[1]-1,parts[2]);d.setUTCHours(parts[3],parts[4],parts[5]||0,0);return d.getTime(); }
 function localInstant(value,timezone) {
