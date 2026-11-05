@@ -6,6 +6,10 @@ Metadata publication accepts only explicitly scoped browser or Windows job skips
 when the same workflow run has successful scope and aggregate checks. Missing or
 pending evidence waits; unrelated skips and failed checks remain rejected. The
 89 release publisher/review tests and root configuration checks pass locally.
+The published 0.5.64 manifest is retained as the fallback; 0.5.65 is a local
+next-development candidate only. Its local package and extracted-kit verification
+pass, as do the seven published-fallback website tests. No native 0.5.65 installer
+or 0.5.65 release is published.
 
 ## Personal and organizational license — 2026-11-04
 
