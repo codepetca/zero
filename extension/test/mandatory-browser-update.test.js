@@ -24,7 +24,7 @@ async function fixture(t,{current=false,onPrompt=async(_vscode,items)=>items[2]}
 }
 
 test('accepting required update preserves the original before the build',async t=>{
- const h=await fixture(t);const files=['README.md','builder.json'];const originals=await Promise.all(files.map(name=>fs.readFile(path.join(h.root,'.zero-build',name))));await h.commands.get('zero.exportWeb')();assert.equal(h.prompts.length,1);assert.equal(h.prompts[0][0],`Update this project for Zero ${require('../package.json').version}?`);assert.deepEqual(h.prompts[0][1],{modal:true,detail:'This may cause your project to stop working.'});assert.deepEqual(h.prompts[0][2],{title:'Update Project'});assert.deepEqual(h.prompts[0][3],{title:'Not Now',isCloseAffordance:true});assert.equal(h.attempts,1);assert.equal(h.completed,1);assert.deepEqual(h.errors,[]);
+ const h=await fixture(t);const files=['README.md','builder.json'];const originals=await Promise.all(files.map(name=>fs.readFile(path.join(h.root,'.zero-build',name))));await h.commands.get('zero.exportWeb')();assert.equal(h.prompts.length,1);assert.equal(h.prompts[0][0],`Update this project for Zero ${require('../package.json').version}?`);assert.deepEqual(h.prompts[0][1],{modal:true,detail:'This may cause your project to stop working. The updated Zero files include their license in .zero-build/src/web-export/notices; your existing project LICENSE stays unchanged.'});assert.deepEqual(h.prompts[0][2],{title:'Update Project'});assert.deepEqual(h.prompts[0][3],{title:'Not Now',isCloseAffordance:true});assert.equal(h.attempts,1);assert.equal(h.completed,1);assert.deepEqual(h.errors,[]);
  const backup=(await fs.readdir(h.root)).find(name=>name.startsWith('.zero-update-'));assert.ok(backup);for(let i=0;i<files.length;i++)assert.deepEqual(await fs.readFile(path.join(h.root,backup,'before','.zero-build',files[i])),originals[i]);assert.notEqual((await readSavedBuilder(h.root)).profileHash,h.old.profileHash);
 });
 test('declining or dismissing a required update preserves the builder and does not build',async t=>{
@@ -51,7 +51,7 @@ test('core-only update is offered before browser build even when browser tooling
  upgrade.planUpdate=async()=>({changed:true,coreChanged:true,builderChanged:false});
  upgrade.applyUpdate=async(_plan,{assertCurrent})=>{await assertCurrent();applies++;return {backupPath:'/backup'};};
  await h.commands.get('zero.exportWeb')();
- assert.equal(applies,1);assert.equal(h.attempts,1);assert.equal(h.prompts[0][1].detail,'This may cause your project to stop working.');assert.deepEqual(h.errors,[]);
+ assert.equal(applies,1);assert.equal(h.attempts,1);assert.equal(h.prompts[0][1].detail,'This may cause your project to stop working. The updated Zero files include their license in .zero-build/src/web-export/notices; your existing project LICENSE stays unchanged.');assert.deepEqual(h.errors,[]);
 });
 test('explicit update and legacy alias both offer the combined action; dirty buffers prevent review',async t=>{
  const h=await fixture(t,{current:true}),upgrade=require('../src/project-update'),originalPlan=upgrade.planUpdate,originalApply=upgrade.applyUpdate;let applies=0;
