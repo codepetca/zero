@@ -165,6 +165,8 @@ ${guide.challenge}
     : `https://github.com/codepetca/zero/tree/main/student-template/examples/${project.id}`);
   return `# ${title}
 
+[![Built with Zero](https://img.shields.io/badge/Built%20with-Zero-6C5CE7)](https://zero.codepet.ca)
+
 ${project.description}
 
 This is a complete editable Zero project.

@@ -12286,3 +12286,7 @@ DMG, both Ed25519 signatures, exact sealed XML, protected-source equivalence and
 build ordering passed direct verification. Built Downloads selects Mac 0.5.63 and
 the unchanged Microsoft Store link; the built update route serves the exact sealed
 XML. Independent promotion review, selected CI and merge remain pending.
+
+## Built with Zero project badge — 2026-11-05
+
+Added a linked badge to starter/example and tutorial README generation and the bundled starter. Published README-only changes in the five starter/example and four tutorial template repositories. All four tutorial main commits were fetched as anonymous public archives and checked for exact generated inventory, bytes and executable modes before refreshing publication records. The starter/example README badges were read back from GitHub. Focused example generation: 17/17; tutorial tests: 22/22; publication evidence gate: four verified. Independent review: GPT-6.1 Terra, medium, one initial review of local source and nine template commits; no unresolved findings. Effective model and usage telemetry unavailable. Review of refreshed publication records follows.

@@ -40,10 +40,11 @@ test('four tutorial scaffolds omit solutions and own-project remains an original
     assert.doesNotMatch(main,/new (Label|Button|Player|Coin|Counter|Question|ScoreDisplay)|show\(/);
     assert.match(main,/void setup\(\)/);
     assert.match(content(project,'README.md').toString(),/blank window or canvas/);
+    assert.ok(content(project,'README.md').toString().includes('[![Built with Zero](https://img.shields.io/badge/Built%20with-Zero-6C5CE7)](https://zero.codepet.ca)'));
   }
 });
 test('published scaffolds match their verified file inventories',()=>{
-  const expected={greeting:'704831e44ca179b66026c442c484821b8956818fa64a631f63fe609457addebb',study:'7670dc20004f938979ee20542a9e77e872b9d11c58be9b8d10ea61590abef2ad',game:'4cdee637cc9ba435790ada12e438a85ec6d4493a596385b3124520f30616a8cb'};
+  const expected={greeting:'c69ab1ea531fd752d48602fde0be606f7851098b0fc2e9425650944a29c5867c',study:'21fdf1acde4107679e2f8bd078e8644cc4dd139c5f07227ebbdd51ebdcc8a9c8',game:'d4dfdfa69f71f8d6a851f0043407ed6eba5ad8ed88f481e0fa2be21e292b0d62'};
   for(const project of bundle.projects.filter(project=>project.id!=='pet')) {
     assert.equal(createHash('sha256').update(JSON.stringify(project.files)).digest('hex'),expected[project.id],project.id);
     assert.doesNotThrow(()=>readiness.assertTutorialTemplateReady(lessonModule.validateBundle(bundle).find(item=>item.id===project.id)));

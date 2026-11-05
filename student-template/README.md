@@ -1,5 +1,7 @@
 # My Zero App
 
+[![Built with Zero](https://img.shields.io/badge/Built%20with-Zero-6C5CE7)](https://zero.codepet.ca)
+
 This source is included in the local Mac candidate **0.5.51** with core **0.3.0**.
 Older downloads keep their own bundled instructions and API.
 
