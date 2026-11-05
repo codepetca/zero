@@ -12,7 +12,7 @@ import {postJamProposalResponse} from '../lib/jams-http.mjs';
 const epoch='a'.repeat(24),now=Date.parse('2030-01-02T12:00:00Z'),secret='synthetic-private-pg-password-1234';
 const role='zerojams_staging_runtime',ref='abcdefghijklmnopqrst',host='aws-0-us-east-1.pooler.supabase.com';
 const uri=`postgresql://${role}.${ref}:${secret}@${host}:5432/postgres`;
-const config=()=>({NODE_ENV:'development',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_STAGING_AUTHORITY:'supabase-postgres',ZERO_JAMS_STAGING_PROJECT_REF:ref,
+const config=()=>({NODE_ENV:'development',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11,4050555',ZERO_JAMS_STAGING_AUTHORITY:'supabase-postgres',ZERO_JAMS_STAGING_PROJECT_REF:ref,
   ZERO_JAMS_STAGING_PG_HOST:host,ZERO_JAMS_STAGING_PG_PORT:'5432',ZERO_JAMS_STAGING_PG_DATABASE:'postgres',ZERO_JAMS_STAGING_PG_ROLE:role,
   ZERO_JAMS_STAGING_PG_EPOCH:epoch,ZERO_JAMS_STAGING_PG_CA_PEM:rootCertificates[0],ZERO_JAMS_STAGING_PG_URI:uri});
 const unavailable=error=>error?.status===503&&error.message==='The staging jam authority is unavailable.'&&!error.cause;

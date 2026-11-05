@@ -40,7 +40,7 @@ function publicCatalog(){
 
 test('local authority authenticates HTTP writes and CSRF before shared transaction and reveal decisions',async()=>{
   let time=Date.parse('2030-01-02T12:00:00Z');
-  const env={NODE_ENV:'development',ZERO_JAMS_ENABLED:'1',ZERO_HUB_ORIGIN:'http://127.0.0.1:3000',
+  const env={NODE_ENV:'development',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11,4050555',ZERO_HUB_ORIGIN:'http://127.0.0.1:3000',
     ZERO_HUB_GITHUB_CLIENT_ID:zeroApp.clientId,ZERO_HUB_GITHUB_CLIENT_SECRET:'synthetic-client-secret-'.repeat(2),ZERO_HUB_GITHUB_SESSION_SECRET:randomBytes(32).toString('base64url')};
   const config=hubConfig(env),store=transactionalStore(),identityCalls=[],tokens=new Map();let repositoryCalls=0,pagesCalls=0;
   assert.ok(config);
@@ -115,4 +115,13 @@ test('local authority authenticates HTTP writes and CSRF before shared transacti
   response=await hub();assert.equal(response.status,200);assert.equal((await response.json()).releases.length,1);
   assert.equal(identityCalls.length,8,'Anonymous reveal reads do not dispatch identity or provider fallback requests');
   assert.equal(store.commits,5,'Public projection cannot create registry writes');
+  // A real authenticated Free account can participate above but cannot create,
+  // and a browser license claim never becomes server entitlement authority.
+  time=Date.parse('2030-01-02T12:00:00Z'); // Reuse the fixture's unexpired sign-in.
+  const freeProposal={operationId:'http-local-free-proposal',manifest:hostedManifest()};
+  response=await postJamProposalResponse(post('participant',proposalPath,freeProposal),options);
+  assert.equal(response.status,403);assert.match((await response.json()).error,/Pro license/);
+  response=await postJamProposalResponse(post('participant',proposalPath,{...freeProposal,license:'pro'}),options);
+  assert.equal(response.status,400);assert.equal(store.commits,5);
+
 });

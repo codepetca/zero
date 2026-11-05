@@ -11,10 +11,10 @@ export function memoryStore() {
   const records=new Map(); let sequence=0,settlements={schema:1,operations:{}};
   return {records,bump(){sequence++;},beforeCas:null,afterCas:null,async snapshot(){const copy=new Map(structuredClone([...records]));const rev=sequence.toString(16).padStart(40,'0');return {revision:rev,settlements:structuredClone(settlements),ids:[...copy.keys()],async read(id){return {state:copy.get(id)?.state||null};}};},async read(id){const item=records.get(id);return item?structuredClone(item):{state:null,revision:null};},async list(){return [...records.keys()];},async compareAndSwap(id,expected,state,update={}){if(this.beforeCas)await this.beforeCas(id,expected,state);const found=records.get(id);if(sequence.toString(16).padStart(40,'0')!==expected)return false;sequence++;if(id!==null)records.set(id,{state:structuredClone(state),revision:`revision-${sequence}`});if(update.settlements)settlements=structuredClone(update.settlements);if(this.afterCas)await this.afterCas(id,expected,state);return true;}};
 }
-export function fixture({limits={},maintainerIds=[maintainer.id],source,verifyRepository,pagesBindingReader}={}) {
+export function fixture({canCreateJam=()=>true,limits={},maintainerIds=[maintainer.id],source,verifyRepository,pagesBindingReader}={}) {
   const store=memoryStore();let time=Date.parse('2030-01-02T12:00:00Z');let calls=0;
   const verifySource=async input=>{calls++;if(source)return source(input);return {repository:{id:input.manifest?'101':'202',ownerId:input.actor.id,fullName:`${input.actor.login}/${input.manifest?'jam':'project'}`,commit:input.commit},...(input.manifest?{manifest:manifest(input.commit===NEXT_COMMIT?{title:'Updated jam',rules:'Updated rules'}:{})}:{})};};
-  const service=createJamService({store,verifySource,pagesBindingReader,verifyRepository:verifyRepository|| (async ({actor})=>({repository:{id:'202',ownerId:actor.id,fullName:`${actor.login}/project`}})),maintainerIds,now:()=>time,limits});
+  const service=createJamService({canCreateJam,store,verifySource,pagesBindingReader,verifyRepository:verifyRepository|| (async ({actor})=>({repository:{id:'202',ownerId:actor.id,fullName:`${actor.login}/project`}})),maintainerIds,now:()=>time,limits});
   return {store,service,legacySource:source,setTime:value=>{time=typeof value==='number'?value:Date.parse(value);},calls:()=>calls};
 }
 // Archived creator-hosted fixtures exercise compatibility without reopening intake.

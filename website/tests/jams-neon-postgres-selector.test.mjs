@@ -12,7 +12,7 @@ import {postJamProposalResponse} from '../lib/jams-http.mjs';
 const epoch='a'.repeat(24),now=Date.parse('2030-01-02T12:00:00Z'),secret='synthetic-private-pg-password-1234';
 const role='zerojams_production_runtime',ref='autumn-queen-85821497',host='ep-frosty-fog-be7fiw2h.c-9.us-east-2.aws.neon.tech';
 const uri=`postgresql://${role}:${secret}@${host}:5432/neondb`;
-const config=()=>({NODE_ENV:'development',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_PRODUCTION_AUTHORITY:'neon-postgres',ZERO_JAMS_PRODUCTION_PROJECT_REF:ref,ZERO_JAMS_PRODUCTION_CREATOR_OID:'16393',ZERO_JAMS_PRODUCTION_ADMIN_OID:'10',
+const config=()=>({NODE_ENV:'development',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11,4050555',ZERO_JAMS_PRODUCTION_AUTHORITY:'neon-postgres',ZERO_JAMS_PRODUCTION_PROJECT_REF:ref,ZERO_JAMS_PRODUCTION_CREATOR_OID:'16393',ZERO_JAMS_PRODUCTION_ADMIN_OID:'10',
   ZERO_JAMS_PRODUCTION_PG_HOST:host,ZERO_JAMS_PRODUCTION_PG_PORT:'5432',ZERO_JAMS_PRODUCTION_PG_DATABASE:'neondb',ZERO_JAMS_PRODUCTION_PG_ROLE:role,
   ZERO_JAMS_PRODUCTION_PG_EPOCH:epoch,ZERO_JAMS_PRODUCTION_PG_CA_PEM:rootCertificates[0],ZERO_JAMS_PRODUCTION_PG_URI:uri});
 const unavailable=error=>error?.status===503&&error.message==='The production jam authority is unavailable.'&&!error.cause;
@@ -223,4 +223,19 @@ test('hosted connector only admits the actual Vercel production environment',()=
     const child=spawnSync(process.execPath,['--input-type=module','-e',script],{env:{PATH:process.env.PATH||'/usr/bin:/bin',NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:vercelEnv},encoding:'utf8',timeout:5000});
     assert.equal(child.status,expected);assert.equal(child.stdout,'');
   }
+});
+
+test('Neon composition keeps manual grants server-private and revocation does not disable holds or recovery',async()=>{
+  const env=config(),{db,pool}=fakePool(),selector=createProductionPostgresAuthoritySelector({env,now:()=>now,fetchImpl:noFetch,poolFactory:()=>pool});
+  const authority=await selector.authorityForRequest(),request={actor:{id:'11',login:'creator'},operationId:'neon-manual-grant-001',manifest:hostedManifest()};
+  assert.equal(JSON.stringify(authority.jamOptions).includes(env.ZERO_JAMS_PRO_GITHUB_IDS),false);
+  db.loseCommit=true;await assert.rejects(authority.service.propose(request),unavailable);
+  delete env.ZERO_JAMS_PRO_GITHUB_IDS;
+  const accepted=await authority.service.propose(request);assert.equal(accepted.status,'submitted');assert.equal(db.updates,1);
+  assert.equal((await authority.service.settle({actor:request.actor,scope:'proposals',operationId:request.operationId,payload:{manifest:request.manifest}})).settlement,'applied');
+  await assert.rejects(authority.service.propose({...request,operationId:'neon-free-new-001'}),error=>error.status===403);
+  assert.equal((await authority.visibilityReader()).isHeld('202'),false);
+  env.ZERO_JAMS_PRO_GITHUB_IDS='creator';
+  await assert.rejects(authority.service.propose({...request,operationId:'neon-malformed-new-001'}),error=>error.status===403);
+  assert.equal(db.updates,1);await selector.close();
 });

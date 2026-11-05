@@ -47,7 +47,24 @@ and the global event cap are checked in the same snapshot and on each CAS retry.
 
 ## Service API (jams/service.mjs)
 
-Export `createJamService({store,verifySource,verifyRepository,pagesBindingReader,maintainerIds,now=Date.now,limits?})`.
+Export `createJamService({store,verifySource,verifyRepository,pagesBindingReader,maintainerIds,now=Date.now,limits?,canCreateJam?})`.
+`canCreateJam(accountId)` is a trusted, synchronous server-only constructor hook;
+it defaults to deny and requires literal `true`. The HTTP actor is verified by
+immutable numeric GitHub ID, not a claimed browser plan or mutable login. Free
+personal users can join/submit; manual Pro access is required only for new
+proposals. Hosted/local composition uses the server-only
+`ZERO_JAMS_PRO_GITHUB_IDS` allowlist; missing or invalid configuration denies all
+new creation. No account grant list is returned and no billing/subscription
+verification is implemented. See the operator guide for strict format and bounds.
+
+Accepted/fenced proposal recovery precedes the entitlement check inside the
+transaction; new-write admission checks it again immediately before CAS and on
+each retry. Accepted requests and applied/not-applied settlement still recover
+after grant revocation. Existing events, Free participation and approver authority
+are unchanged. Provider environment changes require redeployment; old instances
+and already-dispatched commits can retain prior authority. This is not a write
+fence or immediate fleet-wide revocation guarantee.
+
 Return methods:
 
 - `list(actor?)` -> `{events:[summary],canMaintain,proposals?}` (approved only;
@@ -77,15 +94,15 @@ Return methods:
   Suspend/cancel/entry-removal reasons are at most256characters and use separately
   reserved bounded operation/storage capacity that ordinary writes cannot consume.
 
-Proposed hosted source admits 30 distinct registered accounts per jam, including
-departed registrations. The 31st distinct account is rejected transactionally
+Hosted source admits 100 distinct registered accounts per jam, including
+departed registrations. The 101st distinct account is rejected transactionally
 with 429; accepted retries and existing-account rejoin remain available under
 the ordinary rules. `event.participantLimit` comes from the enforcing service.
 The shared physical schema maximum remains 200; it does not set hosted admission.
-On 2026-11-05 the owner explicitly waived the hosted 30-person acceptance gate
-for deployment of this expansion, extending the prior 10-person pilot waiver.
-Live 30-person Neon/Pages capacity remains untested; no passing acceptance result
-is claimed. The live limit changes only through separate publication.
+On 2026-11-05 the owner requested the 100-account expansion after disclosure
+that the hosted 100-person flow is untested. No 100-person Neon/Pages provider
+acceptance is claimed. The prior 30-person acceptance waiver remains historical.
+The live limit changes only through separate publication.
 
 Event summary: `{id,creator:{id,login},hosting:"zero"|"creator",revision,title,type,summary,theme,rules,eligibility,websiteUrl,
 timezone,schedule,reviewStatus,moderation,registrationOpen,submissionsOpen,

@@ -5,7 +5,7 @@ import {createLocalPostgresAuthoritySelector} from '../lib/jams-local-postgres-s
 import {hostedManifest} from '../../jams/test/fixtures.mjs';
 
 const epoch='a'.repeat(24),now=Date.parse('2030-01-02T12:00:00Z');
-const config=()=>({NODE_ENV:'development',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_LOCAL_AUTHORITY:'postgres',ZERO_JAMS_LOCAL_PG_SOCKET:'/tmp/zero-jams-socket',ZERO_JAMS_LOCAL_PG_PORT:'5432',ZERO_JAMS_LOCAL_PG_DATABASE:'zerojams',ZERO_JAMS_LOCAL_PG_USER:'zerojams',ZERO_JAMS_LOCAL_PG_EPOCH:epoch});
+const config=()=>({NODE_ENV:'development',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11,4050555',ZERO_JAMS_LOCAL_AUTHORITY:'postgres',ZERO_JAMS_LOCAL_PG_SOCKET:'/tmp/zero-jams-socket',ZERO_JAMS_LOCAL_PG_PORT:'5432',ZERO_JAMS_LOCAL_PG_DATABASE:'zerojams',ZERO_JAMS_LOCAL_PG_USER:'zerojams',ZERO_JAMS_LOCAL_PG_EPOCH:epoch});
 const unavailable=error=>error?.status===503&&!error.message.includes('PRIVATE');
 const visibilityUnavailable=error=>unavailable(error)||error?.message==='Project visibility is unavailable.';
 function fakePool(){

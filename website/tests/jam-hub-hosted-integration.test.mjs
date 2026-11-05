@@ -27,7 +27,7 @@ const destinationReader=async url=>{const repo=url.split('/').at(-1);return {rep
 test('hosted null-repository event holds all project kinds across fresh atomic snapshots through reveal and outage',async t=>{
   const f=await atomicGitHttpFixture(t);await f.store.migrate();
   let time=Date.parse('2030-01-02T12:00:00Z'),outage=false,verificationCalls=0;
-  const service=createJamService({store:f.store,maintainerIds:[maintainer.id],now:()=>time,
+  const service=createJamService({canCreateJam:()=>true,store:f.store,maintainerIds:[maintainer.id],now:()=>time,
     verifySource:async()=>assert.fail('Hosted proposal needs no source repository'),
     verifyRepository:async()=>{verificationCalls++;return {repository:{id:'202',ownerId:participant.id,fullName:'student/project202'}};}});
   const readVisibility=createJamHubVisibilityReader({clock:()=>time,fetchImpl:async(input,options)=>{

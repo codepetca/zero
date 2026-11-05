@@ -16,7 +16,7 @@ function harness({storage=new Map(),fetcher=async()=>{throw new Error('network')
   const react={useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(){index++;}};
   const module={exports:{}};
   const context={participateData,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return ()=>null;return require(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
-  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:async()=>{}});useTopLevel=()=>true;}exports.testing={useMutation,useResource,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,MaintainerTools};',context);
+  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:async()=>{}});useTopLevel=()=>true;}exports.testing={useMutation,useResource,JamPlanNotice,JamCreate,JamDiscovery,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,MaintainerTools};',context);
   return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
 }
 function elements(node) {
@@ -257,4 +257,19 @@ test('participation shows the server-provided capacity before the join action',a
   const source=await readFile(new URL('../components/JamClient.tsx',import.meta.url),'utf8');
   assert.match(source,/room for up to \{data\.event\.participantLimit\} participants/);
   assert.ok(source.indexOf('room for up to {data.event.participantLimit}')<source.indexOf("'Join this jam'"));
+});
+
+
+test('Jam discovery and creation explain free participation and manual Pro access',()=>{
+  const h=harness(),markup=renderToStaticMarkup(h.render('JamPlanNotice'));
+  assert.match(markup,/Joining a jam is free/);assert.match(markup,/Pro license/);assert.match(markup,/up to 100 participants/);
+  assert.match(markup,/href="mailto:info@codepet.ca"/);assert.match(markup,/enabled manually/);assert.match(markup,/no online checkout yet/);
+  for(const page of ['JamDiscovery','JamCreate'])assert.ok(elements(h.render(page)).some(node=>node.type?.name==='JamPlanNotice'));
+});
+
+test('server-denied Pro proposal shows its error and keeps the operation for retry',async()=>{
+  const storage=new Map(),denial='A Pro license is required to propose a jam. Contact info@codepet.ca.';let calls=0;
+  const h=harness({storage,fetcher:async()=>{calls++;return Response.json({configured:true,error:denial},{status:403});}});
+  assert.equal(await h.render('useMutation','/api/jams/proposals').send({manifest:{title:'Draft'}}),null);
+  assert.equal(h.render('useMutation','/api/jams/proposals').error,denial);assert.equal(calls,1);assert.equal(storage.size,1);
 });
