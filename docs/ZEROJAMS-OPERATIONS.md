@@ -65,10 +65,13 @@ to verify its relative paths and editable source copy.
 
 ### Launch acceptance gates
 
-Review the exact source and configuration to be released. The owner authorized a
-small pilot and waived the isolated 30-person Neon load test for that pilot; the
-30-person target remains unproven and is not a claim of classroom capacity. A
-local test pass is not evidence that a live GitHub installation or Pages site works.
+Review the exact source and configuration to be released. On 2026-11-05 the
+owner explicitly waived the hosted 30-person acceptance gate for deployment of
+the requested 30-participant per-jam limit. This later waiver extends beyond the
+prior waiver for the 10-person pilot. It permits proceeding without that
+acceptance result; it is not evidence that the target passed. Live 30-person
+Neon/Pages capacity remains untested. Local tests do not establish hosted
+throughput, classroom capacity or live GitHub installation/Pages behavior.
 
 1. **Pages identity and access:** finish and independently review a separate,
    Pages-read capability and participant installation flow using the existing
@@ -94,10 +97,10 @@ local test pass is not evidence that a live GitHub installation or Pages site wo
    fence all legacy writers and in-flight requests, verify the target branch and
    rollback/suspension procedure, and confirm all active writers use the same
    branch-wide transaction. Do not assume a source deployment retires old instances.
-4. **Capacity and reliability:** before expansion, exercise 30 participants
-   starting together, separately for join and submission. The owner waived this
-   isolated Neon load test for the authorized small pilot; it remains unproven. The acceptance target
-   is 95% durably confirmed within five minutes and all within ten minutes,
+4. **Capacity and reliability:** the owner explicitly waived this hosted
+   30-person acceptance gate for deploying the 30-account limit on 2026-11-05.
+   The untested target remains 30 participants starting together, separately
+   for join and submission, with 95% durably confirmed within five minutes and all within ten minutes,
    without lost, duplicate or falsely confirmed actions; also exercise the full
    gallery reveal. Use actual provider and deployment constraints. Record
    contention, request quotas, deadlines, unknown responses and recovery. A
@@ -119,8 +122,10 @@ local test pass is not evidence that a live GitHub installation or Pages site wo
 The 2026-11-04 isolated GitHub capacity run exhausted its request budget after
 three confirmed joins; it did not meet the 30-person target. A disposable local
 PostgreSQL 18.6 run completed 30 synthetic joins and 30 submissions, but does
-not establish hosted Neon or classroom capacity. The owner waived the isolated
-Neon 30-person test for this small pilot. Do not present the waiver as a pass.
+not establish hosted Neon or classroom capacity. The earlier waiver covered
+only the 10-person pilot; the later explicit 2026-11-05 owner waiver also covers
+deploying the 30-account expansion without its hosted acceptance result. Neither
+waiver is a passing result.
 
 The selected authority is the dedicated Neon project `autumn-queen-85821497`,
 direct host `ep-frosty-fog-be7fiw2h.c-9.us-east-2.aws.neon.tech`, database
@@ -132,12 +137,49 @@ the reviewed creator-membership pattern; those administrators can still change
 privileges. Admission checks do not fence concurrent administrative changes.
 A cloned epoch alone cannot prove branch identity.
 
-The hosted pilot caps each event at 10 participants in the transactional service;
-the registration limit is shown before joining. A single approved pilot event is
-an operational rule enforced by the sole approver, not a code-enforced global
+The proposed hosted source caps each event at 30 distinct GitHub accounts in
+the transactional service, including departed accounts. The 31st distinct account
+is rejected; an existing account can recover its accepted request and rejoin
+within the normal schedule. The limit is shown before joining from the same
+service value. The owner waived the hosted acceptance blocker for this increase
+on 2026-11-05; the live limit changes only through separate publication. A local
+source change does not alter the live pilot. A single approved pilot
+event is an operational rule enforced by the sole approver, not a code-enforced global
 one-event limit. Only `armorup` may approve, and cannot approve their own proposal.
 There is no participant allowlist; a person with the direct URL can participate
 within the event's rules and capacity. Do not publicly promote the pilot.
+
+The 30-account admission setting is not hosted Neon or GitHub Pages capacity
+acceptance. No 30-person live join/submission/reveal load test was run; local
+transaction and UI tests do not establish provider throughput or classroom
+reliability. The explicit 2026-11-05 owner waiver permits deployment of this
+30-account expansion without claiming that acceptance passed.
+
+The service reserves `min(safetyOperations, participants + 2)` safety slots. At
+30 accounts that is 32 slots and 131,072 bytes, leaving an initial ordinary budget
+of 1,868,928 bytes within the unchanged 2,000,000-byte event limit. This replaces
+the 10-account setting's 12 slots and 49,152-byte reserve. Ordinary writes cannot
+consume unused safety capacity. Audit existing event sizes and operation pools
+before rollout: every authoritative service read applies the configured reserve,
+so an unusually large old event could fail validation under the larger reserve.
+Safety actions remain bounded; exhausted safety space requires operator recovery.
+
+Rollback is state-dependent. The old 10-account service rejects an event with
+more than ten distinct registrations or more than twelve accepted safety
+operations. Safety operations are retained; repeated suspension/cancellation or
+entry removal can exceed twelve even when no more than ten accounts registered.
+Either bound can make Jam reads unavailable after rollback. Registration count
+alone is not a sufficient compatibility check.
+
+Before rollback, validate every complete event and settlement record with the
+exact target version and its configured limits, including both operation pools,
+serialized byte budget and remaining safety reserve, histories and repository
+bindings. Raising the participant limit requires no schema migration, but that
+does not prove later state remains readable by the old version. Keep the
+production Neon authority and Hub holds selected; stop new admissions, reconcile
+unknown writes, inspect every affected event, and retain state-compatible
+readers/writers. Do not remove registrations or operation history, discard source
+bindings or roll back to a deployment without hold enforcement to fit old limits.
 
 Before cutover, fence legacy writers and in-flight requests and confirm both Jam
 and Hub use the same complete Neon authority. Provisioning, configuration and

@@ -145,7 +145,7 @@ test('hosted seam restricts the real production process and denies writes withou
   }
 });
 
-test('hosted pilot enforces ten registrations despite a larger injected limit',async()=>{
+test('hosted pilot transactionally caps thirty distinct registrations despite a larger injected limit',async()=>{
   const {spawnSync}=await import('node:child_process');
   const moduleUrl=new URL('../lib/jams-local-authority.mjs',import.meta.url).href;
   const fixtures=new URL('../../jams/test/fixtures.mjs',import.meta.url).href;
@@ -154,13 +154,30 @@ test('hosted pilot enforces ten registrations despite a larger injected limit',a
     import {memoryStore,hostedManifest} from ${JSON.stringify(fixtures)};
     const store=memoryStore();let tail=Promise.resolve();store.transact=async fn=>{let release;const previous=tail;tail=new Promise(r=>release=r);await previous;try{return await fn(store);}finally{release();}};
     const env={NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'1',ZERO_JAMS_ENABLED:'1'};
-    const authority=createHostedJamAuthority({env,store,now:()=>Date.parse('2030-01-02T12:00:00Z'),limits:{participants:30},
+    const authority=createHostedJamAuthority({env,store,now:()=>Date.parse('2030-01-02T12:00:00Z'),limits:{participants:200},
       verifySource:async()=>{},verifyRepository:async({actor})=>({repository:{id:String(1000+Number(actor.id)),ownerId:actor.id,fullName:actor.login+'/project'}}),pagesBindingReader:async()=>({status:'unverified'})});
     const proposal=await authority.service.propose({actor:{id:'11',login:'creator'},operationId:'pilot-proposal-0001',manifest:hostedManifest()});
     await authority.service.mutate({id:proposal.eventId,actor:{id:'4050555',login:'armorup'},operationId:'pilot-approval-0001',action:'approve',revision:proposal.revision});
-    const attempts=await Promise.allSettled(Array.from({length:11},(_,i)=>{const id=String(100+i),login='student'+i;return authority.service.mutate({id:proposal.eventId,actor:{id,login},operationId:'pilot-join-'+id,action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/'+login+'/project'});}));
-    assert.equal(attempts.filter(a=>a.status==='fulfilled').length,10);assert.equal(attempts.filter(a=>a.status==='rejected'&&a.reason.status===429).length,1);
-    assert.equal((await authority.service.list()).events[0].participantLimit,10);
+    const inputs=Array.from({length:31},(_,i)=>{const id=String(100+i),login='student'+i;return {id:proposal.eventId,actor:{id,login},operationId:'pilot-join-'+id,action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/'+login+'/project'};});
+    const attempts=await Promise.allSettled(inputs.map(input=>authority.service.mutate(input)));
+    assert.equal(attempts.filter(a=>a.status==='fulfilled').length,30);
+    const rejected=attempts.filter(a=>a.status==='rejected');assert.equal(rejected.length,1);assert.equal(rejected[0].reason.status,429);assert.match(rejected[0].reason.message,/capacity of 30 participants/);
+    const event=(await authority.service.list()).events[0];assert.equal(event.participantLimit,30);assert.equal(event.participantCount,30);
+    let state=(await (await store.snapshot()).read(proposal.eventId)).state;
+    assert.equal(Object.keys(state.registrations).length,30);assert.equal(Object.keys(state.operations).length,32);
+    assert.equal((await authority.service.read(proposal.eventId)).event.participantLimit,30);
+    // A confirmed operation recovers at capacity; leaving does not free a slot
+    // for another distinct identity, while the existing participant may rejoin.
+    assert.deepEqual(await authority.service.mutate(inputs[0]),attempts[0].value);
+    await authority.service.mutate({id:proposal.eventId,actor:inputs[0].actor,operationId:'pilot-leave-100',action:'leave'});
+    await assert.rejects(authority.service.mutate(inputs[30]),e=>e.status===429);
+    assert.equal((await authority.service.mutate({...inputs[0],operationId:'pilot-rejoin-100'})).status,'joined');
+    state=(await (await store.snapshot()).read(proposal.eventId)).state;
+    assert.equal(Object.keys(state.registrations).length,30);assert.equal(Object.keys(state.operations).length,34);
+    const second=await authority.service.propose({actor:{id:'11',login:'creator'},operationId:'pilot-proposal-0002',manifest:hostedManifest()});
+    await authority.service.mutate({id:second.eventId,actor:{id:'4050555',login:'armorup'},operationId:'pilot-approval-0002',action:'approve',revision:second.revision});
+    assert.equal((await authority.service.mutate({...inputs[30],id:second.eventId,revision:second.revision,operationId:'second-jam-join-130'})).status,'joined');
+    assert.equal((await authority.service.read(second.eventId)).event.participantCount,1,'registration capacity is per jam');
     delete process.env.ZERO_JAMS_PILOT_ENABLED;await assert.rejects(authority.service.propose({}),e=>e.status===503);
     assert.equal((await authority.visibilityReader()).isHeld('1001'),false);`;
   const child=spawnSync(process.execPath,['--input-type=module','-e',script],{env:{PATH:process.env.PATH||'/usr/bin:/bin',NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'1'},encoding:'utf8',timeout:10000});

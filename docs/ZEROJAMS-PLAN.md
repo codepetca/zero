@@ -1,10 +1,14 @@
 # ZeroJams architecture and user flow
 
-**Current direction, 2026-11-05:** The owner authorized a small production pilot
-using the Neon authority, with up to ten participants per jam and armorup as
-the independent approver. The 30-person Neon load test is waived and capacity at
-that size is unproven. The sections below preserve earlier development history;
-the current rollout and rollback requirements are in
+**Current direction, 2026-11-05:** The owner requested a 30-participant per-jam
+limit for the production pilot using the Neon authority, with armorup as the
+independent approver. Source enforces 30 distinct registrations, including
+departed accounts. Later on 2026-11-05 the owner explicitly waived the hosted
+30-person acceptance gate for deploying this expansion, extending the earlier
+waiver for the 10-person pilot. Live 30-person Neon/Pages capacity remains
+untested; the waiver is not a passing acceptance result. The live limit changes
+only through separate publication. The sections below preserve earlier
+development history; the current rollout and rollback requirements are in
 [the operations guide](ZEROJAMS-OPERATIONS.md).
 
 ## Pages verification integration — 2026-11-04

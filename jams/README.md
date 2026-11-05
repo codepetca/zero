@@ -62,7 +62,24 @@ and approval-date snapshots. Pending proposals stay private. Approving new rules
 does not overwrite a participant's previous `registration.revision`; the next
 applicable action acknowledges the displayed current revision.
 
-Pilot defaults: 100 events per listing/new-event capacity check, 200 distinct
+Proposed hosted source fixes admission at 30 distinct accounts per jam,
+including departed registrations; it overrides injected participant limits.
+On 2026-11-05 the owner explicitly waived the hosted 30-person acceptance gate
+for deploying this expansion, extending the prior waiver for the 10-person
+pilot. Live 30-person Neon/Pages capacity remains untested; this waiver does not
+claim an acceptance pass. The live limit changes only through publication.
+The server projects this as `event.participantLimit` for the participation UI.
+The shared schema retains its 200-record physical maximum and standalone service
+default to preserve storage/readability and separately configured local fixtures.
+The hosted reserve grows to 32 safety slots (131,072 bytes); previously large
+records must fit the larger reserve. A rollback to 10-account admission cannot
+read events with more than ten recorded accounts or more than twelve accepted
+safety operations, including events with ten or fewer accounts. Validate complete state
+against the exact target version's operation pools, byte/reserve budget and other
+limits before rollback. See the operator guide for state-compatible rollout and
+rollback; hosted Neon/Pages throughput at 30 is unproven.
+
+Standalone service defaults: 100 events per listing/new-event capacity check, 200 distinct
 participant records per event (including departed participants), 1,000 accepted
 ordinary operations per event, 50 proposal revisions, 30 entry revisions per participant,
 2,000,000 serialized state bytes, eight CAS attempts, and ten distinct accepted

@@ -77,9 +77,19 @@ Return methods:
   Suspend/cancel/entry-removal reasons are at most256characters and use separately
   reserved bounded operation/storage capacity that ordinary writes cannot consume.
 
+Proposed hosted source admits 30 distinct registered accounts per jam, including
+departed registrations. The 31st distinct account is rejected transactionally
+with 429; accepted retries and existing-account rejoin remain available under
+the ordinary rules. `event.participantLimit` comes from the enforcing service.
+The shared physical schema maximum remains 200; it does not set hosted admission.
+On 2026-11-05 the owner explicitly waived the hosted 30-person acceptance gate
+for deployment of this expansion, extending the prior 10-person pilot waiver.
+Live 30-person Neon/Pages capacity remains untested; no passing acceptance result
+is claimed. The live limit changes only through separate publication.
+
 Event summary: `{id,creator:{id,login},hosting:"zero"|"creator",revision,title,type,summary,theme,rules,eligibility,websiteUrl,
 timezone,schedule,reviewStatus,moderation,registrationOpen,submissionsOpen,
-participantCount,participants:[{id,login}],entries:[{participantId,login,title,
+participantCount,participantLimit,participants:[{id,login}],entries:[{participantId,login,title,
 description,demoUrl,instructions,repository:{id,ownerId,fullName,commit},submittedAt}],
 updatedAt}`. `websiteUrl` exists only for archived creator-hosted events.
 For manifests with `galleryRevealAt`, public event projections expose

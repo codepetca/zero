@@ -7,6 +7,7 @@ import {jamsPreviewAvailable} from './jams-visibility.mjs';
 
 const unavailable=()=>{throw new JamError(503,'The local jam authority is unavailable.');};
 const writes=new Set(['propose','mutate','settle']);
+const HOSTED_PARTICIPANT_LIMIT=30;
 const allowed=new Set(['env','store','now','verifySource','verifyRepository','pagesBindingReader','limits','visibilityTimeoutMs']);
 
 /** Explicitly compose both lanes from one already-provisioned, trusted store.
@@ -57,7 +58,7 @@ function compose(options,hosted) {
     }
   });
   const engine=createJamService({store:sharedStore,now,verifySource,verifyRepository,pagesBindingReader,
-    maintainerIds:[ZERO_JAMS_APPROVER_ID],...(hosted?{limits:{...limits,participants:10}}:limits===undefined?{}:{limits})});
+    maintainerIds:[ZERO_JAMS_APPROVER_ID],...(hosted?{limits:{...limits,participants:HOSTED_PARTICIPANT_LIMIT}}:limits===undefined?{}:{limits})});
   const service=Object.freeze(Object.fromEntries(Object.keys(engine).map(method=>[method,async(...args)=>{
     const check=writes.has(method)?writable:local;check();
     // This final check withholds confirmation after a mode change; it cannot
