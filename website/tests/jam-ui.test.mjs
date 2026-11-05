@@ -15,9 +15,9 @@ function harness({storage=new Map(),fetcher=async()=>{throw new Error('network')
   const self={},window={self,top:self};
   const react={useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(fn){index++;effects.push(fn);}};
   const module={exports:{}};
-  const context={participateData,refreshImpl,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return ()=>null;return require(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
-  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useMutation,useResource,JamHelpLink,JamCreate,JamDiscovery,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,MaintainerTools};',context);
-  return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},flushEffects(){const work=effects;effects=[];for(const fn of work)fn();},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
+  const context={participateData,refreshImpl,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return {default:()=>null};return require(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
+  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useDraft,EventFacts,Proposal,useMutation,useResource,JamHelpLink,JamCreate,JamDiscovery,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,MaintainerTools};',context);
+  return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},renderDraft(name,initial,initializeFresh){index=0;return module.exports.testing.useDraft(name,initial,initializeFresh);},flushEffects(){const work=effects;effects=[];for(const fn of work)fn();},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
 }
 function elements(node) {
   if(Array.isArray(node))return node.flatMap(elements);
@@ -431,4 +431,155 @@ test('participation shows the current server count and limit beside Join',()=>{
   const count=nodes.findIndex(node=>node.type==='p'&&Array.isArray(node.props.children)&&node.props.children[0]==='Participants: ');
   const join=nodes.findIndex(node=>node.type==='button'&&node.props.children==='Join this jam');
   assert.ok(count>=0&&count<join);assert.deepEqual(Array.from(nodes[count].props.children),['Participants: ',8,' · Limit: ',100]);
+});
+
+
+test('fresh creation detects the browser zone only after hydration and preserves a saved or early-edited timezone',async t=>{
+  const {browserJamTimezone,defaultHostedJamDraft}=await import('../lib/jam-draft.mjs');
+  const Original=Intl.DateTimeFormat;let detected=0;
+  t.mock.method(Intl,'DateTimeFormat',function(...args){if(args.length)return new Original(...args);detected++;return {resolvedOptions:()=>({timeZone:'Asia/Tokyo'})};});
+  const initial=defaultHostedJamDraft(),initialize=()=>defaultHostedJamDraft('game',browserJamTimezone());
+  const h=harness();assert.equal(h.renderDraft('hosted-create',initial,initialize)[0].timezone,'UTC');
+  assert.equal(detected,0);assert.equal(h.storage.size,0,'server defaults are not saved before restore');
+  h.flushEffects();assert.equal(h.renderDraft('hosted-create',initial,initialize)[0].timezone,'Asia/Tokyo');
+  h.flushEffects();assert.equal(JSON.parse(h.storage.get('zero-jam-draft:hosted-create')).timezone,'Asia/Tokyo');
+  const saved={...initial,title:'Kept jam',timezone:'Pacific/Auckland',startsAt:'2030-11-05T09:30'};
+  const stored=new Map([['zero-jam-draft:hosted-create',JSON.stringify(saved)]]),restored=harness({storage:stored});
+  const calls=detected;restored.renderDraft('hosted-create',initial,initialize);restored.flushEffects();
+  assert.deepEqual(JSON.parse(JSON.stringify(restored.renderDraft('hosted-create',initial,initialize)[0])),saved);assert.equal(detected,calls,'saved draft wins over detection');
+  const early=harness(),before=early.renderDraft('hosted-create',initial,initialize);
+  before[1]({...initial,timezone:'Asia/Kathmandu'});early.flushEffects();
+  assert.equal(early.renderDraft('hosted-create',initial,initialize)[0].timezone,'Asia/Kathmandu','an early edit cannot be overwritten');
+});
+
+test('draft restoration survives blocked storage, reloads manual timezone and does not overwrite another draft key',async()=>{
+  const {defaultHostedJamDraft}=await import('../lib/jam-draft.mjs'),initial=defaultHostedJamDraft();
+  const blocked=harness({storage:{get(){throw Error('blocked');},set(){throw Error('blocked');}}});
+  blocked.renderDraft('hosted-create',initial,()=>({...initial,timezone:'Asia/Kathmandu'}));blocked.flushEffects();
+  assert.equal(blocked.renderDraft('hosted-create',initial)[0].timezone,'Asia/Kathmandu');
+  const h=harness();h.renderDraft('first',initial);h.flushEffects();
+  h.renderDraft('first',initial)[1]({...initial,timezone:'Europe/Paris'});h.renderDraft('first',initial);h.flushEffects();
+  const saved=JSON.stringify({...initial,timezone:'Pacific/Auckland'});h.storage.set('zero-jam-draft:second',saved);
+  h.renderDraft('second',initial);h.flushEffects();assert.equal(h.storage.get('zero-jam-draft:second'),saved);
+  assert.equal(h.renderDraft('second',initial)[0].timezone,'Pacific/Auckland');
+  const reload=harness({storage:h.storage});reload.renderDraft('first',initial);reload.flushEffects();
+  assert.equal(reload.renderDraft('first',initial)[0].timezone,'Europe/Paris');
+});
+
+test('creation shows selected IANA timezone and keeps its editable control and validation inside More schedule options',async()=>{
+  const {defaultHostedJamDraft}=await import('../lib/jam-draft.mjs');
+  const saved={...defaultHostedJamDraft(),timezone:'Asia/Kathmandu'},storage=new Map([['zero-jam-draft:hosted-create',JSON.stringify(saved)]]);
+  const h=harness({storage});h.render('JamCreate');h.flushEffects();let tree=h.render('JamCreate');
+  let nodes=elements(tree),more=nodes.find(node=>node.type==='details'&&elements(node).some(child=>child.type==='summary'&&child.props.children==='More schedule options'));
+  assert.ok(elements(more).find(node=>node.type==='input'&&node.props.name==='timezone'));
+  assert.ok(nodes.find(node=>node.type==='strong'&&node.props.children==='Asia/Kathmandu'));
+  elements(more).find(node=>node.type==='input'&&node.props.name==='timezone').props.onChange({target:{value:'Invalid/Zone'}});
+  tree=h.render('JamCreate');await elements(tree).find(node=>node.type==='form').props.onSubmit({preventDefault(){}});
+  tree=h.render('JamCreate');more=elements(tree).find(node=>node.type==='details'&&elements(node).some(child=>child.type==='summary'&&child.props.children==='More schedule options'));
+  assert.equal(more.props.open,true);assert.equal(elements(more).find(node=>node.type==='input'&&node.props.name==='timezone').props['aria-invalid'],true);
+  assert.match(renderToStaticMarkup(more),/IANA timezone/);
+});
+
+test('detail, participation, proposal review and approved history share the requested date style, scheduled time and timezone labels',()=>{
+  const manifest={type:'game',title:'Dates',timezone:'Asia/Kathmandu',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',schedule:{startsAt:'2026-11-05T14:30:00Z'}};
+  const event={...manifest,id:'jam-42',revision:'A',approvalHistory:[{revision:'A',approvedAt:'2026-11-05T14:30:00Z',manifest}],moderation:{status:'active'},registrationOpen:false,submissionsOpen:false,participantCount:0,participantLimit:100,participants:[],entries:[]};
+  const detail={event,registration:null,entry:null,canMaintain:false,proposal:{revision:'B',status:'submitted',manifest}};
+  for(const component of ['JamDetail','JamParticipate','Proposal','ApprovedVersions']){
+    const h=harness({participateData:detail}),props=component==='Proposal'?{id:'jam-42',data:detail,onChanged:async()=>{}}:component==='ApprovedVersions'?{event}:{id:'jam-42'};
+    const html=renderToStaticMarkup(h.render(component,props));
+    assert.match(html,/Thu Nov 5 · 2026 · 8:15/);assert.match(html,/Asia\/Kathmandu/);
+    assert.match(html,/dateTime="2026-11-05T14:30:00Z"/i);
+    if(component==='ApprovedVersions')assert.match(html,/Thu Nov 5 · 2026 · 2:30[^<]* UTC/);
+  }
+});
+
+test('actual SSR and initial client markup do not depend on browser timezone or read draft storage',async t=>{
+  const React=require('react'),Original=Intl.DateTimeFormat;let detections=0;
+  t.mock.method(Intl,'DateTimeFormat',function(...args){if(args.length)return new Original(...args);detections++;return {resolvedOptions:()=>({timeZone:'Asia/Tokyo'})};});
+  const module={exports:{}};
+  vm.runInNewContext(compile(clientSource),{module,exports:module.exports,require(name){
+    if(name==='./HubGitHub')return {useHubGitHub:()=>({user:{id:'12',login:'creator',csrfToken:'csrf'}}),HubAccount:()=>null};
+    if(name==='next/link')return {default:()=>null};
+    return require(name);
+  }});
+  const server=renderToStaticMarkup(React.createElement(module.exports.JamCreate));
+  const client=renderToStaticMarkup(harness().render('JamCreate'));
+  assert.equal(server,client);assert.equal(detections,0);
+  assert.match(server,/Create a ZeroJam/);assert.doesNotMatch(server,/Asia\/Tokyo/);
+});
+
+
+test('an early title edit merges browser timezone defaults or saved fields instead of suppressing restoration',async t=>{
+  const {browserJamTimezone,defaultHostedJamDraft}=await import('../lib/jam-draft.mjs');
+  const initial=defaultHostedJamDraft(),Original=Intl.DateTimeFormat;
+  t.mock.method(Intl,'DateTimeFormat',function(...args){return args.length?new Original(...args):{resolvedOptions:()=>({timeZone:'Asia/Tokyo'})};});
+  const initialize=()=>defaultHostedJamDraft('game',browserJamTimezone());
+  const fresh=harness();fresh.renderDraft('hosted-create',initial,initialize)[1]({...initial,title:'Early title'},['title']);fresh.flushEffects();
+  const freshDraft=fresh.renderDraft('hosted-create',initial,initialize)[0];
+  assert.equal(freshDraft.title,'Early title');assert.equal(freshDraft.timezone,'Asia/Tokyo');
+  const saved={...initial,title:'Saved title',summary:'Keep this description',rules:'Saved rules',timezone:'Pacific/Auckland',startsAt:'2030-11-05T09:30'};
+  const storage=new Map([['zero-jam-draft:hosted-create',JSON.stringify(saved)]]),restored=harness({storage});
+  restored.renderDraft('hosted-create',initial,initialize)[1]({...initial,title:'Early replacement'},['title']);restored.flushEffects();
+  assert.deepEqual(JSON.parse(JSON.stringify(restored.renderDraft('hosted-create',initial,initialize)[0])),{...saved,title:'Early replacement'});
+  restored.flushEffects();assert.deepEqual(JSON.parse(storage.get('zero-jam-draft:hosted-create')),{...saved,title:'Early replacement'});
+});
+
+test('an explicit early UTC timezone edit wins while untouched saved fields still restore',async()=>{
+  const {defaultHostedJamDraft}=await import('../lib/jam-draft.mjs');
+  const initial=defaultHostedJamDraft(),saved={...initial,title:'Saved title',timezone:'Pacific/Auckland',startsAt:'2030-11-05T09:30'};
+  const storage=new Map([['zero-jam-draft:hosted-create',JSON.stringify(saved)]]),h=harness({storage});
+  const set=h.renderDraft('hosted-create',initial,()=>({...initial,timezone:'Asia/Tokyo'}))[1];
+  set({...initial,title:'New title'},['title']);
+  set({...initial,timezone:'UTC'},['timezone']); // Same as the server fallback, but explicitly chosen.
+  h.flushEffects();
+  assert.deepEqual(JSON.parse(JSON.stringify(h.renderDraft('hosted-create',initial)[0])),{...saved,title:'New title',timezone:'UTC'});
+});
+
+test('participation merges an early title with its saved fields and isolates drafts through rapid account and event switches',()=>{
+  const eventA='jam-42',eventB='jam-43',accountA={id:'12',login:'creator',csrfToken:'a'},accountB={id:'99',login:'other',csrfToken:'b'};
+  const details=(id)=>({event:{id,title:'Jam',type:'game',timezone:'UTC',summary:'',theme:'',rules:'',eligibility:'',schedule:{},revision:'A',moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participants:[],participantCount:0,participantLimit:100,entries:[]},registration:{status:'joined',revision:'A'},entry:null,canMaintain:false});
+  const saved=(name)=>({title:`${name} title`,description:`${name} private description`,demoUrl:`https://${name}.example/`,instructions:`${name} private instructions`});
+  const key=(event,actor)=>`zero-jam-draft:entry-details:${event}:${actor.id}`;
+  const sourceKey=(event,actor)=>`zero-jam-draft:entry-source:${event}:${actor.id}`;
+  const a=saved('account-a'),b=saved('account-b'),c=saved('event-b'),storage=new Map();
+  for(const [event,actor,draft]of [[eventA,accountA,a],[eventA,accountB,b],[eventB,accountB,c]]){
+    storage.set(key(event,actor),JSON.stringify(draft));
+    storage.set(sourceKey(event,actor),JSON.stringify({repositoryUrl:`https://github.com/${actor.login}/${event}`,commit:actor.id.repeat(40).slice(0,40)}));
+  }
+  const h=harness({storage,participateData:details(eventA)});
+  const render=id=>h.render('JamParticipate',{id});
+  const input=(tree,label)=>{
+    const wrapper=elements(tree).find(node=>node.type==='label'&&node.props.children?.[0]===label);
+    return elements(wrapper).find(node=>node.type==='input'||node.type==='textarea');
+  };
+  const source=tree=>elements(tree).find(node=>node.type?.name==='SourceFields').props.source;
+  let tree=render(eventA);
+  input(tree,'Entry title').props.onChange({target:{value:'Early participant edit'}});
+  h.flushEffects();tree=render(eventA);
+  assert.equal(input(tree,'Entry title').props.value,'Early participant edit');
+  assert.equal(input(tree,'Description').props.value,a.description);
+  assert.equal(input(tree,'Instructions (optional)').props.value,a.instructions);
+  assert.equal(source(tree).repositoryUrl,`https://github.com/creator/${eventA}`);
+
+  // Switch both identity and event before either new draft's restoration effects
+  // run. No previous account/event text or source may appear in the new form.
+  h.setActor(accountB);h.setDetail(details(eventA));tree=render(eventA);
+  assert.equal(input(tree,'Entry title').props.value,'');assert.equal(source(tree).repositoryUrl,'');
+  h.setDetail(details(eventB));tree=render(eventB);
+  assert.equal(input(tree,'Description').props.value,'');assert.equal(source(tree).repositoryUrl,'');
+  h.flushEffects();tree=render(eventB);
+  assert.equal(input(tree,'Entry title').props.value,c.title);assert.equal(input(tree,'Description').props.value,c.description);
+  assert.equal(source(tree).repositoryUrl,`https://github.com/other/${eventB}`);
+  assert.equal(JSON.stringify(tree).includes(a.description),false);assert.equal(JSON.stringify(tree).includes(b.description),false);
+
+  h.setDetail(details(eventA));tree=render(eventA);assert.equal(input(tree,'Description').props.value,'');
+  h.flushEffects();tree=render(eventA);assert.equal(input(tree,'Description').props.value,b.description);
+  assert.equal(source(tree).repositoryUrl,`https://github.com/other/${eventA}`);
+  h.setActor(accountA);tree=render(eventA);assert.equal(input(tree,'Description').props.value,'');
+  h.flushEffects();tree=render(eventA);
+  assert.equal(input(tree,'Entry title').props.value,'Early participant edit');assert.equal(input(tree,'Description').props.value,a.description);
+  assert.equal(source(tree).repositoryUrl,`https://github.com/creator/${eventA}`);
+  h.flushEffects();
+  assert.deepEqual(JSON.parse(storage.get(key(eventA,accountA))),{...a,title:'Early participant edit'});
+  assert.deepEqual(JSON.parse(storage.get(key(eventA,accountB))),b);assert.deepEqual(JSON.parse(storage.get(key(eventB,accountB))),c);
 });

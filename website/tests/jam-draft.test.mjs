@@ -54,3 +54,41 @@ test('hosted defaults describe live Pages while legacy preparation retains exact
   }
   assert.match(defaultJamDraft().rules,/exact commit/);
 });
+
+test('hosted initial defaults are deterministic UTC and browser timezone detection validates IANA with a UTC fallback',async t=>{
+  const {browserJamTimezone,defaultHostedJamDraft}=await import('../lib/jam-draft.mjs');
+  assert.equal(defaultHostedJamDraft().timezone,'UTC');
+  const Original=Intl.DateTimeFormat;
+  for(const zone of ['Asia/Tokyo','Asia/Kathmandu','America/Los_Angeles',undefined,'','Invalid/Zone']){
+    const mock=t.mock.method(Intl,'DateTimeFormat',function(...args){return args.length?new Original(...args):{resolvedOptions:()=>({timeZone:zone})};});
+    assert.equal(browserJamTimezone(),zone&&zone!=='Invalid/Zone'?zone:'UTC');mock.mock.restore();
+  }
+  const broken=t.mock.method(Intl,'DateTimeFormat',()=>{throw Error('Unavailable Intl');});
+  assert.equal(browserJamTimezone(),'UTC');broken.mock.restore();
+  Intl.DateTimeFormat=undefined;
+  try{assert.equal(browserJamTimezone(),'UTC');}finally{Intl.DateTimeFormat=Original;}
+});
+
+test('requested date style preserves event-local calendar date and scheduled time across offsets and DST',async()=>{
+  const {formatJamDateTime}=await import('../lib/jam-draft.mjs');
+  assert.match(formatJamDateTime('2026-11-05T14:30:00Z','America/Toronto'),/^Thu Nov 5 · 2026 · 9:30/);
+  assert.match(formatJamDateTime('2026-11-05T14:30:00Z','Asia/Kathmandu'),/^Thu Nov 5 · 2026 · 8:15/);
+  assert.match(formatJamDateTime('2026-11-05T00:30:00Z','America/Los_Angeles'),/^Wed Nov 4 · 2026 · 4:30/);
+  assert.match(formatJamDateTime('2030-03-10T09:30:00Z','America/Los_Angeles'),/^Sun Mar 10 · 2030 · 1:30/);
+  assert.match(formatJamDateTime('2030-03-10T10:30:00Z','America/Los_Angeles'),/^Sun Mar 10 · 2030 · 3:30/);
+  assert.equal(formatJamDateTime('not-a-date','UTC'),'not-a-date');
+  assert.equal(formatJamDateTime('2026-11-05T14:30:00Z','Invalid/Zone'),'2026-11-05T14:30:00Z');
+});
+
+test('non-Toronto hosted drafts preserve local wall times and reject DST gaps and folds without changing input',async()=>{
+  const {prepareHostedJamDraft}=await import('../lib/jam-draft.mjs');
+  const draft=valid({timezone:'America/Los_Angeles',galleryRevealAt:'2030-03-18T09:00'}),before=structuredClone(draft);
+  const result=prepareHostedJamDraft(draft);assert.deepEqual(result.errors,{});
+  assert.equal(result.manifest.timezone,'America/Los_Angeles');
+  assert.equal(result.manifest.schedule.registrationOpensAt,'2030-03-01T17:00:00.000Z');
+  assert.equal(result.manifest.schedule.startsAt,'2030-03-15T16:00:00.000Z');
+  assert.deepEqual(draft,before);
+  for(const [value,error]of [['2030-03-10T02:30',/does not exist/],['2030-11-03T01:30',/occurs twice/]]){
+    const invalid=prepareHostedJamDraft({...draft,startsAt:value});assert.equal(invalid.manifest,null);assert.match(invalid.errors.startsAt,error);
+  }
+});
