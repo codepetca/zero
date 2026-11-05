@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import DocsLocationTracker from "@/components/DocsLocationTracker";
 export const metadata: Metadata = {
   metadataBase: new URL("https://zero.codepet.ca"),
   icons: {
@@ -24,6 +25,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <a className="skip-link" href="#page-content">
           Skip to content
         </a>
+        <DocsLocationTracker />
         {children}
       </body>
     </html>
