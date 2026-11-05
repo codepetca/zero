@@ -10,6 +10,7 @@ const release = (overrides = {}) => ({kind:'game', id, version:'0.1.0', status:'
   description:'A game', contributor:{login:'student'}, repository:{url:repo}, source:{commit},
   web:{provider:'github-pages',url:pages,commit,runId:1}, ...overrides});
 const catalogReader = async () => ({releases:[release()]});
+const destinationReader = async url => {const [,owner,repo]=new URL(url).pathname.split('/');return {repositoryUrl:url,owner,repo,repositoryId:'123',ownerId:'7'};};
 const request = query => new Request(`https://zero.example/api/hub/projects?${query}`);
 
 test('resolver allows only canonical maintained and available catalog IDs', async () => {
@@ -54,12 +55,12 @@ test('public endpoint bounds IDs and excludes unknown projects before network wo
   assert.equal(calls,2);
 });
 
-test('endpoint returns unknown for resolved cards after its response budget', async () => {
+test('endpoint returns unavailable after its response budget', async () => {
   let external=0;
   const service=createHubProjectStatusService({catalogReader,fetchImpl:async()=>{external++;throw Error('unexpected fetch');}});
-  const result=await (await hubProjectsResponse(request(`kind=game&ids=${id}`),
-    {service,now:()=>1000,responseBudgetMs:0})).json();
-  assert.deepEqual(result.items,[{id,kind:'game',repositoryUrl:repo,stars:null,issuesEnabled:null,site:{status:'unknown'}}]);
+  const result=await hubProjectsResponse(request(`kind=game&ids=${id}`),
+    {service,now:()=>1000,responseBudgetMs:0});
+  assert.equal(result.status,503);
   assert.equal(external,0);
 });
 
@@ -137,4 +138,114 @@ test('mixed-case repository paths preserve the accepted Pages receipt', async()=
   assert.equal(result.site.status,'reachable');
   assert.ok(calls.includes(playUrl));
   assert.equal(calls.includes(playUrl.toLowerCase()),false);
+});
+
+test('a hold accepted during slow external status work is rechecked before endpoint and standalone results',async()=>{
+  for(const caller of ['endpoint','status','statusTarget']) {
+    let held=false,reads=0,started,releaseWork;
+    const running=new Promise(done=>{started=done;}),gate=new Promise(done=>{releaseWork=done;});
+    const visibilityReader=async()=>{reads++;const captured=held;return {revision:'a'.repeat(40),observedAt:0,isHeld:()=>captured};};
+    const target={id,kind:'game',repositoryId:'123',repositoryUrl:repo,playUrl:pages};
+    const service=createHubProjectStatusService({visibilityReader,destinationReader,
+      catalogReader:async()=>({releases:[release({repository:{id:'123',url:repo}})]}),fetchImpl:async(_url,options)=>{
+        started();await gate;
+        return options.method==='HEAD'?new Response(null,{status:200}):Response.json({id:123,owner:{id:7},stargazers_count:7,has_issues:true});
+      }});
+    const pending=caller==='endpoint'?hubProjectsResponse(request(`kind=game&ids=${id}`),{service,visibilityReader,destinationReader}):
+      caller==='status'?service.status({kind:'game',id}):service.statusTarget(target);
+    await running;const beforeHold=reads;assert.ok(beforeHold>=2);held=true;releaseWork();
+    const result=await pending;
+    if(caller==='endpoint') {
+      assert.equal(result.status,200);assert.equal(result.headers.get('cache-control'),'no-store');
+      assert.deepEqual(await result.json(),{schema:1,items:[]});
+    } else assert.equal(result,null);
+    assert.ok(reads>beforeHold,caller);
+  }
+});
+
+test('final status authority failure cannot disclose a completed or unknown project result',async()=>{
+  for(const responseBudgetMs of [14000]) {
+    let reads=0;
+    const visibilityReader=async()=>{
+      if(++reads>1)throw Error('private post-check provider failure');
+      return {revision:'a'.repeat(40),observedAt:0,isHeld:()=>false};
+    };
+    const target={id,kind:'game',repositoryId:'123',repositoryUrl:repo,playUrl:pages};
+    const service={resolve:async()=>target,statusTarget:async()=>({...target,stars:7})};
+    const response=await hubProjectsResponse(request(`kind=game&ids=${id}`),{service,visibilityReader,destinationReader,responseBudgetMs});
+    assert.equal(response.status,503);assert.equal(response.headers.get('cache-control'),'no-store');
+    assert.doesNotMatch(await response.text(),/student|game-r123|private post-check/);assert.equal(reads,2);
+  }
+});
+
+test('deadline bounds initial authority, resolution, status and final authority independently', async () => {
+  const target={id,kind:'game',repositoryId:'123',repositoryUrl:repo,playUrl:pages};
+  const decision={revision:'a'.repeat(40),observedAt:0,isHeld:()=>false};
+  for (const stalled of ['initial','resolve','status','final']) {
+    let reads=0,resolves=0,statuses=0,release;
+    const gate=new Promise(resolve=>{release=resolve;});
+    const visibilityReader=async()=>{reads++; if (stalled==='initial' && reads===1 || stalled==='final' && reads===3) await gate; return decision;};
+    const service={resolve:async()=>{resolves++;if(stalled==='resolve')await gate;return target;},
+      statusTarget:async()=>{statuses++;if(stalled==='status')await gate;return {...target,stars:9};}};
+    const response=await hubProjectsResponse(request(`kind=game&ids=${id}`),{service,visibilityReader,destinationReader,responseBudgetMs:20});
+    assert.equal(response.status,503,stalled);
+    assert.equal(response.headers.get('cache-control'),'no-store');
+    assert.doesNotMatch(await response.text(),/student|game-r123/);
+    const before=[reads,resolves,statuses]; release();
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.deepEqual([reads,resolves,statuses],before,`${stalled}: no later stage`);
+    assert.equal(reads,stalled==='final'?3:stalled==='status'?2:1);
+  }
+});
+
+test('caller cancellation releases a stalled visibility reader and sanitizes response', async () => {
+  const caller=new AbortController(); let started;
+  const running=new Promise(resolve=>{started=resolve;});
+  const req=new Request(`https://zero.example/api/hub/projects?kind=game&ids=${id}`,{signal:caller.signal});
+  const pending=hubProjectsResponse(req,{visibilityReader:async({signal})=>{started(signal);return new Promise(()=>{});}});
+  const signal=await running; caller.abort();
+  const response=await pending;
+  assert.equal(signal.aborted,true); assert.equal(response.status,503);
+  assert.equal(response.headers.get('cache-control'),'no-store');
+  assert.doesNotMatch(await response.text(),/student|game-r123/);
+});
+
+test('a batch consuming the total budget cannot dispatch the next batch or final authority', async () => {
+  let clock=0,reads=0,statuses=0;
+  const visibilityReader=async()=>{reads++;return {revision:'a'.repeat(40),observedAt:0,isHeld:()=>false};};
+  const service={resolve:async({id:selected})=>({id:selected,kind:'game',repositoryId:'123',repositoryUrl:repo}),
+    statusTarget:async target=>{statuses++;clock=10;return target;}};
+  const response=await hubProjectsResponse(request('kind=game&ids=one,two,three,four'),
+    {service,visibilityReader,destinationReader,responseBudgetMs:10,monotonicNow:()=>clock});
+  assert.equal(response.status,503);assert.equal(statuses,1);assert.equal(reads,5);
+});
+
+test('a timed-out response does not abort a shared status request used by another caller', async () => {
+  let releaseGate,started;const gate=new Promise(resolve=>{releaseGate=resolve;});
+  const running=new Promise(resolve=>{started=resolve;});let calls=0,aborts=0;
+  const visibilityReader=async()=>({revision:'a'.repeat(40),observedAt:0,isHeld:()=>false});
+  const service=createHubProjectStatusService({visibilityReader,destinationReader,
+    catalogReader:async()=>({releases:[release({repository:{id:'123',url:repo}})]}),
+    fetchImpl:async(_url,{signal,method})=>{calls++;signal.addEventListener('abort',()=>aborts++);started();await gate;
+      return method==='HEAD'?new Response(null,{status:200}):Response.json({id:123,owner:{id:7},stargazers_count:7,has_issues:true});}});
+  const options={service,visibilityReader,destinationReader};
+  const first=hubProjectsResponse(request(`kind=game&ids=${id}`),{...options,responseBudgetMs:20});
+  await running;
+  const second=hubProjectsResponse(request(`kind=game&ids=${id}`),{...options,responseBudgetMs:1000});
+  assert.equal((await first).status,503);assert.equal(aborts,0);
+  releaseGate();
+  const response=await second;assert.equal(response.status,200);
+  assert.equal((await response.json()).items[0].stars,7);assert.equal(calls,2);
+});
+
+test('status selection supports twelve full-length maintained IDs while rejecting longer IDs',async()=>{
+  const ids=Array.from({length:12},(_,i)=>`id${i}`.padEnd(128,'a'));
+  let resolutions=0;
+  const service={resolve:async({id,kind})=>{resolutions++;return {id,kind,repositoryUrl:repo};},
+    statusTarget:async target=>({...target,stars:null,issuesEnabled:null,site:{status:'unknown'}})};
+  const response=await hubProjectsResponse(request(`kind=game&ids=${ids.join(',')}`),{service,visibilityReader:async()=>null});
+  assert.equal(ids.join(',').length,1547);assert.equal(response.status,200);
+  assert.deepEqual((await response.json()).items.map(item=>item.id),ids);assert.equal(resolutions,12);
+  const invalid=await hubProjectsResponse(request(`kind=game&ids=${'a'.repeat(129)}`),{service,visibilityReader:async()=>null});
+  assert.equal(invalid.status,400);assert.equal(resolutions,12);
 });

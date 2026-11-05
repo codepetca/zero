@@ -1,24 +1,32 @@
 import {createHash, createPrivateKey, sign} from 'node:crypto';
 import {boundedJson} from './hub-github-auth.mjs';
-import {createGitHubJamStore} from '../../jams/github-store.mjs';
-import {createGitHubSourceVerifier} from '../../jams/github-source.mjs';
+import {createAtomicGitHubJamStore} from '../../jams/git-store.mjs';
+import {createGitHubSourceVerifier,createGitHubRepositoryVerifier} from '../../jams/github-source.mjs';
 import {createJamService} from '../../jams/service.mjs';
 import {jamsPreviewAvailable} from './jams-visibility.mjs';
+import {createJamPagesRuntimeReader} from './jam-pages-runtime.mjs';
+import {selectJamPagesBinding} from './jam-pages-policy.mjs';
+import {readDefaultLocalJamAuthority} from './jams-default-authority.mjs';
 
 // A separate installation credential writes only the official registry. Never
 // substitute the visiting participant's token for this service credential.
 const tokenCache = new Map();
 const positiveId = /^[1-9][0-9]{0,19}$/;
+// The registry writer and Pages reader must use the same reviewed Codepet Zero App.
+const CODEPET_ZERO_APP_ID = '5367740';
+// Owner-authorized sole reviewer: GitHub user armorup, numeric ID 4050555.
+export const ZERO_JAMS_APPROVER_ID = '4050555';
 const api = 'https://api.github.com';
 
 export function jamServiceConfig(env = process.env) {
   if (!jamsPreviewAvailable(env) || env.ZERO_JAMS_ENABLED !== '1') return null;
-  const maintainers = (env.ZERO_JAMS_MAINTAINER_IDS || '').split(',').map(value => value.trim());
-  if (!maintainers.length || maintainers.some(value => !positiveId.test(value)) ||
-      new Set(maintainers).size !== maintainers.length || maintainers.length > 20) return null;
+  // An obsolete/wrong environment list must never widen reviewer authority.
+  if (env.ZERO_JAMS_MAINTAINER_IDS !== undefined &&
+      env.ZERO_JAMS_MAINTAINER_IDS.trim() !== ZERO_JAMS_APPROVER_ID) return null;
+  const maintainers = [ZERO_JAMS_APPROVER_ID];
   const {ZERO_JAMS_APP_ID: appId, ZERO_JAMS_INSTALLATION_ID: installationId,
     ZERO_JAMS_PRIVATE_KEY: privateKey} = env;
-  if (!positiveId.test(appId || '') || !positiveId.test(installationId || '') ||
+  if (appId !== CODEPET_ZERO_APP_ID || !positiveId.test(installationId || '') ||
       typeof privateKey !== 'string' || privateKey.length > 16_384) return null;
   try {
     if (createPrivateKey(privateKey).asymmetricKeyType !== 'rsa') return null;
@@ -59,7 +67,7 @@ export async function jamInstallationToken(config, {fetchImpl = fetch, now = Dat
   const result = await request(`/app/installations/${config.installationId}/access_tokens`, 'POST',
     {repositories:['zero'], permissions:{contents:'write',metadata:'read'}});
   const expiresAt = Date.parse(result.expires_at);
-  if (!/^ghs_[A-Za-z0-9_]{10,512}$/.test(result.token || '') ||
+  if (!/^ghs_[A-Za-z0-9._-]{10,1020}$/.test(result.token || '') ||
       !Number.isFinite(expiresAt) || expiresAt <= now + 60_000 || expiresAt > now + 3_660_000 ||
       result.permissions?.contents !== 'write' ||
       Object.keys(result.permissions).some(permission => !['contents','metadata'].includes(permission)) ||
@@ -72,11 +80,16 @@ export async function jamInstallationToken(config, {fetchImpl = fetch, now = Dat
 }
 
 export async function createJamRuntime({env = process.env, fetchImpl = fetch,
-  now = Date.now, sourceToken} = {}) {
+  now = Date.now, sourceToken, pagesBindingReader} = {}) {
+  // Resolve the shared local authority before considering Git credentials.
+  // A selected-but-unavailable database throws; it never falls back to Git.
+  const local=await readDefaultLocalJamAuthority({env,sourceToken});
+  if(local)return local.service;
   const config = jamServiceConfig(env);
   if (!config) return null;
   const token = await jamInstallationToken(config, {fetchImpl,now:now()});
-  return createJamService({store:createGitHubJamStore({token,fetchImpl}),
-    verifySource:createGitHubSourceVerifier({token:sourceToken,fetchImpl}),
+  return createJamService({store:createAtomicGitHubJamStore({token,fetchImpl}),
+    verifyRepository:createGitHubRepositoryVerifier({token:sourceToken,fetchImpl}),verifySource:createGitHubSourceVerifier({token:sourceToken,fetchImpl}),
+    pagesBindingReader:selectJamPagesBinding({env,reader:pagesBindingReader ?? createJamPagesRuntimeReader({env,fetchImpl,now})}),
     maintainerIds:config.maintainerIds, now});
 }

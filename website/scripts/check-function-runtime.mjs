@@ -45,11 +45,16 @@ const expected=JSON.parse(fs.readFileSync(0,'utf8'));const load=route=>require('
  await checkFeed(await load('updates/macos/appcast.xml').GET(),expected.updateFeed,'mac');
  await checkFeed(await load('updates/windows/stable.json').GET(),expected.windowsUpdateFeed,'windows');
  const template=load('api/jams/template'),preview=load('api/jams/template/preview');
- for(const handler of [template.GET,template.POST,preview.GET,preview.POST])assert.equal((await handler(new Request('https://zero.codepet.ca/api/jams/template'))).status,404);
- // Production compilation deliberately fixes the Jam hold; changing process env cannot publish it.
- delete process.env.VERCEL;delete process.env.VERCEL_ENV;process.env.NODE_ENV='development';
- for(const handler of [template.GET,template.POST,preview.GET,preview.POST])assert.equal((await handler(new Request('http://127.0.0.1/api/jams/template'))).status,404);
+ const templateHandlers=[template.GET,template.POST,preview.GET,preview.POST];
+ const checkTemplates=async status=>{for(const handler of templateHandlers){const response=await handler(new Request('https://zero.codepet.ca/api/jams/template'));assert.equal(response.status,status);assert.equal(response.headers.get('cache-control'),'no-store');}};
+ // The release defaults to hidden; pilot admission exposes only the explicit
+ // 410 response for retained creator-hosted endpoints, not their old handlers.
+ delete process.env.ZERO_JAMS_PILOT_ENABLED;await checkTemplates(404);
+ process.env.ZERO_JAMS_PILOT_ENABLED='1';await checkTemplates(410);
+ process.env.VERCEL_ENV='preview';await checkTemplates(404);
+ process.env.VERCEL_ENV='production';delete process.env.ZERO_JAMS_PILOT_ENABLED;await checkTemplates(404);
  // Exact local kit receipt/bytes remain usable outside Vercel; forged installer fails closed.
+ delete process.env.VERCEL;delete process.env.VERCEL_ENV;process.env.NODE_ENV='development';
  fs.mkdirSync(path.join(root,'dist'));const receipt=structuredClone(expected.release);
  for(const key of ['kit','starter','extension']){
   const bytes=Buffer.from('receipted local '+key);const asset=expected.release.assets[key];fs.writeFileSync(path.join(root,'dist',asset.filename),bytes);receipt.assets[key]={...asset,size:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex')};
@@ -57,9 +62,9 @@ const expected=JSON.parse(fs.readFileSync(0,'utf8'));const load=route=>require('
  fs.writeFileSync(path.join(root,'dist/release.json'),JSON.stringify(receipt));
  for(const key of ['kit','starter','extension']){const response=await download.GET(new Request('http://127.0.0.1/download/'+key),{params:Promise.resolve({asset:key})});assert.equal(response.status,200);assert.equal(await response.text(),'receipted local '+key);}
  const missingInstaller=await download.GET(new Request('http://127.0.0.1/download/installer'),{params:Promise.resolve({asset:'installer'})});assert.equal(missingInstaller.status,503);
- console.log(JSON.stringify({tracedHandlers:5,vercelLocalDownloadBlocked:true,unknownDownload404:true,feedsByteIdentical:true,unavailableMac404:true,unavailableWindows503:true,productionTemplatesHidden:true,compiledHoldCannotBeToggled:true,localKitDownloadsVerified:3,unverifiedInstallerRefused:true}));
+ console.log(JSON.stringify({tracedHandlers:5,vercelLocalDownloadBlocked:true,unknownDownload404:true,feedsByteIdentical:true,unavailableMac404:true,unavailableWindows503:true,productionTemplatesHiddenByDefault:true,pilotTemplatesGone:true,previewTemplatesHidden:true,productionHoldRestored:true,localKitDownloadsVerified:3,unverifiedInstallerRefused:true}));
 })().catch(error=>{console.error(error);process.exitCode=1;});`;
- const result=spawnSync(process.execPath,['-e',source],{cwd:website,input:JSON.stringify({...JSON.parse(await readFile(resolve(site,'.generated/release.json'),'utf8'))}),encoding:'utf8',env:{...process.env,NODE_PATH:'',NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_LOCAL_DOWNLOADS:'1'},timeout:60000,maxBuffer:1024*1024});
+ const result=spawnSync(process.execPath,['-e',source],{cwd:website,input:JSON.stringify({...JSON.parse(await readFile(resolve(site,'.generated/release.json'),'utf8'))}),encoding:'utf8',env:{...process.env,NODE_PATH:'',NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'0',ZERO_LOCAL_DOWNLOADS:'1'},timeout:60000,maxBuffer:1024*1024});
  assert.equal(result.status,0,result.stderr||result.stdout||String(result.error));const report=JSON.parse(result.stdout);
  // The source generator (covered separately by template tests) reads only staged template assets here.
  report.sourceTemplateTypes=[];

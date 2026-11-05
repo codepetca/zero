@@ -1,7 +1,9 @@
-import {resolveHubProject} from './hub-project-status.mjs';
+import {hubProjectId, hubTargetVisible, hubVisibilityDecision, resolveHubProject} from './hub-project-status.mjs';
+import {assertJamVisibilityTime, readJamHubVisibility} from './jam-hub-visibility.mjs';
+import {createHubRequestDeadline} from './hub-request-deadline.mjs';
 
 /** Aggregate Play activations only. No account, cookie, IP or event log. */
-export const openId = id => typeof id === 'string' && /^[a-z0-9][a-z0-9-]{0,99}$/.test(id);
+export const openId = hubProjectId;
 const key = id => `zero:hub:opens:v1:${id}`;
 
 export function opensConfiguration(env = process.env) {
@@ -82,32 +84,66 @@ function allowedOrigin(request, env) {
     (!request.headers.get('sec-fetch-site') || request.headers.get('sec-fetch-site') === 'same-origin');
 }
 
-export async function recordOpen(request, {env = process.env, store = createOpensStore({env}), resolve = resolveHubProject} = {}) {
+export async function recordOpen(request, {env = process.env, store = createOpensStore({env}), resolve = resolveHubProject,
+  visibilityReader = readJamHubVisibility, destinationReader, pagesBindingReader, destinationTimeoutMs = 6000,
+  responseBudgetMs = 18_000, deadlineNow, decisionNow = Date.now} = {}) {
   const reply = status => new Response(null, {status, headers: {'Cache-Control': 'no-store'}});
-  if (!allowedOrigin(request, env)) return reply(403);
-  if (!store) return reply(204);
-  if (!request.headers.get('content-type')?.startsWith('application/json')) return reply(415);
-  const reader = request.body?.getReader();
-  if (!reader) return reply(400);
-  let id;
+  const deadline = createHubRequestDeadline({budgetMs:responseBudgetMs, signal:request.signal, now:deadlineNow});
   try {
-    const chunks = []; let length = 0;
-    while (true) {
-      const {done, value} = await reader.read(); if (done) break;
-      length += value.length; if (length > 256) return reply(413);
-      chunks.push(value);
+    deadline.check();
+    if (!allowedOrigin(request, env)) return reply(403);
+    if (!request.headers.get('content-type')?.startsWith('application/json')) return reply(415);
+    const reader = request.body?.getReader();
+    if (!reader) return reply(400);
+    // A stalled read or cancellation must not extend the total request budget.
+    // Cleanup observes eventual rejection but never waits for an untrusted stream.
+    const cancel = () => { try { Promise.resolve(reader.cancel()).catch(() => {}); } catch {} };
+    deadline.signal.addEventListener('abort', cancel, {once:true});
+    let id;
+    try {
+      const chunks = []; let length = 0;
+      while (true) {
+        const {done, value} = await deadline.run(() => reader.read()); if (done) break;
+        length += value.byteLength; if (length > 256) return reply(413);
+        chunks.push(value);
+      }
+      deadline.check();
+      const bytes = new Uint8Array(length); let offset = 0;
+      for (const chunk of chunks) {bytes.set(chunk, offset); offset += chunk.length;}
+      const data = JSON.parse(new TextDecoder().decode(bytes));
+      if (!data || Object.keys(data).length !== 1 || !openId(data.id)) return reply(400);
+      id = data.id;
+    } catch {
+      deadline.check();
+      return reply(400);
+    } finally {
+      deadline.signal.removeEventListener('abort', cancel);
+      cancel();
+      try { reader.releaseLock(); } catch { /* A noncooperative read may still be pending. */ }
     }
-    const bytes = new Uint8Array(length); let offset = 0;
-    for (const chunk of chunks) {bytes.set(chunk, offset); offset += chunk.length;}
-    const data = JSON.parse(new TextDecoder().decode(bytes));
-    if (!data || Object.keys(data).length !== 1 || !openId(data.id)) return reply(400);
-    id = data.id;
-  } catch { return reply(400); }
-  finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
-  try {
-    const target = await resolve({kind: 'game', id});
-    if (!target?.playUrl) return reply(404);
-    await store.increment(id);
+    // Body consumption is controlled by the caller and can stall. Do not let an
+    // earlier authority decision survive that wait and authorize a later write.
+    const options = {env, signal:deadline.signal, visibilityReader, destinationReader, pagesBindingReader,
+      destinationTimeoutMs, decisionNow, check:deadline.check};
+    const visibility = await deadline.run(() => hubVisibilityDecision(options));
+    if (!store && visibility === null) { assertJamVisibilityTime(visibility, decisionNow, env); return reply(204); }
+    const target = await deadline.run(() => resolve({kind: 'game', id}, {...options, visibility}));
+    if (!target?.playUrl || !hubTargetVisible({...target, kind:'game'}, visibility)) return reply(404);
+    // A catalog-backed resolver can also wait. Gate the resolved numeric
+    // identity again immediately before issuing the counter operation.
+    const latest = await deadline.run(() => hubVisibilityDecision(options));
+    if ((visibility === null) !== (latest === null)) return reply(404);
+    if (!hubTargetVisible({...target, kind:'game'}, latest)) return reply(404);
+    if (!store) { assertJamVisibilityTime(latest, decisionNow, env); return reply(204); }
+    await deadline.run(() => {
+      deadline.check();
+      assertJamVisibilityTime(latest, decisionNow, env);
+      // Once called, an increment can complete after timeout/cancellation. Its
+      // outcome is uncertain: return only the existing empty 503 and never retry.
+      return store.increment(id);
+    });
+    assertJamVisibilityTime(latest, decisionNow, env);
     return reply(204);
   } catch { return reply(503); }
+  finally { deadline.dispose(); }
 }

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {parseIssue,readRequestResults} from '../lib/sharing-requests.mjs';
+import {parseIssue,readRequestResults,requestResultsResponse} from '../lib/sharing-requests.mjs';
 import {REGISTRY_URL,REGISTRY_BYTES} from '../lib/sharing-catalog.mjs';
 import {canonical,digest} from '../../sharing/registry.mjs';
 import contracts from '../../extension/src/sharing/contracts.js';
@@ -49,6 +49,19 @@ test('accepted-pending is distinct from available; exact snapshot is required fo
   assert.equal(data.results[0].status,'available');assert.equal(data.results[0].releaseLink,'/hub?kind=game&id=game-r1-health-bar&version=0.1.0');
   f.state.availability.push({key:f.record.releaseKey,status:'withdrawn'});snapshot=catalog(f.state,[{...release,status:'withdrawn'}]);
   data=await readRequestResults('123',{env,fetchImpl:fetcher(f.state,snapshot)});assert.equal(data.results[0].status,'withdrawn');assert.equal(data.results[0].releaseLink,undefined);
+});
+
+test('held jam games do not expose an available ZeroHub link through request results',async()=>{
+  const f=fixture(),release=accept(f);f.state.releases[f.record.releaseKey].delivery='ready';
+  const snapshot=catalog(f.state,[release]);let calls=0;
+  const destinationReader=async()=>({repositoryId:'1',ownerId:'1',owner:'student',repo:'game',repositoryUrl:'https://github.com/student/game'});
+  const read=visibilityReader=>readRequestResults('123',{env,fetchImpl:fetcher(f.state,snapshot),visibilityReader,destinationReader});
+  const held=await read(async()=>{calls++;return {revision:'f'.repeat(40),observedAt:Date.now(),isHeld:id=>id==='1'};});
+  assert.equal(calls,2);assert.equal(held.results[0].status,'accepted-pending');assert.equal(held.results[0].releaseLink,undefined);assert.match(held.results[0].message,/after the jam reveal/);
+  const revealed=await read(async()=>({revision:'a'.repeat(40),observedAt:Date.now(),isHeld:()=>false}));
+  assert.equal(revealed.results[0].status,'available');assert.ok(revealed.results[0].releaseLink);
+  await assert.rejects(read(async()=>{throw Error('offline');}));
+  await assert.rejects(read(async()=>({revision:'f'.repeat(40),observedAt:Date.now(),isHeld:()=>undefined})),/visibility unavailable/i);
 });
 test('a used version has typed correction without reflecting operational messages',async()=>{
   const f=fixture();f.record.status='failed';f.record.attempts=[{kind:'source-failure',message:'operator secret',sourceDiagnostic:{code:'version-conflict'}}];
@@ -130,4 +143,96 @@ test('an accepted practice request links to its exact version in the separate pr
   f.record.releaseKey=`library/${identity.id}/${version}`;f.record.status='available';f.state.releases[f.record.releaseKey]={requestId:f.record.id,release,delivery:'ready'};
   const snapshot=catalog(f.state,[release]);const results=await readRequestResults('123',{env,fetchImpl:fetcher(f.state,snapshot)});
   assert.equal(results.results[0].releaseLink,`/hub?kind=practice&id=${identity.id}&version=${version}`);
+});
+
+
+test('request results reject rollback after the final reveal decision instead of exposing a release link',async()=>{
+  const f=fixture(),release=accept(f);f.state.releases[f.record.releaseKey].delivery='ready';
+  const snapshot=catalog(f.state,[release]);let now=1000,reads=0,rolledBack=false;
+  await assert.rejects(readRequestResults('123',{env,fetchImpl:fetcher(f.state,snapshot),decisionNow:()=>now,
+    destinationReader:async()=>({repositoryId:'1',ownerId:'1',owner:'student',repo:'game',repositoryUrl:'https://github.com/student/game'}),
+    visibilityReader:async()=>{
+      const final=++reads===2;let checks=0;
+      return {revision:'a'.repeat(40),observedAt:now,isHeld:()=>{
+        if(final&&++checks===2){now=999;rolledBack=true;}return false;
+      }};
+    }
+  }),/visibility.*unavailable/i);
+  assert.equal(rolledBack,true);
+});
+
+test('request results reject malformed decision times while inactive authority needs no wall clock',async()=>{
+  const f=fixture(),release=accept(f);f.state.releases[f.record.releaseKey].delivery='ready';
+  const snapshot=catalog(f.state,[release]);
+  const read=(visibilityReader,decisionNow=()=>1000)=>readRequestResults('123',{env,fetchImpl:fetcher(f.state,snapshot),visibilityReader,decisionNow,
+    destinationReader:async()=>assert.fail('Malformed authority reached destinations')});
+  for(const observedAt of [undefined,null,'1000',NaN,Infinity,-1,1.5,Number.MAX_SAFE_INTEGER+1])
+    await assert.rejects(read(async()=>({revision:'a'.repeat(40),observedAt,isHeld:()=>false})),/visibility.*unavailable/i);
+  const inactive=await read(async()=>null,()=>assert.fail('Inactive authority read clock'));
+  assert.equal(inactive.results[0].status,'available');
+});
+
+
+test('request HTTP serialization rejects rollback across the reader await boundary',async()=>{
+  const f=fixture(),release=accept(f);f.state.releases[f.record.releaseKey].delivery='ready';
+  const snapshot=catalog(f.state,[release]);let now=1000,samples=0,rolledBack=false;
+  const response=await requestResultsResponse('123',{env,fetchImpl:fetcher(f.state,snapshot),
+    decisionNow:()=>{
+      // Two decision reads and the projection return still see reveal time.
+      if(++samples===3)queueMicrotask(()=>{now=999;rolledBack=true;});
+      return now;
+    },
+    destinationReader:async()=>({repositoryId:'1',ownerId:'1',owner:'student',repo:'game',repositoryUrl:'https://github.com/student/game'}),
+    visibilityReader:async()=>({revision:'a'.repeat(40),observedAt:1000,isHeld:()=>false})
+  });
+  assert.equal(rolledBack,true);assert.equal(response.status,503);assert.equal(response.headers.get('cache-control'),'no-store');
+  assert.deepEqual(await response.json(),{error:'Request results are unavailable. Try again shortly, or view your official GitHub issue.'});
+});
+
+test('request HTTP wrapper retains public result shape under inactive authority',async()=>{
+  const f=fixture(),release=accept(f);f.state.releases[f.record.releaseKey].delivery='ready';
+  const snapshot=catalog(f.state,[release]);
+  const response=await requestResultsResponse('123',{env,fetchImpl:fetcher(f.state,snapshot),visibilityReader:async()=>null,
+    decisionNow:()=>assert.fail('Inactive authority sampled wall clock')});
+  assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'no-store');
+  const body=await response.json();assert.equal(body.results[0].status,'available');
+  assert.ok(body.results[0].releaseLink);assert.deepEqual(Object.keys(body).sort(),['issue','message','results']);
+  assert.doesNotMatch(JSON.stringify(body),/observedAt|isHeld|visibility/);
+});
+
+
+test('request HTTP denies inactive authority if deployment activates in its final decision microtask',async()=>{
+  const f=fixture(),release=accept(f);f.state.releases[f.record.releaseKey].delivery='ready';
+  const snapshot=catalog(f.state,[release]),runtimeEnv={...env,NODE_ENV:'test'};let reads=0,switched=false;
+  const response=await requestResultsResponse('123',{env:runtimeEnv,fetchImpl:fetcher(f.state,snapshot),
+    visibilityReader:async()=>{
+      if(++reads===2)queueMicrotask(()=>{runtimeEnv.NODE_ENV='development';switched=true;});
+      return null;
+    },destinationReader:async()=>assert.fail('Inactive observation started destination reads')
+  });
+  assert.equal(switched,true);assert.equal(response.status,503);
+  assert.deepEqual(await response.json(),{error:'Request results are unavailable. Try again shortly, or view your official GitHub issue.'});
+});
+
+test('pending request summaries need no discovery authority even in active mode',async()=>{
+  const f=fixture(),runtimeEnv={...env,NODE_ENV:'development'};
+  const response=await requestResultsResponse('123',{env:runtimeEnv,fetchImpl:fetcher(f.state),
+    visibilityReader:async()=>assert.fail('Pending summary requested visibility')});
+  assert.equal(response.status,200);assert.equal((await response.json()).results[0].status,'queued');
+});
+
+
+test('request HTTP rechecks inactive deployment after the private projection returns',async()=>{
+  const f=fixture(),release=accept(f);f.state.releases[f.record.releaseKey].delivery='ready';
+  const snapshot=catalog(f.state,[release]);let mode='test',observations=0,switched=false;
+  const runtimeEnv={...env,get NODE_ENV(){
+    // Both authority reads and the private projection return see inactivity.
+    // Activation runs before the awaiting HTTP wrapper resumes.
+    if(++observations===3)queueMicrotask(()=>{mode='development';switched=true;});
+    return mode;
+  }};
+  const response=await requestResultsResponse('123',{env:runtimeEnv,fetchImpl:fetcher(f.state,snapshot),
+    visibilityReader:async()=>null,destinationReader:async()=>assert.fail('Inactive observation started destination reads')});
+  assert.equal(switched,true);assert.equal(response.status,503);
+  assert.deepEqual(await response.json(),{error:'Request results are unavailable. Try again shortly, or view your official GitHub issue.'});
 });

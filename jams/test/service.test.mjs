@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import {createJamService,JamError} from '../service.mjs';
 import {manifestData} from '../schema.mjs';
 import {LIMITS,SAFETY_SLOT_BYTES,safetySlots,stateBudget,operationCounts,validateState} from '../schema.mjs';
-import {fixture,approved,creator,maintainer,participant,COMMIT,NEXT_COMMIT,manifest,submission} from './fixtures.mjs';
+import {fixture,approved,legacyProposal,hostedManifest,creator,maintainer,participant,COMMIT,NEXT_COMMIT,manifest,submission} from './fixtures.mjs';
 
 const status=expected=>error=>error instanceof JamError&&error.status===expected;
 const join=(revision,extra={})=>({id:'jam-101',actor:participant,operationId:'join-0001',action:'join',revision,...extra});
 test('pending proposals stay private; numeric identity and different maintainer approval are required',async()=>{
   const f=fixture({maintainerIds:[maintainer.id,creator.id]});
-  const proposal=await f.service.propose({actor:creator,operationId:'propose-0001',repositoryUrl:'https://github.com/creator/jam',commit:COMMIT});
+  const proposal=await legacyProposal(f);
   assert.deepEqual(await f.service.list(),{events:[],canMaintain:false});
   assert.equal((await f.service.list(participant)).proposals,undefined);
   const inbox=await f.service.list(maintainer);assert.equal(inbox.canMaintain,true);assert.equal(inbox.proposals[0].id,'jam-101');assert.equal(inbox.proposals[0].organizerLogin,creator.login);
@@ -22,7 +22,7 @@ test('pending proposals stay private; numeric identity and different maintainer 
 });
 test('accepted configuration remains stable through reviewed updates; old acknowledgment is rejected after approval',async()=>{
   const f=fixture(),revision=await approved(f);await f.service.mutate(join(revision));
-  const next=await f.service.propose({actor:creator,operationId:'propose-0002',repositoryUrl:'https://github.com/creator/jam',commit:NEXT_COMMIT});
+  const next=await legacyProposal(f,{operationId:'propose-0002',commit:NEXT_COMMIT,data:manifest({title:'Updated jam',rules:'Updated rules'})});
   const publicRead=await f.service.read('jam-101');assert.equal(publicRead.event.title,'Jam title');assert.equal(publicRead.event.revision,revision);assert.equal(publicRead.event.registrationOpen,true);assert.equal(publicRead.proposal,undefined);
   await assert.rejects(f.service.mutate({id:'jam-101',actor:maintainer,operationId:'approve-stale',action:'approve',revision}),status(409));
   await f.service.mutate({id:'jam-101',actor:maintainer,operationId:'approve-0002',action:'approve',revision:next.revision});
@@ -48,7 +48,7 @@ test('half-open boundaries are checked per CAS retry, and accepted retries recov
   f.setTime('2030-01-04T00:00:00Z');const calls=f.calls();assert.deepEqual(await f.service.mutate(submission(revision)),result);assert.equal(f.calls(),calls);
   await assert.rejects(f.service.mutate(submission(revision,{operationId:'submit-late1'})),status(409));
   f.setTime('2030-01-03T23:59:59Z');let once=true;
-  f.store.beforeCas=async()=>{if(once){once=false;f.store.records.get('jam-101').revision='concurrent';f.setTime('2030-01-04T00:00:00Z');}};
+  f.store.beforeCas=async()=>{if(once){once=false;f.store.bump();f.setTime('2030-01-04T00:00:00Z');}};
   await assert.rejects(f.service.mutate(submission(revision,{operationId:'submit-race1'})),status(409));
   assert.equal(f.store.records.get('jam-101').state.entries['33'].length,1);
 });
@@ -80,23 +80,15 @@ test('unknown write result never returns success; same operation recovers commit
   await assert.rejects(f.service.mutate(join(revision)),error=>error.status===503&&!error.message.includes('secret'));
   const recovered=await f.service.mutate(join(revision));assert.equal(recovered.status,'joined');assert.equal((await f.service.read('jam-101')).event.participantCount,1);
 });
-test('proposal retries recover unknown acceptance even when creator source is unavailable',async()=>{
-  let unavailable=false;
-  const f=fixture({source:input=>{if(unavailable)throw Error('repository unavailable');return {repository:{id:'101',ownerId:creator.id,fullName:'creator/jam',commit:input.commit},manifest:manifest()};}});
-  const input={actor:creator,operationId:'propose-lost',repositoryUrl:'https://github.com/creator/jam',commit:COMMIT};
-  let once=true;f.store.afterCas=()=>{if(once){once=false;throw Error('lost response');}};
-  await assert.rejects(f.service.propose(input),status(503));unavailable=true;
-  const result=await f.service.propose(input);assert.equal(result.status,'submitted');assert.equal(f.calls(),1);
-  await assert.rejects(f.service.propose({...input,commit:NEXT_COMMIT}),status(409));
-});
-test('forged source owners, repository transfer, invalid schedules and unsupported fields fail',async()=>{
-  const f=fixture({source:input=>({repository:{id:'101',ownerId:'99',fullName:'creator/jam',commit:input.commit},manifest:manifest()})});
-  await assert.rejects(f.service.propose({actor:creator,operationId:'propose-0001',repositoryUrl:'https://github.com/creator/jam',commit:COMMIT}),status(403));
+test('creator-hosted intake is blocked before source access; invalid schedules and authority fields fail',async()=>{
+  const f=fixture();
+  await assert.rejects(f.service.propose({actor:creator,operationId:'propose-0001',repositoryUrl:'https://github.com/creator/jam',commit:COMMIT}),status(400));
+  assert.equal(f.calls(),0);assert.equal(f.store.records.size,0);
   assert.throws(()=>manifestData(manifest({websiteUrl:'https://127.0.0.1/private'})),status(400));
   assert.throws(()=>manifestData(manifest({schedule:{...manifest().schedule,startsAt:'2030-02-30T00:00:00Z'}})),status(400));
-  const g=fixture(),revision=await approved(g);
-  await assert.rejects(g.service.mutate({...join(revision),approvedBy:maintainer.id}),status(400));
-  await assert.rejects(g.service.mutate({...join(revision),actor:{...participant,role:'maintainer'}}),status(400));
+  const revision=await approved(f);
+  await assert.rejects(f.service.mutate({...join(revision),approvedBy:maintainer.id}),status(400));
+  await assert.rejects(f.service.mutate({...join(revision),actor:{...participant,role:'maintainer'}}),status(400));
 });
 test('durable per-actor rate limit and strict per-event capacities preserve retry recovery',async()=>{
   const f=fixture({limits:{actorWrites:2,participants:1}}),revision=await approved(f);
@@ -104,17 +96,17 @@ test('durable per-actor rate limit and strict per-event capacities preserve retr
   await assert.rejects(f.service.mutate(join(revision,{operationId:'rejoin-0001'})),status(429));
   assert.equal((await f.service.mutate(join(revision))).status,'joined');
   f.setTime('2030-01-02T12:01:00Z');await f.service.mutate(join(revision,{operationId:'rejoin-0001'}));
-  await assert.rejects(f.service.mutate(join(revision,{actor:{id:'44',login:'other'},operationId:'other-0001'})),status(429));
+  await assert.rejects(f.service.mutate(join(revision,{actor:{id:'44',login:'other'},operationId:'other-0001'})),e=>e.status===429&&e.message.includes('capacity of 1 participants'));
+  assert.equal((await f.service.list()).events[0].participantLimit,1);
   const capped=fixture({limits:{operations:2}});const accepted=await approved(capped);
   await assert.rejects(capped.service.mutate(join(accepted)),status(429));
 });
-test('numeric ownership survives account rename; repository transfer does not grant organizer authority',async()=>{
+test('archived records remain readable through account rename without allowing new creator-hosted proposals',async()=>{
   const f=fixture();await approved(f);
   const renamed={id:creator.id,login:'renamed'};
-  const renamedService=createJamService({store:f.store,maintainerIds:[maintainer.id],now:()=>Date.parse('2030-01-02T00:00:00Z'),verifySource:async input=>({repository:{id:'101',ownerId:input.actor.id,fullName:`${input.actor.login}/jam`,commit:input.commit},manifest:manifest()})});
-  const proposed=await renamedService.propose({actor:renamed,operationId:'rename-0001',repositoryUrl:'https://github.com/renamed/jam',commit:NEXT_COMMIT});assert.equal(proposed.status,'submitted');
-  assert.equal((await renamedService.read('jam-101',renamed)).proposal.repository.fullName,'renamed/jam');
-  await assert.rejects(renamedService.propose({actor:{id:'77',login:'buyer'},operationId:'transfer-001',repositoryUrl:'https://github.com/buyer/jam',commit:NEXT_COMMIT}),status(403));
+  assert.equal((await f.service.read('jam-101',renamed)).proposal.repository.fullName,'creator/jam');
+  await assert.rejects(f.service.propose({actor:renamed,operationId:'rename-0001',repositoryUrl:'https://github.com/renamed/jam',commit:NEXT_COMMIT}),status(400));
+  assert.equal((await f.service.list()).events[0].id,'jam-101');
 });
 test('only a maintainer can withdraw an entry after deadline and cancellation, retaining the original revision',async()=>{
   const f=fixture(),revision=await approved(f);await f.service.mutate(join(revision));const submitted=await f.service.mutate(submission(revision));
@@ -145,10 +137,9 @@ test('submission history reserves a final slot for maintainer removal',async()=>
   await f.service.mutate({id:'jam-101',actor:maintainer,operationId:'remove-0001',action:'withdraw-entry',participantId:participant.id,reason:'Removal.'});
   assert.equal(f.store.records.get('jam-101').state.entries[participant.id].length,2);
 });
-test('global event cap is checked for each new event but is not an atomic cross-event quota',async()=>{
+test('global event cap is checked for hosted events but is not an atomic cross-event quota',async()=>{
   const f=fixture({limits:{events:1}});await approved(f);
-  const service=createJamService({store:f.store,maintainerIds:['22'],now:()=>Date.parse('2030-01-02T00:00:00Z'),limits:{events:1},verifySource:async input=>({repository:{id:'303',ownerId:input.actor.id,fullName:'creator/second',commit:COMMIT},manifest:manifest()})});
-  await assert.rejects(service.propose({actor:creator,operationId:'propose-next',repositoryUrl:'https://github.com/creator/second',commit:COMMIT}),status(429));
+  await assert.rejects(f.service.propose({actor:creator,operationId:'propose-next',manifest:hostedManifest()}),status(429));
 });
 test('ordinary operation exhaustion preserves durable safety suspend, cancel and removal with retry recovery',async()=>{
   const f=fixture({limits:{operations:4,actorWrites:2}}),revision=await approved(f);await f.service.mutate(join(revision));await f.service.mutate(submission(revision));
@@ -188,10 +179,10 @@ test('safety reserve exhaustion is explicit, idempotent retries recover, and inv
 test('approved-only history exposes prior and current rules/dates without disclosing pending proposals or changing acknowledgment',async()=>{
   const f=fixture(),revisionA=await approved(f);await f.service.mutate(join(revisionA));
   const service=createJamService({store:f.store,maintainerIds:[maintainer.id],now:()=>Date.parse('2030-01-02T12:00:00Z'),verifySource:async input=>({repository:{id:'101',ownerId:creator.id,fullName:'creator/jam',commit:input.commit},manifest:manifest({rules:'Changed public rules',schedule:{...manifest().schedule,submissionsCloseAt:'2030-01-05T00:00:00Z'}})})});
-  const revisionB=await service.propose({actor:creator,operationId:'history-propB',repositoryUrl:'https://github.com/creator/jam',commit:NEXT_COMMIT});
+  const revisionB=await legacyProposal(f,{operationId:'history-propB',commit:NEXT_COMMIT,data:manifest({rules:'Changed public rules',schedule:{...manifest().schedule,submissionsCloseAt:'2030-01-05T00:00:00Z'}})});
   assert.equal((await service.read('jam-101')).event.approvalHistory.length,1);
   await service.mutate({id:'jam-101',actor:maintainer,operationId:'history-approveB',action:'approve',revision:revisionB.revision});
-  await service.propose({actor:creator,operationId:'history-pending',repositoryUrl:'https://github.com/creator/jam',commit:'c'.repeat(40)});
+  await legacyProposal(f,{operationId:'history-pending',commit:'c'.repeat(40)});
   const read=await service.read('jam-101',participant),history=read.event.approvalHistory;
   assert.equal(read.registration.revision,revisionA);assert.equal(history.length,2);assert.equal(history[0].manifest.rules,'Make your own work.');assert.equal(history[1].manifest.rules,'Changed public rules');assert.equal(history[1].manifest.schedule.submissionsCloseAt,'2030-01-05T00:00:00.000Z');assert.equal(read.proposal,undefined);assert.equal(history[1].revision,revisionB.revision);
 });

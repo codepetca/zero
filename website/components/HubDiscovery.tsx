@@ -1,11 +1,8 @@
 'use client';
 import Link from 'next/link';
-import {useEffect, useState, type ReactNode} from 'react';
+import {useEffect, useRef, useState, type ReactNode} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {dependencySnippet, maintainedPlayLink, playLink, projectSummary, releaseAuthor, releaseImage, releaseSummary, selectMaintainedProjects, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
-import maintainedProjects from '@/content/projects.json';
-import projectPreviews from '@/content/project-previews.json';
-import releaseAuthors from '@/content/release-authors.json';
 import styles from '@/app/hub/hub.module.css';
 import {HubNavigation} from './HubNavigation';
 import {CodeBlock} from './CodeBlock';
@@ -16,51 +13,164 @@ import {HubProjectInfo} from './HubProjectInfo';
 import {HubProjectFeedback, HubProjectDetails, type ProjectFeedback} from './HubProjectFeedback';
 type Artifact = {url:string; size:number; sha256:string};
 type Component = {className:string; description:string; usage:string; api:string[]};
-type Release = {slug:string; kind:'library'|'game'; id:string; version:string; title:string; description:string; license:string; status:string; libraryKind?:string; namespace?:string; controls?:string; web?:{provider:'github-pages';url:string;commit:string;runId:number}; components?:Component[]; contributor:{login:string; githubId:string}; repository:{url:string}; source:{commit:string; folder:string; sha256:string}; coordinate?:{groupId:string;artifactId:string;version:string}; artifacts:{zip?:Artifact;jar?:Artifact;sources?:Artifact;pom?:Artifact;preview?:Artifact}};
+type Release = {slug:string; kind:'library'|'game'; id:string; version:string; title:string; description:string; license:string; status:string; libraryKind?:string; namespace?:string; controls?:string; web?:{provider:'github-pages';url:string;commit:string;runId:number}; components?:Component[]; contributor:{login:string; githubId:string}; repository:{id?:string;ownerId?:string;url:string}; source:{commit:string; folder:string; sha256:string}; coordinate?:{groupId:string;artifactId:string;version:string}; artifacts:{zip?:Artifact;jar?:Artifact;sources?:Artifact;pom?:Artifact;preview?:Artifact}};
 type Catalog = {schema:number;revision:string;releases:Release[]};
-export function HubDiscovery() {
+type MaintainedProject = {id:string;title:string;description:string;author:string;repositoryId?:string;ownerId?:string;repositoryUrl:string;sourceCommit:string;image?:string;web?:{provider:'github-pages';url:string;commit:string;runId:number}};
+type Presentation = {id:string;sourceCommit:string;image?:string;description?:string;author?:string};
+type GalleryAllowance = {maintained:string[];releases:string[]};
+const numericIdentity=(value:unknown)=>typeof value==='string'&&/^[1-9][0-9]{0,19}$/.test(value);
+const sourceIdentity=(value:unknown)=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
+const webIdentity=(web:MaintainedProject['web'])=>web===undefined?null:[web.provider,web.url,web.commit,web.runId];
+function maintainedIdentity(project:MaintainedProject) {
+  if(!project||typeof project.id!=='string'||!numericIdentity(project.repositoryId)||!numericIdentity(project.ownerId)||
+      typeof project.repositoryUrl!=='string'||!sourceIdentity(project.sourceCommit))return null;
+  return JSON.stringify([project.id,project.repositoryId,project.ownerId,project.repositoryUrl,project.sourceCommit,webIdentity(project.web)]);
+}
+function gameIdentity(release:Release) {
+  if(!release||!['game','library'].includes(release.kind)||typeof release.id!=='string'||typeof release.version!=='string'||
+      !['available','withdrawn'].includes(release.status)||!numericIdentity(release.repository?.id)||!numericIdentity(release.repository?.ownerId)||
+      typeof release.repository?.url!=='string'||!sourceIdentity(release.source?.commit))return null;
+  return JSON.stringify([release.id,release.kind,release.version,release.status,release.repository.id,release.repository.ownerId,release.repository.url,
+    release.source.commit,release.source.folder,webIdentity(release.web)]);
+}
+type Discovery = {schema:1;maintained:MaintainedProject[];catalog:Catalog|null;catalogError?:string;presentation:Presentation[]};
+export function HubDiscovery({enforceJamVisibility=true}: {enforceJamVisibility?:boolean}) {
   const query = useSearchParams();
   const requestedKind = query.get('kind') || (query.has('id') || query.has('version') ? 'library' : 'game');
   const kind = requestedKind === 'practice' ? 'practice' : requestedKind === 'game' ? 'game' : 'library';
   const practiceOnly=kind==='practice';
   const label=practiceOnly?'tutorial practice libraries':kind==='game'?'projects':'libraries';
   const id = query.get('id') || '', version = query.get('version') || '';
-  const [catalog, setCatalog] = useState<Catalog|null>(null);
-  const [error, setError] = useState('');
+  const [catalogResult, setCatalogResult] = useState<{key:string; discovery:Discovery|null; error:string}|null>(null);
   const [search, setSearch] = useState('');
-  const [feedback, setFeedback] = useState<Record<string,ProjectFeedback>>({});
+  const [feedbackResult, setFeedbackResult] = useState<{key:string; items:Record<string,ProjectFeedback>; failed:boolean; gallery?:GalleryAllowance}|null>(null);
   type Metric = {id:string;kind:string;opens?:number|null;projects?:number|null;observedProjects?:number|null;totalProjects?:number|null};
   const [metrics, setMetrics] = useState<Record<string,Metric>>({});
   const [retry, setRetry] = useState(0);
-  const projects = selectMaintainedProjects(maintainedProjects, {kind, search, id, version}) as typeof maintainedProjects;
+  const catalogQuery = JSON.stringify(enforceJamVisibility?[requestedKind,search,id,version,retry]:[practiceOnly,retry]);
+  const catalogGeneration = useRef({query:catalogQuery,value:0,search,retry,delay:0});
+  if(catalogGeneration.current.query!==catalogQuery) catalogGeneration.current={query:catalogQuery,value:catalogGeneration.current.value+1,search,retry,delay:catalogGeneration.current.search!==search&&catalogGeneration.current.retry===retry?300:0};
+  const searchDelay = catalogGeneration.current.delay;
+  const catalogKey = `${catalogGeneration.current.value}:${catalogQuery}`;
+  const discovery = catalogResult?.key===catalogKey ? catalogResult.discovery : null;
+  const catalog = discovery?.catalog || null;
+  const error = catalogResult?.key===catalogKey ? catalogResult.error || (discovery && !catalog ? 'The shared catalog is unavailable. Try again shortly.' : '') : '';
+  const projectPreviews = discovery?.presentation || [];
+  const releaseAuthors = projectPreviews.filter(item=>item.author).map(item=>({id:item.id,sourceCommits:[item.sourceCommit],author:item.author as string}));
+  const revalidating = useRef({running:false, left:false});
+  const projects = selectMaintainedProjects(discovery?.maintained || [], {kind, search, id, version}) as MaintainedProject[];
   useEffect(() => {
     const controller = new AbortController(); let active = true;
-    const timer = setTimeout(() => controller.abort(), 10000);
-    setCatalog(null); setError('');
-    void fetch(practiceOnly?'/api/sharing/catalog/practice':'/api/sharing/catalog/web', {cache:'no-store', redirect:'error', signal:controller.signal}).then(async response => {
-      if (!response.ok) throw new Error('The shared catalog is unavailable. Try again shortly.');
-      const data = await response.json();
-      if (active) setCatalog(data);
-    }).catch(() => {if (active) setError('The shared catalog is unavailable. Try again shortly.');}).finally(() => clearTimeout(timer));
-    return () => {active = false; clearTimeout(timer); controller.abort();};
-  }, [retry, practiceOnly]);
+    let timeout:ReturnType<typeof setTimeout>|undefined;
+    const load=()=>{
+      timeout=setTimeout(() => controller.abort(), 22000);
+      void fetch(practiceOnly?'/api/hub/discovery?practice=1':'/api/hub/discovery', {cache:'no-store', redirect:'error', signal:controller.signal}).then(async response => {
+        if (!response.ok) throw new Error('The shared catalog is unavailable. Try again shortly.');
+        const data = await response.json();
+        if (data?.schema!==1 || !Array.isArray(data.maintained) || !Array.isArray(data.presentation) || !(data.catalog===null || (data.catalog && Array.isArray(data.catalog.releases)))) throw new Error('Invalid discovery response');
+        if (active) setCatalogResult({key:catalogKey,discovery:data,error:''});
+      }).catch(() => {if (active) setCatalogResult({key:catalogKey,discovery:null,error:'The shared catalog is unavailable. Try again shortly.'});}).finally(() => clearTimeout(timeout));
+    };
+    const debounce=searchDelay?setTimeout(load,searchDelay):undefined;
+    if(!searchDelay)load();
+    return () => {active = false; clearTimeout(debounce); clearTimeout(timeout); controller.abort();};
+  }, [retry, practiceOnly, catalogKey, searchDelay]);
   let releases:Release[] = [], selectionError = '';
   if (catalog) try {
     if (!['game','library','practice'].includes(requestedKind)) throw new Error('Choose projects, libraries or tutorial practice.');
     releases = selectReleases(catalog, {kind, search, id, version, attributions:releaseAuthors}) as Release[];
   } catch (failure) {selectionError = failure instanceof Error ? failure.message : 'This release link is invalid.';}
-  const feedbackIds = [...projects.map(project=>project.id),...releases.filter(release=>release.status==='available').map(release=>release.id)].slice(0,12).join(',');
-  const metricIds = [...projects.map(project=>project.id),...releases.filter(release=>release.status==='available').map(release=>release.id)].join(',');
+  const feedbackIds = [...new Set([...projects.map(project=>project.id),...releases.filter(release=>release.status==='available').map(release=>release.id)])].join(',');
+  const requiresGalleryCheck=enforceJamVisibility&&(projects.length>0||releases.length>0);
+  const gallerySelection=requiresGalleryCheck?JSON.stringify([projects.map(maintainedIdentity),releases.map(gameIdentity)]):'';
+  const feedbackQuery = JSON.stringify([requestedKind, search, id, version, feedbackIds, gallerySelection, retry]);
+  const feedbackGeneration = useRef({query:feedbackQuery, value:0,search,retry,delay:0});
+  if(feedbackGeneration.current.query!==feedbackQuery) feedbackGeneration.current={query:feedbackQuery,value:feedbackGeneration.current.value+1,search,retry,delay:feedbackGeneration.current.search!==search&&feedbackGeneration.current.retry===retry?300:0};
+  const feedbackDelay = feedbackGeneration.current.delay;
+  const feedbackKey = `${feedbackGeneration.current.value}:${feedbackQuery}`;
+  const feedback = feedbackResult?.key===feedbackKey ? feedbackResult.items : {};
+  // Both source lanes share one final authority observation before rendering.
+  const allowance=feedbackResult?.key===feedbackKey?feedbackResult.gallery:undefined;
+  const visibleProjects = kind==='game' && enforceJamVisibility ? projects.filter(project=>{
+    const identity=maintainedIdentity(project);
+    return identity!==null&&allowance?.maintained.includes(identity)&&feedback[project.id]?.repositoryUrl===project.repositoryUrl;
+  }) : projects;
+  const visibleReleases = enforceJamVisibility ? releases.filter(release=>{
+    const identity=gameIdentity(release);return identity!==null&&allowance?.releases.includes(identity);
+  }) : releases;
+  const visibilityPending = requiresGalleryCheck && feedbackResult?.key!==feedbackKey;
+  const visibilityFailed = requiresGalleryCheck && feedbackResult?.key===feedbackKey && feedbackResult.failed;
+  const metricIds = [...visibleProjects.map(project=>project.id),...visibleReleases.filter(release=>release.status==='available').map(release=>release.id)].join(',');
   useEffect(()=>{
-    const controller=new AbortController();let active=true;setFeedback({});
-    if(!practiceOnly&&feedbackIds)void fetch(`/api/hub/projects?${new URLSearchParams({kind,ids:feedbackIds})}`,{cache:'no-store',redirect:'error',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(20000)])}).then(async response=>{
-      if(!response.ok)return;const data=await response.json();
-      if(!active||data.schema!==1||!Array.isArray(data.items))return;
-      const ids=new Set(feedbackIds.split(','));
-      setFeedback(Object.fromEntries(data.items.filter((item:ProjectFeedback)=>item&&ids.has(item.id)&&item.kind===kind&&typeof item.repositoryUrl==='string'&&(item.stars===null||Number.isSafeInteger(item.stars)&&item.stars>=0)&&(item.issuesEnabled===null||typeof item.issuesEnabled==='boolean')&&item.site&&['reachable','unreachable','unknown','not-checked'].includes(item.site.status)&&(!item.site.checkedAt||Number.isFinite(Date.parse(item.site.checkedAt)))).map((item:ProjectFeedback)=>[item.id,item])));
-    }).catch(()=>{/* Counts and checks are optional; browsing and reporting remain available. */});
-    return()=>{active=false;controller.abort();};
-  },[kind,feedbackIds,practiceOnly]);
+    const leave=()=>{if(revalidating.current.running)revalidating.current.left=true;};
+    const refresh=()=>{
+      if(document.visibilityState==='hidden'){leave();return;}
+      if(revalidating.current.running){
+        if(revalidating.current.left){revalidating.current.left=false;setRetry(value=>value+1);}
+        return;
+      }
+      revalidating.current={running:true,left:false};
+      setRetry(value=>value+1);
+    };
+    window.addEventListener('focus',refresh);
+    window.addEventListener('blur',leave);
+    document.addEventListener('visibilitychange',refresh);
+    return()=>{window.removeEventListener('focus',refresh);window.removeEventListener('blur',leave);document.removeEventListener('visibilitychange',refresh);};
+  },[]);
+  useEffect(()=>{
+    if(catalogResult?.key!==catalogKey || ((feedbackIds&&!practiceOnly||requiresGalleryCheck) && feedbackResult?.key!==feedbackKey))return;
+    revalidating.current={running:false,left:false};
+  },[catalogResult,catalogKey,feedbackIds,feedbackResult,feedbackKey,practiceOnly,requiresGalleryCheck]);
+  useEffect(()=>{
+    const controller=new AbortController();let active=true;
+    const load=()=>{
+    if(!practiceOnly&&feedbackIds||requiresGalleryCheck) {
+      const ids=!practiceOnly&&feedbackIds?feedbackIds.split(','):[];
+      const batches=Array.from({length:Math.ceil(ids.length/12)},(_,index)=>ids.slice(index*12,index*12+12));
+      void Promise.all(batches.map(async batch=>{
+        const response=await fetch(`/api/hub/projects?${new URLSearchParams({kind,ids:batch.join(',')})}`,{cache:'no-store',redirect:'error',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(22000)])});
+        if(!response.ok)throw new Error('Status unavailable');
+        const data=await response.json();
+        if(data.schema!==1||!Array.isArray(data.items))throw new Error('Invalid status');
+        const requested=new Set(batch);
+        return data.items.filter((item:ProjectFeedback)=>item&&requested.has(item.id)&&item.kind===kind&&typeof item.repositoryUrl==='string'&&(item.stars===null||Number.isSafeInteger(item.stars)&&item.stars>=0)&&(item.issuesEnabled===null||typeof item.issuesEnabled==='boolean')&&item.site&&['reachable','unreachable','unknown','not-checked'].includes(item.site.status)&&(!item.site.checkedAt||Number.isFinite(Date.parse(item.site.checkedAt))));
+      })).then(async batches=>{
+        const items:Record<string,ProjectFeedback>=Object.fromEntries(batches.flat().map((item:ProjectFeedback)=>[item.id,item]));
+        let gallery:GalleryAllowance|undefined, galleryUnavailable=false;
+        if(requiresGalleryCheck) {
+          // Status responses are batch-local snapshots. Re-read both trusted
+          // source lanes and their final global authority after all batches.
+          const response=await fetch(practiceOnly?'/api/hub/discovery?revalidate=1&practice=1':'/api/hub/discovery?revalidate=1',{cache:'no-store',redirect:'error',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(22000)])});
+          if(!response.ok)throw new Error('Project availability unavailable');
+          const data=await response.json();
+          if(data?.schema!==1||!Array.isArray(data.maintained)||!Array.isArray(data.presentation)||
+              !(data.catalog===null||data.catalog&&Array.isArray(data.catalog.releases)))throw new Error('Invalid project availability');
+          const maintained=new Set<string>(),games=new Set<string>(),seenMaintained=new Set<string>(),seenGames=new Set<string>();
+          for(const candidate of data.maintained) {
+            const identity=maintainedIdentity(candidate);
+            if(identity===null||seenMaintained.has(candidate.id))throw new Error('Invalid project identity');
+            seenMaintained.add(candidate.id);maintained.add(identity);
+          }
+          for(const candidate of data.catalog?.releases||[]) {
+            if(!['game','library'].includes(candidate?.kind))continue;
+            const identity=gameIdentity(candidate),key=JSON.stringify([candidate.id,candidate.version]);
+            if(identity===null||seenGames.has(key))throw new Error('Invalid release identity');
+            seenGames.add(key);games.add(identity);
+          }
+          gallery={maintained:projects.map(maintainedIdentity).filter((identity):identity is string=>identity!==null&&maintained.has(identity)),
+            releases:releases.map(gameIdentity).filter((identity):identity is string=>identity!==null&&games.has(identity))};
+          // A failed shared source cannot prove an empty gallery. Keep the
+          // independently verified maintained lane and offer a whole-view retry.
+          galleryUnavailable=data.catalog===null&&releases.length>0;
+        }
+        if(active)setFeedbackResult({key:feedbackKey,items,failed:galleryUnavailable,gallery});
+      }).catch(()=>{if(active)setFeedbackResult({key:feedbackKey,items:{},failed:true});});
+    }
+    };
+    const debounce=feedbackDelay?setTimeout(load,feedbackDelay):undefined;
+    if(!feedbackDelay)load();
+    return()=>{active=false;clearTimeout(debounce);controller.abort();};
+  },[kind,feedbackIds,feedbackKey,practiceOnly,retry,feedbackDelay,enforceJamVisibility,requiresGalleryCheck]);
   useEffect(()=>{
     const controller=new AbortController(), requested=new Set<string>();setMetrics({});
     if(practiceOnly)return()=>controller.abort();
@@ -104,13 +214,16 @@ export function HubDiscovery() {
     </aside>
     <section className={styles.catalog} aria-labelledby="sharing-heading">
     <h2 id="sharing-heading" className="sr-only">{practiceOnly?'Tutorial practice':kind === 'game' ? 'Projects' : 'Libraries'}</h2>
+    {practiceOnly && <p className="hub-note">These CreditsBadge libraries are copied tutorial work. Similar copies are expected; each repository keeps its own library identity. Listings may be withdrawn during periodic cleanup. Cleanup removes listings; your source and already added copies are not deleted.</p>}
     {(id || version) && <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {label}</Link></p>}
     <div className={`${styles.cards}${kind==='game'?` ${styles.projectCards}`:''}`}>
-    {projects.map(project => <HubProjectCard projectId={project.id} key={project.id} title={project.title} description={projectSummary(project.description)} author={project.author}
+    {visibleProjects.map(project => <HubProjectCard projectId={project.id} key={project.id} title={project.title} description={projectSummary(project.description)} author={project.author}
       compact siteReachable={feedback[project.id]?.repositoryUrl===project.repositoryUrl && feedback[project.id]?.site.status==='reachable'} image={project.image} playHref={maintainedPlayLink(project)} repositoryHref={project.repositoryUrl} feedback={projectFeedback({id:project.id,title:project.title,repositoryHref:project.repositoryUrl,playHref:maintainedPlayLink(project),sourceCommit:project.sourceCommit})} />)}
+    {visibilityPending && <p role="status">Checking project availability…</p>}
+    {visibilityFailed && <div role="status"><p>Project availability is unavailable. Try again shortly.</p><button className={styles.retry} onClick={()=>{setFeedbackResult(null);setRetry(value=>value+1);}}>Try again</button></div>}
     {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={()=>setRetry(value=>value+1)}>Try again</button></div> : !catalog ? <p role="status">Loading {label}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
-      {!releases.length && !projects.length && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${label} match this search.` : `No ${label} are available yet.`}</p>}
-      {releases.map(release=><HubProjectCard projectId={!practiceOnly&&release.status==='available'?release.id:undefined} key={`${release.id}/${release.version}`} title={release.title} description={releaseSummary(release, projectPreviews)} author={releaseAuthor(release, releaseAuthors)}
+      {!visibleReleases.length && !visibleProjects.length && !visibilityPending && !visibilityFailed && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${label} match this search.` : `No ${label} are available yet.`}</p>}
+      {visibleReleases.map(release=><HubProjectCard projectId={!practiceOnly&&release.status==='available'?release.id:undefined} key={`${release.id}/${release.version}`} title={release.title} description={releaseSummary(release, projectPreviews)} author={releaseAuthor(release, releaseAuthors)}
         compact={release.kind==='game'} siteReachable={feedback[release.id]?.repositoryUrl===release.repository.url && feedback[release.id]?.site.status==='reachable'} version={release.version} repositoryHref={release.repository.url} image={releaseImage(release, projectPreviews)} playHref={playLink(release)} feedback={!practiceOnly&&release.status==='available'?projectFeedback({id:release.id,title:release.title,repositoryHref:release.repository.url,playHref:playLink(release),sourceCommit:release.source.commit,version:release.version}):undefined}>
         {release.status !== 'available' ? <p role="status">This release has been withdrawn.</p> : release.kind === 'library' ? <details><summary>Use this library</summary>
           <p>In the updated Zero editor, choose Libraries and games → {practiceOnly?'Browse tutorial practice':'Browse ZeroHub'} → {release.title} → Add library → Apply. Check the author and exact version before applying.</p>

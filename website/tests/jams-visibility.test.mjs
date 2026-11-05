@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 import vm from 'node:vm';
 import ts from 'typescript';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {jamsPreviewAvailable,hiddenJamsResponse} from '../lib/jams-visibility.mjs';
+import {jamsPreviewAvailable,jamsNavigationAvailable,hiddenJamsResponse} from '../lib/jams-visibility.mjs';
 
 const require=createRequire(import.meta.url);
 const compile=source=>ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,
@@ -60,11 +60,17 @@ test('one server layout hides discovery, preparation, details and participation;
 test('ZeroHub navigation has no production jam link and preserves existing catalog links',async()=>{
   const source=await readFile(new URL('../components/HubNavigation.tsx',import.meta.url),'utf8');
   for(const visible of [false,true]) {
-    const component=load(source,{'@/lib/jams-visibility.mjs':{jamsPreviewAvailable:()=>visible},
+    const component=load(source,{'@/lib/jams-visibility.mjs':{jamsNavigationAvailable:()=>visible},
       'next/link':{default:({href,children,...props})=>require('react').createElement('a',{href,...props},children)},
       '@/app/hub/hub.module.css':{default:{}}});
     const html=renderToStaticMarkup(component.HubNavigation({active:'game'}));
     assert.equal(html.includes('href="/hub/jams"'),visible);
     assert.match(html,/href="\/hub\?kind=game"/);assert.match(html,/href="\/hub\?kind=library"/);
   }
+});
+
+test('production pilot requires its explicit flag and is not promoted',()=>{
+  const env={NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'1'};
+  assert.equal(jamsPreviewAvailable(env),true);assert.equal(hiddenJamsResponse(env),null);assert.equal(jamsNavigationAvailable(env),false);
+  for(const change of [{ZERO_JAMS_PILOT_ENABLED:'0'},{VERCEL_ENV:'preview'},{VERCEL:undefined},{NODE_ENV:'test'}])assert.equal(jamsPreviewAvailable({...env,...change}),false);
 });

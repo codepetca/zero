@@ -3,6 +3,43 @@ import contracts from '../../extension/src/sharing/contracts.js';
 import sourceDiagnostics from '../../extension/src/sharing/source-diagnostics.js';
 import {releaseLink} from './sharing-client.mjs';
 import {CATALOG_TIMEOUT_MS, readPublicRegistry, readRegistryCatalog} from './sharing-catalog.mjs';
+import {readJamHubVisibility, assertJamVisibilityTime} from './jam-hub-visibility.mjs';
+import {readJamDestinationBinding} from './jam-destination-binding.mjs';
+import {createHubRequestDeadline} from './hub-request-deadline.mjs';
+
+const visibilityUnavailable = () => new Error('Project visibility unavailable.');
+const destinationUnavailable = () => new Error('Project destination is unavailable.');
+const repositoryId = value => typeof value === 'string' && /^[1-9][0-9]{0,19}$/.test(value);
+async function requestVisibility(deadline, visibilityReader, env, decisionNow) {
+  return deadline.run(async signal => {
+    try {
+      const visibility = await visibilityReader({env, signal});
+      if (visibility !== null && (!visibility || typeof visibility.revision !== 'string' ||
+          !/^[a-f0-9]{40}$/.test(visibility.revision) || typeof visibility.isHeld !== 'function')) throw visibilityUnavailable();
+      assertJamVisibilityTime(visibility, decisionNow, env);
+      return visibility;
+    } catch {throw visibilityUnavailable();}
+  });
+}
+function heldBy(visibility, id) {
+  try {
+    const held = visibility.isHeld(id);
+    if (typeof held !== 'boolean') throw visibilityUnavailable();
+    return held;
+  } catch {throw visibilityUnavailable();}
+}
+async function requestDestination(deadline, destinationReader, url) {
+  return deadline.run(async signal => {
+    try {
+      const binding = await destinationReader(url, {signal});
+      if (!binding || !repositoryId(binding.repositoryId) || !repositoryId(binding.ownerId) ||
+          typeof binding.owner !== 'string' || typeof binding.repo !== 'string' ||
+          binding.repositoryUrl !== `https://github.com/${binding.owner}/${binding.repo}` ||
+          binding.repositoryUrl.toLowerCase() !== url.toLowerCase()) throw destinationUnavailable();
+      return binding;
+    } catch {throw destinationUnavailable();}
+  });
+}
 
 export function parseIssue(value) {
   if (typeof value !== 'string' || value.length > 150) throw new Error('Enter an official GitHub issue URL or a positive issue number.');
@@ -59,18 +96,19 @@ function summary(record, state, artifactOrigin) {
   return {requestId:record.id,status,kind:frozen.kind,version:frozen.version,commit:frozen.commit,message:messages[status],...(correction && !record.releaseKey ? {correction} : {})};
 }
 /** Only ledger-bound summaries leave this module; never operational attempts or frozen source metadata.
+ * Active Jam release links require a current source identity and a fresh authority
+ * decision after lookups. Neither decision nor destination is cached. This is a
+ * fresh observation, not an atomic guarantee against later provider changes.
+ * No Pages receipt leaves this summary, and source identity does not prove one.
  * @param {string} issue
- * @param {{env?: Record<string,string|undefined>, fetchImpl?: typeof fetch, signal?: AbortSignal, timeoutMs?: number}} [options]
+ * @param {{env?: Record<string,string|undefined>, fetchImpl?: typeof fetch, signal?: AbortSignal, timeoutMs?: number, visibilityReader?: typeof readJamHubVisibility, destinationReader?: typeof readJamDestinationBinding, decisionNow?: () => number}} [options]
  */
-export async function readRequestResults(issue, {env = process.env, fetchImpl = fetch, signal, timeoutMs = CATALOG_TIMEOUT_MS} = {}) {
+async function requestResultsProjection(issue, {env = process.env, fetchImpl = fetch, signal, timeoutMs = CATALOG_TIMEOUT_MS,
+  visibilityReader=readJamHubVisibility, destinationReader=readJamDestinationBinding, decisionNow=Date.now} = {}) {
   const number = parseIssue(issue);
-  const controller = new AbortController();
-  const abort = () => controller.abort();
-  signal?.addEventListener('abort', abort, {once:true});
-  if (signal?.aborted) abort();
-  const timer = setTimeout(abort, timeoutMs);
+  const deadline = createHubRequestDeadline({budgetMs:timeoutMs, signal});
   try {
-    const state = await readPublicRegistry({fetchImpl,signal:controller.signal});
+    const state = await deadline.run(signal => readPublicRegistry({fetchImpl,signal}));
     const related = [];
     for (const [id,record] of Object.entries(state.requests)) {
       if (!record || !Array.isArray(record.issueIds)) throw new Error('Invalid issue binding.');
@@ -80,9 +118,11 @@ export async function readRequestResults(issue, {env = process.env, fetchImpl = 
       if (related.length > 32) throw new Error('Too many related records.');
     }
     const results = related.map(record=>summary(record,state,env.ZERO_SHARING_ARTIFACT_ORIGIN));
+    let finalVisibility;
     if (results.some(result=>result.status==='accepted-pending')) {
       // Snapshot availability is necessary before linking a release. A stale catalog stays pending.
-      const catalog = state.catalog ? await readRegistryCatalog(state,{artifactOrigin:env.ZERO_SHARING_ARTIFACT_ORIGIN,fetchImpl,signal:controller.signal}) : null;
+      const catalog = state.catalog ? await deadline.run(signal => readRegistryCatalog(state,{artifactOrigin:env.ZERO_SHARING_ARTIFACT_ORIGIN,fetchImpl,signal})) : null;
+      const candidates = [];
       for (let index=0; index<results.length; index++) {
         if (results[index].status !== 'accepted-pending') continue;
         const record = related[index], accepted = state.releases[record.releaseKey];
@@ -92,10 +132,59 @@ export async function readRequestResults(issue, {env = process.env, fetchImpl = 
         const event = [...state.availability].reverse().find(value=>value.key===record.releaseKey);
         const status = event?.status || 'available';
         if (!['available','withdrawn'].includes(status) || release.status !== status) continue;
+        if(status==='available') {candidates.push({index,release});continue;}
         results[index] = {...results[index],status,message:messages[status],...(status==='available'?{releaseLink:releaseLink(release)}:{})};
       }
+      if (candidates.length) {
+        const visibility = await requestVisibility(deadline, visibilityReader, env, decisionNow), bindings = new Map();
+        // At most 32 related records are admitted above. Sequential reads avoid
+        // consuming the destination reader's entire process-local admission.
+        if (visibility !== null) for (const {release} of candidates) {
+          if (heldBy(visibility, release.repository.id) || bindings.has(release.repository.url)) continue;
+          bindings.set(release.repository.url, await requestDestination(deadline, destinationReader, release.repository.url));
+        }
+        const fresh = await requestVisibility(deadline, visibilityReader, env, decisionNow);
+        finalVisibility = fresh;
+        // A deployment transition is not proof that any previous hold ended, or
+        // permission to expose a source that skipped active identity binding.
+        if ((visibility === null) !== (fresh === null)) throw visibilityUnavailable();
+        for (const {index,release} of candidates) {
+          if (fresh !== null) {
+            const storedHeld = heldBy(fresh, release.repository.id), binding = bindings.get(release.repository.url);
+            const resolvedHeld = binding ? heldBy(fresh, binding.repositoryId) : false;
+            if (storedHeld) results[index] = {...results[index],message:'This release is accepted and will appear on ZeroHub after the jam reveal.'};
+            if (storedHeld || resolvedHeld || !binding || binding.repositoryId !== release.repository.id ||
+                binding.ownerId !== release.repository.ownerId) continue;
+          }
+          results[index] = {...results[index],status:'available',message:messages.available,releaseLink:releaseLink(release)};
+        }
+      }
     }
-    controller.signal.throwIfAborted();
-    return {issue:number,results:results.sort((a,b)=>a.requestId.localeCompare(b.requestId)),message:results.length?'Each result belongs to a frozen source request on this issue. Results are not ordered by date.':messages.waiting};
-  } finally {clearTimeout(timer);signal?.removeEventListener('abort',abort);}
+    const result = {issue:number,results:results.sort((a,b)=>a.requestId.localeCompare(b.requestId)),message:results.length?'Each result belongs to a frozen source request on this issue. Results are not ordered by date.':messages.waiting};
+    deadline.check();
+    if (finalVisibility !== undefined) assertJamVisibilityTime(finalVisibility, decisionNow, env);
+    return {result,visibility:finalVisibility};
+  } finally {deadline.dispose();}
+}
+
+
+/** Read-only summaries for internal consumers. The HTTP wrapper below owns its
+ * own serialization check because awaiting this result crosses a microtask. */
+export async function readRequestResults(issue, options={}) {
+  const {result,visibility}=await requestResultsProjection(issue,options);
+  if (visibility !== undefined) assertJamVisibilityTime(visibility, options.decisionNow, options.env ?? process.env);
+  return result;
+}
+
+/** Keep the private authority observation through the final HTTP boundary.
+ * The response contains only the longstanding public summary shape. */
+export async function requestResultsResponse(issue, options={}) {
+  const headers={'Cache-Control':'no-store'};
+  try {
+    const {result,visibility}=await requestResultsProjection(issue,options);
+    if (visibility !== undefined) assertJamVisibilityTime(visibility, options.decisionNow, options.env ?? process.env);
+    return Response.json(result,{headers});
+  } catch {
+    return Response.json({error:'Request results are unavailable. Try again shortly, or view your official GitHub issue.'},{status:503,headers});
+  }
 }

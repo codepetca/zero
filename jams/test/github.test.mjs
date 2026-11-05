@@ -82,3 +82,19 @@ test('CAS conflicts retry cleanly; ambiguous upstream outcomes remain unknown; c
   await assert.rejects(store.read('jam-101'),error=>error.status===503);
   await assert.rejects(store.read('../arbitrary'),error=>error.status===400);
 });
+
+test('registry adapter lists and reads hosted namespace without changing its branch or accepting arbitrary paths',async()=>{
+  const {hostedManifest}=await import('./fixtures.mjs');
+  const f=fixture(),proposal=await f.service.propose({actor:creator,operationId:'hosted-store-001',manifest:hostedManifest()});
+  const id=proposal.eventId,state=f.store.records.get(id).state,bytes=Buffer.from(JSON.stringify(state)),resource={...blob(bytes),path:`jams/${id}.json`};
+  const calls=[];
+  const store=createGitHubJamStore({token:TOKEN,fetchImpl:async(url,options)=>{
+    calls.push({url,options});
+    if(url.includes(`/contents/jams/${id}.json?`))return json(resource);
+    if(url.includes('/contents/jams?'))return json([{name:`${id}.json`,path:`jams/${id}.json`,type:'file',sha:resource.sha}]);
+    throw Error('Unexpected destination');
+  }});
+  assert.deepEqual(await store.list(),[id]);assert.deepEqual((await store.read(id)).state,state);
+  assert.ok(calls.every(({url,options})=>url.startsWith('https://api.github.com/repos/codepetca/zero/')&&url.endsWith('?ref=zero-jams-registry')&&options.method==='GET'));
+  await assert.rejects(store.read(id+'/../jam-101'),error=>error.status===400);
+});

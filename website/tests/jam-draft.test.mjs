@@ -26,3 +26,31 @@ test('specific field errors preserve text and schedule choices and optional over
   assert.equal(prepareJamDraft(valid({registrationClosesAt:'2030-03-17T12:00',type:'app'})).manifest.type,'app');
   assert.equal(prepareJamDraft(valid({rules:'界'.repeat(8000),summary:'界'.repeat(1000),theme:'界'.repeat(1000),eligibility:'界'.repeat(2000)})).manifest,null);
 });
+
+test('hosted proposals omit a creator site and require a later gallery reveal',async()=>{
+  const {prepareHostedJamDraft}=await import('../lib/jam-draft.mjs');
+  const draft=valid({galleryRevealAt:'2030-03-18T09:00'});
+  const result=prepareHostedJamDraft(draft);
+  assert.deepEqual(result.errors,{});
+  assert.equal(Object.hasOwn(result.manifest,'websiteUrl'),false);
+  assert.equal(result.manifest.schedule.galleryRevealAt,'2030-03-18T13:00:00.000Z');
+  assert.match(prepareHostedJamDraft({...draft,galleryRevealAt:draft.submissionsCloseAt}).errors.galleryRevealAt,/after/);
+  assert.match(prepareHostedJamDraft({...draft,galleryRevealAt:''}).errors.galleryRevealAt,/complete/);
+});
+
+
+test('hosted proposal validates the UTF-8 request envelope against the HTTP byte limit',async()=>{
+  const {prepareHostedJamDraft}=await import('../lib/jam-draft.mjs');
+  const result=prepareHostedJamDraft(valid({galleryRevealAt:'2030-03-18T09:00',rules:'界'.repeat(6000)}));
+  assert.equal(result.manifest,null);assert.match(result.errors.rules,/large/);
+});
+
+test('hosted defaults describe live Pages while legacy preparation retains exact source',async()=>{
+  const {defaultHostedJamDraft}=await import('../lib/jam-draft.mjs');
+  for (const type of ['game','app']) {
+    const draft=defaultHostedJamDraft(type,'UTC');
+    assert.equal(draft.type,type);assert.equal(draft.timezone,'UTC');assert.equal(draft.galleryRevealAt,'');
+    assert.match(draft.rules,/GitHub Pages URL/);assert.doesNotMatch(draft.rules,/exact commit/);
+  }
+  assert.match(defaultJamDraft().rules,/exact commit/);
+});
