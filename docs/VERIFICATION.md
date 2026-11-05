@@ -1,5 +1,22 @@
 # Verification
 
+## Personal and organizational license — 2026-11-04
+
+The four public tutorial templates now contain the Zero Source-Available License
+1.1 and its manifest-bound browser-export notice. Their merged commits, trees and
+scaffold digests are recorded in `teaching/tutorial-templates.json`; anonymous
+archives passed exact inventory, byte and executable-mode checks. Existing MIT
+rights and separate third-party notices remain intact. Project Update preserves
+an existing project LICENSE and carries the current Zero notice with updated
+builder files; a migration/recovery test covers an older builder without it.
+
+Independent reviews covered licensing, template parity and update/export notice
+propagation; the export notice location was corrected and the delta re-reviewed.
+All 48 focused tutorial, builder and project-update tests passed. Website tests
+(253), typecheck and production build passed. Chrome verified the local download
+notice and its terms link. These checks do not prove physical Windows installation
+or Store publication; existing published binaries retain their shipped licenses.
+
 ## Manual-kit publisher contract correction — 2026-11-04
 
 The next candidate is local 0.5.64 only, using the documented development-version
