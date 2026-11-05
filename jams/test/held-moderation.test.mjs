@@ -4,8 +4,7 @@ import {fixture,creator,maintainer,participant,approved,hostedManifest,submissio
 const other={id:'44',login:'other'};
 const status=code=>error=>error.status===code;
 async function showcase(f){
-  const p=await f.service.propose({actor:creator,operationId:'create-hidden-001',manifest:hostedManifest()});
-  await f.service.mutate({id:p.eventId,actor:maintainer,operationId:'approve-hidden-001',action:'approve',revision:p.revision});
+  const p=await f.service.propose({actor:other,operationId:'create-hidden-001',manifest:hostedManifest()});
   await f.service.mutate({id:p.eventId,actor:participant,operationId:'join-hidden-001',action:'join',revision:p.revision,repositoryUrl:'https://github.com/student/project',demoUrl:'https://student.github.io/project/'});
   const entry=submission(p.revision,{id:p.eventId});delete entry.source;await f.service.mutate(entry);
   return p;

@@ -10,7 +10,7 @@ test('full isolated synthetic run bootstraps guarded root and verifies 30 distin
   const provider=fakeCapacityProvider();
   const result=await runCapacityTest({token,transport:provider.transport,runId});
   assert.equal(result.status,'verified',JSON.stringify(result));
-  assert.deepEqual(result.verification,{joins:30,submissions:30,registrations:30,entries:30,operations:62});
+  assert.deepEqual(result.verification,{joins:30,submissions:30,registrations:30,entries:30,operations:61});
   assert.equal(provider.refs.size,1);assert.ok(provider.refs.has(`zero-jams-capacity-${runId}`));
   const finalFiles=provider.filesAtHead(`zero-jams-capacity-${runId}`);
   assert.equal(finalFiles.get('website/vercel.json')?.toString(),'{"git":{"deploymentEnabled":false}}\n');

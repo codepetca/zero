@@ -104,7 +104,6 @@ test('real service pages verify bounded entries and reject a cursor after regist
     pagesBindingReader:async(repository,url)=>{proofs++;return verifiedPages(repository,url);}});
   const proposed=await f.service.propose({actor:creator,operationId:'page-proposal-0001',manifest:hostedManifest()});
   const eventId=proposed.eventId;
-  await f.service.mutate({id:eventId,actor:maintainer,operationId:'page-approve-0001',action:'approve',revision:proposed.revision});
   for(let i=0;i<9;i++) {
     const actor={id:String(100+i),login:`student${i}`};
     await f.service.mutate({id:eventId,actor,operationId:`page-join-${i}-0001`,action:'join',revision:proposed.revision,repositoryUrl:`https://github.com/${actor.login}/project`});

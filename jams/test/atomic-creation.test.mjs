@@ -20,8 +20,9 @@ test('branch CAS enforces pending creation capacity across simultaneous distinct
   assert.deepEqual(await s.propose(inputs[winner]),result[winner].value);
   await assert.rejects(s.propose({...inputs[winner],manifest:hostedManifest({title:'Changed'})}),status(409));
   assert.equal((await f.store.snapshot()).ids.length,1);
-  const approved=await s.mutate({id:result[winner].value.eventId,actor:maintainer,operationId:'approval-0001',action:'approve',revision:result[winner].value.revision});
-  assert.equal(approved.status,'approved');await s.propose(inputs[1-winner]);
+  await s.mutate({id:result[winner].value.eventId,actor:creator,operationId:'cancel-first-0001',action:'cancel',reason:'Finish this test jam.'});
+  await assert.rejects(s.propose(inputs[1-winner]),status(429));
+
 });
 
 test('different actors have independent pending capacity and total cap is branch atomic',async t=>{
@@ -33,5 +34,5 @@ test('different actors have independent pending capacity and total cap is branch
 test('lost successful write response recovers the exact operation before admission checks',async t=>{
   const f=await atomicGitHttpFixture(t);await f.store.migrate();const s=service(f.store,{actorCreations:1});
   f.afterRef=()=>true;await assert.rejects(s.propose(payload('creation-0001')),status(503));f.afterRef=null;
-  const recovered=await s.propose(payload('creation-0001'));assert.equal(recovered.status,'submitted');assert.equal((await f.store.snapshot()).ids.length,1);
+  const recovered=await s.propose(payload('creation-0001'));assert.equal(recovered.status,'approved');assert.equal((await f.store.snapshot()).ids.length,1);
 });

@@ -149,7 +149,6 @@ test('both hosted types Join before publication and reject client receipt inject
   let observations=0;
   const f=fixture({pagesBindingReader:async(repository,url)=>{observations++;return verifiedPages(repository,url);}});
   const proposed=await f.service.propose({actor:creator,operationId:`pages-${type}-proposal`,manifest:hostedManifest({type})}),eventId=proposed.eventId;
-  await f.service.mutate({id:eventId,actor:maintainer,operationId:`pages-${type}-approval`,action:'approve',revision:proposed.revision});
   await f.service.mutate({id:eventId,actor:participant,operationId:`pages-${type}-join`,action:'join',revision:proposed.revision,repositoryUrl:'https://github.com/student/project'});
   assert.equal(observations,0);assert.equal((await f.service.read(eventId,participant)).entry,null);
   const request=submission(proposed.revision,{id:eventId});delete request.source;

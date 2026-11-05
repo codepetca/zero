@@ -2,8 +2,9 @@
 
 **Current direction, 2026-11-05:** The owner explicitly requested a 100-participant
 per-jam limit after being informed that the hosted 100-person flow is untested.
-Source enforces 100 distinct registrations, including departed accounts, with
-armorup as the independent approver. No 100-person Neon/Pages load test has been
+Source enforces 100 distinct registrations, including departed accounts.
+New Pro jams are automatically approved, with one active jam per organizer;
+maintainers retain moderation and historical review remains readable. No 100-person Neon/Pages load test has been
 run; the request is not a passing acceptance result. The earlier 30-person
 acceptance waiver applies to the historical 30-account expansion. The live limit
 changes only through separate publication. The sections below preserve earlier
@@ -11,14 +12,17 @@ development history; current rollout and rollback requirements are in
 [the operations guide](ZEROJAMS-OPERATIONS.md).
 
 The manual license policy keeps Free personal participation available and requires
-Pro to propose a jam for up to 100 participants. Licenses are enabled manually via
+Pro to create a jam for up to 100 participants. Licenses are enabled manually via
 verified immutable GitHub numeric IDs; contact `info@codepet.ca`. No automated
 checkout or subscription verification is implemented. Existing-event recovery and
 settlement survive revocation; environment grant changes require deployment and
 do not fence already-dispatched writes. See the operations guide for grant format,
 server trust boundaries and rollback requirements.
 
-## Pages verification integration — 2026-11-04
+The dated sections below describe earlier designs and do not override the current
+automatic-approval and one-active-jam direction.
+
+## Pages verification integration — 2026-11-04 (historical)
 
 The latest owner direction in the separate ZeroJams plan requires a Jam entry's
 Pages site to be verified against its participant-owned public repository; Join
@@ -46,7 +50,7 @@ repair it while discovery is unavailable. Before rollout, inventory affected
 records and design a reviewed owner-only recovery or separately authorized
 migration. No hosted records were inspected or changed.
 
-## Local Zero-hosted proposal change — 2026-11-04
+## Local Zero-hosted proposal change — 2026-11-04 (historical)
 
 The current local branch implements a simpler Zero-hosted proposal path: creators
 provide public event details on Zero and a different maintainer approves the

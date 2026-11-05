@@ -13,14 +13,22 @@ future gallery reveal strictly after its submission deadline. Proposal state has
 the separate deterministic `jam-zero-<32 hex>` namespace. Same actor/operation
 and normalized manifest recover the stored result; changed information conflicts.
 A new operation creates a separate event, not an edit to an existing proposal.
+A Pro creator can have one active jam at a time; new hosted events are
+automatically approved. The slot remains occupied through gallery reveal (or
+legacy submission close), including while suspended; cancellation releases it.
+Historical pending events also occupy it until their applicable end, unless
+rejected without an accepted version. A creator can cancel their own
+automatically approved jam with a public reason even after Pro revocation;
+existing project holds remain until the scheduled reveal. Maintainers retain
+moderation and historical review.
 Source checks still bind participant public repositories and exact commits.
-Organization/collaborator-only sources do not confer participant source ownership. Maintainers use configured numeric account IDs;
-a creator
-cannot approve their own event. Source and repository links are metadata, never
+Organization/collaborator-only sources do not confer participant source ownership.
+Maintainers use configured numeric account IDs for moderation and historical
+review; historical manual approval retains its independent-review rule. Source and repository links are metadata, never
 instructions to execute code or fetch creator-controlled website content.
 
 Free personal users may join and submit; a manually enabled Pro license is
-required to propose a jam for up to 100 participants. Contact `info@codepet.ca`.
+required to create a jam for up to 100 participants. Contact `info@codepet.ca`.
 The server-only `ZERO_JAMS_PRO_GITHUB_IDS` value lists verified immutable numeric
 GitHub IDs, not logins. Missing, malformed or duplicate entries deny creation.
 The synchronous trusted `canCreateJam(accountId)` hook defaults to deny; browser
@@ -51,7 +59,7 @@ fences are stored atomically with registry updates; uncertain outcomes remain
 unknown until recovery or settlement. Template ZIP and preview routes are closed,
 while their underlying code remains available.
 
-Accepted metadata stays stable while a newer proposal is reviewed. Public reads
+Accepted metadata stays stable while a historical newer proposal is reviewed. Public reads
 expose accepted display fields and active participants; event entries with an
 explicit gallery reveal stay hidden until that server-clock instant. Participants
 can still inspect their own entry. Public Jam and Hub discovery use a complete pinned registry snapshot to hold
@@ -92,7 +100,11 @@ to the prior 30-account service rejects more than 30 registrations or more than
 32 accepted safety operations. The older 10-account service rejects more than ten accounts
 or twelve safety operations, even when registration count fits. Validate complete
 state against the target version's operation pools, bytes/reserve budget and
-other limits. See the operator guide for state-compatible rollout/rollback.
+other limits. Older 30/100-limit readers also reject automatic approvals with
+null human approver and can fail the entire registry and Hub visibility closed.
+Before the first automatic write, retire or protect older deployments and drain
+or fence in-flight requests; rollback requires a verified reader compatible with
+automatic approval and existing holds. See the operator guide for rollout/rollback.
 Local synthetic 100-entry pagination covers 13 pages, ending at offset 96 with
 four entries; this does not establish actual provider performance or quota.
 
@@ -122,7 +134,7 @@ durable operation key. Exhausting the safety pool fails explicitly for operator
 intervention; moderation is bounded, not unlimited. Custom limits leaving less
 than 65,536 ordinary bytes or fewer than two entry-history slots are invalid.
 
-The total event cap and the default limit of three outstanding hosted proposals
+The total event cap and the legacy default limit of three outstanding hosted proposals
 per creator are checked against the same branch snapshot used for CAS. Conflicts
 reload and recheck. Approval or rejection releases a pending-proposal slot;
 retries recover before limits. These bounds do not establish a strict wall-clock

@@ -6,7 +6,6 @@ test('renamed repository can rejoin only when GitHub returns the same numeric ID
   let currentId='202';
   const f=fixture({verifyRepository:async({repositoryUrl,actor})=>({repository:{id:currentId,ownerId:actor.id,fullName:new URL(repositoryUrl).pathname.slice(1)}})});
   const p=await f.service.propose({actor:creator,operationId:'rename-propose-01',manifest:hostedManifest()});
-  await f.service.mutate({id:p.eventId,actor:maintainer,operationId:'rename-approve-01',action:'approve',revision:p.revision});
   const join={id:p.eventId,actor:participant,action:'join',revision:p.revision};
   await f.service.mutate({...join,operationId:'rename-join-old-01',repositoryUrl:'https://github.com/student/old-name'});
   await f.service.mutate({id:p.eventId,actor:participant,operationId:'rename-leave-01',action:'leave'});

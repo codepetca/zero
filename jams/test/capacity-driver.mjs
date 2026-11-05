@@ -138,7 +138,6 @@ export async function runCapacityTest({token,transport,runId=randomBytes(16).toS
       pagesBindingReader:async(repo,pagesUrl)=>({status:'verified',pagesUrl,repositoryId:repo.id,ownerId:repo.ownerId})});
     const proposal=await service.propose({actor:creator,operationId:'capacity-propose-0001',manifest:hostedManifest()});
     eventId=proposal.eventId;
-    await service.mutate({id:eventId,revision:proposal.revision,actor:maintainer,operationId:'capacity-approve-0001',action:'approve'});
     inputsByWave.join=actors.map(actor=>({id:eventId,revision:proposal.revision,actor,operationId:`capacity-join-${actor.id}`,action:'join',repositoryUrl:`https://github.com/${actor.login}/project`}));
     inputsByWave.submit=actors.map(actor=>({id:eventId,revision:proposal.revision,actor,operationId:`capacity-submit-${actor.id}`,action:'submit',title:'Synthetic capacity test',description:'Synthetic public test data.',demoUrl:`https://${actor.login}.github.io/project/`,instructions:'Synthetic test.'}));
     for(const [name,inputs] of Object.entries(inputsByWave)){
@@ -158,7 +157,7 @@ export async function runCapacityTest({token,transport,runId=randomBytes(16).toS
       const submissions=inputsByWave.submit.filter(input=>state.entries[input.actor.id]?.length===1&&state.operations[`${input.actor.id}:${input.operationId}`]);
       const registrations=Object.keys(state.registrations).length,entries=Object.keys(state.entries).length,operations=Object.keys(state.operations).length;
       result.verification={joins:joins.length,submissions:submissions.length,registrations,entries,operations};
-      if(!control.stopped&&!control.uncertain&&joins.length===30&&submissions.length===30&&registrations===30&&entries===30&&operations===62&&result.waves.join?.returnedSuccess===30&&result.waves.submit?.returnedSuccess===30&&result.waves.join.within5Minutes>=29&&result.waves.submit.within5Minutes>=29&&result.waves.join.elapsedMs<=600000&&result.waves.submit.elapsedMs<=600000)result.status='verified';
+      if(!control.stopped&&!control.uncertain&&joins.length===30&&submissions.length===30&&registrations===30&&entries===30&&operations===61&&result.waves.join?.returnedSuccess===30&&result.waves.submit?.returnedSuccess===30&&result.waves.join.within5Minutes>=29&&result.waves.submit.within5Minutes>=29&&result.waves.join.elapsedMs<=600000&&result.waves.submit.elapsedMs<=600000)result.status='verified';
     }
   } catch {result.error='Capacity run failed; inspect the stop reason and provider state.';}
   finally{clearTimeout(timer);if(control.active){control.stop('undrained');const until=performance.now()+250;while(control.active&&performance.now()<until)await new Promise(resolve=>setTimeout(resolve,10));}result.stopReason=control.stopped;result.unresolved=control.uncertain||control.active>0||bootstrapDispatched&&!result.bootstrap;result.activeRequests=control.active;result.elapsedMs=Math.round(performance.now()-started);result.requests=structuredClone(control.stats);if(result.unresolved||result.stopReason)result.status='incomplete';}

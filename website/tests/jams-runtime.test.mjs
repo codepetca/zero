@@ -87,7 +87,6 @@ test('only armorup can approve another creator, and the owner cannot self-approv
   const f=fixture({maintainerIds:jamServiceConfig(env).maintainerIds});
   const proposed=await f.service.propose({actor:creator,operationId:'owner-review-test-01',manifest:hostedManifest()});
   await assert.rejects(f.service.mutate({id:proposed.eventId,actor:{id:'123',login:'someone'},operationId:'wrong-reviewer-01',action:'approve',revision:proposed.revision}),error=>error.status===403);
-  await f.service.mutate({id:proposed.eventId,actor:owner,operationId:'owner-approval-01',action:'approve',revision:proposed.revision});
   assert.equal((await f.service.read(proposed.eventId)).event.revision,proposed.revision);
   const own=await f.service.propose({actor:owner,operationId:'owner-own-jam-001',manifest:hostedManifest()});
   await assert.rejects(f.service.mutate({id:own.eventId,actor:owner,operationId:'owner-self-review-01',action:'approve',revision:own.revision}),error=>error.status===403);

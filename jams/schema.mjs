@@ -8,6 +8,7 @@ export const SHA = /^[a-f0-9]{40}$/;
 export const ACCOUNT = /^[1-9][0-9]{0,19}$/;
 export const LOGIN = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/;
 export const LIMITS = Object.freeze({events:100, participants:200, operations:1000, safetyOperations:202, proposals:50, entryHistory:30, retries:8, stateBytes:2_000_000, actorWrites:10, writeWindowMs:60000, actorCreations:3, settlements:1000, actorSettlements:50, settlementBytes:512000});
+export const PRO_AUTO_APPROVAL='pro-license-v1';
 export const SAFETY_SLOT_BYTES=4096;
 export const safetySlots=limit=>Math.min(limit.safetyOperations,limit.participants+2);
 export const operationCounts=state=>Object.values(state.operations).reduce((counts,operation)=>{counts[operation.pool]=(counts[operation.pool]||0)+1;return counts;},{ordinary:0,safety:0});
@@ -24,7 +25,7 @@ export function repositoryUrl(value) {
 }
 export function actorIdentity(actor) {
   keys(actor,['id','login']);
-  if (!ACCOUNT.test(actor.id) || !LOGIN.test(actor.login)) fail(401,'GitHub sign-in required.');
+  if (typeof actor.id!=='string' || !ACCOUNT.test(actor.id) || typeof actor.login!=='string' || !LOGIN.test(actor.login)) fail(401,'GitHub sign-in required.');
   return {id:actor.id,login:actor.login};
 }
 export function repositoryData(input, actor, expectedCommit) {
@@ -65,6 +66,7 @@ export function validateState(state, id, limit = LIMITS, {enforceReserve=true} =
     if (Object.keys(state.registrations).length > limit.participants || counts.ordinary > limit.operations || counts.safety > safetySlots(limit) || Buffer.byteLength(JSON.stringify(state)) > (enforceReserve?stateBudget(state,limit):limit.stateBytes)) throw Error();
     for (const proposal of state.proposals) {
       if (!/^[a-f0-9]{64}$/.test(proposal.revision) || !['submitted','changes-requested','approved','rejected'].includes(proposal.status)) throw Error();
+      if(Object.hasOwn(proposal,'approvalMode')&&(proposal.approvalMode!==PRO_AUTO_APPROVAL||!hosted||proposal.status!=='approved'||proposal.reviewedBy!==null||proposal.reviewedAt!==proposal.proposedAt))throw Error();
       if(hosted) {
         if(proposal.hosting!=='zero'||proposal.repository!==null)throw Error();
         hostedManifestData(proposal.manifest);
@@ -80,7 +82,8 @@ export function validateState(state, id, limit = LIMITS, {enforceReserve=true} =
     if (state.accepted) {
       const proposal=state.proposals.find(proposal=>proposal.revision===state.accepted.revision&&proposal.status==='approved');
       const {approvedBy,approvedAt,...acceptedProposal}=state.accepted;
-      if(!proposal||canonical(proposal)!==canonical(acceptedProposal)||!ACCOUNT.test(approvedBy)||approvedBy===state.creator.id||approvedAt!==proposal.reviewedAt)throw Error();
+      const automatic=proposal?.approvalMode===PRO_AUTO_APPROVAL;
+      if(!proposal||canonical(proposal)!==canonical(acceptedProposal)||(automatic?approvedBy!==null:!ACCOUNT.test(approvedBy)||approvedBy===state.creator.id)||approvedAt!==proposal.reviewedAt)throw Error();
     }
     for (const [key,value] of Object.entries(state.registrations)) {
       if (!ACCOUNT.test(key) || value.id !== key || !LOGIN.test(value.login) || !['joined','left'].includes(value.status)) throw Error();

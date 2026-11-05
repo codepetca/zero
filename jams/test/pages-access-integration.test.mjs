@@ -65,9 +65,8 @@ for(const type of ['game','app'])for(const workflow of [false,true]){
     const access=syntheticPages({workflow}),f=fixture({pagesBindingReader:access.binding});
     const proposed=await f.service.propose({actor:creator,operationId:`access-${type}-propose`,manifest:hostedManifest({type})});
     const id=proposed.eventId;
-    await assert.rejects(f.service.read(id),error=>error.status===404);
+    assert.equal((await f.service.read(id)).event.revision,proposed.revision);
     await assert.rejects(f.service.mutate({id,actor:creator,operationId:`access-${type}-self`,action:'approve',revision:proposed.revision}),error=>error.status===403);
-    await f.service.mutate({id,actor:maintainer,operationId:`access-${type}-approve`,action:'approve',revision:proposed.revision});
     await f.service.mutate({id,actor:participant,operationId:`access-${type}-join`,action:'join',revision:proposed.revision,
       repositoryUrl:'https://github.com/student/project'});
     assert.equal(access.calls.length,0,'Join before publication requires no Pages grant or observation');

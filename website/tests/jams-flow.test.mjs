@@ -28,15 +28,12 @@ for(const type of ['game','app'])test(`HTTP and actual engine complete hosted ${
   const proposal = await proposalResponse.json();
   const id=proposal.eventId;assert.match(id,/^jam-zero-[a-f0-9]{32}$/);
   assert.equal(f.calls(),0);
-  assert.equal((await getJamResponse(new Request(origin+`/api/jams/${id}`),id,options(participant))).status,404);
+  assert.equal((await getJamResponse(new Request(origin+`/api/jams/${id}`),id,options(participant))).status,200);
   const inbox = await getJamsResponse(call(maintainer,'/api/jams'),options(maintainer));
-  assert.equal((await inbox.json()).proposals[0].id,id);
+  assert.equal((await inbox.json()).proposals.length,0);assert.equal(proposal.status,'approved');
   const forged = await postJamActionResponse(call(creator,`/api/jams/${id}/actions`,{
     operationId:'http-approve-000',action:'approve',revision:proposal.revision}),id,options(creator));
   assert.equal(forged.status,403);
-  const approval = await postJamActionResponse(call(maintainer,`/api/jams/${id}/actions`,{
-    operationId:'http-approve-001',action:'approve',revision:proposal.revision}),id,options(maintainer));
-  assert.equal(approval.status,200);
   const join = {operationId:'http-join-001',action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/student/project'};
   f.store.afterCas = async () => {throw new Error('Connection lost after durable write');};
   assert.equal((await postJamActionResponse(call(participant,`/api/jams/${id}/actions`,join),id,options(participant))).status,503);

@@ -13,7 +13,6 @@ test('30 participants contend and recover with bounded production retries', {tim
     pagesBindingReader:async (repo,url)=>verifiedPages({id:repo.id,ownerId:repo.ownerId},url)});
   const proposed=await service.propose({actor:creator,operationId:'classroom-propose',manifest:hostedManifest()});
   const id=proposed.eventId,revision=proposed.revision;
-  await service.mutate({id,revision,actor:maintainer,operationId:'classroom-approve',action:'approve'});
   const actors=Array.from({length:30},(_,i)=>({id:String(100+i),login:`student${i}`}));
   const joins=actors.map(actor=>({id,revision,actor,operationId:`join-${actor.id}-0001`,action:'join',repositoryUrl:`https://github.com/${actor.login}/project`}));
   const submits=actors.map(actor=>({id,revision,actor,operationId:`submit-${actor.id}-0001`,action:'submit',title:'Project',description:'A student project',demoUrl:`https://${actor.login}.github.io/project/`,instructions:'Open the project.'}));
@@ -51,6 +50,6 @@ test('30 participants contend and recover with bounded production retries', {tim
   assert.equal(Object.values(state.registrations).filter(x=>x.status==='joined').length,30);
   assert.equal(Object.keys(state.entries).length,30);
   assert.ok(actors.every(actor=>state.entries[actor.id]?.length===1));
-  assert.equal(Object.keys(state.operations).length,62);
+  assert.equal(Object.keys(state.operations).length,61);
   await assert.rejects(service.mutate({...submits[0],title:'Changed'}),error=>error.status===409);
 });

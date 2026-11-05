@@ -85,8 +85,7 @@ test('repository-only Join and failed Pages submission retain cross-event Hub ho
   const events=[];
   for(const [index,reveal] of ['2030-01-05T00:00:00Z','2030-01-08T00:00:00Z'].entries()) {
     const manifest=hostedManifest();manifest.schedule.galleryRevealAt=reveal;
-    const proposal=await service.propose({actor:creator,operationId:`pages-hold-proposal-${index}`,manifest});events.push(proposal);
-    await service.mutate({id:proposal.eventId,actor:maintainer,operationId:`pages-hold-approve-${index}`,action:'approve',revision:proposal.revision});
+    const proposal=await service.propose({actor:{id:String(11+index),login:'creator'+index},operationId:`pages-hold-proposal-${index}`,manifest});events.push(proposal);
     await service.mutate({id:proposal.eventId,actor:participant,operationId:`pages-hold-join-${index}`,action:'join',revision:proposal.revision,
       repositoryUrl:'https://github.com/student/project202'});
     const stored=(await f.store.read(proposal.eventId)).state;

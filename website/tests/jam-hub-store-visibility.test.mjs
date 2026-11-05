@@ -16,8 +16,7 @@ async function setup(){
   const events=[];
   for(let i=0;i<2;i++){
     const creator={id:String(11+i),login:`creator${i}`},actor={id:String(33+i),login:`student${i}`};
-    const proposal=await service.propose({actor:creator,operationId:`propose-store-${i}`,manifest:hostedManifest()});
-    await service.mutate({id:proposal.eventId,actor:maintainer,operationId:`approve-store-${i}`,action:'approve',revision:proposal.revision});
+    const proposal=await service.propose({actor:{id:String(11+i),login:'creator'+i},operationId:`propose-store-${i}`,manifest:hostedManifest()});
     events.push({actor,proposal,join:{id:proposal.eventId,actor,operationId:`join-store-${i}`,action:'join',revision:proposal.revision,repositoryUrl:`https://github.com/${actor.login}/project`}});
   }
   return {store,service,events};

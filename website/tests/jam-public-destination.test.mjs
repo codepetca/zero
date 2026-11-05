@@ -127,8 +127,8 @@ test('actual hosted service and current public GitHub binding reject reused sour
   const f=fixture({verifyRepository:async({repositoryUrl,repositoryId,actor})=>{const held=repositoryId==='303'||repositoryUrl?.endsWith('held');return {repository:{id:held?'303':'202',ownerId:actor.id,fullName:`student/${held?'held':'project202'}`}};},
     pagesBindingReader:async(repository,pagesUrl)=>({status:'verified',pagesUrl,repositoryId:repository.id,ownerId:repository.ownerId})});
   const approved=async(op,reveal)=>{
-    const proposal=await f.service.propose({actor:creator,operationId:`proposal-${op}`,manifest:hostedManifest({schedule:{...hostedManifest().schedule,galleryRevealAt:reveal}})});
-    await f.service.mutate({id:proposal.eventId,actor:maintainer,operationId:`approve-${op}`,action:'approve',revision:proposal.revision});return proposal;
+    const proposal=await f.service.propose({actor:{id:String(110+f.store.records.size),login:'creator'+f.store.records.size},operationId:`proposal-${op}`,manifest:hostedManifest({schedule:{...hostedManifest().schedule,galleryRevealAt:reveal}})});
+    return proposal;
   };
   const old=await approved('old-0001','2030-01-05T00:00:00Z'),held=await approved('held-0001','2030-01-08T00:00:00Z');
   for(const [proposal,repo]of [[old,'project202'],[held,'held']])await f.service.mutate({id:proposal.eventId,actor:participant,operationId:`join-${repo}-0001`,action:'join',revision:proposal.revision,repositoryUrl:`https://github.com/student/${repo}`});
@@ -173,7 +173,6 @@ async function actualGallery() {
     pagesBindingReader:async(repository,pagesUrl)=>({status:'verified',pagesUrl,repositoryId:repository.id,ownerId:repository.ownerId})});
   const proposal=await f.service.propose({actor:creator,operationId:'race-proposal-001',manifest:hostedManifest()});
   const id=proposal.eventId;
-  await f.service.mutate({id,actor:maintainer,operationId:'race-approve-001',action:'approve',revision:proposal.revision});
   await f.service.mutate({id,actor:participant,operationId:'race-join-001',action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/student/project202'});
   await f.service.mutate({id,actor:participant,operationId:'race-submit-001',action:'submit',revision:proposal.revision,title:'Original public entry',description:'Original entry details',demoUrl:'https://student.github.io/project202/'});
   f.setTime(now);

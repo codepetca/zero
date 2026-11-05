@@ -32,7 +32,6 @@ test('selector uses one bounded socket pool and per-request GitHub tokens',async
   const first=await selector.authorityForRequest({sourceToken:'synthetic-token-111'}),second=await selector.authorityForRequest({sourceToken:'synthetic-token-222'});
   assert.equal(builds,1);assert.equal(poolOptions.host,env.ZERO_JAMS_LOCAL_PG_SOCKET);assert.equal(poolOptions.max,4);assert.equal(poolOptions.ssl,false);assert.equal(typeof poolOptions.password,'function');assert.equal(poolOptions.password(),'');assert.equal(poolOptions.options,'-c search_path=public');assert.equal(poolOptions.connectionTimeoutMillis,2000);
   const proposal=await first.service.propose({actor:{id:'11',login:'creator'},operationId:'selector-propose-0001',manifest:hostedManifest()});
-  await first.service.mutate({id:proposal.eventId,actor:{id:'4050555',login:'armorup'},operationId:'selector-approve-0001',action:'approve',revision:proposal.revision});
   for(const [authority,id,login] of [[first,'33','student1'],[second,'34','student2']]){
     await authority.service.mutate({id:proposal.eventId,actor:{id,login},operationId:`selector-join-${id}`,action:'join',revision:proposal.revision,repositoryUrl:`https://github.com/${login}/project`});
   }
@@ -40,7 +39,7 @@ test('selector uses one bounded socket pool and per-request GitHub tokens',async
   const visible=await first.visibilityReader();assert.equal(visible.isHeld('1033'),true);assert.equal(visible.isHeld('1034'),true);
   env.ZERO_JAMS_ENABLED='0';assert.equal((await second.visibilityReader()).isHeld('1033'),true);
   await assert.rejects(first.service.propose({actor:{id:'11',login:'creator'},operationId:'selector-disabled-0001',manifest:hostedManifest()}),unavailable);
-  assert.equal(db.updates,4);await selector.close();assert.equal(db.ends,1);
+  assert.equal(db.updates,3);await selector.close();assert.equal(db.ends,1);
 });
 
 test('missing or nonlocal configuration is rejected before a pool or fetch is created',()=>{

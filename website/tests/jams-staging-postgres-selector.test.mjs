@@ -47,7 +47,6 @@ test('one session pool uses explicit TLS and fixed staging SQL; request tokens s
   assert.equal(options.ssl.checkServerIdentity(host,{subjectaltname:'DNS:attacker.example'}).code,'ERR_TLS_CERT_ALTNAME_INVALID');
   assert.equal(options.ssl.checkServerIdentity(host,{subjectaltname:`DNS:${host}`}),undefined);
   const proposal=await first.service.propose({actor:{id:'11',login:'creator'},operationId:'staging-propose-0001',manifest:hostedManifest()});
-  await first.service.mutate({id:proposal.eventId,actor:{id:'4050555',login:'armorup'},operationId:'staging-approve-0001',action:'approve',revision:proposal.revision});
   for(const [authority,id,login] of [[first,'33','student1'],[second,'34','student2']])await authority.service.mutate({id:proposal.eventId,actor:{id,login},operationId:`staging-join-${id}`,action:'join',revision:proposal.revision,repositoryUrl:`https://github.com/${login}/project`});
   assert.deepEqual(tokens,['Bearer synthetic-visitor-111','Bearer synthetic-visitor-222']);assert.equal((await first.visibilityReader()).isHeld('1034'),true);
   assert.equal(first.jamOptions.service,first.service);assert.equal(first.hubOptions.visibilityReader,first.visibilityReader);
@@ -56,7 +55,7 @@ test('one session pool uses explicit TLS and fixed staging SQL; request tokens s
   assert.equal(first.jamOptions.env.ZERO_JAMS_PRIVATE_KEY,undefined);assert.equal(JSON.stringify(first.jamOptions).includes(secret),false);assert.equal(JSON.stringify(first.hubOptions).includes('BEGIN CERTIFICATE'),false);
   env.ZERO_JAMS_ENABLED='0';assert.equal((await second.visibilityReader()).isHeld('1033'),true);
   await assert.rejects(first.service.propose({actor:{id:'11',login:'creator'},operationId:'staging-disabled-0001',manifest:hostedManifest()}),unavailable);
-  assert.equal(db.updates,4);await selector.close();assert.equal(db.ends,1);await assert.rejects(selector.authorityForRequest(),unavailable);
+  assert.equal(db.updates,3);await selector.close();assert.equal(db.ends,1);await assert.rejects(selector.authorityForRequest(),unavailable);
 });
 
 test('hostile URIs and invalid explicit settings reject before pool creation or provider calls',()=>{

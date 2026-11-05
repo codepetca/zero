@@ -9,7 +9,6 @@ async function setup({count=30,ids,reader=verifiedPages}={}) {
   const f=fixture({pagesBindingReader:verifiedPages});
   const proposal=await f.service.propose({actor:creator,operationId:'page-proposal-01',manifest:hostedManifest()});
   const id=proposal.eventId,revision=proposal.revision;
-  await f.service.mutate({id,actor:maintainer,operationId:'page-approve-01',action:'approve',revision});
   await f.service.mutate({id,actor:participant,operationId:'page-join-01',action:'join',revision,repositoryUrl:'https://github.com/student/project'});
   await f.service.mutate({id,actor:participant,operationId:'page-submit-01',action:'submit',revision,
     title:'Template',description:'Synthetic page fixture',demoUrl:'https://student.github.io/project/'});
@@ -41,10 +40,8 @@ async function setup({count=30,ids,reader=verifiedPages}={}) {
 const metadata=result=>result[JAM_PAGE_METADATA];
 const participantIds=result=>result.event.entries.map(entry=>entry.participantId);
 async function addHold(f,{actors=['1001','1002'],at='2030-01-06T00:00:00Z',status='active'}={}) {
-  const proposed=await f.service.propose({actor:creator,operationId:`hold-proposal-${f.store.records.size}`,
+  const proposed=await f.service.propose({actor:{id:String(440+f.store.records.size),login:'other'+f.store.records.size},operationId:`hold-proposal-${f.store.records.size}`,
     manifest:hostedManifest({schedule:{...hostedManifest().schedule,galleryRevealAt:at}})});
-  await f.service.mutate({id:proposed.eventId,actor:maintainer,operationId:`hold-approve-${f.store.records.size}`,
-    action:'approve',revision:proposed.revision});
   const state=f.store.records.get(proposed.eventId).state;
   state.moderation.status=status;
   state.registrations=Object.fromEntries(actors.map(actorId=>[actorId,
@@ -129,9 +126,8 @@ test('pre-reveal and global holds yield no selected entries or proof calls, incl
   const early=await f.service.readPage(f.id,maintainer,{offset:0});
   assert.deepEqual(early.event.entries,[]);assert.deepEqual(early.moderationEntries,[]);
   assert.equal(metadata(early).nextOffset,null);assert.equal(early.event.galleryIncomplete,undefined);assert.equal(f.calls(),0);
-  const held=await f.service.propose({actor:creator,operationId:'page-held-proposal',manifest:hostedManifest({
+  const held=await f.service.propose({actor:{id:'44',login:'other'},operationId:'page-held-proposal',manifest:hostedManifest({
     schedule:{...hostedManifest().schedule,galleryRevealAt:'2030-01-08T00:00:00Z'}})});
-  await f.service.mutate({id:held.eventId,actor:maintainer,operationId:'page-held-approval',action:'approve',revision:held.revision});
   const hold=f.store.records.get(held.eventId).state;
   hold.registrations=structuredClone(f.state.registrations);
   for(const item of Object.values(hold.registrations))item.revision=held.revision;

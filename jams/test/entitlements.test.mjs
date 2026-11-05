@@ -41,7 +41,7 @@ test('revoked Pro retains unknown accepted recovery and applied/not-applied sett
   let pro=true;const f=fixture({canCreateJam:()=>pro}),request=input();let once=true;
   f.store.afterCas=()=>{if(once){once=false;throw Error('lost commit response');}};
   await assert.rejects(f.service.propose(request),status(503));pro=false;
-  const accepted=await f.service.propose(request);assert.equal(accepted.status,'submitted');
+  const accepted=await f.service.propose(request);assert.equal(accepted.status,'approved');
   assert.deepEqual(await f.service.propose(request),accepted);
   assert.equal((await f.service.settle(settle(request))).settlement,'applied');
   await assert.rejects(f.service.propose(input({operationId:'revoked-fresh-001'})),status(403));
@@ -56,7 +56,6 @@ test('Free participants can join and submit; creator revocation does not change 
   let allowed=true;const f=fixture({canCreateJam:id=>allowed&&id===creator.id,pagesBindingReader:verifiedPages}),proposal=await f.service.propose(input());
   allowed=false;
   await assert.rejects(f.service.mutate({id:proposal.eventId,actor:creator,operationId:'free-self-approval',action:'approve',revision:proposal.revision}),status(403));
-  await f.service.mutate({id:proposal.eventId,actor:maintainer,operationId:'free-approval-001',action:'approve',revision:proposal.revision});
   await f.service.mutate({id:proposal.eventId,actor:participant,operationId:'free-join-001',action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/student/project'});
   await f.service.mutate({id:proposal.eventId,actor:participant,operationId:'free-submit-001',action:'submit',revision:proposal.revision,title:'Free project',description:'A student project.',demoUrl:'https://student.github.io/project/'});
   assert.equal((await f.service.read(proposal.eventId,participant)).entry.title,'Free project');
