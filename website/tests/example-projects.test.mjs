@@ -68,6 +68,7 @@ test("all 26 complete projects preserve exact manifest sources and resources, wi
     }
     assert.deepEqual(JSON.parse(files.get("zero.json").data), { name: example.title, templateVersion: "0.1.0", mainClass: "Main" });
     const readme = files.get("README.md").data.toString();
+    assert.ok(readme.includes("[![Built with Zero](https://img.shields.io/badge/Built%20with-Zero-6C5CE7)](https://zero.codepet.ca)"));
     assert.match(readme, /Extract the downloaded ZIP/);
     assert.match(readme, /Run App in the Zero sidebar/);
     assert.match(readme, /\.\/mvnw clean compile javafx:run/);
@@ -223,6 +224,7 @@ test("course starter contains canonical Main, shared scaffold and framework only
   for (const [destination, source] of sources) assert.deepEqual(files.get(destination).data, await readFile(path.join(directory, source)));
   assert.deepEqual(JSON.parse(files.get("zero.json").data), {name: "New Project", templateVersion: "0.1.0", mainClass: "Main"});
   const readme = files.get("README.md").data.toString();
+  assert.ok(readme.includes("[![Built with Zero](https://img.shields.io/badge/Built%20with-Zero-6C5CE7)](https://zero.codepet.ca)"));
   assert.match(readme, /original idea/);
   assert.match(readme, /README.*title and introduction/);
   assert.match(readme, /change plan/);
