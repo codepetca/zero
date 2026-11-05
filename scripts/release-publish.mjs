@@ -141,12 +141,28 @@ export function verifyChecks(pr, runs, expectedHead) {
   assert.ok(!pr.isDraft, 'Metadata PR remains draft.');
   assert.ok(!['CHANGES_REQUESTED', 'REVIEW_REQUIRED'].includes(pr.reviewDecision), 'Metadata PR needs review.');
   assert.equal(pr.reviewRequests?.length ?? 0, 0, 'Metadata PR has outstanding review requests.');
-  for (const check of pr.statusCheckRollup || []) {
+  const checks = pr.statusCheckRollup || [];
+  const optionalLanes = new Map([
+    ['Browser export compatibility/browser-tests', 'compatible'],
+    ['Windows launcher checks/windows-tests', 'windows']
+  ]);
+  const runId = check => /^https:\/\/github\.com\/codepetca\/zero\/actions\/runs\/(\d+)\/job\/\d+$/.exec(check.detailsUrl || '')?.[1];
+  function verifiedScopedSkip(check) {
+    const gateName = optionalLanes.get(`${check.workflowName}/${check.name}`), id = runId(check);
+    if (!gateName || !id) return false;
+    const sameRun = item => item.__typename === 'CheckRun' && item.workflowName === check.workflowName && runId(item) === id;
+    const passed = name => checks.filter(item => sameRun(item) && item.name === name && item.status === 'COMPLETED' && item.conclusion === 'SUCCESS').length === 1;
+    return passed('scope / classify') && passed(gateName);
+  }
+  for (const check of checks) {
     if (check.__typename === 'StatusContext') {
       assert.ok(['SUCCESS', 'PENDING', 'EXPECTED'].includes(check.state), 'Metadata PR status failed or unknown.');
     } else {
       assert.ok(['QUEUED', 'IN_PROGRESS', 'PENDING', 'WAITING', 'REQUESTED', 'COMPLETED'].includes(check.status), 'Metadata PR check status unknown.');
-      if (check.status === 'COMPLETED') assert.equal(check.conclusion, 'SUCCESS', 'Metadata PR check did not succeed.');
+      if (check.status === 'COMPLETED' && check.conclusion !== 'SUCCESS') {
+        if (check.conclusion === 'SKIPPED' && optionalLanes.has(`${check.workflowName}/${check.name}`) && runId(check)) continue;
+        assert.fail('Metadata PR check did not succeed.');
+      }
     }
   }
   assert.ok(!['DIRTY', 'BLOCKED', 'DRAFT'].includes(pr.mergeStateStatus), 'Metadata PR is blocked by branch rules or conflicts.');
@@ -154,7 +170,7 @@ export function verifyChecks(pr, runs, expectedHead) {
   const prepared = runs.find(run => run.headSha === expectedHead && run.event === 'pull_request' && run.workflowName === 'Release checks and preparation');
   if (prepared?.status === 'completed') assert.equal(prepared.conclusion, 'success', 'Metadata preparation CI failed.');
   return Boolean(pr.statusCheckRollup?.length) && pr.mergeStateStatus === 'CLEAN' && Boolean(prepared?.status === 'completed' && prepared.conclusion === 'success') &&
-    pr.statusCheckRollup.every(check => check.__typename === 'StatusContext' ? check.state === 'SUCCESS' : check.status === 'COMPLETED' && check.conclusion === 'SUCCESS');
+    checks.every(check => check.__typename === 'StatusContext' ? check.state === 'SUCCESS' : check.status === 'COMPLETED' && (check.conclusion === 'SUCCESS' || (check.conclusion === 'SKIPPED' && verifiedScopedSkip(check))));
 }
 
 // All transports are injectable; tests use disposable files and never contact GitHub.
