@@ -6,6 +6,12 @@ const MAX_CHUNKS = 1024;
 const OWNER = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?(?![\s\S])/;
 const REPOSITORY = /^[A-Za-z0-9._-]{1,100}(?![\s\S])/;
 const unavailable = () => new Error('Project destination is unavailable.');
+// Only this observer can mint the missing marker after checking the response's
+// fixed effective URL and redirect state. A provider error/status alone is not proof.
+class MissingDestination extends Error {
+  constructor() { super('Project destination is unavailable.'); }
+}
+export const isMissingJamDestination = error => error instanceof MissingDestination;
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const numericId = value => Number.isSafeInteger(value) && value > 0;
 const repoName = value => typeof value === 'string' && REPOSITORY.test(value) &&
@@ -82,8 +88,11 @@ async function json(response, url, signal, check) {
  * /repos/{owner}/{repo} endpoint. It returns a frozen {repositoryId, ownerId,
  * owner, repo, repositoryUrl} or throws a generic unavailable error. IDs are
  * decimal strings. Provider casing may canonicalize the same owner/repo; a
- * renamed/transferred/deleted path, redirect, private repository or uncertain
- * response rejects. Namespace reuse returns the NEW ID: callers MUST compare it
+ * renamed/transferred path, redirect, private repository or uncertain response
+ * rejects. Exact-endpoint nonredirected 404/410 rejects with a server-private
+ * missing marker (isMissingJamDestination), allowing catalogs to omit only that
+ * destination. This means not publicly available, not proof of deletion. Other
+ * consumers continue to reject it like any unavailable destination. Namespace reuse returns the NEW ID: callers MUST compare it
  * with the stored ID and apply holds to both identities before exposing anything.
  * The returned identity is server-private; it is not a public error payload.
  *
@@ -165,6 +174,11 @@ export function createJamDestinationBindingReader(options = {}) {
             headers:{Accept:'application/vnd.github+json', 'X-GitHub-Api-Version':'2022-11-28',
               'User-Agent':'ZeroJams-DestinationBinding'}});
         }), controller.signal, value => discard(value?.body));
+        check();
+        if ([404,410].includes(response?.status) && response.redirected === false && response.url === url) {
+          discard(response.body);
+          throw new MissingDestination();
+        }
         const repo = await json(response, url, controller.signal, check);
         if (!numericId(repo.id) || !object(repo.owner) || !numericId(repo.owner.id) ||
             !['User','Organization'].includes(repo.owner.type) || typeof repo.owner.login !== 'string' || !OWNER.test(repo.owner.login) ||
@@ -179,7 +193,10 @@ export function createJamDestinationBindingReader(options = {}) {
         clearTimeout(timer); signal?.removeEventListener('abort', abort); controller.abort();
         if (admitted) release();
       }
-    } catch {throw unavailable();}
+    } catch (error) {
+      if (isMissingJamDestination(error)) throw error;
+      throw unavailable();
+    }
   };
 }
 
