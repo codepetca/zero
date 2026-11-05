@@ -12290,3 +12290,12 @@ XML. Independent promotion review, selected CI and merge remain pending.
 ## Built with Zero project badge — 2026-11-05
 
 Added a linked badge to starter/example and tutorial README generation and the bundled starter. Published README-only changes in the five starter/example and four tutorial template repositories. All four tutorial main commits were fetched as anonymous public archives and checked for exact generated inventory, bytes and executable modes before refreshing publication records. The starter/example README badges were read back from GitHub. Focused example generation: 17/17; tutorial tests: 22/22; publication evidence gate: four verified. Independent review: GPT-6.1 Terra, medium, one initial review of local source and nine template commits; no unresolved findings. Effective model and usage telemetry unavailable. Review of refreshed publication records follows.
+# Tutorial and website polish — 2026-11-05
+
+Web-only changes were integrated against main 06cd0acd8: tutorial project
+steps and Pet lessons, mobile navigation, footer and a pre-paint docs resume.
+Independent review found no actionable regressions; effective reviewer model,
+effort and usage are unknown. The Pet verifier, focused website tests, production
+build, repository check and local production HTTP checks passed. Desktop changes
+and kit publication are outside this web update. Production and CI results are
+verified separately at delivery time.

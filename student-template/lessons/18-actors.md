@@ -4,8 +4,7 @@
 
 Turn the player and coins into actors while keeping the score, winning and Restart.
 
-Open your existing Coin game project. First **Commit & push** your work, then
-create a new branch called `actor-refactor`. This lesson needs a project whose
+Open your existing Coin game project. This lesson needs a project whose
 Zero library includes `Actor.touches(Actor)`; an older Coin project may not have
 that method yet. Use a project with the matching Actor library before continuing.
 
@@ -17,7 +16,17 @@ WASD, artwork, sound and scrolling are not used by this version. Their other
 files remain in your project. Your committed original stays on main; after the
 exercise, use it as a reference to bring back any features you want.
 
-## 1. Give Player an Actor
+## 1. Start a branch for this change
+
+Make sure your working game is committed and pushed on **main**. In the Zero
+sidebar, click your project name to open its actions, then choose:
+
+**New branch…**
+
+Name it `actor-refactor` and confirm. Check that `actor-refactor` appears as the
+current branch before continuing.
+
+## 2. Give Player an Actor
 
 Replace `java/Player.java` with this class. `extends Actor` gives Player a centre,
 size, movement and drawing helpers. `super(x, y)` sets its centre; `setSize`
@@ -46,7 +55,7 @@ public class Player extends Actor {
 }
 ```
 
-## 2. Give Coin an Actor
+## 3. Give Coin an Actor
 
 Replace `java/Coin.java` with this class. Each coin has its own centre, size and
 collection state. A collected coin stops drawing.
@@ -75,7 +84,7 @@ public class Coin extends Actor {
 }
 ```
 
-## 3. Let Main own the game
+## 4. Let Main own the game
 
 Replace `java/Main.java` with this version. `player.touches(coin)` checks the
 actors’ size rectangles, including touching edges. Rotation and the drawn shape
@@ -161,7 +170,7 @@ The starting centres above add 12 pixels to preserve the earlier starting
 positions. The shorter canvas changes the vertical movement limit. The bounds
 are rectangles even if you later draw a circle or rotate an actor.
 
-## 4. Save and publish
+## 5. Save and publish
 
 Review and **Commit & push** your changes. Merge only when you are ready to
 replace the version on main, including any earlier features you have not yet

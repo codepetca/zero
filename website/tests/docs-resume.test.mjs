@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { runInNewContext } from 'node:vm';
+import { GET } from '../app/resume-docs/route.js';
 import { DOCS_RESUME_DEFAULT, DOCS_RESUME_KEY, learningLocation, rememberLearningLocation, resumeLearningLocation } from '../lib/docs-resume.mjs';
 
 const origin = 'https://zero.codepet.ca';
@@ -32,4 +35,26 @@ test('uses the default when storage is empty or denied', () => {
   const denied = { getItem() { throw Error('denied'); }, setItem() { throw Error('denied'); } };
   assert.equal(resumeLearningLocation(denied, origin), DOCS_RESUME_DEFAULT);
   assert.doesNotThrow(() => rememberLearningLocation(denied, { origin, pathname: '/docs', hash: '' }));
+});
+
+test('resume response redirects before rendering, with the same validated fallback', async () => {
+  const response = GET(), html = await response.text();
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(script);
+  assert.ok(html.indexOf('<script>') < html.indexOf('</head>'));
+  assert.doesNotMatch(html, /Opening your last/);
+  assert.match(html, /<noscript>[\s\S]*href="\/tutorials\/15"/);
+  const hash = createHash('sha256').update(script).digest('base64');
+  assert.ok(response.headers.get('content-security-policy').includes(`'sha256-${hash}'`));
+  for (const [value, expected] of [['/docs#canvas', '/docs#canvas'], ['/tutorials/2', '/tutorials/2'], ['//evil.test/docs', DOCS_RESUME_DEFAULT], [null, DOCS_RESUME_DEFAULT]]) {
+    let destination;
+    const window = {location: {origin, replace: value => {destination = value;}}, localStorage: {getItem: () => value}};
+    runInNewContext(script, {window, URL});
+    assert.equal(destination, expected);
+  }
+  let destination;
+  const window = {location: {origin, replace: value => {destination = value;}}};
+  Object.defineProperty(window, 'localStorage', {get() {throw Error('denied');}});
+  runInNewContext(script, {window, URL});
+  assert.equal(destination, DOCS_RESUME_DEFAULT);
 });

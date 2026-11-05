@@ -24,11 +24,17 @@ created through Zero are public, including source and included files; keep
 secrets and private material out. Follow your school policy if it requires a different arrangement.
 
 For each of Greeting, Coin and Pet (or the optional Study project), sign in to
-GitHub and complete access setup, then choose **Project → New**. Enter a name
-and clone location, then choose **Clone here**. Zero creates your own repository
+GitHub and complete access setup. On the Zero Start Page, choose:
+
+**Project → New**
+
+Enter a name and clone location, then choose **Clone here**. Zero creates your own repository
 and opens its clone. Each first lesson tells you how to prepare its starting code.
-To reopen your own clone, use
-**Project → Open local project…**. Keep the same repository throughout each project's lessons.
+To reopen your own clone, choose:
+
+**Project → Open**
+
+Keep the same repository throughout each project's lessons.
 
 You write the controls, game objects and logic in each project. Save, Run App, then **Commit & push** at the
 checkpoints in the lessons. At the end, use **Publish & open app** and test your

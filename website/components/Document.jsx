@@ -16,7 +16,6 @@ import { Icon } from "./Icon";
 import { FoldingReader } from "./FoldingReader";
 import { ReaderNavigation } from "./ReaderNavigation";
 import { CodeBlock } from "./CodeBlock";
-import { TutorialProject } from "./TutorialProject";
 import { DownloadRequirements } from "./Downloads";
 import { platformMarkdown } from "@/lib/platform-content.mjs";
 import { documentEmphasisKind } from "@/lib/document-emphasis.mjs";
@@ -65,9 +64,6 @@ export function Document({ id, lesson = "" }) {
             {related?.description && <p>{related.description}</p>}
           </div> : titleHeading}
           {id === "setup" && <DownloadRequirements platformAware />}
-          {practiceProject && lesson === practiceProject.firstLesson && (
-            <TutorialProject project={practiceProject} lesson={lesson} />
-          )}
           <FoldingReader key={id}>
             <Markdown
               remarkPlugins={[remarkGfm]}
@@ -77,6 +73,7 @@ export function Document({ id, lesson = "" }) {
                   const kind = documentEmphasisKind(node);
                   return kind === "shortcut" ? <kbd className="doc-shortcut">{children}</kbd>
                     : kind === "command" ? <code className="doc-command">{children}</code>
+                    : kind === "selection" ? <span className="doc-command">{children}</span>
                     : <strong>{children}</strong>;
                 },
                 pre: ({ node, children }) => {

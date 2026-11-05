@@ -11,7 +11,7 @@ export function LegalFooter() {
   return <footer className="legal-footer">
     <div className="legal-footer-row">
       <span>© {years} Zero by Codepet</span>
-      <nav aria-label="Privacy and terms"><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
+      <nav aria-label="Footer links"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="mailto:info@codepet.ca">Contact</a></nav>
     </div>
   </footer>;
 }

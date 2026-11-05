@@ -4,7 +4,15 @@
 
 ![One ScoreDisplay class can create separate instances for different layouts](visuals/10.svg)
 
-Reopen your **Coin game** from lesson 5. In the **Zero Start Page**, choose **Project → Open local project…** and select your existing Coin project folder. If you do not have a local clone, choose **Project → Clone** to clone your own Coin repository from GitHub first. Continue in that same repository, rather than starting a new project.
+Reopen your **Coin game** from lesson 5. If it is already open, continue in that project. Otherwise, on the **Zero Start Page**, choose:
+
+**Project → Open**
+
+Select your existing Coin project folder. If you do not have a local clone, choose this instead:
+
+**Project → Clone**
+
+Clone your own Coin repository from GitHub. Continue in that same repository, rather than starting a new project.
 
 Previous: [Build a coin game](09-coin-game.md).
 

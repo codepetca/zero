@@ -5,63 +5,37 @@ import { Icon } from "./Icon";
 import { BetaNotice } from "./BetaNotice";
 /** @param {{ active?: string, actions?: import("react").ReactNode }} props */
 export function Navigation({ active = "", actions = null }) {
-  const [menu, setMenu] = useState(false);
-  const toggle = useRef(null), navigation = useRef(null);
+  const navigation = useRef(null);
+  const [tooltipDismissed, setTooltipDismissed] = useState(false);
   useEffect(() => {
-    if (!menu) return;
-    const mobile = window.matchMedia('(max-width: 760px)');
-    function outside(event) {
-      if (!navigation.current?.contains(event.target) && !toggle.current?.contains(event.target)) setMenu(false);
+    function dismiss(event) {
+      if (event.key === 'Escape' && navigation.current?.querySelector('a:hover, a:focus-visible')) setTooltipDismissed(true);
     }
-    function escape(event) {
-      if (event.key !== 'Escape') return;
-      event.preventDefault();
-      setMenu(false);
-      toggle.current?.focus();
-    }
-    function resize() { if (!mobile.matches) setMenu(false); }
-    document.addEventListener('pointerdown', outside);
-    document.addEventListener('focusin', outside);
-    document.addEventListener('keydown', escape);
-    mobile.addEventListener('change', resize);
-    return () => {
-      document.removeEventListener('pointerdown', outside);
-      document.removeEventListener('focusin', outside);
-      document.removeEventListener('keydown', escape);
-      mobile.removeEventListener('change', resize);
-    };
-  }, [menu]);
+    document.addEventListener('keydown', dismiss);
+    return () => document.removeEventListener('keydown', dismiss);
+  }, []);
   return (
     <header className="site-header">
       <div className="site-identity"><Brand /><BetaNotice /></div>
-      <button
-        ref={toggle}
-        className="menu-toggle"
-        aria-label={menu ? "Close navigation" : "Open navigation"}
-        aria-expanded={menu}
-        aria-controls="site-nav"
-        onClick={() => setMenu(!menu)}
-      >
-        <Icon name={menu ? "x" : "menu"} />
-      </button>
-      <nav
-        ref={navigation}
-        id="site-nav"
-        aria-label="Main navigation"
-        className={menu ? "nav-open" : ""}
-      >
+      <nav ref={navigation} id="site-nav" aria-label="Main navigation">
         {[
-          ["Tutorials", "/learn"],
-          ["Docs", "/docs"],
-          ["ZeroHub", "/hub"],
-        ].map(([name, href]) => (
+          ["Tutorials", "/learn", "graduation-cap"],
+          ["Docs", "/docs", "book-open"],
+          ["ZeroHub", "/hub", "graph-star"],
+        ].map(([name, href, icon]) => (
           <a
             key={name}
             href={href}
+            aria-label={name}
+            data-tooltip={name}
+            data-tooltip-dismissed={tooltipDismissed ? 'true' : undefined}
             aria-current={active === name ? "page" : undefined}
-            onClick={() => setMenu(false)}
+            onFocus={() => setTooltipDismissed(false)}
+            onBlur={() => setTooltipDismissed(false)}
+            onMouseEnter={() => setTooltipDismissed(false)}
+            onMouseLeave={() => setTooltipDismissed(false)}
           >
-            {name}
+            <Icon name={icon} /><span>{name}</span>
           </a>
         ))}
       </nav>
