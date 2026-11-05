@@ -148,3 +148,16 @@ test('an interrupted recovery completion marker can itself be retried',async t=>
  assert.deepEqual(await files(project),before);assert.equal((await update.listRecoveries({projectRoot:project}))[0].status,'incomplete');
  await update.recoverUpdate({projectRoot:project,recoveryPath:result.recoveryPath});assert.deepEqual(await files(project),before);assert.equal((await update.listRecoveries({projectRoot:project}))[0].status,'recovered');
 });
+
+test('project update delivers Zero license without replacing the project license',async t=>{
+ const {project}=await fixture(t,{older:true});
+ const original=Buffer.from('Student-owned project license\n');
+ await fs.writeFile(path.join(project,'LICENSE'),original);
+ const plan=await update.planUpdate({projectRoot:project,extensionPath});
+ assert.equal(plan.changed,true);
+ const result=await update.applyUpdate(plan);
+ assert.deepEqual(await fs.readFile(path.join(project,'LICENSE')),original);
+ assert.deepEqual(await fs.readFile(path.join(project,'.zero-build/notices/ZERO-LICENSE.txt')),await fs.readFile(path.join(extensionPath,'..','LICENSE')));
+ await update.recoverUpdate({projectRoot:project,recoveryPath:result.recoveryPath});
+ assert.deepEqual(await fs.readFile(path.join(project,'LICENSE')),original);
+});

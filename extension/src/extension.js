@@ -1057,7 +1057,7 @@ function activate(context, services = {}) {
     await current();
     if(!plan.changed)return false;
     const version=require('../package.json').version;
-    const detail='This may cause your project to stop working.';
+    const detail='This may cause your project to stop working. The updated Zero files include their license in .zero-build/notices; your existing project LICENSE stays unchanged.';
     const updateChoice={title:'Update Project'};
     if(await vscode.window.showWarningMessage(`Update this project for Zero ${version}?`,{modal:true,detail},updateChoice,{title:'Not Now',isCloseAffordance:true})!==updateChoice) {
       if(required)throw new Error('Browser action cancelled. Update Project to continue.');

@@ -17,6 +17,7 @@ test('producer saves complete standalone closure with runtime pins and exact con
   assert.ok(files.some(file => file.path === 'src/web-export/adapters/runtime/zero/web/BrowserLauncher.java'));
   assert.ok(files.some(file => file.path === 'src/sharing/configuration.js'));
   assert.ok(files.some(file => file.path === 'media/sharing-config.json'));
+  assert.deepEqual(files.find(file => file.path === 'notices/ZERO-LICENSE.txt').bytes, await fs.readFile(new URL('../LICENSE', import.meta.url)));
   assert.equal((await prepareProjectBuilder({destination})).changed, true);
   assert.equal((await prepareProjectBuilder({destination})).changed, false);
   const result = cli(project, {protocol: 1, operation: 'inspect'});
