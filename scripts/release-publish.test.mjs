@@ -572,3 +572,21 @@ test('README kit promotion preserves the independent Mac installer link and inst
   assert.throws(() => promoteReadme(mac, '0.5.8', url), /exactly one manual complete-kit link/);
   assert.throws(() => promoteReadme(`${before}\n${kit}`, '0.5.8', url), /exactly one manual complete-kit link/);
 });
+
+test('scoped skips require the matching successful scope and aggregate from the same run', () => {
+  const run = {headSha: head, event: 'pull_request', workflowName: 'Release checks and preparation', status: 'completed', conclusion: 'success'};
+  const item = (workflowName, name, conclusion, id = '123') => ({__typename:'CheckRun', workflowName, name, status:'COMPLETED', conclusion, detailsUrl:`https://github.com/codepetca/zero/actions/runs/${id}/job/99`});
+  const lanes = [['Browser export compatibility','browser-tests','compatible'], ['Windows launcher checks','windows-tests','windows']];
+  const base = {headRefOid:head,baseRefName:'main',mergeStateStatus:'CLEAN'};
+  for (const [workflow, name, gate] of lanes) {
+    const scope=item(workflow,'scope / classify','SUCCESS'), skipped=item(workflow,name,'SKIPPED'), aggregate=item(workflow,gate,'SUCCESS');
+    const pr=checks=>({...base,statusCheckRollup:checks});
+    assert.equal(verifyChecks(pr([scope,skipped,aggregate]),[run],head),true);
+    assert.equal(verifyChecks(pr([skipped,aggregate]),[run],head),false);
+    assert.equal(verifyChecks(pr([scope,skipped,{...aggregate,status:'IN_PROGRESS',conclusion:null}]),[run],head),false);
+    assert.equal(verifyChecks(pr([scope,skipped,item(workflow,gate,'SUCCESS','124')]),[run],head),false);
+    assert.equal(verifyChecks(pr([scope,skipped,item('other',gate,'SUCCESS')]),[run],head),false);
+    assert.throws(()=>verifyChecks(pr([scope,skipped,item(workflow,gate,'FAILURE')]),[run],head),/did not succeed/);
+    assert.throws(()=>verifyChecks(pr([scope,item(workflow,'other','SKIPPED'),aggregate]),[run],head),/did not succeed/);
+  }
+});

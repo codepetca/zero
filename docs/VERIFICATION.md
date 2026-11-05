@@ -1,5 +1,12 @@
 # Verification
 
+## Publisher scoped checks — 2026-11-04
+
+Metadata publication accepts only explicitly scoped browser or Windows job skips
+when the same workflow run has successful scope and aggregate checks. Missing or
+pending evidence waits; unrelated skips and failed checks remain rejected. The
+89 release publisher/review tests and root configuration checks pass locally.
+
 ## Personal and organizational license — 2026-11-04
 
 The four public tutorial templates now contain the Zero Source-Available License
