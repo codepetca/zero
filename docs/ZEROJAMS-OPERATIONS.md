@@ -18,11 +18,17 @@ Unaffected pages need not access the authority. Local tests are not live accepta
 
 ## Manual Free and Pro licenses
 
-Free personal use includes joining and submitting to an approved jam under its
-ordinary rules. Pro is required only for proposing a new hosted jam, with up to
-100 distinct registered accounts. Contact `info@codepet.ca` to request access;
-licenses are enabled manually. Pro does not grant review authority: only the
-existing configured approver may approve another account's proposal. This is a
+Free personal use includes joining and submitting to a jam under its ordinary
+rules. Pro is required to create a hosted jam, with up to 100 distinct registered
+accounts. Contact `info@codepet.ca` to request access; licenses are enabled
+manually. New Pro jams are automatically approved and each organizer may have
+one active jam at a time. The slot lasts through gallery reveal (or legacy
+submission close); suspended and historical pending events still occupy it,
+while cancelled or rejected-without-accepted events release it. An accepted
+event remains active if its later update is rejected. The creator can cancel their
+own automatically approved jam with a public reason even after Pro access is
+revoked; existing project holds remain until scheduled reveal. Maintainers retain
+moderation authority; historical review records remain available. This is a
 manual service entitlement, not an automated billing, checkout or subscription
 integration. No owner account receives an automatic grant from its login or role.
 
@@ -60,9 +66,10 @@ an immediate fleet-wide revocation guarantee or verify ongoing payment.
 
 ## Local work
 
-The local branch introduces Zero-hosted event proposals. The creator supplies
-public details and a gallery reveal time on Zero; a different maintainer approves
-those exact details before official joining. The old creator-hosted template code
+The local source introduces automatic approval for new Zero-hosted Pro jams.
+The creator supplies public details and a gallery reveal time on Zero; one active
+jam is permitted per organizer. Maintainers can moderate events, and historical
+review records remain available. The old creator-hosted template code
 is retained, but new creator-hosted proposal submissions are blocked. Existing
 records remain readable. The release candidate shares a transactional Neon authority
 between Jam and Hub; the separate experimental queue is not deployed or wired.
@@ -160,9 +167,9 @@ behavior.
    website, browser and security checks and independent review; record exact
    revisions, configuration, owner review authority, monitoring, stop conditions
    and tested operating systems. After separately authorized setup/publication,
-   run a controlled real event through approval, join, submission and reveal
-   before expanding availability. Only `armorup` approves; independent approval
-   prevents that account from approving its own proposal.
+   run a controlled real event through creation, join, submission and reveal
+   before expanding availability. New Pro jams are automatically approved;
+   `armorup` retains maintainer moderation authority.
 
 The 2026-11-04 isolated GitHub capacity run exhausted its request budget after
 three confirmed joins; it did not meet the 30-person target. A disposable local
@@ -189,9 +196,8 @@ within the normal schedule. The limit is shown before joining from the same
 service value. The owner authorized this 100-account expansion on 2026-11-05
 after disclosure of its untested hosted flow. The live limit changes only
 through separate publication. A local source change does not alter the live
-pilot. A single approved pilot event is an operational rule enforced by the
-sole approver, not a code-enforced global
-one-event limit. Only `armorup` may approve, and cannot approve their own proposal.
+pilot. New Pro jams are automatically approved; each organizer may have one
+active jam at a time. `armorup` retains maintainer moderation authority.
 There is no participant allowlist; a person with the direct URL can participate
 within the event's rules and capacity. Do not publicly promote the pilot.
 
@@ -229,6 +235,14 @@ unknown writes, inspect every affected event, and retain state-compatible
 readers/writers. Do not remove registrations or operation history, discard source
 bindings or roll back to a deployment without hold enforcement to fit old limits.
 
+Before the first automatically approved write, protect or retire every older
+30/100-limit deployment and drain or fence its in-flight requests. Older readers
+reject the new automatic-approval records with null human approver and can fail
+the complete registry and Hub visibility closed. A new deployment alone does not
+prove old instances have stopped. Roll back only to a verified state-compatible
+version that understands automatic approvals and preserves all Hub holds; do not
+remove or rewrite approval records to make an old deployment accept them.
+
 Before cutover, fence legacy writers and in-flight requests and confirm both Jam
 and Hub use the same complete Neon authority. Provisioning, configuration and
 release must be coordinated: deploying this source without valid Neon configuration
@@ -245,9 +259,9 @@ against live production.
 These gates describe required work, not permission to perform live actions. Never
 put credentials, private account data or participant information in evidence.
 
-The sole configured reviewer is the owner’s GitHub account `armorup` (numeric
-ID `4050555`, verified via GitHub on 2026-11-04). The independent-approval rule
-still prevents a creator from approving their own proposal. No provider account
+The configured maintainer is the owner’s GitHub account `armorup` (numeric
+ID `4050555`, verified via GitHub on 2026-11-04). New Pro jams are automatically
+approved; the maintainer retains moderation and historical review controls. No provider account
 or deployment configuration is changed by this local source decision.
 
 The authorized pilot requires the existing website browser-auth configuration,
@@ -263,7 +277,7 @@ place credential values in this document, source control or logs:
 | `ZERO_JAMS_PRODUCTION_PROJECT_REF`, `ZERO_JAMS_PRODUCTION_PG_HOST`, `ZERO_JAMS_PRODUCTION_PG_PORT`, `ZERO_JAMS_PRODUCTION_PG_DATABASE`, `ZERO_JAMS_PRODUCTION_PG_ROLE` | Independently verified fixed Neon project, host, port, database and restricted role. |
 | `ZERO_JAMS_PRODUCTION_PG_EPOCH`, `ZERO_JAMS_PRODUCTION_CREATOR_OID`, `ZERO_JAMS_PRODUCTION_ADMIN_OID` | Reviewed database epoch and pinned provider role identities. |
 | `ZERO_JAMS_PRODUCTION_PG_CA_PEM`, `ZERO_JAMS_PRODUCTION_PG_URI` | Server-only TLS trust and restricted-role connection credentials. Never place values in public evidence. |
-| Reviewer identity | Hosted composition pins `armorup` (GitHub ID `4050555`); environment settings cannot widen it. |
+| Maintainer identity | Hosted composition pins `armorup` (GitHub ID `4050555`) for moderation and historical review; environment settings cannot widen it. |
 | `ZERO_JAMS_APP_ID` | Numeric ID of the existing Codepet Zero GitHub App (`5367740`) |
 | `ZERO_JAMS_INSTALLATION_ID` | Installation belonging to `codepetca` with approved repository access |
 | `ZERO_JAMS_PRIVATE_KEY` | RSA private key for server-only installation-token minting |

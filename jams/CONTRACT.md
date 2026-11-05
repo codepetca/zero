@@ -5,7 +5,11 @@ Coordinator owns this interface; workers coordinate changes before integration.
 
 ## Data
 
-New proposals are Zero-hosted. HTTP input is `{operationId,manifest}`; service
+New Pro-created jams are Zero-hosted and automatically approved, with one active
+jam per organizer. New results have `status:"approved"` and
+`approvalMode:"pro-license-v1"`; durable automatic approvals use null reviewer
+identity, not a fictional maintainer. Historical pending proposals retain their
+review flow and maintainers retain moderation. HTTP input is `{operationId,manifest}`; service
 input adds only the server-derived `actor`. Manifest is
 `{schema:1,templateVersion:"1.0.0",type:"game"|"app",title,summary,theme,rules,
 eligibility,timezone,schedule:{registrationOpensAt,registrationClosesAt,startsAt,
@@ -18,8 +22,8 @@ repository, hosting choice or identity fields. No organizer repository is fetche
 New IDs are `jam-zero-<32 lowercase hex>`, from a domain-separated SHA-256 digest
 of numeric creator ID and operation ID. The namespace is distinct from legacy
 `jam-<repoId>` and paths accept both. The deterministic ID preserves unknown-write
-recovery without a global scan. A fresh operation creates a separate proposed
-event; this creation endpoint does not edit/resubmit an existing event.
+recovery without a global scan. A fresh operation creates a separate event subject to the one-active-jam rule;
+this endpoint does not edit/resubmit an existing event.
 
 Hosted durable state has `hosting:"zero"` and `repositoryId:null`; its proposal
 has `hosting:"zero",repository:null,manifest`. Archived creator-hosted records
@@ -42,8 +46,13 @@ commit with a non-forced ref update. The registry uses `zero-jams-v2/events/`
 and a settlement ledger. Migration from legacy `jams/` is explicit and requires
 operator authorization; no startup or test mutates a live branch. The prior
 per-file writer must be retired before cutover. Missing authority fails closed.
-A creator may have at most three pending hosted proposals by default; that cap
-and the global event cap are checked in the same snapshot and on each CAS retry.
+The one-active-jam rule and the global event cap are checked against the same
+authority snapshot on each creation attempt. The slot is keyed by immutable creator
+ID across hosted and legacy records and stays occupied until gallery reveal
+(or submissions close for legacy records without reveal). Suspended and pending
+events occupy it; cancelled events and rejected events without an accepted version
+do not. A rejected later update does not release an accepted event’s slot.
+Previously accepted operation recovery precedes this admission check.
 
 ## Service API (jams/service.mjs)
 
@@ -52,7 +61,8 @@ Export `createJamService({store,verifySource,verifyRepository,pagesBindingReader
 it defaults to deny and requires literal `true`. The HTTP actor is verified by
 immutable numeric GitHub ID, not a claimed browser plan or mutable login. Free
 personal users can join/submit; manual Pro access is required only for new
-proposals. Hosted/local composition uses the server-only
+creations. New Pro jams are automatically approved; historical pending proposals
+retain their review flow. Hosted/local composition uses the server-only
 `ZERO_JAMS_PRO_GITHUB_IDS` allowlist; missing or invalid configuration denies all
 new creation. No account grant list is returned and no billing/subscription
 verification is implemented. See the operator guide for strict format and bounds.
@@ -80,7 +90,10 @@ Return methods:
   -> `{eventId,operationId,...}`. Actions: `approve`, `request-changes`, `reject`,
   `suspend`, `resume`, `cancel`, `withdraw-entry`, `join`, `leave`, `submit`, `withdraw`.
   Approve/request-changes/reject require exact latest proposal `revision` and
-  maintainer identity; no self-approval. Moderation requires maintainer/reason.
+  maintainer identity; no self-approval. Moderation requires a public reason.
+  A creator may cancel their own automatically approved jam even after Pro
+  revocation; other moderation remains maintainer-only. Cancellation preserves
+  existing project holds until scheduled reveal.
   `join` and `submit` require accepted event `revision` as acknowledgment. For
   showcase events, Join binds a verified public repository without requiring a
   published site. Submit rechecks that repository and requires a Pages URL with

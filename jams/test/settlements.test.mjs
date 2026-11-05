@@ -24,7 +24,7 @@ test('closed hosted proposals cannot publish; normalized retries recover and cha
   assert.deepEqual(await f.service.propose({...input,manifest:hostedManifest({title:' Jam title '})}),closed);
   await assert.rejects(f.service.propose({...input,manifest:hostedManifest({title:'Changed'})}),status(409));
   await assert.rejects(f.service.settle({...closing,payload:{manifest:hostedManifest({title:'Changed'})}}),status(409));
-  assert.equal((await f.service.propose({...input,actor:participant})).status,'submitted');
+  assert.equal((await f.service.propose({...input,actor:participant})).status,'approved');
 });
 
 test('applied hosted and historical proposals recover through settlement after lost response and changed clocks',async()=>{
@@ -44,7 +44,6 @@ test('applied hosted and historical proposals recover through settlement after l
 test('event closes and accepted retries retain their own scope for legacy and hosted IDs',async()=>{
   for(const hosted of [false,true]) {
     const f=fixture(),p=hosted?await f.service.propose(proposal()):{eventId:'jam-101',revision:await approved(f)};
-    if(hosted)await f.service.mutate({id:p.eventId,actor:maintainer,operationId:'approve-settlement',action:'approve',revision:p.revision});
     const input={id:p.eventId,actor:participant,operationId:'join-settlement',action:'join',revision:p.revision,...(hosted?{repositoryUrl:'https://github.com/student/project',demoUrl:'https://student.github.io/project/'}:{})};
     const closed=await f.service.settle(settleAction(input));
     assert.equal(closed.eventId,p.eventId);assert.deepEqual(await f.service.mutate(input),closed);
@@ -59,7 +58,6 @@ test('old exact invalidJSON fences survive newly valid hosted proposals, reposit
   const f=fixture(),input=proposal();await fence(f,'proposals',creator,input.operationId,digest({invalidJSON:JSON.stringify({manifest:input.manifest})}));
   assert.equal((await f.service.propose(input)).settlement,'not-applied');
   const p=await f.service.propose(proposal('another-proposal-001'));
-  await f.service.mutate({id:p.eventId,actor:maintainer,operationId:'approve-legacy-fence',action:'approve',revision:p.revision});
   const join={id:p.eventId,actor:participant,operationId:'legacy-fenced-join',action:'join',revision:p.revision,repositoryUrl:'https://github.com/student/project',demoUrl:'https://student.github.io/project/'};
   const closing=settleAction(join);await fence(f,p.eventId,participant,join.operationId,digest({invalidJSON:JSON.stringify(closing.payload)}));
   assert.equal((await f.service.mutate(join)).settlement,'not-applied');

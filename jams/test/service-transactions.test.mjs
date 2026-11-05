@@ -54,7 +54,6 @@ function fixture({canCreateJam=()=>true,limits={},verifyRepository,pagesBindingR
 }
 async function approved(f) {
   const proposal=await f.service.propose({actor:creator,operationId:'transaction-proposal',manifest:hostedManifest()});
-  await f.service.mutate({id:proposal.eventId,revision:proposal.revision,actor:maintainer,operationId:'transaction-approval',action:'approve'});
   return proposal;
 }
 const join=(proposal,actor=participant,operationId=`transaction-join-${actor.id}`)=>({id:proposal.eventId,revision:proposal.revision,actor,operationId,action:'join',repositoryUrl:`https://github.com/${actor.login}/project`});
@@ -68,7 +67,7 @@ test('30 concurrent joins and submissions use only final transaction-local write
   const results=await Promise.all(actors.map((actor,i)=>services[i].mutate(submit(proposal,actor))));
   const state=(await (await f.store.snapshot()).read(proposal.eventId)).state;
   assert.equal(Object.keys(state.registrations).length,30);assert.equal(Object.keys(state.entries).length,30);
-  assert.ok(actors.every(actor=>state.entries[actor.id].length===1));assert.equal(Object.keys(state.operations).length,62);
+  assert.ok(actors.every(actor=>state.entries[actor.id].length===1));assert.equal(Object.keys(state.operations).length,61);
   assert.equal(Object.keys((await pinned.read(proposal.eventId)).state.entries).length,0);
   const commits=f.store.commits,transactions=f.store.transactions,calls=f.calls();
   assert.deepEqual(await Promise.all(actors.map((actor,i)=>services[i].mutate(submit(proposal,actor)))),results);
@@ -89,9 +88,8 @@ test('transactional writes preserve cross-gallery holds through suspension and c
   const f=fixture(),proposals=[];
   for(let i=0;i<2;i++){
     const manifest=hostedManifest();manifest.schedule.galleryRevealAt=i?'2030-01-06T00:00:00Z':'2030-01-05T00:00:00Z';
-    const proposal=await f.service.propose({actor:creator,operationId:`transaction-held-proposal-${i}`,manifest});
+    const proposal=await f.service.propose({actor:{id:String(11+i),login:'creator'+i},operationId:`transaction-held-proposal-${i}`,manifest});
     proposals.push(proposal);
-    await f.service.mutate({id:proposal.eventId,revision:proposal.revision,actor:maintainer,operationId:`transaction-held-approval-${i}`,action:'approve'});
     await f.service.mutate(join(proposal));
     await f.service.mutate(submit(proposal,participant));
   }
@@ -196,7 +194,7 @@ test('queued Pro revocation denies new proposals but transaction recovery preced
   f.store.failAfterCommit=true;
   await assert.rejects(f.service.propose(request),error=>error.status===503);
   pro=false;checks=0;
-  const recovered=await f.service.propose(request);assert.equal(recovered.status,'submitted');assert.equal(checks,0);
+  const recovered=await f.service.propose(request);assert.equal(recovered.status,'approved');assert.equal(checks,0);
   assert.equal((await f.service.settle({actor:creator,scope:'proposals',operationId:request.operationId,payload:{manifest:request.manifest}})).settlement,'applied');
   assert.equal(checks,0);assert.equal(f.store.commits,1);
   pro=true;f.store.beforeTransaction=()=>{pro=false;};

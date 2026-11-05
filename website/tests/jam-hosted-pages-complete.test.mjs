@@ -19,9 +19,8 @@ for(const type of ['game','app']) test(`hosted ${type} creation, independent app
     verifySource:async()=>assert.fail('Hosted creation requires no organizer repository'),
     verifyRepository:async({actor})=>({repository:{id:'202',ownerId:actor.id,fullName:'student/project'}})});
   const proposed=await service.propose({actor:creator,operationId:`hosted-${type}-proposal`,manifest:hostedManifest({type})});
-  await assert.rejects(service.read(proposed.eventId),error=>error.status===404);
+  assert.equal((await service.read(proposed.eventId)).event.revision,proposed.revision);
   await assert.rejects(service.mutate({id:proposed.eventId,actor:creator,operationId:`self-${type}-approval`,action:'approve',revision:proposed.revision}),error=>error.status===403);
-  await service.mutate({id:proposed.eventId,actor:maintainer,operationId:`maintainer-${type}-approval`,action:'approve',revision:proposed.revision});
   await service.mutate({id:proposed.eventId,actor:participant,operationId:`join-${type}-before-pages`,action:'join',revision:proposed.revision,repositoryUrl:'https://github.com/student/project'});
   assert.equal(pagesCalls,0);assert.equal((await service.read(proposed.eventId,participant)).entry,null);
   assert.equal((await projectVisibility(await f.store.snapshot(),time)).isHeld('202'),true);

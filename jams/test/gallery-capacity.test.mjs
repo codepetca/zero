@@ -14,7 +14,6 @@ test('30 workflow gallery proofs exceed one HTTP deadline without returning part
   const f=fixture({pagesBindingReader:verifiedPages});
   const proposal=await f.service.propose({actor:creator,operationId:'capacity-proposal-01',manifest:hostedManifest()});
   const id=proposal.eventId,revision=proposal.revision;
-  await f.service.mutate({id,actor:maintainer,operationId:'capacity-approve-01',action:'approve',revision});
   await f.service.mutate({id,actor:participant,operationId:'capacity-join-01',action:'join',revision,repositoryUrl:'https://github.com/student/project'});
   await f.service.mutate({id,actor:participant,operationId:'capacity-submit-01',action:'submit',revision,
     title:'Private capacity entry',description:'Synthetic gallery fixture',demoUrl:'https://student.github.io/project/'});

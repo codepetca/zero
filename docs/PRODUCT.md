@@ -166,7 +166,7 @@ is explicit and remains gated by hosted library acceptance.
 ## ZeroJams
 
 Free personal use includes joining jams and submitting work. A Pro license is
-required to propose a jam for up to 100 participants. Licenses are enabled
+required to create a jam for up to 100 participants. Licenses are enabled
 manually; contact `info@codepet.ca` to request access. Creation access is bound to
 the verified GitHub account's immutable numeric ID. This source implements manual
 grants, with no automated checkout, payment or subscription-status verification.
@@ -176,10 +176,14 @@ be recovered or settled. Grant changes require deployment and do not cancel
 already-dispatched writes. This source change does not itself activate a license
 or change the deployed service.
 
-Local development includes a Zero-hosted Game Jam and App Jam proposal flow.
-A creator supplies the public event details without creating a website. A different
-Zero maintainer must approve the exact proposal before it becomes official or
-participants can join. The official Zero page presents the accepted details and
+Local source includes a Zero-hosted Game Jam and App Jam creation flow.
+A Pro creator supplies the public event details without creating a website. New
+Pro jams are automatically approved, and each organizer can have one active jam
+at a time. The creator can cancel their own automatically approved jam using a
+public reason, even after Pro access ends; cancellation preserves existing
+project holds until the scheduled reveal. Maintainers retain moderation controls;
+historical proposals retain their review records; creators cannot self-cancel historical manually approved
+jams. The official Zero page presents the accepted details and
 participation link. The earlier creator-hosted website preparation and submission
 path is retained in source but temporarily unavailable for new proposals; existing
 records remain readable. Participants can join with their own public GitHub
@@ -188,7 +192,7 @@ repository before the deadline; verified custom domains qualify. Coursework
 links still go separately to Pika.
 
 The owner authorized a 100-participant limit per jam, including departed
-registrations, with independent approval by armorup. This source limit changes
+registrations. New Pro jams are automatically approved; maintainers can moderate them. This source limit changes
 the live service only through publication. The 100-person hosted Neon/Pages flow
 remains untested; the limit is not a provider-capacity acceptance result.
 Production availability is controlled by a pilot flag; the pilot is shared by direct link. A reveal date is not a

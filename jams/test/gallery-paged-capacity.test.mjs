@@ -18,7 +18,6 @@ test('100 workflow entries traverse thirteen actual HTTP pages with complete fin
   const f=fixture({limits:{participants:100},pagesBindingReader:verifiedPages});
   const proposal=await f.service.propose({actor:creator,operationId:'paged-capacity-proposal',manifest:hostedManifest()});
   const id=proposal.eventId,revision=proposal.revision;
-  await f.service.mutate({id,actor:maintainer,operationId:'paged-capacity-approval',action:'approve',revision});
   await f.service.mutate({id,actor:participant,operationId:'paged-capacity-join',action:'join',revision,repositoryUrl:'https://github.com/student/project'});
   await f.service.mutate({id,actor:participant,operationId:'paged-capacity-submit',action:'submit',revision,
     title:'Template',description:'Synthetic gallery fixture',demoUrl:'https://student.github.io/project/'});

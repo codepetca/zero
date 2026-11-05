@@ -81,8 +81,8 @@ test('local authority authenticates HTTP writes and CSRF before shared transacti
   const beforeApproval=store.commits;
   response=await postJamActionResponse(post('creator',actionPath,approval),id,options);assert.equal(response.status,403);assert.equal(store.commits,beforeApproval);
   response=await postJamActionResponse(post('participant',actionPath,approval),id,options);assert.equal(response.status,403);assert.equal(store.commits,beforeApproval);
-  assert.equal((await (await store.snapshot()).read(id)).state.accepted,null,'an unrelated nonmaintainer cannot approve the proposal');
-  response=await postJamActionResponse(post('owner',actionPath,approval),id,options);assert.equal(response.status,200);
+  assert.equal((await (await store.snapshot()).read(id)).state.accepted.approvalMode,'pro-license-v1','Pro proposal is already approved by policy');
+  response=await postJamActionResponse(post('owner',actionPath,approval),id,options);assert.equal(response.status,409);
   const join={operationId:'http-local-join',action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/student/project'};
   const submit={operationId:'http-local-submit',action:'submit',revision:proposal.revision,title:'Project',description:'Synthetic project',demoUrl:'https://student.github.io/project/'};
   for(const body of [join,submit]){
@@ -92,8 +92,8 @@ test('local authority authenticates HTTP writes and CSRF before shared transacti
     assert.equal((await response.json()).status,body===join?'joined':'submitted');
   }
   const snapshot=await store.snapshot(),state=(await snapshot.read(id)).state;
-  assert.equal(state.creator.id,'11');assert.equal(state.accepted.reviewedBy,'4050555');assert.equal(state.registrations['33'].status,'joined');
-  assert.equal(state.entries['33'].length,1);assert.equal(Object.keys(state.operations).length,4);assert.equal(store.commits,4);
+  assert.equal(state.creator.id,'11');assert.equal(state.accepted.reviewedBy,null);assert.equal(state.registrations['33'].status,'joined');
+  assert.equal(state.entries['33'].length,1);assert.equal(Object.keys(state.operations).length,3);assert.equal(store.commits,3);
   assert.equal(identityCalls.length,6);assert.equal(repositoryCalls,2);assert.equal(pagesCalls,1);
   const ownerProposalBody={operationId:'http-local-owner-proposal',manifest:hostedManifest()};
   response=await postJamProposalResponse(post('owner',proposalPath,ownerProposalBody),options);assert.equal(response.status,200);
@@ -103,8 +103,8 @@ test('local authority authenticates HTTP writes and CSRF before shared transacti
   assert.equal(response.status,403);assert.match((await response.json()).error,/different maintainer/i);
   const afterSelfApproval=await store.snapshot(),ownerState=(await afterSelfApproval.read(ownerProposal.eventId)).state;
   assert.equal(afterSelfApproval.revision,beforeSelfApproval.revision);assert.equal(store.commits,commitsBeforeSelfApproval);
-  assert.equal(ownerState.creator.id,'4050555');assert.equal(ownerState.accepted,null);assert.equal(ownerState.proposals.at(-1).status,'submitted');
-  assert.equal(ownerState.proposals.at(-1).reviewedBy,undefined);assert.equal(Object.keys(ownerState.operations).length,1);
+  assert.equal(ownerState.creator.id,'4050555');assert.equal(ownerState.accepted.approvalMode,'pro-license-v1');assert.equal(ownerState.proposals.at(-1).status,'approved');
+  assert.equal(ownerState.proposals.at(-1).reviewedBy,null);assert.equal(Object.keys(ownerState.operations).length,1);
   const destinationReader=async url=>{assert.equal(url,'https://github.com/student/project');return {repositoryId:'202',ownerId:'33',owner:'student',repo:'project',repositoryUrl:url};};
   const jam=()=>getJamResponse(new Request(config.origin+`/api/jams/${id}`),id,{...options,destinationReader});
   const hub=()=>catalogResponse(new Request(config.origin+'/api/hub/catalog'),{...authority.hubOptions,reader:async()=>publicCatalog(),destinationReader});
@@ -114,7 +114,7 @@ test('local authority authenticates HTTP writes and CSRF before shared transacti
   response=await jam();assert.equal(response.status,200);assert.equal((await response.json()).event.entries.length,1);
   response=await hub();assert.equal(response.status,200);assert.equal((await response.json()).releases.length,1);
   assert.equal(identityCalls.length,8,'Anonymous reveal reads do not dispatch identity or provider fallback requests');
-  assert.equal(store.commits,5,'Public projection cannot create registry writes');
+  assert.equal(store.commits,4,'Public projection cannot create registry writes');
   // A real authenticated Free account can participate above but cannot create,
   // and a browser license claim never becomes server entitlement authority.
   time=Date.parse('2030-01-02T12:00:00Z'); // Reuse the fixture's unexpired sign-in.
@@ -122,6 +122,6 @@ test('local authority authenticates HTTP writes and CSRF before shared transacti
   response=await postJamProposalResponse(post('participant',proposalPath,freeProposal),options);
   assert.equal(response.status,403);assert.match((await response.json()).error,/Pro license/);
   response=await postJamProposalResponse(post('participant',proposalPath,{...freeProposal,license:'pro'}),options);
-  assert.equal(response.status,400);assert.equal(store.commits,5);
+  assert.equal(response.status,400);assert.equal(store.commits,4);
 
 });

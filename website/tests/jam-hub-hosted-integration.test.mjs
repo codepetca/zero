@@ -46,7 +46,6 @@ test('hosted null-repository event holds all project kinds across fresh atomic s
   assert.equal((await selection()).releases.length,3);
   const proposal=await service.propose({actor:creator,operationId:'hosted-integrate-01',manifest:hostedManifest()});
   assert.match(proposal.eventId,/^jam-zero-[a-f0-9]{32}$/);
-  await service.mutate({id:proposal.eventId,actor:maintainer,operationId:'approve-integrate-01',action:'approve',revision:proposal.revision});
   const join={id:proposal.eventId,actor:participant,operationId:'join-integrate-01',action:'join',revision:proposal.revision,
     repositoryUrl:'https://github.com/student/project202',demoUrl:'https://student.github.io/project202/'};
   await service.mutate(join);await service.mutate(join);

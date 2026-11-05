@@ -5,7 +5,6 @@ import {fixture,creator,maintainer,participant,hostedManifest} from './fixtures.
 async function setup() {
   const f=fixture();
   const proposal=await f.service.propose({actor:creator,operationId:'retry-proposal-01',manifest:hostedManifest()});
-  await f.service.mutate({id:proposal.eventId,actor:maintainer,operationId:'retry-approve-01',action:'approve',revision:proposal.revision});
   const join={id:proposal.eventId,actor:participant,operationId:'retry-join-00001',action:'join',revision:proposal.revision,
     repositoryUrl:'https://github.com/student/project'};
   return {...f,join};
@@ -55,7 +54,7 @@ test('safety actions and unscoped proposals retry rejected updates without jitte
     const f=await setup();let attempts=0;
     f.store.beforeCas=()=>{if(++attempts===1)f.store.bump();};
     if(action==='safety')await f.service.mutate({id:f.join.id,actor:maintainer,operationId:'retry-suspend-001',action:'suspend',reason:'Review'});
-    else await f.service.propose({actor:creator,operationId:'retry-second-proposal',manifest:hostedManifest({title:'Another jam'})});
+    else await f.service.propose({actor:{id:'44',login:'other'},operationId:'retry-second-proposal',manifest:hostedManifest({title:'Another jam'})});
     assert.equal(attempts,2);
   }
   assert.equal(random.mock.callCount(),0);

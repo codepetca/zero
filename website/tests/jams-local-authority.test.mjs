@@ -55,9 +55,8 @@ test('one local transactional authority carries shared holds through actual Jam 
   assert.equal(authority.jamOptions.visibilityReader,authority.hubOptions.visibilityReader);
   for(let i=0;i<2;i++){
     const manifest=hostedManifest();manifest.schedule.galleryRevealAt=i?'2030-01-06T00:00:00Z':'2030-01-05T00:00:00Z';
-    const p=await authority.service.propose({actor:creator,operationId:`local-proposal-${i}`,manifest});events.push(p);
+    const p=await authority.service.propose({actor:i?owner:creator,operationId:`local-proposal-${i}`,manifest});events.push(p);
     await assert.rejects(authority.service.mutate({id:p.eventId,revision:p.revision,actor:{id:'22',login:'other'},operationId:`local-forged-${i}`,action:'approve'}),error=>error.status===403);
-    await authority.service.mutate({id:p.eventId,revision:p.revision,actor:owner,operationId:`local-approval-${i}`,action:'approve'});
     await authority.service.mutate({id:p.eventId,revision:p.revision,actor:participant,operationId:`local-join-${i}`,action:'join',repositoryUrl:'https://github.com/student/project'});
     await authority.service.mutate({id:p.eventId,revision:p.revision,actor:participant,operationId:`local-submit-${i}`,action:'submit',title:'Project',description:'Synthetic project',demoUrl:'https://student.github.io/project/'});
   }
@@ -102,7 +101,6 @@ test('absent or disabled write activation cannot use the returned service or byp
 test('disabling writes after a staged CAS does not establish rollback or absence',async()=>{
   const f=fixture(),authority=f.compose();
   const p=await authority.service.propose({actor:creator,operationId:'local-racing-proposal',manifest:hostedManifest()});
-  await authority.service.mutate({id:p.eventId,revision:p.revision,actor:owner,operationId:'local-racing-approval',action:'approve'});
   const input={id:p.eventId,revision:p.revision,actor:participant,operationId:'local-racing-join',action:'join',repositoryUrl:'https://github.com/student/project'},commits=f.store.commits;
   // The callback staged its CAS while enabled. The store can still flush that
   // state after this flag change; the composition cannot revoke its SQL work.
@@ -119,7 +117,6 @@ test('disabling writes after a staged CAS does not establish rollback or absence
 test('stalled shared authority fails both HTTP lanes without selecting a fallback',async()=>{
   const f=fixture({visibilityTimeoutMs:15}),authority=f.compose();
   const p=await authority.service.propose({actor:creator,operationId:'local-stall-proposal',manifest:hostedManifest()});
-  await authority.service.mutate({id:p.eventId,revision:p.revision,actor:owner,operationId:'local-stall-approve',action:'approve'});
   f.store.stalled=true;
   const responses=await Promise.all([
     getJamResponse(request(`/api/jams/${p.eventId}`),p.eventId,{...authority.jamOptions,responseBudgetMs:20,destinationReader}),
@@ -157,14 +154,13 @@ test('hosted pilot transactionally caps one hundred distinct registrations despi
     const authority=createHostedJamAuthority({env,store,now:()=>Date.parse('2030-01-02T12:00:00Z'),limits:{participants:200},
       verifySource:async()=>{},verifyRepository:async({actor})=>({repository:{id:String(1000+Number(actor.id)),ownerId:actor.id,fullName:actor.login+'/project'}}),pagesBindingReader:async()=>({status:'unverified'})});
     const proposal=await authority.service.propose({actor:{id:'11',login:'creator'},operationId:'pilot-proposal-0001',manifest:hostedManifest()});
-    await authority.service.mutate({id:proposal.eventId,actor:{id:'4050555',login:'armorup'},operationId:'pilot-approval-0001',action:'approve',revision:proposal.revision});
     const inputs=Array.from({length:101},(_,i)=>{const id=String(100+i),login='student'+i;return {id:proposal.eventId,actor:{id,login},operationId:'pilot-join-'+id,action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/'+login+'/project'};});
     const attempts=await Promise.allSettled(inputs.map(input=>authority.service.mutate(input)));
     assert.equal(attempts.filter(a=>a.status==='fulfilled').length,100);
     const rejected=attempts.filter(a=>a.status==='rejected');assert.equal(rejected.length,1);assert.equal(rejected[0].reason.status,429);assert.match(rejected[0].reason.message,/capacity of 100 participants/);
     const event=(await authority.service.list()).events[0];assert.equal(event.participantLimit,100);assert.equal(event.participantCount,100);
     let state=(await (await store.snapshot()).read(proposal.eventId)).state;
-    assert.equal(Object.keys(state.registrations).length,100);assert.equal(Object.keys(state.operations).length,102);
+    assert.equal(Object.keys(state.registrations).length,100);assert.equal(Object.keys(state.operations).length,101);
     assert.equal((await authority.service.read(proposal.eventId)).event.participantLimit,100);
     // A confirmed operation recovers at capacity; leaving does not free a slot
     // for another distinct identity, while the existing participant may rejoin.
@@ -173,14 +169,13 @@ test('hosted pilot transactionally caps one hundred distinct registrations despi
     await assert.rejects(authority.service.mutate(inputs[100]),e=>e.status===429);
     assert.equal((await authority.service.mutate({...inputs[0],operationId:'pilot-rejoin-100'})).status,'joined');
     state=(await (await store.snapshot()).read(proposal.eventId)).state;
-    assert.equal(Object.keys(state.registrations).length,100);assert.equal(Object.keys(state.operations).length,104);
-    const second=await authority.service.propose({actor:{id:'11',login:'creator'},operationId:'pilot-proposal-0002',manifest:hostedManifest()});
-    await authority.service.mutate({id:second.eventId,actor:{id:'4050555',login:'armorup'},operationId:'pilot-approval-0002',action:'approve',revision:second.revision});
+    assert.equal(Object.keys(state.registrations).length,100);assert.equal(Object.keys(state.operations).length,103);
+    const second=await authority.service.propose({actor:{id:'4050555',login:'armorup'},operationId:'pilot-proposal-0002',manifest:hostedManifest()});
     assert.equal((await authority.service.mutate({...inputs[100],id:second.eventId,revision:second.revision,operationId:'second-jam-join-200'})).status,'joined');
     assert.equal((await authority.service.read(second.eventId)).event.participantCount,1,'registration capacity is per jam');
     delete process.env.ZERO_JAMS_PILOT_ENABLED;await assert.rejects(authority.service.propose({}),e=>e.status===503);
     assert.equal((await authority.visibilityReader()).isHeld('1001'),false);`;
-  const child=spawnSync(process.execPath,['--input-type=module','-e',script],{env:{PATH:process.env.PATH||'/usr/bin:/bin',NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11'},encoding:'utf8',timeout:10000});
+  const child=spawnSync(process.execPath,['--input-type=module','-e',script],{env:{PATH:process.env.PATH||'/usr/bin:/bin',NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11,4050555'},encoding:'utf8',timeout:10000});
   assert.equal(child.status,0,child.stderr);assert.equal(child.stdout,'');
 });
 

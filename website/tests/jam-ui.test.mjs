@@ -10,14 +10,14 @@ const require=createRequire(import.meta.url);
 const clientSource=await readFile(new URL('../components/JamClient.tsx',import.meta.url),'utf8');
 const panelSource=await readFile(new URL('../app/hub/jams/[id]/panel/route.ts',import.meta.url),'utf8');
 function compile(source){return ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;}
-function harness({storage=new Map(),fetcher=async()=>{throw new Error('network');},participateData=null}={}) {
-  let actor={id:'12',login:'creator',csrfToken:'csrf'},index=0,slots=[];
+function harness({storage=new Map(),fetcher=async()=>{throw new Error('network');},participateData=null,refreshImpl=null}={}) {
+  let actor={id:'12',login:'creator',csrfToken:'csrf'},index=0,slots=[],effects=[];
   const self={},window={self,top:self};
-  const react={useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(){index++;}};
+  const react={useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(fn){index++;effects.push(fn);}};
   const module={exports:{}};
-  const context={participateData,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return ()=>null;return require(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
-  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:async()=>{}});useTopLevel=()=>true;}exports.testing={useMutation,useResource,JamPlanNotice,JamCreate,JamDiscovery,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,MaintainerTools};',context);
-  return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
+  const context={participateData,refreshImpl,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return ()=>null;return require(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
+  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useMutation,useResource,JamPlanNotice,JamCreate,JamDiscovery,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,MaintainerTools};',context);
+  return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},flushEffects(){const work=effects;effects=[];for(const fn of work)fn();},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
 }
 function elements(node) {
   if(Array.isArray(node))return node.flatMap(elements);
@@ -272,4 +272,133 @@ test('server-denied Pro proposal shows its error and keeps the operation for ret
   const h=harness({storage,fetcher:async()=>{calls++;return Response.json({configured:true,error:denial},{status:403});}});
   assert.equal(await h.render('useMutation','/api/jams/proposals').send({manifest:{title:'Draft'}}),null);
   assert.equal(h.render('useMutation','/api/jams/proposals').error,denial);assert.equal(calls,1);assert.equal(storage.size,1);
+});
+
+test('creation explains automatic approval and one active jam without promising manual review',()=>{
+  const h=harness(),tree=h.render('JamCreate'),nodes=elements(tree);
+  const lead=nodes.find(node=>node.type==='p'&&node.props.className==='lead');
+  assert.match(lead.props.children,/automatically approved/);assert.match(lead.props.children,/one active jam at a time/);assert.match(lead.props.children,/gallery opens/);
+  assert.doesNotMatch(clientSource,/Send for maintainer review|An independent Zero maintainer reviews your proposal/);
+  assert.match(clientSource,/data\.canMaintain&&proposal\.status==='submitted'/,'historical pending review remains supported');
+});
+
+test('a one-active-jam conflict preserves the server message and operation for retry',async()=>{
+  const storage=new Map(),text='You can have only one active jam at a time.';
+  const h=harness({storage,fetcher:async()=>Response.json({configured:true,error:text},{status:429})});
+  assert.equal(await h.render('useMutation','/api/jams/proposals').send({manifest:{title:'Draft'}}),null);
+  assert.equal(h.render('useMutation','/api/jams/proposals').error,text);assert.equal(storage.size,1);
+});
+
+
+test('only an auto-approved jam creator sees cancellation and must give a public reason',async()=>{
+  let received,refreshed=0;const h=harness({participateData:{},fetcher:async(url,init)=>{received={url,body:JSON.parse(init.body)};return confirmed(init);}});
+  const event={creator:{id:'12',login:'creator'},approvalMode:'pro-license-v1',moderation:{status:'active'}};
+  const render=()=>h.render('CreatorCancel',{id:'jam-42',event,onChanged:async()=>{refreshed++;}});
+  render();h.flushEffects();let tree=render(),nodes=elements(tree);assert.equal(nodes.find(n=>n.type==='button').props.disabled,true);
+  assert.match(renderToStaticMarkup(tree),/visibility holds remain until the scheduled gallery reveal/);
+  await nodes.find(n=>n.type==='form').props.onSubmit({preventDefault(){}});assert.equal(received,undefined);
+  nodes.find(n=>n.type==='textarea').props.onChange({target:{value:'  Event postponed  '}});tree=render();nodes=elements(tree);
+  assert.equal(nodes.find(n=>n.type==='button').props.disabled,false);nodes.find(n=>n.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(received.url,'/api/jams/jam-42/actions');assert.equal(received.body.action,'cancel');assert.equal(received.body.reason,'Event postponed');assert.ok(received.body.operationId);assert.equal(refreshed,1);
+  for(const next of [{...event,creator:{id:'13'}},{...event,approvalMode:undefined},{...event,moderation:{status:'cancelled'}}])assert.equal(h.render('CreatorCancel',{id:'jam-42',event:next,onChanged:async()=>{}}),null);
+  const suspended=harness({participateData:{}}),suspendedProps={id:'jam-42',event:{...event,moderation:{status:'suspended'}},onChanged:async()=>{}};suspended.render('CreatorCancel',suspendedProps);suspended.flushEffects();assert.ok(suspended.render('CreatorCancel',suspendedProps));
+  const framed=harness();framed.frame();assert.equal(framed.render('CreatorCancel',{id:'jam-42',event,onChanged:async()=>{}}),null);
+  h.setActor(null);assert.equal(h.render('CreatorCancel',{id:'jam-42',event,onChanged:async()=>{}}),null);
+});
+
+
+test('lost cancellation response recovers its original operation after reload without permitting new cancellations',async()=>{
+  const storage=new Map(),calls=[],event={creator:{id:'12',login:'creator'},approvalMode:'pro-license-v1',moderation:{status:'active'}};
+  const first=harness({storage,participateData:{},fetcher:async(url,init)=>{calls.push(JSON.parse(init.body));throw Error('response lost');}});
+  const props={id:'jam-42',event,onChanged:async()=>{}};first.render('CreatorCancel',props);first.flushEffects();let tree=first.render('CreatorCancel',props);
+  elements(tree).find(n=>n.type==='textarea').props.onChange({target:{value:'A public reason'}});tree=first.render('CreatorCancel',props);
+  elements(tree).find(n=>n.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(calls.length,1);const original=calls[0];assert.equal(original.action,'cancel');
+  const cancelled={...event,moderation:{status:'cancelled'}},second=harness({storage,participateData:{},fetcher:async(url,init)=>{calls.push(JSON.parse(init.body));return confirmed(init);}});
+  const next={id:'jam-42',event:cancelled,onChanged:async()=>{}};assert.equal(second.render('CreatorCancel',next),null);second.flushEffects();
+  tree=second.render('CreatorCancel',next);assert.match(renderToStaticMarkup(tree),/Check previous cancellation/);assert.match(renderToStaticMarkup(tree),/A public reason/);
+  elements(tree).find(n=>n.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(calls[1],original);assert.equal(second.render('CreatorCancel',next),null);
+  const fresh=harness({storage:new Map(),participateData:{}});fresh.render('CreatorCancel',next);fresh.flushEffects();assert.equal(fresh.render('CreatorCancel',next),null);
+});
+
+test('cancellation recovery never reveals another actor or sends a new operation when the stored ID disappears',async()=>{
+  const storage=new Map(),calls=[],event={creator:{id:'12',login:'creator'},approvalMode:'pro-license-v1',moderation:{status:'active'}};
+  const first=harness({storage,participateData:{},fetcher:async(_url,init)=>{calls.push(JSON.parse(init.body));throw Error('lost');}});
+  first.render('CreatorCancel',{id:'jam-42',event,onChanged:async()=>{}});first.flushEffects();let tree=first.render('CreatorCancel',{id:'jam-42',event,onChanged:async()=>{}});elements(tree).find(n=>n.type==='textarea').props.onChange({target:{value:'Original'}});
+  tree=first.render('CreatorCancel',{id:'jam-42',event,onChanged:async()=>{}});elements(tree).find(n=>n.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  const cancelled={...event,moderation:{status:'cancelled'}},other=harness({storage,participateData:{}});other.setActor({id:'99',login:'other',csrfToken:'other'});
+  other.render('CreatorCancel',{id:'jam-42',event:cancelled,onChanged:async()=>{}});other.flushEffects();assert.equal(other.render('CreatorCancel',{id:'jam-42',event:cancelled,onChanged:async()=>{}}),null);
+  const retry=harness({storage,participateData:{},fetcher:async(_url,init)=>{calls.push(JSON.parse(init.body));return confirmed(init);}}),props={id:'jam-42',event:cancelled,onChanged:async()=>{}};
+  retry.render('CreatorCancel',props);retry.flushEffects();tree=retry.render('CreatorCancel',props);
+  for(const key of storage.keys())if(key.startsWith('zero-jam-operation:'))storage.delete(key);
+  elements(tree).find(n=>n.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(calls.length,1);assert.match(renderToStaticMarkup(retry.render('CreatorCancel',props)),/original cancellation request is unavailable/i);
+});
+
+test('an unresolved cancellation on an active reload locks its original reason and operation',async()=>{
+  const storage=new Map(),calls=[],event={creator:{id:'12',login:'creator'},approvalMode:'pro-license-v1',moderation:{status:'active'}};
+  const first=harness({storage,participateData:{},fetcher:async(_url,init)=>{calls.push(JSON.parse(init.body));throw Error('response lost');}});
+  const props={id:'jam-42',event,onChanged:async()=>{}};first.render('CreatorCancel',props);first.flushEffects();let tree=first.render('CreatorCancel',props);
+  elements(tree).find(n=>n.type==='textarea').props.onChange({target:{value:'Original reason'}});tree=first.render('CreatorCancel',props);
+  elements(tree).find(n=>n.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  const retry=harness({storage,participateData:{},fetcher:async(_url,init)=>{calls.push(JSON.parse(init.body));return confirmed(init);}});
+  retry.render('CreatorCancel',props);retry.flushEffects();tree=retry.render('CreatorCancel',props);
+  assert.match(renderToStaticMarkup(tree),/earlier cancellation has not been confirmed/);assert.equal(elements(tree).some(n=>n.type==='textarea'),false);
+  elements(tree).find(n=>n.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(calls[1],calls[0]);assert.equal(calls[1].reason,'Original reason');
+});
+
+test('cancellation refuses dispatch when its recovery data cannot be saved',async()=>{
+  const storage=new Map();storage.set=()=>{throw Error('storage unavailable');};let calls=0;
+  const h=harness({storage,participateData:{},fetcher:async()=>{calls++;return Response.json({});}});
+  const event={creator:{id:'12',login:'creator'},approvalMode:'pro-license-v1',moderation:{status:'active'}},props={id:'jam-42',event,onChanged:async()=>{}};
+  h.render('CreatorCancel',props);h.flushEffects();let tree=h.render('CreatorCancel',props);elements(tree).find(n=>n.type==='textarea').props.onChange({target:{value:'Reason'}});tree=h.render('CreatorCancel',props);
+  elements(tree).find(n=>n.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(calls,0);assert.match(renderToStaticMarkup(h.render('CreatorCancel',props)),/could not save this cancellation request/i);
+});
+
+test('a damaged cancellation recovery record blocks a new cancellation after reload',()=>{
+  const storage=new Map([['zero-jam-cancel-pending:12:jam-42','Earlier reason']]);
+  const h=harness({storage,participateData:{}}),event={creator:{id:'12',login:'creator'},approvalMode:'pro-license-v1',moderation:{status:'active'}},props={id:'jam-42',event,onChanged:async()=>{}};
+  h.render('CreatorCancel',props);h.flushEffects();const tree=h.render('CreatorCancel',props);
+  assert.match(renderToStaticMarkup(tree),/earlier cancellation request cannot be recovered/i);
+  assert.equal(elements(tree).some(n=>n.type==='button'||n.type==='textarea'),false);
+});
+
+test('confirmed cancellation cannot show a fresh form while the event refresh is pending',async()=>{
+  let releaseRefresh;const h=harness({participateData:{},fetcher:async(_url,init)=>confirmed(init)});
+  const event={creator:{id:'12',login:'creator'},approvalMode:'pro-license-v1',moderation:{status:'active'}};
+  const props={id:'jam-42',event,onChanged:()=>new Promise(resolve=>{releaseRefresh=resolve;})};
+  h.render('CreatorCancel',props);h.flushEffects();let tree=h.render('CreatorCancel',props);
+  elements(tree).find(n=>n.type==='textarea').props.onChange({target:{value:'Cancelled by organizer'}});tree=h.render('CreatorCancel',props);
+  elements(tree).find(n=>n.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(typeof releaseRefresh,'function');assert.equal(h.render('CreatorCancel',props),null);
+  releaseRefresh();await new Promise(resolve=>setImmediate(resolve));assert.equal(h.render('CreatorCancel',props),null);
+  assert.equal(h.render('CreatorCancel',{...props,event:{...event,moderation:{status:'cancelled'}}}),null);
+});
+
+
+test('confirmed cancellation receipt remains visible when refresh fails',async()=>{
+  const h=harness({participateData:{},fetcher:async(_url,init)=>confirmed(init)});
+  const event={creator:{id:'12',login:'creator'},approvalMode:'pro-license-v1',moderation:{status:'active'}};
+  const props={id:'jam-42',event,onChanged:async()=>{throw Error('refresh failed');}};
+  h.render('CreatorCancel',props);h.flushEffects();let tree=h.render('CreatorCancel',props);
+  elements(tree).find(n=>n.type==='textarea').props.onChange({target:{value:'Cancelled by organizer'}});tree=h.render('CreatorCancel',props);
+  elements(tree).find(n=>n.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  tree=h.render('CreatorCancel',props);assert.equal(tree,null);
+});
+
+
+test('JamDetail retains one cancellation receipt across loading, failed refresh and stale data',async()=>{
+  let rejectRefresh;const event={id:'jam-42',title:'Jam',type:'game',summary:'Jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',timezone:'UTC',schedule:{},revision:'a',creator:{id:'12',login:'creator'},approvalMode:'pro-license-v1',moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participantCount:0,participants:[],entries:[]};
+  const initial={event,registration:null,entry:null,canMaintain:false},parent=harness({participateData:initial,refreshImpl:()=>{parent.setDetail({testError:'Refresh unavailable'});return new Promise((_resolve,reject)=>{rejectRefresh=reject;});}});
+  const render=()=>elements(parent.render('JamDetail',{id:'jam-42'}));let child=render().find(n=>n.type?.name==='CreatorCancel');assert.ok(child);
+  const worker=harness({participateData:{},fetcher:async(_url,init)=>confirmed(init)});worker.render('CreatorCancel',child.props);worker.flushEffects();let tree=worker.render('CreatorCancel',child.props);
+  elements(tree).find(n=>n.type==='textarea').props.onChange({target:{value:'Closing'}});tree=worker.render('CreatorCancel',child.props);elements(tree).find(n=>n.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  let nodes=render();assert.equal(nodes.filter(n=>n.props?.role==='status'&&n.props.children==='Cancellation confirmed by Zero.').length,1);assert.equal(nodes.some(n=>n.type?.name==='CreatorCancel'),false);
+  rejectRefresh(Error('Refresh unavailable'));await new Promise(resolve=>setImmediate(resolve));parent.setDetail(initial);nodes=render();
+  assert.equal(nodes.filter(n=>n.props?.role==='status'&&n.props.children==='Cancellation confirmed by Zero.').length,1);child=nodes.find(n=>n.type?.name==='CreatorCancel');assert.equal(child.props.confirmedByParent,true);
+  parent.setDetail({...initial,event:{...event,moderation:{status:'cancelled'}}});assert.equal(render().some(n=>n.props?.children==='Cancellation confirmed by Zero.'),false);
+  parent.setDetail(initial);parent.setActor({id:'99',login:'other',csrfToken:'csrf'});assert.equal(render().some(n=>n.props?.children==='Cancellation confirmed by Zero.'),false);
 });

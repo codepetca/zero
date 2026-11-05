@@ -14,7 +14,7 @@ async function record({hosted=false,unbound=true,status='joined',hasReveal=true}
     await legacyProposal(f,{data:manifest({schedule:{...manifest().schedule,
       ...(hasReveal ? {galleryRevealAt:new Date(reveal).toISOString()} : {})}})});
   const id=proposal.eventId;
-  await f.service.mutate({id,actor:maintainer,operationId:'audit-approve-001',action:'approve',revision:proposal.revision});
+  if(!hosted)await f.service.mutate({id,actor:maintainer,operationId:'audit-approve-001',action:'approve',revision:proposal.revision});
   const state=structuredClone(f.store.records.get(id).state);
   state.registrations[participant.id]={...participant,status,
     ...(!unbound ? {repository:{id:'202',ownerId:participant.id,fullName:'student/project'}} : {})};

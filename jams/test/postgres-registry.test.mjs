@@ -233,7 +233,6 @@ test('Postgres local transactions serialize, preserve snapshots and recover lost
     verifyRepository:async({actor})=>({repository:{id:String(1000+Number(actor.id)),ownerId:actor.id,fullName:`${actor.login}/project`}}),
     pagesBindingReader:async(repo,pagesUrl)=>({status:'verified',pagesUrl,repositoryId:repo.id,ownerId:repo.ownerId})});
   const proposal=await store.transact(tx=>serviceFor(tx).propose({actor:creator,operationId:'pg-propose-0001',manifest:hostedManifest()}));
-  await store.transact(tx=>serviceFor(tx).mutate({id:proposal.eventId,revision:proposal.revision,actor:maintainer,operationId:'pg-approve-0001',action:'approve'}));
   const pinned=await store.snapshot();assert.equal((await empty.read(proposal.eventId)).state,null);
   const actors=Array.from({length:30},(_,i)=>({id:String(100+i),login:`student${i}`}));
   const input=actor=>({id:proposal.eventId,revision:proposal.revision,actor,operationId:`pg-join-${actor.id}`,action:'join',repositoryUrl:`https://github.com/${actor.login}/project`});

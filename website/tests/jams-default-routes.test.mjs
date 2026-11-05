@@ -115,7 +115,7 @@ for(const mode of ['local','staging'])test(`actual Next entrypoints share ${mode
   const at=offset=>new Date(time+offset).toISOString(),manifest=hostedManifest({schedule:{registrationOpensAt:at(-120000),registrationClosesAt:at(120000),startsAt:at(-60000),submissionsOpenAt:at(-30000),submissionsCloseAt:at(180000),galleryRevealAt:at(240000)}});
   let response=await call('api/jams/proposals/route.ts','POST','/api/jams/proposals',{user:'creator',body:{operationId:'route-proposal-001',manifest}});
   assert.equal(response.status,200);const proposal=await response.json(),id=proposal.eventId;
-  response=await call('api/jams/[id]/actions/route.ts','POST',`/api/jams/${id}/actions`,{user:'armorup',body:{operationId:'route-approval-001',action:'approve',revision:proposal.revision}},{id});assert.equal(response.status,200);
+  assert.equal(proposal.status,'approved');
   const joined=await Promise.all(['student1','student2'].map(user=>call('api/jams/[id]/actions/route.ts','POST',`/api/jams/${id}/actions`,{user,body:{operationId:`route-join-${user}`,action:'join',revision:proposal.revision,repositoryUrl:`https://github.com/${user}/project`}},{id})));
   assert.ok(joined.every(value=>value.status===200));assert.deepEqual(tokens.sort(),[['33','ghu_student_token_111'],['34','ghu_student_token_222']]);assert.equal(builds,1);
   if(mode==='staging'){

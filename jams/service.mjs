@@ -1,5 +1,5 @@
 import {projectVisibility} from './project-visibility.mjs';
-import {JamError, LIMITS, ID, SHA, ACCOUNT, SAFETY_SLOT_BYTES, safetySlots, operationCounts, stateBudget, actorIdentity, digest, fail, keys, manifestData, hostedManifestData, repositoryData, participantRepositoryData, pagesVerificationData, repositoryUrl, validateState, validateSettlements} from './schema.mjs';
+import {JamError, LIMITS, PRO_AUTO_APPROVAL, ID, SHA, ACCOUNT, SAFETY_SLOT_BYTES, safetySlots, operationCounts, stateBudget, actorIdentity, digest, fail, keys, manifestData, hostedManifestData, repositoryData, participantRepositoryData, pagesVerificationData, repositoryUrl, validateState, validateSettlements} from './schema.mjs';
 export {JamError} from './schema.mjs';
 
 // Trusted in-process provenance, deliberately absent from JSON and object spreads.
@@ -126,7 +126,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     const approvalHistory=state.proposals.filter(proposal=>proposal.status==='approved').map(proposal=>({revision:proposal.revision,approvedAt:proposal.reviewedAt,manifest:structuredClone(proposal.manifest)}));
     const galleryRevealed=!manifest.schedule.galleryRevealAt||time>=Date.parse(manifest.schedule.galleryRevealAt);
     const galleryIncomplete=galleryRevealed&&entries.some(entry=>!visibility.isHeld(entry.repository.id)&&pagesUnverified?.has(pagesKey(entry)));
-    return {id:state.id,creator:structuredClone(state.creator),hosting:state.hosting||'creator',revision:state.accepted?.revision||null,...manifest,approvalHistory,reviewStatus:state.proposals.at(-1).status,moderation:structuredClone(state.moderation),registrationOpen:active&&inWindow(time,manifest.schedule.registrationOpensAt,manifest.schedule.registrationClosesAt),submissionsOpen:active&&inWindow(time,manifest.schedule.submissionsOpenAt,manifest.schedule.submissionsCloseAt),participantCount:participants.length,participantLimit:bound.participants,participants,entries:moderation?entries:galleryRevealed?entries.filter(entry=>!visibility.isHeld(entry.repository.id)&&(!manifest.schedule.galleryRevealAt||Object.hasOwn(entry.repository,'commit')||onTimePages(entry,manifest.schedule)&&pagesEligible?.has(pagesKey(entry)))).map(({pagesVerification,...entry})=>entry):[],...(galleryIncomplete?{galleryIncomplete:true}:{}),...(manifest.schedule.galleryRevealAt?{galleryRevealed}:{}),updatedAt:state.updatedAt};
+    return {id:state.id,creator:structuredClone(state.creator),hosting:state.hosting||'creator',revision:state.accepted?.revision||null,...manifest,approvalHistory,...(state.accepted?.approvalMode?{approvalMode:state.accepted.approvalMode}:{}),reviewStatus:state.proposals.at(-1).status,moderation:structuredClone(state.moderation),registrationOpen:active&&inWindow(time,manifest.schedule.registrationOpensAt,manifest.schedule.registrationClosesAt),submissionsOpen:active&&inWindow(time,manifest.schedule.submissionsOpenAt,manifest.schedule.submissionsCloseAt),participantCount:participants.length,participantLimit:bound.participants,participants,entries:moderation?entries:galleryRevealed?entries.filter(entry=>!visibility.isHeld(entry.repository.id)&&(!manifest.schedule.galleryRevealAt||Object.hasOwn(entry.repository,'commit')||onTimePages(entry,manifest.schedule)&&pagesEligible?.has(pagesKey(entry)))).map(({pagesVerification,...entry})=>entry):[],...(galleryIncomplete?{galleryIncomplete:true}:{}),...(manifest.schedule.galleryRevealAt?{galleryRevealed}:{}),updatedAt:state.updatedAt};
   }
   function recover(state,actor,op,payloadDigest) {
     const previous=state?.operations[operationKey(actor,op)];
@@ -150,7 +150,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       const previous=state.creator.id===actor.id&&state.operations[operationKey(actor,op)];
       // Historical proposal records have no action discriminator. Their result
       // references a proposal revision, unlike entry submission/review results.
-      if(previous?.result?.status==='submitted'&&state.proposals.some(proposal=>proposal.revision===previous.result.revision)) {
+      const proposal=previous&&state.proposals.find(proposal=>proposal.revision===previous.result.revision);
+      if(proposal&&(previous.result.status==='submitted'||previous.result.status==='approved'&&previous.result.approvalMode===PRO_AUTO_APPROVAL&&proposal.approvalMode===PRO_AUTO_APPROVAL)) {
         const recovered=recover(state,actor,op,payloadDigest);
         if(result)fail(503,'Official request history is ambiguous.');
         result=recovered;
@@ -179,7 +180,35 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
   async function commitLoop(id,actor,op,payloadDigest,change,options={}) {
     return withWriteStore((writeStore,transactional)=>commitOnStore(writeStore,transactional,id,actor,op,payloadDigest,change,options),options.callScope);
   }
-  async function commitOnStore(writeStore,transactional,id,actor,op,payloadDigest,change,{create=false,pool='ordinary',scope=id,legacyDigest,callScope,recoverOnly=false}={}) {
+  function occupiesOrganizerSlot(state,time) {
+    if(state.moderation.status==='cancelled')return false;
+    const current=state.accepted||state.proposals.at(-1);
+    if(!state.accepted&&!['submitted','changes-requested'].includes(current.status))return false;
+    return time<Date.parse(current.manifest.schedule.galleryRevealAt||current.manifest.schedule.submissionsCloseAt);
+  }
+  const canCancelOwnJam=(state,actor)=>state?.hosting==='zero'&&state.creator.id===actor.id&&state.accepted?.approvalMode===PRO_AUTO_APPROVAL;
+  async function assertCreationRate(snapshot,actor,time) {
+    let recent=0;
+    for(const id of await ids(snapshot)) {
+      const existing=(await load(id,snapshot)).state;
+      if(!existing)fail(503,'Official jam records are unavailable.');
+      if(existing.creator.id!==actor.id)continue;
+      const created=Date.parse(existing.proposals[0].proposedAt);
+      if(!Number.isFinite(created))fail(503,'Official jam records are unavailable.');
+      if(created>time-bound.writeWindowMs)recent++;
+    }
+    if(recent>=bound.actorCreations)fail(429,'Too many jam creations. Wait a minute and retry with the same operation ID.');
+  }
+  async function assertOrganizerSlot(snapshot,next,time) {
+    if(!occupiesOrganizerSlot(next,time))return;
+    for(const existingId of await ids(snapshot)) {
+      if(existingId===next.id)continue;
+      const existing=(await load(existingId,snapshot)).state;
+      if(!existing)fail(503,'Official jam records are unavailable.');
+      if(existing.creator.id===next.creator.id&&occupiesOrganizerSlot(existing,time))fail(429,'You can have only one active jam at a time.');
+    }
+  }
+  async function commitOnStore(writeStore,transactional,id,actor,op,payloadDigest,change,{create=false,pool='ordinary',scope=id,legacyDigest,callScope,recoverOnly=false,enforceOrganizerSlot=false,creatorCancellation=false}={}) {
     for(let attempt=0;attempt<(transactional?1:bound.retries);attempt++) {
       callScope?.check();
       const snapshot=await safeCall(()=>callScope?callScope.run(()=>writeStore.snapshot({signal:callScope.signal})):writeStore.snapshot());
@@ -195,21 +224,12 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(scope==='proposals'&&state?.operations[operationKey(actor,op)])recover(state,actor,op,payloadDigest);
       const time=currentTime(now),stamp=new Date(time).toISOString();
       if(!state&&!create)fail(404,'Jam not found.');
+      if(!state&&create)await assertCreationRate(snapshot,actor,time);
       if(!state&&(await ids(snapshot)).length>=bound.events)fail(429,'The jam pilot is at event capacity.');
-      if(!state&&create) {
-        let recent=0;
-        for(const existingId of await ids(snapshot)) {
-          const existing=(await load(existingId,snapshot)).state;
-          if(!existing)fail(503,'Official jam records are unavailable.');
-          if(existing.hosting==='zero'&&existing.creator.id===actor.id&&
-             ['submitted','changes-requested'].includes(existing.proposals.at(-1)?.status))recent++;
-        }
-        if(recent>=bound.actorCreations)fail(429,'You already have the maximum number of pending jam proposals.');
-      }
       const next=state?structuredClone(state):{...initial(id,actor,null,stamp),hosting:'zero'};
       const counts=operationCounts(next);
       if(pool==='safety') {
-        if(!maintainers.has(actor.id))fail(403,'A Zero maintainer must perform this action.');
+        if(!maintainers.has(actor.id)&&!(creatorCancellation&&canCancelOwnJam(state,actor)))fail(403,'A Zero maintainer must perform this action.');
         if(counts.safety>=safetySlots(bound))fail(429,'Reserved safety moderation capacity is exhausted. Operator intervention is required.');
       } else {
         if(counts.ordinary>=bound.operations)fail(429,'This jam has reached its ordinary operation capacity.');
@@ -219,6 +239,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       const previousBytes=Buffer.byteLength(JSON.stringify(next));
       callScope?.check();
       const detail=change(next,time,stamp);
+      if(create||enforceOrganizerSlot)await assertOrganizerSlot(snapshot,next,time);
       const result={eventId:id,operationId:op,...detail};
       next.updatedAt=stamp;next.operations[operationKey(actor,op)]={actorId:actor.id,acceptedAt:time,payloadDigest,result,pool};
       const nextBytes=Buffer.byteLength(JSON.stringify(next));
@@ -422,8 +443,11 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(next.hosting!=='zero'||next.creator.id!==actor.id||next.proposals.length)fail(409,'This jam identifier is already in use.');
       if(Date.parse(manifest.schedule.galleryRevealAt)<=time)fail(400,'Choose a future gallery reveal time after the submission deadline.');
       next.creator.login=actor.login;
-      next.proposals.push({revision:proposalRevision,hosting:'zero',manifest,repository:null,status:'submitted',reason:'',proposedAt:stamp});
-      return {revision:proposalRevision,status:'submitted'};
+      const proposal={revision:proposalRevision,hosting:'zero',manifest,repository:null,status:'approved',reason:'',proposedAt:stamp,approvalMode:PRO_AUTO_APPROVAL,reviewedBy:null,reviewedAt:stamp};
+      next.proposals.push(proposal);
+      next.accepted={...structuredClone(proposal),approvedBy:null,approvedAt:stamp};
+      next.history.push({action:'auto-approve',policy:PRO_AUTO_APPROVAL,actorId:actor.id,revision:proposalRevision,at:stamp});
+      return {revision:proposalRevision,status:'approved',approvalMode:PRO_AUTO_APPROVAL};
     },{create:true,scope:'proposals',legacyDigest:legacyRequestDigest('proposals',{manifest:input.manifest})});
   }
   async function mutate(input,options={}) {
@@ -450,7 +474,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(rejected||previous)return rejected||previous;
     }
     if(!before)fail(404,'Jam not found.');
-    if((REVIEW.has(action)||MODERATION.has(action)||action==='withdraw-entry')&&!maintainers.has(actor.id))fail(403,'A Zero maintainer must perform this action.');
+    if((REVIEW.has(action)||MODERATION.has(action)||action==='withdraw-entry')&&!maintainers.has(actor.id)&&!(action==='cancel'&&canCancelOwnJam(before,actor)))fail(403,'A Zero maintainer must perform this action.');
     if(action==='approve'&&before.creator.id===actor.id)fail(403,'A different maintainer must approve your jam.');
     let joinedRepository=null,verified=null,pagesVerification=null;
     if(action==='join'&&payload.repositoryUrl) {
@@ -487,7 +511,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
         return {revision:proposal.revision,status:proposal.status};
       }
       if(MODERATION.has(action)) {
-        if(!maintainers.has(actor.id))fail(403,'A Zero maintainer must perform this action.');
+        if(!maintainers.has(actor.id)&&!(action==='cancel'&&canCancelOwnJam(next,actor)))fail(403,'A Zero maintainer must perform this action.');
         if(next.moderation.status==='cancelled')fail(409,'This official jam was cancelled.');
         if(!next.accepted)fail(409,'Approve the jam before changing official participation.');
         next.moderation={status:action==='suspend'?'suspended':action==='cancel'?'cancelled':'active',reason:payload.reason,updatedAt:stamp};
@@ -539,7 +563,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       }
       if(action==='leave') {registration.status='left';registration.updatedAt=stamp;}
       return {status:action==='leave'?'left':'withdrawn'};
-    },{pool:SAFETY.has(action)?'safety':'ordinary',legacyDigest,callScope});
+    },{pool:SAFETY.has(action)?'safety':'ordinary',legacyDigest,callScope,enforceOrganizerSlot:action==='approve'||action==='resume',creatorCancellation:action==='cancel'});
   }
   async function settlement(input) {
     keys(input,['actor','scope','operationId','payload']);

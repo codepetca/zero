@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createJamService} from '../service.mjs';
 import {digest} from '../schema.mjs';
 import {getJamsResponse} from '../../website/lib/jams-http.mjs';
-import {fixture,manifest,approved,creator,maintainer,participant,submission,hostedManifest} from './fixtures.mjs';
+import {fixture,manifest,legacyProposal,approved,creator,maintainer,participant,submission,hostedManifest} from './fixtures.mjs';
 
 const id='jam-101',reveal='2030-01-05T00:00:00Z',demoUrl='https://play.example.org/';
 const verified=async(repository,pagesUrl)=>({status:'verified',pagesUrl,repositoryId:repository.id,ownerId:repository.ownerId});
@@ -156,7 +156,8 @@ test('directory defers 201 distinct live Pages destinations before proof work an
    state.entries[actorId]=[{...template,participantId:actorId,login,repository,demoUrl:url,title:`Private entry ${actorId}`,revision:digest({actorId}),pagesVerification:{...template.pagesVerification,pagesUrl:url,repositoryId:repository.id,ownerId:actorId}}];
   }
  }
- await f.service.propose({actor:creator,operationId:'pages-private-inbox',manifest:hostedManifest({title:'Private proposal'})});
+ f.legacySource=undefined;
+ await legacyProposal(f,{operationId:'pages-private-inbox',commit:'f'.repeat(40),data:manifest({title:'Private proposal'})});
  const anonymous=await f.reader.list(),moderation=await f.reader.list(maintainer);
  assert.equal(calls,0);assert.equal(anonymous.galleriesDeferred,true);assert.equal(anonymous.events.length,2);
  assert.ok(anonymous.events.every(event=>!Object.hasOwn(event,'entries')));

@@ -33,7 +33,7 @@ test('default local authority shares a real PostgreSQL registry across authentic
   await admin.query(POSTGRES_REGISTRY_SCHEMA);ownsTable=true;const epoch=freshRegistryEpoch();
   await admin.query(POSTGRES_REGISTRY_SEED,[epoch,JSON.stringify({events:{},settlements:{schema:1,operations:{}}})]);
   const {privateKey}=generateKeyPairSync('rsa',{modulusLength:2048,privateKeyEncoding:{type:'pkcs8',format:'pem'},publicKeyEncoding:{type:'spki',format:'pem'}});
-  const env={NODE_ENV:'development',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_LOCAL_AUTHORITY:'postgres',ZERO_JAMS_LOCAL_PG_SOCKET:socket,ZERO_JAMS_LOCAL_PG_PORT:port,ZERO_JAMS_LOCAL_PG_DATABASE:'postgres',ZERO_JAMS_LOCAL_PG_USER:userInfo().username,ZERO_JAMS_LOCAL_PG_EPOCH:epoch,
+  const env={NODE_ENV:'development',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'11',ZERO_JAMS_LOCAL_AUTHORITY:'postgres',ZERO_JAMS_LOCAL_PG_SOCKET:socket,ZERO_JAMS_LOCAL_PG_PORT:port,ZERO_JAMS_LOCAL_PG_DATABASE:'postgres',ZERO_JAMS_LOCAL_PG_USER:userInfo().username,ZERO_JAMS_LOCAL_PG_EPOCH:epoch,
     ZERO_JAMS_APP_ID:'5367740',ZERO_JAMS_INSTALLATION_ID:'123',ZERO_JAMS_PRIVATE_KEY:privateKey,ZERO_HUB_ORIGIN:'http://127.0.0.1:3000',ZERO_HUB_GITHUB_CLIENT_ID:zeroApp.clientId,ZERO_HUB_GITHUB_CLIENT_SECRET:'synthetic-client-secret-'.repeat(2),ZERO_HUB_GITHUB_SESSION_SECRET:randomBytes(32).toString('base64url')};
   const actors={creator:{id:11,login:'creator'},owner:{id:4050555,login:'armorup'},student:{id:33,login:'student'}},tokens=new Map();
   const config=hubConfig(env);assert.ok(config);
@@ -62,12 +62,12 @@ test('default local authority shares a real PostgreSQL registry across authentic
   let response=await postJamProposalResponse(post('creator','/api/jams/proposals',{operationId:'pg-http-propose-0001',manifest}),options);assert.equal(response.status,200,await response.clone().text());
   const proposal=await response.json(),id=proposal.eventId,action=`/api/jams/${id}/actions`,approval={operationId:'pg-http-approve-0001',action:'approve',revision:proposal.revision};
   response=await postJamActionResponse(post('student',action,approval),id,options);assert.equal(response.status,403);
-  response=await postJamActionResponse(post('owner',action,approval),id,options);assert.equal(response.status,200,await response.clone().text());
+  assert.equal(proposal.status,'approved');
   response=await postJamActionResponse(post('student',action,{operationId:'pg-http-join-0001',action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/student/project'}),id,options);assert.equal(response.status,200,await response.clone().text());
   response=await postJamActionResponse(post('student',action,{operationId:'pg-http-submit-0001',action:'submit',revision:proposal.revision,title:'Project',description:'Synthetic',demoUrl:'https://student.github.io/project/'}),id,options);assert.equal(response.status,200,await response.clone().text());
   assert.ok(pagesCalls>0,'The actual Pages runtime path used the synthetic transport');
   const document=(await admin.query('SELECT document FROM zero_jams_registry_poc WHERE singleton=1')).rows[0].document,state=document.events[id];
-  assert.equal(state.accepted.reviewedBy,'4050555');assert.equal(state.registrations['33'].status,'joined');assert.equal(state.entries['33'].length,1);assert.equal(Object.keys(state.operations).length,4);
+  assert.equal(state.accepted.reviewedBy,null);assert.equal(state.registrations['33'].status,'joined');assert.equal(state.entries['33'].length,1);assert.equal(Object.keys(state.operations).length,3);
   const jam=()=>getJamResponse(new Request(config.origin+`/api/jams/${id}`),id,{...options,destinationReader});
   const hub=()=>catalogResponse(new Request(config.origin+'/api/sharing/catalog'),{env,decisionNow:()=>time,reader:async()=>catalog(),destinationReader});
   response=await jam();assert.equal(response.status,200);assert.deepEqual((await response.json()).event.entries,[]);
