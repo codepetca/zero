@@ -311,7 +311,7 @@ test("tutorial starts use distinct setup actions from continuing lessons", () =>
   assert.match(document, /<TutorialProject project=\{practiceProject\}/);
   assert.match(document, /lesson === practiceProject.firstLesson/);
   assert.doesNotMatch(document + tutorialProject, /First time\?|If you have not started it yet|className="lesson-help"|className="reader-subtitle"|Continue your/);
-  assert.match(tutorialProject, /Start tutorial →/);
+  assert.match(tutorialProject, /Project → New/);
   assert.doesNotMatch(tutorialProject, /templateHref|Use template/);
   assert.match(tutorialProject, /lesson === project.firstLesson/);
   assert.doesNotMatch(document + tutorialProject, /generated\/projects\/|zero-project-|Start project|Start Project/);

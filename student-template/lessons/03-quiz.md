@@ -6,6 +6,20 @@
 
 Target illustration: a correct answer to your first quiz question.
 
+Sign in to GitHub in Zero and complete access setup if needed. Choose **Project → New**, name your project (for example, `study`), and choose a clone location. Zero creates a public repository and opens its clone. Open **java → Main.java**, replace its contents with this starting file, and save it:
+
+```java
+import zero.App;
+
+public class Main extends App {
+    @Override public void settings() { padding(20); }
+    @Override public void setup() {
+        // Build your interface here.
+    }
+    public static void main(String[] args) { launch(args); }
+}
+```
+
 Open the empty `setup()` in your **Study** project’s `Main.java`.
 
 ## 1. Add these imports above `public class Main`

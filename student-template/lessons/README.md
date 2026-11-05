@@ -23,14 +23,14 @@ Git 2.31+, school access and permission to share public source. Repositories
 created through Zero are public, including source and included files; keep
 secrets and private material out. Follow your school policy if it requires a different arrangement.
 
-For Greeting, Coin and Pet, choose **Start tutorial** and select the project.
-Enter a name and clone location, then choose **Clone here**. Zero creates your
-own repository from the matching verified template and opens its clone. A
-template that is not yet published and verified is unavailable; wait until it is published and verified instead of cloning the shared template directly. To reopen your own clone, use
+For each of Greeting, Coin and Pet (or the optional Study project), sign in to
+GitHub and complete access setup, then choose **Project → New**. Enter a name
+and clone location, then choose **Clone here**. Zero creates your own repository
+and opens its clone. Each first lesson tells you how to prepare its starting code.
+To reopen your own clone, use
 **Project → Open local project…**. Keep the same repository throughout each project's lessons.
 
-The tutorial starters contain setup and an empty runnable Main. You write the
-controls, game objects and logic. Save, Run App, then **Commit & push** at the
+You write the controls, game objects and logic in each project. Save, Run App, then **Commit & push** at the
 checkpoints in the lessons. At the end, use **Publish & open app** and test your
 work in a browser when you have permission to share it publicly. A published
 page and its included assets are public. If a school account or repository cannot

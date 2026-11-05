@@ -4,8 +4,7 @@ export function TutorialProject({ project, lesson }) {
   if (!starting) return null;
   return <section className="lesson-start" aria-label={`${project.title} project`}>
     {starting && <>
-      {project.id === 'study' ? <p>Open your existing <strong>Study</strong> project in Zero.</p> :
-        <p>On Zero’s Start Page, choose <strong>Start tutorial → {project.title}</strong> to create your project.</p>}
+      <p>On Zero’s Start Page, sign in to GitHub and set up access if needed. Choose <strong>Project → New</strong> to create your {project.title} project.</p>
     </>}
   </section>;
 }
