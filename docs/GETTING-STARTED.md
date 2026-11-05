@@ -8,7 +8,7 @@ Use this guide to install Zero, start a project, and get help when something goe
 2. On Mac, open the downloaded DMG and drag **Zero** into **Applications**. On Windows, open the installer and follow its prompts.
 3. Open **Zero** and allow it to finish setting up. An internet connection is needed for the first setup and to download project dependencies.
 4. On the Start Page, choose **Sign in to GitHub**, then follow the browser prompts. If asked to install the Zero GitHub App, choose the repositories Zero may access.
-5. Choose **Start tutorial**, select a project, and follow the instructions to create and open it. Open **Tutorial docs** to read the lessons.
+5. Choose **Project → New** and follow the instructions to create and open your project. Open **Tutorial docs** to read the lessons.
 
 Already have a project? On the Start Page, choose **Project → Open** to open a local project, or **Project → Clone** to download your GitHub repository.
 

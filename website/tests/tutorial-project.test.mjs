@@ -18,14 +18,13 @@ const render = (lesson, template = null) => renderToStaticMarkup(createElement(T
 }));
 
 test("starting lessons direct students to Zero without project-start links", () => {
-  for (const lesson of ["0", "8", "13"]) {
+  for (const lesson of ["0", "3", "8", "13"]) {
     const html = render(lesson);
-    assert.match(html, /Start tutorial →/);
+    assert.match(html, /Project → New/);
     assert.ok(html.includes(projectForLesson(lesson).title));
     assert.doesNotMatch(html, /If the tutorial is unavailable/);
     assert.doesNotMatch(html, /<a |Use template|github\.com|\.zip|download=/);
   }
-  assert.match(render("3"), /Open your existing <strong>Study<\/strong> project/);
 });
 
 test("continuing lessons omit repeated generic setup and workflow cards", () => {

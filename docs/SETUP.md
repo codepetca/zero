@@ -30,9 +30,10 @@ The Codepet Zero GitHub App is registered under `codepetca`, with public IDs
 pinned in source. Students approve access on GitHub. See
 [the identity plan](ZERO-IDENTITY-PLAN.md) for account and permission details.
 
-The Project dropdown offers New, Clone, and Open. The Tutorials link opens the
-reader without creating a project or signing in. Start tutorial begins the guided
-project setup.
+The Project dropdown offers New, Clone, and Open. **Tutorial docs** opens the
+reader without creating a project or signing in. In current downloads, open it
+from the arrow beside **Start tutorial**; a newer Start Page presents it as a
+direct button. **Project → New** begins project setup.
 
 Opening a project keeps the Zero Start Page tab available in the same window.
 Return to that tab to choose another project or tutorial.
@@ -72,7 +73,7 @@ explicit project commands create repositories only after collecting the choices 
 ## Start a tutorial or project
 
 On the **Zero Start Page**, follow: **Sign in to GitHub**, then
-**Install Zero for GitHub** if requested, then **Start tutorial**.
+**Install Zero for GitHub** if requested, then **Project → New**.
 Sign-in uses Zero's existing GitHub device flow and credentials. After sign-in,
 Zero checks App access for repository creation and contents writing; the check is
 read-only and stops at the next Start Page step. If access is missing, **Install Zero
@@ -85,8 +86,7 @@ Files remain available signed out or offline; cloud repository, push and sharing
 controls appear after access is ready. App-created repositories are accessible
 automatically.
 
-When ready, **Start tutorial** creates the selected scaffold. **Start Page → Project → New**
-creates original work instead, so students can skip the tutorial. **Start Page → Project → Open** opens existing work; Troubleshooting is in the sidebar’s **⋯** menu. Enter a repository name and choose
+When ready, **Start Page → Project → New** creates a project for a tutorial or original work. Follow the tutorial instructions to prepare its starting code. **Start Page → Project → Open** opens existing work; Troubleshooting is in the sidebar’s **⋯** menu. Enter a repository name and choose
 a parent folder before creation. Zero creates a public repository in your GitHub
 account, verifies access, clones and opens the project in the current VS Code window. Its
 source and included files are public.
@@ -130,9 +130,9 @@ downloads and platform limits.
 3. Check existing installations. Choose installation/help only for missing or
    incompatible items. A working school/personal installation should be reused.
 4. Follow profile prompts, install Zero and Java extensions, and open Zero.
-5. Complete the account/privacy preflight above before starting your first project. Choose
-   **Start tutorial**, connect GitHub if needed, then name and save your own
-   **Greeting app** repository. Zero opens your clone with Main and Tutorials.
+5. Complete the account/privacy preflight above, sign in and set up GitHub access.
+   Choose **Project → New**, then name and save your own **Greeting app**
+   repository. Open `Main.java` and **Tutorial docs** to follow the lesson.
    Submit repository links in Pika separately when assigned.
 6. If setup needs troubleshooting, **Troubleshooting → Test installation** opens the
    completed bundled Hello World app in a separate window marked Installation

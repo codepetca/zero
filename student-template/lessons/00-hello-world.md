@@ -4,11 +4,25 @@
 
 Target illustration: your greeting after you write it.
 
-In the Project Explorer of your **Greeting** project, open **java → Main.java** (`java/Main.java`).
+In Zero, sign in to GitHub and complete access setup if needed. Choose **Project → New**, name your project (for example, `greeting`) and choose a clone location. Zero creates your public repository and opens its clone. In Project Explorer, open **java → Main.java** (`java/Main.java`). Replace its contents with this starting file and save it:
+
+```java
+import zero.App;
+
+public class Main extends App {
+    @Override public void settings() { padding(20); }
+
+    @Override public void setup() {
+        // Build your interface here.
+    }
+
+    public static void main(String[] args) { launch(args); }
+}
+```
 
 ## 1. Add this import after `import zero.App;`
 
-The new `Main.java` has `Main extends App`, `settings()` with `padding(20)`, an empty `setup()` and a `main` method. Keep those lines. The empty setup opens a blank window, so your first control is yours to write. Add the `Label` import in `Main.java`; replace the matching lines with the copied code:
+This starting `Main.java` has `Main extends App`, `settings()` with `padding(20)`, an empty `setup()` and a `main` method. Keep those lines. The empty setup opens a blank window, so your first control is yours to write. Add the `Label` import in `Main.java`; replace the matching lines with the copied code:
 
 ```java-after-2
 import zero.App;

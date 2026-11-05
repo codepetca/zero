@@ -2,7 +2,34 @@
 
 ![A blue square on the canvas with an arrow showing movement](visuals/08.svg)
 
-Your **Coin game** project's `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` methods, and no Player class. Keep this folder for lessons 5 and 10–12; there is no new game download for the next lesson.
+In Zero, sign in to GitHub and complete access setup if needed. Choose **Project → New**, name your project (for example, `coin-game`) and choose a clone location. Zero creates your public repository and opens its clone. Open **java → Main.java**, replace its contents with this game starting file, and save it:
+
+```java
+import zero.GameApp;
+
+public class Main extends GameApp {
+    @Override public void settings() {
+        padding(20);
+        size(640, 400);
+    }
+
+    @Override public void setup() {
+        // Create your game objects here.
+    }
+
+    @Override public void update(double seconds) {
+        // Update your objects here.
+    }
+
+    @Override public void draw() {
+        // Draw your game here.
+    }
+
+    public static void main(String[] args) { launch(args); }
+}
+```
+
+This `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` methods. Keep this folder for lessons 5 and 10–12; there is no new game download for the next lesson.
 
 Previous: [Your Greeting app](02-hello-name.md).
 

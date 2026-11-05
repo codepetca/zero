@@ -4,7 +4,7 @@
 
 ## 1. Start your own project
 
-In Zero choose **Start tutorial → Animated pet**, sign in, name your project and choose a clone location. Zero creates your own repository and opens its clone. After setup, editing and local Run work offline; GitHub actions and publishing need a connection. Submit your repository link separately in Pika if assigned.
+In Zero, sign in to GitHub and complete access setup if needed. Choose **Project → New**, name your project and choose a clone location. Zero creates your own repository and opens its clone. After setup, editing and local Run work offline; GitHub actions and publishing need a connection. Submit your repository link separately in Pika if assigned.
 
 Download the [Pet assets ZIP](https://zero.codepet.ca/generated/learning-assets/pet-assets.zip) and unzip it. In Zero's file tree, right-click **resources**, choose **New folder…** and name it `pet`. Right-click the new **pet** folder, choose **Import assets…**, and select both files from the unzipped `pet` folder. The imported files belong in `resources/pet/` and must be named `bird-flap-sheet.png` and `chime.wav`. The leading `/` in `/pet/bird-flap-sheet.png` means the root of the project's resources, not your computer. The bird and chime are Zero assets supplied under the project license. For your own replacements, use a PNG and a short PCM WAV and retain permission and attribution.
 
