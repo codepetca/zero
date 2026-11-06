@@ -80,8 +80,10 @@ assert.equal(motionMain, read('teaching/checkpoints/13/2/Main.java'), 'Motion ed
 assert.equal(read('teaching/new-curriculum/pet/checkpoints/2/Main.java'), motionMain, 'Draft motion checkpoint must match');
 const sections = screens.split(/^## /m);
 const section = name => { const result = sections.find(text => text.startsWith(name)); assert.ok(result, `Missing section: ${name}`); return result; };
-assert.match(section('4. Save and share'), /Commit & push[\s\S]*Merge to main[\s\S]*Publish/i);
-const recovery = section('5. Practise recovering');
+assert.match(section('8. Save your branch'), /Commit & push/i);
+assert.match(section('9. Merge your work'), /Merge to main/i);
+assert.match(section('10. Publish your game'), /Publish & open app/i);
+const recovery = section('11. Back up your project') + section('12. Practise recovering');
 for (const pattern of [/verify on GitHub/i, /published app actually opens and works/i, /uncommitted/i, /untracked/i, /unpushed/i, /ignored/i, /backup/i, /do not empty the Trash/i, /clone your own repository into a different empty location/i, /restore the original folder/i]) assert.match(recovery, pattern, `Missing recovery safeguard: ${pattern}`);
 assert.ok(recovery.indexOf('verify on GitHub') < recovery.indexOf('Move the original'), 'Verification must precede moving the project');
 console.log('Split pet lessons, sequential screen edits, assets, and workflow checks passed.');

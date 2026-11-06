@@ -86,11 +86,11 @@ private void resetQuiz() {
 
 `answer.setText("")` replaces the entered answer with an empty string.
 
-## 6. Run App and test Reset
+## 6. Run and test Reset
 
 Do not leave the old check block in `setup()`; there should be one Check
 handler. `checkAnswer()` and `resetQuiz()` name the two actions, and both
-change the state and the visible controls. Click **Run App**, check twice, click **Reset**, then check once more. Attempts should go **2 → 0 → 1**; Reset should clear the answer and feedback. For comparison after building,
+change the state and the visible controls. Click **Run**, check twice, click **Reset**, then check once more. Attempts should go **2 → 0 → 1**; Reset should clear the answer and feedback. For comparison after building,
 see the [completed lesson 5 checkpoint](../../teaching/checkpoints/5/Main.java).
 
 Next: [Use classes to simplify Main](06-objects.md).

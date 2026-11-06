@@ -8,7 +8,11 @@ In Zero, sign in to GitHub and complete access setup if needed. On the Start Pag
 
 **Project → New**
 
-Name your project (for example, `zero-coin-game`) and choose a clone location. Zero creates your public repository and opens its clone. Open **java → Main.java**, replace its contents with this game starting file, and save it:
+Name your project (for example, `zero-coin-game`) and choose a clone location. Zero creates your public repository and opens its clone.
+
+## 2. Prepare Main.java
+
+Open **java → Main.java**, replace its contents with this game starting file, and save it:
 
 ```java
 import zero.GameApp;
@@ -39,9 +43,13 @@ This `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` meth
 
 Previous: [Your Greeting app](02-hello-name.md).
 
-## 2. Write Player.java
+## 3. Write Player.java
 
-In Project Explorer, right-click **java** and choose **New class…** to create `Player.java`. Player owns position; Main decides when to update and draw it. Type this class, then try changing its color or speed:
+In Project Explorer, right-click **java** and choose:
+
+**New class…**
+
+Name the class `Player`. Player owns position; Main decides when to update and draw it. Type this class, then try changing its color or speed:
 
 ```java
 import zero.Color;
@@ -75,7 +83,7 @@ public class Player {
 
 The `Math.max`/`Math.min` lines keep the whole square on screen. `x` and `y` are its top-left corner. At 180 pixels per second, a 0.05-second update moves 9 pixels.
 
-## 3. Connect Player to your existing Main
+## 4. Add imports and the player field
 
 In `Main.java`, add the `Key` and `Color` imports; replace the matching lines with the copied code:
 
@@ -91,6 +99,8 @@ import zero.GameApp;
 public class Main extends GameApp {
     private Player player;
 ```
+
+## 5. Update and draw the player
 
 In `Main.java`, replace the three starter methods with the copied code:
 
@@ -133,9 +143,9 @@ Keep the starter's `settings()` and `main(...)`.
 Inside Player, `app.fill(...)` chooses the colour and `app.rect(...)` paints the
 square on the canvas. Creating a Player alone does not draw it.
 
-## 4. Run App and check movement
+## 6. Run and check movement
 
-Click **Run App**, click the canvas, then hold and release an arrow key. The square should move while held and stop when released. Try every edge, Right + Up, Left + Right, and releasing all keys. After switching windows, click the canvas again for keyboard focus.
+Click **Run**, click the canvas, then hold and release an arrow key. The square should move while held and stop when released. Try every edge, Right + Up, Left + Right, and releasing all keys. After switching windows, click the canvas again for keyboard focus.
 
 In `Player.java`, try a larger square and slower speed. If you changed these values earlier, adapt the matching lines to your version:
 

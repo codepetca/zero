@@ -58,11 +58,11 @@ attempts = attempts + 1;
 attemptsLabel.setText("Attempts: " + attempts);
 ```
 
-## 5. Run App and check twice
+## 5. Run and check twice
 
 `attempts` is a field because its value must survive from one click to the
 next. The label shows the current value; changing the number alone does not
-change the screen. Click **Run App** and check twice, using any answers. The label should show **Attempts: 2**. Keep checking answers: two wrong attempts still show
+change the screen. Click **Run** and check twice, using any answers. The label should show **Attempts: 2**. Keep checking answers: two wrong attempts still show
 **Try again.**, and a correct answer still shows **Correct!**.
 
 If you need to compare your result, see the [completed lesson 4 checkpoint](../../teaching/checkpoints/4/Main.java).

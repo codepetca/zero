@@ -18,13 +18,25 @@ The bird and chime are Zero assets supplied under the project license. For your 
 
 ## 3. Add the assets to your project
 
-In Zero's file tree, right-click **resources**, choose **New folder…** and name it `pet`. Right-click the new **pet** folder, choose **Import assets…**, and select both files from the unzipped `pet` folder. Check that `bird-flap-sheet.png` and `chime.wav` appear in `resources/pet/`. The leading `/` in `/pet/bird-flap-sheet.png` means the root of the project's resources, not your computer.
+In Zero's file tree, right-click **resources** and choose:
 
-Start on **main**. The checkpoints here are complete reference files: type the changes yourself, or compare them when stuck. Java files go in `java/`, not `resources`. Save and **Run App** after each step; stop the app before changing and running again.
+**New folder…**
 
-## 4. Show your pet
+Name the folder `pet`.
 
-Open `java/Main.java`, select its entire contents, and replace them with the complete file below. `settings` sets canvas size, `setup` loads the picture once, and `draw` paints the background and picture each frame. `280, 150` is the top-left position; `80, 64` is its drawn size. The sheet has four poses; `imageRegion` selects the first pose. Run: you should see a bird. Try another background color or size. If the resource cannot load, check spelling, capitalization and the resource folder, then stop and run again.
+## 4. Import the assets
+
+Right-click the new **pet** folder and choose:
+
+**Import assets…**
+
+Select both files from the unzipped `pet` folder. Check that `bird-flap-sheet.png` and `chime.wav` appear in `resources/pet/`. The leading `/` in `/pet/bird-flap-sheet.png` means the root of the project's resources, not your computer.
+
+Start on **main**. The checkpoints here are complete reference files: type the changes yourself, or compare them when stuck. Java files go in `java/`, not `resources`. After changing code, save and choose **Run**; stop the app before changing and running again.
+
+## 5. Show your pet
+
+Open `java/Main.java`, select its entire contents, and replace them with the complete file below. `settings` sets canvas size, `setup` loads the picture once, and `draw` paints the background and picture each frame. `280, 150` is the top-left position; `80, 64` is its drawn size. The sheet has four poses; `imageRegion` selects the first pose.
 
 ```java
 import zero.Color;
@@ -48,5 +60,9 @@ public class Main extends GameApp {
     public static void main(String[] args) { launch(args); }
 }
 ```
+
+## 6. Run your pet
+
+Save the file, then choose **Run**. You should see a bird. Try another background color or size. If the resource cannot load, check spelling, capitalization and the resource folder, then stop and run again.
 
 Next: [Move and animate your pet](16-pet-motion.md).

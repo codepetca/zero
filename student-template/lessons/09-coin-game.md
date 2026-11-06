@@ -4,7 +4,11 @@
 
 ![A blue player approaching one gold coin, with score text on the canvas](visuals/09.svg)
 
-Reopen the **same Coin game project** from lesson 4. Keep the Player and Main you wrote.
+Continue the **same Coin game project** from lesson 4. If it is not open, choose this on the Start Page:
+
+**Project → Open**
+
+Select your existing project folder. If you need a local clone of your repository, choose **Project → Clone** instead. Keep the Player and Main you wrote.
 
 Previous: [Move a player](08-movement.md).
 
@@ -24,7 +28,11 @@ Both horizontal and vertical ranges must meet. The comparisons count touching an
 
 ## 2. Write Coin.java
 
-Create `java/Coin.java` yourself. Coin owns its position and collection state; Main owns the score.
+In Project Explorer, right-click **java** and choose:
+
+**New class…**
+
+Name the class `Coin` and write `java/Coin.java`. Coin owns its position and collection state; Main owns the score.
 
 ```java
 import zero.Color;
@@ -63,12 +71,16 @@ In `Main.java`, add the coin and points fields; replace the matching lines with 
     private int points;
 ```
 
+## 4. Place the coin
+
 In `setup()`, add the coin assignment; replace the matching lines with the copied code:
 
 ```java-after-2
         player = new Player(40, 180);
         coin = new Coin(220, 180);
 ```
+
+## 5. Collect the coin on contact
 
 In `update()`, add the collection check; replace the matching lines with the copied code:
 
@@ -80,7 +92,7 @@ In `update()`, add the collection check; replace the matching lines with the cop
         }
 ```
 
-## 4. Draw the score and coin before the player
+## 6. Draw the score and coin before the player
 
 In `draw()`, add the score and coin drawing before the player; replace the matching lines with the copied code:
 
@@ -91,11 +103,11 @@ In `draw()`, add the score and coin drawing before the player; replace the match
         player.draw(this);
 ```
 
-## 5. Run App and collect the coin once
+## 7. Run and collect the coin once
 
-Click **Run App**. Touch the coin, stay there, leave, and return. The coin should disappear and the score should become 1 only once. The `!coin.isCollected()` check prevents a point every frame. If you remove it, contact can repeatedly score even though Coin no longer draws. Put it back before continuing.
+Click **Run**. Touch the coin, stay there, leave, and return. The coin should disappear and the score should become 1 only once. The `!coin.isCollected()` check prevents a point every frame. If you remove it, contact can repeatedly score even though Coin no longer draws. Put it back before continuing.
 
-## 6. Add a score and Restart below the canvas
+## 8. Add a score and Restart below the canvas
 
 Zero controls can sit below the canvas. In `Main.java`, add the control imports; replace the matching lines with the copied code:
 
@@ -106,6 +118,8 @@ import zero.ui.Label;
 import zero.ui.Row;
 ```
 
+## 9. Add label fields
+
 In `Main.java`, add the label fields; replace the matching lines with the copied code:
 
 ```java-after-2-3
@@ -113,6 +127,8 @@ In `Main.java`, add the label fields; replace the matching lines with the copied
     private Label scoreLabel;
     private Label message;
 ```
+
+## 10. Create the controls
 
 In `setup()`, replace the two assignments with controls created once and a call to `restart()`. Copy the block over the matching lines:
 
@@ -127,7 +143,7 @@ In `setup()`, replace the two assignments with controls created once and a call 
         restart();
 ```
 
-## 7. Move the starting state into `restart()`
+## 11. Move the starting state into `restart()`
 
 The two assignments you replaced now belong in `restart()`. Add the method below `setup()` by replacing the matching lines with the copied code:
 
@@ -144,7 +160,7 @@ The two assignments you replaced now belong in `restart()`. Add the method below
     }
 ```
 
-## 8. Update the score label after collection
+## 12. Update the score label after collection
 
 In `update()`, add the score label update; replace the matching lines with the copied code:
 
@@ -159,7 +175,7 @@ In `draw()`, **find and remove** the old canvas score line:
 
 Restart should restore the coin, Player's position and score without creating another control row. `showGame()` returns keyboard focus to the retained canvas and clears held input; it keeps the existing control row. It also works here when the game is already showing.
 
-## 9. Grow to three coins and a win
+## 13. Grow to three coins and a win
 
 In `Main`, copy the block over the matching field:
 
@@ -180,7 +196,7 @@ In `restart()`, copy the block over the matching assignment:
         message.setText("Collect all " + coins.length + " coins.");
 ```
 
-## 10. Stop movement after collecting every coin
+## 14. Stop movement after collecting every coin
 
 In `restart()`, **find and remove** the earlier message line:
 
@@ -214,7 +230,7 @@ In `update()`, copy the block over the existing coin collection check:
         }
 ```
 
-## 11. Draw all coins, then test Restart and winning
+## 15. Draw all coins, then test Restart and winning
 
 In `draw()`, copy the block over the matching line:
 
@@ -223,16 +239,23 @@ In `draw()`, copy the block over the matching line:
         for (Coin each : coins) each.draw(this);
 ```
 
-Main still explicitly updates Player and draws every object. Click **Run App**. Try Restart before collecting, after one coin and after winning. Each run should return to 0 with all three coins visible; winning stops movement until Restart. Change a coin's coordinates to make your own level. Keep each 24-pixel square within x 0–616 and y 0–376.
+Main still explicitly updates Player and draws every object. Click **Run**. Try Restart before collecting, after one coin and after winning. Each run should return to 0 with all three coins visible; winning stops movement until Restart. Change a coin's coordinates to make your own level. Keep each 24-pixel square within x 0–616 and y 0–376.
 
 After writing it, compare with checkpoint 9's [Main.java](../../teaching/checkpoints/9/Main.java), [Player.java](../../teaching/checkpoints/9/Player.java) and [Coin.java](../../teaching/checkpoints/9/Coin.java). Keep this project if you later try the optional [component lessons](10-components.md).
 
-## 12. Save and publish your game
+## 16. Save your game
 
 Choose **Commit & push** in Zero, review the changed files, and use a message
 such as `Finish coin game`. Check that your latest code is in your GitHub
-repository. After checking that you have permission to share the contents, stop the running app, then choose
-**Publish & open app** from the Run dropdown and wait for it to open. Play the
+repository.
+
+## 17. Publish your game
+
+After checking that you have permission to share the contents, stop the running app. Open the Run dropdown and choose:
+
+**Publish & open app**
+
+Wait for it to open. Play the
 game in your browser and try Restart. The published page and its contents are
 public, so include only material you have permission to share. If publication
 is unavailable for your repository or school account, follow your school or account policy and keep your repository visibility unchanged.

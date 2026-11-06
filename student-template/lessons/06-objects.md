@@ -62,10 +62,10 @@ attempts.reset();
 attemptsLabel.setText("Attempts: " + attempts.value());
 ```
 
-## 5. Run App and check the count after Reset
+## 5. Run and check the count after Reset
 
 Keep the answer checking, buttons and layout from lesson 5. Counter owns the
-number; Main still explicitly updates the label. Click **Run App**, check twice, click **Reset**, then check again. Attempts should go **2 → 0 → 1**. Keep this working version; next you will move the quiz controls into their own class.
+number; Main still explicitly updates the label. Click **Run**, check twice, click **Reset**, then check again. Attempts should go **2 → 0 → 1**. Keep this working version; next you will move the quiz controls into their own class.
 
 ## 6. Move the quiz out of Main
 
@@ -183,7 +183,7 @@ There is still only one App: Main. StudyQuiz is an object inside it.
 
 ## 8. Check that refactoring changed no behavior
 
-Run App again. Check `4`, then `5`: Attempts is 2 and feedback says Correct.
+Run again. Check `4`, then `5`: Attempts is 2 and feedback says Correct.
 Reset clears the answer, feedback and count; another check gives Attempts 1.
 These are the same checks you ran before moving the code.
 

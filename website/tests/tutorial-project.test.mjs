@@ -39,3 +39,26 @@ test('branch-based refactors start with the branch action', async () => {
     assert.match(text, /\n\n\*\*New branch…\*\*\n\n/);
   }
 });
+
+test('tutorial steps remain sequential and name the visible Run control', async () => {
+  for (const file of [
+    '00-hello-world.md', '01-hello-button.md', '02-hello-name.md', '03-quiz.md',
+    '04-counter.md', '05-methods.md', '06-objects.md', '07-study-app.md',
+    '08-movement.md', '09-coin-game.md', '10-components.md', '11-zerohub.md',
+    '12-media.md', '13-pet.md', '14-own-project.md', '15-recover-zero.md',
+    '16-pet-motion.md', '17-pet-class.md', '18-actors.md',
+  ]) {
+    const text = await readFile(new URL(`../../student-template/lessons/${file}`, import.meta.url), 'utf8');
+    const numbers = [...text.matchAll(/^## (\d+)\./gm)].map(match => Number(match[1]));
+    assert.deepEqual(numbers, numbers.map((_, index) => index + 1), file);
+    assert.doesNotMatch(text, /\bRun App\b/, file);
+    assert.doesNotMatch(text, /Project → Open local project…/, file);
+  }
+});
+
+test('practice library instructions name the actual command before each menu choice', async () => {
+  const text = await readFile(new URL('../../student-template/lessons/11-zerohub.md', import.meta.url), 'utf8');
+  for (const action of ['Extract library', 'Browse tutorial practice']) {
+    assert.match(text, new RegExp(`\\*\\*Zero: Libraries and Games\\*\\*[\\s\\S]*?\\n\\n\\*\\*${action}\\*\\*\\n\\n`));
+  }
+});

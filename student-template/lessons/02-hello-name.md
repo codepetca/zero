@@ -4,7 +4,11 @@
 
 Target illustration: typing `Sam` and clicking **Say hello**.
 
-Open the **same Greeting project** you changed in lessons 1 and 2.
+Continue the **same Greeting project** you changed in lessons 1 and 2. If it is not open, choose this on the Start Page:
+
+**Project → Open**
+
+Select your existing project folder. If you need a local clone of your repository, choose **Project → Clone** instead.
 
 ## 1. Add this import after `import zero.ui.Label;`
 
@@ -46,10 +50,10 @@ Copy the block over the matching line in `setup()`:
         show(new Column(10, greeting, name, button));
 ```
 
-## 5. Run App and try two names
+## 5. Run and try two names
 
 `name.getText()` reads what is in the field **when the button is clicked**.
-Click **Run App**, type `Sam`, then click **Say hello**. The label should say **Hello, Sam!**. Try your own name and check that the greeting changes. You have now grown one project across three lessons. Next you will start a new **Coin game** project.
+Click **Run**, type `Sam`, then click **Say hello**. The label should say **Hello, Sam!**. Try your own name and check that the greeting changes. You have now grown one project across three lessons. Next you will start a new **Coin game** project.
 
 ### Layout and appearance
 
@@ -69,14 +73,19 @@ and check that the action reads the current text, rather than remembering the
 first name. Keep keyboard focus visible and use words as well as colour to
 explain results.
 
-## 6. Save and publish your greeting
+## 6. Save your greeting
 
 In Zero, choose **Commit & push**, review the changed files, and use a message
 such as `Finish greeting app`. This saves your work in your GitHub repository.
 Check the repository on GitHub to see your latest source.
 
-After checking that you have permission to share the contents, stop the running app, then choose **Publish & open
-app** from the Run dropdown. Follow the prompts and wait for the app to open in
+## 7. Publish your greeting
+
+After checking that you have permission to share the contents, stop the running app. Open the Run dropdown and choose:
+
+**Publish & open app**
+
+Follow the prompts and wait for the app to open in
 your browser. Try the button there, too. Your published page and its contents
 are public; include only material you have permission to share. If publishing
 is unavailable for your repository or school account, follow your school or account policy and keep your repository visibility unchanged.

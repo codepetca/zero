@@ -4,7 +4,11 @@
 
 Target illustration: the label after clicking **Say hello**.
 
-Open your **Greeting** project from lesson 1. Keep its `Main.java`.
+Continue your **Greeting** project from lesson 1. If it is not open, choose this on the Start Page:
+
+**Project → Open**
+
+Select your existing project folder. If you need a local clone of your repository, choose **Project → Clone** instead. Keep its `Main.java`.
 
 ## 1. Add the imports after `import zero.ui.Label;`
 
@@ -42,9 +46,9 @@ The `() ->` introduces that action; you do not need an event object.
 The button's action changes the **existing** label. The label must stay in
 `setup()` above the action so the action can use `greeting`.
 
-## 4. Run App and click Say hello
+## 4. Run and click Say hello
 
-Click **Run App**, then click **Say hello**. The label should change from **Hello, Java!** to **You did it!**. Try changing `You did it!` to your own short message and rerun. Keep this
+Click **Run**, then click **Say hello**. The label should change from **Hello, Java!** to **You did it!**. Try changing `You did it!` to your own short message and rerun. Keep this
 Greeting project for lesson 3.
 
 Next: [Greet by name](02-hello-name.md).
