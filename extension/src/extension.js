@@ -154,7 +154,7 @@ function activate(context, services = {}) {
     return true;
   }
 
-  async function introduceProject() {
+  async function introduceProject({revealSidebar = true, addedFolders} = {}) {
     const folders = vscode.workspace.workspaceFolders || [];
     if (!folders.length && hasOpenEditors() && !launchedForZero) return;
     const root = folders.length ? await project() : undefined;
@@ -163,7 +163,7 @@ function activate(context, services = {}) {
       return;
     }
     if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
-    if (launchedForZero || !context.workspaceState.get('zero.explorerShown') || (studentExplorer?.isPreview() && !context.workspaceState.get('zero.studentExplorerShown'))) {
+    if (revealSidebar && (!addedFolders || await core.resolveProject(addedFolders.map(folder => folder.uri.fsPath)).catch(() => undefined) === root)) {
       await actions['zero.showSidebar']();
       await context.workspaceState.update('zero.explorerShown', true);
       await context.workspaceState.update('zero.sidebarShown', true);
@@ -1292,12 +1292,12 @@ function activate(context, services = {}) {
     if (!disposed) output.appendLine(`Getting started: ${error.message}`);
   });
   if (!(vscode.workspace.workspaceFolders || []).length) void introduceProject().catch(error=>output.appendLine(`Start Page: ${error.message}`));
-  const introduceAfterConnection = () => startup.then(async() => {if (!disposed) {try {await rememberOpened({projectPath:await project()});}catch{}await projectWindow.restore();await introduceProject();}}).catch(error => output.appendLine(`Getting started: ${error.message}`));
-  context.subscriptions.push(watcher, metadataWatcher,{dispose:()=>clearTimeout(metadataRefreshTimer)}, vscode.workspace.onDidChangeWorkspaceFolders(() => {
+  const introduceAfterConnection = (options) => startup.then(async() => {if (!disposed) {try {await rememberOpened({projectPath:await project()});}catch{}await projectWindow.restore();await introduceProject(options);}}).catch(error => output.appendLine(`Getting started: ${error.message}`));
+  context.subscriptions.push(watcher, metadataWatcher,{dispose:()=>clearTimeout(metadataRefreshTimer)}, vscode.workspace.onDidChangeWorkspaceFolders(event => {
     runGeneration++;
     if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));
     savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;savedProblems?.clear();
-    projectRoot = undefined; repositoryStatus(); void introduceAfterConnection();
+    projectRoot = undefined; repositoryStatus(); void introduceAfterConnection({revealSidebar:Boolean(event?.added?.length), addedFolders:event?.added});
   }));
   context.subscriptions.push({dispose:() => {runGeneration++;if (execution) execution.terminate();}});
   context.subscriptions.push(createNativeUpdateReload(vscode, {context,

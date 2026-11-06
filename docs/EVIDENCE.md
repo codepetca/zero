@@ -12299,3 +12299,11 @@ effort and usage are unknown. The Pet verifier, focused website tests, productio
 build, repository check and local production HTTP checks passed. Desktop changes
 and kit publication are outside this web update. Production and CI results are
 verified separately at delivery time.
+
+## Sidebar on project open — 2026-11-05
+
+Opening a Zero project reveals its selected Explorer and Zero controls on every
+activation; adding a Zero project to a workspace also reveals them. Removing a
+folder does not reveal the sidebar. Root `npm run check` and all 48 onboarding
+tests passed after generating lesson fixtures. Interactive editor and other-OS
+checks were not performed. This source change does not publish an editor release.
