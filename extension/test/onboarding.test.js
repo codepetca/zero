@@ -68,7 +68,7 @@ async function fixture(t, {studentExplorer=false, lesson=true, lessonFile='00-he
   const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
   if(!empty && !profile)await settle(()=>remembered.has('zero.sidebarShown'));
   const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
-  return {root,commands,calls,errors,launches,webview,panels,get startPage(){return panels.find(panel=>panel.type==='zero.startPage');},get startState(){return this.startPage?.restored?.state;},remembered,finish,vscode,notices,authCalls,subscriptions,setSession(value){session=value;sessionChanged({provider:{id:'zero-github'}});},setInteractiveSession(value){interactiveSession=value;},setFailure(value){authFailure=value;},tabReads:()=>tabReads,folderChanged:()=>folderChanged()};
+  return {root,commands,calls,errors,launches,webview,panels,get startPage(){return panels.find(panel=>panel.type==='zero.startPage');},get startState(){return this.startPage?.restored?.state;},remembered,finish,vscode,notices,authCalls,subscriptions,setSession(value){session=value;sessionChanged({provider:{id:'zero-github'}});},setInteractiveSession(value){interactiveSession=value;},setFailure(value){authFailure=value;},tabReads:()=>tabReads,folderChanged:event=>folderChanged(event)};
 }
 test('tutorial opens online once per project and can be reopened', async t=>{
   const f=await fixture(t,{tutorial:'greeting',lesson:false});
@@ -96,17 +96,18 @@ test('Tutorial Docs opens the matching website lesson beside the editor when int
   assert.deepEqual(f.calls.find(([id])=>id==='workbench.action.browser.open'),['workbench.action.browser.open',{url:'https://zero.codepet.ca/tutorials/13',openToSide:true}]);
   assert.equal(f.calls.filter(([id])=>id==='openExternal').length,0);
 });
-test('existing projects migrate once to native Explorer and expand the Zero controls',async t=>{
-  const remembered=new Map([['zero.sidebarShown',true]]);
+test('existing projects reveal the Zero controls on activation and when added',async t=>{
+  const remembered=new Map([['zero.sidebarShown',true],['zero.explorerShown',true]]);
   const f=await fixture(t,{remembered,activeEditor:true});
-  await settle(()=>remembered.get('zero.explorerShown'));
   const shown=()=>f.calls.filter(([id])=>['workbench.view.explorer','zero.controls.focus'].includes(id));
+  await settle(()=>shown().length===2);
   assert.deepEqual(shown().map(([id])=>id),['workbench.view.explorer','zero.controls.focus']);
   assert.equal(f.calls.some(([id])=>id==='workbench.view.extension.zero'),false);
   assert.doesNotMatch(f.webview.html,/role="tree"|files\.list|files\.open/);
   assert.match(f.webview.html,/zero.newClass/);assert.match(f.webview.html,/zero.importAssets/);
-  f.folderChanged();await new Promise(resolve=>setTimeout(resolve,30));assert.equal(shown().length,2);
-  await f.commands.get('zero.showSidebar')();assert.equal(shown().length,4);
+  f.folderChanged({added:[],removed:[{uri:{fsPath:'/unrelated'}}]});await new Promise(resolve=>setTimeout(resolve,30));assert.equal(shown().length,2);
+  f.folderChanged({added:[{uri:{fsPath:f.root}}],removed:[]});await settle(()=>shown().length===4);
+  await f.commands.get('zero.showSidebar')();assert.equal(shown().length,6);
 });
 test('empty onboarding opens one live Start Page and keeps the sidebar minimal',async t=>{
   const f=await fixture(t,{empty:true});
