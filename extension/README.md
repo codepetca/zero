@@ -136,8 +136,10 @@ warns that the app and included assets will be public and shows its destination;
 site without another destination dialog.
 
 Upload the starting version once on main. For each improvement, start a named
-branch from clean committed main, edit/run, upload progress, then review Finish
-to merge and upload completed work to main. Start can only fast-forward main
+branch from committed main, edit/run, upload progress, then review Finish
+to merge and upload completed work to main. If there are uncommitted changes,
+New branch asks before carrying them onto the new branch without committing them.
+Start can only fast-forward main
 from its remote snapshot. Finish requires a clean change branch and refuses
 separate unpublished main history. It merges newer remote main into the change
 branch and pauses for Run App and another Finish review. Conflicts remain in
