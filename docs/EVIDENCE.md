@@ -1,3 +1,25 @@
+# Student version control — local work in progress, 2026-11-05
+
+The isolated `codex/finished-change-history` worktree contains the Project/Files
+labels and header menu, compact branch controls, read-only change and history
+views, and a provisional named merge record. The feature remains unaccepted:
+independent review, actual VS Code interaction, live GitHub and Windows checks
+are outstanding. Whole-change undo and the two-active-branch experience are
+future phases. Nothing was pushed or released.
+
+Focused sidebar, project menu, recovery and native-update tests: 43/43 passed;
+`git diff --check` passed. The final local Git workflow suite passed 37/37,
+including stale main, retry, fresh clone and guided pending-merge recovery. The owner waived the low-usage and review-budget stops by directing “Keep going.”
+The provider still reports ordinaryUsageAllowed=false; no reviewer was launched
+and no clean-review claim is made. A subsequent local Git conflict check corrected
+add/add conflicts to display as Conflict and direct students to Source Control. Requested agent models were Terra
+high for merge/recovery and Terra medium for UI and panel labels; effective model,
+tokens and review time are unknown. One UI integration correction added explicit
+confirmation before a recovery retry push. See the active handoff in
+[CURRENT](../.ai/CURRENT.md) and the [version-control plan](VERSION-CONTROL-PLAN.md).
+
+---
+
 # Study class refactoring — local source
 
 Lesson6 now moves the working quiz into ordinary StudyQuiz after extracting

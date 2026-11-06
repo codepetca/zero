@@ -48,3 +48,13 @@ test('Project New is a supported dropdown with selected-area choices and file co
   assert.doesNotMatch(entry.when,/zeroReadonly/);
  }
 });
+
+test('Project controls offer New, Clone, and Open in a native header menu',()=>{
+ const {menus,submenus}=require('../package.json').contributes;
+ assert.deepEqual(submenus.find(s=>s.id==='zero.projectActionsMenu'),{id:'zero.projectActionsMenu',label:'Project',icon:'$(folder-opened)'});
+ assert.deepEqual(menus['view/title'].find(item=>item.submenu==='zero.projectActionsMenu'),{
+  submenu:'zero.projectActionsMenu',when:'view == zero.controls || view == zero.studentControls',group:'navigation@0'
+ });
+ assert.deepEqual(menus['zero.projectActionsMenu'].map(item=>item.command),['zero.newProject','zero.cloneRepository','zero.openLocalProject']);
+ assert.ok(menus['zero.projectActionsMenu'].every(item=>!item.when),'Project actions remain available with or without an open project');
+});

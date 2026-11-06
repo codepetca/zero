@@ -8,6 +8,14 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner sidebar refinement, 2026-11-05 (local source): name the controls pane
+**Project** and the student file tree **Files**. The Project header offers New
+project, Clone and Open; the Files header retains file creation. Use a compact
+branch selector and separate Merge, Review changes and History actions. Review changes and History
+open read-only editor views; unsaved editor buffers are clearly labeled.
+Keep the existing per-file review and recovery choices. These views do not offer
+whole-change undo. Existing authentication, trust and file safety guards remain.
+
 Owner publishing progress refinement,2026-10-27 (local source only): retain the
 changing publishing status and add one slim native-theme stage bar beneath it.
 Completed stages fill; the current stage moves while its duration is unknown.
@@ -28,7 +36,7 @@ Copy playable link in the advanced palette; the browser address is shareable.
 Current source only; published
 kits keep their bundled behavior until a separately authorized release.
 
-Owner toolbar refinement,2026-10-26: keep only New (+) in the Project title bar.
+Owner toolbar refinement,2026-10-26: keep only New (+) in the Files title bar.
 Refresh, Show All Project Files and Collapse All belong in its three-dot menu.
 
 Owner naming refinement,2026-10-26: show `java` and `resources` in the student
@@ -36,8 +44,8 @@ project tree and destination prompts, matching the real folder basenames. Keep
 Libraries and its grouping unchanged.
 
 Owner refinement,2026-10-26: in the Student Explorer, remove the ZeroHub
-and New controls from the controls panel. Creation belongs in the native Project
-header's New menu and tree context menus; ZeroHub belongs in the Project overflow.
+and file-creation controls from the controls panel. File creation belongs in the
+native Files header's New menu and tree context menus; ZeroHub belongs in the Files overflow.
 Keep the existing guards and supported host controls. After reviewing the working
 preview and its requested refinements, the owner continued with local adoption
 on2026-10-26. Student Explorer is the local source default; explicit Standard
@@ -91,19 +99,20 @@ when adding features; a new feature does not reset the agreed interaction style.
   Signed out shows **Sign in to GitHub**. Keep checking, setup and error guidance
   visible when action is needed; omit the routine Ready to start line.
 - The sidebar is for project development: Run/Stop, native Explorer, contextual repository
-  and branch actions, Commit & push, Merge to main and ZeroHub. Empty windows
-  offer only Open Start Page. A local project needing cloud setup offers GitHub
+  and branch actions, Commit & push, Merge to main and ZeroHub. Empty controls
+  offer Open Start Page alongside the Project header menu. A local project needing cloud setup offers GitHub
   setup navigation to the Start Page; local Run/Files remain available offline.
   A ready project shows owner/repository without a duplicate username row. Its
-  contextual menu retains repository/account/recovery actions and omits global
-  New/Clone/Open project choices. Keep labels wrapped and fully accessible.
+  contextual menu retains repository/account actions; New/Clone/Open project
+  choices live in the Project pane header. Keep labels wrapped and fully accessible.
   ZeroHub offers Projects, Libraries and eligible Share project; tutorial/local
   practice sharing remains blocked. Troubleshooting stays in native ⋯.
 - Clicking **New ▾** opens **New class…**, **New file…**, **New folder…**,
   **New asset…** and **Copy asset paths** after import in a dropdown beneath New.
   Use native name/location prompts; keep new classes
-  ordinary Java beside Main and open new files in the editor. **Review or restore changes…** belongs in the project menu; it
-  opens the existing native review/discard/restore choices. No separate tools row.
+  ordinary Java beside Main and open new files in the editor. Review changes and
+  History are available in Project; per-file recovery remains
+  available in the existing native review/discard/restore choices. No separate tools row.
 - Clone defaults to **~/Zero Projects**, with a native location picker to choose
   another parent. Clone opens a searchable native picker: recent projects on this
   Mac first, then the signed-in account's accessible Zero repositories, with
@@ -119,7 +128,7 @@ when adding features; a new feature does not reset the agreed interaction style.
   open Zero Start Page available as a tab alongside the destination project.
   Sign-out
   preserves local folders, Git history and the open project.
-- Use clear Git labels: **New branch**, **Update from main**, **Commit & push**, **Merge to main**.
+- Use clear Git labels: **New branch**, **Update from main**, **Commit & push**, **Merge**.
   New branch is local and remains available while signed out. Update from main
   brings GitHub main into the current branch without uploading. Update branch
   from GitHub separately gets the same remote feature. Keep routine actions direct
@@ -129,8 +138,8 @@ when adding features; a new feature does not reset the agreed interaction style.
   Keep repository and branch in the sidebar. Show an inline
   spinner and **Preparing commit…** on the button during preparation, then
   **Committing & pushing…** after confirmation; clear on completion/cancel/error.
-  Entering a branch name or commit message proceeds directly; clicking Merge to
-  main starts its guarded operation. Do not add routine confirmation dialogs.
+  Entering a branch name or commit message proceeds directly; choosing Merge to
+  main in Project starts its guarded operation. Do not add routine confirmation dialogs.
 - After a verified successful merge and push, automatically delete only the
   unchanged finished **local** branch through the existing safety checks. Keep
   the remote branch. Failed, paused or conflicted operations skip cleanup;

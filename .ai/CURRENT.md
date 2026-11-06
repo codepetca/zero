@@ -1,3 +1,26 @@
+# Student version control — local work in progress, 2026-11-05
+
+Scope and phases: [version-control plan](../docs/VERSION-CONTROL-PLAN.md). Worktree
+`codex/finished-change-history`, based on origin/main 7291c2a9e; primary checkout
+has unrelated changes and remains untouched. Project/Files labels and Project header
+menu are implemented. Compact branch actions and read-only review/history tab are
+local prototypes. Merge records use a provisional two-parent Git marker and pending
+ref; guided recovery preserves newer work and asks before a retry push. This path
+still needs independent review and native acceptance. Whole-change undo and the two-active-branch experience remain future work.
+
+Owner directed “Override stops and get this work done” on 2026-11-05; under
+override-task-stops this waives low-usage and workflow review-budget stops for this
+task. Review ledger: 0 launches, 0 review waves, 0 fix batches. Actual provider
+execution limits and publication permissions remain in force. Usage reports
+ordinaryUsageAllowed=false; do not consume a reset or switch accounts. No independent
+review, native editor acceptance, live GitHub trial, source push, merge or release.
+Do not treat local tests as acceptance. Focused sidebar checks passed 43/43; the final Git workflow suite passed 37/37. Next:
+obtain the required
+risk-matched independent review when permitted, then run relevant integration and
+native UI checks. Preserve uncommitted changes in this worktree.
+
+---
+
 # Microsoft Store package correction — 2026-10-28
 
 Owner authorizes correcting the Store package and validating actual MSIX behavior;

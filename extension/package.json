@@ -621,6 +621,11 @@
       ],
       "view/title": [
         {
+          "submenu": "zero.projectActionsMenu",
+          "when": "view == zero.controls || view == zero.studentControls",
+          "group": "navigation@0"
+        },
+        {
           "command": "zero.githubAccount",
           "when": "view == zero.controls",
           "group": "zero-account@1"
@@ -763,6 +768,20 @@
           "group": "zero-file@1"
         }
       ],
+      "zero.projectActionsMenu": [
+        {
+          "command": "zero.newProject",
+          "group": "1_project@1"
+        },
+        {
+          "command": "zero.cloneRepository",
+          "group": "1_project@2"
+        },
+        {
+          "command": "zero.openLocalProject",
+          "group": "1_project@3"
+        }
+      ],
       "zero.projectNewMenu": [
         {
           "command": "zero.projectNewClass",
@@ -807,6 +826,11 @@
       ]
     },
     "submenus": [
+      {
+        "id": "zero.projectActionsMenu",
+        "label": "Project",
+        "icon": "$(folder-opened)"
+      },
       {
         "id": "zero.projectNewMenu",
         "label": "New",

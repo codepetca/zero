@@ -61,21 +61,24 @@ async function remoteChange(f, filename, content) {
   await core.git(other, ['push', f.bare, 'HEAD:refs/heads/main']);
   return head;
 }
-test('individual start/finish cycle uploads exact feature SHA to main and safely deletes only local feature', async t => {
+test('finish records a named merge on main and safely deletes only the feature', async t => {
   const f = await fixture(t); const baseline = await core.git(f.root, ['rev-parse', 'HEAD']);
   const started = await start(f); assert.equal(started.branch, 'add-score'); assert.equal(started.head, baseline);
   const feature = await commit(f.root, 'Score.java', 'class Score {}\n');
   const review = await workflow.prepareFinish(f.root, f.options);
   assert.deepEqual(review.changedPaths, ['Score.java']); assert.equal(review.commitCount, 1); assert.ok(Object.isFrozen(review));
   const result = await workflow.finishPrepared(review, f.options);
-  assert.equal(result.finished, true); assert.equal(result.branch, 'main'); assert.equal(result.head, feature);
-  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), feature);
+  assert.equal(result.finished, true); assert.equal(result.branch, 'main'); assert.equal(result.featureHead, feature);
+  assert.deepEqual((await core.git(f.root, ['rev-list', '--parents', '-n', '1', result.head])).split(' '), [result.head, baseline, feature]);
+  assert.equal(await core.git(f.root, ['show', '-s', '--format=%B', result.head]), 'Zero: finish add-score\n\nZero-Finished-Change: 1\nZero-Change-Branch: add-score');
+  assert.equal(await core.git(f.root, ['rev-parse', `${result.head}^{tree}`]), await core.git(f.root, ['rev-parse', `${feature}^{tree}`]));
+  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), result.head);
   assert.equal(await fs.readFile(path.join(f.root, 'secret.txt'), 'utf8'), 'kept locally');
   assert.deepEqual(f.calls.map(args => args[0]), ['push', 'ls-remote']);
-  assert.deepEqual(f.calls[0], ['push', remote, `${feature}:refs/heads/main`]);
+  assert.deepEqual(f.calls[0], ['push', remote, `${result.head}:refs/heads/main`]);
   assert.ok(!f.calls.some(args => args.includes('--force') || args.includes('--force-with-lease')));
   await assert.rejects(fs.access(path.join(f.root, '.git', 'FETCH_HEAD')));
-  await workflow.deleteFinishedBranch(f.root, result.finishedBranch, result.head, {run: f.run});
+  await workflow.deleteFinishedBranch(f.root, result.finishedBranch, result.featureHead, {run: f.run});
   await assert.rejects(core.git(f.root, ['show-ref', '--verify', 'refs/heads/add-score']));
   assert.equal(await core.git(f.bare, ['for-each-ref', '--format=%(refname)']), 'refs/heads/main');
 });
@@ -100,7 +103,7 @@ test('disjoint updated main merges into feature and stops for a fresh app run/re
   await core.git(f.root, ['merge-base', '--is-ancestor', feature, result.head]);
   await core.git(f.root, ['merge-base', '--is-ancestor', remoteHead, result.head]);
   assert.ok(!f.calls.some(args => args[0] === 'push'));
-  const final = await finish(f); assert.equal(final.finished, true); assert.equal(final.head, result.head);
+  const final = await finish(f); assert.equal(final.finished, true); assert.equal(final.featureHead, result.head);
 });
 test('conflict preserves merge state and original main, then resolution can Finish again', async t => {
   const f = await fixture(t); await start(f);
@@ -117,14 +120,16 @@ test('conflict preserves merge state and original main, then resolution can Fini
   await commit(f.root, 'Main.java', 'class Main { int score; int lives; }\n');
   assert.equal((await finish(f)).finished, true);
 });
-test('failed push keeps feature checked out and advanced local main; retry publishes preserved SHA', async t => {
+test('failed push keeps local main and retries the same pending SHA', async t => {
   const f = await fixture(t); await start(f);
+  const base = await core.git(f.root, ['rev-parse', 'refs/heads/main']);
   const head = await commit(f.root, 'Score.java', 'class Score {}');
   f.setFailure(true);
   await assert.rejects(finish(f), error => /commits are preserved/.test(error.message) && !/SECRET/.test(error.message));
   assert.equal(await core.git(f.root, ['branch', '--show-current']), 'add-score');
-  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), head);
-  f.setFailure(false); assert.equal((await finish(f)).head, head);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), base);
+  const pending = await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']);
+  f.setFailure(false); const result = await finish(f); assert.equal(result.head, pending); assert.equal(result.featureHead, head);
 });
 test('remote racing the final push rejects non-fast-forward; retry integrates main without losing work', async t => {
   const f = await fixture(t); await start(f); await commit(f.root, 'Score.java', 'class Score {}');
@@ -382,18 +387,18 @@ test('Sync checks session and project guards before downloading and before mutat
   assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
 });
 
-test('Merge preparation is local, session failure blocks push, and a normal merge uses four source snapshots', async t => {
-  const f = await fixture(t); await start(f); const head = await commit(f.root, 'Score.java', 'score');
+test('Merge preparation is local and session failure blocks push', async t => {
+  const f = await fixture(t); await start(f); const base = await core.git(f.root, ['rev-parse', 'refs/heads/main']); await commit(f.root, 'Score.java', 'score');
   let snapshots = 0;
   const run = async (root, args) => { if (args[0] === 'ls-files' && args.includes('--cached') && args.includes('--ignored')) snapshots++; return f.run(root, args); };
   const plan = await workflow.prepareFinish(f.root, {run});
   assert.equal(f.calls.length, 0);
   await assert.rejects(workflow.finishPrepared(plan, {...f.options, run, beforeNetwork: async () => { throw new Error('Session ended'); }}), /Session ended/);
-  assert.equal(f.calls.length, 0); assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), head);
+  assert.equal(f.calls.length, 0); assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), base);
   snapshots = 0;
   const retry = await workflow.prepareFinish(f.root, {run});
   const result = await workflow.finishPrepared(retry, {...f.options, run});
-  assert.equal(result.finished, true); assert.equal(snapshots, 4);
+  assert.equal(result.finished, true); assert.ok(snapshots >= 4);
   assert.deepEqual(f.calls.map(args => args[0]), ['push', 'ls-remote']);
 });
 
@@ -407,4 +412,90 @@ test('Sync refuses dirty main and merges diverged main without uploading or losi
   assert.equal(result.synced, true);
   await core.git(f.root, ['merge-base', '--is-ancestor', head, result.head]);
   assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+
+test('an unconfirmed successful push retries the exact pending commit and fresh clone sees the boundary', async t => {
+  const f = await fixture(t); await start(f); const feature = await commit(f.root, 'Score.java', 'score');
+  let interrupt = true;
+  f.setHook(async (_, args) => { if (args[0] === 'ls-remote' && interrupt) { interrupt = false; throw new Error('interrupted confirmation'); } });
+  await assert.rejects(finish(f), error => error.workflowRecovery?.operation === 'merge');
+  const candidate = await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']);
+  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), candidate);
+  await assert.rejects(sync(f), /Recover the pending change/);
+  const completed = await finish(f); assert.equal(completed.head, candidate); assert.equal(completed.featureHead, feature);
+  const clone = path.join(f.parent, 'fresh'); await core.git(f.parent, ['clone', f.bare, clone]);
+  assert.equal(await core.git(clone, ['show', '-s', '--format=%B', 'HEAD']), 'Zero: finish add-score\n\nZero-Finished-Change: 1\nZero-Change-Branch: add-score');
+});
+test('empty change is rejected before push or pending ref creation', async t => {
+  const f = await fixture(t); await start(f);
+  await assert.rejects(workflow.prepareFinish(f.root, f.options), /no commits to finish/);
+  assert.equal(f.calls.length, 0);
+  await assert.rejects(core.git(f.root, ['rev-parse', '--verify', 'refs/zero/pending-finish']));
+});
+test('interruption after confirmed push and local main update retries without a second boundary', async t => {
+  const f = await fixture(t); await start(f); const feature = await commit(f.root, 'Score.java', 'score');
+  let failCheckout = true;
+  const run = async (root, args) => {
+    if (failCheckout && args[0] === 'checkout' && args.at(-1) === 'main') { failCheckout = false; throw new Error('interrupted'); }
+    return f.run(root, args);
+  };
+  await assert.rejects(workflow.finishPrepared(await workflow.prepareFinish(f.root, {run}), {...f.options, run}), /switch to completed main/);
+  const candidate = await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), candidate);
+  const result = await workflow.finishPrepared(await workflow.prepareFinish(f.root, {run}), {...f.options, run});
+  assert.equal(result.head, candidate); assert.equal(result.featureHead, feature);
+  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), candidate);
+});
+test('newer feature commits survive guided recovery and an explicit retry', async t => {
+  const f = await fixture(t); await start(f); await commit(f.root, 'Score.java', 'score'); f.setFailure(true);
+  await assert.rejects(finish(f));
+  const candidate = await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']);
+  const changed = await commit(f.root, 'More.java', 'more'); f.setFailure(false);
+  await assert.rejects(workflow.prepareFinish(f.root, f.options), error => error.pendingFinishDrift === true);
+  const plan = await workflow.preparePendingFinishRecovery(f.root, f.options);
+  const before = f.calls.filter(args => args[0] === 'push').length;
+  const review = await workflow.recoverPendingFinish(plan, f.options);
+  assert.equal(review.needsPush, true); assert.equal(review.candidate, candidate); assert.equal(review.page, 'https://github.com/student/workflow');
+  assert.equal(f.calls.filter(args => args[0] === 'push').length, before);
+  const result = await workflow.recoverPendingFinish(plan, {...f.options, allowPush:true});
+  assert.equal(result.recovered, true); assert.equal(result.head, changed); assert.equal(result.finishedHead, candidate);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), changed);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), candidate);
+  assert.equal((await sync(f)).updated, true);
+  const completed = await finish(f); await core.git(f.root, ['merge-base', '--is-ancestor', changed, completed.head]);
+});
+test('guided recovery recognizes a successful unconfirmed push and keeps newer work', async t => {
+  const f = await fixture(t); await start(f); await commit(f.root, 'Score.java', 'score');
+  let interrupt = true; f.setHook(async (_, args) => { if (args[0] === 'ls-remote' && interrupt) { interrupt = false; throw new Error('interrupted'); } });
+  await assert.rejects(finish(f)); const candidate = await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']);
+  const changed = await commit(f.root, 'More.java', 'more');
+  const pushes = f.calls.filter(args => args[0] === 'push').length;
+  const result = await workflow.recoverPendingFinish(await workflow.preparePendingFinishRecovery(f.root, f.options), f.options);
+  assert.equal(result.finishedHead, candidate); assert.equal(result.head, changed);
+  assert.equal(f.calls.filter(args => args[0] === 'push').length, pushes);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), changed);
+});
+test('guided recovery leaves divergent remote for sync, preserving newer work', async t => {
+  const f = await fixture(t); await start(f); await commit(f.root, 'Score.java', 'score'); f.setFailure(true); await assert.rejects(finish(f));
+  const changed = await commit(f.root, 'More.java', 'more'); f.setFailure(false); await remoteChange(f, 'Remote.java', 'remote');
+  const result = await workflow.recoverPendingFinish(await workflow.preparePendingFinishRecovery(f.root, f.options), f.options);
+  assert.equal(result.needsSync, true); assert.equal(result.recovered, false);
+  const synced = await sync(f); assert.equal(synced.updated, true);
+  await core.git(f.root, ['merge-base', '--is-ancestor', changed, synced.head]);
+  await finish(f);
+});
+test('guided recovery retries after local main was advanced but pending cleanup was interrupted', async t => {
+  const f = await fixture(t); await start(f); await commit(f.root, 'Score.java', 'score');
+  let interrupted = true; f.setHook(async (_, args) => { if (args[0] === 'ls-remote' && interrupted) { interrupted = false; throw new Error('interrupted'); } });
+  await assert.rejects(finish(f)); const candidate = await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']);
+  const changed = await commit(f.root, 'More.java', 'more');
+  let fail = true;
+  const run = async (root, args) => {
+    if (fail && args[0] === 'update-ref' && args.includes('-d') && args.includes('refs/zero/pending-finish')) { fail = false; throw new Error('interrupted'); }
+    return f.run(root, args);
+  };
+  await assert.rejects(workflow.recoverPendingFinish(await workflow.preparePendingFinishRecovery(f.root, {run}), {...f.options, run}), /clear the confirmed pending change/);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), candidate);
+  const result = await workflow.recoverPendingFinish(await workflow.preparePendingFinishRecovery(f.root, {run}), {...f.options, run});
+  assert.equal(result.recovered, true); assert.equal(result.head, changed); assert.equal(result.finishedHead, candidate);
 });

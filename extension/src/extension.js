@@ -49,6 +49,7 @@ const {createFileCommands} = require('./file-actions');
 const {createRenameCommands} = require('./file-rename');
 const {createStudentExplorer} = require('./student-explorer');
 const {createRecoveryCommands} = require('./recovery');
+const {createChangeHistory} = require('./change-history');
 const {sidebarStyles} = require('./sidebar-style');
 const {sidebarScript} = require('./sidebar-script');
 const {icon} = require('./sidebar-icons');
@@ -733,7 +734,26 @@ function activate(context, services = {}) {
         const beforeMutation = beforeNetwork;
         const updating=kind==='sync'||kind==='updateBranch';
         const options = {networkRun,beforeNetwork,beforeMutation,onProgress:reportProgress,...(kind==='updateBranch'?{target:'branch'}:{})};
-        const plan = updating ? await workflow.prepareSync(root,options) : await workflow.prepareFinish(root,options);
+        let plan;
+        try { plan = updating ? await workflow.prepareSync(root,options) : await workflow.prepareFinish(root,options); }
+        catch (error) {
+          if (updating || !error.pendingFinishDrift) throw error;
+          const recoveryPlan=await workflow.preparePendingFinishRecovery(root,options);
+          if (recoveryPlan.remote !== destination.remote) throw new Error('The connected repository changed. Review this step again.');
+          let result=await workflow.recoverPendingFinish(recoveryPlan,options);
+          if (result.needsPush) {
+            const choice=await vscode.window.showWarningMessage('Retry the earlier merge?',{modal:true,detail:`Push commit ${result.candidate} to main in ${result.page}. Your newer branch commits stay on this branch.`},'Merge');
+            if (choice!=='Merge') return;
+            await beforeNetwork();
+            result=await workflow.recoverPendingFinish(recoveryPlan,{...options,allowPush:true});
+          }
+          if (result.recovered) {
+            await clearPush(root,result.branch);
+            await refreshNativeGit(root);
+            report('Earlier merge confirmed · update from main', 'Your newer commits remain on this branch. Update from main, run your app, then merge the newer work.');
+          } else if (result.needsSync) report('GitHub main changed · update from main', 'Update from main, run your app, then merge your changes. Your commits are preserved.');
+          return;
+        }
         if (plan.remote !== destination.remote) throw new Error('The connected repository changed. Review this step again.');
         await beforeNetwork();
         const result = updating ? await workflow.syncPrepared(plan,options) : await workflow.finishPrepared(plan,options);
@@ -749,7 +769,7 @@ function activate(context, services = {}) {
         await clearPush(root,result.finishedBranch);await clearPush(root,'main');
         let cleanupError;
         if (result.finished) {
-          try {await beforeMutation();await workflow.deleteFinishedBranch(root,result.finishedBranch,result.head,{beforeMutation});}
+          try {await beforeMutation();await workflow.deleteFinishedBranch(root,result.finishedBranch,result.featureHead,{beforeMutation});}
           catch(error){cleanupError=error;output.appendLine(`Main was merged and pushed. Finished local branch kept: ${error.message}`);}
         }
         await refreshNativeGit(root);
@@ -922,11 +942,12 @@ function activate(context, services = {}) {
       await repositoryStatus();
       if (isBusy() || !branch || !repository.startsWith('https://github.com/')) return;
       const root = projectRoot, currentBranch = branch, currentRepository = repository;
-      const choice = await quickPick(currentBranch === 'main' ? [{label:'New branch…', action:'start'}] : [{label:'Merge to main…', action:'finish'}], {title:`${currentRepository.replace('https://github.com/','')} · ${currentBranch}`});
+      const choice = await quickPick([...(currentBranch === 'main' ? [{label:'New branch…', action:'start'}] : [{label:'Merge', action:'finish'}]),{label:'Switch branch…',action:'switch'}], {title:`${currentRepository.replace('https://github.com/','')} · ${currentBranch}`});
       if (isBusy() || !choice) return;
       await repositoryStatus();
       if (isBusy() || projectRoot !== root || branch !== currentBranch || repository !== currentRepository) return;
-      await change(choice.action);
+      if (choice.action === 'switch') await actions['zero.switchBranch']();
+      else await change(choice.action);
     },
     'zero.startChange': () => change('start'),
     'zero.finishChange': () => change('finish'),
@@ -1208,6 +1229,10 @@ function activate(context, services = {}) {
   const recovery=createRecoveryCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
   Object.assign(actions,assets.commands,recovery.commands);
   context.subscriptions.push(assets,recovery);
+  const history=createChangeHistory(vscode,{project,output});
+  actions['zero.reviewChanges']=()=>isBusy()?undefined:history.openReview();
+  actions['zero.changeHistory']=()=>isBusy()?undefined:history.openHistory();
+  context.subscriptions.push(history);
   actions['zero.updateProject']=async()=>{
     if(disposed||isBusy())return;
     maintenanceBusy=true;refresh();
@@ -1281,7 +1306,7 @@ function activate(context, services = {}) {
     const repoName = connected ? repository.slice('https://github.com/'.length) : projectRoot ? path.basename(projectRoot) : 'Project';
     const repoControl = `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Project actions')}" aria-label="${escape(`Project: ${repoName}. Open project actions`)}" aria-haspopup="dialog" ${disabled}><span class="repo-label">${escape(repoName).replace('/', '/<wbr>')}</span>${icon('ChevronDown')}</button>`;
     const gitDisabled = isBusy() || updateRecovery || updateRecoveryError ? 'disabled' : '';
-    const branchControl = (branch || branchDetached) ? `<div class="branch-row"><span class="branch" title="${escape(branch ? `Current branch: ${branch}` : 'Detached HEAD. Use Switch branch in repository actions.')}">${icon('GitBranch')}${escape(branch || 'Detached HEAD')}</span>${ready && connected && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${gitDisabled}>Merge to main</button>` : ''}</div>` : '';
+    const branchControl = (branch || branchDetached) ? `<div class="branch-row"><button class="link branch" data-command="${branch && connected ? 'zero.chooseBranch' : 'zero.switchBranch'}" title="${escape(branch ? `Current branch: ${branch}` : 'Detached HEAD. Switch branch.')}" aria-label="${escape(`Current branch: ${branch || 'Detached HEAD'}. Open branch actions`)}" aria-haspopup="dialog" ${gitDisabled}>${icon('GitBranch')}<span>${escape(branch || 'Detached HEAD')}</span>${icon('ChevronDown')}</button>${ready && connected && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${gitDisabled}>Merge</button>` : ''}</div>` : '';
     const githubActions = connected && ready && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${uploadProgress ? 'aria-busy="true"' : ''} ${gitDisabled}>${uploadProgress ? '<span class="busy-indicator" aria-hidden="true"></span>' : icon('CloudUpload')}${uploadProgress ? escape(uploadProgress) : pendingUpload&&pendingUpload.operation!=='merge'&&pendingMatchesHead&&!pendingDirty ? 'Push commits' : 'Commit &amp; push'}</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
     const gitRecoveryActions=projectRoot&&!localPractice?gitRecoveryPanel.panel({recovery:updateRecovery,pending:pendingUpload,error:updateRecoveryError,disabled:isBusy()}):'';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
@@ -1290,7 +1315,8 @@ function activate(context, services = {}) {
     const browserCheckStatus=savedChecksRoot===projectRoot&&savedChecksState?`<p class="muted status" title="${escape(savedChecksState.message||'')}">Browser checks: ${escape(savedChecksState.status)}</p>`:'';
     const browserAction = browserActive && !stopPromise && browserRun.canOpenInBrowser ? `<button class="secondary browser-open" data-command="zero.openRunningAppInBrowser" title="Open in browser" aria-label="Open in browser" ${disabled}>${icon('ExternalLink')}</button>` : '';
     const showRepository = projectRoot && (ready || connected || branch || branchDetached);
-    const githubPanel = !showRepository ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${gitRecoveryActions}`}`;
+    const historyActions = branch && !localPractice ? `<div class="row"><button class="link" data-command="zero.reviewChanges" ${gitDisabled}>Review changes</button><button class="link" data-command="zero.changeHistory" ${gitDisabled}>History</button></div>` : '';
+    const githubPanel = !showRepository ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${historyActions}${gitRecoveryActions}`}`;
     const fileActions=projectRoot && !studentView ? `<h2 id="files-heading"><button id="files-menu-button" class="link files-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="files-menu" ${disabled}>New${icon('ChevronDown')}</button></h2><div id="files-menu" class="files-dropdown" role="menu" aria-labelledby="files-menu-button" hidden>${[['zero.newClass','New class…'],['zero.newPackage','New package…'],['zero.newFile','New file…'],['zero.newFolder','New folder…'],['zero.importAssets','New asset…'],...(assets.canCopyPaths() ? [['zero.copyImportedAssetPaths','Copy asset paths']] : [])].map(([command,label])=>`<button role="menuitem" tabindex="-1" data-command="${command}" ${disabled}>${label}</button>`).join('')}</div>` : '';
     const activeRun = execution || pendingLaunch || nativeStarting || browserActive || browserBusy;
     const setupCheck = projectRoot && isSetupProject(projectRoot);

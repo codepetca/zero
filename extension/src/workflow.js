@@ -157,17 +157,44 @@ async function prepareStart(project, name, {run = core.git} = {}) {
   const startFingerprintValue = current.status ? await startFingerprint(current, run) : null;
   return planFor('start', current, {name, startFingerprint: startFingerprintValue, summary: `Create ${name} from your current local main.`});
 }
+const pendingFinishRef = 'refs/zero/pending-finish';
+function finishMessage(branch) { return `Zero: finish ${branch}\n\nZero-Finished-Change: 1\nZero-Change-Branch: ${branch}`; }
+async function pendingFinish(current, run, {allowDrift = false} = {}) {
+  let id;
+  try { id = await run(current.root, ['rev-parse', '--verify', `${pendingFinishRef}^{commit}`]); }
+  catch (error) { if (error.code === 128) return null; throw error; }
+  if (!shaPattern.test(id)) throw drift();
+  const parents = (await run(current.root, ['rev-list', '--parents', '-n', '1', id])).split(' ');
+  const message = await run(current.root, ['show', '-s', '--format=%B', id]);
+  if (parents.length !== 3 || parents[0] !== id ||
+      message !== finishMessage(current.branch) ||
+      !/^[a-zA-Z0-9][a-zA-Z0-9/_-]*$/.test(current.branch) || current.branch.length > 80 || current.branch === 'main' ||
+      (current.mainHead !== parents[1] && current.mainHead !== id) ||
+      await run(current.root, ['rev-parse', `${id}^{tree}`]) !== await run(current.root, ['rev-parse', `${parents[2]}^{tree}`]) ||
+      !(await ancestor(run, current.root, parents[1], parents[2]))) {
+    throw new Error('A pending finished change no longer matches this project. Check native Source Control before continuing; your commits are preserved.');
+  }
+  if (parents[2] !== current.head) {
+    if (!(await ancestor(run, current.root, parents[2], current.head))) throw new Error('The feature no longer contains the pending change. Check native Source Control; all commits are preserved.');
+    if (!allowDrift) throw Object.assign(new Error('This feature has newer commits after an interrupted finish. Recover the pending change first; your newer commits will stay on this branch.'), {pendingFinishDrift: true});
+  }
+  return {id, base: parents[1], feature: parents[2]};
+}
 async function prepareFinish(project, {run = core.git} = {}) {
   await assertShareable(project);
   run = safeRunner(run);
   const current = await state(project, run, {full: true});
   clean(current);
   if (current.branch === 'main') throw new Error('Start a feature first. Merge to main is for a completed feature branch.');
-  if (!(await ancestor(run, current.root, current.mainHead, current.head))) throw new Error('Local main contains changes missing from this feature. Merge main into your feature with native Source Control, then review Merge to main again.');
-  const changedPaths = Object.freeze((await run(current.root, ['diff', '--name-only', '-z', current.mainHead, current.head])).split('\0').filter(Boolean));
-  const commitCount = await run(current.root, ['rev-list', '--count', `${current.mainHead}..${current.head}`]);
+  if (current.branch.length > 80 || !/^[a-zA-Z0-9][a-zA-Z0-9/_-]*$/.test(current.branch)) throw new Error('Use a simple feature branch name before finishing this change.');
+  const pending = await pendingFinish(current, run);
+  const base = pending ? pending.base : current.mainHead;
+  if (!(await ancestor(run, current.root, base, current.head))) throw new Error('Local main contains changes missing from this feature. Merge main into your feature with native Source Control, then review Merge to main again.');
+  if (base === current.head) throw new Error('This change has no commits to finish.');
+  const changedPaths = Object.freeze((await run(current.root, ['diff', '--name-only', '-z', base, current.head])).split('\0').filter(Boolean));
+  const commitCount = await run(current.root, ['rev-list', '--count', `${base}..${current.head}`]);
   await recheck(current, run);
-  return planFor('finish', current, {changedPaths, commitCount: Number(commitCount), summary: `Merge ${current.branch} to main: ${commitCount} feature commit(s), ${changedPaths.length} changed path(s). Upload the completed main and switch to main. If GitHub main changed, Update from main, run the app, then merge again.`});
+  return planFor('finish', current, {pending, changedPaths, commitCount: Number(commitCount), summary: `Merge ${current.branch} to main: ${commitCount} feature commit(s), ${changedPaths.length} changed path(s). Upload the completed main and switch to main. If GitHub main changed, Update from main, run the app, then merge again.`});
 }
 async function protectedNetwork(expected, options, operation, {full = false} = {}) {
   await options.beforeNetwork();
@@ -219,6 +246,13 @@ async function startPrepared(plan, options = {}) {
   await opts.beforeMutation();
   const reviewed = await recheck(plan, opts.run);
   if (plan.startFingerprint && await startFingerprint(reviewed, opts.run) !== plan.startFingerprint) throw drift();
+  let oldPending;
+  try { oldPending = await opts.run(plan.root, ['rev-parse', '--verify', `${pendingFinishRef}^{commit}`]); } catch (error) { if (error.code !== 128) throw error; }
+  if (oldPending) {
+    if (oldPending !== plan.head) throw new Error('A pending finished change needs attention in Source Control before starting another change.');
+    await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, oldPending], 'clear the completed pending change');
+    await recheck(plan, opts.run);
+  }
   opts.onProgress('Creating your local feature branch…');
   await opts.beforeCheckout?.();
   let checkoutWarning = false;
@@ -248,6 +282,19 @@ async function syncPrepared(plan, options = {}) {
   await protectedNetwork(plan, opts, () => fetchMain(plan, opts));
   const current = await recheck(plan, opts.run, {full: true});
   const remoteHead = plan.remoteMainHead;
+  if (current.branch !== 'main') {
+    const pending = await pendingFinish(current, opts.run, {allowDrift:true});
+    if (pending) {
+      if (plan.target !== 'main') throw new Error('Retry Merge to main before updating this feature branch.');
+      if (current.mainHead === pending.id || await ancestor(opts.run, plan.root, pending.id, remoteHead)) throw new Error('This change may already be on GitHub. Recover the pending change before updating.');
+      if (await ancestor(opts.run, plan.root, remoteHead, pending.id)) throw new Error('Recover the pending change before updating.');
+      {
+        await opts.beforeMutation();
+        await recheck(current, opts.run, {full: true});
+        await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, pending.id], 'retire the rejected pending change');
+      }
+    }
+  }
   const unchanged = await ancestor(opts.run, plan.root, remoteHead, current.head);
   if (!unchanged) {
     try { await opts.run(plan.root, ['merge-base', current.head, remoteHead]); }
@@ -282,27 +329,95 @@ async function finishPrepared(plan, options = {}) {
   await assertShareable(plan.root);
   await opts.beforeMutation();
   const current = await recheck(plan, opts.run, {full: true});
-  if (!(await ancestor(opts.run, plan.root, current.mainHead, current.head))) throw drift();
-  opts.onProgress('Saving completed work on local main…');
-  await local(opts.run, plan.root, ['update-ref', 'refs/heads/main', current.head, current.mainHead], 'fast-forward local main');
-  const ready = {...current, mainHead: current.head};
+  let candidate = plan.pending;
+  if (candidate) {
+    const checked = await pendingFinish(current, opts.run);
+    if (!checked || checked.id !== candidate.id) throw drift();
+  } else {
+    if (!(await ancestor(opts.run, plan.root, current.mainHead, current.head)) || current.mainHead === current.head) throw drift();
+    const tree = await opts.run(plan.root, ['rev-parse', `${current.head}^{tree}`]);
+    const id = await local(opts.run, plan.root, ['-c', `core.hooksPath=${os.devNull}`, 'commit-tree', tree, '-p', current.mainHead, '-p', current.head, '-m', finishMessage(current.branch)], 'record the finished change');
+    if (!shaPattern.test(id)) throw drift();
+    await opts.beforeMutation();
+    await recheck(current, opts.run, {full: true});
+    await local(opts.run, plan.root, ['update-ref', '--no-deref', pendingFinishRef, id, '0'.repeat(id.length)], 'save the pending finished change');
+    candidate = {id, base: current.mainHead, feature: current.head};
+  }
+  const ready = current;
   opts.onProgress('Pushing the merged main…');
   let confirmed;
   try {
-    await protectedNetwork(ready, opts, () => network(opts.networkRun, plan.root, ['push', plan.remote, `${ready.head}:refs/heads/main`]), {full: true});
+    await protectedNetwork(ready, opts, () => network(opts.networkRun, plan.root, ['push', plan.remote, `${candidate.id}:refs/heads/main`]), {full: true});
     opts.onProgress('Confirming main on GitHub…');
     confirmed = await protectedNetwork(ready, opts, () => remoteMain(ready, opts.networkRun));
+    if (confirmed !== candidate.id) throw Object.assign(new Error('GitHub did not confirm the completed main commit.'), {kind:'unconfirmed'});
   } catch (error) {
-    throw Object.assign(new Error(`${error.message} Local main already contains the completed commit; your feature remains available. Update from main, run the app, then merge again.`),{workflowRecovery:{root:plan.root,remote:plan.remote,page:plan.page,branch:plan.branch,head:ready.head,committed:false,kind:error.kind||'network',operation:'merge'}});
+    throw Object.assign(new Error(`${error.message} Your feature and local main are preserved. Retry Merge to main, or update from GitHub if main changed.`),{workflowRecovery:{root:plan.root,remote:plan.remote,page:plan.page,branch:plan.branch,head:candidate.id,committed:false,kind:error.kind||'network',operation:'merge'}});
   }
-  if (confirmed !== ready.head) throw new Error('GitHub did not confirm the completed main commit. Your feature remains checked out and local main keeps the completed commit. Review Merge to main again.');
+  if (current.mainHead !== candidate.id) {
+    await opts.beforeMutation();
+    await recheck(current, opts.run, {full: true});
+    await local(opts.run, plan.root, ['update-ref', 'refs/heads/main', candidate.id, candidate.base], 'advance local main');
+  }
+  const completed = {...current, mainHead: candidate.id};
   await opts.beforeMutation();
-  await recheck(ready, opts.run, {full: true});
+  await recheck(completed, opts.run, {full: true});
   await local(opts.run, plan.root, ['checkout', '--no-overwrite-ignore', 'main'], 'switch to completed main');
   const final = await state(plan.root, opts.run);
-  if (!same({...ready, branch: 'main'}, final)) throw drift();
+  if (!same({...completed, branch: 'main', head: candidate.id}, final)) throw drift();
+  try { await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, candidate.id], 'clear the pending finished change'); } catch { /* Main and remote already contain the commit; a later start can clear the stale ref. */ }
   plans.delete(plan);
-  return Object.freeze({finished: true, branch: 'main', head: final.head, page: plan.page, finishedBranch: plan.branch, remote: plan.remote});
+  return Object.freeze({finished: true, branch: 'main', head: final.head, featureHead: candidate.feature, page: plan.page, finishedBranch: plan.branch, remote: plan.remote});
+}
+// Recover an interrupted finish without moving the feature branch or its newer commits.
+async function preparePendingFinishRecovery(project, {run = core.git} = {}) {
+  await assertShareable(project);
+  run = safeRunner(run);
+  const current = await state(project, run, {full:true});
+  clean(current);
+  if (current.branch === 'main') throw new Error('Switch to the feature with the pending change first.');
+  const pending = await pendingFinish(current, run, {allowDrift:true});
+  if (!pending || pending.feature === current.head) throw new Error('There is no pending finished change with newer feature commits to recover.');
+  await recheck(current, run, {full:true});
+  return planFor('recover-finish', current, {pending, summary:`Confirm finished change ${pending.id} on ${current.page}. Your newer commits remain on ${current.branch}. If GitHub does not yet have it, an explicit retry may push that exact commit to main.`});
+}
+async function recoverPendingFinish(plan, options = {}) {
+  const opts = executorOptions(plan, 'recover-finish', options);
+  await assertShareable(plan.root);
+  let current = await recheck(plan, opts.run, {full:true});
+  const pending = await pendingFinish(current, opts.run, {allowDrift:true});
+  if (!pending || pending.id !== plan.pending.id || pending.feature !== plan.pending.feature) throw drift();
+  opts.onProgress('Checking the earlier finished change on GitHub…');
+  const remoteHead = await protectedNetwork(current, opts, () => remoteMain(current, opts.networkRun), {full:true});
+  if (remoteHead) {
+    const reviewed = {...current, remoteMainHead:remoteHead};
+    await protectedNetwork(current, opts, () => fetchMain(reviewed, opts));
+  }
+  const included = remoteHead && await ancestor(opts.run, plan.root, pending.id, remoteHead);
+  if (!included && remoteHead && !(await ancestor(opts.run, plan.root, remoteHead, pending.id))) {
+    plans.delete(plan);
+    return Object.freeze({recovered:false, needsSync:true, branch:current.branch, remote:current.remote, remoteHead});
+  }
+  if (!included) {
+    if (opts.allowPush !== true) return Object.freeze({recovered:false, needsPush:true, branch:current.branch, candidate:pending.id, remote:current.remote, page:current.page});
+    opts.onProgress('Retrying the reviewed finished change…');
+    await protectedNetwork(current, opts, () => network(opts.networkRun, plan.root, ['push', plan.remote, `${pending.id}:refs/heads/main`]), {full:true});
+    const confirmed = await protectedNetwork(current, opts, () => remoteMain(current, opts.networkRun));
+    if (confirmed !== pending.id) throw new Error('GitHub did not confirm the earlier finished change. Retry recovery; all commits are preserved.');
+  }
+  if (current.mainHead !== pending.id) {
+    await opts.beforeMutation();
+    await recheck(current, opts.run, {full:true});
+    const checked = await pendingFinish(current, opts.run, {allowDrift:true});
+    if (!checked || checked.id !== pending.id) throw drift();
+    await local(opts.run, plan.root, ['update-ref', 'refs/heads/main', pending.id, pending.base], 'record the confirmed finished change on local main');
+    current = {...current, mainHead:pending.id};
+  }
+  await opts.beforeMutation();
+  await recheck(current, opts.run, {full:true});
+  await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, pending.id], 'clear the confirmed pending change');
+  plans.delete(plan);
+  return Object.freeze({recovered:true, needsSync:true, branch:current.branch, head:current.head, finishedHead:pending.id, remoteHead:included ? remoteHead : pending.id, remote:current.remote});
 }
 async function deleteFinishedBranch(root, branch, expectedHead, {run = core.git, beforeMutation = async () => {}} = {}) {
   await assertShareable(root);
@@ -333,4 +448,4 @@ async function checkpoint(root, options = {}) {
   opts.inspect = (project, run) => state(project, run);
   return recovery.checkpoint(root, opts);
 }
-module.exports = {readRecovery, resolveRecovery, cancelRecovery, checkpoint, prepareStart, startPrepared, prepareSync, syncPrepared, prepareFinish, finishPrepared, deleteFinishedBranch};
+module.exports = {preparePendingFinishRecovery, recoverPendingFinish, readRecovery, resolveRecovery, cancelRecovery, checkpoint, prepareStart, startPrepared, prepareSync, syncPrepared, prepareFinish, finishPrepared, deleteFinishedBranch};
