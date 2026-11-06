@@ -174,10 +174,34 @@ async function mainPendingFinish(current, run) {
     try { await run(current.root, ['check-ref-format', '--branch', match[1]]); branchValid = true; }
     catch (error) { if (error.code !== 128 && error.code !== 1) throw error; }
   }
-  const valid = branchValid && parents.length === 3 && parents[0] === id &&
+  const structural = branchValid && parents.length === 3 && parents[0] === id &&
     await run(current.root, ['rev-parse', `${id}^{tree}`]) === await run(current.root, ['rev-parse', `${parents[2]}^{tree}`]) &&
-    await ancestor(run, current.root, parents[1], parents[2]) && await ancestor(run, current.root, id, current.head);
-  return {id, valid};
+    await ancestor(run, current.root, parents[1], parents[2]);
+  return {id, structural, valid: structural && await ancestor(run, current.root, id, current.head), ...(structural ? {branch:match[1], base:parents[1], feature:parents[2]} : {})};
+}
+async function matchingFeature(current, pending, run) {
+  let head;
+  try { head = await run(current.root, ['rev-parse', '--verify', `refs/heads/${pending.branch}^{commit}`]); }
+  catch (error) { if (error.code === 128) return false; throw error; }
+  return shaPattern.test(head) && await ancestor(run, current.root, pending.feature, head);
+}
+async function archivePendingFinish(current, pending, opts) {
+  const savedRef = `refs/zero/retired-finish/${pending.id}`;
+  await opts.beforeMutation();
+  await recheck(current, opts.run, {full:true});
+  if (!(await matchingFeature(current, pending, opts.run))) throw new Error('The pending feature branch changed. Check Source Control; its commits are preserved.');
+  try { await opts.run(current.root, ['update-ref', '--no-deref', savedRef, pending.id, '0'.repeat(pending.id.length)]); }
+  catch (error) {
+    let existing;
+    try { existing = await opts.run(current.root, ['rev-parse', '--verify', savedRef]); } catch { throw error; }
+    let symbolic = false;
+    try { await opts.run(current.root, ['symbolic-ref', '--quiet', savedRef]); symbolic = true; } catch (e) { if (e.code !== 1) throw e; }
+    if (symbolic || existing !== pending.id) throw error;
+  }
+  await opts.beforeMutation();
+  await recheck(current, opts.run, {full:true});
+  if (!(await matchingFeature(current, pending, opts.run))) throw new Error('The pending feature branch changed. Check Source Control; its commits are preserved.');
+  await local(opts.run, current.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, pending.id], 'retire the pending change');
 }
 async function pendingFinish(current, run, {allowDrift = false} = {}) {
   let id;
@@ -304,6 +328,19 @@ async function syncPrepared(plan, options = {}) {
   let current = await recheck(plan, opts.run, {full: true});
   const remoteHead = plan.remoteMainHead;
   let confirmedFinish;
+  let rejectedOnMain;
+  if (current.branch === 'main') {
+    const pending = await mainPendingFinish(current, opts.run);
+    if (pending?.structural && !(await ancestor(opts.run, plan.root, pending.id, remoteHead))) {
+      // An older remote or a rewritten base cannot establish rejection. Keep
+      // the exact candidate and let the student resume its feature instead.
+      if (pending.valid || !(await ancestor(opts.run, plan.root, pending.base, remoteHead)) ||
+          await ancestor(opts.run, plan.root, remoteHead, pending.id) || !(await matchingFeature(current, pending, opts.run))) {
+        throw new Error('The earlier merge is still pending or its history changed. Switch to its feature in Source Control and review Merge to main or recovery. Your commits are preserved.');
+      }
+      rejectedOnMain = pending;
+    }
+  }
   if (current.branch !== 'main') {
     const pending = await pendingFinish(current, opts.run, {allowDrift:true});
     if (pending) {
@@ -377,6 +414,9 @@ async function syncPrepared(plan, options = {}) {
       await opts.beforeMutation();
       await recheck(final, opts.run, {full:true});
       await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, completed.id], 'clear the confirmed pending change');
+    } else if (rejectedOnMain) {
+      if (!completed?.structural || completed.id !== rejectedOnMain.id) throw drift();
+      await archivePendingFinish(final, completed, opts);
     }
   }
   plans.delete(plan);

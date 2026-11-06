@@ -9,10 +9,12 @@ future phases. Nothing was pushed or released.
 
 Focused sidebar, project menu, recovery and native-update tests: 43/43 passed;
 `git diff --check` passed. The final local Git workflow suite passed 37/37,
-including stale main, retry, fresh clone and guided pending-merge recovery. The owner waived the low-usage and review-budget stops by directing “Keep going.”
-The provider still reports ordinaryUsageAllowed=false; no reviewer was launched
-and no clean-review claim is made. A subsequent local Git conflict check corrected
-add/add conflicts to display as Conflict and direct students to Source Control. Requested agent models were Terra
+including stale main, retry, fresh clone and guided pending-merge recovery. The owner explicitly waived low-usage and review-budget stops. Two independent
+Terra/high reviews at447bd61e9 found a pending-merge deadlock, history ancestry
+omissions and misleading staged diffs. The UI fixes passed targeted re-review;
+Git remediation and targeted re-review found further pending-ref recovery cases.
+Corrections and review remain in progress; no final clean-review claim is made.
+A local Git conflict check corrected add/add conflict labeling. Requested agent models were Terra
 high for merge/recovery and Terra medium for UI and panel labels; effective model,
 tokens and review time are unknown. One UI integration correction added explicit
 confirmation before a recovery retry push. See the active handoff in
