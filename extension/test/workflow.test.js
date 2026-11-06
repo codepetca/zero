@@ -446,6 +446,63 @@ test('Sync recovers an unconfirmed finish included in a subsequently advanced re
   assert.equal(await core.git(f.root, ['rev-list', '--count', '--grep=Zero-Finished-Change: 1', result.head]), '1');
   assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), remoteHead);
 });
+test('Sync from main retires a validated pending finish included in newer remote history', async t => {
+  const f = await fixture(t); await start(f); const feature = await commit(f.root, 'Score.java', 'score');
+  let interrupt = true;
+  f.setHook(async (_, args) => { if (args[0] === 'ls-remote' && interrupt) { interrupt = false; throw new Error('interrupted'); } });
+  await assert.rejects(finish(f));
+  const candidate = await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']);
+  const remoteHead = await remoteChange(f, 'Remote.java', 'remote');
+  await core.git(f.root, ['checkout', 'main']);
+  const result = await sync(f);
+  assert.equal(result.head, remoteHead);
+  await core.git(f.root, ['merge-base', '--is-ancestor', candidate, result.head]);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/add-score']), feature);
+  assert.equal(await core.git(f.root, ['rev-list', '--count', '--grep=Zero-Finished-Change: 1', result.head]), '1');
+  await assert.rejects(core.git(f.root, ['rev-parse', '--verify', 'refs/zero/pending-finish']));
+  assert.equal((await start(f, 'next-change')).branch, 'next-change');
+});
+test('Sync and New branch preserve an unrelated pending ref on main', async t => {
+  const f = await fixture(t);
+  const initial = await core.git(f.root, ['rev-parse', 'HEAD']);
+  await core.git(f.root, ['update-ref', 'refs/zero/pending-finish', initial]);
+  const remoteHead = await remoteChange(f, 'Remote.java', 'remote');
+  assert.equal((await sync(f)).head, remoteHead);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']), initial);
+  await assert.rejects(start(f, 'next-change'), /pending finished change needs attention/);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']), initial);
+});
+test('a marker-shaped commit with the wrong feature tree is not retired on main', async t => {
+  const f = await fixture(t); const base = await core.git(f.root, ['rev-parse', 'HEAD']);
+  await start(f); const feature = await commit(f.root, 'Score.java', 'score');
+  const tree = await core.git(f.root, ['rev-parse', `${base}^{tree}`]);
+  const malformed = await core.git(f.root, ['commit-tree', tree, '-p', base, '-p', feature, '-m', 'Zero: finish add-score\n\nZero-Finished-Change: 1\nZero-Change-Branch: add-score']);
+  await core.git(f.root, ['update-ref', 'refs/zero/pending-finish', malformed]);
+  await core.git(f.root, ['checkout', 'main']);
+  await core.git(f.root, ['reset', '--hard', malformed]);
+  await sync(f);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']), malformed);
+  await assert.rejects(start(f, 'next-change'), /pending finished change needs attention/);
+});
+test('New branch clears a validated pending finish after Sync is interrupted after advancing main', async t => {
+  const f = await fixture(t); await start(f); await commit(f.root, 'Score.java', 'score');
+  let interrupt = true;
+  f.setHook(async (_, args) => { if (args[0] === 'ls-remote' && interrupt) { interrupt = false; throw new Error('interrupted'); } });
+  await assert.rejects(finish(f));
+  const candidate = await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']);
+  const remoteHead = await remoteChange(f, 'Remote.java', 'remote');
+  await core.git(f.root, ['checkout', 'main']);
+  let fail = true;
+  const run = async (root, args) => {
+    if (fail && args[0] === 'update-ref' && args.includes('-d') && args.includes('refs/zero/pending-finish')) { fail = false; throw new Error('interrupted'); }
+    return f.run(root, args);
+  };
+  await assert.rejects(workflow.syncPrepared(await workflow.prepareSync(f.root, {...f.options, run}), {...f.options, run}), /clear the confirmed pending change/);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), remoteHead);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']), candidate);
+  assert.equal((await start(f, 'next-change')).head, remoteHead);
+  await assert.rejects(core.git(f.root, ['rev-parse', '--verify', 'refs/zero/pending-finish']));
+});
 for (const afterCheckout of [false, true]) test(`Sync resumes after ${afterCheckout ? 'completed' : 'interrupted'} checkout of confirmed finish`, async t => {
   const f = await fixture(t); await start(f); await commit(f.root, 'Score.java', 'score');
   let interrupt = true;

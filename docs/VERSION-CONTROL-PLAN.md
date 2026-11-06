@@ -27,6 +27,14 @@ implemented.
    whole-change undo with an explicit preview, conflict handling, preserved later
    work, and a reviewable new change. File-level restore remains available. This
    future phase is not implied by a read-only history screen.
+Undo design candidate: only validated Zero merge markers that are ancestors of
+   the current branch are eligible. Require a clean worktree/index and saved
+   editors, preview the inverse against the current commit in a disposable Git
+   repository, and show affected files. Conflicts or unsupported file types stop
+   before modifying the project. A successful undo must preserve later work and
+   produce a reviewable correction; never automatically reset or abort over
+   external edits. Multi-file application and cancellation are not atomic with
+   other processes, so they still need a verified safe implementation and review.
 5. Evaluate a simple two-active-branch experience separately. Account for external
    branches and work from other computers; do not silently delete or block them.
 

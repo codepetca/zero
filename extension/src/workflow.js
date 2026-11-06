@@ -159,6 +159,26 @@ async function prepareStart(project, name, {run = core.git} = {}) {
 }
 const pendingFinishRef = 'refs/zero/pending-finish';
 function finishMessage(branch) { return `Zero: finish ${branch}\n\nZero-Finished-Change: 1\nZero-Change-Branch: ${branch}`; }
+// On main there is no checked-out feature name to authenticate the marker
+// against. Validate the complete marker and its graph before retiring it.
+async function mainPendingFinish(current, run) {
+  let id;
+  try { id = await run(current.root, ['rev-parse', '--verify', pendingFinishRef]); }
+  catch (error) { if (error.code === 128) return null; throw error; }
+  if (!shaPattern.test(id) || await run(current.root, ['cat-file', '-t', id]) !== 'commit') return {id, valid:false};
+  const parents = (await run(current.root, ['rev-list', '--parents', '-n', '1', id])).split(' ');
+  const message = await run(current.root, ['show', '-s', '--format=%B', id]);
+  const match = /^Zero: finish ([a-zA-Z0-9][a-zA-Z0-9/_-]*)\n\nZero-Finished-Change: 1\nZero-Change-Branch: \1$/.exec(message);
+  let branchValid = false;
+  if (match && match[1] !== 'main' && match[1].length <= 80) {
+    try { await run(current.root, ['check-ref-format', '--branch', match[1]]); branchValid = true; }
+    catch (error) { if (error.code !== 128 && error.code !== 1) throw error; }
+  }
+  const valid = branchValid && parents.length === 3 && parents[0] === id &&
+    await run(current.root, ['rev-parse', `${id}^{tree}`]) === await run(current.root, ['rev-parse', `${parents[2]}^{tree}`]) &&
+    await ancestor(run, current.root, parents[1], parents[2]) && await ancestor(run, current.root, id, current.head);
+  return {id, valid};
+}
 async function pendingFinish(current, run, {allowDrift = false} = {}) {
   let id;
   try { id = await run(current.root, ['rev-parse', '--verify', `${pendingFinishRef}^{commit}`]); }
@@ -246,11 +266,12 @@ async function startPrepared(plan, options = {}) {
   await opts.beforeMutation();
   const reviewed = await recheck(plan, opts.run);
   if (plan.startFingerprint && await startFingerprint(reviewed, opts.run) !== plan.startFingerprint) throw drift();
-  let oldPending;
-  try { oldPending = await opts.run(plan.root, ['rev-parse', '--verify', `${pendingFinishRef}^{commit}`]); } catch (error) { if (error.code !== 128) throw error; }
+  const oldPending = await mainPendingFinish(reviewed, opts.run);
   if (oldPending) {
-    if (oldPending !== plan.head) throw new Error('A pending finished change needs attention in Source Control before starting another change.');
-    await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, oldPending], 'clear the completed pending change');
+    if (!oldPending.valid) throw new Error('A pending finished change needs attention in Source Control before starting another change.');
+    await opts.beforeMutation();
+    await recheck(plan, opts.run);
+    await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, oldPending.id], 'clear the completed pending change');
     await recheck(plan, opts.run);
   }
   opts.onProgress('Creating your local feature branch…');
@@ -283,16 +304,6 @@ async function syncPrepared(plan, options = {}) {
   let current = await recheck(plan, opts.run, {full: true});
   const remoteHead = plan.remoteMainHead;
   let confirmedFinish;
-  if (current.branch === 'main') {
-    let stale;
-    try { stale = await opts.run(plan.root, ['rev-parse', '--verify', `${pendingFinishRef}^{commit}`]); }
-    catch (error) { if (error.code !== 128) throw error; }
-    if (stale === current.head) {
-      await opts.beforeMutation();
-      await recheck(current, opts.run, {full: true});
-      await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, stale], 'clear the confirmed pending change');
-    }
-  }
   if (current.branch !== 'main') {
     const pending = await pendingFinish(current, opts.run, {allowDrift:true});
     if (pending) {
@@ -360,6 +371,14 @@ async function syncPrepared(plan, options = {}) {
       (final.branch === 'main' ? final.mainHead !== final.head : final.mainHead !== current.mainHead) ||
       !(await ancestor(opts.run, plan.root, current.head, final.head)) || !(await ancestor(opts.run, plan.root, remoteHead, final.head))) throw drift();
   if (unchanged && (final.head !== current.head || final.fingerprint !== current.fingerprint)) throw drift();
+  if (final.branch === 'main') {
+    const completed = await mainPendingFinish(final, opts.run);
+    if (completed?.valid) {
+      await opts.beforeMutation();
+      await recheck(final, opts.run, {full:true});
+      await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, completed.id], 'clear the confirmed pending change');
+    }
+  }
   plans.delete(plan);
   return Object.freeze({synced: true, updated: final.head !== current.head, branch: final.branch, head: final.head, page: plan.page, remote: plan.remote, remoteBranch: plan.remoteBranch, remoteHead, ...(confirmedFinish ? {confirmedFinish} : {})});
 }
