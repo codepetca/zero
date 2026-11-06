@@ -292,9 +292,10 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
 test("Zero offers the native student explorer with a standard Explorer escape",()=>{
   const manifest=require("../package.json");
   assert.deepEqual(manifest.contributes.views.explorer.map(view=>view.id),["zero.controls"]);
-  assert.equal(manifest.contributes.views.explorer[0].name,"Zero");
+  assert.equal(manifest.contributes.views.explorer[0].name,"Project");
   assert.equal(manifest.contributes.views.explorer[0].when,'!zero.studentExplorerPreview');
   assert.deepEqual(manifest.contributes.views['zero-student-explorer'].map(item=>item.id),['zero.studentControls','zero.studentProject']);
+  assert.deepEqual(manifest.contributes.views['zero-student-explorer'].map(item=>item.name),['Project','Files']);
   assert.ok(manifest.contributes.views['zero-student-explorer'].every(item=>item.when==='zero.studentExplorerPreview'));
   assert.deepEqual(manifest.contributes.viewsContainers.activitybar.map(item=>item.id),['zero-student-explorer']);
   assert.equal(manifest.contributes.viewsContainers.activitybar[0].title,'Zero');

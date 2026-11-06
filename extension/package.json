@@ -434,7 +434,7 @@
         {
           "type": "webview",
           "id": "zero.controls",
-          "name": "Zero",
+          "name": "Project",
           "icon": "media/zero.svg",
           "when": "!zero.studentExplorerPreview"
         }
@@ -443,12 +443,12 @@
         {
           "type": "webview",
           "id": "zero.studentControls",
-          "name": "Zero",
+          "name": "Project",
           "when": "zero.studentExplorerPreview"
         },
         {
           "id": "zero.studentProject",
-          "name": "Project",
+          "name": "Files",
           "when": "zero.studentExplorerPreview"
         }
       ]
