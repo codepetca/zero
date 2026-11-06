@@ -18,10 +18,12 @@ Terra/high and Sol/high; effective model, time and tokens unavailable.
 
 `npm test` at 0c3d5afb4:1780 passed,8 skipped; final undo/history/UI tests at
 580733cc2:26/26; final integration checks:31/31. `npm run check` and `git diff
---check` passed. Actual VS Code interaction remains blocked because the Mac is
-locked; physical Windows and authenticated live GitHub flows remain untested.
-The owner was asked asynchronously to unlock the Mac. Zero Dev watcher is running.
-Next: native editor walkthrough when available, then document evidence. Source
+--check` passed. Actual VS Code interaction remains unverified: the Mac was unlocked and the owner
+foregrounded the disposable test window, but computer control selected a different
+VS Code process. A disposable local Git project successfully previewed and staged
+an undo with HEAD unchanged; no network was used. Physical Windows and
+authenticated live GitHub flows remain untested. Zero Dev watcher is running.
+Next: native editor walkthrough when the correct process can be selected. Source
 publication and release remain separately unauthorized.
 
 ---

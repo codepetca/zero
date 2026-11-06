@@ -16,8 +16,11 @@ issues and independently passed31/31 focused checks. Effective reviewer model,
 time and tokens unavailable. The owner explicitly waived low-usage and review-
 budget stops. No source push, merge, release or live GitHub trial occurred.
 
-Actual native editor interaction is blocked by the locked Mac. Physical Windows
-and authenticated live GitHub remain untested. Windows configuration fixtures
+After the owner unlocked the Mac and foregrounded the isolated test window,
+computer control still selected a different VS Code process, so native editor
+interaction remains unverified. In a disposable local Git project, the real undo
+engine previewed add-score and staged the inverse with HEAD unchanged; no network
+was used. Physical Windows and authenticated live GitHub remain untested. Windows configuration fixtures
 ran on macOS. Eight full-suite skips included Windows, PowerShell and optional
 Postgres coverage. See [CURRENT](../.ai/CURRENT.md) and the
 [version-control plan](VERSION-CONTROL-PLAN.md).
