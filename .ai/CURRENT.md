@@ -6,16 +6,18 @@ has unrelated changes and remains untouched. Project/Files labels and Project he
 menu are implemented. Compact branch actions and read-only review/history tab are
 local prototypes. Merge records use a provisional two-parent Git marker and pending
 ref; guided recovery preserves newer work and asks before a retry push. This path
-still needs independent review and native acceptance. Whole-change undo and the two-active-branch experience remain future work.
+still needs independent review and native acceptance. A preview-first whole-change undo is being tested and requires independent review;
+the two-active-branch experience remains future work.
 
 Owner directed “Override stops and get this work done” on 2026-11-05; under
 override-task-stops this waives low-usage and workflow review-budget stops for this
 task. Review ledger at 447bd61e9: two Terra/high reviewers, one initial wave,
 3 fix batches; initial Git review found a retry deadlock and UI review found
 two history/staging correctness issues. UI targeted re-review passed at90d181774.
-Git targeted reviews found included and divergent main-branch recovery deadlocks;
-the second fix is ready for another targeted re-review. Five review turns: two
-initial and three targeted; targeted UI review passed. Actual provider
+Git targeted reviews found included, divergent and pinned-race recovery issues;
+the latest targeted Git review passed atcb693fce4. Six reviewer turns total:
+two initial, one targeted UI, and three targeted Git. The full Git suite is
+running; a bounded undo-engine implementation has started. Actual provider
 execution limits and publication permissions remain in force. Usage reports
 ordinaryUsageAllowed=false; do not consume a reset or switch accounts. No independent
 review, native editor acceptance, live GitHub trial, source push, merge or release.

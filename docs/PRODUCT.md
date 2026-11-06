@@ -299,7 +299,10 @@ creation menu. Project holds native Run/Stop, teaching helpers and contextual
 repository/branch/push actions. A compact branch selector and separate Merge, Review
 changes and History actions expose the workflow. Review changes and History open read-only editor views of
 saved changes and clearly label unsaved editor buffers. Existing per-file recovery
-choices remain available; these views do not provide whole-change undo.
+choices remain available. A selected recognized finished change offers a guarded
+Undo change preview; after confirmation it stages a correction on the current branch
+without uploading. Conflicts and unsupported projects stop before application;
+the student reviews, runs and commits the correction.
 Troubleshooting and repository/account
 recovery remain in the native overflow. Local Run, Files and opening a local
 project remain available without signing in. Current source opens tutorial, new,

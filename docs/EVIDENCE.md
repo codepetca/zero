@@ -4,8 +4,8 @@ The isolated `codex/finished-change-history` worktree contains the Project/Files
 labels and header menu, compact branch controls, read-only change and history
 views, and a provisional named merge record. The feature remains unaccepted:
 independent review, actual VS Code interaction, live GitHub and Windows checks
-are outstanding. Whole-change undo and the two-active-branch experience are
-future phases. Nothing was pushed or released.
+are outstanding. A guarded whole-change undo is locally implemented and awaits
+independent review; the two-active-branch experience is a future phase. Nothing was pushed or released.
 
 Focused sidebar, project menu, recovery and native-update tests: 43/43 passed;
 `git diff --check` passed. The final local Git workflow suite passed 37/37,

@@ -50,6 +50,7 @@ const {createRenameCommands} = require('./file-rename');
 const {createStudentExplorer} = require('./student-explorer');
 const {createRecoveryCommands} = require('./recovery');
 const {createChangeHistory} = require('./change-history');
+const changeUndo = require('./change-undo');
 const {sidebarStyles} = require('./sidebar-style');
 const {sidebarScript} = require('./sidebar-script');
 const {icon} = require('./sidebar-icons');
@@ -1232,7 +1233,28 @@ function activate(context, services = {}) {
   const recovery=createRecoveryCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
   Object.assign(actions,assets.commands,recovery.commands);
   context.subscriptions.push(assets,recovery);
-  const history=createChangeHistory(vscode,{project,output});
+  async function undoFinishedChange(id) {
+    if (isBusy()) return;
+    maintenanceBusy=true;refresh();
+    try {
+      const root=await project();
+      await lessonProjects.assertShareable(root);
+      if (uploadMode(root)!=='live') return simulation('Undo change');
+      const guard=async()=>{
+        await assertGitProject(root);
+        if ((vscode.workspace.textDocuments || []).some(document=>document.isDirty && document.uri?.scheme==='file')) throw new Error('Save your open files before undoing a change. Your edits are kept.');
+        if (await workflow.readRecovery?.(root)) throw new Error('Finish or cancel the pending update before undoing a change.');
+      };
+      const plan=await changeUndo.preview(root,id,{beforeMutation:guard});
+      if (plan.files.length>200) throw new Error('This change affects more than 200 files. Use Source Control to review it.');
+      const detail=`Undo ${plan.name} on ${plan.branch}. This stages a new correction; Git history stays intact. Review and run your app before committing.\n\nFiles:\n${plan.files.join('\n')}`;
+      if (await vscode.window.showWarningMessage('Undo this finished change?',{modal:true,detail},'Undo change')!=='Undo change') return;
+      await changeUndo.apply(plan,{confirmed:true});
+      await refreshNativeGit(root);
+      report('Undo staged · review and run your app', `Undid ${plan.name} on ${plan.branch}. Review the staged files, run your app, then commit the correction. No GitHub upload occurred.`);
+    } finally {maintenanceBusy=false;refresh();}
+  }
+  const history=createChangeHistory(vscode,{project,output,onUndo:undoFinishedChange});
   actions['zero.reviewChanges']=()=>isBusy()?undefined:history.openReview();
   actions['zero.changeHistory']=()=>isBusy()?undefined:history.openHistory();
   context.subscriptions.push(history);

@@ -50,3 +50,25 @@ test('review directs staged and mixed changes to Source Control even if worktree
  await history.openReview();assert.match(panel.webview.html,/Staged.*Source Control/);await panel.receive({type:'select',index:0});assert.equal(calls.length,0);assert.match(errors.at(-1),/Source Control/);
  await fs.writeFile(file,'B\n');await history.openReview();await panel.receive({type:'select',index:0});assert.equal(calls.length,0);assert.match(errors.at(-1),/Source Control/);
 });
+
+test('Undo uses only the selected finished merge and rejects stale history',async t=>{
+ const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-history-undo-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+ git(root,'init','-q','-b','main');git(root,'config','user.name','Test');git(root,'config','user.email','test@example.invalid');
+ await fs.writeFile(path.join(root,'base.txt'),'base');git(root,'add','.');git(root,'commit','-qm','base');
+ git(root,'checkout','-qb','feature');await fs.writeFile(path.join(root,'feature.txt'),'feature');git(root,'add','.');git(root,'commit','-qm','feature commit');git(root,'checkout','-q','main');
+ git(root,'merge','--no-ff','-q','feature','-m','Zero: finish feature\n\nZero-Finished-Change: 1\nZero-Change-Branch: feature');const merge=git(root,'rev-parse','HEAD');
+ await fs.writeFile(path.join(root,'ordinary.txt'),'ordinary');git(root,'add','.');git(root,'commit','-qm','ordinary commit');
+ let panel;const calls=[],errors=[];
+ const vscode={ViewColumn:{One:1},Uri:{parse:key,file:key},workspace:{isTrusted:true,workspaceFolders:[{uri:key(root)}],registerTextDocumentContentProvider:()=>({dispose(){}})},window:{createWebviewPanel:()=>panel={webview:{onDidReceiveMessage(f){panel.receive=f;}},onDidDispose(){},dispose(){}},showErrorMessage:async e=>errors.push(e)},commands:{executeCommand:async()=>{}}};
+ const history=createChangeHistory(vscode,{project:async()=>root,onUndo:async id=>calls.push(id)});t.after(()=>history.dispose());
+ const indexOf=label=>{const match=new RegExp(`<button data-index="(\\d+)">${label}</button>`).exec(panel.webview.html);assert.ok(match,`Missing ${label}`);return Number(match[1]);};
+ await history.openHistory();assert.doesNotMatch(panel.webview.html,/<button id="undo">/);
+ await panel.receive({type:'undo',id:merge});await panel.receive({type:'select',index:999,id:merge});await panel.receive({type:'undo',id:merge});assert.deepEqual(calls,[]);
+ await panel.receive({type:'select',index:indexOf('Commit: ordinary commit')});assert.doesNotMatch(panel.webview.html,/<button id="undo">/);await panel.receive({type:'undo',id:merge});assert.deepEqual(calls,[]);
+ await panel.receive({type:'back'});await panel.receive({type:'select',index:indexOf('Finished change: feature')});assert.match(panel.webview.html,/<button id="undo">Undo change/);
+ await panel.receive({type:'undo',id:'forged',index:999});assert.deepEqual(calls,[merge]);
+ git(root,'checkout','-qb','other');await panel.receive({type:'undo',id:merge});assert.deepEqual(calls,[merge]);assert.match(errors.at(-1),/changed/i);
+ await history.openHistory();await panel.receive({type:'select',index:indexOf('Finished change: feature')});
+ await fs.writeFile(path.join(root,'later.txt'),'later');git(root,'add','.');git(root,'commit','-qm','later');await panel.receive({type:'undo'});assert.deepEqual(calls,[merge]);assert.match(errors.at(-1),/changed/i);
+ const withoutUndo=createChangeHistory(vscode,{project:async()=>root});t.after(()=>withoutUndo.dispose());await withoutUndo.openHistory();await panel.receive({type:'select',index:indexOf('Finished change: feature')});assert.doesNotMatch(panel.webview.html,/<button id="undo">/);await panel.receive({type:'undo',id:merge});assert.deepEqual(calls,[merge]);
+});

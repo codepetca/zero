@@ -13,8 +13,9 @@ Owner sidebar refinement, 2026-11-05 (local source): name the controls pane
 project, Clone and Open; the Files header retains file creation. Use a compact
 branch selector and separate Merge, Review changes and History actions. Review changes and History
 open read-only editor views; unsaved editor buffers are clearly labeled.
-Keep the existing per-file review and recovery choices. These views do not offer
-whole-change undo. Existing authentication, trust and file safety guards remain.
+Keep the existing per-file review and recovery choices. A finished change offers
+Undo with a destination/file preview and explicit confirmation; stage the correction
+without uploading. Existing authentication, trust and file safety guards remain.
 
 Owner publishing progress refinement,2026-10-27 (local source only): retain the
 changing publishing status and add one slim native-theme stage bar beneath it.
