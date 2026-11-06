@@ -1,24 +1,26 @@
-# Student version control — local work in progress, 2026-11-05
+# Student version control — local implementation, 2026-11-05
 
-The isolated `codex/finished-change-history` worktree contains the Project/Files
-labels and header menu, compact branch controls, read-only change and history
-views, and a provisional named merge record. The feature remains unaccepted:
-independent review, actual VS Code interaction, live GitHub and Windows checks
-are outstanding. A guarded whole-change undo is locally implemented and awaits
-independent review; the two-active-branch experience is a future phase. Nothing was pushed or released.
+The isolated `codex/finished-change-history` worktree implements the Project/Files
+panes and header menu, compact branching, review/history, durable named merge
+records, recovery and preview-first whole-change undo. Undo stages a correction,
+never automatically resets or uploads, and refuses conflicting or unsupported
+cases before application. Other processes can race a multi-file Git operation;
+Zero rechecks its state and does not claim cross-process atomicity.
 
-Focused sidebar, project menu, recovery and native-update tests: 43/43 passed;
-`git diff --check` passed. The final local Git workflow suite passed 37/37,
-including stale main, retry, fresh clone and guided pending-merge recovery. The owner explicitly waived low-usage and review-budget stops. Two independent
-Terra/high reviews at447bd61e9 found a pending-merge deadlock, history ancestry
-omissions and misleading staged diffs. The UI fixes passed targeted re-review;
-Git remediation and targeted re-review found further pending-ref recovery cases.
-Corrections and review remain in progress; no final clean-review claim is made.
-A local Git conflict check corrected add/add conflict labeling. Requested agent models were Terra
-high for merge/recovery and Terra medium for UI and panel labels; effective model,
-tokens and review time are unknown. One UI integration correction added explicit
-confirmation before a recovery retry push. See the active handoff in
-[CURRENT](../.ai/CURRENT.md) and the [version-control plan](VERSION-CONTROL-PLAN.md).
+At 0c3d5afb4, `npm test` passed1780, failed0, skipped8. Final 580733cc2 undo,
+history and UI tests passed26/26; configuration checks passed. Independent Git,
+UI and undo reviewers identified retry, ancestry, staged-file, Windows Git config
+and selection/workspace races. Fixes passed targeted re-review. A separate
+Sol/high integration reviewer inspected 7291c2a9e..580733cc2, found no actionable
+issues and independently passed31/31 focused checks. Effective reviewer model,
+time and tokens unavailable. The owner explicitly waived low-usage and review-
+budget stops. No source push, merge, release or live GitHub trial occurred.
+
+Actual native editor interaction is blocked by the locked Mac. Physical Windows
+and authenticated live GitHub remain untested. Windows configuration fixtures
+ran on macOS. Eight full-suite skips included Windows, PowerShell and optional
+Postgres coverage. See [CURRENT](../.ai/CURRENT.md) and the
+[version-control plan](VERSION-CONTROL-PLAN.md).
 
 ---
 

@@ -1,30 +1,28 @@
-# Student version control — local work in progress, 2026-11-05
+# Student version control — local implementation, 2026-11-05
 
-Scope and phases: [version-control plan](../docs/VERSION-CONTROL-PLAN.md). Worktree
-`codex/finished-change-history`, based on origin/main 7291c2a9e; primary checkout
-has unrelated changes and remains untouched. Project/Files labels and Project header
-menu are implemented. Compact branch actions and read-only review/history tab are
-local prototypes. Merge records use a provisional two-parent Git marker and pending
-ref; guided recovery preserves newer work and asks before a retry push. This path
-still needs independent review and native acceptance. A preview-first whole-change undo is being tested and requires independent review;
-the two-active-branch experience remains future work.
+Worktree `codex/finished-change-history`, based on 7291c2a9e, contains Project and
+Files panes, Project header New/Clone/Open, compact branch controls, review and
+history views, durable named merge boundaries, and guarded preview-first undo.
+Undo stages a correction on the selected branch without upload; conflicts and
+unsupported project configurations stop before application. The two-active-
+branch experience remains future work. Primary checkout edits are untouched.
 
-Owner directed “Override stops and get this work done” on 2026-11-05; under
-override-task-stops this waives low-usage and workflow review-budget stops for this
-task. Review ledger at 447bd61e9: two Terra/high reviewers, one initial wave,
-3 fix batches; initial Git review found a retry deadlock and UI review found
-two history/staging correctness issues. UI targeted re-review passed at90d181774.
-Git targeted reviews found included, divergent and pinned-race recovery issues;
-the latest targeted Git review passed atcb693fce4. Six reviewer turns total:
-two initial, one targeted UI, and three targeted Git. The full Git suite is
-running; a bounded undo-engine implementation has started. Actual provider
-execution limits and publication permissions remain in force. Usage reports
-ordinaryUsageAllowed=false; do not consume a reset or switch accounts. No independent
-review, native editor acceptance, live GitHub trial, source push, merge or release.
-Do not treat local tests as acceptance. Focused sidebar checks passed 43/43; the final Git workflow suite passed 37/37. Next:
-obtain the required
-risk-matched independent review when permitted, then run relevant integration and
-native UI checks. Preserve uncommitted changes in this worktree.
+Owner directed “Override stops and get this work done”; low-usage and workflow
+review-budget stops are waived for this task. No reset, account change, push,
+merge or publication is authorized. Initial independent reviews found Git retry
+and history issues; fixes passed targeted re-review. Undo safety and UI reviews
+found Windows configuration and selection/workspace issues; fixes passed targeted
+re-review. Cumulative integration review of 7291c2a9e..580733cc2 passed 31/31
+focused checks with no actionable findings. Requested reviewer configurations:
+Terra/high and Sol/high; effective model, time and tokens unavailable.
+
+`npm test` at 0c3d5afb4:1780 passed,8 skipped; final undo/history/UI tests at
+580733cc2:26/26; final integration checks:31/31. `npm run check` and `git diff
+--check` passed. Actual VS Code interaction remains blocked because the Mac is
+locked; physical Windows and authenticated live GitHub flows remain untested.
+The owner was asked asynchronously to unlock the Mac. Zero Dev watcher is running.
+Next: native editor walkthrough when available, then document evidence. Source
+publication and release remain separately unauthorized.
 
 ---
 

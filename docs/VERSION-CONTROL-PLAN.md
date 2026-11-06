@@ -23,18 +23,17 @@ implemented.
    existing guarded transport, provide safe retries after rejected or uncertain
    pushes, and avoid duplicate entries. History must not invent boundaries for
    older fast-forward merges or outside Git actions.
-4. Only after those boundaries and recovery are proven, design and implement a
-   whole-change undo with an explicit preview, conflict handling, preserved later
-   work, and a reviewable new change. File-level restore remains available. This
-   future phase is not implied by a read-only history screen.
-Undo design candidate: only validated Zero merge markers that are ancestors of
+4. Local guarded whole-change undo is implemented with preview and confirmation,
+   preserved later work, and a reviewable staged correction. File-level restore
+   remains available. Native editor and physical Windows checks remain outstanding.
+   Undo behavior: only validated Zero merge markers that are ancestors of
    the current branch are eligible. Require a clean worktree/index and saved
    editors, preview the inverse against the current commit in a disposable Git
    repository, and show affected files. Conflicts or unsupported file types stop
    before modifying the project. A successful undo must preserve later work and
    produce a reviewable correction; never automatically reset or abort over
    external edits. Multi-file application and cancellation are not atomic with
-   other processes, so they still need a verified safe implementation and review.
+   other processes, and external concurrent changes cannot be guaranteed safe.
 5. Evaluate a simple two-active-branch experience separately. Account for external
    branches and work from other computers; do not silently delete or block them.
 

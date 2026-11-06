@@ -883,7 +883,7 @@ feature and commits: Update from main, resolve if needed, Run and retry Merge. A
 interrupted push retains a local pending record for retry. If the feature changes
 while a push is uncertain, the local prototype checks GitHub and preserves the newer
 branch commits. Any retry push requires an explicit Merge after showing its commit
-and repository. Independent review and actual editor acceptance are outstanding. Confirmed cleanup deletes
+and repository. Independent source review passed; actual editor acceptance remains outstanding. Confirmed cleanup deletes
 only the unchanged finished local feature; its remote branch remains recoverable.
 
 After a push failure, Zero distinguishes saved local work from remote success.
