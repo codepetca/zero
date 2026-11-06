@@ -78,3 +78,26 @@ test('pending Zero finish, recovery and locks block undo',async t=>{
  for(const name of ['zero-update-recovery.json','zero-update-recovery.lock','zero-change-undo.lock']) {const file=path.join(root,'.git',name);await fs.writeFile(file,'pending');await assert.rejects(undo.preview(root,marker,{beforeMutation:guard}));await fs.unlink(file);}
  assert.equal(git(root,'status','--porcelain'),'');
 });
+test('undo in a Windows-style clone with local CRLF settings and template attributes',async t=>{
+ const {root:source,marker}=await fixture(t,{attributes:true});const parent=await fs.mkdtemp(path.join(os.tmpdir(),'zero-windows-clone-'));t.after(()=>fs.rm(parent,{recursive:true,force:true}));
+ git(parent,'clone','-c','core.autocrlf=true','-c','core.symlinks=false','-c','core.hideDotFiles=true','--no-local',source,'project');const root=path.join(parent,'project');
+ assert.equal(await fs.readFile(path.join(root,'a.txt'),'utf8'),'feature\r\n');assert.match(await fs.readFile(path.join(root,'.gitattributes'),'utf8'),/\r\n/);
+ const plan=await undo.preview(root,marker,{beforeMutation:guard});await undo.apply(plan,{confirmed:true});assert.equal(await fs.readFile(path.join(root,'a.txt'),'utf8'),'original\r\n');assert.equal(git(root,'diff','--cached','--name-only'),'a.txt');
+});
+test('uses effective global CRLF settings and refuses drift before applying',async t=>{
+ const {root:source,marker}=await fixture(t,{attributes:true});const parent=await fs.mkdtemp(path.join(os.tmpdir(),'zero-global-crlf-'));t.after(()=>fs.rm(parent,{recursive:true,force:true}));
+ const previousHome=process.env.HOME;process.env.HOME=parent;t.after(()=>{if(previousHome===undefined) delete process.env.HOME;else process.env.HOME=previousHome;});
+ git(parent,'config','--file',path.join(parent,'.gitconfig'),'core.autocrlf','true');git(parent,'clone','--no-local',source,'project');const root=path.join(parent,'project');
+ assert.equal(await fs.readFile(path.join(root,'a.txt'),'utf8'),'feature\r\n');const stale=await undo.preview(root,marker,{beforeMutation:guard});
+ git(parent,'config','--file',path.join(parent,'.gitconfig'),'core.autocrlf','false');await assert.rejects(undo.apply(stale,{confirmed:true}));assert.equal(await fs.readFile(path.join(root,'a.txt'),'utf8'),'feature\r\n');
+ git(parent,'config','--file',path.join(parent,'.gitconfig'),'core.autocrlf','true');const plan=await undo.preview(root,marker,{beforeMutation:guard});await undo.apply(plan,{confirmed:true});assert.equal(await fs.readFile(path.join(root,'a.txt'),'utf8'),'original\r\n');
+});
+test('rejects unsupported line ending values before applying',async t=>{
+ const {root,marker}=await fixture(t);git(root,'config','core.autocrlf','maybe');await assert.rejects(undo.preview(root,marker,{beforeMutation:guard}),/unsupported Git line-ending setting/);assert.equal(await fs.readFile(path.join(root,'a.txt'),'utf8'),'feature\n');
+});
+test('respects core.eol and preserves template wrapper line endings',async t=>{
+ const {root:source,marker}=await fixture(t,{attributes:true});await fs.writeFile(path.join(source,'mvnw'),'#!/bin/sh\necho ok\n');await fs.writeFile(path.join(source,'mvnw.cmd'),'@echo off\r\necho ok\r\n');git(source,'add','.');git(source,'commit','-m','wrappers');
+ const parent=await fs.mkdtemp(path.join(os.tmpdir(),'zero-eol-clone-'));t.after(()=>fs.rm(parent,{recursive:true,force:true}));git(parent,'clone','-c','core.autocrlf=false','-c','core.eol=crlf','-c','core.symlinks=false','-c','core.hideDotFiles=dotGitOnly','--no-local',source,'project');const root=path.join(parent,'project');
+ assert.equal(await fs.readFile(path.join(root,'a.txt'),'utf8'),'feature\r\n');assert.equal(await fs.readFile(path.join(root,'mvnw'),'utf8'),'#!/bin/sh\necho ok\n');assert.equal(await fs.readFile(path.join(root,'mvnw.cmd'),'utf8'),'@echo off\r\necho ok\r\n');
+ const plan=await undo.preview(root,marker,{beforeMutation:guard});await undo.apply(plan,{confirmed:true});assert.equal(await fs.readFile(path.join(root,'a.txt'),'utf8'),'original\r\n');assert.equal(await fs.readFile(path.join(root,'mvnw'),'utf8'),'#!/bin/sh\necho ok\n');assert.equal(await fs.readFile(path.join(root,'mvnw.cmd'),'utf8'),'@echo off\r\necho ok\r\n');
+});

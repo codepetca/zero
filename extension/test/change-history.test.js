@@ -72,3 +72,18 @@ test('Undo uses only the selected finished merge and rejects stale history',asyn
  await fs.writeFile(path.join(root,'later.txt'),'later');git(root,'add','.');git(root,'commit','-qm','later');await panel.receive({type:'undo'});assert.deepEqual(calls,[merge]);assert.match(errors.at(-1),/changed/i);
  const withoutUndo=createChangeHistory(vscode,{project:async()=>root});t.after(()=>withoutUndo.dispose());await withoutUndo.openHistory();await panel.receive({type:'select',index:indexOf('Finished change: feature')});assert.doesNotMatch(panel.webview.html,/<button id="undo">/);await panel.receive({type:'undo',id:merge});assert.deepEqual(calls,[merge]);
 });
+
+test('Undo ignores a selection or panel changed while its context check is pending',async t=>{
+ const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-history-race-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+ git(root,'init','-q','-b','main');git(root,'config','user.name','Test');git(root,'config','user.email','test@example.invalid');await fs.writeFile(path.join(root,'base'),'base');git(root,'add','.');git(root,'commit','-qm','base');git(root,'checkout','-qb','feature');await fs.writeFile(path.join(root,'feature'),'feature');git(root,'add','.');git(root,'commit','-qm','feature');git(root,'checkout','-q','main');git(root,'merge','--no-ff','-q','feature','-m','Zero: finish feature\n\nZero-Finished-Change: 1\nZero-Change-Branch: feature');
+ let panel,block=false,release,entered;const calls=[];
+ const run=async(dir,args)=>{if(block){block=false;entered();await new Promise(resolve=>{release=resolve;});}return require('node:util').promisify(require('node:child_process').execFile)('git',['--no-pager',...args],{cwd:dir,encoding:'buffer',env:{...process.env,GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_LITERAL_PATHSPECS:'1'}}).then(result=>result.stdout);};
+ const vscode={ViewColumn:{One:1},Uri:{parse:key,file:key},workspace:{isTrusted:true,workspaceFolders:[{uri:key(root)}],registerTextDocumentContentProvider:()=>({dispose(){}})},window:{createWebviewPanel:()=>{const p={webview:{onDidReceiveMessage(f){p.receive=f;}},onDidDispose(f){p.closed=f;},dispose(){p.closed?.();}};panel=p;return p;},showErrorMessage:async e=>assert.fail(e)},commands:{executeCommand:async()=>{}}};
+ const history=createChangeHistory(vscode,{project:async()=>root,onUndo:async id=>calls.push(id)},{git:run});t.after(()=>history.dispose());
+ const selectMarker=async()=>{const match=/<button data-index="(\d+)">Finished change: feature<\/button>/.exec(panel.webview.html);assert.ok(match);await panel.receive({type:'select',index:Number(match[1])});};
+ const startUndo=async()=>{const waiting=new Promise(resolve=>{entered=resolve;});block=true;const pending=panel.receive({type:'undo'});await waiting;return {pending};};
+ await history.openHistory();await selectMarker();let {pending}=await startUndo();await panel.receive({type:'back'});await selectMarker();release();await pending;assert.deepEqual(calls,[],'Back and reselect invalidates the pending action');
+ ({pending}=await startUndo());await panel.receive({type:'back'});await panel.receive({type:'select',index:1});release();await pending;assert.deepEqual(calls,[],'Another selected commit cannot retarget the pending action');
+ await panel.receive({type:'back'});await selectMarker();({pending}=await startUndo());await history.openHistory();release();await pending;assert.deepEqual(calls,[],'Replacing the panel invalidates the pending action');
+ await selectMarker();({pending}=await startUndo());panel.dispose();release();await pending;assert.deepEqual(calls,[],'Disposing the panel invalidates the pending action');
+});

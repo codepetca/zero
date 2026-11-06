@@ -1242,6 +1242,8 @@ function activate(context, services = {}) {
       if (uploadMode(root)!=='live') return simulation('Undo change');
       const guard=async()=>{
         await assertGitProject(root);
+        const folders=vscode.workspace.workspaceFolders || [];
+        if (folders.length!==1 || folders[0].uri.scheme!=='file' || await fs.realpath(folders[0].uri.fsPath)!==root) throw new Error('Open the original standalone project to undo this change.');
         if ((vscode.workspace.textDocuments || []).some(document=>document.isDirty && document.uri?.scheme==='file')) throw new Error('Save your open files before undoing a change. Your edits are kept.');
         if (await workflow.readRecovery?.(root)) throw new Error('Finish or cancel the pending update before undoing a change.');
       };

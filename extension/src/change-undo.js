@@ -19,9 +19,26 @@ const hash = b => crypto.createHash('sha256').update(b).digest('hex');
 const env = Object.assign(Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^GIT_/i.test(k))), {
   GIT_CONFIG_NOSYSTEM:'1', GIT_CONFIG_GLOBAL:os.devNull, GIT_ATTR_NOSYSTEM:'1', GIT_TERMINAL_PROMPT:'0', GIT_NO_LAZY_FETCH:'1', GIT_NO_REPLACE_OBJECTS:'1', GIT_OPTIONAL_LOCKS:'0'
 });
-async function git(root,args) {
-  const {stdout} = await exec('git',['-c',`core.hooksPath=${os.devNull}`,'-c','core.fsmonitor=false','-c','core.autocrlf=false','-c',`core.attributesFile=${os.devNull}`,'-c','merge.autoStash=false','-c','rerere.enabled=false','-c','commit.gpgSign=false',...args],{cwd:root,env,encoding:'buffer',timeout:20000,maxBuffer:4*1024*1024});
+async function git(root,args,conversion={autocrlf:'false',eol:'native'}) {
+  const {stdout} = await exec('git',['-c',`core.hooksPath=${os.devNull}`,'-c','core.fsmonitor=false','-c',`core.autocrlf=${conversion.autocrlf}`,'-c',`core.eol=${conversion.eol}`,'-c','core.safecrlf=false','-c',`core.attributesFile=${os.devNull}`,'-c','merge.autoStash=false','-c','rerere.enabled=false','-c','commit.gpgSign=false',...args],{cwd:root,env,encoding:'buffer',timeout:20000,maxBuffer:4*1024*1024});
   return new TextDecoder('utf-8',{fatal:true}).decode(stdout);
+}
+// Read only the two built-in checkout settings from normal effective Git config.
+// All project operations still run with global/system config and executable
+// attributes disabled. Values are validated and passed explicitly to both Git
+// repositories, and re-read at each revalidation.
+async function conversionSettings(root) {
+  const configEnv=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([k])=>!/^GIT_/i.test(k))),{GIT_TERMINAL_PROMPT:'0'});
+  async function get(key) {
+    try {const {stdout}=await exec('git',['config','--get',key],{cwd:root,env:configEnv,encoding:'utf8',timeout:10000,maxBuffer:4096});return stdout.trim().toLowerCase();}
+    catch(error) {if(error.code===1) return '';throw fail();}
+  }
+  let autocrlf=await get('core.autocrlf'); const eol=(await get('core.eol'))||'native';
+  if(['true','yes','on','1'].includes(autocrlf)) autocrlf='true';
+  else if(['','false','no','off','0'].includes(autocrlf)) autocrlf='false';
+  else if(autocrlf!=='input') throw new Error('This project has an unsupported Git line-ending setting. Check core.autocrlf in native Source Control.');
+  if(!['native','lf','crlf'].includes(eol)) throw new Error('This project has an unsupported Git line-ending setting. Check core.eol in native Source Control.');
+  return {autocrlf,eol};
 }
 const line = s => s.trim();
 const parts = s => s.split('\0').filter(Boolean);
@@ -49,7 +66,8 @@ async function context(root, {allowUndoLock=false}={}) {
   for (const name of ['config','index','objects']) { const info=await fs.lstat(path.join(dot,name)); if (info.isSymbolicLink() || (name==='objects' ? !info.isDirectory() : !info.isFile())) throw fail(); }
   const packs=await fs.readdir(path.join(dot,'objects','pack')).catch(e=>{if(e.code==='ENOENT') return []; throw e;});
   if(packs.some(n=>n.endsWith('.promisor'))) throw fail();
-  if (line(await git(root,['rev-parse','--show-toplevel'])) !== root || await fs.realpath(line(await git(root,['rev-parse','--absolute-git-dir']))) !== dot) throw fail();
+  const conversion=await conversionSettings(root);
+  if (await fs.realpath(line(await git(root,['rev-parse','--show-toplevel']))) !== root || await fs.realpath(line(await git(root,['rev-parse','--absolute-git-dir']))) !== dot) throw fail();
   const localZero=(await fs.readdir(dot)).filter(n=>/^zero-.*(?:\.lock|recovery\.json)$/i.test(n) && !(allowUndoLock && n==='zero-change-undo.lock'));
   if(localZero.length || !await absent(path.join(dot,'refs','zero','pending-finish')) || line(await git(root,['for-each-ref','--format=%(refname)','refs/zero/pending-finish']))) throw fail();
   for (const name of ['shallow','info/grafts','info/attributes','objects/info/alternates','MERGE_HEAD','CHERRY_PICK_HEAD','REVERT_HEAD','rebase-merge','rebase-apply','sequencer','BISECT_LOG']) if (!await absent(path.join(dot,name))) throw fail();
@@ -60,7 +78,7 @@ async function context(root, {allowUndoLock=false}={}) {
   let excludeHash=null; const exclude=path.join(dot,'info','exclude');
   if(!await absent(exclude)) { const stat=await fs.lstat(exclude); if(!stat.isFile() || stat.isSymbolicLink()) throw fail(); excludeHash=hash(await fs.readFile(exclude)); }
   const keys=parts(await git(root,['config','--local','--no-includes','--name-only','--null','--list']));
-  if (keys.some(k=>!(/^(?:core\.(?:repositoryformatversion|filemode|bare|logallrefupdates|ignorecase|precomposeunicode)|user\.(?:name|email)|branch\.[^.]+\.(?:remote|merge)|remote\.[^.]+\.(?:url|fetch|pushurl)|extensions\.objectformat)$/i.test(k)))) throw fail();
+  if (keys.some(k=>!(/^(?:core\.(?:repositoryformatversion|filemode|bare|logallrefupdates|ignorecase|precomposeunicode|symlinks|hidedotfiles|autocrlf|eol)|user\.(?:name|email)|branch\.[^.]+\.(?:remote|merge)|remote\.[^.]+\.(?:url|fetch|pushurl)|extensions\.objectformat)$/i.test(k)))) throw fail();
   const head=line(await git(root,['rev-parse','--verify','HEAD^{commit}']));
   const branch=line(await git(root,['symbolic-ref','--quiet','HEAD']));
   if (!oid(head) || !branch.startsWith('refs/heads/')) throw fail();
@@ -73,12 +91,15 @@ async function context(root, {allowUndoLock=false}={}) {
   const other=parts(await git(root,['ls-files','--others','--exclude-standard','-z'])).map(safePath);
   const ignored=parts(await git(root,['ls-files','--others','--ignored','--exclude-standard','-z'])).map(safePath).sort();
   if ([...other,...ignored].some(p=>p.split('/').some(x=>x.toLowerCase()==='.gitattributes')) || cached.some(p=>p !== '.gitattributes' && p.split('/').some(x=>x.toLowerCase()==='.gitattributes'))) throw fail();
-  if(cached.includes('.gitattributes') && (await ordinary(root,'.gitattributes')).toString('utf8')!==templateAttributes) throw fail();
-  const status=parts(await git(root,['status','--porcelain=v1','-z','--untracked-files=all']));
+  if(cached.includes('.gitattributes')) {
+    const attributes=new TextDecoder('utf-8',{fatal:true}).decode(await ordinary(root,'.gitattributes'));
+    if(attributes.replace(/\r\n/g,'\n')!==templateAttributes) throw fail();
+  }
+  const status=parts(await git(root,['status','--porcelain=v1','-z','--untracked-files=all'],conversion));
   if(status.some(s=>!s.startsWith('?? '))) throw fail();
   const manifest=await entries(root,[...cached,...other]);
   const refs=await git(root,['for-each-ref','--format=%(refname) %(objectname) %(symref)']);
-  return {root,dot,head,branch,index,cached,other:other.sort(),ignored,manifest,refs,configHash,excludeHash};
+  return {root,dot,head,branch,index,cached,other:other.sort(),ignored,manifest,refs,configHash,excludeHash,conversion};
 }
 async function validateMarker(state,id) {
   if(!oid(id)) throw fail();
@@ -105,13 +126,13 @@ async function isolated(state,id) {
     await fs.writeFile(path.join(tmp,'.git','objects','info','alternates'),path.join(state.dot,'objects')+'\n');
     await git(tmp,['update-ref','refs/heads/zero-preview',state.head]);
     await git(tmp,['symbolic-ref','HEAD','refs/heads/zero-preview']);
-    await git(tmp,['read-tree','--reset','-u',state.head]);
+    await git(tmp,['read-tree','--reset','-u',state.head],state.conversion);
     // Reject checkouts whose EOL conversion differs from the reviewed worktree.
     const baseline=await entries(tmp,[...state.cached]);
     const actual=Object.fromEntries(state.cached.sort().map(n=>[n,state.manifest[n]]));
     if(!equal(baseline,actual)) throw fail();
     if(parts(await git(state.root,['diff','--name-only','--no-renames','-z',`${id}^1`,id])).some(n=>n.split('/').some(x=>x.toLowerCase()==='.gitattributes'))) throw fail();
-    try { await git(tmp,['-c','user.name=Zero preview','-c','user.email=preview@example.invalid','revert','-m','1','--no-commit',id]); }
+    try { await git(tmp,['-c','user.name=Zero preview','-c','user.email=preview@example.invalid','revert','-m','1','--no-commit',id],state.conversion); }
     catch { throw new Error('This change conflicts with later work or cannot be previewed safely. No project files were changed. Review it in native Source Control.'); }
     const index=await git(tmp,['ls-files','--stage','-z']);
     const names=parts(index).map(s=>{const m=/^(100644|100755) [a-f0-9]+ 0\t([\s\S]+)$/.exec(s); if(!m) throw fail();return safePath(m[2]);});
@@ -150,7 +171,7 @@ async function apply(plan,{confirmed=false}={}) {
     if(!equal(result,await isolated(state,plan.change))) throw fail();
     await beforeMutation(); if(!equal(state,await context(state.root,{allowUndoLock:true}))) throw fail();
     try {
-      await git(state.root,['-c','user.name=Zero undo','-c','user.email=undo@example.invalid','revert','-m','1','--no-commit',plan.change]);
+      await git(state.root,['-c','user.name=Zero undo','-c','user.email=undo@example.invalid','revert','-m','1','--no-commit',plan.change],state.conversion);
       const index=await git(state.root,['ls-files','--stage','-z']);
       const names=parts(index).map(s=>{const m=/^(100644|100755) [a-f0-9]+ 0\t([\s\S]+)$/.exec(s); if(!m) throw interrupted();return safePath(m[2]);});
       const manifest=await entries(state.root,names);
