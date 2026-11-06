@@ -12300,6 +12300,15 @@ build, repository check and local production HTTP checks passed. Desktop changes
 and kit publication are outside this web update. Production and CI results are
 verified separately at delivery time.
 
+## Carry work to a new branch — 2026-11-05
+
+New branch asks before carrying uncommitted changes, preserves unsaved editor
+buffers, and rechecks changed file contents and index entries before switching.
+Cancellation creates no branch. Interactive editor and other-OS acceptance remain
+unverified; merging source does not publish an editor release. Root configuration
+and syntax checks and all 25 focused workflow tests passed (the UI test required
+generating the shared theme first).
+
 ## Sidebar on project open — 2026-11-05
 
 Opening a Zero project reveals its selected Explorer and Zero controls on every

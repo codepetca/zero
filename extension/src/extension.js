@@ -667,18 +667,62 @@ function activate(context, services = {}) {
       const execute = async progress => {
         const reportProgress = message => {state=message;refresh();progress?.report({message});};
         await assertGitProject(root);
-        if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before changing the project.');
         const beforeLocalMutation = () => assertGitProject(root);
         if (kind === 'start') {
           reportProgress('Checking local main…');
-          const options = {beforeMutation:beforeLocalMutation,onProgress:reportProgress};
+          const canonical = async value => {
+            let current = path.resolve(value), suffix = [];
+            while (true) {
+              try {return path.join(await fs.realpath(current), ...suffix);}
+              catch (error) {if (error.code !== 'ENOENT') throw error;const parent=path.dirname(current);if(parent===current) throw error;suffix.unshift(path.basename(current));current=parent;}
+            }
+          };
+          const projectPath = await canonical(root);
+          const normalize = value => process.platform === 'win32' ? value.toLowerCase() : value;
+          const lexicalRoots = [root];
+          for (const folder of vscode.workspace.workspaceFolders || []) {
+            try {
+              const realFolder=await canonical(folder.uri.fsPath);
+              const relative=path.relative(normalize(realFolder),normalize(projectPath));
+              if (!path.isAbsolute(relative) && relative !== '..' && !relative.startsWith('..'+path.sep)) lexicalRoots.push(path.join(folder.uri.fsPath,relative));
+              const withinProject=path.relative(normalize(projectPath),normalize(realFolder));
+              if (!path.isAbsolute(withinProject) && withinProject !== '..' && !withinProject.startsWith('..'+path.sep)) lexicalRoots.push(folder.uri.fsPath);
+            } catch { /* An unrelated inaccessible workspace must not block this project. */ }
+          }
+          const dirtyDocuments = async () => {
+            const documents = (vscode.workspace.textDocuments || []).filter(document => document.isDirty && document.uri?.scheme === 'file');
+            const inside = name => {const relative=path.relative(normalize(projectPath), normalize(name));return relative && relative !== '..' && !relative.startsWith('..'+path.sep) && !path.isAbsolute(relative);};
+            const entries = await Promise.all(documents.map(async document => {
+              const name=document.uri.fsPath;
+              try {return {name, version:document.version, targets:[await canonical(name), path.join(await canonical(path.dirname(name)),path.basename(name))]};}
+              catch (error) {
+                const possibleProject = lexicalRoots.some(base => {const relative=path.relative(normalize(path.resolve(base)),normalize(path.resolve(name)));return relative && relative !== '..' && !relative.startsWith('..'+path.sep) && !path.isAbsolute(relative);});
+                if (possibleProject) throw error;
+                return {name,version:document.version,targets:[]};
+              }
+            }));
+            return entries.filter(entry => entry.targets.some(inside)).map(({name,version})=>[name,version]).sort((a,b) => a[0].localeCompare(b[0]));
+          };
+          const dirtyBefore = await dirtyDocuments();
+          const buffersChanged = async () => JSON.stringify(await dirtyDocuments()) !== JSON.stringify(dirtyBefore);
+          const checkBuffers = async () => {if (await buffersChanged()) throw new Error('Your open files changed. Review this step again. Your work is preserved.');};
+          const options = {beforeMutation:async () => {await beforeLocalMutation();await checkBuffers();},beforeCheckout:checkBuffers,onProgress:reportProgress};
           const plan = await workflow.prepareStart(root,name,options);
-          await beforeLocalMutation();
+          if ((plan.status || dirtyBefore.length) && await vscode.window.showWarningMessage('Continue your work on this branch?', {modal:true, detail:'Project changes will come with you without being committed. Unsaved open files stay open.'}, 'Continue') !== 'Continue') {state='Branch creation cancelled';return;}
+          await options.beforeMutation();
           const result = await workflow.startPrepared(plan,options);
           await refreshNativeGit(root);
-          report(`Created ${result.branch}`,`Started ${result.branch} locally. Make your changes, then Commit & push. Use Sync from GitHub to get updated main.`);
+          if (result.activeUncertain) {
+            report(`Created ${result.branch} · check Source Control`, `Created ${result.branch}, but the active branch or commit changed or could not be checked. Check Source Control before continuing.`);
+            void vscode.window.showWarningMessage('The branch was created, but the active branch could not be confirmed. Check Source Control before continuing. Your unsaved work is still open.');
+          } else {
+            report(`Created ${result.branch}`,`Started ${result.branch} locally. Make your changes, then Commit & push. Use Sync from GitHub to get updated main.`);
+            if (result.checkoutWarning) void vscode.window.showWarningMessage('The branch was created, but Git reported an error during checkout. Check Source Control before continuing. Your unsaved work is still open.');
+            else if (result.postCheckoutChanged || await buffersChanged().catch(() => true)) void vscode.window.showWarningMessage('Your files changed while the branch was being created, or could not be checked. The branch was created; check Source Control. Your unsaved work is still open.');
+          }
           return;
         }
+        if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before changing the project.');
         reportProgress('Checking GitHub access…');
         const ticket = await auth.capture();
         if ((kind==='sync'||kind==='updateBranch') && !await checkpointBefore(root,'update'))return;

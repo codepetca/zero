@@ -4,6 +4,8 @@ const path = require('node:path');
 const core = require('./core');
 const recovery = require('./git-update-recovery');
 const os = require('node:os');
+const crypto = require('node:crypto');
+const {createReadStream} = require('node:fs');
 const {assertShareable} = require('./lesson-projects');
 const {prepareUpload, assertNoUrlRewrites} = require('./github');
 const plans = new WeakSet();
@@ -72,6 +74,31 @@ async function state(project, run, {full = false, connected = false, allowMerge 
   if (!['root', 'page', 'remote', 'branch', 'head', 'status'].every(key => source[key] === current[key])) throw drift();
   return {...source, ...current};
 }
+// Only dirty branch creation needs a content snapshot: the student confirms
+// carrying these exact edits, and changes during the prompt require a retry.
+async function startFingerprint(current, run) {
+  const digest = crypto.createHash('sha256');
+  digest.update(await run(current.root, ['ls-files', '--stage', '-z']));
+  const records = current.status.split('\0').filter(Boolean);
+  for (let i = 0; i < records.length; i++) {
+    const record = records[i], kind = record.slice(0, 2);
+    const names = [record.slice(3)];
+    if (/[RC]/.test(kind)) names.push(records[++i]);
+    for (const name of names) {
+      const file = path.resolve(current.root, name);
+      if (!file.startsWith(`${current.root}${path.sep}`)) throw new Error('Git includes a path outside the student project.');
+      digest.update(JSON.stringify(name));
+      try {
+        const info = await fs.lstat(file);
+        digest.update(JSON.stringify([info.mode, info.size]));
+        if (info.isSymbolicLink()) digest.update(await fs.readlink(file));
+        else if (info.isFile()) for await (const chunk of createReadStream(file)) digest.update(chunk);
+        else throw new Error('A changed path is not a regular file. Check native Source Control.');
+      } catch (error) { if (error.code === 'ENOENT') digest.update('missing'); else throw error; }
+    }
+  }
+  return digest.digest('hex');
+}
 function clean(current) {
   if (!current.head) throw new Error('Save the initial project as a local commit on main using Source Control → Commit, then try New branch again. Pushing is not required.');
   if (current.status) throw new Error('Save your changes as a local commit using Source Control → Commit, then try again. Pushing is not required.');
@@ -123,10 +150,12 @@ async function prepareStart(project, name, {run = core.git} = {}) {
   await assertShareable(project);
   run = safeRunner(run);
   const current = await state(project, run);
-  clean(current);
+  if (!current.head) throw new Error('Save the initial project as a local commit on main using Source Control → Commit, then try New branch again. Pushing is not required.');
+  if (!current.mainHead) throw new Error('This project needs a committed main branch. Save the initial project as a local commit on main using Source Control → Commit. Pushing is not required.');
   if (current.branch !== 'main') throw new Error('Switch to main in native Source Control before starting another feature.');
   await validName(name, current.root, run);
-  return planFor('start', current, {name, summary: `Create ${name} from your current local main.`});
+  const startFingerprintValue = current.status ? await startFingerprint(current, run) : null;
+  return planFor('start', current, {name, startFingerprint: startFingerprintValue, summary: `Create ${name} from your current local main.`});
 }
 async function prepareFinish(project, {run = core.git} = {}) {
   await assertShareable(project);
@@ -188,13 +217,29 @@ async function startPrepared(plan, options = {}) {
   opts.onProgress('Checking local main…');
   await validName(plan.name, plan.root, opts.run);
   await opts.beforeMutation();
-  await recheck(plan, opts.run);
+  const reviewed = await recheck(plan, opts.run);
+  if (plan.startFingerprint && await startFingerprint(reviewed, opts.run) !== plan.startFingerprint) throw drift();
   opts.onProgress('Creating your local feature branch…');
-  await local(opts.run, plan.root, ['checkout', '--no-overwrite-ignore', '-b', plan.name, plan.head], 'create the reviewed feature branch');
-  const final = await state(plan.root, opts.run);
-  if (!same({...plan, branch: plan.name}, final)) throw drift();
+  await opts.beforeCheckout?.();
+  let checkoutWarning = false;
+  try {await local(opts.run, plan.root, ['checkout', '--no-overwrite-ignore', '-b', plan.name, plan.head], 'create the reviewed feature branch');}
+  catch (error) {
+    let created;
+    try {await opts.run(plan.root,['show-ref','--verify','--quiet',`refs/heads/${plan.name}`]);}
+    catch (inspectionError) {
+      if (inspectionError.code === 1) throw error;
+      throw new Error('Git reported an error and the branch outcome could not be checked. Check Source Control before trying again. Your work is preserved.');
+    }
+    try {created = await opts.run(plan.root,['rev-parse','--verify',`refs/heads/${plan.name}^{commit}`]);}
+    catch {throw new Error('Git reported an error and the branch outcome could not be checked. Check Source Control before trying again. Your work is preserved.');}
+    if (created !== plan.head) throw new Error('Git reported an error and the branch has an unexpected commit. Check Source Control before trying again. Your work is preserved.');
+    checkoutWarning = true;
+  }
+  let postCheckoutChanged = false, activeUncertain = false;
+  try {const final = await state(plan.root, opts.run);const currentBranch = await opts.run(plan.root,['symbolic-ref','--quiet','--short','HEAD']);postCheckoutChanged = !same({...plan, branch: plan.name}, final);activeUncertain = final.branch !== plan.name || final.head !== plan.head || currentBranch !== plan.name;}
+  catch {postCheckoutChanged = true;activeUncertain = true;}
   plans.delete(plan);
-  return Object.freeze({branch: final.branch, head: final.head, page: plan.page});
+  return Object.freeze({branch: plan.name, head: plan.head, page: plan.page, postCheckoutChanged, activeUncertain, checkoutWarning});
 }
 async function syncPrepared(plan, options = {}) {
   const opts = executorOptions(plan, 'sync', options);

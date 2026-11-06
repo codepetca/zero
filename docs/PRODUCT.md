@@ -834,10 +834,11 @@ Tutorial repositories use the same GitHub workflow; only legacy local-only marke
 
 The individual flow uses main for completed work and one short-lived branch per
 change. A new empty repository starts with Commit & push on main.
-New branch creates a feature from clean committed **local main**. It does not
+New branch creates a feature from committed **local main**. If work is uncommitted,
+it asks before carrying that work onto the new branch without committing it. It does not
 contact GitHub, download main, check remote name availability or require sign-in.
-Its local validation checks root/refs/worktree/operation state without reading
-all source and asset bytes. Repository actions remain visible for local Git
+Its local validation checks root/refs/worktree/operation state and rechecks changed
+file contents when work is carried. Repository actions remain visible for local Git
 projects while signed out; uploading and publishing keep their connection gates.
 
 **Update from main** is a separate repository-menu action. It gets the reviewed
@@ -849,8 +850,8 @@ remote feature branch, for example from another computer.
 
 When Update or Switch branch encounters uncommitted work, Zero offers an explicit
 **Save checkpoint & update/switch**. This makes a local commit without uploading;
-cancelling the prompt makes no Git change. Routine New branch/Commit & push/Merge
-still have no extra confirmation. Clean retries push saved commits without asking
+cancelling the prompt makes no Git change. A clean New branch and routine Commit & push/Merge
+have no extra confirmation. Clean retries push saved commits without asking
 for another commit message. The sidebar says **Push commits** for matching pending
 commits and **Commit & push** when new file changes need saving.
 

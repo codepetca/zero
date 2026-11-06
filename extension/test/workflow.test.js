@@ -165,18 +165,97 @@ test('drift introduced during pinned fetch stops before main/feature mutation', 
   assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
   await assert.rejects(core.git(f.root, ['show-ref', '--verify', 'refs/heads/feature']));
 });
-test('unsafe/duplicate names, dirty/unborn/main/detached and pending-operation guards are actionable', async t => {
+test('unsafe/duplicate names, unborn/main/detached and pending-operation guards are actionable', async t => {
   const f = await fixture(t);
   for (const name of ['main', '-x', 'x..y', 'x@{1}', 'HEAD~1', 'x//y', 'x.lock', '', 'a b', 'x:main', '../x']) await assert.rejects(workflow.prepareStart(f.root, name, f.options), /name|valid feature/);
   await assert.rejects(workflow.prepareFinish(f.root, f.options), /Start a feature/);
-  await write(f.root, 'Main.java', 'dirty'); await assert.rejects(workflow.prepareStart(f.root, 'feature', f.options), /local commit.*Source Control → Commit.*Pushing is not required/);
-  await core.git(f.root, ['restore', 'Main.java']);
   await start(f); await assert.rejects(workflow.prepareStart(f.root, 'other', f.options), /Switch to main/);
   await core.git(f.root, ['checkout', 'main']); await assert.rejects(workflow.prepareStart(f.root, 'add-score', f.options), /already exists/);
   await core.git(f.root, ['checkout', '--detach']); await assert.rejects(workflow.prepareStart(f.root, 'other', f.options), /detached HEAD/);
   await core.git(f.root, ['checkout', 'main']); await write(f.root, '.git/MERGE_HEAD', 'pending');
   await assert.rejects(workflow.prepareStart(f.root, 'other', f.options), /current Git merge/);
   const u = await fixture(t, {unborn: true}); await assert.rejects(workflow.prepareStart(u.root, 'feature', u.options), /local commit on main.*Pushing is not required/);
+});
+
+test('New branch carries staged, unstaged, untracked and ignored work without committing', async t => {
+  const f = await fixture(t);
+  const head = await core.git(f.root, ['rev-parse', 'HEAD']);
+  await write(f.root, 'Main.java', 'staged');
+  await core.git(f.root, ['add', 'Main.java']);
+  await write(f.root, 'Main.java', 'staged and unstaged');
+  await write(f.root, 'New.java', 'untracked');
+  const before = await core.git(f.root, ['status', '--porcelain=v1', '-z', '--untracked-files=all']);
+  const plan = await workflow.prepareStart(f.root, 'feature', f.options);
+  assert.ok(plan.status);
+  await workflow.startPrepared(plan, f.options);
+  assert.equal(await core.git(f.root, ['status', '--porcelain=v1', '-z', '--untracked-files=all']), before);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), head);
+  assert.equal(await core.git(f.root, ['rev-parse', 'main']), head);
+  assert.equal(await fs.readFile(path.join(f.root, 'Main.java'), 'utf8'), 'staged and unstaged');
+  assert.equal(await core.git(f.root, ['show', ':Main.java']), 'staged');
+  assert.equal(await fs.readFile(path.join(f.root, 'New.java'), 'utf8'), 'untracked');
+  assert.equal(await fs.readFile(path.join(f.root, 'secret.txt'), 'utf8'), 'kept locally');
+  assert.equal(f.calls.length, 0);
+});
+
+test('New branch rechecks dirty file contents after confirmation', async t => {
+  const f = await fixture(t);
+  await write(f.root, 'Main.java', 'first edit');
+  const plan = await workflow.prepareStart(f.root, 'feature', f.options);
+  await write(f.root, 'Main.java', 'later edit');
+  await assert.rejects(workflow.startPrepared(plan, f.options), /changed after review/);
+  assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
+  await assert.rejects(core.git(f.root, ['show-ref', '--verify', 'refs/heads/feature']));
+  assert.equal(await fs.readFile(path.join(f.root, 'Main.java'), 'utf8'), 'later edit');
+});
+test('New branch checks editor state immediately before checkout', async t => {
+  const f = await fixture(t);
+  const plan = await workflow.prepareStart(f.root, 'feature', f.options);
+  await assert.rejects(workflow.startPrepared(plan, {...f.options, beforeCheckout:async()=>{await Promise.resolve();throw Error('Open files changed');}}), /Open files changed/);
+  assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
+  await assert.rejects(core.git(f.root, ['show-ref', '--verify', 'refs/heads/feature']));
+});
+test('New branch reports successful checkout when files change during it', async t => {
+  const f = await fixture(t);
+  const plan = await workflow.prepareStart(f.root, 'feature', f.options);
+  const run = async (cwd,args) => {const result=await f.run(cwd,args);if(args[0]==='checkout') await write(f.root,'Main.java','autosaved edit');return result;};
+  const result = await workflow.startPrepared(plan, {...f.options,run});
+  assert.equal(result.postCheckoutChanged,true);
+  assert.equal(await core.git(f.root,['branch','--show-current']),'feature');
+  assert.equal(await fs.readFile(path.join(f.root,'Main.java'),'utf8'),'autosaved edit');
+});
+test('New branch reports uncertain active branch if another operation switches it', async t => {
+  const f = await fixture(t);
+  const plan = await workflow.prepareStart(f.root, 'feature', f.options);
+  const run = async (cwd,args) => {const result=await f.run(cwd,args);if(args[0]==='checkout' && args.includes('-b')) await f.run(cwd,['checkout','main']);return result;};
+  const result = await workflow.startPrepared(plan, {...f.options,run});
+  assert.equal(result.activeUncertain,true);
+  assert.equal(await core.git(f.root,['branch','--show-current']),'main');
+  assert.equal(await core.git(f.root,['rev-parse','refs/heads/feature']),plan.head);
+});
+test('New branch detects a switch during its final inspection', async t => {
+  const f = await fixture(t);
+  const plan = await workflow.prepareStart(f.root, 'feature', f.options);
+  let checkedOut=false, switched=false;
+  const run=async(cwd,args)=>{const result=await f.run(cwd,args);if(args[0]==='checkout' && args.includes('-b'))checkedOut=true;else if(checkedOut && !switched && args[0]==='symbolic-ref'){switched=true;await f.run(cwd,['checkout','main']);}return result;};
+  const result=await workflow.startPrepared(plan,{...f.options,run});
+  assert.equal(result.activeUncertain,true);
+  assert.equal(await core.git(f.root,['branch','--show-current']),'main');
+});
+test('New branch reports a created branch when a post-checkout hook fails', async t => {
+  const f=await fixture(t);
+  const hook=path.join(f.root,'.git','hooks','post-checkout');await fs.writeFile(hook,'#!/bin/sh\nexit 1\n',{mode:0o755});
+  const plan=await workflow.prepareStart(f.root,'feature',f.options);
+  const result=await workflow.startPrepared(plan,f.options);
+  assert.equal(result.checkoutWarning,true);
+  assert.equal(result.activeUncertain,false);
+  assert.equal(await core.git(f.root,['branch','--show-current']),'feature');
+});
+test('New branch reports unknown outcome when ref inspection fails after checkout', async t => {
+  const f=await fixture(t);const plan=await workflow.prepareStart(f.root,'feature',f.options);
+  let checkoutStarted=false;const run=async(cwd,args)=>{if(args[0]==='checkout' && args.includes('-b')) {await f.run(cwd,args);checkoutStarted=true;throw Object.assign(Error('checkout failed'),{code:1});}if(checkoutStarted && args[0]==='show-ref' && args.includes('--quiet'))throw Object.assign(Error('inspection failed'),{code:128});return f.run(cwd,args);};
+  await assert.rejects(workflow.startPrepared(plan,{...f.options,run}),/branch outcome could not be checked/);
+  assert.equal(await core.git(f.root,['branch','--show-current']),'feature');
 });
 test('Sync keeps locally ahead main and Merge refuses missing local main while empty remote accepts baseline', async t => {
   const f = await fixture(t); await commit(f.root, 'Local.java', 'local');
