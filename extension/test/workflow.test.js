@@ -493,6 +493,67 @@ test('divergent pending retirement uses the reviewed remote commit even if remot
   assert.equal(result.head, reviewed); assert.notEqual(result.head, later);
   assert.equal(await core.git(f.root, ['rev-parse', `refs/zero/retired-finish/${candidate}`]), candidate);
 });
+for (const mode of ['unchanged', 'newer work', 'interrupted checkout']) test(`archived merge reappearing after pinned Sync preserves ${mode}`, async t => {
+  const f = await fixture(t); const base = await core.git(f.root, ['rev-parse', 'HEAD']);
+  await start(f); const feature = await commit(f.root, 'Score.java', 'score');
+  let interrupt = true;
+  f.setHook(async (_, args) => { if (args[0] === 'ls-remote' && interrupt) { interrupt = false; throw new Error('interrupted'); } });
+  await assert.rejects(finish(f));
+  const candidate = await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']);
+  const other = path.join(f.parent, 'rewriter'); await core.git(f.parent, ['clone', f.bare, other]);
+  await core.git(other, ['config', 'user.name', 'Remote Test']); await core.git(other, ['config', 'user.email', 'remote@example.invalid']);
+  await core.git(other, ['reset', '--hard', base]); const divergent = await commit(other, 'Remote.java', 'remote');
+  await core.git(other, ['push', '--force', f.bare, 'HEAD:refs/heads/main']);
+  await core.git(f.root, ['checkout', 'main']); const plan = await workflow.prepareSync(f.root, f.options);
+  await core.git(other, ['merge', '--no-ff', '--no-edit', candidate]);
+  const joined = await core.git(other, ['rev-parse', 'HEAD']); await core.git(other, ['push', f.bare, 'HEAD:refs/heads/main']);
+  assert.equal((await workflow.syncPrepared(plan, f.options)).head, divergent);
+  assert.equal(await core.git(f.root, ['rev-parse', `refs/zero/retired-finish/${candidate}`]), candidate);
+  await core.git(f.root, ['checkout', 'add-score']);
+  const featureHead = mode === 'newer work' ? await commit(f.root, 'More.java', 'more') : feature;
+  if (mode === 'interrupted checkout') {
+    let fail = true;
+    const run = async (root, args) => { if (fail && args[0] === 'checkout' && args.at(-1) === 'main') { fail = false; throw new Error('interrupted'); } return f.run(root, args); };
+    await assert.rejects(workflow.syncPrepared(await workflow.prepareSync(f.root, {...f.options, run}), {...f.options, run}), /switch to completed main/);
+    assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), joined);
+  }
+  const result = await sync(f);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), joined);
+  if (mode === 'newer work') {
+    assert.equal(result.branch, 'add-score'); await core.git(f.root, ['merge-base', '--is-ancestor', featureHead, result.head]);
+    const finished = await finish(f);
+    assert.equal(await core.git(f.root, ['rev-list', '--count', '--grep=Zero-Finished-Change: 1', finished.head]), '2');
+  } else {
+    assert.equal(result.branch, 'main'); assert.equal(result.head, joined);
+    assert.equal(await core.git(f.root, ['rev-list', '--count', '--grep=Zero-Finished-Change: 1', result.head]), '1');
+  }
+});
+test('Sync refuses ambiguous matching archived finishes before moving refs', async t => {
+  const f = await fixture(t); const base = await core.git(f.root, ['rev-parse', 'HEAD']);
+  await start(f); const first = await commit(f.root, 'Score.java', 'score');
+  const message = 'Zero: finish add-score\n\nZero-Finished-Change: 1\nZero-Change-Branch: add-score';
+  const makeBoundary = async feature => core.git(f.root, ['commit-tree', await core.git(f.root, ['rev-parse', `${feature}^{tree}`]), '-p', base, '-p', feature, '-m', message]);
+  const a = await makeBoundary(first); const second = await commit(f.root, 'More.java', 'more'); const b = await makeBoundary(second);
+  const tree = await core.git(f.root, ['rev-parse', `${second}^{tree}`]);
+  const remoteHead = await core.git(f.root, ['commit-tree', tree, '-p', a, '-p', b, '-m', 'Combined remote']);
+  await core.git(f.root, ['update-ref', `refs/zero/retired-finish/${a}`, a]);
+  await core.git(f.root, ['update-ref', `refs/zero/retired-finish/${b}`, b]);
+  await core.git(f.root, ['push', '--force', f.bare, `${remoteHead}:refs/heads/main`]);
+  await assert.rejects(sync(f), /More than one earlier merge/);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), second);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), base);
+});
+test('Finish refuses a manually integrated archived boundary missing from local main', async t => {
+  const f = await fixture(t); const base = await core.git(f.root, ['rev-parse', 'HEAD']);
+  await start(f); const feature = await commit(f.root, 'Score.java', 'score');
+  const tree = await core.git(f.root, ['rev-parse', `${feature}^{tree}`]);
+  const candidate = await core.git(f.root, ['commit-tree', tree, '-p', base, '-p', feature, '-m', 'Zero: finish add-score\n\nZero-Finished-Change: 1\nZero-Change-Branch: add-score']);
+  await core.git(f.root, ['update-ref', `refs/zero/retired-finish/${candidate}`, candidate]);
+  await core.git(f.root, ['merge', '--ff-only', candidate]);
+  await assert.rejects(workflow.prepareFinish(f.root, f.options), /earlier finished merge missing from local main/);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), base);
+  assert.equal(f.calls.length, 0);
+});
 test('Sync from main keeps an unconfirmed candidate when remote is unchanged', async t => {
   const f = await fixture(t); await start(f); const feature = await commit(f.root, 'Score.java', 'score');
   f.setFailure(true); await assert.rejects(finish(f)); f.setFailure(false);

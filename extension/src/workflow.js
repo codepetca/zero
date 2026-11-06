@@ -185,6 +185,31 @@ async function matchingFeature(current, pending, run) {
   catch (error) { if (error.code === 128) return false; throw error; }
   return shaPattern.test(head) && await ancestor(run, current.root, pending.feature, head);
 }
+// Retired candidates are hints, not authority: accept only exact, direct
+// object-named refs with a valid boundary for this feature and both histories.
+async function archivedFinishIn(current, descendant, run, {includeOnMain = false} = {}) {
+  const rows = (await run(current.root, ['for-each-ref', '--format=%(refname) %(objectname) %(symref)', 'refs/zero/retired-finish/'])).split('\n').filter(Boolean);
+  const matches = [];
+  for (const row of rows) {
+    const parts = row.trim().split(/\s+/);
+    if (parts.length !== 2 || !shaPattern.test(parts[1]) || parts[0] !== `refs/zero/retired-finish/${parts[1]}`) continue;
+    const id = parts[1];
+    if (await run(current.root, ['cat-file', '-t', id]) !== 'commit') continue;
+    const parents = (await run(current.root, ['rev-list', '--parents', '-n', '1', id])).split(' ');
+    if (parents.length !== 3 || parents[0] !== id || await run(current.root, ['show', '-s', '--format=%B', id]) !== finishMessage(current.branch) ||
+        await run(current.root, ['rev-parse', `${id}^{tree}`]) !== await run(current.root, ['rev-parse', `${parents[2]}^{tree}`]) ||
+        !(await ancestor(run, current.root, parents[1], parents[2])) || !(await ancestor(run, current.root, parents[2], current.head)) ||
+        !(await ancestor(run, current.root, id, descendant))) continue;
+    if (await ancestor(run, current.root, id, current.mainHead) &&
+        !(includeOnMain && (current.head === parents[2] || current.head === descendant))) continue;
+    matches.push({id, feature:parents[2]});
+  }
+  if (matches.length > 1) throw new Error('More than one earlier merge needs attention. Check native Source Control; all commits are preserved.');
+  return matches[0] || null;
+}
+async function assertNoArchivedFinishAhead(current, run) {
+  if (await archivedFinishIn(current, current.head, run)) throw new Error('This feature contains an earlier finished merge missing from local main. Switch to main in Source Control, update it from GitHub, then review your feature again. Your commits are preserved.');
+}
 async function archivePendingFinish(current, pending, opts) {
   const savedRef = `refs/zero/retired-finish/${pending.id}`;
   await opts.beforeMutation();
@@ -231,6 +256,7 @@ async function prepareFinish(project, {run = core.git} = {}) {
   clean(current);
   if (current.branch === 'main') throw new Error('Start a feature first. Merge to main is for a completed feature branch.');
   if (current.branch.length > 80 || !/^[a-zA-Z0-9][a-zA-Z0-9/_-]*$/.test(current.branch)) throw new Error('Use a simple feature branch name before finishing this change.');
+  await assertNoArchivedFinishAhead(current, run);
   const pending = await pendingFinish(current, run);
   const base = pending ? pending.base : current.mainHead;
   if (!(await ancestor(run, current.root, base, current.head))) throw new Error('Local main contains changes missing from this feature. Merge main into your feature with native Source Control, then review Merge to main again.');
@@ -329,6 +355,30 @@ async function syncPrepared(plan, options = {}) {
   const remoteHead = plan.remoteMainHead;
   let confirmedFinish;
   let rejectedOnMain;
+  if (current.branch !== 'main' && plan.target === 'main') {
+    let pendingExists = true;
+    try { await opts.run(plan.root, ['rev-parse', '--verify', pendingFinishRef]); }
+    catch (error) { if (error.code !== 128) throw error; pendingExists = false; }
+    const archived = pendingExists ? null : await archivedFinishIn(current, remoteHead, opts.run, {includeOnMain:true});
+    if (archived) {
+      if (!(await ancestor(opts.run, plan.root, current.mainHead, remoteHead))) throw new Error('Local main and the earlier finished merge need attention in Source Control. Your commits are preserved.');
+      const switchToMain = current.head === archived.feature || current.head === remoteHead;
+      if (switchToMain) await preserveIgnored(current, remoteHead, opts.run);
+      await opts.beforeMutation();
+      await recheck(current, opts.run, {full:true});
+      if (current.mainHead !== remoteHead) await local(opts.run, plan.root, ['update-ref', '--no-deref', 'refs/heads/main', remoteHead, current.mainHead], 'record the reviewed main');
+      current = {...current, mainHead:remoteHead};
+      if (switchToMain) {
+        await opts.beforeMutation();
+        await recheck(current, opts.run, {full:true});
+        await local(opts.run, plan.root, ['checkout', '--no-overwrite-ignore', 'main'], 'switch to completed main');
+        const switched = await state(plan.root, opts.run, {full:true});
+        if (!same({...current, branch:'main', head:remoteHead}, switched)) throw drift();
+        current = switched;
+        confirmedFinish = Object.freeze({branch:plan.branch, featureHead:archived.feature, head:archived.id});
+      }
+    }
+  }
   if (current.branch === 'main') {
     const pending = await mainPendingFinish(current, opts.run);
     if (pending?.structural && !(await ancestor(opts.run, plan.root, pending.id, remoteHead))) {
@@ -427,6 +477,7 @@ async function finishPrepared(plan, options = {}) {
   await assertShareable(plan.root);
   await opts.beforeMutation();
   const current = await recheck(plan, opts.run, {full: true});
+  await assertNoArchivedFinishAhead(current, opts.run);
   let candidate = plan.pending;
   if (candidate) {
     const checked = await pendingFinish(current, opts.run);
