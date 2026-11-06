@@ -280,15 +280,54 @@ async function syncPrepared(plan, options = {}) {
   await assertShareable(plan.root);
   opts.onProgress('Checking the reviewed GitHub main…');
   await protectedNetwork(plan, opts, () => fetchMain(plan, opts));
-  const current = await recheck(plan, opts.run, {full: true});
+  let current = await recheck(plan, opts.run, {full: true});
   const remoteHead = plan.remoteMainHead;
+  let confirmedFinish;
+  if (current.branch === 'main') {
+    let stale;
+    try { stale = await opts.run(plan.root, ['rev-parse', '--verify', `${pendingFinishRef}^{commit}`]); }
+    catch (error) { if (error.code !== 128) throw error; }
+    if (stale === current.head) {
+      await opts.beforeMutation();
+      await recheck(current, opts.run, {full: true});
+      await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, stale], 'clear the confirmed pending change');
+    }
+  }
   if (current.branch !== 'main') {
     const pending = await pendingFinish(current, opts.run, {allowDrift:true});
     if (pending) {
       if (plan.target !== 'main') throw new Error('Retry Merge to main before updating this feature branch.');
-      if (current.mainHead === pending.id || await ancestor(opts.run, plan.root, pending.id, remoteHead)) throw new Error('This change may already be on GitHub. Recover the pending change before updating.');
-      if (await ancestor(opts.run, plan.root, remoteHead, pending.id)) throw new Error('Recover the pending change before updating.');
-      {
+      if (await ancestor(opts.run, plan.root, pending.id, remoteHead)) {
+        // The reviewed remote contains the exact pending boundary. Record that
+        // confirmation locally before merging the remote into the feature.
+        if (current.mainHead !== pending.id) {
+          await opts.beforeMutation();
+          await recheck(current, opts.run, {full: true});
+          const checked = await pendingFinish(current, opts.run, {allowDrift:true});
+          if (!checked || checked.id !== pending.id) throw drift();
+          await local(opts.run, plan.root, ['update-ref', 'refs/heads/main', pending.id, pending.base], 'record the confirmed finished change on local main');
+          current = {...current, mainHead:pending.id};
+        }
+        await opts.beforeMutation();
+        await recheck(current, opts.run, {full: true});
+        if (pending.feature === current.head) {
+          // No newer feature work remains: finish on main so a later finish
+          // cannot create a second boundary for the same change.
+          await preserveIgnored(current, pending.id, opts.run);
+          await opts.beforeMutation();
+          await recheck(current, opts.run, {full:true});
+          await local(opts.run, plan.root, ['checkout', '--no-overwrite-ignore', 'main'], 'switch to completed main');
+          const switched = await state(plan.root, opts.run, {full:true});
+          if (!same({...current, branch:'main', head:pending.id}, switched)) throw drift();
+          current = switched;
+          confirmedFinish = Object.freeze({branch:plan.branch, featureHead:pending.feature, head:pending.id});
+          await opts.beforeMutation();
+          await recheck(current, opts.run, {full:true});
+        }
+        await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, pending.id], 'clear the confirmed pending change');
+      } else {
+        if (current.mainHead === pending.id) throw new Error('This change may already be on GitHub. Recover the pending change before updating.');
+        if (await ancestor(opts.run, plan.root, remoteHead, pending.id)) throw new Error('Recover the pending change before updating.');
         await opts.beforeMutation();
         await recheck(current, opts.run, {full: true});
         await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, pending.id], 'retire the rejected pending change');
@@ -318,11 +357,11 @@ async function syncPrepared(plan, options = {}) {
   }
   const final = await state(plan.root, opts.run, {full: true});
   if (final.branch !== current.branch || final.remote !== plan.remote || final.status || final.gitDir !== plan.gitDir || final.worktrees !== plan.worktrees ||
-      (final.branch === 'main' ? final.mainHead !== final.head : final.mainHead !== plan.mainHead) ||
+      (final.branch === 'main' ? final.mainHead !== final.head : final.mainHead !== current.mainHead) ||
       !(await ancestor(opts.run, plan.root, current.head, final.head)) || !(await ancestor(opts.run, plan.root, remoteHead, final.head))) throw drift();
   if (unchanged && (final.head !== current.head || final.fingerprint !== current.fingerprint)) throw drift();
   plans.delete(plan);
-  return Object.freeze({synced: true, updated: final.head !== current.head, branch: final.branch, head: final.head, page: plan.page, remote: plan.remote, remoteBranch: plan.remoteBranch, remoteHead});
+  return Object.freeze({synced: true, updated: final.head !== current.head, branch: final.branch, head: final.head, page: plan.page, remote: plan.remote, remoteBranch: plan.remoteBranch, remoteHead, ...(confirmedFinish ? {confirmedFinish} : {})});
 }
 async function finishPrepared(plan, options = {}) {
   const opts = executorOptions(plan, 'finish', options);

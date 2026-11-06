@@ -761,7 +761,10 @@ function activate(context, services = {}) {
           if(result.recovery){report('Choose changes to keep · nothing uploaded');await refreshNativeGit(root);return;}
           const tracking = !result.remoteHead || await updateTracking(root,result.remote || plan.remote,result.remoteBranch,result.remoteHead);
           await refreshNativeGit(root);
-          report(result.updated ? result.branch==='main'&&result.head===result.remoteHead?'Main updated · run your app':'Changes combined locally · run your app, then Commit & push' : `Already up to date with GitHub ${result.remoteBranch||'main'}`);
+          if(result.confirmedFinish){
+            await clearPush(root,result.confirmedFinish.branch);
+            report('Earlier merge confirmed · switched to main', `GitHub already received ${result.confirmedFinish.branch}. Local main now includes the reviewed GitHub changes; the local feature branch was kept. Run your app.`);
+          } else report(result.updated ? result.branch==='main'&&result.head===result.remoteHead?'Main updated · run your app':'Changes combined locally · run your app, then Commit & push' : `Already up to date with GitHub ${result.remoteBranch||'main'}`);
           if (!tracking) void vscode.window.showWarningMessage('Updated from GitHub · Source Control tracking needs refresh; see Zero Output.');
           return;
         }

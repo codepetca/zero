@@ -10,7 +10,10 @@ still needs independent review and native acceptance. Whole-change undo and the 
 
 Owner directed “Override stops and get this work done” on 2026-11-05; under
 override-task-stops this waives low-usage and workflow review-budget stops for this
-task. Review ledger: 0 launches, 0 review waves, 0 fix batches. Actual provider
+task. Review ledger at 447bd61e9: two Terra/high reviewers, one initial wave,
+1 fix batch; Git review found one retry deadlock, UI review found two history/
+staging correctness issues. Fixes and targeted tests are complete; targeted
+independent review remains. Actual provider
 execution limits and publication permissions remain in force. Usage reports
 ordinaryUsageAllowed=false; do not consume a reset or switch accounts. No independent
 review, native editor acceptance, live GitHub trial, source push, merge or release.
