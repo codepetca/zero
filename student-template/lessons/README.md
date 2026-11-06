@@ -36,7 +36,7 @@ To reopen your own clone, choose:
 
 Keep the same repository throughout each project's lessons.
 
-You write the controls, game objects and logic in each project. Save, Run App, then **Commit & push** at the
+You write the controls, game objects and logic in each project. Save, choose **Run**, then **Commit & push** at the
 checkpoints in the lessons. At the end, use **Publish & open app** and test your
 work in a browser when you have permission to share it publicly. A published
 page and its included assets are public. If a school account or repository cannot

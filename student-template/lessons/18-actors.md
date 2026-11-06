@@ -92,7 +92,7 @@ are ignored; students can override `touches` for a different rule. The method
 only checks contact—Main still collects the coin and updates the score.
 
 Main explicitly updates each actor once per frame and draws each actor once.
-After replacing all three files, choose **Run App**, click the canvas and use the
+After replacing all three files, choose **Run**, click the canvas and use the
 arrow keys. Collect one coin and stay on it: the score should increase only once.
 Try Restart during play, collect all three coins, then Restart again. Try changing
 an actor’s colour or speed, and save your working changes with **Commit & push**.

@@ -4,7 +4,13 @@
 
 ## 1. Open the Command Palette
 
-In Zero, press **Cmd+Shift+P** on a Mac or **Ctrl+Shift+P** on Windows. A box opens near the top of the window. This is different from **Cmd+P**, which opens a file picker.
+In Zero, open the Command Palette with the shortcut for your computer:
+
+**Cmd+Shift+P** on a Mac
+
+**Ctrl+Shift+P** on Windows
+
+A box opens near the top of the window. This is different from **Cmd+P**, which opens a file picker.
 
 Type a command below, then select it or press Enter. If the box closes, use the shortcut again.
 

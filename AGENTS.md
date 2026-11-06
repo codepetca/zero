@@ -42,6 +42,9 @@ preserve them in future UI work unless the owner asks to change them.
   optional simulation remains available for testing. Tutorials require students to create their own repository from the
   matching template and clone it; local running works offline after that setup.
 - Keep the option-2 sidebar minimal. Use supported VS Code extension APIs.
+- When writing or changing tutorials, follow the student-facing authoring
+  conventions in `docs/TUTORIAL-PLAN.md`, including short numbered steps,
+  clear copyable code and visible menu/keyboard actions matching the current UI.
 - Preserve readable source and useful errors. Run the relevant checks; report
   untested operating systems and interactive flows accurately.
 - Keep public API documentation synchronized with additions, removals, renames

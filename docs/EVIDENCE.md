@@ -12307,3 +12307,12 @@ activation; adding a Zero project to a workspace also reveals them. Removing a
 folder does not reveal the sidebar. Root `npm run check` and all 48 onboarding
 tests passed after generating lesson fixtures. Interactive editor and other-OS
 checks were not performed. This source change does not publish an editor release.
+# Tutorial consistency — 2026-11-05
+
+Main and optional lessons use short numbered steps, accurate Run and project
+labels, highlighted actions and clear branch handoffs. Copyable code examples
+remain unchanged. Independent review found three old Open labels, corrected
+before integration; its follow-up found no further actionable issues. Focused
+website and lesson-project tests and the Pet verifier passed. The integrated
+website build and repository checks are recorded in the PR. Reviewer model,
+effort and usage are unknown; interactive student testing is separate.

@@ -217,9 +217,9 @@ private void refreshStats() {
 }
 ```
 
-## 9. Run App and test the whole session
+## 9. Run and test the whole session
 
-Click **Run App**. Try `4`, then `5`: feedback changes, Attempts is 2, Score is 1, and Check is
+Click **Run**. Try `4`, then `5`: feedback changes, Attempts is 2, Score is 1, and Check is
 disabled. Click Next and answer `1`, then Next and answer ` TRUE `, then Next.
 The end says **Finished! Score: 3 / 3**. Restart; expect question 1, empty
 input, Attempts 0, Score 0 and disabled Next. After a correct

@@ -3,7 +3,7 @@
 // showing students an outdated copy of a whole paragraph.
 const variants = {
   'lesson-15': [
-    ['**Cmd+Shift+P** on a Mac or **Ctrl+Shift+P** on Windows', '**[Cmd+Shift+P](#zero-platform-mac)[Ctrl+Shift+P](#zero-platform-windows)**'],
+    ['**Cmd+Shift+P** on a Mac\n\n**Ctrl+Shift+P** on Windows', '**[Cmd+Shift+P](#zero-platform-mac)[Ctrl+Shift+P](#zero-platform-windows)**'],
     ['**Cmd+P**', '**[Cmd+P](#zero-platform-mac)[Ctrl+P](#zero-platform-windows)**'],
   ],
   style: [

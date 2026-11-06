@@ -6,7 +6,7 @@ Continue the same Pet project from [lesson 6](13-pet.md). Open **java → Main.j
 
 The code blocks below show the lines to add and remove. Replace the matching lines in your file with the copied block. Do the edits in order; keep the other code in `Main.java`.
 
-## 1. Move the bird
+## 1. Add the key import
 
 Add the `Key` import below `ImageRegion`:
 
@@ -15,12 +15,16 @@ import zero.ImageRegion;
 import zero.Key;
 ```
 
+## 2. Give the bird a position
+
 Add an `x` field below `petImage`. It starts the bird at the same horizontal position as before.
 
 ```java-after-2
     private ImageRegion petImage;
     private double x = 280;
 ```
+
+## 3. Move the bird with the arrow keys
 
 Add this `update` method **above** the existing `draw` method:
 
@@ -34,6 +38,8 @@ Add this `update` method **above** the existing `draw` method:
     @Override public void draw() {
 ```
 
+## 4. Draw the bird at its new position
+
 Replace the `image` line in `draw` so it uses `x` instead of the fixed number `280`:
 
 ```java-after-2-r1
@@ -41,11 +47,13 @@ Replace the `image` line in `draw` so it uses `x` instead of the fixed number `2
         image(petImage, x, 150, 80, 64);
 ```
 
-Save and **Run App**. Click the canvas, then hold the left and right arrow keys. The still bird should move and stay inside the window. Stop the app before the next edit.
+## 5. Test movement
+
+Save and choose **Run**. Click the canvas, then hold the left and right arrow keys. The still bird should move and stay inside the window. Stop the app before the next edit.
 
 `keyDown` stays true while a key is held. Zero passes the elapsed time since the last frame as `seconds`; multiplying the speed by it keeps motion approximately consistent at different frame rates. The `Math.max` and `Math.min` line keeps the 80-pixel-wide bird inside the canvas.
 
-## 2. Make the wings flap
+## 6. Add the animation import
 
 Add the animation import:
 
@@ -54,12 +62,16 @@ import zero.Key;
 import zero.SpriteAnimation;
 ```
 
+## 7. Give the pet an animation field
+
 Replace the `petImage` field with a `petAnimation` field. Keep the `x` field underneath it.
 
 ```java-after-2-r1
     private ImageRegion petImage;
     private SpriteAnimation petAnimation;
 ```
+
+## 8. Create the animation frames
 
 In `setup`, keep the `loadImage` line and replace the single `imageRegion` assignment with four frames and an animation:
 
@@ -75,12 +87,16 @@ In `setup`, keep the `loadImage` line and replace the single `imageRegion` assig
         petAnimation = new SpriteAnimation(8, frames);
 ```
 
+## 9. Advance the animation
+
 In `update`, add one line after the line that keeps `x` inside the canvas:
 
 ```java-after-2
         x = Math.max(0, Math.min(x, width() - 80));
         petAnimation.update(seconds);
 ```
+
+## 10. Draw the animation
 
 In `draw`, replace the old image line with the animation:
 
@@ -89,13 +105,15 @@ In `draw`, replace the old image line with the animation:
         image(petAnimation, x, 150, 80, 64);
 ```
 
-Save and **Run App**. The bird should flap while it moves. Stop the app before the next edit. Try changing `8` to another number and run again; return it to `8` before continuing.
+## 11. Test the animation
+
+Save and choose **Run**. The bird should flap while it moves. Stop the app before the next edit. Try changing `8` to another number and run again; return it to `8` before continuing.
 
 The sprite sheet is one picture containing four wing poses. Each `imageRegion` selects a rectangle: its first two numbers are the top-left corner, and the next two are its width and height. The lower row starts at `531` to fit the artwork. `SpriteAnimation(8, frames)` plays eight frames per second. `update(seconds)` advances the animation once per frame; `image(...)` draws its current frame.
 
-## 3. Add the chime
+## 12. Add the sound import
 
-Add the sound import and field:
+Add the sound import:
 
 ```java-after-2
 import zero.Key;
@@ -103,11 +121,17 @@ import zero.Sound;
 import zero.SpriteAnimation;
 ```
 
+## 13. Give the chime a field
+
+Add the sound field beside the animation field:
+
 ```java-after-2
     private SpriteAnimation petAnimation;
     private Sound chime;
     private double x = 280;
 ```
+
+## 14. Load the chime
 
 Load the chime once at the end of `setup`, after creating the animation:
 
@@ -116,6 +140,8 @@ Load the chime once at the end of `setup`, after creating the animation:
         chime = loadSound("/pet/chime.wav");
         chime.setVolume(0.25);
 ```
+
+## 15. Play the chime
 
 In `update`, add the Space-key action after the animation update:
 
@@ -127,6 +153,8 @@ In `update`, add the Space-key action after the animation update:
         }
 ```
 
+## 16. Show the controls
+
 In `draw`, add a short reminder above the image:
 
 ```java-after-2-3-4
@@ -137,12 +165,18 @@ In `draw`, add a short reminder above the image:
         image(petAnimation, x, 150, 80, 64);
 ```
 
-Save and **Run App**. Click the canvas and press Space: you should hear a chime. Check that the arrow keys and flapping still work. `keyPressed` detects a new press, so holding Space does not repeatedly start the sound. Stopping the previous sound before playing it lets a new press restart the chime. If you cannot hear it, check the device volume and the `resources/pet/chime.wav` filename; browser sound may also need a user gesture.
+## 17. Test the chime
+
+Save and choose **Run**. Click the canvas and press Space: you should hear a chime. Check that the arrow keys and flapping still work. `keyPressed` detects a new press, so holding Space does not repeatedly start the sound. Stopping the previous sound before playing it lets a new press restart the chime. If you cannot hear it, check the device volume and the `resources/pet/chime.wav` filename; browser sound may also need a user gesture.
 
 Compare your completed file with the [movement checkpoint](../../teaching/checkpoints/13/2/Main.java).
 
-## 4. Save the working version
+## 18. Save the working version
 
-With the working game on **main**, choose **Commit & push**. Review the files including the Java source and both assets, enter a useful message, and confirm. Check your repository on GitHub to see that main contains these files.
+With the working game on **main**, choose:
+
+**Commit & push**
+
+Review the files including the Java source and both assets, enter a useful message, and confirm. Check your repository on GitHub to see that main contains these files.
 
 Next: [Give the pet its own class](17-pet-class.md).

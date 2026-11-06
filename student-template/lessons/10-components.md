@@ -16,19 +16,27 @@ Clone your own Coin repository from GitHub. Continue in that same repository, ra
 
 Previous: [Build a coin game](09-coin-game.md).
 
-## 1. Find one job to extract
+## 1. Start a branch for the refactor
+
+Make sure your working Coin game is committed and pushed on **main**, as at the end of lesson 5. In the Zero sidebar, click your project name to open its actions, then choose:
+
+**New branch…**
+
+Name it `coin-refactor` and confirm. Check that `coin-refactor` appears as the current branch. Keep this branch through the first part of lesson 11.
+
+## 2. Find one job to extract
 
 Your Coin game's Main now reads keys, moves Player, checks coins, tracks points,
 changes labels and draws. Those jobs work, but the class is getting busy.
 A **refactor** changes how code is organized while preserving its behaviour.
-Run the unchanged game using the checks in step 4 and record the results first.
+Run the unchanged game using the checks in step 5 and record the results first.
 Then extract the input handling from Main's `update(double seconds)`.
 
 They answer two questions: which horizontal direction and which vertical direction
 is held? Player already accepts those answers. Give input its own class without
 changing Player's movement, coin positions, scoring, win rule or Restart.
 
-## 2. Write PlayerInput.java
+## 3. Write PlayerInput.java
 
 Create `java/PlayerInput.java` in the same game folder as Main and Player:
 
@@ -64,7 +72,7 @@ The constructor stores a reference to the existing GameApp. `final` prevents
 replacing that reference; it does not freeze the app's changing input state.
 PlayerInput is your ordinary Java class, with no superclass or framework callback.
 
-## 3. Make Main ask for directions
+## 4. Make Main ask for directions
 
 In the game `Main.java`, add the input field; replace the matching lines with the copied code:
 
@@ -96,7 +104,7 @@ Remove `import zero.Key;` from Main; PlayerInput now uses it. In `update()`, rep
         player.update(horizontal, vertical, seconds, width(), height());
 ```
 
-## 4. Run App and prove the refactor kept behaviour
+## 5. Run and prove the refactor kept behaviour
 
 Before adding a feature, run the game and check the same cases as before:
 
@@ -117,7 +125,7 @@ If behaviour changed, compare the old and new direction calculations first.
 You have made one responsibility smaller. Next extract score presentation into a
 reusable class while Main keeps the game rules.
 
-## 5. Create ScoreDisplay.java
+## 6. Create ScoreDisplay.java
 
 Create `java/ScoreDisplay.java` in the Coin game folder:
 
@@ -145,7 +153,7 @@ Column. Label is an Element; ScoreDisplay remains an ordinary class.
 `setScore(int)` changes the label explicitly. No framework registration,
 component subclass or hidden update is involved.
 
-## 6. Use the display in your Coin game
+## 7. Use the display in your Coin game
 
 In `Main.java`, replace the matching line with the copied code:
 
@@ -184,13 +192,13 @@ In `update()`, replace the matching line with the copied code:
 
 Keep `showGame()` at the end of Restart and the message Label and game rules in Main.
 
-## 7. Run App and test the Coin game
+## 8. Run and test the Coin game
 
 Collect a coin and stay on it (`Score: 1`), Restart during play (`Score: 0`),
 collect all three (`Score: 3`), then Restart after winning. Check that movement
 still works. Main owns the points and tells ScoreDisplay when they change.
 
-## 8. Improve the display and check it
+## 9. Improve the display and check it
 
 Try changing the displayed word from Score to Points. In `ScoreDisplay.java`, replace each matching line with the copied code:
 

@@ -39,6 +39,37 @@ context. Avoid mandatory inheritance and automatic discovery.
 
 ## Visual quick paths and composed views
 
+### Tutorial authoring conventions
+
+Owner preference, 2026-11-05: keep tutorial instructions consistent across the
+main and optional paths. Write for a student following along in Zero:
+
+- Use short, sequential numbered steps, each with a clear action and outcome.
+  Break up long sequences such as downloading assets, importing them, editing
+  files, running the app and publishing. Keep useful explanation close to the
+  action, without repeating an introductory card or duplicating instructions.
+- When a lesson starts a new project, make creating it step 1, put **Project → New**
+  on its own line, and suggest a descriptive `zero-` project name. Continuing
+  lessons use the same existing project and explain how to reopen or clone it
+  where needed. Start a feature branch at the beginning of the change when the
+  lesson teaches a branch workflow, and identify the actual control to use.
+- Make menu choices, paths, palette commands and keyboard shortcuts easy to
+  spot. Use the existing boxed emphasis for supported actions and put important
+  selections on their own line when it improves scanning. Give platform-specific
+  shortcuts where they differ. Match the labels and locations in the current
+  student UI; verify the whole route rather than guessing from old instructions.
+- Show code in copyable blocks with explicit file names, placement and directions
+  to add, replace or remove lines. Prefer small incremental edits, highlighting
+  changed lines with the existing tutorial code-block conventions. Use a complete
+  file when that is clearer, and say explicitly when it replaces the whole file.
+  Preserve correct copy behavior and keep examples consistent with checkpoints.
+- Include a practical Run/check after a meaningful stage and explain what the
+  student should see. Keep commit, merge and publishing actions explicit and
+  appropriately separated; retain backup and sharing guidance where it matters.
+
+Apply these conventions when creating or revising a lesson; do not claim an
+existing lesson is consistent without checking its actual text and UI routes.
+
 Every lesson shows an authored target illustration followed by full numbered
 editing and testing instructions with copyable code. No duplicate three-action
 summary or Done checkpoint precedes the detailed sequence. Later lessons

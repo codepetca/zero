@@ -10,7 +10,11 @@ In Zero, sign in to GitHub and complete access setup if needed. On the Start Pag
 
 **Project → New**
 
-Name your project (for example, `zero-greeting`) and choose a clone location. Zero creates your public repository and opens its clone. In Project Explorer, open **java → Main.java** (`java/Main.java`). Replace its contents with this starting file and save it:
+Name your project (for example, `zero-greeting`) and choose a clone location. Zero creates your public repository and opens its clone.
+
+## 2. Prepare Main.java
+
+In Project Explorer, open **java → Main.java** (`java/Main.java`). Replace its contents with this starting file and save it:
 
 ```java
 import zero.App;
@@ -26,7 +30,7 @@ public class Main extends App {
 }
 ```
 
-## 2. Add this import after `import zero.App;`
+## 3. Add this import after `import zero.App;`
 
 This starting `Main.java` has `Main extends App`, `settings()` with `padding(20)`, an empty `setup()` and a `main` method. Keep those lines. The empty setup opens a blank window, so your first control is yours to write. Add the `Label` import in `Main.java`; replace the matching lines with the copied code:
 
@@ -35,7 +39,7 @@ import zero.App;
 import zero.ui.Label;
 ```
 
-## 3. Write the greeting inside `setup()`
+## 4. Write the greeting inside `setup()`
 
 Replace the empty `setup()` method with the copied code:
 
@@ -50,16 +54,20 @@ Replace the empty `setup()` method with the copied code:
 `new Label(...)` creates a UI component. `show(greeting)` displays it in the
 app window, replacing whatever UI was shown there before.
 
-## 4. Run App, then change the greeting
+## 5. Run your greeting
 
-Click **Run App**. The window says **Hello, world!**. Replace the matching line with the copied code:
+Click **Run**. The window says **Hello, world!**.
+
+## 6. Change the greeting
+
+Replace the matching line with the copied code:
 
 ```java-after-2-r1
         Label greeting = new Label("Hello, world!");
         Label greeting = new Label("Hello, Java!");
 ```
 
-Click **Run App** again. The window should now say **Hello, Java!**.
+Click **Run** again. The window should now say **Hello, Java!**.
 Keep this **same Greeting project** for lessons 2 and 3. You will add to this
 code rather than replace `Main.java`.
 

@@ -4,7 +4,7 @@
 
 ![The same Coin game with a small CreditsBadge, shared in Tutorial practice](visuals/11.svg)
 
-Reopen the **Coin game** from lesson 10. There is no lesson 11 download or new tutorial project. Keep practising in this folder. This lesson shares a tiny **CreditsBadge** in a separate **Tutorial practice** area. Copies are expected: you are learning the workflow, not claiming to have invented a new utility. PlayerInput stays in your game; you do not submit it.
+Reopen the **Coin game** and continue on the `coin-refactor` branch from lesson 10. There is no lesson 11 download or new tutorial project. Keep practising in this folder. This lesson shares a tiny **CreditsBadge** in a separate **Tutorial practice** area. Copies are expected: you are learning the workflow, not claiming to have invented a new utility. PlayerInput stays in your game; you do not submit it.
 
 Previous: [Refactor a busy Main](10-components.md).
 
@@ -73,7 +73,7 @@ Try a different caption in setup by replacing the matching line with the copied 
         score.setCaption("Coins");
 ```
 
-Run App and collect a coin; the display
+Run and collect a coin; the display
 should read `Coins: 1`. Finish and restart the game twice. Restore the setup caption by replacing the matching line with the copied code:
 
 ```java-after-2-r1
@@ -126,7 +126,7 @@ opposes Right or D, so A + Right cancels just as Left + Right does. Main still
 asks for two directions; Player still owns movement. Keep the constructor and
 `GameApp game` field from lesson 10. No Zero framework change is needed.
 
-Run App and check all arrows still work, each WASD direction, W + D diagonally,
+Run and check all arrows still work, each WASD direction, W + D diagonally,
 Right + D at the same speed as Right, A + Right cancelling horizontal motion,
 and W + Down cancelling vertical motion. Try both opposing arrows too. Preserve
 Player's existing diagonal speed rule. Release all keys, switch windows while
@@ -155,11 +155,16 @@ checkpoint 11 (shown before library extraction). Its [PlayerInput.java](../../te
 includes the optional WASD change; checkpoint 10 is the arrow-only comparison if
 you skipped it. Checkpoint 12 carries that same WASD helper forward.
 
-Save your tested changes through the normal reviewed **Commit & push** and
-**Merge to main** workflow for your tutorial repository. A useful method, clear
+Choose **Commit & push**, review the changed files and confirm. Then choose **Merge to main** and follow the prompts. This merges and pushes the tested refactor to main. A useful method, clear
 error and unchanged caller matter more than making a large library.
 
 ## 6. Add a harmless practice badge
+
+After the merge, check that main is current. In the Zero sidebar, click your project name to open its actions, then choose:
+
+**New branch…**
+
+Name it `coin-badge` and confirm. Check that `coin-badge` is current before adding the badge.
 
 In the Coin game's **java** folder, create `CreditsBadge.java`:
 
@@ -210,15 +215,19 @@ In `setup()`, replace the matching call with the copied code:
                 new Row(12, score.view(), message, restartButton), badge.view()));
 ```
 
-Run App. You should see `Made with Zero: Coin game` under the controls. Change the
+Run. You should see `Made with Zero: Coin game` under the controls. Change the
 message, run again, then restore `Coin game` for the checkpoint comparison. Check
 movement, coins, win and Restart still work. The badge has no game-state job.
 
 ## 7. Extract the practice library
 
-Keep this same tutorial repository. Choose:
+Keep this same tutorial repository. Open the Command Palette, run:
 
-**Libraries and games → Extract library**
+**Zero: Libraries and Games**
+
+Then choose:
+
+**Extract library**
 
 Select **only CreditsBadge.java**, choose **UI component**, and use the
 exact library name **`tutorial-credits-badge`**, version **`0.1.0`**. Give it the
@@ -227,7 +236,7 @@ from this lesson. Retain the supplied MIT licence and credit Zero's tutorial.
 
 Review the preview: CreditsBadge moves to **Libraries → Tutorial practice: CreditsBadge → java**, its package gains your numeric repository ID, and Main imports that package. Zero updates the build source roots.
 Keep Main, PlayerInput, Player, Coin and ScoreDisplay in the game. Accept the
-reviewed extraction, Run App again, and check the badge and game still work.
+reviewed extraction, Run again, and check the badge and game still work.
 
 The reserved library name is the practice marker. Keep it unchanged; using an
 ordinary library name would place a copied exercise in the wrong category. There
@@ -267,6 +276,9 @@ Confirm the badge, controls, movement and Restart in the browser. A successful
 compile and an actual working page are different checks. Keep publication an
 explicit separate action; local browser preview is enough to practise checking.
 
+Choose **Commit & push**, review the changed files and confirm. Then choose
+**Merge to main** and follow the prompts to merge and push the badge work.
+
 ## 9. Practise submitting and using a classmate's badge
 
 The hosted library service must be enabled by the maintainers before a
@@ -276,8 +288,8 @@ the submission; an opened form is not a listing. Do not rename the badge or use
 the ordinary community path to bypass that state.
 
 When practice sharing is enabled, use your own GitHub account and this same
-public tutorial repository. Save the reviewed changes through the normal
-**Commit & push** and **Merge to main** workflow. Choose **Share library**, select
+public tutorial repository. Confirm the reviewed badge changes are committed and
+merged to main. Choose **Share library**, select
 the practice badge, review its exact committed folder/version and submit the
 prefilled official GitHub form. Requests are public; keep private information
 out of the source and metadata. The usual ownership, licence, source and library
@@ -288,9 +300,13 @@ They are labelled tutorial copies and excluded from ordinary Projects/Libraries
 search. Everyone is expected to have a similar badge. Completing the workflow is
 the achievement; these are not candidates for automatic inclusion in Zero.
 
-To try a classmate's accepted version, choose:
+To try a classmate's accepted version, open the Command Palette and run:
 
-**Libraries and games → Browse tutorial practice**
+**Zero: Libraries and Games**
+
+Then choose:
+
+**Browse tutorial practice**
 
 Select their badge, deliberately choose a version if offered, then choose:
 
@@ -298,7 +314,7 @@ Select their badge, deliberately choose a version if offered, then choose:
 
 Use the exact import shown for their package. In Main, replace only the badge
 construction with their fully qualified class name and the same message argument;
-keep your own library in local mode and keep the game rules unchanged. Run App
+keep your own library in local mode and keep the game rules unchanged. Run
 and check the displayed message. Use a new exact version for an improvement and
 review Update/Revert deliberately; editor updates never replace it automatically.
 
