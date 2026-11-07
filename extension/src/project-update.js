@@ -63,7 +63,7 @@ async function snapshot({projectRoot,extensionPath}){
  const root=await rootPath(projectRoot);
  // An interrupted transaction must be explicitly recovered before another update.
  const pending=(await listRecoveries({projectRoot:root})).find(item=>item.status==='incomplete');
- if(pending)fail('an incomplete update needs recovery. Run Zero: Recover Project Update: '+pending.recoveryPath);
+ if(pending)fail('an incomplete update needs inspection. Recovery copies are kept at '+pending.recoveryPath+'. Back up your work and create a new Zero project.');
  const old=await baseline(root),next=await target(extensionPath),builder=await builderUpgrade.planUpgrade({projectRoot:root,extensionPath});
  const saved=builder.oldProfileHash?await readSavedBuilder(root):null;
  const oldFiles=[...old.files,...(saved?await Promise.all(saved.files.map(file=>readFile(root,'.zero-build/'+file.path,4*1024*1024))):[])];

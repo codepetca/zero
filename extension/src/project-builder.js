@@ -9,7 +9,7 @@ const format=require('./project-builder-format');
 const {ordinary,readTree,inventoryMatches,relative,validateRetainedExport}=require('./retained-web-export');
 const {managedJavaHome}=require('./managed-java');
 const execFile=promisify(execFileCallback);
-const unavailable=message=>Object.assign(Error('Project browser tooling unavailable: '+message+' See .zero-build/README.md, or restore the complete saved tooling from your project’s Git history. Older projects need a deliberate, reversible tooling upgrade; opening a project never upgrades it.'),{code:'ZERO_BUILDER_UNAVAILABLE'});
+const unavailable=message=>Object.assign(Error('Project browser tooling unavailable: '+message+' See .zero-build/README.md, or restore the complete saved tooling from your project’s Git history. To use current tooling, back up your work, create a new Zero project, and carefully copy your source files and assets.'),{code:'ZERO_BUILDER_UNAVAILABLE'});
 const aborted=()=>Object.assign(Error('Browser build cancelled.'),{name:'AbortError'});
 function digest(files){const hash=require('node:crypto').createHash('sha256');for(const file of [...files].sort((a,b)=>a.path.localeCompare(b.path)))hash.update(file.path).update('\0').update(file.bytes).update('\0');return hash.digest('hex');}
 async function readSavedBuilder(projectRoot,{metadataOnly=false}={}){
@@ -124,7 +124,7 @@ async function currentInputs(projectRoot,manifest){
  if(!pom)throw unavailable('the browser receipt omits the project POM.');
  const active=await require('./web-export/libraries').discoverBrowserLibraries(projectRoot,pom.bytes.toString('utf8'));
  const owned=await require('./web-export/snapshot').captureOwnedFiles(projectRoot,active);
- for(const item of owned){const captured=files.find(file=>file.path===item.path);if(!captured||!captured.bytes.equals(item.bytes))throw unavailable('the saved builder does not capture this project-owned library. Deliberately upgrade a copy of the project tooling.');}
+ for(const item of owned){const captured=files.find(file=>file.path===item.path);if(!captured||!captured.bytes.equals(item.bytes))throw unavailable('the saved builder does not capture this project-owned library. Create a new Zero project and carefully copy your source files and assets after making a backup.');}
 
  for(const name of expected){const match=/^(libraries\/[^/]+)\/(src\/main\/(?:java|resources))\//.exec(name);if(match)roots.add(match[1]+'/'+match[2]);const owned=/^(zero-dependencies\/[^/]+\/[^/]+)\//.exec(name);if(owned)roots.add(owned[1]);}
  for(const folder of roots){let actual;try{actual=await readTree(path.join(projectRoot,folder));}catch(error){if(error.code==='ENOENT')continue;throw error;}for(const file of actual){const name=folder+'/'+file.path;if(name==='src/main/resources/.gitkeep')continue;if(!expected.has(name))throw unavailable('new build input is absent from the browser receipt: '+name);}}
@@ -162,13 +162,13 @@ function createProjectBuilder({isTrusted=()=>false,environment=process.env,platf
  const authorize=(options,kind)=>{if((options.explicitAction!==true&&!(kind==='compatibilityCached'&&/^[a-f0-9]{64}$/.test(options.approvedBuilderHash||'')))||isTrusted()!==true)throw unavailable('choose Browser Run, Export or Publish explicitly, or enable browser checks for this exact tooling, in a trusted workspace.');if(options.signal?.aborted)throw aborted();};
  const currentHash=getCurrentBuilderHash|| (async projectRoot=>(await require('./project-builder-upgrade').planUpgrade({projectRoot,extensionPath})).newProfileHash);
  async function requireCurrent(projectRoot,saved){
-  if(await currentHash(projectRoot)!==saved.profileHash)throw Object.assign(Error('This project needs the current browser tooling before browser builds or checks. Update it at the browser action; Zero keeps a backup.'),{code:'ZERO_BUILDER_UPDATE_REQUIRED'});
+  if(await currentHash(projectRoot)!==saved.profileHash)throw Object.assign(Error('This project needs the current browser tooling before browser builds or checks. Back up your work, create a new Zero project, and carefully copy your source files and assets.'),{code:'ZERO_BUILDER_UPDATE_REQUIRED'});
  }
  async function operation(options,operation){
   authorize(options,operation);const projectRoot=path.resolve(options.projectRoot);let before;
   try{before=await readSavedBuilder(projectRoot);}catch(error){
    const exists=await fs.lstat(path.join(projectRoot,'.zero-build')).catch(missing=>{if(missing.code==='ENOENT')return null;throw missing;});
-   if(!exists)throw Object.assign(Error('This project needs the current browser tooling before browser builds or checks.'),{code:'ZERO_BUILDER_UPDATE_REQUIRED'});
+   if(!exists)throw Object.assign(Error('This project needs current browser tooling. Back up your work, create a new Zero project, and carefully copy your source files and assets.'),{code:'ZERO_BUILDER_UPDATE_REQUIRED'});
    throw error;
   }
   if(options.approvedBuilderHash&&options.approvedBuilderHash!==before.profileHash)throw unavailable('saved tooling changed; enable browser checks again.');

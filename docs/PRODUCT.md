@@ -81,32 +81,7 @@ evaluates PostHog for optional structured operational signals and Clarity for
 supplementary website usability. Neither replaces compiler/tests or automatically
 instruments student-owned sites. No new collector or analytics deployment exists.
 
-Current local safety gate: automatic project update and recovery are unavailable. A browser action may continue when the saved browser builder is current and only the core differs; the action leaves the core unchanged. If the browser builder is outdated, create a current Zero project and carefully copy source and assets after backing up the original. The update policy below describes the intended workflow.
-
-Project longevity, owner direction 2026-10-23: the student's repository owns its
-framework source, native/browser build files, Zero-specific build tooling, version
-records and exact dependencies. Opening a project never upgrades them automatically.
-Zero supports one current browser builder: an explicit browser build or check
-requires the student to update older saved browser tooling, preserving a backup.
-One **Update Project** action also updates the project's recorded, unmodified
-Zero Java framework files to the installed version. It stops before replacing
-customized or unrecognized framework files, preserves student code, assets, POM
-and library pins, and retains recovery data for an interrupted update. The
-project's own source inventory is a self-recorded baseline, not proof of an
-authenticated historic release. Warn that updates may break the game; test both
-native and browser builds afterward. Locally authored libraries may need their
-own deliberate review when their recorded core input no longer matches.
-No required central historical-kit storage, database or kit registry. Maintain the
-current release line without old-version branches/backports. During pre-release,
-updates can break existing projects, including after restoring saved files. Browser
-tooling updates retain a local copy of the old files but do not guarantee recovery. Keep
-editable source and a retained finished web build. Full offline backups are
-optional and student-retained; default future rebuilds depend on usable tools
-and availability of normal dependency hosts, not a promise of permanent support.
-See the [versioning and preservation policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation)
-for current gaps, experimental 0.x rules and bounded clone/build/rehost acceptance.
-Project-owned browser tooling and complete locks are implemented locally. The
-old/new clone, rebuild, static rehost and reversible upgrade proof passes locally.
+Project direction, 2026-11-07: Zero has not rolled out to students, and this release does not require compatibility with or migration of existing projects. New projects use the current framework and browser tooling; opening a project never updates its files. Project update and recovery are unavailable. A project whose saved browser builder is current may use browser actions after the usual trust, saved-file and recovery checks. For outdated tooling, create a new Zero project; retain the original and any recovery copies. Student repositories own their source and build files.
 
 Implementation execution, owner-authorized 2026-10-23: follow the single
 [phased delivery roadmap](FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).
@@ -303,13 +278,7 @@ acceptance status are in the [version control milestone](VERSION-CONTROL-PLAN.md
 The local student sidebar has a **Project** controls pane and a **Files** tree.
 The Project header offers New project, Clone and Open; Files retains its file
 creation menu. Project holds native Run/Stop, teaching helpers and contextual
-repository/branch/push actions. A compact branch selector and separate Merge, Review
-changes and History actions expose the workflow. Review changes and History open read-only editor views of
-saved changes and clearly label unsaved editor buffers. Existing per-file recovery
-choices remain available. A selected recognized finished change offers a guarded
-Undo change preview; after confirmation it stages a correction on the current branch
-without uploading. Conflicts and unsupported projects stop before application;
-the student reviews, runs and commits the correction.
+repository/branch/push actions. A compact branch selector, Merge and History expose the workflow. Files shows change indicators and opens supported changes in the native diff; unsupported changes and conflicts use Source Control. Narrow local undo preserves edits where supported. Custom discard, restore and finished-change correction remain unavailable.
 Troubleshooting and repository/account
 recovery remain in the native overflow. Local Run, Files and opening a local
 project remain available without signing in. Current source opens tutorial, new,
@@ -689,7 +658,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   label with no explanatory or confirm/cancel footer; validation errors appear as needed. Relative names can create
   subfolders. Existing entries are preserved, cancellation makes no changes, and
   the native Explorer notices created files and new files open in the normal editor.
-  Existing native review, discard and file-history choices support per-file recovery.
+  Files uses native diff for supported changes and Source Control for other changes; custom discard and file restore are unavailable.
   There is no separate tools row. Supported VS Code
   user controls can still move/hide views. There is no team/PR mode.
 - The primary button says Run when idle, Stop while queued/building/running,
@@ -846,6 +815,8 @@ manually; signing in does not configure commit identity. Optional explicit
 New branch, Update from main, Merge to main and Publish simulate without saving files or performing
 Git/network actions.
 Tutorial repositories use the same GitHub workflow; only legacy local-only markers remain blocked.
+
+The following historical workflow describes earlier prototypes. The current simplified milestone uses native Source Control for unsupported updates and conflicts; custom conflict choices, cancellation, discard and restore remain unavailable.
 
 The individual flow uses main for completed work and one short-lived branch per
 change. A new empty repository starts with Commit & push on main.
