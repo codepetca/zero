@@ -92,6 +92,13 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   assert.doesNotMatch(practice,/data-command="zero\.(?:uploadToGitHub)"/);
 });
 
+test('sidebar review fixture renders branch, unsaved and unavailable states',()=>{
+  const branch=sidebarSource('ready',{connected:true,studentExplorer:true,branch:'feature',branchHead:'a'.repeat(40),projectDirty:true,projectUnsaved:true});
+  assert.match(branch,/Current branch: feature/);assert.match(branch,/Save your project edits before committing/);assert.match(branch,/data-command="zero.commitChanges"[^>]*disabled/);
+  const unborn=sidebarSource('ready',{connected:true,branch:'main',branchHead:null});assert.match(unborn,/make your first commit/);
+  const unavailable=sidebarSource('ready',{branchError:'Branch unavailable'});assert.match(unavailable,/Branch unavailable/);assert.match(unavailable,/data-command="zero.openGitSourceControl"/);
+});
+
 test('actual sidebar renderer has one Run/Stop control across idle, build, running and stopping states',()=>{
   for(const [state,label] of [['ready','Run'],['building','Stop'],['running','Stop'],['stopping','Stopping…'],['error','Run']]){
     const html=sidebarSource(state);

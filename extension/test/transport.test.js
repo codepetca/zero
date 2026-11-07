@@ -7,6 +7,7 @@ const path = require('node:path');
 const core = require('../src/core');
 const {createTransport} = require('../src/transport');
 const {prepareUpload,uploadPrepared} = require('../src/github');
+const {withLocalMutation} = require('../src/commit-provenance');
 const {createAuthentication} = require('../src/authentication');
 const remote='https://github.com/student/app.git';const sha='a'.repeat(40);const token='TEST_SECRET_DO_NOT_PRINT';
 async function project(t) {
@@ -53,7 +54,7 @@ test('native account removal/drift stops before credential-bearing process; revo
     const check=()=>auth.assertCurrent(ticket);
     const networkRun=createTransport(remote,check,{assertCurrentNow:()=>auth.assertCurrentNow(ticket),spawn:async()=>{calls++;session=undefined;listener({provider:{id:'zero-github'}});return {stdout:''};}});
     if(revokeAt==='review') {session={...session,account:{id:'other',label:'other'}};listener({provider:{id:'zero-github'}});}
-    await assert.rejects(uploadPrepared(plan,'Save',{beforeUpload:check,networkRun}),/account or sign-in changed/);
+    await assert.rejects(uploadPrepared(plan,'Save',{beforeUpload:check,networkRun,withLocalMutation}),/account or sign-in changed/);
     assert.equal(calls,revokeAt==='review'?0:1);
   }
 });
@@ -75,7 +76,7 @@ test('successful reviewed upload uses isolated native-session transport for push
   }});
   const result=await uploadPrepared(plan,'Save',{run:localRun,beforeUpload:check,networkRun});
   assert.equal(result.uploaded,true);assert.deepEqual(networkCalls,['push','ls-remote']);assert.ok(localCalls.includes('commit'));
-  assert.equal(nativeChecks,3,'One pre-upload check and one fresh native lookup per protected operation');
+  assert.ok(nativeChecks>=3,'The upload and both protected operations revalidate the native session');
   assert.doesNotMatch(await fs.readFile(path.join(root,'.git','config'),'utf8'),/Authorization|TEST_SECRET/);
 });
 

@@ -13,11 +13,12 @@ function createTransport(remote, authenticate, {assertCurrentNow, spawn = execut
   const destination = core.parseRepositoryUrl(remote).remote;
   if (remote !== destination) throw new Error('Review the ordinary GitHub HTTPS destination again.');
   if (typeof assertCurrentNow !== 'function' || assertCurrentNow.constructor.name === 'AsyncFunction') throw new Error('GitHub transport requires a synchronous session guard.');
-  return async (root, args) => {
+  return async (root, args, binding) => {
     const pushing = args.length === 3 && args[0] === 'push' && args[1] === destination && /^(?:[a-f0-9]{40}|[a-f0-9]{64}):refs\/heads\//.test(args[2]) && validBranch(args[2].slice(args[2].indexOf(':') + ':refs/heads/'.length));
     const checking = args.length === 4 && args[0] === 'ls-remote' && args[1] === '--heads' && args[2] === destination && typeof args[3] === 'string' && args[3].startsWith('refs/heads/') && validBranch(args[3].slice('refs/heads/'.length));
     const fetching = args.length === 6 && args[0] === 'fetch' && args[1] === '--no-tags' && args[2] === '--no-recurse-submodules' && args[3] === '--no-write-fetch-head' && args[4] === destination && /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(args[5]);
     if (!pushing && !checking && !fetching) throw Object.assign(new Error('Only the reviewed GitHub upload, main fetch and branch confirmation may use this sign-in.'), {kind: 'changed'});
+    if (binding && (!pushing || binding.root !== root || !path.isAbsolute(binding.gitDir || '') || !path.isAbsolute(binding.commonDir || '') || typeof binding.assertCurrentNow !== 'function' || binding.assertCurrentNow.constructor.name === 'AsyncFunction')) throw new Error('The project Git directory binding is invalid.');
     // Git 2.31 introduced runtime config via GIT_CONFIG_COUNT. Fail closed
     // before obtaining transport credentials on versions that would ignore it.
     let version;
@@ -63,8 +64,9 @@ function createTransport(remote, authenticate, {assertCurrentNow, spawn = execut
       // No asynchronous preparation follows this check before child dispatch.
       env = {...environment};
       for (const key of Object.keys(env)) {
-        if (/^GIT_CONFIG_(?:COUNT|KEY_\d+|VALUE_\d+|PARAMETERS)$|^GIT_TRACE|^GIT_CURL_VERBOSE$|^GIT_SSL_NO_VERIFY$|^GIT_ASKPASS$|^SSH_ASKPASS$|^SSLKEYLOGFILE$/i.test(key)) delete env[key];
+        if ((binding && /^GIT_(?:DIR|COMMON_DIR|WORK_TREE|INDEX_FILE|OBJECT_DIRECTORY|ALTERNATE_OBJECT_DIRECTORIES|NAMESPACE|SHALLOW_FILE|GRAFT_FILE|REPLACE_REF_BASE|REFERENCE_BACKEND)$/i.test(key)) || /^GIT_CONFIG_(?:COUNT|KEY_\d+|VALUE_\d+|PARAMETERS)$|^GIT_TRACE|^GIT_CURL_VERBOSE$|^GIT_SSL_NO_VERIFY$|^GIT_ASKPASS$|^SSH_ASKPASS$|^SSLKEYLOGFILE$/i.test(key)) delete env[key];
       }
+      if (binding) {env.GIT_DIR=binding.gitDir;env.GIT_COMMON_DIR=binding.commonDir;env.GIT_WORK_TREE=binding.root;env.GIT_NO_LAZY_FETCH='1';env.GIT_NO_REPLACE_OBJECTS='1';}
       // Command-scope configuration overrides files without changing any file.
       // Reset credential helpers and headers, stop redirects, and suppress hooks
       // in the credential-bearing child so they cannot inherit its environment.
@@ -85,6 +87,11 @@ function createTransport(remote, authenticate, {assertCurrentNow, spawn = execut
       env.GIT_TERMINAL_PROMPT = '0'; env.GIT_ASKPASS = ''; env.SSH_ASKPASS = '';
       env.GIT_CONFIG_COUNT = String(settings.length);
       settings.forEach(([key, value], index) => { env[`GIT_CONFIG_KEY_${index}`] = key; env[`GIT_CONFIG_VALUE_${index}`] = value; });
+      if (binding) {
+        const checked=binding.assertCurrentNow();
+        if (checked && typeof checked.then === 'function') {void Promise.resolve(checked).catch(()=>{});throw new Error('The project Git directory guard must be synchronous.');}
+        checkSession();
+      }
       try {
         const {stdout} = await spawn('git', args, {cwd: root, env, timeout: 120000, maxBuffer: 1024 * 1024});
         checkSession();

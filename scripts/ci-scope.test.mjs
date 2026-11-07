@@ -98,24 +98,25 @@ test('real Git publication diff scopes metadata while mixed runtime and CI chang
     for(const asset of Object.values(after.assets))Object.assign(asset,{size:123,sha256:'a'.repeat(64),url:`https://github.com/codepetca/zero/releases/download/v0.5.55/${asset.filename}`});
     const scope=baseSha=>scopeForEvent({pull_request:{base:{sha:baseSha||base},head:{sha:git('rev-parse','HEAD')}}},root);
     const publish=()=>{write('release/kit.json',after);git('add','.');git('commit','-qm','publish measured metadata');};
-    write('scripts/ci-scope.mjs','standalone classifier change');git('add','.');git('commit','-qm','classifier only');assert.ok(Object.values(scope()).every(Boolean));git('reset','--hard',base);
+    write('scripts/ci-scope.mjs','standalone classifier change');git('add','.');git('commit','-qm','classifier only');assert.ok(Object.values(scope()).every(Boolean));git('switch','-c','promotion',base);
     publish();const promotedHead=git('rev-parse','HEAD');
     assert.deepEqual(scope(),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
     write('README.md','updated public download');git('add','.');git('commit','-qm','document download');assert.equal(scope().windows,false);
-    git('reset','--hard',promotedHead);write('scripts/ci-scope.mjs','classifier change');write('scripts/ci-scope.test.mjs','selection regressions');write('docs/FAST-DEV-FLOW.md','document dependency scope');git('add','.');git('commit','-qm','promotion and classifier contracts');
+    git('switch','-c','classifier-contracts',promotedHead);write('scripts/ci-scope.mjs','classifier change');write('scripts/ci-scope.test.mjs','selection regressions');write('docs/FAST-DEV-FLOW.md','document dependency scope');git('add','.');git('commit','-qm','promotion and classifier contracts');
     const recovery=git('rev-parse','HEAD');
     assert.deepEqual(scope(),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
+    let caseNumber=0;
     for(const file of ['extension/src/native-updates.js','native-installer/windows/Program.cs','framework/src/main/java/zero/App.java','student-template/README.md','release/START-HERE.md','scripts/ci-gate.mjs','scripts/ci-scope-new.mjs','.github/workflows/windows-native.yml','.github/workflows/web-export.yml','.github/workflows/ci-scope.yml','extension/src/web-export/index.js','extension/src/web-publishing.js','extension/src/core.js','unknown.cfg']) {
-      git('reset','--hard',recovery);write(file,'changed executable or unknown input');git('add','.');git('commit','-qm','mixed change');
+      git('switch','-c',`mixed-${++caseNumber}`,recovery);write(file,'changed executable or unknown input');git('add','.');git('commit','-qm','mixed change');
       assert.ok(Object.values(scope()).every(Boolean),file);
     }
-    git('reset','--hard',base);const changed=structuredClone(after);changed.coreVersion='0.4.0';write('release/kit.json',changed);git('add','.');git('commit','-qm','mixed manifest change');assert.ok(Object.values(scope()).every(Boolean));
+    git('switch','-c','mixed-manifest',base);const changed=structuredClone(after);changed.coreVersion='0.4.0';write('release/kit.json',changed);git('add','.');git('commit','-qm','mixed manifest change');assert.ok(Object.values(scope()).every(Boolean));
     write('release/kit.json','invalid JSON');git('add','.');git('commit','-qm','malformed manifest');assert.ok(Object.values(scope()).every(Boolean));
-    git('reset','--hard',base);git('rm','release/kit.json');git('commit','-qm','remove manifest');assert.ok(Object.values(scope()).every(Boolean));
-    git('reset','--hard',promotedHead);assert.ok(Object.values(scopeForEvent({},root)).every(Boolean),'manual runs stay full');
+    git('switch','-c','removed-manifest',base);git('rm','release/kit.json');git('commit','-qm','remove manifest');assert.ok(Object.values(scope()).every(Boolean));
+    git('switch','-c','promoted-inspection',promotedHead);assert.ok(Object.values(scopeForEvent({},root)).every(Boolean),'manual runs stay full');
     // Compare publication metadata at the merge base, matching the path diff,
     // even when the target branch has advanced independently.
     git('checkout','-qb','advanced-base',base);write('docs/advance.md','new base docs');git('add','.');git('commit','-qm','advance target');const advanced=git('rev-parse','HEAD');
-    git('checkout','--detach',promotedHead);assert.equal(scope(advanced).windows,false);
+    git('switch','-c','promoted-merge-base',promotedHead);assert.equal(scope(advanced).windows,false);
   } finally {rmSync(root,{recursive:true,force:true});}
 });

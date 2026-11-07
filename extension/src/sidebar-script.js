@@ -47,7 +47,7 @@ function sidebarClient() {
     const button = event.target.closest('button[data-command]');
     if (button && !button.disabled && button.getAttribute('aria-disabled') !== 'true') {
       for (const config of menus) if (menuElement(config)?.contains(button)) closeMenu(config,true);
-      api.postMessage({command:button.dataset.command,...(button.dataset.recovery?{recovery:button.dataset.recovery}:{})});
+      api.postMessage({command:button.dataset.command,...(button.dataset.command==='zero.commitChanges'?{commitMessage:document.getElementById('commit-message')?.value || ''}:{}),...(button.dataset.recovery?{recovery:button.dataset.recovery}:{})});
     }
   });
   document.addEventListener('keydown', event => {
@@ -77,18 +77,25 @@ function sidebarClient() {
   window.addEventListener('scroll',save,{passive:true});
   window.addEventListener('message', event => {
     const message = event.data;
+    if(message?.type==='commit.clear') {const field=document.getElementById('commit-message');if(field&&field.dataset.project===message.project)field.value='';return;}
     if (message?.type === 'sidebar.update') {
       // Status-only updates leave interactive controls intact.
       for (const [id,content] of [['controls',message.controls],['file-actions',message.fileActions]]) {
         const controls = document.getElementById(id);
         if (controls && typeof content === 'string' && controls.dataset.content !== content) {
           const active = document.activeElement;
+          const oldField=id==='controls'?document.getElementById('commit-message'):null;
+          const draft=oldField?{value:oldField.value,project:oldField.dataset.project,focused:active===oldField,start:oldField.selectionStart,end:oldField.selectionEnd}:null;
           const command = controls.contains(active) ? active.dataset.command : null;
+          const recoveryFocus = controls.contains(active) && (active.id === 'update-recovery-heading' || active.dataset.conflictChoice === 'true');
           const focusedMenu = menus.find(config=>config.container === id && (menuButton(config)?.contains(active) || menuElement(config)?.contains(active)));
           for (const config of menus) if (config.container === id) closeMenu(config);
           const oldScroll = window.scrollY;
           controls.innerHTML = content; controls.dataset.content = content;
+          const newField=id==='controls'?document.getElementById('commit-message'):null;
+          if(draft&&newField&&draft.project===newField.dataset.project){newField.value=draft.value;if(draft.focused&&!newField.disabled){newField.focus({preventScroll:true});newField.setSelectionRange?.(draft.start,draft.end);}}
           if (focusedMenu) restoreMenuFocus(focusedMenu);
+          else if (recoveryFocus) (document.getElementById('update-recovery-heading') || document.getElementById('run-status'))?.focus({preventScroll:true});
           else if (command) controls.querySelector(`[data-command="${command}"]`)?.focus({preventScroll:true});
           window.scrollTo(0,oldScroll);
         }

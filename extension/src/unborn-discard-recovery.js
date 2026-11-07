@@ -1,0 +1,48 @@
+'use strict';
+// Schema 7 represents a whole unborn-project discard, never a commit-based discard.
+const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto');
+const {constants}=require('node:fs');
+const {execFile}=require('node:child_process'),{promisify}=require('node:util');
+const {readOrdinaryBounded}=require('./unborn-head'),{parseIndexFlags}=require('./index-entry-flags');
+const exec=promisify(execFile),digest=data=>crypto.createHash('sha256').update(data).digest('hex'),hash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+function validManifest(value,safePath,validRemoval){
+ if(!value||value.schema!==7||value.kind!=='unborn-project-discard'||!Array.isArray(value.files)||!value.files.length||value.files.length>1000||!Array.isArray(value.staged)||value.staged.length>value.files.length)return false;
+ const common={...value,schema:6,kind:'unborn-added-file-removal',name:'placeholder',selection:{source:'untracked',status:'??'},file:{copy:'file-0',hash:'0'.repeat(64),mode:0},staged:null};if(!validRemoval(common))return false;
+ const names=new Set(),stagedByName=new Map();for(const entry of value.staged){if(!entry||!safePath(entry.name)||stagedByName.has(entry.name)||!['100644','100755'].includes(entry.mode)||!hash(entry.hash)||!new RegExp(`^[a-f0-9]{${value.format==='sha1'?40:64}}$`).test(entry.object))return false;stagedByName.set(entry.name,entry);}
+ for(const [i,item]of value.files.entries()){
+  if(!item||!safePath(item.name)||names.has(item.name)||!['??','A ','AM','AD'].includes(item.status))return false;names.add(item.name);
+  if(item.status==='AD'){if(item.missing!==true||item.copy!==undefined||item.hash!==undefined)return false;}else if(item.missing!==undefined||item.copy!==`file-${i}`||!hash(item.hash)||!Number.isInteger(item.mode))return false;
+  const staged=stagedByName.get(item.name);if(item.status==='??'?!!staged:!staged||staged.copy!==`staged-${i}`||!value.index.present)return false;
+ }
+ return [...stagedByName.keys()].every(name=>names.has(name));
+}
+async function validate(root,folder,manifestBytes,manifest,safePath,validRemoval){
+ if(!validManifest(manifest,safePath,validRemoval))return false;
+ const directory=async filename=>{const info=await fs.lstat(filename);if(!info.isDirectory()||info.isSymbolicLink()||await fs.realpath(filename)!==filename)throw Error();return {dev:info.dev,ino:info.ino,mode:info.mode};},dot=path.join(root,'.git'),anchors=await Promise.all([directory(root),directory(dot),directory(folder)]);
+ // Bound the complete set before reading any copies, then enforce the same
+ // budget and identity again as each file is opened. This also covers direct
+ // inspection, which does not pass through the broader recovery-folder guard.
+ const cap=256*1024*1024,preflight=new Map(),names=['manifest.json','complete.json','complete.sha256','removed-files.json','head','packed-refs','index','completed-index','moved-index','unborn-discard-journal.jsonl',...manifest.files.flatMap((item,i)=>item.missing?[]:[`file-${i}`,`removed-${i}`]),...manifest.staged.map(item=>item.copy)];let total=0;
+ for(const name of names){let handle;try{const filename=path.join(folder,name),before=await fs.lstat(filename);if(!before.isFile()||before.isSymbolicLink()||before.nlink!==1||!Number.isSafeInteger(before.size)||before.size<0)throw Error();handle=await fs.open(filename,constants.O_RDONLY|(constants.O_NOFOLLOW||0)|(constants.O_NONBLOCK||0));const info=await handle.stat();if(!info.isFile()||info.nlink!==1||info.dev!==before.dev||info.ino!==before.ino||info.size!==before.size||info.mtimeMs!==before.mtimeMs)throw Error();total+=info.size;if(total>cap)throw Error();preflight.set(name,{dev:info.dev,ino:info.ino,size:info.size,mtime:info.mtimeMs});}catch(error){if(error.code!=='ENOENT')throw error;preflight.set(name,null);}finally{if(handle)await handle.close();}}
+ let remaining=cap;const read=async(name,max,optional=false)=>{const expected=preflight.get(name);if(!expected){if(!optional)throw Error();try{await fs.lstat(path.join(folder,name));throw Error();}catch(error){if(error.code!=='ENOENT')throw error;return null;}}const value=await readOrdinaryBounded(path.join(folder,name),Math.min(max,remaining));if(!value||['dev','ino','size','mtime'].some(key=>value.identity[key]!==expected[key]))throw Error();remaining-=value.data.length;return value.data;};
+ if(digest(await read('manifest.json',1024*1024))!==digest(manifestBytes))return false;
+ const marker=await read('complete.json',1024*1024),complete=JSON.parse(marker.toString('utf8'));if((await read('complete.sha256',128)).toString('utf8')!==digest(marker)+'\n')return false;
+ const moves=await read('removed-files.json',1024*1024),moveRows=JSON.parse(moves.toString('utf8')),expectedMoves=manifest.files.flatMap((item,i)=>item.missing?[]:[{name:item.name,copy:`removed-${i}`}]);
+ if(complete?.schema!==7||complete.kind!=='unborn-project-discard-complete'||complete.manifestHash!==digest(manifestBytes)||complete.movesHash!==digest(moves)||!hash(complete.journalHash)||complete.ref!==manifest.ref||complete.headHash!==manifest.headHash||!same(complete.originalIndex,manifest.index)||!complete.resultIndex||typeof complete.resultIndex.present!=='boolean'||(complete.resultIndex.present?!hash(complete.resultIndex.hash):complete.resultIndex.hash!==undefined)||!same(moveRows,expectedMoves))return false;
+ const head=await read('head',16384);if(digest(head)!==manifest.headHash||new TextDecoder('utf-8',{fatal:true}).decode(head)!==`ref: ${manifest.ref}\n`)return false;
+ const packed=await read('packed-refs',4*1024*1024,true);if(manifest.packedHash===null){if(packed!==null)return false;}else{if(!packed||digest(packed)!==manifest.packedHash)return false;const text=new TextDecoder('utf-8',{fatal:true}).decode(packed),length=manifest.format==='sha1'?40:64,seen=new Set();let prior=false;if(text&&!text.endsWith('\n'))return false;for(const line of text.split('\n').filter(Boolean)){if(line.startsWith('#')){prior=false;continue;}if(line.startsWith('^')){if(!prior||!new RegExp(`^\\^[a-f0-9]{${length}}$`).test(line))return false;prior=false;continue;}const match=new RegExp(`^[a-f0-9]{${length}} (refs/[^\\s]+)$`).exec(line);if(!match||seen.has(match[1])||match[1]===manifest.ref)return false;seen.add(match[1]);prior=true;}}
+ for(const [i,item]of manifest.files.entries())if(!item.missing){const backup=await read(`file-${i}`,64*1024*1024),moved=await read(`removed-${i}`,64*1024*1024),info=await fs.lstat(path.join(folder,`removed-${i}`));if(digest(backup)!==item.hash||digest(moved)!==item.hash||!info.isFile()||info.isSymbolicLink()||info.nlink!==1||info.mode!==item.mode)return false;}
+ for(const staged of manifest.staged){const data=await read(staged.copy,64*1024*1024);if(digest(data)!==staged.hash||crypto.createHash(manifest.format).update(`blob ${data.length}\0`).update(data).digest('hex')!==staged.object)return false;}
+ const log=await read('unborn-discard-journal.jsonl',1024*1024);if(digest(log)!==complete.journalHash)return false;const text=new TextDecoder('utf-8',{fatal:true}).decode(log);if(!text.endsWith('\n'))return false;const events=text.trimEnd().split('\n').map(line=>JSON.parse(line)),start={schema:7,event:'start',manifestHash:complete.manifestHash,movesHash:complete.movesHash,ref:manifest.ref,index:manifest.index};const expected=[start,...expectedMoves.flatMap(item=>[{event:'move-intent',name:item.name},{event:'moved',name:item.name}]),...(manifest.staged.length?[{event:'index-intent'},{event:'index-installed'}]:[]),{event:'complete'}];if(!same(events,expected))return false;
+ const oldIndex=await read('index',4*1024*1024,true),newIndex=await read('completed-index',4*1024*1024,true),movedIndex=await read('moved-index',4*1024*1024,true);
+ if(!manifest.index.present){if(complete.resultIndex.present||oldIndex||newIndex||movedIndex||manifest.staged.length)return false;}
+ else {
+  if(!complete.resultIndex.present||!oldIndex||!newIndex||digest(oldIndex)!==manifest.index.hash||digest(newIndex)!==complete.resultIndex.hash)return false;if(manifest.staged.length?(!movedIndex||digest(movedIndex)!==manifest.index.hash):(movedIndex||complete.resultIndex.hash!==manifest.index.hash))return false;
+  const env=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_OPTIONAL_LOCKS:'0'});
+  const git=async(file,args)=>(await exec('git',['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env:{...env,GIT_INDEX_FILE:path.join(folder,file)},encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout;
+  const rows=async file=>{const text=new TextDecoder('utf-8',{fatal:true}).decode(await git(file,['ls-files','--stage','-z']));if(text&&!text.endsWith('\0'))throw Error();return text.split('\0').filter(Boolean);};const before=await rows('index'),after=await rows('completed-index'),flags=parseIndexFlags(await git('index',['ls-files','--debug','-z']));if(after.length||flags.size!==manifest.staged.length||[...flags.values()].some(value=>value!=='0')||before.length!==manifest.staged.length||manifest.staged.some(item=>flags.get(item.name)!=='0'))return false;
+  const expectedRows=manifest.staged.map(item=>`${item.mode} ${item.object} 0\t${item.name}`).sort();if(!same([...before].sort(),expectedRows))return false;
+ }
+ return same(anchors,await Promise.all([directory(root),directory(dot),directory(folder)]));
+}
+module.exports={validManifest,validate};

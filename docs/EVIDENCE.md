@@ -1,3 +1,32 @@
+# Student version control — local implementation, 2026-11-05
+
+The isolated `codex/finished-change-history` worktree implements the Project/Files
+panes and header menu, compact branching, review/history, durable named merge
+records, recovery and preview-first whole-change undo. Undo stages a correction,
+never automatically resets or uploads, and refuses conflicting or unsupported
+cases before application. Other processes can race a multi-file Git operation;
+Zero rechecks its state and does not claim cross-process atomicity.
+
+At 0c3d5afb4, `npm test` passed1780, failed0, skipped8. Final 580733cc2 undo,
+history and UI tests passed26/26; configuration checks passed. Independent Git,
+UI and undo reviewers identified retry, ancestry, staged-file, Windows Git config
+and selection/workspace races. Fixes passed targeted re-review. A separate
+Sol/high integration reviewer inspected 7291c2a9e..580733cc2, found no actionable
+issues and independently passed31/31 focused checks. Effective reviewer model,
+time and tokens unavailable. The owner explicitly waived low-usage and review-
+budget stops. No source push, merge, release or live GitHub trial occurred.
+
+After the owner unlocked the Mac and foregrounded the isolated test window,
+computer control still selected a different VS Code process, so native editor
+interaction remains unverified. In a disposable local Git project, the real undo
+engine previewed add-score and staged the inverse with HEAD unchanged; no network
+was used. Physical Windows and authenticated live GitHub remain untested. Windows configuration fixtures
+ran on macOS. Eight full-suite skips included Windows, PowerShell and optional
+Postgres coverage. See [CURRENT](../.ai/CURRENT.md) and the
+[version-control plan](VERSION-CONTROL-PLAN.md).
+
+---
+
 # Study class refactoring — local source
 
 Lesson6 now moves the working quiz into ordinary StudyQuiz after extracting

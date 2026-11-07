@@ -1,6 +1,7 @@
 
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
+test('Files title does not offer unavailable discard',()=>{const menu=require('../package.json').contributes.menus['view/title'];assert.ok(!menu.some(item=>item.command==='zero.discardProjectChanges'&&item.when==='view == zero.studentProject'));});
 test('development sidebar leaves tutorial, setup and project selection on the Start Page',async()=>{
  const {sidebarSource}=await import('../../design/playground/sidebar-source.mjs');
  for(const connected of [false,true]){
@@ -26,10 +27,11 @@ test('student explorer owns New and ZeroHub while its controls stay minimal',asy
   assert.doesNotMatch(controls,/data-command="zero\.(?:newClass|newPackage|newFile|newFolder|importAssets|browseZeroHub)"|id="files-menu-button"/);
   if(connected)assert.match(controls,/zero.chooseRepository/);
  }
- const menus=require('../package.json').contributes.menus;
+ const {menus,commands}=require('../package.json').contributes;
  assert.ok(menus['view/title'].some(item=>item.submenu==='zero.projectNewMenu'&&item.when==='view == zero.studentProject'&&item.group==='navigation@0'));
  const project=menus['view/title'].filter(item=>item.when==='view == zero.studentProject');
  assert.deepEqual(project.filter(item=>item.group.startsWith('navigation')).map(item=>item.submenu||item.command),['zero.projectNewMenu']);
+ assert.deepEqual(commands.find(item=>item.command==='zero.discardProjectChanges'),{command:'zero.discardProjectChanges',title:'Discard project changes…',icon:'$(discard)',enablement:'zero.projectHasDiscardableChanges'});
  for(const command of ['zero.refreshStudentExplorer','zero.showAllProjectFiles','zero.collapseStudentExplorer'])assert.ok(project.some(item=>item.command===command&&!item.group.startsWith('navigation')));
  assert.ok(menus['view/title'].some(item=>item.command==='zero.browseZeroHub'&&item.when==='view == zero.studentProject'));
  for(const command of ['zero.explorerNewFile','zero.explorerNewFolder'])assert.ok(menus['view/item/context'].some(item=>item.command===command));
@@ -47,4 +49,14 @@ test('Project New is a supported dropdown with selected-area choices and file co
   assert.match(entry.when,/zeroCodeFile/);
   assert.doesNotMatch(entry.when,/zeroReadonly/);
  }
+});
+
+test('Project controls offer New, Clone, and Open in a native header menu',()=>{
+ const {menus,submenus}=require('../package.json').contributes;
+ assert.deepEqual(submenus.find(s=>s.id==='zero.projectActionsMenu'),{id:'zero.projectActionsMenu',label:'Project',icon:'$(folder-opened)'});
+ assert.deepEqual(menus['view/title'].find(item=>item.submenu==='zero.projectActionsMenu'),{
+  submenu:'zero.projectActionsMenu',when:'view == zero.controls || view == zero.studentControls',group:'navigation@0'
+ });
+ assert.deepEqual(menus['zero.projectActionsMenu'].map(item=>item.command),['zero.newProject','zero.cloneRepository','zero.openLocalProject']);
+ assert.ok(menus['zero.projectActionsMenu'].every(item=>!item.when),'Project actions remain available with or without an open project');
 });

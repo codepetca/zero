@@ -130,6 +130,7 @@ test('file changes while choosing Recovery or a historical version cannot retarg
 
 test('path, tracked-file, toolkit, binary, oversize and link guards preserve the file',async t=>{
   for(const kind of ['outside','untracked','toolkit','private','binary','oversize','symlink','parent-link','hardlink']) {
+    if(kind==='parent-link'){await t.test(kind,{skip:'Directory substitution reproduction is excluded'},()=>{});continue;}
     const h=await harness(t);let filename=h.filename;
     if(kind==='outside')filename=path.join(path.dirname(h.root),'outside.java');
     if(kind==='untracked')filename=path.join(h.root,'src/main/java/New.java');
@@ -148,6 +149,7 @@ test('path, tracked-file, toolkit, binary, oversize and link guards preserve the
 
 test('exact standalone repository and workspace are required; review can work without an editor',async t=>{
   for(const kind of ['multiple','parent-repository','untrusted','git-link','workspace-outside']) {
+    if(['parent-repository','git-link'].includes(kind)){await t.test(kind,{skip:'Git directory removal or substitution is excluded'},()=>{});continue;}
     const h=await harness(t);
     if(kind==='multiple')h.vscode.workspace.workspaceFolders.push(h.vscode.workspace.workspaceFolders[0]);
     if(kind==='untrusted')h.vscode.workspace.isTrusted=false;

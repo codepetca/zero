@@ -88,6 +88,7 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
     get status() { return current ? `Signed in as ${current.label}` : unavailable ? 'GitHub sign-in unavailable. Try Sign in to GitHub; local running still works.' : 'Not signed in'; },
     get signedIn() { return Boolean(current); },
     get sessionId() { return current?.id; },
+    get revision() { return revision; },
     get accountId() { return current?.accountId; },
     get accountLabel() { return current?.label; },
     async capture() {

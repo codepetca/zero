@@ -81,30 +81,7 @@ evaluates PostHog for optional structured operational signals and Clarity for
 supplementary website usability. Neither replaces compiler/tests or automatically
 instruments student-owned sites. No new collector or analytics deployment exists.
 
-Project longevity, owner direction 2026-10-23: the student's repository owns its
-framework source, native/browser build files, Zero-specific build tooling, version
-records and exact dependencies. Opening a project never upgrades them automatically.
-Zero supports one current browser builder: an explicit browser build or check
-requires the student to update older saved browser tooling, preserving a backup.
-One **Update Project** action also updates the project's recorded, unmodified
-Zero Java framework files to the installed version. It stops before replacing
-customized or unrecognized framework files, preserves student code, assets, POM
-and library pins, and retains recovery data for an interrupted update. The
-project's own source inventory is a self-recorded baseline, not proof of an
-authenticated historic release. Warn that updates may break the game; test both
-native and browser builds afterward. Locally authored libraries may need their
-own deliberate review when their recorded core input no longer matches.
-No required central historical-kit storage, database or kit registry. Maintain the
-current release line without old-version branches/backports. During pre-release,
-updates can break existing projects, including after restoring saved files. Browser
-tooling updates retain a local copy of the old files but do not guarantee recovery. Keep
-editable source and a retained finished web build. Full offline backups are
-optional and student-retained; default future rebuilds depend on usable tools
-and availability of normal dependency hosts, not a promise of permanent support.
-See the [versioning and preservation policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation)
-for current gaps, experimental 0.x rules and bounded clone/build/rehost acceptance.
-Project-owned browser tooling and complete locks are implemented locally. The
-old/new clone, rebuild, static rehost and reversible upgrade proof passes locally.
+Project direction, 2026-11-07: Zero has not rolled out to students, and this release does not require compatibility with or migration of existing projects. New projects use the current framework and browser tooling; opening a project never updates its files. Project update and recovery are unavailable. A project whose saved browser builder is current may use browser actions after the usual trust, saved-file and recovery checks. For outdated tooling, create a new Zero project; retain the original and any recovery copies. Student repositories own their source and build files.
 
 Implementation execution, owner-authorized 2026-10-23: follow the single
 [phased delivery roadmap](FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).
@@ -293,8 +270,16 @@ sign-in; New and Clone retain their GitHub access checks. Mac0.5.45 ships these 
 and Project button, shared Sidebar dropdown styling and compact GitHub account row.
 An empty Zero window opens it automatically; existing student editors stay
 untouched. **Zero: Start Page** and **⋯ → Start Page** reopen it at any time.
-The Explorer sidebar hosts a Zero controls view for native Run/Stop, teaching helpers, contextual
-repository/branch/push actions and ZeroHub. Troubleshooting and repository/account
+The approved November 7 milestone governs the current local student Git workflow.
+Descriptions below of custom conflict choices, file removal and restoration, and
+finished-change correction record earlier source states. The current gates and
+acceptance status are in the [version control milestone](VERSION-CONTROL-PLAN.md#approved-simplified-milestone--2026-11-07).
+
+The local student sidebar has a **Project** controls pane and a **Files** tree.
+The Project header offers New project, Clone and Open; Files retains its file
+creation menu. Project holds native Run/Stop, teaching helpers and contextual
+repository/branch/push actions. A compact branch selector, Merge and History expose the workflow. Files shows change indicators and opens supported changes in the native diff; unsupported changes and conflicts use Source Control. Narrow local undo preserves edits where supported. Custom discard, restore and finished-change correction remain unavailable.
+Troubleshooting and repository/account
 recovery remain in the native overflow. Local Run, Files and opening a local
 project remain available without signing in. Current source opens tutorial, new,
 cloned, local and recent projects in the current VS Code window, with the editor
@@ -637,14 +622,13 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
 
 - Preserve the current panel height, with the shared Zero mark in the existing
   activity-bar/view icon. VS Code owns the native title; no content heading is added.
-- The native Explorer handles all file browsing, selection, editor tracking and file operations.
-  A Zero view in the same Explorer container holds Run/Stop, repository actions and teaching helpers,
+- The native Files tree handles file browsing, selection, editor tracking and file operations.
+  The Project controls pane holds Run/Stop, repository actions and teaching helpers,
   without extra GitHub/ZeroHub headings. Current local source keeps a native
   **Zero** action at the bottom left in Zero windows. It restores Explorer and
-  focuses/expands Zero when Source Control or another panel replaces the sidebar;
+  focuses/expands Project when Source Control or another panel replaces the sidebar;
   no file or Git action runs. Published downloads retain their bundled navigation.
-  VS Code owns the view order: drag Zero above the file tree
-  once if needed; the editor remembers it. No private layout commands or state edits are used.
+  Supported VS Code view controls govern arrangement; no private layout commands or state edits are used.
   Idle status is empty; app progress/errors
   appear when there is a message. Signed-out GitHub controls lead to the Start Page browser sign-in;
   the project dropdown and branch are hidden, and local Run/files remain usable.
@@ -660,22 +644,22 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   unconnected original local project can Create a repository to create and
   connect an empty remote, or Connect to GitHub using an existing repository.
   Connected projects keep publishing and branch
-  actions in the menu, and a visible current branch. Commit & push
-  and Merge to main remain direct actions. Simulation
+  actions and a visible compact current-branch selector. Commit & push remains
+  a direct action; Merge, Review changes and History are available in Project. Simulation
   remains visibly labeled. ZeroHub offers Browse (Projects on
   the website, or native library browsing) and signed-in Share project for original
   work. Tutorial repositories use GitHub normally; copied tutorial work is not an original
   community contribution. The reserved CreditsBadge has a separate practice-sharing
   path from the Coin repository. Tutorials and Setup help live in the native view
-  overflow; Copy repository link lives in the repository menu. **New ▾** opens a dropdown in the Zero controls with **New class…**, **New file…**,
+  overflow; Copy repository link lives in the repository menu. **New ▾** in Files opens a dropdown with **New class…**, **New file…**,
   **New folder…**, **New asset…** and **Copy asset paths** after import. New class
   creates an ordinary public class beside Main; files/folders choose Java source,
   Resources or Project files using native prompts. Routine text inputs show one short
   label with no explanatory or confirm/cancel footer; validation errors appear as needed. Relative names can create
   subfolders. Existing entries are preserved, cancellation makes no changes, and
   the native Explorer notices created files and new files open in the normal editor.
-  **Review or restore changes…** in the project menu opens the existing native
-  review, discard and file-history choices. There is no separate tools row. Supported VS Code
+  Files uses native diff for supported changes and Source Control for other changes; custom discard and file restore are unavailable.
+  There is no separate tools row. Supported VS Code
   user controls can still move/hide views. There is no team/PR mode.
 - The primary button says Run when idle, Stop while queued/building/running,
   and disabled Stopping… while owned work settles. Failures or closing the native
@@ -832,6 +816,8 @@ New branch, Update from main, Merge to main and Publish simulate without saving 
 Git/network actions.
 Tutorial repositories use the same GitHub workflow; only legacy local-only markers remain blocked.
 
+The following historical workflow describes earlier prototypes. The current simplified milestone uses native Source Control for unsupported updates and conflicts; custom conflict choices, cancellation, discard and restore remain unavailable.
+
 The individual flow uses main for completed work and one short-lived branch per
 change. A new empty repository starts with Commit & push on main.
 New branch creates a feature from committed **local main**. If work is uncommitted,
@@ -868,10 +854,14 @@ automatic recovery and are kept for native review. No central storage or backups
 service is required. Crashed operation locks conservatively require native review.
 
 Commit & push saves and uploads the current branch. Run and check the app before
-Merge to main. Merge advances local main with a compare-and-swap, pushes the exact
-feature SHA without force, confirms it, and switches to main. A rejected stale-main
-push keeps the feature and commits: Update from main, resolve if needed, Run and
-retry Merge. A failed push can leave local main advanced. Confirmed cleanup deletes
+Merge to main. The local prototype records a two-parent merge with a named change
+marker, pushes its exact commit without force, confirms it, then advances local main
+with a compare-and-swap and switches to main. A rejected stale-main push keeps the
+feature and commits: Update from main, resolve if needed, Run and retry Merge. An
+interrupted push retains a local pending record for retry. If the feature changes
+while a push is uncertain, the local prototype checks GitHub and preserves the newer
+branch commits. Any retry push requires an explicit Merge after showing its commit
+and repository. Independent source review passed; actual editor acceptance remains outstanding. Confirmed cleanup deletes
 only the unchanged finished local feature; its remote branch remains recoverable.
 
 After a push failure, Zero distinguishes saved local work from remote success.

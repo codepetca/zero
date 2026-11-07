@@ -1,5 +1,7 @@
 # Framework architecture: learn, extend and contribute
 
+Current owner direction, 2026-11-07: Zero has not rolled out to students; this release does not require compatibility with or migration of existing projects. New projects use current tooling. In-place project update and recovery are unavailable, and original project files and recovery copies are retained. Earlier upgrade descriptions below are historical.
+
 Project update direction, 2026-11-03: Zero has not rolled out to students; do
 not add a catalog or support matrix for historical framework versions. Offer one
 explicit Update Project action for the installed framework and browser builder.

@@ -21,10 +21,16 @@ button.repo-choice { flex:1; width:auto; color:var(--zero-text); }
 button.repo-choice > svg { transform:rotate(-90deg); }
 .repo-label { flex:1; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; overflow-wrap:anywhere; min-width:0; }
 .branch-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:2px 0 5px; }
-.branch { display:inline-flex; align-items:center; gap:7px; min-width:0; overflow-wrap:anywhere; color:var(--zero-muted); }
+.branch { display:inline-flex; align-items:center; gap:7px; min-width:0; overflow-wrap:anywhere; color:var(--zero-text); font-weight:600; }
 .branch svg { width:16px; height:16px; flex:none; }
+button.history-icon,button.undo-icon { width:auto; flex:none; padding:2px 5px; font-size:1.15em; }
+.recent-commits { margin:3px 0 8px; }
+.recent-commit { display:flex; align-items:center; gap:4px; padding:2px 0; overflow-wrap:anywhere; }
 button.change { width:auto; flex-shrink:0; font-size:.92em; }
 button.upload { margin:1px 0 5px; }
+input#commit-message { width:100%; min-width:0; margin:6px 0 4px; padding:6px 8px; font:inherit; color:var(--vscode-input-foreground); background:var(--vscode-input-background); border:1px solid var(--vscode-input-border, transparent); }
+input#commit-message:focus { outline:1px solid var(--vscode-focusBorder); outline-offset:-1px; }
+input#commit-message:disabled { opacity:.55; }
 button.upload[aria-busy="true"] { opacity:.85; }
 .busy-indicator { width:14px; height:14px; flex:none; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:zero-busy 1s linear infinite; }
 @keyframes zero-busy { to { transform:rotate(360deg); } }
