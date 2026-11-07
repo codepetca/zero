@@ -844,8 +844,14 @@ feature and commits: Update from main, resolve if needed, Run and retry Merge. A
 interrupted push retains a local pending record for retry. If the feature changes
 while a push is uncertain, the local prototype checks GitHub and preserves the newer
 branch commits. Any retry push requires an explicit Merge after showing its commit
-and repository. Independent source review passed; actual editor acceptance remains outstanding. Confirmed cleanup deletes
-only the unchanged finished local feature; its remote branch remains recoverable.
+and repository. Independent source review passed; actual editor acceptance remains outstanding.
+For a new Merge, a native Quick Pick defaults to deleting the finished local and
+GitHub branch; uncheck it to keep both. The following Merge confirmation shows
+the choice, and cancelling either prompt cancels the merge. Cleanup runs only
+after GitHub confirms the merge and Zero switches to local main, and checks the
+exact reviewed feature tip and other guards. Changed or uncertain state keeps
+safe refs; a partial or uncertain cleanup is reported separately from the merge.
+Recovery and Sync keep branches.
 
 After a push failure, Zero distinguishes saved local work from remote success.
 Behind-main failures offer Update from main; behind-feature failures offer Update

@@ -21,8 +21,9 @@ const {createRepositoryReminderStorage} = require('./repository-reminder-storage
 const {serializeRepositoryReminders} = require('./repository-reminder-queue');
 const {recoveryMessage} = require('./local-recovery-message');
 const {checkMainUpdate} = require('./main-update-status');
-const {checkBranchRemote,errorState:branchCheckError,statusMessage:branchStatusMessage} = require('./branch-remote-status');
+const {checkBranchRemote,remoteHead,errorState:branchCheckError,statusMessage:branchStatusMessage} = require('./branch-remote-status');
 const workflow = require('./workflow');
+const {cleanupAfterMerge} = require('./branch-cleanup');
 const gitRecoveryPanel = require('./git-recovery-panel');
 const retainedRecovery = require('./git-retained-recovery');
 const addedRemovalInspection = require('./added-removal-inspection');
@@ -757,7 +758,7 @@ function activate(context, services = {}) {
     if (uploadMode(root) !== 'live') throw new Error('Live Git actions were disabled. Review this step again.');
   }
   async function operationTransport(remote, {root:reviewRoot,authentication, ticket, permissions = {contents:'write'}, identity,
-    assertProject, assertProjectNow,assertReminders,reminderSnapshot,syncOperation='branch',allowedReminders=[],allowIncludedOperations=false,allowIncludedPushes=false,refOnlyOutcome,onPushAttempt=()=>{}}) {
+    assertProject, assertProjectNow,assertReminders,reminderSnapshot,syncOperation='branch',allowedReminders=[],allowIncludedOperations=false,allowIncludedPushes=false,refOnlyOutcome,onPushAttempt=()=>{},onIdentity}) {
     const reviewedReminders=reminderSnapshot===undefined?(repositoryLedger?await allReminderRecords(reviewRoot):pendingLedger.enumerable?compatibilityAll(reviewRoot,branch):undefined):reminderSnapshot;
     const ownPushes=new Map(),ownIntentIds=new Set();
     let accessChecked = false,pushReminderTx,pushTarget,pushAttempt;
@@ -801,6 +802,7 @@ function activate(context, services = {}) {
         await assertProject(pushReminderTx);
         await authentication.assertCurrent(ticket);
         accessChecked = true;
+        onIdentity?.(identity);
       }
       await assertProject(pushReminderTx);await assertReminderReview();
       if(pushReminderTx&&!pushAttempt){
@@ -1236,6 +1238,39 @@ function activate(context, services = {}) {
     await assertGitProject(root);
     if((await dirtyProjectDocuments(vscode,root)).length)throw new Error(`Save or undo your project editor changes before ${action}. Then commit or discard any saved changes.`);
   };
+  async function cleanupFinishedChange(root,result,{identity,ticket,beforeCleanup,beforeCleanupNow}) {
+    let outcome={local:'kept',remote:'kept'};
+    try {
+      const receipt=workflow.consumeFinishedBranchCleanup(root,result);
+      if(!identity)throw new Error('The GitHub repository used for the merge could not be verified.');
+      const {remote,page,branch:feature,featureHead,head}=receipt;
+      const assertAccess=async()=>{
+        await beforeCleanup();
+        const access=await repositories.access(page,{ticket,permissions:{contents:'write'}});
+        assertRepositoryIdentity(identity,access);
+        beforeCleanupNow();
+      };
+      const sessionNow=()=>{beforeCleanupNow();return auth.assertCurrentNow(ticket);};
+      let inspectLocal;
+      const transport=createTransport(remote,async()=>{
+        await assertAccess();
+        await inspectLocal();
+        return sessionNow();
+      },{assertCurrentNow:sessionNow,deleteAuthorization:{root,destination:remote,branch:feature,expectedSha:featureHead,assertCurrentNow:beforeCleanupNow}});
+      const options={beforeMutation:beforeCleanup,beforeMutationNow:beforeCleanupNow,networkRun:transport};
+      await workflowLocalPhase(root,options,async phase=>{
+        const localOptions={...phase,receipt,expectedMain:head,expectedRemote:remote};
+        inspectLocal=()=>workflow.inspectFinishedBranchCleanup(root,feature,featureHead,localOptions);
+        const ref=`refs/heads/${feature}`;
+        outcome=await cleanupAfterMerge({receipt,inspectLocal,
+          readRemote:async name=>{const reviewedRef=`refs/heads/${name}`;return remoteHead(await phase.networkRun(root,['ls-remote','--heads',remote,reviewedRef]),reviewedRef);},
+          deleteRemote:()=>phase.networkRun(root,['push',`--force-with-lease=${ref}:${featureHead}`,remote,`:${ref}`]),
+          deleteLocal:async()=>{await assertAccess();return workflow.deleteFinishedBranch(root,feature,featureHead,localOptions);}
+        });
+      });
+    } catch(error) {outcome={...outcome,reason:[outcome.reason,error.message].filter(Boolean).join(' ')};}
+    return outcome;
+  }
   async function change(kind,{remoteReview}={}) {
     if (isBusy()) return;
     await settleBranchCheck();if(isBusy())return;
@@ -1329,10 +1364,12 @@ function activate(context, services = {}) {
         const allowedMergeReminders=[];
         const mergeReminderSnapshot=repositoryLedger?await allReminderRecords(root):pendingLedger.enumerable?compatibilityAll(root,branch):undefined;
         const selectMergeReminders=plan=>{if(!plan?.pending)return;for(const record of mergeReminderSnapshot||[])if(record.operation==='merge'&&record.remote===destination.remote&&(record.branch===plan.branch||record.branch==='main')&&record.head===plan.pending.id)allowedMergeReminders.push(record);};
-        const networkRun = await operationTransport(destination.remote,{root,allowedReminders:allowedMergeReminders,reminderSnapshot:mergeReminderSnapshot,syncOperation:kind==='finish'?'merge':'branch',authentication:auth,ticket,assertProject,assertProjectNow:()=>assertGitProjectNow(root)});
+        let mergeIdentity;
+        const networkRun = await operationTransport(destination.remote,{root,allowedReminders:allowedMergeReminders,reminderSnapshot:mergeReminderSnapshot,syncOperation:kind==='finish'?'merge':'branch',authentication:auth,ticket,assertProject,assertProjectNow:()=>assertGitProjectNow(root),onIdentity:identity=>{mergeIdentity=identity;}});
         const workspaceNow=()=>(vscode.workspace.workspaceFolders||[]).map(folder=>[folder.uri.scheme,folder.uri.fsPath]);
         const dirtyNow=()=>(vscode.workspace.textDocuments||[]).filter(document=>document.isDirty&&document.uri?.scheme==='file').map(document=>({document,name:document.uri.fsPath,version:document.version}));
         const sameDirty=(a,b)=>a.length===b.length&&a.every((entry,index)=>entry.document===b[index].document&&entry.name===b[index].name&&entry.version===b[index].version);
+        const assertWorkspaceCurrent=reviewed=>{if(!reviewed||JSON.stringify(reviewed.workspace)!==JSON.stringify(workspaceNow())||!sameDirty(reviewed.dirty,dirtyNow()))throw new Error('The workspace or open files changed. Review this step again; your edits are kept.');};
         let authority;
         const beforeNetwork = async () => {
           const workspace=workspaceNow(),dirty=dirtyNow();await assertProject();await assertUpdateClean(root,updating?'updating':'merging');await auth.assertCurrent(ticket);
@@ -1341,7 +1378,7 @@ function activate(context, services = {}) {
         };
         const beforeMutation = beforeNetwork;
         const beforeOwnedUpdateMutation=async()=>{const workspace=workspaceNow(),dirty=dirtyNow();await assertProject();if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save or undo your project editor changes before updating. Your edits are kept.');await auth.assertCurrent(ticket);if(JSON.stringify(workspace)!==JSON.stringify(workspaceNow())||!sameDirty(dirty,dirtyNow()))throw new Error('The workspace or open files changed. Review this step again; your edits are kept.');authority={workspace,dirty};};
-        const beforeMutationNow=()=>{assertGitProjectNow(root);auth.assertCurrentNow(ticket);if(!authority||JSON.stringify(authority.workspace)!==JSON.stringify(workspaceNow())||!sameDirty(authority.dirty,dirtyNow()))throw new Error('The workspace or open files changed. Review this step again; your edits are kept.');};
+        const beforeMutationNow=()=>{assertGitProjectNow(root);auth.assertCurrentNow(ticket);assertWorkspaceCurrent(authority);};
         const options = {networkRun,beforeNetwork,beforeMutation,beforeOwnedUpdateMutation,beforeMutationNow,onProgress:reportProgress,...(kind==='updateBranch'?{target:'branch'}:{})};
         let plan;
         try { plan = updating ? await workflow.prepareSync(root,options) : await workflow.prepareFinish(root,options); }
@@ -1375,15 +1412,25 @@ function activate(context, services = {}) {
         }
         if(remoteReview&&(!currentBranchObservation(remoteReview)||plan.root!==remoteReview.root||plan.branch!==remoteReview.branch||plan.head!==remoteReview.head||plan.remote!==remoteReview.remote||plan.remoteMainHead!==remoteReview.remoteHead))throw new Error('The GitHub branch changed after confirmation. Check its connection and review the update again.');
         if(!updating)selectMergeReminders(plan);
+        let deleteBranch=false;
         if(!updating){
           if(!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(plan.remoteMainHead||''))throw new Error('GitHub main could not be reviewed. Check the connection before merging.');
-          const detail=`Merge ${plan.branch} into refs/heads/main in ${plan.page}. Local main at review: ${plan.mainHead}. GitHub main at review: ${plan.remoteMainHead}. Your feature branch is kept. The final GitHub check and non-force push are not atomic: if main is deleted or rewound in between, the push may recreate or fast-forward it.`;
-          if(await vscode.window.showWarningMessage('Merge this change to main?',{modal:true,detail},'Merge')!=='Merge')return;
+          const ref=`refs/heads/${plan.branch}`;
+          if(!plan.pending){
+            const item={label:`Delete ${plan.branch} after the merge`,detail:`Delete local ${ref} and GitHub ${ref} in ${plan.page}.`,picked:true};
+            const selection=await vscode.window.showQuickPick([item],{canPickMany:true,ignoreFocusOut:true,title:'After merging to main',placeHolder:'Uncheck to keep the branch locally and on GitHub'});
+            if(selection===undefined){state='Merge cancelled';return;}
+            deleteBranch=selection.includes(item);
+          }
+          const branchDetail=deleteBranch?`After GitHub confirms the merge and Zero switches to local main, delete local ${ref} and GitHub ${ref} in ${plan.page} if they still match the merged work.`:`Keep ${ref} locally and on GitHub.`;
+          const detail=`Merge ${plan.branch} into refs/heads/main in ${plan.page}. Local main at review: ${plan.mainHead}. GitHub main at review: ${plan.remoteMainHead}.\n\n${branchDetail}\n\nThe final GitHub check and non-force push are not atomic: if main is deleted or rewound in between, the push may recreate or fast-forward it.`;
+          if(await vscode.window.showWarningMessage('Merge this change to main?',{modal:true,detail},'Merge')!=='Merge'){state='Merge cancelled';return;}
         }
         if(updating&&plan.refStorage==='reftable'&&plan.reftableArchived){const sample=Array.isArray(plan.preview.fileNames)?plan.preview.fileNames.map(name=>`• ${name}`).join('\n'):'',remaining=plan.preview.paths-(plan.preview.fileNames?.length||0);const detail=`GitHub main at review: ${plan.remoteMainHead}. Switch from ${plan.branch} to main and update ${plan.preview.paths} project file(s).${sample?`\n\n${sample}${remaining>0?`\n… and ${remaining} more`:''}\n`:''}\nThe local feature branch and recovery copies are kept. External editors and Git processes can still change files during the update; this operation is not atomic with those writers.`;if(await vscode.window.showWarningMessage('Update and switch to main?',{modal:true,detail},'Update')!=='Update')return;}
         if(updating&&plan.reftableRefOnly){const detail=`Advance ${plan.branch} from ${plan.head} to the reviewed GitHub ${plan.remoteBranch} commit ${plan.remoteMainHead}. The saved files do not change.${plan.branch==='main'?'':` Zero will check and try to sync this branch to ${plan.page}. If GitHub reports the branch missing, review branch creation first. The check and non-force push are not atomic, so a branch deleted between them could be recreated.`}`;if(await vscode.window.showWarningMessage('Update this branch?',{modal:true,detail},'Update')!=='Update')return;}
         if(updating&&plan.reftableUpdate){const sample=(plan.preview.fileNames||[]).map(name=>`• ${name}`).join('\n'),remaining=plan.preview.paths-(plan.preview.fileNames?.length||0),detail=`${plan.mergeCandidate?`Merge reviewed GitHub ${plan.remoteBranch} at ${plan.remoteMainHead} into ${plan.branch}, creating merge commit ${plan.mergeCandidate.candidate} with your current commit ${plan.head} and the reviewed GitHub commit as parents.`:`Update ${plan.branch} to reviewed GitHub ${plan.remoteBranch} at ${plan.remoteMainHead}.`} ${plan.preview.paths} project file(s) change.${sample?`\n\n${sample}${remaining>0?`\n… and ${remaining} more`:''}\n`:''}\nRecovery copies are kept.${plan.mergeCandidate&&plan.branch==='main'?' Zero will check that GitHub main still matches the reviewed commit before a non-force push. The check and push are not atomic: main deleted in between could be recreated, and main rewound in between could be fast-forwarded.':plan.branch!=='main'?' Zero will check and try to sync the updated branch to GitHub; if GitHub reports it missing, review branch creation first. That check and the non-force push are not atomic, so a branch deleted between them could be recreated.':''} External editors and Git processes can still change files during the update; this operation is not atomic with those writers.`;if(await vscode.window.showWarningMessage('Update this branch?',{modal:true,detail},'Update')!=='Update')return;}
         await beforeNetwork();
+        const reviewedAuthority=authority;
         if(updating&&plan.refStorage==='reftable'&&(plan.reftableUpdate||plan.reftableArchived))throw Object.assign(new Error('Updating files in this Git reference format is temporarily unavailable. Your files and commits are kept.'),{nativeUpdateHandoff:true});
         if(updating&&plan.refStorage==='files'&&plan.head!==plan.remoteMainHead&&!plan.filesAncestryReviewed)throw new Error('Review this update again before changing the project. Your files and commits are kept.');
         let updateIntent;
@@ -1404,12 +1451,24 @@ function activate(context, services = {}) {
           return;
         }
         if(result.finished)await resolveConfirmedMerge(root,mergeReminderSnapshot,{branch:result.finishedBranch||plan.branch,head:result.head,remote:result.remote||plan.remote,accountId:ticket.session.accountId});
+        let cleanup;
+        if(result.finished&&deleteBranch){
+          reportProgress('Checking finished branch cleanup…');
+          const beforeCleanupNow=()=>{beforeMutationNow();assertWorkspaceCurrent(reviewedAuthority);};
+          const beforeCleanup=async()=>{beforeCleanupNow();await beforeNetwork();beforeCleanupNow();};
+          cleanup=await cleanupFinishedChange(root,result,{identity:mergeIdentity,ticket,beforeCleanup,beforeCleanupNow});
+        }
         const tracking = await updateTracking(root,result.remote || plan.remote,'main',result.head);
         await refreshNativeGit(root);
-        state = !tracking ? 'Merged to main · tracking needs refresh; branch kept' : 'Merged to main · branch kept';
-        const detail=`Merged ${result.finishedBranch} to main and confirmed ${result.head} on GitHub. The local feature branch was kept.`;
-        if (!tracking) {output.appendLine(detail);void vscode.window.showWarningMessage(state);}
-        else report(state,detail);
+        const branchState=cleanup?.reason?'branch cleanup needs attention':cleanup?'branch deleted':'branch kept';
+        state = `Merged to main · ${branchState}${tracking?'':'; tracking needs refresh'}`;
+        const localDetail={deleted:'The local feature branch was deleted.',kept:'The local feature branch was kept.',uncertain:'Local branch deletion could not be confirmed.'};
+        const remoteDetail={deleted:'The GitHub feature branch was deleted.',absent:'The GitHub feature branch was already absent.',kept:'Zero left the GitHub feature branch unchanged.',uncertain:'GitHub branch status could not be confirmed.'};
+        const branchDetails=`${localDetail[cleanup?.local||'kept']} ${remoteDetail[cleanup?.remote||'kept']}`;
+        const detail=[`Merged ${result.finishedBranch} to main and confirmed ${result.head} on GitHub.`,branchDetails,cleanup?.reason].filter(Boolean).join(' ');
+        report(state,detail);
+        if(cleanup?.reason)void vscode.window.showWarningMessage(`${state}. ${branchDetails} See Zero Output.`);
+        else if(!tracking)void vscode.window.showWarningMessage(state);
       };
       const title = kind === 'start' ? `Creating branch ${name}` : kind === 'sync' ? 'Updating from main' : kind==='updateBranch'?'Updating branch from GitHub':'Merging to main';
       if (vscode.window.withProgress) return await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title,cancellable:false},execute);

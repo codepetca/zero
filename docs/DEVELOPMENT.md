@@ -592,9 +592,14 @@ revocation. Routine Zero transport retains its separate synchronous final guard.
 Local New branch performs no authentication or network operation and no full
 source/asset hash. Explicit Sync reviews/downloads GitHub main without uploading;
 main fast-forwards only, a feature can merge main and must be run again. Merge
-preparation is local and execution performs only one nonforce push and one SHA
-confirmation. Rejected stale-main pushes preserve local work and direct students
-to Sync, Run and retry. Simulation remains mutation-free for all actions.
+preparation is local; execution uses a nonforce push and confirms the merge SHA.
+For a new Merge, the native Quick Pick defaults to deleting the local and GitHub
+feature branch, followed by a Merge confirmation. Unchecking keeps both; cancelling
+either prompt cancels the merge. After confirmed remote merge and switching to
+local main, cleanup checks the exact reviewed tip and other guards. Changed or
+uncertain state keeps safe refs; partial or uncertain cleanup is reported. Recovery
+and Sync keep branches. Rejected stale-main pushes preserve local work and direct
+students to Sync, Run and retry. Simulation remains mutation-free for all actions.
 
 Captured operations reuse verified identity only within their private session
 receipt. Every assertion still rereads locked storage and checks expiry. Upload

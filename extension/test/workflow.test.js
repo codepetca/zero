@@ -491,13 +491,12 @@ test('cleanup compare-and-delete preserves a branch concurrently moved to unmerg
   const f = await fixture(t); await start(f); const head = await commit(f.root, 'Score.java', 'score'); await finish(f);
   await core.git(f.root, ['checkout', '-b', 'unmerged']); const changed = await commit(f.root, 'More.java', 'more'); await core.git(f.root, ['checkout', 'main']);
   let attempted = false;
-  const run = async (root, args) => {
-    if (args[0] === 'update-ref' && args.includes('-d')) {
-      assert.ok(args.includes('--no-deref'));
+  const run = async (root, args, options) => {
+    if (args.includes('--show-ref-format')) {
       attempted = true;
       await core.git(root, ['update-ref', 'refs/heads/add-score', changed]);
     }
-    return f.run(root, args);
+    return f.run(root, args, options);
   };
   await assert.rejects(workflow.deleteFinishedBranch(f.root, 'add-score', head, {run}), /could not delete/);
   assert.equal(attempted, true);

@@ -45,8 +45,14 @@ The local implementation follows the approved student flow. Files shows change
 indicators, retains file creation and uses VS Code's diff for supported changes.
 Commit saves work locally while offline. Failed or uncertain sync retains its
 reminder, and explicit status checks and retries use the reviewed destination,
-account, branch and commit. A confirmed clean Merge keeps the feature branch and
-records a named merge in Git history so it can also be seen in a fresh clone.
+account, branch and commit. Merge records a named merge in Git history so it can
+also be seen in a fresh clone. For a new Merge, a native Quick Pick defaults to
+deleting the local and GitHub feature branch; unchecking keeps both. The following
+Merge confirmation shows the choice, and cancelling either prompt cancels the
+merge. Cleanup runs only after remote confirmation and the switch to local main,
+checks the exact reviewed tip and other guards, and reports partial or uncertain
+outcomes. Changed or uncertain state keeps safe refs. Recovery and Sync keep
+branches.
 Supported updates remain available. Stale main and unsupported divergent updates
 offer **Open Source Control** and preserve the existing files and commits. An
 existing managed conflict can still use the guarded completion action once it has

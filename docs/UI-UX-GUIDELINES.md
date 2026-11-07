@@ -79,7 +79,7 @@ marks a preferred pattern with documented, task-specific exceptions.
 ## Decisions, hierarchy and language
 
 - MUST preserve the owner's [current interaction rules](../design.md#current-interaction-rules):
-  direct routine actions, guarded automatic local-branch cleanup, one short
+  direct routine actions, guarded opt-out branch cleanup after merge, one short
   first-publication warning, no success popups, and brief sidebar results with
   longer details in Zero Output. Keep required decisions, warnings and useful
   follow-up actions available.

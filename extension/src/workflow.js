@@ -10,10 +10,12 @@ const {createReadStream,constants} = require('node:fs');
 const {assertShareable} = require('./lesson-projects');
 const {prepareUpload, assertNoUrlRewrites, validBranch} = require('./github');
 const {finishMessage,readFinishedBranch,validFinishedBranch}=require('./finished-change-marker');
-const {updateDirectMain,checkoutDirectMain,preflightDirectMain,attachSameTreeMain}=require('./direct-main-transaction');
+const {updateDirectMain,checkoutDirectMain,preflightDirectMain,attachSameTreeMain,deleteDirectFeature}=require('./direct-main-transaction');
 // Only equal-tree, ref-only fast-forwards may use this path.
 const ENABLE_REFTABLE_REF_ONLY = true;
 const plans = new WeakSet();
+const finishedBranchCleanups = new WeakMap();
+const finishedBranchCleanupLayouts = new WeakMap();
 const shaPattern = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/;
 const switchEnvironment=()=>({...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_ATTR_NOSYSTEM:'1',GIT_TERMINAL_PROMPT:'0',GIT_NO_LAZY_FETCH:'1'});
 const startCheckoutEnvironment=()=>({...switchEnvironment(),GIT_CONFIG_COUNT:'2',GIT_CONFIG_KEY_0:'core.attributesFile',GIT_CONFIG_VALUE_0:os.devNull,GIT_CONFIG_KEY_1:'core.fsmonitor',GIT_CONFIG_VALUE_1:'false'});
@@ -675,6 +677,7 @@ async function finishPrepared(plan, options = {}) {
   await assertShareable(plan.root);
   await opts.beforeMutation();
   let current = await recheck(plan, opts.run, {full: true});
+  const cleanupLayout = await core.inspectGitLayout(plan.root, opts.run);
   await checkFinishStorage(current,opts,{probe:true});
   await assertNoArchivedFinishAhead(current, opts.run);
   let candidate = plan.pending;
@@ -729,7 +732,17 @@ async function finishPrepared(plan, options = {}) {
   catch(error){error.message+= ' This merge was confirmed on GitHub. The local switch may have completed; inspect the current branch and Source Control before retrying. The pending change is retained.';throw error;}
   try { await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, candidate.id], 'clear the pending finished change'); } catch { /* Main and remote already contain the commit; a later start can clear the stale ref. */ }
   plans.delete(plan);
-  return Object.freeze({finished: true, branch: 'main', head: final.head, featureHead: candidate.feature, page: plan.page, finishedBranch: plan.branch, remote: plan.remote});
+  const result = Object.freeze({finished: true, branch: 'main', head: final.head, featureHead: candidate.feature, page: plan.page, finishedBranch: plan.branch, remote: plan.remote});
+  const receipt = Object.freeze({root:plan.root, branch:plan.branch, featureHead:candidate.feature, head:confirmed, remote:plan.remote, page:plan.page});
+  finishedBranchCleanups.set(result, receipt);
+  finishedBranchCleanupLayouts.set(receipt, cleanupLayout.identity);
+  return result;
+}
+function consumeFinishedBranchCleanup(root, result) {
+  const receipt = finishedBranchCleanups.get(result);
+  if (!receipt || receipt.root !== root) throw new Error('This finished branch cleanup needs the exact confirmed merge from this project.');
+  finishedBranchCleanups.delete(result);
+  return receipt;
 }
 // Recover an interrupted finish without moving the feature branch or its newer commits.
 async function preparePendingFinishRecovery(project, options = {}) {
@@ -788,26 +801,95 @@ async function recoverPendingFinish(plan, options = {}) {
   plans.delete(plan);
   return Object.freeze({recovered:true, needsSync:true, branch:current.branch, head:current.head, finishedHead:pending.id, remoteHead:included ? remoteHead : pending.id, remote:current.remote});
 }
-async function deleteFinishedBranch(root, branch, expectedHead, {run = core.git, beforeMutation = async () => {}} = {}) {
-  await assertShareable(root);
-  run = safeRunner(run);
-  if (!shaPattern.test(expectedHead) || !validFinishedBranch(branch)) throw new Error('Choose the exact finished feature branch for local cleanup.');
+function cleanupRunner(run) {
+  const read = finishRunner(guardedRunner(safeRunner(run)));
+  return (root, args, options) => read(root, args, {...options, env:{...process.env, GIT_NO_LAZY_FETCH:'1'}});
+}
+async function cleanupState(root, run, expectedLayout) {
+  const layout = await core.inspectGitLayout(root, run);
+  if (expectedLayout !== undefined && layout.identity !== expectedLayout) throw drift();
+  // Older Git may lazily fetch even with GIT_NO_LAZY_FETCH. Cleanup is local.
+  try {
+    await run(root, ['config', '--name-only', '--get-regexp', '^(extensions\\.partialclone|remote\\..*\\.promisor)$']);
+    throw new Error('A partial clone requires native Source Control for finished branch cleanup.');
+  } catch (error) { if (error.code !== 1) throw error; }
+  await refuseFinishReplacements(layout, run);
+  const entries = (await run(root, ['ls-files', '--stage', '-v', '-z'])).split('\0').filter(Boolean);
+  if (entries.some(entry => /^[a-zS] /.test(entry))) throw new Error('Git index flags can hide local changes. Check native Source Control before cleaning up this branch.');
+  if (entries.some(entry => /^[A-Z] 160000 /.test(entry))) throw new Error('Nested repositories or submodules are not supported. Open a standalone student project.');
   const current = await state(root, run);
   clean(current);
-  if (current.branch !== 'main') throw new Error('Switch to clean main before deleting a finished local feature.');
+  if (current.branch !== 'main' || current.head !== current.mainHead) throw new Error('Switch to clean main before deleting a finished local feature.');
+  return {current, layout};
+}
+async function checkFinishedFeature(root, ref, expectedHead, mainHead, run) {
+  try {
+    await run(root, ['symbolic-ref', '--quiet', '--no-recurse', ref]);
+    throw new Error('The finished feature is a symbolic reference. Keep it and inspect Source Control.');
+  } catch (error) { if (error.code !== 1) throw error; }
   let actual;
-  const direct=async()=>{try{await run(current.root,['symbolic-ref','--quiet','--no-recurse',`refs/heads/${branch}`]);}catch(error){if(error.code===1)return;throw error;}throw new Error('The finished feature is a symbolic reference. Keep it and inspect Source Control.');};
-  await direct();
-  try { actual = await run(current.root, ['rev-parse', '--verify', `refs/heads/${branch}^{commit}`]); }
+  try { actual = await run(root, ['rev-parse', '--verify', ref]); }
   catch { throw new Error('The finished feature branch is no longer available for cleanup.'); }
-  if (actual !== expectedHead || !(await ancestor(run, current.root, actual, current.mainHead))) throw new Error('This feature branch changed or has work missing from main. Keep it and inspect native Source Control.');
-  await beforeMutation();
-  await recheck(current, run);
-  await direct();
-  if (await run(current.root, ['rev-parse', '--verify', `refs/heads/${branch}^{commit}`]) !== expectedHead) throw drift();
-  // Compare-and-delete the exact reviewed SHA; branch -d bases its decision on
-  // an upstream and cannot atomically guard a concurrently moved feature ref.
-  await local(run, current.root, ['update-ref', '--no-deref', '-d', `refs/heads/${branch}`, expectedHead], 'delete the finished local feature');
+  if (actual !== expectedHead || !(await ancestor(run, root, actual, mainHead))) throw new Error('This feature branch changed or has work missing from main. Keep it and inspect native Source Control.');
+}
+async function reviewFinishedBranchCleanup(root, branch, expectedHead, {run = core.git, expectedMain, expectedRemote, receipt} = {}) {
+  if (typeof expectedHead !== 'string' || !shaPattern.test(expectedHead) || !validFinishedBranch(branch) ||
+      (expectedMain !== undefined && (typeof expectedMain !== 'string' || !shaPattern.test(expectedMain) || expectedMain.length !== expectedHead.length))) {
+    throw new Error('Choose the exact finished feature branch for local cleanup.');
+  }
+  const receiptLayout = finishedBranchCleanupLayouts.get(receipt);
+  if (receipt !== undefined && (!receiptLayout || receipt.root !== root || receipt.branch !== branch ||
+      receipt.featureHead !== expectedHead || receipt.head !== expectedMain || receipt.remote !== expectedRemote)) {
+    throw new Error('This finished branch cleanup needs the exact confirmed merge from this project.');
+  }
+  run = cleanupRunner(run);
+  const {current, layout} = await cleanupState(root, run, receiptLayout);
+  if ((expectedMain !== undefined && current.mainHead !== expectedMain) ||
+      (expectedRemote !== undefined && current.remote !== expectedRemote)) throw drift();
+  const ref = `refs/heads/${branch}`;
+  await checkFinishedFeature(current.root, ref, expectedHead, current.mainHead, run);
+  return {current, layout, ref, run};
+}
+async function inspectFinishedBranchCleanup(root, branch, expectedHead, options = {}) {
+  if (!options.receipt) throw new Error('This finished branch cleanup needs the exact confirmed merge from this project.');
+  await options.beforeMutation?.();
+  const {current, ref, run} = await reviewFinishedBranchCleanup(root, branch, expectedHead, options);
+  await preflightDirectMain(current.root, current.gitDir, {run, allowReftable:true, skipProbe:true});
+  await deleteDirectFeature(current.root, current.mainHead, branch, expectedHead, {
+    probeOnly: true,
+    verify: async () => {
+      if (await core.currentBranch(root, run) !== 'main' ||
+          await run(root, ['rev-parse', '--verify', 'refs/heads/main']) !== current.mainHead) throw drift();
+      await checkFinishedFeature(root, ref, expectedHead, current.mainHead, run);
+    },
+    checkNow: options.beforeMutationNow
+  });
+  return Object.freeze({root:current.root, branch, featureHead:expectedHead, head:current.mainHead, remote:current.remote, page:current.page});
+}
+async function deleteFinishedBranch(root, branch, expectedHead, options = {}) {
+  const {beforeMutation = async () => {}, beforeMutationNow} = options;
+  if ((options.receipt !== undefined || beforeMutationNow !== undefined) &&
+      (typeof beforeMutationNow !== 'function' || options.expectedMain === undefined)) {
+    throw new Error('Confirm the exact main commit and local authority before deleting the finished feature.');
+  }
+  const {current, layout, ref, run} = await reviewFinishedBranchCleanup(root, branch, expectedHead, options);
+  try {
+    await preflightDirectMain(current.root, current.gitDir, {run, allowReftable:true, skipProbe:true});
+    await deleteDirectFeature(current.root, current.mainHead, branch, expectedHead, {
+      verify: async () => {
+        await beforeMutation();
+        const checked = await cleanupState(root, run, layout.identity);
+        if (!same(current, checked.current)) throw drift();
+        // An OID comparison alone can accept a same-OID symbolic replacement.
+        // Recheck the ref type while Git holds HEAD and both branch locks.
+        await checkFinishedFeature(current.root, ref, expectedHead, current.mainHead, run);
+      },
+      checkNow: beforeMutationNow
+    });
+  } catch (error) {
+    if (!error.refOutcomeUncertain) error.message += ' Git could not delete the finished local feature safely.';
+    throw error;
+  }
   return Object.freeze({deleted: true, branch});
 }
 function recoveryInspect(root, run) { return state(root, run, {allowMerge: true}); }
@@ -821,4 +903,4 @@ async function checkpoint(root, options = {}) {
   opts.inspect = (project, run) => state(project, run);
   return recovery.checkpoint(root, opts);
 }
-module.exports = {preparePendingFinishRecovery, recoverPendingFinish, readRecovery, resolveRecovery, completeRecovery, cancelRecovery, checkpoint, prepareStart, startPrepared, prepareSwitch, switchPrepared, prepareSync, syncPrepared, prepareFinish, finishPrepared, deleteFinishedBranch};
+module.exports = {preparePendingFinishRecovery, recoverPendingFinish, readRecovery, resolveRecovery, completeRecovery, cancelRecovery, checkpoint, prepareStart, startPrepared, prepareSwitch, switchPrepared, prepareSync, syncPrepared, prepareFinish, finishPrepared, consumeFinishedBranchCleanup, inspectFinishedBranchCleanup, deleteFinishedBranch};
