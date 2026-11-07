@@ -762,6 +762,7 @@ function activate(context, services = {}) {
     const ownPushes=new Map(),ownIntentIds=new Set();
     let accessChecked = false,pushReminderTx,pushTarget,pushAttempt;
     const selected=record=>allowedReminders.some(allowed=>JSON.stringify(allowed)===JSON.stringify(record));
+    const needsSharedReminders=()=>refOnlyOutcome||allowIncludedPushes||allowIncludedOperations||allowedReminders.some(row=>row.operation&&!['branch','merge'].includes(row.operation));
     const assertReminderReview=async()=>{
       if(!pushTarget)return;
       await commitProvenance.assertFileRestoreClear(reviewRoot);
@@ -827,7 +828,7 @@ function activate(context, services = {}) {
           };if(await supportsFileReminders(root))return repositoryLedger.withProvenance(root,authority,resolveConfirmed);
           // Compatibility can reconcile an exact ordinary push receipt, but it
           // cannot authorize included commits or retained history operations.
-          if(refOnlyOutcome||allowIncludedPushes||allowIncludedOperations||allowedReminders.some(row=>row.operation&&!['branch','merge'].includes(row.operation)))throw new Error('GitHub confirmed the push, but the shared sync reminders need inspection.');
+          if(needsSharedReminders())throw new Error('GitHub confirmed the push, but the shared sync reminders need inspection.');
           authority.assertCurrentNow();return repositoryLedger.withTransaction(root,resolveConfirmed);
           };if(phaseBinding)await reconcile(phaseBinding);else await commitProvenance.withDeferredRefMutation(root,reconcile);ownPushes.delete(args[3]);}
         }
@@ -843,7 +844,9 @@ function activate(context, services = {}) {
           try{
             if(tx&&JSON.stringify(await allReminderRecords(root,visibleTx))!==JSON.stringify(reviewedReminders))throw new Error('The sync reminders changed after review. Review the current project before uploading.');
             await assertReminderReview();
-            await assertReminderReview();await commitProvenance.assertFileRestoreClear(root);binding.assertCurrentNow();return await transport(root,args,binding);
+            await assertReminderReview();await commitProvenance.assertFileRestoreClear(root);
+            if(needsSharedReminders()&&!await supportsFileReminders(root))throw new Error('This sync requires shared sync reminder storage. Inspect the reminders before retrying.');
+            binding.assertCurrentNow();return await transport(root,args,binding);
           }finally{pushReminderTx=undefined;pushTarget=undefined;pushAttempt=undefined;}
         };
         return repositoryLedger?repositoryLedger.withTransaction(root,execute):execute();
@@ -1050,8 +1053,16 @@ function activate(context, services = {}) {
   }
   async function includesSavedCommit(root,older,newer) {
     if(older===newer)return true;
-    try {await fs.access(path.join(root,'.git','info','grafts'));return false;}catch(error){if(error.code!=='ENOENT')throw error;}
-    try {await core.git(root,['--no-replace-objects','merge-base','--is-ancestor',older,newer],{env:Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key)))});return true;}catch{return false;}
+    const env={...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_NO_LAZY_FETCH:'1'};
+    try {
+      const location=await core.git(root,['rev-parse','--git-common-dir'],{env});
+      if(!location)return false;
+      const common=await fs.realpath(path.resolve(root,location));
+      if(!(await fs.stat(common)).isDirectory())return false;
+      try {await fs.lstat(path.join(common,'info','grafts'));return false;}catch(error){if(error.code!=='ENOENT')throw error;}
+      await core.git(root,['--no-replace-objects','merge-base','--is-ancestor',older,newer],{env});
+      return true;
+    }catch{return false;}
   }
   const isEarlierRemoteHead=(root,remoteHead,head)=>/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(remoteHead||'')&&remoteHead.length===head.length&&remoteHead!==head&&includesSavedCommit(root,remoteHead,head);
   async function syncCreatedBranch(root,created,remote,page,{updated=false,expectedAccount,expectedSession,expectedRevision,localRecordOnly,updateIntent,refOnlyOutcome,extraGuard,correction}={}) {
@@ -2162,6 +2173,8 @@ function activate(context, services = {}) {
         const plan=await github.prepareUpload(root);
         if(plan.root!==record.root||plan.remote!==record.remote||plan.branch!==record.branch)throw new Error('The branch or repository changed. Review the current work before syncing.');
         const descendant=plan.head!==record.head||Boolean(retryReminderSnapshot?.some(row=>row.type!=='local'&&pushOperation(row)==='branch'&&row.branch===plan.branch&&row.head!==plan.head));
+        const requireSharedReminders=async()=>{if(descendant&&!await supportsFileReminders(root))throw new Error('Syncing newer commits requires shared sync reminder storage. Review the earlier sync in Source Control; its reminder is kept.');};
+        await requireSharedReminders();
         const missing=retryReminderSnapshot.some(row=>samePushGroup(row,record)&&row.kind==='remote-missing') || Boolean(branchRemoteStatus&&currentBranchObservation(branchRemoteStatus)&&branchRemoteStatus.state==='remote-missing');
         const mainUpdateIntents=retryReminderSnapshot.filter(row=>row.operation==='reftable-update'&&row.branch==='main'&&samePushGroup(row,record));if(mainUpdateIntents.length>1)throw new Error('Several main updates need inspection before syncing.');const mainUpdateIntent=mainUpdateIntents[0];if(mainUpdateIntent&&descendant)throw new Error('The local main or its sync reminders changed. Review the retained update before syncing.');
         const reviewExact=!mainUpdateIntent&&!missing&&!descendant&&record.kind==='ready';
@@ -2207,7 +2220,7 @@ function activate(context, services = {}) {
         if(!repositoryLedger&&retryReminderSnapshot.some(row=>row.type==='local'||!allowedRetryReminders.some(allowed=>JSON.stringify(allowed)===JSON.stringify(row))))throw new Error('An earlier sync or local operation needs attention. Review its reminder before syncing.');
         let ownPushAttempt;
         const beforeUpload=async()=>{
-          await guard();await auth.assertCurrent(ticket);await validateUpdateIntents(retryReminderSnapshot);
+          await guard();await auth.assertCurrent(ticket);await requireSharedReminders();await validateUpdateIntents(retryReminderSnapshot);
           if(descendant||missing||reviewExact||!repositoryLedger){
             const current=await github.prepareUpload(root);
             if(['root','remote','branch','head','status','fingerprint'].some(key=>current[key]!==plan[key]))throw new Error('The project changed after confirmation. Review the saved commits again.');

@@ -9,9 +9,10 @@ const waitFor=async condition=>{const deadline=Date.now()+5000;while(!condition(
 
 // Git observations and authenticated transfers stay in memory. The real
 // provenance lock and reminder gate operate only in this disposable folder.
-async function harness(t,{missing=false,choice=true,dirty=false,dirtyBuffer=dirty,branch='main',disconnected=false,cancelInput=false,noLedger=false,productionCompatibility=false,mergeRecovery=false,updated=false,updateTo,correctionReceipt,realCheck=false,finishResult=false,mockPublish=false,mockStart=false,reftableUpdate=false,archivedGate=false,refOnlyFixture=false,nativeScm=false}={}) {
+async function harness(t,{missing=false,choice=true,dirty=false,dirtyBuffer=dirty,branch='main',disconnected=false,cancelInput=false,noLedger=false,productionCompatibility=false,graftsInCommonDir=false,mergeRecovery=false,updated=false,updateTo,correctionReceipt,realCheck=false,finishResult=false,mockPublish=false,mockStart=false,reftableUpdate=false,archivedGate=false,refOnlyFixture=false,nativeScm=false}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-saved-sync-')));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.mkdir(path.join(root,'.git'));
+  let commonDir=path.join(root,'.git');
   if(productionCompatibility){
     const {execFileSync}=require('node:child_process');
     const env={...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull};
@@ -34,7 +35,7 @@ async function harness(t,{missing=false,choice=true,dirty=false,dirtyBuffer=dirt
     if(args[0]==='symbolic-ref'){if(args.at(-1)!=='HEAD')throw Object.assign(Error('Direct ref'),{code:1});return `refs/heads/${branch}`;}
     if(args[0]==='remote'){if(!remote){if(args.length===1)return '';throw Object.assign(Error('No origin'),{code:2});}return args.length===1?'origin':remote;}
     if(args[0]==='ls-files')return '';
-    if(args[0]==='rev-parse')return args.includes('--is-shallow-repository')?'false':args.includes('--show-toplevel')?root:args.includes('--absolute-git-dir')||args.includes('--git-common-dir')?path.join(root,'.git'):head;
+    if(args[0]==='rev-parse')return args.includes('--is-shallow-repository')?'false':args.includes('--show-toplevel')?root:args.includes('--git-common-dir')?commonDir:args.includes('--absolute-git-dir')?path.join(root,'.git'):head;
     if(args[0]==='status')return status;
     throw Error('Unexpected Git command: '+args[0]);
   };
@@ -87,6 +88,7 @@ async function harness(t,{missing=false,choice=true,dirty=false,dirtyBuffer=dirt
   const webview={html:'',onDidReceiveMessage:disposable};view.resolveWebviewView({webview,onDidDispose:disposable});
   t.after(async()=>{subscriptions.forEach(value=>value.dispose());core.git=original.git;core.assertRepositoryRoot=original.assert;core.repositoryRoot=original.repo;core.connectRepository=original.connect;github.prepareUpload=original.prepare;github.syncExistingHead=original.sync;github.uploadPrepared=original.upload;github.checkUpload=original.check;delete require.cache[require.resolve('../src/extension')];await fs.rm(root,{recursive:true,force:true});});
   await waitFor(()=>webview.html.includes(disconnected?'Local project · no GitHub remote connected.':'data-command="zero.syncSavedCommits"'));
+  if(graftsInCommonDir){commonDir=path.join(root,'git-common');await fs.mkdir(path.join(commonDir,'info'),{recursive:true});await fs.writeFile(path.join(commonDir,'info','grafts'),`${B} ${A}\n`);}
   return {root,stored,warnings,errors,logs,pushes,webview,commands,documents,mainChecks,gitCalls,nativeCommands,setTrust(value){vscode.workspace.isTrusted=value;},setWorkspace(value){vscode.workspace.workspaceFolders=[{uri:{fsPath:value}}];},sync:()=>commands.get('zero.syncSavedCommits')(),check:()=>commands.get('zero.checkBranchConnection')(),get saves(){return saves;},get syncs(){return syncs;},get checks(){return checks;},set choice(value){choice=value;},set recovery(value){recovery=value;},set onStart(value){onStart=value;},set beforeDispatch(value){beforeDispatch=value;},set afterBranchCreate(value){afterBranchCreate=value;},set beforeBranchRead(value){beforeBranchRead=value;},set afterWarning(value){afterWarning=value;},set afterPush(value){afterPush=value;},set afterCheck(value){afterCheck=value;},set afterConfirmation(value){afterConfirmation=value;},set afterUpdate(value){afterUpdate=value;},set head(value){head=value;},set branch(value){branch=value;},set remote(value){remote=value;},set remoteHead(value){remoteHead=value;},set childRemoteHead(value){childRemoteHead=value;},set status(value){status=value;},set fingerprint(value){fingerprint=value;},set failAdd(value){failAdd=value;},get recovery(){return recovery;},set failPush(value){failPush=value;},set failRead(value){failRead=value;},set failConfirmation(value){failConfirmation=value;},set failResolution(value){failResolution=value;},set failResolutionAfter(value){failResolutionAfter=value;},changeSession(){session={...session,accessToken:'REPLACED_FIXTURE_ONLY'};authEvent({changed:[session]});},changeAccount(){session={...session,id:'other-session',account:{id:'2',label:'other'}};authEvent({changed:[session]});},activeRecords:()=>[...stored.entries()].filter(([key])=>key.startsWith('zero.pendingSync.v1:')).map(([,row])=>row).filter(row=>![...stored.entries()].some(([key,value])=>key.startsWith('zero.resolvedSync.v1:')&&value.record.id===row.id))};
 }
 
@@ -229,6 +231,15 @@ test('production compatibility storage resolves an exact confirmed ordinary push
   assert.deepEqual(h.errors,[]);assert.deepEqual(h.pushes,[['push','https://github.com/student/app.git',`${B}:refs/heads/main`]]);
   assert.deepEqual(h.activeRecords(),[]);assert.ok([...h.stored.values()].some(row=>row?.reason==='confirmed'&&row.record?.head===B));
   assert.match(h.logs.join('\n'),/workspace reminder compatibility storage/);
+});
+test('production compatibility storage refuses descendant retry before review or transport',async t=>{
+  const h=await harness(t,{productionCompatibility:true});
+  const earlier={id:'earlier',root:h.root,branch:'main',head:A,remote:'https://github.com/student/app.git',page:'https://github.com/student/app',type:'push',accountId:'1',kind:'network',committed:true,pushStarted:true};
+  h.stored.set('zero.pendingSync.v1:earlier',earlier);
+  const checks=h.checks;
+  await h.commands.get('zero.retryBranchSync')();
+  assert.match(h.errors.at(-1),/requires shared sync reminder storage/);assert.deepEqual(h.warnings,[]);assert.deepEqual(h.pushes,[]);assert.equal(h.syncs,0);assert.equal(h.checks,checks);
+  assert.deepEqual(h.activeRecords(),[earlier]);
 });
 test('new branch completion immediately schedules current branch and main checks',async t=>{
   const h=await harness(t,{branch:'feature'}),before=h.checks;await h.commands.get('zero.startChange')();
@@ -491,6 +502,15 @@ test('status makes an uncertain exact head retryable only for a confirmed ancest
     if(scenario==='confirmed'){assert.deepEqual(h.errors,[]);assert.deepEqual(h.pushes,[['push',record.remote,`${B}:refs/heads/main`]]);assert.deepEqual(h.activeRecords(),[]);}
     else {assert.equal(h.pushes.length,0);assert.equal(h.activeRecords().length,1);if(scenario==='diverged')assert.match(h.errors.at(-1),/Check GitHub status again/);}
   });
+});
+test('status refuses to use ancestry when the Git common directory contains grafts',async t=>{
+  const h=await harness(t,{realCheck:true,graftsInCommonDir:true});
+  const record={id:'prior',root:h.root,branch:'main',head:B,remote:'https://github.com/student/app.git',page:'https://github.com/student/app',type:'push',accountId:'1',kind:'network',committed:true,pushStarted:true};
+  h.stored.set('zero.pendingSync.v1:prior',record);
+  const calls=h.gitCalls.length;
+  await h.commands.get('zero.checkPush')();
+  assert.deepEqual(h.errors,[]);assert.deepEqual(h.pushes,[]);assert.deepEqual(h.activeRecords().map(row=>[row.kind,row.pushStarted]),[['behind',true]]);
+  assert.ok(!h.gitCalls.slice(calls).some(args=>args.includes('--is-ancestor')));
 });
 test('compatibility retry refuses other account, destination or branch groups',async t=>{
   for(const drift of ['account','destination','branch'])await t.test(drift,async t=>{
