@@ -19,7 +19,7 @@ test('uses the regular browser when the integrated browser is absent or fails',a
 });
 test('reports failure to open the fallback and rejects invalid lesson IDs',async()=>{
   const h=host({available:false,external:false});
-  await assert.rejects(openTutorialDocs(h.vscode),/Could not open Zero Docs/);
+  await assert.rejects(openTutorialDocs(h.vscode),/Could not open Tutorial Docs in your browser\./);
   await assert.rejects(openTutorialDocs(h.vscode,'../bad'));
 });
 test('Zero Docs uses the resume entry point in the integrated or regular browser',async()=>{
