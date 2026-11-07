@@ -763,11 +763,6 @@
           "group": "navigation@0"
         },
         {
-          "command": "zero.discardProjectChanges",
-          "when": "view == zero.studentProject",
-          "group": "navigation@1"
-        },
-        {
           "command": "zero.browseZeroHub",
           "when": "view == zero.studentProject",
           "group": "zero-libraries@1"

@@ -17,6 +17,8 @@ const source = readFileSync(new URL('../../extension/src/extension.js', import.m
 const start = source.indexOf('  function render(');
 const end = source.indexOf('  const controlsProvider=', start);
 if (start < 0 || end < 0) throw new Error('Sidebar renderer changed; update the review adapter.');
+const refOnlyReview = /^const ENABLE_REF_ONLY_REVIEW = (true|false);$/m.exec(source);
+if (!refOnlyReview) throw new Error('Sidebar review capability changed; update the review adapter.');
 const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 export function sidebarSource(state = 'ready', {connected = false, studentExplorer = false, projectRoot:activeRoot='/fixture/project',branch:fixtureBranch='',branchHead:fixtureHead,branchError:fixtureError,projectDirty:fixtureDirty=false,projectUnsaved:fixtureUnsaved=false} = {}) {
   const webview = {};
@@ -24,7 +26,7 @@ export function sidebarSource(state = 'ready', {connected = false, studentExplor
   const phase = state === 'busy' ? 'ready' : ['signed-out','install','checking','unavailable'].includes(state) ? state : connected ? 'ready' : 'signed-out';
   const signedIn = phase !== 'signed-out';
   runInNewContext(`${source.slice(start, end)}\nrender(webview,studentExplorer);`, {
-    webPublish:{hasPublishedApp:scope=>state.startsWith('published') && publishedLinkController.hasPublishedApp(scope)},
+    ENABLE_REF_ONLY_REVIEW:refOnlyReview[1]==='true',webPublish:{hasPublishedApp:scope=>state.startsWith('published') && publishedLinkController.hasPublishedApp(scope)},
     publishProgressHtml:publishProgressComponent.publishProgressHtml,publishProgress:publishing?.publishProgress,
     path,isSetupProject:setupProject.isSetupProject,assets:{canCopyPaths:()=>false},context:{workspaceState:{get:()=>undefined}},exportReadyRoot:undefined,savedChecksRoot:undefined,savedChecksState:undefined,browserRun:{canOpenInBrowser:state==='running'},
     projectRoot: state === 'empty' ? undefined : activeRoot, renderedWebviews: new WeakSet(), sidebarScript: sidebarClient.sidebarScript, crypto, webview, studentExplorer, escape, icon:sidebarIcons.icon, sidebarStyles: sidebarStyle.sidebarStyles, isBusy: () => Boolean(publishing?.publishProgress||publishing?.busy)||['building','stopping','busy'].includes(state),

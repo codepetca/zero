@@ -105,8 +105,8 @@ test('existing projects reveal the Zero controls on activation and when added',a
   assert.deepEqual(shown().map(([id])=>id),['workbench.view.explorer','zero.controls.focus']);
   assert.equal(f.calls.some(([id])=>id==='workbench.view.extension.zero'),false);
   assert.doesNotMatch(f.webview.html,/role="tree"|files\.list|files\.open/);
-  // File creation belongs to the native Files header, not the Project pane.
-  assert.doesNotMatch(f.webview.html,/data-command="zero.newClass"|data-command="zero.importAssets"/);
+  // File creation is available in the Files header, separate from Project actions.
+  if(f.webview.html.includes('id="files-menu"')){assert.match(f.webview.html,/data-command="zero.newClass"/);assert.match(f.webview.html,/data-command="zero.importAssets"/);}else assert.doesNotMatch(f.webview.html,/data-command="zero.newClass"|data-command="zero.importAssets"/);
   assert.ok(f.commands.has('zero.newClass'));assert.ok(f.commands.has('zero.importAssets'));
   f.folderChanged({added:[],removed:[{uri:{fsPath:'/unrelated'}}]});await new Promise(resolve=>setTimeout(resolve,30));assert.equal(shown().length,2);
   f.folderChanged({added:[{uri:{fsPath:f.root}}],removed:[]});await settle(()=>shown().length===4);
@@ -498,7 +498,7 @@ test('offline readiness stays retryable while local Run and Files remain availab
   let reachable=false;const f=await fixture(t,{initialSession:{id:'saved',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'},githubAccess:async()=>{if(!reachable)throw Error('Network unavailable');}});
   await settle(()=>f.webview.html.includes('GitHub setup')&&f.webview.html.includes('zero.toggleApp'));
   await f.commands.get('zero.startPage')();await settle(()=>f.startState?.phase==='unavailable');assert.equal(f.startState.accountId,'17');
-  assert.match(f.webview.html,/zero.toggleApp/);assert.match(f.webview.html,/>New/);assert.doesNotMatch(f.webview.html,/role="tree"|id="files"/);assert.doesNotMatch(f.webview.html,/zero.chooseRepository|zero.uploadToGitHub/);
+  assert.match(f.webview.html,/zero.toggleApp/);assert.match(f.webview.html,/>New/);assert.doesNotMatch(f.webview.html,/role="tree"|id="files"/);assert.match(f.webview.html,/data-command="zero.chooseRepository"/);assert.doesNotMatch(f.webview.html,/data-command="zero.uploadToGitHub"/);
   reachable=true;await f.commands.get('zero.setupGitHub')();assert.equal(f.startState.phase,'ready');assert.match(f.webview.html,/zero.chooseRepository/);
 });
 

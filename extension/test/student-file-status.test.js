@@ -3,6 +3,11 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {parseStudentFileStatus, readStudentFileStatus} = require('../src/student-file-status');
 
+test('partial clone configuration is refused before status',async t=>{
+ const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),{execFileSync}=require('node:child_process');const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-promisor-status-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+ const git=(...args)=>execFileSync('/usr/bin/git',args,{cwd:root,env:{...process.env,GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_TERMINAL_PROMPT:'0'}});git('init','-q','--template=');git('config','remote.origin.promisor','true');await assert.rejects(readStudentFileStatus(root,{safeConfig:true}),/partial clones/i);
+});
+
 test('classifies Git changes without losing spaces or Unicode in file names', () => {
   const status = parseStudentFileStatus(' M src/Main.java\0?? assets/ coin.wav\0 D assets/old.wav\0A  src/é.java\0UU src/conflict.java\0');
   assert.deepEqual([...status], [['src/Main.java','modified'],['assets/ coin.wav','added'],['assets/old.wav','deleted'],['src/é.java','added'],['src/conflict.java','conflict']]);

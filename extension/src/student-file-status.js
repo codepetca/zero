@@ -77,7 +77,7 @@ async function readStudentFileStatus(root,{safeConfig=false,standaloneOnly=false
   if (metadata.isSymbolicLink() || (!metadata.isDirectory() && !metadata.isFile())) throw new Error('File status requires a project repository.');
   if (standaloneOnly && metadata.isFile()) throw new Error('Student Commit requires a standalone project repository.');
   const env=Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key)));
-  Object.assign(env,{GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_TERMINAL_PROMPT:'0'});
+  Object.assign(env,{GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_ALLOW_PROTOCOL:'',GIT_TERMINAL_PROMPT:'0'});
   if(safeConfig)Object.assign(env,{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:require('node:os').devNull,GIT_ATTR_NOSYSTEM:'1',GIT_NO_REPLACE_OBJECTS:'1'});
   const linked=metadata.isFile()?await assertLinkedWorktree(root,env):undefined;
   // Status can invoke a configured clean filter, even though this is a
@@ -89,21 +89,24 @@ async function readStudentFileStatus(root,{safeConfig=false,standaloneOnly=false
     if (args.includes('-z') && text && !text.endsWith('\0')) throw new Error('Git filter attributes could not be verified. Use Source Control.');
     return text;
   };
+  await assertNoPromisor(root,inspect);
   try { await refuseFilters(root,inspect); }
   catch(error) {
     if (/Git filters require native Source Control/.test(error.message)) throw new Error('File status is unavailable with active Git filters. Use Source Control.');
     throw error;
   }
+  await assertNoPromisor(root,inspect);
   const {stdout} = await exec('git', ['--no-pager', '-c', 'core.fsmonitor=false', 'status', '--porcelain=v1', '-z', '--no-renames', '--untracked-files=all'], {
     cwd: root, encoding: 'buffer', timeout: 10000, maxBuffer: 1024 * 1024,
     env
   });
+  await assertNoPromisor(root,inspect);
   const changes=parseStudentFileStatus(new TextDecoder('utf-8', {fatal:true}).decode(stdout));
   // Discard and per-file removal require a committed HEAD and index. Do not
   // offer them when HEAD is unborn or cannot be verified; mutations recheck.
   if(changes.size) {
     let hasCommittedHead=false;
-    try {const result=await exec('git',['--no-pager','rev-parse','--verify','HEAD^{commit}'],{cwd:root,encoding:'utf8',timeout:10000,maxBuffer:1024,env});hasCommittedHead=/^(?:[a-f0-9]{40}|[a-f0-9]{64})\n?$/.test(result.stdout);}
+    try {await assertNoPromisor(root,inspect);const result=await exec('git',['--no-pager','rev-parse','--verify','HEAD^{commit}'],{cwd:root,encoding:'utf8',timeout:10000,maxBuffer:1024,env});hasCommittedHead=/^(?:[a-f0-9]{40}|[a-f0-9]{64})\n?$/.test(result.stdout);}
     catch {/* An absent or unreadable HEAD cannot authorize this action. */}
     Object.defineProperty(changes,'hasCommittedHead',{value:hasCommittedHead});
     if(!hasCommittedHead&&metadata.isDirectory()) {
@@ -116,6 +119,12 @@ async function readStudentFileStatus(root,{safeConfig=false,standaloneOnly=false
   // project. This is a presentation hint only; mutation still revalidates.
   Object.defineProperty(changes,'supportsDiscard',{value:metadata.isDirectory()});
   if(linked)Object.defineProperty(changes,'gitWatchDirectories',{value:Object.freeze([linked.gitdir,linked.common])});
+  await assertNoPromisor(root,inspect);
   return changes;
 }
-module.exports = {parseStudentFileStatus, readStudentFileStatus};
+async function assertNoPromisor(root,run) {
+  try {await run(root,['config','--get-regexp','^(extensions\\.partialclone|remote\\..*\\.promisor)$']);}
+  catch(error) {if(error.code===1)return;throw error;}
+  throw new Error('File status is unavailable for partial clones. Use Source Control.');
+}
+module.exports = {parseStudentFileStatus, readStudentFileStatus, assertNoPromisor};

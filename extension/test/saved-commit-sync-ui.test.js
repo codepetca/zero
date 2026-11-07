@@ -9,9 +9,15 @@ const waitFor=async condition=>{const deadline=Date.now()+5000;while(!condition(
 
 // Git observations and authenticated transfers stay in memory. The real
 // provenance lock and reminder gate operate only in this disposable folder.
-async function harness(t,{missing=false,choice=true,dirty=false,dirtyBuffer=dirty,branch='main',disconnected=false,cancelInput=false,noLedger=false,mergeRecovery=false,updated=false,updateTo,correctionReceipt,realCheck=false,finishResult=false,mockPublish=false,mockStart=false,reftableUpdate=false,archivedGate=false,refOnlyFixture=false,nativeScm=false}={}) {
+async function harness(t,{missing=false,choice=true,dirty=false,dirtyBuffer=dirty,branch='main',disconnected=false,cancelInput=false,noLedger=false,productionCompatibility=false,mergeRecovery=false,updated=false,updateTo,correctionReceipt,realCheck=false,finishResult=false,mockPublish=false,mockStart=false,reftableUpdate=false,archivedGate=false,refOnlyFixture=false,nativeScm=false}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-saved-sync-')));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.mkdir(path.join(root,'.git'));
+  if(productionCompatibility){
+    const {execFileSync}=require('node:child_process');
+    const env={...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull};
+    const git=(...args)=>execFileSync('git',args,{cwd:root,env,stdio:'pipe'});
+    git('init','-q');git('config','--local','core.worktree',root);
+  }
   const original={git:core.git,assert:core.assertRepositoryRoot,repo:core.repositoryRoot,connect:core.connectRepository,prepare:github.prepareUpload,sync:github.syncExistingHead,upload:github.uploadPrepared,check:github.checkUpload};
   let head=B,remoteHead=missing?null:A,childRemoteHead=null,remote=disconnected?'':'https://github.com/student/app.git',status=dirty?' M Main.java':'',fingerprint='reviewed-files',view,authEvent,recovery;
   let session={id:'session',account:{id:'1',label:'student'},accessToken:'FIXTURE_ONLY'},afterWarning=async()=>{},onStart=async()=>{},afterBranchCreate=async()=>{},beforeDispatch=async()=>{},beforeBranchRead=async()=>{},afterPush=async()=>{},afterCheck=async()=>{},afterConfirmation=async()=>{},afterUpdate=async()=>{},failPush=false,failRead=false,failConfirmation=false,failResolution=false,failResolutionAfter=Infinity,resolutionWrites=0,failAdd=false,saves=0,syncs=0,checks=0;
@@ -77,7 +83,7 @@ async function harness(t,{missing=false,choice=true,dirty=false,dirtyBuffer=dirt
     return id==='vscode'?textInputs(vscode):load.call(this,id,...args);
   };
   let extension;try{extension=require('../src/extension');}finally{Module._load=load;}
-  extension.activate({subscriptions,workspaceState:{keys:()=>[...stored.keys()],get:key=>stored.get(key),update:async(key,value)=>{if(failAdd&&key.startsWith('zero.pendingSync.v1:'))throw Error('Reminder storage unavailable');if(key.startsWith('zero.resolvedSync.v1:')&&(failResolution||++resolutionWrites>failResolutionAfter))throw Error('Fixture reminder resolution failed');stored.set(key,value);}}},{...(noLedger?{}:{repositoryLedgerFactory}),provider:appSessions(vscode,{dispose(){}}),repositories:{checkSetup:async()=>({}),access:async()=>({repository:{id:12},installation:{id:99}})}});
+  extension.activate({subscriptions,workspaceState:{keys:()=>[...stored.keys()],get:key=>stored.get(key),update:async(key,value)=>{if(failAdd&&key.startsWith('zero.pendingSync.v1:'))throw Error('Reminder storage unavailable');if(key.startsWith('zero.resolvedSync.v1:')&&(failResolution||++resolutionWrites>failResolutionAfter))throw Error('Fixture reminder resolution failed');stored.set(key,value);}}},{...(noLedger||productionCompatibility?{}:{repositoryLedgerFactory}),provider:appSessions(vscode,{dispose(){}}),repositories:{checkSetup:async()=>({}),access:async()=>({repository:{id:12},installation:{id:99}})}});
   const webview={html:'',onDidReceiveMessage:disposable};view.resolveWebviewView({webview,onDidDispose:disposable});
   t.after(async()=>{subscriptions.forEach(value=>value.dispose());core.git=original.git;core.assertRepositoryRoot=original.assert;core.repositoryRoot=original.repo;core.connectRepository=original.connect;github.prepareUpload=original.prepare;github.syncExistingHead=original.sync;github.uploadPrepared=original.upload;github.checkUpload=original.check;delete require.cache[require.resolve('../src/extension')];await fs.rm(root,{recursive:true,force:true});});
   await waitFor(()=>webview.html.includes(disconnected?'Local project · no GitHub remote connected.':'data-command="zero.syncSavedCommits"'));
@@ -208,6 +214,21 @@ test('compatibility merge recovery resolves reviewed main reminder and retains u
   h.stored.set('zero.pendingSync.v1:unbound',{...base,id:'unbound'});
   await h.commands.get('zero.finishChange')();
   assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,0);assert.deepEqual(h.activeRecords().map(row=>row.id),['unbound']);
+});
+test('Merge recovery retains the account captured before a session change',async t=>{
+  const h=await harness(t,{branch:'feature',finishResult:true});
+  const recovery={root:h.root,branch:'main',head:B,remote:'https://github.com/student/app.git',page:'https://github.com/student/app',operation:'merge',kind:'unconfirmed',committed:false,pushStarted:true};
+  h.beforeDispatch=async()=>{h.changeAccount();throw Object.assign(Error('Interrupted confirmation'),{workflowRecovery:recovery});};
+  await h.commands.get('zero.finishChange')();
+  assert.equal(h.pushes.length,0);assert.match(h.errors.at(-1),/Interrupted confirmation/);
+  assert.deepEqual(h.activeRecords().map(row=>[row.operation,row.accountId,row.head]),[['merge','1',B]]);
+});
+test('production compatibility storage resolves an exact confirmed ordinary push',async t=>{
+  const h=await harness(t,{productionCompatibility:true});
+  await h.sync();
+  assert.deepEqual(h.errors,[]);assert.deepEqual(h.pushes,[['push','https://github.com/student/app.git',`${B}:refs/heads/main`]]);
+  assert.deepEqual(h.activeRecords(),[]);assert.ok([...h.stored.values()].some(row=>row?.reason==='confirmed'&&row.record?.head===B));
+  assert.match(h.logs.join('\n'),/workspace reminder compatibility storage/);
 });
 test('new branch completion immediately schedules current branch and main checks',async t=>{
   const h=await harness(t,{branch:'feature'}),before=h.checks;await h.commands.get('zero.startChange')();
@@ -456,6 +477,20 @@ test('a started network attempt cannot silently retry an exact head',async t=>{
   const h=await harness(t),base={id:'prior',root:h.root,branch:'main',head:B,remote:'https://github.com/student/app.git',page:'https://github.com/student/app',type:'push',accountId:'1',kind:'network',committed:true,pushStarted:true};
   h.stored.set('zero.pendingSync.v1:prior',base);await h.commands.get('zero.retryBranchSync')();
   assert.equal(h.pushes.length,0);assert.match(h.errors.at(-1),/push may have started.*Check GitHub status/i);assert.ok(h.activeRecords().some(row=>row.id==='prior'));assert.match(h.webview.html,/Check GitHub status/);
+});
+test('status makes an uncertain exact head retryable only for a confirmed ancestor',async t=>{
+  for(const scenario of ['cancel','confirmed','diverged'])await t.test(scenario,async t=>{
+    const h=await harness(t,{realCheck:true,choice:scenario!=='cancel'});
+    const record={id:'prior',root:h.root,branch:'main',head:B,remote:'https://github.com/student/app.git',page:'https://github.com/student/app',type:'push',accountId:'1',kind:'network',committed:true,pushStarted:true};
+    h.stored.set('zero.pendingSync.v1:prior',record);
+    await h.commands.get('zero.checkPush')();
+    assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,0);assert.deepEqual(h.activeRecords().map(row=>[row.kind,row.pushStarted]),[['ready',false]]);
+    if(scenario==='diverged')h.afterWarning=async()=>{h.remoteHead=OTHER;};
+    await h.commands.get('zero.retryBranchSync')();
+    assert.match(h.warnings.at(-1).message,/Retry syncing this saved commit/);
+    if(scenario==='confirmed'){assert.deepEqual(h.errors,[]);assert.deepEqual(h.pushes,[['push',record.remote,`${B}:refs/heads/main`]]);assert.deepEqual(h.activeRecords(),[]);}
+    else {assert.equal(h.pushes.length,0);assert.equal(h.activeRecords().length,1);if(scenario==='diverged')assert.match(h.errors.at(-1),/Check GitHub status again/);}
+  });
 });
 test('compatibility retry refuses other account, destination or branch groups',async t=>{
   for(const drift of ['account','destination','branch'])await t.test(drift,async t=>{

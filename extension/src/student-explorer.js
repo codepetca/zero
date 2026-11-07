@@ -9,7 +9,7 @@ const exec = promisify(execFile);
 const {readProjectModel,ordinaryEntries,isToolingPath} = require('./project-explorer-model');
 const {resolveAuthoringTarget} = require('./file-targets');
 const {authoringLocation} = require('./explorer-labels');
-const {readStudentFileStatus} = require('./student-file-status');
+const {readStudentFileStatus,assertNoPromisor} = require('./student-file-status');
 const {refuseFilters} = require('./git-filter-guard');
 
 // Tree nodes are navigation data. Every action resolves its project and canonical
@@ -120,8 +120,6 @@ function createStudentExplorer(vscode, host) {
       if(!parent) {
         const result=[folder(snapshot,'java',snapshot.codeRoot,'code'),folder(snapshot,'resources',snapshot.assetsRoot,'assets')];
         if(snapshot.statusUnavailable)result.push(node({kind:'message',label:'File change status unavailable',detail:'Open Source Control to check the project changes.'}));
-        if(snapshot.unsaved)result.push(node({kind:'message',label:'Save open files before discarding changes',detail:'Save or undo all open file edits before discarding project changes.'}));
-        if(snapshot.changes.hasCommittedHead===false&&snapshot.changes.verifiedUnbornHead!==true)result.push(node({kind:'message',label:'Commit the initial project or use Source Control to discard changes',detail:'The project history could not be verified. Inspect the repository in Source Control.'}));
         if(snapshot.libraries.length)result.push(node({kind:'libraries',root:snapshot.root,label:'Libraries'}));
         if(snapshot.otherEntries.length || [...snapshot.changes].some(([name,kind])=>kind==='deleted'&&!name.startsWith(snapshot.codeRoot+'/')&&!name.startsWith(snapshot.assetsRoot+'/')&&!isToolingPath(name)))result.push(node({kind:'other',root:snapshot.root,label:'Other project files'}));
         result.push(allFiles());return result;
@@ -282,9 +280,12 @@ function createStudentExplorer(vscode, host) {
       await requireCurrent();
       if(code&&code!==' M')return sourceControl();
       if(!code&&!dirty)return vscode.commands.executeCommand('vscode.open',target);
-      const env={...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_LITERAL_PATHSPECS:'1'};
+      const env={...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_ALLOW_PROTOCOL:'',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_LITERAL_PATHSPECS:'1'};
       const parents=[];let parent=snapshot.root;for(const part of value.relative.split('/').slice(0,-1)){parent=path.join(parent,part);const stat=await fs.lstat(parent);if(!stat.isDirectory()||stat.isSymbolicLink()||await fs.realpath(parent)!==parent)return sourceControl();parents.push({parent,stat});}
-      const git=async args=>(await exec('git',['--no-pager','--no-lazy-fetch','-c','core.fsmonitor=false','-c',`core.hooksPath=${require('node:os').devNull}`,...args],{cwd:snapshot.root,env,encoding:'buffer',timeout:10000,maxBuffer:1024*1024})).stdout;
+      const rawGit=async args=>(await exec('git',['--no-pager','-c','core.fsmonitor=false','-c',`core.hooksPath=${require('node:os').devNull}`,...args],{cwd:snapshot.root,env,encoding:'buffer',timeout:10000,maxBuffer:1024*1024})).stdout;
+      // Git before 2.45 lacks --no-lazy-fetch. Refuse promisor repositories
+      // before object access and deny every transport in the child environment.
+      const git=async args=>{if(['rev-parse','ls-tree','cat-file'].includes(args[0]))await assertNoPromisor(snapshot.root,(_root,configArgs)=>rawGit(configArgs));return rawGit(args);};
       const decode=bytes=>new TextDecoder('utf-8',{fatal:true}).decode(bytes);
       if(await fs.realpath(decode(await git(['rev-parse','--show-toplevel'])).trim())!==snapshot.root)return sourceControl();
       const inspect=async(_root,args)=>decode(await git(args));await refuseFilters(snapshot.root,inspect,{extra:[value.relative]});

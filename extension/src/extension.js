@@ -815,7 +815,7 @@ function activate(context, services = {}) {
         const result=await transport(root,args);
         if(repositoryLedger&&args.length===4&&args[0]==='ls-remote'&&args[1]==='--heads'&&args[2]===remote){
           const pending=ownPushes.get(args[3]),lines=typeof result==='string'?result.trim().split('\n'):[];
-          if(pending&&lines.length===1&&lines[0]===`${pending.head}\t${args[3]}`){const reconcile=binding=>{const authority=Object.freeze({...binding,assertCurrentNow(){binding.assertCurrentNow();assertProjectNow();authentication.assertCurrentNow(ticket);}});return repositoryLedger.withProvenance(root,authority,async tx=>{await assertProject(tx);await authentication.assertCurrent(ticket);let records=await tx.list();const seen=new Set(),selected=[];for(const reviewed of [pending,...allowedReminders]){
+          if(pending&&lines.length===1&&lines[0]===`${pending.head}\t${args[3]}`){const reconcile=async binding=>{const authority=Object.freeze({...binding,assertCurrentNow(){binding.assertCurrentNow();assertProjectNow();authentication.assertCurrentNow(ticket);}});const resolveConfirmed=async tx=>{await assertProject(tx);await authentication.assertCurrent(ticket);authority.assertCurrentNow();let records=await tx.list();const seen=new Set(),selected=[];for(const reviewed of [pending,...allowedReminders]){
             const included=allowIncludedPushes&&reviewed.type!=='local'&&pushOperation(reviewed)==='branch'&&reviewed.branch===pending.branch&&reviewed.remote===remote&&reviewed.accountId===ticket.session.accountId&&await includesSavedCommit(root,reviewed.head,pending.head);
             if(seen.has(reviewed.id)||reviewed.head!==pending.head&&!included||reviewed.type!=='local'&&reviewed.remote!==remote)continue;
             seen.add(reviewed.id);const current=records.find(row=>row.id===reviewed.id);if(!current||JSON.stringify(current)!==JSON.stringify(reviewed))throw new Error('The confirmed sync reminders changed. Inspect them before continuing.');selected.push(reviewed);
@@ -823,8 +823,13 @@ function activate(context, services = {}) {
           // Resolve the ref-only pending intent last so any interruption leaves
           // a durable inspection-required record.
           selected.sort((a,b)=>Number(a.kind==='ref-pending')-Number(b.kind==='ref-pending'));
-          for(let i=0;i<selected.length;i++){await assertProject(tx);await authentication.assertCurrent(ticket);records=await tx.list();for(const expected of selected.slice(i))if(!records.some(row=>row.id===expected.id&&JSON.stringify(row)===JSON.stringify(expected)))throw new Error('The confirmed sync reminders changed. Inspect them before continuing.');tx.assertCurrentNow();assertProjectNow();authentication.assertCurrentNow(ticket);await tx.resolve(selected[i].id,'confirmed');}
-          });};if(phaseBinding)await reconcile(phaseBinding);else await commitProvenance.withDeferredRefMutation(root,reconcile);ownPushes.delete(args[3]);}
+          for(let i=0;i<selected.length;i++){await assertProject(tx);await authentication.assertCurrent(ticket);records=await tx.list();for(const expected of selected.slice(i))if(!records.some(row=>row.id===expected.id&&JSON.stringify(row)===JSON.stringify(expected)))throw new Error('The confirmed sync reminders changed. Inspect them before continuing.');tx.assertCurrentNow();authority.assertCurrentNow();await tx.resolve(selected[i].id,'confirmed');}
+          };if(await supportsFileReminders(root))return repositoryLedger.withProvenance(root,authority,resolveConfirmed);
+          // Compatibility can reconcile an exact ordinary push receipt, but it
+          // cannot authorize included commits or retained history operations.
+          if(refOnlyOutcome||allowIncludedPushes||allowIncludedOperations||allowedReminders.some(row=>row.operation&&!['branch','merge'].includes(row.operation)))throw new Error('GitHub confirmed the push, but the shared sync reminders need inspection.');
+          authority.assertCurrentNow();return repositoryLedger.withTransaction(root,resolveConfirmed);
+          };if(phaseBinding)await reconcile(phaseBinding);else await commitProvenance.withDeferredRefMutation(root,reconcile);ownPushes.delete(args[3]);}
         }
         return result;
       })();
@@ -1048,6 +1053,7 @@ function activate(context, services = {}) {
     try {await fs.access(path.join(root,'.git','info','grafts'));return false;}catch(error){if(error.code!=='ENOENT')throw error;}
     try {await core.git(root,['--no-replace-objects','merge-base','--is-ancestor',older,newer],{env:Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key)))});return true;}catch{return false;}
   }
+  const isEarlierRemoteHead=(root,remoteHead,head)=>/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(remoteHead||'')&&remoteHead.length===head.length&&remoteHead!==head&&includesSavedCommit(root,remoteHead,head);
   async function syncCreatedBranch(root,created,remote,page,{updated=false,expectedAccount,expectedSession,expectedRevision,localRecordOnly,updateIntent,refOnlyOutcome,extraGuard,correction}={}) {
     const action=updated?'Updated':'Created';
     if(!remote){await rememberLocalCommit(root,created.branch,created.head);report(`${action} ${created.branch} locally · reconnect GitHub to sync`);return;}
@@ -1178,16 +1184,17 @@ function activate(context, services = {}) {
       const result=await github.checkUpload(root,record,{networkRun,beforeNetwork:async()=>{await assertProject();await auth.assertCurrent(ticket);await validateUpdates();}});
       confirmed=Boolean(result.confirmed);
       await assertProject();await auth.assertCurrent(ticket);await validateUpdates();
+      const ready=!confirmed&&['network','unconfirmed','changed','behind','ready'].includes(record.kind)&&reviewed.every(row=>row.operation!=='reftable-update')&&await isEarlierRemoteHead(root,result.remoteHead,record.head);
       const reconcile=async tx=>{
         const current=repositoryLedger?await tx.list():compatibilityRecords(root,record.branch);
         for(const snapshot of reviewed){const latest=current.find(row=>row.id===snapshot.id);if(!latest||JSON.stringify(latest)!==JSON.stringify(snapshot))throw new Error('The sync reminders changed during the check. Review them again.');}
         const authority=async()=>{await assertProject();await auth.assertCurrent(ticket);await validateUpdates();tx?.assertCurrentNow();assertGitProjectNow(root);auth.assertCurrentNow(ticket);};
-        if(!result.confirmed){await authority();await rememberPush({...record,kind:result.remoteHead===null?'remote-missing':'behind'},record.accountId,tx);}
+        if(!result.confirmed){await authority();await rememberPush({...record,kind:result.remoteHead===null?'remote-missing':ready?'ready':'behind',...(ready?{pushStarted:false}:{})},record.accountId,tx);}
         for(const snapshot of reviewed){if(!result.confirmed&&snapshot.operation==='reftable-update')continue;await authority();await clearPush(root,record.branch,snapshot,result.confirmed?'confirmed':'superseded',tx);}
       };
       if(repositoryLedger)await repositoryLedger.withTransaction(root,reconcile);else await reconcile();
       if(result.confirmed){await updateTracking(root,record.remote,record.branch,record.head);await refreshNativeGit(root);report(`GitHub confirmed ${record.head.slice(0,8)} on ${record.branch}`);}
-      else report(result.remoteHead===null?'GitHub branch is missing · review before syncing':'GitHub has not confirmed this commit · review the recovery action');
+      else report(result.remoteHead===null?'GitHub branch is missing · review before syncing':ready?'GitHub is behind this saved commit · review Retry sync':'GitHub has not confirmed this commit · review the recovery action');
     } finally {changing=false;await repositoryStatus({forceBranchCheck:confirmed});refresh();}
   }
   async function reconnectPush() {
@@ -1223,6 +1230,7 @@ function activate(context, services = {}) {
     await settleBranchCheck();if(isBusy())return;
     const missing=observedMissing(projectRoot);
     changing = true; refresh();
+    let reviewedAccountId;
     try {
       const root = await project();
       await lessonProjects.assertShareable(root);
@@ -1303,6 +1311,7 @@ function activate(context, services = {}) {
         await assertUpdateClean(root,updating?'updating':'merging');
         reportProgress('Checking GitHub access…');
         const ticket = await auth.capture();
+        reviewedAccountId=ticket.session.accountId;
         const reviewedSyncSession=auth.sessionId||null,reviewedSyncRevision=auth.revision;
         const destination = core.parseRepositoryUrl(await core.git(root,['remote','get-url','origin']));
         const assertProject = () => assertGitProject(root);
@@ -1394,7 +1403,7 @@ function activate(context, services = {}) {
       const title = kind === 'start' ? `Creating branch ${name}` : kind === 'sync' ? 'Updating from main' : kind==='updateBranch'?'Updating branch from GitHub':'Merging to main';
       if (vscode.window.withProgress) return await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title,cancellable:false},execute);
       return await execute();
-    } catch(error) {if(error.workflowRecovery)await rememberPush(error.workflowRecovery,auth.accountId);if (error.conflict) await conflictHelp();else if(error.nativeUpdateHandoff){await nativeUpdateHelp(error);return;}throw error;}
+    } catch(error) {if(error.workflowRecovery)await rememberPush(error.workflowRecovery,reviewedAccountId);if (error.conflict) await conflictHelp();else if(error.nativeUpdateHandoff){await nativeUpdateHelp(error);return;}throw error;}
     finally {mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0;changing=false;await repositoryStatus();refresh();void checkForMainUpdates();}
   }
   async function refreshNativeGit(root) {
@@ -1486,16 +1495,34 @@ function activate(context, services = {}) {
     try {
       const requireSavedProject=async()=>{await assertGitProject(root);if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save or undo your project editor changes before committing. Your edits are kept.');};
       await requireSavedProject();
+      const reviewedAuth=[auth.accountId,auth.sessionId,auth.revision];
+      accountId=reviewedAuth[0];
+      const sameAccount=()=>reviewedAuth[0]===auth.accountId&&reviewedAuth[1]===auth.sessionId&&reviewedAuth[2]===auth.revision;
+      const contextChanged=()=>new Error(`The GitHub account, repository or branch changed${knownMissing?' after the connection check':''}. Review the commit again; your edits are kept.`);
+      const reviewedBranch=await core.currentBranch(root,core.git);
+      const readOrigin=async()=>{
+        let urls,push;
+        try {urls=await core.git(root,['remote','get-url','--all','origin']);push=await core.git(root,['remote','get-url','--push','--all','origin']);}
+        catch(error){if((await core.git(root,['remote'])).split('\n').includes('origin'))throw error;return null;}
+        if(!urls&&!push)return null;
+        const remote=core.parseRepositoryUrl(urls).remote;
+        if(urls.includes('\n')||push.includes('\n')||core.parseRepositoryUrl(push).remote!==remote)throw contextChanged();
+        return remote;
+      };
+      const reviewedOrigin=await readOrigin();
+      if(!sameAccount())throw contextChanged();
       const message=typeof providedMessage==='string'?providedMessage:await vscode.window.showInputBox({title:'Commit',prompt:'What did you change?',validateInput:value=>value.trim()&&!value.includes('\0')?undefined:'Describe your changes in a short message.'});
       if(!message)return;
       if(!message.trim()||message.length>500||message.includes('\0'))throw new Error('Describe your changes in a short commit message.');
       await requireSavedProject();
+      if(!sameAccount())throw contextChanged();
       const guard=()=>assertGitProject(root);
       const beforeCommit=async reminderTx=>{
         await guard();await commitProvenance.assertFileRestoreClear(root);if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save your project files before committing. Your newer edits are kept.');
         captureMissing();
         if(knownMissing&&(!currentBranchObservation(knownMissing)||['root','remote','branch','head'].some(key=>knownMissing[key]!==initial[key])))throw new Error('The GitHub account, repository or branch changed after the connection check. Check it again before committing; your edits are kept.');
         const currentBranch=(await core.currentBranch(root,core.git)).trim();
+        if(currentBranch!==reviewedBranch||await readOrigin()!==reviewedOrigin||!sameAccount())throw contextChanged();
         const pending=await pushRecords(root,currentBranch,reminderTx);
         for(const record of pending){
           if(!knownPush(record)||pushOperation(record)!=='branch'||record.root!==root||record.branch!==currentBranch||record.remote!==initial.remote||!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(record.head||'')||typeof record.id!=='string'||!record.id||record.accountId!==undefined&&(typeof record.accountId!=='string'||!record.accountId)||record.pushStarted!==undefined&&typeof record.pushStarted!=='boolean'||record.committed!==undefined&&typeof record.committed!=='boolean')throw new Error('An earlier sync reminder needs inspection before committing. Your work is kept.');
@@ -1505,10 +1532,10 @@ function activate(context, services = {}) {
           const currentHead=(await core.git(root,['rev-parse','--verify','HEAD^{commit}'])).trim();const included=await includesSavedCommit(root,local.head,currentHead);
           if(!included)throw new Error('An earlier local commit is not in this branch. Review it in Source Control before committing; its reminder is kept.');
         }
-        const currentReminders=repositoryLedger?await allReminderRecords(root,reminderTx):pendingLedger.enumerable?compatibilityAll(root,currentBranch):undefined;if(commitReminderSnapshot!==undefined&&JSON.stringify(currentReminders)!==JSON.stringify(commitReminderSnapshot))throw new Error('The sync reminders changed. Review the commit again.');commitReminderSnapshot=currentReminders;reminderTx?.assertCurrentNow();
+        const currentReminders=repositoryLedger?await allReminderRecords(root,reminderTx):pendingLedger.enumerable?compatibilityAll(root,currentBranch):undefined;if(commitReminderSnapshot!==undefined&&JSON.stringify(currentReminders)!==JSON.stringify(commitReminderSnapshot))throw new Error('The sync reminders changed. Review the commit again.');commitReminderSnapshot=currentReminders;if(!sameAccount())throw contextChanged();reminderTx?.assertCurrentNow();
       };
       const result=await commitAndSync({root,message,guard,
-        prepare:async projectRoot=>{const plan=await github.prepareLocalCommit(projectRoot);if(!initial)initial=plan;return plan;},
+        prepare:async projectRoot=>{const plan=await github.prepareLocalCommit(projectRoot);if(!initial){if(plan.branch!==reviewedBranch||(plan.remote||null)!==reviewedOrigin||!sameAccount())throw contextChanged();initial=plan;}return plan;},
         commit:(plan,text)=>commitProvenance.withCommit(plan.root,async()=>{
           const execute=async tx=>{const result=await github.uploadPrepared(plan,text,{localOnly:true,beforeUpload:()=>beforeCommit(tx),onProgress:()=>{refreshFilesAfterCommitAttempt=true;}});if(result?.committed===true)refreshFilesAfterCommitAttempt=true;return {parent:plan.head||null,result};};
           return repositoryLedger?repositoryLedger.withTransaction(plan.root,execute):execute();
@@ -1526,9 +1553,13 @@ function activate(context, services = {}) {
             throw Object.assign(new Error('GitHub reported this branch missing. Review branch creation before syncing.'),{uploadRecovery:{root:plan.root,remote:plan.remote,page:plan.page,branch:plan.branch,head:plan.head,committed:true,pushStarted:false,kind:'remote-missing'}});
           }
           if(!plan.remote)throw Object.assign(new Error('Reconnect the GitHub repository to sync this commit.'),{kind:'missing-remote'});
+          const reviewAccount=()=>Object.assign(new Error('Review the GitHub account before syncing this saved commit.'),{reviewAccount:true});
+          if(!accountId||!sameAccount())throw reviewAccount();
           const uploadPlan=await github.prepareUpload(root);
           if(['root','remote','branch','head','status','fingerprint'].some(key=>uploadPlan[key]!==plan[key]))throw new Error('The project changed before sync. Review it again.');
-          const initialTicket=await auth.capture();
+          let initialTicket;
+          try {initialTicket=await auth.capture();}catch(error){if(!sameAccount())throw reviewAccount();throw error;}
+          if(!sameAccount()||initialTicket.session.accountId!==accountId)throw reviewAccount();
           selectedAuth=await selectUploadAuthentication({root,authentication:auth,initialTicket,repositories,repositoryUrl:plan.page,assertCurrentProject:guard});
           const ticket=selectedAuth.ticket,activeAuth=selectedAuth.authentication;accountId=ticket.session.accountId;
           const networkRun=await operationTransport(plan.remote,{root,authentication:activeAuth,ticket,permissions:selectedAuth.permissions,identity:selectedAuth.identity,reminderSnapshot:commitReminderSnapshot,assertProject:guard,assertProjectNow:()=>assertGitProjectNow(root)});
@@ -1543,7 +1574,7 @@ function activate(context, services = {}) {
         report(result.newerChanges||dirtyEditors?'Committed · synced to GitHub · newer edits kept':'Committed · synced to GitHub');
       } else {
         if(result.error.deferLocalSync){deferredLocalSync=true;try{await rememberLocalCommit(root,result.saved.branch,result.saved.head);}catch(error){throw new Error(`The commit ${result.saved.head} was saved locally, but its sync reminder could not be recorded. Inspect project history before syncing.`);}report('Committed locally · earlier sync needs review','The earlier sync reminder is kept. Review it before syncing these commits.');return;}
-        if(!initial.remote) {await rememberLocalCommit(root,result.saved.branch,result.saved.head);report('Committed locally · reconnect GitHub to sync');return;}
+        if(!initial.remote||result.error.reviewAccount) {await rememberLocalCommit(root,result.saved.branch,result.saved.head);report(result.error.reviewAccount?'Committed locally · review GitHub before syncing':'Committed locally · reconnect GitHub to sync');return;}
         const failure=result.error.uploadRecovery||{root,remote:initial.remote,page:initial.page,branch:result.saved.branch,head:result.saved.head,committed:true,pushStarted:false,kind:github.gitError(result.error,'sync').kind};
         await rememberPush(failure,accountId);report('Committed locally · sync needs attention',result.error.recoveryPath?`${result.error.message} Lock: ${result.error.recoveryPath}`:gitRecoveryPanel.uploadMessage(failure));
       }
@@ -2133,6 +2164,7 @@ function activate(context, services = {}) {
         const descendant=plan.head!==record.head||Boolean(retryReminderSnapshot?.some(row=>row.type!=='local'&&pushOperation(row)==='branch'&&row.branch===plan.branch&&row.head!==plan.head));
         const missing=retryReminderSnapshot.some(row=>samePushGroup(row,record)&&row.kind==='remote-missing') || Boolean(branchRemoteStatus&&currentBranchObservation(branchRemoteStatus)&&branchRemoteStatus.state==='remote-missing');
         const mainUpdateIntents=retryReminderSnapshot.filter(row=>row.operation==='reftable-update'&&row.branch==='main'&&samePushGroup(row,record));if(mainUpdateIntents.length>1)throw new Error('Several main updates need inspection before syncing.');const mainUpdateIntent=mainUpdateIntents[0];if(mainUpdateIntent&&descendant)throw new Error('The local main or its sync reminders changed. Review the retained update before syncing.');
+        const reviewExact=!mainUpdateIntent&&!missing&&!descendant&&record.kind==='ready';
         if(!(mainUpdateIntent?['ready','network','behind','unconfirmed','changed','remote-missing']:descendant?['ready','network','behind','unconfirmed','changed','remote-missing']:missing?['ready','network','unconfirmed','changed','remote-missing']:['ready','network']).includes(record.kind))throw new Error(!descendant&&record.kind==='behind'?'There are no newer saved commits to sync. Update this branch from GitHub first, then review its saved commits.':'Check GitHub status or resolve the indicated issue before retrying.');
         if(!mainUpdateIntent&&!missing&&!descendant&&record.pushStarted!==false)throw new Error('A push may have started. Check GitHub status before retrying.');
         ticket=await auth.capture();if(!record.accountId)throw new Error('The earlier sync is not bound to a GitHub account. Inspect its reminder before syncing.');
@@ -2167,6 +2199,7 @@ function activate(context, services = {}) {
           allowedRetryReminders=retryReminderSnapshot.filter(row=>row.type!=='local'&&samePushGroup(row,record));
           allowedRetryReminders.push(...corrections);
           if(missing&&!mainUpdateIntent){const detail=`Repository: ${plan.page}\nBranch: ${plan.branch}\nDestination ref: refs/heads/${plan.branch}\nSaved commit: ${plan.head}\n\nGitHub reported this branch missing. Syncing will create it if it remains absent. The check and push are not atomic: if someone creates the branch in between, Git may accept a fast-forward update. Zero will push without force; other edits stay on your computer.`;if(await vscode.window.showWarningMessage('Sync this missing GitHub branch?',{modal:true,detail},'Sync branch')!=='Sync branch')return;}
+          if(reviewExact){const detail=`Repository: ${plan.page}\nBranch: ${plan.branch}\nSaved commit: ${plan.head}\n\nZero will check that GitHub still has an earlier commit in this branch, then push without force. If the branch is deleted between the check and the push, it may be recreated. Other edits stay on your computer.`;if(await vscode.window.showWarningMessage('Retry syncing this saved commit?',{modal:true,detail},'Sync commit')!=='Sync commit')return;}
         }
         if(mainUpdateIntent){const detail=`Sync the reviewed update ${plan.head} to GitHub main only if main still equals ${mainUpdateIntent.reviewedRemoteHead}. A confirmed matching update needs no push. The final check and non-force push are not atomic: main deleted in between could be recreated, and main rewound in between could be fast-forwarded. Recovery copies and unrelated reminders are kept.`;if(await vscode.window.showWarningMessage('Review update to GitHub main?',{modal:true,detail},'Sync main')!=='Sync main')return;}
         // Compatibility mode has no repository transaction gate in the
@@ -2175,7 +2208,7 @@ function activate(context, services = {}) {
         let ownPushAttempt;
         const beforeUpload=async()=>{
           await guard();await auth.assertCurrent(ticket);await validateUpdateIntents(retryReminderSnapshot);
-          if(descendant||missing||!repositoryLedger){
+          if(descendant||missing||reviewExact||!repositoryLedger){
             const current=await github.prepareUpload(root);
             if(['root','remote','branch','head','status','fingerprint'].some(key=>current[key]!==plan[key]))throw new Error('The project changed after confirmation. Review the saved commits again.');
             let reminders=repositoryLedger?await allReminderRecords(root):compatibilityAll(root,plan.branch);
@@ -2193,6 +2226,7 @@ function activate(context, services = {}) {
         const mainIntent=mainUpdateIntent;
         if(mainIntent){const checked=await github.checkUpload(root,mainIntent,{networkRun,beforeNetwork:beforeUpload});if(checked.confirmed){await beforeUpload();await repositoryLedger.withTransaction(root,async tx=>{const rows=await tx.list();for(const reviewed of allowedRetryReminders){const latest=rows.find(row=>row.id===reviewed.id);if(!latest||JSON.stringify(latest)!==JSON.stringify(reviewed))throw new Error('The sync reminders changed. Review them again.');}await validateUpdateIntents(allowedRetryReminders);tx.assertCurrentNow();assertGitProjectNow(root);auth.assertCurrentNow(ticket);for(const reviewed of allowedRetryReminders)await tx.resolve(reviewed.id,'confirmed');});confirmed=true;await updateTracking(root,plan.remote,plan.branch,plan.head);await refreshNativeGit(root);report('GitHub confirmed the updated main');return;}if(checked.remoteHead!==mainIntent.reviewedRemoteHead)throw new Error('GitHub main changed or is missing. The local update and recovery copies are kept; review main before syncing.');}
         if(missing&&!mainIntent){const checked=await github.checkUpload(root,record,{networkRun,beforeNetwork:beforeUpload});if(checked.confirmed||checked.remoteHead!==null)throw new Error('The GitHub branch now exists. Check its current state before syncing.');}
+        if(reviewExact){const checked=await github.checkUpload(root,record,{networkRun,beforeNetwork:beforeUpload});if(checked.confirmed||!await isEarlierRemoteHead(root,checked.remoteHead,plan.head))throw new Error('Check GitHub status again before retrying this saved commit.');}
         let observedDescendant=false;
         if(descendant&&!mainIntent){
           let checkedCount=0,allAtHead=true;

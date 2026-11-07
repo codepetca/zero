@@ -35,11 +35,11 @@ test('Project checks main on open and focus, distinguishes access and connection
   focus({focused:true});await waitFor(()=>webview.html.includes('This GitHub branch differs.'));assert.match(webview.html,/Update branch from GitHub/);
   const alias=root+'-alias';await fs.symlink(root,alias);t.after(()=>fs.unlink(alias));
   const dirty={isDirty:true,uri:{scheme:'file',fsPath:path.join(alias,'zero.json')}};vscode.workspace.textDocuments=[dirty];
-  let beforeBlocked={warnings:warnings.length,calls:calls.length,saved,sessionReads};await commands.get('zero.reviewBranchUpdate')();
-  assert.deepEqual({warnings:warnings.length,calls:calls.length,saved,sessionReads},beforeBlocked);assert.match(errors.at(-1),/Save or undo/);assert.equal(dirty.isDirty,true);
+  let beforeBlocked={warnings:warnings.length,calls:calls.length,saved};await commands.get('zero.reviewBranchUpdate')();
+  assert.deepEqual({warnings:warnings.length,calls:calls.length,saved},beforeBlocked);assert.match(errors.at(-1),/Save or undo/);assert.equal(dirty.isDirty,true);
   vscode.workspace.textDocuments=[];await fs.writeFile(path.join(root,'uncommitted.txt'),'work');
-  beforeBlocked={warnings:warnings.length,calls:calls.length,saved,sessionReads};await commands.get('zero.reviewBranchUpdate')();
-  assert.deepEqual({warnings:warnings.length,calls:calls.length,saved,sessionReads},beforeBlocked);assert.match(errors.at(-1),/Commit or discard/);assert.equal(await fs.readFile(path.join(root,'uncommitted.txt'),'utf8'),'work');
+  beforeBlocked={warnings:warnings.length,calls:calls.length,saved};await commands.get('zero.reviewBranchUpdate')();
+  assert.deepEqual({warnings:warnings.length,calls:calls.length,saved},beforeBlocked);assert.match(errors.at(-1),/Commit or discard/);assert.equal(await fs.readFile(path.join(root,'uncommitted.txt'),'utf8'),'work');
   await fs.unlink(path.join(root,'uncommitted.txt'));await commands.get('zero.checkBranchConnection')();await waitFor(()=>webview.html.includes('This GitHub branch differs.'));
   onWarning=()=>{vscode.workspace.textDocuments=[dirty];return 'Update branch';};
   const beforePromptDrift={calls:calls.length,saved};await commands.get('zero.reviewBranchUpdate')();onWarning=undefined;

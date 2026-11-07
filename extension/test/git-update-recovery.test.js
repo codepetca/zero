@@ -184,12 +184,15 @@ disabledSafetyTest('cancel restores committed checkpoint and refuses later worki
   await assert.rejects(workflow.resolveRecovery(f.root, {path: 'Main.java', conflictId: 'file', side: 'local'}, {run: f.options.run}), /changed/);
   assert.equal(await fs.readFile(path.join(f.root, 'Main.java'), 'utf8'), 'external editing');
 });
-test('current remote feature updates independently from remote main', async t => {
+test('divergent remote feature hands off without changing local main or work', async t => {
   const f = await fixture(t); await core.git(f.root, ['checkout', '-b', 'feature']); await core.git(f.other, ['checkout', '-b', 'feature']);
   await commit(f.root, 'Local.java', 'local'); const remoteHead = await commit(f.other, 'Feature.java', 'remote feature'); await f.publish('feature');
-  const result = await update(f, {target: 'branch'});
-  assert.equal(result.synced, true); assert.equal(result.remoteBranch, 'feature'); assert.equal(result.remoteHead, remoteHead);
+  const before = await core.git(f.root, ['rev-parse', 'HEAD']);
+  await assert.rejects(update(f, {target: 'branch'}), error => error.nativeUpdateHandoff === true && /different commits/.test(error.message));
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), before);
   assert.equal(await core.git(f.root, ['rev-parse', 'main']), f.original);
+  assert.equal(await core.git(f.other, ['rev-parse', 'HEAD']), remoteHead);
+  assert.equal(await fs.readFile(path.join(f.root, 'Local.java'), 'utf8'), 'local');
   await assert.rejects(update(f, {target: 'invalid'}), /Choose main/);
 });
 disabledSafetyTest('binary and modify/delete conflicts support guarded whole-file choices', async t => {
