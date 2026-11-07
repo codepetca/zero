@@ -225,21 +225,22 @@ test('Merge recovery retains the account captured before a session change',async
   assert.equal(h.pushes.length,0);assert.match(h.errors.at(-1),/Interrupted confirmation/);
   assert.deepEqual(h.activeRecords().map(row=>[row.operation,row.accountId,row.head]),[['merge','1',B]]);
 });
-test('production compatibility storage resolves an exact confirmed ordinary push',async t=>{
+const productionCompatibilityOnly={skip:process.platform==='win32'&&'The extension does not select the production repository adapter on Windows.'};
+test('production compatibility storage resolves an exact confirmed ordinary push',productionCompatibilityOnly,async t=>{
   const h=await harness(t,{productionCompatibility:true});
   await h.sync();
   assert.deepEqual(h.errors,[]);assert.deepEqual(h.pushes,[['push','https://github.com/student/app.git',`${B}:refs/heads/main`]]);
   assert.deepEqual(h.activeRecords(),[]);assert.ok([...h.stored.values()].some(row=>row?.reason==='confirmed'&&row.record?.head===B));
   assert.match(h.logs.join('\n'),/workspace reminder compatibility storage/);
 });
-test('production compatibility storage refuses descendant retry before review or transport',async t=>{
+test('production compatibility storage refuses descendant retry before review or transport',productionCompatibilityOnly,async t=>{
   const h=await harness(t,{productionCompatibility:true});
   const earlier={id:'earlier',root:h.root,branch:'main',head:A,remote:'https://github.com/student/app.git',page:'https://github.com/student/app',type:'push',accountId:'1',kind:'network',committed:true,pushStarted:true};
   h.stored.set('zero.pendingSync.v1:earlier',earlier);
   const checks=h.checks;
   await h.commands.get('zero.retryBranchSync')();
   assert.match(h.errors.at(-1),/requires shared sync reminder storage/);assert.deepEqual(h.warnings,[]);assert.deepEqual(h.pushes,[]);assert.equal(h.syncs,0);assert.equal(h.checks,checks);
-  assert.deepEqual(h.activeRecords(),[earlier]);
+  assert.deepEqual(h.activeRecords(),[earlier]);assert.match(h.logs.join('\n'),/workspace reminder compatibility storage/);
 });
 test('new branch completion immediately schedules current branch and main checks',async t=>{
   const h=await harness(t,{branch:'feature'}),before=h.checks;await h.commands.get('zero.startChange')();
