@@ -46,13 +46,56 @@ test('trust revoked during the asynchronous project lookup prevents replacement'
  assert.equal((await readSavedBuilder(h.root)).profileHash,h.old.profileHash);assert.ok(h.errors.length);
 });
 
-test('core-only update is offered before browser build even when browser tooling is current',async t=>{
+test('current browser tooling runs without changing an older core',async t=>{
  const h=await fixture(t,{current:true}),upgrade=require('../src/project-update'),originalPlan=upgrade.planUpdate,originalApply=upgrade.applyUpdate;let applies=0;
  t.after(()=>{upgrade.planUpdate=originalPlan;upgrade.applyUpdate=originalApply;});
+ const originalCore=await fs.readFile(path.join(h.root,'zero-core.json')),originalBuilder=(await readSavedBuilder(h.root)).profileHash;
  upgrade.planUpdate=async()=>({changed:true,coreChanged:true,builderChanged:false});
  upgrade.applyUpdate=async(_plan,{assertCurrent})=>{await assertCurrent();applies++;return {backupPath:'/backup'};};
  await h.commands.get('zero.exportWeb')();
- assert.equal(applies,1);assert.equal(h.attempts,1);assert.equal(h.prompts[0][1].detail,'This may cause your project to stop working. The updated Zero files include their license in .zero-build/src/web-export/notices; your existing project LICENSE stays unchanged.');assert.deepEqual(h.errors,[]);
+ assert.equal(applies,0);assert.equal(h.attempts,1);assert.equal(h.completed,1);assert.equal(h.prompts.length,0);assert.deepEqual(h.errors,[]);
+ assert.deepEqual(await fs.readFile(path.join(h.root,'zero-core.json')),originalCore);assert.equal((await readSavedBuilder(h.root)).profileHash,originalBuilder);
+});
+test('real core-only update plan permits current browser tooling without altering core files',async t=>{
+ const h=await fixture(t,{current:true}),upgrade=require('../src/project-update'),core=require('../src/core-contract');
+ const recordPath=path.join(h.root,'zero-core.json'),record=JSON.parse(await fs.readFile(recordPath));
+ record.coordinate.version='0.2.9';const first=record.sources[0],sourcePath=path.join(h.root,first.path);
+ await fs.appendFile(sourcePath,'\n// Earlier recorded framework.\n');
+ first.sha256=format.sha256(Buffer.from(core.normalizeSource(await fs.readFile(sourcePath))));record.sourceSha256=format.sha256(Buffer.from(JSON.stringify(record.sources)));
+ await fs.writeFile(recordPath,JSON.stringify(record,null,2)+'\n');
+ const beforeCore=await fs.readFile(recordPath),beforeSource=await fs.readFile(sourcePath),beforeBuilder=(await readSavedBuilder(h.root)).profileHash;
+ const plan=await upgrade.planUpdate({projectRoot:h.root,extensionPath});assert.equal(plan.coreChanged,true);assert.equal(plan.builderChanged,false);
+ await h.commands.get('zero.exportWeb')();
+ assert.equal(h.attempts,1);assert.equal(h.completed,1);assert.equal(h.prompts.length,0);assert.deepEqual(h.errors,[]);
+ assert.deepEqual(await fs.readFile(recordPath),beforeCore);assert.deepEqual(await fs.readFile(sourcePath),beforeSource);assert.equal((await readSavedBuilder(h.root)).profileHash,beforeBuilder);
+ assert.ok(!(await fs.readdir(h.root)).some(name=>name.startsWith('.zero-update-')));
+});
+test('core-only browser action blocks dirty editor buffers before planning',async t=>{
+ const h=await fixture(t,{current:true});h.vscode.workspace.textDocuments=[{isDirty:true,uri:{fsPath:path.join(h.root,'src/main/java/Main.java')}}];
+ await h.commands.get('zero.exportWeb')();
+ assert.equal(h.attempts,0);assert.equal(h.completed,0);assert.equal(h.prompts.length,0);assert.ok(h.errors.some(message=>/save your project files/i.test(message)));
+});
+test('outdated browser tooling remains blocked without mutating the project',async t=>{
+ const h=await fixture(t),upgrade=require('../src/project-update'),originalApply=upgrade.applyUpdate;let applies=0;
+ t.after(()=>{upgrade.applyUpdate=originalApply;});upgrade.applyUpdate=async()=>{applies++;throw Error('must not apply');};
+ const originalCore=await fs.readFile(path.join(h.root,'zero-core.json')),originalBuilder=(await readSavedBuilder(h.root)).profileHash;
+ await h.commands.get('zero.exportWeb')();
+ assert.equal(applies,0);assert.equal(h.attempts,0);assert.equal(h.completed,0);assert.equal(h.prompts.length,0);assert.match(h.errors.at(-1),/temporarily unavailable/i);
+ assert.deepEqual(await fs.readFile(path.join(h.root,'zero-core.json')),originalCore);assert.equal((await readSavedBuilder(h.root)).profileHash,originalBuilder);
+});
+test('core-only browser check stops when trust changes during planning',async t=>{
+ const h=await fixture(t,{current:true}),upgrade=require('../src/project-update'),originalPlan=upgrade.planUpdate;
+ t.after(()=>{upgrade.planUpdate=originalPlan;});
+ upgrade.planUpdate=async()=>{h.vscode.workspace.isTrusted=false;return {changed:true,coreChanged:true,builderChanged:false};};
+ await h.commands.get('zero.exportWeb')();
+ assert.equal(h.attempts,0);assert.equal(h.completed,0);assert.equal(h.prompts.length,0);assert.ok(h.errors.length);
+});
+test('incomplete project update still blocks browser actions with current tooling',async t=>{
+ const h=await fixture(t,{current:true}),folder=path.join(h.root,'.zero-update-blocked1');
+ await fs.mkdir(folder);await fs.writeFile(path.join(folder,'journal.json'),'{}');
+ await h.commands.get('zero.exportWeb')();
+ assert.equal(h.attempts,0);assert.equal(h.completed,0);assert.equal(h.prompts.length,0);assert.match(h.errors.at(-1),/incomplete.*recover/i);
+ assert.equal(await fs.readFile(path.join(folder,'journal.json'),'utf8'),'{}');
 });
 test('explicit update and legacy alias both offer the combined action; dirty buffers prevent review',async t=>{
  const h=await fixture(t,{current:true}),upgrade=require('../src/project-update'),originalPlan=upgrade.planUpdate,originalApply=upgrade.applyUpdate;let applies=0;

@@ -2444,7 +2444,10 @@ function activate(context, services = {}) {
     const plan=await upgrade.planUpdate({projectRoot:root,extensionPath:context.extensionPath||path.resolve(__dirname,'..')});
     await current();
     if(!plan.changed)return false;
-    throw new Error('Project update and recovery are temporarily unavailable. Your project and recovery copies are kept.');
+    // Browser actions can use a verified current builder without changing an
+    // older core. The saved builder independently verifies itself before use.
+    if(required&&plan.builderChanged===false)return false;
+    throw new Error('Project update and recovery are temporarily unavailable. Your project and recovery copies are kept. To use current tooling, create a new Zero project and carefully copy your source files and assets after making a backup.');
     const version=require('../package.json').version;
     const detail='This may cause your project to stop working. The updated Zero files include their license in .zero-build/src/web-export/notices; your existing project LICENSE stays unchanged.';
     const updateChoice={title:'Update Project'};

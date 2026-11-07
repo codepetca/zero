@@ -81,6 +81,8 @@ evaluates PostHog for optional structured operational signals and Clarity for
 supplementary website usability. Neither replaces compiler/tests or automatically
 instruments student-owned sites. No new collector or analytics deployment exists.
 
+Current local safety gate: automatic project update and recovery are unavailable. A browser action may continue when the saved browser builder is current and only the core differs; the action leaves the core unchanged. If the browser builder is outdated, create a current Zero project and carefully copy source and assets after backing up the original. The update policy below describes the intended workflow.
+
 Project longevity, owner direction 2026-10-23: the student's repository owns its
 framework source, native/browser build files, Zero-specific build tooling, version
 records and exact dependencies. Opening a project never upgrades them automatically.
