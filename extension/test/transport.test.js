@@ -7,7 +7,7 @@ const path = require('node:path');
 const core = require('../src/core');
 const {createTransport} = require('../src/transport');
 const {prepareUpload,uploadPrepared} = require('../src/github');
-const {withLocalMutation} = require('../src/commit-provenance');
+const {withLocalMutation,withReadOnly} = require('../src/commit-provenance');
 const {createAuthentication} = require('../src/authentication');
 const remote='https://github.com/student/app.git';const sha='a'.repeat(40);const token='TEST_SECRET_DO_NOT_PRINT';
 async function project(t) {
@@ -214,4 +214,222 @@ test('pinned fetch gets isolated credentials and no stdout, while arbitrary fetc
   assert.equal(calls, 1);
   const failed = createTransport(remote, async () => nativeSession(), {assertCurrentNow: nativeSession, spawn: async () => { throw Object.assign(new Error(token), {stderr: token}); }});
   await assert.rejects(failed(root, ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, sha]), error => !error.message.includes(token));
+});
+
+const featureBranch = 'feature/two';
+function deleteArgs(branch = featureBranch, expected = sha, destination = remote) {
+  const ref = `refs/heads/${branch}`;
+  return ['push', `--force-with-lease=${ref}:${expected}`, destination, `:${ref}`];
+}
+function deleteAuthorization(root, fields = {}) {
+  return {root, destination: remote, branch: featureBranch, expectedSha: sha, assertCurrentNow() {}, ...fields};
+}
+
+test('one reviewed feature delete dispatches the immutable exact lease with isolated credentials and a current Git binding', async t => {
+  const root = await project(t);
+  const featureSha = 'b'.repeat(64);
+  const events = [];
+  const args = deleteArgs(featureBranch, featureSha);
+  const authorization = deleteAuthorization(root, {expectedSha: featureSha, assertCurrentNow() { events.push('authorize'); }});
+  let options, hookPath;
+  const run = createTransport(remote, async () => {
+    events.push('authenticate');
+    args.splice(1, 3, remote, ':refs/heads/main');
+    return nativeSession();
+  }, {
+    assertCurrentNow: () => { events.push('session'); return nativeSession(); },
+    deleteAuthorization: authorization,
+    environment: {...process.env, GIT_DIR:'/incorrect', GIT_CONFIG:'/incorrect', GIT_TRACE_CURL:'1'},
+    spawn: async (command, sent, value) => {
+      events.push('spawn');
+      options = value;
+      assert.equal(command, 'git');
+      assert.deepEqual(sent, deleteArgs(featureBranch, featureSha));
+      assert.equal(options.cwd, root);
+      assert.equal(options.env.GIT_DIR, path.join(root, '.git'));
+      assert.equal(options.env.GIT_COMMON_DIR, path.join(root, '.git'));
+      assert.equal(options.env.GIT_CONFIG, undefined);
+      assert.equal(options.env.GIT_TRACE_CURL, undefined);
+      const config = new Map(settings(options.env));
+      assert.equal(config.get(`http.${remote}.extraHeader`), `Authorization: Basic ${Buffer.from(`x-access-token:${token}`).toString('base64')}`);
+      assert.equal(config.get(`http.${remote}.followRedirects`), 'false');
+      assert.equal(config.get('credential.helper'), '');
+      for (const [key, expected] of [['push.followTags', 'false'], ['push.gpgSign', 'false'], ['push.recurseSubmodules', 'no'], ['push.pushOption', ''], ['push.negotiate', 'false']]) assert.equal(config.get(key), expected);
+      hookPath = config.get('core.hooksPath');
+      assert.deepEqual(await fs.readdir(hookPath), []);
+      return {stdout: token};
+    }
+  });
+  authorization.branch = 'main';
+  authorization.expectedSha = sha;
+  authorization.assertCurrentNow = () => assert.fail('The original reviewed guard must be retained');
+  await withReadOnly(root, async binding => {
+    const reviewed = Object.freeze({...binding, assertCurrentNow() { binding.assertCurrentNow(); events.push('binding'); }});
+    assert.equal(await run(root, args, reviewed), '');
+    await assert.rejects(run(root, deleteArgs(featureBranch, featureSha), reviewed), /no longer authorized/);
+  });
+  assert.deepEqual(events, ['authenticate', 'session', 'binding', 'authorize', 'session', 'spawn', 'binding', 'authorize', 'session']);
+  assert.equal(options.env.GIT_CONFIG_COUNT, undefined);
+  await assert.rejects(fs.access(hookPath));
+  assert.doesNotMatch(await fs.readFile(path.join(root, '.git', 'config'), 'utf8'), /Authorization|TEST_SECRET/);
+});
+
+test('the delete capability rejects alternate refs, destinations, leases and unbound commands before authentication', async t => {
+  const root = await project(t);
+  let lookups = 0;
+  const options = {assertCurrentNow: nativeSession, spawn: async () => assert.fail('An unreviewed command reached Git')};
+  const authenticate = async () => { lookups++; return nativeSession(); };
+  for (const fields of [{branch:'main'}, {branch:'feature..other'}, {expectedSha:'0'.repeat(40)}, {expectedSha:'a'.repeat(41)}, {expectedSha:'a'.repeat(40)+'\n'}, {root:'relative'}, {destination:'origin'}, {assertCurrentNow:async () => {}}]) {
+    assert.throws(() => createTransport(remote, authenticate, {...options, deleteAuthorization: deleteAuthorization(root, fields)}), /no longer authorized/);
+  }
+  const ordinary = createTransport(remote, authenticate, options);
+  const reviewed = createTransport(remote, authenticate, {...options, deleteAuthorization: deleteAuthorization(root)});
+  await withReadOnly(root, async binding => {
+    await assert.rejects(ordinary(root, deleteArgs(), binding), /Only the reviewed/);
+    await assert.rejects(reviewed(root, deleteArgs()), /no longer authorized/);
+    await assert.rejects(reviewed(root, deleteArgs(), {...binding}), /no longer authorized/);
+    await assert.rejects(reviewed(root, deleteArgs(), Object.freeze({...binding, root:path.dirname(root)})), /binding is invalid/);
+    await assert.rejects(reviewed(path.dirname(root), deleteArgs(), binding), /Only the reviewed/);
+    for (const args of [
+      deleteArgs('main'), deleteArgs('feature/other'), deleteArgs(featureBranch, 'b'.repeat(40)),
+      deleteArgs(featureBranch, sha, 'origin'), deleteArgs(featureBranch, sha, 'https://github.com/other/app.git'),
+      ['push', remote, `:refs/heads/${featureBranch}`], ['push', '--delete', remote, featureBranch],
+      ['push', '--force-with-lease', remote, `:refs/heads/${featureBranch}`],
+      ['push', deleteArgs()[1], remote, ':refs/heads/main'], [...deleteArgs(), '--force'],
+      ['push', remote, deleteArgs()[1], deleteArgs()[3]]
+    ]) await assert.rejects(reviewed(root, args, binding), /Only the reviewed/);
+  });
+  assert.equal(lookups, 0);
+});
+
+const cleanupRead = (ref, destination = remote) => ['ls-remote', '--heads', destination, ref];
+const mainRef = 'refs/heads/main';
+const featureRef = `refs/heads/${featureBranch}`;
+
+test('cleanup authorizes only bound reads of the reviewed main and feature refs', async t => {
+  const root = await project(t);
+  const sent = [];
+  const run = createTransport(remote, nativeSession, {assertCurrentNow:nativeSession, deleteAuthorization:deleteAuthorization(root),
+    spawn:async (_, args, {env}) => {
+      sent.push(args[3]);
+      assert.equal(env.GIT_DIR, path.join(root, '.git'));
+      assert.equal(env.GIT_COMMON_DIR, env.GIT_DIR);
+      assert.equal(env.GIT_WORK_TREE, root);
+      return {stdout:args[3] === mainRef ? `${sha}\t${mainRef}\n` : ''};
+    }
+  });
+  await withReadOnly(root, async binding => {
+    await assert.rejects(run(root, cleanupRead(mainRef)), /no longer authorized/);
+    await assert.rejects(run(root, cleanupRead(featureRef), {...binding}), /no longer authorized/);
+    await assert.rejects(run(path.dirname(root), cleanupRead(featureRef), binding), /Only the reviewed/);
+    for (const args of [
+      cleanupRead('refs/heads/other'), cleanupRead('refs/heads/*'), cleanupRead(featureRef, 'origin'),
+      [...cleanupRead(mainRef), featureRef], ['ls-remote', '--tags', remote, mainRef],
+      ['push', remote, `${sha}:${mainRef}`], ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, sha]
+    ]) await assert.rejects(run(root, args, binding), /Only the reviewed/);
+    assert.equal(await run(root, cleanupRead(mainRef), binding), `${sha}\t${mainRef}`);
+    assert.equal(await run(root, cleanupRead(featureRef), binding), '');
+  });
+  assert.deepEqual(sent, [mainRef, featureRef]);
+});
+
+test('a URL-named alias introduced at any cleanup read cannot report a forged main or absent feature', async t => {
+  const root = await project(t);
+  const refs = [mainRef, featureRef, mainRef, featureRef];
+  const alias = `remote.${remote}.url`;
+  await withReadOnly(root, async binding => {
+    for (let addedAt = 0; addedAt < refs.length; addedAt++) {
+      let reads = 0, dispatched = 0;
+      const run = createTransport(remote, async () => {
+        if (reads++ === addedAt) await core.git(root, ['config', '--local', alias, 'https://github.com/other/app.git']);
+        return nativeSession();
+      }, {assertCurrentNow:nativeSession, deleteAuthorization:deleteAuthorization(root), spawn:async (_, args) => {
+        dispatched++;
+        return {stdout:args[3] === mainRef ? `${sha}\t${mainRef}` : ''};
+      }});
+      try {
+        for (const ref of refs.slice(0, addedAt)) await run(root, cleanupRead(ref), binding);
+        await assert.rejects(run(root, cleanupRead(refs[addedAt]), binding), /no longer authorized/);
+        assert.equal(dispatched, addedAt);
+      } finally { await core.git(root, ['config', '--local', '--unset-all', alias]); }
+    }
+  });
+});
+
+test('an empty cleanup read cannot confirm absence after its binding becomes invalid during the child', async t => {
+  const root = await project(t);
+  let active = true;
+  const run = createTransport(remote, nativeSession, {assertCurrentNow:nativeSession, deleteAuthorization:deleteAuthorization(root),
+    spawn:async () => { active = false; return {stdout:''}; }
+  });
+  await withReadOnly(root, async binding => {
+    const reviewed = Object.freeze({...binding, assertCurrentNow() { binding.assertCurrentNow(); return active; }});
+    await assert.rejects(run(root, cleanupRead(featureRef), reviewed), error => error.kind === 'changed');
+  });
+});
+
+test('an ordinary authenticated command cannot be mutated into a delete while awaiting GitHub access', async t => {
+  const root = await project(t);
+  const upload = ['push', remote, `${sha}:refs/heads/main`];
+  const args = [...upload];
+  let calls = 0;
+  const run = createTransport(remote, async () => {
+    args.splice(0, args.length, ...deleteArgs('main'));
+    return nativeSession();
+  }, {assertCurrentNow:nativeSession, spawn:async (_, sent) => {
+    calls++;
+    assert.deepEqual(sent, upload);
+    return {stdout:''};
+  }});
+  await run(root, args);
+  assert.equal(calls, 1);
+});
+
+test('delete rejects changed guard or binding, authentication loss, and ambiguous Git destination before dispatch', async t => {
+  const root = await project(t);
+  let calls = 0;
+  const options = {assertCurrentNow:nativeSession, spawn:async () => { calls++; return {stdout:''}; }};
+  await withReadOnly(root, async binding => {
+    let active = true;
+    const run = createTransport(remote, async () => { active = false; return nativeSession(); }, {...options,
+      deleteAuthorization:deleteAuthorization(root, {assertCurrentNow() { return active; }})
+    });
+    await assert.rejects(run(root, deleteArgs(), binding), /no longer authorized/);
+    const promised = createTransport(remote, nativeSession, {...options, deleteAuthorization:deleteAuthorization(root, {assertCurrentNow:() => Promise.reject(new Error(token))})});
+    await assert.rejects(promised(root, deleteArgs(), binding), error => error.kind === 'changed' && !error.message.includes(token));
+    const ordinary = createTransport(remote, nativeSession, {...options, deleteAuthorization:deleteAuthorization(root)});
+    const stale = Object.freeze({...binding, assertCurrentNow() { throw new Error('Binding expired'); }});
+    await assert.rejects(ordinary(root, deleteArgs(), stale), /Binding expired/);
+    const signedOut = createTransport(remote, nativeSession, {...options, assertCurrentNow:() => undefined, deleteAuthorization:deleteAuthorization(root)});
+    await assert.rejects(signedOut(root, deleteArgs(), binding), /sign-in changed/);
+    for (const [key, value] of [[`remote.${remote}.url`, 'https://github.com/other/app.git'], ['url.https://evil.test/.pushInsteadOf', 'https://github.com/']]) {
+      await core.git(root, ['config', '--local', key, value]);
+      try { await assert.rejects(ordinary(root, deleteArgs(), binding), /no longer authorized/); }
+      finally { await core.git(root, ['config', '--local', '--unset-all', key]); }
+    }
+  });
+  assert.equal(calls, 0);
+});
+
+test('GitHub lease, protection and authentication failures are redacted and never retried', async t => {
+  const root = await project(t);
+  await withReadOnly(root, async binding => {
+    for (const [reason, kind] of [['stale info', 'changed'], ['protected branch hook declined', 'protected'], ['Authentication failed', 'auth']]) {
+      let calls = 0, options, hookPath;
+      const run = createTransport(remote, nativeSession, {assertCurrentNow:nativeSession, deleteAuthorization:deleteAuthorization(root),
+        spawn:async (_, args, value) => {
+          calls++;
+          assert.deepEqual(args, deleteArgs());
+          options = value;
+          hookPath = new Map(settings(options.env)).get('core.hooksPath');
+          throw Object.assign(new Error(token), {stderr:`${reason} ${token}`});
+        }
+      });
+      await assert.rejects(run(root, deleteArgs(), binding), error => error.kind === kind && !error.message.includes(token));
+      await assert.rejects(run(root, deleteArgs(), binding), /no longer authorized/);
+      assert.equal(calls, 1);
+      assert.equal(options.env.GIT_CONFIG_COUNT, undefined);
+      await assert.rejects(fs.access(hookPath));
+    }
+  });
 });

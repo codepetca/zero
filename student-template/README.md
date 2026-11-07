@@ -339,9 +339,10 @@ Then use this individual flow for each improvement:
    main. If GitHub refuses because main has newer work, choose **Update from main**.
    It merges GitHub main into the current feature without uploading; run and
    check the combined app, then retry Merge to main.
-4. After confirmed success, you are back on main. Zero safely removes the
-   unchanged finished local branch; its GitHub branch remains. If cleanup cannot
-   be completed safely, Zero keeps the local branch and tells you to check Output.
+4. Before merging, choose whether to delete the finished branch locally and on
+   GitHub; deletion is selected by default. After the confirmed merge, Zero
+   deletes only the reviewed branch when its safety checks pass. If cleanup is
+   partial or cannot be confirmed, Zero reports what happened in Output.
 
 Older kits may use different account/repository controls, with **Start a change**
 and different labels for committing, pushing and merging. Their installed controls remain

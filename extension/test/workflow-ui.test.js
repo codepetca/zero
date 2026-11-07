@@ -30,6 +30,8 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   let branch='main',branchRows,selectedSwitch,remote='https://github.com/student/app.git',mode='simulation',session={id:'session',account:{id:'1',label:'student'},accessToken:'NEVER_RENDER_TOKEN'},authEvent,provider,publishedState;
   let accessFailure,repositoryId=12,installationId=99,gitStatus='',warningChoice,pendingRecovery,storedPending,storedLocal,currentHead='f'.repeat(40);const accesses=[];
   let saved=0,authCalls=0,prepared=0,uploadSnapshots=0,transportDispatches=0,synced=0,syncError,syncUpdates=false,startGate,syncGate,afterSyncFetch,afterCheckout,activeUncertain=false,checkoutWarning=false,syncApplied=0,executed=0,deleted=0,input,choice,prepareGate,pickGate,warningGate,finishError,cleanupError,failLockCleanup=false,nativeScm=true,finishDrift=false,recoveryPushes=0,switchGuardError,switchPreparations=0,forbidRawSwitchStatus=false,switchFingerprintDrift=false;
+  let cleanupSelection,afterFinish,retainedFinish,remoteFeatureHead,remoteDeleteError,localFeatureHead='f'.repeat(40);
+  const mergeReceipts=new WeakSet();
   const transportCalls=[],statusEnvironments=[];
   const commands=new Map(),picks=[],reviews=[],warnings=[],warningDetails=[],errors=[],notices=[],dispatch=[],deletions=[],logs=[],metadata={},progressRuns=[];
   core.assertRepositoryRoot=async()=>root;core.repositoryRoot=async()=>root;
@@ -38,30 +40,61 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   github.syncExistingHead=async(plan,{beforeUpload,networkRun})=>{await beforeUpload();await networkRun(root,['push',plan.remote,`${plan.head}:refs/heads/${plan.branch}`]);await networkRun(root,['ls-remote','--heads',plan.remote,`refs/heads/${plan.branch}`]);return {uploaded:true,head:plan.head,branch:plan.branch};};
   github.checkUpload=async(_root,_record,{beforeNetwork})=>{await beforeNetwork();return {confirmed:false,remoteHead:syncUpdates?'a'.repeat(40):null};};
   const plan = () => ({root,remote,page:remote?'https://github.com/student/app':'',branch,status:gitStatus,head:'f'.repeat(40),mainHead:'a'.repeat(40),remoteMainHead:'a'.repeat(40),summary:'Reviewed change',changedPaths:['Main.java']});
-  workflow.prepareStart=async()=>{prepared++;if(startGate)await startGate;return plan();};workflow.prepareFinish=async()=>{prepared++;if(finishDrift)throw Object.assign(new Error('Pending change'),{pendingFinishDrift:true});const captured=plan();if(prepareGate)await prepareGate;return captured;};
+  workflow.prepareStart=async()=>{prepared++;if(startGate)await startGate;return plan();};workflow.prepareFinish=async()=>{prepared++;if(finishDrift)throw Object.assign(new Error('Pending change'),{pendingFinishDrift:true});const captured={...plan(),pending:retainedFinish};if(prepareGate)await prepareGate;return captured;};
   const phaseLock=path.join(root,'.git','zero-commit-provenance.lock');
   workflow.startPrepared=async(_,options)=>{assert.ok(await fs.stat(phaseLock));await options.beforeMutation();await options.beforeCheckout();executed++;branch='add-score';afterCheckout?.();return {branch,head:'f'.repeat(40),activeUncertain,checkoutWarning};};
   workflow.prepareSwitch=async(_root,name)=>{forbidRawSwitchStatus=false;switchPreparations++;if(switchGuardError)throw Error(switchGuardError);selectedSwitch=name;return {target:currentHead,branch,head:currentHead,status:gitStatus,startFingerprint:switchFingerprintDrift?String(switchPreparations):null};};workflow.switchPrepared=async(_,options)=>{await options.beforeMutation();branch='feature';return {branch};};
   workflow.prepareSync=async(_,options)=>{synced++;options.onProgress('Reading main on GitHub…');if(syncGate)await syncGate;await options.networkRun(root,['ls-remote','--heads',plan().remote,'refs/heads/main']);return plan();};
   workflow.syncPrepared=async(_,options)=>{await options.beforeNetwork();if(syncError)throw syncError;if(syncUpdates){await options.networkRun(root,['fetch','--no-tags','--no-recurse-submodules','--no-write-fetch-head',plan().remote,plan().remoteMainHead]);afterSyncFetch?.();await options.beforeMutation();syncApplied++;}return {updated:syncUpdates,branch,head:'f'.repeat(40)};};
-  workflow.finishPrepared=async(_,options)=>{assert.ok(await fs.stat(phaseLock));const beforeAccess=accesses.length;await options.beforeNetwork();assert.equal(accesses.length,beforeAccess,'The early session guard must not duplicate transport repository requests');if(finishError){executed++;throw finishError;}await options.networkRun(root,['push',plan().remote,`${plan().head}:refs/heads/main`]);await options.networkRun(root,['ls-remote','--heads',plan().remote,'refs/heads/main']);executed++;branch='main';return {finished:true,branch,finishedBranch:'add-score',head:'f'.repeat(40),featureHead:plan().head};};
+  workflow.finishPrepared=async(reviewed,options)=>{assert.ok(await fs.stat(phaseLock));const beforeAccess=accesses.length;await options.beforeNetwork();assert.equal(accesses.length,beforeAccess,'The early session guard must not duplicate transport repository requests');if(finishError){executed++;throw finishError;}await options.networkRun(root,['push',reviewed.remote,`${reviewed.head}:refs/heads/main`]);await options.networkRun(root,['ls-remote','--heads',reviewed.remote,'refs/heads/main']);executed++;branch='main';const result={finished:true,branch,finishedBranch:reviewed.branch,head:'f'.repeat(40),featureHead:reviewed.head,remote:reviewed.remote,page:reviewed.page};mergeReceipts.add(result);afterFinish?.();return result;};
   workflow.preparePendingFinishRecovery=async()=>plan();
   workflow.recoverPendingFinish=async(_,options)=>{if(options.allowPush){recoveryPushes++;return {recovered:true,branch,finishedHead:'b'.repeat(40),remoteHead:'b'.repeat(40)};}return {needsPush:true,candidate:'b'.repeat(40),page:'https://github.com/student/app'};};
   workflow.readRecovery=async()=>pendingRecovery;
-  workflow.deleteFinishedBranch=async(...args)=>{deletions.push(args);if(cleanupError)throw cleanupError;deleted++;if(failLockCleanup){const originalUnlink=fs.unlink;fs.unlink=async file=>{if(file===phaseLock){fs.unlink=originalUnlink;throw Error('simulated lock release failure');}return originalUnlink(file);};}};
+  workflow.consumeFinishedBranchCleanup=(cwd,result)=>{
+    assert.equal(cwd,root);assert.ok(mergeReceipts.delete(result));
+    return Object.freeze({root,branch:result.finishedBranch,featureHead:result.featureHead,head:result.head,remote:result.remote,page:result.page});
+  };
+  workflow.inspectFinishedBranchCleanup=async(cwd,name,head,options)=>{
+    assert.equal(cwd,root);assert.equal(name,'add-score');assert.equal(head,'f'.repeat(40));assert.equal(options.expectedMain,'f'.repeat(40));assert.ok(await fs.stat(phaseLock));
+    await options.beforeMutation();options.beforeMutationNow();
+    if(branch!=='main'||options.expectedRemote!==remote||localFeatureHead!==head)throw new Error('The project changed.');
+  };
+  workflow.deleteFinishedBranch=async(...args)=>{await workflow.inspectFinishedBranchCleanup(...args);deletions.push(args);if(cleanupError)throw cleanupError;deleted++;if(failLockCleanup){const originalUnlink=fs.unlink;fs.unlink=async file=>{if(file===phaseLock){fs.unlink=originalUnlink;throw Error('simulated lock release failure');}return originalUnlink(file);};}return {deleted:true};};
   const vscode={
     ProgressLocation:{Notification:15},
     authentication:{getSession:async(provider,scopes)=>{assert.equal(provider,'zero-github');assert.deepEqual(scopes,[]);authCalls++;return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();},registerAuthenticationProvider:(id,label,provider,options)=>{assert.equal(id,'zero-github');assert.equal(label,'Zero GitHub');assert.deepEqual(options,{supportsMultipleAccounts:false});return disposable();}},
     workspace:{isTrusted:true,registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saved++;return true;},createFileSystemWatcher:pattern=>pattern.startsWith('**/.git/{HEAD,config,')?{onDidCreate:fn=>{metadata.create=fn;return disposable();},onDidChange:fn=>{metadata.change=fn;return disposable();},onDidDelete:fn=>{metadata.delete=fn;return disposable();},dispose(){}}:{onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}},onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
     window:{withProgress:async(options,work)=>{const run={options,messages:[],active:true};progressRuns.push(run);try{return await work({report:({message})=>run.messages.push(message)});}finally{run.active=false;}},createOutputChannel:()=>({appendLine(text){logs.push(text);},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,value)=>{provider=value;return disposable();},registerTreeDataProvider:disposable,
-      showQuickPick:async(items,options)=>{picks.push({items,options});if(pickGate)await pickGate;return choice===undefined?undefined:items.find(item=>item.action===choice || item.command===choice || item.name===choice);},showInputBox:async()=>input,
+      showQuickPick:async(items,options)=>{picks.push({items,options});if(pickGate)await pickGate;if(options.canPickMany)return cleanupSelection==='cancel'?undefined:cleanupSelection==='keep'?[]:items.filter(item=>item.picked);return choice===undefined?undefined:items.find(item=>item.action===choice || item.command===choice || item.name===choice);},showInputBox:async()=>input,
       showWarningMessage:async (text,options,...actions)=>{warnings.push(text);warningDetails.push({options,actions});if(warningGate)await warningGate;return warningChoice;},
       showInformationMessage:async(text,options)=>{notices.push(text);if(options?.modal){reviews.push({text,options});assert.fail('Branch creation, merge and finished-branch cleanup must not confirm');}},showErrorMessage:async text=>{errors.push(text);}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async id=>{dispatch.push(id);},getCommands:async()=>nativeScm?['workbench.view.scm']:[]},
     env:{clipboard:{writeText:async()=>{}},openExternal:async()=>true},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
   const startPanels=require('./fixtures/start-page-panel').startPagePanels(vscode);
-  const oldLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){if(id==='./git-tracking')return {updateRemoteTracking:async()=>({updated:true})};if(id==='./transport')return {createTransport:(_remote,authenticate,{assertCurrentNow})=>async(_root,args,binding)=>{await authenticate();assertCurrentNow();if(args[0]==='push'){assert.ok(binding);binding.assertCurrentNow();assert.ok(await fs.stat(phaseLock));}transportDispatches++;transportCalls.push(args);return args[0]==='ls-remote'?`${plan().head}\t${args[3]}`:'';}};return id==='vscode'?textInputs(vscode):oldLoad.call(this,id,...args);};
+  const oldLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){
+    if(id==='./git-tracking')return {updateRemoteTracking:async()=>({updated:true})};
+    if(id==='./transport')return {createTransport:(destination,authenticate,{assertCurrentNow,deleteAuthorization})=>async(cwd,args,binding)=>{
+      await authenticate();assertCurrentNow();
+      if(args[0]==='push'||deleteAuthorization){assert.ok(Object.isFrozen(binding)&&binding);binding.assertCurrentNow();assert.ok(await fs.stat(phaseLock));}
+      else assert.equal(binding,undefined,'Only cleanup reads receive a live provenance binding');
+      if(deleteAuthorization&&args[0]==='push'){
+        assert.equal(deleteAuthorization.root,cwd);assert.equal(deleteAuthorization.destination,destination);
+        const ref=`refs/heads/${deleteAuthorization.branch}`;
+        assert.deepEqual(args,['push',`--force-with-lease=${ref}:${deleteAuthorization.expectedSha}`,destination,`:${ref}`]);
+        deleteAuthorization.assertCurrentNow();
+      }
+      transportDispatches++;transportCalls.push(args);
+      if(!deleteAuthorization)return args[0]==='ls-remote'?`${plan().head}\t${args[3]}`:'';
+      if(args[0]==='push'){
+        if(remoteDeleteError)throw remoteDeleteError;
+        remoteFeatureHead=null;return '';
+      }
+      const head=args[3]==='refs/heads/main'?plan().head:remoteFeatureHead;
+      return head===null?'':`${head}\t${args[3]}`;
+    }};
+    return id==='vscode'?textInputs(vscode):oldLoad.call(this,id,...args);
+  };
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
   const subscriptions=[],ledger=new Map();t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{keys:()=>[...ledger.keys(),...(storedPending?[`zero.gitUploadRecovery:${root}:${storedPending.branch}`]:[]),...(storedLocal?[`zero.localCommitPending:${root}:${storedLocal.branch}`]:[])],get:key=>ledger.has(key)?ledger.get(key):key.startsWith('zero.pendingSync.v1:')?undefined:key==='zero.webPublish.lastLive'?publishedState:key.startsWith('zero.gitUploadRecovery:')?(key===`zero.gitUploadRecovery:${root}:${storedPending?.branch}`?storedPending:undefined):key.startsWith('zero.localCommitPending:')?(key===`zero.localCommitPending:${root}:${storedLocal?.branch}`?storedLocal:undefined):true,update:async(key,value)=>{if(key.startsWith('zero.gitUploadRecovery:'))storedPending=value;else if(key.startsWith('zero.localCommitPending:'))storedLocal=value;else ledger.set(key,value);}}},{repositoryLedgerFactory,provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{async checkSetup(){return {};},async access(url,{ticket,permissions}){accesses.push({url,ticket,permissions});assert.equal(url,'https://github.com/student/app');assert.deepEqual(permissions,{contents:'write'});assert.equal(ticket.session.accountId,'1');assert.equal(ticket.session.accessToken,'NEVER_RENDER_TOKEN');if(accessFailure)throw accessFailure;return {ticket,repository:{id:repositoryId},installation:{id:installationId}};}}});
   const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes(`Current branch: ${branch}`));
@@ -177,7 +210,9 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   let releaseDirtyMerge;prepareGate=new Promise(resolve=>{releaseDirtyMerge=resolve;});const beforeDirtyMerge={prepared,executed,transportDispatches,saved};
   const dirtyPending=commands.get('zero.finishChange')();await waitFor(()=>prepared>beforeDirtyMerge.prepared);vscode.workspace.textDocuments=[dirtyMerge];releaseDirtyMerge();await dirtyPending;prepareGate=undefined;
   assert.equal(executed,beforeDirtyMerge.executed);assert.equal(transportDispatches,beforeDirtyMerge.transportDispatches);assert.equal(saved,beforeDirtyMerge.saved);assert.match(errors.at(-1),/Save or undo.*merging/);vscode.workspace.textDocuments=[];
-  finishDrift=true;warningChoice=undefined;await commands.get('zero.finishChange')();assert.equal(recoveryPushes,0,'Cancelling recovery does not push');assert.match(warningDetails.at(-1).options.detail,/bbbbbbbb.*github\.com\/student\/app/);warningChoice='Merge';await commands.get('zero.finishChange')();assert.equal(recoveryPushes,1,'Only explicit Merge retries the exact candidate');assert.equal(branch,'add-score','Recovery keeps newer work checked out');assert.match(webview.html,/Earlier merge confirmed/);finishDrift=false;warningChoice='Merge';const unrelatedMerge={isDirty:true,version:1,uri:{scheme:'file',fsPath:path.join(path.dirname(root),'unrelated-merge.txt')}};vscode.workspace.textDocuments=[unrelatedMerge];const mergeSaves=saved;const accessBeforeFinish=accesses.length,transportBeforeFinish=transportDispatches;await commands.get('zero.finishChange')();assert.equal(saved,mergeSaves);assert.equal(unrelatedMerge.isDirty,true);vscode.workspace.textDocuments=[];assert.equal(accesses.length,accessBeforeFinish+1,'Merge checks repository access once at push');assert.equal(transportDispatches,transportBeforeFinish+2,'Merge dispatches push and confirmation');assert.equal(deleted,0);assert.deepEqual(deletions,[],'Successful merge does not delete any local branch');assert.equal(reviews.length,0);assert.match(webview.html,/main<\/span>/);assert.match(webview.html,/>Merged to main · branch kept<\/p>/);assert.match(logs.at(-1),/local feature branch was kept/);assert.ok(!notices.some(text=>/Started add-score|Merged change and pushed main|Main updates added/.test(text)),'Successful Git outcomes never toast');
+  finishDrift=true;warningChoice=undefined;await commands.get('zero.finishChange')();assert.equal(recoveryPushes,0,'Cancelling recovery does not push');assert.match(warningDetails.at(-1).options.detail,/bbbbbbbb.*github\.com\/student\/app/);warningChoice='Merge';await commands.get('zero.finishChange')();assert.equal(recoveryPushes,1,'Only explicit Merge retries the exact candidate');assert.equal(branch,'add-score','Recovery keeps newer work checked out');assert.match(webview.html,/Earlier merge confirmed/);finishDrift=false;
+  cleanupSelection='keep';warningChoice='Merge';const unrelatedMerge={isDirty:true,version:1,uri:{scheme:'file',fsPath:path.join(path.dirname(root),'unrelated-merge.txt')}};vscode.workspace.textDocuments=[unrelatedMerge];const mergeSaves=saved;const accessBeforeFinish=accesses.length,transportBeforeFinish=transportDispatches;await commands.get('zero.finishChange')();cleanupSelection=undefined;
+  assert.equal(saved,mergeSaves);assert.equal(unrelatedMerge.isDirty,true);vscode.workspace.textDocuments=[];assert.equal(accesses.length,accessBeforeFinish+1,'Merge checks repository access once at push');assert.equal(transportDispatches,transportBeforeFinish+2,'Merge dispatches push and confirmation');assert.equal(deleted,0);assert.deepEqual(deletions,[],'Unchecking cleanup keeps the feature branch');assert.match(warningDetails.at(-1).options.detail,/Keep refs\/heads\/add-score locally and on GitHub/);assert.equal(reviews.length,0);assert.match(webview.html,/main<\/span>/);assert.match(webview.html,/>Merged to main · branch kept<\/p>/);assert.match(logs.at(-1),/local feature branch was kept/);assert.ok(!notices.some(text=>/Started add-score|Merged change and pushed main|Main updates added/.test(text)),'Successful Git outcomes never toast');
   publishedState={root,account:'1',resume:{repository:'https://github.com/student/app'}};provider.resolveWebviewView(candidate);
   assert.doesNotMatch(webview.html,/data-command="zero.openPublishedWeb"|data-command="zero.copyPublishedWebLink"/);
   assert.match(webview.html,/data-command="zero.publishAndOpenWeb"/);
@@ -370,6 +405,67 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
     assert.equal(transportCalls.filter(args=>args[0]==='push').length,beforeNoPush);
     const confirmedMarkers=[...ledger.entries()].filter(([key,value])=>key.startsWith('zero.resolvedSync.v1:')&&value.reason==='confirmed').map(([,value])=>value.id);
     assert.ok(confirmedMarkers.includes(confirmed.id),`${noPush} must reconcile the exact confirmed merge`);assert.ok(!confirmedMarkers.includes(unrelated.id));assert.ok(ledger.has('zero.pendingSync.v1:'+confirmed.id));assert.ok(ledger.has('zero.pendingSync.v1:'+unrelated.id));
+  }
+  assert.equal(deleted,0,'Recovery and Sync leave the feature branch alone');
+
+  ledger.clear();branch='add-score';warningChoice='Merge';cleanupSelection='cancel';
+  const beforeCleanupCancel={executed,deleted,transportDispatches,warnings:warnings.length};
+  await commands.get('zero.finishChange')();
+  assert.deepEqual({executed,deleted,transportDispatches,warnings:warnings.length},beforeCleanupCancel);
+  const cleanupPick=picks.at(-1);
+  assert.equal(cleanupPick.options.canPickMany,true);
+  assert.deepEqual(cleanupPick.items,[{label:'Delete add-score after the merge',detail:'Delete local refs/heads/add-score and GitHub refs/heads/add-score in https://github.com/student/app.',picked:true}]);
+  assert.match(webview.html,/>Merge cancelled<\/p>/);
+
+  cleanupSelection=undefined;warningChoice=undefined;
+  await commands.get('zero.finishChange')();
+  assert.deepEqual({executed,deleted,transportDispatches},{executed:beforeCleanupCancel.executed,deleted:beforeCleanupCancel.deleted,transportDispatches:beforeCleanupCancel.transportDispatches});
+  assert.match(warningDetails.at(-1).options.detail,/delete local refs\/heads\/add-score and GitHub refs\/heads\/add-score in https:\/\/github\.com\/student\/app/);
+
+  warningChoice='Merge';retainedFinish={id:'f'.repeat(40)};
+  const picksBeforeRetry=picks.length,dispatchesBeforeRetry=transportCalls.length;
+  await commands.get('zero.finishChange')();retainedFinish=undefined;
+  assert.equal(picks.length,picksBeforeRetry,'Retrying a retained finish omits cleanup');
+  assert.equal(deleted,0);
+  assert.deepEqual(transportCalls.slice(dispatchesBeforeRetry).map(args=>args[0]),['push','ls-remote']);
+
+  const ref='refs/heads/add-score',featureHead='f'.repeat(40);
+  branch='add-score';remoteFeatureHead=featureHead;
+  const dispatchesBeforeCleanup=transportCalls.length;
+  await commands.get('zero.finishChange')();
+  assert.deepEqual(transportCalls.slice(dispatchesBeforeCleanup),[
+    ['push',remote,`${featureHead}:refs/heads/main`],['ls-remote','--heads',remote,'refs/heads/main'],
+    ['ls-remote','--heads',remote,'refs/heads/main'],['ls-remote','--heads',remote,ref],
+    ['ls-remote','--heads',remote,'refs/heads/main'],
+    ['push',`--force-with-lease=${ref}:${featureHead}`,remote,`:${ref}`],['ls-remote','--heads',remote,ref]
+  ]);
+  assert.equal(deleted,1);assert.equal(remoteFeatureHead,null);
+  assert.match(webview.html,/>Merged to main · branch deleted<\/p>/);
+  assert.match(logs.at(-1),/local feature branch was deleted.*GitHub feature branch was deleted/);
+
+  for(const drift of ['local ref','GitHub ref','destination','installation','session','unconfirmed delete','local delete failure']) {
+    ledger.clear();branch='add-score';remoteFeatureHead=featureHead;localFeatureHead=featureHead;
+    const beforeRemote=remote,beforeInstallation=installationId,beforeSession=session;
+    afterFinish=()=>{
+      if(drift==='local ref')localFeatureHead='b'.repeat(40);
+      if(drift==='GitHub ref')remoteFeatureHead='b'.repeat(40);
+      if(drift==='destination')remote='https://github.com/student/other.git';
+      if(drift==='installation')installationId++;
+      if(drift==='session'){session={...session,id:'cleanup-sign-in-changed'};authEvent({provider:{id:'zero-github'}});}
+      if(drift==='unconfirmed delete')remoteDeleteError=new Error('Network disconnected');
+      if(drift==='local delete failure')cleanupError=Object.assign(new Error('Unconfirmed local deletion'),{refOutcomeUncertain:true});
+    };
+    const beforeDrift={errors:errors.length,dispatches:transportCalls.length,deleted};
+    await commands.get('zero.finishChange')();
+    const deletes=transportCalls.slice(beforeDrift.dispatches).filter(args=>args[0]==='push'&&args.length===4);
+    assert.equal(deleted,beforeDrift.deleted,`${drift} must not complete local deletion`);
+    assert.equal(deletes.length,['unconfirmed delete','local delete failure'].includes(drift)?1:0,drift);
+    assert.equal(errors.length,beforeDrift.errors,'Cleanup does not report a merge failure');
+    assert.match(webview.html,/>Merged to main · branch cleanup needs attention<\/p>/,drift);
+    if(drift==='local delete failure')assert.match(logs.at(-1),/Local branch deletion could not be confirmed.*GitHub feature branch was deleted/);
+    if(drift==='unconfirmed delete')assert.match(logs.at(-1),/local feature branch was kept.*GitHub branch deletion could not be confirmed/);
+    afterFinish=remoteDeleteError=cleanupError=undefined;remote=beforeRemote;installationId=beforeInstallation;
+    if(drift==='session'){session=beforeSession;authEvent({provider:{id:'zero-github'}});await new Promise(resolve=>setImmediate(resolve));}
   }
 
 });

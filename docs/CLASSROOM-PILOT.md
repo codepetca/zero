@@ -135,15 +135,16 @@ account/network trial. Current development checks mock authentication and transp
 
 - Upload the starting version on main. Choose New branch in the repository menu, cancel once
   and verify the branch/files are unchanged; then create a named branch. Make
-  and run a small app improvement, Commit & push to that branch, cancel Finish
-  once, then review/approve Finish. Confirm the completed SHA and files on remote
-  main, return to main and optional local branch cleanup. The remote change branch
-  remains. Simulation must not perform any branch/update/merge actions.
+  and run a small app improvement, Commit to that branch, cancel Merge once,
+  then review and approve Merge. Confirm the completed SHA and files on remote
+  main and the return to main. Test the default choice to delete the unchanged
+  finished branch locally and on GitHub, and the option to keep it. Simulation
+  must not perform any branch/update/merge actions.
 - In a disposable repository, test newer main changes. Expect Finish to pause
   after adding them to the change branch, then Run App and review Finish again.
   For a conflict, verify Source Control opens, files/merge state remain and the
   student can inspect/resolve/stage/commit before retrying. Record dirty-tree,
-  failed-upload and diverged-main messages; no force push/reset should occur.
+  failed-upload and diverged-main messages; no reset or forced history rewrite should occur.
 
 ## Decision and receipt
 

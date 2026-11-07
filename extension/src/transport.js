@@ -7,18 +7,44 @@ const {promisify} = require('node:util');
 const core = require('./core');
 const {assertNoUrlRewrites, gitError, validBranch} = require('./github');
 const execute = promisify(execFile);
+const deletionChanged = () => Object.assign(new Error('The reviewed GitHub branch deletion is no longer authorized.'), {kind: 'changed'});
+const unreviewedCommand = () => Object.assign(new Error('Only the reviewed GitHub operations may use this sign-in.'), {kind: 'changed'});
+
+async function assertCleanupDestination(root, destination, run, env) {
+  let keys;
+  try { keys = await run(root, ['config', '-z', '--name-only', '--get-regexp', '^(url|remote)\\.'], {env: {...env}}); }
+  catch (error) { if (error.code === 1) return; throw error; }
+  // Git treats an exact URL used as a remote name as a named remote.
+  if (keys.split('\0').some(key => key.startsWith(`remote.${destination}.`) || (key.startsWith('url.') && /\.(?:insteadof|pushinsteadof)$/i.test(key)))) throw deletionChanged();
+}
 
 // Only reviewed remote operations receive credentials; local Git never does.
-function createTransport(remote, authenticate, {assertCurrentNow, spawn = execute, environment = process.env, localRun = core.git} = {}) {
+function createTransport(remote, authenticate, {assertCurrentNow, deleteAuthorization, spawn = execute, environment = process.env, localRun = core.git} = {}) {
   const destination = core.parseRepositoryUrl(remote).remote;
   if (remote !== destination) throw new Error('Review the ordinary GitHub HTTPS destination again.');
   if (typeof assertCurrentNow !== 'function' || assertCurrentNow.constructor.name === 'AsyncFunction') throw new Error('GitHub transport requires a synchronous session guard.');
+  let deletion, deletionDispatched = false;
+  if (deleteAuthorization !== undefined) {
+    const {root, destination: reviewedDestination, branch, expectedSha, assertCurrentNow: guard} = deleteAuthorization || {};
+    if (typeof root !== 'string' || !path.isAbsolute(root) || reviewedDestination !== destination || branch === 'main' || !validBranch(branch) ||
+      typeof expectedSha !== 'string' || !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(expectedSha) || /^0+$/.test(expectedSha) ||
+      typeof guard !== 'function' || guard.constructor.name === 'AsyncFunction') throw deletionChanged();
+    const ref = `refs/heads/${branch}`;
+    deletion = Object.freeze({root, ref, guard, args: Object.freeze(['push', `--force-with-lease=${ref}:${expectedSha}`, destination, `:${ref}`])});
+  }
   return async (root, args, binding) => {
+    if (!Array.isArray(args)) throw unreviewedCommand();
+    args = [...args];
+    if (args.some(value => typeof value !== 'string')) throw unreviewedCommand();
     const pushing = args.length === 3 && args[0] === 'push' && args[1] === destination && /^(?:[a-f0-9]{40}|[a-f0-9]{64}):refs\/heads\//.test(args[2]) && validBranch(args[2].slice(args[2].indexOf(':') + ':refs/heads/'.length));
     const checking = args.length === 4 && args[0] === 'ls-remote' && args[1] === '--heads' && args[2] === destination && typeof args[3] === 'string' && args[3].startsWith('refs/heads/') && validBranch(args[3].slice('refs/heads/'.length));
     const fetching = args.length === 6 && args[0] === 'fetch' && args[1] === '--no-tags' && args[2] === '--no-recurse-submodules' && args[3] === '--no-write-fetch-head' && args[4] === destination && /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(args[5]);
-    if (!pushing && !checking && !fetching) throw Object.assign(new Error('Only the reviewed GitHub upload, main fetch and branch confirmation may use this sign-in.'), {kind: 'changed'});
-    if (binding && (!pushing || binding.root !== root || !path.isAbsolute(binding.gitDir || '') || !path.isAbsolute(binding.commonDir || '') || typeof binding.assertCurrentNow !== 'function' || binding.assertCurrentNow.constructor.name === 'AsyncFunction')) throw new Error('The project Git directory binding is invalid.');
+    const deleting = deletion && args.length === deletion.args.length && deletion.args.every((value, index) => args[index] === value);
+    if (deletion) {
+      if (deletion.root !== root || (!deleting && !(checking && (args[3] === 'refs/heads/main' || args[3] === deletion.ref)))) throw unreviewedCommand();
+      if (!binding || !Object.isFrozen(binding) || (deleting && deletionDispatched)) throw deletionChanged();
+    } else if (!pushing && !checking && !fetching) throw unreviewedCommand();
+    if (binding && ((!pushing && !deletion) || binding.root !== root || !path.isAbsolute(binding.gitDir || '') || !path.isAbsolute(binding.commonDir || '') || typeof binding.assertCurrentNow !== 'function' || binding.assertCurrentNow.constructor.name === 'AsyncFunction')) throw new Error('The project Git directory binding is invalid.');
     // Git 2.31 introduced runtime config via GIT_CONFIG_COUNT. Fail closed
     // before obtaining transport credentials on versions that would ignore it.
     let version;
@@ -41,13 +67,10 @@ function createTransport(remote, authenticate, {assertCurrentNow, spawn = execut
     try {
       // Prepare resources first; destination checks are the final asynchronous
       // work, followed by the synchronous session check and immediate dispatch.
-      try { await core.assertRepositoryRoot(root, localRun); }
+      let actualRoot;
+      try { actualRoot = await core.assertRepositoryRoot(root, localRun); }
       catch (error) { throw gitError(error, 'verify the student project'); }
-      try { await assertNoUrlRewrites(root, localRun); }
-      catch (error) {
-        if (error.kind === 'changed') throw error;
-        throw gitError(error, 'verify the GitHub destination');
-      }
+      if (deletion && actualRoot !== root) throw deletionChanged();
       const checkSession = () => {
         let session;
         try { session = assertCurrentNow(); }
@@ -60,13 +83,20 @@ function createTransport(remote, authenticate, {assertCurrentNow, spawn = execut
         if (!session?.accessToken || /[\r\n\0]/.test(session.accessToken)) throw Object.assign(new Error('Sign in to GitHub and review the upload again.'), {kind: 'auth'});
         return session;
       };
-      const session = checkSession();
-      // No asynchronous preparation follows this check before child dispatch.
       env = {...environment};
       for (const key of Object.keys(env)) {
-        if ((binding && /^GIT_(?:DIR|COMMON_DIR|WORK_TREE|INDEX_FILE|OBJECT_DIRECTORY|ALTERNATE_OBJECT_DIRECTORIES|NAMESPACE|SHALLOW_FILE|GRAFT_FILE|REPLACE_REF_BASE|REFERENCE_BACKEND)$/i.test(key)) || /^GIT_CONFIG_(?:COUNT|KEY_\d+|VALUE_\d+|PARAMETERS)$|^GIT_TRACE|^GIT_CURL_VERBOSE$|^GIT_SSL_NO_VERIFY$|^GIT_ASKPASS$|^SSH_ASKPASS$|^SSLKEYLOGFILE$/i.test(key)) delete env[key];
+        if ((binding && /^GIT_(?:DIR|COMMON_DIR|WORK_TREE|INDEX_FILE|OBJECT_DIRECTORY|ALTERNATE_OBJECT_DIRECTORIES|NAMESPACE|SHALLOW_FILE|GRAFT_FILE|REPLACE_REF_BASE|REFERENCE_BACKEND)$/i.test(key)) || (deletion && /^GIT_CONFIG$/i.test(key)) || /^GIT_CONFIG_(?:COUNT|KEY_\d+|VALUE_\d+|PARAMETERS)$|^GIT_TRACE|^GIT_CURL_VERBOSE$|^GIT_SSL_NO_VERIFY$|^GIT_ASKPASS$|^SSH_ASKPASS$|^SSLKEYLOGFILE$/i.test(key)) delete env[key];
       }
       if (binding) {env.GIT_DIR=binding.gitDir;env.GIT_COMMON_DIR=binding.commonDir;env.GIT_WORK_TREE=binding.root;env.GIT_NO_LAZY_FETCH='1';env.GIT_NO_REPLACE_OBJECTS='1';}
+      try {
+        if (deletion) await assertCleanupDestination(root, destination, localRun, env);
+        else await assertNoUrlRewrites(root, localRun);
+      } catch (error) {
+        if (error.kind === 'changed') throw error;
+        throw gitError(error, 'verify the GitHub destination');
+      }
+      const session = checkSession();
+      // No asynchronous preparation follows this check before child dispatch.
       // Command-scope configuration overrides files without changing any file.
       // Reset credential helpers and headers, stop redirects, and suppress hooks
       // in the credential-bearing child so they cannot inherit its environment.
@@ -81,28 +111,42 @@ function createTransport(remote, authenticate, {assertCurrentNow, spawn = execut
         [scoped + 'followRedirects', 'false'], [scoped + 'sslVerify', 'true'], [scoped + 'curloptResolve', ''],
         [scoped + 'cookieFile', ''], [scoped + 'saveCookies', 'false']
       );
+      if (deleting) settings.push(['push.followTags', 'false'], ['push.gpgSign', 'false'], ['push.recurseSubmodules', 'no'], ['push.pushOption', ''], ['push.negotiate', 'false']);
       // Trace2 starts before command-scope config is applied; environment zero
       // must override persistent trace targets that could record runtime secrets.
       env.GIT_TRACE2 = '0'; env.GIT_TRACE2_EVENT = '0'; env.GIT_TRACE2_PERF = '0';
       env.GIT_TERMINAL_PROMPT = '0'; env.GIT_ASKPASS = ''; env.SSH_ASKPASS = '';
       env.GIT_CONFIG_COUNT = String(settings.length);
       settings.forEach(([key, value], index) => { env[`GIT_CONFIG_KEY_${index}`] = key; env[`GIT_CONFIG_VALUE_${index}`] = value; });
-      if (binding) {
+      const checkBinding = () => {
         const checked=binding.assertCurrentNow();
         if (checked && typeof checked.then === 'function') {void Promise.resolve(checked).catch(()=>{});throw new Error('The project Git directory guard must be synchronous.');}
+        if (deletion) {
+          let authorized;
+          try { authorized = deletion.guard(); } catch { throw deletionChanged(); }
+          if (authorized && typeof authorized.then === 'function') {void Promise.resolve(authorized).catch(() => {});throw deletionChanged();}
+          if (checked === false || authorized === false) throw deletionChanged();
+        }
         checkSession();
-      }
+      };
+      if (binding) checkBinding();
       try {
-        const {stdout} = await spawn('git', args, {cwd: root, env, timeout: 120000, maxBuffer: 1024 * 1024});
-        checkSession();
+        if (deleting) {
+          if (deletionDispatched) throw deletionChanged();
+          deletionDispatched = true;
+        }
+        const {stdout} = await spawn('git', deleting ? deletion.args : args, {cwd: root, env, timeout: 120000, maxBuffer: 1024 * 1024});
+        if (deletion) checkBinding();
+        else checkSession();
         // Push/fetch need no arbitrary output; ls-remote
         // returns only a SHA and the expected ref. Never expose raw child output.
-        if (pushing || fetching) return '';
+        if (pushing || fetching || deleting) return '';
         const rows = stdout.trim().split('\n').filter(Boolean);
         if (rows.length > 1 || rows.some(row => !/^(?:[a-f0-9]{40}|[a-f0-9]{64})\trefs\/heads\/[^\s:]+$/.test(row) || row.split('\t')[1] !== args[3])) throw new Error('Unexpected remote response');
         return rows.join('\n');
       } catch (error) {
-        throw gitError(error, 'upload or confirm the GitHub branch');
+        if (deleting && /\bstale info\b/i.test(String(error.stderr || ''))) throw deletionChanged();
+        throw gitError(error, deleting ? 'remove the reviewed GitHub branch' : 'upload or confirm the GitHub branch');
       }
     } finally {
       // Drop credential-bearing config references even when spawning fails.

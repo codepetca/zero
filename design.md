@@ -140,12 +140,14 @@ when adding features; a new feature does not reset the agreed interaction style.
   Keep repository and branch in the sidebar. Show an inline
   spinner and **Preparing commit…** on the button during preparation, then
   **Committing & pushing…** after confirmation; clear on completion/cancel/error.
-  Entering a branch name or commit message proceeds directly; choosing Merge to
-  main in Project starts its guarded operation. Do not add routine confirmation dialogs.
-- After a verified successful merge and push, automatically delete only the
-  unchanged finished **local** branch through the existing safety checks. Keep
-  the remote branch. Failed, paused or conflicted operations skip cleanup;
-  refused cleanup preserves the work and reports the condition briefly.
+  Entering a branch name or commit message proceeds directly; choosing Merge in
+  Project starts its guarded review.
+- For a new Merge, show a native Quick Pick with deletion of the finished local
+  and GitHub branch checked by default, followed by a Merge confirmation.
+  Unchecking keeps both; cancelling either prompt cancels the merge. After GitHub
+  confirms the merge and Zero switches to local main, cleanup checks the reviewed
+  branch tip and other guards. Changed or uncertain state preserves safe refs;
+  report partial or uncertain cleanup. Recovery and Sync keep branches.
 - First publication, or a changed publishing destination, gets one short warning:
   **“Your app and included assets will be public.”** Show the destination.
   Do not ask again after setup/upload or for routine updates to the same site.
@@ -473,18 +475,20 @@ underlying account, destination, source-drift, conflict and transport checks.
 
 ### Merge to main — owner decision, 2026-10-16
 
-The explicit Merge to main button starts the guarded merge/push-main flow without
-an additional confirmation. Preserve account/project/destination/source checks,
-operation serialization, the pause to run after incorporating updated main,
-conflict recovery and the separate optional local-branch deletion confirmation.
+The explicit Merge action starts the guarded merge/push-main flow. Preserve
+account/project/destination/source checks, operation serialization, the pause to
+run after incorporating updated main and conflict recovery.
 
-### Automatic finished-branch cleanup — owner decision, 2026-10-16
+### Finished-branch cleanup — updated decision, 2026-11-07
 
-After confirmed Merge to main success, automatically delete the finished local
-branch through the existing clean-main, exact-SHA, ancestry and atomic ref guards.
-Do not add another confirmation or delete the remote branch. A refused cleanup
-keeps the branch, preserves the successful merge outcome and shows a concise
-notice with details in Zero Output. Failed/paused/conflicted merges skip cleanup.
+For a new merge, a native Quick Pick defaults to deleting the finished branch
+locally and on GitHub; unchecking keeps both. A subsequent Merge confirmation
+shows the choice and destination. Cancelling either prompt cancels the merge.
+After GitHub confirms the merge and Zero switches to local main, cleanup checks
+the exact reviewed feature tip and other guards before deleting. Changed or
+uncertain state keeps safe refs. Cleanup can be partial or uncertain and is
+reported separately from the successful merge, with details in Zero Output.
+Failed, paused and conflicted merges skip cleanup; recovery and Sync keep branches.
 
 ### Quiet success feedback — owner decision, 2026-10-16
 
@@ -501,7 +505,7 @@ Use short sidebar results: Pushed to main, Merged to main, App published, Export
 ready, ZIP saved. Keep branch/library names when needed, and retain longer
 technical details and guidance in Zero Output. Conditions needing attention still
 include a clear next step, such as running the app after main updates or checking
-Output when local-branch cleanup is refused. No action or guard changes.
+Output when branch cleanup needs attention.
 ## Tutorial reading hierarchy — owner correction, 2026-10-16
 
 Remove Previous lesson prose and horizontal dividers from tutorial content,

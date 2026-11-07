@@ -149,10 +149,11 @@ No rebase, force push, reset or automatic abort is performed.
 Finish advances local main with guarded SHA checks and non-force pushes the
 captured completed SHA, then confirms remote main before returning to it. A
 failed push retains the change branch for retry; local main may already have
-advanced. After confirmed success, automatic cleanup deletes only the unchanged
-local finished branch. A cleanup refusal keeps the branch and the successful
-merge outcome, with a concise notice and details in Zero Output. The remote
-change branch remains. Shared worktrees and unusual
+advanced. Before Merge, the student may keep the branch or choose the default
+cleanup of the reviewed local and GitHub feature branch. Cleanup runs after the
+merge is confirmed and the project returns to main. If a check fails or the
+outcome is uncertain, Zero reports the cleanup separately from the successful
+merge, with details in Zero Output. Shared worktrees and unusual
 histories require ordinary Git tools. The repository link for Pika is unchanged;
 completed code should be on main.
 
