@@ -854,9 +854,10 @@ async function inspectFinishedBranchCleanup(root, branch, expectedHead, options 
   if (!options.receipt) throw new Error('This finished branch cleanup needs the exact confirmed merge from this project.');
   await options.beforeMutation?.();
   const {current, ref, run} = await reviewFinishedBranchCleanup(root, branch, expectedHead, options);
-  await preflightDirectMain(current.root, current.gitDir, {run, allowReftable:true, skipProbe:true});
+  const refStorage = await preflightDirectMain(current.root, current.gitDir, {run, allowReftable:true, skipProbe:true, cleanupBranch:branch});
   await deleteDirectFeature(current.root, current.mainHead, branch, expectedHead, {
     probeOnly: true,
+    refStorage,
     verify: async () => {
       if (await core.currentBranch(root, run) !== 'main' ||
           await run(root, ['rev-parse', '--verify', 'refs/heads/main']) !== current.mainHead) throw drift();
@@ -874,8 +875,9 @@ async function deleteFinishedBranch(root, branch, expectedHead, options = {}) {
   }
   const {current, layout, ref, run} = await reviewFinishedBranchCleanup(root, branch, expectedHead, options);
   try {
-    await preflightDirectMain(current.root, current.gitDir, {run, allowReftable:true, skipProbe:true});
+    const refStorage = await preflightDirectMain(current.root, current.gitDir, {run, allowReftable:true, skipProbe:true, cleanupBranch:branch});
     await deleteDirectFeature(current.root, current.mainHead, branch, expectedHead, {
+      refStorage,
       verify: async () => {
         await beforeMutation();
         const checked = await cleanupState(root, run, layout.identity);

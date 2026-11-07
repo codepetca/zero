@@ -10,6 +10,60 @@ function ambient() {
  return JSON.stringify([process.env.PATH,...Object.entries(process.env).filter(([key])=>/^GIT_/i.test(key)).sort(([a],[b])=>a.localeCompare(b))]);
 }
 function anchor(root){const entries=[root,path.join(root,'.git')].map(name=>{const info=fs.lstatSync(name);if(!info.isDirectory()||info.isSymbolicLink()||fs.realpathSync(name)!==name)throw new Error('The project Git directory changed. Review the operation again.');return [info.dev,info.ino,info.mode];});return JSON.stringify(entries);}
+const unsafeCleanupRefs=()=>new Error('Git reference storage has an unsafe path or changed during cleanup. Inspect it in native Source Control.');
+const storageIdentity=info=>JSON.stringify([info.dev,info.ino,info.mode]);
+function cleanupRefStorage(root,branch,format) {
+ if(!core.validBranchName(branch)||branch==='main'||!['files','reftable'].includes(format))throw unsafeCleanupRefs();
+ const gitDir=path.join(root,'.git'),entries=new Map();
+ const inspect=(relative,{directory=false,required=false}={})=>{
+  const parts=relative.split('/');
+  let current=gitDir,info;
+  for(const [index,part] of parts.entries()){
+   current=path.join(current,part);
+   try{info=fs.lstatSync(current);}catch(error){if(!required&&error.code==='ENOENT')return null;throw unsafeCleanupRefs();}
+   const mustBeDirectory=directory||index<parts.length-1;
+   if(info.isSymbolicLink()||(mustBeDirectory?!info.isDirectory():!info.isFile()||info.nlink!==1)||fs.realpathSync(current)!==current)throw unsafeCleanupRefs();
+   entries.set(current,mustBeDirectory?storageIdentity(info):JSON.stringify([storageIdentity(info),info.size,info.mtimeMs,info.ctimeMs]));
+  }
+  return info;
+ };
+ // A standalone repository must not delegate reference storage to a common dir.
+ if(inspect('commondir')||inspect('gitdir'))throw unsafeCleanupRefs();
+ inspect('config');
+ inspect('config.worktree');
+ inspect('HEAD',{required:true});
+ inspect('HEAD.lock');
+ if(format==='files'){
+  if(inspect('reftable',{directory:true}))throw unsafeCleanupRefs();
+  const main='refs/heads/main',feature=`refs/heads/${branch}`;
+  for(const file of [main,feature,'packed-refs','logs/HEAD',`logs/${main}`,`logs/${feature}`]){
+   inspect(file);
+   inspect(`${file}.lock`);
+  }
+ }else{
+  const folder='reftable',list=`${folder}/tables.list`,listPath=path.join(gitDir,list);
+  inspect(folder,{directory:true,required:true});
+  const info=inspect(list,{required:true});
+  if(info.size<1||info.size>128*1024)throw unsafeCleanupRefs();
+  const handle=fs.openSync(listPath,fs.constants.O_RDONLY|(fs.constants.O_NOFOLLOW||0));
+  let raw;
+  try{
+   const opened=fs.fstatSync(handle),bytes=Buffer.alloc(info.size+1);
+   if(storageIdentity(opened)!==storageIdentity(info)||opened.nlink!==1||opened.size!==info.size)throw unsafeCleanupRefs();
+   const size=fs.readSync(handle,bytes,0,bytes.length,0),after=fs.fstatSync(handle);
+   if(size!==opened.size||after.size!==opened.size||after.mtimeMs!==opened.mtimeMs||after.ctimeMs!==opened.ctimeMs||after.nlink!==1)throw unsafeCleanupRefs();
+   raw=bytes.subarray(0,size).toString('utf8');
+  }finally{fs.closeSync(handle);}
+  const tables=raw.split('\n');
+  if(tables.pop()!==''||new Set(tables).size!==tables.length||tables.some(name=>!/^0x[0-9a-f]{12,16}-0x[0-9a-f]{12,16}-[0-9a-f]{8}\.ref$/.test(name)))throw unsafeCleanupRefs();
+  for(const name of tables)inspect(`${folder}/${name}`,{required:true});
+  const children=fs.readdirSync(path.join(gitDir,folder));
+  if(children.length>4096)throw unsafeCleanupRefs();
+  for(const name of children)inspect(`${folder}/${name}`,{required:true});
+  entries.set(listPath,JSON.stringify([storageIdentity(info),raw]));
+ }
+ return entries;
+}
 const isolatedEnv=()=>Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_ATTR_NOSYSTEM:'1',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'});
 async function probeTransaction(root,env){
  await new Promise((resolve,reject)=>{
@@ -23,7 +77,7 @@ async function probeTransaction(root,env){
   child.stdin.end('start\noption no-deref\nprepare\nabort\n');
  });
 }
-async function preflightDirectMain(root,gitDir,{run=core.git,allowReftable=false,skipProbe=false}={}){
+async function preflightDirectMain(root,gitDir,{run=core.git,allowReftable=false,skipProbe=false,cleanupBranch}={}){
  const unsupported=()=>Object.assign(new Error('This project uses unsupported Git metadata or reference storage. Use a standalone project with ordinary refs to update or merge.'),{kind:'changed'});
  if(typeof root!=='string'||!path.isAbsolute(root)||typeof gitDir!=='string'||gitDir!==path.join(root,'.git')||typeof run!=='function')throw unsupported();
  const environment=ambient(),identity=anchor(root),env=isolatedEnv();
@@ -37,14 +91,24 @@ async function preflightDirectMain(root,gitDir,{run=core.git,allowReftable=false
   const refs=path.join(gitDir,'refs'),info=fs.lstatSync(refs);if(!info.isDirectory()||info.isSymbolicLink()||fs.realpathSync(refs)!==refs)throw unsupported();
   format='files';
  }else if(format!=='files'&&!(allowReftable&&format==='reftable'))throw unsupported();
+ if(cleanupBranch!==undefined)cleanupRefStorage(root,cleanupBranch,format);
  if(!skipProbe)await probeTransaction(root,env);
  if(ambient()!==environment||anchor(root)!==identity)throw new Error('The project Git environment changed. Review the operation again.');
  return format;
 }
-async function transaction(root,next,previous,{verify,checkNow=()=>{},perform,attachBranch,deleteBranch,probeOnly=false,timeoutMs=30000}={}) {
+async function transaction(root,next,previous,{verify,checkNow=()=>{},perform,attachBranch,deleteBranch,refStorage,probeOnly=false,timeoutMs=30000}={}) {
  if(!path.isAbsolute(root)||!oid(previous)||(next!==null&&(!oid(next)||next.length!==previous.length))||typeof verify!=='function'||typeof checkNow!=='function'||(next===null&&!attachBranch&&!deleteBranch&&typeof perform!=='function')||(attachBranch&&(!core.validBranchName(attachBranch)||attachBranch==='main'||next!==null))||!Number.isSafeInteger(timeoutMs)||timeoutMs<1)throw new Error('The local main update could not be reviewed safely.');
  if(deleteBranch&&(!core.validBranchName(deleteBranch.branch)||deleteBranch.branch==='main'||!oid(deleteBranch.head)||deleteBranch.head.length!==previous.length||next!==null||attachBranch||perform))throw new Error('The local feature deletion could not be reviewed safely.');
  const initialAmbient=ambient(),initialAnchor=anchor(root),verifyNow=()=>{if(ambient()!==initialAmbient||anchor(root)!==initialAnchor)throw new Error('The project Git environment changed. Review the operation again.');const result=checkNow();if(result&&typeof result.then==='function')throw new Error('The local authority check must be synchronous.');};
+ const initialRefs=deleteBranch?cleanupRefStorage(root,deleteBranch.branch,refStorage):null;
+ const verifyCleanupRefs=()=>{
+  if(!initialRefs)return;
+  if(anchor(root)!==initialAnchor)throw unsafeCleanupRefs();
+  const current=cleanupRefStorage(root,deleteBranch.branch,refStorage);
+  // A packed ref's missing parent directory can be created by prepare. Any
+  // path that already existed must still be the same ordinary entry.
+  for(const [file,identity] of initialRefs)if(current.get(file)!==identity)throw unsafeCleanupRefs();
+ };
  const env=isolatedEnv();
  const child=spawn('git',['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false','update-ref','--stdin'],{cwd:root,env,stdio:['pipe','pipe','pipe']});
  let pending='',terminal,prepared=false,commitSent=false,performStarted=false,performCompleted=false,stderrSize=0,stdoutSize=0;const lines=[],waiters=[];let rejectStopped;const stopped=new Promise((_,reject)=>{rejectStopped=reject;});stopped.catch(()=>{});
@@ -71,9 +135,11 @@ async function transaction(root,next,previous,{verify,checkNow=()=>{},perform,at
     await write('option no-deref');await write(next===null?`verify refs/heads/main ${previous}`:`update refs/heads/main ${next} ${previous}`);
     if(attachBranch){await write('option no-deref');await write(`symref-update HEAD refs/heads/${probeOnly?attachBranch:'main'} ref refs/heads/${attachBranch}`);}
   }
-  await write('prepare');await expect('prepare: ok');prepared=true;
+  verifyCleanupRefs();await write('prepare');await expect('prepare: ok');prepared=true;
+  verifyCleanupRefs();
   await Promise.race([Promise.resolve().then(()=>verify(env)),stopped]);
   verifyNow();
+  verifyCleanupRefs();
   if((attachBranch||deleteBranch)&&probeOnly){releaseSent=true;await write('abort');await expect('abort: ok');child.stdin.end();const result=await exited;if(result.code!==0||result.signal)throw failure('Git did not confirm the capability check.');return;}
   if(next===null&&!attachBranch&&!deleteBranch){
     // Do not release the ref lock while a dispatched checkout is still active.

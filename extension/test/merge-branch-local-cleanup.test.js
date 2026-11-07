@@ -8,6 +8,7 @@ const os = require('node:os');
 const path = require('node:path');
 const core = require('../src/core');
 const workflow = require('../src/workflow');
+const {preflightDirectMain} = require('../src/direct-main-transaction');
 
 const branch = 'lesson/add-score';
 const featureRef = `refs/heads/${branch}`;
@@ -128,6 +129,42 @@ test('removes only the finished local ref in a reftable repository', async t => 
   await assert.rejects(f.git('show-ref', '--verify', featureRef));
   assert.equal(await f.git('symbolic-ref', 'HEAD'), 'refs/heads/main');
   assert.equal(await f.git('rev-parse', 'refs/heads/main'), f.expectedMain);
+});
+
+test('read-only cleanup preflight refuses filesystem links in ref storage', {skip:process.platform==='win32'}, async t => {
+  const table = '0x000000000001-0x000000000003-4b0dc113.ref';
+  const cases = [
+    ['files', 'refs/heads/lesson', 'dir'],
+    ['files', 'refs/heads/main', 'file'],
+    ['files', 'logs/refs/heads/lesson', 'dir'],
+    ['files', 'packed-refs', 'file'],
+    ['reftable', 'reftable', 'dir'],
+    ['reftable', 'reftable/tables.list', 'file'],
+    ['reftable', `reftable/${table}`, 'file']
+  ];
+  for (const [format, linkedPath, type] of cases) {
+    const parent = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'zero-cleanup-ref-path-')));
+    t.after(() => fs.rm(parent, {recursive:true, force:true}));
+    const root = path.join(parent, 'project');
+    const gitDir = path.join(root, '.git');
+    const outside = path.join(parent, 'outside');
+    const sentinel = path.join(outside, 'keep');
+    const link = path.join(gitDir, linkedPath);
+    await fs.mkdir(outside);
+    await fs.writeFile(sentinel, 'outside content\n');
+    await fs.mkdir(path.dirname(link), {recursive:true});
+    await fs.writeFile(path.join(gitDir, 'HEAD'), 'ref: refs/heads/main\n');
+    if (linkedPath === `reftable/${table}`) await fs.writeFile(path.join(gitDir, 'reftable', 'tables.list'), `${table}\n`);
+    await fs.symlink(type === 'dir' ? outside : sentinel, link, type);
+    const run = async (cwd, args) => {
+      assert.equal(cwd, root);
+      assert.deepEqual(args, ['-c', 'core.fsmonitor=false', 'rev-parse', '--show-ref-format']);
+      return format;
+    };
+    await assert.rejects(preflightDirectMain(root, gitDir, {run, allowReftable:true, skipProbe:true, cleanupBranch:branch}), /unsafe path/, linkedPath);
+    assert.equal(await fs.readFile(sentinel, 'utf8'), 'outside content\n');
+    assert.equal((await fs.lstat(link)).isSymbolicLink(), true);
+  }
 });
 
 test('a same-OID symbolic replacement after review is kept with its target', async t => {
