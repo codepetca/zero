@@ -100,11 +100,13 @@ lesson 0, then create and clone your own tutorial repository.
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors
    and debugging support.
-3. Open Zero through the kit’s setup launcher and choose **Zero Docs** to read the lesson, then **Project → New**.
-   Create and clone your Greeting repository using the flow above.
-4. Follow lesson 0 beside Main. Use **Run App** to preview your own code.
-   Keep each tutorial repository across its group’s lessons. Create a new project at lesson 3 and lesson 8 and follow each lesson’s starting code. Use New branch, edit/Run, Upload changes
-   and Finish change as you progress.
+3. Open Zero through the kit’s setup launcher and choose **Zero Docs**. Lesson 0
+   introduces the editor. In lesson 1, choose **Project → New** to create your
+   Greeting project and follow the lesson’s starting code.
+4. Use **Run** to preview your code and **Commit** at lesson checkpoints.
+   Keep each project across its continuing lessons. Start a new Coin project in
+   lesson 4 and a Pet project in lesson 6. When a lesson asks you to work on a
+   branch, use **New branch** and, when ready, **Merge**.
 5. The bundled `starter` is a completed setup check under **Setup help →
    Test installation**, separate from the tutorial. Its README and API remain
    optional framework reference.
