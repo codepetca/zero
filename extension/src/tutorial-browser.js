@@ -6,8 +6,7 @@ function browserUrl(id) {
 }
 
 // Older supported VS Code versions do not have the desktop integrated browser.
-async function openTutorialDocs(vscode, lessonId = '15') {
-  const url = browserUrl(lessonId);
+async function openBrowser(vscode, url, label) {
   const command = 'workbench.action.browser.open';
   let commands = [];
   try { commands = await vscode.commands.getCommands(true); } catch { /* Use the regular browser. */ }
@@ -17,6 +16,8 @@ async function openTutorialDocs(vscode, lessonId = '15') {
       return;
     } catch { /* Fall back if this host cannot open the integrated browser. */ }
   }
-  if (!await vscode.env.openExternal(vscode.Uri.parse(url))) throw new Error('Could not open Tutorial Docs in your browser.');
+  if (!await vscode.env.openExternal(vscode.Uri.parse(url))) throw new Error(`Could not open ${label} in your browser.`);
 }
-module.exports = {openTutorialDocs};
+const openTutorialDocs = async (vscode, lessonId = '15') => openBrowser(vscode, browserUrl(lessonId), 'Tutorial Docs');
+const openZeroDocs = vscode => openBrowser(vscode, 'https://zero.codepet.ca/resume-docs', 'Zero Docs');
+module.exports = {openTutorialDocs, openZeroDocs};

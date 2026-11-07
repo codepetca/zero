@@ -10,8 +10,8 @@ Tutorials require **your own GitHub account and Git 2.31+**. Before starting:
 
 1. Follow school username/email policies. Create your account at
    [github.com/signup](https://github.com/signup), verify its email, and keep
-   your password private. Use your own account for the template repository,
-   VS Code cloning and Zero uploads.
+   your password private. Use your own account for project creation,
+   cloning and Zero uploads.
 2. Check GitHub access, Zero browser sign-in and compiler downloads on your
    school machine/network. Use Setup help for missing Git; contact school IT about
    restrictions rather than bypassing them.
@@ -31,36 +31,19 @@ lessons. Read the [complete account/privacy setup](https://zero.codepet.ca/docs/
 
 ## Open a tutorial project
 
-Follow the sidebar: **Sign in to GitHub**, then
-**Install Zero for GitHub** if requested, then **Start tutorial**. Sign-in opens GitHub in your browser and returns to Zero.
-The main button says **Sign in to GitHub** while signed out, then **Start tutorial**
-once signed in. If browser sign-in fails, check your connection/default browser
-and try again; local running remains available. Zero checks project access read-only and stops
-at the next sidebar step. If access is missing, **Install Zero for GitHub**
-opens the pinned GitHub App page after a read-only recheck. Approve selected
-repositories there, then return to Zero; it checks again automatically. Use
-**Check again** as fallback. Escape or a failed check leaves the current step
-visible for retry. A saved session is checked read-only on launch without
-opening a browser. Local Run and Files remain usable signed out or offline;
-cloud repository, push and sharing controls appear after access is ready.
+Choose **Zero Docs** on the Start Page to open the latest lessons. Reading does
+not require sign-in. When you are ready to make a project, choose **Sign in to
+GitHub** separately, then **Install Zero for GitHub** if requested. Sign-in opens
+GitHub in your browser and returns to Zero. If sign-in fails, check your connection
+and default browser and try again. Local Run and Files remain available signed out.
 
-When ready, **Start tutorial** is the primary empty-sidebar action. Choose
-**Greeting app**, name the repository and choose where to save its clone.
-**New project…** is the secondary action for skipping the tutorial and creating
-original work. Zero creates the verified scaffold and opens your clone with
-`Main.java` beside **Tutorials** for lesson 0. Older downloads keep their bundled
-setup instructions.
-
-Already cloned it? **Open local project** opens your existing Zero folder
-without cloning. **Open Tutorials** resumes its saved lesson; lesson selection,
-scroll position and disclosures persist locally per project. There is no completion
-or grading tracking. Use **All tutorials** to choose the first lesson and restart
-reading without changing your code. **Start tutorial** creates a separate new
-repository, not a reset of existing work. With a local folder that has no origin,
-use **Project → Connect to GitHub…** for your own existing repository URL.
-Signed-out Git controls show only **Sign in to GitHub**; local Run and Files remain.
-Connected projects keep their repository and branch controls, with **Publish & open app**
-in the Run dropdown and repository menu. Follow school privacy and visibility policies for tutorial source.
+Choose **Project → New**, name your repository and choose where to save its clone.
+Follow the lesson to add its starting code. Zero creates a public repository in
+your account and opens its clone. Keep that project across its continuing lessons.
+Use **Project → Open** for an existing local folder or **Project → Clone** for an
+existing GitHub repository. Opening a project does not update its files. If its
+browser tooling is outdated, create a new project and retain the original and any
+recovery copies. Published downloads retain their bundled instructions.
 
 ## Zero app for Mac
 
@@ -117,12 +100,13 @@ lesson 0, then create and clone your own tutorial repository.
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors
    and debugging support.
-3. Open Zero through the kit’s setup launcher and choose **Start tutorial**.
-   Create and clone your Greeting repository using the flow above.
-4. Follow lesson 0 beside Main. Use **Run App** to preview your own code.
-   Keep each tutorial repository across its group’s lessons. Use Study’s template
-   at lesson 3 and Game’s at lesson 8. Use New branch, edit/Run, Upload changes
-   and Finish change as you progress.
+3. Open Zero through the kit’s setup launcher and choose **Zero Docs**. Lesson 0
+   introduces the editor. In lesson 1, choose **Project → New** to create your
+   Greeting project and follow the lesson’s starting code.
+4. Use **Run** to preview your code and **Commit** at lesson checkpoints.
+   Keep each project across its continuing lessons. Start a new Coin project in
+   lesson 4 and a Pet project in lesson 6. When a lesson asks you to work on a
+   branch, use **New branch** and, when ready, **Merge**.
 5. The bundled `starter` is a completed setup check under **Setup help →
    Test installation**, separate from the tutorial. Its README and API remain
    optional framework reference.
@@ -149,7 +133,7 @@ After the initial tutorial clone, local Run needs no active GitHub sign-in.
 GitHub actions are live by default;
 nothing uploads automatically. Follow school privacy and visibility policies, connect
 your own repository, then review Upload and branch changes. Tutorial projects
-require their own template-created repository and clone. Git **2.31+** and your own GitHub account are required for upload and publishing. Submit the repository link
+use their own repository and clone. Git **2.31+** and your own GitHub account are required for upload and publishing. Submit the repository link
 separately in Pika if your course uses it.
 
 ## Publish a playable app

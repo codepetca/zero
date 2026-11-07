@@ -58,8 +58,8 @@ test('cloud choices require verified ready access; local is available through se
   for (const phase of ['signed-out','checking','install','unavailable','ready']) {
     const f = fake({phase, accountId:phase === 'signed-out' ? undefined : '42'}), {page, panel} = await open(f);
     for (const action of ['tutorial','tutorials','new','clone','local','signIn','signInCode','setup']) await f.message(panel, {type:'action', action});
-    const expected = phase === 'ready' ? ['zero.startProject','zero.openFirstLesson','zero.newProject','zero.cloneRepository','zero.openLocalProject']
-      : ['zero.openFirstLesson','zero.openLocalProject', ...(phase === 'signed-out' ? ['zero.signInToGitHub'] : ['install','unavailable'].includes(phase) ? ['zero.setupGitHub'] : [])];
+    const expected = phase === 'ready' ? ['zero.openDocs','zero.newProject','zero.cloneRepository','zero.openLocalProject']
+      : ['zero.openDocs','zero.openLocalProject', ...(phase === 'signed-out' ? ['zero.signInToGitHub'] : ['install','unavailable'].includes(phase) ? ['zero.setupGitHub'] : [])];
     assert.deepEqual(f.commands, expected, phase);page.dispose();
   }
 });
@@ -175,8 +175,7 @@ test('strict nonce CSP and text-only rendering keep account, status and path mar
   assert.equal(browser.elements.get('recent-list').children[0].children[0], oldButton);
   assert.equal(oldButton.disabled, true);assert.equal(local.disabled, true);
   f.setState({phase:'signed-out'});await page.refresh();browser.update(panel.messages.at(-1));
-  assert.equal(local.disabled, false);assert.equal(browser.elements.get('start-button').disabled, false);
-  assert.equal(browser.elements.get('start-button').textContent, 'Sign in to GitHub');
+  assert.equal(local.disabled, false);assert.equal(browser.buttons.find(button=>button.dataset.action==='signIn').disabled, false);
   assert.equal(browser.elements.get('recent-section').hidden, true);page.dispose();
 });
 
@@ -190,8 +189,8 @@ test('GitHub account stays compact while signed-out and setup states keep their 
   assert.equal(b.elements.get('account-group').hidden, false);
   assert.equal(b.elements.get('github-heading').hidden, false);
   assert.equal(b.elements.get('guidance').hidden, true);
-  assert.equal(b.elements.get('start-button').textContent, 'Start tutorial');
-  assert.equal(action('signIn'), undefined);
+  assert.equal(action('tutorials').disabled, false);
+  assert.equal(action('signIn').hidden, true);
   assert.equal(action('signInCode'), undefined);
   for (const phase of ['checking','install','unavailable']) {
     f.setState({phase, accountId:'42', accountLabel:'armorup'});
@@ -202,44 +201,29 @@ test('GitHub account stays compact while signed-out and setup states keep their 
   }
   f.setState({phase:'signed-out'});await page.refresh();b.update(panel.messages.at(-1));
   assert.equal(b.elements.get('account-group').hidden, true);
-  assert.equal(b.elements.get('github-heading').hidden, true);
+  assert.equal(b.elements.get('github-heading').hidden, false);
   assert.equal(b.elements.get('guidance').hidden, true);
   assert.equal(action('signIn').hidden, false);
   assert.equal(action('signIn').disabled, false);
   assert.equal(action('signInCode'), undefined);
-  assert.equal(b.elements.get('github-section').hidden, true);
-  assert.equal(action('signIn').textContent, 'Sign in to GitHub');
+  assert.equal(b.elements.get('github-section').hidden, false);
+  assert.match(panel.webview.html, /data-action="signIn" hidden>Sign in to GitHub/);
   page.dispose();
 });
 
-test('one primary action signs in without starting a project, then enables tutorial only after access is ready', async () => {
-  const f = fake({phase:'signed-out'}), wait = deferred();
-  f.vscode.commands.executeCommand = command => {f.commands.push(command);return command === 'zero.signInToGitHub' ? wait.promise : Promise.resolve();};
-  const {page,panel} = await open(f), b = domHarness(panel.webview.html);
-  const primary = b.elements.get('start-button');
+test('sign-in is separate from the always available Zero Docs button', async () => {
+  const f=fake({phase:'signed-out'}), {page,panel}=await open(f), b=domHarness(panel.webview.html);
   b.update(panel.messages.at(-1));
-  assert.equal(primary.textContent, 'Sign in to GitHub');
-  assert.equal(primary.disabled, false);
-  assert.equal(b.buttons.filter(button => button.dataset.action === 'signIn').length, 1);
-  assert.doesNotMatch(panel.webview.html, /signInCode|Sign in using a code/);
-  primary.click();assert.equal(b.sent.at(-1).action, 'signIn');
-  const signingIn = f.message(panel,b.sent.at(-1));b.update(panel.messages.at(-1));
-  assert.equal(primary.disabled,true);primary.click();
-  assert.deepEqual(f.commands,['zero.signInToGitHub']);
-  f.setState({phase:'install',accountId:'42',accountLabel:'student'});wait.resolve();await signingIn;
-  b.update(panel.messages.at(-1));
-  assert.equal(primary.textContent,'Start tutorial');assert.equal(primary.disabled,true);
-  assert.equal(b.elements.get('github-section').hidden,false);
-  await f.message(panel,{type:'action',action:'tutorial'});
-  assert.deepEqual(f.commands,['zero.signInToGitHub']);
-  f.setState({phase:'ready',accountId:'42',accountLabel:'student'});await page.refresh();b.update(panel.messages.at(-1));
-  assert.equal(b.elements.get('start-button'),primary);assert.equal(primary.disabled,false);
-  primary.click();assert.equal(b.sent.at(-1).action,'tutorial');await f.message(panel,b.sent.at(-1));
-  assert.deepEqual(f.commands,['zero.signInToGitHub','zero.startProject']);
-  f.setState({phase:'signed-out'});
-  await f.message(panel,{type:'action',action:'tutorial'});b.update(panel.messages.at(-1));
-  assert.deepEqual(f.commands,['zero.signInToGitHub','zero.startProject']);
-  assert.equal(primary.textContent,'Sign in to GitHub');assert.equal(primary.disabled,false);
+  const tutorials=b.buttons.find(button=>button.dataset.action==='tutorials');
+  const signIn=b.buttons.find(button=>button.dataset.action==='signIn');
+  assert.equal(tutorials.disabled,false);assert.equal(signIn.hidden,false);
+  assert.match(panel.webview.html, /data-action="tutorials" disabled>Zero Docs<\/button>/);
+  assert.doesNotMatch(panel.webview.html,/Start tutorial|tutorial-menu/);
+  tutorials.click();await f.message(panel,b.sent.at(-1));
+  signIn.click();await f.message(panel,b.sent.at(-1));
+  assert.deepEqual(f.commands,['zero.openDocs','zero.signInToGitHub']);
+  f.setState({phase:'ready',accountId:'42'});await page.refresh();b.update(panel.messages.at(-1));
+  assert.equal(signIn.hidden,true);assert.equal(tutorials.disabled,false);
   page.dispose();
 });
 
@@ -260,29 +244,6 @@ test('Project dropdown navigates enabled actions and closes on selection, Escape
   }
   page.dispose();
 });
-test('Tutorial options keeps reading available signed out and shares menu focus behavior', async () => {
-  const f=fake({phase:'signed-out'}),{page,panel}=await open(f),b=domHarness(panel.webview.html);
-  b.update(panel.messages.at(-1));
-  const trigger=b.elements.get('tutorial-button'),menu=b.elements.get('tutorial-menu');
-  const tutorials=b.buttons.find(button=>button.dataset.action==='tutorials');
-  const start=b.elements.get('start-button');
-  assert.equal(start.disabled,false);assert.equal(trigger.disabled,false);
-  trigger.click();assert.equal(menu.hidden,false);assert.equal(b.document.activeElement,tutorials);
-  b.key('ArrowDown');assert.equal(b.document.activeElement,tutorials);
-  b.key('Escape');assert.equal(menu.hidden,true);assert.equal(b.document.activeElement,trigger);
-  b.key('ArrowUp',trigger);tutorials.click();
-  assert.equal(menu.hidden,true);assert.equal(b.sent.at(-1).action,'tutorials');
-  await f.message(panel,{type:'action',action:'tutorials'});
-  assert.deepEqual(f.commands,['zero.openFirstLesson']);
-  for(const close of [()=>b.key('Tab'),()=>b.event('click',start),()=>b.blur()]) {
-    trigger.click();close();assert.equal(menu.hidden,true);
-  }
-  trigger.click();f.setState({phase:'signed-out',busy:true});await page.refresh();b.update(panel.messages.at(-1));
-  assert.equal(menu.hidden,true);assert.equal(trigger.disabled,true);
-  assert.equal(b.document.activeElement,b.elements.get('start-title'));
-  page.dispose();
-});
-
 test('signed-out menu keeps Open and Tutorials available; auth drift and busy updates keep focus out of hidden items',async()=>{
   const f=fake({phase:'signed-out'}),{page,panel}=await open(f),b=domHarness(panel.webview.html);b.update(panel.messages.at(-1));
   const trigger=b.elements.get('project-button'),menu=b.elements.get('project-menu'),action=name=>b.buttons.find(button=>button.dataset.action===name);
@@ -300,9 +261,6 @@ function domHarness(html) {
   function element() {return {dataset:{}, children:[], attributes:{}, textContent:'', hidden:false, listeners:{}, append(...items) {this.children.push(...items);}, replaceChildren() {this.children = [];}, addEventListener(name, fn) {this.listeners[name] = fn;}, click() {if (!this.disabled) this.listeners.click?.();}, focus() {document.activeElement = this;}, setAttribute(name,value) {this.attributes[name]=value;}, getAttribute(name) {return this.attributes[name];}, contains(target) {return target===this || this.children.some(child=>child.contains(target));}, querySelectorAll() {return this.children.flatMap(li => li.dataset.action ? [li] : li.children);}};}
   for (const id of html.matchAll(/id="([^"]+)"/g)) elements.set(id[1], element());
   const buttons = [...html.matchAll(/<button\b([^>]*)>/g)].flatMap(match => {const action = match[1].match(/data-action="([^"]+)"/);if (!action) return [];const id = match[1].match(/id="([^"]+)"/);const button = id ? elements.get(id[1]) : element();button.dataset.action = action[1];return [button];});
-  elements.get('tutorial-menu').hidden=true;
-  elements.get('tutorial-menu').append(...buttons.filter(button=>button.dataset.action==='tutorials'));
-  elements.get('tutorial-actions').append(elements.get('tutorial-button'),elements.get('tutorial-menu'));
   elements.get('project-menu').hidden=true;
   elements.get('project-menu').append(...buttons.filter(button=>['new','clone','local'].includes(button.dataset.action)));
   elements.get('project-actions').append(elements.get('project-button'),elements.get('project-menu'));

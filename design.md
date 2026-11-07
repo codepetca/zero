@@ -90,15 +90,13 @@ when adding features; a new feature does not reset the agreed interaction style.
   instead of copying its styles. Record repeated patterns in
   [editor components](design/EDITOR-COMPONENTS.md) and compare actual renderer
   states in the local `/components` prototype before introducing a new variant.
-- The **Zero Start Page** owns onboarding: **Start tutorial** with a **Tutorials** dropdown,
-  **Project ▾ → New / Clone / Open**, recent projects and guided GitHub sign-in/access.
-  The Start tutorial split control and Project button share the same width.
-  While signed out, its main action says **Sign in to GitHub** and opens browser
-  sign-in only. After sign-in it says **Start tutorial**, enabled only when
-  repository access is ready. Omit the duplicate sign-in action and code-sign-in
-  option. Keep Tutorials available without sign-in. Show it automatically in an empty Zero window; preserve existing editors and
-  restore its native editor tab. Reopen it through **Zero: Start Page** or the
-  sidebar's **⋯ → Start Page**. Keep local opening available without GitHub.
+- The **Zero Start Page** owns onboarding: a direct **Zero Docs** button opens
+  the latest lessons without sign-in. A separate GitHub sign-in action and
+  **Project ▾ → New / Clone / Open** support project work. Students use Project
+  → New and follow the lesson’s starting code; there is no tutorial scaffold button.
+  Show the page automatically in an empty Zero window; preserve existing editors
+  and restore its native editor tab. Reopen it through **Zero: Start Page** or the
+  sidebar’s **⋯ → Start Page**. Keep local opening available without GitHub.
 - On the Start Page, ready GitHub access is one line: **GitHub · username**.
   Signed out shows **Sign in to GitHub**. Keep checking, setup and error guidance
   visible when action is needed; omit the routine Ready to start line.
@@ -127,7 +125,7 @@ when adding features; a new feature does not reset the agreed interaction style.
   Zero's explicit clone commands use its guarded GitHub App
   transport and a fresh destination. General Source Control and terminal network
   commands do not automatically share Zero's authentication.
-  Clone, New project, Start tutorial, Open local project and recent projects
+  Clone, New project, Open local project and recent projects
   reuse the current VS Code window with native unsaved-work handling. Keep an
   open Zero Start Page available as a tab alongside the destination project.
   Sign-out
@@ -193,9 +191,8 @@ Keep local Run/files available offline after initial build setup.
 
 Recommend selected repositories when installing the App. Repositories the App
 creates gain access automatically; never silently select all repositories.
-Start tutorial chooses its verified scaffold, then collects repository name and
-location before creating a public repository, verifying, cloning and opening.
-New project uses the original starter through the same flow. Create a repository
+New project collects a repository name and location before creating a public
+repository, verifying, cloning and opening. Lessons supply their starting code. Create a repository
 for an existing original local project collects a name, explains that subsequent
 pushes make source and included files public, creates an empty public remote and
 connects without pushing. Existing/cloned repository visibility stays unchanged.

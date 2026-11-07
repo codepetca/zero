@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {openTutorialDocs} = require('../src/tutorial-browser');
+const {openTutorialDocs,openZeroDocs} = require('../src/tutorial-browser');
 
 function host({available=true, failure=false, external=true}={}) {
   const calls=[];
@@ -19,6 +19,15 @@ test('uses the regular browser when the integrated browser is absent or fails',a
 });
 test('reports failure to open the fallback and rejects invalid lesson IDs',async()=>{
   const h=host({available:false,external:false});
-  await assert.rejects(openTutorialDocs(h.vscode),/Could not open Tutorial Docs/);
+  await assert.rejects(openTutorialDocs(h.vscode),/Could not open Tutorial Docs in your browser\./);
   await assert.rejects(openTutorialDocs(h.vscode,'../bad'));
+});
+test('Zero Docs uses the resume entry point in the integrated or regular browser',async()=>{
+  const integrated=host();await openZeroDocs(integrated.vscode);
+  assert.deepEqual(integrated.calls,[['workbench.action.browser.open',{url:'https://zero.codepet.ca/resume-docs',openToSide:true}]]);
+  for (const options of [{available:false},{failure:true}]) {
+    const fallback=host(options);await openZeroDocs(fallback.vscode);
+    assert.deepEqual(fallback.calls.at(-1),['external','https://zero.codepet.ca/resume-docs']);
+  }
+  await assert.rejects(openZeroDocs(host({available:false,external:false}).vscode),/Could not open Zero Docs/);
 });
