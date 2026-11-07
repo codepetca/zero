@@ -293,6 +293,11 @@ sign-in; New and Clone retain their GitHub access checks. Mac0.5.45 ships these 
 and Project button, shared Sidebar dropdown styling and compact GitHub account row.
 An empty Zero window opens it automatically; existing student editors stay
 untouched. **Zero: Start Page** and **⋯ → Start Page** reopen it at any time.
+The approved November 7 milestone governs the current local student Git workflow.
+Descriptions below of custom conflict choices, file removal and restoration, and
+finished-change correction record earlier source states. The current gates and
+acceptance status are in the [version control milestone](VERSION-CONTROL-PLAN.md#approved-simplified-milestone--2026-11-07).
+
 The local student sidebar has a **Project** controls pane and a **Files** tree.
 The Project header offers New project, Clone and Open; Files retains its file
 creation menu. Project holds native Run/Stop, teaching helpers and contextual

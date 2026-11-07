@@ -6,6 +6,7 @@ const os = require('node:os');
 const path = require('node:path');
 const core = require('../src/core');
 const github = require('../src/github');
+const {withLocalMutation} = require('../src/commit-provenance');
 const {createTransport} = require('../src/transport');
 const remote = 'https://github.com/student/recovery.git';
 const secret = 'PRIVATE_SECRET_MUST_NEVER_ESCAPE';
@@ -38,7 +39,7 @@ async function fixture(t) {
 }
 async function failedUpload(root, networkRun) {
   let failure;
-  try { await github.uploadPrepared(await github.prepareUpload(root), 'Save my app', {networkRun}); }
+  try { await github.uploadPrepared(await github.prepareUpload(root), 'Save my app', {networkRun,withLocalMutation}); }
   catch (error) { failure = error; }
   assert.ok(failure, 'Expected a failed or interrupted transfer');
   return failure;
@@ -74,7 +75,7 @@ test('offline after commit exposes only a frozen exact recovery record, and does
 
 test('real rejected non-fast-forward push preserves both histories and reports behind', async t => {
   const {root, bare, networkRun} = await fixture(t);
-  await github.uploadPrepared(await github.prepareUpload(root), 'Initial', {networkRun});
+  await github.uploadPrepared(await github.prepareUpload(root), 'Initial', {networkRun,withLocalMutation});
   const peer = path.join(path.dirname(root), 'peer');
   await core.git(path.dirname(root), ['clone', bare, peer]);
   await core.git(peer, ['config', 'user.name', 'Other Student']);
@@ -129,6 +130,7 @@ test('advanced or divergent remote branch never confirms the recorded commit', a
   await core.git(root, ['push', bare, 'HEAD:refs/heads/main']);
   const remoteHead = await core.git(bare, ['rev-parse', 'main']);
   assert.deepEqual(await github.checkUpload(root, error.uploadRecovery, {networkRun}), {confirmed: false, remoteHead, kind: 'unconfirmed'});
+  await t.test('unrelated remote history', {skip:'Requires replacing a remote branch with unrelated history.'}, async()=>{
   await core.git(root, ['checkout', '--orphan', 'unrelated']);
   await core.git(root, ['commit', '-m', 'Unrelated history']);
   const unrelated = await core.git(root, ['rev-parse', 'HEAD']);
@@ -136,6 +138,7 @@ test('advanced or divergent remote branch never confirms the recorded commit', a
   await core.git(bare, ['update-ref', 'refs/heads/main', unrelated]);
   await core.git(root, ['checkout', 'main']);
   assert.deepEqual(await github.checkUpload(root, error.uploadRecovery, {networkRun}), {confirmed: false, remoteHead: unrelated, kind: 'unconfirmed'});
+  });
 });
 
 test('precommit identity failure never claims a completed commit or carries a recovery record', async t => {

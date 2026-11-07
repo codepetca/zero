@@ -138,6 +138,22 @@
         "title": "Zero: Commit & Push"
       },
       {
+        "command": "zero.commitChanges",
+        "title": "Zero: Commit"
+      },
+      {
+        "command": "zero.syncLocalCommit",
+        "title": "Zero: Sync Local Commit"
+      },
+      {
+        "command": "zero.retryBranchSync",
+        "title": "Zero: Retry Branch Sync"
+      },
+      {
+        "command": "zero.switchStudentBranch",
+        "title": "Zero: Switch Branch"
+      },
+      {
         "command": "zero.connectRepository",
         "title": "Zero: Connect Repository"
       },
@@ -344,12 +360,38 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "zero.discardProjectChanges",
+        "title": "Discard project changes…",
+        "icon": "$(discard)",
+        "enablement": "zero.projectHasDiscardableChanges"
+      },
+      {
+        "command": "zero.inspectRecoveryCopies",
+        "title": "Zero: Inspect recovery copies"
+      },
+      {
         "command": "zero.libraryReference",
         "title": "Zero: Library Imports and Examples"
       },
       {
         "command": "zero.explorerOpenFile",
         "title": "Zero: Open File"
+      },
+      {
+        "command": "zero.explorerRestoreDeletedFile",
+        "title": "Restore deleted file…"
+      },
+      {
+        "command": "zero.explorerRestoreModifiedFile",
+        "title": "Restore staged version…"
+      },
+      {
+        "command": "zero.explorerRestoreCommittedFile",
+        "title": "Restore committed version…"
+      },
+      {
+        "command": "zero.explorerRemoveAddedFile",
+        "title": "Remove added file…"
       },
       {
         "command": "zero.explorerAction",
@@ -518,7 +560,7 @@
           ],
           "default": "live",
           "scope": "resource",
-          "markdownDescription": "Live is the default. GitHub actions require your explicit choice. Commit & push uses an empty Commit Message input; check the repository and branch in the sidebar; naming a new branch creates it directly. First Publish warns that the app and included assets will be public; later Publish actions update that site. Merge to main runs directly after its safety checks. After successful merging, guarded cleanup automatically deletes the finished local branch; the remote branch stays available. Repository replacement keeps a concise confirmation. Uploads commit when needed and send files to your connected repository using your VS Code GitHub sign-in. A local Git name/email identity is required. Simulation is an optional testing mode that makes no Git changes or uploads. Local lesson practice projects remain local-only in either mode."
+          "markdownDescription": "Live is the default. GitHub actions require your explicit choice. Commit & push uses an empty Commit Message input; check the repository and branch in the sidebar; naming a new branch creates it directly. First Publish warns that the app and included assets will be public; later Publish actions update that site. Merge to main runs directly after its safety checks. After successful merging, the local and remote feature branches stay available. Repository replacement keeps a concise confirmation. Uploads commit when needed and send files to your connected repository using your VS Code GitHub sign-in. A local Git name/email identity is required. Simulation is an optional testing mode that makes no Git changes or uploads. Local lesson practice projects remain local-only in either mode."
         },
         "zero.sharingCatalogUrl": {
           "type": "string",
@@ -721,6 +763,11 @@
           "group": "navigation@0"
         },
         {
+          "command": "zero.discardProjectChanges",
+          "when": "view == zero.studentProject",
+          "group": "navigation@1"
+        },
+        {
           "command": "zero.browseZeroHub",
           "when": "view == zero.studentProject",
           "group": "zero-libraries@1"
@@ -733,38 +780,58 @@
       ],
       "view/item/context": [
         {
+          "command": "zero.explorerRemoveAddedFile",
+          "when": "view == zero.studentProject && (viewItem == zeroCodeFileAdded || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroAssetFileAdded || viewItem == zeroAssetFileModifiedAdded || viewItem == zeroProjectFileAdded || viewItem == zeroProjectFileModifiedAdded)",
+          "group": "zero-file@3"
+        },
+        {
+          "command": "zero.explorerRestoreModifiedFile",
+          "when": "view == zero.studentProject && (viewItem == zeroCodeFileModified || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroCodeFileModifiedAndCommitted || viewItem == zeroAssetFileModified || viewItem == zeroAssetFileModifiedAdded || viewItem == zeroAssetFileModifiedAndCommitted || viewItem == zeroProjectFileModified || viewItem == zeroProjectFileModifiedAdded || viewItem == zeroProjectFileModifiedAndCommitted)",
+          "group": "zero-file@1"
+        },
+        {
+          "command": "zero.explorerRestoreCommittedFile",
+          "when": "view == zero.studentProject && (viewItem == zeroCodeFileCommitted || viewItem == zeroCodeFileModifiedAndCommitted || viewItem == zeroAssetFileCommitted || viewItem == zeroAssetFileModifiedAndCommitted || viewItem == zeroProjectFileCommitted || viewItem == zeroProjectFileModifiedAndCommitted)",
+          "group": "zero-file@2"
+        },
+        {
+          "command": "zero.explorerRestoreDeletedFile",
+          "when": "view == zero.studentProject && viewItem == zeroDeletedFile",
+          "group": "zero-file@1"
+        },
+        {
           "command": "zero.explorerNewClass",
-          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile)",
+          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroCodeFileAdded || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroCodeFileModified || viewItem == zeroCodeFileCommitted || viewItem == zeroCodeFileModifiedAndCommitted)",
           "group": "zero-create@1"
         },
         {
           "command": "zero.explorerNewPackage",
-          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile)",
+          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroCodeFileAdded || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroCodeFileModified || viewItem == zeroCodeFileCommitted || viewItem == zeroCodeFileModifiedAndCommitted)",
           "group": "zero-create@2"
         },
         {
           "command": "zero.explorerNewFile",
-          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroAssets || viewItem == zeroAssetFile || viewItem == zeroProject || viewItem == zeroProjectFile)",
+          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroCodeFileAdded || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroCodeFileModified || viewItem == zeroCodeFileCommitted || viewItem == zeroCodeFileModifiedAndCommitted || viewItem == zeroAssets || viewItem == zeroAssetFile || viewItem == zeroAssetFileAdded || viewItem == zeroAssetFileModifiedAdded || viewItem == zeroAssetFileModified || viewItem == zeroAssetFileCommitted || viewItem == zeroAssetFileModifiedAndCommitted || viewItem == zeroProject || viewItem == zeroProjectFile || viewItem == zeroProjectFileAdded || viewItem == zeroProjectFileModifiedAdded || viewItem == zeroProjectFileModified || viewItem == zeroProjectFileCommitted || viewItem == zeroProjectFileModifiedAndCommitted)",
           "group": "zero-create@3"
         },
         {
           "command": "zero.explorerNewFolder",
-          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroAssets || viewItem == zeroAssetFile || viewItem == zeroProject || viewItem == zeroProjectFile)",
+          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroCodeFileAdded || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroCodeFileModified || viewItem == zeroCodeFileCommitted || viewItem == zeroCodeFileModifiedAndCommitted || viewItem == zeroAssets || viewItem == zeroAssetFile || viewItem == zeroAssetFileAdded || viewItem == zeroAssetFileModifiedAdded || viewItem == zeroAssetFileModified || viewItem == zeroAssetFileCommitted || viewItem == zeroAssetFileModifiedAndCommitted || viewItem == zeroProject || viewItem == zeroProjectFile || viewItem == zeroProjectFileAdded || viewItem == zeroProjectFileModifiedAdded || viewItem == zeroProjectFileModified || viewItem == zeroProjectFileCommitted || viewItem == zeroProjectFileModifiedAndCommitted)",
           "group": "zero-create@4"
         },
         {
           "command": "zero.explorerImportAssets",
-          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroAssets || viewItem == zeroAssetFile)",
+          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroCodeFileAdded || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroCodeFileModified || viewItem == zeroCodeFileCommitted || viewItem == zeroCodeFileModifiedAndCommitted || viewItem == zeroAssets || viewItem == zeroAssetFile || viewItem == zeroAssetFileAdded || viewItem == zeroAssetFileModifiedAdded || viewItem == zeroAssetFileModified || viewItem == zeroAssetFileCommitted || viewItem == zeroAssetFileModifiedAndCommitted)",
           "group": "zero-create@5"
         },
         {
           "command": "zero.explorerCopyAssetPath",
-          "when": "view == zero.studentProject && viewItem == zeroAssetFile",
+          "when": "view == zero.studentProject && (viewItem == zeroAssetFile || viewItem == zeroAssetFileAdded || viewItem == zeroAssetFileModifiedAdded || viewItem == zeroAssetFileModified || viewItem == zeroAssetFileCommitted || viewItem == zeroAssetFileModifiedAndCommitted)",
           "group": "zero-assets@1"
         },
         {
           "command": "zero.explorerRenameFile",
-          "when": "view == zero.studentProject && (viewItem == zeroCodeFile || viewItem == zeroAssetFile || viewItem == zeroProjectFile)",
+          "when": "view == zero.studentProject && (viewItem == zeroCodeFile || viewItem == zeroCodeFileAdded || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroCodeFileModified || viewItem == zeroCodeFileCommitted || viewItem == zeroCodeFileModifiedAndCommitted || viewItem == zeroAssetFile || viewItem == zeroAssetFileAdded || viewItem == zeroAssetFileModifiedAdded || viewItem == zeroAssetFileModified || viewItem == zeroAssetFileCommitted || viewItem == zeroAssetFileModifiedAndCommitted || viewItem == zeroProjectFile || viewItem == zeroProjectFileAdded || viewItem == zeroProjectFileModifiedAdded || viewItem == zeroProjectFileModified || viewItem == zeroProjectFileCommitted || viewItem == zeroProjectFileModifiedAndCommitted)",
           "group": "zero-file@1"
         }
       ],

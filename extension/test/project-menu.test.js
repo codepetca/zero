@@ -26,10 +26,11 @@ test('student explorer owns New and ZeroHub while its controls stay minimal',asy
   assert.doesNotMatch(controls,/data-command="zero\.(?:newClass|newPackage|newFile|newFolder|importAssets|browseZeroHub)"|id="files-menu-button"/);
   if(connected)assert.match(controls,/zero.chooseRepository/);
  }
- const menus=require('../package.json').contributes.menus;
+ const {menus,commands}=require('../package.json').contributes;
  assert.ok(menus['view/title'].some(item=>item.submenu==='zero.projectNewMenu'&&item.when==='view == zero.studentProject'&&item.group==='navigation@0'));
  const project=menus['view/title'].filter(item=>item.when==='view == zero.studentProject');
- assert.deepEqual(project.filter(item=>item.group.startsWith('navigation')).map(item=>item.submenu||item.command),['zero.projectNewMenu']);
+ assert.deepEqual(project.filter(item=>item.group.startsWith('navigation')).map(item=>item.submenu||item.command),['zero.projectNewMenu','zero.discardProjectChanges']);
+ assert.deepEqual(commands.find(item=>item.command==='zero.discardProjectChanges'),{command:'zero.discardProjectChanges',title:'Discard project changes…',icon:'$(discard)',enablement:'zero.projectHasDiscardableChanges'});
  for(const command of ['zero.refreshStudentExplorer','zero.showAllProjectFiles','zero.collapseStudentExplorer'])assert.ok(project.some(item=>item.command===command&&!item.group.startsWith('navigation')));
  assert.ok(menus['view/title'].some(item=>item.command==='zero.browseZeroHub'&&item.when==='view == zero.studentProject'));
  for(const command of ['zero.explorerNewFile','zero.explorerNewFolder'])assert.ok(menus['view/item/context'].some(item=>item.command===command));

@@ -13,10 +13,8 @@ async function fixture(t, format) {
   const temporary = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'zero-tracking-')));
   t.after(() => fs.rm(temporary, {recursive: true, force: true}));
   const root = path.join(temporary, 'project');
-  const bare = path.join(temporary, 'remote.git');
   await fs.mkdir(root);
   const options = format ? [`--object-format=${format}`] : [];
-  await core.git(temporary, ['init', '--bare', ...options, bare]);
   await core.git(root, ['init', '-b', 'main', ...options]);
   await core.git(root, ['config', '--local', 'user.name', 'Zero Test']);
   await core.git(root, ['config', '--local', 'user.email', 'zero-test@example.invalid']);
@@ -24,15 +22,16 @@ async function fixture(t, format) {
   await core.git(root, ['add', 'Main.java']);
   await core.git(root, ['commit', '-m', 'Base']);
   const base = await core.git(root, ['rev-parse', 'HEAD']);
-  await core.git(root, ['remote', 'add', 'origin', bare]);
-  await core.git(root, ['push', '-u', 'origin', 'main']);
-  await core.git(root, ['remote', 'set-url', 'origin', remote]);
+  await core.git(root, ['remote', 'add', 'origin', remote]);
+  await core.git(root, ['update-ref', tracking, base]);
+  await core.git(root, ['config', '--local', 'branch.main.remote', 'origin']);
+  await core.git(root, ['config', '--local', 'branch.main.merge', 'refs/heads/main']);
   let sequence = 0;
   const commit = async () => {
     await core.git(root, ['commit', '--allow-empty', '-m', `Next ${++sequence}`]);
     return core.git(root, ['rev-parse', 'HEAD']);
   };
-  return {root, bare, base, commit, update: (head, options, branch = 'main') => updateRemoteTracking(root, {remote, branch, head}, options)};
+  return {root, base, commit, update: (head, options, branch = 'main') => updateRemoteTracking(root, {remote, branch, head}, options)};
 }
 function observedRun() {
   const calls = [];
@@ -49,11 +48,11 @@ async function snapshot(root) {
   };
 }
 
-test('confirmed upload refreshes native ahead count while preserving local work and Git settings', async t => {
+test('confirmed commit refreshes native ahead count while preserving local work and Git settings', async t => {
   const f = await fixture(t);
   const head = await f.commit();
-  // A local bare remote supplies real upload evidence without network/authentication.
-  await core.git(f.root, ['push', f.bare, `${head}:refs/heads/main`]);
+  // The caller supplies a locally existing commit as already-confirmed evidence.
+
   assert.equal(await core.git(f.root, ['rev-parse', 'origin/main']), f.base);
   assert.equal(await core.git(f.root, ['rev-list', '--count', '@{upstream}..HEAD']), '1');
   await fs.writeFile(path.join(f.root, 'Main.java'), 'class Main { int unsaved; }\n');
@@ -151,7 +150,7 @@ test('newer and divergent tracking refs never rewind', async t => {
   for (const divergent of [false, true]) await t.test(divergent ? 'divergent' : 'newer', async t => {
     const f = await fixture(t); const head = await f.commit(); const newer = await f.commit();
     await core.git(f.root, ['update-ref', tracking, newer]);
-    await core.git(f.root, ['reset', '--hard', divergent ? f.base : head]);
+    if (divergent) await core.git(f.root, ['switch', '-c', 'other', f.base]);
     const confirmed = divergent ? await f.commit() : head;
     await assert.rejects(f.update(confirmed), /newer or different/);
     assert.equal(await core.git(f.root, ['rev-parse', tracking]), newer);

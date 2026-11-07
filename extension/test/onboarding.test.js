@@ -1,4 +1,5 @@
 'use strict';
+const {repositoryLedgerFactory}=require('./fixtures/repository-ledger');
 const {appSessions}=require('./fixtures/app-sessions');
 const {textInputs} = require('./fixtures/text-input');
 const test = require('node:test');
@@ -64,7 +65,7 @@ async function fixture(t, {studentExplorer=false, lesson=true, lessonFile='00-he
     else delete project.template.scaffoldSha256;}
   }
   await fs.writeFile(path.join(extensionPath,'media/lesson-projects.json'),JSON.stringify(bundle));
-  extension.activate({extensionPath,subscriptions,globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{checkSetup:githubAccess,async create(value){calls.push(['createRepository',value]);return {repository:{html_url:'https://github.com/student/my-project'}};}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
+  extension.activate({extensionPath,subscriptions,globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{repositoryLedgerFactory,env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{checkSetup:githubAccess,async create(value){calls.push(['createRepository',value]);return {repository:{html_url:'https://github.com/student/my-project'}};}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
   const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
   if(!empty && !profile)await settle(()=>remembered.has('zero.sidebarShown'));
   const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
@@ -104,7 +105,9 @@ test('existing projects reveal the Zero controls on activation and when added',a
   assert.deepEqual(shown().map(([id])=>id),['workbench.view.explorer','zero.controls.focus']);
   assert.equal(f.calls.some(([id])=>id==='workbench.view.extension.zero'),false);
   assert.doesNotMatch(f.webview.html,/role="tree"|files\.list|files\.open/);
-  assert.match(f.webview.html,/zero.newClass/);assert.match(f.webview.html,/zero.importAssets/);
+  // File creation belongs to the native Files header, not the Project pane.
+  assert.doesNotMatch(f.webview.html,/data-command="zero.newClass"|data-command="zero.importAssets"/);
+  assert.ok(f.commands.has('zero.newClass'));assert.ok(f.commands.has('zero.importAssets'));
   f.folderChanged({added:[],removed:[{uri:{fsPath:'/unrelated'}}]});await new Promise(resolve=>setTimeout(resolve,30));assert.equal(shown().length,2);
   f.folderChanged({added:[{uri:{fsPath:f.root}}],removed:[]});await settle(()=>shown().length===4);
   await f.commands.get('zero.showSidebar')();assert.equal(shown().length,6);

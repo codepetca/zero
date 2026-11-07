@@ -7,6 +7,76 @@ file creation stays in the Files header. Students may eventually work on two
 active branches; do not impose a branch limit or claim that limitation is already
 implemented.
 
+## Approved simplified milestone — 2026-11-07
+
+Owner-approved scope supersedes the earlier implementation direction below. The
+sidebar answers: which branch am I on, what changed, and is my work saved on
+GitHub? Project contains New/Clone/Open, branch creation and switching, commit
+message and Commit, Merge, recent commits, History and compact GitHub status.
+Files remains separate, retains file creation and accessible added/modified/
+deleted indicators, and opens supported unstaged text changes in the native VS
+Code diff. Staged, mixed, deleted and unsupported changes use Source Control.
+
+The first milestone is the complete student journey: open main; create a feature
+branch; edit, run and review a native diff; commit locally even offline; sync on
+reconnect; merge the clean supported branch into main; reopen and see the merge
+in History. Commit attempts automatic upload using guarded transport. Distinguish
+local commit, offline and verified GitHub success, and offer explicit Sync. Before
+retrying an uncertain upload, check the recorded repository, branch and commit.
+If main moved, offer Update from main where supported. On conflicts or unsafe
+changes, preserve the work, explain the obstruction and open native Source
+Control so the student can resolve, run and return to Merge. Test both normal
+journey and stale-main/conflict handoff, with real local Git and production ledger,
+and separate native editor, mocked transport and live GitHub evidence.
+
+Use ordinary Git for repository operations, native VS Code diff and conflict UI,
+and Zero for the student flow, status and guarded GitHub sync. Preserve existing
+identity, destination, data-loss protections and safety gates until relevant paths
+are verified. Defer custom discard/removal, whole-project restore, custom conflict
+resolution, native displacement/index recovery and a two-active-branch limit.
+Preserve narrow verified local-only undo that keeps edits where cleanly supported;
+a reviewed corrective Revert for merged changes is follow-up if it blocks the
+milestone. Existing prototypes, evidence and uncommitted work are preserved.
+No push, publication, deployment or account change is authorized by this scope.
+
+### Current implementation and acceptance
+
+The local implementation follows the approved student flow. Files shows change
+indicators, retains file creation and uses VS Code's diff for supported changes.
+Commit saves work locally while offline. Failed or uncertain sync retains its
+reminder, and explicit status checks and retries use the reviewed destination,
+account, branch and commit. A confirmed clean Merge keeps the feature branch and
+records a named merge in Git history so it can also be seen in a fresh clone.
+Supported updates remain available. Stale main and unsupported divergent updates
+offer **Open Source Control** and preserve the existing files and commits. An
+existing managed conflict can still use the guarded completion action once it has
+been resolved in Source Control and the index has been verified.
+
+Zero's custom added-file removal is disabled in both development and installed
+mode, including when a verified macOS helper is available. Whole-project Discard,
+custom file restore including deleted-file restore, project restore,
+finished-change correction, and custom conflict choices and cancellation are
+also disabled. Recovery inspection and the narrow guarded keep-changes undo
+remain available where supported. Physical Windows acceptance remains open.
+
+The focused student lifecycle passed against real local Git, a disposable bare
+remote and the production file ledger under OS network denial. VS Code, Run and
+the GitHub endpoint were represented by fixtures. The test covered branch
+creation, the diff dispatch, repeated offline commits, explicit status review
+and retry, a clean Merge, History in a fresh clone, and native Source Control
+dispatch on a divergent update. Separate focused checks passed for Files (28/28),
+History (20/20), descendant sync UI (30/30), an already-present descendant with
+real Git (1/1), and workflow and real divergent handoff (1/1 each). In the final
+regression runs, saved sync had 171 passes, 11 existing safety skips and zero
+failures. Three additional suites passed 102/102 in a combined run. These counts
+are from separate runs. `npm run check` passed.
+
+A native macOS VS Code development host with a trusted disposable local project
+confirmed branch creation, a modified-file indicator, the native diff, local
+commit and recent-history feedback. In a separate single-window disposable
+repository, the local undo action returned main to its parent, preserved the edit
+in the index and working file, and retained the commit under a recovery ref.
+
 ## Delivery sequence
 
 1. Preserve existing commit/push, switching, recovery, simulation, identity and

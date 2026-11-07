@@ -1,4 +1,5 @@
 'use strict';
+const {repositoryLedgerFactory}=require('./fixtures/repository-ledger');
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),Module=require('node:module');
 const {appSessions}=require('./fixtures/app-sessions');
 const {loadBundle}=require('../src/lesson-projects');
@@ -19,7 +20,7 @@ async function fixture(t,{current=false,onPrompt=async(_vscode,items)=>items[2]}
  let extension;try{extension=require(filename);}finally{Module._load=originalLoad;}
  const subscriptions=[];t.after(()=>{for(const item of subscriptions)item.dispose();delete require.cache[filename];if(oldCache)require.cache[filename]=oldCache;});
  const provider=appSessions(vscode,{dispose(){},async removeSession(){}});
- extension.activate({subscriptions,extensionPath,workspaceState:{get:()=>true,update:async()=>{}}},{provider});
+ extension.activate({subscriptions,extensionPath,workspaceState:{get:()=>true,update:async()=>{}}},{repositoryLedgerFactory,provider});
  return {root,old,vscode,commands,errors,prompts,logs,get attempts(){return attempts;},get completed(){return completed;},render(){const webview={html:'',onDidReceiveMessage:disposable};controlsProvider.resolveWebviewView({webview,onDidDispose:disposable});return webview;}};
 }
 
@@ -74,6 +75,45 @@ test('recovery is explicitly selected and confirmed, and rechecks trust',async t
  await h.commands.get('zero.recoverProjectUpdate')();assert.equal(calls,1);
  h.vscode.window.showWarningMessage=async()=>{h.vscode.workspace.isTrusted=false;return 'Recover';};
  await h.commands.get('zero.recoverProjectUpdate')();assert.equal(calls,1);assert.ok(h.errors.length);
+});
+
+test('Git project update and recovery stop for incomplete file restoration under the shared lock',async t=>{
+ for(const scenario of ['update-existing','update-late','update-clear','recover-existing','recover-late','recover-clear'])await t.test(scenario,async t=>{
+  const h=await fixture(t,{current:true}),upgrade=require('../src/project-update'),original={plan:upgrade.planUpdate,apply:upgrade.applyUpdate,list:upgrade.listRecoveries,recover:upgrade.recoverUpdate};
+  t.after(()=>Object.assign(upgrade,{planUpdate:original.plan,applyUpdate:original.apply,listRecoveries:original.list,recoverUpdate:original.recover}));
+  const {execFileSync}=require('node:child_process');execFileSync('git',['init','-q',h.root],{env:{...process.env,GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_TERMINAL_PROMPT:'0'}});
+  const folder=path.join(h.root,'.git','zero-file-restore-recovery-abc123');let mutations=0,seenLock=false;
+  const mutation=async(_value,{assertCurrent})=>{
+   seenLock=Boolean(await fs.stat(path.join(h.root,'.git','zero-commit-provenance.lock')));
+   if(scenario.endsWith('late'))await fs.mkdir(folder);
+   await assertCurrent();mutations++;return {backupPath:'/backup'};
+  };
+  upgrade.planUpdate=async()=>({changed:true});upgrade.applyUpdate=mutation;
+  upgrade.listRecoveries=async()=>[{recoveryPath:path.join(h.root,'.zero-update-123'),status:'incomplete',label:'Incomplete project update'}];upgrade.recoverUpdate=mutation;
+  h.vscode.window.showQuickPick=async items=>items[0];
+  h.vscode.window.showWarningMessage=async(_message,_options,...choices)=>scenario.startsWith('recover')?'Recover':choices[0];
+  if(scenario.endsWith('existing'))await fs.mkdir(folder);
+  await h.commands.get(scenario.startsWith('recover')?'zero.recoverProjectUpdate':'zero.updateProject')();
+  if(scenario.endsWith('clear')){assert.equal(mutations,1);assert.deepEqual(h.errors,[]);assert.equal(seenLock,true);}
+  else {assert.equal(mutations,0);assert.ok(await fs.stat(folder));assert.ok(h.errors.some(value=>/restoration needs inspection/i.test(value)));assert.equal(seenLock,scenario.endsWith('late'));}
+ });
+});
+test('a linked worktree cannot update past incomplete recovery in its common Git directory',async t=>{
+ const h=await fixture(t,{current:true}),upgrade=require('../src/project-update'),oldPlan=upgrade.planUpdate,oldApply=upgrade.applyUpdate;
+ t.after(()=>{upgrade.planUpdate=oldPlan;upgrade.applyUpdate=oldApply;});
+ const {execFileSync}=require('node:child_process'),git=(...args)=>execFileSync('git',args,{cwd:h.root,env:{...process.env,GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_TERMINAL_PROMPT:'0'}});
+ git('init','-q');git('add','zero.json','pom.xml');git('-c','user.name=Student','-c','user.email=student@example.invalid','commit','-qm','Initial');
+ const linked=path.join(h.root,'linked');git('worktree','add','-qb','linked',linked);const folder=path.join(h.root,'.git','zero-file-restore-recovery-abc123');await fs.mkdir(folder);
+ h.vscode.workspace.workspaceFolders=[{uri:{fsPath:linked}}];let called=false;upgrade.planUpdate=async()=>({changed:true});upgrade.applyUpdate=async()=>{called=true;};
+ h.vscode.window.showWarningMessage=async(_message,_options,...choices)=>choices[0];await h.commands.get('zero.updateProject')();
+ assert.equal(called,false);assert.ok(await fs.stat(folder));assert.ok(h.errors.some(value=>/restoration needs inspection/i.test(value)));
+});
+test('a non-Git project refuses update if Git metadata appears before mutation',async t=>{
+ const h=await fixture(t,{current:true}),upgrade=require('../src/project-update'),oldPlan=upgrade.planUpdate,oldApply=upgrade.applyUpdate;
+ t.after(()=>{upgrade.planUpdate=oldPlan;upgrade.applyUpdate=oldApply;});let changed=false;
+ upgrade.planUpdate=async()=>({changed:true});upgrade.applyUpdate=async(_plan,{assertCurrent})=>{await fs.mkdir(path.join(h.root,'.git'));await assertCurrent();changed=true;};
+ h.vscode.window.showWarningMessage=async(_message,_options,...choices)=>choices[0];await h.commands.get('zero.updateProject')();
+ assert.equal(changed,false);assert.ok(h.errors.some(value=>/Git metadata changed/i.test(value)));assert.ok(await fs.stat(path.join(h.root,'.git')));
 });
 
 test('opening a trusted older project shows a prominent update action without repeated scans or mutation',async t=>{
