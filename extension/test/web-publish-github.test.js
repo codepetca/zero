@@ -507,9 +507,9 @@ test('fast reuse falls back for missing/older receipts, branch, edits, new commi
   for(const value of [undefined,{...saved,account:'2'},{...saved,root:'/other'},{...saved,resume:{...saved.resume,installationId:undefined}}])assert.equal((await h.publisher.verifyUnchanged(h.root,value)).status,'stale');
   await fs.writeFile(path.join(h.root,'Main.java'),'class Main {}');assert.equal((await h.publisher.verifyUnchanged(h.root,saved)).status,'stale');
   await h.git(['add','.']);await h.git(['commit','-m','Edit']);assert.equal((await h.publisher.verifyUnchanged(h.root,saved)).status,'stale');
-  await h.git(['reset','--hard',h.head]);await h.git(['switch','-c','work']);assert.equal((await h.publisher.verifyUnchanged(h.root,saved)).status,'stale');
-  await h.git(['switch','main']);h.remoteHead='f'.repeat(40);assert.equal((await h.publisher.verifyUnchanged(h.root,saved)).status,'stale');
-  assert.ok(h.calls.every(c=>c.options.method==='GET'));
+  const clean=await fixture(t),cleanSaved=currentReceipt(clean);await clean.git(['switch','-c','work']);assert.equal((await clean.publisher.verifyUnchanged(clean.root,cleanSaved)).status,'stale');
+  await clean.git(['switch','main']);clean.remoteHead='f'.repeat(40);assert.equal((await clean.publisher.verifyUnchanged(clean.root,cleanSaved)).status,'stale');
+  assert.ok([...h.calls,...clean.calls].every(c=>c.options.method==='GET'));
 });
 test('fast reuse keeps account, installation, destination, run and public availability checks',async t=>{
   for(const kind of ['account','installation','destination','run','public','failed'])await t.test(kind,async t=>{

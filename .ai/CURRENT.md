@@ -1,3 +1,33 @@
+# Student version control — local implementation, 2026-11-05
+
+Worktree `codex/finished-change-history`, based on 7291c2a9e, contains Project and
+Files panes, Project header New/Clone/Open, compact branch controls, review and
+history views, durable named merge boundaries, and guarded preview-first undo.
+Undo stages a correction on the selected branch without upload; conflicts and
+unsupported project configurations stop before application. The two-active-
+branch experience remains future work. Primary checkout edits are untouched.
+
+Owner directed “Override stops and get this work done”; low-usage and workflow
+review-budget stops are waived for this task. No reset, account change, push,
+merge or publication is authorized. Initial independent reviews found Git retry
+and history issues; fixes passed targeted re-review. Undo safety and UI reviews
+found Windows configuration and selection/workspace issues; fixes passed targeted
+re-review. Cumulative integration review of 7291c2a9e..580733cc2 passed 31/31
+focused checks with no actionable findings. Requested reviewer configurations:
+Terra/high and Sol/high; effective model, time and tokens unavailable.
+
+`npm test` at 0c3d5afb4:1780 passed,8 skipped; final undo/history/UI tests at
+580733cc2:26/26; final integration checks:31/31. `npm run check` and `git diff
+--check` passed. Actual VS Code interaction remains unverified: the Mac was unlocked and the owner
+foregrounded the disposable test window, but computer control selected a different
+VS Code process. A disposable local Git project successfully previewed and staged
+an undo with HEAD unchanged; no network was used. Physical Windows and
+authenticated live GitHub flows remain untested. Zero Dev watcher is running.
+Next: native editor walkthrough when the correct process can be selected. Source
+publication and release remain separately unauthorized.
+
+---
+
 # Microsoft Store package correction — 2026-10-28
 
 Owner authorizes correcting the Store package and validating actual MSIX behavior;

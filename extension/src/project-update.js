@@ -138,6 +138,7 @@ async function applyUpdate(plan,{assertCurrent=async()=>{}}={}){
  await assertCurrent();const fresh=await snapshot(plan);
  if(JSON.stringify(fresh.plan)!==JSON.stringify(plan))fail('project or installed update changed; review again.');
  if(!plan.changed)return {...plan,recoveryPath:null,backupPath:null};
+ throw new Error('Project update and recovery are temporarily unavailable. Your project and recovery copies are kept.');
  const old=new Map(fresh.oldFiles.map(file=>[file.path,file])),next=new Map(fresh.nextFiles.map(file=>[file.path,file]));
  const names=[...new Set([...old.keys(),...next.keys()])].sort();
  // Unchanged framework files retain their exact original bytes (including CRLF).
@@ -179,6 +180,7 @@ async function applyUpdate(plan,{assertCurrent=async()=>{}}={}){
  }catch(error){error.recoveryPath=recoveryPath;error.message+=' Original files and update journal remain at '+recoveryPath+'. Use explicit project update recovery; do not delete changed files.';throw error;}
 }
 async function recoverUpdate({projectRoot,recoveryPath},{assertCurrent=async()=>{}}={}){
+ throw new Error('Project update and recovery are temporarily unavailable. Your project and recovery copies are kept.');
  const root=await rootPath(projectRoot);
  if(typeof recoveryPath!=='string'||path.dirname(recoveryPath)!==root||!/^\.zero-update-[A-Za-z0-9]+$/.test(path.basename(recoveryPath)))fail('choose this project’s exact recovery folder.');
  const file=await readFile(recoveryPath,'journal.json',256*1024);let journal;

@@ -5,6 +5,23 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const core = require('../src/core');
+test('exact local ref names preserve namespaces and reject foreign or malformed references', () => {
+  for(const name of ['release/1.2','fix+score','refs/heads/x','café','a'.repeat(40)])assert.equal(core.branchNameFromRef(`refs/heads/${name}`),name);
+  for(const ref of ['main','refs/tags/main','refs/remotes/origin/main','refs/heads/','refs/heads/-force','refs/heads/main^','refs/heads/a..b','refs/heads/a\nrefs/heads/b','refs/heads/a.lock'])assert.throws(()=>core.branchNameFromRef(ref),/valid local Git branch/);
+});
+test('current branch reads exact symbolic HEAD and preserves detached errors', async () => {
+  assert.equal(await core.currentBranch('/project',async(root,args)=>{
+    assert.equal(root,'/project');
+    if(args.at(-1)==='HEAD'){assert.deepEqual(args,['symbolic-ref','--quiet','--no-recurse','HEAD']);return 'refs/heads/refs/heads/x';}
+    assert.deepEqual(args,['symbolic-ref','--quiet','--no-recurse','refs/heads/refs/heads/x']);throw Object.assign(new Error('not symbolic'),{code:1});
+  }),'refs/heads/x');
+  await assert.rejects(core.currentBranch('/project',async()=> 'refs/tags/x'),/valid local Git branch/);
+  const detached=Object.assign(new Error('detached'),{code:1});
+  await assert.rejects(core.currentBranch('/project',async()=>{throw detached;}),error=>error===detached);
+  const originalGit=core.git;
+  try {core.git=async(_,args)=>{if(args.at(-1)==='HEAD')return 'refs/heads/fix+score';throw Object.assign(new Error('not symbolic'),{code:1});};assert.equal(await core.currentBranch('/project'),'fix+score');}
+  finally {core.git=originalGit;}
+});
 async function temporary(t) {const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-test-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));return root;}
 test('accepts canonical GitHub repository pages and .git remotes', () => {
   for (const input of ['https://github.com/student/app','https://github.com/student/app.git','https://github.com/student/app/']) assert.deepEqual(core.parseRepositoryUrl(input),{page:'https://github.com/student/app',remote:'https://github.com/student/app.git'});
@@ -83,4 +100,23 @@ test('tutorial gate uses only local Git and accepts an own-origin clone without 
   await assert.rejects(core.assertTutorialRepository(zip,readOnly),/invalid tutorial repository marker/);
   const ordinary=path.join(root,'ordinary');await fs.mkdir(ordinary);await fs.writeFile(path.join(ordinary,'zero.json'),'{}');
   assert.equal(await core.assertTutorialRepository(ordinary,()=>{throw Error('Git must not run');}),null);
+});
+
+test('a tutorial with missing origin reconnects only after exact destination confirmation',async t=>{
+ const root=await temporary(t);await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',lessonId:'0',repositoryRequired:true}));
+ await core.git(root,['init','-b','main']);await core.git(root,['config','user.name','Test']);await core.git(root,['config','user.email','test@example.invalid']);
+ await core.git(root,['add','zero.json']);await core.git(root,['commit','-m','Initial']);
+ let shown;const cancelled=await core.reconnectTutorialRepository(root,'https://github.com/student/project',async page=>{shown=page;return false;});
+ assert.equal(cancelled,null);assert.equal(shown,'https://github.com/student/project');assert.equal(await core.git(root,['remote']),'');
+ await assert.rejects(core.reconnectTutorialRepository(root,'https://github.com/codepetca/zero-tutorial-greeting',async()=>true),/own repository/);
+ await core.reconnectTutorialRepository(root,'https://github.com/student/project',async()=>true);
+ assert.equal(await core.git(root,['remote','get-url','origin']),'https://github.com/student/project.git');
+ await assert.rejects(core.reconnectTutorialRepository(root,'https://github.com/student/other',async()=>true),/already connected/);
+});
+
+test('tutorial reconnect refuses a branch change while the student confirms',async t=>{
+ const root=await temporary(t);await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',lessonId:'0',repositoryRequired:true}));
+ await core.git(root,['init','-b','main']);await core.git(root,['config','user.name','Test']);await core.git(root,['config','user.email','test@example.invalid']);await core.git(root,['add','zero.json']);await core.git(root,['commit','-m','Initial']);
+ await assert.rejects(core.reconnectTutorialRepository(root,'https://github.com/student/project',async()=>{await core.git(root,['checkout','-b','other']);return true;}),/project changed/i);
+ assert.equal(await core.git(root,['remote']),'');
 });

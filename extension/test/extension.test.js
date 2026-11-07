@@ -1,4 +1,5 @@
 'use strict';
+const {repositoryLedgerFactory}=require('./fixtures/repository-ledger');
 const {appSessions}=require('./fixtures/app-sessions');
 const {textInputs} = require('./fixtures/text-input');
 const test = require('node:test');
@@ -34,7 +35,7 @@ test('commands simulate upload without Git and native Run App tasks retain resta
   const accessCalls=[];
   const repositories={checkSetup:async()=>{},access:async(repositoryUrl,{ticket,permissions})=>{assert.equal(repositoryUrl,'https://github.com/student/app');assert.equal(ticket.session.accountId,'1');assert.deepEqual(ticket.session.scopes,[]);accessCalls.push(permissions);return {ticket,repository:{id:12},installation:{id:99}};}};
   let releaseAuth;authGate=new Promise(resolve=>{releaseAuth=resolve;});
-  extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{provider:appSessions(vscode,appProvider),repositories});
+  extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{repositoryLedgerFactory,provider:appSessions(vscode,appProvider),repositories});
   const waitReloadIdle=async()=>{const deadline=Date.now()+5000;while(reloadIsBusy()){assert.ok(Date.now()<deadline,'Update reload must become idle');await new Promise(resolve=>setImmediate(resolve));}};
   assert.equal(reloadIsBusy(),true,'Startup silent renewal must defer automatic reload');
   releaseAuth();authGate=undefined;await waitReloadIdle();
@@ -44,6 +45,8 @@ test('commands simulate upload without Git and native Run App tasks retain resta
   appProvider.reloadBusy=true;assert.equal(reloadIsBusy(),true,'Provider work outside the facade also defers reload');appProvider.reloadBusy=false;
   await commands.get('zero.uploadToGitHub')();
   assert.match(notices[0],/Simulation only — nothing uploaded/);assert.equal(mutations,0);
+  await commands.get('zero.commitChanges')();
+  assert.match(notices.at(-1),/Simulation only/);assert.equal(saved,0);assert.equal(mutations,0);
   await commands.get('zero.publishWeb')();
   assert.equal(saved,0,'Simulated publishing must not save student files');
   assert.equal(mutations,0,'Simulated publishing must not change Git or setup files');
@@ -122,11 +125,11 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-ui-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
   await core.git(root,['init','-b','main']);
-  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[],picks=[],dispatched=[],copied=[],registered=[],removed=[],creations=[],clones=[],inputs=[];let session,connectionSession,authEvent,webviewProvider,repo,nextChoice,inputCount=0,currentBranch='main',mode='simulation',pickEffect,checkout,checkoutGate,nativeRoot=root;let gitChanges=0,shareCalls=0,recoveryCalls=0;
+  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[],picks=[],dispatched=[],copied=[],registered=[],removed=[],creations=[],clones=[],inputs=[];let session,connectionSession,authEvent,webviewProvider,repo,nextChoice,inputCount=0,currentBranch='main',symbolicAlias=false,mode='simulation',pickEffect,checkout,checkoutGate,nativeRoot=root;let gitChanges=0,shareCalls=0,recoveryCalls=0,documentChanged,statusChanges=new Map([['zero.json','modified']]),statusFailure=false;
   let dismissWarning; const warningPending=new Promise(resolve=>{dismissWarning=resolve;});t.after(()=>dismissWarning());
   let reportWarning; const warningShown=new Promise(resolve=>{reportWarning=resolve;});
   const oldAssert=core.assertRepositoryRoot;core.assertRepositoryRoot=async()=>root;t.after(()=>{core.assertRepositoryRoot=oldAssert;});
-  const oldGit=core.git;core.git=async(_,args)=>{if(args[0]==='rev-parse') return args.includes('--verify')?'a'.repeat(40):root;if(args[0]==='symbolic-ref'){if(currentBranch===undefined)throw new Error('Detached HEAD');return currentBranch;}if(args[0]==='remote'&&args[1]==='get-url'){if(!repo)throw new Error('no origin');return repo;}if(args[0]==='status')return '';gitChanges++;throw new Error('Unexpected mutation');};t.after(()=>{core.git=oldGit;});
+  const oldGit=core.git;core.git=async(_,args)=>{if(args[0]==='-c'&&args[1]==='core.fsmonitor=false')args=args.slice(2);if(args[0]==='rev-parse') return args.includes('--verify')?'a'.repeat(40):root;if(args[0]==='symbolic-ref'){if(args.at(-1)!=='HEAD'){if(symbolicAlias)return 'refs/heads/main';throw Object.assign(Error('Direct branch'),{code:1});}if(currentBranch===undefined)throw Object.assign(new Error('Detached HEAD'),{code:1});return `refs/heads/${currentBranch}`;}if(args[0]==='remote'&&args[1]==='get-url'){if(!repo)throw Object.assign(new Error('no origin'),{code:2});return repo;}if(args[0]==='remote'&&args.length===1)return repo?'origin':'';if(args[0]==='status'||args[0]==='ls-files')return '';gitChanges++;throw new Error('Unexpected mutation: '+args.join(' '));};t.after(()=>{core.git=oldGit;});
   const sidebarShortcut={visible:false,show(){this.visible=true;},hide(){this.visible=false;},dispose(){this.disposed=true;}};
   const nativeRepository={rootUri:{fsPath:root}};
   const nativeApi={getRepository:()=>{nativeRepository.rootUri.fsPath=nativeRoot;return nativeRoot?nativeRepository:null;},get repositories(){return nativeRoot?[{rootUri:{fsPath:nativeRoot}}]:[];}};
@@ -134,7 +137,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
     StatusBarAlignment:{Left:1},
     extensions:{getExtension:()=>({isActive:true,exports:{getAPI:()=>nativeApi}})},
     authentication:{getSession:async(provider,scopes,options)=>{assert.equal(provider,'zero-github');assert.deepEqual(scopes,[]);authCalls.push({provider,scopes,options});if(options.createIfNone&&connectionSession)session=connectionSession;return session;},registerAuthenticationProvider:(id,label,provider)=>{registered.push({id,label,provider});return disposable();},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
-    workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?mode:fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
+    workspace:{isTrusted:true,textDocuments:[],onDidChangeTextDocument:fn=>{documentChanged=fn;return disposable();},registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?mode:fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
     window:{createStatusBarItem:(id,alignment,priority)=>{assert.equal(id,'zero.backToSidebar');assert.equal(alignment,1);assert.equal(priority,1000);return sidebarShortcut;},createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async message=>{notices.push(message);},showWarningMessage:async message=>{notices.push(message);reportWarning();await warningPending;},showQuickPick:async(items,options)=>{picks.push({items,options});if(pickEffect)await pickEffect();return items.find(item=>item.action===nextChoice);},showInputBox:async()=>{inputCount++;return inputs.shift();},showOpenDialog:async()=>[{fsPath:root}],showErrorMessage:async message=>{errors.push(message);}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},getCommands:async()=>['workbench.action.manageAccounts'],executeCommand:async (id,uri)=>{dispatched.push(id);if(id==='git.checkout'){assert.equal(uri.fsPath,root);if(checkoutGate)await checkoutGate;if(checkout)await checkout();}}},
     env:{openExternal:async uri=>{opened.push(uri);return true;},clipboard:{writeText:async text=>{copied.push(text);}}},Uri:{file:fsPath=>({fsPath}),parse:url=>({url})},EventEmitter:class{event(){}fire(){}dispose(){}}
@@ -142,6 +145,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   const startPanels=require('./fixtures/start-page-panel').startPagePanels(vscode);
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){
     if(id==='vscode')return textInputs(vscode);
+    if(id==='./student-file-status')return {readStudentFileStatus:async()=>{if(statusFailure)throw Error('status failed');return new Map(statusChanges);}};
     const loaded=originalLoad.call(this,id,...args);
     if(id==='./recovery')return {...loaded,createRecoveryCommands:(...options)=>{const editor=loaded.createRecoveryCommands(...options);editor.commands['zero.recovery']=async()=>{recoveryCalls++;};return editor;}};
     if(id==='./sharing/editor')return {...loaded,createSharingEditor:(...options)=>{const editor=loaded.createSharingEditor(...options);editor.commands['zero.shareGame']=async()=>{shareCalls++;};return editor;}};
@@ -151,7 +155,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   const appProvider={removeSession:async id=>{removed.push(id);session=undefined;},dispose(){}};
   const repositories={checkSetup:async()=>{},access:async()=>assert.fail('No live repository access is needed in this sidebar/checkout test'),create:async(input,{ticket})=>{assert.equal(ticket.session.accountId,'1');assert.deepEqual(ticket.session.scopes,[]);creations.push(input);return {ticket,repository:{id:12,html_url:'https://github.com/student/'+input.name},installation:{id:99}};}};
   const cloneRepository=async input=>{assert.ok(input.signal instanceof AbortSignal);assert.equal(input.signal.aborted,false);const {signal,...reviewed}=input;clones.push(reviewed);return path.join(root,'new-project');};
-  extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},globalState:{get:key=>key==='zero.cloneParent'?root:undefined,update:async()=>{}}},{provider:appSessions(vscode,appProvider),repositories,cloneRepository});
+  extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},globalState:{get:key=>key==='zero.cloneParent'?root:undefined,update:async()=>{}}},{repositoryLedgerFactory,provider:appSessions(vscode,appProvider),repositories,cloneRepository});
   assert.deepEqual(registered.map(item=>item.id),['zero-github']);
   assert.equal(typeof commands.get('zero.checkForUpdates'),'function');
   assert.equal(typeof commands.get('zero.updateSettings'),'function');
@@ -159,7 +163,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   const settle=async predicate=>{
     const deadline=Date.now()+5000;
     while(!predicate()) {
-      assert.ok(Date.now()<deadline,'Expected asynchronous sidebar state did not arrive');
+      assert.ok(Date.now()<deadline,'Expected asynchronous sidebar state did not arrive: '+JSON.stringify({errors,notices,dispatched}));
       await new Promise(resolve=>setImmediate(resolve));
     }
   };await settle(()=>authCalls.length>0 && /GitHub setup/.test(webview.html));
@@ -225,8 +229,37 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE',scopes:[]};authEvent({provider:{id:'zero-github'}});await settle(()=>!webview.html.includes('>GitHub setup</button>'));
   connectionSession={...session,id:'replacement-session'};nextChoice='change';await commands.get('zero.githubAccount')();
   assert.deepEqual(removed,['student-session','student-session']);assert.equal(authCalls.findLast(call=>call.options.createIfNone).options.createIfNone,true);assert.equal(authCalls.findLast(call=>call.options.createIfNone).options.clearSessionPreference,undefined,'Account replacement stays within Zero’s provider');
-  repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle(()=>/Commit &amp; push/.test(webview.html) && /class="repo-label">student\/<wbr>app/.test(webview.html));
-  assert.match(webview.html,/Commit &amp; push/);assert.match(webview.html,/class="repo-label">student\/<wbr>app/);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
+  repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle(()=>/data-command="zero.commitChanges"/.test(webview.html) && /class="repo-label">student\/<wbr>app/.test(webview.html));
+  const commitButton=()=>webview.html.match(/<button class="secondary upload"[^>]*>/)?.[0]||'';
+  await settle(()=>commitButton()&&!commitButton().includes('disabled'));
+  const doc={isDirty:true,uri:{scheme:'file',fsPath:path.join(root,'zero.json')}};
+  vscode.workspace.textDocuments=[doc];documentChanged({document:doc});
+  await settle(()=>webview.html.includes('Save your project edits before committing.'));
+  assert.match(commitButton(),/disabled/,'Mixed unsaved and saved changes block commit');
+  statusChanges=new Map();documentChanged({document:doc});
+  await settle(()=>webview.html.includes('Save your project edits before committing.'));
+  assert.match(commitButton(),/disabled/,'Unsaved-only changes block commit');
+  statusChanges=new Map([['zero.json','modified']]);doc.isDirty=false;documentChanged({document:doc});
+  await settle(()=>commitButton()&&!commitButton().includes('disabled'));
+  statusChanges=new Map();documentChanged({document:doc});await settle(()=>commitButton().includes('disabled'));
+  statusFailure=true;documentChanged({document:doc});await settle(()=>webview.html.includes('Commit status is unavailable'));
+  assert.match(commitButton(),/disabled/);statusFailure=false;statusChanges=new Map([['zero.json','modified']]);documentChanged({document:doc});
+  await settle(()=>commitButton()&&!commitButton().includes('disabled'));
+  const alias=root+'-alias';await fs.symlink(root,alias);t.after(()=>fs.unlink(alias));
+  const aliasDoc={isDirty:true,uri:{scheme:'file',fsPath:path.join(alias,'zero.json')}};
+  vscode.workspace.textDocuments=[aliasDoc];documentChanged({document:aliasDoc});
+  await settle(()=>webview.html.includes('Save your project edits before committing.'));assert.match(commitButton(),/disabled/);
+  aliasDoc.isDirty=false;documentChanged({document:aliasDoc});await settle(()=>commitButton()&&!commitButton().includes('disabled'));
+  const outsideTarget=path.join(os.tmpdir(),`zero-external-${path.basename(root)}.txt`);await fs.writeFile(outsideTarget,'external');t.after(()=>fs.unlink(outsideTarget));
+  const link=path.join(root,'external-link.txt');await fs.symlink(outsideTarget,link);
+  const linkDoc={isDirty:true,uri:{scheme:'file',fsPath:link}};vscode.workspace.textDocuments=[linkDoc];documentChanged({document:linkDoc});
+  await settle(()=>webview.html.includes('Save your project edits before committing.'));assert.match(commitButton(),/disabled/,'A project symlink remains in scope even when its target is outside');
+  linkDoc.isDirty=false;documentChanged({document:linkDoc});await settle(()=>commitButton()&&!commitButton().includes('disabled'));
+  const outside={isDirty:true,uri:{scheme:'file',fsPath:path.join(os.tmpdir(),'unrelated-editor.txt')}};
+  vscode.workspace.textDocuments=[outside];documentChanged({document:outside});
+  await settle(()=>commitButton()&&!commitButton().includes('disabled'));assert.doesNotMatch(webview.html,/Save your project edits before committing/);
+  statusChanges=new Map();vscode.workspace.textDocuments=[];vscode.workspace.isTrusted=undefined;
+  assert.match(webview.html,/data-command="zero.commitChanges"/);assert.match(webview.html,/class="repo-label">student\/<wbr>app/);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
   assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"/,'Publishing is not a separate GitHub-area button');
   assert.doesNotMatch(webview.html,/data-command="zero.openPublishedWeb"|data-command="zero.copyPublishedWebLink"/);
   assert.match(webview.html,/id="run-menu-button"[^>]*aria-label="Run options"/);
@@ -248,7 +281,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   nextChoice='recovery';await commands.get('zero.chooseRepository')();assert.equal(recoveryCalls,1,'The repository menu dispatches the existing guarded file recovery command');
   pickEffect=async()=>{repo='https://github.com/student/changed.git';};await commands.get('zero.chooseRepository')();assert.equal(recoveryCalls,1,'Changing repository cancels pending file recovery');pickEffect=undefined;repo='https://github.com/student/app.git';
   nextChoice='copy';await commands.get('zero.chooseRepository')();assert.equal(copied.at(-1),'https://github.com/student/app');
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','sync','switch','connect','updateProject','recoverProjectUpdate','recovery','account']);
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','sync','switch','connect','updateProject','recoverProjectUpdate','recovery','inspectRecoveryCopies','account']);
   const beforePublishAuth=authCalls.length;nextChoice='publish';await commands.get('zero.chooseRepository')();assert.match(webview.html,/Simulation only — no publishing files/);assert.equal(authCalls.length,beforePublishAuth,'Repository menu dispatch preserves publishing simulation isolation');
   session={...session,account:{id:'1',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'zero-github'}});await settle(()=>!webview.html.includes('>GitHub setup</button>'));
   assert.doesNotMatch(webview.html,/<img|&lt;img|PRIVATE/,'Account labels and tokens stay out of sidebar HTML');
@@ -260,13 +293,14 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   const beforeSwitch=dispatched.length;nextChoice='switch';await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeSwitch,'Simulation does not switch a branch');
   mode='live';checkout=async()=>{currentBranch='add-score';};const beforeSwitchAuth=authCalls.length;
   let releaseCheckout;checkoutGate=new Promise(resolve=>{releaseCheckout=resolve;});
-  const switching=commands.get('zero.chooseRepository')();await settle(()=>dispatched.at(-1)==='git.checkout');
+  const switching=commands.get('zero.switchBranch')();await settle(()=>dispatched.at(-1)==='git.checkout');
   const pendingDispatches=dispatched.length;await commands.get('zero.cloneRepository')();await commands.get('zero.switchBranch')();assert.equal(dispatched.length,pendingDispatches,'Native checkout holds the operation lock');
   releaseCheckout();await switching;checkoutGate=undefined;
   assert.equal(authCalls.length,beforeSwitchAuth,'Switching does not reauthorize');assert.match(webview.html,/>Switched to add-score<\/p>/);assert.match(webview.html,/Current branch: add-score/);
   const beforeCancel=notices.length;checkout=undefined;await commands.get('zero.switchBranch')();assert.equal(notices.length,beforeCancel,'Cancel creates no success popup');
-  nextChoice=undefined;await commands.get('zero.chooseRepository')();assert.ok(!picks.at(-1).items.some(item=>item.action==='start'),'New branch follows the existing main-only workflow');
-  currentBranch=undefined;nextChoice=undefined;await commands.get('zero.chooseRepository')();assert.ok(picks.at(-1).items.some(item=>item.action==='switch'));assert.match(webview.html,/>Detached HEAD<\/span>/);
+  nextChoice=undefined;await commands.get('zero.chooseRepository')();assert.ok(picks.at(-1).items.some(item=>item.action==='start'),'New branch is available from a feature branch');
+  symbolicAlias=true;webviewProvider.resolveWebviewView(candidate);await settle(()=>webview.html.includes('This branch cannot be displayed safely'));assert.doesNotMatch(webview.html,/>Detached HEAD<\/span>/);assert.match(webview.html,/Open Source Control/);symbolicAlias=false;
+  currentBranch=undefined;webviewProvider.resolveWebviewView(candidate);await settle(()=>webview.html.includes('Detached HEAD'));nextChoice=undefined;await commands.get('zero.chooseRepository')();assert.ok(picks.at(-1).items.some(item=>item.action==='switch'));assert.match(webview.html,/>Detached HEAD<\/span>/);
   checkout=async()=>{currentBranch='main';};nextChoice='switch';await commands.get('zero.chooseRepository')();assert.match(webview.html,/>Switched to main<\/p>/);assert.doesNotMatch(webview.html,/>Detached HEAD<\/span>/);
   for(const unavailable of [undefined,path.dirname(root)]) {nativeRoot=unavailable;const beforeUnavailable=dispatched.length;await commands.get('zero.switchBranch')();assert.equal(dispatched.length,beforeUnavailable,'Missing or mismatched native repository cannot fall back to another repository');assert.match(errors.at(-1),/Source Control.*built-in Git extension/);}nativeRoot=root;
   checkout=async()=>{throw new Error('Local changes would be overwritten. Commit or stash them first.');};await commands.get('zero.switchBranch')();assert.match(errors.at(-1),/Local changes would be overwritten/);assert.equal(currentBranch,'main');checkout=undefined;
@@ -274,11 +308,11 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   nextChoice='clone';pickEffect=async()=>{repo='https://github.com/student/changed.git';};const beforeDrift=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeDrift,'A changed destination invalidates a pending menu selection');pickEffect=undefined;repo='https://github.com/student/app.git';currentBranch='main';
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',repositoryRequired:true,lessonId:'0'}));
   nextChoice=undefined;await commands.get('zero.chooseRepository')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','sync','switch','updateProject','recoverProjectUpdate','recovery','account'],'A cloned tutorial keeps repository actions without offering rejected origin replacement');
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','sync','switch','updateProject','recoverProjectUpdate','recovery','inspectRecoveryCopies','account'],'A cloned tutorial keeps repository actions without offering rejected origin replacement');
   await commands.get('zero.browseZeroHub')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries'],'Tutorial projects do not offer Share project');
   repo=undefined;webviewProvider.resolveWebviewView(candidate);await settle(()=>!webview.html.includes('student/app'));
   await commands.get('zero.chooseRepository')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['updateProject','recoverProjectUpdate','recovery','account'],'An uncloned tutorial offers a new project, clone or opening an existing local copy');
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['connect','updateProject','recoverProjectUpdate','recovery','inspectRecoveryCopies','account'],'A tutorial without an origin can reconnect without creating a new repository');
   nextChoice='clone';const beforeClone=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeClone,'Cancelled clone URL does not launch Git');
   assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.toggleApp'),'Local Run is always available');
   for(const panel of startPanels)panel.dispose();
@@ -292,9 +326,10 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
 test("Zero offers the native student explorer with a standard Explorer escape",()=>{
   const manifest=require("../package.json");
   assert.deepEqual(manifest.contributes.views.explorer.map(view=>view.id),["zero.controls"]);
-  assert.equal(manifest.contributes.views.explorer[0].name,"Zero");
+  assert.equal(manifest.contributes.views.explorer[0].name,"Project");
   assert.equal(manifest.contributes.views.explorer[0].when,'!zero.studentExplorerPreview');
   assert.deepEqual(manifest.contributes.views['zero-student-explorer'].map(item=>item.id),['zero.studentControls','zero.studentProject']);
+  assert.deepEqual(manifest.contributes.views['zero-student-explorer'].map(item=>item.name),['Project','Files']);
   assert.ok(manifest.contributes.views['zero-student-explorer'].every(item=>item.when==='zero.studentExplorerPreview'));
   assert.deepEqual(manifest.contributes.viewsContainers.activitybar.map(item=>item.id),['zero-student-explorer']);
   assert.equal(manifest.contributes.viewsContainers.activitybar[0].title,'Zero');
