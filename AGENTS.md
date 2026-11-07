@@ -39,8 +39,9 @@ preserve them in future UI work unless the owner asks to change them.
   proposed project-owned browser tooling/backup flow is already implemented.
 - Never publish, push, deploy, or alter account credentials without explicit
   user authorization. Student GitHub actions default to live through explicit commands and guarded plans;
-  optional simulation remains available for testing. Tutorials require students to create their own repository from the
-  matching template and clone it; local running works offline after that setup.
+  optional simulation remains available for testing. Tutorials use Project → New
+  and the lesson's starting code; students own their repositories and can run
+  locally offline after setup.
 - Keep the option-2 sidebar minimal. Use supported VS Code extension APIs.
 - When writing or changing tutorials, follow the student-facing authoring
   conventions in `docs/TUTORIAL-PLAN.md`, including short numbered steps,
