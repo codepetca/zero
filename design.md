@@ -8,6 +8,9 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner sidebar refinement, 2026-11-07: keep the repository name and each recent
+commit on one line, truncating long text while retaining the full text on hover.
+
 Owner sidebar refinement, 2026-11-05 (local source): name the controls pane
 **Project** and the student file tree **Files**. The Project header offers New
 project, Clone and Open; the Files header retains file creation. Use a compact
