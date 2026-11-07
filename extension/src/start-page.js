@@ -5,15 +5,14 @@ const {icon} = require('./sidebar-icons');
 const {publishProgressDetails,updatePublishProgress} = require('./publish-progress');
 
 const COMMANDS = Object.freeze({
-  tutorial: 'zero.startProject',
-  tutorials: 'zero.openFirstLesson',
+  tutorials: 'zero.openDocs',
   new: 'zero.newProject',
   clone: 'zero.cloneRepository',
   local: 'zero.openLocalProject',
   signIn: 'zero.signInToGitHub',
   setup: 'zero.setupGitHub'
 });
-const CLOUD = new Set(['tutorial', 'new', 'clone']);
+const CLOUD = new Set(['new', 'clone']);
 
 // This view owns navigation only. The existing commands retain setup, account,
 // destination and project checks; recent entries come only from the host's list.
@@ -136,7 +135,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
       else await vscode.commands.executeCommand(COMMANDS[action]);
     } catch (error) {
       if (!current(target) || state().accountId !== accountId) return;
-      failure = `Could not ${choice ? 'open this project' : ({tutorial:'start the tutorial', tutorials:'open Tutorials', new:'create a project', clone:'clone a project', local:'open a local project', signIn:'sign in to GitHub', setup:'check GitHub access'})[action]}. Try again.`;
+      failure = `Could not ${choice ? 'open this project' : ({tutorials:'open Zero Docs', new:'create a project', clone:'clone a project', local:'open a local project', signIn:'sign in to GitHub', setup:'check GitHub access'})[action]}. Try again.`;
       retry = {action, choice, accountId};
       try {report(failure, error?.message || String(error));} catch {}
     } finally {
@@ -224,13 +223,13 @@ body{margin:0;color:var(--vscode-foreground);background:var(--vscode-editor-back
 main{max-width:760px;margin:0 auto;padding:48px 28px}h1{font-size:2em;font-weight:600;margin:0 0 28px}h2{font-size:1.15em;font-weight:600;margin:0 0 12px}section{margin-top:36px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
 
 p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#status,#error{overflow-wrap:anywhere}#github-heading{margin-bottom:0}#account{font-weight:400}#error{color:var(--vscode-errorForeground)}[hidden]{display:none!important}ul{list-style:none;padding:0;margin:0}li{margin:4px 0}.recent{display:block;width:100%;text-align:left;background:transparent;color:var(--vscode-textLink-foreground);padding:8px 4px}.recent:hover{background:var(--vscode-list-hoverBackground)}.name,.path{display:block;overflow-wrap:anywhere}.path{font-size:.9em}.vscode-high-contrast button,.vscode-high-contrast-light button{border-color:var(--vscode-contrastBorder)}
-.actions{align-items:center}.project-actions,.tutorial-actions{position:relative;width:180px;max-width:100%}.project-actions>button{width:100%}h1:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:3px}
+.actions{align-items:center}.project-actions,.tutorial-actions{position:relative;width:180px;max-width:100%}.project-actions>button,.tutorial-actions>button{width:100%}h1:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:3px}
 @media(max-width:480px){main{padding:28px 20px}.actions{flex-direction:column;align-items:stretch}.actions button{width:100%}.project-actions,.tutorial-actions{width:100%}.zero-menu{box-sizing:border-box;width:100%}}
 </style></head><body><main>
 <h1 id="start-title" tabindex="-1">Start with Zero</h1>
-<div class="tutorial-actions" id="tutorial-actions"><div class="zero-split"><button class="primary" id="start-button" data-action="tutorial" disabled>Start tutorial</button><button class="primary zero-menu-button" id="tutorial-button" aria-label="Tutorial options" aria-haspopup="menu" aria-expanded="false" aria-controls="tutorial-menu" disabled>${icon('ChevronDown')}</button></div><div class="zero-menu" id="tutorial-menu" role="menu" aria-labelledby="tutorial-button" hidden><button role="menuitem" tabindex="-1" data-action="tutorials" disabled>Tutorial docs</button></div></div>
+<div class="tutorial-actions"><button class="primary" data-action="tutorials" disabled>Zero Docs</button></div>
 <div class="actions"><div class="project-actions" id="project-actions"><button class="secondary zero-menu-trigger" id="project-button" aria-haspopup="menu" aria-expanded="false" aria-controls="project-menu" disabled>Project ${icon('ChevronDown')}</button><div class="zero-menu" id="project-menu" role="menu" aria-labelledby="project-button" hidden><button role="menuitem" tabindex="-1" data-action="new" disabled>New</button><button role="menuitem" tabindex="-1" data-action="clone" disabled>Clone</button><button role="menuitem" tabindex="-1" data-action="local" disabled>Open</button></div></div></div>
-<section id="github-section" aria-label="GitHub"><h2 id="github-heading">GitHub<span id="account-group" hidden> <span class="muted" aria-hidden="true">·</span> <span id="account" class="muted"></span></span></h2><p id="guidance">Checking GitHub access…</p><button class="primary" data-action="setup" hidden>Install Zero for GitHub</button></section>
+<section id="github-section" aria-label="GitHub"><h2 id="github-heading">GitHub<span id="account-group" hidden> <span class="muted" aria-hidden="true">·</span> <span id="account" class="muted"></span></span></h2><p id="guidance">Checking GitHub access…</p><button class="primary" data-action="signIn" hidden>Sign in to GitHub</button><button class="primary" data-action="setup" hidden>Install Zero for GitHub</button></section>
 <section id="recent-section" aria-labelledby="recent-heading" hidden><h2 id="recent-heading">Recent projects</h2><p id="recent-status" class="muted"></p><ul id="recent-list"></ul><button id="retry-recent" hidden>Try again</button></section>
 <p id="status" role="status" aria-live="polite"></p><div id="publishing-progress"></div><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button></div>
 </main><script nonce="${nonce}">
@@ -282,7 +281,7 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
     else if (menu.contains(document.activeElement) && document.activeElement.disabled) menuItems()[0]?.focus({preventScroll:true});
   }};
   }
-  const dropdowns = [dropdown('project'), dropdown('tutorial')];
+  const dropdowns = [dropdown('project')];
   const send = message => vscode.postMessage({...message, token});
   for (const button of buttons) button.addEventListener('click', () => {for (const menu of dropdowns) if (menu.contains(button)) menu.close(true);send({type:'action',action:button.dataset.action});});
   byId('retry').addEventListener('click', () => send({type:'retry'}));
@@ -294,19 +293,16 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
     const state = message.state;
     const signedIn = Boolean(state.accountId), ready = signedIn && state.phase === 'ready';
     for (const button of buttons) {
-      if (button === byId('start-button')) {
-        button.dataset.action = state.phase === 'signed-out' ? 'signIn' : 'tutorial';
-        button.textContent = state.phase === 'signed-out' ? 'Sign in to GitHub' : 'Start tutorial';
-      }
       const action = button.dataset.action;
-      button.disabled = state.busy || (['tutorial','new','clone'].includes(action) && !ready);
+      button.disabled = state.busy || (['new','clone'].includes(action) && !ready);
+      if (action === 'signIn') button.hidden = state.phase !== 'signed-out';
       if (action === 'setup') {button.hidden = !signedIn || !['install','unavailable'].includes(state.phase);button.textContent = state.phase === 'install' ? 'Install Zero for GitHub' : 'Check again';}
     }
     for (const menu of dropdowns) menu.refresh(state.busy);
     byId('account').textContent = state.accountLabel;
     byId('account-group').hidden = !state.accountLabel;
-    byId('github-section').hidden = state.phase === 'signed-out';
-    byId('github-heading').hidden = state.phase === 'signed-out';
+    byId('github-section').hidden = false;
+    byId('github-heading').hidden = false;
     byId('guidance').hidden = ready || state.phase === 'signed-out';
     byId('guidance').textContent = state.phase === 'install' ? 'Give Zero access to your selected repositories on GitHub, then return here.' : state.phase === 'checking' ? 'Checking GitHub access…' : 'GitHub access could not be checked. Try again, or open a local project.';
     byId('status').textContent = state.status;

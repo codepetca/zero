@@ -103,9 +103,11 @@ test('hosted starter and setup share download-aware guidance rather than package
   assert.match(prepare,/starter: "docs\/GETTING-STARTED\.md"/);
   const guide=await readFile(new URL('../../docs/GETTING-STARTED.md',import.meta.url),'utf8');
   assert.match(guide,/\[downloads page\]\(https:\/\/zero\.codepet\.ca\/downloads\)/);
+  assert.match(guide,/\*\*Zero Docs\*\*/);
+  assert.match(guide,/\*\*Project → New\*\*/);
   assert.match(guide,/\*\*Project → Open\*\*/);
   assert.match(guide,/\*\*Project → Clone\*\*/);
-  assert.match(guide,/\*\*Tutorial docs\*\*/);
+  assert.match(guide,/\[Lesson 0: Back to Zero\]\(https:\/\/zero\.codepet\.ca\/tutorials\/15\)/);
   assert.match(guide,/\*\*Troubleshooting → Test installation\*\*/);
   assert.doesNotMatch(guide,/\b\d+\.\d+\.\d+\b/);
 });

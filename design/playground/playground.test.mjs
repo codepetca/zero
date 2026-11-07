@@ -122,7 +122,8 @@ test('Start Page fixture renders the production panel and its actual phase snaps
   for (const state of componentStates) {
     const {html, snapshot} = await startPageSource(state);
     assert.match(html, /Start with Zero/);
-    assert.match(html, /aria-controls="tutorial-menu"/);
+    assert.match(html, /data-action="tutorials" disabled>Zero Docs/);
+    assert.doesNotMatch(html, /aria-controls="tutorial-menu"/);
     assert.match(html, /aria-controls="project-menu"/);
     assert.match(html, /script-src 'nonce-/);
     assert.match(html, /connect-src 'none'/);

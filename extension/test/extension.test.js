@@ -341,5 +341,8 @@ test("Zero offers the native student explorer with a standard Explorer escape",(
   assert.deepEqual(preview,standard.filter(command=>command!=='zero.previewStudentExplorer'));
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startChange").title,"Zero: New Branch");
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startProject").title,"Zero: Start Tutorial");
+  assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.openDocs").title,"Zero: Open Docs");
+  assert.ok(manifest.activationEvents.includes('onCommand:zero.openDocs'));
+  assert.ok(manifest.contributes.menus.commandPalette.some(item=>item.command==='zero.startProject' && item.when==='false'));
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.cloneRepository").title,"Zero: Clone from GitHub");
 });

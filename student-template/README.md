@@ -8,23 +8,16 @@ Older downloads keep their own bundled instructions and API.
 Zero 0.5.27 uses a native JavaFX window for Run App. Mac 0.5.26 and other
 earlier downloads retain their bundled Run behavior.
 
-This bundled Hello World project is an installation check, not your tutorial
-repository. Use it to check local setup; create your own tutorial clone for
-[Lesson 1: Hello, world!](https://zero.codepet.ca/tutorials/0). The [lesson guide](https://zero.codepet.ca/learn)
-starts with navigation, then uses Greeting, Coin and Pet projects.
-Choose **Start tutorial** from Zero’s welcome or **…** menu to create each matching
-tutorial project once. Enter a name and choose a clone location (default
-`~/Zero Projects`), then choose **Clone here**. Zero creates a public repository
-in your GitHub account from the verified template and opens its clone. Its source
-and included files are public. The lesson page's **Use template** action also lets
-you create a repository on GitHub; clone your own repository through **Project →
-Clone from GitHub…**.
-Zero reuses the current window with the editor’s normal unsaved-work handling.
-For an already-cloned Zero folder, choose **Project → Open local project…**
-to open it without cloning again. Keep that clone and add your own code across its lessons. Each template contains only empty Main
-and build/framework setup. Tutorial repositories use New branch, Run App,
-Commit & push and Merge to main, like original coursework projects. Template links
-follow verified publication metadata; unavailable templates show that state.
+This bundled Hello World project is an installation check. To begin a lesson,
+choose **Zero Docs** on the Start Page; it opens the latest lessons without
+sign-in. When ready to create a project, sign in to GitHub separately, choose
+**Project → New**, and follow the lesson to add its starting code. Zero creates
+a public repository in your account and opens its clone. Keep that project across
+its continuing lessons. Use **Project → Open** for an existing local project or
+**Project → Clone** for an existing GitHub repository. Opening a project does not
+update its files. If its browser tooling is outdated, create a new project and
+retain the original and any recovery copies.
+
 Run App compiles your Java locally with the project’s Maven wrapper, then opens
 your app in its own native JavaFX window.
 After editing, click Run App again; Zero saves your files and stops the previous
@@ -126,8 +119,8 @@ artifact code do not make those platforms supported in this MVP.
 
 Use the installed starter's **Run App** once to check setup: it opens a short
 Hello, world! demonstration in its own JavaFX window. Then choose
-**Start tutorial → Greeting app** from Zero’s welcome or **…** menu
-to begin [Lesson 1](https://zero.codepet.ca/tutorials/0) with your own empty Main. Write the
+**Zero Docs** on the Start Page, then **Project → New** to begin
+[Lesson 1](https://zero.codepet.ca/tutorials/0). Follow the lesson’s starting code and write the
 label, then continue lessons 2 and 3 in that same Greeting folder.
 
 Create **Coin game** for lessons 4 and 5. Optional lessons 10 and 11 refactor and
@@ -239,17 +232,13 @@ editing (stop the current preview first if it is running).
 ## Try an example
 
 The `examples/` shelf is outside compiled `src/`. In the [tutorials](https://zero.codepet.ca/learn),
-use **Start tutorial** to create your own Greeting, Coin or Pet repository from
-its matching verified template. Keep the same repository for its lessons. If a
-template is not available yet, choose another available tutorial and check back later. You can also use **Project → New** to start an original project. Study and component-sharing
-lessons are optional. Students write their own controls and classes, and the Pet
-tutorial uses downloadable artwork and sound. Some reference examples use native JavaFX APIs outside the browser subset;
+choose **Project → New** for each new project and follow the lesson’s starting
+code. Keep each project across its continuing lessons. The Coin tutorial uses downloadable artwork and sound. Some reference examples use native JavaFX APIs outside the browser subset;
 these run natively with Run App. Publish app or Export for web reports unsupported
 browser calls before browser compilation.
 For another example, make a fresh local copy of the starter and copy only that example's
 listed files into the new folder. Open the new folder in VS Code and click
-**Run App**. Optional reference copies are separate from the template-clone
-tutorial path. ZeroHub contributions use original projects of your own.
+**Run App**. Optional reference copies are separate from the tutorial project path. ZeroHub contributions use original projects of your own.
 
 | Example | Exact files to copy | Try it |
 | --- | --- | --- |
@@ -296,7 +285,7 @@ modified component before copying an example over it.
 ## Your repository and Pika
 
 Choose **Sign in to GitHub** on Zero's Start Page and complete GitHub's browser
-flow. Returning to Zero shows your account; **Start tutorial** becomes available
+flow. Returning to Zero shows your account; **Project → New** becomes available
 after project access is ready. Use Zero's GitHub account actions to change account
 or sign out. Sign-out disconnects Zero while preserving your projects and other
 extensions' accounts.

@@ -7,8 +7,11 @@ Use this guide to install Zero, start a project, and get help when something goe
 1. Download Zero from the [downloads page](https://zero.codepet.ca/downloads).
 2. On Mac, open the downloaded DMG and drag **Zero** into **Applications**. On Windows, open the installer and follow its prompts.
 3. Open **Zero** and allow it to finish setting up. An internet connection is needed for the first setup and to download project dependencies.
-4. On the Start Page, choose **Sign in to GitHub**, then follow the browser prompts. If asked to install the Zero GitHub App, choose the repositories Zero may access.
-5. Choose **Project → New** and follow the instructions to create and open your project. Open **Tutorial docs** to read the lessons.
+4. Choose **Zero Docs** on the Start Page to open the latest lessons without signing in.
+5. When you are ready to create a project, choose **Sign in to GitHub** separately and follow the browser prompts. If asked to install the Zero GitHub App, choose the repositories Zero may access.
+6. Choose **Project → New**, then follow the lesson to add its starting code.
+
+In an older released Zero, choose **Tutorial options → Tutorial docs** to open the lessons without signing in.
 
 Already have a project? On the Start Page, choose **Project → Open** to open a local project, or **Project → Clone** to download your GitHub repository.
 

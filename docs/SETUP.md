@@ -30,10 +30,10 @@ The Codepet Zero GitHub App is registered under `codepetca`, with public IDs
 pinned in source. Students approve access on GitHub. See
 [the identity plan](ZERO-IDENTITY-PLAN.md) for account and permission details.
 
-The Project dropdown offers New, Clone, and Open. **Tutorial docs** opens the
-reader without creating a project or signing in. In current downloads, open it
-from the arrow beside **Start tutorial**; a newer Start Page presents it as a
-direct button. **Project → New** begins project setup.
+The Project dropdown offers New, Clone, and Open. In current local source, the
+Start Page’s **Zero Docs** button opens the latest lessons without creating a
+project or signing in. **Project → New** begins project setup. Published downloads
+retain their bundled controls.
 
 Opening a project keeps the Zero Start Page tab available in the same window.
 Return to that tab to choose another project or tutorial.
@@ -74,7 +74,7 @@ explicit project commands create repositories only after collecting the choices 
 
 On the **Zero Start Page**, follow: **Sign in to GitHub**, then
 **Install Zero for GitHub** if requested, then **Project → New**.
-Sign-in uses Zero's existing GitHub device flow and credentials. After sign-in,
+Sign-in opens GitHub in your browser and returns to Zero. After sign-in,
 Zero checks App access for repository creation and contents writing; the check is
 read-only and stops at the next Start Page step. If access is missing, **Install Zero
 for GitHub** opens the pinned App page after a read-only recheck. Approve selected

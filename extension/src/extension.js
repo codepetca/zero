@@ -65,7 +65,7 @@ const {createBrowserRunCommands,sourceDiagnostics} = require('./web-run-ui');
 const {createSavedSourceStatus}=require('./saved-source-status');
 const {createSavedSourceHost}=require('./saved-source-host');
 const {runtimeDiagnostics}=require('./runtime-session');
-const {openTutorialDocs} = require('./tutorial-browser');
+const {openTutorialDocs,openZeroDocs} = require('./tutorial-browser');
 const {createStartPage} = require('./start-page');
 const {createWebPublishCommands} = require('./web-publish-ui');
 const {createAssetCommands} = require('./assets');
@@ -2040,6 +2040,7 @@ function activate(context, services = {}) {
     // Retain the former native diagnostic command as a compatibility alias.
     'zero.runNativeApp': expectedRoot => actions['zero.runApp'](expectedRoot),
     'zero.stopApp': stopRequested,
+    'zero.openDocs': () => openZeroDocs(vscode),
     'zero.openFirstLesson': async () => {
       let lessonId = '15';
       let root;

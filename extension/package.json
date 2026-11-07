@@ -17,6 +17,7 @@
     "workspaceContains:zero.json",
     "workspaceContains:student-template/zero.json",
     "onTaskType:zero",
+    "onCommand:zero.openDocs",
     "onCommand:zero.startProject",
     "onCommand:zero.cloneRepository",
     "onCommand:zero.openLocalProject",
@@ -31,6 +32,10 @@
   },
   "contributes": {
     "commands": [
+      {
+        "command": "zero.openDocs",
+        "title": "Zero: Open Docs"
+      },
       {
         "command": "zero.getStarted",
         "title": "Zero: Get Started"
@@ -576,6 +581,10 @@
     },
     "menus": {
       "commandPalette": [
+        {
+          "command": "zero.startProject",
+          "when": "false"
+        },
         {
           "command": "zero.runNativeApp",
           "when": "false"

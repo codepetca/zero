@@ -48,7 +48,7 @@ window.acquireVsCodeApi = () => ({postMessage(message) {
     queueMicrotask(() => window.dispatchEvent(new MessageEvent('message', {data:${data}})));
     return;
   }
-  const names = {tutorial:'Start tutorial', tutorials:'Tutorials', new:'New project', clone:'Clone project', local:'Open local project', signIn:'Sign in to GitHub', setup:'GitHub access check'};
+  const names = {tutorials:'Zero Docs', new:'New project', clone:'Clone project', local:'Open local project', signIn:'Sign in to GitHub', setup:'GitHub access check'};
   document.getElementById('fixture-feedback').textContent = 'Fixture only: ' + (message.type === 'recent' ? 'Open recent project' : names[message.action] || 'Try again') + ' selected. Nothing ran, signed in or changed.';
 }});
 </script>`;

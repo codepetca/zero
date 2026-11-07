@@ -67,7 +67,7 @@ keeps update/draw, can swap level controllers, and can add live HUD/controls
 without navigating away; showing a replacement UI Screen suspends gameplay.
 The starter and Greeting, Study and Coin lessons now use Zero packages locally.
 Released templates remain separately pinned.
-New Start tutorial now rejects missing/stale recorded template source evidence
+Earlier Start tutorial rejected missing/stale recorded template source evidence
 before creating a repository. The three public templates were updated through
 reviewed PRs and verified from anonymous public archives on2026-10-24. Their
 recorded commits/trees/digests match the current helpers and project-owned builder.
@@ -262,14 +262,14 @@ IDs are pinned in source. Mac 0.5.43 includes this source; remaining live-provid
 acceptance is listed below. Each published download keeps its bundled behavior.
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
 
-Current source opens a native **Zero Start Page** for onboarding and project
-selection. Current source contains **Start tutorial** with a **Tutorials** dropdown to the
-existing reader, **Project ▾ → New / Clone / Open**, account-scoped recent projects
-and guided GitHub setup. Tutorials and opening local work remain available without
-sign-in; New and Clone retain their GitHub access checks. Mac0.5.45 ships these controls with an equally wide Start tutorial split control
-and Project button, shared Sidebar dropdown styling and compact GitHub account row.
-An empty Zero window opens it automatically; existing student editors stay
-untouched. **Zero: Start Page** and **⋯ → Start Page** reopen it at any time.
+Current local source opens a native **Zero Start Page** for onboarding and project
+selection. **Zero Docs** opens the latest lessons without sign-in. Separate GitHub
+sign-in and **Project ▾ → New / Clone / Open** support project work. Students start
+a tutorial project with **Project → New** and follow the lesson’s starting code;
+there is no tutorial scaffold button. Opening local work remains available without
+sign-in. Published downloads retain their bundled controls. An empty Zero window
+opens the Start Page automatically; existing editors stay untouched. **Zero: Start
+Page** and **⋯ → Start Page** reopen it.
 The approved November 7 milestone governs the current local student Git workflow.
 Descriptions below of custom conflict choices, file removal and restoration, and
 finished-change correction record earlier source states. The current gates and
@@ -287,15 +287,12 @@ owning unsaved-work handling. Mac0.5.43 includes this window-opening behavior.
 Mac0.5.43 also keeps an open Zero Start Page tab available when switching
 projects, alongside the destination's code and tutorial tabs.
 
-The Start Page guides students through **Sign in to GitHub** →
-**Install Zero for GitHub** → **Start tutorial**.
+The Start Page provides separate **Sign in to GitHub** and **Zero Docs** actions.
+GitHub setup may also require **Install Zero for GitHub** before project creation.
 Current local source calls its own `zero-github` provider directly. **Sign in to
 GitHub** starts browser authorization and completes the editor session after the
-browser return, without entering a code. While signed out, the main tutorial
-button says **Sign in to GitHub** and starts only sign-in. It becomes
-**Start tutorial** after sign-in, remaining disabled until repository access is
-ready. There is no duplicate sign-in button or code-sign-in option. Browser
-sign-in failures offer retry guidance; existing device-issued sessions keep
+browser return, without entering a code. Zero Docs remains available while signed
+out. Browser sign-in failures offer retry guidance; existing device-issued sessions keep
 their renewal path. GitHub may still require account
 selection, passkey or two-factor authentication. Published downloads retain
 their bundled flow. The provider remains registered for the Accounts menu and
@@ -307,8 +304,7 @@ and stops at the next Start Page step. If access is missing, **Install Zero for
 GitHub** opens the pinned App page after a read-only recheck; **Check again** is
 the fallback. The student approves selected repositories on GitHub; Zero never
 requests all-repository access, and repositories Zero creates are accessible
-automatically. Returning to Zero rechecks and unlocks **Start tutorial** when
-ready. Escape or a failed check leaves the current step available to retry.
+automatically. Returning to Zero rechecks access for project actions when ready. Escape or a failed check leaves the current step available to retry.
 A saved session receives a read-only check on launch without opening a browser or
 starting sign-in. Local Run and Files remain usable while signed out or offline;
 cloud repository, push and sharing controls stay hidden until access is ready.
@@ -368,7 +364,7 @@ These pages fill the viewport width and at least its height; longer lessons scro
 Downloads centers its heading and equal-width platform buttons in a vertical stack.
 A setup-help link appears below the buttons; current platform/version requirements
 appear inside that linked setup guide, keeping Downloads uncluttered;
-initial tutorial entries offer the verified empty template and a concise Setup link.
+initial tutorial entries include starting instructions and a concise Setup link.
 Longer guidance in Docs explains creating and cloning the student-owned repository.
 Share your work preserves the shared theme and account dropdown.
 Website tutorial steps and reference sections are expanded by default; full guides remain
@@ -513,21 +509,15 @@ ScoreDisplay source. No component/screen base
 class, registration system or new engine is required. Packages, interfaces,
 JavaFX properties and other JavaFX features remain available as later lessons.
 
-Start tutorial supplies only empty Main boilerplate and build/framework setup.
-There are three scaffolds: Greeting (0–2), Study (3–7), Game (8–12). Website start
-buttons appear at 0, 3 and 8; later pages say to continue the existing project.
-Before lesson 0, students complete account/privacy setup: their own verified GitHub
-account, Git 2.31+, school GitHub/VS Code/compilation access and a configured Git
-commit identity. Repositories created through Zero are public, including their
-source and included files; students should keep secrets and private material out.
-Existing or GitHub-created repositories may retain their visibility, with collaborator
-access granted where needed. Public game publishing remains optional. On the Zero Start Page, **Start tutorial**
-is primary; **New project** skips the tutorial and creates original work. The **…** menu also opens **Tutorials** for existing projects. The action
-selects the matching verified tutorial scaffold. The flow collects a repository
-name and parent folder before creating a public copy in
-the connected personal account, verifying App access, cloning and opening it.
-The location picker starts at `~/Zero Projects` and can choose another parent.
-**New project…** uses the original-project template through the same flow.
+Students use **Project → New** for a tutorial or original project, then follow
+the lesson to add its starting code. Before creating a project, students complete
+account/privacy setup: their own verified GitHub account, Git 2.31+, school access
+and a configured Git commit identity. Repositories created through Zero are public;
+keep secrets and private material out. Existing repositories may retain their
+visibility, with collaborator access where needed. Public game publishing remains
+optional. The creation flow collects a repository name and parent folder, creates
+a public repository, verifies access, clones and opens it. The location picker starts
+at `~/Zero Projects` and can choose another parent.
 Existing repositories use **Clone from GitHub…** with explicit selected-repository
 access. Zero owns these guarded clone commands and their transient credentials.
 If creation or cloning is interrupted, preserve the repository and partial folder
@@ -538,18 +528,12 @@ available from the empty sidebar. Reopen **Tutorials** to continue reading; less
 scroll position and disclosure state persist locally per project. This is reading
 state only, not completion or grading. Choose the first lesson through **All
 tutorials** to restart the reading sequence without changing student code.
-**Start tutorial** creates a new repository and is not a reset for the existing one. Completed reference
+**Project → New** creates a new repository and is not a reset for existing work. Completed reference
 checkpoints and optional references stay outside the empty template scaffolds. Lesson 12 optionally downloads only two
 media resources; students may use their own assets or drawing fallback.
 Click Run App again after editing: Zero saves, stops the previous process and
 rebuilds. No normal lesson switching, source replacement or helper removal is needed.
-Tutorial projects carry a tutorial identifier and repository-required marker,
-normal Git ignores and enabled Git controls. Run and repository actions require
-an existing standalone Git repository with a valid commit and GitHub origin;
-cloning the shared tutorial template directly is rejected. These are local teaching
-checks, not cryptographic proof of a clone or online account ownership. Once cloned,
-Run works offline without an active GitHub session. Upload, branch changes and
-Publish use the ordinary live GitHub flow. Ordinary ZeroHub contributions still require
+After initial setup and compiler caching, Run works offline without an active GitHub session. Upload, branch changes and Publish use the ordinary live GitHub flow. Ordinary ZeroHub contributions still require
 separate original work. Lesson11 allows only the reserved CreditsBadge library
 from the Coin tutorial into separate Tutorial practice discovery. Legacy local-only
 projects retain their old protection. No student project is silently rewritten.
@@ -675,8 +659,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   the website in VS Code's integrated browser when available; older hosts or
   failed browser commands fall back to the regular browser. Internet access is
   required for the current lessons. Older-kit Markdown guides remain supported
-  for automatic first-open. Start tutorial stays in the ready empty sidebar and
-  overflow; Clone from GitHub is in the project menu. Neither lesson navigation nor opening
+  for automatic first-open. Zero Docs is available on the Start Page; Clone from GitHub is in the project menu. Neither lesson navigation nor opening
   a browser writes student Java, signs in, pushes or publishes anything.
 - A run that exits with an error offers Show Problems for source navigation;
   successful exits and explicit Stop do not show an error. Missing local tools
@@ -769,7 +752,7 @@ Native ⋯ → Repository Actions → Create a repository collects a name, expla
 pushes make source and included files public, creates an empty public repository
 under that personal account, verifies access and connects the open original local
 project. It does not push source. New project
-and Start tutorial create from the appropriate verified template and clone into
+creates from the current starter and clones into
 the chosen location. There is no GitHub Classroom flow.
 
 Connect accepts ordinary GitHub HTTPS repository URLs. It initializes/adds
