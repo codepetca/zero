@@ -3,6 +3,8 @@ import {spawnSync} from 'node:child_process';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual} from 'node:util';
+import {validateInstallerManifest} from '../website/lib/installer.mjs';
+import {validateMacUpdateFeed} from './mac-update-feed.mjs';
 
 export const groups=['source','native','browser','windows','website','sharing','lessons'];
 const full=()=>Object.fromEntries(groups.map(name=>[name,true]));
@@ -68,13 +70,41 @@ export function isKitPublicationPromotion(before, after) {
   }
   return isDeepStrictEqual(before,stripped);
 }
-function committedKitPromotion(base,head,cwd) {
+function committedKitPromotion(base,head,cwd,files) {
   const read=ref=>{
     const result=spawnSync('git',['show',`${ref}:release/kit.json`],{cwd,encoding:'utf8',maxBuffer:128*1024});
     if(result.status!==0||result.error)throw new Error('Unavailable kit manifest history');
     return JSON.parse(result.stdout);
   };
-  try {return isKitPublicationPromotion(read(base),read(head));} catch {return false;}
+  try {
+    const before=read(base), after=read(head);
+    if(!isKitPublicationPromotion(before,after))return false;
+    const ancillary=files.some(file=>publicationMetadata.has(file)&&file!=='release/kit.json');
+    if(!ancillary)return true;
+    const get=(ref,file)=>{
+      const result=spawnSync('git',['show',`${ref}:${file}`],{cwd,maxBuffer:128*1024});
+      if(result.status!==0||result.error)throw new Error('Unavailable publication metadata');
+      return result.stdout;
+    };
+    const json=(ref,file)=>JSON.parse(get(ref,file).toString('utf8'));
+    const installer=json(head,'release/installer.json');
+    // The reviewed local native receipt may be committed after the PR merge
+    // base. Compare against the parent of its latest first-parent change.
+    const history=spawnSync('git',['log','--first-parent','--format=%H',`${base}..${head}`,'--','release/installer.json'],{cwd,encoding:'utf8',maxBuffer:128*1024});
+    const latest=history.stdout?.trim().split('\n')[0];
+    if(history.status!==0||history.error||!/^[a-f0-9]{40}$/.test(latest||''))return false;
+    const previous=json(`${latest}^`,'release/installer.json');
+    const snapshot=json(head,'release/published-installer.json');
+    const kitSnapshot=json(head,'release/published-kit.json');
+    if(!isDeepStrictEqual(after,kitSnapshot)||!isDeepStrictEqual(installer,snapshot))return false;
+    validateInstallerManifest(previous,before);
+    validateInstallerManifest(installer,after);
+    if(previous.publication.status!=='local'||installer.publication.status!=='published'||installer.kitVersion!==after.kitVersion)return false;
+    const stripped=structuredClone(installer);stripped.publication.status='local';delete stripped.asset.url;
+    if(!isDeepStrictEqual(previous,stripped))return false;
+    validateMacUpdateFeed(json(head,'release/mac-update-feed.json'),json(head,'release/mac-updater.json'),installer,get(head,'release/mac-appcast.xml'));
+    return true;
+  } catch {return false;}
 }
 export function scopeForEvent(event,cwd=process.cwd()) {
   try {
@@ -88,7 +118,7 @@ export function scopeForEvent(event,cwd=process.cwd()) {
     if(files.includes('release/kit.json')) {
       const ancestor=spawnSync('git',['merge-base',base,head],{cwd,encoding:'utf8',maxBuffer:1024});
       if(ancestor.status!==0||ancestor.error||!/^[a-f0-9]{40}$/.test(ancestor.stdout.trim()))return full();
-      kitPublicationPromotion=committedKitPromotion(ancestor.stdout.trim(),head,cwd);
+      kitPublicationPromotion=committedKitPromotion(ancestor.stdout.trim(),head,cwd,files);
     }
     return classify(files,{kitPublicationPromotion});
   } catch {return full();}
