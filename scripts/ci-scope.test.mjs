@@ -23,8 +23,12 @@ test('known UI selects source checks and shared styles also select website', () 
   const s=classify(['extension/src/start-page.js']); assert.equal(s.source,true); assert.equal(s.windows,false); assert.equal(s.browser,false);
   assert.equal(classify(['extension/media/controls.css']).website,true);
 });
-test('classifier changes narrow only alongside a verified kit publication promotion', () => {
+test('publication metadata and classifier changes narrow only alongside a verified kit promotion', () => {
   const expected={source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false};
+  for(const file of ['release/kit.json','release/published-kit.json','release/installer.json','release/published-installer.json','release/mac-appcast.xml','release/mac-update-feed.json']) {
+    assert.ok(Object.values(classify([file])).every(Boolean),`${file} alone stays full`);
+    assert.deepEqual(classify(['release/kit.json',file],{kitPublicationPromotion:true}),expected);
+  }
   for(const files of [['scripts/ci-scope.mjs'],['scripts/ci-scope.test.mjs'],['scripts/ci-scope.mjs','scripts/ci-scope.test.mjs','docs/FAST-DEV-FLOW.md']]) {
     assert.ok(Object.values(classify(files)).every(Boolean),'standalone classifier edits stay full');
     assert.deepEqual(classify(['release/kit.json',...files],{kitPublicationPromotion:true}),expected);
@@ -101,8 +105,10 @@ test('real Git publication diff scopes metadata while mixed runtime and CI chang
     write('scripts/ci-scope.mjs','standalone classifier change');git('add','.');git('commit','-qm','classifier only');assert.ok(Object.values(scope()).every(Boolean));git('switch','-c','promotion',base);
     publish();const promotedHead=git('rev-parse','HEAD');
     assert.deepEqual(scope(),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
-    write('README.md','updated public download');git('add','.');git('commit','-qm','document download');assert.equal(scope().windows,false);
-    git('switch','-c','classifier-contracts',promotedHead);write('scripts/ci-scope.mjs','classifier change');write('scripts/ci-scope.test.mjs','selection regressions');write('docs/FAST-DEV-FLOW.md','document dependency scope');git('add','.');git('commit','-qm','promotion and classifier contracts');
+    for(const file of ['release/published-kit.json','release/installer.json','release/published-installer.json','release/mac-appcast.xml','release/mac-update-feed.json']) write(file,'publication data');
+    write('README.md','updated public download');git('add','.');git('commit','-qm','document and promote native downloads');
+    assert.deepEqual(scope(),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
+    git('switch','-c','classifier-contracts',git('rev-parse','HEAD'));write('scripts/ci-scope.mjs','classifier change');write('scripts/ci-scope.test.mjs','selection regressions');write('docs/FAST-DEV-FLOW.md','document dependency scope');git('add','.');git('commit','-qm','promotion and classifier contracts');
     const recovery=git('rev-parse','HEAD');
     assert.deepEqual(scope(),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
     let caseNumber=0;

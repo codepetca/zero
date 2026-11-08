@@ -12,6 +12,8 @@ const sharedDesign=new Set(['design/tokens.json','design/adapters.mjs','design/p
 const dev=new Set(['Zero Dev.command','scripts/zero-dev.test.mjs','.vscode/launch.json']);
 const websiteConfig=new Set(['website/package.json','website/package-lock.json','website/tsconfig.json','website/next.config.ts']);
 const scopeTools=new Set(['scripts/ci-scope.mjs','scripts/ci-scope.test.mjs']);
+const publicationMetadata=new Set(['release/kit.json','release/published-kit.json','release/installer.json',
+  'release/published-installer.json','release/mac-appcast.xml','release/mac-update-feed.json']);
 
 // Deliberately a small allowlist. Unknown/shared executable inputs retain every
 // existing lane. Renames are read as a deletion plus addition, so the old scope
@@ -27,7 +29,7 @@ export function classify(files, {kitPublicationPromotion = false} = {}) {
     // Only scopeForEvent can establish this from both committed manifests.
     // Source release guards and website validation still run; no immutable kit
     // is rebuilt. Any other changed shared/runtime input retains full coverage.
-    if(file==='release/kit.json'&&kitPublicationPromotion){add('source','website');continue;}
+    if(kitPublicationPromotion&&publicationMetadata.has(file)){add('source','website');continue;}
     // A verified publication promotion may carry its classifier correction;
     // selection/gate contracts still run. Standalone CI edits, caller workflows,
     // gates and all other CI tooling retain the existing full matrix.
