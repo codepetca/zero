@@ -1,3 +1,25 @@
+# Zero 0.5.65 release — 2026-11-08
+
+The [kit release](https://github.com/codepetca/zero/releases/tag/v0.5.65) and
+[Mac setup release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.65)
+are public. The reviewed source is `3b72e60d2540cc54ea2ab2aa3347fc3c204d7a4a`;
+Mac preparation is `97497a42e272c8a639599078ea861f83795df82e`. Release
+preparation run `42493884105`, Windows run `42493884091`, and browser run
+`42493884292` succeeded. Independent Sol/high reviews passed after fixes,
+including the fail-closed CI repair. Promotion PR #292 merged as
+`5a5cb0f8cb4cde70f58f9ad5e4386aa2d40bfa5f`.
+
+All three public kit assets and the Mac DMG were downloaded anonymously and
+matched their recorded SHA256 values. Mac notarization submission
+`3e4d1613-733c-4f48-a306-3cccf61674d7` was accepted. The live appcast SHA256
+was `2101eb17ae2763406f5b39e2f03f38b93ded3b2e26ab15dab0ac764f78e2be08`;
+`npm run release:publish -- --version 0.5.65 --verify-only` passed, including
+live platform download checks. Physical Windows and fresh-machine installs remain
+untested. Sidebar commit undo/restore is unavailable. Packaging tooling's npm
+audit reported 7 high and 3 moderate vulnerabilities outside the shipped bundle.
+
+---
+
 # Student version control — local implementation, 2026-11-05
 
 Worktree `codex/finished-change-history`, based on 7291c2a9e, contains Project and
