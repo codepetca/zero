@@ -6,19 +6,12 @@ An editor update must not replace it. Hashes identify bytes; review and trust th
 project before explicitly running any code. No registry of historical Zero kits
 is needed. This is not a full offline archive of upstream dependencies.
 
-Zero supports its current browser tooling version. When a project has an older
-saved builder, an explicit browser build or check asks to update it first. Zero
-retains the previous builder in a local backup and records its path in Zero
-Output. Zero is changing quickly: an update may permanently break an existing
-project, even if files are restored. Commit and push your work or keep your own
-backup before updating. Test the updated project and commit `.zero-build` with your changes.
-To recover the earlier files, move the current `.zero-build` aside and move the
-backup into its place. A browser build through Zero will still require the
-current tooling. An interrupted update can leave an incomplete `.zero-build`;
-keep it aside while restoring the backup named in the error. An update can
-change browser behavior.
+Zero supports its current browser tooling version. If your project has an older
+saved builder, keep the original project and a backup, create a new Zero project,
+then carefully copy your source files and assets into it. Test the new project.
+Zero does not automatically replace the saved builder in an existing project.
 
-Use a standalone Node 22 and JDK 21. Zero Setup can supply private runtimes for
+Use standalone Node 22.23.4 or newer in the Node 22 line and JDK 21. Zero Setup can supply private runtimes for
 its editor; there is no global npm requirement. When rebuilding outside Zero,
 obtain compatible tools from their official publishers and set JAVA_HOME to the
 JDK. `runtime-lock.json` records exact reviewed archive

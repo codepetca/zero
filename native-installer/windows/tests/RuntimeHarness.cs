@@ -43,8 +43,8 @@ internal static class RuntimeHarness
         public bool Unsupported, BrokenDownload, CancelDownload, RejectInstall, Timeout, RepairJavaOnDownload, RepairNodeOnDownload;
         public int Downloads, Installs, Runs;
         public string JavaVersion = "21.0.12";
-        public string NodeVersion = "22.21.1";
-        public byte[] Node = Zip("node-v22.21.1-win-x64/node.exe", "fake standalone node");
+        public string NodeVersion = "22.23.4";
+        public byte[] Node = Zip("node-v22.23.4-win-x64/node.exe", "fake standalone node");
         public string ZeroVersion, RedhatVersion;
         public string InstalledEditor;
         public byte[] Jdk = Zip("jdk-21/bin/java.exe", "fake java", "jdk-21/bin/javac.exe", "fake compiler", "jdk-21/release", "JAVA_VERSION=21\nOS_ARCH=amd64");
@@ -57,8 +57,8 @@ internal static class RuntimeHarness
         {
             Downloads++;
             if (RepairJavaOnDownload && asset.version.StartsWith("jdk", StringComparison.Ordinal)) JavaVersion = "21.0.12";
-            if (RepairNodeOnDownload && asset.version == "22.21.1") NodeVersion = "22.21.1";
-            File.WriteAllBytes(destination, BrokenDownload ? new byte[] { 1, 2, 3 } : asset.version.StartsWith("jdk", StringComparison.Ordinal) ? Jdk : asset.version == "22.21.1" ? Node : Editor);
+            if (RepairNodeOnDownload && asset.version == "22.23.4") NodeVersion = "22.23.4";
+            File.WriteAllBytes(destination, BrokenDownload ? new byte[] { 1, 2, 3 } : asset.version.StartsWith("jdk", StringComparison.Ordinal) ? Jdk : asset.version == "22.23.4" ? Node : Editor);
             if (CancelDownload) throw new OperationCanceledException(cancellation);
             return Task.CompletedTask;
         }
@@ -123,7 +123,7 @@ internal static class RuntimeHarness
             {
                 byte[] bytes = kind == "jdk" ? Host.Jdk : kind == "node" ? Host.Node : Host.Editor;
                 string hash; using (var sha = SHA256.Create()) hash = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
-                assets[kind] = new { url = kind == "jdk" ? "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip" : kind == "node" ? "https://nodejs.org/dist/v22.21.1/node-v22.21.1-win-x64.zip" : "https://vscode.download.prss.microsoft.com/dbazure/download/stable/6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1/VSCode-win32-x64-1.142.0.zip", sha256 = hash, format = "zip", version = kind == "jdk" ? "jdk-21.0.12.1+1" : kind == "node" ? "22.21.1" : "1.142.0", size = bytes.Length };
+                assets[kind] = new { url = kind == "jdk" ? "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip" : kind == "node" ? "https://nodejs.org/dist/v22.23.4/node-v22.23.4-win-x64.zip" : "https://vscode.download.prss.microsoft.com/dbazure/download/stable/6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1/VSCode-win32-x64-1.142.0.zip", sha256 = hash, format = "zip", version = kind == "jdk" ? "jdk-21.0.12.1+1" : kind == "node" ? "22.23.4" : "1.142.0", size = bytes.Length };
             }
             File.WriteAllText(Path.Combine(Kit, "setup", "windows-downloads.json"), Json.Serialize(new { schemaVersion = 1, architectures = new Dictionary<string, object> { ["x64"] = assets } }));
         }
@@ -375,8 +375,8 @@ internal static class RuntimeHarness
             File.Delete(binary);
             Reject(() => f.Runtime().Open(true,CancellationToken.None).GetAwaiter().GetResult(),"missing Node blocks readiness before editor launch");
             f.Prepare(); Assert(File.Exists(binary) && f.Host.Downloads == 4,"missing private Node repaired without global install");
-            f.Host.NodeVersion = "20.0.0"; f.Host.RepairNodeOnDownload = true;
-            f.Prepare(); Assert(f.Host.NodeVersion == "22.21.1" && f.Host.Downloads == 5,"wrong cached Node version repaired from pinned archive");
+            f.Host.NodeVersion = "22.21.1"; f.Host.RepairNodeOnDownload = true;
+            f.Prepare(); Assert(f.Host.NodeVersion == "22.23.4" && f.Host.Downloads == 5,"old cached Node patch repaired from pinned archive");
             File.Delete(binary); f.Host.BrokenDownload = true;
             Reject(f.Prepare,"failed Node repair remains visible");
             Assert(Directory.Exists(node) && !File.Exists(binary) && !Directory.GetDirectories(Path.Combine(f.Data,"runtime"),".repair-*").Any(),"failed Node repair restores recognized previous folder");
@@ -407,7 +407,7 @@ internal static class RuntimeHarness
             string path = Path.Combine(f.Kit, "setup", "windows-downloads.json");
             string manifest = File.ReadAllText(path); File.WriteAllText(path, manifest.Replace("https://github.com", "http://github.com")); Reject(() => f.Runtime(), "non-HTTPS metadata rejected"); File.WriteAllText(path, manifest.Replace("github.com/adoptium", "example.com/adoptium")); Reject(() => f.Runtime(), "unofficial URL rejected");
             File.WriteAllText(path,manifest.Replace("nodejs.org/dist","nodejs.org.evil.test/dist")); Reject(()=>f.Runtime(),"Node origin lookalike rejected");
-            File.WriteAllText(path,manifest.Replace("node-v22.21.1-win-x64.zip","node-v22.21.1-win-arm64.zip")); Reject(()=>f.Runtime(),"wrong Node platform rejected");
+            File.WriteAllText(path,manifest.Replace("node-v22.23.4-win-x64.zip","node-v22.23.4-win-arm64.zip")); Reject(()=>f.Runtime(),"wrong Node platform rejected");
         }
         using (var f = new Fixture(parent))
         {

@@ -5,7 +5,7 @@ import Darwin
 /// global Node/package manager, profile import or global environment changes.
 struct MacRuntime {
     static let fm = FileManager.default
-    static let nodeVersion = "22.21.1"
+    static let nodeVersion = "22.23.4"
     static let javaStartupVariables = ["JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "MAVEN_OPTS", "MAVEN_ARGS"]
     let kit: URL
     let home: URL

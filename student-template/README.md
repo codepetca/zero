@@ -317,28 +317,29 @@ GitHub session to its network operations without storing a token in your project
 or Git configuration. Account/session changes require a fresh push review.
 Never put a password or token in Java source, the marker or README.
 
-**GitHub actions are live by default; nothing pushes automatically.**
-Commit & push saves files and asks for a commit message, showing your repository
-and branch in the input. Check your changes, enter a short message and press
-Enter. This creates a local commit when needed and pushes
+**GitHub actions are live by default.** Zero may sync a newly created branch or
+an updated feature branch after the reviewed action; it keeps local work if
+sync cannot be confirmed.
+Save your edited files, check your changes, enter a short message in the Project
+pane, and click **Commit**. This creates a local commit when needed and pushes
 the current branch with Git HTTPS transport using your native sign-in; ignored files stay local. A failed push may
 leave a local commit. A Mac trial verified native sign-in and a private repository push;
 other platforms and school environments still need trials.
 
-For a new repository, Commit & push once on **main** to save the starter.
+For a new repository, Commit once on **main** to save the starter.
 Then use this individual flow for each improvement:
 
-1. Click **New branch** in the repository menu, name your branch (for example `quiz-feedback`)
-   and press Enter to create it. Commit & push pending edits first. Current source
-   creates the branch locally from main, with no GitHub request or sign-in needed.
+1. Click the current branch name and choose **New branch**, name your branch (for example `quiz-feedback`)
+   and press Enter to create it. Commit pending edits first. Zero creates
+   the branch locally and, when connected, tries to sync the saved commit to GitHub.
    Choose **Update from main** first if you want the latest completed main.
-2. Edit and Run App. **Commit & push** creates a commit when needed and pushes your current branch;
+2. Edit and Run App. **Commit** creates a commit when needed and pushes your current branch;
    repeat as needed.
-3. Click **Merge to main** beside the branch name. Commit & push pending edits first, run the
-   app before clicking. **Merge to main** merges your branch into main and pushes
+3. Click **Merge** beside the branch name. Commit pending edits first, run the
+   app before clicking. **Merge** merges your branch into main and pushes
    main. If GitHub refuses because main has newer work, choose **Update from main**.
-   It merges GitHub main into the current feature without uploading; run and
-   check the combined app, then retry Merge to main.
+   It merges GitHub main into the current feature and may sync the result; run and
+   check the combined app, then retry Merge.
 4. Before merging, choose whether to delete the finished branch locally and on
    GitHub; deletion is selected by default. After the confirmed merge, Zero
    deletes only the reviewed branch when its safety checks pass. If cleanup is
@@ -350,22 +351,21 @@ unchanged; the steps above describe the current editor.
 
 **Update from main** combines completed GitHub main with your local main or
 feature, keeping unpublished commits. **Update branch from GitHub** separately
-gets work made on the same feature branch on another computer. Neither uploads.
-**Save checkpoint & update/switch** explicitly saves uncommitted work locally
-before continuing. Older editor kits retain their bundled controls.
+gets work made on the same feature branch on another computer. After updating a
+feature branch, Zero may sync the resulting saved commit back to GitHub.
+**Save checkpoint & switch** explicitly saves uncommitted work locally before
+switching branches. Older editor kits retain their bundled controls.
 
-For text conflicts, choose the local or incoming conflicting section in Zero's
-sidebar. Automatically combined edits are kept. Images and deleted files use
-whole-file choices; complex conflicts use native Source Control. **Cancel update**
-restores the starting checkpoint only while no external edits/ref changes would
-be lost. Run the combined app, then Commit & push. A saved commit whose push fails
+For conflicts, use built-in Source Control to inspect and resolve the files; the
+custom conflict-choice and cancellation flows are temporarily unavailable. Run
+the combined app, then Commit. A saved commit whose push fails
 remains local; use its Update/retry/sign-in action. **Check GitHub status** verifies
 an interrupted push without uploading. If a conflict is unclear, review the conflicting changes and seek help before continuing.
 A failed main push can leave local main advanced while your change branch
-remains selected; repair the network/access problem and review Merge to main again.
+remains selected; repair the network/access problem and review Merge again.
 Zero does not force-push or automatically discard work.
 
-After a successful Merge to main, check the files on GitHub's main branch. Click the connected
+After a successful Merge, check the files on GitHub's main branch. Click the connected
 repository name and choose **Copy repository link**, then submit it separately
 in Pika if your course uses it. Give the intended reviewer access if it is
 private. Zero does not submit assignments or change Pika grades.

@@ -9,9 +9,9 @@
         "visibility": "public",
         "isTemplate": true,
         "defaultBranch": "main",
-        "commit": "c04826f2e443b77c7002e1ed50ef658164c3b012",
-        "tree": "141d3f1c482758a3929d7c58a39749849d37339d",
-        "scaffoldSha256": "81da555f1441e9286bd217f0eedfa7fb0b5a925f183f4760a73fc4db29fc31df"
+        "commit": "c26a6dc81bb0597eccddc8a0f08772148281167f",
+        "tree": "d178ba5f19810d45287f077eaee7e1680ddaa4f1",
+        "scaffoldSha256": "c411e2def0e0fadf415096bae47916b11e00e67a689735dffb8ab3333b9cf723"
       }
     },
     {
@@ -22,9 +22,9 @@
         "visibility": "public",
         "isTemplate": true,
         "defaultBranch": "main",
-        "commit": "7ded2786d6bc6e61e913b80af6dcf2f6a09791d6",
-        "tree": "1ea59ce006fe8c74e2331dbc974dc32111141027",
-        "scaffoldSha256": "732f8d56372bd57a8e4ae41ead96f9ad52a021643d0a9c123012c106e04abacb"
+        "commit": "38e03e950e9405b5beef4894a0f042b47c45e999",
+        "tree": "1af996d2b917e2f2b69961db4344cd72e51d5199",
+        "scaffoldSha256": "8d646493926a97553f3262fdf227c66432d801b9f758b513b25652f6d8534daf"
       }
     },
     {
@@ -35,9 +35,9 @@
         "visibility": "public",
         "isTemplate": true,
         "defaultBranch": "main",
-        "commit": "c31f17acc71e736f4086ecd42196e9fe74d06f50",
-        "tree": "a1f918f11708ae6ad3002c7d4e140a6a655695a0",
-        "scaffoldSha256": "8a4eab8fec4776ddb5fea71317e9e5266c378eaeeaa24244f1cb888c0e756856"
+        "commit": "62e9810bdf7309fa89af9c7df76955a3a8c0e7a1",
+        "tree": "7c957ad0c477eca8f821059e25a9665ce681a469",
+        "scaffoldSha256": "08b27438d274ffa080a2cc2491411d79ef8718d3d05ae0729e8e44352f2a3133"
       }
     },
     {
@@ -48,9 +48,9 @@
         "visibility": "public",
         "isTemplate": true,
         "defaultBranch": "main",
-        "commit": "891187ed8b34bf482a4a9437781fab5183d97c50",
-        "tree": "42429cd76588553d925c854d8ddf7d4871ab1383",
-        "scaffoldSha256": "208e418d367241ab7310e6e3c0d5b24fce1141044078d750f9ec0622cc37fed4"
+        "commit": "80ce02635fe0189783a07256f1f677050fea2ad6",
+        "tree": "19b74034a3613400f663417287e38f69c8499eee",
+        "scaffoldSha256": "17ee9e78f8f74e1b7c67429e1cc9bd4b713e9b6f000e11df92f26c17fd5a11cc"
       }
     }
   ]
