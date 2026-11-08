@@ -631,11 +631,11 @@ struct SetupTests {
         #else
         let nodeArchitecture = "x64"
         #endif
-        let nodeFolder = "node-v22.21.1-darwin-" + nodeArchitecture
+        let nodeFolder = "node-v22.23.4-darwin-" + nodeArchitecture
         let nodePayload = payload.appendingPathComponent(nodeFolder), nodeBin = nodePayload.appendingPathComponent("bin")
         try MacRuntime.mkdir(nodeBin)
         let fakeNode = nodeBin.appendingPathComponent("node")
-        try "#!/bin/bash\nif [ -n \"${NODE_OPTIONS-}${NODE_PATH-}${ELECTRON_RUN_AS_NODE-}\" ]; then exit 9; fi\necho v22.21.1\n".write(to:fakeNode,atomically:false,encoding:.utf8)
+        try "#!/bin/bash\nif [ -n \"${NODE_OPTIONS-}${NODE_PATH-}${ELECTRON_RUN_AS_NODE-}\" ]; then exit 9; fi\necho v22.23.4\n".write(to:fakeNode,atomically:false,encoding:.utf8)
         try manager.setAttributes([.posixPermissions:0o755],ofItemAtPath:fakeNode.path)
         let npm = nodePayload.appendingPathComponent("lib/node_modules/npm/bin/npm-cli.js")
         try MacRuntime.mkdir(npm.deletingLastPathComponent())
@@ -649,7 +649,7 @@ struct SetupTests {
             let editor: [String: Any] = ["url": "https://vscode.download.prss.microsoft.com/test.zip", "sha256": String(repeating: "a", count: 64), "format": "zip", "size": 100]
             var architectures: [String:Any] = [:]
             for architecture in ["arm64","x64"] {
-                let node: [String:Any] = ["url":"https://nodejs.org/dist/v22.21.1/node-v22.21.1-darwin-\(architecture).tar.gz","sha256":nodeDigest,"version":"22.21.1","format":"tar.gz","size":(try manager.attributesOfItem(atPath:nodeArchive.path)[.size] as! NSNumber).intValue]
+                let node: [String:Any] = ["url":"https://nodejs.org/dist/v22.23.4/node-v22.23.4-darwin-\(architecture).tar.gz","sha256":nodeDigest,"version":"22.23.4","format":"tar.gz","size":(try manager.attributesOfItem(atPath:nodeArchive.path)[.size] as! NSNumber).intValue]
                 architectures[architecture] = ["jdk":asset,"vscode":editor,"node":node]
             }
             let values: [String: Any] = ["schemaVersion": 1, "architectures": architectures]
@@ -659,15 +659,15 @@ struct SetupTests {
         let argumentRuntime = try MacRuntime(kit: runtimeKit.root, home: temporary.appendingPathComponent("argument home"))
         try rejected("unsigned Node fixture without explicit vendor-test hook") { _ = try argumentRuntime.verifyNodeBinary(fakeNode) }
         let originalNodeScript = try Data(contentsOf:fakeNode)
-        try "#!/bin/bash\necho v20.0.0\n".write(to:fakeNode,atomically:false,encoding:.utf8)
+        try "#!/bin/bash\necho v22.21.1\n".write(to:fakeNode,atomically:false,encoding:.utf8)
         var wrongNodeFixture = argumentRuntime
         wrongNodeFixture.testDownload = { _,_ in } // Compile-time disposable-vendor fixture only.
-        try rejected("wrong standalone Node version") { _ = try wrongNodeFixture.verifyNodeBinary(fakeNode) }
+        try rejected("old standalone Node patch version") { _ = try wrongNodeFixture.verifyNodeBinary(fakeNode) }
         try originalNodeScript.write(to:fakeNode)
         let metadataPath = runtimeKit.root.appendingPathComponent("setup/mac-downloads.json")
         let originalMetadata = try String(contentsOf:metadataPath,encoding:.utf8)
         for bad in [originalMetadata.replacingOccurrences(of:"nodejs.org",with:"nodejs.org.evil.test"),
-                    originalMetadata.replacingOccurrences(of:"node-v22.21.1-darwin-",with:"node-v22.21.1-linux-")] {
+                    originalMetadata.replacingOccurrences(of:"node-v22.23.4-darwin-",with:"node-v22.23.4-linux-")] {
             try bad.write(to:metadataPath,atomically:false,encoding:.utf8)
             try rejected("unofficial or wrong-platform Node metadata") { _ = try MacRuntime(kit:runtimeKit.root,home:temporary.appendingPathComponent("metadata home")) }
         }

@@ -52,8 +52,10 @@ function sanitizeEnvironment() {
   process.env = environment;
   return environment;
 }
-function checkRuntimes(runtime, environment) {
-  if (Number(process.versions.node.split('.')[0]) !== runtime.requirements.nodeMajor) throw new Error('Browser tooling needs standalone Node ' + runtime.requirements.nodeMajor + '. See .zero-build/README.md.');
+function checkRuntimes(runtime, environment, {needsJava = true} = {}) {
+  const node = /^(\d+)\.(\d+)\.(\d+)$/.exec(process.versions.node);
+  if (process.versions.electron || !node || Number(node[1]) !== runtime.requirements.nodeMajor || Number(node[1]) !== 22 || !(Number(node[2]) > 23 || Number(node[2]) === 23 && Number(node[3]) >= 4)) throw new Error('Browser tooling needs standalone Node 22.23.4 or later in the Node 22 line. See .zero-build/README.md.');
+  if (!needsJava) return;
   if (!environment.JAVA_HOME || !path.isAbsolute(environment.JAVA_HOME)) throw new Error('Browser tooling needs JAVA_HOME pointing to standalone JDK ' + runtime.requirements.javaMajor + '. See .zero-build/README.md.');
   const java = path.join(environment.JAVA_HOME, 'bin', process.platform === 'win32' ? 'java.exe' : 'java');
   const result = spawnSync(java, ['-version'], {env: environment, encoding: 'utf8', timeout: 5000, maxBuffer: 32768, windowsHide: true});
@@ -70,11 +72,11 @@ async function execute(request, controller) {
   const selected = await snapshot.assertSelectedBuilder(projectRoot, path.join(root, 'src/web-export'));
   if (request.operation === 'inspect') return {protocol: 1, closureSha256: before.manifest.closureSha256, files: before.manifest.files.length, runtime: before.runtime};
   const environment = sanitizeEnvironment();
+  if (request.operation !== 'capture') {
+    try {checkRuntimes(before.runtime, environment, {needsJava: request.operation !== 'validate'});} catch(error) {if(request.operation==='compatibilityCached')return {status:'unavailable',identity:null,diagnostics:[{code:'RUNTIME_UNAVAILABLE',message:String(error.message).slice(0,8192)}]};throw error;}
+  }
   const captured = await snapshot.captureBuildInputs(projectRoot);
   if (request.operation === 'capture') return {sourceHash: captured.sourceHash, inputs: snapshot.commitInputMetadata(captured.files), profileHash: selected.profileHash, closureSha256: before.manifest.closureSha256};
-  if (request.operation !== 'validate') {
-    try {checkRuntimes(before.runtime, environment);} catch(error) {if(request.operation==='compatibilityCached')return {status:'unavailable',identity:null,diagnostics:[{code:'RUNTIME_UNAVAILABLE',message:String(error.message).slice(0,8192)}]};throw error;}
-  }
   const cacheBase = request.cacheRoot || path.join(os.homedir(), '.cache', 'zero', 'project-builder');
   const cacheRoot = path.join(cacheBase, before.manifest.closureSha256);
   if (cacheRoot === projectRoot || cacheRoot.startsWith(projectRoot + path.sep)) throw new Error('Browser tooling cache must be outside the project.');
@@ -114,4 +116,4 @@ if (require.main === module) main().then(result => {
   if (Buffer.byteLength(response) > 2 * 1024 * 1024) throw new Error('Saved builder response exceeds its limit.');
   process.stdout.write(response + '\n');
 }).catch(error => {process.stdout.write(JSON.stringify({protocol: 1, ok: false, error: {code: error.name === 'AbortError' ? 'cancelled' : 'failed', message: String(error.message).slice(0, 4096), ...(typeof error.logPath === 'string' ? {logPath: error.logPath.slice(0, 4096)} : {})}}) + '\n'); process.exitCode = error.name === 'AbortError' ? 130 : 1;});
-module.exports = {readClosure, validateRequest};
+module.exports = {readClosure, validateRequest, checkRuntimes};

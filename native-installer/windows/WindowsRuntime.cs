@@ -24,7 +24,7 @@ namespace ZeroSetup
         private readonly Dictionary<string, WindowsRuntimeAsset> assets;
         private readonly string version, minimum;
         private string java, editor, editorApp, node;
-        private const string NodeVersion = "22.21.1";
+        private const string NodeVersion = "22.23.4";
         private static readonly string[] JavaStartupVariables = { "JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "MAVEN_OPTS", "MAVEN_ARGS" };
         private static readonly string[] TerminalOwnedVariables = JavaStartupVariables.Concat(new[] { "JAVA_HOME", "ZERO_JAVA_HOME", "PATH", "MAVEN_SKIP_RC" }).ToArray();
         private sealed class Manifest

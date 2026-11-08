@@ -60,10 +60,10 @@ process task. Physical Windows/Linux behavior remains unverified.
 
 **New asset…**, in the **New ▾** dropdown, copies selected images/audio into `src/main/resources`, preserving
 originals and existing assets with **Keep both** or **Skip existing**. Copy resource
-string literals with **Copy asset paths** in the same menu. **Project menu → Review or
-restore changes…** opens native changes or
-previews an earlier tracked file version as an undoable edit. Save/test and Commit
-& push a correction; history is preserved. VS Code's auto-save preference applies.
+string literals with **Copy asset paths** in the same menu. Use the history icon
+to inspect commits and built-in Source Control to review changed files. Restoring
+an earlier project version and the custom undo flow are temporarily unavailable.
+VS Code's auto-save preference applies.
 
 **ZeroHub → Share project** guides game details, Commit & push and optional Publish app
 before the reviewed GitHub form. Cancel preserves saved details. Submit the form

@@ -278,7 +278,7 @@ acceptance status are in the [version control milestone](VERSION-CONTROL-PLAN.md
 The local student sidebar has a **Project** controls pane and a **Files** tree.
 The Project header offers New project, Clone and Open; Files retains its file
 creation menu. Project holds native Run/Stop, teaching helpers and contextual
-repository/branch/push actions. A compact branch selector, Merge and History expose the workflow. Files shows change indicators and opens supported changes in the native diff; unsupported changes and conflicts use Source Control. Narrow local undo preserves edits where supported. Custom discard, restore and finished-change correction remain unavailable.
+repository/branch/push actions. A compact branch selector, Merge and History expose the workflow. Files shows change indicators and opens supported changes in the native diff; unsupported changes and conflicts use Source Control. The sidebar does not currently offer local undo. Custom discard, restore and finished-change correction remain unavailable.
 Troubleshooting and repository/account
 recovery remain in the native overflow. Local Run, Files and opening a local
 project remain available without signing in. Current source opens tutorial, new,
