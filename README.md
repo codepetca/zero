@@ -34,9 +34,9 @@ are unsupported. Physical Windows and novice student trials remain unverified; s
 
 ## Download Zero
 
-- [Download for Mac with Apple Silicon — Zero 0.5.55](https://github.com/codepetca/zero/releases/download/setup-v0.5.55/Zero-0.5.55-macos.dmg)
+- [Download for Mac with Apple Silicon — Zero 0.5.65](https://github.com/codepetca/zero/releases/download/setup-v0.5.65/Zero-0.5.65-macos.dmg)
 - [Get Zero Studio from Microsoft Store](https://apps.microsoft.com/detail/9mxkd6dqlfgx)
-- [Manual setup — complete kit ZIP 0.5.64](https://github.com/codepetca/zero/releases/download/v0.5.64/zero-bootstrap.zip)
+- [Manual setup — complete kit ZIP 0.5.65](https://github.com/codepetca/zero/releases/download/v0.5.65/zero-bootstrap.zip)
 
 Microsoft Store provides Zero for Windows. Store installation and
 updates still need a physical Windows check.
