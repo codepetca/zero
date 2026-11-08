@@ -55,22 +55,34 @@ async function readFile(file) {
  const before=await fs.lstat(file);
  if(!before.isFile()||before.isSymbolicLink()||before.nlink!==1||before.size>MAX_BYTES)throw Error('A sync record is unsafe or incomplete.');
  const h=await fs.open(file,constants.O_RDONLY|(constants.O_NOFOLLOW||0));
- try {const stat=await h.stat();if(!same(before,stat)||!stat.isFile()||stat.nlink!==1||stat.size>MAX_BYTES)throw Error('A sync record changed.');
+ try {const stat=await h.stat();if(!same(before,stat)||!stat.isFile()||stat.nlink!==1||stat.size>MAX_BYTES)throw Object.assign(Error('A sync record changed.'),{code:'ZERO_FILE_SNAPSHOT_CHANGED'});
   const bytes=Buffer.alloc(stat.size+1);let length=0;while(length<bytes.length){const result=await h.read(bytes,length,bytes.length-length,length);if(!result.bytesRead)break;length+=result.bytesRead;}
-  const after=await h.stat(),named=await fs.lstat(file);if(!same(stat,after)||!same(stat,named)||stat.size!==after.size||stat.mtimeMs!==after.mtimeMs||length!==stat.size)throw Error('A sync record changed.');
+  const after=await h.stat(),named=await fs.lstat(file);if(!same(stat,after)||!same(stat,named)||stat.size!==after.size||stat.mtimeMs!==after.mtimeMs||length!==stat.size)throw Object.assign(Error('A sync record changed.'),{code:'ZERO_FILE_SNAPSHOT_CHANGED'});
   return bytes.subarray(0,length);
  }finally{await h.close();}
 }
-async function rootContext(root) {
+async function rootContextOnce(root,pinned) {
  if(typeof root!=='string'||!path.isAbsolute(root)||await fs.realpath(root)!==root)throw Error('Open the original ordinary project folder.');
- const project=await directory(root),git=path.join(root,'.git'),gitStat=await directory(git),configBytes=await readFile(path.join(git,'config'));
+ const project=await directory(root),git=path.join(root,'.git'),gitStat=await directory(git);
+ if(pinned.project&&(!same(pinned.project,project)||!same(pinned.gitStat,gitStat)))throw Error('The project or Git folder changed.');
+ pinned.project=project;pinned.gitStat=gitStat;
+ const readConfig=async()=>{try{return await readFile(path.join(git,'config'));}catch(error){if(error.code==='ZERO_FILE_SNAPSHOT_CHANGED')throw Object.assign(Error('The Git configuration changed.'),{code:'ZERO_CONFIG_SNAPSHOT_CHANGED',kind:'changed'});throw error;}};
+ const configBytes=await readConfig();
  const env={...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_NO_LAZY_FETCH:'1',GIT_TERMINAL_PROMPT:'0'};
  const query=async args=>(await exec('git',['-c','core.fsmonitor=false','rev-parse',...args],{cwd:root,env,timeout:10000,maxBuffer:8192,encoding:'utf8'})).stdout;
  let top,gitDir,common,config;
  try {top=await query(['--show-toplevel']);gitDir=await query(['--absolute-git-dir']);common=await query(['--path-format=absolute','--git-common-dir']);config=(await exec('git',['config','--local','--no-includes','--name-only','--null','--list'],{cwd:root,env,timeout:10000,maxBuffer:8192,encoding:'utf8'})).stdout.split('\0').filter(Boolean);}catch{throw Error('Open a standalone Git project with ordinary metadata.');}
  if(config.some(key=>/^(?:core\.worktree|include\.|includeif\.)/i.test(key))||top!==root+'\n'||gitDir!==git+'\n'||common!==git+'\n'||!same(project,await directory(root))||!same(gitStat,await directory(git)))throw Error('Open a standalone Git project with ordinary metadata.');
- if(!(await readFile(path.join(git,'config'))).equals(configBytes))throw Error('The Git configuration changed.');
+ if(!(await readConfig()).equals(configBytes))throw Object.assign(Error('The Git configuration changed.'),{code:'ZERO_CONFIG_SNAPSHOT_CHANGED',kind:'changed'});
+ if(!same(project,await directory(root))||!same(gitStat,await directory(git)))throw Error('The project or Git folder changed.');
  return {root,git,project,gitStat,configBytes};
+}
+async function rootContext(root,pinned={}) {
+ // VS Code may add branch metadata immediately after checkout. Retry only the
+ // read-only snapshot, from the beginning; never retry a locked transaction.
+ for(let attempt=0;attempt<3;attempt++) {
+  try{return await rootContextOnce(root,pinned);}catch(error){if(error.code!=='ZERO_CONFIG_SNAPSHOT_CHANGED'||attempt===2)throw error;}
+ }
 }
 async function unchanged(ctx,ledgerStat,checkConfig=true) {
  if(!same(ctx.project,await directory(ctx.root))||!same(ctx.gitStat,await directory(ctx.git))||(checkConfig&&!(await readFile(path.join(ctx.git,'config'))).equals(ctx.configBytes))||(ledgerStat&&!same(ledgerStat,await directory(path.join(ctx.git,'zero-pending-sync')))))throw Error('The sync record folder changed.');
@@ -83,14 +95,22 @@ function retainLockPath(error,lock) {
  error.lockRecoveryPaths=[...new Set(paths)];
 }
 async function withLock(root,fn) {
- const ctx=await rootContext(root),lock=path.join(ctx.git,'zero-pending-sync.lock');
+ let ctx=await rootContext(root);const lock=path.join(ctx.git,'zero-pending-sync.lock');
  try{await fs.mkdir(lock,{mode:0o700});}catch(error){if(error.code==='EEXIST'){const failure=Error('Sync record storage is locked. An interrupted operation may need manual inspection.');retainLockPath(failure,lock);failure.recoveryPath=lock;throw failure;}throw error;}
  let owned,ownerBytes,failure;
  try {
-  owned=await directory(lock);await unchanged(ctx);
+  owned=await directory(lock);await unchanged(ctx,undefined,false);
   ownerBytes=Buffer.from(JSON.stringify({version:1,pid:process.pid,createdAt:new Date().toISOString(),nonce:crypto.randomUUID()})+'\n');
   const owner=await fs.open(path.join(lock,'owner.json'),'wx',0o600);try{await owner.writeFile(ownerBytes);await owner.sync();}finally{await owner.close();}
   await syncDirectory(lock);await syncDirectory(ctx.git);
+  // Revalidate with an owned lock if VS Code updated metadata between the
+  // first snapshot and mkdir. Pin both repository identities across retries.
+  let changed;
+  try{changed=!(await readFile(path.join(ctx.git,'config'))).equals(ctx.configBytes);}
+  catch(error){if(error.code!=='ZERO_FILE_SNAPSHOT_CHANGED')throw error;changed=true;}
+  if(changed)ctx=await rootContext(root,{project:ctx.project,gitStat:ctx.gitStat});
+  await unchanged(ctx);
+  if(!same(owned,await directory(lock)))throw Error('The sync record lock changed.');
   const ledger=path.join(ctx.git,'zero-pending-sync');
   try{await fs.mkdir(ledger,{mode:0o700});}catch(error){if(error.code!=='EEXIST')throw error;}
   const ledgerStat=await directory(ledger);await unchanged(ctx,ledgerStat);await syncDirectory(ctx.git);
