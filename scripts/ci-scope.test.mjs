@@ -4,6 +4,9 @@ import {mkdtempSync, writeFileSync, mkdirSync, rmSync, readFileSync} from 'node:
 import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
+import {generateKeyPairSync,sign} from 'node:crypto';
+import {createAppcast,hash} from './mac-update-feed.mjs';
+import {sparklePin,updaterFeedURL} from './mac-updater.mjs';
 import {classify, scopeForEvent, isKitPublicationPromotion} from './ci-scope.mjs';
 
 test('guidance and docs avoid unrelated native/export/install checks', () => {
@@ -23,8 +26,12 @@ test('known UI selects source checks and shared styles also select website', () 
   const s=classify(['extension/src/start-page.js']); assert.equal(s.source,true); assert.equal(s.windows,false); assert.equal(s.browser,false);
   assert.equal(classify(['extension/media/controls.css']).website,true);
 });
-test('classifier changes narrow only alongside a verified kit publication promotion', () => {
+test('publication metadata and classifier changes narrow only alongside a verified kit promotion', () => {
   const expected={source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false};
+  for(const file of ['release/kit.json','release/published-kit.json','release/installer.json','release/published-installer.json','release/mac-appcast.xml','release/mac-update-feed.json']) {
+    assert.ok(Object.values(classify([file])).every(Boolean),`${file} alone stays full`);
+    assert.deepEqual(classify(['release/kit.json',file],{kitPublicationPromotion:true}),expected);
+  }
   for(const files of [['scripts/ci-scope.mjs'],['scripts/ci-scope.test.mjs'],['scripts/ci-scope.mjs','scripts/ci-scope.test.mjs','docs/FAST-DEV-FLOW.md']]) {
     assert.ok(Object.values(classify(files)).every(Boolean),'standalone classifier edits stay full');
     assert.deepEqual(classify(['release/kit.json',...files],{kitPublicationPromotion:true}),expected);
@@ -102,7 +109,7 @@ test('real Git publication diff scopes metadata while mixed runtime and CI chang
     publish();const promotedHead=git('rev-parse','HEAD');
     assert.deepEqual(scope(),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
     write('README.md','updated public download');git('add','.');git('commit','-qm','document download');assert.equal(scope().windows,false);
-    git('switch','-c','classifier-contracts',promotedHead);write('scripts/ci-scope.mjs','classifier change');write('scripts/ci-scope.test.mjs','selection regressions');write('docs/FAST-DEV-FLOW.md','document dependency scope');git('add','.');git('commit','-qm','promotion and classifier contracts');
+    git('switch','-c','classifier-contracts',git('rev-parse','HEAD'));write('scripts/ci-scope.mjs','classifier change');write('scripts/ci-scope.test.mjs','selection regressions');write('docs/FAST-DEV-FLOW.md','document dependency scope');git('add','.');git('commit','-qm','promotion and classifier contracts');
     const recovery=git('rev-parse','HEAD');
     assert.deepEqual(scope(),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
     let caseNumber=0;
@@ -118,5 +125,60 @@ test('real Git publication diff scopes metadata while mixed runtime and CI chang
     // even when the target branch has advanced independently.
     git('checkout','-qb','advanced-base',base);write('docs/advance.md','new base docs');git('add','.');git('commit','-qm','advance target');const advanced=git('rev-parse','HEAD');
     git('switch','-c','promoted-merge-base',promotedHead);assert.equal(scope(advanced).windows,false);
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
+test('combined publication requires intact matching snapshots and a signed coherent feed', () => {
+  const root=mkdtempSync(path.join(os.tmpdir(),'zero-ci-native-promotion-'));
+  const git=(...args)=>{const r=spawnSync('git',args,{cwd:root,encoding:'utf8'});assert.equal(r.status,0,r.stderr);return r.stdout.trim();};
+  const names=['kit.json','published-kit.json','installer.json','published-installer.json','mac-appcast.xml','mac-update-feed.json','mac-updater.json'];
+  const version='0.5.15',keys=generateKeyPairSync('ed25519');
+  const publicKey=keys.publicKey.export({format:'der',type:'spki'}).subarray(-32).toString('base64');
+  const config={schema:1,buildNumber:2,feedURL:updaterFeedURL,publicKey,sparkle:{...sparklePin}};
+  const kitPublished={schema:1,kitVersion:version,coreVersion:'0.3.0',publication:{status:'published',repository:'codepetca/zero',tag:`v${version}`},assets:{}};
+  for(const [key,filename] of Object.entries({kit:'zero-bootstrap.zip',starter:'zero-starter.zip',extension:`zero-${version}.vsix`}))kitPublished.assets[key]={filename,label:key,size:123,sha256:'a'.repeat(64),url:`https://github.com/codepetca/zero/releases/download/v${version}/${filename}`};
+  const dmg=Buffer.from('fixture DMG'),filename=`Zero-${version}-macos.dmg`,url=`https://github.com/codepetca/zero/releases/download/setup-v${version}/${filename}`;
+  const publishedInstaller={schema:1,kitVersion:version,publication:{status:'published',repository:'codepetca/zero',tag:`setup-v${version}`},sourceRevision:'b'.repeat(40),kit:{filename:'zero-bootstrap.zip',size:123,sha256:'a'.repeat(64)},asset:{filename,platform:'macos',architectures:['arm64','x86_64'],minimumOS:'12.0',size:dmg.length,sha256:hash(dmg),url},signing:{identitySha1:'A'.repeat(40),teamIdentifier:'A'.repeat(10)},notarizationSubmissionId:'a'.repeat(36)};
+  const asset={filename,url,size:dmg.length,sha256:hash(dmg),edSignature:sign(null,dmg,keys.privateKey).toString('base64')};
+  const feed={schema:1,publication:{status:'published'},kitVersion:version,buildNumber:2,feedURL:updaterFeedURL,publicKeySha256:hash(Buffer.from(publicKey,'base64')),sourceRevision:publishedInstaller.sourceRevision,createdAt:'2026-10-15T01:00:00.000Z',asset};
+  const payload=Buffer.from(createAppcast(feed));
+  const xml=Buffer.concat([payload,Buffer.from(`<!-- sparkle-signatures:\nedSignature: ${sign(null,payload,keys.privateKey).toString('base64')}\nlength: ${payload.length}\n-->\n`)]);
+  feed.feed={filename:'appcast.xml',size:xml.length,sha256:hash(xml)};
+  const source=Object.fromEntries(Object.entries({'kit.json':kitPublished,'published-kit.json':kitPublished,'installer.json':publishedInstaller,'published-installer.json':publishedInstaller,'mac-appcast.xml':xml,'mac-update-feed.json':feed,'mac-updater.json':config}).map(([name,value])=>[name,Buffer.isBuffer(value)?value:Buffer.from(JSON.stringify(value))]));
+  const write=(name,value)=>writeFileSync(path.join(root,'release',name),Buffer.isBuffer(value)?value:JSON.stringify(value));
+  const kit=JSON.parse(source['kit.json']);kit.publication.status='local';
+  for(const asset of Object.values(kit.assets)){delete asset.size;delete asset.sha256;delete asset.url;}
+  const installer=JSON.parse(source['installer.json']);installer.publication.status='local';delete installer.asset.url;
+  try {
+    git('init','-q');git('config','maintenance.auto','false');git('config','user.name','CI fixture');git('config','user.email','ci@example.invalid');
+    mkdirSync(path.join(root,'release'));for(const name of names)write(name,source[name]);
+    write('kit.json',kit);write('installer.json',{old:'previous release'});
+    // Old snapshots differ, ensuring every promoted file is in the Git diff.
+    for(const name of ['published-kit.json','published-installer.json','mac-appcast.xml','mac-update-feed.json'])write(name,'old snapshot');
+    git('add','.');git('commit','-qm','base');const base=git('rev-parse','HEAD');
+    write('installer.json',installer);git('add','.');git('commit','-qm','record local installer');
+    for(const name of names)write(name,source[name]);git('add','.');git('commit','-qm','coherent promotion');const promoted=git('rev-parse','HEAD');
+    const scope=()=>scopeForEvent({pull_request:{base:{sha:base},head:{sha:git('rev-parse','HEAD')}}},root);
+    assert.deepEqual(scope(),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
+    let n=0;
+    for(const name of ['published-kit.json','installer.json','published-installer.json','mac-appcast.xml','mac-update-feed.json','mac-updater.json']) {
+      git('switch','-c',`deleted-${++n}`,promoted);git('rm',`release/${name}`);git('commit','-qm','delete required file');
+      assert.ok(Object.values(scope()).every(Boolean),`deleted ${name}`);
+    }
+    for(const name of ['published-kit.json','installer.json','published-installer.json','mac-appcast.xml','mac-update-feed.json']) {
+      git('switch','-c',`malformed-${++n}`,promoted);write(name,'malformed');git('add','.');git('commit','-qm','malformed file');
+      assert.ok(Object.values(scope()).every(Boolean),`malformed ${name}`);
+    }
+    for(const [name,mutate] of [
+      ['published-kit.json',v=>v.assets.kit.sha256='0'.repeat(64)],
+      ['installer.json',v=>v.kit.sha256='0'.repeat(64)],
+      ['published-installer.json',v=>v.asset.sha256='0'.repeat(64)],
+      ['mac-update-feed.json',v=>v.asset.sha256='0'.repeat(64)],
+      ['mac-update-feed.json',v=>v.publication.status='local']
+    ]) {
+      git('switch','-c',`inconsistent-${++n}`,promoted);const value=JSON.parse(source[name]);mutate(value);write(name,value);git('add','.');git('commit','-qm','inconsistent metadata');
+      assert.ok(Object.values(scope()).every(Boolean),`inconsistent ${name}`);
+    }
+    git('switch','-c',`tampered-${++n}`,promoted);write('mac-appcast.xml',Buffer.concat([source['mac-appcast.xml'],Buffer.from('tampered')]));git('add','.');git('commit','-qm','tamper signed feed');
+    assert.ok(Object.values(scope()).every(Boolean),'tampered signed feed');
   } finally {rmSync(root,{recursive:true,force:true});}
 });
