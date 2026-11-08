@@ -111,6 +111,7 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   assert.doesNotMatch(webview.html,/data-command="zero.recovery"|data-command="zero.fileActions"/);
   assert.match(webview.html,/title="Current branch: main"/);assert.match(webview.html,/data-command="zero.commitChanges"/);assert.doesNotMatch(webview.html,/data-command="zero.finishChange"|NEVER_RENDER_TOKEN/);
   assert.match(webview.html,/data-command="zero.switchStudentBranch"[^>]*>[\s\S]*?<span class="branch-name">main<\/span>/);
+  assert.doesNotMatch(webview.html,/class="branch-switch"/);
   assert.match(webview.html,/data-command="zero.changeHistory"/);
   assert.doesNotMatch(webview.html,/Recent commits|data-command="zero.undoRecentChange"|data-command="zero.reviewChanges"|data-command="zero.checkBranchConnection"|Branch matched GitHub at the last check/);
   for (const event of ['change','delete','create']) {
