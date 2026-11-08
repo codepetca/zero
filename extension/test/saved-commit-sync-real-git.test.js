@@ -76,7 +76,7 @@ async function harness(t,scenario,{missing=false}={}) {
 test('actual saved-commit sync and production ledger confirm exact HEAD and refresh sidebar',{skip:process.platform==='win32'},async t=>{
   for(const missing of [false,true])await t.test(missing?'creates missing remote branch':'syncs local-ahead branch',async t=>{
     const h=await harness(t,'success',{missing});await h.sync();
-    await waitFor(()=>h.webview.html.includes('Branch matched GitHub at the last check.'));
+    await waitFor(()=>h.webview.html.includes('data-branch-state="synced"'));
     assert.deepEqual(h.errors,[]);assert.equal(h.warnings.length,1);assert.match(h.warnings[0].options.detail,new RegExp(h.b));assert.match(h.warnings[0].options.detail,/Destination ref: refs\/heads\/main/);
     assert.equal(h.calls.filter(args=>args[0]==='push').length,1);assert.equal(await h.git(h.bare,['rev-parse','refs/heads/main']),h.b);assert.deepEqual(await h.activeRecords(),[]);
     assert.doesNotMatch(h.webview.html,/data-command="zero.syncSavedCommits"/);assert.equal(await h.git(h.root,['rev-parse','HEAD']),h.b);assert.equal(await h.git(h.root,['status','--porcelain=v1']),'');
@@ -97,7 +97,7 @@ test('production foreign reminders stop reviewed saved-commit sync without being
   const h=await harness(t,'foreign-review');await h.sync();assert.ok(h.errors.length);assert.equal(h.calls.filter(args=>args[0]==='push').length,0);assert.deepEqual((await h.activeRecords()).map(row=>row.id),h.late.map(row=>row.id));assert.equal(await h.git(h.bare,['rev-parse','refs/heads/main']),h.a);
 });
 test('actual confirmation resolves only its own production attempt and retains later reminders',{skip:process.platform==='win32'},async t=>{
-  const h=await harness(t,'late-reminders');await h.sync();await waitFor(()=>h.webview.html.includes('Branch matched GitHub at the last check.'));
+  const h=await harness(t,'late-reminders');await h.sync();await waitFor(()=>h.webview.html.includes('data-branch-state="synced"'));
   assert.deepEqual(h.errors,[]);assert.equal(h.calls.filter(args=>args[0]==='push').length,1);assert.deepEqual(new Set((await h.activeRecords()).map(row=>row.id)),new Set(h.late.map(row=>row.id)));
   const resolved=[...h.stored.entries()].filter(([key])=>key.startsWith('zero.resolvedSync.v1:')).map(([,value])=>value.record.id);assert.ok(h.late.every(row=>!resolved.includes(row.id)));assert.doesNotMatch(h.webview.html,/data-command="zero.syncSavedCommits"/);
 });
