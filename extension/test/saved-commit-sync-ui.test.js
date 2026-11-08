@@ -97,7 +97,7 @@ test('clean local-ahead and missing remote branches offer exact saved-commit syn
     const h=await harness(t,{missing});await h.sync();
     assert.equal(h.errors.length,0);assert.equal(h.warnings.length,1);assert.match(h.warnings[0].options.detail,/Repository: https:\/\/github.com\/student\/app/);assert.match(h.warnings[0].options.detail,/Destination ref: refs\/heads\/main/);assert.match(h.warnings[0].options.detail,new RegExp(B));
     assert.deepEqual(h.pushes, [['push','https://github.com/student/app.git',`${B}:refs/heads/main`]]);assert.equal(h.saves,0);assert.equal(h.activeRecords().length,0);
-    await waitFor(()=>h.webview.html.includes('Branch matched GitHub at the last check.'));
+    await waitFor(()=>h.webview.html.includes('data-branch-state="synced"'));
     assert.doesNotMatch(h.webview.html,/data-command="zero.syncSavedCommits"/);
     assert.match(h.logs.join('\n'),/reviewed saved commit was confirmed/);
   });
@@ -244,8 +244,8 @@ test('production compatibility storage refuses descendant retry before review or
 });
 test('new branch completion immediately schedules current branch and main checks',async t=>{
   const h=await harness(t,{branch:'feature'}),before=h.checks;await h.commands.get('zero.startChange')();
-  await waitFor(()=>h.webview.html.includes('Current branch: child')&&h.webview.html.includes('Branch matched GitHub at the last check')&&h.checks>before&&h.mainChecks.includes('child'));
-  assert.deepEqual(h.errors,[]);assert.match(h.webview.html,/Branch matched GitHub at the last check/);
+  await waitFor(()=>h.webview.html.includes('Current branch: child')&&h.webview.html.includes('data-branch-state="synced"')&&h.checks>before&&h.mainChecks.includes('child'));
+  assert.deepEqual(h.errors,[]);assert.match(h.webview.html,/data-branch-state="synced"/);
 });
 test('branch creation reports that only its saved commit was synced when edits remain',async t=>{
   for(const scenario of ['disk','editor','disk-during-sync','editor-during-sync','clean'])await t.test(scenario,async t=>{
@@ -411,7 +411,7 @@ test('confirmed retry and local reminder sync refresh an unchanged branch observ
     const record={id:'prior',root:h.root,branch:'main',head:B,remote:kind==='local'?'':remote,type:kind==='local'?'local':'push',accountId:'1',kind:'network',committed:true,pushStarted:false};
     h.stored.set('zero.pendingSync.v1:prior',record);
     await h.commands.get(kind==='local'?'zero.syncLocalCommit':'zero.retryBranchSync')();
-    await waitFor(()=>h.webview.html.includes('Branch matched GitHub at the last check.'));
+    await waitFor(()=>h.webview.html.includes('data-branch-state="synced"'));
     assert.deepEqual(h.errors,[]);assert.doesNotMatch(h.webview.html,/data-command="zero.syncSavedCommits"/);
   });
 });
@@ -428,7 +428,7 @@ test('legacy saved-head upload and confirmed push review refresh an unchanged br
       h.remoteHead=B;
     }
     await h.commands.get(action==='upload'?'zero.uploadToGitHub':'zero.checkPush')();
-    await waitFor(()=>h.webview.html.includes('Branch matched GitHub at the last check.'));
+    await waitFor(()=>h.webview.html.includes('data-branch-state="synced"'));
     assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,action==='upload'?1:0);assert.equal(h.activeRecords().length,0);
   });
 });
@@ -544,7 +544,7 @@ test('confirmed push review still refreshes when reminder bookkeeping fails',asy
   h.stored.set('zero.pendingSync.v1:prior',{id:'prior',root:h.root,branch:'main',head:B,remote:'https://github.com/student/app.git',type:'push',accountId:'1',kind:'unconfirmed',committed:true,pushStarted:true});
   h.remoteHead=B;h.failResolution=true;
   await h.commands.get('zero.checkPush')();
-  await waitFor(()=>h.webview.html.includes('Branch matched GitHub at the last check.'));
+  await waitFor(()=>h.webview.html.includes('data-branch-state="synced"'));
   assert.match(h.errors.at(-1),/sync reminder could not be saved/);assert.equal(h.activeRecords().length,1);assert.equal(h.pushes.length,0);
 });
 function disabledSafetyTest(name, ...args) { return test(name, { skip: 'Temporarily unavailable: conflict choice or reftable update mutation is disabled for safety.' }, args.at(-1)); }
@@ -554,7 +554,7 @@ disabledSafetyTest('finishing conflict choices checks the automatically synced b
   h.recovery=recovery;await h.commands.get('zero.chooseRepository')();
   const token=require('../src/git-recovery-panel').selection(recovery).token;
   await h.commands.get('zero.keepLocalUpdate')(token);
-  await waitFor(()=>h.webview.html.includes('Branch matched GitHub at the last check.'));
+  await waitFor(()=>h.webview.html.includes('data-branch-state="synced"'));
   assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,1);
 });
 test('incomplete file restoration blocks guided update choice, continuation and cancellation',async t=>{

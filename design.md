@@ -8,14 +8,20 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
-Owner sidebar refinement, 2026-11-07: keep the repository name and each recent
-commit on one line, truncating long text while retaining the full text on hover.
+Owner sidebar refinement, 2026-11-08: keep the branch name prominent as a dropdown for switching or creating
+branches. Keep the history
+icon, but omit recent commit rows, the routine matched-GitHub message, the
+Check connection button and Review changes from the Project pane. Continue
+automatic checks and show actionable sync and recovery states.
+
+Owner sidebar refinement, 2026-11-07: keep the repository name on one line,
+truncating long text while retaining the full text on hover.
 
 Owner sidebar refinement, 2026-11-05 (local source): name the controls pane
 **Project** and the student file tree **Files**. The Project header offers New
 project, Clone and Open; the Files header retains file creation. Use a compact
-branch selector and separate Merge, Review changes and History actions. Review changes and History
-open read-only editor views; unsaved editor buffers are clearly labeled.
+branch selector and separate Merge and History actions. History opens a
+read-only editor view.
 Keep the existing per-file review and recovery choices. A finished change offers
 Undo with a destination/file preview and explicit confirmation; stage the correction
 without uploading. Existing authentication, trust and file safety guards remain.
@@ -112,8 +118,8 @@ when adding features; a new feature does not reset the agreed interaction style.
 - Clicking **New ▾** opens **New class…**, **New file…**, **New folder…**,
   **New asset…** and **Copy asset paths** after import in a dropdown beneath New.
   Use native name/location prompts; keep new classes
-  ordinary Java beside Main and open new files in the editor. Review changes and
-  History are available in Project; per-file recovery remains
+  ordinary Java beside Main and open new files in the editor. History is
+  available in Project; per-file recovery remains
   available in the existing native review/discard/restore choices. No separate tools row.
 - Clone defaults to **~/Zero Projects**, with a native location picker to choose
   another parent. Clone opens a searchable native picker: recent projects on this

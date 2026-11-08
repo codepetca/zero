@@ -110,6 +110,9 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   assert.ok(dispatch.includes('vscode.open'));choice=undefined;input=undefined;
   assert.doesNotMatch(webview.html,/data-command="zero.recovery"|data-command="zero.fileActions"/);
   assert.match(webview.html,/title="Current branch: main"/);assert.match(webview.html,/data-command="zero.commitChanges"/);assert.doesNotMatch(webview.html,/data-command="zero.finishChange"|NEVER_RENDER_TOKEN/);
+  assert.match(webview.html,/data-command="zero.switchStudentBranch"[^>]*>[\s\S]*?<span class="branch-name">main<\/span>/);
+  assert.match(webview.html,/data-command="zero.changeHistory"/);
+  assert.doesNotMatch(webview.html,/Recent commits|data-command="zero.undoRecentChange"|data-command="zero.reviewChanges"|data-command="zero.checkBranchConnection"|Branch matched GitHub at the last check/);
   for (const event of ['change','delete','create']) {
     branch=`native-${event}`;
     metadata[event]({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>webview.html.includes(`Current branch: ${branch}`), 'Native HEAD update should render');

@@ -1,5 +1,19 @@
 # Verification
 
+## Minimal project sidebar — 2026-11-08
+
+Local source based on main 9b174c3 removes recent commit rows, the routine
+matched-GitHub message, and the Check connection and Review changes sidebar
+buttons. The branch name remains a dropdown; history and actionable sync
+states remain. Zero Dev on macOS displayed the sidebar and opened the branch
+picker with New branch. Focused workflow, branch-status, saved-commit UI, and
+real local-Git sync checks passed; deferred safety cases remain skipped. An
+independent Sol/medium review covered the sidebar and follow-up accessibility
+and stale-state assertions; effective model and usage are unavailable. Change
+History currently reports undo and restore as temporarily unavailable, and
+removing the recent rows also removes their inline undo action. Physical Windows
+and Linux editor UI and live GitHub sync were not retested for this change.
+
 ## Publisher scoped checks — 2026-11-04
 
 Metadata publication accepts only explicitly scoped browser or Windows job skips

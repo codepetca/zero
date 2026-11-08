@@ -629,7 +629,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   connect an empty remote, or Connect to GitHub using an existing repository.
   Connected projects keep publishing and branch
   actions and a visible compact current-branch selector. Commit & push remains
-  a direct action; Merge, Review changes and History are available in Project. Simulation
+  a direct action; Merge and History are available in Project. Simulation
   remains visibly labeled. ZeroHub offers Browse (Projects on
   the website, or native library browsing) and signed-in Share project for original
   work. Tutorial repositories use GitHub normally; copied tutorial work is not an original
