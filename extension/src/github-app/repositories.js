@@ -7,6 +7,7 @@ const levels = {read:1,write:2,admin:3};
 const safeOwner = value => typeof value === 'string' && /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/.test(value);
 const safeName = value => typeof value === 'string' && /^[A-Za-z0-9_.-]{1,100}$/.test(value) && !['.','..'].includes(value) && !value.endsWith('.git');
 const positive = value => Number.isSafeInteger(value) && value > 0;
+const commitId = value => typeof value==='string' && /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value);
 function failure(message, code, repositoryUrl) {
   const error = new Error(message);
   if (code) error.code = code;
@@ -148,6 +149,22 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
     await current(ticket);
     return Object.freeze({ticket,repository:Object.freeze(repo),installation:Object.freeze(installed),checkedAt:now()});
   }
+  async function compareCommits(repositoryUrl,{ticket,base,head,includeCommits=false,signal}) {
+    configured();
+    if(!ticket||!commitId(base)||!commitId(head)||base.length!==head.length)throw failure('Exact commits are required for comparison.','invalid-comparison');
+    const {page}=core.parseRepositoryUrl(repositoryUrl);
+    // The second page gives the total counts without including file diffs.
+    const pagination=includeCommits?'page=1&per_page=100':'page=2&per_page=1';
+    const compared=await api(ticket,'GET',`/repos/${page.slice('https://github.com/'.length)}/compare/${base}...${head}?${pagination}`,{allow404:true,signal,maxBytes:includeCommits?2*1024*1024:128*1024});
+    if(compared===null)return null;
+    const {ahead_by:incoming,behind_by:outgoing,total_commits:total,base_commit:baseCommit,commits}=compared;
+    if(baseCommit?.sha!==base||total!==incoming||![incoming,outgoing].every(count=>Number.isSafeInteger(count)&&count>=0)||(base!==head&&incoming===0&&outgoing===0))return;
+    if(!includeCommits)return {outgoing,incoming};
+    if(!Array.isArray(commits)||incoming>100||commits.length!==incoming)return;
+    const incomingCommits=commits.map(commit=>commit?.sha);
+    if(new Set(incomingCommits).size!==incoming||!incomingCommits.every(id=>commitId(id)&&id.length===head.length))return;
+    return {outgoing,incoming,incomingCommits};
+  }
   async function listZero({ticket,signal,onRepository=()=>{}}={}) {
     configured();cancelled(signal);
     ticket ||= await authentication.capture();
@@ -259,6 +276,6 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
       throw error;
     } finally {creating.delete(key);}
   }
-  return {checkSetup,access,create,listZero};
+  return {checkSetup,access,compareCommits,create,listZero};
 }
 module.exports={createGitHubAppRepositories,repositoryIdentity,assertRepositoryIdentity};

@@ -9,7 +9,7 @@ test('Project checks main on open and focus, distinguishes access and connection
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-branch-ui-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   const git=(...args)=>{assert.ok(!args.some(arg=>arg==='reset'||arg==='--reset'));return execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();};
   git('init','-qb','main');git('config','user.name','Student');git('config','user.email','student@example.invalid');await fs.writeFile(path.join(root,'zero.json'),'{}');git('add','.');git('commit','-qm','base');git('remote','add','origin','https://github.com/student/project.git');
-  let head=git('rev-parse','HEAD'),remote=head,view,focus,metadataChanged,accessError,release,entered,gate,authEvent,configurationChanged,onWarning,mode='live',sessionReads=0,saved=0;
+  let head=git('rev-parse','HEAD'),remote=head,view,focus,metadataChanged,accessError,release,entered,gate,authEvent,configurationChanged,onWarning,compareCommits,mode='live',sessionReads=0,saved=0;
   const calls=[],permissions=[],warnings=[],errors=[],commands=new Map(),subscriptions=[];
   const session={id:'session',account:{id:'1',label:'student'},accessToken:'PRIVATE_TEST_TOKEN',scopes:[]};
   const vscode={
@@ -24,15 +24,17 @@ test('Project checks main on open and focus, distinguishes access and connection
   Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./transport')return {createTransport:(_remote,authenticate,{assertCurrentNow})=>async(_root,args)=>{await authenticate();assertCurrentNow();assert.equal(args[0],'ls-remote');assert.ok(['refs/heads/main','refs/heads/feature'].includes(args[3]));calls.push(args);const result=remote;if(gate){entered();await gate;}return `${result}\t${args[3]}`;}};return oldLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
   t.after(()=>{subscriptions.forEach(value=>value.dispose());delete require.cache[require.resolve('../src/extension')];});
-  extension.activate({subscriptions,workspaceState:{get:(_,fallback)=>fallback,keys:()=>[],update:async()=>{}}},{repositoryLedgerFactory,provider:{getSessions:async()=>{sessionReads++;return [session];},onDidChangeSessions:fn=>{authEvent=fn;return disposable();},dispose(){}},repositories:{checkSetup:async()=>({}),access:async(_,{permissions:requested})=>{permissions.push(requested);if(accessError)throw accessError;return {repository:{id:12},installation:{id:99}};}}});
+  extension.activate({subscriptions,workspaceState:{get:(_,fallback)=>fallback,keys:()=>[],update:async()=>{}}},{repositoryLedgerFactory,provider:{getSessions:async()=>{sessionReads++;return [session];},onDidChangeSessions:fn=>{authEvent=fn;return disposable();},dispose(){}},repositories:{checkSetup:async()=>({}),access:async(_,{permissions:requested})=>{permissions.push(requested);if(accessError)throw accessError;return {repository:{id:12},installation:{id:99}};},compareCommits:(...args)=>compareCommits?.(...args)}});
   const webview={html:'',onDidReceiveMessage:disposable};view.resolveWebviewView({webview,onDidDispose:disposable});
   await waitFor(()=>webview.html.includes('data-branch-state="synced"'));assert.doesNotMatch(webview.html,/Branch matched GitHub at the last check/);assert.ok(calls.length);assert.ok(permissions.every(value=>value.contents==='read'));assert.doesNotMatch(webview.html,/PRIVATE_TEST_TOKEN/);
+  assert.match(webview.html,/<button id="branch-sync"[^>]*Outgoing commits: 0\. Incoming commits: 0\.[^>]* disabled>/);
   // A focus while the old remote observation is in flight must queue one new check.
   gate=new Promise(resolve=>{release=resolve;});const focusEntered=new Promise(resolve=>{entered=resolve;});
   const oldCheck=commands.get('zero.checkBranchConnection')();await focusEntered;const beforeFocusCheck=calls.length;
+  assert.match(webview.html,/<button id="branch-sync"[^>]*Outgoing commits: unknown\. Incoming commits: unknown\.[^>]* disabled>/);
   remote='a'.repeat(40);focus({focused:true});await new Promise(resolve=>setTimeout(resolve,150));
   gate=undefined;release();await oldCheck;await waitFor(()=>calls.length>beforeFocusCheck&&webview.html.includes('This GitHub branch differs.'));
-  focus({focused:true});await waitFor(()=>webview.html.includes('This GitHub branch differs.'));assert.match(webview.html,/Update branch from GitHub/);
+  focus({focused:true});await waitFor(()=>webview.html.includes('This GitHub branch differs.'));assert.match(webview.html,/aria-label="Sync from GitHub\./);
   const alias=root+'-alias';await fs.symlink(root,alias);t.after(()=>fs.unlink(alias));
   const dirty={isDirty:true,uri:{scheme:'file',fsPath:path.join(alias,'zero.json')}};vscode.workspace.textDocuments=[dirty];
   let beforeBlocked={warnings:warnings.length,calls:calls.length,saved};await commands.get('zero.reviewBranchUpdate')();
@@ -55,6 +57,34 @@ test('Project checks main on open and focus, distinguishes access and connection
   gate=undefined;release();await checking;await waitFor(()=>!webview.html.includes('Checking this branch'));
   assert.doesNotMatch(webview.html,/data-branch-state="synced"/);assert.equal(git('rev-parse','HEAD'),head);assert.equal(git('status','--porcelain'),'');
   remote=head;await commands.get('zero.checkBranchConnection')();assert.match(webview.html,/data-branch-state="synced"/);
+  remote=git('commit-tree','-m','Incoming commit',git('rev-parse','HEAD^{tree}'),'-p',head);
+  await commands.get('zero.checkBranchConnection')();
+  assert.match(webview.html,/<button id="branch-sync"[^>]*data-command="zero.reviewBranchUpdate"[^>]*Outgoing commits: 0\. Incoming commits: 1\./);
+  assert.match(webview.html,/↑ 0<\/span><span aria-hidden="true">↓ 1<\/span>/);
+  remote=head;await commands.get('zero.checkBranchConnection')();
+  remote='e'.repeat(40);
+  let comparison,finishComparison;
+  const comparisonStarted=new Promise(resolve=>{comparison=resolve;});
+  const comparisonGate=new Promise(resolve=>{finishComparison=resolve;});
+  compareCommits=async(page,{base,head:target})=>{
+    comparison({page,base,target});
+    return comparisonGate;
+  };
+  let branchCheckDone=false;
+  const countsCheck=commands.get('zero.checkBranchConnection')().then(()=>{branchCheckDone=true;});
+  try {
+    assert.deepEqual(await comparisonStarted,{page:'https://github.com/student/project',base:head,target:remote});
+    await waitFor(()=>branchCheckDone);
+    assert.match(webview.html,/Incoming commits: unknown/);
+    const beforeReview=warnings.length;
+    await commands.get('zero.reviewBranchUpdate')();
+    assert.equal(warnings.length,beforeReview+1,'Update review is available before the counts return');
+  } finally {
+    finishComparison({outgoing:0,incoming:3});await countsCheck;compareCommits=undefined;
+  }
+  await waitFor(()=>webview.html.includes('Incoming commits: 3.'));
+  assert.match(webview.html,/↑ 0<\/span><span aria-hidden="true">↓ 3<\/span>/);
+  remote=head;await commands.get('zero.checkBranchConnection')();
   // Replacing a token with identical session/account IDs invalidates the old
   // in-flight observation and immediately schedules a fresh one.
   gate=new Promise(resolve=>{release=resolve;});let tokenEntered;const tokenWaiting=new Promise(resolve=>{tokenEntered=resolve;});entered=tokenEntered;

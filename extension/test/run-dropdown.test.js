@@ -63,3 +63,24 @@ test('Run menu can navigate to View published app and dispatch it without publis
  assert.deepEqual(h.sent.filter(message=>message.command).map(message=>message.command),['zero.viewPublishedWeb']);
  view.disabled=true;h.key(h.trigger,'ArrowUp');assert.equal(h.document.activeElement,h.publish);h.key(h.publish,'Escape');assert.equal(h.menu.hidden,true);
 });
+
+test('Branch menu opens locally and keyboard selection dispatches only the selected action',()=>{
+ const h=sidebarDOM();
+ const trigger=h.nodes['branch-menu-button']=h.document.createElement('button');
+ const menu=h.nodes['branch-menu']=h.document.createElement('div');
+ const create=h.document.createElement('button'), select=h.document.createElement('button');
+ create.dataset.command='zero.startChange';select.dataset.command='zero.switchStudentBranch';
+ for(const choice of [create,select])choice.setAttribute('role','menuitem');
+ menu.hidden=true;menu.append(create,select);h.nodes.controls.append(trigger,menu);
+
+ h.clickCommand(trigger);
+ assert.equal(menu.hidden,false);assert.equal(trigger.getAttribute('aria-expanded'),'true');
+ assert.equal(h.document.activeElement,create);assert.equal(h.sent.some(message=>message.command),false);
+ h.key(create,'ArrowDown');assert.equal(h.document.activeElement,select);
+ h.key(select,'Escape');assert.equal(menu.hidden,true);assert.equal(h.document.activeElement,trigger);
+ assert.equal(h.sent.some(message=>message.command),false);
+ h.key(trigger,'ArrowUp');assert.equal(h.document.activeElement,select);
+ h.clickCommand(select);assert.equal(menu.hidden,true);assert.equal(h.sent.at(-1).command,'zero.switchStudentBranch');
+ h.clickCommand(trigger);h.clickCommand(create);
+ assert.equal(menu.hidden,true);assert.equal(h.sent.at(-1).command,'zero.startChange');
+});

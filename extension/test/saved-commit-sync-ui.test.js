@@ -177,7 +177,11 @@ test('confirmed branch, local and legacy uploads preserve matching reminders add
       h.stored.set('zero.pendingSync.v1:late-push',{id:'late-push',root:h.root,branch:target,head:B,remote:'https://github.com/student/app.git',type:'push',accountId:'1',kind:'network'});
       h.stored.set('zero.pendingSync.v1:late-local',{id:'late-local',root:h.root,branch:target,head:B,remote:'',type:'local'});
     };
-    await h.commands.get(action==='branch'?'zero.startChange':action==='local'?'zero.syncLocalCommit':'zero.uploadToGitHub')();
+    if(action==='branch'){
+      await h.commands.get('zero.startChange')();
+      await waitFor(()=>h.webview.html.includes('data-branch-state="remote-missing"'));
+      await h.sync();
+    }else await h.commands.get(action==='local'?'zero.syncLocalCommit':'zero.uploadToGitHub')();
     assert.deepEqual(h.errors,[]);assert.deepEqual(h.activeRecords().map(row=>row.id).sort(),['late-local','late-push']);
   });
 });
@@ -242,43 +246,63 @@ test('production compatibility storage refuses descendant retry before review or
   assert.match(h.errors.at(-1),/requires shared sync reminder storage/);assert.deepEqual(h.warnings,[]);assert.deepEqual(h.pushes,[]);assert.equal(h.syncs,0);assert.equal(h.checks,checks);
   assert.deepEqual(h.activeRecords(),[earlier]);assert.match(h.logs.join('\n'),/workspace reminder compatibility storage/);
 });
-test('new branch completion immediately schedules current branch and main checks',async t=>{
-  const h=await harness(t,{branch:'feature'}),before=h.checks;await h.commands.get('zero.startChange')();
-  await waitFor(()=>h.webview.html.includes('Current branch: child')&&h.webview.html.includes('data-branch-state="synced"')&&h.checks>before&&h.mainChecks.includes('child'));
-  assert.deepEqual(h.errors,[]);assert.match(h.webview.html,/data-branch-state="synced"/);
+test('new branch completes while an earlier GitHub check is still waiting',async t=>{
+  const h=await harness(t,{branch:'feature'});
+  let entered,release;
+  const enteredCheck=new Promise(resolve=>{entered=resolve;});
+  const blockedCheck=new Promise(resolve=>{release=resolve;});
+  h.beforeBranchRead=async()=>{entered();await blockedCheck;};
+  const checking=h.check();
+  try{
+    await enteredCheck;
+    let complete=false;
+    const creating=h.commands.get('zero.startChange')().then(()=>{complete=true;});
+    await waitFor(()=>complete);
+    await creating;
+    assert.deepEqual(h.errors,[]);assert.deepEqual(h.warnings,[]);assert.deepEqual(h.pushes,[]);
+    assert.match(h.webview.html,/Created child locally/);
+    assert.match(h.webview.html,/<button id="branch-sync"[^>]* disabled>/);
+  }finally{release();await checking;}
+  await waitFor(()=>h.webview.html.includes('data-branch-state="remote-missing"')&&h.mainChecks.includes('child'));
+  assert.match(h.webview.html,/<button id="branch-sync"[^>]*data-command="zero.syncSavedCommits"[^>]*>Sync/);
+  assert.doesNotMatch(h.webview.html,/<button id="branch-sync"[^>]* disabled>/);
 });
-test('branch creation reports that only its saved commit was synced when edits remain',async t=>{
+test('separate sync publishes only the new branch’s saved commit',async t=>{
   for(const scenario of ['disk','editor','disk-during-sync','editor-during-sync','clean'])await t.test(scenario,async t=>{
     const h=await harness(t,{branch:'feature',dirty:scenario==='disk',dirtyBuffer:scenario==='editor'});
     if(scenario==='disk-during-sync')h.afterConfirmation=async()=>{h.status=' M Main.java';};
     if(scenario==='editor-during-sync')h.afterConfirmation=async()=>{h.documents.push({isDirty:true,version:1,uri:{scheme:'file',fsPath:path.join(h.root,'Main.java')},save:async()=>assert.fail('Must not save editor contents')});};
     await h.commands.get('zero.startChange')();
+    assert.deepEqual(h.pushes,[]);assert.deepEqual(h.warnings,[]);
+    await waitFor(()=>h.webview.html.includes('data-branch-state="remote-missing"'));
+    await h.sync();
     assert.deepEqual(h.errors,[]);assert.deepEqual(h.pushes,[['push','https://github.com/student/app.git',`${B}:refs/heads/child`]]);assert.equal(h.saves,0);
-    if(scenario==='clean'){assert.match(h.logs.join('\n'),/Branch created and confirmed on GitHub/);assert.doesNotMatch(h.webview.html,/check local edits/);}
-    else {assert.match(h.logs.join('\n'),/saved branch commit was confirmed.*uncommitted changes or unsaved edits remain on this computer/i);assert.match(h.webview.html,/check local edits/);}
+    assert.match(h.logs.join('\n'),scenario==='clean'?/saved commit was confirmed on GitHub/:/newer file changes and unsaved edits remain on this computer/);
   });
 });
-test('new branch checks the exact remote name before any automatic push',async t=>{
+test('new branch never pushes regardless of the remote branch state',async t=>{
   for(const scenario of ['absent','same head','different ancestor','offline'])await t.test(scenario,async t=>{
     const h=await harness(t,{branch:'feature',realCheck:true});h.childRemoteHead=scenario==='same head'?B:scenario==='different ancestor'?A:null;if(scenario==='offline')h.failRead=true;
     await h.commands.get('zero.startChange')();assert.deepEqual(h.errors,[]);
-    if(scenario==='absent'){assert.deepEqual(h.pushes,[['push','https://github.com/student/app.git',`${B}:refs/heads/child`]]);}
-    else {assert.equal(h.pushes.length,0);if(scenario==='same head')assert.match(h.logs.join('\n'),/existing GitHub branch already matches/);else {assert.ok(h.activeRecords().some(row=>row.branch==='child'));assert.match(h.webview.html,/sync needs attention/i);}}
+    await waitFor(()=>h.webview.html.includes('Created child locally'));
+    assert.deepEqual(h.pushes,[]);assert.equal(h.syncs,0);assert.deepEqual(h.activeRecords(),[]);
   });
 });
-test('new branch review discloses remote sync, preserves edits, and rejects cancellation or drift',async t=>{
+test('separate branch sync reviews destination and rejects cancellation or drift',async t=>{
   for(const scenario of ['cancel','account','session','destination','head'])await t.test(scenario,async t=>{
     const h=await harness(t,{branch:'feature',choice:scenario!=='cancel'});
     h.afterWarning=async()=>{if(scenario==='account')h.changeAccount();if(scenario==='session')h.changeSession();if(scenario==='destination')h.remote='https://github.com/student/other.git';if(scenario==='head')h.head=OTHER;};
-    await h.commands.get('zero.startChange')();assert.equal(h.pushes.length,0);assert.equal(h.saves,0);
-    const detail=h.warnings.at(-1).options.detail;assert.match(detail,/refs\/heads\/child/);assert.match(detail,/not atomic/);assert.match(detail,/fast-forward/);assert.match(detail,/without being committed/);assert.match(detail,/unsaved open files stay open/i);
-    if(scenario==='cancel')assert.deepEqual(h.errors,[]);else assert.ok(h.errors.length);assert.doesNotMatch(h.webview.html,/Current branch: child/);
+    await h.commands.get('zero.startChange')();
+    await waitFor(()=>h.webview.html.includes('data-branch-state="remote-missing"'));
+    await h.sync();assert.equal(h.pushes.length,0);assert.equal(h.saves,0);
+    const detail=h.warnings.at(-1).options.detail;assert.match(detail,/refs\/heads\/child/);assert.match(detail,/not atomic/);assert.match(detail,/fast-forward/);assert.match(detail,/will not be staged or committed/);
+    if(scenario==='cancel')assert.deepEqual(h.errors,[]);else assert.ok(h.errors.length);assert.match(h.webview.html,/Current branch: child/);
   });
 });
-test('account or session changes after local branch creation do not redirect automatic sync',async t=>{
+test('account or session changes during local branch creation do not prevent it',async t=>{
  for(const scenario of ['account','session'])await t.test(scenario,async t=>{
   const h=await harness(t,{branch:'feature'});h.afterBranchCreate=async()=>scenario==='account'?h.changeAccount():h.changeSession();await h.commands.get('zero.startChange')();
-  assert.equal(h.pushes.length,0);assert.ok(h.activeRecords().some(row=>row.branch==='child'&&row.accountId==='1'));assert.match(h.webview.html,/sync needs attention/i);
+  assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,0);assert.deepEqual(h.activeRecords(),[]);assert.match(h.webview.html,/Created child locally/);
  });
 });
 test('updated feature sync reports edits introduced during upload',async t=>{
@@ -385,10 +409,10 @@ test('reviewed missing-branch retry validates and resolves an applied correction
     else {assert.equal(h.pushes.length,0);assert.match(h.errors.at(-1),/not confirmed applied/i);assert.ok(h.activeRecords().some(row=>row.id==='correction'));}
   });
 });
-test('confirmed branch sync reports unreadable editors even when disk edits remain',async t=>{
-  const h=await harness(t,{branch:'feature',dirty:true,dirtyBuffer:false});
-  h.afterConfirmation=async()=>h.documents.push({isDirty:true,uri:{scheme:'file',get fsPath(){throw Error('Editor unavailable');}}});
-  await h.commands.get('zero.startChange')();
+test('confirmed feature update reports unreadable editors even when disk edits remain',async t=>{
+  const h=await harness(t,{branch:'feature',updated:true});
+  h.afterConfirmation=async()=>{h.status=' M Main.java';h.documents.push({isDirty:true,uri:{scheme:'file',get fsPath(){throw Error('Editor unavailable');}}});};
+  await h.commands.get('zero.syncProject')();
   assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,1);assert.match(h.logs.join('\n'),/uncommitted changes or unsaved edits remain on this computer/i);assert.match(h.logs.join('\n'),/Open files could not be checked/i);assert.match(h.webview.html,/check open files/);
 });
 test('incomplete deleted-file restoration blocks branch, update and saved-head uploads',async t=>{

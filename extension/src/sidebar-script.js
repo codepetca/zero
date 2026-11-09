@@ -8,7 +8,8 @@ function sidebarClient() {
   window.scrollTo(0,remembered.scroll || 0);
   const menus = [
     {button:'files-menu-button',menu:'files-menu',container:'file-actions'},
-    {button:'run-menu-button',menu:'run-menu',container:'controls',fallback:'zero.toggleApp'}
+    {button:'run-menu-button',menu:'run-menu',container:'controls',fallback:'zero.toggleApp'},
+    {button:'branch-menu-button',menu:'branch-menu',container:'controls'}
   ];
   const menuButton = config => document.getElementById(config.button);
   const menuElement = config => document.getElementById(config.menu);
