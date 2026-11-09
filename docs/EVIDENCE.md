@@ -1,3 +1,20 @@
+# Branch and Sync PR review — 2026-11-09
+
+[PR #294](https://github.com/codepetca/zero/pull/294) combines the branch
+dropdown, local branch creation, manual Sync and background commit counts.
+Independent Sol/high review of `9d0be3899..ddc531d35` completed with three
+findings. The follow-up blocks implicit Git transport in branch observations,
+refuses promisor clones, preserves an open branch menu across background
+updates, and clarifies the development guide.
+
+The first Windows job tried to package immutable 0.5.65. The follow-up stages
+0.5.66 as the next local development kit, with the exact public 0.5.65 kit,
+installer and feed metadata retained. The local kit packaged and verified,
+including the extracted Maven build. Focused follow-up checks passed 211 cases
+with 12 existing skips, and release checks passed 94 cases with one skip.
+
+---
+
 # Project chevron branch actions — 2026-11-09
 
 The Project chevron now groups repository and recovery actions. Branch creation

@@ -941,10 +941,14 @@ function activate(context, services = {}) {
       // Read independently of ambient Git directory settings, disable lazy
       // fetching and replacements, and never invoke status/filters here.
       const env=Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key)));
-      Object.assign(env,{GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'});
+      Object.assign(env,{GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_ALLOW_PROTOCOL:''});
       const read=args=>core.git(scope.root,args,{env});
       const readState=async()=>{
         await guard();await core.assertRepositoryRoot(scope.root,(_,args)=>read(args));await github.assertNoUrlRewrites(scope.root,(_,args)=>read(args));
+        let partial;
+        try {partial=await read(['config','--get-regexp','^(extensions\\.partialclone|remote\\..*\\.promisor)$']);}
+        catch(error){if(error.code!==1)throw error;}
+        if(partial)throw new Error('A partial clone cannot be checked without fetching.');
         if(await read(['rev-parse','--is-shallow-repository'])!=='false')throw new Error('Branch checks need complete local history.');
         // Grafts alter ancestry despite --no-replace-objects. Check both before
         // and after observation/ancestry; never infer local-ahead from them.
@@ -3126,8 +3130,9 @@ function activate(context, services = {}) {
     const repoName = connected ? repository.slice('https://github.com/'.length) : projectRoot ? path.basename(projectRoot) : 'Project';
     const repoControl = `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : repoName)}" aria-label="${escape(`Project: ${repoName}. Open project actions`)}" aria-haspopup="dialog" ${disabled}><span class="repo-label">${escape(repoName).replace('/', '/<wbr>')}</span>${icon('ChevronDown')}</button>`;
     const gitDisabled = isBusy() || updateRecovery || updateRecoveryError ? 'disabled' : '';
+    const branchMenuScope = branch ? crypto.createHash('sha256').update(JSON.stringify([projectRoot, repository, branch, auth.accountId])).digest('hex') : '';
     const branchPicker = branch
-      ? `<button id="branch-menu-button" class="link branch" title="${escape(`Current branch: ${branch}`)}" aria-label="${escape(`Branch actions. Current branch: ${branch}`)}" aria-haspopup="menu" aria-expanded="false" aria-controls="branch-menu" ${gitDisabled}>${icon('GitBranch')}<span class="branch-name">${escape(branch)}</span>${icon('ChevronDown')}</button>
+      ? `<button id="branch-menu-button" class="link branch" data-menu-scope="${branchMenuScope}" title="${escape(`Current branch: ${branch}`)}" aria-label="${escape(`Branch actions. Current branch: ${branch}`)}" aria-haspopup="menu" aria-expanded="false" aria-controls="branch-menu" ${gitDisabled}>${icon('GitBranch')}<span class="branch-name">${escape(branch)}</span>${icon('ChevronDown')}</button>
         <div id="branch-menu" class="files-dropdown" role="menu" aria-labelledby="branch-menu-button" hidden>
           <button role="menuitem" tabindex="-1" data-command="zero.startChange" ${gitDisabled}>New branch…</button>
           <button role="menuitem" tabindex="-1" data-command="zero.switchStudentBranch" ${gitDisabled}>Select existing branch…</button>

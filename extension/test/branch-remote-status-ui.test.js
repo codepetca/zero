@@ -95,6 +95,12 @@ test('Project checks main on open and focus, distinguishes access and connection
     const file=path.join(root,'.git',name);await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,head+'\n');gate=undefined;release();await graphCheck;assert.doesNotMatch(webview.html,/data-branch-state="(?:synced|local-ahead)"/);await fs.unlink(file);
     await commands.get('zero.checkBranchConnection')();assert.match(webview.html,/data-branch-state="synced"/);
   }
+  git('config','remote.origin.promisor','true');
+  const beforePartial={transport:calls.length,access:permissions.length};
+  await commands.get('zero.checkBranchConnection')();
+  assert.match(webview.html,/data-branch-state="unknown"/);
+  assert.deepEqual({transport:calls.length,access:permissions.length},beforePartial);
+  git('config','--unset','remote.origin.promisor');
   git('checkout','-qb','feature');remote='c'.repeat(40);metadataChanged({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>webview.html.includes('Current branch: feature')&&webview.html.includes('This GitHub branch differs.'));
   await commands.get('zero.reviewBranchUpdate')();assert.match(warnings.at(-1).options.detail,/Update feature from https:\/\/github.com\/student\/project/);assert.match(warnings.at(-1).options.detail,/automatically syncs the resulting branch commit to GitHub/);
   mode='simulation';configurationChanged({affectsConfiguration:key=>key==='zero.uploadMode'});assert.match(webview.html,/Simulation · GitHub branch is not checked/);assert.doesNotMatch(webview.html,/data-command="zero.checkBranchConnection"/);const beforeSimulation=calls.length;await commands.get('zero.checkBranchConnection')();assert.equal(calls.length,beforeSimulation);

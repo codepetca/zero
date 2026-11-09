@@ -69,6 +69,7 @@ test('Branch menu opens locally and keyboard selection dispatches only the selec
  const trigger=h.nodes['branch-menu-button']=h.document.createElement('button');
  const menu=h.nodes['branch-menu']=h.document.createElement('div');
  const create=h.document.createElement('button'), select=h.document.createElement('button');
+ trigger.dataset.menuScope='first-branch';
  create.dataset.command='zero.startChange';select.dataset.command='zero.switchStudentBranch';
  for(const choice of [create,select])choice.setAttribute('role','menuitem');
  menu.hidden=true;menu.append(create,select);h.nodes.controls.append(trigger,menu);
@@ -77,10 +78,16 @@ test('Branch menu opens locally and keyboard selection dispatches only the selec
  assert.equal(menu.hidden,false);assert.equal(trigger.getAttribute('aria-expanded'),'true');
  assert.equal(h.document.activeElement,create);assert.equal(h.sent.some(message=>message.command),false);
  h.key(create,'ArrowDown');assert.equal(h.document.activeElement,select);
+ h.emit({type:'sidebar.update',controls:'new Sync counts',status:'',failed:false});
+ assert.equal(menu.hidden,false);assert.equal(h.document.activeElement,select);
  h.key(select,'Escape');assert.equal(menu.hidden,true);assert.equal(h.document.activeElement,trigger);
  assert.equal(h.sent.some(message=>message.command),false);
  h.key(trigger,'ArrowUp');assert.equal(h.document.activeElement,select);
  h.clickCommand(select);assert.equal(menu.hidden,true);assert.equal(h.sent.at(-1).command,'zero.switchStudentBranch');
  h.clickCommand(trigger);h.clickCommand(create);
  assert.equal(menu.hidden,true);assert.equal(h.sent.at(-1).command,'zero.startChange');
+ h.clickCommand(trigger);
+ Object.defineProperty(h.nodes.controls,'innerHTML',{set(){trigger.dataset.menuScope='different-branch';}});
+ h.emit({type:'sidebar.update',controls:'different branch',status:'',failed:false});
+ assert.equal(menu.hidden,true);assert.equal(h.document.activeElement,trigger);
 });
