@@ -81,7 +81,7 @@ evaluates PostHog for optional structured operational signals and Clarity for
 supplementary website usability. Neither replaces compiler/tests or automatically
 instruments student-owned sites. No new collector or analytics deployment exists.
 
-Project direction, 2026-11-07: Zero has not rolled out to students, and this release does not require compatibility with or migration of existing projects. New projects use the current framework and browser tooling; opening a project never updates its files. Project update and recovery are unavailable. A project whose saved browser builder is current may use browser actions after the usual trust, saved-file and recovery checks. For outdated tooling, create a new Zero project; retain the original and any recovery copies. Student repositories own their source and build files.
+Project direction, 2026-11-07: Zero has not rolled out to students, and this release does not require compatibility with or migration of existing projects. New projects use the current framework and browser tooling; opening a project never updates its files. Project update and recovery are unavailable. A project whose saved browser builder is current may use browser actions after the usual trust, saved-file and recovery checks. If outdated tooling blocks a browser build or publish, Zero directs the user to **Start Page → Project → New** to create a project and copy their Java files and assets. Keep the original project and any recovery copies. Student repositories own their source and build files.
 
 Implementation execution, owner-authorized 2026-10-23: follow the single
 [phased delivery roadmap](FRAMEWORK-ARCHITECTURE.md#phased-delivery-and-acceptance).

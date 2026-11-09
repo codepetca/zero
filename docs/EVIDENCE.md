@@ -1,3 +1,22 @@
+# Contextual browser tooling guidance — 2026-11-09
+
+Local source on `codex/contextual-tooling-warning`, based on `9d0be3899`.
+Opening a project omits the outdated tooling banner. A blocked browser export
+or publish directs the user to Start Page → Project → New and explains what to
+copy. A current builder with a missing core record gives specific restore steps.
+
+`npm run check` passed, along with 137 focused extension tests and all 10
+design playground tests. The extension suite had 13 existing skips. Source-backed
+light and dark sidebar previews retained Run and Publish & open app. Local
+verification used a mocked GitHub flow and a source-backed editor fixture.
+
+Independent Terra/medium review of delta `52988ef7` found one issue with the
+missing core record message. One targeted follow-up on `b2103987` confirmed
+the fix and found no new issues. Two review turns, one fix batch. Effective
+model and token usage were unavailable.
+
+---
+
 # Branch and Sync PR review — 2026-11-09
 
 [PR #294](https://github.com/codepetca/zero/pull/294) combines the branch

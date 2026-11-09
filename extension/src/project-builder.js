@@ -9,7 +9,9 @@ const format=require('./project-builder-format');
 const {ordinary,readTree,inventoryMatches,relative,validateRetainedExport}=require('./retained-web-export');
 const {managedJavaHome}=require('./managed-java');
 const execFile=promisify(execFileCallback);
-const unavailable=message=>Object.assign(Error('Project browser tooling unavailable: '+message+' See .zero-build/README.md, or restore the complete saved tooling from your project’s Git history. To use current tooling, back up your work, create a new Zero project, and carefully copy your source files and assets.'),{code:'ZERO_BUILDER_UNAVAILABLE'});
+const newProjectGuidance='Back up this project, then go to Start Page → Project → New and copy your Java files and assets into the new project.';
+const browserToolingUpdateRequired=()=>Object.assign(Error('This project needs current Zero files for browser builds and publishing. '+newProjectGuidance),{code:'ZERO_BUILDER_UPDATE_REQUIRED'});
+const unavailable=message=>Object.assign(Error('Project browser tooling unavailable: '+message+' See .zero-build/README.md, or restore the complete saved tooling from your project’s Git history. '+newProjectGuidance),{code:'ZERO_BUILDER_UNAVAILABLE'});
 const aborted=()=>Object.assign(Error('Browser build cancelled.'),{name:'AbortError'});
 function digest(files){const hash=require('node:crypto').createHash('sha256');for(const file of [...files].sort((a,b)=>a.path.localeCompare(b.path)))hash.update(file.path).update('\0').update(file.bytes).update('\0');return hash.digest('hex');}
 async function readSavedBuilder(projectRoot,{metadataOnly=false}={}){
@@ -164,13 +166,13 @@ function createProjectBuilder({isTrusted=()=>false,environment=process.env,platf
  const authorize=(options,kind)=>{if((options.explicitAction!==true&&!(kind==='compatibilityCached'&&/^[a-f0-9]{64}$/.test(options.approvedBuilderHash||'')))||isTrusted()!==true)throw unavailable('choose Browser Run, Export or Publish explicitly, or enable browser checks for this exact tooling, in a trusted workspace.');if(options.signal?.aborted)throw aborted();};
  const currentHash=getCurrentBuilderHash|| (async projectRoot=>(await require('./project-builder-upgrade').planUpgrade({projectRoot,extensionPath})).newProfileHash);
  async function requireCurrent(projectRoot,saved){
-  if(await currentHash(projectRoot)!==saved.profileHash)throw Object.assign(Error('This project needs the current browser tooling before browser builds or checks. Back up your work, create a new Zero project, and carefully copy your source files and assets.'),{code:'ZERO_BUILDER_UPDATE_REQUIRED'});
+  if(await currentHash(projectRoot)!==saved.profileHash)throw browserToolingUpdateRequired();
  }
  async function operation(options,operation){
   authorize(options,operation);const projectRoot=path.resolve(options.projectRoot);let before;
   try{before=await readSavedBuilder(projectRoot);}catch(error){
    const exists=await fs.lstat(path.join(projectRoot,'.zero-build')).catch(missing=>{if(missing.code==='ENOENT')return null;throw missing;});
-   if(!exists)throw Object.assign(Error('This project needs current browser tooling. Back up your work, create a new Zero project, and carefully copy your source files and assets.'),{code:'ZERO_BUILDER_UPDATE_REQUIRED'});
+   if(!exists)throw browserToolingUpdateRequired();
    throw error;
   }
   if(options.approvedBuilderHash&&options.approvedBuilderHash!==before.profileHash)throw unavailable('saved tooling changed; enable browser checks again.');
@@ -206,4 +208,4 @@ function createProjectBuilder({isTrusted=()=>false,environment=process.env,platf
  }
  return {readSavedBuilder,ensureValidatedExport,validateExport,validateRetainedExport,assertBuildInputsAtCommit,prepareBrowserChecks,checkSavedSources};
 }
-module.exports={createProjectBuilder,readSavedBuilder,sanitizeEnvironment,locateRuntimes,runProtocol,_test:{digest,currentInputs}};
+module.exports={createProjectBuilder,readSavedBuilder,browserToolingUpdateRequired,sanitizeEnvironment,locateRuntimes,runProtocol,_test:{digest,currentInputs}};

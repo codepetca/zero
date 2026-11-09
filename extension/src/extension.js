@@ -61,7 +61,7 @@ const {isSetupProject,findSetupProject} = require('./setup-project');
 const {createNativeUpdateCommands} = require('./native-updates');
 const {createNativeUpdateReload} = require('./native-update-reload');
 const {createWebExportCommands} = require('./web-export-ui');
-const {createProjectBuilder,readSavedBuilder} = require('./project-builder');
+const {createProjectBuilder,readSavedBuilder,browserToolingUpdateRequired} = require('./project-builder');
 const {createBrowserRunCommands,sourceDiagnostics} = require('./web-run-ui');
 const {createSavedSourceStatus}=require('./saved-source-status');
 const {createSavedSourceHost}=require('./saved-source-host');
@@ -259,8 +259,6 @@ function activate(context, services = {}) {
   let statusGeneration = 0;
   const isBusy = () => Boolean(stopPromise) || uploading || connecting || startingTutorial || signingIn || changing || menuOpen || componentBusy || maintenanceBusy || exportingWeb || publishingWeb || browserBusy;
   let projectRoot;
-  let projectUpdateRoot, projectUpdateAvailable=false, projectUpdateGeneration=0;
-  let inspectProjectUpdate=()=>{};
   let startPage;
   const uploadMode = (root = projectRoot) => root ? vscode.workspace.getConfiguration('zero', vscode.Uri.file(root)).get('uploadMode', 'live') : 'live';
   let runQueue = Promise.resolve();
@@ -277,7 +275,7 @@ function activate(context, services = {}) {
   const project = async () => {
     let root;const folders=()=>(vscode.workspace.workspaceFolders||[]).map(folder=>folder.uri.fsPath);const requested=folders(),sameWorkspace=()=>JSON.stringify(folders())===JSON.stringify(requested);
     try {root = await core.resolveProject(requested);}
-    catch(error) {if(sameWorkspace()){projectRoot=undefined;projectUpdateRoot=undefined;projectUpdateAvailable=false;projectUpdateGeneration++;localPractice=false;originalWork=false;}throw error;}
+    catch(error) {if(sameWorkspace()){projectRoot=undefined;localPractice=false;originalWork=false;}throw error;}
     const practice = await lessonProjects.isLocalPractice(root);
     const original = !practice && !await lessonProjects.tutorialMarker(root);
     if(savedBuilderInspectedRoot!==root){savedBuilderInspectedRoot=root;try{await readSavedBuilder(root,{metadataOnly:true});}catch(error){output.appendLine(error.message);}}
@@ -285,7 +283,6 @@ function activate(context, services = {}) {
     if(savedChecksRoot&&savedChecksRoot!==root){savedChecks.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;}
     if(projectRoot!==root){projectDirty=undefined;projectUnsaved=undefined;projectDirtyGeneration++;}
     projectRoot = root; localPractice = practice; originalWork = original;
-    inspectProjectUpdate(root);
     return root;
   };
   const refreshSidebarShortcut = (pageOpen = startPage?.isOpen()) => {
@@ -2495,16 +2492,6 @@ function activate(context, services = {}) {
       await guard();result=await execute(guard);completed=true;return result;
     });}catch(error){if(completed)error.message+=` The project operation may have completed; inspect the project before retrying.${result?.recoveryPath?` Recovery copies: ${result.recoveryPath}.`:''}`;throw error;}
   }
-  // One read-only, bounded inspection per opened trusted project; no project code runs.
-  inspectProjectUpdate=root=>{
-    if(disposed||vscode.workspace.isTrusted!==true||isSetupProject(root)||projectUpdateRoot===root)return;
-    projectUpdateRoot=root;projectUpdateAvailable=false;const generation=++projectUpdateGeneration;
-    void require('./project-update').planUpdate({projectRoot:root,extensionPath:context.extensionPath||path.resolve(__dirname,'..')}).then(plan=>{
-      if(disposed||generation!==projectUpdateGeneration||projectRoot!==root||vscode.workspace.isTrusted!==true)return;
-      projectUpdateAvailable=plan.changed;refresh();
-    }).catch(()=>{}); // Explicit update reports conflicts and recovery instructions.
-  };
-  if(vscode.workspace.onDidGrantWorkspaceTrust)context.subscriptions.push(vscode.workspace.onDidGrantWorkspaceTrust(()=>{if(projectRoot)inspectProjectUpdate(projectRoot);}));
   async function updateProject(root,{signal,required=false}={}) {
     const current=projectUpdateGuard(root,signal);
     await current();
@@ -2515,7 +2502,8 @@ function activate(context, services = {}) {
     // Browser actions can use a verified current builder without changing an
     // older core. The saved builder independently verifies itself before use.
     if(required&&plan.builderChanged===false)return false;
-    throw new Error('Project update and recovery are temporarily unavailable. Your project and recovery copies are kept. To use current tooling, create a new Zero project and carefully copy your source files and assets after making a backup.');
+    if(required)throw browserToolingUpdateRequired();
+    throw new Error('Project update and recovery are temporarily unavailable. Your project and recovery copies are kept. '+browserToolingUpdateRequired().message);
     const version=require('../package.json').version;
     const detail='This may cause your project to stop working. The updated Zero files include their license in .zero-build/src/web-export/notices; your existing project LICENSE stays unchanged.';
     const updateChoice={title:'Update Project'};
@@ -2523,7 +2511,7 @@ function activate(context, services = {}) {
       if(required)throw new Error('Browser action cancelled. Update Project to continue.');
       return false;
     }
-    await current();projectUpdateGeneration++;projectUpdateAvailable=false;const result=await withProjectUpdateMutation(root,current,guard=>upgrade.applyUpdate(plan,{assertCurrent:guard}));
+    await current();const result=await withProjectUpdateMutation(root,current,guard=>upgrade.applyUpdate(plan,{assertCurrent:guard}));
     try{await current();}catch(error){if(result.backupPath)error.message+=` The original project files are saved at ${result.backupPath}.`;throw error;}
     if(result.cleanupWarning)output.appendLine(result.cleanupWarning);
     report('Project updated · test and commit',`Project updated. ${result.backupPath?`Previous files saved at ${result.backupPath}. `:''}Test the app and browser build, review local library requirements, and commit the changed project files.`);
@@ -3081,9 +3069,7 @@ function activate(context, services = {}) {
       const detail=`Restore the files from ${choice.recoveryPath}. Zero checks for conflicting edits and refuses recovery if it cannot preserve them. Review your project after recovery.`;
       if(await vscode.window.showWarningMessage('Recover this project update?',{modal:true,detail},'Recover')!=='Recover')return;
       await current();
-      projectUpdateGeneration++;projectUpdateAvailable=false;
       await withProjectUpdateMutation(root,current,guard=>upgrade.recoverUpdate({projectRoot:root,recoveryPath:choice.recoveryPath},{assertCurrent:guard}));
-      projectUpdateRoot=undefined;inspectProjectUpdate(root);
       await current();
       report('Project update recovered','The interrupted update was restored. Review your project files before updating again.');
     } finally {maintenanceBusy=false;if(!disposed)refresh();}
@@ -3148,7 +3134,6 @@ function activate(context, services = {}) {
     const mainNotice=mainUpdateStatus&&currentMainObservation(mainUpdateStatus) ? `${mainUpdateStatus.state==='available'?`<p class="muted status">GitHub main has new changes</p><button class="link" data-command="zero.syncProject" ${gitDisabled}>Update branch from main</button>`:mainUpdateStatus.state==='unknown'?`<p class="muted status">GitHub main may have new changes.</p><button class="link" data-command="zero.syncProject" ${gitDisabled}>Check and update branch…</button>`:''}${mainUpdateStatus.localUpdate?`<p class="muted status">Local main has changes not in this branch.</p><button class="link" data-command="zero.openGitSourceControl" ${gitDisabled}>Open Source Control</button>`:''}` : '';
     const repositoryWarning = !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
-    const projectUpdateNotice=typeof projectUpdateRoot!=='undefined'&&projectUpdateRoot===projectRoot&&projectUpdateAvailable?`<div class="project-update"><p class="status">This project uses older Zero files. Create a new project to use current tooling; your files are kept.</p></div>`:'';
     const browserCheckStatus=savedChecksRoot===projectRoot&&savedChecksState?`<p class="muted status" title="${escape(savedChecksState.message||'')}">Browser checks: ${escape(savedChecksState.status)}</p>`:'';
     const browserAction = browserActive && !stopPromise && browserRun.canOpenInBrowser ? `<button class="secondary browser-open" data-command="zero.openRunningAppInBrowser" title="Open in browser" aria-label="Open in browser" ${disabled}>${icon('ExternalLink')}</button>` : '';
     const showRepository = projectRoot && (ready || connected || branch || branchDetached || branchError);
@@ -3182,7 +3167,7 @@ function activate(context, services = {}) {
     const runDisabled = stopPromise ? 'aria-disabled="true"' : !activeRun && (isBusy()||updateRecovery||updateRecoveryError) ? 'disabled' : '';
     const publishMenu = !setupCheck && ready && auth.signedIn && connected ? `<button id="run-menu-button" class="run-menu-button" aria-label="Run options" title="Run options" aria-haspopup="menu" aria-expanded="false" aria-controls="run-menu" ${isBusy() || activeRun ? 'disabled' : ''}>${icon('ChevronDown')}</button><div id="run-menu" class="files-dropdown run-dropdown" role="menu" aria-labelledby="run-menu-button" hidden><button role="menuitem" tabindex="-1" data-command="zero.publishAndOpenWeb" ${isBusy() || activeRun ? 'disabled' : ''}>Publish &amp; open app</button>${webPublish.hasPublishedApp({root:projectRoot,repository,account:auth.accountId}) ? `<button role="menuitem" tabindex="-1" data-command="zero.viewPublishedWeb" ${isBusy() || activeRun ? 'disabled' : ''}>View published app</button>` : ''}</div>` : '';
     const runControl = `<div class="run-split"><button class="${ready ? 'run' : 'secondary'}" data-command="zero.toggleApp" ${runDisabled}>${icon(activeRun || stopPromise ? 'Square' : 'Play')}${runLabel}</button>${publishMenu}</div>`;
-    const controls = !projectRoot ? `<button class="link" data-command="zero.startPage" ${disabled}>Open Start Page</button>` : `${setupCheck ? '<p class="muted">Installation test · Hello World</p>' : ''}${!ready ? `<button class="link" data-command="zero.startPage" ${disabled}>GitHub setup</button>` : ''}<div class="main-controls"><div class="run-controls">${runControl}${browserAction}</div>${exportActions}${browserCheckStatus}${projectUpdateNotice}</div>${showRepository ? `<section class="repository">${githubPanel}</section>` : ''}${studentView ? '' : `<section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`}`;
+    const controls = !projectRoot ? `<button class="link" data-command="zero.startPage" ${disabled}>Open Start Page</button>` : `${setupCheck ? '<p class="muted">Installation test · Hello World</p>' : ''}${!ready ? `<button class="link" data-command="zero.startPage" ${disabled}>GitHub setup</button>` : ''}<div class="main-controls"><div class="run-controls">${runControl}${browserAction}</div>${exportActions}${browserCheckStatus}</div>${showRepository ? `<section class="repository">${githubPanel}</section>` : ''}${studentView ? '' : `<section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`}`;
     const publishingProgress=publishProgressHtml(publishProgress?.root===projectRoot?publishProgress:undefined);
     // Keep the controls document alive across progress updates; VS Code owns the file tree.
     if (renderedWebviews.has(webview) && webview.postMessage) {
