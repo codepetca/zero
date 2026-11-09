@@ -42,6 +42,33 @@ test('setup accepts an empty selected installation or existing all access using 
   assert.ok(f.calls.every(call=>call.options.method==='GET'&&!call.options.body));
  }
 });
+test('commit comparison uses exact SHAs and returns totals without a complete commit list',async()=>{
+ const f=fixture(),base='a'.repeat(40),head='b'.repeat(40),signal=new AbortController().signal;
+ const comparison={base_commit:{sha:base},ahead_by:41,behind_by:2,total_commits:41,commits:[{sha:head}]};
+ const api=createGitHubAppRepositories({authentication:f.authentication,configuration,fetchImpl:async(url,options)=>{
+  assert.equal(url,`https://api.github.com/repos/student/project/compare/${base}...${head}?page=2&per_page=1`);
+  assert.equal(options.method,'GET');assert.equal(options.body,undefined);assert.equal(options.redirect,'error');assert.equal(options.headers.Authorization,'Bearer '+token);
+  return {ok:true,json:async()=>comparison};
+ }});
+ assert.deepEqual(await api.compareCommits(f.repo.html_url,{ticket:f.ticket,base,head,signal}),{outgoing:2,incoming:41});
+ comparison.base_commit.sha=head;
+ assert.equal(await api.compareCommits(f.repo.html_url,{ticket:f.ticket,base,head,signal}),undefined);
+ await assert.rejects(api.compareCommits(f.repo.html_url,{ticket:f.ticket,base:'main',head,signal}),/Exact commits/);
+});
+test('an unpublished tip can fall back to a complete comparison range but a truncated range is unusable',async()=>{
+ const f=fixture(),base='a'.repeat(40),head='b'.repeat(40);
+ const comparison={base_commit:{sha:base},ahead_by:2,behind_by:0,total_commits:2,commits:[{sha:'c'.repeat(40)},{sha:head}]};
+ const api=createGitHubAppRepositories({authentication:f.authentication,configuration,fetchImpl:async url=>{
+  if(url.endsWith('?page=2&per_page=1'))return {ok:false,status:404};
+  assert.equal(url,`https://api.github.com/repos/student/project/compare/${base}...${head}?page=1&per_page=100`);
+  return {ok:true,json:async()=>comparison};
+ }});
+ const input={ticket:f.ticket,base,head};
+ assert.equal(await api.compareCommits(f.repo.html_url,input),null);
+ assert.deepEqual(await api.compareCommits(f.repo.html_url,{...input,includeCommits:true}),{outgoing:0,incoming:2,incomingCommits:['c'.repeat(40),head]});
+ comparison.commits.pop();
+ assert.equal(await api.compareCommits(f.repo.html_url,{...input,includeCommits:true}),undefined);
+});
 test('setup requires the pinned App on the same numeric personal account with both create and save permissions',async()=>{
  for(const change of [
   f=>{f.installations=[];},f=>{f.installed.app_id=42;},f=>{f.installed.app_slug='other';},

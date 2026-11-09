@@ -18,26 +18,53 @@ function errorState(error) {
   if(error?.kind==='network'||error?.code==='network-error'||['ENOTFOUND','ECONNREFUSED','ETIMEDOUT','ENETUNREACH'].includes(error?.code))return 'offline';
   return 'unknown';
 }
-async function checkBranchRemote({readState,readRemote,isAncestor,now=Date.now}) {
+async function countBranchCommits(read,local,remote) {
+  if(!oid(local)||!oid(remote))return;
+  const result=await read(['rev-list','--left-right','--count',`${local}...${remote}`]);
+  const counts=/^(\d+)\t(\d+)$/.exec(result);
+  if(!counts)return;
+  const outgoing=Number(counts[1]),incoming=Number(counts[2]);
+  if(Number.isSafeInteger(outgoing)&&Number.isSafeInteger(incoming))return {outgoing,incoming};
+}
+async function countGitHubBranchCommits({branch,head,remoteHead},read,compare) {
+  const exact=await compare(head,remoteHead);
+  if(exact!==null)return exact;
+  // A locally committed tip can be unknown to GitHub. If the tracked tip is
+  // a local ancestor, compare from it and remove commits present on both sides.
+  const anchor=await read(['rev-parse','--verify',`refs/remotes/origin/${branch}^{commit}`]);
+  if(!oid(anchor)||anchor===head)return;
+  await read(['merge-base','--is-ancestor',anchor,head]);
+  const compared=await compare(anchor,remoteHead,true);
+  if(!compared)return;
+  const local=await read(['rev-list',`${anchor}..${head}`]);
+  const localCommits=new Set(local.split('\n').filter(Boolean));
+  const shared=compared.incomingCommits.filter(id=>localCommits.has(id)).length;
+  const outgoing=compared.outgoing+(localCommits.size-shared);
+  if(Number.isSafeInteger(outgoing))return {outgoing,incoming:compared.incoming-shared};
+}
+async function checkBranchRemote({readState,readRemote,isAncestor,countCommits,now=Date.now}) {
   const before=await readState();
   if(!before?.root||!before.remote||!before.account||!oid(before.head)||typeof before.branch!=='string'||!before.branch)throw new Error('A connected branch is required.');
   const ref=`refs/heads/${before.branch}`;
-  let state,head;
+  let state,head,counts;
   try {
     head=remoteHead(await readRemote(before,ref),ref);
-    if(head===null)state='remote-missing';
-    else if(head===before.head)state='synced';
+    if(head===null){state='remote-missing';counts={incoming:0};}
+    else if(head===before.head){state='synced';counts={outgoing:0,incoming:0};}
     else {
-      const included=await isAncestor(head,before.head,before);
+      // A remote commit may not exist locally. Counting is optional and must
+      // never fetch objects or prevent the guarded update from being offered.
+      try {counts=await countCommits?.(before.head,head);}catch{}
+      const included=counts?counts.incoming===0&&counts.outgoing>0:await isAncestor(head,before.head,before);
       state=included===true?'local-ahead':'remote-changed';
     }
   } catch(error) {state=errorState(error);}
   // Also revalidate failure observations: stale auth/offline errors must not be
   // attached to a newly selected project or account.
   if(!same(before,await readState()))throw new Error('The project changed during the branch check.');
-  return Object.freeze({...before,state,remoteHead:head,checkedAt:now()});
+  return Object.freeze({...before,...counts,state,remoteHead:head,checkedAt:now()});
 }
 function statusMessage(state) {
   return ({checking:'Checking this branch on GitHub…',synced:'Branch matched GitHub at the last check.',stale:'Branch connection check is out of date.', 'local-ahead':'Local commits are not on this GitHub branch.', 'remote-changed':'This GitHub branch differs. Review updates before syncing.', 'remote-missing':'This branch was missing on GitHub at the last check. Review branch creation before syncing.',auth:'Sign in to check this GitHub branch.',access:'GitHub branch access is unavailable. Check repository access and URL.',offline:'Offline or connection unavailable. Branch sync is unverified.',unknown:'This GitHub branch could not be verified.',local:'Local project · no GitHub remote connected.',simulation:'Simulation · GitHub branch is not checked.'})[state]||'';
 }
-module.exports={checkBranchRemote,remoteHead,errorState,statusMessage};
+module.exports={checkBranchRemote,countBranchCommits,countGitHubBranchCommits,remoteHead,errorState,statusMessage};

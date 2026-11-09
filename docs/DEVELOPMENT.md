@@ -589,17 +589,19 @@ provider supplies credentials, VS Code may show its generic Git credential promp
 Do not interpret that prompt as Zero sign-in or promise immediate native-cache
 revocation. Routine Zero transport retains its separate synchronous final guard.
 
-Local New branch performs no authentication or network operation and no full
-source/asset hash. Explicit Sync reviews/downloads GitHub main without uploading;
-main fast-forwards only, a feature can merge main and must be run again. Merge
+New branch creates and selects a local branch independently of GitHub checks.
+**Sync** reviews an upload of saved commits or an update from the current GitHub
+branch. **Update from main** in the feature branch dropdown reviews bringing
+GitHub main into that branch. Feature updates may sync the resulting commit to
+GitHub after review. Run the updated project before merging. Merge
 preparation is local; execution uses a nonforce push and confirms the merge SHA.
 For a new Merge, the native Quick Pick defaults to deleting the local and GitHub
 feature branch, followed by a Merge confirmation. Unchecking keeps both; cancelling
 either prompt cancels the merge. After confirmed remote merge and switching to
 local main, cleanup checks the exact reviewed tip and other guards. Changed or
 uncertain state keeps safe refs; partial or uncertain cleanup is reported. Recovery
-and Sync keep branches. Rejected stale-main pushes preserve local work and direct
-students to Sync, Run and retry. Simulation remains mutation-free for all actions.
+and sync keep branches. Rejected stale-main pushes preserve local work and direct
+students to update from main, run and retry. Simulation remains mutation-free for all actions.
 
 Captured operations reuse verified identity only within their private session
 receipt. Every assertion still rereads locked storage and checks expiry. Upload

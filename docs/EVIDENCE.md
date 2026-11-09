@@ -1,3 +1,113 @@
+# Branch and Sync PR review — 2026-11-09
+
+[PR #294](https://github.com/codepetca/zero/pull/294) combines the branch
+dropdown, local branch creation, manual Sync and background commit counts.
+Independent Sol/high review of `9d0be3899..ddc531d35` completed with three
+findings. The follow-up blocks implicit Git transport in branch observations,
+refuses promisor clones, preserves an open branch menu across background
+updates, and clarifies the development guide.
+
+The first Windows job tried to package immutable 0.5.65. The follow-up stages
+0.5.66 as the next local development kit, with the exact public 0.5.65 kit,
+installer and feed metadata retained. The local kit packaged and verified,
+including the extracted Maven build. Focused follow-up checks passed 211 cases
+with 12 existing skips, and release checks passed 94 cases with one skip.
+
+---
+
+# Project chevron branch actions — 2026-11-09
+
+The Project chevron now groups repository and recovery actions. Branch creation
+and switching are in the branch dropdown, and the current branch updates through
+**Sync**. On connected feature branches, signed-in users also get **Update from
+main** in the branch dropdown. The follow-up menu and workflow suites passed
+17 cases with one existing skip.
+`npm run check` and `git diff --check` passed. Local source verification.
+
+---
+
+# Incoming counts from GitHub — 2026-11-09
+
+When the current GitHub tip is absent locally, the sidebar can fill its counts
+from a read-only comparison of the two exact commits. The comparison runs after
+the ordinary status check reports readiness. It cannot start a sync, and a
+superseded comparison is ignored. If GitHub does not know the local head, Zero
+can use a tracked ancestor and a complete comparison range to subtract commits
+already present in both histories. Unverifiable counts remain dashes.
+
+Focused suites passed 216 cases with 11 existing skips. The delayed-response
+test opened the update review before the count returned and displayed the result
+afterward. An anonymous public GitHub probe confirmed that page two returns
+exact totals for one and two incoming commits even when the page is empty, and
+omits file diffs. `npm run check` and `git diff --check` passed. Private
+repository behavior was tested with fixtures.
+
+The independent Terra medium review of the cumulative worktree diff from
+`9d0be3899` was stopped after exceeding its task target without a verdict.
+
+---
+
+# Sync button and commit counts — 2026-11-09
+
+The Project pane keeps **Sync** visible for the active branch. It is disabled
+while checking, when up to date, or when the applicable review is unavailable.
+The label shows outgoing ↑ and incoming ↓ commit counts. Counts compare the
+saved local head with the observed GitHub head using locally available Git
+history. A dash denotes an unavailable count, including when GitHub reports a
+commit that is absent locally. Counting adds no fetch or GitHub request.
+
+The source-rendered browser preview verified the disabled state and dispatch to
+the existing upload and update reviews. The focused branch and sync suites
+passed 192 cases with 12 existing skips. Real Git checks covered equal, incoming,
+outgoing, diverged and absent remote refs and verified that observations left
+the local branch, files, index and refs alone. `npm run check` passed.
+Independent review remains deferred at the weekly usage limit.
+
+---
+
+# Branch creation and GitHub sync latency — 2026-11-09
+
+The old creation command waited for any in-flight branch check. After checkout,
+it prepared an upload with a full project fingerprint, checked the GitHub ref,
+and, when absent, pushed and read the ref back. These stages held the creation
+operation open. The local editor log recorded completion without phase timings.
+A disposable benchmark with one 32 MiB asset measured 1.56 seconds for guarded
+local creation and 3.25 seconds for the old sync sequence. The latter made four
+full project scans and three remote Git calls with 600 ms injected per call.
+The benchmark used a local bare remote and excluded GitHub authentication and
+permission request time.
+
+Local source now completes branch creation independently of the background
+check. The existing **Sync saved commits…** action appears after GitHub status
+is known and offers the guarded upload separately.
+
+Focused extension checks passed 258 cases with 12 existing skips. The 59 commit
+guard cases passed on a separate run after an initial combined run logged a
+background file-status error after the expected commit message. The real Git
+lifecycle passed with network denied by the OS and a disposable bare remote.
+It verified that branch creation left the remote ref absent and explicit sync
+created it. `npm run check` and `git diff --check` passed. Independent review
+remains deferred at the weekly usage limit. Native editor interaction and live
+GitHub latency were not measured.
+
+---
+
+# Branch menu and direct creation — 2026-11-09
+
+Local worktree `codex/branch-menu-choice`, based on `9d0be3899`. The
+Project pane branch menu shows **New branch…** and **Select existing branch…**.
+Submitting the name creates the branch directly and carries saved and unsaved
+edits forward without committing them.
+
+The source-rendered browser preview verified both menu options, keyboard
+selection and focus restoration. Focused UI and extension tests passed 22 cases
+with one existing skip. All 15 selected real Git workflow tests and
+`npm run check` passed. Native editor automation selected a different VS Code
+window. Physical editor interaction and live GitHub sync remain unverified.
+Independent review was deferred at the weekly usage limit. Local source only.
+
+---
+
 # Zero 0.5.65 release — 2026-11-08
 
 The [kit release](https://github.com/codepetca/zero/releases/tag/v0.5.65) and

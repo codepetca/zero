@@ -62,6 +62,10 @@ test('student local-first lifecycle uses native review and preserves offline com
  const webview={html:'',onDidReceiveMessage:disposable};provider.resolveWebviewView({webview,onDidDispose:disposable});
  await waitFor(()=>webview.html.includes('Current branch: main'));
  await commands.get('zero.startChange')();assert.deepEqual(errors,[]);assert.equal(await git(root,['branch','--show-current']),'feature');
+ assert.equal(calls.filter(call=>call[0]==='push').length,0);
+ await assert.rejects(git(bare,['rev-parse','--verify','refs/heads/feature']));
+ await waitFor(()=>webview.html.includes('data-command="zero.syncSavedCommits"'));
+ await commands.get('zero.syncSavedCommits')();assert.deepEqual(errors,[]);
  assert.equal(await git(bare,['rev-parse','refs/heads/feature']),initial);await Promise.race([mainStarted,new Promise((_,reject)=>setTimeout(()=>reject(Error('Expected delayed main check')),10000))]);
  await fs.writeFile(path.join(root,'Main.java'),'class Main { int first; }\n');
  await commands.get('zero.reviewChanges')();let review=panels.at(-1);const view=panel=>/view="([a-f0-9]+)"/.exec(panel.webview.html)[1];assert.match(review.webview.html,/Main.java/);await review.receive({type:'select',index:0,view:view(review)});assert.ok(nativeCalls.some(call=>call[0]==='vscode.diff'));
