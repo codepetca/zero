@@ -8,6 +8,16 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner sidebar refinement, 2026-11-09. Clicking the current branch opens a menu
+with **New branch…** and **Select existing branch…**. Each choice opens its own
+input or picker. Submitting a valid branch name creates the branch locally and
+carries current edits forward. Keep **Sync** visible while GitHub status updates
+in the background. Enable it when a sync action is ready and show outgoing ↑ and
+incoming ↓ counts. Use a dash when a count is unavailable. The button opens the
+review for uploading saved commits or updating from GitHub.
+The Project chevron groups repository and recovery actions. The branch dropdown
+offers **Update from main** on connected feature branches when signed in.
+
 Owner sidebar refinement, 2026-11-08: keep the branch name prominent as a dropdown for switching or creating
 branches. Keep the history
 icon, but omit recent commit rows, the routine matched-GitHub message, the

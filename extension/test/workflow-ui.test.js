@@ -110,7 +110,12 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   assert.ok(dispatch.includes('vscode.open'));choice=undefined;input=undefined;
   assert.doesNotMatch(webview.html,/data-command="zero.recovery"|data-command="zero.fileActions"/);
   assert.match(webview.html,/title="Current branch: main"/);assert.match(webview.html,/data-command="zero.commitChanges"/);assert.doesNotMatch(webview.html,/data-command="zero.finishChange"|NEVER_RENDER_TOKEN/);
-  assert.match(webview.html,/data-command="zero.switchStudentBranch"[^>]*>[\s\S]*?<span class="branch-name">main<\/span>/);
+  assert.match(webview.html,/id="branch-menu-button"[^>]*aria-haspopup="menu"[^>]*aria-expanded="false"[^>]*aria-controls="branch-menu"[^>]*>[\s\S]*?<span class="branch-name">main<\/span>/);
+  const branchMenu=webview.html.match(/<div id="branch-menu"[^>]*role="menu"[^>]*hidden>([\s\S]*?)<\/div>/)[1];
+  assert.deepEqual([...branchMenu.matchAll(/data-command="([^"]+)"[^>]*>([^<]+)<\/button>/g)].map(match=>match.slice(1)),[
+    ['zero.startChange','New branch…'],['zero.switchStudentBranch','Select existing branch…']
+  ]);
+  assert.doesNotMatch(branchMenu,/<input/);
   assert.doesNotMatch(webview.html,/class="branch-switch"/);
   assert.match(webview.html,/data-command="zero.changeHistory"/);
   assert.doesNotMatch(webview.html,/Recent commits|data-command="zero.undoRecentChange"|data-command="zero.reviewChanges"|data-command="zero.checkBranchConnection"|Branch matched GitHub at the last check/);
@@ -127,28 +132,30 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   branch='main';metadata.change({fsPath:path.join(root,'.git','config')});await waitFor(()=>webview.html.includes('Current branch: main'), 'Origin configuration update should render');
   assert.match(webview.html,/Current branch: main/,'Origin configuration changes refresh the repository and branch');
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['start','switch']);
-  await commands.get('zero.chooseRepository')();assert.ok(picks.at(-1).items.some(item=>item.action==='sync'&&item.label==='Update from main'));
+  await commands.get('zero.chooseRepository')();assert.ok(!picks.at(-1).items.some(item=>['start','switch','sync','updateBranch'].includes(item.action)),'On main, the branch dropdown and Sync own the branch actions');
   let releaseWarning;warningGate=new Promise(resolve=>{releaseWarning=resolve;});const authBefore=authCalls;
   await commands.get('zero.startChange')();await commands.get('zero.finishChange')();await commands.get('zero.syncProject')();await commands.get('zero.uploadToGitHub')();
   assert.equal(saved,0);assert.equal(prepared,0);assert.equal(executed,0);assert.equal(authCalls,authBefore);assert.equal(accesses.length,0);assert.equal(synced,0);assert.match(warnings[0],/nothing changed/);
   assert.doesNotMatch(webview.html,/data-command="zero.startChange"[^>]* disabled/);releaseWarning();warningGate=undefined;
   mode=undefined;input=undefined;await commands.get('zero.startChange')();assert.equal(saved,0);assert.equal(prepared,0);
   assert.equal(progressRuns.length,0,'Simulation and cancelling the name prompt start no progress or network work');
-  input='add-score';warningChoice='Create branch';let releaseStart;startGate=new Promise(resolve=>{releaseStart=resolve;});const authBeforeStart=authCalls;
+  input='add-score';let releaseStart;startGate=new Promise(resolve=>{releaseStart=resolve;});const warningsBeforeStart=warnings.length;
   const starting=commands.get('zero.startChange')();await waitFor(()=>prepared===1);
   const activeProgress=progressRuns.at(-1);assert.equal(activeProgress.active,true);assert.deepEqual(activeProgress.options,{location:15,title:'Creating branch add-score',cancellable:false});
   assert.match(webview.html,/Checking|Creating/);assert.match(webview.html,/data-command="zero.chooseRepository"[^>]* disabled/);
   await commands.get('zero.startChange')();assert.equal(progressRuns.length,1,'A repeat click cannot start another operation');
-  releaseStart();await starting;startGate=undefined;assert.equal(activeProgress.active,false);assert.equal(prepared,1);assert.equal(executed,1);assert.equal(accesses.length,1);assert.ok(authCalls>=authBeforeStart);assert.equal(uploadSnapshots,1,'Branch creation prepares an automatic sync');assert.equal(transportDispatches,2,'Branch creation pushes and confirms the saved head');assert.equal(reviews.length,0,'Naming a branch needs no additional confirmation');assert.doesNotMatch(webview.html,/Simulation — nothing will be uploaded/);assert.match(webview.html,/add-score<\/span>/);
+  releaseStart();await starting;startGate=undefined;assert.equal(activeProgress.active,false);assert.equal(prepared,1);assert.equal(executed,1);assert.equal(uploadSnapshots,0,'Branch creation does not prepare an upload');assert.ok(!transportCalls.some(args=>args[0]==='push'),'Branch creation does not push');assert.equal(reviews.length,0,'Naming a branch needs no additional confirmation');assert.doesNotMatch(webview.html,/Simulation — nothing will be uploaded/);assert.match(webview.html,/add-score<\/span>/);
+  assert.equal(warnings.length,warningsBeforeStart,'A connected project creates the branch without a confirmation');
   branch='main';gitStatus=' M Main.java';warningChoice=undefined;
-  await commands.get('zero.startChange')();assert.equal(branch,'main');assert.equal(executed,1,'Cancelling leaves the branch unchanged');assert.match(warnings.at(-1),/Move your changes to add-score/);assert.match(warningDetails.at(-1).options.detail,/Project changes come with you without being committed/);assert.match(warningDetails.at(-1).options.detail,/check and non-force push are not atomic/);assert.deepEqual(warningDetails.at(-1).actions,['Move changes']);assert.doesNotMatch(webview.html,/>Checking your local branch…</);
-  warningChoice='Move changes';await commands.get('zero.startChange')();assert.equal(branch,'add-score');assert.equal(executed,2,'Moving changes creates the branch');
+  await commands.get('zero.startChange')();assert.equal(branch,'add-score');assert.equal(executed,2,'Current changes carry onto the new branch');
+  assert.equal(warnings.length,warningsBeforeStart,'Saved edits do not add a confirmation');
   gitStatus='';branch='main';warningChoice=undefined;const alias=path.join(path.dirname(root),`${path.basename(root)}-alias`);await fs.symlink(root,alias,'dir');t.after(()=>fs.rm(alias,{force:true}));vscode.workspace.textDocuments=[{isDirty:true,version:1,getText:()=> 'reviewed editor',uri:{scheme:'file',fsPath:path.join(alias,'Main.java')}}];const beforeUnsaved=saved;
   assert.deepEqual(await extension.dirtyProjectDocuments(vscode,root),vscode.workspace.textDocuments,'Aliased editor resolves to the student project');
   const otherDocument={isDirty:true,uri:{scheme:'file',fsPath:path.join(os.tmpdir(),'unrelated-file.java')}};vscode.workspace.textDocuments.push(otherDocument);
   assert.deepEqual(await extension.dirtyProjectDocuments(vscode,root),[vscode.workspace.textDocuments[0]],'Unrelated editors are excluded');vscode.workspace.textDocuments.pop();
-  await commands.get('zero.startChange')();assert.equal(branch,'main');assert.equal(saved,beforeUnsaved,'Cancellation does not save editor buffers');
-  warningChoice='Move changes';await commands.get('zero.startChange')();assert.equal(branch,'add-score');assert.equal(saved,beforeUnsaved,'Moving changes keeps editor buffers unsaved');
+  input=undefined;await commands.get('zero.startChange')();assert.equal(branch,'main');assert.equal(saved,beforeUnsaved,'Cancelling the name prompt does not save editor buffers');
+  input='add-score';await commands.get('zero.startChange')();assert.equal(branch,'add-score');assert.equal(saved,beforeUnsaved,'Moving changes keeps editor buffers unsaved');
+  assert.equal(warnings.length,warningsBeforeStart,'Unsaved edits do not add a confirmation');
   branch='main';choice='feature';warningChoice='Move changes';let projectSaves=0,otherSaves=0;
   const aliasDocument=vscode.workspace.textDocuments[0];aliasDocument.save=async()=>{projectSaves++;await fs.writeFile(path.join(root,'Main.java'),aliasDocument.getText());aliasDocument.isDirty=false;return true;};
   otherDocument.save=async()=>{otherSaves++;return true;};vscode.workspace.textDocuments.push(otherDocument);
@@ -176,22 +183,20 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   branch='main';choice='heads/feature';vscode.workspace.textDocuments=[];
   branchRows=`refs/heads/heads/feature\t${currentHead}\nrefs/heads/release/1.2\t${currentHead}\nrefs/tags/feature\t${currentHead}`;
   await commands.get('zero.switchStudentBranch')();assert.equal(selectedSwitch,'heads/feature');
-  assert.deepEqual(picks.at(-1).items.filter(item=>item.name).map(item=>item.name),['heads/feature','release/1.2']);
+  assert.deepEqual(picks.at(-1).items.map(item=>item.name),['heads/feature','release/1.2']);
   branchRows=undefined;
   branch='main';choice='switch';vscode.workspace.textDocuments=[];
-  for(const command of ['zero.chooseRepository','zero.chooseBranch']) {
-    const beforeDispatch=dispatch.length;await commands.get(command)();
-    assert.equal(picks.at(-1).options.title,'Switch branch','Menu opens the student branch chooser');
-    assert.ok(picks.at(-1).items.some(item=>item.name==='feature'));
-    assert.equal(dispatch.length,beforeDispatch,'Menu does not invoke native checkout');
-  }
-  choice=undefined;warningChoice='Create branch';
+  const beforeBranchMenuDispatch=dispatch.length;await commands.get('zero.chooseBranch')();
+  assert.equal(picks.at(-1).options.title,'Switch branch','Branch actions open the student branch chooser');
+  assert.ok(picks.at(-1).items.some(item=>item.name==='feature'));
+  assert.equal(dispatch.length,beforeBranchMenuDispatch,'Branch actions do not invoke native checkout');
+  choice=undefined;warningChoice=undefined;
   branch='main';vscode.workspace.textDocuments=[{isDirty:true,version:1,uri:{scheme:'file',fsPath:path.join(os.tmpdir(),'unrelated-file.java')}}];const warningsBefore=warnings.length;
-  await commands.get('zero.startChange')();assert.equal(branch,'add-score');assert.equal(warnings.length,warningsBefore+1,'Only the branch creation review is shown');
+  await commands.get('zero.startChange')();assert.equal(branch,'add-score');assert.equal(warnings.length,warningsBefore,'An unrelated dirty editor does not add a prompt');
   const loop=path.join(os.tmpdir(),`${path.basename(root)}-loop`);await fs.symlink(loop,loop);t.after(()=>fs.rm(loop,{force:true}));branch='main';vscode.workspace.textDocuments=[{isDirty:true,version:1,uri:{scheme:'file',fsPath:loop}}];
-  await commands.get('zero.startChange')();assert.equal(branch,'add-score');assert.equal(warnings.length,warningsBefore+2,'Only the branch creation review is shown');
+  await commands.get('zero.startChange')();assert.equal(branch,'add-score');assert.equal(warnings.length,warningsBefore);
   const other=await fs.mkdtemp(path.join(os.tmpdir(),'zero-other-'));t.after(()=>fs.rm(other,{recursive:true,force:true}));const otherLoop=path.join(other,'loop');await fs.symlink(otherLoop,otherLoop);vscode.workspace.workspaceFolders.push({uri:{fsPath:other}});branch='main';vscode.workspace.textDocuments=[{isDirty:true,version:1,uri:{scheme:'file',fsPath:otherLoop}}];
-  await commands.get('zero.startChange')();assert.equal(branch,'add-score');assert.equal(warnings.length,warningsBefore+3,'Only the branch creation review is shown');vscode.workspace.workspaceFolders.pop();
+  await commands.get('zero.startChange')();assert.equal(branch,'add-score');assert.equal(warnings.length,warningsBefore);vscode.workspace.workspaceFolders.pop();
   const subdir=path.join(root,'src');await fs.mkdir(subdir,{recursive:true});const subAlias=path.join(os.tmpdir(),`${path.basename(root)}-subalias`);await fs.symlink(subdir,subAlias,'dir');t.after(()=>fs.rm(subAlias,{force:true}));const subLoop=path.join(subdir,'loop');await fs.symlink(subLoop,subLoop);vscode.workspace.workspaceFolders.push({uri:{fsPath:subAlias}});branch='main';vscode.workspace.textDocuments=[{isDirty:true,version:1,uri:{scheme:'file',fsPath:path.join(subAlias,'loop')}}];const errorsBefore=errors.length;
   await commands.get('zero.startChange')();assert.equal(branch,'main');assert.ok(errors.length>errorsBefore,'An unresolvable file through a project subfolder alias stops branch creation');vscode.workspace.workspaceFolders.pop();
   branch='main';vscode.workspace.textDocuments=[];afterCheckout=()=>{vscode.workspace.textDocuments=[{isDirty:true,version:1,uri:{scheme:'file',fsPath:path.join(root,'Main.java')}}];};
@@ -226,13 +231,13 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   }
   mode='simulation';provider.resolveWebviewView(candidate);assert.doesNotMatch(webview.html,/data-command="zero.copyPublishedWebLink"/);mode='live';publishedState=undefined;
   branch='<branch"x">';provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes('&lt;branch&quot;x&quot;&gt;'));assert.match(webview.html,/&lt;branch&quot;x&quot;&gt;/);assert.doesNotMatch(webview.html,/<branch|NEVER_RENDER_TOKEN/);
-  branch='main';choice='start';let releasePick;pickGate=new Promise(resolve=>{releasePick=resolve;});const menu=commands.get('zero.chooseBranch')();await waitFor(()=>picks.at(-1).options.title.includes('main'), 'Main branch menu should open');
+  branch='main';choice='start';let releasePick;pickGate=new Promise(resolve=>{releasePick=resolve;});const beforePick=picks.length, menu=commands.get('zero.chooseBranch')();await waitFor(()=>picks.length>beforePick&&picks.at(-1).options.title.includes('main'), 'Main branch menu should open');
   const beforeMenu=executed;await commands.get('zero.startChange')();assert.equal(executed,beforeMenu);branch='changed-elsewhere';releasePick();await menu;pickGate=undefined;assert.equal(executed,beforeMenu,'A changed branch invalidates the menu selection');
   // Local work remains available with no session, origin or selected-repository access.
   branch='main';remote='';session=undefined;authEvent({provider:{id:'zero-github'}});
   await waitFor(()=>!webview.html.includes('data-command="zero.uploadToGitHub"'));
   assert.match(webview.html,/data-command="zero.chooseRepository"/);
-  choice=undefined;await commands.get('zero.chooseRepository')();assert.ok(picks.at(-1).items.some(item=>item.action==='start'));assert.ok(!picks.at(-1).items.some(item=>item.action==='sync'),'Signed-out local menus omit network sync');
+  choice=undefined;await commands.get('zero.chooseRepository')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['recovery','inspectRecoveryCopies','account']);
   choice=undefined;const offlineBefore={authCalls,accesses:accesses.length,uploadSnapshots,transportDispatches};
   repositoryId++;installationId++;await commands.get('zero.startChange')();
   assert.equal(branch,'add-score');assert.deepEqual({authCalls,accesses:accesses.length,uploadSnapshots,transportDispatches},offlineBefore);
@@ -241,7 +246,7 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   assert.equal(branch,'add-score','A local-only branch does not depend on a GitHub sign-in');assert.equal(transportDispatches,localDispatches);
   remote='https://github.com/student/app.git';session={id:'restored',account:{id:'1',label:'student'},accessToken:'NEVER_RENDER_TOKEN'};authEvent({provider:{id:'zero-github'}});
   await new Promise(resolve=>setImmediate(resolve));
-  warningChoice='Create branch';for(const invalidation of ['simulation','trust']) {
+  for(const invalidation of ['simulation','trust']) {
     branch='main';let releaseGuard;startGate=new Promise(resolve=>{releaseGuard=resolve;});
     const preparedBefore=prepared,executedBefore=executed,authBefore=authCalls;
     const pendingStart=commands.get('zero.startChange')();await waitFor(()=>prepared>preparedBefore);
@@ -342,7 +347,8 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   metadata.change({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>webview.html.includes('Inspect retained conflict copies'));
   pendingRecovery=undefined;metadata.delete({fsPath:path.join(root,'.git','MERGE_HEAD')});await waitFor(()=>!webview.html.includes('Inspect retained conflict copies'));
   assert.match(webview.html,/data-command="zero.toggleApp"(?![^>]*disabled)/,'Native completion refreshes the recovery panel without a reload');
-  await commands.get('zero.chooseRepository')();assert.match(picks.at(-1).items.find(item=>item.action==='sync').description,/sync this branch to GitHub/);
+  const featureBranchMenu=webview.html.match(/<div id="branch-menu"[^>]*>([\s\S]*?)<\/div>/)[1];
+  assert.match(featureBranchMenu,/data-command="zero.syncProject"[^>]*title="Get GitHub main, then sync this branch to GitHub"[^>]*>Update from main<\/button>/);
   workflow.checkpoint=async(_root,options)=>{await options.beforeMutation();checkpoints++;gitStatus='';return {checkpointed:true,branch,head:'f'.repeat(40)};};
   gitStatus=' M Main.java\0';warningChoice=undefined;
   for(const id of ['zero.syncProject','zero.updateBranchFromGitHub']) {

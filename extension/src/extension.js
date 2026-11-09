@@ -21,7 +21,7 @@ const {createRepositoryReminderStorage} = require('./repository-reminder-storage
 const {serializeRepositoryReminders} = require('./repository-reminder-queue');
 const {recoveryMessage} = require('./local-recovery-message');
 const {checkMainUpdate} = require('./main-update-status');
-const {checkBranchRemote,remoteHead,errorState:branchCheckError,statusMessage:branchStatusMessage} = require('./branch-remote-status');
+const {checkBranchRemote,countBranchCommits,countGitHubBranchCommits,remoteHead,errorState:branchCheckError,statusMessage:branchStatusMessage} = require('./branch-remote-status');
 const workflow = require('./workflow');
 const {cleanupAfterMerge} = require('./branch-cleanup');
 const gitRecoveryPanel = require('./git-recovery-panel');
@@ -912,6 +912,18 @@ function activate(context, services = {}) {
     if(value&&(!currentBranchObservation(value)||['root','remote','branch','head'].some(key=>value[key]!==plan[key])))throw new Error('The GitHub account, repository or branch changed after the connection check. Review it again; your work is kept.');
   }
   const missingSyncDisclosure=plan=>`GitHub reported this branch missing. Syncing will create refs/heads/${plan.branch} if it remains absent. The check and push are not atomic: if someone creates the branch in between, Git may accept a fast-forward update. Zero will push without force.`;
+  async function fillBranchCounts(observation,page,ticket,read,readState) {
+    const current=()=>!disposed&&branchRemoteStatus===observation&&currentBranchObservation(observation)&&uploadMode()==='live'&&vscode.workspace.isTrusted===true;
+    const signal=AbortSignal.timeout(5000);
+    try {
+      const counts=await countGitHubBranchCommits(observation,read,(base,head,includeCommits)=>{
+        if(current())return repositories.compareCommits(page,{ticket,base,head,includeCommits,signal});
+      });
+      if(!counts||!current())return;
+      await readState();
+      if(current()){branchRemoteStatus=Object.freeze({...observation,...counts});refresh();}
+    } catch { /* An unavailable count does not change the branch status. */ }
+  }
   async function checkCurrentBranch({force=false}={}) {
     if(disposed||isBusy()||(!force&&pendingUpload)||vscode.workspace.isTrusted!==true||!projectRoot||!branch||!branchHead||uploadMode()!=='live'||!repository.startsWith('https://github.com/'))return;
     if(branchCheckRunning){if(force)branchCheckPending=true;return;}
@@ -926,10 +938,14 @@ function activate(context, services = {}) {
       // Read independently of ambient Git directory settings, disable lazy
       // fetching and replacements, and never invoke status/filters here.
       const env=Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key)));
-      Object.assign(env,{GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'});
+      Object.assign(env,{GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_ALLOW_PROTOCOL:''});
       const read=args=>core.git(scope.root,args,{env});
       const readState=async()=>{
         await guard();await core.assertRepositoryRoot(scope.root,(_,args)=>read(args));await github.assertNoUrlRewrites(scope.root,(_,args)=>read(args));
+        let partial;
+        try {partial=await read(['config','--get-regexp','^(extensions\\.partialclone|remote\\..*\\.promisor)$']);}
+        catch(error){if(error.code!==1)throw error;}
+        if(partial)throw new Error('A partial clone cannot be checked without fetching.');
         if(await read(['rev-parse','--is-shallow-repository'])!=='false')throw new Error('Branch checks need complete local history.');
         // Grafts alter ancestry despite --no-replace-objects. Check both before
         // and after observation/ancestry; never infer local-ahead from them.
@@ -948,15 +964,21 @@ function activate(context, services = {}) {
       await readState();
       // Establish repository access explicitly so a missing repository/access
       // error remains distinct from a successful empty exact-ref response.
-      await repositories.access(core.parseRepositoryUrl(scope.remote).page,{ticket,permissions:{contents:'read'}});
+      const page=core.parseRepositoryUrl(scope.remote).page;
+      await repositories.access(page,{ticket,permissions:{contents:'read'}});
       await readState();
       const networkRun=createTransport(scope.remote,async()=>{await readState();return auth.assertCurrent(ticket);},{assertCurrentNow:()=>{assertGitProjectNow(scope.root);if(!currentBranchObservation(scope))throw new Error('The branch changed.');return auth.assertCurrentNow(ticket);}});
-      const result=await checkBranchRemote({readState,readRemote:(value,ref)=>networkRun(value.root,['ls-remote','--heads',value.remote,ref]),isAncestor:async(older,newer)=>{try{await read(['merge-base','--is-ancestor',older,newer]);return true;}catch(error){if(error.code===1)return false;if(error.code===128)return null;throw error;}}});
+      const result=await checkBranchRemote({
+        readState,readRemote:(value,ref)=>networkRun(value.root,['ls-remote','--heads',value.remote,ref]),
+        countCommits:(local,remote)=>countBranchCommits(read,local,remote),
+        isAncestor:async(older,newer)=>{try{await read(['merge-base','--is-ancestor',older,newer]);return true;}catch(error){if(error.code===1)return false;if(error.code===128)return null;throw error;}}
+      });
       if(!disposed&&currentBranchObservation(scope)){
         branchRemoteStatus=result;
         const key=JSON.stringify([scope.root,scope.branch,scope.head,scope.remote]);
         if(result.state==='remote-missing')missingBranchObservations.set(key,{...result});
         else if(['synced','local-ahead','remote-changed'].includes(result.state)){const previous=missingBranchObservations.get(key);if(previous?.account===scope.account&&previous?.session===scope.session)missingBranchObservations.delete(key);}
+        if(result.state==='remote-changed'&&result.incoming===undefined&&repositories.compareCommits)void fillBranchCounts(result,page,ticket,read,readState);
       }
     } catch(error) {
       if(!disposed&&currentBranchObservation(scope))branchRemoteStatus={...scope,state:branchCheckError(error)};
@@ -1270,8 +1292,11 @@ function activate(context, services = {}) {
   }
   async function change(kind,{remoteReview}={}) {
     if (isBusy()) return;
-    await settleBranchCheck();if(isBusy())return;
-    const missing=observedMissing(projectRoot);
+    if (kind !== 'start') {
+      await settleBranchCheck();
+      if (isBusy()) return;
+    }
+    const missing=kind==='sync'?observedMissing(projectRoot):undefined;
     changing = true; refresh();
     let reviewedAccountId;
     try {
@@ -1280,7 +1305,10 @@ function activate(context, services = {}) {
       if (uploadMode(root) !== 'live') {simulation(kind === 'start' ? 'New branch' : kind === 'sync' || kind === 'updateBranch' ? 'Update from GitHub' : 'Merge to main');return;}
       let name;
       if (kind === 'start') {
-        name = await vscode.window.showInputBox({title:'Branch name',validateInput:value=>/^[a-z0-9][a-z0-9-]*$/.test(value)?undefined:'Use lowercase letters, numbers and dashes, starting with a letter or number.'});
+        name = await vscode.window.showInputBox({
+          title:'Branch name',
+          validateInput:value=>/^[a-z0-9][a-z0-9-]*$/.test(value)?undefined:'Use lowercase letters, numbers and dashes, starting with a letter or number.'
+        });
         if (!name) return;
         if (!/^[a-z0-9][a-z0-9-]*$/.test(name)) throw new Error('Use lowercase letters, numbers and dashes for your change name.');
       }
@@ -1325,17 +1353,9 @@ function activate(context, services = {}) {
           };
           const dirtyBefore = await dirtyDocuments();
           const buffersChanged = async () => JSON.stringify(await dirtyDocuments()) !== JSON.stringify(dirtyBefore);
-          const checkBuffers = async () => {if (await buffersChanged()) throw new Error('Your open files changed. Review this step again. Your work is preserved.');};
-          const reviewedAccount=auth.accountId||null,reviewedSession=auth.sessionId||null,reviewedRevision=auth.revision;
-          let plan;
-          const checkBranchAuth=()=>{if(plan?.remote&&((auth.accountId||null)!==reviewedAccount||(auth.sessionId||null)!==reviewedSession||auth.revision!==reviewedRevision))throw new Error('The GitHub sign-in changed. Review branch creation again; your work is kept.');};
-          const options = {beforeMutation:async () => {await beforeLocalMutation();await checkBuffers();checkBranchAuth();},beforeCheckout:async()=>{await checkBuffers();checkBranchAuth();},onProgress:reportProgress};
-          plan = await workflow.prepareStart(root,name,options);
-          if(plan.remote||plan.status||dirtyBefore.length){
-            const moving=Boolean(plan.status||dirtyBefore.length),button=moving?'Move changes':'Create branch';
-            const detail=`Create ${name} from ${plan.branch} at ${plan.head}. Project changes come with you without being committed; unsaved open files stay open.${plan.remote?` Zero will check refs/heads/${name} in ${plan.page} and, if it is absent, try to sync this saved commit. The check and non-force push are not atomic: if someone creates or rewinds that branch in between, the push may fast-forward it.`:''}`;
-            if(await vscode.window.showWarningMessage(moving?`Move your changes to ${name}?`:'Create this branch?',{modal:true,detail},button)!==button){state='Branch creation cancelled';return;}
-          }
+          const checkBuffers = async () => {if (await buffersChanged()) throw new Error('Your open files changed. Try creating the branch again. Your work is preserved.');};
+          const options = {beforeMutation:async () => {await beforeLocalMutation();await checkBuffers();},beforeCheckout:checkBuffers,onProgress:reportProgress};
+          const plan = await workflow.prepareStart(root,name,options);
           await options.beforeMutation();
           const result = await workflowLocalPhase(root,options,phase=>workflow.startPrepared(plan,phase));
           await refreshNativeGit(root);
@@ -1343,10 +1363,10 @@ function activate(context, services = {}) {
             report(`Created ${result.branch} · check Source Control`, `Created ${result.branch}, but the active branch or commit changed or could not be checked. Check Source Control before continuing.`);
             void vscode.window.showWarningMessage('The branch was created, but the active branch could not be confirmed. Check Source Control before continuing. Your unsaved work is still open.');
           } else {
-            report(`Created ${result.branch}`,`Started ${result.branch} locally. Make your changes, then commit.`);
+            report(`Created ${result.branch} locally`,`Started ${result.branch} locally. Make your changes, then commit.`);
             if (result.checkoutWarning) void vscode.window.showWarningMessage('The branch was created, but Git reported an error during checkout. Check Source Control before continuing. Your unsaved work is still open.');
             else if (result.postCheckoutChanged || await buffersChanged().catch(() => true)) void vscode.window.showWarningMessage('Your files changed while the branch was being created, or could not be checked. The branch was created; check Source Control. Your unsaved work is still open.');
-            else await syncCreatedBranch(root,result,plan.remote,plan.page,{expectedAccount:reviewedAccount,expectedSession:reviewedSession,expectedRevision:reviewedRevision});
+            else if (!plan.remote) await rememberLocalCommit(root,result.branch,result.head);
           }
           return;
         }
@@ -1693,20 +1713,14 @@ function activate(context, services = {}) {
       const tutorial = root && !localPractice && await lessonProjects.tutorialMarker(root);
       if (isBusy()) return;
       const connected = repository.startsWith('https://github.com/');
-    const ready = githubReady();
-    const phase = auth.signedIn ? githubReadiness.phase : 'signed-out';
       const currentRepository = repository, currentBranch = branch;
       const recoverySelection=gitRecoveryPanel.selection(updateRecovery);
       const guidedRecovery=updateRecovery&&!updateRecovery.nativeRequired&&recoverySelection.file&&recoverySelection.file.kind!=='complex'&&recoverySelection.conflict;
-      const localChoices = !connected && !tutorial && !localPractice && branch ? [{label:'New branch…',action:'start'},{label:'Switch branch…',action:'switch'}] : [];
       const items = connected ? [
         {label:'Open on GitHub', action:'open'},
         {label:'Copy repository link', description:'Submit the link separately in Pika', action:'copy'},
         ...(auth.signedIn ? [{label:'Publish & open app', action:'publish'}] : []),
-        ...(branch ? [{label:'New branch…', action:'start'}] : []),
-        ...(auth.signedIn ? [{label:'Update from main',description:branch==='main'?'Get GitHub main; no upload':'Get GitHub main, then sync this branch to GitHub',action:'sync'},...(branch&&branch!=='main'?[{label:'Update branch from GitHub',description:'Get this branch’s changes, then sync to GitHub',action:'updateBranch'}]:[])] : []),
         ...(guidedRecovery ? [{label:'Cancel update',action:'cancelUpdate'}] : []),
-        {label:'Switch branch…', action:'switch'},
         ...(!tutorial && auth.signedIn ? [{label:'Connect to GitHub…', action:'connect'}] : [])
       ] : [
         ...(!root || localPractice || !auth.signedIn ? [] : [
@@ -1717,7 +1731,7 @@ function activate(context, services = {}) {
       const recovery=context.globalState?.get('zero.repositoryCreationRecovery');
       const recoveryUrl=recovery&&typeof recovery.repositoryUrl==='string'?recovery.repositoryUrl:undefined;
       const projectChoices = [...(recoveryUrl?[{label:'Resume created project…',description:recoveryUrl,action:'recover'}]:[])];
-      if (connected) items.push(...projectChoices);else items.unshift(...localChoices,...projectChoices);
+      if (connected) items.push(...projectChoices);else items.unshift(...projectChoices);
       if (root) items.push({label:'Review or restore changes…', action:'recovery'},{label:'Inspect recovery copies…',description:'Find files retained after an interrupted Git operation',action:'inspectRecoveryCopies'});
       items.push({label:'GitHub account…', action:'account'});
       const choice = await quickPick(items, {title:connected ? repository : root ? path.basename(root) : 'Project'});
@@ -1738,11 +1752,7 @@ function activate(context, services = {}) {
       if (choice?.action === 'copy') await actions['zero.copyRepositoryLink']();
       if (choice?.action === 'publish') await actions['zero.publishAndOpenWeb']();
       if (choice?.action === 'open' && !await vscode.env.openExternal(vscode.Uri.parse(currentRepository))) throw new Error('Could not open the repository. Try Open on GitHub again.');
-      if (choice?.action === 'start') await actions['zero.startChange']();
-      if (choice?.action === 'sync') await actions['zero.syncProject']();
-      if (choice?.action === 'updateBranch') await actions['zero.updateBranchFromGitHub']();
       if (choice?.action === 'cancelUpdate') await actions['zero.cancelUpdate'](gitRecoveryPanel.selection(updateRecovery).token);
-      if (choice?.action === 'switch') await actions[branch ? 'zero.switchStudentBranch' : 'zero.switchBranch']();
       if (choice?.action === 'create') {
         if (!auth.signedIn) await actions['zero.signInToGitHub']();
         await actions['zero.createRepository']();
@@ -2016,10 +2026,8 @@ function activate(context, services = {}) {
       const original=await core.currentBranch(root,core.git);
       const raw=await core.git(root,['for-each-ref','--format=%(refname)%09%(objectname)','refs/heads/']);
       const choices=raw.split('\n').filter(Boolean).map(row=>{const [ref,head,...extra]=row.split('\t');let name;try{name=core.branchNameFromRef(ref);}catch{return null;}return !extra.length&&name&&github.validBranch(name)&&/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(head)?{label:name,description:name===original?'Current branch':undefined,name,head}:null;}).filter(Boolean);
-      choices.unshift({label:'New branch…',action:'start'});
       const choice=await quickPick(choices,{title:'Switch branch'});
       if(!choice||choice.name===original)return;
-      if(choice.action==='start')return change('start');
       if(isBusy())return;changing=true;refresh();
       try {
         await assertGitProject(root);
@@ -3108,7 +3116,16 @@ function activate(context, services = {}) {
     const repoName = connected ? repository.slice('https://github.com/'.length) : projectRoot ? path.basename(projectRoot) : 'Project';
     const repoControl = `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : repoName)}" aria-label="${escape(`Project: ${repoName}. Open project actions`)}" aria-haspopup="dialog" ${disabled}><span class="repo-label">${escape(repoName).replace('/', '/<wbr>')}</span>${icon('ChevronDown')}</button>`;
     const gitDisabled = isBusy() || updateRecovery || updateRecoveryError ? 'disabled' : '';
-    const branchControl = branchError ? `<p class="muted status">${escape(branchError)}</p><button class="link" data-command="zero.openGitSourceControl" ${gitDisabled}>Open Source Control</button>` : (branch || branchDetached) ? `<div class="branch-row"><button class="link branch" data-command="${branch ? 'zero.switchStudentBranch' : 'zero.switchBranch'}" title="${escape(branch ? `Current branch: ${branch}` : 'Detached HEAD. Switch branch.')}" aria-label="${escape(`Switch branch. Current branch: ${branch || 'Detached HEAD'}`)}" aria-haspopup="dialog" ${gitDisabled}>${icon('GitBranch')}<span class="branch-name">${escape(branch || 'Detached HEAD')}</span>${icon('ChevronDown')}</button><button class="link history-icon" data-command="zero.changeHistory" aria-label="View all commits" title="View all commits" ${gitDisabled||branchHead===null?'disabled':''}>◷</button>${ready && connected && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${gitDisabled}>Merge</button>` : ''}</div>` : '';
+    const branchMenuScope = branch ? crypto.createHash('sha256').update(JSON.stringify([projectRoot, repository, branch, auth.accountId])).digest('hex') : '';
+    const branchPicker = branch
+      ? `<button id="branch-menu-button" class="link branch" data-menu-scope="${branchMenuScope}" title="${escape(`Current branch: ${branch}`)}" aria-label="${escape(`Branch actions. Current branch: ${branch}`)}" aria-haspopup="menu" aria-expanded="false" aria-controls="branch-menu" ${gitDisabled}>${icon('GitBranch')}<span class="branch-name">${escape(branch)}</span>${icon('ChevronDown')}</button>
+        <div id="branch-menu" class="files-dropdown" role="menu" aria-labelledby="branch-menu-button" hidden>
+          <button role="menuitem" tabindex="-1" data-command="zero.startChange" ${gitDisabled}>New branch…</button>
+          <button role="menuitem" tabindex="-1" data-command="zero.switchStudentBranch" ${gitDisabled}>Select existing branch…</button>
+          ${connected && auth.signedIn && branch !== 'main' ? `<button role="menuitem" tabindex="-1" data-command="zero.syncProject" title="Get GitHub main, then sync this branch to GitHub" ${gitDisabled}>Update from main</button>` : ''}
+        </div>`
+      : `<button class="link branch" data-command="zero.switchBranch" title="Detached HEAD. Switch branch." aria-label="Switch branch. Current branch: Detached HEAD" aria-haspopup="dialog" ${gitDisabled}>${icon('GitBranch')}<span class="branch-name">Detached HEAD</span>${icon('ChevronDown')}</button>`;
+    const branchControl = branchError ? `<p class="muted status">${escape(branchError)}</p><button class="link" data-command="zero.openGitSourceControl" ${gitDisabled}>Open Source Control</button>` : (branch || branchDetached) ? `<div class="branch-row">${branchPicker}<button class="link history-icon" data-command="zero.changeHistory" aria-label="View all commits" title="View all commits" ${gitDisabled||branchHead===null?'disabled':''}>◷</button>${ready && connected && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${gitDisabled}>Merge</button>` : ''}</div>` : '';
     const commitDisabled=gitDisabled || projectDirty!==true || projectUnsaved!==false?'disabled':'';
     const projectKey=projectRoot?crypto.createHash('sha256').update(projectRoot).digest('hex'):'';
     const githubActions = branch ? `<input id="commit-message" data-project="${projectKey}" aria-label="Commit message" placeholder="What did you change?" maxlength="500" ${commitDisabled}><button class="secondary upload" data-command="zero.commitChanges" ${uploadProgress ? 'aria-busy="true"' : ''} ${commitDisabled}>${uploadProgress ? '<span class="busy-indicator" aria-hidden="true"></span>' : ''}${uploadProgress ? escape(uploadProgress) : 'Commit'}</button>${projectDirtyError?`<p class="muted status">${escape(projectDirtyError)}</p>`:projectUnsaved?'<p class="muted status">Save your project edits before committing.</p>':''}${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
@@ -3122,8 +3139,26 @@ function activate(context, services = {}) {
     const showRepository = projectRoot && (ready || connected || branch || branchDetached || branchError);
     const observed=branchRemoteStatus&&currentBranchObservation(branchRemoteStatus)?branchRemoteStatus:undefined;
     const connectionState=uploadMode()!=='live'?'simulation':!connected?(repository==='No repository connected'?'local':'unknown'):!auth.signedIn?'auth':observed?.checkedAt&&Date.now()-observed.checkedAt>=120000?'stale':observed?.state||'unknown';
-    const branchMessage=branchHead===null?(connected?'GitHub repository connected · make your first commit to sync.':repository==='No repository connected'?'Local project · make your first commit.':'Repository connection cannot be verified. Make your first commit before syncing.'):connectionState==='synced'?'':branchStatusMessage(connectionState);
-    const branchConnection=branch?`<div class="branch-connection" data-branch-state="${escape(connectionState)}" role="status" aria-live="polite">${branchMessage?`<p class="muted status">${escape(branchMessage)}</p>`:''}${connectionState==='remote-changed'?`<button class="link" data-command="zero.reviewBranchUpdate" ${gitDisabled}>Update branch from GitHub…</button>`:''}${['local-ahead','remote-missing'].includes(connectionState)&&!pendingUpload&&!pendingLocalCommit&&!updateRecoveryError?`<button class="link" data-command="zero.syncSavedCommits" ${gitDisabled}>Sync saved commits…</button>`:''}</div>`:'';
+    const canUpload=['local-ahead','remote-missing'].includes(connectionState)&&!pendingUpload&&!pendingLocalCommit&&!updateRecoveryError;
+    const canUpdate=connectionState==='remote-changed';
+    const syncCommand=canUpdate?'zero.reviewBranchUpdate':canUpload?'zero.syncSavedCommits':'';
+    const updateNeedsClean=canUpdate&&(projectDirty!==false||projectUnsaved!==false);
+    const syncDisabled=gitDisabled||branchError||!syncCommand||updateNeedsClean?'disabled':'';
+    const currentCounts=observed?.state===connectionState?observed:undefined;
+    const outgoing=currentCounts?.outgoing,incoming=currentCounts?.incoming;
+    const syncAction=canUpdate?'Sync from GitHub':canUpload?'Sync to GitHub':'Sync with GitHub';
+    const syncLabel=`${syncAction}. Outgoing commits: ${outgoing??'unknown'}. Incoming commits: ${incoming??'unknown'}.`;
+    const branchMessage=branchHead===null
+      ? (connected?'GitHub repository connected · make your first commit to sync.':repository==='No repository connected'?'Local project · make your first commit.':'Repository connection cannot be verified. Make your first commit before syncing.')
+      : canUpdate&&(projectDirty||projectUnsaved)
+        ? 'Save and commit or discard your edits before syncing from GitHub.'
+        : connectionState==='synced'?'':branchStatusMessage(connectionState);
+    const branchConnection=branch?`<div class="branch-connection" data-branch-state="${escape(connectionState)}">
+      <p class="muted status" role="status">${escape(branchMessage)}</p>
+      <button id="branch-sync" class="secondary branch-sync" ${syncCommand?`data-command="${syncCommand}"`:''} title="${escape(syncLabel)}" aria-label="${escape(syncLabel)}" ${syncDisabled}>Sync
+        <span aria-hidden="true">↑ ${outgoing??'—'}</span><span aria-hidden="true">↓ ${incoming??'—'}</span>
+      </button>
+    </div>`:'';
     const githubPanel = !showRepository ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${branchConnection}${mainNotice}${githubActions}${localSyncAction}${gitRecoveryActions}`}`;
     const fileActions=projectRoot && !studentView ? `<h2 id="files-heading"><button id="files-menu-button" class="link files-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="files-menu" ${disabled}>New${icon('ChevronDown')}</button></h2><div id="files-menu" class="files-dropdown" role="menu" aria-labelledby="files-menu-button" hidden>${[['zero.newClass','New class…'],['zero.newPackage','New package…'],['zero.newFile','New file…'],['zero.newFolder','New folder…'],['zero.importAssets','New asset…'],...(assets.canCopyPaths() ? [['zero.copyImportedAssetPaths','Copy asset paths']] : [])].map(([command,label])=>`<button role="menuitem" tabindex="-1" data-command="${command}" ${disabled}>${label}</button>`).join('')}</div>` : '';
     const activeRun = execution || pendingLaunch || nativeStarting || browserActive || browserBusy;

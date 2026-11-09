@@ -278,7 +278,22 @@ acceptance status are in the [version control milestone](VERSION-CONTROL-PLAN.md
 The local student sidebar has a **Project** controls pane and a **Files** tree.
 The Project header offers New project, Clone and Open; Files retains its file
 creation menu. Project holds native Run/Stop, teaching helpers and contextual
-repository/branch/push actions. A compact branch selector, Merge and History expose the workflow. Files shows change indicators and opens supported changes in the native diff; unsupported changes and conflicts use Source Control. The sidebar does not currently offer local undo. Custom discard, restore and finished-change correction remain unavailable.
+repository/branch/push actions. Click the current branch to open **New branch…**
+and **Select existing branch…**. **New branch…** opens a name field. Submitting
+the name creates a local branch and carries current edits with it. GitHub status
+updates in the background. **Sync** stays visible and opens the review for
+uploading saved commits or getting updates from GitHub when ready. Its arrows
+show outgoing and incoming commit counts. If local history is missing the
+GitHub tip, a background comparison can fill in the counts. A dash means the
+count is unavailable.
+**Select existing branch…** opens the list of local branches. On a connected
+feature branch, the dropdown offers **Update from main** when signed in. The
+Project chevron groups repository and recovery actions.
+Merge and History are separate
+actions. Files shows change indicators and opens supported changes in the native
+diff; unsupported changes and conflicts use Source Control. The sidebar does not
+currently offer local undo. Custom discard, restore and finished-change correction
+remain unavailable.
 Troubleshooting and repository/account
 recovery remain in the native overflow. Local Run, Files and opening a local
 project remain available without signing in. Current source opens tutorial, new,
