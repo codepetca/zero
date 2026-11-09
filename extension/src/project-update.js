@@ -5,7 +5,7 @@ const fs=require('node:fs/promises'),path=require('node:path');
 const {constants}=require('node:fs');
 const core=require('./core-contract'),format=require('./project-builder-format');
 const {ordinary,readTree}=require('./retained-web-export');
-const {readSavedBuilder,_test:{digest}}=require('./project-builder');
+const {readSavedBuilder,browserToolingUpdateRequired,_test:{digest}}=require('./project-builder');
 const builderUpgrade=require('./project-builder-upgrade');
 const PREFIX='src/main/java/zero/';
 const hash=format.sha256,MAX_FILES=512,MAX_BYTES=32*1024*1024;
@@ -64,7 +64,13 @@ async function snapshot({projectRoot,extensionPath}){
  // An interrupted transaction must be explicitly recovered before another update.
  const pending=(await listRecoveries({projectRoot:root})).find(item=>item.status==='incomplete');
  if(pending)fail('an incomplete update needs inspection. Recovery copies are kept at '+pending.recoveryPath+'. Back up your work and create a new Zero project.');
- const old=await baseline(root),next=await target(extensionPath),builder=await builderUpgrade.planUpgrade({projectRoot:root,extensionPath});
+ const old=await baseline(root).catch(async error=>{
+  if(error.code!=='ENOENT'||error.path!==location(root,'zero-core.json'))throw error;
+  const builder=await builderUpgrade.planUpgrade({projectRoot:root,extensionPath});
+  if(builder.changed)throw browserToolingUpdateRequired();
+  fail('zero-core.json is missing. Restore the project’s saved core record from Git history or a backup.');
+ });
+ const next=await target(extensionPath),builder=await builderUpgrade.planUpgrade({projectRoot:root,extensionPath});
  const saved=builder.oldProfileHash?await readSavedBuilder(root):null;
  const oldFiles=[...old.files,...(saved?await Promise.all(saved.files.map(file=>readFile(root,'.zero-build/'+file.path,4*1024*1024))):[])];
  const coreChanged=JSON.stringify(old.record)!==JSON.stringify(next.record),builderChanged=builder.changed;
