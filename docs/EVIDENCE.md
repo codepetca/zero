@@ -1,3 +1,19 @@
+# Shared website sidebar and ZeroHub panes — 2026-11-10
+
+Integrated the approved website layout and Beta refinements on `bd28ba1f9`.
+The shared layout aligns Docs, Tutorials and ZeroHub. The Hub sidebar stays
+mounted across its discovery and management panes. Current Jams feature flags
+and the directory's separate search remain in effect. Beta is plain text with
+keyboard focus and the existing notice.
+
+The current-main code passed 153 focused tests with one existing skip. Earlier
+Chrome and Playwright WebKit checks covered the layouts from 320 to 1680 px,
+Docs method navigation, My Apps with synthetic listings, and the Beta notice.
+One independent Terra/medium review of `bd28ba1f9..dfc8086f8` found no actionable
+issues in the combined code. Effective model telemetry is unavailable.
+
+---
+
 # Website profile avatar size — 2026-11-10
 
 The shared header uses a 28 px avatar and fallback circle to match the visible
