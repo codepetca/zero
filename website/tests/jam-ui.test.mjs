@@ -12,18 +12,17 @@ const panelSource=await readFile(new URL('../app/hub/jams/[id]/panel/route.ts',i
 function compile(source){return ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;}
 function clientRequire(name) {
   if(name==='@/app/hub/hub.module.css')return {default:{}};
-  if(name==='./HubNavigation')return {HubSidebar:function HubSidebar(){return null;}};
   if(name==='./Icon')return {Icon:()=>null};
   return require(name);
 }
 function harness({storage=new Map(),fetcher=async()=>{throw new Error('network');},participateData=null,refreshImpl=null}={}) {
-  let actor={id:'12',login:'creator',csrfToken:'csrf'},index=0,slots=[],effects=[];
+  let actor={id:'12',login:'creator',csrfToken:'csrf'},index=0,slots=[],effects=[],directory;
   const self={},window={self,top:self};
-  const react={useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(fn){index++;effects.push(fn);}};
+  const react={createContext:defaultValue=>({defaultValue,Provider:()=>null}),useContext:ctx=>directory??ctx.defaultValue,useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(fn){index++;effects.push(fn);}};
   const module={exports:{}};
   const context={participateData,refreshImpl,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return {default:()=>null};return clientRequire(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
-  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useDraft,EventFacts,Proposal,useMutation,useResource,JamHelpLink,JamCreate,JamDiscovery,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,JamAccountTools};',context);
-  return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},renderDraft(name,initial,initializeFresh){index=0;return module.exports.testing.useDraft(name,initial,initializeFresh);},flushEffects(){const work=effects;effects=[];for(const fn of work)fn();},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
+  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useDraft,EventFacts,Proposal,useMutation,useResource,JamHelpLink,JamCreate,JamCreationPane,JamDirectoryProvider,JamDiscovery,jamTimeRemaining,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,JamAccountTools};',context);
+  return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},renderDraft(name,initial,initializeFresh){index=0;return module.exports.testing.useDraft(name,initial,initializeFresh);},flushEffects(){const work=effects;effects=[];for(const fn of work)fn();},setActor(value){actor=value;},setDirectory(value){directory=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
 }
 function elements(node) {
   if(Array.isArray(node))return node.flatMap(elements);
@@ -291,22 +290,20 @@ test('participation form remounts for event or signed-in identity changes',()=>{
 test('Jam pages link to the rules without placing plan details in the main flow',()=>{
   const h=harness(),link=h.render('JamHelpLink');
   assert.ok(elements(link).some(node=>node.props?.href==='/hub/jams/rules'));
-  for(const page of ['JamDiscovery','JamCreate'])assert.ok(elements(h.render(page)).some(node=>node.type?.name==='JamHelpLink'));
+  assert.ok(elements(h.render('JamCreate')).some(node=>node.type?.name==='JamHelpLink'));
   assert.match(clientSource,/<JamHelpLink\/>(?=<div className="jam-actions">\{!joined\?)/);
   assert.match(clientSource,/Participants: \{data\.event\.participantCount\} · Limit: \{data\.event\.participantLimit\}/);
   assert.doesNotMatch(clientSource,/JamPlanNotice|room for up to \{data\.event\.participantLimit\} participants/);
 });
 
-test('Jam discovery searches public cards and shows hosting only for the current Pro account',()=>{
+test('Jam discovery searches and filters public cards in the content pane',()=>{
   const events=[{id:'jam-1',type:'game',title:'Moon Arcade',theme:'Space exploration',summary:'Build a game.'},
     {id:'jam-2',type:'app',title:'Moon Planner',theme:'Productivity',summary:'Build a useful app.'}];
-  const h=harness({participateData:{events,hostingAccess:{accountId:'12',canCreate:true}}});
+  const h=harness({participateData:{events}});
+  h.setDirectory(h.render('JamDirectoryProvider',{}).props.value);
   const render=()=>elements(h.render('JamDiscovery'));
-  const create=()=>render().some(node=>node.props.href==='/hub/jams/create');
   const cards=()=>render().filter(node=>node.type==='article').map(node=>node.key);
-  const sidebar=render().find(node=>node.type?.name==='HubSidebar');
-  assert.equal(sidebar.props.active,'jams');
-  const search=elements(sidebar).find(node=>node.type==='input');
+  const search=render().find(node=>node.type==='input');
   assert.equal(search.props['aria-label'],'Search jams');
   assert.deepEqual(cards(),['jam-1','jam-2']);
   search.props.onChange({target:{value:'  SPACE arcade  '}});
@@ -314,13 +311,30 @@ test('Jam discovery searches public cards and shows hosting only for the current
   render().find(node=>node.type==='select').props.onChange({target:{value:'app'}});
   assert.deepEqual(cards(),[]);
   assert.ok(render().some(node=>node.props.children==='No jams match your search.'));
-  assert.equal(create(),true);
+});
+
+test('only the current Pro account can open the creation form',()=>{
+  const h=harness({participateData:{events:[],hostingAccess:{accountId:'12',canCreate:true}}});
+  function showsForm() {
+    h.setDirectory(h.render('JamDirectoryProvider',{}).props.value);
+    return h.render('JamCreationPane').type?.name==='JamCreate';
+  }
+  assert.equal(showsForm(),true);
   h.setActor({id:'99',login:'other',csrfToken:'other'});
-  assert.equal(create(),false);
-  h.setDetail({events,hostingAccess:{accountId:'99',canCreate:false}});
-  assert.equal(create(),false);
+  assert.equal(showsForm(),false);
+  h.setDetail({events:[],hostingAccess:{accountId:'99',canCreate:false}});
+  assert.equal(showsForm(),false);
   h.setActor(null);
-  assert.equal(create(),false);
+  assert.equal(showsForm(),false);
+});
+
+test('jam timing switches from the submission deadline to reveal and ends after reveal',()=>{
+  const h=harness(),close=Date.parse('2030-01-03T12:00:00Z'),reveal=close+3_600_000;
+  const schedule={submissionsCloseAt:new Date(close).toISOString(),galleryRevealAt:new Date(reveal).toISOString()};
+  assert.equal(h.render('jamTimeRemaining',schedule,close-90_000),'Submissions due in 2m');
+  assert.equal(h.render('jamTimeRemaining',schedule,close),'Gallery opens in 1h 0m');
+  assert.equal(h.render('jamTimeRemaining',schedule,reveal),null);
+  assert.equal(h.render('jamTimeRemaining',{},close),null);
 });
 
 test('Jam rules page explains plans, access and timing',async()=>{

@@ -4,7 +4,6 @@ import {useEffect, useRef, useState, type ReactNode} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {dependencySnippet, maintainedPlayLink, playLink, projectSummary, releaseAuthor, releaseImage, releaseSummary, selectMaintainedProjects, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
 import styles from '@/app/hub/hub.module.css';
-import {HubSidebar} from './HubNavigation';
 import {CodeBlock} from './CodeBlock';
 import {Icon} from './Icon';
 import {loadMetricBatches, metricLabel} from '@/lib/hub-metrics-client.mjs';
@@ -35,7 +34,7 @@ function gameIdentity(release:Release) {
     release.source.commit,release.source.folder,webIdentity(release.web)]);
 }
 type Discovery = {schema:1;maintained:MaintainedProject[];catalog:Catalog|null;catalogError?:string;presentation:Presentation[]};
-export function HubDiscovery({enforceJamVisibility=true, showListings=false, showJams=false}: {enforceJamVisibility?:boolean; showListings?:boolean; showJams?:boolean}) {
+export function HubDiscovery({enforceJamVisibility=true, showListings=false}: {enforceJamVisibility?:boolean; showListings?:boolean}) {
   const query = useSearchParams();
   const requestedKind = query.get('kind') || (query.has('id') || query.has('version') ? 'library' : 'game');
   const kind = requestedKind === 'practice' ? 'practice' : requestedKind === 'game' ? 'game' : 'library';
@@ -206,12 +205,9 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, sho
     if(placement==='details')return <HubProjectInfo title={entry.title} available={observed?.site.status==='reachable'}><HubProjectDetails {...entry} feedback={observed} description={description}>{identity}</HubProjectDetails></HubProjectInfo>;
     return <HubProjectFeedback {...entry} kind={kind==='game'?'game':'library'} compact={kind==='game'} feedback={observed} metric={projectMetric(entry.id)}>{identity}</HubProjectFeedback>;
   };
-  return <div className={styles.workspace}>
-    <HubSidebar active={kind} showListings={showListings} showJams={showJams}>
+  return <section className={styles.catalog} aria-labelledby="sharing-heading">
+    <h1 id="sharing-heading">{practiceOnly?'Tutorial practice':kind === 'game' ? 'Projects' : 'Libraries'}</h1>
       {!id && !version && <div className={styles.search}><Icon name="search" /><input id="sharing-search" type="search" aria-label="Search ZeroHub" value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder="search zerohub" /></div>}
-    </HubSidebar>
-    <section className={styles.catalog} aria-labelledby="sharing-heading">
-    <h2 id="sharing-heading" className="sr-only">{practiceOnly?'Tutorial practice':kind === 'game' ? 'Projects' : 'Libraries'}</h2>
     {practiceOnly && <p className="hub-note">These CreditsBadge libraries are copied tutorial work. Similar copies are expected, and each repository keeps its own library identity. Periodic cleanup may remove libraries from the catalog. Your source and any copies already added to projects stay available.</p>}
     {(id || version) && <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {label}</Link></p>}
     <div className={`${styles.cards}${kind==='game'?` ${styles.projectCards}`:''}`}>
@@ -235,6 +231,5 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, sho
       </HubProjectCard>)}
     </>}
     </div>
-    </section>
-  </div>;
+    </section>;
 }
