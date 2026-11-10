@@ -251,6 +251,11 @@ test('hosted central grants use the GitHub ID, recheck before writing, and prese
     assert.deepEqual(lookups,['11','11']);
     assert.equal(store.records.size,0);
     revokeBeforeWrite=false;
+    for(const [id,canCreate] of [['11',true],['22',true],['33',true],['44',false]]) {
+      const directory=await authority.service.listSummaries({id,login:'renamed'});
+      assert.deepEqual(directory.hostingAccess,{accountId:id,canCreate});
+      assert.doesNotMatch(JSON.stringify(directory),/grants|private entitlement/);
+    }
     await assert.rejects(authority.service.propose({...request,actor:{id:'44',login:'renamed'}}),denied);
     assert.equal(lookups.at(-1),'44');
     const accepted=await authority.service.propose(request);
@@ -259,6 +264,10 @@ test('hosted central grants use the GitHub ID, recheck before writing, and prese
     assert.equal(store.records.size,1);
 
     outage=true;
+    lookups=[];
+    await assert.rejects(authority.service.listSummaries({id:'11',login:'renamed'}),
+      error=>error.status===503&&error.message==='Jam creation access is unavailable.');
+    assert.deepEqual((await authority.service.listSummaries({id:'22',login:'legacy'})).hostingAccess,{accountId:'22',canCreate:true});
     lookups=[];
     assert.deepEqual(await authority.service.propose(request),accepted);
     const settled=await authority.service.settle({actor:request.actor,scope:'proposals',

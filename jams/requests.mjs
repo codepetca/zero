@@ -1,5 +1,5 @@
 import {JamError,ID,SHA,ACCOUNT,digest,fail,keys,repositoryUrl,text,httpsUrl,hostedManifestData} from './schema.mjs';
-export const ACTIONS=['approve','request-changes','reject','suspend','resume','cancel','withdraw-entry','join','leave','submit','withdraw'];
+export const ACTIONS=['approve','request-changes','reject','suspend','resume','cancel','withdraw-entry','join','leave','submit','withdraw','pick-winner'];
 export const REVIEW=new Set(['approve','request-changes','reject']);
 export const MODERATION=new Set(['suspend','resume','cancel']);
 export const SAFETY=new Set(['suspend','cancel','withdraw-entry']);
@@ -20,7 +20,7 @@ export function requestPayload(scope,input) {
   keys(input,['action','revision','reason','participantId','source','title','description','demoUrl','instructions','repositoryUrl','participationRevision'],['action']);
   const {action}=input;
   if(!ACTIONS.includes(action))fail(400,'Unknown jam action.');
-  const allowed=['action',...(PARTICIPATION.has(action)?['participationRevision']:[]),...(REVIEW.has(action)?['revision','reason']:MODERATION.has(action)?['reason']:action==='withdraw-entry'?['participantId','reason']:action==='join'?['revision','repositoryUrl','demoUrl']:action==='submit'?['revision','source','title','description','demoUrl','instructions']:[])];
+  const allowed=['action',...(PARTICIPATION.has(action)?['participationRevision']:[]),...(REVIEW.has(action)?['revision','reason']:MODERATION.has(action)?['reason']:action==='withdraw-entry'?['participantId','reason']:action==='pick-winner'?['participantId','revision']:action==='join'?['revision','repositoryUrl','demoUrl']:action==='submit'?['revision','source','title','description','demoUrl','instructions']:[])];
   keys(input,allowed,['action']);
   const payload={action};
   // Preserve historical participation bindings for recovery and settlement;
@@ -35,7 +35,11 @@ export function requestPayload(scope,input) {
   if(action==='join'&&Object.hasOwn(input,'demoUrl'))payload.demoUrl=httpsUrl(input.demoUrl);
   if(MODERATION.has(action)||['request-changes','reject','withdraw-entry'].includes(action))payload.reason=text(input.reason,SAFETY.has(action)?256:2000);
   else if(Object.hasOwn(input,'reason'))payload.reason=text(input.reason,2000,true);
-  if(action==='withdraw-entry'){if(typeof input.participantId!=='string'||!ACCOUNT.test(input.participantId))fail(400,'Choose a valid participant ID.');payload.participantId=input.participantId;}
+  if(action==='withdraw-entry'||action==='pick-winner'){if(typeof input.participantId!=='string'||!ACCOUNT.test(input.participantId))fail(400,'Choose a valid participant ID.');payload.participantId=input.participantId;}
+  if(action==='pick-winner') {
+    if(typeof input.revision!=='string'||!/^[a-f0-9]{64}$/.test(input.revision))fail(400,'Choose a submitted entry.');
+    payload.revision=input.revision;
+  }
   if(action==='submit') {
     // Legacy submissions preserve their normalized payload and digest. A live
     // showcase uses the repository bound at Join and has no commit snapshot.
@@ -51,7 +55,7 @@ export function requestPayload(scope,input) {
 // Newly valid forms may already have an exact-representation invalidJSON fence.
 // This alias is recovery-only: never use it to deduplicate distinct payloads.
 export function legacyRequestDigest(scope,payload) {
-  if(!(scope==='proposals'&&Object.hasOwn(payload||{},'manifest')||payload?.action==='join'&&(Object.hasOwn(payload,'repositoryUrl')||Object.hasOwn(payload,'demoUrl'))||
+  if(!(scope==='proposals'&&Object.hasOwn(payload||{},'manifest')||payload?.action==='pick-winner'||payload?.action==='join'&&(Object.hasOwn(payload,'repositoryUrl')||Object.hasOwn(payload,'demoUrl'))||
     payload?.action==='submit'&&!Object.hasOwn(payload,'source')||PARTICIPATION.has(payload?.action)&&Object.hasOwn(payload,'participationRevision')))return;
   try{requestPayload(scope,payload);}catch(error){if(error instanceof JamError)return;throw error;}
   return digest({invalidJSON:JSON.stringify(payload)});

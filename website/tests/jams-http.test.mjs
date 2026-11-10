@@ -5,7 +5,7 @@ import zeroApp from '../../extension/src/github-app/config.json' with {type:'jso
 import {hubConfig,newSession} from '../lib/hub-github-auth.mjs';
 import {getJamsResponse,getJamResponse,postJamProposalResponse,postJamActionResponse} from '../lib/jams-http.mjs';
 import {JamError} from '../../jams/service.mjs';
-import {hostedManifest} from '../../jams/test/fixtures.mjs';
+import {fixture as registryFixture,hostedManifest} from '../../jams/test/fixtures.mjs';
 
 const now = 1_800_000_000_000;
 const env = {NODE_ENV:'test',ZERO_JAMS_ENABLED:'1',ZERO_HUB_ORIGIN:'http://127.0.0.1:3000',
@@ -30,6 +30,19 @@ function fixture() {
   }};
 }
 const join = {operationId:'operation-12345678',action:'join',revision:1};
+
+test('directory hosting access is private and derived from the signed-in account and service policy',async()=>{
+  const {service}=registryFixture({canCreateJam:id=>id==='123'});
+  const free=newSession('ghu_'+'b'.repeat(24),{id:124,login:'free'},28800,config,now);
+  const url=config.origin+'/api/jams?view=summaries&accountId=123';
+  for(const [sessionCookie,access] of [[cookie,{accountId:'123',canCreate:true}],
+    [free.cookie,{accountId:'124',canCreate:false}],['',undefined]]) {
+    const response=await getJamsResponse(new Request(url,{headers:{Cookie:sessionCookie.split(';')[0]}}),{env,now,service});
+    assert.equal(response.status,200);
+    assert.equal(response.headers.get('cache-control'),'no-store');
+    assert.deepEqual((await response.json()).hostingAccess,access);
+  }
+});
 
 test('jams default off and missing credentials cannot execute an injected action accidentally',async () => {
   const f = fixture();
@@ -134,13 +147,22 @@ test('settlement endpoint authenticates current actor, retains payload identity 
   assert.equal((await postJamProposalResponse(request({operationId:body.operationId,manifest:hostedManifest()}),f)).status,409);
 });
 
-test('settlement and mutation expiry keep results unknown even when an injected service rejects late',async()=>{
+test('settlement and mutation expiry keep results unknown even when an injected service rejects late',{timeout:5000},async t=>{
   const {postJamSettlementResponse}=await import('../lib/jams-http.mjs');
+  t.mock.timers.enable({apis:['setTimeout']});
   for(const settlement of [false,true]) {
-    const f=fixture();let finish;const pending=new Promise((resolve,reject)=>{finish=()=>reject(new JamError(409,'Too late'));});
-    f.service.settle=f.service.mutate=()=>pending;
+    const f=fixture();let finish,dispatch,elapsed=0;
+    const started=new Promise(resolve=>{dispatch=resolve;});
+    f.service.settle=f.service.mutate=()=>new Promise((_,reject)=>{
+      finish=()=>reject(new JamError(409,'Too late'));
+      dispatch();
+    });
     const body=settlement?{scope:'jam-55',operationId:'unknown-operation-001',payload:{action:'leave'}}:join;
-    const call=settlement?postJamSettlementResponse(request(body),{...f,responseBudgetMs:10}):postJamActionResponse(request(body),'jam-55',{...f,responseBudgetMs:10});
+    const options={...f,responseBudgetMs:10,deadlineNow:()=>elapsed};
+    const call=settlement?postJamSettlementResponse(request(body),options):postJamActionResponse(request(body),'jam-55',options);
+    await started;
+    elapsed=10;
+    t.mock.timers.tick(elapsed);
     const response=await call;assert.equal(response.status,503);assert.match((await response.json()).error,/same operation ID/);finish();
   }
 });

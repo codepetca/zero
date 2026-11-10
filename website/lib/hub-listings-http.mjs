@@ -5,6 +5,7 @@ import {checkListingToken, listingId, listingReceipt, publicListingPlayUrl, veri
 import {assertJamVisibilityTime, readJamHubVisibility} from './jam-hub-visibility.mjs';
 import {hubVisibilityDecision, hubTargetVisible} from './hub-project-status.mjs';
 import {configuredEntitlementStore} from './zero-entitlements-store.mjs';
+import {jamsPreviewAvailable} from './jams-visibility.mjs';
 
 const unavailable = () => json({error:'ZeroHub app listings are temporarily unavailable. Try again.'}, 503);
 const authRequired = () => json({error:'Sign in with GitHub to manage your apps.'}, 401);
@@ -155,10 +156,12 @@ export async function hubPublicListingsResponse(request, {
     const authorized = current.filter(entry => visible(entry, fresh));
     if (!exhausted && authorized.length <= listingPageSize) return unavailable();
     const page = authorized.slice(0, listingPageSize);
-    return json({projects:page.map(entry => ({
-      id:entry.repositoryId, title:entry.title, author:entry.author, repositoryUrl:entry.repositoryUrl,
-      pagesUrl:entry.playUrl
-    })), next:authorized.length > listingPageSize ? seal({order:page.at(-1).order, search}, pagePurpose, config) : null});
+    const showAwards = jamsPreviewAvailable(env);
+    return json({projects:page.map(entry => {
+      const gameJamWinner = showAwards && fresh?.isGameJamWinner?.(entry.repositoryId, entry.accountId);
+      return {id:entry.repositoryId, title:entry.title, author:entry.author, repositoryUrl:entry.repositoryUrl,
+        pagesUrl:entry.playUrl, ...(gameJamWinner ? {gameJamWinner} : {})};
+    }), next:authorized.length > listingPageSize ? seal({order:page.at(-1).order, search}, pagePurpose, config) : null});
   } catch { return unavailable(); }
   finally { controller.abort(); publicRequests--; }
 }

@@ -5,9 +5,10 @@ export function jamsPreviewAvailable(env = process.env) {
     env.NODE_ENV === 'production' && env.VERCEL === '1' && env.VERCEL_ENV === 'production' && env.ZERO_JAMS_PILOT_ENABLED === '1';
 }
 
-// The hosted pilot is shared by direct invitation, not promoted in Hub navigation.
+// Directory promotion is a separate opt-in from the direct-link pilot.
 export function jamsNavigationAvailable(env=process.env) {
-  return env.NODE_ENV==='development'&&env.VERCEL_ENV!=='production'&&env.VERCEL_ENV!=='preview';
+  return jamsPreviewAvailable(env) &&
+    (env.NODE_ENV==='development' || env.ZERO_JAMS_DISCOVERY_ENABLED==='1' && env.ZERO_JAMS_ENABLED==='1');
 }
 
 export function hiddenJamsResponse(env) {

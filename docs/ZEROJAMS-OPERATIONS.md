@@ -216,8 +216,11 @@ after disclosure of its untested hosted flow. The live limit changes only
 through separate publication. A local source change does not alter the live
 pilot. New Pro jams are automatically approved; each organizer may have one
 active jam at a time. `armorup` retains maintainer moderation authority.
-There is no participant allowlist; a person with the direct URL can participate
-within the event's rules and capacity. Do not publicly promote the pilot.
+There is no participant allowlist. Anyone with the direct URL can participate
+within the event's rules and capacity. The pilot uses direct links by default.
+The owner authorized enabling the ZeroHub sidebar entry on 2026-11-10 after
+review and verification. This approval does not change the participant limit or
+the requirements for hosting.
 
 The 100-account admission setting is not hosted Neon or GitHub Pages capacity
 acceptance. No 100-person live join/submission/reveal load test was run; local
@@ -291,6 +294,7 @@ place credential values in this document, source control or logs:
 | --- | --- |
 | `ZERO_JAMS_PILOT_ENABLED=1` | Exposes direct production pilot Jam routes; does not disable production Hub hold enforcement when removed. |
 | `ZERO_JAMS_ENABLED=1` | Enables new Jam writes; disabling it does not fence dispatched commits or disable Hub holds. |
+| `ZERO_JAMS_DISCOVERY_ENABLED=1` | Shows **Jams** in ZeroHub when both of the preceding settings are enabled. Keep it production-only. |
 | `ZERO_JAMS_PRODUCTION_AUTHORITY` | Must be `neon-postgres`; production has no Git fallback. |
 | `ZERO_JAMS_PRODUCTION_PROJECT_REF`, `ZERO_JAMS_PRODUCTION_PG_HOST`, `ZERO_JAMS_PRODUCTION_PG_PORT`, `ZERO_JAMS_PRODUCTION_PG_DATABASE`, `ZERO_JAMS_PRODUCTION_PG_ROLE` | Independently verified fixed Neon project, host, port, database and restricted role. |
 | `ZERO_JAMS_PRODUCTION_PG_EPOCH`, `ZERO_JAMS_PRODUCTION_CREATOR_OID`, `ZERO_JAMS_PRODUCTION_ADMIN_OID` | Reviewed database epoch and pinned provider role identities. |
@@ -299,6 +303,12 @@ place credential values in this document, source control or logs:
 | `ZERO_JAMS_APP_ID` | Numeric ID of the existing Codepet Zero GitHub App (`5367740`) |
 | `ZERO_JAMS_INSTALLATION_ID` | Installation belonging to `codepetca` with approved repository access |
 | `ZERO_JAMS_PRIVATE_KEY` | RSA private key for server-only installation-token minting |
+
+To roll out the sidebar, first verify the merged website can read the directory
+and enforce Hub holds on the existing production authority. Enable the discovery
+setting and redeploy the same source. Verify the link and the anonymous directory.
+To withdraw the link, remove only the discovery setting and redeploy current
+source. Direct pilot links, account grants and Hub holds remain available.
 
 Pages observation uses the same App and server-only key, with a token restricted
 to the selected repository and Pages/Metadata read. The App key is not similarly

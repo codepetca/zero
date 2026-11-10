@@ -1,5 +1,43 @@
 # Verification
 
+## ZeroHub Jams directory — 2026-11-10
+
+Source `e31ab4781` against `77b89406c` adds **Jams** to the shared ZeroHub
+sidebar and uses the existing server Pro policy for the create action. The
+production directory link has a separate discovery flag.
+
+TypeScript, `npm run check`, whitespace and all 104 focused tests passed.
+Local Chromium with fixture API responses followed **Jams**, searched and
+filtered cards, checked the no-results state, and verified signed-out, Free
+and Pro views. At 390 px, the selected Jams link stayed visible with no
+horizontal overflow and the Pro fixture opened the creation form. This
+used local fixtures without live sign-in or creation. Next.js logged the
+shared smooth-scroll development warning during navigation.
+
+An independent Terra/medium review of the source delta found no actionable
+issues. The change remains local.
+
+## Game Jam winners — 2026-11-10
+
+Local branch `codex/zerojams-winners` adds host selection and the gallery and
+ZeroHub app badges on main `eb65bf16d`. The Jam and Hub listing suites passed
+665 tests with six skips at `48eacbef5`. The focused rerun at `44249fe8b` passed
+53 tests with one skip. The disposable local Postgres integration used fixture
+GitHub identities and Pages responses and verified host authority, deadline and
+reveal enforcement, both public badges, and removal after withdrawal.
+`npm run check` passed at `44249fe8b`. Website typecheck and three focused UI
+tests passed after the pagination fix at `f5f23959c`.
+
+A local browser with fixture API responses confirmed winner selection, the
+refreshed chooser, and both badges. The fixture Hub page reported a navigation
+hydration mismatch and catalog 503 while rendering the badge. Live sign-in
+and deployment were outside this check.
+
+Independent Sol/high and Terra/high reviews covered authority and compatibility.
+Two targeted Sol/high reviews confirmed the fixes for pre-reveal timestamp
+privacy, direct-link pilot visibility, judging during gallery failures, and
+refresh after paging during a save. The final delta had no actionable findings.
+
 ## Learn to Build product copy — 2026-11-10
 
 Local branch `codex/learn-to-build` applies the owner-selected title and tagline
