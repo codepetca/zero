@@ -3313,7 +3313,7 @@ function activate(context, services = {}) {
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const browserCheckStatus=savedChecksRoot===projectRoot&&savedChecksState?`<p class="muted status" title="${escape(savedChecksState.message||'')}">Browser checks: ${escape(savedChecksState.status)}</p>`:'';
     const browserAction = browserActive && !stopPromise && browserRun.canOpenInBrowser ? `<button class="secondary browser-open" data-command="zero.openRunningAppInBrowser" title="Open in browser" aria-label="Open in browser" ${disabled}>${icon('ExternalLink')}</button>` : '';
-    const showRepository = projectRoot && (ready || connected || branch || branchDetached || branchError);
+    const showRepository = projectRoot && (ready || phase==='unavailable' || connected || branch || branchDetached || branchError);
     const observed=branchRemoteStatus&&currentBranchObservation(branchRemoteStatus)?branchRemoteStatus:undefined;
     const connectionState=uploadMode()!=='live'?'simulation':!connected?(repository==='No repository connected'?'local':'unknown'):!auth.signedIn?'auth':observed?.checkedAt&&Date.now()-observed.checkedAt>=120000?'stale':observed?.state||'unknown';
     const canSync=connected&&auth.signedIn&&Boolean(branchHead)&&uploadMode()==='live';
