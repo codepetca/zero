@@ -90,6 +90,12 @@
 .projectCard .siteStatus[data-status="reachable"] :global(.icon) { color: #4ade80; }
 .projectCard .siteStatus[data-status="unreachable"] :global(.icon) { color: #facc15; }
 
+@media (width > 800px) {
+  .compactProjectCards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); gap: 10px; }
+  .compactProjectCards .projectCard { min-height: calc(8em + 62px); }
+  .compactProjectCards .imageTitle { font-size: 16px; padding: 6px 8px; }
+  .compactProjectCards .cardFooter { padding: 14px 8px 6px; }
+}
 
 .metrics { margin: 0 0 4px; color: var(--muted); font-size: 14px; line-height: 1.4; }
 .projectCard .metrics { display: inline-flex; align-items: center; gap: 6px; margin: 0; color: white; font-size: 12px; }

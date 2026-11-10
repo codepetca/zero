@@ -64,6 +64,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
   const label=practiceOnly?'tutorial practice libraries':kind==='game'?'projects':'libraries';
   const id = query.get('id') || '', version = query.get('version') || '';
   const browseProjects = kind==='game' && !id && !version;
+  const gridClassName = [styles.cards, kind==='game' && styles.projectCards, browseProjects && styles.compactProjectCards].filter(Boolean).join(' ');
   const validateEarlyProjects = browseProjects && enforceJamVisibility;
   const [catalogResult, setCatalogResult] = useState<{key:string; discovery:Discovery|null; error:string}|null>(null);
   const [search, setSearch] = useState('');
@@ -231,7 +232,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
       {!id && !version && <div className={styles.search}><Icon name="search" /><input id="sharing-search" type="search" aria-label={libraryOwnerId?'Search my libraries':'Search ZeroHub'} value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder={libraryOwnerId?'Search my libraries':'search zerohub'} /></div>}
     {practiceOnly && <p className="hub-note">These CreditsBadge libraries are copied tutorial work. Similar copies are expected, and each repository keeps its own library identity. Periodic cleanup may remove libraries from the catalog. Your source and any copies already added to projects stay available.</p>}
     {(id || version) && <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {label}</Link></p>}
-    <div className={`${styles.cards}${kind==='game'?` ${styles.projectCards}`:''}`}>
+    <div className={gridClassName}>
     {visibleProjects.map(project => {
       const playHref=showDiscoveryCards?undefined:maintainedPlayLink(project);
       return <HubProjectCard projectId={project.id} key={project.id} title={project.title} description={projectSummary(project.description)} author={project.author}

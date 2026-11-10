@@ -27,6 +27,10 @@ Submenu links have no underline, and the current row has a subtle accent fill.
 Put **Share a game** under **Projects** and **Share a library** and
 **Requests and results** under **Libraries**.
 
+Owner ZeroHub grid approval, 2026-11-10. Use the Compact grid when the
+sidebar and Projects pane sit side by side. Keep the square previews and
+existing control sizes. Keep the roomier cards on narrow screens.
+
 Owner wording refinement, 2026-11-10. Call published work in ZeroHub **apps**
 in listing controls. Use **app listing** where the copy needs to
 distinguish the public card from the app hosted on GitHub Pages. Use

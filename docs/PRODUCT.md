@@ -495,6 +495,8 @@ is created. Site checks show cached page reachability, not verified gameplay.
 Projects shows cards as soon as discovery confirms they are public. Play
 availability and stars arrive afterward. A follow-up visibility check can
 remove a card that is no longer eligible.
+On desktop, Projects uses a compact grid of square cards. The grid uses
+roomier cards when the sidebar stacks above the content pane.
 Report a problem opens a prefilled GitHub issue for the user to review and submit.
 Project details show a green circled check for reachable sites and a yellow
 warning for unavailable or unknown checks, followed by a local check time such
