@@ -203,7 +203,7 @@ test('legacy local-only practice blocks GitHub actions even with the default liv
   for(const id of ['zero.uploadToGitHub','zero.startChange','zero.finishChange','zero.syncProject','zero.publishWeb']) {
     assert.equal(typeof h.commands.get(id),'function');await h.commands.get(id)();
   }
-  assert.equal(h.errors.length,5);assert.ok(h.errors.every(text=>/local lesson practice/.test(text)));
+  assert.equal(h.errors.length,4);assert.ok(h.errors.every(text=>/local lesson practice/.test(text)));
   assert.equal(h.calls.length,before);assert.equal(h.saves,0);assert.equal(h.reviews,0);assert.equal(h.uploads,0);
 });
 
@@ -266,7 +266,8 @@ test('Commit & push shows preparation during slow access, rejects duplicates and
   const pending=h.commands.get('zero.uploadToGitHub')();
   try {
     await started;
-    assert.match(uploadButton(webview),/data-command="zero.commitChanges"[^>]*aria-busy="true"[^>]*disabled>[\s\S]*?busy-indicator[\s\S]*?Preparing commit…<\/button>/);
+    assert.match(uploadButton(webview),/aria-busy="true"[^>]*disabled>Commit<\/button>/);
+    assert.match(webview.html,/<p id="run-status"[^>]*>Preparing commit…<\/p>/);
     assert.equal(h.inputs,0);assert.equal(h.uploads,0);
     await h.commands.get('zero.uploadToGitHub')();assert.equal(h.reviews,1,'Repeated clicks cannot start a second preparation');
   } finally {releaseAccess();await pending;}
@@ -292,7 +293,8 @@ test('Commit & push clears its indicator on preparation failure and after a conf
     const pending=h.commands.get('zero.uploadToGitHub')();
     try {
       await started;
-      assert.match(uploadButton(webview),/data-command="zero.commitChanges"[^>]*aria-busy="true"[^>]*disabled>[\s\S]*?Committing &amp; pushing…<\/button>/);
+      assert.match(uploadButton(webview),/aria-busy="true"[^>]*disabled>Commit<\/button>/);
+      assert.match(webview.html,/<p id="run-status"[^>]*>Committing &amp; pushing…<\/p>/);
       assert.equal(h.inputs,1);
     } finally {releaseUpload();await pending;}
     assert.equal(h.pushes,1);assert.equal(h.errors.length,fail?1:0);
@@ -362,7 +364,7 @@ test('a local tracking refresh failure preserves confirmed upload success',async
   assert.ok(h.results.some(text=>/tracking|Source Control/i.test(text)),'The local refresh problem remains visible in Output');
 });
 
-test('correction reminders offer sync and inspection while retaining their records',async t=>{
+test('ordinary Sync replaces the local reminder buttons while retaining recovery records',async t=>{
  for(const operation of ['restore','undo',undefined])await t.test(operation||'ordinary commit',async t=>{
   const h=await harness(t,{kit:false,tutorial:true});
   const initial=h.render(),deadline=Date.now()+10000;while(!initial.html.includes('Current branch: main')){assert.ok(Date.now()<deadline,'Expected the tutorial branch controls');await new Promise(resolve=>setTimeout(resolve,10));}
@@ -371,8 +373,8 @@ test('correction reminders offer sync and inspection while retaining their recor
   await h.commands.get('zero.reviewLocalCommit')();
   assert.deepEqual(h.errors,[]);
   const html=h.render().html;
-  assert.ok(html.includes('data-command="zero.reviewLocalCommit"'));
-  assert.ok(html.includes('data-command="zero.syncLocalCommit"'));
+  assert.match(html,/<button id="branch-sync"[^>]*data-command="zero.syncBranch"/);
+  assert.doesNotMatch(html,/data-command="zero.reviewLocalCommit"|data-command="zero.syncLocalCommit"/);
   assert.deepEqual(h.stored.get('zero.pendingSync.v1:local'),record);
   assert.equal(h.transportDispatches,0);
  });

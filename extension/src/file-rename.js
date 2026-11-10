@@ -3,6 +3,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const {nameError} = require('./file-actions');
+const {resolveAuthoringTarget} = require('./file-targets');
 const {readProjectModel,ordinaryEntries,isToolingPath} = require('./project-explorer-model');
 
 const inside = (relative, base) => relative.startsWith(`${base}/`);
@@ -24,6 +25,13 @@ async function ordinaryDirectory(directory) {
   return stat;
 }
 
+function protectedPath(relative) {
+  const parts = relative.split('/');
+  return isToolingPath(relative) ||
+    parts.some(part => toolingDirectories.has(key(part)) || key(part) === '.ds_store') ||
+    parts.length === 1 && rootToolingFiles.has(key(relative));
+}
+
 async function selectedFile(root, context, model) {
   if (!context || typeof context !== 'object' || Array.isArray(context))
     throw Error('Select a file in the current project.');
@@ -35,10 +43,7 @@ async function selectedFile(root, context, model) {
     throw Error('Select an ordinary file in the current project.');
   const parent = path.posix.dirname(relative) === '.' ? '' : path.posix.dirname(relative);
   const basename = path.posix.basename(relative);
-  const parts = relative.split('/');
-  if (fileNameError(basename) || isToolingPath(relative) ||
-      parts.some(part => toolingDirectories.has(key(part)) || key(part) === '.ds_store') ||
-      parts.length === 1 && rootToolingFiles.has(key(relative)))
+  if (fileNameError(basename) || protectedPath(relative))
     throw Error('This project or tooling file cannot be renamed here.');
 
   if (area === 'project') {
@@ -86,14 +91,32 @@ async function selectedFile(root, context, model) {
   return {source,parentPath,parentId:identity(parentStat),sourceVersion:version(sourceStat),basename};
 }
 
-function dirtyEditorError(vscode) {
+async function moveFolder(root, target, basename, model) {
+  if (!['code','assets','project'].includes(target.area)) throw Error('Choose a project folder in Files.');
+  if (basename.endsWith('.java') && target.area !== 'code') throw Error('Move Java files to a folder under java.');
+  const {baseRelative} = await resolveAuthoringTarget(root,target,'file');
+  const relative = path.posix.join(baseRelative,basename);
+  if (protectedPath(relative) || model.corePaths.some(file => key(file) === key(relative)) ||
+      target.area === 'project' && /^(?:src\/main\/(?:java|resources)|libraries)(?:\/|$)/i.test(relative))
+    throw Error('Choose an editable project folder.');
+  const folder = path.join(root,baseRelative);
+  try {
+    return {folder,id:identity(await ordinaryDirectory(folder))};
+  } catch (error) {
+    if (error.code !== 'ENOENT' || baseRelative !== model.assetsRoot) throw error;
+    const parent = path.dirname(folder);
+    return {folder,parent,id:identity(await ordinaryDirectory(parent))};
+  }
+}
+
+function dirtyEditorError(vscode, moving) {
   if ((vscode.workspace.textDocuments || []).some(document => document.isDirty || document.isUntitled))
-    return 'Save or close unsaved editor changes before renaming a file.';
+    return `Save or close unsaved editor changes before ${moving?'moving':'renaming'} a file.`;
 }
 
 function createRenameCommands(vscode, {project,isBusy,setBusy,setState,output,refreshFiles = () => {}}) {
   let running = false,disposed = false;
-  async function rename(context) {
+  async function rename(context, drop) {
     if (disposed || running || isBusy()) return;
     running = true;
     try {
@@ -103,55 +126,83 @@ function createRenameCommands(vscode, {project,isBusy,setBusy,setState,output,re
       const selection = context && {
         root:context.root,relative:context.relative,area:context.area,libraryFolder:context.libraryFolder
       };
+      const moving = Boolean(drop);
+      const action = moving ? 'move' : 'rename';
       const assertCurrent = async () => {
-        if (disposed) throw Error('The rename stopped because the project view closed.');
-        if (vscode.workspace.isTrusted === false) throw Error('Trust your project before renaming its files.');
+        if (disposed) throw Error(`The ${action} stopped because the project view closed.`);
+        if (vscode.workspace.isTrusted === false) throw Error(`Trust your project before ${moving?'moving':'renaming'} its files.`);
         if (await project() !== root) throw Error('The project changed. Select the file again.');
         await ordinaryDirectory(root);
+        drop?.assertCurrent();
       };
       await assertCurrent();
       const rootId = identity(await ordinaryDirectory(root));
-      const initial = await selectedFile(root,selection,await readProjectModel(root));
-      if (dirtyEditorError(vscode)) throw Error(dirtyEditorError(vscode));
+      const model = await readProjectModel(root);
+      const initial = await selectedFile(root,selection,model);
+      if (moving && !['code','assets','project'].includes(selection.area)) throw Error('Select an ordinary project file to move.');
+      const target = moving ? await moveFolder(root,drop.target,initial.basename,model) : {folder:initial.parentPath};
+      if (moving && target.folder === initial.parentPath) return;
+      if (dirtyEditorError(vscode,moving)) throw Error(dirtyEditorError(vscode,moving));
       const validate = async name => {
         const invalid = fileNameError(name);
         if (invalid) return invalid;
         await assertCurrent();
         if (identity(await ordinaryDirectory(root)) !== rootId) throw Error('The project folder changed. Select the file again.');
-        const current = await selectedFile(root,selection,await readProjectModel(root));
+        const model = await readProjectModel(root);
+        const current = await selectedFile(root,selection,model);
         if (current.parentId !== initial.parentId || current.sourceVersion !== initial.sourceVersion)
           throw Error('The selected file changed. Select it again.');
-        if (dirtyEditorError(vscode)) return dirtyEditorError(vscode);
-        if (name !== initial.basename && (await fs.readdir(current.parentPath)).some(entry => key(entry) === key(name)))
+        if (moving && JSON.stringify(await moveFolder(root,drop.target,name,model)) !== JSON.stringify(target))
+          throw Error('The destination folder changed. Choose it again.');
+        if (dirtyEditorError(vscode,moving)) return dirtyEditorError(vscode,moving);
+        if (target.parent) {
+          if ((await fs.readdir(target.parent)).some(entry => key(entry) === key(path.basename(target.folder))))
+            return 'A folder with a matching name already exists.';
+        } else if ((moving || name !== initial.basename) && (await fs.readdir(target.folder)).some(entry => key(entry) === key(name))) {
           return 'That name already exists. Choose another name.';
+        }
       };
       const java = initial.basename.endsWith('.java');
-      const name = await vscode.window.showInputBox({
+      const name = moving ? initial.basename : await vscode.window.showInputBox({
         title:'File name',value:initial.basename,ignoreFocusOut:true,
         ...(java ? {prompt:'Changes the file name only; update Java class names and references separately.'} : {}),
         validateInput:validate
       });
       if (name === undefined) return;
-      const invalid = await validate(name);
-      if (invalid) throw Error(invalid);
-      if (name === initial.basename) return;
+      if (!moving) {
+        const invalid = await validate(name);
+        if (invalid) throw Error(invalid);
+        if (name === initial.basename) return;
+      }
       if (isBusy()) throw Error('Another project action is running. Select the file and try again.');
       setBusy(true);
       try {
         // Recheck after taking the host busy state, just before the native edit.
         const last = await validate(name);
         if (last) throw Error(last);
-        const destination = path.join(initial.parentPath,name);
+        if (target.parent) {
+          if (identity(await ordinaryDirectory(target.parent)) !== target.id)
+            throw Error('The destination folder changed. Choose it again.');
+          await fs.mkdir(target.folder);
+          await ordinaryDirectory(target.folder);
+          await assertCurrent();
+          if (version(await fs.lstat(initial.source,{bigint:true})) !== initial.sourceVersion)
+            throw Error('The selected file changed. Select it again.');
+          if (dirtyEditorError(vscode,moving)) throw Error(dirtyEditorError(vscode,moving));
+        }
+        drop?.assertCurrent();
+        const destination = path.join(target.folder,name);
         const edit = new vscode.WorkspaceEdit();
         edit.renameFile(vscode.Uri.file(initial.source),vscode.Uri.file(destination),{overwrite:false,ignoreIfExists:false});
-        if (!await vscode.workspace.applyEdit(edit)) throw Error('VS Code could not rename the file. Check the Files view and try again.');
+        if (!await vscode.workspace.applyEdit(edit)) throw Error(`VS Code could not ${action} the file. Check the Files view and try again.`);
         refreshFiles();
-        setState(`Renamed ${initial.basename} to ${name}`);
-        output?.appendLine(`Renamed ${selection.relative} to ${path.posix.join(path.posix.dirname(selection.relative),name)}`);
+        setState(moving ? `Moved ${name}${java?' · check its Java package':''}` : `Renamed ${initial.basename} to ${name}`);
+        output?.appendLine(`${moving?'Moved':'Renamed'} ${selection.relative} to ${path.relative(root,destination).split(path.sep).join('/')}`);
       } finally {setBusy(false);}
     } finally {running=false;}
   }
-  return {commands:{'zero.renameStudentFile':rename},dispose(){disposed=true;}};
+  return {commands:{'zero.renameStudentFile':context=>rename(context)},
+    move:(source,target,assertCurrent)=>rename(source,{target,assertCurrent}),dispose(){disposed=true;}};
 }
 
 module.exports = {createRenameCommands};

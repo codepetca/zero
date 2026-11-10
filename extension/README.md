@@ -61,7 +61,7 @@ process task. Physical Windows/Linux behavior remains unverified.
 **New asset…**, in the **New ▾** dropdown, copies selected images/audio into `src/main/resources`, preserving
 originals and existing assets with **Keep both** or **Skip existing**. Copy resource
 string literals with **Copy asset paths** in the same menu. Use the history icon
-to inspect commits and built-in Source Control to review changed files. Restoring
+to inspect the current branch's commits and built-in Source Control to review changed files. Restoring
 an earlier project version and the custom undo flow are temporarily unavailable.
 VS Code's auto-save preference applies.
 
@@ -100,7 +100,7 @@ The menu retains publishing and branch actions for connected projects.
 **New branch** creates a feature branch after you enter its name; **Merge to main** beside
 a feature branch directly merges and pushes it to main. Its account, destination,
 source and conflict checks still run.
-**Commit & push** proceeds from its commit-message input.
+**Commit** saves locally. **Sync** sends saved commits to GitHub or gets incoming commits for the current branch.
 Local Run works without sign-in. Local-practice projects continue to block GitHub
 sharing. Native VS Code owns move and hide controls for the Zero controls view.
 
@@ -122,11 +122,10 @@ if it is nested inside another Git repository. Connecting is local and does
 not verify GitHub ownership, existence or permission.
 
 **GitHub actions are live by default; activation never uploads automatically.**
-After signing in and connecting your own repository, choose **Commit & push**.
-Its message input shows the repository and branch; submitting proceeds directly.
-Zero validates and stages the captured changes, commits when needed, pushes and
-checks the remote
-branch. Ignored files stay local. A failed push may leave a local commit.
+After connecting your repository, use **Commit** to save changes and **Sync**
+to send them to GitHub. Sync works on main and feature branches and creates
+the matching remote branch if needed. It checks GitHub before retrying an
+interrupted upload. Routine Git feedback uses one sidebar status area.
 Optional workspace setting `"zero.uploadMode": "simulation"` is available for
 testing: Upload, Start, Finish and Publish skip saves, Git mutations, authentication
 prompts and network actions. Explicit simulation settings are honored. Tutorial
@@ -135,12 +134,11 @@ Legacy local-only projects retain their older protection. First Publish briefly
 warns that the app and included assets will be public and shows its destination; later explicit Publish actions revalidate and update that approved
 site without another destination dialog.
 
-Upload the starting version once on main. For each improvement, start a named
-branch from committed main, edit/run, upload progress, then review Finish
-to merge and upload completed work to main. If there are uncommitted changes,
-New branch asks before carrying them onto the new branch without committing them.
-Start can only fast-forward main
-from its remote snapshot. Finish requires a clean change branch and refuses
+Commit and sync the starting version on main. For each improvement, create a
+named branch, edit and run the app, then commit and sync your progress. Any
+current edits carry over when creating the branch. Use **Merge** when the
+improvement is ready for main.
+Finish requires a clean change branch and refuses
 separate unpublished main history. It merges newer remote main into the change
 branch and pauses for Run App and another Finish review. Conflicts remain in
 place; native Source Control guides resolution/staging/commit before retrying.

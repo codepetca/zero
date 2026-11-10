@@ -17,7 +17,7 @@ const plans = new WeakSet();
 const finishedBranchCleanups = new WeakMap();
 const finishedBranchCleanupLayouts = new WeakMap();
 const shaPattern = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/;
-const switchEnvironment=()=>({...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_ATTR_NOSYSTEM:'1',GIT_TERMINAL_PROMPT:'0',GIT_NO_LAZY_FETCH:'1'});
+const switchEnvironment=()=>({...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_ATTR_NOSYSTEM:'1',GIT_TERMINAL_PROMPT:'0',GIT_NO_LAZY_FETCH:'1',GIT_ALLOW_PROTOCOL:''});
 const startCheckoutEnvironment=()=>({...switchEnvironment(),GIT_CONFIG_COUNT:'2',GIT_CONFIG_KEY_0:'core.attributesFile',GIT_CONFIG_VALUE_0:os.devNull,GIT_CONFIG_KEY_1:'core.fsmonitor',GIT_CONFIG_VALUE_1:'false'});
 const nativeUpdateHandoff = message => Object.assign(new Error(message), {nativeUpdateHandoff:true});
 const drift = () => new Error('The project, branch, main, repository, or files changed after review. Review this step again. Your commits are preserved.');
@@ -69,9 +69,12 @@ async function state(project, run, {full = false, connected = false, allowMerge 
   }
   else root = await core.assertRepositoryRoot(project, run);
   if (!(await fs.stat(path.join(root, 'zero.json'))).isFile()) throw new Error('Open a standalone student project containing zero.json.');
-  const gitDir = await run(root, ['rev-parse', '--absolute-git-dir']);
-  const commonDir = await run(root, ['rev-parse', '--git-common-dir']);
-  const worktrees = (await run(root, ['worktree', 'list', '--porcelain'])).split('\n').filter(line => line.startsWith('worktree ')).join('\n');
+  const [gitDir, commonDir, listedWorktrees] = await Promise.all([
+    run(root, ['rev-parse', '--absolute-git-dir']),
+    run(root, ['rev-parse', '--git-common-dir']),
+    run(root, ['worktree', 'list', '--porcelain'])
+  ]);
+  const worktrees = listedWorktrees.split('\n').filter(line => line.startsWith('worktree ')).join('\n');
   if (await fs.realpath(path.resolve(root, commonDir)) !== await fs.realpath(gitDir) ||
       worktrees.split('\n').filter(line => line.startsWith('worktree ')).length !== 1) {
     throw new Error('This project uses multiple Git worktrees. Use a standalone student repository for New branch and Merge to main.');
@@ -80,38 +83,62 @@ async function state(project, run, {full = false, connected = false, allowMerge 
     try { await fs.access(path.join(gitDir, marker)); throw new Error('Finish or cancel the current Git merge, rebase, or other operation before continuing.'); }
     catch (error) { if (error.code !== 'ENOENT') throw error; }
   }
-  let branch;
-  try { branch = await core.currentBranch(root,run); }
-  catch (error) { if(error.code!==1)throw error;throw new Error('This project has a detached HEAD. Switch to your student branch before continuing.'); }
-  if (!branch || branch.startsWith('-')) throw new Error('Choose a normal named Git branch.');
-  let head = null, mainHead = null;
-  try { head = await run(root, ['rev-parse', '--verify', 'HEAD^{commit}']); }
-  catch (error) { if (error.code !== 128) throw error; }
-  try { mainHead = await run(root, ['rev-parse', '--verify', 'refs/heads/main^{commit}']); }
-  catch (error) { if (error.code !== 128) throw new Error('Git could not inspect main. Check native Source Control.'); }
-  if (head && !shaPattern.test(head) || mainHead && !shaPattern.test(mainHead)) throw new Error('Git returned an unexpected commit. Check native Source Control.');
-  if(mainHead)await assertDirectMain(root,run);
-  await assertNoUrlRewrites(root, run);
-  let repository = {page: null, remote: null};
-  const remotes = (await run(root, ['remote'])).split('\n');
-  if (remotes.includes('origin')) {
-    const urls = (await run(root, ['remote', 'get-url', '--all', 'origin'])).split('\n');
-    const pushUrls = (await run(root, ['remote', 'get-url', '--push', '--all', 'origin'])).split('\n');
-    if (urls.length !== 1 || pushUrls.length !== 1) throw new Error('Origin has multiple destinations. Use one GitHub HTTPS repository for fetching and pushing.');
-    repository = core.parseRepositoryUrl(urls[0]);
-    if (core.parseRepositoryUrl(pushUrls[0]).remote !== repository.remote) throw new Error('Origin pushes to a different repository. Correct its push URL before continuing.');
-  } else if (connected || full) throw new Error('Connect this student project to its GitHub repository before syncing or merging.');
-  // Branch review must not execute filters from global or system attributes.
-  // Worktree attributes are checked before local switch state is read.
-  if(localOnly)await noExternalCheckoutFilters({root,gitDir:await fs.realpath(gitDir)},run);
+  const gitDirectory=await fs.realpath(gitDir);
+  let refs,repository;
+  if(localOnly){
+    [refs,repository]=await Promise.all([
+      readWorkflowRefs(root,run),
+      readWorkflowOrigin(root,run,connected||full)
+    ]);
+    // Keep this immediately before status, which can invoke a clean filter.
+    await noExternalCheckoutFilters({root,gitDir:gitDirectory},run);
+  }else{
+    refs=await readWorkflowRefs(root,run);
+    repository=await readWorkflowOrigin(root,run,connected||full);
+  }
   const statusArgs=['status','--porcelain=v1','-z','--untracked-files=all'];
   const status=localOnly?await run(root,['-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...statusArgs],{env:switchEnvironment()}):await run(root,['-c','core.fsmonitor=false',...statusArgs]);
   if ((await run(root, ['ls-files', '--stage', '-z'])).split('\0').some(entry => entry.startsWith('160000 '))) throw new Error('Nested repositories or submodules are not supported. Open a standalone student project.');
-  const current = {root, ...repository, branch, head, mainHead, status, gitDir: await fs.realpath(gitDir), worktrees};
+  const current = {root, ...repository, ...refs, status, gitDir: await fs.realpath(gitDir), worktrees};
   if (!full) return current;
   const source = await prepareUpload(root, (cwd,args,options)=>run(cwd,args[0]==='status'?['-c','core.fsmonitor=false',...args]:args,options));
   if (!['root', 'page', 'remote', 'branch', 'head', 'status'].every(key => source[key] === current[key])) throw drift();
   return {...source, ...current};
+}
+async function readWorkflowRefs(root,run) {
+  let branch;
+  try { branch = await core.currentBranch(root,run); }
+  catch (error) { if(error.code!==1)throw error;throw new Error('This project has a detached HEAD. Switch to your student branch before continuing.'); }
+  if (!branch || branch.startsWith('-')) throw new Error('Choose a normal named Git branch.');
+  const [head, mainHead] = await Promise.all([
+    run(root, ['rev-parse', '--verify', 'HEAD^{commit}']).catch(error=>{
+      if(error.code===128)return null;
+      throw error;
+    }),
+    run(root, ['rev-parse', '--verify', 'refs/heads/main^{commit}']).catch(error=>{
+      if(error.code===128)return null;
+      throw new Error('Git could not inspect main. Check native Source Control.');
+    })
+  ]);
+  if (head && !shaPattern.test(head) || mainHead && !shaPattern.test(mainHead)) throw new Error('Git returned an unexpected commit. Check native Source Control.');
+  if(mainHead)await assertDirectMain(root,run);
+  return {branch,head,mainHead};
+}
+async function readWorkflowOrigin(root,run,requireOrigin) {
+  await assertNoUrlRewrites(root,run);
+  let repository = {page: null, remote: null};
+  const remotes = (await run(root, ['remote'])).split('\n');
+  if (remotes.includes('origin')) {
+    const [fetch, push] = await Promise.all([
+      run(root, ['remote', 'get-url', '--all', 'origin']),
+      run(root, ['remote', 'get-url', '--push', '--all', 'origin'])
+    ]);
+    const urls = fetch.split('\n'), pushUrls = push.split('\n');
+    if (urls.length !== 1 || pushUrls.length !== 1) throw new Error('Origin has multiple destinations. Use one GitHub HTTPS repository for fetching and pushing.');
+    repository = core.parseRepositoryUrl(urls[0]);
+    if (core.parseRepositoryUrl(pushUrls[0]).remote !== repository.remote) throw new Error('Origin pushes to a different repository. Correct its push URL before continuing.');
+  } else if (requireOrigin) throw new Error('Connect this student project to its GitHub repository before syncing or merging.');
+  return repository;
 }
 // Only dirty branch creation needs a content snapshot: the student confirms
 // carrying these exact edits, and changes during the prompt require a retry.
@@ -239,17 +266,19 @@ async function noExternalCheckoutFilters(current,run) {
   const valid=(name,bytes)=>stock.has(name)&&Buffer.isBuffer(bytes)&&
     (name==='.gitattributes'?bytes.toString('utf8').replace(/\r\n/g,'\n'):bytes.toString('utf8'))===stock.get(name);
   const custom=()=>new Error('Custom Git attributes require Source Control for switching.');
-  for(const tree of [current.head,current.target]) {
-    if(!tree)continue;
+  await Promise.all([current.head,current.target].filter(Boolean).map(async tree=>{
     const rows=(await inspect(current.root,['ls-tree','-r','-z',tree])).split('\0').filter(Boolean);
     for(const row of rows) {
       const match=/^(100644|100755) blob ([a-f0-9]{40,64})\t([^\0]+)$/.exec(row);
       if(!match)throw new Error('This branch contains unsupported file types. Use Source Control.');
       if(attr(match[3])&&!valid(match[3],await inspect(current.root,['cat-file','blob',match[2]],{encoding:'buffer'})))throw custom();
     }
-  }
-  const names=(await inspect(current.root,['ls-files','--cached','--others','--exclude-standard','-z'])).split('\0').filter(Boolean);
-  names.push(...(await inspect(current.root,['ls-files','--others','--ignored','--exclude-standard','-z'])).split('\0').filter(Boolean));
+  }));
+  const inventories=await Promise.all([
+    inspect(current.root,['ls-files','--cached','--others','--exclude-standard','-z']),
+    inspect(current.root,['ls-files','--others','--ignored','--exclude-standard','-z'])
+  ]);
+  const names=inventories.flatMap(entries=>entries.split('\0').filter(Boolean));
   for(const name of new Set(names.filter(attr))) {
     if(!stock.has(name))throw custom();
     const file=path.join(current.root,name),parent=path.dirname(file),directory=await fs.lstat(parent),info=await fs.lstat(file);
@@ -266,14 +295,19 @@ async function noExternalCheckoutFilters(current,run) {
   catch(error){if(error.code!=='ENOENT')throw error;}
 }
 async function prepareSwitch(project,name,{run=core.git}={}) {
-  await assertShareable(project);run=safeRunner(run);
-  const root=await fs.realpath(project);
-  await noExternalCheckoutFilters({root,gitDir:path.join(root,'.git')},run);
-  const current=await state(project,run,{localOnly:true}),target=await switchTarget(current,name,run);await noExternalCheckoutFilters({...current,target},run);
+  await assertShareable(project);
+  run=offlineSwitchRunner(safeRunner(run));
+  const current=await state(project,run,{localOnly:true});
+  const target=await switchTarget(current,name,run);
+  await noExternalCheckoutFilters({...current,target},run);
   if(!current.head)throw new Error('Commit the initial project before switching branches.');
   const fingerprint=current.status?await startFingerprint(current,run):null;
-  await recheck(current,run,{localOnly:true});
+  if(current.status)await recheck(current,run,{localOnly:true});
   return planFor('switch',current,{name,target,startFingerprint:fingerprint});
+}
+function offlineSwitchRunner(run) {
+  const env=switchEnvironment();
+  return (root,args,options)=>run(root,args,{...options,env:options?.env??env});
 }
 const pendingFinishRef = 'refs/zero/pending-finish';
 // On main there is no checked-out feature name to authenticate the marker
@@ -378,17 +412,24 @@ async function prepareFinish(project, options = {}) {
   const base = pending ? pending.base : current.mainHead;
   if (!(await ancestor(run, current.root, base, current.head))) throw new Error('Local main contains changes missing from this feature. Merge main into your feature with native Source Control, then review Merge to main again.');
   if (base === current.head) throw new Error('This change has no commits to finish.');
-  const remoteMainHead=await protectedNetwork(current,opts,()=>remoteMain(current,opts.networkRun),{full:true});
+  const remoteMainHead=await protectedNetwork(current,opts,()=>remoteMain(current,opts.networkRun));
   if(!remoteMainHead)throw Object.assign(new Error('GitHub main is missing. Check the repository before merging; local commits are preserved.'),{kind:'behind'});
   if(pending){if(remoteMainHead!==pending.base&&remoteMainHead!==pending.id)throw Object.assign(new Error('GitHub main no longer matches the reviewed merge base. The pending merge is kept. Check GitHub and update from main before retrying.'),{kind:'behind'});}
   else {
-    await protectedNetwork(current,opts,()=>fetchMain({...current,remoteMainHead,remoteBranch:'main'},opts),{full:true});
+    if(remoteMainHead!==current.mainHead){
+      await protectedNetwork(current,opts,()=>fetchMain({...current,remoteMainHead,remoteBranch:'main'},opts),{full:true});
+    }
     if(!await ancestor(run,current.root,current.mainHead,remoteMainHead)||!await ancestor(run,current.root,remoteMainHead,current.head))throw Object.assign(new Error('GitHub main is not included in the reviewed feature or has moved behind local main. Update from main and review the merge again.'),{kind:'behind',nativeUpdateHandoff:true});
     if(remoteMainHead===current.head)throw new Error('GitHub main already contains this feature head. There are no newer feature commits to merge.');
   }
-  const changedPaths = Object.freeze((await run(current.root, ['diff', '--name-only', '-z', base, current.head])).split('\0').filter(Boolean));
-  const commitCount = await run(current.root, ['rev-list', '--count', `${base}..${current.head}`]);
-  await recheck(current, run);
+  const [paths,commitCount]=await Promise.all([
+    run(current.root,['diff','--name-only','-z',base,current.head]),
+    run(current.root,['rev-list','--count',`${base}..${current.head}`])
+  ]);
+  const changedPaths=Object.freeze(paths.split('\0').filter(Boolean));
+  // Compare the full snapshot after the read-only GitHub lookup and before
+  // presenting the merge for confirmation.
+  await recheck(current,run,{full:true});
   return planFor('finish', current, {pending,refStorage,remoteMainHead, changedPaths, commitCount: Number(commitCount), summary: `Merge ${current.branch} to main: ${commitCount} feature commit(s), ${changedPaths.length} changed path(s). Upload the completed main and switch to main. If GitHub main changed, Update from main, run the app, then merge again.`});
 }
 async function protectedNetwork(expected, options, operation, {full = false} = {}) {
@@ -448,20 +489,37 @@ function executorOptions(plan, kind, options) {
   return {beforeNetwork: async () => {}, beforeMutation: async () => {}, onProgress: () => {}, ...options, run: guardedRunner(safeRunner(options.run || core.git))};
 }
 async function switchPrepared(plan,options={}) {
-  const opts=executorOptions(plan,'switch',options);await assertShareable(plan.root);
-  await opts.beforeMutation();await noExternalCheckoutFilters({root:plan.root,gitDir:path.join(plan.root,'.git')},opts.run);const current=await recheck(plan,opts.run,{localOnly:true});
-  if(await switchTarget(current,plan.name,opts.run)!==plan.target || (plan.startFingerprint&&await startFingerprint(current,opts.run)!==plan.startFingerprint))throw drift();
-  await preserveIgnored(current,plan.target,opts.run);await noExternalCheckoutFilters({...current,target:plan.target},opts.run);await opts.beforeMutation();await noExternalCheckoutFilters({...current,target:plan.target},opts.run);await recheck(plan,opts.run,{localOnly:true});
-  if(await switchTarget(current,plan.name,opts.run)!==plan.target || (plan.startFingerprint&&await startFingerprint(current,opts.run)!==plan.startFingerprint))throw drift();
-  const env=switchEnvironment();
+  const opts=executorOptions(plan,'switch',options);
+  await assertShareable(plan.root);
+  const run=offlineSwitchRunner(opts.run);
+  const recheckSwitch=async()=>{
+    const current=await recheck(plan,run,{localOnly:true});
+    if(await switchTarget(current,plan.name,run)!==plan.target ||
+        (plan.startFingerprint&&await startFingerprint(current,run)!==plan.startFingerprint))throw drift();
+  };
   await opts.beforeMutation();
-  await noExternalCheckoutFilters({...current,target:plan.target},opts.run);
-  await recheck(plan,opts.run,{localOnly:true});
-  if(await switchTarget(current,plan.name,opts.run)!==plan.target || (plan.startFingerprint&&await startFingerprint(current,opts.run)!==plan.startFingerprint))throw drift();
-  try {await opts.run(plan.root,['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false','checkout','--no-overwrite-ignore',plan.name],{env});}
+  if(plan.status){
+    await noExternalCheckoutFilters({root:plan.root,gitDir:path.join(plan.root,'.git')},run);
+    await recheckSwitch();
+  }
+  await preserveIgnored(plan,plan.target,run);
+  if(plan.status){
+    await noExternalCheckoutFilters(plan,run);
+    await opts.beforeMutation();
+    await noExternalCheckoutFilters(plan,run);
+    await recheckSwitch();
+  }
+  // On a clean switch one guarded recheck at the mutation boundary is enough.
+  // It still checks the worktree and exact refs after the last editor guard.
+  await opts.beforeMutation();
+  await noExternalCheckoutFilters(plan,run);
+  await recheckSwitch();
+  const finalAuthority=opts.beforeMutationNow?.();
+  if(finalAuthority&&typeof finalAuthority.then==='function')throw drift();
+  try {await run(plan.root,['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false','switch','--no-guess','--no-overwrite-ignore',plan.name]);}
   catch {throw new Error('These changes cannot be moved safely to the selected branch, or Git could not finish switching. Check your files and branch; commit or discard changes before trying again.');}
   plans.delete(plan);
-  const final=await state(plan.root,opts.run,{localOnly:true});
+  const final=await state(plan.root,run,{localOnly:true});
   if(final.branch!==plan.name||final.head!==plan.target)throw new Error('Git could not confirm the selected branch. Check Source Control before continuing.');
   return Object.freeze({branch:final.branch,head:final.head});
 }
@@ -627,7 +685,7 @@ async function syncPrepared(plan, options = {}) {
     try { await opts.run(plan.root, ['merge-base', current.head, remoteHead]); }
     catch { throw new Error(`GitHub ${plan.remoteBranch||'main'} and this project have unrelated histories. Check the connected repository before syncing.`); }
     await preserveIgnored(current, remoteHead, opts.run);
-    const expectedMerge = await recovery.preview(current, remoteHead, opts.run);
+    const expectedMerge = !opts.fastForwardOnly && await recovery.preview(current, remoteHead, opts.run);
     // Only an understood conflict can become guided recovery. Save the exact
     // checkpoint before Git touches the worktree.
     let cancelCapture;
@@ -639,7 +697,9 @@ async function syncPrepared(plan, options = {}) {
     await recheck(current, opts.run, {full: true});
     await refuseUnsafeUpdateConversions(plan.root, current.head, plan.mergeCandidate?.candidate||remoteHead, opts.run);
     opts.onProgress(current.branch === 'main' ? 'Updating local main…' : `Merging GitHub ${plan.remoteBranch||'main'} into ${current.branch}…`);
-    try { await opts.run(plan.root, ['-c', `core.hooksPath=${os.devNull}`, '-c', 'merge.conflictStyle=merge', '-c', 'merge.autoStash=false', '-c', 'rerere.enabled=false', 'merge', '--ff', '--no-gpg-sign', '--no-edit', '--no-overwrite-ignore', remoteHead]); }
+    const finalAuthority=opts.beforeMutationNow?.();
+    if(finalAuthority&&typeof finalAuthority.then==='function')throw drift();
+    try { await opts.run(plan.root, ['-c', `core.hooksPath=${os.devNull}`, '-c', 'merge.conflictStyle=merge', '-c', 'merge.autoStash=false', '-c', 'rerere.enabled=false', 'merge', opts.fastForwardOnly?'--ff-only':'--ff', '--no-gpg-sign', '--no-edit', '--no-overwrite-ignore', remoteHead]); }
     catch {
       let pending = false;
       try { await opts.run(plan.root, ['rev-parse', '--verify', 'MERGE_HEAD']); pending = true; } catch {}
@@ -656,6 +716,7 @@ async function syncPrepared(plan, options = {}) {
       (final.branch === 'main' ? final.mainHead !== final.head : final.mainHead !== current.mainHead) ||
       !(await ancestor(opts.run, plan.root, current.head, final.head)) || !(await ancestor(opts.run, plan.root, remoteHead, final.head))) throw drift();
   if (unchanged && (final.head !== current.head || final.fingerprint !== current.fingerprint)) throw drift();
+  if (opts.fastForwardOnly && !unchanged && final.head!==remoteHead) throw drift();
   if (final.branch === 'main') {
     const completed = await mainPendingFinish(final, opts.run);
     if (completed?.valid) {
@@ -690,10 +751,11 @@ async function finishPrepared(plan, options = {}) {
     // marker; only advance local main when both histories prove it is safe.
     const reviewedRemote=await protectedNetwork(current,opts,()=>remoteMain(current,opts.networkRun),{full:true});
     if(reviewedRemote!==plan.remoteMainHead)throw Object.assign(new Error('GitHub main changed after review. Check the repository and review the merge again; local commits are preserved.'),{kind:'behind'});
-    await protectedNetwork(current,opts,()=>fetchMain({...current,remoteMainHead:reviewedRemote,remoteBranch:'main'},opts),{full:true});
+    if(reviewedRemote!==current.mainHead){
+      await protectedNetwork(current,opts,()=>fetchMain({...current,remoteMainHead:reviewedRemote,remoteBranch:'main'},opts),{full:true});
+    }
     if(!await ancestor(opts.run,plan.root,current.mainHead,reviewedRemote)||!await ancestor(opts.run,plan.root,reviewedRemote,current.head))throw Object.assign(new Error('GitHub main is not included in the reviewed feature or has moved behind local main. Update from main and review the merge again.'),{kind:'behind',nativeUpdateHandoff:true});
     if(current.mainHead!==reviewedRemote){
-      await opts.beforeMutation();await recheck(current,opts.run,{full:true});
       await advanceMain(current,reviewedRemote,current.mainHead,opts,'advance local main to reviewed GitHub main');
       current={...current,mainHead:reviewedRemote};await recheck(current,opts.run,{full:true});
     }
@@ -728,7 +790,16 @@ async function finishPrepared(plan, options = {}) {
     throw Object.assign(new Error(`${error.message} Your feature and local main are preserved. Retry Merge to main, or update from GitHub if main changed.`),{workflowRecovery:{root:plan.root,remote:plan.remote,page:plan.page,branch:plan.branch,head:candidate.id,committed:false,kind:error.kind||'network',operation:'merge'}});
   }
   let final;
-  try {if (current.mainHead !== candidate.id) {await opts.beforeMutation();await recheck(current, opts.run, {full: true});await advanceMain(current,candidate.id,candidate.base,opts,'advance local main');}const completed = {...current, mainHead: candidate.id};await opts.beforeMutation();await recheck(completed, opts.run, {full: true});if(opts.refStorage==='reftable')await attachFinishedMain(completed,opts);else await checkoutMain(completed,opts);final=await state(plan.root, opts.run,{full:true});if (!same({...completed, branch: 'main', head: candidate.id}, final)||final.fingerprint!==completed.fingerprint) throw drift();}
+  try {
+    // These transactions recheck the full reviewed state and editor authority
+    // while holding the relevant Git ref lock.
+    if(current.mainHead!==candidate.id)await advanceMain(current,candidate.id,candidate.base,opts,'advance local main');
+    const completed={...current,mainHead:candidate.id};
+    if(opts.refStorage==='reftable')await attachFinishedMain(completed,opts);
+    else await checkoutMain(completed,opts);
+    final=await state(plan.root,opts.run,{full:true});
+    if(!same({...completed,branch:'main',head:candidate.id},final)||final.fingerprint!==completed.fingerprint)throw drift();
+  }
   catch(error){error.message+= ' This merge was confirmed on GitHub. The local switch may have completed; inspect the current branch and Source Control before retrying. The pending change is retained.';throw error;}
   try { await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, candidate.id], 'clear the pending finished change'); } catch { /* Main and remote already contain the commit; a later start can clear the stale ref. */ }
   plans.delete(plan);
@@ -822,6 +893,26 @@ async function cleanupState(root, run, expectedLayout) {
   if (current.branch !== 'main' || current.head !== current.mainHead) throw new Error('Switch to clean main before deleting a finished local feature.');
   return {current, layout};
 }
+async function assertNoPendingFinish(root,gitDir,run) {
+  const pending=()=>new Error('Resolve the pending merge before deleting a local branch.');
+  // Listing refs can omit a dangling symbolic ref or a broken loose ref.
+  try {
+    await fs.lstat(path.join(gitDir,pendingFinishRef));
+    throw pending();
+  } catch(error) {if(error.code!=='ENOENT')throw error;}
+  try {
+    await run(root,['symbolic-ref','--quiet','--no-recurse',pendingFinishRef]);
+    throw pending();
+  } catch(error) {if(error.code!==1)throw error;}
+  if(await run(root,['for-each-ref','--format=%(refname)',pendingFinishRef]))throw pending();
+}
+async function prepareFinishedBranchDeletion(root,{run=core.git}={}) {
+  run=cleanupRunner(run);
+  const {current,layout}=await cleanupState(root,run);
+  await assertNoPendingFinish(root,current.gitDir,run);
+  const choices=await core.localBranchChoices(root,{run,mergedInto:current.mainHead});
+  return {mainHead:current.mainHead,layout:layout.identity,branches:choices.filter(choice=>validFinishedBranch(choice.name))};
+}
 async function checkFinishedFeature(root, ref, expectedHead, mainHead, run) {
   try {
     await run(root, ['symbolic-ref', '--quiet', '--no-recurse', ref]);
@@ -832,7 +923,7 @@ async function checkFinishedFeature(root, ref, expectedHead, mainHead, run) {
   catch { throw new Error('The finished feature branch is no longer available for cleanup.'); }
   if (actual !== expectedHead || !(await ancestor(run, root, actual, mainHead))) throw new Error('This feature branch changed or has work missing from main. Keep it and inspect native Source Control.');
 }
-async function reviewFinishedBranchCleanup(root, branch, expectedHead, {run = core.git, expectedMain, expectedRemote, receipt} = {}) {
+async function reviewFinishedBranchCleanup(root, branch, expectedHead, {run = core.git, expectedMain, expectedRemote, expectedLayout, receipt} = {}) {
   if (typeof expectedHead !== 'string' || !shaPattern.test(expectedHead) || !validFinishedBranch(branch) ||
       (expectedMain !== undefined && (typeof expectedMain !== 'string' || !shaPattern.test(expectedMain) || expectedMain.length !== expectedHead.length))) {
     throw new Error('Choose the exact finished feature branch for local cleanup.');
@@ -843,7 +934,7 @@ async function reviewFinishedBranchCleanup(root, branch, expectedHead, {run = co
     throw new Error('This finished branch cleanup needs the exact confirmed merge from this project.');
   }
   run = cleanupRunner(run);
-  const {current, layout} = await cleanupState(root, run, receiptLayout);
+  const {current, layout} = await cleanupState(root, run, receiptLayout??expectedLayout);
   if ((expectedMain !== undefined && current.mainHead !== expectedMain) ||
       (expectedRemote !== undefined && current.remote !== expectedRemote)) throw drift();
   const ref = `refs/heads/${branch}`;
@@ -882,6 +973,7 @@ async function deleteFinishedBranch(root, branch, expectedHead, options = {}) {
         await beforeMutation();
         const checked = await cleanupState(root, run, layout.identity);
         if (!same(current, checked.current)) throw drift();
+        if(!options.receipt&&options.expectedMain!==undefined)await assertNoPendingFinish(root,current.gitDir,run);
         // An OID comparison alone can accept a same-OID symbolic replacement.
         // Recheck the ref type while Git holds HEAD and both branch locks.
         await checkFinishedFeature(current.root, ref, expectedHead, current.mainHead, run);
@@ -905,4 +997,4 @@ async function checkpoint(root, options = {}) {
   opts.inspect = (project, run) => state(project, run);
   return recovery.checkpoint(root, opts);
 }
-module.exports = {preparePendingFinishRecovery, recoverPendingFinish, readRecovery, resolveRecovery, completeRecovery, cancelRecovery, checkpoint, prepareStart, startPrepared, prepareSwitch, switchPrepared, prepareSync, syncPrepared, prepareFinish, finishPrepared, consumeFinishedBranchCleanup, inspectFinishedBranchCleanup, deleteFinishedBranch};
+module.exports = {preparePendingFinishRecovery, recoverPendingFinish, readRecovery, resolveRecovery, completeRecovery, cancelRecovery, checkpoint, prepareStart, startPrepared, prepareSwitch, switchPrepared, prepareSync, syncPrepared, prepareFinish, finishPrepared, consumeFinishedBranchCleanup, inspectFinishedBranchCleanup, prepareFinishedBranchDeletion, deleteFinishedBranch};

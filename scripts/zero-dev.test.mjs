@@ -4,9 +4,10 @@ import {mkdtempSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
-import {prepareGame, devPaths, editorArguments, developmentEnvironment, inputFingerprint} from './zero-dev.mjs';
+import {prepareGame, devPaths, editorArguments, developmentEnvironment, githubEditorEnvironment, inputFingerprint} from './zero-dev.mjs';
 import {coreSources} from './prepare-starter.mjs';
 import {handle} from '../design/playground/server.mjs';
+import setupProject from '../extension/src/setup-project.js';
 
 function fixture(t) {
   const root = realpathSync(mkdtempSync(path.join(tmpdir(), 'zero dev with spaces ')));
@@ -77,6 +78,44 @@ test('launch keeps source extension, project and editor state separate from inst
   assert.equal(env.ZERO_KIT_DIR, undefined);
   assert.equal(env.ZERO_JAVA_HOME, undefined);
   assert.equal(env.VSCODE_IPC_HOOK_CLI, undefined);
+});
+test('GitHub mode uses a separate profile and clears inherited Git overrides before launch', t => {
+  const {root, home} = fixture(t);
+  const project = path.join(root, 'GitHub test project');
+  const args = editorArguments(root, home, {github:true, project});
+  const github = devPaths(root, home, {github:true});
+  assert.notEqual(github.userData, devPaths(root, home).userData);
+  assert.notEqual(github.extensions, devPaths(root, home).extensions);
+  assert.equal(args[args.indexOf('--user-data-dir') + 1], github.userData);
+  assert.ok(args.includes('--force-disable-user-env'));
+  assert.equal(args.at(-1), project);
+  const empty = editorArguments(root, home, {github:true});
+  assert.ok(empty.includes('--new-window'));
+  assert.equal(empty.at(-1), '--force-disable-user-env');
+  assert.ok(!empty.includes(github.workspace));
+
+  const shell = {GIT_ALLOW_PROTOCOL:'file', git_dir:'/wrong/project', GIT_CONFIG_COUNT:'1', PATH:'/bin'};
+  const env = githubEditorEnvironment(shell, home);
+  assert.deepEqual(Object.keys(env).filter(key => /^GIT_/i.test(key)), []);
+  assert.equal(shell.GIT_ALLOW_PROTOCOL, 'file');
+  assert.equal(env.PATH, '/bin');
+});
+test('live Dev uses the selected private runtimes without taking over the installed kit or the parent shell', t => {
+  const {root, home} = fixture(t);
+  const java = path.join(root, 'private jdk'), node = path.join(root, 'private node', 'bin', 'node');
+  const parent = {PATH:'/bin', JAVA_HOME:path.join(root, 'older java'), JAVA_TOOL_OPTIONS:'-Dwrong=true',
+    ZERO_KIT_DIR:path.join(root, 'installed kit'), ZERO_NODE_EXECUTABLE:path.join(root, 'stale node'), NODE_OPTIONS:'--no-warnings'};
+  const actual = githubEditorEnvironment(parent, home, {java, node, kit:root});
+  assert.equal(actual.JAVA_HOME, java);
+  assert.equal(actual.ZERO_JAVA_HOME, java);
+  assert.equal(actual.ZERO_NODE_EXECUTABLE, node);
+  assert.equal(actual.PATH.split(path.delimiter)[0], path.join(java, 'bin'));
+  assert.equal(actual.PATH.split(path.delimiter)[1], path.dirname(node));
+  assert.equal(actual.MAVEN_SKIP_RC, '1');
+  assert.equal(setupProject.setupProjectPath({env:actual, home}), path.join(root, 'starter'));
+  assert.equal(actual.JAVA_TOOL_OPTIONS, undefined);
+  assert.equal(actual.NODE_OPTIONS, undefined);
+  assert.equal(parent.JAVA_TOOL_OPTIONS, '-Dwrong=true');
 });
 test('watcher notices authored changes while ignoring generated game/editor state', t => {
   const {root, put, prepare} = fixture(t); prepare();

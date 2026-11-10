@@ -65,7 +65,7 @@ test('history and review display local commits and open read-only comparisons',a
  vscode.workspace.textDocuments=[];git(root,'checkout','-qb','feature');await fs.writeFile(path.join(root,'conflict.txt'),'feature\n');git(root,'add','conflict.txt');git(root,'commit','-qm','feature file');git(root,'checkout','-q','-');await fs.writeFile(path.join(root,'conflict.txt'),'main\n');git(root,'add','conflict.txt');git(root,'commit','-qm','main file');try{git(root,'merge','feature');assert.fail('Expected conflict');}catch(error){if(error.code!=='ERR_ASSERTION')assert.match(String(error.stderr||error.message),/conflict|merge/i);else throw error;}await history.openReview();panel=panels.at(-1);assert.match(panel.webview.html,/conflict.txt · Conflict/);const previousCalls=calls.length;await panel.receive({type:'select',index:0});assert.equal(calls.length,previousCalls+1);assert.equal(calls.at(-1)[0],'workbench.view.scm');
 });
 
-test('history includes local main and feature ancestry after divergence and in a fresh clone',async t=>{
+test('history keeps divergent branches separate and shows one merge entry in a fresh clone',async t=>{
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-history-graph-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
  git(root,'init','-q','-b','main');git(root,'config','user.name','Test');git(root,'config','user.email','test@example.invalid');
  await fs.writeFile(path.join(root,'base.txt'),'base');git(root,'add','.');git(root,'commit','-qm','base');
@@ -77,7 +77,13 @@ test('history includes local main and feature ancestry after divergence and in a
   git(dir,'checkout','-q','working');let panel;
   const vscode={ViewColumn:{One:1},Uri:{parse:key,file:key},workspace:{isTrusted:true,workspaceFolders:[{uri:key(dir)}],registerTextDocumentContentProvider:()=>({dispose(){}})},window:{createWebviewPanel:()=>panel={webview:{onDidReceiveMessage(){}},onDidDispose(){},dispose(){}},showErrorMessage:async()=>{}},commands:{executeCommand:async()=>{}}};
   const history=createChangeHistory(vscode,{project:async()=>dir});await history.openHistory();
-  assert.match(panel.webview.html,/Merge: finished/);assert.match(panel.webview.html,/Commit: working change/);assert.match(panel.webview.html,/Commit: finished work/);history.dispose();
+  assert.match(panel.webview.html,/Commit: working change/);
+  assert.match(panel.webview.html,/Commit: base/);
+  assert.doesNotMatch(panel.webview.html,/Merge: finished|Commit: finished work/);
+  git(dir,'checkout','-q','main');await history.openHistory();
+  assert.match(panel.webview.html,/Merge: finished/);
+  assert.doesNotMatch(panel.webview.html,/Commit: working change|Commit: finished work/);
+  history.dispose();
  }
 });
 
@@ -104,7 +110,7 @@ test('Undo uses only the selected finished merge and rejects stale history',asyn
  const vscode={ViewColumn:{One:1},Uri:{parse:key,file:key},workspace:{isTrusted:true,workspaceFolders:[{uri:key(root)}],registerTextDocumentContentProvider:()=>({dispose(){}})},window:{createWebviewPanel:()=>panel={webview:{onDidReceiveMessage(f){attach(panel,f);}},onDidDispose(){},dispose(){}},showErrorMessage:async e=>errors.push(e)},commands:{executeCommand:async()=>{}}};
  const history=createChangeHistory(vscode,{project:async()=>root,onUndo:async id=>calls.push(id)});t.after(()=>history.dispose());
  const indexOf=label=>{const match=new RegExp(`<button data-index="(\\d+)" id="item-\\d+">${label} <span>`).exec(panel.webview.html);assert.ok(match,`Missing ${label}`);return Number(match[1]);};
- await history.openHistory();assert.doesNotMatch(panel.webview.html,/<button id="undo">/);
+ await history.openHistory();assert.doesNotMatch(panel.webview.html,/<button id="undo">|Commit: feature commit/);
  await panel.receive({type:'undo',id:merge});await panel.receive({type:'select',index:999,id:merge});await panel.receive({type:'undo',id:merge});assert.deepEqual(calls,[]);
  await panel.receive({type:'select',index:indexOf('Commit: ordinary commit')});assert.doesNotMatch(panel.webview.html,/<button id="undo">/);await panel.receive({type:'undo',id:merge});assert.deepEqual(calls,[]);
  await panel.receive({type:'back'});await panel.receive({type:'select',index:indexOf('Merge: feature')});assert.match(panel.webview.html,/Undo change is temporarily unavailable/);assert.doesNotMatch(panel.webview.html,/<button id="undo">/);
@@ -130,15 +136,30 @@ test('Undo ignores a selection or panel changed while its context check is pendi
  await selectMarker();({pending}=await startUndo());panel.dispose();release();await pending;assert.deepEqual(calls,[],'Disposing the panel invalidates the pending action');
 });
 
-test('recent history shows only the current branch first-parent commits and is bounded to three',async t=>{
+test('Change history and recent history follow the current branch',async t=>{
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-recent-history-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
  git(root,'init','-q','-b','main');git(root,'config','user.name','Test');git(root,'config','user.email','test@example.invalid');
  await fs.writeFile(path.join(root,'a'),'base');git(root,'add','.');git(root,'commit','-qm','base');git(root,'checkout','-qb','feature');
  for(let i=1;i<=3;i++){await fs.writeFile(path.join(root,'a'),String(i));git(root,'add','.');git(root,'commit','-qm',`feature ${i}`);}
  const expected=git(root,'rev-parse','HEAD');git(root,'checkout','-q','main');await fs.writeFile(path.join(root,'other'),'main');git(root,'add','.');git(root,'commit','-qm','main only');git(root,'checkout','-q','feature');
- const vscode={workspace:{isTrusted:true,workspaceFolders:[{uri:key(root)}],registerTextDocumentContentProvider:()=>({dispose(){}})},window:{},commands:{}};
+ let panel;
+ const vscode={ViewColumn:{One:1},workspace:{isTrusted:true,workspaceFolders:[{uri:key(root)}],registerTextDocumentContentProvider:()=>({dispose(){}})},window:{
+  createWebviewPanel:(_id,title)=>panel={title,webview:{onDidReceiveMessage(f){attach(panel,f);}},onDidDispose(){},dispose(){}}
+ },commands:{}};
  const history=createChangeHistory(vscode,{project:async()=>root});t.after(()=>history.dispose());
  const recent=await history.recent();assert.equal(recent.head,expected);assert.equal(recent.branch,'refs/heads/feature');assert.deepEqual(recent.entries.map(e=>e.label),['Commit: feature 3','Commit: feature 2','Commit: feature 1']);
+ await history.openHistory();
+ assert.equal(panel.title,'Change history · feature');
+ assert.match(panel.webview.html,/Change history · feature · commits 1–4/);
+ assert.match(panel.webview.html,/Commit: feature 3/);
+ assert.match(panel.webview.html,/Commit: base/);
+ assert.doesNotMatch(panel.webview.html,/Commit: main only/);
+ git(root,'checkout','-q','main');
+ await history.openHistory();
+ assert.equal(panel.title,'Change history · main');
+ assert.match(panel.webview.html,/Commit: main only/);
+ assert.match(panel.webview.html,/Commit: base/);
+ assert.doesNotMatch(panel.webview.html,/Commit: feature/);
 });
 
 test('Restore uses the selected server-side commit and rejects stale history',async t=>{
@@ -181,8 +202,8 @@ test('history pages expose older real commits and keep selection and focus bound
  const vscode={ViewColumn:{One:1},Uri:{parse:key,file:key},workspace:{isTrusted:true,workspaceFolders:[{uri:key(root)}],registerTextDocumentContentProvider:()=>({dispose(){}})},window:{createWebviewPanel:()=>{const p={webview:{onDidReceiveMessage(f){attach(p,f);}},onDidDispose(f){p.closed=f;},dispose(){p.closed?.();}};panel=p;return p;},showErrorMessage:async e=>errors.push(e)},commands:{executeCommand:async()=>{}}};
  const history=createChangeHistory(vscode,{project:async()=>root,onRestore:async id=>calls.push(id)});t.after(()=>history.dispose());
  const focus=()=>{const script=/<script nonce="[^"]+">([\s\S]*?)<\/script>/.exec(panel.webview.html)[1];let target;require('node:vm').runInNewContext(script,{acquireVsCodeApi:()=>({postMessage(){}}),document:{addEventListener(){},getElementById:id=>({focus(){target=id;}})}});return target;};
- await history.openHistory();const firstPage=view(panel);assert.match(panel.webview.html,/Change history · commits 1–60/);assert.match(panel.webview.html,new RegExp(ids[0].slice(0,12)));assert.doesNotMatch(panel.webview.html,new RegExp(ids[60].slice(0,12)));assert.match(panel.webview.html,/id="next"/);
- await panel.receive({type:'next'});assert.equal(focus(),'heading');assert.match(panel.webview.html,/Change history · commits 61–65/);await panel.receive({type:'select',index:0,view:firstPage});assert.doesNotMatch(panel.webview.html,/id="selected-commit"/);assert.match(panel.webview.html,new RegExp(ids[60].slice(0,12)));assert.match(panel.webview.html,/id="previous"/);assert.doesNotMatch(panel.webview.html,/id="next"/);
+ await history.openHistory();const firstPage=view(panel);assert.match(panel.webview.html,/Change history · main · commits 1–60/);assert.match(panel.webview.html,new RegExp(ids[0].slice(0,12)));assert.doesNotMatch(panel.webview.html,new RegExp(ids[60].slice(0,12)));assert.match(panel.webview.html,/id="next"/);
+ await panel.receive({type:'next'});assert.equal(focus(),'heading');assert.match(panel.webview.html,/Change history · main · commits 61–65/);await panel.receive({type:'select',index:0,view:firstPage});assert.doesNotMatch(panel.webview.html,/id="selected-commit"/);assert.match(panel.webview.html,new RegExp(ids[60].slice(0,12)));assert.match(panel.webview.html,/id="previous"/);assert.doesNotMatch(panel.webview.html,/id="next"/);
  await panel.receive({type:'select',index:0,id:ids[0]});assert.equal(focus(),'selected-commit');assert.match(panel.webview.html,new RegExp(ids[60]));const oldSelection=view(panel);await panel.receive({type:'restore',id:ids[0]});assert.deepEqual(calls,[ids[60]]);
  await panel.receive({type:'back'});assert.equal(focus(),'item-0');await panel.receive({type:'previous'});assert.equal(focus(),'heading');assert.match(panel.webview.html,new RegExp(ids[0].slice(0,12)));await panel.receive({type:'select',index:0});await panel.receive({type:'restore',view:oldSelection});assert.deepEqual(calls,[ids[60]]);await panel.receive({type:'back'});
  await fs.writeFile(path.join(root,'.git','info','grafts'),`${ids[0]}\n`);await panel.receive({type:'next'});assert.match(errors.at(-1),/ungrafted/i);await fs.unlink(path.join(root,'.git','info','grafts'));
@@ -318,11 +339,13 @@ test('history offers finished-change undo only when the merge is in the current 
  let panel;const undo=[],restore=[],errors=[];const vscode={ViewColumn:{One:1},Uri:{parse:key,file:key},workspace:{isTrusted:true,workspaceFolders:[{uri:key(root)}],registerTextDocumentContentProvider:()=>({dispose(){}})},window:{createWebviewPanel:()=>panel={webview:{onDidReceiveMessage(f){attach(panel,f);}},onDidDispose(){},dispose(){}},showErrorMessage:async message=>errors.push(message)},commands:{executeCommand:async()=>{}}};
  const history=createChangeHistory(vscode,{project:async()=>root,onUndo:async id=>undo.push(id),onRestore:async id=>restore.push(id)},{git:run});t.after(()=>history.dispose());
  const select=async()=>{const match=/<button data-index="(\d+)" id="item-\d+">Merge: finished/.exec(panel.webview.html);assert.ok(match);await panel.receive({type:'select',index:Number(match[1])});};
- await history.openHistory();const oldView=view(panel);await select();assert.doesNotMatch(panel.webview.html,/id="undo"/);assert.match(panel.webview.html,/not in the current branch/);assert.match(panel.webview.html,/Restoring a version is temporarily unavailable/);
- await panel.receive({type:'undo'});await panel.receive({type:'undo',view:oldView});assert.deepEqual(undo,[]);await panel.receive({type:'restore'});assert.deepEqual(restore,[merge]);
+ await history.openHistory();const oldView=view(panel);
+ assert.doesNotMatch(panel.webview.html,/Merge: finished/);
+ await panel.receive({type:'undo'});await panel.receive({type:'restore',id:merge});
+ assert.deepEqual(undo,[]);assert.deepEqual(restore,[]);
  await git('checkout','-q','main');await history.openHistory();await select();assert.match(panel.webview.html,/Undo change is temporarily unavailable/);failure='not-ancestor';await panel.receive({type:'undo'});assert.deepEqual(undo,[]);assert.match(errors.at(-1),/no longer in the current branch/);
  failure=undefined;await panel.receive({type:'undo'});assert.deepEqual(undo,[merge]);
- await history.openHistory();failure='error';await select();assert.doesNotMatch(panel.webview.html,/id="undo"/);assert.match(panel.webview.html,/Undo availability could not be verified/);assert.match(panel.webview.html,/Restoring a version is temporarily unavailable/);await panel.receive({type:'undo'});assert.deepEqual(undo,[merge]);failure=undefined;
+ await history.openHistory();failure='error';await select();assert.doesNotMatch(panel.webview.html,/id="undo"/);assert.match(panel.webview.html,/Undo availability could not be verified/);assert.match(panel.webview.html,/Restoring a version is temporarily unavailable/);await panel.receive({type:'undo',view:oldView});await panel.receive({type:'undo'});assert.deepEqual(undo,[merge]);failure=undefined;
  await history.openHistory();await select();await git('checkout','-q','working');await panel.receive({type:'undo'});assert.deepEqual(undo,[merge]);assert.match(errors.at(-1),/changed/i);
 });
 test('review hands untracked and deleted files to native Source Control and rejects stale selections',async t=>{
