@@ -221,8 +221,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
   const projectFeedback=(entry:{id:string;title:string;repositoryHref:string;playHref?:string;sourceCommit?:string;version?:string})=>(identity?:ReactNode,description?:string,placement?:'details')=>{
     const observed=feedback[entry.id]?.repositoryUrl===entry.repositoryHref?feedback[entry.id]:undefined;
     if (placement==='details') return <HubProjectInfo title={entry.title} available={observed?.site.status==='reachable'}>
-      {showDiscoveryCards ? <>{description&&<p>{description}</p>}{identity}</> :
-        <HubProjectDetails {...entry} feedback={observed} description={description}>{identity}</HubProjectDetails>}
+      <HubProjectDetails {...entry} feedback={observed} description={description} pending={showDiscoveryCards}>{identity}</HubProjectDetails>
     </HubProjectInfo>;
     if(showDiscoveryCards)return null;
     return <HubProjectFeedback {...entry} kind={kind==='game'?'game':'library'} compact={kind==='game'} feedback={observed} metric={projectMetric(entry.id)}>{identity}</HubProjectFeedback>;

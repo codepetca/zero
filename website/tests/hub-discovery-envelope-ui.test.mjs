@@ -59,7 +59,7 @@ test('Projects show the public card before status, then add Play and stars after
   assert.equal(pending.playHref,undefined);
   assert.equal(pending.siteReachable,false);
   assert.equal(pending.feedback(),null);
-  assert.equal(pending.feedback('Author','A game.','details').props.children.type,'fragment');
+  assert.equal(pending.feedback('Author','A game.','details').props.children.props.pending,true);
 
   reply(statuses(h),{schema:1,items:[{...status,stars:4,issuesEnabled:true,site:{status:'reachable'}}]});await tick();
   assert.equal(h.cards(h.render())[0].playHref,undefined);
@@ -68,6 +68,7 @@ test('Projects show the public card before status, then add Play and stars after
   assert.equal(ready.playHref,published.web.url);
   assert.equal(ready.siteReachable,true);
   assert.equal(ready.feedback().props.feedback.stars,4);
+  assert.equal(ready.feedback('Author','A game.','details').props.children.props.pending,false);
   assert.equal(ready.feedback('Author','A game.','details').props.children.props.feedback.issuesEnabled,true);
 });
 
