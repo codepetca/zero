@@ -171,7 +171,10 @@ Set `WORKOS_CLIENT_ID`, `WORKOS_COOKIE_PASSWORD` (at least 32 characters),
 `https://api.workos.com/user_management/<client ID>`, and
 `NEXT_PUBLIC_WORKOS_REDIRECT_URI` to the exact callback URL. The source permits
 the production origin or localhost in development; it rejects a shared cookie
-domain. WorkOS management API keys are not required for this session.
+domain. Configure the WorkOS flag only for the production environment: a
+preview deployment cannot complete the production-origin callback. Set the
+public redirect URI before building, and redeploy after changing environment
+variables. WorkOS management API keys are not required for this session.
 
 The Zero account endpoint exposes only the WorkOS user ID. In managed mode,
 Hub sign-in starts AuthKit. For Hub, Stars and Jams, set `ZERO_HUB_ORIGIN` to
@@ -192,4 +195,9 @@ Hub continues to use the standalone GitHub App flow. The binding lives in the
 browser session and does not create a durable account mapping or alter editor
 GitHub App authorization. This source is opt-in. Live token delivery from the
 pinned App, permissions, hosted session refresh and sign-out remain to be
-verified on the dedicated staging application before activation.
+verified during the production cutover.
+
+For rollback, retain the existing Hub GitHub App callback and secrets, disable
+the WorkOS flag, and redeploy. Users with managed sessions must sign in through
+the legacy GitHub flow; an untouched, unexpired legacy cookie can become valid
+again when managed mode is disabled.

@@ -1,5 +1,7 @@
 import { getWorkOS } from '@workos-inc/authkit-nextjs';
 import { cookies } from 'next/headers';
+import { unsealData } from 'iron-session';
+import { decodeJwt } from 'jose';
 import { cookieHeader, FLOW_COOKIE, readCookie, redirect, SESSION_COOKIE } from '@/lib/hub-github-auth.mjs';
 import { workosConfigured } from '@/lib/workos-config.mjs';
 
@@ -13,10 +15,17 @@ export async function POST(request: Request) {
   let location = new URL('/zero-account', callback).toString();
   if (sessionData) {
     try {
-      const session = getWorkOS().userManagement.loadSealedSession({sessionData,
-        cookiePassword:process.env.WORKOS_COOKIE_PASSWORD!});
-      location = await session.getLogoutUrl();
-    } catch { /* An invalid or expired provider cookie still clears local access. */ }
+      // Match AuthKit signOut: the sealed cookie authenticates the token's
+      // origin, so its SID can be recovered even when the access token expired.
+      const session = await unsealData<{accessToken?: unknown}>(sessionData, {
+        password:process.env.WORKOS_COOKIE_PASSWORD!,
+      });
+      if (typeof session?.accessToken === 'string') {
+        const {sid} = decodeJwt(session.accessToken);
+        if (typeof sid === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(sid))
+          location = getWorkOS().userManagement.getLogoutUrl({sessionId:sid});
+      }
+    } catch { /* An invalid provider cookie still clears local access. */ }
   }
   const jar = await cookies();
   // AuthKit's documented PKCE cookie and its per-flow variants can otherwise

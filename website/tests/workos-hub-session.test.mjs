@@ -4,6 +4,8 @@ import {register} from 'node:module';
 import test from 'node:test';
 import vm from 'node:vm';
 import ts from 'typescript';
+import {sealData, unsealData} from 'iron-session';
+import {SignJWT, decodeJwt} from 'jose';
 import zeroApp from '../../extension/src/github-app/config.json' with {type:'json'};
 import {callbackResponse, hubConfig, loginResponse, logoutResponse, newSession, readSession,
   sessionResponse} from '../lib/hub-github-auth.mjs';
@@ -78,40 +80,45 @@ test('managed mode sends Hub sign-in through AuthKit and blocks fallback to the 
   assert.equal(new URL(denied.headers.get('location')).searchParams.get('github'), 'unavailable');
 });
 
-test('the managed sign-out POST uses a GET redirect and clears both sessions and pending flows', async () => {
+test('managed sign-out recovers an expired session ID from a sealed cookie and clears both sessions', async () => {
   const source = await readFile(new URL('../app/zero-account/sign-out/route.ts',import.meta.url),'utf8');
   const compiled = ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-  const module = {exports:{}};
-  let loads = 0, expired = false;
+  const module = {exports:{}};let logoutCalls = 0;
   const logoutUrl = 'https://api.workos.com/user_management/sessions/logout?session_id=session_Original';
   const modules = {
-    '@workos-inc/authkit-nextjs':{getWorkOS:() => ({userManagement:{loadSealedSession:options => {
-      loads++;
-      assert.equal(options.sessionData, 'opaque-workos-session');
-      assert.equal(options.cookiePassword, env.WORKOS_COOKIE_PASSWORD);
-      return {getLogoutUrl:async () => {if (expired) throw Error('private upstream failure'); return logoutUrl;}};
+    '@workos-inc/authkit-nextjs':{getWorkOS:() => ({userManagement:{getLogoutUrl:({sessionId}) => {
+      logoutCalls++;assert.equal(sessionId,'session_Original');return logoutUrl;
     }}})},
+    'iron-session':{unsealData},'jose':{decodeJwt},
     'next/headers':{cookies:async () => ({getAll:() => [{name:'wos-auth-verifier-flow1'},{name:'unrelated'}]})},
     '@/lib/hub-github-auth.mjs':await import('../lib/hub-github-auth.mjs'),
     '@/lib/workos-config.mjs':{workosConfigured:() => true},
   };
   vm.runInNewContext(compiled,{module,exports:module.exports,require:name => modules[name],process:{env},URL,Response});
-  const post = from => module.exports.POST(new Request(`${origin}/zero-account/sign-out`,{method:'POST',
-    headers:{origin:from,cookie:'zero-workos-session=opaque-workos-session'}}));
-  assert.equal((await post('https://other.test')).status,403);
-  assert.equal(loads,0);
+  const expiredToken = await new SignJWT({sid:'session_Original'}).setProtectedHeader({alg:'HS256'})
+    .setExpirationTime(1).sign(new TextEncoder().encode('synthetic-signing-key-only-32-bytes'));
+  assert.ok(decodeJwt(expiredToken).exp < Math.floor(Date.now()/1000));
+  const seal = async accessToken => sealData({accessToken},{password:env.WORKOS_COOKIE_PASSWORD,ttl:0});
+  const expiredCookie = await seal(expiredToken);
+  const post = (from, cookie = expiredCookie) => module.exports.POST(new Request(`${origin}/zero-account/sign-out`,{method:'POST',
+    headers:{origin:from,cookie:`zero-workos-session=${cookie}`}}));
+  assert.equal((await post('https://other.test')).status,403);assert.equal(logoutCalls,0);
   const response = await post(origin);
-  assert.equal(response.status,303);
-  assert.equal(response.headers.get('location'),logoutUrl);
-  assert.equal(response.headers.get('cache-control'),'no-store');
+  assert.equal(response.status,303);assert.equal(response.headers.get('location'),logoutUrl);
+  assert.equal(response.headers.get('cache-control'),'no-store');assert.equal(logoutCalls,1);
   const removed = response.headers.getSetCookie();
   assert.deepEqual(removed.map(cookie => cookie.split('=')[0]),
     ['zero_hub_gh_session','zero_hub_gh_flow','zero-workos-session','wos-auth-verifier-flow1']);
   assert.ok(removed.every(cookie => cookie.includes('Max-Age=0')));
-  expired = true;
-  const fallback = await post(origin);
-  assert.equal(fallback.headers.get('location'),`${origin}/zero-account`);
-  assert.deepEqual(fallback.headers.getSetCookie(),removed);
+  const badSidToken = await new SignJWT({sid:'session_Original?bad'}).setProtectedHeader({alg:'HS256'})
+    .sign(new TextEncoder().encode('synthetic-signing-key-only-32-bytes'));
+  const foreignCookie = await sealData({accessToken:expiredToken},{password:'different-password-only'.repeat(2),ttl:0});
+  for (const invalid of ['not-a-sealed-cookie',foreignCookie,await seal('invalid-jwt'),await seal(badSidToken)]) {
+    const fallback = await post(origin,invalid);
+    assert.equal(fallback.status,303);assert.equal(fallback.headers.get('location'),`${origin}/zero-account`);
+    assert.deepEqual(fallback.headers.getSetCookie(),removed);
+  }
+  assert.equal(logoutCalls,1);
 });
 
 test('private Hub, Stars and Jams require the same active WorkOS session on every request', async t => {
