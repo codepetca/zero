@@ -57,7 +57,8 @@ Previously accepted operation recovery precedes this admission check.
 ## Service API (jams/service.mjs)
 
 Export `createJamService({store,verifySource,verifyRepository,pagesBindingReader,maintainerIds,now=Date.now,limits?,canCreateJam?})`.
-`canCreateJam(accountId)` is a trusted, synchronous server-only constructor hook;
+`canCreateJam(accountId)` is a trusted server-only constructor hook and may
+return a Boolean or a promise resolving to a Boolean;
 it defaults to deny and requires literal `true`. The HTTP actor is verified by
 immutable numeric GitHub ID, not a claimed browser plan or mutable login. Free
 personal users can join/submit; manual Pro access is required only for new

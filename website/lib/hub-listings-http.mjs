@@ -4,6 +4,7 @@ import {configuredListingsStore, listingLimit, listingPageSize, listingsEnabled}
 import {checkListingToken, listingId, listingReceipt, publicListingPlayUrl, verifyListingPublication} from './hub-listings-verification.mjs';
 import {assertJamVisibilityTime, readJamHubVisibility} from './jam-hub-visibility.mjs';
 import {hubVisibilityDecision, hubTargetVisible} from './hub-project-status.mjs';
+import {configuredEntitlementStore} from './zero-entitlements-store.mjs';
 import {jamsPreviewAvailable} from './jams-visibility.mjs';
 
 const unavailable = () => json({error:'ZeroHub app listings are temporarily unavailable. Try again.'}, 503);
@@ -15,9 +16,23 @@ const pagePurpose = 'listing-page';
 let publicRequests = 0;
 const ownerDto = ({repositoryId, title, pagesUrl, listed, protected:keep}) => ({repositoryId, title, pagesUrl, listed, protected:keep});
 
+// Legacy pilot grants remain independent until the owner migrates them. An
+// unavailable central authority must not silently downgrade an account and
+// trigger replacement of a listing which belongs to a paid/granted allowance.
+async function effectiveListingLimit(account, env, getEntitlementsStore) {
+  const legacy = listingLimit(account, env);
+  if (legacy === 10) return legacy;
+  if (!env.ZERO_ENTITLEMENTS_DATABASE_URL) return legacy;
+  const authority = getEntitlementsStore(env);
+  if (!authority) throw new Error('Entitlement authority unavailable');
+  const decision = await authority.resolve(account);
+  if (![1, 10].includes(decision?.listingLimit)) throw new Error('Invalid entitlement decision');
+  return decision.listingLimit;
+}
+
 export async function hubListingsResponse(request, {
   env = process.env, getStore = configuredListingsStore, tokenOwner = checkListingToken,
-  verify = verifyListingPublication
+  verify = verifyListingPublication, getEntitlementsStore = configuredEntitlementStore
 } = {}) {
   try {
     const store = getStore(env);
@@ -32,7 +47,11 @@ export async function hubListingsResponse(request, {
       const before = new URL(request.url).searchParams.get('before');
       if (before !== null && !listingId(before)) return invalid();
       const page = await store.mine(session.id, before);
-      return json({account:session.id, limit:listingLimit(session.id, env), projects:page.projects.map(ownerDto), next:page.next});
+      // Management does not require an entitlement decision. Keep existing
+      // cards removable during an authority outage without guessing a limit.
+      let limit = null;
+      try { limit = await effectiveListingLimit(session.id, env, getEntitlementsStore); } catch { /* unknown until authority recovers */ }
+      return json({account:session.id, limit, projects:page.projects.map(ownerDto), next:page.next});
     }
     if (request.method !== 'POST') return invalid();
     const signal = AbortSignal.any([request.signal, AbortSignal.timeout(12_000)]);
@@ -60,7 +79,9 @@ export async function hubListingsResponse(request, {
       const publication = await verify(receipt, {account, token, signal});
       if (!publication) return json({error:'The published app could not be verified.'}, 409);
       signal.throwIfAborted();
-      return json(await store.savePublication(account, listingLimit(account, env), publication));
+      const limit = await effectiveListingLimit(account, env, getEntitlementsStore);
+      signal.throwIfAborted();
+      return json(await store.savePublication(account, limit, publication));
     }
     if (!manageActions.has(body?.action) || !listingId(body.repositoryId)) return invalid();
     if (body.action === 'list') {
@@ -69,7 +90,9 @@ export async function hubListingsResponse(request, {
       const publication = await verify(receipt, {account, token, signal});
       if (!publication) return json({error:'The published app could not be verified. Publish it again in Zero.'}, 409);
       signal.throwIfAborted();
-      const result = await store.savePublication(account, listingLimit(account, env), publication, {restore:true});
+      const limit = await effectiveListingLimit(account, env, getEntitlementsStore);
+      signal.throwIfAborted();
+      const result = await store.savePublication(account, limit, publication, {restore:true});
       if (result.status === 'missing') return json({error:'This app is unavailable.'}, 404);
       return json(result);
     }

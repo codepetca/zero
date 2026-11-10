@@ -187,12 +187,16 @@ test('invalid transaction facades and unexpected local CAS rejection fail closed
 });
 
 
-test('queued Pro revocation denies new proposals but transaction recovery precedes entitlement checks',async()=>{
+test('queued Pro revocation denies new proposals but transaction recovery precedes async entitlement checks',async()=>{
   let pro=true,checks=0;
-  const f=fixture({canCreateJam:id=>{assert.equal(context.getStore(),'transaction');checks++;return pro&&id===creator.id;}});
+  const f=fixture({canCreateJam:async id=>{
+    await Promise.resolve();
+    assert.equal(context.getStore(),'transaction');checks++;return pro&&id===creator.id;
+  }});
   const request={actor:creator,operationId:'transaction-pro-grant-001',manifest:hostedManifest()};
   f.store.failAfterCommit=true;
   await assert.rejects(f.service.propose(request),error=>error.status===503);
+  assert.equal(checks,2);
   pro=false;checks=0;
   const recovered=await f.service.propose(request);assert.equal(recovered.status,'approved');assert.equal(checks,0);
   assert.equal((await f.service.settle({actor:creator,scope:'proposals',operationId:request.operationId,payload:{manifest:request.manifest}})).settlement,'applied');
