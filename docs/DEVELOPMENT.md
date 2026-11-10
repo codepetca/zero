@@ -289,8 +289,9 @@ the desktop sidebar and a lesson selector on narrow screens. Sidebar selection
 updates the reading pane and bookmarkable lesson URL; there is no overview landing.
 The tutorial reader shares the approved appearance controls with Downloads.
 The reader, ZeroHub and Docs use the same sidebar and content layout. At 800px
-and below, the reader shows its lesson or guide picker, ZeroHub wraps its links,
-and Docs shows its search and Contents controls above the content pane.
+and below, the reader shows its lesson or guide picker, ZeroHub shows its
+section navigation, and Docs shows its search and Contents controls above
+the content pane.
 
 Docs opens the searchable API. Tutorials contain the learning explanations.
 Setup/new-project help and teacher notes use separate, small reader navigation
@@ -299,9 +300,8 @@ Legacy guide routes resolve through `website/lib/document-navigation.mjs`,
 including chapter bookmarks. Keep migrated destinations and anchors covered by
 `website/tests/document-navigation.test.mjs`. Source guides remain in the kit and
 repository for older links and advanced contributor reference.
-ZeroHub opens Projects by default. Its desktop sidebar contains the title,
-search, Share your work and Projects/Libraries filters. The gallery is on the
-right. Search keeps an inset magnifying glass. Maintained project metadata lives
+ZeroHub opens Projects by default. Its sidebar expands the selected section,
+and search and results appear in the content pane. Maintained project metadata lives
 in `website/content/projects.json`.
 Drawing Pad links to the verified codepetca repository and an actual square
 browser screenshot. It has no Play URL until public hosting is verified.

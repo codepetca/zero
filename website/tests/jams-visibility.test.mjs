@@ -57,23 +57,30 @@ test('one server layout hides discovery, preparation, details and participation;
   }
 });
 
-test('ZeroHub navigation respects feature flags and marks the current pane',async()=>{
+test('ZeroHub expands only the selected section and reserves creation for Pro',async()=>{
   const source=await readFile(new URL('../components/HubNavigation.tsx',import.meta.url),'utf8');
   const component=load(source,{
-    'next/link':{default:({href,children,...props})=>require('react').createElement('a',{href,...props},children)},
-    '@/app/hub/hub.module.css':{default:{}}});
+      'next/link':{default:({href,children,...props})=>require('react').createElement('a',{href,...props},children)},
+      '@/app/hub/hub.module.css':{default:{}}});
   for(const visible of [false,true]) {
-    const html=renderToStaticMarkup(component.HubNavigation({active:'game',showJams:visible,showListings:visible}));
+    const html=renderToStaticMarkup(component.HubNavigation({active:'game',showJams:visible}));
     assert.equal(html.includes('href="/hub/jams"'),visible);
-    assert.equal(html.includes('href="/hub/listings"'),visible);
-    assert.match(html,/href="\/hub\?kind=game" aria-current="page"/);assert.match(html,/href="\/hub\?kind=library"/);
+    assert.match(html,/href="\/hub\?kind=game"/);assert.match(html,/href="\/hub\?kind=library"/);
   }
-  for(const [active,href] of [['share','/hub/share'],['listings','/hub/listings'],['jams','/hub/jams']]) {
-    const html=renderToStaticMarkup(component.HubNavigation({active,showJams:true,showListings:true}));
-    assert.ok(html.includes(`href="${href}" aria-current="page"`));
-    assert.equal(html.match(/aria-current="page"/g)?.length,1);
-  }
-  assert.match(renderToStaticMarkup(component.HubNavigation({active:'jams',showJams:true,showListings:false})),/<a href="\/hub\/jams" aria-current="page">Jams<\/a>/);
+  const render=props=>renderToStaticMarkup(component.HubNavigation({showJams:true,showListings:true,...props}));
+  const rules=render({active:'jams',path:'/hub/jams/rules'});
+  assert.match(rules,/<a href="\/hub\/jams\/rules" aria-current="page">How jams work<\/a>/);
+  assert.doesNotMatch(rules,/\/hub\/jams\/create|Publish an app|Add a library/);
+  assert.match(render({active:'jams',path:'/hub/jams/create',canCreateJam:true}),/aria-current="page">Create a jam/);
+  assert.doesNotMatch(render({active:'game',canCreateJam:true}),/Create a jam|How jams work/);
+  assert.match(render({active:'library',view:'use'}),/aria-current="page">Add a library/);
+  assert.match(render({active:'library',view:'practice'}),/aria-current="location">Libraries/);
+  assert.doesNotMatch(render({active:'library',view:'practice'}),/aria-current="page"/);
+  assert.match(render({active:'game',path:'/hub/listings'}),/aria-current="page">My Projects/);
+  assert.match(render({active:'game',path:'/hub/listings',view:'help'}),/aria-current="page">How app listings work/);
+  assert.doesNotMatch(render({active:'library'}),/My Projects/);
+  assert.match(render({active:'library',view:'mine'}),/aria-current="page">My Libraries/);
+  assert.match(render({active:'share',view:'requests'}),/aria-current="page">Requests and results/);
 });
 
 test('production discovery promotion requires the pilot, service and discovery flags',()=>{

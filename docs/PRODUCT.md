@@ -161,7 +161,7 @@ is explicit and remains gated by hosted library acceptance.
 When app listings are enabled, Zero adds an app to ZeroHub after GitHub Pages
 serves the verified publishing run. Free has one app slot. The manual pilot
 can grant ten. When the slots are full, a new app replaces the first unprotected
-app in the queue. An update keeps its place. In **My Apps**, protect one app
+app in the queue. An update keeps its place. In **My Projects**, protect one app
 with **Do not replace** or use **Move to back** to keep an app in the Hub longer.
 If the only slot is protected, the new app still publishes to GitHub Pages. Clear
 protection and choose **Add to ZeroHub** to give it that slot. Public cards show
@@ -173,8 +173,10 @@ from the library catalog and ZeroJams.
 ## ZeroJams
 
 The ZeroHub sidebar opens **Jams** when discovery is enabled. The directory
-shows Game Jams and App Jams, with search, a type filter and links to each jam's
-rules and schedule. Signed-in accounts with hosting access see **Create a jam**.
+shows Game Jams and App Jams, with search and a type filter. **How jams work**
+opens in the content pane for everyone. Signed-in accounts with hosting access
+also see **Create a jam**. Selecting a jam opens its rules, schedule, gallery
+and the time remaining until submissions close or the gallery opens.
 
 Free personal use includes joining jams and submitting work. A Pro license is
 required to create a jam for up to 100 participants. Licenses are enabled
@@ -404,15 +406,14 @@ bookmarks lead to the corresponding tutorial, help, teacher or repository page.
 ZeroHub opens Projects by default, with Projects and Libraries in the catalog
 navigation. Lesson 11 links directly to the separate practice badge catalog.
 The Zero editor also offers **Browse tutorial practice** in **Libraries and
-games**. A desktop sidebar contains the ZeroHub title, search field, Share your
-work and the catalog navigation, in that order. The gallery sits in the right
-pane. On narrow screens the controls stack above the gallery.
-The sidebar has no vertical divider. A short tagline under the title says
-“Play. Share. Learn.” Below the buttons, a brief description
-explains browser projects, reusable libraries and sharing with Zero. Sharing
-keeps its purple-tinted fill and stronger border. Account actions stay in the
-header; search keeps its magnifying glass, accessible name and “search zerohub”
-placeholder.
+games**. The ZeroHub sidebar shows the section buttons and expands options
+under the selected section. Search, results, forms and guides appear in the
+content pane. On narrow screens the navigation sits above the pane.
+**My Projects** sits under **Projects** and shows the signed-in user's app
+listings. **My Libraries** sits under **Libraries** and shows the libraries
+available in the main catalog under that GitHub account.
+The sidebar keeps the “Play. Share. Learn.” tagline. Account actions stay in
+the header.
 Drawing Pad is a
 maintained Codepet project backed by `codepetca/zero-drawing-pad`, shown alongside
 community projects with a tiny description, square screenshot and GitHub source.

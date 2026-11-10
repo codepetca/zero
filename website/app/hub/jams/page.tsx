@@ -1,7 +1,5 @@
 import {JamDiscovery} from '@/components/JamClient';
-import '@/components/Jam.css';
+import {JamShell} from '@/components/JamShell';
 
-export const metadata = {title:'ZeroJams'};
-export default function Jams() {
-  return <JamDiscovery />;
-}
+export const metadata={title:'ZeroJams'};
+export default function Jams(){return <JamShell><JamDiscovery/></JamShell>;}

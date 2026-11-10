@@ -16,10 +16,14 @@ share the sidebar and content layout. Keep section-specific navigation,
 including the lesson picker, ZeroHub's section links, and the API method
 search and category index.
 
-Owner navigation and wording refinements, 2026-11-10. ZeroHub sidebar links
-switch the content pane in place. **My Apps** shows the signed-in user's apps
-and listing controls beside the same sidebar. Call published work in ZeroHub
-**apps**. Use **app listing** where the copy needs to
+Owner ZeroHub refinement, 2026-11-10. Expand the selected section's options
+under its sidebar button and keep the selected view in the content pane.
+Under **Jams**, show **How jams work** to everyone and **Create a jam** only to
+accounts with hosting access. Keep the sidebar free of the discovery blurb.
+Put **My Projects** under **Projects** and **My Libraries** under **Libraries**.
+
+Owner wording refinement, 2026-11-10. Call published work in ZeroHub **apps**
+in listing controls. Use **app listing** where the copy needs to
 distinguish the public card from the app hosted on GitHub Pages. Use
 **Add to ZeroHub** and **Remove from ZeroHub** for visibility actions.
 

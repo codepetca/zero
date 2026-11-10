@@ -4,7 +4,6 @@ import {useEffect, useRef, useState, type ReactNode} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {dependencySnippet, maintainedPlayLink, playLink, projectSummary, releaseAuthor, releaseImage, releaseSummary, selectMaintainedProjects, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
 import styles from '@/app/hub/hub.module.css';
-import {useHubSearch} from './HubWorkspace';
 import {CodeBlock} from './CodeBlock';
 import {Icon} from './Icon';
 import {loadMetricBatches, metricLabel} from '@/lib/hub-metrics-client.mjs';
@@ -35,7 +34,9 @@ function gameIdentity(release:Release) {
     release.source.commit,release.source.folder,webIdentity(release.web)]);
 }
 type Discovery = {schema:1;maintained:MaintainedProject[];catalog:Catalog|null;catalogError?:string;presentation:Presentation[]};
-export function HubDiscovery({enforceJamVisibility=true, showListings=false}: {enforceJamVisibility?:boolean; showListings?:boolean}) {
+export function HubDiscovery({enforceJamVisibility=true, showListings=false, libraryOwnerId}: {
+  enforceJamVisibility?:boolean;showListings?:boolean;libraryOwnerId?:string;
+}) {
   const query = useSearchParams();
   const requestedKind = query.get('kind') || (query.has('id') || query.has('version') ? 'library' : 'game');
   const kind = requestedKind === 'practice' ? 'practice' : requestedKind === 'game' ? 'game' : 'library';
@@ -43,7 +44,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false}: {e
   const label=practiceOnly?'tutorial practice libraries':kind==='game'?'projects':'libraries';
   const id = query.get('id') || '', version = query.get('version') || '';
   const [catalogResult, setCatalogResult] = useState<{key:string; discovery:Discovery|null; error:string}|null>(null);
-  const search = useHubSearch();
+  const [search, setSearch] = useState('');
   const includeListings = showListings && requestedKind === 'game' && !id && !version;
   const [feedbackResult, setFeedbackResult] = useState<{key:string; items:Record<string,ProjectFeedback>; failed:boolean; gallery?:GalleryAllowance}|null>(null);
   type Metric = {id:string;kind:string;opens?:number|null;projects?:number|null;observedProjects?:number|null;totalProjects?:number|null};
@@ -81,6 +82,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false}: {e
   if (catalog) try {
     if (!['game','library','practice'].includes(requestedKind)) throw new Error('Choose projects, libraries or tutorial practice.');
     releases = selectReleases(catalog, {kind, search, id, version, attributions:releaseAuthors}) as Release[];
+    if(libraryOwnerId)releases=releases.filter(release=>release.kind==='library'&&release.repository.ownerId===libraryOwnerId);
   } catch (failure) {selectionError = failure instanceof Error ? failure.message : 'This release link is invalid.';}
   const feedbackIds = [...new Set([...projects.map(project=>project.id),...releases.filter(release=>release.status==='available').map(release=>release.id)])].join(',');
   const requiresGalleryCheck=enforceJamVisibility&&(projects.length>0||releases.length>0);
@@ -207,7 +209,8 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false}: {e
     return <HubProjectFeedback {...entry} kind={kind==='game'?'game':'library'} compact={kind==='game'} feedback={observed} metric={projectMetric(entry.id)}>{identity}</HubProjectFeedback>;
   };
   return <section className={styles.catalog} aria-labelledby="sharing-heading">
-    <h2 id="sharing-heading" className="sr-only">{practiceOnly?'Tutorial practice':kind === 'game' ? 'Projects' : 'Libraries'}</h2>
+    <h1 id="sharing-heading">{libraryOwnerId?'My Libraries':practiceOnly?'Tutorial practice':kind === 'game' ? 'Projects' : 'Libraries'}</h1>
+      {!id && !version && <div className={styles.search}><Icon name="search" /><input id="sharing-search" type="search" aria-label={libraryOwnerId?'Search my libraries':'Search ZeroHub'} value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder={libraryOwnerId?'Search my libraries':'search zerohub'} /></div>}
     {practiceOnly && <p className="hub-note">These CreditsBadge libraries are copied tutorial work. Similar copies are expected, and each repository keeps its own library identity. Periodic cleanup may remove libraries from the catalog. Your source and any copies already added to projects stay available.</p>}
     {(id || version) && <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {label}</Link></p>}
     <div className={`${styles.cards}${kind==='game'?` ${styles.projectCards}`:''}`}>
@@ -218,7 +221,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false}: {e
     {visibilityPending && <p role="status">Checking project availability…</p>}
     {visibilityFailed && <div role="status"><p>Project availability is unavailable. Try again shortly.</p><button className={styles.retry} onClick={()=>{setFeedbackResult(null);setRetry(value=>value+1);}}>Try again</button></div>}
     {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={()=>setRetry(value=>value+1)}>Try again</button></div> : !catalog ? <p role="status">Loading {label}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
-      {!includeListings && !visibleReleases.length && !visibleProjects.length && !visibilityPending && !visibilityFailed && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${label} match this search.` : `No ${label} are available yet.`}</p>}
+      {!includeListings && !visibleReleases.length && !visibleProjects.length && !visibilityPending && !visibilityFailed && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${label} match this search.` : libraryOwnerId ? 'You have no libraries in the main catalog yet.' : `No ${label} are available yet.`}</p>}
       {visibleReleases.map(release=><HubProjectCard projectId={!practiceOnly&&release.status==='available'?release.id:undefined} key={`${release.id}/${release.version}`} title={release.title} description={releaseSummary(release, projectPreviews)} author={releaseAuthor(release, releaseAuthors)}
         compact={release.kind==='game'} siteReachable={feedback[release.id]?.repositoryUrl===release.repository.url && feedback[release.id]?.site.status==='reachable'} version={release.version} repositoryHref={release.repository.url} image={releaseImage(release, projectPreviews)} playHref={playLink(release)} feedback={!practiceOnly&&release.status==='available'?projectFeedback({id:release.id,title:release.title,repositoryHref:release.repository.url,playHref:playLink(release),sourceCommit:release.source.commit,version:release.version}):undefined}>
         {release.status !== 'available' ? <p role="status">This release has been withdrawn.</p> : release.kind === 'library' ? <details><summary>Use this library</summary>
@@ -231,5 +234,5 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false}: {e
       </HubProjectCard>)}
     </>}
     </div>
-  </section>;
+    </section>;
 }
