@@ -1,5 +1,22 @@
 # Verification
 
+## ZeroHub Jams directory — 2026-11-10
+
+Source `e31ab4781` against `77b89406c` adds **Jams** to the shared ZeroHub
+sidebar and uses the existing server Pro policy for the create action. The
+production directory link has a separate discovery flag.
+
+TypeScript, `npm run check`, whitespace and all 104 focused tests passed.
+Local Chromium with fixture API responses followed **Jams**, searched and
+filtered cards, checked the no-results state, and verified signed-out, Free
+and Pro views. At 390 px, the selected Jams link stayed visible with no
+horizontal overflow and the Pro fixture opened the creation form. This
+used local fixtures without live sign-in or creation. Next.js logged the
+shared smooth-scroll development warning during navigation.
+
+An independent Terra/medium review of the source delta found no actionable
+issues. The change remains local.
+
 ## Game Jam winners — 2026-11-10
 
 Local branch `codex/zerojams-winners` adds host selection and the gallery and
