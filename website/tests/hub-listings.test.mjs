@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {Pool} from 'pg';
 import {hubListingsResponse, hubPublicListingsResponse} from '../lib/hub-listings-http.mjs';
 import {createHubListingsStore} from '../lib/hub-listings-store.mjs';
-import {checkListingToken, verifyListingPublication} from '../lib/hub-listings-verification.mjs';
+import {checkListingToken, readPublicListingDestination, verifyListingPublication} from '../lib/hub-listings-verification.mjs';
 import {hubConfig, newSession} from '../lib/hub-github-auth.mjs';
 import app from '../../extension/src/github-app/config.json' with {type:'json'};
 
@@ -11,7 +11,7 @@ const env = {NODE_ENV:'test', ZERO_HUB_ORIGIN:'http://127.0.0.1:3000', ZERO_HUB_
   ZERO_HUB_GITHUB_CLIENT_SECRET:'fixture-client-secret-only', ZERO_HUB_GITHUB_SESSION_SECRET:'11'.repeat(32)};
 const commit = 'a'.repeat(40);
 const origin = env.ZERO_HUB_ORIGIN;
-const receipt = {repositoryUrl:'https://github.com/student/my-game', repositoryId:'21', runId:'321', commit};
+const receipt = {repositoryUrl:'https://github.com/student/my-game', repositoryId:'21', runId:'321', commit, pagesUrl:'https://student.github.io/my-game/'};
 const token = 'ghu_fixtureToken123456';
 const signal = AbortSignal.timeout(5000);
 
@@ -36,6 +36,7 @@ test('the listing verifier binds the public repository, Pages site, run and live
   assert.equal((await verifyListingPublication(receipt, options)).title, 'my-game');
   assert.equal(await verifyListingPublication(receipt, {...options, account:'7'}), null);
   assert.equal(await verifyListingPublication({...receipt, commit:'b'.repeat(40)}, options), null);
+  assert.equal(await verifyListingPublication({...receipt, pagesUrl:'https://elsewhere.test/'}, options), null);
   marker = commit + '\n322';
   assert.equal(await verifyListingPublication(receipt, options), null);
   assert.equal(await checkListingToken(token, hubConfig(env), signal, async (url, options) => {
@@ -82,17 +83,55 @@ test('public listing reads exclude transferred, newly held and concurrently unli
   let observations = 0;
   const response = await hubPublicListingsResponse(new Request(origin+'/api/hub/listings/discover'), {
     env,
-    getStore:()=>({discover:async()=>({entries,next:null}), stillListed:async projects=>projects.filter(p=>p.order !== '3')}),
+    getStore:()=>({discover:async()=>entries, stillListed:async projects=>projects.filter(p=>p.order !== '3')}),
     visibilityReader:async()=>{
       const fresh = ++observations === 2;
       return {revision:commit, observedAt:Date.now(), isHeld:id=>fresh && id === '24'};
     },
-    destinationReader:async url=>{
-      const entry = entries.find(project=>project.repositoryUrl === url);
-      return {repositoryId:entry.repositoryId, ownerId:entry.order === '2' ? '7' : '6'};
-    }
+    destinationReader:async entry=>entry.order !== '2'
   });
   assert.deepEqual((await response.json()).projects.map(project=>project.id), ['21']);
+});
+
+test('held matches do not create a continuation and GitHub outages are retryable', async () => {
+  const entries = Array.from({length:9}, (_,i)=>({order:String(100-i), repositoryId:String(100-i),
+    repositoryUrl:'https://github.com/student/game-'+i, accountId:'6', title:'game-'+i,
+    author:'student', pagesUrl:'https://student.github.io/game-'+i+'/'}));
+  const url = origin+'/api/hub/listings/discover?q=game';
+  const read = options => hubPublicListingsResponse(new Request(url), {...base, ...options});
+  const base = {env, getStore:()=>({discover:async (order, _search, excluded)=>
+    entries.filter(entry=>(order === null || Number(entry.order) < Number(order)) && !excluded.includes(entry.repositoryId)),
+    stillListed:async items=>items}),
+    visibilityReader:async()=>({revision:commit, observedAt:Date.now(),
+      heldRepositoryIds:()=>['92'], isHeld:id=>id === '92'}),
+    destinationReader:async()=>true};
+  const held = await (await read({})).json();
+  assert.equal(held.projects.length, 8);
+  assert.equal(held.next, null);
+  const visible = await (await read({visibilityReader:async()=>null})).json();
+  assert.equal(visible.projects.length, 8);
+  assert.match(visible.next, /^[A-Za-z0-9_-]{40,}$/);
+  const second = await hubPublicListingsResponse(new Request(url+'&before='+visible.next), {...base, visibilityReader:async()=>null});
+  assert.deepEqual((await second.json()).projects.map(project=>project.id), ['92']);
+  assert.equal((await read({destinationReader:async()=>{throw new Error('rate limited');}})).status, 503);
+});
+
+test('public reads check current Pages metadata and avoid anonymous fallback', async () => {
+  const publicToken = 'github_pat_fixtureOnly1234567890123456';
+  const entry = {...receipt, accountId:'6', pagesUrl:'https://games.example.test/'};
+  const testEnv = {...env, ZERO_HUB_LISTINGS_GITHUB_READ_TOKEN:publicToken};
+  let pages = {public:true, build_type:'workflow', cname:'games.example.test', html_url:entry.pagesUrl};
+  const fetchImpl = async (url, options)=>{
+    assert.equal(options.headers.Authorization, 'Bearer ' + publicToken);
+    assert.equal(options.redirect, 'manual');
+    return url.endsWith('/pages') ? Response.json(pages) : Response.json({
+      id:21, private:false, owner:{id:6,type:'User'}, html_url:receipt.repositoryUrl
+    });
+  };
+  assert.equal(await readPublicListingDestination(entry, {env:testEnv, fetchImpl, signal}), true);
+  pages = {...pages, cname:null, html_url:receipt.pagesUrl};
+  assert.equal(await readPublicListingDestination(entry, {env:testEnv, fetchImpl, signal}), false);
+  await assert.rejects(readPublicListingDestination(entry, {env, fetchImpl, signal}), /read credential/);
 });
 
 const database = process.env.ZERO_HUB_LISTINGS_TEST_DATABASE;
@@ -104,7 +143,7 @@ test('Postgres serializes concurrent replacement, protection transfer, update, m
   const item = (id, run = id) => ({...receipt, repositoryId:String(id), title:'game-'+id,
     repositoryUrl:'https://github.com/student/game-'+id, pagesUrl:'https://student.github.io/game-'+id+'/',
     author:'student', runId:String(run), runCreatedAt:new Date(2026,0,1)});
-  const active = async owner => (await store.mine(owner)).filter(p=>p.listed).map(p=>p.repositoryId);
+  const active = async owner => (await store.mine(owner)).projects.filter(p=>p.listed).map(p=>p.repositoryId);
 
   assert.deepEqual(await store.savePublication(account, 1, item(21)), {status:'listed'});
   await store.manage(account, '21', 'protect');
@@ -127,6 +166,13 @@ test('Postgres serializes concurrent replacement, protection transfer, update, m
   assert.equal(ids.length, 10);
   assert.equal(ids[0], '32');
   assert.ok(ids.includes('31'));
-  assert.deepEqual((await store.mine(pro)).filter(p=>p.protected).map(p=>p.repositoryId), ['32']);
-  assert.equal((await store.discover(null, 'game-33')).entries.length, 0);
+  assert.deepEqual((await store.mine(pro)).projects.filter(p=>p.protected).map(p=>p.repositoryId), ['32']);
+  assert.equal((await store.discover(null, 'game-33', [])).length, 0);
+  for (let id = 60; id <= 83; id++) await store.savePublication(account, 1, item(id));
+  const history = await store.mine(account);
+  assert.equal(history.projects.length, 21);
+  assert.ok(history.next);
+  const older = await store.mine(account, history.next);
+  assert.ok(older.projects.some(project=>project.repositoryId === '21'));
+  assert.deepEqual(older.projects.filter(project=>project.listed).map(project=>project.repositoryId), ['83']);
 });

@@ -542,3 +542,28 @@ test('failed deployment and the saved Open published app action leave ZeroHub al
   await h.api.commands['zero.viewPublishedWeb']();
   assert.equal(listings,1);
 });
+
+test('desktop listing checks availability before acquiring or sending its token', async ()=>{
+  const {createHubPublishListing}=require('../src/hub-publish-listing');
+  let enabled=false, captured=0;
+  const calls=[];
+  const client=createHubPublishListing({
+    capture:async()=>{captured++;return {};},
+    assertCurrentNow:()=>({accountId:'1',accessToken:'ghu_fixtureTokenForTest'})
+  },async (url,options)=>{
+    calls.push({url,options});
+    return url.endsWith('/capability') ? Response.json({enabled}) : Response.json({status:'listed'});
+  });
+  const saved={resume:{repositoryId:3,runId:42,repository:'https://github.com/student/game'},
+    account:'1',sha:'a'.repeat(40),url:'https://student.github.io/game/'};
+  const options={signal:new AbortController().signal,beforeSend:()=>{}};
+  assert.deepEqual(await client(saved, options),{status:'unavailable'});
+  assert.equal(captured,0);
+  assert.equal(calls[0].options.headers,undefined);
+  enabled=true;
+  assert.deepEqual(await client(saved, options),{status:'listed'});
+  assert.equal(captured,1);
+  assert.equal(calls[2].url,'https://zero.codepet.ca/api/hub/listings');
+  assert.equal(JSON.parse(calls[2].options.body).pagesUrl,saved.url);
+  assert.equal(calls[2].options.redirect,'error');
+});

@@ -2,9 +2,13 @@
 
 function createHubPublishListing(authentication, request = globalThis.fetch) {
   return async function listPublication(saved, {signal, beforeSend}) {
-    const {resume, sha, account} = saved;
+    const {resume, sha, account, url} = saved;
     if (!Number.isSafeInteger(resume?.repositoryId) || !Number.isSafeInteger(resume.runId)) return {status:'pending'};
     try {
+      const capability = await request('https://zero.codepet.ca/api/hub/listings/capability', {
+        redirect:'error', signal:AbortSignal.any([signal, AbortSignal.timeout(5000)])
+      });
+      if (!capability.ok || (await capability.json()).enabled !== true) return {status:'unavailable'};
       const ticket = await authentication.capture();
       const session = authentication.assertCurrentNow(ticket);
       if (String(session.accountId) !== String(account)) return {status:'pending'};
@@ -14,7 +18,7 @@ function createHubPublishListing(authentication, request = globalThis.fetch) {
         method:'POST', redirect:'error', signal:AbortSignal.any([signal, AbortSignal.timeout(14_000)]),
         headers:{'Content-Type':'application/json', Authorization:'Bearer ' + session.accessToken},
         body:JSON.stringify({action:'publish', repositoryId:String(resume.repositoryId),
-          repositoryUrl:resume.repository, runId:String(resume.runId), commit:sha})
+          repositoryUrl:resume.repository, runId:String(resume.runId), commit:sha, pagesUrl:url})
       });
       if (response.status === 404) return {status:'unavailable'};
       if (!response.ok) return {status:'pending'};

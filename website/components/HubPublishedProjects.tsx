@@ -15,7 +15,7 @@ export function HubPublishedProjects({search, hasOtherProjects}:{search:string; 
     const controller = new AbortController();
     const params = new URLSearchParams({q:search});
     if (before) params.set('before', before);
-    void fetch('/api/hub/listings/discover?' + params, {cache:'no-store', redirect:'error',
+    const load = () => { void fetch('/api/hub/listings/discover?' + params, {cache:'no-store', redirect:'error',
       signal:AbortSignal.any([controller.signal, AbortSignal.timeout(15_000)])})
       .then(async response => {
         if (!response.ok) throw new Error();
@@ -23,8 +23,10 @@ export function HubPublishedProjects({search, hasOtherProjects}:{search:string; 
         if (!controller.signal.aborted) setPage(result);
       }).catch(() => {
         if (!controller.signal.aborted) setError(true);
-      });
-    return () => controller.abort();
+      }); };
+    const delay = search && !before && retry === 0 ? setTimeout(load, 300) : undefined;
+    if (!delay) load();
+    return () => { clearTimeout(delay); controller.abort(); };
   }, [before, retry, search]);
 
   function changePage(cursor:string|null) {
@@ -37,7 +39,7 @@ export function HubPublishedProjects({search, hasOtherProjects}:{search:string; 
   if (!page) return hasOtherProjects ? null : <p role="status">Checking published projects…</p>;
   return <>
     {page.projects.map(project=><HubProjectCard key={project.id} title={project.title}
-      description="Published with Zero" author={project.author} playHref={project.pagesUrl} repositoryHref={project.repositoryUrl} compact />)}
+      description="GitHub Pages project" author={project.author} playHref={project.pagesUrl} repositoryHref={project.repositoryUrl} compact />)}
     {!page.projects.length && !hasOtherProjects && !page.next && <p role="status">{search.trim() ? 'No projects match this search.' : 'No projects are available yet.'}</p>}
     {(before || page.next) && <div className="resource-links">
       {before && <button className={styles.retry} type="button" onClick={()=>changePage(null)}>First published projects</button>}

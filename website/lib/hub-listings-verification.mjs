@@ -29,8 +29,9 @@ export async function checkListingToken(token, config, signal, fetchImpl = fetch
 export function listingReceipt(input) {
   if (!input || !listingId(input.repositoryId) || !repositoryParts(input.repositoryUrl) ||
       !safeNumber(Number(input.runId)) || typeof input.runId !== 'string' || !listingId(input.runId) ||
-      typeof input.commit !== 'string' || !/^[a-f0-9]{40}$/.test(input.commit)) return null;
-  return {repositoryId:input.repositoryId, repositoryUrl:input.repositoryUrl, runId:input.runId, commit:input.commit};
+      typeof input.commit !== 'string' || !/^[a-f0-9]{40}$/.test(input.commit) ||
+      typeof input.pagesUrl !== 'string' || input.pagesUrl.length > 2048) return null;
+  return {repositoryId:input.repositoryId, repositoryUrl:input.repositoryUrl, runId:input.runId, commit:input.commit, pagesUrl:input.pagesUrl};
 }
 
 export async function verifyListingPublication(receipt, {account, token, signal, fetchImpl = fetch, readPublic = publicReadiness}) {
@@ -60,7 +61,7 @@ export async function verifyListingPublication(receipt, {account, token, signal,
       typeof run.created_at !== 'string' || !Number.isFinite(Date.parse(run.created_at))) return null;
 
   const pagesUrl = safePagesUrl(pages?.html_url, pages?.cname);
-  if (!pagesUrl || pages.public !== true || pages.build_type !== 'workflow' ||
+  if (!pagesUrl || pagesUrl !== receipt.pagesUrl || pages.public !== true || pages.build_type !== 'workflow' ||
       (!pages.cname && pagesUrl !== canonicalPagesUrl(repositoryUrl))) return null;
   const proofUrl = new URL('zero-source-sha.txt', pagesUrl.endsWith('/') ? pagesUrl : pagesUrl + '/');
   // Existing DNS-pinned, no-redirect Pages probe. GitHub credentials never
@@ -71,4 +72,34 @@ export async function verifyListingPublication(receipt, {account, token, signal,
 
   return {...receipt, repositoryUrl, title:repo.name, author:repo.owner.login, pagesUrl,
     runCreatedAt:new Date(run.created_at)};
+}
+
+// Public discovery uses a separate, read-only GitHub credential. Revalidate
+// the current repo and Pages configuration without visiting project domains.
+export async function readPublicListingDestination(entry, {env, signal, fetchImpl = fetch}) {
+  const token = env.ZERO_HUB_LISTINGS_GITHUB_READ_TOKEN;
+  if (typeof token !== 'string' || !/^(?:ghp_|github_pat_)[A-Za-z0-9_]{20,512}$/.test(token))
+    throw new Error('Missing GitHub listing read credential');
+  if (!repositoryParts(entry.repositoryUrl)) return false;
+  const root = apiOrigin + '/repos/' + entry.repositoryUrl.slice('https://github.com/'.length);
+  async function read(suffix = '') {
+    const response = await fetchImpl(root + suffix, {
+      headers:githubApiHeaders(token), redirect:'manual', cache:'no-store', signal
+    });
+    if (response.redirected || response.url && response.url !== root + suffix) {
+      await response.body?.cancel();
+      throw new Error('Unexpected GitHub listing destination');
+    }
+    if (response.status === 200) return boundedJson(response, 65_536);
+    await response.body?.cancel();
+    if ([301, 302, 307, 308, 404, 410].includes(response.status)) return null;
+    throw new Error('GitHub listing destination unavailable');
+  }
+  const pages = await read('/pages');
+  if (pages?.public !== true || pages.build_type !== 'workflow' ||
+      safePagesUrl(pages.html_url, pages.cname) !== entry.pagesUrl) return false;
+  const repo = await read();
+  return repo?.private === false && safeNumber(repo.id) && String(repo.id) === entry.repositoryId &&
+    repo.owner?.type === 'User' && safeNumber(repo.owner.id) && String(repo.owner.id) === entry.accountId &&
+    typeof repo.html_url === 'string' && repo.html_url.toLowerCase() === entry.repositoryUrl.toLowerCase();
 }

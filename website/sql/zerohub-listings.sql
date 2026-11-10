@@ -25,6 +25,8 @@ CREATE UNIQUE INDEX one_protected_project
   ON zero_hub_listings.projects (account_id) WHERE protected;
 CREATE INDEX account_queue
   ON zero_hub_listings.projects (account_id, queue_position) WHERE queue_position IS NOT NULL;
+CREATE INDEX unlisted_projects
+  ON zero_hub_listings.projects (account_id, repository_id DESC) WHERE queue_position IS NULL;
 CREATE UNIQUE INDEX discovery_order
   ON zero_hub_listings.projects (listed_order DESC) WHERE listed_order IS NOT NULL;
 COMMIT;

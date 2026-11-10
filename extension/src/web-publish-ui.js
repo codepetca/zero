@@ -73,11 +73,14 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
       listingMessage = typeof result.replaced === 'string' ? `Listed on ZeroHub, replacing ${result.replaced}` : 'Listed on ZeroHub';
     } else if (result.status === 'unlisted') {
       listingMessage = result.reason === 'protected' ? 'Your protected listing was kept' : 'App is unlisted on ZeroHub';
-    } else if (result.status === 'pending') {
-      listingMessage = 'ZeroHub listing pending';
+    } else if (result.status === 'pending' || result.status === 'unavailable') {
+      listingMessage = result.status === 'pending' ? 'ZeroHub listing pending' : 'ZeroHub listings unavailable';
     }
-    if (listingMessage) output?.appendLine(`${listingMessage}. Manage listings at https://zero.codepet.ca/hub/listings`);
-    lastLive = {...saved, listingPending:result.status === 'pending' || result.status === 'unavailable', listingMessage};
+    const retry = result.status === 'pending' || result.status === 'unavailable';
+    if (listingMessage) output?.appendLine(retry
+      ? `${listingMessage}. Choose Publish & open app to retry.`
+      : `${listingMessage}. Manage listings at https://zero.codepet.ca/hub/listings`);
+    lastLive = {...saved, listingPending:retry, listingMessage};
     await workspaceState?.update('zero.webPublish.lastLive', lastLive);
     return lastLive;
   }
@@ -219,7 +222,7 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
           consent.account === review.account && consent.repository === review.repository && consent.url === review.publicUrl;
         if(!sameDestination || listPublication && !listingNotice) {
           clearProgress();
-          const notice = listPublication ? ' Zero will also try to list the app on ZeroHub. At your limit it replaces the oldest eligible listing.' : '';
+          const notice = listPublication ? ' When available, Zero will also list the app on ZeroHub. At your limit it replaces the oldest eligible listing.' : '';
           const chosen=await vscode.window.showInformationMessage('Publish this app publicly?',{modal:true,detail:`Your app and included assets will be public.${notice}\n${review.publicUrl || (review.repository + ' → GitHub Pages')}`},'Publish app');
           if(chosen!=='Publish app')return;
           await stillCurrent(expected);

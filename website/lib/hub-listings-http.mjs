@@ -1,7 +1,6 @@
-import {boundedJson, equalSecret, hubConfig, json, readSession, sameOrigin} from './hub-github-auth.mjs';
-import {configuredListingsStore, listingLimit} from './hub-listings-store.mjs';
-import {checkListingToken, listingId, listingReceipt, verifyListingPublication} from './hub-listings-verification.mjs';
-import {readJamDestinationBinding} from './jam-destination-binding.mjs';
+import {boundedJson, equalSecret, hubConfig, json, readSession, sameOrigin, seal, unseal} from './hub-github-auth.mjs';
+import {configuredListingsStore, listingLimit, listingPageSize, listingsEnabled} from './hub-listings-store.mjs';
+import {checkListingToken, listingId, listingReceipt, readPublicListingDestination, verifyListingPublication} from './hub-listings-verification.mjs';
 import {assertJamVisibilityTime, readJamHubVisibility} from './jam-hub-visibility.mjs';
 import {hubVisibilityDecision, hubTargetVisible} from './hub-project-status.mjs';
 
@@ -10,6 +9,8 @@ const authRequired = () => json({error:'Sign in with GitHub to manage your listi
 const invalid = () => json({error:'Invalid listing request.'}, 400);
 const validCursor = value => listingId(value) && BigInt(value) <= 9223372036854775807n;
 const manageActions = new Set(['protect', 'unprotect', 'move', 'unlist', 'list']);
+const pagePurpose = 'listing-page';
+let publicRequests = 0;
 const ownerDto = ({repositoryId, title, pagesUrl, listed, protected:keep}) => ({repositoryId, title, pagesUrl, listed, protected:keep});
 
 export async function hubListingsResponse(request, {
@@ -26,7 +27,10 @@ export async function hubListingsResponse(request, {
     const session = desktop ? null : readSession(request, config);
     if (request.method === 'GET') {
       if (!session) return authRequired();
-      return json({account:session.id, limit:listingLimit(session.id, env), projects:(await store.mine(session.id)).map(ownerDto)});
+      const before = new URL(request.url).searchParams.get('before');
+      if (before !== null && !listingId(before)) return invalid();
+      const page = await store.mine(session.id, before);
+      return json({account:session.id, limit:listingLimit(session.id, env), projects:page.projects.map(ownerDto), next:page.next});
     }
     if (request.method !== 'POST') return invalid();
     const signal = AbortSignal.any([request.signal, AbortSignal.timeout(12_000)]);
@@ -73,33 +77,59 @@ export async function hubListingsResponse(request, {
   } catch { return unavailable(); }
 }
 
+export function hubListingCapabilityResponse(env = process.env) {
+  return json({enabled:listingsEnabled(env) && !!env.ZERO_HUB_LISTINGS_DATABASE_URL &&
+    !!env.ZERO_HUB_LISTINGS_GITHUB_READ_TOKEN && !!hubConfig(env)});
+}
+
 export async function hubPublicListingsResponse(request, {
   env = process.env, getStore = configuredListingsStore, visibilityReader = readJamHubVisibility,
-  destinationReader = readJamDestinationBinding
+  destinationReader = readPublicListingDestination
 } = {}) {
+  if (publicRequests >= 4) return unavailable();
+  publicRequests++;
   try {
     const store = getStore(env);
     if (!store) return json({projects:[], next:null});
+    const config = hubConfig(env);
+    if (!config) return unavailable();
     const params = new URL(request.url).searchParams;
     const before = params.get('before'), search = (params.get('q') ?? '').trim();
-    if ((before !== null && !validCursor(before)) || search.length > 200) return invalid();
+    const cursor = before === null ? null : unseal(before, pagePurpose, config);
+    if (search.length > 200 || before !== null && (!validCursor(cursor?.order) || cursor.search !== search)) return invalid();
+
     const signal = AbortSignal.any([request.signal, AbortSignal.timeout(12_000)]);
     const visibility = await hubVisibilityDecision({env, signal, visibilityReader});
     const visible = (entry, decision) => hubTargetVisible({kind:'game', repositoryId:entry.repositoryId}, decision);
-    const page = await store.discover(before, search);
-    const observed = await Promise.all(page.entries.filter(entry => visible(entry, visibility)).map(async entry => {
-      try {
-        const binding = await destinationReader(entry.repositoryUrl, {signal});
-        return binding.repositoryId === entry.repositoryId && binding.ownerId === entry.accountId ? entry : null;
-      } catch { return null; }
-    }));
-    const current = await store.stillListed(observed.filter(Boolean));
+    const excluded = visibility?.heldRepositoryIds?.() ?? [];
+    let order = cursor?.order ?? null;
+    let exhausted = false;
+    const observed = [];
+    // Find one extra authorized result before advertising another page.
+    // Neither the count of hidden matches nor a raw row cursor leaves the server.
+    for (let attempt = 0; attempt < 4 && !exhausted && observed.length <= listingPageSize; attempt++) {
+      const candidates = await store.discover(order, search, excluded);
+      exhausted = candidates.length <= listingPageSize;
+      order = candidates.at(-1)?.order;
+      for (let offset = 0; offset < candidates.length && observed.length <= listingPageSize; offset += 4) {
+        signal.throwIfAborted();
+        const checked = await Promise.all(candidates.slice(offset, offset+4).map(async entry =>
+          visible(entry, visibility) && await destinationReader(entry, {env, signal}) ? entry : null));
+        observed.push(...checked.filter(Boolean));
+      }
+    }
+    if (!exhausted && observed.length <= listingPageSize) return unavailable();
+    const current = await store.stillListed(observed);
     const fresh = await hubVisibilityDecision({env, signal, visibilityReader});
     if ((visibility === null) !== (fresh === null)) return unavailable();
     assertJamVisibilityTime(fresh, Date.now, env);
     signal.throwIfAborted();
-    return json({projects:current.filter(entry => visible(entry, fresh)).map(entry => ({
+    const authorized = current.filter(entry => visible(entry, fresh));
+    if (!exhausted && authorized.length <= listingPageSize) return unavailable();
+    const page = authorized.slice(0, listingPageSize);
+    return json({projects:page.map(entry => ({
       id:entry.repositoryId, title:entry.title, author:entry.author, repositoryUrl:entry.repositoryUrl, pagesUrl:entry.pagesUrl
-    })), next:page.next});
+    })), next:authorized.length > listingPageSize ? seal({order:page.at(-1).order, search}, pagePurpose, config) : null});
   } catch { return unavailable(); }
+  finally { publicRequests--; }
 }

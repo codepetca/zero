@@ -150,11 +150,18 @@ URL and enable `ZERO_HUB_LISTINGS_ENABLED=1`. The runtime requires verified
 TLS. Local development and tests can use Postgres at `127.0.0.1`. Never
 put this URL in a public environment variable.
 
+Set `ZERO_HUB_LISTINGS_GITHUB_READ_TOKEN` to a dedicated GitHub credential
+with public repository and Pages read access. Public discovery checks current
+ownership and Pages configuration using this credential. It has no anonymous
+fallback. Verify its permissions and quota in a pilot before activation.
+
 The existing Zero GitHub App and ZeroHub browser authentication configuration
-verify publishing and management. The optional server-only
+verify publishing and management. An editor checks listing availability before
+it sends the publishing receipt and its GitHub access token. The optional server-only
 `ZERO_HUB_LISTINGS_PRO_GITHUB_IDS` list grants ten ordinary listings to the
 specified verified numeric account IDs. This is a manual listing pilot grant.
-ZeroJams hosting has its own entitlement. Leave the listing flag off until
+ZeroJams hosting has its own entitlement. If a listing pilot grant is removed,
+existing cards stay visible while the owner trims the queue to the Free limit. Leave the listing flag off until
 the database and both browser and desktop acceptance are ready.
 
 To exercise real transactions, apply the SQL to a disposable local database

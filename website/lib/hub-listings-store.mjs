@@ -113,21 +113,27 @@ export function createHubListingsStore(pool) {
     return row ? project(row) : null;
   }
 
-  async function mine(account) {
-    const {rows} = await pool.query(`SELECT ${fields} FROM ${table} WHERE account_id=$1
-      ORDER BY queue_position NULLS LAST, run_created_at DESC, repository_id LIMIT 50`, [account]);
-    return rows.map(project);
+  async function mine(account, before = null) {
+    const {rows} = await pool.query(`SELECT * FROM (
+      SELECT ${fields} FROM ${table} WHERE account_id=$1 AND queue_position IS NOT NULL
+      UNION ALL
+      (SELECT ${fields} FROM ${table}
+        WHERE account_id=$1 AND queue_position IS NULL AND ($2::text IS NULL OR repository_id < $2)
+        ORDER BY repository_id DESC LIMIT 21)
+      ) listing ORDER BY queue_position NULLS LAST, repository_id DESC`, [account, before]);
+    const firstUnlisted = rows.findIndex(row => row.queue_position === null);
+    const more = firstUnlisted !== -1 && rows.length - firstUnlisted > 20;
+    if (more) rows.pop();
+    return {projects:rows.map(project), next:more ? rows.at(-1).repository_id : null};
   }
 
-  async function discover(before, search) {
+  async function discover(before, search, excluded) {
     const {rows} = await pool.query(`SELECT account_id, ${fields} FROM ${table} WHERE listed_order IS NOT NULL
       AND ($1::bigint IS NULL OR listed_order < $1)
       AND ($2 = '' OR strpos(lower(title || ' ' || author), lower($2)) > 0)
-      ORDER BY listed_order DESC LIMIT $3`, [before, search, listingPageSize + 1]);
-    return {
-      entries:rows.slice(0, listingPageSize).map(row => ({...project(row), accountId:row.account_id, order:row.listed_order})),
-      next:rows.length > listingPageSize ? rows[listingPageSize - 1].listed_order : null
-    };
+      AND repository_id <> ALL($3::text[])
+      ORDER BY listed_order DESC LIMIT $4`, [before, search, excluded, listingPageSize + 1]);
+    return rows.map(row => ({...project(row), accountId:row.account_id, order:row.listed_order}));
   }
 
   async function stillListed(entries) {

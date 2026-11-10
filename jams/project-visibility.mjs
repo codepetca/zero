@@ -42,7 +42,7 @@ export async function projectVisibility(snapshot, now) {
         for (const entry of history) if (entry.repository) held.add(entry.repository.id);
       }
     }
-    return Object.freeze({revision:snapshot.revision, observedAt:now, isHeld(repositoryId) {
+    return Object.freeze({revision:snapshot.revision, observedAt:now, heldRepositoryIds:()=>Object.freeze([...held]), isHeld(repositoryId) {
       if (typeof repositoryId !== 'string' || !ACCOUNT.test(repositoryId)) fail(503,'Project visibility is unavailable.');
       return held.has(repositoryId);
     }});

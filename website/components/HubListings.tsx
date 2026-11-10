@@ -6,10 +6,11 @@ import styles from '@/app/hub/hub.module.css';
 
 type Listing = {repositoryId:string; title:string; pagesUrl:string; listed:boolean; protected:boolean};
 type Action = 'protect' | 'unprotect' | 'move' | 'unlist' | 'list';
-type Listings = {account:string; limit:number; projects:Listing[]};
+type Listings = {account:string; limit:number; projects:Listing[]; next:string|null};
 
-async function requestListings(signal?:AbortSignal) {
-  const response = await fetch('/api/hub/listings', {cache:'no-store', redirect:'error', signal});
+async function requestListings(before:string|null, signal?:AbortSignal) {
+  const query = before ? '?' + new URLSearchParams({before}) : '';
+  const response = await fetch('/api/hub/listings' + query, {cache:'no-store', redirect:'error', signal});
   if (!response.ok) throw new Error('Your listings could not be loaded.');
   return await response.json() as Listings;
 }
@@ -19,18 +20,20 @@ function MyListings({account, csrfToken}:{account:string; csrfToken:string}) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [retry, setRetry] = useState(0);
+  const [before, setBefore] = useState<string|null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const controller = new AbortController();
     const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]);
-    void requestListings(signal).then(result => {
+    void requestListings(before, signal).then(result => {
       if (result.account !== account) throw new Error();
-      setData(result);
+      if (!controller.signal.aborted) setData(result);
     }).catch(() => {
       if (!controller.signal.aborted) setMessage('Your listings could not be loaded.');
-    });
+    }).finally(()=>{if (!controller.signal.aborted) setLoading(false);});
     return () => controller.abort();
-  }, [account, retry]);
+  }, [account, before, retry]);
 
   async function manage(project:Listing, action:Action) {
     setBusy(true);
@@ -43,7 +46,7 @@ function MyListings({account, csrfToken}:{account:string; csrfToken:string}) {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Your listing could not be updated.');
-      const current = await requestListings(AbortSignal.timeout(10_000));
+      const current = await requestListings(before, AbortSignal.timeout(10_000));
       if (current.account !== account) throw new Error('Sign in again to see your listings.');
       setData(current);
       setMessage(result.status === 'unlisted'
@@ -61,11 +64,17 @@ function MyListings({account, csrfToken}:{account:string; csrfToken:string}) {
   }
 
   function action(project:Listing, name:Action, label:string, disabled=false) {
-    return <button className={styles.retry} type="button" disabled={busy || disabled}
+    return <button className={styles.retry} type="button" disabled={loading || busy || disabled}
       aria-label={`${label} ${project.title}`} onClick={()=>void manage(project, name)}>{label}</button>;
   }
+  function changePage(cursor:string|null) {
+    setLoading(true);
+    setMessage('');
+    setBefore(cursor);
+  }
+
   if (!data) return <div role="status">{message || 'Loading your listings…'} {message &&
-    <button type="button" className={styles.retry} onClick={()=>{setMessage(''); setRetry(value=>value+1);}}>Try again</button>}</div>;
+    <button type="button" className={styles.retry} onClick={()=>{setLoading(true);setMessage('');setRetry(value=>value+1);}}>Try again</button>}</div>;
   const active = data.projects.filter(project=>project.listed);
   const unlisted = data.projects.filter(project=>!project.listed);
   return <>
@@ -83,6 +92,10 @@ function MyListings({account, csrfToken}:{account:string; csrfToken:string}) {
     {unlisted.length > 0 && <><h2>Unlisted projects</h2><ul>{unlisted.map(project=><li key={project.repositoryId}>
       <a href={project.pagesUrl}>{project.title}</a> {action(project,'list','List on ZeroHub')}
     </li>)}</ul></>}
+    {(before || data.next) && <div className="resource-links">
+      {before && <button className={styles.retry} disabled={loading || busy} type="button" onClick={()=>changePage(null)}>First unlisted projects</button>}
+      {data.next && <button className={styles.retry} disabled={loading || busy} type="button" onClick={()=>changePage(data.next)}>More unlisted projects</button>}
+    </div>}
   </>;
 }
 
