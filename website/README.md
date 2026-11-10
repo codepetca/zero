@@ -176,8 +176,7 @@ preview deployment cannot complete the production-origin callback. Set the
 public redirect URI before building, and redeploy after changing environment
 variables. WorkOS management API keys are not required for this session.
 
-The Zero account endpoint returns the WorkOS user ID and, when present, the
-numeric ID from the GitHub avatar URL. In managed mode,
+The Zero account endpoint exposes only the WorkOS user ID. In managed mode,
 Hub sign-in starts AuthKit. For Hub, Stars and Jams, set `ZERO_HUB_ORIGIN` to
 the exact WorkOS callback origin and configure the existing Hub GitHub App
 client ID, client secret and session key. The dedicated WorkOS integration must
