@@ -10,7 +10,7 @@ Create an original game project and give it a welcome screen. Your screen will h
 
 ## 2. Make a canvas
 
-Replace the contents of `Main.java` with the code below. Save and click **Run App**. You should see a dark canvas with a moon and a title. Stop the app before changing code and run again after each checkpoint.
+Replace the contents of `Main.java` with the code below. Save and click **Run**. You should see a dark canvas with a moon and a title. Stop the app before changing code and run again after each checkpoint.
 
 ```java
 import zero.Color;
