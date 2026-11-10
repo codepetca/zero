@@ -50,9 +50,11 @@ function snapshotFor(row){
   }};
 }
 
-/** `transact` callbacks may await ONLY transaction-local facade calls and pure,
- * bounded work. Never do network, provider verification, I/O or unbounded work
- * while holding the global row lock. A callback timeout invalidates its facade;
+/** `transact` callbacks may await transaction-local facade calls and pure,
+ * bounded work. The sole external-I/O exception is the separately configured,
+ * time-bounded central entitlement check for new proposals. Do not add other
+ * network or provider verification while holding the global row lock. A slow
+ * entitlement check can delay unrelated writes until its deadline. A callback timeout invalidates its facade;
  * late continuations cannot mutate the transaction. The absolute client-side
  * deadline bounds the caller, not server-side execution or physical connection
  * reclamation. In particular, a dispatched COMMIT may still complete later.
