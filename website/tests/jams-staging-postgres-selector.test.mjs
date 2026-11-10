@@ -35,6 +35,7 @@ function fakePool(){
 
 test('one session pool uses explicit TLS and fixed staging SQL; request tokens stay isolated',async()=>{
   const env=config(),{db,pool}=fakePool(),tokens=[];let builds=0,options;
+  env.ZERO_JAMS_PRO_GITHUB_IDS='22';env.ZERO_JAMS_ADDITIONAL_PRO_GITHUB_IDS='11';
   const fetchImpl=async(url,init)=>{
     tokens.push(init.headers.Authorization);const login=new URL(url).pathname.split('/')[2],id=login==='student1'?33:34;
     return Response.json({id:1000+id,private:false,visibility:'public',owner:{id,type:'User'},full_name:`${login}/project`});
@@ -51,6 +52,8 @@ test('one session pool uses explicit TLS and fixed staging SQL; request tokens s
   assert.deepEqual(tokens,['Bearer synthetic-visitor-111','Bearer synthetic-visitor-222']);assert.equal((await first.visibilityReader()).isHeld('1034'),true);
   assert.equal(first.jamOptions.service,first.service);assert.equal(first.hubOptions.visibilityReader,first.visibilityReader);
   assert.notEqual(first.jamOptions.env,env);assert.equal(first.jamOptions.env,first.hubOptions.env);
+  assert.equal(first.jamOptions.env.ZERO_JAMS_ADDITIONAL_PRO_GITHUB_IDS,'11');
+  assert.equal(Object.keys(first.jamOptions.env).includes('ZERO_JAMS_ADDITIONAL_PRO_GITHUB_IDS'),false);
   assert.equal(first.jamOptions.env.ZERO_JAMS_STAGING_PG_URI,undefined);assert.equal(first.hubOptions.env.ZERO_JAMS_STAGING_PG_CA_PEM,undefined);
   assert.equal(first.jamOptions.env.ZERO_JAMS_PRIVATE_KEY,undefined);assert.equal(JSON.stringify(first.jamOptions).includes(secret),false);assert.equal(JSON.stringify(first.hubOptions).includes('BEGIN CERTIFICATE'),false);
   env.ZERO_JAMS_ENABLED='0';assert.equal((await second.visibilityReader()).isHeld('1033'),true);

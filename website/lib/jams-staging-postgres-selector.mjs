@@ -96,7 +96,7 @@ export function createStagingPostgresAuthoritySelector({env=process.env,now=Date
   // options neither retain the original env object nor serialize credentials.
   // App signing material and ALL staging connection settings are omitted.
   const facade={};
-  for(const key of ['NODE_ENV','ZERO_JAMS_ENABLED','ZERO_JAMS_PRO_GITHUB_IDS','ZERO_HUB_ORIGIN','ZERO_HUB_GITHUB_CLIENT_ID','ZERO_HUB_GITHUB_CLIENT_SECRET','ZERO_HUB_GITHUB_SESSION_SECRET','ZERO_SHARING_CATALOG_URL','ZERO_SHARING_REGISTRY_URL','ZERO_SHARING_ARTIFACT_ORIGIN']){
+  for(const key of ['NODE_ENV','ZERO_JAMS_ENABLED','ZERO_JAMS_PRO_GITHUB_IDS','ZERO_JAMS_ADDITIONAL_PRO_GITHUB_IDS','ZERO_HUB_ORIGIN','ZERO_HUB_GITHUB_CLIENT_ID','ZERO_HUB_GITHUB_CLIENT_SECRET','ZERO_HUB_GITHUB_SESSION_SECRET','ZERO_SHARING_CATALOG_URL','ZERO_SHARING_REGISTRY_URL','ZERO_SHARING_ARTIFACT_ORIGIN']){
     Object.defineProperty(facade,key,{get(){guard();return env[key];},enumerable:false});
   }
   Object.freeze(facade);

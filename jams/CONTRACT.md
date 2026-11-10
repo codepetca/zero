@@ -63,9 +63,10 @@ immutable numeric GitHub ID, not a claimed browser plan or mutable login. Free
 personal users can join/submit; manual Pro access is required only for new
 creations. New Pro jams are automatically approved; historical pending proposals
 retain their review flow. Hosted/local composition uses the server-only
-`ZERO_JAMS_PRO_GITHUB_IDS` allowlist; missing or invalid configuration denies all
-new creation. No account grant list is returned and no billing/subscription
-verification is implemented. See the operator guide for strict format and bounds.
+`ZERO_JAMS_PRO_GITHUB_IDS` and optional independent
+`ZERO_JAMS_ADDITIONAL_PRO_GITHUB_IDS` allowlists; each missing or invalid list
+grants nobody, and an account must appear in a valid list. No account grant list
+is returned and no billing/subscription verification is implemented. See the operator guide for strict format and bounds.
 
 Accepted/fenced proposal recovery precedes the entitlement check inside the
 transaction; new-write admission checks it again immediately before CAS and on
