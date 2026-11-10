@@ -38,7 +38,7 @@ test('Undo integration confirms the exact local plan, guards changes, and serial
   return oldLoad.call(this,id,...args);
  };
  let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
- const subscriptions=[],provider=appSessions(vscode,{dispose(){},async removeSession(){}}),repositories={async checkSetup(){return {};}};t.after(()=>subscriptions.forEach(x=>x.dispose()));extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{repositoryLedgerFactory:options=>({...require('./fixtures/repository-ledger').repositoryLedgerFactory(options),supportsFileLedger:async()=>durable}),provider,repositories});
+ const subscriptions=[],provider=appSessions(vscode,{dispose(){},async removeSession(){}}),repositories={async checkSetup(){return {};}};t.after(()=>subscriptions.forEach(x=>x.dispose()));extension.activate({extensionMode:2,subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{env:{},repositoryLedgerFactory:options=>({...require('./fixtures/repository-ledger').repositoryLedgerFactory(options),supportsFileLedger:async()=>durable}),provider,repositories});
  assert.equal(typeof onUndo,'function');const id='a'.repeat(40);
  mode='simulation';await onUndo(id);assert.equal(previews.length,0);assert.match(warnings.at(-1).text,/Simulation only/);mode='live';warnings.length=0;
  await assert.rejects(onUndo(id),/temporarily unavailable.*files and commits are kept/i);
@@ -61,7 +61,7 @@ test('Undo integration confirms the exact local plan, guards changes, and serial
  durable=false;const beforeUnsupported=previews.length;await assert.rejects(onUndo(id),/requires shared durable sync reminders/);assert.equal(previews.length,beforeUnsupported,'Router compatibility mode refuses before inverse preparation');assert.equal(applied.length,3);durable=true;
  subscriptions.splice(0).forEach(item=>item.dispose());
  const hidden={root,branch:'other',head:'d'.repeat(40),remote:'',type:'local'},hiddenKey=`zero.localCommitPending:${root}:other`,memory=new Map([[hiddenKey,hidden]]);
- extension.activate({subscriptions,workspaceState:{get:key=>memory.get(key),update:async(key,value)=>memory.set(key,value)}},{repositoryLedgerFactory:()=>undefined,provider,repositories});
+ extension.activate({extensionMode:2,subscriptions,workspaceState:{get:key=>memory.get(key),update:async(key,value)=>memory.set(key,value)}},{env:{},repositoryLedgerFactory:()=>undefined,provider,repositories});
  await assert.rejects(onUndo(id),/requires shared durable sync reminders/);assert.equal(previews.length,beforeUnsupported,'Non-enumerable Memento cannot authorize a committed correction');assert.equal(applied.length,3);assert.deepEqual(memory.get(hiddenKey),hidden);assert.ok(![...memory.values()].some(record=>record?.operation==='undo'));assert.ok(!transportCalls.some(call=>/network|push/i.test(call)));
  });
 });

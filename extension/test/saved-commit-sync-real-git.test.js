@@ -65,7 +65,7 @@ async function harness(t,scenario,{missing=false,branch='main'}={}) {
     return id==='vscode'?textInputs(vscode):load.call(this,id,...args);
   };
   let extension;try{extension=require('../src/extension');}finally{Module._load=load;}
-  extension.activate({subscriptions,workspaceState:state},{provider:appSessions(vscode,{dispose(){}}),repositories:{checkSetup:async()=>({}),access:async()=>({repository:{id:12},installation:{id:99}})}});
+  extension.activate({extensionMode:2,subscriptions,workspaceState:state},{env:{},provider:appSessions(vscode,{dispose(){}}),repositories:{checkSetup:async()=>({}),access:async()=>({repository:{id:12},installation:{id:99}})}});
   const webview={html:'',onDidReceiveMessage:disposable};provider.resolveWebviewView({webview,onDidDispose:disposable});
   await waitFor(()=>webview.html.includes(missing?'data-branch-state="remote-missing"':'data-branch-state="local-ahead"'));
   const activeRecords=async()=>{

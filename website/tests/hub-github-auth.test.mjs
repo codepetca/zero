@@ -16,7 +16,7 @@ const cookiePair = setCookie => setCookie.split(';')[0];
 const withCookie = (url, cookie, headers = {}) => new Request(url, {headers: {Cookie: cookie, ...headers}});
 
 test('configuration is explicit and local HTTP is limited to non-Vercel development or test', async () => {
-  assert.equal((await sessionResponse(new Request('http://127.0.0.1:3000'), {}).json()).configured, false);
+  assert.equal((await (await sessionResponse(new Request('http://127.0.0.1:3000'), {})).json()).configured, false);
   assert.equal(hubConfig({...env, VERCEL: '1'}), null);
   assert.equal(hubConfig({...env, ZERO_HUB_ORIGIN: 'http://evil.example'}), null);
   assert.equal(hubConfig({...env, ZERO_HUB_GITHUB_SESSION_SECRET: 'weak'}), null);
@@ -80,9 +80,9 @@ test('callback checks state before exchanging code, clears flow, and sanitizes f
   assert.equal(good.headers.getSetCookie().length, 2);
   assert.doesNotMatch(good.headers.get('location'), /ghu_|csrf|secret/);
   const sessionCookie = cookiePair(good.headers.getSetCookie().find(value => value.startsWith(SESSION_COOKIE)));
-  const session = readSession(withCookie(`${config.origin}/hub`, sessionCookie), config, now);
+  const session = await readSession(withCookie(`${config.origin}/hub`, sessionCookie), config, now, env);
   assert.equal(session.login, 'student-1');
-  assert.equal(readSession(withCookie(`${config.origin}/hub`, sessionCookie), config, now + 8 * 60 * 60 * 1000), null);
+  assert.equal(await readSession(withCookie(`${config.origin}/hub`, sessionCookie), config, now + 8 * 60 * 60 * 1000, env), null);
   assert.doesNotMatch(sessionCookie, /ghu_|student-1/);
 });
 
@@ -90,13 +90,14 @@ test('tampered and expired sessions are rejected; session response exposes only 
   const {session, cookie} = newSession('ghu_' + 'b'.repeat(24), {id: 44, login: 'person'}, 7200, config, now);
   const pair = cookiePair(cookie);
   const request = withCookie(`${config.origin}/api/hub/github/session`, pair);
-  assert.deepEqual(await sessionResponse(request, env, now).json(),
+  const response = await sessionResponse(request, env, now);
+  assert.deepEqual(await response.json(),
     {configured: true, user: {id: '44', login: 'person', csrfToken: session.csrf}});
-  assert.equal(readSession(request, config, now + 7200_000), null);
+  assert.equal(await readSession(request, config, now + 7200_000, env), null);
   const tampered = pair.slice(0, -1) + (pair.endsWith('A') ? 'B' : 'A');
-  assert.equal(readSession(withCookie(`${config.origin}/`, tampered), config, now), null);
+  assert.equal(await readSession(withCookie(`${config.origin}/`, tampered), config, now, env), null);
   assert.equal(unseal(pair.split('=')[1], 'flow', config), null);
-  assert.equal(sessionResponse(request, env, now).headers.get('cache-control'), 'no-store');
+  assert.equal(response.headers.get('cache-control'), 'no-store');
 });
 
 test('logout requires same origin and session CSRF, then clears the cookie', async () => {
@@ -104,10 +105,10 @@ test('logout requires same origin and session CSRF, then clears the cookie', asy
   const pair = cookiePair(cookie);
   const request = origin => withCookie(`${config.origin}/api/hub/github/logout`, pair,
     {Origin: origin, 'X-Hub-CSRF': session.csrf});
-  assert.equal(logoutResponse(request('https://evil.test'), env, now).status, 403);
-  assert.equal(logoutResponse(withCookie(`${config.origin}/logout`, pair,
-    {Origin: config.origin, 'X-Hub-CSRF': 'wrong'}), env, now).status, 403);
-  const done = logoutResponse(request(config.origin), env, now);
+  assert.equal((await logoutResponse(request('https://evil.test'), env, now)).status, 403);
+  assert.equal((await logoutResponse(withCookie(`${config.origin}/logout`, pair,
+    {Origin: config.origin, 'X-Hub-CSRF': 'wrong'}), env, now)).status, 403);
+  const done = await logoutResponse(request(config.origin), env, now);
   assert.equal(done.status, 200);
   assert.match(done.headers.get('set-cookie'), /Max-Age=0/);
 });
@@ -117,8 +118,8 @@ test('an expired mounted account gets logout401 and anonymous session for UI rec
   const {session,cookie}=newSession('ghu_'+'c'.repeat(24),{id:55,login:'student'},120,config,now);
   const expired=now+120_000;
   const request=withCookie(`${config.origin}/api/hub/github/logout`,cookiePair(cookie),{Origin:config.origin,'X-Hub-CSRF':session.csrf});
-  assert.equal(logoutResponse(request,env,expired).status,401);
-  assert.equal((await sessionResponse(request,env,expired).json()).user,null);
+  assert.equal((await logoutResponse(request,env,expired)).status,401);
+  assert.equal((await (await sessionResponse(request,env,expired)).json()).user,null);
 });
 
 

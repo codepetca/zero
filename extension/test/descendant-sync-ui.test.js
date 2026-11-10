@@ -47,7 +47,7 @@ async function harness(t,{choice=true,pushStarted=true,kind='behind'}={}) {
     return id==='vscode'?textInputs(vscode):load.call(this,id,...args);
   };
   let extension;try{extension=require('../src/extension');}finally{Module._load=load;}
-  const subscriptions=[],context={extensionMode:2,subscriptions,workspaceState:{keys:()=>[...stored.keys()],get:key=>stored.get(key),update:async(key,value)=>{stored.set(key,value);}}};extension.activate(context,{repositoryLedgerFactory,provider:appSessions(vscode,{dispose(){}}),repositories:{checkSetup:async()=>({}),access:async()=>({repository:{id:12},installation:{id:99}})}});
+  const subscriptions=[],context={extensionMode:2,subscriptions,workspaceState:{keys:()=>[...stored.keys()],get:key=>stored.get(key),update:async(key,value)=>{stored.set(key,value);}}};extension.activate(context,{env:{},repositoryLedgerFactory,provider:appSessions(vscode,{dispose(){}}),repositories:{checkSetup:async()=>({}),access:async()=>({repository:{id:12},installation:{id:99}})}});
   const webview={html:'',onDidReceiveMessage:disposable};provider.resolveWebviewView({webview,onDidDispose:disposable});
   const deadline=Date.now()+5000;while(!webview.html.includes('Current branch: feature')){assert.ok(Date.now()<deadline,'Project rendered');await new Promise(resolve=>setTimeout(resolve,10));}
   t.after(async()=>{subscriptions.forEach(value=>value.dispose());core.git=original.git;core.assertRepositoryRoot=original.assert;core.repositoryRoot=original.repo;github.prepareUpload=original.prepare;github.syncExistingHead=original.sync;github.checkUpload=original.check;delete require.cache[require.resolve('../src/extension')];await fs.rm(root,{recursive:true,force:true});});

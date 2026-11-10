@@ -141,9 +141,10 @@ test('total deadline and caller cancellation bound stalled injected readers',asy
   for(const cancel of [false,true]) {
     const controller=new AbortController();let start,signal;
     const started=new Promise(resolve=>{start=resolve;});
-    const pending=hubDiscoveryResponse(new Request(request(),{signal:controller.signal}),options({responseBudgetMs:30,
+    const pending=hubDiscoveryResponse(new Request(request(),{signal:controller.signal}),options({responseBudgetMs:1000,
       destinationReader:(_url,opts)=>{signal=opts.signal;start();return new Promise(()=>{});}}));
-    await started;if(cancel)controller.abort();
+    assert.equal(await Promise.race([started.then(()=>true),pending.then(()=>false)]),true,'destination reader did not start before the deadline');
+    if(cancel)controller.abort();
     const response=await pending;assert.equal(response.status,503);assert.equal(signal.aborted,true);
     assert.deepEqual((await response.json()).maintained,[]);
   }
@@ -197,10 +198,11 @@ test('revalidation final authority cancellation and deadline fail closed for bot
     const ready=new Promise(resolve=>{started=resolve;});
     // Empty catalog: initial + maintained binding + catalog + catalog final + envelope final.
     const pending=hubDiscoveryResponse(new Request(request('revalidate=1'),{signal:controller.signal}),options({
-      responseBudgetMs:30,catalogReader:async()=>snapshot([]),visibilityReader:async({signal}={})=>{
+      responseBudgetMs:1000,catalogReader:async()=>snapshot([]),visibilityReader:async({signal}={})=>{
         if(++reads===5){observed=signal;started();return new Promise(()=>{});}return decision();
       }}));
-    await ready;if(cancel)controller.abort();const response=await pending;
+    assert.equal(await Promise.race([ready.then(()=>true),pending.then(()=>false)]),true,'final authority reader did not start before the deadline');
+    if(cancel)controller.abort();const response=await pending;
     assert.equal(response.status,503);assert.equal(observed.aborted,true);const body=await response.json();
     assert.deepEqual(body.maintained,[]);assert.equal(body.catalog,null);
   }

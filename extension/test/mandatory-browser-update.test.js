@@ -21,7 +21,7 @@ async function fixture(t,{current=false,onPrompt=async(_vscode,items)=>items[2]}
  let extension;try{extension=require(filename);}finally{Module._load=originalLoad;}
  const subscriptions=[];t.after(()=>{for(const item of subscriptions)item.dispose();delete require.cache[filename];if(oldCache)require.cache[filename]=oldCache;});
  const provider=appSessions(vscode,{dispose(){},async removeSession(){}});
- extension.activate({subscriptions,extensionPath,workspaceState:{get:()=>true,update:async()=>{}}},{repositoryLedgerFactory,provider});
+ extension.activate({extensionMode:2,subscriptions,extensionPath,workspaceState:{get:()=>true,update:async()=>{}}},{env:{},repositoryLedgerFactory,provider});
  return {root,old,vscode,commands,errors,prompts,logs,get attempts(){return attempts;},get completed(){return completed;},async openSidebar(){
   const {promise,resolve}=Promise.withResolvers();
   const onControls=html=>{if(html.includes('data-command="zero.toggleApp"'))resolve(html);};

@@ -3,11 +3,12 @@ import {createContext, useCallback, useContext, useEffect, useRef, useState, typ
 import styles from '@/app/hub/hub.module.css';
 
 type HubUser = {id:string; login:string; csrfToken:string};
-type Connection = {configured:boolean|null; user:HubUser|null; error:string; callbackError:boolean; refresh:()=>Promise<void>};
-const GitHubContext = createContext<Connection>({configured:null,user:null,error:'',callbackError:false,refresh:async()=>{}});
+type Connection = {configured:boolean|null; managed:boolean; user:HubUser|null; error:string; callbackError:boolean; refresh:()=>Promise<void>};
+const GitHubContext = createContext<Connection>({configured:null,managed:false,user:null,error:'',callbackError:false,refresh:async()=>{}});
 export function HubGitHubProvider({children}:{children:ReactNode}) {
   const [configured,setConfigured]=useState<boolean|null>(null),[user,setUser]=useState<HubUser|null>(null),[error,setError]=useState('');
   const [callbackError,setCallbackError]=useState(false);
+  const [managed,setManaged]=useState(false);
   const generation=useRef(0);
   const refresh=useCallback(async()=>{
     const current=++generation.current;
@@ -17,11 +18,11 @@ export function HubGitHubProvider({children}:{children:ReactNode}) {
       const data=await response.json();
       if(current!==generation.current)return;
       if(typeof data.configured!=='boolean'||data.user&&(!/^[0-9]+$/.test(data.user.id)||typeof data.user.login!=='string'||typeof data.user.csrfToken!=='string'))throw new Error();
-      setConfigured(data.configured);setUser(data.user||null);setError('');if(data.user)setCallbackError(false);
+      setConfigured(data.configured);setManaged(data.managed===true);setUser(data.user||null);setError('');if(data.user)setCallbackError(false);
     }catch {if(current===generation.current){setUser(null);setError('Could not check your GitHub connection.');}}
   },[]);
   useEffect(()=>{setCallbackError(['denied','invalid','failed','unavailable','error','expired'].includes(new URLSearchParams(window.location.search).get('github')||''));void refresh();return()=>{generation.current++;};},[refresh]);
-  return <GitHubContext.Provider value={{configured,user,error,callbackError,refresh}}>{children}</GitHubContext.Provider>;
+  return <GitHubContext.Provider value={{configured,managed,user,error,callbackError,refresh}}>{children}</GitHubContext.Provider>;
 }
 export function useHubGitHub(){return useContext(GitHubContext);}
 export function hubLoginHref(){
@@ -29,14 +30,16 @@ export function hubLoginHref(){
   return `/api/hub/github/login?${new URLSearchParams({returnTo})}`;
 }
 export function HubAccount({onSignedOut,onRetryComplete,showSignOut=true}:{onSignedOut?:()=>void;onRetryComplete?:()=>void;showSignOut?:boolean}={}){
-  const {configured,user,error,callbackError,refresh}=useHubGitHub();const[busy,setBusy]=useState(false),[failure,setFailure]=useState('');
+  const {configured,managed,user,error,callbackError,refresh}=useHubGitHub();const[busy,setBusy]=useState(false),[failure,setFailure]=useState('');
   async function signOut(){
     if(!user||busy)return;setBusy(true);setFailure('');
     try{const response=await fetch('/api/hub/github/logout',{method:'POST',credentials:'same-origin',headers:{'X-Hub-CSRF':user.csrfToken},redirect:'error',signal:AbortSignal.timeout(10000)});if(!response.ok&&response.status!==401)throw new Error();await refresh();onSignedOut?.();}
     catch{setFailure('Could not sign out. Try again.');}finally{setBusy(false);}
   }
   return <div className={styles.account}>
-    {user?<><span>GitHub · @{user.login}</span>{showSignOut&&<button type="button" onClick={()=>void signOut()} disabled={busy}>{busy?'Signing out…':'Sign out'}</button>}</>:configured?<a href={hubLoginHref()}>Sign in to GitHub</a>:configured===false?<span>GitHub sign-in is unavailable.</span>:!error?<span>Checking GitHub connection…</span>:null}
+    {user?<><span>GitHub · @{user.login}</span>{showSignOut&&(managed
+      ? <form action="/zero-account/sign-out" method="post"><button type="submit">Sign out</button></form>
+      : <button type="button" onClick={()=>void signOut()} disabled={busy}>{busy?'Signing out…':'Sign out'}</button>)}</>:configured?<a href={hubLoginHref()}>Sign in to GitHub</a>:configured===false?<span>GitHub sign-in is unavailable.</span>:!error?<span>Checking GitHub connection…</span>:null}
     {error&&<span role="status">{error} <button type="button" onClick={()=>void refresh().then(()=>onRetryComplete?.())}>Retry</button></span>}
     {(failure||callbackError&&!user)&&<span role="status">{failure||'GitHub connection was not completed. Try again.'}</span>}
   </div>;

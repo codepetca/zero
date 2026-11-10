@@ -10,8 +10,10 @@ import {releaseDefinition} from './release.mjs';
 import {readMacUpdaterConfig} from './mac-updater.mjs';
 import {verifyUpdateBuildOrder} from './mac-update-feed.mjs';
 import {verifyWebProfiles} from './web-profiles.mjs';
+import workosConfiguration from '../extension/src/workos-configuration.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
+workosConfiguration.validateWorkOSDistribution(workosConfiguration.readWorkOSDistribution());
 prepareStarter();
 prepareLessonProjects();
 prepareDesign();

@@ -42,7 +42,7 @@ async function fixture(t,{enabled=true,hooks={}}={}){
   assert.equal(callback.status,303);assert.doesNotMatch(callback.headers.get('location'),/ghu_|ghr_/);
   assert.equal((await fetch(callback.headers.get('location'))).status,200);return true;
  }},window:{showInformationMessage:async message=>{messages.push(message);assert.fail('Browser sign-in must not offer a code fallback');},withProgress:async(_options,run)=>run({report:value=>progress.push(value)},{isCancellationRequested:false,onCancellationRequested:listener=>{cancelListener=listener;return{dispose(){}};}})}};
- const create=()=>{const provider=createGitHubAppProvider({vscode,context,configuration,fetchImpl,now:()=>time});t.after(()=>provider.dispose());return provider;};
+ const create=(assertBinding)=>{const provider=createGitHubAppProvider({vscode,context,configuration,fetchImpl,now:()=>time,...(assertBinding?{assertBinding}:{})});t.after(()=>provider.dispose());return provider;};
  const provider=create();
  return{provider,create,vscode,context,user,data,calls,messages,opens,progress,cancel:()=>cancelListener?.(),advance:()=>{time+=28800000;},failRefresh:()=>{failRefresh=true;},get exchanges(){return exchanges;},get refreshes(){return refreshes;}};
 }
@@ -163,4 +163,86 @@ test('signin already checking App metadata cannot continue into browser authoriz
  assert.equal(f.opens.length,1);assert.equal(f.exchanges,1,'Metadata completion must not start another browser authorization');
  assert.equal(f.data.has(SECRET_KEY),true,'Removal is still waiting before lock acquisition');
  releaseLock();await removing;fs.mkdir=mkdir;
+});
+
+test('explicit sign-in replaces a mismatched saved account only after verifying the bound account',async t=>{
+ const f=await fixture(t);f.user.id=99;await f.provider.createSession([]);
+ const original=f.data.get(SECRET_KEY);
+ const binding={ensureBinding:async()=>true,assertBinding:async id=>{if(id&&id!=='42'){const error=Error('The GitHub account does not match the account connected to Zero.');error.code='workos-identity-binding';throw error;}}};
+ const provider=f.create(binding.assertBinding),auth=createAuthentication(ownedProviderApi(provider,binding),()=>{},undefined,undefined,undefined,binding);t.after(()=>auth.dispose());
+ await auth.refresh();assert.equal(auth.signedIn,false);
+ await assert.rejects(auth.capture(),/does not match/);assert.equal(f.data.get(SECRET_KEY),original);
+ f.vscode.env.openExternal=async()=>false;
+ await assert.rejects(auth.signIn(),/unavailable/);assert.equal(f.data.get(SECRET_KEY),original);
+ f.vscode.env.openExternal=async()=>{f.cancel();return true;};
+ await assert.rejects(auth.signIn(),/unavailable/);assert.equal(f.data.get(SECRET_KEY),original);
+ // Reuse the fixture's browser implementation from a fresh fixture, while keeping
+ // the existing store: cancellation above must not have changed that store.
+ const open=(await fixture(t)).vscode.env.openExternal;
+ f.vscode.env.openExternal=open;f.user.id=42;
+ await auth.signIn();assert.equal(auth.accountId,'42');
+ assert.equal(JSON.parse(f.data.get(SECRET_KEY)).account.id,'42');
+ assert.notEqual(f.data.get(SECRET_KEY),original);
+});
+
+test('a receipt change during credential storage prevents registered provider session return',async t=>{
+ const f=await fixture(t);let bound='42',release,started;
+ const entered=new Promise(resolve=>{started=resolve;}),wait=new Promise(resolve=>{release=resolve;});
+ const store=f.context.secrets.store;
+ f.context.secrets.store=async(key,value)=>{if(key===SECRET_KEY){started();await wait;}return store(key,value);};
+ const assertBinding=async id=>{if(id&&id!==bound){const error=Error('The GitHub account does not match the account connected to Zero.');error.code='workos-identity-binding';throw error;}};
+ const provider=f.create(assertBinding),events=[];provider.onDidChangeSessions(event=>events.push(event));
+ const attempt=provider.createSession([]);await entered;bound='99';release();
+ await assert.rejects(attempt,/does not match/);
+ assert.ok(events.every(event=>!event.added.length));
+ await assert.rejects(provider.getSessions([]),/does not match/);
+ assert.equal(JSON.parse(f.data.get(SECRET_KEY)).account.id,'42');
+});
+
+test('a binding change during lock release prevents registered provider session return',async t=>{
+ const f=await fixture(t);let bound='42',release,started;
+ const entered=new Promise(resolve=>{started=resolve;}),wait=new Promise(resolve=>{release=resolve;});
+ const unlink=fs.unlink;let blocked=false;
+ fs.unlink=async filename=>{if(!blocked&&filename===path.join(f.context.globalStorageUri.fsPath,'github-app-refresh.lock')){blocked=true;started();await wait;}return unlink(filename);};
+ t.after(()=>{fs.unlink=unlink;release?.();});
+ const assertBinding=async id=>{if(id&&id!==bound){const error=Error('The GitHub account does not match the account connected to Zero.');error.code='workos-identity-binding';throw error;}};
+ const provider=f.create(assertBinding),events=[];provider.onDidChangeSessions(event=>events.push(event));
+ const attempt=provider.createSession([]);await entered;bound='99';release();
+ await assert.rejects(attempt,/does not match/);assert.ok(events.every(event=>!event.added.length));
+ await assert.rejects(provider.getSessions([]),/does not match/);
+});
+
+test('a newer credential written during lock release is not returned or overwritten',async t=>{
+ const f=await fixture(t);let release,started;const entered=new Promise(resolve=>{started=resolve;}),wait=new Promise(resolve=>{release=resolve;});
+ const unlink=fs.unlink;let blocked=false;
+ fs.unlink=async filename=>{if(!blocked&&filename===path.join(f.context.globalStorageUri.fsPath,'github-app-refresh.lock')){blocked=true;started();await wait;}return unlink(filename);};
+ t.after(()=>{fs.unlink=unlink;release?.();});
+ const provider=f.create(async()=>{}),events=[];provider.onDidChangeSessions(event=>events.push(event));
+ const attempt=provider.createSession([]);await entered;
+ const newer=JSON.parse(f.data.get(SECRET_KEY));newer.sessionId='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+ await f.context.secrets.store(SECRET_KEY,JSON.stringify(newer));release();
+ await assert.rejects(attempt,/changed the connection/);assert.equal(f.data.get(SECRET_KEY),JSON.stringify(newer));
+ assert.ok(events.every(event=>!event.added.length));
+});
+
+test('WorkOS receipt commit waits for the GitHub credential write in the same lock domain',async t=>{
+ const {createDesktopAccounts,STORAGE_KEY}=require('../src/desktop.cjs');
+ const {createCredentialLock}=require('../src/github-app/credential-store');
+ const f=await fixture(t);const old=JSON.stringify({version:1,clientId:'client_test',id:'user_same',githubId:'42'});
+ await f.context.secrets.store(STORAGE_KEY,old);
+ let releaseWrite,writing,finishedExchange;const started=new Promise(resolve=>{writing=resolve;}),released=new Promise(resolve=>{releaseWrite=resolve;}),exchanged=new Promise(resolve=>{finishedExchange=resolve;});
+ const originalStore=f.context.secrets.store;
+ f.context.secrets.store=async(key,value)=>{if(key===SECRET_KEY){writing();await released;}return originalStore(key,value);};
+ const lock=createCredentialLock({globalStorageUri:f.context.globalStorageUri});
+ const workos={clientId:'client_test',begin(redirect){const state='a'.repeat(43);const url=new URL('https://example.invalid/authorize');url.searchParams.set('redirect_uri',redirect);url.searchParams.set('state',state);return {url:url.href,state,verifier:'fixture'};},complete:async()=>{finishedExchange();return{id:'user_same',githubId:'99'};}};
+ let reachedLock;const waitingForLock=new Promise(resolve=>{reachedLock=resolve;});
+ const accounts=createDesktopAccounts({secrets:f.context.secrets,clientId:'client_test',workos,withLock:(fn,signal)=>{reachedLock();return lock(fn,signal);},openBrowser:async url=>{const authorize=new URL(url),callback=new URL(authorize.searchParams.get('redirect_uri'));callback.searchParams.set('state',authorize.searchParams.get('state'));callback.searchParams.set('code','fixture');assert.equal((await fetch(callback)).status,200);return true;}});
+ const assertBinding=async id=>{const receipt=await accounts.read();if(id&&id!==receipt.githubId){const error=Error('The GitHub account does not match the account connected to Zero.');error.code='workos-identity-binding';throw error;}};
+ const provider=f.create(assertBinding),githubResult=provider.createSession([]).then(()=>null,error=>error);
+ await started;const receiptResult=accounts.signIn();await exchanged;await waitingForLock;
+ await new Promise(resolve=>setTimeout(resolve,150));
+ assert.equal(f.data.get(STORAGE_KEY),old,'receipt stays unchanged while the credential lock is held');
+ releaseWrite();await receiptResult;const githubError=await githubResult;
+ if(githubError)assert.match(githubError.message,/does not match|changed/);
+ assert.equal((await accounts.read()).githubId,'99');
 });

@@ -1,6 +1,9 @@
 'use strict';
 const editor = require('vscode');
 const {minimalPrompts} = require('./prompts');
+const {createWorkOSFirstUse} = require('./workos-first-use');
+const {resolveWorkOSFirstUseConfiguration} = require('./workos-configuration');
+const {STORAGE_KEY:WORKOS_RECEIPT_KEY} = require('./desktop.cjs');
 const fs = require('node:fs/promises');
 const fsSync = require('node:fs');
 const path = require('node:path');
@@ -163,10 +166,15 @@ async function verifiedUnbornBranch(root,branch) {
 
 function activate(context, services = {}) {
   const vscode = minimalPrompts(editor);
-  const launchedForZero = path.isAbsolute((services.env || process.env).ZERO_KIT_DIR || '');
+  const env = services.env || process.env;
+  const launchedForZero = path.isAbsolute(env.ZERO_KIT_DIR || '');
   for (const [id, action] of Object.entries(createNativeUpdateCommands(vscode))) {
     context.subscriptions.push(vscode.commands.registerCommand(id, action));
   }
+  const firstUse = createWorkOSFirstUse({vscode, context, ...resolveWorkOSFirstUseConfiguration({
+    development: context.extensionMode === (editor.ExtensionMode?.Development ?? 2), env,
+  })});
+  context.subscriptions.push(firstUse);
   const output = vscode.window.createOutputChannel('Zero');
   const sidebarShortcut = vscode.window.createStatusBarItem?.('zero.backToSidebar',vscode.StatusBarAlignment?.Left,1000);
   if (sidebarShortcut) {
@@ -382,8 +390,8 @@ function activate(context, services = {}) {
   }
   let githubReadiness,projectPicker,nativeGitAuthentication;
   const appConfiguration = githubAppConfiguration();
-  const appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({vscode,context,configuration:appConfiguration,onDiagnostic:message=>output.appendLine(message)}) : null);
-  const auth = createAuthentication(ownedProviderApi(appProvider), () => {
+  const appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({vscode,context,configuration:appConfiguration,...(firstUse.enabled?{assertBinding:firstUse.assertBinding}:{}),onDiagnostic:message=>output.appendLine(message)}) : null);
+  const auth = createAuthentication(ownedProviderApi(appProvider,firstUse.enabled?firstUse:undefined), () => {
     // Clear only feedback owned by authentication. Native runtime updates may
     // have replaced it while browser sign-in was pending.
     if (state.startsWith('Signed in as ') || (auth.signedIn && state === authFeedback)) {state='';authFeedback=undefined;}
@@ -392,8 +400,9 @@ function activate(context, services = {}) {
     if(hint!==branchAuthHint){branchAuthHint=hint;branchAuthEpoch++;branchRemoteStatus=undefined;branchCheckNextAt=0;mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0;void checkCurrentBranch();void checkForMainUpdates();}
     refresh();
     void nativeGitAuthentication?.refresh();
-  });
+  }, undefined, undefined, undefined, firstUse.enabled?firstUse:undefined);
   context.subscriptions.push(auth);
+  if(firstUse.enabled && context.secrets?.onDidChange) context.subscriptions.push(context.secrets.onDidChange(event=>{if(event.key===WORKOS_RECEIPT_KEY)auth.invalidate();}));
   if (appProvider) {
     context.subscriptions.push(appProvider);
     context.subscriptions.push(vscode.authentication.registerAuthenticationProvider('zero-github','Zero GitHub',appProvider,{supportsMultipleAccounts:false}));
@@ -437,7 +446,8 @@ function activate(context, services = {}) {
     getState:()=>({phase:githubReady()?'ready':auth.signedIn?githubReadiness.phase:'signed-out',accountId:auth.accountId,accountLabel:auth.accountLabel,busy:disposed||isBusy(),status:state,publishProgress:publishProgress?.root===projectRoot?publishProgress:undefined}),
     listRecent:accountId=>recentProjects.list(accountId),
     openRecent:async(item,accountId)=>{
-      if(disposed||isBusy()||auth.accountId!==accountId)return;
+      const generation=runGeneration;
+      if(disposed||isBusy()||auth.accountId!==accountId || !await firstUse.ensure() || generation!==runGeneration)return;
       connecting=true;refresh();
       try {
         const ticket=await auth.capture();
@@ -739,6 +749,7 @@ function activate(context, services = {}) {
         };
         if (disposed || stopPromise || isBusy() || nativeStarting) return fail('Finish the current action before running the app.');
         try {
+          if (!await firstUse.ensure() || disposed || generation !== runGeneration) return finishedTaskPty('Run cancelled.',0);
           const root=await project();
           if (disposed || generation !== runGeneration) return finishedTaskPty('Run cancelled.',0);
           if (stopPromise || isBusy() || nativeStarting) return fail('Finish the current action before running the app.');
@@ -3257,6 +3268,14 @@ function activate(context, services = {}) {
   const webExport=createWebExportCommands(vscode,{project:runnableProject,output,ensureValidatedExport:buildWithSavedProject,validateExport:savedBuilder.validateRetainedExport,setAvailable:root=>{exportReadyRoot=root;},publish:()=>webPublish.publish(),openPreview:(root,result)=>browserRun.preview(root,result,{retained:true}),isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot});
   Object.assign(actions,webExport.commands);
   context.subscriptions.push(...webExport.disposables);
+  if (firstUse.enabled) {
+    const alwaysAvailable = new Set(['zero.stopApp', 'zero.openDocs', 'zero.showSetup']);
+    for (const [id, action] of Object.entries(actions)) actions[id] = async (...args) => {
+      if (alwaysAvailable.has(id) || (id === 'zero.toggleApp' && (execution || pendingLaunch || nativeStarting || browserActive || browserBusy))) return action(...args);
+      const generation = runGeneration;
+      if (await firstUse.ensure() && !disposed && generation === runGeneration) return action(...args);
+    };
+  }
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async (...args) => {
     try {await action(...args);} catch(error) {
       const message = error.zeroRunMessage || error.message;
@@ -3408,8 +3427,17 @@ function activate(context, services = {}) {
   const startup = auth.refresh().catch(error => {
     if (!disposed) output.appendLine(`Getting started: ${error.message}`);
   });
-  if (!(vscode.workspace.workspaceFolders || []).length) void introduceProject().catch(error=>output.appendLine(`Start Page: ${error.message}`));
-  const introduceAfterConnection = (options) => startup.then(async() => {if (!disposed) {try {await rememberOpened({projectPath:await project()});}catch{}await projectWindow.restore();await introduceProject(options);}}).catch(error => output.appendLine(`Getting started: ${error.message}`));
+  if (!firstUse.enabled && !(vscode.workspace.workspaceFolders || []).length) void introduceProject().catch(error=>output.appendLine(`Start Page: ${error.message}`));
+  const introduceAfterConnection = (options) => {
+    const generation = runGeneration;
+    return startup.then(async() => {
+      if (disposed || !await firstUse.ensure() || disposed || generation !== runGeneration) return;
+      try {await rememberOpened({projectPath:await project()});}catch{}
+      if (disposed || generation !== runGeneration) return;
+      await projectWindow.restore();
+      if (!disposed && generation === runGeneration) await introduceProject(options);
+    }).catch(error => output.appendLine(`Getting started: ${error.message}`));
+  };
   context.subscriptions.push(watcher, metadataWatcher,{dispose:()=>clearTimeout(metadataRefreshTimer)}, vscode.workspace.onDidChangeWorkspaceFolders(event => {
     runGeneration++;
     if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));
