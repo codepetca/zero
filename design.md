@@ -8,6 +8,11 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner wording refinement, 2026-11-10. Call published work in ZeroHub **apps**
+and label the page **Manage apps**. Use **app listing** where the copy needs to
+distinguish the public card from the app hosted on GitHub Pages. Use
+**Add to ZeroHub** and **Remove from ZeroHub** for visibility actions.
+
 Owner sidebar refinement, 2026-11-09. The branch menu offers **New branch…**
 and lists the other local branches directly. Creating a branch carries current edits
 forward. **Commit** saves locally. **Sync** works on the selected branch,

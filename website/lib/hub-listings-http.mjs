@@ -5,9 +5,9 @@ import {checkListingToken, listingId, listingReceipt, publicListingPlayUrl, veri
 import {assertJamVisibilityTime, readJamHubVisibility} from './jam-hub-visibility.mjs';
 import {hubVisibilityDecision, hubTargetVisible} from './hub-project-status.mjs';
 
-const unavailable = () => json({error:'ZeroHub listings are temporarily unavailable. Try again.'}, 503);
-const authRequired = () => json({error:'Sign in with GitHub to manage your listings.'}, 401);
-const invalid = () => json({error:'Invalid listing request.'}, 400);
+const unavailable = () => json({error:'ZeroHub app listings are temporarily unavailable. Try again.'}, 503);
+const authRequired = () => json({error:'Sign in with GitHub to manage your apps.'}, 401);
+const invalid = () => json({error:'Invalid app listing request.'}, 400);
 const validCursor = value => listingId(value) && BigInt(value) <= 9223372036854775807n;
 const manageActions = new Set(['protect', 'unprotect', 'move', 'unlist', 'list']);
 const pagePurpose = 'listing-page';
@@ -20,7 +20,7 @@ export async function hubListingsResponse(request, {
 } = {}) {
   try {
     const store = getStore(env);
-    if (!store) return json({error:'Listings are unavailable.'}, 404);
+    if (!store) return json({error:'App listings are unavailable.'}, 404);
     const config = hubConfig(env);
     if (!config) return unavailable();
     const authorization = request.headers.get('authorization');
@@ -57,23 +57,23 @@ export async function hubListingsResponse(request, {
       account = await tokenOwner(token, config, signal);
       if (!account) return authRequired();
       const publication = await verify(receipt, {account, token, signal});
-      if (!publication) return json({error:'The published project could not be verified.'}, 409);
+      if (!publication) return json({error:'The published app could not be verified.'}, 409);
       signal.throwIfAborted();
       return json(await store.savePublication(account, listingLimit(account, env), publication));
     }
     if (!manageActions.has(body?.action) || !listingId(body.repositoryId)) return invalid();
     if (body.action === 'list') {
       const receipt = await store.owned(account, body.repositoryId);
-      if (!receipt) return json({error:'This project is unavailable.'}, 404);
+      if (!receipt) return json({error:'This app is unavailable.'}, 404);
       const publication = await verify(receipt, {account, token, signal});
-      if (!publication) return json({error:'The published project could not be verified. Publish it again in Zero.'}, 409);
+      if (!publication) return json({error:'The published app could not be verified. Publish it again in Zero.'}, 409);
       signal.throwIfAborted();
       const result = await store.savePublication(account, listingLimit(account, env), publication, {restore:true});
-      if (result.status === 'missing') return json({error:'This project is unavailable.'}, 404);
+      if (result.status === 'missing') return json({error:'This app is unavailable.'}, 404);
       return json(result);
     }
     signal.throwIfAborted();
-    if (!await store.manage(account, body.repositoryId, body.action)) return json({error:'This listing is unavailable.'}, 404);
+    if (!await store.manage(account, body.repositoryId, body.action)) return json({error:'This app listing is unavailable.'}, 404);
     return json({status:'updated'});
   } catch { return unavailable(); }
 }

@@ -140,19 +140,19 @@ larger reference games remain maintainer completeness checks. No new core Input
 class or required fourth tutorial project is introduced. Submitting practice work
 is explicit and remains gated by hosted library acceptance.
 
-## ZeroHub listings from Publish
+## Publishing apps to ZeroHub
 
-When the listing service is enabled, Zero lists an app after GitHub Pages
-serves the verified publishing run. Free has one ordinary listing. The manual
-listing pilot can grant ten. At quota, a new publish unlists the first
-unprotected project in the replacement queue. An update keeps its place in
-the queue. In **Manage listings**, protect one project with **Do not replace**
-or use **Move to back** to keep a project listed longer. If the only slot is
-protected, the new app still publishes and can be listed after clearing
-protection. Public cards show Play when Zero can verify the current run at
-a direct GitHub Pages address. Other cards link to the repository. Unlisting
-only removes the ZeroHub card. The listing service
-operates separately from the library catalog and ZeroJams.
+When app listings are enabled, Zero adds an app to ZeroHub after GitHub Pages
+serves the verified publishing run. Free has one app slot. The manual pilot
+can grant ten. When the slots are full, a new app replaces the first unprotected
+app in the queue. An update keeps its place. In **Manage apps**, protect one app
+with **Do not replace** or use **Move to back** to keep an app in the Hub longer.
+If the only slot is protected, the new app still publishes to GitHub Pages. Clear
+protection and choose **Add to ZeroHub** to give it that slot. Public cards show
+**Play** when Zero can verify the current run at a direct GitHub Pages address.
+Other cards link to the repository. **Remove from ZeroHub** takes the card out of
+discovery while the app stays on GitHub Pages. App listings operate separately
+from the library catalog and ZeroJams.
 
 ## ZeroJams
 
