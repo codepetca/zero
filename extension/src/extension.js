@@ -485,11 +485,13 @@ function activate(context, services = {}) {
   async function repositoryStatus({forceBranchCheck=false,suppressRemoteChecks=false,localCommit,confirmedBranch}={}) {
     const generation = ++statusGeneration;
     let nextRepository = 'No repository connected', nextBranch = '', nextHead, nextMainHead, nextDetached = false, nextBranchError, nextRecovery, nextRecoveryError, nextPending, nextLocal, nextBranchMenu;
-    try {
+    const readRepository = async () => {
       const root = await project();
-      if (localPractice) {nextRepository = 'Local practice'; throw new Error('Local practice');}
+      if (localPractice) {nextRepository = 'Local practice'; return;}
       await lessonProjects.assertShareable(root);
-      if(await core.repositoryRoot(root)!==root)throw new Error('Open a standalone student project.');
+      const gitRoot = await core.repositoryRoot(root);
+      if(gitRoot===null)return;
+      if(gitRoot!==root)throw new Error('Open a standalone student project.');
       try {nextBranch = await core.currentBranch(root,core.git);}
       catch (error) {if(error.code===1){try {nextDetached = /^[a-f0-9]{40,64}$/.test(await core.git(root, ['rev-parse', '--verify', 'HEAD']));} catch {}}else nextBranchError='This branch cannot be displayed safely. Open Source Control to inspect it.';}
       if(nextBranch) {
@@ -534,7 +536,9 @@ function activate(context, services = {}) {
         }
       }
       await Promise.all([readBranchMenu(),readLocalMain(),readLocalRecovery(),readRepositoryPage()]);
-    } catch (error) { if (!localPractice) {nextRepository = error.message.includes('different Git repository') ? 'Standalone student copy needed to connect' : 'Repository status unavailable. Open Source Control to inspect it.';nextBranchError ||= 'Project Git status is unavailable. Open Source Control to inspect it.';} }
+    };
+    try {await readRepository();}
+    catch (error) { if (!localPractice) {nextRepository = error.message.includes('different Git repository') ? 'Standalone student copy needed to connect' : 'Repository status unavailable. Open Source Control to inspect it.';nextBranchError ||= 'Project Git status is unavailable. Open Source Control to inspect it.';} }
     if(nextPending){try{if(core.parseRepositoryUrl(nextPending.remote).page!==nextRepository)nextPending={...nextPending,kind:'destination-changed'};}catch{nextPending={...nextPending,kind:'destination-changed'};}}
     if (disposed || generation !== statusGeneration) return;
     scheduleProjectDirty({reset:nextBranch!==branch||nextHead!==branchHead});
