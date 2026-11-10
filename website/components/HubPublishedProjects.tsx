@@ -34,18 +34,18 @@ export function HubPublishedProjects({search, hasOtherProjects}:{search:string; 
     setError(false);
     setBefore(cursor);
   }
-  if (error) return <div role="status">Published projects are unavailable. <button className={styles.retry}
+  if (error) return <div role="status">Published apps are unavailable. <button className={styles.retry}
     type="button" onClick={()=>{setError(false);setRetry(value=>value+1);}}>Try again</button></div>;
-  if (!page) return hasOtherProjects ? null : <p role="status">Checking published projects…</p>;
+  if (!page) return hasOtherProjects ? null : <p role="status">Checking published apps…</p>;
   return <>
     {page.projects.map(project=><HubProjectCard key={project.id} title={project.title}
-      description="GitHub Pages project" author={project.author} playHref={project.pagesUrl} repositoryHref={project.repositoryUrl} compact>
+      description="GitHub Pages app" author={project.author} playHref={project.pagesUrl} repositoryHref={project.repositoryUrl} compact>
       {!project.pagesUrl && <a href={project.repositoryUrl}>Open on GitHub</a>}
     </HubProjectCard>)}
-    {!page.projects.length && !hasOtherProjects && !page.next && <p role="status">{search.trim() ? 'No projects match this search.' : 'No projects are available yet.'}</p>}
+    {!page.projects.length && !hasOtherProjects && !page.next && <p role="status">{search.trim() ? 'No apps match this search.' : 'No apps are available yet.'}</p>}
     {(before || page.next) && <div className="resource-links">
-      {before && <button className={styles.retry} type="button" onClick={()=>changePage(null)}>First published projects</button>}
-      {page.next && <button className={styles.retry} type="button" onClick={()=>changePage(page.next)}>Next published projects</button>}
+      {before && <button className={styles.retry} type="button" onClick={()=>changePage(null)}>First page of published apps</button>}
+      {page.next && <button className={styles.retry} type="button" onClick={()=>changePage(page.next)}>More published apps</button>}
     </div>}
   </>;
 }

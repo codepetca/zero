@@ -139,9 +139,9 @@ always disable this store; `ZERO_HUB_OPENS_DISABLED=1` also disables it.
 Without counters, Play and existing feedback still work.
 No analytics package or new GitHub App permission is required.
 
-### Automatic ZeroHub listings
+### Automatic ZeroHub app listings
 
-Listings are disabled by default and in hosted previews. For an authorized
+App listings are disabled by default and in hosted previews. For an authorized
 environment, apply `website/sql/zerohub-listings.sql` to a dedicated Postgres
 database using its owner. Give a separate login role USAGE on the listing
 schema and sequence and SELECT, INSERT and UPDATE on its table. Set the
@@ -157,15 +157,15 @@ repository. It checks current ownership, public visibility and whether Pages
 is enabled. Public Play links require the expected run marker at a direct
 GitHub Pages address. Cards link to the repository if the marker is unavailable
 or the project uses a custom domain. Owners can open their verified deployment
-from Manage listings.
+from **Manage apps**.
 
 The existing Zero GitHub App and ZeroHub browser authentication configuration
-verify publishing and management. An editor checks listing availability before
+verify publishing and management. An editor checks app listing availability before
 it sends the publishing receipt and its GitHub access token. The optional server-only
-`ZERO_HUB_LISTINGS_PRO_GITHUB_IDS` list grants ten ordinary listings to the
-specified verified numeric account IDs. This is a manual listing pilot grant.
-ZeroJams hosting has its own entitlement. If a listing pilot grant is removed,
-existing cards stay visible while the owner trims the queue to the Free limit. Leave the listing flag off until
+`ZERO_HUB_LISTINGS_PRO_GITHUB_IDS` list grants ten app slots to the
+specified verified numeric account IDs. This is a manual pilot grant.
+ZeroJams hosting has its own entitlement. If an app slot grant is removed,
+existing cards stay visible while the owner trims the queue to the Free limit. Leave the app listings flag off until
 the database and both browser and desktop acceptance are ready.
 
 To exercise real transactions, apply the SQL to a disposable local database

@@ -517,13 +517,13 @@ test('verified publish lists automatically and reusing the same app retries only
   }});
   h.choices.push('Publish app');
   await h.api.publish();
-  assert.match(h.messages[0][1].detail,/oldest eligible listing/);
+  assert.match(h.messages[0][1].detail,/add the app to ZeroHub.*first unprotected app/);
   assert.deepEqual(listings,[42]);
-  assert.match(h.states.at(-1),/listing pending/);
+  assert.match(h.states.at(-1),/ZeroHub app listing pending/);
   await h.api.publishAndOpen();
   assert.deepEqual(listings,[42,42]);
   assert.equal(h.published,1);
-  assert.match(h.states.at(-1),/replacing older-game/);
+  assert.match(h.states.at(-1),/Added to ZeroHub, replacing older-game/);
   await h.api.publishAndOpen();
   assert.deepEqual(listings,[42,42]);
 });

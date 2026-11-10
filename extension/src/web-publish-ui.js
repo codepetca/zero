@@ -65,21 +65,21 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
   async function updateHubListing(saved, expected) {
     if (!listPublication || !saved?.listingPending) return saved;
     await stillPublishable(expected);
-    progress('Updating ZeroHub listing…');
+    progress('Updating app listing on ZeroHub…');
     const result = await listPublication(saved, {signal:controller.signal, beforeSend:()=>assertPublishCurrentNow(expected)});
     if (controller.signal.aborted || disposed) return saved;
     let listingMessage;
     if (result.status === 'listed') {
-      listingMessage = typeof result.replaced === 'string' ? `Listed on ZeroHub, replacing ${result.replaced}` : 'Listed on ZeroHub';
+      listingMessage = typeof result.replaced === 'string' ? `Added to ZeroHub, replacing ${result.replaced}` : 'Added to ZeroHub';
     } else if (result.status === 'unlisted') {
-      listingMessage = result.reason === 'protected' ? 'Your protected listing was kept' : 'App is unlisted on ZeroHub';
+      listingMessage = result.reason === 'protected' ? 'Your protected app kept its spot on ZeroHub' : 'App is off ZeroHub';
     } else if (result.status === 'pending' || result.status === 'unavailable') {
-      listingMessage = result.status === 'pending' ? 'ZeroHub listing pending' : 'ZeroHub listings unavailable';
+      listingMessage = result.status === 'pending' ? 'ZeroHub app listing pending' : 'ZeroHub app listings unavailable';
     }
     const retry = result.status === 'pending' || result.status === 'unavailable';
     if (listingMessage) output?.appendLine(retry
       ? `${listingMessage}. Choose Publish & open app to retry.`
-      : `${listingMessage}. Manage listings at https://zero.codepet.ca/hub/listings`);
+      : `${listingMessage}. Manage apps at https://zero.codepet.ca/hub/listings`);
     lastLive = {...saved, listingPending:retry, listingMessage};
     await workspaceState?.update('zero.webPublish.lastLive', lastLive);
     return lastLive;
@@ -222,7 +222,7 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
           consent.account === review.account && consent.repository === review.repository && consent.url === review.publicUrl;
         if(!sameDestination || listPublication && !listingNotice) {
           clearProgress();
-          const notice = listPublication ? ' When available, Zero will also list the app on ZeroHub. At your limit it replaces the oldest eligible listing.' : '';
+          const notice = listPublication ? ' When available, Zero will also add the app to ZeroHub. If your app slots are full, this app replaces the first unprotected app in your queue.' : '';
           const chosen=await vscode.window.showInformationMessage('Publish this app publicly?',{modal:true,detail:`Your app and included assets will be public.${notice}\n${review.publicUrl || (review.repository + ' → GitHub Pages')}`},'Publish app');
           if(chosen!=='Publish app')return;
           await stillCurrent(expected);
