@@ -1,3 +1,20 @@
+# Website profile avatar size — 2026-11-10
+
+The shared header uses a 28 px avatar and fallback circle to match the visible
+Zero mark. The account button retains a 44 px target. Chrome and Playwright
+WebKit confirmed both dimensions on Home at 1280, 390 and 320 px in light and
+dark mode with mocked sessions. Checks covered clicks outside the avatar but
+inside the button, Escape and focus restoration, photo failure, a signed-in
+account without an avatar ID, and signed-out rendering. TypeScript and all five
+focused WorkOS account tests passed. Live sign-in and physical phones were
+outside this check.
+
+One independent Terra/medium review of delta `572fa68f44d2` on
+`2577d68fcf48` found no actionable regressions. Local browser evidence is in
+`output/playwright/zero-profile-avatar/`.
+
+---
+
 # Website account dropdown — 2026-11-10
 
 Local branch `codex/web-account-menu` is based on `4c11fb59cf`. The shared

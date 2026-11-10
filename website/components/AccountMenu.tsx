@@ -5,11 +5,11 @@ import {Icon} from './Icon';
 import {useZeroAccount} from './useZeroAccount';
 import './AccountMenu.css';
 
-function GitHubAvatar({id, login}: {id:string; login?:string}) {
+function ProfileAvatar({id, login}: {id?:string|null; login?:string}) {
   const [loaded, setLoaded] = useState(false), [failed, setFailed] = useState(false);
   return <span className="profile-avatar" aria-hidden="true">
     {(!loaded || failed) && (login ? <span>{login.charAt(0).toUpperCase()}</span> : <Icon name="user" />)}
-    {!failed && <img className="profile-photo" src={`https://avatars.githubusercontent.com/u/${id}?s=88`} alt="" width={44} height={44}
+    {id && !failed && <img className="profile-photo" src={`https://avatars.githubusercontent.com/u/${id}?s=88`} alt="" width={28} height={28}
       crossOrigin="anonymous" referrerPolicy="no-referrer" decoding="async" data-loaded={loaded}
       onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />}
   </span>;
@@ -52,7 +52,7 @@ export function AccountMenu({dark, onToggleTheme, platform, onChangePlatform}: {
     <button ref={trigger} type="button" className="profile-toggle" data-connected={signedIn ? 'true' : undefined} aria-expanded={open} aria-controls={id}
       aria-label={attention ? 'Account menu, sign-in needs attention' : label}
       title={user ? `@${user.login}` : 'Account'} onClick={() => setOpen(value => !value)}>
-      {avatarId ? <GitHubAvatar key={avatarId} id={avatarId} login={user?.login} /> : <Icon name={attention ? 'triangle-alert' : 'user'} />}
+      {signedIn ? <ProfileAvatar key={avatarId} id={avatarId} login={user?.login} /> : <Icon name={attention ? 'triangle-alert' : 'user'} />}
       {!signedIn && <span className="account-label">Account</span>}
     </button>
     <div id={id} hidden={!open} className="account-dropdown" aria-label="Account and appearance">
