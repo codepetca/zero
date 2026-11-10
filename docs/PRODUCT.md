@@ -161,7 +161,7 @@ is explicit and remains gated by hosted library acceptance.
 When app listings are enabled, Zero adds an app to ZeroHub after GitHub Pages
 serves the verified publishing run. Free has one app slot. The manual pilot
 can grant ten. When the slots are full, a new app replaces the first unprotected
-app in the queue. An update keeps its place. In **My Apps**, protect one app
+app in the queue. An update keeps its place. In **My Projects**, protect one app
 with **Do not replace** or use **Move to back** to keep an app in the Hub longer.
 If the only slot is protected, the new app still publishes to GitHub Pages. Clear
 protection and choose **Add to ZeroHub** to give it that slot. Public cards show
@@ -409,6 +409,9 @@ The Zero editor also offers **Browse tutorial practice** in **Libraries and
 games**. The ZeroHub sidebar shows the section buttons and expands options
 under the selected section. Search, results, forms and guides appear in the
 content pane. On narrow screens the navigation sits above the pane.
+**My Projects** sits under **Projects** and shows the signed-in user's app
+listings. **My Libraries** sits under **Libraries** and shows the libraries
+available in the main catalog under that GitHub account.
 The sidebar keeps the “Play. Share. Learn.” tagline. Account actions stay in
 the header.
 Drawing Pad is a

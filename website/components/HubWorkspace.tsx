@@ -33,7 +33,7 @@ export function HubWorkspace({children,showListings,showJams,jamRoutesAvailable}
   let active:HubSection=kind==='game'?'game':'library';
   if(inJams)active='jams';
   else if(path==='/hub/share')active='share';
-  else if(path==='/hub/listings')active='listings';
+  else if(path==='/hub/listings')active='game';
   const requestedView=query.get('view')||'';
   const view=path==='/hub'&&kind==='practice'?'practice':exact||requestedView==='practice'?'':requestedView;
   return <JamDirectoryProvider enabled={active==='jams'}>

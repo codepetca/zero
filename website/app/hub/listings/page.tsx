@@ -3,7 +3,7 @@ import {notFound} from 'next/navigation';
 import {HubListings} from '@/components/HubListings';
 import {listingsEnabled} from '@/lib/hub-listings-store.mjs';
 
-export const metadata={title:'My Apps'};
+export const metadata={title:'My Projects'};
 
 export default async function ListingsPage({searchParams}:{searchParams:Promise<{view?:string|string[]}>}) {
   if(!listingsEnabled())notFound();
@@ -13,7 +13,7 @@ export default async function ListingsPage({searchParams}:{searchParams:Promise<
     <p>When you publish an eligible app through Zero, it can appear in ZeroHub. If your app slots are full, a new app replaces the first unprotected app in the queue.</p>
     <p>Choose <strong>Do not replace</strong> to protect one app. Choose <strong>Move to back</strong> to keep an app in the queue longer.</p>
     <p><strong>Remove from ZeroHub</strong> takes the app out of discovery. Its GitHub Pages link still works.</p>
-    <p><Link href="/hub/listings">Manage apps</Link></p>
+    <p><Link href="/hub/listings">My Projects</Link></p>
   </>;
-  return <><h1>My Apps</h1><HubListings/></>;
+  return <><h1>My Projects</h1><HubListings/></>;
 }

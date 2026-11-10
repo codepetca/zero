@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import styles from '@/app/hub/hub.module.css';
 
-export type HubSection = 'game'|'library'|'listings'|'share'|'jams';
+export type HubSection = 'game'|'library'|'share'|'jams';
 type MenuItem = [label:string,href:string,current:boolean,visible?:boolean];
 
 export function HubNavigation({active,path='/hub',view='',showListings=false,showJams=false,canCreateJam=false}:{
   active:HubSection;path?:string;view?:string;showListings?:boolean;showJams?:boolean;canCreateJam?:boolean;
 }) {
+  const projectListings=path==='/hub/listings';
   const groups:{id:string;label:string;href:string;visible?:boolean;items:MenuItem[]}[] = [
     {id:'share',label:'Share your work',href:'/hub/share',items:[
       ['Share a game','/hub/share?view=game',view==='game'],
@@ -14,16 +15,15 @@ export function HubNavigation({active,path='/hub',view='',showListings=false,sho
       ['Requests and results','/hub/share?view=requests',view==='requests']
     ]},
     {id:'game',label:'Projects',href:'/hub?kind=game',items:[
-      ['Browse projects','/hub?kind=game',view!=='publish'],
-      ['Publish an app','/hub?kind=game&view=publish',view==='publish']
+      ['Browse projects','/hub?kind=game',!projectListings&&view!=='publish'],
+      ['My Projects','/hub/listings',projectListings&&view!=='help',showListings],
+      ['Publish an app','/hub?kind=game&view=publish',!projectListings&&view==='publish'],
+      ['How app listings work','/hub/listings?view=help',projectListings&&view==='help',showListings]
     ]},
     {id:'library',label:'Libraries',href:'/hub?kind=library',items:[
-      ['Browse libraries','/hub?kind=library',view!=='use'&&view!=='practice'],
+      ['Browse libraries','/hub?kind=library',!['use','practice','mine'].includes(view)],
+      ['My Libraries','/hub?kind=library&view=mine',view==='mine'],
       ['Add a library','/hub?kind=library&view=use',view==='use']
-    ]},
-    {id:'listings',label:'My Apps',href:'/hub/listings',visible:showListings,items:[
-      ['Manage apps','/hub/listings',view!=='help'],
-      ['How app listings work','/hub/listings?view=help',view==='help']
     ]},
     {id:'jams',label:'Jams',href:'/hub/jams',visible:showJams,items:[
       ['Browse jams','/hub/jams',path==='/hub/jams'],

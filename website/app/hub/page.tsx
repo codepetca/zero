@@ -2,6 +2,7 @@ import {Suspense} from 'react';
 import {notFound,redirect} from 'next/navigation';
 import Link from 'next/link';
 import {HubDiscovery} from '@/components/HubDiscovery';
+import {HubMyLibraries} from '@/components/HubMyLibraries';
 import {listingsEnabled} from '@/lib/hub-listings-store.mjs';
 import {isJamHubVisibilityEnforced} from '@/lib/jam-hub-visibility.mjs';
 
@@ -13,6 +14,7 @@ export default async function Hub({searchParams}:{searchParams:Promise<Record<st
   if(['kind','example','id','version','view'].some(key=>Array.isArray(query[key])))notFound();
   if(query.example!==undefined||query.kind==='example'||query.kind==='all')redirect('/learn');
   if(query.id===undefined&&query.version===undefined) {
+    if(query.kind==='library'&&query.view==='mine')return <HubMyLibraries enforceJamVisibility={isJamHubVisibilityEnforced()}/>;
     if((!query.kind||query.kind==='game')&&query.view==='publish')return <>
       <h1>Publish an app</h1>
       <ol className="steps">
