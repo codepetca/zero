@@ -1,5 +1,23 @@
 # Verification
 
+## ZeroHub section navigation — 2026-11-10
+
+Source `7ad7abdb7` on `bd28ba1f9` keeps one sidebar and content pane across
+ZeroHub routes. The selected section expands, the discovery blurb is removed,
+and Jams uses the existing account-bound hosting grant for its creation form.
+The production build, root check and 101 focused tests passed on the initial
+implementation. At `373d48c00`, TypeScript and 86 affected tests passed.
+
+Local Chromium fixtures verified the persistent sidebar, section guides,
+jam rules and schedule, Free direct-route denial, and Pro draft restoration
+at 390 px. A browser clock confirmed the submission cutoff and reveal
+countdown transition. Tutorial practice kept Libraries expanded. The browser
+used sample accounts and no live writes. Next.js logged the existing
+smooth-scroll warning during navigation.
+
+Independent Terra/medium review identified the practice navigation issue.
+Targeted review confirmed the fix at `373d48c00`. The changes are local.
+
 ## ZeroHub Jams directory — 2026-11-10
 
 Source `e31ab4781` against `77b89406c` adds **Jams** to the shared ZeroHub
