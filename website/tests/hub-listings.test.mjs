@@ -129,6 +129,8 @@ test('public discovery uses a GitHub App grant for one public repository and met
   const root = 'https://api.github.com/repos/student/my-game';
   const calls = [];
   let permissions = {metadata:'read'};
+  let selection = 'selected';
+  let status = 200;
   let hasPages = true;
   const fetchImpl = async (url, options) => {
     assert.equal(options.redirect,'manual');
@@ -136,6 +138,7 @@ test('public discovery uses a GitHub App grant for one public repository and met
     const credential = options.headers.Authorization.replace(/^Bearer /,'');
     if (url === root) {
       assert.equal(credential,installationToken);
+      if (status !== 200) return new Response(null,{status});
       return Response.json({id:21,private:false,has_pages:hasPages,owner:{id:6,type:'User'},html_url:receipt.repositoryUrl});
     }
     const [header,payload,signature] = credential.split('.');
@@ -147,7 +150,7 @@ test('public discovery uses a GitHub App grant for one public repository and met
     assert.equal(url,'https://api.github.com/app/installations/11/access_tokens');
     assert.deepEqual(JSON.parse(options.body),{repository_ids:[21],permissions:{metadata:'read'}});
     return Response.json({token:installationToken,expires_at:new Date(now+3600_000).toISOString(),
-      repositories:[{id:21,private:false}],permissions},{status:201});
+      repositories:[{id:21,private:false}],repository_selection:selection,permissions},{status:201});
   };
   const options = {appId,key,now:()=>now,fetchImpl};
   const read = createListingRepositoryReader(options);
@@ -155,7 +158,15 @@ test('public discovery uses a GitHub App grant for one public repository and met
   hasPages = false;
   assert.equal(await read(entry,{signal}),false);
   assert.equal(calls.length,4,'cached grant still fetches fresh metadata');
+  status = 429;
+  await assert.rejects(read(entry,{signal}),/metadata is unavailable/);
+  status = 200;
+  assert.equal(await read(entry,{signal}),false);
+  assert.equal(calls.length,6,'transient failures preserve the grant');
   permissions = {metadata:'read',contents:'read'};
+  await assert.rejects(createListingRepositoryReader(options)(entry,{signal}),/metadata is unavailable/);
+  permissions = {metadata:'read'};
+  selection = 'all';
   await assert.rejects(createListingRepositoryReader(options)(entry,{signal}),/metadata is unavailable/);
 });
 

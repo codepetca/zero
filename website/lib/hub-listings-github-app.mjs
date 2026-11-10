@@ -44,7 +44,7 @@ export function createListingRepositoryReader({appId, key, fetchImpl = fetch, no
     if (direct && response.status === (body ? 201 : 200)) return boundedJson(response,65_536);
     await response.body?.cancel();
     if (direct && !body && [301,302,307,308,404,410].includes(response.status)) return null;
-    throw unavailable();
+    throw Object.assign(unavailable(),{status:response.status});
   }
 
   return async function read(entry,{signal}) {
@@ -67,7 +67,8 @@ export function createListingRepositoryReader({appId, key, fetchImpl = fetch, no
       const expiresAt = Date.parse(result.expires_at);
       if (!/^ghs_[A-Za-z0-9._-]{10,8000}$/.test(result.token || '') ||
           !Number.isFinite(expiresAt) || expiresAt <= now()+60_000 || expiresAt > now()+3_660_000 ||
-          result.permissions?.metadata !== 'read' || Object.keys(result.permissions).length !== 1 ||
+          result.repository_selection !== 'selected' || result.permissions?.metadata !== 'read' ||
+          Object.keys(result.permissions).length !== 1 ||
           !Array.isArray(result.repositories) || result.repositories.length !== 1 ||
           result.repositories[0]?.id !== repositoryId || result.repositories[0]?.private !== false)
         throw unavailable();
@@ -77,12 +78,12 @@ export function createListingRepositoryReader({appId, key, fetchImpl = fetch, no
     }
     try {
       const repo = await github(root,grant.token,signal);
-      if (!repo) tokens.delete(cacheId);
+      if (!repo && tokens.get(cacheId) === grant) tokens.delete(cacheId);
       return repo?.private === false && repo.has_pages === true && repo.id === repositoryId &&
         repo.owner?.type === 'User' && repo.owner.id === ownerId && typeof repo.html_url === 'string' &&
         repo.html_url.toLowerCase() === entry.repositoryUrl.toLowerCase();
     } catch (error) {
-      tokens.delete(cacheId);
+      if (error.status === 401 && tokens.get(cacheId) === grant) tokens.delete(cacheId);
       throw error;
     }
   };
