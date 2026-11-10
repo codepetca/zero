@@ -239,12 +239,15 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       const next=state?structuredClone(state):{...initial(id,actor,null,stamp),hosting:'zero'};
       const counts=operationCounts(next);
       if(pool==='safety') {
+        const limit=safetySlots(bound);
         if(!maintainers.has(actor.id)) {
           if(safetyAction==='withdraw-entry') {
             if(!canHostRemoveEntry(next,actor,time))fail(403,'Hosts can remove entries from their own jam once its gallery opens.');
+            // Leave room for a maintainer to suspend and cancel the event.
+            if(counts.safety>=limit-2)fail(429,'A Zero maintainer must handle further entry removals for this jam.');
           } else if(!(safetyAction==='cancel'&&canCancelOwnJam(next,actor)))fail(403,'A Zero maintainer must perform this action.');
         }
-        if(counts.safety>=safetySlots(bound))fail(429,'Reserved safety moderation capacity is exhausted. Operator intervention is required.');
+        if(counts.safety>=limit)fail(429,'Reserved safety moderation capacity is exhausted. Operator intervention is required.');
       } else {
         if(counts.ordinary>=bound.operations)fail(429,'This jam has reached its ordinary operation capacity.');
         const recentWrites=Object.values(next.operations).filter(operation=>operation.pool==='ordinary'&&operation.actorId===actor.id&&Number.isSafeInteger(operation.acceptedAt)&&operation.acceptedAt>time-bound.writeWindowMs).length;

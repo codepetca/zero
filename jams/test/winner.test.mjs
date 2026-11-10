@@ -81,3 +81,21 @@ test('the host can remove a winning entry after reveal without withdrawing its r
   assert.equal(visibility.isGameJamWinner('202',participant.id),false);
   assert.equal(visibility.isHeld('202'),false);
 });
+
+test('host removals preserve the remaining maintainer event controls', async () => {
+  const {service,setTime}=fixture({pagesBindingReader:verifiedPages,limits:{participants:1}});
+  const {eventId:id,revision}=await service.propose({actor:creator,operationId:'host-safety-create',manifest:hostedManifest()});
+  await service.mutate({id,actor:participant,operationId:'host-safety-join',action:'join',revision,
+    repositoryUrl:'https://github.com/student/project'});
+  await service.mutate({id,actor:participant,operationId:'host-safety-submit',action:'submit',revision,
+    title:'Game',description:'A game',demoUrl:'https://student.github.io/project/'});
+  const moderate=(action,operationId)=>service.mutate({id,actor:maintainer,operationId,action,reason:'Review'});
+  await moderate('suspend','host-safety-review');
+  await moderate('resume','host-safety-resume');
+  setTime('2030-01-05T00:00:00Z');
+  await assert.rejects(service.mutate({id,actor:creator,operationId:'host-safety-remove',action:'withdraw-entry',
+    participantId:participant.id,reason:'Remove entry'}),{status:429});
+  assert.equal((await service.read(id)).event.entries.length,1);
+  assert.equal((await moderate('suspend','host-safety-suspend')).status,'suspended');
+  assert.equal((await moderate('cancel','host-safety-cancel')).status,'cancelled');
+});

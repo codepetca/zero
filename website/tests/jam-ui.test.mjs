@@ -127,7 +127,7 @@ test('submission contract requires a demo URL and preserves exact source and dem
   const {operationId,...sent}=received;assert.deepEqual(sent,payload);assert.ok(operationId);
 });
 test('entry moderation sends the public reason and participant identity',async()=>{
-  assert.match(clientSource,/<label>Public reason<textarea required/);
+  assert.match(clientSource,/<label>Reason \(visible to the participant\)<textarea required/);
   assert.match(clientSource,/mutation\.send\(\{action:'withdraw-entry',participantId,reason\}\)/);
   assert.match(clientSource,/if\(result\?\.status==='withdrawn'\)await onChanged\(\)/);
   const payload={action:'withdraw-entry',participantId:'14',reason:'Uncredited copied work'};
@@ -148,6 +148,17 @@ test('the gallery offers host entry removal only to a signed-in account with per
   assert.equal(control().props.host,true);
   h.setActor(null);
   assert.equal(control(),undefined);
+});
+test('a participant can see why a moderated entry was removed',()=>{
+  const event={id:'jam-42',title:'Jam',type:'game',schedule:{},moderation:{status:'active'},revision:'A'};
+  const data={event,entry:{status:'withdrawn',moderatedBy:'11',reason:'Entrant requested removal.'},
+    registration:{status:'joined',revision:'A'},canMaintain:false};
+  const h=harness({participateData:data});
+  const reason=()=>elements(h.render('JamParticipate',{id:'jam-42',pagesInstallLink:null}))
+    .find(node=>node.type==='p'&&node.props.children==='Entrant requested removal.');
+  assert.ok(reason());
+  h.setActor(null);
+  assert.equal(reason(),undefined);
 });
 test('a participant joined under A sees approved B changes and old rules, but cannot submit without reviewing B',async()=>{
   const original={type:'game',title:'Jam A',summary:'Original jam',theme:'Water',rules:'Original rule A: work alone.',eligibility:'Students',websiteUrl:'https://creator.example/',timezone:'UTC',schedule:{registrationOpensAt:'2030-01-01T00:00:00Z',registrationClosesAt:'2030-01-10T00:00:00Z',startsAt:'2030-01-11T00:00:00Z',submissionsOpenAt:'2030-01-11T00:00:00Z',submissionsCloseAt:'2030-01-12T00:00:00Z'}};

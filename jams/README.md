@@ -133,8 +133,9 @@ remaining safety slot; unused bytes from consumed slots may serve later ordinary
 writes. Safety reasons are limited to 256 characters, and removal stores a compact
 withdrawal revision pointing to immutable prior source. Participant reads resolve
 that reference for useful removed-entry metadata. These safety actions bypass the
-ordinary count/rate quota but remain maintainer-only and recover by the same
-durable operation key. Exhausting the safety pool fails explicitly for operator
+ordinary count/rate quota, require authority for the action and recover by the same
+durable operation key. Host withdrawals leave two slots for maintainer suspension
+and cancellation. Exhausting the safety pool fails explicitly for operator
 intervention; moderation is bounded, not unlimited. Custom limits leaving less
 than 65,536 ordinary bytes or fewer than two entry-history slots are invalid.
 

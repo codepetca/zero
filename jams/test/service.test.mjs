@@ -108,7 +108,7 @@ test('archived records remain readable through account rename without allowing n
   await assert.rejects(f.service.propose({actor:renamed,operationId:'rename-0001',repositoryUrl:'https://github.com/renamed/jam',commit:NEXT_COMMIT}),status(400));
   assert.equal((await f.service.list()).events[0].id,'jam-101');
 });
-test('only a maintainer can withdraw an entry after deadline and cancellation, retaining the original revision',async()=>{
+test('only a maintainer can withdraw an entry after cancellation, retaining the original revision',async()=>{
   const f=fixture(),revision=await approved(f);await f.service.mutate(join(revision));const submitted=await f.service.mutate(submission(revision));
   const removal={id:'jam-101',actor:maintainer,operationId:'remove-0001',action:'withdraw-entry',participantId:participant.id,reason:'Please remove copied material.'};
   await assert.rejects(f.service.mutate({...removal,actor:participant}),status(403));

@@ -9,7 +9,7 @@ export default function JamRules() {
     <h2>Creating a jam</h2><p>A Pro license lets you create a jam for up to 100 distinct GitHub accounts. Accounts still count after leaving. Licenses are enabled manually; <a href="mailto:info@codepet.ca">contact Codepet</a> to request access. There is no online checkout yet.</p>
     <h2>Approval and timing</h2><p>New Pro jams are automatically approved. You can have one active jam at a time, until its gallery opens. A suspended jam still counts; cancelling it frees the slot. Maintainers can moderate jams.</p>
     <h2>Game Jam winners</h2><p>After submissions close, the host can choose a winner from the submitted games and change their choice later. Once the gallery opens, it marks the winning game. A matching published app on ZeroHub also shows a Game Jam winner badge.</p>
-    <h2>Removing a jam entry</h2><p>Once the gallery opens, the host can remove entries from their own jam and give a reason. Removing the winning entry also removes its winner badge. Zero maintainers can remove entries at any time.</p>
+    <h2>Removing a jam entry</h2><p>Once the gallery opens, the host can remove entries from their own jam and give a reason the participant can see. Removing the winning entry also removes its winner badge. Zero maintainers can remove entries at any time and handle removals for suspended or cancelled jams.</p>
     <p><Link href="/hub/jams">Back to ZeroJams</Link></p>
   </JamShell>;
 }
