@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthKitProvider } from "@workos-inc/authkit-nextjs/components";
+import { workosConfigured } from "@/lib/workos-config.mjs";
 import DocsLocationTracker from "@/components/DocsLocationTracker";
 export const metadata: Metadata = {
   metadataBase: new URL("https://zero.codepet.ca"),
@@ -26,7 +28,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           Skip to content
         </a>
         <DocsLocationTracker />
-        {children}
+        {workosConfigured() ? <AuthKitProvider>{children}</AuthKitProvider> : children}
       </body>
     </html>
   );

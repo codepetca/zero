@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "A small local Java teaching sidebar.",
-  "version": "0.5.67",
+  "version": "0.5.68",
   "publisher": "zero",
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
@@ -27,7 +27,7 @@
   "scripts": {
     "test": "node --test",
     "package": "vsce package --no-dependencies --allow-missing-repository",
-    "vscode:prepublish": "node ../scripts/lesson-projects.mjs && node ../design/prepare.mjs --extension",
+    "vscode:prepublish": "node src/workos-configuration.js && node ../scripts/lesson-projects.mjs && node ../design/prepare.mjs --extension",
     "pretest": "node ../scripts/lesson-projects.mjs && node ../design/prepare.mjs --extension"
   },
   "contributes": {

@@ -147,7 +147,7 @@ export async function getJamsResponse(request, inputOptions = {}) {
   if (!enabled(options)) return unavailable();
   // Each response obtains fresh registry authority for cross-gallery holds.
   const config = hubConfig(options.env);
-  const session = config && readSession(request,config,options.now());
+  const session = config && await readSession(request,config,options.now(),options.env);
   const actor = session ? {id:session.id,login:session.login} : undefined;
   const deadline=createHubRequestDeadline({budgetMs:options.responseBudgetMs??18_000,signal:request.signal,now:options.deadlineNow});
   try {
@@ -174,7 +174,7 @@ export async function getJamResponse(request, id, inputOptions = {}) {
   const deadline=createHubRequestDeadline({budgetMs:options.responseBudgetMs??18_000,signal:request.signal,now:options.deadlineNow});
   try {
     const config = hubConfig(options.env);
-    const session = config && readSession(request,config,options.now());
+    const session = config && await readSession(request,config,options.now(),options.env);
     const actor = session ? {id:session.id,login:session.login} : undefined;
     const service = await deadline.run(()=>serviceFor(options));
     const params=new URL(request.url).searchParams,paged=params.get('view')==='gallery',overview=params.get('view')==='overview',moderation=params.get('view')==='moderation';
@@ -226,7 +226,7 @@ async function postResponse(request, id, proposal, inputOptions,settlement=false
   const config = hubConfig(options.env);
   if (!config) return json({error:'GitHub sign-in is unavailable.'},503);
   if (!sameOrigin(request,config)) return json({error:'Open this action on Zero to continue.'},403);
-  const session = readSession(request,config,options.now());
+  const session = await readSession(request,config,options.now(),options.env);
   if (!session) return json({error:'Sign in to GitHub to continue.'},401);
   if (!equalSecret(request.headers.get('x-hub-csrf'),session.csrf))
     return json({error:'Your session changed. Reconnect GitHub and try again.'},403);

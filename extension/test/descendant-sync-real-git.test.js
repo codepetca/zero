@@ -69,7 +69,7 @@ async function harness(t,scenario) {
     return id==='vscode'?textInputs(vscode):load.call(this,id,...args);
   };
   let extension;try{extension=require('../src/extension');}finally{Module._load=load;}
-  extension.activate({subscriptions,workspaceState:state},{provider:appSessions(vscode,{dispose(){}}),repositories:{checkSetup:async()=>({}),access:async()=>({repository:{id:12},installation:{id:99}})}});
+  extension.activate({extensionMode:2,subscriptions,workspaceState:state},{env:{},provider:appSessions(vscode,{dispose(){}}),repositories:{checkSetup:async()=>({}),access:async()=>({repository:{id:12},installation:{id:99}})}});
   const webview={html:'',onDidReceiveMessage:disposable};provider.resolveWebviewView({webview,onDidDispose:disposable});
   const deadline=Date.now()+10000;while(!webview.html.includes('Current branch: feature')){assert.ok(Date.now()<deadline,'Project rendered');await new Promise(resolve=>setTimeout(resolve,10));}
   assert.equal(calls.length,0,'Initial simulation mode never dispatches a transfer');mode='live';

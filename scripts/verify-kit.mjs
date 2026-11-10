@@ -11,6 +11,7 @@ import {coreSources} from './prepare-starter.mjs';
 import {extractProject, maven} from './verification-project.mjs';
 import {sharingConfigurationBytes} from './release-review.mjs';
 import {checkPackagedTutorialTemplates} from './check-tutorial-templates.mjs';
+import workosConfiguration from '../extension/src/workos-configuration.js';
 
 const release = releaseDefinition(), receipt = JSON.parse(readFileSync(path.join(root, 'dist/release.json'), 'utf8'));
 const license = new Uint8Array(readFileSync(path.join(root, 'LICENSE')));
@@ -47,6 +48,7 @@ function verifyExtensionSource(directory, relative='') {
   }
 }
 verifyExtensionSource(path.join(root,'extension/src'));
+workosConfiguration.validateWorkOSDistribution(JSON.parse(new TextDecoder().decode(vsix['extension/src/workos-distribution.json'])));
 // vsce normalizes the extension's LICENSE filename to LICENSE.txt in the VSIX.
 assert.deepEqual(vsix['extension/LICENSE.txt'], license);
 assert.equal(JSON.parse(new TextDecoder().decode(vsix['extension/package.json'])).license, 'SEE LICENSE IN LICENSE');

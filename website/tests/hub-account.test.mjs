@@ -24,3 +24,9 @@ test('jam account hides sign out but retains identity and signed-out sign-in',()
   assert.match(account(connection(null),{showSignOut:false}),/Sign in to GitHub/);
   assert.match(account(connection({id:'12',login:'creator',csrfToken:'csrf'})),/>Sign out</);
 });
+
+test('managed Hub account uses the Zero sign-out form',()=>{
+  const managed={...connection({id:'12',login:'creator',csrfToken:'csrf'}),managed:true};
+  assert.match(account(managed),/<form action="\/zero-account\/sign-out" method="post">/);
+  assert.doesNotMatch(account(managed,{showSignOut:false}),/<form/);
+});

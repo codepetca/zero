@@ -1,10 +1,12 @@
 import zeroApp from '../../extension/src/github-app/config.json' with {type:'json'};
 import {createCipheriv, createDecipheriv, createHash, randomBytes, timingSafeEqual} from 'node:crypto';
+import {workosConfigured, workosRequested, workosSessionIdentity} from './workos-config.mjs';
 
 export const SESSION_COOKIE = 'zero_hub_gh_session';
 export const FLOW_COOKIE = 'zero_hub_gh_flow';
 const OAUTH_AGE_MS = 10 * 60 * 1000;
 const SESSION_AGE_MS = 8 * 60 * 60 * 1000;
+const MANAGED_SESSION_PURPOSE = 'workos-session';
 const GITHUB_API_VERSION = '2026-03-10';
 
 const noStore = {'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'};
@@ -20,7 +22,9 @@ export function hubConfig(env = process.env) {
   try {
     const url = new URL(originText);
     const local = (env.NODE_ENV === 'development' || env.NODE_ENV === 'test') && !env.VERCEL &&
-      url.protocol === 'http:' && url.hostname === '127.0.0.1' && url.port;
+      url.protocol === 'http:' && url.port && (url.hostname === '127.0.0.1' ||
+        url.hostname === 'localhost' && workosConfigured(env) &&
+        url.origin === new URL(env.NEXT_PUBLIC_WORKOS_REDIRECT_URI).origin);
     if ((url.protocol !== 'https:' && !local) || url.username || url.password ||
       url.pathname !== '/' || url.search || url.hash) return null;
     origin = url.origin;
@@ -35,6 +39,11 @@ export function hubConfig(env = process.env) {
   else if (/^[A-Za-z0-9_-]{43}$/.test(secret)) key = Buffer.from(secret, 'base64url');
   if (!key || key.length !== 32) return null;
   return {origin, clientId, clientSecret, key, secure: origin.startsWith('https:')};
+}
+
+export function managedHubAvailable(config, env = process.env) {
+  return !!config && workosConfigured(env) &&
+    config.origin === new URL(env.NEXT_PUBLIC_WORKOS_REDIRECT_URI).origin;
 }
 
 export function safeHubReturnTo(value) {
@@ -129,16 +138,42 @@ export function readFlow(request, config, now = Date.now()) {
     safeHubReturnTo(flow.returnTo) === flow.returnTo ? flow : null;
 }
 
-export function readSession(request, config, now = Date.now()) {
-  const session = unseal(readCookie(request, SESSION_COOKIE), 'session', config);
-  return session && typeof session.id === 'string' && /^[1-9][0-9]{0,19}$/.test(session.id) &&
+export async function readSession(request, config, now = Date.now(), env = process.env) {
+  const managed = workosRequested(env);
+  if (managed && (!managedHubAvailable(config, env) || !readCookie(request, env.WORKOS_COOKIE_NAME))) return null;
+  const purpose = managed ? MANAGED_SESSION_PURPOSE : 'session';
+  const session = unseal(readCookie(request, SESSION_COOKIE), purpose, config);
+  if (!(session && typeof session.id === 'string' && /^[1-9][0-9]{0,19}$/.test(session.id) &&
     typeof session.login === 'string' && /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(session.login) &&
     typeof session.token === 'string' && /^ghu_[A-Za-z0-9_]{10,512}$/.test(session.token) &&
     tokenPattern.test(session.csrf) && Number.isSafeInteger(session.expiresAt) &&
-    session.expiresAt > now && session.expiresAt <= now + SESSION_AGE_MS ? session : null;
+    session.expiresAt > now && session.expiresAt <= now + SESSION_AGE_MS)) return null;
+  if (!managed) return session;
+
+  // The AuthKit proxy verifies the token and strips client-injected session
+  // headers. Require that verified session as well as the sealed GitHub grant.
+  try {
+    const {withAuth, getTokenClaims} = await import('@workos-inc/authkit-nextjs');
+    const auth = await withAuth();
+    if (!auth.user || auth.impersonator != null || !auth.accessToken) return null;
+    const claims = await getTokenClaims(auth.accessToken);
+    const identity = workosSessionIdentity(claims, auth.user.id, env.WORKOS_ISSUER, now);
+    return identity && identity.sessionId === auth.sessionId &&
+      session.workos?.userId === identity.userId && session.workos?.sessionId === identity.sessionId &&
+      session.workos?.issuer === identity.issuer ? session : null;
+  } catch { return null; }
 }
 
 export function newSession(token, user, tokenExpiresIn, config, now = Date.now()) {
+  return createSession(token, user, tokenExpiresIn, config, now);
+}
+
+export function newManagedSession(token, user, tokenExpiresIn, config, identity, now = Date.now()) {
+  if (!identity || !Number.isSafeInteger(tokenExpiresIn) || tokenExpiresIn <= 0) throw new Error('Invalid managed session');
+  return createSession(token, user, tokenExpiresIn, config, now, identity);
+}
+
+function createSession(token, user, tokenExpiresIn, config, now, workos) {
   if (!user || !Number.isSafeInteger(user.id) || user.id < 1 ||
     !/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(user.login || '') ||
     typeof token !== 'string' || !/^ghu_[A-Za-z0-9_]{10,512}$/.test(token)) throw new Error('Invalid GitHub identity');
@@ -146,8 +181,9 @@ export function newSession(token, user, tokenExpiresIn, config, now = Date.now()
   const expiresAt = now + Math.min(SESSION_AGE_MS, tokenAge) - 60_000;
   if (expiresAt <= now) throw new Error('Expired GitHub token');
   const session = {id: String(user.id), login: user.login, token,
-    csrf: randomBytes(32).toString('base64url'), expiresAt};
-  return {session, cookie: cookieHeader(SESSION_COOKIE, seal(session, 'session', config), config,
+    csrf: randomBytes(32).toString('base64url'), expiresAt, ...(workos ? {workos} : {})};
+  const purpose = workos ? MANAGED_SESSION_PURPOSE : 'session';
+  return {session, cookie: cookieHeader(SESSION_COOKIE, seal(session, purpose, config), config,
     Math.floor((expiresAt - now) / 1000))};
 }
 
@@ -197,10 +233,12 @@ export async function githubUser(token, fetchImpl = fetch) {
 export const githubApiHeaders = token => ({Accept: 'application/vnd.github+json',
   Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': GITHUB_API_VERSION, 'User-Agent': 'ZeroHub'});
 
-export function sessionResponse(request, env = process.env, now = Date.now()) {
+export async function sessionResponse(request, env = process.env, now = Date.now()) {
   const config = hubConfig(env);
-  const session = config && readSession(request, config, now);
-  return json({configured: !!config, user: session ?
+  const managed = workosRequested(env);
+  const configured = managed ? managedHubAvailable(config, env) : !!config;
+  const session = configured ? await readSession(request, config, now, env) : null;
+  return json({configured, ...(managed ? {managed:true} : {}), user: session ?
     {id: session.id, login: session.login, csrfToken: session.csrf} : null});
 }
 
@@ -209,6 +247,14 @@ export function loginResponse(request, env = process.env, now = Date.now()) {
   if (!config) return json({error: 'GitHub sign-in unavailable', configured: false}, 503);
   const requestUrl = new URL(request.url);
   const returnTo = requestUrl.searchParams.get('returnTo') || '/hub';
+  if (workosRequested(env)) {
+    if (!managedHubAvailable(config, env)) return json({error: 'GitHub sign-in unavailable', configured: false}, 503);
+    const url = new URL('/zero-account/sign-in', config.origin);
+    const destination = new URL(safeHubReturnTo(returnTo), config.origin);
+    destination.searchParams.delete('github');
+    url.searchParams.set('returnTo', destination.pathname + destination.search);
+    return redirect(url.toString());
+  }
   const flow = newFlow(returnTo, config, now);
   return redirect(flow.url, [flow.cookie]);
 }
@@ -217,6 +263,7 @@ export async function callbackResponse(request, env = process.env, fetchImpl = f
   const config = hubConfig(env);
   if (!config) return redirect('https://zero.codepet.ca/hub?github=unavailable');
   const clearFlow = cookieHeader(FLOW_COOKIE, '', config, 0);
+  if (workosRequested(env)) return errorReturn(config, '/hub', 'unavailable', [clearFlow]);
   const flow = readFlow(request, config, now);
   const url = new URL(request.url);
   if (!flow) return errorReturn(config, '/hub', 'invalid', [clearFlow]);
@@ -238,13 +285,14 @@ export async function callbackResponse(request, env = process.env, fetchImpl = f
   }
 }
 
-export function logoutResponse(request, env = process.env, now = Date.now()) {
+export async function logoutResponse(request, env = process.env, now = Date.now()) {
   const config = hubConfig(env);
   if (!config) return json({error: 'GitHub sign-in unavailable', configured: false}, 503);
   if (!sameOrigin(request, config)) return json({error: 'Invalid origin'}, 403);
-  const session = readSession(request, config, now);
+  const session = await readSession(request, config, now, env);
   if (!session) return json({error: 'GitHub sign-in required'}, 401);
   if (!equalSecret(request.headers.get('x-hub-csrf'), session.csrf))
     return json({error: 'Invalid session token'}, 403);
+  if (workosRequested(env)) return json({error: 'Sign out through your Zero account.'}, 409);
   return json({ok: true}, 200, {'Set-Cookie': cookieHeader(SESSION_COOKIE, '', config, 0)});
 }

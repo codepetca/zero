@@ -33,7 +33,7 @@ async function accountFor(record, fetchImpl, signal) {
   }
   return {id:String(user.id), label:user.login};
 }
-function createGitHubAppProvider({vscode, context, configuration, fetchImpl = globalThis.fetch, now = Date.now, onDiagnostic = () => {}, browserOptions = {}}) {
+function createGitHubAppProvider({vscode, context, configuration, fetchImpl = globalThis.fetch, now = Date.now, onDiagnostic = () => {}, browserOptions = {}, assertBinding = async()=>{}}) {
   const emitter = new vscode.EventEmitter();
   let disposed = false, cached, signInPromise, verifiedConfiguration, pendingRemovals = 0;
   let identityRevision = 0;
@@ -69,6 +69,7 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
     finally { controllers.delete(controller); }
   }
   async function clearInvalid() { await store.clear(); invalidate(); }
+  async function clearInvalidIfBound(record) { await assertBinding(record.account.id); await clearInvalid(); }
   async function verifyExistingApp(record,signal) {
     const key=JSON.stringify(configurationKey(configuration));
     if(verifiedConfiguration?.key===key && verifiedConfiguration.expiresAt>now())return;
@@ -95,6 +96,8 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
       catch (error) { invalidate(); throw error; }
       assertAvailable(signal);
       if (!record) { invalidate(); return []; }
+      await assertBinding(record.account.id);
+      assertAvailable(signal);
       if (record.state !== 'active' || record.refreshExpiresAt <= now()) { invalidate(); return []; }
       const receipt = expected && verifiedSessions.get(expected);
       if (receipt && (receipt.revision !== identityRevision || receipt.configuration !== recordKey(configuration) || receipt.record !== recordKey(record))) {
@@ -105,19 +108,23 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
         // Only the exact session returned by a full identity check can reuse
         // that identity within its captured operation; there is no time cache.
         try { await verifyExistingApp(record, signal); }
-        catch (error) { if(error.code==='unauthorized')await clearInvalid();else invalidate();throw error; }
+        catch (error) { if(error.code==='unauthorized')await clearInvalidIfBound(record);else invalidate();throw error; }
         assertAvailable(signal);
         const latest = await store.read();
         assertAvailable(signal);
         if (receipt.revision !== identityRevision || receipt.configuration !== recordKey(configuration) || receipt.record !== recordKey(latest)) {
           invalidate(); throw failure('connection-changed', 'Your Zero connection changed. Try sign-in again.');
         }
+        await assertBinding(record.account.id);
+        assertAvailable(signal);
         return [expected];
       }
       if (record.expiresAt <= now() + 60000) {
         const original = record;
         // This write precedes dispatch: a crash/timeout has an uncertain outcome,
         // so restart must reconnect rather than reuse a rotating refresh token.
+        await assertBinding(record.account.id);
+        assertAvailable(signal);
         await store.write({...record, state:'refreshing'});
         assertAvailable(signal);
         try {
@@ -129,13 +136,16 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
           // Verify identity before replacing the pair atomically.
           const account = await accountFor(record, fetchImpl, signal);
           assertAvailable(signal);
-          if (account.id !== original.account.id) { await clearInvalid(); throw failure('account-changed', 'Your GitHub account changed. Sign in to Zero again.'); }
+          await assertBinding(account.id);
+          if (account.id !== original.account.id) { await clearInvalidIfBound(original); throw failure('account-changed', 'Your GitHub account changed. Sign in to Zero again.'); }
           record.account = account;
           const current = await store.read();
           assertAvailable(signal);
           if (current?.sessionId !== original.sessionId || current.state !== 'refreshing' || current.refreshToken !== original.refreshToken) {
             invalidate(); throw failure('connection-changed', 'Your Zero connection changed. Sign in again.');
           }
+          await assertBinding(record.account.id);
+          assertAvailable(signal);
           await store.write(record);
           assertAvailable(signal);
         } catch (error) {
@@ -155,24 +165,27 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
       // capture/assert-current check in one repository operation.
       assertAvailable(signal);
       try { await verifyExistingApp(record,signal); }
-      catch (error) { if(error.code==='unauthorized')await clearInvalid();else invalidate();throw error; }
+      catch (error) { if(error.code==='unauthorized')await clearInvalidIfBound(record);else invalidate();throw error; }
       assertAvailable(signal);
       const identityConfiguration = recordKey(configuration);
       let account;
       try { account = await accountFor(record, fetchImpl, signal); }
-      catch (error) { if (error.code === 'unauthorized' || error.code === 'invalid-account') await clearInvalid(); throw error; }
+      catch (error) { if (error.code === 'unauthorized' || error.code === 'invalid-account') await clearInvalidIfBound(record); throw error; }
       assertAvailable(signal);
-      if (account.id !== record.account.id) { await clearInvalid(); throw failure('account-changed', 'Your GitHub account changed. Sign in to Zero again.'); }
+      await assertBinding(account.id);
+      if (account.id !== record.account.id) { await clearInvalidIfBound(record); throw failure('account-changed', 'Your GitHub account changed. Sign in to Zero again.'); }
       const latest = await store.read();
       assertAvailable(signal);
       if (!latest || recordKey(latest) !== recordKey(record) || identityConfiguration !== recordKey(configuration)) {
         invalidate(); throw failure('connection-changed', 'Your Zero connection changed. Try sign-in again.');
       }
-      if (account.label !== record.account.label) { record = {...record, account}; await store.write(record); }
+      if (account.label !== record.account.label) { await assertBinding(record.account.id); record = {...record, account}; await store.write(record); }
       assertAvailable(signal);
       if (identityConfiguration !== recordKey(configuration)) {
         invalidate(); throw failure('connection-changed', 'Your Zero connection changed. Try sign-in again.');
       }
+      await assertBinding(record.account.id);
+      assertAvailable(signal);
       const result = session(record);
       if (!cached) { cached = result; emitter.fire({added:[result], removed:[], changed:[]}); }
       else if (cached.accessToken !== result.accessToken || cached.account.label !== result.account.label) { cached = result; emitter.fire({added:[], removed:[], changed:[result]}); }
@@ -181,6 +194,8 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
     }, signal);
   }
   async function signIn(controller) {
+    assertAvailable(controller.signal);
+    await assertBinding();
     assertAvailable(controller.signal);
     // Reject non-local storage before issuing any authorization request.
     lock ||= createCredentialLock({globalStorageUri:context.globalStorageUri, now});
@@ -196,18 +211,32 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
         const pair = await browserFlow({...browserOptions,configuration,vscode,fetchImpl,now,signal:controller.signal,onProgress:message=>progress.report({message})});
         assertAvailable(controller.signal);
         const account = await accountFor(pair, fetchImpl, controller.signal);
+        await assertBinding(account.id);
         assertAvailable(controller.signal);
-        return await withLock(async () => {
+        const record = await withLock(async () => {
           assertAvailable(controller.signal);
           if (await store.raw() !== baseline) throw failure('connection-changed', 'Another Zero window changed the connection. Try sign-in again.');
+          assertAvailable(controller.signal);
+          await assertBinding(account.id);
           assertAvailable(controller.signal);
           const record = {schema:1, app:binding(configuration), sessionId:randomUUID(), account, ...pair, flow:'browser',state:'active'};
           await store.write(record);
           assertAvailable(controller.signal);
-          const result = session(record); cached = result;
-          emitter.fire({added:[result], changed:[], removed:[]});
-          return result;
+          // The receipt can change while SecretStorage is writing. Do not emit
+          // or return a session unless the binding still matches afterward.
+          await assertBinding(account.id);
+          assertAvailable(controller.signal);
+          return record;
         }, controller.signal);
+        // Lock release itself is asynchronous. Recheck both the stored record
+        // and the WorkOS binding after release before exposing the session.
+        assertAvailable(controller.signal);
+        if (await store.raw() !== JSON.stringify(record)) throw failure('connection-changed', 'Another Zero window changed the connection. Try sign-in again.');
+        await assertBinding(account.id);
+        assertAvailable(controller.signal);
+        const result = session(record); cached = result;
+        emitter.fire({added:[result], changed:[], removed:[]});
+        return result;
       } finally { cancellationSubscription?.dispose(); }
     };
     return vscode.window.withProgress({location:vscode.ProgressLocation.Notification, title:'Connecting Zero to GitHub', cancellable:true}, run);

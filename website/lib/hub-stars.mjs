@@ -149,7 +149,7 @@ export async function getStarResponse(request, {env = process.env, fetchImpl = f
     deadline.check();
     const config = hubConfig(env);
     if (!config) return json({error: 'GitHub stars unavailable', configured: false}, 503);
-    const session = readSession(request, config, now);
+    const session = await readSession(request, config, now, env);
     if (!session) return json({error: 'GitHub sign-in required'}, 401);
     const url = new URL(request.url);
     if (url.searchParams.getAll('kind').length !== 1 || url.searchParams.getAll('id').length !== 1)
@@ -189,7 +189,7 @@ export async function postStarResponse(request, {env = process.env, fetchImpl = 
     const config = hubConfig(env);
     if (!config) return rejection({error: 'GitHub stars unavailable', configured: false}, 503);
     if (!sameOrigin(request, config)) return rejection({error: 'Invalid origin'}, 403);
-    const session = readSession(request, config, now);
+    const session = await readSession(request, config, now, env);
     if (!session) return rejection({error: 'GitHub sign-in required'}, 401);
     if (!equalSecret(request.headers.get('x-hub-csrf'), session.csrf))
       return rejection({error: 'Invalid session token'}, 403);

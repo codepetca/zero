@@ -6,7 +6,7 @@ import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 
 const source = await readFile(new URL('../components/Navigation.jsx', import.meta.url), 'utf8');
-const fixture = `import {useEffect,useRef,useState} from ${JSON.stringify(import.meta.resolve('react'))}; const Brand = () => null; const BetaNotice = () => null; const Icon = ({name}) => <svg data-icon={name} aria-hidden="true" />;\n${source.replace(/^import .+;\n/gm, '')}`;
+const fixture = `import {useEffect,useRef,useState} from ${JSON.stringify(import.meta.resolve('react'))}; const Brand = () => null; const BetaNotice = () => null; const ZeroAccount = () => null; const Icon = ({name}) => <svg data-icon={name} aria-hidden="true" />;\n${source.replace(/^import .+;\n/gm, '')}`;
 const js = ts.transpileModule(fixture, {compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ESNext}}).outputText
   .replace('"react/jsx-runtime"', JSON.stringify(import.meta.resolve('react/jsx-runtime')));
 const {Navigation} = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);

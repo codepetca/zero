@@ -16,14 +16,14 @@ const record=(time=1000000)=>({schema:1,app:binding(configuration),sessionId:'12
 const pair={access_token:'ghu_newaccessabcdefgh',refresh_token:'ghr_newrefreshabcdefgh',expires_in:28800,refresh_token_expires_in:15897600,token_type:'bearer',scope:''};
 const metadata={id:123,client_id:configuration.clientId,slug:configuration.slug,owner:{login:'codepetca'},permissions};
 const response=value=>new Response(JSON.stringify(value),{status:200});
-async function fixture(t,{saved=record(),overrides={},config=configuration,clock}={}){
+async function fixture(t,{saved=record(),overrides={},config=configuration,clock,assertBinding}={}){
  const directory=await fs.mkdtemp(path.join(os.tmpdir(),'zero-provider-'));t.after(()=>fs.rm(directory,{recursive:true,force:true}));
  const events=new Emitter(),data=new Map(saved?[[SECRET_KEY,JSON.stringify(saved)]]:[]),calls=[],diagnostics=[];
  const context={globalStorageUri:{scheme:'file',fsPath:directory},secrets:{onDidChange:events.event,get:async k=>data.get(k),store:async(k,v)=>{data.set(k,v);events.fire({key:k});},delete:async k=>{data.delete(k);events.fire({key:k});}}};
  let cancelListener,time=1000000;const progress=[];
  const vscode={EventEmitter:Emitter,ProgressLocation:{Notification:15},Uri:{parse:value=>value},env:{openExternal:async()=>{assert.fail('Saved-session tests must not open a browser');}},window:{withProgress:async(_options,callback)=>callback({report:value=>progress.push(value)}, {onCancellationRequested:listener=>{cancelListener=listener;return{dispose(){}};},isCancellationRequested:false})}};
  const fetchImpl=async(url,options)=>{calls.push([url,options]);if(overrides.fetch)return overrides.fetch(url,options);if(url.includes('/apps/'))return response(metadata);if(url.endsWith('/user'))return response({id:42,login:'learner',type:'User'});if(url.endsWith('/access_token')){assert.equal(new URLSearchParams(options.body).get('grant_type'),'refresh_token');return response(pair);}assert.fail('Unexpected request '+url);};
- const create=()=>createGitHubAppProvider({vscode,context,configuration:config,fetchImpl,now:clock||(()=>time),onDiagnostic:value=>diagnostics.push(value)});
+ const create=()=>createGitHubAppProvider({vscode,context,configuration:config,fetchImpl,now:clock||(()=>time),...(assertBinding?{assertBinding}:{}),onDiagnostic:value=>diagnostics.push(value)});
  const provider=create();t.after(()=>provider.dispose());return{provider,create,vscode,context,data,calls,events,progress,diagnostics,fetchImpl,advance:ms=>{time+=ms;},cancel:()=>cancelListener?.()};
 }
 test('unconfigured activation leaves local work available and never acquires other provider sessions',async t=>{
@@ -331,4 +331,29 @@ test('pending signout rejects automatic refresh, capture and new signin before i
  assert.equal(f.calls.length,calls,'No pending-signout path may dispatch a credential or authorization request');
  release();await pending;fs.mkdir=mkdir;
  assert.equal(f.data.has(SECRET_KEY),false);assert.deepEqual(await f.provider.getSessions([]),[]);
+});
+
+test('identity binding rejects stored and captured sessions before credential renewal or mutation',async t=>{
+ let expected='42';
+ const check=async id=>{if(!expected || (id && id!==expected)){const e=Error('The GitHub account does not match the account connected to Zero.');e.code='workos-identity-binding';throw e;}};
+ const f=await fixture(t,{assertBinding:check});
+ const [captured]=await f.provider.getSessions([]);
+ const before=f.data.get(SECRET_KEY);f.calls.length=0;expected='99';
+ await assert.rejects(f.provider.getSessions([]),/does not match/);
+ await assert.rejects(f.provider.getSessionsForOperation(captured,[]),/does not match/);
+ assert.equal(f.data.get(SECRET_KEY),before);assert.equal(f.calls.length,0);
+ const expired=await fixture(t,{saved:{...record(),expiresAt:999999},assertBinding:check});
+ const saved=expired.data.get(SECRET_KEY);
+ await assert.rejects(expired.provider.getSessions([]),/does not match/);
+ assert.equal(expired.data.get(SECRET_KEY),saved);assert.equal(expired.calls.length,0);
+ expected=undefined;
+ await assert.rejects(f.provider.createSession([]),/does not match/);
+ assert.equal(f.data.get(SECRET_KEY),before);assert.equal(f.calls.length,0);
+});
+
+test('live GitHub identity mismatch keeps stored credentials untouched',async t=>{
+ const f=await fixture(t,{assertBinding:async id=>{if(id&&id!=='42'){const e=Error('The GitHub account does not match the account connected to Zero.');e.code='workos-identity-binding';throw e;}},overrides:{fetch:async url=>response(url.includes('/apps/')?metadata:{id:99,login:'other',type:'User'})}});
+ const saved=f.data.get(SECRET_KEY);
+ await assert.rejects(f.provider.getSessions([]),/does not match/);
+ assert.equal(f.data.get(SECRET_KEY),saved);
 });

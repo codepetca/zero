@@ -157,3 +157,47 @@ The audit rejects test/build metadata, raw UI/build sources and duplicate public
 filesystem-reading download/feed/template routes, checks their canonical template
 files, and catches large documentation chunks returning to download/feed paths.
 Its deduplicated local trace sizes are build evidence, not Vercel billed storage.
+
+### Experimental WorkOS website identity
+
+This source contains an opt-in hosted AuthKit session. It is disabled unless
+`ZERO_WORKOS_ENABLED=true` and all required settings pass the source checks in
+`lib/workos-config.mjs`. Configure a dedicated WorkOS application with only GitHub
+social authentication enabled, its callback at `/zero-account/callback`, its
+initiate-login URI at `/zero-account/sign-in`, and a permitted sign-out URI. The
+callback rejects missing/non-GitHub authentication methods and impersonation.
+Set `WORKOS_CLIENT_ID`, `WORKOS_COOKIE_PASSWORD` (at least 32 characters),
+`WORKOS_COOKIE_NAME=zero-workos-session`, `WORKOS_ISSUER` to
+`https://api.workos.com/user_management/<client ID>`, and
+`NEXT_PUBLIC_WORKOS_REDIRECT_URI` to the exact callback URL. The source permits
+the production origin or localhost in development; it rejects a shared cookie
+domain. Configure the WorkOS flag only for the production environment: a
+preview deployment cannot complete the production-origin callback. Set the
+public redirect URI before building, and redeploy after changing environment
+variables. WorkOS management API keys are not required for this session.
+
+The Zero account endpoint exposes only the WorkOS user ID. In managed mode,
+Hub sign-in starts AuthKit. For Hub, Stars and Jams, set `ZERO_HUB_ORIGIN` to
+the exact WorkOS callback origin and configure the existing Hub GitHub App
+client ID, client secret and session key. The dedicated WorkOS integration must
+return an expiring user access token from the pinned Codepet Zero GitHub App.
+The callback checks the App and token owner with GitHub and seals the grant for
+the verified WorkOS user and session. It uses GitHub's numeric account ID and
+keeps the grant for at most eight hours, ending sooner if the provider token
+expires. Each private Hub, Stars and Jams request requires the same active
+WorkOS session. Hub and Zero account sign-out clear both browser sessions and
+send a valid WorkOS session to the hosted sign-out endpoint.
+
+A GitHub sign-in through WorkOS can establish a Zero account without Hub access
+when the provider omits an eligible App grant. Managed mode refuses legacy Hub
+cookies, including when its configuration is incomplete. With the flag off,
+Hub continues to use the standalone GitHub App flow. The binding lives in the
+browser session and does not create a durable account mapping or alter editor
+GitHub App authorization. This source is opt-in. Live token delivery from the
+pinned App, permissions, hosted session refresh and sign-out remain to be
+verified during the production cutover.
+
+For rollback, retain the existing Hub GitHub App callback and secrets, disable
+the WorkOS flag, and redeploy. Users with managed sessions must sign in through
+the legacy GitHub flow; an untouched, unexpired legacy cookie can become valid
+again when managed mode is disabled.
