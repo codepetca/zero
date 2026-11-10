@@ -139,6 +139,28 @@ always disable this store; `ZERO_HUB_OPENS_DISABLED=1` also disables it.
 Without counters, Play and existing feedback still work.
 No analytics package or new GitHub App permission is required.
 
+### Automatic ZeroHub listings
+
+Listings are disabled by default and in hosted previews. For an authorized
+environment, apply `website/sql/zerohub-listings.sql` to a dedicated Postgres
+database using its owner. Give a separate login role USAGE on the listing
+schema and sequence and SELECT, INSERT and UPDATE on its table. Set the
+server-only `ZERO_HUB_LISTINGS_DATABASE_URL` to that role's direct PostgreSQL
+URL and enable `ZERO_HUB_LISTINGS_ENABLED=1`. The runtime requires verified
+TLS. Local development and tests can use Postgres at `127.0.0.1`. Never
+put this URL in a public environment variable.
+
+The existing Zero GitHub App and ZeroHub browser authentication configuration
+verify publishing and management. The optional server-only
+`ZERO_HUB_LISTINGS_PRO_GITHUB_IDS` list grants ten ordinary listings to the
+specified verified numeric account IDs. This is a manual listing pilot grant.
+ZeroJams hosting has its own entitlement. Leave the listing flag off until
+the database and both browser and desktop acceptance are ready.
+
+To exercise real transactions, apply the SQL to a disposable local database
+and run `node --test website/tests/hub-listings.test.mjs` with
+`ZERO_HUB_LISTINGS_TEST_DATABASE` set to its connection URL.
+
 `/docs` presents the complete reference (`/docs/api` redirects there), generated from maintained
 `student-template/API.md` tables. The adapter verifies all current public/protected
 declarations against source in tests. Categories, exact-name/keyword search,
