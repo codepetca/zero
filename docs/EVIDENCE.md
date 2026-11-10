@@ -4,7 +4,8 @@ Local branch `codex/web-account-menu` is based on `4c11fb59cf`. The shared
 header opens one account dropdown with the GitHub avatar, sign-out and theme
 settings. A Zero session without a Hub grant can reconnect when Hub is
 available. The legacy account URL redirects home. The dropdown requests the
-GitHub avatar ID with `?avatar=1` on the existing session endpoint.
+GitHub avatar ID from `/api/zero-account/profile`. The session endpoint
+continues to expose only the WorkOS user ID for authenticated accounts.
 
 TypeScript, whitespace and all eight focused tests passed. Chrome and
 Playwright WebKit passed the local Home, Docs, Source and Hub interactions at

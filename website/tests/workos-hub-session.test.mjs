@@ -80,31 +80,37 @@ test('managed mode sends Hub sign-in through AuthKit and blocks fallback to the 
   assert.equal(new URL(denied.headers.get('location')).searchParams.get('github'), 'unavailable');
 });
 
-test('Zero account exposes a GitHub avatar ID only when requested', async () => {
-  const source = await readFile(new URL('../app/api/zero-account/session/route.ts',import.meta.url),'utf8');
-  const compiled = ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-  const module = {exports:{}};
-  let session;
+test('Zero account preserves its identity response and only exposes a GitHub avatar in the profile', async () => {
+  let auth;
   const modules = {
-    '@workos-inc/authkit-nextjs':{withAuth:async () => session},
+    '@workos-inc/authkit-nextjs':{withAuth:async () => auth},
     '@/lib/workos-config.mjs':{workosConfigured:() => true},
   };
-  vm.runInNewContext(compiled,{module,exports:module.exports,require:name => modules[name],URL,Response});
-  async function get(user, impersonator = null, query = '?avatar=1') {
-    session = {user, impersonator, accessToken:workosToken};
-    const response = await module.exports.GET(new Request(`${origin}/api/zero-account/session${query}`));
+  async function load(path) {
+    const source = await readFile(new URL(`../app/api/zero-account/${path}`,import.meta.url),'utf8');
+    const compiled = ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+    const module = {exports:{}};
+    vm.runInNewContext(compiled,{module,exports:module.exports,require:name => modules[name],Response});
+    return module.exports;
+  }
+  modules['../account-response'] = await load('account-response.ts');
+  const profile = await load('profile/route.ts');
+  const session = await load('session/route.ts');
+  async function get(route, user, impersonator = null) {
+    auth = {user, impersonator, accessToken:workosToken};
+    const response = await route.GET();
     assert.equal(response.headers.get('cache-control'), 'no-store');
     return response.json();
   }
   const user = {id:'user_Test123', profilePictureUrl:'https://avatars.githubusercontent.com/u/123?v=4'};
-  assert.deepEqual(await get(user),{configured:true,user:{id:user.id,avatarId:'123'}});
-  assert.deepEqual(await get(user,null,''),{configured:true,user:{id:user.id}});
+  assert.deepEqual(await get(session,user),{configured:true,user:{id:user.id}});
+  assert.deepEqual(await get(profile,user),{configured:true,user:{avatarId:'123'}});
   for (const profilePictureUrl of [null, 'https://other.test/u/123',
     'https://avatars.githubusercontent.com@other.test/u/123', 'https://avatars.githubusercontent.com/u/123/extra']) {
-    assert.deepEqual(await get({...user,profilePictureUrl}),{configured:true,user:{id:user.id,avatarId:null}});
+    assert.deepEqual(await get(profile,{...user,profilePictureUrl}),{configured:true,user:{avatarId:null}});
   }
-  assert.deepEqual(await get(null),{configured:true,user:null});
-  assert.deepEqual(await get(user,{}),{configured:true,user:null});
+  assert.deepEqual(await get(profile,null),{configured:true,user:null});
+  assert.deepEqual(await get(profile,user,{}),{configured:true,user:null});
 });
 
 test('managed sign-out recovers an expired session ID from a sealed cookie and clears both sessions', async () => {
