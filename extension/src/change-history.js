@@ -52,13 +52,11 @@ function createChangeHistory(vscode,{project,output,onUndo,onRestore}, options={
     if(partial.length)throw new Error('History requires complete local Git objects.');
     const head=line(await run(root,['rev-parse','--verify','HEAD^{commit}'])); if(!oid(head))throw new Error('No saved commits found.');
     const branch=line(await run(root,['symbolic-ref','-q','HEAD']).catch(e=>{if(e.code===1)return Buffer.from('detached');throw e;}));
-    const main=line(await run(root,['rev-parse','--verify','refs/heads/main^{commit}']).catch(e=>{if(e.code===128)return Buffer.alloc(0);throw e;}));
-    if(main && !oid(main))throw new Error('Could not read local main history.');
-    return {root,head,branch,main,layout:layout.identity};
+    return {root,head,branch,layout:layout.identity};
   }
-  async function check(base) {const now=await context();if(now.root!==base.root||now.head!==base.head||now.branch!==base.branch||now.main!==base.main||now.layout!==base.layout)throw new Error('Project or branch changed. Open the review again.');}
-  async function loadHistory(base,{limit=MAX_ENTRIES,onlyCurrent=false,offset=0}={}) {
-    const ids=line(await run(base.root,['rev-list','--topo-order',...(onlyCurrent?['--first-parent']:[]),`--max-count=${limit+1}`,`--skip=${offset}`,base.head,...(!onlyCurrent&&base.main && base.main!==base.head?[base.main]:[])])).split('\n').filter(Boolean);
+  async function check(base) {const now=await context();if(now.root!==base.root||now.head!==base.head||now.branch!==base.branch||now.layout!==base.layout)throw new Error('Project or branch changed. Open the review again.');}
+  async function loadHistory(base,{limit=MAX_ENTRIES,offset=0}={}) {
+    const ids=line(await run(base.root,['rev-list','--first-parent','--topo-order',`--max-count=${limit+1}`,`--skip=${offset}`,base.head])).split('\n').filter(Boolean);
     if(ids.some(id=>!oid(id)))throw new Error('Could not read history.');
     const entries=[];
     for(const id of ids.slice(0,limit)) {
@@ -204,17 +202,20 @@ function createChangeHistory(vscode,{project,output,onUndo,onRestore}, options={
     await check(base);if(disposed||serial!==generation)return;
     panel?.dispose();snapshots.clear();
     const nonce=crypto.randomBytes(16).toString('hex');
-    panel=vscode.window.createWebviewPanel('zero.changeHistory',mode==='history'?'Change history':'Review changes',vscode.ViewColumn.One,{enableScripts:true,localResourceRoots:[]});const currentPanel=panel;let renderToken;
+    const branchLabel=clean(base.branch==='detached'?'Detached HEAD':base.branch.replace(/^refs\/heads\//,''));
+    const title=mode==='history'?`Change history · ${branchLabel}`:'Review changes';
+    panel=vscode.window.createWebviewPanel('zero.changeHistory',title,vscode.ViewColumn.One,{enableScripts:true,localResourceRoots:[]});const currentPanel=panel;let renderToken;
     // Each page is fetched independently from the checked graph, so memory and
     // Git output stay bounded even for a long-lived project.
     const render=(note='',focus='')=>{
       renderToken=crypto.randomBytes(16).toString('hex');
       const listingHistory=mode==='history'&&!selected, offset=listingHistory?0:filePage*MAX_FILES;
+      const heading=listingHistory&&entries.length?`${title} · commits ${page*MAX_ENTRIES+1}–${page*MAX_ENTRIES+entries.length}`:title;
       const items=listingHistory?entries:files.slice(offset,offset+MAX_FILES);
       const buttons=items.map((item,i)=>`<li><button data-index="${i+offset}" id="item-${i+offset}">${esc(clean(item.label||fileLabel(item)))}${mode==='history'&&!selected?` <span>(${esc(item.id.slice(0,12))})</span>`:''}</button></li>`).join('');
       const identity=selected?`<h2 id="selected-commit" tabindex="-1">${esc(clean(selected.label))} <span>(${esc(selected.id)})</span></h2>`:'';
       const pagination=listingHistory?`<nav aria-label="History pages">${page?'<button id="previous">Newer commits</button>':''}${more?'<button id="next">Older commits</button>':''}</nav>`:files.length>MAX_FILES?`<nav aria-label="Changed file pages"><span>Files ${offset+1}–${Math.min(offset+MAX_FILES,files.length)} of ${files.length}</span>${filePage?'<button id="previous-files">Previous files</button>':''}${offset+MAX_FILES<files.length?'<button id="next-files">Next files</button>':''}</nav>`:'';
-      currentPanel.webview.html=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'"><style nonce="${nonce}">body{font-family:var(--vscode-font-family);color:var(--vscode-foreground);padding:24px;overflow-wrap:anywhere}button{color:var(--vscode-textLink-foreground);background:none;border:0;text-align:left;padding:8px;cursor:pointer;font:inherit}button:focus-visible,h2:focus{outline:1px solid var(--vscode-focusBorder)}li{border-bottom:1px solid var(--vscode-panel-border)}ul{list-style:none;padding:0}p{color:var(--vscode-descriptionForeground)}</style></head><body><h1 id="heading" tabindex="-1">${mode==='history'&&!selected&&entries.length?`Change history · commits ${page*MAX_ENTRIES+1}–${page*MAX_ENTRIES+entries.length}`:mode==='history'?'Change history':'Review changes'}</h1>${selected?'<button id="back">← All commits</button>':''}${identity}${selected?.branch && onUndo && selectedUndoEligible ? '<p>Undo change is temporarily unavailable. Open Source Control to review this change.</p>' : ''}${selected?.branch && onUndo && !selectedUndoEligible ? `<p>${undoEligibilityUnknown?'Undo availability could not be verified. Use Source Control to review this change.':'This change is not in the current branch and cannot be undone here.'}</p>` : ''}${selected && onRestore ? '<p>Restoring a version is temporarily unavailable.</p>' : ''}<p>${esc(note || (mode==='review'?'Select a tracked text file to compare it with the last commit. Selecting a staged, untracked, deleted or conflicted file opens Source Control.':'Local main and the current branch are shown. Select a commit to see its files.'))}</p><ul>${buttons||'<li>No items to show.</li>'}</ul>${pagination}<script nonce="${nonce}">const api=acquireVsCodeApi(),view=${JSON.stringify(renderToken)};document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;api.postMessage(['back','undo','restore','next','previous','next-files','previous-files'].includes(b.id)?{type:b.id,view}:{type:'select',index:Number(b.dataset.index),view});});${focus?`document.getElementById(${JSON.stringify(focus)})?.focus();`:''}</script></body></html>`;
+      currentPanel.webview.html=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'"><style nonce="${nonce}">body{font-family:var(--vscode-font-family);color:var(--vscode-foreground);padding:24px;overflow-wrap:anywhere}button{color:var(--vscode-textLink-foreground);background:none;border:0;text-align:left;padding:8px;cursor:pointer;font:inherit}button:focus-visible,h2:focus{outline:1px solid var(--vscode-focusBorder)}li{border-bottom:1px solid var(--vscode-panel-border)}ul{list-style:none;padding:0}p{color:var(--vscode-descriptionForeground)}</style></head><body><h1 id="heading" tabindex="-1">${esc(heading)}</h1>${selected?'<button id="back">← Back to history</button>':''}${identity}${selected?.branch && onUndo && selectedUndoEligible ? '<p>Undo change is temporarily unavailable. Open Source Control to review this change.</p>' : ''}${selected?.branch && onUndo && !selectedUndoEligible ? `<p>${undoEligibilityUnknown?'Undo availability could not be verified. Use Source Control to review this change.':'This change is not in the current branch and cannot be undone here.'}</p>` : ''}${selected && onRestore ? '<p>Restoring a version is temporarily unavailable.</p>' : ''}<p>${esc(note || (mode==='review'?'Select a tracked text file to compare it with the last commit. Selecting a staged, untracked, deleted or conflicted file opens Source Control.':'Select a commit to see its files.'))}</p><ul>${buttons||'<li>No items to show.</li>'}</ul>${pagination}<script nonce="${nonce}">const api=acquireVsCodeApi(),view=${JSON.stringify(renderToken)};document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;api.postMessage(['back','undo','restore','next','previous','next-files','previous-files'].includes(b.id)?{type:b.id,view}:{type:'select',index:Number(b.dataset.index),view});});${focus?`document.getElementById(${JSON.stringify(focus)})?.focus();`:''}</script></body></html>`;
     };
     currentPanel.webview.onDidReceiveMessage(async msg=>{try{
       if(disposed||panel!==currentPanel||serial!==generation||!msg||typeof msg!=='object'||msg.view!==renderToken)return;
@@ -270,7 +271,7 @@ function createChangeHistory(vscode,{project,output,onUndo,onRestore}, options={
     }catch(error){output?.appendLine(error.message);void vscode.window.showErrorMessage(`Zero: ${error.message}`);}});
     currentPanel.onDidDispose(()=>{if(panel===currentPanel){panel=undefined;snapshots.clear();}});render();
   }
-  async function recent() {const base=await context(),result=await loadHistory(base,{limit:3,onlyCurrent:true});await check(base);return {root:base.root,head:base.head,branch:base.branch,entries:result.entries};}
+  async function recent() {const base=await context(),result=await loadHistory(base,{limit:3});await check(base);return {root:base.root,head:base.head,branch:base.branch,entries:result.entries};}
   return {openHistory:()=>open('history'),openReview:()=>open('review'),recent,dispose(){disposed=true;generation++;panel?.dispose();snapshots.clear();provider.dispose();}};
 }
 module.exports={createChangeHistory,marker};

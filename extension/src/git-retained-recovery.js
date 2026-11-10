@@ -345,7 +345,9 @@ async function inspectDiscardRecoveryMetadata(root,name) {
     moveStatus='A move list exists; it does not establish which steps completed.';
   } catch(error) {moveStatus=error.code==='ENOENT'?'No move list found; application may not have started.':'Move list is incomplete or unsafe; preserve this folder for manual inspection.';}
   await unchanged();
-  return {folder,status:moveStatus,revision:manifest.revision,indexHash:manifest.index,
+  const stashBackup=manifest.kind==='stash-discard-backup';
+  const status=stashBackup?'Exact working copies saved before discard. Check the local Git stash for staged versions.':moveStatus;
+  return {folder,status,...(stashBackup?{operation:'stash-discard'}:{}),revision:manifest.revision,indexHash:manifest.index,
     files:manifest.files.map((file,index)=>({index,name:file.name,kind:file.kind,hasBackup:!file.missing,backupHash:file.hash})),
     staged:manifest.staged.map((entry,index)=>({index,name:entry.name,backupHash:entry.hash,object:entry.object})),moved};
 }
@@ -544,6 +546,7 @@ async function inspectFileRestoreRecovery(root,name) {
 }
 async function inspectDiscardRecovery(root,name) {
   const info=await inspectDiscardRecoveryMetadata(root,name);
+  if(info.operation==='stash-discard')return info;
   const context=await discardContext(root,name);
   const marker=async file=>{try {await fs.lstat(path.join(context.folder,file));return true;}catch(error){if(error.code==='ENOENT')return false;throw error;}};
   const hasMarker=await marker('complete.json'),hasSeal=await marker('complete.sha256');
@@ -570,7 +573,7 @@ async function readDiscardRecoveryCopy(root,name,kind,index) {
   // file copies omit missing entries; moved copies use their move-list ordinal.
   const number=info.operation==='unborn-discard'?entry.copyNumber:kind==='file'?info.files.slice(0,index).filter(file=>file.hasBackup).length:index;
   const filename=path.join(context.folder,`${kind==='moved'?'removed':kind}-${number}`);
-  if(info.operation==='unborn-discard') {
+  if(info.operation==='unborn-discard'||info.operation==='stash-discard') {
     const stat=await fs.lstat(filename);
     if(stat.size>limit) {
       const result=await hashLargeCopy(filename,64*1024*1024);await context.unchanged();

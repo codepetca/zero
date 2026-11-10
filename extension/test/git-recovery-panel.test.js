@@ -1,11 +1,8 @@
 'use strict';
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {panel,selection,uploadMessage,localReminderMessage}=require('../src/git-recovery-panel');
+const {panel,selection,uploadMessage,localReminderMessage,syncMessage}=require('../src/git-recovery-panel');
 const recovery=(branch='main',remoteBranch='main')=>({id:'a'.repeat(32),branch,remoteBranch,files:[{path:'Player.java',kind:'text',conflicts:[{id:'one',local:'speed = 5;\n',incoming:'speed = 3;\n'},{id:'two',local:'health = 100;\n',incoming:'health = 80;\n'}]}]});
-test('ref-only pending and acknowledgement records require inspection and never offer retry',()=>{
- for(const kind of ['ref-pending','ref-acknowledged']){const html=panel({pending:{operation:'reftable-ref-only',kind}});assert.match(html,/needs inspection/i);assert.match(html,/does not authorize syncing/i);assert.match(html,/Open Source Control/);assert.doesNotMatch(html,/zero.retryBranchSync|zero.checkPush|zero.syncSavedCommits/);}
-});
 test('conflict choices direct students to Source Control while gated',()=>{
  const html=panel({recovery:recovery()});assert.match(html,/temporarily unavailable/);assert.match(html,/Open Source Control/);assert.match(html,/Inspect retained conflict copies/);assert.match(html,/zero.compareUpdate/);assert.doesNotMatch(html,/zero.keepLocalUpdate|zero.useIncomingUpdate|zero.cancelUpdate/);
 });
@@ -25,25 +22,14 @@ test('only a validated ready update offers continuation',()=>{
 test('all unresolved conflict types use Source Control while choices are gated',()=>{
  for(const kind of ['text','delete','binary','complex']){const current=recovery();current.files[0].kind=kind;const html=panel({recovery:current});assert.match(html,/Open Source Control/);assert.doesNotMatch(html,/zero.keepLocalUpdate|zero.useIncomingUpdate|zero.cancelUpdate/);}
 });
-test('push recovery is destination-specific and never claims an uncertain push succeeded',()=>{
-  assert.match(panel({pending:{branch:'main',kind:'behind'}}),/zero.syncProject/);
-  assert.match(panel({pending:{branch:'feature',kind:'behind'}}),/zero.updateBranchFromGitHub/);
-  assert.match(panel({pending:{branch:'main',kind:'unconfirmed'}}),/zero.checkPush/);
-  const changed=panel({pending:{branch:'main',kind:'changed'}});
-  assert.match(changed,/project or GitHub sign-in changed/);assert.match(changed,/Check your GitHub account/);assert.match(changed,/zero.checkPush/);
-  assert.doesNotMatch(changed,/Pushed to|confirmed on GitHub/);
+test('ordinary push recovery stays in the single status area',()=>{
+  for(const kind of ['behind','network','unconfirmed','changed','protected','remote-missing']){
+    assert.equal(panel({pending:{branch:'main',kind}}),'');
+  }
+  assert.equal(syncMessage({kind:'remote-missing'}),'');
+  assert.match(syncMessage({kind:'unconfirmed'}),/could not be confirmed.*Try Sync again/);
+  assert.match(syncMessage({kind:'protected'}),/requires a pull request/);
   assert.match(uploadMessage({kind:'unconfirmed',committed:true}),/Committed locally.*confirmation was interrupted/);
-  assert.match(panel({pending:{branch:'main',kind:'protected'}}),/Create feature branch/);
-  assert.match(panel({pending:{branch:'feature',kind:'auth',operation:'merge'}}),/zero.reconnectGitHub/);
-  assert.match(panel({pending:{branch:'feature',kind:'ready',operation:'merge'}}),/Retry Merge to main/);
-  assert.match(panel({pending:{branch:'feature',kind:'network',pushStarted:false}}),/zero.retryBranchSync/);
-  const uncertain=panel({pending:{branch:'feature',kind:'network',pushStarted:true}});
-  assert.match(uncertain,/push may have started/i);assert.match(uncertain,/zero.checkPush/);assert.doesNotMatch(uncertain,/Push sent/);
-  const missing=panel({pending:{branch:'feature',kind:'remote-missing'}});
-  assert.match(missing,/branch missing/i);assert.match(missing,/Review branch creation/);assert.doesNotMatch(missing,/Check your connection and retry/);
-  assert.match(uploadMessage({kind:'ready',pushStarted:false}),/local commits are ready to push/);
-  assert.match(panel({pending:{branch:'feature',kind:'protected'}}),/Open Source Control/);
-  assert.doesNotMatch(panel({pending:{kind:'network'},disabled:true}),/data-command="[^"]+"\s*>/);
 });
 
 test('undo reminder explains uncertainty and calls for recovery inspection',()=>{

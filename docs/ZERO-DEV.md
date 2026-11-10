@@ -1,42 +1,65 @@
 # Zero Dev
 
-Use this loop to change the extension UI or framework and play a real game without
-building an installer, signing, notarizing, uploading or changing installed Zero.
-This is maintainer tooling: Node.js 22+, a JDK 17+ and VS Code are required. Run
-`npm ci` once in this checkout. No global Maven or additional npm package is needed.
+Zero Dev runs the current checkout's Zero extension directly in VS Code. Use it
+to test what students will see while you edit. Reload the Dev window after an
+extension change. The installed app and its profile stay separate, and ordinary
+development requires no new VSIX, installer, signing, or publication.
 
-## Start
+Install the maintainer dependencies with Node.js 22+ and `npm ci` once per
+checkout. The launcher needs VS Code. On Mac it looks for the same local editor
+locations as installed Zero and reuses the matching private Java 21 and Node 22
+when they are available. Otherwise it uses locally available tools. Set
+`ZERO_DEV_CODE` to choose a VS Code CLI explicitly.
+
+## Start with the student flow
 
 ```sh
 npm run dev
 ```
 
-On a Mac, double-click **Zero Dev.command** in this checkout instead. Keep its
-terminal open for source watching. A separate **Zero Dev** extension development
-window opens with a playable Coin Game and the real Zero sidebar. Open
-`src/main/java/Main.java` and click **Run**. Click the canvas and use arrow keys
-to collect the three coins; **Restart** resets the score and returns canvas focus.
-The sample starts from the maintained lesson 11 game, with its Player, Coin,
-ScoreDisplay, PlayerInput and CreditsBadge classes. It uses current
-`framework/src/main/java/zero` source.
+On Mac, double-click **Zero Dev.command** in this checkout for the same launch.
+Keep the terminal open to watch source. The **Zero Dev · GitHub** window opens
+Zero's Start Page. Use Project → New, Clone, or Open as you would in installed
+Zero. Sign in through the editor once per checkout's Dev profile. Branch
+creation, Commit, Sync, and Merge use the selected project's Git settings and
+Zero's usual GitHub account. These are real actions. Use a test repository for
+experiments. The launcher clears inherited Git environment overrides, including
+file-only test fixture settings.
 
-The launcher reuses the installed Zero JDK on a Mac when JAVA_HOME is absent.
-Otherwise provide a working JDK through JAVA_HOME/PATH. Set ZERO_DEV_CODE to the
-VS Code CLI path if `code` is not on PATH or VS Code is installed elsewhere.
-First Maven use may download pinned dependencies. Later runs use its normal cache.
+Use the following to open the same live Dev profile without starting another
+watcher. You can also pass the folder of a test project.
 
-The game and generated state live in `.verification/zero-dev/` within this
-checkout. Editor state lives in `~/.zero-dev/<checkout-id>/` so VS Code's native
-IPC sockets fit within macOS path limits, even in a long worktree path. Each
-checkout has its own user-data and extensions directories, with no
-copied credentials or installed Zero extension. Java language-server completion
-is optional; Run/build works without it. Git integration is off, the sample is
-local-only and uploads are simulated. Live Publish acceptance uses a separate,
-explicitly authorized test repository and profile.
-A connected project opened in Zero Dev can use live publishing through its normal
-explicit actions. Browser builds require Node22 and JDK21 even when native Run
-uses JDK17. On Mac, browser tooling prefers a compatible JAVA_HOME and can then
-use Zero’s installed private JDK21; it does not change the native JDK setting.
+```sh
+npm run dev:github
+npm run dev:github -- /path/to/your/test-project
+```
+
+The Dev profile keeps its own sign-in, preferences and local editor state. No
+account state is copied from installed Zero. To exercise Java editor completion
+in this profile, install **Language Support for Java by Red Hat** in Dev. Zero's
+Run button uses Java independently of the language server. Run in Browser
+requires a project with its saved browser builder and compatible Node 22 and
+Java 21. Existing projects keep their own framework and build files when the
+editor reloads.
+
+## Open the isolated Coin Game
+
+```sh
+npm run dev:sample
+```
+
+This starts the watcher and opens a playable scratch project with Git disabled
+and uploads simulated. Open `src/main/java/Main.java` and click **Run**. Click
+the canvas and use arrow keys to collect the three coins. **Restart** resets the
+score and returns canvas focus. The sample starts from lesson 11 and follows the
+current `framework/src/main/java/zero` sources. First Maven use may download
+pinned dependencies. Later runs use its normal cache.
+
+The scratch game and generated state live in `.verification/zero-dev/`.
+Editor state lives in `~/.zero-dev/<checkout-id>/` (with a `-github` suffix for
+the live profile) so VS Code's IPC sockets fit within macOS path limits.
+Quit the Dev editor and relaunch it if the selected runtime or launch environment
+changes.
 
 ## Iterate
 
@@ -55,8 +78,8 @@ use Zero’s installed private JDK21; it does not change the native JDK setting.
   states. Authored changes restart the preview and refresh the browser automatically.
   Fixture actions remain simulated. Set ZERO_DESIGN_PORT for a second checkout.
 
-Ctrl+C stops watching and the preview; the development editor stays open. Run
-`npm run dev` again to reconnect to the same local state. Without a watcher, run
+Ctrl+C stops watching and the preview. The development editor stays open. Use
+one watcher per preview port. Without a watcher, run
 `npm run dev:prepare` before reloading the editor. A malformed source edit pauses
 refresh with its error; fixing and saving a watched source retries preparation.
 Generated framework/configuration files have ownership hashes. If one was edited
@@ -67,7 +90,9 @@ then restore that generated copy. Your game and profile edits are preserved.
 
 | Command | Result |
 | --- | --- |
-| `npm run dev` | Prepare, watch, serve the preview and open isolated Zero Dev |
+| `npm run dev` | Open live Zero Dev, watch extension assets and serve the preview |
+| `npm run dev:sample` | Open the simulated Coin Game, watch its framework and serve the preview |
+| `npm run dev:github` | Open the source extension in a dedicated profile for live GitHub testing |
 | `npm run dev:ui` | Watch and serve the preview without opening another editor |
 | `npm run dev:prepare` | Refresh once without launching any app |
 | `npm run dev:game` | Refresh, compile and play the current scratch game directly |
@@ -75,7 +100,7 @@ then restore that generated copy. Your game and profile edits are preserved.
 | `npm run test:dev` | Verify preparation, edit preservation, isolation and reload contracts |
 
 **Terminal → Run Task → Zero Dev: Smoke tests** runs the same smoke command from
-the Dev window. It copies the current game to a disposable build directory, tests
+the sample window. It copies the current game to a disposable build directory, tests
 movement, scoring once per coin, win and restart using the maintained checkpoint
 harness, then runs the existing finite framework checks and focused UI tests. The
 native keyboard playthrough then follows the real update/draw loop to collect
@@ -90,7 +115,7 @@ do not touch the playable game's target directory. Close a running game before
 smoke tests that move native window focus.
 
 For broader checks use `python3 scripts/verify-examples.py` and
-`node scripts/verify-project-progression.mjs`. Packaging and actual installation/
-update acceptance remain separate release checks. No version bump is needed to
-iterate here; this does not change what students receive. Mac interactive acceptance
-is recorded in EVIDENCE.md; Windows/Linux launcher interaction needs separate testing.
+`node scripts/verify-project-progression.mjs`. Use an actual release candidate to verify a clean install, bundled runtime
+provisioning, Test Installation, signed packages, and updates. Use each target
+OS to verify its native behavior. Mac interactive acceptance is recorded in
+EVIDENCE.md. Windows and Linux launcher interaction need separate testing.

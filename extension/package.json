@@ -147,6 +147,10 @@
         "title": "Zero: Commit"
       },
       {
+        "command": "zero.syncBranch",
+        "title": "Zero: Sync"
+      },
+      {
         "command": "zero.syncLocalCommit",
         "title": "Zero: Sync Local Commit"
       },
@@ -157,6 +161,10 @@
       {
         "command": "zero.switchStudentBranch",
         "title": "Zero: Switch Branch"
+      },
+      {
+        "command": "zero.deleteMergedBranch",
+        "title": "Zero: Delete Merged Local Branch"
       },
       {
         "command": "zero.connectRepository",
@@ -358,7 +366,7 @@
       },
       {
         "command": "zero.discardProjectChanges",
-        "title": "Discard project changes…",
+        "title": "Discard All Changes…",
         "icon": "$(discard)",
         "enablement": "zero.projectHasDiscardableChanges"
       },
@@ -380,7 +388,7 @@
       },
       {
         "command": "zero.explorerRestoreModifiedFile",
-        "title": "Restore staged version…"
+        "title": "Discard File Changes…"
       },
       {
         "command": "zero.explorerRestoreCommittedFile",
@@ -764,6 +772,16 @@
           "group": "navigation@0"
         },
         {
+          "command": "zero.discardProjectChanges",
+          "when": "view == zero.studentProject && zero.projectHasDiscardableChanges",
+          "group": "navigation@1"
+        },
+        {
+          "command": "zero.openGitSourceControl",
+          "when": "view == zero.studentProject",
+          "group": "1_project@4"
+        },
+        {
           "command": "zero.browseZeroHub",
           "when": "view == zero.studentProject",
           "group": "zero-libraries@1"
@@ -782,7 +800,7 @@
         },
         {
           "command": "zero.explorerRestoreModifiedFile",
-          "when": "view == zero.studentProject && (viewItem == zeroCodeFileModified || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroCodeFileModifiedAndCommitted || viewItem == zeroAssetFileModified || viewItem == zeroAssetFileModifiedAdded || viewItem == zeroAssetFileModifiedAndCommitted || viewItem == zeroProjectFileModified || viewItem == zeroProjectFileModifiedAdded || viewItem == zeroProjectFileModifiedAndCommitted)",
+          "when": "view == zero.studentProject && (viewItem == zeroCodeFileModified || viewItem == zeroAssetFileModified || viewItem == zeroProjectFileModified)",
           "group": "zero-file@1"
         },
         {

@@ -35,3 +35,16 @@ test('status updates retain the open menu, but changed file controls close it wi
  h.emit({type:'sidebar.update',fileActions:'ready',status:'App running',failed:false});assert.equal(h.menu.hidden,false);
  const tree=h.nodes['run-status'];h.emit({type:'sidebar.update',fileActions:'busy',status:'Building',failed:false});assert.equal(h.menu.hidden,true);assert.equal(h.nodes['run-status'],tree);
 });
+
+test('branch entries dispatch their own tokens and keep keyboard focus across an unchanged refresh',()=>{
+ const h=sidebarDOM(),trigger=h.nodes['branch-menu-button'],menu=h.nodes['branch-menu'];
+ const [feature,release]=menu.children;
+ h.key(trigger,'ArrowDown');assert.equal(h.document.activeElement,feature);
+ h.key(feature,'ArrowDown');assert.equal(h.document.activeElement,release);
+ h.emit({type:'sidebar.update',controls:'refreshed controls',status:'',failed:false});
+ assert.equal(menu.hidden,false);assert.equal(h.document.activeElement,release);
+ h.clickCommand(release);
+ assert.equal(menu.hidden,true);assert.equal(h.document.activeElement,trigger);
+ assert.equal(h.sent.at(-1).command,'zero.switchStudentBranch');
+ assert.equal(h.sent.at(-1).branchChoice,'release-choice');
+});

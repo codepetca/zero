@@ -139,7 +139,7 @@ function createFileCommands(vscode, {project,isBusy,setBusy,setState,output,refr
           throw error;
         } finally {await handle.close();}
       }
-      refreshFiles();
+      refreshFiles(root,relative.split(path.sep).join('/'));
       setState(`Created ${path.basename(destination)}`);
       output?.appendLine(`Created ${relative.split(path.sep).join('/')}`);
       if (kind !== 'folder' && kind !== 'package') {

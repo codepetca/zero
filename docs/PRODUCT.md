@@ -278,22 +278,38 @@ acceptance status are in the [version control milestone](VERSION-CONTROL-PLAN.md
 The local student sidebar has a **Project** controls pane and a **Files** tree.
 The Project header offers New project, Clone and Open; Files retains its file
 creation menu. Project holds native Run/Stop, teaching helpers and contextual
-repository/branch/push actions. Click the current branch to open **New branch…**
-and **Select existing branch…**. **New branch…** opens a name field. Submitting
-the name creates a local branch and carries current edits with it. GitHub status
-updates in the background. **Sync** stays visible and opens the review for
-uploading saved commits or getting updates from GitHub when ready. Its arrows
-show outgoing and incoming commit counts. If local history is missing the
-GitHub tip, a background comparison can fill in the counts. A dash means the
-count is unavailable.
-**Select existing branch…** opens the list of local branches. On a connected
-feature branch, the dropdown offers **Update from main** when signed in. The
+repository/branch/push actions. Click the current branch to see **New branch…**
+and the other local branches. Choose a branch name to switch to it on this
+computer. The separate refresh of Sync counts can check GitHub. **New branch…**
+opens a name field. Submitting
+the name creates a local branch and carries current edits with it. You can
+draft a commit message while editing. **Commit** becomes available when Zero
+sees saved file changes and checks for unsaved edits when clicked. It saves
+to the selected branch on this computer. While signed out, the sidebar
+confirms the save and prompts the student to sign in for Sync. **Sync** checks
+the matching GitHub branch, including main. It sends saved commits, creates the remote
+branch when absent, or gets incoming commits when it can fast-forward safely.
+If both sides have separate commits, Zero directs the student to Source Control.
+The arrows show outgoing and incoming commits against the last checked GitHub
+branch. Zero keeps fresh counts visible during a recheck and updates them when
+Sync confirms a match. The button reads **Sync** when either count is
+unavailable. When Zero has recently confirmed a match and the branch has no
+sync reminders, Sync is disabled until there is work to do or the comparison
+is unavailable. The sidebar shows at most one routine status message. **Sync** also
+checks whether an interrupted push reached GitHub before trying again.
+On a connected feature branch, the dropdown offers **Update from main** when signed in. The
 Project chevron groups repository and recovery actions.
-Merge and History are separate
-actions. Files shows change indicators and opens supported changes in the native
-diff; unsupported changes and conflicts use Source Control. The sidebar does not
-currently offer local undo. Custom discard, restore and finished-change correction
-remain unavailable.
+Merge keeps the feature branch locally and on GitHub. On clean main, choose
+**Delete merged local branch…** from the branch menu to remove a local branch
+whose commits are already in main. History names the current branch and
+shows its commit line, including shared starting commits. A merge appears as
+one entry. Files shows change indicators and opens supported changes in the native
+diff. On macOS and Linux, **Discard All Changes…** in Files clears saved edits,
+staged changes, and new untracked files after confirmation. Right-click a file
+with an unstaged modification to choose **Discard File Changes…**. Both actions
+require a trusted standalone repository with a first commit. Zero retains exact
+working copies and a local Git stash. Open Source Control from the Files menu
+for other cases.
 Troubleshooting and repository/account
 recovery remain in the native overflow. Local Run, Files and opening a local
 project remain available without signing in. Current source opens tutorial, new,
@@ -656,8 +672,13 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   Resources or Project files using native prompts. Routine text inputs show one short
   label with no explanatory or confirm/cancel footer; validation errors appear as needed. Relative names can create
   subfolders. Existing entries are preserved, cancellation makes no changes, and
-  the native Explorer notices created files and new files open in the normal editor.
-  Files uses native diff for supported changes and Source Control for other changes; custom discard and file restore are unavailable.
+  the native Explorer notices created files. Clicking a new, untracked file in
+  Files opens it in the editor. Put files the app reads under **resources** and
+  project notes under **Other project files**. Drag an ordinary project file onto
+  a folder in Files to move it. Java source moves within **java**. Use **Show all
+  project files** for folder moves in the full Explorer. Files uses native diff
+  for supported changes and Source Control for other changes. Files offers
+  **Discard All Changes…** and **Discard File Changes…** where supported.
   There is no separate tools row. Supported VS Code
   user controls can still move/hide views. There is no team/PR mode.
 - The primary button says Run when idle, Stop while queued/building/running,
@@ -814,7 +835,7 @@ New branch, Update from main, Merge to main and Publish simulate without saving 
 Git/network actions.
 Tutorial repositories use the same GitHub workflow; only legacy local-only markers remain blocked.
 
-The following historical workflow describes earlier prototypes. The current simplified milestone uses native Source Control for unsupported updates and conflicts; custom conflict choices, cancellation, discard and restore remain unavailable.
+The following historical workflow describes earlier prototypes. The current simplified milestone uses native Source Control for unsupported updates and conflicts; the earlier custom conflict choices, cancellation and restore remain unavailable.
 
 The individual flow uses main for completed work and one short-lived branch per
 change. A new empty repository starts with Commit & push on main.
@@ -860,13 +881,8 @@ interrupted push retains a local pending record for retry. If the feature change
 while a push is uncertain, the local prototype checks GitHub and preserves the newer
 branch commits. Any retry push requires an explicit Merge after showing its commit
 and repository. Independent source review passed; actual editor acceptance remains outstanding.
-For a new Merge, a native Quick Pick defaults to deleting the finished local and
-GitHub branch; uncheck it to keep both. The following Merge confirmation shows
-the choice, and cancelling either prompt cancels the merge. Cleanup runs only
-after GitHub confirms the merge and Zero switches to local main, and checks the
-exact reviewed feature tip and other guards. Changed or uncertain state keeps
-safe refs; a partial or uncertain cleanup is reported separately from the merge.
-Recovery and Sync keep branches.
+Merge keeps the feature branch locally and on GitHub. The branch menu on clean
+main offers manual deletion of local branches already included in main.
 
 After a push failure, Zero distinguishes saved local work from remote success.
 Behind-main failures offer Update from main; behind-feature failures offer Update

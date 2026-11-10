@@ -44,7 +44,7 @@ async function inspect(project, run, {allowMissingRemote=false}={}) {
   const root = layout?layout.root:await core.assertRepositoryRoot(project, run);
   await assertNoUrlRewrites(root, run);
   if (!(await fs.stat(path.join(root, 'zero.json'))).isFile()) throw new Error('Open a standalone student project containing zero.json.');
-  const gitDir = await run(root, ['rev-parse', '--absolute-git-dir']);
+  const gitDir = layout?.gitDir ?? await run(root, ['rev-parse', '--absolute-git-dir']);
   for (const marker of ['MERGE_HEAD', 'CHERRY_PICK_HEAD', 'REVERT_HEAD', 'rebase-merge', 'rebase-apply', 'sequencer', 'BISECT_LOG']) {
     try { await fs.access(path.join(gitDir, marker)); throw new Error('Finish or cancel the current Git merge, rebase, or other operation before uploading.'); }
     catch (error) { if (error.code !== 'ENOENT') throw error; }
@@ -58,8 +58,12 @@ async function inspect(project, run, {allowMissingRemote=false}={}) {
   catch (error) { if (error.code !== 128) throw error; }
   let urls, pushUrls,repository;
   try {
-    urls = (await run(root, ['remote', 'get-url', '--all', 'origin'])).split('\n');
-    pushUrls = (await run(root, ['remote', 'get-url', '--push', '--all', 'origin'])).split('\n');
+    const [fetchUrl,pushUrl] = await Promise.all([
+      run(root, ['remote', 'get-url', '--all', 'origin']),
+      run(root, ['remote', 'get-url', '--push', '--all', 'origin'])
+    ]);
+    urls = fetchUrl.split('\n');
+    pushUrls = pushUrl.split('\n');
   } catch {
     const remotes=(await run(root,['remote'])).split('\n').filter(Boolean);
     if(!allowMissingRemote||remotes.includes('origin'))throw new Error('Connect this student project to its GitHub repository before uploading.');

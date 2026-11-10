@@ -949,8 +949,19 @@ test('switch refuses conflicting changes and keeps original branch and bytes',as
 test('switch rechecks editor state after all Git inspection and before checkout',async t=>{
  const f=await fixture(t);await core.git(f.root,['branch','feature']);
  const plan=await workflow.prepareSwitch(f.root,'feature',f.options);let guards=0;
- await assert.rejects(workflow.switchPrepared(plan,{...f.options,beforeMutation:async()=>{if(++guards===3)throw Error('Editor changed');}}),/Editor changed/);
- assert.equal(guards,3);assert.equal(await core.git(f.root,['symbolic-ref','--short','HEAD']),'main');
+ await assert.rejects(workflow.switchPrepared(plan,{...f.options,beforeMutation:async()=>{if(++guards===2)throw Error('Editor changed');}}),/Editor changed/);
+ assert.equal(guards,2);assert.equal(await core.git(f.root,['symbolic-ref','--short','HEAD']),'main');
+});
+test('switch rejects edits introduced after preparing a clean project',async t=>{
+ const f=await fixture(t);await core.git(f.root,['branch','feature']);
+ const plan=await workflow.prepareSwitch(f.root,'feature',f.options);
+ assert.equal(plan.status,'');
+ let guards=0;
+ await assert.rejects(workflow.switchPrepared(plan,{...f.options,beforeMutation:async()=>{
+   if(++guards===2)await write(f.root,'Main.java','new local edit\n');
+ }}),/changed after review/);
+ assert.equal(await core.git(f.root,['symbolic-ref','--short','HEAD']),'main');
+ assert.equal(await fs.readFile(path.join(f.root,'Main.java'),'utf8'),'new local edit\n');
 });
 test('switch rejects file or target-ref drift after review',async t=>{
  const f=await fixture(t);await core.git(f.root,['branch','feature']);await write(f.root,'Main.java','first\n');let plan=await workflow.prepareSwitch(f.root,'feature',f.options);
@@ -968,6 +979,24 @@ test('switch refuses a target that would replace ignored work',async t=>{
 test('switch refuses custom checkout filters before execution',async t=>{
  const f=await fixture(t);await core.git(f.root,['config','filter.evil.smudge','false']);await core.git(f.root,['checkout','-b','feature']);await write(f.root,'.gitattributes','*.txt filter=evil\n');await core.git(f.root,['add','.gitattributes']);await core.git(f.root,['commit','-m','Attributes']);await core.git(f.root,['checkout','main']);
  await assert.rejects(workflow.prepareSwitch(f.root,'feature',f.options),/attributes/);assert.equal(await core.git(f.root,['symbolic-ref','--short','HEAD']),'main');
+});
+test('switch checks for filters introduced during metadata reads before running status',async t=>{
+ const f=await fixture(t);
+ await core.git(f.root,['branch','feature']);
+ await core.git(f.root,['config','filter.evil.clean','false']);
+ let originReviewed=false,statusReads=0;
+ const run=async(cwd,args,options)=>{
+   if(args.includes('status')){statusReads++;throw Error('Status would run with unchecked attributes');}
+   if(args.at(-1)==='^filter\\.')assert.ok(originReviewed,'Filter inspection follows the metadata reads');
+   const result=await f.run(cwd,args,options);
+   if(args[0]==='remote'&&args.includes('--push')){
+     await write(f.root,'.gitattributes','Main.java filter=evil\n');
+     originReviewed=true;
+   }
+   return result;
+ };
+ await assert.rejects(workflow.prepareSwitch(f.root,'feature',{run}),/Custom Git attributes/);
+ assert.equal(statusReads,0);
 });
 test('local branch switch works in a tutorial after origin is removed',async t=>{
  const f=await fixture(t);await write(f.root,'zero.json',JSON.stringify({tutorialProjectId:'greeting',lessonId:'0',repositoryRequired:true}));await core.git(f.root,['add','zero.json']);await core.git(f.root,['commit','-m','Tutorial']);await core.git(f.root,['branch','feature']);await core.git(f.root,['remote','remove','origin']);

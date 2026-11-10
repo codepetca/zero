@@ -13,7 +13,8 @@ Record compact durable delivery evidence in [EVIDENCE.md](EVIDENCE.md).
 Owner preference,2026-10-22: use Zero Dev for routine UI/framework/game changes.
 Reuse the appropriate active checkout/profile and useful caches. Run `npm ci`
 when dependencies need installation, then keep `npm run dev` running while editing.
-Reload the Dev window for extension changes; Stop/Run for framework or game edits.
+Reload the Dev window for extension changes. Use `npm run dev:sample` and
+Stop/Run for framework or scratch-game edits.
 Use the live component preview for UI states, focused tests for each change, and
 `npm run dev:smoke` for game/framework integration. Record actual native evidence
 and any untested platforms. Local iteration needs no version bump or installer.
@@ -32,8 +33,9 @@ the stable final gates and all selected jobs pass for the reviewed commit.
 ## Commands
 
 For daily UI/framework iteration, use [Zero Dev](ZERO-DEV.md): `npm run dev`
-opens an isolated source extension host and a playable game, watches generated
-framework/UI inputs and serves the auto-refreshing component preview.
+opens the live student flow in an isolated source extension host and serves the
+auto-refreshing component preview. `npm run dev:sample` opens the playable
+Coin Game with simulated uploads and refreshes its generated framework files.
 `npm run dev:smoke` runs local game/framework/UI checks without building an installer.
 
 Use Node.js 22+ for developer tooling. Students use a supported JDK 17+ and
@@ -594,14 +596,12 @@ New branch creates and selects a local branch independently of GitHub checks.
 branch. **Update from main** in the feature branch dropdown reviews bringing
 GitHub main into that branch. Feature updates may sync the resulting commit to
 GitHub after review. Run the updated project before merging. Merge
-preparation is local; execution uses a nonforce push and confirms the merge SHA.
-For a new Merge, the native Quick Pick defaults to deleting the local and GitHub
-feature branch, followed by a Merge confirmation. Unchecking keeps both; cancelling
-either prompt cancels the merge. After confirmed remote merge and switching to
-local main, cleanup checks the exact reviewed tip and other guards. Changed or
-uncertain state keeps safe refs; partial or uncertain cleanup is reported. Recovery
-and sync keep branches. Rejected stale-main pushes preserve local work and direct
-students to update from main, run and retry. Simulation remains mutation-free for all actions.
+reviews GitHub main, asks for confirmation, then pushes without force and verifies
+the completed commit. The local feature branch and any GitHub copy are kept.
+On clean main, **Delete merged local branch…** in the branch menu reviews and
+deletes a selected local branch already included in main. Rejected stale-main
+pushes preserve local work and direct students to update from main, run and
+retry. Simulation remains mutation-free for all actions.
 
 Captured operations reuse verified identity only within their private session
 receipt. Every assertion still rereads locked storage and checks expiry. Upload

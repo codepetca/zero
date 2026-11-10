@@ -41,6 +41,17 @@ function branchNameFromRef(ref) {
   if(typeof ref!=='string'||!ref.startsWith(prefix)||!validBranchName(ref.slice(prefix.length)))throw new Error('Choose a valid local Git branch.');
   return ref.slice(prefix.length);
 }
+async function localBranchChoices(root,{run=git,mergedInto}={}) {
+  const raw=await run(root,['for-each-ref',...(mergedInto?[`--merged=${mergedInto}`]:[]),'--format=%(refname)%09%(objectname)%09%(symref)','refs/heads/']);
+  const choices=[];
+  for(const row of raw.split('\n')){
+    const [ref,head,symbolic,...extra]=row.split('\t');
+    if(!ref.startsWith('refs/heads/')||symbolic||extra.length||!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(head||''))continue;
+    const name=ref.slice('refs/heads/'.length);
+    if(validBranchName(name))choices.push({name,head});
+  }
+  return choices;
+}
 async function currentBranch(project,run=module.exports.git) {
   // Git's --short can prepend a namespace when another ref has the same name.
   // Only remove the fixed local-branch prefix from the exact symbolic HEAD.
@@ -88,8 +99,12 @@ async function inspectGitLayout(project, run = git) {
   if(await repositoryRoot(project,run)!==project)throw fail();
   const marker=path.join(project,'.git'),markerInfo=await fs.lstat(marker);
   if(markerInfo.isSymbolicLink()||(!markerInfo.isDirectory()&&!markerInfo.isFile()))throw fail();
-  const gitDir=path.resolve(project,await run(project,['rev-parse','--absolute-git-dir']));
-  const commonDir=path.resolve(project,await run(project,['rev-parse','--git-common-dir']));
+  const [gitPath,commonPath]=await Promise.all([
+    run(project,['rev-parse','--absolute-git-dir']),
+    run(project,['rev-parse','--git-common-dir'])
+  ]);
+  const gitDir=path.resolve(project,gitPath);
+  const commonDir=path.resolve(project,commonPath);
   await directory(gitDir);if(commonDir!==gitDir)await directory(commonDir);
   const linked=markerInfo.isFile();
   if(linked) {
@@ -185,4 +200,4 @@ function simulatedUpload() {
 function runSpecification(project, platform = process.platform) {
   return {cwd: project, command: path.join(project, platform === 'win32' ? 'mvnw.cmd' : 'mvnw'), args: ['clean', 'compile', 'javafx:run'], shell: platform === 'win32'};
 }
-module.exports = {assertTutorialRepository,parseRepositoryUrl, resolveProject, git, validBranchName, branchNameFromRef, currentBranch, repositoryRoot, inspectGitLayout, assertRepositoryRoot, connectRepository, reconnectTutorialRepository, simulatedUpload, runSpecification};
+module.exports = {assertTutorialRepository,parseRepositoryUrl, resolveProject, git, validBranchName, branchNameFromRef, localBranchChoices, currentBranch, repositoryRoot, inspectGitLayout, assertRepositoryRoot, connectRepository, reconnectTutorialRepository, simulatedUpload, runSpecification};

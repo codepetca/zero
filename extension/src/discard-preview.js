@@ -58,6 +58,10 @@ async function snapshot(root,{windows=false,ownFileRestore}={}) {
   if(await fs.realpath(root)!==root)throw new Error('Open one ordinary project folder before discarding changes.');
   const dot=path.join(root,'.git'),meta=await fs.lstat(dot);
   if(!meta.isDirectory()||meta.isSymbolicLink())throw new Error('Discard preview needs a standalone student Git project.');
+  try {
+    await fs.lstat(path.join(dot,'commondir'));
+    throw new Error('Discard preview needs a standalone student Git project.');
+  } catch(error) {if(error.code!=='ENOENT')throw error;}
   await assertNoUnresolvedFileRestore(root,{own:ownFileRestore});
   for(const marker of ['MERGE_HEAD','CHERRY_PICK_HEAD','REVERT_HEAD','rebase-merge','rebase-apply','sequencer','BISECT_LOG']) {
     try {await fs.lstat(path.join(dot,marker));throw new Error('Finish or cancel the current Git operation in Source Control before discarding changes.');}
@@ -67,7 +71,7 @@ async function snapshot(root,{windows=false,ownFileRestore}={}) {
   if(!configFile)throw new Error('Discard preview needs ordinary Git configuration.');
   const configEnv=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'});
   const config=(await exec('git',['config','--local','--no-includes','--name-only','--null','--list'],{cwd:root,env:configEnv,encoding:'utf8',timeout:10000,maxBuffer:1024*1024})).stdout.split('\0').filter(Boolean);
-  if(config.some(key=>/^(?:filter\.|include\.|includeif\.)/i.test(key)))throw new Error('Custom Git filters or includes require Source Control for discard.');
+  if(config.some(key=>/^(?:filter\.|include\.|includeif\.)|^extensions\.worktreeconfig$/i.test(key)))throw new Error('Custom Git filters, includes or worktree settings require Source Control for discard.');
   // Git must inspect exactly the project that the filesystem operations will
   // mutate. Reject even an apparently equivalent core.worktree override.
   if(config.some(key=>/^core\.worktree$/i.test(key)))throw new Error('A custom Git worktree requires Source Control for discard.');
@@ -120,22 +124,119 @@ async function snapshot(root,{windows=false,ownFileRestore}={}) {
     if(known.some(name=>!portableWindowsPath(name)||potentialWindowsShortName(name))||windowsPathsCollide(affected,known))throw new Error('A project path or name collision cannot be reviewed safely on Windows. Use Source Control.');
   }
   const budget={bytes:0},files=[];
-  for(const [name,kind] of [...changes].sort(([a],[b])=>a.localeCompare(b,'en')))files.push({name,kind,current:await snapshotFile(root,name,budget)});
+  for(const [name,kind] of [...changes].sort(([a],[b])=>a.localeCompare(b,'en')))files.push({name,kind,status:changes.statusCodes.get(name),current:await snapshotFile(root,name,budget)});
   return {root,config:configFile,index:digest(index),head:digest(head),revision,ignored:ignored.sort(),files};
 }
-async function previewDiscard(root,{beforeMutation,_testPlatform}={}) {
+async function previewDiscard(root,{beforeMutation,relative,_testPlatform}={}) {
   if(typeof beforeMutation!=='function')throw new Error('Workspace trust and saved-editor checks are required.');
   const windows=process.platform==='win32'||_testPlatform==='win32';
   await beforeMutation();const state=await snapshot(root,{windows});await beforeMutation();
   if(JSON.stringify(state)!==JSON.stringify(await snapshot(root,{windows})))throw changed();
-  const plan=Object.freeze({files:Object.freeze(state.files.map(({name,kind})=>Object.freeze({name,kind})))});
-  plans.set(plan,{state,beforeMutation,windows});return plan;
+  const files=relative===undefined?state.files:state.files.filter(file=>file.name===relative&&file.status===' M');
+  if(!files.length)throw new Error('Select a tracked file with unstaged changes.');
+  const plan=Object.freeze({files:Object.freeze(files.map(({name,kind})=>Object.freeze({name,kind})))});
+  plans.set(plan,{state,beforeMutation,windows,relative});return plan;
 }
 async function revalidateDiscard(plan) {
   const saved=plans.get(plan);if(!saved)throw new Error('Review the changes before discarding.');
   plans.delete(plan);await saved.beforeMutation();
   if(JSON.stringify(saved.state)!==JSON.stringify(await snapshot(saved.state.root,{windows:saved.windows})))throw changed();
   return true;
+}
+// Git may normalize working bytes when creating its stash. Keep exact local
+// copies in the existing discard inspection format before invoking Git.
+async function saveStashDiscardCopies(saved,plan,binding) {
+  const {state}=saved;
+  const dot=path.join(state.root,'.git');
+  if(binding.gitDir!==dot||binding.commonDir!==dot)throw changed();
+  binding.assertCurrentNow();
+  const recovery=await fs.mkdtemp(path.join(dot,'zero-discard-recovery-'));
+  try {
+    const index=(await readOrdinaryBounded(path.join(dot,'index'),4*1024*1024)).data;
+    if(digest(index)!==state.index)throw changed();
+    await writeDurable(path.join(recovery,'index'),index);
+    const manifest={schema:1,kind:'stash-discard-backup',revision:state.revision,head:state.head,index:state.index,files:[],staged:[]};
+    const names=new Set(plan.files.map(file=>file.name));
+    let copies=0;
+    for(const {name,kind,current} of state.files) {
+      if(!names.has(name))continue;
+      if(!current){manifest.files.push({name,kind,missing:true});continue;}
+      const copy=`file-${copies++}`;
+      const bytes=await readSnapshot(path.join(state.root,name),current);
+      await writeDurable(path.join(recovery,copy),bytes);
+      manifest.files.push({name,kind,copy,hash:current.hash,mode:current.mode});
+    }
+    await writeDurable(path.join(recovery,'manifest.json'),Buffer.from(JSON.stringify(manifest)));
+    await syncDirectory(recovery);
+    await syncDirectory(dot);
+    return recovery;
+  } catch(error) {
+    error.recoveryPath=recovery;
+    throw error;
+  }
+}
+// Clear the reviewed paths using Git's own stash and checkout. The stash stays
+// local and retains the changes even if Git cannot finish clearing the files.
+async function stashDiscard(plan,{binding,beforeMutationNow=()=>{}}={}) {
+  const saved=plans.get(plan);
+  if(!saved||binding?.root!==saved.state.root)throw new Error('Review the changes before discarding.');
+  const root=saved.state.root;
+  const env=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{
+    GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_ATTR_NOSYSTEM:'1',
+    GIT_NO_LAZY_FETCH:'1',GIT_ALLOW_PROTOCOL:'',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'
+  });
+  const git=args=>exec('git',['--no-pager','--literal-pathspecs','-c','core.fsmonitor=false',
+    '-c',`core.hooksPath=${os.devNull}`,'-c','commit.gpgSign=false',
+    '-c','user.name=Zero','-c','user.email=zero@localhost',...args],
+  {cwd:root,env,encoding:'utf8',timeout:30000,maxBuffer:1024*1024});
+  const names=plan.files.map(file=>file.name);
+  await refuseFilters(root,async(_root,args)=>{
+    const {stdout}=await git(args);
+    if(args.includes('-z')&&stdout&&!stdout.endsWith('\0'))throw changed();
+    return stdout;
+  },{extra:names});
+  const stashRef=await git(['symbolic-ref','--quiet','refs/stash']).catch(error=>{
+    if(error.code===1)return undefined;
+    throw error;
+  });
+  if(stashRef)throw new Error('The local Git stash cannot be verified. Use Source Control.');
+  const previous=await git(['rev-parse','--verify','--quiet','refs/stash']).then(result=>result.stdout.trim()).catch(error=>{
+    if(error.code===1)return undefined;
+    throw error;
+  });
+  await revalidateDiscard(plan);
+  beforeMutationNow();
+  const recovery=await saveStashDiscardCopies(saved,plan,binding);
+  try {
+    await saved.beforeMutation();
+    if(JSON.stringify(saved.state)!==JSON.stringify(await snapshot(root)))throw changed();
+    binding.assertCurrentNow();
+    beforeMutationNow();
+    const all=saved.relative===undefined;
+    const message=all?'Zero: Discard all changes':`Zero: Discard changes in ${saved.relative}`;
+    let gitError;
+    try {
+      await git(['stash','push',...(all?['--include-untracked']:[]),'--message',message,'--',...names]);
+    } catch(error) {
+      gitError=error;
+    }
+    try {
+      const {stdout}=await git(['log','-1','--no-show-signature','--format=%H%x00%P%x00%s','refs/stash']);
+      const [stash,parents,subject]=stdout.trimEnd().split('\0');
+      const [base,index]=parents?.split(' ')||[];
+      if(!stash||stash===previous||!index||base!==saved.state.revision||!subject?.endsWith(`: ${message}`))throw new Error('The recovery stash could not be verified.');
+      const changes=await readStudentFileStatus(root,{safeConfig:true,standaloneOnly:true});
+      if(names.some(name=>changes.has(name)))throw new Error('A reviewed path still has changes.');
+      // Some Git versions report an empty patch after clearing a staged addition
+      // whose worktree file was already gone. The stash and final status settle it.
+      return recovery;
+    } catch(cause) {
+      throw new Error('Git could not finish discarding the changes. Check Source Control and your local Git stash before retrying.',{cause:gitError||cause});
+    }
+  } catch(error) {
+    error.recoveryPath=recovery;
+    throw error;
+  }
 }
 // Bind the existing ancestor identities and the exact missing suffix to the
 // review. Pathname checks narrow races with ordinary writers but cannot make
@@ -615,4 +716,4 @@ async function applyDiscard(backup,{confirmed=false,_testBeforeStep,_testPlatfor
     }
   }
 }
-module.exports={previewDiscard,revalidateDiscard,backupDiscard,applyDiscard,validatedCompletedDiscard,previewDeletedFile,revalidateDeletedFile,backupDeletedFile,applyDeletedFile,previewModifiedFile,backupModifiedFile,applyModifiedFile,previewCommittedFile,backupCommittedFile,applyCommittedFile,previewAddedFile,backupAddedFile,applyAddedFile};
+module.exports={previewDiscard,revalidateDiscard,stashDiscard,backupDiscard,applyDiscard,validatedCompletedDiscard,previewDeletedFile,revalidateDeletedFile,backupDeletedFile,applyDeletedFile,previewModifiedFile,backupModifiedFile,applyModifiedFile,previewCommittedFile,backupCommittedFile,applyCommittedFile,previewAddedFile,backupAddedFile,applyAddedFile};

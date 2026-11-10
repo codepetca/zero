@@ -65,6 +65,11 @@ async function checkBranchRemote({readState,readRemote,isAncestor,countCommits,n
   return Object.freeze({...before,...counts,state,remoteHead:head,checkedAt:now()});
 }
 function statusMessage(state) {
-  return ({checking:'Checking this branch on GitHub…',synced:'Branch matched GitHub at the last check.',stale:'Branch connection check is out of date.', 'local-ahead':'Local commits are not on this GitHub branch.', 'remote-changed':'This GitHub branch differs. Review updates before syncing.', 'remote-missing':'This branch was missing on GitHub at the last check. Review branch creation before syncing.',auth:'Sign in to check this GitHub branch.',access:'GitHub branch access is unavailable. Check repository access and URL.',offline:'Offline or connection unavailable. Branch sync is unverified.',unknown:'This GitHub branch could not be verified.',local:'Local project · no GitHub remote connected.',simulation:'Simulation · GitHub branch is not checked.'})[state]||'';
+  return ({
+    auth:'Sign in to GitHub to sync.',
+    access:'Check your GitHub repository access.',
+    offline:'GitHub is unreachable. Try Sync again.',
+    local:'Connect a GitHub repository to sync.'
+  })[state]||'';
 }
 module.exports={checkBranchRemote,countBranchCommits,countGitHubBranchCommits,remoteHead,errorState,statusMessage};

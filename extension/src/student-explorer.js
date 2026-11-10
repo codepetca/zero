@@ -18,36 +18,211 @@ function createStudentExplorer(vscode, host) {
   const events = new vscode.EventEmitter();
   const known = new WeakSet();
   let generation=0, pending, model, disposed=false, watcher, timer;
+  let refreshVersion=0, editorVersion=0, refreshRoot=false;
+  const fileRows=new Map(), folderRows=new Map(), touchedPaths=new Set(), dirtyDocuments=new WeakSet();
   const diffSnapshots=new Map();
   const diffProvider=vscode.workspace.registerTextDocumentContentProvider?.('zero-files-snapshot',{provideTextDocumentContent:uri=>diffSnapshots.get(uri.toString())??''});
   // Keep the persisted key so an explicit Standard Explorer choice survives upgrades.
   let preview=host.workspaceState.get('zero.studentExplorerPreview',true) !== false;
   const collapsed=vscode.TreeItemCollapsibleState.Collapsed, expanded=vscode.TreeItemCollapsibleState.Expanded;
-  const node = fields => {const value={generation,...fields};known.add(value);return value;};
+  const node = fields => {
+    const value={generation,...fields};
+    known.add(value);
+    return value;
+  };
   const action = (label,command,context) => node({kind:'action',label,command,context});
   const allFiles = () => action('Show all project files','zero.showAllProjectFiles');
-  const setDiscardAvailable = value => {void vscode.commands.executeCommand('setContext','zero.projectHasDiscardableChanges',value);};
+  let discardAvailable;
+  function setDiscardAvailable(value) {
+    if(discardAvailable===value)return;
+    discardAvailable=value;
+    void vscode.commands.executeCommand('setContext','zero.projectHasDiscardableChanges',value);
+  }
+  const supportsDiscard=changes=>process.platform!=='win32'&&vscode.workspace.isTrusted===true&&
+    changes.supportsDiscard===true&&changes.hasCommittedHead===true&&changes.size>0&&![...changes.values()].includes('conflict');
+  const canDiscardFile=(changes,relative)=>supportsDiscard(changes)&&changes.statusCodes?.get(relative)===' M';
   function invalidate() {
     if (disposed) return;
+    clearTimeout(timer);
+    refreshVersion++;
+    refreshRoot=false;
+    touchedPaths.clear();
+    fileRows.clear();
+    folderRows.clear();
     setDiscardAvailable(false);
     generation++; pending=undefined; model=undefined;
     events.fire(undefined);
   }
+  const readStatus=root=>vscode.workspace.isTrusted===false?new Map():(host.readFileStatus||readStudentFileStatus)(root);
+  const statusFor=(snapshot,relative)=>snapshot.changes.get(relative)||(snapshot.dirtyPaths.has(relative)?'modified':undefined);
+  async function readDirtyPaths(root) {
+    let attempt, paths;
+    do {
+      attempt=editorVersion;
+      paths=new Set();
+      for(const document of vscode.workspace.textDocuments||[]) {
+        if(!document.isDirty||document.uri?.scheme!=='file'||!document.uri.fsPath)continue;
+        dirtyDocuments.add(document);
+        const name=document.uri.fsPath,candidates=[name];
+        // An editor may refer to the project through a symlink or an alias.
+        try {candidates.push(await fs.realpath(name));}catch {}
+        try {candidates.push(path.join(await fs.realpath(path.dirname(name)),path.basename(name)));}catch {}
+        for(const candidate of candidates) {
+          const relative=path.relative(root,candidate).split(path.sep).join('/');
+          if(relative&&relative!=='..'&&!relative.startsWith('../')&&!path.isAbsolute(relative))paths.add(relative);
+        }
+      }
+    } while(!disposed&&attempt!==editorVersion);
+    return paths;
+  }
+  function refreshFileRows(snapshot, folders=[]) {
+    const discard=supportsDiscard(snapshot.changes);
+    for(const row of fileRows.values()) {
+      if(model!==snapshot||disposed)return;
+      const status=statusFor(snapshot,row.relative);
+      const canRestoreModified=discard&&!row.retained&&snapshot.changes.statusCodes?.get(row.relative)===' M';
+      if(row.status!==status||row.canRestoreModified!==canRestoreModified){
+        row.status=status;
+        row.canRestoreModified=canRestoreModified;
+        if(!folders.some(folder=>folder?row.relative.startsWith(folder+'/'):row.area==='project'))events.fire(row);
+      }
+    }
+  }
+  function hasOtherFiles(snapshot,changes=snapshot.changes,entries=snapshot.otherEntries) {
+    return entries.length>0||[...changes].some(([name,kind])=>kind==='deleted'&&
+      !name.startsWith(snapshot.codeRoot+'/')&&!name.startsWith(snapshot.assetsRoot+'/')&&!isToolingPath(name));
+  }
+  function refreshParent(snapshot, relative, folders) {
+    if(snapshot.excludePaths.includes(relative)||relative.startsWith('libraries/'))return false;
+    const other=!relative.startsWith(snapshot.codeRoot+'/')&&!relative.startsWith(snapshot.assetsRoot+'/');
+    for(let parent=path.posix.dirname(relative);parent!=='.';parent=path.posix.dirname(parent)){
+      const row=folderRows.get(parent);
+      if(row&&!row.placeholder){folders.add(parent);return true;}
+    }
+    if(other){folders.add('');return true;}
+    return false;
+  }
+  function scheduleRefresh({full=false,relative}={}) {
+    if(disposed)return;
+    if(full)refreshRoot=true;
+    if(relative)touchedPaths.add(relative);
+    const attempt=++refreshVersion;
+    clearTimeout(timer);
+    timer=setTimeout(async()=>{
+      const snapshot=model;
+      if(refreshRoot||!snapshot){invalidate();return;}
+      const current=()=>!disposed&&model===snapshot&&attempt===refreshVersion;
+      try {
+        let changes,unavailable=false;
+        try {changes=await readStatus(snapshot.root);}
+        catch {changes=new Map();unavailable=true;}
+        const dirtyPaths=await readDirtyPaths(snapshot.root);
+        if(!current())return;
+        if(Boolean(snapshot.statusUnavailable)!==unavailable||
+            JSON.stringify(snapshot.changes.gitWatchDirectories)!==JSON.stringify(changes.gitWatchDirectories)){
+          invalidate();return;
+        }
+        const folders=new Set(),removed=new Set(),paths=new Set(touchedPaths);
+        for(const [relative,kind] of snapshot.changes) {
+          // A discard can remove a new file before its watcher event arrives.
+          if(kind==='added'&&!changes.has(relative)&&!isToolingPath(relative))paths.add(relative);
+        }
+        for(const relative of paths) {
+          const stat=await fs.lstat(path.join(snapshot.root,relative)).catch(error=>{
+            if(error.code!=='ENOENT'&&error.code!=='ENOTDIR')throw error;
+          });
+          if(!current())return;
+          // An atomic save can emit create and delete events for a file that
+          // still occupies the same row once the watcher settles.
+          if(stat?.isFile()&&(fileRows.has(relative)||!touchedPaths.has(relative)))continue;
+          if(!refreshParent(snapshot,relative,folders)){invalidate();return;}
+          if(!stat?.isDirectory()||fileRows.has(relative))removed.add(relative);
+        }
+        for(const [relative,kind] of [...snapshot.changes,...changes]) {
+          if(kind==='deleted'&&snapshot.changes.get(relative)!==changes.get(relative)&&
+              !refreshParent(snapshot,relative,folders)){
+            invalidate();return;
+          }
+        }
+        if([...folders].some(relative=>!relative||folderRows.get(relative)?.area==='project')){
+          const entries=await ordinaryEntries(snapshot.root,'',{hideCorePaths:snapshot.corePaths,excludePaths:snapshot.excludePaths});
+          if(!current())return;
+          const otherEntries=entries.map(entry=>entry.relative);
+          if(hasOtherFiles(snapshot)!==hasOtherFiles(snapshot,changes,otherEntries)){invalidate();return;}
+          snapshot.otherEntries=otherEntries;
+        }
+        for(const relative of removed) {
+          for(const rows of [fileRows,folderRows]){
+            for(const name of rows.keys())if(name===relative||name.startsWith(relative+'/'))rows.delete(name);
+          }
+        }
+        const hadChanges=snapshot.changes.size>0;
+        snapshot.changes=changes;
+        setDiscardAvailable(supportsDiscard(changes));
+        snapshot.dirtyPaths=dirtyPaths;
+        touchedPaths.clear();
+        const targets=[...folders];
+        const parents=targets.filter(relative=>folderRows.has(relative)&&
+          !targets.some(parent=>parent?relative.startsWith(parent+'/'):relative&&folderRows.get(relative).area==='project'));
+        refreshFileRows(snapshot,parents);
+        for(const relative of parents) {
+          if(!current())return;
+          events.fire(folderRows.get(relative));
+        }
+        if(current()&&hadChanges!==(changes.size>0))host.onFileChanges?.(snapshot.root,changes.size>0);
+      }catch {
+        if(current())invalidate();
+      }
+    },120);
+  }
+  function editorChanged(document) {
+    if(document?.uri?.scheme!=='file')return;
+    const wasDirty=dirtyDocuments.has(document);
+    if(Boolean(document.isDirty)===wasDirty)return;
+    const attempt=++editorVersion;
+    if(!document.isDirty){
+      dirtyDocuments.delete(document);
+      // Reconcile with disk status before clearing the unsaved state on save.
+      if(model)scheduleRefresh();
+      return;
+    }
+    dirtyDocuments.add(document);
+    const snapshot=model;
+    if(!snapshot)return;
+    void readDirtyPaths(snapshot.root).then(dirtyPaths=>{
+      if(!disposed&&model===snapshot&&attempt===editorVersion){
+        snapshot.dirtyPaths=dirtyPaths;
+        refreshFileRows(snapshot);
+      }
+    });
+  }
+  function refreshCreated(root,relative) {
+    if(model?.root===root&&!model.corePaths.includes(relative))scheduleRefresh({relative});
+    else scheduleRefresh({full:true});
+  }
   function watch(root) {
     watcher?.dispose();
     watcher=vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(root,'**/*'));
-    const changed=uri=>{
+    const changed=(uri,structural)=>{
+      if(model&&model.root!==root)return;
       const relative=path.relative(root,uri.fsPath).split(path.sep).join('/');
-      if (!relative || relative.startsWith('../')) return;
+      if (!relative || relative==='..' || relative.startsWith('../') || path.isAbsolute(relative)) return;
       // Metadata changes matter, build output does not. No filesystem work is
       // performed by a watcher callback; visible requests read bounded snapshots.
       try {if (isToolingPath(relative) && !/^(?:zero(?:-core|-libraries)?\.json|pom\.xml|libraries\/[^/]+\/zero-library\.json)$/.test(relative)) return;}catch {/* Oversized paths produce the bounded view error on refresh. */}
-      clearTimeout(timer);timer=setTimeout(invalidate,120);
+      if(!model||relative.startsWith('libraries/')||/^(?:zero(?:-core|-libraries)?\.json|pom\.xml)$/.test(relative)){
+        scheduleRefresh({full:true});return;
+      }
+      if(structural||fileRows.has(relative))refreshCreated(root,relative);
+      else scheduleRefresh();
     };
-    const subscriptions=['onDidCreate','onDidChange','onDidDelete'].map(method=>watcher[method](changed));
+    const subscriptions=[watcher.onDidCreate(uri=>changed(uri,'create')),watcher.onDidChange(uri=>changed(uri)),
+      watcher.onDidDelete(uri=>changed(uri,'delete'))];
     const owned=watcher;
     const gitWatcher=vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(root,'.git/{HEAD,index,refs/heads/**}'));
-    const gitChanged=()=>{clearTimeout(timer);timer=setTimeout(invalidate,120);};
+    const gitChanged=uri=>{
+      if(!model||model.root===root)scheduleRefresh({full:path.basename(uri.fsPath)==='config'});
+    };
     const gitSubscriptions=['onDidCreate','onDidChange','onDidDelete'].map(method=>gitWatcher[method](gitChanged));
     const linkedWatchers=[],linkedSubscriptions=[];
     watcher={watchLinked(directories){
@@ -70,8 +245,7 @@ function createStudentExplorer(vscode, host) {
         watch(root);
         const next=await readProjectModel(root);
         try {
-          const readStatus=host.readFileStatus||readStudentFileStatus;
-          next.changes=vscode.workspace.isTrusted===false?new Map():await readStatus(root);
+          next.changes=await readStatus(root);
           if(!disposed&&generation===attempt&&next.changes.gitWatchDirectories) {
             const directories=next.changes.gitWatchDirectories;
             watcher?.watchLinked(directories);
@@ -83,25 +257,11 @@ function createStudentExplorer(vscode, host) {
           }
         }
         catch (error) {next.changes=new Map();next.statusUnavailable=true;host.output.appendLine(`File status unavailable: ${error.message}`);}
-        const hasGitChanges=next.changes.size>0;
-        next.unsaved=(vscode.workspace.textDocuments||[]).some(document=>document.isDirty&&document.uri?.scheme==='file');
-        for(const document of vscode.workspace.textDocuments||[]) {
-          if(!document.isDirty||document.uri?.scheme!=='file')continue;
-          const name=document.uri.fsPath;if(!name)continue;
-          // Include both the resolved target and resolved parent/name, as the
-          // commit guard does for a project file that is itself a symlink.
-          const candidates=[name];
-          try {candidates.push(await fs.realpath(name));}catch {}
-          try {candidates.push(path.join(await fs.realpath(path.dirname(name)),path.basename(name)));}catch {}
-          for(const candidate of candidates) {
-            const relative=path.relative(root,candidate).split(path.sep).join('/');
-            if(relative&&!relative.startsWith('../')&&!path.isAbsolute(relative)&&!next.changes.has(relative))next.changes.set(relative,'modified');
-          }
-        }
+        next.dirtyPaths=await readDirtyPaths(root);
         if (disposed || generation!==attempt || await host.project()!==root) return;
         if (disposed || generation!==attempt) return;
-        setDiscardAvailable(false);
-        host.onFileChanges?.(root,next.statusUnavailable?undefined:hasGitChanges);
+        setDiscardAvailable(supportsDiscard(next.changes));
+        host.onFileChanges?.(root,next.statusUnavailable?undefined:next.changes.size>0);
         model=next;updateSelection();return next;
       })();
       pending=work;
@@ -116,12 +276,12 @@ function createStudentExplorer(vscode, host) {
     if(disposed)return [];
     try {
       const snapshot=await load();
-      if(!snapshot)return [];
+      if(!snapshot||snapshot!==model)return [];
       if(!parent) {
         const result=[folder(snapshot,'java',snapshot.codeRoot,'code'),folder(snapshot,'resources',snapshot.assetsRoot,'assets')];
         if(snapshot.statusUnavailable)result.push(node({kind:'message',label:'File change status unavailable',detail:'Open Source Control to check the project changes.'}));
         if(snapshot.libraries.length)result.push(node({kind:'libraries',root:snapshot.root,label:'Libraries'}));
-        if(snapshot.otherEntries.length || [...snapshot.changes].some(([name,kind])=>kind==='deleted'&&!name.startsWith(snapshot.codeRoot+'/')&&!name.startsWith(snapshot.assetsRoot+'/')&&!isToolingPath(name)))result.push(node({kind:'other',root:snapshot.root,label:'Other project files'}));
+        if(hasOtherFiles(snapshot))result.push(node({kind:'other',root:snapshot.root,label:'Other project files'}));
         result.push(allFiles());return result;
       }
       // VS Code can ask for children of an expanded old node during a full
@@ -157,16 +317,16 @@ function createStudentExplorer(vscode, host) {
         if(!name.startsWith(prefix))continue;
         const rest=name.slice(prefix.length), first=rest.split('/')[0];
         if(!first||entries.some(entry=>entry.name===first))continue;
-        entries.push({name:first,relative:prefix+first,directory:rest.includes('/'),deleted:!rest.includes('/')});
+        entries.push({name:first,relative:prefix+first,directory:rest.includes('/'),placeholder:true,deleted:!rest.includes('/')});
       }
       entries.sort((a,b)=>Number(b.directory)-Number(a.directory)||a.name.localeCompare(b.name,'en'));
       if(disposed||attempt!==generation)return [];
-      if(disposed||attempt!==generation)return [];
       const library=parent.libraryId?snapshot.libraries.find(item=>item.id===parent.libraryId):undefined;
       if(parent.libraryId&&!library)return [];
-      return entries.map(entry=>node({kind:entry.directory?'folder':entry.deleted?'deleted':'file',root:snapshot.root,label:entry.name,relative:entry.relative,status:snapshot.changes.get(entry.relative),
+      const discard=supportsDiscard(snapshot.changes);
+      return entries.map(entry=>node({kind:entry.directory?'folder':entry.deleted?'deleted':'file',root:snapshot.root,label:entry.name,relative:entry.relative,placeholder:entry.placeholder,status:statusFor(snapshot,entry.relative),
         canRestoreDeleted:false,
-        canRestoreModified:false,
+        canRestoreModified:discard&&!entry.directory&&!entry.deleted&&snapshot.changes.statusCodes?.get(entry.relative)===' M',
         canRestoreCommitted:false,
         canRemoveAdded:false,
         area:parent.kind==='other'?'project':parent.area,libraryId:parent.libraryId,libraryFolder:parent.libraryFolder,libraryTitle:library?.title,
@@ -177,17 +337,26 @@ function createStudentExplorer(vscode, host) {
       return [node({kind:'message',label:'Project view unavailable',detail:error.message}),allFiles()];
     }
   }
+  async function treeChildren(parent) {
+    const values=await children(parent);
+    for(const value of values) {
+      if(value.generation!==generation)continue;
+      if(value.kind==='file')fileRows.set(value.relative,value);
+      if(value.kind==='deleted')fileRows.delete(value.relative);
+      if(value.kind==='folder')folderRows.set(value.relative,value);
+      if(value.kind==='other')folderRows.set('',value);
+    }
+    return values;
+  }
   function item(value) {
     const branch=['folder','libraries','library','other'].includes(value.kind);
     const result=new vscode.TreeItem(value.label,branch ? (['java','resources'].includes(value.label)&&!value.libraryId?expanded:collapsed) : vscode.TreeItemCollapsibleState.None);
     result.id=`${value.root||''}:${value.kind}:${value.relative||value.libraryId||value.command||value.label}`;
     result.description=value.description;
     result.tooltip=value.detail||(value.relative?authoringLocation({area:value.area,baseRelative:value.relative,libraryFolder:value.libraryFolder,libraryTitle:value.libraryTitle}):value.description||value.label);
-    result.accessibilityInformation={label:[value.label,value.description,value.retained?'retained source; inactive when published':''].filter(Boolean).join(', ')};
-    if(value.status) {
-      const details={added:['+','Added','gitDecoration.addedResourceForeground'],modified:['M','Modified','gitDecoration.modifiedResourceForeground'],deleted:['−','Deleted','gitDecoration.deletedResourceForeground'],conflict:['!','Conflict','gitDecoration.conflictingResourceForeground']}[value.status];
-      if(details){result.description=details[0];result.accessibilityInformation={label:`${value.label}, ${details[1]}`};if(vscode.ThemeColor)result.iconPath=new vscode.ThemeIcon(value.status==='deleted'?'remove':value.status==='added'?'add':value.status==='conflict'?'warning':'edit',new vscode.ThemeColor(details[2]));}
-    }
+    const statusLabel={added:'Added',modified:'Modified',deleted:'Deleted',conflict:'Conflict'}[value.status];
+    result.accessibilityInformation={label:[value.label,value.description,statusLabel,value.retained?'retained source; inactive when published':''].filter(Boolean).join(', ')};
+    // The resource URI lets VS Code render the file icon and Git decoration.
     if(value.relative)result.resourceUri=vscode.Uri.file(path.join(value.root,value.relative));
     if(value.kind==='file'||value.kind==='deleted')result.command={command:'zero.explorerOpenFile',title:value.kind==='deleted'?'Review in Source Control':'Open file',arguments:[value]};
     if(value.kind==='deleted')result.tooltip=`${result.tooltip} · Open Source Control to review this deletion`;
@@ -219,7 +388,9 @@ function createStudentExplorer(vscode, host) {
     const kind={'zero.newClass':'class','zero.newPackage':'package','zero.newFile':'file','zero.newFolder':'folder','zero.importAssets':'assets'}[command];
     if(!kind)throw Error('Choose a supported file action.');
     await resolveAuthoringTarget(snapshot.root,context,kind);
-    try {await host.execute(command,context);}finally{invalidate();}
+    if(kind==='assets'){
+      try {await host.execute(command,context);}finally{invalidate();}
+    }else await host.execute(command,context);
   }
   function selection() {
     const selected=tree.selection?.[0];
@@ -278,6 +449,7 @@ function createStudentExplorer(vscode, host) {
       const changes=await (host.readFileStatus||readStudentFileStatus)(snapshot.root),code=changes.statusCodes?.get(value.relative);
       if(host.readFileStatus)await readStudentFileStatus(snapshot.root);
       await requireCurrent();
+      if(code==='??')return vscode.commands.executeCommand('vscode.open',target);
       if(code&&code!==' M')return sourceControl();
       if(!code&&!dirty)return vscode.commands.executeCommand('vscode.open',target);
       const env={...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_ALLOW_PROTOCOL:'',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_LITERAL_PATHSPECS:'1'};
@@ -317,10 +489,10 @@ function createStudentExplorer(vscode, host) {
   async function restoreModified(value) {
     if(disposed||host.isBusy())return;
     const snapshot=await fresh(value);
-    if(value.kind!=='file'||value.retained||!value.canRestoreModified||!value.relative)throw Error('Select a modified tracked file to restore.');
+    if(value.kind!=='file'||value.retained||!value.canRestoreModified||!value.relative)throw Error('Select a tracked file with unstaged changes.');
     const changes=await (host.readFileStatus||readStudentFileStatus)(snapshot.root);
-    if(disposed||value.generation!==generation||await host.project()!==snapshot.root||![' M','MM','AM'].includes(changes.statusCodes?.get(value.relative)))throw Error('The project view changed. Select the modified file again.');
-    try{return await host.execute('zero.restoreModifiedFile',{root:snapshot.root,relative:value.relative});}finally{invalidate();}
+    if(disposed||value.generation!==generation||await host.project()!==snapshot.root||!canDiscardFile(changes,value.relative))throw Error('The project view changed. Select the modified file again.');
+    return host.execute('zero.restoreModifiedFile',{root:snapshot.root,relative:value.relative});
   }
   async function restoreCommitted(value) {
     if(disposed||host.isBusy())return;
@@ -372,15 +544,57 @@ function createStudentExplorer(vscode, host) {
     if(enabled) {await vscode.commands.executeCommand('workbench.view.extension.zero-student-explorer');await vscode.commands.executeCommand('zero.studentProject.focus');}
     else {await showAll();await vscode.commands.executeCommand('zero.controls.focus');}
   }
-  const provider={onDidChangeTreeData:events.event,getChildren:children,getTreeItem:item};
-  const tree=vscode.window.createTreeView('zero.studentProject',{treeDataProvider:provider,showCollapseAll:false,canSelectMany:false});
+  const dragType='application/vnd.code.tree.zero.studentproject';
+  const projectArea=value=>['code','assets','project'].includes(value?.area);
+  const currentItem=value=>value&&known.has(value)&&value.generation===generation;
+  const dragAndDropController={
+    dragMimeTypes:[dragType],dropMimeTypes:[dragType],
+    handleDrag(sources,data,token) {
+      const [source]=sources;
+      if(sources.length===1&&currentItem(source)&&source.kind==='file'&&projectArea(source)
+          &&!source.retained&&source.status!=='conflict'&&!token.isCancellationRequested) {
+        data.set(dragType,new vscode.DataTransferItem(source));
+      }
+    },
+    async handleDrop(target,data,token) {
+      const source=data.get(dragType)?.value;
+      if(!currentItem(source)||!currentItem(target)||disposed||host.isBusy()||token.isCancellationRequested) return;
+      if(source.root!==target.root||source.kind!=='file'||!projectArea(source)||source.retained||source.status==='conflict'
+          ||target.retained||!(target.kind==='other'||target.kind==='folder'&&projectArea(target))) return;
+      const assertCurrent=()=>{
+        if(disposed||token.isCancellationRequested||!currentItem(source)||!currentItem(target))
+          throw Error('The Files view changed. Try moving the file again.');
+      };
+      try {
+        const destination=target.kind==='other'?{root:target.root,area:'project',relative:''}:target;
+        await host.moveFile(source,destination,assertCurrent);
+      } catch(error) {
+        host.report?.(error.message);
+      }
+    }
+  };
+  const provider={onDidChangeTreeData:events.event,getChildren:treeChildren,getTreeItem:item};
+  const tree=vscode.window.createTreeView('zero.studentProject',{treeDataProvider:provider,showCollapseAll:false,canSelectMany:false,dragAndDropController});
   const selectionEvents=tree.onDidChangeSelection?.(updateSelection);updateSelection();
   const folders=vscode.workspace.onDidChangeWorkspaceFolders(()=>{watcher?.dispose();watcher=undefined;invalidate();});
   const trust=vscode.workspace.onDidGrantWorkspaceTrust?.(()=>invalidate());
-  const documents=['onDidChangeTextDocument','onDidSaveTextDocument','onDidCloseTextDocument'].map(name=>vscode.workspace[name]?.(doc=>{if(name==='onDidCloseTextDocument'&&doc?.uri?.scheme==='zero-files-snapshot')diffSnapshots.delete(doc.uri.toString());invalidate();})).filter(Boolean);
+  const documents=[
+    vscode.workspace.onDidChangeTextDocument?.(event=>editorChanged(event.document)),
+    vscode.workspace.onDidSaveTextDocument?.(document=>{
+      editorChanged(document);
+      if(document.uri?.scheme==='file'&&model&&document.uri.fsPath?.startsWith(model.root+path.sep))scheduleRefresh();
+    }),
+    vscode.workspace.onDidCloseTextDocument?.(document=>{
+      if(document.uri?.scheme==='zero-files-snapshot')diffSnapshots.delete(document.uri.toString());
+      if(dirtyDocuments.delete(document)){
+        editorVersion++;
+        if(model)scheduleRefresh();
+      }
+    })
+  ].filter(Boolean);
   void vscode.commands.executeCommand('setContext','zero.studentExplorerPreview',preview);
   setDiscardAvailable(false);
-  return {provider,tree,invalidate,isPreview:()=>preview,
+  return {provider,tree,invalidate,refreshCreated,refreshStatus:()=>{if(model)scheduleRefresh();},isPreview:()=>preview,
     commands:{'zero.previewStudentExplorer':()=>setPreview(true),'zero.standardExplorer':()=>setPreview(false),'zero.showAllProjectFiles':showAll,
       'zero.refreshStudentExplorer':invalidate,'zero.collapseStudentExplorer':collapseAll,'zero.explorerOpenFile':open,'zero.explorerAction':invoke,'zero.explorerRenameFile':rename,'zero.explorerRestoreDeletedFile':restoreDeleted,'zero.explorerRestoreModifiedFile':restoreModified,'zero.explorerRestoreCommittedFile':restoreCommitted,'zero.explorerRemoveAddedFile':removeAdded,
       'zero.explorerCopyAssetPath':copyAsset,

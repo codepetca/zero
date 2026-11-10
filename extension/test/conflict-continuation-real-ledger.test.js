@@ -98,7 +98,7 @@ test('feature conflict continuation survives restart and confirms its own real l
   assert.equal(errors.length,1,'Continuing and syncing must not report another error');
   const finalHead=await git(root,['rev-parse','HEAD']);assert.equal(await git(root,['rev-list','--parents','-n','1',finalHead]),`${finalHead} ${localHead} ${mainHead}`);
   assert.equal(await fs.readFile(path.join(root,'Main.java'),'utf8'),'class Main { int incomingScore; }\n');
-  const pushes=calls.filter(args=>args[0]==='push');assert.equal(pushes.length,1);assert.equal(pushes[0][2],`${finalHead}:refs/heads/feature`);
+  const pushes=calls.filter(args=>args[0]==='push');assert.equal(pushes.length,1);assert.equal(pushes[0][2],`${finalHead}^{commit}:refs/heads/feature`);
   assert.equal(await git(bare,['rev-parse','refs/heads/feature']),finalHead);assert.equal(await git(bare,['rev-parse','refs/heads/main']),mainHead);
   assert.equal(await workflow.readRecovery(root),null);
   const active=await ledger.list(root);assert.deepEqual(active.map(record=>record.id),late.map(record=>record.id));assert.equal(late.length,1);

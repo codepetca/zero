@@ -38,7 +38,7 @@ test('student local-first lifecycle uses native review and preserves offline com
  await git(root,['remote','set-url','origin',remote]);
  const stored=new Map(),state={keys:()=>[...stored.keys()],get:key=>stored.get(key),update:async(key,value)=>stored.set(key,structuredClone(value))};
  const ledger=createRepositoryReminderStorage({state});assert.equal(await ledger.supportsFileLedger(root),true);const listLedger=async()=>{const deadline=Date.now()+5000;for(;;){try{return await ledger.list(root);}catch(error){if(!/sync record storage is locked/i.test(error.message)||Date.now()>=deadline)throw error;await new Promise(resolve=>setTimeout(resolve,20));}}};
- const commands=new Map(),errors=[],logs=[],calls=[],panels=[],nativeCalls=[];let provider,offline=false,holdMain=true,mainEntered,releaseMain,mainFinished;const mainStarted=new Promise(resolve=>{mainEntered=resolve;}),mainGate=new Promise(resolve=>{releaseMain=resolve;}),mainDone=new Promise(resolve=>{mainFinished=resolve;});t.after(()=>releaseMain());
+ const commands=new Map(),errors=[],logs=[],calls=[],panels=[],nativeCalls=[];let provider,confirmDiscard,offline=false,holdMain=true,mainEntered,releaseMain,mainFinished;const mainStarted=new Promise(resolve=>{mainEntered=resolve;}),mainGate=new Promise(resolve=>{releaseMain=resolve;}),mainDone=new Promise(resolve=>{mainFinished=resolve;});t.after(()=>releaseMain());
  const session={id:'session',account:{id:'1',label:'student'},accessToken:'LOCAL_FIXTURE_ONLY'};
  const uri=value=>({scheme:value.startsWith('zero-change-history:')?'zero-change-history':'file',fsPath:value,toString:()=>value});
  const vscode={
@@ -46,7 +46,11 @@ test('student local-first lifecycle uses native review and preserves offline com
   workspace:{isTrusted:true,workspaceFolders:[{uri:uri(root)}],textDocuments:[],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>true,registerTextDocumentContentProvider:disposable,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
   window:{createOutputChannel:()=>({appendLine:value=>logs.push(value),dispose(){}}),registerWebviewViewProvider:(_,value)=>{provider=value;return disposable();},registerTreeDataProvider:disposable,
    createWebviewPanel:()=>{const panel={webview:{html:'',onDidReceiveMessage(callback){panel.receive=callback;}},onDidDispose(){},dispose(){}};panels.push(panel);return panel;},
-   showQuickPick:async(_items,options)=>options?.canPickMany?[]:undefined,showInputBox:async()=> 'feature',showInformationMessage:async()=>{},showWarningMessage:async(_message,_options,...actions)=>actions[0],showErrorMessage:async message=>errors.push(message),withProgress:async(_options,callback)=>callback({report(){}})},
+   showQuickPick:async(items,options)=>{
+    if(options?.title!=='Delete merged local branch')return undefined;
+    assert.deepEqual(items.map(item=>item.name),['feature']);
+    return items[0];
+   },showInputBox:async()=> 'feature',showInformationMessage:async()=>{},showWarningMessage:async(message,options,...actions)=>actions[0]==='Discard Changes'&&confirmDiscard?confirmDiscard(message,options):actions[0],showErrorMessage:async message=>errors.push(message),withProgress:async(_options,callback)=>callback({report(){}})},
   tasks:{onDidStartTask:disposable,onDidEndTask:disposable,onDidEndTaskProcess:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},getCommands:async()=>['workbench.view.scm'],executeCommand:async(...args)=>{nativeCalls.push(args);}},Uri:{file:uri,parse:uri},EventEmitter:class{event(){}fire(){}dispose(){}}
  };
  const load=Module._load;delete require.cache[require.resolve('../src/extension')];
@@ -61,22 +65,92 @@ test('student local-first lifecycle uses native review and preserves offline com
  extension.activate({subscriptions,workspaceState:state},{provider:appSessions(vscode,{dispose(){}}),repositories:{checkSetup:async()=>({}),access:async()=>({repository:{id:12},installation:{id:99}})}});
  const webview={html:'',onDidReceiveMessage:disposable};provider.resolveWebviewView({webview,onDidDispose:disposable});
  await waitFor(()=>webview.html.includes('Current branch: main'));
+ const edit='class Main { int edited; }\n// $Id: original working bytes $\n',original=await fs.readFile(path.join(root,'Main.java'),'utf8');
+ await fs.writeFile(path.join(root,'Main.java'),edit);
+ await fs.writeFile(path.join(root,'Staged.java'),'class Staged {}\n');
+ await git(root,['add','Staged.java']);
+ await fs.writeFile(path.join(root,'new-note.txt'),'Untracked\n');
+ await fs.mkdir(path.join(root,'.git','info'),{recursive:true});
+ await fs.writeFile(path.join(root,'.git','info','exclude'),'ignored.txt\n');
+ await fs.writeFile(path.join(root,'.git','info','attributes'),'Main.java ident\n');
+ await fs.writeFile(path.join(root,'ignored.txt'),'Ignored\n');
+ const discardFile=()=>commands.get('zero.restoreModifiedFile')({root,relative:'Main.java'});
+ const discardAll=()=>commands.get('zero.discardProjectChanges')();
+ await git(root,['config','extensions.worktreeConfig','true']);
+ await git(root,['config','--worktree','filter.rewrite.clean','touch .git/discard-filter-ran; printf replaced']);
+ await fs.writeFile(path.join(root,'.gitattributes'),'new-note.txt filter=rewrite\n');
+ confirmDiscard=()=>assert.fail('Unsupported Git configuration must stop before confirmation');
+ await discardAll();assert.match(errors.pop(),/worktree settings require Source Control/);
+ await assert.rejects(fs.access(path.join(root,'.git','discard-filter-ran')),{code:'ENOENT'});
+ assert.equal(await fs.readFile(path.join(root,'new-note.txt'),'utf8'),'Untracked\n');
+ await git(root,['config','--unset','extensions.worktreeConfig']);
+ await fs.unlink(path.join(root,'.git','config.worktree'));
+ await fs.unlink(path.join(root,'.gitattributes'));
+ confirmDiscard=(message,options)=>{
+  assert.equal(message,'Discard File Changes');assert.deepEqual(options,{modal:true,detail:'Return this file to the last commit.'});
+ };
+ await discardFile();assert.deepEqual(errors,[]);assert.equal((await git(root,['status','--porcelain'])).trimEnd(),'M Main.java\nA  Staged.java\n?? new-note.txt');
+ await assert.rejects(git(root,['rev-parse','--verify','refs/stash']));
+ vscode.workspace.textDocuments=[{isDirty:true,uri:uri(path.join(root,'Main.java'))}];
+ await discardFile();assert.match(errors.pop(),/Save or undo your open edits/);
+ vscode.workspace.textDocuments=[];
+ confirmDiscard=(message,options)=>{
+  assert.equal(message,'Discard File Changes');assert.equal(options.detail,'Return this file to the last commit.');return 'Discard Changes';
+ };
+ await discardFile();assert.deepEqual(errors,[]);assert.equal(await fs.readFile(path.join(root,'Main.java'),'utf8'),original);
+ assert.equal(await git(root,['show','stash@{0}:Main.java']),'class Main { int edited; }\n// $Id$');
+ const recovery=require('../src/git-retained-recovery');
+ const [fileBackup]=await recovery.listDiscardRecoveries(root);
+ assert.equal((await recovery.readDiscardRecoveryCopy(root,fileBackup,'file',0)).content,edit);
+ assert.equal(await git(root,['status','--porcelain']),'A  Staged.java\n?? new-note.txt');
+ await fs.writeFile(path.join(root,'Main.java'),edit);
+ const laterEdit='class Main { int later; }\n';
+ confirmDiscard=async(message,options)=>{
+  assert.equal(message,'Discard All Changes');assert.deepEqual(options,{modal:true,detail:'Return files to the last commit.'});
+  await fs.writeFile(path.join(root,'Main.java'),laterEdit);return 'Discard Changes';
+ };
+ const singleStash=await git(root,['rev-parse','refs/stash']);
+ await discardAll();assert.match(errors.pop(),/Project changes moved since review/);
+ assert.equal(await git(root,['rev-parse','refs/stash']),singleStash);
+ assert.equal(await fs.readFile(path.join(root,'Main.java'),'utf8'),laterEdit);
+ assert.equal(await git(root,['status','--porcelain']),'M Main.java\nA  Staged.java\n?? new-note.txt');
+ confirmDiscard=()=> 'Discard Changes';
+ await discardAll();assert.deepEqual(errors,[]);assert.equal(await git(root,['status','--porcelain']),'');
+ assert.equal(await fs.readFile(path.join(root,'Main.java'),'utf8'),original);
+ assert.equal(await fs.readFile(path.join(root,'ignored.txt'),'utf8'),'Ignored\n');
+ assert.equal(await git(root,['show','stash@{0}:Main.java']),laterEdit.trim());
+ assert.equal(await git(root,['show','stash@{0}^2:Staged.java']),'class Staged {}');
+ assert.equal(await git(root,['show','stash@{0}^3:new-note.txt']),'Untracked');
+ assert.equal(await git(root,['rev-parse','HEAD']),initial);
+ assert.deepEqual(calls.filter(call=>call[0]==='push'),[]);
+ confirmDiscard=undefined;
  await commands.get('zero.startChange')();assert.deepEqual(errors,[]);assert.equal(await git(root,['branch','--show-current']),'feature');
  assert.equal(calls.filter(call=>call[0]==='push').length,0);
  await assert.rejects(git(bare,['rev-parse','--verify','refs/heads/feature']));
- await waitFor(()=>webview.html.includes('data-command="zero.syncSavedCommits"'));
- await commands.get('zero.syncSavedCommits')();assert.deepEqual(errors,[]);
+ await waitFor(()=>webview.html.includes('data-branch-state="remote-missing"'));
+ await commands.get('zero.syncBranch')();assert.deepEqual(errors,[]);
  assert.equal(await git(bare,['rev-parse','refs/heads/feature']),initial);await Promise.race([mainStarted,new Promise((_,reject)=>setTimeout(()=>reject(Error('Expected delayed main check')),10000))]);
  await fs.writeFile(path.join(root,'Main.java'),'class Main { int first; }\n');
  await commands.get('zero.reviewChanges')();let review=panels.at(-1);const view=panel=>/view="([a-f0-9]+)"/.exec(panel.webview.html)[1];assert.match(review.webview.html,/Main.java/);await review.receive({type:'select',index:0,view:view(review)});assert.ok(nativeCalls.some(call=>call[0]==='vscode.diff'));
  // Run is deliberately mocked: this fixture asserts the requested handoff only.
  await vscode.commands.executeCommand('zero.runNativeApp');assert.ok(nativeCalls.some(call=>call[0]==='zero.runNativeApp'));
- offline=true;await commands.get('zero.commitChanges')('First offline edit');assert.deepEqual(errors,[]);const first=await git(root,['rev-parse','HEAD']);assert.notEqual(first,initial);assert.equal(await git(bare,['rev-parse','refs/heads/feature']),initial);
+ offline=true;await commands.get('zero.commitChanges')('First offline edit');await commands.get('zero.syncBranch')();assert.deepEqual(errors,[]);assert.match(webview.html,/Sync could not be confirmed/);const first=await git(root,['rev-parse','HEAD']);assert.notEqual(first,initial);assert.equal(await git(bare,['rev-parse','refs/heads/feature']),initial);
  const afterFirst=await listLedger(),prior=afterFirst.find(row=>row.type!=='local'&&row.branch==='feature'&&row.head===first);assert.ok(prior,'Failed sync retains exact first commit reminder');const pushesBeforeRelease=calls.filter(call=>call[0]==='push').length;releaseMain();await mainDone;assert.ok((await listLedger()).some(row=>row.id===prior.id&&JSON.stringify(row)===JSON.stringify(prior)));assert.equal(calls.filter(call=>call[0]==='push').length,pushesBeforeRelease,'A delayed main check cannot push or clear the reminder');
- await fs.writeFile(path.join(root,'Main.java'),'class Main { int second; }\n');const beforeSecond=calls.length;await commands.get('zero.commitChanges')('Second offline edit');assert.deepEqual(errors,[]);const second=await git(root,['rev-parse','HEAD']);assert.notEqual(second,first);assert.equal(await git(root,['rev-parse',`${second}^`]),first);const secondCalls=calls.slice(beforeSecond);const afterSecond=await listLedger();assert.ok(afterSecond.some(row=>row.id===prior.id&&JSON.stringify(row)===JSON.stringify(prior)));assert.ok(afterSecond.some(row=>row.type==='local'&&row.head===second));
- offline=false;await commands.get('zero.checkPush')();assert.equal(await git(bare,['rev-parse','refs/heads/feature']),initial);const beforeRetry=calls.length;await commands.get('zero.retryBranchSync')();assert.deepEqual(errors,[]);assert.equal(await git(bare,['rev-parse','refs/heads/feature']),second);await waitFor(()=>calls.slice(beforeRetry).some(call=>call[0]==='ls-remote'&&call[3]==='refs/heads/main'),'Automatic main check resumes after reminder resolution');const beforeExplicit=calls.length,pushCount=calls.filter(call=>call[0]==='push').length;await commands.get('zero.checkBranchConnection')();await waitFor(()=>calls.slice(beforeExplicit).some(call=>call[0]==='ls-remote'&&call[3]==='refs/heads/feature'),'Explicit branch check remains available');assert.equal(calls.filter(call=>call[0]==='push').length,pushCount,'Status checks never duplicate a push');assert.equal(await fs.readFile(path.join(root,'Main.java'),'utf8'),'class Main { int second; }\n');
+ await fs.writeFile(path.join(root,'Main.java'),'class Main { int second; }\n');const beforeSecond=calls.length;await commands.get('zero.commitChanges')('Second offline edit');assert.deepEqual(errors,[]);const second=await git(root,['rev-parse','HEAD']);assert.notEqual(second,first);assert.equal(await git(root,['rev-parse',`${second}^`]),first);const secondCalls=calls.slice(beforeSecond);const afterSecond=await listLedger();assert.ok(afterSecond.some(row=>row.id===prior.id&&JSON.stringify(row)===JSON.stringify(prior)));assert.ok(!afterSecond.some(row=>row.type==='local'&&row.head===second));
+ offline=false;assert.equal(await git(bare,['rev-parse','refs/heads/feature']),initial);const beforeRetry=calls.length;await commands.get('zero.syncBranch')();assert.deepEqual(errors,[]);assert.equal(await git(bare,['rev-parse','refs/heads/feature']),second);await waitFor(()=>calls.slice(beforeRetry).some(call=>call[0]==='ls-remote'&&call[3]==='refs/heads/main'),'Automatic main check resumes after reminder resolution');const beforeExplicit=calls.length,pushCount=calls.filter(call=>call[0]==='push').length;await commands.get('zero.checkBranchConnection')();await waitFor(()=>calls.slice(beforeExplicit).some(call=>call[0]==='ls-remote'&&call[3]==='refs/heads/feature'),'Explicit branch check remains available');assert.equal(calls.filter(call=>call[0]==='push').length,pushCount,'Status checks never duplicate a push');assert.equal(await fs.readFile(path.join(root,'Main.java'),'utf8'),'class Main { int second; }\n');
  await commands.get('zero.finishChange')();assert.deepEqual(errors,[]);const merged=await git(root,['rev-parse','HEAD']);assert.equal(await git(root,['branch','--show-current']),'main');assert.equal(await git(bare,['rev-parse','refs/heads/main']),merged);assert.equal(await git(root,['rev-parse','refs/heads/feature']),second);
+ const unmerged=await git(root,['commit-tree',`${initial}^{tree}`,'-p',initial,'-m','Keep unfinished work']);
+ await git(root,['branch','unfinished',unmerged]);
+ const beforeDelete=calls.length;
+ await commands.get('zero.deleteMergedBranch')();assert.deepEqual(errors,[]);
+ await assert.rejects(git(root,['rev-parse','--verify','refs/heads/feature']));
+ assert.equal(await git(bare,['rev-parse','refs/heads/feature']),second);
+ assert.equal(await git(root,['rev-parse','HEAD']),merged);
+ assert.equal(await git(root,['rev-parse','refs/heads/unfinished']),unmerged);
+ assert.equal(calls.slice(beforeDelete).filter(call=>call[0]==='push').length,0);
+ await git(root,['branch','feature',second]);
+
  await commands.get('zero.changeHistory')();assert.match(panels.at(-1).webview.html,/Merge: feature/);await git(parent,['clone',bare,fresh]);assert.equal(await git(fresh,['rev-parse','HEAD']),merged);vscode.workspace.workspaceFolders=[{uri:uri(fresh)}];const freshHistory=require('../src/change-history').createChangeHistory(vscode,{project:async()=>fresh});await freshHistory.openHistory();assert.match(panels.at(-1).webview.html,/Merge: feature/);freshHistory.dispose();vscode.workspace.workspaceFolders=[{uri:uri(root)}];
  // A newer remote main must not be overwritten by a stale merge attempt.
- await git(other,['pull','--ff-only',bare,'main']);await fs.writeFile(path.join(other,'Other.java'),'class Other {}\n');await git(other,['add','Other.java']);await git(other,['commit','-m','Advance main']);const advanced=await git(other,['rev-parse','HEAD']);await git(other,['push',bare,'HEAD:refs/heads/main']);await git(root,['checkout','feature']);await fs.writeFile(path.join(root,'Local.java'),'class Local {}\n');await git(root,['add','Local.java']);await git(root,['commit','-m','Local follow-up']);const divergent=await git(root,['rev-parse','HEAD']),priorFiles=await fs.readFile(path.join(root,'Main.java')),beforeScm=nativeCalls.filter(call=>call[0]==='workbench.view.scm').length;const pushesBefore=calls.filter(call=>call[0]==='push').length;await commands.get('zero.syncProject')();assert.equal(await git(bare,['rev-parse','refs/heads/main']),advanced);assert.equal(await git(root,['rev-parse','HEAD']),divergent);assert.deepEqual(await fs.readFile(path.join(root,'Main.java')),priorFiles);assert.equal(await fs.readFile(path.join(root,'Local.java'),'utf8'),'class Local {}\n');assert.equal(calls.filter(call=>call[0]==='push').length,pushesBefore);assert.equal(nativeCalls.filter(call=>call[0]==='workbench.view.scm').length,beforeScm+1,'Diverged update hands off to native Source Control');assert.deepEqual(secondCalls,[],`Second local commit transport: ${JSON.stringify(secondCalls)}`);
+ await git(other,['pull','--ff-only',bare,'main']);await fs.writeFile(path.join(other,'Other.java'),'class Other {}\n');await git(other,['add','Other.java']);await git(other,['commit','-m','Advance main']);const advanced=await git(other,['rev-parse','HEAD']);await git(other,['push',bare,'HEAD:refs/heads/main']);await git(root,['checkout','feature']);await fs.writeFile(path.join(root,'Local.java'),'class Local {}\n');await git(root,['add','Local.java']);await git(root,['commit','-m','Local follow-up']);const divergent=await git(root,['rev-parse','HEAD']),priorFiles=await fs.readFile(path.join(root,'Main.java')),beforeScm=nativeCalls.filter(call=>call[0]==='workbench.view.scm').length;const pushesBefore=calls.filter(call=>call[0]==='push').length;await commands.get('zero.syncProject')();assert.equal(await git(bare,['rev-parse','refs/heads/main']),advanced);assert.equal(await git(root,['rev-parse','HEAD']),divergent);assert.deepEqual(await fs.readFile(path.join(root,'Main.java')),priorFiles);assert.equal(await fs.readFile(path.join(root,'Local.java'),'utf8'),'class Local {}\n');assert.equal(calls.filter(call=>call[0]==='push').length,pushesBefore);assert.equal(nativeCalls.filter(call=>call[0]==='workbench.view.scm').length,beforeScm+1,'Diverged update hands off to native Source Control');assert.ok(secondCalls.every(args=>args[0]==='ls-remote'),`Second local commit can only refresh read-only counts: ${JSON.stringify(secondCalls)}`);
 });

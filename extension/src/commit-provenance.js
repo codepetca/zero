@@ -15,8 +15,12 @@ async function directory(root) {
   if(typeof root!=='string'||await fs.realpath(root)!==root)throw new Error('The project changed; review it again.');
   const marker=path.join(root,'.git'),stat=await fs.stat(marker);
   if(!stat.isDirectory()&&!stat.isFile())throw new Error('The project Git directory cannot be verified.');
-  if(await fs.realpath(await core.git(root,['rev-parse','--show-toplevel']))!==root)throw new Error('The project changed; review it again.');
-  const dot=await fs.realpath(path.resolve(root,await core.git(root,['rev-parse','--git-common-dir'])));
+  const [topLevel,commonDir]=await Promise.all([
+    core.git(root,['rev-parse','--show-toplevel']),
+    core.git(root,['rev-parse','--git-common-dir'])
+  ]);
+  if(await fs.realpath(topLevel)!==root)throw new Error('The project changed; review it again.');
+  const dot=await fs.realpath(path.resolve(root,commonDir));
   const common=await fs.lstat(dot);
   if(!common.isDirectory()||common.isSymbolicLink())throw new Error('The project Git directory cannot be verified.');
   return dot;

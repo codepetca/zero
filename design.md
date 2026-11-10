@@ -8,15 +8,16 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
-Owner sidebar refinement, 2026-11-09. Clicking the current branch opens a menu
-with **New branch…** and **Select existing branch…**. Each choice opens its own
-input or picker. Submitting a valid branch name creates the branch locally and
-carries current edits forward. Keep **Sync** visible while GitHub status updates
-in the background. Enable it when a sync action is ready and show outgoing ↑ and
-incoming ↓ counts. Use a dash when a count is unavailable. The button opens the
-review for uploading saved commits or updating from GitHub.
-The Project chevron groups repository and recovery actions. The branch dropdown
-offers **Update from main** on connected feature branches when signed in.
+Owner sidebar refinement, 2026-11-09. The branch menu offers **New branch…**
+and lists the other local branches directly. Creating a branch carries current edits
+forward. **Commit** saves locally. **Sync** works on the selected branch,
+including main, and creates the matching GitHub branch when needed. Show both
+commit counts when available. Otherwise the button reads **Sync**. Disable Sync
+when the latest comparison confirms a match and there is no sync reminder.
+Use the existing sidebar status area for the latest result or next step. Routine
+branch checks and retries need no extra messages, dialogs or recovery buttons.
+Keep **Update from main** in the feature branch menu and exceptional Git recovery
+available through Source Control.
 
 Owner sidebar refinement, 2026-11-08: keep the branch name prominent as a dropdown for switching or creating
 branches. Keep the history
@@ -56,8 +57,16 @@ Copy playable link in the advanced palette; the browser address is shareable.
 Current source only; published
 kits keep their bundled behavior until a separately authorized release.
 
-Owner toolbar refinement,2026-10-26: keep only New (+) in the Files title bar.
-Refresh, Show All Project Files and Collapse All belong in its three-dot menu.
+Owner Files refinement, 2026-11-09. Use the native right-side Git badge and
+theme color for file changes. Keep the filename and file type icon free of
+duplicate change markers. Refresh changed rows or their containing folders
+during edits and routine Git operations. Keep discard confirmations to a
+short title and one sentence.
+
+Keep **New** (+) and **Discard All Changes…** in the Files title bar. Show Discard
+when there are supported saved changes. Right-click an unstaged modified file
+for **Discard File Changes…**. Open Source Control, Refresh, Show All Project
+Files and Collapse All belong in the three-dot menu.
 
 Owner naming refinement,2026-10-26: show `java` and `resources` in the student
 project tree and destination prompts, matching the real folder basenames. Keep
@@ -146,24 +155,14 @@ when adding features; a new feature does not reset the agreed interaction style.
   open Zero Start Page available as a tab alongside the destination project.
   Sign-out
   preserves local folders, Git history and the open project.
-- Use clear Git labels: **New branch**, **Update from main**, **Commit & push**, **Merge**.
-  New branch is local and remains available while signed out. Update from main
-  brings GitHub main into the current branch without uploading. Update branch
-  from GitHub separately gets the same remote feature. Keep routine actions direct
-  with native progress. Explicit checkpoint and conflict choices are the required
-  exception: preserve work, state the local commit, and allow cancellation.
-  Use the **Commit Message** title and an empty field, with the same small keyboard helper below the input.
-  Keep repository and branch in the sidebar. Show an inline
-  spinner and **Preparing commit…** on the button during preparation, then
-  **Committing & pushing…** after confirmation; clear on completion/cancel/error.
-  Entering a branch name or commit message proceeds directly; choosing Merge in
-  Project starts its guarded review.
-- For a new Merge, show a native Quick Pick with deletion of the finished local
-  and GitHub branch checked by default, followed by a Merge confirmation.
-  Unchecking keeps both; cancelling either prompt cancels the merge. After GitHub
-  confirms the merge and Zero switches to local main, cleanup checks the reviewed
-  branch tip and other guards. Changed or uncertain state preserves safe refs;
-  report partial or uncertain cleanup. Recovery and Sync keep branches.
+- Use **New branch**, **Commit**, **Sync**, **Update from main**, and **Merge**
+  for student Git actions. New branch and Commit work locally while signed out.
+  Sync sends saved commits or applies a safe fast-forward from the same GitHub
+  branch. Put progress and results in the sidebar's status area. Use native
+  prompts for decisions such as saving a checkpoint before switching branches.
+  Show the current repository and branch beside the commit message input.
+- Merge keeps the feature branch locally and on GitHub. On main, the branch
+  menu offers **Delete merged local branch…** as a separate action.
 - First publication, or a changed publishing destination, gets one short warning:
   **“Your app and included assets will be public.”** Show the destination.
   Do not ask again after setup/upload or for routine updates to the same site.
@@ -174,7 +173,7 @@ when adding features; a new feature does not reset the agreed interaction style.
   or library names. Put commit hashes, sizes and longer guidance in Zero Output.
 - Keep warnings, errors and required decisions visible. When attention is needed,
   include the next step: for example, **“Branch updated. Run App, then Merge to
-  main.”** or **“Merged to main · local branch kept; see Output”**. A concise
+  main.”** or **“Choose a merged local branch to delete”**. A concise
   message must still describe the actual outcome accurately.
 - Keep **Publish & open app** in Run options and **Preview export / Save ZIP /
   Share export** for completed exports. The browser address shares the app; saved-link
@@ -495,16 +494,15 @@ The explicit Merge action starts the guarded merge/push-main flow. Preserve
 account/project/destination/source checks, operation serialization, the pause to
 run after incorporating updated main and conflict recovery.
 
-### Finished-branch cleanup — updated decision, 2026-11-07
+### Branch retention after Merge — owner decision, 2026-11-09
 
-For a new merge, a native Quick Pick defaults to deleting the finished branch
-locally and on GitHub; unchecking keeps both. A subsequent Merge confirmation
-shows the choice and destination. Cancelling either prompt cancels the merge.
-After GitHub confirms the merge and Zero switches to local main, cleanup checks
-the exact reviewed feature tip and other guards before deleting. Changed or
-uncertain state keeps safe refs. Cleanup can be partial or uncertain and is
-reported separately from the successful merge, with details in Zero Output.
-Failed, paused and conflicted merges skip cleanup; recovery and Sync keep branches.
+Use a one-line confirmation for a new merge, such as **Merge new-branch into
+main?**.
+
+Merge keeps the feature branch locally and on GitHub. On clean main, use
+**Delete merged local branch…** in the branch menu to choose a branch already
+included in main. Confirm the branch name before deleting the local ref.
+GitHub branch deletion is managed on GitHub.
 
 ### Quiet success feedback — owner decision, 2026-10-16
 
@@ -521,7 +519,7 @@ Use short sidebar results: Pushed to main, Merged to main, App published, Export
 ready, ZIP saved. Keep branch/library names when needed, and retain longer
 technical details and guidance in Zero Output. Conditions needing attention still
 include a clear next step, such as running the app after main updates or checking
-Output when branch cleanup needs attention.
+Source Control when branch deletion needs attention.
 ## Tutorial reading hierarchy — owner correction, 2026-10-16
 
 Remove Previous lesson prose and horizontal dividers from tutorial content,

@@ -14,7 +14,7 @@ const {verifyManagedJava} = require('./managed-java');
 const {createNativeCompilerDiagnostics} = require('./native-compiler-diagnostics');
 const lessonProjects = require('./lesson-projects');
 const github = require('./github');
-const {commitAndSync} = require('./student-commit');
+const {commitLocally} = require('./student-commit');
 const commitProvenance = require('./commit-provenance');
 const {createPendingSyncLedger,matchesConfirmed} = require('./pending-sync-ledger');
 const {createRepositoryReminderStorage} = require('./repository-reminder-storage');
@@ -23,7 +23,6 @@ const {recoveryMessage} = require('./local-recovery-message');
 const {checkMainUpdate} = require('./main-update-status');
 const {checkBranchRemote,countBranchCommits,countGitHubBranchCommits,remoteHead,errorState:branchCheckError,statusMessage:branchStatusMessage} = require('./branch-remote-status');
 const workflow = require('./workflow');
-const {cleanupAfterMerge} = require('./branch-cleanup');
 const gitRecoveryPanel = require('./git-recovery-panel');
 const retainedRecovery = require('./git-retained-recovery');
 const addedRemovalInspection = require('./added-removal-inspection');
@@ -81,7 +80,6 @@ const {createCommitUndoAuthority} = require('./commit-undo-authority');
 const projectRestore = require('./project-restore-plan');
 const discardPreview = require('./discard-preview');
 const unbornRemoval = require('./unborn-added-removal');
-const unbornDiscard = require('./unborn-discard');
 const {sidebarStyles} = require('./sidebar-style');
 const {sidebarScript} = require('./sidebar-script');
 const {icon} = require('./sidebar-icons');
@@ -214,7 +212,7 @@ function activate(context, services = {}) {
   let branchDetached = false, branchError;
   let history,recentHistory,recentGeneration=0;
   let mainUpdateStatus,mainUpdateScope,mainUpdateRunning=false,mainUpdateGeneration=0,mainUpdateNextAt=0;
-  let projectDirty, projectUnsaved, projectDirtyError, projectDirtyGeneration=0, projectDirtyTimer;
+  let projectDirty, projectDirtyError, projectDirtyGeneration=0, projectDirtyTimer;
   let updateRecovery, updateRecoveryError, pendingUpload;
   let pendingLocalCommit;
   const pendingLedger=createPendingSyncLedger(context.workspaceState,{onFallback:()=>{if(services.repositoryLedgerFactory)return;const message='Sync reminders are available only in this window; review them before closing it.';output.appendLine(message);void vscode.window.showWarningMessage?.(message);}});
@@ -232,6 +230,9 @@ function activate(context, services = {}) {
   const pushOperation=record=>!record.operation||['branch','reftable-update'].includes(record.operation)?'branch':record.operation;
   const knownPushKinds=new Set(['ready','in-progress','network','auth','access','unconfirmed','behind','protected','changed','remote-missing','destination-changed']);
   const knownPush=record=>Boolean(record)&&(record.kind===undefined||knownPushKinds.has(record.kind))&&(record.type===undefined||record.type==='push')&&(record.operation===undefined||record.operation==='branch'||record.operation==='merge'||record.operation==='reftable-update');
+  const ordinaryBranchReminder=(row,root)=>knownPush(row)&&
+    (!row.operation||row.operation==='branch')&&row.root===root&&github.validBranch(row.branch)&&
+    /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(row.head||'');
   const samePushGroup=(a,b)=>knownPush(a)&&knownPush(b)&&['root','branch','remote','head','accountId'].every(key=>a[key]===b[key])&&pushOperation(a)===pushOperation(b);
   const selectPushReminder=rows=>{
     const first=rows[0];if(!first)return undefined;
@@ -263,6 +264,7 @@ function activate(context, services = {}) {
   const uploadMode = (root = projectRoot) => root ? vscode.workspace.getConfiguration('zero', vscode.Uri.file(root)).get('uploadMode', 'live') : 'live';
   let runQueue = Promise.resolve();
   let state = '';
+  let gitFeedback,blockedSync;
   let authFeedback;
   let buildFailed = false;
   const stoppedTasks = new WeakSet();
@@ -281,7 +283,7 @@ function activate(context, services = {}) {
     if(savedBuilderInspectedRoot!==root){savedBuilderInspectedRoot=root;try{await readSavedBuilder(root,{metadataOnly:true});}catch(error){output.appendLine(error.message);}}
     if(!sameWorkspace())throw new Error('The project changed. Try again in the current workspace.');
     if(savedChecksRoot&&savedChecksRoot!==root){savedChecks.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;}
-    if(projectRoot!==root){projectDirty=undefined;projectUnsaved=undefined;projectDirtyGeneration++;}
+    if(projectRoot!==root){projectDirty=undefined;projectDirtyError=undefined;projectDirtyGeneration++;}
     projectRoot = root; localPractice = practice; originalWork = original;
     return root;
   };
@@ -310,9 +312,11 @@ function activate(context, services = {}) {
     }}catch(error){clearDirtyMetadataWatch();throw error;}
     return true;
   }
-  function scheduleProjectDirty() {
+  function scheduleProjectDirty({reset=false}={}) {
     const generation=++projectDirtyGeneration, root=projectRoot;
-    projectDirty=undefined;projectUnsaved=undefined;projectDirtyError=undefined;refresh();clearTimeout(projectDirtyTimer);
+    clearTimeout(projectDirtyTimer);
+    // Keep the last saved-file result while a routine check is pending.
+    if(reset||!root||vscode.workspace.isTrusted===false){projectDirty=undefined;projectDirtyError=undefined;}
     if(!root||disposed||vscode.workspace.isTrusted===false){clearDirtyMetadataWatch();return;}
     if(dirtyMetadataWatch&&dirtyMetadataWatch.root!==root)clearDirtyMetadataWatch();
     projectDirtyTimer=setTimeout(async()=>{
@@ -324,14 +328,29 @@ function activate(context, services = {}) {
           changes=await readStudentFileStatus(root);
           if(JSON.stringify(changes.gitWatchDirectories)!==JSON.stringify(directories))throw Error('Linked worktree metadata changed during refresh.');
         }else if(!directories?.length)clearDirtyMetadataWatch();
-        const unsaved=(await dirtyProjectDocuments(vscode,root)).length>0;
         const dirty=changes.size>0;
-        if(!disposed&&vscode.workspace.isTrusted===true&&generation===projectDirtyGeneration&&root===projectRoot&&await project()===root&&generation===projectDirtyGeneration){projectDirty=dirty;projectUnsaved=unsaved;refresh();}
-      } catch(error) {if(!disposed&&generation===projectDirtyGeneration&&root===projectRoot){clearDirtyMetadataWatch();projectDirtyError='Commit status is unavailable. Use Source Control to inspect your changes.';output.appendLine(`File status unavailable: ${error.message}`);refresh();}}
+        if(!disposed&&vscode.workspace.isTrusted===true&&generation===projectDirtyGeneration&&root===projectRoot&&await project()===root&&generation===projectDirtyGeneration){
+          if(projectDirty!==dirty||projectDirtyError){
+            projectDirty=dirty;projectDirtyError=undefined;refresh();
+          }
+        }
+      } catch(error) {
+        if(!disposed&&generation===projectDirtyGeneration&&root===projectRoot){
+          clearDirtyMetadataWatch();
+          projectDirty=undefined;
+          projectDirtyError='Commit status is unavailable. Use Source Control to inspect your changes.';
+          output.appendLine(`File status unavailable: ${error.message}`);
+          refresh();
+        }
+      }
     },60);
   }
   context.subscriptions.push({dispose(){projectDirtyGeneration++;clearTimeout(projectDirtyTimer);clearDirtyMetadataWatch();}});
   const report = (text, detail = text) => {state=text;output.appendLine(detail);refresh();};
+  function reportGit(text,detail=text,branchName=branch) {
+    gitFeedback={text,root:projectRoot,repository,branch:branchName,account:auth.accountId};
+    report(text,detail);
+  }
   const hasOpenEditors = () => Boolean(vscode.window.activeTextEditor) || Boolean(vscode.window.tabGroups?.all.some(group => group.tabs.some(tab => !startPage?.owns(tab))));
   async function openFirstLesson(root, onlyWhenEmpty = false) {
     if (isSetupProject(root)) return false;
@@ -462,9 +481,10 @@ function activate(context, services = {}) {
       if (!disposed) throw error;
     } finally { signingIn = false; if (!disposed) refresh(); }
   }
-  async function repositoryStatus({forceBranchCheck=false,suppressRemoteChecks=false}={}) {
+  let localBranchMenu;
+  async function repositoryStatus({forceBranchCheck=false,suppressRemoteChecks=false,localCommit,confirmedBranch}={}) {
     const generation = ++statusGeneration;
-    let nextRepository = 'No repository connected', nextBranch = '', nextHead, nextMainHead, nextDetached = false, nextBranchError, nextRecovery, nextRecoveryError, nextPending, nextLocal;
+    let nextRepository = 'No repository connected', nextBranch = '', nextHead, nextMainHead, nextDetached = false, nextBranchError, nextRecovery, nextRecoveryError, nextPending, nextLocal, nextBranchMenu;
     try {
       const root = await project();
       if (localPractice) {nextRepository = 'Local practice'; throw new Error('Local practice');}
@@ -479,26 +499,68 @@ function activate(context, services = {}) {
           catch {nextBranchError='The branch commit cannot be verified. Open Source Control to inspect it.';nextHead=undefined;}
         }
       }
-      if(nextBranch&&nextBranch!=='main')try{nextMainHead=await core.git(root,['rev-parse','--verify','refs/heads/main^{commit}']);}catch{/* No readable local main means the update check is unavailable. */}
-      let reminderView;try{reminderView=await readReminders(root,nextBranch);}catch(error){nextRecoveryError=`Sync reminders are unavailable. Retry after inspecting reminder storage: ${error.message}`;output.appendLine(nextRecoveryError);reminderView={local:pendingLocalCommit?.root===root&&pendingLocalCommit.branch===nextBranch?[pendingLocalCommit]:[],push:pendingUpload?.root===root&&pendingUpload.branch===nextBranch?[pendingUpload]:[]};}
-      const local=reminderView.local[0];
-      if(local&&local.root===root&&local.branch===nextBranch&&github.validBranch(local.branch)&&/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(local.head||''))nextLocal=local;
-      try {nextRecovery = await workflow.readRecovery?.(root);} catch(error) {nextRecoveryError=nextRecoveryError?`${nextRecoveryError} ${error.message}`:error.message;}
-      const stored=reminderView.push.find(row=>!knownPush(row))||selectPushReminder(reminderView.push);
-      if(stored&&!knownPush(stored))nextRecoveryError=stored.operation==='reftable-ref-only'?'A ref-only update record needs inspection. Keep the reminder and review the branch in Source Control before syncing.':'An unrecognized sync reminder needs inspection. Open Source Control and review the reminder storage before syncing.';
-      else if (stored && typeof stored === 'object' && stored.root === root && stored.branch === nextBranch && /^[a-f0-9]{40,64}$/.test(stored.head)) {
-        nextPending = stored;
-      }
-      try {nextRepository = core.parseRepositoryUrl(await core.git(root, ['remote', 'get-url', 'origin'])).page;}
-      catch(error) {
+      async function readBranchMenu() {
+        if(!nextBranch||nextBranchError)return;
         try {
-          const remotes=(await core.git(root,['remote'])).split('\n').filter(Boolean);
-          nextRepository=error.code===2&&!remotes.includes('origin')?'No repository connected':'Repository connection cannot be verified. Open Source Control to inspect it.';
-        } catch {nextRepository='Repository connection cannot be verified. Open Source Control to inspect it.';}
+          const choices=(await core.localBranchChoices(root,{run:core.git})).filter(choice=>choice.name!==nextBranch).map(choice=>({
+            ...choice, token:crypto.createHash('sha256').update(JSON.stringify([root,nextBranch,choice.name,choice.head])).digest('hex')
+          }));
+          nextBranchMenu={root,branch:nextBranch,choices};
+        }catch(error){output.appendLine(`Local branches unavailable: ${error.message}`);}
       }
+      async function readLocalMain() {
+        if(!nextBranch||nextBranch==='main')return;
+        try {nextMainHead=await core.git(root,['rev-parse','--verify','refs/heads/main^{commit}']);}
+        catch {/* No readable local main means the update check is unavailable. */}
+      }
+      async function readLocalRecovery() {
+        let reminderView;try{reminderView=await readReminders(root,nextBranch);}catch(error){nextRecoveryError=`Sync reminders are unavailable. Retry after inspecting reminder storage: ${error.message}`;output.appendLine(nextRecoveryError);reminderView={local:pendingLocalCommit?.root===root&&pendingLocalCommit.branch===nextBranch?[pendingLocalCommit]:[],push:pendingUpload?.root===root&&pendingUpload.branch===nextBranch?[pendingUpload]:[]};}
+        const local=reminderView.local[0];
+        if(local&&local.root===root&&local.branch===nextBranch&&github.validBranch(local.branch)&&/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(local.head||''))nextLocal=local;
+        try {nextRecovery = await workflow.readRecovery?.(root);} catch(error) {nextRecoveryError=nextRecoveryError?`${nextRecoveryError} ${error.message}`:error.message;}
+        const stored=reminderView.push.find(row=>!knownPush(row))||selectPushReminder(reminderView.push);
+        if(stored&&!knownPush(stored))nextRecoveryError=stored.operation==='reftable-ref-only'?'A ref-only update record needs inspection. Keep the reminder and review the branch in Source Control before syncing.':'An unrecognized sync reminder needs inspection. Open Source Control and review the reminder storage before syncing.';
+        else if (stored && typeof stored === 'object' && stored.root === root && stored.branch === nextBranch && /^[a-f0-9]{40,64}$/.test(stored.head)) {
+          nextPending = stored;
+        }
+      }
+      async function readRepositoryPage() {
+        try {nextRepository = core.parseRepositoryUrl(await core.git(root, ['remote', 'get-url', 'origin'])).page;}
+        catch(error) {
+          try {
+            const remotes=(await core.git(root,['remote'])).split('\n').filter(Boolean);
+            nextRepository=error.code===2&&!remotes.includes('origin')?'No repository connected':'Repository connection cannot be verified. Open Source Control to inspect it.';
+          } catch {nextRepository='Repository connection cannot be verified. Open Source Control to inspect it.';}
+        }
+      }
+      await Promise.all([readBranchMenu(),readLocalMain(),readLocalRecovery(),readRepositoryPage()]);
     } catch (error) { if (!localPractice) {nextRepository = error.message.includes('different Git repository') ? 'Standalone student copy needed to connect' : 'Repository status unavailable. Open Source Control to inspect it.';nextBranchError ||= 'Project Git status is unavailable. Open Source Control to inspect it.';} }
     if(nextPending){try{if(core.parseRepositoryUrl(nextPending.remote).page!==nextRepository)nextPending={...nextPending,kind:'destination-changed'};}catch{nextPending={...nextPending,kind:'destination-changed'};}}
-    if (!disposed && generation === statusGeneration) {scheduleProjectDirty();repository = nextRepository; branch = nextBranch; branchHead=nextHead;mainLocalHead=nextMainHead;branchDetached = nextDetached;branchError=nextBranchError;updateRecovery=nextRecovery;updateRecoveryError=nextRecoveryError;pendingUpload=nextPending;pendingLocalCommit=nextLocal;if((mainUpdateStatus||mainUpdateScope)&&[mainUpdateStatus,mainUpdateScope].filter(Boolean).some(value=>!currentMainObservation(value))){mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0;}if(branchRemoteStatus&&!currentBranchObservation(branchRemoteStatus)){branchRemoteStatus=undefined;branchCheckNextAt=0;}refresh();void refreshRecentHistory();if(!suppressRemoteChecks){if(Date.now()>=mainUpdateNextAt)void checkForMainUpdates();void checkCurrentBranch({force:forceBranchCheck});}}
+    if (disposed || generation !== statusGeneration) return;
+    scheduleProjectDirty({reset:nextBranch!==branch||nextHead!==branchHead});
+    repository=nextRepository;branch=nextBranch;localBranchMenu=nextBranchMenu;
+    branchHead=nextHead;mainLocalHead=nextMainHead;branchDetached=nextDetached;branchError=nextBranchError;
+    updateRecovery=nextRecovery;updateRecoveryError=nextRecoveryError;pendingUpload=nextPending;pendingLocalCommit=nextLocal;
+    if([mainUpdateStatus,mainUpdateScope].filter(Boolean).some(value=>!currentMainObservation(value))){
+      mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0;
+    }
+    if(branchRemoteStatus&&!currentBranchObservation(branchRemoteStatus)){
+      const previous=branchRemoteStatus;
+      const next={...previous,head:nextHead};
+      // A verified child of a branch already ahead adds one outgoing commit
+      // against the last observed GitHub ref. This is display-only while rechecking.
+      branchRemoteStatus=localCommit?.root===projectRoot&&localCommit.parent===previous.head&&localCommit.head===nextHead
+        &&currentBranchObservation(next)&&freshBranchObservation(previous)&&previous.incoming===0&&Number.isSafeInteger(previous.outgoing)
+        ? {...next,state:'checking',outgoing:previous.outgoing+1} : undefined;
+      branchCheckNextAt=0;
+    }
+    if(confirmedBranch)storeConfirmedBranch(confirmedBranch);
+    refresh();void refreshRecentHistory();
+    if(!suppressRemoteChecks)refreshRemoteStatus(forceBranchCheck);
+  }
+  function refreshRemoteStatus(forceBranchCheck=false) {
+    if(Date.now()>=mainUpdateNextAt)void checkForMainUpdates();
+    void checkCurrentBranch({force:forceBranchCheck});
   }
   async function refreshRecentHistory() {
     const attempt=++recentGeneration,root=projectRoot,currentBranch=branch;
@@ -727,9 +789,9 @@ function activate(context, services = {}) {
     try {return await vscode.window.showQuickPick(items, options);}
     finally {menuOpen = false; refresh();}
   }
-  function simulation(action) {
+  function simulation(action,{quiet=false}={}) {
     state = `Simulation only — ${action}: nothing changed. No files saved, Git changes, sign-in or upload.`;
-    refresh(); void vscode.window.showWarningMessage(state);
+    refresh(); if(!quiet)void vscode.window.showWarningMessage(state);
   }
   async function nativeUpdateHelp(error) {
     const choice=await vscode.window.showWarningMessage(error.message,{modal:true,detail:'Use VS Code Source Control to review the branches and update your project. Your files and commits are kept. Run your app after updating, then review the merge again.'},'Open Source Control');
@@ -755,7 +817,7 @@ function activate(context, services = {}) {
     if (uploadMode(root) !== 'live') throw new Error('Live Git actions were disabled. Review this step again.');
   }
   async function operationTransport(remote, {root:reviewRoot,authentication, ticket, permissions = {contents:'write'}, identity,
-    assertProject, assertProjectNow,assertReminders,reminderSnapshot,syncOperation='branch',allowedReminders=[],allowIncludedOperations=false,allowIncludedPushes=false,refOnlyOutcome,onPushAttempt=()=>{},onIdentity}) {
+    assertProject, assertProjectNow,assertReminders,reminderSnapshot,syncOperation='branch',allowedReminders=[],allowIncludedOperations=false,allowIncludedPushes=false,independentBranches=false,refOnlyOutcome,onPushAttempt=()=>{}}) {
     const reviewedReminders=reminderSnapshot===undefined?(repositoryLedger?await allReminderRecords(reviewRoot):pendingLedger.enumerable?compatibilityAll(reviewRoot,branch):undefined):reminderSnapshot;
     const ownPushes=new Map(),ownIntentIds=new Set();
     let accessChecked = false,pushReminderTx,pushTarget,pushAttempt;
@@ -772,6 +834,7 @@ function activate(context, services = {}) {
           if(record.operation&&!(selected(record)&&['restore','undo'].includes(record.operation)&&record.branch===pushTarget.branch&&(record.head===pushTarget.head||(allowIncludedOperations&&await includesSavedCommit(reviewRoot,record.head,pushTarget.head)))))throw new Error('An interrupted local operation needs review before uploading. Its reminder is kept.');
           if(!record.operation&&record.branch===pushTarget.branch&&!await includesSavedCommit(reviewRoot,record.head,pushTarget.head))throw new Error('An earlier local commit is unrelated to this upload. Review its reminder first.');
         }else {
+          if(independentBranches&&record.branch!==pushTarget.branch&&ordinaryBranchReminder(record,reviewRoot))continue;
           if(record.operation==='reftable-ref-only'){
             if(!selected(record)||syncOperation!=='branch')throw new Error('A ref-only update needs inspection before syncing.');
             require('./reftable-ref-only-intent').assertLiveRefOnlySync(refOnlyOutcome,{root:reviewRoot,branch:pushTarget.branch,head:pushTarget.head,remote,accountId:ticket.session.accountId,sessionId:ticket.session.id,records:current});continue;
@@ -799,7 +862,6 @@ function activate(context, services = {}) {
         await assertProject(pushReminderTx);
         await authentication.assertCurrent(ticket);
         accessChecked = true;
-        onIdentity?.(identity);
       }
       await assertProject(pushReminderTx);await assertReminderReview();
       if(pushReminderTx&&!pushAttempt){
@@ -900,6 +962,22 @@ function activate(context, services = {}) {
   function currentBranchObservation(value) {
     return value.root===projectRoot&&value.branch===branch&&value.head===branchHead&&value.remote===`${repository}.git`&&value.account===auth.accountId&&value.session===auth.sessionId&&value.authEpoch===branchAuthEpoch;
   }
+  const freshBranchObservation=value=>Number.isFinite(value?.checkedAt)&&Date.now()-value.checkedAt<120000;
+  function storeBranchObservation(value) {
+    branchRemoteStatus=value;
+    const key=JSON.stringify([value.root,value.branch,value.head,value.remote]);
+    if(value.state==='remote-missing')missingBranchObservations.set(key,{...value});
+    else if(['synced','local-ahead','remote-changed'].includes(value.state)){
+      const previous=missingBranchObservations.get(key);
+      if(previous?.account===value.account&&previous?.session===value.session)missingBranchObservations.delete(key);
+    }
+  }
+  function storeConfirmedBranch(scope) {
+    if(disposed||!currentBranchObservation(scope)||uploadMode()!=='live'||vscode.workspace.isTrusted!==true)return;
+    const checkedAt=Date.now();
+    storeBranchObservation({...scope,state:'synced',remoteHead:scope.head,outgoing:0,incoming:0,checkedAt});
+    branchCheckNextAt=checkedAt+120000;
+  }
   async function settleBranchCheck() {
     while(branchCheckRunning)await new Promise(resolve=>branchCheckWaiters.add(resolve));
   }
@@ -924,33 +1002,41 @@ function activate(context, services = {}) {
       if(current()){branchRemoteStatus=Object.freeze({...observation,...counts});refresh();}
     } catch { /* An unavailable count does not change the branch status. */ }
   }
+  function branchGitReader(root) {
+    // Ignore ambient Git paths, lazy fetching and replacements for branch checks.
+    const env=Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key)));
+    Object.assign(env,{GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_ALLOW_PROTOCOL:''});
+    return args=>core.git(root,args,{env});
+  }
+  async function assertCompleteBranchHistory(root,read) {
+    let partial;
+    try {partial=await read(['config','--get-regexp','^(extensions\\.partialclone|remote\\..*\\.promisor)$']);}
+    catch(error){if(error.code!==1)throw error;}
+    if(partial||await read(['rev-parse','--is-shallow-repository'])!=='false')throw new Error('Sync needs complete Git history. Open Source Control.');
+    const dot=await fs.realpath(path.resolve(root,await read(['rev-parse','--git-common-dir'])));
+    try {await fs.lstat(path.join(dot,'info','grafts'));throw new Error('Sync cannot use grafted Git history. Open Source Control.');}
+    catch(error){if(error.code!=='ENOENT')throw error;}
+  }
   async function checkCurrentBranch({force=false}={}) {
     if(disposed||isBusy()||(!force&&pendingUpload)||vscode.workspace.isTrusted!==true||!projectRoot||!branch||!branchHead||uploadMode()!=='live'||!repository.startsWith('https://github.com/'))return;
     if(branchCheckRunning){if(force)branchCheckPending=true;return;}
     if(!force&&Date.now()<branchCheckNextAt)return;
     const scope={root:projectRoot,branch,head:branchHead,remote:`${repository}.git`,account:auth.accountId,session:auth.sessionId,authEpoch:branchAuthEpoch};
     branchCheckRunning=true;branchCheckNextAt=Date.now()+120000;
-    branchRemoteStatus={...scope,state:auth.signedIn?'checking':'auth'};refresh();
+    const previous=branchRemoteStatus;
+    const checking={...scope,state:auth.signedIn?'checking':'auth'};
+    if(auth.signedIn&&freshBranchObservation(previous)&&currentBranchObservation(previous)){
+      Object.assign(checking,{remoteHead:previous.remoteHead,outgoing:previous.outgoing,incoming:previous.incoming,checkedAt:previous.checkedAt});
+    }
+    branchRemoteStatus=checking;refresh();
     try {
       if(!auth.signedIn)return;
       const ticket=await auth.capture();
       const guard=async()=>{await assertGitProject(scope.root);await auth.assertCurrent(ticket);};
-      // Read independently of ambient Git directory settings, disable lazy
-      // fetching and replacements, and never invoke status/filters here.
-      const env=Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key)));
-      Object.assign(env,{GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_ALLOW_PROTOCOL:''});
-      const read=args=>core.git(scope.root,args,{env});
+      const read=branchGitReader(scope.root);
       const readState=async()=>{
         await guard();await core.assertRepositoryRoot(scope.root,(_,args)=>read(args));await github.assertNoUrlRewrites(scope.root,(_,args)=>read(args));
-        let partial;
-        try {partial=await read(['config','--get-regexp','^(extensions\\.partialclone|remote\\..*\\.promisor)$']);}
-        catch(error){if(error.code!==1)throw error;}
-        if(partial)throw new Error('A partial clone cannot be checked without fetching.');
-        if(await read(['rev-parse','--is-shallow-repository'])!=='false')throw new Error('Branch checks need complete local history.');
-        // Grafts alter ancestry despite --no-replace-objects. Check both before
-        // and after observation/ancestry; never infer local-ahead from them.
-        const dot=await fs.realpath(path.resolve(scope.root,await read(['rev-parse','--git-common-dir'])));
-        try {await fs.lstat(path.join(dot,'info','grafts'));throw new Error('Branch checks do not support grafted history.');}catch(error){if(error.code!=='ENOENT')throw error;}
+        await assertCompleteBranchHistory(scope.root,read);
         const names=(await read(['remote','get-url','--all','origin'])).split('\n'),push=(await read(['remote','get-url','--push','--all','origin'])).split('\n');
         if(names.length!==1||push.length!==1)throw new Error('Repository destination changed.');
         const remote=core.parseRepositoryUrl(names[0]).remote;
@@ -973,20 +1059,20 @@ function activate(context, services = {}) {
         countCommits:(local,remote)=>countBranchCommits(read,local,remote),
         isAncestor:async(older,newer)=>{try{await read(['merge-base','--is-ancestor',older,newer]);return true;}catch(error){if(error.code===1)return false;if(error.code===128)return null;throw error;}}
       });
-      if(!disposed&&currentBranchObservation(scope)){
-        branchRemoteStatus=result;
-        const key=JSON.stringify([scope.root,scope.branch,scope.head,scope.remote]);
-        if(result.state==='remote-missing')missingBranchObservations.set(key,{...result});
-        else if(['synced','local-ahead','remote-changed'].includes(result.state)){const previous=missingBranchObservations.get(key);if(previous?.account===scope.account&&previous?.session===scope.session)missingBranchObservations.delete(key);}
+      if(!disposed&&branchRemoteStatus===checking&&currentBranchObservation(scope)){
+        storeBranchObservation(result);
         if(result.state==='remote-changed'&&result.incoming===undefined&&repositories.compareCommits)void fillBranchCounts(result,page,ticket,read,readState);
       }
     } catch(error) {
-      if(!disposed&&currentBranchObservation(scope))branchRemoteStatus={...scope,state:branchCheckError(error)};
+      if(!disposed&&branchRemoteStatus===checking&&currentBranchObservation(scope))branchRemoteStatus={...scope,state:branchCheckError(error)};
     } finally {
       branchCheckRunning=false;refresh();
       // A switch during an in-flight check must not wait for the old deadline.
       const stale=!currentBranchObservation(scope),force=branchCheckPending;branchCheckPending=false;
-      if(!disposed&&(stale||force)){if(stale){branchRemoteStatus=undefined;branchCheckNextAt=0;}void checkCurrentBranch({force});}
+      if(!disposed&&(stale||force)){
+        if(stale&&branchRemoteStatus===checking){branchRemoteStatus=undefined;branchCheckNextAt=0;}
+        void checkCurrentBranch({force});
+      }
       for(const resolve of branchCheckWaiters)resolve();branchCheckWaiters.clear();
     }
   }
@@ -1096,7 +1182,7 @@ function activate(context, services = {}) {
       const missing=(await pushRecords(root,created.branch)).find(record=>record.kind==='remote-missing'&&record.root===root&&record.remote===remote&&record.branch===created.branch);
       if(missing){
         if(missing.head!==created.head)await rememberPush({...base,kind:'remote-missing'},missing.accountId);
-        report(correction?`${correction.label} locally · review branch creation`:`${action} ${created.branch} locally · review branch creation`,`${correction?correction.detail+' ':''}GitHub reported this branch missing. Review branch creation before syncing.`);
+        report(correction?`${correction.label} locally`:`${action} ${created.branch} locally`,`${correction?correction.detail+' ':''}Use Sync to publish the branch to GitHub.`);
         return false;
       }
       if(!auth.signedIn)throw Object.assign(new Error('Sign in to GitHub.'),{kind:'auth'});
@@ -1116,7 +1202,7 @@ function activate(context, services = {}) {
         const checked=await github.checkUpload(root,base,{networkRun,beforeNetwork:beforeUpload});
         if(checked.confirmed){const current=await github.prepareUpload(root,inspectRun);if(['root','remote','branch','head','status','fingerprint'].some(key=>current[key]!==plan[key]))throw Object.assign(new Error('The project changed while checking the GitHub branch. Review it again.'),{kind:'changed'});await beforeUpload();alreadyPresent=true;}
         else if((updateIntent||refOnlyOutcome)&&created.branch==='main'&&checked.remoteHead!==(updateIntent?.reviewedRemoteHead||refOnlyOutcome?.pending.reviewedRemoteHead)){if(checked.remoteHead===null)await rememberPush({...base,kind:'remote-missing'},accountId);throw Object.assign(new Error('GitHub main changed or is missing. The local update and recovery copies are kept; review main before syncing.'),{kind:'changed'});}
-        else if(updated&&checked.remoteHead===null){await beforeUpload();await rememberPush({...base,kind:'remote-missing'},accountId);report(`Updated ${created.branch} locally · review branch creation`,'GitHub reported this branch missing. The updated commit and recovery copies are kept; review branch creation before syncing.');return false;}
+        else if(updated&&checked.remoteHead===null){await beforeUpload();await rememberPush({...base,kind:'remote-missing'},accountId);report(`Updated ${created.branch} locally`,'Use Sync to publish the branch to GitHub.');return false;}
         else if(!updated&&checked.remoteHead!==null)throw Object.assign(new Error('A different GitHub branch already uses this name. The new local branch is kept; inspect the existing branch before syncing.'),{kind:'changed'});
       }
       const synced=alreadyPresent?{localChanged:false}:await github.syncExistingHead(plan,{run:inspectRun,beforeUpload,networkRun,onProgress:text=>{state=text;refresh();}});
@@ -1248,61 +1334,28 @@ function activate(context, services = {}) {
     const replace=async tx=>{const current=(await pushRecords(root,record.branch,tx)).find(row=>row.id===record.id);if(!current||JSON.stringify(current)!==JSON.stringify(record))throw new Error('The sync reminder changed. Review it before continuing.');await checkDestination();await auth.assertCurrent(ticket);await checkDestination();tx?.assertCurrentNow();auth.assertCurrentNow(ticket);await rememberPush({...record,kind:'ready'},record.accountId,tx);await clearPush(root,record.branch,record,'superseded',tx);};
     if(repositoryLedger)await repositoryLedger.withTransaction(root,replace);else await replace();
     await repositoryStatus();
-    report(record.operation==='merge'?'Signed in · retry Merge to main':'Signed in · your local commits are ready to push');
+    reportGit(record.operation==='merge'?'Signed in · retry Merge to main':'Signed in · use Sync');
   }
   const assertUpdateClean=async (root,action='updating')=>{
     await assertGitProject(root);
     if((await dirtyProjectDocuments(vscode,root)).length)throw new Error(`Save or undo your project editor changes before ${action}. Then commit or discard any saved changes.`);
-    if(await guardedRunner(core.git)(root,['-c','core.fsmonitor=false','status','--porcelain=v1','-z','--untracked-files=all'],{env:{...process.env,GIT_OPTIONAL_LOCKS:'0'}}))throw new Error(`Commit or discard your project changes before ${action}. Your work is kept.`);
+    if(await guardedRunner(core.git)(root,['-c','core.fsmonitor=false','status','--porcelain=v1','-z','--untracked-files=all'],{env:{...process.env,GIT_OPTIONAL_LOCKS:'0'}}))throw new Error(`Commit or discard your project changes before ${action}. Use Discard All Changes in Files or open Source Control.`);
     await assertGitProject(root);
     if((await dirtyProjectDocuments(vscode,root)).length)throw new Error(`Save or undo your project editor changes before ${action}. Then commit or discard any saved changes.`);
   };
-  async function cleanupFinishedChange(root,result,{identity,ticket,beforeCleanup,beforeCleanupNow}) {
-    let outcome={local:'kept',remote:'kept'};
-    try {
-      const receipt=workflow.consumeFinishedBranchCleanup(root,result);
-      if(!identity)throw new Error('The GitHub repository used for the merge could not be verified.');
-      const {remote,page,branch:feature,featureHead,head}=receipt;
-      const assertAccess=async()=>{
-        await beforeCleanup();
-        const access=await repositories.access(page,{ticket,permissions:{contents:'write'}});
-        assertRepositoryIdentity(identity,access);
-        beforeCleanupNow();
-      };
-      const sessionNow=()=>{beforeCleanupNow();return auth.assertCurrentNow(ticket);};
-      let inspectLocal;
-      const transport=createTransport(remote,async()=>{
-        await assertAccess();
-        await inspectLocal();
-        return sessionNow();
-      },{assertCurrentNow:sessionNow,deleteAuthorization:{root,destination:remote,branch:feature,expectedSha:featureHead,assertCurrentNow:beforeCleanupNow}});
-      const options={beforeMutation:beforeCleanup,beforeMutationNow:beforeCleanupNow,networkRun:transport};
-      await workflowLocalPhase(root,options,async phase=>{
-        const localOptions={...phase,receipt,expectedMain:head,expectedRemote:remote};
-        inspectLocal=()=>workflow.inspectFinishedBranchCleanup(root,feature,featureHead,localOptions);
-        const ref=`refs/heads/${feature}`;
-        outcome=await cleanupAfterMerge({receipt,inspectLocal,
-          readRemote:async name=>{const reviewedRef=`refs/heads/${name}`;return remoteHead(await phase.networkRun(root,['ls-remote','--heads',remote,reviewedRef]),reviewedRef);},
-          deleteRemote:()=>phase.networkRun(root,['push',`--force-with-lease=${ref}:${featureHead}`,remote,`:${ref}`]),
-          deleteLocal:async()=>{await assertAccess();return workflow.deleteFinishedBranch(root,feature,featureHead,localOptions);}
-        });
-      });
-    } catch(error) {outcome={...outcome,reason:[outcome.reason,error.message].filter(Boolean).join(' ')};}
-    return outcome;
-  }
-  async function change(kind,{remoteReview}={}) {
+  async function change(kind,{remoteReview,quiet=false}={}) {
     if (isBusy()) return;
-    if (kind !== 'start') {
+    if ((kind==='sync'||kind==='updateBranch')&&!quiet) {
       await settleBranchCheck();
       if (isBusy()) return;
     }
     const missing=kind==='sync'?observedMissing(projectRoot):undefined;
     changing = true; refresh();
-    let reviewedAccountId;
+    let reviewedAccountId,confirmedBranch;
     try {
       const root = await project();
       await lessonProjects.assertShareable(root);
-      if (uploadMode(root) !== 'live') {simulation(kind === 'start' ? 'New branch' : kind === 'sync' || kind === 'updateBranch' ? 'Update from GitHub' : 'Merge to main');return;}
+      if (uploadMode(root) !== 'live') {simulation(kind === 'start' ? 'New branch' : kind === 'sync' || kind === 'updateBranch' ? 'Update from GitHub' : 'Merge to main',{quiet:quiet||kind==='start'});return;}
       let name;
       if (kind === 'start') {
         name = await vscode.window.showInputBox({
@@ -1360,12 +1413,11 @@ function activate(context, services = {}) {
           const result = await workflowLocalPhase(root,options,phase=>workflow.startPrepared(plan,phase));
           await refreshNativeGit(root);
           if (result.activeUncertain) {
-            report(`Created ${result.branch} · check Source Control`, `Created ${result.branch}, but the active branch or commit changed or could not be checked. Check Source Control before continuing.`);
-            void vscode.window.showWarningMessage('The branch was created, but the active branch could not be confirmed. Check Source Control before continuing. Your unsaved work is still open.');
+            reportGit(`Created ${result.branch} · check Source Control`, `Created ${result.branch}, but the active branch or commit changed or could not be checked. Check Source Control before continuing.`,result.branch);
           } else {
-            report(`Created ${result.branch} locally`,`Started ${result.branch} locally. Make your changes, then commit.`);
-            if (result.checkoutWarning) void vscode.window.showWarningMessage('The branch was created, but Git reported an error during checkout. Check Source Control before continuing. Your unsaved work is still open.');
-            else if (result.postCheckoutChanged || await buffersChanged().catch(() => true)) void vscode.window.showWarningMessage('Your files changed while the branch was being created, or could not be checked. The branch was created; check Source Control. Your unsaved work is still open.');
+            reportGit(`Created ${result.branch} locally`,`Started ${result.branch} locally. Make your changes, then commit.`,result.branch);
+            if (result.checkoutWarning) report('Branch created · check Source Control','Git reported an error during checkout. Your unsaved work is still open.');
+            else if (result.postCheckoutChanged || await buffersChanged().catch(() => true)) report('Branch created · check Source Control','Your files changed while the branch was being created or could not be checked. Your unsaved work is still open.');
             else if (!plan.remote) await rememberLocalCommit(root,result.branch,result.head);
           }
           return;
@@ -1381,8 +1433,7 @@ function activate(context, services = {}) {
         const allowedMergeReminders=[];
         const mergeReminderSnapshot=repositoryLedger?await allReminderRecords(root):pendingLedger.enumerable?compatibilityAll(root,branch):undefined;
         const selectMergeReminders=plan=>{if(!plan?.pending)return;for(const record of mergeReminderSnapshot||[])if(record.operation==='merge'&&record.remote===destination.remote&&(record.branch===plan.branch||record.branch==='main')&&record.head===plan.pending.id)allowedMergeReminders.push(record);};
-        let mergeIdentity;
-        const networkRun = await operationTransport(destination.remote,{root,allowedReminders:allowedMergeReminders,reminderSnapshot:mergeReminderSnapshot,syncOperation:kind==='finish'?'merge':'branch',authentication:auth,ticket,assertProject,assertProjectNow:()=>assertGitProjectNow(root),onIdentity:identity=>{mergeIdentity=identity;}});
+        const networkRun = await operationTransport(destination.remote,{root,allowedReminders:allowedMergeReminders,reminderSnapshot:mergeReminderSnapshot,syncOperation:kind==='finish'?'merge':'branch',authentication:auth,ticket,assertProject,assertProjectNow:()=>assertGitProjectNow(root)});
         const workspaceNow=()=>(vscode.workspace.workspaceFolders||[]).map(folder=>[folder.uri.scheme,folder.uri.fsPath]);
         const dirtyNow=()=>(vscode.workspace.textDocuments||[]).filter(document=>document.isDirty&&document.uri?.scheme==='file').map(document=>({document,name:document.uri.fsPath,version:document.version}));
         const sameDirty=(a,b)=>a.length===b.length&&a.every((entry,index)=>entry.document===b[index].document&&entry.name===b[index].name&&entry.version===b[index].version);
@@ -1396,7 +1447,7 @@ function activate(context, services = {}) {
         const beforeMutation = beforeNetwork;
         const beforeOwnedUpdateMutation=async()=>{const workspace=workspaceNow(),dirty=dirtyNow();await assertProject();if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save or undo your project editor changes before updating. Your edits are kept.');await auth.assertCurrent(ticket);if(JSON.stringify(workspace)!==JSON.stringify(workspaceNow())||!sameDirty(dirty,dirtyNow()))throw new Error('The workspace or open files changed. Review this step again; your edits are kept.');authority={workspace,dirty};};
         const beforeMutationNow=()=>{assertGitProjectNow(root);auth.assertCurrentNow(ticket);assertWorkspaceCurrent(authority);};
-        const options = {networkRun,beforeNetwork,beforeMutation,beforeOwnedUpdateMutation,beforeMutationNow,onProgress:reportProgress,...(kind==='updateBranch'?{target:'branch'}:{})};
+        const options = {networkRun,beforeNetwork,beforeMutation,beforeOwnedUpdateMutation,beforeMutationNow,onProgress:reportProgress,fastForwardOnly:quiet,...(kind==='updateBranch'?{target:'branch'}:{})};
         let plan;
         try { plan = updating ? await workflow.prepareSync(root,options) : await workflow.prepareFinish(root,options); }
         catch (error) {
@@ -1421,6 +1472,7 @@ function activate(context, services = {}) {
           return;
         }
         if (plan.remote !== destination.remote) throw new Error('The connected repository changed. Review this step again.');
+        if(quiet&&plan.reftableRefOnly)throw Object.assign(new Error('This Git reference format needs Source Control to apply the update.'),{nativeUpdateHandoff:true});
         if(updating&&plan.refStorage==='reftable'&&(plan.reftableUpdate||plan.reftableArchived))throw Object.assign(new Error('Updating files in this Git reference format is temporarily unavailable. Your files and commits are kept.'),{nativeUpdateHandoff:true});
         if(updating&&plan.refStorage==='files'&&plan.head!==plan.remoteMainHead&&!plan.filesAncestryReviewed)throw new Error('Review this update again before changing the project. Your files and commits are kept.');
         if(updating&&kind==='sync'&&missing&&plan.branch!=='main'){
@@ -1429,25 +1481,14 @@ function activate(context, services = {}) {
         }
         if(remoteReview&&(!currentBranchObservation(remoteReview)||plan.root!==remoteReview.root||plan.branch!==remoteReview.branch||plan.head!==remoteReview.head||plan.remote!==remoteReview.remote||plan.remoteMainHead!==remoteReview.remoteHead))throw new Error('The GitHub branch changed after confirmation. Check its connection and review the update again.');
         if(!updating)selectMergeReminders(plan);
-        let deleteBranch=false;
         if(!updating){
           if(!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(plan.remoteMainHead||''))throw new Error('GitHub main could not be reviewed. Check the connection before merging.');
-          const ref=`refs/heads/${plan.branch}`;
-          if(!plan.pending){
-            const item={label:`Delete ${plan.branch} after the merge`,detail:`Delete local ${ref} and GitHub ${ref} in ${plan.page}.`,picked:true};
-            const selection=await vscode.window.showQuickPick([item],{canPickMany:true,ignoreFocusOut:true,title:'After merging to main',placeHolder:'Uncheck to keep the branch locally and on GitHub'});
-            if(selection===undefined){state='Merge cancelled';return;}
-            deleteBranch=selection.includes(item);
-          }
-          const branchDetail=deleteBranch?`After GitHub confirms the merge and Zero switches to local main, delete local ${ref} and GitHub ${ref} in ${plan.page} if they still match the merged work.`:`Keep ${ref} locally and on GitHub.`;
-          const detail=`Merge ${plan.branch} into refs/heads/main in ${plan.page}. Local main at review: ${plan.mainHead}. GitHub main at review: ${plan.remoteMainHead}.\n\n${branchDetail}\n\nThe final GitHub check and non-force push are not atomic: if main is deleted or rewound in between, the push may recreate or fast-forward it.`;
-          if(await vscode.window.showWarningMessage('Merge this change to main?',{modal:true,detail},'Merge')!=='Merge'){state='Merge cancelled';return;}
+          if(await vscode.window.showWarningMessage(`Merge ${plan.branch} into main?`,{modal:true},'Merge')!=='Merge'){state='Merge cancelled';return;}
         }
         if(updating&&plan.refStorage==='reftable'&&plan.reftableArchived){const sample=Array.isArray(plan.preview.fileNames)?plan.preview.fileNames.map(name=>`• ${name}`).join('\n'):'',remaining=plan.preview.paths-(plan.preview.fileNames?.length||0);const detail=`GitHub main at review: ${plan.remoteMainHead}. Switch from ${plan.branch} to main and update ${plan.preview.paths} project file(s).${sample?`\n\n${sample}${remaining>0?`\n… and ${remaining} more`:''}\n`:''}\nThe local feature branch and recovery copies are kept. External editors and Git processes can still change files during the update; this operation is not atomic with those writers.`;if(await vscode.window.showWarningMessage('Update and switch to main?',{modal:true,detail},'Update')!=='Update')return;}
         if(updating&&plan.reftableRefOnly){const detail=`Advance ${plan.branch} from ${plan.head} to the reviewed GitHub ${plan.remoteBranch} commit ${plan.remoteMainHead}. The saved files do not change.${plan.branch==='main'?'':` Zero will check and try to sync this branch to ${plan.page}. If GitHub reports the branch missing, review branch creation first. The check and non-force push are not atomic, so a branch deleted between them could be recreated.`}`;if(await vscode.window.showWarningMessage('Update this branch?',{modal:true,detail},'Update')!=='Update')return;}
         if(updating&&plan.reftableUpdate){const sample=(plan.preview.fileNames||[]).map(name=>`• ${name}`).join('\n'),remaining=plan.preview.paths-(plan.preview.fileNames?.length||0),detail=`${plan.mergeCandidate?`Merge reviewed GitHub ${plan.remoteBranch} at ${plan.remoteMainHead} into ${plan.branch}, creating merge commit ${plan.mergeCandidate.candidate} with your current commit ${plan.head} and the reviewed GitHub commit as parents.`:`Update ${plan.branch} to reviewed GitHub ${plan.remoteBranch} at ${plan.remoteMainHead}.`} ${plan.preview.paths} project file(s) change.${sample?`\n\n${sample}${remaining>0?`\n… and ${remaining} more`:''}\n`:''}\nRecovery copies are kept.${plan.mergeCandidate&&plan.branch==='main'?' Zero will check that GitHub main still matches the reviewed commit before a non-force push. The check and push are not atomic: main deleted in between could be recreated, and main rewound in between could be fast-forwarded.':plan.branch!=='main'?' Zero will check and try to sync the updated branch to GitHub; if GitHub reports it missing, review branch creation first. That check and the non-force push are not atomic, so a branch deleted between them could be recreated.':''} External editors and Git processes can still change files during the update; this operation is not atomic with those writers.`;if(await vscode.window.showWarningMessage('Update this branch?',{modal:true,detail},'Update')!=='Update')return;}
         await beforeNetwork();
-        const reviewedAuthority=authority;
         if(updating&&plan.refStorage==='reftable'&&(plan.reftableUpdate||plan.reftableArchived))throw Object.assign(new Error('Updating files in this Git reference format is temporarily unavailable. Your files and commits are kept.'),{nativeUpdateHandoff:true});
         if(updating&&plan.refStorage==='files'&&plan.head!==plan.remoteMainHead&&!plan.filesAncestryReviewed)throw new Error('Review this update again before changing the project. Your files and commits are kept.');
         let updateIntent;
@@ -1458,40 +1499,31 @@ function activate(context, services = {}) {
           if(result.recovery){report('Choose changes to keep · nothing uploaded');await refreshNativeGit(root);return;}
           const confirmedMerge=result.confirmedMerge||result.confirmedFinish;
           if(confirmedMerge)await resolveConfirmedMerge(root,mergeReminderSnapshot,{branch:confirmedMerge.branch,head:confirmedMerge.head,remote:result.remote||plan.remote,accountId:ticket.session.accountId});
+          if(quiet&&remoteReview&&result.synced&&result.branch===remoteReview.branch&&result.remoteBranch===result.branch
+            &&result.remote===remoteReview.remote&&result.head===remoteReview.remoteHead&&result.head===result.remoteHead){
+            confirmedBranch={...remoteReview,head:result.head};
+          }
           const tracking = result.noTracking || !result.remoteHead || await updateTracking(root,result.remote || plan.remote,result.remoteBranch,result.remoteHead);
           await refreshNativeGit(root);
           if(result.confirmedFinish){
             report('Earlier merge confirmed · switched to main', `GitHub already received ${result.confirmedFinish.branch}. Local main now includes the reviewed GitHub changes; the local feature branch was kept. Run your app.`);
-          } else if(result.updated&&(result.branch!=='main'||plan.mergeCandidate||result.refOnlyOutcome))await syncCreatedBranch(root,{branch:result.branch,head:result.head},result.remote||plan.remote,result.page||plan.page,{updated:true,expectedAccount:ticket.session.accountId,expectedSession:reviewedSyncSession,expectedRevision:reviewedSyncRevision,updateIntent,refOnlyOutcome:result.refOnlyOutcome});
-          else report(result.updated?'Main updated · run your app':`Already up to date with GitHub ${result.remoteBranch||'main'}`);
-          if (!tracking) void vscode.window.showWarningMessage('Updated from GitHub · Source Control tracking needs refresh; see Zero Output.');
+          } else if(!quiet&&result.updated&&(result.branch!=='main'||plan.mergeCandidate||result.refOnlyOutcome))await syncCreatedBranch(root,{branch:result.branch,head:result.head},result.remote||plan.remote,result.page||plan.page,{updated:true,expectedAccount:ticket.session.accountId,expectedSession:reviewedSyncSession,expectedRevision:reviewedSyncRevision,updateIntent,refOnlyOutcome:result.refOnlyOutcome});
+          else (quiet?reportGit:report)(result.updated?(quiet?'Updated from GitHub · run your app':'Main updated · run your app'):`Already up to date with GitHub ${result.remoteBranch||'main'}`);
+          if (!tracking&&!quiet) void vscode.window.showWarningMessage('Updated from GitHub · Source Control tracking needs refresh; see Zero Output.');
           return;
         }
         if(result.finished)await resolveConfirmedMerge(root,mergeReminderSnapshot,{branch:result.finishedBranch||plan.branch,head:result.head,remote:result.remote||plan.remote,accountId:ticket.session.accountId});
-        let cleanup;
-        if(result.finished&&deleteBranch){
-          reportProgress('Checking finished branch cleanup…');
-          const beforeCleanupNow=()=>{beforeMutationNow();assertWorkspaceCurrent(reviewedAuthority);};
-          const beforeCleanup=async()=>{beforeCleanupNow();await beforeNetwork();beforeCleanupNow();};
-          cleanup=await cleanupFinishedChange(root,result,{identity:mergeIdentity,ticket,beforeCleanup,beforeCleanupNow});
-        }
         const tracking = await updateTracking(root,result.remote || plan.remote,'main',result.head);
-        await refreshNativeGit(root);
-        const branchState=cleanup?.reason?'branch cleanup needs attention':cleanup?'branch deleted':'branch kept';
-        state = `Merged to main · ${branchState}${tracking?'':'; tracking needs refresh'}`;
-        const localDetail={deleted:'The local feature branch was deleted.',kept:'The local feature branch was kept.',uncertain:'Local branch deletion could not be confirmed.'};
-        const remoteDetail={deleted:'The GitHub feature branch was deleted.',absent:'The GitHub feature branch was already absent.',kept:'Zero left the GitHub feature branch unchanged.',uncertain:'GitHub branch status could not be confirmed.'};
-        const branchDetails=`${localDetail[cleanup?.local||'kept']} ${remoteDetail[cleanup?.remote||'kept']}`;
-        const detail=[`Merged ${result.finishedBranch} to main and confirmed ${result.head} on GitHub.`,branchDetails,cleanup?.reason].filter(Boolean).join(' ');
-        report(state,detail);
-        if(cleanup?.reason)void vscode.window.showWarningMessage(`${state}. ${branchDetails} See Zero Output.`);
-        else if(!tracking)void vscode.window.showWarningMessage(state);
+        void refreshNativeGit(root);
+        const message=tracking?'Merged to main':'Merged to main · tracking needs refresh';
+        report(message,`Merged ${result.finishedBranch} to main and confirmed ${result.head} on GitHub. The local feature branch was kept.`);
+        if(!tracking)void vscode.window.showWarningMessage(message);
       };
       const title = kind === 'start' ? `Creating branch ${name}` : kind === 'sync' ? 'Updating from main' : kind==='updateBranch'?'Updating branch from GitHub':'Merging to main';
-      if (vscode.window.withProgress) return await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title,cancellable:false},execute);
+      if (!quiet&&kind!=='start'&&vscode.window.withProgress) return await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title,cancellable:false},execute);
       return await execute();
-    } catch(error) {if(error.workflowRecovery)await rememberPush(error.workflowRecovery,reviewedAccountId);if (error.conflict) await conflictHelp();else if(error.nativeUpdateHandoff){await nativeUpdateHelp(error);return;}throw error;}
-    finally {mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0;changing=false;await repositoryStatus();refresh();void checkForMainUpdates();}
+    } catch(error) {if(error.workflowRecovery)await rememberPush(error.workflowRecovery,reviewedAccountId);if (error.conflict&&!quiet) await conflictHelp();else if(error.nativeUpdateHandoff){if(quiet){reportGit('Open Source Control to sync this branch.',error.message);return;}await nativeUpdateHelp(error);return;}throw error;}
+    finally {mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0;changing=false;await repositoryStatus({confirmedBranch});refresh();void checkForMainUpdates();}
   }
   async function refreshNativeGit(root) {
     try {
@@ -1567,29 +1599,23 @@ function activate(context, services = {}) {
   }
   async function commitProject(providedMessage) {
     if(isBusy())return;
-    await settleBranchCheck();if(isBusy())return;
-    const root=await project();
-    if(uploadMode(root)!=='live')return simulation('Commit');
-    await settleBranchCheck();if(isBusy())return;
-    let knownMissing;
-    const captureMissing=()=>{
-      const observed=observedMissing(root);
-      if(!knownMissing&&observed)knownMissing={...observed};
-    };
-    captureMissing();
-    uploading=true;uploadProgress='Preparing commit…';refresh();
-    let initial,selectedAuth,accountId=auth.accountId,commitReminderSnapshot,deferredLocalSync=false,refreshFilesAfterCommitAttempt=false;
+    uploading=true;refresh();
+    let initial,savedCommit,commitReminderSnapshot,refreshFilesAfterCommitAttempt=false;
     try {
-      const requireSavedProject=async()=>{await assertGitProject(root);if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save or undo your project editor changes before committing. Your edits are kept.');};
+      const root=await project();
+      if(uploadMode(root)!=='live')return simulation('Commit',{quiet:true});
+      const requireSavedProject=async()=>{await assertGitProject(root);if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save or undo your project editor changes before committing.');};
       await requireSavedProject();
-      const reviewedAuth=[auth.accountId,auth.sessionId,auth.revision];
-      accountId=reviewedAuth[0];
-      const sameAccount=()=>reviewedAuth[0]===auth.accountId&&reviewedAuth[1]===auth.sessionId&&reviewedAuth[2]===auth.revision;
-      const contextChanged=()=>new Error(`The GitHub account, repository or branch changed${knownMissing?' after the connection check':''}. Review the commit again; your edits are kept.`);
+      const contextChanged=()=>new Error('The repository or branch changed. Try Commit again.');
       const reviewedBranch=await core.currentBranch(root,core.git);
       const readOrigin=async()=>{
         let urls,push;
-        try {urls=await core.git(root,['remote','get-url','--all','origin']);push=await core.git(root,['remote','get-url','--push','--all','origin']);}
+        try {
+          [urls,push]=await Promise.all([
+            core.git(root,['remote','get-url','--all','origin']),
+            core.git(root,['remote','get-url','--push','--all','origin'])
+          ]);
+        }
         catch(error){if((await core.git(root,['remote'])).split('\n').includes('origin'))throw error;return null;}
         if(!urls&&!push)return null;
         const remote=core.parseRepositoryUrl(urls).remote;
@@ -1597,19 +1623,16 @@ function activate(context, services = {}) {
         return remote;
       };
       const reviewedOrigin=await readOrigin();
-      if(!sameAccount())throw contextChanged();
       const message=typeof providedMessage==='string'?providedMessage:await vscode.window.showInputBox({title:'Commit',prompt:'What did you change?',validateInput:value=>value.trim()&&!value.includes('\0')?undefined:'Describe your changes in a short message.'});
-      if(!message)return;
+      if(message===undefined)return;
       if(!message.trim()||message.length>500||message.includes('\0'))throw new Error('Describe your changes in a short commit message.');
+      uploadProgress='Committing…';refresh();
       await requireSavedProject();
-      if(!sameAccount())throw contextChanged();
       const guard=()=>assertGitProject(root);
       const beforeCommit=async reminderTx=>{
         await guard();await commitProvenance.assertFileRestoreClear(root);if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save your project files before committing. Your newer edits are kept.');
-        captureMissing();
-        if(knownMissing&&(!currentBranchObservation(knownMissing)||['root','remote','branch','head'].some(key=>knownMissing[key]!==initial[key])))throw new Error('The GitHub account, repository or branch changed after the connection check. Check it again before committing; your edits are kept.');
         const currentBranch=(await core.currentBranch(root,core.git)).trim();
-        if(currentBranch!==reviewedBranch||await readOrigin()!==reviewedOrigin||!sameAccount())throw contextChanged();
+        if(currentBranch!==reviewedBranch||await readOrigin()!==reviewedOrigin)throw contextChanged();
         const pending=await pushRecords(root,currentBranch,reminderTx);
         for(const record of pending){
           if(!knownPush(record)||pushOperation(record)!=='branch'||record.root!==root||record.branch!==currentBranch||record.remote!==initial.remote||!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(record.head||'')||typeof record.id!=='string'||!record.id||record.accountId!==undefined&&(typeof record.accountId!=='string'||!record.accountId)||record.pushStarted!==undefined&&typeof record.pushStarted!=='boolean'||record.committed!==undefined&&typeof record.committed!=='boolean')throw new Error('An earlier sync reminder needs inspection before committing. Your work is kept.');
@@ -1619,59 +1642,128 @@ function activate(context, services = {}) {
           const currentHead=(await core.git(root,['rev-parse','--verify','HEAD^{commit}'])).trim();const included=await includesSavedCommit(root,local.head,currentHead);
           if(!included)throw new Error('An earlier local commit is not in this branch. Review it in Source Control before committing; its reminder is kept.');
         }
-        const currentReminders=repositoryLedger?await allReminderRecords(root,reminderTx):pendingLedger.enumerable?compatibilityAll(root,currentBranch):undefined;if(commitReminderSnapshot!==undefined&&JSON.stringify(currentReminders)!==JSON.stringify(commitReminderSnapshot))throw new Error('The sync reminders changed. Review the commit again.');commitReminderSnapshot=currentReminders;if(!sameAccount())throw contextChanged();reminderTx?.assertCurrentNow();
+        const currentReminders=repositoryLedger?await allReminderRecords(root,reminderTx):pendingLedger.enumerable?compatibilityAll(root,currentBranch):undefined;if(commitReminderSnapshot!==undefined&&JSON.stringify(currentReminders)!==JSON.stringify(commitReminderSnapshot))throw new Error('The sync reminders changed. Review the commit again.');commitReminderSnapshot=currentReminders;reminderTx?.assertCurrentNow();
       };
-      const result=await commitAndSync({root,message,guard,
-        prepare:async projectRoot=>{const plan=await github.prepareLocalCommit(projectRoot);if(!initial){if(plan.branch!==reviewedBranch||(plan.remote||null)!==reviewedOrigin||!sameAccount())throw contextChanged();initial=plan;}return plan;},
+      const saved=await commitLocally({root,message,guard,
+        prepare:async projectRoot=>{const plan=await github.prepareLocalCommit(projectRoot);if(plan.branch!==reviewedBranch||(plan.remote||null)!==reviewedOrigin)throw contextChanged();initial=plan;return plan;},
         commit:(plan,text)=>commitProvenance.withCommit(plan.root,async()=>{
           const execute=async tx=>{const result=await github.uploadPrepared(plan,text,{localOnly:true,beforeUpload:()=>beforeCommit(tx),onProgress:()=>{refreshFilesAfterCommitAttempt=true;}});if(result?.committed===true)refreshFilesAfterCommitAttempt=true;return {parent:plan.head||null,result};};
           return repositoryLedger?repositoryLedger.withTransaction(plan.root,execute):execute();
-        }),
-        onState:step=>{uploadProgress=({committing:'Committing…',committed:'Committed locally',syncing:'Syncing to GitHub…',synced:'Synced to GitHub','sync-failed':'Saved locally · sync needs attention'})[step];refresh();},
-        sync:async plan=>{
-          // An earlier attempt may have reached GitHub. Preserve its exact
-          // reminder and defer all transport until an explicit review.
-          let prior;try{prior=await pushRecords(root,plan.branch);}catch{throw Object.assign(new Error('Earlier sync reminders could not be checked.'),{deferLocalSync:true});}
-          if(prior.length)throw Object.assign(new Error('An earlier sync needs review.'),{deferLocalSync:true});
-          captureMissing();
-          if(knownMissing){
-            accountId=knownMissing.account;
-            if(['root','remote','branch','head'].some(key=>knownMissing[key]!==initial[key]))throw new Error('The GitHub repository or branch changed after the connection check. Review this local commit before syncing.');
-            throw Object.assign(new Error('GitHub reported this branch missing. Review branch creation before syncing.'),{uploadRecovery:{root:plan.root,remote:plan.remote,page:plan.page,branch:plan.branch,head:plan.head,committed:true,pushStarted:false,kind:'remote-missing'}});
-          }
-          if(!plan.remote)throw Object.assign(new Error('Reconnect the GitHub repository to sync this commit.'),{kind:'missing-remote'});
-          const reviewAccount=()=>Object.assign(new Error('Review the GitHub account before syncing this saved commit.'),{reviewAccount:true});
-          if(!accountId||!sameAccount())throw reviewAccount();
-          const uploadPlan=await github.prepareUpload(root);
-          if(['root','remote','branch','head','status','fingerprint'].some(key=>uploadPlan[key]!==plan[key]))throw new Error('The project changed before sync. Review it again.');
-          let initialTicket;
-          try {initialTicket=await auth.capture();}catch(error){if(!sameAccount())throw reviewAccount();throw error;}
-          if(!sameAccount()||initialTicket.session.accountId!==accountId)throw reviewAccount();
-          selectedAuth=await selectUploadAuthentication({root,authentication:auth,initialTicket,repositories,repositoryUrl:plan.page,assertCurrentProject:guard});
-          const ticket=selectedAuth.ticket,activeAuth=selectedAuth.authentication;accountId=ticket.session.accountId;
-          const networkRun=await operationTransport(plan.remote,{root,authentication:activeAuth,ticket,permissions:selectedAuth.permissions,identity:selectedAuth.identity,reminderSnapshot:commitReminderSnapshot,assertProject:guard,assertProjectNow:()=>assertGitProjectNow(root)});
-          return github.syncExistingHead(uploadPlan,{beforeUpload:async()=>{await guard();await activeAuth.assertCurrent(ticket);},networkRun});
-        }});
+        })
+      });
       for(const view of controlViews)void view.webview.postMessage?.({type:'commit.clear',project:crypto.createHash('sha256').update(root).digest('hex')});
-      if(result.synced) {
-        await resolveConfirmedSync(root,result.saved.branch,initial.remote,result.saved.head,accountId,'branch',commitReminderSnapshot);
-        await resolveReviewedLocal(root,result.saved.branch,result.saved.head,commitReminderSnapshot);
-        await updateTracking(root,initial.remote,result.saved.branch,result.saved.head);
-        const dirtyEditors=(await dirtyProjectDocuments(vscode,root)).length>0;
-        report(result.newerChanges||dirtyEditors?'Committed · synced to GitHub · newer edits kept':'Committed · synced to GitHub');
-      } else {
-        if(result.error.deferLocalSync){deferredLocalSync=true;try{await rememberLocalCommit(root,result.saved.branch,result.saved.head);}catch(error){throw new Error(`The commit ${result.saved.head} was saved locally, but its sync reminder could not be recorded. Inspect project history before syncing.`);}report('Committed locally · earlier sync needs review','The earlier sync reminder is kept. Review it before syncing these commits.');return;}
-        if(!initial.remote||result.error.reviewAccount) {await rememberLocalCommit(root,result.saved.branch,result.saved.head);report(result.error.reviewAccount?'Committed locally · review GitHub before syncing':'Committed locally · reconnect GitHub to sync');return;}
-        const failure=result.error.uploadRecovery||{root,remote:initial.remote,page:initial.page,branch:result.saved.branch,head:result.saved.head,committed:true,pushStarted:false,kind:github.gitError(result.error,'sync').kind};
-        await rememberPush(failure,accountId);report('Committed locally · sync needs attention',result.error.recoveryPath?`${result.error.message} Lock: ${result.error.recoveryPath}`:gitRecoveryPanel.uploadMessage(failure));
-      }
-      await refreshNativeGit(root);
+      savedCommit={root,parent:initial.head,head:saved.head};
+      reportGit('Committed locally',`Saved ${saved.head} on ${saved.branch}. Use Sync to send it to GitHub.`);
     } catch(error) {
       if(error.localCommitUncertain)refreshFilesAfterCommitAttempt=true;
       if(error.localCommitRecovery){refreshFilesAfterCommitAttempt=true;await rememberLocalCommit(error.localCommitRecovery.root,error.localCommitRecovery.branch,error.localCommitRecovery.head);}
-      if(error.uploadRecovery){await rememberPush(error.uploadRecovery,accountId);if(!error.recoveryPath)error.message=gitRecoveryPanel.uploadMessage(error.uploadRecovery);}
       throw error;
-    } finally {if(refreshFilesAfterCommitAttempt)try{studentExplorer?.invalidate();}catch(error){try{output.appendLine(`Files refresh: ${error.message}`);}catch{}}selectedAuth?.dispose();uploadProgress='';uploading=false;await repositoryStatus({suppressRemoteChecks:deferredLocalSync});refresh();}
+    } finally {
+      if(refreshFilesAfterCommitAttempt)try{studentExplorer?.refreshStatus();}catch(error){try{output.appendLine(`Files refresh: ${error.message}`);}catch{}}
+      uploadProgress='';
+      try {await repositoryStatus({localCommit:savedCommit,suppressRemoteChecks:true});}
+      finally {uploading=false;refresh();}
+      refreshRemoteStatus();
+      if(savedCommit)void refreshNativeGit(savedCommit.root);
+    }
+  }
+  const syncScope=()=>crypto.createHash('sha256').update(JSON.stringify([projectRoot,repository,branch,branchHead,auth.accountId,branchAuthEpoch])).digest('hex');
+  async function syncBranch(expectedScope) {
+    if(isBusy())return;
+    if(typeof expectedScope==='string'&&expectedScope!==syncScope())throw new Error('The branch or account changed. Try Sync again.');
+    const selection={root:projectRoot,branch,head:branchHead,remote:`${repository}.git`,account:auth.accountId,session:auth.sessionId,authEpoch:branchAuthEpoch};
+    changing=true;blockedSync=undefined;
+    state='Syncing with GitHub…';refresh();
+    let ticket,update;
+    try {
+      const root=await project();
+      if(uploadMode(root)!=='live')return simulation('Sync',{quiet:true});
+      await assertGitProject(root);
+      if(await workflow.readRecovery?.(root))throw new Error('Finish the current Git update in Source Control.');
+      const plan=await github.prepareUpload(root);
+      if(!currentBranchObservation(selection)||['root','branch','head','remote'].some(key=>plan[key]!==selection[key]))throw new Error('The branch or repository changed. Try Sync again.');
+      if(!plan.head)throw new Error('Make your first commit before syncing.');
+      ticket=await auth.capture();
+      const read=branchGitReader(root);
+      await assertCompleteBranchHistory(root,read);
+      const guard=async()=>{
+        await assertGitProject(root);await auth.assertCurrent(ticket);
+        const current=await github.prepareUpload(root);
+        if(!currentBranchObservation(selection)||['root','remote','branch','head','status','fingerprint'].some(key=>current[key]!==plan[key]))throw new Error('The project changed during sync. Try Sync again.');
+      };
+      const readReminders=tx=>repositoryLedger?allReminderRecords(root,tx):compatibilityAll(root,plan.branch);
+      if(!repositoryLedger&&!pendingLedger.enumerable)throw new Error('Sync recovery is unavailable. Open Source Control.');
+      const reminders=await readReminders();
+      const pushes=[],locals=[];
+      for(const row of reminders){
+        const local=row.type==='local'&&!row.operation&&row.root===root&&github.validBranch(row.branch)&&/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(row.head||'');
+        const ordinary=ordinaryBranchReminder(row,root);
+        if(!local&&!ordinary)throw new Error('An earlier Git operation needs attention. Open Source Control.');
+        if(row.branch!==plan.branch)continue;
+        const wrongDestination=ordinary&&(row.remote!==plan.remote||row.accountId!==ticket.session.accountId);
+        if(wrongDestination||!await includesSavedCommit(root,row.head,plan.head)){
+          if(ordinary)blockedSync=row;
+          throw new Error(ordinary?'Open Project actions to inspect the interrupted sync.':'An earlier local commit needs attention. Open Source Control.');
+        }
+        (local?locals:pushes).push(row);
+      }
+      const earlier=pushes.find(row=>row.head!==plan.head);
+      const networkRun=await operationTransport(plan.remote,{root,authentication:auth,ticket,reminderSnapshot:reminders,allowedReminders:pushes,
+        allowIncludedPushes:Boolean(earlier),independentBranches:true,assertProject:guard,assertProjectNow:()=>assertGitProjectNow(root)});
+      const checked=await github.checkUpload(root,{...plan,committed:false,pushStarted:false},{networkRun,beforeNetwork:guard});
+      if(checked.confirmed){
+        // A previous push may have reached GitHub before confirmation was lost.
+        // Resolve only these records, under the same repository/session guards.
+        if(pushes.length||locals.length)await commitProvenance.withDeferredRefMutation(root,async binding=>{
+          const authority=Object.freeze({...binding,assertCurrentNow(){binding.assertCurrentNow();assertGitProjectNow(root);auth.assertCurrentNow(ticket);}});
+          const reconcile=async tx=>{
+            await guard();
+            if(JSON.stringify(await readReminders(tx))!==JSON.stringify(reminders))throw new Error('Sync recovery changed. Try Sync again.');
+            for(const row of [...pushes,...locals]){
+              authority.assertCurrentNow();tx?.assertCurrentNow();
+              await resolveReminder(row,'confirmed',tx);
+            }
+          };
+          if(!repositoryLedger)return reconcile();
+          if(await supportsFileReminders(root))return repositoryLedger.withProvenance(root,authority,reconcile);
+          return repositoryLedger.withTransaction(root,reconcile);
+        });
+      }else if(checked.remoteHead!==null&&!await isEarlierRemoteHead(root,checked.remoteHead,plan.head)){
+        await assertUpdateClean(root,'syncing from GitHub');
+        update={...selection,remoteHead:checked.remoteHead};
+      }else{
+        if(earlier&&!await supportsFileReminders(root)){
+          blockedSync=earlier;
+          throw new Error('Open Project actions to inspect the interrupted sync.');
+        }
+        await assertCompleteBranchHistory(root,read);
+        await github.syncExistingHead(plan,{networkRun,beforeUpload:guard});
+        if(!repositoryLedger)for(const row of pushes){
+          if((await readReminders()).some(latest=>JSON.stringify(latest)===JSON.stringify(row)))await resolveReminder(row,'confirmed');
+        }
+        await resolveReviewedLocal(root,plan.branch,plan.head,locals);
+      }
+      if(!update){
+        storeConfirmedBranch(selection);
+        await updateTracking(root,plan.remote,plan.branch,plan.head);await refreshNativeGit(root);
+        reportGit(checked.confirmed?'Up to date with GitHub':'Synced to GitHub',`GitHub confirmed ${plan.head} on ${plan.branch} in ${plan.page}.`);
+      }
+    }catch(error){
+      if(error.uploadRecovery)await rememberPush(error.uploadRecovery,ticket?.session.accountId);
+      const ordinaryPushRecord=error.uploadRecovery&&error.recoveryPath===path.join(error.uploadRecovery.root,'.git','zero-pending-sync');
+      const summary=(!error.recoveryPath||ordinaryPushRecord)&&gitRecoveryPanel.syncMessage(error.uploadRecovery||error);
+      if(summary)reportGit(summary,recoveryMessage(error.message,error.recoveryPath));
+      else throw error;
+    }finally{
+      changing=false;
+      if(!update)await repositoryStatus();
+      refresh();
+    }
+    if(update)await change(update.branch==='main'?'sync':'updateBranch',{remoteReview:update,quiet:true});
+  }
+  function interruptedBranchSync(root) {
+    if(blockedSync?.branch===branch&&ordinaryBranchReminder(blockedSync,root))return blockedSync;
+    if(pendingUpload?.kind==='destination-changed'&&ordinaryBranchReminder(pendingUpload,root))return pendingUpload;
   }
   async function recoveryProject() {
     try{return await project();}catch(original){
@@ -1733,6 +1825,9 @@ function activate(context, services = {}) {
       const projectChoices = [...(recoveryUrl?[{label:'Resume created project…',description:recoveryUrl,action:'recover'}]:[])];
       if (connected) items.push(...projectChoices);else items.unshift(...projectChoices);
       if (root) items.push({label:'Review or restore changes…', action:'recovery'},{label:'Inspect recovery copies…',description:'Find files retained after an interrupted Git operation',action:'inspectRecoveryCopies'});
+      if(pendingLocalCommit?.operation)items.push({label:'Inspect interrupted correction…',action:'inspectCorrection'});
+      const interruptedSync=interruptedBranchSync(root);
+      if(interruptedSync)items.push({label:'Inspect interrupted sync…',action:'inspectSync'});
       items.push({label:'GitHub account…', action:'account'});
       const choice = await quickPick(items, {title:connected ? repository : root ? path.basename(root) : 'Project'});
       if (isBusy() || !choice) return;
@@ -1746,6 +1841,8 @@ function activate(context, services = {}) {
       if (choice?.action === 'account') await actions['zero.githubAccount']();
       if (choice?.action === 'recovery') await actions['zero.recovery']();
       if (choice?.action === 'inspectRecoveryCopies') await actions['zero.inspectRecoveryCopies']();
+      if (choice?.action === 'inspectCorrection') await actions['zero.reviewLocalCommit']();
+      if (choice?.action === 'inspectSync') await actions['zero.reviewPendingSync'](interruptedSync?.id);
       if (choice?.action === 'updateProject') await actions['zero.updateProject']();
       if (choice?.action === 'recoverProjectUpdate') await actions['zero.recoverProjectUpdate']();
       if (choice?.action === 'connect') await actions['zero.connectRepository']();
@@ -1799,17 +1896,23 @@ function activate(context, services = {}) {
     'zero.continueUpdate': token => applyUpdateChoice('continue',token),
     'zero.compareUpdate': compareUpdate,
     'zero.checkPush': checkPush,
-    'zero.reviewPendingSync': async () => {
+    'zero.reviewPendingSync': async reminderId => {
       if(isBusy())return;changing=true;refresh();try {const root=await project();await assertGitProject(root);await repositoryStatus();
-      const record=pendingUpload;if(!record||record.root!==root)throw new Error('There is no earlier sync to review on this branch.');
+      const selectedBranch=branch,selectedRepository=repository;
+      const id=typeof reminderId==='string'?reminderId:pendingUpload?.id;
+      const record=(await pushRecords(root,selectedBranch)).find(row=>row.id===id);
+      const presented=reminderId&&interruptedBranchSync(root);
+      const matchesPresentation=!reminderId||(presented?.id===id&&ordinaryBranchReminder(record,root)&&
+        (presented===blockedSync?JSON.stringify(record)===JSON.stringify(presented):samePushGroup(record,presented)));
+      if(!record||!matchesPresentation)throw new Error('There is no earlier sync to review on this branch.');
       const destination=core.parseRepositoryUrl(record.remote),head=record.head,branchName=record.branch;
       const choice=await vscode.window.showWarningMessage('Have you checked the earlier GitHub sync?',{modal:true,detail:`Repository: ${destination.page}\nBranch: ${branchName}\nCommit: ${head}\nCheck GitHub or Source Control first. Marking this reviewed only clears the reminder; it does not confirm that GitHub received the commit.`},'Mark reviewed');
       if(choice!=='Mark reviewed')return;
-      await assertGitProject(root);await repositoryStatus();const current=pendingUpload;
-      if(!current||current.id!==record.id||current.root!==root||current.branch!==branchName||current.head!==head||current.remote!==record.remote)throw new Error('The sync reminder changed. Review it again.');
+      await assertGitProject(root);await repositoryStatus();
+      if(branch!==selectedBranch||repository!==selectedRepository||(!reminderId&&pendingUpload?.id!==record.id))throw new Error('The sync reminder changed. Review it again.');
       const latest=(await pushRecords(root,branchName)).find(item=>item.id===record.id);
       if(!latest||JSON.stringify(latest)!==JSON.stringify(record))throw new Error('The sync reminder changed. Review it again.');
-      await clearPush(root,branchName,latest,'reviewed');await repositoryStatus();report('Earlier sync marked reviewed','The earlier sync reminder was reviewed; GitHub receipt was not inferred.');
+      await clearPush(root,branchName,latest,'reviewed');if(blockedSync?.id===record.id)blockedSync=undefined;await repositoryStatus();reportGit('Earlier sync marked reviewed','The earlier sync reminder was reviewed; GitHub receipt was not inferred.');
       } finally {changing=false;await repositoryStatus();refresh();}
     },
     'zero.reconnectGitHub': reconnectPush,
@@ -2018,59 +2121,128 @@ function activate(context, services = {}) {
       if(!currentBranchObservation(reviewed)||await core.currentBranch(reviewed.root,core.git)!==reviewed.branch||await core.git(reviewed.root,['rev-parse','--verify','HEAD^{commit}'])!==reviewed.head||core.parseRepositoryUrl(await core.git(reviewed.root,['remote','get-url','origin'])).remote!==reviewed.remote)throw new Error('The branch changed after confirmation. Check its connection again.');
       return change(reviewed.branch==='main'?'sync':'updateBranch',{remoteReview:reviewed});
     },
-    'zero.switchStudentBranch': async () => {
+    'zero.deleteMergedBranch': async () => {
       if(isBusy())return;
+      changing=true;refresh();
+      let root;
+      try {
+        root=await project();
+        if(uploadMode(root)!=='live')return simulation('Delete merged local branch');
+        await assertGitProject(root);
+        const workspaceNow=()=>JSON.stringify((vscode.workspace.workspaceFolders||[]).map(folder=>[folder.uri.scheme,folder.uri.fsPath]));
+        const workspace=workspaceNow();
+        const dirtyNow=()=>(vscode.workspace.textDocuments||[]).filter(document=>document.isDirty&&document.uri?.scheme==='file')
+          .map(document=>({document,path:document.uri.fsPath,version:document.version}));
+        let reviewedEditors;
+        const beforeMutationNow=()=>{
+          assertGitProjectNow(root);
+          if(workspaceNow()!==workspace)throw new Error('The project changed. Choose the branch again.');
+          const dirty=dirtyNow();
+          if(!reviewedEditors||dirty.length!==reviewedEditors.length||dirty.some((item,index)=>{
+            const reviewed=reviewedEditors[index];
+            return item.document!==reviewed.document||item.path!==reviewed.path||item.version!==reviewed.version;
+          }))throw new Error('Open files changed. Choose the branch again.');
+        };
+        const {mainHead,layout,branches}=await workflow.prepareFinishedBranchDeletion(root);
+        if(!branches.length){report('No merged local branches to delete');return;}
+        const choices=branches.map(item=>({...item,label:item.name}));
+        const choice=await quickPick(choices,{title:'Delete merged local branch'});
+        if(!choices.includes(choice))return;
+        const beforeMutation=async()=>{
+          await assertGitProject(root);
+          const editors=dirtyNow();
+          if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save or undo your edits before deleting a branch.');
+          if(await workflow.readRecovery(root))throw new Error('Finish the pending update before deleting a branch.');
+          const reminders=await readReminders(root,choice.name);
+          if(reminders.push.length||reminders.local.length)throw new Error('Resolve this branch’s sync reminders before deleting it.');
+          if((await core.inspectGitLayout(root,core.git)).identity!==layout)throw new Error('The project’s Git folder changed. Choose the branch again.');
+          reviewedEditors=editors;
+          beforeMutationNow();
+        };
+        await beforeMutation();
+        if(await vscode.window.showWarningMessage(`Delete local branch ${choice.name}?`,{modal:true,detail:'Its commits are already in main.'},'Delete Branch')!=='Delete Branch')return;
+        await beforeMutation();
+        await workflowLocalPhase(root,{beforeMutation,beforeMutationNow,expectedMain:mainHead,expectedLayout:layout},
+          phase=>workflow.deleteFinishedBranch(root,choice.name,choice.head,phase));
+        report(`Deleted local branch ${choice.name}`);
+      } finally {
+        try {await repositoryStatus({suppressRemoteChecks:true});}
+        finally {changing=false;refresh();}
+        if(root)void refreshNativeGit(root);
+      }
+    },
+    'zero.switchStudentBranch': async token => {
+      if(isBusy())return;
+      const direct=typeof token==='string';
+      const menu=localBranchMenu;
       const root=await project();
       if(uploadMode(root)!=='live')return simulation('Switch branch');
       await assertGitProject(root);
       const original=await core.currentBranch(root,core.git);
-      const raw=await core.git(root,['for-each-ref','--format=%(refname)%09%(objectname)','refs/heads/']);
-      const choices=raw.split('\n').filter(Boolean).map(row=>{const [ref,head,...extra]=row.split('\t');let name;try{name=core.branchNameFromRef(ref);}catch{return null;}return !extra.length&&name&&github.validBranch(name)&&/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(head)?{label:name,description:name===original?'Current branch':undefined,name,head}:null;}).filter(Boolean);
-      const choice=await quickPick(choices,{title:'Switch branch'});
+      let choice;
+      if(direct){
+        choice=menu?.root===root&&menu.branch===original&&menu.choices.find(item=>item.token===token);
+        if(!choice)throw new Error('The branch list changed. Open the branch menu and choose again.');
+      }else{
+        const choices=(await core.localBranchChoices(root,{run:core.git})).map(item=>({...item,label:item.name,description:item.name===original?'Current branch':undefined}));
+        choice=await quickPick(choices,{title:'Switch branch'});
+      }
       if(!choice||choice.name===original)return;
       if(isBusy())return;changing=true;refresh();
+      let switched=false;
       try {
         await assertGitProject(root);
-        if(await core.currentBranch(root,core.git)!==original||await core.git(root,['rev-parse','--verify',`refs/heads/${choice.name}^{commit}`])!==choice.head)throw new Error('The branch changed. Choose it again.');
         const dirtyDocs=await dirtyProjectDocuments(vscode,root);
         const reviewed=await workflow.prepareSwitch(root,choice.name);
         if(reviewed.target!==choice.head||reviewed.branch!==original)throw new Error('The branch changed. Choose it again.');
-        const buffers=[];const editorPaths=new Set();
-        for(const document of dirtyDocs){
-          if(typeof document.getText!=='function'||!Number.isInteger(document.version))throw new Error('An open file cannot be reviewed safely. Save it and choose the branch again.');
-          const file=path.join(await fs.realpath(path.dirname(document.uri.fsPath)),path.basename(document.uri.fsPath)),relative=path.relative(root,file);
-          if(!relative||relative==='..'||relative.startsWith(`..${path.sep}`)||path.isAbsolute(relative)||editorPaths.has(file))throw new Error('An open file cannot be reviewed safely. Save it and choose the branch again.');
-          editorPaths.add(file);buffers.push({document,file,uri:document.uri.fsPath,version:document.version,text:document.getText()});
-        }
-        const diskBefore=await switchDiskSnapshot(root,reviewed.status,editorPaths);
-        const dirty=dirtyDocs.length||Boolean(reviewed.status);
-        if(dirty && await vscode.window.showWarningMessage(`Move your changes to ${choice.name}?`,{modal:true,detail:dirtyDocs.length?'Zero will save the reviewed open project files, then move your current changes if Git can switch without overwriting files.':'Your current changes will move with you if Git can switch without overwriting files.'},'Move changes')!=='Move changes')return;
+        const dirty=dirtyDocs.length>0||Boolean(reviewed.status);
+        let plan=reviewed;
         let savedEditors=0,saveAttempted=false,switchDispatched=false;
         try {
-        await assertGitProject(root);
-        const currentDocs=await dirtyProjectDocuments(vscode,root);
-        if(currentDocs.length!==buffers.length||buffers.some(({document,uri,version,text})=>!currentDocs.includes(document)||document.uri.fsPath!==uri||document.version!==version||document.getText()!==text))throw new Error('Your open files changed after review. Review the branch move again.');
-        const beforeSave=await workflow.prepareSwitch(root,choice.name);
-        if(beforeSave.target!==reviewed.target||beforeSave.branch!==reviewed.branch||beforeSave.head!==reviewed.head||beforeSave.status!==reviewed.status||beforeSave.startFingerprint!==reviewed.startFingerprint||await switchDiskSnapshot(root,beforeSave.status,editorPaths)!==diskBefore)throw new Error('The project changed after review. Choose the branch again.');
-        for(const {document,file,uri,version,text} of buffers){
-          if(document.uri.fsPath!==uri||document.version!==version||document.getText()!==text||!document.isDirty||await fs.realpath(path.dirname(uri))!==path.dirname(file))throw new Error('Your open files changed while saving. Review the branch move again.');
-          try{const info=await fs.lstat(file);if(!info.isFile()||info.isSymbolicLink()||info.nlink!==1)throw new Error('This open file cannot be saved safely for a branch move.');}catch(error){if(error.code!=='ENOENT')throw error;}
-          saveAttempted=true;if(!await document.save())throw new Error('Save your project files before switching branches.');savedEditors++;
-        }
-        for(const {document,file,uri,version,text} of buffers){
-          if(document.uri.fsPath!==uri||document.version!==version||document.getText()!==text||document.isDirty)throw new Error('Your open files changed while saving. Review the branch move again.');
-          const info=await fs.lstat(file);if(!info.isFile()||info.isSymbolicLink()||info.nlink!==1||!(await fs.readFile(file)).equals(Buffer.from(text,'utf8')))throw new Error('The saved file does not match the reviewed editor. Review the branch move again.');
-        }
-        await assertGitProject(root);
-        if(await core.currentBranch(root,core.git)!==original||await core.git(root,['rev-parse','--verify',`refs/heads/${choice.name}^{commit}`])!==choice.head)throw new Error('The branch changed. Choose it again.');
-        const guard=async()=>{await assertGitProject(root);if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save your project files before switching branches.');};
-        const plan=await workflow.prepareSwitch(root,choice.name);
-        if(plan.target!==choice.head||plan.branch!==reviewed.branch||plan.head!==reviewed.head||await switchDiskSnapshot(root,plan.status,editorPaths)!==diskBefore||(!dirtyDocs.length&&(plan.status!==reviewed.status||plan.startFingerprint!==reviewed.startFingerprint)))throw new Error('The branch or project changed. Choose it again.');
-        const result=await workflowLocalPhase(root,{beforeMutation:guard},phase=>{switchDispatched=true;return workflow.switchPrepared(plan,phase);});
-        await refreshNativeGit(root);studentExplorer?.invalidate();report(`Switched to ${result.branch}`);
-        if((await dirtyProjectDocuments(vscode,root)).length)void vscode.window.showWarningMessage('An open project file changed while switching branches. Review its unsaved contents and the switched file before saving.');
+          // Clean projects can use the initial plan. The guarded checkout
+          // rechecks it, including the clean worktree, before changing files.
+          if(dirty){
+            const buffers=[];const editorPaths=new Set();
+            for(const document of dirtyDocs){
+              if(typeof document.getText!=='function'||!Number.isInteger(document.version))throw new Error('An open file cannot be reviewed safely. Save it and choose the branch again.');
+              const file=path.join(await fs.realpath(path.dirname(document.uri.fsPath)),path.basename(document.uri.fsPath)),relative=path.relative(root,file);
+              if(!relative||relative==='..'||relative.startsWith(`..${path.sep}`)||path.isAbsolute(relative)||editorPaths.has(file))throw new Error('An open file cannot be reviewed safely. Save it and choose the branch again.');
+              editorPaths.add(file);buffers.push({document,file,uri:document.uri.fsPath,version:document.version,text:document.getText()});
+            }
+            const diskBefore=await switchDiskSnapshot(root,reviewed.status,editorPaths);
+            if(await vscode.window.showWarningMessage(`Move your changes to ${choice.name}?`,{modal:true,detail:dirtyDocs.length?'Zero will save the reviewed open project files, then move your current changes if Git can switch without overwriting files.':'Your current changes will move with you if Git can switch without overwriting files.'},'Move changes')!=='Move changes')return;
+            await assertGitProject(root);
+            const currentDocs=await dirtyProjectDocuments(vscode,root);
+            if(currentDocs.length!==buffers.length||buffers.some(({document,uri,version,text})=>!currentDocs.includes(document)||document.uri.fsPath!==uri||document.version!==version||document.getText()!==text))throw new Error('Your open files changed after review. Review the branch move again.');
+            const beforeSave=await workflow.prepareSwitch(root,choice.name);
+            if(beforeSave.target!==reviewed.target||beforeSave.branch!==reviewed.branch||beforeSave.head!==reviewed.head||beforeSave.status!==reviewed.status||beforeSave.startFingerprint!==reviewed.startFingerprint||await switchDiskSnapshot(root,beforeSave.status,editorPaths)!==diskBefore)throw new Error('The project changed after review. Choose the branch again.');
+            for(const {document,file,uri,version,text} of buffers){
+              if(document.uri.fsPath!==uri||document.version!==version||document.getText()!==text||!document.isDirty||await fs.realpath(path.dirname(uri))!==path.dirname(file))throw new Error('Your open files changed while saving. Review the branch move again.');
+              try{const info=await fs.lstat(file);if(!info.isFile()||info.isSymbolicLink()||info.nlink!==1)throw new Error('This open file cannot be saved safely for a branch move.');}catch(error){if(error.code!=='ENOENT')throw error;}
+              saveAttempted=true;if(!await document.save())throw new Error('Save your project files before switching branches.');savedEditors++;
+            }
+            for(const {document,file,uri,version,text} of buffers){
+              if(document.uri.fsPath!==uri||document.version!==version||document.getText()!==text||document.isDirty)throw new Error('Your open files changed while saving. Review the branch move again.');
+              const info=await fs.lstat(file);if(!info.isFile()||info.isSymbolicLink()||info.nlink!==1||!(await fs.readFile(file)).equals(Buffer.from(text,'utf8')))throw new Error('The saved file does not match the reviewed editor. Review the branch move again.');
+            }
+            await assertGitProject(root);
+            if(await core.currentBranch(root,core.git)!==original||await core.git(root,['rev-parse','--verify',`refs/heads/${choice.name}^{commit}`])!==choice.head)throw new Error('The branch changed. Choose it again.');
+            plan=await workflow.prepareSwitch(root,choice.name);
+            if(plan.target!==choice.head||plan.branch!==reviewed.branch||plan.head!==reviewed.head||await switchDiskSnapshot(root,plan.status,editorPaths)!==diskBefore||(!dirtyDocs.length&&(plan.status!==reviewed.status||plan.startFingerprint!==reviewed.startFingerprint)))throw new Error('The branch or project changed. Choose it again.');
+          }
+          const guard=async()=>{await assertGitProject(root);if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save your project files before switching branches.');};
+          const result=await workflowLocalPhase(root,{beforeMutation:guard},phase=>{switchDispatched=true;return workflow.switchPrepared(plan,phase);});
+          switched=true;
+          studentExplorer?.invalidate();report(`Switched to ${result.branch}`);
+          if((await dirtyProjectDocuments(vscode,root)).length)void vscode.window.showWarningMessage('An open project file changed while switching branches. Review its unsaved contents and the switched file before saving.');
         }catch(error){if(saveAttempted){const saved=savedEditors?'Some reviewed open files were saved':'A reviewed open file may have been saved';error.message+=switchDispatched?` ${saved}. Check the current branch and files in Source Control.`:` ${saved}; the branch was not switched.`;}throw error;}
-      } finally {changing=false;mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0;await repositoryStatus();refresh();}
+      } finally {
+        mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0;
+        try {await repositoryStatus({suppressRemoteChecks:true});}
+        finally {changing=false;refresh();}
+        refreshRemoteStatus();
+        if(switched)void refreshNativeGit(root);
+      }
     },
     'zero.switchBranch': async () => {
       if (isBusy()) return;
@@ -2186,6 +2358,7 @@ function activate(context, services = {}) {
     },
     'zero.uploadToGitHub': () => uploadProject(),
     'zero.commitChanges': message => commitProject(message),
+    'zero.syncBranch': syncBranch,
     'zero.syncSavedCommits': async () => {
       if(isBusy())return;
       const root=await project();if(uploadMode(root)!=='live')return simulation('Sync saved commits');
@@ -2528,18 +2701,26 @@ function activate(context, services = {}) {
     return /^(?:src\/main\/(?:java|resources)\/|libraries\/|zero-dependencies\/|\.zero-build\/|\.mvn\/|(?:pom\.xml|mvnw|mvnw\.cmd|zero-core\.json|zero-libraries\.json|zero\.json)$)/.test(relative);
   };
   const hasDirtySource=()=>Boolean(vscode.workspace.textDocuments?.some(document=>document.isDirty&&relevantSource(document.uri)));
-  const sourceChanged=(uri,documentEvent=false)=>{
+  const sourceChanged=uri=>{
     if(relevantSource(uri))savedChecks?.changed({dirty:hasDirtySource()});
+  };
+  const projectFilesChanged=uri=>{
+    sourceChanged(uri);
     // Workspace folders can be symlinks while projectRoot is canonical. A
     // change anywhere in an open folder is a safe reason to refresh; the
     // status read itself remains bound to the resolved project root.
-    if(projectRoot&&uri?.fsPath&&(documentEvent||[projectRoot,...(vscode.workspace.workspaceFolders||[]).map(folder=>folder.uri.fsPath)].some(root=>{const relative=path.relative(root,uri.fsPath);return relative&&!relative.startsWith('..'+path.sep)&&!path.isAbsolute(relative);})))scheduleProjectDirty();
+    if(projectRoot&&uri?.fsPath&&[projectRoot,...(vscode.workspace.workspaceFolders||[]).map(folder=>folder.uri.fsPath)].some(root=>{const relative=path.relative(root,uri.fsPath);return relative&&relative!=='..'&&!relative.startsWith('..'+path.sep)&&!path.isAbsolute(relative);}))scheduleProjectDirty();
   };
-  for(const [method,callback]of [['onDidChangeTextDocument',event=>sourceChanged(event.document.uri,true)],['onDidSaveTextDocument',document=>sourceChanged(document.uri,true)],['onDidCloseTextDocument',document=>sourceChanged(document.uri,true)]]){
+  const projectDocumentSaved=document=>{
+    sourceChanged(document.uri);
+    // An editor can save a project file through a symlink outside the open folder.
+    if(projectRoot&&document.uri?.scheme==='file')scheduleProjectDirty();
+  };
+  for(const [method,callback]of [['onDidChangeTextDocument',event=>sourceChanged(event.document.uri)],['onDidSaveTextDocument',projectDocumentSaved],['onDidCloseTextDocument',document=>sourceChanged(document.uri)]]){
     const subscription=vscode.workspace[method]?.(callback);if(subscription)context.subscriptions.push(subscription);
   }
   const sourceWatcher=vscode.workspace.createFileSystemWatcher('**/*');
-  for(const method of ['onDidCreate','onDidChange','onDidDelete'])sourceWatcher[method]?.(sourceChanged,undefined,context.subscriptions);
+  for(const method of ['onDidCreate','onDidChange','onDidDelete'])sourceWatcher[method]?.(projectFilesChanged,undefined,context.subscriptions);
   context.subscriptions.push(sourceWatcher,{dispose(){savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.dispose();savedProblems?.dispose();}});
   actions['zero.enableBrowserChecks']=async()=>{
     if(isBusy())return;
@@ -2610,7 +2791,7 @@ function activate(context, services = {}) {
     try {return await action();} finally {componentBusy=true;refresh();}
   };
   const assets=createAssetCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
-  const fileCreation=createFileCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output,refreshFiles:()=>studentExplorer?.invalidate()});
+  const fileCreation=createFileCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output,refreshFiles:(root,relative)=>studentExplorer?.refreshCreated?.(root,relative)});
   Object.assign(actions,fileCreation.commands);
   context.subscriptions.push(fileCreation);
   const fileRename=createRenameCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output,refreshFiles:()=>studentExplorer?.invalidate()});
@@ -2759,49 +2940,52 @@ function activate(context, services = {}) {
       maintenanceBusy=false;await repositoryStatus();refresh();
     }
   }
-  actions['zero.discardProjectChanges']=async()=>{
-    if (isBusy()) return;
+  async function discardChanges(selection, all) {
+    if(isBusy())return;
     maintenanceBusy=true;refresh();
-    let recoveryPath;
+    let confirmed=false,root;
     try {
-      const root=await project();await lessonProjects.assertShareable(root);
-      if (uploadMode(root)!=='live') return simulation('Discard project changes');
-      throw new Error('This operation is temporarily unavailable while Zero improves recovery safety. Your project files and commits are kept.');
-      if (process.platform==='win32') throw new Error('Discard project changes is not supported on Windows yet. No discard was started.');
-      let unborn=false;const guard=async()=>{
-        let markerMissing=false;if(unborn)try{await fs.lstat(path.join(root,'zero.json'));}catch(error){if(error.code!=='ENOENT')throw error;markerMissing=true;}
-        if(markerMissing){if(disposed||uploadMode(root)!=='live'||await recoveryProject()!==root)throw new Error('The student project changed. Review this step again.');}else await assertGitProject(root);
-        if (vscode.workspace.isTrusted!==true) throw new Error('Trust your project before discarding changes.');
+      root=await project();await lessonProjects.assertShareable(root);
+      if(!all&&(!selection||selection.root!==root||typeof selection.relative!=='string'))throw new Error('The project view changed. Select the modified file again.');
+      if(uploadMode(root)!=='live')return simulation('Discard changes');
+      if(process.platform==='win32')throw new Error('Use Source Control to discard changes on Windows.');
+      const folderPath=()=>{
         const folders=vscode.workspace.workspaceFolders||[];
-        if (folders.length!==1 || folders[0].uri.scheme!=='file' || await fs.realpath(folders[0].uri.fsPath)!==root) throw new Error('Open the original standalone project to discard changes.');
-        if ((vscode.workspace.textDocuments||[]).some(document=>document.isDirty && document.uri?.scheme==='file')) throw new Error('Save your open files before discarding changes. Your edits are kept.');
-        if (await workflow.readRecovery?.(root)) throw new Error('Finish or cancel the pending update before discarding changes.');
+        return folders.length===1&&folders[0].uri.scheme==='file'?folders[0].uri.fsPath:undefined;
       };
-      await guard();const status=await readStudentFileStatus(root,{safeConfig:true,standaloneOnly:true});unborn=status.hasCommittedHead===false;
-      if(unborn&&status.verifiedUnbornHead!==true)throw new Error('The initial project state could not be verified. Inspect the repository in Source Control.');
-      const plan=await (unborn?unbornDiscard.previewUnbornDiscard:discardPreview.previewDiscard)(root,{beforeMutation:guard});
-      const files=plan.files.map(file=>`${unborn?({'??':'untracked','A ':'staged addition','AM':'staged addition with working edits','AD':'staged addition, working file already missing'}[file.status]):file.kind}: ${file.name}`).join('\n');
-      if (plan.files.length>200 || files.length>24000) throw new Error('Too many changed files to review here. Use Source Control to review them.');
-      const description=unborn?`This project has no first commit. Discard will remove every present file listed below, including initial project files, and remove listed staged additions. Files already missing stay missing. ${plan.indexPresent?'The original index is retained in recovery; the remaining index will be empty.':'No index exists, and none will be created.'} Ignored files and parent folders stay in place. Removing ignore rules such as .gitignore may make those files appear as untracked changes. Recovery copies of working and staged files are retained. Use the Command Palette → Zero: Inspect recovery copies → File restoration and initial project discard to inspect them.`:'Discard these project changes and return tracked files and the index to the current commit. Untracked files in this list will be removed. Ignored files are excluded. Recovery copies are retained.';
-      const detail=`${description}\n\nFiles affected:\n${files}\n\nClose other editors and Git processes first. This operation is not atomic; if interrupted, inspect the project and recovery copies before continuing.`;
-      if (await vscode.window.showWarningMessage('Discard all project changes?',{modal:true,detail},'Discard changes')!=='Discard changes') return;
-      if(unborn)await unbornDiscard.revalidateUnbornDiscard(plan);
-      let applied=false;
-      const result=await retainedLocalPhase(root,async binding=>{
-        const backup=await (unborn?unbornDiscard.backupUnbornDiscard:discardPreview.backupDiscard)(plan,{binding});recoveryPath=backup.recovery;
-        const result=await (unborn?unbornDiscard.applyUnbornDiscard:discardPreview.applyDiscard)(backup,{confirmed:true});applied=true;return result;
-      }).catch(error=>{if(applied){if(error.recoveryPath){if(!error.lockRecoveryPath)error.lockRecoveryPath=error.recoveryPath;else if(!error.additionalLockRecoveryPath)error.additionalLockRecoveryPath=error.recoveryPath;else error.lockCleanupFailures=[...(error.lockCleanupFailures||[]),{path:error.recoveryPath,error}];delete error.recoveryPath;}error.message+=' The discard was applied locally; inspect project files before continuing.';}throw error;});
-      output.appendLine(`${unborn?'File restoration recovery':'Discard recovery'}: ${result.recovery}`);
-      await refreshNativeGit(root);studentExplorer?.invalidate();
-      report('Project changes discarded',`Recovery copies: ${result.recovery}.`);
-    } catch(error) {
-      const location=recoveryPath||error.recoveryPath;
-      if(error.recoveryPath&&location!==error.recoveryPath)error.message+=` Additional recovery location: ${error.recoveryPath}.`;
-      for(const lock of new Set([error.lockRecoveryPath,error.additionalLockRecoveryPath,...(error.lockCleanupFailures||[]).map(item=>item.path)].filter(value=>typeof value==='string'&&value)))error.message+=` Lock requiring inspection: ${lock}.`;
-      if (location) {output.appendLine(`Discard recovery: ${location}`);error.message+=` Recovery copies: ${location}. Inspect recovery copies before continuing.`;}
-      throw error;
-    } finally {maintenanceBusy=false;studentExplorer?.invalidate();await repositoryStatus();refresh();}
-  };
+      const reviewedFolder=folderPath();
+      const assertEditorState=()=>{
+        assertGitProjectNow(root);
+        if(vscode.workspace.isTrusted!==true)throw new Error('Trust your project before discarding changes.');
+        if(!reviewedFolder||folderPath()!==reviewedFolder)throw new Error('Open one standalone project before discarding changes.');
+        if((vscode.workspace.textDocuments||[]).some(document=>document.isDirty&&document.uri?.scheme==='file'))throw new Error('Save or undo your open edits before discarding changes.');
+      };
+      const guard=async()=>{
+        await assertGitProject(root);
+        if(!reviewedFolder||await fs.realpath(reviewedFolder)!==root)throw new Error('Open one standalone project before discarding changes.');
+        if(await workflow.readRecovery?.(root))throw new Error('Finish the pending Git update before discarding changes.');
+        assertEditorState();
+      };
+      const plan=await discardPreview.previewDiscard(root,{beforeMutation:guard,relative:all?undefined:selection.relative});
+      const bytes=plan.files.reduce((sum,file)=>sum+Buffer.byteLength(file.name)+1,0);
+      if(plan.files.length>200||bytes>24000)throw new Error('Too many changed files to discard here. Use Source Control.');
+      const title=all?'Discard All Changes':'Discard File Changes';
+      const detail=all?'Return files to the last commit.':'Return this file to the last commit.';
+      if(await vscode.window.showWarningMessage(title,{modal:true,detail},'Discard Changes')!=='Discard Changes')return;
+      confirmed=true;
+      await core.inspectGitLayout(root);
+      const recovery=await retainedLocalPhase(root,binding=>discardPreview.stashDiscard(plan,{binding,beforeMutationNow:assertEditorState}));
+      report(all?'All changes discarded':'File changes discarded',`Discarded changes were kept in a local Git stash. Exact working copies are in ${recovery}.`);
+    } finally {
+      if(confirmed){
+        studentExplorer?.refreshStatus();
+        await refreshNativeGit(root);
+      }
+      maintenanceBusy=false;await repositoryStatus();refresh();
+    }
+  }
+  actions['zero.discardProjectChanges']=()=>discardChanges(undefined,true);
+  actions['zero.restoreModifiedFile']=selection=>discardChanges(selection,false);
   actions['zero.reviewInterruptedRefOnlyUpdate']=async()=>{
     if(!ENABLE_REF_ONLY_REVIEW)throw new Error('Review of this interrupted update is not available yet. Keep the reminder and inspect Source Control.');
     if(isBusy())return;changing=true;refresh();
@@ -2848,42 +3032,6 @@ function activate(context, services = {}) {
       }).catch(error=>{if(applied){if(error.recoveryPath){error.lockRecoveryPath=error.recoveryPath;delete error.recoveryPath;}error.message+=' The file was restored locally; inspect the project before continuing.';}throw error;});
       output.appendLine(`File restoration recovery: ${result.recovery}`);await refreshNativeGit(root);studentExplorer?.invalidate();
       report('Deleted file restored',`Recovery copies: ${result.recovery}.`);
-    } catch(error) {
-      const location=recoveryPath||error.recoveryPath;
-      if(error.recoveryPath&&location!==error.recoveryPath)error.message+=` Additional recovery location: ${error.recoveryPath}.`;
-      if(error.lockRecoveryPath)error.message+=` Lock requiring inspection: ${error.lockRecoveryPath}.`;
-      if(error.additionalLockRecoveryPath)error.message+=` Additional lock requiring inspection: ${error.additionalLockRecoveryPath}.`;
-      if(location){output.appendLine(`File restoration recovery: ${location}`);error.message+=` Recovery copies: ${location}. Inspect recovery copies before continuing.`;}
-      throw error;
-    } finally {maintenanceBusy=false;studentExplorer?.invalidate();await repositoryStatus();refresh();}
-  };
-  actions['zero.restoreModifiedFile']=async selection=>{
-    if(isBusy())return;maintenanceBusy=true;refresh();let recoveryPath;
-    try {
-      const root=await project();await lessonProjects.assertShareable(root);
-      if(!selection||selection.root!==root||typeof selection.relative!=='string')throw new Error('The project view changed. Select the modified file again.');
-      if(uploadMode(root)!=='live')return simulation('Restore staged version');
-      throw new Error('This operation is temporarily unavailable while Zero improves recovery safety. Your project files and commits are kept.');
-      if(process.platform==='win32')throw new Error('Restoring a file is not supported on Windows yet.');
-      const guard=async()=>{
-        await assertGitProject(root);
-        if(vscode.workspace.isTrusted!==true)throw new Error('Trust your project before restoring a file.');
-        const folders=vscode.workspace.workspaceFolders||[];
-        if(folders.length!==1||folders[0].uri.scheme!=='file'||await fs.realpath(folders[0].uri.fsPath)!==root)throw new Error('Open the original standalone project to restore a file.');
-        if((vscode.workspace.textDocuments||[]).some(document=>document.isDirty&&document.uri?.scheme==='file'))throw new Error('Save your open files before restoring a file. Your edits are kept.');
-        if(await workflow.readRecovery?.(root))throw new Error('Finish or cancel the pending update before restoring a file.');
-      };
-      const plan=await discardPreview.previewModifiedFile(root,selection.relative,{beforeMutation:guard});
-      if(plan.name.length>24000)throw new Error('The file path is too long to review here. Use Source Control.');
-      const detail=`${plan.name}\n\nReplace this file’s current working copy with its staged version. Any staged changes and other project changes stay in place. Zero retains recovery copies of the current file. Close other editors and Git processes first. This operation is not atomic; if interrupted, inspect the project and recovery copies before continuing.`;
-      if(await vscode.window.showWarningMessage('Restore the staged version of this file?',{modal:true,detail},'Restore file')!=='Restore file')return;
-      let applied=false;
-      const result=await retainedLocalPhase(root,async binding=>{
-        const backup=await discardPreview.backupModifiedFile(plan,{binding});recoveryPath=backup.recovery;
-        const restored=await discardPreview.applyModifiedFile(backup,{confirmed:true});applied=true;return restored;
-      }).catch(error=>{if(applied){if(error.recoveryPath){error.lockRecoveryPath=error.recoveryPath;delete error.recoveryPath;}error.message+=' The file was restored locally; inspect the project before continuing.';}throw error;});
-      output.appendLine(`File restoration recovery: ${result.recovery}`);await refreshNativeGit(root);studentExplorer?.invalidate();
-      report('File restored to staged version',`Recovery copies: ${result.recovery}.`);
     } catch(error) {
       const location=recoveryPath||error.recoveryPath;
       if(error.recoveryPath&&location!==error.recoveryPath)error.message+=` Additional recovery location: ${error.recoveryPath}.`;
@@ -3079,7 +3227,7 @@ function activate(context, services = {}) {
   context.subscriptions.push(...sharing.disposables);
   // Old test/minimal hosts can omit TreeView; supported VS Code hosts provide it.
   if(vscode.window.createTreeView) {
-    studentExplorer=createStudentExplorer(vscode,{project,isBusy,output,report,experimentalStaged:async()=>{if(!ENABLE_STAGED_ADDED_REMOVAL||process.platform!=='darwin')return false;try{return (await core.git(await project(),['-c','core.fsmonitor=false','rev-parse','--show-ref-format'])).trim()==='files';}catch{return false;}},experimentalUntracked:async()=>{if(process.platform!=='darwin')return false;try{if(ENABLE_DEV_UNTRACKED_REMOVAL&&context.extensionMode===2&&process.env.ZERO_DEV_EXPERIMENTAL_NATIVE_HELPER==='1')await require('./added-removal-dev-helper').verifiedAddedRemovalDevHelper(context);else if(context.extensionMode===1&&ENABLE_PACKAGED_UNTRACKED_REMOVAL)await require('./added-removal-packaged-helper').verifiedAddedRemovalPackagedHelper(context);else return false;return true;}catch{return false;}},workspaceState:context.workspaceState,execute:async(id,arg)=>{
+    studentExplorer=createStudentExplorer(vscode,{project,isBusy,output,report,moveFile:fileRename.move,experimentalStaged:async()=>{if(!ENABLE_STAGED_ADDED_REMOVAL||process.platform!=='darwin')return false;try{return (await core.git(await project(),['-c','core.fsmonitor=false','rev-parse','--show-ref-format'])).trim()==='files';}catch{return false;}},experimentalUntracked:async()=>{if(process.platform!=='darwin')return false;try{if(ENABLE_DEV_UNTRACKED_REMOVAL&&context.extensionMode===2&&process.env.ZERO_DEV_EXPERIMENTAL_NATIVE_HELPER==='1')await require('./added-removal-dev-helper').verifiedAddedRemovalDevHelper(context);else if(context.extensionMode===1&&ENABLE_PACKAGED_UNTRACKED_REMOVAL)await require('./added-removal-packaged-helper').verifiedAddedRemovalPackagedHelper(context);else return false;return true;}catch{return false;}},workspaceState:context.workspaceState,execute:async(id,arg)=>{
       const result=await actions[id](arg);refresh();return result;
     }});
     Object.assign(actions,studentExplorer.commands);context.subscriptions.push(studentExplorer);
@@ -3091,9 +3239,13 @@ function activate(context, services = {}) {
     try {await action(...args);} catch(error) {
       const message = error.zeroRunMessage || error.message;
       const display = recoveryMessage(/^GitHub sign-in was cancelled or unavailable\./.test(message) ? 'GitHub sign-in cancelled or unavailable. Try again.' : message,error.recoveryPath);
-      if (!(execution && ['zero.runApp','zero.runNativeApp','zero.toggleApp'].includes(id))) state = display;
-      if (id === 'zero.signInToGitHub') authFeedback = display;
-      refresh();output.appendLine(error.message);
+      const sidebarGit=['zero.syncBranch','zero.commitChanges','zero.startChange'].includes(id);
+      if(sidebarGit)reportGit(display,error.message);
+      else {
+        if (!(execution && ['zero.runApp','zero.runNativeApp','zero.toggleApp'].includes(id))) state = display;
+        if (id === 'zero.signInToGitHub') authFeedback = display;
+        refresh();output.appendLine(error.message);
+      }
       const installUrl=appConfiguration&&`https://github.com/apps/${appConfiguration.slug}/installations/new`;
       if(installUrl && error.actionUrl===installUrl){
         void githubReadiness.refresh();
@@ -3104,7 +3256,7 @@ function activate(context, services = {}) {
         const prior=context.globalState?.get('zero.repositoryCreationRecovery');
         await context.globalState?.update('zero.repositoryCreationRecovery',{...(prior?.repositoryUrl===destination.page?prior:{}),repositoryUrl:destination.page,at:Date.now()});
         vscode.window.showErrorMessage(`Zero: ${display} Use Zero: Repository Actions → Resume created project to continue.`);
-      }else vscode.window.showErrorMessage(`Zero: ${display}`);
+      }else if(!sidebarGit)vscode.window.showErrorMessage(`Zero: ${display}`);
     }
   }));
   function render(webview, studentView = false) {
@@ -3117,49 +3269,56 @@ function activate(context, services = {}) {
     const repoControl = `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : repoName)}" aria-label="${escape(`Project: ${repoName}. Open project actions`)}" aria-haspopup="dialog" ${disabled}><span class="repo-label">${escape(repoName).replace('/', '/<wbr>')}</span>${icon('ChevronDown')}</button>`;
     const gitDisabled = isBusy() || updateRecovery || updateRecoveryError ? 'disabled' : '';
     const branchMenuScope = branch ? crypto.createHash('sha256').update(JSON.stringify([projectRoot, repository, branch, auth.accountId])).digest('hex') : '';
+    const branchChoices=localBranchMenu&&localBranchMenu.root===projectRoot&&localBranchMenu.branch===branch?localBranchMenu.choices:[];
     const branchPicker = branch
       ? `<button id="branch-menu-button" class="link branch" data-menu-scope="${branchMenuScope}" title="${escape(`Current branch: ${branch}`)}" aria-label="${escape(`Branch actions. Current branch: ${branch}`)}" aria-haspopup="menu" aria-expanded="false" aria-controls="branch-menu" ${gitDisabled}>${icon('GitBranch')}<span class="branch-name">${escape(branch)}</span>${icon('ChevronDown')}</button>
         <div id="branch-menu" class="files-dropdown" role="menu" aria-labelledby="branch-menu-button" hidden>
           <button role="menuitem" tabindex="-1" data-command="zero.startChange" ${gitDisabled}>New branch…</button>
-          <button role="menuitem" tabindex="-1" data-command="zero.switchStudentBranch" ${gitDisabled}>Select existing branch…</button>
           ${connected && auth.signedIn && branch !== 'main' ? `<button role="menuitem" tabindex="-1" data-command="zero.syncProject" title="Get GitHub main, then sync this branch to GitHub" ${gitDisabled}>Update from main</button>` : ''}
+          ${branch==='main'&&branchChoices.length?`<button role="menuitem" tabindex="-1" data-command="zero.deleteMergedBranch" ${gitDisabled}>Delete merged local branch…</button>`:''}
+          ${branchChoices.length?'<span class="branch-menu-divider" role="separator"></span>':''}
+          ${branchChoices.map(({name,token})=>`<button role="menuitem" tabindex="-1" data-command="zero.switchStudentBranch" data-branch-choice="${token}" title="${escape(name)}" ${gitDisabled}><span>${escape(name)}</span></button>`).join('')}
         </div>`
       : `<button class="link branch" data-command="zero.switchBranch" title="Detached HEAD. Switch branch." aria-label="Switch branch. Current branch: Detached HEAD" aria-haspopup="dialog" ${gitDisabled}>${icon('GitBranch')}<span class="branch-name">Detached HEAD</span>${icon('ChevronDown')}</button>`;
-    const branchControl = branchError ? `<p class="muted status">${escape(branchError)}</p><button class="link" data-command="zero.openGitSourceControl" ${gitDisabled}>Open Source Control</button>` : (branch || branchDetached) ? `<div class="branch-row">${branchPicker}<button class="link history-icon" data-command="zero.changeHistory" aria-label="View all commits" title="View all commits" ${gitDisabled||branchHead===null?'disabled':''}>◷</button>${ready && connected && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${gitDisabled}>Merge</button>` : ''}</div>` : '';
-    const commitDisabled=gitDisabled || projectDirty!==true || projectUnsaved!==false?'disabled':'';
+    const historyLabel=branch?`View history for ${branch}`:'View commit history';
+    const branchControl = branchError ? `<button class="link" data-command="zero.openGitSourceControl" ${gitDisabled}>Open Source Control</button>` : (branch || branchDetached) ? `<div class="branch-row">${branchPicker}<button class="link history-icon" data-command="zero.changeHistory" aria-label="${escape(historyLabel)}" title="${escape(historyLabel)}" ${gitDisabled||branchHead===null?'disabled':''}>◷</button>${ready && connected && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${gitDisabled}>Merge</button>` : ''}</div>` : '';
+    const commitBlocked=gitDisabled||!projectRoot||vscode.workspace.isTrusted===false;
+    const messageDisabled=commitBlocked?'disabled':'';
+    const commitDisabled=commitBlocked||projectDirty!==true?'disabled':'';
     const projectKey=projectRoot?crypto.createHash('sha256').update(projectRoot).digest('hex'):'';
-    const githubActions = branch ? `<input id="commit-message" data-project="${projectKey}" aria-label="Commit message" placeholder="What did you change?" maxlength="500" ${commitDisabled}><button class="secondary upload" data-command="zero.commitChanges" ${uploadProgress ? 'aria-busy="true"' : ''} ${commitDisabled}>${uploadProgress ? '<span class="busy-indicator" aria-hidden="true"></span>' : ''}${uploadProgress ? escape(uploadProgress) : 'Commit'}</button>${projectDirtyError?`<p class="muted status">${escape(projectDirtyError)}</p>`:projectUnsaved?'<p class="muted status">Save your project edits before committing.</p>':''}${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
-    const gitRecoveryActions=projectRoot&&!localPractice?gitRecoveryPanel.panel({recovery:updateRecovery,pending:pendingUpload,error:updateRecoveryError,disabled:isBusy(),refOnlyReview:ENABLE_REF_ONLY_REVIEW&&/^A ref-only update record needs inspection\./.test(updateRecoveryError||'')}):'';
-    const localSyncAction=pendingLocalCommit?`<p class="muted status">${escape(gitRecoveryPanel.localReminderMessage(pendingLocalCommit))}</p>${connected?`<button class="link" data-command="zero.syncLocalCommit" ${gitDisabled}>Sync local commit to GitHub</button>`:`<button class="link" data-command="zero.connectRepository" ${gitDisabled}>Connect repository…</button>`}<button class="link" data-command="zero.reviewLocalCommit" ${gitDisabled}>Review local sync reminder…</button>`:'';
-    const mainNotice=mainUpdateStatus&&currentMainObservation(mainUpdateStatus) ? `${mainUpdateStatus.state==='available'?`<p class="muted status">GitHub main has new changes</p><button class="link" data-command="zero.syncProject" ${gitDisabled}>Update branch from main</button>`:mainUpdateStatus.state==='unknown'?`<p class="muted status">GitHub main may have new changes.</p><button class="link" data-command="zero.syncProject" ${gitDisabled}>Check and update branch…</button>`:''}${mainUpdateStatus.localUpdate?`<p class="muted status">Local main has changes not in this branch.</p><button class="link" data-command="zero.openGitSourceControl" ${gitDisabled}>Open Source Control</button>`:''}` : '';
-    const repositoryWarning = !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
+    const githubActions = branch ? `<input id="commit-message" data-project="${projectKey}" aria-label="Commit message" placeholder="What did you change?" maxlength="500" ${messageDisabled}><button class="secondary upload" data-command="zero.commitChanges" ${uploadProgress ? 'aria-busy="true"' : ''} ${commitDisabled}>Commit</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
+    const gitRecoveryActions=projectRoot&&!localPractice?gitRecoveryPanel.panel({recovery:updateRecovery,error:updateRecoveryError,disabled:isBusy(),refOnlyReview:ENABLE_REF_ONLY_REVIEW&&/^A ref-only update record needs inspection\./.test(updateRecoveryError||'')}):'';
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const browserCheckStatus=savedChecksRoot===projectRoot&&savedChecksState?`<p class="muted status" title="${escape(savedChecksState.message||'')}">Browser checks: ${escape(savedChecksState.status)}</p>`:'';
     const browserAction = browserActive && !stopPromise && browserRun.canOpenInBrowser ? `<button class="secondary browser-open" data-command="zero.openRunningAppInBrowser" title="Open in browser" aria-label="Open in browser" ${disabled}>${icon('ExternalLink')}</button>` : '';
     const showRepository = projectRoot && (ready || connected || branch || branchDetached || branchError);
     const observed=branchRemoteStatus&&currentBranchObservation(branchRemoteStatus)?branchRemoteStatus:undefined;
     const connectionState=uploadMode()!=='live'?'simulation':!connected?(repository==='No repository connected'?'local':'unknown'):!auth.signedIn?'auth':observed?.checkedAt&&Date.now()-observed.checkedAt>=120000?'stale':observed?.state||'unknown';
-    const canUpload=['local-ahead','remote-missing'].includes(connectionState)&&!pendingUpload&&!pendingLocalCommit&&!updateRecoveryError;
-    const canUpdate=connectionState==='remote-changed';
-    const syncCommand=canUpdate?'zero.reviewBranchUpdate':canUpload?'zero.syncSavedCommits':'';
-    const updateNeedsClean=canUpdate&&(projectDirty!==false||projectUnsaved!==false);
-    const syncDisabled=gitDisabled||branchError||!syncCommand||updateNeedsClean?'disabled':'';
+    const canSync=connected&&auth.signedIn&&Boolean(branchHead)&&uploadMode()==='live';
     const currentCounts=observed?.state===connectionState?observed:undefined;
     const outgoing=currentCounts?.outgoing,incoming=currentCounts?.incoming;
-    const syncAction=canUpdate?'Sync from GitHub':canUpload?'Sync to GitHub':'Sync with GitHub';
-    const syncLabel=`${syncAction}. Outgoing commits: ${outgoing??'unknown'}. Incoming commits: ${incoming??'unknown'}.`;
-    const branchMessage=branchHead===null
-      ? (connected?'GitHub repository connected · make your first commit to sync.':repository==='No repository connected'?'Local project · make your first commit.':'Repository connection cannot be verified. Make your first commit before syncing.')
-      : canUpdate&&(projectDirty||projectUnsaved)
-        ? 'Save and commit or discard your edits before syncing from GitHub.'
-        : connectionState==='synced'?'':branchStatusMessage(connectionState);
+    const upToDate=outgoing===0&&incoming===0&&currentCounts.remoteHead===branchHead&&!pendingUpload&&!pendingLocalCommit;
+    const syncDisabled=gitDisabled||branchError||!canSync||upToDate?'disabled':'';
+    const showSyncCounts=Number.isSafeInteger(outgoing)&&Number.isSafeInteger(incoming);
+    const syncLabel=showSyncCounts?`Sync with GitHub. ${upToDate?'Up to date. ':''}Outgoing commits: ${outgoing}. Incoming commits: ${incoming}.`:'Sync with GitHub';
+    const syncCounts=showSyncCounts?` <span aria-hidden="true">↑ ${outgoing}</span><span aria-hidden="true">↓ ${incoming}</span>`:'';
     const branchConnection=branch?`<div class="branch-connection" data-branch-state="${escape(connectionState)}">
-      <p class="muted status" role="status">${escape(branchMessage)}</p>
-      <button id="branch-sync" class="secondary branch-sync" ${syncCommand?`data-command="${syncCommand}"`:''} title="${escape(syncLabel)}" aria-label="${escape(syncLabel)}" ${syncDisabled}>Sync
-        <span aria-hidden="true">↑ ${outgoing??'—'}</span><span aria-hidden="true">↓ ${incoming??'—'}</span>
-      </button>
+      <button id="branch-sync" class="secondary branch-sync" data-command="zero.syncBranch" data-sync-scope="${syncScope()}" title="${escape(syncLabel)}" aria-label="${escape(syncLabel)}" ${syncDisabled}>Sync${syncCounts}</button>
     </div>`:'';
-    const githubPanel = !showRepository ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${branchConnection}${mainNotice}${githubActions}${localSyncAction}${gitRecoveryActions}`}`;
+    const gitHint=branchError||(branchHead===null?'Make your first commit.':'')||
+      (connectionState==='unknown'&&!connected&&repository!=='No repository connected'?repository:'')||
+      projectDirtyError||
+      (pendingUpload&&gitRecoveryPanel.syncMessage(pendingUpload))||
+      (pendingLocalCommit?.operation&&gitRecoveryPanel.localReminderMessage(pendingLocalCommit))||
+      branchStatusMessage(connectionState)||
+      (mainUpdateStatus&&currentMainObservation(mainUpdateStatus)&&mainUpdateStatus.state==='available'?'GitHub main has new changes':'');
+    const staleGitFeedback=gitFeedback?.text===state&&(gitFeedback.root!==projectRoot||gitFeedback.repository!==repository||
+      gitFeedback.branch!==branch||gitFeedback.account!==auth.accountId);
+    const feedback=staleGitFeedback?'':state;
+    const commitFeedback=feedback==='Committed locally'&&connectionState==='auth'
+      ? `${feedback}. ${branchStatusMessage(connectionState)}` : feedback;
+    const status=uploadProgress||commitFeedback||(showRepository&&!localPractice&&!updateRecovery&&!updateRecoveryError?(gitHint||''):'');
+    const githubPanel = !showRepository ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${branchControl}${githubActions}${branchConnection}${gitRecoveryActions}`}`;
     const fileActions=projectRoot && !studentView ? `<h2 id="files-heading"><button id="files-menu-button" class="link files-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="files-menu" ${disabled}>New${icon('ChevronDown')}</button></h2><div id="files-menu" class="files-dropdown" role="menu" aria-labelledby="files-menu-button" hidden>${[['zero.newClass','New class…'],['zero.newPackage','New package…'],['zero.newFile','New file…'],['zero.newFolder','New folder…'],['zero.importAssets','New asset…'],...(assets.canCopyPaths() ? [['zero.copyImportedAssetPaths','Copy asset paths']] : [])].map(([command,label])=>`<button role="menuitem" tabindex="-1" data-command="${command}" ${disabled}>${label}</button>`).join('')}</div>` : '';
     const activeRun = execution || pendingLaunch || nativeStarting || browserActive || browserBusy;
     const setupCheck = projectRoot && isSetupProject(projectRoot);
@@ -3171,17 +3330,22 @@ function activate(context, services = {}) {
     const publishingProgress=publishProgressHtml(publishProgress?.root===projectRoot?publishProgress:undefined);
     // Keep the controls document alive across progress updates; VS Code owns the file tree.
     if (renderedWebviews.has(webview) && webview.postMessage) {
-      void webview.postMessage({type:'sidebar.update',controls,fileActions,status:state,failed:buildFailed,publishingProgress}); return;
+      void webview.postMessage({type:'sidebar.update',controls,fileActions,status,failed:buildFailed,publishingProgress}); return;
     }
     renderedWebviews.add(webview);
-    webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">${sidebarStyles()}</style></head><body><div id="controls">${controls}</div><div class="feedback"><p id="run-status" tabindex="-1" class="muted status" role="status" aria-live="polite">${escape(state)}</p><div id="publishing-progress">${publishingProgress}</div><div id="recovery" ${buildFailed ? '' : 'hidden'}>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button><button class="link" data-command="zero.showOutput">Show Output</button>' : ''}</div></div><div id="file-actions" class="file-actions">${fileActions}</div><script nonce="${nonce}">${sidebarScript()}</script></body></html>`;
+    webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">${sidebarStyles()}</style></head><body><div id="controls">${controls}</div><div class="feedback"><p id="run-status" tabindex="-1" class="muted status" role="status" aria-live="polite">${escape(status)}</p><div id="publishing-progress">${publishingProgress}</div><div id="recovery" ${buildFailed ? '' : 'hidden'}>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button><button class="link" data-command="zero.showOutput">Show Output</button>' : ''}</div></div><div id="file-actions" class="file-actions">${fileActions}</div><script nonce="${nonce}">${sidebarScript()}</script></body></html>`;
   }
   const controlsProvider={resolveWebviewView(candidate) {
     controlViews.add(candidate); candidate.webview.options = {enableScripts:true, localResourceRoots:[]};
     candidate.webview.onDidReceiveMessage(message => {
       if (!message || typeof message !== 'object' || disposed) return;
       if (message.type === 'sidebar.ready') {refresh();return;}
-      if (Object.hasOwn(actions, message.command)) vscode.commands.executeCommand(message.command,message.command==='zero.commitChanges'&&typeof message.commitMessage==='string'?message.commitMessage:typeof message.recovery==='string'?message.recovery:undefined);
+      if(message.command==='zero.switchStudentBranch'){
+        if(typeof message.branchChoice==='string')vscode.commands.executeCommand(message.command,message.branchChoice);
+        return;
+      }
+      if(message.command==='zero.syncBranch'&&typeof message.syncScope!=='string')return;
+      if (Object.hasOwn(actions, message.command)) vscode.commands.executeCommand(message.command,message.command==='zero.commitChanges'&&typeof message.commitMessage==='string'?message.commitMessage:message.command==='zero.syncBranch'&&typeof message.syncScope==='string'?message.syncScope:typeof message.recovery==='string'?message.recovery:undefined);
     }, undefined, context.subscriptions);
     candidate.onDidDispose(() => {controlViews.delete(candidate);renderedWebviews.delete(candidate.webview);}, undefined, context.subscriptions); refresh(); repositoryStatus();
   }};
@@ -3209,7 +3373,7 @@ function activate(context, services = {}) {
     if(disposed||isBusy()||vscode.workspace.isTrusted!==true||!projectRoot)return;
     if(backgroundStatusRunning){if(forceBranchCheck)backgroundStatusPending=true;return;}
     backgroundStatusRunning=true;
-    studentExplorer?.invalidate();
+    studentExplorer?.refreshStatus();
     try {await repositoryStatus({forceBranchCheck});} finally {
       backgroundStatusRunning=false;
       if(backgroundStatusPending){backgroundStatusPending=false;void refreshBackgroundStatus(true);}
@@ -3228,7 +3392,7 @@ function activate(context, services = {}) {
     runGeneration++;
     if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));
     savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;savedProblems?.clear();
-    projectRoot = undefined;projectDirty=undefined;projectUnsaved=undefined;projectDirtyError=undefined;projectDirtyGeneration++;clearTimeout(projectDirtyTimer);clearDirtyMetadataWatch();mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0; repositoryStatus(); void introduceAfterConnection({revealSidebar:Boolean(event?.added?.length), addedFolders:event?.added});
+    state='';projectRoot = undefined;projectDirty=undefined;projectDirtyError=undefined;projectDirtyGeneration++;clearTimeout(projectDirtyTimer);clearDirtyMetadataWatch();mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0; repositoryStatus(); void introduceAfterConnection({revealSidebar:Boolean(event?.added?.length), addedFolders:event?.added});
   }));
   context.subscriptions.push({dispose:() => {runGeneration++;if (execution) execution.terminate();}});
   context.subscriptions.push(createNativeUpdateReload(vscode, {context,

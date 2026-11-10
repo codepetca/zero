@@ -16,7 +16,7 @@ test('checks exact current refs on main and feature with explicit non-sync resul
     for(const ancestry of [false,null]){f.isAncestor=async()=>ancestry;assert.equal((await checkBranchRemote(f)).state,'remote-changed');}
     f.readRemote=async()=>'';assert.equal((await checkBranchRemote(f)).state,'remote-missing');
   }
-  assert.match(statusMessage('synced'),/last check/);assert.doesNotMatch(statusMessage('synced'),/currently|green/i);
+  assert.equal(statusMessage('synced'),'');assert.equal(statusMessage('remote-missing'),'');
 });
 test('classifies only supported failure evidence and never mistakes failure for deletion',async()=>{
   for(const [error,state] of [[{status:401},'auth'],[{kind:'auth'},'auth'],[{code:'authentication-required'},'auth'],[{status:403},'access'],[{code:'repository-not-selected'},'access'],[{code:'permission-required'},'access'],[{code:'network-error'},'offline'],[{kind:'network'},'offline'],[{code:'ENOTFOUND'},'offline'],[new Error('unknown'),'unknown']]) {

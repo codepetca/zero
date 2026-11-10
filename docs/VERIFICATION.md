@@ -1,5 +1,127 @@
 # Verification
 
+## Merge latency — 2026-11-09
+
+Merge preparation starts while a separate branch status check runs. The merge
+path skips the download phase when the verified local and GitHub main tips
+match. The locked Git transactions perform the full checks before moving refs.
+
+A three-run macOS benchmark used disposable repositories, a 2 MiB tracked
+asset, and a local bare remote with a 120 ms delay per transport call. Median
+preparation fell from 2.23 to 1.39 seconds and median execution from 6.99 to
+5.16 seconds. The measured Git command counts fell from 163 to 111 before
+confirmation and from 496 to 378 after it. The benchmark measured the workflow
+outside the editor with network access denied. Focused UI checks passed 181
+tests with 12 skips. Eleven real-Git checks passed, including drift, a push
+race and interrupted checkout recovery. `npm run check` passed.
+The Sol/high safety and Terra/medium compatibility reviews
+found no blockers. Live GitHub and native editor timing were not measured.
+
+## Short Merge confirmation — 2026-11-09
+
+The normal Merge confirmation names the feature branch and main in one line.
+Focused UI checks passed 180 tests with 12 skips, including cancellation,
+unverified main and state changes after confirmation. The Terra/medium review
+found no blockers.
+
+## Keep branches after Merge — 2026-11-09
+
+Merge retains the local feature branch and any GitHub copy. On clean main,
+the branch menu offers **Delete merged local branch…**. The picker lists
+local branches already included in main and asks for confirmation before deletion.
+
+The macOS Git lifecycle under network denial verified the merge and manual
+deletion with a disposable bare remote. The remote copy and an unfinished branch
+were preserved. The combined checks passed 197 tests with 12 skips. Targeted
+checks covered cancellation, pending reminders, changed tips, a replacement Git
+folder, and broken pending merge refs. The Sol/high safety and Terra/medium
+compatibility reviews verified the fixes. Native editor interaction was not
+exercised for this change.
+
+## Quiet Files refresh — 2026-11-09
+
+The Files source delta on `3246f9a85` uses one sentence in each discard
+confirmation. Saves, ordinary Git status changes, and discard update affected
+rows or folders. Focused checks passed 219 tests with 14 skips. They covered
+atomic saves, Git refs and index events, deleted rows, new-file removal from
+the Other group, and a path switching between file and directory.
+The macOS real-Git lifecycle passed under network denial, including exact
+confirmation copy, cancellation, late-edit protection and recovery.
+`npm run check` and `git diff --check` passed.
+The Terra/medium review identified two stale-row cases and verified the fixes.
+The available macOS editor showed only the Start Page during inspection.
+Visual refresh behavior in the Files pane remains unverified.
+
+## Native Files badges — 2026-11-09
+
+Files rows use VS Code's native Git badge and color while keeping accessible
+change labels. The focused Files and menu checks passed 36 tests with three
+skips. The Terra/medium review found no blockers. The macOS editor displayed
+the Start Page during inspection, so Files rendering was not verified there.
+
+## Files discard actions — 2026-11-09
+
+The Zero Dev source delta on `3246f9a85` adds **Discard All Changes…** to Files
+and **Discard File Changes…** for unstaged modifications. Tests in a disposable
+repository with macOS Git and OS network denial covered cancellation, unsaved
+edit rejection, changes saved during confirmation, scope of single-file discard,
+staged and untracked changes, ignored files, and unchanged HEAD. The tests also
+verified the local stash and exact working copy when Git normalizes file bytes.
+
+The focused Files, menu, saved Git and recovery checks passed 227 tests with 15
+skips. The real Git lifecycle, `npm run check`, and `git diff --check` passed.
+The Sol/high safety review identified an untracked clean-filter bypass,
+normalization of stash bytes, and a late save race. Targeted real Git re-review
+confirmed the fixes. The Terra/medium compatibility review found no blockers.
+Native VS Code interaction and Linux were not exercised for these actions.
+Windows uses Source Control for discard.
+
+## Zero Dev GitHub profile — 2026-11-09
+
+`npm run dev:github` opens the source extension with a dedicated sign-in
+profile. On macOS, the command opened Zero Start Page in the extension
+development host with `GIT_ALLOW_PROTOCOL=file` set in its parent shell.
+The extension host inherited zero `GIT_*` variables. The existing Zero Dev
+watcher continued serving its preview. All nine Zero Dev tests, `npm run check`,
+and `git diff --check` passed. The independent Terra/medium review found no
+blockers. Live sign-in and repository writes await the owner's walkthrough.
+
+## Direct local branch selection — 2026-11-09
+
+The branch dropdown lists other local branches by name. Selecting a branch
+uses the existing guarded switch and prompts when current changes need to move.
+Focused editor, dropdown, and preview checks passed 86 tests with one existing
+skip. The tests covered stale target commits, local ref filtering, direct
+dispatch, and keyboard focus. Zero Dev preparation, `npm run check`, and
+`git diff --check` passed. The independent Terra/medium review found no
+blockers. Interactive editor and physical Windows testing remain pending.
+
+## One-button branch sync — 2026-11-09
+
+Local source based on `3246f9a85` separates local Commit from Sync on the
+selected branch. The sidebar shows one routine status. GitHub branch creation,
+retry after lost confirmation, incoming fast-forward, divergent history, and a
+concurrent local commit were exercised with disposable bare repositories and
+intercepted authenticated transport. Tests also covered Git URL aliases, a
+local ref named after the saved commit ID, automatic tag configuration, and
+legacy recovery records.
+
+The focused editor, transport, and preview suite passed 379 tests with 12
+existing skips. The final branch-status and disposable Git cases passed
+separately. The network-denied student lifecycle passed on macOS, including two
+local commits, an offline Sync retry, and Merge. `npm run check`, Zero Dev
+preparation, and `git diff --check` passed.
+The broader suite used an intermediate revision and was stopped after
+targeted verification. Its two observed failures passed when rerun after fixes.
+Live GitHub, interactive editor use,
+and physical Windows remain outside this verification.
+
+Requested reviewers were Sol/high for Git safety and Terra/high for editor
+compatibility. Two targeted Sol/high reviews covered the two remediation
+batches. The final targeted diff `ab98fa12` had no remaining blockers. A
+Terra/high follow-up reviewed the offline status wording. Effective model and
+per-review usage are unavailable.
+
 ## Minimal project sidebar — 2026-11-08
 
 Local source based on main 9b174c3 removes recent commit rows, the routine
@@ -5374,3 +5496,205 @@ runtime checks must pass for the release commit. Production Hub visibility
 depends on the Neon authority even when the pilot is disabled; previews deny
 visibility-dependent Hub paths. Preserve this authority during rollback, and
 do not route held projects through older deployments that omit those checks.
+
+## Zero Dev live student flow — 2026-11-09
+
+Local worktree `codex/simple-branch-sync` at `3246f9a85` plus the working
+diff. The default launcher opens the source extension on the live Start Page
+and watches extension assets. `dev:sample` retains the simulated Coin Game.
+Dev and the VSIX share generated extension assets. Dev profile state remains
+separate and its setup project path cannot fall back to the installed starter.
+The independent Terra medium reviewer found the installed-starter fallback.
+The correction passed targeted re-review. Effective model and usage were not
+available.
+
+Mac VS Code 1.145.2 activated `zero.zero` and showed Zero Start Page from the
+live Dev profile. Its extension host received the managed Java, bundled Node,
+and checkout kit markers, and dropped injected Git and JVM overrides. The
+preview returned HTTP 200. `test:dev` passed 10 checks and related Start Page,
+runtime, kit, release and CI tests passed 133 with one Windows-only skip.
+`npm run check`, local packaging and `npm run verify:kit` passed. Authenticated
+GitHub actions, interactive Java and browser runs in this profile, and
+Windows/Linux editor launches remain untested for this change.
+
+## Live GitHub branch creation and signed-out feedback — 2026-11-09
+
+In the live Mac Zero Dev profile, the owner created `sync-proof-20261109` and
+committed `d9434b3c47ed765c9d8c3c327aeb5a75111a0cea` in the private test project.
+Sync stayed disabled while signed out. After sign-in, the owner clicked Sync.
+Zero reported confirmation, and an independent GitHub ref read returned the
+same commit on the previously absent branch.
+
+Current source on `codex/simple-branch-sync` at `3246f9a85` plus the working
+diff keeps the local commit confirmation and sign-in instruction together in
+one sidebar status. Independent Terra medium review found no blockers in this
+delta. The focused signed-out regression and `npm run check` passed. The
+branch status suite passed eight tests. After updating two Git mocks for the
+local branch dropdown, the commit and Sync suites passed 233 tests with 11 skips.
+
+## Sync arrow refresh — 2026-11-09
+
+The sidebar keeps a fresh comparison visible during remote rechecks. A verified
+local commit advances the displayed outgoing count when the last comparison had
+no incoming commits. When sidebar Sync verifies that local and remote heads
+match, both arrows show zero. An earlier in-flight check cannot overwrite that
+result. A new branch with no matching GitHub ref still has an unknown outgoing
+count.
+
+Independent Terra medium review of the count and check ordering changes found
+no blockers. The branch status, commit and Sync UI suites passed 248 tests with
+11 skips. The local Git integration suite passed 21 tests, including the count
+after a fast-forward. `npm run check` and `git diff --check` passed. This delta has
+not been retested in the interactive GitHub window.
+
+## Plain Sync label before counts are available — 2026-11-09
+
+The sidebar renders plain Sync when either branch count is unknown and shows
+both arrows when it has both counts, including zero. Focused UI checks verified
+plain Sync on a new local branch, the transition after confirmation, and plain
+Sync while the remote comparison is incomplete. The design playground tests
+passed. Independent Terra medium review found no blockers. Native GitHub UI
+was not exercised for this label change.
+
+## Sync availability when counts are zero — 2026-11-09
+
+In the live GitHub test project, the saved edit on `temp1` initially remained
+outside Git history. The next local Commit created `83d7de2`. A GitHub ref read
+showed one outgoing and zero incoming commits before Sync, and the same exact
+commit on both sides afterward.
+
+Current source disables the sidebar Sync button while a recent comparison
+confirms matching commits and the branch has no pending sync reminder. An empty
+Commit message uses the existing sidebar validation feedback. Focused tests
+verified re-enabling Sync after Commit and disabling it after confirmation.
+Independent Terra medium review found no blockers.
+The focused UI and playground suites passed 254 tests with 11 skips.
+`npm run check` and `git diff --check` passed. The Mac Zero Dev window reopened
+on `temp1` with the new source.
+
+## Clean branch switch speed — 2026-11-09
+
+A clean sidebar switch reuses its first reviewed plan and refreshes native
+Source Control after the confirmed checkout without waiting on it. The guarded
+checkout still rechecks the plan and rejects newly introduced worktree edits.
+Switching with edits retains the existing review and save flow.
+
+In an isolated local clone of the GitHub test project, two runs each of the
+old three-preparation and new one-preparation paths took about 10.2 and 5.4
+seconds respectively at the median. The measured preparation and checkout
+portion went from 286 to 184 Git commands. This measurement excludes the VS
+Code window and Source Control refresh.
+
+The sidebar workflow test and 11 focused Git tests passed. `npm run check`
+and `git diff --check` passed. Independent Terra medium review found no
+blockers. Mac Zero Dev reopened on the clean test copy with `main` and
+`temp1` available for the owner's interactive test.
+
+## Open new files from Files — 2026-11-09
+
+An ordinary untracked file now opens in the editor from the Files tree. The
+real Git regression exercises a new text file in java and preserves the Source
+Control handoff after staging it. The same test covers the native diff for a
+modified tracked file. The focused regression passed with network access
+denied on Mac. Independent Terra medium review found no blockers. Native
+dragging and dropping in VS Code was not exercised.
+The Files, project model and file creation suites passed 56 tests with network
+access denied. `npm run check` and `git diff --check` passed.
+
+## Move files from Files — 2026-11-09
+
+Drag an ordinary project file onto a folder in Files to move it through the
+native workspace edit. The fixture exercises moving a text file into an absent
+resources folder, preserving both files on a name collision, and rejecting a
+drop after the tree refreshes. The Files, rename, authoring and project model
+suites passed 65 tests with network access denied on Mac. `npm run check` and
+`git diff --check` passed. Independent Terra medium review found no blockers.
+The native mouse gesture in Zero Dev was not exercised.
+
+## Commit and local switch latency — 2026-11-09
+
+Clean sidebar switches use a final worktree and ref check under the local
+operation lock, followed by the existing post-checkout validation. Switch Git
+commands disable transports. Commit and Switch refresh Files and publish the
+local Git state before the optional Source Control refresh. GitHub status
+checks run separately. Commit overlaps independent Git metadata reads and
+reuses the verified Git directory during inspection.
+
+In a disposable local clone with network access denied, two runs per version
+cut the median clean preparation and checkout time from 8.1 to 4.0 seconds
+and reduced Git calls from 184 to 90. The measured local commit phase went
+from 5.1 to 4.2 seconds at the median. These timings exclude VS Code
+rendering and were recorded while focused checks ran on the same Mac.
+
+The final UI suites passed 237 tests with 12 skips. The focused real Git
+switch cases passed 10 tests with network access denied, including late editor
+and worktree changes. The Commit UI test holds Source Control open and checks
+that Files refreshes and Sync stays disabled until the new local status is
+ready. Independent Sol high review found no blockers after the status gating
+fix. The broader Git run passed 77 tests with one skip and failed only an
+outdated Sync button expectation in the main and feature cases. The test now
+checks that uncommitted edits leave Sync disabled after matching commits are
+confirmed. All three checks passed on the targeted rerun.
+`npm run check` and `git diff --check` passed. Native Zero Dev click timing was
+not measured.
+
+## Concurrent local Git reads — 2026-11-09
+
+Independent Git metadata and attribute inventory reads overlap, with the
+worktree filter check still immediately before status. The sidebar loads its
+independent local status reads together and publishes after they finish.
+
+Three clean switches per version in a disposable clone on this Mac used
+Apple Git. The network-denied preparation and locked checkout median fell
+from 2.34 to 1.74 seconds with 107 Git calls in both versions. In an isolated
+VS Code profile, the actual sidebar command through local status publication
+went from a 3.13 to a 2.39 second median. The final editor runs ranged from
+2.35 to 2.75 seconds. The test checked the exact new HEAD and clean working
+tree on every switch. It invoked the command directly, without a mouse click.
+
+Independent Sol high review found no blockers after retaining the filter
+check order. The late filter regression verifies that a filter introduced
+during an origin read is rejected before status can run. All 12 focused
+branch cases passed after the final ordering change. The external-branch,
+pinned-commit and sidebar suites passed 74 tests with one skip during the
+follow-up. `npm run check` and `git diff --check` passed.
+
+## Files refresh while editing — 2026-11-09
+
+Files keeps its existing tree while an editor is dirty. It refreshes the file
+row when its badge changes and reconciles save and index notifications against
+Git status. Ordinary additions under java and resources refresh the nearest
+displayed folder. Project metadata and structural changes can rebuild the tree.
+
+An isolated Mac VS Code run applied six editor changes, saved Main.java and
+added a text file. The instrumented tree emitted one Main.java row update and
+one java folder update. VS Code requested the folder children and showed the
+new entry. No root refresh was emitted in that interval. The Files, authoring,
+rename and model suites passed 66 tests with network access denied. Independent
+Terra medium review found no actionable findings. `npm run check` and
+`git diff --check` passed.
+
+## Commit controls during autosave — 2026-11-09
+
+Typing leaves the draft field available and does not trigger Commit status
+checks. A routine disk check keeps the last confirmed state. The save reminder
+appears only if a Commit attempt encounters unsaved edits.
+
+In an isolated Mac VS Code profile, the native autosave test typed in two
+batches and reverted the file. The draft field stayed editable. The Commit
+button enabled after the first saved change, stayed enabled through the next
+batch and save, and disabled after the revert was saved. No passive save
+reminder appeared. The focused UI suites passed 243 tests with 12 skips,
+including the unsaved Commit guard. Independent Terra medium review found
+no blockers. `npm run check` and `git diff --check` passed.
+
+## History for the current branch — 2026-11-09
+
+The History button names the branch. The tab and its pages use that branch's
+first-parent history at the time it opens, including shared starting commits
+and one entry per merge. Real Git fixtures verified divergent branch histories
+and a fresh clone, including that a main-only merge is hidden from a branch
+that does not contain it. All 20 history tests passed with network access
+denied. The sidebar workflow passed on its standalone rerun. Independent
+Terra medium review found no blockers. `npm run check` and
+`git diff --check` passed.

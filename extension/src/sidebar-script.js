@@ -14,7 +14,9 @@ function sidebarClient() {
   const menuButton = config => document.getElementById(config.button);
   const menuElement = config => document.getElementById(config.menu);
   const menuItems = config => [...(menuElement(config)?.querySelectorAll('[role="menuitem"]') || [])].filter(item=>!item.disabled);
-  const menuCommands = config => menuItems(config).map(item=>item.dataset.command).join(' ');
+  const menuKey = item => item.dataset.branchChoice || item.dataset.command;
+  const menuCommands = config => menuItems(config).map(menuKey).join(' ');
+  const focusMenuItem = (config,item) => item?.focus({preventScroll:config.menu!=='branch-menu'});
   function restoreMenuFocus(config) {
     const button = menuButton(config);
     if (button && !button.disabled) button.focus({preventScroll:true});
@@ -33,7 +35,7 @@ function sidebarClient() {
     if (!button || button.disabled || !menu) return;
     for (const other of menus) if (other !== config) closeMenu(other);
     menu.hidden = false; button.setAttribute('aria-expanded','true');
-    const choices = menuItems(config); (last ? choices.at(-1) : choices[0])?.focus({preventScroll:true});
+    const choices = menuItems(config); focusMenuItem(config,last ? choices.at(-1) : choices[0]);
   }
   document.addEventListener('click', event => {
     const trigger = menus.find(config=>menuButton(config)?.contains(event.target));
@@ -49,7 +51,7 @@ function sidebarClient() {
     const button = event.target.closest('button[data-command]');
     if (button && !button.disabled && button.getAttribute('aria-disabled') !== 'true') {
       for (const config of menus) if (menuElement(config)?.contains(button)) closeMenu(config,true);
-      api.postMessage({command:button.dataset.command,...(button.dataset.command==='zero.commitChanges'?{commitMessage:document.getElementById('commit-message')?.value || ''}:{}),...(button.dataset.recovery?{recovery:button.dataset.recovery}:{})});
+      api.postMessage({command:button.dataset.command,...(button.dataset.command==='zero.commitChanges'?{commitMessage:document.getElementById('commit-message')?.value || ''}:{}),...(button.dataset.recovery?{recovery:button.dataset.recovery}:{}),...(button.dataset.syncScope?{syncScope:button.dataset.syncScope}:{}),...(button.dataset.branchChoice?{branchChoice:button.dataset.branchChoice}:{})});
     }
   });
   document.addEventListener('keydown', event => {
@@ -70,7 +72,7 @@ function sidebarClient() {
       case 'Tab': closeMenu(config,true); return;
       default:return;
     }
-    event.preventDefault(); next?.focus({preventScroll:true});
+    event.preventDefault(); focusMenuItem(config,next);
   });
   document.addEventListener('focusin', event => {
     for (const config of menus) if (!menuElement(config)?.contains(event.target) && !menuButton(config)?.contains(event.target)) closeMenu(config);
@@ -92,6 +94,7 @@ function sidebarClient() {
           const recoveryFocus = controls.contains(active) && (active.id === 'update-recovery-heading' || active.dataset.conflictChoice === 'true');
           const focusedMenu = menus.find(config=>config.container === id && (menuButton(config)?.contains(active) || menuElement(config)?.contains(active)));
           const menuScope = focusedMenu && menuButton(focusedMenu)?.dataset.menuScope;
+          const focusedMenuItem = focusedMenu && menuKey(active);
           const openMenuCommands = menuScope && !menuElement(focusedMenu)?.hidden && menuCommands(focusedMenu);
           for (const config of menus) if (config.container === id) closeMenu(config);
           const oldScroll = window.scrollY;
@@ -101,11 +104,11 @@ function sidebarClient() {
           if (focusedMenu) {
             const trigger = menuButton(focusedMenu);
             const choice = openMenuCommands && trigger?.dataset.menuScope === menuScope && !trigger.disabled &&
-              menuCommands(focusedMenu) === openMenuCommands && menuItems(focusedMenu).find(item=>item.dataset.command === command);
+              menuCommands(focusedMenu) === openMenuCommands && menuItems(focusedMenu).find(item=>menuKey(item) === focusedMenuItem);
             if (choice) {
               menuElement(focusedMenu).hidden = false;
               trigger.setAttribute('aria-expanded','true');
-              choice.focus({preventScroll:true});
+              focusMenuItem(focusedMenu,choice);
             } else restoreMenuFocus(focusedMenu);
           }
           else if (recoveryFocus) (document.getElementById('update-recovery-heading') || document.getElementById('run-status'))?.focus({preventScroll:true});
@@ -113,7 +116,8 @@ function sidebarClient() {
           window.scrollTo(0,oldScroll);
         }
       }
-      document.getElementById('run-status').textContent = message.status;
+      const status=document.getElementById('run-status');
+      if(status.textContent!==message.status)status.textContent=message.status;
       const publishingProgress=document.getElementById('publishing-progress'),progressMarkup=message.publishingProgress || '';
       if(publishingProgress.dataset.content!==progressMarkup){publishingProgress.innerHTML=progressMarkup;publishingProgress.dataset.content=progressMarkup;}
       const recovery = document.getElementById('recovery');

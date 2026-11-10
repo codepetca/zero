@@ -46,23 +46,22 @@ indicators, retains file creation and uses VS Code's diff for supported changes.
 Commit saves work locally while offline. Failed or uncertain sync retains its
 reminder, and explicit status checks and retries use the reviewed destination,
 account, branch and commit. Merge records a named merge in Git history so it can
-also be seen in a fresh clone. For a new Merge, a native Quick Pick defaults to
-deleting the local and GitHub feature branch; unchecking keeps both. The following
-Merge confirmation shows the choice, and cancelling either prompt cancels the
-merge. Cleanup runs only after remote confirmation and the switch to local main,
-checks the exact reviewed tip and other guards, and reports partial or uncertain
-outcomes. Changed or uncertain state keeps safe refs. Recovery and Sync keep
-branches.
+also be seen in a fresh clone. Merge keeps the local and GitHub feature branch.
+On clean main, the branch menu offers **Delete merged local branch…**.
+Deletion confirms the selected branch and checks that its reviewed tip is
+already included in main.
 Supported updates remain available. Stale main and unsupported divergent updates
 offer **Open Source Control** and preserve the existing files and commits. An
 existing managed conflict can still use the guarded completion action once it has
 been resolved in Source Control and the index has been verified.
 
 Zero's custom added-file removal is disabled in both development and installed
-mode, including when a verified macOS helper is available. Whole-project Discard,
-custom file restore including deleted-file restore, project restore,
+mode, including when a verified macOS helper is available. Files offers discard
+of all saved changes or a single unstaged modification via a local Git stash
+and exact working copies on macOS and Linux for trusted standalone repositories with a first commit. The
+earlier custom discard engine, deleted-file restore, project restore,
 finished-change correction, and custom conflict choices and cancellation are
-also disabled. Recovery inspection and the narrow guarded keep-changes undo
+disabled. Recovery inspection and the narrow guarded keep-changes undo
 remain available where supported. Physical Windows acceptance remains open.
 
 The focused student lifecycle passed against real local Git, a disposable bare

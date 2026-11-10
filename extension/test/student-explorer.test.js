@@ -7,19 +7,27 @@ const {createRenameCommands}=require('../src/file-rename');
 const authoring=require('../src/sharing/authoring');
 async function put(root,name,text=''){await fs.mkdir(path.dirname(path.join(root,name)),{recursive:true});await fs.writeFile(path.join(root,name),text);}
 const disposable=()=>({dispose(){}});
+async function waitFor(condition) {
+  const deadline=Date.now()+3000;
+  while(!condition()){
+    assert.ok(Date.now()<deadline,'Expected a Files update');
+    await new Promise(resolve=>setTimeout(resolve,15));
+  }
+}
 async function fixture(t,{remembered=new Map()}={}){
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-tree-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await put(root,'zero.json','{"name":"Student app"}');await fs.copyFile(path.resolve(__dirname,'../../student-template/pom.xml'),path.join(root,'pom.xml'));
   await put(root,'src/main/java/Main.java','public class Main {}');
   let current=root,busy=false,name='game.characters';const calls=[],copied=[],logs=[],watchers=[],contentProviders=new Map();let folderChange,selectionChange,trustChange;const documentEvents={};
   class Emitter{constructor(){this.listeners=[];this.event=listener=>{this.listeners.push(listener);return disposable();};}fire(value){for(const listener of this.listeners)listener(value);}dispose(){this.listeners=[];}}
-  const vscode={EventEmitter:Emitter,TreeItemCollapsibleState:{None:0,Collapsed:1,Expanded:2},TreeItem:class{constructor(label,collapsibleState){Object.assign(this,{label,collapsibleState});}},ThemeIcon:class{constructor(id){this.id=id;}},RelativePattern:class{constructor(base,pattern){Object.assign(this,{base,pattern});}},
+  const vscode={EventEmitter:Emitter,TreeItemCollapsibleState:{None:0,Collapsed:1,Expanded:2},TreeItem:class{constructor(label,collapsibleState){Object.assign(this,{label,collapsibleState});}},ThemeIcon:class{constructor(id){this.id=id;}},ThemeColor:class{constructor(id){this.id=id;}},RelativePattern:class{constructor(base,pattern){Object.assign(this,{base,pattern});}},
     Uri:{file:fsPath=>({fsPath,scheme:'file'}),parse:value=>({scheme:value.split(':')[0],toString:()=>value})},env:{clipboard:{writeText:async text=>copied.push(text)}},commands:{executeCommand:async(...args)=>calls.push(args)},
     workspace:{isTrusted:true,registerTextDocumentContentProvider:(scheme,provider)=>{contentProviders.set(scheme,provider);return disposable();},...Object.fromEntries(['onDidChangeTextDocument','onDidSaveTextDocument','onDidCloseTextDocument'].map(name=>[name,fn=>{documentEvents[name]=fn;return disposable();}])),onDidChangeWorkspaceFolders:fn=>{folderChange=fn;return disposable();},onDidGrantWorkspaceTrust:fn=>{trustChange=fn;return disposable();},createFileSystemWatcher:pattern=>{const callbacks={};const w={pattern,callbacks,dispose(){w.disposed=true;}};for(const method of ['onDidCreate','onDidChange','onDidDelete'])w[method]=fn=>{callbacks[method]=fn;return disposable();};watchers.push(w);return w;}},
     window:{createTreeView:(_,options)=>({options,onDidChangeSelection:fn=>{selectionChange=fn;return disposable();},dispose(){}}),showInputBox:async()=>name,showQuickPick:async items=>items[0]}};
   const workspaceState={get:(key,fallback)=>remembered.has(key)?remembered.get(key):fallback,update:async(key,value)=>{remembered.set(key,value);calls.push(['state',key,value]);}};
   const host={project:async()=>current,isBusy:()=>busy,output:{appendLine:text=>logs.push(text)},workspaceState};
-  const files=createFileCommands(vscode,{...host,setBusy:value=>{busy=value;},setState:()=>{}});
+  const files=createFileCommands(vscode,{...host,setBusy:value=>{busy=value;},setState:()=>{},
+    refreshFiles:(root,relative)=>tree.refreshCreated(root,relative)});
   host.execute=async(command,arg)=>{calls.push([command,arg]);return files.commands[command]?.(arg);};
   const tree=createStudentExplorer(vscode,host);t.after(()=>{tree.dispose();files.dispose();});
   return {root,tree,vscode,host,calls,copied,logs,watchers,contentProviders,documentEvents,children:node=>tree.provider.getChildren(node),item:node=>tree.provider.getTreeItem(node),folderChange:()=>folderChange(),grantTrust:()=>trustChange(),select:node=>{tree.tree.selection=node?[node]:[];selectionChange();},set current(v){current=v;},set busy(v){busy=v;},set name(v){name=v;}};
@@ -72,7 +80,7 @@ test('selected packages create matching declarations through the guarded file co
   roots=await f.children();const game=(await f.children(roots[0])).find(n=>n.label==='game');const characters=(await f.children(game))[0];
   f.name='Player';await f.tree.commands['zero.explorerNewClass'](characters);
   assert.match(await fs.readFile(path.join(f.root,'src/main/java/game/characters/Player.java'),'utf8'),/^package game.characters;\n\npublic class Player/);
-  await assert.rejects(f.tree.commands['zero.explorerNewClass'](characters),/view changed/);
+  await assert.rejects(f.tree.commands['zero.explorerNewClass'](characters),/name already exists/);
   await assert.rejects(f.tree.commands['zero.explorerNewClass']({...characters}),/view changed/);
 });
 test('Project dropdown follows selected files and folders using simplified destinations',async t=>{
@@ -117,6 +125,52 @@ test('selected asset files copy exact classpath literals; previews use supported
   await f.tree.commands['zero.explorerOpenFile'](asset);assert.equal(f.calls.at(-1)[0],'vscode.open');
   await fs.unlink(path.join(f.root,asset.relative));await assert.rejects(f.tree.commands['zero.explorerCopyAssetPath'](asset),/asset changed/);
 });
+test('Files drag moves a project text file to resources without replacing files',async t=>{
+  const f=await fixture(t),feedback=[];
+  await put(f.root,'src/main/java/hello.txt','hello');
+  f.vscode.DataTransferItem=class{constructor(value){this.value=value;}};
+  f.vscode.WorkspaceEdit=class{
+    renameFile(from,to,options){Object.assign(this,{from,to,options});}
+  };
+  f.vscode.workspace.applyEdit=async edit=>{
+    assert.deepEqual(edit.options,{overwrite:false,ignoreIfExists:false});
+    await fs.rename(edit.from.fsPath,edit.to.fsPath);
+    return true;
+  };
+  const mover=createRenameCommands(f.vscode,{...f.host,setBusy:value=>{f.busy=value;},
+    setState:message=>feedback.push(message),refreshFiles:()=>f.tree.invalidate()});
+  t.after(()=>mover.dispose());
+  f.host.moveFile=mover.move;
+  f.host.report=message=>feedback.push(message);
+  const controller=f.tree.tree.options.dragAndDropController,token={isCancellationRequested:false};
+  async function dragHello(){
+    const roots=await f.children(),java=roots.find(item=>item.label==='java');
+    const source=(await f.children(java)).find(item=>item.label==='hello.txt'),data=new Map();
+    controller.handleDrag([source],data,token);
+    return {data,resources:roots.find(item=>item.label==='resources')};
+  }
+  const first=await dragHello();
+  await controller.handleDrop(first.resources,first.data,token);
+  const source=path.join(f.root,'src/main/java/hello.txt'),destination=path.join(f.root,'src/main/resources/hello.txt');
+  assert.equal(await fs.readFile(destination,'utf8'),'hello');
+  await assert.rejects(fs.stat(source),{code:'ENOENT'});
+  assert.equal(feedback.at(-1),'Moved hello.txt');
+
+  await fs.writeFile(source,'keep this too');
+  const second=await dragHello();
+  await controller.handleDrop(second.resources,second.data,token);
+  assert.match(feedback.at(-1),/already exists/);
+  assert.equal(await fs.readFile(source,'utf8'),'keep this too');
+  assert.equal(await fs.readFile(destination,'utf8'),'hello');
+
+  await fs.unlink(destination);
+  const stale=await dragHello();
+  f.tree.invalidate();
+  await controller.handleDrop(stale.resources,stale.data,token);
+  assert.equal(await fs.readFile(source,'utf8'),'keep this too');
+  await assert.rejects(fs.stat(destination),{code:'ENOENT'});
+});
+
 test('authored library virtual roots use identity namespaces and published copies cannot receive files',async t=>{
   const f=await fixture(t);await put(f.root,'src/main/java/Health.java','public class Health {}');await put(f.root,'LICENSE','MIT');
   await authoring.applyPlan(await authoring.previewExtraction(f.root,{repository:{id:'12345',ownerId:'123',owner:'student',name:'app',url:'https://github.com/student/app'},descriptor:{schema:1,kind:'library',slug:'health-bar',version:'1.0.0',title:'Health bar',description:'Health helper',license:'MIT',libraryKind:'helper'},sources:['src/main/java/Health.java']}));
@@ -145,13 +199,96 @@ test('root switches, links, disposal and busy states cannot dispatch writes or o
   await fs.unlink(path.join(f.root,main.relative));await fs.symlink('/etc/hosts',path.join(f.root,main.relative));await assert.rejects(f.tree.commands['zero.explorerOpenFile'](main),/Symbolic links/);
   f.tree.dispose();await assert.rejects(f.tree.commands['zero.explorerNewClass'](roots[0]),/view changed/);
 });
-test('external edits refresh, generated output does not, and project switches dispose watchers',async t=>{
-  const f=await fixture(t);const roots=await f.children();const watcher=f.watchers[0];let refreshed=0;f.tree.provider.onDidChangeTreeData(()=>refreshed++);
-  watcher.callbacks.onDidChange({fsPath:path.join(f.root,'target/classes/Main.class')});await new Promise(resolve=>setTimeout(resolve,150));assert.equal(refreshed,0);
-  await put(f.root,'src/main/java/External.java','class External {}');watcher.callbacks.onDidCreate({fsPath:path.join(f.root,'src/main/java/External.java')});await new Promise(resolve=>setTimeout(resolve,150));assert.equal(refreshed,1);
-  await assert.rejects(f.tree.commands['zero.explorerNewClass'](roots[0]),/view changed/);await f.children();assert.equal(watcher.disposed,true);
-  assert.ok((await f.children(roots[0])).some(node=>node.label==='External.java'),'Expanded identities still read fresh children during host refresh');
-  f.folderChange();assert.equal(f.watchers.at(-1).disposed,true);assert.equal(refreshed,2);
+test('file additions refresh their folder, generated output does not, and project switches dispose watchers',async t=>{
+  const f=await fixture(t),roots=await f.children(),watcher=f.watchers[0],updates=[];
+  f.tree.provider.onDidChangeTreeData(value=>updates.push(value));
+  watcher.callbacks.onDidChange({fsPath:path.join(f.root,'target/classes/Main.class')});
+  await new Promise(resolve=>setTimeout(resolve,150));
+  assert.deepEqual(updates,[]);
+  await put(f.root,'src/main/java/External.java','class External {}');
+  watcher.callbacks.onDidCreate({fsPath:path.join(f.root,'src/main/java/External.java')});
+  await waitFor(()=>updates.length>0);
+  assert.deepEqual(updates,[roots[0]]);
+  assert.ok((await f.children(roots[0])).some(node=>node.label==='External.java'));
+  f.name='Created.txt';
+  await f.tree.commands['zero.projectNewFile']();
+  await waitFor(()=>updates.length>1);
+  assert.deepEqual(updates,[roots[0],roots[0]]);
+  assert.ok((await f.children(roots[0])).some(node=>node.label==='Created.txt'));
+  assert.equal(watcher.disposed,undefined);
+  f.folderChange();
+  assert.equal(watcher.disposed,true);
+  assert.deepEqual(updates,[roots[0],roots[0],undefined]);
+  await assert.rejects(f.tree.commands['zero.explorerNewClass'](roots[0]),/view changed/);
+});
+test('editing updates one file row and saving it does not rebuild Files',async t=>{
+  const f=await fixture(t),updates=[],changes=[];
+  let gitStatus=new Map(),reads=0;
+  f.host.readFileStatus=async()=>{reads++;return gitStatus;};
+  f.host.onFileChanges=(_root,dirty)=>changes.push(dirty);
+  const [java]=await f.children(),[main]=await f.children(java);
+  const uri=f.vscode.Uri.file(path.join(f.root,main.relative)),document={isDirty:true,uri};
+  f.vscode.workspace.textDocuments=[document];
+  f.tree.provider.onDidChangeTreeData(value=>updates.push(value));
+  f.documentEvents.onDidChangeTextDocument({document});
+  await waitFor(()=>updates.length>0);
+  assert.equal(f.item(main).accessibilityInformation.label,'Main.java, Modified');
+  assert.deepEqual(updates,[main]);
+  for(let i=0;i<5;i++)f.documentEvents.onDidChangeTextDocument({document});
+  assert.equal(reads,1,'Typing does not reread Git');
+  document.isDirty=false;
+  gitStatus=new Map([[main.relative,'modified']]);
+  f.documentEvents.onDidSaveTextDocument(document);
+  // Atomic writes can be delivered as a delete/create pair for the same path.
+  f.watchers[0].callbacks.onDidDelete(uri);
+  f.watchers[0].callbacks.onDidCreate(uri);
+  await waitFor(()=>changes.at(-1)===true);
+  assert.deepEqual(updates,[main]);
+  gitStatus=new Map();
+  f.watchers[1].callbacks.onDidChange(f.vscode.Uri.file(path.join(f.root,'.git/refs/heads/main')));
+  f.tree.refreshStatus();
+  await waitFor(()=>updates.length===2);
+  assert.equal(reads,3);
+  assert.equal(f.item(main).accessibilityInformation.label,'Main.java');
+  assert.deepEqual(updates,[main,main],'Only the two status transitions refresh a row');
+});
+test('discard removes a new file from its group before the watcher reports it',async t=>{
+ const f=await fixture(t),updates=[];
+ await put(f.root,'notes.txt','kept');
+ await put(f.root,'scratch.txt','discarded');
+ let changes=new Map([['scratch.txt','added']]);
+ f.host.readFileStatus=async()=>changes;
+ const roots=await f.children(),other=roots.find(node=>node.kind==='other');
+ assert.deepEqual((await f.children(other)).map(node=>node.label),['notes.txt','scratch.txt']);
+ f.tree.provider.onDidChangeTreeData(value=>updates.push(value));
+ await fs.unlink(path.join(f.root,'scratch.txt'));
+ changes=new Map();
+ f.tree.refreshStatus();
+ await waitFor(()=>updates.length>0);
+ assert.deepEqual(updates,[other]);
+ assert.deepEqual((await f.children(other)).map(node=>node.label),['notes.txt']);
+});
+test('a path that switches between a file and directory refreshes its parent each time',async t=>{
+ const f=await fixture(t),updates=[];
+ const relative='src/main/java/Example',filename=path.join(f.root,relative);
+ await put(f.root,relative,'file');
+ const [java]=await f.children();
+ assert.equal((await f.children(java)).find(node=>node.relative===relative).kind,'file');
+ f.tree.provider.onDidChangeTreeData(value=>updates.push(value));
+ const watcher=f.watchers[0],uri=f.vscode.Uri.file(filename);
+ await fs.unlink(filename);
+ await fs.mkdir(filename);
+ watcher.callbacks.onDidDelete(uri);
+ watcher.callbacks.onDidCreate(uri);
+ await waitFor(()=>updates.length>0);
+ assert.equal((await f.children(java)).find(node=>node.relative===relative).kind,'folder');
+ await fs.rmdir(filename);
+ await put(f.root,relative,'new file');
+ watcher.callbacks.onDidDelete(uri);
+ watcher.callbacks.onDidCreate(uri);
+ await waitFor(()=>updates.length>1);
+ assert.deepEqual(updates,[java,java]);
+ assert.equal((await f.children(java)).find(node=>node.relative===relative).kind,'file');
 });
 test('student explorer defaults on and an explicit Standard Explorer choice persists across reload',async t=>{
   const remembered=new Map(),f=await fixture(t,{remembered});assert.equal(f.tree.tree.options.showCollapseAll,false);
@@ -215,27 +352,41 @@ test('Files shows added, modified and deleted paths without opening deleted file
  await fs.unlink(path.join(f.root,'src/main/java/Old.java'));
  let roots=await f.children(), entries=await f.children(roots[0]);
  const discardContext=()=>f.calls.filter(c=>c[0]==='setContext'&&c[1]==='zero.projectHasDiscardableChanges').at(-1)?.[2];
- assert.equal(discardContext(),false);
+ const discardSupported=process.platform!=='win32';
+ assert.equal(discardContext(),discardSupported);
  f.vscode.workspace.isTrusted=false;f.tree.invalidate();await f.children();assert.equal(discardContext(),false,'Untrusted projects cannot discard changes');
- f.vscode.workspace.isTrusted=true;f.tree.invalidate();roots=await f.children();entries=await f.children(roots[0]);assert.equal(discardContext(),false);
+ f.vscode.workspace.isTrusted=true;f.tree.invalidate();roots=await f.children();entries=await f.children(roots[0]);assert.equal(discardContext(),discardSupported);
  const byName=Object.fromEntries(entries.map(n=>[n.label,n]));
- assert.equal(f.item(byName['Main.java']).description,'M');
- assert.equal(f.item(byName['New.java']).description,'+');
- assert.equal(f.item(byName['Old.java']).description,'−');
- assert.match(f.item(byName['Old.java']).accessibilityInformation.label,/Deleted/);
+ for(const [name,status] of [['Main.java','Modified'],['New.java','Added'],['Old.java','Deleted']]){
+   const item=f.item(byName[name]);
+   assert.equal(item.label,name);
+   assert.equal(item.accessibilityInformation.label,`${name}, ${status}`);
+   assert.equal(item.description,undefined);
+   assert.equal(item.iconPath,undefined);
+   assert.equal(item.resourceUri.fsPath,path.join(f.root,'src/main/java',name));
+ }
+ if(discardSupported){
+   assert.equal(f.item(byName['Main.java']).contextValue,'zeroCodeFileModified');
+   await f.tree.commands['zero.explorerRestoreModifiedFile'](byName['Main.java']);
+   assert.ok(f.calls.some(([command,selection])=>command==='zero.restoreModifiedFile'&&selection.root===f.root&&selection.relative==='src/main/java/Main.java'));
+   roots=await f.children();entries=await f.children(roots[0]);Object.assign(byName,Object.fromEntries(entries.map(n=>[n.label,n])));
+ }
+
  assert.equal(f.item(byName['Old.java']).command.command,'zero.explorerOpenFile');
  assert.equal(f.item(byName['Old.java']).contextValue,'zeroReadonly');
  await assert.rejects(f.tree.commands['zero.explorerRestoreDeletedFile'](byName['Old.java']),/Select a deleted/);
  assert.ok(!f.calls.some(c=>c[0]==='zero.restoreDeletedFile'));
  await f.tree.commands['zero.explorerOpenFile'](byName['Old.java']);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');
  git('add','.');git('-c','user.name=Student','-c','user.email=student@example.invalid','commit','-qm','Save');
+ const updates=[];f.tree.provider.onDidChangeTreeData(value=>updates.push(value));
  f.watchers[1].callbacks.onDidChange({fsPath:path.join(f.root,'.git/index')});
- await new Promise(resolve=>setTimeout(resolve,160));
- assert.equal(discardContext(),false,'Invalidation disables the action until status is reread');
+ await waitFor(()=>updates.length>0);
+ assert.deepEqual(updates,[roots[0]],'Clearing a deleted row refreshes its folder');
+ assert.equal(discardContext(),false,'Discard is disabled after status is reread');
  roots=await f.children();entries=await f.children(roots[0]);
  assert.equal(discardContext(),false,'A clean project cannot discard changes');
  assert.equal(entries.some(n=>n.label==='Old.java'),false);
- assert.equal(f.item(entries.find(n=>n.label==='Main.java')).description,undefined);
+ assert.equal(f.item(entries.find(n=>n.label==='Main.java')).accessibilityInformation.label,'Main.java');
 });
 
 test('Files shows a recreated staged deletion and a missing staged addition',async t=>{
@@ -246,8 +397,9 @@ test('Files shows a recreated staged deletion and a missing staged addition',asy
  await put(f.root,'src/main/java/Never.java','staged');git('add','src/main/java/Never.java');await fs.unlink(path.join(f.root,'src/main/java/Never.java'));
  const roots=await f.children(),files=await f.children(roots[0]),byName=Object.fromEntries(files.map(n=>[n.label,n]));
  assert.ok(!roots.some(n=>n.label==='File change status unavailable'));
- assert.equal(f.item(byName['Main.java']).description,'M');assert.equal(f.item(byName['Main.java']).command.command,'zero.explorerOpenFile');
- assert.equal(f.item(byName['Never.java']).description,'−');assert.match(f.item(byName['Never.java']).accessibilityInformation.label,/Deleted/);
+ assert.equal(f.item(byName['Main.java']).accessibilityInformation.label,'Main.java, Modified');
+ assert.equal(f.item(byName['Main.java']).command.command,'zero.explorerOpenFile');
+ assert.equal(f.item(byName['Never.java']).accessibilityInformation.label,'Never.java, Deleted');
  assert.equal(f.item(byName['Never.java']).command.command,'zero.explorerOpenFile');
 });
 
@@ -258,16 +410,16 @@ test('Files shows linked-worktree changes without offering unsupported discard',
  const linked=path.join(f.root,'linked');git('worktree','add','-qb','feature',linked);f.current=linked;
  await put(linked,'src/main/java/Main.java','modified');await put(linked,'src/main/java/Extra.java','added');
  const roots=await f.children(),files=await f.children(roots[0]);
- assert.equal(f.item(files.find(n=>n.label==='Main.java')).description,'M');assert.equal(f.item(files.find(n=>n.label==='Extra.java')).description,'+');
+ assert.equal(f.item(files.find(n=>n.label==='Main.java')).accessibilityInformation.label,'Main.java, Modified');assert.equal(f.item(files.find(n=>n.label==='Extra.java')).accessibilityInformation.label,'Extra.java, Added');
  assert.equal(f.calls.filter(c=>c[1]==='zero.projectHasDiscardableChanges').at(-1)[2],false);
  const privateWatch=f.watchers[2],commonWatch=f.watchers[3];assert.ok(privateWatch&&commonWatch);
  git('-C',linked,'add','.');git('-C',linked,'-c','user.name=Student','-c','user.email=student@example.invalid','commit','-qm','Save');
  privateWatch.callbacks.onDidChange({fsPath:path.join(privateWatch.pattern.base,'index')});
- await new Promise(resolve=>setTimeout(resolve,160));
+ await waitFor(()=>files.every(node=>!node.status));
  const updated=await f.children(),updatedFiles=await f.children(updated[0]);
- assert.equal(f.item(updatedFiles.find(n=>n.label==='Main.java')).description,undefined);
- assert.equal(f.item(updatedFiles.find(n=>n.label==='Extra.java')).description,undefined);
- assert.equal(privateWatch.disposed,true);assert.equal(commonWatch.disposed,true);
+ assert.equal(f.item(updatedFiles.find(n=>n.label==='Main.java')).accessibilityInformation.label,'Main.java');
+ assert.equal(f.item(updatedFiles.find(n=>n.label==='Extra.java')).accessibilityInformation.label,'Extra.java');
+ assert.equal(privateWatch.disposed,undefined);assert.equal(commonWatch.disposed,undefined);
 });
 
 test('linked Files rereads changes made before metadata watchers are installed',async t=>{
@@ -287,31 +439,31 @@ test('linked Files rereads changes made before metadata watchers are installed',
  };
  const roots=await f.children(),files=await f.children(roots[0]);
  assert.equal(reads,2);assert.equal(f.watchers.length,4);
- assert.equal(f.item(files.find(n=>n.label==='Main.java')).description,undefined);
+ assert.equal(f.item(files.find(n=>n.label==='Main.java')).accessibilityInformation.label,'Main.java');
 });
 
-test('unsaved editor changes are marked and status failures are visible',async t=>{
+test('unsaved editor changes have an accessible status and Git status failures are visible',async t=>{
  const f=await fixture(t);
  f.vscode.workspace.textDocuments=[{isDirty:true,uri:{scheme:'file',fsPath:path.join(f.root,'src/main/java/Main.java')}}];
  let roots=await f.children(),files=await f.children(roots[0]);
- assert.equal(f.item(files.find(n=>n.label==='Main.java')).description,'M');
+ assert.equal(f.item(files.find(n=>n.label==='Main.java')).accessibilityInformation.label,'Main.java, Modified');
  await fs.writeFile(path.join(f.root,'.git'),'gitdir: elsewhere');f.tree.invalidate();
  roots=await f.children();assert.ok(roots.some(n=>n.label==='File change status unavailable'));
  assert.equal(f.calls.filter(c=>c[1]==='zero.projectHasDiscardableChanges').at(-1)[2],false);
 });
 
 
-test('discard availability follows saved Git changes and dirty editor transitions',async t=>{
+test('discard availability follows saved Git changes without flickering while editing',async t=>{
  const f=await fixture(t);let changes=new Map();
- f.host.readFileStatus=async()=>new Map(changes);
+ f.host.readFileStatus=async()=>Object.assign(new Map(changes),{supportsDiscard:true,hasCommittedHead:true});
  const document={isDirty:true,uri:{scheme:'file',fsPath:path.join(f.root,'src/main/java/Main.java')}};
  f.vscode.workspace.textDocuments=[document];
  const discard=()=>f.calls.filter(c=>c[1]==='zero.projectHasDiscardableChanges').at(-1)[2];
  let roots=await f.children();assert.equal(discard(),false);
  assert.ok(!roots.some(n=>/discard/i.test(n.label)));
- assert.equal(f.item((await f.children(roots[0])).find(n=>n.label==='Main.java')).description,'M');
- changes.set('src/main/java/Main.java','modified');f.tree.invalidate();roots=await f.children();assert.equal(discard(),false,'Mixed saved and unsaved changes are blocked');
- document.isDirty=false;f.tree.invalidate();roots=await f.children();assert.equal(discard(),false,'Discard remains unavailable after saving');
+ assert.equal(f.item((await f.children(roots[0])).find(n=>n.label==='Main.java')).accessibilityInformation.label,'Main.java, Modified');
+ changes.set('src/main/java/Main.java','modified');f.tree.invalidate();roots=await f.children();assert.equal(discard(),process.platform!=='win32','Saved changes keep the action visible while the editor is dirty');
+ document.isDirty=false;f.tree.invalidate();roots=await f.children();assert.equal(discard(),process.platform!=='win32','Saving keeps the action visible');
  assert.ok(!roots.some(n=>n.label==='Save open files before discarding changes'));
  changes=new Map();f.tree.invalidate();await f.children();assert.equal(discard(),false,'Reverting the saved change disables discard');
  f.host.readFileStatus=async()=>{throw Error('status failed');};document.isDirty=true;f.tree.invalidate();roots=await f.children();
@@ -327,7 +479,7 @@ test('discard blocks outside dirty files and marks a project file opened through
  f.vscode.workspace.textDocuments=[outside,aliasDoc];let roots=await f.children();
  const discard=()=>f.calls.filter(c=>c[1]==='zero.projectHasDiscardableChanges').at(-1)[2];
  assert.equal(discard(),false);assert.ok(!roots.some(n=>/discard/i.test(n.label)));
- assert.equal(f.item((await f.children(roots[0])).find(n=>n.label==='Main.java')).description,'M');
+ assert.equal(f.item((await f.children(roots[0])).find(n=>n.label==='Main.java')).accessibilityInformation.label,'Main.java, Modified');
  changes.set('src/main/java/Main.java','modified');aliasDoc.isDirty=false;f.documentEvents.onDidSaveTextDocument(aliasDoc);await f.children();assert.equal(discard(),false,'Outside edit remains a blocker');
  outside.isDirty=false;f.documentEvents.onDidChangeTextDocument({document:outside});roots=await f.children();assert.equal(discard(),false);
  assert.ok(!roots.some(n=>n.label==='Save open files before discarding changes'));
@@ -340,10 +492,13 @@ test('Files removal stays hidden even when helpers report available',async t=>{
  assert.equal(checks,0);assert.ok(!f.calls.some(call=>call[0]==='zero.removeAddedFile'));
 });
 
-test('modified tracked file opens native diff and unsupported additions use Source Control',{skip:process.env.ZERO_TEST_NETWORK_DENIED!=='1'},async t=>{
+test('Files opens untracked text for editing and keeps native diff and Source Control handoffs',{skip:process.env.ZERO_TEST_NETWORK_DENIED!=='1'},async t=>{
  const net=require('node:net'),{execFileSync}=require('node:child_process');const denied=await new Promise(resolve=>{const server=net.createServer();server.once('error',resolve);server.listen(0,'127.0.0.1',()=>server.close(()=>resolve(null)));});assert.ok(denied&&['EPERM','EACCES'].includes(denied.code));
- const f=await fixture(t),env={...process.env,HOME:f.root,XDG_CONFIG_HOME:f.root,GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:'/dev/null',GIT_TERMINAL_PROMPT:'0'};const git=(...args)=>execFileSync('/usr/bin/git',['-c','core.hooksPath=/dev/null','-c','user.name=Zero Test','-c','user.email=zero@example.invalid',...args],{cwd:f.root,env});git('init','-q','--template=');await put(f.root,'.gitattributes','* text=auto\n');git('add','--','.gitattributes','src/main/java/Main.java');git('commit','-qm','initial');await put(f.root,'src/main/java/Main.java','class Changed {}');await put(f.root,'src/main/java/New.java','new file');
- const {parseStudentFileStatus}=require('../src/student-file-status');let raw=' M src/main/java/Main.java\0?? src/main/java/New.java\0';f.host.readFileStatus=async()=>parseStudentFileStatus(raw);f.tree.invalidate();const roots=await f.children(),files=await f.children(roots[0]),main=files.find(x=>x.label==='Main.java'),added=files.find(x=>x.label==='New.java');await f.tree.commands['zero.explorerOpenFile'](main);const diff=f.calls.findLast(c=>c[0]==='vscode.diff');assert.ok(diff,JSON.stringify(f.logs));assert.equal(f.contentProviders.get('zero-files-snapshot').provideTextDocumentContent(diff[1]),'public class Main {}');assert.equal(diff[2].fsPath,path.join(f.root,'src/main/java/Main.java'));let rereads=0;f.host.readFileStatus=async()=>parseStudentFileStatus(++rereads===1?' M src/main/java/Main.java\0':'MM src/main/java/Main.java\0');const initialDiffs=f.calls.filter(c=>c[0]==='vscode.diff').length;await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(rereads,2);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');assert.equal(f.calls.filter(c=>c[0]==='vscode.diff').length,initialDiffs);f.host.readFileStatus=async()=>parseStudentFileStatus(raw);git('add','--','src/main/java/Main.java');await fs.writeFile(path.join(f.root,'src/main/java/Main.java'),'public class Main {}');raw='MM src/main/java/Main.java\0?? src/main/java/New.java\0';const previousDiffs=f.calls.filter(c=>c[0]==='vscode.diff').length;await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');assert.equal(f.calls.filter(c=>c[0]==='vscode.diff').length,previousDiffs);assert.equal(git('show',':src/main/java/Main.java').toString(),'class Changed {}');await f.tree.commands['zero.explorerOpenFile'](added);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');raw=' M src/main/java/Main.java\0';const aliasDir=await fs.mkdtemp(path.join(os.tmpdir(),'zero-editor-alias-'));t.after(()=>fs.rm(aliasDir,{recursive:true,force:true}));const alias=path.join(aliasDir,'editor-alias.java');await fs.symlink(path.join(f.root,'src/main/java/Main.java'),alias);const doc={isDirty:true,isClosed:false,version:1,uri:{scheme:'file',fsPath:alias},getText:()=> 'class Unsaved {}'};f.vscode.workspace.textDocuments=[doc];await f.tree.commands['zero.explorerOpenFile'](main);const unsaved=f.calls.findLast(c=>c[0]==='vscode.diff');assert.ok(unsaved);assert.equal(unsaved[2].fsPath,doc.uri.fsPath);assert.equal(f.contentProviders.get('zero-files-snapshot').provideTextDocumentContent(unsaved[1]),'public class Main {}');f.vscode.workspace.textDocuments=[];const originalOpen=fs.open;let sawBoundedRead=false;fs.open=async function(name,...args){const handle=await originalOpen.call(this,name,...args);if(name===path.join(f.root,'src/main/java/Main.java')){const originalRead=handle.read.bind(handle);handle.read=async(buffer,offset,length,position)=>{sawBoundedRead=true;if(position===buffer.length-1){buffer[offset]=65;return {bytesRead:1,buffer};}return originalRead(buffer,offset,length,position);};}return handle;};try{await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');assert.equal(sawBoundedRead,true);}finally{fs.open=originalOpen;}raw='M  src/main/java/Main.java\0';await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');raw=' M src/main/java/Main.java\0';const execute=f.vscode.commands.executeCommand;let failedUri;f.vscode.commands.executeCommand=async(...args)=>{if(args[0]==='vscode.diff'){failedUri=args[1];throw Error('injected diff failure');}return execute(...args);};try{await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');assert.equal(f.contentProviders.get('zero-files-snapshot').provideTextDocumentContent(failedUri),'');}finally{f.vscode.commands.executeCommand=execute;}raw='UU src/main/java/Main.java\0';await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');raw=' M src/main/java/Main.java\0';await fs.writeFile(path.join(f.root,'src/main/java/Main.java'),Buffer.from([0,1,2]));await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');await fs.writeFile(path.join(f.root,'src/main/java/Main.java'),'class Changed {}');git('config','filter.zero-test.clean','zero-nonexistent-filter');await fs.writeFile(path.join(f.root,'.gitattributes'),'src/main/java/Main.java filter=zero-test\n');await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');assert.ok(f.logs.some(line=>/filter/i.test(line)));
+ const f=await fixture(t),env={...process.env,HOME:f.root,XDG_CONFIG_HOME:f.root,GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:'/dev/null',GIT_TERMINAL_PROMPT:'0'};const git=(...args)=>execFileSync('/usr/bin/git',['-c','core.hooksPath=/dev/null','-c','user.name=Zero Test','-c','user.email=zero@example.invalid',...args],{cwd:f.root,env});git('init','-q','--template=');await put(f.root,'.gitattributes','* text=auto\n');git('add','--','.gitattributes','src/main/java/Main.java');git('commit','-qm','initial');await put(f.root,'src/main/java/Main.java','class Changed {}');await put(f.root,'src/main/java/New.txt','new file');
+ const {parseStudentFileStatus}=require('../src/student-file-status');let raw=' M src/main/java/Main.java\0?? src/main/java/New.txt\0';f.host.readFileStatus=async()=>parseStudentFileStatus(raw);f.tree.invalidate();const roots=await f.children(),files=await f.children(roots[0]),main=files.find(x=>x.label==='Main.java'),added=files.find(x=>x.label==='New.txt');await f.tree.commands['zero.explorerOpenFile'](main);const diff=f.calls.findLast(c=>c[0]==='vscode.diff');assert.ok(diff,JSON.stringify(f.logs));assert.equal(f.contentProviders.get('zero-files-snapshot').provideTextDocumentContent(diff[1]),'public class Main {}');assert.equal(diff[2].fsPath,path.join(f.root,'src/main/java/Main.java'));let rereads=0;f.host.readFileStatus=async()=>parseStudentFileStatus(++rereads===1?' M src/main/java/Main.java\0':'MM src/main/java/Main.java\0');const initialDiffs=f.calls.filter(c=>c[0]==='vscode.diff').length;await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(rereads,2);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');assert.equal(f.calls.filter(c=>c[0]==='vscode.diff').length,initialDiffs);f.host.readFileStatus=async()=>parseStudentFileStatus(raw);git('add','--','src/main/java/Main.java');await fs.writeFile(path.join(f.root,'src/main/java/Main.java'),'public class Main {}');raw='MM src/main/java/Main.java\0?? src/main/java/New.txt\0';const previousDiffs=f.calls.filter(c=>c[0]==='vscode.diff').length;await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');assert.equal(f.calls.filter(c=>c[0]==='vscode.diff').length,previousDiffs);assert.equal(git('show',':src/main/java/Main.java').toString(),'class Changed {}');await f.tree.commands['zero.explorerOpenFile'](added);assert.equal(f.calls.at(-1)[0],'vscode.open');assert.equal(f.calls.at(-1)[1].fsPath,path.join(f.root,'src/main/java/New.txt'));
+ git('add','--','src/main/java/New.txt');raw='A  src/main/java/New.txt\0';
+ await f.tree.commands['zero.explorerOpenFile'](added);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');
+ raw=' M src/main/java/Main.java\0';const aliasDir=await fs.mkdtemp(path.join(os.tmpdir(),'zero-editor-alias-'));t.after(()=>fs.rm(aliasDir,{recursive:true,force:true}));const alias=path.join(aliasDir,'editor-alias.java');await fs.symlink(path.join(f.root,'src/main/java/Main.java'),alias);const doc={isDirty:true,isClosed:false,version:1,uri:{scheme:'file',fsPath:alias},getText:()=> 'class Unsaved {}'};f.vscode.workspace.textDocuments=[doc];await f.tree.commands['zero.explorerOpenFile'](main);const unsaved=f.calls.findLast(c=>c[0]==='vscode.diff');assert.ok(unsaved);assert.equal(unsaved[2].fsPath,doc.uri.fsPath);assert.equal(f.contentProviders.get('zero-files-snapshot').provideTextDocumentContent(unsaved[1]),'public class Main {}');f.vscode.workspace.textDocuments=[];const originalOpen=fs.open;let sawBoundedRead=false;fs.open=async function(name,...args){const handle=await originalOpen.call(this,name,...args);if(name===path.join(f.root,'src/main/java/Main.java')){const originalRead=handle.read.bind(handle);handle.read=async(buffer,offset,length,position)=>{sawBoundedRead=true;if(position===buffer.length-1){buffer[offset]=65;return {bytesRead:1,buffer};}return originalRead(buffer,offset,length,position);};}return handle;};try{await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');assert.equal(sawBoundedRead,true);}finally{fs.open=originalOpen;}raw='M  src/main/java/Main.java\0';await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');raw=' M src/main/java/Main.java\0';const execute=f.vscode.commands.executeCommand;let failedUri;f.vscode.commands.executeCommand=async(...args)=>{if(args[0]==='vscode.diff'){failedUri=args[1];throw Error('injected diff failure');}return execute(...args);};try{await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');assert.equal(f.contentProviders.get('zero-files-snapshot').provideTextDocumentContent(failedUri),'');}finally{f.vscode.commands.executeCommand=execute;}raw='UU src/main/java/Main.java\0';await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');raw=' M src/main/java/Main.java\0';await fs.writeFile(path.join(f.root,'src/main/java/Main.java'),Buffer.from([0,1,2]));await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');await fs.writeFile(path.join(f.root,'src/main/java/Main.java'),'class Changed {}');git('config','filter.zero-test.clean','zero-nonexistent-filter');await fs.writeFile(path.join(f.root,'.gitattributes'),'src/main/java/Main.java filter=zero-test\n');await f.tree.commands['zero.explorerOpenFile'](main);assert.equal(f.calls.at(-1)[0],'workbench.view.scm');assert.ok(f.logs.some(line=>/filter/i.test(line)));
 });
 
 test('Files diff supports older Git and refuses partial clones before object reads',{skip:process.platform==='win32'||process.env.ZERO_TEST_NETWORK_DENIED!=='1'},async t=>{

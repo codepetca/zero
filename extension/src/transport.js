@@ -5,17 +5,23 @@ const os = require('node:os');
 const {execFile} = require('node:child_process');
 const {promisify} = require('node:util');
 const core = require('./core');
-const {assertNoUrlRewrites, gitError, validBranch} = require('./github');
+const {gitError, validBranch} = require('./github');
 const execute = promisify(execFile);
 const deletionChanged = () => Object.assign(new Error('The reviewed GitHub branch deletion is no longer authorized.'), {kind: 'changed'});
 const unreviewedCommand = () => Object.assign(new Error('Only the reviewed GitHub operations may use this sign-in.'), {kind: 'changed'});
 
-async function assertCleanupDestination(root, destination, run, env) {
+async function assertExactDestination(root, destination, run, env, deleting) {
   let keys;
   try { keys = await run(root, ['config', '-z', '--name-only', '--get-regexp', '^(url|remote)\\.'], {env: {...env}}); }
   catch (error) { if (error.code === 1) return; throw error; }
-  // Git treats an exact URL used as a remote name as a named remote.
-  if (keys.split('\0').some(key => key.startsWith(`remote.${destination}.`) || (key.startsWith('url.') && /\.(?:insteadof|pushinsteadof)$/i.test(key)))) throw deletionChanged();
+  // Git can interpret the URL itself as the name of a configured remote.
+  const names=keys.split('\0');
+  const rewrites=names.some(key=>key.startsWith('url.')&&/\.(?:insteadof|pushinsteadof)$/i.test(key));
+  const alias=names.some(key=>key.startsWith(`remote.${destination}.`));
+  if(deleting&&(rewrites||alias))throw deletionChanged();
+  if(rewrites||alias)throw Object.assign(new Error(rewrites
+    ? 'Git URL rewriting is configured. Review the ordinary GitHub HTTPS destination again.'
+    : 'Git is configured to redirect this GitHub destination. Check the repository configuration.'),{kind:'changed'});
 }
 
 // Only reviewed remote operations receive credentials; local Git never does.
@@ -85,12 +91,11 @@ function createTransport(remote, authenticate, {assertCurrentNow, deleteAuthoriz
       };
       env = {...environment};
       for (const key of Object.keys(env)) {
-        if ((binding && /^GIT_(?:DIR|COMMON_DIR|WORK_TREE|INDEX_FILE|OBJECT_DIRECTORY|ALTERNATE_OBJECT_DIRECTORIES|NAMESPACE|SHALLOW_FILE|GRAFT_FILE|REPLACE_REF_BASE|REFERENCE_BACKEND)$/i.test(key)) || (deletion && /^GIT_CONFIG$/i.test(key)) || /^GIT_CONFIG_(?:COUNT|KEY_\d+|VALUE_\d+|PARAMETERS)$|^GIT_TRACE|^GIT_CURL_VERBOSE$|^GIT_SSL_NO_VERIFY$|^GIT_ASKPASS$|^SSH_ASKPASS$|^SSLKEYLOGFILE$/i.test(key)) delete env[key];
+        if ((binding && /^GIT_(?:DIR|COMMON_DIR|WORK_TREE|INDEX_FILE|OBJECT_DIRECTORY|ALTERNATE_OBJECT_DIRECTORIES|NAMESPACE|SHALLOW_FILE|GRAFT_FILE|REPLACE_REF_BASE|REFERENCE_BACKEND)$/i.test(key)) || /^GIT_CONFIG$/i.test(key) || /^GIT_CONFIG_(?:COUNT|KEY_\d+|VALUE_\d+|PARAMETERS)$|^GIT_TRACE|^GIT_CURL_VERBOSE$|^GIT_SSL_NO_VERIFY$|^GIT_ASKPASS$|^SSH_ASKPASS$|^SSLKEYLOGFILE$/i.test(key)) delete env[key];
       }
       if (binding) {env.GIT_DIR=binding.gitDir;env.GIT_COMMON_DIR=binding.commonDir;env.GIT_WORK_TREE=binding.root;env.GIT_NO_LAZY_FETCH='1';env.GIT_NO_REPLACE_OBJECTS='1';}
       try {
-        if (deletion) await assertCleanupDestination(root, destination, localRun, env);
-        else await assertNoUrlRewrites(root, localRun);
+        await assertExactDestination(root,destination,localRun,env,deletion);
       } catch (error) {
         if (error.kind === 'changed') throw error;
         throw gitError(error, 'verify the GitHub destination');
@@ -111,7 +116,7 @@ function createTransport(remote, authenticate, {assertCurrentNow, deleteAuthoriz
         [scoped + 'followRedirects', 'false'], [scoped + 'sslVerify', 'true'], [scoped + 'curloptResolve', ''],
         [scoped + 'cookieFile', ''], [scoped + 'saveCookies', 'false']
       );
-      if (deleting) settings.push(['push.followTags', 'false'], ['push.gpgSign', 'false'], ['push.recurseSubmodules', 'no'], ['push.pushOption', ''], ['push.negotiate', 'false']);
+      if (pushing || deleting) settings.push(['push.followTags', 'false'], ['push.gpgSign', 'false'], ['push.recurseSubmodules', 'no'], ['push.pushOption', ''], ['push.negotiate', 'false']);
       // Trace2 starts before command-scope config is applied; environment zero
       // must override persistent trace targets that could record runtime secrets.
       env.GIT_TRACE2 = '0'; env.GIT_TRACE2_EVENT = '0'; env.GIT_TRACE2_PERF = '0';
@@ -135,7 +140,10 @@ function createTransport(remote, authenticate, {assertCurrentNow, deleteAuthoriz
           if (deletionDispatched) throw deletionChanged();
           deletionDispatched = true;
         }
-        const {stdout} = await spawn('git', deleting ? deletion.args : args, {cwd: root, env, timeout: 120000, maxBuffer: 1024 * 1024});
+        // A bare object ID can also name a ref. The commit peel forces Git
+        // to resolve the saved object, even when a same-named ref exists.
+        const childArgs=pushing?['push',destination,args[2].replace(':refs/heads/','^{commit}:refs/heads/')]:deleting?deletion.args:args;
+        const {stdout} = await spawn('git', childArgs, {cwd: root, env, timeout: 120000, maxBuffer: 1024 * 1024});
         if (deletion) checkBinding();
         else checkSession();
         // Push/fetch need no arbitrary output; ls-remote

@@ -20,6 +20,7 @@ async function harness(t,{missing=false,choice=true,dirty=false,dirtyBuffer=dirt
     git('init','-q');git('config','--local','core.worktree',root);
   }
   const original={git:core.git,assert:core.assertRepositoryRoot,repo:core.repositoryRoot,connect:core.connectRepository,prepare:github.prepareUpload,sync:github.syncExistingHead,upload:github.uploadPrepared,check:github.checkUpload};
+  let projectAction;
   let head=B,remoteHead=missing?null:A,childRemoteHead=null,remote=disconnected?'':'https://github.com/student/app.git',status=dirty?' M Main.java':'',fingerprint='reviewed-files',view,authEvent,recovery;
   let session={id:'session',account:{id:'1',label:'student'},accessToken:'FIXTURE_ONLY'},afterWarning=async()=>{},onStart=async()=>{},afterBranchCreate=async()=>{},beforeDispatch=async()=>{},beforeBranchRead=async()=>{},afterPush=async()=>{},afterCheck=async()=>{},afterConfirmation=async()=>{},afterUpdate=async()=>{},failPush=false,failRead=false,failConfirmation=false,failResolution=false,failResolutionAfter=Infinity,resolutionWrites=0,failAdd=false,saves=0,syncs=0,checks=0;
   const commands=new Map(),stored=new Map(),warnings=[],errors=[],logs=[],pushes=[],mainChecks=[],gitCalls=[],nativeCommands=[],subscriptions=[];
@@ -34,6 +35,7 @@ async function harness(t,{missing=false,choice=true,dirty=false,dirtyBuffer=dirt
     if(args[0]==='config')throw Object.assign(Error('No matching config'),{code:1});
     if(args[0]==='symbolic-ref'){if(args.at(-1)!=='HEAD')throw Object.assign(Error('Direct ref'),{code:1});return `refs/heads/${branch}`;}
     if(args[0]==='remote'){if(!remote){if(args.length===1)return '';throw Object.assign(Error('No origin'),{code:2});}return args.length===1?'origin':remote;}
+    if(args[0]==='for-each-ref'&&args.at(-1)==='refs/heads/')return `refs/heads/${branch}\t${head}`;
     if(args[0]==='ls-files')return '';
     if(args[0]==='rev-parse')return args.includes('--is-shallow-repository')?'false':args.includes('--show-toplevel')?root:args.includes('--git-common-dir')?commonDir:args.includes('--absolute-git-dir')?path.join(root,'.git'):head;
     if(args[0]==='status')return status;
@@ -61,7 +63,7 @@ async function harness(t,{missing=false,choice=true,dirty=false,dirtyBuffer=dirt
   const vscode={
     authentication:{getSession:async()=>session,onDidChangeSessions:fn=>{authEvent=fn;return disposable();},registerAuthenticationProvider:disposable},
     workspace:{isTrusted:true,workspaceFolders:[{uri:{fsPath:root}}],textDocuments:documents,getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>{saves++;return true;},registerTextDocumentContentProvider:disposable,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
-    window:{createOutputChannel:()=>({appendLine:value=>logs.push(value),dispose(){}}),registerWebviewViewProvider:(_,value)=>{view=value;return disposable();},registerTreeDataProvider:disposable,showQuickPick:async(_items,options)=>options?.canPickMany?[]:undefined,showInputBox:async options=>options?.title==='GitHub repository URL'?'https://github.com/student/app':cancelInput?undefined:'child',showInformationMessage:async()=>{},showWarningMessage:async(message,options,...actions)=>{warnings.push({message,options,actions});await afterWarning();return choice?actions[0]:undefined;},showErrorMessage:async message=>errors.push(message)},
+    window:{createOutputChannel:()=>({appendLine:value=>logs.push(value),dispose(){}}),registerWebviewViewProvider:(_,value)=>{view=value;return disposable();},registerTreeDataProvider:disposable,showQuickPick:async(items,options)=>options?.canPickMany?[]:items.find(item=>item.action===projectAction&&projectAction),showInputBox:async options=>options?.title==='GitHub repository URL'?'https://github.com/student/app':cancelInput?undefined:'child',showInformationMessage:async()=>{},showWarningMessage:async(message,options,...actions)=>{warnings.push({message,options,actions});await afterWarning();return choice?actions[0]:undefined;},showErrorMessage:async message=>errors.push(message)},
     tasks:{onDidStartTask:disposable,onDidEndTask:disposable,onDidEndTaskProcess:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(...args)=>nativeCommands.push(args),...(nativeScm?{getCommands:async()=>['workbench.view.scm']}:{})},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
   const load=Module._load;delete require.cache[require.resolve('../src/extension')];
@@ -87,9 +89,9 @@ async function harness(t,{missing=false,choice=true,dirty=false,dirtyBuffer=dirt
   extension.activate({subscriptions,workspaceState:{keys:()=>[...stored.keys()],get:key=>stored.get(key),update:async(key,value)=>{if(failAdd&&key.startsWith('zero.pendingSync.v1:'))throw Error('Reminder storage unavailable');if(key.startsWith('zero.resolvedSync.v1:')&&(failResolution||++resolutionWrites>failResolutionAfter))throw Error('Fixture reminder resolution failed');stored.set(key,value);}}},{...(noLedger||productionCompatibility?{}:{repositoryLedgerFactory}),provider:appSessions(vscode,{dispose(){}}),repositories:{checkSetup:async()=>({}),access:async()=>({repository:{id:12},installation:{id:99}})}});
   const webview={html:'',onDidReceiveMessage:disposable};view.resolveWebviewView({webview,onDidDispose:disposable});
   t.after(async()=>{subscriptions.forEach(value=>value.dispose());core.git=original.git;core.assertRepositoryRoot=original.assert;core.repositoryRoot=original.repo;core.connectRepository=original.connect;github.prepareUpload=original.prepare;github.syncExistingHead=original.sync;github.uploadPrepared=original.upload;github.checkUpload=original.check;delete require.cache[require.resolve('../src/extension')];await fs.rm(root,{recursive:true,force:true});});
-  await waitFor(()=>webview.html.includes(disconnected?'Local project · no GitHub remote connected.':'data-command="zero.syncSavedCommits"'));
+  await waitFor(()=>webview.html.includes(disconnected?'data-branch-state="local"':missing?'data-branch-state="remote-missing"':'data-branch-state="local-ahead"'));
   if(graftsInCommonDir){commonDir=path.join(root,'git-common');await fs.mkdir(path.join(commonDir,'info'),{recursive:true});await fs.writeFile(path.join(commonDir,'info','grafts'),`${B} ${A}\n`);}
-  return {root,stored,warnings,errors,logs,pushes,webview,commands,documents,mainChecks,gitCalls,nativeCommands,setTrust(value){vscode.workspace.isTrusted=value;},setWorkspace(value){vscode.workspace.workspaceFolders=[{uri:{fsPath:value}}];},sync:()=>commands.get('zero.syncSavedCommits')(),check:()=>commands.get('zero.checkBranchConnection')(),get saves(){return saves;},get syncs(){return syncs;},get checks(){return checks;},set choice(value){choice=value;},set recovery(value){recovery=value;},set onStart(value){onStart=value;},set beforeDispatch(value){beforeDispatch=value;},set afterBranchCreate(value){afterBranchCreate=value;},set beforeBranchRead(value){beforeBranchRead=value;},set afterWarning(value){afterWarning=value;},set afterPush(value){afterPush=value;},set afterCheck(value){afterCheck=value;},set afterConfirmation(value){afterConfirmation=value;},set afterUpdate(value){afterUpdate=value;},set head(value){head=value;},set branch(value){branch=value;},set remote(value){remote=value;},set remoteHead(value){remoteHead=value;},set childRemoteHead(value){childRemoteHead=value;},set status(value){status=value;},set fingerprint(value){fingerprint=value;},set failAdd(value){failAdd=value;},get recovery(){return recovery;},set failPush(value){failPush=value;},set failRead(value){failRead=value;},set failConfirmation(value){failConfirmation=value;},set failResolution(value){failResolution=value;},set failResolutionAfter(value){failResolutionAfter=value;},changeSession(){session={...session,accessToken:'REPLACED_FIXTURE_ONLY'};authEvent({changed:[session]});},changeAccount(){session={...session,id:'other-session',account:{id:'2',label:'other'}};authEvent({changed:[session]});},activeRecords:()=>[...stored.entries()].filter(([key])=>key.startsWith('zero.pendingSync.v1:')).map(([,row])=>row).filter(row=>![...stored.entries()].some(([key,value])=>key.startsWith('zero.resolvedSync.v1:')&&value.record.id===row.id))};
+  return {root,stored,warnings,errors,logs,pushes,webview,commands,documents,set projectAction(value){projectAction=value;},mainChecks,gitCalls,nativeCommands,setTrust(value){vscode.workspace.isTrusted=value;},setWorkspace(value){vscode.workspace.workspaceFolders=[{uri:{fsPath:value}}];},sync:()=>commands.get('zero.syncSavedCommits')(),check:()=>commands.get('zero.checkBranchConnection')(),get saves(){return saves;},get syncs(){return syncs;},get checks(){return checks;},set choice(value){choice=value;},set recovery(value){recovery=value;},set onStart(value){onStart=value;},set beforeDispatch(value){beforeDispatch=value;},set afterBranchCreate(value){afterBranchCreate=value;},set beforeBranchRead(value){beforeBranchRead=value;},set afterWarning(value){afterWarning=value;},set afterPush(value){afterPush=value;},set afterCheck(value){afterCheck=value;},set afterConfirmation(value){afterConfirmation=value;},set afterUpdate(value){afterUpdate=value;},set head(value){head=value;},set branch(value){branch=value;},set remote(value){remote=value;},set remoteHead(value){remoteHead=value;},set childRemoteHead(value){childRemoteHead=value;},set status(value){status=value;},set fingerprint(value){fingerprint=value;},set failAdd(value){failAdd=value;},get recovery(){return recovery;},set failPush(value){failPush=value;},set failRead(value){failRead=value;},set failConfirmation(value){failConfirmation=value;},set failResolution(value){failResolution=value;},set failResolutionAfter(value){failResolutionAfter=value;},changeSession(){session={...session,accessToken:'REPLACED_FIXTURE_ONLY'};authEvent({changed:[session]});},changeAccount(){session={...session,id:'other-session',account:{id:'2',label:'other'}};authEvent({changed:[session]});},activeRecords:()=>[...stored.entries()].filter(([key])=>key.startsWith('zero.pendingSync.v1:')).map(([,row])=>row).filter(row=>![...stored.entries()].some(([key,value])=>key.startsWith('zero.resolvedSync.v1:')&&value.record.id===row.id))};
 }
 
 test('clean local-ahead and missing remote branches offer exact saved-commit sync',async t=>{
@@ -246,6 +248,44 @@ test('production compatibility storage refuses descendant retry before review or
   assert.match(h.errors.at(-1),/requires shared sync reminder storage/);assert.deepEqual(h.warnings,[]);assert.deepEqual(h.pushes,[]);assert.equal(h.syncs,0);assert.equal(h.checks,checks);
   assert.deepEqual(h.activeRecords(),[earlier]);assert.match(h.logs.join('\n'),/workspace reminder compatibility storage/);
 });
+test('sidebar Sync hands off a reftable update before a modal or local mutation',async t=>{
+  const h=await harness(t,{refOnlyFixture:true});
+  h.remoteHead=OTHER;await h.check();
+  await h.commands.get('zero.syncBranch')();
+  assert.deepEqual(h.warnings,[]);assert.deepEqual(h.errors,[]);assert.deepEqual(h.pushes,[]);
+  assert.deepEqual(h.activeRecords(),[]);
+  assert.match(h.webview.html,/Open Source Control to sync this branch/);
+});
+
+test('an older account-unbound reminder can be inspected in Project actions',async t=>{
+  const h=await harness(t,{missing:true});
+  const record={id:'legacy',root:h.root,branch:'main',head:B,remote:'https://github.com/student/app.git',
+    page:'https://github.com/student/app',type:'push',kind:'network',committed:true,pushStarted:true};
+  h.stored.set('zero.pendingSync.v1:legacy',record);
+  await h.commands.get('zero.syncBranch')();
+  assert.deepEqual(h.pushes,[]);assert.deepEqual(h.warnings,[]);assert.deepEqual(h.errors,[]);
+  assert.match(h.webview.html,/Open Project actions to inspect the interrupted sync/);
+  assert.deepEqual(h.activeRecords(),[record]);
+  h.projectAction='inspectSync';
+  await h.commands.get('zero.chooseRepository')();
+  assert.match(h.warnings.at(-1).options.detail,new RegExp(B));
+  assert.equal(h.activeRecords().length,0);
+  assert.ok([...h.stored.values()].some(row=>row?.record?.id===record.id&&row.reason==='reviewed'));
+  await h.commands.get('zero.syncBranch')();
+  assert.deepEqual(h.pushes,[['push',record.remote,`${B}:refs/heads/main`]]);
+});
+
+test('a reminder ID cannot bypass the specialized reftable recovery review',async t=>{
+  const h=await harness(t,{noLedger:'enumerable'});
+  const record={id:'ref-only',root:h.root,branch:'main',head:B,remote:'https://github.com/student/app.git',
+    page:'https://github.com/student/app',type:'push',operation:'reftable-ref-only',kind:'ref-pending',committed:false,pushStarted:false};
+  h.stored.set('zero.pendingSync.v1:ref-only',record);
+  await h.commands.get('zero.reviewPendingSync')(record.id);
+  assert.match(h.errors.at(-1),/no earlier sync to review/);
+  assert.deepEqual(h.warnings,[]);assert.deepEqual(h.pushes,[]);
+  assert.deepEqual(h.activeRecords(),[record]);
+});
+
 test('new branch completes while an earlier GitHub check is still waiting',async t=>{
   const h=await harness(t,{branch:'feature'});
   let entered,release;
@@ -261,10 +301,10 @@ test('new branch completes while an earlier GitHub check is still waiting',async
     await creating;
     assert.deepEqual(h.errors,[]);assert.deepEqual(h.warnings,[]);assert.deepEqual(h.pushes,[]);
     assert.match(h.webview.html,/Created child locally/);
-    assert.match(h.webview.html,/<button id="branch-sync"[^>]* disabled>/);
+    assert.doesNotMatch(h.webview.html,/<button id="branch-sync"[^>]* disabled>/);
   }finally{release();await checking;}
   await waitFor(()=>h.webview.html.includes('data-branch-state="remote-missing"')&&h.mainChecks.includes('child'));
-  assert.match(h.webview.html,/<button id="branch-sync"[^>]*data-command="zero.syncSavedCommits"[^>]*>Sync/);
+  assert.match(h.webview.html,/<button id="branch-sync"[^>]*data-command="zero.syncBranch"[^>]*>Sync/);
   assert.doesNotMatch(h.webview.html,/<button id="branch-sync"[^>]* disabled>/);
 });
 test('separate sync publishes only the new branch’s saved commit',async t=>{
@@ -279,6 +319,31 @@ test('separate sync publishes only the new branch’s saved commit',async t=>{
     assert.deepEqual(h.errors,[]);assert.deepEqual(h.pushes,[['push','https://github.com/student/app.git',`${B}:refs/heads/child`]]);assert.equal(h.saves,0);
     assert.match(h.logs.join('\n'),scenario==='clean'?/saved commit was confirmed on GitHub/:/newer file changes and unsaved edits remain on this computer/);
   });
+});
+test('sidebar Sync shows zero counts and ignores an older branch check',async t=>{
+  const h=await harness(t,{branch:'feature'});
+  await h.commands.get('zero.startChange')();
+  await waitFor(()=>h.webview.html.includes('data-branch-state="remote-missing"'));
+  assert.match(h.webview.html,/<button id="branch-sync"[^>]*aria-label="Sync with GitHub"[^>]*>Sync<\/button>/);
+  let enter,release;
+  const entered=new Promise(resolve=>{enter=resolve;});
+  const delayed=new Promise(resolve=>{release=resolve;});
+  h.beforeBranchRead=async()=>{
+    h.beforeBranchRead=async()=>{};
+    enter();await delayed;
+    throw Object.assign(Error('The older check timed out'),{kind:'network'});
+  };
+  const earlier=h.check();
+  try {
+    await entered;
+    const checks=h.checks;
+    await h.commands.get('zero.syncBranch')();
+    assert.deepEqual(h.pushes,[['push','https://github.com/student/app.git',`${B}:refs/heads/child`]]);
+    assert.equal(h.checks,checks+2,'Only the Sync check and push confirmation read the branch');
+    assert.match(h.webview.html,/<button id="branch-sync"[^>]*Outgoing commits: 0\. Incoming commits: 0\./);
+  } finally {release();await earlier;}
+  assert.match(h.webview.html,/data-branch-state="synced"/);
+  assert.match(h.webview.html,/<button id="branch-sync"[^>]*Outgoing commits: 0\. Incoming commits: 0\.[^>]* disabled>/);
 });
 test('new branch never pushes regardless of the remote branch state',async t=>{
   for(const scenario of ['absent','same head','different ancestor','offline'])await t.test(scenario,async t=>{
@@ -322,7 +387,7 @@ test('updating from main retains an observed missing feature and does not push',
   const h=await harness(t,{branch:'feature',missing:true,updated:true,updateTo:'c'.repeat(40)});
   await h.commands.get('zero.syncProject')();assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,0);
   const records=h.activeRecords().filter(row=>row.kind==='remote-missing');assert.ok(records.some(row=>row.head===B));assert.ok(records.some(row=>row.head==='c'.repeat(40)));assert.ok(records.every(row=>row.accountId==='1'&&row.branch==='feature'));
-  assert.match(h.webview.html,/review branch creation/i);
+  assert.doesNotMatch(h.webview.html,/review branch creation/i);
 });
 disabledSafetyTest('guided update completion retains a persisted missing-branch reminder',async t=>{
   const h=await harness(t,{branch:'feature',missing:true}),recovery={id:'update',branch:'feature',head:B,remote:'https://github.com/student/app.git',remoteBranch:'main',files:[{path:'Main.java',kind:'text',conflicts:[{id:'conflict',local:'local',incoming:'incoming'}]}]};
@@ -341,17 +406,18 @@ test('pending merge recovery reports a missing main rather than an update',async
   const h=await harness(t,{branch:'feature',mergeRecovery:'missing'});await h.commands.get('zero.finishChange')();
   assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,0);assert.match(h.webview.html,/GitHub main is missing · review before merging/);assert.match(h.logs.join('\n'),/inspect the repository before recreating/);
 });
-test('merge and earlier-merge retry disclose the non-atomic GitHub ref race',async t=>{
-  for(const recovery of [false,true])await t.test(recovery?'retry':'merge',async t=>{
-    const h=await harness(t,{branch:'feature',choice:false,...(recovery?{mergeRecovery:'needsPush'}:{finishResult:true})});
-    await h.commands.get('zero.finishChange')();assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,0);
-    assert.match(h.warnings.at(-1).options.detail,/refs\/heads\/main/);assert.match(h.warnings.at(-1).options.detail,/not atomic/);assert.match(h.warnings.at(-1).options.detail,/deleted or rewound/);assert.match(h.warnings.at(-1).options.detail,/recreate or fast-forward/);
-  });
+test('earlier-merge retry discloses the non-atomic GitHub ref race',async t=>{
+  const h=await harness(t,{branch:'feature',choice:false,mergeRecovery:'needsPush'});
+  await h.commands.get('zero.finishChange')();assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,0);
+  const {detail}=h.warnings.at(-1).options;
+  assert.match(detail,/refs\/heads\/main/);assert.match(detail,/not atomic/);
+  assert.match(detail,/deleted or rewound/);assert.match(detail,/recreate or fast-forward/);
 });
-test('merge review identifies the actual remote main separately from local main',async t=>{
- const h=await harness(t,{branch:'feature',choice:false,finishResult:OTHER});await h.commands.get('zero.finishChange')();
- assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,0);const detail=h.warnings.at(-1).options.detail;
- assert.ok(detail.includes(`Local main at review: ${A}`));assert.ok(detail.includes(`GitHub main at review: ${OTHER}`));
+test('merge confirmation names the feature and main in one line',async t=>{
+  const h=await harness(t,{branch:'feature',choice:false,finishResult:OTHER});
+  await h.commands.get('zero.finishChange')();
+  assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,0);
+  assert.deepEqual(h.warnings,[{message:'Merge feature into main?',options:{modal:true},actions:['Merge']}]);
 });
 test('merge refuses an unverified GitHub main before prompting',async t=>{
  const h=await harness(t,{branch:'feature',finishResult:'invalid'});await h.commands.get('zero.finishChange')();
@@ -362,13 +428,13 @@ test('synchronous merge authority stops trust, session, workspace and editor dri
   const h=await harness(t,{branch:'feature',...(action==='merge'?{finishResult:true}:{updated:true,updateTo:'c'.repeat(40)})});
   const other={isDirty:true,version:1,uri:{scheme:'file',fsPath:path.join(path.dirname(h.root),'other.java')}};if(scenario==='editor-version')h.documents.push(other);
   h.beforeDispatch=async()=>{if(scenario==='trust')h.setTrust(false);if(scenario==='account')h.changeAccount();if(scenario==='session')h.changeSession();if(scenario==='workspace')h.setWorkspace(path.dirname(h.root));if(scenario==='editor')h.documents.push({isDirty:true,version:1,uri:{scheme:'file',fsPath:path.join(h.root,'Main.java')}});if(scenario==='editor-version')other.version++;};
-  await h.commands.get(action==='merge'?'zero.finishChange':'zero.syncProject')();assert.equal(h.pushes.length,0);assert.ok(h.errors.length);assert.doesNotMatch(h.webview.html,/Merged to main · branch kept/);
+  await h.commands.get(action==='merge'?'zero.finishChange':'zero.syncProject')();assert.equal(h.pushes.length,0);assert.ok(h.errors.length);assert.doesNotMatch(h.webview.html,/Merged to main/);
  });
 });
 disabledSafetyTest('a missing check begun during a paused conflict is saved before continuing',async t=>{
   const h=await harness(t,{branch:'feature'}),recovery={id:'update',branch:'feature',head:B,remote:'https://github.com/student/app.git',remoteBranch:'main',files:[{path:'Main.java',kind:'text',conflicts:[{id:'conflict',local:'local',incoming:'incoming'}]}]};
   h.recovery=recovery;await h.commands.get('zero.chooseRepository')();h.remoteHead=null;await h.check();
-  assert.ok(h.webview.html.includes('This branch was missing on GitHub at the last check'));
+  assert.ok(h.webview.html.includes('data-branch-state="remote-missing"'));
   await h.commands.get('zero.keepLocalUpdate')(require('../src/git-recovery-panel').selection(recovery).token);
   assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,0);assert.ok(h.activeRecords().some(row=>row.kind==='remote-missing'&&row.head===B));assert.ok(h.activeRecords().some(row=>row.kind==='remote-missing'&&row.head===OTHER));
 });
@@ -398,6 +464,27 @@ test('in-flight missing checks finish before update and legacy upload can mutate
     else assert.match(h.errors.at(-1),/Review branch creation/);
   });
 });
+test('Merge reaches its confirmation while the branch status check is still running',async t=>{
+  const h=await harness(t,{branch:'feature',choice:false,finishResult:true});
+  let release,entered;
+  const gate=new Promise(resolve=>{release=resolve;});
+  const started=new Promise(resolve=>{entered=resolve;});
+  h.beforeBranchRead=async()=>{entered();await gate;};
+  const check=h.check();
+  try {
+    await started;
+    const merge=h.commands.get('zero.finishChange')();
+    let timeout;
+    try {
+      await Promise.race([merge,new Promise((_,reject)=>{
+        timeout=setTimeout(()=>reject(new Error('Merge waited for the branch status check')),2000);
+      })]);
+      assert.deepEqual(h.errors,[]);
+      assert.equal(h.warnings.at(-1).message,'Merge feature into main?');
+      assert.equal(h.pushes.length,0);
+    } finally {clearTimeout(timeout);}
+  } finally {release();await check;}
+});
 test('reviewed missing-branch retry validates and resolves an applied correction intent',async t=>{
   for(const valid of [true,false])await t.test(valid?'valid receipt':'invalid receipt',async t=>{
     const h=await harness(t,{missing:true,correctionReceipt:{commit:valid?B:OTHER,branch:'refs/heads/main'}});
@@ -419,14 +506,14 @@ test('incomplete deleted-file restoration blocks branch, update and saved-head u
   for(const action of ['start','update','sync','legacy'])await t.test(action,async t=>{
     const h=await harness(t,{branch:'feature',updated:true}),folder=path.join(h.root,'.git','zero-file-restore-recovery-abc123');await fs.mkdir(folder);
     await h.commands.get({start:'zero.startChange',update:'zero.syncProject',sync:'zero.syncSavedCommits',legacy:'zero.uploadToGitHub'}[action])();
-    assert.equal(h.pushes.length,0);assert.ok(h.errors.some(message=>/restoration or initial project discard needs inspection/i.test(message)));assert.ok(await fs.stat(folder));
+    assert.equal(h.pushes.length,0);assert.ok([...h.errors,...h.logs].some(message=>/restoration or initial project discard needs inspection/i.test(message)));assert.ok(await fs.stat(folder));
     if(action==='start')assert.doesNotMatch(h.webview.html,/Current branch: child/);
   });
 });
 
 test('reconnecting a project checks its branch after the connection finishes',async t=>{
   const h=await harness(t,{disconnected:true});await h.commands.get('zero.connectRepository')();
-  await waitFor(()=>h.webview.html.includes('Local commits are not on this GitHub branch.'));
+  await waitFor(()=>h.webview.html.includes('data-branch-state="local-ahead"'));
   assert.equal(h.checks,1);assert.deepEqual(h.errors,[]);
 });
 test('confirmed retry and local reminder sync refresh an unchanged branch observation',async t=>{
@@ -463,7 +550,7 @@ test('failed, unconfirmed and cancelled legacy uploads do not force branch check
     await h.commands.get('zero.uploadToGitHub')();
     assert.equal(h.checks,before+(outcome==='unconfirmed'?1:0),'Only an attempted transfer confirmation may run');
     assert.equal(h.pushes.length,outcome==='cancelled'?0:1);assert.equal(h.errors.length,outcome==='cancelled'?0:1);
-    assert.match(h.webview.html,/Local commits are not on this GitHub branch/);
+    assert.match(h.webview.html,/data-branch-state="local-ahead"/);
   });
 });
 test('unconfirmed push review preserves its reminder without forcing a branch check',async t=>{
@@ -471,13 +558,13 @@ test('unconfirmed push review preserves its reminder without forcing a branch ch
   h.stored.set('zero.pendingSync.v1:prior',{id:'prior',root:h.root,branch:'main',head:B,remote:'https://github.com/student/app.git',type:'push',accountId:'1',kind:'unconfirmed',committed:true,pushStarted:true});
   await h.commands.get('zero.checkPush')();
   assert.equal(h.checks,before+1);assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,0);assert.equal(h.activeRecords().length,1);
-  assert.match(h.webview.html,/Local commits are not on this GitHub branch/);
+  assert.match(h.webview.html,/data-branch-state="local-ahead"/);
 });
 test('missing branch check requires explicit review before exact non-force recreation',async t=>{
   const h=await harness(t,{missing:true,choice:false});
   h.stored.set('zero.pendingSync.v1:prior',{id:'prior',root:h.root,branch:'main',head:B,remote:'https://github.com/student/app.git',page:'https://github.com/student/app',type:'push',accountId:'1',kind:'unconfirmed',committed:true,pushStarted:true});
   await h.commands.get('zero.checkPush')();assert.deepEqual(h.errors,[]);assert.equal(h.activeRecords().length,1);assert.equal(h.activeRecords()[0].kind,'remote-missing');
-  assert.match(h.webview.html,/branch missing/i);assert.match(h.webview.html,/Review branch creation/);
+  assert.match(h.webview.html,/data-branch-state="remote-missing"/);assert.doesNotMatch(h.webview.html,/Review branch creation/);
   await h.commands.get('zero.retryBranchSync')();assert.equal(h.pushes.length,0);assert.match(h.warnings.at(-1).options.detail,/Destination ref: refs\/heads\/main/);assert.match(h.warnings.at(-1).options.detail,new RegExp(B));assert.match(h.warnings.at(-1).options.detail,/create it if it remains absent/);assert.match(h.warnings.at(-1).options.detail,/not atomic.*fast-forward update.*without force/);
   assert.equal(h.activeRecords()[0].kind,'remote-missing');h.choice=true;await h.commands.get('zero.retryBranchSync')();
   assert.deepEqual(h.errors,[]);assert.deepEqual(h.pushes,[['push','https://github.com/student/app.git',`${B}:refs/heads/main`]]);assert.equal(h.activeRecords().length,0);
@@ -507,12 +594,12 @@ test('same-head sibling reminders prefer uncertainty and preserve later arrivals
   let reviewed;h.afterCheck=async record=>{reviewed=record.id;h.stored.set('zero.pendingSync.v1:late',{...base,id:'late',kind:'network'});h.stored.set('zero.pendingSync.v1:unrelated',{...base,id:'unrelated',branch:'other',kind:'network'});};
   await h.commands.get('zero.checkPush')();assert.deepEqual(h.errors,[]);assert.equal(reviewed,'z-unconfirmed');
   const active=h.activeRecords();assert.ok(!active.some(row=>['a-network','z-unconfirmed'].includes(row.id)));assert.ok(active.some(row=>row.id==='late'));assert.ok(active.some(row=>row.id==='unrelated'));assert.ok(active.some(row=>row.kind==='remote-missing'));
-  assert.match(h.webview.html,/branch missing/i);await h.commands.get('zero.retryBranchSync')();assert.equal(h.pushes.length,0);assert.match(h.warnings.at(-1).options.detail,/not atomic.*fast-forward update/);
+  assert.match(h.webview.html,/data-branch-state="remote-missing"/);await h.commands.get('zero.retryBranchSync')();assert.equal(h.pushes.length,0);assert.match(h.warnings.at(-1).options.detail,/not atomic.*fast-forward update/);
 });
 test('a started network attempt cannot silently retry an exact head',async t=>{
   const h=await harness(t),base={id:'prior',root:h.root,branch:'main',head:B,remote:'https://github.com/student/app.git',page:'https://github.com/student/app',type:'push',accountId:'1',kind:'network',committed:true,pushStarted:true};
   h.stored.set('zero.pendingSync.v1:prior',base);await h.commands.get('zero.retryBranchSync')();
-  assert.equal(h.pushes.length,0);assert.match(h.errors.at(-1),/push may have started.*Check GitHub status/i);assert.ok(h.activeRecords().some(row=>row.id==='prior'));assert.match(h.webview.html,/Check GitHub status/);
+  assert.equal(h.pushes.length,0);assert.match(h.errors.at(-1),/push may have started.*Check GitHub status/i);assert.ok(h.activeRecords().some(row=>row.id==='prior'));assert.doesNotMatch(h.webview.html,/data-command="zero.checkPush"/);
 });
 test('status makes an uncertain exact head retryable only for a confirmed ancestor',async t=>{
   for(const scenario of ['cancel','confirmed','diverged'])await t.test(scenario,async t=>{
@@ -596,7 +683,7 @@ disabledSafetyTest('divergent feature update discloses merge and syncs exact can
 disabledSafetyTest('divergent feature update keeps known missing branch reminder without push',async t=>{const h=await harness(t,{branch:'feature',missing:true,updated:true,updateTo:'c'.repeat(40),reftableUpdate:'merge'});await h.commands.get('zero.syncProject')();assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,0);assert.ok(h.activeRecords().some(record=>record.kind==='remote-missing'&&record.head==='c'.repeat(40)));});
 disabledSafetyTest('cancelling divergent merge confirmation does not apply or sync',async t=>{const h=await harness(t,{branch:'feature',updated:true,updateTo:'c'.repeat(40),reftableUpdate:'merge',choice:false});await h.commands.get('zero.syncProject')();assert.equal(h.pushes.length,0);assert.match(h.warnings[0].options.detail,/creating merge commit/i);assert.deepEqual(h.errors,[]);});
 for(const change of ['session','account'])disabledSafetyTest(`completed divergent update retains exact reminder after ${change} drift`,async t=>{const h=await harness(t,{branch:'feature',updated:true,updateTo:'c'.repeat(40),reftableUpdate:'merge'});h.afterUpdate=async()=>{if(change==='session')h.changeSession();else h.changeAccount();};await h.commands.get('zero.syncProject')();assert.equal(h.pushes.length,0);const reminders=h.activeRecords();assert.ok(reminders.some(record=>record.head==='c'.repeat(40)&&record.branch==='feature'&&record.accountId==='1'));assert.match(h.webview.html,/locally.*sync needs attention/i);});
-disabledSafetyTest('feature deleted after update review is not silently recreated',async t=>{const h=await harness(t,{branch:'feature',updated:true,updateTo:'c'.repeat(40),reftableUpdate:'merge'});h.afterUpdate=async()=>{h.remoteHead=null;};await h.commands.get('zero.syncProject')();assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,0);assert.ok(h.activeRecords().some(record=>record.kind==='remote-missing'&&record.head==='c'.repeat(40)));assert.match(h.warnings[0].options.detail,/not atomic/i);assert.match(h.webview.html,/review branch creation/i);});
+disabledSafetyTest('feature deleted after update review is not silently recreated',async t=>{const h=await harness(t,{branch:'feature',updated:true,updateTo:'c'.repeat(40),reftableUpdate:'merge'});h.afterUpdate=async()=>{h.remoteHead=null;};await h.commands.get('zero.syncProject')();assert.deepEqual(h.errors,[]);assert.equal(h.pushes.length,0);assert.ok(h.activeRecords().some(record=>record.kind==='remote-missing'&&record.head==='c'.repeat(40)));assert.match(h.warnings[0].options.detail,/not atomic/i);assert.doesNotMatch(h.webview.html,/review branch creation/i);});
 test('stale archived reftable UI plan preserves undo provenance and hands off to Source Control',async t=>{const h=await harness(t,{branch:'feature',updated:true,archivedGate:true,nativeScm:true}),receipt=path.join(h.root,'.git','zero-commit-provenance.json');await fs.writeFile(receipt,'retained authority');await h.commands.get('zero.syncProject')();assert.equal(h.pushes.length,0);assert.equal(await fs.readFile(receipt,'utf8'),'retained authority');assert.deepEqual(h.errors,[]);assert.match(h.warnings.at(-1).message,/temporarily unavailable.*files and commits are kept/i);assert.deepEqual(h.nativeCommands.filter(args=>args[0]==='workbench.view.scm'),[['workbench.view.scm']]);});
-for(const command of ['zero.discardProjectChanges','zero.removeAddedFile','zero.restoreModifiedFile','zero.restoreCommittedFile','zero.cancelUpdate','zero.keepLocalUpdate','zero.useIncomingUpdate'])test(`${command} refuses before consuming provenance`,async t=>{const h=await harness(t,{branch:'feature'}),receipt=path.join(h.root,'.git','zero-commit-provenance.json');await fs.writeFile(receipt,'retained authority');await h.commands.get(command)({root:h.root,relative:'student.txt'});assert.equal(await fs.readFile(receipt,'utf8'),'retained authority');assert.equal(h.pushes.length,0);assert.match(h.errors.at(-1),command==='zero.removeAddedFile'?/temporarily unavailable.*Source Control/i:/temporarily unavailable.*project files and commits are kept/i);});
+for(const command of ['zero.removeAddedFile','zero.restoreCommittedFile','zero.cancelUpdate','zero.keepLocalUpdate','zero.useIncomingUpdate'])test(`${command} refuses before consuming provenance`,async t=>{const h=await harness(t,{branch:'feature'}),receipt=path.join(h.root,'.git','zero-commit-provenance.json');await fs.writeFile(receipt,'retained authority');await h.commands.get(command)({root:h.root,relative:'student.txt'});assert.equal(await fs.readFile(receipt,'utf8'),'retained authority');assert.equal(h.pushes.length,0);assert.match(h.errors.at(-1),command==='zero.removeAddedFile'?/temporarily unavailable.*Source Control/i:/temporarily unavailable.*project files and commits are kept/i);});
 test('interrupted ref-only review refuses missing evidence before transport',async t=>{const h=await harness(t,{branch:'feature'});await h.commands.get('zero.reviewInterruptedRefOnlyUpdate')();assert.equal(h.pushes.length,0);assert.ok(h.errors.some(message=>/cannot be uniquely identified/i.test(message)));assert.doesNotMatch(h.webview.html,/data-command="zero.reviewInterruptedRefOnlyUpdate"/);});

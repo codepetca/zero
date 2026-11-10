@@ -64,6 +64,17 @@ test('URL rewrite introduced during session revalidation is rejected before tran
   await assert.rejects(run(root,['push',remote,`${sha}:refs/heads/main`]),/URL rewriting/);assert.equal(calls,0);
 });
 
+test('a GitHub URL-named remote cannot redirect guarded branch transfers', async t=>{
+  const root=await project(t);
+  await core.git(root,['config','--local',`remote.${remote}.url`,path.join(root,'another-repository')]);
+  assert.equal(await core.git(root,['remote','get-url','origin']),remote);
+  const run=createTransport(remote,nativeSession,{assertCurrentNow:nativeSession,spawn:async()=>assert.fail('An aliased destination must never dispatch')});
+  for(const args of [['push',remote,`${sha}:refs/heads/main`],['ls-remote','--heads',remote,'refs/heads/main'],
+    ['fetch','--no-tags','--no-recurse-submodules','--no-write-fetch-head',remote,sha]]){
+    await assert.rejects(run(root,args),/configured to redirect this GitHub destination/);
+  }
+});
+
 test('successful reviewed upload uses isolated native-session transport for push and confirmation only', async t => {
   const root=await project(t);const localCalls=[],networkCalls=[];let pushedHead;
   const localRun=async(cwd,args)=>{assert.ok(!JSON.stringify(process.env).includes(token));assert.ok(!['push','ls-remote'].includes(args[0]));localCalls.push(args[0]);return core.git(cwd,args);};
@@ -71,7 +82,7 @@ test('successful reviewed upload uses isolated native-session transport for push
   let nativeChecks=0;const ticket=await auth.capture();const check=()=>{nativeChecks++;return auth.assertCurrent(ticket);};const plan=await prepareUpload(root,localRun);
   const networkRun=createTransport(remote,check,{assertCurrentNow:()=>auth.assertCurrentNow(ticket),localRun,spawn:async(_,args,options)=>{
     networkCalls.push(args[0]);assert.ok(settings(options.env).some(([key,value])=>key===`credential.${remote}.helper`&&value===''));
-    if(args[0]==='push'){pushedHead=args[2].split(':')[0];return {stdout:''};}
+    if(args[0]==='push'){pushedHead=args[2].split('^')[0];return {stdout:''};}
     return {stdout:`${pushedHead}\trefs/heads/main\n`};
   }});
   const result=await uploadPrepared(plan,'Save',{run:localRun,beforeUpload:check,networkRun});
@@ -378,7 +389,7 @@ test('an ordinary authenticated command cannot be mutated into a delete while aw
     return nativeSession();
   }, {assertCurrentNow:nativeSession, spawn:async (_, sent) => {
     calls++;
-    assert.deepEqual(sent, upload);
+    assert.deepEqual(sent, ['push',remote,`${sha}^{commit}:refs/heads/main`]);
     return {stdout:''};
   }});
   await run(root, args);

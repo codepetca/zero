@@ -1,30 +1,21 @@
-import {prepareDesign} from '../design/prepare.mjs';
-import {mkdirSync, readFileSync, writeFileSync, readdirSync, copyFileSync} from 'node:fs';
+import {mkdirSync, readFileSync, writeFileSync, copyFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import path from 'node:path';
 import {zipSync, unzipSync} from 'fflate';
 import assert from 'node:assert/strict';
 import {coreSources, prepareStarter} from './prepare-starter.mjs';
-import {prepareLessonProjects} from './lesson-projects.mjs';
+import {prepareExtensionAssets} from './prepare-extension-assets.mjs';
 import {starterMembers, setupMembers} from './kit.mjs';
 import {root, releaseDefinition, writeReleaseMetadata} from './release.mjs';
-import {sharingConfigurationBytes} from './release-review.mjs';
 import {checkPublishedTutorialTemplates} from './check-tutorial-templates.mjs';
 
 // Reject stale tutorial evidence before generating or writing any release assets.
 checkPublishedTutorialTemplates();
 prepareStarter();
-prepareLessonProjects();
-prepareDesign();
+prepareExtensionAssets(root, {website:true});
 const license = new Uint8Array(readFileSync(path.join(root, 'LICENSE')));
 // vsce packages its extension directory; retain the canonical license in every VSIX.
 copyFileSync(path.join(root, 'LICENSE'), path.join(root, 'extension/LICENSE'));
-const harnessDirectory = path.join(root, 'extension/media/sharing-harness');
-mkdirSync(harnessDirectory, {recursive:true});
-copyFileSync(path.join(root, 'sharing/harness/ZeroLibraryHarness.java'), path.join(harnessDirectory, 'ZeroLibraryHarness.java'));
-// Local and CI packages use the same checked public source, preserving its
-// exact bytes and replacing any stale generated settings from an earlier build.
-writeFileSync(path.join(root,'extension/media/sharing-config.json'),sharingConfigurationBytes(root));
 const release = releaseDefinition(), dist = path.join(root, 'dist');
 if (release.publication.status === 'published') throw new Error('This kit version is published and immutable. Set a new local kit version before rebuilding release assets.');
 mkdirSync(dist, {recursive:true});

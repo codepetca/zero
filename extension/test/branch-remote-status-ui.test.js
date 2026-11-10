@@ -27,14 +27,17 @@ test('Project checks main on open and focus, distinguishes access and connection
   extension.activate({subscriptions,workspaceState:{get:(_,fallback)=>fallback,keys:()=>[],update:async()=>{}}},{repositoryLedgerFactory,provider:{getSessions:async()=>{sessionReads++;return [session];},onDidChangeSessions:fn=>{authEvent=fn;return disposable();},dispose(){}},repositories:{checkSetup:async()=>({}),access:async(_,{permissions:requested})=>{permissions.push(requested);if(accessError)throw accessError;return {repository:{id:12},installation:{id:99}};},compareCommits:(...args)=>compareCommits?.(...args)}});
   const webview={html:'',onDidReceiveMessage:disposable};view.resolveWebviewView({webview,onDidDispose:disposable});
   await waitFor(()=>webview.html.includes('data-branch-state="synced"'));assert.doesNotMatch(webview.html,/Branch matched GitHub at the last check/);assert.ok(calls.length);assert.ok(permissions.every(value=>value.contents==='read'));assert.doesNotMatch(webview.html,/PRIVATE_TEST_TOKEN/);
-  assert.match(webview.html,/<button id="branch-sync"[^>]*Outgoing commits: 0\. Incoming commits: 0\.[^>]* disabled>/);
+  assert.match(webview.html,/<button id="branch-sync"[^>]*Outgoing commits: 0\. Incoming commits: 0\./);
+  assert.match(webview.html,/<button id="branch-sync"[^>]* disabled>/);
   // A focus while the old remote observation is in flight must queue one new check.
   gate=new Promise(resolve=>{release=resolve;});const focusEntered=new Promise(resolve=>{entered=resolve;});
   const oldCheck=commands.get('zero.checkBranchConnection')();await focusEntered;const beforeFocusCheck=calls.length;
-  assert.match(webview.html,/<button id="branch-sync"[^>]*Outgoing commits: unknown\. Incoming commits: unknown\.[^>]* disabled>/);
+  assert.match(webview.html,/<button id="branch-sync"[^>]*Outgoing commits: 0\. Incoming commits: 0\./,
+    'Keep the last comparison visible during a fresh check');
+  assert.match(webview.html,/<button id="branch-sync"[^>]* disabled>/);
   remote='a'.repeat(40);focus({focused:true});await new Promise(resolve=>setTimeout(resolve,150));
-  gate=undefined;release();await oldCheck;await waitFor(()=>calls.length>beforeFocusCheck&&webview.html.includes('This GitHub branch differs.'));
-  focus({focused:true});await waitFor(()=>webview.html.includes('This GitHub branch differs.'));assert.match(webview.html,/aria-label="Sync from GitHub\./);
+  gate=undefined;release();await oldCheck;await waitFor(()=>calls.length>beforeFocusCheck&&webview.html.includes('data-branch-state="remote-changed"'));
+  focus({focused:true});await waitFor(()=>webview.html.includes('data-branch-state="remote-changed"'));assert.match(webview.html,/aria-label="Sync with GitHub/);
   const alias=root+'-alias';await fs.symlink(root,alias);t.after(()=>fs.unlink(alias));
   const dirty={isDirty:true,uri:{scheme:'file',fsPath:path.join(alias,'zero.json')}};vscode.workspace.textDocuments=[dirty];
   let beforeBlocked={warnings:warnings.length,calls:calls.length,saved};await commands.get('zero.reviewBranchUpdate')();
@@ -42,25 +45,26 @@ test('Project checks main on open and focus, distinguishes access and connection
   vscode.workspace.textDocuments=[];await fs.writeFile(path.join(root,'uncommitted.txt'),'work');
   beforeBlocked={warnings:warnings.length,calls:calls.length,saved};await commands.get('zero.reviewBranchUpdate')();
   assert.deepEqual({warnings:warnings.length,calls:calls.length,saved},beforeBlocked);assert.match(errors.at(-1),/Commit or discard/);assert.equal(await fs.readFile(path.join(root,'uncommitted.txt'),'utf8'),'work');
-  await fs.unlink(path.join(root,'uncommitted.txt'));await commands.get('zero.checkBranchConnection')();await waitFor(()=>webview.html.includes('This GitHub branch differs.'));
+  await fs.unlink(path.join(root,'uncommitted.txt'));await commands.get('zero.checkBranchConnection')();await waitFor(()=>webview.html.includes('data-branch-state="remote-changed"'));
   onWarning=()=>{vscode.workspace.textDocuments=[dirty];return 'Update branch';};
   const beforePromptDrift={calls:calls.length,saved};await commands.get('zero.reviewBranchUpdate')();onWarning=undefined;
   assert.equal(calls.length,beforePromptDrift.calls,'An edit during confirmation blocks update transport');assert.equal(saved,beforePromptDrift.saved);assert.equal(dirty.isDirty,true);assert.match(errors.at(-1),/Save or undo/);
-  vscode.workspace.textDocuments=[];await commands.get('zero.checkBranchConnection')();await waitFor(()=>webview.html.includes('This GitHub branch differs.'));
+  vscode.workspace.textDocuments=[];await commands.get('zero.checkBranchConnection')();await waitFor(()=>webview.html.includes('data-branch-state="remote-changed"'));
   const beforeCancel=calls.length;await commands.get('zero.reviewBranchUpdate')();assert.match(warnings.at(-1).options.detail,/https:\/\/github.com\/student\/project/);assert.match(warnings.at(-1).options.detail,/without uploading/);assert.equal(calls.length,beforeCancel,'Cancel does not start an update');
-  const beforeUnavailable=calls.length;onWarning=()=>{remote='d'.repeat(40);return 'Update branch';};await commands.get('zero.reviewBranchUpdate')();onWarning=undefined;assert.match(errors.at(-1),/GitHub could not complete this step.*feature and commits are preserved/i);assert.ok(calls.slice(beforeUnavailable).every(args=>args[0]==='ls-remote'),'Unavailable changed target never pushes');assert.equal(git('rev-parse','HEAD'),head);assert.equal(git('status','--porcelain'),'');await waitFor(()=>!webview.html.includes('Checking this branch'));
-  accessError={code:'permission-required'};await commands.get('zero.checkBranchConnection')();assert.match(webview.html,/GitHub branch access is unavailable/);
-  accessError={code:'network-error'};await commands.get('zero.checkBranchConnection')();assert.match(webview.html,/Offline or connection unavailable/);
+  const beforeUnavailable=calls.length;onWarning=()=>{remote='d'.repeat(40);return 'Update branch';};await commands.get('zero.reviewBranchUpdate')();onWarning=undefined;assert.match(errors.at(-1),/GitHub could not complete this step.*feature and commits are preserved/i);assert.ok(calls.slice(beforeUnavailable).every(args=>args[0]==='ls-remote'),'Unavailable changed target never pushes');assert.equal(git('rev-parse','HEAD'),head);assert.equal(git('status','--porcelain'),'');await waitFor(()=>!webview.html.includes('data-branch-state="checking"'));
+  accessError={code:'permission-required'};await commands.get('zero.checkBranchConnection')();assert.match(webview.html,/data-branch-state="access"/);
+  accessError={code:'network-error'};await commands.get('zero.checkBranchConnection')();assert.match(webview.html,/data-branch-state="offline"/);
   accessError=undefined;remote=head;
   gate=new Promise(resolve=>{release=resolve;});const waiting=new Promise(resolve=>{entered=resolve;});const checking=commands.get('zero.checkBranchConnection')();await waiting;
   await fs.writeFile(path.join(root,'later'),'later');git('add','.');git('commit','-qm','later');head=git('rev-parse','HEAD');metadataChanged({fsPath:path.join(root,'.git','HEAD')});await new Promise(resolve=>setTimeout(resolve,100));
-  gate=undefined;release();await checking;await waitFor(()=>!webview.html.includes('Checking this branch'));
+  gate=undefined;release();await checking;await waitFor(()=>!webview.html.includes('data-branch-state="checking"'));
   assert.doesNotMatch(webview.html,/data-branch-state="synced"/);assert.equal(git('rev-parse','HEAD'),head);assert.equal(git('status','--porcelain'),'');
   remote=head;await commands.get('zero.checkBranchConnection')();assert.match(webview.html,/data-branch-state="synced"/);
   remote=git('commit-tree','-m','Incoming commit',git('rev-parse','HEAD^{tree}'),'-p',head);
   await commands.get('zero.checkBranchConnection')();
-  assert.match(webview.html,/<button id="branch-sync"[^>]*data-command="zero.reviewBranchUpdate"[^>]*Outgoing commits: 0\. Incoming commits: 1\./);
+  assert.match(webview.html,/<button id="branch-sync"[^>]*data-command="zero.syncBranch"[^>]*Outgoing commits: 0\. Incoming commits: 1\./);
   assert.match(webview.html,/↑ 0<\/span><span aria-hidden="true">↓ 1<\/span>/);
+  assert.doesNotMatch(webview.html,/<button id="branch-sync"[^>]* disabled>/);
   remote=head;await commands.get('zero.checkBranchConnection')();
   remote='e'.repeat(40);
   let comparison,finishComparison;
@@ -75,7 +79,7 @@ test('Project checks main on open and focus, distinguishes access and connection
   try {
     assert.deepEqual(await comparisonStarted,{page:'https://github.com/student/project',base:head,target:remote});
     await waitFor(()=>branchCheckDone);
-    assert.match(webview.html,/Incoming commits: unknown/);
+    assert.match(webview.html,/<button id="branch-sync"[^>]*aria-label="Sync with GitHub"[^>]*>Sync<\/button>/);
     const beforeReview=warnings.length;
     await commands.get('zero.reviewBranchUpdate')();
     assert.equal(warnings.length,beforeReview+1,'Update review is available before the counts return');
@@ -89,7 +93,7 @@ test('Project checks main on open and focus, distinguishes access and connection
   // in-flight observation and immediately schedules a fresh one.
   gate=new Promise(resolve=>{release=resolve;});let tokenEntered;const tokenWaiting=new Promise(resolve=>{tokenEntered=resolve;});entered=tokenEntered;
   const tokenCheck=commands.get('zero.checkBranchConnection')();await tokenWaiting;const beforeToken=calls.length;remote='b'.repeat(40);session.accessToken='REPLACED_TEST_TOKEN';authEvent({changed:[session]});
-  await new Promise(resolve=>setTimeout(resolve,10));gate=undefined;release();await tokenCheck;await waitFor(()=>calls.length>beforeToken&&webview.html.includes('This GitHub branch differs.'));assert.doesNotMatch(webview.html,/Branch matched GitHub/);
+  await new Promise(resolve=>setTimeout(resolve,10));gate=undefined;release();await tokenCheck;await waitFor(()=>calls.length>beforeToken&&webview.html.includes('data-branch-state="remote-changed"'));assert.doesNotMatch(webview.html,/Branch matched GitHub/);
   for(const name of ['info/grafts','shallow']) {
     remote=head;gate=new Promise(resolve=>{release=resolve;});const waitingGraph=new Promise(resolve=>{entered=resolve;});const graphCheck=commands.get('zero.checkBranchConnection')();await waitingGraph;
     const file=path.join(root,'.git',name);await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,head+'\n');gate=undefined;release();await graphCheck;assert.doesNotMatch(webview.html,/data-branch-state="(?:synced|local-ahead)"/);await fs.unlink(file);
@@ -101,9 +105,9 @@ test('Project checks main on open and focus, distinguishes access and connection
   assert.match(webview.html,/data-branch-state="unknown"/);
   assert.deepEqual({transport:calls.length,access:permissions.length},beforePartial);
   git('config','--unset','remote.origin.promisor');
-  git('checkout','-qb','feature');remote='c'.repeat(40);metadataChanged({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>webview.html.includes('Current branch: feature')&&webview.html.includes('This GitHub branch differs.'));
+  git('checkout','-qb','feature');remote='c'.repeat(40);metadataChanged({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>webview.html.includes('Current branch: feature')&&webview.html.includes('data-branch-state="remote-changed"'));
   await commands.get('zero.reviewBranchUpdate')();assert.match(warnings.at(-1).options.detail,/Update feature from https:\/\/github.com\/student\/project/);assert.match(warnings.at(-1).options.detail,/automatically syncs the resulting branch commit to GitHub/);
-  mode='simulation';configurationChanged({affectsConfiguration:key=>key==='zero.uploadMode'});assert.match(webview.html,/Simulation · GitHub branch is not checked/);assert.doesNotMatch(webview.html,/data-command="zero.checkBranchConnection"/);const beforeSimulation=calls.length;await commands.get('zero.checkBranchConnection')();assert.equal(calls.length,beforeSimulation);
+  mode='simulation';configurationChanged({affectsConfiguration:key=>key==='zero.uploadMode'});assert.match(webview.html,/Simulation — nothing will be uploaded/);assert.doesNotMatch(webview.html,/data-command="zero.checkBranchConnection"/);const beforeSimulation=calls.length;await commands.get('zero.checkBranchConnection')();assert.equal(calls.length,beforeSimulation);
 });
 
 test('focus refreshes externally changed branch and remote in a linked worktree',async t=>{
@@ -132,7 +136,7 @@ test('focus refreshes externally changed branch and remote in a linked worktree'
   await waitFor(()=>webview.html.includes('data-branch-state="synced"'));assert.ok(calls.length);assert.ok(permissions.every(value=>value.contents==='read'));assert.doesNotMatch(webview.html,/PRIVATE_TEST_TOKEN/);
   const beforeFocus=treeInvalidations;
   git('checkout','-qb','feature');git('remote','set-url','origin','https://github.com/student/other.git');remote='c'.repeat(40);focus({focused:true});
-  await waitFor(()=>webview.html.includes('Current branch: feature')&&webview.html.includes('This GitHub branch differs.'));
+  await waitFor(()=>webview.html.includes('Current branch: feature')&&webview.html.includes('data-branch-state="remote-changed"'));
   assert.ok(treeInvalidations>beforeFocus,'Focus invalidates the file tree');
   assert.ok(calls.some(args=>args[2]==='https://github.com/student/other.git'&&args[3]==='refs/heads/feature'));
 });
@@ -225,15 +229,15 @@ for (const changedRef of ['feature HEAD','local main']) test(`same-branch ${chan
   const stable=checks.length;focus({focused:true});await new Promise(resolve=>setTimeout(resolve,250));assert.equal(checks.length,stable,'unchanged metadata must not trigger repeated main checks');
 });
 
-test('missing local main shows unknown without looping and retries when main returns',async t=>{
+test('missing local main stays quiet without looping and retries when main returns',async t=>{
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-main-missing-ui-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   const git=(...args)=>{assert.ok(!args.some(arg=>arg==='reset'||arg==='--reset'));return execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();};
   git('init','-qb','main');git('config','user.name','Student');git('config','user.email','student@example.invalid');await fs.writeFile(path.join(root,'zero.json'),'{}');git('add','.');git('commit','-qm','base');
   const base=git('rev-parse','HEAD');git('remote','add','origin','https://github.com/student/project.git');git('checkout','-qb','feature');git('update-ref','-d','refs/heads/main',base);
-  let view,metadataChanged,focus,invalidMain=false;const checks=[],subscriptions=[];const session={id:'session',account:{id:'1',label:'student'},accessToken:'PRIVATE_TEST_TOKEN',scopes:[]};
+  let view,metadataChanged,focus,invalidMain=false;const checks=[],subscriptions=[],commands=new Map();const session={id:'session',account:{id:'1',label:'student'},accessToken:'PRIVATE_TEST_TOKEN',scopes:[]};
   const vscode={authentication:{registerAuthenticationProvider:disposable},workspace:{isTrusted:true,registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{scheme:'file',fsPath:root}}],saveAll:async()=>true,getConfiguration:()=>({get:(_,fallback)=>fallback}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable,createFileSystemWatcher:pattern=>({onDidCreate:disposable,onDidDelete:disposable,onDidChange:fn=>{if(typeof pattern==='string'&&pattern.startsWith('**/.git/{HEAD,config,'))metadataChanged=fn;return disposable();},dispose(){}})},
-    window:{createTreeView:disposable,createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{view=provider;return disposable();},onDidChangeWindowState:fn=>{focus=fn;return disposable();},showWarningMessage:async()=>{},showErrorMessage:async error=>assert.fail(error)},
-    tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:()=>disposable(),executeCommand:async()=>{}},RelativePattern:class{constructor(base,pattern){this.base=base;this.pattern=pattern;}},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}};
+    window:{createTreeView:disposable,createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{view=provider;return disposable();},onDidChangeWindowState:fn=>{focus=fn;return disposable();},showQuickPick:async()=>undefined,showWarningMessage:async()=>{},showErrorMessage:async error=>assert.fail(error)},
+    tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},RelativePattern:class{constructor(base,pattern){this.base=base;this.pattern=pattern;}},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}};
   const load=Module._load;delete require.cache[require.resolve('../src/extension')];
   Module._load=function(id,...args){
     if(id==='vscode')return vscode;
@@ -248,11 +252,11 @@ test('missing local main shows unknown without looping and retries when main ret
   t.after(()=>{subscriptions.forEach(value=>value.dispose());delete require.cache[require.resolve('../src/extension')];});
   extension.activate({subscriptions,workspaceState:{get:(_,fallback)=>fallback,keys:()=>[],update:async()=>{}}},{repositoryLedgerFactory,provider:{getSessions:async()=>[session],onDidChangeSessions:disposable,dispose(){}},repositories:{checkSetup:async()=>({}),access:async()=>({repository:{id:12},installation:{id:99}})}});
   const webview={html:'',onDidReceiveMessage:disposable};view.resolveWebviewView({webview,onDidDispose:disposable});
-  await waitFor(()=>webview.html.includes('GitHub main may have new changes'));focus({focused:true});await new Promise(resolve=>setTimeout(resolve,250));assert.equal(checks.length,0,'missing main must not initiate or loop a main check');
+  await waitFor(()=>webview.html.includes('Current branch: feature'));focus({focused:true});await new Promise(resolve=>setTimeout(resolve,250));assert.equal(checks.length,0,'missing main must not initiate or loop a main check');
   git('update-ref','refs/heads/main',base);metadataChanged({fsPath:path.join(root,'.git','refs','heads','main')});
   await waitFor(()=>checks.length===1&&!webview.html.includes('GitHub main may have new changes'));assert.equal(checks[0].localMain,base);
   focus({focused:true});await new Promise(resolve=>setTimeout(resolve,250));assert.equal(checks.length,1,'unchanged refs must retain the check deadline');
-  invalidMain=true;metadataChanged({fsPath:path.join(root,'.git','refs','heads','main')});await waitFor(()=>webview.html.includes('GitHub main may have new changes'));
+  invalidMain=true;await commands.get('zero.chooseRepository')();
   focus({focused:true});await new Promise(resolve=>setTimeout(resolve,250));assert.equal(checks.length,1,'invalid main must not initiate or loop a main check');
   invalidMain=false;metadataChanged({fsPath:path.join(root,'.git','refs','heads','main')});await waitFor(()=>checks.length===2&&!webview.html.includes('GitHub main may have new changes'));
 });
@@ -269,32 +273,32 @@ test('unborn branch keeps its GitHub origin visible until first commit and repor
   t.after(()=>{subscriptions.forEach(value=>value.dispose());core.git=originalGit;delete require.cache[require.resolve('../src/extension')];});
   extension.activate({subscriptions,workspaceState:{get:(_,fallback)=>fallback,keys:()=>[],update:async()=>{}}},{repositoryLedgerFactory,provider:{getSessions:async()=>[],onDidChangeSessions:disposable,dispose(){}},repositories:{checkSetup:async()=>({})}});
   const webview={html:'',onDidReceiveMessage:disposable};provider.resolveWebviewView({webview,onDidDispose:disposable});
-  await waitFor(()=>webview.html.includes('GitHub repository connected · make your first commit to sync.'));assert.match(webview.html,/student\/<wbr>project/);assert.doesNotMatch(webview.html,/Branch matched GitHub/);assert.match(webview.html,/data-command="zero.changeHistory"[^>]*disabled/);
+  await waitFor(()=>webview.html.includes('Make your first commit.'));assert.match(webview.html,/student\/<wbr>project/);assert.doesNotMatch(webview.html,/Branch matched GitHub/);assert.match(webview.html,/data-command="zero.changeHistory"[^>]*disabled/);
   const badRef=path.join(root,'.git','refs','heads','main');await fs.writeFile(badRef,'broken ref\n');metadata({fsPath:badRef});
-  await waitFor(()=>/branch (?:commit cannot be verified|cannot be displayed safely)/i.test(webview.html));assert.doesNotMatch(webview.html,/make your first commit/);assert.match(webview.html,/student\/<wbr>project/);
-  await fs.unlink(badRef);metadata({fsPath:badRef});await waitFor(()=>webview.html.includes('GitHub repository connected · make your first commit to sync.'));
+  await waitFor(()=>/branch (?:commit cannot be verified|cannot be displayed safely)/i.test(webview.html));assert.doesNotMatch(webview.html,/[Mm]ake your first commit/);assert.match(webview.html,/student\/<wbr>project/);
+  await fs.unlink(badRef);metadata({fsPath:badRef});await waitFor(()=>webview.html.includes('Make your first commit.'));
   const packed=path.join(root,'.git','packed-refs');
   for(const content of ['malformed packed reference\n',`${'a'.repeat(40)} refs/heads/main\n`]) {
     await fs.writeFile(packed,content);metadata({fsPath:packed});await waitFor(()=>/branch (?:commit cannot be verified|cannot be displayed safely)|Project Git status is unavailable/i.test(webview.html));
-    assert.doesNotMatch(webview.html,/make your first commit|Local project · no GitHub remote/);
-    await fs.unlink(packed);metadata({fsPath:packed});await waitFor(()=>webview.html.includes('GitHub repository connected · make your first commit to sync.'));
+    assert.doesNotMatch(webview.html,/[Mm]ake your first commit|Connect a GitHub repository/);
+    await fs.unlink(packed);metadata({fsPath:packed});await waitFor(()=>webview.html.includes('Make your first commit.'));
   }
   forceUnbornRace=true;metadata({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>/branch (?:commit cannot be verified|cannot be displayed safely)/i.test(webview.html));
-  assert.doesNotMatch(webview.html,/make your first commit/);assert.equal(await fs.readFile(badRef,'utf8'),'broken ref\n');await fs.unlink(badRef);metadata({fsPath:badRef});
-  await waitFor(()=>webview.html.includes('GitHub repository connected · make your first commit to sync.'));
-  git('remote','remove','origin');metadata({fsPath:path.join(root,'.git','config')});await waitFor(()=>webview.html.includes('Local project · make your first commit.'));
+  assert.doesNotMatch(webview.html,/[Mm]ake your first commit/);assert.equal(await fs.readFile(badRef,'utf8'),'broken ref\n');await fs.unlink(badRef);metadata({fsPath:badRef});
+  await waitFor(()=>webview.html.includes('Make your first commit.'));
+  git('remote','remove','origin');metadata({fsPath:path.join(root,'.git','config')});await waitFor(()=>webview.html.includes('Make your first commit.'));
   git('remote','add','origin','https://github.com/student/project.git');git('add','.');git('commit','-qm','first');metadata({fsPath:path.join(root,'.git','HEAD')});
-  await waitFor(()=>webview.html.includes('Sign in to check this GitHub branch.'));assert.match(webview.html,/student\/<wbr>project/);assert.doesNotMatch(webview.html,/make your first commit/);
-  forceHeadError=true;metadata({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>webview.html.includes('The branch commit cannot be verified.'));assert.doesNotMatch(webview.html,/make your first commit/);assert.match(webview.html,/student\/<wbr>project/);
+  await waitFor(()=>webview.html.includes('Sign in to GitHub to sync.'));assert.match(webview.html,/student\/<wbr>project/);assert.doesNotMatch(webview.html,/[Mm]ake your first commit/);
+  forceHeadError=true;metadata({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>webview.html.includes('The branch commit cannot be verified.'));assert.doesNotMatch(webview.html,/[Mm]ake your first commit/);assert.match(webview.html,/student\/<wbr>project/);
   forceHeadError=false;metadata({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>!webview.html.includes('The branch commit cannot be verified.'));
   forceOriginError=true;metadata({fsPath:path.join(root,'.git','config')});await waitFor(()=>webview.html.includes('Repository connection cannot be verified.'));
   assert.doesNotMatch(webview.html,/Local project · no GitHub remote connected/,'An unknown origin must not be reported as missing, even while signed out');
   forceOriginError=false;metadata({fsPath:path.join(root,'.git','config')});await waitFor(()=>webview.html.includes('student/<wbr>project'));
-  git('remote','remove','origin');metadata({fsPath:path.join(root,'.git','config')});await waitFor(()=>webview.html.includes('Local project · no GitHub remote connected.'));assert.doesNotMatch(webview.html,/student\/<wbr>project/);
+  git('remote','remove','origin');metadata({fsPath:path.join(root,'.git','config')});await waitFor(()=>webview.html.includes('Connect a GitHub repository to sync.'));assert.doesNotMatch(webview.html,/student\/<wbr>project/);
   git('remote','add','origin','https://github.com/student/project.git');
   const linked=root+'-linked';t.after(()=>fs.rm(linked,{recursive:true,force:true}));git('worktree','add','--orphan','-b','linked-feature',linked);await fs.writeFile(path.join(linked,'zero.json'),'{}');
   vscode.workspace.workspaceFolders=[{uri:{scheme:'file',fsPath:linked}}];metadata({fsPath:path.join(linked,'zero.json')});
-  await waitFor(()=>webview.html.includes('Current branch: linked-feature')&&webview.html.includes('GitHub repository connected · make your first commit to sync.'));
+  await waitFor(()=>webview.html.includes('Current branch: linked-feature')&&webview.html.includes('Make your first commit.'));
   assert.doesNotMatch(webview.html,/Branch matched GitHub/);
 
 });

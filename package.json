@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "node scripts/zero-dev.mjs",
+    "dev:sample": "node scripts/zero-dev.mjs sample",
     "dev:prepare": "node scripts/zero-dev.mjs prepare",
+    "dev:github": "node scripts/zero-dev.mjs github",
     "dev:ui": "node scripts/zero-dev.mjs ui",
     "dev:game": "node scripts/zero-dev.mjs game",
     "dev:smoke": "node scripts/zero-dev.mjs smoke",
