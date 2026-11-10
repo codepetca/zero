@@ -1,6 +1,6 @@
 import {boundedJson, equalSecret, hubConfig, json, readSession, sameOrigin, seal, unseal} from './hub-github-auth.mjs';
 import {configuredListingsStore, listingLimit, listingPageSize, listingsEnabled} from './hub-listings-store.mjs';
-import {checkListingToken, listingId, listingReceipt, readPublicListingDestination, verifyListingPublication} from './hub-listings-verification.mjs';
+import {checkListingToken, listingId, listingReceipt, publicListingPlayUrl, readPublicListingDestination, verifyListingPublication} from './hub-listings-verification.mjs';
 import {assertJamVisibilityTime, readJamHubVisibility} from './jam-hub-visibility.mjs';
 import {hubVisibilityDecision, hubTargetVisible} from './hub-project-status.mjs';
 
@@ -24,7 +24,7 @@ export async function hubListingsResponse(request, {
     if (!config) return unavailable();
     const authorization = request.headers.get('authorization');
     const desktop = authorization !== null;
-    const session = desktop ? null : readSession(request, config);
+    const session = desktop ? null : await readSession(request, config, Date.now(), env);
     if (request.method === 'GET') {
       if (!session) return authRequired();
       const before = new URL(request.url).searchParams.get('before');
@@ -88,6 +88,7 @@ export async function hubPublicListingsResponse(request, {
 } = {}) {
   if (publicRequests >= 4) return unavailable();
   publicRequests++;
+  const controller = new AbortController();
   try {
     const store = getStore(env);
     if (!store) return json({projects:[], next:null});
@@ -98,7 +99,7 @@ export async function hubPublicListingsResponse(request, {
     const cursor = before === null ? null : unseal(before, pagePurpose, config);
     if (search.length > 200 || before !== null && (!validCursor(cursor?.order) || cursor.search !== search)) return invalid();
 
-    const signal = AbortSignal.any([request.signal, AbortSignal.timeout(12_000)]);
+    const signal = AbortSignal.any([request.signal, controller.signal, AbortSignal.timeout(12_000)]);
     const visibility = await hubVisibilityDecision({env, signal, visibilityReader});
     const visible = (entry, decision) => hubTargetVisible({kind:'game', repositoryId:entry.repositoryId}, decision);
     const excluded = visibility?.heldRepositoryIds?.() ?? [];
@@ -128,8 +129,9 @@ export async function hubPublicListingsResponse(request, {
     if (!exhausted && authorized.length <= listingPageSize) return unavailable();
     const page = authorized.slice(0, listingPageSize);
     return json({projects:page.map(entry => ({
-      id:entry.repositoryId, title:entry.title, author:entry.author, repositoryUrl:entry.repositoryUrl, pagesUrl:entry.pagesUrl
+      id:entry.repositoryId, title:entry.title, author:entry.author, repositoryUrl:entry.repositoryUrl,
+      pagesUrl:publicListingPlayUrl(entry)
     })), next:authorized.length > listingPageSize ? seal({order:page.at(-1).order, search}, pagePurpose, config) : null});
   } catch { return unavailable(); }
-  finally { publicRequests--; }
+  finally { controller.abort(); publicRequests--; }
 }

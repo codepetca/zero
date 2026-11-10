@@ -151,9 +151,12 @@ TLS. Local development and tests can use Postgres at `127.0.0.1`. Never
 put this URL in a public environment variable.
 
 Set `ZERO_HUB_LISTINGS_GITHUB_READ_TOKEN` to a dedicated GitHub credential
-with public repository and Pages read access. Public discovery checks current
-ownership and Pages configuration using this credential. It has no anonymous
-fallback. Verify its permissions and quota in a pilot before activation.
+with public repository metadata read access. Public discovery checks current
+ownership, repository visibility and whether Pages is enabled with this
+credential. It has no anonymous fallback. Verify its permissions and quota in
+a pilot before activation. Public Play links use canonical GitHub Pages
+addresses. Projects on custom domains link to their repository in discovery,
+and their owners can open the verified deployment from Manage listings.
 
 The existing Zero GitHub App and ZeroHub browser authentication configuration
 verify publishing and management. An editor checks listing availability before

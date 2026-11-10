@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {Pool} from 'pg';
 import {hubListingsResponse, hubPublicListingsResponse} from '../lib/hub-listings-http.mjs';
 import {createHubListingsStore} from '../lib/hub-listings-store.mjs';
-import {checkListingToken, readPublicListingDestination, verifyListingPublication} from '../lib/hub-listings-verification.mjs';
+import {checkListingToken, publicListingPlayUrl, readPublicListingDestination, verifyListingPublication} from '../lib/hub-listings-verification.mjs';
 import {hubConfig, newSession} from '../lib/hub-github-auth.mjs';
 import app from '../../extension/src/github-app/config.json' with {type:'json'};
 
@@ -59,6 +59,8 @@ test('management uses the signed-in owner and rejects cross-origin or bearer man
   assert.equal((await hubListingsResponse(request({Authorization:'Bearer '+token}), options)).status, 400);
   assert.equal(write, undefined);
   assert.equal((await hubListingsResponse(request({Origin:origin}), options)).status, 200);
+  const managed = {...env, ZERO_WORKOS_ENABLED:'true'};
+  assert.equal((await hubListingsResponse(request({Origin:origin}), {...options, env:managed})).status, 401);
   assert.deepEqual(write, ['6','21','protect']);
   const publish = request({Authorization:'Bearer '+token}, {action:'publish', ...receipt});
   const verified = {...receipt, title:'my-game'};
@@ -116,20 +118,22 @@ test('held matches do not create a continuation and GitHub outages are retryable
   assert.equal((await read({destinationReader:async()=>{throw new Error('rate limited');}})).status, 503);
 });
 
-test('public reads check current Pages metadata and avoid anonymous fallback', async () => {
+test('public reads check current repository Pages availability and withhold custom-domain Play links', async () => {
   const publicToken = 'github_pat_fixtureOnly1234567890123456';
   const entry = {...receipt, accountId:'6', pagesUrl:'https://games.example.test/'};
   const testEnv = {...env, ZERO_HUB_LISTINGS_GITHUB_READ_TOKEN:publicToken};
-  let pages = {public:true, build_type:'workflow', cname:'games.example.test', html_url:entry.pagesUrl};
+  let hasPages = true;
   const fetchImpl = async (url, options)=>{
+    assert.equal(url, 'https://api.github.com/repos/student/my-game');
     assert.equal(options.headers.Authorization, 'Bearer ' + publicToken);
     assert.equal(options.redirect, 'manual');
-    return url.endsWith('/pages') ? Response.json(pages) : Response.json({
-      id:21, private:false, owner:{id:6,type:'User'}, html_url:receipt.repositoryUrl
-    });
+    return Response.json({id:21, private:false, has_pages:hasPages,
+      owner:{id:6,type:'User'}, html_url:receipt.repositoryUrl});
   };
   assert.equal(await readPublicListingDestination(entry, {env:testEnv, fetchImpl, signal}), true);
-  pages = {...pages, cname:null, html_url:receipt.pagesUrl};
+  assert.equal(publicListingPlayUrl(entry), undefined);
+  assert.equal(publicListingPlayUrl({...entry, pagesUrl:receipt.pagesUrl}), receipt.pagesUrl);
+  hasPages = false;
   assert.equal(await readPublicListingDestination(entry, {env:testEnv, fetchImpl, signal}), false);
   await assert.rejects(readPublicListingDestination(entry, {env, fetchImpl, signal}), /read credential/);
 });

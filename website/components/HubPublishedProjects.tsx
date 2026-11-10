@@ -4,7 +4,7 @@ import {useEffect, useState} from 'react';
 import {HubProjectCard} from './HubProjectCard';
 import styles from '@/app/hub/hub.module.css';
 
-type Project = {id:string; title:string; author:string; repositoryUrl:string; pagesUrl:string};
+type Project = {id:string; title:string; author:string; repositoryUrl:string; pagesUrl?:string};
 
 export function HubPublishedProjects({search, hasOtherProjects}:{search:string; hasOtherProjects:boolean}) {
   const [before, setBefore] = useState<string|null>(null);
@@ -39,7 +39,9 @@ export function HubPublishedProjects({search, hasOtherProjects}:{search:string; 
   if (!page) return hasOtherProjects ? null : <p role="status">Checking published projects…</p>;
   return <>
     {page.projects.map(project=><HubProjectCard key={project.id} title={project.title}
-      description="GitHub Pages project" author={project.author} playHref={project.pagesUrl} repositoryHref={project.repositoryUrl} compact />)}
+      description="GitHub Pages project" author={project.author} playHref={project.pagesUrl} repositoryHref={project.repositoryUrl} compact>
+      {!project.pagesUrl && <a href={project.repositoryUrl}>Open on GitHub</a>}
+    </HubProjectCard>)}
     {!page.projects.length && !hasOtherProjects && !page.next && <p role="status">{search.trim() ? 'No projects match this search.' : 'No projects are available yet.'}</p>}
     {(before || page.next) && <div className="resource-links">
       {before && <button className={styles.retry} type="button" onClick={()=>changePage(null)}>First published projects</button>}

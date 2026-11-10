@@ -68,6 +68,7 @@ function MyListings({account, csrfToken}:{account:string; csrfToken:string}) {
       aria-label={`${label} ${project.title}`} onClick={()=>void manage(project, name)}>{label}</button>;
   }
   function changePage(cursor:string|null) {
+    setData(null);
     setLoading(true);
     setMessage('');
     setBefore(cursor);
