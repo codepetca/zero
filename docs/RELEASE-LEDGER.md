@@ -21,6 +21,25 @@ The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
 
+## Zero 0.5.67 — 2026-11-09
+
+The release source is `00b6e3d2d2ef964887774c27d350eb4177eaef50`.
+[PR #300](https://github.com/codepetca/zero/pull/300) merged that exact tree,
+including the simplified Git workflow and updated tutorials. The new-project
+guidance from [PR #295](https://github.com/codepetca/zero/pull/295) is included.
+
+The [Mac DMG](https://github.com/codepetca/zero/releases/tag/setup-v0.5.67)
+was signed with the existing Developer ID, notarized, stapled and accepted
+by Gatekeeper. Its anonymous download matched the sealed candidate byte for
+byte. This change promotes the verified DMG and signed appcast. The exact VSIX
+installed in a disposable Mac editor profile. Fresh-machine and physical
+Store installation remain separate checks.
+
+The [Windows release-source run](https://github.com/codepetca/zero/actions/runs/42756254744)
+built the exact unsigned Store x64 MSIX (version `1.5.67.0`) and passed the
+test-signed first-run check. Microsoft Store certification and public
+availability are tracked separately from that test.
+
 ## Setup Help simplification
 
 A concise version-free guide and platform-specific instructions passed 36 focused tests, website build and a Mac/Windows browser check. Independent Terra/medium review identified broken links and missing Git identity help; both were corrected and the targeted review was clean. Deployment is verified separately after merge.
