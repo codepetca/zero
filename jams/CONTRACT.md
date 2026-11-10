@@ -89,7 +89,9 @@ Return methods:
   callers see only accepted public event, active participant/entry summaries.
   Unapproved proposal detail is creator/maintainer-only. `registration` and `entry`
   are the current actor's records or null. `proposal` is the latest reviewable
-  `{revision,manifest,repository,status,reason}` for authorized actors.
+  `{revision,manifest,repository,status,reason}` for authorized actors. Gallery
+  reads set `canHostRemoveEntry: true` for the host of an active jam at or after
+  its gallery reveal (or submission close for legacy jams without a reveal).
 - `readWinnerSelection(id,actor)` -> `{winnerSelection:{currentRevision,entries}}`.
   Only the host of an active Zero-hosted Game Jam can read this view after the
   submission deadline. Entries expose the participant ID, exact submission
@@ -99,9 +101,9 @@ Return methods:
   -> `{eventId,operationId,...}`. Actions: `approve`, `request-changes`, `reject`,
   `suspend`, `resume`, `cancel`, `withdraw-entry`, `join`, `leave`, `submit`, `withdraw`, `pick-winner`.
   Approve/request-changes/reject require exact latest proposal `revision` and
-  maintainer identity; no self-approval. Moderation requires a public reason.
+  maintainer identity; no self-approval. Event moderation requires a public reason.
   A creator may cancel their own automatically approved jam even after Pro
-  revocation; other moderation remains maintainer-only. Cancellation preserves
+  revocation; suspension and resumption remain maintainer-only. Cancellation preserves
   existing project holds until scheduled reveal.
   `join` and `submit` require accepted event `revision` as acknowledgment. For
   showcase events, Join binds a verified public repository without requiring a
@@ -109,12 +111,15 @@ Return methods:
   a server-observed matching repository/owner receipt; matching configured custom domains
   qualify. Legacy submissions retain `source:{repositoryUrl,commit}`. One active entry
   per actor; replacement adds history; leave withdraws and rejoin does not restore.
-  `withdraw-entry` requires maintainer authority, numeric participantId and public
-  reason. It appends withdrawal history even after closure/suspension/cancellation;
-  registration stays unchanged. Corrected ordinary submissions still follow the
+  `withdraw-entry` requires a numeric participantId and a reason visible to the
+  participant. The host can withdraw entries from their own active jam after the
+  scheduled end, even after Pro revocation. Maintainers can withdraw entries at any time, including
+  during suspension or after cancellation. Removal appends withdrawal history
+  and leaves registration unchanged. Corrected ordinary submissions follow the
   accepted schedule and rules. Instructions are optional; demoUrl is required.
   Suspend/cancel/entry-removal reasons are at most256characters and use separately
   reserved bounded operation/storage capacity that ordinary writes cannot consume.
+  Host withdrawals leave two slots for maintainer suspension and cancellation.
   `pick-winner` binds `participantId` to the exact submission `revision` and
   returns `status: 'winner-selected'`. The host can replace a previous choice.
   The decision is recorded in the existing history with the ordinary operation

@@ -76,7 +76,9 @@ withdrawal append an entry revision, retaining prior submitted revisions.
 Leaving and withdrawal close at the submission deadline and all participant writes stop while
 suspended/cancelled. Accepted retries still recover after closure or suspension.
 Maintainers can use `withdraw-entry` with a numeric `participantId` and required
-reason even after closure or while suspended/cancelled. This appends an attributed
+reason even after closure or while suspended/cancelled. The host of an active
+jam can use the same action once its gallery opens, or after submissions close
+for older jams without a reveal date. This appends an attributed
 withdrawal revision and moderation history without changing registration or
 restoring anything. A participant may submit a corrected new entry revision while
 the event is active and its ordinary submission window remains open.
@@ -131,8 +133,9 @@ remaining safety slot; unused bytes from consumed slots may serve later ordinary
 writes. Safety reasons are limited to 256 characters, and removal stores a compact
 withdrawal revision pointing to immutable prior source. Participant reads resolve
 that reference for useful removed-entry metadata. These safety actions bypass the
-ordinary count/rate quota but remain maintainer-only and recover by the same
-durable operation key. Exhausting the safety pool fails explicitly for operator
+ordinary count/rate quota, require authority for the action and recover by the same
+durable operation key. Host withdrawals leave two slots for maintainer suspension
+and cancellation. Exhausting the safety pool fails explicitly for operator
 intervention; moderation is bounded, not unlimited. Custom limits leaving less
 than 65,536 ordinary bytes or fewer than two entry-history slots are invalid.
 
