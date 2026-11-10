@@ -97,17 +97,18 @@ test('default local authority shares a real PostgreSQL registry across authentic
   response=await choices('creator');assert.equal(response.status,200);
   assert.deepEqual((await response.json()).winnerSelection,{currentRevision:null,entries:[
     {participantId:'33',revision:entryRevision,title:'Project',login:'student',demoUrl:'https://student.github.io/project/'}]});
+  const beforePick=(await (await jam()).json()).event;
   response=await pick('creator');assert.equal(response.status,200,await response.clone().text());
   const picked=await response.json();assert.equal(picked.status,'winner-selected');
   assert.deepEqual(await (await pick('creator')).json(),picked);
-  response=await jam();assert.deepEqual((await response.json()).event.entries,[]);
+  response=await jam();assert.deepEqual((await response.json()).event,beforePick);
   response=await listings();assert.equal(response.status,200);assert.deepEqual((await response.json()).projects,[]);
   time+=60000;
   response=await jam();assert.equal(response.status,200,await response.clone().text());
   const entries=(await response.json()).event.entries;
   assert.equal(entries.length,1);assert.equal(entries[0].winner,true);
   response=await listings();assert.equal(response.status,200);
-  assert.deepEqual((await response.json()).projects[0].gameJamWinner,{id,title:manifest.title});
+  assert.equal((await response.json()).projects[0].gameJamWinner,true);
   response=await hub();assert.equal(response.status,200);assert.equal((await response.json()).releases.length,1);
   response=await postJamActionResponse(post('owner',action,{operationId:'pg-http-withdraw-0001',action:'withdraw-entry',
     participantId:'33',reason:'Fixture moderation'}),id,options);assert.equal(response.status,200,await response.clone().text());

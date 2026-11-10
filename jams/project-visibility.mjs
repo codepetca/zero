@@ -12,7 +12,7 @@ export async function projectVisibility(snapshot, now) {
         !Number.isSafeInteger(now) || now < 0) throw Error();
     const ids = [...snapshot.ids];
     if (ids.some(id => typeof id !== 'string' || !ID.test(id)) || new Set(ids).size !== ids.length) throw Error();
-    const held = new Set(), winners = new Map();
+    const held = new Set(), winners = new Set();
     for (const id of ids) {
       const result = await snapshot.read(id);
       const state = validateState(result?.state, id, LIMITS, {enforceReserve:false});
@@ -33,17 +33,9 @@ export async function projectVisibility(snapshot, now) {
       }
       const reveal = state.accepted?.manifest.schedule.galleryRevealAt;
       if (!reveal) continue;
-      const revealTime = Date.parse(reveal);
-      if (now >= revealTime) {
+      if (now >= Date.parse(reveal)) {
         const winner = gameJamWinningEntry(state,now);
-        if (winner) {
-          const key = winner.repository.id + '/' + winner.repository.ownerId;
-          const previous = winners.get(key);
-          if (!previous || revealTime > previous.revealTime || revealTime === previous.revealTime && id < previous.badge.id) {
-            const badge = Object.freeze({id,title:state.accepted.manifest.title});
-            winners.set(key,{revealTime,badge});
-          }
-        }
+        if (winner) winners.add(winner.repository.id + '/' + winner.repository.ownerId);
         continue;
       }
       for (const registration of Object.values(state.registrations)) {
@@ -61,9 +53,8 @@ export async function projectVisibility(snapshot, now) {
         if (typeof repositoryId !== 'string' || !ACCOUNT.test(repositoryId)) fail(503,'Project visibility is unavailable.');
         return held.has(repositoryId);
       },
-      gameJamWinnerFor(repositoryId, ownerId) {
-        if (held.has(repositoryId)) return undefined;
-        return winners.get(repositoryId + '/' + ownerId)?.badge;
+      isGameJamWinner(repositoryId, ownerId) {
+        return !held.has(repositoryId) && winners.has(repositoryId + '/' + ownerId);
       }
     });
   } catch {

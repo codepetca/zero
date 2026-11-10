@@ -213,7 +213,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(existing.creator.id===next.creator.id&&occupiesOrganizerSlot(existing,time))fail(429,'You can have only one active jam at a time.');
     }
   }
-  async function commitOnStore(writeStore,transactional,id,actor,op,payloadDigest,change,{create=false,pool='ordinary',scope=id,legacyDigest,callScope,recoverOnly=false,enforceOrganizerSlot=false,creatorCancellation=false}={}) {
+  async function commitOnStore(writeStore,transactional,id,actor,op,payloadDigest,change,{create=false,pool='ordinary',scope=id,legacyDigest,callScope,recoverOnly=false,enforceOrganizerSlot=false,creatorCancellation=false,updateEventTimestamp=true}={}) {
     for(let attempt=0;attempt<(transactional?1:bound.retries);attempt++) {
       callScope?.check();
       const snapshot=await safeCall(()=>callScope?callScope.run(()=>writeStore.snapshot({signal:callScope.signal})):writeStore.snapshot());
@@ -246,7 +246,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       const detail=change(next,time,stamp);
       if(create||enforceOrganizerSlot)await assertOrganizerSlot(snapshot,next,time);
       const result={eventId:id,operationId:op,...detail};
-      next.updatedAt=stamp;next.operations[operationKey(actor,op)]={actorId:actor.id,acceptedAt:time,payloadDigest,result,pool};
+      if(updateEventTimestamp)next.updatedAt=stamp;
+      next.operations[operationKey(actor,op)]={actorId:actor.id,acceptedAt:time,payloadDigest,result,pool};
       const nextBytes=Buffer.byteLength(JSON.stringify(next));
       if(pool==='safety'&&nextBytes-previousBytes>SAFETY_SLOT_BYTES)fail(413,'This safety action exceeds its reserved record capacity.');
       if(nextBytes>stateBudget(next,bound))fail(413,'This jam has reached its ordinary record capacity; safety moderation space is reserved.');
@@ -442,7 +443,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     const publicParticipants=new Set((event.entries??[]).map(item=>item.participantId));
     const moderationEntries=canMaintain&&!overview?summary(state,time,visibility,{moderation:true,entryParticipants}).entries.filter(item=>!publicParticipants.has(item.participantId)):[];
     if(page)moderationEntries.sort(participantOrder);
-    const canPickWinner=actor?.id===state.creator.id&&canPickGameJamWinner(state,time);
+    const canPickWinner=overview&&actor?.id===state.creator.id&&canPickGameJamWinner(state,time);
     const result=taggedProjection({event,registration:structuredClone(registration),entry:structuredClone(entry),canMaintain,...(canPickWinner?{canPickWinner}:{}),...(canMaintain&&!overview?{moderationEntries}:{}),...(proposal?{proposal:structuredClone(proposal)}:{})},revision);
     return page?Object.defineProperty(result,JAM_PAGE_METADATA,{value:pageMetadata}):result;
   }
@@ -589,7 +590,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       }
       if(action==='leave') {registration.status='left';registration.updatedAt=stamp;}
       return {status:action==='leave'?'left':'withdrawn'};
-    },{pool:SAFETY.has(action)?'safety':'ordinary',legacyDigest,callScope,enforceOrganizerSlot:action==='approve'||action==='resume',creatorCancellation:action==='cancel'});
+    },{pool:SAFETY.has(action)?'safety':'ordinary',legacyDigest,callScope,enforceOrganizerSlot:action==='approve'||action==='resume',
+      creatorCancellation:action==='cancel',updateEventTimestamp:action!=='pick-winner'});
   }
   async function settlement(input) {
     keys(input,['actor','scope','operationId','payload']);

@@ -185,7 +185,7 @@ links still go separately to Pika.
 After submissions close in a Zero-hosted Game Jam, the host can choose one
 eligible submission as the winner and correct their choice later. The winner
 badge appears on the eligible gallery entry at reveal. A matching published
-ZeroHub app also shows a badge linked to the most recently revealed jam it won.
+ZeroHub app also shows a Game Jam winner badge.
 The gallery reveal lifts the jam's discovery hold on existing ZeroHub listings.
 Entry in a jam is separate from publishing an app to ZeroHub.
 

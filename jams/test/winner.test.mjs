@@ -25,14 +25,14 @@ test('a changed winner replaces the badge without changing an accepted retry', a
   assert.deepEqual(await pick(creator,'winner-first-choice'),first);
   assert.equal((await service.readWinnerSelection(eventId,creator)).winnerSelection.currentRevision,entries.get(participant.id));
   const before = await projectVisibility(await store.snapshot(),Date.parse('2030-01-04T00:00:00Z'));
-  assert.equal(before.gameJamWinnerFor(participant.id+'0',participant.id),undefined);
+  assert.equal(before.isGameJamWinner(participant.id+'0',participant.id),false);
   setTime('2030-01-05T00:00:00Z');
   const {event} = await service.read(eventId);
   assert.deepEqual(event.entries.filter(entry=>entry.winner).map(entry=>entry.participantId),[participant.id]);
   const visible = await projectVisibility(await store.snapshot(),Date.parse('2030-01-05T00:00:00Z'));
-  assert.equal(visible.gameJamWinnerFor(participant.id+'0',participant.id).id,eventId);
-  assert.equal(visible.gameJamWinnerFor(participant.id+'0',creator.id),undefined);
-  assert.equal(visible.gameJamWinnerFor(creator.id+'0',creator.id),undefined);
+  assert.equal(visible.isGameJamWinner(participant.id+'0',participant.id),true);
+  assert.equal(visible.isGameJamWinner(participant.id+'0',creator.id),false);
+  assert.equal(visible.isGameJamWinner(creator.id+'0',creator.id),false);
 });
 
 test('App Jam hosts cannot use Game Jam awards', async () => {
