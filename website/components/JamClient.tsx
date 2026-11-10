@@ -13,7 +13,7 @@ type Entry = {participantId:string;login:string;title:string;description:string;
 type Event = Manifest & {creator?:{id:string;login:string};id:string;revision:string|null;approvalHistory?:{revision:string;approvedAt:string;manifest:Manifest}[];approvalMode?:string;reviewStatus:string;moderation:{status:string;reason?:string};registrationOpen:boolean;submissionsOpen:boolean;participantCount:number;participantLimit:number;galleryIncomplete?:boolean;participants:{id:string;login:string}[];entries:Entry[];updatedAt:string};
 type Detail = {configured:boolean;event:Event;registration:{status:string;revision?:string;repository?:Repository}|null;entry:Entry|null;moderationEntries?:Entry[];canMaintain:boolean;canPickWinner?:boolean;proposal?:{revision:string;manifest:Manifest;repository?:Repository;hosting?:string;organizerId?:string;organizerLogin?:string;status:string;reason?:string}};
 type Mutation = Record<string,unknown>;
-type Directory = {configured:boolean;events:Event[];hostingAccess?:{accountId:string;canCreate:boolean};canMaintain?:boolean;proposals?:{id:string;title:string;type:string;revision:string;status:string;organizerLogin:string;submittedAt:string}[]};
+type Directory = {configured:boolean;events:Event[];hostingAccess?:{accountId:string;canCreate:boolean|null};canMaintain?:boolean;proposals?:{id:string;title:string;type:string;revision:string;status:string;organizerLogin:string;submittedAt:string}[]};
 const kindLabel = (type:string) => type === 'app' ? 'App Jam' : 'Game Jam';
 const reviewLabel = (status:string) => ({submitted:'Awaiting review',approved:'Approved','changes-requested':'Changes requested',rejected:'Rejected'}[status] || status);
 function message(error:unknown) { return error instanceof Error ? error.message : 'The request failed. Your form is kept; try again.'; }
@@ -37,14 +37,16 @@ function useResource<T>(path:string|null,discardOnError=false) {
   return {data:resource?.identity===identity?resource.value:null,error,loading,refresh};
 }
 const JamDirectoryContext=createContext({
-  data:null as Directory|null,error:'',loading:true,refresh:async()=>{},canCreate:false
+  data:null as Directory|null,error:'',loading:true,refresh:async()=>{},canCreate:false,hostingUnavailable:false
 });
 export function JamDirectoryProvider({children,enabled=true}:{children:ReactNode;enabled?:boolean}) {
   const {user}=useHubGitHub();
   const directory=useResource<Directory>(enabled?'/api/jams?view=summaries':null);
   const access=directory.data?.hostingAccess;
-  const canCreate=!directory.error&&!!user&&access?.accountId===user.id&&access.canCreate===true;
-  return <JamDirectoryContext.Provider value={{...directory,canCreate}}>{children}</JamDirectoryContext.Provider>;
+  const decision=!directory.error&&user&&access?.accountId===user.id?access.canCreate:undefined;
+  return <JamDirectoryContext.Provider value={{...directory,canCreate:decision===true,hostingUnavailable:decision===null}}>
+    {children}
+  </JamDirectoryContext.Provider>;
 }
 export function useJamDirectory(){return useContext(JamDirectoryContext);}
 function useDraft<T extends object>(name:string,initial:T,initializeFresh?:()=>T):[T,(value:T,touched?:readonly string[])=>void] {
@@ -165,7 +167,7 @@ function ApprovedVersions({event}:{event:Event}) {
 }
 export function JamDiscovery() {
   const {user}=useHubGitHub();
-  const {data,error,loading,refresh}=useJamDirectory();
+  const {data,error,loading,refresh,hostingUnavailable}=useJamDirectory();
   const [type,setType]=useState('all'),[search,setSearch]=useState('');
   const terms=search.toLowerCase().trim().split(/\s+/).filter(Boolean);
   const events=(data?.events||[]).filter(event=>{
@@ -177,6 +179,7 @@ export function JamDiscovery() {
       <h1 id="jams-heading">ZeroJams</h1>
       <p className="lead">Build something together in a Game Jam or App Jam.</p>
       <p className="jam-muted">Joining is free. Hosting requires Zero Pro.</p>
+      {hostingUnavailable&&<HostingUnavailable/>}
       {!user&&<HubAccount showSignOut={false}/>}
       <div className="jam-filter">
       <div className={styles.search}><Icon name="search"/><input type="search" aria-label="Search jams" placeholder="Search jams" maxLength={200} value={search} onChange={event=>setSearch(event.target.value)}/></div>
@@ -197,13 +200,16 @@ export function JamDiscovery() {
       </article>)}</div>
   </section>;
 }
+function HostingUnavailable() {
+  return <p className="jam-muted">Hosting access is temporarily unavailable. Try again later.</p>;
+}
 export function JamCreationPane() {
   const {user}=useHubGitHub();
-  const {canCreate,loading,error,refresh}=useJamDirectory();
+  const {canCreate,loading,error,refresh,hostingUnavailable}=useJamDirectory();
   if(canCreate)return <JamCreate/>;
   return <><h1>Create a ZeroJam</h1>
     {!user?<HubAccount showSignOut={false}/>:<Retry error={error} loading={loading} refresh={refresh}/>}
-    {!user||!loading&&!error?<p>A Zero Pro license is required to host a jam.</p>:null}
+    {hostingUnavailable?<HostingUnavailable/>:!user||!loading&&!error?<p>A Zero Pro license is required to host a jam.</p>:null}
   </>;
 }
 export function JamCreate() {

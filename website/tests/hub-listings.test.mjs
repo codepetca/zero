@@ -239,3 +239,61 @@ test('Postgres serializes concurrent replacement, protection transfer, update, m
   assert.ok(older.projects.some(project=>project.repositoryId === '21'));
   assert.deepEqual(older.projects.filter(project=>project.listed).map(project=>project.repositoryId), ['83']);
 });
+
+test('central listing grants augment legacy access and outages do not silently downgrade it', async () => {
+  const {cookie} = newSession(token, {id:6, login:'student'}, 3600, hubConfig(env));
+  const request = () => new Request(origin + '/api/hub/listings', {headers:{Cookie:cookie.split(';')[0]}});
+  const centralEnv = {...env, ZERO_ENTITLEMENTS_DATABASE_URL:'fixture-only'};
+  const project = {repositoryId:'21', title:'Game', pagesUrl:'https://example.test', listed:true, protected:false};
+  const listingStore = {mine:async()=>({projects:[project], next:null})};
+  const options = {env:centralEnv, getStore:()=>listingStore,
+    getEntitlementsStore:()=>({resolve:async id=>({listingLimit:id==='6'?10:1})})};
+  assert.equal((await (await hubListingsResponse(request(), options)).json()).limit, 10);
+  const unavailable = {...options, getEntitlementsStore:()=>({resolve:async()=>{throw new Error('offline');}})};
+  const degraded = await hubListingsResponse(request(), unavailable);
+  assert.equal(degraded.status, 200);
+  assert.deepEqual(await degraded.json(), {account:'6', limit:null, projects:[project], next:null});
+  const legacy = {...unavailable, env:{...centralEnv, ZERO_HUB_LISTINGS_PRO_GITHUB_IDS:'6'}};
+  assert.equal((await (await hubListingsResponse(request(), legacy)).json()).limit, 10);
+});
+
+test('a central entitlement outage cannot replace a listing on publish', async () => {
+  const centralEnv = {...env, ZERO_ENTITLEMENTS_DATABASE_URL:'fixture-only'};
+  let wrote = false;
+  const response = await hubListingsResponse(new Request(origin+'/api/hub/listings', {
+    method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
+    body:JSON.stringify({action:'publish', ...receipt})
+  }), {env:centralEnv, getStore:()=>({savePublication:async()=>{wrote=true;}}),
+    tokenOwner:async()=> '6', verify:async()=>receipt,
+    getEntitlementsStore:()=>({resolve:async()=>{throw new Error('offline');}})});
+  assert.equal(response.status, 503);
+  assert.equal(wrote, false);
+  const {cookie, session} = newSession(token, {id:6, login:'student'}, 3600, hubConfig(env));
+  const options = {env:centralEnv, getStore:()=>({owned:async()=>receipt, savePublication:async()=>{wrote=true;}, manage:async()=>true}),
+    verify:async()=>receipt, getEntitlementsStore:()=>({resolve:async()=>{throw new Error('offline');}})};
+  const management = action => new Request(origin+'/api/hub/listings', {method:'POST',
+    headers:{'Content-Type':'application/json', Origin:origin, Cookie:cookie.split(';')[0], 'X-Hub-CSRF':session.csrf},
+    body:JSON.stringify({action, repositoryId:'21'})});
+  assert.equal((await hubListingsResponse(management('list'), options)).status, 503);
+  assert.equal(wrote, false);
+  assert.equal((await hubListingsResponse(management('unlist'), options)).status, 200);
+});
+
+test('a cancelled publish or relist does not write after the entitlement lookup', async () => {
+  const centralEnv = {...env, ZERO_ENTITLEMENTS_DATABASE_URL:'fixture-only'};
+  const {cookie, session} = newSession(token, {id:6, login:'student'}, 3600, hubConfig(env));
+  for (const desktop of [true, false]) {
+    const controller = new AbortController();
+    let wrote = false;
+    const store = {owned:async()=>receipt, savePublication:async()=>{wrote=true;}};
+    const request = new Request(origin+'/api/hub/listings', {method:'POST', signal:controller.signal,
+      headers:desktop ? {'Content-Type':'application/json', Authorization:'Bearer '+token} :
+        {'Content-Type':'application/json', Origin:origin, Cookie:cookie.split(';')[0], 'X-Hub-CSRF':session.csrf},
+      body:JSON.stringify(desktop ? {action:'publish', ...receipt} : {action:'list', repositoryId:'21'})});
+    const response = await hubListingsResponse(request, {env:centralEnv, getStore:()=>store,
+      tokenOwner:async()=> '6', verify:async()=>receipt,
+      getEntitlementsStore:()=>({resolve:async()=>{controller.abort(); return {listingLimit:10};}})});
+    assert.equal(response.status, 503);
+    assert.equal(wrote, false);
+  }
+});

@@ -16,7 +16,7 @@ const config: NextConfig = {
   async headers() {
     // Authenticated confirmations are top-level. The separate public panel route
     // supplies its accepted creator-origin frame policy dynamically.
-    return ['/hub/jams/create','/hub/jams/:id','/hub/jams/:id/participate'].map(source => ({source,
+    return ['/hub/jams/create','/hub/jams/:id','/hub/jams/:id/participate','/admin/entitlements'].map(source => ({source,
       headers:[{key:'X-Frame-Options',value:'DENY'},
         {key:'Content-Security-Policy',value:"frame-ancestors 'none'"},
         {key:'Referrer-Policy',value:'strict-origin-when-cross-origin'}]}));

@@ -218,3 +218,76 @@ test('hosted manual Pro grants use the actual server process, never a grant clai
     assert.equal(child.status,0,child.stderr);assert.equal(child.stdout,'');
   }
 });
+
+test('hosted central grants use the GitHub ID, recheck before writing, and preserve legacy grants and replay through an outage',async()=>{
+  const {spawnSync}=await import('node:child_process');
+  const authorityUrl=new URL('../lib/jams-local-authority.mjs',import.meta.url).href;
+  const fixturesUrl=new URL('../../jams/test/fixtures.mjs',import.meta.url).href;
+  const script=`import assert from 'node:assert/strict';
+    import {createHostedJamAuthority} from ${JSON.stringify(authorityUrl)};
+    import {memoryStore,hostedManifest} from ${JSON.stringify(fixturesUrl)};
+
+    const store=memoryStore();
+    store.transact=callback=>callback(store);
+    let lookups=[],revokeBeforeWrite=true,outage=false;
+    const getEntitlementStore=env=>{
+      assert.equal(env,process.env);
+      assert.equal(env.ZERO_ENTITLEMENTS_DATABASE_URL,'synthetic-server-url');
+      return {async resolve(accountId){
+        lookups.push(accountId);
+        if(outage)throw Error('private entitlement failure');
+        const jamHosting=accountId==='11'&&(!revokeBeforeWrite||lookups.length===1);
+        return {listingLimit:10,jamHosting,grants:[]};
+      }};
+    };
+    const authority=createHostedJamAuthority({
+      env:{NODE_ENV:'production',ZERO_JAMS_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'44'},store,
+      now:()=>Date.parse('2030-01-02T12:00:00Z'),verifySource:async()=>{},
+      verifyRepository:async()=>{},pagesBindingReader:async()=>{}
+    },getEntitlementStore);
+    const request={actor:{id:'11',login:'renamed'},operationId:'central-jam-grant-01',manifest:hostedManifest()};
+    const denied=error=>error.status===403&&error.message.startsWith('A Pro license is required');
+    await assert.rejects(authority.service.propose(request),denied);
+    assert.deepEqual(lookups,['11','11']);
+    assert.equal(store.records.size,0);
+    revokeBeforeWrite=false;
+    for(const [id,canCreate] of [['11',true],['22',true],['33',true],['44',false]]) {
+      const directory=await authority.service.listSummaries({id,login:'renamed'});
+      assert.deepEqual(directory.hostingAccess,{accountId:id,canCreate});
+      assert.doesNotMatch(JSON.stringify(directory),/grants|private entitlement/);
+    }
+    await assert.rejects(authority.service.propose({...request,actor:{id:'44',login:'renamed'}}),denied);
+    assert.equal(lookups.at(-1),'44');
+    const accepted=await authority.service.propose(request);
+    assert.equal(accepted.status,'approved');
+    assert.deepEqual(lookups.slice(-2),['11','11']);
+    assert.equal(store.records.size,1);
+
+    outage=true;
+    lookups=[];
+    const unavailable=await authority.service.listSummaries({id:'11',login:'renamed'});
+    assert.deepEqual(unavailable.hostingAccess,{accountId:'11',canCreate:null});
+    assert.equal(unavailable.events.length,1);
+    assert.deepEqual((await authority.service.listSummaries({id:'22',login:'legacy'})).hostingAccess,{accountId:'22',canCreate:true});
+    lookups=[];
+    assert.deepEqual(await authority.service.propose(request),accepted);
+    const settled=await authority.service.settle({actor:request.actor,scope:'proposals',
+      operationId:request.operationId,payload:{manifest:request.manifest}});
+    assert.equal(settled.settlement,'applied');
+    assert.deepEqual(lookups,[]);
+    await assert.rejects(authority.service.propose({...request,operationId:'central-jam-grant-02'}),
+      error=>error.status===503&&error.message==='Jam creation access is unavailable. Retry with the same operation ID.');
+    assert.deepEqual(lookups,['11']);
+    assert.equal(store.records.size,1);
+    for(const id of ['22','33']){
+      const result=await authority.service.propose({...request,actor:{id,login:'legacy'}});
+      assert.equal(result.status,'approved');
+    }
+    assert.deepEqual(lookups,['11']);
+    assert.equal(store.records.size,3);`;
+  const env={PATH:process.env.PATH||'/usr/bin:/bin',NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',
+    ZERO_JAMS_PILOT_ENABLED:'1',ZERO_JAMS_PRO_GITHUB_IDS:'22',ZERO_JAMS_ADDITIONAL_PRO_GITHUB_IDS:'33',
+    ZERO_ENTITLEMENTS_DATABASE_URL:'synthetic-server-url'};
+  const child=spawnSync(process.execPath,['--input-type=module','-e',script],{env,encoding:'utf8',timeout:10000});
+  assert.equal(child.status,0,child.stderr);assert.equal(child.stdout,'');
+});

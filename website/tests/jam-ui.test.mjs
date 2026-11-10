@@ -324,6 +324,11 @@ test('only the current Pro account can open the creation form',()=>{
   assert.equal(showsForm(),false);
   h.setDetail({events:[],hostingAccess:{accountId:'99',canCreate:false}});
   assert.equal(showsForm(),false);
+  h.setDetail({events:[],hostingAccess:{accountId:'99',canCreate:null}});
+  assert.equal(showsForm(),false);
+  for(const pane of ['JamDiscovery','JamCreationPane']) {
+    assert.ok(elements(h.render(pane)).some(node=>node.type?.name==='HostingUnavailable'));
+  }
   h.setActor(null);
   assert.equal(showsForm(),false);
 });
