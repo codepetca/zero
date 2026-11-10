@@ -208,6 +208,9 @@ After submissions close in a Zero-hosted Game Jam, the host can choose one
 eligible submission as the winner and correct their choice later. The winner
 badge appears on the eligible gallery entry at reveal. A matching published
 ZeroHub app also shows a Game Jam winner badge.
+Once the gallery opens, the host can remove an entry from their own jam with a
+reason visible to the participant. Removing the winner also removes the award
+from the jam gallery and the matching ZeroHub app.
 The gallery reveal lifts the jam's discovery hold on existing ZeroHub listings.
 Entry in a jam is separate from publishing an app to ZeroHub.
 

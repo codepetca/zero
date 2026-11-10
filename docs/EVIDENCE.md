@@ -39,6 +39,24 @@ Browser evidence is in `output/playwright/compact-projects/`.
 
 ---
 
+# ZeroJams host entry removal — 2026-11-10
+
+Local source at `0599bd72a` lets a host remove entries from their own active
+jam once its gallery opens. The entrant can see the reason, and host withdrawals
+leave two safety slots for maintainer suspension and cancellation.
+
+The jam suite passed 672 tests with six environment-dependent skips. Website
+typecheck passed. A local Chromium check with synthetic accounts and responses
+covered participant and host controls, removal, and the entrant's notice.
+Live GitHub, WorkOS and production writes were outside this verification.
+
+Two independent Sol/high reviews covered `7893250e9..4aa50949a`, finding the
+safety capacity and entrant visibility gaps. One Sol/high targeted re-review
+of `4aa50949a..0599bd72a` found no remaining issue after the fixes.
+Effective model telemetry is unavailable. The branch is local.
+
+---
+
 # ZeroHub Soft highlight submenu — 2026-11-10
 
 Local source commit `7ab953322` puts **Share a game** under Projects and
