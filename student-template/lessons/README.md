@@ -9,7 +9,7 @@ the intended result; native controls vary by platform.
 | Getting started | [0](15-recover-zero.md) | Find the sidebar, project files and tutorials. |
 | 1. Greeting app | [1](00-hello-world.md), [2](01-hello-button.md), [3](02-hello-name.md) | A greeting with a button and name field. |
 | 2. Coin game | [4](08-movement.md), [5](09-coin-game.md) | A moving player, coins, a score and Restart. |
-| 3. Pet game | [6](13-pet.md), [7](16-pet-motion.md), [8](17-pet-class.md), [9](14-own-project.md) | Animate a bird, make a Pet class, and add a welcome screen. Practise a branch, merge and re-clone. |
+| 3. Pet game | [6](13-pet.md), [7](16-pet-motion.md), [8](17-pet-class.md), [9](14-own-project.md) | Animate a bird, make a Pet class, and add a welcome screen. Practise branching, discarding an experiment, merging and re-cloning. |
 
 ## Optional tutorials
 
@@ -36,9 +36,13 @@ To reopen your own clone, choose:
 
 Keep the same repository throughout each project's lessons.
 
-You write the controls, game objects and logic in each project. Save, choose **Run**, then **Commit & push** at the
-checkpoints in the lessons. At the end, use **Publish & open app** and test your
-work in a browser when you have permission to share it publicly. A published
+You write the controls, game objects and logic in each project. At each
+checkpoint, save and choose **Run** to test your work. The Git steps use the
+Zero sidebar with separate **Commit** and **Sync** buttons. Commit saves a
+checkpoint on your current branch. Sync sends saved commits to GitHub.
+
+Use **Publish & open app** to test the finished app in a browser when you have
+permission to share it publicly. A published
 page and its included assets are public. If a school account or repository cannot
 publish, follow your school or account policy; do not change visibility without
 approval. Once cloned, local Run works offline after dependencies are cached.

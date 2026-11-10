@@ -73,13 +73,27 @@ and check that the action reads the current text, rather than remembering the
 first name. Keep keyboard focus visible and use words as well as colour to
 explain results.
 
-## 6. Save your greeting
+## 6. Save a checkpoint on your computer
 
-In Zero, choose **Commit & push**, review the changed files, and use a message
-such as `Finish greeting app`. This saves your work in your GitHub repository.
-Check the repository on GitHub to see your latest source.
+Save your files. In Zero's **Project** panel, check that the branch is **main**.
+Type `Finish greeting app` in the commit message field, then choose:
 
-## 7. Publish your greeting
+**Commit**
+
+A commit saves a checkpoint on your current branch. It is available on this
+computer as soon as Zero says **Committed locally**.
+
+## 7. Send your checkpoint to GitHub
+
+Choose:
+
+**Sync**
+
+Sync sends the saved commits on **main** to GitHub. When Zero confirms the
+sync, click your repository name and choose **Open on GitHub**. Check that
+**main** shows your commit message.
+
+## 8. Publish your greeting
 
 After checking that you have permission to share the contents, stop the running app. Open the Run dropdown and choose:
 

@@ -155,16 +155,20 @@ checkpoint 11 (shown before library extraction). Its [PlayerInput.java](../../te
 includes the optional WASD change; checkpoint 10 is the arrow-only comparison if
 you skipped it. Checkpoint 12 carries that same WASD helper forward.
 
-Choose **Commit & push**, review the changed files and confirm. Then choose **Merge to main** and follow the prompts. This merges and pushes the tested refactor to main. A useful method, clear
-error and unchanged caller matter more than making a large library.
+Save your files and choose **Commit** with a message that describes the tested
+refactor. Choose **Sync** to send `coin-refactor` to GitHub. Then choose
+**Merge** beside the branch name and confirm **Merge coin-refactor into main?**
+Zero syncs the merged **main** to GitHub.
 
 ## 6. Add a harmless practice badge
 
-After the merge, check that main is current. In the Zero sidebar, click your project name to open its actions, then choose:
+After the merge, check that **main** is current. Click its name in the
+**Project** panel, then choose:
 
 **New branch…**
 
-Name it `coin-badge` and confirm. Check that `coin-badge` is current before adding the badge.
+Enter `coin-badge` and press Enter. Check that `coin-badge` is current before
+adding the badge.
 
 In the Coin game's **java** folder, create `CreditsBadge.java`:
 
@@ -276,8 +280,9 @@ Confirm the badge, controls, movement and Restart in the browser. A successful
 compile and an actual working page are different checks. Keep publication an
 explicit separate action; local browser preview is enough to practise checking.
 
-Choose **Commit & push**, review the changed files and confirm. Then choose
-**Merge to main** and follow the prompts to merge and push the badge work.
+Save the tested badge work and choose **Commit**, then **Sync**. Choose
+**Merge** beside `coin-badge` and confirm **Merge coin-badge into main?**
+Check that **main** is selected before continuing.
 
 ## 9. Practise submitting and using a classmate's badge
 

@@ -83,25 +83,42 @@ Replace the matching start of `draw` with this block. Keep the existing backgrou
 
 Save and choose **Run**. Click **Start**, click the canvas and use the arrows and Space. Click **Back**, then **Start** again: the pet should resume from its saved position. The button stays in the controls area while the canvas changes. Change the welcome title, colours or shapes to make it yours, then check both scenes again.
 
-## 8. Save your branch
+## 8. Save and sync your branch
 
-Review your code and README for private information before sharing publicly. Run and check your game. In the Zero sidebar, choose:
+Check that `pet-refactor` is selected. Review your code and README for private
+information, then save your files. Enter `Add the welcome screen` and choose:
 
-**Commit & push**
+**Commit**
 
-Review the branch and changed files, enter a useful message, and confirm. This sends your branch to your repository.
+Then choose:
+
+**Sync**
+
+The first Sync creates `pet-refactor` on GitHub and sends both saved
+checkpoints. Open your repository on GitHub, select `pet-refactor` in its
+branch list, and check for your welcome-screen commit.
 
 ## 9. Merge your work
 
-After committing and pushing any remaining edits, choose:
+Stop the game and check that all the edits you want are committed. Beside
+`pet-refactor` in Zero's **Project** panel, choose:
 
-**Merge to main**
+**Merge**
 
-Zero merges the current branch into main and pushes main; it does not create a pull request. If Zero brings in newer main code, choose **Run** again, resolve reported conflicts carefully, and choose **Merge to main** again. Never discard work just to make a merge succeed. Submit your repository link separately in Pika if assigned.
+When Zero asks **Merge pet-refactor into main?**, confirm with **Merge**. Zero
+merges the branch and syncs **main** to GitHub. Check that **main** is selected
+in Zero, then run the game and try **Start** and **Back**. The feature branch
+stays in your branch list.
+
+If Zero reports newer work on GitHub **main**, choose **Update from main**
+from the branch menu. If Source Control reports a conflict, get help resolving
+it and keep your work. Run and test the combined game before trying **Merge**
+again. Submit your repository link separately in Pika if assigned.
 
 ## 10. Publish your game
 
-Stop the game and ensure the intended main version is committed and pushed. Open the dropdown next to **Run**, then choose:
+Stop the game and check that the tested version is on GitHub **main**. Open
+the dropdown next to **Run**, then choose:
 
 **Publish & open app**
 
@@ -109,7 +126,14 @@ An older released Zero may call this **Publish app**. Review the account, reposi
 
 ## 11. Back up your project
 
-First verify on GitHub that the merged main contains both Java files and both assets, and check the published app actually opens and works. Review the changes and push status in Zero for uncommitted, untracked or unpushed work. Also look through the project folder for files Git ignores: they may not appear in the change list. Commit and push what belongs in your repository, and copy any private or ignored files you need to a separate safe backup. Confirm that backup opens. GitHub cannot restore files you never uploaded.
+Verify that GitHub **main** contains both Java files and both assets, and check
+that the published app works if you published it. Check **Files** for
+uncommitted or new files and **Sync** for commits still on this computer.
+Commit and sync anything that belongs in your repository, including work on
+other branches you want to keep. Also check the project folder for ignored
+files and copy any private or ignored files you need to a separate safe
+backup. Confirm that the backup opens. A new clone can recover only the files
+you sent to GitHub.
 
 ## 12. Practise recovering your project
 

@@ -173,10 +173,12 @@ Compare your completed file with the [movement checkpoint](../../teaching/checkp
 
 ## 18. Save the working version
 
-With the working game on **main**, choose:
+Save your files and check that **main** is selected. Review `Main.java` and the
+two assets in **Files**. Enter `Add pet movement, animation and sound` and
+choose **Commit**.
 
-**Commit & push**
-
-Review the files including the Java source and both assets, enter a useful message, and confirm. Check your repository on GitHub to see that main contains these files.
+Choose **Sync**, then check that GitHub **main** contains `Main.java`,
+`bird-flap-sheet.png` and `chime.wav`. You will start the refactor from this
+working checkpoint.
 
 Next: [Give the pet its own class](17-pet-class.md).

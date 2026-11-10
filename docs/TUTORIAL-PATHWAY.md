@@ -7,17 +7,20 @@ projects retain their own source and builds.
 
 ## Student path
 
-1. **Greeting:** make a small interactive app; commit and push; publish and test.
-2. **Coin:** move a player, collect coins and keep score; save checkpoints;
-   publish and test the game.
+1. **Greeting:** make a small interactive app. Commit a checkpoint locally,
+   sync it to GitHub, then publish and test.
+2. **Coin:** move a player, collect coins and keep score. Repeat Commit and Sync
+   on main, then publish and test the game.
 3. **Pet:** show an animated pet, move it and play a sound. Save the working
-   version on main, make a branch, refactor into a Pet class, test unchanged
-   behavior, commit/push and merge. Publish. Confirm source and assets on GitHub,
+   version on main and create a local branch. Try and discard a small movement
+   experiment, then refactor into a Pet class and test the original behavior.
+   Commit the refactor and welcome screen, sync the branch to GitHub and merge
+   into main. Publish. Confirm source and assets on GitHub,
    protect untracked/ignored work, move the local folder to Trash and re-clone
    the student's own repository; run the recovered game.
 4. **Make your own:** use Project → New for an original project; build and
    personalize a pleasant title screen and a simple scene with Start/Back.
-   Offer a HUD as an optional extension. Commit/push, publish and test.
+   Offer a HUD as an optional extension. Commit, sync, publish and test.
 
 Optional tutorials: the Study quiz and a clearly labelled tutorial-practice
 component contribution. Preserve the existing legacy lessons and accessible

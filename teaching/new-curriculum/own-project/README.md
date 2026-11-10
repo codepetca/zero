@@ -58,6 +58,10 @@ Try changing one number at a time: in `rect(x, y, width, height)`, the first two
 
 ## 5. Save and share
 
-Review your code and README for private information. Use **Commit & push**, enter a useful message such as `Create welcome screen`, and confirm the action. This saves a commit and pushes your current branch to your repository. If you are working on a branch, review and use **Merge to main** when ready. Give your teacher the repository link separately in Pika as instructed.
+Review your code and README for private information. Save your files, enter
+`Create welcome screen`, and choose **Commit**. Choose **Sync** to send your
+checkpoint to GitHub. If you are on a feature branch, choose **Merge** beside
+its name when the change is ready for **main**. Give your teacher the
+repository link separately in Pika as instructed.
 
-To share a playable browser version, stop the app, commit and push the version you want, then choose **Run ▾ → Publish & open app** and follow Zero's prompts. Publishing makes the app and included assets public. Open the resulting page and test Start and Back. If your installed Zero offers **Publish app** instead, use that action and open the resulting link. Publication requires the connected GitHub/Pages setup; a local run alone does not publish anything.
+To share a playable browser version, stop the app and verify the version you want on GitHub **main**, then choose **Run ▾ → Publish & open app** and follow Zero's prompts. Publishing makes the app and included assets public. Open the resulting page and test Start and Back. If your installed Zero offers **Publish app** instead, use that action and open the resulting link. Publication requires the connected GitHub/Pages setup; a local run alone does not publish anything.

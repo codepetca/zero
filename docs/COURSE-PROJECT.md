@@ -19,7 +19,7 @@ playable game remains optional.
    your personal account as the owner, give the project your own name and follow
    school privacy and visibility policies. Create the repository.
 2. In **your new repository**, choose **Code → HTTPS** and copy its URL.
-   Return to Zero, sign in, and choose **Project → Clone from GitHub…**. Paste
+   Return to Zero, sign in, and choose **Project → Clone**. Paste
    your URL in **Clone from GitHub**. In **Clone location**, keep `~/Zero Projects`
    or choose another folder outside any Git repository, then choose **Clone here**.
    Newer VS Code versions open the clone in a new window automatically; the
@@ -34,52 +34,34 @@ playable game remains optional.
 
    Replace the username and project name with your own. The same commands work
    in macOS Terminal and Windows PowerShell when Git is installed.
-3. The cloned root opens in Zero; choose **Run App**. If you cloned it earlier,
-   use **Project → Open local project…** to open its existing Zero folder in a
+3. The cloned root opens in Zero; choose **Run**. If you cloned it earlier,
+   use **Project → Open** to open its existing Zero folder in a
    new window without cloning again. Your repository
    already contains the starting files on main; its origin points to your own
    repository. Check that Zero shows your own repository.
 4. In the README, describe who your project is for, what it should do and the
-   first small feature you will build. Commit & push this plan on main before starting
-   a change branch. Follow [repository setup](GETTING-STARTED.md#your-github-repository)
-   for native sign-in, per-repository commit identity and access.
+   first small feature you will build. Use **Commit**, then **Sync**, to save the
+   plan on **main** before starting a branch. See [repository setup](GETTING-STARTED.md#your-github-repository)
+   for sign-in and access.
 
-Local Run App works without GitHub. GitHub actions are live by default. Commit & push
-and branch changes keep explicit reviews; publishing is a separate action. First
-Publish confirms its destination; later Publish actions update that approved site.
-Follow [the individual workflow](GETTING-STARTED.md#your-individual-workflow)
-when you are ready to push. Students develop and submit their own repositories.
+After the build dependencies are cached, **Run** works offline. **Commit**
+saves on your computer. **Sync** sends commits to GitHub. Publishing is a
+separate action that makes the playable version available in a browser.
 
 ## Tutorial repositories
 
-The continuing tutorials use three empty templates: Greeting for lessons0–2,
-Study for3–7 and Game for8–12. At each group's first lesson, choose **Start
-tutorial** from Zero’s welcome or **…** menu and select the matching project.
-Enter a name and choose a clone location (default `~/Zero Projects`). Zero creates
-a public repository in your GitHub account from the verified template, then clones
-and opens it. Its source and included files are public. The lesson page's
-**Use template** action offers a separate GitHub creation route; follow your
-school privacy and visibility policies there, then clone your own repository with
-**Project → Clone from GitHub…**. Use **Project → Open local project…** for an
-already-cloned Zero folder. Create your own repository from the template instead of cloning the template directly. Open
-`src/main/java/Main.java`, write the lesson’s ordinary Java and choose **Run App**.
-Template links follow verified publication metadata; unavailable templates show
-that state rather than an invented working link.
+Follow the [tutorial guide](../student-template/lessons/README.md) for the
+Greeting, Coin and Pet sequences. Start each project with **Project → New**
+and follow its first lesson's starting-code instructions. Continue in the
+same repository for the rest of that project's lessons. Use **Project → Open**
+to return to a local clone.
 
-Sign in through Zero for pushes, check the connected account/repository, and
-configure Git name/email in each repository. Personalize README, then Commit & push that
-initial plan on main. For each lesson change: **New branch → edit and Run App →
-Commit & push → Merge to main**. Keep the same repository across that group's
-lessons. No mode switch is needed. Local Run after cloning uses read-only local
-repository checks and needs no active GitHub session or network after caching.
+Configure your Git name and email in each repository. The early lessons
+practise **Commit** and **Sync** on **main**. Pet adds a local branch, a
+discard exercise and **Merge** into **main**. Use your own repository for
+the lessons and keep private material out of public projects.
 
-Tutorials have no ZIP or unconnected local-folder alternative. Opening an
-already-cloned tutorial repository with **Open local project…** keeps its Git
-history and own GitHub origin. A ZIP, a folder inside another
-Git repository or a clone still pointing at the shared template receives setup
-guidance. This is teaching workflow validation, not tamper-proof provenance.
-Publish app is available as an explicit optional action; its game/assets are
-public. Ordinary ZeroHub contributions remain for separate original work. Lesson
+Ordinary ZeroHub contributions remain for separate original work. Lesson
 11 has one explicit exception: the copied `tutorial-credits-badge` library from
 the Coin repository belongs only in Tutorial practice, when hosted library
 acceptance is enabled. Other tutorial games/libraries stay out of the community
@@ -91,18 +73,16 @@ automatically.
 
 1. Write one small task in your README or as a GitHub issue. State what someone
    should be able to do when it works.
-2. Choose **New branch** (**Start a change** in older kits) and give it a descriptive name.
-   Current source creates it locally from main; use **Update from main** first
-   when you want newer completed work. New branch does not require sign-in.
-3. Implement the feature and **Run App**. Check the usual result and one likely
-   mistake or edge case. Update the README to describe the working feature.
-4. **Commit & push** with a commit message explaining the change. Read your
-   files and commit on GitHub so you can see what was pushed.
-5. **Merge to main** merges your current branch into main and pushes main
-   through Zero's reviewed individual workflow. If GitHub refuses a stale-main
-   push, use **Update from main** to bring main into your feature without
-   uploading. Resolve conflicts if needed, run the combined app and retry.
-   Check the completed files on GitHub main.
+2. Start from a working checkpoint on **main**. Click the current branch name,
+   choose **New branch…**, and enter a descriptive name.
+3. Implement the feature and choose **Run**. Check the usual result and one likely
+   edge case. Update the README to describe the working feature.
+4. Save your files and choose **Commit** with a message explaining the change.
+   Choose **Sync** to create or update your GitHub branch, then check its commit.
+5. Choose **Merge** beside the branch name and confirm the merge into **main**.
+   If GitHub **main** has newer changes, choose **Update from main** in the
+   branch menu. Resolve any conflicts, run the combined app and try **Merge**
+   again. Check the completed files on GitHub **main**.
 
 Repeat this loop in the same repository. A new feature does not need a new
 repository. Submit **your own repository link** separately in Pika if your course uses it, and give
@@ -116,11 +96,9 @@ GitHub: open a pull request from your change branch, explain what changed and ho
 you checked it, respond to feedback, then merge the pull request. Follow
 [GitHub flow](https://docs.github.com/en/get-started/using-github/github-flow).
 
-For this exercise, use GitHub's pull request merge **instead of Zero's Merge to
-main**. Merge to main merges the current branch into main and pushes main; it
-does not create a pull request. After merging on GitHub, use ordinary Git or VS Code Source
-Control to switch to main, then choose **Update from main** to download the
-updated main before starting another change (use ordinary Git pull in older kits). Zero currently has no team or pull request mode.
+Back in Zero, click the current branch name, select **main** from the local
+branch list, then choose **Sync** to get the merged commits. Run the updated
+project before starting another change.
 
 ## Explore Drawing Pad
 

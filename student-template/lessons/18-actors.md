@@ -18,13 +18,13 @@ exercise, use it as a reference to bring back any features you want.
 
 ## 1. Start a branch for this change
 
-Make sure your working game is committed and pushed on **main**. In the Zero
-sidebar, click your project name to open its actions, then choose:
+Start from a working checkpoint you committed and synced on **main**. In
+the **Project** panel, click the current branch name, **main**, then choose:
 
 **New branch…**
 
-Name it `actor-refactor` and confirm. Check that `actor-refactor` appears as the
-current branch before continuing.
+Enter `actor-refactor` and press Enter. Check that `actor-refactor` appears as
+the current branch before continuing.
 
 ## 2. Give Player an Actor
 
@@ -95,7 +95,7 @@ Main explicitly updates each actor once per frame and draws each actor once.
 After replacing all three files, choose **Run**, click the canvas and use the
 arrow keys. Collect one coin and stay on it: the score should increase only once.
 Try Restart during play, collect all three coins, then Restart again. Try changing
-an actor’s colour or speed, and save your working changes with **Commit & push**.
+an actor’s colour or speed.
 
 ```java
 import zero.Color;
@@ -172,7 +172,12 @@ are rectangles even if you later draw a circle or rotate an actor.
 
 ## 5. Save and publish
 
-Review and **Commit & push** your changes. Merge only when you are ready to
-replace the version on main, including any earlier features you have not yet
-brought back. Use **Merge to main**, then choose **Publish & open app** from the
-Run menu. Play the published game and try Restart.
+Save and review your changes, then choose **Commit** and **Sync** on
+`actor-refactor`. You can keep this experiment on its branch while you decide
+which earlier features to bring back.
+
+When you are ready to use the tested Actor version on **main**, choose
+**Merge** beside `actor-refactor` and confirm **Merge actor-refactor into
+main?**. After Zero switches to **main**, stop the app and choose
+**Publish & open app** from the Run dropdown. Play the published game and try
+Restart.

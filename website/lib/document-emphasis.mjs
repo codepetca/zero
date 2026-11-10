@@ -5,7 +5,7 @@ export function documentEmphasisKind(node) {
   const value = text(node).trim();
   if (/^(?:Cmd|Ctrl|Option|Alt|Shift)\+/.test(value)) return 'shortcut';
   if (/^(?:Zero|View|Preferences|Profiles|Extensions):\s/.test(value)) return 'command';
-  if (/^(?:Run|New branch…|New class…|New folder…|Import assets…|Extract library|Browse tutorial practice|Commit & push|Merge to main|Publish & open app)$/.test(value)) return 'selection';
+  if (/^(?:Run|New branch…|New class…|New folder…|Import assets…|Extract library|Browse tutorial practice|Commit|Sync|Merge|Discard All Changes…|Discard Changes|Update from main|Open on GitHub|Commit & push|Merge to main|Publish & open app)$/.test(value)) return 'selection';
   if (/^(?:Project(?:\s*▾)?|Libraries(?: and games)?|Add library|java)\s*→\s*\S/.test(value)) return 'selection';
   return null;
 }
