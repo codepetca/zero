@@ -79,7 +79,7 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
     const retry = result.status === 'pending' || result.status === 'unavailable';
     if (listingMessage) output?.appendLine(retry
       ? `${listingMessage}. Choose Publish & open app to retry.`
-      : `${listingMessage}. Manage apps at https://zero.codepet.ca/hub/listings`);
+      : `${listingMessage}. Open My Apps at https://zero.codepet.ca/hub/listings`);
     lastLive = {...saved, listingPending:retry, listingMessage};
     await workspaceState?.update('zero.webPublish.lastLive', lastLive);
     return lastLive;
