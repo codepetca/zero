@@ -23,10 +23,10 @@ function harness(projects=[project], enforceJamVisibility=true, fakeTimers=false
   const sharing={selectMaintainedProjects:(items,opts)=>opts.kind==='game'&&!opts.id&&!opts.version?items.filter(x=>x.title.toLowerCase().includes(opts.search.toLowerCase())):[],selectReleases:catalog=>catalog.releases,projectSummary:x=>x,maintainedPlayLink:p=>p.web?.url,releaseSummary:(r,p)=>p.find(x=>x.id===r.id&&x.sourceCommit===r.source.commit)?.description||r.description,releaseAuthor:(r,a)=>a.find(x=>x.id===r.id&&x.sourceCommits.includes(r.source.commit))?.author||'fallback',releaseImage:(r,p)=>p.find(x=>x.id===r.id&&x.sourceCommit===r.source.commit)?.image,playLink:()=>'/play',sourceLink:()=>'',dependencySnippet:()=>''};
   const card=()=>null;
   const modules={'react':react,'react/jsx-runtime':{jsx:element,jsxs:element,Fragment:'fragment'},'next/navigation':{useSearchParams:()=>params},'next/link':{default:'a'},'@/lib/sharing-client.mjs':sharing,'@/content/projects.json':{default:[project]},'@/content/project-previews.json':{default:{}},'@/content/release-authors.json':{default:{}},'@/app/hub/hub.module.css':{default:{}},'./HubProjectCard':{HubProjectCard:card},'@/lib/hub-metrics-client.mjs':{loadMetricBatches:async()=>{},metricLabel:()=>null}};
-  for(const [path,name] of [['./HubNavigation','HubSidebar'],['./HubPublishedProjects','HubPublishedProjects'],['./CodeBlock','CodeBlock'],['./Icon','Icon'],['./HubProjectInfo','HubProjectInfo'],['./HubProjectFeedback','HubProjectFeedback']])modules[path]={[name]:()=>null,...(path.includes('Feedback')?{HubProjectDetails:()=>null}:{})};
+  for(const [path,name] of [['./HubPublishedProjects','HubPublishedProjects'],['./CodeBlock','CodeBlock'],['./Icon','Icon'],['./HubProjectInfo','HubProjectInfo'],['./HubProjectFeedback','HubProjectFeedback']])modules[path]={[name]:()=>null,...(path.includes('Feedback')?{HubProjectDetails:()=>null}:{})};
   const exports={};
   vm.runInNewContext(compiled,{exports,require:name=>{if(!(name in modules))throw Error(name);return modules[name];},fetch:(url,options)=>new Promise((resolve,reject)=>{calls.push({url,options,resolve,reject,onReply:data=>{if(url==='/api/hub/discovery')baseline=data;}});if(url.includes('revalidate=1')&&!deferEligibility)resolve({ok:true,json:async()=>baseline});options.signal?.addEventListener('abort',()=>reject(Error('aborted')),{once:true});}),AbortController,AbortSignal,URLSearchParams,Set,Number,Date,Object,Array,JSON,Promise,setTimeout:timerSet,clearTimeout:timerClear,window,document});
-  const render=()=>{cursor=0;const tree=exports.HubDiscovery({enforceJamVisibility});const pending=effects;effects=[];pending.forEach(fn=>fn());return tree;};
+  const render=(props={})=>{cursor=0;const tree=exports.HubDiscovery({enforceJamVisibility,...props});const pending=effects;effects=[];pending.forEach(fn=>fn());return tree;};
   const cards=tree=>{const found=[];function walk(node){if(!node||typeof node!=='object')return;if(Array.isArray(node)){node.forEach(walk);return;}if(node.type===card)found.push(node.props);walk(node.props?.children);}walk(tree);return found;};
   const search=tree=>{let input;function walk(node){if(!node||typeof node!=='object')return;if(Array.isArray(node)){node.forEach(walk);return;}if(node.type==='input'&&node.props.id==='sharing-search')input=node;walk(node.props?.children);}walk(tree);return value=>input.props.onChange({target:{value}});};
   return {render,cards,calls,advance,search,setQuery:q=>{params=new URLSearchParams(q);},fire:name=>listeners[name]?.(),document};
@@ -61,6 +61,19 @@ test('focus and query changes retire old responses; practice uses the dedicated 
 
 test('component does not import server-owned discovery metadata',()=>{
   assert.doesNotMatch(source, /@\/content\/(?:projects|project-previews|release-authors)\.json/);
+});
+
+test('My Libraries uses the signed-in owner ID before looking up release status',async()=>{
+  const h=harness([],false);
+  h.setQuery('kind=library&view=mine');
+  const render=()=>h.render({libraryOwnerId:'8'});
+  render();
+  const mine={...release,kind:'library',id:'mine',title:'My release',artifacts:{}};
+  const other={...mine,id:'other',title:'Another release',repository:{...mine.repository,ownerId:'9'}};
+  reply(discovery(h),envelope([], {schema:1,releases:[mine,other]}));await tick();
+  assert.deepEqual(h.cards(render()).map(card=>card.title),['My release']);
+  assert.equal(new URL(statuses(h).url,'https://zero.test').searchParams.get('ids'),'mine');
+  reply(statuses(h),{schema:1,items:[]});await tick();
 });
 
 test('presentation metadata is mapped by release ID and source commit',async()=>{

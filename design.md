@@ -8,8 +8,14 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner ZeroHub refinement, 2026-11-10. Expand the selected section's options
+under its sidebar button and keep the selected view in the content pane.
+Under **Jams**, show **How jams work** to everyone and **Create a jam** only to
+accounts with hosting access. Keep the sidebar free of the discovery blurb.
+Put **My Projects** under **Projects** and **My Libraries** under **Libraries**.
+
 Owner wording refinement, 2026-11-10. Call published work in ZeroHub **apps**
-and label the page **My Apps**. Use **app listing** where the copy needs to
+in listing controls. Use **app listing** where the copy needs to
 distinguish the public card from the app hosted on GitHub Pages. Use
 **Add to ZeroHub** and **Remove from ZeroHub** for visibility actions.
 

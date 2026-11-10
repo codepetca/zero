@@ -170,7 +170,7 @@ repository. It checks current ownership, public visibility and whether Pages
 is enabled. Public Play links require the expected run marker at a direct
 GitHub Pages address. Cards link to the repository if the marker is unavailable
 or the project uses a custom domain. Owners can open their verified deployment
-from **My Apps**.
+from **My Projects**.
 
 The existing Zero GitHub App and ZeroHub browser authentication configuration
 verify publishing and management. An editor checks app listing availability before
