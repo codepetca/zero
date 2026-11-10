@@ -22,8 +22,19 @@ Select the files you want from the unzipped folder.
 
 Decide where to load an image and sound, how to draw the image, and when to play the sound. Revisit [Show your pet](13-pet.md) and [Animate your pet](16-pet-motion.md) for examples of loading and using assets. Adapt those ideas to your own Coin game; keep its movement, scoring and Restart working. Make the game understandable without sound, and consider whether your artwork and text are easy to see.
 
-## 3. Test and share
+## 3. Test and save
 
-Run and collect a coin while staying on it: it should score once, and any collection sound should play once. Win, Restart and play again. Check your chosen artwork and listen for your sound. Test in the browser too, following any browser prompt needed to enable audio. When you are ready, choose **Commit & push** to save your work to your repository. To publish, stop the app and choose **Publish & open app** from the Run dropdown. Follow the prompts, then test the published app.
+Run and collect a coin while staying on it: it should score once, and any
+collection sound should play once. Win, Restart and play again. Check your
+artwork and sound in the browser too. When you are ready, save your files,
+choose **Commit** on **main**, then choose **Sync**.
+
+## 4. Publish the tested game
+
+Stop the app and open the Run dropdown, then choose:
+
+**Publish & open app**
+
+Follow the prompts, then test the published app.
 
 Return to the [lesson index](README.md).

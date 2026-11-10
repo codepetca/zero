@@ -10,7 +10,11 @@ test('recognizes shortcuts with platform variants and palette commands', () => {
   assert.equal(documentEmphasisKind(strong(text('Preferences: Color Theme'))), 'command');
   assert.equal(documentEmphasisKind(strong(text('Project → New'))), 'selection');
   assert.equal(documentEmphasisKind(strong(text('New branch…'))), 'selection');
-  for (const action of ['Run', 'New class…', 'New folder…', 'Import assets…', 'Extract library', 'Browse tutorial practice', 'Commit & push', 'Merge to main', 'Publish & open app']) {
+  for (const action of [
+    'Run', 'New class…', 'New folder…', 'Import assets…', 'Extract library', 'Browse tutorial practice',
+    'Commit', 'Sync', 'Merge', 'Discard All Changes…', 'Discard Changes', 'Update from main', 'Open on GitHub',
+    'Commit & push', 'Merge to main', 'Publish & open app',
+  ]) {
     assert.equal(documentEmphasisKind(strong(text(action))), 'selection', action);
   }
   assert.equal(documentEmphasisKind(strong(text('Project ▾ → Open local project…'))), 'selection');

@@ -245,9 +245,9 @@ After writing it, compare with checkpoint 9's [Main.java](../../teaching/checkpo
 
 ## 16. Save your game
 
-Choose **Commit & push** in Zero, review the changed files, and use a message
-such as `Finish coin game`. Check that your latest code is in your GitHub
-repository.
+Save your files and check that **main** is selected. Enter `Finish coin game`
+and choose **Commit**. Then choose **Sync** to send the checkpoint to GitHub.
+Open your repository and check that **main** shows the new commit.
 
 ## 17. Publish your game
 

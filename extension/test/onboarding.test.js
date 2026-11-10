@@ -268,8 +268,12 @@ test('only failed owned native tasks offer Problems; success and Stop are normal
 });
 
 test('idle status stays empty and a refused tutorial launch explains recovery',async t=>{
+  let inspectedRoot;
+  t.mock.method(core,'repositoryRoot',async root=>{inspectedRoot=root;return null;});
   const f=await fixture(t,{lesson:false,externalResult:false});
-  assert.match(f.webview.html,/aria-live="polite"><\/p>/);
+  await settle(()=>inspectedRoot===f.root);
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(f.webview.html.match(/<p id="run-status"[^>]*>([^<]*)<\/p>/)?.[1],'');
   assert.doesNotMatch(f.webview.html,/Ready to run/);
   await f.commands.get('zero.openFirstLesson')();
   assert.match(f.errors.at(-1),/Could not open Tutorial Docs in your browser/);

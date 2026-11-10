@@ -18,11 +18,14 @@ Previous: [Build a coin game](09-coin-game.md).
 
 ## 1. Start a branch for the refactor
 
-Make sure your working Coin game is committed and pushed on **main**, as at the end of lesson 5. In the Zero sidebar, click your project name to open its actions, then choose:
+Start from the working **main** checkpoint you committed and synced at the end
+of lesson 5. In the **Project** panel, click the current branch name,
+**main**, then choose:
 
 **New branch…**
 
-Name it `coin-refactor` and confirm. Check that `coin-refactor` appears as the current branch. Keep this branch through the first part of lesson 11.
+Enter `coin-refactor` and press Enter. Check that `coin-refactor` appears as
+the current branch. Keep this local branch through the first part of lesson 11.
 
 ## 2. Find one job to extract
 

@@ -485,11 +485,13 @@ function activate(context, services = {}) {
   async function repositoryStatus({forceBranchCheck=false,suppressRemoteChecks=false,localCommit,confirmedBranch}={}) {
     const generation = ++statusGeneration;
     let nextRepository = 'No repository connected', nextBranch = '', nextHead, nextMainHead, nextDetached = false, nextBranchError, nextRecovery, nextRecoveryError, nextPending, nextLocal, nextBranchMenu;
-    try {
+    const readRepository = async () => {
       const root = await project();
-      if (localPractice) {nextRepository = 'Local practice'; throw new Error('Local practice');}
+      if (localPractice) {nextRepository = 'Local practice'; return;}
       await lessonProjects.assertShareable(root);
-      if(await core.repositoryRoot(root)!==root)throw new Error('Open a standalone student project.');
+      const gitRoot = await core.repositoryRoot(root);
+      if(gitRoot===null)return;
+      if(gitRoot!==root)throw new Error('Open a standalone student project.');
       try {nextBranch = await core.currentBranch(root,core.git);}
       catch (error) {if(error.code===1){try {nextDetached = /^[a-f0-9]{40,64}$/.test(await core.git(root, ['rev-parse', '--verify', 'HEAD']));} catch {}}else nextBranchError='This branch cannot be displayed safely. Open Source Control to inspect it.';}
       if(nextBranch) {
@@ -534,7 +536,9 @@ function activate(context, services = {}) {
         }
       }
       await Promise.all([readBranchMenu(),readLocalMain(),readLocalRecovery(),readRepositoryPage()]);
-    } catch (error) { if (!localPractice) {nextRepository = error.message.includes('different Git repository') ? 'Standalone student copy needed to connect' : 'Repository status unavailable. Open Source Control to inspect it.';nextBranchError ||= 'Project Git status is unavailable. Open Source Control to inspect it.';} }
+    };
+    try {await readRepository();}
+    catch (error) { if (!localPractice) {nextRepository = error.message.includes('different Git repository') ? 'Standalone student copy needed to connect' : 'Repository status unavailable. Open Source Control to inspect it.';nextBranchError ||= 'Project Git status is unavailable. Open Source Control to inspect it.';} }
     if(nextPending){try{if(core.parseRepositoryUrl(nextPending.remote).page!==nextRepository)nextPending={...nextPending,kind:'destination-changed'};}catch{nextPending={...nextPending,kind:'destination-changed'};}}
     if (disposed || generation !== statusGeneration) return;
     scheduleProjectDirty({reset:nextBranch!==branch||nextHead!==branchHead});
@@ -3309,7 +3313,7 @@ function activate(context, services = {}) {
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const browserCheckStatus=savedChecksRoot===projectRoot&&savedChecksState?`<p class="muted status" title="${escape(savedChecksState.message||'')}">Browser checks: ${escape(savedChecksState.status)}</p>`:'';
     const browserAction = browserActive && !stopPromise && browserRun.canOpenInBrowser ? `<button class="secondary browser-open" data-command="zero.openRunningAppInBrowser" title="Open in browser" aria-label="Open in browser" ${disabled}>${icon('ExternalLink')}</button>` : '';
-    const showRepository = projectRoot && (ready || connected || branch || branchDetached || branchError);
+    const showRepository = projectRoot && (ready || phase==='unavailable' || connected || branch || branchDetached || branchError);
     const observed=branchRemoteStatus&&currentBranchObservation(branchRemoteStatus)?branchRemoteStatus:undefined;
     const connectionState=uploadMode()!=='live'?'simulation':!connected?(repository==='No repository connected'?'local':'unknown'):!auth.signedIn?'auth':observed?.checkedAt&&Date.now()-observed.checkedAt>=120000?'stale':observed?.state||'unknown';
     const canSync=connected&&auth.signedIn&&Boolean(branchHead)&&uploadMode()==='live';

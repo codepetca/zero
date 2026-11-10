@@ -4,11 +4,11 @@ This is a **local draft**, not a published tutorial or template. Make a bird pet
 
 ## 1. Start your own project
 
-On GitHub, use the matching pet/game template's **Use this template** button to create a repository in **your own** account. In Zero, choose **Project → Clone from GitHub…**, enter your repository's HTTPS address, and choose **Clone here**. Open that clone, not the template repository. After setup, editing and local Run work offline; GitHub actions and publishing need a connection. Submit your repository link separately in Pika if your teacher asks.
+On GitHub, use the matching pet/game template's **Use this template** button to create a repository in **your own** account. In Zero, choose **Project → Clone**, enter your repository's HTTPS address, and choose **Clone here**. Open that clone, not the template repository. After setup, editing and local Run work offline; GitHub actions and publishing need a connection. Submit your repository link separately in Pika if your teacher asks.
 
 Copy the supplied `resources/pet/` files into `src/main/resources/pet/` in your project. Names must be exactly `bird-flap-sheet.png` and `chime.wav`. The leading `/` in `/pet/bird-flap-sheet.png` means the root of the project's resources, not your computer. See `ASSETS.md` for provenance. For your own replacements, use a PNG and a short PCM WAV and retain permission and attribution.
 
-Start on **main**. The checkpoints here are complete reference files: type the changes yourself, or compare them when stuck. Java files go in `src/main/java/`, not `resources`. Save and **Run App** after each step; stop the app before changing and running again.
+Start on **main**. The checkpoints here are complete reference files: type the changes yourself, or compare them when stuck. Java files go in `src/main/java/`, not `resources`. Save and **Run** after each step; stop the app before changing and running again.
 
 ## 2. Show your pet
 
@@ -24,7 +24,11 @@ Change `Main.java` to match checkpoint `2/Main.java`, adding one part at a time:
 
 ## 4. Save the first working version and make a branch
 
-With the working game on **main**, choose **Commit & push**. Review the files including the Java source and both assets, enter a useful message, and confirm. Check your repository on GitHub to see that main contains these files. Then choose **New branch** in the repository menu and name it `pet-refactor`. This creates a local branch for your next change.
+With the working game on **main**, save the Java source and both assets. Enter
+a message and choose **Commit**, then **Sync**. Check the files on GitHub
+**main**. In Zero's **Project** panel, click **main**, choose **New branch…**,
+and enter `pet-refactor`. Try the [discard exercise in the student lesson](../../../student-template/lessons/17-pet-class.md#2-try-a-movement-change-and-discard-it)
+before refactoring.
 
 ## 5. Give the pet its own class
 
@@ -34,12 +38,16 @@ Update `Main.java` to match `3/Main.java`: replace the old animation and `x` fie
 
 ## 6. Save and share deliberately
 
-Run and check your game, then choose **Commit & push**, review the branch and changed files, enter a useful message, and confirm. This sends your branch to your repository. Commit & push remaining edits before **Merge to main**. Merge to main merges the current branch into main and pushes main; it does not create a pull request. If Zero brings in newer main code, Run App again, resolve reported conflicts carefully, and choose Merge to main again. Never discard work just to make a merge succeed.
+Run and check your game. Save your files and choose **Commit**, then **Sync**.
+The first Sync creates `pet-refactor` on GitHub. In Zero, choose **Merge**
+beside the branch name and confirm the merge into **main**. If Zero reports
+newer work on GitHub **main**, use **Update from main**, resolve any conflicts
+and test the combined app before trying **Merge** again.
 
-To publish, stop the game, ensure the intended main version is committed and pushed, then use the Run dropdown's **Publish & open app** (or **Publish app** in an older released Zero). Review the account, repository, visibility and GitHub Pages prompts before confirming. Publishing makes the app available at its public URL; wait for success and open the link on another browser/device. If the command is unavailable or a build fails, keep your source and ask your teacher; do not assume a public page exists. Local edits after publishing are not automatically the published version.
+To publish, stop the game, verify the intended version on GitHub **main**, then use the Run dropdown's **Publish & open app** (or **Publish app** in an older released Zero). Review the account, repository, visibility and GitHub Pages prompts before confirming. Publishing makes the app available at its public URL; wait for success and open the link on another browser/device. If the command is unavailable or a build fails, keep your source and ask your teacher; do not assume a public page exists. Local edits after publishing are not automatically the published version.
 
 ## 7. Practise recovering your project
 
-First verify on GitHub that the merged main contains all your Java files and both assets, and check the published app actually opens and works. Check the editor and Git status for uncommitted, untracked or unpushed work, including files ignored by Git. Commit and push what belongs in your repository, and copy any private or ignored files you need to a separate safe backup. Confirm that backup opens. GitHub cannot restore files you never uploaded.
+First verify on GitHub that the merged main contains all your Java files and both assets, and check the published app actually opens and works. Check the editor and Git status for uncommitted, untracked or unpushed work, including files ignored by Git. Commit and sync what belongs in your repository, and copy any private or ignored files you need to a separate safe backup. Confirm that backup opens. GitHub cannot restore files you never uploaded.
 
-Close the project. Move the original project folder to your computer’s Trash; **do not empty the Trash**. It remains recoverable there (unless your system automatically empties it), and you should retain another backup. Now use **Project → Clone from GitHub…** to clone your own repository into a different empty location. Open the new clone and Run App. Confirm picture, flapping, movement and chime. If anything is missing or the clone fails, restore the original folder from Trash or your backup; do not overwrite either copy. A future rebuild may need pinned tools and dependency hosts; keep a copy of your source and finished web output too.
+Close the project. Move the original project folder to your computer’s Trash; **do not empty the Trash**. It remains recoverable there (unless your system automatically empties it), and you should retain another backup. Now use **Project → Clone** to clone your own repository into a different empty location. Open the new clone and choose **Run**. Confirm picture, flapping, movement and chime. If anything is missing or the clone fails, restore the original folder from Trash or your backup; do not overwrite either copy. A future rebuild may need pinned tools and dependency hosts; keep a copy of your source and finished web output too.

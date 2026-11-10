@@ -2,11 +2,10 @@
 
 The main path starts with recovery (lesson 0), then has three projects: Greeting (lessons 1–3), Coin (4–5), and Pet (6–9). Students create their own repositories, clone them, and write and explain their own code. Keep each continuing project for its lessons. Illustrations are teaching drawings, not native-window screenshots; pacing has not been measured with novice students.
 
-**Lesson availability:** the Pet and original-project templates have been published
-and verified. The updated lessons and Pet asset download require a separate website
-and app rollout. Check that the lesson and assets are available to students before
-assigning the Pet lessons. Students create and clone their own repositories, not
-Zero’s shared template repositories.
+**Lesson availability:** the Git exercises use a Zero build with separate
+**Commit** and **Sync** controls. Check the editor build, lesson text and asset
+download before assigning the exercises. Students create and clone their own
+repositories.
 
 ## Before starting
 
@@ -14,7 +13,10 @@ Recovery can be practised without a project or account. Before creating a tutori
 
 Repositories created through Zero are public, including source and included files. Obtain school approval before creation, and keep private material, passwords, tokens and recovery codes out of source, logs and pilot evidence. For an existing or GitHub-created private repository, invite the teacher by verified GitHub username and confirm access; personal-repository collaborators have write access, not view-only access. Use a school-approved per-repository Git name and email. If using a GitHub noreply address, copy the exact address from GitHub Settings → Emails; do not guess it. Zero sign-in does not configure Git identity.
 
-Greeting, Coin and Pet use their matching verified tutorial templates. A student creates their own repository from the matching template and clones that repository, never the shared template itself. A local starter smoke is useful for setup but is not the tutorial start. After cloning and caching dependencies, local Run works offline; GitHub operations and publishing require a connection.
+Students start Greeting, Coin and Pet with **Project → New** and follow each
+lesson’s starting-code instructions in their own clone. After cloning and
+caching dependencies, local Run works offline. Sync, Merge and publishing
+require a connection.
 
 ## Main path and checkpoints
 
@@ -34,11 +36,26 @@ In the project lessons, have students save and run at each checkpoint, explain o
 
 ## Save, share and recover
 
-Make commits meaningful: ask students to review the files, run the project, write a message describing the change, and use **Commit & push**. Verify the actual repository and remote commit, not just a copied link. In Pet, first commit and push the working main version including both assets, then create `pet-refactor` with **New branch**. After the class extraction, run and check again, commit and push the branch, and use **Merge to main**. It merges and pushes main; it does not create a pull request. If newer main changes or conflicts appear, preserve the work, resolve them, run again, and retry as instructed by Zero.
+- **Greeting and Coin:** review the changed files, run the project and choose
+  **Commit** with a message that describes the checkpoint. Choose **Sync** and
+  verify that GitHub **main** shows the commit.
+- **Pet, lesson 7:** commit and sync a working **main** with the two assets.
+  **Lesson 8:** choose **New branch…** from the branch name menu and confirm
+  that `pet-refactor` is selected. Keep the backwards-movement experiment as
+  the only uncommitted edit. On Mac, practise **Discard All Changes…** from
+  **Files**. On Windows or when the control is unavailable, restore the one
+  changed line and save. Run again before starting the refactor.
+- **Pet, lessons 8–9:** commit the tested refactor, then commit the welcome
+  screen. The first **Sync** on `pet-refactor` creates the branch on GitHub.
+  Verify its commit there, then choose **Merge** and confirm the target is
+  **main**. Run the merged game and check GitHub **main**. The feature branch
+  stays available. If newer changes or conflicts appear, help the student
+  preserve and resolve their work, run again and retry the merge.
 
 The Pet recovery exercise is guarded: first verify merged main on GitHub has all source and assets, and verify the published app when available. Check for uncommitted, untracked, unpushed and ignored files; save anything needed separately and verify the backup opens. Only then close the project and move its folder to Trash without emptying it. Clone the student's own repository into a different empty location and run it. If the clone or test fails, restore the original or backup without overwriting either copy. GitHub cannot restore files that were never uploaded; automatic Trash emptying is a risk. Keep source and finished web output, since future rebuilding may depend on tools and dependency hosts.
 
-Publishing is a separate, explicit action: stop the app, commit and push the intended main version, then use **Publish & open app** (older Zero versions may say **Publish app**). Review the account, repository, visibility and Pages prompts, wait for success, and test the public link. Publish only with school approval and appropriate account access; the app and included assets are public. Pages availability for private repositories depends on account plan. Do not require payment or a visibility change; provide an alternative if a school account cannot publish. Pika submission of the repository link is separate from hosting and ZeroHub acceptance.
+Publishing is a separate action. Stop the app, verify the intended version on
+GitHub **main**, then use **Publish & open app** (older Zero versions may say **Publish app**). Review the account, repository, visibility and Pages prompts, wait for success, and test the public link. Publish only with school approval and appropriate account access; the app and included assets are public. Pages availability for private repositories depends on account plan. Do not require payment or a visibility change; provide an alternative if a school account cannot publish. Pika submission of the repository link is separate from hosting and ZeroHub acceptance.
 
 ## Common fixes and evidence
 

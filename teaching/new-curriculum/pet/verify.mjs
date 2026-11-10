@@ -57,9 +57,9 @@ assert.equal((main.match(/pet = new Pet\(/g) || []).length, 1, 'Pet must be crea
 for (const file of ['bird-flap-sheet.png', 'chime.wav']) assert.ok(main.includes(`/pet/${file}`), `Missing ${file}`);
 
 const motion = read('student-template/lessons/16-pet-motion.md');
-assert.match(motion, /working game on \*\*main\*\*[\s\S]*Commit & push[\s\S]*GitHub/i);
+assert.match(motion, /## 18\. Save the working version[\s\S]*\*\*main\*\*[\s\S]*\*\*Commit\*\*[\s\S]*\*\*Sync\*\*[\s\S]*GitHub/);
 const petClassLesson = read('student-template/lessons/17-pet-class.md');
-assert.match(petClassLesson, /## 1\. Start a branch[\s\S]*committed and pushed on \*\*main\*\*[\s\S]*New branch[\s\S]*pet-refactor[\s\S]*## 2\. Give the pet its own class/i);
+assert.match(petClassLesson, /## 1\. Start a branch[\s\S]*\*\*main\*\*[\s\S]*\*\*New branch…\*\*[\s\S]*pet-refactor[\s\S]*## 2\. Try a movement change and discard it/);
 const motionEdits = [...motion.matchAll(/^```java-after-([\d-]+)(?:-r([\d-]+))?\s*\n([\s\S]*?)^```\s*$/gm)];
 assert.equal(motionEdits.length, 14, 'Expected the movement, animation and sound edits');
 let motionMain = read('teaching/checkpoints/13/1/Main.java');
@@ -78,14 +78,26 @@ for (const [index, edit] of motionEdits.entries()) {
 }
 assert.equal(motionMain, read('teaching/checkpoints/13/2/Main.java'), 'Motion edits must reproduce the working checkpoint');
 assert.equal(read('teaching/new-curriculum/pet/checkpoints/2/Main.java'), motionMain, 'Draft motion checkpoint must match');
+const trial = petClassLesson.match(/^## 2\. Try a movement change and discard it\n([\s\S]*?)^## 3\./m)?.[1];
+assert.ok(trial, 'The experiment must come before refactoring');
+const change = trial.match(/^```java-after-2-r1\n([^\n]+)\n([^\n]+)\n```$/m);
+assert.ok(change, 'The discard experiment needs one copyable replacement');
+const [, originalRight, reversedRight] = change;
+assert.equal(motionMain.split(originalRight).length, 2, 'The replaced line must match the working checkpoint once');
+assert.equal(reversedRight, originalRight.replace('x +=', 'x -='), 'The experiment must reverse the Right arrow');
+assert.notEqual(reversedRight, originalRight, 'The experiment must change movement');
+assert.match(trial, /only changed file[\s\S]*\*\*Discard Changes\*\*[\s\S]*Windows[\s\S]*x \+= 160 \* seconds/);
+
 const sections = screens.split(/^## /m);
 const section = name => { const result = sections.find(text => text.startsWith(name)); assert.ok(result, `Missing section: ${name}`); return result; };
-assert.match(section('8. Save your branch'), /Commit & push/i);
-assert.match(section('9. Merge your work'), /Merge to main/i);
+assert.match(section('8. Save and sync your branch'), /\*\*Commit\*\*[\s\S]*\*\*Sync\*\*[\s\S]*creates `pet-refactor` on GitHub/);
+assert.match(section('9. Merge your work'), /\*\*Merge pet-refactor into main\?\*\*/);
 assert.match(section('10. Publish your game'), /Publish & open app/i);
-const recovery = section('11. Back up your project') + section('12. Practise recovering');
-for (const pattern of [/verify on GitHub/i, /published app actually opens and works/i, /uncommitted/i, /untracked/i, /unpushed/i, /ignored/i, /backup/i, /do not empty the Trash/i, /clone your own repository into a different empty location/i, /restore the original folder/i]) assert.match(recovery, pattern, `Missing recovery safeguard: ${pattern}`);
-assert.ok(recovery.indexOf('verify on GitHub') < recovery.indexOf('Move the original'), 'Verification must precede moving the project');
+const backup = section('11. Back up your project');
+const recovery = section('12. Practise recovering');
+for (const pattern of [/GitHub \*\*main\*\* contains both Java files and both assets/i, /published app works/i, /uncommitted or new files/i, /commits still on this computer/i, /other branches/i, /ignored/i, /backup opens/i]) assert.match(backup, pattern, `Missing backup safeguard: ${pattern}`);
+for (const pattern of [/do not empty the Trash/i, /clone your own repository into a different empty location/i, /restore the original folder/i]) assert.match(recovery, pattern, `Missing recovery safeguard: ${pattern}`);
+assert.ok(screens.indexOf(backup) < screens.indexOf(recovery), 'Verification must precede moving the project');
 console.log('Split pet lessons, sequential screen edits, assets, and workflow checks passed.');
 
 if (args.length) {

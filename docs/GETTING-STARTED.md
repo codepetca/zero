@@ -37,13 +37,25 @@ To find Zero again, open the Command Palette with **Cmd+Shift+P** on a Mac or **
 
 ## Your GitHub repository
 
-Your project lives on your computer and in your GitHub repository. Choose **Commit & push** to save changes to GitHub. Check the repository and branch shown in Zero before continuing.
+Check the repository and branch shown in Zero. Save your files, enter a
+message and choose **Commit** to save a checkpoint on this computer.
+Choose **Sync** to send your saved commits to GitHub. Open your repository
+and check that the matching branch shows your commit.
 
 If sign-in or access fails, check your internet connection, sign in again and follow Zero's prompts. If GitHub asks which repositories the Zero GitHub App can access, include the repository you want to use.
 
 ## Your individual workflow
 
-Use **New branch** in the project menu to try a change. Edit and run your project, then choose **Commit & push**. When you are ready, choose **Merge to main**. If Zero reports a conflict or an error, read its message and follow the recovery options before continuing.
+1. In the **Project** panel, click the current branch name and choose
+   **New branch…**. Enter a name for the change.
+2. Edit and **Run**. When the change works, choose **Commit**, then **Sync**.
+   The first Sync creates the matching branch on GitHub.
+3. Choose **Merge** beside the branch name and confirm the merge into
+   **main**. Zero sends the merged **main** to GitHub and keeps the feature
+   branch. If there is a conflict, resolve it in Source Control and test again.
+
+The [Pet tutorial](../student-template/lessons/17-pet-class.md) practises this
+flow with a small experiment you can discard before committing.
 
 ## Publish your playable app
 
