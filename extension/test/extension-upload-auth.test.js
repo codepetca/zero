@@ -304,8 +304,8 @@ test('Commit & push clears its indicator on preparation failure and after a conf
 
 test('Publish commits dirty main through guarded native upload and retains the verified playable link',async t=>{
   const h=await harness(t,{publishing:true,dirty:true});
-  // Public-destination consent is the only publication dialog.
-  h.stored.set('zero.webPublish.approval',{root:h.plan.root,account:'1',repository:h.plan.page,url:'https://student.github.io/app/'});
+  // Reuse the existing approval for the public destination and its ZeroHub listing.
+  h.stored.set('zero.webPublish.approval',{root:h.plan.root,account:'1',repository:h.plan.page,url:'https://student.github.io/app/',listingNotice:true});
   await h.commands.get('zero.publishWeb')();
   assert.deepEqual(h.errors,[]);assert.equal(h.inputs,1);assert.equal(h.pushes,1);assert.equal(h.deploys,1);
   assert.equal(h.stored.get('zero.webPublish.lastLive').url,'https://student.github.io/app/');
@@ -314,7 +314,7 @@ test('Publish commits dirty main through guarded native upload and retains the v
 });
 test('Publish pushes already committed main without asking for another commit message',async t=>{
   const h=await harness(t,{publishing:true});
-  h.stored.set('zero.webPublish.approval',{root:h.plan.root,account:'1',repository:h.plan.page,url:'https://student.github.io/app/'});
+  h.stored.set('zero.webPublish.approval',{root:h.plan.root,account:'1',repository:h.plan.page,url:'https://student.github.io/app/',listingNotice:true});
   await h.commands.get('zero.publishWeb')();
   assert.deepEqual(h.errors,[]);assert.equal(h.inputs,0);assert.equal(h.pushes,1);assert.equal(h.deploys,1);
 });

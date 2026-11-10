@@ -1,5 +1,31 @@
 # Verification
 
+## Automatic ZeroHub listings — 2026-11-10
+
+Local branch `codex/automatic-zerohub-listings` uses main `7fd8eb09a`.
+Reviewed implementation `e5b907e4a` lists a verified Zero publish, atomically
+replaces the oldest eligible card at quota, and supports one protected card
+and moving a card to the back. A protected Free slot leaves the new Pages
+deployment live and the new project available for listing later.
+
+Six focused listing tests passed with a disposable Postgres 14 database and
+a restricted runtime role. They cover concurrent replacement, replay,
+protection, ordering, owner history paging, held search results, and provider
+failures. Eighty-two editor publishing and transport checks passed. Chromium
+with a fixture account verified protection transfer, queue order, a 390 px
+viewport, and retry after an injected paging failure. The production build,
+bundle audit and emitted runtime checks passed on the final implementation.
+The full website suite passed 773 tests with three skips on `e43436b82`.
+The separately exercised Postgres check is one of those skips.
+
+Independent Sol/high and Terra/high reviews covered security and
+compatibility. Three targeted reviews checked the fixes. The final review
+found no actionable issues in the direct Pages marker check. Effective model
+and token usage are unavailable. Live GitHub and WorkOS account flows and
+provider capacity remain unverified. Production activation requires the
+listing database, a dedicated public metadata credential, and rollout checks
+in [website setup](../website/README.md#automatic-zerohub-listings).
+
 ## Merge latency — 2026-11-09
 
 Merge preparation starts while a separate branch status check runs. The merge
