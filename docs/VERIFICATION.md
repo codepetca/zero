@@ -11,6 +11,11 @@ At 320 px, WebKit showed the sign-in prompt for a signed-out sample session.
 Both browser checks used fixtures. Independent Luna/medium review of
 `386f192f4..9cda1d5e8` found no actionable issues.
 
+The follow-up `f30d20bb3` changes the label to **My Apps**. TypeScript and
+focused navigation, listing and editor publish tests passed. At 320 px,
+WebKit followed **My Apps** to the matching heading at `/hub/listings`.
+Independent Luna/medium review of `9d00a51b2..f30d20bb3` found no issues.
+
 ## ZeroHub practice badge navigation — 2026-11-10
 
 Local implementation `58add2787`, based on `791d465d0`, removes the Tutorial
