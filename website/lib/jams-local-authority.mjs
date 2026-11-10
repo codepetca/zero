@@ -5,6 +5,7 @@ import {createJamService,JamError} from '../../jams/service.mjs';
 import {createJamHubVisibilityReader} from './jam-hub-visibility.mjs';
 import {ZERO_JAMS_APPROVER_ID} from './jams-runtime.mjs';
 import {jamsPreviewAvailable} from './jams-visibility.mjs';
+import {configuredEntitlementStore} from './zero-entitlements-store.mjs';
 
 const unavailable=()=>{throw new JamError(503,'The local jam authority is unavailable.');};
 const writes=new Set(['propose','mutate','settle']);
@@ -25,9 +26,18 @@ export function createLocalJamAuthority(options={}) {return compose(options,fals
 
 // This trusted server-side seam shares all service and visibility checks.
 // Production requires explicit pilot admission and fixed pilot capacity.
-export function createHostedJamAuthority(options={}) {return compose(options,true);}
+export function createHostedJamAuthority(options={},getEntitlementStore=configuredEntitlementStore) {
+  return compose(options,true,async accountId=>{
+    // Legacy grants are independent of central configuration and availability.
+    if(hasManualJamPro(accountId,process.env))return true;
+    const entitlements=getEntitlementStore(process.env);
+    if(entitlements===null)return false;
+    const decision=await entitlements.resolve(accountId);
+    return decision.jamHosting===true;
+  });
+}
 
-function compose(options,hosted) {
+function compose(options,hosted,checkHostedEntitlement) {
   if(!options||typeof options!=='object'||Array.isArray(options)||Object.keys(options).some(key=>!allowed.has(key)))unavailable();
   const {env,store,now,verifySource,verifyRepository,pagesBindingReader,limits,visibilityTimeoutMs=15000}=options;
   if(!env||typeof env!=='object'||Array.isArray(env)||typeof now!=='function'||
@@ -59,7 +69,7 @@ function compose(options,hosted) {
     }
   });
   const engine=createJamService({store:sharedStore,now,verifySource,verifyRepository,pagesBindingReader,
-    canCreateJam:id=>hasManualJamPro(id,hosted?process.env:env),maintainerIds:[ZERO_JAMS_APPROVER_ID],...(hosted?{limits:{...limits,participants:HOSTED_PARTICIPANT_LIMIT}}:limits===undefined?{}:{limits})});
+    canCreateJam:hosted?checkHostedEntitlement:id=>hasManualJamPro(id,env),maintainerIds:[ZERO_JAMS_APPROVER_ID],...(hosted?{limits:{...limits,participants:HOSTED_PARTICIPANT_LIMIT}}:limits===undefined?{}:{limits})});
   const service=Object.freeze(Object.fromEntries(Object.keys(engine).map(method=>[method,async(...args)=>{
     const check=writes.has(method)?writable:local;check();
     // This final check withholds confirmation after a mode change; it cannot

@@ -55,11 +55,20 @@ provider settings are configured by this source change.
 Production hosted composition uses the real server process environment; local
 and isolated test compositions use their trusted server environment. Sanitized
 Neon/staging environment facades keep the value non-enumerable and server-only.
-The trusted service constructor's synchronous `canCreateJam(accountId)` hook
+The trusted service constructor's `canCreateJam(accountId)` hook may be asynchronous and
 defaults to deny; only literal `true` grants creation. HTTP derives the actor from
 a current verified GitHub identity. Legacy creator-hosted intake remains closed.
 Grant configuration is separate from registry/visibility authority: missing or
 revoked Pro access must not disable existing events, participation or Hub holds.
+
+The central entitlement implementation is opt-in and not provisioned by this
+source change. When configured for hosted production, active central jam-hosting
+grants augment the existing environment grants; a legacy grant remains effective
+until independently removed. A central lookup failure denies new creation unless
+an existing legacy grant already authorizes it. The separate entitlement and
+jam databases do not share a transaction: the final check cannot fence a grant
+revoked after that check, and lookup latency can consume the registry's deadline.
+Accepted-operation recovery is preserved even during an entitlement outage.
 
 Provider environment edits require a new deployment to reach running code.
 Older instances retain their prior environment; redeployment is not proof that

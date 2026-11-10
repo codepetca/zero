@@ -35,12 +35,54 @@ test('independent additional grants preserve valid original grants and fail clos
   assert.equal(hasManualJamPro('33',{NEXT_PUBLIC_ZERO_JAMS_ADDITIONAL_PRO_GITHUB_IDS:'33'}),false);
 });
 
-test('direct service defaults deny and callback failures, non-boolean or async grants cannot enable creation',async()=>{
-  for(const hook of [undefined,()=>false,()=>1,()=>({pro:true}),()=>Promise.resolve(true),()=>Promise.reject(Error('private grant failure')),()=>{throw Error('private grant failure');}]){
+test('direct service defaults deny and non-boolean grants cannot enable creation',async()=>{
+  for(const hook of [undefined,()=>false,()=>1,()=>({pro:true}),async()=>false,async()=>({pro:true})]){
     const store=memoryStore(),service=createJamService({store,verifySource:async()=>assert.fail('No organizer repository fetch'),...(hook?{canCreateJam:hook}:{})});
-    await assert.rejects(service.propose(input()),error=>error.status===403&&/Pro license/.test(error.message)&&!error.message.includes('private'));
+    await assert.rejects(service.propose(input()),error=>error.status===403&&/Pro license/.test(error.message));
     assert.equal(store.records.size,0);
   }
+});
+
+test('a failed entitlement lookup returns a retryable 503 before a registry write',async()=>{
+  const throws=()=>{throw Error('private grant failure');};
+  const rejects=async()=>throws();
+  for(const failedLookup of [throws,rejects]){
+    for(const failureAt of [1,2]){
+      let checks=0;
+      const f=fixture({canCreateJam:()=>++checks===failureAt?failedLookup():true});
+      f.store.beforeCas=()=>assert.fail('Failed entitlement lookup cannot write');
+      await assert.rejects(f.service.propose(input()),error=>error.status===503&&
+        error.message==='Jam creation access is unavailable. Retry with the same operation ID.');
+      assert.equal(checks,failureAt);
+      assert.equal(f.store.records.size,0);
+      f.store.beforeCas=null;
+      assert.equal((await f.service.propose(input())).status,'approved');
+    }
+  }
+});
+
+test('directory snapshots visibility after a bounded hosting lookup',async()=>{
+  let block=false, release, started;
+  const pending=new Promise(resolve=>{release=resolve;});
+  const entered=new Promise(resolve=>{started=resolve;});
+  const f=fixture({canCreateJam:async()=>{if(block){started();await pending;}return true;}});
+  const proposal=await f.service.propose(input());
+  block=true;
+  const directory=f.service.listSummaries(creator);
+  await entered;
+  await f.service.mutate({id:proposal.eventId,actor:maintainer,operationId:'directory-suspend-001',action:'suspend',reason:'Review'});
+  release();
+  const result=await directory;
+  assert.deepEqual(result.hostingAccess,{accountId:creator.id,canCreate:true});
+  assert.equal(result.events.length,0);
+});
+
+test('directory cancellation interrupts a stalled hosting lookup',async()=>{
+  const f=fixture({canCreateJam:()=>new Promise(()=>{})});
+  const controller=new AbortController();
+  const result=f.service.listSummaries(creator,{signal:controller.signal});
+  controller.abort();
+  await assert.rejects(result,status(503));
 });
 
 test('grants bind numeric identity across rename, not login; creator-hosted and browser-supplied license fields cannot bypass',async()=>{
@@ -77,10 +119,10 @@ test('Free participants can join and submit; creator revocation does not change 
   assert.equal((await f.service.read(proposal.eventId,participant)).entry.title,'Free project');
 });
 
-test('nontransactional CAS retries and final admission recheck revoked grants',async()=>{
-  let allowed=true;const f=fixture({canCreateJam:()=>allowed}),write=f.store.compareAndSwap.bind(f.store);let attempts=0;
+test('nontransactional CAS retries and final admission recheck revoked async grants',async()=>{
+  let allowed=true;const f=fixture({canCreateJam:async()=>allowed}),write=f.store.compareAndSwap.bind(f.store);let attempts=0;
   f.store.compareAndSwap=async(...args)=>{if(++attempts===1){allowed=false;return false;}return write(...args);};
   await assert.rejects(f.service.propose(input()),status(403));assert.equal(attempts,1);assert.equal(f.store.records.size,0);
-  let checks=0;const g=fixture({canCreateJam:()=>++checks===1});
+  let checks=0;const g=fixture({canCreateJam:async()=>++checks===1});
   await assert.rejects(g.service.propose(input()),status(403));assert.equal(checks,2);assert.equal(g.store.records.size,0);
 });

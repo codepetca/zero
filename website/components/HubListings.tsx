@@ -3,10 +3,11 @@
 import {useEffect, useState} from 'react';
 import {HubAccount, useHubGitHub} from './HubGitHub';
 import styles from '@/app/hub/hub.module.css';
+import {listingSlotsMessage} from '../lib/hub-listings-copy.mjs';
 
 type Listing = {repositoryId:string; title:string; pagesUrl:string; listed:boolean; protected:boolean};
 type Action = 'protect' | 'unprotect' | 'move' | 'unlist' | 'list';
-type Listings = {account:string; limit:number; projects:Listing[]; next:string|null};
+type Listings = {account:string; limit:number|null; projects:Listing[]; next:string|null};
 
 async function requestListings(before:string|null, signal?:AbortSignal) {
   const query = before ? '?' + new URLSearchParams({before}) : '';
@@ -79,7 +80,7 @@ function MyListings({account, csrfToken}:{account:string; csrfToken:string}) {
   const active = data.projects.filter(project=>project.listed);
   const unlisted = data.projects.filter(project=>!project.listed);
   return <>
-    <p>{active.length} of {data.limit} app slots in use. When all slots are full, a newly published app replaces the first unprotected app in the queue.</p>
+    <p>{listingSlotsMessage(active.length, data.limit)}</p>
     <p role="status" aria-live="polite">{message}</p>
     {active.length > 0 && <ol aria-label="Replacement queue">{active.map((project, index)=><li key={project.repositoryId}>
       <a href={project.pagesUrl}>{project.title}</a> {project.protected && <span>· Protected</span>}
@@ -91,7 +92,7 @@ function MyListings({account, csrfToken}:{account:string; csrfToken:string}) {
     </li>)}</ol>}
     {!active.length && <p>Publish an app through Zero to add it here.</p>}
     {unlisted.length > 0 && <><h3>Apps not on ZeroHub</h3><ul>{unlisted.map(project=><li key={project.repositoryId}>
-      <a href={project.pagesUrl}>{project.title}</a> {action(project,'list','Add to ZeroHub')}
+      <a href={project.pagesUrl}>{project.title}</a> {action(project,'list','Add to ZeroHub',data.limit === null)}
     </li>)}</ul></>}
     {(before || data.next) && <div className="resource-links">
       {before && <button className={styles.retry} disabled={loading || busy} type="button" onClick={()=>changePage(null)}>First page of apps</button>}
