@@ -1240,8 +1240,3 @@ pre code {
 .hero-brand { --wordmark-width: 520px; }
 @media (max-width: 760px) { .hero-brand { --wordmark-width: 342px; } }
 @media (max-width: 480px) { .hero-brand { --wordmark-width: 278px; } }
-
-.zero-account-link { display:inline-flex; align-items:center; gap:8px; min-height:44px; color:var(--muted); text-decoration:none; }
-.zero-account-link .icon { width:20px; height:20px; }
-.zero-account-page { max-width:800px; margin:48px auto; padding:0 24px; }
-@media (max-width:760px) { .zero-account-link { width:44px; justify-content:center; flex:none; } .zero-account-link span { display:none; } }

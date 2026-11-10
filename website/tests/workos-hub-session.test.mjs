@@ -80,6 +80,32 @@ test('managed mode sends Hub sign-in through AuthKit and blocks fallback to the 
   assert.equal(new URL(denied.headers.get('location')).searchParams.get('github'), 'unavailable');
 });
 
+test('Zero account only exposes an avatar ID from a GitHub profile URL', async () => {
+  const source = await readFile(new URL('../app/api/zero-account/session/route.ts',import.meta.url),'utf8');
+  const compiled = ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+  const module = {exports:{}};
+  let session;
+  const modules = {
+    '@workos-inc/authkit-nextjs':{withAuth:async () => session},
+    '@/lib/workos-config.mjs':{workosConfigured:() => true},
+  };
+  vm.runInNewContext(compiled,{module,exports:module.exports,require:name => modules[name],Response});
+  async function get(user, impersonator = null) {
+    session = {user, impersonator, accessToken:workosToken};
+    const response = await module.exports.GET();
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    return response.json();
+  }
+  const user = {id:'user_Test123', profilePictureUrl:'https://avatars.githubusercontent.com/u/123?v=4'};
+  assert.deepEqual(await get(user),{configured:true,user:{id:user.id,avatarId:'123'}});
+  for (const profilePictureUrl of [null, 'https://other.test/u/123',
+    'https://avatars.githubusercontent.com@other.test/u/123', 'https://avatars.githubusercontent.com/u/123/extra']) {
+    assert.deepEqual(await get({...user,profilePictureUrl}),{configured:true,user:{id:user.id,avatarId:null}});
+  }
+  assert.deepEqual(await get(null),{configured:true,user:null});
+  assert.deepEqual(await get(user,{}),{configured:true,user:null});
+});
+
 test('managed sign-out recovers an expired session ID from a sealed cookie and clears both sessions', async () => {
   const source = await readFile(new URL('../app/zero-account/sign-out/route.ts',import.meta.url),'utf8');
   const compiled = ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
@@ -115,7 +141,7 @@ test('managed sign-out recovers an expired session ID from a sealed cookie and c
   const foreignCookie = await sealData({accessToken:expiredToken},{password:'different-password-only'.repeat(2),ttl:0});
   for (const invalid of ['not-a-sealed-cookie',foreignCookie,await seal('invalid-jwt'),await seal(badSidToken)]) {
     const fallback = await post(origin,invalid);
-    assert.equal(fallback.status,303);assert.equal(fallback.headers.get('location'),`${origin}/zero-account`);
+    assert.equal(fallback.status,303);assert.equal(fallback.headers.get('location'),`${origin}/`);
     assert.deepEqual(fallback.headers.getSetCookie(),removed);
   }
   assert.equal(logoutCalls,1);

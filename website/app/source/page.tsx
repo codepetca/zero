@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { sources } from "@/lib/content";
-import { PageHeader } from "@/components/PageHeader";
+import { LearnTheme } from "@/app/learn/LearnTheme";
+import "@/app/learn/learn.css";
 import { CodeBlock } from "@/components/CodeBlock";
-import { LegalFooter } from "@/components/LegalFooter";
 export const metadata = { title: "Readable source" };
 export default async function Source({
   searchParams,
@@ -12,8 +12,7 @@ export default async function Source({
   const { file } = await searchParams;
   if (typeof file !== "string" || !Object.hasOwn(sources, file)) notFound();
   return (
-    <>
-      <PageHeader active="Docs" />
+    <LearnTheme active="Docs">
       <main id="page-content" tabIndex={-1} className="catalog source-page">
         <h1>Docs</h1>
         <h2 className="page-subtitle">{file.split("/").pop()}</h2>
@@ -26,7 +25,6 @@ export default async function Source({
           <code>{sources[file]}</code>
         </CodeBlock>
       </main>
-      <LegalFooter />
-    </>
+    </LearnTheme>
   );
 }

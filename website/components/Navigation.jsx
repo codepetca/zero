@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";
 import { BetaNotice } from "./BetaNotice";
-import { ZeroAccount } from "./ZeroAccount";
 /** @param {{ active?: string, actions?: import("react").ReactNode }} props */
 export function Navigation({ active = "", actions = null }) {
   const navigation = useRef(null);
@@ -40,7 +39,6 @@ export function Navigation({ active = "", actions = null }) {
           </a>
         ))}
       </nav>
-      <ZeroAccount />
       {actions}
     </header>
   );
