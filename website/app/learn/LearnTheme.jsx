@@ -10,7 +10,8 @@ const key = "zero-learn-theme";
 const platformKey = "zero-docs-platform";
 const choices = new Set(["system", "light", "dark"]);
 
-export function LearnTheme({ children, active }) {
+/** @param {{children: import('react').ReactNode, active: string | undefined, hubReturnTo?: string}} props */
+export function LearnTheme({ children, active, hubReturnTo }) {
   const [theme, setTheme] = useState("system");
   const [systemDark, setSystemDark] = useState(false);
   const [platform, setPlatform] = useState("mac");
@@ -63,7 +64,7 @@ export function LearnTheme({ children, active }) {
   }
 
   return (
-    <HubGitHubProvider><div className="learn-theme" data-theme={theme} data-platform={platform}>
+    <HubGitHubProvider returnTo={hubReturnTo}><div className="learn-theme" data-theme={theme} data-platform={platform}>
       <PageHeader active={active} actions={<AccountMenu dark={dark} onToggleTheme={toggleTheme} platform={platform} onChangePlatform={changePlatform} />} />
       {children}
       <LegalFooter />

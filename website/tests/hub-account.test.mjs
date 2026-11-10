@@ -30,3 +30,8 @@ test('managed Hub account uses the Zero sign-out form',()=>{
   assert.match(account(managed),/<form action="\/zero-account\/sign-out" method="post">/);
   assert.doesNotMatch(account(managed,{showSignOut:false}),/<form/);
 });
+
+test('sign-in follows the selected Hub pane',()=>{
+  const html=account({...connection(null),returnTo:'/hub/listings'});
+  assert.match(html,/href="\/api\/hub\/github\/login\?returnTo=%2Fhub%2Flistings"/);
+});

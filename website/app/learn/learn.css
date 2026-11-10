@@ -263,17 +263,6 @@ html:has(.learn-theme),
 }
 
 /* Tutorials open directly into the lesson reader. */
-.learn-theme .reader-layout {
-  width: 100%;
-  max-width: none;
-  flex: 1;
-  margin: 0;
-  padding: var(--zero-space-5) var(--zero-space-6) var(--zero-space-6);
-  grid-template-columns: minmax(200px, 240px) minmax(0, 1fr);
-  gap: var(--zero-space-6);
-}
-.learn-theme .reader-layout > * { min-width: 0; }
-.learn-theme .reader-navigation { max-height: calc(100svh - 48px); overflow-y: auto; }
 .learn-theme .lesson-menu h2 {
   margin: 0 0 var(--zero-space-3);
   color: var(--zero-muted);
@@ -351,18 +340,21 @@ html:has(.learn-theme),
 .learn-theme .reader-layout .button:hover { background: var(--zero-accent-hover); }
 .learn-theme .lesson-pagination { justify-content: flex-end; }
 .learn-theme .mobile-reader-select {
+  display: none;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px;
+  border: 1px solid var(--zero-border);
+  border-radius: 4px;
   background: var(--zero-page);
   color: var(--zero-text);
-  border-color: var(--zero-border);
-  min-height: 44px;
+  font: inherit;
+}
+@media (max-width: 800px) {
+  .learn-theme .mobile-reader-select { display: block; }
+  .learn-theme .reader-menu { display: none; }
 }
 @media (max-width: 760px) {
-  .learn-theme .reader-layout {
-    grid-template-columns: minmax(0, 1fr);
-    padding: var(--zero-space-5);
-    gap: var(--zero-space-5);
-  }
-  .learn-theme .reader-navigation { position: static; max-height: none; overflow: visible; }
   .learn-theme .lesson-pagination .button { white-space: normal; }
 }
 @media (forced-colors: active) {

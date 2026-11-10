@@ -4,6 +4,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Icon } from './Icon';
 import { CodeBlock } from './CodeBlock';
+import { SidebarLayout } from './SidebarLayout';
 import Markdown from 'react-markdown';
 import { searchApiReference } from '@/lib/api-reference.mjs';
 import './ApiReference.css';
@@ -69,14 +70,14 @@ const ApiContent = memo(function ApiContent({ categories, links, active, jump, a
   }
 
   return (
-    <main className="api-content" id="page-content" tabIndex={-1}>
+    <div className="api-content">
       {categories.filter(category => category.id !== 'advanced').map(renderCategory)}
       <details className="api-advanced" open={advancedOpen} onToggle={event => setAdvancedOpen(event.currentTarget.open)}>
         <summary>Advanced lifecycle and extension hooks</summary>
         {categories.filter(category => category.id === 'advanced').map(renderCategory)}
       </details>
       <footer className="api-source">Reference maintained with the readable framework in your starter. <Link href="/learn">Learn through the tutorials</Link></footer>
-    </main>
+    </div>
   );
 });
 
@@ -159,8 +160,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
     return <a href={`#${entry.id}`} aria-current={active === entry.id ? 'location' : undefined}
       onClick={event => { event.preventDefault(); jump(entry.id); }}>{label}</a>;
   }
-  return <div className="api-workspace">
-    <aside className="api-sidebar" aria-label="API reference navigation">
+  const sidebar = <>
       <h1>API reference</h1>
       <form className="api-search" role="search" onSubmit={event => { event.preventDefault(); if (searching && results[0]) jump(results[0].id); }}>
         <Icon name="search" />
@@ -184,7 +184,9 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
           })}</nav>
           <div className="api-guide-links"><Link href="/learn">Tutorials</Link><Link href="/help/setup">Setup help</Link></div>
         </div>}
-    </aside>
+  </>;
+  return <SidebarLayout className="api-workspace" sidebarClassName="api-sidebar"
+    sidebarLabel="API reference navigation" sidebar={sidebar} skipToPane>
     <ApiContent categories={categories} links={links} active={active} jump={jump} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} />
-  </div>;
+  </SidebarLayout>;
 }

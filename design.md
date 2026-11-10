@@ -8,6 +8,14 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner header refinement, 2026-11-10. Show **Beta** as plain text beside the
+Zero wordmark, with a full click and tap target and visible keyboard focus.
+
+Owner layout refinement, 2026-11-10. ZeroHub, the tutorial reader and Docs
+share the sidebar and content layout. Keep section-specific navigation,
+including the lesson picker, ZeroHub's section links, and the API method
+search and category index.
+
 Owner ZeroHub refinement, 2026-11-10. Expand the selected section's options
 under its sidebar button and keep the selected view in the content pane.
 Under **Jams**, show **How jams work** to everyone and **Create a jam** only to

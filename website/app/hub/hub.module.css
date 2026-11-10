@@ -1,7 +1,4 @@
 .catalog { min-width: 0; overflow-wrap: anywhere; }
-.discovery { width: 100%; max-width: 1440px; margin: 24px auto 64px; padding: 0 32px; }
-.workspace { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 32px; align-items: start; }
-.sidebar { position: sticky; top: 24px; min-width: 0; max-height: calc(100dvh - 48px); overflow-y: auto; padding: 6px 24px 6px 6px; }
 .discovery .sidebar .sidebarTitle { margin: 0 0 8px; font-size: 32px; font-weight: 700; line-height: 1.2; letter-spacing: -1px; }
 .discovery .tagline { margin: 0 0 20px; color: var(--muted); font-size: 16px; line-height: 1.5; }
 .discovery .catalog { padding: 0; border: 0; }
@@ -25,9 +22,6 @@
 .search input:focus-visible { outline: none; }
 .search input::placeholder { color: var(--muted); }
 @media (max-width: 800px) {
-  .discovery { margin-top: 0; padding-inline: 24px; }
-  .workspace { grid-template-columns: minmax(0, 1fr); gap: 24px; }
-  .sidebar { position: static; max-height: none; overflow: visible; padding: 0; border: 0; }
   .discovery .navigation { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
 }
 @media (max-width: 480px) {

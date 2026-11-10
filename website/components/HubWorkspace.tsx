@@ -2,7 +2,9 @@
 
 import type {ReactNode} from 'react';
 import {usePathname,useSearchParams} from 'next/navigation';
+import {LearnTheme} from '@/app/learn/LearnTheme';
 import styles from '@/app/hub/hub.module.css';
+import {SidebarLayout} from './SidebarLayout';
 import {HubNavigation,type HubSection} from './HubNavigation';
 import {JamDirectoryProvider,useJamDirectory} from './JamClient';
 
@@ -10,17 +12,16 @@ function Workspace({active,path,view,showListings,showJams,children}:{
   active:HubSection;path:string;view:string;showListings:boolean;showJams:boolean;children:ReactNode;
 }) {
   const {canCreate}=useJamDirectory();
-  return <main className={`reading ${styles.discovery}`}>
-    <div className={styles.workspace}>
-      <aside className={styles.sidebar} aria-label="ZeroHub discovery">
-        <p className={styles.sidebarTitle}>ZeroHub</p>
-        <p className={styles.tagline}>Play. Share. Learn.</p>
-        <HubNavigation active={active} path={path} view={view} showListings={showListings}
-          showJams={showJams||active==='jams'} canCreateJam={canCreate}/>
-      </aside>
-      <div id="page-content" tabIndex={-1} className={styles.catalog}>{children}</div>
-    </div>
-  </main>;
+  const sidebar = <>
+    <p className={styles.sidebarTitle}>ZeroHub</p>
+    <p className={styles.tagline}>Play. Share. Learn.</p>
+    <HubNavigation active={active} path={path} view={view} showListings={showListings}
+      showJams={showJams||active==='jams'} canCreateJam={canCreate}/>
+  </>;
+  return <SidebarLayout className={`reading ${styles.discovery}`} sidebarClassName={styles.sidebar}
+    sidebarLabel="ZeroHub discovery" sidebar={sidebar} skipToPane>
+    <div className={styles.catalog}>{children}</div>
+  </SidebarLayout>;
 }
 
 export function HubWorkspace({children,showListings,showJams,jamRoutesAvailable}:{
@@ -36,8 +37,12 @@ export function HubWorkspace({children,showListings,showJams,jamRoutesAvailable}
   else if(path==='/hub/listings')active='game';
   const requestedView=query.get('view')||'';
   const view=path==='/hub'&&kind==='practice'?'practice':exact||requestedView==='practice'?'':requestedView;
-  return <JamDirectoryProvider enabled={active==='jams'}>
-    <Workspace active={active} path={path} view={view}
-      showListings={showListings} showJams={showJams}>{children}</Workspace>
-  </JamDirectoryProvider>;
+  const searchParams=query.toString();
+  const returnTo=searchParams?`${path}?${searchParams}`:path;
+  return <LearnTheme active="ZeroHub" hubReturnTo={returnTo}>
+    <JamDirectoryProvider enabled={active==='jams'}>
+      <Workspace active={active} path={path} view={view}
+        showListings={showListings} showJams={showJams}>{children}</Workspace>
+    </JamDirectoryProvider>
+  </LearnTheme>;
 }
