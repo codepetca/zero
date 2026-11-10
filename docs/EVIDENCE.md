@@ -1,3 +1,24 @@
+# ZeroHub Soft highlight submenu — 2026-11-10
+
+Local source commit `7ab953322` puts **Share a game** under Projects and
+**Share a library** and **Requests and results** under Libraries. Existing
+sharing addresses still open their guides in the content pane. Submenu links
+use plain text and a soft tint for the current view.
+
+The website build and TypeScript checks passed. Website tests passed 798 with
+3 skipped. Local Chromium and Playwright WebKit checks at 320, 390 and 1280 px
+in both themes covered the active fill, keyboard focus, pane switching without
+remounting the sidebar, Back, and direct sharing addresses. Screenshots are in
+`output/playwright/zero-soft-highlight/`. The local discovery service returned
+503 during this check. Live catalog data, authenticated submissions, and
+physical phones were outside its scope.
+
+One independent Terra/medium review of `5fb3a080e..7ab953322` covered the full
+source delta and found no actionable issues. Effective model telemetry is
+unavailable.
+
+---
+
 # Shared website sidebar and ZeroHub panes — 2026-11-10
 
 Integrated the approved website layout and Beta refinements on `bd28ba1f9`.
