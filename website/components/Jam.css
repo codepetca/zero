@@ -1,6 +1,5 @@
 .jam-page { width:100%; max-width:1040px; overflow-wrap:anywhere; }
-.jam-navigation,.jam-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; margin-bottom:24px; }
-.jam-navigation a { display:inline-flex; align-items:center; min-height:44px; }
+.jam-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; margin-bottom:24px; }
 .jam-page h1 { margin-bottom:16px; }
 .jam-page h2 { margin-top:32px; }
 .jam-page h3 { margin-top:24px; }

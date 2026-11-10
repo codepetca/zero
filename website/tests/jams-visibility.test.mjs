@@ -74,6 +74,8 @@ test('ZeroHub expands only the selected section and reserves creation for Pro',a
   assert.match(render({active:'jams',path:'/hub/jams/create',canCreateJam:true}),/aria-current="page">Create a jam/);
   assert.doesNotMatch(render({active:'game',canCreateJam:true}),/Create a jam|How jams work/);
   assert.match(render({active:'library',view:'use'}),/aria-current="page">Add a library/);
+  assert.match(render({active:'library',view:'practice'}),/aria-current="location">Libraries/);
+  assert.doesNotMatch(render({active:'library',view:'practice'}),/aria-current="page"/);
   assert.match(render({active:'listings',view:'help'}),/aria-current="page">How app listings work/);
   assert.match(render({active:'share',view:'requests'}),/aria-current="page">Requests and results/);
 });

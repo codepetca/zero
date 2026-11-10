@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import styles from '@/app/hub/hub.module.css';
 
-export type HubSection = 'game'|'library'|'practice'|'listings'|'share'|'jams';
+export type HubSection = 'game'|'library'|'listings'|'share'|'jams';
 type MenuItem = [label:string,href:string,current:boolean,visible?:boolean];
 
 export function HubNavigation({active,path='/hub',view='',showListings=false,showJams=false,canCreateJam=false}:{
@@ -18,7 +18,7 @@ export function HubNavigation({active,path='/hub',view='',showListings=false,sho
       ['Publish an app','/hub?kind=game&view=publish',view==='publish']
     ]},
     {id:'library',label:'Libraries',href:'/hub?kind=library',items:[
-      ['Browse libraries','/hub?kind=library',view!=='use'],
+      ['Browse libraries','/hub?kind=library',view!=='use'&&view!=='practice'],
       ['Add a library','/hub?kind=library&view=use',view==='use']
     ]},
     {id:'listings',label:'My Apps',href:'/hub/listings',visible:showListings,items:[

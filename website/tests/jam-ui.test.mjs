@@ -21,7 +21,7 @@ function harness({storage=new Map(),fetcher=async()=>{throw new Error('network')
   const react={createContext:defaultValue=>({defaultValue,Provider:()=>null}),useContext:ctx=>directory??ctx.defaultValue,useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(fn){index++;effects.push(fn);}};
   const module={exports:{}};
   const context={participateData,refreshImpl,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return {default:()=>null};return clientRequire(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
-  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useDraft,EventFacts,Proposal,useMutation,useResource,JamHelpLink,JamCreate,JamCreationPane,JamDirectoryProvider,JamDiscovery,jamTimeRemaining,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,JamAccountTools};',context);
+  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useDraft,EventFacts,EventStatus,Proposal,useMutation,useResource,JamHelpLink,JamCreate,JamCreationPane,JamDirectoryProvider,JamDiscovery,jamTimeRemaining,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,JamAccountTools};',context);
   return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},renderDraft(name,initial,initializeFresh){index=0;return module.exports.testing.useDraft(name,initial,initializeFresh);},flushEffects(){const work=effects;effects=[];for(const fn of work)fn();},setActor(value){actor=value;},setDirectory(value){directory=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
 }
 function elements(node) {
@@ -335,6 +335,10 @@ test('jam timing switches from the submission deadline to reveal and ends after 
   assert.equal(h.render('jamTimeRemaining',schedule,close),'Gallery opens in 1h 0m');
   assert.equal(h.render('jamTimeRemaining',schedule,reveal),null);
   assert.equal(h.render('jamTimeRemaining',{},close),null);
+  const event={revision:'a',schedule,moderation:{status:'active'},registrationOpen:false,submissionsOpen:true};
+  const status=now=>elements(h.render('EventStatus',{event,now})).find(node=>node.type==='p').props.children.join('');
+  assert.match(status(close-1),/Submissions open/);
+  assert.match(status(close),/Submissions closed/);
 });
 
 test('Jam rules page explains plans, access and timing',async()=>{

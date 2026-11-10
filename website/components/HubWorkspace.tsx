@@ -30,12 +30,14 @@ export function HubWorkspace({children,showListings,showJams,jamRoutesAvailable}
   const exact=path==='/hub'&&(query.has('id')||query.has('version'));
   const kind=query.get('kind')||(exact?'library':'game');
   const inJams=jamRoutesAvailable&&(path==='/hub/jams'||path.startsWith('/hub/jams/'));
-  let active:HubSection=kind==='game'||kind==='practice'?kind:'library';
+  let active:HubSection=kind==='game'?'game':'library';
   if(inJams)active='jams';
   else if(path==='/hub/share')active='share';
   else if(path==='/hub/listings')active='listings';
+  const requestedView=query.get('view')||'';
+  const view=path==='/hub'&&kind==='practice'?'practice':exact||requestedView==='practice'?'':requestedView;
   return <JamDirectoryProvider enabled={active==='jams'}>
-    <Workspace active={active} path={path} view={exact?'':query.get('view')||''}
+    <Workspace active={active} path={path} view={view}
       showListings={showListings} showJams={showJams}>{children}</Workspace>
   </JamDirectoryProvider>;
 }
