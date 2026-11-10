@@ -138,12 +138,13 @@ export function createHubListingsStore(pool) {
 
   async function stillListed(entries) {
     if (!entries.length) return [];
-    const {rows} = await pool.query(`SELECT listed_order, repository_url, pages_url FROM ${table}
+    const {rows} = await pool.query(`SELECT listed_order, repository_url, pages_url, source_commit, run_id FROM ${table}
       WHERE listed_order=ANY($1::bigint[])`, [entries.map(entry => entry.order)]);
     const current = new Map(rows.map(row => [row.listed_order, row]));
     return entries.filter(entry => {
       const row = current.get(entry.order);
-      return row?.repository_url === entry.repositoryUrl && row.pages_url === entry.pagesUrl;
+      return row?.repository_url === entry.repositoryUrl && row.pages_url === entry.pagesUrl &&
+        row.source_commit === entry.commit && row.run_id === entry.runId;
     });
   }
 

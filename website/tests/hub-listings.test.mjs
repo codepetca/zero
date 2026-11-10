@@ -90,7 +90,7 @@ test('public listing reads exclude transferred, newly held and concurrently unli
       const fresh = ++observations === 2;
       return {revision:commit, observedAt:Date.now(), isHeld:id=>fresh && id === '24'};
     },
-    destinationReader:async entry=>entry.order !== '2'
+    destinationReader:async entry=>entry.order !== '2', playReader:async()=>undefined
   });
   assert.deepEqual((await response.json()).projects.map(project=>project.id), ['21']);
 });
@@ -106,7 +106,7 @@ test('held matches do not create a continuation and GitHub outages are retryable
     stillListed:async items=>items}),
     visibilityReader:async()=>({revision:commit, observedAt:Date.now(),
       heldRepositoryIds:()=>['92'], isHeld:id=>id === '92'}),
-    destinationReader:async()=>true};
+    destinationReader:async()=>true, playReader:async()=>undefined};
   const held = await (await read({})).json();
   assert.equal(held.projects.length, 8);
   assert.equal(held.next, null);
@@ -131,8 +131,15 @@ test('public reads check current repository Pages availability and withhold cust
       owner:{id:6,type:'User'}, html_url:receipt.repositoryUrl});
   };
   assert.equal(await readPublicListingDestination(entry, {env:testEnv, fetchImpl, signal}), true);
-  assert.equal(publicListingPlayUrl(entry), undefined);
-  assert.equal(publicListingPlayUrl({...entry, pagesUrl:receipt.pagesUrl}), receipt.pagesUrl);
+  const playOptions = {signal, readPublic:async url=>{
+    assert.equal(url, receipt.pagesUrl + 'zero-source-sha.txt');
+    return new Response(commit + '\n321');
+  }};
+  assert.equal(await publicListingPlayUrl(entry, playOptions), undefined);
+  const canonical = {...entry, pagesUrl:receipt.pagesUrl};
+  assert.equal(await publicListingPlayUrl(canonical, playOptions), receipt.pagesUrl);
+  assert.equal(await publicListingPlayUrl(canonical, {...playOptions,
+    readPublic:async()=>Response.redirect('https://new.example.test/')}), undefined);
   hasPages = false;
   assert.equal(await readPublicListingDestination(entry, {env:testEnv, fetchImpl, signal}), false);
   await assert.rejects(readPublicListingDestination(entry, {env, fetchImpl, signal}), /read credential/);

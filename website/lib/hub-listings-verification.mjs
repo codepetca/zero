@@ -34,6 +34,12 @@ export function listingReceipt(input) {
   return {repositoryId:input.repositoryId, repositoryUrl:input.repositoryUrl, runId:input.runId, commit:input.commit, pagesUrl:input.pagesUrl};
 }
 
+async function hasLiveMarker(pagesUrl, receipt, readPublic, signal) {
+  const proofUrl = new URL('zero-source-sha.txt', pagesUrl.endsWith('/') ? pagesUrl : pagesUrl + '/');
+  const proof = await readPublic(proofUrl.href, {signal});
+  return proof.ok && await boundedText(proof) === receipt.commit + '\n' + receipt.runId;
+}
+
 export async function verifyListingPublication(receipt, {account, token, signal, fetchImpl = fetch, readPublic = publicReadiness}) {
   const root = apiOrigin + '/repos/' + receipt.repositoryUrl.slice('https://github.com/'.length);
   async function read(suffix = '') {
@@ -63,11 +69,8 @@ export async function verifyListingPublication(receipt, {account, token, signal,
   const pagesUrl = safePagesUrl(pages?.html_url, pages?.cname);
   if (!pagesUrl || pagesUrl !== receipt.pagesUrl || pages.public !== true || pages.build_type !== 'workflow' ||
       (!pages.cname && pagesUrl !== canonicalPagesUrl(repositoryUrl))) return null;
-  const proofUrl = new URL('zero-source-sha.txt', pagesUrl.endsWith('/') ? pagesUrl : pagesUrl + '/');
-  // Existing DNS-pinned, no-redirect Pages probe. GitHub credentials never
-  // travel to the Pages host, including when it uses a custom domain.
-  const proof = await readPublic(proofUrl.href, {signal});
-  if (!proof.ok || await boundedText(proof) !== receipt.commit + '\n' + receipt.runId) return null;
+  // No GitHub credentials travel to the Pages host.
+  if (!await hasLiveMarker(pagesUrl, receipt, readPublic, signal)) return null;
   signal.throwIfAborted();
 
   return {...receipt, repositoryUrl, title:repo.name, author:repo.owner.login, pagesUrl,
@@ -76,9 +79,15 @@ export async function verifyListingPublication(receipt, {account, token, signal,
 
 // Keep public Play links on GitHub-controlled addresses. The owner still
 // sees their verified custom address in Manage listings.
-export function publicListingPlayUrl(entry) {
+export async function publicListingPlayUrl(entry, {signal, readPublic = publicReadiness}) {
   const canonical = canonicalPagesUrl(entry.repositoryUrl);
-  return canonical && canonical === entry.pagesUrl ? canonical : undefined;
+  if (!canonical || canonical !== entry.pagesUrl) return;
+  try {
+    // A canonical Pages address can start redirecting after publication.
+    // publicReadiness accepts only a direct 200 and never follows redirects.
+    const probeSignal = AbortSignal.any([signal, AbortSignal.timeout(2500)]);
+    if (await hasLiveMarker(canonical, entry, readPublic, probeSignal)) return canonical;
+  } catch { /* Keep the repository card if Play cannot be confirmed. */ }
 }
 
 export async function readPublicListingDestination(entry, {env, signal, fetchImpl = fetch}) {

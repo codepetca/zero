@@ -84,7 +84,7 @@ export function hubListingCapabilityResponse(env = process.env) {
 
 export async function hubPublicListingsResponse(request, {
   env = process.env, getStore = configuredListingsStore, visibilityReader = readJamHubVisibility,
-  destinationReader = readPublicListingDestination
+  destinationReader = readPublicListingDestination, playReader = publicListingPlayUrl
 } = {}) {
   if (publicRequests >= 4) return unavailable();
   publicRequests++;
@@ -114,8 +114,10 @@ export async function hubPublicListingsResponse(request, {
       order = candidates.at(-1)?.order;
       for (let offset = 0; offset < candidates.length && observed.length <= listingPageSize; offset += 4) {
         signal.throwIfAborted();
-        const checked = await Promise.all(candidates.slice(offset, offset+4).map(async entry =>
-          visible(entry, visibility) && await destinationReader(entry, {env, signal}) ? entry : null));
+        const checked = await Promise.all(candidates.slice(offset, offset+4).map(async entry => {
+          if (!visible(entry, visibility) || !await destinationReader(entry, {env, signal})) return null;
+          return {...entry, playUrl:await playReader(entry, {signal})};
+        }));
         observed.push(...checked.filter(Boolean));
       }
     }
@@ -130,7 +132,7 @@ export async function hubPublicListingsResponse(request, {
     const page = authorized.slice(0, listingPageSize);
     return json({projects:page.map(entry => ({
       id:entry.repositoryId, title:entry.title, author:entry.author, repositoryUrl:entry.repositoryUrl,
-      pagesUrl:publicListingPlayUrl(entry)
+      pagesUrl:entry.playUrl
     })), next:authorized.length > listingPageSize ? seal({order:page.at(-1).order, search}, pagePurpose, config) : null});
   } catch { return unavailable(); }
   finally { controller.abort(); publicRequests--; }

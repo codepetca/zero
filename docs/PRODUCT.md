@@ -149,8 +149,9 @@ unprotected project in the replacement queue. An update keeps its place in
 the queue. In **Manage listings**, protect one project with **Do not replace**
 or use **Move to back** to keep a project listed longer. If the only slot is
 protected, the new app still publishes and can be listed after clearing
-protection. A custom-domain publication gets a repository link in public
-discovery. Unlisting only removes the ZeroHub card. The listing service
+protection. Public cards show Play when Zero can verify the current run at
+a direct GitHub Pages address. Other cards link to the repository. Unlisting
+only removes the ZeroHub card. The listing service
 operates separately from the library catalog and ZeroJams.
 
 ## ZeroJams

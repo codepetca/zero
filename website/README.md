@@ -154,9 +154,10 @@ Set `ZERO_HUB_LISTINGS_GITHUB_READ_TOKEN` to a dedicated GitHub credential
 with public repository metadata read access. Public discovery checks current
 ownership, repository visibility and whether Pages is enabled with this
 credential. It has no anonymous fallback. Verify its permissions and quota in
-a pilot before activation. Public Play links use canonical GitHub Pages
-addresses. Projects on custom domains link to their repository in discovery,
-and their owners can open the verified deployment from Manage listings.
+a pilot before activation. Public Play links require the expected run marker
+at a direct GitHub Pages address. Cards link to the repository if the marker is
+unavailable or the project uses a custom domain. Owners can open their verified
+deployment from Manage listings.
 
 The existing Zero GitHub App and ZeroHub browser authentication configuration
 verify publishing and management. An editor checks listing availability before
