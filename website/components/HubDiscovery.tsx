@@ -216,7 +216,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false}: {e
     </aside>
     <section className={styles.catalog} aria-labelledby="sharing-heading">
     <h2 id="sharing-heading" className="sr-only">{practiceOnly?'Tutorial practice':kind === 'game' ? 'Projects' : 'Libraries'}</h2>
-    {practiceOnly && <p className="hub-note">These CreditsBadge libraries are copied tutorial work. Similar copies are expected; each repository keeps its own library identity. Listings may be withdrawn during periodic cleanup. Cleanup removes listings; your source and already added copies are not deleted.</p>}
+    {practiceOnly && <p className="hub-note">These CreditsBadge libraries are copied tutorial work. Similar copies are expected, and each repository keeps its own library identity. Periodic cleanup may remove libraries from the catalog. Your source and any copies already added to projects stay available.</p>}
     {(id || version) && <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {label}</Link></p>}
     <div className={`${styles.cards}${kind==='game'?` ${styles.projectCards}`:''}`}>
     {visibleProjects.map(project => <HubProjectCard projectId={project.id} key={project.id} title={project.title} description={projectSummary(project.description)} author={project.author}

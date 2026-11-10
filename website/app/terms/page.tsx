@@ -27,14 +27,14 @@ export default function Terms() {
       <section id="data">
         <h2>2. Your work, data and repositories</h2>
         <p>You retain ownership of your work. Repositories created in your GitHub account are your responsibility, including their contents, licenses, visibility, collaborators, permissions, security, backups, costs and maintenance. You are also responsible for the apps and assets you publish from them.</p>
-        <p>Keep independent copies of important code, assets, project history and other data. Do not rely on Zero or ZeroHub as your only storage, backup, archive or submission record. Data, listings, settings and uploaded material may fail to save, become corrupted, be removed or become unavailable. We do not promise permanent retention, recovery, continued hosting or compatibility with future versions.</p>
+        <p>Keep independent copies of important code, assets, project history and other data. Do not rely on Zero or ZeroHub as your only storage, backup, archive or submission record. Data, catalog entries, settings and uploaded material may fail to save, become corrupted, be removed or become unavailable. We do not promise permanent retention, recovery, continued hosting or compatibility with future versions.</p>
         <p>Check that commits reached the intended repository and branch, that published apps work, and that any required school submission was completed separately. You are responsible for reviewing public destinations and keeping credentials, private student information and other sensitive material out of public repositories and uploads.</p>
         <p>When you choose to submit material to ZeroHub, you authorize us to process, display and distribute that material as needed to provide the sharing feature you requested, subject to its stated license and visibility. This does not transfer ownership or grant permission for unrelated uses. Do not submit material you lack permission to share.</p>
       </section>
       <section>
         <h2>3. Acceptable use and third parties</h2>
         <p>Do not use the Services unlawfully, infringe others’ rights, publish malicious or abusive material, expose others’ private information, bypass access controls or disrupt the Services. We may refuse or remove submissions or restrict access to address abuse, security concerns, legal requirements or service operation, subject to applicable law.</p>
-        <p>GitHub, hosting providers, dependency repositories, community projects and other third parties operate under their own terms and policies. Their availability, charges, account decisions, content and changes are outside Codepet’s control. A listing, automated check or example is not a guarantee of safety, quality, fitness or continued availability. Review third-party code and licenses before using it.</p>
+        <p>GitHub, hosting providers, dependency repositories, community projects and other third parties operate under their own terms and policies. Their availability, charges, account decisions, content and changes are outside Codepet’s control. A catalog entry, automated check or example is not a guarantee of safety, quality, fitness or continued availability. Review third-party code and licenses before using it.</p>
       </section>
       <section>
         <h2>4. Service changes and no warranties</h2>

@@ -35,6 +35,17 @@ One independent Luna/medium review of `791d465d0..58add2787` found no
 actionable issues. Browser snapshots are in the ignored `.playwright-cli/`
 folder in the local worktree.
 
+## ZeroHub app wording — 2026-11-10
+
+Source `ec9adc8bee` against `791d465d0` uses **Manage apps** across
+ZeroHub and desktop publishing. The browser preview with a local fixture
+showed the navigation link, the app-slot count, the protected app, and
+the **Add to ZeroHub** and **Remove from ZeroHub** controls. Website
+typecheck, focused Hub and editor tests, and `npm run check` passed.
+One independent Terra/medium review covered the complete source diff and
+found no actionable issues. This verification used a local website and
+did not publish a deployment or desktop release.
+
 ## Automatic ZeroHub listings — 2026-11-10
 
 Local branch `codex/automatic-zerohub-listings` uses main `7fd8eb09a`.
@@ -59,7 +70,7 @@ found no actionable issues in the direct Pages marker check. Effective model
 and token usage are unavailable. Live GitHub and WorkOS account flows and
 provider capacity remain unverified. Production activation requires the
 listing database, a dedicated public metadata credential, and rollout checks
-in [website setup](../website/README.md#automatic-zerohub-listings).
+in [website setup](../website/README.md#automatic-zerohub-app-listings).
 
 ## Merge latency — 2026-11-09
 

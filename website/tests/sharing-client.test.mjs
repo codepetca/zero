@@ -138,5 +138,5 @@ test('practice discovery stays accessible outside the main catalog navigation',a
   assert.match(discovery,/Tutorial practice/);assert.match(discovery,/Add library → Apply/);
   assert.match(discovery,/Libraries and games →/);assert.match(discovery,/Browse tutorial practice/);
   assert.doesNotMatch(navigation,/kind=practice/);
-  assert.match(prepare,/publication, including practice, remains paused/);assert.match(prepare,/local passing check does not publish/);
+  assert.match(prepare,/publication, including practice, remains paused/);assert.match(prepare,/local passing check does not publish a library/);
 });

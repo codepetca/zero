@@ -19,6 +19,22 @@ test('manual grants accept only bounded exact numeric account IDs, with missing 
   assert.equal(hasManualJamPro('11',{NEXT_PUBLIC_ZERO_JAMS_PRO_GITHUB_IDS:'11'}),false);
 });
 
+test('independent additional grants preserve valid original grants and fail closed per list',()=>{
+  const original='ZERO_JAMS_PRO_GITHUB_IDS',additional='ZERO_JAMS_ADDITIONAL_PRO_GITHUB_IDS';
+  for(const key of [original,additional]){
+    for(const value of [undefined,'','11,','11,11','011','11,creator','1'.repeat(8193),Array.from({length:257},(_,i)=>String(i+1)).join(',')]){
+      assert.equal(hasManualJamPro('11',{[key]:value}),false);
+    }
+  }
+  const env={[original]:'11,22',[additional]:'22,33'};
+  for(const id of ['11','22','33'])assert.equal(hasManualJamPro(id,env),true);
+  assert.equal(hasManualJamPro('44',env),false);
+  assert.equal(hasManualJamPro('33',{[original]:'11,11',[additional]:'33'}),true);
+  assert.equal(hasManualJamPro('11',{[original]:'11',[additional]:'33,33'}),true);
+  assert.equal(hasManualJamPro('33',{[original]:'11',[additional]:'33,33'}),false);
+  assert.equal(hasManualJamPro('33',{NEXT_PUBLIC_ZERO_JAMS_ADDITIONAL_PRO_GITHUB_IDS:'33'}),false);
+});
+
 test('direct service defaults deny and callback failures, non-boolean or async grants cannot enable creation',async()=>{
   for(const hook of [undefined,()=>false,()=>1,()=>({pro:true}),()=>Promise.resolve(true),()=>Promise.reject(Error('private grant failure')),()=>{throw Error('private grant failure');}]){
     const store=memoryStore(),service=createJamService({store,verifySource:async()=>assert.fail('No organizer repository fetch'),...(hook?{canCreateJam:hook}:{})});
