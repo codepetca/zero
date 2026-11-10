@@ -8,8 +8,9 @@ import {readJamHubVisibility} from './jam-hub-visibility.mjs';
 import {repositoryParts} from './hub-project-status.mjs';
 import {LIMITS} from '../../jams/schema.mjs';
 import {localJamAuthorityRequested} from './jams-default-authority.mjs';
+import {ACTIONS} from '../../jams/requests.mjs';
 
-const actions = new Set(['approve','request-changes','reject','suspend','resume','cancel','withdraw-entry','join','leave','submit','withdraw']);
+const actions = new Set(ACTIONS);
 const actionKeys = new Set(['operationId','action','revision','reason','participantId','source','title','description','demoUrl','instructions','repositoryUrl']);
 const proposalKeys = new Set(['operationId','manifest']);
 const unavailable = () => json({configured:false,error:'ZeroJams participation is not available yet. You can still prepare your proposal.'},503);
@@ -178,6 +179,11 @@ export async function getJamResponse(request, id, inputOptions = {}) {
     const actor = session ? {id:session.id,login:session.login} : undefined;
     const service = await deadline.run(()=>serviceFor(options));
     const params=new URL(request.url).searchParams,paged=params.get('view')==='gallery',overview=params.get('view')==='overview',moderation=params.get('view')==='moderation';
+    if(params.get('view')==='winner') {
+      const result=await deadline.run(signal=>service.readWinnerSelection(id,actor,{signal}));
+      deadline.check();
+      return json({configured:true,...result,checkedAt:new Date(options.now()).toISOString()});
+    }
     if(moderation) {
       const result=await deadline.run(signal=>service.readModeration(id,actor,{signal}));
       deadline.check();

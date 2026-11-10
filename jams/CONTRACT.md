@@ -86,10 +86,14 @@ Return methods:
   Unapproved proposal detail is creator/maintainer-only. `registration` and `entry`
   are the current actor's records or null. `proposal` is the latest reviewable
   `{revision,manifest,repository,status,reason}` for authorized actors.
+- `readWinnerSelection(id,actor)` -> `{winnerSelection:{currentRevision,entries}}`.
+  Only the host of an active Zero-hosted Game Jam can read this view after the
+  submission deadline. Entries expose the participant ID, exact submission
+  revision, title, login and demo URL for eligible choices.
 - `propose({actor,operationId,manifest})` -> `{eventId,operationId,...}`.
 - `mutate({id,actor,operationId,action,revision?,reason?,participantId?,source?,title?,description?,demoUrl?,instructions?})`
   -> `{eventId,operationId,...}`. Actions: `approve`, `request-changes`, `reject`,
-  `suspend`, `resume`, `cancel`, `withdraw-entry`, `join`, `leave`, `submit`, `withdraw`.
+  `suspend`, `resume`, `cancel`, `withdraw-entry`, `join`, `leave`, `submit`, `withdraw`, `pick-winner`.
   Approve/request-changes/reject require exact latest proposal `revision` and
   maintainer identity; no self-approval. Moderation requires a public reason.
   A creator may cancel their own automatically approved jam even after Pro
@@ -107,6 +111,12 @@ Return methods:
   accepted schedule and rules. Instructions are optional; demoUrl is required.
   Suspend/cancel/entry-removal reasons are at most256characters and use separately
   reserved bounded operation/storage capacity that ordinary writes cannot consume.
+  `pick-winner` binds `participantId` to the exact submission `revision` and
+  returns `status: 'winner-selected'`. The host can replace a previous choice.
+  The decision is recorded in the existing history with the ordinary operation
+  receipt. Public gallery entries may have `winner: true` after reveal while the
+  selected submission remains eligible. An award follows the repository and
+  owner IDs to its published ZeroHub app.
 
 Hosted source admits 100 distinct registered accounts per jam, including
 departed registrations. The 101st distinct account is rejected transactionally

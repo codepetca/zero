@@ -1,4 +1,5 @@
 import {projectVisibility} from './project-visibility.mjs';
+import {canPickGameJamWinner, eligibleGameJamEntry, gameJamWinningEntry, onTimePages} from './winner.mjs';
 import {JamError, LIMITS, PRO_AUTO_APPROVAL, ID, SHA, ACCOUNT, SAFETY_SLOT_BYTES, safetySlots, operationCounts, stateBudget, actorIdentity, digest, fail, keys, manifestData, hostedManifestData, repositoryData, participantRepositoryData, pagesVerificationData, repositoryUrl, validateState, validateSettlements} from './schema.mjs';
 export {JamError} from './schema.mjs';
 
@@ -126,7 +127,11 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     const approvalHistory=state.proposals.filter(proposal=>proposal.status==='approved').map(proposal=>({revision:proposal.revision,approvedAt:proposal.reviewedAt,manifest:structuredClone(proposal.manifest)}));
     const galleryRevealed=!manifest.schedule.galleryRevealAt||time>=Date.parse(manifest.schedule.galleryRevealAt);
     const galleryIncomplete=galleryRevealed&&entries.some(entry=>!visibility.isHeld(entry.repository.id)&&pagesUnverified?.has(pagesKey(entry)));
-    return {id:state.id,creator:structuredClone(state.creator),hosting:state.hosting||'creator',revision:state.accepted?.revision||null,...manifest,approvalHistory,...(state.accepted?.approvalMode?{approvalMode:state.accepted.approvalMode}:{}),reviewStatus:state.proposals.at(-1).status,moderation:structuredClone(state.moderation),registrationOpen:active&&inWindow(time,manifest.schedule.registrationOpensAt,manifest.schedule.registrationClosesAt),submissionsOpen:active&&inWindow(time,manifest.schedule.submissionsOpenAt,manifest.schedule.submissionsCloseAt),participantCount:participants.length,participantLimit:bound.participants,participants,entries:moderation?entries:galleryRevealed?entries.filter(entry=>!visibility.isHeld(entry.repository.id)&&(!manifest.schedule.galleryRevealAt||Object.hasOwn(entry.repository,'commit')||onTimePages(entry,manifest.schedule)&&pagesEligible?.has(pagesKey(entry)))).map(({pagesVerification,...entry})=>entry):[],...(galleryIncomplete?{galleryIncomplete:true}:{}),...(manifest.schedule.galleryRevealAt?{galleryRevealed}:{}),updatedAt:state.updatedAt};
+    const winner = galleryRevealed ? gameJamWinningEntry(state,time) : null;
+    const publicEntries = galleryRevealed ? entries.filter(entry=>!visibility.isHeld(entry.repository.id)&&
+      (!manifest.schedule.galleryRevealAt||Object.hasOwn(entry.repository,'commit')||onTimePages(entry,manifest.schedule)&&pagesEligible?.has(pagesKey(entry))))
+      .map(({pagesVerification,...entry})=>entry.participantId===winner?.participantId ? {...entry,winner:true} : entry) : [];
+    return {id:state.id,creator:structuredClone(state.creator),hosting:state.hosting||'creator',revision:state.accepted?.revision||null,...manifest,approvalHistory,...(state.accepted?.approvalMode?{approvalMode:state.accepted.approvalMode}:{}),reviewStatus:state.proposals.at(-1).status,moderation:structuredClone(state.moderation),registrationOpen:active&&inWindow(time,manifest.schedule.registrationOpensAt,manifest.schedule.registrationClosesAt),submissionsOpen:active&&inWindow(time,manifest.schedule.submissionsOpenAt,manifest.schedule.submissionsCloseAt),participantCount:participants.length,participantLimit:bound.participants,participants,entries:moderation?entries:publicEntries,...(galleryIncomplete?{galleryIncomplete:true}:{}),...(manifest.schedule.galleryRevealAt?{galleryRevealed}:{}),updatedAt:state.updatedAt};
   }
   function recover(state,actor,op,payloadDigest) {
     const previous=state?.operations[operationKey(actor,op)];
@@ -272,9 +277,6 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     return {states,time,visibility,revision:snapshot.revision};
   }
   const pagesKey=entry=>digest({repository:entry.repository,pagesUrl:entry.demoUrl});
-  function onTimePages(entry,schedule) {
-    return !!entry.pagesVerification&&Date.parse(entry.pagesVerification.verifiedAt)<Date.parse(schedule.submissionsCloseAt)&&Date.parse(entry.submittedAt)<Date.parse(schedule.submissionsCloseAt);
-  }
   async function observePages(scope,candidates) {
     const pagesEligible=new Set(),pagesUnverified=new Set();
     if(typeof pagesBindingReader!=='function')return {pagesEligible,pagesUnverified:new Set(candidates.keys())};
@@ -398,6 +400,20 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       return taggedProjection({moderationEntries},revision);
     });
   }
+  async function readWinnerSelection(id,actor,options={}) {
+    if(!actor)fail(403,'Only the host can pick a winner.');
+    actor=actorIdentity(actor);
+    const {signal}=readOptions(options);
+    return withDiscoveryDeadline(signal,DISCOVERY_TIMEOUT_MS,async scope=>{
+      const {state}=await load(id,undefined,scope);
+      if(!state||state.creator.id!==actor.id)fail(403,'Only the host can pick a winner.');
+      const time=currentTime(now);
+      if(!canPickGameJamWinner(state,time))fail(409,'Pick a winner after submissions close for an active Game Jam.');
+      const entries=Object.keys(state.entries).map(participantId=>eligibleGameJamEntry(state,participantId))
+        .filter(Boolean).sort(participantOrder).map(({participantId,revision,title,login,demoUrl})=>({participantId,revision,title,login,demoUrl}));
+      return {winnerSelection:{currentRevision:gameJamWinningEntry(state,time)?.revision??null,entries}};
+    });
+  }
   async function readPage(id,actor,options={}) {
     // Offsets count eligible candidates, including failed current proofs. A page
     // can therefore be empty and incomplete while still having a continuation.
@@ -426,7 +442,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     const publicParticipants=new Set((event.entries??[]).map(item=>item.participantId));
     const moderationEntries=canMaintain&&!overview?summary(state,time,visibility,{moderation:true,entryParticipants}).entries.filter(item=>!publicParticipants.has(item.participantId)):[];
     if(page)moderationEntries.sort(participantOrder);
-    const result=taggedProjection({event,registration:structuredClone(registration),entry:structuredClone(entry),canMaintain,...(canMaintain&&!overview?{moderationEntries}:{}),...(proposal?{proposal:structuredClone(proposal)}:{})},revision);
+    const canPickWinner=actor?.id===state.creator.id&&canPickGameJamWinner(state,time);
+    const result=taggedProjection({event,registration:structuredClone(registration),entry:structuredClone(entry),canMaintain,...(canPickWinner?{canPickWinner}:{}),...(canMaintain&&!overview?{moderationEntries}:{}),...(proposal?{proposal:structuredClone(proposal)}:{})},revision);
     return page?Object.defineProperty(result,JAM_PAGE_METADATA,{value:pageMetadata}):result;
   }
   async function propose(input) {
@@ -474,6 +491,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(rejected||previous)return rejected||previous;
     }
     if(!before)fail(404,'Jam not found.');
+    if(action==='pick-winner'&&before.creator.id!==actor.id)fail(403,'Only the host can pick a winner.');
     if((REVIEW.has(action)||MODERATION.has(action)||action==='withdraw-entry')&&!maintainers.has(actor.id)&&!(action==='cancel'&&canCancelOwnJam(before,actor)))fail(403,'A Zero maintainer must perform this action.');
     if(action==='approve'&&before.creator.id===actor.id)fail(403,'A different maintainer must approve your jam.');
     let joinedRepository=null,verified=null,pagesVerification=null;
@@ -497,6 +515,14 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       verified={repository:current};
     }
     return commitLoop(id,actor,op,payloadDigest,(next,time,stamp)=>{
+      if(action==='pick-winner') {
+        if(next.creator.id!==actor.id)fail(403,'Only the host can pick a winner.');
+        if(!canPickGameJamWinner(next,time))fail(409,'Pick a winner after submissions close for an active Game Jam.');
+        const entry=eligibleGameJamEntry(next,payload.participantId);
+        if(entry?.revision!==payload.revision)fail(409,'Choose a current eligible submission.');
+        next.history.push({action,actorId:actor.id,participantId:entry.participantId,revision:entry.revision,at:stamp});
+        return {status:'winner-selected',participantId:entry.participantId,revision:entry.revision};
+      }
       if(REVIEW.has(action)) {
         if(!maintainers.has(actor.id))fail(403,'A Zero maintainer must perform this action.');
         const proposal=next.proposals.at(-1);
@@ -601,5 +627,5 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     }
     fail(409,'Official records changed repeatedly. Keep the earlier request and retry closing it.');
   }
-  return {list,listSummaries,read,readOverview,readModeration,readPage,propose,mutate,settle:settlement};
+  return {list,listSummaries,read,readOverview,readModeration,readWinnerSelection,readPage,propose,mutate,settle:settlement};
 }

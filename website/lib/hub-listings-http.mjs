@@ -132,10 +132,11 @@ export async function hubPublicListingsResponse(request, {
     const authorized = current.filter(entry => visible(entry, fresh));
     if (!exhausted && authorized.length <= listingPageSize) return unavailable();
     const page = authorized.slice(0, listingPageSize);
-    return json({projects:page.map(entry => ({
-      id:entry.repositoryId, title:entry.title, author:entry.author, repositoryUrl:entry.repositoryUrl,
-      pagesUrl:entry.playUrl
-    })), next:authorized.length > listingPageSize ? seal({order:page.at(-1).order, search}, pagePurpose, config) : null});
+    return json({projects:page.map(entry => {
+      const gameJamWinner = fresh?.gameJamWinnerFor?.(entry.repositoryId, entry.accountId);
+      return {id:entry.repositoryId, title:entry.title, author:entry.author, repositoryUrl:entry.repositoryUrl,
+        pagesUrl:entry.playUrl, ...(gameJamWinner ? {gameJamWinner} : {})};
+    }), next:authorized.length > listingPageSize ? seal({order:page.at(-1).order, search}, pagePurpose, config) : null});
   } catch { return unavailable(); }
   finally { controller.abort(); publicRequests--; }
 }

@@ -7,9 +7,9 @@ import {HubAccount,useHubGitHub} from './HubGitHub';
 type Source = {repositoryUrl:string;commit:string};
 type Repository = {id:string;ownerId:string;fullName:string;commit?:string};
 type Manifest = {type:'game'|'app';title:string;summary:string;theme:string;rules:string;eligibility:string;websiteUrl?:string;timezone:string;schedule:Record<string,string>};
-type Entry = {participantId:string;login:string;title:string;description:string;demoUrl?:string;instructions?:string;repository:Repository;submittedAt:string;status?:string};
+type Entry = {participantId:string;login:string;title:string;description:string;demoUrl?:string;instructions?:string;repository:Repository;submittedAt:string;status?:string;winner?:boolean};
 type Event = Manifest & {creator?:{id:string;login:string};id:string;revision:string|null;approvalHistory?:{revision:string;approvedAt:string;manifest:Manifest}[];approvalMode?:string;reviewStatus:string;moderation:{status:string;reason?:string};registrationOpen:boolean;submissionsOpen:boolean;participantCount:number;participantLimit:number;galleryIncomplete?:boolean;participants:{id:string;login:string}[];entries:Entry[];updatedAt:string};
-type Detail = {configured:boolean;event:Event;registration:{status:string;revision?:string;repository?:Repository}|null;entry:Entry|null;moderationEntries?:Entry[];canMaintain:boolean;proposal?:{revision:string;manifest:Manifest;repository?:Repository;hosting?:string;organizerId?:string;organizerLogin?:string;status:string;reason?:string}};
+type Detail = {configured:boolean;event:Event;registration:{status:string;revision?:string;repository?:Repository}|null;entry:Entry|null;moderationEntries?:Entry[];canMaintain:boolean;canPickWinner?:boolean;proposal?:{revision:string;manifest:Manifest;repository?:Repository;hosting?:string;organizerId?:string;organizerLogin?:string;status:string;reason?:string}};
 type Mutation = Record<string,unknown>;
 const kindLabel = (type:string) => type === 'app' ? 'App Jam' : 'Game Jam';
 const reviewLabel = (status:string) => ({submitted:'Awaiting review',approved:'Approved','changes-requested':'Changes requested',rejected:'Rejected'}[status] || status);
@@ -215,18 +215,58 @@ function MaintainerTools({id,onChanged,galleryError=''}:{id:string;onChanged:()=
   if(error)return error===galleryError?<button type="button" disabled={loading} onClick={()=>void refresh()}>Retry account view</button>:<Retry error={error} loading={loading} refresh={refresh}/>;
   return data?.canMaintain?<ModerationInbox id={id} onChanged={onChanged}/>:null;
 }
+type WinnerCandidate = {participantId:string;revision:string;title:string;login:string;demoUrl?:string};
+type WinnerSelection = {configured:boolean;winnerSelection:{currentRevision:string|null;entries:WinnerCandidate[]}};
+function WinnerPicker({id,onChanged,isCurrent}:{id:string;onChanged:()=>Promise<void>;isCurrent:()=>boolean}) {
+  const top=useTopLevel();
+  const {data,error,loading,refresh}=useResource<WinnerSelection>(`/api/jams/${encodeURIComponent(id)}?view=winner`,true);
+  const mutation=useMutation(`/api/jams/${encodeURIComponent(id)}/actions`);
+  async function pick(entry:WinnerCandidate) {
+    const result=await mutation.send({action:'pick-winner',participantId:entry.participantId,revision:entry.revision});
+    if(result?.status==='winner-selected'&&isCurrent())await onChanged();
+  }
+  const selection=data?.winnerSelection;
+  return <section className="jam-review">
+    <h2>Choose a winner</h2>
+    <p>Choose one submitted game. You can change your choice later.</p>
+    {top ? <>
+      <Retry error={error} loading={loading} refresh={refresh}/>
+      {selection && !loading && (selection.entries.length ? <ul className="jam-entries">
+        {selection.entries.map(entry=><li key={entry.revision}>
+          <h3>{entry.title}</h3>
+          <p className="jam-muted">@{entry.login}</p>
+          {entry.demoUrl && <p><a href={entry.demoUrl} target="_blank" rel="noopener noreferrer">Open game</a></p>}
+          {entry.revision===selection.currentRevision ? <p className="jam-winner">Current winner</p>
+            : <button type="button" disabled={mutation.busy} onClick={()=>void pick(entry)}
+                aria-label={`Choose ${entry.title} by ${entry.login} as winner`}>
+              {mutation.busy?'Confirming…':'Choose winner'}
+            </button>}
+        </li>)}
+      </ul> : <p>No eligible submissions are available to choose.</p>)}
+      <Feedback error={mutation.error} success={mutation.success}/>
+    </> : <DirectPage path={`/hub/jams/${id}`}/>}
+  </section>;
+}
 export function JamDetail({id}:{id:string}) {
   const {user}=useHubGitHub();
+  const identity=`${id}:${user?.id||'public'}`;
   const [page,setPage]=useState<{id:string;cursor:string|null;previous:(string|null)[]}>({id,cursor:null,previous:[]});
   const [moderationVersion,setModerationVersion]=useState(0);
   const [moderationNotice,setModerationNotice]=useState<{id:string;userId:string}|null>(null);
   const [cancelNotice,setCancelNotice]=useState<{id:string;userId:string}|null>(null);
   const cursor=page.id===id?page.cursor:null,previous=page.id===id?page.previous:[];
   const path=`/api/jams/${encodeURIComponent(id)}?view=gallery${cursor?`&cursor=${encodeURIComponent(cursor)}`:''}`;
+  const context=`${identity}:${path}`,contextRef=useRef({context,generation:0});
+  if(contextRef.current.context!==context)contextRef.current={context,generation:contextRef.current.generation+1};
+  const generation=contextRef.current.generation;
   const {data,error,loading,refresh}=useResource<Detail & {nextCursor:string|null}>(path,true);
   const cancelConfirmed=Boolean(user&&cancelNotice?.id===id&&cancelNotice.userId===user.id);
   const refreshAfterModeration=async()=>{if(user)setModerationNotice({id,userId:user.id});setModerationVersion(version=>version+1);await refresh();};
-  return <>{cursor&&<button type="button" onClick={()=>setPage({id,cursor:null,previous:[]})}>Start gallery again</button>}<h1>{data?.event.title||'Jam details'}</h1>{moderationNotice?.id===id&&moderationNotice.userId===user?.id&&<p role="status">Most recent confirmed moderation: submission withdrawn.</p>}{cancelConfirmed&&data?.event.moderation?.status!=='cancelled'&&<p role="status">Cancellation confirmed by Zero.</p>}<Retry error={error} loading={loading} refresh={refresh}/>{data&&<><EventStatus event={data.event}/><EventFacts event={data.event}/><ApprovedVersions event={data.event}/><div className="jam-actions">{data.event.websiteUrl&&<a className="jam-button" href={data.event.websiteUrl} target="_blank" rel="noopener noreferrer">Creator’s jam page</a>}{data.event.revision&&<Link className="jam-button jam-primary" href={`/hub/jams/${id}/participate`}>Review and take part</Link>}</div><h2>Participants · {data.event.participantCount}</h2>{data.event.participants.length?<p>{data.event.participants.map(p=>`@${p.login}`).join(', ')}</p>:<p>No participants yet.</p>}<h2>Submitted work</h2>{data.event.galleryIncomplete&&<div className="jam-notice"><p role="status">Some submissions could not be verified. Try again later to see the complete gallery.</p><button type="button" disabled={loading} onClick={()=>void refresh()}>Retry verification for this page</button></div>}{data.event.entries.length?<ul className="jam-entries">{data.event.entries.map(entry=><li key={entry.participantId}><h3>{entry.title}</h3><p className="jam-muted">@{entry.login}</p><p className="jam-prose">{entry.description}</p>{entry.instructions&&<p className="jam-prose">{entry.instructions}</p>}<div className="jam-actions"><a href={`https://github.com/${entry.repository.fullName}${entry.repository.commit?`/tree/${entry.repository.commit}`:''}`} target="_blank" rel="noopener noreferrer">{entry.repository.commit?'Exact source':'Project source'}</a>{entry.demoUrl&&<a href={entry.demoUrl} target="_blank" rel="noopener noreferrer">Open demo</a>}</div>{data.canMaintain&&<EntryModeration id={id} participantId={entry.participantId} onChanged={refreshAfterModeration}/>}</li>)}</ul>:<p>{data.event.schedule.galleryRevealAt&&Date.parse(data.event.schedule.galleryRevealAt)>Date.now()?'The gallery opens after submissions close, at the time shown in the schedule.':data.event.galleryIncomplete?'No verified submissions are available right now.':data.nextCursor||previous.length?'No visible submissions on this page.':'No submissions are available to display.'}</p>}{previous.length>0&&<button type="button" disabled={loading} onClick={()=>setPage({id,cursor:previous.at(-1)??null,previous:previous.slice(0,-1)})}>Previous gallery page</button>}{data.nextCursor&&<button type="button" disabled={loading} onClick={()=>setPage({id,cursor:data.nextCursor,previous:[...previous,cursor]})}>Next gallery page</button>}<HubAccount showSignOut={false}/><CreatorCancel key={`${id}:${user?.id||'public'}`} id={id} event={data.event} onChanged={refresh} confirmedByParent={cancelConfirmed} onConfirmed={()=>{if(user)setCancelNotice({id,userId:user.id});}}/><Proposal id={id} data={data} onChanged={refresh}/></>}{user&&<MaintainerTools key={`${id}:${user.id}:${moderationVersion}`} id={id} onChanged={refreshAfterModeration} galleryError={error}/>}</>;
+  async function refreshAfterWinner() {
+    if(cursor) setPage({id,cursor:null,previous:[]});
+    else await refresh();
+  }
+  return <>{cursor&&<button type="button" onClick={()=>setPage({id,cursor:null,previous:[]})}>Start gallery again</button>}<h1>{data?.event.title||'Jam details'}</h1>{moderationNotice?.id===id&&moderationNotice.userId===user?.id&&<p role="status">Most recent confirmed moderation: submission withdrawn.</p>}{cancelConfirmed&&data?.event.moderation?.status!=='cancelled'&&<p role="status">Cancellation confirmed by Zero.</p>}<Retry error={error} loading={loading} refresh={refresh}/>{data&&<><EventStatus event={data.event}/><EventFacts event={data.event}/><ApprovedVersions event={data.event}/><div className="jam-actions">{data.event.websiteUrl&&<a className="jam-button" href={data.event.websiteUrl} target="_blank" rel="noopener noreferrer">Creator’s jam page</a>}{data.event.revision&&<Link className="jam-button jam-primary" href={`/hub/jams/${id}/participate`}>Review and take part</Link>}</div><h2>Participants · {data.event.participantCount}</h2>{data.event.participants.length?<p>{data.event.participants.map(p=>`@${p.login}`).join(', ')}</p>:<p>No participants yet.</p>}<h2>Submitted work</h2>{data.canPickWinner&&user&&<WinnerPicker key={identity} id={id} onChanged={refreshAfterWinner} isCurrent={()=>contextRef.current.generation===generation}/>}{data.event.galleryIncomplete&&<div className="jam-notice"><p role="status">Some submissions could not be verified. Try again later to see the complete gallery.</p><button type="button" disabled={loading} onClick={()=>void refresh()}>Retry verification for this page</button></div>}{data.event.entries.length?<ul className="jam-entries">{data.event.entries.map(entry=><li key={entry.participantId}><h3>{entry.title}</h3>{entry.winner&&<p className="jam-winner">Game Jam winner</p>}<p className="jam-muted">@{entry.login}</p><p className="jam-prose">{entry.description}</p>{entry.instructions&&<p className="jam-prose">{entry.instructions}</p>}<div className="jam-actions"><a href={`https://github.com/${entry.repository.fullName}${entry.repository.commit?`/tree/${entry.repository.commit}`:''}`} target="_blank" rel="noopener noreferrer">{entry.repository.commit?'Exact source':'Project source'}</a>{entry.demoUrl&&<a href={entry.demoUrl} target="_blank" rel="noopener noreferrer">Open demo</a>}</div>{data.canMaintain&&<EntryModeration id={id} participantId={entry.participantId} onChanged={refreshAfterModeration}/>}</li>)}</ul>:<p>{data.event.schedule.galleryRevealAt&&Date.parse(data.event.schedule.galleryRevealAt)>Date.now()?'The gallery opens after submissions close, at the time shown in the schedule.':data.event.galleryIncomplete?'No verified submissions are available right now.':data.nextCursor||previous.length?'No visible submissions on this page.':'No submissions are available to display.'}</p>}{previous.length>0&&<button type="button" disabled={loading} onClick={()=>setPage({id,cursor:previous.at(-1)??null,previous:previous.slice(0,-1)})}>Previous gallery page</button>}{data.nextCursor&&<button type="button" disabled={loading} onClick={()=>setPage({id,cursor:data.nextCursor,previous:[...previous,cursor]})}>Next gallery page</button>}<HubAccount showSignOut={false}/><CreatorCancel key={`${id}:${user?.id||'public'}`} id={id} event={data.event} onChanged={refresh} confirmedByParent={cancelConfirmed} onConfirmed={()=>{if(user)setCancelNotice({id,userId:user.id});}}/><Proposal id={id} data={data} onChanged={refresh}/></>}{user&&<MaintainerTools key={`${id}:${user.id}:${moderationVersion}`} id={id} onChanged={refreshAfterModeration} galleryError={error}/>}</>;
 }
 export function JamParticipate({id,pagesInstallLink}:{id:string,pagesInstallLink:string|null}) {
   const {user}=useHubGitHub();

@@ -125,3 +125,5 @@
 .detailActions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .detailActions .metadata { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .detailActions .reportLink { flex: none; margin-left: auto; }
+
+.winnerBadge { display: inline-block; color: white; font-size: 13px; font-weight: 600; border: 1px solid currentColor; border-radius: 4px; padding: 3px 7px; }
