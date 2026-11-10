@@ -150,14 +150,14 @@ URL and enable `ZERO_HUB_LISTINGS_ENABLED=1`. The runtime requires verified
 TLS. Local development and tests can use Postgres at `127.0.0.1`. Never
 put this URL in a public environment variable.
 
-Set `ZERO_HUB_LISTINGS_GITHUB_READ_TOKEN` to a dedicated GitHub credential
-with public repository metadata read access. Public discovery checks current
-ownership, repository visibility and whether Pages is enabled with this
-credential. It has no anonymous fallback. Verify its permissions and quota in
-a pilot before activation. Public Play links require the expected run marker
-at a direct GitHub Pages address. Cards link to the repository if the marker is
-unavailable or the project uses a custom domain. Owners can open their verified
-deployment from Manage listings.
+Public discovery uses the existing Codepet Zero GitHub App configuration
+(`ZERO_JAMS_APP_ID` and `ZERO_JAMS_PRIVATE_KEY`). The server requests a
+short-lived installation token with metadata read permission for one
+repository. It checks current ownership, public visibility and whether Pages
+is enabled. Public Play links require the expected run marker at a direct
+GitHub Pages address. Cards link to the repository if the marker is unavailable
+or the project uses a custom domain. Owners can open their verified deployment
+from Manage listings.
 
 The existing Zero GitHub App and ZeroHub browser authentication configuration
 verify publishing and management. An editor checks listing availability before

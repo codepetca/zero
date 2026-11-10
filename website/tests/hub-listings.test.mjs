@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {generateKeyPairSync, verify} from 'node:crypto';
+import {createListingRepositoryReader} from '../lib/hub-listings-github-app.mjs';
 import {Pool} from 'pg';
 import {hubListingsResponse, hubPublicListingsResponse} from '../lib/hub-listings-http.mjs';
 import {createHubListingsStore} from '../lib/hub-listings-store.mjs';
-import {checkListingToken, publicListingPlayUrl, readPublicListingDestination, verifyListingPublication} from '../lib/hub-listings-verification.mjs';
+import {checkListingToken, publicListingPlayUrl, verifyListingPublication} from '../lib/hub-listings-verification.mjs';
 import {hubConfig, newSession} from '../lib/hub-github-auth.mjs';
 import app from '../../extension/src/github-app/config.json' with {type:'json'};
 
@@ -118,19 +120,47 @@ test('held matches do not create a continuation and GitHub outages are retryable
   assert.equal((await read({destinationReader:async()=>{throw new Error('rate limited');}})).status, 503);
 });
 
-test('public reads check current repository Pages availability and withhold custom-domain Play links', async () => {
-  const publicToken = 'github_pat_fixtureOnly1234567890123456';
-  const entry = {...receipt, accountId:'6', pagesUrl:'https://games.example.test/'};
-  const testEnv = {...env, ZERO_HUB_LISTINGS_GITHUB_READ_TOKEN:publicToken};
+test('public discovery uses a GitHub App grant for one public repository and metadata read only', async () => {
+  const {privateKey:key,publicKey} = generateKeyPairSync('rsa',{modulusLength:2048});
+  const entry = {...receipt, accountId:'6'};
+  const appId = String(app.appId);
+  const now = Date.now();
+  const installationToken = 'ghs_metadataOnlyFixture123456789';
+  const root = 'https://api.github.com/repos/student/my-game';
+  const calls = [];
+  let permissions = {metadata:'read'};
   let hasPages = true;
-  const fetchImpl = async (url, options)=>{
-    assert.equal(url, 'https://api.github.com/repos/student/my-game');
-    assert.equal(options.headers.Authorization, 'Bearer ' + publicToken);
-    assert.equal(options.redirect, 'manual');
-    return Response.json({id:21, private:false, has_pages:hasPages,
-      owner:{id:6,type:'User'}, html_url:receipt.repositoryUrl});
+  const fetchImpl = async (url, options) => {
+    assert.equal(options.redirect,'manual');
+    calls.push(url);
+    const credential = options.headers.Authorization.replace(/^Bearer /,'');
+    if (url === root) {
+      assert.equal(credential,installationToken);
+      return Response.json({id:21,private:false,has_pages:hasPages,owner:{id:6,type:'User'},html_url:receipt.repositoryUrl});
+    }
+    const [header,payload,signature] = credential.split('.');
+    assert.equal(JSON.parse(Buffer.from(payload,'base64url')).iss,appId);
+    assert.ok(verify('RSA-SHA256',Buffer.from(header+'.'+payload),publicKey,Buffer.from(signature,'base64url')));
+    if (url === root+'/installation') {
+      return Response.json({id:11,app_id:Number(appId),suspended_at:null,account:{id:6,type:'User'},permissions:{metadata:'read'}});
+    }
+    assert.equal(url,'https://api.github.com/app/installations/11/access_tokens');
+    assert.deepEqual(JSON.parse(options.body),{repository_ids:[21],permissions:{metadata:'read'}});
+    return Response.json({token:installationToken,expires_at:new Date(now+3600_000).toISOString(),
+      repositories:[{id:21,private:false}],permissions},{status:201});
   };
-  assert.equal(await readPublicListingDestination(entry, {env:testEnv, fetchImpl, signal}), true);
+  const options = {appId,key,now:()=>now,fetchImpl};
+  const read = createListingRepositoryReader(options);
+  assert.equal(await read(entry,{signal}),true);
+  hasPages = false;
+  assert.equal(await read(entry,{signal}),false);
+  assert.equal(calls.length,4,'cached grant still fetches fresh metadata');
+  permissions = {metadata:'read',contents:'read'};
+  await assert.rejects(createListingRepositoryReader(options)(entry,{signal}),/metadata is unavailable/);
+});
+
+test('public Play links require the expected direct Pages marker', async () => {
+  const entry = {...receipt, accountId:'6', pagesUrl:'https://games.example.test/'};
   const playOptions = {signal, readPublic:async url=>{
     assert.equal(url, receipt.pagesUrl + 'zero-source-sha.txt');
     return new Response(commit + '\n321');
@@ -140,9 +170,6 @@ test('public reads check current repository Pages availability and withhold cust
   assert.equal(await publicListingPlayUrl(canonical, playOptions), receipt.pagesUrl);
   assert.equal(await publicListingPlayUrl(canonical, {...playOptions,
     readPublic:async()=>Response.redirect('https://new.example.test/')}), undefined);
-  hasPages = false;
-  assert.equal(await readPublicListingDestination(entry, {env:testEnv, fetchImpl, signal}), false);
-  await assert.rejects(readPublicListingDestination(entry, {env, fetchImpl, signal}), /read credential/);
 });
 
 const database = process.env.ZERO_HUB_LISTINGS_TEST_DATABASE;

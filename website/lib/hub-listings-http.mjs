@@ -1,6 +1,7 @@
+import {listingRepositoryReader} from './hub-listings-github-app.mjs';
 import {boundedJson, equalSecret, hubConfig, json, readSession, sameOrigin, seal, unseal} from './hub-github-auth.mjs';
 import {configuredListingsStore, listingLimit, listingPageSize, listingsEnabled} from './hub-listings-store.mjs';
-import {checkListingToken, listingId, listingReceipt, publicListingPlayUrl, readPublicListingDestination, verifyListingPublication} from './hub-listings-verification.mjs';
+import {checkListingToken, listingId, listingReceipt, publicListingPlayUrl, verifyListingPublication} from './hub-listings-verification.mjs';
 import {assertJamVisibilityTime, readJamHubVisibility} from './jam-hub-visibility.mjs';
 import {hubVisibilityDecision, hubTargetVisible} from './hub-project-status.mjs';
 
@@ -79,12 +80,12 @@ export async function hubListingsResponse(request, {
 
 export function hubListingCapabilityResponse(env = process.env) {
   return json({enabled:listingsEnabled(env) && !!env.ZERO_HUB_LISTINGS_DATABASE_URL &&
-    !!env.ZERO_HUB_LISTINGS_GITHUB_READ_TOKEN && !!hubConfig(env)});
+    !!listingRepositoryReader(env) && !!hubConfig(env)});
 }
 
 export async function hubPublicListingsResponse(request, {
   env = process.env, getStore = configuredListingsStore, visibilityReader = readJamHubVisibility,
-  destinationReader = readPublicListingDestination, playReader = publicListingPlayUrl
+  destinationReader, playReader = publicListingPlayUrl
 } = {}) {
   if (publicRequests >= 4) return unavailable();
   publicRequests++;
@@ -93,7 +94,8 @@ export async function hubPublicListingsResponse(request, {
     const store = getStore(env);
     if (!store) return json({projects:[], next:null});
     const config = hubConfig(env);
-    if (!config) return unavailable();
+    const readDestination = destinationReader ?? listingRepositoryReader(env);
+    if (!config || !readDestination) return unavailable();
     const params = new URL(request.url).searchParams;
     const before = params.get('before'), search = (params.get('q') ?? '').trim();
     const cursor = before === null ? null : unseal(before, pagePurpose, config);
@@ -115,7 +117,7 @@ export async function hubPublicListingsResponse(request, {
       for (let offset = 0; offset < candidates.length && observed.length <= listingPageSize; offset += 4) {
         signal.throwIfAborted();
         const checked = await Promise.all(candidates.slice(offset, offset+4).map(async entry => {
-          if (!visible(entry, visibility) || !await destinationReader(entry, {env, signal})) return null;
+          if (!visible(entry, visibility) || !await readDestination(entry, {signal})) return null;
           return {...entry, playUrl:await playReader(entry, {signal})};
         }));
         observed.push(...checked.filter(Boolean));

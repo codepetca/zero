@@ -89,25 +89,3 @@ export async function publicListingPlayUrl(entry, {signal, readPublic = publicRe
     if (await hasLiveMarker(canonical, entry, readPublic, probeSignal)) return canonical;
   } catch { /* Keep the repository card if Play cannot be confirmed. */ }
 }
-
-export async function readPublicListingDestination(entry, {env, signal, fetchImpl = fetch}) {
-  const token = env.ZERO_HUB_LISTINGS_GITHUB_READ_TOKEN;
-  if (typeof token !== 'string' || !/^(?:ghp_|github_pat_)[A-Za-z0-9_]{20,512}$/.test(token))
-    throw new Error('Missing GitHub listing read credential');
-  if (!repositoryParts(entry.repositoryUrl)) return false;
-  const url = apiOrigin + '/repos/' + entry.repositoryUrl.slice('https://github.com/'.length);
-  const response = await fetchImpl(url, {
-    headers:githubApiHeaders(token), redirect:'manual', cache:'no-store', signal
-  });
-  if (response.status !== 200 || response.redirected || response.url && response.url !== url) {
-    await response.body?.cancel();
-    if (!response.redirected && (!response.url || response.url === url) &&
-        [301, 302, 307, 308, 404, 410].includes(response.status)) return false;
-    throw new Error('GitHub listing destination unavailable');
-  }
-  const repo = await boundedJson(response, 65_536);
-  return repo?.private === false && repo.has_pages === true && safeNumber(repo.id) &&
-    String(repo.id) === entry.repositoryId && repo.owner?.type === 'User' && safeNumber(repo.owner.id) &&
-    String(repo.owner.id) === entry.accountId && typeof repo.html_url === 'string' &&
-    repo.html_url.toLowerCase() === entry.repositoryUrl.toLowerCase();
-}
