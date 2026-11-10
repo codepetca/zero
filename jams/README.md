@@ -30,7 +30,9 @@ instructions to execute code or fetch creator-controlled website content.
 Free personal users may join and submit; a manually enabled Pro license is
 required to create a jam for up to 100 participants. Contact `info@codepet.ca`.
 The server-only `ZERO_JAMS_PRO_GITHUB_IDS` value lists verified immutable numeric
-GitHub IDs, not logins. Missing, malformed or duplicate entries deny creation.
+GitHub IDs, not logins. The optional `ZERO_JAMS_ADDITIONAL_PRO_GITHUB_IDS`
+list grants access independently. Missing, malformed or duplicate entries
+invalidate their own list; an account must appear in a valid list.
 The synchronous trusted `canCreateJam(accountId)` hook defaults to deny; browser
 license claims cannot override it. This is not checkout or subscription billing.
 The operator guide records exact configuration bounds and deployment semantics.

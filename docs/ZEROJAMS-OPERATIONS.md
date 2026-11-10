@@ -39,9 +39,18 @@ GitHub numeric account IDs. Do not use logins, email addresses, a client-side
 a canonical positive decimal string of at most 20 digits, without leading zeroes.
 Whitespace around entries is allowed. The value is limited to 8,192 characters
 and 256 entries; duplicates, empty entries, missing/empty configuration or any
-malformed ID deny all new creation with the generic Pro-required response.
-Never return the grant list to clients. No real account grants or provider
-settings are configured by this source change.
+malformed ID invalidate that list, returning the generic Pro-required response
+when no valid list grants the account.
+An optional independent server-only `ZERO_JAMS_ADDITIONAL_PRO_GITHUB_IDS`
+list follows the same validation and grants hosting alongside the original list.
+Each list is validated separately: an absent or malformed list grants nobody
+from that list, while a valid other list remains effective. Duplicates across the
+two lists are allowed; duplicates within either list invalidate that list. This
+allows an operator to add grants without replacing a write-only original value.
+Record who authorized each grant, the verified account ID and date in the
+operator’s private records; these environment lists do not provide an audit log
+or expiry. Never return either grant list to clients. No real account grants or
+provider settings are configured by this source change.
 
 Production hosted composition uses the real server process environment; local
 and isolated test compositions use their trusted server environment. Sanitized
