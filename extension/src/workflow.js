@@ -514,7 +514,9 @@ async function switchPrepared(plan,options={}) {
   await opts.beforeMutation();
   await noExternalCheckoutFilters(plan,run);
   await recheckSwitch();
-  try {await run(plan.root,['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false','checkout','--no-overwrite-ignore',plan.name]);}
+  const finalAuthority=opts.beforeMutationNow?.();
+  if(finalAuthority&&typeof finalAuthority.then==='function')throw drift();
+  try {await run(plan.root,['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false','switch','--no-guess','--no-overwrite-ignore',plan.name]);}
   catch {throw new Error('These changes cannot be moved safely to the selected branch, or Git could not finish switching. Check your files and branch; commit or discard changes before trying again.');}
   plans.delete(plan);
   const final=await state(plan.root,run,{localOnly:true});
@@ -695,6 +697,8 @@ async function syncPrepared(plan, options = {}) {
     await recheck(current, opts.run, {full: true});
     await refuseUnsafeUpdateConversions(plan.root, current.head, plan.mergeCandidate?.candidate||remoteHead, opts.run);
     opts.onProgress(current.branch === 'main' ? 'Updating local main…' : `Merging GitHub ${plan.remoteBranch||'main'} into ${current.branch}…`);
+    const finalAuthority=opts.beforeMutationNow?.();
+    if(finalAuthority&&typeof finalAuthority.then==='function')throw drift();
     try { await opts.run(plan.root, ['-c', `core.hooksPath=${os.devNull}`, '-c', 'merge.conflictStyle=merge', '-c', 'merge.autoStash=false', '-c', 'rerere.enabled=false', 'merge', opts.fastForwardOnly?'--ff-only':'--ff', '--no-gpg-sign', '--no-edit', '--no-overwrite-ignore', remoteHead]); }
     catch {
       let pending = false;

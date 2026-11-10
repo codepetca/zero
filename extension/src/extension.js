@@ -1172,11 +1172,14 @@ function activate(context, services = {}) {
     }catch{return false;}
   }
   const isEarlierRemoteHead=(root,remoteHead,head)=>/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(remoteHead||'')&&remoteHead.length===head.length&&remoteHead!==head&&includesSavedCommit(root,remoteHead,head);
+  function inspectSyncGit(root,args,options) {
+    if(args[0]!=='status')return core.git(root,args,options);
+    return guardedRunner(core.git)(root,['-c','core.fsmonitor=false',...args],{...options,env:{...(options?.env||process.env),GIT_OPTIONAL_LOCKS:'0'}});
+  }
   async function syncCreatedBranch(root,created,remote,page,{updated=false,expectedAccount,expectedSession,expectedRevision,localRecordOnly,updateIntent,refOnlyOutcome,extraGuard,correction}={}) {
     const action=updated?'Updated':'Created';
     if(!remote){await rememberLocalCommit(root,created.branch,created.head);report(`${action} ${created.branch} locally · reconnect GitHub to sync`);return;}
     const base={root,remote,page,branch:created.branch,head:created.head,committed:false,pushStarted:false};
-    const inspectRun=(cwd,args,options)=>args[0]==='status'?guardedRunner(core.git)(cwd,['-c','core.fsmonitor=false',...args],{...options,env:{...(options?.env||process.env),GIT_OPTIONAL_LOCKS:'0'}}):core.git(cwd,args,options);
     let accountId=expectedAccount===undefined?auth.accountId:expectedAccount;
     try {
       const missing=(await pushRecords(root,created.branch)).find(record=>record.kind==='remote-missing'&&record.root===root&&record.remote===remote&&record.branch===created.branch);
@@ -1188,7 +1191,7 @@ function activate(context, services = {}) {
       if(!auth.signedIn)throw Object.assign(new Error('Sign in to GitHub.'),{kind:'auth'});
       if(expectedAccount!==undefined && auth.accountId!==expectedAccount)throw Object.assign(new Error('The GitHub account changed. Review the sync before retrying.'),{kind:'auth'});
       let ownPushAttempt;
-      const guard=async tx=>{await assertGitProject(root);if(expectedSession!==undefined&&(auth.sessionId||null)!==expectedSession||expectedRevision!==undefined&&auth.revision!==expectedRevision)throw Object.assign(new Error('The GitHub sign-in changed. Review the branch before syncing.'),{kind:'changed'});if(extraGuard)await extraGuard(tx,ownPushAttempt);},plan=await github.prepareUpload(root,inspectRun);
+      const guard=async tx=>{await assertGitProject(root);if(expectedSession!==undefined&&(auth.sessionId||null)!==expectedSession||expectedRevision!==undefined&&auth.revision!==expectedRevision)throw Object.assign(new Error('The GitHub sign-in changed. Review the branch before syncing.'),{kind:'changed'});if(extraGuard)await extraGuard(tx,ownPushAttempt);},plan=await github.prepareUpload(root,inspectSyncGit);
       if(plan.root!==root||plan.remote!==remote||plan.branch!==created.branch||plan.head!==created.head)throw Object.assign(new Error('The project changed before syncing.'),{kind:'changed'});
       await guard();
       const ticket=await auth.capture();
@@ -1200,12 +1203,12 @@ function activate(context, services = {}) {
       let alreadyPresent=false;
       {
         const checked=await github.checkUpload(root,base,{networkRun,beforeNetwork:beforeUpload});
-        if(checked.confirmed){const current=await github.prepareUpload(root,inspectRun);if(['root','remote','branch','head','status','fingerprint'].some(key=>current[key]!==plan[key]))throw Object.assign(new Error('The project changed while checking the GitHub branch. Review it again.'),{kind:'changed'});await beforeUpload();alreadyPresent=true;}
+        if(checked.confirmed){const current=await github.prepareUpload(root,inspectSyncGit);if(['root','remote','branch','head','status','fingerprint'].some(key=>current[key]!==plan[key]))throw Object.assign(new Error('The project changed while checking the GitHub branch. Review it again.'),{kind:'changed'});await beforeUpload();alreadyPresent=true;}
         else if((updateIntent||refOnlyOutcome)&&created.branch==='main'&&checked.remoteHead!==(updateIntent?.reviewedRemoteHead||refOnlyOutcome?.pending.reviewedRemoteHead)){if(checked.remoteHead===null)await rememberPush({...base,kind:'remote-missing'},accountId);throw Object.assign(new Error('GitHub main changed or is missing. The local update and recovery copies are kept; review main before syncing.'),{kind:'changed'});}
         else if(updated&&checked.remoteHead===null){await beforeUpload();await rememberPush({...base,kind:'remote-missing'},accountId);report(`Updated ${created.branch} locally`,'Use Sync to publish the branch to GitHub.');return false;}
         else if(!updated&&checked.remoteHead!==null)throw Object.assign(new Error('A different GitHub branch already uses this name. The new local branch is kept; inspect the existing branch before syncing.'),{kind:'changed'});
       }
-      const synced=alreadyPresent?{localChanged:false}:await github.syncExistingHead(plan,{run:inspectRun,beforeUpload,networkRun,onProgress:text=>{state=text;refresh();}});
+      const synced=alreadyPresent?{localChanged:false}:await github.syncExistingHead(plan,{run:inspectSyncGit,beforeUpload,networkRun,onProgress:text=>{state=text;refresh();}});
       if(alreadyPresent&&refOnlyOutcome){await commitProvenance.withDeferredRefMutation(root,binding=>{const authority=Object.freeze({...binding,assertCurrentNow(){binding.assertCurrentNow();assertGitProjectNow(root);auth.assertCurrentNow(ticket);}});return repositoryLedger.withProvenance(root,authority,async tx=>{await guard(tx);await auth.assertCurrent(ticket);let rows=await tx.list();require('./reftable-ref-only-intent').assertLiveRefOnlySync(refOnlyOutcome,{root,branch:created.branch,head:created.head,remote,accountId:ticket.session.accountId,sessionId:ticket.session.id,records:rows});for(const expected of [refOnlyOutcome.acknowledged,refOnlyOutcome.pending]){await guard(tx);await auth.assertCurrent(ticket);rows=await tx.list();if(!rows.some(row=>row.id===expected.id&&JSON.stringify(row)===JSON.stringify(expected)))throw new Error('The confirmed ref-only reminder changed. Inspect it before continuing.');tx.assertCurrentNow();assertGitProjectNow(root);auth.assertCurrentNow(ticket);await tx.resolve(expected.id,'confirmed');}});});}
       if(alreadyPresent&&updateIntent){await repositoryLedger.withTransaction(root,async tx=>{const rows=await tx.list(),latest=rows.find(row=>row.id===updateIntent.id);if(!latest||JSON.stringify(latest)!==JSON.stringify(updateIntent))throw new Error('The update sync reminder changed. Inspect it before continuing.');await require('./reftable-update-intent-validation').assertRetryableReftableUpdateIntent({record:latest,root,branch:created.branch,head:created.head,remote,accountId:ticket.session.accountId,sessionId:ticket.session.id,beforeReview:beforeUpload,beforeReviewNow:()=>{tx.assertCurrentNow();assertGitProjectNow(root);return auth.assertCurrentNow(ticket);}});tx.assertCurrentNow();await tx.resolve(latest.id,'confirmed');});}
       if(!localRecordOnly)await resolveConfirmedSync(root,created.branch,remote,created.head,ticket.session.accountId,'branch',reviewedReminders);
@@ -1680,7 +1683,7 @@ function activate(context, services = {}) {
       if(uploadMode(root)!=='live')return simulation('Sync',{quiet:true});
       await assertGitProject(root);
       if(await workflow.readRecovery?.(root))throw new Error('Finish the current Git update in Source Control.');
-      const plan=await github.prepareUpload(root);
+      const plan=await github.prepareUpload(root,inspectSyncGit);
       if(!currentBranchObservation(selection)||['root','branch','head','remote'].some(key=>plan[key]!==selection[key]))throw new Error('The branch or repository changed. Try Sync again.');
       if(!plan.head)throw new Error('Make your first commit before syncing.');
       ticket=await auth.capture();
@@ -1688,7 +1691,7 @@ function activate(context, services = {}) {
       await assertCompleteBranchHistory(root,read);
       const guard=async()=>{
         await assertGitProject(root);await auth.assertCurrent(ticket);
-        const current=await github.prepareUpload(root);
+        const current=await github.prepareUpload(root,inspectSyncGit);
         if(!currentBranchObservation(selection)||['root','remote','branch','head','status','fingerprint'].some(key=>current[key]!==plan[key]))throw new Error('The project changed during sync. Try Sync again.');
       };
       const readReminders=tx=>repositoryLedger?allReminderRecords(root,tx):compatibilityAll(root,plan.branch);
@@ -1737,7 +1740,7 @@ function activate(context, services = {}) {
           throw new Error('Open Project actions to inspect the interrupted sync.');
         }
         await assertCompleteBranchHistory(root,read);
-        await github.syncExistingHead(plan,{networkRun,beforeUpload:guard});
+        await github.syncExistingHead(plan,{run:inspectSyncGit,networkRun,beforeUpload:guard});
         if(!repositoryLedger)for(const row of pushes){
           if((await readReminders()).some(latest=>JSON.stringify(latest)===JSON.stringify(row)))await resolveReminder(row,'confirmed');
         }
@@ -2230,8 +2233,23 @@ function activate(context, services = {}) {
             plan=await workflow.prepareSwitch(root,choice.name);
             if(plan.target!==choice.head||plan.branch!==reviewed.branch||plan.head!==reviewed.head||await switchDiskSnapshot(root,plan.status,editorPaths)!==diskBefore||(!dirtyDocs.length&&(plan.status!==reviewed.status||plan.startFingerprint!==reviewed.startFingerprint)))throw new Error('The branch or project changed. Choose it again.');
           }
-          const guard=async()=>{await assertGitProject(root);if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save your project files before switching branches.');};
-          const result=await workflowLocalPhase(root,{beforeMutation:guard},phase=>{switchDispatched=true;return workflow.switchPrepared(plan,phase);});
+          const workspaceNow=()=>(vscode.workspace.workspaceFolders||[]).map(folder=>[folder.uri.scheme,folder.uri.fsPath]);
+          const dirtyNow=()=>(vscode.workspace.textDocuments||[]).filter(document=>document.isDirty&&document.uri?.scheme==='file');
+          let authority;
+          const guard=async()=>{
+            const workspace=JSON.stringify(workspaceNow()),dirty=dirtyNow().map(document=>[document,document.uri.fsPath,document.version]);
+            await assertGitProject(root);
+            if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save your project files before switching branches.');
+            authority={workspace,dirty};
+          };
+          const beforeMutationNow=()=>{
+            assertGitProjectNow(root);
+            const dirty=dirtyNow();
+            if(!authority||authority.workspace!==JSON.stringify(workspaceNow())||dirty.length!==authority.dirty.length||
+                authority.dirty.some(([document,file,version],index)=>document!==dirty[index]||file!==document.uri.fsPath||version!==document.version))
+              throw new Error('The workspace or open files changed. Choose the branch again.');
+          };
+          const result=await workflowLocalPhase(root,{beforeMutation:guard,beforeMutationNow},phase=>{switchDispatched=true;return workflow.switchPrepared(plan,phase);});
           switched=true;
           studentExplorer?.invalidate();report(`Switched to ${result.branch}`);
           if((await dirtyProjectDocuments(vscode,root)).length)void vscode.window.showWarningMessage('An open project file changed while switching branches. Review its unsaved contents and the switched file before saving.');

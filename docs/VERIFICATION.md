@@ -5698,3 +5698,18 @@ that does not contain it. All 20 history tests passed with network access
 denied. The sidebar workflow passed on its standalone rerun. Independent
 Terra medium review found no blockers. `npm run check` and
 `git diff --check` passed.
+
+## Student Git workflow PR — 2026-11-09
+
+PR #299 reviewed the cumulative sidebar, Files, Git, and Zero Dev changes from
+base `3246f9a85` through `30dfbdd47`. The initial high-risk wave used Sol/high
+for Git safety (pr_git_review, three accepted findings) and Terra/high for
+compatibility and packaging (pr_compat_review, no findings). Both completed
+their assigned scope. The first CI run found 13 stale fixtures.
+
+One correction batch uses branch-only Git switching, checks editor and session
+authority at mutation dispatch, and guards Sync status reads against Git filters
+and fsmonitor. Disposable Git tests cover disappearing branch names, incoming
+authority changes, and clean filter suppression. The batch also updates the
+Files and Commit fixtures and the starter’s branch deletion instructions. The
+PR records the corrected head, targeted review and final CI results.

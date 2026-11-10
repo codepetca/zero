@@ -336,10 +336,8 @@ starter to GitHub. Then use this flow for each improvement:
    main. If GitHub refuses because main has newer work, choose **Update from main**.
    It merges GitHub main into the current feature and may sync the result; run and
    check the combined app, then retry Merge.
-4. Before merging, choose whether to delete the finished branch locally and on
-   GitHub; deletion is selected by default. After the confirmed merge, Zero
-   deletes only the reviewed branch when its safety checks pass. If cleanup is
-   partial or cannot be confirmed, Zero reports what happened in Output.
+4. Merge keeps your feature branch. On clean **main**, use **Delete merged
+   local branch…** in the branch menu to remove the local branch when you are done.
 
 Older kits may use different account/repository controls, with **Start a change**
 and different labels for committing, pushing and merging. Their installed controls remain
@@ -354,8 +352,6 @@ differences, then run your app and Sync again. After a connection problem, use
 Use **Update from main** in the feature branch menu to bring completed work
 from GitHub main into your feature branch. When switching branches with current
 edits, review the move in Zero. Git keeps the edits if it cannot switch safely.
-Merge keeps your feature branch. On clean **main**, use **Delete merged local
-branch…** in the branch menu to remove the local branch when you are done.
 A failed main push can leave local main advanced while your change branch
 remains selected; repair the network/access problem and review Merge again.
 Zero does not force-push or automatically discard work.

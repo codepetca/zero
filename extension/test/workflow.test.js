@@ -237,6 +237,23 @@ async function remoteChange(f, filename, content) {
   await core.git(other, ['push', f.bare, 'HEAD:refs/heads/main']);
   return head;
 }
+test('incoming Sync rechecks authority at Git dispatch', async t => {
+  const f = await fixture(t);
+  const localHead = await core.git(f.root, ['rev-parse', 'HEAD']);
+  const file = path.join(f.root, 'Main.java'), original = await fs.readFile(file, 'utf8');
+  const remoteHead = await remoteChange(f, 'Main.java', 'class Main { int incoming; }\n');
+  const options = {...f.options, fastForwardOnly:true, target:'branch'};
+  const plan = await workflow.prepareSync(f.root, options);
+  let current = true;
+  await assert.rejects(workflow.syncPrepared(plan, {
+    ...options,
+    onProgress(message) { if (message === 'Updating local main…') current = false; },
+    beforeMutationNow() { if (!current) throw new Error('Session changed before applying incoming commits.'); }
+  }), /Session changed before applying incoming commits/);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), localHead);
+  assert.equal(await fs.readFile(file, 'utf8'), original);
+  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), remoteHead);
+});
 test('finish records a named merge on main and safely deletes only the feature', async t => {
   const f = await fixture(t); const baseline = await core.git(f.root, ['rev-parse', 'HEAD']);
   const started = await start(f); assert.equal(started.branch, 'add-score'); assert.equal(started.head, baseline);
@@ -946,11 +963,30 @@ test('switch refuses conflicting changes and keeps original branch and bytes',as
  const plan=await workflow.prepareSwitch(f.root,'feature',f.options);await assert.rejects(workflow.switchPrepared(plan,f.options),/cannot be moved safely/);
  assert.equal(await core.git(f.root,['symbolic-ref','--short','HEAD']),'main');assert.equal(await fs.readFile(path.join(f.root,'Main.java'),'utf8'),'local uncommitted\n');
 });
-test('switch rechecks editor state after all Git inspection and before checkout',async t=>{
+test('switch rechecks editor state after all Git inspection and before dispatch',async t=>{
  const f=await fixture(t);await core.git(f.root,['branch','feature']);
- const plan=await workflow.prepareSwitch(f.root,'feature',f.options);let guards=0;
- await assert.rejects(workflow.switchPrepared(plan,{...f.options,beforeMutation:async()=>{if(++guards===2)throw Error('Editor changed');}}),/Editor changed/);
- assert.equal(guards,2);assert.equal(await core.git(f.root,['symbolic-ref','--short','HEAD']),'main');
+ const plan=await workflow.prepareSwitch(f.root,'feature',f.options);
+ await assert.rejects(workflow.switchPrepared(plan,{...f.options,beforeMutationNow(){throw Error('Editor changed');}}),/Editor changed/);
+ assert.equal(await core.git(f.root,['symbolic-ref','--short','HEAD']),'main');
+});
+test('switch preserves a same-named file when the target branch vanishes at dispatch', async t => {
+  const f = await fixture(t);
+  await commit(f.root, 'feature', 'committed bytes\n');
+  await core.git(f.root, ['branch', 'feature']);
+  await write(f.root, 'feature', 'uncommitted student work\n');
+  const plan = await workflow.prepareSwitch(f.root, 'feature', f.options);
+  let dispatched = false;
+  const run = async (root,args,options) => {
+    if (args.includes('switch') || args.includes('checkout')) {
+      dispatched = true;
+      await core.git(root, ['branch', '-D', 'feature']);
+    }
+    return f.run(root,args,options);
+  };
+  await assert.rejects(workflow.switchPrepared(plan, {...f.options, run}));
+  assert.equal(dispatched, true);
+  assert.equal(await core.git(f.root, ['symbolic-ref', '--short', 'HEAD']), 'main');
+  assert.equal(await fs.readFile(path.join(f.root, 'feature'), 'utf8'), 'uncommitted student work\n');
 });
 test('switch rejects edits introduced after preparing a clean project',async t=>{
  const f=await fixture(t);await core.git(f.root,['branch','feature']);

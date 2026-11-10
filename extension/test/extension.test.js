@@ -125,11 +125,11 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-ui-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
   await core.git(root,['init','-b','main']);
-  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[],picks=[],dispatched=[],copied=[],registered=[],removed=[],creations=[],clones=[],inputs=[];let session,connectionSession,authEvent,webviewProvider,repo,nextChoice,inputCount=0,currentBranch='main',symbolicAlias=false,mode='simulation',pickEffect,checkout,checkoutGate,nativeRoot=root;let gitChanges=0,shareCalls=0,recoveryCalls=0,documentChanged,statusChanges=new Map([['zero.json','modified']]),statusFailure=false;
+  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[],picks=[],dispatched=[],copied=[],registered=[],removed=[],creations=[],clones=[],inputs=[];let session,connectionSession,authEvent,webviewProvider,repo,nextChoice,inputCount=0,currentBranch='main',symbolicAlias=false,mode='simulation',pickEffect,checkout,checkoutGate,nativeRoot=root;const gitChanges=[];let shareCalls=0,recoveryCalls=0,documentChanged,documentSaved,statusChanges=new Map([['zero.json','modified']]),statusFailure=false;
   let dismissWarning; const warningPending=new Promise(resolve=>{dismissWarning=resolve;});t.after(()=>dismissWarning());
   let reportWarning; const warningShown=new Promise(resolve=>{reportWarning=resolve;});
   const oldAssert=core.assertRepositoryRoot;core.assertRepositoryRoot=async()=>root;t.after(()=>{core.assertRepositoryRoot=oldAssert;});
-  const oldGit=core.git;core.git=async(_,args)=>{if(args[0]==='-c'&&args[1]==='core.fsmonitor=false')args=args.slice(2);if(args[0]==='rev-parse') return args.includes('--verify')?'a'.repeat(40):root;if(args[0]==='symbolic-ref'){if(args.at(-1)!=='HEAD'){if(symbolicAlias)return 'refs/heads/main';throw Object.assign(Error('Direct branch'),{code:1});}if(currentBranch===undefined)throw Object.assign(new Error('Detached HEAD'),{code:1});return `refs/heads/${currentBranch}`;}if(args[0]==='remote'&&args[1]==='get-url'){if(!repo)throw Object.assign(new Error('no origin'),{code:2});return repo;}if(args[0]==='remote'&&args.length===1)return repo?'origin':'';if(args[0]==='status'||args[0]==='ls-files')return '';gitChanges++;throw new Error('Unexpected mutation: '+args.join(' '));};t.after(()=>{core.git=oldGit;});
+  const oldGit=core.git;core.git=async(_,args)=>{if(args[0]==='-c'&&args[1]==='core.fsmonitor=false')args=args.slice(2);if(args[0]==='rev-parse') return args.includes('--verify')?'a'.repeat(40):root;if(args[0]==='symbolic-ref'){if(args.at(-1)!=='HEAD'){if(symbolicAlias)return 'refs/heads/main';throw Object.assign(Error('Direct branch'),{code:1});}if(currentBranch===undefined)throw Object.assign(new Error('Detached HEAD'),{code:1});return `refs/heads/${currentBranch}`;}if(args[0]==='remote'&&args[1]==='get-url'){if(!repo)throw Object.assign(new Error('no origin'),{code:2});return repo;}if(args[0]==='remote'&&args.length===1)return repo?'origin':'';if(args[0]==='status'||args[0]==='ls-files'||args[0]==='for-each-ref'&&args.at(-1)==='refs/heads/')return '';if(args[0]==='config'&&['--get-regexp','--name-only --get-regexp'].includes(args.slice(1,-1).join(' ')))throw Object.assign(new Error('No matching config'),{code:1});gitChanges.push(args);throw new Error('Unexpected Git command: '+args.join(' '));};t.after(()=>{core.git=oldGit;});
   const sidebarShortcut={visible:false,show(){this.visible=true;},hide(){this.visible=false;},dispose(){this.disposed=true;}};
   const nativeRepository={rootUri:{fsPath:root}};
   const nativeApi={getRepository:()=>{nativeRepository.rootUri.fsPath=nativeRoot;return nativeRoot?nativeRepository:null;},get repositories(){return nativeRoot?[{rootUri:{fsPath:nativeRoot}}]:[];}};
@@ -137,7 +137,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
     StatusBarAlignment:{Left:1},
     extensions:{getExtension:()=>({isActive:true,exports:{getAPI:()=>nativeApi}})},
     authentication:{getSession:async(provider,scopes,options)=>{assert.equal(provider,'zero-github');assert.deepEqual(scopes,[]);authCalls.push({provider,scopes,options});if(options.createIfNone&&connectionSession)session=connectionSession;return session;},registerAuthenticationProvider:(id,label,provider)=>{registered.push({id,label,provider});return disposable();},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
-    workspace:{isTrusted:true,textDocuments:[],onDidChangeTextDocument:fn=>{documentChanged=fn;return disposable();},registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?mode:fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
+    workspace:{isTrusted:true,textDocuments:[],onDidChangeTextDocument:fn=>{documentChanged=fn;return disposable();},onDidSaveTextDocument:fn=>{documentSaved=fn;return disposable();},registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?mode:fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
     window:{createStatusBarItem:(id,alignment,priority)=>{assert.equal(id,'zero.backToSidebar');assert.equal(alignment,1);assert.equal(priority,1000);return sidebarShortcut;},createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async message=>{notices.push(message);},showWarningMessage:async message=>{notices.push(message);reportWarning();await warningPending;},showQuickPick:async(items,options)=>{picks.push({items,options});if(pickEffect)await pickEffect();return items.find(item=>item.action===nextChoice);},showInputBox:async()=>{inputCount++;return inputs.shift();},showOpenDialog:async()=>[{fsPath:root}],showErrorMessage:async message=>{errors.push(message);}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},getCommands:async()=>['workbench.action.manageAccounts'],executeCommand:async (id,uri)=>{dispatched.push(id);if(id==='git.checkout'){assert.equal(uri.fsPath,root);if(checkoutGate)await checkoutGate;if(checkout)await checkout();}}},
     env:{openExternal:async uri=>{opened.push(uri);return true;},clipboard:{writeText:async text=>{copied.push(text);}}},Uri:{file:fsPath=>({fsPath}),parse:url=>({url})},EventEmitter:class{event(){}fire(){}dispose(){}}
@@ -212,7 +212,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   let simulationFinished=false;const simulation=commands.get('zero.uploadToGitHub')().then(()=>{simulationFinished=true;});
   await warningShown;await settle(()=>simulationFinished);assert.equal(simulationFinished,true,'Simulation must release commands while its notification is still open');
   assert.doesNotMatch(webview.html,/data-command="zero.githubAccount"[^>]* disabled/,'Account icon must remain available before notification dismissal');
-  assert.match(notices.at(-1),/Simulation only/);assert.equal(gitChanges,0);dismissWarning();await simulation;
+  assert.match(notices.at(-1),/Simulation only/);assert.deepEqual(gitChanges,[]);dismissWarning();await simulation;
   await commands.get('zero.githubAccount')();assert.match(errors.at(-1),/Sign in to GitHub/);assert.equal(authCalls.at(-1).options.createIfNone,true);
   nextChoice='create';await commands.get('zero.chooseRepository')();assert.equal(opened.length,0,'Cancelled sign-in cannot open repository creation');
   session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE'};
@@ -235,27 +235,29 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   await settle(()=>commitButton()&&!commitButton().includes('disabled'));
   const doc={isDirty:true,uri:{scheme:'file',fsPath:path.join(root,'zero.json')}};
   vscode.workspace.textDocuments=[doc];documentChanged({document:doc});
-  await settle(()=>webview.html.includes('Save your project edits before committing.'));
-  assert.match(commitButton(),/disabled/,'Mixed unsaved and saved changes block commit');
-  statusChanges=new Map();documentChanged({document:doc});
-  await settle(()=>webview.html.includes('Save your project edits before committing.'));
-  assert.match(commitButton(),/disabled/,'Unsaved-only changes block commit');
-  statusChanges=new Map([['zero.json','modified']]);doc.isDirty=false;documentChanged({document:doc});
+  assert.doesNotMatch(webview.html,/Save your project edits before committing/);
+  assert.doesNotMatch(commitButton(),/disabled/,'Typing keeps Commit available for saved changes');
+  statusChanges=new Map();doc.isDirty=false;documentSaved(doc);
+  await settle(()=>commitButton().includes('disabled'));
+  doc.isDirty=true;documentChanged({document:doc});
+  assert.match(commitButton(),/disabled/,'Typing alone does not create saved changes');
+  assert.doesNotMatch(webview.html,/Save your project edits before committing/);
+  statusChanges=new Map([['zero.json','modified']]);doc.isDirty=false;documentSaved(doc);
   await settle(()=>commitButton()&&!commitButton().includes('disabled'));
-  statusChanges=new Map();documentChanged({document:doc});await settle(()=>commitButton().includes('disabled'));
-  statusFailure=true;documentChanged({document:doc});await settle(()=>webview.html.includes('Commit status is unavailable'));
-  assert.match(commitButton(),/disabled/);statusFailure=false;statusChanges=new Map([['zero.json','modified']]);documentChanged({document:doc});
+  statusFailure=true;documentSaved(doc);await settle(()=>webview.html.includes('Commit status is unavailable'));
+  assert.match(commitButton(),/disabled/);statusFailure=false;documentSaved(doc);
   await settle(()=>commitButton()&&!commitButton().includes('disabled'));
   const alias=root+'-alias';await fs.symlink(root,alias);t.after(()=>fs.unlink(alias));
   const aliasDoc={isDirty:true,uri:{scheme:'file',fsPath:path.join(alias,'zero.json')}};
-  vscode.workspace.textDocuments=[aliasDoc];documentChanged({document:aliasDoc});
-  await settle(()=>webview.html.includes('Save your project edits before committing.'));assert.match(commitButton(),/disabled/);
-  aliasDoc.isDirty=false;documentChanged({document:aliasDoc});await settle(()=>commitButton()&&!commitButton().includes('disabled'));
   const outsideTarget=path.join(os.tmpdir(),`zero-external-${path.basename(root)}.txt`);await fs.writeFile(outsideTarget,'external');t.after(()=>fs.unlink(outsideTarget));
   const link=path.join(root,'external-link.txt');await fs.symlink(outsideTarget,link);
-  const linkDoc={isDirty:true,uri:{scheme:'file',fsPath:link}};vscode.workspace.textDocuments=[linkDoc];documentChanged({document:linkDoc});
-  await settle(()=>webview.html.includes('Save your project edits before committing.'));assert.match(commitButton(),/disabled/,'A project symlink remains in scope even when its target is outside');
-  linkDoc.isDirty=false;documentChanged({document:linkDoc});await settle(()=>commitButton()&&!commitButton().includes('disabled'));
+  const linkDoc={isDirty:true,uri:{scheme:'file',fsPath:link}};
+  for(const pending of [aliasDoc,linkDoc]){
+    vscode.workspace.textDocuments=[pending];documentChanged({document:pending});
+    assert.doesNotMatch(commitButton(),/disabled/);
+    mode='live';await commands.get('zero.commitChanges')('Do not save unsaved edits');mode='simulation';
+    assert.match(webview.html,/Save or undo your project editor changes before committing/);
+  }
   const outside={isDirty:true,uri:{scheme:'file',fsPath:path.join(os.tmpdir(),'unrelated-editor.txt')}};
   vscode.workspace.textDocuments=[outside];documentChanged({document:outside});
   await settle(()=>commitButton()&&!commitButton().includes('disabled'));assert.doesNotMatch(webview.html,/Save your project edits before committing/);
@@ -316,7 +318,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   await commands.get('zero.chooseRepository')();
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['connect','recovery','inspectRecoveryCopies','account'],'A tutorial without an origin can reconnect without creating a new repository');
   nextChoice='clone';const beforeClone=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeClone,'Cancelled clone URL does not launch Git');
-  assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.toggleApp'),'Local Run is always available');
+  assert.deepEqual(gitChanges,[]);assert.ok(webview.html.includes('zero.toggleApp'),'Local Run is always available');
   for(const panel of startPanels)panel.dispose();
   const unrelated=path.join(root,'unrelated');await fs.mkdir(unrelated);
   vscode.workspace.workspaceFolders=[{uri:{fsPath:unrelated}}];

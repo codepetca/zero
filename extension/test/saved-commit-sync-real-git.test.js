@@ -174,6 +174,20 @@ test('sidebar Sync creates the current GitHub branch without dialogs and leaves 
   });
 });
 
+test('sidebar Sync refuses a tracked clean filter before status or transport',{skip:process.platform==='win32'},async t=>{
+  const h=await harness(t,'success');
+  const marker=path.join(path.dirname(h.root),'filter-ran'),file=path.join(h.root,'Main.java');
+  await fs.writeFile(path.join(h.root,'.git','info','attributes'),'Main.java filter=marker\n');
+  await h.git(h.root,['config','filter.marker.clean',`touch "${marker}"; cat`]);
+  await fs.writeFile(file,'class Main { int other; }\n');
+  const calls=h.calls.length;
+  await h.commands.get('zero.syncBranch')();
+  assert.match(h.webview.html,/Git filters require native Source Control/);
+  await assert.rejects(fs.stat(marker),{code:'ENOENT'});
+  assert.equal(h.calls.length,calls);
+  assert.equal(await h.git(h.bare,['rev-parse','refs/heads/main']),h.a);
+});
+
 test('sidebar Sync confirms a prior accepted upload and leaves other branches alone',{skip:process.platform==='win32'},async t=>{
   const h=await harness(t,'success');
   await h.git(h.root,['push',h.bare,`${h.b}:refs/heads/main`]);

@@ -117,7 +117,7 @@ test('focus refreshes externally changed branch and remote in a linked worktree'
   git('init','-qb','base');git('config','user.name','Student');git('config','user.email','student@example.invalid');await fs.writeFile(path.join(root,'zero.json'),'{}');git('add','.');git('commit','-qm','base');git('remote','add','origin','https://github.com/student/project.git');
   const linked=path.join(base,'linked');git('worktree','add','-qb','main',linked);root=linked;
   let head=git('rev-parse','HEAD'),remote=head,view,focus,metadataChanged,accessError,release,entered,gate,authEvent,configurationChanged,onWarning,mode='live';
-  const calls=[],permissions=[],warnings=[],errors=[],commands=new Map(),subscriptions=[];let treeInvalidations=0;
+  const calls=[],permissions=[],warnings=[],errors=[],commands=new Map(),subscriptions=[];let treeRefreshes=0;
   const session={id:'session',account:{id:'1',label:'student'},accessToken:'PRIVATE_TEST_TOKEN',scopes:[]};
   const vscode={
     authentication:{registerAuthenticationProvider:disposable},
@@ -128,16 +128,16 @@ test('focus refreshes externally changed branch and remote in a linked worktree'
     RelativePattern:class{constructor(base,pattern){this.base=base;this.pattern=pattern;}},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
   const oldLoad=Module._load;delete require.cache[require.resolve('../src/extension')];
-  Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./student-explorer')return {createStudentExplorer:()=>({commands:{},invalidate(){treeInvalidations++;},dispose(){}})};if(id==='./transport')return {createTransport:(_remote,authenticate,{assertCurrentNow})=>async(_root,args)=>{await authenticate();assertCurrentNow();assert.equal(args[0],'ls-remote');assert.ok(['refs/heads/main','refs/heads/feature'].includes(args[3]));calls.push(args);const result=remote;if(gate){entered();await gate;}return `${result}\t${args[3]}`;}};return oldLoad.call(this,id,...args);};
+  Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./student-explorer')return {createStudentExplorer:()=>({commands:{},refreshStatus(){treeRefreshes++;},dispose(){}})};if(id==='./transport')return {createTransport:(_remote,authenticate,{assertCurrentNow})=>async(_root,args)=>{await authenticate();assertCurrentNow();assert.equal(args[0],'ls-remote');assert.ok(['refs/heads/main','refs/heads/feature'].includes(args[3]));calls.push(args);const result=remote;if(gate){entered();await gate;}return `${result}\t${args[3]}`;}};return oldLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
   t.after(()=>{subscriptions.forEach(value=>value.dispose());delete require.cache[require.resolve('../src/extension')];});
   extension.activate({subscriptions,workspaceState:{get:(_,fallback)=>fallback,keys:()=>[],update:async()=>{}}},{repositoryLedgerFactory,provider:{getSessions:async()=>[session],onDidChangeSessions:fn=>{authEvent=fn;return disposable();},dispose(){}},repositories:{checkSetup:async()=>({}),access:async(_,{permissions:requested})=>{permissions.push(requested);if(accessError)throw accessError;return {repository:{id:12},installation:{id:99}};}}});
   const webview={html:'',onDidReceiveMessage:disposable};view.resolveWebviewView({webview,onDidDispose:disposable});
   await waitFor(()=>webview.html.includes('data-branch-state="synced"'));assert.ok(calls.length);assert.ok(permissions.every(value=>value.contents==='read'));assert.doesNotMatch(webview.html,/PRIVATE_TEST_TOKEN/);
-  const beforeFocus=treeInvalidations;
+  const beforeFocus=treeRefreshes;
   git('checkout','-qb','feature');git('remote','set-url','origin','https://github.com/student/other.git');remote='c'.repeat(40);focus({focused:true});
   await waitFor(()=>webview.html.includes('Current branch: feature')&&webview.html.includes('data-branch-state="remote-changed"'));
-  assert.ok(treeInvalidations>beforeFocus,'Focus invalidates the file tree');
+  assert.ok(treeRefreshes>beforeFocus,'Focus refreshes file status');
   assert.ok(calls.some(args=>args[2]==='https://github.com/student/other.git'&&args[3]==='refs/heads/feature'));
 });
 
@@ -147,7 +147,7 @@ test('a changed branch queues a fresh in-flight main update check',async t=>{
   git('init','-qb','main');git('config','user.name','Student');git('config','user.email','student@example.invalid');await fs.writeFile(path.join(root,'zero.json'),'{}');git('add','.');git('commit','-qm','base');git('remote','add','origin','https://github.com/student/project.git');
   git('checkout','-qb','feature');git('branch','feature-two');
   let head=git('rev-parse','HEAD'),remote=head,view,focus,metadataChanged,accessError,release,entered,gate,authEvent,configurationChanged,onWarning,mode='live';
-  const calls=[],permissions=[],warnings=[],errors=[],commands=new Map(),subscriptions=[],mainChecks=[];let treeInvalidations=0,releaseMain,enteredMain;const waitingMain=new Promise(resolve=>{enteredMain=resolve;});const mainGate=new Promise(resolve=>{releaseMain=resolve;});
+  const calls=[],permissions=[],warnings=[],errors=[],commands=new Map(),subscriptions=[],mainChecks=[];let treeRefreshes=0,releaseMain,enteredMain;const waitingMain=new Promise(resolve=>{enteredMain=resolve;});const mainGate=new Promise(resolve=>{releaseMain=resolve;});
   const session={id:'session',account:{id:'1',label:'student'},accessToken:'PRIVATE_TEST_TOKEN',scopes:[]};
   const vscode={
     authentication:{registerAuthenticationProvider:disposable},
@@ -158,7 +158,7 @@ test('a changed branch queues a fresh in-flight main update check',async t=>{
     RelativePattern:class{constructor(base,pattern){this.base=base;this.pattern=pattern;}},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
   const oldLoad=Module._load;delete require.cache[require.resolve('../src/extension')];
-  Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./github-app/readiness')return {createGitHubReadiness:()=>({phase:'ready',sync(){},refresh:async()=>{},confirm(){},dispose(){}})};if(id==='./main-update-status')return {checkMainUpdate:async({readState})=>{const state=await readState();mainChecks.push(state.branch);if(mainChecks.length===1){enteredMain();await mainGate;}return {state:'current',localUpdate:false};}};if(id==='./student-explorer')return {createStudentExplorer:()=>({commands:{},invalidate(){treeInvalidations++;},dispose(){}})};if(id==='./transport')return {createTransport:(_remote,authenticate,{assertCurrentNow})=>async(_root,args)=>{await authenticate();assertCurrentNow();assert.equal(args[0],'ls-remote');assert.ok(['refs/heads/main','refs/heads/feature','refs/heads/feature-two'].includes(args[3]));calls.push(args);const result=remote;if(gate){entered();await gate;}return `${result}\t${args[3]}`;}};return oldLoad.call(this,id,...args);};
+  Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./github-app/readiness')return {createGitHubReadiness:()=>({phase:'ready',sync(){},refresh:async()=>{},confirm(){},dispose(){}})};if(id==='./main-update-status')return {checkMainUpdate:async({readState})=>{const state=await readState();mainChecks.push(state.branch);if(mainChecks.length===1){enteredMain();await mainGate;}return {state:'current',localUpdate:false};}};if(id==='./student-explorer')return {createStudentExplorer:()=>({commands:{},refreshStatus(){treeRefreshes++;},dispose(){}})};if(id==='./transport')return {createTransport:(_remote,authenticate,{assertCurrentNow})=>async(_root,args)=>{await authenticate();assertCurrentNow();assert.equal(args[0],'ls-remote');assert.ok(['refs/heads/main','refs/heads/feature','refs/heads/feature-two'].includes(args[3]));calls.push(args);const result=remote;if(gate){entered();await gate;}return `${result}\t${args[3]}`;}};return oldLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
   t.after(()=>{subscriptions.forEach(value=>value.dispose());delete require.cache[require.resolve('../src/extension')];});
   extension.activate({subscriptions,workspaceState:{get:(_,fallback)=>fallback,keys:()=>[],update:async()=>{}}},{repositoryLedgerFactory,provider:{getSessions:async()=>[session],onDidChangeSessions:fn=>{authEvent=fn;return disposable();},dispose(){}},repositories:{checkSetup:async()=>({}),access:async(_,{permissions:requested})=>{permissions.push(requested);if(accessError)throw accessError;return {repository:{id:12},installation:{id:99}};}}});
@@ -174,7 +174,7 @@ test('same-account session replacement queues a fresh main update check',async t
   git('init','-qb','main');git('config','user.name','Student');git('config','user.email','student@example.invalid');await fs.writeFile(path.join(root,'zero.json'),'{}');git('add','.');git('commit','-qm','base');git('remote','add','origin','https://github.com/student/project.git');
   git('checkout','-qb','feature');git('branch','feature-two');
   let head=git('rev-parse','HEAD'),remote=head,view,focus,metadataChanged,accessError,release,entered,gate,authEvent,configurationChanged,onWarning,mode='live';
-  const calls=[],permissions=[],warnings=[],errors=[],commands=new Map(),subscriptions=[],mainChecks=[];let treeInvalidations=0,releaseMain,enteredMain;const waitingMain=new Promise(resolve=>{enteredMain=resolve;});const mainGate=new Promise(resolve=>{releaseMain=resolve;});
+  const calls=[],permissions=[],warnings=[],errors=[],commands=new Map(),subscriptions=[],mainChecks=[];let treeRefreshes=0,releaseMain,enteredMain;const waitingMain=new Promise(resolve=>{enteredMain=resolve;});const mainGate=new Promise(resolve=>{releaseMain=resolve;});
   const session={id:'session',account:{id:'1',label:'student'},accessToken:'PRIVATE_TEST_TOKEN',scopes:[]};
   const vscode={
     authentication:{registerAuthenticationProvider:disposable},
@@ -185,7 +185,7 @@ test('same-account session replacement queues a fresh main update check',async t
     RelativePattern:class{constructor(base,pattern){this.base=base;this.pattern=pattern;}},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
   const oldLoad=Module._load;delete require.cache[require.resolve('../src/extension')];
-  Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./github-app/readiness')return {createGitHubReadiness:()=>({phase:'ready',sync(){},refresh:async()=>{},confirm(){},dispose(){}})};if(id==='./main-update-status')return {checkMainUpdate:async({readState})=>{const state=await readState();mainChecks.push(state.branch);if(mainChecks.length===1){enteredMain();await mainGate;}return {state:'current',localUpdate:false};}};if(id==='./student-explorer')return {createStudentExplorer:()=>({commands:{},invalidate(){treeInvalidations++;},dispose(){}})};if(id==='./transport')return {createTransport:(_remote,authenticate,{assertCurrentNow})=>async(_root,args)=>{await authenticate();assertCurrentNow();assert.equal(args[0],'ls-remote');assert.ok(['refs/heads/main','refs/heads/feature','refs/heads/feature-two'].includes(args[3]));calls.push(args);const result=remote;if(gate){entered();await gate;}return `${result}\t${args[3]}`;}};return oldLoad.call(this,id,...args);};
+  Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./github-app/readiness')return {createGitHubReadiness:()=>({phase:'ready',sync(){},refresh:async()=>{},confirm(){},dispose(){}})};if(id==='./main-update-status')return {checkMainUpdate:async({readState})=>{const state=await readState();mainChecks.push(state.branch);if(mainChecks.length===1){enteredMain();await mainGate;}return {state:'current',localUpdate:false};}};if(id==='./student-explorer')return {createStudentExplorer:()=>({commands:{},refreshStatus(){treeRefreshes++;},dispose(){}})};if(id==='./transport')return {createTransport:(_remote,authenticate,{assertCurrentNow})=>async(_root,args)=>{await authenticate();assertCurrentNow();assert.equal(args[0],'ls-remote');assert.ok(['refs/heads/main','refs/heads/feature','refs/heads/feature-two'].includes(args[3]));calls.push(args);const result=remote;if(gate){entered();await gate;}return `${result}\t${args[3]}`;}};return oldLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
   t.after(()=>{subscriptions.forEach(value=>value.dispose());delete require.cache[require.resolve('../src/extension')];});
   extension.activate({subscriptions,workspaceState:{get:(_,fallback)=>fallback,keys:()=>[],update:async()=>{}}},{repositoryLedgerFactory,provider:{getSessions:async()=>[session],onDidChangeSessions:fn=>{authEvent=fn;return disposable();},dispose(){}},repositories:{checkSetup:async()=>({}),access:async(_,{permissions:requested})=>{permissions.push(requested);if(accessError)throw accessError;return {repository:{id:12},installation:{id:99}};}}});
@@ -210,7 +210,7 @@ for (const changedRef of ['feature HEAD','local main']) test(`same-branch ${chan
     if(id==='vscode')return vscode;
     if(id==='./github-app/readiness')return {createGitHubReadiness:()=>({phase:'ready',sync(){},refresh:async()=>{},confirm(){},dispose(){}})};
     if(id==='./main-update-status')return {checkMainUpdate:async({readState})=>{const state=await readState();checks.push(state);if(checks.length===1){entered();await firstGate;return {state:'available',localUpdate:false};}return {state:checks.length===2?'current':'available',localUpdate:false};}};
-    if(id==='./student-explorer')return {createStudentExplorer:()=>({commands:{},invalidate(){},dispose(){}})};
+    if(id==='./student-explorer')return {createStudentExplorer:()=>({commands:{},refreshStatus(){},dispose(){}})};
     if(id==='./transport')return {createTransport:(_remote,authenticate,{assertCurrentNow})=>async(_root,args)=>{await authenticate();assertCurrentNow();assert.equal(args[0],'ls-remote');return `${git('rev-parse','HEAD')}\t${args[3]}`;}};
     return load.call(this,id,...args);
   };
@@ -244,7 +244,7 @@ test('missing local main stays quiet without looping and retries when main retur
     if(id==='./core'){const original=load.call(this,id,...args);return {...original,git:async(cwd,argv,options)=>invalidMain&&argv.includes('refs/heads/main^{commit}')?'invalid-oid':original.git(cwd,argv,options)};}
     if(id==='./github-app/readiness')return {createGitHubReadiness:()=>({phase:'ready',sync(){},refresh:async()=>{},confirm(){},dispose(){}})};
     if(id==='./main-update-status')return {checkMainUpdate:async({readState})=>{checks.push(await readState());return {state:'current',localUpdate:false};}};
-    if(id==='./student-explorer')return {createStudentExplorer:()=>({commands:{},invalidate(){},dispose(){}})};
+    if(id==='./student-explorer')return {createStudentExplorer:()=>({commands:{},refreshStatus(){},dispose(){}})};
     if(id==='./transport')return {createTransport:(_remote,authenticate,{assertCurrentNow})=>async(_root,args)=>{await authenticate();assertCurrentNow();assert.equal(args[0],'ls-remote');return `${base}\t${args[3]}`;}};
     return load.call(this,id,...args);
   };

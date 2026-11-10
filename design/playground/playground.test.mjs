@@ -94,7 +94,7 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
 
 test('sidebar review fixture renders branch, unsaved and unavailable states',()=>{
   const branch=sidebarSource('ready',{connected:true,studentExplorer:true,branch:'feature',localBranches:['main','release/1.2','edit&fix'],branchHead:'a'.repeat(40),projectDirty:true,projectUnsaved:true});
-  assert.match(branch,/Current branch: feature/);assert.match(branch,/Save your project edits before committing/);assert.match(branch,/data-command="zero.commitChanges"[^>]*disabled/);
+  assert.match(branch,/Current branch: feature/);assert.doesNotMatch(branch,/Save your project edits before committing/);assert.doesNotMatch(branch,/data-command="zero.commitChanges"[^>]*disabled/);
   assert.match(branch,/data-branch-choice="fixture-0" title="main"[^>]*><span>main<\/span>/);
   assert.match(branch,/title="release\/1.2"/);
   assert.match(branch,/title="edit&amp;fix"/);
