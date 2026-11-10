@@ -2,9 +2,9 @@
 .learn-theme .profile-toggle { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; gap: 8px; padding: 0 8px; border: 0; border-radius: 6px; background: var(--zero-page); color: var(--zero-text); font: inherit; cursor: pointer; }
 .learn-theme .profile-toggle .icon { font-size: 20px; flex: none; }
 .learn-theme .profile-toggle:hover, .learn-theme .profile-toggle[aria-expanded="true"] { background: var(--zero-surface); }
-.learn-theme .profile-toggle[data-connected="true"] { width: 44px; height: 44px; padding: 0; border-radius: 50%; background: var(--zero-accent); color: var(--zero-on-accent); font-weight: 600; }
-.learn-theme .profile-toggle[data-connected="true"]:hover, .learn-theme .profile-toggle[data-connected="true"][aria-expanded="true"] { background: var(--zero-accent-hover); }
-.learn-theme .profile-avatar { position: relative; display: grid; place-items: center; width: 100%; height: 100%; border-radius: inherit; overflow: hidden; }
+.learn-theme .profile-toggle[data-connected="true"] { width: 44px; height: 44px; padding: 0; border-radius: 50%; background: transparent; }
+.learn-theme .profile-avatar { position: relative; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; overflow: hidden; background: var(--zero-accent); color: var(--zero-on-accent); font-weight: 600; }
+.learn-theme .profile-toggle:hover .profile-avatar, .learn-theme .profile-toggle[aria-expanded="true"] .profile-avatar { background: var(--zero-accent-hover); }
 .learn-theme .profile-photo { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; opacity: 0; }
 .learn-theme .profile-photo[data-loaded="true"] { opacity: 1; }
 .learn-theme .account-dropdown { position: absolute; right: 0; top: calc(100% + 8px); width: 280px; max-width: calc(100vw - 48px); max-height: calc(100dvh - 112px); overflow: auto; padding: 12px; border: 1px solid var(--zero-border); border-radius: 6px; background: var(--zero-page); color: var(--zero-text); box-shadow: 0 8px 24px rgb(0 0 0 / 15%); font-size: 16px; line-height: 1.5; overflow-wrap: anywhere; }

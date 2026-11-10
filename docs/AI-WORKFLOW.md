@@ -12,6 +12,9 @@ Check branch, HEAD, working changes and current authority before acting. CURRENT
 contains only operative state: outcome, active scope/holds, ownership, verification,
 next action and blockers. Read linked history only for a concrete recovery question.
 Old approvals, budgets and worker handles do not create new authority.
+Use [Zero's positioning](PRODUCT.md#positioning) in student-facing copy and AI
+handoffs. Describe how learners write Java, practice GitHub workflows, learn to read
+documentation, and publish their own projects.
 For UI work, start with [shared design review](../design.md) and follow the
 canonical [UI and UX guidelines](UI-UX-GUIDELINES.md). Read the surface approval
 status before editing. Use the [playground](../design/playground/README.md) for

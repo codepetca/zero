@@ -399,6 +399,13 @@ html:has(.learn-theme),
   justify-content: center;
   text-align: center;
 }
+.learn-theme .home-page .hub-lead { margin-bottom: var(--zero-space-3); }
+.learn-theme .home-description {
+  max-width: 44ch;
+  margin: 0 auto;
+  color: var(--zero-muted);
+  line-height: 1.55;
+}
 .learn-theme .home-page .hub-actions {
   width: 100%;
   flex-direction: column;

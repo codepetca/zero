@@ -1,6 +1,7 @@
 import {publishingSnapshots,publishingProgressHtml,publishedLinkPlayback,publishedLinkProof} from './publishing-source.mjs';
 import { readFileSync } from 'node:fs';
 import { lessons } from '../../website/lib/learning.mjs';
+import { productDescription, productTagline, productTitle } from '../../website/lib/product-copy.mjs';
 import { sidebarSource } from './sidebar-source.mjs';
 const icons = Object.fromEntries(['download', 'sun', 'moon'].map(name =>
   [name, readFileSync(new URL(`./assets/${name}.svg`, import.meta.url), 'utf8').trim()]));
@@ -30,7 +31,7 @@ export function webView(theme, downloads, screen = "learn") {
   const downloadContent = `<section id="downloads" class="downloads" aria-label="Downloads">${downloads.mac ? `<button class="primary" data-fixture="Mac setup download" data-source-url="${escape(downloads.mac)}">
 ${icons.download}Download for Mac Silicon</button>` : ''}${downloads.windows ? `<button class="primary" data-fixture="Windows complete-kit ZIP download" aria-label="Download for Windows (ZIP), manual setup" data-source-url="${escape(downloads.windows)}">
 ${icons.download}Download for Windows (ZIP)</button>` : ''}</section>`;
-  const homeContent = `<div class="intro"><h1>Learn Java</h1><p class="lead">Starting from zero.</p></div>${downloadContent}`;
+  const homeContent = `<div class="intro"><h1>${escape(productTitle)}</h1><p class="lead">${escape(productTagline)}</p><p class="home-description">${escape(productDescription)}</p></div>${downloadContent}`;
   return `<!doctype html>
 <html lang="en">
 <head>${head(screen === 'home' ? 'Zero · Home review' : screen === 'downloads' ? 'Zero · Downloads review' : 'Zero · Learn review', theme)}</head>

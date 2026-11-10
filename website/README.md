@@ -1,6 +1,10 @@
 # Zero website
 
-Next.js App Router / TypeScript website for the Zero teaching kit and ZeroHub. Home uses the shared app header, Learn Java / Starting from zero., Download Zero (`/downloads`) and Start Learning (`/learn`). Zero checks and compiles ordinary Java locally, then opens the app in the browser.
+Next.js App Router and TypeScript website for Zero and ZeroHub. Home introduces
+**Learn to Build** and **Starting from zero** with a short description and direct
+Mac Silicon and Windows download actions. Tutorials help students learn Java,
+practice GitHub workflows, read documentation and publish browser apps. Product copy for the site and design
+playground lives in `lib/product-copy.mjs`.
 
 Requires Node.js 22+. From this directory:
 
@@ -157,7 +161,7 @@ repository. It checks current ownership, public visibility and whether Pages
 is enabled. Public Play links require the expected run marker at a direct
 GitHub Pages address. Cards link to the repository if the marker is unavailable
 or the project uses a custom domain. Owners can open their verified deployment
-from **Manage apps**.
+from **My Apps**.
 
 The existing Zero GitHub App and ZeroHub browser authentication configuration
 verify publishing and management. An editor checks app listing availability before

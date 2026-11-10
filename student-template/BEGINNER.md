@@ -1,7 +1,9 @@
 # Start small
 
-Zero helps you make Java apps and games. Follow the [tutorials](https://zero.codepet.ca/tutorials/0)
-as the learning path; the first app and game lessons explain these ideas in context.
+Follow the [tutorials](https://zero.codepet.ca/tutorials/15) to build Java apps
+and games, practice saving changes with GitHub, learn to read documentation,
+and publish a playable app. The first app and game lessons explain Java ideas
+in context.
 This source overview remains available for older kits and contributor reference.
 Use ordinary Java fields, methods and objects to hold your app's state.
 You can learn more JavaFX when your project needs it.

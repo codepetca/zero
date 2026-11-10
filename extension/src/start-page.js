@@ -220,13 +220,17 @@ function documentHtml() {
 ${controlsStyles()}
 button{width:auto}
 body{margin:0;color:var(--vscode-foreground);background:var(--vscode-editor-background);font-family:var(--vscode-font-family);font-size:var(--vscode-font-size);line-height:1.5}
-main{max-width:760px;margin:0 auto;padding:48px 28px}h1{font-size:2em;font-weight:600;margin:0 0 28px}h2{font-size:1.15em;font-weight:600;margin:0 0 12px}section{margin-top:36px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
+main{max-width:760px;margin:0 auto;padding:48px 28px}h1{font-size:2em;font-weight:600;margin:0 0 8px}h2{font-size:1.15em;font-weight:600;margin:0 0 12px}section{margin-top:36px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
 
 p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#status,#error{overflow-wrap:anywhere}#github-heading{margin-bottom:0}#account{font-weight:400}#error{color:var(--vscode-errorForeground)}[hidden]{display:none!important}ul{list-style:none;padding:0;margin:0}li{margin:4px 0}.recent{display:block;width:100%;text-align:left;background:transparent;color:var(--vscode-textLink-foreground);padding:8px 4px}.recent:hover{background:var(--vscode-list-hoverBackground)}.name,.path{display:block;overflow-wrap:anywhere}.path{font-size:.9em}.vscode-high-contrast button,.vscode-high-contrast-light button{border-color:var(--vscode-contrastBorder)}
-.actions{align-items:center}.project-actions,.tutorial-actions{position:relative;width:180px;max-width:100%}.project-actions>button,.tutorial-actions>button{width:100%}h1:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:3px}
+.start-intro{margin-bottom:24px}.actions{align-items:center}.project-actions,.tutorial-actions{position:relative;width:180px;max-width:100%}.project-actions>button,.tutorial-actions>button{width:100%}h1:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:3px}
 @media(max-width:480px){main{padding:28px 20px}.actions{flex-direction:column;align-items:stretch}.actions button{width:100%}.project-actions,.tutorial-actions{width:100%}.zero-menu{box-sizing:border-box;width:100%}}
 </style></head><body><main>
-<h1 id="start-title" tabindex="-1">Start with Zero</h1>
+<header class="start-intro">
+<h1 id="start-title" tabindex="-1">Learn to Build</h1>
+<p>Starting from zero</p>
+<p class="muted">Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.</p>
+</header>
 <div class="tutorial-actions"><button class="primary" data-action="tutorials" disabled>Zero Docs</button></div>
 <div class="actions"><div class="project-actions" id="project-actions"><button class="secondary zero-menu-trigger" id="project-button" aria-haspopup="menu" aria-expanded="false" aria-controls="project-menu" disabled>Project ${icon('ChevronDown')}</button><div class="zero-menu" id="project-menu" role="menu" aria-labelledby="project-button" hidden><button role="menuitem" tabindex="-1" data-action="new" disabled>New</button><button role="menuitem" tabindex="-1" data-action="clone" disabled>Clone</button><button role="menuitem" tabindex="-1" data-action="local" disabled>Open</button></div></div></div>
 <section id="github-section" aria-label="GitHub"><h2 id="github-heading">GitHub<span id="account-group" hidden> <span class="muted" aria-hidden="true">·</span> <span id="account" class="muted"></span></span></h2><p id="guidance">Checking GitHub access…</p><button class="primary" data-action="signIn" hidden>Sign in to GitHub</button><button class="primary" data-action="setup" hidden>Install Zero for GitHub</button></section>

@@ -9,7 +9,7 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 ## Current interaction rules
 
 Owner wording refinement, 2026-11-10. Call published work in ZeroHub **apps**
-and label the page **Manage apps**. Use **app listing** where the copy needs to
+and label the page **My Apps**. Use **app listing** where the copy needs to
 distinguish the public card from the app hosted on GitHub Pages. Use
 **Add to ZeroHub** and **Remove from ZeroHub** for visibility actions.
 
@@ -269,7 +269,7 @@ current task's content visually prominent.
 | Scrollbars | Transparent tracks matching the surrounding background, with thin muted thumbs. |
 | Website title | Use the approved icon followed by outlined lowercase zero as one SVG image. Dark mode uses the light-purple accent icon without a background and white lettering. |
 | ZeroHub Projects | One square with title over a contrasting image header and long-text fade; muted unconfirmed previews; stars/flag/author at the bottom. Reveal description on hover/focus with a title toggle for touch. Preserve readable content when text is enlarged. |
-| Website account | The header shows a GitHub avatar when signed in. Its dropdown holds sign-out and appearance settings. |
+| Website account | The header shows a GitHub avatar when signed in. Match the visible avatar to the height of the Zero mark and keep a 44 px click and tap target (2026-11-10). Its dropdown holds sign-out and appearance settings. |
 | Themes | Apply the same choices in light and dark; the root page follows the selected theme too. |
 
 Keep the sidebar, Next lesson action, search, code copying, deep links, accessible
@@ -277,7 +277,7 @@ focus and ordinary scrolling usable. See the dated corrections below for details
 
 | Surface | Status |
 | --- | --- |
-| Home page with app header, Learn Java and Mac/Windows downloads | Owner-approved download-first flow 2026-10-15; GitHub welcome belongs in desktop Zero. |
+| Home page with app header, Learn to Build, Starting from zero, a short description and Mac/Windows downloads | Copy updated by the owner 2026-11-10. GitHub welcome belongs in desktop Zero. |
 | Shared Learn/downloads design in light and dark | Owner-approved 2026-10-13; applies to the tutorial reader and Downloads. |
 | Minimal editor sidebar in light and dark | Owner-approved 2026-10-13: one Run/Stop, GitHub and ZeroHub view; idle status hidden; Sign in/username; New branch; Tutorials/Setup overflow. Native VS Code adaptation remains required. |
 | Docs reader | Owner-approved 2026-10-14 API mock: method/category sidebar, search and concise entries; preserve current shared navigation, themes and code copying. Setup and longer guides stay linked. |
@@ -327,8 +327,9 @@ those roles to each surface. The approved dark companion applies to Home, Learn 
 
 ## Surface adaptations and review scope
 
-Home uses the shared app header above **Learn Java**, **Starting from zero.**
-and two direct buttons: **Download for Mac Silicon** and **Download for Windows (ZIP)**. GitHub connection is handled
+Home uses the shared app header above **Learn to Build**, **Starting from zero**,
+the short product description and the two direct platform buttons, **Get Zero for
+Mac Silicon** and **Get Zero for Windows**. GitHub connection is handled
 by the downloaded app's native welcome, using Zero's GitHub App connection and
 GitHub's device-code/consent flow after activation.
 It uses the centered full-viewport layout and shared appearance toggle. Tutorials opens

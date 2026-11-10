@@ -2,7 +2,7 @@
   "name": "zero-workspace",
   "version": "0.1.0",
   "private": true,
-  "description": "Local Java teaching kit with a quiet VS Code sidebar",
+  "description": "Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.",
   "engines": {
     "node": ">=22"
   },

@@ -58,6 +58,7 @@ test('tutorial steps remain sequential and name the visible Run control', async 
 
 test('practice library instructions name the actual command before each menu choice', async () => {
   const text = await readFile(new URL('../../student-template/lessons/11-zerohub.md', import.meta.url), 'utf8');
+  assert.match(text, /\]\(https:\/\/zero\.codepet\.ca\/hub\?kind=practice\)/);
   for (const action of ['Extract library', 'Browse tutorial practice']) {
     assert.match(text, new RegExp(`\\*\\*Zero: Libraries and Games\\*\\*[\\s\\S]*?\\n\\n\\*\\*${action}\\*\\*\\n\\n`));
   }
