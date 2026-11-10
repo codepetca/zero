@@ -57,17 +57,23 @@ test('one server layout hides discovery, preparation, details and participation;
   }
 });
 
-test('ZeroHub navigation uses the server flag and marks the Jams destination current',async()=>{
+test('ZeroHub navigation respects feature flags and marks the current pane',async()=>{
   const source=await readFile(new URL('../components/HubNavigation.tsx',import.meta.url),'utf8');
   const component=load(source,{
-      'next/link':{default:({href,children,...props})=>require('react').createElement('a',{href,...props},children)},
-      '@/app/hub/hub.module.css':{default:{}}});
+    'next/link':{default:({href,children,...props})=>require('react').createElement('a',{href,...props},children)},
+    '@/app/hub/hub.module.css':{default:{}}});
   for(const visible of [false,true]) {
-    const html=renderToStaticMarkup(component.HubNavigation({active:'game',showJams:visible}));
+    const html=renderToStaticMarkup(component.HubNavigation({active:'game',showJams:visible,showListings:visible}));
     assert.equal(html.includes('href="/hub/jams"'),visible);
-    assert.match(html,/href="\/hub\?kind=game"/);assert.match(html,/href="\/hub\?kind=library"/);
+    assert.equal(html.includes('href="/hub/listings"'),visible);
+    assert.match(html,/href="\/hub\?kind=game" aria-current="page"/);assert.match(html,/href="\/hub\?kind=library"/);
   }
-  assert.match(renderToStaticMarkup(component.HubNavigation({active:'jams',showJams:true})),/<a href="\/hub\/jams" aria-current="page">Jams<\/a>/);
+  for(const [active,href] of [['share','/hub/share'],['listings','/hub/listings'],['jams','/hub/jams']]) {
+    const html=renderToStaticMarkup(component.HubNavigation({active,showJams:true,showListings:true}));
+    assert.ok(html.includes(`href="${href}" aria-current="page"`));
+    assert.equal(html.match(/aria-current="page"/g)?.length,1);
+  }
+  assert.match(renderToStaticMarkup(component.HubNavigation({active:'jams',showJams:true,showListings:false})),/<a href="\/hub\/jams" aria-current="page">Jams<\/a>/);
 });
 
 test('production discovery promotion requires the pilot, service and discovery flags',()=>{

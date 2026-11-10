@@ -38,7 +38,7 @@ const release={schema:1,id:sharedIdentity.id,slug:sharedIdentity.slug,version:'1
 
 const status={id:project.id,kind:'game',repositoryUrl:project.repositoryUrl,stars:null,issuesEnabled:null,site:{status:'unknown'}};
 function harness(projects=[project], enforceJamVisibility=true, fakeTimers=false, deferEligibility=false){
-  let baseline;let hooks=[], cursor=0, effects=[], params=new URLSearchParams('kind=game');
+  let baseline;let hooks=[], cursor=0, effects=[], search='', params=new URLSearchParams('kind=game');
   const calls=[], listeners={};
   let time=0, nextTimer=0;const timers=new Map();
   const timerSet=fakeTimers?(fn,delay)=>{const id=++nextTimer;timers.set(id,{at:time+delay,fn});return id;}:setTimeout;
@@ -51,13 +51,13 @@ function harness(projects=[project], enforceJamVisibility=true, fakeTimers=false
   const sharing={selectMaintainedProjects:(items,opts)=>opts.kind==='game'&&!opts.id&&!opts.version?items.filter(item=>item.title.toLowerCase().includes(opts.search.toLowerCase())):[],selectReleases:(catalog,opts)=>catalog.releases.filter(item=>item.kind===opts.kind&&(opts.id?item.id===opts.id&&item.version===opts.version:item.status==='available'&&item.title.toLowerCase().includes(opts.search.toLowerCase()))),projectSummary:x=>x,maintainedPlayLink:()=>'/play',releaseSummary:()=>'',releaseAuthor:()=>'',releaseImage:()=>'',playLink:()=>'/play',sourceLink:()=>'',dependencySnippet:()=>''};
   const card=()=>null;
   const modules={'react':react,'react/jsx-runtime':{jsx:element,jsxs:element,Fragment:'fragment'},'next/navigation':{useSearchParams:()=>params},'next/link':{default:'a'},'@/lib/sharing-client.mjs':sharing,'@/content/projects.json':{default:[project]},'@/content/project-previews.json':{default:{}},'@/content/release-authors.json':{default:{}},'@/app/hub/hub.module.css':{default:{}},'./HubProjectCard':{HubProjectCard:card},'@/lib/hub-metrics-client.mjs':{loadMetricBatches:async()=>{},metricLabel:()=>null}};
-  for(const [path,name] of [['./HubNavigation','HubSidebar'],['./HubPublishedProjects','HubPublishedProjects'],['./CodeBlock','CodeBlock'],['./Icon','Icon'],['./HubProjectInfo','HubProjectInfo'],['./HubProjectFeedback','HubProjectFeedback']])modules[path]={[name]:()=>null,...(path.includes('Feedback')?{HubProjectDetails:()=>null}:{})};
+  modules['./HubWorkspace']={useHubSearch:()=>search};
+  for(const [path,name] of [['./HubPublishedProjects','HubPublishedProjects'],['./CodeBlock','CodeBlock'],['./Icon','Icon'],['./HubProjectInfo','HubProjectInfo'],['./HubProjectFeedback','HubProjectFeedback']])modules[path]={[name]:()=>null,...(path.includes('Feedback')?{HubProjectDetails:()=>null}:{})};
   const exports={};
   vm.runInNewContext(compiled,{exports,require:name=>{if(!(name in modules))throw Error(name);return modules[name];},fetch:(url,options)=>new Promise((resolve,reject)=>{calls.push({url,options,resolve,reject,onReply:data=>{if(url==='/api/hub/discovery')baseline=data;}});if(url.includes('revalidate=1')&&!deferEligibility)resolve({ok:true,json:async()=>baseline});options.signal?.addEventListener('abort',()=>reject(Error('aborted')),{once:true});}),AbortController,AbortSignal,URLSearchParams,Set,Number,Date,Object,Array,JSON,Promise,setTimeout:timerSet,clearTimeout:timerClear,window,document});
   const render=()=>{cursor=0;const tree=exports.HubDiscovery({enforceJamVisibility});const pending=effects;effects=[];pending.forEach(fn=>fn());return tree;};
   const cards=tree=>{const found=[];function walk(node){if(!node||typeof node!=='object')return;if(Array.isArray(node)){node.forEach(walk);return;}if(node.type===card)found.push(node.props.title);walk(node.props?.children);}walk(tree);return found;};
-  const search=tree=>{let input;function walk(node){if(!node||typeof node!=='object')return;if(Array.isArray(node)){node.forEach(walk);return;}if(node.type==='input'&&node.props.id==='sharing-search')input=node;walk(node.props?.children);}walk(tree);return value=>input.props.onChange({target:{value}});};
-  return {render,cards,calls,advance,search,setQuery:q=>{params=new URLSearchParams(q);},fire:name=>listeners[name]?.(),document};
+  return {render,cards,calls,advance,setSearch:value=>{search=value;},setQuery:q=>{params=new URLSearchParams(q);},fire:name=>listeners[name]?.(),document};
 }
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const reply=(call,data,ok=true)=>{call.onReply?.(data);call.resolve({ok,json:async()=>data});};
@@ -131,11 +131,11 @@ test('navigation and return to an earlier query never reuse an old discovery',as
 test('active search debounces discovery, hides stale results and focus refreshes immediately',async()=>{
   const h=harness([project],true,true);await initial(h);reply(latest(statuses(h)),{schema:1,items:[status]});await tick();let tree=h.render();
   assert.deepEqual(h.cards(tree),['Maintained','Shared']);const base=discoveries(h).length;
-  h.search(tree)('a');tree=h.render();assert.deepEqual(h.cards(tree),[]);
-  h.advance(200);h.search(tree)('ai');tree=h.render();h.advance(299);
+  h.setSearch('a');tree=h.render();assert.deepEqual(h.cards(tree),[]);
+  h.advance(200);h.setSearch('ai');tree=h.render();h.advance(299);
   assert.equal(discoveries(h).length,base);assert.deepEqual(h.cards(h.render()),[]);
   h.advance(1);assert.equal(discoveries(h).length,base+1);const delayed=latest(discoveries(h));
-  h.search(tree)('');tree=h.render();assert.deepEqual(h.cards(tree),[]);
+  h.setSearch('');tree=h.render();assert.deepEqual(h.cards(tree),[]);
   const before=discoveries(h).length;h.fire('window:focus');h.render();assert.equal(discoveries(h).length,before+1);
   reply(delayed,envelope());await tick();assert.deepEqual(h.cards(h.render()),[]);
   reply(latest(discoveries(h)),{},false);await tick();assert.deepEqual(h.cards(h.render()),[]);
@@ -144,11 +144,11 @@ test('active search debounces discovery, hides stale results and focus refreshes
 test('inactive search filters locally and debounces status; focus bypasses the delay',async()=>{
   const h=harness([project],false,true);await initial(h);reply(latest(statuses(h)),{schema:1,items:[status]});await tick();let tree=h.render();
   const discoveryCount=discoveries(h).length,statusCount=statuses(h).length;
-  h.search(tree)('a');tree=h.render();assert.deepEqual(h.cards(tree),['Maintained','Shared']);
-  h.advance(100);h.search(tree)('ai');tree=h.render();assert.deepEqual(h.cards(tree),['Maintained']);
+  h.setSearch('a');tree=h.render();assert.deepEqual(h.cards(tree),['Maintained','Shared']);
+  h.advance(100);h.setSearch('ai');tree=h.render();assert.deepEqual(h.cards(tree),['Maintained']);
   h.advance(299);assert.equal(statuses(h).length,statusCount);h.advance(1);assert.equal(statuses(h).length,statusCount+1);
   assert.equal(discoveries(h).length,discoveryCount);
-  h.search(tree)('ain');tree=h.render();const before=discoveries(h).length;
+  h.setSearch('ain');tree=h.render();const before=discoveries(h).length;
   h.fire('window:focus');assert.deepEqual(h.cards(h.render()),[]);assert.equal(discoveries(h).length,before+1);
   reply(latest(discoveries(h)),envelope());await tick();assert.deepEqual(h.cards(h.render()),['Maintained']);
   reply(latest(statuses(h)),{},false);await tick();

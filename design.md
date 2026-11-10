@@ -8,8 +8,18 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
-Owner wording refinement, 2026-11-10. Call published work in ZeroHub **apps**
-and label the page **My Apps**. Use **app listing** where the copy needs to
+Owner header refinement, 2026-11-10. Show **Beta** as plain text beside the
+Zero wordmark, with a full click and tap target and visible keyboard focus.
+
+Owner layout refinement, 2026-11-10. ZeroHub, the tutorial reader and Docs
+share the sidebar and content layout. Keep section-specific navigation,
+including the lesson picker, ZeroHub's section links, and the API method
+search and category index.
+
+Owner navigation and wording refinements, 2026-11-10. ZeroHub sidebar links
+switch the content pane in place. **My Apps** shows the signed-in user's apps
+and listing controls beside the same sidebar. Call published work in ZeroHub
+**apps**. Use **app listing** where the copy needs to
 distinguish the public card from the app hosted on GitHub Pages. Use
 **Add to ZeroHub** and **Remove from ZeroHub** for visibility actions.
 

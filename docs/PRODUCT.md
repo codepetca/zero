@@ -13,7 +13,7 @@ repository introductions and distribution copy. Zero is the product name and
 Zero Studio is its Microsoft Store name. The headline describes what students
 learn through making and sharing a project.
 
-The shared website header shows a Beta chip. It opens a notice that Zero and
+The shared website header shows a Beta label. It opens a notice that Zero and
 ZeroHub are in beta, features may change or be unavailable, and data may not be
 saved or retained. Users should keep their own backups and are responsible for
 repositories created in their GitHub accounts, including contents, visibility,

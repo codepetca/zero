@@ -90,7 +90,7 @@ function MyListings({account, csrfToken}:{account:string; csrfToken:string}) {
       </div>
     </li>)}</ol>}
     {!active.length && <p>Publish an app through Zero to add it here.</p>}
-    {unlisted.length > 0 && <><h2>Apps not on ZeroHub</h2><ul>{unlisted.map(project=><li key={project.repositoryId}>
+    {unlisted.length > 0 && <><h3>Apps not on ZeroHub</h3><ul>{unlisted.map(project=><li key={project.repositoryId}>
       <a href={project.pagesUrl}>{project.title}</a> {action(project,'list','Add to ZeroHub')}
     </li>)}</ul></>}
     {(before || data.next) && <div className="resource-links">

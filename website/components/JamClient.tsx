@@ -4,8 +4,7 @@ import {defaultHostedJamDraft,prepareHostedJamDraft,browserJamTimezone,formatJam
 import {useCallback,useEffect,useRef,useState,type FormEvent} from 'react';
 import styles from '@/app/hub/hub.module.css';
 import {HubAccount,useHubGitHub} from './HubGitHub';
-import {HubSidebar} from './HubNavigation';
-import {Icon} from './Icon';
+import {useHubSearch} from './HubWorkspace';
 
 type Source = {repositoryUrl:string;commit:string};
 type Repository = {id:string;ownerId:string;fullName:string;commit?:string};
@@ -121,10 +120,11 @@ function ApprovedVersions({event}:{event:Event}) {
   if(!versions.length)return null;
   return <details className="jam-review"><summary>Approved versions</summary><p>Compare the accepted rules and dates for this jam. Pending proposals are excluded.</p>{versions.map(version=><details key={version.revision}><summary>{version.revision===event.revision?'Current approved version':'Earlier approved version'} · <time dateTime={version.approvedAt}>{formatJamDateTime(version.approvedAt,'UTC')} UTC</time></summary><h2>{version.manifest.title}</h2><EventFacts event={version.manifest}/><p className="jam-source">Version: <code>{version.revision}</code></p></details>)}</details>;
 }
-export function JamDiscovery({showListings=false}:{showListings?:boolean}={}) {
+export function JamDiscovery() {
   const {user}=useHubGitHub();
   const {data,error,loading,refresh}=useResource<Directory>('/api/jams?view=summaries');
-  const [type,setType]=useState('all'),[search,setSearch]=useState('');
+  const [type,setType]=useState('all');
+  const search=useHubSearch();
   const terms=search.toLowerCase().trim().split(/\s+/).filter(Boolean);
   const events=(data?.events||[]).filter(event=>{
     if(type!=='all'&&event.type!==type)return false;
@@ -132,11 +132,7 @@ export function JamDiscovery({showListings=false}:{showListings?:boolean}={}) {
     return terms.every(term=>searchable.includes(term));
   });
   const canCreate=!error&&user&&data?.hostingAccess?.accountId===user.id&&data.hostingAccess.canCreate===true;
-  return <div className={styles.workspace}>
-    <HubSidebar active="jams" showJams showListings={showListings}>
-      <div className={styles.search}><Icon name="search"/><input type="search" aria-label="Search jams" placeholder="Search jams" maxLength={200} value={search} onChange={event=>setSearch(event.target.value)}/></div>
-    </HubSidebar>
-    <section className={`${styles.catalog} jam-page`} aria-labelledby="jams-heading">
+  return <section className={`${styles.catalog} jam-page`} aria-labelledby="jams-heading">
       <h1 id="jams-heading">ZeroJams</h1>
       <p className="lead">Build something together in a Game Jam or App Jam.</p>
       <JamHelpLink/>
@@ -158,8 +154,7 @@ export function JamDiscovery({showListings=false}:{showListings?:boolean}={}) {
         <p>{event.registrationOpen?'Registration open':'Registration closed'} · {event.participantCount} participants</p>
         <p><Link href={`/hub/jams/${event.id}`}>View rules and schedule</Link></p>
       </article>)}</div>
-    </section>
-  </div>;
+  </section>;
 }
 export function JamCreate() {
   const {user}=useHubGitHub(),top=useTopLevel();

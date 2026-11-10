@@ -15,6 +15,7 @@ import {
 import { Icon } from "./Icon";
 import { FoldingReader } from "./FoldingReader";
 import { ReaderNavigation } from "./ReaderNavigation";
+import { SidebarLayout } from "./SidebarLayout";
 import { CodeBlock } from "./CodeBlock";
 import { DownloadRequirements } from "./Downloads";
 import { platformMarkdown } from "@/lib/platform-content.mjs";
@@ -44,19 +45,16 @@ export function Document({ id, lesson = "" }) {
     {lesson && lessonNumber(lesson) !== undefined ? `Lesson ${lessonNumber(lesson)}: ${title}` : title}
   </h2>;
   const content = (
-      <main
-        id="page-content"
-        tabIndex={-1}
-        className={`reader-layout compact-reader${lesson ? " tutorial-reader" : ""}`}
+      <SidebarLayout
+        className={`reader-layout${lesson ? " tutorial-reader" : ""}`}
+        sidebarClassName="reader-navigation"
+        sidebar={<ReaderNavigation
+          items={items}
+          current={lesson || id}
+          section={section}
+          groups={lesson ? lessonGroups : undefined}
+        />}
       >
-        <aside className="reader-navigation">
-          <ReaderNavigation
-            items={items}
-            current={lesson || id}
-            section={section}
-            groups={lesson ? lessonGroups : undefined}
-          />
-        </aside>
         <article className="reader-content">
           <h1>{pageTitle}</h1>
           {lesson ? <div className="lesson-purpose">
@@ -158,7 +156,7 @@ export function Document({ id, lesson = "" }) {
             </nav>
           )}
         </article>
-      </main>
+      </SidebarLayout>
   );
   return <LearnTheme active={lesson ? "Tutorials" : undefined}>{content}</LearnTheme>;
 }

@@ -12,18 +12,17 @@ const panelSource=await readFile(new URL('../app/hub/jams/[id]/panel/route.ts',i
 function compile(source){return ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;}
 function clientRequire(name) {
   if(name==='@/app/hub/hub.module.css')return {default:{}};
-  if(name==='./HubNavigation')return {HubSidebar:function HubSidebar(){return null;}};
-  if(name==='./Icon')return {Icon:()=>null};
+  if(name==='./HubWorkspace')return {useHubSearch:()=>''};
   return require(name);
 }
 function harness({storage=new Map(),fetcher=async()=>{throw new Error('network');},participateData=null,refreshImpl=null}={}) {
-  let actor={id:'12',login:'creator',csrfToken:'csrf'},index=0,slots=[],effects=[];
+  let actor={id:'12',login:'creator',csrfToken:'csrf'},hubSearch='',index=0,slots=[],effects=[];
   const self={},window={self,top:self};
   const react={useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(fn){index++;effects.push(fn);}};
   const module={exports:{}};
-  const context={participateData,refreshImpl,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return {default:()=>null};return clientRequire(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
+  const context={participateData,refreshImpl,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./HubWorkspace')return {useHubSearch:()=>hubSearch};if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return {default:()=>null};return clientRequire(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
   vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useDraft,EventFacts,Proposal,useMutation,useResource,JamHelpLink,JamCreate,JamDiscovery,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,JamAccountTools};',context);
-  return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},renderDraft(name,initial,initializeFresh){index=0;return module.exports.testing.useDraft(name,initial,initializeFresh);},flushEffects(){const work=effects;effects=[];for(const fn of work)fn();},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
+  return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},renderDraft(name,initial,initializeFresh){index=0;return module.exports.testing.useDraft(name,initial,initializeFresh);},flushEffects(){const work=effects;effects=[];for(const fn of work)fn();},setActor(value){actor=value;},setHubSearch(value){hubSearch=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
 }
 function elements(node) {
   if(Array.isArray(node))return node.flatMap(elements);
@@ -304,12 +303,8 @@ test('Jam discovery searches public cards and shows hosting only for the current
   const render=()=>elements(h.render('JamDiscovery'));
   const create=()=>render().some(node=>node.props.href==='/hub/jams/create');
   const cards=()=>render().filter(node=>node.type==='article').map(node=>node.key);
-  const sidebar=render().find(node=>node.type?.name==='HubSidebar');
-  assert.equal(sidebar.props.active,'jams');
-  const search=elements(sidebar).find(node=>node.type==='input');
-  assert.equal(search.props['aria-label'],'Search jams');
   assert.deepEqual(cards(),['jam-1','jam-2']);
-  search.props.onChange({target:{value:'  SPACE arcade  '}});
+  h.setHubSearch('  SPACE arcade  ');
   assert.deepEqual(cards(),['jam-1']);
   render().find(node=>node.type==='select').props.onChange({target:{value:'app'}});
   assert.deepEqual(cards(),[]);
