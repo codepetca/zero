@@ -78,7 +78,7 @@ export async function verifyListingPublication(receipt, {account, token, signal,
 }
 
 // Keep public Play links on GitHub-controlled addresses. The owner still
-// sees their verified custom address in Manage listings.
+// sees their verified custom address in My listings.
 export async function publicListingPlayUrl(entry, {signal, readPublic = publicReadiness}) {
   const canonical = canonicalPagesUrl(entry.repositoryUrl);
   if (!canonical || canonical !== entry.pagesUrl) return;
