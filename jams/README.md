@@ -76,7 +76,9 @@ withdrawal append an entry revision, retaining prior submitted revisions.
 Leaving and withdrawal close at the submission deadline and all participant writes stop while
 suspended/cancelled. Accepted retries still recover after closure or suspension.
 Maintainers can use `withdraw-entry` with a numeric `participantId` and required
-reason even after closure or while suspended/cancelled. This appends an attributed
+reason even after closure or while suspended/cancelled. The host of an active
+jam can use the same action once its gallery opens, or after submissions close
+for older jams without a reveal date. This appends an attributed
 withdrawal revision and moderation history without changing registration or
 restoring anything. A participant may submit a corrected new entry revision while
 the event is active and its ordinary submission window remains open.

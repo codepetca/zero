@@ -184,13 +184,18 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
   async function commitLoop(id,actor,op,payloadDigest,change,options={}) {
     return withWriteStore((writeStore,transactional)=>commitOnStore(writeStore,transactional,id,actor,op,payloadDigest,change,options),options.callScope);
   }
+  const jamEndTime=({galleryRevealAt,submissionsCloseAt})=>Date.parse(galleryRevealAt||submissionsCloseAt);
   function occupiesOrganizerSlot(state,time) {
     if(state.moderation.status==='cancelled')return false;
     const current=state.accepted||state.proposals.at(-1);
     if(!state.accepted&&!['submitted','changes-requested'].includes(current.status))return false;
-    return time<Date.parse(current.manifest.schedule.galleryRevealAt||current.manifest.schedule.submissionsCloseAt);
+    return time<jamEndTime(current.manifest.schedule);
   }
   const canCancelOwnJam=(state,actor)=>state?.hosting==='zero'&&state.creator.id===actor.id&&state.accepted?.approvalMode===PRO_AUTO_APPROVAL;
+  function canHostRemoveEntry(state,actor,time) {
+    return !!state.accepted&&state.moderation.status==='active'&&actor?.id===state.creator.id&&
+      time>=jamEndTime(state.accepted.manifest.schedule);
+  }
   async function assertCreationRate(snapshot,actor,time) {
     let recent=0;
     for(const id of await ids(snapshot)) {
@@ -212,7 +217,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(existing.creator.id===next.creator.id&&occupiesOrganizerSlot(existing,time))fail(429,'You can have only one active jam at a time.');
     }
   }
-  async function commitOnStore(writeStore,transactional,id,actor,op,payloadDigest,change,{create=false,pool='ordinary',scope=id,legacyDigest,callScope,recoverOnly=false,enforceOrganizerSlot=false,creatorCancellation=false,updateEventTimestamp=true}={}) {
+  async function commitOnStore(writeStore,transactional,id,actor,op,payloadDigest,change,{create=false,safetyAction,scope=id,legacyDigest,callScope,recoverOnly=false,enforceOrganizerSlot=false,updateEventTimestamp=true}={}) {
+    const pool=safetyAction?'safety':'ordinary';
     for(let attempt=0;attempt<(transactional?1:bound.retries);attempt++) {
       callScope?.check();
       const snapshot=await safeCall(()=>callScope?callScope.run(()=>writeStore.snapshot({signal:callScope.signal})):writeStore.snapshot());
@@ -233,7 +239,11 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       const next=state?structuredClone(state):{...initial(id,actor,null,stamp),hosting:'zero'};
       const counts=operationCounts(next);
       if(pool==='safety') {
-        if(!maintainers.has(actor.id)&&!(creatorCancellation&&canCancelOwnJam(state,actor)))fail(403,'A Zero maintainer must perform this action.');
+        if(!maintainers.has(actor.id)) {
+          if(safetyAction==='withdraw-entry') {
+            if(!canHostRemoveEntry(next,actor,time))fail(403,'Hosts can remove entries from their own jam once its gallery opens.');
+          } else if(!(safetyAction==='cancel'&&canCancelOwnJam(next,actor)))fail(403,'A Zero maintainer must perform this action.');
+        }
         if(counts.safety>=safetySlots(bound))fail(429,'Reserved safety moderation capacity is exhausted. Operator intervention is required.');
       } else {
         if(counts.ordinary>=bound.operations)fail(429,'This jam has reached its ordinary operation capacity.');
@@ -452,7 +462,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     const moderationEntries=canMaintain&&!overview?summary(state,time,visibility,{moderation:true,entryParticipants}).entries.filter(item=>!publicParticipants.has(item.participantId)):[];
     if(page)moderationEntries.sort(participantOrder);
     const canPickWinner=overview&&actor?.id===state.creator.id&&canPickGameJamWinner(state,time);
-    const result=taggedProjection({event,registration:structuredClone(registration),entry:structuredClone(entry),canMaintain,...(canPickWinner?{canPickWinner}:{}),...(canMaintain&&!overview?{moderationEntries}:{}),...(proposal?{proposal:structuredClone(proposal)}:{})},revision);
+    const canHostRemove=!overview&&canHostRemoveEntry(state,actor,time);
+    const result=taggedProjection({event,registration:structuredClone(registration),entry:structuredClone(entry),canMaintain,...(canHostRemove?{canHostRemoveEntry:true}:{}),...(canPickWinner?{canPickWinner}:{}),...(canMaintain&&!overview?{moderationEntries}:{}),...(proposal?{proposal:structuredClone(proposal)}:{})},revision);
     return page?Object.defineProperty(result,JAM_PAGE_METADATA,{value:pageMetadata}):result;
   }
   async function propose(input) {
@@ -501,7 +512,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     }
     if(!before)fail(404,'Jam not found.');
     if(action==='pick-winner'&&before.creator.id!==actor.id)fail(403,'Only the host can pick a winner.');
-    if((REVIEW.has(action)||MODERATION.has(action)||action==='withdraw-entry')&&!maintainers.has(actor.id)&&!(action==='cancel'&&canCancelOwnJam(before,actor)))fail(403,'A Zero maintainer must perform this action.');
+    if((REVIEW.has(action)||MODERATION.has(action))&&!maintainers.has(actor.id)&&!(action==='cancel'&&canCancelOwnJam(before,actor)))fail(403,'A Zero maintainer must perform this action.');
+    if(action==='withdraw-entry'&&!maintainers.has(actor.id)&&before.creator.id!==actor.id)fail(403,'Only the host or a Zero maintainer can remove this entry.');
     if(action==='approve'&&before.creator.id===actor.id)fail(403,'A different maintainer must approve your jam.');
     let joinedRepository=null,verified=null,pagesVerification=null;
     if(action==='join'&&payload.repositoryUrl) {
@@ -554,7 +566,6 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
         return {status:next.moderation.status};
       }
       if(action==='withdraw-entry') {
-        if(!maintainers.has(actor.id))fail(403,'A Zero maintainer must perform this action.');
         const history=next.entries[payload.participantId],entry=history?.at(-1);
         if(!entry||entry.status!=='active')fail(409,'This participant has no active entry.');
         if(history.length>=bound.entryHistory)fail(429,'This entry has reached its revision capacity.');
@@ -598,8 +609,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       }
       if(action==='leave') {registration.status='left';registration.updatedAt=stamp;}
       return {status:action==='leave'?'left':'withdrawn'};
-    },{pool:SAFETY.has(action)?'safety':'ordinary',legacyDigest,callScope,enforceOrganizerSlot:action==='approve'||action==='resume',
-      creatorCancellation:action==='cancel',updateEventTimestamp:action!=='pick-winner'});
+    },{safetyAction:SAFETY.has(action)?action:undefined,legacyDigest,callScope,enforceOrganizerSlot:action==='approve'||action==='resume',
+      updateEventTimestamp:action!=='pick-winner'});
   }
   async function settlement(input) {
     keys(input,['actor','scope','operationId','payload']);

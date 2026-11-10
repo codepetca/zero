@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {creator, fixture, hostedManifest, participant, verifiedPages} from './fixtures.mjs';
+import {creator, fixture, hostedManifest, maintainer, participant, verifiedPages} from './fixtures.mjs';
 import {projectVisibility} from '../project-visibility.mjs';
 
 test('a changed winner replaces the badge without changing an accepted retry', async () => {
@@ -42,4 +42,42 @@ test('App Jam hosts cannot use Game Jam awards', async () => {
   await assert.rejects(service.readWinnerSelection(eventId,creator),{status:409});
   await assert.rejects(service.mutate({id:eventId,actor:creator,operationId:'winner-app-choice',action:'pick-winner',
     participantId:participant.id,revision:'a'.repeat(64)}),{status:409});
+});
+
+test('the host can remove a winning entry after reveal without withdrawing its registration', async () => {
+  let canCreate=true;
+  const {service,store,setTime}=fixture({canCreateJam:()=>canCreate,pagesBindingReader:verifiedPages});
+  const {eventId:id,revision}=await service.propose({actor:creator,operationId:'remove-winner-create',manifest:hostedManifest()});
+  await service.mutate({id,actor:participant,operationId:'remove-winner-join',action:'join',revision,
+    repositoryUrl:'https://github.com/student/project'});
+  const entry=await service.mutate({id,actor:participant,operationId:'remove-winner-submit',action:'submit',revision,
+    title:'Winning game',description:'A game',demoUrl:'https://student.github.io/project/'});
+  const removal={id,actor:creator,operationId:'remove-winner-host',action:'withdraw-entry',
+    participantId:participant.id,reason:'Entrant requested removal.'};
+  setTime('2030-01-04T00:00:00Z');
+  await service.mutate({id,actor:creator,operationId:'remove-winner-pick',action:'pick-winner',
+    participantId:participant.id,revision:entry.revision});
+  assert.equal((await service.read(id,creator)).canHostRemoveEntry,undefined);
+  await assert.rejects(service.mutate(removal),{status:403});
+  const reveal='2030-01-05T00:00:00Z';
+  setTime(reveal);
+  assert.equal((await service.readPage(id,creator,{offset:0})).canHostRemoveEntry,true);
+  assert.equal((await service.readPage(id,participant,{offset:0})).canHostRemoveEntry,undefined);
+  await assert.rejects(service.mutate({...removal,actor:participant}),{status:403});
+  await service.mutate({id,actor:maintainer,operationId:'remove-winner-suspend',action:'suspend',reason:'Review'});
+  await assert.rejects(service.mutate(removal),{status:403});
+  await service.mutate({id,actor:maintainer,operationId:'remove-winner-resume',action:'resume',reason:'Reviewed'});
+
+  canCreate=false;
+  const result=await service.mutate(removal);
+  assert.equal(result.status,'withdrawn');
+  assert.deepEqual(await service.mutate(removal),result);
+  const detail=await service.read(id,participant);
+  assert.deepEqual(detail.event.entries,[]);
+  assert.equal(detail.registration.status,'joined');
+  assert.equal(detail.entry.reason,removal.reason);
+  assert.equal(detail.entry.moderatedBy,creator.id);
+  const visibility=await projectVisibility(await store.snapshot(),Date.parse(reveal));
+  assert.equal(visibility.isGameJamWinner('202',participant.id),false);
+  assert.equal(visibility.isHeld('202'),false);
 });

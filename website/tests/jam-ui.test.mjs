@@ -126,17 +126,28 @@ test('submission contract requires a demo URL and preserves exact source and dem
   assert.ok(await h.render().send(payload));
   const {operationId,...sent}=received;assert.deepEqual(sent,payload);assert.ok(operationId);
 });
-test('entry moderation is maintainer-only in the gallery and sends the public reason and participant identity',async()=>{
-  assert.match(clientSource,/data\.canMaintain&&<EntryModeration id=\{id\} participantId=\{entry\.participantId\} onChanged=\{refreshAfterModeration\}/);
-  assert.match(clientSource,/<summary>Maintainer review<\/summary>/);
+test('entry moderation sends the public reason and participant identity',async()=>{
   assert.match(clientSource,/<label>Public reason<textarea required/);
   assert.match(clientSource,/mutation\.send\(\{action:'withdraw-entry',participantId,reason\}\)/);
-  assert.match(clientSource,/if\(result\)await onChanged\(\)/);
+  assert.match(clientSource,/if\(result\?\.status==='withdrawn'\)await onChanged\(\)/);
   const payload={action:'withdraw-entry',participantId:'14',reason:'Uncredited copied work'};
   let received;
   const h=harness({fetcher:async(url,init)=>{received=JSON.parse(init.body);return confirmed(init);}});
   assert.ok(await h.render().send(payload));
   const {operationId,...sent}=received;assert.deepEqual(sent,payload);assert.ok(operationId);
+});
+test('the gallery offers host entry removal only to a signed-in account with permission',()=>{
+  const entry={participantId:'33',login:'student',title:'Project',description:'Project',repository:{id:'202',ownerId:'33',fullName:'student/project'}};
+  const event={id:'jam-42',title:'Jam',type:'game',schedule:{},moderation:{status:'active'},participants:[],entries:[entry]};
+  const data={event,entry:null,registration:null,canMaintain:false};
+  const h=harness({participateData:data});
+  const control=()=>elements(h.render('JamDetail',{id:'jam-42'})).find(node=>node.type?.name==='EntryModeration');
+  assert.equal(control(),undefined);
+  h.setDetail({...data,canHostRemoveEntry:true});
+  assert.equal(control().props.participantId,'33');
+  assert.equal(control().props.host,true);
+  h.setActor(null);
+  assert.equal(control(),undefined);
 });
 test('a participant joined under A sees approved B changes and old rules, but cannot submit without reviewing B',async()=>{
   const original={type:'game',title:'Jam A',summary:'Original jam',theme:'Water',rules:'Original rule A: work alone.',eligibility:'Students',websiteUrl:'https://creator.example/',timezone:'UTC',schedule:{registrationOpensAt:'2030-01-01T00:00:00Z',registrationClosesAt:'2030-01-10T00:00:00Z',startsAt:'2030-01-11T00:00:00Z',submissionsOpenAt:'2030-01-11T00:00:00Z',submissionsCloseAt:'2030-01-12T00:00:00Z'}};
