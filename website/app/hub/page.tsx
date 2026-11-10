@@ -3,7 +3,6 @@ import {notFound,redirect} from 'next/navigation';
 import Link from 'next/link';
 import {HubDiscovery} from '@/components/HubDiscovery';
 import {HubMyLibraries} from '@/components/HubMyLibraries';
-import {listingsEnabled} from '@/lib/hub-listings-store.mjs';
 import {isJamHubVisibilityEnforced} from '@/lib/jam-hub-visibility.mjs';
 
 export const metadata={title:'ZeroHub'};
@@ -36,6 +35,6 @@ export default async function Hub({searchParams}:{searchParams:Promise<Record<st
     </>;
   }
   return <Suspense fallback={<p role="status">Loading projects…</p>}>
-    <HubDiscovery enforceJamVisibility={isJamHubVisibilityEnforced()} showListings={listingsEnabled()}/>
+    <HubDiscovery enforceJamVisibility={isJamHubVisibilityEnforced()} paginatedProjects/>
   </Suspense>;
 }

@@ -18,15 +18,15 @@ button.account { width:auto; min-width:0; font-size:.92em; color:var(--zero-mute
 button.account:hover,button.link:hover,button.repo-choice:hover { background:transparent; text-decoration:underline; }
 button.repo-choice { flex:1; width:auto; min-width:0; max-width:100%; color:var(--zero-text); }
 button.repo-choice > svg { flex:none; transform:rotate(-90deg); }
-.repo-label { flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.repo-label { flex:0 1 auto; min-width:0; overflow:hidden; white-space:nowrap; padding-right:1em; mask-image:linear-gradient(to right, #000 calc(100% - 1em), transparent); }
 .branch-row { position:relative; display:flex; align-items:center; justify-content:space-between; gap:8px; margin:2px 0 5px; }
 .branch { display:inline-flex; align-items:center; gap:7px; min-width:0; overflow-wrap:anywhere; color:var(--zero-text); font-weight:600; }
 .branch svg { width:16px; height:16px; flex:none; }
 #branch-menu { max-height:min(18rem,50vh); overflow-y:auto; }
-#branch-menu button[data-branch-choice] span { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+#branch-menu button[data-branch-choice] span { min-width:0; overflow:hidden; white-space:nowrap; padding-right:1em; mask-image:linear-gradient(to right, #000 calc(100% - 1em), transparent); }
 .branch-menu-divider { display:block; border-top:1px solid var(--vscode-menu-separatorBackground,var(--zero-border,transparent)); margin:4px; }
 button.history-icon,button.undo-icon { width:auto; flex:none; padding:2px 5px; font-size:1.15em; }
-.branch-name { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.branch-name { min-width:0; overflow:hidden; white-space:nowrap; padding-right:1em; mask-image:linear-gradient(to right, #000 calc(100% - 1em), transparent); }
 button.change { width:auto; flex-shrink:0; font-size:.92em; }
 button.branch-sync { margin:3px 0; flex-wrap:wrap; font-variant-numeric:tabular-nums; }
 button.branch-sync span { white-space:nowrap; }

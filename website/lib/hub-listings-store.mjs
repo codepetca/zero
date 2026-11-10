@@ -127,12 +127,13 @@ export function createHubListingsStore(pool) {
     return {projects:rows.map(project), next:more ? rows.at(-1).repository_id : null};
   }
 
-  async function discover(before, search, excluded) {
+  async function discover(before, search, excluded, limit = listingPageSize + 1) {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 25) throw new Error('Invalid discovery limit');
     const {rows} = await pool.query(`SELECT account_id, ${fields} FROM ${table} WHERE listed_order IS NOT NULL
       AND ($1::bigint IS NULL OR listed_order < $1)
       AND ($2 = '' OR strpos(lower(title || ' ' || author), lower($2)) > 0)
       AND repository_id <> ALL($3::text[])
-      ORDER BY listed_order DESC LIMIT $4`, [before, search, excluded, listingPageSize + 1]);
+      ORDER BY listed_order DESC LIMIT $4`, [before, search, excluded, limit]);
     return rows.map(row => ({...project(row), accountId:row.account_id, order:row.listed_order}));
   }
 

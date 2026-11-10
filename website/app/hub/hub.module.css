@@ -74,7 +74,7 @@
 .projectHeading { position: relative; z-index: 2; display: flex; align-items: flex-start; gap: 4px; padding-bottom: 12px; border-radius: 6px 6px 0 0; background: linear-gradient(rgb(0 0 0 / 88%) 0%, rgb(0 0 0 / 80%) 75%, transparent 100%); }
 .projectCard .imageTitle { flex: 1; min-width: 0; margin: 0; padding: 8px 10px; font-size: 18px; line-height: 1.4; }
 .projectHeading .infoButton { flex: none; }
-.imageTitle > span { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.imageTitle > span { display: block; box-sizing: border-box; width: fit-content; max-width: 100%; overflow: hidden; white-space: nowrap; padding-right: 1em; mask-image: linear-gradient(to right, #000 calc(100% - 1em), transparent); }
 .projectCard .cardFooter { align-self: end; position: relative; z-index: 2; padding: 16px 10px 8px; border-radius: 0 0 6px 6px; background: linear-gradient(transparent, rgb(0 0 0 / 88%) 16px); }
 .projectCard .feedback { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; }
 .projectCard .projectActions { margin-left: auto; }

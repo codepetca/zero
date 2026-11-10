@@ -1,3 +1,29 @@
+# ZeroHub Projects pagination and text fades — 2026-11-10
+
+Local branch `codex/zerohub-project-pages` is based on PR #318's
+`a2ff62cb9`. At `ab75c9d43`, the public Projects pane uses server search and
+pages of up to 24 maintained, shared and published cards. It shows authorized
+cards before supplemental status. The page cursor carries no visibility grant,
+and late changes reconcile the page and continuation together. Horizontal
+clipping in Zero's authored web titles and editor labels uses a text fade.
+
+TypeScript and the production website build passed. The full website suite
+passed 812 with 3 skipped. The extension workflow UI test passed with one
+skip. Chromium and WebKit fixture runs verified 24 then 6 cards, page controls,
+keyboard focus, full-catalog search, cursor restart, deferred status, and
+320/390 px reflow. They verified the website title and repository label fades
+in a browser and the editor playground. Live Postgres and native VS Code
+interaction were outside these checks. Screenshots and browser logs are in
+`output/playwright/project-pages/`.
+
+Sol/high and Terra/high independently reviewed `a2ff62cb9..abddfd77e`.
+The follow-up kept distinct project identities, tightened listing configuration
+and scan behavior, bounded optional Play probes, and reconciled the cursor with
+the displayed cards. Targeted Sol/high review of `abddfd77e..ab75c9d43` found
+no remaining blockers. Effective model telemetry is unavailable.
+
+---
+
 # Faster ZeroHub Projects browsing — 2026-11-10
 
 Local source `3942d88ed` shows public game cards from the fresh discovery

@@ -31,6 +31,10 @@ Owner ZeroHub grid approval, 2026-11-10. Use the Compact grid when the
 sidebar and Projects pane sit side by side. Keep the square previews and
 existing control sizes. Keep the roomier cards on narrow screens.
 
+Owner text overflow refinement. Fade horizontally clipped titles and labels
+in Zero's own UI. Keep the full text available to assistive technology and
+through existing tooltips or details.
+
 Owner wording refinement, 2026-11-10. Call published work in ZeroHub **apps**
 in listing controls. Use **app listing** where the copy needs to
 distinguish the public card from the app hosted on GitHub Pages. Use
