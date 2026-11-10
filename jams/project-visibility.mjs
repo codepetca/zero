@@ -1,4 +1,5 @@
 import {ACCOUNT, ID, LIMITS, SHA, fail, validateState} from './schema.mjs';
+import {gameJamWinningEntry} from './winner.mjs';
 
 /** Build a decision from one complete, trusted atomic store snapshot. The caller
  * must obtain a fresh snapshot and a trusted clock for each public response;
@@ -11,7 +12,7 @@ export async function projectVisibility(snapshot, now) {
         !Number.isSafeInteger(now) || now < 0) throw Error();
     const ids = [...snapshot.ids];
     if (ids.some(id => typeof id !== 'string' || !ID.test(id)) || new Set(ids).size !== ids.length) throw Error();
-    const held = new Set();
+    const held = new Set(), winners = new Set();
     for (const id of ids) {
       const result = await snapshot.read(id);
       const state = validateState(result?.state, id, LIMITS, {enforceReserve:false});
@@ -31,7 +32,12 @@ export async function projectVisibility(snapshot, now) {
         for (const entry of history) if (entry.repository) validRepositoryId(entry.repository);
       }
       const reveal = state.accepted?.manifest.schedule.galleryRevealAt;
-      if (!reveal || now >= Date.parse(reveal)) continue;
+      if (!reveal) continue;
+      if (now >= Date.parse(reveal)) {
+        const winner = gameJamWinningEntry(state,now);
+        if (winner) winners.add(winner.repository.id + '/' + winner.repository.ownerId);
+        continue;
+      }
       for (const registration of Object.values(state.registrations)) {
         // A showcase Join must bind a repository. Missing authority cannot be
         // interpreted as evidence that its project is safe to reveal.
@@ -42,10 +48,15 @@ export async function projectVisibility(snapshot, now) {
         for (const entry of history) if (entry.repository) held.add(entry.repository.id);
       }
     }
-    return Object.freeze({revision:snapshot.revision, observedAt:now, heldRepositoryIds:()=>Object.freeze([...held]), isHeld(repositoryId) {
-      if (typeof repositoryId !== 'string' || !ACCOUNT.test(repositoryId)) fail(503,'Project visibility is unavailable.');
-      return held.has(repositoryId);
-    }});
+    return Object.freeze({revision:snapshot.revision, observedAt:now, heldRepositoryIds:()=>Object.freeze([...held]),
+      isHeld(repositoryId) {
+        if (typeof repositoryId !== 'string' || !ACCOUNT.test(repositoryId)) fail(503,'Project visibility is unavailable.');
+        return held.has(repositoryId);
+      },
+      isGameJamWinner(repositoryId, ownerId) {
+        return !held.has(repositoryId) && winners.has(repositoryId + '/' + ownerId);
+      }
+    });
   } catch {
     fail(503,'Project visibility is unavailable.');
   }

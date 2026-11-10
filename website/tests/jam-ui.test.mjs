@@ -10,13 +10,19 @@ const require=createRequire(import.meta.url);
 const clientSource=await readFile(new URL('../components/JamClient.tsx',import.meta.url),'utf8');
 const panelSource=await readFile(new URL('../app/hub/jams/[id]/panel/route.ts',import.meta.url),'utf8');
 function compile(source){return ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;}
+function clientRequire(name) {
+  if(name==='@/app/hub/hub.module.css')return {default:{}};
+  if(name==='./HubNavigation')return {HubSidebar:function HubSidebar(){return null;}};
+  if(name==='./Icon')return {Icon:()=>null};
+  return require(name);
+}
 function harness({storage=new Map(),fetcher=async()=>{throw new Error('network');},participateData=null,refreshImpl=null}={}) {
   let actor={id:'12',login:'creator',csrfToken:'csrf'},index=0,slots=[],effects=[];
   const self={},window={self,top:self};
   const react={useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(fn){index++;effects.push(fn);}};
   const module={exports:{}};
-  const context={participateData,refreshImpl,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return {default:()=>null};return require(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
-  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useDraft,EventFacts,Proposal,useMutation,useResource,JamHelpLink,JamCreate,JamDiscovery,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,MaintainerTools};',context);
+  const context={participateData,refreshImpl,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return {default:()=>null};return clientRequire(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
+  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useDraft,EventFacts,Proposal,useMutation,useResource,JamHelpLink,JamCreate,JamDiscovery,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,JamAccountTools};',context);
   return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},renderDraft(name,initial,initializeFresh){index=0;return module.exports.testing.useDraft(name,initial,initializeFresh);},flushEffects(){const work=effects;effects=[];for(const fn of work)fn();},setActor(value){actor=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
 }
 function elements(node) {
@@ -53,6 +59,35 @@ test('a failed gallery refresh discards previously verified page data',async()=>
   const render=()=>h.render('useResource','/api/jams/jam-42?view=gallery',true);
   await render().refresh();assert.equal(render().data.event.title,'Previous page');
   fail=true;await render().refresh();assert.equal(render().data,null);assert.match(render().error,/Start again/);
+});
+test('host judging controls stay available when the public gallery fails',()=>{
+  const h=harness({participateData:{testError:'Public gallery unavailable'}});
+  const tools=elements(h.render('JamDetail',{id:'jam-42'})).find(node=>node.type?.name==='JamAccountTools');
+  assert.ok(tools);
+  h.setDetail({canPickWinner:true,canMaintain:false});
+  const account=()=>elements(h.render('JamAccountTools',tools.props));
+  assert.ok(account().some(node=>node.type?.name==='WinnerPicker'));
+  h.setDetail({canMaintain:true});
+  assert.ok(account().some(node=>node.type?.name==='ModerationInbox'));
+  assert.ok(!account().some(node=>node.type?.name==='WinnerPicker'));
+});
+test('winner confirmation refreshes the account view and returns from a changed gallery page',async()=>{
+  const event={id:'jam-42',type:'game',title:'Jam',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',
+    timezone:'UTC',schedule:{},revision:'a',moderation:{status:'active'},registrationOpen:false,
+    submissionsOpen:false,participantCount:0,participants:[],entries:[]};
+  const h=harness({participateData:{event,canPickWinner:true,nextCursor:'opaque-cursor'}});
+  const render=()=>elements(h.render('JamDetail',{id:'jam-42'}));
+  const account=()=>render().find(node=>node.type?.name==='JamAccountTools');
+  const pending=account();
+  render().find(node=>node.type==='button'&&node.props.children==='Next gallery page').props.onClick();
+  assert.ok(render().some(node=>node.props.children==='Start gallery again'));
+  assert.equal(pending.props.isCurrent(),true);
+  await pending.props.onWinner();
+  assert.notEqual(account().key,pending.key);
+  assert.ok(!render().some(node=>node.props.children==='Start gallery again'));
+  h.setActor({id:'99',login:'other',csrfToken:'other'});
+  render();
+  assert.equal(pending.props.isCurrent(),false);
 });
 test('mutation retries preserve operation identity through errors and reload; success clears it',async()=>{
   const calls=[],storage=new Map();
@@ -192,17 +227,17 @@ test('held entries appear in a separate maintainer-only review section',()=>{
   const event={id:'jam-42',title:'Jam',type:'game',timezone:'UTC',summary:'',theme:'',rules:'',eligibility:'',schedule:{},revision:'A',moderation:{status:'active'},registrationOpen:false,submissionsOpen:false,participants:[],participantCount:1,entries:[]};
   const data={configured:true,event,entry:null,registration:null,canMaintain:true,moderationEntries:[entry]};
   const h=harness({participateData:data});
-  assert.equal(elements(h.render('JamDetail',{id:'jam-42'})).filter(node=>node.type?.name==='MaintainerTools').length,1);
-  assert.equal(elements(h.render('MaintainerTools',{id:'jam-42',onChanged:async()=>{}})).filter(node=>node.type?.name==='ModerationInbox').length,1);
+  assert.equal(elements(h.render('JamDetail',{id:'jam-42'})).filter(node=>node.type?.name==='JamAccountTools').length,1);
+  assert.equal(elements(h.render('JamAccountTools',{id:'jam-42',onModeration:async()=>{}})).filter(node=>node.type?.name==='ModerationInbox').length,1);
   const inbox=h.render('ModerationInbox',{id:'jam-42',onChanged:async()=>{}});
   const held=elements(inbox).filter(node=>node.type?.name==='HeldEntryModeration');
   assert.equal(held.length,1);assert.equal(held[0].props.entries[0].title,'Hidden project');
   const section=h.render('HeldEntryModeration',{id:'jam-42',entries:[entry],onChanged:async()=>{}});
   assert.ok(elements(section).some(node=>node.type?.name==='EntryModeration'&&node.props.participantId==='33'));
-  h.setDetail({...data,canMaintain:false});assert.equal(elements(h.render('MaintainerTools',{id:'jam-42',onChanged:async()=>{}})).some(node=>node.type?.name==='ModerationInbox'),false);
+  h.setDetail({...data,canMaintain:false});assert.equal(elements(h.render('JamAccountTools',{id:'jam-42',onModeration:async()=>{}})).some(node=>node.type?.name==='ModerationInbox'),false);
   h.setDetail({...data,moderationEntries:[]});assert.equal(elements(h.render('ModerationInbox',{id:'jam-42',onChanged:async()=>{}})).some(node=>node.type?.name==='HeldEntryModeration'),false);
-  h.setDetail(null);assert.ok(elements(h.render('JamDetail',{id:'jam-42'})).some(node=>node.type?.name==='MaintainerTools'),'gallery failure does not unmount the independent maintainer path');
-  h.setActor(null);assert.equal(elements(h.render('JamDetail',{id:'jam-42'})).some(node=>node.type?.name==='MaintainerTools'),false);
+  h.setDetail(null);assert.ok(elements(h.render('JamDetail',{id:'jam-42'})).some(node=>node.type?.name==='JamAccountTools'),'gallery failure does not unmount the independent maintainer path');
+  h.setActor(null);assert.equal(elements(h.render('JamDetail',{id:'jam-42'})).some(node=>node.type?.name==='JamAccountTools'),false);
 });
 
 test('maintainer overview errors can be retried and gallery moderation refreshes the independent inbox',async()=>{
@@ -210,18 +245,18 @@ test('maintainer overview errors can be retried and gallery moderation refreshes
   const event={id:'jam-42',title:'Jam',type:'game',timezone:'UTC',summary:'',theme:'',rules:'',eligibility:'',schedule:{},revision:'A',moderation:{status:'active'},registrationOpen:false,submissionsOpen:false,participants:[],participantCount:1,entries:[entry]};
   const data={configured:true,event,entry:null,registration:null,canMaintain:true,moderationEntries:[entry]};
   const h=harness({participateData:data}),render=()=>elements(h.render('JamDetail',{id:'jam-42'}));
-  const first=render().find(node=>node.type?.name==='MaintainerTools');
+  const first=render().find(node=>node.type?.name==='JamAccountTools');
   await render().find(node=>node.type?.name==='EntryModeration').props.onChanged();
-  const next=render().find(node=>node.type?.name==='MaintainerTools');
+  const next=render().find(node=>node.type?.name==='JamAccountTools');
   assert.notEqual(first.key,next.key,'gallery moderation remounts the separately fetched inbox');
   h.setDetail(null);
   assert.ok(render().some(node=>node.props?.role==='status'&&node.props.children==='Most recent confirmed moderation: submission withdrawn.'),'confirmation survives an unavailable gallery');
   h.setActor({id:'99',login:'other',csrfToken:'other'});
   assert.equal(render().some(node=>node.props?.role==='status'&&node.props.children==='Most recent confirmed moderation: submission withdrawn.'),false,'confirmation is scoped to the signed-in identity');
   h.setDetail({...data,testError:'Overview unavailable'});
-  const retry=elements(h.render('MaintainerTools',{id:'jam-42',onChanged:async()=>{}})).find(node=>node.type?.name==='Retry');
+  const retry=elements(h.render('JamAccountTools',{id:'jam-42',onModeration:async()=>{}})).find(node=>node.type?.name==='Retry');
   assert.equal(retry.props.error,'Overview unavailable');assert.equal(typeof retry.props.refresh,'function');
-  const sameError=elements(h.render('MaintainerTools',{id:'jam-42',onChanged:async()=>{},galleryError:'Overview unavailable'}));
+  const sameError=elements(h.render('JamAccountTools',{id:'jam-42',onModeration:async()=>{},galleryError:'Overview unavailable'}));
   assert.ok(sameError.some(node=>node.type==='button'&&node.props.children==='Retry account view'&&typeof node.props.onClick==='function'),
     'the account view remains independently retryable without repeating the error');
   assert.equal(sameError.some(node=>node.type?.name==='Retry'),false);
@@ -259,8 +294,33 @@ test('Jam pages link to the rules without placing plan details in the main flow'
   for(const page of ['JamDiscovery','JamCreate'])assert.ok(elements(h.render(page)).some(node=>node.type?.name==='JamHelpLink'));
   assert.match(clientSource,/<JamHelpLink\/>(?=<div className="jam-actions">\{!joined\?)/);
   assert.match(clientSource,/Participants: \{data\.event\.participantCount\} · Limit: \{data\.event\.participantLimit\}/);
-  assert.match(clientSource,/Create a jam<\/Link> <span className="jam-muted">Pro<\/span>/);
   assert.doesNotMatch(clientSource,/JamPlanNotice|room for up to \{data\.event\.participantLimit\} participants/);
+});
+
+test('Jam discovery searches public cards and shows hosting only for the current Pro account',()=>{
+  const events=[{id:'jam-1',type:'game',title:'Moon Arcade',theme:'Space exploration',summary:'Build a game.'},
+    {id:'jam-2',type:'app',title:'Moon Planner',theme:'Productivity',summary:'Build a useful app.'}];
+  const h=harness({participateData:{events,hostingAccess:{accountId:'12',canCreate:true}}});
+  const render=()=>elements(h.render('JamDiscovery'));
+  const create=()=>render().some(node=>node.props.href==='/hub/jams/create');
+  const cards=()=>render().filter(node=>node.type==='article').map(node=>node.key);
+  const sidebar=render().find(node=>node.type?.name==='HubSidebar');
+  assert.equal(sidebar.props.active,'jams');
+  const search=elements(sidebar).find(node=>node.type==='input');
+  assert.equal(search.props['aria-label'],'Search jams');
+  assert.deepEqual(cards(),['jam-1','jam-2']);
+  search.props.onChange({target:{value:'  SPACE arcade  '}});
+  assert.deepEqual(cards(),['jam-1']);
+  render().find(node=>node.type==='select').props.onChange({target:{value:'app'}});
+  assert.deepEqual(cards(),[]);
+  assert.ok(render().some(node=>node.props.children==='No jams match your search.'));
+  assert.equal(create(),true);
+  h.setActor({id:'99',login:'other',csrfToken:'other'});
+  assert.equal(create(),false);
+  h.setDetail({events,hostingAccess:{accountId:'99',canCreate:false}});
+  assert.equal(create(),false);
+  h.setActor(null);
+  assert.equal(create(),false);
 });
 
 test('Jam rules page explains plans, access and timing',async()=>{
@@ -500,7 +560,7 @@ test('actual SSR and initial client markup do not depend on browser timezone or 
   vm.runInNewContext(compile(clientSource),{module,exports:module.exports,require(name){
     if(name==='./HubGitHub')return {useHubGitHub:()=>({user:{id:'12',login:'creator',csrfToken:'csrf'}}),HubAccount:()=>null};
     if(name==='next/link')return {default:()=>null};
-    return require(name);
+    return clientRequire(name);
   }});
   const server=renderToStaticMarkup(React.createElement(module.exports.JamCreate));
   const client=renderToStaticMarkup(harness().render('JamCreate'));

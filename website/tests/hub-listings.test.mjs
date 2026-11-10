@@ -120,6 +120,20 @@ test('held matches do not create a continuation and GitHub outages are retryable
   assert.equal((await read({destinationReader:async()=>{throw new Error('rate limited');}})).status, 503);
 });
 
+test('disabled jam pages suppress the award while the published app remains visible', async () => {
+  const production={...env,NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_HUB_ORIGIN:'https://zero.codepet.ca'};
+  const entry={...receipt,accountId:'6',order:'1',title:'Game',author:'student'};
+  const response=await hubPublicListingsResponse(new Request('https://zero.codepet.ca/api/hub/listings/discover'), {
+    env:production,getStore:()=>({discover:async()=>[entry],stillListed:async items=>items}),
+    visibilityReader:async()=>({revision:commit,observedAt:Date.now(),isHeld:()=>false,isGameJamWinner:()=>true}),
+    destinationReader:async()=>true,playReader:async()=>undefined
+  });
+  assert.equal(response.status,200);
+  const {projects}=await response.json();
+  assert.equal(projects.length,1);
+  assert.equal(projects[0].gameJamWinner,undefined);
+});
+
 test('public discovery uses a GitHub App grant for one public repository and metadata read only', async () => {
   const {privateKey:key,publicKey} = generateKeyPairSync('rsa',{modulusLength:2048});
   const entry = {...receipt, accountId:'6'};

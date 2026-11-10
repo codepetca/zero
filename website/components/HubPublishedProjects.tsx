@@ -4,7 +4,7 @@ import {useEffect, useState} from 'react';
 import {HubProjectCard} from './HubProjectCard';
 import styles from '@/app/hub/hub.module.css';
 
-type Project = {id:string; title:string; author:string; repositoryUrl:string; pagesUrl?:string};
+type Project = {id:string; title:string; author:string; repositoryUrl:string; pagesUrl?:string; gameJamWinner?:boolean};
 
 export function HubPublishedProjects({search, hasOtherProjects}:{search:string; hasOtherProjects:boolean}) {
   const [before, setBefore] = useState<string|null>(null);
@@ -40,6 +40,7 @@ export function HubPublishedProjects({search, hasOtherProjects}:{search:string; 
   return <>
     {page.projects.map(project=><HubProjectCard key={project.id} title={project.title}
       description="GitHub Pages app" author={project.author} playHref={project.pagesUrl} repositoryHref={project.repositoryUrl} compact>
+      {project.gameJamWinner && <span className={styles.winnerBadge}>Game Jam winner</span>}
       {!project.pagesUrl && <a href={project.repositoryUrl}>Open on GitHub</a>}
     </HubProjectCard>)}
     {!page.projects.length && !hasOtherProjects && !page.next && <p role="status">{search.trim() ? 'No apps match this search.' : 'No apps are available yet.'}</p>}

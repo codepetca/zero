@@ -37,3 +37,5 @@
 .jam-review summary { min-height:44px; cursor:pointer; font-weight:600; }
 .jam-review h2 { margin-top:0; }
 @media(max-width:600px) { .jam-facts { grid-template-columns:minmax(0,1fr); gap:4px; } .jam-facts dd { margin-bottom:12px; } .jam-card,.jam-review { padding:16px; } .jam-actions > .jam-button { flex:1 1 auto; } }
+
+.jam-winner { color:var(--zero-accent, inherit); font-weight:600; }

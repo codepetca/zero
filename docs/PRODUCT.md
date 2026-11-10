@@ -172,6 +172,10 @@ from the library catalog and ZeroJams.
 
 ## ZeroJams
 
+The ZeroHub sidebar opens **Jams** when discovery is enabled. The directory
+shows Game Jams and App Jams, with search, a type filter and links to each jam's
+rules and schedule. Signed-in accounts with hosting access see **Create a jam**.
+
 Free personal use includes joining jams and submitting work. A Pro license is
 required to create a jam for up to 100 participants. Licenses are enabled
 manually; contact `info@codepet.ca` to request access. Creation access is bound to
@@ -198,11 +202,19 @@ repository before publishing. They submit a Pages site verified against that
 repository before the deadline; verified custom domains qualify. Coursework
 links still go separately to Pika.
 
+After submissions close in a Zero-hosted Game Jam, the host can choose one
+eligible submission as the winner and correct their choice later. The winner
+badge appears on the eligible gallery entry at reveal. A matching published
+ZeroHub app also shows a Game Jam winner badge.
+The gallery reveal lifts the jam's discovery hold on existing ZeroHub listings.
+Entry in a jam is separate from publishing an app to ZeroHub.
+
 The owner authorized a 100-participant limit per jam, including departed
 registrations. New Pro jams are automatically approved; maintainers can moderate them. This source limit changes
 the live service only through publication. The 100-person hosted Neon/Pages flow
 remains untested; the limit is not a provider-capacity acceptance result.
-Production availability is controlled by a pilot flag; the pilot is shared by direct link. A reveal date is not a
+Production availability is controlled by a pilot flag. The pilot is shared by
+direct link until ZeroHub discovery is separately enabled. A reveal date is not a
 promise that public GitHub repositories or Pages sites are secret. See [the plan](ZEROJAMS-PLAN.md) and
 [operator guide](ZEROJAMS-OPERATIONS.md).
 

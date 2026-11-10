@@ -71,6 +71,15 @@ canonical snapshot; the legacy endpoint strips optional web receipts, while
 author's mutable hosted app in a new tab. Missing configuration or an outage
 shows an honest shared-catalog error and retry; maintained projects still render.
 
+### ZeroJams discovery
+
+Local development shows **Jams** in the ZeroHub sidebar. The production pilot
+uses direct links by default. Set the server-only
+`ZERO_JAMS_DISCOVERY_ENABLED=1` to show the sidebar entry in production when
+`ZERO_JAMS_PILOT_ENABLED=1` and `ZERO_JAMS_ENABLED=1` are already enabled.
+The sidebar setting grants no hosting access. The directory uses the Jam
+service's Pro policy to show **Create a jam** to eligible signed-in accounts.
+
 ## Download states
 
 A published kit links directly to verified immutable GitHub assets. While the current kit remains local, optional `release/published-kit.json` provides the last verified public kit, starter and VSIX, with their own version labels. Preparation validates published state, exact URLs, sizes and hashes; fallback cannot be newer than the current kit. A missing fallback shows the availability explanation at `/downloads`. Mac setup publication is independent of the ZIP version.
