@@ -6,9 +6,9 @@ import {hubProjectPageResponse} from '../lib/hub-project-page.mjs';
 
 const commit='a'.repeat(40);
 const origin='https://zero.example';
-const game = (number, title=`Game ${number}`) => {
+const game = (number, title=`Game ${number}`, slug='sample') => {
   const repositoryId=String(number);
-  const identity=contracts.identity('game',repositoryId,'sample');
+  const identity=contracts.identity('game',repositoryId,slug);
   const version='1.0.0';
   const path=contracts.artifactPath(identity,version,'zip');
   return {schema:1,kind:'game',id:identity.id,slug:identity.slug,version,title,description:'Move a ship.',license:'MIT',
@@ -37,13 +37,13 @@ async function request(opts, params={}) {
 test('combined maintained and shared pages check only displayed candidates and lookahead',async()=>{
   const releases=Array.from({length:61},(_,index)=>game(100+index));
   const checked=[];
-  const opts=options({projects:[maintained(100),maintained(500)],catalogReader:async()=>catalog(releases),
+  const opts=options({projects:[maintained(500),maintained(501)],catalogReader:async()=>catalog(releases),
     visibilityReader:async()=>visibility(['101'])});
   const readDestination=opts.destinationReader;
   opts.destinationReader=async url=>{checked.push(url);return readDestination(url);};
   const seen=[];
   let cursor;
-  for (const expected of [24,24,13]) {
+  for (const expected of [24,24,14]) {
     checked.length=0;
     const {status,cache,body}=await request(opts,cursor?{cursor}:{});
     assert.equal(status,200,JSON.stringify(body));
@@ -58,6 +58,13 @@ test('combined maintained and shared pages check only displayed candidates and l
   assert.equal(cursor,null);
   assert.equal(new Set(seen).size,seen.length);
   assert.ok(!seen.includes('101'));
+});
+
+test('distinct games in the same repository retain their catalog identities',async()=>{
+  const opts=options({catalogReader:async()=>catalog([game(103,'First game','first'),game(103,'Second game','second')])});
+  const {status,body}=await request(opts);
+  assert.equal(status,200);
+  assert.deepEqual(body.catalog.releases.map(item=>item.slug),['first','second']);
 });
 
 test('server search finds matches beyond the first page, and cursors bind to query and catalog revision',async()=>{
@@ -128,4 +135,12 @@ test('a newly held project disappears on a fresh page check without exposing its
   const result=await request(opts,{revalidate:'1'});
   assert.deepEqual(result.body.catalog.releases.map(item=>item.title),['Public game']);
   assert.doesNotMatch(JSON.stringify(result.body),/Held game|game-321/);
+});
+
+test('published listing discovery retains the legacy configuration gate',async()=>{
+  const result=await request(options({env:{NODE_ENV:'test',ZERO_HUB_LISTINGS_ENABLED:'1'},
+    projects:[maintained(401)],getStore:()=>assert.fail('invalid Hub configuration reached listings')}));
+  assert.equal(result.status,200);
+  assert.equal(result.body.maintained.length,1);
+  assert.deepEqual(result.body.listings,[]);
 });

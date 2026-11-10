@@ -60,16 +60,13 @@ function selectCandidates(projectRecords, catalog, search) {
     original.set(target.id, {project,target});
   }
   const maintained = selectMaintainedProjects([...original.values()].map(item=>item.target), {search});
-  const usedRepositories = new Set(maintained.map(project=>project.repositoryId).filter(Boolean));
   const releases = catalog ? selectReleases(catalog, {kind:'game',search}) : [];
   const candidates = maintained.map(target=>({key:maintainedKey(target),position:sortPosition(0,target),target,project:original.get(target.id).project}));
   for (const release of releases) {
-    if (usedRepositories.has(release.repository.id)) continue;
-    usedRepositories.add(release.repository.id);
     candidates.push({key:releaseKey(release),position:sortPosition(1,release),target:publicRelease(release),release});
   }
   candidates.sort((left,right)=>left.position<right.position?-1:left.position>right.position?1:0);
-  return {candidates,usedRepositories};
+  return candidates;
 }
 
 function listingDto(entry, visibility, env) {
@@ -93,8 +90,8 @@ export async function hubProjectPageResponse(request, {env=process.env, catalogR
       revalidate !== null && revalidate !== '1') return invalid();
   const cursor = cursorValue === null ? null : readCursor(cursorValue, search);
   if (cursorValue !== null && !cursor) return invalid();
-  const includeListings = listingsEnabled(env);
-  const config = cursor?.listing || includeListings ? hubConfig(env) : null;
+  const config = listingsEnabled(env) ? hubConfig(env) : null;
+  const includeListings = config!==null;
   let listingBefore = null;
   if (cursor?.listing) {
     if (!includeListings || !config) return restart();
@@ -105,6 +102,7 @@ export async function hubProjectPageResponse(request, {env=process.env, catalogR
   }
   const releaseAdmission = claimPublicHubRequest();
   if (!releaseAdmission) return error();
+  const started = performance.now();
   const deadline = createHubRequestDeadline({budgetMs:responseBudgetMs,signal:request.signal});
   try {
     let initial;
@@ -120,7 +118,7 @@ export async function hubProjectPageResponse(request, {env=process.env, catalogR
     try { catalog = contracts.validateCatalog(await catalogDeadline.run(signal=>catalogReader({env,signal}))); }
     catch { deadline.check(); }
     finally { catalogDeadline.dispose(); }
-    const {candidates,usedRepositories} = selectCandidates(projectRecords,catalog,search);
+    const candidates = selectCandidates(projectRecords,catalog,search);
     const revision = hash([catalog,projectRecords,includeListings]);
     if (cursor && cursor.revision!==revision) return restart();
 
@@ -155,8 +153,9 @@ export async function hubProjectPageResponse(request, {env=process.env, catalogR
     if (includeListings && confirmed.length<=PROJECT_PAGE_SIZE) {
       const limit = Math.max(1,PROJECT_PAGE_SIZE-confirmed.length);
       const listing = await deadline.run(signal=>readProjectListingPage({env,signal,search,before:listingBefore,limit,
-        excluded:[...usedRepositories],visibility:initial,getStore,destinationReader:listingDestinationReader,playReader,
-        checkPlay:revalidate==='1' && confirmed.length<PROJECT_PAGE_SIZE}));
+        visibility:initial,getStore,destinationReader:listingDestinationReader,playReader,
+        checkPlay:revalidate==='1' && confirmed.length<PROJECT_PAGE_SIZE,
+        playBudgetMs:()=>Math.min(4000,Math.max(0,responseBudgetMs-(performance.now()-started)-3500))}));
       for (const entry of listing.lookahead ? [...listing.entries,listing.lookahead] : listing.entries)
         confirmed.push({entry,target:publicListing(entry)});
       moreUnscanned ||= listing.more;

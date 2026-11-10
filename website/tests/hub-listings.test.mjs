@@ -317,9 +317,22 @@ test('project listing pages bound provider work and only probe Play for displaye
   assert.equal(result.lookahead.order, '6');
   assert.deepEqual(played, ['9','8','7']);
   assert.ok(peak <= 4);
-  assert.equal(calls.length, 2);
-  assert.equal(calls[0].limit, 4);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].limit, 9);
   assert.deepEqual(calls[0].excluded, ['12','11']);
+});
+
+test('a single remaining slot scans past stale listings and a stalled Play probe is optional', async () => {
+  const items=Array.from({length:11},(_,index)=>({order:String(11-index),repositoryId:String(11-index)}));
+  let stillChecked=false;
+  const result=await readProjectListingPage({env,visibility:null,limit:1,checkPlay:true,playBudgetMs:20,
+    getStore:()=>({discover:async(before,_search,_excluded,limit)=>items.filter(item=>before===null||+item.order<+before).slice(0,limit),
+      stillListed:async entries=>{stillChecked=true;return entries;}}),
+    destinationReader:async entry=>+entry.order<=3,playReader:async()=>new Promise(()=>{})});
+  assert.deepEqual(result.entries.map(entry=>entry.order),['3']);
+  assert.equal(result.lookahead.order,'2');
+  assert.equal(result.entries[0].playUrl,undefined);
+  assert.equal(stillChecked,true);
 });
 
 test('listing page fails closed on exhausted scan budget and rechecks after Play', async () => {

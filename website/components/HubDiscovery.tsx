@@ -85,6 +85,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
   const [search, setSearch] = useState('');
   const [pageCursors, setPageCursors] = useState<string[]>([]);
   const heading = useRef<HTMLHeadingElement>(null);
+  const reconciledPage = useRef('');
   const pageQuery = new URLSearchParams({q:search.trim()});
   const pageCursor = pageCursors.at(-1);
   if (pageCursor) pageQuery.set('cursor',pageCursor);
@@ -208,6 +209,10 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
           // source lanes and their final global authority after all batches.
           const url=pageUrl?`${pageUrl}&revalidate=1`:practiceOnly?'/api/hub/discovery?revalidate=1&practice=1':'/api/hub/discovery?revalidate=1';
           const response=await fetch(url,{cache:'no-store',redirect:'error',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(22000)])});
+          if (pageUrl && response.status===409) {
+            if (active) setCatalogResult({key:catalogKey,discovery:null,error:'Projects changed. Return to the first page.',restart:true});
+            return;
+          }
           if(!response.ok)throw new Error('Project availability unavailable');
           const data=await response.json();
           if(data?.schema!==1||!Array.isArray(data.maintained)||!Array.isArray(data.presentation)||
@@ -215,9 +220,30 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
           if (pageUrl && !validProjectPage(data)) throw new Error('Invalid Projects page');
           const current=enforceJamVisibility?discoveryIdentities(data):{maintained:new Set<string>(),releases:new Set<string>()};
           const initialListings=new Set(listings.map(item=>item.identity));
+          const currentListings=(data.listings ?? []) as PublishedProject[];
+          if (pageUrl && active) {
+            // A newly eligible card can displace one from the displayed page.
+            // Reconcile the cards and continuation together once per visit.
+            const initialProjects=new Set(projects.map(maintainedIdentity));
+            const initialReleases=new Set(releases.map(gameIdentity));
+            const newCards=[...current.maintained].some(item=>!initialProjects.has(item)) ||
+              [...current.releases].some(item=>!initialReleases.has(item)) ||
+              currentListings.some(item=>!initialListings.has(item.identity));
+            if (newCards) {
+              if (reconciledPage.current===catalogKey) {
+                setCatalogResult({key:catalogKey,discovery:null,error:'Projects changed. Return to the first page.',restart:true});
+              } else {
+                reconciledPage.current=catalogKey;
+                setCatalogResult({key:catalogKey,discovery:data,error:''});
+              }
+              return;
+            }
+            setCatalogResult(previous=>previous?.key===catalogKey && previous.discovery && previous.discovery.next!==data.next ?
+              {...previous,discovery:{...previous.discovery,next:data.next}} : previous);
+          }
           gallery={maintained:projects.map(maintainedIdentity).filter((identity):identity is string=>identity!==null&&current.maintained.has(identity)),
             releases:releases.map(gameIdentity).filter((identity):identity is string=>identity!==null&&current.releases.has(identity)),
-            listings:((data.listings ?? []) as PublishedProject[]).filter(item=>initialListings.has(item.identity))};
+            listings:currentListings.filter(item=>initialListings.has(item.identity))};
           // A failed shared source cannot prove an empty gallery. Keep the
           // independently verified maintained lane and offer a whole-view retry.
           galleryUnavailable=data.catalog===null&&releases.length>0;
@@ -270,6 +296,10 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     heading.current?.focus();
     setPageCursors(cursors);
   }
+  function retryDiscovery() {
+    if (restartPage) changePage([]);
+    setRetry(value=>value+1);
+  }
   return <section className={styles.catalog} aria-labelledby="sharing-heading">
     <h1 id="sharing-heading" ref={heading} tabIndex={projectPage?-1:undefined}>{libraryOwnerId?'My Libraries':practiceOnly?'Tutorial practice':kind === 'game' ? 'Projects' : 'Libraries'}</h1>
       {!id && !version && <div className={styles.search}><Icon name="search" /><input id="sharing-search" type="search" aria-label={libraryOwnerId?'Search my libraries':'Search ZeroHub'} value={search} onChange={event=>{setSearch(event.target.value);if(projectPage)setPageCursors([]);}} maxLength={200} placeholder={libraryOwnerId?'Search my libraries':'search zerohub'} /></div>}
@@ -285,7 +315,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
       hasOtherProjects={visibleProjects.length > 0 || visibleReleases.length > 0 || visibilityPending || !catalog} />}
     {visibilityPending && !showDiscoveryCards && <p role="status">Checking project availability…</p>}
     {visibilityFailed && <div role="status"><p>Project availability is unavailable. Try again shortly.</p><button className={styles.retry} onClick={()=>{setFeedbackResult(null);setRetry(value=>value+1);}}>Try again</button></div>}
-    {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={()=>restartPage?changePage([]):setRetry(value=>value+1)}>{restartPage?'First page':'Try again'}</button></div> : !catalog ? <p role="status">Loading {label}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
+    {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={retryDiscovery}>{restartPage?'First page':'Try again'}</button></div> : !catalog ? <p role="status">Loading {label}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
       {!includeListings && !visibleReleases.length && !visibleProjects.length && !visibleListings.length && !visibilityPending && !visibilityFailed && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${label} match this search.` : libraryOwnerId ? 'You have no libraries in the main catalog yet.' : `No ${label} are available yet.`}</p>}
       {visibleReleases.map(release=>{
         const playHref=showDiscoveryCards?undefined:playLink(release);

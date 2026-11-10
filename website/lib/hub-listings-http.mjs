@@ -6,6 +6,7 @@ import {assertJamVisibilityTime, readJamHubVisibility} from './jam-hub-visibilit
 import {hubVisibilityDecision, hubTargetVisible} from './hub-project-status.mjs';
 import {configuredEntitlementStore} from './zero-entitlements-store.mjs';
 import {jamsPreviewAvailable} from './jams-visibility.mjs';
+import {createHubRequestDeadline} from './hub-request-deadline.mjs';
 
 const unavailable = () => json({error:'ZeroHub app listings are temporarily unavailable. Try again.'}, 503);
 const authRequired = () => json({error:'Sign in with GitHub to manage your apps.'}, 401);
@@ -29,7 +30,7 @@ export function claimPublicHubRequest() {
 // visibility decision. Raw order and lookahead remain server-side only.
 export async function readProjectListingPage({env = process.env, signal, search = '', before = null,
   limit, excluded = [], visibility, getStore = configuredListingsStore, destinationReader,
-  playReader = publicListingPlayUrl, checkPlay = false}) {
+  playReader = publicListingPlayUrl, checkPlay = false, playBudgetMs = 4000}) {
   if (!Number.isInteger(limit) || limit < 1 || limit > 24) throw new Error('Invalid listing page size');
   const store = getStore(env);
   if (!store) return {entries:[], more:false, lookahead:null};
@@ -38,7 +39,7 @@ export async function readProjectListingPage({env = process.env, signal, search 
   const omit = [...new Set([...excluded.map(item => typeof item === 'string' ? item : item?.repositoryId ?? item?.id),
     ...(visibility?.heldRepositoryIds?.() ?? [])].filter(Boolean))];
   const visible = entry => hubTargetVisible({kind:'game', repositoryId:entry.repositoryId}, visibility);
-  const windowSize = limit + 1;
+  const windowSize = Math.max(listingPageSize+1,limit+1);
   let order = before, exhausted = false;
   const observed = [];
   for (let attempt = 0; attempt < 4 && !exhausted && observed.length <= limit; attempt++) {
@@ -46,9 +47,11 @@ export async function readProjectListingPage({env = process.env, signal, search 
     const candidates = await store.discover(order, search, omit, windowSize);
     exhausted = candidates.length < windowSize;
     order = candidates.at(-1)?.order ?? order;
-    for (let offset = 0; offset < candidates.length && observed.length <= limit; offset += 4) {
+    for (let offset = 0; offset < candidates.length && observed.length <= limit;) {
       signal?.throwIfAborted();
-      const checked = await Promise.all(candidates.slice(offset, offset + 4).map(async entry =>
+      const batch = candidates.slice(offset,offset+Math.min(4,limit+1-observed.length));
+      offset += batch.length;
+      const checked = await Promise.all(batch.map(async entry =>
         visible(entry) && await readDestination(entry, {signal}) ? entry : null));
       observed.push(...checked.filter(Boolean));
     }
@@ -58,12 +61,24 @@ export async function readProjectListingPage({env = process.env, signal, search 
   if (!exhausted && observed.length <= limit) throw new Error('Listing scan budget exhausted');
   const selected = observed.slice(0, limit);
   const lookahead = observed[limit] ?? null;
-  if (checkPlay) {
-    for (let offset = 0; offset < selected.length; offset += 4) {
-      signal?.throwIfAborted();
-      const urls = await Promise.all(selected.slice(offset, offset + 4).map(entry => playReader(entry, {signal})));
-      urls.forEach((playUrl, index) => { selected[offset + index] = {...selected[offset + index], playUrl}; });
-    }
+  const budget = typeof playBudgetMs==='function' ? playBudgetMs() : playBudgetMs;
+  if (checkPlay && selected.length && budget>0) {
+    const playDeadline = createHubRequestDeadline({budgetMs:budget,signal});
+    try {
+      await playDeadline.run(async playSignal => {
+        for (let offset = 0; offset < selected.length; offset += 4) {
+          playDeadline.check();
+          await Promise.all(selected.slice(offset, offset + 4).map(async (entry,index) => {
+            try {
+              const playUrl = await playReader(entry,{signal:playSignal});
+              playDeadline.check();
+              selected[offset+index] = {...entry,playUrl};
+            } catch { /* A Play-only failure leaves the repository card available. */ }
+          }));
+        }
+      });
+    } catch { signal?.throwIfAborted(); }
+    finally { playDeadline.dispose(); }
   }
   signal?.throwIfAborted();
   const current = await store.stillListed([...selected, ...(lookahead ? [lookahead] : [])]);

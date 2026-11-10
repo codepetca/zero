@@ -38,6 +38,12 @@ const reply=(call,data,ok=true)=>{call.onReply?.(data);call.resolve({ok,json:asy
 const envelope=(maintained=[project],catalog={schema:1,releases:[]},presentation=[])=>({schema:1,maintained,catalog,presentation});
 const discovery=h=>h.calls.filter(call=>call.url.includes('/api/hub/discovery')&&!call.url.includes('revalidate=1')).at(-1);
 const statuses=h=>h.calls.filter(call=>call.url.includes('/api/hub/projects')).at(-1);
+const button=(node,label)=>{
+  if (!node || typeof node!=='object') return;
+  if (Array.isArray(node)) return node.map(child=>button(child,label)).find(Boolean);
+  if (node.type==='button' && node.props.children===label) return node;
+  return button(node.props?.children,label);
+};
 
 test('endpoint supplies maintained cards independently of catalog failure without inventing play links',async()=>{
   const h=harness();assert.equal(h.cards(h.render()).length,0);
@@ -85,12 +91,6 @@ test('paginated Projects retire the old page and reset the cursor on search',asy
   const h=harness([project],true,false,true);
   const render=()=>h.render({paginatedProjects:true});
   const page=(maintained,next=null)=>({...envelope(maintained),listings:[],next});
-  const button=(node,label)=>{
-    if (!node || typeof node!=='object') return;
-    if (Array.isArray(node)) return node.map(child=>button(child,label)).find(Boolean);
-    if (node.type==='button' && node.props.children===label) return node;
-    return button(node.props?.children,label);
-  };
   render();
   const first=h.calls.at(-1);
   assert.equal(first.url,'/api/hub/projects/discover?q=');
@@ -115,6 +115,22 @@ test('paginated Projects retire the old page and reset the cursor on search',asy
   await new Promise(resolve=>setTimeout(resolve,320));
   assert.equal(h.calls.at(-1).url,'/api/hub/projects/discover?q=needle');
   reply(h.calls.at(-1),page([]));await tick();render();
+});
+
+test('a changed fresh Projects page replaces the cards and continuation together',async()=>{
+  const h=harness([project],true,false,true), render=()=>h.render({paginatedProjects:true});
+  const replacement={...project,id:'replacement',title:'Newly public',repositoryId:'124'};
+  const page=(maintained,next=null)=>({...envelope(maintained),listings:[],next});
+  render();reply(h.calls.at(-1),page([project]));await tick();
+  assert.equal(button(render(),'Next page'),undefined);
+  reply(statuses(h),{schema:1,items:[status]});await tick();
+  reply(h.calls.at(-1),page([replacement],'new-cursor'));await tick();
+  const updated=render();
+  assert.deepEqual(h.cards(updated).map(card=>card.title),['Newly public']);
+  assert.ok(button(updated,'Next page'));
+  reply(statuses(h),{schema:1,items:[]});await tick();
+  reply(h.calls.at(-1),page([replacement],'new-cursor'));await tick();
+  assert.deepEqual(h.cards(render()).map(card=>card.title),['Newly public']);
 });
 
 test('focus and query changes retire old responses; practice uses the dedicated projection',async()=>{
