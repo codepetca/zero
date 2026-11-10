@@ -116,6 +116,10 @@ test('inactive mode waits for the envelope but not status, including after focus
   h.fire('window:focus');assert.deepEqual(h.cards(h.render()),[]);
   reply(latest(discoveries(h)),envelope());await tick();assert.deepEqual(h.cards(h.render()),['Maintained','Shared']);
   reply(latest(statuses(h)),{},false);await tick();
+  const discoveryCount=discoveries(h).length;
+  h.setQuery('kind=library');h.render();
+  h.setQuery('kind=game');assert.deepEqual(h.cards(h.render()),['Maintained','Shared']);
+  assert.equal(discoveries(h).length,discoveryCount);
 });
 
 test('navigation and return to an earlier query never reuse an old discovery',async()=>{

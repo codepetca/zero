@@ -64,6 +64,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
   const label=practiceOnly?'tutorial practice libraries':kind==='game'?'projects':'libraries';
   const id = query.get('id') || '', version = query.get('version') || '';
   const browseProjects = kind==='game' && !id && !version;
+  const validateEarlyProjects = browseProjects && enforceJamVisibility;
   const [catalogResult, setCatalogResult] = useState<{key:string; discovery:Discovery|null; error:string}|null>(null);
   const [search, setSearch] = useState('');
   const includeListings = showListings && requestedKind === 'game' && !id && !version;
@@ -92,14 +93,14 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
         if (!response.ok) throw new Error('The shared catalog is unavailable. Try again shortly.');
         const data = await response.json();
         if (data?.schema!==1 || !Array.isArray(data.maintained) || !Array.isArray(data.presentation) || !(data.catalog===null || (data.catalog && Array.isArray(data.catalog.releases)))) throw new Error('Invalid discovery response');
-        if (browseProjects && enforceJamVisibility) discoveryIdentities(data);
+        if (validateEarlyProjects) discoveryIdentities(data);
         if (active) setCatalogResult({key:catalogKey,discovery:data,error:''});
       }).catch(() => {if (active) setCatalogResult({key:catalogKey,discovery:null,error:'The shared catalog is unavailable. Try again shortly.'});}).finally(() => clearTimeout(timeout));
     };
     const debounce=searchDelay?setTimeout(load,searchDelay):undefined;
     if(!searchDelay)load();
     return () => {active = false; clearTimeout(debounce); clearTimeout(timeout); controller.abort();};
-  }, [retry, practiceOnly, catalogKey, searchDelay, browseProjects, enforceJamVisibility]);
+  }, [retry, practiceOnly, catalogKey, searchDelay, validateEarlyProjects]);
   let releases:Release[] = [], selectionError = '';
   if (catalog) try {
     if (!['game','library','practice'].includes(requestedKind)) throw new Error('Choose projects, libraries or tutorial practice.');
@@ -219,7 +220,10 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
   };
   const projectFeedback=(entry:{id:string;title:string;repositoryHref:string;playHref?:string;sourceCommit?:string;version?:string})=>(identity?:ReactNode,description?:string,placement?:'details')=>{
     const observed=feedback[entry.id]?.repositoryUrl===entry.repositoryHref?feedback[entry.id]:undefined;
-    if(placement==='details')return <HubProjectInfo title={entry.title} available={observed?.site.status==='reachable'}><HubProjectDetails {...entry} feedback={observed} description={description}>{identity}</HubProjectDetails></HubProjectInfo>;
+    if (placement==='details') return <HubProjectInfo title={entry.title} available={observed?.site.status==='reachable'}>
+      {showDiscoveryCards ? <>{description&&<p>{description}</p>}{identity}</> :
+        <HubProjectDetails {...entry} feedback={observed} description={description}>{identity}</HubProjectDetails>}
+    </HubProjectInfo>;
     if(showDiscoveryCards)return null;
     return <HubProjectFeedback {...entry} kind={kind==='game'?'game':'library'} compact={kind==='game'} feedback={observed} metric={projectMetric(entry.id)}>{identity}</HubProjectFeedback>;
   };
