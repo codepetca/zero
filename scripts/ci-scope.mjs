@@ -70,7 +70,7 @@ export function isKitPublicationPromotion(before, after) {
   }
   return isDeepStrictEqual(before,stripped);
 }
-function committedKitPromotion(base,head,cwd,files) {
+function committedKitPromotion(base,head,cwd,files,{installerOnly=false}={}) {
   const read=ref=>{
     const result=spawnSync('git',['show',`${ref}:release/kit.json`],{cwd,encoding:'utf8',maxBuffer:128*1024});
     if(result.status!==0||result.error)throw new Error('Unavailable kit manifest history');
@@ -78,9 +78,19 @@ function committedKitPromotion(base,head,cwd,files) {
   };
   try {
     const before=read(base), after=read(head);
-    if(!isKitPublicationPromotion(before,after))return false;
+    if(installerOnly) {
+      // A native publication can follow an already published kit. Apply the
+      // same strict kit validation and require it to be unchanged by this PR.
+      if(!isDeepStrictEqual(before,after))return false;
+      const local=structuredClone(after);
+      local.publication.status='local';
+      for(const asset of Object.values(local.assets)) {
+        delete asset.size;delete asset.sha256;delete asset.url;
+      }
+      if(!isKitPublicationPromotion(local,after))return false;
+    } else if(!isKitPublicationPromotion(before,after))return false;
     const ancillary=files.some(file=>publicationMetadata.has(file)&&file!=='release/kit.json');
-    if(!ancillary)return true;
+    if(!ancillary)return !installerOnly;
     const get=(ref,file)=>{
       const result=spawnSync('git',['show',`${ref}:${file}`],{cwd,maxBuffer:128*1024});
       if(result.status!==0||result.error)throw new Error('Unavailable publication metadata');
@@ -96,7 +106,10 @@ function committedKitPromotion(base,head,cwd,files) {
     const previous=json(`${latest}^`,'release/installer.json');
     const snapshot=json(head,'release/published-installer.json');
     const kitSnapshot=json(head,'release/published-kit.json');
-    if(!isDeepStrictEqual(after,kitSnapshot)||!isDeepStrictEqual(installer,snapshot))return false;
+    // The fallback may intentionally lag the published kit; native-only
+    // promotion must leave it unchanged.
+    if(installerOnly ? !isDeepStrictEqual(json(base,'release/published-kit.json'),kitSnapshot) : !isDeepStrictEqual(after,kitSnapshot))return false;
+    if(!isDeepStrictEqual(installer,snapshot))return false;
     validateInstallerManifest(previous,before);
     validateInstallerManifest(installer,after);
     if(previous.publication.status!=='local'||installer.publication.status!=='published'||installer.kitVersion!==after.kitVersion)return false;
@@ -119,6 +132,10 @@ export function scopeForEvent(event,cwd=process.cwd()) {
       const ancestor=spawnSync('git',['merge-base',base,head],{cwd,encoding:'utf8',maxBuffer:1024});
       if(ancestor.status!==0||ancestor.error||!/^[a-f0-9]{40}$/.test(ancestor.stdout.trim()))return full();
       kitPublicationPromotion=committedKitPromotion(ancestor.stdout.trim(),head,cwd,files);
+    } else if(files.includes('release/installer.json')) {
+      const ancestor=spawnSync('git',['merge-base',base,head],{cwd,encoding:'utf8',maxBuffer:1024});
+      if(ancestor.status!==0||ancestor.error||!/^[a-f0-9]{40}$/.test(ancestor.stdout.trim()))return full();
+      kitPublicationPromotion=committedKitPromotion(ancestor.stdout.trim(),head,cwd,files,{installerOnly:true});
     }
     return classify(files,{kitPublicationPromotion});
   } catch {return full();}
