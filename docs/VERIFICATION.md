@@ -1,5 +1,24 @@
 # Verification
 
+## ZeroHub practice badge navigation — 2026-11-10
+
+Local implementation `58add2787`, based on `791d465d0`, removes the Tutorial
+practice tab. Lesson 11 links directly to the badge catalog. The Zero editor
+offers **Browse tutorial practice** in **Libraries and games**.
+
+TypeScript and whitespace checks passed. The website suite passed 775 tests
+with three skips, and all 39 editor sharing tests passed. Local Chrome and
+Playwright WebKit verified the navigation at desktop, 390 px and 320 px. The
+lesson link targets the practice catalog. A sample badge appeared in the
+practice view and stayed out of Libraries after keyboard navigation in Chrome.
+The local dev server reported a hydration mismatch for the ZeroJams preview
+link. The browser check used catalog fixtures, and editor coverage used tests
+in place of a native editor walkthrough.
+
+One independent Luna/medium review of `791d465d0..58add2787` found no
+actionable issues. Browser snapshots are in the ignored `.playwright-cli/`
+folder in the local worktree.
+
 ## Automatic ZeroHub listings — 2026-11-10
 
 Local branch `codex/automatic-zerohub-listings` uses main `7fd8eb09a`.
