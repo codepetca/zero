@@ -180,5 +180,30 @@ test('combined publication requires intact matching snapshots and a signed coher
     }
     git('switch','-c',`tampered-${++n}`,promoted);write('mac-appcast.xml',Buffer.concat([source['mac-appcast.xml'],Buffer.from('tampered')]));git('add','.');git('commit','-qm','tamper signed feed');
     assert.ok(Object.values(scope()).every(Boolean),'tampered signed feed');
+
+    // The kit may already be published before a separate native promotion.
+    git('switch','-c','native-only',promoted);
+    const fallback=JSON.parse(JSON.stringify(kitPublished).replaceAll(version,'0.5.14'));
+    write('published-kit.json',fallback);
+    for(const name of ['installer.json','published-installer.json','mac-appcast.xml','mac-update-feed.json'])write(name,'old snapshot');
+    git('add','.');git('commit','-qm','published kit and previous native release');const nativeBase=git('rev-parse','HEAD');
+    write('installer.json',installer);git('add','.');git('commit','-qm','record native candidate');
+    for(const name of ['installer.json','published-installer.json','mac-appcast.xml','mac-update-feed.json'])write(name,source[name]);
+    git('add','.');git('commit','-qm','promote native candidate');const nativeHead=git('rev-parse','HEAD');
+    const nativeScope=()=>scopeForEvent({pull_request:{base:{sha:nativeBase},head:{sha:git('rev-parse','HEAD')}}},root);
+    assert.deepEqual(nativeScope(),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
+    for(const [name,mutate] of [
+      ['published-kit.json',v=>v.assets.kit.sha256='0'.repeat(64)],
+      ['installer.json',v=>v.kit.sha256='0'.repeat(64)],
+      ['published-installer.json',v=>v.asset.sha256='0'.repeat(64)],
+      ['mac-update-feed.json',v=>v.asset.sha256='0'.repeat(64)]
+    ]) {
+      git('switch','-c',`native-inconsistent-${++n}`,nativeHead);const value=JSON.parse(source[name]);mutate(value);write(name,value);git('add','.');git('commit','-qm','inconsistent native promotion');
+      assert.ok(Object.values(nativeScope()).every(Boolean),`native inconsistent ${name}`);
+    }
+    git('switch','-c',`native-tampered-${++n}`,nativeHead);write('mac-appcast.xml',Buffer.concat([source['mac-appcast.xml'],Buffer.from('tampered')]));git('add','.');git('commit','-qm','tamper native feed');
+    assert.ok(Object.values(nativeScope()).every(Boolean),'native signed feed');
+    git('switch','-c',`native-mixed-${++n}`,nativeHead);mkdirSync(path.join(root,'extension','src'),{recursive:true});writeFileSync(path.join(root,'extension','src','core.js'),'changed');git('add','.');git('commit','-qm','mixed runtime change');
+    assert.ok(Object.values(nativeScope()).every(Boolean),'native promotion with runtime change');
   } finally {rmSync(root,{recursive:true,force:true});}
 });
