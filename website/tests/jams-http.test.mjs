@@ -147,13 +147,22 @@ test('settlement endpoint authenticates current actor, retains payload identity 
   assert.equal((await postJamProposalResponse(request({operationId:body.operationId,manifest:hostedManifest()}),f)).status,409);
 });
 
-test('settlement and mutation expiry keep results unknown even when an injected service rejects late',async()=>{
+test('settlement and mutation expiry keep results unknown even when an injected service rejects late',{timeout:5000},async t=>{
   const {postJamSettlementResponse}=await import('../lib/jams-http.mjs');
+  t.mock.timers.enable({apis:['setTimeout']});
   for(const settlement of [false,true]) {
-    const f=fixture();let finish;const pending=new Promise((resolve,reject)=>{finish=()=>reject(new JamError(409,'Too late'));});
-    f.service.settle=f.service.mutate=()=>pending;
+    const f=fixture();let finish,dispatch,elapsed=0;
+    const started=new Promise(resolve=>{dispatch=resolve;});
+    f.service.settle=f.service.mutate=()=>new Promise((_,reject)=>{
+      finish=()=>reject(new JamError(409,'Too late'));
+      dispatch();
+    });
     const body=settlement?{scope:'jam-55',operationId:'unknown-operation-001',payload:{action:'leave'}}:join;
-    const call=settlement?postJamSettlementResponse(request(body),{...f,responseBudgetMs:10}):postJamActionResponse(request(body),'jam-55',{...f,responseBudgetMs:10});
+    const options={...f,responseBudgetMs:10,deadlineNow:()=>elapsed};
+    const call=settlement?postJamSettlementResponse(request(body),options):postJamActionResponse(request(body),'jam-55',options);
+    await started;
+    elapsed=10;
+    t.mock.timers.tick(elapsed);
     const response=await call;assert.equal(response.status,503);assert.match((await response.json()).error,/same operation ID/);finish();
   }
 });
