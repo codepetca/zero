@@ -409,6 +409,8 @@ The Zero editor also offers **Browse tutorial practice** in **Libraries and
 games**. The ZeroHub sidebar shows the section buttons and expands options
 under the selected section. Search, results, forms and guides appear in the
 content pane. On narrow screens the navigation sits above the pane.
+**Projects** includes **Share a game**. **Libraries** includes **Share a
+library** and **Requests and results**.
 **My Projects** sits under **Projects** and shows the signed-in user's app
 listings. **My Libraries** sits under **Libraries** and shows the libraries
 available in the main catalog under that GitHub account.
@@ -443,7 +445,7 @@ A setup-help link appears below the buttons; current platform/version requiremen
 appear inside that linked setup guide, keeping Downloads uncluttered;
 initial tutorial entries include starting instructions and a concise Setup link.
 Longer guidance in Docs explains creating and cloning the student-owned repository.
-Share your work preserves the shared theme and account dropdown.
+The ZeroHub sharing guides preserve the shared theme and account dropdown.
 Website tutorial steps and reference sections are expanded by default; full guides remain
 available. Tutorial step headings use subtle highlights instead of horizontal
 dividers. Generic setup/continuation cards are omitted; specific component or

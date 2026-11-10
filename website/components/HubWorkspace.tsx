@@ -30,12 +30,13 @@ export function HubWorkspace({children,showListings,showJams,jamRoutesAvailable}
   const path=usePathname(), query=useSearchParams();
   const exact=path==='/hub'&&(query.has('id')||query.has('version'));
   const kind=query.get('kind')||(exact?'library':'game');
+  const sharePage=path==='/hub/share';
+  const requestedView=sharePage&&query.getAll('view').length>1?'':query.get('view')||'';
   const inJams=jamRoutesAvailable&&(path==='/hub/jams'||path.startsWith('/hub/jams/'));
   let active:HubSection=kind==='game'?'game':'library';
   if(inJams)active='jams';
-  else if(path==='/hub/share')active='share';
+  else if(sharePage)active=requestedView==='game'?'game':'library';
   else if(path==='/hub/listings')active='game';
-  const requestedView=query.get('view')||'';
   const view=path==='/hub'&&kind==='practice'?'practice':exact||requestedView==='practice'?'':requestedView;
   const searchParams=query.toString();
   const returnTo=searchParams?`${path}?${searchParams}`:path;

@@ -7,13 +7,12 @@
 .discovery .navigation, .discovery .subnavigation { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .navigation > li > a, .retry { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 12px; border: 1px solid var(--zero-border, var(--outline)); border-radius: 6px; font: inherit; font-size: 16px; line-height: 1.5; text-decoration: none; background: var(--zero-page, white); }
 .navigation > li > a { width: 100%; }
-.navigation .shareAction { background: color-mix(in srgb, var(--purple) 14%, var(--zero-page)); border-color: var(--purple); color: var(--purple); font-weight: 600; }
-.navigation .shareAction:hover { background: color-mix(in srgb, var(--purple) 22%, var(--zero-page)); }
 .navigation a[data-active] { color: var(--ink); border-color: var(--purple); font-weight: 600; }
-.discovery .subnavigation { gap: 0; margin: 4px 0 4px 12px; padding-inline-start: 8px; border-inline-start: 1px solid var(--zero-border); }
-.subnavigation a { display: flex; align-items: center; min-height: 44px; padding: 4px 8px; font-size: 15px; border-radius: 6px; }
-.subnavigation a[aria-current="page"] { color: var(--ink); background: var(--zero-surface); font-weight: 600; }
-.navigation a:focus-visible, .shareAction:focus-visible, .retry:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
+.discovery .subnavigation { gap: 0; margin: 4px 0 4px 12px; }
+.discovery .subnavigation a { display: flex; align-items: center; min-height: 44px; padding: 5px 10px; color: var(--muted); font-size: 15px; text-decoration: none; border-radius: 6px; }
+.discovery .subnavigation a:hover { color: var(--ink); background: var(--zero-surface); }
+.discovery .subnavigation a[aria-current="page"] { color: var(--ink); background: color-mix(in srgb, var(--purple) 10%, var(--zero-page)); font-weight: 600; }
+.navigation a:focus-visible, .retry:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
 .search { display: flex; align-items: center; gap: 10px; width: min(100%, 28rem); margin: 0 0 16px; padding: 0 12px; border: 1px solid var(--zero-border); border-radius: 6px; background: var(--zero-surface); color: var(--muted); }
 :global(.jam-filter) .search { flex: 1 1 14rem; margin: 0; }
 .search:focus-within { outline: 3px solid var(--purple); outline-offset: 3px; }

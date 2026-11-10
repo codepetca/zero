@@ -80,7 +80,14 @@ test('ZeroHub expands only the selected section and reserves creation for Pro',a
   assert.match(render({active:'game',path:'/hub/listings',view:'help'}),/aria-current="page">How app listings work/);
   assert.doesNotMatch(render({active:'library'}),/My Projects/);
   assert.match(render({active:'library',view:'mine'}),/aria-current="page">My Libraries/);
-  assert.match(render({active:'share',view:'requests'}),/aria-current="page">Requests and results/);
+  const shareGame=render({active:'game',path:'/hub/share',view:'game'});
+  const shareLibrary=render({active:'library',path:'/hub/share',view:'library'});
+  assert.match(shareGame,/aria-label="Projects options".*aria-current="page">Share a game/);
+  assert.match(shareLibrary,/aria-label="Libraries options".*aria-current="page">Share a library/);
+  assert.doesNotMatch(shareGame,/Share your work|Share a library|aria-current="page">Browse projects/);
+  assert.doesNotMatch(shareLibrary,/Share your work|Share a game|aria-current="page">Browse libraries/);
+  assert.match(render({active:'library',path:'/hub/share',view:'requests'}),/aria-current="page">Requests and results/);
+  assert.match(render({active:'library',path:'/hub/share'}),/aria-current="location">Libraries/);
 });
 
 test('production discovery promotion requires the pilot, service and discovery flags',()=>{
