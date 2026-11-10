@@ -225,3 +225,30 @@ test('Postgres serializes concurrent replacement, protection transfer, update, m
   assert.ok(older.projects.some(project=>project.repositoryId === '21'));
   assert.deepEqual(older.projects.filter(project=>project.listed).map(project=>project.repositoryId), ['83']);
 });
+
+test('central listing grants augment legacy access and outages do not silently downgrade it', async () => {
+  const {cookie} = newSession(token, {id:6, login:'student'}, 3600, hubConfig(env));
+  const request = () => new Request(origin + '/api/hub/listings', {headers:{Cookie:cookie.split(';')[0]}});
+  const centralEnv = {...env, ZERO_ENTITLEMENTS_DATABASE_URL:'fixture-only'};
+  const listingStore = {mine:async()=>({projects:[], next:null})};
+  const options = {env:centralEnv, getStore:()=>listingStore,
+    getEntitlementsStore:()=>({resolve:async id=>({listingLimit:id==='6'?10:1})})};
+  assert.equal((await (await hubListingsResponse(request(), options)).json()).limit, 10);
+  const unavailable = {...options, getEntitlementsStore:()=>({resolve:async()=>{throw new Error('offline');}})};
+  assert.equal((await hubListingsResponse(request(), unavailable)).status, 503);
+  const legacy = {...unavailable, env:{...centralEnv, ZERO_HUB_LISTINGS_PRO_GITHUB_IDS:'6'}};
+  assert.equal((await (await hubListingsResponse(request(), legacy)).json()).limit, 10);
+});
+
+test('a central entitlement outage cannot replace a listing on publish', async () => {
+  const centralEnv = {...env, ZERO_ENTITLEMENTS_DATABASE_URL:'fixture-only'};
+  let wrote = false;
+  const response = await hubListingsResponse(new Request(origin+'/api/hub/listings', {
+    method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
+    body:JSON.stringify({action:'publish', ...receipt})
+  }), {env:centralEnv, getStore:()=>({savePublication:async()=>{wrote=true;}}),
+    tokenOwner:async()=> '6', verify:async()=>receipt,
+    getEntitlementsStore:()=>({resolve:async()=>{throw new Error('offline');}})});
+  assert.equal(response.status, 503);
+  assert.equal(wrote, false);
+});

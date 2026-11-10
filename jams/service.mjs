@@ -83,15 +83,14 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
   const maintainers=new Set(maintainerIds), bound={...LIMITS,...limits};
   if (Object.keys(limits).some(key=>!Object.hasOwn(LIMITS,key)) || Object.entries(bound).some(([key,value])=>!Number.isSafeInteger(value)||value<1||value>LIMITS[key])) fail(503,'Invalid jam pilot limits.');
   if(bound.entryHistory<2||bound.stateBytes-safetySlots(bound)*SAFETY_SLOT_BYTES<65536)fail(503,'Jam limits must preserve ordinary capacity and reserved moderation space.');
-  function assertCreationAccess(accountId) {
-    let entitled=false;
+  async function assertCreationAccess(accountId) {
+    let decision;
     try {
-      const result=canCreateJam(accountId);
-      // The trusted hook is synchronous; an asynchronous result cannot grant.
-      if(result&&typeof result.then==='function')void Promise.resolve(result).catch(()=>{});
-      entitled=result===true;
-    } catch {/* Deny without disclosing configuration. */}
-    if(!entitled)fail(403,'A Pro license is required to propose a jam. Contact info@codepet.ca to request access.');
+      decision=await canCreateJam(accountId);
+    } catch {
+      fail(503,'Jam creation access is unavailable. Retry with the same operation ID.');
+    }
+    if(decision!==true)fail(403,'A Pro license is required to propose a jam. Contact info@codepet.ca to request access.');
   }
   async function safeCall(work) { try{return await work();}catch(error){if(error instanceof JamError)throw error;fail(503,'Official jam records are unavailable. Retry with the same operation ID.');} }
   async function load(id,snapshot,scope) {
@@ -220,7 +219,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(recoverOnly)fail(503,'Earlier request history is unavailable. Retry with the same operation ID.');
       // Recover accepted/fenced requests first, including after a grant is revoked.
       // New proposals alone require a current trusted numeric-ID entitlement.
-      if(scope==='proposals')assertCreationAccess(actor.id);
+      if(scope==='proposals')await assertCreationAccess(actor.id);
       if(scope==='proposals'&&state?.operations[operationKey(actor,op)])recover(state,actor,op,payloadDigest);
       const time=currentTime(now),stamp=new Date(time).toISOString();
       if(!state&&!create)fail(404,'Jam not found.');
@@ -246,7 +245,9 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(pool==='safety'&&nextBytes-previousBytes>SAFETY_SLOT_BYTES)fail(413,'This safety action exceeds its reserved record capacity.');
       if(nextBytes>stateBudget(next,bound))fail(413,'This jam has reached its ordinary record capacity; safety moderation space is reserved.');
       validateState(next,id,bound);
-      if(scope==='proposals')assertCreationAccess(actor.id);
+      // This is the last admission check. An external entitlement store cannot
+      // fence a registry write after this lookup has returned.
+      if(scope==='proposals')await assertCreationAccess(actor.id);
       const applied=await safeCall(()=>callScope?callScope.run(()=>writeStore.compareAndSwap(id,revision,next,{signal:callScope.signal})):writeStore.compareAndSwap(id,revision,next));
       if(applied===true)return structuredClone(result);
       if(applied!==false)fail(503,'Official jam records are unavailable. Retry with the same operation ID.');
