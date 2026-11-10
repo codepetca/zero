@@ -365,6 +365,13 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
   }
   async function listScoped(actor,scope,{directory=false}={}) {
     if(actor)actor=actorIdentity(actor);
+    let hostingAccess;
+    if(directory&&actor) {
+      let canCreate=null;
+      try { canCreate=(await scope.run(()=>canCreateJam(actor.id)))===true; }
+      catch { scope.check(); }
+      hostingAccess={accountId:actor.id,canCreate};
+    }
     const events=[],proposals=[],canMaintain=!!actor&&maintainers.has(actor.id);
     const {states,time,visibility,pagesEligible,pagesUnverified,galleriesDeferred,revision}=await publicDiscovery(scope,{directory});
     for(const [id,state] of states) {
@@ -375,13 +382,6 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       }
       const proposal=state?.proposals.at(-1);
       if(canMaintain&&proposal&&['submitted','changes-requested'].includes(proposal.status))proposals.push({id,title:proposal.manifest.title,type:proposal.manifest.type,revision:proposal.revision,status:proposal.status,organizerLogin:state.creator.login,submittedAt:proposal.proposedAt});
-    }
-    let hostingAccess;
-    if(directory&&actor) {
-      let decision;
-      try { decision=await scope.run(()=>canCreateJam(actor.id)); }
-      catch { scope.check(); fail(503,'Jam creation access is unavailable.'); }
-      hostingAccess={accountId:actor.id,canCreate:decision===true};
     }
     return taggedProjection({events,canMaintain,...(directory||galleriesDeferred?{galleriesDeferred:true}:{}),...(canMaintain?{proposals}:{}),...(hostingAccess?{hostingAccess}:{})},revision);
   }

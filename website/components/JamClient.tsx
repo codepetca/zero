@@ -14,7 +14,7 @@ type Entry = {participantId:string;login:string;title:string;description:string;
 type Event = Manifest & {creator?:{id:string;login:string};id:string;revision:string|null;approvalHistory?:{revision:string;approvedAt:string;manifest:Manifest}[];approvalMode?:string;reviewStatus:string;moderation:{status:string;reason?:string};registrationOpen:boolean;submissionsOpen:boolean;participantCount:number;participantLimit:number;galleryIncomplete?:boolean;participants:{id:string;login:string}[];entries:Entry[];updatedAt:string};
 type Detail = {configured:boolean;event:Event;registration:{status:string;revision?:string;repository?:Repository}|null;entry:Entry|null;moderationEntries?:Entry[];canMaintain:boolean;canPickWinner?:boolean;proposal?:{revision:string;manifest:Manifest;repository?:Repository;hosting?:string;organizerId?:string;organizerLogin?:string;status:string;reason?:string}};
 type Mutation = Record<string,unknown>;
-type Directory = {configured:boolean;events:Event[];hostingAccess?:{accountId:string;canCreate:boolean};canMaintain?:boolean;proposals?:{id:string;title:string;type:string;revision:string;status:string;organizerLogin:string;submittedAt:string}[]};
+type Directory = {configured:boolean;events:Event[];hostingAccess?:{accountId:string;canCreate:boolean|null};canMaintain?:boolean;proposals?:{id:string;title:string;type:string;revision:string;status:string;organizerLogin:string;submittedAt:string}[]};
 const kindLabel = (type:string) => type === 'app' ? 'App Jam' : 'Game Jam';
 const reviewLabel = (status:string) => ({submitted:'Awaiting review',approved:'Approved','changes-requested':'Changes requested',rejected:'Rejected'}[status] || status);
 function message(error:unknown) { return error instanceof Error ? error.message : 'The request failed. Your form is kept; try again.'; }
@@ -142,7 +142,9 @@ export function JamDiscovery({showListings=false}:{showListings?:boolean}={}) {
       <JamHelpLink/>
       {canCreate
         ? <p><Link className="jam-button jam-primary" href="/hub/jams/create">Create a jam</Link></p>
-        : <p className="jam-muted">Joining is free. Hosting requires Zero Pro.</p>}
+        : user && data?.hostingAccess?.accountId===user.id && data.hostingAccess.canCreate===null
+          ? <p className="jam-muted">Hosting access is temporarily unavailable. Try again later.</p>
+          : <p className="jam-muted">Joining is free. Hosting requires Zero Pro.</p>}
       {!user&&<HubAccount showSignOut={false}/>}
       {data?.canMaintain&&Boolean(data.proposals?.length)&&<section>
         <h2>Review proposals</h2>

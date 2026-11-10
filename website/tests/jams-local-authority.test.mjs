@@ -265,8 +265,9 @@ test('hosted central grants use the GitHub ID, recheck before writing, and prese
 
     outage=true;
     lookups=[];
-    await assert.rejects(authority.service.listSummaries({id:'11',login:'renamed'}),
-      error=>error.status===503&&error.message==='Jam creation access is unavailable.');
+    const unavailable=await authority.service.listSummaries({id:'11',login:'renamed'});
+    assert.deepEqual(unavailable.hostingAccess,{accountId:'11',canCreate:null});
+    assert.equal(unavailable.events.length,1);
     assert.deepEqual((await authority.service.listSummaries({id:'22',login:'legacy'})).hostingAccess,{accountId:'22',canCreate:true});
     lookups=[];
     assert.deepEqual(await authority.service.propose(request),accepted);

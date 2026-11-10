@@ -319,6 +319,9 @@ test('Jam discovery searches public cards and shows hosting only for the current
   assert.equal(create(),false);
   h.setDetail({events,hostingAccess:{accountId:'99',canCreate:false}});
   assert.equal(create(),false);
+  h.setDetail({events,hostingAccess:{accountId:'99',canCreate:null}});
+  assert.equal(create(),false);
+  assert.ok(render().some(node=>node.props.children==='Hosting access is temporarily unavailable. Try again later.'));
   h.setActor(null);
   assert.equal(create(),false);
 });

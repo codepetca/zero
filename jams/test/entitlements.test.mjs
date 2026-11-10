@@ -61,6 +61,30 @@ test('a failed entitlement lookup returns a retryable 503 before a registry writ
   }
 });
 
+test('directory snapshots visibility after a bounded hosting lookup',async()=>{
+  let block=false, release, started;
+  const pending=new Promise(resolve=>{release=resolve;});
+  const entered=new Promise(resolve=>{started=resolve;});
+  const f=fixture({canCreateJam:async()=>{if(block){started();await pending;}return true;}});
+  const proposal=await f.service.propose(input());
+  block=true;
+  const directory=f.service.listSummaries(creator);
+  await entered;
+  await f.service.mutate({id:proposal.eventId,actor:maintainer,operationId:'directory-suspend-001',action:'suspend',reason:'Review'});
+  release();
+  const result=await directory;
+  assert.deepEqual(result.hostingAccess,{accountId:creator.id,canCreate:true});
+  assert.equal(result.events.length,0);
+});
+
+test('directory cancellation interrupts a stalled hosting lookup',async()=>{
+  const f=fixture({canCreateJam:()=>new Promise(()=>{})});
+  const controller=new AbortController();
+  const result=f.service.listSummaries(creator,{signal:controller.signal});
+  controller.abort();
+  await assert.rejects(result,status(503));
+});
+
 test('grants bind numeric identity across rename, not login; creator-hosted and browser-supplied license fields cannot bypass',async()=>{
   const env={ZERO_JAMS_PRO_GITHUB_IDS:creator.id},f=fixture({canCreateJam:id=>hasManualJamPro(id,env)});
   const proposed=await f.service.propose(input({actor:{...creator,login:'renamed'}}));
