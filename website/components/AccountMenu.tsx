@@ -2,12 +2,13 @@
 import {useEffect, useId, useRef, useState} from 'react';
 import {HubAccount, useHubGitHub} from './HubGitHub';
 import {Icon} from './Icon';
+import {useZeroAccount} from './useZeroAccount';
 import './AccountMenu.css';
 
-function GitHubAvatar({id, login}: {id:string; login:string}) {
+function GitHubAvatar({id, login}: {id:string; login?:string}) {
   const [loaded, setLoaded] = useState(false), [failed, setFailed] = useState(false);
   return <span className="profile-avatar" aria-hidden="true">
-    {(!loaded || failed) && <span>{login.charAt(0).toUpperCase() || '?'}</span>}
+    {(!loaded || failed) && (login ? <span>{login.charAt(0).toUpperCase()}</span> : <Icon name="user" />)}
     {!failed && <img className="profile-photo" src={`https://avatars.githubusercontent.com/u/${id}?s=88`} alt="" width={44} height={44}
       crossOrigin="anonymous" referrerPolicy="no-referrer" decoding="async" data-loaded={loaded}
       onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />}
@@ -15,11 +16,17 @@ function GitHubAvatar({id, login}: {id:string; login:string}) {
 }
 
 export function AccountMenu({dark, onToggleTheme, platform, onChangePlatform}: {dark:boolean; onToggleTheme:()=>void; platform:'mac'|'windows'; onChangePlatform:(platform:'mac'|'windows')=>void}) {
-  const {user, error, callbackError} = useHubGitHub();
+  const {configured, user, error, callbackError} = useHubGitHub();
+  const {state: zeroAccount, error: zeroAccountError} = useZeroAccount();
+  const zeroUser = zeroAccount?.user;
+  const signedIn = Boolean(user || zeroUser);
+  const avatarId = user?.id ?? zeroUser?.avatarId;
+  const label = user ? `Account menu, signed in as @${user.login}` :
+    signedIn ? 'Account menu, signed in to Zero' : 'Account menu';
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null), trigger = useRef<HTMLButtonElement>(null);
   const id = useId();
-  const attention = !!error || callbackError && !user;
+  const attention = !signedIn && (!!error || callbackError || zeroAccountError);
   useEffect(() => {if (callbackError) {setOpen(true); trigger.current?.focus();}}, [callbackError]);
   useEffect(() => {
     if (!open) return;
@@ -33,23 +40,31 @@ export function AccountMenu({dark, onToggleTheme, platform, onChangePlatform}: {
       trigger.current?.focus();
     }
     document.addEventListener('pointerdown', outside);
-    root.current?.addEventListener('keydown', escape);
-    const element = root.current;
+    document.addEventListener('keydown', escape);
     return () => {
       document.removeEventListener('pointerdown', outside);
-      element?.removeEventListener('keydown', escape);
+      document.removeEventListener('keydown', escape);
     };
   }, [open]);
   return <div ref={root} className="account-menu" onBlur={event => {
-    if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+    if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) setOpen(false);
   }}>
-    <button ref={trigger} type="button" className="profile-toggle" data-connected={user ? 'true' : undefined} aria-expanded={open} aria-controls={id}
-      aria-label={user ? `Account menu, signed in as @${user.login}` : attention ? 'Account menu, GitHub connection needs attention' : 'Account menu'}
+    <button ref={trigger} type="button" className="profile-toggle" data-connected={signedIn ? 'true' : undefined} aria-expanded={open} aria-controls={id}
+      aria-label={attention ? 'Account menu, sign-in needs attention' : label}
       title={user ? `@${user.login}` : 'Account'} onClick={() => setOpen(value => !value)}>
-      {user ? <GitHubAvatar key={user.id} id={user.id} login={user.login} /> : <Icon name={attention ? 'triangle-alert' : 'user'} />}
+      {avatarId ? <GitHubAvatar key={avatarId} id={avatarId} login={user?.login} /> : <Icon name={attention ? 'triangle-alert' : 'user'} />}
+      {!signedIn && <span className="account-label">Account</span>}
     </button>
     <div id={id} hidden={!open} className="account-dropdown" aria-label="Account and appearance">
-      <HubAccount onSignedOut={() => {setOpen(false); trigger.current?.focus();}} onRetryComplete={() => trigger.current?.focus()} />
+      {!user && zeroUser ? <>
+        <span className="account-identity">Signed in to Zero</span>
+        <form action="/zero-account/sign-out" method="post"><button type="submit">Sign out</button></form>
+        {(configured || error || callbackError) && <HubAccount showSignOut={false}
+          signInLabel="Connect GitHub to ZeroHub" onRetryComplete={() => trigger.current?.focus()} />}
+      </> : !user && configured !== true && zeroAccount?.configured ?
+        <a href="/zero-account/sign-in">Sign in to GitHub</a> :
+        <HubAccount onSignedOut={() => {setOpen(false); trigger.current?.focus();}} onRetryComplete={() => trigger.current?.focus()} />}
+      {!signedIn && zeroAccountError && <p role="status">Could not check your Zero account. Reload to try again.</p>}
       <fieldset className="platform-setting">
         <legend>Documentation platform</legend>
         <label><input type="radio" name="documentation-platform" value="mac" checked={platform === 'mac'} onChange={() => onChangePlatform('mac')} /> Mac</label>

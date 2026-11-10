@@ -29,7 +29,7 @@ export function hubLoginHref(){
   const returnTo=typeof window==='undefined'?'/hub':window.location.pathname+window.location.search;
   return `/api/hub/github/login?${new URLSearchParams({returnTo})}`;
 }
-export function HubAccount({onSignedOut,onRetryComplete,showSignOut=true}:{onSignedOut?:()=>void;onRetryComplete?:()=>void;showSignOut?:boolean}={}){
+export function HubAccount({onSignedOut,onRetryComplete,showSignOut=true,signInLabel='Sign in to GitHub'}:{onSignedOut?:()=>void;onRetryComplete?:()=>void;showSignOut?:boolean;signInLabel?:string}={}){
   const {configured,managed,user,error,callbackError,refresh}=useHubGitHub();const[busy,setBusy]=useState(false),[failure,setFailure]=useState('');
   async function signOut(){
     if(!user||busy)return;setBusy(true);setFailure('');
@@ -39,7 +39,7 @@ export function HubAccount({onSignedOut,onRetryComplete,showSignOut=true}:{onSig
   return <div className={styles.account}>
     {user?<><span>GitHub · @{user.login}</span>{showSignOut&&(managed
       ? <form action="/zero-account/sign-out" method="post"><button type="submit">Sign out</button></form>
-      : <button type="button" onClick={()=>void signOut()} disabled={busy}>{busy?'Signing out…':'Sign out'}</button>)}</>:configured?<a href={hubLoginHref()}>Sign in to GitHub</a>:configured===false?<span>GitHub sign-in is unavailable.</span>:!error?<span>Checking GitHub connection…</span>:null}
+      : <button type="button" onClick={()=>void signOut()} disabled={busy}>{busy?'Signing out…':'Sign out'}</button>)}</>:configured?<a href={hubLoginHref()}>{signInLabel}</a>:configured===false?<span>GitHub sign-in is unavailable.</span>:!error?<span>Checking GitHub connection…</span>:null}
     {error&&<span role="status">{error} <button type="button" onClick={()=>void refresh().then(()=>onRetryComplete?.())}>Retry</button></span>}
     {(failure||callbackError&&!user)&&<span role="status">{failure||'GitHub connection was not completed. Try again.'}</span>}
   </div>;

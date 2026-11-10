@@ -1,7 +1,8 @@
 .learn-theme .account-menu { position: relative; z-index: 10; justify-self: end; flex: none; }
-.learn-theme .profile-toggle { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: var(--zero-page); color: var(--zero-text); font-size: 20px; cursor: pointer; }
+.learn-theme .profile-toggle { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; gap: 8px; padding: 0 8px; border: 0; border-radius: 6px; background: var(--zero-page); color: var(--zero-text); font: inherit; cursor: pointer; }
+.learn-theme .profile-toggle .icon { font-size: 20px; flex: none; }
 .learn-theme .profile-toggle:hover, .learn-theme .profile-toggle[aria-expanded="true"] { background: var(--zero-surface); }
-.learn-theme .profile-toggle[data-connected="true"] { background: var(--zero-accent); color: var(--zero-on-accent); font-weight: 600; }
+.learn-theme .profile-toggle[data-connected="true"] { width: 44px; height: 44px; padding: 0; border-radius: 50%; background: var(--zero-accent); color: var(--zero-on-accent); font-weight: 600; }
 .learn-theme .profile-toggle[data-connected="true"]:hover, .learn-theme .profile-toggle[data-connected="true"][aria-expanded="true"] { background: var(--zero-accent-hover); }
 .learn-theme .profile-avatar { position: relative; display: grid; place-items: center; width: 100%; height: 100%; border-radius: inherit; overflow: hidden; }
 .learn-theme .profile-photo { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; opacity: 0; }
@@ -11,7 +12,12 @@
 .learn-theme .account-dropdown a:hover, .learn-theme .account-dropdown button:hover { background: var(--zero-surface); }
 .learn-theme .account-dropdown button:disabled { opacity: .65; cursor: default; }
 .learn-theme .appearance-action { margin-top: 8px; }
-@media (max-width: 760px) { .learn-theme .site-header .account-menu { order: 3; } }
+.learn-theme .account-identity { display: block; padding: 0 10px; color: var(--zero-muted); }
+@media (max-width: 760px) {
+  .learn-theme .site-header .account-menu { order: 3; }
+  .learn-theme .profile-toggle { width: 44px; padding: 0; }
+  .learn-theme .account-label { display: none; }
+}
 
 .learn-theme .platform-setting { border: 0; border-top: 1px solid var(--zero-border); padding: 12px 10px 0; margin: 8px 0 0; }
 .learn-theme .platform-setting legend { padding: 0 4px; color: var(--zero-muted); font-size: 14px; }

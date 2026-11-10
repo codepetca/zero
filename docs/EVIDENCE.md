@@ -1,3 +1,29 @@
+# Website account dropdown — 2026-11-10
+
+Local branch `codex/web-account-menu` is based on `4c11fb59cf`. The shared
+header opens one account dropdown with the GitHub avatar, sign-out and theme
+settings. A Zero session without a Hub grant can reconnect when Hub is
+available. The legacy account URL redirects home. The dropdown requests the
+GitHub avatar ID from `/api/zero-account/profile`. The session endpoint
+continues to expose only the WorkOS user ID for authenticated accounts.
+
+TypeScript, whitespace and all eight focused tests passed. Chrome and
+Playwright WebKit passed the local Home, Docs, Source and Hub interactions at
+desktop, 390px and 320px with mocked sessions and avatar responses. Covered
+Escape and focus restoration, outside clicks, theme persistence, Hub recovery,
+the legacy URL and both sign-out actions. The full website suite passed 760
+tests, skipped two and cancelled nine in the Jam destination suite. The Jam
+suite passed all 14 tests in isolation on both the base and the working tree.
+Live provider sign-in and physical mobile devices were outside this check.
+
+Independent Terra/medium review of delta `0fd5cee8e114` found a missing Hub
+reconnect action. Targeted review of `ca007d555892` confirmed the fix and
+found no new blockers. Two review turns and one fix batch. Effective model
+and token usage were unavailable. Local logs are in
+`.verification/web-account-menu/`.
+
+---
+
 # Contextual browser tooling guidance — 2026-11-09
 
 Local source on `codex/contextual-tooling-warning`, based on `9d0be3899`.

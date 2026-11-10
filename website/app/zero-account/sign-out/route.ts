@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     return new Response('Invalid origin', {status:403,headers:{'Cache-Control':'no-store'}});
   const workosCookie = process.env.WORKOS_COOKIE_NAME!;
   const sessionData = readCookie(request, workosCookie);
-  let location = new URL('/zero-account', callback).toString();
+  let location = new URL('/', callback).toString();
   if (sessionData) {
     try {
       // Match AuthKit signOut: the sealed cookie authenticates the token's
