@@ -492,6 +492,9 @@ repository permissions; the current star routes do not make that token star-only
 Desktop and browser sessions do not pair or transfer credentials automatically.
 Short-lived browser sessions require reconnection after expiry. Public counts may lag; no separate vote store
 is created. Site checks show cached page reachability, not verified gameplay.
+Projects shows cards as soon as discovery confirms they are public. Play
+availability and stars arrive afterward. A follow-up visibility check can
+remove a card that is no longer eligible.
 Report a problem opens a prefilled GitHub issue for the user to review and submit.
 Project details show a green circled check for reachable sites and a yellow
 warning for unavailable or unknown checks, followed by a local check time such

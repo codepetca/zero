@@ -42,9 +42,40 @@ const statuses=h=>h.calls.filter(call=>call.url.includes('/api/hub/projects')).a
 test('endpoint supplies maintained cards independently of catalog failure without inventing play links',async()=>{
   const h=harness();assert.equal(h.cards(h.render()).length,0);
   assert.equal(discovery(h).url,'/api/hub/discovery');assert.equal(discovery(h).options.cache,'no-store');
-  reply(discovery(h),envelope([project],null));await tick();assert.equal(h.cards(h.render()).length,0);
+  reply(discovery(h),envelope([project],null));await tick();
+  assert.equal(h.cards(h.render())[0].title,'Maintained');
   reply(statuses(h),{schema:1,items:[status]});await tick();
   const cards=h.cards(h.render());assert.equal(cards.length,1);assert.equal(cards[0].title,'Maintained');assert.equal(cards[0].playHref,undefined);
+});
+
+test('Projects show the public card before status, then add Play and stars after revalidation',async()=>{
+  const h=harness([project],true,false,true);
+  const published={...project,web:{provider:'github-pages',url:'https://owner.github.io/repo/',commit:project.sourceCommit,runId:1}};
+  h.render();
+  assert.equal(statuses(h),undefined);
+  reply(discovery(h),envelope([published]));await tick();
+  const [pending]=h.cards(h.render());
+  assert.equal(pending.title,'Maintained');
+  assert.equal(pending.playHref,undefined);
+  assert.equal(pending.siteReachable,false);
+  assert.equal(pending.feedback(),null);
+
+  reply(statuses(h),{schema:1,items:[{...status,stars:4,site:{status:'reachable'}}]});await tick();
+  assert.equal(h.cards(h.render())[0].playHref,undefined);
+  reply(h.calls.find(call=>call.url.includes('revalidate=1')),envelope([published]));await tick();
+  const [ready]=h.cards(h.render());
+  assert.equal(ready.playHref,published.web.url);
+  assert.equal(ready.siteReachable,true);
+  assert.equal(ready.feedback().props.feedback.stars,4);
+});
+
+test('Projects do not render cards or request status from a failed or ambiguous initial discovery',async()=>{
+  for (const [response,ok] of [[envelope([project]),false],[envelope([project,project]),true],
+    [envelope([{...project,repositoryId:undefined}]),true]]) {
+    const h=harness();h.render();reply(discovery(h),response,ok);await tick();
+    assert.deepEqual(h.cards(h.render()),[]);
+    assert.equal(statuses(h),undefined);
+  }
 });
 
 test('focus and query changes retire old responses; practice uses the dedicated projection',async()=>{
