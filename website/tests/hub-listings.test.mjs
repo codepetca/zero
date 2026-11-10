@@ -252,3 +252,22 @@ test('a central entitlement outage cannot replace a listing on publish', async (
   assert.equal(response.status, 503);
   assert.equal(wrote, false);
 });
+
+test('a cancelled publish or relist does not write after the entitlement lookup', async () => {
+  const centralEnv = {...env, ZERO_ENTITLEMENTS_DATABASE_URL:'fixture-only'};
+  const {cookie, session} = newSession(token, {id:6, login:'student'}, 3600, hubConfig(env));
+  for (const desktop of [true, false]) {
+    const controller = new AbortController();
+    let wrote = false;
+    const store = {owned:async()=>receipt, savePublication:async()=>{wrote=true;}};
+    const request = new Request(origin+'/api/hub/listings', {method:'POST', signal:controller.signal,
+      headers:desktop ? {'Content-Type':'application/json', Authorization:'Bearer '+token} :
+        {'Content-Type':'application/json', Origin:origin, Cookie:cookie.split(';')[0], 'X-Hub-CSRF':session.csrf},
+      body:JSON.stringify(desktop ? {action:'publish', ...receipt} : {action:'list', repositoryId:'21'})});
+    const response = await hubListingsResponse(request, {env:centralEnv, getStore:()=>store,
+      tokenOwner:async()=> '6', verify:async()=>receipt,
+      getEntitlementsStore:()=>({resolve:async()=>{controller.abort(); return {listingLimit:10};}})});
+    assert.equal(response.status, 503);
+    assert.equal(wrote, false);
+  }
+});

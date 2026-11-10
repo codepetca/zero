@@ -74,7 +74,9 @@ export async function hubListingsResponse(request, {
       const publication = await verify(receipt, {account, token, signal});
       if (!publication) return json({error:'The published app could not be verified.'}, 409);
       signal.throwIfAborted();
-      return json(await store.savePublication(account, await effectiveListingLimit(account, env, getEntitlementsStore), publication));
+      const limit = await effectiveListingLimit(account, env, getEntitlementsStore);
+      signal.throwIfAborted();
+      return json(await store.savePublication(account, limit, publication));
     }
     if (!manageActions.has(body?.action) || !listingId(body.repositoryId)) return invalid();
     if (body.action === 'list') {
@@ -83,7 +85,9 @@ export async function hubListingsResponse(request, {
       const publication = await verify(receipt, {account, token, signal});
       if (!publication) return json({error:'The published app could not be verified. Publish it again in Zero.'}, 409);
       signal.throwIfAborted();
-      const result = await store.savePublication(account, await effectiveListingLimit(account, env, getEntitlementsStore), publication, {restore:true});
+      const limit = await effectiveListingLimit(account, env, getEntitlementsStore);
+      signal.throwIfAborted();
+      const result = await store.savePublication(account, limit, publication, {restore:true});
       if (result.status === 'missing') return json({error:'This app is unavailable.'}, 404);
       return json(result);
     }

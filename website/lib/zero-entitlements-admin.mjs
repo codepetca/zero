@@ -38,7 +38,7 @@ export async function entitlementAdminResponse(request, {getStore, env = process
       const store = await getStore?.(env);
       if (!store) return unavailable();
       const result = await store.list(targetId);
-      const resolved = await store.resolve(targetId);
+      const resolved = result?.access;
       if (![1,10].includes(resolved?.listingLimit) || typeof resolved?.jamHosting !== 'boolean') throw new Error('Invalid entitlement resolution');
       const legacyListings = listingLimit(targetId, env) === 10;
       const legacyJamHosting = hasManualJamPro(targetId, env);
@@ -55,7 +55,7 @@ export async function entitlementAdminResponse(request, {getStore, env = process
     if (body.action === 'grant') {
       if (!exact(body,['action','targetId','capability','expiresAt','reason','operationId']) || !account(body.targetId) || !capabilities.has(body.capability) ||
           !(body.expiresAt === null || typeof body.expiresAt === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(body.expiresAt) &&
-          Number.isFinite(Date.parse(body.expiresAt)) && new Date(body.expiresAt).toISOString() === body.expiresAt && Date.parse(body.expiresAt) > now())) return invalid();
+          Number.isFinite(Date.parse(body.expiresAt)) && new Date(body.expiresAt).toISOString() === body.expiresAt)) return invalid();
       input = {targetId:body.targetId, capability:body.capability, expiresAt:body.expiresAt, reason:body.reason, actorId:OWNER, operationId:body.operationId};
     } else if (body.action === 'revoke') {
       if (!exact(body,['action','grantId','reason','operationId']) || !grantId(body.grantId)) return invalid();

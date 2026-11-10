@@ -31,11 +31,15 @@ export function createEntitlementStore(pool) {
   }
   async function list(targetId) {
     account(targetId);
-    const [grants, audit] = await Promise.all([
-      read('SELECT * FROM zero_entitlements.grants WHERE target_id=$1 ORDER BY created_at DESC, id', [targetId]),
-      read('SELECT operation_id, grant_id, target_id, actor_id, action, reason, created_at FROM zero_entitlements.audit WHERE target_id=$1 ORDER BY created_at DESC, operation_id', [targetId])
-    ]);
-    return {grants:grants.rows.map(dto), audit:audit.rows.map(row => ({operationId:row.operation_id, grantId:row.grant_id, targetId:row.target_id, actorId:row.actor_id, action:row.action, reason:row.reason, createdAt:new Date(row.created_at).toISOString()}))};
+    // One statement uses a single MVCC snapshot and statement timestamp for
+    // history and effective access, including while grants are changing.
+    const {rows:[row]} = await read(`SELECT
+      COALESCE((SELECT json_agg(g ORDER BY g.created_at DESC, g.id) FROM zero_entitlements.grants g WHERE g.target_id=$1), '[]'::json) AS grants,
+      COALESCE((SELECT json_agg(a ORDER BY a.created_at DESC, a.operation_id) FROM zero_entitlements.audit a WHERE a.target_id=$1), '[]'::json) AS audit,
+      EXISTS (SELECT 1 FROM zero_entitlements.grants g WHERE g.target_id=$1 AND g.capability='pro_listings' AND g.revoked_at IS NULL AND (g.expires_at IS NULL OR g.expires_at > statement_timestamp())) AS listings,
+      EXISTS (SELECT 1 FROM zero_entitlements.grants g WHERE g.target_id=$1 AND g.capability='jam_hosting' AND g.revoked_at IS NULL AND (g.expires_at IS NULL OR g.expires_at > statement_timestamp())) AS jam
+    `, [targetId]);
+    return {grants:row.grants.map(dto), audit:row.audit.map(item => ({operationId:item.operation_id, grantId:item.grant_id, targetId:item.target_id, actorId:item.actor_id, action:item.action, reason:item.reason, createdAt:new Date(item.created_at).toISOString()})), access:{listingLimit:row.listings ? 10 : 1, jamHosting:row.jam}};
   }
   async function mutate(request, apply) {
     const hash = createHash('sha256').update(JSON.stringify(request)).digest('hex');
@@ -60,7 +64,7 @@ export function createEntitlementStore(pool) {
     } catch (cause) {
       if (commitStarted) discard = true;
       else if (client && begun) { try { await client.query('ROLLBACK'); } catch { discard = true; } }
-      if (cause?.status === 409 || cause?.status === 404) throw cause;
+      if (cause?.status === 400 || cause?.status === 409 || cause?.status === 404) throw cause;
       throw unavailable();
     } finally { if (client) client.release(discard); }
   }
@@ -69,6 +73,10 @@ export function createEntitlementStore(pool) {
     if (!capabilities.has(capability)) throw error(400, 'Invalid capability.');
     const request = {action:'grant', targetId, capability, expiresAt, reason:why, actorId, operationId};
     return mutate(request, async client => {
+      if (expiresAt !== null) {
+        const {rows:[clock]} = await client.query('SELECT $1::timestamptz > statement_timestamp() AS valid', [expiresAt]);
+        if (!clock.valid) throw error(400, 'Expiry must be in the future.');
+      }
       const {rows:[row]} = await client.query(`INSERT INTO zero_entitlements.grants (id,target_id,capability,source,expires_at) VALUES ($1,$2,$3,'manual',$4) RETURNING *`, [randomUUID(),targetId,capability,expiresAt]);
       return dto(row);
     });
@@ -96,7 +104,10 @@ export function configuredEntitlementStore(env = process.env) {
   if (url.protocol !== 'postgresql:' || !url.hostname || !url.username || !url.password || !url.pathname.slice(1) || url.search || url.hash) throw unavailable();
   const poolKey = `${local ? 'local' : 'tls'}:${connectionString}`;
   if (!pools.has(poolKey)) {
-    const pool = new Pool({connectionString, ssl:local ? false : {rejectUnauthorized:true}, max:4, connectionTimeoutMillis:2500, idleTimeoutMillis:10000, statement_timeout:2500, idle_in_transaction_session_timeout:5000});
+    // A read has at most 1 s pool acquisition plus 1.2 s client query timeout,
+    // leaving room within the Jam transaction's 5 s budget. Server timeout is
+    // shorter; a disconnected server cannot defeat the client-side deadline.
+    const pool = new Pool({connectionString, ssl:local ? false : {rejectUnauthorized:true}, max:4, connectionTimeoutMillis:1000, idleTimeoutMillis:10000, query_timeout:1200, statement_timeout:1000, idle_in_transaction_session_timeout:5000});
     pool.on('error', () => {});
     pools.set(poolKey, createEntitlementStore(pool));
   }

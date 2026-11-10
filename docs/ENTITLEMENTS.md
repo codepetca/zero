@@ -52,6 +52,12 @@ share the entitlement store's transaction. A grant revoked after the final
 entitlement check may still race an already-dispatched write; no instantaneous
 cross-store revocation guarantee is made.
 
+Expiry or revocation of the central listing grant does not automatically unlist
+existing projects. If an account is already over its new allowance, existing
+listed projects may still be updated; the lower limit applies to future listing
+placement under the current replacement rules. This is not yet the planned
+paid-Pro grace-period and downgrade flow.
+
 ## Activation and verification
 
 Before any production rollout, separately authorize and review the database
