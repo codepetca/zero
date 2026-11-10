@@ -1,5 +1,16 @@
 # Verification
 
+## ZeroHub My listings label — 2026-11-10
+
+Local implementation `9cda1d5e8` renames the ZeroHub link and its destination
+heading to **My listings**, with matching guidance in the editor and docs.
+TypeScript, whitespace and focused listing, navigation and editor publish
+tests passed. Chrome followed the link by keyboard and showed the signed-in
+sample account's protection and unlist controls at desktop and 390 px.
+At 320 px, WebKit showed the sign-in prompt for a signed-out sample session.
+Both browser checks used fixtures. Independent Luna/medium review of
+`386f192f4..9cda1d5e8` found no actionable issues.
+
 ## ZeroHub practice badge navigation — 2026-11-10
 
 Local implementation `58add2787`, based on `791d465d0`, removes the Tutorial
