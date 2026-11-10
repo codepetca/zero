@@ -277,7 +277,7 @@ focus and ordinary scrolling usable. See the dated corrections below for details
 
 | Surface | Status |
 | --- | --- |
-| Home page with app header, Learn Java and Mac/Windows downloads | Owner-approved download-first flow 2026-10-15; GitHub welcome belongs in desktop Zero. |
+| Home page with app header, Learn to Build, Starting from zero, a short description and Mac/Windows downloads | Copy updated by the owner 2026-11-10. GitHub welcome belongs in desktop Zero. |
 | Shared Learn/downloads design in light and dark | Owner-approved 2026-10-13; applies to the tutorial reader and Downloads. |
 | Minimal editor sidebar in light and dark | Owner-approved 2026-10-13: one Run/Stop, GitHub and ZeroHub view; idle status hidden; Sign in/username; New branch; Tutorials/Setup overflow. Native VS Code adaptation remains required. |
 | Docs reader | Owner-approved 2026-10-14 API mock: method/category sidebar, search and concise entries; preserve current shared navigation, themes and code copying. Setup and longer guides stay linked. |
@@ -327,8 +327,9 @@ those roles to each surface. The approved dark companion applies to Home, Learn 
 
 ## Surface adaptations and review scope
 
-Home uses the shared app header above **Learn Java**, **Starting from zero.**
-and two direct buttons: **Download for Mac Silicon** and **Download for Windows (ZIP)**. GitHub connection is handled
+Home uses the shared app header above **Learn to Build**, **Starting from zero**,
+the short product description and the two direct platform buttons, **Get Zero for
+Mac Silicon** and **Get Zero for Windows**. GitHub connection is handled
 by the downloaded app's native welcome, using Zero's GitHub App connection and
 GitHub's device-code/consent flow after activation.
 It uses the centered full-viewport layout and shared appearance toggle. Tutorials opens

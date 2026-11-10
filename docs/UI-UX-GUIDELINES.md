@@ -1,7 +1,7 @@
 # Zero UI and UX guidelines
 
 This is Zero's canonical interaction and accessibility standard. It adapts
-RESPMax's HIG-informed guidance to a local Java teaching kit, its website,
+RESPMax's HIG-informed guidance to Zero's local learning workspace, website,
 VS Code extension and native setup. It is guidance, not an audit or a claim that
 existing screens satisfy it.
 
@@ -29,9 +29,10 @@ marks a preferred pattern with documented, task-specific exceptions.
   do not acquire a GitHub requirement. Students own their
   repositories and submit links separately in Pika. Connecting a repository,
   copying its link, uploading a branch and completing main are distinct states.
-- MUST preserve the owner-approved home page: shared app header, Learn Java,
-  Starting from zero. and direct Mac Silicon and Windows download actions. Keep the
-  centered stack and shared light/dark themes without promotional sections.
+- MUST preserve the owner-approved home page with the shared app header,
+  **Learn to Build**, **Starting from zero**, the short product description and
+  direct Mac Silicon and Windows download actions. Keep the centered stack and
+  shared light/dark themes without promotional sections.
   GitHub development connection belongs in downloaded Zero's welcome, using the
   supported `zero-github` provider and native editor controls. Current local source
   uses GitHub browser authorization for new connections, with no code-sign-in

@@ -29,6 +29,7 @@ export function msixVersion(version) {
 }
 
 export function msixManifest(version, identity = feasibilityIdentity) {
+  const description = 'Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.';
   return `<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
@@ -38,14 +39,14 @@ export function msixManifest(version, identity = feasibilityIdentity) {
  <Properties>
   <DisplayName>${identity.displayName}</DisplayName>
   <PublisherDisplayName>${identity.publisherDisplayName || 'Zero feasibility build'}</PublisherDisplayName>
-  <Description>Local Java teaching kit</Description>
+  <Description>${description}</Description>
   <Logo>Assets\\StoreLogo.png</Logo>
  </Properties>
  <Resources><Resource Language="en-US" /></Resources>
  <Dependencies><TargetDeviceFamily Name="Windows.Desktop" MinVersion="${identity.minimumOS}" MaxVersionTested="${identity.maxVersionTested}" /></Dependencies>
  <Applications>
   <Application Id="${identity.applicationId}" Executable="Zero.exe" EntryPoint="Windows.FullTrustApplication">
-   <uap:VisualElements DisplayName="${identity.displayName}" Description="Local Java teaching kit"
+   <uap:VisualElements DisplayName="${identity.displayName}" Description="${description}"
     BackgroundColor="transparent" Square150x150Logo="Assets\\Square150x150Logo.png" Square44x44Logo="Assets\\Square44x44Logo.png" />
   </Application>
  </Applications>

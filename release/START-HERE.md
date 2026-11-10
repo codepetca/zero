@@ -1,4 +1,8 @@
-# Start with Zero
+# Learn to Build
+
+**Starting from zero**
+
+Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.
 
 This local kit candidate **0.5.69** includes core **0.3.0**, targeting **Mac with Apple Silicon** and **Windows**.
 Use the guide bundled with an older download for its controls. Linux and Intel

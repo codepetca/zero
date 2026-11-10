@@ -19,11 +19,15 @@ test('review endpoints use source data and published fallback without exposing d
     const html = await web.text();
     for (const lesson of lessons) assert.ok(html.includes(lesson.title.replaceAll('&','&amp;')));
     assert.match(html, /Lessons 0–12/); assert.match(html, /data-lesson-content="0"/);
-    assert.doesNotMatch(html, /Learn Java|Start lesson 0|Starting from zero/);
+    assert.doesNotMatch(html, /Learn to Build|Start lesson 0|Starting from zero/);
     assert.doesNotMatch(html, /Download for Mac Silicon|Download for Windows/);
+    const homeHtml = await (await fetch(`${origin}/web?theme=dark&screen=home`)).text();
+    assert.match(homeHtml, /<h1>Learn to Build<\/h1>/);
+    assert.match(homeHtml, /Starting from zero/);
+    assert.match(homeHtml, /practice GitHub workflows, learn to read documentation, and publish your work/);
     const downloadHtml = await (await fetch(`${origin}/web?theme=dark&screen=downloads`)).text();
     assert.match(downloadHtml, /Download Zero/);
-    assert.doesNotMatch(downloadHtml, /Learn Java|id="lessons"/);
+    assert.doesNotMatch(downloadHtml, /Learn to Build|id="lessons"/);
     const installer = JSON.parse(readFileSync(new URL('../../release/installer.json', import.meta.url), 'utf8'));
     if (installer.publication.status === 'published') {
       assert.match(downloadHtml, /Download for Mac Silicon/);
@@ -124,7 +128,8 @@ test('Start Page fixture renders the production panel and its actual phase snaps
   const {startPageSource, startPageView, componentStates} = await import('./start-page-source.mjs');
   for (const state of componentStates) {
     const {html, snapshot} = await startPageSource(state);
-    assert.match(html, /Start with Zero/);
+    assert.match(html, /Learn to Build/);
+    assert.match(html, /Starting from zero/);
     assert.match(html, /data-action="tutorials" disabled>Zero Docs/);
     assert.doesNotMatch(html, /aria-controls="tutorial-menu"/);
     assert.match(html, /aria-controls="project-menu"/);

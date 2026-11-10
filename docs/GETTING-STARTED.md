@@ -1,6 +1,8 @@
 # Setup and troubleshooting
 
-Use this guide to install Zero, start a project, and get help when something goes wrong.
+Use this guide to install Zero and start your first project. Follow the tutorials
+to build in Java, learn to read documentation, practice GitHub workflows, and
+publish an app others can open in their browser.
 
 ## Start here
 

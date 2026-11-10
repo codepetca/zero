@@ -137,15 +137,38 @@ Certification Kit validation remain separate acceptance steps.
    projects; current external tooling cleanup has not been accepted. Test school
    restrictions separately; Store signing cannot bypass their device policies.
 
-Draft listing opening for certification review:
+## Store listing copy
 
-> Zero requires Java21, Node.js, Microsoft Visual Studio Code and Java extension support.
-> With your permission, first setup downloads missing tools from their vendors;
-> the first app build also downloads Maven and JavaFX. Internet access is required
-> for that setup. Zero is a local Java teaching kit that lets students edit,
-> compile and run their own Java programs.
+Prepared for the English **Zero Studio** listing. Use the existing Store product
+and package identity. The headline belongs in the description.
 
-This is a proposed description, not a submitted listing or vendor approval.
+**Short description**
+
+> Learn to Build. Starting from zero. Make Java apps and games, learn to read
+> documentation, and manage and publish your projects with GitHub.
+
+**Description**
+
+> Zero Studio guides you from your first Java project to a playable app or game.
+> Follow step-by-step tutorials and run your code on your computer. Learn to
+> read documentation by finding methods and examples in Zero Docs.
+>
+> Practice GitHub workflows on your own projects. Create a branch, commit and push
+> changes, and merge finished work. When you’re ready to share, publish a browser
+> version of your app with GitHub Pages. GitHub features require your own GitHub
+> account. Published apps and their included assets are public.
+>
+> First setup needs internet access. With your permission, Zero downloads missing
+> Java 21, Node.js, Visual Studio Code and Java extension support. Your first
+> app build downloads Maven and JavaFX dependencies.
+
+In Partner Center, start an update for the existing product and edit the
+Store listing for each supported language. Microsoft accepts metadata-only
+updates with the current package. Check that screenshots and captions still
+match the listing, then submit the update for certification when authorized.
+The published listing is managed separately from this repository.
+See [Microsoft’s listing fields](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/add-and-edit-store-listing-info)
+and [metadata update process](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/publish-update-to-your-app-on-store).
 
 ## Version correction after the first upload attempt
 

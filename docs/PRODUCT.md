@@ -1,4 +1,17 @@
-# Zero: local Java teaching MVP
+# Zero
+
+## Positioning
+
+**Learn to Build**
+
+**Starting from zero**
+
+Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.
+
+Owner direction, 2026-11-10. Use this message for the website, editor onboarding,
+repository introductions and distribution copy. Zero is the product name and
+Zero Studio is its Microsoft Store name. The headline describes what students
+learn through making and sharing a project.
 
 The shared website header shows a Beta chip. It opens a notice that Zero and
 ZeroHub are in beta, features may change or be unavailable, and data may not be
@@ -44,14 +57,17 @@ component preview and finite smoke checks. This development loop does not requir
 an installer rebuild or change installed student Zero; distribution and native
 installation/update acceptance remain separate release steps.
 
-A downloadable teaching kit for high school students who know beginning Java
-through CodeHS. Students make interfaces, games, drawings, simulations and quizzes
-using ordinary Java, then contribute understandable examples and helpers for
-later cohorts. Students own their repositories; Pika submission is separate.
+Zero gives beginning Java students a local workspace and a guided path from
+their first edit to a playable app. They build interfaces, games, drawings,
+simulations and quizzes in ordinary Java. They learn to read documentation by
+finding examples and API details. They work in branches, commit and push changes, and merge
+finished work into main. Students own their GitHub repositories and submit links
+separately in Pika. They can share understandable examples and helpers for
+later cohorts.
 
 Success means a student can start their own tutorial repository, make and explain
-a small Java change, run it, repair a useful compiler error, and save their work
-to GitHub. The default teaching path must also produce working games and apps
+a small Java change, look up an unfamiliar API, run the app, use a compiler error
+to repair a mistake, and save their work to GitHub. The default teaching path must also produce working games and apps
 through the pinned JavaFX/WebFX toolchain, playable on GitHub Pages. An individual
 early lesson need not publish, but browser delivery is a core product capability.
 Keep ordinary Java and explicit ownership of updates central as the kit grows.
@@ -265,16 +281,17 @@ GitHub setup verifies project access before tutorial choices and repository deta
 
 The shared Zero brand uses the softened, thicker slashed-circle mark from
 `design/brand`. Website title images use purple in light mode and light purple on a transparent
-background in dark mode, with lowercase outlined lettering. Every website browser tab
-reads lowercase **zero**, with a transparent favicon matching the page's light/dark
-icon color. Apple touch icons and share previews keep the white-on-purple inverse.
+background in dark mode, with lowercase outlined lettering. The Home browser tab
+reads **Learn to Build | Zero**. Other tabs retain their current titles. The
+transparent favicon matches the page's light/dark icon color. Apple touch icons and share previews keep the white-on-purple inverse.
 Editor icons follow native theme colors; future Mac and Windows
 installer builds derive their icons from the same geometry. Existing published
 installers remain unchanged.
 
 The download website is a separately built part of this repository. Its landing
-page has the shared app header, **Learn Java**, **Starting from zero.**, and two
-platform buttons: **Get Zero for Mac Silicon** and **Get Zero for Windows**.
+page has the shared app header, **Learn to Build**, **Starting from zero**, the
+short product description and two platform buttons, **Get Zero for Mac Silicon**
+and **Get Zero for Windows**.
 The Windows action opens Zero Studio’s Store listing. Store installation and updates
 still need physical Windows acceptance.
 Home and Downloads keep both primary buttons centered
