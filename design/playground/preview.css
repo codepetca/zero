@@ -109,6 +109,8 @@ p {
   color:var(--zero-muted);
   margin:0 0 var(--zero-space-5)
 }
+.home-page .lead { margin-bottom:var(--zero-space-3); }
+.home-description { max-width:44ch;margin:0 auto;color:var(--zero-muted);line-height:1.55; }
 .primary {
   display:inline-flex;
   justify-content:center;

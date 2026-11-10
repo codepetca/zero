@@ -1,3 +1,15 @@
+# Current product positioning — 2026-11-10
+
+**Learn to Build** / **Starting from zero** is the owner-selected messaging.
+Describe the full learning path. Students write and run Java, use GitHub to
+manage project changes, learn to read documentation, and publish a playable
+app. Follow [Product](../docs/PRODUCT.md#positioning) for copy and scope. Zero
+remains the product name. Windows is listed as Zero Studio, with
+[Store copy](../docs/WINDOWS-MSIX.md#store-listing-copy) prepared for a separate
+Partner Center update.
+
+---
+
 # Zero 0.5.65 release — 2026-11-08
 
 The [kit release](https://github.com/codepetca/zero/releases/tag/v0.5.65) and

@@ -4,11 +4,11 @@ Start with [shared design](../../design.md) and the canonical
 [UI and UX guidelines](../UI-UX-GUIDELINES.md). Current owner instructions
 supersede the original landing mockup.
 
-## Current page contract — 2026-10-15
+## Current page contract — copy updated 2026-11-10
 
-Home (`/`) has the shared app header and a centered stack: **Learn Java**,
-**Starting from zero.** and two direct download actions: **Download for Mac Silicon**
-and **Download for Windows (ZIP)**. GitHub
+Home (`/`) has the shared app header and a centered stack with **Learn to Build**,
+**Starting from zero**, the short [product description](../PRODUCT.md#positioning)
+and direct **Get Zero for Mac Silicon** and **Get Zero for Windows** actions. GitHub
 connection happens in downloaded Zero's native welcome. The website needs no
 sign-in; old `/get-started` links redirect to Downloads. Preserve keyboard focus.
 Tutorials opens lesson 0 directly, with all thirteen lessons in a desktop sidebar

@@ -1,5 +1,31 @@
 # Verification
 
+## Learn to Build product copy — 2026-11-10
+
+Local branch `codex/learn-to-build` applies the owner-selected title and tagline
+to the website and editor Start Page. Product, design, student and AI guidance
+cover Java, GitHub workflows, reading documentation and publishing. The Store description
+draft is in [Windows MSIX](WINDOWS-MSIX.md#store-listing-copy).
+
+Repository checks, website typecheck and production build passed. All 76 focused
+Start Page, playground, MSIX, navigation, API reference, download and GitHub
+destination tests passed on main base `6d1a3b083` plus the local changes. Chrome
+verified the local home at 1280 and 320 pixels, including dark mode, both download
+links, browser and share metadata, and the Beta notice's border, keyboard focus,
+Escape dismissal and focus return. The Start Page fixture rendered at 390
+pixels. The Docs link opened the searchable API reference. Native editor and
+Windows installation acceptance remain separate.
+
+The two broad website runs encountered timing failures in existing ZeroJams
+tests. All 29 tests across the three affected files passed when rerun from the
+website directory. The broad suite did not pass end to end.
+
+Independent Luna/medium review of the copy and targeted reviews of the Beta
+styles and the final “learn to read documentation” wording found no actionable
+issues. Website typecheck and all 76 focused checks passed again on base
+`eb65bf16d` with the final wording. The Store draft is ready for a separate
+Partner Center update.
+
 ## ZeroHub app wording — 2026-11-10
 
 Source `ec9adc8bee` against `791d465d0` uses **Manage apps** across

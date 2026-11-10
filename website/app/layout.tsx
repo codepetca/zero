@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthKitProvider } from "@workos-inc/authkit-nextjs/components";
 import { workosConfigured } from "@/lib/workos-config.mjs";
 import DocsLocationTracker from "@/components/DocsLocationTracker";
+import { productDescription } from "@/lib/product-copy.mjs";
 export const metadata: Metadata = {
   metadataBase: new URL("https://zero.codepet.ca"),
   icons: {
@@ -14,8 +15,7 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image", images: ["/generated/brand/share.png"] },
   title: { default: "zero", template: "zero" },
-  description:
-    "A simple kit for building Java apps. Ordinary Java, VS Code and a small JavaFX library.",
+  description: productDescription,
 };
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (

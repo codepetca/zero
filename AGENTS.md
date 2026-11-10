@@ -12,8 +12,11 @@ proposals require owner review before production visual changes.
 The remembered website preferences in `design.md` are continuing owner defaults;
 preserve them in future UI work unless the owner asks to change them.
 
-- Zero is a local Java teaching kit: a VS Code extension/profile and a small
-  JavaFX library. Preserve ordinary Java and explicit object updates.
+- Zero's headline is **Learn to Build** and its tagline is **Starting from zero**.
+  Treat Java, GitHub workflows, reading documentation, and publishing as parts
+  of learning to build. Follow the positioning in `docs/PRODUCT.md`. Zero runs locally with
+  a VS Code extension/profile and a small JavaFX library. Preserve ordinary
+  Java and explicit object updates.
 - Target normal student games/apps to Zero packages almost entirely, with JavaFX
   underneath and an explicit advanced interoperability path. Follow the proposed
   docs/FRAMEWORK-MODEL.md and docs/FRAMEWORK-RELIABILITY.md; do not claim new
