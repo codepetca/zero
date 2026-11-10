@@ -6,8 +6,8 @@ repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
 compatibility checks and compilation.
 
-Zero remains a local Java teaching kit. Students write ordinary Java and JavaFX
-in local VS Code. Run App uses the project Maven wrapper to open a native desktop
+Students write ordinary Java and JavaFX in local VS Code and learn to share
+playable browser builds through GitHub Pages. Run App uses the project Maven wrapper to open a native desktop
 window. Browser compilation is deferred to Publish app or the explicit advanced
 Export for web action. Their computer performs the pinned WebFX/GWT compilation;
 GitHub owns source and Pages hosts static apps. Cloud development, hosted Java

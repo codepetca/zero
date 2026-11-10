@@ -1,5 +1,10 @@
 # My Zero App
 
+**Learn to Build** · **Starting from zero**
+
+Build and run Java apps and games, learn to read documentation, save
+changes with GitHub, and publish a playable app when you are ready to share.
+
 [![Built with Zero](https://img.shields.io/badge/Built%20with-Zero-6C5CE7)](https://zero.codepet.ca)
 
 This source is included in the local Mac candidate **0.5.51** with core **0.3.0**.

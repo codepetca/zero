@@ -1,12 +1,18 @@
 # Zero
 
-[Get started at zero.codepet.ca](https://zero.codepet.ca).
+## Learn to Build
 
-Zero is a downloadable local Java teaching kit for students beginning Java
-through CodeHS. Build interfaces with ordinary JavaFX controls and `App`,
-or animate a canvas with `GameApp` and explicitly updated Java objects.
-A minimal VS Code sidebar provides Run, Stop and GitHub controls.
-Students own their GitHub repositories and submit links separately in Pika.
+**Starting from zero**
+
+Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.
+Follow the [tutorials](https://zero.codepet.ca/tutorials/15) from a first Java
+project to a playable app. Read the [docs](https://zero.codepet.ca/docs) when
+you need a method or example. Save changes in your own GitHub repository and
+publish a playable link with GitHub Pages.
+
+Zero runs locally in VS Code. Build interfaces with `App` or animate a canvas
+with `GameApp` and explicitly updated Java objects. Students submit links
+separately in Pika.
 The local candidate adds [asset import, recovery and guided game sharing](docs/STUDENT-FRICTION.md).
 
 The MVP starts with a small quiz and includes animation, keyboard, counter,
