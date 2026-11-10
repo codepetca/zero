@@ -65,6 +65,24 @@ test('host judging controls stay available when the public gallery fails',()=>{
   assert.ok(account().some(node=>node.type?.name==='ModerationInbox'));
   assert.ok(!account().some(node=>node.type?.name==='WinnerPicker'));
 });
+test('winner confirmation refreshes the account view and returns from a changed gallery page',async()=>{
+  const event={id:'jam-42',type:'game',title:'Jam',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',
+    timezone:'UTC',schedule:{},revision:'a',moderation:{status:'active'},registrationOpen:false,
+    submissionsOpen:false,participantCount:0,participants:[],entries:[]};
+  const h=harness({participateData:{event,canPickWinner:true,nextCursor:'opaque-cursor'}});
+  const render=()=>elements(h.render('JamDetail',{id:'jam-42'}));
+  const account=()=>render().find(node=>node.type?.name==='JamAccountTools');
+  const pending=account();
+  render().find(node=>node.type==='button'&&node.props.children==='Next gallery page').props.onClick();
+  assert.ok(render().some(node=>node.props.children==='Start gallery again'));
+  assert.equal(pending.props.isCurrent(),true);
+  await pending.props.onWinner();
+  assert.notEqual(account().key,pending.key);
+  assert.ok(!render().some(node=>node.props.children==='Start gallery again'));
+  h.setActor({id:'99',login:'other',csrfToken:'other'});
+  render();
+  assert.equal(pending.props.isCurrent(),false);
+});
 test('mutation retries preserve operation identity through errors and reload; success clears it',async()=>{
   const calls=[],storage=new Map();
   let fail=true;
