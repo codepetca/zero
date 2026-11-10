@@ -46,7 +46,11 @@ export async function hubListingsResponse(request, {
       const before = new URL(request.url).searchParams.get('before');
       if (before !== null && !listingId(before)) return invalid();
       const page = await store.mine(session.id, before);
-      return json({account:session.id, limit:await effectiveListingLimit(session.id, env, getEntitlementsStore), projects:page.projects.map(ownerDto), next:page.next});
+      // Management does not require an entitlement decision. Keep existing
+      // cards removable during an authority outage without guessing a limit.
+      let limit = null;
+      try { limit = await effectiveListingLimit(session.id, env, getEntitlementsStore); } catch { /* unknown until authority recovers */ }
+      return json({account:session.id, limit, projects:page.projects.map(ownerDto), next:page.next});
     }
     if (request.method !== 'POST') return invalid();
     const signal = AbortSignal.any([request.signal, AbortSignal.timeout(12_000)]);

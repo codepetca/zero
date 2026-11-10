@@ -230,12 +230,15 @@ test('central listing grants augment legacy access and outages do not silently d
   const {cookie} = newSession(token, {id:6, login:'student'}, 3600, hubConfig(env));
   const request = () => new Request(origin + '/api/hub/listings', {headers:{Cookie:cookie.split(';')[0]}});
   const centralEnv = {...env, ZERO_ENTITLEMENTS_DATABASE_URL:'fixture-only'};
-  const listingStore = {mine:async()=>({projects:[], next:null})};
+  const project = {repositoryId:'21', title:'Game', pagesUrl:'https://example.test', listed:true, protected:false};
+  const listingStore = {mine:async()=>({projects:[project], next:null})};
   const options = {env:centralEnv, getStore:()=>listingStore,
     getEntitlementsStore:()=>({resolve:async id=>({listingLimit:id==='6'?10:1})})};
   assert.equal((await (await hubListingsResponse(request(), options)).json()).limit, 10);
   const unavailable = {...options, getEntitlementsStore:()=>({resolve:async()=>{throw new Error('offline');}})};
-  assert.equal((await hubListingsResponse(request(), unavailable)).status, 503);
+  const degraded = await hubListingsResponse(request(), unavailable);
+  assert.equal(degraded.status, 200);
+  assert.deepEqual(await degraded.json(), {account:'6', limit:null, projects:[project], next:null});
   const legacy = {...unavailable, env:{...centralEnv, ZERO_HUB_LISTINGS_PRO_GITHUB_IDS:'6'}};
   assert.equal((await (await hubListingsResponse(request(), legacy)).json()).limit, 10);
 });
@@ -251,6 +254,15 @@ test('a central entitlement outage cannot replace a listing on publish', async (
     getEntitlementsStore:()=>({resolve:async()=>{throw new Error('offline');}})});
   assert.equal(response.status, 503);
   assert.equal(wrote, false);
+  const {cookie, session} = newSession(token, {id:6, login:'student'}, 3600, hubConfig(env));
+  const options = {env:centralEnv, getStore:()=>({owned:async()=>receipt, savePublication:async()=>{wrote=true;}, manage:async()=>true}),
+    verify:async()=>receipt, getEntitlementsStore:()=>({resolve:async()=>{throw new Error('offline');}})};
+  const management = action => new Request(origin+'/api/hub/listings', {method:'POST',
+    headers:{'Content-Type':'application/json', Origin:origin, Cookie:cookie.split(';')[0], 'X-Hub-CSRF':session.csrf},
+    body:JSON.stringify({action, repositoryId:'21'})});
+  assert.equal((await hubListingsResponse(management('list'), options)).status, 503);
+  assert.equal(wrote, false);
+  assert.equal((await hubListingsResponse(management('unlist'), options)).status, 200);
 });
 
 test('a cancelled publish or relist does not write after the entitlement lookup', async () => {

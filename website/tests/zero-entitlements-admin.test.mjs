@@ -59,4 +59,6 @@ test('admin page denies framing', async()=>{
  const {readFile}=await import('node:fs/promises');
  const config=await readFile(new URL('../next.config.ts',import.meta.url),'utf8');
  assert.match(config, /'\/admin\/entitlements'/); assert.match(config,/X-Frame-Options[^\n]*DENY/); assert.match(config,/frame-ancestors 'none'/);
+ const component=await readFile(new URL('../components/EntitlementAdmin.tsx',import.meta.url),'utf8');
+ assert.match(component, /<main id="page-content" tabIndex=\{-1\}/);
 });

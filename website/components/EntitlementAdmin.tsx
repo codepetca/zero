@@ -72,7 +72,7 @@ export function EntitlementAdmin() {
     if (expiry) { const date = new Date(expiry); if (!Number.isFinite(date.getTime())) {setError('Enter a valid expiry.'); return;} expiresAt = date.toISOString(); }
     void send({targetId:loaded,payload:{action:'grant',targetId:loaded,capability,expiresAt,reason:reason.trim(),operationId:crypto.randomUUID()}});
   }
-  return <main style={{maxWidth:'60rem',margin:'2rem auto',padding:'0 1rem'}}>
+  return <main id="page-content" tabIndex={-1} style={{maxWidth:'60rem',margin:'2rem auto',padding:'0 1rem'}}>
     <h1>Entitlement administration</h1>
     <p>Independent legacy grants remain effective until migrated. This page manages central manual grants; purchases and Stripe are not connected. The API verifies authorization before showing or changing account data.</p>
     {error && <p role="alert">{error}</p>}{!csrf && <p><a href="/zero-account/sign-in">Sign in to Zero</a>, then return to this page in the same tab to recover any pending action.</p>}{notice && <p role="status">{notice}</p>}
