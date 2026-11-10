@@ -372,10 +372,12 @@ in the relevant lessons. Setup/troubleshooting lives under `/help`, and teacher
 notes and the classroom pilot live under `/teachers`. Product, development and
 verification records stay in repository documentation. Legacy `/docs/...` guide
 bookmarks lead to the corresponding tutorial, help, teacher or repository page.
-ZeroHub opens Projects by default, with Projects, Libraries and a separate
-Tutorial practice entry. A desktop sidebar contains the ZeroHub title, search
-field, Share your work and those three filters, in that order. The gallery sits
-in the right pane. On narrow screens the controls stack above the gallery.
+ZeroHub opens Projects by default, with Projects and Libraries in the catalog
+navigation. Lesson 11 links directly to the separate practice badge catalog.
+The Zero editor also offers **Browse tutorial practice** in **Libraries and
+games**. A desktop sidebar contains the ZeroHub title, search field, Share your
+work and the catalog navigation, in that order. The gallery sits in the right
+pane. On narrow screens the controls stack above the gallery.
 The sidebar has no vertical divider. A short tagline under the title says
 “Play. Share. Learn.” Below the buttons, a brief description
 explains browser projects, reusable libraries and sharing with Zero. Sharing

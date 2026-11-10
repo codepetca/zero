@@ -130,13 +130,13 @@ test('tutorial copies stay out of regular search, projects and libraries, with l
   assert.deepEqual(selectMaintainedProjects([{title:'Copied tutorial',description:'practice',author:'student'}],{kind:'practice'}),[]);
   assert.equal(new URL(releaseLink(old),'https://zero.codepet.ca').searchParams.get('kind'),'practice');
 });
-test('practice discovery keeps explicit editor navigation and paused publication',async()=>{
+test('practice discovery stays accessible outside the main catalog navigation',async()=>{
   const {readFile}=await import('node:fs/promises');
   const discovery=await readFile(new URL('../components/HubDiscovery.tsx',import.meta.url),'utf8');
   const prepare=await readFile(new URL('../components/HubPrepare.tsx',import.meta.url),'utf8');
   const navigation=await readFile(new URL('../components/HubNavigation.tsx',import.meta.url),'utf8');
   assert.match(discovery,/Tutorial practice/);assert.match(discovery,/Add library → Apply/);
   assert.match(discovery,/Libraries and games →/);assert.match(discovery,/Browse tutorial practice/);
-  assert.match(navigation,/href="\/hub\?kind=practice"/);
+  assert.doesNotMatch(navigation,/kind=practice/);
   assert.match(prepare,/publication, including practice, remains paused/);assert.match(prepare,/local passing check does not publish/);
 });

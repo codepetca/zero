@@ -8,7 +8,6 @@ export function HubNavigation({active, showListings=false}: {active: 'game' | 'l
     <nav className={styles.navigation} aria-label="ZeroHub catalog">
     <Link href="/hub?kind=game" aria-current={active === 'game' ? 'page' : undefined}>Projects</Link>
     <Link href="/hub?kind=library" aria-current={active === 'library' ? 'page' : undefined}>Libraries</Link>
-    <Link href="/hub?kind=practice" aria-current={active === 'practice' ? 'page' : undefined}>Tutorial practice</Link>
     {showListings && <Link href="/hub/listings">Manage listings</Link>}
     {jamsNavigationAvailable() && <Link href="/hub/jams">ZeroJams</Link>}
     </nav>
