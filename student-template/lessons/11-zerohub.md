@@ -300,7 +300,7 @@ prefilled official GitHub form. Requests are public; keep private information
 out of the source and metadata. The usual ownership, licence, source and library
 checks still apply. Practice does not skip checking.
 
-Find accepted badges in [ZeroHub → Tutorial practice](https://zero.codepet.ca/hub?kind=practice).
+[Browse practice badges](https://zero.codepet.ca/hub?kind=practice) to find accepted badges in ZeroHub.
 They are labelled tutorial copies and excluded from ordinary Projects/Libraries
 search. Everyone is expected to have a similar badge. Completing the workflow is
 the achievement; these are not candidates for automatic inclusion in Zero.

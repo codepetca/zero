@@ -26,6 +26,53 @@ issues. Website typecheck and all 76 focused checks passed again on base
 `eb65bf16d` with the final wording. The Store draft is ready for a separate
 Partner Center update.
 
+## ZeroHub navigation integration — 2026-11-10
+
+[PR #309](https://github.com/codepetca/zero/pull/309) integrated the navigation
+changes with main `eb65bf16`. Resolved source `912d4dc3` keeps the newer app
+visibility wording and uses **My Apps** for the page. Lesson 11 and the
+Zero editor continue to open the practice badge catalog.
+
+TypeScript, whitespace and focused website and editor tests passed on the
+integrated source. Local WebKit with a sample account followed **My Apps**
+and showed **Do not replace** and **Remove from ZeroHub**. One independent
+Terra/medium review of `eb65bf16..912d4dc3` found no actionable issues.
+
+## ZeroHub My listings label — 2026-11-10
+
+Local implementation `9cda1d5e8` renames the ZeroHub link and its destination
+heading to **My listings**, with matching guidance in the editor and docs.
+TypeScript, whitespace and focused listing, navigation and editor publish
+tests passed. Chrome followed the link by keyboard and showed the signed-in
+sample account's protection and unlist controls at desktop and 390 px.
+At 320 px, WebKit showed the sign-in prompt for a signed-out sample session.
+Both browser checks used fixtures. Independent Luna/medium review of
+`386f192f4..9cda1d5e8` found no actionable issues.
+
+The follow-up `f30d20bb3` changes the label to **My Apps**. TypeScript and
+focused navigation, listing and editor publish tests passed. At 320 px,
+WebKit followed **My Apps** to the matching heading at `/hub/listings`.
+Independent Luna/medium review of `9d00a51b2..f30d20bb3` found no issues.
+
+## ZeroHub practice badge navigation — 2026-11-10
+
+Local implementation `58add2787`, based on `791d465d0`, removes the Tutorial
+practice tab. Lesson 11 links directly to the badge catalog. The Zero editor
+offers **Browse tutorial practice** in **Libraries and games**.
+
+TypeScript and whitespace checks passed. The website suite passed 775 tests
+with three skips, and all 39 editor sharing tests passed. Local Chrome and
+Playwright WebKit verified the navigation at desktop, 390 px and 320 px. The
+lesson link targets the practice catalog. A sample badge appeared in the
+practice view and stayed out of Libraries after keyboard navigation in Chrome.
+The local dev server reported a hydration mismatch for the ZeroJams preview
+link. The browser check used catalog fixtures, and editor coverage used tests
+in place of a native editor walkthrough.
+
+One independent Luna/medium review of `791d465d0..58add2787` found no
+actionable issues. Browser snapshots are in the ignored `.playwright-cli/`
+folder in the local worktree.
+
 ## ZeroHub app wording — 2026-11-10
 
 Source `ec9adc8bee` against `791d465d0` uses **Manage apps** across
