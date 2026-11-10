@@ -1,5 +1,13 @@
 # Verification
 
+## My Projects and My Libraries — 2026-11-10
+
+Source `04577d541` moves the existing listing controls under Projects and
+adds an account-filtered main catalog view under Libraries. TypeScript and
+103 focused tests passed. Chromium fixtures verified both accounts, the
+existing project controls and the signed-out library prompt. Independent
+Terra/medium review found no actionable issues. The changes are local.
+
 ## ZeroHub section navigation — 2026-11-10
 
 Source `7ad7abdb7` on `bd28ba1f9` keeps one sidebar and content pane across
