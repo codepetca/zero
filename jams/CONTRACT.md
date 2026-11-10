@@ -81,6 +81,9 @@ Return methods:
 - `list(actor?)` -> `{events:[summary],canMaintain,proposals?}` (approved only;
   no suspended/cancelled discovery). Only maintainers receive pending review
   summaries `{id,title,type,revision,status,organizerLogin,submittedAt}` in proposals.
+- `listSummaries(actor?)` returns the directory without gallery entries. Signed-in
+  callers also receive `hostingAccess:{accountId,canCreate}` from the same Pro
+  policy used by creation. Each create request checks access again.
 - `read(id,actor?)` -> `{event,registration,entry,canMaintain,proposal?}`; unauthenticated
   callers see only accepted public event, active participant/entry summaries.
   Unapproved proposal detail is creator/maintainer-only. `registration` and `entry`

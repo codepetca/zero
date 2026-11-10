@@ -84,15 +84,17 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
   const maintainers=new Set(maintainerIds), bound={...LIMITS,...limits};
   if (Object.keys(limits).some(key=>!Object.hasOwn(LIMITS,key)) || Object.entries(bound).some(([key,value])=>!Number.isSafeInteger(value)||value<1||value>LIMITS[key])) fail(503,'Invalid jam pilot limits.');
   if(bound.entryHistory<2||bound.stateBytes-safetySlots(bound)*SAFETY_SLOT_BYTES<65536)fail(503,'Jam limits must preserve ordinary capacity and reserved moderation space.');
-  function assertCreationAccess(accountId) {
-    let entitled=false;
+  function hasCreationAccess(accountId) {
     try {
       const result=canCreateJam(accountId);
       // The trusted hook is synchronous; an asynchronous result cannot grant.
       if(result&&typeof result.then==='function')void Promise.resolve(result).catch(()=>{});
-      entitled=result===true;
+      return result===true;
     } catch {/* Deny without disclosing configuration. */}
-    if(!entitled)fail(403,'A Pro license is required to propose a jam. Contact info@codepet.ca to request access.');
+    return false;
+  }
+  function assertCreationAccess(accountId) {
+    if(!hasCreationAccess(accountId))fail(403,'A Pro license is required to propose a jam. Contact info@codepet.ca to request access.');
   }
   async function safeCall(work) { try{return await work();}catch(error){if(error instanceof JamError)throw error;fail(503,'Official jam records are unavailable. Retry with the same operation ID.');} }
   async function load(id,snapshot,scope) {
@@ -375,7 +377,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       const proposal=state?.proposals.at(-1);
       if(canMaintain&&proposal&&['submitted','changes-requested'].includes(proposal.status))proposals.push({id,title:proposal.manifest.title,type:proposal.manifest.type,revision:proposal.revision,status:proposal.status,organizerLogin:state.creator.login,submittedAt:proposal.proposedAt});
     }
-    return taggedProjection({events,canMaintain,...(directory||galleriesDeferred?{galleriesDeferred:true}:{}),...(canMaintain?{proposals}:{})},revision);
+    const hostingAccess=directory&&actor?{accountId:actor.id,canCreate:hasCreationAccess(actor.id)}:undefined;
+    return taggedProjection({events,canMaintain,...(directory||galleriesDeferred?{galleriesDeferred:true}:{}),...(canMaintain?{proposals}:{}),...(hostingAccess?{hostingAccess}:{})},revision);
   }
   async function read(id,actor,options={}) {
     const {signal}=readOptions(options);

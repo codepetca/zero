@@ -2,7 +2,10 @@
 import Link from 'next/link';
 import {defaultHostedJamDraft,prepareHostedJamDraft,browserJamTimezone,formatJamDateTime,JAM_DRAFT_LIMITS} from '../lib/jam-draft.mjs';
 import {useCallback,useEffect,useRef,useState,type FormEvent} from 'react';
+import styles from '@/app/hub/hub.module.css';
 import {HubAccount,useHubGitHub} from './HubGitHub';
+import {HubSidebar} from './HubNavigation';
+import {Icon} from './Icon';
 
 type Source = {repositoryUrl:string;commit:string};
 type Repository = {id:string;ownerId:string;fullName:string;commit?:string};
@@ -11,6 +14,7 @@ type Entry = {participantId:string;login:string;title:string;description:string;
 type Event = Manifest & {creator?:{id:string;login:string};id:string;revision:string|null;approvalHistory?:{revision:string;approvedAt:string;manifest:Manifest}[];approvalMode?:string;reviewStatus:string;moderation:{status:string;reason?:string};registrationOpen:boolean;submissionsOpen:boolean;participantCount:number;participantLimit:number;galleryIncomplete?:boolean;participants:{id:string;login:string}[];entries:Entry[];updatedAt:string};
 type Detail = {configured:boolean;event:Event;registration:{status:string;revision?:string;repository?:Repository}|null;entry:Entry|null;moderationEntries?:Entry[];canMaintain:boolean;canPickWinner?:boolean;proposal?:{revision:string;manifest:Manifest;repository?:Repository;hosting?:string;organizerId?:string;organizerLogin?:string;status:string;reason?:string}};
 type Mutation = Record<string,unknown>;
+type Directory = {configured:boolean;events:Event[];hostingAccess?:{accountId:string;canCreate:boolean};canMaintain?:boolean;proposals?:{id:string;title:string;type:string;revision:string;status:string;organizerLogin:string;submittedAt:string}[]};
 const kindLabel = (type:string) => type === 'app' ? 'App Jam' : 'Game Jam';
 const reviewLabel = (status:string) => ({submitted:'Awaiting review',approved:'Approved','changes-requested':'Changes requested',rejected:'Rejected'}[status] || status);
 function message(error:unknown) { return error instanceof Error ? error.message : 'The request failed. Your form is kept; try again.'; }
@@ -117,11 +121,45 @@ function ApprovedVersions({event}:{event:Event}) {
   if(!versions.length)return null;
   return <details className="jam-review"><summary>Approved versions</summary><p>Compare the accepted rules and dates for this jam. Pending proposals are excluded.</p>{versions.map(version=><details key={version.revision}><summary>{version.revision===event.revision?'Current approved version':'Earlier approved version'} · <time dateTime={version.approvedAt}>{formatJamDateTime(version.approvedAt,'UTC')} UTC</time></summary><h2>{version.manifest.title}</h2><EventFacts event={version.manifest}/><p className="jam-source">Version: <code>{version.revision}</code></p></details>)}</details>;
 }
-export function JamDiscovery() {
-  const {data,error,loading,refresh}=useResource<{configured:boolean;events:Event[];canMaintain?:boolean;proposals?:{id:string;title:string;type:string;revision:string;status:string;organizerLogin:string;submittedAt:string}[]}>('/api/jams?view=summaries');
-  const [type,setType]=useState('all');
-  const events=(data?.events||[]).filter(event=>type==='all'||event.type===type);
-  return <><h1>ZeroJams</h1><p className="lead">Build something together. Browse Game Jams and App Jams, then review the rules on Zero before taking part.</p><JamHelpLink/><p><Link className="jam-button jam-primary" href="/hub/jams/create">Create a jam</Link> <span className="jam-muted">Pro</span></p>{data?.canMaintain&&Boolean(data.proposals?.length)&&<section><h2>Review proposals</h2><ul>{data.proposals!.map(proposal=><li key={proposal.id}><Link href={`/hub/jams/${proposal.id}`}>{proposal.title}</Link> · {kindLabel(proposal.type)} · @{proposal.organizerLogin} · {reviewLabel(proposal.status)}</li>)}</ul></section>}<div className="jam-filter"><select aria-label="Jam type" value={type} onChange={e=>setType(e.target.value)}><option value="all">All jams</option><option value="game">Game Jams</option><option value="app">App Jams</option></select></div><Retry error={error} loading={loading} refresh={refresh}/>{data&&!loading&&!error&&!events.length&&<p>No {type==='all'?'jams':kindLabel(type)+'s'} are listed yet.</p>}<div className="jam-cards">{events.map(event=><article className="jam-card" key={event.id}><p className="jam-muted">{kindLabel(event.type)}</p><h2><Link href={`/hub/jams/${event.id}`}>{event.title}</Link></h2><p>{event.summary}</p><p>{event.registrationOpen?'Registration open':'Registration closed'} · {event.participantCount} participants</p><p><Link href={`/hub/jams/${event.id}`}>View rules and schedule</Link></p></article>)}</div></>;
+export function JamDiscovery({showListings=false}:{showListings?:boolean}={}) {
+  const {user}=useHubGitHub();
+  const {data,error,loading,refresh}=useResource<Directory>('/api/jams?view=summaries');
+  const [type,setType]=useState('all'),[search,setSearch]=useState('');
+  const terms=search.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  const events=(data?.events||[]).filter(event=>{
+    if(type!=='all'&&event.type!==type)return false;
+    const searchable=[event.title,event.summary,event.theme,event.creator?.login,kindLabel(event.type)].join(' ').toLowerCase();
+    return terms.every(term=>searchable.includes(term));
+  });
+  const canCreate=!error&&user&&data?.hostingAccess?.accountId===user.id&&data.hostingAccess.canCreate===true;
+  return <div className={styles.workspace}>
+    <HubSidebar active="jams" showJams showListings={showListings}>
+      <div className={styles.search}><Icon name="search"/><input type="search" aria-label="Search jams" placeholder="Search jams" maxLength={200} value={search} onChange={event=>setSearch(event.target.value)}/></div>
+    </HubSidebar>
+    <section className={`${styles.catalog} jam-page`} aria-labelledby="jams-heading">
+      <h1 id="jams-heading">ZeroJams</h1>
+      <p className="lead">Build something together in a Game Jam or App Jam.</p>
+      <JamHelpLink/>
+      {canCreate
+        ? <p><Link className="jam-button jam-primary" href="/hub/jams/create">Create a jam</Link></p>
+        : <p className="jam-muted">Joining is free. Hosting requires Zero Pro.</p>}
+      {!user&&<HubAccount showSignOut={false}/>}
+      {data?.canMaintain&&Boolean(data.proposals?.length)&&<section>
+        <h2>Review proposals</h2>
+        <ul>{data.proposals!.map(proposal=><li key={proposal.id}><Link href={`/hub/jams/${proposal.id}`}>{proposal.title}</Link> · {kindLabel(proposal.type)} · @{proposal.organizerLogin} · {reviewLabel(proposal.status)}</li>)}</ul>
+      </section>}
+      <div className="jam-filter"><select aria-label="Jam type" value={type} onChange={e=>setType(e.target.value)}><option value="all">All jams</option><option value="game">Game Jams</option><option value="app">App Jams</option></select></div>
+      <Retry error={error} loading={loading} refresh={refresh}/>
+      {data&&!loading&&!error&&!events.length&&<p role="status">{terms.length?'No jams match your search.':`No ${type==='all'?'jams':kindLabel(type)+'s'} are listed yet.`}</p>}
+      <div className="jam-cards">{events.map(event=><article className="jam-card" key={event.id}>
+        <p className="jam-muted">{kindLabel(event.type)}</p>
+        <h2><Link href={`/hub/jams/${event.id}`}>{event.title}</Link></h2>
+        <p>{event.summary}</p>
+        <p>{event.registrationOpen?'Registration open':'Registration closed'} · {event.participantCount} participants</p>
+        <p><Link href={`/hub/jams/${event.id}`}>View rules and schedule</Link></p>
+      </article>)}</div>
+    </section>
+  </div>;
 }
 export function JamCreate() {
   const {user}=useHubGitHub(),top=useTopLevel();

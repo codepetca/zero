@@ -57,20 +57,28 @@ test('one server layout hides discovery, preparation, details and participation;
   }
 });
 
-test('ZeroHub navigation has no production jam link and preserves existing catalog links',async()=>{
+test('ZeroHub navigation uses the server flag and marks the Jams destination current',async()=>{
   const source=await readFile(new URL('../components/HubNavigation.tsx',import.meta.url),'utf8');
-  for(const visible of [false,true]) {
-    const component=load(source,{'@/lib/jams-visibility.mjs':{jamsNavigationAvailable:()=>visible},
+  const component=load(source,{
       'next/link':{default:({href,children,...props})=>require('react').createElement('a',{href,...props},children)},
       '@/app/hub/hub.module.css':{default:{}}});
-    const html=renderToStaticMarkup(component.HubNavigation({active:'game'}));
+  for(const visible of [false,true]) {
+    const html=renderToStaticMarkup(component.HubNavigation({active:'game',showJams:visible}));
     assert.equal(html.includes('href="/hub/jams"'),visible);
     assert.match(html,/href="\/hub\?kind=game"/);assert.match(html,/href="\/hub\?kind=library"/);
   }
+  assert.match(renderToStaticMarkup(component.HubNavigation({active:'jams',showJams:true})),/<a href="\/hub\/jams" aria-current="page">Jams<\/a>/);
 });
 
-test('production pilot requires its explicit flag and is not promoted',()=>{
+test('production discovery promotion requires the pilot, service and discovery flags',()=>{
   const env={NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'1'};
   assert.equal(jamsPreviewAvailable(env),true);assert.equal(hiddenJamsResponse(env),null);assert.equal(jamsNavigationAvailable(env),false);
-  for(const change of [{ZERO_JAMS_PILOT_ENABLED:'0'},{VERCEL_ENV:'preview'},{VERCEL:undefined},{NODE_ENV:'test'}])assert.equal(jamsPreviewAvailable({...env,...change}),false);
+  const enabled={...env,ZERO_JAMS_ENABLED:'1',ZERO_JAMS_DISCOVERY_ENABLED:'1'};
+  assert.equal(jamsNavigationAvailable({NODE_ENV:'development'}),true);
+  assert.equal(jamsNavigationAvailable(enabled),true);
+  for(const change of [{ZERO_JAMS_PILOT_ENABLED:'0'},{VERCEL_ENV:'preview'},{VERCEL:undefined},{NODE_ENV:'test'}]) {
+    assert.equal(jamsPreviewAvailable({...enabled,...change}),false);
+    assert.equal(jamsNavigationAvailable({...enabled,...change}),false);
+  }
+  for(const key of ['ZERO_JAMS_ENABLED','ZERO_JAMS_DISCOVERY_ENABLED'])assert.equal(jamsNavigationAvailable({...enabled,[key]:undefined}),false);
 });

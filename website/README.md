@@ -172,6 +172,15 @@ To exercise real transactions, apply the SQL to a disposable local database
 and run `node --test website/tests/hub-listings.test.mjs` with
 `ZERO_HUB_LISTINGS_TEST_DATABASE` set to its connection URL.
 
+### ZeroJams discovery
+
+Local development shows **Jams** in the ZeroHub sidebar. The production pilot
+uses direct links by default. Set the server-only
+`ZERO_JAMS_DISCOVERY_ENABLED=1` to show the sidebar entry in production when
+`ZERO_JAMS_PILOT_ENABLED=1` and `ZERO_JAMS_ENABLED=1` are already enabled.
+The sidebar setting grants no hosting access. The directory uses the Jam
+service's Pro policy to show **Create a jam** to eligible signed-in accounts.
+
 `/docs` presents the complete reference (`/docs/api` redirects there), generated from maintained
 `student-template/API.md` tables. The adapter verifies all current public/protected
 declarations against source in tests. Categories, exact-name/keyword search,

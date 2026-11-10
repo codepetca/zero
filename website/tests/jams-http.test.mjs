@@ -5,7 +5,7 @@ import zeroApp from '../../extension/src/github-app/config.json' with {type:'jso
 import {hubConfig,newSession} from '../lib/hub-github-auth.mjs';
 import {getJamsResponse,getJamResponse,postJamProposalResponse,postJamActionResponse} from '../lib/jams-http.mjs';
 import {JamError} from '../../jams/service.mjs';
-import {hostedManifest} from '../../jams/test/fixtures.mjs';
+import {fixture as registryFixture,hostedManifest} from '../../jams/test/fixtures.mjs';
 
 const now = 1_800_000_000_000;
 const env = {NODE_ENV:'test',ZERO_JAMS_ENABLED:'1',ZERO_HUB_ORIGIN:'http://127.0.0.1:3000',
@@ -30,6 +30,19 @@ function fixture() {
   }};
 }
 const join = {operationId:'operation-12345678',action:'join',revision:1};
+
+test('directory hosting access is private and derived from the signed-in account and service policy',async()=>{
+  const {service}=registryFixture({canCreateJam:id=>id==='123'});
+  const free=newSession('ghu_'+'b'.repeat(24),{id:124,login:'free'},28800,config,now);
+  const url=config.origin+'/api/jams?view=summaries&accountId=123';
+  for(const [sessionCookie,access] of [[cookie,{accountId:'123',canCreate:true}],
+    [free.cookie,{accountId:'124',canCreate:false}],['',undefined]]) {
+    const response=await getJamsResponse(new Request(url,{headers:{Cookie:sessionCookie.split(';')[0]}}),{env,now,service});
+    assert.equal(response.status,200);
+    assert.equal(response.headers.get('cache-control'),'no-store');
+    assert.deepEqual((await response.json()).hostingAccess,access);
+  }
+});
 
 test('jams default off and missing credentials cannot execute an injected action accidentally',async () => {
   const f = fixture();
