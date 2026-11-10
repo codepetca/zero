@@ -73,11 +73,11 @@ async function initial(h, data=envelope()) {
 test('maintained games require matching authority while shared cards remain independent',async()=>{
   const h=harness();assert.deepEqual(h.cards(h.render()),[]);
   assert.equal(discoveries(h)[0].url,'/api/hub/discovery');assert.equal(statuses(h).length,0);
-  reply(discoveries(h)[0],envelope());await tick();assert.deepEqual(h.cards(h.render()),[]);
+  reply(discoveries(h)[0],envelope());await tick();assert.deepEqual(h.cards(h.render()),['Maintained','Shared']);
   assert.match(latest(statuses(h)).url,/ids=maintained%2Cgame-r235-shared/);
   reply(latest(statuses(h)),{schema:1,items:[status]});await tick();assert.deepEqual(h.cards(h.render()),['Maintained','Shared']);
   h.fire('window:focus');assert.deepEqual(h.cards(h.render()),[]);
-  reply(latest(discoveries(h)),envelope());await tick();assert.deepEqual(h.cards(h.render()),[]);
+  reply(latest(discoveries(h)),envelope());await tick();assert.deepEqual(h.cards(h.render()),['Maintained','Shared']);
   reply(latest(statuses(h)),{schema:1,items:[{...status,repositoryUrl:'https://github.com/evil/repo'}]});await tick();
   assert.deepEqual(h.cards(h.render()),['Shared']);
   h.fire('window:focus');h.render();reply(latest(discoveries(h)),envelope());await tick();h.render();
@@ -105,7 +105,7 @@ test('focus and visibility regain revalidate discovery and reject late responses
   h.document.visibilityState='hidden';h.fire('document:visibilitychange');h.render();
   const before=discoveries(h).length;h.document.visibilityState='visible';h.fire('document:visibilitychange');h.fire('window:focus');
   assert.deepEqual(h.cards(h.render()),[]);assert.equal(discoveries(h).length,before+1);
-  reply(latest(discoveries(h)),envelope());await tick();assert.deepEqual(h.cards(h.render()),[]);
+  reply(latest(discoveries(h)),envelope());await tick();assert.deepEqual(h.cards(h.render()),['Maintained','Shared']);
   reply(latest(statuses(h)),{schema:1,items:[status]});await tick();assert.deepEqual(h.cards(h.render()),['Maintained','Shared']);
 });
 
@@ -116,6 +116,10 @@ test('inactive mode waits for the envelope but not status, including after focus
   h.fire('window:focus');assert.deepEqual(h.cards(h.render()),[]);
   reply(latest(discoveries(h)),envelope());await tick();assert.deepEqual(h.cards(h.render()),['Maintained','Shared']);
   reply(latest(statuses(h)),{},false);await tick();
+  const discoveryCount=discoveries(h).length;
+  h.setQuery('kind=library');h.render();
+  h.setQuery('kind=game');assert.deepEqual(h.cards(h.render()),['Maintained','Shared']);
+  assert.equal(discoveries(h).length,discoveryCount);
 });
 
 test('navigation and return to an earlier query never reuse an old discovery',async()=>{
@@ -157,7 +161,7 @@ test('inactive search filters locally and debounces status; focus bypasses the d
 const eligibilities=h=>h.calls.filter(call=>call.url.includes('revalidate=1'));
 const identity=({id,repositoryId,ownerId,repositoryUrl,sourceCommit})=>({id,repositoryId,ownerId,repositoryUrl,sourceCommit});
 
-test('a hold accepted between parallel status batches is checked across the whole generation before maintained cards appear',async()=>{
+test('a hold accepted between parallel status batches removes the affected public card on the whole-gallery recheck',async()=>{
   const projects=Array.from({length:13},(_,i)=>({...project,id:`maintained-${i}`,title:`Maintained ${i}`,
     repositoryId:String(321+i),repositoryUrl:`https://github.com/owner/repo-${321+i}`}));
   const h=harness(projects,true,false,true);await initial(h,envelope(projects));
@@ -165,10 +169,11 @@ test('a hold accepted between parallel status batches is checked across the whol
   const replies=batch=>new URL(batch.url,'https://zero.example').searchParams.get('ids').split(',')
     .filter(id=>projects.some(p=>p.id===id)).map(id=>({...status,id,repositoryUrl:projects.find(p=>p.id===id).repositoryUrl}));
   reply(batches[0],{schema:1,items:replies(batches[0])});await tick();
-  assert.equal(eligibilities(h).length,0);assert.deepEqual(h.cards(h.render()),[]);
+  const initiallyPublic=[...projects.map(p=>p.title),'Shared'];
+  assert.equal(eligibilities(h).length,0);assert.deepEqual(h.cards(h.render()),initiallyPublic);
   // The first batch was allowed, then a hold is accepted while the last waits.
   reply(batches[1],{schema:1,items:replies(batches[1])});await tick();
-  assert.equal(eligibilities(h).length,1);assert.deepEqual(h.cards(h.render()),[]);
+  assert.equal(eligibilities(h).length,1);assert.deepEqual(h.cards(h.render()),initiallyPublic);
   const final=latest(eligibilities(h));
   const response=await hubDiscoveryResponse(new Request(`https://zero.example${final.url}`),{
     projects,visibilityReader:async()=>({revision:'a'.repeat(40),observedAt:0, isHeld:id=>id==='321'}),
@@ -181,7 +186,7 @@ test('a hold accepted between parallel status batches is checked across the whol
 test('final identity intersection rejects stale source, repository, owner and URL while preserving unrelated shared cards',async()=>{
   for(const changed of [{repositoryId:'999'},{ownerId:'8'},{repositoryUrl:'https://github.com/other/repo'},{sourceCommit:'c'.repeat(40)}]) {
     const h=harness([project],true,false,true);await initial(h);reply(latest(statuses(h)),{schema:1,items:[status]});await tick();
-    assert.deepEqual(h.cards(h.render()),[]);
+    assert.deepEqual(h.cards(h.render()),['Maintained','Shared']);
     reply(latest(eligibilities(h)),envelope([{...identity(project),...changed}]));await tick();
     assert.deepEqual(h.cards(h.render()),['Shared']);
   }
@@ -229,7 +234,7 @@ test('the client carries forty maximum-length maintained IDs through real status
     }
     await tick();
     if(active) {
-      assert.deepEqual(h.cards(h.render()),[]);assert.equal(eligibilities(h).length,1);
+      assert.deepEqual(h.cards(h.render()),projects.map(p=>p.title));assert.equal(eligibilities(h).length,1);
       const final=latest(eligibilities(h));
       const response=await hubDiscoveryResponse(new Request(`https://zero.example${final.url}`),{
         projects,visibilityReader,destinationReader,catalogReader:async()=>({schema:1,revision:'a'.repeat(40),releases:[]})});
@@ -255,7 +260,7 @@ test('final full-gallery authority removes held shared-only games across batches
   const batches=statuses(h);assert.equal(batches.length,2);
   const rows=call=>new URL(call.url,'https://zero.example').searchParams.get('ids').split(',').map(id=>sharedStatus(games.find(game=>game.id===id)));
   reply(batches[0],{schema:1,items:rows(batches[0])});await tick();assert.equal(eligibilities(h).length,0);
-  assert.deepEqual(h.cards(h.render()),[]);
+  assert.deepEqual(h.cards(h.render()),games.map(game=>game.title));
   reply(batches[1],{schema:1,items:rows(batches[1])});await tick();assert.equal(eligibilities(h).length,1);
   const final=latest(eligibilities(h));
   const response=await hubDiscoveryResponse(new Request(`https://zero.example${final.url}`),{projects:[],
@@ -274,7 +279,7 @@ test('one final authority check gates maintained and shared identities for the s
     const ids=new URL(call.url,'https://zero.example').searchParams.get('ids').split(',');
     reply(call,{schema:1,items:ids.map(id=>id===maintained.id?{...status,repositoryUrl:maintained.repositoryUrl}:sharedStatus(games.find(game=>game.id===id)))});
   }
-  await tick();const final=latest(eligibilities(h));assert.ok(final);assert.deepEqual(h.cards(h.render()),[]);
+  await tick();const final=latest(eligibilities(h));assert.ok(final);assert.deepEqual(h.cards(h.render()),['Maintained',...games.map(game=>game.title)]);
   const response=await hubDiscoveryResponse(new Request(`https://zero.example${final.url}`),{projects:[maintained],
     catalogReader:async()=>catalogSnapshot(games),destinationReader:currentDestination,
     visibilityReader:async()=>({revision:'a'.repeat(40),observedAt:0, isHeld:id=>id==='235'})});
@@ -289,7 +294,7 @@ test('shared-only final intersection rejects changed release version, status, so
     {web:{...release.web,url:'https://other.github.io/replaced/'}},{web:{...release.web,runId:2}}];
   for(const changed of changes) {
     const h=harness([],true,false,true);await initial(h,envelope([], [release]));
-    reply(latest(statuses(h)),{schema:1,items:[sharedStatus(release)]});await tick();assert.deepEqual(h.cards(h.render()),[]);
+    reply(latest(statuses(h)),{schema:1,items:[sharedStatus(release)]});await tick();assert.deepEqual(h.cards(h.render()),['Shared']);
     reply(latest(eligibilities(h)),envelope([],[{...release,...changed}]));await tick();assert.deepEqual(h.cards(h.render()),[]);
   }
 });

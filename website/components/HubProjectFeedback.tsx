@@ -16,8 +16,11 @@ function ProjectStatus({feedback,detailed=false}:{feedback?:ProjectFeedback;deta
 function ProjectReport({title,repositoryHref,playHref,sourceCommit,version,feedback}:DetailsProps) {
   return <a className={styles.reportLink} href={problemLink({title,repositoryHref,playHref,sourceCommit,version},feedback?.issuesEnabled)} target="_blank" rel="noopener noreferrer" aria-label={`Report a problem with ${title} (opens GitHub in a new tab)`} title="Report a problem"><Icon name="flag" /></a>;
 }
-export function HubProjectDetails({description,children,...props}:DetailsProps) {
-  return <>{description&&<p>{description}</p>}<ProjectStatus feedback={props.feedback} detailed /><div className={styles.detailActions}>{children}<ProjectReport {...props} /></div></>;
+export function HubProjectDetails({description,children,pending=false,...props}:DetailsProps & {pending?:boolean}) {
+  return <>{description&&<p>{description}</p>}
+    {!pending&&<ProjectStatus feedback={props.feedback} detailed />}
+    <div className={styles.detailActions}>{children}{!pending&&<ProjectReport {...props} />}</div>
+  </>;
 }
 export function HubProjectFeedback({id,kind,title,repositoryHref,playHref,sourceCommit,version,feedback,metric,children,compact}:Props){
   const {configured,user,refresh}=useHubGitHub();const [starred,setStarred]=useState<boolean|null>(null),[pending,setPending]=useState(false),[error,setError]=useState(''),[retry,setRetry]=useState(0),[freshCount,setFreshCount]=useState<number|null>(null),[visible,setVisible]=useState(false);

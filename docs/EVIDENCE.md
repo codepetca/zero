@@ -1,3 +1,44 @@
+# Faster ZeroHub Projects browsing — 2026-11-10
+
+Local source `3942d88ed` shows public game cards from the fresh discovery
+response. Play, stars and Report arrive after the existing status and gallery
+checks. A newly held card is removed when the follow-up check returns. The
+server visibility rules and the exact release path retain their previous checks.
+
+The same-machine Playwright comparison used the previous and updated production
+builds, the same project fixture, and identical API delays of 1250, 740 and
+535 ms based on the live request trace. Four alternating Chromium pairs put the
+median first card at 2672 ms before and 1383 ms after, a 1289 ms reduction. One
+WebKit pair measured 2631 and 1349 ms. These are controlled local measurements.
+Both engines checked delayed Play and stars, a new hold, failed initial
+discovery, details focus and reflow at 320 and 390 px. Build and TypeScript
+passed. The website suite passed 800 with 3 skipped at concurrency 3 after a
+20 ms deadline test failed under concurrent build load and passed on its own.
+
+Two initial independent reviews (Sol/high for visibility and Terra/high for
+compatibility) covered `7893250e9..38a198cd6`. Targeted Sol/high reviews
+confirmed the inactive catalog reuse, pending Report and keyboard focus fixes
+through `3942d88ed`. No actionable findings remained. Effective model telemetry
+is unavailable.
+
+A separate 30-project compact layout probe fit 8 complete cards at 1280×800
+compared with 3 in the current layout, and 10 compared with 8 at 1440×900.
+At 320 and 390 px the top of both layouts showed part of one card. The probe
+used synthetic projects and local CSS. Screenshots and timing logs are in
+`output/playwright/compact-grid-probe/` and `output/playwright/fast-projects/`.
+
+The owner approved Compact as the default desktop view. Source `a765ae312`
+applies it above 800 px, where the sidebar sits beside the grid. The production
+build and 68 focused tests passed. In Chromium and WebKit, all 30 fixture cards
+appeared while status was paused. Each run used one initial discovery, three
+status batches and one later recheck. Both engines confirmed 8 complete cards
+at 1280×800 and 10 at 1440×900. Checks at 801, 800, 390 and 320 px confirmed
+spacing, square cards, 44 px details and star targets, and no horizontal
+overflow. Terra/high found no actionable issues in `34b7b67a5..a765ae312`.
+Browser evidence is in `output/playwright/compact-projects/`.
+
+---
+
 # ZeroJams host entry removal — 2026-11-10
 
 Local source at `0599bd72a` lets a host remove entries from their own active
