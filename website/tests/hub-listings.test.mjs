@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {generateKeyPairSync, verify} from 'node:crypto';
 import {createListingRepositoryReader} from '../lib/hub-listings-github-app.mjs';
 import {Pool} from 'pg';
-import {hubListingsResponse, hubPublicListingsResponse} from '../lib/hub-listings-http.mjs';
+import {claimPublicHubRequest, hubListingsResponse, hubPublicListingsResponse, readProjectListingPage} from '../lib/hub-listings-http.mjs';
 import {createHubListingsStore} from '../lib/hub-listings-store.mjs';
 import {checkListingToken, publicListingPlayUrl, verifyListingPublication} from '../lib/hub-listings-verification.mjs';
 import {hubConfig, newSession} from '../lib/hub-github-auth.mjs';
@@ -296,4 +296,54 @@ test('a cancelled publish or relist does not write after the entitlement lookup'
     assert.equal(response.status, 503);
     assert.equal(wrote, false);
   }
+});
+
+
+test('project listing pages bound provider work and only probe Play for displayed entries', async () => {
+  const items = Array.from({length:12}, (_, i) => ({order:String(12-i), repositoryId:String(12-i)}));
+  const calls = [], played = [];
+  let active = 0, peak = 0;
+  const result = await readProjectListingPage({env, signal, search:'game', before:null, limit:3,
+    excluded:['12'], visibility:{revision:commit, heldRepositoryIds:()=>['11'], isHeld:id=>id === '11'}, checkPlay:true,
+    getStore:()=>({discover:async (before, search, excluded, limit)=>{
+      calls.push({before, search, excluded, limit});
+      return items.filter(item => !excluded.includes(item.repositoryId) && (before === null || Number(item.order) < Number(before))).slice(0, limit);
+    }, stillListed:async entries=>entries}),
+    destinationReader:async entry=>{ active++; peak=Math.max(peak, active); await Promise.resolve(); active--; return entry.order !== '10'; },
+    playReader:async entry=>{played.push(entry.order); return 'play';}
+  });
+  assert.deepEqual(result.entries.map(entry=>entry.order), ['9','8','7']);
+  assert.equal(result.more, true);
+  assert.equal(result.lookahead.order, '6');
+  assert.deepEqual(played, ['9','8','7']);
+  assert.ok(peak <= 4);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].limit, 4);
+  assert.deepEqual(calls[0].excluded, ['12','11']);
+});
+
+test('listing page fails closed on exhausted scan budget and rechecks after Play', async () => {
+  let windows = 0, play = 0, finalChecked = false;
+  const getStore = ()=>({discover:async (_before, _search, _excluded, limit)=>{
+    windows++; return Array.from({length:limit}, (_,i)=>({order:String(100-windows*limit-i), repositoryId:String(100-windows*limit-i)}));
+  }, stillListed:async entries=>{finalChecked = play > 0; return entries.slice(0, -1);}});
+  await assert.rejects(readProjectListingPage({env, signal, visibility:null, limit:2, getStore, destinationReader:async()=>false}), /budget/);
+  assert.equal(windows, 4);
+  await assert.rejects(readProjectListingPage({env, signal, visibility:null, limit:2, getStore, checkPlay:true,
+    destinationReader:async()=>true, playReader:async()=>{play++;}}), /continuation/);
+  assert.equal(play, 2);
+  assert.equal(finalChecked, true);
+  assert.deepEqual(await readProjectListingPage({env, signal, limit:2, getStore:()=>null}),
+    {entries:[], more:false, lookahead:null});
+});
+
+test('public discovery request claims share a four-request limit', () => {
+  const claims = Array.from({length:4}, ()=>claimPublicHubRequest());
+  assert.ok(claims.every(Boolean));
+  assert.equal(claimPublicHubRequest(), null);
+  claims[0](); claims[0]();
+  const replacement = claimPublicHubRequest();
+  assert.ok(replacement);
+  assert.equal(claimPublicHubRequest(), null);
+  replacement(); claims.slice(1).forEach(release=>release());
 });

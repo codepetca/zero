@@ -81,6 +81,42 @@ test('Projects do not render cards or request status from a failed or ambiguous 
   }
 });
 
+test('paginated Projects retire the old page and reset the cursor on search',async()=>{
+  const h=harness([project],true,false,true);
+  const render=()=>h.render({paginatedProjects:true});
+  const page=(maintained,next=null)=>({...envelope(maintained),listings:[],next});
+  const button=(node,label)=>{
+    if (!node || typeof node!=='object') return;
+    if (Array.isArray(node)) return node.map(child=>button(child,label)).find(Boolean);
+    if (node.type==='button' && node.props.children===label) return node;
+    return button(node.props?.children,label);
+  };
+  render();
+  const first=h.calls.at(-1);
+  assert.equal(first.url,'/api/hub/projects/discover?q=');
+  reply(first,page([project],'next-page'));await tick();
+  const tree=render(), oldStatus=statuses(h);
+  assert.equal(h.cards(tree).length,1);
+  button(tree,'Next page').props.onClick();
+  assert.equal(h.cards(render()).length,0);
+  assert.equal(oldStatus.options.signal.aborted,true);
+  const next=h.calls.at(-1);
+  assert.equal(next.url,'/api/hub/projects/discover?q=&cursor=next-page');
+  const second={...project,id:'second',title:'Second project',repositoryId:'124'};
+  reply(next,page([second]));await tick();
+  assert.equal(h.cards(render())[0].title,'Second project');
+  reply(statuses(h),{},false);await tick();
+  const recheck=h.calls.at(-1);
+  assert.equal(recheck.url,'/api/hub/projects/discover?q=&cursor=next-page&revalidate=1');
+  reply(recheck,page([second]));await tick();
+  assert.equal(h.cards(render())[0].title,'Second project');
+  h.search(render())('needle');
+  assert.equal(h.cards(render()).length,0);
+  await new Promise(resolve=>setTimeout(resolve,320));
+  assert.equal(h.calls.at(-1).url,'/api/hub/projects/discover?q=needle');
+  reply(h.calls.at(-1),page([]));await tick();render();
+});
+
 test('focus and query changes retire old responses; practice uses the dedicated projection',async()=>{
   const h=harness();h.render();const old=discovery(h);
   h.setQuery('kind=practice');assert.equal(h.cards(h.render()).length,0);const practice=discovery(h);

@@ -14,6 +14,67 @@ const validCursor = value => listingId(value) && BigInt(value) <= 92233720368547
 const manageActions = new Set(['protect', 'unprotect', 'move', 'unlist', 'list']);
 const pagePurpose = 'listing-page';
 let publicRequests = 0;
+
+// Shared by all public discovery routes so neither can bypass the provider cap.
+export function claimPublicHubRequest() {
+  if (publicRequests >= 4) return null;
+  publicRequests++;
+  let released = false;
+  return () => {
+    if (!released) { released = true; publicRequests--; }
+  };
+}
+
+// The caller owns cursor validation, the request claim, and the final fresh
+// visibility decision. Raw order and lookahead remain server-side only.
+export async function readProjectListingPage({env = process.env, signal, search = '', before = null,
+  limit, excluded = [], visibility, getStore = configuredListingsStore, destinationReader,
+  playReader = publicListingPlayUrl, checkPlay = false}) {
+  if (!Number.isInteger(limit) || limit < 1 || limit > 24) throw new Error('Invalid listing page size');
+  const store = getStore(env);
+  if (!store) return {entries:[], more:false, lookahead:null};
+  const readDestination = destinationReader ?? listingRepositoryReader(env);
+  if (!readDestination) throw new Error('Listing destination reader unavailable');
+  const omit = [...new Set([...excluded.map(item => typeof item === 'string' ? item : item?.repositoryId ?? item?.id),
+    ...(visibility?.heldRepositoryIds?.() ?? [])].filter(Boolean))];
+  const visible = entry => hubTargetVisible({kind:'game', repositoryId:entry.repositoryId}, visibility);
+  const windowSize = limit + 1;
+  let order = before, exhausted = false;
+  const observed = [];
+  for (let attempt = 0; attempt < 4 && !exhausted && observed.length <= limit; attempt++) {
+    signal?.throwIfAborted();
+    const candidates = await store.discover(order, search, omit, windowSize);
+    exhausted = candidates.length < windowSize;
+    order = candidates.at(-1)?.order ?? order;
+    for (let offset = 0; offset < candidates.length && observed.length <= limit; offset += 4) {
+      signal?.throwIfAborted();
+      const checked = await Promise.all(candidates.slice(offset, offset + 4).map(async entry =>
+        visible(entry) && await readDestination(entry, {signal}) ? entry : null));
+      observed.push(...checked.filter(Boolean));
+    }
+  }
+  // If the bounded scan cannot prove exhaustion or a visible next entry, do
+  // not silently truncate the discovery results.
+  if (!exhausted && observed.length <= limit) throw new Error('Listing scan budget exhausted');
+  const selected = observed.slice(0, limit);
+  const lookahead = observed[limit] ?? null;
+  if (checkPlay) {
+    for (let offset = 0; offset < selected.length; offset += 4) {
+      signal?.throwIfAborted();
+      const urls = await Promise.all(selected.slice(offset, offset + 4).map(entry => playReader(entry, {signal})));
+      urls.forEach((playUrl, index) => { selected[offset + index] = {...selected[offset + index], playUrl}; });
+    }
+  }
+  signal?.throwIfAborted();
+  const current = await store.stillListed([...selected, ...(lookahead ? [lookahead] : [])]);
+  signal?.throwIfAborted();
+  const currentOrders = new Set(current.map(entry => entry.order));
+  const entries = selected.filter(entry => currentOrders.has(entry.order));
+  const confirmed = lookahead && currentOrders.has(lookahead.order) ? lookahead : null;
+  if (lookahead && !confirmed) throw new Error('Listing continuation changed');
+  if (confirmed && !entries.length) throw new Error('Listing page changed');
+  return {entries, more:!!confirmed, lookahead:confirmed};
+}
 const ownerDto = ({repositoryId, title, pagesUrl, listed, protected:keep}) => ({repositoryId, title, pagesUrl, listed, protected:keep});
 
 // Legacy pilot grants remain independent until the owner migrates them. An
@@ -111,8 +172,8 @@ export async function hubPublicListingsResponse(request, {
   env = process.env, getStore = configuredListingsStore, visibilityReader = readJamHubVisibility,
   destinationReader, playReader = publicListingPlayUrl
 } = {}) {
-  if (publicRequests >= 4) return unavailable();
-  publicRequests++;
+  const release = claimPublicHubRequest();
+  if (!release) return unavailable();
   const controller = new AbortController();
   try {
     const store = getStore(env);
@@ -163,5 +224,5 @@ export async function hubPublicListingsResponse(request, {
         pagesUrl:entry.playUrl, ...(gameJamWinner ? {gameJamWinner} : {})};
     }), next:authorized.length > listingPageSize ? seal({order:page.at(-1).order, search}, pagePurpose, config) : null});
   } catch { return unavailable(); }
-  finally { controller.abort(); publicRequests--; }
+  finally { controller.abort(); release(); }
 }

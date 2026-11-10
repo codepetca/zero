@@ -17,7 +17,8 @@ type Release = {slug:string; kind:'library'|'game'; id:string; version:string; t
 type Catalog = {schema:number;revision:string;releases:Release[]};
 type MaintainedProject = {id:string;title:string;description:string;author:string;repositoryId?:string;ownerId?:string;repositoryUrl:string;sourceCommit:string;image?:string;web?:{provider:'github-pages';url:string;commit:string;runId:number}};
 type Presentation = {id:string;sourceCommit:string;image?:string;description?:string;author?:string};
-type GalleryAllowance = {maintained:string[];releases:string[]};
+type PublishedProject = {id:string; title:string; author:string; repositoryUrl:string; identity:string; pagesUrl?:string; gameJamWinner?:boolean};
+type GalleryAllowance = {maintained:string[];releases:string[];listings:PublishedProject[]};
 const numericIdentity=(value:unknown)=>typeof value==='string'&&/^[1-9][0-9]{0,19}$/.test(value);
 const sourceIdentity=(value:unknown)=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
 const webIdentity=(web:MaintainedProject['web'])=>web===undefined?null:[web.provider,web.url,web.commit,web.runId];
@@ -33,7 +34,20 @@ function gameIdentity(release:Release) {
   return JSON.stringify([release.id,release.kind,release.version,release.status,release.repository.id,release.repository.ownerId,release.repository.url,
     release.source.commit,release.source.folder,webIdentity(release.web)]);
 }
-type Discovery = {schema:1;maintained:MaintainedProject[];catalog:Catalog|null;catalogError?:string;presentation:Presentation[]};
+type Discovery = {schema:1;maintained:MaintainedProject[];catalog:Catalog|null;catalogError?:string;presentation:Presentation[];listings?:PublishedProject[];next?:string|null};
+
+function validProjectPage(data:Discovery) {
+  if (!Array.isArray(data.listings) || !(data.next===null || typeof data.next==='string' && /^[A-Za-z0-9_-]{1,2048}$/.test(data.next)) ||
+      data.maintained.length+(data.catalog?.releases.length ?? 0)+data.listings.length>24) return false;
+  const identities=new Set<string>();
+  for (const item of data.listings) {
+    if (!item || !numericIdentity(item.id) || typeof item.title!=='string' || typeof item.author!=='string' ||
+        typeof item.repositoryUrl!=='string' || !item.repositoryUrl.startsWith('https://github.com/') ||
+        typeof item.identity!=='string' || !/^[a-f0-9]{64}$/.test(item.identity) || identities.has(item.id)) return false;
+    identities.add(item.id);
+  }
+  return true;
+}
 
 function discoveryIdentities(data:Discovery) {
   const maintained=new Set<string>(), releases=new Set<string>();
@@ -54,8 +68,8 @@ function discoveryIdentities(data:Discovery) {
   return {maintained,releases};
 }
 
-export function HubDiscovery({enforceJamVisibility=true, showListings=false, libraryOwnerId}: {
-  enforceJamVisibility?:boolean;showListings?:boolean;libraryOwnerId?:string;
+export function HubDiscovery({enforceJamVisibility=true, showListings=false, libraryOwnerId, paginatedProjects=false}: {
+  enforceJamVisibility?:boolean;showListings?:boolean;libraryOwnerId?:string;paginatedProjects?:boolean;
 }) {
   const query = useSearchParams();
   const requestedKind = query.get('kind') || (query.has('id') || query.has('version') ? 'library' : 'game');
@@ -64,16 +78,23 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
   const label=practiceOnly?'tutorial practice libraries':kind==='game'?'projects':'libraries';
   const id = query.get('id') || '', version = query.get('version') || '';
   const browseProjects = kind==='game' && !id && !version;
+  const projectPage = paginatedProjects && browseProjects;
   const gridClassName = [styles.cards, kind==='game' && styles.projectCards, browseProjects && styles.compactProjectCards].filter(Boolean).join(' ');
   const validateEarlyProjects = browseProjects && enforceJamVisibility;
-  const [catalogResult, setCatalogResult] = useState<{key:string; discovery:Discovery|null; error:string}|null>(null);
+  const [catalogResult, setCatalogResult] = useState<{key:string; discovery:Discovery|null; error:string; restart?:boolean}|null>(null);
   const [search, setSearch] = useState('');
-  const includeListings = showListings && requestedKind === 'game' && !id && !version;
+  const [pageCursors, setPageCursors] = useState<string[]>([]);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const pageQuery = new URLSearchParams({q:search.trim()});
+  const pageCursor = pageCursors.at(-1);
+  if (pageCursor) pageQuery.set('cursor',pageCursor);
+  const pageUrl = projectPage ? `/api/hub/projects/discover?${pageQuery}` : '';
+  const includeListings = !projectPage && showListings && browseProjects;
   const [feedbackResult, setFeedbackResult] = useState<{key:string; items:Record<string,ProjectFeedback>; failed:boolean; gallery?:GalleryAllowance}|null>(null);
   type Metric = {id:string;kind:string;opens?:number|null;projects?:number|null;observedProjects?:number|null;totalProjects?:number|null};
   const [metrics, setMetrics] = useState<Record<string,Metric>>({});
   const [retry, setRetry] = useState(0);
-  const catalogQuery = JSON.stringify(enforceJamVisibility?[requestedKind,search,id,version,retry]:[practiceOnly,retry]);
+  const catalogQuery = JSON.stringify(projectPage?[pageUrl,retry]:enforceJamVisibility?[requestedKind,search,id,version,retry]:[practiceOnly,retry]);
   const catalogGeneration = useRef({query:catalogQuery,value:0,search,retry,delay:0});
   if(catalogGeneration.current.query!==catalogQuery) catalogGeneration.current={query:catalogQuery,value:catalogGeneration.current.value+1,search,retry,delay:catalogGeneration.current.search!==search&&catalogGeneration.current.retry===retry?300:0};
   const searchDelay = catalogGeneration.current.delay;
@@ -81,37 +102,47 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
   const discovery = catalogResult?.key===catalogKey ? catalogResult.discovery : null;
   const catalog = discovery?.catalog || null;
   const error = catalogResult?.key===catalogKey ? catalogResult.error || (discovery && !catalog ? 'The shared catalog is unavailable. Try again shortly.' : '') : '';
+  const restartPage = projectPage && catalogResult?.key===catalogKey && catalogResult.restart;
+  const listings = projectPage ? discovery?.listings ?? [] : [];
+  const nextPage = discovery?.next;
   const projectPreviews = discovery?.presentation || [];
   const releaseAuthors = projectPreviews.filter(item=>item.author).map(item=>({id:item.id,sourceCommits:[item.sourceCommit],author:item.author as string}));
   const revalidating = useRef({running:false, left:false});
-  const projects = selectMaintainedProjects(discovery?.maintained || [], {kind, search, id, version}) as MaintainedProject[];
+  const projects = projectPage ? discovery?.maintained ?? [] :
+    selectMaintainedProjects(discovery?.maintained || [], {kind, search, id, version}) as MaintainedProject[];
   useEffect(() => {
     const controller = new AbortController(); let active = true;
     let timeout:ReturnType<typeof setTimeout>|undefined;
     const load=()=>{
       timeout=setTimeout(() => controller.abort(), 22000);
-      void fetch(practiceOnly?'/api/hub/discovery?practice=1':'/api/hub/discovery', {cache:'no-store', redirect:'error', signal:controller.signal}).then(async response => {
+      void fetch(pageUrl||(practiceOnly?'/api/hub/discovery?practice=1':'/api/hub/discovery'), {cache:'no-store', redirect:'error', signal:controller.signal}).then(async response => {
+        if (pageUrl && response.status===409) {
+          if (active) setCatalogResult({key:catalogKey,discovery:null,error:'Projects changed. Return to the first page.',restart:true});
+          return;
+        }
         if (!response.ok) throw new Error('The shared catalog is unavailable. Try again shortly.');
         const data = await response.json();
         if (data?.schema!==1 || !Array.isArray(data.maintained) || !Array.isArray(data.presentation) || !(data.catalog===null || (data.catalog && Array.isArray(data.catalog.releases)))) throw new Error('Invalid discovery response');
         if (validateEarlyProjects) discoveryIdentities(data);
+        if (pageUrl && !validProjectPage(data)) throw new Error('Invalid Projects page');
         if (active) setCatalogResult({key:catalogKey,discovery:data,error:''});
       }).catch(() => {if (active) setCatalogResult({key:catalogKey,discovery:null,error:'The shared catalog is unavailable. Try again shortly.'});}).finally(() => clearTimeout(timeout));
     };
     const debounce=searchDelay?setTimeout(load,searchDelay):undefined;
     if(!searchDelay)load();
     return () => {active = false; clearTimeout(debounce); clearTimeout(timeout); controller.abort();};
-  }, [retry, practiceOnly, catalogKey, searchDelay, validateEarlyProjects]);
+  }, [retry, practiceOnly, catalogKey, searchDelay, validateEarlyProjects, pageUrl]);
   let releases:Release[] = [], selectionError = '';
   if (catalog) try {
     if (!['game','library','practice'].includes(requestedKind)) throw new Error('Choose projects, libraries or tutorial practice.');
-    releases = selectReleases(catalog, {kind, search, id, version, attributions:releaseAuthors}) as Release[];
+    releases = projectPage ? catalog.releases :
+      selectReleases(catalog, {kind, search, id, version, attributions:releaseAuthors}) as Release[];
     if(libraryOwnerId)releases=releases.filter(release=>release.kind==='library'&&release.repository.ownerId===libraryOwnerId);
   } catch (failure) {selectionError = failure instanceof Error ? failure.message : 'This release link is invalid.';}
   const feedbackIds = [...new Set([...projects.map(project=>project.id),...releases.filter(release=>release.status==='available').map(release=>release.id)])].join(',');
-  const requiresGalleryCheck=enforceJamVisibility&&(projects.length>0||releases.length>0);
-  const gallerySelection=requiresGalleryCheck?JSON.stringify([projects.map(maintainedIdentity),releases.map(gameIdentity)]):'';
-  const feedbackQuery = JSON.stringify([requestedKind, search, id, version, feedbackIds, gallerySelection, retry]);
+  const requiresGalleryCheck=enforceJamVisibility&&(projects.length>0||releases.length>0)||listings.length>0;
+  const gallerySelection=requiresGalleryCheck?JSON.stringify([projects.map(maintainedIdentity),releases.map(gameIdentity),listings.map(item=>item.identity)]):'';
+  const feedbackQuery = JSON.stringify([requestedKind, search, id, version, pageUrl, feedbackIds, gallerySelection, retry]);
   const feedbackGeneration = useRef({query:feedbackQuery, value:0,search,retry,delay:0});
   if(feedbackGeneration.current.query!==feedbackQuery) feedbackGeneration.current={query:feedbackQuery,value:feedbackGeneration.current.value+1,search,retry,delay:feedbackGeneration.current.search!==search&&feedbackGeneration.current.retry===retry?300:0};
   const feedbackDelay = feedbackGeneration.current.delay;
@@ -125,11 +156,12 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
   const showDiscoveryCards = browseProjects && visibilityPending;
   const visibleProjects = kind==='game' && enforceJamVisibility && !showDiscoveryCards ? projects.filter(project=>{
     const identity=maintainedIdentity(project);
-    return identity!==null&&allowance?.maintained.includes(identity)&&feedback[project.id]?.repositoryUrl===project.repositoryUrl;
+    return identity!==null&&allowance?.maintained.includes(identity)&&(projectPage||feedback[project.id]?.repositoryUrl===project.repositoryUrl);
   }) : projects;
   const visibleReleases = enforceJamVisibility && !showDiscoveryCards ? releases.filter(release=>{
     const identity=gameIdentity(release);return identity!==null&&allowance?.releases.includes(identity);
   }) : releases;
+  const visibleListings = showDiscoveryCards ? listings : allowance?.listings ?? [];
   const visibilityFailed = requiresGalleryCheck && feedbackResult?.key===feedbackKey && feedbackResult.failed;
   const metricIds = showDiscoveryCards ? '' : [...visibleProjects.map(project=>project.id),...visibleReleases.filter(release=>release.status==='available').map(release=>release.id)].join(',');
   useEffect(()=>{
@@ -158,27 +190,34 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     if(!practiceOnly&&feedbackIds||requiresGalleryCheck) {
       const ids=!practiceOnly&&feedbackIds?feedbackIds.split(','):[];
       const batches=Array.from({length:Math.ceil(ids.length/12)},(_,index)=>ids.slice(index*12,index*12+12));
-      void Promise.all(batches.map(async batch=>{
+      const statusRequests=Promise.all(batches.map(async batch=>{
         const response=await fetch(`/api/hub/projects?${new URLSearchParams({kind,ids:batch.join(',')})}`,{cache:'no-store',redirect:'error',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(22000)])});
         if(!response.ok)throw new Error('Status unavailable');
         const data=await response.json();
         if(data.schema!==1||!Array.isArray(data.items))throw new Error('Invalid status');
         const requested=new Set(batch);
         return data.items.filter((item:ProjectFeedback)=>item&&requested.has(item.id)&&item.kind===kind&&typeof item.repositoryUrl==='string'&&(item.stars===null||Number.isSafeInteger(item.stars)&&item.stars>=0)&&(item.issuesEnabled===null||typeof item.issuesEnabled==='boolean')&&item.site&&['reachable','unreachable','unknown','not-checked'].includes(item.site.status)&&(!item.site.checkedAt||Number.isFinite(Date.parse(item.site.checkedAt))));
-      })).then(async batches=>{
+      }));
+      // Status is supplemental on a paginated browse. Always try the fresh
+      // page check even if one of the supplemental batches is unavailable.
+      void (pageUrl?statusRequests.catch(()=>[]):statusRequests).then(async batches=>{
         const items:Record<string,ProjectFeedback>=Object.fromEntries(batches.flat().map((item:ProjectFeedback)=>[item.id,item]));
         let gallery:GalleryAllowance|undefined, galleryUnavailable=false;
         if(requiresGalleryCheck) {
           // Status responses are batch-local snapshots. Re-read both trusted
           // source lanes and their final global authority after all batches.
-          const response=await fetch(practiceOnly?'/api/hub/discovery?revalidate=1&practice=1':'/api/hub/discovery?revalidate=1',{cache:'no-store',redirect:'error',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(22000)])});
+          const url=pageUrl?`${pageUrl}&revalidate=1`:practiceOnly?'/api/hub/discovery?revalidate=1&practice=1':'/api/hub/discovery?revalidate=1';
+          const response=await fetch(url,{cache:'no-store',redirect:'error',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(22000)])});
           if(!response.ok)throw new Error('Project availability unavailable');
           const data=await response.json();
           if(data?.schema!==1||!Array.isArray(data.maintained)||!Array.isArray(data.presentation)||
               !(data.catalog===null||data.catalog&&Array.isArray(data.catalog.releases)))throw new Error('Invalid project availability');
-          const current=discoveryIdentities(data);
+          if (pageUrl && !validProjectPage(data)) throw new Error('Invalid Projects page');
+          const current=enforceJamVisibility?discoveryIdentities(data):{maintained:new Set<string>(),releases:new Set<string>()};
+          const initialListings=new Set(listings.map(item=>item.identity));
           gallery={maintained:projects.map(maintainedIdentity).filter((identity):identity is string=>identity!==null&&current.maintained.has(identity)),
-            releases:releases.map(gameIdentity).filter((identity):identity is string=>identity!==null&&current.releases.has(identity))};
+            releases:releases.map(gameIdentity).filter((identity):identity is string=>identity!==null&&current.releases.has(identity)),
+            listings:((data.listings ?? []) as PublishedProject[]).filter(item=>initialListings.has(item.identity))};
           // A failed shared source cannot prove an empty gallery. Keep the
           // independently verified maintained lane and offer a whole-view retry.
           galleryUnavailable=data.catalog===null&&releases.length>0;
@@ -190,7 +229,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     const debounce=feedbackDelay?setTimeout(load,feedbackDelay):undefined;
     if(!feedbackDelay)load();
     return()=>{active=false;clearTimeout(debounce);controller.abort();};
-  },[kind,feedbackIds,feedbackKey,practiceOnly,retry,feedbackDelay,enforceJamVisibility,requiresGalleryCheck]);
+  },[kind,feedbackIds,feedbackKey,practiceOnly,retry,feedbackDelay,enforceJamVisibility,requiresGalleryCheck,pageUrl]);
   useEffect(()=>{
     const controller=new AbortController(), requested=new Set<string>();setMetrics({});
     if(practiceOnly)return()=>controller.abort();
@@ -227,9 +266,13 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     if(showDiscoveryCards)return null;
     return <HubProjectFeedback {...entry} kind={kind==='game'?'game':'library'} compact={kind==='game'} feedback={observed} metric={projectMetric(entry.id)}>{identity}</HubProjectFeedback>;
   };
+  function changePage(cursors:string[]) {
+    heading.current?.focus();
+    setPageCursors(cursors);
+  }
   return <section className={styles.catalog} aria-labelledby="sharing-heading">
-    <h1 id="sharing-heading">{libraryOwnerId?'My Libraries':practiceOnly?'Tutorial practice':kind === 'game' ? 'Projects' : 'Libraries'}</h1>
-      {!id && !version && <div className={styles.search}><Icon name="search" /><input id="sharing-search" type="search" aria-label={libraryOwnerId?'Search my libraries':'Search ZeroHub'} value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder={libraryOwnerId?'Search my libraries':'search zerohub'} /></div>}
+    <h1 id="sharing-heading" ref={heading} tabIndex={projectPage?-1:undefined}>{libraryOwnerId?'My Libraries':practiceOnly?'Tutorial practice':kind === 'game' ? 'Projects' : 'Libraries'}</h1>
+      {!id && !version && <div className={styles.search}><Icon name="search" /><input id="sharing-search" type="search" aria-label={libraryOwnerId?'Search my libraries':'Search ZeroHub'} value={search} onChange={event=>{setSearch(event.target.value);if(projectPage)setPageCursors([]);}} maxLength={200} placeholder={libraryOwnerId?'Search my libraries':'search zerohub'} /></div>}
     {practiceOnly && <p className="hub-note">These CreditsBadge libraries are copied tutorial work. Similar copies are expected, and each repository keeps its own library identity. Periodic cleanup may remove libraries from the catalog. Your source and any copies already added to projects stay available.</p>}
     {(id || version) && <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {label}</Link></p>}
     <div className={gridClassName}>
@@ -242,8 +285,8 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
       hasOtherProjects={visibleProjects.length > 0 || visibleReleases.length > 0 || visibilityPending || !catalog} />}
     {visibilityPending && !showDiscoveryCards && <p role="status">Checking project availability…</p>}
     {visibilityFailed && <div role="status"><p>Project availability is unavailable. Try again shortly.</p><button className={styles.retry} onClick={()=>{setFeedbackResult(null);setRetry(value=>value+1);}}>Try again</button></div>}
-    {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={()=>setRetry(value=>value+1)}>Try again</button></div> : !catalog ? <p role="status">Loading {label}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
-      {!includeListings && !visibleReleases.length && !visibleProjects.length && !visibilityPending && !visibilityFailed && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${label} match this search.` : libraryOwnerId ? 'You have no libraries in the main catalog yet.' : `No ${label} are available yet.`}</p>}
+    {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={()=>restartPage?changePage([]):setRetry(value=>value+1)}>{restartPage?'First page':'Try again'}</button></div> : !catalog ? <p role="status">Loading {label}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
+      {!includeListings && !visibleReleases.length && !visibleProjects.length && !visibleListings.length && !visibilityPending && !visibilityFailed && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${label} match this search.` : libraryOwnerId ? 'You have no libraries in the main catalog yet.' : `No ${label} are available yet.`}</p>}
       {visibleReleases.map(release=>{
         const playHref=showDiscoveryCards?undefined:playLink(release);
         return <HubProjectCard projectId={!practiceOnly&&release.status==='available'?release.id:undefined} key={`${release.id}/${release.version}`} title={release.title} description={releaseSummary(release, projectPreviews)} author={releaseAuthor(release, releaseAuthors)}
@@ -258,6 +301,16 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
       </HubProjectCard>;
       })}
     </>}
+    {visibleListings.map(item=><HubProjectCard key={item.identity} title={item.title} description="GitHub Pages app"
+      author={item.author} repositoryHref={item.repositoryUrl} playHref={showDiscoveryCards?undefined:item.pagesUrl}
+      siteReachable={!showDiscoveryCards&&!!item.pagesUrl} compact>
+      {item.gameJamWinner && <span className={styles.winnerBadge}>Game Jam winner</span>}
+      {!showDiscoveryCards && !item.pagesUrl && <a href={item.repositoryUrl}>Open on GitHub</a>}
+    </HubProjectCard>)}
     </div>
+    {projectPage && !restartPage && (pageCursors.length>0 || nextPage) && <nav aria-label="Projects pages" className="resource-links">
+      {pageCursors.length>0 && <button className={styles.retry} type="button" onClick={()=>changePage(pageCursors.slice(0,-1))}>Previous page</button>}
+      {nextPage && <button className={styles.retry} type="button" onClick={()=>changePage([...pageCursors,nextPage])}>Next page</button>}
+    </nav>}
     </section>;
 }

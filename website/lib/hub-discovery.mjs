@@ -16,7 +16,7 @@ const NUMERIC_ID = /^[1-9][0-9]{0,19}$/;
 const text = (value, maximum) => typeof value === 'string' && value.length <= maximum;
 const image = value => text(value, 256) && /^\/project-previews\/[a-z0-9-]+\.png$/.test(value);
 
-function maintainedTarget(project) {
+export function maintainedTarget(project) {
   if (!project || !hubProjectId(project.id) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(project.id) ||
       !text(project.title, 160) || !text(project.description, 4000) || !text(project.author, 100) ||
       !repositoryParts(project.repositoryUrl) || typeof project.sourceCommit !== 'string' || !COMMIT.test(project.sourceCommit) ||
@@ -40,7 +40,7 @@ function maintainedDto(bound, original, displayUrl) {
     commit:bound.sourceCommit, runId:original.web.runId}} : {})};
 }
 
-function presentationFor(catalog, previewRecords, authorRecords) {
+export function presentationFor(catalog, previewRecords, authorRecords) {
   if (!catalog) return [];
   const result = new Map();
   for (const release of catalog.releases) {
