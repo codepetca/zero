@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test');const assert=require('node:assert/strict');
 const {createWebPublishCommands}=require('../src/web-publish-ui');
-function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/student/game',cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)},uploadError,beforeBuildReview}={}) {
+function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/student/game',cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)},uploadError,beforeBuildReview,listPublication}={}) {
   let simulation=false,busy=false,active='/student',reviewed=0,published=0,checks=0,setup=false,upgrade=false,uploaded=0,sha='a'.repeat(40);
   const progress=[],messages=[],states=[],copied=[],opened=[],authCalls=[],choices=[];
   const stored=new Map(),workspaceState={get:key=>stored.get(key),update:async(key,value)=>{if(value===undefined)stored.delete(key);else stored.set(key,JSON.parse(JSON.stringify(value)));}};
@@ -20,7 +20,7 @@ function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/s
     if(reviewed.sha!==sha)throw Error('The app changed while checking its published version.');
     const live=await publisher.check();if(live.status==='live')onCurrent?.(live);return live;
   };
-  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),connectedRepository,assertProjectNow:expected=>{if(active!==expected)throw Error('The project changed.');},authentication:auth,repositories,workspaceState,beforeBuildReview,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),setProgress:value=>progress.push(value),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
+  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),connectedRepository,assertProjectNow:expected=>{if(active!==expected)throw Error('The project changed.');},authentication:auth,repositories,workspaceState,beforeBuildReview,listPublication,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),setProgress:value=>progress.push(value),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
   return {api,auth,progress,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set upgrade(v){upgrade=v;},set active(v){active=v;},set sha(v){sha=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
 }
@@ -506,4 +506,64 @@ test('View published app respects simulation, current project and repository gua
  repository='https://github.com/student/other';await assert.rejects(h.api.commands['zero.viewPublishedWeb'](),/Publish this project/);repository='https://github.com/student/game';
  h.simulation=true;await h.api.commands['zero.viewPublishedWeb']();assert.deepEqual(h.opened,[]);h.simulation=false;
  h.active='/other';await assert.rejects(h.api.commands['zero.viewPublishedWeb'](),/Publish this project/);assert.equal(h.busy,false);
+});
+
+test('verified publish lists automatically and reusing the same app retries only its pending listing', async t=>{
+  const listings=[];
+  const h=fixture(t,{listPublication:async (saved,{beforeSend})=>{
+    beforeSend();
+    listings.push(saved.resume.runId);
+    return listings.length === 1 ? {status:'pending'} : {status:'listed',replaced:'older-game'};
+  }});
+  h.choices.push('Publish app');
+  await h.api.publish();
+  assert.match(h.messages[0][1].detail,/oldest eligible listing/);
+  assert.deepEqual(listings,[42]);
+  assert.match(h.states.at(-1),/listing pending/);
+  await h.api.publishAndOpen();
+  assert.deepEqual(listings,[42,42]);
+  assert.equal(h.published,1);
+  assert.match(h.states.at(-1),/replacing older-game/);
+  await h.api.publishAndOpen();
+  assert.deepEqual(listings,[42,42]);
+});
+
+test('failed deployment and the saved Open published app action leave ZeroHub alone', async t=>{
+  let listings=0;
+  const h=fixture(t,{listPublication:async()=>{listings++; return {status:'listed'};}});
+  h.choices.push('Publish app');
+  const check=h.publisher.check;
+  h.publisher.check=async()=>({status:'failed',message:'Build failed'});
+  await h.api.publish();
+  assert.equal(listings,0);
+  h.publisher.check=check;
+  await h.api.publish();
+  assert.equal(listings,1);
+  await h.api.commands['zero.viewPublishedWeb']();
+  assert.equal(listings,1);
+});
+
+test('desktop listing checks availability before acquiring or sending its token', async ()=>{
+  const {createHubPublishListing}=require('../src/hub-publish-listing');
+  let enabled=false, captured=0;
+  const calls=[];
+  const client=createHubPublishListing({
+    capture:async()=>{captured++;return {};},
+    assertCurrentNow:()=>({accountId:'1',accessToken:'ghu_fixtureTokenForTest'})
+  },async (url,options)=>{
+    calls.push({url,options});
+    return url.endsWith('/capability') ? Response.json({enabled}) : Response.json({status:'listed'});
+  });
+  const saved={resume:{repositoryId:3,runId:42,repository:'https://github.com/student/game'},
+    account:'1',sha:'a'.repeat(40),url:'https://student.github.io/game/'};
+  const options={signal:new AbortController().signal,beforeSend:()=>{}};
+  assert.deepEqual(await client(saved, options),{status:'unavailable'});
+  assert.equal(captured,0);
+  assert.equal(calls[0].options.headers,undefined);
+  enabled=true;
+  assert.deepEqual(await client(saved, options),{status:'listed'});
+  assert.equal(captured,1);
+  assert.equal(calls[2].url,'https://zero.codepet.ca/api/hub/listings');
+  assert.equal(JSON.parse(calls[2].options.body).pagesUrl,saved.url);
+  assert.equal(calls[2].options.redirect,'error');
 });

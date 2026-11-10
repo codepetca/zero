@@ -3,7 +3,7 @@ const path = require('node:path');
 const {createGitHubPagesPublisher} = require('./web-publish-github');
 const {safePagesUrl}=require('./web-pages-verification');
 
-function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connectedRepository=()=>undefined,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setProgress=()=>{},output,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,beforeBuildReview=async()=>{},publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
+function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connectedRepository=()=>undefined,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setProgress=()=>{},output,listPublication,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,beforeBuildReview=async()=>{},publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
   let disposed=false,controller,publishing=false,resume,recheckRequested=false,lastLive;
   let root,stageProgress,openingRequested=false;
   const clearProgress=()=>{stageProgress=undefined;setProgress(undefined);};
@@ -62,7 +62,29 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
     }
     return result;
   }
-  async function verifyAndOpen(reviewed,saved,expected,{fast=false}={}) {
+  async function updateHubListing(saved, expected) {
+    if (!listPublication || !saved?.listingPending) return saved;
+    await stillPublishable(expected);
+    progress('Updating ZeroHub listing…');
+    const result = await listPublication(saved, {signal:controller.signal, beforeSend:()=>assertPublishCurrentNow(expected)});
+    if (controller.signal.aborted || disposed) return saved;
+    let listingMessage;
+    if (result.status === 'listed') {
+      listingMessage = typeof result.replaced === 'string' ? `Listed on ZeroHub, replacing ${result.replaced}` : 'Listed on ZeroHub';
+    } else if (result.status === 'unlisted') {
+      listingMessage = result.reason === 'protected' ? 'Your protected listing was kept' : 'App is unlisted on ZeroHub';
+    } else if (result.status === 'pending' || result.status === 'unavailable') {
+      listingMessage = result.status === 'pending' ? 'ZeroHub listing pending' : 'ZeroHub listings unavailable';
+    }
+    const retry = result.status === 'pending' || result.status === 'unavailable';
+    if (listingMessage) output?.appendLine(retry
+      ? `${listingMessage}. Choose Publish & open app to retry.`
+      : `${listingMessage}. Manage listings at https://zero.codepet.ca/hub/listings`);
+    lastLive = {...saved, listingPending:retry, listingMessage};
+    await workspaceState?.update('zero.webPublish.lastLive', lastLive);
+    return lastLive;
+  }
+  async function verifyAndOpen(reviewed,saved,expected,{fast=false,retryListing=false}={}) {
     let opening;
     stage('verifying');progress('Checking live app…');
     const verify=fast?publisher.verifyUnchanged.bind(publisher,expected):publisher.verifyCurrent.bind(publisher,reviewed);
@@ -80,9 +102,11 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
     });
     if(current.status!=='live')return current;
     const opened=await opening;
+    const listing = retryListing ? (saved?.listingPending ? await updateHubListing(saved, expected) : undefined) : saved;
     await stillCurrent(expected);
     clearProgress();
-    progress(opened===false?'App published — the browser could not be opened. See Zero Output for its link.':'App opened',`Your playable app is live: ${current.url}`);
+    const message = opened === false ? 'App published — the browser could not be opened. See Zero Output for its link.' : 'App opened';
+    progress(listing?.listingMessage ? `${message} · ${listing.listingMessage}` : message,`Your playable app is live: ${current.url}`);
     return {...current,opened:opened!==false};
   }
   async function publish({open=false}={}) {
@@ -161,7 +185,7 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
       await stillPublishable(expected);
       const previous=lastLive || workspaceState?.get('zero.webPublish.lastLive');
       if(reuse && previous && publisher.verifyUnchanged) {
-        const current=await verifyAndOpen(undefined,previous,expected,{fast:true});
+        const current=await verifyAndOpen(undefined,previous,expected,{fast:true,retryListing:true});
         if(current.status==='live')return {...current,alreadyCurrent:true};
         if(current.status!=='stale'){await showAction(current);return current;}
       }
@@ -182,7 +206,7 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
       if(reuse) {
         startProgress(['verifying']);
         progress('Checking published app…');
-        result=await verifyAndOpen(review,previous,expected);
+        result=await verifyAndOpen(review,previous,expected,{retryListing:true});
         if(result.status==='stale')result=undefined;
         else {
           if(result.status==='live')return {...result,alreadyCurrent:true};
@@ -194,12 +218,15 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
       if(!result) {
         const consent=workspaceState?.get('zero.webPublish.approval');
         const sameDestination=(previous?.root===expected && previous.account===review.account && previous.resume?.repository===review.repository && previous.url===review.publicUrl) || (consent?.root===expected && consent.account===review.account && consent.repository===review.repository && consent.url===review.publicUrl);
-        if(!sameDestination) {
+        const listingNotice = consent?.listingNotice === true && consent.root === expected &&
+          consent.account === review.account && consent.repository === review.repository && consent.url === review.publicUrl;
+        if(!sameDestination || listPublication && !listingNotice) {
           clearProgress();
-          const chosen=await vscode.window.showInformationMessage('Publish this app publicly?',{modal:true,detail:`Your app and included assets will be public.\n${review.publicUrl || (review.repository + ' → GitHub Pages')}`},'Publish app');
+          const notice = listPublication ? ' When available, Zero will also list the app on ZeroHub. At your limit it replaces the oldest eligible listing.' : '';
+          const chosen=await vscode.window.showInformationMessage('Publish this app publicly?',{modal:true,detail:`Your app and included assets will be public.${notice}\n${review.publicUrl || (review.repository + ' → GitHub Pages')}`},'Publish app');
           if(chosen!=='Publish app')return;
           await stillCurrent(expected);
-          await workspaceState?.update('zero.webPublish.approval',{root:expected,account:review.account,repository:review.repository,url:review.publicUrl});
+          await workspaceState?.update('zero.webPublish.approval',{root:expected,account:review.account,repository:review.repository,url:review.publicUrl,...(listPublication ? {listingNotice:true} : {})});
         }
         startProgress(['preparing','building','uploading','deploying','verifying']);
         progress('Preparing publishing…');
@@ -251,11 +278,19 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
     await stillCurrent(expected);
     if(result.status==='live') {
       resume=undefined;
-      if(openingRequested){stage('verifying');progress('Checking live app…');}
-      else {clearProgress();progress('App published',`Your playable app is live: ${result.url}`);}
-      await workspaceState?.update('zero.webPublish.pending',undefined);
-      lastLive={root:expected,url:result.url,sha:result.sha,resume:result.resume,account:approvedAccount};
+      const consent = workspaceState?.get('zero.webPublish.approval');
+      const listingPending = !!listPublication && consent?.listingNotice === true && consent.root === expected &&
+        consent.account === approvedAccount && consent.repository === result.resume?.repository && consent.url === result.url;
+      lastLive={root:expected,url:result.url,sha:result.sha,resume:result.resume,account:approvedAccount,
+        ...(listingPending ? {listingPending:true} : {})};
       await workspaceState?.update('zero.webPublish.lastLive',lastLive);
+      await workspaceState?.update('zero.webPublish.pending',undefined);
+      if (listingPending) await updateHubListing(lastLive, expected);
+      if(openingRequested){stage('verifying');progress('Checking live app…');}
+      else {
+        clearProgress();
+        progress(lastLive.listingMessage ? `App published · ${lastLive.listingMessage}` : 'App published',`Your playable app is live: ${result.url}`);
+      }
     } else if(result.status==='pending')progress('Publishing is still running. Choose Publish & open app again to recheck this run.');
     else {resume=undefined;await workspaceState?.update('zero.webPublish.pending',undefined);await showAction(result);}
     return result;
