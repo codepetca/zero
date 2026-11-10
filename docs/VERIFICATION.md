@@ -1,5 +1,17 @@
 # Verification
 
+## ZeroHub navigation integration — 2026-11-10
+
+[PR #309](https://github.com/codepetca/zero/pull/309) integrated the navigation
+changes with main `eb65bf16`. Resolved source `912d4dc3` keeps the newer app
+visibility wording and uses **My Apps** for the page. Lesson 11 and the
+Zero editor continue to open the practice badge catalog.
+
+TypeScript, whitespace and focused website and editor tests passed on the
+integrated source. Local WebKit with a sample account followed **My Apps**
+and showed **Do not replace** and **Remove from ZeroHub**. One independent
+Terra/medium review of `eb65bf16..912d4dc3` found no actionable issues.
+
 ## ZeroHub My listings label — 2026-11-10
 
 Local implementation `9cda1d5e8` renames the ZeroHub link and its destination
