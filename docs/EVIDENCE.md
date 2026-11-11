@@ -1,3 +1,23 @@
+# Integrated Zero sign-in source review — 2026-11-11
+
+PR #323 combines the one-trip sign-in, editor progress and the centered browser
+return pages. Four simulated WorkOS callback states were exercised, including
+the 320 px dark return page. The integrated source `3b52e40e6` passed 147
+focused tests, 89 release guard tests, the website typecheck and production
+build, and `npm run check`.
+
+Sol/high independently reviewed base `3b7ce8afe` and head `3b52e40e6`, with
+fresh coverage of `3014aed25..3b52e40e6` and the affected authentication and
+release callers. The reviewer passed 90 focused tests and found no blockers.
+The retained kit manifest matches the previously published 0.5.69 manifest.
+On the fallback broker's HTML error pages, the editor still waits for its
+existing timeout unless the student cancels. Live sign-in with the new
+indicators and pages and physical Windows remain unverified. The final
+integration used one reviewer launch, one wave and no fix batches. Effective
+model and usage telemetry were unavailable.
+
+---
+
 # Zero sign-in progress — 2026-11-11
 
 The editor notification now reports waiting for the browser, verifying the
