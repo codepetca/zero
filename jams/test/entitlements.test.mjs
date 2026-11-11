@@ -126,3 +126,21 @@ test('nontransactional CAS retries and final admission recheck revoked async gra
   let checks=0;const g=fixture({canCreateJam:async()=>++checks===1});
   await assert.rejects(g.service.propose(input()),status(403));assert.equal(checks,2);assert.equal(g.store.records.size,0);
 });
+
+test('a creator directory lists their own unlisted jams with visibility fields only',async()=>{
+  const f=fixture({canCreateJam:()=>true});
+  const proposal=await f.service.propose(input());
+  let own=await f.service.listSummaries(creator);
+  assert.equal(own.events.length,1);
+  assert.deepEqual(own.hosted.map(jam=>[jam.id,jam.listed,jam.moderation.status]),[[proposal.eventId,true,'active']]);
+  await f.service.mutate({id:proposal.eventId,actor:maintainer,operationId:'hosted-suspend-001',action:'suspend',reason:'Review'});
+  own=await f.service.listSummaries(creator);
+  assert.equal(own.events.length,0);
+  const [jam]=own.hosted;
+  assert.equal(jam.listed,false);assert.equal(jam.moderation.status,'suspended');assert.equal(jam.moderation.reason,'Review');
+  assert.equal(jam.title,hostedManifest().title);assert.ok(jam.revision);assert.equal(jam.registrationOpen,false);
+  for(const hidden of ['entries','participants','creator','rules'])assert.equal(Object.hasOwn(jam,hidden),false);
+  assert.deepEqual((await f.service.listSummaries(participant)).hosted,[]);
+  assert.equal(Object.hasOwn(await f.service.listSummaries(undefined),'hosted'),false);
+  assert.equal(Object.hasOwn(await f.service.list(creator),'hosted'),false);
+});

@@ -688,3 +688,29 @@ test('participation merges an early title with its saved fields and isolates dra
   assert.deepEqual(JSON.parse(storage.get(key(eventA,accountA))),{...a,title:'Early participant edit'});
   assert.deepEqual(JSON.parse(storage.get(key(eventA,accountB))),b);assert.deepEqual(JSON.parse(storage.get(key(eventB,accountB))),c);
 });
+
+const text=nodes=>nodes.flatMap(node=>[node.props?.children].flat()).filter(value=>typeof value==='string'||typeof value==='number').join(' ');
+test('signed-in creators see their own unlisted jams with visibility in discovery',()=>{
+  const hosted=[{id:'jam-9',type:'game',title:'Toast on the Moon',revision:'a',reviewStatus:'approved',moderation:{status:'suspended'},schedule:{},timezone:'UTC',listed:false,registrationOpen:false,submissionsOpen:false,participantCount:0}];
+  const h=harness({participateData:{events:[],hosted}});
+  h.setDirectory(h.render('JamDirectoryProvider',{}).props.value);
+  const nodes=elements(h.render('JamDiscovery'));
+  assert.match(text(nodes),/Your jams/);assert.match(text(nodes),/Suspended · Not listed on ZeroHub/);
+  assert.ok(nodes.some(node=>node.props?.href==='/hub/jams/jam-9'&&node.props.children==='Toast on the Moon'));
+  h.setActor(null);
+  assert.doesNotMatch(text(elements(h.render('JamDiscovery'))),/Your jams/);
+});
+
+test('the jam page shows visibility to its creator and maintainers only',()=>{
+  const event={id:'jam-42',type:'game',title:'Jam',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',timezone:'UTC',
+    creator:{id:'12',login:'creator'},schedule:{galleryRevealAt:'2099-01-05T00:00:00Z'},revision:'a',moderation:{status:'active'},registrationOpen:false,
+    submissionsOpen:false,participantCount:0,participants:[],entries:[]};
+  const notice=detail=>elements(harness({participateData:{event,registration:null,entry:null,canMaintain:false,...detail}}).render('JamDetail',{id:'jam-42'})).find(node=>node.type?.name==='JamVisibility');
+  const creatorView=notice({});
+  assert.ok(creatorView);
+  const rendered=renderToStaticMarkup(creatorView);
+  assert.match(rendered,/Listed on ZeroHub · Anyone can view/);assert.match(rendered,/Submitted entries stay hidden until the gallery opens/);
+  const other={...event,creator:{id:'99',login:'other'}};
+  assert.equal(notice({event:other}),undefined);
+  assert.ok(notice({event:other,canMaintain:true}));
+});
