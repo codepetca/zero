@@ -7,6 +7,7 @@ const createDesktopAccounts = options => createAccounts({withLock:async callback
 const {createWorkOS} = require('../src/workos.cjs');
 const {resolveWorkOSFirstUseConfiguration, validateWorkOSDistribution} = require('../src/workos-configuration');
 const {createWorkOSFirstUse} = require('../src/workos-first-use');
+const {followWorkOSLaunch} = require('./fixtures/workos-browser.cjs');
 
 function secrets() {
   const values = new Map();
@@ -67,10 +68,27 @@ test('required distribution without environment signs in and works after offline
   });
   let challenge;
   const accounts=createDesktopAccounts({secrets:store,clientId:'client_test',workos,openBrowser:async url=>{
-    const authorize=new URL(url);challenge=authorize.searchParams.get('code_challenge');
+    const launch = new URL(url);
+    assert.equal(launch.protocol, 'http:');
+    assert.equal(launch.hostname, '127.0.0.1');
+    assert.match(launch.pathname, /^\/vscode\/sign-in\/[A-Za-z0-9_-]{43}$/);
+    assert.equal(launch.search, '');
+    const manual = {redirect:'manual'};
+    assert.equal((await fetch(new URL('/vscode/sign-in/wrong', launch), manual)).status, 404);
+    assert.equal((await fetch(url + '?next=https://example.invalid', manual)).status, 404);
+    assert.equal((await fetch(url, {...manual, method:'HEAD'})).status, 404);
+    const redirect = await fetch(url, manual);
+    assert.equal(redirect.status, 303);
+    assert.equal(redirect.headers.get('cache-control'), 'no-store');
+    assert.equal(redirect.headers.get('referrer-policy'), 'no-referrer');
+    assert.equal((await fetch(url, manual)).status, 404);
+    const authorize = new URL(redirect.headers.get('location'));
+    assert.equal(authorize.origin + authorize.pathname, 'https://api.workos.com/user_management/authorize');
+    challenge = authorize.searchParams.get('code_challenge');
     // A reused AuthKit session can omit the GitHub token needed by the exchange.
     assert.equal(authorize.searchParams.get('max_age'),'0');
     const callback=new URL(authorize.searchParams.get('redirect_uri'));
+    assert.equal(callback.href, launch.origin + '/vscode/callback');
     callback.searchParams.set('state',authorize.searchParams.get('state'));callback.searchParams.set('code','fixture');
     const page=await fetch(callback);
     assert.equal(page.status,200);
@@ -142,7 +160,7 @@ test('first-use browser errors show retry instructions without consuming an inva
     let exchanges = 0;
     const workos = createWorkOS('client_test', async () => { exchanges++; throw new Error('Unexpected exchange'); });
     const accounts = createDesktopAccounts({secrets:store, clientId:'client_test', workos, openBrowser:async url => {
-      const authorize = new URL(url);
+      const authorize = await followWorkOSLaunch(url);
       const callback = new URL(authorize.searchParams.get('redirect_uri'));
       callback.searchParams.set('error', error);
       const invalid = await fetch(callback);
@@ -180,7 +198,7 @@ test('an exchange without explicit GitHub authentication never saves a connectio
   for (const response of [{user:{id:'user_same'}}, {authentication_method:'GoogleOAuth',user:{id:'user_same'}}]) {
     const workos=createWorkOS('client_test',async()=>Response.json(response));
     const accounts=createDesktopAccounts({secrets:store,clientId:'client_test',workos,openBrowser:async url=>{
-      const authorize=new URL(url);
+      const authorize=await followWorkOSLaunch(url);
       const callback=new URL(authorize.searchParams.get('redirect_uri'));
       callback.searchParams.set('state',authorize.searchParams.get('state'));
       callback.searchParams.set('code','fixture');
@@ -208,7 +226,7 @@ test('old receipt permits offline local use but needs explicit upgrade for GitHu
 test('missing GitHub token or invalid personal identity never writes a receipt',async()=>{
  for(const payload of [undefined,{id:1,type:'Organization'},{id:0,type:'User'}]){
   const store=secrets();const workos=createWorkOS('client_test',async url=>url.includes('api.github.com')?Response.json(payload):Response.json({authentication_method:'GitHubOAuth',user:{id:'user_same'},...(payload===undefined?{}:{oauth_tokens:{access_token:'fixture_token'}})}));
-  const accounts=createDesktopAccounts({secrets:store,clientId:'client_test',workos,openBrowser:async url=>{const callback=new URL(new URL(url).searchParams.get('redirect_uri'));callback.searchParams.set('state',new URL(url).searchParams.get('state'));callback.searchParams.set('code','fixture');await fetch(callback);return true;}});
+  const accounts=createDesktopAccounts({secrets:store,clientId:'client_test',workos,openBrowser:async url=>{const auth=await followWorkOSLaunch(url),callback=new URL(auth.searchParams.get('redirect_uri'));callback.searchParams.set('state',auth.searchParams.get('state'));callback.searchParams.set('code','fixture');await fetch(callback);return true;}});
   await assert.rejects(accounts.signIn());assert.equal(store.values.size,0);
  }
 });
@@ -247,7 +265,7 @@ test('a changed receipt baseline prevents both sign-in and sign-out overwriting 
  const old=JSON.stringify({version:1,clientId:'client_test',id:'user_same'}),newer=JSON.stringify({version:1,clientId:'client_test',id:'user_newer'});
  await store.store(key,old);
  const workos={clientId:'client_test',begin(redirect){const state='a'.repeat(43),url=new URL('https://example.invalid');url.searchParams.set('redirect_uri',redirect);url.searchParams.set('state',state);return{url:url.href,state,verifier:'fixture'};},complete:async()=>({id:'user_same',githubId:'42'})};
- const accounts=createAccounts({secrets:store,clientId:'client_test',workos,withLock:async callback=>{await store.store(key,newer);return callback();},openBrowser:async url=>{const auth=new URL(url),callback=new URL(auth.searchParams.get('redirect_uri'));callback.searchParams.set('state',auth.searchParams.get('state'));callback.searchParams.set('code','fixture');await fetch(callback);return true;}});
+ const accounts=createAccounts({secrets:store,clientId:'client_test',workos,withLock:async callback=>{await store.store(key,newer);return callback();},openBrowser:async url=>{const auth=await followWorkOSLaunch(url),callback=new URL(auth.searchParams.get('redirect_uri'));callback.searchParams.set('state',auth.searchParams.get('state'));callback.searchParams.set('code','fixture');await fetch(callback);return true;}});
  await assert.rejects(accounts.signIn(),/connection changed/);assert.equal(await store.get(key),newer);
  await store.store(key,old);
  await assert.rejects(accounts.signOut(),/connection changed/);assert.equal(await store.get(key),newer);

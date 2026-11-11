@@ -12,6 +12,7 @@ async function receiveCode(workos, openBrowser, signal, timeoutMs, reportProgres
 
   let origin;
   let attempt;
+  let launchPath;
   let handled = false;
   let accept;
   const received = new Promise((resolve) => { accept = resolve; });
@@ -22,7 +23,14 @@ async function receiveCode(workos, openBrowser, signal, timeoutMs, reportProgres
   try {
     const server = await listenLoopback(0, (request, response) => {
       const url = requestUrl(request, origin);
-      if (!url || request.method !== "GET" || url.pathname !== CALLBACK) {
+      if (!url || request.method !== "GET") {
+        return reply(response, 404, "Page unavailable.");
+      }
+      if (request.url === launchPath && !active.aborted && !handled) {
+        launchPath = undefined;
+        return reply(response, 303, "", { Location: attempt.url });
+      }
+      if (url.pathname !== CALLBACK) {
         return reply(response, 404, "Page unavailable.");
       }
       const result = !active.aborted && !handled && callbackResult(url.searchParams, attempt.state);
@@ -42,9 +50,12 @@ async function receiveCode(workos, openBrowser, signal, timeoutMs, reportProgres
     try {
       origin = `http://${HOST}:${server.address().port}`;
       attempt = workos.begin(`${origin}${CALLBACK}`);
+      // VS Code trusts loopback URLs. Start the browser on this one-use route
+      // and redirect to the WorkOS URL generated for this attempt.
+      launchPath = `/vscode/sign-in/${randomKey()}`;
       active.throwIfAborted();
       reportProgress("Finish signing in in your browser.");
-      const opened = await Promise.race([openBrowser(attempt.url), stopped]);
+      const opened = await Promise.race([openBrowser(`${origin}${launchPath}`), stopped]);
       active.throwIfAborted();
       if (!opened) throw new Error("The sign-in browser could not be opened.");
       const code = await Promise.race([received, stopped]);

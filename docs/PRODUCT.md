@@ -368,8 +368,9 @@ projects, alongside the destination's code and tutorial tabs.
 
 The Start Page provides separate **Sign in to Zero** and **Zero Docs** actions.
 GitHub setup may also require **Install Zero for GitHub** before project creation.
-The student uses a GitHub account to sign in to Zero. The local managed editor
-uses the GitHub grant from that WorkOS browser trip and shows **Signed in as
+The student uses a GitHub account to sign in to Zero. **Sign in to Zero** opens
+WorkOS in the default browser. The local managed editor uses the GitHub grant
+from that browser trip and shows **Signed in as
 @username** after verification. Zero Docs remains available while signed out.
 GitHub may still require account selection, passkey or two-factor authentication.
 Expiring GitHub credentials are kept in VS Code SecretStorage. Zero has no
