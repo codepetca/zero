@@ -1,5 +1,6 @@
 const { HOST, listenLoopback, reply, requestUrl } = require("./loopback.cjs");
 const { ATTEMPT_MS, accountFromUser, callbackResult } = require("./workos.cjs");
+const { pages, pageHeaders } = require("./connection-page");
 
 const CALLBACK = "/vscode/callback";
 const STORAGE_KEY = "zero.workos.local-account.v1";
@@ -25,12 +26,16 @@ async function receiveCode(workos, openBrowser, signal, timeoutMs) {
         return reply(response, 404, "Page unavailable.");
       }
       const result = !active.aborted && !handled && callbackResult(url.searchParams, attempt.state);
-      if (!result) return reply(response, 400, "This sign-in attempt is invalid or expired.");
+      if (!result) return reply(response, 400, pages.invalid, pageHeaders);
 
       handled = true;
-      reply(response, result.code ? 200 : 400, result.code
-        ? "Return to VS Code to see whether sign-in completed."
-        : "GitHub sign-in did not complete. Return to VS Code to try again.");
+      if (result.code) {
+        reply(response, 200, pages.returned, pageHeaders);
+      } else {
+        const errors = url.searchParams.getAll("error");
+        const cancelled = errors.length === 1 && errors[0] === "access_denied" && !url.searchParams.has("code");
+        reply(response, 400, cancelled ? pages.cancelled : pages.failed, pageHeaders);
+      }
       accept(result.code);
     });
 

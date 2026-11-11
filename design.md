@@ -297,7 +297,7 @@ current task's content visually prominent.
 | Website title | Use the approved icon followed by outlined lowercase zero as one SVG image. Dark mode uses the light-purple accent icon without a background and white lettering. |
 | ZeroHub Projects | One square with title over a contrasting image header and long-text fade; muted unconfirmed previews; stars/flag/author at the bottom. Reveal description on hover/focus with a title toggle for touch. Preserve readable content when text is enlarged. |
 | Website account | The header shows a GitHub avatar when signed in. Match the visible avatar to the height of the Zero mark and keep a 44 px click and tap target (2026-11-10). Its dropdown holds sign-out and appearance settings. |
-| Desktop GitHub browser return | Center “Return to Zero” with the Zero mark inline immediately before “Zero” and a short instruction to close the tab and continue in the app. Follow the browser’s light or dark preference (2026-11-11). |
+| Desktop GitHub sign-in pages | Center the heading and next step in the browser’s light or dark preference. Put the Zero mark inline immediately before “Zero” in the return heading or retry instruction. The return page tells students to close the tab and continue in the app. Cancellation and error pages explain how to retry (2026-11-11). |
 | Themes | Apply the same choices in light and dark; the root page follows the selected theme too. |
 
 Keep the sidebar, Next lesson action, search, code copying, deep links, accessible

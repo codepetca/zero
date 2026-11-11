@@ -11,6 +11,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lessonAssets } from "../lib/learning.mjs";
 import tutorialCatalog from '../../extension/src/tutorial-catalog.js';
+import connectionPages from '../../extension/src/connection-page.js';
 import { validateInstallerManifest } from "../lib/installer.mjs";
 import { validatePublishedInstaller } from "../lib/published-installer.mjs";
 import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
@@ -109,6 +110,11 @@ const windowsInstaller = await loadWindowsInstaller(root,release);
 const windowsUpdateFeed = await loadWindowsUpdateFeed(root,release,windowsInstaller);
 const windowsPreview = await loadWindowsPreview(root,release);
 await mkdir(resolve(site, ".generated"), { recursive: true });
+// Bundle the browser pages at build time so routes need no asset reads.
+await writeFile(resolve(site, ".generated/desktop-connection-pages.json"), JSON.stringify({
+  pages: {failed: connectionPages.pages.failed, unavailable: connectionPages.pages.unavailable},
+  pageHeaders: connectionPages.pageHeaders,
+}));
 await prepareDesign({ website: true, extension: false });
 prepareLessonProjects(root, { website: true, extension: false });
 await mkdir(resolve(site, "public/generated"), { recursive: true });

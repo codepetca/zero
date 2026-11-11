@@ -38,7 +38,7 @@ test('browser sign-in binds a real IPv4 loopback return to PKCE without codes or
  const html=await page.text();
  const styles=html.match(/<style>([\s\S]*?)<\/style>/)[1];
  const hash=createHash('sha256').update(styles).digest('base64');
- assert.equal(page.headers.get('Content-Security-Policy'),`default-src 'none'; frame-ancestors 'none'; base-uri 'none'; style-src 'sha256-${hash}'`);
+ assert.equal(page.headers.get('Content-Security-Policy'),`default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; style-src 'sha256-${hash}'`);
  assert.match(html,/<h1>Return to <span class="name"><svg aria-hidden="true"[\s\S]+<\/svg>Zero<\/span><\/h1>/);
  assert.match(html,/<p>You can close this tab and continue in the app\.<\/p>/);
  assert.doesNotMatch(html,/<script\b|ghu_|ghr_/i);
@@ -48,7 +48,10 @@ test('browser sign-in binds a real IPv4 loopback return to PKCE without codes or
 test('wrong paths, methods, hosts, origins and duplicate callback values cannot consume the real return',async()=>{
  const f=fixture();f.vscode.env.openExternal=async()=>{
   const base=`http://127.0.0.1:${f.start.port}`,good=`/github/${f.start.nonce}?code=${code}&ticket=${ticket}`;
-  for(const [url,options,status]of [['/wrong',{},404],[good,{method:'POST'},404],[good,{headers:{Origin:'https://evil.example'}},403],[good+'&code=other',{},400]])assert.equal((await fetch(base+url,options)).status,status);
+  for(const [url,options,status]of [['/wrong',{},404],[good,{method:'POST'},404],[good,{headers:{Origin:'https://evil.example'}},403]])assert.equal((await fetch(base+url,options)).status,status);
+  const invalid=await fetch(base+good+'&code=other');
+  assert.equal(invalid.status,400);
+  assert.match(await invalid.text(),/<h1>This sign-in attempt is invalid or expired<\/h1>/);
   const wrongHost=await new Promise((resolve,reject)=>{const req=http.get(base+good,{headers:{Host:'evil.example'}},res=>{res.resume();res.on('end',()=>resolve(res.statusCode));});req.on('error',reject);});assert.equal(wrongHost,404);
   assert.equal((await fetch(base+good)).status,200);return true;
  };await browserFlow(f.options);assert.equal(f.calls.filter(item=>item.url.endsWith('/exchange')).length,1);
@@ -82,8 +85,9 @@ test('browser refresh uses the pinned server endpoint, while denial never exchan
  };
  await assert.rejects(browserFlow(denied.options),error=>error.code==='cancelled');assert.equal(denied.calls.length,1);
  const result=await denial;
- assert.equal(result.headers.get('Content-Type'),'text/plain; charset=utf-8');
- assert.equal(await result.text(),'GitHub sign-in was cancelled. You can return to Zero.');
+ assert.equal(result.status,200);
+ assert.equal(result.headers.get('Content-Type'),'text/html; charset=utf-8');
+ assert.match(await result.text(),/<h1>GitHub sign-in was cancelled<\/h1>/);
 });
 
 function syntheticCallback(url,headers={}) {
