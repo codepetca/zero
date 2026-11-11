@@ -12,7 +12,7 @@ function secrets() {
   const values = new Map();
   return {values, get:async k=>values.get(k), store:async(k,v)=>values.set(k,v), delete:async k=>values.delete(k)};
 }
-function editor(choice = 'Continue with GitHub') {
+function editor(choice = 'Sign in to Zero') {
   let prompts=0, warnings=0;
   return {get prompts(){return prompts;}, get warnings(){return warnings;}, ProgressLocation:{Notification:1},
     window:{showInformationMessage:async()=>{prompts++;return choice;}, showWarningMessage:async()=>{warnings++;},
@@ -26,9 +26,33 @@ test('first-use prompt is shared, can be cancelled and retried', async () => {
   const gate=createWorkOSFirstUse({vscode:api,context:{},required:true,clientId:'client_test',accounts:{read:async()=>{reads++;return null;},signIn:async()=>{signed++;}}});
   assert.deepEqual(await Promise.all([gate.ensure(),gate.ensure()]),[false,false]);
   assert.equal(reads,1);assert.equal(signed,0);
-  api.window.showInformationMessage=async()=> 'Continue with GitHub';
+  api.window.showInformationMessage=async()=> 'Sign in to Zero';
   assert.equal(await gate.ensure(),true);assert.equal(signed,1);
   gate.dispose();
+});
+
+test('a failed connection closes progress and can retry while its warning is open', async () => {
+  const api=editor();
+  const withProgress=api.window.withProgress;
+  let progressOpen=false, progressAtWarning, attempts=0, dismiss;
+  const warning=new Promise(resolve=>{dismiss=resolve;});
+  api.window.withProgress=async (...args)=>{
+    progressOpen=true;
+    try {return await withProgress(...args);}
+    finally {progressOpen=false;}
+  };
+  api.window.showWarningMessage=()=>{
+    progressAtWarning=progressOpen;
+    return warning;
+  };
+  const gate=createWorkOSFirstUse({vscode:api,context:{},required:true,clientId:'client_test',
+    accounts:{read:async()=>null,signIn:async()=>{if(++attempts===1) throw new Error('fixture');}}});
+  try {
+    assert.equal(await Promise.race([gate.ensure(),new Promise(resolve=>setImmediate(()=>resolve('still waiting')))]),false);
+    assert.equal(progressAtWarning,false);
+    assert.equal(await gate.ensure(),true);
+    assert.equal(attempts,2);
+  } finally {dismiss();gate.dispose();}
 });
 
 test('required distribution without environment signs in and works after offline restart', async () => {
@@ -44,14 +68,23 @@ test('required distribution without environment signs in and works after offline
   let challenge;
   const accounts=createDesktopAccounts({secrets:store,clientId:'client_test',workos,openBrowser:async url=>{
     const authorize=new URL(url);challenge=authorize.searchParams.get('code_challenge');
+    // A reused AuthKit session can omit the GitHub token needed by the exchange.
+    assert.equal(authorize.searchParams.get('max_age'),'0');
     const callback=new URL(authorize.searchParams.get('redirect_uri'));
     callback.searchParams.set('state',authorize.searchParams.get('state'));callback.searchParams.set('code','fixture');
-    assert.equal((await fetch(callback)).status,200);return true;
+    const page=await fetch(callback);
+    assert.equal(page.status,200);
+    const html=await page.text();
+    assert.match(html,/<title>Return to Zero<\/title>/);
+    assert.match(html,/Check the app to finish signing in\./);
+    return true;
   }});
   const first=createWorkOSFirstUse({vscode:editor(),context:{},...configuration,accounts});
   assert.equal(await first.ensure(),true);first.dispose();
   assert.equal(exchanges,1);
-  assert.deepEqual(JSON.parse([...store.values.values()][0]),{version:1,clientId:'client_test',id:'user_same',githubId:'42'});
+  const {connectionNonce,...receipt}=JSON.parse([...store.values.values()][0]);
+  assert.match(connectionNonce,/^[A-Za-z0-9_-]{43}$/);
+  assert.deepEqual(receipt,{version:1,clientId:'client_test',id:'user_same',githubId:'42'});
   assert.doesNotMatch([...store.values.values()][0],/secret|fixture/);
   const offline=createDesktopAccounts({secrets:store,clientId:'client_test'});
   const restartedEditor=editor();
@@ -100,6 +133,36 @@ test('cancelled browser attempt does not save an account', async () => {
   const accounts=createDesktopAccounts({secrets:store,clientId:'client_test',workos,openBrowser:async()=>{controller.abort();return true;}});
   await assert.rejects(accounts.signIn(controller.signal));
   assert.equal(store.values.size,0);
+});
+
+test('first-use browser errors show retry instructions without consuming an invalid state or exchanging a token', async () => {
+  for (const [error, heading] of [['access_denied', 'Sign-in was cancelled'],
+    ['server_error', 'Sign-in didn’t complete']]) {
+    const store = secrets();
+    let exchanges = 0;
+    const workos = createWorkOS('client_test', async () => { exchanges++; throw new Error('Unexpected exchange'); });
+    const accounts = createDesktopAccounts({secrets:store, clientId:'client_test', workos, openBrowser:async url => {
+      const authorize = new URL(url);
+      const callback = new URL(authorize.searchParams.get('redirect_uri'));
+      callback.searchParams.set('error', error);
+      const invalid = await fetch(callback);
+      assert.equal(invalid.status, 400);
+      assert.match(await invalid.text(), /<h1>This sign-in attempt is invalid or expired<\/h1>/);
+
+      callback.searchParams.set('state', authorize.searchParams.get('state'));
+      const page = await fetch(callback);
+      assert.equal(page.status, 400);
+      assert.equal(page.headers.get('content-type'), 'text/html; charset=utf-8');
+      const body = await page.text();
+      assert.ok(body.includes(`<h1>${heading}</h1>`));
+      assert.match(body, /<\/svg>Zero<\/span> to try again\./);
+      assert.ok(!body.includes(callback.searchParams.get('state')));
+      return true;
+    }});
+    await assert.rejects(accounts.signIn(), /GitHub sign-in was declined or failed/);
+    assert.equal(exchanges, 0);
+    assert.equal(store.values.size, 0);
+  }
 });
 
 test('a fresh process can read the saved receipt without WorkOS', () => {

@@ -1,3 +1,126 @@
+# Integrated Zero sign-in source review — 2026-11-11
+
+PR #323 combines the one-trip sign-in, editor progress and the centered browser
+return pages. Four simulated WorkOS callback states were exercised, including
+the 320 px dark return page. The integrated source `3b52e40e6` passed 147
+focused tests, 89 release guard tests, the website typecheck and production
+build, and `npm run check`.
+
+Sol/high independently reviewed base `3b7ce8afe` and head `3b52e40e6`, with
+fresh coverage of `3014aed25..3b52e40e6` and the affected authentication and
+release callers. The reviewer passed 90 focused tests and found no blockers.
+The retained kit manifest matches the previously published 0.5.69 manifest.
+On the fallback broker's HTML error pages, the editor still waits for its
+existing timeout unless the student cancels. Live sign-in with the new
+indicators and pages and physical Windows remain unverified. The final
+integration used one reviewer launch, one wave and no fix batches. Effective
+model and usage telemetry were unavailable.
+
+The native CI dependency setup stalled on two hosted runners. The first log
+showed a DNS failure for the Azure Ubuntu mirror. The delta at `3e1eb2f9e`
+gives the runner's existing HTTPS Ubuntu mirrors priority. It preserves the
+package sources and native test gate. Terra/medium independently reviewed this
+delta with no findings. Actionlint, the mirror fixture and 13 CI gate/scope
+tests passed.
+
+The next run also failed to resolve `archive.ubuntu.com` and timed out
+downloading packages. The recovery delta `d03aa5d06` checks mirror reachability
+before the source tests and can use the OSU Open Source Lab Ubuntu mirror with
+the existing Ubuntu signing key. APT update and package download are bounded.
+Actionlint and 13 CI gate/scope tests passed. The mirror returned all four Noble
+suite indexes. Terra/medium found no blockers in the targeted delta review.
+
+---
+
+# Zero sign-in progress — 2026-11-11
+
+The editor notification now reports waiting for the browser, verifying the
+GitHub account, and connecting GitHub access. The Start Page shows an
+indeterminate progress bar during the repository access check. The bar stays
+still with reduced motion and clears when the check settles.
+
+Two unauthenticated WorkOS redirect probes downloaded the hosted HTML in
+1.25 and 1.04 seconds. A third timed out at the hosted page. These were HTTP
+probes without browser cookies or rendering. They did not measure the owner's
+full sign-in or isolate the cause of the timeout.
+
+The progress delta from `3014aed25` passed 99 focused tests, `npm run check`,
+and `git diff --check`. Terra/medium independently inspected the delta and
+callers with no actionable findings. Effective model telemetry was unavailable.
+The Mac Zero Dev window loaded the extension. Live sign-in with the new
+indicator is pending. No installer was published.
+
+---
+
+# One Zero sign-in — 2026-11-11
+
+Local source at `3d04734ce` uses **Sign in to Zero** with GitHub as the
+identity provider. Desktop WorkOS sign-in hands the renewable GitHub grant to
+the existing pinned broker and saves the verified pair in SecretStorage.
+Repository installation and selection remain explicit. The managed website
+can use the expiry confirmed by GitHub's App token check in the same callback.
+
+The live WorkOS probe returned an App refresh token. The existing production
+broker accepted it and returned a valid expiring pair whose numeric personal
+GitHub account matched the WorkOS exchange. A fresh Zero Dev profile running
+the one-sign-in source stored both its WorkOS receipt and GitHub session.
+We checked key presence only. The later cancellation and sign-out changes
+passed fixtures, including rollback during a credential write, local-only
+sign-out, stale host removal, a changed receipt, and signing in as another
+account while preserving offline access.
+
+Focused editor and UI checks, the full website suite (816 passed, 3 skipped),
+website build and typecheck, `npm run check`, and `git diff --check` passed.
+Sol/high and Terra/high reviewed the integration. Follow-ups fixed cancellation
+and sign-out issues. Sol/high verified the final recovery delta with 137
+focused tests and no remaining blockers. The hosted website callback and
+physical Windows acceptance remain untested. The Mac release is still held.
+
+---
+
+# Desktop GitHub sign-in retry — 2026-11-11
+
+Zero 0.5.69's desktop sign-in reached the browser callback, but a production
+WorkOS exchange with the existing browser session returned HTTP 200 with the
+GitHub sign-in method and no GitHub provider token. The same local diagnostic
+using AuthKit's `max_age=0` returned the provider token and verified the personal
+account with GitHub. The diagnostic used the installed modules and an in-memory
+receipt; it did not connect the installed editor or retain tokens.
+
+Local fix `423cc2002` requests fresh authentication on explicit WorkOS
+connections and ends VS Code progress before showing a failure warning, so
+retry does not wait for dismissal. The existing identity and storage checks
+remain in place. Both regressions reproduced before their respective fixes;
+88 focused authentication tests, `npm run check` and `git diff --check` passed.
+One independent Terra/medium review of `3b7ce8afe..423cc2002` found no
+actionable issues. Effective model and usage telemetry were unavailable.
+At this stage, no updated editor build had been installed or released.
+
+The owner's Mac test of the signed 0.5.70 candidate reached the next GitHub
+authorization step and failed. GitHub's live App metadata reports the
+authorized read-only Email addresses permission as `emails`, while the
+editor only allowed `email_addresses`. Local source `ef2965066` accepts the
+observed read-only spelling and retains the earlier documented spelling.
+Tests still reject stronger and unrelated permissions. The regression failed
+before the change and all 90 focused tests passed afterward. The fixed source
+completed production WorkOS and GitHub App authorization in an in-memory
+diagnostic, with a matching numeric GitHub identity and existing browser data.
+
+The owner then signed in successfully in an isolated Zero Dev editor using
+the existing browser profile. The trace recorded a saved WorkOS receipt and
+a verified GitHub App session after two browser handoffs. Temporary tracing
+was removed. The 0.5.70 Mac draft is unpublished and superseded. The owner
+asked whether both handoffs can use a single GitHub sign-in, so publication
+remains on hold. A follow-up production WorkOS exchange returned both a
+GitHub App access token and a GitHub refresh token. The access token reached
+the pinned App's repository installation and verified the personal account.
+WorkOS did not provide a refresh expiry, and the returned access expiry did
+not pass Zero's eight-hour check. Rotation through the existing desktop
+broker for that WorkOS-issued grant remains unverified. The probe used memory
+only and logged field presence and status, without logging tokens.
+
+---
+
 # ZeroHub Projects pagination and text fades — 2026-11-10
 
 Local branch `codex/zerohub-project-pages` is based on PR #318's

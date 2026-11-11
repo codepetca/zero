@@ -100,6 +100,9 @@ function createWorkOS(clientId, fetchImpl = globalThis.fetch) {
         // Hosted AuthKit handles verification and other authentication challenges.
         // Configure the staging AuthKit methods separately for GitHub-only testing.
         provider: "authkit",
+        // Reusing an AuthKit session can omit the GitHub token we need to verify
+        // the account. Ask for fresh authentication on each explicit connection.
+        max_age: "0",
         state,
         code_challenge: challenge,
         code_challenge_method: "S256",
@@ -131,8 +134,8 @@ function createWorkOS(clientId, fetchImpl = globalThis.fetch) {
         throw new ExchangeError("http", response.status, diagnostic.code, diagnostic.format);
       }
 
-      // Trust the response from the fixed HTTPS exchange endpoint. A JWT or a
-      // GitHub token is unnecessary here because the demo has no cloud API.
+      // Discard the WorkOS session tokens. The verified GitHub identity is
+      // enough for local access, even when there is no renewable App grant.
       let result;
       try { result = await response.json(); } catch { throw new ExchangeError("invalid-response"); }
       if (result?.impersonator
@@ -149,7 +152,10 @@ function createWorkOS(clientId, fetchImpl = globalThis.fetch) {
         github = await response.json();
       } catch { if (signal?.aborted) throw signal.reason; throw new Error('GitHub identity could not be verified.'); }
       if (github?.type !== 'User' || !Number.isSafeInteger(github.id) || github.id < 1) throw new Error('GitHub did not return a valid personal account.');
-      return {...account, githubId:String(github.id)};
+      const refreshToken = result.oauth_tokens.refresh_token;
+      const hasAppGrant = /^ghu_[A-Za-z0-9_]{10,512}$/.test(token) &&
+        typeof refreshToken === 'string' && /^ghr_[A-Za-z0-9_]{10,512}$/.test(refreshToken);
+      return {...account, githubId:String(github.id), ...(hasAppGrant ? {githubRefreshToken:refreshToken} : {})};
     },
   };
 }

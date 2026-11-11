@@ -288,7 +288,7 @@ test('unborn branch keeps its GitHub origin visible until first commit and repor
   await waitFor(()=>webview.html.includes('Make your first commit.'));
   git('remote','remove','origin');metadata({fsPath:path.join(root,'.git','config')});await waitFor(()=>webview.html.includes('Make your first commit.'));
   git('remote','add','origin','https://github.com/student/project.git');git('add','.');git('commit','-qm','first');metadata({fsPath:path.join(root,'.git','HEAD')});
-  await waitFor(()=>webview.html.includes('Sign in to GitHub to sync.'));assert.match(webview.html,/student\/<wbr>project/);assert.doesNotMatch(webview.html,/[Mm]ake your first commit/);
+  await waitFor(()=>webview.html.includes('Sign in to Zero to sync.'));assert.match(webview.html,/student\/<wbr>project/);assert.doesNotMatch(webview.html,/[Mm]ake your first commit/);
   forceHeadError=true;metadata({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>webview.html.includes('The branch commit cannot be verified.'));assert.doesNotMatch(webview.html,/[Mm]ake your first commit/);assert.match(webview.html,/student\/<wbr>project/);
   forceHeadError=false;metadata({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>!webview.html.includes('The branch commit cannot be verified.'));
   forceOriginError=true;metadata({fsPath:path.join(root,'.git','config')});await waitFor(()=>webview.html.includes('Repository connection cannot be verified.'));

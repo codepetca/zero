@@ -54,10 +54,28 @@ test('managed flow verifies callback subject, issuer, session, GitHub App and li
   }
   for (const expiresAt of [undefined, now / 1000 + 60, '1800000300']) {
     assert.equal(await createWorkOSHubSession({...callback,oauthTokens:{...callback.oauthTokens,expiresAt}}, verify,
-      {env,fetchImpl:unexpected,now:() => now}), null);
+      {env,fetchImpl:github,now:() => now}), null);
   }
   assert.equal(await createWorkOSHubSession(callback, verify, {env,now:() => now,
     fetchImpl:async () => Response.json({app:{client_id:'IvOtherApp'},user:githubUser})}), null);
+});
+
+test('the same WorkOS callback can use the expiry confirmed by the pinned GitHub App', async () => {
+  const withoutExpiry = {...callback, oauthTokens:{...callback.oauthTokens, expiresAt:undefined}};
+  const checkWith = expires_at => async url => {
+    if (url === `https://api.github.com/applications/${zeroApp.clientId}/token`)
+      return Response.json({app:{client_id:zeroApp.clientId},user:githubUser,expires_at});
+    return github(url);
+  };
+  const active = await createWorkOSHubSession(withoutExpiry, verify, {
+    env,fetchImpl:checkWith(new Date(now + 300_000).toISOString()),now:() => now,
+  });
+  assert.equal(active.session.expiresAt, now + 240_000);
+  for (const expiry of [null, 'unknown', new Date(now + 60_000).toISOString(), new Date(now + 86_400_000).toISOString()]) {
+    assert.equal(await createWorkOSHubSession(callback, verify, {
+      env,fetchImpl:checkWith(expiry),now:() => now,
+    }), null);
+  }
 });
 
 test('managed mode sends Hub sign-in through AuthKit and blocks fallback to the legacy flow', async () => {

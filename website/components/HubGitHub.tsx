@@ -33,7 +33,7 @@ export function useHubGitHub(){return useContext(GitHubContext);}
 export function hubLoginHref(returnTo=typeof window==='undefined'?'/hub':window.location.pathname+window.location.search){
   return `/api/hub/github/login?${new URLSearchParams({returnTo})}`;
 }
-export function HubAccount({onSignedOut,onRetryComplete,showSignOut=true,signInLabel='Sign in to GitHub'}:{onSignedOut?:()=>void;onRetryComplete?:()=>void;showSignOut?:boolean;signInLabel?:string}={}){
+export function HubAccount({onSignedOut,onRetryComplete,showSignOut=true,signInLabel}:{onSignedOut?:()=>void;onRetryComplete?:()=>void;showSignOut?:boolean;signInLabel?:string}={}){
   const {configured,managed,user,error,callbackError,returnTo,refresh}=useHubGitHub();const[busy,setBusy]=useState(false),[failure,setFailure]=useState('');
   async function signOut(){
     if(!user||busy)return;setBusy(true);setFailure('');
@@ -41,9 +41,9 @@ export function HubAccount({onSignedOut,onRetryComplete,showSignOut=true,signInL
     catch{setFailure('Could not sign out. Try again.');}finally{setBusy(false);}
   }
   return <div className={styles.account}>
-    {user?<><span>GitHub · @{user.login}</span>{showSignOut&&(managed
+    {user?<><span>Signed in as @{user.login}</span>{showSignOut&&(managed
       ? <form action="/zero-account/sign-out" method="post"><button type="submit">Sign out</button></form>
-      : <button type="button" onClick={()=>void signOut()} disabled={busy}>{busy?'Signing out…':'Sign out'}</button>)}</>:configured?<a href={hubLoginHref(returnTo)}>{signInLabel}</a>:configured===false?<span>GitHub sign-in is unavailable.</span>:!error?<span>Checking GitHub connection…</span>:null}
+      : <button type="button" onClick={()=>void signOut()} disabled={busy}>{busy?'Signing out…':'Sign out'}</button>)}</>:configured?<><a href={hubLoginHref(returnTo)}>{signInLabel ?? 'Sign in to Zero'}</a>{!signInLabel && <span>Use your GitHub account.</span>}</>:configured===false?<span>Zero sign-in is unavailable.</span>:!error?<span>Checking GitHub connection…</span>:null}
     {error&&<span role="status">{error} <button type="button" onClick={()=>void refresh().then(()=>onRetryComplete?.())}>Retry</button></span>}
     {(failure||callbackError&&!user)&&<span role="status">{failure||'GitHub connection was not completed. Try again.'}</span>}
   </div>;

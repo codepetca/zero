@@ -1,9 +1,9 @@
 'use strict';
 const pinned = require('./config.json');
 const PERMISSIONS = Object.freeze({metadata:'read',repository_creation:'write',contents:'write',workflows:'write',actions:'write',pages:'write',starring:'write'});
-// Accept staged App grants before and after registration is updated. Older
-// extension releases retain their own bundled permission allowlist.
-const OPTIONAL_PERMISSIONS = Object.freeze({administration:'write',email_addresses:'read'});
+// GitHub's App metadata reports the read-only Email addresses permission as
+// "emails". Keep accepting the documented "email_addresses" spelling as well.
+const OPTIONAL_PERMISSIONS = Object.freeze({administration:'write',email_addresses:'read',emails:'read'});
 function githubAppConfiguration(value = pinned) {
   const keys=['schema','status','owner','appId','clientId','slug','websiteOrigin'];
   if (!value || typeof value!=='object' || Array.isArray(value) || Object.keys(value).some(key=>!keys.includes(key)) ||

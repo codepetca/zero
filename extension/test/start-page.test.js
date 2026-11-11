@@ -164,7 +164,7 @@ test('strict nonce CSP and text-only rendering keep account, status and path mar
   assert.doesNotMatch(html, /(?:src|href)=["']https?:\/\/|innerHTML|onclick=|eval\(/);
   assert.equal(payload(panel).accountLabel, attack);
   const browser = domHarness(html);browser.update(panel.messages.at(-1));
-  assert.equal(browser.elements.get('account').textContent, attack);
+  assert.equal(browser.elements.get('account').textContent, '@' + attack);
   assert.equal(browser.elements.get('status').textContent, attack);
   const recentButton = browser.elements.get('recent-list').children[0].children[0];
   assert.equal(recentButton.children[1].textContent, `/Projects/${attack}`);
@@ -184,11 +184,12 @@ test('GitHub account stays compact while signed-out and setup states keep their 
   const {page,panel} = await open(f), b = domHarness(panel.webview.html);
   const action = name => b.buttons.find(button => button.dataset.action === name);
   b.update(panel.messages.at(-1));
-  assert.match(panel.webview.html, /GitHub<span id="account-group" hidden> <span class="muted" aria-hidden="true">·<\/span> <span id="account"/);
-  assert.equal(b.elements.get('account').textContent, 'armorup');
+  assert.match(panel.webview.html, /<span id="account-group" hidden>Signed in as <span id="account"/);
+  assert.equal(b.elements.get('account').textContent, '@armorup');
   assert.equal(b.elements.get('account-group').hidden, false);
   assert.equal(b.elements.get('github-heading').hidden, false);
   assert.equal(b.elements.get('guidance').hidden, true);
+  assert.equal(b.elements.get('github-progress').hidden, true);
   assert.equal(action('tutorials').disabled, false);
   assert.equal(action('signIn').hidden, true);
   assert.equal(action('signInCode'), undefined);
@@ -197,17 +198,20 @@ test('GitHub account stays compact while signed-out and setup states keep their 
     await page.refresh();b.update(panel.messages.at(-1));
     assert.equal(b.elements.get('guidance').hidden, false);
     assert.ok(b.elements.get('guidance').textContent);
+    assert.equal(b.elements.get('github-progress').hidden, phase !== 'checking');
     assert.equal(action('setup').hidden, phase === 'checking');
   }
   f.setState({phase:'signed-out'});await page.refresh();b.update(panel.messages.at(-1));
   assert.equal(b.elements.get('account-group').hidden, true);
   assert.equal(b.elements.get('github-heading').hidden, false);
-  assert.equal(b.elements.get('guidance').hidden, true);
+  assert.equal(b.elements.get('guidance').hidden, false);
+  assert.equal(b.elements.get('github-progress').hidden, true);
+  assert.equal(b.elements.get('guidance').textContent, 'Use your GitHub account.');
   assert.equal(action('signIn').hidden, false);
   assert.equal(action('signIn').disabled, false);
   assert.equal(action('signInCode'), undefined);
   assert.equal(b.elements.get('github-section').hidden, false);
-  assert.match(panel.webview.html, /data-action="signIn" hidden>Sign in to GitHub/);
+  assert.match(panel.webview.html, /data-action="signIn" hidden>Sign in to Zero/);
   page.dispose();
 });
 

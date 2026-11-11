@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.",
-  "version": "0.5.69",
+  "version": "0.5.71",
   "publisher": "zero",
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
@@ -64,7 +64,7 @@
       },
       {
         "command": "zero.githubAccount",
-        "title": "Zero: GitHub Account"
+        "title": "Zero: Account"
       },
       {
         "command": "zero.chooseRepository",
@@ -132,7 +132,7 @@
       },
       {
         "command": "zero.signInToGitHub",
-        "title": "Zero: Sign in to GitHub"
+        "title": "Zero: Sign in"
       },
       {
         "command": "zero.createRepository",

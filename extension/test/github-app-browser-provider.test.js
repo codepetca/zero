@@ -8,6 +8,9 @@ const {createGitHubAppProvider}=require('../src/github-app/provider');
 const {githubAppConfiguration}=require('../src/github-app/config');
 const {SECRET_KEY}=require('../src/github-app/credential-store');
 const {createAuthentication,ownedProviderApi}=require('../src/authentication');
+const {createDesktopAccounts,STORAGE_KEY}=require('../src/desktop.cjs');
+const {createWorkOS}=require('../src/workos.cjs');
+const {createWorkOSFirstUse}=require('../src/workos-first-use');
 const configuration=githubAppConfiguration();
 const pair={access_token:'ghu_browseraccessabcdefgh',refresh_token:'ghr_browserrefreshabcdefgh',expires_in:28800,refresh_token_expires_in:15897600,token_type:'bearer',scope:''};
 class Emitter{constructor(){this.listeners=new Set();this.event=fn=>{this.listeners.add(fn);return{dispose:()=>this.listeners.delete(fn)}};}fire(value){for(const fn of this.listeners)fn(value);}dispose(){this.listeners.clear();}}
@@ -42,7 +45,7 @@ async function fixture(t,{enabled=true,hooks={}}={}){
   assert.equal(callback.status,303);assert.doesNotMatch(callback.headers.get('location'),/ghu_|ghr_/);
   assert.equal((await fetch(callback.headers.get('location'))).status,200);return true;
  }},window:{showInformationMessage:async message=>{messages.push(message);assert.fail('Browser sign-in must not offer a code fallback');},withProgress:async(_options,run)=>run({report:value=>progress.push(value)},{isCancellationRequested:false,onCancellationRequested:listener=>{cancelListener=listener;return{dispose(){}};}})}};
- const create=(assertBinding)=>{const provider=createGitHubAppProvider({vscode,context,configuration,fetchImpl,now:()=>time,...(assertBinding?{assertBinding}:{})});t.after(()=>provider.dispose());return provider;};
+ const create=(assertBinding,requestWorkOSGrant,disconnectWorkOS)=>{const provider=createGitHubAppProvider({vscode,context,configuration,fetchImpl,now:()=>time,...(assertBinding?{assertBinding}:{}),requestWorkOSGrant,disconnectWorkOS});t.after(()=>provider.dispose());return provider;};
  const provider=create();
  return{provider,create,vscode,context,user,data,calls,messages,opens,progress,cancel:()=>cancelListener?.(),advance:()=>{time+=28800000;},failRefresh:()=>{failRefresh=true;},get exchanges(){return exchanges;},get refreshes(){return refreshes;}};
 }
@@ -53,6 +56,131 @@ test('real browser client/server modules complete PKCE, store a separate browser
  f.advance();const [renewed]=await f.provider.getSessions([]);assert.equal(renewed.accessToken,'ghu_rotatedabcdefgh');assert.equal(f.refreshes,1);
  saved=JSON.parse(f.data.get(SECRET_KEY));assert.equal(saved.flow,'browser');assert.equal(saved.refreshToken,'ghr_rotatedabcdefgh');
  assert.equal(f.calls.some(url=>url==='https://github.com/login/oauth/access_token'),false);
+});
+
+test('one WorkOS callback connects Zero and GitHub, and saved access renews without a browser',async t=>{
+ const f=await fixture(t);
+ const workosRefresh='ghr_workosrefreshabcdefgh';
+ let workosUser='user_test';
+ const workos=createWorkOS('client_test',async url=>{
+  if(url==='https://api.github.com/user') return Response.json(f.user);
+  assert.equal(url,'https://api.workos.com/user_management/authenticate');
+  return Response.json({
+   authentication_method:'GitHubOAuth', user:{id:workosUser},
+   oauth_tokens:{access_token:'ghu_workosaccessabcdefgh',refresh_token:workosRefresh},
+  });
+ });
+ let workosOpens=0, provider;
+ const accounts=createDesktopAccounts({
+  clientId:'client_test', workos, secrets:f.context.secrets, withLock:async callback=>callback(),
+  openBrowser:async url=>{
+   workosOpens++;
+   const authorize=new URL(url), callback=new URL(authorize.searchParams.get('redirect_uri'));
+   callback.searchParams.set('state',authorize.searchParams.get('state'));
+   callback.searchParams.set('code','fixture_code');
+   assert.equal((await fetch(callback)).status,200);
+   return true;
+  },
+ });
+ f.vscode.window.showInformationMessage=async()=> 'Sign in to Zero';
+ const gate=createWorkOSFirstUse({vscode:f.vscode, context:f.context, required:true,
+  clientId:'client_test', accounts, connectGitHub:(open,signal,reportProgress)=>provider.connectWithWorkOS(open,signal,reportProgress)});
+ t.after(()=>gate.dispose());
+ provider=f.create(gate.assertBinding,gate.requestGitHubGrant,gate.disconnectUnderLock);
+ const auth=createAuthentication(ownedProviderApi(provider,gate),undefined,undefined,undefined,undefined,gate);
+ t.after(()=>auth.dispose());
+
+ assert.equal(await gate.ensure(),true);
+ await auth.signIn();
+ assert.equal(auth.accountId,'42');
+ assert.equal(workosOpens,1);
+ assert.equal(f.opens.length,0);
+ assert.equal(f.exchanges,0);
+ assert.equal(f.refreshes,1);
+ assert.deepEqual(f.progress.map(step=>step.message),[
+  'Finish signing in in your browser.',
+  'Verifying your GitHub account…',
+  'Connecting GitHub access…',
+ ]);
+ assert.equal(JSON.parse(f.data.get(SECRET_KEY)).refreshToken,'ghr_rotatedabcdefgh');
+ const {connectionNonce,...receipt}=JSON.parse(f.data.get(STORAGE_KEY));
+ assert.match(connectionNonce,/^[A-Za-z0-9_-]{43}$/);
+ assert.deepEqual(receipt,{version:1,clientId:'client_test',id:'user_test',githubId:'42'});
+ assert.equal([...f.data.values()].some(value=>value.includes(workosRefresh)),false);
+
+ f.advance();
+ await auth.refresh();
+ assert.equal(auth.accountId,'42');
+ assert.equal(f.refreshes,2);
+ assert.equal(workosOpens,1);
+
+ await provider.disconnectAccount(await gate.localConnection());
+ await auth.refresh();
+ assert.equal(auth.signedIn,false);
+ assert.equal(f.data.has(SECRET_KEY),false);
+ const {disconnectNonce,...localAccess}=JSON.parse(f.data.get(STORAGE_KEY));
+ assert.match(disconnectNonce,/^[A-Za-z0-9_-]{43}$/);
+ assert.deepEqual(localAccess,{version:1,clientId:'client_test',signedOut:true});
+ assert.equal(await gate.ensure(),true);
+ assert.equal(workosOpens,1);
+ await assert.rejects(gate.assertBinding('42'),error=>error.code==='workos-identity-binding');
+ workosUser='user_other';
+ f.user.id=99;
+ await auth.signIn();
+ assert.equal(auth.accountId,'99');
+ assert.equal(workosOpens,2);
+ assert.equal(f.opens.length,0);
+});
+
+test('cancelling a WorkOS grant during credential storage rolls back the active pair',async t=>{
+ const f=await fixture(t);
+ const controller=new AbortController(), store=f.context.secrets.store;
+ f.context.secrets.store=async (key,value)=>{
+  await store(key,value);
+  if(key===SECRET_KEY) controller.abort();
+ };
+ const provider=f.create(async id=>{if(id) assert.equal(id,'42');});
+ await assert.rejects(provider.connectWithWorkOS(async()=>({
+  githubId:'42', githubRefreshToken:'ghr_workosrefreshabcdefgh',
+ }),controller.signal),error=>error.code==='cancelled');
+ assert.equal(f.data.has(SECRET_KEY),false);
+ assert.deepEqual(await provider.getSessions([]),[]);
+ assert.equal(f.opens.length,0);
+});
+
+test('a local-only Zero account can sign out and a stale host session cannot disconnect it',async t=>{
+ const f=await fixture(t);
+ const current={version:1,clientId:'client_test',id:'user_current',githubId:'42',connectionNonce:'a'.repeat(43)};
+ await f.context.secrets.store(STORAGE_KEY,JSON.stringify(current));
+ const accounts=createDesktopAccounts({clientId:'client_test',secrets:f.context.secrets});
+ const gate=createWorkOSFirstUse({vscode:f.vscode,context:f.context,required:true,clientId:'client_test',accounts});
+ t.after(()=>gate.dispose());
+ const provider=f.create(gate.assertBinding,undefined,gate.disconnectUnderLock);
+ const expected=await gate.localConnection();
+ await provider.removeSession('12345678-1234-1234-1234-123456789012');
+ assert.deepEqual(await gate.localConnection(),expected);
+ await assert.rejects(provider.disconnectAccount({...expected,connectionNonce:'b'.repeat(43)}),
+  error=>error.code==='connection-changed');
+ assert.deepEqual(await gate.localConnection(),expected);
+ await provider.disconnectAccount(expected);
+ assert.equal(await gate.localConnection(),undefined);
+ assert.equal(await gate.ensure(),true);
+ assert.deepEqual(await provider.getSessions([]),[]);
+});
+
+test('managed sign-in rejects a missing or mismatched grant without launching a second sign-in',async t=>{
+ const f=await fixture(t);
+ const binding=async id=>{if(id) assert.equal(id,'42');};
+ let grant={githubId:'42'};
+ const provider=f.create(binding,async()=>grant);
+ await assert.rejects(provider.createSession([]),error=>error.code==='workos-grant-missing');
+ assert.equal(f.refreshes,0);
+ grant={githubId:'42',githubRefreshToken:'ghr_workosrefreshabcdefgh'};
+ f.user.id=99;
+ await assert.rejects(provider.createSession([]),error=>error.code==='workos-identity-binding');
+ assert.equal(f.refreshes,1);
+ assert.equal(f.opens.length,0);
+ assert.equal(f.data.has(SECRET_KEY),false);
 });
 test('an unavailable server fails without a device request, fallback dialog or stored credentials',async t=>{
  const f=await fixture(t,{enabled:false});
@@ -195,8 +323,8 @@ test('a receipt change during credential storage prevents registered provider se
  const attempt=provider.createSession([]);await entered;bound='99';release();
  await assert.rejects(attempt,/does not match/);
  assert.ok(events.every(event=>!event.added.length));
- await assert.rejects(provider.getSessions([]),/does not match/);
- assert.equal(JSON.parse(f.data.get(SECRET_KEY)).account.id,'42');
+ assert.deepEqual(await provider.getSessions([]),[]);
+ assert.equal(f.data.has(SECRET_KEY),false);
 });
 
 test('a binding change during lock release prevents registered provider session return',async t=>{
@@ -209,7 +337,8 @@ test('a binding change during lock release prevents registered provider session 
  const provider=f.create(assertBinding),events=[];provider.onDidChangeSessions(event=>events.push(event));
  const attempt=provider.createSession([]);await entered;bound='99';release();
  await assert.rejects(attempt,/does not match/);assert.ok(events.every(event=>!event.added.length));
- await assert.rejects(provider.getSessions([]),/does not match/);
+ assert.deepEqual(await provider.getSessions([]),[]);
+ assert.equal(f.data.has(SECRET_KEY),false);
 });
 
 test('a newer credential written during lock release is not returned or overwritten',async t=>{

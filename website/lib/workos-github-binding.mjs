@@ -11,6 +11,14 @@ function personalAccountId(user) {
   return user?.type === 'User' && Number.isSafeInteger(user.id) && user.id > 0 ? user.id : null;
 }
 
+function githubExpiry(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(value)) return null;
+  const millis = Date.parse(value);
+  if (!Number.isSafeInteger(millis)) return null;
+  const canonical = new Date(millis).toISOString();
+  return value === canonical || value === canonical.replace('.000Z', 'Z') ? Math.floor(millis / 1000) : null;
+}
+
 // Accept only the result of a server-side WorkOS code exchange. This binds
 // the accounts for that exchange and does not persist a mapping or any tokens.
 export async function verifyWorkOSGitHubBinding(callback, {env = process.env, fetchImpl = fetch} = {}) {
@@ -38,7 +46,9 @@ export async function verifyWorkOSGitHubBinding(callback, {env = process.env, fe
     const user = await githubUser(token, fetchImpl);
     if (personalAccountId(user) !== tokenOwner ||
       typeof user.login !== 'string' || !githubLoginPattern.test(user.login)) throw invalid();
-    return Object.freeze({workosUserId, githubId: String(tokenOwner), login: user.login});
+    const expiresAt = data.expires_at === undefined ? undefined : githubExpiry(data.expires_at);
+    return Object.freeze({workosUserId, githubId: String(tokenOwner), login: user.login,
+      ...(expiresAt === undefined ? {} : {expiresAt})});
   } catch {
     // A provider response or network error can contain credentials or user data.
     throw invalid();
@@ -50,9 +60,7 @@ export async function verifyWorkOSGitHubBinding(callback, {env = process.env, fe
 export async function createWorkOSHubSession(callback, verifyAccessToken, {env = process.env, fetchImpl = fetch, now = Date.now} = {}) {
   const config = hubConfig(env);
   const token = callback?.oauthTokens?.accessToken;
-  const expiresAt = callback?.oauthTokens?.expiresAt;
   if (!managedHubAvailable(config, env) || !githubAuthentication(callback) ||
-      !Number.isSafeInteger(expiresAt) || expiresAt <= now() / 1000 + 60 ||
       typeof token !== 'string' || !githubAppTokenPattern.test(token)) return null;
 
   try {
@@ -61,9 +69,13 @@ export async function createWorkOSHubSession(callback, verifyAccessToken, {env =
     if (!workosSessionIdentity(claims, userId, env.WORKOS_ISSUER, now())) return null;
     const binding = await verifyWorkOSGitHubBinding(callback, {env, fetchImpl});
     const checkedAt = now();
+    // Prefer the pinned App's GitHub token check. Some AuthKit responses do
+    // not provide an expiry in epoch seconds for the underlying GitHub grant.
+    const expiresAt = binding.expiresAt === undefined ? callback.oauthTokens.expiresAt : binding.expiresAt;
+    const remaining = Math.floor(expiresAt - checkedAt / 1000);
+    if (!Number.isSafeInteger(expiresAt) || remaining <= 60 || remaining > 28860) return null;
     const identity = workosSessionIdentity(claims, binding.workosUserId, env.WORKOS_ISSUER, checkedAt);
     if (!identity) return null;
-    return newManagedSession(token, {id:Number(binding.githubId), login:binding.login},
-      Math.floor(expiresAt - checkedAt / 1000), config, identity, checkedAt);
+    return newManagedSession(token, {id:Number(binding.githubId), login:binding.login}, remaining, config, identity, checkedAt);
   } catch { return null; }
 }

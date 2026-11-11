@@ -115,7 +115,7 @@ test('a signed-out local commit explains why Sync is disabled',async t=>{
  const f=await fixture(t,{signedOut:true});
  await f.commands.get('zero.commitChanges')('Save before signing in');
  assert.equal(f.commits,1);assert.equal(f.syncs,0);assert.equal(f.authSelections,0);
- assert.match(f.webview.html,/<p id="run-status"[^>]*>Committed locally\. Sign in to GitHub to sync\.<\/p>/);
+ assert.match(f.webview.html,/<p id="run-status"[^>]*>Committed locally\. Sign in to Zero to sync\.<\/p>/);
  assert.match(f.webview.html,/<button id="branch-sync"[^>]* disabled>Sync/);
 });
 test('Commit does not depend on the GitHub account remaining signed in',async t=>{

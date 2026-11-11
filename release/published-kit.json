@@ -1,33 +1,33 @@
 {
   "schema": 1,
-  "kitVersion": "0.5.68",
+  "kitVersion": "0.5.69",
   "coreVersion": "0.3.0",
   "publication": {
     "status": "published",
     "repository": "codepetca/zero",
-    "tag": "v0.5.68"
+    "tag": "v0.5.69"
   },
   "assets": {
     "kit": {
       "filename": "zero-bootstrap.zip",
       "label": "Complete Zero kit",
-      "size": 5028352,
-      "sha256": "77d381dd68aeb60d3fa3095eeef05c3186f3536e516ca9a78df9492e30585111",
-      "url": "https://github.com/codepetca/zero/releases/download/v0.5.68/zero-bootstrap.zip"
+      "size": 5030492,
+      "sha256": "ed276977a5fe6299130d88f478adf07ac61c37cb855710be85a3f5c8150ed88c",
+      "url": "https://github.com/codepetca/zero/releases/download/v0.5.69/zero-bootstrap.zip"
     },
     "starter": {
       "filename": "zero-starter.zip",
       "label": "Starter project",
-      "size": 2773776,
-      "sha256": "816a5cd27e69832a7bd3d1541eac9c9fa047867868553ca03970be2e3431b183",
-      "url": "https://github.com/codepetca/zero/releases/download/v0.5.68/zero-starter.zip"
+      "size": 2773904,
+      "sha256": "b108eb62f2fa37e86c0ccfc6ea8fba8b1814b1a07040e8d23bc559a3ca87f71d",
+      "url": "https://github.com/codepetca/zero/releases/download/v0.5.69/zero-starter.zip"
     },
     "extension": {
-      "filename": "zero-0.5.68.vsix",
+      "filename": "zero-0.5.69.vsix",
       "label": "Zero extension",
-      "size": 2247921,
-      "sha256": "ffa52cee382bb4b51ea17fb0bfd61c1817f8b4677af5ba115f087d4e2cab85e5",
-      "url": "https://github.com/codepetca/zero/releases/download/v0.5.68/zero-0.5.68.vsix"
+      "size": 2249942,
+      "sha256": "a7bf59caafee4868e7bd9a21bab488d60f7852f4675da8fadec3370fb751f2a4",
+      "url": "https://github.com/codepetca/zero/releases/download/v0.5.69/zero-0.5.69.vsix"
     }
   }
 }

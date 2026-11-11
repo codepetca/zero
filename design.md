@@ -148,15 +148,17 @@ when adding features; a new feature does not reset the agreed interaction style.
   [editor components](design/EDITOR-COMPONENTS.md) and compare actual renderer
   states in the local `/components` prototype before introducing a new variant.
 - The **Zero Start Page** owns onboarding: a direct **Zero Docs** button opens
-  the latest lessons without sign-in. A separate GitHub sign-in action and
+  the latest lessons without sign-in. **Sign in to Zero** and
   **Project ▾ → New / Clone / Open** support project work. Students use Project
   → New and follow the lesson’s starting code; there is no tutorial scaffold button.
   Show the page automatically in an empty Zero window; preserve existing editors
   and restore its native editor tab. Reopen it through **Zero: Start Page** or the
   sidebar’s **⋯ → Start Page**. Keep local opening available without GitHub.
-- On the Start Page, ready GitHub access is one line: **GitHub · username**.
-  Signed out shows **Sign in to GitHub**. Keep checking, setup and error guidance
-  visible when action is needed; omit the routine Ready to start line.
+- On the Start Page, show **Sign in to Zero** with **Use your GitHub account**
+  when signed out. After the browser return, show **Signed in as @username**.
+  Keep **Install Zero for GitHub** and permission recovery contextual to
+  repository access. Keep checking and errors visible when action is needed.
+  Omit the routine Ready to start line.
 - The sidebar is for project development: Run/Stop, native Explorer, contextual repository
   and branch actions, Commit & push, Merge to main and ZeroHub. Empty controls
   offer Open Start Page alongside the Project header menu. A local project needing cloud setup offers GitHub
@@ -220,6 +222,24 @@ These are student-product interaction decisions. They do not authorize agent
 pushes, merges to the integration branch, public publication, releases or account
 changes. Ordinary Java, explicit object updates, student-owned repositories and
 separate Pika submission remain the product baseline.
+
+## One Zero sign-in — owner decision, 2026-11-11
+
+Use **Sign in to Zero** for account entry in the managed desktop and website
+flows. GitHub remains the identity provider. One explicit desktop sign-in
+uses the GitHub App grant from the WorkOS exchange and checks it before saving
+the expiring GitHub credentials. Repository installation and repository
+selection remain separate, explicit decisions. Keep signed-in status compact.
+Signing out of the editor clears the account and GitHub session while
+preserving established offline access to local projects. Web browsing,
+downloads, lessons and Play remain public. Browser and editor sessions are
+stored separately.
+
+The desktop browser return centers **Return to Zero** with the Zero mark
+immediately before **Zero**. The page tells students to close the tab and
+check the app as sign-in finishes. Cancellation and errors use the same
+layout and direct students back to the app to try again. Browser pages follow
+the browser’s light or dark preference.
 
 ## Shared GitHub identity — owner decision, 2026-10-18
 

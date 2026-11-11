@@ -66,7 +66,7 @@ async function checkBranchRemote({readState,readRemote,isAncestor,countCommits,n
 }
 function statusMessage(state) {
   return ({
-    auth:'Sign in to GitHub to sync.',
+    auth:'Sign in to Zero to sync.',
     access:'Check your GitHub repository access.',
     offline:'GitHub is unreachable. Try Sync again.',
     local:'Connect a GitHub repository to sync.'

@@ -213,7 +213,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   await warningShown;await settle(()=>simulationFinished);assert.equal(simulationFinished,true,'Simulation must release commands while its notification is still open');
   assert.doesNotMatch(webview.html,/data-command="zero.githubAccount"[^>]* disabled/,'Account icon must remain available before notification dismissal');
   assert.match(notices.at(-1),/Simulation only/);assert.deepEqual(gitChanges,[]);dismissWarning();await simulation;
-  await commands.get('zero.githubAccount')();assert.match(errors.at(-1),/Sign in to GitHub/);assert.equal(authCalls.at(-1).options.createIfNone,true);
+  await commands.get('zero.githubAccount')();assert.match(errors.at(-1),/Sign in to Zero/);assert.equal(authCalls.at(-1).options.createIfNone,true);
   nextChoice='create';await commands.get('zero.chooseRepository')();assert.equal(opened.length,0,'Cancelled sign-in cannot open repository creation');
   session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE'};
   await commands.get('zero.signInToGitHub')();assert.doesNotMatch(webview.html,/Signed in as student|data-command="zero.githubAccount"/);assert.match(webview.html,/class="repo-label">zero-ui-/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"|data-command="zero.signInToGitHub"/);
@@ -280,7 +280,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   pickEffect=async()=>{session=undefined;authEvent({provider:{id:'zero-github'}});};
   await commands.get('zero.browseZeroHub')();assert.equal(shareCalls,1,'Signing out while the ZeroHub menu is open cancels sharing');
   pickEffect=undefined;session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE'};authEvent({provider:{id:'zero-github'}});await settle(()=>!webview.html.includes('>GitHub setup</button>'));
-  nextChoice='account';await commands.get('zero.chooseRepository')();assert.equal(picks.at(-1).options.title,'GitHub: student','Native account actions remain reachable inside the project menu');
+  nextChoice='account';await commands.get('zero.chooseRepository')();assert.equal(picks.at(-1).options.title,'Zero · @student','Native account actions remain reachable inside the project menu');
   nextChoice='recovery';await commands.get('zero.chooseRepository')();assert.equal(recoveryCalls,1,'The repository menu dispatches the existing guarded file recovery command');
   pickEffect=async()=>{repo='https://github.com/student/changed.git';};await commands.get('zero.chooseRepository')();assert.equal(recoveryCalls,1,'Changing repository cancels pending file recovery');pickEffect=undefined;repo='https://github.com/student/app.git';
   nextChoice='copy';await commands.get('zero.chooseRepository')();assert.equal(copied.at(-1),'https://github.com/student/app');

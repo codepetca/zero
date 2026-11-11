@@ -86,7 +86,7 @@ function createTransport(remote, authenticate, {assertCurrentNow, deleteAuthoriz
           throw Object.assign(new Error('GitHub transport requires a synchronous session guard.'), {kind: 'changed'});
         }
         if (!session || session.id !== fresh?.id || session.accountId !== fresh?.accountId || session.accessToken !== fresh?.accessToken) throw Object.assign(new Error('Your GitHub sign-in changed. Review the upload again.'), {kind: 'changed'});
-        if (!session?.accessToken || /[\r\n\0]/.test(session.accessToken)) throw Object.assign(new Error('Sign in to GitHub and review the upload again.'), {kind: 'auth'});
+        if (!session?.accessToken || /[\r\n\0]/.test(session.accessToken)) throw Object.assign(new Error('Sign in to Zero and review the upload again.'), {kind: 'auth'});
         return session;
       };
       env = {...environment};

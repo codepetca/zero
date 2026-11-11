@@ -196,7 +196,7 @@ async function checkoutMain(expected,opts) {
   return checkoutDirectMain(expected.root,expected.mainHead,{verify:async env=>{const run=(root,args,options)=>opts.run(root,['-c','core.fsmonitor=false',...args],{...options,env});await opts.beforeMutation();await recheck(expected,run,{full:true});await assertDirectMain(expected.root,run);await preflightDirectMain(expected.root,expected.gitDir,{run});},checkNow:opts.beforeMutationNow||(()=>{}),perform:env=>local(opts.run,expected.root,['-c','core.fsmonitor=false','-c',`core.hooksPath=${os.devNull}`,'checkout','--no-overwrite-ignore','main'],'switch to completed main',{env})});
 }
 function networkRequired(networkRun) {
-  if (typeof networkRun !== 'function') throw new Error('Sign in to GitHub and review this step using the native GitHub connection.');
+  if (typeof networkRun !== 'function') throw new Error('Sign in to Zero and review this step using the native GitHub connection.');
 }
 async function network(networkRun, root, args) {
   try { return await networkRun(root, args); }

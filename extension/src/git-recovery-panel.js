@@ -27,7 +27,7 @@ function uploadMessage(pending) {
 function syncMessage(record) {
   if(record.operation==='merge')return 'Merge needs attention. Try Merge again.';
   return ({
-    auth:'Sign in to GitHub to sync.',
+    auth:'Sign in to Zero to sync.',
     access:'Check your GitHub repository access.',
     behind:'GitHub has newer commits. Try Sync again.',
     protected:'GitHub requires a pull request for this branch.',

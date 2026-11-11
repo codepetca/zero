@@ -366,18 +366,15 @@ owning unsaved-work handling. Mac0.5.43 includes this window-opening behavior.
 Mac0.5.43 also keeps an open Zero Start Page tab available when switching
 projects, alongside the destination's code and tutorial tabs.
 
-The Start Page provides separate **Sign in to GitHub** and **Zero Docs** actions.
+The Start Page provides separate **Sign in to Zero** and **Zero Docs** actions.
 GitHub setup may also require **Install Zero for GitHub** before project creation.
-Current local source calls its own `zero-github` provider directly. **Sign in to
-GitHub** starts browser authorization and completes the editor session after the
-browser return, without entering a code. Zero Docs remains available while signed
-out. Browser sign-in failures offer retry guidance; existing device-issued sessions keep
-their renewal path. GitHub may still require account
-selection, passkey or two-factor authentication. Published downloads retain
-their bundled flow. The provider remains registered for the Accounts menu and
-other extensions, whose host consent checks still apply.
-It stores expiring user/refresh tokens in VS Code SecretStorage; GitHub handles
-sign-in and consent, and Zero has no separate password or account.
+The student uses a GitHub account to sign in to Zero. The local managed editor
+uses the GitHub grant from that WorkOS browser trip and shows **Signed in as
+@username** after verification. Zero Docs remains available while signed out.
+GitHub may still require account selection, passkey or two-factor authentication.
+Expiring GitHub credentials are kept in VS Code SecretStorage. Zero has no
+separate password. Published downloads retain their bundled flow, and existing
+GitHub sessions keep their renewal path.
 Signing in runs a read-only check for repository creation and contents writing
 and stops at the next Start Page step. If access is missing, **Install Zero for
 GitHub** opens the pinned App page after a read-only recheck; **Check again** is
@@ -438,8 +435,9 @@ same circle. The purple initial circle stays visible while the image loads
 or if it fails. The accessible name retains the full
 GitHub username. Images load directly from GitHub’s avatar CDN using the already
 verified account ID, without another API lookup, credentials or referrer.
-Signed-out users can Sign in to GitHub; connected users see their username and
-Sign out without a duplicate sign-in action. Connection failures retain Retry.
+The managed account action is **Sign in to Zero** and identifies GitHub as the
+provider. Connected users see their username and **Sign out**. Connection
+failures retain a retry action.
 The dropdown also switches light/dark mode. The OS preference is the initial
 default; a chosen mode persists.
 These pages fill the viewport width and at least its height; longer lessons scroll.

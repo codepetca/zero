@@ -94,12 +94,12 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
     refresh,
     get busy() {return pendingRequests > 0;},
     async signIn(changeAccount = false) {
-      if (binding && !await binding.ensureBinding()) throw new Error('Connect Zero with GitHub to verify your account before using GitHub.');
+      if (binding && !await binding.ensureBinding()) throw new Error('Zero sign-in was cancelled or unavailable. Try again.');
       const session = await request({createIfNone: true, ...(changeAccount ? {clearSessionPreference: true} : {})});
-      if (!session && lastError?.code === 'workos-identity-binding') throw lastError;
-      if (!session) throw new Error(unavailable ? 'GitHub sign-in was cancelled or unavailable. Use Sign in to GitHub to try again. Local running still works.' : 'Sign in to GitHub to upload. Local running still works.');
+      if (!session && ['workos-identity-binding', 'workos-grant-missing'].includes(lastError?.code)) throw lastError;
+      if (!session) throw new Error(unavailable ? 'Zero sign-in was cancelled or unavailable. Use Sign in to Zero to try again. Local running still works.' : 'Sign in to Zero to upload. Local running still works.');
     },
-    get status() { return current ? `Signed in as ${current.label}` : unavailable ? 'GitHub sign-in unavailable. Try Sign in to GitHub; local running still works.' : 'Not signed in'; },
+    get status() { return current ? `Signed in as ${current.label}` : unavailable ? 'GitHub sign-in unavailable. Try Sign in to Zero; local running still works.' : 'Not signed in'; },
     get signedIn() { return Boolean(current); },
     get sessionId() { return current?.id; },
     get revision() { return revision; },
@@ -107,7 +107,7 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
     get accountLabel() { return current?.label; },
     async capture() {
       await refresh();
-      if (!current) throw (lastError?.code === 'workos-identity-binding' ? lastError : new Error('Sign in to GitHub before a live upload. Local running and simulation still work.'));
+      if (!current) throw (lastError?.code === 'workos-identity-binding' ? lastError : new Error('Sign in to Zero before a live upload. Local running and simulation still work.'));
       return Object.freeze({session: current, revision});
     },
     async assertCurrent(ticket) {

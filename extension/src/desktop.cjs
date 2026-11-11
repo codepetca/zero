@@ -1,10 +1,11 @@
 const { HOST, listenLoopback, reply, requestUrl } = require("./loopback.cjs");
-const { ATTEMPT_MS, accountFromUser, callbackResult } = require("./workos.cjs");
+const { ATTEMPT_MS, accountFromUser, callbackResult, randomKey } = require("./workos.cjs");
+const { pages, pageHeaders } = require("./connection-page");
 
 const CALLBACK = "/vscode/callback";
 const STORAGE_KEY = "zero.workos.local-account.v1";
 
-async function receiveCode(workos, openBrowser, signal, timeoutMs) {
+async function receiveCode(workos, openBrowser, signal, timeoutMs, reportProgress) {
   const deadline = AbortSignal.timeout(timeoutMs);
   const active = signal ? AbortSignal.any([deadline, signal]) : deadline;
   active.throwIfAborted();
@@ -25,12 +26,16 @@ async function receiveCode(workos, openBrowser, signal, timeoutMs) {
         return reply(response, 404, "Page unavailable.");
       }
       const result = !active.aborted && !handled && callbackResult(url.searchParams, attempt.state);
-      if (!result) return reply(response, 400, "This sign-in attempt is invalid or expired.");
+      if (!result) return reply(response, 400, pages.invalid, pageHeaders);
 
       handled = true;
-      reply(response, result.code ? 200 : 400, result.code
-        ? "Return to VS Code to see whether sign-in completed."
-        : "GitHub sign-in did not complete. Return to VS Code to try again.");
+      if (result.code) {
+        reply(response, 200, pages.zeroReturned, pageHeaders);
+      } else {
+        const errors = url.searchParams.getAll("error");
+        const cancelled = errors.length === 1 && errors[0] === "access_denied" && !url.searchParams.has("code");
+        reply(response, 400, cancelled ? pages.zeroCancelled : pages.zeroFailed, pageHeaders);
+      }
       accept(result.code);
     });
 
@@ -38,6 +43,7 @@ async function receiveCode(workos, openBrowser, signal, timeoutMs) {
       origin = `http://${HOST}:${server.address().port}`;
       attempt = workos.begin(`${origin}${CALLBACK}`);
       active.throwIfAborted();
+      reportProgress("Finish signing in in your browser.");
       const opened = await Promise.race([openBrowser(attempt.url), stopped]);
       active.throwIfAborted();
       if (!opened) throw new Error("The sign-in browser could not be opened.");
@@ -63,15 +69,19 @@ function createDesktopAccounts({ secrets, clientId, workos, openBrowser, withLoc
       try {
         const record = JSON.parse(stored);
         if (record.version !== 1 || (clientId && clientId !== record.clientId)) return null;
+        if (record.signedOut === true && Object.keys(record).length === 4 &&
+            typeof record.disconnectNonce === 'string' && /^[A-Za-z0-9_-]{43}$/.test(record.disconnectNonce)) return { signedOut: true };
         const account = accountFromUser(record);
         if (record.githubId !== undefined && (typeof record.githubId !== 'string' || !/^[1-9]\d*$/.test(record.githubId))) return null;
-        return record.githubId ? {...account, githubId:record.githubId} : account;
+        if (record.connectionNonce !== undefined && (typeof record.connectionNonce !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(record.connectionNonce))) return null;
+        return {...account, ...(record.githubId ? {githubId:record.githubId} : {}),
+          ...(record.connectionNonce ? {connectionNonce:record.connectionNonce} : {})};
       } catch {
         return null;
       }
     },
 
-    async signIn(signal) {
+    async signIn(signal, reportProgress = () => {}) {
       if (!workos) throw new Error("Set ZERO_WORKOS_CLIENT_ID to the WorkOS staging client ID.");
       if (changingAccount) throw new Error("An account change is already in progress.");
       changingAccount = true;
@@ -79,8 +89,9 @@ function createDesktopAccounts({ secrets, clientId, workos, openBrowser, withLoc
         if (!withLock) throw new Error('Zero connection storage is unavailable.');
         const baseline = await secrets.get(STORAGE_KEY);
         signal?.throwIfAborted();
-        const { code, verifier } = await receiveCode(workos, openBrowser, signal, timeoutMs);
+        const { code, verifier } = await receiveCode(workos, openBrowser, signal, timeoutMs, reportProgress);
         signal?.throwIfAborted();
+        reportProgress("Verifying your GitHub account…");
         const account = await workos.complete(code, verifier, signal);
         signal?.throwIfAborted();
         if (!/^[1-9]\d*$/.test(account.githubId || '')) throw new Error('GitHub identity proof is missing.');
@@ -88,19 +99,32 @@ function createDesktopAccounts({ secrets, clientId, workos, openBrowser, withLoc
           signal?.throwIfAborted();
           if (await secrets.get(STORAGE_KEY) !== baseline) throw new Error('The Zero connection changed. Try sign-in again.');
           const previous = await this.read();
-          if (previous && previous.id !== account.id) throw new Error('Connect the same Zero account to upgrade this sign-in.');
+          if (previous?.id && previous.id !== account.id) throw new Error('Connect the same Zero account to upgrade this sign-in.');
           signal?.throwIfAborted();
           await secrets.store(STORAGE_KEY, JSON.stringify({
             version: 1,
             clientId: workos.clientId,
             id: account.id,
             githubId: account.githubId,
+            connectionNonce: randomKey(),
           }));
         }, signal);
         return account;
       } finally {
         changingAccount = false;
       }
+    },
+
+    // The GitHub provider owns the shared credential lock during sign-out.
+    // Retain local access without keeping a signed-in account identity.
+    async disconnectUnderLock(expected) {
+      const current = await this.read();
+      if (!current?.id || !expected ||
+          (Object.hasOwn(expected, 'id') && current.id !== expected.id) ||
+          (Object.hasOwn(expected, 'githubId') && current.githubId !== expected.githubId) ||
+          (Object.hasOwn(expected, 'connectionNonce') && current.connectionNonce !== expected.connectionNonce)) return false;
+      await secrets.store(STORAGE_KEY, JSON.stringify({version:1, clientId, signedOut:true, disconnectNonce:randomKey()}));
+      return true;
     },
 
     async signOut() {
