@@ -23,6 +23,13 @@ package sources and native test gate. Terra/medium independently reviewed this
 delta with no findings. Actionlint, the mirror fixture and 13 CI gate/scope
 tests passed.
 
+The next run also failed to resolve `archive.ubuntu.com` and timed out
+downloading packages. The recovery delta `d03aa5d06` checks mirror reachability
+before the source tests and can use the OSU Open Source Lab Ubuntu mirror with
+the existing Ubuntu signing key. APT update and package download are bounded.
+Actionlint and 13 CI gate/scope tests passed. The mirror returned all four Noble
+suite indexes. Terra/medium found no blockers in the targeted delta review.
+
 ---
 
 # Zero sign-in progress — 2026-11-11
