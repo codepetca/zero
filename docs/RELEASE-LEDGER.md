@@ -21,6 +21,26 @@ The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
 
+## Zero 0.5.71 — 2026-11-11
+
+[PR #323](https://github.com/codepetca/zero/pull/323) merged the desktop
+one-trip sign-in, progress indicators and browser return pages at
+`e1e45391752920e7ee898a3df1af62d6941b8176`. All 11 PR checks passed.
+[Preparation run 43049037546](https://github.com/codepetca/zero/actions/runs/43049037546)
+produced the three public [kit assets](https://github.com/codepetca/zero/releases/tag/v0.5.71).
+All three anonymous downloads match the reviewed bytes.
+
+The [Mac release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.71)
+contains the single Developer ID signed DMG from the merge commit. Apple
+accepted submission `de9e9690-b765-4d2f-b45f-d353d7a79374`. Staple,
+Gatekeeper and bundled payload checks passed. The sealed candidate targets
+`70be6e6f767482b6f2230254ca4fce4bbb33769c`. Its 13 checksums and signed
+build 71 appcast passed independent Terra/medium review. Both the authenticated
+draft and anonymous public download match the sealed DMG. The packaged VSIX
+installed into an isolated Mac editor profile. Verify the deployed download
+and appcast after this promotion merges. Installed app sign-in and fresh
+physical Mac installation remain separate checks.
+
 ## Zero 0.5.69 — 2026-11-10
 
 [PR #320](https://github.com/codepetca/zero/pull/320) merged release source
