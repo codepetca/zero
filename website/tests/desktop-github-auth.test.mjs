@@ -93,7 +93,7 @@ test('desktop navigation errors use the Zero page and preserve status, cookie cl
   assert.doesNotMatch(html, /fixture_provider_error/);
   assert.ok(!html.includes(started.state));
 
-  const browser = new Request(`${origin}${path}/login`, {headers:{Accept:'text/html'}});
+  const browser = new Request(`${origin}${path}/login`, {headers:{Accept:'text/html;q=0.9,application/xhtml+xml;q=0.8'}});
   const unavailable = desktopGitHubBrowserPage(browser, loginResponse(browser, {}, noNetwork, now), connectionPages);
   assert.equal(unavailable.status, 503);
   assert.match(await unavailable.text(), /<h1>GitHub sign-in is unavailable<\/h1>/);
@@ -102,6 +102,17 @@ test('desktop navigation errors use the Zero page and preserve status, cookie cl
   const json = desktopGitHubBrowserPage(client, loginResponse(client, {}, noNetwork, now), connectionPages);
   assert.deepEqual(await json.json(), {error:'GitHub sign-in unavailable', configured:false});
   assert.equal(desktopGitHubBrowserPage(browser, started.login, connectionPages), started.login);
+
+  for (const [accept, expected] of [
+    ['text/html; charset=utf-8;q=0.8, application/json;q=0.5', 'text/html; charset=utf-8'],
+    ['text/html;q=0.8, application/json', 'application/json'],
+    ['text/html;q=0, */*;q=0.5', 'application/json'],
+    ['*/*', 'application/json'],
+  ]) {
+    const request = new Request(client.url, {headers:{Accept:accept}});
+    const response = desktopGitHubBrowserPage(request, loginResponse(request, {}, noNetwork, now), connectionPages);
+    assert.equal(response.headers.get('content-type'), expected, accept);
+  }
 });
 
 test('start enforces headers, Origin, content type, strict keys and field bounds', async () => {
