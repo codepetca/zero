@@ -28,10 +28,12 @@ function createWorkOSFirstUse({vscode, context, required, clientId, accounts: in
     const receipt = await accounts.read();
     if (receipt && (!upgrade || receipt.githubId)) return !lifetime.signal.aborted;
     if (lifetime.signal.aborted) return false;
-    const choice = await vscode.window.showInformationMessage(
-      upgrade ? 'Use the same GitHub account to sign in to Zero again.' : 'Use your GitHub account to sign in to Zero. You can work on local projects offline after signing in.',
-      {modal:true}, 'Sign in to Zero');
-    if (choice !== 'Sign in to Zero' || lifetime.signal.aborted) return false;
+    if (!upgrade || !connectGitHub) {
+      const choice = await vscode.window.showInformationMessage(
+        upgrade ? 'Use the same GitHub account to sign in to Zero again.' : 'Use your GitHub account to sign in to Zero. You can work on local projects offline after signing in.',
+        {modal:true}, 'Sign in to Zero');
+      if (choice !== 'Sign in to Zero' || lifetime.signal.aborted) return false;
+    }
     const result = await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,
       title:'Signing in to Zero', cancellable:true}, async (_progress, token) => {
       const cancelled = new AbortController();
@@ -47,7 +49,10 @@ function createWorkOSFirstUse({vscode, context, required, clientId, accounts: in
       };
       try {
         if (connectGitHub) {
-          try { await connectGitHub(authenticate, signal); }
+          try {
+            await connectGitHub(authenticate, signal);
+            return 'connected';
+          }
           catch (error) {
             if (signal.aborted) return 'cancelled';
             if (saved) return 'local-only';
@@ -104,6 +109,7 @@ function createWorkOSFirstUse({vscode, context, required, clientId, accounts: in
       active.throwIfAborted();
       return accounts.signIn(active);
     },
+    disconnectUnderLock(githubId) {return accounts?.disconnectUnderLock(githubId);},
     async assertBinding(accountId) {
       const receipt = await accounts?.read();
       if (!receipt?.githubId || (accountId && receipt.githubId !== String(accountId))) {

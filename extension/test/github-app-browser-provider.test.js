@@ -45,7 +45,7 @@ async function fixture(t,{enabled=true,hooks={}}={}){
   assert.equal(callback.status,303);assert.doesNotMatch(callback.headers.get('location'),/ghu_|ghr_/);
   assert.equal((await fetch(callback.headers.get('location'))).status,200);return true;
  }},window:{showInformationMessage:async message=>{messages.push(message);assert.fail('Browser sign-in must not offer a code fallback');},withProgress:async(_options,run)=>run({report:value=>progress.push(value)},{isCancellationRequested:false,onCancellationRequested:listener=>{cancelListener=listener;return{dispose(){}};}})}};
- const create=(assertBinding,requestWorkOSGrant)=>{const provider=createGitHubAppProvider({vscode,context,configuration,fetchImpl,now:()=>time,...(assertBinding?{assertBinding}:{}),requestWorkOSGrant});t.after(()=>provider.dispose());return provider;};
+ const create=(assertBinding,requestWorkOSGrant,disconnectWorkOS)=>{const provider=createGitHubAppProvider({vscode,context,configuration,fetchImpl,now:()=>time,...(assertBinding?{assertBinding}:{}),requestWorkOSGrant,disconnectWorkOS});t.after(()=>provider.dispose());return provider;};
  const provider=create();
  return{provider,create,vscode,context,user,data,calls,messages,opens,progress,cancel:()=>cancelListener?.(),advance:()=>{time+=28800000;},failRefresh:()=>{failRefresh=true;},get exchanges(){return exchanges;},get refreshes(){return refreshes;}};
 }
@@ -61,11 +61,12 @@ test('real browser client/server modules complete PKCE, store a separate browser
 test('one WorkOS callback connects Zero and GitHub, and saved access renews without a browser',async t=>{
  const f=await fixture(t);
  const workosRefresh='ghr_workosrefreshabcdefgh';
+ let workosUser='user_test';
  const workos=createWorkOS('client_test',async url=>{
   if(url==='https://api.github.com/user') return Response.json(f.user);
   assert.equal(url,'https://api.workos.com/user_management/authenticate');
   return Response.json({
-   authentication_method:'GitHubOAuth', user:{id:'user_test'},
+   authentication_method:'GitHubOAuth', user:{id:workosUser},
    oauth_tokens:{access_token:'ghu_workosaccessabcdefgh',refresh_token:workosRefresh},
   });
  });
@@ -85,7 +86,7 @@ test('one WorkOS callback connects Zero and GitHub, and saved access renews with
  const gate=createWorkOSFirstUse({vscode:f.vscode, context:f.context, required:true,
   clientId:'client_test', accounts, connectGitHub:(open,signal)=>provider.connectWithWorkOS(open,signal)});
  t.after(()=>gate.dispose());
- provider=f.create(gate.assertBinding,gate.requestGitHubGrant);
+ provider=f.create(gate.assertBinding,gate.requestGitHubGrant,gate.disconnectUnderLock);
  const auth=createAuthentication(ownedProviderApi(provider,gate),undefined,undefined,undefined,undefined,gate);
  t.after(()=>auth.dispose());
 
@@ -105,6 +106,39 @@ test('one WorkOS callback connects Zero and GitHub, and saved access renews with
  assert.equal(auth.accountId,'42');
  assert.equal(f.refreshes,2);
  assert.equal(workosOpens,1);
+
+ await provider.removeSession(auth.sessionId);
+ await auth.refresh();
+ assert.equal(auth.signedIn,false);
+ assert.equal(f.data.has(SECRET_KEY),false);
+ const {disconnectNonce,...localAccess}=JSON.parse(f.data.get(STORAGE_KEY));
+ assert.match(disconnectNonce,/^[A-Za-z0-9_-]{43}$/);
+ assert.deepEqual(localAccess,{version:1,clientId:'client_test',signedOut:true});
+ assert.equal(await gate.ensure(),true);
+ assert.equal(workosOpens,1);
+ await assert.rejects(gate.assertBinding('42'),error=>error.code==='workos-identity-binding');
+ workosUser='user_other';
+ f.user.id=99;
+ await auth.signIn();
+ assert.equal(auth.accountId,'99');
+ assert.equal(workosOpens,2);
+ assert.equal(f.opens.length,0);
+});
+
+test('cancelling a WorkOS grant during credential storage rolls back the active pair',async t=>{
+ const f=await fixture(t);
+ const controller=new AbortController(), store=f.context.secrets.store;
+ f.context.secrets.store=async (key,value)=>{
+  await store(key,value);
+  if(key===SECRET_KEY) controller.abort();
+ };
+ const provider=f.create(async id=>{if(id) assert.equal(id,'42');});
+ await assert.rejects(provider.connectWithWorkOS(async()=>({
+  githubId:'42', githubRefreshToken:'ghr_workosrefreshabcdefgh',
+ }),controller.signal),error=>error.code==='cancelled');
+ assert.equal(f.data.has(SECRET_KEY),false);
+ assert.deepEqual(await provider.getSessions([]),[]);
+ assert.equal(f.opens.length,0);
 });
 
 test('managed sign-in rejects a missing or mismatched grant without launching a second sign-in',async t=>{
@@ -262,8 +296,8 @@ test('a receipt change during credential storage prevents registered provider se
  const attempt=provider.createSession([]);await entered;bound='99';release();
  await assert.rejects(attempt,/does not match/);
  assert.ok(events.every(event=>!event.added.length));
- await assert.rejects(provider.getSessions([]),/does not match/);
- assert.equal(JSON.parse(f.data.get(SECRET_KEY)).account.id,'42');
+ assert.deepEqual(await provider.getSessions([]),[]);
+ assert.equal(f.data.has(SECRET_KEY),false);
 });
 
 test('a binding change during lock release prevents registered provider session return',async t=>{
@@ -276,7 +310,8 @@ test('a binding change during lock release prevents registered provider session 
  const provider=f.create(assertBinding),events=[];provider.onDidChangeSessions(event=>events.push(event));
  const attempt=provider.createSession([]);await entered;bound='99';release();
  await assert.rejects(attempt,/does not match/);assert.ok(events.every(event=>!event.added.length));
- await assert.rejects(provider.getSessions([]),/does not match/);
+ assert.deepEqual(await provider.getSessions([]),[]);
+ assert.equal(f.data.has(SECRET_KEY),false);
 });
 
 test('a newer credential written during lock release is not returned or overwritten',async t=>{

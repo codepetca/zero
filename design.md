@@ -229,9 +229,11 @@ Use **Sign in to Zero** for account entry in the managed desktop and website
 flows. GitHub remains the identity provider. One explicit desktop sign-in
 uses the GitHub App grant from the WorkOS exchange and checks it before saving
 the expiring GitHub credentials. Repository installation and repository
-selection remain separate, explicit decisions. Keep signed-in status compact
-and established local work available offline. Web browsing, downloads, lessons
-and Play remain public. Browser and editor sessions are stored separately.
+selection remain separate, explicit decisions. Keep signed-in status compact.
+Signing out of the editor clears the account and GitHub session while
+preserving established offline access to local projects. Web browsing,
+downloads, lessons and Play remain public. Browser and editor sessions are
+stored separately.
 
 ## Shared GitHub identity — owner decision, 2026-10-18
 

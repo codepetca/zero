@@ -401,7 +401,7 @@ function activate(context, services = {}) {
   appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({
     vscode, context, configuration:appConfiguration,
     ...(firstUse.enabled ? {assertBinding:firstUse.assertBinding} : {}),
-    ...(sharedGitHubGrant ? {requestWorkOSGrant:firstUse.requestGitHubGrant} : {}),
+    ...(sharedGitHubGrant ? {requestWorkOSGrant:firstUse.requestGitHubGrant,disconnectWorkOS:firstUse.disconnectUnderLock} : {}),
     onDiagnostic:message=>output.appendLine(message),
   }) : null);
   const auth = createAuthentication(ownedProviderApi(appProvider,firstUse.enabled?firstUse:undefined), () => {
@@ -495,7 +495,7 @@ function activate(context, services = {}) {
     try {
       if (disposed) return;
       if (!appProvider) throw new Error('The Codepet GitHub App is not configured in this Zero release. Local running still works.');
-      if (changeAccount && auth.sessionId) {await appProvider.removeSession(auth.sessionId);await auth.refresh();}
+      if (changeAccount && auth.sessionId) {await appProvider.removeSession(auth.sessionId,{keepZeroAccount:true});await auth.refresh();}
       if (sharedGitHubGrant) startPage.show();
       else await actions['zero.startPage']();
       await auth.refresh();

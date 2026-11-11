@@ -50,7 +50,7 @@ function useMutation(path:string) {
   async function send(payload:Mutation) {
     if(inFlight.current)return null;
     if(window.self!==window.top){setError('Open this page directly on Zero to confirm this action.');return null;}
-    if(!user){setError('Sign in to GitHub on Zero, then retry. Your form is kept.');return null;}
+    if(!user){setError('Sign in to Zero, then retry. Your form is kept.');return null;}
     // Keep the same operation key after errors/timeouts, including unknown outcomes.
     const signature=JSON.stringify([user.id,path,payload]);let operationId=operationKeys.current.get(signature);
     const storageKey=`zero-jam-operation:${signature}`;

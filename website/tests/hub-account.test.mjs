@@ -19,9 +19,9 @@ function account(connection,props={}) {
 }
 const connection=user=>({configured:true,user,error:'',callbackError:false,refresh:async()=>{}});
 test('jam account hides sign out but retains identity and signed-out sign-in',()=>{
-  assert.match(account(connection({id:'12',login:'creator',csrfToken:'csrf'}),{showSignOut:false}),/GitHub · @creator/);
+  assert.match(account(connection({id:'12',login:'creator',csrfToken:'csrf'}),{showSignOut:false}),/Signed in as @creator/);
   assert.doesNotMatch(account(connection({id:'12',login:'creator',csrfToken:'csrf'}),{showSignOut:false}),/>Sign out</);
-  assert.match(account(connection(null),{showSignOut:false}),/Sign in to GitHub/);
+  assert.match(account(connection(null),{showSignOut:false}),/Sign in to Zero/);
   assert.match(account(connection({id:'12',login:'creator',csrfToken:'csrf'})),/>Sign out</);
 });
 
@@ -31,10 +31,11 @@ test('managed Hub account uses the Zero sign-out form',()=>{
   assert.doesNotMatch(account(managed,{showSignOut:false}),/<form/);
 });
 
-test('managed sign-in is named for Zero while legacy sign-in retains GitHub',()=>{
+test('both sign-in paths name Zero and identify GitHub as the provider',()=>{
   assert.match(account({...connection(null),managed:true}),/>Sign in to Zero</);
   assert.match(account({...connection(null),managed:true}),/Use your GitHub account/);
-  assert.match(account(connection(null)),/>Sign in to GitHub</);
+  assert.match(account(connection(null)),/>Sign in to Zero</);
+  assert.match(account(connection(null)),/Use your GitHub account/);
   assert.match(account({...connection(null),managed:true},{signInLabel:'Reconnect GitHub to Zero'}),/>Reconnect GitHub to Zero</);
 });
 

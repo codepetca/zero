@@ -3,7 +3,7 @@
 const {randomUUID} = require('node:crypto');
 const {refreshTokens, requestJson, failure} = require('./device-flow');
 const {browserFlow,refreshBrowserTokens}=require('./browser-flow');
-const {SECRET_KEY, binding, createCredentialStore, createCredentialLock} = require('./credential-store');
+const {SECRET_KEY, binding, validateRecord, createCredentialStore, createCredentialLock} = require('./credential-store');
 function session(record) {
   return Object.freeze({id:record.sessionId, account:Object.freeze({...record.account}), accessToken:record.accessToken, scopes:Object.freeze([])});
 }
@@ -33,7 +33,7 @@ async function accountFor(record, fetchImpl, signal) {
   }
   return {id:String(user.id), label:user.login};
 }
-function createGitHubAppProvider({vscode, context, configuration, fetchImpl = globalThis.fetch, now = Date.now, onDiagnostic = () => {}, browserOptions = {}, assertBinding = async()=>{}, requestWorkOSGrant}) {
+function createGitHubAppProvider({vscode, context, configuration, fetchImpl = globalThis.fetch, now = Date.now, onDiagnostic = () => {}, browserOptions = {}, assertBinding = async()=>{}, requestWorkOSGrant, disconnectWorkOS}) {
   const emitter = new vscode.EventEmitter();
   let disposed = false, cached, signInPromise, verifiedConfiguration, pendingRemovals = 0;
   let identityRevision = 0;
@@ -58,11 +58,11 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
     if (disposed) throw failure('disposed', 'The Zero connection is closed.');
     if (!configuration) throw failure('unconfigured', 'The Codepet GitHub App is not configured in this Zero release. Local running still works.');
   }
-  async function operation(callback) {
+  async function operation(callback, {checkResult = true} = {}) {
     const controller = new AbortController(); controllers.add(controller);
     try {
       const result = await callback(controller);
-      assertAvailable(controller.signal);
+      if (checkResult) assertAvailable(controller.signal);
       return result;
     }
     catch(error){identityRevision++;if(error.code==='connection-lock-repair-required'&&!disposed)onDiagnostic(error.message);throw error;}
@@ -226,27 +226,44 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
     }
     await assertBinding(account.id);
     assertAvailable(signal);
-    const record = await withLock(async () => {
-      assertAvailable(signal);
-      if (await store.raw() !== baseline) throw failure('connection-changed', 'Another Zero window changed the connection. Try sign-in again.');
-      assertAvailable(signal);
+    const record = {schema:1, app:binding(configuration), sessionId:randomUUID(), account, ...pair, flow:'browser',state:'active'};
+    const restorePrevious = async () => {
+      if (await store.raw() !== JSON.stringify(record)) return;
+      let previous;
+      try { if (baseline) previous = validateRecord(JSON.parse(baseline), configuration); } catch {}
+      if (previous) await store.write(previous);
+      else await store.clear();
+    };
+    let wrote = false;
+    try {
+      await withLock(async () => {
+        assertAvailable(signal);
+        if (await store.raw() !== baseline) throw failure('connection-changed', 'Another Zero window changed the connection. Try sign-in again.');
+        assertAvailable(signal);
+        await assertBinding(account.id);
+        assertAvailable(signal);
+        wrote = true;
+        try {
+          await store.write(record);
+          await assertBinding(account.id);
+          assertAvailable(signal);
+        } catch (error) {
+          // Roll back before a waiting window can read this record.
+          await restorePrevious();
+          wrote = false;
+          throw error;
+        }
+      }, signal);
+      // The checked write is the cancellation boundary. Recheck both records
+      // after releasing the lock before exposing the session.
+      assertAvailable();
+      if (await store.raw() !== JSON.stringify(record)) throw failure('connection-changed', 'Another Zero window changed the connection. Try sign-in again.');
       await assertBinding(account.id);
-      assertAvailable(signal);
-      const record = {schema:1, app:binding(configuration), sessionId:randomUUID(), account, ...pair, flow:'browser',state:'active'};
-      await store.write(record);
-      assertAvailable(signal);
-      // The receipt can change while SecretStorage is writing. Do not emit
-      // or return a session unless the binding still matches afterward.
-      await assertBinding(account.id);
-      assertAvailable(signal);
-      return record;
-    }, signal);
-    // Lock release itself is asynchronous. Recheck both the stored record
-    // and the WorkOS binding after release before exposing the session.
-    assertAvailable(signal);
-    if (await store.raw() !== JSON.stringify(record)) throw failure('connection-changed', 'Another Zero window changed the connection. Try sign-in again.');
-    await assertBinding(account.id);
-    assertAvailable(signal);
+      assertAvailable();
+    } catch (error) {
+      if (wrote) await withLock(restorePrevious);
+      throw error;
+    }
     const result = session(record); cached = result;
     emitter.fire({added:[result], changed:[], removed:[]});
     return result;
@@ -297,15 +314,15 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
       return operation(controller => {
         const active = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
         return completeSignIn(active, () => workOSPair(loadGrant, active));
-      });
+      }, {checkResult:false});
     },
     async createSession(scopes,options={}) {
       supportedScopes(scopes); assertAvailable();
       if(options.method!==undefined&&options.method!=='browser')throw failure('unsupported-method','Sign in to Zero using your browser.');
-      if (!signInPromise) signInPromise = operation(controller=>signIn(controller)).finally(() => { signInPromise = undefined; });
+      if (!signInPromise) signInPromise = operation(controller=>signIn(controller), {checkResult:false}).finally(() => { signInPromise = undefined; });
       return signInPromise;
     },
-    async removeSession(id) {
+    async removeSession(id, {keepZeroAccount = false} = {}) {
       if (disposed || !configuration) return;
       pendingRemovals++;
       try {
@@ -317,8 +334,11 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
         for (const controller of controllers) controller.abort();
         return await withLock(async () => {
           let record;
-          try { record = await store.read(); } catch { await clearInvalid(); return; }
-          if (!record || record.sessionId === id) await clearInvalid();
+          try { record = await store.read(); }
+          catch (error) { if (error.code !== 'invalid-credentials') throw error; }
+          if (record && record.sessionId !== id) return;
+          if (!keepZeroAccount) await disconnectWorkOS?.(record?.account.id);
+          await clearInvalid();
         });
       } finally {pendingRemovals--;}
     },

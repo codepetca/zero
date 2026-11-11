@@ -1,5 +1,5 @@
 const { HOST, listenLoopback, reply, requestUrl } = require("./loopback.cjs");
-const { ATTEMPT_MS, accountFromUser, callbackResult } = require("./workos.cjs");
+const { ATTEMPT_MS, accountFromUser, callbackResult, randomKey } = require("./workos.cjs");
 
 const CALLBACK = "/vscode/callback";
 const STORAGE_KEY = "zero.workos.local-account.v1";
@@ -63,6 +63,8 @@ function createDesktopAccounts({ secrets, clientId, workos, openBrowser, withLoc
       try {
         const record = JSON.parse(stored);
         if (record.version !== 1 || (clientId && clientId !== record.clientId)) return null;
+        if (record.signedOut === true && Object.keys(record).length === 4 &&
+            typeof record.disconnectNonce === 'string' && /^[A-Za-z0-9_-]{43}$/.test(record.disconnectNonce)) return { signedOut: true };
         const account = accountFromUser(record);
         if (record.githubId !== undefined && (typeof record.githubId !== 'string' || !/^[1-9]\d*$/.test(record.githubId))) return null;
         return record.githubId ? {...account, githubId:record.githubId} : account;
@@ -88,7 +90,7 @@ function createDesktopAccounts({ secrets, clientId, workos, openBrowser, withLoc
           signal?.throwIfAborted();
           if (await secrets.get(STORAGE_KEY) !== baseline) throw new Error('The Zero connection changed. Try sign-in again.');
           const previous = await this.read();
-          if (previous && previous.id !== account.id) throw new Error('Connect the same Zero account to upgrade this sign-in.');
+          if (previous?.id && previous.id !== account.id) throw new Error('Connect the same Zero account to upgrade this sign-in.');
           signal?.throwIfAborted();
           await secrets.store(STORAGE_KEY, JSON.stringify({
             version: 1,
@@ -101,6 +103,14 @@ function createDesktopAccounts({ secrets, clientId, workos, openBrowser, withLoc
       } finally {
         changingAccount = false;
       }
+    },
+
+    // The GitHub provider owns the shared credential lock during sign-out.
+    // Retain local access without keeping a signed-in account identity.
+    async disconnectUnderLock(githubId) {
+      const current = await this.read();
+      if (!current?.id || (githubId && current.githubId !== githubId)) return;
+      await secrets.store(STORAGE_KEY, JSON.stringify({version:1, clientId, signedOut:true, disconnectNonce:randomKey()}));
     },
 
     async signOut() {
