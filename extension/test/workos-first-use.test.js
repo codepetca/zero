@@ -72,7 +72,12 @@ test('required distribution without environment signs in and works after offline
     assert.equal(authorize.searchParams.get('max_age'),'0');
     const callback=new URL(authorize.searchParams.get('redirect_uri'));
     callback.searchParams.set('state',authorize.searchParams.get('state'));callback.searchParams.set('code','fixture');
-    assert.equal((await fetch(callback)).status,200);return true;
+    const page=await fetch(callback);
+    assert.equal(page.status,200);
+    const html=await page.text();
+    assert.match(html,/<title>Return to Zero<\/title>/);
+    assert.match(html,/Check the app to finish signing in\./);
+    return true;
   }});
   const first=createWorkOSFirstUse({vscode:editor(),context:{},...configuration,accounts});
   assert.equal(await first.ensure(),true);first.dispose();
@@ -128,6 +133,36 @@ test('cancelled browser attempt does not save an account', async () => {
   const accounts=createDesktopAccounts({secrets:store,clientId:'client_test',workos,openBrowser:async()=>{controller.abort();return true;}});
   await assert.rejects(accounts.signIn(controller.signal));
   assert.equal(store.values.size,0);
+});
+
+test('first-use browser errors show retry instructions without consuming an invalid state or exchanging a token', async () => {
+  for (const [error, heading] of [['access_denied', 'Sign-in was cancelled'],
+    ['server_error', 'Sign-in didn’t complete']]) {
+    const store = secrets();
+    let exchanges = 0;
+    const workos = createWorkOS('client_test', async () => { exchanges++; throw new Error('Unexpected exchange'); });
+    const accounts = createDesktopAccounts({secrets:store, clientId:'client_test', workos, openBrowser:async url => {
+      const authorize = new URL(url);
+      const callback = new URL(authorize.searchParams.get('redirect_uri'));
+      callback.searchParams.set('error', error);
+      const invalid = await fetch(callback);
+      assert.equal(invalid.status, 400);
+      assert.match(await invalid.text(), /<h1>This sign-in attempt is invalid or expired<\/h1>/);
+
+      callback.searchParams.set('state', authorize.searchParams.get('state'));
+      const page = await fetch(callback);
+      assert.equal(page.status, 400);
+      assert.equal(page.headers.get('content-type'), 'text/html; charset=utf-8');
+      const body = await page.text();
+      assert.ok(body.includes(`<h1>${heading}</h1>`));
+      assert.match(body, /<\/svg>Zero<\/span> to try again\./);
+      assert.ok(!body.includes(callback.searchParams.get('state')));
+      return true;
+    }});
+    await assert.rejects(accounts.signIn(), /GitHub sign-in was declined or failed/);
+    assert.equal(exchanges, 0);
+    assert.equal(store.values.size, 0);
+  }
 });
 
 test('a fresh process can read the saved receipt without WorkOS', () => {

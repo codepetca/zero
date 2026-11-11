@@ -235,6 +235,12 @@ preserving established offline access to local projects. Web browsing,
 downloads, lessons and Play remain public. Browser and editor sessions are
 stored separately.
 
+The desktop browser return centers **Return to Zero** with the Zero mark
+immediately before **Zero**. The page tells students to close the tab and
+check the app as sign-in finishes. Cancellation and errors use the same
+layout and direct students back to the app to try again. Browser pages follow
+the browser’s light or dark preference.
+
 ## Shared GitHub identity — owner decision, 2026-10-18
 
 The local, unreleased source uses one public Codepet-owned GitHub App for native

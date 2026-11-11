@@ -2,9 +2,11 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import test from 'node:test';
 import zeroApp from '../../extension/src/github-app/config.json' with {type: 'json'};
+import connectionPages from '../../extension/src/connection-page.js';
 import {seal, unseal} from '../lib/hub-github-auth.mjs';
 import {callbackResponse, desktopConfig, exchangeResponse, loginResponse, refreshResponse, startResponse}
   from '../lib/desktop-github-auth.mjs';
+import {desktopGitHubBrowserPage} from '../lib/desktop-github-browser-page.mjs';
 
 const now = 1800000000000;
 const origin = 'https://zero.codepet.ca';
@@ -73,6 +75,47 @@ test('desktop auth is disabled by default and pins existing App and production o
   assert.equal(desktopConfig({...env, ZERO_HUB_ORIGIN: 'http://127.0.0.1:3000'}).origin,
     'http://127.0.0.1:3000');
   assert.equal(desktopConfig({...env, ZERO_HUB_ORIGIN: 'http://localhost:3000'}), null);
+});
+
+test('desktop navigation errors use the Zero page and preserve status, cookie cleanup and JSON clients', async () => {
+  const started = await flow();
+  const badCallback = new Request(`${origin}${path}/callback?state=${started.state}&error=fixture_provider_error`, {
+    headers: {Accept:'text/html,application/xhtml+xml,*/*;q=0.8', Cookie:started.cookie},
+  });
+  const callback = desktopGitHubBrowserPage(badCallback, callbackResponse(badCallback, env, noNetwork, now), connectionPages);
+  assert.equal(callback.status, 400);
+  assert.match(callback.headers.get('set-cookie'), /Max-Age=0/);
+  assert.equal(callback.headers.get('content-type'), 'text/html; charset=utf-8');
+  assert.equal(callback.headers.get('vary'), 'Accept');
+  protections(callback);
+  const html = await callback.text();
+  assert.match(html, /<h1>GitHub sign-in didn’t complete<\/h1>/);
+  assert.doesNotMatch(html, /fixture_provider_error/);
+  assert.ok(!html.includes(started.state));
+
+  const browser = new Request(`${origin}${path}/login`, {headers:{Accept:'text/html;q=0.9,application/xhtml+xml;q=0.8'}});
+  const unavailable = desktopGitHubBrowserPage(browser, loginResponse(browser, {}, noNetwork, now), connectionPages);
+  assert.equal(unavailable.status, 503);
+  assert.match(await unavailable.text(), /<h1>GitHub sign-in is unavailable<\/h1>/);
+
+  const client = get('login');
+  const json = desktopGitHubBrowserPage(client, loginResponse(client, {}, noNetwork, now), connectionPages);
+  assert.deepEqual(await json.json(), {error:'GitHub sign-in unavailable', configured:false});
+  assert.equal(desktopGitHubBrowserPage(browser, started.login, connectionPages), started.login);
+
+  for (const [accept, expected] of [
+    ['text/html; charset=utf-8;q=0.8, application/json;q=0.5', 'text/html; charset=utf-8'],
+    ['text/html, */*', 'text/html; charset=utf-8'],
+    ['text/*, */*', 'text/html; charset=utf-8'],
+    ['text/html, application/json', 'application/json'],
+    ['text/html;q=0.8, application/json', 'application/json'],
+    ['text/html;q=0, */*;q=0.5', 'application/json'],
+    ['*/*', 'application/json'],
+  ]) {
+    const request = new Request(client.url, {headers:{Accept:accept}});
+    const response = desktopGitHubBrowserPage(request, loginResponse(request, {}, noNetwork, now), connectionPages);
+    assert.equal(response.headers.get('content-type'), expected, accept);
+  }
 });
 
 test('start enforces headers, Origin, content type, strict keys and field bounds', async () => {

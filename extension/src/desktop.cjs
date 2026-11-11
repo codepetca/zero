@@ -1,5 +1,6 @@
 const { HOST, listenLoopback, reply, requestUrl } = require("./loopback.cjs");
 const { ATTEMPT_MS, accountFromUser, callbackResult, randomKey } = require("./workos.cjs");
+const { pages, pageHeaders } = require("./connection-page");
 
 const CALLBACK = "/vscode/callback";
 const STORAGE_KEY = "zero.workos.local-account.v1";
@@ -25,12 +26,16 @@ async function receiveCode(workos, openBrowser, signal, timeoutMs, reportProgres
         return reply(response, 404, "Page unavailable.");
       }
       const result = !active.aborted && !handled && callbackResult(url.searchParams, attempt.state);
-      if (!result) return reply(response, 400, "This sign-in attempt is invalid or expired.");
+      if (!result) return reply(response, 400, pages.invalid, pageHeaders);
 
       handled = true;
-      reply(response, result.code ? 200 : 400, result.code
-        ? "Return to Zero to finish signing in. You can close this tab."
-        : "Zero sign-in did not complete. Return to Zero to try again.");
+      if (result.code) {
+        reply(response, 200, pages.zeroReturned, pageHeaders);
+      } else {
+        const errors = url.searchParams.getAll("error");
+        const cancelled = errors.length === 1 && errors[0] === "access_denied" && !url.searchParams.has("code");
+        reply(response, 400, cancelled ? pages.zeroCancelled : pages.zeroFailed, pageHeaders);
+      }
       accept(result.code);
     });
 
