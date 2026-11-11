@@ -189,6 +189,7 @@ test('GitHub account stays compact while signed-out and setup states keep their 
   assert.equal(b.elements.get('account-group').hidden, false);
   assert.equal(b.elements.get('github-heading').hidden, false);
   assert.equal(b.elements.get('guidance').hidden, true);
+  assert.equal(b.elements.get('github-progress').hidden, true);
   assert.equal(action('tutorials').disabled, false);
   assert.equal(action('signIn').hidden, true);
   assert.equal(action('signInCode'), undefined);
@@ -197,12 +198,14 @@ test('GitHub account stays compact while signed-out and setup states keep their 
     await page.refresh();b.update(panel.messages.at(-1));
     assert.equal(b.elements.get('guidance').hidden, false);
     assert.ok(b.elements.get('guidance').textContent);
+    assert.equal(b.elements.get('github-progress').hidden, phase !== 'checking');
     assert.equal(action('setup').hidden, phase === 'checking');
   }
   f.setState({phase:'signed-out'});await page.refresh();b.update(panel.messages.at(-1));
   assert.equal(b.elements.get('account-group').hidden, true);
   assert.equal(b.elements.get('github-heading').hidden, false);
   assert.equal(b.elements.get('guidance').hidden, false);
+  assert.equal(b.elements.get('github-progress').hidden, true);
   assert.equal(b.elements.get('guidance').textContent, 'Use your GitHub account.');
   assert.equal(action('signIn').hidden, false);
   assert.equal(action('signIn').disabled, false);

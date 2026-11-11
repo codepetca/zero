@@ -4,7 +4,7 @@ const { ATTEMPT_MS, accountFromUser, callbackResult, randomKey } = require("./wo
 const CALLBACK = "/vscode/callback";
 const STORAGE_KEY = "zero.workos.local-account.v1";
 
-async function receiveCode(workos, openBrowser, signal, timeoutMs) {
+async function receiveCode(workos, openBrowser, signal, timeoutMs, reportProgress) {
   const deadline = AbortSignal.timeout(timeoutMs);
   const active = signal ? AbortSignal.any([deadline, signal]) : deadline;
   active.throwIfAborted();
@@ -38,6 +38,7 @@ async function receiveCode(workos, openBrowser, signal, timeoutMs) {
       origin = `http://${HOST}:${server.address().port}`;
       attempt = workos.begin(`${origin}${CALLBACK}`);
       active.throwIfAborted();
+      reportProgress("Finish signing in in your browser.");
       const opened = await Promise.race([openBrowser(attempt.url), stopped]);
       active.throwIfAborted();
       if (!opened) throw new Error("The sign-in browser could not be opened.");
@@ -75,7 +76,7 @@ function createDesktopAccounts({ secrets, clientId, workos, openBrowser, withLoc
       }
     },
 
-    async signIn(signal) {
+    async signIn(signal, reportProgress = () => {}) {
       if (!workos) throw new Error("Set ZERO_WORKOS_CLIENT_ID to the WorkOS staging client ID.");
       if (changingAccount) throw new Error("An account change is already in progress.");
       changingAccount = true;
@@ -83,8 +84,9 @@ function createDesktopAccounts({ secrets, clientId, workos, openBrowser, withLoc
         if (!withLock) throw new Error('Zero connection storage is unavailable.');
         const baseline = await secrets.get(STORAGE_KEY);
         signal?.throwIfAborted();
-        const { code, verifier } = await receiveCode(workos, openBrowser, signal, timeoutMs);
+        const { code, verifier } = await receiveCode(workos, openBrowser, signal, timeoutMs, reportProgress);
         signal?.throwIfAborted();
+        reportProgress("Verifying your GitHub account…");
         const account = await workos.complete(code, verifier, signal);
         signal?.throwIfAborted();
         if (!/^[1-9]\d*$/.test(account.githubId || '')) throw new Error('GitHub identity proof is missing.');

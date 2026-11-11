@@ -179,8 +179,8 @@ function activate(context, services = {}) {
     workOSConfiguration.clientId === resolveWorkOSFirstUseConfiguration().clientId;
   let appProvider;
   const firstUse = createWorkOSFirstUse({vscode, context, ...workOSConfiguration,
-    ...(sharedGitHubGrant ? {connectGitHub:(authenticate, signal) =>
-      appProvider?.connectWithWorkOS ? appProvider.connectWithWorkOS(authenticate, signal) : authenticate(signal)} : {}),
+    ...(sharedGitHubGrant ? {connectGitHub:(authenticate, signal, reportProgress) =>
+      appProvider?.connectWithWorkOS ? appProvider.connectWithWorkOS(authenticate, signal, reportProgress) : authenticate(signal)} : {}),
   });
   context.subscriptions.push(firstUse);
   const output = vscode.window.createOutputChannel('Zero');

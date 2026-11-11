@@ -35,22 +35,23 @@ function createWorkOSFirstUse({vscode, context, required, clientId, accounts: in
       if (choice !== 'Sign in to Zero' || lifetime.signal.aborted) return false;
     }
     const result = await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,
-      title:'Signing in to Zero', cancellable:true}, async (_progress, token) => {
+      title:'Signing in to Zero', cancellable:true}, async (progress, token) => {
       const cancelled = new AbortController();
       const subscription = token.onCancellationRequested(() => cancelled.abort());
       if (token.isCancellationRequested) cancelled.abort();
       const signal = AbortSignal.any([cancelled.signal, lifetime.signal]);
+      const reportProgress = message => progress.report?.({message});
       let attempted = false, saved = false;
       const authenticate = async active => {
         attempted = true;
-        const grant = await accounts.signIn(active);
+        const grant = await accounts.signIn(active, reportProgress);
         saved = true;
         return grant;
       };
       try {
         if (connectGitHub) {
           try {
-            await connectGitHub(authenticate, signal);
+            await connectGitHub(authenticate, signal, reportProgress);
             return 'connected';
           }
           catch (error) {
@@ -105,11 +106,11 @@ function createWorkOSFirstUse({vscode, context, required, clientId, accounts: in
       })().finally(() => {upgradePending = undefined;});
       return upgradePending;
     },
-    async requestGitHubGrant(signal) {
+    async requestGitHubGrant(signal, reportProgress) {
       if (!accounts) throw new Error('This copy of Zero is missing its sign-in setup.');
       const active = signal ? AbortSignal.any([lifetime.signal, signal]) : lifetime.signal;
       active.throwIfAborted();
-      return accounts.signIn(active);
+      return accounts.signIn(active, reportProgress);
     },
     async localConnection() {
       const account = await accounts?.read();

@@ -84,7 +84,7 @@ test('one WorkOS callback connects Zero and GitHub, and saved access renews with
  });
  f.vscode.window.showInformationMessage=async()=> 'Sign in to Zero';
  const gate=createWorkOSFirstUse({vscode:f.vscode, context:f.context, required:true,
-  clientId:'client_test', accounts, connectGitHub:(open,signal)=>provider.connectWithWorkOS(open,signal)});
+  clientId:'client_test', accounts, connectGitHub:(open,signal,reportProgress)=>provider.connectWithWorkOS(open,signal,reportProgress)});
  t.after(()=>gate.dispose());
  provider=f.create(gate.assertBinding,gate.requestGitHubGrant,gate.disconnectUnderLock);
  const auth=createAuthentication(ownedProviderApi(provider,gate),undefined,undefined,undefined,undefined,gate);
@@ -97,6 +97,11 @@ test('one WorkOS callback connects Zero and GitHub, and saved access renews with
  assert.equal(f.opens.length,0);
  assert.equal(f.exchanges,0);
  assert.equal(f.refreshes,1);
+ assert.deepEqual(f.progress.map(step=>step.message),[
+  'Finish signing in in your browser.',
+  'Verifying your GitHub account…',
+  'Connecting GitHub access…',
+ ]);
  assert.equal(JSON.parse(f.data.get(SECRET_KEY)).refreshToken,'ghr_rotatedabcdefgh');
  const {connectionNonce,...receipt}=JSON.parse(f.data.get(STORAGE_KEY));
  assert.match(connectionNonce,/^[A-Za-z0-9_-]{43}$/);

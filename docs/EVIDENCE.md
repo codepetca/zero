@@ -1,3 +1,23 @@
+# Zero sign-in progress — 2026-11-11
+
+The editor notification now reports waiting for the browser, verifying the
+GitHub account, and connecting GitHub access. The Start Page shows an
+indeterminate progress bar during the repository access check. The bar stays
+still with reduced motion and clears when the check settles.
+
+Two unauthenticated WorkOS redirect probes downloaded the hosted HTML in
+1.25 and 1.04 seconds. A third timed out at the hosted page. These were HTTP
+probes without browser cookies or rendering. They did not measure the owner's
+full sign-in or isolate the cause of the timeout.
+
+The progress delta from `3014aed25` passed 99 focused tests, `npm run check`,
+and `git diff --check`. Terra/medium independently inspected the delta and
+callers with no actionable findings. Effective model telemetry was unavailable.
+The Mac Zero Dev window loaded the extension. Live sign-in with the new
+indicator is pending. No installer was published.
+
+---
+
 # One Zero sign-in — 2026-11-11
 
 Local source at `3d04734ce` uses **Sign in to Zero** with GitHub as the

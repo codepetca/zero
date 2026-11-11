@@ -193,8 +193,8 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
       return [result];
     }, signal);
   }
-  async function workOSPair(loadGrant, signal) {
-    const grant = await loadGrant(signal);
+  async function workOSPair(loadGrant, signal, reportProgress = () => {}) {
+    const grant = await loadGrant(signal, reportProgress);
     assertAvailable(signal);
     const {githubId, githubRefreshToken} = grant || {};
     if (typeof githubId !== 'string' || !/^[1-9][0-9]*$/.test(githubId) ||
@@ -203,6 +203,7 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
     }
     await assertBinding(githubId);
     assertAvailable(signal);
+    reportProgress('Connecting GitHub access…');
     // GitHub's refresh for the pinned App verifies the grant and returns the
     // authoritative expiries. Store the rotated pair, never the input grant.
     const pair = await refreshBrowserTokens({
@@ -274,7 +275,7 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
       try {
         if (cancellation?.isCancellationRequested) controller.abort();
         return await completeSignIn(controller.signal, async signal => {
-          if (requestWorkOSGrant) return workOSPair(requestWorkOSGrant, signal);
+          if (requestWorkOSGrant) return workOSPair(requestWorkOSGrant, signal, message => progress.report({message}));
           await assertBinding();
           assertAvailable(signal);
           await verifyApp(configuration, fetchImpl, signal);
@@ -318,10 +319,10 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
     },
     // First use already owns an editor progress notification. Run the same
     // credential transaction around that explicit WorkOS browser connection.
-    async connectWithWorkOS(loadGrant, signal) {
+    async connectWithWorkOS(loadGrant, signal, reportProgress) {
       return operation(controller => {
         const active = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
-        return completeSignIn(active, () => workOSPair(loadGrant, active));
+        return completeSignIn(active, () => workOSPair(loadGrant, active, reportProgress));
       }, {checkResult:false});
     },
     async createSession(scopes,options={}) {
