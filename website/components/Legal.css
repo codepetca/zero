@@ -12,7 +12,12 @@
   gap: 4px 20px;
   padding: 12px 0;
 }
-.legal-footer a { display: inline-flex; align-items: center; min-height: 44px; }
+.legal-footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: none;
+}
 .legal-footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 20px; }
 .legal-page {
   width: 100%;
