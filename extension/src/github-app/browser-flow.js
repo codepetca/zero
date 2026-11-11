@@ -2,6 +2,7 @@
 const http=require('node:http');
 const {randomBytes,createHash}=require('node:crypto');
 const {requestJson,tokenPair,failure}=require('./device-flow');
+const returnPage=require('./browser-return-page');
 
 function brokerOrigin(configuration,allowLoopbackForTests=false){
   let url;try{url=new URL(configuration.websiteOrigin);}catch{}
@@ -35,8 +36,9 @@ async function browserFlow({configuration,vscode,fetchImpl=globalThis.fetch,sign
   // Browsers share loopback cookies across ports. Allow bounded incidental
   // headers independently of the strict callback URL; no cookies are inspected.
   const server=http.createServer({maxHeaderSize:64*1024},(request,response)=>{
-    const headers={'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'; frame-ancestors 'none'; base-uri 'none'"};
-    const reply=(status,text)=>{response.writeHead(status,headers);response.end(text);};
+    const policy="default-src 'none'; frame-ancestors 'none'; base-uri 'none'";
+    const headers={'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','Content-Security-Policy':policy};
+    const reply=(status,body,overrides)=>{response.writeHead(status,{...headers,...overrides});response.end(body);};
     if(settled||request.method!=='GET'||request.headers.host!==`127.0.0.1:${port}`||typeof request.url!=='string'||request.url.length>8192)return reply(404,'Not found');
     if(request.headers.origin&&request.headers.origin!==origin)return reply(403,'Invalid origin');
     let url;try{url=new URL(request.url,`http://127.0.0.1:${port}`);}catch{return reply(400,'Invalid request');}
@@ -48,7 +50,12 @@ async function browserFlow({configuration,vscode,fetchImpl=globalThis.fetch,sign
     }
     const codes=url.searchParams.getAll('code'),tickets=url.searchParams.getAll('ticket');
     if(keys.length!==2||codes.length!==1||tickets.length!==1||!/^[A-Za-z0-9_-]{10,256}$/.test(codes[0])||!/^[A-Za-z0-9_-]{40,4096}$/.test(tickets[0]))return reply(400,'Invalid request');
-    settled=true;reply(200,'Returning to Zero. You can close this tab.');finish({code:codes[0],ticket:tickets[0]});
+    settled=true;
+    reply(200,returnPage.html,{
+      'Content-Type':'text/html; charset=utf-8',
+      'Content-Security-Policy':`${policy}; style-src 'sha256-${returnPage.styleHash}'`,
+    });
+    finish({code:codes[0],ticket:tickets[0]});
   });
   server.requestTimeout=5000;server.headersTimeout=5000;server.keepAliveTimeout=1;
   server.on('error',()=>stop(failure('browser-unavailable','Zero could not open the sign-in return. Restart Zero and sign in again. Local running still works.')));
