@@ -31,9 +31,14 @@ async function mavenEntryPoint(root) {
 function registerJavaRun(vscode) {
   return vscode.debug.registerDebugConfigurationProvider('java', {
     async resolveDebugConfiguration(folder, config, token) {
+      // The Java Debugger can save its generated default in launch.json before
+      // calling this hook. Match the launch it generated, including its default
+      // name and fields, so saved custom options still go to the Java adapter.
       if (folder?.uri.scheme !== 'file' || vscode.workspace.isTrusted !== true
           || config.type !== 'java' || config.request !== 'launch' || config.noDebug !== true
-          || !config.mainClass || Object.keys(config).some(key => !ordinaryLaunchFields.has(key))) return config;
+          || config.__origin !== 'internal' || typeof config.mainClass !== 'string'
+          || config.name !== config.mainClass.split('.').at(-1)
+          || Object.keys(config).some(key => !ordinaryLaunchFields.has(key))) return config;
 
       let root, entryPoint;
       try {
@@ -46,9 +51,6 @@ function registerJavaRun(vscode) {
         return config;
       }
       if (entryPoint?.mainClass !== config.mainClass || entryPoint.projectName !== config.projectName) return config;
-      const configured = vscode.workspace.getConfiguration('launch', folder.uri).get('configurations', []);
-      if (!Array.isArray(configured) || configured.some(item =>
-        item?.name === config.name && item.mainClass === config.mainClass)) return config;
 
       // Run Java may have already shown progress before starting the debug
       // request. Finish its reporter because the Java adapter won't start.

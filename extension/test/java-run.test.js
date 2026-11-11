@@ -17,18 +17,10 @@ async function fixture(t) {
 
   const folder = {uri:{scheme:'file', fsPath:root}};
   const calls = [];
-  const saved = [];
   const reporter = {isCancelled:() => false, done:() => calls.push('finished Java progress')};
   let resolve;
   const vscode = {
-    workspace:{
-      workspaceFolders:[folder], isTrusted:true,
-      getConfiguration:(key, resource) => {
-        assert.equal(key, 'launch');
-        assert.equal(resource, folder.uri);
-        return {get:() => saved};
-      },
-    },
+    workspace:{workspaceFolders:[folder], isTrusted:true},
     extensions:{getExtension:id => {
       assert.equal(id, 'vscjava.vscode-java-debug');
       return {exports:{progressProvider:{getProgressReporter:key => key === 'progress' ? reporter : undefined}}};
@@ -42,13 +34,20 @@ async function fixture(t) {
   registerJavaRun(vscode);
   const config = {type:'java', request:'launch', noDebug:true, name:'Main',
     mainClass:'Main', projectName:'my-app', __origin:'internal', __progressId:'progress'};
-  return {root, folder, config, resolve, calls, saved, reporter, vscode};
+  return {root, folder, config, resolve, calls, reporter, vscode};
 }
 
 test('the standard Run Java launch runs the current Zero app once', async t => {
   const {root, folder, config, resolve, calls} = await fixture(t);
+  const settings = path.join(root, '.vscode');
+  await fs.mkdir(settings);
+  const saved = JSON.stringify({configurations:[{type:'java', request:'launch',
+    name:'Main', mainClass:'Main', projectName:'my-app'}]});
+  const launchFile = path.join(settings, 'launch.json');
+  await fs.writeFile(launchFile, saved);
   assert.equal(await resolve(folder, config), undefined);
   assert.deepEqual(calls, ['finished Java progress', ['zero.runApp', root]]);
+  assert.equal(await fs.readFile(launchFile, 'utf8'), saved);
 });
 
 test('the Maven entry point determines which main class runs through Zero', async t => {
@@ -61,15 +60,14 @@ test('the Maven entry point determines which main class runs through Zero', asyn
   assert.deepEqual(calls, ['finished Java progress', ['zero.runApp', root]]);
 });
 
-test('debugging, custom launch options, saved configs and other Java projects keep their launch', async t => {
-  const {folder, config, resolve, calls, saved} = await fixture(t);
+test('debugging, explicit and custom launches, and other Java projects keep their launch', async t => {
+  const {folder, config, resolve, calls} = await fixture(t);
   for (const changes of [{noDebug:false}, {request:'attach'}, {mainClass:'Example'},
-    {projectName:'other'}, {vmArgs:'-ea'}, {preLaunchTask:'build'}]) {
+    {projectName:'other'}, {vmArgs:'-ea'}, {preLaunchTask:'build'}, {name:'Custom Main'},
+    {__origin:undefined, __configurationTarget:5}]) {
     const candidate = {...config, ...changes};
     assert.equal(await resolve(folder, candidate), candidate);
   }
-  saved.push({type:'java', request:'launch', name:'Main', mainClass:'Main'});
-  assert.equal(await resolve(folder, config), config);
   assert.deepEqual(calls, []);
 });
 
