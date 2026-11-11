@@ -1,16 +1,16 @@
 # Zero release ledger
 
-Last reconciled: 2026-11-04 (America/Toronto). This is a dated working record,
+Last reconciled: 2026-11-11 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| Website | Mac 0.5.62 download and exact signed feed verified live November 4; 0.5.63 promotion is pending deployment. | Verify the 0.5.63 download and exact signed feed after this change is deployed. |
-| Mac installer | [0.5.63](https://github.com/codepetca/zero/releases/tag/setup-v0.5.63) published November 4; anonymous download matches the sealed candidate. | The 0.5.61→0.5.62 live update passed on the maintainer Mac. The 0.5.63 update and fresh Mac installation remain untested. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) is publicly listed; the owner confirmed publication on November 2. | Verify the installed version and test Store installation and updates on Windows. |
-| Windows standalone download | [0.5.59 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.59) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.59) published October 31. | Physical Windows and school-device acceptance remains outstanding; updates are disabled. |
+| Website | The Mac 0.5.71 download and exact signed build 71 appcast are live and verified. | Verify the installed update on a Mac. |
+| Mac installer | [0.5.71](https://github.com/codepetca/zero/releases/tag/setup-v0.5.71) is public and matches the sealed, notarized DMG. | A fresh install and sign-in in the installed app remain separate checks. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) 0.5.69 was live at submission. Partner Center accepted 0.5.71 as Submission 7 for certification. | Verify 0.5.71 after certification and test the Store-delivered update on Windows. |
+| Windows standalone download | The [0.5.71 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.71) and [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.71) are public and verified. | Physical Windows and school-device acceptance remain outstanding. Preview updates are disabled. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
 updates, recent tutorial changes, and Store Java/VS Code startup fixes. Its exact
@@ -51,9 +51,12 @@ in that installer. Hosted setup, reopen, private JavaFX and cached offline
 rebuild passed. Automatic updates are disabled for the preview.
 
 The same Windows run built the original x64 Store MSIX `1.5.71.0` and
-verified a separately test-signed copy through install and first run. The
-original package is for the separate Store submission. WACK, physical Windows
-installation and Store update delivery remain unverified for this build.
+verified a separately test-signed copy through install and first run. Microsoft
+validated the original package. The
+[Partner Center overview](https://partner.microsoft.com/en-us/dashboard/products/9MXKD6DQLFGX/overview)
+showed Submission 7 in certification and set to publish after certification
+passes. WACK, physical Windows installation and Store update delivery remain
+unverified for this build.
 
 ## Zero 0.5.69 — 2026-11-10
 
