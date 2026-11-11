@@ -67,7 +67,9 @@ function createDesktopAccounts({ secrets, clientId, workos, openBrowser, withLoc
             typeof record.disconnectNonce === 'string' && /^[A-Za-z0-9_-]{43}$/.test(record.disconnectNonce)) return { signedOut: true };
         const account = accountFromUser(record);
         if (record.githubId !== undefined && (typeof record.githubId !== 'string' || !/^[1-9]\d*$/.test(record.githubId))) return null;
-        return record.githubId ? {...account, githubId:record.githubId} : account;
+        if (record.connectionNonce !== undefined && (typeof record.connectionNonce !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(record.connectionNonce))) return null;
+        return {...account, ...(record.githubId ? {githubId:record.githubId} : {}),
+          ...(record.connectionNonce ? {connectionNonce:record.connectionNonce} : {})};
       } catch {
         return null;
       }
@@ -97,6 +99,7 @@ function createDesktopAccounts({ secrets, clientId, workos, openBrowser, withLoc
             clientId: workos.clientId,
             id: account.id,
             githubId: account.githubId,
+            connectionNonce: randomKey(),
           }));
         }, signal);
         return account;
@@ -107,10 +110,14 @@ function createDesktopAccounts({ secrets, clientId, workos, openBrowser, withLoc
 
     // The GitHub provider owns the shared credential lock during sign-out.
     // Retain local access without keeping a signed-in account identity.
-    async disconnectUnderLock(githubId) {
+    async disconnectUnderLock(expected) {
       const current = await this.read();
-      if (!current?.id || (githubId && current.githubId !== githubId)) return;
+      if (!current?.id || !expected ||
+          (Object.hasOwn(expected, 'id') && current.id !== expected.id) ||
+          (Object.hasOwn(expected, 'githubId') && current.githubId !== expected.githubId) ||
+          (Object.hasOwn(expected, 'connectionNonce') && current.connectionNonce !== expected.connectionNonce)) return false;
       await secrets.store(STORAGE_KEY, JSON.stringify({version:1, clientId, signedOut:true, disconnectNonce:randomKey()}));
+      return true;
     },
 
     async signOut() {

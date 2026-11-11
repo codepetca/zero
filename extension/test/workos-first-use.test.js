@@ -77,7 +77,9 @@ test('required distribution without environment signs in and works after offline
   const first=createWorkOSFirstUse({vscode:editor(),context:{},...configuration,accounts});
   assert.equal(await first.ensure(),true);first.dispose();
   assert.equal(exchanges,1);
-  assert.deepEqual(JSON.parse([...store.values.values()][0]),{version:1,clientId:'client_test',id:'user_same',githubId:'42'});
+  const {connectionNonce,...receipt}=JSON.parse([...store.values.values()][0]);
+  assert.match(connectionNonce,/^[A-Za-z0-9_-]{43}$/);
+  assert.deepEqual(receipt,{version:1,clientId:'client_test',id:'user_same',githubId:'42'});
   assert.doesNotMatch([...store.values.values()][0],/secret|fixture/);
   const offline=createDesktopAccounts({secrets:store,clientId:'client_test'});
   const restartedEditor=editor();

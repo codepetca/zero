@@ -289,6 +289,14 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
     const title = requestWorkOSGrant ? 'Signing in to Zero' : 'Connecting Zero to GitHub';
     return vscode.window.withProgress({location:vscode.ProgressLocation.Notification, title, cancellable:true}, run);
   }
+  async function removeConnection(action) {
+    pendingRemovals++;
+    try {
+      invalidate(true);
+      for (const controller of controllers) controller.abort();
+      return await withLock(action);
+    } finally {pendingRemovals--;}
+  }
   return {
     onDidChangeSessions:emitter.event,
     get busy() {return controllers.size > 0 || pendingRemovals > 0;},
@@ -322,25 +330,23 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
       if (!signInPromise) signInPromise = operation(controller=>signIn(controller), {checkResult:false}).finally(() => { signInPromise = undefined; });
       return signInPromise;
     },
-    async removeSession(id, {keepZeroAccount = false} = {}) {
+    async removeSession(id) {
       if (disposed || !configuration) return;
-      pendingRemovals++;
-      try {
-        // Revoke this window's captured tickets as soon as its account is
-        // signed out, including while waiting for another window's lock.
-        if (cached?.id === id) invalidate(true);
-        // Abort this window's pending login before clearing. Other windows observe
-        // the immediate SecretStorage invalidation and compare their baseline.
-        for (const controller of controllers) controller.abort();
-        return await withLock(async () => {
-          let record;
-          try { record = await store.read(); }
-          catch (error) { if (error.code !== 'invalid-credentials') throw error; }
-          if (record && record.sessionId !== id) return;
-          if (!keepZeroAccount) await disconnectWorkOS?.(record?.account.id);
-          await clearInvalid();
-        });
-      } finally {pendingRemovals--;}
+      // VS Code can send a removal for a session that has already disappeared.
+      // Host removal only owns the requested GitHub session.
+      if (cached?.id !== id && (await store.read())?.sessionId !== id) return;
+      return removeConnection(async () => {
+        const record = await store.read();
+        if (record?.sessionId !== id) return;
+        await clearInvalid();
+      });
+    },
+    async disconnectAccount(expected) {
+      if (disposed || !configuration || !expected?.id || !disconnectWorkOS) return;
+      return removeConnection(async () => {
+        if (!await disconnectWorkOS(expected)) throw failure('connection-changed', 'Your Zero account changed. Open the account menu and try again.');
+        await clearInvalid();
+      });
     },
     dispose() {
       disposed = true; cached = undefined; identityRevision++;

@@ -98,7 +98,9 @@ test('one WorkOS callback connects Zero and GitHub, and saved access renews with
  assert.equal(f.exchanges,0);
  assert.equal(f.refreshes,1);
  assert.equal(JSON.parse(f.data.get(SECRET_KEY)).refreshToken,'ghr_rotatedabcdefgh');
- assert.deepEqual(JSON.parse(f.data.get(STORAGE_KEY)),{version:1,clientId:'client_test',id:'user_test',githubId:'42'});
+ const {connectionNonce,...receipt}=JSON.parse(f.data.get(STORAGE_KEY));
+ assert.match(connectionNonce,/^[A-Za-z0-9_-]{43}$/);
+ assert.deepEqual(receipt,{version:1,clientId:'client_test',id:'user_test',githubId:'42'});
  assert.equal([...f.data.values()].some(value=>value.includes(workosRefresh)),false);
 
  f.advance();
@@ -107,7 +109,7 @@ test('one WorkOS callback connects Zero and GitHub, and saved access renews with
  assert.equal(f.refreshes,2);
  assert.equal(workosOpens,1);
 
- await provider.removeSession(auth.sessionId);
+ await provider.disconnectAccount(await gate.localConnection());
  await auth.refresh();
  assert.equal(auth.signedIn,false);
  assert.equal(f.data.has(SECRET_KEY),false);
@@ -139,6 +141,26 @@ test('cancelling a WorkOS grant during credential storage rolls back the active 
  assert.equal(f.data.has(SECRET_KEY),false);
  assert.deepEqual(await provider.getSessions([]),[]);
  assert.equal(f.opens.length,0);
+});
+
+test('a local-only Zero account can sign out and a stale host session cannot disconnect it',async t=>{
+ const f=await fixture(t);
+ const current={version:1,clientId:'client_test',id:'user_current',githubId:'42',connectionNonce:'a'.repeat(43)};
+ await f.context.secrets.store(STORAGE_KEY,JSON.stringify(current));
+ const accounts=createDesktopAccounts({clientId:'client_test',secrets:f.context.secrets});
+ const gate=createWorkOSFirstUse({vscode:f.vscode,context:f.context,required:true,clientId:'client_test',accounts});
+ t.after(()=>gate.dispose());
+ const provider=f.create(gate.assertBinding,undefined,gate.disconnectUnderLock);
+ const expected=await gate.localConnection();
+ await provider.removeSession('12345678-1234-1234-1234-123456789012');
+ assert.deepEqual(await gate.localConnection(),expected);
+ await assert.rejects(provider.disconnectAccount({...expected,connectionNonce:'b'.repeat(43)}),
+  error=>error.code==='connection-changed');
+ assert.deepEqual(await gate.localConnection(),expected);
+ await provider.disconnectAccount(expected);
+ assert.equal(await gate.localConnection(),undefined);
+ assert.equal(await gate.ensure(),true);
+ assert.deepEqual(await provider.getSessions([]),[]);
 });
 
 test('managed sign-in rejects a missing or mismatched grant without launching a second sign-in',async t=>{

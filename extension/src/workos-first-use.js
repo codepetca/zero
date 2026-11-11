@@ -74,7 +74,9 @@ function createWorkOSFirstUse({vscode, context, required, clientId, accounts: in
     if (result === 'failed') void vscode.window.showWarningMessage(
       'Zero sign-in did not complete. Check the connection and try again.').then(undefined, () => {});
     if (result === 'local-only') void vscode.window.showWarningMessage(
-      'Zero saved your account for local work. Sign in to Zero again to connect GitHub.').then(undefined, () => {});
+      'Zero saved your account for local work. Sign in to Zero again to connect GitHub.', 'Manage account').then(choice => {
+      if (choice === 'Manage account' && !lifetime.signal.aborted) return vscode.commands.executeCommand('zero.githubAccount');
+    }).catch(() => {});
     return result === 'connected' || (result === 'local-only' && !upgrade);
   }
   return {
@@ -109,7 +111,11 @@ function createWorkOSFirstUse({vscode, context, required, clientId, accounts: in
       active.throwIfAborted();
       return accounts.signIn(active);
     },
-    disconnectUnderLock(githubId) {return accounts?.disconnectUnderLock(githubId);},
+    async localConnection() {
+      const account = await accounts?.read();
+      if (account?.id) return {id:account.id, githubId:account.githubId, connectionNonce:account.connectionNonce};
+    },
+    disconnectUnderLock(expected) {return accounts?.disconnectUnderLock(expected);},
     async assertBinding(accountId) {
       const receipt = await accounts?.read();
       if (!receipt?.githubId || (accountId && receipt.githubId !== String(accountId))) {

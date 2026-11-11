@@ -64,7 +64,7 @@
       },
       {
         "command": "zero.githubAccount",
-        "title": "Zero: GitHub Account"
+        "title": "Zero: Account"
       },
       {
         "command": "zero.chooseRepository",

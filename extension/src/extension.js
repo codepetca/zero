@@ -495,7 +495,7 @@ function activate(context, services = {}) {
     try {
       if (disposed) return;
       if (!appProvider) throw new Error('The Codepet GitHub App is not configured in this Zero release. Local running still works.');
-      if (changeAccount && auth.sessionId) {await appProvider.removeSession(auth.sessionId,{keepZeroAccount:true});await auth.refresh();}
+      if (changeAccount && auth.sessionId) {await appProvider.removeSession(auth.sessionId);await auth.refresh();}
       if (sharedGitHubGrant) startPage.show();
       else await actions['zero.startPage']();
       await auth.refresh();
@@ -1817,15 +1817,22 @@ function activate(context, services = {}) {
     'zero.startPage': () => startPage.show(),
     'zero.githubAccount': async () => {
       if (isBusy()) return;
-      if (!auth.signedIn) return actions['zero.signInToGitHub']();
+      const connection = sharedGitHubGrant ? await firstUse.localConnection() : undefined;
+      if (disposed || isBusy()) return;
+      if (!auth.signedIn && !connection) return actions['zero.signInToGitHub']();
+      const sessionId = auth.sessionId;
       const choice = await quickPick([
         {label:sharedGitHubGrant ? 'Reconnect GitHub…' : 'Change GitHub account…', action:'change'},
         {label:'Sign out', description:'Disconnect Zero on this computer', action:'signOut'}
-      ], {title:`Zero · @${auth.accountLabel}`});
+      ], {title:auth.accountLabel ? `Zero · @${auth.accountLabel}` : 'Zero account'});
       if (isBusy()) return;
-      if (choice?.action === 'change') await actions['zero.signInToGitHub'](true);
+      if (choice?.action === 'change') {
+        if (auth.sessionId !== sessionId) throw new Error('Your Zero account changed. Open the account menu and try again.');
+        await actions['zero.signInToGitHub'](true);
+      }
       if (choice?.action === 'signOut') {
-        if (appProvider && auth.sessionId) await appProvider.removeSession(auth.sessionId);
+        if (connection && appProvider?.disconnectAccount) await appProvider.disconnectAccount(connection);
+        else if (appProvider && sessionId) await appProvider.removeSession(sessionId);
         await auth.refresh();authFeedback='Signed out of Zero';report(authFeedback);
       }
     },
@@ -1860,7 +1867,7 @@ function activate(context, services = {}) {
       if(pendingLocalCommit?.operation)items.push({label:'Inspect interrupted correction…',action:'inspectCorrection'});
       const interruptedSync=interruptedBranchSync(root);
       if(interruptedSync)items.push({label:'Inspect interrupted sync…',action:'inspectSync'});
-      items.push({label:'GitHub account…', action:'account'});
+      items.push({label:'Zero account…', action:'account'});
       const choice = await quickPick(items, {title:connected ? repository : root ? path.basename(root) : 'Project'});
       if (isBusy() || !choice) return;
       await repositoryStatus();
