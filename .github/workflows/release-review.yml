@@ -94,6 +94,11 @@ jobs:
       - name: Configure native audio and window manager
         if: needs.scope.outputs.native == 'true' || needs.scope.outputs.lessons == 'true'
         run: |
+          # The hosted runner's Azure mirror can stall on DNS before apt
+          # tries its HTTPS alternatives. Keep it available after those mirrors.
+          if [[ -f /etc/apt/apt-mirrors.txt ]]; then
+            sudo sed -i -E 's#^(http://azure\.archive\.ubuntu\.com/ubuntu/[[:space:]]+)priority:[0-9]+$#\1priority:4#' /etc/apt/apt-mirrors.txt
+          fi
           sudo apt-get update
           sudo apt-get install -y pulseaudio libasound2-plugins openbox
           pulseaudio --start --exit-idle-time=-1
