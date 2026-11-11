@@ -32,7 +32,7 @@ function createWorkOSFirstUse({vscode, context, required, clientId, accounts: in
       upgrade ? 'Connect the same Zero account again to verify your GitHub account for online features.' : 'Connect Zero with GitHub to get started. After connecting, you can use this editor offline.',
       {modal:true}, 'Continue with GitHub');
     if (choice !== 'Continue with GitHub' || lifetime.signal.aborted) return false;
-    return vscode.window.withProgress({location:vscode.ProgressLocation.Notification,
+    const result = await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,
       title:'Waiting for GitHub sign-in', cancellable:true}, async (_progress, token) => {
       const cancelled = new AbortController();
       const subscription = token.onCancellationRequested(() => cancelled.abort());
@@ -40,12 +40,17 @@ function createWorkOSFirstUse({vscode, context, required, clientId, accounts: in
       const signal = AbortSignal.any([cancelled.signal, lifetime.signal]);
       try {
         await accounts.signIn(signal);
-        return !signal.aborted;
+        return signal.aborted ? 'cancelled' : 'connected';
       } catch {
-        if (!signal.aborted) await vscode.window.showWarningMessage('GitHub sign-in did not complete. Check the connection and try again.');
-        return false;
+        return signal.aborted ? 'cancelled' : 'failed';
       } finally {subscription.dispose();}
     });
+    if (lifetime.signal.aborted) return false;
+    // A notification can stay open until dismissed. Release progress and allow
+    // a retry independently of whether the user dismisses the warning.
+    if (result === 'failed') void vscode.window.showWarningMessage(
+      'GitHub sign-in did not complete. Check the connection and try again.').then(undefined, () => {});
+    return result === 'connected';
   }
   return {
     enabled:true,

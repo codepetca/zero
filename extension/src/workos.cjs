@@ -100,6 +100,9 @@ function createWorkOS(clientId, fetchImpl = globalThis.fetch) {
         // Hosted AuthKit handles verification and other authentication challenges.
         // Configure the staging AuthKit methods separately for GitHub-only testing.
         provider: "authkit",
+        // Reusing an AuthKit session can omit the GitHub token we need to verify
+        // the account. Ask for fresh authentication on each explicit connection.
+        max_age: "0",
         state,
         code_challenge: challenge,
         code_challenge_method: "S256",

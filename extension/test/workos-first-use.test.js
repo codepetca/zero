@@ -31,6 +31,30 @@ test('first-use prompt is shared, can be cancelled and retried', async () => {
   gate.dispose();
 });
 
+test('a failed connection closes progress and can retry while its warning is open', async () => {
+  const api=editor();
+  const withProgress=api.window.withProgress;
+  let progressOpen=false, progressAtWarning, attempts=0, dismiss;
+  const warning=new Promise(resolve=>{dismiss=resolve;});
+  api.window.withProgress=async (...args)=>{
+    progressOpen=true;
+    try {return await withProgress(...args);}
+    finally {progressOpen=false;}
+  };
+  api.window.showWarningMessage=()=>{
+    progressAtWarning=progressOpen;
+    return warning;
+  };
+  const gate=createWorkOSFirstUse({vscode:api,context:{},required:true,clientId:'client_test',
+    accounts:{read:async()=>null,signIn:async()=>{if(++attempts===1) throw new Error('fixture');}}});
+  try {
+    assert.equal(await Promise.race([gate.ensure(),new Promise(resolve=>setImmediate(()=>resolve('still waiting')))]),false);
+    assert.equal(progressAtWarning,false);
+    assert.equal(await gate.ensure(),true);
+    assert.equal(attempts,2);
+  } finally {dismiss();gate.dispose();}
+});
+
 test('required distribution without environment signs in and works after offline restart', async () => {
   const configuration=resolveWorkOSFirstUseConfiguration({env:{},readDistribution:()=>({mode:'required',productionClientId:'client_test'})});
   const store=secrets();let exchanges=0;
@@ -44,6 +68,8 @@ test('required distribution without environment signs in and works after offline
   let challenge;
   const accounts=createDesktopAccounts({secrets:store,clientId:'client_test',workos,openBrowser:async url=>{
     const authorize=new URL(url);challenge=authorize.searchParams.get('code_challenge');
+    // A reused AuthKit session can omit the GitHub token needed by the exchange.
+    assert.equal(authorize.searchParams.get('max_age'),'0');
     const callback=new URL(authorize.searchParams.get('redirect_uri'));
     callback.searchParams.set('state',authorize.searchParams.get('state'));callback.searchParams.set('code','fixture');
     assert.equal((await fetch(callback)).status,200);return true;
