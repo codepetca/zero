@@ -129,6 +129,8 @@ when adding features; a new feature does not reset the agreed interaction style.
   retain browser compatibility checks and production compilation; explicit export
   preview remains available. Mac 0.5.34 ships native Run; earlier
   downloads retain their bundled Run behavior.
+  When the Java extension offers **Run Java** for the project's app entry
+  point, it uses the same Zero run action.
 - Keep a native **Zero** status-bar action in Zero windows so students can
   return from Source Control or other panels to Explorer and the Zero controls.
   It is navigation only, available independently of sign-in or busy work.

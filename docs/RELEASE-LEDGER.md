@@ -21,6 +21,12 @@ The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
 
+## Zero 0.5.72 candidate — 2026-11-11
+
+The owner passed the live Mac Zero Dev smoke test for the WorkOS browser
+launch and authorized the full Mac and kit release. Live Windows testing
+was waived. Core remains 0.3.0.
+
 ## Zero 0.5.71 — 2026-11-11
 
 [PR #323](https://github.com/codepetca/zero/pull/323) merged the desktop

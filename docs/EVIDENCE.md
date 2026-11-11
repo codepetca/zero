@@ -1,3 +1,47 @@
+# Run Java in Zero projects — 2026-11-11
+
+Local source `8ea33ab8f` routes the Java Debugger's standard **Run Java**
+launch for a Zero project's Maven JavaFX entry point through **Zero: Run App**.
+The launch hook recognizes the Java Debugger's generated configuration.
+
+On macOS, VS Code 1.145.2 with Java Debugger 0.60.0 and Java support 1.58.0
+invoked the toolbar's real command in a disposable project with an empty
+`launch.json`. The debugger saved its generated configuration. Exactly one
+Zero Maven task started, JavaFX reported the stage showing, and no Java
+debug session started. The fixture used optional sign-in and stopped the
+app through Zero. Windows and the student's original machine remain unverified.
+
+All 33 focused run, editor and native runtime tests and `npm run check` passed.
+Terra/medium review found a generated-configuration issue. The correction
+passed the focused regression and targeted review. Two review turns and one
+fix batch. Source and release publication are held.
+
+---
+
+# Zero desktop browser launch — 2026-11-11
+
+Local source `cfe10fa79` opens a one-use URL on the existing loopback listener
+when a student signs in. The listener redirects the default browser to the
+WorkOS authorization URL for that attempt. VS Code uses its existing loopback
+trust rule. The WorkOS callback and credential exchange retain their existing
+checks.
+
+All 153 focused authentication and upload tests, `npm run check`, and
+`git diff --check` passed. In a fresh macOS VS Code 1.145.2 profile, the real
+external-opening API launched the default browser and returned through the
+loopback callback with a fixture provider and no interaction with an
+external-site prompt. The owner then passed the live production WorkOS
+smoke test in the isolated Mac Zero Dev profile. We checked for the
+presence of both the WorkOS receipt and the GitHub credential without
+reading their values. The owner waived the live Windows test.
+
+An independent Terra/medium review of `83f3f1227..cfe10fa79` found no
+actionable issues in the redirect, callback compatibility or retry behavior.
+One reviewer launch and one wave completed with no fix batches. The change
+is local.
+
+---
+
 # Zero homepage refinements — 2026-11-11
 
 The owner approved the larger “Starting from zero” subtitle, four short

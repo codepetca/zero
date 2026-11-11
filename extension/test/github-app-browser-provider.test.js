@@ -11,6 +11,7 @@ const {createAuthentication,ownedProviderApi}=require('../src/authentication');
 const {createDesktopAccounts,STORAGE_KEY}=require('../src/desktop.cjs');
 const {createWorkOS}=require('../src/workos.cjs');
 const {createWorkOSFirstUse}=require('../src/workos-first-use');
+const {followWorkOSLaunch}=require('./fixtures/workos-browser.cjs');
 const configuration=githubAppConfiguration();
 const pair={access_token:'ghu_browseraccessabcdefgh',refresh_token:'ghr_browserrefreshabcdefgh',expires_in:28800,refresh_token_expires_in:15897600,token_type:'bearer',scope:''};
 class Emitter{constructor(){this.listeners=new Set();this.event=fn=>{this.listeners.add(fn);return{dispose:()=>this.listeners.delete(fn)}};}fire(value){for(const fn of this.listeners)fn(value);}dispose(){this.listeners.clear();}}
@@ -75,7 +76,7 @@ test('one WorkOS callback connects Zero and GitHub, and saved access renews with
   clientId:'client_test', workos, secrets:f.context.secrets, withLock:async callback=>callback(),
   openBrowser:async url=>{
    workosOpens++;
-   const authorize=new URL(url), callback=new URL(authorize.searchParams.get('redirect_uri'));
+   const authorize=await followWorkOSLaunch(url), callback=new URL(authorize.searchParams.get('redirect_uri'));
    callback.searchParams.set('state',authorize.searchParams.get('state'));
    callback.searchParams.set('code','fixture_code');
    assert.equal((await fetch(callback)).status,200);
@@ -365,7 +366,7 @@ test('WorkOS receipt commit waits for the GitHub credential write in the same lo
  const lock=createCredentialLock({globalStorageUri:f.context.globalStorageUri});
  const workos={clientId:'client_test',begin(redirect){const state='a'.repeat(43);const url=new URL('https://example.invalid/authorize');url.searchParams.set('redirect_uri',redirect);url.searchParams.set('state',state);return {url:url.href,state,verifier:'fixture'};},complete:async()=>{finishedExchange();return{id:'user_same',githubId:'99'};}};
  let reachedLock;const waitingForLock=new Promise(resolve=>{reachedLock=resolve;});
- const accounts=createDesktopAccounts({secrets:f.context.secrets,clientId:'client_test',workos,withLock:(fn,signal)=>{reachedLock();return lock(fn,signal);},openBrowser:async url=>{const authorize=new URL(url),callback=new URL(authorize.searchParams.get('redirect_uri'));callback.searchParams.set('state',authorize.searchParams.get('state'));callback.searchParams.set('code','fixture');assert.equal((await fetch(callback)).status,200);return true;}});
+ const accounts=createDesktopAccounts({secrets:f.context.secrets,clientId:'client_test',workos,withLock:(fn,signal)=>{reachedLock();return lock(fn,signal);},openBrowser:async url=>{const authorize=await followWorkOSLaunch(url),callback=new URL(authorize.searchParams.get('redirect_uri'));callback.searchParams.set('state',authorize.searchParams.get('state'));callback.searchParams.set('code','fixture');assert.equal((await fetch(callback)).status,200);return true;}});
  const assertBinding=async id=>{const receipt=await accounts.read();if(id&&id!==receipt.githubId){const error=Error('The GitHub account does not match the account connected to Zero.');error.code='workos-identity-binding';throw error;}};
  const provider=f.create(assertBinding),githubResult=provider.createSession([]).then(()=>null,error=>error);
  await started;const receiptResult=accounts.signIn();await exchanged;await waitingForLock;
