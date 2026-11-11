@@ -105,6 +105,9 @@ test('desktop navigation errors use the Zero page and preserve status, cookie cl
 
   for (const [accept, expected] of [
     ['text/html; charset=utf-8;q=0.8, application/json;q=0.5', 'text/html; charset=utf-8'],
+    ['text/html, */*', 'text/html; charset=utf-8'],
+    ['text/*, */*', 'text/html; charset=utf-8'],
+    ['text/html, application/json', 'application/json'],
     ['text/html;q=0.8, application/json', 'application/json'],
     ['text/html;q=0, */*;q=0.5', 'application/json'],
     ['*/*', 'application/json'],

@@ -1,3 +1,13 @@
+function preference(weights, mediaType) {
+  const [category] = mediaType.split('/');
+  const ranges = [mediaType, `${category}/*`, '*/*'];
+  const match = ranges.findIndex(range => weights.has(range));
+  return match === -1 ? {quality: 0, specificity: 0} : {
+    quality: weights.get(ranges[match]),
+    specificity: ranges.length - match,
+  };
+}
+
 function prefersHtml(accept) {
   const weights = new Map();
   for (const item of (accept ?? '').split(',')) {
@@ -7,10 +17,10 @@ function prefersHtml(accept) {
     const validWeight = Number.isFinite(weight) && weight >= 0 && weight <= 1 ? weight : 0;
     weights.set(type, Math.max(weights.get(type) ?? 0, validWeight));
   }
-  const wildcard = weights.get('*/*') ?? 0;
-  const html = weights.get('text/html') ?? weights.get('text/*') ?? wildcard;
-  const json = weights.get('application/json') ?? weights.get('application/*') ?? wildcard;
-  return html > json;
+  const html = preference(weights, 'text/html');
+  const json = preference(weights, 'application/json');
+  return html.quality > 0 && (html.quality > json.quality ||
+    html.quality === json.quality && html.specificity > json.specificity);
 }
 
 export function desktopGitHubBrowserPage(request, response, {pages, pageHeaders}) {
