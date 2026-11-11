@@ -1,3 +1,28 @@
+# Desktop GitHub sign-in pages — 2026-11-11
+
+Local branch `codex/github-return-page` applies the approved centered browser
+return to the desktop GitHub App and WorkOS first-use flows. Cancellation,
+invalid or expired requests, failure and broker unavailability use the same
+Zero mark and retry guidance. The desktop broker serves HTML to browsers that
+prefer it and preserves JSON for API clients.
+
+At `4be9c81ca`, 86 focused tests, the production website build, and 10
+weighted HTML/JSON requests to the built broker routes passed. The extension
+package listing included the renderer and Zero SVG. Chrome and WebKit each
+checked 22 simulated callback and broker cases at 860 px in light mode and
+320 px in dark mode before the final media preference fixes. Screenshots and
+logs are in `output/playwright/github-return-page/`. Live GitHub sign-in,
+physical Windows and release delivery remain unverified.
+
+Terra at medium reasoning independently reviewed `3b7ce8afe..d077c2d3d`
+with no findings and `d077c2d3d..3750c4934` with one media preference finding.
+The review of `3750c4934..efa5bc98e` found an equal-quality wildcard case.
+The targeted review of `efa5bc98e..4be9c81ca` cleared it. Four review turns
+covered the source change and two fixes. Effective model and token usage were
+unavailable.
+
+---
+
 # ZeroHub Projects pagination and text fades — 2026-11-10
 
 Local branch `codex/zerohub-project-pages` is based on PR #318's
