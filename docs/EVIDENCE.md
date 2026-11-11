@@ -26,9 +26,12 @@ before the change and all 90 focused tests passed afterward. The fixed source
 completed production WorkOS and GitHub App authorization in an in-memory
 diagnostic, with a matching numeric GitHub identity and existing browser data.
 
-Zero Dev is open with that source and an isolated editor profile for the
-owner's smoke test. The 0.5.70 Mac draft is unpublished and superseded. Public
-release work is on hold pending the smoke test.
+The owner then signed in successfully in an isolated Zero Dev editor using
+the existing browser profile. The trace recorded a saved WorkOS receipt and
+a verified GitHub App session after two browser handoffs. Temporary tracing
+was removed. The 0.5.70 Mac draft is unpublished and superseded. The owner
+asked whether both handoffs can use a single GitHub sign-in, so publication
+remains on hold while we verify the available provider grant.
 
 ---
 
