@@ -5,6 +5,8 @@ import { LearnTheme } from "./learn/LearnTheme";
 import "../.generated/learn-theme.css";
 import "./learn/learn.css";
 
+const [taglineLead, taglineAccent] = productTagline.split(/(\bzero)$/);
+
 export const metadata = {
   title: { absolute: `${productTitle} | Zero` },
   description: home.description,
@@ -16,7 +18,10 @@ export default function Home() {
       <main id="page-content" tabIndex={-1} className="hub home-page">
         <div className="hub-intro">
           <h1>{productTitle}</h1>
-          <p className="hub-lead">{productTagline}</p>
+          <p className="hub-lead">
+            {taglineLead}
+            <span className="home-subtitle-accent">{taglineAccent}</span>
+          </p>
           <p className="home-description">{home.description}</p>
         </div>
         <Downloads />
