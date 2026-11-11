@@ -12,7 +12,7 @@ function secrets() {
   const values = new Map();
   return {values, get:async k=>values.get(k), store:async(k,v)=>values.set(k,v), delete:async k=>values.delete(k)};
 }
-function editor(choice = 'Continue with GitHub') {
+function editor(choice = 'Sign in to Zero') {
   let prompts=0, warnings=0;
   return {get prompts(){return prompts;}, get warnings(){return warnings;}, ProgressLocation:{Notification:1},
     window:{showInformationMessage:async()=>{prompts++;return choice;}, showWarningMessage:async()=>{warnings++;},
@@ -26,7 +26,7 @@ test('first-use prompt is shared, can be cancelled and retried', async () => {
   const gate=createWorkOSFirstUse({vscode:api,context:{},required:true,clientId:'client_test',accounts:{read:async()=>{reads++;return null;},signIn:async()=>{signed++;}}});
   assert.deepEqual(await Promise.all([gate.ensure(),gate.ensure()]),[false,false]);
   assert.equal(reads,1);assert.equal(signed,0);
-  api.window.showInformationMessage=async()=> 'Continue with GitHub';
+  api.window.showInformationMessage=async()=> 'Sign in to Zero';
   assert.equal(await gate.ensure(),true);assert.equal(signed,1);
   gate.dispose();
 });

@@ -172,9 +172,16 @@ function activate(context, services = {}) {
   for (const [id, action] of Object.entries(createNativeUpdateCommands(vscode))) {
     context.subscriptions.push(vscode.commands.registerCommand(id, action));
   }
-  const firstUse = createWorkOSFirstUse({vscode, context, ...resolveWorkOSFirstUseConfiguration({
+  const workOSConfiguration = resolveWorkOSFirstUseConfiguration({
     development: context.extensionMode === (editor.ExtensionMode?.Development ?? 2), env,
-  })});
+  });
+  const sharedGitHubGrant = workOSConfiguration.required && workOSConfiguration.clientId &&
+    workOSConfiguration.clientId === resolveWorkOSFirstUseConfiguration().clientId;
+  let appProvider;
+  const firstUse = createWorkOSFirstUse({vscode, context, ...workOSConfiguration,
+    ...(sharedGitHubGrant ? {connectGitHub:(authenticate, signal) =>
+      appProvider?.connectWithWorkOS ? appProvider.connectWithWorkOS(authenticate, signal) : authenticate(signal)} : {}),
+  });
   context.subscriptions.push(firstUse);
   const output = vscode.window.createOutputChannel('Zero');
   const sidebarShortcut = vscode.window.createStatusBarItem?.('zero.backToSidebar',vscode.StatusBarAlignment?.Left,1000);
@@ -391,7 +398,12 @@ function activate(context, services = {}) {
   }
   let githubReadiness,projectPicker,nativeGitAuthentication;
   const appConfiguration = githubAppConfiguration();
-  const appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({vscode,context,configuration:appConfiguration,...(firstUse.enabled?{assertBinding:firstUse.assertBinding}:{}),onDiagnostic:message=>output.appendLine(message)}) : null);
+  appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({
+    vscode, context, configuration:appConfiguration,
+    ...(firstUse.enabled ? {assertBinding:firstUse.assertBinding} : {}),
+    ...(sharedGitHubGrant ? {requestWorkOSGrant:firstUse.requestGitHubGrant} : {}),
+    onDiagnostic:message=>output.appendLine(message),
+  }) : null);
   const auth = createAuthentication(ownedProviderApi(appProvider,firstUse.enabled?firstUse:undefined), () => {
     // Clear only feedback owned by authentication. Native runtime updates may
     // have replaced it while browser sign-in was pending.
@@ -477,14 +489,15 @@ function activate(context, services = {}) {
     if (!disposed && !ready) {report('GitHub setup paused');void githubReadiness.refresh();}
     return !disposed && ready ? ticket : false;
   }
-  async function signIn(changeAccount = auth.signedIn) {
+  async function signIn(changeAccount = false) {
     if (disposed || isBusy()) return;
     signingIn = true; refresh();
     try {
       if (disposed) return;
       if (!appProvider) throw new Error('The Codepet GitHub App is not configured in this Zero release. Local running still works.');
       if (changeAccount && auth.sessionId) {await appProvider.removeSession(auth.sessionId);await auth.refresh();}
-      await actions['zero.startPage']();
+      if (sharedGitHubGrant) startPage.show();
+      else await actions['zero.startPage']();
       await auth.refresh();
       if (!auth.signedIn) await auth.signIn(false);
       if (!disposed) {await githubReadiness.refresh();output.appendLine(auth.status);try {await rememberOpened({projectPath:await project()});}catch{}}
@@ -1204,7 +1217,7 @@ function activate(context, services = {}) {
         report(correction?`${correction.label} locally`:`${action} ${created.branch} locally`,`${correction?correction.detail+' ':''}Use Sync to publish the branch to GitHub.`);
         return false;
       }
-      if(!auth.signedIn)throw Object.assign(new Error('Sign in to GitHub.'),{kind:'auth'});
+      if(!auth.signedIn)throw Object.assign(new Error('Sign in to Zero.'),{kind:'auth'});
       if(expectedAccount!==undefined && auth.accountId!==expectedAccount)throw Object.assign(new Error('The GitHub account changed. Review the sync before retrying.'),{kind:'auth'});
       let ownPushAttempt;
       const guard=async tx=>{await assertGitProject(root);if(expectedSession!==undefined&&(auth.sessionId||null)!==expectedSession||expectedRevision!==undefined&&auth.revision!==expectedRevision)throw Object.assign(new Error('The GitHub sign-in changed. Review the branch before syncing.'),{kind:'changed'});if(extraGuard)await extraGuard(tx,ownPushAttempt);},plan=await github.prepareUpload(root,inspectSyncGit);
@@ -1806,11 +1819,11 @@ function activate(context, services = {}) {
       if (isBusy()) return;
       if (!auth.signedIn) return actions['zero.signInToGitHub']();
       const choice = await quickPick([
-        {label:'Change GitHub account…', action:'change'},
+        {label:sharedGitHubGrant ? 'Reconnect GitHub…' : 'Change GitHub account…', action:'change'},
         {label:'Sign out', description:'Disconnect Zero on this computer', action:'signOut'}
-      ], {title:`GitHub: ${auth.accountLabel}`});
+      ], {title:`Zero · @${auth.accountLabel}`});
       if (isBusy()) return;
-      if (choice?.action === 'change') await actions['zero.signInToGitHub']();
+      if (choice?.action === 'change') await actions['zero.signInToGitHub'](true);
       if (choice?.action === 'signOut') {
         if (appProvider && auth.sessionId) await appProvider.removeSession(auth.sessionId);
         await auth.refresh();authFeedback='Signed out of Zero';report(authFeedback);
@@ -3271,6 +3284,10 @@ function activate(context, services = {}) {
   context.subscriptions.push(...webExport.disposables);
   if (firstUse.enabled) {
     const alwaysAvailable = new Set(['zero.stopApp', 'zero.openDocs', 'zero.showSetup']);
+    if (sharedGitHubGrant) {
+      alwaysAvailable.add('zero.signInToGitHub');
+      alwaysAvailable.add('zero.githubAccount');
+    }
     for (const [id, action] of Object.entries(actions)) actions[id] = async (...args) => {
       if (alwaysAvailable.has(id) || (id === 'zero.toggleApp' && (execution || pendingLaunch || nativeStarting || browserActive || browserBusy))) return action(...args);
       const generation = runGeneration;
@@ -3280,7 +3297,7 @@ function activate(context, services = {}) {
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async (...args) => {
     try {await action(...args);} catch(error) {
       const message = error.zeroRunMessage || error.message;
-      const display = recoveryMessage(/^GitHub sign-in was cancelled or unavailable\./.test(message) ? 'GitHub sign-in cancelled or unavailable. Try again.' : message,error.recoveryPath);
+      const display = recoveryMessage(/^Zero sign-in was cancelled or unavailable\./.test(message) ? 'Zero sign-in cancelled or unavailable. Try again.' : message,error.recoveryPath);
       const sidebarGit=['zero.syncBranch','zero.commitChanges','zero.startChange'].includes(id);
       if(sidebarGit)reportGit(display,error.message);
       else {
@@ -3433,6 +3450,8 @@ function activate(context, services = {}) {
     const generation = runGeneration;
     return startup.then(async() => {
       if (disposed || !await firstUse.ensure() || disposed || generation !== runGeneration) return;
+      if (sharedGitHubGrant && !auth.signedIn) await auth.refresh();
+      if (disposed || generation !== runGeneration) return;
       try {await rememberOpened({projectPath:await project()});}catch{}
       if (disposed || generation !== runGeneration) return;
       await projectWindow.restore();

@@ -33,14 +33,13 @@ marks a preferred pattern with documented, task-specific exceptions.
   **Learn to Build**, **Starting from zero**, the short product description and
   direct Mac Silicon and Windows download actions. Keep the centered stack and
   shared light/dark themes without promotional sections.
-  GitHub development connection belongs in downloaded Zero's welcome, using the
-  supported `zero-github` provider and native editor controls. Current local source
-  uses GitHub browser authorization for new connections, with no code-sign-in
-  option. The primary Start Page action says **Sign in to GitHub** while signed
-  out and **Start tutorial** after sign-in; tutorial creation stays disabled until
-  access is ready. Activation and published downloads remain separate. Download/browse/Play require no sign-in; optional ZeroHub stars use
-  the same Codepet-owned App with a separate browser credential family. There is
-  no separate Zero password/account or automatic browser/editor pairing.
+  **Sign in to Zero** uses GitHub as the identity provider and returns the
+  student to the Start Page. Show the verified handle and the next project
+  action. GitHub App installation and selected repository access require an
+  explicit decision when needed. Download, browse and Play remain public.
+  Optional ZeroHub features use the same Codepet-owned App with a separate
+  browser session. Zero has no separate password or automatic browser/editor
+  pairing. Activation and published downloads remain separate.
 - MUST keep the option-2 sidebar minimal and use supported VS Code APIs.
   Follow the editor's established controls, theme colors, keyboard behavior and
   supported authentication/account flows. Retain light and dark editor support.

@@ -18,7 +18,7 @@ function gitError(error, action) {
   if (/publishing was cancelled/i.test(detail)) return safe('changed', 'Publishing was cancelled. Review the upload again.');
   if (/Live (?:publishing|Git actions|uploads) (?:was|were) disabled/i.test(detail)) return safe('changed', 'Live Git actions were disabled. Review the upload again.');
   if (error.kind === 'changed' || /account or sign-in changed|sign-in changed|project changed|changed after review/i.test(detail)) return safe('changed', 'Your project, GitHub account or sign-in changed. Review this step again.');
-  if (error.kind === 'auth' || /authentication|credential|could not read username|terminal prompts disabled|\b401\b|sign in to GitHub/i.test(detail)) return safe('auth', 'GitHub authentication failed. Sign in to GitHub in Zero through VS Code, then review again.');
+  if (error.kind === 'auth' || /authentication|credential|could not read username|terminal prompts disabled|\b401\b|sign in to (?:Zero|GitHub)/i.test(detail)) return safe('auth', 'GitHub authentication failed. Sign in to Zero, then review again.');
   if (error.kind === 'access' || /permission|\b403\b|denied|repository not found|refused access/i.test(detail)) return safe('access', 'GitHub refused access. Check that the connected repository exists and your GitHub account has permission to push.');
   if (error.kind === 'unconfirmed' || /did not confirm|unexpected remote response/i.test(detail)) return safe('unconfirmed', 'GitHub did not confirm this commit on your branch. Check the upload before trying again. Nothing was confirmed uploaded.');
   return safe('network', `GitHub transport failed. Git could not ${action}. Check the repository URL and network, then review again. Nothing was confirmed uploaded.`);

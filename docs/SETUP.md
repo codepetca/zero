@@ -72,7 +72,7 @@ explicit project commands create repositories only after collecting the choices 
 
 ## Start a tutorial or project
 
-On the **Zero Start Page**, follow: **Sign in to GitHub**, then
+On the **Zero Start Page**, follow: **Sign in to Zero**, then
 **Install Zero for GitHub** if requested, then **Project → New**.
 Sign-in opens GitHub in your browser and returns to Zero. After sign-in,
 Zero checks App access for repository creation and contents writing; the check is

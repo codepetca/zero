@@ -29,8 +29,8 @@ async function receiveCode(workos, openBrowser, signal, timeoutMs) {
 
       handled = true;
       reply(response, result.code ? 200 : 400, result.code
-        ? "Return to VS Code to see whether sign-in completed."
-        : "GitHub sign-in did not complete. Return to VS Code to try again.");
+        ? "Return to Zero to finish signing in. You can close this tab."
+        : "Zero sign-in did not complete. Return to Zero to try again.");
       accept(result.code);
     });
 

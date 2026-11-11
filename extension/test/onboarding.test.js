@@ -305,7 +305,7 @@ test('sign-out feedback is replaced by current sign-in failure and cleared after
     await f.commands.get('zero.githubAccount')();assert.equal(f.startState.phase,'signed-out');assert.equal(f.startState.status,'Signed out of Zero');
     if(failure==='unavailable')f.setFailure(true);
     await f.commands.get('zero.signInToGitHub')();
-    assert.equal(f.startState.phase,'signed-out');assert.notEqual(f.startState.status,'Signed out of Zero');assert.match(f.errors.at(-1),/Sign in to GitHub|cancelled or unavailable/);
+    assert.equal(f.startState.phase,'signed-out');assert.notEqual(f.startState.status,'Signed out of Zero');assert.match(f.errors.at(-1),/Sign in to Zero|cancelled or unavailable/);
     f.setFailure(false);f.setInteractiveSession({...session,id:'retry'});await f.commands.get('zero.signInToGitHub')();
     assert.equal(f.startState.phase,'ready');assert.equal(f.startState.accountId,'17');assert.equal(f.startState.status,'');
   }

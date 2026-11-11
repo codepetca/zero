@@ -65,7 +65,7 @@ function createNativeGitAuthentication({vscode, authentication, getGitAPI, onCha
     if (workspace.getConfiguration('github', null).get('gitAuthentication', true) !== false)
       return ['blocked', 'Turn off GitHub: Git Authentication in this profile so the built-in GitHub provider does not compete with Zero sign-in.'];
     if (!authentication.signedIn)
-      return ['signed-out', 'Sign in to GitHub in Zero before using native Git with Zero sign-in.'];
+      return ['signed-out', 'Sign in to Zero before using native Git with this connection.'];
     return undefined;
   }
   const accountIdentity = () => JSON.stringify([authentication.sessionId, authentication.accountId]);

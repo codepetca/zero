@@ -165,7 +165,7 @@ test('actual provider, facade and repository access have a bounded authenticated
 test('integrated metadata mismatch stops repository work and is retried rather than cached',async t=>{
  const f=await fixture(t,{overrides:{fetch:async url=>{assert(url.includes('/apps/'));return response({...metadata,id:999});}}});
  const authentication=integratedAuthentication(f,t),repositories=createGitHubAppRepositories({authentication,configuration,fetchImpl:f.fetchImpl});
- for(let attempt=0;attempt<2;attempt++)await assert.rejects(repositories.access('https://github.com/learner/project'),/Sign in to GitHub/);
+ for(let attempt=0;attempt<2;attempt++)await assert.rejects(repositories.access('https://github.com/learner/project'),/Sign in to Zero/);
  assert.equal(f.calls.length,2);assert.ok(f.calls.every(([,options])=>options.headers.Authorization==='Bearer '+record().accessToken));
 });
 
@@ -268,7 +268,7 @@ test('new capture detects server revocation while local operation rereads make n
  await auth.refresh();while(auth.busy)await new Promise(resolve=>setImmediate(resolve));
  const ticket=await auth.capture();revoked=true;
  await auth.assertCurrent(ticket);
- await assert.rejects(auth.capture(),/Sign in to GitHub/);
+ await assert.rejects(auth.capture(),/Sign in to Zero/);
  assert.equal(f.data.has(SECRET_KEY),false);assert.throws(()=>auth.assertCurrentNow(ticket),/account or sign-in changed/);
 });
 
@@ -324,7 +324,7 @@ test('pending signout rejects automatic refresh, capture and new signin before i
  while(auth.busy)await new Promise(resolve=>setImmediate(resolve));
  assert.equal(f.data.has(SECRET_KEY),true,'Removal has not reached storage or acquired its lock');
  assert.equal(auth.signedIn,false,'The removal event must not refresh the old record back into the facade');
- await assert.rejects(auth.capture(),/Sign in to GitHub/);
+ await assert.rejects(auth.capture(),/Sign in to Zero/);
  await assert.rejects(f.provider.getSessions([]),error=>error.code==='connection-removing');
  await assert.rejects(f.provider.getSessionsForOperation(source,[]),error=>error.code==='connection-removing');
  await assert.rejects(f.provider.createSession([]),error=>error.code==='connection-removing');

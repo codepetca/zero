@@ -33,7 +33,7 @@ async function accountFor(record, fetchImpl, signal) {
   }
   return {id:String(user.id), label:user.login};
 }
-function createGitHubAppProvider({vscode, context, configuration, fetchImpl = globalThis.fetch, now = Date.now, onDiagnostic = () => {}, browserOptions = {}, assertBinding = async()=>{}}) {
+function createGitHubAppProvider({vscode, context, configuration, fetchImpl = globalThis.fetch, now = Date.now, onDiagnostic = () => {}, browserOptions = {}, assertBinding = async()=>{}, requestWorkOSGrant}) {
   const emitter = new vscode.EventEmitter();
   let disposed = false, cached, signInPromise, verifiedConfiguration, pendingRemovals = 0;
   let identityRevision = 0;
@@ -193,53 +193,84 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
       return [result];
     }, signal);
   }
-  async function signIn(controller) {
-    assertAvailable(controller.signal);
-    await assertBinding();
-    assertAvailable(controller.signal);
+  async function workOSPair(loadGrant, signal) {
+    const grant = await loadGrant(signal);
+    assertAvailable(signal);
+    const {githubId, githubRefreshToken} = grant || {};
+    if (typeof githubId !== 'string' || !/^[1-9][0-9]*$/.test(githubId) ||
+        typeof githubRefreshToken !== 'string' || !/^ghr_[A-Za-z0-9_]{10,512}$/.test(githubRefreshToken)) {
+      throw failure('workos-grant-missing', 'Zero did not receive GitHub access. Sign in to Zero again to retry.');
+    }
+    await assertBinding(githubId);
+    assertAvailable(signal);
+    // GitHub's refresh for the pinned App verifies the grant and returns the
+    // authoritative expiries. Store the rotated pair, never the input grant.
+    const pair = await refreshBrowserTokens({
+      ...browserOptions, configuration, refreshToken:githubRefreshToken, fetchImpl, now, signal,
+    });
+    assertAvailable(signal);
+    await verifyApp(configuration, fetchImpl, signal, pair.accessToken);
+    return {pair, expectedAccountId:githubId};
+  }
+  async function completeSignIn(signal, acquirePair) {
+    assertAvailable(signal);
     // Reject non-local storage before issuing any authorization request.
     lock ||= createCredentialLock({globalStorageUri:context.globalStorageUri, now});
-    await verifyApp(configuration, fetchImpl, controller.signal);
-    assertAvailable(controller.signal);
     const baseline = await store.raw();
-    assertAvailable(controller.signal);
+    assertAvailable(signal);
+    const {pair, expectedAccountId} = await acquirePair(signal);
+    assertAvailable(signal);
+    const account = await accountFor(pair, fetchImpl, signal);
+    if (expectedAccountId && account.id !== expectedAccountId) {
+      throw failure('workos-identity-binding', 'The GitHub account does not match your Zero account. Sign in with the same account.');
+    }
+    await assertBinding(account.id);
+    assertAvailable(signal);
+    const record = await withLock(async () => {
+      assertAvailable(signal);
+      if (await store.raw() !== baseline) throw failure('connection-changed', 'Another Zero window changed the connection. Try sign-in again.');
+      assertAvailable(signal);
+      await assertBinding(account.id);
+      assertAvailable(signal);
+      const record = {schema:1, app:binding(configuration), sessionId:randomUUID(), account, ...pair, flow:'browser',state:'active'};
+      await store.write(record);
+      assertAvailable(signal);
+      // The receipt can change while SecretStorage is writing. Do not emit
+      // or return a session unless the binding still matches afterward.
+      await assertBinding(account.id);
+      assertAvailable(signal);
+      return record;
+    }, signal);
+    // Lock release itself is asynchronous. Recheck both the stored record
+    // and the WorkOS binding after release before exposing the session.
+    assertAvailable(signal);
+    if (await store.raw() !== JSON.stringify(record)) throw failure('connection-changed', 'Another Zero window changed the connection. Try sign-in again.');
+    await assertBinding(account.id);
+    assertAvailable(signal);
+    const result = session(record); cached = result;
+    emitter.fire({added:[result], changed:[], removed:[]});
+    return result;
+  }
+  async function signIn(controller) {
     const run = async (progress, cancellation) => {
       const cancellationSubscription = cancellation?.onCancellationRequested(() => controller.abort());
       try {
         if (cancellation?.isCancellationRequested) controller.abort();
-        assertAvailable(controller.signal);
-        const pair = await browserFlow({...browserOptions,configuration,vscode,fetchImpl,now,signal:controller.signal,onProgress:message=>progress.report({message})});
-        assertAvailable(controller.signal);
-        const account = await accountFor(pair, fetchImpl, controller.signal);
-        await assertBinding(account.id);
-        assertAvailable(controller.signal);
-        const record = await withLock(async () => {
-          assertAvailable(controller.signal);
-          if (await store.raw() !== baseline) throw failure('connection-changed', 'Another Zero window changed the connection. Try sign-in again.');
-          assertAvailable(controller.signal);
-          await assertBinding(account.id);
-          assertAvailable(controller.signal);
-          const record = {schema:1, app:binding(configuration), sessionId:randomUUID(), account, ...pair, flow:'browser',state:'active'};
-          await store.write(record);
-          assertAvailable(controller.signal);
-          // The receipt can change while SecretStorage is writing. Do not emit
-          // or return a session unless the binding still matches afterward.
-          await assertBinding(account.id);
-          assertAvailable(controller.signal);
-          return record;
-        }, controller.signal);
-        // Lock release itself is asynchronous. Recheck both the stored record
-        // and the WorkOS binding after release before exposing the session.
-        assertAvailable(controller.signal);
-        if (await store.raw() !== JSON.stringify(record)) throw failure('connection-changed', 'Another Zero window changed the connection. Try sign-in again.');
-        await assertBinding(account.id);
-        assertAvailable(controller.signal);
-        const result = session(record); cached = result;
-        emitter.fire({added:[result], changed:[], removed:[]});
-        return result;
+        return await completeSignIn(controller.signal, async signal => {
+          if (requestWorkOSGrant) return workOSPair(requestWorkOSGrant, signal);
+          await assertBinding();
+          assertAvailable(signal);
+          await verifyApp(configuration, fetchImpl, signal);
+          const pair = await browserFlow({
+            ...browserOptions, configuration, vscode, fetchImpl, now, signal,
+            onProgress:message=>progress.report({message}),
+          });
+          return {pair};
+        });
       } finally { cancellationSubscription?.dispose(); }
     };
-    return vscode.window.withProgress({location:vscode.ProgressLocation.Notification, title:'Connecting Zero to GitHub', cancellable:true}, run);
+    const title = requestWorkOSGrant ? 'Signing in to Zero' : 'Connecting Zero to GitHub';
+    return vscode.window.withProgress({location:vscode.ProgressLocation.Notification, title, cancellable:true}, run);
   }
   return {
     onDidChangeSessions:emitter.event,
@@ -260,9 +291,17 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
       const sessions = await operation(controller => load(controller.signal, expected));
       return options?.account ? sessions.filter(value => value.account.id === options.account.id) : sessions;
     },
+    // First use already owns an editor progress notification. Run the same
+    // credential transaction around that explicit WorkOS browser connection.
+    async connectWithWorkOS(loadGrant, signal) {
+      return operation(controller => {
+        const active = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
+        return completeSignIn(active, () => workOSPair(loadGrant, active));
+      });
+    },
     async createSession(scopes,options={}) {
       supportedScopes(scopes); assertAvailable();
-      if(options.method!==undefined&&options.method!=='browser')throw failure('unsupported-method','Sign in to GitHub using your browser.');
+      if(options.method!==undefined&&options.method!=='browser')throw failure('unsupported-method','Sign in to Zero using your browser.');
       if (!signInPromise) signInPromise = operation(controller=>signIn(controller)).finally(() => { signInPromise = undefined; });
       return signInPromise;
     },

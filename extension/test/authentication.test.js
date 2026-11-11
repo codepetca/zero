@@ -15,7 +15,7 @@ const session = (account = 'student', token = 'TEST_SECRET') => ({id:'session',a
 test('activation/revalidation are silent and only explicit sign-in can create/select a native session', async () => {
   const f = fixture(); const auth = createAuthentication(f.api);
   await auth.refresh(); assert.equal(auth.signedIn,false); assert.equal(auth.accountLabel,undefined); assert.equal(auth.status,'Not signed in');
-  await assert.rejects(auth.capture(), /Sign in to GitHub/);
+  await assert.rejects(auth.capture(), /Sign in to Zero/);
   assert.ok(f.calls.every(call => call.provider === 'zero-github' && call.scopes.length === 0 && call.options.silent));
   f.set(session()); await auth.signIn(); assert.equal(auth.status,'Signed in as student'); assert.equal(auth.accountLabel,'student');
   assert.deepEqual(f.calls.at(-1).options,{createIfNone:true});
@@ -72,7 +72,7 @@ test('session ID drift invalidates tickets while the built-in GitHub provider ca
 });
 test('cancelled interactive sign-in without a session remains disconnected',async()=>{
   const f=fixture();const auth=createAuthentication(f.api);
-  await assert.rejects(auth.signIn(),/Sign in to GitHub/);assert.equal(auth.signedIn,false);
+  await assert.rejects(auth.signIn(),/Sign in to Zero/);assert.equal(auth.signedIn,false);
   assert.ok(f.calls.every(call=>call.provider==='zero-github'&&call.scopes.length===0));auth.dispose();
 });
 test('busy includes queued, active and session-event renewal until completion or failure',async()=>{
@@ -121,7 +121,7 @@ test('owned provider preserves account hints, token drift and fail-closed sessio
 test('unconfigured or failing owned providers cannot prompt from silent reads or leak errors',async()=>{
   const {ownedProviderApi}=require('../src/authentication');
   const offline=createAuthentication(ownedProviderApi(null));await offline.refresh();assert.equal(offline.status,'Not signed in');
-  await assert.rejects(offline.signIn(),/Sign in to GitHub/);offline.dispose();
+  await assert.rejects(offline.signIn(),/Sign in to Zero/);offline.dispose();
   const f=ownedFixture();f.fail();const auth=createAuthentication(ownedProviderApi(f.provider));
   await auth.refresh();await assert.rejects(auth.signIn(),error=>/unavailable/.test(error.message)&&!error.message.includes('PRIVATE'));
   assert.equal(f.calls.some(call=>call.method==='createSession'),false);auth.dispose();

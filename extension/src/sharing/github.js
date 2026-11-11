@@ -44,7 +44,7 @@ function createGitHubReader({fetcher=fetch,publicFetcher=publicReadiness,token,t
     return jsonResponse(response,maximum);
   }
   async function authenticatedUser({signal}={}){
-    if(!token)fail('Sign in to GitHub before sharing.');
+    if(!token)fail('Sign in to Zero before sharing.');
     const user=await read('/user',{signal});
     if(user.type!=='User'||typeof user.login!=='string'||! /^[A-Za-z0-9-]+$/.test(user.login))fail('GitHub did not return a personal account.');
     return {githubId:githubId(user.id),login:user.login};

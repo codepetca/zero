@@ -6,7 +6,7 @@ const {isWorkOSClientId} = require('./workos-configuration');
 const {createCredentialLock} = require('./github-app/credential-store');
 
 // This local receipt is not a GitHub credential or a cloud authorization.
-function createWorkOSFirstUse({vscode, context, required, clientId, accounts: injectedAccounts}) {
+function createWorkOSFirstUse({vscode, context, required, clientId, accounts: injectedAccounts, connectGitHub}) {
   if (!required) return {enabled:false, ensure:async () => true, dispose() {}};
   let lock;
   const withLock = (callback, signal) => {
@@ -29,17 +29,35 @@ function createWorkOSFirstUse({vscode, context, required, clientId, accounts: in
     if (receipt && (!upgrade || receipt.githubId)) return !lifetime.signal.aborted;
     if (lifetime.signal.aborted) return false;
     const choice = await vscode.window.showInformationMessage(
-      upgrade ? 'Connect the same Zero account again to verify your GitHub account for online features.' : 'Connect Zero with GitHub to get started. After connecting, you can use this editor offline.',
-      {modal:true}, 'Continue with GitHub');
-    if (choice !== 'Continue with GitHub' || lifetime.signal.aborted) return false;
+      upgrade ? 'Use the same GitHub account to sign in to Zero again.' : 'Use your GitHub account to sign in to Zero. You can work on local projects offline after signing in.',
+      {modal:true}, 'Sign in to Zero');
+    if (choice !== 'Sign in to Zero' || lifetime.signal.aborted) return false;
     const result = await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,
-      title:'Waiting for GitHub sign-in', cancellable:true}, async (_progress, token) => {
+      title:'Signing in to Zero', cancellable:true}, async (_progress, token) => {
       const cancelled = new AbortController();
       const subscription = token.onCancellationRequested(() => cancelled.abort());
       if (token.isCancellationRequested) cancelled.abort();
       const signal = AbortSignal.any([cancelled.signal, lifetime.signal]);
+      let attempted = false, saved = false;
+      const authenticate = async active => {
+        attempted = true;
+        const grant = await accounts.signIn(active);
+        saved = true;
+        return grant;
+      };
       try {
-        await accounts.signIn(signal);
+        if (connectGitHub) {
+          try { await connectGitHub(authenticate, signal); }
+          catch (error) {
+            if (signal.aborted) return 'cancelled';
+            if (saved) return 'local-only';
+            if (attempted) throw error;
+            await authenticate(signal);
+            return 'local-only';
+          }
+        } else {
+          await authenticate(signal);
+        }
         return signal.aborted ? 'cancelled' : 'connected';
       } catch {
         return signal.aborted ? 'cancelled' : 'failed';
@@ -49,8 +67,10 @@ function createWorkOSFirstUse({vscode, context, required, clientId, accounts: in
     // A notification can stay open until dismissed. Release progress and allow
     // a retry independently of whether the user dismisses the warning.
     if (result === 'failed') void vscode.window.showWarningMessage(
-      'GitHub sign-in did not complete. Check the connection and try again.').then(undefined, () => {});
-    return result === 'connected';
+      'Zero sign-in did not complete. Check the connection and try again.').then(undefined, () => {});
+    if (result === 'local-only') void vscode.window.showWarningMessage(
+      'Zero saved your account for local work. Sign in to Zero again to connect GitHub.').then(undefined, () => {});
+    return result === 'connected' || (result === 'local-only' && !upgrade);
   }
   return {
     enabled:true,
@@ -77,6 +97,12 @@ function createWorkOSFirstUse({vscode, context, required, clientId, accounts: in
         return connect(true);
       })().finally(() => {upgradePending = undefined;});
       return upgradePending;
+    },
+    async requestGitHubGrant(signal) {
+      if (!accounts) throw new Error('This copy of Zero is missing its sign-in setup.');
+      const active = signal ? AbortSignal.any([lifetime.signal, signal]) : lifetime.signal;
+      active.throwIfAborted();
+      return accounts.signIn(active);
     },
     async assertBinding(accountId) {
       const receipt = await accounts?.read();

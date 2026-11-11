@@ -31,6 +31,13 @@ test('managed Hub account uses the Zero sign-out form',()=>{
   assert.doesNotMatch(account(managed,{showSignOut:false}),/<form/);
 });
 
+test('managed sign-in is named for Zero while legacy sign-in retains GitHub',()=>{
+  assert.match(account({...connection(null),managed:true}),/>Sign in to Zero</);
+  assert.match(account({...connection(null),managed:true}),/Use your GitHub account/);
+  assert.match(account(connection(null)),/>Sign in to GitHub</);
+  assert.match(account({...connection(null),managed:true},{signInLabel:'Reconnect GitHub to Zero'}),/>Reconnect GitHub to Zero</);
+});
+
 test('sign-in follows the selected Hub pane',()=>{
   const html=account({...connection(null),returnTo:'/hub/listings'});
   assert.match(html,/href="\/api\/hub\/github\/login\?returnTo=%2Fhub%2Flistings"/);

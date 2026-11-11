@@ -59,10 +59,11 @@ export function AccountMenu({dark, onToggleTheme, platform, onChangePlatform}: {
       {!user && zeroUser ? <>
         <span className="account-identity">Signed in to Zero</span>
         <form action="/zero-account/sign-out" method="post"><button type="submit">Sign out</button></form>
+        {configured === true && <span>GitHub connection was not completed. Reconnect to use ZeroHub.</span>}
         {(configured || error || callbackError) && <HubAccount showSignOut={false}
-          signInLabel="Connect GitHub to ZeroHub" onRetryComplete={() => trigger.current?.focus()} />}
+          signInLabel="Reconnect GitHub to Zero" onRetryComplete={() => trigger.current?.focus()} />}
       </> : !user && configured !== true && zeroAccount?.configured ?
-        <a href="/zero-account/sign-in">Sign in to GitHub</a> :
+        <><a href="/zero-account/sign-in">Sign in to Zero</a><span>Use your GitHub account.</span></> :
         <HubAccount onSignedOut={() => {setOpen(false); trigger.current?.focus();}} onRetryComplete={() => trigger.current?.focus()} />}
       {!signedIn && zeroAccountError && <p role="status">Could not check your Zero account. Reload to try again.</p>}
       <fieldset className="platform-setting">

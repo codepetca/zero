@@ -132,7 +132,7 @@
       },
       {
         "command": "zero.signInToGitHub",
-        "title": "Zero: Sign in to GitHub"
+        "title": "Zero: Sign in"
       },
       {
         "command": "zero.createRepository",

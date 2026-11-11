@@ -77,7 +77,7 @@ test('trusted workspace, Zero sign-in, Askpass and provider isolation are requir
     [f=>{delete f.configuration.git.terminalAuthentication;},/Terminal Authentication/],
     [f=>{f.configuration.github.gitAuthentication=true;},/does not compete/],
     [f=>{delete f.configuration.github.gitAuthentication;},/GitHub: Git Authentication/],
-    [f=>{f.setSession(undefined);},/Sign in to GitHub in Zero/]
+    [f=>{f.setSession(undefined);},/Sign in to Zero/]
   ];
   for (const [change,message] of cases) {
     const f=fixture();change(f);const before=JSON.stringify(f.configuration);await f.bridge.refresh();

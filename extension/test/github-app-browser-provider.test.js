@@ -8,6 +8,9 @@ const {createGitHubAppProvider}=require('../src/github-app/provider');
 const {githubAppConfiguration}=require('../src/github-app/config');
 const {SECRET_KEY}=require('../src/github-app/credential-store');
 const {createAuthentication,ownedProviderApi}=require('../src/authentication');
+const {createDesktopAccounts,STORAGE_KEY}=require('../src/desktop.cjs');
+const {createWorkOS}=require('../src/workos.cjs');
+const {createWorkOSFirstUse}=require('../src/workos-first-use');
 const configuration=githubAppConfiguration();
 const pair={access_token:'ghu_browseraccessabcdefgh',refresh_token:'ghr_browserrefreshabcdefgh',expires_in:28800,refresh_token_expires_in:15897600,token_type:'bearer',scope:''};
 class Emitter{constructor(){this.listeners=new Set();this.event=fn=>{this.listeners.add(fn);return{dispose:()=>this.listeners.delete(fn)}};}fire(value){for(const fn of this.listeners)fn(value);}dispose(){this.listeners.clear();}}
@@ -42,7 +45,7 @@ async function fixture(t,{enabled=true,hooks={}}={}){
   assert.equal(callback.status,303);assert.doesNotMatch(callback.headers.get('location'),/ghu_|ghr_/);
   assert.equal((await fetch(callback.headers.get('location'))).status,200);return true;
  }},window:{showInformationMessage:async message=>{messages.push(message);assert.fail('Browser sign-in must not offer a code fallback');},withProgress:async(_options,run)=>run({report:value=>progress.push(value)},{isCancellationRequested:false,onCancellationRequested:listener=>{cancelListener=listener;return{dispose(){}};}})}};
- const create=(assertBinding)=>{const provider=createGitHubAppProvider({vscode,context,configuration,fetchImpl,now:()=>time,...(assertBinding?{assertBinding}:{})});t.after(()=>provider.dispose());return provider;};
+ const create=(assertBinding,requestWorkOSGrant)=>{const provider=createGitHubAppProvider({vscode,context,configuration,fetchImpl,now:()=>time,...(assertBinding?{assertBinding}:{}),requestWorkOSGrant});t.after(()=>provider.dispose());return provider;};
  const provider=create();
  return{provider,create,vscode,context,user,data,calls,messages,opens,progress,cancel:()=>cancelListener?.(),advance:()=>{time+=28800000;},failRefresh:()=>{failRefresh=true;},get exchanges(){return exchanges;},get refreshes(){return refreshes;}};
 }
@@ -53,6 +56,70 @@ test('real browser client/server modules complete PKCE, store a separate browser
  f.advance();const [renewed]=await f.provider.getSessions([]);assert.equal(renewed.accessToken,'ghu_rotatedabcdefgh');assert.equal(f.refreshes,1);
  saved=JSON.parse(f.data.get(SECRET_KEY));assert.equal(saved.flow,'browser');assert.equal(saved.refreshToken,'ghr_rotatedabcdefgh');
  assert.equal(f.calls.some(url=>url==='https://github.com/login/oauth/access_token'),false);
+});
+
+test('one WorkOS callback connects Zero and GitHub, and saved access renews without a browser',async t=>{
+ const f=await fixture(t);
+ const workosRefresh='ghr_workosrefreshabcdefgh';
+ const workos=createWorkOS('client_test',async url=>{
+  if(url==='https://api.github.com/user') return Response.json(f.user);
+  assert.equal(url,'https://api.workos.com/user_management/authenticate');
+  return Response.json({
+   authentication_method:'GitHubOAuth', user:{id:'user_test'},
+   oauth_tokens:{access_token:'ghu_workosaccessabcdefgh',refresh_token:workosRefresh},
+  });
+ });
+ let workosOpens=0, provider;
+ const accounts=createDesktopAccounts({
+  clientId:'client_test', workos, secrets:f.context.secrets, withLock:async callback=>callback(),
+  openBrowser:async url=>{
+   workosOpens++;
+   const authorize=new URL(url), callback=new URL(authorize.searchParams.get('redirect_uri'));
+   callback.searchParams.set('state',authorize.searchParams.get('state'));
+   callback.searchParams.set('code','fixture_code');
+   assert.equal((await fetch(callback)).status,200);
+   return true;
+  },
+ });
+ f.vscode.window.showInformationMessage=async()=> 'Sign in to Zero';
+ const gate=createWorkOSFirstUse({vscode:f.vscode, context:f.context, required:true,
+  clientId:'client_test', accounts, connectGitHub:(open,signal)=>provider.connectWithWorkOS(open,signal)});
+ t.after(()=>gate.dispose());
+ provider=f.create(gate.assertBinding,gate.requestGitHubGrant);
+ const auth=createAuthentication(ownedProviderApi(provider,gate),undefined,undefined,undefined,undefined,gate);
+ t.after(()=>auth.dispose());
+
+ assert.equal(await gate.ensure(),true);
+ await auth.signIn();
+ assert.equal(auth.accountId,'42');
+ assert.equal(workosOpens,1);
+ assert.equal(f.opens.length,0);
+ assert.equal(f.exchanges,0);
+ assert.equal(f.refreshes,1);
+ assert.equal(JSON.parse(f.data.get(SECRET_KEY)).refreshToken,'ghr_rotatedabcdefgh');
+ assert.deepEqual(JSON.parse(f.data.get(STORAGE_KEY)),{version:1,clientId:'client_test',id:'user_test',githubId:'42'});
+ assert.equal([...f.data.values()].some(value=>value.includes(workosRefresh)),false);
+
+ f.advance();
+ await auth.refresh();
+ assert.equal(auth.accountId,'42');
+ assert.equal(f.refreshes,2);
+ assert.equal(workosOpens,1);
+});
+
+test('managed sign-in rejects a missing or mismatched grant without launching a second sign-in',async t=>{
+ const f=await fixture(t);
+ const binding=async id=>{if(id) assert.equal(id,'42');};
+ let grant={githubId:'42'};
+ const provider=f.create(binding,async()=>grant);
+ await assert.rejects(provider.createSession([]),error=>error.code==='workos-grant-missing');
+ assert.equal(f.refreshes,0);
+ grant={githubId:'42',githubRefreshToken:'ghr_workosrefreshabcdefgh'};
+ f.user.id=99;
+ await assert.rejects(provider.createSession([]),error=>error.code==='workos-identity-binding');
+ assert.equal(f.refreshes,1);
+ assert.equal(f.opens.length,0);
+ assert.equal(f.data.has(SECRET_KEY),false);
 });
 test('an unavailable server fails without a device request, fallback dialog or stored credentials',async t=>{
  const f=await fixture(t,{enabled:false});
