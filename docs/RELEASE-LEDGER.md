@@ -37,9 +37,23 @@ Gatekeeper and bundled payload checks passed. The sealed candidate targets
 `70be6e6f767482b6f2230254ca4fce4bbb33769c`. Its 13 checksums and signed
 build 71 appcast passed independent Terra/medium review. Both the authenticated
 draft and anonymous public download match the sealed DMG. The packaged VSIX
-installed into an isolated Mac editor profile. Verify the deployed download
-and appcast after this promotion merges. Installed app sign-in and fresh
-physical Mac installation remain separate checks.
+installed into an isolated Mac editor profile. After
+[PR #326](https://github.com/codepetca/zero/pull/326) merged, the production
+download links and exact signed appcast passed verification. Installed app
+sign-in and a fresh physical Mac installation remain separate checks.
+
+[Windows run 43048691959](https://github.com/codepetca/zero/actions/runs/43048691959)
+tested the source tree merged in PR #323. The
+[unsigned x64 preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.71)
+and [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.71)
+match the reviewed Windows artifacts byte for byte. The kit is the ZIP embedded
+in that installer. Hosted setup, reopen, private JavaFX and cached offline
+rebuild passed. Automatic updates are disabled for the preview.
+
+The same Windows run built the original x64 Store MSIX `1.5.71.0` and
+verified a separately test-signed copy through install and first run. The
+original package is for the separate Store submission. WACK, physical Windows
+installation and Store update delivery remain unverified for this build.
 
 ## Zero 0.5.69 — 2026-11-10
 
