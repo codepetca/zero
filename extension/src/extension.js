@@ -14,6 +14,7 @@ const {guardedRunner} = require('./git-filter-guard');
 const {readStudentFileStatus} = require('./student-file-status');
 const {nativeBuildIdentity,createNativeRuntimeExecution} = require('./native-runtime-task');
 const {verifyManagedJava} = require('./managed-java');
+const {registerJavaRun} = require('./java-run');
 const {createNativeCompilerDiagnostics} = require('./native-compiler-diagnostics');
 const lessonProjects = require('./lesson-projects');
 const github = require('./github');
@@ -3325,6 +3326,7 @@ function activate(context, services = {}) {
       }else if(!sidebarGit)vscode.window.showErrorMessage(`Zero: ${display}`);
     }
   }));
+  if (vscode.debug?.registerDebugConfigurationProvider) context.subscriptions.push(registerJavaRun(vscode));
   function render(webview, studentView = false) {
     const nonce = crypto.randomBytes(16).toString('hex');
     const disabled = isBusy() ? 'disabled' : '';

@@ -363,6 +363,12 @@ earlier downloads retain their bundled behavior. Run
 `npm run test:web` and `npm run verify:web` when changing these boundaries.
 `npm run check` rejects unreviewed helper inventory/fingerprint drift.
 
+The Java Debugger's standard **Run Java** launch also uses Zero's native run
+when it targets the Maven JavaFX entry point in the active Zero project.
+The supported VS Code debug configuration hook passes the project root to
+`zero.runApp`. Java debugging, custom launch configurations and other main
+classes follow the Java Debugger's usual flow.
+
 The Mac 0.5.43 Run split button keeps native Run/Stop as its primary action.
 Its arrow opens Publish app for a ready, connected project and is disabled during
 Run/Stop. It shares anchored-menu keyboard/focus behavior with New; both menus

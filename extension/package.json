@@ -14,6 +14,7 @@
   "main": "./src/extension.js",
   "activationEvents": [
     "onStartupFinished",
+    "onDebugResolve:java",
     "workspaceContains:zero.json",
     "workspaceContains:student-template/zero.json",
     "onTaskType:zero",
