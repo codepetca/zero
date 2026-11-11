@@ -1,3 +1,24 @@
+# Zero desktop browser launch — 2026-11-11
+
+Local source `cfe10fa79` opens a one-use URL on the existing loopback listener
+when a student signs in. The listener redirects the default browser to the
+WorkOS authorization URL for that attempt. VS Code uses its existing loopback
+trust rule. The WorkOS callback and credential exchange retain their existing
+checks.
+
+All 153 focused authentication and upload tests, `npm run check`, and
+`git diff --check` passed. In a fresh macOS VS Code 1.145.2 profile, the real
+external-opening API launched the default browser and returned through the
+loopback callback with a fixture provider and no interaction with an
+external-site prompt. Live WorkOS sign-in and Windows remain unverified.
+
+An independent Terra/medium review of `83f3f1227..cfe10fa79` found no
+actionable issues in the redirect, callback compatibility or retry behavior.
+One reviewer launch and one wave completed with no fix batches. The change
+is local.
+
+---
+
 # Zero homepage refinements — 2026-11-11
 
 The owner approved the larger “Starting from zero” subtitle, four short
