@@ -24,7 +24,7 @@ test('review endpoints use source data and published fallback without exposing d
     const homeHtml = await (await fetch(`${origin}/web?theme=dark&screen=home`)).text();
     assert.match(homeHtml, /<h1>Learn to Build<\/h1>/);
     assert.match(homeHtml, /Starting from zero/);
-    assert.match(homeHtml, /practice GitHub workflows, learn to read documentation, and publish your work/);
+    assert.ok(homeHtml.includes('Build Java apps and games. Practice GitHub workflows. Learn to use the API. Publish your work to the web.'));
     const downloadHtml = await (await fetch(`${origin}/web?theme=dark&screen=downloads`)).text();
     assert.match(downloadHtml, /Download Zero/);
     assert.doesNotMatch(downloadHtml, /Learn to Build|id="lessons"/);

@@ -19,7 +19,7 @@ export function Downloads() {
         {mac && <a className="button primary compact" href={mac}><AppleIcon />Get Zero for Mac Silicon{installer.publication.status === 'local' && ' (local preview)'}</a>}
         <a className="button primary compact" href={WINDOWS_STORE_LISTING}><WindowsIcon />Get Zero for Windows</a>
       </div>
-      <p className="source-note">Current Zero source is free for individual personal use; schools and organizations need a paid license.</p>
+      <p className="source-note">Zero is free for individual personal use. Schools and organizations require a paid license.</p>
     </section>
   );
 }
