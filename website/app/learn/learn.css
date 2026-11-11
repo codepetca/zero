@@ -393,7 +393,10 @@ html:has(.learn-theme),
 }
 .learn-theme .home-page .hub-lead {
   margin-bottom: var(--zero-space-3);
-  font-size: clamp(2rem, 5.25vw, 2.625rem);
+  font-size: clamp(1.625rem, 3.5vw + 0.125rem, 2.125rem);
+}
+.learn-theme .home-subtitle-accent {
+  color: var(--zero-accent);
 }
 .learn-theme .home-description {
   max-width: 44ch;
