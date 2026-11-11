@@ -1,3 +1,22 @@
+# Zero homepage refinements — 2026-11-11
+
+The owner approved the larger “Starting from zero” subtitle, four short
+description sentences, the download license note and the shared footer links
+without underlines. The homepage and design preview share
+`website/content/home.json`. The homepage also uses that description in its
+metadata.
+
+The local browser showed the approved text and layout in light and dark themes,
+including the single-line 32 px subtitle at a 320 CSS px viewport and visible
+keyboard focus on the footer links. Independent Luna/medium review of the
+initial candidate `32bb9dc7c` found no actionable issues. The initial CI scope
+included Windows packaging, where the immutable 0.5.71 kit guard correctly
+refused a rebuild. The follow-up limits the description to the homepage and its
+preview. See [PR #328](https://github.com/codepetca/zero/pull/328) for final
+review, checks and deployment.
+
+---
+
 # Integrated Zero sign-in source review — 2026-11-11
 
 PR #323 combines the one-trip sign-in, editor progress and the centered browser
