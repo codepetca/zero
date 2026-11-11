@@ -1,3 +1,24 @@
+# Desktop GitHub sign-in retry — 2026-11-11
+
+Zero 0.5.69's desktop sign-in reached the browser callback, but a production
+WorkOS exchange with the existing browser session returned HTTP 200 with the
+GitHub sign-in method and no GitHub provider token. The same local diagnostic
+using AuthKit's `max_age=0` returned the provider token and verified the personal
+account with GitHub. The diagnostic used the installed modules and an in-memory
+receipt; it did not connect the installed editor or retain tokens.
+
+Local fix `423cc2002` requests fresh authentication on explicit WorkOS
+connections and ends VS Code progress before showing a failure warning, so
+retry does not wait for dismissal. The existing identity and storage checks
+remain in place. Both regressions reproduced before their respective fixes;
+88 focused authentication tests, `npm run check` and `git diff --check` passed.
+One independent Terra/medium review of `3b7ce8afe..423cc2002` found no
+actionable issues. Effective model and usage telemetry were unavailable.
+No updated editor build was installed or released; the native editor flow
+with the patch and Windows remain unverified.
+
+---
+
 # ZeroHub Projects pagination and text fades — 2026-11-10
 
 Local branch `codex/zerohub-project-pages` is based on PR #318's
