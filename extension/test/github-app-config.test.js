@@ -9,6 +9,6 @@ test('packaged App pins the owner-approved public Codepet registration',()=>{
 test('the reviewed App identity pins base and staged optional permissions without workspace overrides',()=>{
   const app=githubAppConfiguration(configured);assert.ok(Object.isFrozen(app));assert.ok(Object.isFrozen(app.permissions));
   assert.equal(app.clientId,configured.clientId);assert.equal(PERMISSIONS.repository_creation,'write');assert.equal(PERMISSIONS.administration,undefined);
-  assert.deepEqual(OPTIONAL_PERMISSIONS,{administration:'write',email_addresses:'read'});assert.equal(app.optionalPermissions,OPTIONAL_PERMISSIONS);assert.ok(Object.isFrozen(app.optionalPermissions));
+  assert.deepEqual(OPTIONAL_PERMISSIONS,{administration:'write',email_addresses:'read',emails:'read'});assert.equal(app.optionalPermissions,OPTIONAL_PERMISSIONS);assert.ok(Object.isFrozen(app.optionalPermissions));
   for(const patch of [{owner:'other'},{websiteOrigin:'http://127.0.0.1:1234'},{clientId:'bad'},{appId:0},{slug:'../evil'},{secret:'must-not-ship'},{status:'unconfigured'}])assert.throws(()=>githubAppConfiguration({...configured,...patch}));
 });

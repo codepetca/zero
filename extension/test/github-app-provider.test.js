@@ -179,11 +179,11 @@ test('lock repair diagnostic reaches Zero Output callback even when authenticati
 
 test('staged optional permissions support rollout without accepting stronger or unknown grants',async t=>{
  const config={...configuration,optionalPermissions:OPTIONAL_PERMISSIONS};
- for(const added of [{},{administration:'write'},{email_addresses:'read'},{administration:'write',email_addresses:'read'}]){
+ for(const added of [{},{administration:'write'},{email_addresses:'read'},{administration:'write',email_addresses:'read'},{administration:'write',emails:'read'}]){
   const f=await fixture(t,{config,overrides:{fetch:async url=>response(url.includes('/apps/')?{...metadata,permissions:{...permissions,...added}}:{id:42,login:'learner',type:'User'})}});
   assert.equal((await f.provider.getSessions([]))[0].account.id,'42');
  }
- for(const changed of [{administration:'read'},{email_addresses:'write'},{email_addresses:'admin'},{email_addresses:'read',issues:'write'},{pages:'read'}]){
+ for(const changed of [{administration:'read'},{email_addresses:'write'},{email_addresses:'admin'},{email_addresses:'read',issues:'write'},{emails:'write'},{emails:'read',issues:'write'},{pages:'read'}]){
   const f=await fixture(t,{config,overrides:{fetch:async()=>response({...metadata,permissions:{...permissions,...changed}})}});
   await assert.rejects(f.provider.getSessions([]),error=>error.code==='app-mismatch');
  }
