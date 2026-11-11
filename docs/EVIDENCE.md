@@ -31,7 +31,13 @@ the existing browser profile. The trace recorded a saved WorkOS receipt and
 a verified GitHub App session after two browser handoffs. Temporary tracing
 was removed. The 0.5.70 Mac draft is unpublished and superseded. The owner
 asked whether both handoffs can use a single GitHub sign-in, so publication
-remains on hold while we verify the available provider grant.
+remains on hold. A follow-up production WorkOS exchange returned both a
+GitHub App access token and a GitHub refresh token. The access token reached
+the pinned App's repository installation and verified the personal account.
+WorkOS did not provide a refresh expiry, and the returned access expiry did
+not pass Zero's eight-hour check. Rotation through the existing desktop
+broker for that WorkOS-issued grant remains unverified. The probe used memory
+only and logged field presence and status, without logging tokens.
 
 ---
 
