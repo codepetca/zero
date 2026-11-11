@@ -21,11 +21,26 @@ The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
 
-## Zero 0.5.72 candidate — 2026-11-11
+## Zero 0.5.72 — 2026-11-11
 
-The owner passed the live Mac Zero Dev smoke test for the WorkOS browser
-launch and authorized the full Mac and kit release. Live Windows testing
-was waived. Core remains 0.3.0.
+[PR #329](https://github.com/codepetca/zero/pull/329) merged both fixes at
+`7abbc446847d94c5b138d7d6f19d1eac4740a7bb` after all 11 checks passed.
+The [kit release](https://github.com/codepetca/zero/releases/tag/v0.5.72)
+contains the three anonymously verified assets from
+[run 43071603930](https://github.com/codepetca/zero/actions/runs/43071603930)
+at `d6ba1b8fecec5887805b24c2ad7aa5953184fbfb`. Core remains 0.3.0.
+
+The [Mac installer](https://github.com/codepetca/zero/releases/tag/setup-v0.5.72)
+is built from `873c05a7a1f9574c2c4bcf27593c9f14ea60b313` and sealed at
+`3c5559a2d21ea3498247d418cf560c12c134b6be`. Apple accepted notarization
+`64978c27-3d75-44f8-9805-97c2dd6f9cd4`. The public DMG matches the sealed
+copy. Independent Terra/medium review verified the 13 checksums, the
+signed build 72 appcast and the packaged extension source for both fixes.
+The later source correction updated only the website's published-kit test.
+
+Live WorkOS sign-in and the JavaFX launch from **Run Java** passed on Mac.
+The owner waived live Windows sign-in. The automated Windows installer
+checks passed. Verify the website download and appcast after promotion.
 
 ## Zero 0.5.71 — 2026-11-11
 
