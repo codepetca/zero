@@ -37,6 +37,26 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 2
+      - name: Install native audio and window manager packages
+        if: needs.scope.outputs.native == 'true' || needs.scope.outputs.lessons == 'true'
+        run: |
+          # Keep Ubuntu's suites, components and signing key. Probe mirrors
+          # before apt retries each package against a host that cannot resolve.
+          sources="$RUNNER_TEMP/zero-native.sources"
+          apt_options=(-o Dir::Etc::sourcelist="$sources" -o Dir::Etc::sourceparts=-
+            -o Acquire::Retries=0 -o Acquire::ForceIPv4=true -o Acquire::https::Timeout=10)
+          packages=(pulseaudio libasound2-plugins openbox)
+          for mirror in https://archive.ubuntu.com/ubuntu https://ubuntu.osuosl.org/ubuntu https://security.ubuntu.com/ubuntu; do
+            curl -4fsS --max-time 6 -o /dev/null "$mirror/dists/noble/InRelease" || continue
+            sed "s|^URIs: .*|URIs: $mirror/|" /etc/apt/sources.list.d/ubuntu.sources > "$sources"
+            if sudo timeout 75s apt-get "${apt_options[@]}" update --error-on=any &&
+               sudo timeout 120s apt-get "${apt_options[@]}" install -y --download-only "${packages[@]}"; then
+              sudo apt-get "${apt_options[@]}" install -y --no-download "${packages[@]}"
+              exit 0
+            fi
+          done
+          echo "::error::Ubuntu mirrors could not provide native test dependencies."
+          exit 1
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
@@ -94,13 +114,6 @@ jobs:
       - name: Configure native audio and window manager
         if: needs.scope.outputs.native == 'true' || needs.scope.outputs.lessons == 'true'
         run: |
-          # The hosted runner's Azure mirror can stall on DNS before apt
-          # tries its HTTPS alternatives. Keep it available after those mirrors.
-          if [[ -f /etc/apt/apt-mirrors.txt ]]; then
-            sudo sed -i -E 's#^(http://azure\.archive\.ubuntu\.com/ubuntu/[[:space:]]+)priority:[0-9]+$#\1priority:4#' /etc/apt/apt-mirrors.txt
-          fi
-          sudo apt-get update
-          sudo apt-get install -y pulseaudio libasound2-plugins openbox
           pulseaudio --start --exit-idle-time=-1
           pactl load-module module-null-sink sink_name=zero_ci
           pactl set-default-sink zero_ci
