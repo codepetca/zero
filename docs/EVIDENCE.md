@@ -16,6 +16,13 @@ indicators and pages and physical Windows remain unverified. The final
 integration used one reviewer launch, one wave and no fix batches. Effective
 model and usage telemetry were unavailable.
 
+The native CI dependency setup stalled on two hosted runners. The first log
+showed a DNS failure for the Azure Ubuntu mirror. The delta at `3e1eb2f9e`
+gives the runner's existing HTTPS Ubuntu mirrors priority. It preserves the
+package sources and native test gate. Terra/medium independently reviewed this
+delta with no findings. Actionlint, the mirror fixture and 13 CI gate/scope
+tests passed.
+
 ---
 
 # Zero sign-in progress — 2026-11-11
