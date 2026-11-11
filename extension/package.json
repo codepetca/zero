@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.",
-  "version": "0.5.71",
+  "version": "0.5.72",
   "publisher": "zero",
   "license": "SEE LICENSE IN LICENSE",
   "engines": {

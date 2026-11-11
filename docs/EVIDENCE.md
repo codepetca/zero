@@ -10,7 +10,10 @@ All 153 focused authentication and upload tests, `npm run check`, and
 `git diff --check` passed. In a fresh macOS VS Code 1.145.2 profile, the real
 external-opening API launched the default browser and returned through the
 loopback callback with a fixture provider and no interaction with an
-external-site prompt. Live WorkOS sign-in and Windows remain unverified.
+external-site prompt. The owner then passed the live production WorkOS
+smoke test in the isolated Mac Zero Dev profile. We checked for the
+presence of both the WorkOS receipt and the GitHub credential without
+reading their values. The owner waived the live Windows test.
 
 An independent Terra/medium review of `83f3f1227..cfe10fa79` found no
 actionable issues in the redirect, callback compatibility or retry behavior.
