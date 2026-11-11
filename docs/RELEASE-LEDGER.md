@@ -21,6 +21,29 @@ The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
 
+## Zero 0.5.69 — 2026-11-10
+
+[PR #320](https://github.com/codepetca/zero/pull/320) merged release source
+`9deca492aceedb95a0027e33f60966beb97988a2`. The core remains 0.3.0. The
+[kit release](https://github.com/codepetca/zero/releases/tag/v0.5.69) contains the
+three verified assets from [run 42926162175](https://github.com/codepetca/zero/actions/runs/42926162175).
+The exact release VSIX installed into an isolated Mac VS Code profile. The same
+source tree passed [WebFX browser checks](https://github.com/codepetca/zero/actions/runs/42922047896).
+
+The [Mac release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.69)
+contains the single Developer ID signed, Apple-notarized and stapled DMG. The
+sealed candidate targets preparation commit `6dc6592bf4193a8780dfa80c4867b220ef6538cb`.
+Gatekeeper and payload checks passed; the draft and anonymous public download
+match the sealed candidate. Independent review verified the seal, provenance
+and signed update feed. This change promotes that exact DMG and feed; confirm
+the website download and feed after deployment.
+
+[Windows run 42926162250](https://github.com/codepetca/zero/actions/runs/42926162250)
+built the source-bound x64 Store MSIX `1.5.69.0`. A separately test-signed copy
+passed installation and first run. The Windows development installer separately
+passed editor reopening and an offline JavaFX rebuild. Store certification,
+physical-machine acceptance and live updater delivery are separate checks.
+
 ## Zero 0.5.67 — 2026-11-09
 
 The release source is `00b6e3d2d2ef964887774c27d350eb4177eaef50`.
