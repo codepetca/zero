@@ -14,8 +14,21 @@ remain in place. Both regressions reproduced before their respective fixes;
 88 focused authentication tests, `npm run check` and `git diff --check` passed.
 One independent Terra/medium review of `3b7ce8afe..423cc2002` found no
 actionable issues. Effective model and usage telemetry were unavailable.
-No updated editor build was installed or released; the native editor flow
-with the patch and Windows remain unverified.
+At this stage, no updated editor build had been installed or released.
+
+The owner's Mac test of the signed 0.5.70 candidate reached the next GitHub
+authorization step and failed. GitHub's live App metadata reports the
+authorized read-only Email addresses permission as `emails`, while the
+editor only allowed `email_addresses`. Local source `ef2965066` accepts the
+observed read-only spelling and retains the earlier documented spelling.
+Tests still reject stronger and unrelated permissions. The regression failed
+before the change and all 90 focused tests passed afterward. The fixed source
+completed production WorkOS and GitHub App authorization in an in-memory
+diagnostic, with a matching numeric GitHub identity and existing browser data.
+
+Zero Dev is open with that source and an isolated editor profile for the
+owner's smoke test. The 0.5.70 Mac draft is unpublished and superseded. Public
+release work is on hold pending the smoke test.
 
 ---
 
