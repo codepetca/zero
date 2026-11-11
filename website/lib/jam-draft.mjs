@@ -1,4 +1,4 @@
-import {manifestData, text, httpsUrl} from '../../jams/manifest.mjs';
+import {manifestData, text, httpsUrl, JAM_THEME_IDS, JAM_BACKDROP_IDS} from '../../jams/manifest.mjs';
 
 export const JAM_DRAFT_LIMITS=Object.freeze({title:120,summary:1000,theme:1000,rules:8000,eligibility:2000,websiteUrl:2048,timezone:100});
 export function defaultJamDraft(type='game',timezone='America/Toronto') {
@@ -8,7 +8,7 @@ export function defaultJamDraft(type='game',timezone='America/Toronto') {
     registrationOpensAt:'',startsAt:'',submissionsCloseAt:'',registrationClosesAt:'',submissionsOpenAt:''};
 }
 export function defaultHostedJamDraft(type='game',timezone='UTC') {
-  return {...defaultJamDraft(type,timezone),rules:'Make your own work during the jam. Credit collaborators, libraries and assets. Keep entries appropriate for a classroom. Link your public GitHub repository when you join, then submit its published GitHub Pages URL before submissions close.',galleryRevealAt:''};
+  return {...defaultJamDraft(type,timezone),rules:'Make your own work during the jam. Credit collaborators, libraries and assets. Keep entries appropriate for a classroom. Link your public GitHub repository when you join, then submit its published GitHub Pages URL before submissions close.',galleryRevealAt:'',styleTheme:'violet',styleBackdrop:'stars'};
 }
 // Only call browser detection after hydration. Fresh drafts use UTC for the
 // deterministic server/initial client render and when browser detection fails.
@@ -76,6 +76,10 @@ export function prepareJamDraft(input) {
 
 // Hosted proposals reuse the same date and text validation without requiring a
 // creator-owned website. The legacy preparation workflow keeps its contract.
+// Drafts saved before look presets existed show and submit the default look.
+export function hostedJamDraftStyle(input) {
+  return {theme:JAM_THEME_IDS.includes(input?.styleTheme)?input.styleTheme:'violet',backdrop:JAM_BACKDROP_IDS.includes(input?.styleBackdrop)?input.styleBackdrop:'stars'};
+}
 export function prepareHostedJamDraft(input) {
   const result=prepareJamDraft({...input,websiteUrl:''});
   const errors={...result.errors};
@@ -88,7 +92,7 @@ export function prepareHostedJamDraft(input) {
     errors.galleryRevealAt='The gallery must open after submissions close.';
   if(Object.keys(errors).length||!result.manifest)return {manifest:null,errors};
   const {websiteUrl,...manifest}=result.manifest;
-  const hosted={...manifest,schedule:{...manifest.schedule,galleryRevealAt}};
+  const hosted={...manifest,schedule:{...manifest.schedule,galleryRevealAt},style:hostedJamDraftStyle(input)};
   // The HTTP proposal includes a UUID operation ID; measure the complete UTF-8 envelope.
   if(new TextEncoder().encode(JSON.stringify({manifest:hosted,operationId:'0'.repeat(36)})).length>16384)
     return {manifest:null,errors:{rules:'These details are too large together. Shorten the rules and other text.'}};
