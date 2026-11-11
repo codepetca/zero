@@ -1,3 +1,29 @@
+# One Zero sign-in — 2026-11-11
+
+Local source at `3d04734ce` uses **Sign in to Zero** with GitHub as the
+identity provider. Desktop WorkOS sign-in hands the renewable GitHub grant to
+the existing pinned broker and saves the verified pair in SecretStorage.
+Repository installation and selection remain explicit. The managed website
+can use the expiry confirmed by GitHub's App token check in the same callback.
+
+The live WorkOS probe returned an App refresh token. The existing production
+broker accepted it and returned a valid expiring pair whose numeric personal
+GitHub account matched the WorkOS exchange. A fresh Zero Dev profile running
+the one-sign-in source stored both its WorkOS receipt and GitHub session.
+We checked key presence only. The later cancellation and sign-out changes
+passed fixtures, including rollback during a credential write, local-only
+sign-out, stale host removal, a changed receipt, and signing in as another
+account while preserving offline access.
+
+Focused editor and UI checks, the full website suite (816 passed, 3 skipped),
+website build and typecheck, `npm run check`, and `git diff --check` passed.
+Sol/high and Terra/high reviewed the integration. Follow-ups fixed cancellation
+and sign-out issues. Sol/high verified the final recovery delta with 137
+focused tests and no remaining blockers. The hosted website callback and
+physical Windows acceptance remain untested. The Mac release is still held.
+
+---
+
 # Desktop GitHub sign-in retry — 2026-11-11
 
 Zero 0.5.69's desktop sign-in reached the browser callback, but a production
