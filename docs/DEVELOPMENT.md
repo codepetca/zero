@@ -279,8 +279,8 @@ outputs or rebuild the frozen 0.5.8 artifacts to test styling.
 The shared header profile dropdown contains GitHub sign-in/account actions and
 the light/dark toggle. The OS
 preference is the default until a mode is chosen; the choice persists. ZeroHub and Docs use the same themes.
-Downloads live at `/downloads` and on Home, reached through the Zero logo. The
-shared menu contains Tutorials, Docs and ZeroHub. Old
+Downloads live on Home, reached through the Zero logo. The
+shared menu contains Tutorials, Docs and ZeroHub. Old `/downloads` and
 `/learn#downloads` links redirect there for compatibility.
 The sidebar uses native host colors/fonts/focus and high-contrast classes.
 

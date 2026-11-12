@@ -222,16 +222,15 @@ export async function publishZero(options, dependencies = {}) {
     let reason = 'The live platform download choices do not match published metadata yet.';
     while (now() < deadline) {
       try {
-        let found;
-        for (const page of ['/', '/downloads']) {
-          const response = await request(`${website}${page}?zero_release=${encodeURIComponent(options.version)}&check=${now()}`, {signal: AbortSignal.timeout(30000), headers: {'Cache-Control': 'no-cache'}});
-          assert.equal(response.status, 200, 'Live platform downloads unavailable.');
-          if (response.url) {
-            const destination = new URL(response.url);
-            assert.ok(destination.origin === website && destination.pathname === page, 'Live platform downloads redirected outside the expected page.');
-          }
-          found = verifyPlatformDownloadPage(await response.text(), platforms);
+        // Home is the only platform download page; /downloads redirects there.
+        const page = '/';
+        const response = await request(`${website}${page}?zero_release=${encodeURIComponent(options.version)}&check=${now()}`, {signal: AbortSignal.timeout(30000), headers: {'Cache-Control': 'no-cache'}});
+        assert.equal(response.status, 200, 'Live platform downloads unavailable.');
+        if (response.url) {
+          const destination = new URL(response.url);
+          assert.ok(destination.origin === website && destination.pathname === page, 'Live platform downloads redirected outside the expected page.');
         }
+        const found = verifyPlatformDownloadPage(await response.text(), platforms);
         // Measure the actual Mac button target. Store delivery has its own native acceptance.
         await publicBytes({...platforms.mac.asset, url:found.mac});
         return;

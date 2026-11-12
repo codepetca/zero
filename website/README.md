@@ -82,7 +82,7 @@ service's Pro policy to show **Create a jam** to eligible signed-in accounts.
 
 ## Download states
 
-A published kit links directly to verified immutable GitHub assets. While the current kit remains local, optional `release/published-kit.json` provides the last verified public kit, starter and VSIX, with their own version labels. Preparation validates published state, exact URLs, sizes and hashes; fallback cannot be newer than the current kit. A missing fallback shows the availability explanation at `/downloads`. Mac setup publication is independent of the ZIP version.
+A published kit links directly to verified immutable GitHub assets. While the current kit remains local, optional `release/published-kit.json` provides the last verified public kit, starter and VSIX, with their own version labels. Preparation validates published state, exact URLs, sizes and hashes; fallback cannot be newer than the current kit. Without a fallback, download links open the homepage download choices. Mac setup publication is independent of the ZIP version.
 
 To preview a new local version, package it from the repository root, then:
 

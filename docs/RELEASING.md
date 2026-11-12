@@ -55,7 +55,7 @@ The resumed run merges the exact checked head
 through the normal PR path and confirms the merged manual-kit metadata and
 README link. The website intentionally offers Mac and Microsoft Store buttons;
 it does not expose a general manual-kit button. Public platform verification
-checks the visible download choices on both `/` and `/downloads`, matches the Mac
+checks the visible download choices on the homepage (`/`), matches the Mac
 link to the current published installer (or its public fallback), measures that
 DMG's size/SHA256, and requires the exact Microsoft Store listing link. Hidden or
 script-only links, unexpected choices and redirected pages cannot satisfy it.
@@ -306,9 +306,8 @@ change, set native `publication.status` to `published` and add that verified exa
 GitHub asset URL to `asset.url`. Keep the version, tag, digest, size, original source
 and signer unchanged. Local metadata has no public URL; never promote a guessed
 or inaccessible URL. Run website typecheck/tests/build and check the deployed
-Mac link/bytes after separately authorized metadata integration/deployment. The
-landing action then opens `/downloads`, where students choose Mac setup or
-the ZIP for Windows/Linux/manual setup. Preserve the last independently verified
+Mac link/bytes after separately authorized metadata integration/deployment. Students
+then choose Mac setup or Microsoft Store from the homepage download buttons. Preserve the last independently verified
 published kit manifest in `release/published-kit.json` while the current kit is
 local; its three links retain their own version labels. Publishing Mac setup
 does not publish its bundled kit separately. Keep README's verified previous kit link

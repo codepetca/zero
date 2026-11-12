@@ -15,7 +15,7 @@ export function localDownloadsEnabled() {
 }
 export function downloadHref(asset = 'kit') {
   const available = downloadableKit();
-  return available ? releaseAssetHref(available, asset, localDownloadsEnabled()) : '/downloads';
+  return available ? releaseAssetHref(available, asset, localDownloadsEnabled()) : '/';
 }
 export function downloadableKit(): typeof release | null {
   return availableKitRelease(release, publishedKit, localDownloadsEnabled());

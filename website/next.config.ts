@@ -21,5 +21,9 @@ const config: NextConfig = {
         {key:'Content-Security-Policy',value:"frame-ancestors 'none'"},
         {key:'Referrer-Policy',value:'strict-origin-when-cross-origin'}]}));
   },
+  async redirects() {
+    // The homepage carries the platform download choices; keep old links working.
+    return [{source:'/downloads', destination:'/', permanent:true}];
+  },
 };
 export default config;

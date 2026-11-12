@@ -394,7 +394,7 @@ lesson IDs and project markers are unchanged; display numbers are separate.
 Code blocks in tutorials, docs, source views and ZeroHub copy their exact text when
 clicked, with a keyboard-accessible Copy button and success/failure feedback.
 Dragging to select text keeps manual copying available.
-`/downloads` is the separate platform download page.
+Old `/downloads` links redirect to Home.
 The top menu contains Tutorials, Docs and ZeroHub. The Zero logo returns to Home,
 where platform download options are available; platform buttons do not appear below tutorials.
 Docs opens the complete searchable Zero API directly; method names stay visible

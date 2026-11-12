@@ -254,8 +254,7 @@ html:has(.learn-theme),
   .learn-theme .lesson-preview .lesson-number { border: 1px solid CanvasText; }
 }
 
-.learn-theme .home-page .download-section,
-.learn-theme .downloads-page .download-section {
+.learn-theme .home-page .download-section {
   width: min(100%, 340px);
   margin-top: var(--zero-space-5);
   padding-top: 0;
@@ -361,19 +360,6 @@ html:has(.learn-theme),
   .learn-theme .reader-menu nav a[aria-current="page"] { outline: 1px solid Highlight; }
   .learn-theme .reader-layout .button { border-color: ButtonText; background: ButtonFace; color: ButtonText; }
 }
-
-/* Keep the full viewport shell, with one centered download decision. */
-.learn-theme .downloads-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-.learn-theme .downloads-page .hub-actions { flex-direction: column; }
-.learn-theme .downloads-page .button { width: 100%; }
-.learn-theme .download-help { max-width: 40ch; margin-top: var(--zero-space-4); font-size: .9rem; color: var(--zero-muted); }
-.learn-theme .download-help p { margin: 0 0 var(--zero-space-2); }
 
 .learn-theme .reading { width: 100%; min-width: 0; }
 .learn-theme .reading section { border-color: var(--zero-border); }

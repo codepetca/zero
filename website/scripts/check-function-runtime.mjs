@@ -40,7 +40,7 @@ Module._resolveFilename=function(...args){const file=originalResolve.apply(this,
 const expected=JSON.parse(fs.readFileSync(0,'utf8'));const load=route=>require('./.next/server/app/'+route+'/route.js').routeModule.userland;
 (async()=>{
  const download=load('download/[asset]');
- const redirect=await download.GET(new Request('https://zero.codepet.ca/download/kit'),{params:Promise.resolve({asset:'kit'})});assert.equal(redirect.status,303);assert.equal(redirect.headers.get('Location'),'/downloads');
+ const redirect=await download.GET(new Request('https://zero.codepet.ca/download/kit'),{params:Promise.resolve({asset:'kit'})});assert.equal(redirect.status,303);assert.equal(redirect.headers.get('Location'),'/');
  const unknown=await download.GET(new Request('https://zero.codepet.ca/download/nope'),{params:Promise.resolve({asset:'nope'})});assert.equal(unknown.status,404);
  await checkFeed(await load('updates/macos/appcast.xml').GET(),expected.updateFeed,'mac');
  await checkFeed(await load('updates/windows/stable.json').GET(),expected.windowsUpdateFeed,'windows');

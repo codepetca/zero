@@ -168,8 +168,7 @@ async function fixture(t, changes = {}) {
   const request = async url => {
     requests.push(url);
     if (url.startsWith('https://zero.codepet.ca/')) {
-      const landing = new URL(url).pathname === '/';
-      return {status:changes.failedPage ? 503 : 200, url:(landing ? changes.landingRedirect : changes.choicesRedirect) || url,
+      return {status:changes.failedPage ? 503 : 200, url:changes.landingRedirect || url,
         text:async () => changes.choices ? changes.choices(macURL, windowsStoreURL) : changes.staleSite ?
           platformPage('https://old.example/old.dmg') + `<script>"${macURL}"</script>` : platformPage(changes.liveMac?.asset.url || macURL)};
     }
@@ -275,10 +274,11 @@ test('verify-only verifies public manual-kit assets and current Mac/Store pages 
   assert.equal((await publishZero({version,verifyOnly:true},f.dependencies)).phase,'verified');
   assert.ok(!f.calls.some(call => call.command === 'gh' && ['workflow','release','pr'].includes(call.args[0])));
   assert.ok(!f.calls.some(call => call.args.includes('PATCH') || ['push','-c','add','worktree'].includes(call.args[0])));
-  assert.equal(f.requests.length,6);
+  assert.equal(f.requests.length,5);
   assert.equal(f.requests.filter(url => url === macURL).length,1);
   assert.equal(f.requests.filter(url => url === f.release.assets[0].browser_download_url).length,1);
-  assert.ok(f.requests.some(url => new URL(url).pathname === '/downloads'));
+  assert.ok(f.requests.some(url => new URL(url).pathname === '/'));
+  assert.ok(!f.requests.some(url => new URL(url).pathname === '/downloads'));
 });
 
 test('verify-only rejects the current unpublished candidate without mutation',async t=>{
@@ -350,7 +350,7 @@ for (const redirect of ['https://evil.example/','https://zero.codepet.ca/hub']) 
   test(`live landing rejects redirect to ${redirect}`,async t=>{
     const f=await fixture(t,{existing:true,published:true,promoted:true,landingRedirect:redirect});
     await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),/redirected outside/);
-    assert.ok(!f.requests.some(url=>new URL(url).pathname==='/downloads'));
+    assert.ok(!f.requests.includes(macURL));
   });
 }
 for (const [label,changes,pattern] of [
@@ -365,8 +365,8 @@ for (const [label,changes,pattern] of [
   ['data attribute instead of href',{choices:()=>`<section id="downloads"><a data-href="${macURL}">Mac</a><a href="${windowsStoreURL}">Windows</a></section>`},/exactly the Mac and Microsoft Store choices/],
   ['links outside downloads',{choices:()=>platformPage().replace('id="downloads"','data-id="downloads"')},/one downloads section/],
   ['missing section',{choices:()=>'<p>No downloads</p>'},/one downloads section/],
-  ['downloads redirect',{choicesRedirect:'https://evil.example/downloads'},/redirected outside/],
-  ['wrong same-site page',{choicesRedirect:'https://zero.codepet.ca/learn'},/redirected outside/],
+  ['downloads redirect',{landingRedirect:'https://evil.example/downloads'},/redirected outside/],
+  ['wrong same-site page',{landingRedirect:'https://zero.codepet.ca/downloads'},/redirected outside/],
   ['unavailable page',{failedPage:true},/platform downloads unavailable/],
   ['corrupt Mac bytes',{corruptMac:true},/SHA256 drift/],
   ['unavailable Mac bytes',{failedMac:true},/Public asset download failed/]

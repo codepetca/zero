@@ -412,13 +412,13 @@ states in the playground or real host. Record actual keyboard, responsive,
 theme and operating-system coverage before implementation acceptance. Screenshots
 and browser fixtures do not substitute for native/editor verification.
 
-## Download page — owner correction, 2026-10-13
+## Download page — owner update, 2026-11-11
 
-Platform downloads live on `/downloads`, separate from Tutorials (`/learn`).
-Download is a regular navigation item with the same spacing and current-page
-indicator as the other pages, without a divider or special emphasis. Both pages
-retain the approved shared light/dark themes. Landing Download Zero and fallback
-links open the Download page. Old `/learn#downloads` links redirect for compatibility.
+Platform downloads live on Home (`/`), separate from Tutorials (`/learn`). The
+separate `/downloads` page is removed because Home already offers the same
+buttons; `/downloads` permanently redirects to Home. Fallback download links and
+old `/learn#downloads` links also open Home. Both pages retain the approved
+shared light/dark themes.
 Verified platform availability and frozen release bytes remain unchanged.
 
 ## Header theme control — owner correction, 2026-10-13

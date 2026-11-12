@@ -45,8 +45,8 @@ test('strict independent manifest, versioned publication and platform choice', (
   assert.equal(validateInstallerManifest(null, kit), null);
   assert.equal(installerHref(authored), null);
   assert.equal(installerHref(authored, true), '/download/installer');
-  assert.equal(landingDownloadHref('/download/kit', authored, true), '/downloads');
-  assert.equal(landingDownloadHref('published-kit-url', null), '/downloads');
+  assert.equal(landingDownloadHref('/download/kit', authored, true), '/');
+  assert.equal(landingDownloadHref('published-kit-url', null), '/');
   const published = structuredClone(authored); published.publication.status='published';
   assert.throws(() => validateInstallerManifest(published, kit), /versioned/);
   published.asset.url=`https://github.com/codepetca/zero/releases/download/setup-v${kit.kitVersion}/${published.asset.filename}`;
@@ -74,7 +74,7 @@ test('published Mac fallback keeps its own exact download across a newer local k
   assert.equal(validateInstallerManifest(published, current), published);
   assert.equal(installerHref(published), published.asset.url);
   assert.equal(installerHref(published, true), published.asset.url);
-  assert.equal(landingDownloadHref('published-kit-url', published), '/downloads');
+  assert.equal(landingDownloadHref('published-kit-url', published), '/');
   assert.equal(validateInstallerManifest(publishedManifest('0.5.8'), current).kitVersion, '0.5.8');
   for (const version of ['0.5.9', '0.6.0', '1.0.0']) {
     assert.throws(() => validateInstallerManifest(publishedManifest(version), current), /newer/);

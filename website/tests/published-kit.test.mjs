@@ -71,7 +71,7 @@ test('current publication and explicit local preview take precedence, hosted fla
   assert.equal(availableKitRelease(published,fallback),published);
   assert.equal(availableKitRelease(published,fallback,true),published);
   assert.equal(availableKitRelease(current,fallback,localDownloadsAllowed({ZERO_LOCAL_DOWNLOADS:'1',VERCEL:'1'})),fallback);
-  assert.equal(landingDownloadHref(releaseAssetHref(fallback,'kit'),native),'/downloads');
+  assert.equal(landingDownloadHref(releaseAssetHref(fallback,'kit'),native),'/');
 });
 test('downloads offer the Microsoft Store listing and Mac download', async () => {
   const publishedNative={...native,publication:{...native.publication,status:'published'},asset:{...native.asset,url:`https://github.com/codepetca/zero/releases/download/${native.publication.tag}/${native.asset.filename}`}};
@@ -83,7 +83,7 @@ test('downloads offer the Microsoft Store listing and Mac download', async () =>
   assert.doesNotMatch(html,/Manual setup \(ZIP\)/);
   assert.equal((html.match(/<a class="button /g)||[]).length,2);
   assert.doesNotMatch(html,/Download for Windows \(unsigned\)|href="\/(privacy|terms)"|download-legal/);
-  assert.equal(landingDownloadHref(fallback.assets.kit.url,publishedNative),'/downloads');
+  assert.equal(landingDownloadHref(fallback.assets.kit.url,publishedNative),'/');
 });
 test('Store link is available independently of local or published kit', async () => {
   const local=await render(current,fallback,native,true);
@@ -102,7 +102,7 @@ test('hosted starter and setup share download-aware guidance rather than package
   assert.match(prepare,/setup: "docs\/GETTING-STARTED\.md"/);
   assert.match(prepare,/starter: "docs\/GETTING-STARTED\.md"/);
   const guide=await readFile(new URL('../../docs/GETTING-STARTED.md',import.meta.url),'utf8');
-  assert.match(guide,/\[downloads page\]\(https:\/\/zero\.codepet\.ca\/downloads\)/);
+  assert.match(guide,/\[Zero homepage\]\(https:\/\/zero\.codepet\.ca\)/);
   assert.match(guide,/\*\*Zero Docs\*\*/);
   assert.match(guide,/\*\*Project → New\*\*/);
   assert.match(guide,/\*\*Project → Open\*\*/);
