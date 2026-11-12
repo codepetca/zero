@@ -21,6 +21,14 @@ The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
 
+## Zero 0.5.73 source — 2026-11-12
+
+[PR #338](https://github.com/codepetca/zero/pull/338) includes the GitHub
+confirmation code workaround. The source advances to unpublished 0.5.73 so the
+Windows checks can build a fresh test installer. The retained published kit is
+0.5.72. Public installer metadata and update feeds still point to their current
+releases.
+
 ## Zero 0.5.72 — 2026-11-11
 
 [PR #329](https://github.com/codepetca/zero/pull/329) merged both fixes at
