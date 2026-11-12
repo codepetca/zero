@@ -1,6 +1,7 @@
 'use client';
 import {type ReactNode} from 'react';
 import {HubProjectInfo} from './HubProjectInfo';
+import {Icon} from './Icon';
 import {recordPlayOpen} from '@/lib/hub-metrics-client.mjs';
 import styles from '@/app/hub/hub.module.css';
 
@@ -15,7 +16,7 @@ export function HubProjectCard({projectId, title, description, author, version, 
   const identity = <p className={styles.metadata}><a href={version ? `https://github.com/${author}` : repositoryHref}>@{author}</a>{version && <> · <a href={repositoryHref} aria-label={`${title} v${version} on GitHub`}>v{version}</a></>}</p>;
   const preview = <>
     {image ? <img className={styles.thumbnail} src={image} alt={`${title} screenshot`} loading="lazy" /> : <span className={styles.playPlaceholder} aria-hidden="true" />}
-    {playHref && <span className={styles.playOverlay} aria-hidden="true"><span>▶ Play</span></span>}
+    {playHref && <span className={styles.playOverlay} aria-hidden="true"><span><Icon name="play" className={styles.playIcon} /></span></span>}
   </>;
   if (compact) return <article className={styles.projectCard} data-hub-project-id={projectId}>
     {playHref ? <a className={styles.playImage} data-muted={!siteReachable || undefined} href={playHref} onClick={recordOpen} onAuxClick={event=>{if(event.button===1)recordOpen(event);}} target="_blank" rel="noopener noreferrer" aria-label={`Play ${title} (opens in a new tab)`}>
