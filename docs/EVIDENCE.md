@@ -12856,3 +12856,14 @@ before integration; its follow-up found no further actionable issues. Focused
 website and lesson-project tests and the Pet verifier passed. The integrated
 website build and repository checks are recorded in the PR. Reviewer model,
 effort and usage are unknown; interactive student testing is separate.
+
+## GitHub confirmation code troubleshooting — 2026-11-12
+
+A Windows student connected Zero after resetting their GitHub password when
+GitHub rejected the emailed confirmation code with “Sudo authentication failed.”
+The setup guide and Zero sign-in failure details now offer that workaround for
+the matching browser message. Repository checks, 105 focused extension tests,
+31 website tests and a local Markdown render passed. One independent review of
+the local diff against `6bdcfa7cc` found no actionable issues. The requested
+reviewer was GPT-6.1 Terra at medium reasoning. Live Windows and GitHub sign-in
+were outside local verification.
