@@ -103,5 +103,5 @@ function MyListings({account, csrfToken}:{account:string; csrfToken:string}) {
 
 export function HubListings() {
   const {user} = useHubGitHub();
-  return <><HubAccount showSignOut={false} />{user && <MyListings key={user.id} account={user.id} csrfToken={user.csrfToken} />}</>;
+  return <><HubAccount showSignOut={false} showZeroAccountStatus />{user && <MyListings key={user.id} account={user.id} csrfToken={user.csrfToken} />}</>;
 }

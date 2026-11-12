@@ -7,7 +7,8 @@ export function useZeroAccount() {
   const [error, setError] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
-    fetch('/api/zero-account/profile', {cache:'no-store', signal:controller.signal})
+    const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]);
+    fetch('/api/zero-account/profile', {cache:'no-store', signal})
       .then(response => {
         if (!response.ok) throw new Error();
         return response.json();

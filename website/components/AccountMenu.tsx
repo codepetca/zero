@@ -2,7 +2,6 @@
 import {useEffect, useId, useRef, useState} from 'react';
 import {HubAccount, useHubGitHub} from './HubGitHub';
 import {Icon} from './Icon';
-import {useZeroAccount} from './useZeroAccount';
 import './AccountMenu.css';
 
 function ProfileAvatar({id, login}: {id?:string|null; login?:string}) {
@@ -16,8 +15,7 @@ function ProfileAvatar({id, login}: {id?:string|null; login?:string}) {
 }
 
 export function AccountMenu({dark, onToggleTheme, platform, onChangePlatform}: {dark:boolean; onToggleTheme:()=>void; platform:'mac'|'windows'; onChangePlatform:(platform:'mac'|'windows')=>void}) {
-  const {configured, user, error, callbackError} = useHubGitHub();
-  const {state: zeroAccount, error: zeroAccountError} = useZeroAccount();
+  const {configured, user, error, callbackError, zeroAccount: {state: zeroAccount, error: zeroAccountError}} = useHubGitHub();
   const zeroUser = zeroAccount?.user;
   const signedIn = Boolean(user || zeroUser);
   const avatarId = user?.id ?? zeroUser?.avatarId;
