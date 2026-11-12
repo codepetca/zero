@@ -1,5 +1,23 @@
 # Verification
 
+## My Projects account status — 2026-11-12
+
+Local changes on `6bdcfa7cc` share the website account check between the
+header and ZeroHub. TypeScript and 19 focused account and auth tests passed.
+The website suite passed with four test workers (823 passed, 3 skipped) after
+timing failures in the default-concurrency run.
+Chromium fixtures verified navigation to My Projects, signed-out, Zero-only
+and GitHub-connected states, the connection return path, account menu keyboard
+focus, and 320 px reflow. Mobile WebKit emulation verified the Zero-only layout
+in dark mode at 393 px. Independent Terra/medium review found no actionable
+issues in one pass. Browser checks used fixture sessions.
+
+The owner then limited the prompt to My Projects. TypeScript and 70 focused
+account, auth and Jam UI checks passed for the narrowed change. Chromium
+fixtures verified the prompt on My Projects and the previous wording in
+the header and My Libraries. A targeted Terra/medium review found no
+actionable issues.
+
 ## My Projects and My Libraries — 2026-11-10
 
 Source `04577d541` moves the existing listing controls under Projects and

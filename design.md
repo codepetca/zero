@@ -237,6 +237,11 @@ preserving established offline access to local projects. Web browsing,
 downloads, lessons and Play remain public. Browser and editor sessions are
 stored separately.
 
+Owner clarification, 2026-11-12. In My Projects, show **Signed in to Zero.**
+when the website confirms the Zero session and GitHub access is missing.
+Put **Connect to GitHub** below the status when the connection is available.
+Show the GitHub handle and the user's app listings once GitHub is connected.
+
 The desktop browser return centers **Return to Zero** with the Zero mark
 immediately before **Zero**. The page tells students to close the tab and
 check the app as sign-in finishes. Cancellation and errors use the same
