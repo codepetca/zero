@@ -3305,7 +3305,8 @@ function activate(context, services = {}) {
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async (...args) => {
     try {await action(...args);} catch(error) {
       const message = error.zeroRunMessage || error.message;
-      const display = recoveryMessage(/^Zero sign-in was cancelled or unavailable\./.test(message) ? 'Zero sign-in cancelled or unavailable. Try again.' : message,error.recoveryPath);
+      const signInUnavailable = /^Zero sign-in was cancelled or unavailable\./.test(message);
+      const display = recoveryMessage(signInUnavailable ? 'Zero sign-in cancelled or unavailable. Try again.' : message,error.recoveryPath);
       const sidebarGit=['zero.syncBranch','zero.commitChanges','zero.startChange'].includes(id);
       if(sidebarGit)reportGit(display,error.message);
       else {
@@ -3318,6 +3319,11 @@ function activate(context, services = {}) {
         void githubReadiness.refresh();
         const choice=await vscode.window.showErrorMessage(`Zero: ${display}`,'Open GitHub');
         if(choice==='Open GitHub'&&!disposed)await vscode.env.openExternal(vscode.Uri.parse(installUrl));
+      }else if(signInUnavailable && ['zero.signInToGitHub','zero.githubAccount'].includes(id)){
+        output.appendLine('If GitHub says “Sudo authentication failed” after you enter the emailed code, try another verification method on GitHub’s Confirm access page if offered. If the code keeps failing, try resetting your GitHub password at https://github.com/password_reset, then reconnect the same account in Zero.');
+        void Promise.resolve(vscode.window.showErrorMessage(`Zero: ${display}`, 'Show Details')).then(choice => {
+          if (choice === 'Show Details' && !disposed) output.show(true);
+        }).catch(() => {});
       }else if(error.code==='creation-uncertain'&&typeof error.repositoryUrl==='string'){
         const destination=core.parseRepositoryUrl(error.repositoryUrl);
         const prior=context.globalState?.get('zero.repositoryCreationRecovery');
