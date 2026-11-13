@@ -234,8 +234,11 @@ token and the production Vercel Marketplace pair `KV_REST_API_URL` /
 180 days after sign-in. The existing Upstash integration stores the encrypted
 grant with the same expiry. Zero renews expiring GitHub access on demand and
 uses a shared claim to coordinate GitHub's single-use refresh tokens. Private
-Hub, Stars and Jams requests require the same active WorkOS user and session.
-WorkOS session length and inactivity settings can end that session sooner.
+Hub, Stars and Jams requests require an active WorkOS session bound to the
+connection. If that session expires, a fresh sign-in on the same browser can
+restore the connection after the callback verifies the same WorkOS user and
+numeric GitHub account ID. Restoration keeps the original expiry and binds
+the connection to the new WorkOS session.
 Grant reads go to Redis’s primary so a replica cannot return a grant that was
 just deleted. Sign-out clears the browser cookies, deletes the stored grant when the
 store is reachable, and sends the user to the WorkOS sign-out endpoint.
@@ -245,14 +248,13 @@ store cannot save the grant during sign-in, Hub uses its encrypted short-lived
 cookie for up to eight hours. WorkOS can establish a Zero account independently
 of Hub when the provider omits an eligible App grant. Existing short-lived Hub
 cookies stay usable until their original expiry. Sign in once after rollout
-to get the renewable grant. An expired WorkOS session, revoked GitHub grant,
-or expired 180-day grant requires reconnection. GitHub revocation is detected
+to get the renewable grant. A revoked GitHub grant or an expired 180-day grant
+requires fresh GitHub authorization. GitHub revocation is detected
 when GitHub rejects an API request or renewal. Hub actions that only use Zero
 data can continue until Zero detects that revocation or the access token expires. Managed mode refuses standalone
 Hub cookies, including when its configuration is incomplete. With the flag off,
 Hub continues to use the standalone GitHub App flow. The renewable grant is
-scoped to the originating browser and WorkOS session and creates no durable
-account mapping.
+scoped to the originating browser and verified account pair.
 
 For rollback, retain the existing Hub GitHub App callback and secrets, disable
 the WorkOS flag, and redeploy. Users with managed sessions must sign in through

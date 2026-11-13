@@ -13,6 +13,7 @@ const MANAGED_GRANT_AGE_MS = 180 * 24 * 60 * 60 * 1000;
 const REFRESH_LEASE_MS = 20_000;
 const REFRESH_WAIT_MS = 5_000;
 const GRANT_REFERENCE_PURPOSE = 'workos-grant-reference';
+const RESTORED_GRANT_REFERENCE_PURPOSE = 'restored-workos-grant-reference';
 const grantReferencePattern = /^[A-Za-z0-9_-]{43}$/;
 const accessTokenPattern = /^ghu_[A-Za-z0-9_]{10,512}$/;
 const refreshTokenPattern = /^ghr_[A-Za-z0-9_]{10,512}$/;
@@ -168,25 +169,37 @@ async function activeWorkOSIdentity(request, config, env, now) {
   } catch { return null; }
 }
 
+function matchesWorkOSUser(session, identity) {
+  return !!identity && session.workos?.userId === identity.userId && session.workos?.issuer === identity.issuer;
+}
+
 function matchesWorkOS(session, identity) {
-  return session.workos?.userId === identity.userId && session.workos?.sessionId === identity.sessionId &&
-    session.workos?.issuer === identity.issuer;
+  return matchesWorkOSUser(session, identity) && session.workos.sessionId === identity.sessionId;
 }
 
 function openGrantReference(cookie, config) {
-  if (!cookie?.startsWith('v2.')) return null;
-  const pointer = unseal(cookie.slice(3), GRANT_REFERENCE_PURPOSE, config);
-  return typeof pointer?.reference === 'string' && grantReferencePattern.test(pointer.reference) ? pointer : null;
+  if (!cookie?.startsWith('v2.') && !cookie?.startsWith('v3.')) return null;
+  const restored = cookie.startsWith('v3.');
+  const pointer = unseal(cookie.slice(3), restored ? RESTORED_GRANT_REFERENCE_PURPOSE : GRANT_REFERENCE_PURPOSE, config);
+  if (typeof pointer?.reference !== 'string' || !grantReferencePattern.test(pointer.reference)) return null;
+  if (restored && (typeof pointer.githubId !== 'string' ||
+      !/^[1-9][0-9]{0,19}$/.test(pointer.githubId) || !tokenPattern.test(pointer.csrf))) return null;
+  return pointer;
+}
+
+function liveGrantReference(cookie, config, now) {
+  const pointer = openGrantReference(cookie, config);
+  return pointer && Number.isSafeInteger(pointer.expiresAt) && pointer.expiresAt > now &&
+    pointer.expiresAt <= now + MANAGED_GRANT_AGE_MS ? pointer : null;
 }
 
 export async function readSession(request, config, now = Date.now(), env = process.env, fetchImpl = fetch) {
   const managed = workosRequested(env);
   const cookie = readCookie(request, SESSION_COOKIE);
   if (!cookie) return null;
-  if (managed && cookie.startsWith('v2.')) {
-    const pointer = openGrantReference(cookie, config);
-    if (!pointer || !Number.isSafeInteger(pointer.expiresAt) || pointer.expiresAt <= now ||
-        pointer.expiresAt > now + MANAGED_GRANT_AGE_MS) return null;
+  if (managed && (cookie.startsWith('v2.') || cookie.startsWith('v3.'))) {
+    const pointer = liveGrantReference(cookie, config, now);
+    if (!pointer) return null;
     const started = performance.now();
     const identity = await activeWorkOSIdentity(request, config, env, now);
     return identity && matchesWorkOS(pointer, identity) ?
@@ -199,23 +212,79 @@ export async function readSession(request, config, now = Date.now(), env = proce
   return identity && matchesWorkOS(session, identity) ? session : null;
 }
 
-export async function persistManagedSession(grant, refreshToken, config, env, fetchImpl, now) {
-  if (typeof refreshToken !== 'string' || !refreshTokenPattern.test(refreshToken)) return grant;
-  const store = hubGitHubGrantStore(env, fetchImpl);
-  if (!store) return grant;
-  const reference = randomBytes(32).toString('base64url');
-  const grantExpiresAt = now + MANAGED_GRANT_AGE_MS;
-  const record = {...grant.session, refreshToken, grantExpiresAt};
-  try {
-    if (await store.create(reference, seal(record, grantPurpose(reference), config), grantExpiresAt)) {
-      const pointer = seal({reference, workos:grant.session.workos, expiresAt:grantExpiresAt}, GRANT_REFERENCE_PURPOSE, config);
-      return {...grant, cookie:cookieHeader(SESSION_COOKIE, `v2.${pointer}`, config, MANAGED_GRANT_AGE_MS / 1000)};
-    }
-  } catch { /* Keep the verified short session if the store is unavailable. */ }
-  return grant;
+const grantPurpose = reference => `workos-grant:${reference}`;
+
+function validStoredGrant(grant, pointer, now) {
+  return validSession(grant) && matchesWorkOSUser(grant, pointer.workos) &&
+    (pointer.githubId === undefined || pointer.githubId === grant.id) &&
+    grant.grantExpiresAt === pointer.expiresAt && grant.grantExpiresAt > now &&
+    typeof grant.refreshToken === 'string' && refreshTokenPattern.test(grant.refreshToken);
 }
 
-const grantPurpose = reference => `workos-grant:${reference}`;
+function managedGrantCookie(session, reference, expiresAt, config, now, restored = false) {
+  const pointer = seal({reference, workos:session.workos, expiresAt,
+    ...(restored ? {githubId:session.id, csrf:session.csrf} : {})},
+  restored ? RESTORED_GRANT_REFERENCE_PURPOSE : GRANT_REFERENCE_PURPOSE, config);
+  const version = restored ? 'v3' : 'v2';
+  return cookieHeader(SESSION_COOKIE, `${version}.${pointer}`, config, Math.floor((expiresAt - now) / 1000));
+}
+
+export function hasSavedGitHubConnection(request, env = process.env, now = Date.now()) {
+  const config = hubConfig(env);
+  return !!(config && liveGrantReference(readCookie(request, SESSION_COOKIE), config, now));
+}
+
+async function restoreManagedSession(store, pointer, grant, refreshToken, config, now) {
+  const {reference, expiresAt} = pointer;
+  const purpose = grantPurpose(reference);
+  const started = performance.now();
+  for (;;) {
+    const sealed = await store.read(reference);
+    const saved = unseal(sealed, purpose, config);
+    const elapsed = Math.floor(performance.now() - started);
+    const checkedAt = now + elapsed;
+    // A deleted record may be a sign-out racing this callback.
+    if (!validStoredGrant(saved, pointer, checkedAt) || expiresAt - checkedAt < 1000) return grant;
+    if (saved.id !== grant.session.id) return null;
+    // Each callback gets its own session cookie. A verified fresh token pair
+    // can replace the saved pair without changing its account binding or TTL.
+    const update = refreshToken && grant.session.expiresAt >= saved.expiresAt;
+    if (!update || (!(saved.refreshAfter > checkedAt) && await store.replace(reference, sealed, seal({
+      ...saved, token:grant.session.token, login:grant.session.login, expiresAt:grant.session.expiresAt,
+      refreshToken, refreshAfter:undefined
+    }, purpose, config)))) {
+      const finishedAt = now + Math.floor(performance.now() - started);
+      if (expiresAt - finishedAt < 1000) return grant;
+      return {...grant, cookie:managedGrantCookie(grant.session, reference, expiresAt, config, finishedAt, true)};
+    }
+    if (elapsed >= REFRESH_WAIT_MS) throw new Error('GitHub connection storage is busy');
+    await delay(350);
+  }
+}
+
+export async function persistManagedSession(grant, refreshToken, config, env, fetchImpl, now, {previousCookie = null} = {}) {
+  const previous = liveGrantReference(previousCookie, config, now);
+  const canRestore = previous && matchesWorkOSUser(previous, grant.session.workos);
+  const store = hubGitHubGrantStore(env, fetchImpl);
+  if (!store) return canRestore ? null : grant;
+  const refresh = typeof refreshToken === 'string' && refreshTokenPattern.test(refreshToken) ? refreshToken : null;
+  try {
+    if (canRestore) {
+      const restored = await restoreManagedSession(store, previous, grant, refresh, config, now);
+      if (restored) return restored;
+    }
+    if (!refresh) return grant;
+    const reference = randomBytes(32).toString('base64url');
+    const grantExpiresAt = now + MANAGED_GRANT_AGE_MS;
+    const record = {...grant.session, refreshToken:refresh, grantExpiresAt};
+    if (await store.create(reference, seal(record, grantPurpose(reference), config), grantExpiresAt)) {
+      return {...grant, cookie:managedGrantCookie(grant.session, reference, grantExpiresAt, config, now)};
+    }
+  } catch {
+    if (canRestore) return null;
+  }
+  return grant;
+}
 
 async function readManagedGrant(pointer, identity, config, env, now, started, fetchImpl, signal) {
   const store = hubGitHubGrantStore(env, fetchImpl);
@@ -227,11 +296,10 @@ async function readManagedGrant(pointer, identity, config, env, now, started, fe
     const grant = unseal(sealed, purpose, config);
     const elapsed = Math.floor(performance.now() - started);
     const checkedAt = now + elapsed;
-    if (!validSession(grant) || !matchesWorkOS(grant, identity) || checkedAt >= identity.validUntil ||
-        grant.grantExpiresAt !== pointer.expiresAt || grant.grantExpiresAt <= checkedAt ||
-        typeof grant.refreshToken !== 'string' || !refreshTokenPattern.test(grant.refreshToken)) return null;
+    if (!validStoredGrant(grant, pointer, checkedAt) || checkedAt >= identity.validUntil ||
+        (pointer.githubId === undefined && !matchesWorkOS(grant, identity))) return null;
     if (grant.expiresAt > checkedAt && !(grant.refreshAfter > checkedAt)) {
-      return authorizedGrant(grant, store, reference, sealed);
+      return authorizedGrant(grant, pointer, store, sealed);
     }
     if (signal.aborted || elapsed >= REFRESH_WAIT_MS) throw new Error('GitHub connection renewal is busy');
     if (!(grant.refreshAfter > checkedAt)) {
@@ -245,17 +313,17 @@ async function readManagedGrant(pointer, identity, config, env, now, started, fe
         // Sign-out or expiry can remove the grant while GitHub is responding.
         const finishedAt = now + Math.floor(performance.now() - started);
         return saved && next && finishedAt < Math.min(identity.validUntil, next.grantExpiresAt, next.expiresAt) ?
-          authorizedGrant(next, store, reference, replacement) : null;
+          authorizedGrant(next, pointer, store, replacement) : null;
       }
     }
     await delay(350, undefined, {signal});
   }
 }
 
-function authorizedGrant(grant, store, reference, sealed) {
-  const {id, login, token, csrf, expiresAt, workos} = grant;
-  const session = {id, login, token, csrf, expiresAt, workos};
-  storedGrants.set(session, {store, reference, sealed});
+function authorizedGrant(grant, pointer, store, sealed) {
+  const {id, login, token, expiresAt} = grant;
+  const session = {id, login, token, csrf:pointer.csrf ?? grant.csrf, expiresAt, workos:pointer.workos};
+  storedGrants.set(session, {store, reference:pointer.reference, sealed});
   return session;
 }
 
