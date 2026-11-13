@@ -37,6 +37,34 @@ async function validateCloneParent(parentPath) {
   }
   return {parent,parentStat};
 }
+async function reserveCloneDestination(parentPath, {parent, parentStat}, name) {
+  const destination = path.join(parent, name);
+  if (path.dirname(destination) !== parent) throw unavailableCloneFolder();
+  try { await fs.mkdir(destination, {mode:0o700}); }
+  catch (error) {
+    if (error.code === 'EEXIST') throw Error('That project folder already exists. Open it or choose another parent folder.');
+    if (['EACCES','EPERM','EROFS'].includes(error.code)) throw Error('Zero cannot create a project in that folder. Choose another location.');
+    throw error;
+  }
+  const reservedStat = await fs.lstat(destination);
+  const reservation = {parentPath, parent, parentStat, destination, reservedStat};
+  await assertCloneReservation(reservation, true);
+  return reservation;
+}
+async function assertCloneReservation({parentPath, parent, parentStat, destination, reservedStat}, empty) {
+  const actual = await fs.lstat(destination), currentParent = await fs.lstat(parentPath);
+  if (currentParent.isSymbolicLink() || currentParent.dev !== parentStat.dev || currentParent.ino !== parentStat.ino ||
+      !actual.isDirectory() || actual.isSymbolicLink() || actual.dev !== reservedStat.dev || actual.ino !== reservedStat.ino ||
+      await fs.realpath(parentPath) !== parent || (empty && (await fs.readdir(destination)).length)) {
+    throw Error('The clone folder changed. Choose another location and try again.');
+  }
+}
+async function releaseUnusedCloneDestination(reservation) {
+  try {
+    await assertCloneReservation(reservation, true);
+    await fs.rmdir(reservation.destination);
+  } catch { /* Leave replaced or populated folders alone. */ }
+}
 function gitPrerequisite(message, platform, environment) {
   if ((platform === 'win32' || platform === 'darwin') && (environment.ZERO_GIT_SETUP_FAILED === '1' || environment.ZERO_GIT_EXECUTABLE !== undefined)) {
     const help = platform === 'win32' ? ', then reopen Zero while connected to the internet. If Git setup still fails on a school laptop, ask school IT.' : ', then reopen the Zero app.';
@@ -82,13 +110,18 @@ function cleanEnvironment(source) {
   return env;
 }
 function createGitHubAppClone({authentication,repositories,spawn=execute,environment=process.env,localRun=core.git}={}) {
-  return async function clone({repositoryUrl,parentPath,signal}={}) {
+  return async function clone({repositoryUrl,parentPath,signal,reservation}={}) {
     cancellation(signal);
     const requested=core.parseRepositoryUrl(repositoryUrl);
-    const {parent,parentStat}=await validateCloneParent(parentPath);
+    const location=await validateCloneParent(parentPath);
+    const {parent}=location;
     cancellation(signal);
-    await assertCloneGit(parent,localRun);
-    const executable=gitExecutable();
+    let executable;
+    const run = (cwd, args, options) => localRun(cwd, args, {...options, executable});
+    await assertCloneGit(parent, (cwd, args) => {
+      executable = gitExecutable();
+      return run(cwd, args);
+    });
     cancellation(signal);
     const access=await repositories.access(requested.page,{permissions:{contents:'read'},signal});
     const {ticket,repository}=access;
@@ -99,27 +132,26 @@ function createGitHubAppClone({authentication,repositories,spawn=execute,environ
     const name=repository.name;
     if(typeof name!=='string'||name==='.'||name==='..'||!name||/[\\/\x00-\x1f:<>"|?*]/.test(name)||/[ .]$/.test(name)||/^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(name))throw Error('This repository name cannot be used as a project folder on supported systems.');
     const destination=path.join(parent,name);
-    let reserved=false,hooks,env,settings=[];
+    if (reservation && (reservation.destination !== destination || reservation.parentPath !== parentPath)) {
+      throw Error('The clone folder changed. Choose another location and try again.');
+    }
+    let hooks,env,settings=[];
     try {
       cancellation(signal);
-      // mkdir without recursive is the reservation: concurrent calls cannot
-      // overwrite an existing project or another in-progress clone.
-      try {await fs.mkdir(destination,{mode:0o700});reserved=true;}
-      catch(error){if(error.code==='EEXIST')throw Error('That project folder already exists. Open it or choose another parent folder.');throw error;}
-      const reservedStat=await fs.lstat(destination);
+      reservation ||= await reserveCloneDestination(parentPath,location,name);
       hooks=await fs.mkdtemp(path.join(os.tmpdir(),'zero-clone-hooks-'));
       const configFile=path.join(hooks,'empty-config');await fs.writeFile(configFile,'',{mode:0o600});
       const templateDirectory=path.join(hooks,'empty-template');await fs.mkdir(templateDirectory);
       await authentication.assertCurrent(ticket);
-      await assertNoUrlRewrites(parent,localRun);
+      await assertNoUrlRewrites(parent,run);
       // Recheck the reserved inode and parent immediately before the final
       // synchronous session check. The clone child receives no persistent Git
       // configuration, templates, hooks, helpers or custom filter programs.
-      const actual=await fs.lstat(destination),currentParent=await fs.lstat(parentPath);
-      if(currentParent.isSymbolicLink()||currentParent.dev!==parentStat.dev||currentParent.ino!==parentStat.ino||actual.isSymbolicLink()||!actual.isDirectory()||actual.dev!==reservedStat.dev||actual.ino!==reservedStat.ino||await fs.realpath(parentPath)!==parent||(await fs.readdir(destination)).length)throw Error('The clone folder changed. Choose another location and try again.');
+      await assertCloneReservation(reservation, true);
       cancellation(signal);
       const session=authentication.assertCurrentNow(ticket);
       if(!session||typeof session.then==='function'||!session.accessToken||/[\r\n\0]/.test(session.accessToken)||String(session.accountId)!==String(repository.owner?.id))throw Error('Your GitHub sign-in changed. Reconnect and clone again.');
+      if (gitExecutable() !== executable) throw Error('The Git installation changed. Try cloning again.');
       env=cleanEnvironment(environment);
       env.GIT_CONFIG_NOSYSTEM='1';env.GIT_CONFIG_GLOBAL=configFile;env.GIT_CONFIG_SYSTEM=configFile;
       env.GIT_TEMPLATE_DIR=templateDirectory;
@@ -136,8 +168,7 @@ function createGitHubAppClone({authentication,repositories,spawn=execute,environ
       settings.length=0;
       cancellation(signal);
       await authentication.assertCurrent(ticket);
-      const completedStat=await fs.lstat(destination),completedParent=await fs.lstat(parentPath);
-      if(completedStat.isSymbolicLink()||!completedStat.isDirectory()||completedStat.dev!==reservedStat.dev||completedStat.ino!==reservedStat.ino||completedParent.isSymbolicLink()||completedParent.dev!==parentStat.dev||completedParent.ino!==parentStat.ino)throw Error('The clone folder changed during cloning.');
+      await assertCloneReservation(reservation, false);
       const gitDirectory=await fs.lstat(path.join(destination,'.git'));
       if(!gitDirectory.isDirectory()||gitDirectory.isSymbolicLink())throw Error('Git did not create a standalone project repository.');
       // These read-only commands also run with isolated, credential-free config.
@@ -150,7 +181,7 @@ function createGitHubAppClone({authentication,repositories,spawn=execute,environ
     } catch(error) {
       // Preserve even an empty reservation; never recursively delete a path
       // after an external child or user could have populated it.
-      if(!reserved)throw error;
+      if(!reservation)throw error;
       const result=Error(`${error.code==='cancelled'?'Cloning cancelled.':/folder changed/.test(error.message)?'The clone folder changed.':'Cloning did not finish.'} Your project folder was preserved: ${destination}. Check it before retrying.`);
       result.code=error.code==='cancelled'?'cancelled':'clone-incomplete';result.destinationPath=destination;result.repositoryUrl=repository.html_url;throw result;
     } finally {
@@ -160,4 +191,4 @@ function createGitHubAppClone({authentication,repositories,spawn=execute,environ
     }
   };
 }
-module.exports={createGitHubAppClone,assertCloneGit,validateCloneParent};
+module.exports={createGitHubAppClone,assertCloneGit,validateCloneParent,reserveCloneDestination,assertCloneReservation,releaseUnusedCloneDestination};

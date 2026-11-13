@@ -108,7 +108,10 @@ namespace ZeroSetup
             else if (kind == "git")
             {
                 official = asset.version == GitRelease && uri.Host == "github.com" &&
-                    path == "/git-for-windows/git/releases/download/v" + GitRelease + "/MinGit-" + GitVersion + "-64-bit.zip";
+                    path == "/git-for-windows/git/releases/download/v" + GitRelease + "/MinGit-" + GitVersion + "-64-bit.zip" &&
+                    asset.files != null && asset.files.Count <= 1000 &&
+                    PrivateGitFiles.All(file => asset.files.ContainsKey(file.Replace('\\', '/'))) &&
+                    asset.files.All(file => Regex.IsMatch(file.Value ?? "", "^[a-f0-9]{64}$"));
             }
             else if (kind == "vscode")
             {
@@ -299,17 +302,35 @@ namespace ZeroSetup
             string javacVersion = await Execute(Path.Combine(java, "bin", "javac.exe"), new[] { "-version" }, 30000, cancellation);
             if (!Regex.IsMatch(javaVersion, @"version ""21\.") || !Regex.IsMatch(javacVersion, @"^javac 21\.", RegexOptions.Multiline)) throw new IOException("Zero's private Java 21 could not be verified. Try again; if your device blocks software, ask your device administrator or IT for help.");
         }
+        private void VerifyPrivateGitFiles(string root, CancellationToken cancellation)
+        {
+            var files = assets["git"].files;
+            var pending = new Stack<string>();
+            pending.Push(root);
+            int checkedFiles = 0;
+            while (pending.Count != 0)
+            {
+                foreach (string path in Directory.GetFileSystemEntries(pending.Pop()))
+                {
+                    cancellation.ThrowIfCancellationRequested();
+                    WindowsRuntimeFolders.Check(path);
+                    if (Directory.Exists(path)) { pending.Push(path); continue; }
+                    string relative = path.Substring(root.Length + 1).Replace(Path.DirectorySeparatorChar, '/');
+                    if (relative == ".zero-asset.sha256") continue;
+                    string expected;
+                    if (!files.TryGetValue(relative, out expected) || WindowsRuntimeArchive.Hash(path, cancellation) != expected)
+                        throw new IOException("Zero's private Git file failed verification: " + relative);
+                    checkedFiles++;
+                }
+            }
+            if (checkedFiles != files.Count) throw new IOException("Zero's private Git is missing required files.");
+        }
         private async Task VerifyGitBinary(string executable, CancellationToken cancellation, bool pinned = false)
         {
             if (pinned)
             {
                 string root = Path.GetDirectoryName(Path.GetDirectoryName(executable));
-                foreach (string file in PrivateGitFiles)
-                {
-                    string required = Path.Combine(root, file.Replace('\\', Path.DirectorySeparatorChar));
-                    WindowsRuntimeFolders.Check(required);
-                    if (!File.Exists(required)) throw new IOException("Zero's private Git is missing a required file: " + file);
-                }
+                VerifyPrivateGitFiles(root, cancellation);
             }
             executable = ExecutionPath(executable);
             string output = await Execute(executable, new[] { "--version" }, 30000, cancellation);
@@ -497,7 +518,11 @@ namespace ZeroSetup
             foreach (string key in new[] { "java.home", "java.jdt.ls.java.home", "java.configuration.runtimes", "java.import.gradle.java.home", "terminal.integrated.env.windows", "terminal.integrated.profiles.windows", "terminal.integrated.defaultProfile.windows" }.Concat(values["git.path"] == null ? new string[0] : new[] { "git.path" }))
             {
                 int close; var spans = SettingSpans(text, out close); var matching = spans.Where(span => span.Key == key).ToList();
-                if (matching.Count > 1) throw new IOException("Zero's editor settings repeat " + key + ". Remove the duplicate and retry.");
+                if (matching.Count > 1)
+                {
+                    if (key == "git.path") continue;
+                    throw new IOException("Zero's editor settings repeat " + key + ". Remove the duplicate and retry.");
+                }
                 var value = values[key];
                 if (matching.Count == 1)
                 {
@@ -570,6 +595,34 @@ namespace ZeroSetup
                 }
                 else if (original != null) throw new IOException("Zero's editor settings changed during setup. Retry setup.");
                 else File.Move(temporary, path);
+            }
+            finally { if (File.Exists(temporary)) File.Delete(temporary); }
+        }
+        private void PublishGitSelection(WindowsRuntimeFolders folders)
+        {
+            string folder = Path.Combine(data, "editor"), path = Path.Combine(folder, "git-selection.json");
+            string temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            folders.Ensure(folder);
+            WindowsRuntimeFolders.Check(path);
+            string original = File.Exists(path) ? ReadText(path, 8192) : null;
+            if (original != null)
+            {
+                var previous = JObject.Parse(original);
+                var previousPath = previous["executable"];
+                if (previous.Count != 2 || (int?)previous["schema"] != 1 || previousPath == null ||
+                    (previousPath.Type != JTokenType.Null && (previousPath.Type != JTokenType.String || !Path.IsPathRooted((string)previousPath) ||
+                        !string.Equals(Path.GetFileName((string)previousPath), "git.exe", StringComparison.OrdinalIgnoreCase))))
+                    throw new IOException("Zero's Git selection is unrecognized.");
+            }
+            string selected = new JObject { ["schema"] = 1, ["executable"] = git == null ? JValue.CreateNull() : new JValue(git) }.ToString(Formatting.None);
+            if (selected == original) return;
+            try
+            {
+                using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                using (var writer = new StreamWriter(output, new UTF8Encoding(false))) writer.Write(selected);
+                WindowsRuntimeFolders.Check(path);
+                if (original == null) File.Move(temporary, path);
+                else if (ReadText(path, 8192) == original) File.Replace(temporary, path, null);
             }
             finally { if (File.Exists(temporary)) File.Delete(temporary); }
         }
@@ -676,6 +729,8 @@ namespace ZeroSetup
                 await FindEditor(cancellation);
                 if (editor == null || !SettingsReady() || !ExtensionsReady(await ExtensionState(cancellation))) throw new IOException("Zero's editor support needs repair. Run setup again.");
                 cancellation.ThrowIfCancellationRequested();
+                try { PublishGitSelection(folders); }
+                catch (Exception error) when (error is IOException || error is UnauthorizedAccessException || error is JsonException || error is FormatException || error is ArgumentException) { }
                 host.Launch(Info(Path.Combine(editor, "Code.exe"), Isolated.Concat(resume ? new string[0] : new[] { "--new-window" }), false));
             }
         }

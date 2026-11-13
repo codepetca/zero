@@ -131,7 +131,18 @@ internal static class RuntimeHarness
             {
                 byte[] bytes = kind == "jdk" ? Host.Jdk : kind == "node" ? Host.Node : kind == "git" ? Host.Git : Host.Editor;
                 string hash; using (var sha = SHA256.Create()) hash = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
-                assets[kind] = new { url = kind == "jdk" ? "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip" : kind == "node" ? "https://nodejs.org/dist/v22.23.4/node-v22.23.4-win-x64.zip" : kind == "git" ? "https://github.com/git-for-windows/git/releases/download/v2.56.1.windows.1/MinGit-2.56.1-64-bit.zip" : "https://vscode.download.prss.microsoft.com/dbazure/download/stable/6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1/VSCode-win32-x64-1.142.0.zip", sha256 = hash, format = "zip", version = kind == "jdk" ? "jdk-21.0.12.1+1" : kind == "node" ? "22.23.4" : kind == "git" ? "2.56.1.windows.1" : "1.142.0", size = bytes.Length };
+                Dictionary<string, string> files = null;
+                if (kind == "git")
+                {
+                    using (var stream = new MemoryStream(bytes))
+                    using (var archive = new ZipArchive(stream, ZipArchiveMode.Read))
+                    using (var sha = SHA256.Create())
+                        files = archive.Entries.ToDictionary(entry => entry.FullName, entry =>
+                        {
+                            using (var file = entry.Open()) return BitConverter.ToString(sha.ComputeHash(file)).Replace("-", "").ToLowerInvariant();
+                        });
+                }
+                assets[kind] = new { files, url = kind == "jdk" ? "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip" : kind == "node" ? "https://nodejs.org/dist/v22.23.4/node-v22.23.4-win-x64.zip" : kind == "git" ? "https://github.com/git-for-windows/git/releases/download/v2.56.1.windows.1/MinGit-2.56.1-64-bit.zip" : "https://vscode.download.prss.microsoft.com/dbazure/download/stable/6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1/VSCode-win32-x64-1.142.0.zip", sha256 = hash, format = "zip", version = kind == "jdk" ? "jdk-21.0.12.1+1" : kind == "node" ? "22.23.4" : kind == "git" ? "2.56.1.windows.1" : "1.142.0", size = bytes.Length };
             }
             File.WriteAllText(Path.Combine(Kit, "setup", "windows-downloads.json"), Json.Serialize(new { schemaVersion = 1, architectures = new Dictionary<string, object> { ["x64"] = assets } }));
         }
@@ -184,11 +195,20 @@ internal static class RuntimeHarness
             Assert(f.Host.Downloads == 4 && f.Host.Launched.EnvironmentVariables["PATH"].Contains(Path.Combine(folder, "cmd") + ";") && f.Host.Launched.EnvironmentVariables["ZERO_GIT_SETUP_FAILED"] == null, "private Git acquired and selected");
             Assert(f.Host.Launched.EnvironmentVariables["ZERO_GIT_EXECUTABLE"] == Path.Combine(folder, "cmd", "git.exe"), "editor receives the exact verified private Git");
             f.Host.FailGitDownload = true; f.Prepare(); Assert(f.Host.Downloads == 4, "warm Git works offline");
+            string helper = Path.Combine(folder, "ucrt64", "bin", "git-remote-https.exe");
+            File.WriteAllText(helper, "replacement helper");
+            f.Host.FailGitDownload = false; f.Prepare();
+            Assert(File.ReadAllText(helper) == "fake HTTPS", "a replaced HTTPS helper must be repaired from the verified archive");
+            f.Host.FailGitDownload = true;
             File.Delete(Path.Combine(folder, "cmd", "git.exe")); f.Prepare();
             runtime = f.Runtime(); runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
             Assert(f.Host.Launched.EnvironmentVariables["ZERO_GIT_SETUP_FAILED"] == "1" && Directory.Exists(folder), "offline repair keeps editor available and old runtime");
             Assert(f.Host.Launched.EnvironmentVariables["ZERO_GIT_EXECUTABLE"] == null, "failed Git is not exported to the editor");
+            string selection = Path.Combine(f.Data, "editor", "git-selection.json");
+            Assert((JObject.Parse(File.ReadAllText(selection))["executable"]).Type == JTokenType.Null, "existing hosts see unavailable Git");
             f.Host.FailGitDownload = false; f.Prepare(); Assert(File.Exists(Path.Combine(folder, "cmd", "git.exe")), "missing private Git repaired");
+            f.Runtime().Open(true, CancellationToken.None).GetAwaiter().GetResult();
+            Assert((string)JObject.Parse(File.ReadAllText(selection))["executable"] == Path.Combine(folder, "cmd", "git.exe"), "existing hosts see repaired Git");
             foreach (string file in new[] { "git-remote-https.exe", "libcurl-4.dll", "libcurl-openssl-4.dll" })
             {
                 string https = Path.Combine(folder, "ucrt64", "bin", file);

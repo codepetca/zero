@@ -31,7 +31,7 @@ async function resolveProject(workspacePaths) {
   return unique[0];
 }
 async function git(project, args, options = {}) {
-  const {stdout} = await execute(gitExecutable(), args, {cwd: project, timeout: 15000, maxBuffer: 1024 * 1024, ...(options.env ? {env:options.env} : {}),...(options.encoding==='buffer'?{encoding:'buffer'}:{})});
+  const {stdout} = await execute(options.executable ?? gitExecutable(), args, {cwd: project, timeout: 15000, maxBuffer: 1024 * 1024, ...(options.env ? {env:options.env} : {}),...(options.encoding==='buffer'?{encoding:'buffer'}:{})});
   return Buffer.isBuffer(stdout)||args.includes('-z') ? stdout : stdout.trim();
 }
 function validBranchName(branch) {

@@ -101,5 +101,6 @@ namespace ZeroSetup
         public string format { get; set; }
         public string version { get; set; }
         public long size { get; set; }
+        public Dictionary<string, string> files { get; set; }
     }
 }

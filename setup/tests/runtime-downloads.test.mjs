@@ -22,11 +22,14 @@ test('native setup pins exact official Node archives and verified HEAD sizes fro
 
 test('Windows setup pins the official x64 MinGit archive',()=>{
   const {architectures,provenance}=read('setup/windows-downloads.json');
-  assert.deepEqual(architectures.x64.git,{
+  const {files, ...archive} = architectures.x64.git;
+  assert.deepEqual(archive,{
     url:'https://github.com/git-for-windows/git/releases/download/v2.56.1.windows.1/MinGit-2.56.1-64-bit.zip',
     sha256:'4a92850b6e917da4fd010669b614b55dccf5b0ec333a534cc4be4700dfefdafd',
     version:'2.56.1.windows.1',format:'zip',size:39849768
   });
+  assert.equal(Object.keys(files).length,375);
+  assert.match(files['ucrt64/bin/git-remote-https.exe'],/^[a-f0-9]{64}$/);
   assert.equal(provenance.gitRelease,'https://github.com/git-for-windows/git/releases/tag/v2.56.1.windows.1');
 });
 

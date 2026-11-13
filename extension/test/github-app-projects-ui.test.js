@@ -23,7 +23,7 @@ async function fixture(t){
  let session={id:'session',account:{id:'1',label:'student'},accessToken:'TEST_SECRET',scopes:[]};
  const auth=createAuthentication({getSession:async()=>session,onDidChangeSessions:()=>({dispose(){}})});t.after(()=>auth.dispose());
  const vscode={window:{showInputBox:async options=>{inputs.push(options);afterName();return name;},showQuickPick:async(items,options)=>{picks.push({items,options});afterPick(options);return options.title==='Start tutorial'?(typeof tutorialChoice==='string'?items.find(item=>item.project.id===tutorialChoice):tutorialChoice?items[0]:undefined):undefined;}}};
- const folders={chooseCloneParent:async()=>{calls.push(['parent']);return parent;},clone:async({signal,...input})=>{assert.ok(signal instanceof AbortSignal);calls.push(['clone',input]);if(cloneFailure)throw cloneFailure;return cloneResult;}};
+ const folders={chooseCloneParent:async()=>{calls.push(['parent']);return parent;},clone:async({signal,reservation,...input})=>{assert.ok(signal instanceof AbortSignal);if(reservation)assert.ok((await fs.lstat(reservation.destination)).isDirectory());calls.push(['clone',input]);if(cloneFailure)throw cloneFailure;return cloneResult;}};
  const repositories={access:async(url,options)=>{calls.push(['access',url,options]);return {};},create:async(input,options)=>{calls.push(['create',input,options]);await afterCreate(options);return {repository:{html_url:remote}};}};
  let checkGit=async()=>{};
  const commands=createGitHubProjectCommands({vscode,authentication:auth,repositories,folders,extensionPath:root,project:async()=>current,active:()=>enabled,onProgress:value=>progress.push(value),onRecovery:value=>recovery.push(value),checkCloneGit:folder=>checkGit(folder)});
@@ -70,6 +70,16 @@ test('a selected Git repository is rejected before any Git probe or remote creat
  await assert.rejects(f.commands.newProject(),/outside an existing Git repository/);
  assert.deepEqual(f.calls.map(call=>call[0]),['parent']);
  assert.deepEqual(f.recovery,[]);
+});
+test('an existing target folder prevents remote creation and keeps its files',async t=>{
+ const f=await fixture(t);
+ const destination=path.join(f.root,'my-project');
+ await fs.mkdir(destination);
+ await fs.writeFile(path.join(destination,'student.txt'),'keep');
+ await assert.rejects(f.commands.newProject(),/project folder already exists/);
+ assert.deepEqual(f.calls.map(call=>call[0]),['parent']);
+ assert.deepEqual(f.recovery,[]);
+ assert.equal(await fs.readFile(path.join(destination,'student.txt'),'utf8'),'keep');
 });
 test('invalid names are rejected even when host input validation is bypassed',async t=>{
  const f=await fixture(t);f.name='nul.txt';await assert.rejects(f.commands.newProject(),/ordinary folder name/);assert.equal(f.calls.length,0);
@@ -152,6 +162,7 @@ test('uncertain create outcome retains intended remote recovery and never retrie
 test('definitive creation refusal clears recovery while keeping the form draft',async t=>{
  const f=await fixture(t);f.afterCreate=()=>{throw Object.assign(Error('Permission required'),{code:'permission-required'});};
  await assert.rejects(f.commands.newProject(),/Permission required/);assert.equal(f.recovery.at(-1),undefined);
+ await assert.rejects(fs.lstat(path.join(f.root,'my-project')),{code:'ENOENT'});
 });
 test('resume existing local creation connects the empty remote without cloning or creating again',async t=>{
  const f=await fixture(t),connected=[];t.mock.method(core,'connectRepository',async(...args)=>{connected.push(args);return {page:remote};});
