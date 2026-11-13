@@ -14,7 +14,6 @@ export function HubNavigation({active,path='/hub',view='',showListings=false,sho
       ['Browse projects','/hub?kind=game',!sharing&&!projectListings&&view!=='publish'],
       ['My Projects','/hub/listings',projectListings&&view!=='help',showListings],
       ['Publish an app','/hub?kind=game&view=publish',!sharing&&!projectListings&&view==='publish'],
-      ['Share a game','/hub/share?view=game',sharing&&view==='game'],
       ['How app listings work','/hub/listings?view=help',projectListings&&view==='help',showListings]
     ]},
     {id:'library',label:'Libraries',href:'/hub?kind=library',items:[

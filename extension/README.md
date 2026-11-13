@@ -70,11 +70,9 @@ to inspect the current branch's commits and built-in Source Control to review ch
 an earlier project version and the custom undo flow are temporarily unavailable.
 VS Code's auto-save preference applies.
 
-**ZeroHub → Share project** guides game details, Commit & push and optional Publish app
-before the reviewed GitHub form. Cancel preserves saved details. Submit the form
-on GitHub; opening it does not mean gallery acceptance. Each handoff rechecks
-account, repository and exact uploaded source; workflow scope expansion hints the
-selected native account and still rejects an account change.
+Games reach ZeroHub through **Run → Publish & open app**, which lists the app in
+ZeroHub Projects when app listings are enabled. The ZeroHub menu, Libraries and
+games menu and Command Palette no longer offer Share game.
 
 Commands: `zero.importAssets`, `zero.copyImportedAssetPaths`, `zero.recovery`,
 `zero.runApp`, `zero.runNativeApp`, `zero.stopApp`, `zero.exportWeb`,
@@ -208,7 +206,7 @@ editor restarts; choose Publish & open app again to recheck. Operational errors 
 a next action and preserve the previous live page. Pika still receives the
 separate source repository link.
 
-**Share project** prepares a separate source contribution. It attaches a playable
+The hidden **Share game** command prepares a separate source contribution. It attaches a playable
 receipt only when the saved publication verifies for the exact uploaded commit.
 ZeroHub’s **Play latest** opens the student-hosted app; source downloads remain
 exact versions. Public checker acceptance and activation are still pending;
@@ -239,7 +237,7 @@ remain pending. Review focused changes before classroom adoption.
 
 ## ZeroHub libraries
 
-Choose **ZeroHub → Libraries**, or **Zero: Browse Libraries** in the Command Palette. **ZeroHub → Projects** opens shared projects on the website. Signed-in students can use **ZeroHub → Share project** for eligible original projects; advanced library authoring remains under **Zero: Libraries and Games** in the Command Palette. Inspect a component's API/checks at `/hub`, then Add its exact library version. Related classes share a dependency. Update/Revert preserve independent library histories and change only reviewed managed POM blocks using the native undoable editor.
+Choose **ZeroHub → Libraries**, or **Zero: Browse Libraries** in the Command Palette. **ZeroHub → Projects** opens shared projects on the website. Games reach ZeroHub through **Publish & open app**; advanced library authoring remains under **Zero: Libraries and Games** in the Command Palette. Inspect a component's API/checks at `/hub`, then Add its exact library version. Related classes share a dependency. Update/Revert preserve independent library histories and change only reviewed managed POM blocks using the native undoable editor.
 
 Dirty/drifted POMs, incompatible layouts and source copies that shadow installed classes require correction before editing. No automatic upgrade, Git commit or upload occurs. Use the card's exact Java import and ordinary methods, then Run App.
 

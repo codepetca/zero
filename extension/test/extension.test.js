@@ -271,14 +271,11 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   assert.match(webview.html.match(/<button class="repo-choice"[\s\S]*?<\/button>/)[0],/lucide-chevron-down[\s\S]*aria-hidden="true"/,'A decorative right-pointing chevron identifies the project menu');
   assert.doesNotMatch(webview.html,/Browse ZeroHub|data-command="zero.shareGame"/,'Sharing belongs inside the single ZeroHub menu');
   nextChoice=undefined;await commands.get('zero.browseZeroHub')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries','share']);
-  assert.equal(picks.at(-1).items.at(-1).label,'Share project');
-  nextChoice='share';await commands.get('zero.browseZeroHub')();assert.equal(shareCalls,1,'Share project dispatches the existing guarded sharing command');
-  pickEffect=async()=>{await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',repositoryRequired:true,lessonId:'0'}));};
-  await commands.get('zero.browseZeroHub')();assert.equal(shareCalls,1,'Changing to a tutorial while the menu is open cancels sharing');
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries'],'Games reach ZeroHub through Publish app, not Share project');
+  nextChoice='share';await commands.get('zero.browseZeroHub')();assert.equal(shareCalls,0,'The ZeroHub menu never dispatches Share game');
   pickEffect=undefined;await fs.writeFile(path.join(root,'zero.json'),'{}');
   pickEffect=async()=>{session=undefined;authEvent({provider:{id:'zero-github'}});};
-  await commands.get('zero.browseZeroHub')();assert.equal(shareCalls,1,'Signing out while the ZeroHub menu is open cancels sharing');
+  await commands.get('zero.browseZeroHub')();assert.equal(shareCalls,0,'Signing out while the ZeroHub menu is open shares nothing');
   pickEffect=undefined;session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE'};authEvent({provider:{id:'zero-github'}});await settle(()=>!webview.html.includes('>GitHub setup</button>'));
   nextChoice='account';await commands.get('zero.chooseRepository')();assert.equal(picks.at(-1).options.title,'Zero · @student','Native account actions remain reachable inside the project menu');
   nextChoice='recovery';await commands.get('zero.chooseRepository')();assert.equal(recoveryCalls,1,'The repository menu dispatches the existing guarded file recovery command');

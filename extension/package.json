@@ -591,6 +591,10 @@
     "menus": {
       "commandPalette": [
         {
+          "command": "zero.shareGame",
+          "when": "false"
+        },
+        {
           "command": "zero.startProject",
           "when": "false"
         },

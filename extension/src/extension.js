@@ -2388,19 +2388,14 @@ function activate(context, services = {}) {
       const root = projectRoot;
       const choice = await quickPick([
         {label:'Projects', description:'Browse shared games', action:'projects'},
-        {label:'Libraries', description:'Inspect libraries and exact versions', action:'libraries'},
-        ...(githubReady() && originalWork ? [{label:'Share project', action:'share'}] : [])
+        {label:'Libraries', description:'Inspect libraries and exact versions', action:'libraries'}
       ], {title:'ZeroHub'});
       if (isBusy()) return;
       if (choice?.action === 'projects' && !(await vscode.env.openExternal(vscode.Uri.parse('https://zero.codepet.ca/hub?kind=game')))) {
         throw new Error('Could not open ZeroHub. Open https://zero.codepet.ca/hub in your browser.');
       }
+      // Games reach ZeroHub through Publish app; Share game is not offered.
       if (choice?.action === 'libraries') await actions['zero.browseHub']();
-      if (choice?.action === 'share') {
-        await repositoryStatus();
-        if (isBusy() || projectRoot !== root || !auth.signedIn || !originalWork) return;
-        await actions['zero.shareGame']();
-      }
     },
     'zero.showOutput': () => output.show(true),
     'zero.showProblems': () => vscode.commands.executeCommand('workbench.actions.view.problems'),

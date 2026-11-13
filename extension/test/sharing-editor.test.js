@@ -234,10 +234,10 @@ test('existing game without a screenshot saves its chosen path before the normal
  f.vscode.window.showInformationMessage=async message=>message==='Save sharing details?'?'Save details':'Open GitHub form';
  await f.editor.commands['zero.shareGame']();assert.equal(f.request().descriptor.preview,'preview.png');assert.equal(f.statsGuided().uploads,1);assert.equal(f.opened.length,1);
 });
-test('sharingActions delegates within its existing local guard and still opens Share game',async t=>{
+test('sharingActions no longer offers Share game',async t=>{
  const f=await guidedFixture(t),pick=f.vscode.window.showQuickPick;
- f.vscode.window.showQuickPick=async(entries,options)=>options.title==='Libraries and games'?entries.find(e=>e.command==='zero.shareGame'):pick(entries,options);
- await f.editor.commands['zero.sharingActions']();assert.equal(f.statsGuided().uploads,1);assert.equal(f.opened.length,1);assert.equal(f.stats().busy,false);
+ let offered;f.vscode.window.showQuickPick=async(entries,options)=>{if(options.title!=='Libraries and games')return pick(entries,options);offered=entries.map(e=>e.command);return undefined;};
+ await f.editor.commands['zero.sharingActions']();assert.ok(offered.includes('zero.shareLibrary'));assert.equal(offered.includes('zero.shareGame'),false);assert.equal(f.statsGuided().uploads,0);assert.equal(f.opened.length,0);assert.equal(f.stats().busy,false);
 });
 test('a successful publish handoff needs a newly verified receipt and never silently shares source only',async t=>{
  const f=await guidedFixture(t);f.host.publishForSharing=async()=>({status:'live'});await assert.rejects(f.editor.commands['zero.shareGame'](),/could not be verified.*exact source/);assert.equal(f.opened.length,0);

@@ -23,7 +23,6 @@ export default async function Hub({searchParams}:{searchParams:Promise<Record<st
       </ol>
       <p>To choose the ZeroHub picture, commit a square PNG as <code>zerohub/thumbnail.png</code> (128 to 2048 pixels, up to 1 MB) before publishing. Without one, ZeroHub shows a pattern made from your GitHub name and repository name.</p>
       <p>Zero publishes the app to GitHub Pages. Eligible apps can also appear in ZeroHub.</p>
-      <p><Link href="/hub/share?view=game">Share a game with its source</Link></p>
     </>;
     if(query.kind==='library'&&query.view==='use')return <>
       <h1>Add a library</h1>
