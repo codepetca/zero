@@ -73,6 +73,11 @@ test('spawn ENOENT distinguishes missing Git from a disappeared clone parent',as
  assert.deepEqual(await fs.readdir(f.parent),[]);
  f.localHook=async()=>{await fs.rmdir(f.parent);throw missing;};
  await assert.rejects(f.clone({repositoryUrl:remote,parentPath:f.parent}),error=>error.code==='clone-folder-unavailable');
+ await assert.rejects(f.clone({repositoryUrl:remote,parentPath:f.parent}),error=>error.code==='clone-folder-unavailable');
+ await fs.writeFile(f.parent,'not a directory');
+ await assert.rejects(f.clone({repositoryUrl:remote,parentPath:f.parent}),error=>error.code==='clone-folder-unavailable');
+ const {assertCloneGit}=require('../src/github-app/clone');
+ await assert.rejects(assertCloneGit(f.parent),error=>error.code==='clone-folder-unavailable');
  assert.equal(f.accessCalls,0);
 });
 test('existing folder and symlink are never overwritten or removed',async t=>{

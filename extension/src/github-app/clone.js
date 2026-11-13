@@ -9,19 +9,21 @@ const {assertNoUrlRewrites}=require('../github');
 const execute=promisify(execFile);
 
 function cancellation(signal) {if(signal?.aborted)throw Object.assign(Error('Cloning cancelled.'),{code:'cancelled'});}
+function unavailableCloneFolder() {
+  return Object.assign(Error('The selected project folder is unavailable. Choose a folder again.'), {code:'clone-folder-unavailable'});
+}
 async function assertCloneGit(parent, run = core.git) {
   let output;
   try { output = await run(parent, ['--version']); }
   catch (error) {
+    if (error.code === 'ENOTDIR') throw unavailableCloneFolder();
     if (error.code !== 'ENOENT') throw error;
     // A vanished working directory also produces spawn ENOENT.
     const folder = await fs.stat(parent).catch(error => {
       if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return null;
       throw error;
     });
-    if (!folder?.isDirectory()) {
-      throw Object.assign(Error('The selected project folder is unavailable. Choose a folder again.'), {code:'clone-folder-unavailable'});
-    }
+    if (!folder?.isDirectory()) throw unavailableCloneFolder();
     const install = process.platform === 'win32' ? 'Install Git for Windows' : 'Install Git';
     throw Object.assign(Error(`Zero could not find Git on this computer. ${install}, then fully quit and reopen Zero.`), {code:'git-prerequisite'});
   }
@@ -42,8 +44,11 @@ function createGitHubAppClone({authentication,repositories,spawn=execute,environ
     cancellation(signal);
     const requested=core.parseRepositoryUrl(repositoryUrl);
     if(typeof parentPath!=='string'||!path.isAbsolute(parentPath))throw Error('Choose an absolute folder for your project.');
-    const parent=await fs.realpath(parentPath),parentStat=await fs.lstat(parentPath);
-    if(!parentStat.isDirectory()||parentStat.isSymbolicLink())throw Error('Choose an ordinary folder for your project.');
+    let parent,parentStat;
+    try {parentStat=await fs.lstat(parentPath);parent=await fs.realpath(parentPath);}
+    catch(error){if(['ENOENT','ENOTDIR'].includes(error.code))throw unavailableCloneFolder();throw error;}
+    if(parentStat.isSymbolicLink())throw Error('Choose an ordinary folder for your project.');
+    if(!parentStat.isDirectory())throw unavailableCloneFolder();
     // Keep new standalone projects outside existing repositories, including
     // worktree .git files. No existing directory is reused or removed.
     for(let directory=parent;;directory=path.dirname(directory)) {
