@@ -94,3 +94,7 @@
 .jam-swatches + .jam-swatches span.jam-art { width:96px; height:64px; }
 .jam-look-preview strong { font-size:22px; line-height:1.1; }
 @media (prefers-reduced-motion:reduce) { .jam-card { transition:none; } .jam-card:hover { transform:none; } }
+
+.jam-lede { margin:-4px 0 0; color:var(--muted); font-size:18px; }
+/* The search field draws its own focus ring; skip the generic jam-page ring on the inner input. */
+.jam-page .jam-filter input[type="search"]:focus-visible { outline:none; }

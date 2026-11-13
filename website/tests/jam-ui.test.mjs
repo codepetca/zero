@@ -729,3 +729,16 @@ test('jam pages and cards use the chosen look, and creation previews it',()=>{
   assert.match(picker,/jam-look-preview jam-art jam-theme-ocean jam-backdrop-waves/);assert.match(picker,/Your jam title/);
   assert.match(picker,/checked="" value="ocean"/);assert.match(picker,/checked="" value="waves"/);assert.equal(picker.match(/checked=""/g).length,2);
 });
+
+test('jam discovery states joining and hosting in one line and links Zero Pro to how to get it',()=>{
+  const h=harness({participateData:{events:[]}});
+  h.setDirectory(h.render('JamDirectoryProvider',{}).props.value);
+  for(const actor of [{id:'12',login:'creator',csrfToken:'csrf'},null]){
+    h.setActor(actor);
+    const nodes=elements(h.render('JamDiscovery'));
+    const lede=nodes.find(node=>node.props?.className==='jam-lede');
+    assert.ok(lede);assert.equal(lede.props.children.filter(child=>typeof child==='string').join('|'),'Join for free. Host with |.');
+    assert.ok(nodes.some(node=>node.props?.href==='/hub/jams/rules#creating-a-jam'&&node.props.children==='Zero Pro'));
+    assert.equal(nodes.some(node=>node.type?.name==='HubAccount'),false);
+  }
+});
