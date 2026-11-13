@@ -1,3 +1,24 @@
+# Restore a saved ZeroHub connection after sign-in — 2026-11-13
+
+Local source `289c94b80` restores the existing browser grant when a fresh
+WorkOS callback verifies the same Zero user and numeric GitHub account ID.
+The saved connection keeps its original 180-day expiry. Sign-out deletes the
+saved grant. The production WorkOS inactivity timeout was previously observed
+at two days, and this source requires no dashboard change.
+
+Base `b49c56ac5`. Sol/high and Terra/high independently reviewed `de2881695`.
+The reviews found that a temporary callback failure could discard the saved
+reference and concurrent callbacks could misalign browser and Redis state.
+Remediation at `d1c64627c` kept the reference for retry and bound each restored
+cookie to its own verified session. Sol/high found that a fresh token pair
+needed to recover a stale grant and a concurrent deletion had to prevent
+durable recreation. Fixes through `289c94b80` passed targeted review.
+Four review turns, one initial wave and one targeted wave with follow-up
+inspection of the final corrections. Live provider sign-in and renewal were
+outside the review. The restoration change is local.
+
+---
+
 # Renewable ZeroHub GitHub connection — 2026-11-13
 
 Local source `e059077c9` renews GitHub App access for the originating WorkOS

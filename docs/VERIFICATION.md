@@ -1,5 +1,14 @@
 # Verification
 
+## Restore a saved ZeroHub connection after sign-in — 2026-11-13
+
+On `289c94b80`, the website suite passed with 835 tests passed and 3 skipped.
+The production build, bundle audit, runtime checks and diff check passed.
+Fixtures verify restoration after a three-day break, the original expiry,
+both account checks, browser cookie binding, callback retries, simultaneous
+sign-ins, GitHub token recovery and deletion on sign-out. They use simulated
+WorkOS and GitHub responses. A hosted restore after inactivity remains untested.
+
 ## Renewable ZeroHub GitHub connection — 2026-11-13
 
 On `e059077c9`, the website suite passed with 825 tests passed and 3 skipped.
