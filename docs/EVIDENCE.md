@@ -1,3 +1,30 @@
+# Automatic Git setup on macOS — 2026-11-13
+
+Local source `cbcf42a87` reuses working Mac Git 2.31+ or prepares the
+pinned GitHub Desktop Git 2.56.1 archive in Zero's private runtime. The
+launcher checks for developer tools without invoking Apple's Git shim.
+A failed download leaves local editing available and is retried when Zero
+opens again. The installed isolated extension reads the current launcher
+selection, including when VS Code retains older process variables.
+
+Both official archives matched their published checksums (63,505,330 bytes
+for arm64 and 67,474,588 bytes for x64). Both 374-assertion native harness
+runs passed, including extraction with Zero's code, local clone, and a public
+GitHub HTTPS clone with system Git removed from PATH. The x64 run used
+Rosetta on Apple silicon. 82 focused tests, kit packaging and verification,
+and a local universal development DMG build passed. A fresh Mac without
+Apple tools, an upgrade with a live VS Code window, and an authenticated
+student GitHub flow remain untested. The change is local and unreleased.
+
+Sol/high and Terra/high reviewed `de22eda08`. Fixes through `b3d00a835`
+bound cached Git and its helper to the sealed checksums, preserved optional
+editor settings and unrecognized selection files, and addressed the old
+editor process environment. Both targeted reviews found no remaining
+blocking issue in their respective deltas. Effective model and per-turn
+usage were unavailable.
+
+---
+
 # Automatic Git setup on Windows — 2026-11-13
 
 Local source `f202a0972` checks for Git 2.31 or newer on the Windows
