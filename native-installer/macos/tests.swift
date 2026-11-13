@@ -788,8 +788,8 @@ struct SetupTests {
         let gitSelection = try JSONSerialization.jsonObject(with: Data(contentsOf: selectionFile)) as! [String: Any]
         try expect(gitSelection["executable"] as? String == privateGit?.path, "existing editor can read the native selection")
         try runtime.publishGitSelection(nil)
-        let unavailable = try JSONSerialization.jsonObject(with: Data(contentsOf: selectionFile)) as! [String: Any]
-        try expect(unavailable["executable"] is NSNull, "existing editor can see unavailable Git without falling back")
+        let missingGitSelection = try JSONSerialization.jsonObject(with: Data(contentsOf: selectionFile)) as! [String: Any]
+        try expect(missingGitSelection["executable"] is NSNull, "existing editor can see unavailable Git without falling back")
         try "student file".write(to: selectionFile, atomically: true, encoding: .utf8)
         try rejected("foreign Git selection is not replaced") { try runtime.publishGitSelection(privateGit) }
         try expect(try String(contentsOf: selectionFile) == "student file", "unrecognized Git selection contents are preserved")
