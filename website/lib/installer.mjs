@@ -41,7 +41,7 @@ export function installerHref(manifest, local = false) {
   return local ? '/download/installer' : null;
 }
 export function landingDownloadHref(_kitHref, _manifest, _local = false) {
-  return '/downloads';
+  return '/';
 }
 export function localDownloadsAllowed(env) {
   return env.ZERO_LOCAL_DOWNLOADS === '1' && !env.VERCEL;

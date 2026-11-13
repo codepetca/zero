@@ -7,7 +7,7 @@ Keep the selected ultra-minimal design: Zero wordmark, one short description, Ma
 | Address | Purpose |
 | --- | --- |
 | `/` | Minimal landing with Mac Silicon and Windows ZIP downloads |
-| `/get-started` | Legacy setup address; redirects to `/downloads` |
+| `/get-started`, `/downloads` | Legacy setup and download addresses; redirect to `/` |
 | `/learn`, `/tutorials/[lesson]` | Visual quick paths, expandable details and thirteen maintained lessons |
 | `/examples`, `/source` | Runnable examples, explicit copy instructions and readable source |
 | `/docs` | Setup, student API and teacher/developer guidance |

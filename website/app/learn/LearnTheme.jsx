@@ -17,10 +17,9 @@ export function LearnTheme({ children, active, hubReturnTo }) {
   const [platform, setPlatform] = useState("mac");
 
   useEffect(() => {
-    // Preserve old downloads bookmarks and links without keeping downloads
-    // inside Tutorials. The Hub's existing Get Zero link uses this address.
+    // Send old Tutorials download bookmarks to the homepage download choices.
     if (window.location.pathname === "/learn" && window.location.hash === "#downloads") {
-      window.location.replace("/downloads");
+      window.location.replace("/");
       return;
     }
     let savedPlatform;
