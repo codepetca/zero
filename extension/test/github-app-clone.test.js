@@ -102,7 +102,7 @@ test('macOS Git setup errors give safe, actionable recovery',async t=>{
  await assert.rejects(assertCloneGit(f.parent,missingTools,{platform:'darwin',environment:{}}),error=>
    error.code==='git-prerequisite'&&/current Zero installer/.test(error.message)&&/Command Line Tools/.test(error.message)&&!/SECRET/.test(error.message));
  await assert.rejects(assertCloneGit(f.parent,missingTools,{platform:'darwin',environment:{ZERO_GIT_SETUP_FAILED:'1'}}),error=>
-   error.code==='git-setup-retry'&&/quit Zero and VS Code/.test(error.message)&&/internet/.test(error.message)&&!/Command Line Tools|SECRET/.test(error.message));
+   error.code==='git-setup-retry'&&/quit Zero and VS Code, then reopen the Zero app/.test(error.message)&&!/Command Line Tools|SECRET|internet/.test(error.message));
  await assert.rejects(assertCloneGit(f.parent,async()=>{throw Object.assign(Error('missing'),{code:'ENOENT'});},
    {platform:'darwin',environment:{ZERO_GIT_EXECUTABLE:'/bad/git'}}),{code:'git-setup-retry'});
 });
