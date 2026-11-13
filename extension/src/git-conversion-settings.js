@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 const {execFile}=require('node:child_process');
 const {promisify}=require('node:util');
 const exec=promisify(execFile);
@@ -8,7 +9,7 @@ const exec=promisify(execFile);
 async function conversionSettings(root) {
   const env={...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_TERMINAL_PROMPT:'0'};
   const get=async key=>{
-    try {return (await exec('git',['config','--get',key],{cwd:root,env,encoding:'utf8',timeout:10000,maxBuffer:4096})).stdout.trim().toLowerCase();}
+    try {return (await exec(gitExecutable(),['config','--get',key],{cwd:root,env,encoding:'utf8',timeout:10000,maxBuffer:4096})).stdout.trim().toLowerCase();}
     catch(error){if(error.code===1)return '';throw new Error('Could not safely read Git line-ending settings. Check them in native Source Control.');}
   };
   let autocrlf=await get('core.autocrlf');const eol=(await get('core.eol'))||'native';

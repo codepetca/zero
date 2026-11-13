@@ -41,7 +41,7 @@ internal static class StoreFeasibilityHarness
 #else
             Assert(child.EnvironmentVariables[Distribution.Marker] == "msix-feasibility", "Store child route is explicit");
 #endif
-            Assert(DependencyConsent.Message.Contains("Node.js"), "consent discloses Node.js acquisition");
+            Assert(DependencyConsent.Message.Contains("Node.js") && DependencyConsent.Message.Contains("Git"), "consent discloses Node.js and Git acquisition");
             int prompts = 0;
             Assert(!DependencyConsent.Ensure(root, () => { prompts++; return false; }), "decline stops setup");
             Assert(prompts == 1 && !Directory.Exists(root), "decline writes no consent/data");
@@ -57,6 +57,14 @@ internal static class StoreFeasibilityHarness
             Assert(DependencyConsent.Ensure(root, () => { prompts++; return true; }), "accept permits setup");
             Assert(File.Exists(Path.Combine(root, "dependency-consent-v1")), "consent is retained in isolated data");
             Assert(DependencyConsent.Ensure(root, () => { throw new Exception("duplicate prompt"); }), "consent is reused");
+            Assert(DependencyConsent.EnsureGit(root, () => { throw new Exception("duplicate Git prompt"); }), "new dependency consent covers Git");
+            string legacy = Path.Combine(root, "legacy");
+            Directory.CreateDirectory(legacy);
+            File.WriteAllBytes(Path.Combine(legacy, "dependency-consent-v1"), new byte[] { 1 });
+            Assert(!DependencyConsent.EnsureGit(legacy, () => false) && !File.Exists(Path.Combine(legacy, "git-download-consent-v1")), "legacy consent alone does not approve the new download");
+            Assert(DependencyConsent.EnsureGit(legacy, () => true), "existing user can approve Git separately");
+            Assert(DependencyConsent.EnsureGit(legacy, () => { throw new Exception("duplicate legacy Git prompt"); }) &&
+                File.ReadAllBytes(Path.Combine(legacy, "dependency-consent-v1"))[0] == 1, "Git approval is reused and preserves the original consent receipt");
             Assert(KitFiles.InspectDefaultFolder(root).Path == Path.Combine(root, Distribution.KitFolder), "kit resolver selects Store folder");
             checks += RuntimeHarness.Run();
             Console.WriteLine("Store feasibility harness: " + checks + " checks passed");

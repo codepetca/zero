@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const {constants} = require('node:fs');
@@ -454,7 +455,7 @@ function createStudentExplorer(vscode, host) {
       if(!code&&!dirty)return vscode.commands.executeCommand('vscode.open',target);
       const env={...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_ALLOW_PROTOCOL:'',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_LITERAL_PATHSPECS:'1'};
       const parents=[];let parent=snapshot.root;for(const part of value.relative.split('/').slice(0,-1)){parent=path.join(parent,part);const stat=await fs.lstat(parent);if(!stat.isDirectory()||stat.isSymbolicLink()||await fs.realpath(parent)!==parent)return sourceControl();parents.push({parent,stat});}
-      const rawGit=async args=>(await exec('git',['--no-pager','-c','core.fsmonitor=false','-c',`core.hooksPath=${require('node:os').devNull}`,...args],{cwd:snapshot.root,env,encoding:'buffer',timeout:10000,maxBuffer:1024*1024})).stdout;
+      const rawGit=async args=>(await exec(gitExecutable(),['--no-pager','-c','core.fsmonitor=false','-c',`core.hooksPath=${require('node:os').devNull}`,...args],{cwd:snapshot.root,env,encoding:'buffer',timeout:10000,maxBuffer:1024*1024})).stdout;
       // Git before 2.45 lacks --no-lazy-fetch. Refuse promisor repositories
       // before object access and deny every transport in the child environment.
       const git=async args=>{if(['rev-parse','ls-tree','cat-file'].includes(args[0]))await assertNoPromisor(snapshot.root,(_root,configArgs)=>rawGit(configArgs));return rawGit(args);};

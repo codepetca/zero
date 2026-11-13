@@ -23,10 +23,11 @@ async function fixture(t){
  let session={id:'session',account:{id:'1',label:'student'},accessToken:'TEST_SECRET',scopes:[]};
  const auth=createAuthentication({getSession:async()=>session,onDidChangeSessions:()=>({dispose(){}})});t.after(()=>auth.dispose());
  const vscode={window:{showInputBox:async options=>{inputs.push(options);afterName();return name;},showQuickPick:async(items,options)=>{picks.push({items,options});afterPick(options);return options.title==='Start tutorial'?(typeof tutorialChoice==='string'?items.find(item=>item.project.id===tutorialChoice):tutorialChoice?items[0]:undefined):undefined;}}};
- const folders={chooseCloneParent:async()=>{calls.push(['parent']);return parent;},clone:async({signal,...input})=>{assert.ok(signal instanceof AbortSignal);calls.push(['clone',input]);if(cloneFailure)throw cloneFailure;return cloneResult;}};
+ const folders={chooseCloneParent:async()=>{calls.push(['parent']);return parent;},clone:async({signal,reservation,...input})=>{assert.ok(signal instanceof AbortSignal);if(reservation)assert.ok((await fs.lstat(reservation.destination)).isDirectory());calls.push(['clone',input]);if(cloneFailure)throw cloneFailure;return cloneResult;}};
  const repositories={access:async(url,options)=>{calls.push(['access',url,options]);return {};},create:async(input,options)=>{calls.push(['create',input,options]);await afterCreate(options);return {repository:{html_url:remote}};}};
- const commands=createGitHubProjectCommands({vscode,authentication:auth,repositories,folders,extensionPath:root,project:async()=>current,active:()=>enabled,onProgress:value=>progress.push(value),onRecovery:value=>recovery.push(value)});
- return {root,commands,calls,progress,recovery,inputs,picks,auth,vscode,repositories,folders,set name(v){name=v;},set tutorialChoice(v){tutorialChoice=v;},set parent(v){parent=v;},set current(v){current=v;},set active(v){enabled=v;},set afterName(v){afterName=v;},set afterPick(v){afterPick=v;},set afterCreate(v){afterCreate=v;},set cloneFailure(v){cloneFailure=v;},set cloneResult(v){cloneResult=v;},drift(){session={...session,account:{id:'2',label:'other'}};}};
+ let checkGit=async()=>{};
+ const commands=createGitHubProjectCommands({vscode,authentication:auth,repositories,folders,extensionPath:root,project:async()=>current,active:()=>enabled,onProgress:value=>progress.push(value),onRecovery:value=>recovery.push(value),checkCloneGit:folder=>checkGit(folder)});
+ return {root,commands,calls,progress,recovery,inputs,picks,auth,vscode,repositories,folders,set name(v){name=v;},set tutorialChoice(v){tutorialChoice=v;},set parent(v){parent=v;},set current(v){current=v;},set active(v){enabled=v;},set afterName(v){afterName=v;},set afterPick(v){afterPick=v;},set afterCreate(v){afterCreate=v;},set checkGit(v){checkGit=v;},set cloneFailure(v){cloneFailure=v;},set cloneResult(v){cloneResult=v;},drift(){session={...session,account:{id:'2',label:'other'}};}};
 }
 test('repository names are portable folder names including Windows device restrictions',()=>{
  for(const value of ['',null,'../app','a..b','a/b','a\\b',' leading','trailing.','a.git','.git','CON','con.txt','PRN','AUX','nul','COM1','com9.md','LPT1','lpt9.java','x'.repeat(101)])assert.equal(typeof nameError(value),'string',String(value));
@@ -42,6 +43,43 @@ test('new original project collects name and parent for a public repository befo
 });
 test('all cancelled form inputs stop before repository creation',async t=>{
  for(const stop of ['name','parent']){const f=await fixture(t);f[stop]=undefined;await f.commands.newProject();assert.ok(f.calls.every(call=>call[0]!=='create'&&call[0]!=='clone'),stop);}
+});
+test('New Project and Start tutorial check local Git before creating a remote or recording recovery',async t=>{
+ const f=await fixture(t);
+ const {assertCloneGit}=require('../src/github-app/clone');
+ let missing=true;
+ f.checkGit=folder=>assertCloneGit(folder,async(cwd,args)=>{
+   assert.equal(cwd,await fs.realpath(f.root));
+   assert.deepEqual(args,['--version']);
+   if(missing)throw Object.assign(Error('spawn git ENOENT'),{code:'ENOENT'});
+   return 'git version 2.31.0.windows.1';
+ });
+ for(const action of ['newProject','startTutorial']){
+   await assert.rejects(f.commands[action](),error=>error.code==='git-prerequisite'&&/could not find Git/.test(error.message));
+ }
+ assert.deepEqual(f.calls.map(call=>call[0]),['parent','parent']);
+ assert.deepEqual(f.recovery,[]);
+ missing=false;
+ await f.commands.newProject();
+ assert.equal(f.calls.filter(call=>call[0]==='create').length,1);
+});
+test('a selected Git repository is rejected before any Git probe or remote creation',async t=>{
+ const f=await fixture(t);
+ await fs.writeFile(path.join(f.root,'.git'),'gitdir: somewhere');
+ f.checkGit=()=>assert.fail('Git ran before the clone folder checks');
+ await assert.rejects(f.commands.newProject(),/outside an existing Git repository/);
+ assert.deepEqual(f.calls.map(call=>call[0]),['parent']);
+ assert.deepEqual(f.recovery,[]);
+});
+test('an existing target folder prevents remote creation and keeps its files',async t=>{
+ const f=await fixture(t);
+ const destination=path.join(f.root,'my-project');
+ await fs.mkdir(destination);
+ await fs.writeFile(path.join(destination,'student.txt'),'keep');
+ await assert.rejects(f.commands.newProject(),/project folder already exists/);
+ assert.deepEqual(f.calls.map(call=>call[0]),['parent']);
+ assert.deepEqual(f.recovery,[]);
+ assert.equal(await fs.readFile(path.join(destination,'student.txt'),'utf8'),'keep');
 });
 test('invalid names are rejected even when host input validation is bypassed',async t=>{
  const f=await fixture(t);f.name='nul.txt';await assert.rejects(f.commands.newProject(),/ordinary folder name/);assert.equal(f.calls.length,0);
@@ -85,6 +123,7 @@ test('account drift during form collection prevents POST',async t=>{
 });
 test('clone failure preserves created repository URL and offers recovery',async t=>{
  const f=await fixture(t);f.cloneFailure=Error('Destination is unavailable');await assert.rejects(f.commands.newProject(),error=>error.message.includes(remote)&&/repository was kept/.test(error.message)&&/Clone from GitHub/.test(error.message));
+ await assert.rejects(fs.lstat(path.join(f.root,'my-project')),{code:'ENOENT'});
  assert.equal(f.calls.filter(call=>call[0]==='create').length,1);assert.ok(!f.progress.includes('Project created'));assert.deepEqual(f.recovery.at(-1),{repositoryUrl:remote,accountId:'1',parentPath:f.root,stage:'created'});assert.doesNotMatch(JSON.stringify(f.recovery),/TEST_SECRET/);
 });
 test('cancelled clone after creation preserves a recovery URL without claiming success',async t=>{
@@ -124,6 +163,7 @@ test('uncertain create outcome retains intended remote recovery and never retrie
 test('definitive creation refusal clears recovery while keeping the form draft',async t=>{
  const f=await fixture(t);f.afterCreate=()=>{throw Object.assign(Error('Permission required'),{code:'permission-required'});};
  await assert.rejects(f.commands.newProject(),/Permission required/);assert.equal(f.recovery.at(-1),undefined);
+ await assert.rejects(fs.lstat(path.join(f.root,'my-project')),{code:'ENOENT'});
 });
 test('resume existing local creation connects the empty remote without cloning or creating again',async t=>{
  const f=await fixture(t),connected=[];t.mock.method(core,'connectRepository',async(...args)=>{connected.push(args);return {page:remote};});

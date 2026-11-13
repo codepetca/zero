@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('../src/git-executable');
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs/promises');
@@ -40,7 +41,7 @@ async function fixture(t) {
 test('authenticated clone uses real local Git behind injected transport and verifies exact repository/commit',async t=>{
  const f=await fixture(t),result=await f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent});assert.equal(result,path.join(f.parent,'project'));assert.equal(await fs.readFile(path.join(result,'Main.java'),'utf8'),'class Main {}');
  assert.equal(await core.git(result,['remote','get-url','origin']),remote);assert.equal(await core.git(result,['rev-parse','HEAD']),await core.git(f.source,['rev-parse','HEAD']));assert.equal(f.accessCalls,2);
- const call=f.calls[0];assert.equal(call.command,'git');assert.deepEqual(call.args,['clone','--no-recurse-submodules','--',remote,result]);assert.ok(!call.args.join(' ').includes(token));
+ const call=f.calls[0];assert.equal(call.command,gitExecutable());assert.deepEqual(call.args,['clone','--no-recurse-submodules','--',remote,result]);assert.ok(!call.args.join(' ').includes(token));
  assert.equal(call.options.env.GIT_CONFIG_COUNT,undefined,'Credential-bearing config references are dropped after dispatch');
  const header=call.settings.find(([key,value])=>key===`http.${remote}.extraHeader`&&value)[1];assert.equal(header,`Authorization: Basic ${Buffer.from(`x-access-token:${token}`).toString('base64')}`);
  for(const [key,value] of [['credential.helper',''],[`credential.${remote}.helper`,''],['http.extraHeader',''],[`http.${remote}.followRedirects`,'false'],[`http.${remote}.sslVerify`,'true'],['protocol.allow','never'],['protocol.https.allow','always'],['submodule.recurse','false']])assert.ok(call.settings.some(([k,v])=>k===key&&v===value));
@@ -63,6 +64,47 @@ test('credential child ignores inherited trace/config/helper/template programs',
 test('unselected repository and old Git stop before reserving destination or dispatching credentials',async t=>{
  const f=await fixture(t);f.accessHook=()=>{throw Error('Select repository');};await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent}),/Select repository/);assert.equal(f.calls.length,0);assert.deepEqual(await fs.readdir(f.parent),[]);
  f.accessHook=undefined;f.localHook=(_,args)=>args[0]==='--version'?'git version 2.30.9':undefined;await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent}),/2.31/);assert.equal(f.accessCalls,1);assert.deepEqual(await fs.readdir(f.parent),[]);
+});
+test('spawn ENOENT distinguishes missing Git from a disappeared clone parent',async t=>{
+ const f=await fixture(t);
+ const missing=Object.assign(Error('spawn git ENOENT'),{code:'ENOENT'});
+ f.localHook=()=>{throw missing;};
+ await assert.rejects(f.clone({repositoryUrl:remote,parentPath:f.parent}),error=>error.code==='git-prerequisite'&&/fully quit and reopen Zero/.test(error.message));
+ assert.equal(f.accessCalls,0);
+ assert.deepEqual(await fs.readdir(f.parent),[]);
+ f.localHook=async()=>{await fs.rmdir(f.parent);throw missing;};
+ await assert.rejects(f.clone({repositoryUrl:remote,parentPath:f.parent}),error=>error.code==='clone-folder-unavailable');
+ await assert.rejects(f.clone({repositoryUrl:remote,parentPath:f.parent}),error=>error.code==='clone-folder-unavailable');
+ await fs.writeFile(f.parent,'not a directory');
+ await assert.rejects(f.clone({repositoryUrl:remote,parentPath:f.parent}),error=>error.code==='clone-folder-unavailable');
+ const {assertCloneGit}=require('../src/github-app/clone');
+ await assert.rejects(assertCloneGit(f.parent),error=>error.code==='clone-folder-unavailable');
+ assert.equal(f.accessCalls,0);
+});
+test('a failed managed Windows Git setup directs students to reopen Zero',async t=>{
+ const f=await fixture(t);
+ const {assertCloneGit}=require('../src/github-app/clone');
+ const managed={platform:'win32',environment:{ZERO_GIT_SETUP_FAILED:'1'}};
+ for(const run of [
+   async()=>{throw Object.assign(Error('spawn git ENOENT'),{code:'ENOENT'});},
+   async()=>'git version 2.30.0.windows.1'
+ ]){
+   await assert.rejects(assertCloneGit(f.parent,run,managed),error=>error.code==='git-setup-retry'&&/reopen Zero/.test(error.message));
+ }
+ await assertCloneGit(f.parent,async()=>'git version 2.56.1.windows.1',managed);
+ await assert.rejects(assertCloneGit(f.parent,async()=>{throw Object.assign(Error('Permission denied'),{code:'EACCES'});},
+   {platform:'win32',environment:{ZERO_GIT_EXECUTABLE:'C:\\Zero Data\\cmd\\git.exe'}}),{code:'git-setup-retry'});
+});
+test('macOS Git setup errors give safe, actionable recovery',async t=>{
+ const f=await fixture(t);
+ const {assertCloneGit}=require('../src/github-app/clone');
+ const missingTools=async()=>{throw Object.assign(Error('failed'),{stderr:'xcode-select: error: no developer tools were found, requesting install. SECRET'});};
+ await assert.rejects(assertCloneGit(f.parent,missingTools,{platform:'darwin',environment:{}}),error=>
+   error.code==='git-prerequisite'&&/current Zero installer/.test(error.message)&&/Command Line Tools/.test(error.message)&&!/SECRET/.test(error.message));
+ await assert.rejects(assertCloneGit(f.parent,missingTools,{platform:'darwin',environment:{ZERO_GIT_SETUP_FAILED:'1'}}),error=>
+   error.code==='git-setup-retry'&&/quit Zero and VS Code, then reopen the Zero app/.test(error.message)&&!/Command Line Tools|SECRET|internet/.test(error.message));
+ await assert.rejects(assertCloneGit(f.parent,async()=>{throw Object.assign(Error('missing'),{code:'ENOENT'});},
+   {platform:'darwin',environment:{ZERO_GIT_EXECUTABLE:'/bad/git'}}),{code:'git-setup-retry'});
 });
 test('existing folder and symlink are never overwritten or removed',async t=>{
  const f=await fixture(t),destination=path.join(f.parent,'project');await fs.mkdir(destination);await fs.writeFile(path.join(destination,'keep'),'preserve');await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent}),/already exists/);assert.equal(await fs.readFile(path.join(destination,'keep'),'utf8'),'preserve');assert.equal(f.calls.length,0);

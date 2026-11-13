@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // Git holds its own ref lock from prepare through the directness check and commit.
 // External writers that ignore Git's locks are not confined by this protocol.
 const path=require('node:path'),os=require('node:os'),fs=require('node:fs'),{spawn}=require('node:child_process');
@@ -67,7 +68,7 @@ function cleanupRefStorage(root,branch,format) {
 const isolatedEnv=()=>Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_ATTR_NOSYSTEM:'1',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'});
 async function probeTransaction(root,env){
  await new Promise((resolve,reject)=>{
-  const child=spawn('git',['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false','update-ref','--stdin'],{cwd:root,env,stdio:['pipe','pipe','pipe']});
+  const child=spawn(gitExecutable(),['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false','update-ref','--stdin'],{cwd:root,env,stdio:['pipe','pipe','pipe']});
   let output='',size=0,failed=false,timedOut=false;const timer=setTimeout(()=>{timedOut=true;child.kill('SIGKILL');},10000);timer.unref?.();
   const fail=()=>{failed=true;child.kill('SIGKILL');};
   child.stdout.on('data',chunk=>{size+=chunk.length;if(size>8192)return fail();output+=chunk.toString('utf8');});
@@ -110,7 +111,7 @@ async function transaction(root,next,previous,{verify,checkNow=()=>{},perform,at
   for(const [file,identity] of initialRefs)if(current.get(file)!==identity)throw unsafeCleanupRefs();
  };
  const env=isolatedEnv();
- const child=spawn('git',['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false','update-ref','--stdin'],{cwd:root,env,stdio:['pipe','pipe','pipe']});
+ const child=spawn(gitExecutable(),['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false','update-ref','--stdin'],{cwd:root,env,stdio:['pipe','pipe','pipe']});
  let pending='',terminal,prepared=false,commitSent=false,performStarted=false,performCompleted=false,stderrSize=0,stdoutSize=0;const lines=[],waiters=[];let rejectStopped;const stopped=new Promise((_,reject)=>{rejectStopped=reject;});stopped.catch(()=>{});
  const failure=message=>new Error(message);
  const settle=(error)=>{if(terminal)return;terminal=error;rejectStopped(error);while(waiters.length)waiters.shift().reject(error);};

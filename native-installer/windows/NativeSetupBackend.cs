@@ -15,6 +15,7 @@ namespace ZeroSetup
         private string bundledKit;
         private WindowsRuntime runtime;
         internal Func<bool> ApproveDependencies { get; set; }
+        internal Func<bool> ApproveGitDownload { get; set; }
         internal NativeSetupBackend(string dataRoot, string runtimeRoot = null)
         {
             this.dataRoot = dataRoot;
@@ -49,6 +50,9 @@ namespace ZeroSetup
             // location to the editor and its extension host.
             string executionKit = Path.Combine(runtimeRoot + "-embedded-kits", Path.GetFileName(bundledKit));
             runtime = new WindowsRuntime(bundledKit, runtimeRoot, Path.Combine(target.Path, "starter"), storageRoot: dataRoot, executionKitRoot: executionKit);
+#if ZERO_STORE
+            runtime.ApproveGitDownload = () => DependencyConsent.EnsureGit(dataRoot, ApproveGitDownload);
+#endif
             await runtime.Prepare(progress, cancellation);
         }
         public async Task Open(CancellationToken cancellation)

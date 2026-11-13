@@ -30,9 +30,11 @@ identity and isolated data for local experiments. Neither is certified or publis
   No package-install-directory writes or custom filesystem virtualization
   exemptions are requested.
 - Before extraction or downloads, first run asks permission to acquire Java and Node.js,
-  VS Code when needed, Java extension support and later Maven/JavaFX dependencies.
+  VS Code and Git when needed, Java extension support and later Maven/JavaFX dependencies.
   Decline stops setup without writing consent or starting downloads. Consent is
-  remembered in this channel's data folder.
+  remembered in this channel's data folder. When an earlier consent receipt
+  predates Git, Zero asks once before a Git download is needed. Declining that
+  Git download lets Zero open for local work.
 - Editor children receive `ZERO_WINDOWS_DISTRIBUTION=store` (or `msix-feasibility` in that channel).
   Native and extension update commands open the fixed Microsoft Store Library
   URI. They cannot hand off to the ordinary EXE updater. The direct build clears
@@ -41,7 +43,7 @@ identity and isolated data for local experiments. Neither is certified or publis
 - Neither channel has been published, so actual update delivery requires a Store test flight or release.
 
 The package embeds the current complete kit/VSIX, not the old Setup EXE. Java,
-VS Code and Red Hat Java support retain their current vendor-to-user download
+MinGit, VS Code and Red Hat Java support use their vendor-to-user download
 flow; their binary distributions are not bundled into the MSIX. The Store manages
 the MSIX itself, not every tool obtained after first launch.
 
@@ -159,7 +161,7 @@ and package identity. The headline belongs in the description.
 > account. Published apps and their included assets are public.
 >
 > First setup needs internet access. With your permission, Zero downloads missing
-> Java 21, Node.js, Visual Studio Code and Java extension support. Your first
+> Java 21, Node.js, Git, Visual Studio Code and Java extension support. Your first
 > app build downloads Maven and JavaFX dependencies.
 
 In Partner Center, start an update for the existing product and edit the

@@ -9,7 +9,8 @@ param(
     [Parameter(Mandatory = $true)][switch]$DisposableAccount,
     [string]$BuildReceipt = (Join-Path $PSScriptRoot '..\dist\installers\build-windows.json'),
     [string]$OutputDirectory = (Join-Path $PSScriptRoot '..\.verification\windows-installation'),
-    [ValidateRange(60, 1200)][int]$BootstrapTimeoutSeconds = 900
+    [ValidateRange(60, 1200)][int]$BootstrapTimeoutSeconds = 900,
+    [switch]$RequirePrivateGit
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -113,9 +114,16 @@ function Editor-Roots {
         $_.CommandLine -and $_.CommandLine -match $editorArgument -and $_.CreationDate.ToUniversalTime() -ge $started
     })
 }
-function Open-Launcher([string]$Path) {
+function Open-Launcher([string]$Path, [switch]$WithoutPathGit) {
     $info = New-Object Diagnostics.ProcessStartInfo
-    $info.FileName = $Path; $info.UseShellExecute = $true
+    $info.FileName = $Path; $info.UseShellExecute = -not $WithoutPathGit
+    if ($WithoutPathGit) {
+        # Exercise missing Git only for this process tree.
+        $info.EnvironmentVariables['PATH'] = (($env:Path -split ';') | Where-Object {
+            $entry = $_.Trim().Trim('"')
+            $entry -and -not (Test-Path -LiteralPath (Join-Path $entry 'git.exe') -PathType Leaf)
+        }) -join ';'
+    }
     $process = [Diagnostics.Process]::Start($info)
     if ($process) { $process.Dispose() }
 }
@@ -146,7 +154,7 @@ try {
     if (@((Join-Path $install 'Zero.exe'), (Join-Path $install 'current\Zero.exe')) -notcontains $link.TargetPath -or $link.Arguments) { throw 'Start-menu shortcut does not open the installed Zero launcher.' }
     if ([Diagnostics.FileVersionInfo]::GetVersionInfo((Join-Path $install 'current\Zero.exe')).FileVersion -ne "$($receipt.kitVersion).0") { throw 'Installed launcher version does not match the candidate.' }
     Mark 'first-launch-real-bootstrap'
-    Open-Launcher (Join-Path $install 'Zero.exe')
+    Open-Launcher (Join-Path $install 'Zero.exe') -WithoutPathGit:$RequirePrivateGit
     $marker = Join-Path $data 'editor-opened'
     Wait-Until { (Test-Path -LiteralPath $marker) -and @(Editor-Roots).Count -gt 0 } $BootstrapTimeoutSeconds 'real Java/editor/extension preparation and editor handoff'
     Mark 'private-java-and-installed-support'
@@ -158,6 +166,41 @@ try {
     $javaOutput = Invoke-Bounded (Join-Path $java 'bin\java.exe') @('-version') 30
     $javacOutput = Invoke-Bounded (Join-Path $java 'bin\javac.exe') @('-version') 30
     if ($javaOutput -notmatch 'version "21\.' -or $javacOutput -notmatch 'javac 21\.') { throw 'The real private Java tools did not report Java 21.' }
+    if ($RequirePrivateGit) {
+        Mark 'private-git-version'
+        $git = [IO.Path]::GetFullPath($settings.'git.path')
+        if (-not $git.StartsWith((Join-Path $data 'runtime\git-'), [StringComparison]::OrdinalIgnoreCase)) {
+            throw 'Configured Git is outside the private runtime.'
+        }
+        $selection = Get-Content -LiteralPath (Join-Path $data 'editor\git-selection.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($selection.schema -ne 1 -or $selection.executable -ne $git -or -not (Test-Path -LiteralPath $git -PathType Leaf)) {
+            throw 'The launcher did not publish the installed Git selection.'
+        }
+        $pins = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\setup\windows-downloads.json') -Raw | ConvertFrom-Json
+        $gitVersion = (Invoke-Bounded $git @('--version') 30).Trim()
+        if ($gitVersion -ne ('git version ' + $pins.architectures.x64.git.version)) {
+            throw 'The private Git version does not match the pinned download.'
+        }
+        Mark 'private-git-local-clone'
+        $source = Join-Path $OutputDirectory 'git source'
+        $destination = Join-Path $OutputDirectory 'git clone'
+        $null = Invoke-Bounded $git @('init', '--bare', $source) 30
+        $null = Invoke-Bounded $git @('clone', '--', $source, $destination) 30
+        if (-not (Test-Path -LiteralPath (Join-Path $destination '.git') -PathType Container)) {
+            throw 'Private Git did not create a local clone.'
+        }
+        Mark 'private-git-https'
+        $refs = Invoke-Bounded $git @('ls-remote', '--', 'https://github.com/codepetca/zero.git', 'HEAD') 45
+        if ($refs -notmatch '(?m)^[a-f0-9]{40}\s+HEAD\s*$') { throw 'Private Git did not read the public GitHub repository over HTTPS.' }
+        Mark 'installed-extension-uses-private-git'
+        [IO.File]::WriteAllText((Join-Path $destination 'git.exe'), 'This file must never be executed.')
+        $probe = "delete process.env.ZERO_GIT_EXECUTABLE;const core=require(process.argv[1]);const selection=require(require('node:path').join(require('node:path').dirname(process.argv[1]),'git-executable.js'));if(selection.gitExecutable()!==process.argv[3])throw Error('Wrong Git selection');core.git(process.argv[2],['--version']).then(console.log,e=>{console.error(e.message);process.exitCode=1;})"
+        $core = Join-Path $extensions "zero.zero-$($receipt.kitVersion)\src\core.js"
+        if (-not (Test-Path -LiteralPath $core -PathType Leaf)) { throw 'Could not find the installed Zero extension entry point for the Git probe.' }
+        $node = (Get-Command node.exe -CommandType Application -TotalCount 1).Path
+        $selectedVersion = (Invoke-Bounded $node @('-e', $probe, $core, $destination, $git) 30).Trim()
+        if ($selectedVersion -ne $gitVersion) { throw 'Zero did not use the verified Git when the project contained a Git decoy.' }
+    }
     $installedExtensions = @(Get-ChildItem -LiteralPath $extensions -Directory | ForEach-Object {
         $manifest = Join-Path $_.FullName 'package.json'
         if (Test-Path -LiteralPath $manifest) { Get-Content -LiteralPath $manifest -Raw -Encoding UTF8 | ConvertFrom-Json }

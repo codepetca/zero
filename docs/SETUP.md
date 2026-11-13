@@ -159,7 +159,8 @@ a bad JAVA_HOME must not be hidden by a working PATH installation. The new nativ
 Mac launcher explicitly selects Zero’s private JDK only for its own editor and
 child processes; it does not repair or change the system JAVA_HOME.
 Git 2.31+ is required before starting a tutorial project because the lessons use real
-uploads. Troubleshooting includes Git in tutorial Run readiness; ordinary local apps
+uploads. The Windows launcher prepares a verified private copy when a compatible
+installation is unavailable. Troubleshooting includes Git in tutorial Run readiness; ordinary local apps
 can run without Git. Java editor support and the debugger are checked in the
 active VS Code profile; debugger absence does not block Run App. Installed
 extensions in another profile do not satisfy this check.

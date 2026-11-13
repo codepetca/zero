@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // Immutable repository reminder records. A persistent repository lock
 // serializes cooperating Zero windows; an existing lock is never broken here.
 const fs=require('node:fs/promises');
@@ -69,9 +70,9 @@ async function rootContextOnce(root,pinned) {
  const readConfig=async()=>{try{return await readFile(path.join(git,'config'));}catch(error){if(error.code==='ZERO_FILE_SNAPSHOT_CHANGED')throw Object.assign(Error('The Git configuration changed.'),{code:'ZERO_CONFIG_SNAPSHOT_CHANGED',kind:'changed'});throw error;}};
  const configBytes=await readConfig();
  const env={...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_NO_LAZY_FETCH:'1',GIT_TERMINAL_PROMPT:'0'};
- const query=async args=>(await exec('git',['-c','core.fsmonitor=false','rev-parse',...args],{cwd:root,env,timeout:10000,maxBuffer:8192,encoding:'utf8'})).stdout;
+ const query=async args=>(await exec(gitExecutable(),['-c','core.fsmonitor=false','rev-parse',...args],{cwd:root,env,timeout:10000,maxBuffer:8192,encoding:'utf8'})).stdout;
  let top,gitDir,common,config;
- try {top=await query(['--show-toplevel']);gitDir=await query(['--absolute-git-dir']);common=await query(['--path-format=absolute','--git-common-dir']);config=(await exec('git',['config','--local','--no-includes','--name-only','--null','--list'],{cwd:root,env,timeout:10000,maxBuffer:8192,encoding:'utf8'})).stdout.split('\0').filter(Boolean);}catch{throw Error('Open a standalone Git project with ordinary metadata.');}
+ try {top=await query(['--show-toplevel']);gitDir=await query(['--absolute-git-dir']);common=await query(['--path-format=absolute','--git-common-dir']);config=(await exec(gitExecutable(),['config','--local','--no-includes','--name-only','--null','--list'],{cwd:root,env,timeout:10000,maxBuffer:8192,encoding:'utf8'})).stdout.split('\0').filter(Boolean);}catch{throw Error('Open a standalone Git project with ordinary metadata.');}
  if(config.some(key=>/^(?:core\.worktree|include\.|includeif\.)/i.test(key))||top!==root+'\n'||gitDir!==git+'\n'||common!==git+'\n'||!same(project,await directory(root))||!same(gitStat,await directory(git)))throw Error('Open a standalone Git project with ordinary metadata.');
  if(!(await readConfig()).equals(configBytes))throw Object.assign(Error('The Git configuration changed.'),{code:'ZERO_CONFIG_SNAPSHOT_CHANGED',kind:'changed'});
  if(!same(project,await directory(root))||!same(gitStat,await directory(git)))throw Error('The project or Git folder changed.');

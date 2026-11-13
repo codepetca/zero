@@ -7,6 +7,7 @@ import {root, releaseDefinition} from './release.mjs';
 import {kitEntries} from './installer-payload.mjs';
 import {unzipSync} from 'fflate';
 import {VELOPACK_VERSION} from './windows-updater.mjs';
+import {verifyBundledMacGit} from './mac-git.mjs';
 import {macArtifactIdentity} from './mac-artifact.mjs';
 import {verifyMacVolume, verifyMacPlist} from './mac-volume.mjs';
 import {readMacUpdaterConfig, updaterEnabledForVersion, acquireSparkle, verifySparkleFramework, updaterReceipt, verifyUpdaterAppLayout} from './mac-updater.mjs';
@@ -76,6 +77,7 @@ for (const asset of receipt.artifacts) {
     verifyMacPlist(plist, artifactIdentity, release.kitVersion, signed, contents, updater);
     if (updater) {
       verifyUpdaterAppLayout(contents);
+      verifyBundledMacGit(root, path.join(contents, 'Resources/Git'));
       const distribution = acquireSparkle(command, root, updater);
       const scratch = mkdtempSync(path.join(root, '.verification/native-installer/updater-'));
       try {

@@ -1,11 +1,18 @@
 import Foundation
 import Darwin
 
-/// Native setup provisions private Java and browser runtimes. Students need no
+/// Native setup provisions private Java, Git and browser runtimes. Students need no
 /// global Node/package manager, profile import or global environment changes.
 struct MacRuntime {
     static let fm = FileManager.default
     static let nodeVersion = "22.23.4"
+    static let gitVersion = "2.56.1"
+    static let gitBuild = "238326e"
+    #if arch(arm64)
+    static let architecture = "arm64"
+    #else
+    static let architecture = "x64"
+    #endif
     static let javaStartupVariables = ["JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "MAVEN_OPTS", "MAVEN_ARGS"]
     let kit: URL
     let home: URL
@@ -15,11 +22,17 @@ struct MacRuntime {
     let minimum: String
     #if ZERO_SETUP_TESTS
     var testDownload: ((URL, Asset) throws -> Void)?
+    var testGitCandidates: [URL]?
+    var testGitArchive: URL?
     var testBeforePublish: (() throws -> Void)?
     var testAfterExchange: (() throws -> Void)?
     var testBeforeExchange: (() throws -> Void)?
     #endif
-    struct Asset: Decodable { let url: String; let sha256: String; let format: String; let size: Int64; let version: String? }
+    struct ArchiveSeal: Decodable { let size: Int64; let sha256: String }
+    struct Asset: Decodable {
+        let url: String; let sha256: String; let format: String; let size: Int64; let version: String?
+        let files: [String:String]?; let bundled: ArchiveSeal?
+    }
     struct Manifest: Decodable { let schemaVersion: Int; let architectures: [String: [String: Asset]] }
     init(kit: URL, home: URL = fm.homeDirectoryForCurrentUser) throws {
         self.kit = kit; self.home = home
@@ -32,15 +45,35 @@ struct MacRuntime {
               minimum.range(of: #"^\d+\.\d+\.\d+$"#, options: .regularExpression) != nil else { throw SetupFailure(message: "Invalid kit versions.") }
         _ = try KitUpdatePlan.regular(kit.appendingPathComponent("setup/mac-downloads.json"))
         let manifest = try JSONDecoder().decode(Manifest.self, from: Data(contentsOf: kit.appendingPathComponent("setup/mac-downloads.json")))
-        #if arch(arm64)
-        let architecture = "arm64"
-        #else
-        let architecture = "x64"
+        let architecture = Self.architecture
+        guard manifest.schemaVersion == 1, var selected = manifest.architectures[architecture], Set(selected.keys) == ["jdk", "vscode", "node", "git"] else { throw SetupFailure(message: "Missing downloads for this Mac.") }
+        #if !ZERO_SETUP_TESTS
+        // The installed kit lives alongside editable student files. Use the
+        // launcher's sealed resource as the authority for downloaded Git bytes.
+        guard let resources = Bundle.main.resourceURL else { throw SetupFailure(message: "Git download metadata is unavailable.") }
+        let embedded = try JSONDecoder().decode(Manifest.self, from: Data(contentsOf: resources.appendingPathComponent("kit/setup/mac-downloads.json")))
+        guard embedded.schemaVersion == 1, let trustedGit = embedded.architectures[architecture]?["git"] else { throw SetupFailure(message: "Git download metadata is unavailable.") }
+        selected["git"] = trustedGit
         #endif
-        guard manifest.schemaVersion == 1, let selected = manifest.architectures[architecture], Set(selected.keys) == ["jdk", "vscode", "node"] else { throw SetupFailure(message: "Missing downloads for this Mac.") }
         for (kind, asset) in selected {
-            guard let url = URL(string: asset.url), url.scheme == "https", url.user == nil, url.password == nil,
-                  (kind == "node" ? asset.version == Self.nodeVersion && asset.url == "https://nodejs.org/dist/v\(Self.nodeVersion)/node-v\(Self.nodeVersion)-darwin-\(architecture).tar.gz" : ["github.com", "update.code.visualstudio.com", "vscode.download.prss.microsoft.com"].contains(url.host ?? "")),
+            guard let url = URL(string: asset.url), url.scheme == "https", url.user == nil, url.password == nil else {
+                throw SetupFailure(message: "Invalid verified download URL.")
+            }
+            let official: Bool
+            switch kind {
+            case "node":
+                official = asset.version == Self.nodeVersion && asset.url == "https://nodejs.org/dist/v\(Self.nodeVersion)/node-v\(Self.nodeVersion)-darwin-\(architecture).tar.gz"
+            case "git":
+                official = asset.version == Self.gitVersion &&
+                    asset.url == "https://github.com/desktop/dugite-native/releases/download/v\(Self.gitVersion)/dugite-native-v\(Self.gitVersion)-\(Self.gitBuild)-macOS-\(architecture).tar.gz" &&
+                    Set((asset.files ?? [:]).keys) == ["bin/git", "libexec/git-core/git-remote-http"] &&
+                    (asset.files ?? [:]).values.allSatisfy { $0.range(of: #"^[a-f0-9]{64}$"#, options: .regularExpression) != nil } &&
+                    asset.bundled.map { $0.size > 0 && $0.size <= 3_100_000 &&
+                        $0.sha256.range(of: #"^[a-f0-9]{64}$"#, options: .regularExpression) != nil } == true
+            default:
+                official = ["github.com", "update.code.visualstudio.com", "vscode.download.prss.microsoft.com"].contains(url.host ?? "")
+            }
+            guard official,
                   asset.sha256.range(of: #"^[a-f0-9]{64}$"#, options: .regularExpression) != nil,
                   asset.format == (kind == "vscode" ? "zip" : "tar.gz"), asset.size > 0, asset.size <= 600_000_000 else { throw SetupFailure(message: "Invalid verified download metadata.") }
         }
@@ -51,6 +84,7 @@ struct MacRuntime {
     var jdk: URL { root.appendingPathComponent("runtime/jdk-" + assets["jdk"]!.sha256) }
     var editor: URL { root.appendingPathComponent("runtime/vscode-" + assets["vscode"]!.sha256) }
     var node: URL { root.appendingPathComponent("runtime/node-" + assets["node"]!.sha256) }
+    var git: URL { root.appendingPathComponent("runtime/git-" + assets["git"]!.bundled!.sha256) }
     var nodeDirectory: String { String(URL(string: assets["node"]!.url)!.lastPathComponent.dropLast(".tar.gz".count)) }
     var nodeBinary: URL { node.appendingPathComponent(nodeDirectory + "/bin/node") }
     var isolated: [String] { ["--user-data-dir", userData.path, "--extensions-dir", extensions.path] }
@@ -91,7 +125,7 @@ struct MacRuntime {
         guard java.contains("version \"21."), javac.hasPrefix("javac 21.") else { throw SetupFailure(message: "The private Java 21 runtime is incomplete.") }
         return home
     }
-    func environment(_ java: URL) -> [String: String] {
+    func environment(_ java: URL, git selectedGit: URL? = nil, projectGit: Bool = false) -> [String: String] {
         var env = ProcessInfo.processInfo.environment
         env["JAVA_HOME"] = java.path
         env["ZERO_JAVA_HOME"] = java.path
@@ -99,11 +133,17 @@ struct MacRuntime {
         env["MAVEN_SKIP_RC"] = "1"
         env["ZERO_KIT_DIR"] = kit.path
         env["ZERO_NODE_EXECUTABLE"] = nodeBinary.path
-        env["PATH"] = java.appendingPathComponent("bin").path + ":" + nodeBinary.deletingLastPathComponent().path + ":" + (env["PATH"] ?? "/usr/bin:/bin")
+        env["ZERO_GIT_EXECUTABLE"] = selectedGit?.path
+        env["ZERO_GIT_SETUP_FAILED"] = projectGit && selectedGit == nil ? "1" : nil
+        env["PATH"] = toolPath(java, git: selectedGit) + ":" + (env["PATH"] ?? "/usr/bin:/bin")
         env.removeValue(forKey: "NODE_OPTIONS"); env.removeValue(forKey: "NODE_PATH")
         // VS Code must run as an editor process, even if launched from another editor.
         env.removeValue(forKey: "ELECTRON_RUN_AS_NODE")
         return env
+    }
+    func toolPath(_ java: URL, git: URL?) -> String {
+        ([java.appendingPathComponent("bin"), nodeBinary.deletingLastPathComponent()] +
+            (git.map { [$0.deletingLastPathComponent()] } ?? [])).map(\.path).joined(separator: ":")
     }
     func editorCLI(_ java: URL?) throws -> URL? {
         var candidates = [home.appendingPathComponent("Applications/Visual Studio Code.app"), URL(fileURLWithPath: "/Applications/Visual Studio Code.app")]
@@ -121,7 +161,7 @@ struct MacRuntime {
                 }
                 let cli = app.appendingPathComponent("Contents/Resources/app/bin/code")
                 _ = try KitUpdatePlan.regular(cli)
-                let version = try Self.execute(cli.path, ["--version"], environment: java.map(environment)).components(separatedBy: .newlines)[0]
+                let version = try Self.execute(cli.path, ["--version"], environment: java.map { environment($0) }).components(separatedBy: .newlines)[0]
                 if version.split(separator: ".").first == minimum.split(separator: ".").first && Self.atLeast(version, minimum) { return cli }
             } catch {
                 if app.path.hasPrefix(editor.path + "/") { throw error }
@@ -136,39 +176,64 @@ struct MacRuntime {
         let receipt = folder.appendingPathComponent(".zero-asset.json")
         _ = try KitUpdatePlan.regular(receipt)
         let text = try String(contentsOf: receipt, encoding: .utf8)
-        guard text == asset.sha256 else { throw SetupFailure(message: "The private Zero runtime has unrecognized contents; your files were kept.") }
+        guard text == (asset.bundled?.sha256 ?? asset.sha256) else { throw SetupFailure(message: "The private Zero runtime has unrecognized contents; your files were kept.") }
         return true
     }
     func install(_ kind: String) throws {
         guard let asset = assets[kind] else { throw SetupFailure(message: "Unknown private runtime.") }
-        let destination = kind == "jdk" ? jdk : kind == "node" ? node : editor
+        let destination = kind == "git" ? git : kind == "jdk" ? jdk : kind == "node" ? node : editor
         if try installed(destination, asset: asset) { return }
         try Self.mkdir(root.appendingPathComponent("runtime"))
         let staging = root.appendingPathComponent("runtime/.install-" + UUID().uuidString)
         try Self.mkdir(staging)
         defer { try? Self.fm.removeItem(at: staging) }
-        let download = staging.appendingPathComponent("download")
-        print("Downloading verified \(kind == "jdk" ? "Java 21" : kind == "node" ? "browser tools" : "VS Code")…")
-        #if ZERO_SETUP_TESTS
-        if let testDownload { try testDownload(download, asset) } else { try downloadAsset(asset, to: download) }
-        #else
-        try downloadAsset(asset, to: download)
-        #endif
-        let measuredSize = try Self.fm.attributesOfItem(atPath: download.path)[.size] as? NSNumber
-        guard measuredSize?.int64Value == asset.size else { throw SetupFailure(message: "Downloaded runtime has the wrong size. Retry setup.") }
-        let digest = try Self.execute("/usr/bin/shasum", ["-a", "256", download.path]).split(separator: " ").first.map(String.init)
-        guard digest == asset.sha256 else { throw SetupFailure(message: "The \(kind) download did not match its verified checksum. Retry setup.") }
+        let archive: URL
+        let seal: ArchiveSeal
+        if kind == "git", let bundled = asset.bundled {
+            #if ZERO_SETUP_TESTS
+            guard let testGitArchive else { throw SetupFailure(message: "Bundled Git test archive is unavailable.") }
+            archive = testGitArchive
+            #else
+            guard let resources = Bundle.main.resourceURL else { throw SetupFailure(message: "Bundled Git is unavailable.") }
+            archive = resources.appendingPathComponent("Git/" + Self.architecture + ".tar.xz")
+            #endif
+            seal = bundled
+        } else {
+            archive = staging.appendingPathComponent("download")
+            seal = ArchiveSeal(size: asset.size, sha256: asset.sha256)
+            let label = kind == "jdk" ? "Java 21" : kind == "node" ? "browser tools" : "VS Code"
+            print("Downloading verified \(label)…")
+            #if ZERO_SETUP_TESTS
+            if let testDownload { try testDownload(archive, asset) } else { try downloadAsset(asset, to: archive) }
+            #else
+            try downloadAsset(asset, to: archive)
+            #endif
+        }
+        _ = try KitUpdatePlan.regular(archive)
+        let measuredSize = try Self.fm.attributesOfItem(atPath: archive.path)[.size] as? NSNumber
+        guard measuredSize?.int64Value == seal.size else { throw SetupFailure(message: "Private runtime archive has the wrong size.") }
+        let digest = try Self.execute("/usr/bin/shasum", ["-a", "256", archive.path], environment: gitProbeEnvironment).split(separator: " ").first.map(String.init)
+        guard digest == seal.sha256 else { throw SetupFailure(message: "The \(kind) archive did not match its verified checksum.") }
         let extracted = staging.appendingPathComponent("extracted")
         try Self.mkdir(extracted)
-        try SafeMacArchive.extract(download, to: extracted)
+        try SafeMacArchive.extract(archive, to: extracted, allowRootEntry: kind == "git")
         try validateExtracted(extracted, kind: kind)
-        try asset.sha256.write(to: extracted.appendingPathComponent(".zero-asset.json"), atomically: false, encoding: .utf8)
+        try seal.sha256.write(to: extracted.appendingPathComponent(".zero-asset.json"), atomically: false, encoding: .utf8)
         // The owned staging and runtime parent stay real folders; never replace an
         // existing entry, even if another process appeared during download.
         try KitUpdatePlan.realDirectory(destination.deletingLastPathComponent())
         guard renameatx_np(AT_FDCWD, extracted.path, AT_FDCWD, destination.path, UInt32(RENAME_EXCL)) == 0 else { throw SetupFailure(message: "Runtime destination changed. Existing files were kept; retry setup.") }
     }
     func validateExtracted(_ folder: URL, kind: String) throws {
+        if kind == "git" {
+            let wrapper = folder.appendingPathComponent("zero-bin")
+            try Self.mkdir(wrapper)
+            let executable = wrapper.appendingPathComponent("git")
+            try Self.gitWrapper.write(to: executable, atomically: false, encoding: .utf8)
+            try Self.fm.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
+            _ = try privateGit(in: folder)
+            return
+        }
         let children = try Self.fm.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)
         guard children.count == 1 else { throw SetupFailure(message: "Unexpected runtime archive layout.") }
         if kind == "jdk" {
@@ -245,10 +310,96 @@ struct MacRuntime {
             throw error
         }
     }
-    func downloadAsset(_ asset: Asset, to download: URL) throws {
-        _ = try Self.execute("/usr/bin/curl", ["--fail", "--location", "--silent", "--show-error", "--proto", "=https", "--proto-redir", "=https", "--connect-timeout", "20", "--max-time", "600", "--max-filesize", "600000000", "--retry", "2", "--retry-max-time", "900", "--output", download.path, asset.url], timeout: 950)
+    // Dugite's binaries have a build-time helper path. This launcher locates
+    // the verified helpers beside the binary, even with Git's environment stripped.
+    private static let gitWrapper = """
+        #!/bin/sh
+        case "$0" in /*/zero-bin/git) ;; *) exit 1 ;; esac
+        root=${0%/zero-bin/git}
+        export GIT_EXEC_PATH="$root/libexec/git-core"
+        export GIT_TEMPLATE_DIR="${GIT_TEMPLATE_DIR-$root/share/git-core/templates}"
+        exec "$root/bin/git" "$@"
+        """ + "\n"
+
+    func privateGit(in folder: URL) throws -> URL {
+        let executable = folder.appendingPathComponent("zero-bin/git")
+        let helperFolder = folder.appendingPathComponent("libexec/git-core")
+        try KitUpdatePlan.realDirectory(folder.appendingPathComponent("share/git-core/templates"))
+        let wrapper = try KitUpdatePlan.regular(executable)
+        guard wrapper.size == Self.gitWrapper.utf8.count,
+              try String(contentsOf: executable, encoding: .utf8) == Self.gitWrapper else {
+            throw SetupFailure(message: "Zero's private Git launcher could not be verified.")
+        }
+        for (path, expected) in assets["git"]!.files! {
+            let tool = folder.appendingPathComponent(path)
+            _ = try KitUpdatePlan.regular(tool)
+            guard Self.fm.isExecutableFile(atPath: tool.path),
+                  try Self.execute("/usr/bin/shasum", ["-a", "256", tool.path], environment: gitProbeEnvironment).hasPrefix(expected + " ") else {
+                throw SetupFailure(message: "Zero's private Git is incomplete.")
+            }
+        }
+        guard try Self.fm.destinationOfSymbolicLink(atPath: helperFolder.appendingPathComponent("git-remote-https").path) == "git-remote-http",
+              try Self.execute(executable.path, ["--version"], environment: gitProbeEnvironment).trimmingCharacters(in: .whitespacesAndNewlines) == "git version " + Self.gitVersion else {
+            throw SetupFailure(message: "Zero's private Git could not be verified.")
+        }
+        return executable
     }
-    func seedSettings(_ java: URL) throws {
+
+    private var gitProbeEnvironment: [String: String] { ["PATH": "/usr/bin:/bin", "HOME": home.path, "LC_ALL": "C"] }
+    func installedGit() -> URL? {
+        let locations = ["/opt/homebrew/bin/git", "/usr/local/bin/git", "/opt/local/bin/git", "/usr/local/git/bin/git"]
+        var candidates = locations.map { URL(fileURLWithPath: $0) }
+        // Probe the installed binary in the active developer tools directly.
+        // /usr/bin/git can show Apple's install dialog on a fresh Mac.
+        if let developer = try? Self.execute("/usr/bin/xcode-select", ["--print-path"], environment: gitProbeEnvironment, timeout: 5).trimmingCharacters(in: .whitespacesAndNewlines),
+           developer.hasPrefix("/") {
+            candidates.append(URL(fileURLWithPath: developer).appendingPathComponent("usr/bin/git"))
+        }
+        #if ZERO_SETUP_TESTS
+        if let testGitCandidates { candidates = testGitCandidates }
+        #endif
+        for candidate in candidates {
+            let executable = candidate.resolvingSymlinksInPath()
+            if executable.path == "/usr/bin/git" || executable.lastPathComponent != "git" ||
+                !Self.fm.isExecutableFile(atPath: executable.path) { continue }
+            guard let output = try? Self.execute(executable.path, ["--version"], environment: gitProbeEnvironment, timeout: 5),
+                  let version = output.range(of: #"^git version [0-9]+\.[0-9]+\.[0-9]+"#, options: .regularExpression),
+                  Self.atLeast(String(output[version].dropFirst("git version ".count)), "2.31.0") else { continue }
+            return executable
+        }
+        return nil
+    }
+
+    func prepareGit() -> URL? {
+        if let existing = installedGit() { return existing }
+        do {
+            let existed = try installed(git, asset: assets["git"]!)
+            if existed {
+                do { return try privateGit(in: git) }
+                catch {}
+                let previous = git.deletingLastPathComponent().appendingPathComponent(".repair-" + UUID().uuidString)
+                guard renameatx_np(AT_FDCWD, git.path, AT_FDCWD, previous.path, UInt32(RENAME_EXCL)) == 0 else {
+                    throw SetupFailure(message: "The private Git folder changed. Try again.")
+                }
+                do { try install("git") }
+                catch {
+                    _ = renameatx_np(AT_FDCWD, previous.path, AT_FDCWD, git.path, UInt32(RENAME_EXCL))
+                    throw error
+                }
+                try? Self.fm.removeItem(at: previous)
+            } else {
+                try install("git")
+            }
+            return try privateGit(in: git)
+        } catch {
+            print("Git could not be prepared: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    func downloadAsset(_ asset: Asset, to download: URL) throws {
+        _ = try Self.execute("/usr/bin/curl", ["--disable", "--fail", "--location", "--silent", "--show-error", "--proto", "=https", "--proto-redir", "=https", "--connect-timeout", "20", "--max-time", "600", "--max-filesize", String(asset.size), "--retry", "2", "--retry-max-time", "900", "--output", download.path, asset.url], timeout: 950)
+    }
+    func seedSettings(_ java: URL, git: URL? = nil) throws {
         let user = userData.appendingPathComponent("User")
         try Self.mkdir(user); try Self.mkdir(extensions)
         let publication = try AnchoredZeroFile(directory: user)
@@ -282,7 +433,8 @@ struct MacRuntime {
             values = supplied
             text = String(data: try JSONSerialization.data(withJSONObject: supplied, options: [.prettyPrinted, .sortedKeys]), encoding: .utf8)
         }
-        let managed = managedSettings(java, existing: values!)
+        var managed = managedSettings(java, existing: values!)
+        if let git { managed["git.path"] = git.path }
         let updated = try ZeroSettingsJSONC.updating(text!, changes: managed, removing: ["java.home", "java.jdt.ls.java.home"])
         guard updated != text else { return }
         let data = Data(updated.utf8)
@@ -330,6 +482,24 @@ struct MacRuntime {
         for line in output.components(separatedBy: .newlines) { let pair = line.split(separator: "@"); if pair.count == 2 { result[String(pair[0]).lowercased()] = String(pair[1]) } }
         return result
     }
+    func publishGitSelection(_ selected: URL?) throws {
+        let publication = try AnchoredZeroFile(directory: root.appendingPathComponent("editor"))
+        let leaf = "git-selection.json"
+        let previous = try publication.identity(leaf)
+        let bytes = try JSONSerialization.data(withJSONObject: ["schema": 1, "executable": selected?.path as Any? ?? NSNull()], options: [.sortedKeys])
+        if let previous {
+            guard previous.size <= 8192 else { throw SetupFailure(message: "Zero's Git selection is too large; its contents were kept.") }
+            let existing = try publication.read(leaf, expected: previous)
+            guard
+                  let value = try JSONSerialization.jsonObject(with: existing) as? [String: Any],
+                  Set(value.keys) == ["schema", "executable"], value["schema"] as? Int == 1,
+                  value["executable"] is NSNull || (value["executable"] as? String).map({ $0.hasPrefix("/") && $0.hasSuffix("/git") }) == true else {
+                throw SetupFailure(message: "Zero's Git selection is unrecognized; its contents were kept.")
+            }
+            if existing == bytes { return }
+        }
+        try publication.publish(bytes, leaf: leaf, mode: 0o600, expected: previous)
+    }
     func publishEditorUpdate() throws {
         // Written only after check() verified the supplied extension is installed.
         // The loaded Zero extension consumes this fixed marker in the private
@@ -366,13 +536,19 @@ struct MacRuntime {
         return fields["ready"]!
     }
     static func progress(_ token: String) { print("ZERO_PROGRESS=" + token); fflush(stdout) }
-    func configure() throws {
-        try validateLauncher()
+    func withSetupLock<T>(_ work: () throws -> T) throws -> T {
         try Self.mkdir(root)
         let lock = open(root.appendingPathComponent(".setup-lock").path, O_CREAT | O_RDWR | O_NOFOLLOW, 0o600)
         guard lock >= 0 else { throw SetupFailure(message: "Cannot lock Zero's private runtime.") }
         defer { close(lock) }
         guard flock(lock, LOCK_EX | LOCK_NB) == 0 else { throw SetupFailure(message: "Another Zero setup is working. Wait and retry.") }
+        return try work()
+    }
+    func configure() throws {
+        try validateLauncher()
+        try withSetupLock { try configureEditor() }
+    }
+    private func configureEditor() throws {
         Self.progress("java")
         try install("jdk")
         guard let java = try javaHome() else { throw SetupFailure(message: "Java setup was incomplete.") }
@@ -403,10 +579,12 @@ struct MacRuntime {
         guard String(data: bytes, encoding: .utf8)?.hasPrefix("#!/bin/bash\n# Generated by Zero Setup.\n") == true else { throw SetupFailure(message: "Open Zero.command already belongs to you; your file was kept.") }
         return identity
     }
-    func launcher(cli: URL, java: URL) throws {
+    func launcher(cli: URL, java: URL, git: URL? = nil) throws {
         let publication = try AnchoredZeroFile(directory: kit)
         let previous = try launcherIdentity(publication)
-        let text = "#!/bin/bash\n# Generated by Zero Setup.\nunset ELECTRON_RUN_AS_NODE NODE_OPTIONS NODE_PATH JAVA_TOOL_OPTIONS JDK_JAVA_OPTIONS _JAVA_OPTIONS MAVEN_OPTS MAVEN_ARGS\nexport MAVEN_SKIP_RC=1\nexport JAVA_HOME=\(Self.quote(java.path))\nexport ZERO_JAVA_HOME=\(Self.quote(java.path))\nexport ZERO_KIT_DIR=\(Self.quote(kit.path))\nexport ZERO_NODE_EXECUTABLE=\(Self.quote(nodeBinary.path))\nexport PATH=\(Self.quote(java.appendingPathComponent("bin").path)):\(Self.quote(nodeBinary.deletingLastPathComponent().path)):\"$PATH\"\nexec \(Self.quote(cli.path)) \((isolated + ["--new-window"]).map(Self.quote).joined(separator: " "))\n"
+        let gitEnvironment = git.map { "export ZERO_GIT_EXECUTABLE=" + Self.quote($0.path) + "\n" } ?? "export ZERO_GIT_SETUP_FAILED=1\n"
+        let text = "#!/bin/bash\n# Generated by Zero Setup.\nunset ELECTRON_RUN_AS_NODE NODE_OPTIONS NODE_PATH JAVA_TOOL_OPTIONS JDK_JAVA_OPTIONS _JAVA_OPTIONS MAVEN_OPTS MAVEN_ARGS ZERO_GIT_EXECUTABLE ZERO_GIT_SETUP_FAILED\nexport MAVEN_SKIP_RC=1\nexport JAVA_HOME=\(Self.quote(java.path))\nexport ZERO_JAVA_HOME=\(Self.quote(java.path))\nexport ZERO_KIT_DIR=\(Self.quote(kit.path))\nexport ZERO_NODE_EXECUTABLE=\(Self.quote(nodeBinary.path))\n\(gitEnvironment)export PATH=\(Self.quote(toolPath(java, git: git))):\"$PATH\"\nexec \(Self.quote(cli.path)) \((isolated + ["--new-window"]).map(Self.quote).joined(separator: " "))\n"
+        if let previous, try publication.read("Open Zero.command", expected: previous) == Data(text.utf8) { return }
         #if ZERO_SETUP_TESTS
         try publication.publish(Data(text.utf8), leaf: "Open Zero.command", mode: 0o755, expected: previous, beforeCommit: testBeforePublish, beforeExchange: testBeforeExchange, afterExchange: testAfterExchange)
         #else
@@ -422,8 +600,19 @@ struct MacRuntime {
             case ["--native-install", "--approved"]: try runtime.configure()
             case ["--native-open"], ["--native-resume"]:
                 guard try runtime.check(), let java = try runtime.javaHome(), let cli = try runtime.editorCLI(java) else { throw SetupFailure(message: "Readiness changed. Run setup again.") }
+                let git = try runtime.withSetupLock {
+                    Self.progress("git")
+                    let selected = runtime.prepareGit()
+                    do { try runtime.seedSettings(java, git: selected) }
+                    catch { print("Zero's editor settings were kept: \(error.localizedDescription)") }
+                    do { try runtime.publishGitSelection(selected) }
+                    catch { print("Zero's Git selection was kept: \(error.localizedDescription)") }
+                    do { try runtime.launcher(cli: cli, java: java, git: selected) }
+                    catch { print("Zero's optional launcher was kept: \(error.localizedDescription)") }
+                    return selected
+                }
                 try runtime.publishEditorUpdate()
-                _ = try execute(cli.path, runtime.editorArguments(resuming: arguments.last == "--native-resume"), environment: runtime.environment(java))
+                _ = try execute(cli.path, runtime.editorArguments(resuming: arguments.last == "--native-resume"), environment: runtime.environment(java, git: git, projectGit: true))
             default: throw SetupFailure(message: "Invalid native setup action.")
             }
             return 0
@@ -638,7 +827,7 @@ final class AnchoredZeroFile {
 /// redirect extraction through a link. No vendor installer or tar subprocess runs.
 struct SafeMacArchive {
     typealias Pointer = OpaquePointer
-    static func extract(_ archive: URL, to root: URL) throws {
+    static func extract(_ archive: URL, to root: URL, allowRootEntry: Bool = false) throws {
         guard let library = dlopen("/usr/lib/libarchive.2.dylib", RTLD_NOW) else { throw SetupFailure(message: "macOS archive support is unavailable.") }
         defer { dlclose(library) }
         func symbol<T>(_ name: String, _ type: T.Type) throws -> T {
@@ -686,6 +875,10 @@ struct SafeMacArchive {
             let status = next(reader, &entry)
             if status == 1 { break }
             guard status == 0, let member = entry, let raw = pathname(member), let name = String(validatingUTF8: raw) else { throw SetupFailure(message: "Malformed archive member.") }
+            if allowRootEntry && (name == "." || name == "./") && count == 0 && filetype(member) == UInt32(S_IFDIR) && symlink(member) == nil && hardlink(member) == nil {
+                count += 1
+                continue
+            }
             let clean = try relative(name)
             count += 1
             guard count < 100_000, seen.insert(clean).inserted else { throw SetupFailure(message: "Duplicate or excessive archive members.") }

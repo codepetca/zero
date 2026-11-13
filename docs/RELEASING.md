@@ -277,6 +277,11 @@ condition, including an empty directory. Use `-- --output <new-directory>` only
 for a separate immutable candidate; retain the old one. Linux CI cannot recreate
 Apple-notarized Mac bytes. This local preparation grants no publication authority.
 
+Candidates with bundled Git also seal `git-2.56.1-source.tar.gz` and
+`dugite-native-2.56.1-build-source.tar.gz`. The native release carries both
+source archives beside the DMG so students can download the corresponding
+source and build scripts independently of the app update.
+
 ## Later authorized native publication
 
 Publication remains a separate owner decision after source review and candidate
@@ -294,14 +299,17 @@ gh release create setup-v0.5.9 --repo codepetca/zero --target <preparation-commi
   Zero-Setup-0.5.9-macos.dmg
 ```
 
-Check the draft target and its single asset, download its bytes separately and
-compare the exact size/SHA256 with `installer.json`. Do not rebuild, use wildcards,
+For a candidate with bundled Git, include both source archives by their exact
+filenames in that same native draft command along with the DMG. Check the draft
+target and its expected native asset list. Download each draft asset separately and
+compare its exact size and SHA-256 with `candidate.json` and `SHA256SUMS`.
+Do not rebuild, use wildcards,
 replace assets, pass `--clobber`, or delete an existing release/tag. After explicit
 owner authorization, publish that verified draft through GitHub's release UI or
 `gh release edit setup-v0.5.9 --repo codepetca/zero --draft=false`.
 
-Read back the real public asset URL and download it without authentication; verify
-its exact size/hash against the sealed candidate. In a separately reviewed metadata
+Read back each public native asset URL, download it without authentication and
+verify its exact size and SHA-256 against the sealed candidate. In a separately reviewed metadata
 change, set native `publication.status` to `published` and add that verified exact
 GitHub asset URL to `asset.url`. Keep the version, tag, digest, size, original source
 and signer unchanged. Local metadata has no public URL; never promote a guessed

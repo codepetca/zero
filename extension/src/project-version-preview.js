@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // Read-only comparison of two committed project trees. This is not an apply
 // plan: working files, unsaved editors, ignored files and the index are not
 // examined or authorized for replacement.
@@ -15,7 +16,7 @@ const env = Object.assign(Object.fromEntries(Object.entries(process.env).filter(
   GIT_NO_LAZY_FETCH:'1', GIT_NO_REPLACE_OBJECTS:'1', GIT_TERMINAL_PROMPT:'0'
 });
 async function git(root,args) {
-  const {stdout} = await exec('git',['--no-pager','-c','core.fsmonitor=false',...args], {
+  const {stdout} = await exec(gitExecutable(),['--no-pager','-c','core.fsmonitor=false',...args], {
     cwd:root, env, encoding:'buffer', timeout:10000, maxBuffer:MAX_OUTPUT
   });
   return stdout;

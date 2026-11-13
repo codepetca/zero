@@ -166,6 +166,18 @@ test('existing destination is never silently adopted or modified',async()=>{
  const f=fixture();f.created=true;await assert.rejects(f.api.create({name:'project',private:false}),error=>error.code==='repository-exists'&&error.repositoryUrl===f.repo.html_url);
  assert.ok(f.calls.every(call=>call.options.method==='GET'));
 });
+test('a changed local destination stops template creation after the final GitHub read',async()=>{
+ const f=fixture();
+ const changed=Object.assign(Error('The clone folder changed.'),{code:'clone-folder-unavailable'});
+ await assert.rejects(f.api.create({name:'project',private:false,template:{owner:'codepetca',repo:'zero-tutorial-game'}},{
+  ticket:f.ticket,
+  beforeCreate:async()=>{
+   assert.equal(new URL(f.calls.at(-1).url).pathname,'/repos/codepetca/zero-tutorial-game');
+   throw changed;
+  }
+ }),error=>error===changed);
+ assert.ok(f.calls.every(call=>call.options.method==='GET'));
+});
 test('lost creation response gives a redacted recovery URL and never retries its POST',async()=>{
  const f=fixture();f.postFailure=true;
  for(let attempt=0;attempt<2;attempt++)await assert.rejects(f.api.create({name:'project',private:false}),error=>error.code==='creation-uncertain'&&error.repositoryUrl===f.repo.html_url&&!error.message.includes(token));

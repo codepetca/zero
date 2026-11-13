@@ -137,7 +137,7 @@ jobs:
         timeout-minutes: 8
         run: |
           $receipt = Get-Content -LiteralPath 'dist/msix/build-msix.json' -Raw | ConvertFrom-Json
-          & ./scripts/test-windows-msix.ps1 -Package (Join-Path 'dist/msix' $receipt.artifact.filename) -PackageVersion $receipt.packageVersion -Receipt 'dist/msix/install-msix.json' -RunFirstRun
+          & ./scripts/test-windows-msix.ps1 -Package (Join-Path 'dist/msix' $receipt.artifact.filename) -PackageVersion $receipt.packageVersion -Receipt 'dist/msix/install-msix.json' -RunFirstRun -RequireGit
       - name: Retain sanitized MSIX deployment result
         if: always() && steps.store-msix.outcome == 'success'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -153,7 +153,7 @@ jobs:
         timeout-minutes: 22
         run: |
           if ($env:RUNNER_ENVIRONMENT -ne 'github-hosted') { throw 'Disposable GitHub-hosted runner required.' }
-          & ./scripts/test-windows-installation.ps1 -DisposableAccount
+          & ./scripts/test-windows-installation.ps1 -DisposableAccount -RequirePrivateGit
       - name: Real private-Java JavaFX window and cached offline rebuild
         # Node is maintainer/CI tooling only. No student Node/global Maven install.
         timeout-minutes: 12

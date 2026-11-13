@@ -1,7 +1,7 @@
 # Runs only inside the disposable hosted runner after the exact MSIX is installed.
 [CmdletBinding()]
 param([Parameter(Mandatory)][string]$PackageFamily, [Parameter(Mandatory)][string]$KitVersion,
-      [ValidateRange(60,1200)][int]$TimeoutSeconds = 900)
+      [ValidateRange(60,1200)][int]$TimeoutSeconds = 900, [switch]$RequireGit)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'windows-editor-window.ps1')
@@ -225,6 +225,25 @@ foreach ($exe in @('java.exe', 'javac.exe')) {
         if (-not $process.WaitForExit(30000)) { $process.Kill(); throw "$exe did not exit within 30 seconds." }
         if ($process.ExitCode -ne 0) { throw "$exe failed to start." }
     } finally { $process.Dispose() }
+}
+if ($RequireGit) {
+    $git = [IO.Path]::GetFullPath($settings.'git.path')
+    $privateGit = $git.StartsWith((Join-Path $data 'runtime\git-'), [StringComparison]::OrdinalIgnoreCase)
+    if ($git.StartsWith((Join-Path $logicalData 'runtime\git-'), [StringComparison]::OrdinalIgnoreCase)) {
+        $git = Join-Path $data $git.Substring($logicalData.Length).TrimStart('\')
+        $privateGit = $true
+    }
+    if (-not (Test-Path -LiteralPath $git -PathType Leaf)) { throw 'MSIX did not configure a usable Git executable.' }
+    if ($privateGit) {
+        $gitRoot = Split-Path -Parent (Split-Path -Parent $git)
+        if (-not (Test-Path -LiteralPath (Join-Path $gitRoot 'ucrt64\bin\git-remote-https.exe') -PathType Leaf)) { throw 'Private Git is missing its HTTPS transport.' }
+    }
+    $gitProcess = Start-Process -FilePath $git -ArgumentList '--version' -PassThru -WindowStyle Hidden
+    try {
+        if (-not $gitProcess.WaitForExit(30000)) { $gitProcess.Kill(); throw 'Git did not exit within 30 seconds.' }
+        if ($gitProcess.ExitCode -ne 0) { throw 'Git failed to start.' }
+    } finally { $gitProcess.Dispose() }
+    Write-Host 'MSIX selected Git verified.'
 }
 $manifests = @(Get-ChildItem -LiteralPath $extensions -Directory | ForEach-Object { $p = Join-Path $_.FullName 'package.json'; if (Test-Path -LiteralPath $p) { Get-Content -LiteralPath $p -Raw | ConvertFrom-Json } })
 if (-not @($manifests | Where-Object { $_.publisher -eq 'zero' -and $_.name -eq 'zero' -and $_.version -eq $KitVersion }).Count -or -not @($manifests | Where-Object { $_.publisher -eq 'redhat' -and $_.name -eq 'java' }).Count) { throw 'Zero or Java extension was not installed.' }

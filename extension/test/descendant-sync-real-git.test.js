@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('../src/git-executable');
 const test=require('node:test'),assert=require('node:assert/strict'),Module=require('node:module');
 const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),net=require('node:net');
 const {execFile}=require('node:child_process'),{promisify}=require('node:util');
@@ -57,7 +58,7 @@ async function harness(t,scenario) {
   const load=Module._load;delete require.cache[require.resolve('../src/extension')];
   Module._load=function(id,...args){
     if(id==='./transport')return {createTransport:(destination,authenticate,options)=>createTransport(destination,authenticate,{...options,spawn:async(command,args,spawnOptions)=>{
-      assert.equal(command,'git');assert.ok(['push','ls-remote'].includes(args[0]));assert.ok(args.includes(remote));
+      assert.equal(command,gitExecutable());assert.ok(['push','ls-remote'].includes(args[0]));assert.ok(args.includes(remote));
       assert.ok(!args.some(arg=>arg==='reset'||arg==='--reset'||arg.startsWith('--force')));
       const localArgs=args.map(arg=>arg===remote?bare:arg);assert.ok(localArgs.includes(bare));assert.ok(!localArgs.some(arg=>/^https?:/.test(arg)));
       calls.push(args);

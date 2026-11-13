@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // Unborn whole-project discard. Review is read-only and never creates a ref.
 const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto');
 const {constants}=require('node:fs');
@@ -18,7 +19,7 @@ async function syncDirectory(dir){const handle=await fs.open(dir,constants.O_RDO
 const envFor=safe=>Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{...(safe?{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull}:{}),GIT_ATTR_NOSYSTEM:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_NO_LAZY_FETCH:'1',GIT_TERMINAL_PROMPT:'0',GIT_OPTIONAL_LOCKS:'0',GIT_LITERAL_PATHSPECS:'1'});
 async function git(root,args,{safe=true,index,maxBuffer=4*1024*1024}={}) {
  const env=envFor(safe);if(index)env.GIT_INDEX_FILE=index;
- return (await exec('git',['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env,encoding:'buffer',timeout:20000,maxBuffer})).stdout;
+ return (await exec(gitExecutable(),['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env,encoding:'buffer',timeout:20000,maxBuffer})).stdout;
 }
 function decoded(bytes,nul=false){const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);if(nul&&text&&!text.endsWith('\0'))throw changed();return text;}
 async function absent(filename){try{await fs.lstat(filename);return false;}catch(error){if(error.code==='ENOENT')return true;throw error;}}

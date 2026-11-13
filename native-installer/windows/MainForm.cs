@@ -61,6 +61,7 @@ namespace ZeroSetup
             controller = new AutomaticSetupController(backend);
 #if ZERO_STORE
             backend.ApproveDependencies = () => MessageBox.Show(this, DependencyConsent.Message, "Prepare Zero", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes;
+            backend.ApproveGitDownload = () => MessageBox.Show(this, DependencyConsent.GitMessage, "Prepare Git", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes;
 #else
             updates = new UpdateCoordinator(dataRoot);
             updates.StatusChanged += message => OnUI(() => { if (Visible && foregroundUpdate) status.Text = message; });

@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // Validates only fixed files in an explicitly selected retained folder. This
 // receipt is self-recorded evidence, not authentication against its owner.
 const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto');
@@ -44,7 +45,7 @@ async function validateUnbornRemoval(root,folder,manifestBytes,manifest,validMan
   if(manifest.selection.source==='untracked'){if(complete.resultIndex.hash!==manifest.index.hash||movedIndex)return false;}
   else if(!movedIndex||digest(movedIndex)!==manifest.index.hash)return false;
   const env=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_OPTIONAL_LOCKS:'0'});
-  const git=async(file,args)=>(await exec('git',['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env:{...env,GIT_INDEX_FILE:path.join(folder,file)},encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout;
+  const git=async(file,args)=>(await exec(gitExecutable(),['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env:{...env,GIT_INDEX_FILE:path.join(folder,file)},encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout;
   const rows=async file=>{const text=new TextDecoder('utf-8',{fatal:true}).decode(await git(file,['ls-files','--stage','-z']));if(text&&!text.endsWith('\0'))throw Error();const result=new Map();for(const row of text.split('\0').filter(Boolean)){const m=/^(100644|100755) ([a-f0-9]{40,64}) 0\t([^\0]+)$/.exec(row);if(!m||result.has(m[3]))throw Error();result.set(m[3],`${m[1]} ${m[2]}`);}return result;};
   const before=await rows('index'),after=await rows('completed-index');if(after.has(manifest.name))return false;
   if(manifest.selection.source==='index'){

@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // Read-only history. All Git inputs used by a webview are selected from server-side
 // arrays, never accepted as paths, object names or commands from the webview.
 const fs = require('node:fs/promises');
@@ -22,7 +23,7 @@ function fileLabel(file) {
   return `${file.name} · ${kind}${status.includes(' · unsaved')?' · unsaved':''}`;
 }
 async function git(root,args) {
-  const {stdout} = await exec('git',['--no-pager','-c','core.fsmonitor=false',...args],{cwd:root,encoding:'buffer',timeout:10000,maxBuffer:MAX_OUTPUT,env:{...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_LITERAL_PATHSPECS:'1'}});
+  const {stdout} = await exec(gitExecutable(),['--no-pager','-c','core.fsmonitor=false',...args],{cwd:root,encoding:'buffer',timeout:10000,maxBuffer:MAX_OUTPUT,env:{...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_LITERAL_PATHSPECS:'1'}});
   return stdout;
 }
 const decode = bytes => new TextDecoder('utf-8',{fatal:true}).decode(bytes);

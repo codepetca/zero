@@ -5,11 +5,12 @@ const {assertTutorialTemplateReady}=require('../tutorial-template-readiness');
 const {visibleTutorialGroups,DISPLAY_NUMBERS}=require('../tutorial-catalog');
 const core=require('../core');
 const {createProjectProgress,throwIfCancelled}=require('../project-folders');
+const {assertCloneGit,validateCloneParent,reserveCloneDestination,assertCloneReservation,releaseUnusedCloneDestination}=require('./clone');
 const ORIGINAL_TEMPLATE=Object.freeze({owner:'codepetca',repo:'zero-starter'});
 function nameError(value){
   if(typeof value!=='string'||!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/.test(value)||value.includes('..')||value.endsWith('.')||value.toLowerCase().endsWith('.git')||/^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(value))return 'Use 1–100 letters, numbers, dots, hyphens or underscores; choose an ordinary folder name.';
 }
-function createGitHubProjectCommands({vscode,authentication,repositories,folders,extensionPath,project,prepare,active=()=>true,onProgress=()=>{},onRecovery=async()=>{}}){
+function createGitHubProjectCommands({vscode,authentication,repositories,folders,extensionPath,project,prepare,active=()=>true,onProgress=()=>{},onRecovery=async()=>{},checkCloneGit=assertCloneGit}){
   const drafts=new Map();let disposed=false;const isActive=()=>!disposed&&active();const progress=createProjectProgress(vscode,isActive);
   async function collect(title,key,{clone=false,defaultName='my-project',preparedTicket}={}){
     if(!isActive())return;
@@ -30,8 +31,8 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
     await authentication.assertCurrent(ticket);
     return {ticket,draft,parent,draftKey};
   }
-  async function createRemote(input,template,signal,notify){
-    try{throwIfCancelled(signal);return await repositories.create({name:input.draft.name,private:false,...(template?{template}:{})},{ticket:input.ticket,onProgress:notify,signal});}
+  async function createRemote(input,template,signal,notify,beforeCreate){
+    try{throwIfCancelled(signal);return await repositories.create({name:input.draft.name,private:false,...(template?{template}:{})},{ticket:input.ticket,onProgress:notify,signal,...(beforeCreate?{beforeCreate}:{})});}
     catch(error){if(error.code&&error.code!=='creation-uncertain')await onRecovery(undefined);throw error;}
   }
   async function createAndClone(title,template,key,defaultName,preparedTicket){
@@ -41,23 +42,51 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
     return progress.run('Create GitHub project',async(signal,reportProgress)=>{
       const notify=text=>{if(isActive()&&!signal.aborted){onProgress(text);reportProgress(text);}};
       throwIfCancelled(signal);
-      const intended=core.parseRepositoryUrl(`https://github.com/${input.ticket.session.label}/${input.draft.name}`).page;
-      await onRecovery({repositoryUrl:intended,accountId:input.ticket.session.accountId,parentPath:input.parent.fsPath,stage:'creating'});
-      notify('Creating your GitHub project…');
-      const result=await createRemote(input,template,signal,notify);
-      await onRecovery({repositoryUrl:result.repository.html_url,accountId:input.ticket.session.accountId,parentPath:input.parent.fsPath,stage:'created'});
-      if(!isActive())throw Error(`Your repository was created at ${result.repository.html_url}. Clone it from Zero when you return.`);
+      const parentPath=input.parent.fsPath;
+      const location=await validateCloneParent(parentPath);
+      throwIfCancelled(signal);
+      await checkCloneGit(location.parent);
+      throwIfCancelled(signal);
+      if(!isActive())return;
+      await authentication.assertCurrent(input.ticket);
+      throwIfCancelled(signal);
+      if(!isActive())return;
+      const reservation=await reserveCloneDestination(parentPath,location,input.draft.name);
       try{
-        throwIfCancelled(signal);notify('Opening your project…');
-        const cloned=await folders.clone({repositoryUrl:result.repository.html_url,parent:input.parent,signal});
-        throwIfCancelled(signal);
-        if(!cloned||!isActive())throw Error('The project was not opened.');
-        // Only the next activation can confirm a same-window switch was accepted.
-        // Native dirty-editor Cancel can resolve openFolder without switching.
-        drafts.delete(input.draftKey);
-        notify('Project created');
-        return result;
-      }catch(error){throw Error(`Your GitHub repository is ready at ${result.repository.html_url}. ${error.message} Use Clone from GitHub to continue; the repository was kept.`);}
+        const intended=core.parseRepositoryUrl(`https://github.com/${input.ticket.session.label}/${input.draft.name}`).page;
+        await assertCloneReservation(reservation,true);
+        await onRecovery({repositoryUrl:intended,accountId:input.ticket.session.accountId,parentPath,stage:'creating'});
+        try {
+          await assertCloneReservation(reservation,true);
+          throwIfCancelled(signal);
+        } catch (error) {
+          await onRecovery(undefined);
+          throw error;
+        }
+        notify('Creating your GitHub project…');
+        const result=await createRemote(input,template,signal,notify,async()=>{
+          try { await assertCloneReservation(reservation,true); }
+          catch (error) { error.code='clone-folder-unavailable'; throw error; }
+        });
+        await onRecovery({repositoryUrl:result.repository.html_url,accountId:input.ticket.session.accountId,parentPath,stage:'created'});
+        if(!isActive())throw Error(`Your repository was created at ${result.repository.html_url}. Clone it from Zero when you return.`);
+        try{
+          throwIfCancelled(signal);notify('Opening your project…');
+          const cloned=await folders.clone({repositoryUrl:result.repository.html_url,parent:input.parent,signal,reservation});
+          throwIfCancelled(signal);
+          if(!cloned||!isActive())throw Error('The project was not opened.');
+          // Only the next activation can confirm a same-window switch was accepted.
+          drafts.delete(input.draftKey);
+          notify('Project created');
+          return result;
+        }catch(error){
+          const failure=Error(`Your GitHub repository is ready at ${result.repository.html_url}. ${error.message} Use Clone from GitHub to continue; the repository was kept.`);
+          if(['git-prerequisite','git-setup-retry'].includes(error.code))failure.code=error.code;
+          throw failure;
+        }
+      }finally{
+        if(!reservation.dispatched)await releaseUnusedCloneDestination(reservation);
+      }
     });
   }
   async function startTutorial(){

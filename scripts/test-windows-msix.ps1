@@ -7,6 +7,7 @@ param(
     [Parameter(Mandatory)][string] $Receipt,
     [switch] $RunWack,
     [switch] $RunFirstRun,
+    [switch] $RequireGit,
     [switch] $Windows11ArmDiagnostic,
     [switch] $Windows2025Diagnostic
 )
@@ -194,10 +195,11 @@ public static class ZeroWts {
         $receiptData.firstRun.result = 'pending'
         $receiptData.activation = 'first-run requested'
         $kit = Get-Content -LiteralPath (Join-Path (Split-Path -Parent $packagePath) 'build-msix.json') -Raw | ConvertFrom-Json
-        & (Join-Path $PSScriptRoot 'test-msix-first-run.ps1') -PackageFamily $family -KitVersion $kit.kitVersion -TimeoutSeconds 300
+        & (Join-Path $PSScriptRoot 'test-msix-first-run.ps1') -PackageFamily $family -KitVersion $kit.kitVersion -TimeoutSeconds 300 -RequireGit:$RequireGit
         $receiptData.firstRun.result = 'passed'
         $receiptData.activation = 'first-run passed'
         $receiptData.activationReason = 'Consent, private Java, VS Code and Java extension verified on the hosted runner.'
+        if ($RequireGit) { $receiptData.activationReason += ' The configured Git executable was also verified.' }
     }
     if ($RunWack) {
         $stage = 'wack'

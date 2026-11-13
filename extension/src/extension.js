@@ -2372,6 +2372,7 @@ function activate(context, services = {}) {
         if(choice.action==='recent')await projectFolders.openLocal({projectPath:choice.projectPath,assertCurrent});
         else await projectFolders.clone({repositoryUrl:choice.repositoryUrl,assertCurrent});
       } catch (error) {
+        if (['git-prerequisite','git-setup-retry','clone-folder-unavailable'].includes(error?.code)) throw error;
         if (error?.name !== 'Canceled' && error?.name !== 'CancellationError') {output.appendLine(error.message);throw new Error(`Could not clone this repository. ${error.message} Check Zero’s GitHub access, then try Clone from GitHub again.`);}
       } finally {connecting = false; if (!disposed) refresh();}
     },
@@ -3310,7 +3311,11 @@ function activate(context, services = {}) {
         refresh();output.appendLine(error.message);
       }
       const installUrl=appConfiguration&&`https://github.com/apps/${appConfiguration.slug}/installations/new`;
-      if(installUrl && error.actionUrl===installUrl){
+      if(error.code==='git-prerequisite'){
+        const gitUrl=process.platform==='win32'?'https://git-scm.com/install/win':'https://git-scm.com/downloads/';
+        const choice=await vscode.window.showErrorMessage(`Zero: ${display}`,'Get Git');
+        if(choice==='Get Git'&&!disposed)await vscode.env.openExternal(vscode.Uri.parse(gitUrl));
+      }else if(installUrl && error.actionUrl===installUrl){
         void githubReadiness.refresh();
         const choice=await vscode.window.showErrorMessage(`Zero: ${display}`,'Open GitHub');
         if(choice==='Open GitHub'&&!disposed)await vscode.env.openExternal(vscode.Uri.parse(installUrl));

@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
+using Newtonsoft.Json.Linq;
 using ZeroSetup;
 
 internal static class RuntimeHarness
@@ -40,7 +41,12 @@ internal static class RuntimeHarness
     private sealed class FakeHost : IWindowsRuntimeHost
     {
         public string Architecture { get; set; } = "AMD64";
-        public bool Unsupported, BrokenDownload, CancelDownload, RejectInstall, Timeout, RepairJavaOnDownload, RepairNodeOnDownload;
+        public bool Unsupported, BrokenDownload, CancelDownload, RejectInstall, Timeout, RepairJavaOnDownload, RepairNodeOnDownload, FailGitDownload;
+        public string GitVersion = "2.56.1.windows.1", InstalledGitVersion;
+        public bool CancelGitDownload;
+        public byte[] Git = Zip("cmd/git.exe", "fake git", "ucrt64/bin/git.exe", "fake git engine",
+            "ucrt64/bin/git-remote-https.exe", "fake HTTPS", "ucrt64/bin/libcurl-4.dll", "fake curl",
+            "ucrt64/bin/libcurl-openssl-4.dll", "fake curl TLS", "ucrt64/etc/ssl/certs/ca-bundle.crt", "fake CA", "usr/bin/sh.exe", "fake shell");
         public int Downloads, Installs, Runs;
         public string JavaVersion = "21.0.12";
         public string NodeVersion = "22.23.4";
@@ -56,9 +62,11 @@ internal static class RuntimeHarness
         public Task Download(WindowsRuntimeAsset asset, string destination, CancellationToken cancellation)
         {
             Downloads++;
+            if (FailGitDownload && asset.version == "2.56.1.windows.1") throw new IOException("offline");
+            if (CancelGitDownload && asset.version == "2.56.1.windows.1") throw new OperationCanceledException(cancellation);
             if (RepairJavaOnDownload && asset.version.StartsWith("jdk", StringComparison.Ordinal)) JavaVersion = "21.0.12";
             if (RepairNodeOnDownload && asset.version == "22.23.4") NodeVersion = "22.23.4";
-            File.WriteAllBytes(destination, BrokenDownload ? new byte[] { 1, 2, 3 } : asset.version.StartsWith("jdk", StringComparison.Ordinal) ? Jdk : asset.version == "22.23.4" ? Node : Editor);
+            File.WriteAllBytes(destination, BrokenDownload ? new byte[] { 1, 2, 3 } : asset.version.StartsWith("jdk", StringComparison.Ordinal) ? Jdk : asset.version == "22.23.4" ? Node : asset.version == "2.56.1.windows.1" ? Git : Editor);
             if (CancelDownload) throw new OperationCanceledException(cancellation);
             return Task.CompletedTask;
         }
@@ -86,6 +94,7 @@ internal static class RuntimeHarness
                 Assert(info.EnvironmentVariables["ELECTRON_RUN_AS_NODE"] == null && info.Arguments == Processes.QuoteArgument("--version"), "standalone Node version check never uses Electron/npm");
                 output = "v" + NodeVersion + "\n";
             }
+            else if (info.FileName.EndsWith("git.exe", StringComparison.Ordinal)) { Assert(info.Arguments == Processes.QuoteArgument("--version") && milliseconds == 30000, "bounded Git version probe"); output = "git version " + (InstalledGitVersion != null && info.FileName.Contains("installed-git") ? InstalledGitVersion : GitVersion) + "\n"; }
             else
             {
                 Assert(info.EnvironmentVariables["ELECTRON_RUN_AS_NODE"] == "1" && info.Arguments.Contains("cli.js"), "Code.exe runs CLI JavaScript directly");
@@ -119,11 +128,22 @@ internal static class RuntimeHarness
         public void WriteManifest()
         {
             var assets = new Dictionary<string, object>();
-            foreach (string kind in new[] { "jdk", "vscode", "node" })
+            foreach (string kind in new[] { "jdk", "vscode", "node", "git" })
             {
-                byte[] bytes = kind == "jdk" ? Host.Jdk : kind == "node" ? Host.Node : Host.Editor;
+                byte[] bytes = kind == "jdk" ? Host.Jdk : kind == "node" ? Host.Node : kind == "git" ? Host.Git : Host.Editor;
                 string hash; using (var sha = SHA256.Create()) hash = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
-                assets[kind] = new { url = kind == "jdk" ? "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip" : kind == "node" ? "https://nodejs.org/dist/v22.23.4/node-v22.23.4-win-x64.zip" : "https://vscode.download.prss.microsoft.com/dbazure/download/stable/6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1/VSCode-win32-x64-1.142.0.zip", sha256 = hash, format = "zip", version = kind == "jdk" ? "jdk-21.0.12.1+1" : kind == "node" ? "22.23.4" : "1.142.0", size = bytes.Length };
+                Dictionary<string, string> files = null;
+                if (kind == "git")
+                {
+                    using (var stream = new MemoryStream(bytes))
+                    using (var archive = new ZipArchive(stream, ZipArchiveMode.Read))
+                    using (var sha = SHA256.Create())
+                        files = archive.Entries.ToDictionary(entry => entry.FullName, entry =>
+                        {
+                            using (var file = entry.Open()) return BitConverter.ToString(sha.ComputeHash(file)).Replace("-", "").ToLowerInvariant();
+                        });
+                }
+                assets[kind] = new { files, url = kind == "jdk" ? "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip" : kind == "node" ? "https://nodejs.org/dist/v22.23.4/node-v22.23.4-win-x64.zip" : kind == "git" ? "https://github.com/git-for-windows/git/releases/download/v2.56.1.windows.1/MinGit-2.56.1-64-bit.zip" : "https://vscode.download.prss.microsoft.com/dbazure/download/stable/6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1/VSCode-win32-x64-1.142.0.zip", sha256 = hash, format = "zip", version = kind == "jdk" ? "jdk-21.0.12.1+1" : kind == "node" ? "22.23.4" : kind == "git" ? "2.56.1.windows.1" : "1.142.0", size = bytes.Length };
             }
             File.WriteAllText(Path.Combine(Kit, "setup", "windows-downloads.json"), Json.Serialize(new { schemaVersion = 1, architectures = new Dictionary<string, object> { ["x64"] = assets } }));
         }
@@ -137,13 +157,78 @@ internal static class RuntimeHarness
         checks = 0;
         string parent = Path.Combine(Directory.GetCurrentDirectory(), ".verification", "zero-runtime-harness-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(parent);
         string inheritedDistribution = Environment.GetEnvironmentVariable(Distribution.Marker);
+        string inheritedPath = Environment.GetEnvironmentVariable("PATH");
+        Environment.SetEnvironmentVariable("PATH", "");
         Environment.SetEnvironmentVariable(Distribution.Marker, "msix-feasibility");
         try
         {
-            TestRetainedKitIntegration(parent); TestLifecycle(parent); TestRecovery(parent); TestNodeRecovery(parent); TestFailures(parent); TestArchives(parent);
+            TestGit(parent); TestRetainedKitIntegration(parent); TestLifecycle(parent); TestRecovery(parent); TestNodeRecovery(parent); TestFailures(parent); TestArchives(parent);
         }
-        finally { Environment.SetEnvironmentVariable(Distribution.Marker, inheritedDistribution); WindowsRuntimeArchive.DeleteStaging(parent); }
+        finally { Environment.SetEnvironmentVariable("PATH", inheritedPath); Environment.SetEnvironmentVariable(Distribution.Marker, inheritedDistribution); WindowsRuntimeArchive.DeleteStaging(parent); }
         return checks;
+    }
+    private static void TestGit(string parent)
+    {
+        using (var f = new Fixture(parent))
+        {
+            string bin = Path.Combine(f.Root, "installed-git"); Directory.CreateDirectory(bin); File.WriteAllText(Path.Combine(bin, "git.exe"), "fixture");
+            Environment.SetEnvironmentVariable("PATH", ".;" + bin);
+            f.Prepare(); var runtime = f.Runtime(); runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
+            Assert(f.Host.Downloads == 3 && f.Host.Launched.EnvironmentVariables["PATH"].Contains(bin + ";"), "compatible PATH Git reused");
+            Assert(f.Host.Launched.EnvironmentVariables["NoDefaultCurrentDirectoryInExePath"] == "1" && f.Host.Launched.EnvironmentVariables["ZERO_GIT_SETUP_FAILED"] == null, "Git launch selection avoids current directory and clears failure");
+            Assert(f.Host.Launched.EnvironmentVariables["ZERO_GIT_EXECUTABLE"] == Path.Combine(bin, "git.exe"), "editor receives the exact verified system Git");
+            Assert(File.ReadAllText(Path.Combine(f.Data, "editor", "user-data", "User", "settings.json")).Contains("git.path"), "isolated editor binds selected Git");
+            Environment.SetEnvironmentVariable("PATH", "");
+        }
+        using (var f = new Fixture(parent))
+        {
+            string bin = Path.Combine(f.Root, "installed-git"); Directory.CreateDirectory(bin); File.WriteAllText(Path.Combine(bin, "git.exe"), "fixture");
+            f.Host.InstalledGitVersion = "2.30.0"; Environment.SetEnvironmentVariable("PATH", "\"" + bin + "\"");
+            f.Prepare(); Assert(Directory.GetDirectories(Path.Combine(f.Data, "runtime"), "git-*").Length == 1, "old installed Git replaced by private copy");
+            Environment.SetEnvironmentVariable("PATH", "");
+        }
+        using (var f = new Fixture(parent)) { f.Host.CancelGitDownload = true; Cancelled(f.Prepare, "Git download cancellation propagates"); }
+        using (var f = new Fixture(parent))
+        {
+            Environment.SetEnvironmentVariable("ZERO_GIT_SETUP_FAILED", "1");
+            f.Prepare(); string folder = Directory.GetDirectories(Path.Combine(f.Data, "runtime"), "git-*").Single();
+            var runtime = f.Runtime(); runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
+            Assert(f.Host.Downloads == 4 && f.Host.Launched.EnvironmentVariables["PATH"].Contains(Path.Combine(folder, "cmd") + ";") && f.Host.Launched.EnvironmentVariables["ZERO_GIT_SETUP_FAILED"] == null, "private Git acquired and selected");
+            Assert(f.Host.Launched.EnvironmentVariables["ZERO_GIT_EXECUTABLE"] == Path.Combine(folder, "cmd", "git.exe"), "editor receives the exact verified private Git");
+            f.Host.FailGitDownload = true; f.Prepare(); Assert(f.Host.Downloads == 4, "warm Git works offline");
+            string helper = Path.Combine(folder, "ucrt64", "bin", "git-remote-https.exe");
+            File.WriteAllText(helper, "replacement helper");
+            f.Host.FailGitDownload = false; f.Prepare();
+            Assert(File.ReadAllText(helper) == "fake HTTPS", "a replaced HTTPS helper must be repaired from the verified archive");
+            f.Host.FailGitDownload = true;
+            File.Delete(Path.Combine(folder, "cmd", "git.exe")); f.Prepare();
+            runtime = f.Runtime(); runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
+            Assert(f.Host.Launched.EnvironmentVariables["ZERO_GIT_SETUP_FAILED"] == "1" && Directory.Exists(folder), "offline repair keeps editor available and old runtime");
+            Assert(f.Host.Launched.EnvironmentVariables["ZERO_GIT_EXECUTABLE"] == null, "failed Git is not exported to the editor");
+            string selection = Path.Combine(f.Data, "editor", "git-selection.json");
+            Assert((JObject.Parse(File.ReadAllText(selection))["executable"]).Type == JTokenType.Null, "existing hosts see unavailable Git");
+            f.Host.FailGitDownload = false; f.Prepare(); Assert(File.Exists(Path.Combine(folder, "cmd", "git.exe")), "missing private Git repaired");
+            f.Runtime().Open(true, CancellationToken.None).GetAwaiter().GetResult();
+            Assert((string)JObject.Parse(File.ReadAllText(selection))["executable"] == Path.Combine(folder, "cmd", "git.exe"), "existing hosts see repaired Git");
+            foreach (string file in new[] { "git-remote-https.exe", "libcurl-4.dll", "libcurl-openssl-4.dll" })
+            {
+                string https = Path.Combine(folder, "ucrt64", "bin", file);
+                File.Delete(https);
+                f.Prepare(); Assert(File.Exists(https), "missing HTTPS transport component repaired before GitHub operations");
+            }
+            Environment.SetEnvironmentVariable("ZERO_GIT_SETUP_FAILED", null);
+        }
+        using (var f = new Fixture(parent))
+        {
+            f.Host.FailGitDownload = true; var runtime = f.Runtime(); runtime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult(); runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
+            Assert(f.Host.Launched.EnvironmentVariables["ZERO_GIT_SETUP_FAILED"] == "1", "offline Git acquisition does not block editor");
+        }
+        using (var f = new Fixture(parent))
+        {
+            var runtime = f.Runtime(); int prompts = 0; runtime.ApproveGitDownload = () => { prompts++; return false; };
+            runtime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult(); runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
+            Assert(prompts == 1 && f.Host.Launched.EnvironmentVariables["ZERO_GIT_SETUP_FAILED"] == "1", "declined Git consent leaves local editor usable");
+        }
     }
     private static void TestRetainedKitIntegration(string parent)
     {
@@ -205,7 +290,7 @@ internal static class RuntimeHarness
         {
             string parentJava = Environment.GetEnvironmentVariable("JAVA_HOME"), parentPath = Environment.GetEnvironmentVariable("PATH");
             var progress = new List<string>(); var runtime = f.Runtime(); runtime.Prepare(progress.Add, CancellationToken.None).GetAwaiter().GetResult();
-            Assert(f.Host.Downloads == 3 && f.Host.Installs == 2, "fresh setup downloads pinned Java/Node/editor and installs extensions");
+            Assert(f.Host.Downloads == 4 && f.Host.Installs == 2, "fresh setup downloads pinned Java/Node/editor and installs extensions");
             string editorFolder = Directory.GetDirectories(Path.Combine(f.Data, "runtime"), "vscode-*").Single();
 #if ZERO_STORE_PRODUCTION
             Assert(Path.GetFileName(editorFolder).Length == "vscode-".Length + 20, "Store editor path uses short digest locator");
@@ -219,7 +304,7 @@ internal static class RuntimeHarness
             string settings = File.ReadAllText(settingsPath);
             Assert(!settings.Contains("java.jdt.ls.java.home") && settings.Contains("JavaSE-21") && settings.Contains("chat.disableAIFeatures") && settings.Contains("terminal.integrated.env.windows"), "quiet profile plus project Java settings seeded without overriding bundled tooling JRE");
             f.Host.ZeroVersion = "0.9.0";
-            f.Prepare(); Assert(f.Host.Downloads == 3 && f.Host.Installs == 2, "repair reuses verified private tools and newer extensions");
+            f.Prepare(); Assert(f.Host.Downloads == 4 && f.Host.Installs == 2, "repair reuses verified private tools and newer extensions");
             runtime.Open(false, CancellationToken.None).GetAwaiter().GetResult();
             Assert(f.Host.Launched.Arguments.Contains("--new-window") && !f.Host.Launched.Arguments.Contains(f.Project), "first editor opens empty tutorial window");
             Assert(f.Host.Launched.WorkingDirectory == f.Project, "editor working directory uses persistent project");
@@ -279,10 +364,10 @@ internal static class RuntimeHarness
                 }
                 finally { Environment.SetEnvironmentVariable("JAVA_HOME", parentJava); Environment.SetEnvironmentVariable("ZERO_JAVA_HOME", hint); foreach (var flag in flags) Environment.SetEnvironmentVariable(flag.Key, flag.Value); }
             }
-            Assert(f.Host.Downloads == 3 && f.Host.Installs == 2, "JSONC repair reuses tools and extensions");
+            Assert(f.Host.Downloads == 4 && f.Host.Installs == 2, "JSONC repair reuses tools and extensions");
             int runs = f.Host.Runs;
             var warm = f.Runtime(); warm.Prepare(null, CancellationToken.None).GetAwaiter().GetResult(); warm.Open(true, CancellationToken.None).GetAwaiter().GetResult();
-            Assert(f.Host.Runs - runs == 10, "warm preparation and handoff use ten probes without redundant final preparation checks");
+            Assert(f.Host.Runs - runs == 12, "warm preparation and handoff use ten probes without redundant final preparation checks");
             runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
             Assert(Environment.GetEnvironmentVariable("JAVA_HOME") == parentJava && Environment.GetEnvironmentVariable("PATH") == parentPath, "global and parent tool environment unchanged");
             f.Host.RedhatVersion = null;
@@ -295,7 +380,7 @@ internal static class RuntimeHarness
         {
             string installed = Path.Combine(f.Root, "installed code"); string zip = Path.Combine(f.Root, "code.zip"); File.WriteAllBytes(zip, f.Host.Editor); WindowsRuntimeArchive.Extract(zip, installed, CancellationToken.None); f.Host.InstalledEditor = installed;
             f.Host.ZeroVersion = "0.5.18"; f.Host.RedhatVersion = "1.50.0"; f.Prepare();
-            Assert(f.Host.Downloads == 2 && f.Host.Installs == 0, "compatible installed stable editor reused");
+            Assert(f.Host.Downloads == 3 && f.Host.Installs == 0, "compatible installed stable editor reused");
             f.Runtime().Open(false, CancellationToken.None).GetAwaiter().GetResult(); Assert(f.Host.Launched.FileName == Path.Combine(installed, "Code.exe"), "reused editor receives isolated Zero environment");
         }
         using (var f = new Fixture(parent))
@@ -328,13 +413,13 @@ internal static class RuntimeHarness
             string saved = Path.Combine(f.Data, "editor", "user-data", "saved-session"); File.WriteAllText(saved, "session");
             File.Delete(Path.Combine(jdk, "bin", "javac.exe"));
             f.Prepare();
-            Assert(File.Exists(Path.Combine(jdk, "bin", "javac.exe")) && f.Host.Downloads == 4, "missing private Java compiler repaired automatically");
+            Assert(File.Exists(Path.Combine(jdk, "bin", "javac.exe")) && f.Host.Downloads == 5, "missing private Java compiler repaired automatically");
             File.Delete(Path.Combine(editor, "6d62b1d5da", "resources", "app", "out", "cli.js"));
             f.Prepare();
-            Assert(File.Exists(Path.Combine(editor, "6d62b1d5da", "resources", "app", "out", "cli.js")) && f.Host.Downloads == 5, "damaged owned editor repaired automatically");
+            Assert(File.Exists(Path.Combine(editor, "6d62b1d5da", "resources", "app", "out", "cli.js")) && f.Host.Downloads == 6, "damaged owned editor repaired automatically");
             f.Host.JavaVersion = "17.0.1"; f.Host.RepairJavaOnDownload = true;
             f.Prepare();
-            Assert(f.Host.JavaVersion == "21.0.12" && f.Host.Downloads == 6, "failed cached Java version probe triggers one verified replacement");
+            Assert(f.Host.JavaVersion == "21.0.12" && f.Host.Downloads == 7, "failed cached Java version probe triggers one verified replacement");
             string settings = Path.Combine(f.Data, "editor", "user-data", "User", "settings.json");
             byte[] savedSettings = File.ReadAllBytes(settings);
             foreach (byte[] invalid in new[] { Encoding.UTF8.GetBytes("{ broken JSONC"), Encoding.UTF8.GetBytes("{\"student.setting\":\"").Concat(new byte[] { 0xff }).Concat(Encoding.UTF8.GetBytes("\"}")).ToArray(), new byte[] { 0xef, 0xbb, 0xbf }.Concat(Encoding.UTF8.GetBytes("{\"student.setting\":\"")).Concat(new byte[] { 0xff }).Concat(Encoding.UTF8.GetBytes("\"}")).ToArray(), Encoding.UTF8.GetBytes("{\"student.setting\":true} unexpected") })
@@ -374,9 +459,9 @@ internal static class RuntimeHarness
             string node = Directory.GetDirectories(Path.Combine(f.Data,"runtime"),"node-*").Single(), binary = Path.Combine(node,"node.exe");
             File.Delete(binary);
             Reject(() => f.Runtime().Open(true,CancellationToken.None).GetAwaiter().GetResult(),"missing Node blocks readiness before editor launch");
-            f.Prepare(); Assert(File.Exists(binary) && f.Host.Downloads == 4,"missing private Node repaired without global install");
+            f.Prepare(); Assert(File.Exists(binary) && f.Host.Downloads == 5,"missing private Node repaired without global install");
             f.Host.NodeVersion = "22.21.1"; f.Host.RepairNodeOnDownload = true;
-            f.Prepare(); Assert(f.Host.NodeVersion == "22.23.4" && f.Host.Downloads == 5,"old cached Node patch repaired from pinned archive");
+            f.Prepare(); Assert(f.Host.NodeVersion == "22.23.4" && f.Host.Downloads == 6,"old cached Node patch repaired from pinned archive");
             File.Delete(binary); f.Host.BrokenDownload = true;
             Reject(f.Prepare,"failed Node repair remains visible");
             Assert(Directory.Exists(node) && !File.Exists(binary) && !Directory.GetDirectories(Path.Combine(f.Data,"runtime"),".repair-*").Any(),"failed Node repair restores recognized previous folder");
@@ -406,6 +491,7 @@ internal static class RuntimeHarness
             Reject(() => new WindowsRuntime(f.Kit, f.Data, f.Project, f.Host, null, Path.Combine(f.Kit, "inside-app")), "runtime storage never placed inside replaceable app/kit");
             string path = Path.Combine(f.Kit, "setup", "windows-downloads.json");
             string manifest = File.ReadAllText(path); File.WriteAllText(path, manifest.Replace("https://github.com", "http://github.com")); Reject(() => f.Runtime(), "non-HTTPS metadata rejected"); File.WriteAllText(path, manifest.Replace("github.com/adoptium", "example.com/adoptium")); Reject(() => f.Runtime(), "unofficial URL rejected");
+            File.WriteAllText(path,manifest.Replace("github.com/git-for-windows", "example.com/git-for-windows")); Reject(()=>f.Runtime(),"Git origin lookalike rejected");
             File.WriteAllText(path,manifest.Replace("nodejs.org/dist","nodejs.org.evil.test/dist")); Reject(()=>f.Runtime(),"Node origin lookalike rejected");
             File.WriteAllText(path,manifest.Replace("node-v22.23.4-win-x64.zip","node-v22.23.4-win-arm64.zip")); Reject(()=>f.Runtime(),"wrong Node platform rejected");
         }

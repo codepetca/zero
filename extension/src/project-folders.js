@@ -56,7 +56,7 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
     const selection = await vscode.window.showOpenDialog({title, openLabel, canSelectFiles:false, canSelectFolders:true, canSelectMany:false, defaultUri:vscode.Uri.file(initial)});
     return isActive() ? selection?.[0] : undefined;
   }
-  async function clone({repositoryUrl, parent: selectedParent, signal, assertCurrent=async()=>{}} = {}) {
+  async function clone({repositoryUrl, parent: selectedParent, signal, reservation, assertCurrent=async()=>{}} = {}) {
     if (!isActive()) return;
     throwIfCancelled(signal);
     const url = repositoryUrl || await vscode.window.showInputBox({title:'GitHub repository URL', validateInput:value => {try {core.parseRepositoryUrl(value);} catch(error) {return error.message;}}});
@@ -68,7 +68,7 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
     if(!isActive())return;
     if (typeof cloneRepository !== 'function') throw new Error('Connect Zero to GitHub before cloning this project.');
     return progress.run('Clone from GitHub',async operationSignal => {
-      const result = await cloneRepository({repositoryUrl:destination.page,parentPath:parent.fsPath,signal:operationSignal});
+      const result = await cloneRepository({repositoryUrl:destination.page,parentPath:parent.fsPath,signal:operationSignal,...(reservation?{reservation}:{})});
       throwIfCancelled(operationSignal);
       await assertCurrent();
       if (result && isActive()) {

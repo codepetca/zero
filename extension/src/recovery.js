@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 const fs = require('node:fs/promises');
 const {constants} = require('node:fs');
 const path = require('node:path');
@@ -16,7 +17,7 @@ const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 // Only local inspection commands are used. Preserve exact blob bytes, including
 // trailing newlines; core.git intentionally trims ordinary command output.
 async function localGit(root, args) {
-  const {stdout} = await execute('git', ['--no-pager', ...args], {
+  const {stdout} = await execute(gitExecutable(), ['--no-pager', ...args], {
     cwd:root, timeout:10000, maxBuffer:MAX_OUTPUT_BYTES, encoding:'buffer',
     env:{...process.env, GIT_OPTIONAL_LOCKS:'0', GIT_NO_LAZY_FETCH:'1', GIT_NO_REPLACE_OBJECTS:'1'}
   });

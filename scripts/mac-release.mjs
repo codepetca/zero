@@ -9,6 +9,7 @@ import { publicKeys, verifyReviewAssets } from './release-review.mjs';
 import { validateInstallerManifest } from '../website/lib/installer.mjs';
 import { boundedFile, verifiedLocalInstaller, verifyInstallerSource } from '../website/lib/local-installer.mjs';
 import {readMacUpdaterConfig,updaterEnabledForVersion} from './mac-updater.mjs';
+import {macGitSourceAssets} from './mac-git.mjs';
 import {validateMacUpdateFeed,verifyUpdateArchive,verifyUpdateBuildOrder} from './mac-update-feed.mjs';
 
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -54,7 +55,8 @@ export async function prepareMacRelease({output} = {}) {
   verifyReviewAssets(join(root, 'dist'), release);
   // Read-only mount, actual Developer ID signatures, staple and Gatekeeper. No GUI.
   verify(process.execPath, [join(root, 'scripts/verify-installers.mjs'), '--platform', 'macos', '--signed']);
-  const files = {};
+  const sources = macGitSourceAssets(verify, root);
+  const files = {...sources};
   const kitReceipt = JSON.parse(releaseBytes.toString());
   for (const key of publicKeys) {
     const asset = kitReceipt.assets[key];
@@ -87,10 +89,11 @@ export async function prepareMacRelease({output} = {}) {
   const receipt = {schema:1, kind:'zero-mac-release-candidate', kitVersion:release.kitVersion,
     nativeTag:manifest.publication.tag, kitTag:release.publication.tag, ...source,
     preparedAt:new Date().toISOString(), verification:{kitSourceAndArchives:true, signedPayload:true, staple:true, gatekeeper:true},
-    artifacts:[...publicKeys.map(key => kitReceipt.assets[key]), manifest.asset], ...(updates ? {updates} : {})};
+    artifacts:[...publicKeys.map(key => kitReceipt.assets[key]), manifest.asset,
+      ...Object.entries(sources).map(([filename, bytes]) => ({filename, size:bytes.length, sha256:digest(bytes)}))], ...(updates ? {updates} : {})};
   files['candidate.json'] = JSON.stringify(receipt, null, 2) + '\n';
   files['SOURCE.txt'] = `Repository: codepetca/zero\nBuilt installer source: ${source.builtSourceRevision}\nPreparation source: ${source.preparationRevision}\nVersion: ${release.kitVersion}\nNative/runtime/packaged source equivalent: true\n`;
-  files['NOTES.md'] = `Zero Setup ${release.kitVersion} for Mac with Apple Silicon, macOS 12+.\n\nSigned, notarized and stapled Mac setup embeds the complete Zero kit. Drag Zero.app into Applications, then open Zero. On first launch, wait while Preparing Zero and its progress bar prepare the kit. Zero opens automatically after readiness is verified; choose Run App in the editor to begin. Later, open Zero from Applications or the Dock to restore its saved editor session without repeating setup. A failed opening offers Try again. Setup uses ~/Zero, prepares verified private Java and isolated editor support, and updates setup files in an existing recognized kit automatically while preserving student work. GitHub sign-in remains separate.\n\nLocal sealed candidate only. Native setup-v${release.kitVersion} publishes one DMG separately from the three-asset v${release.kitVersion} kit. Physical Windows testing is deferred; no Windows EXE is included. Fresh-machine installs and novice usability remain untested; Intel Macs are outside the current support target. Linux CI cannot regenerate this notarized Mac artifact.\n`;
+  files['NOTES.md'] = `Zero Setup ${release.kitVersion} for Mac with Apple Silicon, macOS 12+.\n\nSigned, notarized and stapled Mac setup embeds the complete Zero kit. Drag Zero.app into Applications, then open Zero. On first launch, wait while Preparing Zero and its progress bar prepare the kit. Zero opens automatically after readiness is verified; choose Run App in the editor to begin. Later, open Zero from Applications or the Dock to restore its saved editor session without repeating setup. A failed opening offers Try again. Setup uses ~/Zero, prepares verified private Java and isolated editor support, and updates setup files in an existing recognized kit automatically while preserving student work. GitHub sign-in remains separate.\n\nLocal sealed candidate only. Native setup-v${release.kitVersion} publishes the DMG and both corresponding Git source archives separately from the three-asset v${release.kitVersion} kit. Physical Windows testing is deferred; no Windows EXE is included. Fresh-machine installs and novice usability remain untested; Intel Macs are outside the current support target. Linux CI cannot regenerate this notarized Mac artifact.\n`;
   if(updates) files['NOTES.md'] += '\nZero.app uses a signed update feed. Install and Relaunch reopens Zero, verifies the updated extension and reloads idle isolated Zero editor windows through the native Reload Window command. Running apps/Zero operations defer reload; normal unsaved-buffer safeguards remain. Silent automatic installation on quit waits for the next ordinary launch. Existing 0.5.33 and earlier updaters need one manual Zero reopen/editor reload after upgrading to gain this handoff; 0.5.14 and earlier need a manual app replacement to gain the updater itself. Student projects/settings and ordinary Code profiles remain separate. Manual Check for Updates and Update Settings are available in the Mac app menu and Command Palette. School-managed installations may still require administrator authorization.\n';
   files['SHA256SUMS'] = Object.entries(files).map(([name, bytes]) => `${digest(bytes)}  ${name}`).join('\n') + '\n';
   sealMacCandidate(output, files);

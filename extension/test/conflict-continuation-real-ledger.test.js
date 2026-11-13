@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('../src/git-executable');
 const test=require('node:test'),assert=require('node:assert/strict'),Module=require('node:module');
 const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),net=require('node:net');
 const {execFile}=require('node:child_process'),{promisify}=require('node:util');
@@ -73,7 +74,7 @@ test('feature conflict continuation survives restart and confirms its own real l
     const load=Module._load;delete require.cache[require.resolve('../src/extension')];
     Module._load=function(id,...args){
       if(id==='./transport')return {createTransport:(destination,authenticate,transportOptions)=>createTransport(destination,authenticate,{...transportOptions,spawn:async(command,argv,spawnOptions)=>{
-        assert.equal(command,'git');assert.ok(['push','ls-remote','fetch'].includes(argv[0]));assert.ok(argv.includes(remote));
+        assert.equal(command,gitExecutable());assert.ok(['push','ls-remote','fetch'].includes(argv[0]));assert.ok(argv.includes(remote));
         assert.ok(!argv.some(arg=>arg==='reset'||arg==='--reset'||arg.startsWith('--force')));
         const local=argv.map(arg=>arg===remote?bare:arg);assert.ok(local.includes(bare));assert.ok(!local.some(arg=>/^https?:/.test(arg)));calls.push(argv);
         return execute(command,local,spawnOptions);

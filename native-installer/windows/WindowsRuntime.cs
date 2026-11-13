@@ -23,8 +23,18 @@ namespace ZeroSetup
         private readonly JavaScriptSerializer json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024, RecursionLimit = 32 };
         private readonly Dictionary<string, WindowsRuntimeAsset> assets;
         private readonly string version, minimum;
-        private string java, editor, editorApp, node;
+        private string java, editor, editorApp, node, git;
+        private bool gitSetupFailed;
+        internal Func<bool> ApproveGitDownload { get; set; }
         private const string NodeVersion = "22.23.4";
+        private const string GitVersion = "2.56.1";
+        private const string GitRelease = GitVersion + ".windows.1";
+        private static readonly string[] PrivateGitFiles =
+        {
+            @"cmd\git.exe", @"ucrt64\bin\git.exe", @"ucrt64\bin\git-remote-https.exe",
+            @"ucrt64\bin\libcurl-4.dll", @"ucrt64\bin\libcurl-openssl-4.dll",
+            @"ucrt64\etc\ssl\certs\ca-bundle.crt", @"usr\bin\sh.exe"
+        };
         private static readonly string[] JavaStartupVariables = { "JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "MAVEN_OPTS", "MAVEN_ARGS" };
         private static readonly string[] TerminalOwnedVariables = JavaStartupVariables.Concat(new[] { "JAVA_HOME", "ZERO_JAVA_HOME", "PATH", "MAVEN_SKIP_RC" }).ToArray();
         private sealed class Manifest
@@ -43,7 +53,7 @@ namespace ZeroSetup
             kit = FullPath(kitRoot); executionKit = FullPath(executionKitRoot ?? kitRoot); data = FullPath(dataRoot); storage = FullPath(storageRoot ?? dataRoot); project = FullPath(projectRoot);
             if (Inside(data, kit) || Inside(kit, data) || Inside(storage, kit) || Inside(kit, storage)) throw new IOException("Zero's private tools must be outside the replaceable launcher and kit folders.");
             var manifest = json.Deserialize<Manifest>(ReadText(Path.Combine(kit, "setup", "windows-downloads.json"), 65536));
-            if (manifest == null || manifest.schemaVersion != 1 || manifest.architectures == null || !manifest.architectures.TryGetValue(this.architecture, out assets) || assets.Count != 3 || !assets.ContainsKey("jdk") || !assets.ContainsKey("vscode") || !assets.ContainsKey("node"))
+            if (manifest == null || manifest.schemaVersion != 1 || manifest.architectures == null || !manifest.architectures.TryGetValue(this.architecture, out assets) || assets.Count != 4 || !assets.ContainsKey("jdk") || !assets.ContainsKey("vscode") || !assets.ContainsKey("node") || !assets.ContainsKey("git"))
                 throw new IOException("Verified Windows download metadata is missing. Reinstall Zero.");
             foreach (var pair in assets) ValidateAsset(pair.Key, pair.Value);
             var properties = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -95,6 +105,14 @@ namespace ZeroSetup
                 official = asset.version == NodeVersion && uri.Host == "nodejs.org" &&
                     path == "/dist/v" + NodeVersion + "/node-v" + NodeVersion + "-win-x64.zip";
             }
+            else if (kind == "git")
+            {
+                official = asset.version == GitRelease && uri.Host == "github.com" &&
+                    path == "/git-for-windows/git/releases/download/v" + GitRelease + "/MinGit-" + GitVersion + "-64-bit.zip" &&
+                    asset.files != null && asset.files.Count <= 1000 &&
+                    PrivateGitFiles.All(file => asset.files.ContainsKey(file.Replace('\\', '/'))) &&
+                    asset.files.All(file => Regex.IsMatch(file.Value ?? "", "^[a-f0-9]{64}$"));
+            }
             else if (kind == "vscode")
             {
                 official = ValidVersion(asset.version) && uri.Host == "vscode.download.prss.microsoft.com" &&
@@ -126,6 +144,20 @@ namespace ZeroSetup
             return Version.TryParse(installed, out actual) && Version.TryParse(required, out target) && actual >= target;
         }
         private static bool ValidVersion(string value) { return Regex.IsMatch(value ?? "", @"^\d+\.\d+(\.\d+){0,2}$"); }
+        private IEnumerable<string> AbsolutePathEntries()
+        {
+            foreach (string raw in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(';'))
+            {
+                string entry = raw.Trim();
+                if (entry.Length >= 2 && entry[0] == '"' && entry[entry.Length - 1] == '"') entry = entry.Substring(1, entry.Length - 2);
+                if (string.IsNullOrWhiteSpace(entry) || !Path.IsPathRooted(entry) ||
+                    (Path.DirectorySeparatorChar == '\\' && !Regex.IsMatch(entry, @"^(?:[A-Za-z]:[\\/]|\\\\[^\\]+\\[^\\]+)"))) continue;
+                string full;
+                try { full = Path.GetFullPath(entry); }
+                catch (Exception error) when (error is ArgumentException || error is NotSupportedException || error is PathTooLongException) { continue; }
+                if (!Inside(full, project)) yield return full;
+            }
+        }
         private ProcessStartInfo Info(string executable, IEnumerable<string> arguments, bool cli)
         {
             WindowsRuntimeFolders.Check(executable);
@@ -141,7 +173,12 @@ namespace ZeroSetup
             foreach (string key in JavaStartupVariables) info.EnvironmentVariables.Remove(key);
             info.EnvironmentVariables["MAVEN_SKIP_RC"] = "1";
             info.EnvironmentVariables["ZERO_KIT_DIR"] = executionKit;
-            info.EnvironmentVariables["PATH"] = Path.Combine(java, "bin") + ";" + (node == null ? "" : Path.GetDirectoryName(node) + ";") + (Environment.GetEnvironmentVariable("PATH") ?? "");
+            info.EnvironmentVariables["PATH"] = Path.Combine(java, "bin") + ";" + (node == null ? "" : Path.GetDirectoryName(node) + ";") + (git == null ? "" : Path.GetDirectoryName(git) + ";") + string.Join(";", AbsolutePathEntries());
+            info.EnvironmentVariables["NoDefaultCurrentDirectoryInExePath"] = "1";
+            if (git != null) info.EnvironmentVariables["ZERO_GIT_EXECUTABLE"] = git;
+            else info.EnvironmentVariables.Remove("ZERO_GIT_EXECUTABLE");
+            if (gitSetupFailed) info.EnvironmentVariables["ZERO_GIT_SETUP_FAILED"] = "1";
+            else info.EnvironmentVariables.Remove("ZERO_GIT_SETUP_FAILED");
             if (node != null) info.EnvironmentVariables["ZERO_NODE_EXECUTABLE"] = node;
             else info.EnvironmentVariables.Remove("ZERO_NODE_EXECUTABLE");
             info.EnvironmentVariables.Remove("NODE_OPTIONS");
@@ -184,30 +221,31 @@ namespace ZeroSetup
                 folders.Ensure(staging);
                 try
                 {
-                    progress(kind == "jdk" ? "Downloading Java…" : kind == "node" ? "Downloading browser tools…" : "Downloading editor…");
+                    progress(kind == "jdk" ? "Downloading Java…" : kind == "node" ? "Downloading browser tools…" : kind == "git" ? "Downloading Git…" : "Downloading editor…");
                     string download = Path.Combine(staging, "download.zip");
                     await host.Download(assets[kind], download, cancellation);
                     cancellation.ThrowIfCancellationRequested();
                     WindowsRuntimeFolders.Check(download);
                     if (new FileInfo(download).Length != assets[kind].size || WindowsRuntimeArchive.Hash(download, cancellation) != assets[kind].sha256) throw new IOException("The " + kind + " download did not match its verified size and checksum. Retry setup.");
-                    progress(kind == "jdk" ? "Preparing Java…" : kind == "node" ? "Preparing browser tools…" : "Preparing editor…");
+                    progress(kind == "jdk" ? "Preparing Java…" : kind == "node" ? "Preparing browser tools…" : kind == "git" ? "Preparing Git…" : "Preparing editor…");
                     string extracted = Path.Combine(staging, "extracted");
                     await Task.Run(() => WindowsRuntimeArchive.Extract(download, extracted, cancellation), cancellation);
                     string content = extracted;
-                    if (kind != "vscode" || !File.Exists(Path.Combine(extracted, "Code.exe")))
+                    if (kind != "git" && (kind != "vscode" || !File.Exists(Path.Combine(extracted, "Code.exe"))))
                     {
                         string[] children = Directory.GetFileSystemEntries(extracted);
                         if (children.Length != 1 || !Directory.Exists(children[0])) throw new IOException("The " + kind + " archive has an unexpected layout.");
                         content = children[0];
                         if (kind == "node" && Path.GetFileName(content) != "node-v" + NodeVersion + "-win-x64") throw new IOException("The browser runtime archive has an unexpected layout.");
                     }
-                    foreach (string required in kind == "jdk" ? new[] { "bin/java.exe", "bin/javac.exe", "release" } : kind == "node" ? new[] { "node.exe" } : new[] { "Code.exe" })
+                    foreach (string required in kind == "jdk" ? new[] { "bin/java.exe", "bin/javac.exe", "release" } : kind == "node" ? new[] { "node.exe" } : kind == "git" ? new[] { "cmd/git.exe" } : new[] { "Code.exe" })
                     {
                         string path = Path.Combine(content, required.Replace('/', Path.DirectorySeparatorChar));
                         WindowsRuntimeFolders.Check(path);
                         if (!File.Exists(path)) throw new IOException("The downloaded runtime is incomplete: " + required);
                     }
                     if (kind == "vscode") ResolveEditorApp(content);
+                    if (kind == "git") await VerifyGitBinary(Path.Combine(content, "cmd", "git.exe"), cancellation, true);
                     if (kind == "node") await VerifyNodeBinary(Path.Combine(content, "node.exe"), cancellation);
                     File.WriteAllText(Path.Combine(content, ".zero-asset.sha256"), assets[kind].sha256);
                     cancellation.ThrowIfCancellationRequested();
@@ -234,7 +272,7 @@ namespace ZeroSetup
             Directory.Move(destination, previous);
             try
             {
-                progress(kind == "jdk" ? "Repairing Java…" : kind == "node" ? "Repairing browser tools…" : "Repairing editor…");
+                progress(kind == "jdk" ? "Repairing Java…" : kind == "node" ? "Repairing browser tools…" : kind == "git" ? "Repairing Git…" : "Repairing editor…");
                 await Install(kind, progress, cancellation);
             }
             finally
@@ -263,6 +301,76 @@ namespace ZeroSetup
             string javaVersion = await Execute(Path.Combine(java, "bin", "java.exe"), new[] { "-version" }, 30000, cancellation);
             string javacVersion = await Execute(Path.Combine(java, "bin", "javac.exe"), new[] { "-version" }, 30000, cancellation);
             if (!Regex.IsMatch(javaVersion, @"version ""21\.") || !Regex.IsMatch(javacVersion, @"^javac 21\.", RegexOptions.Multiline)) throw new IOException("Zero's private Java 21 could not be verified. Try again; if your device blocks software, ask your device administrator or IT for help.");
+        }
+        private void VerifyPrivateGitFiles(string root, CancellationToken cancellation)
+        {
+            var files = assets["git"].files;
+            var pending = new Stack<string>();
+            pending.Push(root);
+            int checkedFiles = 0;
+            while (pending.Count != 0)
+            {
+                foreach (string path in Directory.GetFileSystemEntries(pending.Pop()))
+                {
+                    cancellation.ThrowIfCancellationRequested();
+                    WindowsRuntimeFolders.Check(path);
+                    if (Directory.Exists(path)) { pending.Push(path); continue; }
+                    string relative = path.Substring(root.Length + 1).Replace(Path.DirectorySeparatorChar, '/');
+                    if (relative == ".zero-asset.sha256") continue;
+                    string expected;
+                    if (!files.TryGetValue(relative, out expected) || WindowsRuntimeArchive.Hash(path, cancellation) != expected)
+                        throw new IOException("Zero's private Git file failed verification: " + relative);
+                    checkedFiles++;
+                }
+            }
+            if (checkedFiles != files.Count) throw new IOException("Zero's private Git is missing required files.");
+        }
+        private async Task VerifyGitBinary(string executable, CancellationToken cancellation, bool pinned = false)
+        {
+            if (pinned)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(executable));
+                VerifyPrivateGitFiles(root, cancellation);
+            }
+            executable = ExecutionPath(executable);
+            string output = await Execute(executable, new[] { "--version" }, 30000, cancellation);
+            var match = Regex.Match(output.Trim(), @"^git version (\d+\.\d+(?:\.\d+)?)(?:[.\s-]|$)");
+            if (!match.Success || !AtLeast(match.Groups[1].Value, "2.31") || (pinned && output.Trim() != "git version " + GitRelease)) throw new IOException("Git 2.31 or later could not be verified.");
+        }
+        private async Task PrepareGit(Action<string> progress, CancellationToken cancellation, bool acquire)
+        {
+            git = null; gitSetupFailed = false;
+            // Only explicit, absolute PATH directories are eligible; never search the project directory.
+            foreach (string directory in AbsolutePathEntries())
+            {
+                try
+                {
+                    string candidate = Path.Combine(directory, "git.exe");
+                    if (!File.Exists(candidate)) continue;
+                    await VerifyGitBinary(candidate, cancellation); git = candidate; return;
+                }
+                catch (Exception error) when (error is IOException || error is System.ComponentModel.Win32Exception || error is UnauthorizedAccessException || error is ArgumentException || error is NotSupportedException) { }
+            }
+            try
+            {
+                string folder = AssetFolder("git"), candidate = Path.Combine(folder, "cmd", "git.exe");
+                bool existed = Directory.Exists(folder);
+                if (!existed && !acquire) throw new IOException("Git is not prepared.");
+                if (!existed)
+                {
+                    if (ApproveGitDownload != null && !ApproveGitDownload()) throw new IOException("Git download declined.");
+                    await Install("git", progress, cancellation);
+                }
+                try { Marker(folder, "git"); await VerifyGitBinary(candidate, cancellation, true); }
+                catch (Exception error) when (acquire && existed && (error is IOException || error is System.ComponentModel.Win32Exception))
+                {
+                    if (ApproveGitDownload != null && !ApproveGitDownload()) throw new IOException("Git download declined.");
+                    await Repair("git", progress, cancellation); await VerifyGitBinary(candidate, cancellation, true);
+                }
+                git = candidate;
+            }
+            catch (Exception error) when (error is IOException || error is System.ComponentModel.Win32Exception || error is UnauthorizedAccessException)
+            { gitSetupFailed = true; progress("Git could not be prepared; local work is still available."); }
         }
         private async Task VerifyNodeBinary(string executable, CancellationToken cancellation)
         {
@@ -407,10 +515,14 @@ namespace ZeroSetup
         }
         private static string PatchSettings(string text, JObject values)
         {
-            foreach (string key in new[] { "java.home", "java.jdt.ls.java.home", "java.configuration.runtimes", "java.import.gradle.java.home", "terminal.integrated.env.windows", "terminal.integrated.profiles.windows", "terminal.integrated.defaultProfile.windows" })
+            foreach (string key in new[] { "java.home", "java.jdt.ls.java.home", "java.configuration.runtimes", "java.import.gradle.java.home", "terminal.integrated.env.windows", "terminal.integrated.profiles.windows", "terminal.integrated.defaultProfile.windows" }.Concat(values["git.path"] == null ? new string[0] : new[] { "git.path" }))
             {
                 int close; var spans = SettingSpans(text, out close); var matching = spans.Where(span => span.Key == key).ToList();
-                if (matching.Count > 1) throw new IOException("Zero's editor settings repeat " + key + ". Remove the duplicate and retry.");
+                if (matching.Count > 1)
+                {
+                    if (key == "git.path") continue;
+                    throw new IOException("Zero's editor settings repeat " + key + ". Remove the duplicate and retry.");
+                }
                 var value = values[key];
                 if (matching.Count == 1)
                 {
@@ -448,6 +560,7 @@ namespace ZeroSetup
                 values = ReadSettings((string)wrapper["settings"]);
             }
             if (values == null) throw new IOException("Zero's editor settings are incomplete. Reinstall Zero.");
+            if (git != null) values["git.path"] = git;
             values["java.configuration.runtimes"] = new JArray(new JObject { ["name"] = "JavaSE-21", ["path"] = java, ["default"] = true });
             // The Java extension supplies its own tooling JRE; Java 21 is the project runtime.
             values.Remove("java.jdt.ls.java.home");
@@ -485,6 +598,34 @@ namespace ZeroSetup
             }
             finally { if (File.Exists(temporary)) File.Delete(temporary); }
         }
+        private void PublishGitSelection(WindowsRuntimeFolders folders)
+        {
+            string folder = Path.Combine(data, "editor"), path = Path.Combine(folder, "git-selection.json");
+            string temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            folders.Ensure(folder);
+            WindowsRuntimeFolders.Check(path);
+            string original = File.Exists(path) ? ReadText(path, 8192) : null;
+            if (original != null)
+            {
+                var previous = JObject.Parse(original);
+                var previousPath = previous["executable"];
+                if (previous.Count != 2 || (int?)previous["schema"] != 1 || previousPath == null ||
+                    (previousPath.Type != JTokenType.Null && (previousPath.Type != JTokenType.String || !Path.IsPathRooted((string)previousPath) ||
+                        !string.Equals(Path.GetFileName((string)previousPath), "git.exe", StringComparison.OrdinalIgnoreCase))))
+                    throw new IOException("Zero's Git selection is unrecognized.");
+            }
+            string selected = new JObject { ["schema"] = 1, ["executable"] = git == null ? JValue.CreateNull() : new JValue(git) }.ToString(Formatting.None);
+            if (selected == original) return;
+            try
+            {
+                using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                using (var writer = new StreamWriter(output, new UTF8Encoding(false))) writer.Write(selected);
+                WindowsRuntimeFolders.Check(path);
+                if (original == null) File.Move(temporary, path);
+                else if (ReadText(path, 8192) == original) File.Replace(temporary, path, null);
+            }
+            finally { if (File.Exists(temporary)) File.Delete(temporary); }
+        }
         private async Task<Dictionary<string, string>> ExtensionState(CancellationToken cancellation)
         {
             string output = await Code(new[] { "--list-extensions", "--show-versions" }, 60000, cancellation);
@@ -513,6 +654,7 @@ namespace ZeroSetup
                     WindowsRuntimeFolders.Check(lockPath);
                     await PrepareJava(progress, cancellation);
                     await PrepareNode(progress, cancellation);
+                    await PrepareGit(progress, cancellation, true);
                     folders.Ensure(UserData); folders.Ensure(Extensions);
                     progress("Preparing editor…"); await FindEditor(cancellation);
                     if (editor == null)
@@ -577,9 +719,18 @@ namespace ZeroSetup
                 WindowsRuntimeFolders.Check(data); WindowsRuntimeFolders.Check(project);
                 if (!Directory.Exists(data) || !Directory.Exists(project)) throw new IOException("Your Zero starter or private support folder is missing. Run setup again.");
                 folders.Ensure(data); folders.Ensure(UserData); folders.Ensure(Extensions);
-                await VerifyJava(cancellation); await VerifyNode(cancellation); await FindEditor(cancellation);
+                await VerifyJava(cancellation); await VerifyNode(cancellation);
+                if (git == null && !gitSetupFailed) await PrepareGit(_ => { }, cancellation, false);
+                else if (git != null)
+                {
+                    try { await VerifyGitBinary(git, cancellation, Inside(git, AssetFolder("git"))); }
+                    catch (Exception error) when (error is IOException || error is System.ComponentModel.Win32Exception || error is UnauthorizedAccessException) { git = null; gitSetupFailed = true; }
+                }
+                await FindEditor(cancellation);
                 if (editor == null || !SettingsReady() || !ExtensionsReady(await ExtensionState(cancellation))) throw new IOException("Zero's editor support needs repair. Run setup again.");
                 cancellation.ThrowIfCancellationRequested();
+                try { PublishGitSelection(folders); }
+                catch (Exception error) when (error is IOException || error is UnauthorizedAccessException || error is JsonException || error is FormatException || error is ArgumentException) { }
                 host.Launch(Info(Path.Combine(editor, "Code.exe"), Isolated.Concat(resume ? new string[0] : new[] { "--new-window" }), false));
             }
         }

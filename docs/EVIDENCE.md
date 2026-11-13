@@ -1,3 +1,103 @@
+# Compact Git in the Mac installer — 2026-11-13
+
+Local source through `03b336ac3` replaces the separate 64–67 MB Git
+download with both private Git builds inside the Mac app. The archived
+Git payload totals 5,527,980 bytes. The universal development DMG grew
+from 6.64 MB to about 12.2 MB. Students receive Git within the app update
+and use the existing first-open flow.
+
+Both pinned compact archives passed the 375-assertion native harness.
+It extracted the actual bundles, committed, pushed and fetched a
+disposable local repository, and cloned a public GitHub repository over
+HTTPS with system Git absent from PATH. The Intel run used Rosetta.
+The installer, kit and focused tests passed. Native release preparation
+collects and measures the corresponding source archives for publication
+alongside the DMG. The update is local. Signed installation and Git
+execution on a fresh Mac remain unverified.
+
+Sol/high and Terra/high reviewed `f0b85c339`. Review confirmed archive
+integrity and command coverage, and identified missing instructions for
+publishing the accompanying source archives. The native release procedure
+now checks both sources in the draft and after publication.
+
+---
+
+# Automatic Git setup on macOS — 2026-11-13
+
+Local source `cbcf42a87` reuses working Mac Git 2.31+ or prepares the
+pinned GitHub Desktop Git 2.56.1 archive in Zero's private runtime. The
+launcher checks for developer tools without invoking Apple's Git shim.
+A failed download leaves local editing available and is retried when Zero
+opens again. The installed isolated extension reads the current launcher
+selection, including when VS Code retains older process variables.
+
+Both official archives matched their published checksums (63,505,330 bytes
+for arm64 and 67,474,588 bytes for x64). Both 374-assertion native harness
+runs passed, including extraction with Zero's code, local clone, and a public
+GitHub HTTPS clone with system Git removed from PATH. The x64 run used
+Rosetta on Apple silicon. 82 focused tests, kit packaging and verification,
+and a local universal development DMG build passed. A fresh Mac without
+Apple tools, an upgrade with a live VS Code window, and an authenticated
+student GitHub flow remain untested. The change is local and unreleased.
+
+Sol/high and Terra/high reviewed `de22eda08`. Fixes through `b3d00a835`
+bound cached Git and its helper to the sealed checksums, preserved optional
+editor settings and unrecognized selection files, and addressed the old
+editor process environment. Both targeted reviews found no remaining
+blocking issue in their respective deltas. Effective model and per-turn
+usage were unavailable.
+
+---
+
+# Automatic Git setup on Windows — 2026-11-13
+
+Local source `f202a0972` checks for Git 2.31 or newer on the Windows
+launcher's PATH and otherwise prepares a pinned x64 MinGit in Zero's
+private runtime. The launcher uses the verified executable for Zero and
+the isolated editor. Reopening Zero retries a failed setup. Local projects
+can open when Git is unavailable. Existing Store consent predating Git
+prompts once when Zero needs to download it.
+
+The upstream MinGit 2.56.1.windows.1 archive matched its official SHA-256
+and extracted with Zero's archive code. Local verification on macOS
+passed `npm run check`, `npm run test:windows` (Mono), 175 focused tests,
+`npm run package`, `npm run verify:kit`, both net48 launcher builds, and
+`actionlint`. The new Direct installation smoke test exercises download
+and local clone without system Git. The current Store smoke test checks
+the configured executable. Both native Windows runs remain pending.
+The broad macOS suite started before the clone-parent fixture correction
+in `2ab9615d4`. The corrected fixture, the saved-commit sync test that
+failed during that run, and the Java sample that timed out each passed
+in focused reruns.
+
+Review of `b9e32b3a0` by Sol/high and Terra/high found executable selection
+could be shadowed by the project directory and repair needed to verify the
+private HTTPS helper. The Sol/high follow-up through `85ea9ffc8` verified
+absolute executable selection and checks for the HTTPS helper and cURL
+libraries. The Terra/high follow-up at `f202a0972` verified current MSIX
+CI requires Git while historical upgrade tests retain their original checks.
+Four review turns. Effective model and per-turn usage were unavailable.
+The change is local and unreleased.
+
+---
+
+# Git availability before project creation — 2026-11-13
+
+Local source `d88f79839` checks Git 2.31+ and the clone parent before
+New Project or Start tutorial can create a GitHub repository. Clone now
+distinguishes an unavailable Git command from an unavailable folder.
+Missing or outdated Git offers **Get Git** and a full restart. A repository
+already on GitHub remains available through **Clone from GitHub**.
+
+120 focused tests, `npm run check` and diff checks passed on macOS.
+A real Git spawn with an empty PATH reproduced ENOENT and passed on retry
+with the normal PATH. Sol/medium initial and targeted review verified
+folder checks run before the probe and unavailable folders receive
+their own recovery guidance. Windows student devices remain untested.
+This fix is local and unreleased.
+
+---
+
 # Restore a saved ZeroHub connection after sign-in — 2026-11-13
 
 Local source `289c94b80` restores the existing browser grant when a fresh

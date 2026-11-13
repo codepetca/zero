@@ -1,0 +1,13 @@
+Zero includes Git 2.56.1 from GitHub Desktop's Dugite Native project.
+Zero packages a subset of the upstream binaries and scripts and replaces one
+duplicate executable with a relative symbolic link.
+
+Git is licensed under the GNU General Public License version 2. See COPYING.
+The complete corresponding source is provided alongside the Zero Mac download
+as git-2.56.1-source.tar.gz and dugite-native-2.56.1-build-source.tar.gz.
+The latter contains the upstream build scripts. Zero's packaging script is
+setup/package-mac-git.py in the Zero source for this release.
+
+Git source: https://github.com/git/git/tree/03b41523c576f26ad34085378717a0c1b287470f
+Build source: https://github.com/desktop/dugite-native/tree/238326e93b097bb31e138a75dbec433d789ef7a2
+Original binaries: https://github.com/desktop/dugite-native/releases/tag/v2.56.1

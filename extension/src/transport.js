@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const os = require('node:os');
@@ -53,8 +54,12 @@ function createTransport(remote, authenticate, {assertCurrentNow, deleteAuthoriz
     if (binding && ((!pushing && !deletion) || binding.root !== root || !path.isAbsolute(binding.gitDir || '') || !path.isAbsolute(binding.commonDir || '') || typeof binding.assertCurrentNow !== 'function' || binding.assertCurrentNow.constructor.name === 'AsyncFunction')) throw new Error('The project Git directory binding is invalid.');
     // Git 2.31 introduced runtime config via GIT_CONFIG_COUNT. Fail closed
     // before obtaining transport credentials on versions that would ignore it.
-    let version;
-    try { version = /^git version (\d+)\.(\d+)(?:\.|\s|$)/.exec(await localRun(root, ['--version'])); }
+    let version, executable;
+    const run = (cwd, args, options) => localRun(cwd, args, {...options, executable});
+    try {
+      executable = gitExecutable();
+      version = /^git version (\d+)\.(\d+)(?:\.|\s|$)/.exec(await run(root, ['--version']));
+    }
     catch (error) { throw gitError(error, 'check the local Git version'); }
     if (!version || Number(version[1]) < 2 || (Number(version[1]) === 2 && Number(version[2]) < 31)) throw Object.assign(new Error('Zero live upload needs Git 2.31 or newer for isolated credentials. Update Git, then review the upload again.'), {kind: 'changed'});
     // Refresh once, then finish all asynchronous preparation and check the
@@ -74,7 +79,7 @@ function createTransport(remote, authenticate, {assertCurrentNow, deleteAuthoriz
       // Prepare resources first; destination checks are the final asynchronous
       // work, followed by the synchronous session check and immediate dispatch.
       let actualRoot;
-      try { actualRoot = await core.assertRepositoryRoot(root, localRun); }
+      try { actualRoot = await core.assertRepositoryRoot(root, run); }
       catch (error) { throw gitError(error, 'verify the student project'); }
       if (deletion && actualRoot !== root) throw deletionChanged();
       const checkSession = () => {
@@ -91,11 +96,11 @@ function createTransport(remote, authenticate, {assertCurrentNow, deleteAuthoriz
       };
       env = {...environment};
       for (const key of Object.keys(env)) {
-        if ((binding && /^GIT_(?:DIR|COMMON_DIR|WORK_TREE|INDEX_FILE|OBJECT_DIRECTORY|ALTERNATE_OBJECT_DIRECTORIES|NAMESPACE|SHALLOW_FILE|GRAFT_FILE|REPLACE_REF_BASE|REFERENCE_BACKEND)$/i.test(key)) || /^GIT_CONFIG$/i.test(key) || /^GIT_CONFIG_(?:COUNT|KEY_\d+|VALUE_\d+|PARAMETERS)$|^GIT_TRACE|^GIT_CURL_VERBOSE$|^GIT_SSL_NO_VERIFY$|^GIT_ASKPASS$|^SSH_ASKPASS$|^SSLKEYLOGFILE$/i.test(key)) delete env[key];
+        if ((binding && /^GIT_(?:DIR|COMMON_DIR|WORK_TREE|INDEX_FILE|OBJECT_DIRECTORY|ALTERNATE_OBJECT_DIRECTORIES|NAMESPACE|SHALLOW_FILE|GRAFT_FILE|REPLACE_REF_BASE|REFERENCE_BACKEND)$/i.test(key)) || /^GIT_CONFIG$/i.test(key) || /^GIT_CONFIG_(?:COUNT|KEY_\d+|VALUE_\d+|PARAMETERS)$|^GIT_TRACE|^GIT_CURL_VERBOSE$|^GIT_SSL_NO_VERIFY$|^GIT_ASKPASS$|^GIT_EXEC_PATH$|^SSH_ASKPASS$|^SSLKEYLOGFILE$/i.test(key)) delete env[key];
       }
       if (binding) {env.GIT_DIR=binding.gitDir;env.GIT_COMMON_DIR=binding.commonDir;env.GIT_WORK_TREE=binding.root;env.GIT_NO_LAZY_FETCH='1';env.GIT_NO_REPLACE_OBJECTS='1';}
       try {
-        await assertExactDestination(root,destination,localRun,env,deletion);
+        await assertExactDestination(root,destination,run,env,deletion);
       } catch (error) {
         if (error.kind === 'changed') throw error;
         throw gitError(error, 'verify the GitHub destination');
@@ -136,6 +141,7 @@ function createTransport(remote, authenticate, {assertCurrentNow, deleteAuthoriz
       };
       if (binding) checkBinding();
       try {
+        if (gitExecutable() !== executable) throw Object.assign(new Error('The Git installation changed. Review the operation again.'), {kind:'changed'});
         if (deleting) {
           if (deletionDispatched) throw deletionChanged();
           deletionDispatched = true;
@@ -143,7 +149,7 @@ function createTransport(remote, authenticate, {assertCurrentNow, deleteAuthoriz
         // A bare object ID can also name a ref. The commit peel forces Git
         // to resolve the saved object, even when a same-named ref exists.
         const childArgs=pushing?['push',destination,args[2].replace(':refs/heads/','^{commit}:refs/heads/')]:deleting?deletion.args:args;
-        const {stdout} = await spawn('git', childArgs, {cwd: root, env, timeout: 120000, maxBuffer: 1024 * 1024});
+        const {stdout} = await spawn(executable, childArgs, {cwd: root, env, timeout: 120000, maxBuffer: 1024 * 1024});
         if (deletion) checkBinding();
         else checkSession();
         // Push/fetch need no arbitrary output; ls-remote

@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // Schema 7 represents a whole unborn-project discard, never a commit-based discard.
 const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto');
 const {constants}=require('node:fs');
@@ -39,7 +40,7 @@ async function validate(root,folder,manifestBytes,manifest,safePath,validRemoval
  else {
   if(!complete.resultIndex.present||!oldIndex||!newIndex||digest(oldIndex)!==manifest.index.hash||digest(newIndex)!==complete.resultIndex.hash)return false;if(manifest.staged.length?(!movedIndex||digest(movedIndex)!==manifest.index.hash):(movedIndex||complete.resultIndex.hash!==manifest.index.hash))return false;
   const env=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_OPTIONAL_LOCKS:'0'});
-  const git=async(file,args)=>(await exec('git',['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env:{...env,GIT_INDEX_FILE:path.join(folder,file)},encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout;
+  const git=async(file,args)=>(await exec(gitExecutable(),['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env:{...env,GIT_INDEX_FILE:path.join(folder,file)},encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout;
   const rows=async file=>{const text=new TextDecoder('utf-8',{fatal:true}).decode(await git(file,['ls-files','--stage','-z']));if(text&&!text.endsWith('\0'))throw Error();return text.split('\0').filter(Boolean);};const before=await rows('index'),after=await rows('completed-index'),flags=parseIndexFlags(await git('index',['ls-files','--debug','-z']));if(after.length||flags.size!==manifest.staged.length||[...flags.values()].some(value=>value!=='0')||before.length!==manifest.staged.length||manifest.staged.some(item=>flags.get(item.name)!=='0'))return false;
   const expectedRows=manifest.staged.map(item=>`${item.mode} ${item.object} 0\t${item.name}`).sort();if(!same([...before].sort(),expectedRows))return false;
  }
