@@ -1,3 +1,15 @@
+# Zero 0.5.73 release — 2026-11-13
+
+[PR #345](https://github.com/codepetca/zero/pull/345) merged automatic Git
+setup on Windows and Mac at `984cd94141e1d99ed5315aa809efa135c1d68094`.
+Zero 0.5.73 is live on GitHub, the website and Microsoft Store. The editor
+also includes [#341](https://github.com/codepetca/zero/pull/341), which hides
+Share game. The [release ledger](../docs/RELEASE-LEDGER.md#zero-0573--2026-11-13)
+records exact checks and deployment evidence. Fresh Mac, physical Windows
+and authenticated student workflows remain untested on the released builds.
+
+---
+
 # Current product positioning — 2026-11-10
 
 **Learn to Build** / **Starting from zero** is the owner-selected messaging.

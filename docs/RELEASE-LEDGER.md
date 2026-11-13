@@ -7,9 +7,9 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| Website | The 0.5.73 Mac link and signed build 73 appcast are in this promotion. | Verify the deployed link and exact appcast bytes after the merge. |
+| Website | The [homepage](https://zero.codepet.ca/) links to the 0.5.73 Mac DMG. The deployed [appcast](https://zero.codepet.ca/updates/macos/appcast.xml) matches the signed build 73 feed byte for byte. | Verify the live updater on an installed Mac. |
 | Mac installer | [0.5.73](https://github.com/codepetca/zero/releases/tag/setup-v0.5.73) is public. Its DMG and both corresponding Git source archives match the sealed candidate. | A fresh Mac and the live 0.5.72 → 0.5.73 update remain untested. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.73.0 is in certification as submission 9, with automatic publishing after certification. | Confirm Store delivery of 1.5.73.0. |
+| Windows Store | Partner Center shows submission 9 live with [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.73.0, x64. | Verify installation or update on a physical Windows device. |
 | Windows standalone download | [0.5.73 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.73) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.73) are public. | The preview has updates disabled. Physical and school-managed Windows devices remain untested. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
@@ -28,8 +28,12 @@ installer.
 This source includes the GitHub confirmation code workaround in
 [#338](https://github.com/codepetca/zero/pull/338) and hides Share game in
 the editor through [#341](https://github.com/codepetca/zero/pull/341).
-[Kit release preparation](https://github.com/codepetca/zero/actions/runs/43520517945)
-used the merged source. Core remains 0.3.0.
+The [GitHub kit release](https://github.com/codepetca/zero/releases/tag/v0.5.73)
+uses the merged source from [preparation run 43520517945](https://github.com/codepetca/zero/actions/runs/43520517945).
+All three public kit assets matched their receipts. Core remains 0.3.0.
+The kit metadata merged in [#346](https://github.com/codepetca/zero/pull/346)
+and the Mac download and appcast promotion merged in
+[#347](https://github.com/codepetca/zero/pull/347).
 
 The [Windows CI run](https://github.com/codepetca/zero/actions/runs/43518705078)
 built from `f6c9a5b4be2711a1bd5cb24912e05615ae1448d9`, whose tree matches
