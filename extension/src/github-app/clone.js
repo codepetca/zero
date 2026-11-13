@@ -161,6 +161,7 @@ function createGitHubAppClone({authentication,repositories,spawn=execute,environ
       settings.forEach(([key,value],index)=>{env[`GIT_CONFIG_KEY_${index}`]=key;env[`GIT_CONFIG_VALUE_${index}`]=value;});
       // Dispatch immediately after the synchronous guard. Never expose raw Git
       // output or interpolate a token in an argument, URL, error or file.
+      reservation.dispatched = true;
       try {await spawn(executable,['clone','--no-recurse-submodules','--',remote,destination],{cwd:parent,env,signal,timeout:120000,maxBuffer:1024*1024});}
       catch {cancellation(signal);throw Error('GitHub cloning did not finish. Check your connection and Zero’s repository access.');}
       // Remove credentials before any local verification process is dispatched.

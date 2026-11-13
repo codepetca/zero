@@ -31,8 +31,8 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
     await authentication.assertCurrent(ticket);
     return {ticket,draft,parent,draftKey};
   }
-  async function createRemote(input,template,signal,notify){
-    try{throwIfCancelled(signal);return await repositories.create({name:input.draft.name,private:false,...(template?{template}:{})},{ticket:input.ticket,onProgress:notify,signal});}
+  async function createRemote(input,template,signal,notify,beforeCreate){
+    try{throwIfCancelled(signal);return await repositories.create({name:input.draft.name,private:false,...(template?{template}:{})},{ticket:input.ticket,onProgress:notify,signal,...(beforeCreate?{beforeCreate}:{})});}
     catch(error){if(error.code&&error.code!=='creation-uncertain')await onRecovery(undefined);throw error;}
   }
   async function createAndClone(title,template,key,defaultName,preparedTicket){
@@ -52,7 +52,6 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
       throwIfCancelled(signal);
       if(!isActive())return;
       const reservation=await reserveCloneDestination(parentPath,location,input.draft.name);
-      let cloning=false;
       try{
         const intended=core.parseRepositoryUrl(`https://github.com/${input.ticket.session.label}/${input.draft.name}`).page;
         await assertCloneReservation(reservation,true);
@@ -65,12 +64,14 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
           throw error;
         }
         notify('Creating your GitHub project…');
-        const result=await createRemote(input,template,signal,notify);
+        const result=await createRemote(input,template,signal,notify,async()=>{
+          try { await assertCloneReservation(reservation,true); }
+          catch (error) { error.code='clone-folder-unavailable'; throw error; }
+        });
         await onRecovery({repositoryUrl:result.repository.html_url,accountId:input.ticket.session.accountId,parentPath,stage:'created'});
         if(!isActive())throw Error(`Your repository was created at ${result.repository.html_url}. Clone it from Zero when you return.`);
         try{
           throwIfCancelled(signal);notify('Opening your project…');
-          cloning=true;
           const cloned=await folders.clone({repositoryUrl:result.repository.html_url,parent:input.parent,signal,reservation});
           throwIfCancelled(signal);
           if(!cloned||!isActive())throw Error('The project was not opened.');
@@ -84,7 +85,7 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
           throw failure;
         }
       }finally{
-        if(!cloning)await releaseUnusedCloneDestination(reservation);
+        if(!reservation.dispatched)await releaseUnusedCloneDestination(reservation);
       }
     });
   }

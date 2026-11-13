@@ -45,9 +45,11 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
     if (!session || !/^[1-9]\d*$/.test(session.accountId || '') || !session.accessToken || /[\r\n\0]/.test(session.accessToken)) throw failure('Reconnect GitHub using your personal account.', 'authentication-required');
     return session;
   }
-  async function api(ticket, method, suffix, {body,allow404=false,signal,onSend,maxBytes}={}) {
+  async function api(ticket, method, suffix, {body,allow404=false,signal,beforeSend,onSend,maxBytes}={}) {
     cancelled(signal);
     await current(ticket);
+    cancelled(signal);
+    if (beforeSend) await beforeSend();
     cancelled(signal);
     const token = authentication.assertCurrentNow(ticket).accessToken;
     let response;
@@ -241,7 +243,7 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
   function uncertainCreation(url) {
     return failure(`GitHub may have created this repository: ${url}. Check it and use Clone from GitHub to recover before creating another project.`, 'creation-uncertain',url);
   }
-  async function create({name,private:privacy,template}={}, {ticket:reviewedTicket,onProgress=()=>{},signal}={}) {
+  async function create({name,private:privacy,template}={}, {ticket:reviewedTicket,onProgress=()=>{},signal,beforeCreate}={}) {
     configured();cancelled(signal);
     if (!safeName(name) || privacy!==false) throw failure('Choose a repository name. Zero creates public repositories.', 'invalid-project');
     if (template && (Object.keys(template).some(key=>!['owner','repo'].includes(key)) || template.owner!==configuration.owner || !safeName(template.repo))) throw failure('Choose a verified Zero project template.', 'invalid-template');
@@ -261,7 +263,7 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
         if (source?.is_template!==true || source.private!==false || source.full_name?.toLowerCase()!==`${template.owner}/${template.repo}`.toLowerCase()) throw failure('The verified Zero template is not publicly available. No repository was created.', 'invalid-template');
       }
       onProgress('Creating your GitHub repository…');
-      const result=await api(ticket,'POST',template?`/repos/${template.owner}/${template.repo}/generate`:'/user/repos',{body:{name,private:privacy,...(template?{owner:user.login,include_all_branches:false}:{auto_init:false})},signal,onSend:()=>{sent=true;}});
+      const result=await api(ticket,'POST',template?`/repos/${template.owner}/${template.repo}/generate`:'/user/repos',{body:{name,private:privacy,...(template?{owner:user.login,include_all_branches:false}:{auto_init:false})},signal,beforeSend:beforeCreate,onSend:()=>{sent=true;}});
       accepted=true;
       const created=repository(result,core.parseRepositoryUrl(url),user.id);
       if (created.private!==privacy) throw failure('GitHub returned a different repository visibility.', 'repository-mismatch');

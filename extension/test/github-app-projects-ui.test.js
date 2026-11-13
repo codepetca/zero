@@ -123,6 +123,7 @@ test('account drift during form collection prevents POST',async t=>{
 });
 test('clone failure preserves created repository URL and offers recovery',async t=>{
  const f=await fixture(t);f.cloneFailure=Error('Destination is unavailable');await assert.rejects(f.commands.newProject(),error=>error.message.includes(remote)&&/repository was kept/.test(error.message)&&/Clone from GitHub/.test(error.message));
+ await assert.rejects(fs.lstat(path.join(f.root,'my-project')),{code:'ENOENT'});
  assert.equal(f.calls.filter(call=>call[0]==='create').length,1);assert.ok(!f.progress.includes('Project created'));assert.deepEqual(f.recovery.at(-1),{repositoryUrl:remote,accountId:'1',parentPath:f.root,stage:'created'});assert.doesNotMatch(JSON.stringify(f.recovery),/TEST_SECRET/);
 });
 test('cancelled clone after creation preserves a recovery URL without claiming success',async t=>{
