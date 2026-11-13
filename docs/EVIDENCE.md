@@ -18,6 +18,11 @@ Redis pair. Hosted WorkOS delivery of the GitHub refresh credential and
 hosted renewal remain unverified. Source stays on the local
 `codex/zerohub-github-session` branch.
 
+Owner follow-up increased the cap to 180 days in `ffda99f70`. A targeted
+Sol/high review of `eee2e7e9f..ffda99f70` found no issues. It confirmed the
+browser and Redis deadlines, the WorkOS session binding, and consistency
+with GitHub's published refresh-token lifetime.
+
 ---
 
 # Run Java in Zero projects — 2026-11-11

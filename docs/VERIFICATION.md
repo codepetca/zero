@@ -15,6 +15,10 @@ keeps the Zero sign-in visible during a GitHub connection error and returns to
 the GitHub-connected state on retry. Hosted WorkOS and GitHub renewal require
 a live acceptance run after deployment.
 
+For the 180-day cap in `ffda99f70`, TypeScript and 22 focused tests passed.
+The fixture renewed on day 179 and stopped authorizing requests at day 180.
+The production WorkOS session length and inactivity timeout are unverified.
+
 ## My Projects account status — 2026-11-12
 
 Local changes on `6bdcfa7cc` share the website account check between the
