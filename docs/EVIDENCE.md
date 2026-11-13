@@ -1,3 +1,20 @@
+# Git availability before project creation — 2026-11-13
+
+Local source `d88f79839` checks Git 2.31+ and the clone parent before
+New Project or Start tutorial can create a GitHub repository. Clone now
+distinguishes an unavailable Git command from an unavailable folder.
+Missing or outdated Git offers **Get Git** and a full restart. A repository
+already on GitHub remains available through **Clone from GitHub**.
+
+120 focused tests, `npm run check` and diff checks passed on macOS.
+A real Git spawn with an empty PATH reproduced ENOENT and passed on retry
+with the normal PATH. Sol/medium initial and targeted review verified
+folder checks run before the probe and unavailable folders receive
+their own recovery guidance. Windows student devices remain untested.
+This fix is local and unreleased.
+
+---
+
 # Restore a saved ZeroHub connection after sign-in — 2026-11-13
 
 Local source `289c94b80` restores the existing browser grant when a fresh
