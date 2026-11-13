@@ -256,12 +256,13 @@ coverage. No canonical helper or student game source is rewritten.
 
 ## ZeroHub Play latest
 
-Share game automatically includes a playable link only when Zero can reverify a
-saved publication for the exact uploaded source commit. There is no extra URL or
+Share game requires a playable link: it includes one only when Zero can reverify
+a saved publication for the exact uploaded source commit, and otherwise asks the
+student to **Publish app** before the request form opens. There is no extra URL or
 descriptor field for students to enter. The trusted checker independently verifies
 the repository, successful owned workflow run, Pages destination and public
-SHA/run marker before accepting that receipt. Games without a matching verified
-publication still share source normally.
+SHA/run marker before accepting that receipt. Older gallery games accepted
+without a link remain listed with **Download source project** only.
 
 ZeroHub shows **Play latest** beside **Download source project**. Play opens the
 student-hosted live app, which can change on later publishes; source snapshots

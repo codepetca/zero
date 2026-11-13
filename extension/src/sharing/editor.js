@@ -294,20 +294,20 @@ function createSharingEditor(vscode,host,options={}) {
    await afterHandoff(before.ticket);
   }
   let prepared=await prepare();
-  if(kind==='game'&&!prepared.web&&host.publishForSharing) {
-   const choice=await vscode.window.showQuickPick([{label:'Publish app and continue',action:'publish',description:'Include a playable app with this source snapshot'},{label:'Share source only',action:'source',description:'Students can download the game project'}],{title:'Include a playable app?'});
-   if(!choice){report('Share paused · choose Share game to continue');return;}
-   if(choice.action==='publish') {
-    trusted(vscode);await current(root);await host.auth.assertCurrent(prepared.resolved.ticket);
-    const published=await host.publishForSharing(root);
-    if(published?.status!=='live'){report('Share paused · Publish app, then Share game');return;}
-    await afterHandoff(prepared.resolved.ticket);
-    prepared=await prepare();
-    if(!prepared.web)fail('The published app could not be verified for this exact source revision. Publish app, then Share game again.');
-   }else if(choice.action!=='source')return;
+  if(kind==='game'&&!prepared.web) {
+   // ZeroHub games must be playable: share only a revision with a verified app.
+   if(!host.publishForSharing)fail('Publish app for this version, then Share game again.');
+   const choice=await vscode.window.showQuickPick([{label:'Publish app and continue',action:'publish',description:'ZeroHub games include a playable app'}],{title:'Publish app before sharing'});
+   if(choice?.action!=='publish'){report('Share paused · Publish app, then Share game');return;}
+   trusted(vscode);await current(root);await host.auth.assertCurrent(prepared.resolved.ticket);
+   const published=await host.publishForSharing(root);
+   if(published?.status!=='live'){report('Share paused · Publish app, then Share game');return;}
+   await afterHandoff(prepared.resolved.ticket);
+   prepared=await prepare();
+   if(!prepared.web)fail('The published app could not be verified for this exact source revision. Publish app, then Share game again.');
   }
   const {resolved,commit,request,web}=prepared;
-  const webDetail=kind==='game' ? web ? `\nPlay latest: ${web.url}\nThe student-hosted live app can update; the source snapshot stays at this version.` : '\nSource only.' : '';
+  const webDetail=kind==='game'&&web ? `\nPlay latest: ${web.url}\nThe student-hosted live app can update; the source snapshot stays at this version.` : '';
   const approved=await vscode.window.showInformationMessage(`Open the ${isTutorialPractice(descriptor)?'practice library':kind} publication form?`,{modal:true,detail:`${practiceDetail(descriptor)}${descriptor.title} ${descriptor.version}\n${resolved.repository.url}\nRevision ${commit}\nFolder ${folder}\nGitHub: ${resolved.requester.login}${webDetail}\n\nReview and submit on GitHub. Uncommitted files are excluded.`},'Open GitHub form');if(approved!=='Open GitHub form')return;
   trusted(vscode);await current(root);if(selectedLibrary)await selectedStillCurrent(root,selectedLibrary,context);await assertContributionProject(root,descriptor);await host.auth.assertCurrent(resolved.ticket);
   if((await api.git(root,['rev-parse','HEAD'])).trim()!==commit||(await api.git(root,['status','--porcelain','-z'])).length)fail('The committed revision or files changed during review. Share again.');
