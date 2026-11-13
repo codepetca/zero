@@ -23,13 +23,33 @@ test('macOS managed Git must be an absolute executable named git and never falls
     {ZERO_GIT_SETUP_FAILED:'1'},
     {ZERO_GIT_SETUP_FAILED:'1', ZERO_GIT_EXECUTABLE:selected},
     {ZERO_GIT_EXECUTABLE:'git'},
+    {ZERO_GIT_EXECUTABLE:'/usr/bin/git'},
     {ZERO_GIT_EXECUTABLE:path.join(dir, 'missing', 'git')},
     {ZERO_GIT_EXECUTABLE:dir}
-  ]) assert.throws(() => gitExecutable(environment, 'darwin'), {code:'ENOENT'});
+  ]) assert.throws(() => gitExecutable(environment, 'darwin'), {code:'ZERO_GIT_SETUP_FAILED'});
   fs.chmodSync(selected, 0o644);
-  assert.throws(() => gitExecutable({ZERO_GIT_EXECUTABLE:selected}, 'darwin'), {code:'ENOENT'});
+  assert.throws(() => gitExecutable({ZERO_GIT_EXECUTABLE:selected}, 'darwin'), {code:'ZERO_GIT_SETUP_FAILED'});
   assert.equal(gitExecutable({}, 'darwin'), 'git');
   assert.equal(gitExecutable({ZERO_GIT_SETUP_FAILED:'1'}, 'linux'), 'git');
+});
+
+test('macOS existing native extension host reads the current launcher selection', t => {
+  const home = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'zero-git-profile-')));
+  t.after(() => fs.rmSync(home, {recursive:true, force:true}));
+  const editor = path.join(home, 'Library', 'Application Support', 'Zero', 'editor');
+  const source = path.join(editor, 'extensions', 'zero.zero-1.2.3', 'src');
+  fs.mkdirSync(source, {recursive:true});
+  const git = path.join(home,'git');
+  const selection = path.join(editor, 'git-selection.json');
+  fs.writeFileSync(git, '#!/bin/sh\n', {mode:0o755});
+  fs.writeFileSync(selection, JSON.stringify({executable:git}), {mode:0o600});
+  assert.equal(gitExecutable({ZERO_GIT_SETUP_FAILED:'1'}, 'darwin', fs.statSync, source, home), git);
+  assert.equal(gitExecutable({}, 'darwin', fs.statSync, '/other/editor/zero/src', home), 'git');
+  fs.writeFileSync(selection, JSON.stringify({executable:null}));
+  assert.throws(() => gitExecutable({ZERO_GIT_EXECUTABLE:git}, 'darwin', fs.statSync, source, home), {code:'ZERO_GIT_SETUP_FAILED'});
+  fs.unlinkSync(selection);
+  fs.symlinkSync(git, selection);
+  assert.throws(() => gitExecutable({}, 'darwin', fs.statSync, source, home), {code:'ZERO_GIT_SETUP_FAILED'});
 });
 
 test('manual Windows searches absolute PATH directories for git.exe only', () => {

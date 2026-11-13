@@ -22,7 +22,7 @@ struct MacRuntime {
     var testAfterExchange: (() throws -> Void)?
     var testBeforeExchange: (() throws -> Void)?
     #endif
-    struct Asset: Decodable { let url: String; let sha256: String; let format: String; let size: Int64; let version: String? }
+    struct Asset: Decodable { let url: String; let sha256: String; let format: String; let size: Int64; let version: String?; let files: [String:String]? }
     struct Manifest: Decodable { let schemaVersion: Int; let architectures: [String: [String: Asset]] }
     init(kit: URL, home: URL = fm.homeDirectoryForCurrentUser) throws {
         self.kit = kit; self.home = home
@@ -58,7 +58,10 @@ struct MacRuntime {
             case "node":
                 official = asset.version == Self.nodeVersion && asset.url == "https://nodejs.org/dist/v\(Self.nodeVersion)/node-v\(Self.nodeVersion)-darwin-\(architecture).tar.gz"
             case "git":
-                official = asset.version == Self.gitVersion && asset.url == "https://github.com/desktop/dugite-native/releases/download/v\(Self.gitVersion)/dugite-native-v\(Self.gitVersion)-\(Self.gitBuild)-macOS-\(architecture).tar.gz"
+                official = asset.version == Self.gitVersion &&
+                    asset.url == "https://github.com/desktop/dugite-native/releases/download/v\(Self.gitVersion)/dugite-native-v\(Self.gitVersion)-\(Self.gitBuild)-macOS-\(architecture).tar.gz" &&
+                    Set((asset.files ?? [:]).keys) == ["bin/git", "libexec/git-core/git-remote-http"] &&
+                    (asset.files ?? [:]).values.allSatisfy { $0.range(of: #"^[a-f0-9]{64}$"#, options: .regularExpression) != nil }
             default:
                 official = ["github.com", "update.code.visualstudio.com", "vscode.download.prss.microsoft.com"].contains(url.host ?? "")
             }
@@ -304,19 +307,13 @@ struct MacRuntime {
               try String(contentsOf: executable, encoding: .utf8) == Self.gitWrapper else {
             throw SetupFailure(message: "Zero's private Git launcher could not be verified.")
         }
-        let binary = folder.appendingPathComponent("bin/git")
-        let helper = helperFolder.appendingPathComponent("git-remote-http")
-        for tool in [binary, helper] {
+        for (path, expected) in assets["git"]!.files! {
+            let tool = folder.appendingPathComponent(path)
             _ = try KitUpdatePlan.regular(tool)
-            guard Self.fm.isExecutableFile(atPath: tool.path) else { throw SetupFailure(message: "Zero's private Git is incomplete.") }
-            #if ZERO_SETUP_TESTS
-            if testDownload != nil { continue }
-            #endif
-            // Upstream publishes ad hoc signed arm64 builds and unsigned x64
-            // builds. The pinned upstream SHA-256 authenticates both archives.
-            #if arch(arm64)
-            _ = try Self.execute("/usr/bin/codesign", ["--verify", "--strict", tool.path])
-            #endif
+            guard Self.fm.isExecutableFile(atPath: tool.path),
+                  try Self.execute("/usr/bin/shasum", ["-a", "256", tool.path], environment: gitProbeEnvironment).hasPrefix(expected + " ") else {
+                throw SetupFailure(message: "Zero's private Git is incomplete.")
+            }
         }
         guard try Self.fm.destinationOfSymbolicLink(atPath: helperFolder.appendingPathComponent("git-remote-https").path) == "git-remote-http",
               try Self.execute(executable.path, ["--version"], environment: gitProbeEnvironment).trimmingCharacters(in: .whitespacesAndNewlines) == "git version " + Self.gitVersion else {
@@ -463,6 +460,14 @@ struct MacRuntime {
         for line in output.components(separatedBy: .newlines) { let pair = line.split(separator: "@"); if pair.count == 2 { result[String(pair[0]).lowercased()] = String(pair[1]) } }
         return result
     }
+    func publishGitSelection(_ selected: URL?) throws {
+        let publication = try AnchoredZeroFile(directory: root.appendingPathComponent("editor"))
+        let leaf = "git-selection.json"
+        let previous = try publication.identity(leaf)
+        let bytes = try JSONSerialization.data(withJSONObject: ["executable": selected?.path as Any? ?? NSNull()])
+        if let previous, try publication.read(leaf, expected: previous) == bytes { return }
+        try publication.publish(bytes, leaf: leaf, mode: 0o600, expected: previous)
+    }
     func publishEditorUpdate() throws {
         // Written only after check() verified the supplied extension is installed.
         // The loaded Zero extension consumes this fixed marker in the private
@@ -566,7 +571,9 @@ struct MacRuntime {
                 let git = try runtime.withSetupLock {
                     Self.progress("git")
                     let selected = runtime.prepareGit()
-                    try runtime.seedSettings(java, git: selected)
+                    do { try runtime.seedSettings(java, git: selected) }
+                    catch { print("Zero's editor settings were kept: \(error.localizedDescription)") }
+                    try runtime.publishGitSelection(selected)
                     do { try runtime.launcher(cli: cli, java: java, git: selected) }
                     catch { print("Zero's optional launcher was kept: \(error.localizedDescription)") }
                     return selected

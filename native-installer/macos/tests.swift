@@ -660,6 +660,7 @@ struct SetupTests {
         let httpHelper = gitHelpers.appendingPathComponent("git-remote-http")
         try manager.copyItem(at: gitScript, to: httpHelper)
         try manager.createSymbolicLink(atPath: httpHelper.path + "s", withDestinationPath: "git-remote-http")
+        let gitFileDigest = try MacRuntime.execute("/usr/bin/shasum", ["-a", "256", gitScript.path]).split(separator: " ").first.map(String.init)!
         let gitArchive = temporary.appendingPathComponent("valid-git.tar.gz")
         _ = try MacRuntime.execute("/usr/bin/tar", ["-czf", gitArchive.path, "-C", gitPayload.path, "."])
         let gitDigest = try MacRuntime.execute("/usr/bin/shasum", ["-a", "256", gitArchive.path]).split(separator: " ").first.map(String.init)!
@@ -697,7 +698,7 @@ struct SetupTests {
             var architectures: [String:Any] = [:]
             for architecture in ["arm64","x64"] {
                 let node: [String:Any] = ["url":"https://nodejs.org/dist/v22.23.4/node-v22.23.4-darwin-\(architecture).tar.gz","sha256":nodeDigest,"version":"22.23.4","format":"tar.gz","size":(try manager.attributesOfItem(atPath:nodeArchive.path)[.size] as! NSNumber).intValue]
-                let git: [String:Any] = ["url":"https://github.com/desktop/dugite-native/releases/download/v2.56.1/dugite-native-v2.56.1-238326e-macOS-\(architecture).tar.gz","sha256":gitDigest,"version":"2.56.1","format":"tar.gz","size":(try manager.attributesOfItem(atPath:gitArchive.path)[.size] as! NSNumber).intValue]
+                let git: [String:Any] = ["url":"https://github.com/desktop/dugite-native/releases/download/v2.56.1/dugite-native-v2.56.1-238326e-macOS-\(architecture).tar.gz","sha256":gitDigest,"version":"2.56.1","format":"tar.gz","files":["bin/git":gitFileDigest,"libexec/git-core/git-remote-http":gitFileDigest],"size":(try manager.attributesOfItem(atPath:gitArchive.path)[.size] as! NSNumber).intValue]
                 architectures[architecture] = ["jdk":asset,"vscode":editor,"node":node,"git":git]
             }
             let values: [String: Any] = ["schemaVersion": 1, "architectures": architectures]
@@ -758,6 +759,8 @@ struct SetupTests {
         try expect(runtime.prepareGit() == nil && manager.fileExists(atPath: runtime.git.path), "failed repair restores known private Git folder")
         runtime.testDownload = { target, _ in try manager.copyItem(at: gitArchive, to: target) }
         try expect(runtime.prepareGit() == privateGit && manager.fileExists(atPath: installedHelper.path), "retry repairs missing HTTPS helper")
+        try "#!/bin/sh\nexit 0\n".write(to: installedHelper, atomically: false, encoding: .utf8)
+        try expect(runtime.prepareGit() == privateGit && (try String(contentsOf: installedHelper)) == fakeGitScript, "cached HTTPS helper bytes must match the archive")
         let existingGit = temporary.appendingPathComponent("installed system tools/git")
         try MacRuntime.mkdir(existingGit.deletingLastPathComponent())
         try "#!/bin/sh\necho git version 2.50.1\n".write(to: existingGit, atomically: false, encoding: .utf8)
@@ -779,6 +782,14 @@ struct SetupTests {
         try expect(try runtime.nodeExecutable() == runtime.nodeBinary && runtime.environment(try runtime.javaHome()!)["NODE_OPTIONS"] == nil && runtime.environment(try runtime.javaHome()!)["NODE_PATH"] == nil, "Node version probe and editor environment reject inherited preloads/modules")
         try expect(try manager.destinationOfSymbolicLink(atPath:runtime.nodeBinary.deletingLastPathComponent().appendingPathComponent("npm").path) == "../lib/node_modules/npm/bin/npm-cli.js", "Node npm link extracted only as a contained link, never executed")
         let selected = try runtime.javaHome()!
+        try MacRuntime.mkdir(runtime.root.appendingPathComponent("editor"))
+        try runtime.publishGitSelection(privateGit)
+        let selectionFile = runtime.root.appendingPathComponent("editor/git-selection.json")
+        let gitSelection = try JSONSerialization.jsonObject(with: Data(contentsOf: selectionFile)) as! [String: Any]
+        try expect(gitSelection["executable"] as? String == privateGit?.path, "existing editor can read the native selection")
+        try runtime.publishGitSelection(nil)
+        let unavailable = try JSONSerialization.jsonObject(with: Data(contentsOf: selectionFile)) as! [String: Any]
+        try expect(unavailable["executable"] is NSNull, "existing editor can see unavailable Git without falling back")
         let gitEnvironment = runtime.environment(selected, git: privateGit, projectGit: true)
         try expect(gitEnvironment["ZERO_GIT_EXECUTABLE"] == privateGit?.path && gitEnvironment["ZERO_GIT_SETUP_FAILED"] == nil && gitEnvironment["PATH"]!.contains("/zero-bin:"), "selected Git reaches editor and terminal child environment")
         let failedGitEnvironment = runtime.environment(selected, projectGit: true)

@@ -49,6 +49,9 @@ async function assertCloneGit(parent, run = core.git, {platform = process.platfo
   try { output = await run(parent, ['--version']); }
   catch (error) {
     if (error.code === 'ENOTDIR') throw unavailableCloneFolder();
+    if (error.code === 'ZERO_GIT_SETUP_FAILED') {
+      throw gitPrerequisite(error.message, platform, {...environment, ZERO_GIT_SETUP_FAILED:'1'});
+    }
     // Apple's Git shim reports missing developer tools as a process failure.
     // Do not expose its raw output to the user.
     const diagnostic = [error.message, error.stderr].filter(value => typeof value === 'string').join('\n');
