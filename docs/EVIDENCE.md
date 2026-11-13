@@ -1,3 +1,35 @@
+# Automatic Git setup on Windows — 2026-11-13
+
+Local source `f202a0972` checks for Git 2.31 or newer on the Windows
+launcher's PATH and otherwise prepares a pinned x64 MinGit in Zero's
+private runtime. The launcher uses the verified executable for Zero and
+the isolated editor. Reopening Zero retries a failed setup. Local projects
+can open when Git is unavailable. Existing Store consent predating Git
+prompts once when Zero needs to download it.
+
+The upstream MinGit 2.56.1.windows.1 archive matched its official SHA-256
+and extracted with Zero's archive code. Local verification on macOS
+passed `npm run check`, `npm run test:windows` (Mono), 175 focused tests,
+`npm run package`, `npm run verify:kit`, both net48 launcher builds, and
+`actionlint`. The new Direct installation smoke test exercises download
+and local clone without system Git. The current Store smoke test checks
+the configured executable. Both native Windows runs remain pending.
+The broad macOS suite started before the clone-parent fixture correction
+in `2ab9615d4`. The corrected fixture, the saved-commit sync test that
+failed during that run, and the Java sample that timed out each passed
+in focused reruns.
+
+Review of `b9e32b3a0` by Sol/high and Terra/high found executable selection
+could be shadowed by the project directory and repair needed to verify the
+private HTTPS helper. The Sol/high follow-up through `85ea9ffc8` verified
+absolute executable selection and checks for the HTTPS helper and cURL
+libraries. The Terra/high follow-up at `f202a0972` verified current MSIX
+CI requires Git while historical upgrade tests retain their original checks.
+Four review turns. Effective model and per-turn usage were unavailable.
+The change is local and unreleased.
+
+---
+
 # Git availability before project creation — 2026-11-13
 
 Local source `d88f79839` checks Git 2.31+ and the clone parent before
