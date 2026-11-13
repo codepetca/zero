@@ -17,6 +17,8 @@ type Detail = {configured:boolean;event:Event;registration:{status:string;revisi
 type Mutation = Record<string,unknown>;
 type HostedJam = {id:string;type:string;title:string;revision:string|null;reviewStatus:string;moderation:{status:string;reason?:string};schedule:Record<string,string>;timezone:string;listed:boolean;registrationOpen:boolean;submissionsOpen:boolean;participantCount:number};
 type Directory = {configured:boolean;events:Event[];hosted?:HostedJam[];hostingAccess?:{accountId:string;canCreate:boolean|null};canMaintain?:boolean;proposals?:{id:string;title:string;type:string;revision:string;status:string;organizerLogin:string;submittedAt:string}[]};
+// No online checkout exists yet; the rules page explains how to get Zero Pro.
+const ZERO_PRO_HREF='/hub/jams/rules#creating-a-jam';
 const kindLabel = (type:string) => type === 'app' ? 'App Jam' : 'Game Jam';
 const reviewLabel = (status:string) => ({submitted:'Awaiting review',approved:'Approved','changes-requested':'Changes requested',rejected:'Rejected'}[status] || status);
 function message(error:unknown) { return error instanceof Error ? error.message : 'The request failed. Your form is kept; try again.'; }
@@ -197,10 +199,8 @@ export function JamDiscovery() {
   });
   return <section className={styles.catalog} aria-labelledby="jams-heading">
       <h1 id="jams-heading">ZeroJams</h1>
-      <p className="lead">Build something together in a Game Jam or App Jam.</p>
-      <p className="jam-muted">Joining is free. Hosting requires Zero Pro.</p>
+      <p className="jam-lede">Join for free. Host with <Link href={ZERO_PRO_HREF}>Zero Pro</Link>.</p>
       {hostingUnavailable&&<HostingUnavailable/>}
-      {!user&&<HubAccount showSignOut={false}/>}
       <div className="jam-filter">
       <div className={styles.search}><Icon name="search"/><input type="search" aria-label="Search jams" placeholder="Search jams" maxLength={200} value={search} onChange={event=>setSearch(event.target.value)}/></div>
         <select aria-label="Jam type" value={type} onChange={e=>setType(e.target.value)}><option value="all">All jams</option><option value="game">Game Jams</option><option value="app">App Jams</option></select>
