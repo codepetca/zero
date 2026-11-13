@@ -322,10 +322,10 @@ function grantFixture(t) {
   const connect = (options = {}) => createWorkOSHubSession({...callback,
     oauthTokens:{...callback.oauthTokens,refreshToken}}, verify,
     {env:redisEnv,fetchImpl,now:() => now,...options});
-  const signBackIn = ({previous, at, subject = claims.sub, githubId = githubUser.id, proof = nextToken, sid = 'session_Returned', fetchOverride}) => {
+  const signBackIn = ({previous, at, subject = claims.sub, githubId = githubUser.id, proof = nextToken, refresh, sid = 'session_Returned', fetchOverride}) => {
     const nextClaims = {...claims, sub:subject, sid, exp:at / 1000 + 120};
     const nextAuth = {...auth,user:{id:subject},sessionId:nextClaims.sid};
-    const data = {...callback,user:nextAuth.user,oauthTokens:{accessToken:proof,expiresAt:at / 1000 + 300}};
+    const data = {...callback,user:nextAuth.user,oauthTokens:{accessToken:proof,refreshToken:refresh,expiresAt:at / 1000 + 300}};
     const provider = async (url, options) => {
       const user = {...githubUser,id:githubId};
       if (url === 'https://api.github.com/user') return Response.json(user);
@@ -467,6 +467,22 @@ test('parallel callbacks can each use the saved grant with their own WorkOS sess
   }
   assert.deepEqual(fixture.refreshes,[refreshToken]);
   assert.equal(fixture.records.size,1);
+});
+
+test('a newly verified GitHub token pair recovers a saved connection with an unusable old pair', async t => {
+  const fixture = grantFixture(t);
+  const previous = await fixture.connect();
+  const at = now + 3 * 86_400_000;
+  const {grant,nextAuth,nextClaims} = await fixture.signBackIn({previous,at,refresh:nextRefreshToken});
+  Object.assign(fixture.state,{auth:nextAuth,claims:{...nextClaims,exp:at / 1000 + 600}});
+  assert.match(grant.cookie,/^zero_hub_gh_session=v3\./);
+  assert.equal((await (await fixture.get(grant,at)).json()).user.id,'123');
+  assert.deepEqual(fixture.refreshes,[]);
+  fixture.setRefresh(() => fixture.refreshes.at(-1) === nextRefreshToken ?
+    renewedPair() : Response.json({error:'bad_refresh_token'}));
+  assert.equal((await (await fixture.get(grant,at + 300_000)).json()).user.id,'123');
+  assert.deepEqual(fixture.refreshes,[nextRefreshToken]);
+  assert.deepEqual([...fixture.records.values()].map(record => record.expiresAt),[longExpiry]);
 });
 
 test('a callback storage failure leaves the saved grant available for a retry', async t => {

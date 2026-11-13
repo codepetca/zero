@@ -234,6 +234,33 @@ export function hasSavedGitHubConnection(request, env = process.env, now = Date.
   return !!(config && liveGrantReference(readCookie(request, SESSION_COOKIE), config, now));
 }
 
+async function restoreManagedSession(store, pointer, grant, refreshToken, config, now) {
+  const {reference, expiresAt} = pointer;
+  const purpose = grantPurpose(reference);
+  const started = performance.now();
+  for (;;) {
+    const sealed = await store.read(reference);
+    const saved = unseal(sealed, purpose, config);
+    const elapsed = Math.floor(performance.now() - started);
+    const checkedAt = now + elapsed;
+    if (!validStoredGrant(saved, pointer, checkedAt) || saved.id !== grant.session.id ||
+        expiresAt - checkedAt < 1000) return null;
+    // Each callback gets its own session cookie. A verified fresh token pair
+    // can replace the saved pair without changing its account binding or TTL.
+    const update = refreshToken && grant.session.expiresAt >= saved.expiresAt;
+    if (!update || (!(saved.refreshAfter > checkedAt) && await store.replace(reference, sealed, seal({
+      ...saved, token:grant.session.token, login:grant.session.login, expiresAt:grant.session.expiresAt,
+      refreshToken, refreshAfter:undefined
+    }, purpose, config)))) {
+      const finishedAt = now + Math.floor(performance.now() - started);
+      if (expiresAt - finishedAt < 1000) return null;
+      return {...grant, cookie:managedGrantCookie(grant.session, reference, expiresAt, config, finishedAt, true)};
+    }
+    if (elapsed >= REFRESH_WAIT_MS) throw new Error('GitHub connection storage is busy');
+    await delay(350);
+  }
+}
+
 export async function persistManagedSession(grant, refreshToken, config, env, fetchImpl, now, {previousCookie = null} = {}) {
   const previous = liveGrantReference(previousCookie, config, now);
   const canRestore = previous && matchesWorkOSUser(previous, grant.session.workos);
@@ -242,15 +269,8 @@ export async function persistManagedSession(grant, refreshToken, config, env, fe
   const refresh = typeof refreshToken === 'string' && refreshTokenPattern.test(refreshToken) ? refreshToken : null;
   try {
     if (canRestore) {
-      const started = performance.now();
-      const saved = unseal(await store.read(previous.reference), grantPurpose(previous.reference), config);
-      const checkedAt = now + Math.floor(performance.now() - started);
-      if (validStoredGrant(saved, previous, checkedAt) && saved.id === grant.session.id &&
-          previous.expiresAt - checkedAt >= 1000) {
-        // Each verified callback can bind its own cookie to the same grant.
-        // The shared credential stays in Redis, where renewal and deletion are atomic.
-        return {...grant, cookie:managedGrantCookie(grant.session, previous.reference, previous.expiresAt, config, checkedAt, true)};
-      }
+      const restored = await restoreManagedSession(store, previous, grant, refresh, config, now);
+      if (restored) return restored;
     }
     if (!refresh) return grant;
     const reference = randomBytes(32).toString('base64url');
