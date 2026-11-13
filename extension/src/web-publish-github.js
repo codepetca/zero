@@ -16,6 +16,7 @@ const shaPattern = /^[a-f0-9]{40}$/;
 // https://docs.github.com/en/rest/actions/workflows?apiVersion=2026-03-10
 const compiledWorkflow=pagesWorkflow;
 const {pack}=require('./web-publish-bundle');
+const {committedThumbnail,withThumbnail,thumbnailNote}=require('./web-publish-thumbnail');
 function action(message, url) { return {status:'action-required',action:{message,url}}; }
 function pagesDestination(pages) {
   const url=pages && safeUrl(pages.html_url,pages.cname);
@@ -212,7 +213,8 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     const resultBuild=await localBuild({projectRoot:state.root,cacheRoot,signal,onProgress});
     await guard(state,signal);
     await assertBuildInputsAtCommit({projectRoot:state.root,result:resultBuild,sourceSha:state.plan.head,git});
-    const bundle=await pack({projectRoot:state.root,result:resultBuild,sourceSha:state.plan.head,validateExport,signal});
+    const thumbnail=await committedThumbnail({projectRoot:state.root,sourceSha:state.plan.head,git});
+    const bundle=await pack({projectRoot:state.root,result:resultBuild,sourceSha:state.plan.head,validateExport:async options=>withThumbnail(await validateExport(options),thumbnail),signal});
     onStage('uploading');
     if(!pages) {
       // Do not take over a site that appeared while the local compiler ran.
@@ -268,7 +270,7 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
       resumptions.set(resume,state);
       await onPending(resume);
       unresolvedStages.delete(state.root);
-      return {status:'pending',resume,message:'GitHub is deploying your locally built app.'};
+      return {status:'pending',resume,message:['GitHub is deploying your locally built app.',thumbnailNote(thumbnail)].filter(Boolean).join(' ')};
     } catch(error) {try {
       if(creationSent && (staging.releaseId || ![401,403,404,409,422].includes(error.status)))await cleanupStaging(state,staging);
       unresolvedStages.delete(state.root);await onStaging(undefined);} catch(cleanupError) {error.message+=' Temporary app cleanup is incomplete; check repository draft Releases. '+cleanupError.message;}throw error;}

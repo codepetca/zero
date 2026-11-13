@@ -37,6 +37,7 @@
 .playImage { position: relative; display: block; flex: 0 0 auto; width: 144px; height: 144px; border-radius: 6px; }
 .playImage .thumbnail { width: 100%; height: 100%; }
 .playPlaceholder { display: block; width: 100%; height: 100%; border-radius: inherit; background: var(--zero-surface, var(--pale)); }
+.pattern { display: block; width: 100%; height: 100%; border-radius: inherit; }
 .playOverlay { position: absolute; inset: 0; display: grid; place-items: center; border-radius: inherit; background: rgb(0 0 0 / 45%); opacity: 0; }
 .playOverlay > span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 6px; background: var(--purple); color: white; }
 .playIcon { width: 20px; height: 20px; fill: currentColor; }
@@ -71,7 +72,7 @@
 .projectCard > * { min-width: 0; }
 .projectCard .playImage { position: absolute; inset: 0; width: 100%; height: 100%; }
 .projectCard .thumbnail, .projectCard .playPlaceholder { width: 100%; height: 100%; }
-.projectCard [data-muted] .thumbnail { filter: grayscale(1); opacity: .45; }
+.projectCard [data-muted] .thumbnail, .projectCard [data-muted] .pattern { filter: grayscale(1); opacity: .45; }
 .projectHeading { position: relative; z-index: 2; display: flex; align-items: flex-start; gap: 4px; padding-bottom: 12px; border-radius: 6px 6px 0 0; background: linear-gradient(rgb(0 0 0 / 88%) 0%, rgb(0 0 0 / 80%) 75%, transparent 100%); }
 .projectCard .imageTitle { flex: 1; min-width: 0; margin: 0; padding: 8px 10px; font-size: 18px; line-height: 1.4; }
 .projectHeading .infoButton { flex: none; }
