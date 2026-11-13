@@ -80,6 +80,18 @@ test('spawn ENOENT distinguishes missing Git from a disappeared clone parent',as
  await assert.rejects(assertCloneGit(f.parent),error=>error.code==='clone-folder-unavailable');
  assert.equal(f.accessCalls,0);
 });
+test('a failed managed Windows Git setup directs students to reopen Zero',async t=>{
+ const f=await fixture(t);
+ const {assertCloneGit}=require('../src/github-app/clone');
+ const managed={platform:'win32',environment:{ZERO_GIT_SETUP_FAILED:'1'}};
+ for(const run of [
+   async()=>{throw Object.assign(Error('spawn git ENOENT'),{code:'ENOENT'});},
+   async()=>'git version 2.30.0.windows.1'
+ ]){
+   await assert.rejects(assertCloneGit(f.parent,run,managed),error=>error.code==='git-setup-retry'&&/reopen Zero/.test(error.message));
+ }
+ await assertCloneGit(f.parent,async()=>'git version 2.56.1.windows.1',managed);
+});
 test('existing folder and symlink are never overwritten or removed',async t=>{
  const f=await fixture(t),destination=path.join(f.parent,'project');await fs.mkdir(destination);await fs.writeFile(path.join(destination,'keep'),'preserve');await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent}),/already exists/);assert.equal(await fs.readFile(path.join(destination,'keep'),'utf8'),'preserve');assert.equal(f.calls.length,0);
  if(process.platform!=='win32'){await fs.rm(destination,{recursive:true});await fs.symlink(f.source,destination);await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent}),/already exists/);assert.equal((await fs.lstat(destination)).isSymbolicLink(),true);}

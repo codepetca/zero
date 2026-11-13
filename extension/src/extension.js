@@ -2372,7 +2372,7 @@ function activate(context, services = {}) {
         if(choice.action==='recent')await projectFolders.openLocal({projectPath:choice.projectPath,assertCurrent});
         else await projectFolders.clone({repositoryUrl:choice.repositoryUrl,assertCurrent});
       } catch (error) {
-        if (['git-prerequisite','clone-folder-unavailable'].includes(error?.code)) throw error;
+        if (['git-prerequisite','git-setup-retry','clone-folder-unavailable'].includes(error?.code)) throw error;
         if (error?.name !== 'Canceled' && error?.name !== 'CancellationError') {output.appendLine(error.message);throw new Error(`Could not clone this repository. ${error.message} Check Zero’s GitHub access, then try Clone from GitHub again.`);}
       } finally {connecting = false; if (!disposed) refresh();}
     },

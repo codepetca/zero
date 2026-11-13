@@ -45,7 +45,7 @@ acceptance remain pending.
 1. Download the signed Windows Setup EXE and open it. The installer adds **Zero**
    to the Start menu and opens it. No administrator or package-manager setup is
    part of the ordinary per-user path.
-2. **Preparing Zero…** downloads verified Java and editor support, creates the
+2. **Preparing Zero…** downloads verified Java and editor support, prepares Git, creates the
    isolated editor settings, installs Zero and Java support, then opens the editor.
    No PowerShell menu, profile import or global Java environment change is needed.
 3. Review workspace trust if asked, then choose **Run App**. The first app build
@@ -72,7 +72,7 @@ Zero does not bypass those restrictions.
 
 - Launcher: `%LOCALAPPDATA%\Zero`, managed by pinned Velopack 1.2.161, with a
   stable `%LOCALAPPDATA%\Zero\Zero.exe` stub and Start menu shortcut.
-- Private JDK/editor and isolated editor data: `%LOCALAPPDATA%\ZeroData`.
+- Private runtimes and isolated editor data: `%LOCALAPPDATA%\ZeroData`.
 - Initial project: `%USERPROFILE%\Zero\starter`.
 - Initial native target: Windows 10 build 19041 or later, x64 (Intel/AMD), with
   the included .NET Framework 4.8. Windows ARM/32-bit are not an acceptance claim.
@@ -81,6 +81,12 @@ The private runtime and editor are outside Velopack's replaceable application
 directory, so an update does not hold or terminate those processes. The launcher
 reuses a compatible installed stable VS Code when possible; otherwise it prepares
 a verified private copy. Java comes from the pinned private Temurin 21 ZIP.
+Zero checks for Git 2.31 or newer. When it cannot use an installed copy, it
+downloads the pinned x64 MinGit ZIP from Git for Windows, verifies its size
+and SHA-256, and uses it within the Zero editor. Reopening Zero reuses a
+working copy and retries a failed download. Local projects can still open if
+Git is unavailable. GitHub project creation checks Git before creating a
+repository.
 URLs, sizes and SHA-256 hashes are authored in `setup/windows-downloads.json`.
 Global PATH/JAVA_HOME, ordinary VS Code profiles and account credentials are not
 modified. Zero sets Java and editor isolation on its owned child processes.

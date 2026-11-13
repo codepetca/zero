@@ -60,17 +60,36 @@ namespace ZeroSetup
     }
     internal static class DependencyConsent
     {
-        internal const string Message = "Zero needs to download Java and Node.js, and VS Code if a compatible copy is unavailable, plus Java extension support. The first app build also downloads Maven and JavaFX. Continue?";
+        private const byte ConsentIncludesGit = 2;
+        private const string DependencyMarker = "dependency-consent-v1";
+        private const string GitMarker = "git-download-consent-v1";
+        internal const string Message = "Zero needs to download Java, Node.js and Java extension support. It also downloads VS Code and Git if compatible copies are unavailable. The first app build downloads Maven and JavaFX. Continue?";
+        internal const string GitMessage = "Zero needs to download a private copy of Git for GitHub projects. Allow the download? You can still open local projects if you choose No.";
         // Called before extraction or dependency preparation. Decline performs no writes.
         internal static bool Ensure(string dataRoot, Func<bool> approve)
         {
-            string marker = Path.Combine(dataRoot, "dependency-consent-v1");
+            return EnsureMarker(dataRoot, DependencyMarker, ConsentIncludesGit, approve);
+        }
+        internal static bool EnsureGit(string dataRoot, Func<bool> approve)
+        {
+            string marker = Path.Combine(dataRoot, DependencyMarker);
+            KitFiles.RejectReparseAncestors(marker);
+            if (File.Exists(marker))
+            {
+                using (var input = File.OpenRead(marker))
+                    if (input.Length == 1 && input.ReadByte() == ConsentIncludesGit) return true;
+            }
+            return EnsureMarker(dataRoot, GitMarker, 1, approve);
+        }
+        private static bool EnsureMarker(string dataRoot, string name, byte value, Func<bool> approve)
+        {
+            string marker = Path.Combine(dataRoot, name);
             KitFiles.RejectReparseAncestors(marker);
             if (File.Exists(marker)) return true;
             if (approve == null || !approve()) return false;
             Directory.CreateDirectory(dataRoot);
             KitFiles.RejectReparseAncestors(marker);
-            using (var output = new FileStream(marker, FileMode.CreateNew, FileAccess.Write, FileShare.None)) output.WriteByte(1);
+            using (var output = new FileStream(marker, FileMode.CreateNew, FileAccess.Write, FileShare.None)) output.WriteByte(value);
             return true;
         }
     }

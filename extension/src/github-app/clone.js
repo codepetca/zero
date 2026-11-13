@@ -36,7 +36,13 @@ async function validateCloneParent(parentPath) {
   }
   return {parent,parentStat};
 }
-async function assertCloneGit(parent, run = core.git) {
+function gitPrerequisite(message, platform, environment) {
+  if (platform === 'win32' && environment.ZERO_GIT_SETUP_FAILED === '1') {
+    return Object.assign(Error('Zero could not prepare Git. Fully quit Zero and VS Code, then reopen Zero while connected to the internet. If Git setup still fails on a school laptop, ask school IT.'), {code:'git-setup-retry'});
+  }
+  return Object.assign(Error(message), {code:'git-prerequisite'});
+}
+async function assertCloneGit(parent, run = core.git, {platform = process.platform, environment = process.env} = {}) {
   let output;
   try { output = await run(parent, ['--version']); }
   catch (error) {
@@ -48,12 +54,12 @@ async function assertCloneGit(parent, run = core.git) {
       throw error;
     });
     if (!folder?.isDirectory()) throw unavailableCloneFolder();
-    const install = process.platform === 'win32' ? 'Install Git for Windows' : 'Install Git';
-    throw Object.assign(Error(`Zero could not find Git on this computer. ${install}, then fully quit and reopen Zero.`), {code:'git-prerequisite'});
+    const install = platform === 'win32' ? 'Install Git for Windows' : 'Install Git';
+    throw gitPrerequisite(`Zero could not find Git on this computer. ${install}, then fully quit and reopen Zero.`, platform, environment);
   }
   const version = /^git version (\d+)\.(\d+)(?:\.|\s|$)/.exec(output);
   if (!version || Number(version[1]) < 2 || (Number(version[1]) === 2 && Number(version[2]) < 31)) {
-    throw Object.assign(Error('Zero needs Git 2.31 or newer. Update Git, then fully quit and reopen Zero.'), {code:'git-prerequisite'});
+    throw gitPrerequisite('Zero needs Git 2.31 or newer. Update Git, then fully quit and reopen Zero.', platform, environment);
   }
 }
 function cleanEnvironment(source) {

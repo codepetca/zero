@@ -32,6 +32,10 @@ The output directory must be new. Existing `%LOCALAPPDATA%\Zero`, `ZeroData`,
 `%USERPROFILE%\Zero` or the Zero Start-menu shortcut cause refusal before install.
 Use an interactive desktop if the host cannot create/close editor windows.
 
+For the missing-Git case, add `-RequirePrivateGit`. The test removes Git from
+the first launcher's PATH, checks the pinned private Git selected by Zero,
+and runs a local clone with that executable.
+
 The script verifies Setup's measured size/hash, runs its bounded silent install,
 checks the installed launcher/version/layout and Start-menu shortcut, then opens
 the real stable launcher stub. It waits up to 15 minutes for real Java/editor and

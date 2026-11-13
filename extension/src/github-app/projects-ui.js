@@ -68,7 +68,7 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
         return result;
       }catch(error){
         const failure=Error(`Your GitHub repository is ready at ${result.repository.html_url}. ${error.message} Use Clone from GitHub to continue; the repository was kept.`);
-        if(error.code==='git-prerequisite')failure.code=error.code;
+        if(['git-prerequisite','git-setup-retry'].includes(error.code))failure.code=error.code;
         throw failure;
       }
     });
