@@ -44,7 +44,8 @@ internal static class RuntimeHarness
         public string GitVersion = "2.56.1.windows.1", InstalledGitVersion;
         public bool CancelGitDownload;
         public byte[] Git = Zip("cmd/git.exe", "fake git", "ucrt64/bin/git.exe", "fake git engine",
-            "ucrt64/bin/git-remote-https.exe", "fake HTTPS", "ucrt64/etc/ssl/certs/ca-bundle.crt", "fake CA", "usr/bin/sh.exe", "fake shell");
+            "ucrt64/bin/git-remote-https.exe", "fake HTTPS", "ucrt64/bin/libcurl-4.dll", "fake curl",
+            "ucrt64/bin/libcurl-openssl-4.dll", "fake curl TLS", "ucrt64/etc/ssl/certs/ca-bundle.crt", "fake CA", "usr/bin/sh.exe", "fake shell");
         public int Downloads, Installs, Runs;
         public string JavaVersion = "21.0.12";
         public string NodeVersion = "22.23.4";
@@ -188,9 +189,12 @@ internal static class RuntimeHarness
             Assert(f.Host.Launched.EnvironmentVariables["ZERO_GIT_SETUP_FAILED"] == "1" && Directory.Exists(folder), "offline repair keeps editor available and old runtime");
             Assert(f.Host.Launched.EnvironmentVariables["ZERO_GIT_EXECUTABLE"] == null, "failed Git is not exported to the editor");
             f.Host.FailGitDownload = false; f.Prepare(); Assert(File.Exists(Path.Combine(folder, "cmd", "git.exe")), "missing private Git repaired");
-            string https = Path.Combine(folder, "ucrt64", "bin", "git-remote-https.exe");
-            File.Delete(https);
-            f.Prepare(); Assert(File.Exists(https), "missing HTTPS helper repaired before GitHub operations");
+            foreach (string file in new[] { "git-remote-https.exe", "libcurl-4.dll", "libcurl-openssl-4.dll" })
+            {
+                string https = Path.Combine(folder, "ucrt64", "bin", file);
+                File.Delete(https);
+                f.Prepare(); Assert(File.Exists(https), "missing HTTPS transport component repaired before GitHub operations");
+            }
             Environment.SetEnvironmentVariable("ZERO_GIT_SETUP_FAILED", null);
         }
         using (var f = new Fixture(parent))

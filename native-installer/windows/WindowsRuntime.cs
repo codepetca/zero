@@ -32,6 +32,7 @@ namespace ZeroSetup
         private static readonly string[] PrivateGitFiles =
         {
             @"cmd\git.exe", @"ucrt64\bin\git.exe", @"ucrt64\bin\git-remote-https.exe",
+            @"ucrt64\bin\libcurl-4.dll", @"ucrt64\bin\libcurl-openssl-4.dll",
             @"ucrt64\etc\ssl\certs\ca-bundle.crt", @"usr\bin\sh.exe"
         };
         private static readonly string[] JavaStartupVariables = { "JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "MAVEN_OPTS", "MAVEN_ARGS" };
@@ -310,7 +311,8 @@ namespace ZeroSetup
                     if (!File.Exists(required)) throw new IOException("Zero's private Git is missing a required file: " + file);
                 }
             }
-            string output = await Execute(ExecutionPath(executable), new[] { "--version" }, 30000, cancellation);
+            executable = ExecutionPath(executable);
+            string output = await Execute(executable, new[] { "--version" }, 30000, cancellation);
             var match = Regex.Match(output.Trim(), @"^git version (\d+\.\d+(?:\.\d+)?)(?:[.\s-]|$)");
             if (!match.Success || !AtLeast(match.Groups[1].Value, "2.31") || (pinned && output.Trim() != "git version " + GitRelease)) throw new IOException("Git 2.31 or later could not be verified.");
         }
