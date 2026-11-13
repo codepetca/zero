@@ -5,7 +5,7 @@ const {assertTutorialTemplateReady}=require('../tutorial-template-readiness');
 const {visibleTutorialGroups,DISPLAY_NUMBERS}=require('../tutorial-catalog');
 const core=require('../core');
 const {createProjectProgress,throwIfCancelled}=require('../project-folders');
-const {assertCloneGit}=require('./clone');
+const {assertCloneGit,validateCloneParent}=require('./clone');
 const ORIGINAL_TEMPLATE=Object.freeze({owner:'codepetca',repo:'zero-starter'});
 function nameError(value){
   if(typeof value!=='string'||!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/.test(value)||value.includes('..')||value.endsWith('.')||value.toLowerCase().endsWith('.git')||/^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(value))return 'Use 1–100 letters, numbers, dots, hyphens or underscores; choose an ordinary folder name.';
@@ -42,7 +42,9 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
     return progress.run('Create GitHub project',async(signal,reportProgress)=>{
       const notify=text=>{if(isActive()&&!signal.aborted){onProgress(text);reportProgress(text);}};
       throwIfCancelled(signal);
-      await checkCloneGit(input.parent.fsPath);
+      const {parent}=await validateCloneParent(input.parent.fsPath);
+      throwIfCancelled(signal);
+      await checkCloneGit(parent);
       throwIfCancelled(signal);
       if(!isActive())return;
       await authentication.assertCurrent(input.ticket);

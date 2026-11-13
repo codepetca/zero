@@ -49,7 +49,7 @@ test('New Project and Start tutorial check local Git before creating a remote or
  const {assertCloneGit}=require('../src/github-app/clone');
  let missing=true;
  f.checkGit=folder=>assertCloneGit(folder,async(cwd,args)=>{
-   assert.equal(cwd,f.root);
+   assert.equal(cwd,await fs.realpath(f.root));
    assert.deepEqual(args,['--version']);
    if(missing)throw Object.assign(Error('spawn git ENOENT'),{code:'ENOENT'});
    return 'git version 2.31.0.windows.1';
@@ -62,6 +62,14 @@ test('New Project and Start tutorial check local Git before creating a remote or
  missing=false;
  await f.commands.newProject();
  assert.equal(f.calls.filter(call=>call[0]==='create').length,1);
+});
+test('a selected Git repository is rejected before any Git probe or remote creation',async t=>{
+ const f=await fixture(t);
+ await fs.writeFile(path.join(f.root,'.git'),'gitdir: somewhere');
+ f.checkGit=()=>assert.fail('Git ran before the clone folder checks');
+ await assert.rejects(f.commands.newProject(),/outside an existing Git repository/);
+ assert.deepEqual(f.calls.map(call=>call[0]),['parent']);
+ assert.deepEqual(f.recovery,[]);
 });
 test('invalid names are rejected even when host input validation is bypassed',async t=>{
  const f=await fixture(t);f.name='nul.txt';await assert.rejects(f.commands.newProject(),/ordinary folder name/);assert.equal(f.calls.length,0);
