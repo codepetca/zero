@@ -22,7 +22,6 @@ export default async function Hub({searchParams}:{searchParams:Promise<Record<st
         <li>When the published app opens, copy its link to share it.</li>
       </ol>
       <p>Zero publishes the app to GitHub Pages. Eligible apps can also appear in ZeroHub.</p>
-      <p><Link href="/hub/share?view=game">Share a game with its source</Link></p>
     </>;
     if(query.kind==='library'&&query.view==='use')return <>
       <h1>Add a library</h1>

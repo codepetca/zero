@@ -410,8 +410,8 @@ The Zero editor also offers **Browse tutorial practice** in **Libraries and
 games**. The ZeroHub sidebar shows the section buttons and expands options
 under the selected section. Search, results, forms and guides appear in the
 content pane. On narrow screens the navigation sits above the pane.
-**Projects** includes **Share a game**. **Libraries** includes **Share a
-library** and **Requests and results**.
+**Projects** includes **Publish an app**; Share a game is no longer offered.
+**Libraries** includes **Share a library** and **Requests and results**.
 **My Projects** sits under **Projects** and shows the signed-in user's app
 listings. **My Libraries** sits under **Libraries** and shows the libraries
 available in the main catalog under that GitHub account.
@@ -720,8 +720,8 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   actions and a visible compact current-branch selector. Commit & push remains
   a direct action; Merge and History are available in Project. Simulation
   remains visibly labeled. ZeroHub offers Browse (Projects on
-  the website, or native library browsing) and signed-in Share project for original
-  work. Tutorial repositories use GitHub normally; copied tutorial work is not an original
+  the website, or native library browsing). Games reach ZeroHub through Publish
+  app; the editor no longer offers Share project. Tutorial repositories use GitHub normally; copied tutorial work is not an original
   community contribution. The reserved CreditsBadge has a separate practice-sharing
   path from the Coin repository. Tutorials and Setup help live in the native view
   overflow; Copy repository link lives in the repository menu. **New ▾** in Files opens a dropdown with **New class…**, **New file…**,

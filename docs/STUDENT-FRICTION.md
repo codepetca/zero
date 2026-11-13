@@ -55,29 +55,13 @@ project rollback or deleted-file recovery tool. Local editor Timeline remains
 available separately. Changes to the project, file or Git state during review
 require starting Recovery again.
 
-## Share a game
+## Put a game on ZeroHub
 
-Save your work. For a playable release, finish **Merge to main** first. Choose
-**Share project** in Zero or **Zero: Share Game** from the Command Palette.
-
-1. Enter/review the game's details and exact version, then choose **Save details**.
-2. If the project has changes, choose **Commit & push** to upload the source and
-   sharing details through the usual reviewed upload flow.
-3. If this revision has no verified playable app, choose **Publish app and
-   continue**. ZeroHub games are always playable, so Share stops here until the
-   app is published. Publishing uses its normal account, destination and
-   public-visibility checks.
-4. Review the title, version, repository, revision, GitHub identity and playable
-   link. Choose **Open GitHub form**, then review and submit the prefilled
-   request on GitHub yourself.
-
-Cancel to keep working; choose Share again to continue from the saved state.
-An interrupted upload/publish pauses Share; it never opens a form without a
-playable link.
-The form uses a freshly checked uploaded revision, including any commit made
-during publishing. **Play latest** can change later; the shared source snapshot
-stays at its selected version. Opening the form does not submit it or guarantee
-gallery acceptance. Check request status on [Share your work](https://zero.codepet.ca/hub/share).
+Save your work and finish **Merge to main**. In the Run menu, choose **Publish &
+open app**. Zero publishes the game to your GitHub Pages site and, when app
+listings are enabled, adds it to ZeroHub **Projects** with a **Play** button.
+Manage it in **My Projects** on ZeroHub. Share game is no longer offered in the
+editor or on ZeroHub; games already accepted through it stay listed.
 
 ## Verified browser additions
 

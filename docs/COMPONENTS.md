@@ -110,7 +110,8 @@ game or promise gameplay quality, safe execution or a native installer.
 
 ## Develop and share from the existing repository
 
-Use **Share game** for the root game and **Share library** for a library folder.
+Use **Share library** for a library folder. Games reach ZeroHub through
+**Publish & open app**; Share game is no longer offered.
 Save authored title, description, license, exact version and preview selection in
 `zero-game.json` or `zero-library.json`; games also describe their controls.
 Zero derives identity and API metadata rather than asking students to copy a

@@ -225,11 +225,11 @@ test('tutorial sidebar retains normal GitHub controls and hides original-only Sh
   assert.match(webview.html,/Current branch: main/);
   await h.commands.get('zero.shareGame')();assert.match(h.errors.at(-1),/separate original project/);
 });
-test('original project keeps Share project inside the ZeroHub menu',async t=>{
+test('original project ZeroHub menu offers no Share project',async t=>{
   const h=await harness(t,{kit:false});const webview=h.render();const deadline=Date.now()+5000;
   while(!webview.html.includes('data-command="zero.chooseRepository"')) {assert.ok(Date.now()<deadline,'Signed-in original project should finish rendering');await new Promise(resolve=>setImmediate(resolve));}
   assert.doesNotMatch(webview.html,/data-command="zero.shareGame"/);
-  await h.commands.get('zero.browseZeroHub')();assert.equal(h.picks.at(-1).options.title,'ZeroHub');assert.ok(h.picks.at(-1).items.some(item=>item.label==='Share project' && item.action==='share'));
+  await h.commands.get('zero.browseZeroHub')();assert.equal(h.picks.at(-1).options.title,'ZeroHub');assert.deepEqual(h.picks.at(-1).items.map(item=>item.action),['projects','libraries']);
 });
 
 test('unchanged URL and account cannot push to a replacement repository or installation after review',async t=>{
