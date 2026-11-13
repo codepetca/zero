@@ -1,5 +1,20 @@
 # Verification
 
+## Renewable ZeroHub GitHub connection — 2026-11-13
+
+On `e059077c9`, the website suite passed with 825 tests passed and 3 skipped.
+The production build, bundle audit, runtime trace checks and
+`git diff --check` passed. Redis 7.2.7 verified conditional creation, one
+winner for concurrent replacements, unchanged expiry, and refusal to restore
+a deleted grant. Session tests cover returning after a day, WorkOS session
+mismatch, temporary provider and store failures, sign-out during renewal,
+and a delayed Stars 401 from the previous credential.
+
+Chromium fixtures on the local production build verified that the account menu
+keeps the Zero sign-in visible during a GitHub connection error and returns to
+the GitHub-connected state on retry. Hosted WorkOS and GitHub renewal require
+a live acceptance run after deployment.
+
 ## My Projects account status — 2026-11-12
 
 Local changes on `6bdcfa7cc` share the website account check between the

@@ -1,3 +1,25 @@
+# Renewable ZeroHub GitHub connection — 2026-11-13
+
+Local source `e059077c9` renews GitHub App access for the originating WorkOS
+browser session. A sealed cookie references an encrypted Upstash grant with a
+fixed 30-day expiry. Redis coordinates token rotation and sign-out deletion.
+The previous short-lived cookie remains supported, including as a fallback
+when AuthKit returns no refresh credential or the store cannot save it.
+
+Review base `74ee99241`, initial head `fa787d09b`. Sol/high reviewed security
+and Terra/high reviewed compatibility. Findings covered Redis replica lag,
+temporary errors incorrectly treated as sign-out, and a stale access token
+during rotation. One fix batch and a targeted Sol/high review of
+`fa787d09b..e059077c9` resolved the findings. Three review turns across two
+waves. Effective model and per-turn usage were unavailable.
+
+The production Vercel environment listing contains the existing Marketplace
+Redis pair. Hosted WorkOS delivery of the GitHub refresh credential and
+hosted renewal remain unverified. Source stays on the local
+`codex/zerohub-github-session` branch.
+
+---
+
 # Run Java in Zero projects — 2026-11-11
 
 Local source `8ea33ab8f` routes the Java Debugger's standard **Run Java**
