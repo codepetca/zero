@@ -2,7 +2,7 @@ import {bindHubProjectDestination, hubTargetVisible, hubVisibilityDecision, reso
 import {assertJamVisibilityTime, readJamHubVisibility} from './jam-hub-visibility.mjs';
 import {readJamDestinationBinding} from './jam-destination-binding.mjs';
 import {createHubRequestDeadline} from './hub-request-deadline.mjs';
-import {cookieHeader, SESSION_COOKIE, equalSecret, githubApiHeaders, hubConfig, json, readSession, sameOrigin} from './hub-github-auth.mjs';
+import {equalSecret, githubApiHeaders, hubConfig, json, readSession, rejectedGitHubSession, sameOrigin} from './hub-github-auth.mjs';
 
 export function publicGithubRepository(repositoryUrl) {
   if (typeof repositoryUrl !== 'string') return null;
@@ -149,7 +149,7 @@ export async function getStarResponse(request, {env = process.env, fetchImpl = f
     deadline.check();
     const config = hubConfig(env);
     if (!config) return json({error: 'GitHub stars unavailable', configured: false}, 503);
-    const session = await readSession(request, config, now, env);
+    const session = await deadline.run(() => readSession(request, config, now, env));
     if (!session) return json({error: 'GitHub sign-in required'}, 401);
     const url = new URL(request.url);
     if (url.searchParams.getAll('kind').length !== 1 || url.searchParams.getAll('id').length !== 1)
@@ -169,7 +169,7 @@ export async function getStarResponse(request, {env = process.env, fetchImpl = f
       return json({starred:status === 204});
     }
     return json({error: 'GitHub star state unavailable'}, status === 401 ? 401 : 502,
-      status === 401 ? {'Set-Cookie':cookieHeader(SESSION_COOKIE,'',config,0)} : {});
+      status === 401 ? await rejectedGitHubSession(session, config) : {});
   } catch (error) {
     return deadlineFailure(deadline, error) ?? json({error:stage === 'target' ? 'Hub project unavailable' : 'GitHub star state unavailable'},
       stage === 'target' ? 503 : 502);
@@ -189,7 +189,7 @@ export async function postStarResponse(request, {env = process.env, fetchImpl = 
     const config = hubConfig(env);
     if (!config) return rejection({error: 'GitHub stars unavailable', configured: false}, 503);
     if (!sameOrigin(request, config)) return rejection({error: 'Invalid origin'}, 403);
-    const session = await readSession(request, config, now, env);
+    const session = await deadline.run(() => readSession(request, config, now, env));
     if (!session) return rejection({error: 'GitHub sign-in required'}, 401);
     if (!equalSecret(request.headers.get('x-hub-csrf'), session.csrf))
       return rejection({error: 'Invalid session token'}, 403);
@@ -222,7 +222,7 @@ export async function postStarResponse(request, {env = process.env, fetchImpl = 
     }
     return json({error:'GitHub star change could not be confirmed. Check GitHub before trying again.', outcome:'uncertain'},
       status === 401 ? 401 : 502,
-      status === 401 ? {'Set-Cookie':cookieHeader(SESSION_COOKIE,'',config,0)} : {});
+      status === 401 ? await rejectedGitHubSession(session, config) : {});
   } catch (error) {
     return deadlineFailure(deadline, error, dispatched, confirmed) ?? (confirmed
       ? json({error:'Hub project unavailable', outcome:'confirmed'}, 503) : dispatched

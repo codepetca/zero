@@ -228,20 +228,27 @@ the exact WorkOS callback origin and configure the existing Hub GitHub App
 client ID, client secret and session key. The dedicated WorkOS integration must
 return an expiring user access token from the pinned Codepet Zero GitHub App.
 The callback checks the App and token owner with GitHub and seals the grant for
-the verified WorkOS user and session. It uses GitHub's numeric account ID and
-keeps the grant for at most eight hours, ending sooner if the provider token
-expires. Each private Hub, Stars and Jams request requires the same active
-WorkOS session. Hub and Zero account sign-out clear both browser sessions and
-send a valid WorkOS session to the hosted sign-out endpoint.
+the verified WorkOS user and session. When WorkOS supplies a GitHub App refresh
+token and the production Vercel Marketplace pair `KV_REST_API_URL` /
+`KV_REST_API_TOKEN` is configured, the browser keeps an opaque reference for up to
+30 days after sign-in. The existing Upstash integration stores the encrypted
+grant with the same expiry. Zero renews expiring GitHub access on demand and
+uses a shared claim to coordinate GitHub's single-use refresh tokens. Every
+private Hub, Stars and Jams request requires the same active WorkOS user and
+session. Sign-out clears the browser cookies, deletes the stored grant when the
+store is reachable, and sends the user to the WorkOS sign-out endpoint.
 
-A GitHub sign-in through WorkOS can establish a Zero account without Hub access
-when the provider omits an eligible App grant. Managed mode refuses legacy Hub
-cookies, including when its configuration is incomplete. With the flag off,
-Hub continues to use the standalone GitHub App flow. The binding lives in the
-browser session and does not create a durable account mapping or alter editor
-GitHub App authorization. This source is opt-in. Live token delivery from the
-pinned App, permissions, hosted session refresh and sign-out remain to be
-verified during the production cutover.
+When WorkOS supplies a valid access token without a refresh token, or the
+store cannot save the grant during sign-in, Hub uses its encrypted short-lived
+cookie for up to eight hours. WorkOS can establish a Zero account independently
+of Hub when the provider omits an eligible App grant. Existing short-lived Hub
+cookies stay usable until their original expiry. Sign in once after rollout
+to get the renewable grant. An expired WorkOS session, revoked GitHub grant,
+or expired 30-day grant requires reconnection. Managed mode refuses standalone
+Hub cookies, including when its configuration is incomplete. With the flag off,
+Hub continues to use the standalone GitHub App flow. The renewable grant is
+scoped to the originating browser and WorkOS session and creates no durable
+account mapping.
 
 For rollback, retain the existing Hub GitHub App callback and secrets, disable
 the WorkOS flag, and redeploy. Users with managed sessions must sign in through
