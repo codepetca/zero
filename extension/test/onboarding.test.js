@@ -434,7 +434,9 @@ test('tutorial creation serializes form and clone, then releases the shared busy
   const start=f.commands.get('zero.startProject')();await settle(()=>finishPick);
   await f.commands.get('zero.cloneRepository')();await f.commands.get('zero.startProject')();assert.equal(picks.length,1);assert.equal(f.calls.filter(([id])=>id==='cloneRepository').length,0);
   finishPick();await settle(()=>finishClone);assert.deepEqual(picks,['Start tutorial']);assert.deepEqual(f.calls.find(([id])=>id==='createRepository')[1],{name:'my-project',private:false,template:{owner:'codepetca',repo:'zero-tutorial-greeting'}});
-  assert.deepEqual(f.calls.find(([id])=>id==='cloneRepository')[1],{repositoryUrl:'https://github.com/student/my-project',parentPath:f.root});
+  const {reservation,...clone}=f.calls.find(([id])=>id==='cloneRepository')[1];
+  assert.deepEqual(clone,{repositoryUrl:'https://github.com/student/my-project',parentPath:f.root});
+  assert.equal(reservation.destination,path.join(f.root,'my-project'));
   await f.commands.get('zero.cloneRepository')();assert.equal(f.calls.filter(([id])=>id==='cloneRepository').length,1);
   finishClone(path.join(f.root,'my-project'));await start;
   assert.ok(f.calls.some(([id,uri])=>id==='vscode.openFolder'&&uri.fsPath===path.join(f.root,'my-project')));
@@ -568,8 +570,8 @@ test('account drift cannot publish an old ready state or reuse its Start Page ac
 test('native folder-open veto keeps creation recovery until the matching workspace is active',async t=>{
  const profile=new Map();let created;
  const git=core.git;t.mock.method(core,'git',async(root,args,...rest)=>args.join(' ')==='remote get-url origin'?'https://github.com/student/my-project':git(root,args,...rest));
- const f=await fixture(t,{empty:true,profile,initialSession:{id:'app',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'},clone:async({parentPath})=>{
-  created=path.join(parentPath,'my-project');await fs.mkdir(created);await fs.writeFile(path.join(created,'zero.json'),'{}');await fs.writeFile(path.join(created,'mvnw'),'');return created;
+ const f=await fixture(t,{empty:true,profile,initialSession:{id:'app',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'},clone:async({reservation})=>{
+  created=reservation.destination;await fs.writeFile(path.join(created,'zero.json'),'{}');await fs.writeFile(path.join(created,'mvnw'),'');return created;
  }});
  await settle(()=>f.startState?.phase==='ready');await f.commands.get('zero.newProject')();
  assert.equal(f.vscode.workspace.workspaceFolders.length,0,'Resolved openFolder can leave the current workspace untouched');

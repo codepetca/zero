@@ -167,16 +167,21 @@ try {
     $javacOutput = Invoke-Bounded (Join-Path $java 'bin\javac.exe') @('-version') 30
     if ($javaOutput -notmatch 'version "21\.' -or $javacOutput -notmatch 'javac 21\.') { throw 'The real private Java tools did not report Java 21.' }
     if ($RequirePrivateGit) {
-        Mark 'private-git-and-local-clone'
+        Mark 'private-git-version'
         $git = [IO.Path]::GetFullPath($settings.'git.path')
         if (-not $git.StartsWith((Join-Path $data 'runtime\git-'), [StringComparison]::OrdinalIgnoreCase)) {
             throw 'Configured Git is outside the private runtime.'
+        }
+        $selection = Get-Content -LiteralPath (Join-Path $data 'editor\git-selection.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($selection.schema -ne 1 -or $selection.executable -ne $git -or -not (Test-Path -LiteralPath $git -PathType Leaf)) {
+            throw 'The launcher did not publish the installed Git selection.'
         }
         $pins = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\setup\windows-downloads.json') -Raw | ConvertFrom-Json
         $gitVersion = (Invoke-Bounded $git @('--version') 30).Trim()
         if ($gitVersion -ne ('git version ' + $pins.architectures.x64.git.version)) {
             throw 'The private Git version does not match the pinned download.'
         }
+        Mark 'private-git-local-clone'
         $source = Join-Path $OutputDirectory 'git source'
         $destination = Join-Path $OutputDirectory 'git clone'
         $null = Invoke-Bounded $git @('init', '--bare', $source) 30
@@ -184,10 +189,16 @@ try {
         if (-not (Test-Path -LiteralPath (Join-Path $destination '.git') -PathType Container)) {
             throw 'Private Git did not create a local clone.'
         }
+        Mark 'private-git-https'
+        $refs = Invoke-Bounded $git @('ls-remote', '--', 'https://github.com/codepetca/zero.git', 'HEAD') 45
+        if ($refs -notmatch '(?m)^[a-f0-9]{40}\s+HEAD\s*$') { throw 'Private Git did not read the public GitHub repository over HTTPS.' }
+        Mark 'installed-extension-uses-private-git'
         [IO.File]::WriteAllText((Join-Path $destination 'git.exe'), 'This file must never be executed.')
-        $probe = "process.env.ZERO_GIT_EXECUTABLE=process.argv[2];require(process.argv[1]).git(process.argv[3],['--version']).then(console.log,e=>{console.error(e.message);process.exitCode=1;})"
-        $core = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\extension\src\core.js'))
-        $selectedVersion = (Invoke-Bounded (Get-Command node.exe -CommandType Application).Source @('-e', $probe, $core, $git, $destination) 30).Trim()
+        $probe = "delete process.env.ZERO_GIT_EXECUTABLE;const core=require(process.argv[1]);const selection=require(require('node:path').join(require('node:path').dirname(process.argv[1]),'git-executable.js'));if(selection.gitExecutable()!==process.argv[3])throw Error('Wrong Git selection');core.git(process.argv[2],['--version']).then(console.log,e=>{console.error(e.message);process.exitCode=1;})"
+        $core = Join-Path $extensions "zero.zero-$($receipt.kitVersion)\src\core.js"
+        if (-not (Test-Path -LiteralPath $core -PathType Leaf)) { throw 'Could not find the installed Zero extension entry point for the Git probe.' }
+        $node = (Get-Command node.exe -CommandType Application -TotalCount 1).Path
+        $selectedVersion = (Invoke-Bounded $node @('-e', $probe, $core, $destination, $git) 30).Trim()
         if ($selectedVersion -ne $gitVersion) { throw 'Zero did not use the verified Git when the project contained a Git decoy.' }
     }
     $installedExtensions = @(Get-ChildItem -LiteralPath $extensions -Directory | ForEach-Object {
