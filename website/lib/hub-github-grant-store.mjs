@@ -19,7 +19,9 @@ export function hubGitHubGrantStore(env, fetchImpl = fetch) {
       return await command(['SET', key(id), encrypted, 'NX', 'PXAT', expiresAt]) === 'OK';
     },
     async read(id) {
-      const value = await command(['GET', key(id)]);
+      // EVAL routes to the primary. GET can replay a grant from a replica
+      // after the primary has already processed sign-out.
+      const value = await command(['EVAL', "return redis.call('GET', KEYS[1])", 1, key(id)]);
       if (value !== null && typeof value !== 'string') throw new Error();
       return value;
     },

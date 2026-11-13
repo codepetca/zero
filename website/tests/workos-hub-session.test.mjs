@@ -294,6 +294,7 @@ function grantFixture(t) {
       if (command === 'EVAL') {
         const [, count, key, expected, replacement] = args;
         assert.equal(count, 1);
+        if (expected === undefined) return reply(records.get(key)?.sealed ?? null);
         if (records.get(key)?.sealed !== expected) return reply(0);
         if (replacement === '') records.delete(key);
         else records.get(key).sealed = replacement;
@@ -301,7 +302,6 @@ function grantFixture(t) {
       }
       const [key, sealed, nx, pxat, expiresAt] = args;
       assert.match(key, /^zero:hub:github-grant:v1:[A-Za-z0-9_-]{43}$/);
-      if (command === 'GET') return reply(records.get(key)?.sealed ?? null);
       if (command === 'DEL') return reply(Number(records.delete(key)));
       assert.equal(command, 'SET');
       assert.deepEqual([nx, pxat, expiresAt], ['NX', 'PXAT', longExpiry]);
@@ -414,5 +414,70 @@ test('temporary renewal failures leave the grant in place and missing storage pr
   for (const short of [unavailable,preview]) {
     assert.doesNotMatch(short.cookie, /^zero_hub_gh_session=v2\./);
     assert.match(short.cookie, /Max-Age=240;/);
+  }
+});
+
+test('ordinary Hub routes report temporary renewal failure without treating the user as signed out', async t => {
+  const fixture = grantFixture(t);
+  const connected = await fixture.connect();
+  t.mock.method(globalThis, 'fetch', async (url, options) =>
+    url === redisEnv.KV_REST_API_URL ? new Response(null,{status:503}) : fixture.fetchImpl(url,options));
+  const request = (path, method = 'GET') => new Request(origin + path, {method,
+    headers:{cookie:fixture.request(connected).headers.get('cookie'),origin,'x-hub-csrf':connected.session.csrf}});
+  const options = {env:redisEnv,now:renewAt,fetchImpl:async () => assert.fail('provider operation must wait for a session')};
+  const jamOptions = {...options,service:{
+    list:async () => assert.fail('do not replace the connected actor with anonymous state'),
+    mutate:async () => assert.fail('do not mutate without a session'),
+  }};
+  const responses = await Promise.all([
+    getStarResponse(request('/api/hub/github/stars?kind=game&id=drawing-pad'),options),
+    postStarResponse(request('/api/hub/github/stars','POST'),options),
+    getJamsResponse(request('/api/jams'),jamOptions),
+    postJamActionResponse(request('/api/jams/jam-55/actions','POST'),'jam-55',jamOptions),
+  ]);
+  assert.ok(responses.every(response => response.status === 503 && !response.headers.has('set-cookie')));
+  assert.equal((await responses[1].json()).outcome, 'not_dispatched');
+  assert.equal(fixture.refreshes.length, 0);
+});
+
+test('a delayed Stars 401 for a rotated token retries reads and preserves an unconfirmed write', async t => {
+  const fixture = grantFixture(t);
+  t.mock.method(globalThis, 'fetch', fixture.fetchImpl);
+  const target = {kind:'game', id:'drawing-pad', repositoryUrl:'https://github.com/codepetca/zero-drawing-pad'};
+  for (const [method, route] of [['GET',getStarResponse],['POST',postStarResponse]]) {
+    const connected = await fixture.connect();
+    const request = new Request(`${origin}/api/hub/github/stars?kind=game&id=drawing-pad`, {
+      method, headers:{cookie:fixture.request(connected).headers.get('cookie'),origin,
+        'x-hub-csrf':connected.session.csrf,'content-type':'application/json'},
+      ...(method === 'POST' ? {body:JSON.stringify({kind:'game',id:'drawing-pad',starred:true})} : {}),
+    });
+    const seen = [];
+    const pending = route(request, {env:redisEnv,now:now + 239_000,
+      visibilityReader:async () => null, resolver:async () => target,
+      destinationReader:async () => ({repositoryUrl:target.repositoryUrl,repositoryId:'12',ownerId:'34',
+        owner:'codepetca',repo:'zero-drawing-pad'}),
+      fetchImpl:async (_url, options) => {
+        const credential = options.headers.Authorization;
+        seen.push(credential);
+        if (credential === `Bearer ${token}`) {
+          assert.equal((await fixture.get(connected,now + 241_000)).status,200);
+          return new Response(null,{status:401});
+        }
+        assert.equal(credential,`Bearer ${nextToken}`);
+        return new Response(null,{status:204});
+      },
+    });
+    const response = await pending;
+    assert.equal(response.headers.has('set-cookie'),false);
+    if (method === 'GET') {
+      assert.equal(response.status,200);
+      assert.deepEqual(await response.json(),{starred:true});
+      assert.equal(seen.length,2);
+    } else {
+      assert.equal(response.status,503);
+      assert.equal((await response.json()).outcome,'uncertain');
+      assert.equal(seen.length,1);
+    }
+    assert.equal((await (await fixture.get(connected)).json()).user.id,'123');
   }
 });

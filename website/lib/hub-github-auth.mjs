@@ -179,7 +179,7 @@ function openGrantReference(cookie, config) {
   return typeof pointer?.reference === 'string' && grantReferencePattern.test(pointer.reference) ? pointer : null;
 }
 
-async function resolveSession(request, config, now, env, fetchImpl) {
+export async function readSession(request, config, now = Date.now(), env = process.env, fetchImpl = fetch) {
   const managed = workosRequested(env);
   const cookie = readCookie(request, SESSION_COOKIE);
   if (!cookie) return null;
@@ -197,11 +197,6 @@ async function resolveSession(request, config, now, env, fetchImpl) {
   if (!managed) return session;
   const identity = await activeWorkOSIdentity(request, config, env, now);
   return identity && matchesWorkOS(session, identity) ? session : null;
-}
-
-export async function readSession(request, config, now = Date.now(), env = process.env) {
-  try { return await resolveSession(request, config, now, env, fetch); }
-  catch { return null; }
 }
 
 export async function persistManagedSession(grant, refreshToken, config, env, fetchImpl, now) {
@@ -224,7 +219,7 @@ const grantPurpose = reference => `workos-grant:${reference}`;
 
 async function readManagedGrant(pointer, identity, config, env, now, started, fetchImpl, signal) {
   const store = hubGitHubGrantStore(env, fetchImpl);
-  if (!store) return null;
+  if (!store) throw new Error('GitHub connection storage is unavailable');
   const {reference} = pointer;
   const purpose = grantPurpose(reference);
   for (;;) {
@@ -235,7 +230,7 @@ async function readManagedGrant(pointer, identity, config, env, now, started, fe
     if (!validSession(grant) || !matchesWorkOS(grant, identity) || checkedAt >= identity.validUntil ||
         grant.grantExpiresAt !== pointer.expiresAt || grant.grantExpiresAt <= checkedAt ||
         typeof grant.refreshToken !== 'string' || !refreshTokenPattern.test(grant.refreshToken)) return null;
-    if (grant.expiresAt > checkedAt) {
+    if (grant.expiresAt > checkedAt && !(grant.refreshAfter > checkedAt)) {
       return authorizedGrant(grant, store, reference, sealed);
     }
     if (signal.aborted || elapsed >= REFRESH_WAIT_MS) throw new Error('GitHub connection renewal is busy');
@@ -287,6 +282,12 @@ export async function removeManagedGitHubGrant(request, env = process.env) {
     try { await store.remove(pointer.reference); }
     catch { /* Sign-out still clears the browser cookies and ends the WorkOS session. */ }
   }
+}
+
+export async function updatedGitHubSession(request, session, config, now, env) {
+  if (!storedGrants.has(session)) return null;
+  const current = await readSession(request, config, now, env);
+  return current && current.id === session.id && current.csrf === session.csrf && current.token !== session.token ? current : null;
 }
 
 export async function rejectedGitHubSession(session, config) {
@@ -376,7 +377,7 @@ export async function sessionResponse(request, env = process.env, now = Date.now
   const managed = workosRequested(env);
   const configured = managed ? managedHubAvailable(config, env) : !!config;
   try {
-    const session = configured ? await resolveSession(request, config, now, env, fetchImpl) : null;
+    const session = configured ? await readSession(request, config, now, env, fetchImpl) : null;
     return json({configured, ...(managed ? {managed:true} : {}), user: session ?
       {id: session.id, login: session.login, csrfToken: session.csrf} : null});
   } catch {
@@ -431,10 +432,14 @@ export async function logoutResponse(request, env = process.env, now = Date.now(
   const config = hubConfig(env);
   if (!config) return json({error: 'GitHub sign-in unavailable', configured: false}, 503);
   if (!sameOrigin(request, config)) return json({error: 'Invalid origin'}, 403);
-  const session = await readSession(request, config, now, env);
-  if (!session) return json({error: 'GitHub sign-in required'}, 401);
-  if (!equalSecret(request.headers.get('x-hub-csrf'), session.csrf))
-    return json({error: 'Invalid session token'}, 403);
-  if (workosRequested(env)) return json({error: 'Sign out through your Zero account.'}, 409);
-  return json({ok: true}, 200, {'Set-Cookie': cookieHeader(SESSION_COOKIE, '', config, 0)});
+  try {
+    const session = await readSession(request, config, now, env);
+    if (!session) return json({error: 'GitHub sign-in required'}, 401);
+    if (!equalSecret(request.headers.get('x-hub-csrf'), session.csrf))
+      return json({error: 'Invalid session token'}, 403);
+    if (workosRequested(env)) return json({error: 'Sign out through your Zero account.'}, 409);
+    return json({ok: true}, 200, {'Set-Cookie': cookieHeader(SESSION_COOKIE, '', config, 0)});
+  } catch {
+    return json({error:'Could not check your GitHub connection.'}, 503);
+  }
 }

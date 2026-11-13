@@ -1,5 +1,5 @@
 import {listingRepositoryReader} from './hub-listings-github-app.mjs';
-import {boundedJson, equalSecret, hubConfig, json, readSession, sameOrigin, seal, unseal} from './hub-github-auth.mjs';
+import {boundedJson, equalSecret, hubConfig, json, readSession, sameOrigin, seal, unseal, updatedGitHubSession} from './hub-github-auth.mjs';
 import {configuredListingsStore, listingLimit, listingPageSize, listingsEnabled} from './hub-listings-store.mjs';
 import {checkListingToken, listingId, listingReceipt, publicListingPlayUrl, verifyListingPublication} from './hub-listings-verification.mjs';
 import {assertJamVisibilityTime, readJamHubVisibility} from './jam-hub-visibility.mjs';
@@ -163,7 +163,11 @@ export async function hubListingsResponse(request, {
     if (body.action === 'list') {
       const receipt = await store.owned(account, body.repositoryId);
       if (!receipt) return json({error:'This app is unavailable.'}, 404);
-      const publication = await verify(receipt, {account, token, signal});
+      let publication = await verify(receipt, {account, token, signal});
+      if (!publication) {
+        const updated = await updatedGitHubSession(request, session, config, Date.now(), env);
+        if (updated) publication = await verify(receipt, {account, token:updated.token, signal});
+      }
       if (!publication) return json({error:'The published app could not be verified. Publish it again in Zero.'}, 409);
       signal.throwIfAborted();
       const limit = await effectiveListingLimit(account, env, getEntitlementsStore);
