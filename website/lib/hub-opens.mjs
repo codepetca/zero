@@ -1,6 +1,7 @@
 import {hubProjectId, hubTargetVisible, hubVisibilityDecision, resolveHubProject} from './hub-project-status.mjs';
 import {assertJamVisibilityTime, readJamHubVisibility} from './jam-hub-visibility.mjs';
 import {createHubRequestDeadline} from './hub-request-deadline.mjs';
+import {upstashCommand, upstashConfiguration} from './upstash-redis.mjs';
 
 /** Aggregate Play activations only. No account, cookie, IP or event log. */
 export const openId = hubProjectId;
@@ -14,44 +15,13 @@ export function opensConfiguration(env = process.env) {
   const explicit = env.ZERO_HUB_OPENS_REDIS_URL !== undefined || env.ZERO_HUB_OPENS_REDIS_TOKEN !== undefined;
   const endpoint = explicit ? env.ZERO_HUB_OPENS_REDIS_URL : env.KV_REST_API_URL;
   const token = explicit ? env.ZERO_HUB_OPENS_REDIS_TOKEN : env.KV_REST_API_TOKEN;
-  if (!endpoint || !token || token.length > 4096 || /\s/.test(token)) return null;
-  try {
-    const url = new URL(endpoint);
-    if (url.protocol !== 'https:' || !/^[a-z0-9-]+\.upstash\.io$/.test(url.hostname) ||
-        url.port || url.username || url.password || url.pathname !== '/' || url.search || url.hash) return null;
-    return {endpoint: url.origin, token};
-  } catch { return null; }
+  return upstashConfiguration(endpoint, token);
 }
 
 export function createOpensStore({env = process.env, fetchImpl = fetch} = {}) {
   const configuration = opensConfiguration(env);
   if (!configuration) return null;
-  async function command(parts) {
-    const response = await fetchImpl(configuration.endpoint, {
-      method: 'POST', redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(1500),
-      headers: {'Authorization': `Bearer ${configuration.token}`, 'Content-Type': 'application/json'},
-      body: JSON.stringify(parts),
-    });
-    try {
-      if (!response.ok || response.redirected) throw new Error('Open counts unavailable');
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('Open counts unavailable');
-      const chunks = []; let length = 0;
-      try {
-        while (true) {
-          const {done, value} = await reader.read(); if (done) break;
-          length += value.byteLength;
-          if (length > 4096) throw new Error('Open counts unavailable');
-          chunks.push(value);
-        }
-      } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
-      const bytes = new Uint8Array(length); let offset = 0;
-      for (const chunk of chunks) {bytes.set(chunk, offset); offset += chunk.length;}
-      const data = JSON.parse(new TextDecoder().decode(bytes));
-      if (data.error || !Object.hasOwn(data, 'result')) throw new Error('Open counts unavailable');
-      return data.result;
-    } finally { await response.body?.cancel().catch(() => {}); }
-  }
+  const command = upstashCommand(configuration, fetchImpl);
   return {
     async increment(id) {
       if (!openId(id)) throw new Error('Invalid project');

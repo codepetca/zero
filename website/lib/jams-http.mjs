@@ -1,4 +1,4 @@
-import {hubConfig, readSession, sameOrigin, equalSecret, githubUser, json} from './hub-github-auth.mjs';
+import {hubConfig, readSession, sameOrigin, equalSecret, githubUser, json, updatedGitHubSession} from './hub-github-auth.mjs';
 import {createJamRuntime, jamServiceConfig} from './jams-runtime.mjs';
 import {JamError,JAM_PROJECTION_REVISION,JAM_PAGE_METADATA} from '../../jams/service.mjs';
 import {createJamGalleryCursor,readJamGalleryCursor} from './jam-gallery-cursor.mjs';
@@ -147,11 +147,11 @@ export async function getJamsResponse(request, inputOptions = {}) {
   const options = optionsFor(inputOptions);
   if (!enabled(options)) return unavailable();
   // Each response obtains fresh registry authority for cross-gallery holds.
-  const config = hubConfig(options.env);
-  const session = config && await readSession(request,config,options.now(),options.env);
-  const actor = session ? {id:session.id,login:session.login} : undefined;
   const deadline=createHubRequestDeadline({budgetMs:options.responseBudgetMs??18_000,signal:request.signal,now:options.deadlineNow});
   try {
+    const config = hubConfig(options.env);
+    const session = config && await deadline.run(() => readSession(request,config,options.now(),options.env));
+    const actor = session ? {id:session.id,login:session.login} : undefined;
     const service = await deadline.run(()=>serviceFor(options));
     const summaries=new URL(request.url).searchParams.get('view')==='summaries';
     const projection=await deadline.run(signal=>summaries?service.listSummaries(actor,{signal}):service.list(actor,{signal}));
@@ -175,7 +175,7 @@ export async function getJamResponse(request, id, inputOptions = {}) {
   const deadline=createHubRequestDeadline({budgetMs:options.responseBudgetMs??18_000,signal:request.signal,now:options.deadlineNow});
   try {
     const config = hubConfig(options.env);
-    const session = config && await readSession(request,config,options.now(),options.env);
+    const session = config && await deadline.run(() => readSession(request,config,options.now(),options.env));
     const actor = session ? {id:session.id,login:session.login} : undefined;
     const service = await deadline.run(()=>serviceFor(options));
     const params=new URL(request.url).searchParams,paged=params.get('view')==='gallery',overview=params.get('view')==='overview',moderation=params.get('view')==='moderation';
@@ -232,15 +232,15 @@ async function postResponse(request, id, proposal, inputOptions,settlement=false
   const config = hubConfig(options.env);
   if (!config) return json({error:'GitHub sign-in is unavailable.'},503);
   if (!sameOrigin(request,config)) return json({error:'Open this action on Zero to continue.'},403);
-  const session = await readSession(request,config,options.now(),options.env);
-  if (!session) return json({error:'Sign in to GitHub to continue.'},401);
-  if (!equalSecret(request.headers.get('x-hub-csrf'),session.csrf))
-    return json({error:'Your session changed. Reconnect GitHub and try again.'},403);
-  if (!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(request.headers.get('content-type') || ''))
-    return json({error:'Expected JSON request details.'},415);
   let deadline;
   try {
     deadline=createHubRequestDeadline({budgetMs:options.responseBudgetMs??18_000,signal:request.signal,now:options.deadlineNow});
+    let session = await deadline.run(() => readSession(request,config,options.now(),options.env));
+    if (!session) return json({error:'Sign in to GitHub to continue.'},401);
+    if (!equalSecret(request.headers.get('x-hub-csrf'),session.csrf))
+      return json({error:'Your session changed. Reconnect GitHub and try again.'},403);
+    if (!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(request.headers.get('content-type') || ''))
+      return json({error:'Expected JSON request details.'},415);
     const body = await deadline.run(()=>bodyJson(request,settlement?17_408:16_384));
     const allowed = settlement?new Set(['operationId','scope','payload']):proposal ? proposalKeys : actionKeys;
     if (Object.keys(body).some(key => !allowed.has(key)) || !proposal && !settlement && !actions.has(body.action))
@@ -248,7 +248,14 @@ async function postResponse(request, id, proposal, inputOptions,settlement=false
     if(settlement&&Buffer.byteLength(JSON.stringify({operationId:body.operationId,...body.payload}))>16_384)return json({error:'The original request is too large.',configured:true},413);
     // Session identity is sealed, but an expired/revoked GitHub authorization
     // must not continue accepting official actions for the remaining cookie age.
-    const user = await deadline.run(()=>githubUser(session.token,options.fetchImpl));
+    let user;
+    try { user = await deadline.run(() => githubUser(session.token,options.fetchImpl)); }
+    catch (error) {
+      const updated = await deadline.run(() => updatedGitHubSession(request,session,config,options.now(),options.env));
+      if (!updated) throw error;
+      session = updated;
+      user = await deadline.run(() => githubUser(session.token,options.fetchImpl));
+    }
     if (String(user.id) !== session.id || !/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(user.login || ''))
       return json({error:'Your GitHub account changed. Reconnect to continue.'},401);
     const actor = {id:session.id,login:user.login};

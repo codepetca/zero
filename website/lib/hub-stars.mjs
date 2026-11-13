@@ -2,7 +2,7 @@ import {bindHubProjectDestination, hubTargetVisible, hubVisibilityDecision, reso
 import {assertJamVisibilityTime, readJamHubVisibility} from './jam-hub-visibility.mjs';
 import {readJamDestinationBinding} from './jam-destination-binding.mjs';
 import {createHubRequestDeadline} from './hub-request-deadline.mjs';
-import {cookieHeader, SESSION_COOKIE, equalSecret, githubApiHeaders, hubConfig, json, readSession, sameOrigin} from './hub-github-auth.mjs';
+import {equalSecret, githubApiHeaders, hubConfig, json, readSession, rejectedGitHubSession, sameOrigin, updatedGitHubSession} from './hub-github-auth.mjs';
 
 export function publicGithubRepository(repositoryUrl) {
   if (typeof repositoryUrl !== 'string') return null;
@@ -149,7 +149,7 @@ export async function getStarResponse(request, {env = process.env, fetchImpl = f
     deadline.check();
     const config = hubConfig(env);
     if (!config) return json({error: 'GitHub stars unavailable', configured: false}, 503);
-    const session = await readSession(request, config, now, env);
+    let session = await deadline.run(() => readSession(request, config, now, env));
     if (!session) return json({error: 'GitHub sign-in required'}, 401);
     const url = new URL(request.url);
     if (url.searchParams.getAll('kind').length !== 1 || url.searchParams.getAll('id').length !== 1)
@@ -159,7 +159,14 @@ export async function getStarResponse(request, {env = process.env, fetchImpl = f
       {kind:url.searchParams.get('kind'), id:url.searchParams.get('id')}, resolver, options, deadline));
     if (!target) return json({error: 'Unknown Hub project'}, 404);
     stage = 'github';
-    const status = await githubStar('GET', target.repository, session.token, fetchImpl, deadline);
+    let status = await githubStar('GET', target.repository, session.token, fetchImpl, deadline);
+    if (status === 401) {
+      const updated = await deadline.run(() => updatedGitHubSession(request, session, config, now, env));
+      if (updated) {
+        session = updated;
+        status = await githubStar('GET', target.repository, session.token, fetchImpl, deadline);
+      }
+    }
     if (status === 204 || status === 404) {
       stage = 'target';
       const final = await visibleAgain(target, options, deadline);
@@ -169,7 +176,7 @@ export async function getStarResponse(request, {env = process.env, fetchImpl = f
       return json({starred:status === 204});
     }
     return json({error: 'GitHub star state unavailable'}, status === 401 ? 401 : 502,
-      status === 401 ? {'Set-Cookie':cookieHeader(SESSION_COOKIE,'',config,0)} : {});
+      status === 401 ? await deadline.run(() => rejectedGitHubSession(session, config)) : {});
   } catch (error) {
     return deadlineFailure(deadline, error) ?? json({error:stage === 'target' ? 'Hub project unavailable' : 'GitHub star state unavailable'},
       stage === 'target' ? 503 : 502);
@@ -189,12 +196,14 @@ export async function postStarResponse(request, {env = process.env, fetchImpl = 
     const config = hubConfig(env);
     if (!config) return rejection({error: 'GitHub stars unavailable', configured: false}, 503);
     if (!sameOrigin(request, config)) return rejection({error: 'Invalid origin'}, 403);
-    const session = await readSession(request, config, now, env);
+    stage = 'session';
+    const session = await deadline.run(() => readSession(request, config, now, env));
     if (!session) return rejection({error: 'GitHub sign-in required'}, 401);
     if (!equalSecret(request.headers.get('x-hub-csrf'), session.csrf))
       return rejection({error: 'Invalid session token'}, 403);
     if (!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(request.headers.get('content-type') || ''))
       return rejection({error: 'Expected JSON'}, 415);
+    stage = 'body';
     const input = await boundedBody(request, 2048, deadline);
     if (!validTarget(input) || typeof input.starred !== 'boolean') return rejection({error: 'Invalid star request'}, 400);
     stage = 'target';
@@ -220,9 +229,13 @@ export async function postStarResponse(request, {env = process.env, fetchImpl = 
       assertJamVisibilityTime(final.visibility, decisionNow, env);
       return json({starred:input.starred});
     }
+    // A response for the previous token can arrive after another request
+    // renews it. Keep the live connection and leave the write unconfirmed.
+    if (status === 401 && await deadline.run(() => updatedGitHubSession(request, session, config, now, env)))
+      return rejection({error:'GitHub star change could not be confirmed. Check GitHub before trying again.'}, 503);
     return json({error:'GitHub star change could not be confirmed. Check GitHub before trying again.', outcome:'uncertain'},
       status === 401 ? 401 : 502,
-      status === 401 ? {'Set-Cookie':cookieHeader(SESSION_COOKIE,'',config,0)} : {});
+      status === 401 ? await deadline.run(() => rejectedGitHubSession(session, config)) : {});
   } catch (error) {
     return deadlineFailure(deadline, error, dispatched, confirmed) ?? (confirmed
       ? json({error:'Hub project unavailable', outcome:'confirmed'}, 503) : dispatched

@@ -2,7 +2,7 @@ import { getWorkOS } from '@workos-inc/authkit-nextjs';
 import { cookies } from 'next/headers';
 import { unsealData } from 'iron-session';
 import { decodeJwt } from 'jose';
-import { cookieHeader, FLOW_COOKIE, readCookie, redirect, SESSION_COOKIE } from '@/lib/hub-github-auth.mjs';
+import { cookieHeader, FLOW_COOKIE, readCookie, redirect, removeManagedGitHubGrant, SESSION_COOKIE } from '@/lib/hub-github-auth.mjs';
 import { workosConfigured } from '@/lib/workos-config.mjs';
 
 export async function POST(request: Request) {
@@ -27,6 +27,7 @@ export async function POST(request: Request) {
       }
     } catch { /* An invalid provider cookie still clears local access. */ }
   }
+  await removeManagedGitHubGrant(request);
   const jar = await cookies();
   // AuthKit's documented PKCE cookie and its per-flow variants can otherwise
   // finish a pending login after this sign-out.

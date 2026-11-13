@@ -1,5 +1,7 @@
 import zeroApp from '../../extension/src/github-app/config.json' with {type:'json'};
 import {createCipheriv, createDecipheriv, createHash, randomBytes, timingSafeEqual} from 'node:crypto';
+import {setTimeout as delay} from 'node:timers/promises';
+import {hubGitHubGrantStore} from './hub-github-grant-store.mjs';
 import {workosConfigured, workosRequested, workosSessionIdentity} from './workos-config.mjs';
 
 export const SESSION_COOKIE = 'zero_hub_gh_session';
@@ -7,6 +9,14 @@ export const FLOW_COOKIE = 'zero_hub_gh_flow';
 const OAUTH_AGE_MS = 10 * 60 * 1000;
 const SESSION_AGE_MS = 8 * 60 * 60 * 1000;
 const MANAGED_SESSION_PURPOSE = 'workos-session';
+const MANAGED_GRANT_AGE_MS = 180 * 24 * 60 * 60 * 1000;
+const REFRESH_LEASE_MS = 20_000;
+const REFRESH_WAIT_MS = 5_000;
+const GRANT_REFERENCE_PURPOSE = 'workos-grant-reference';
+const grantReferencePattern = /^[A-Za-z0-9_-]{43}$/;
+const accessTokenPattern = /^ghu_[A-Za-z0-9_]{10,512}$/;
+const refreshTokenPattern = /^ghr_[A-Za-z0-9_]{10,512}$/;
+const storedGrants = new WeakMap();
 const GITHUB_API_VERSION = '2026-03-10';
 
 const noStore = {'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'};
@@ -138,30 +148,154 @@ export function readFlow(request, config, now = Date.now()) {
     safeHubReturnTo(flow.returnTo) === flow.returnTo ? flow : null;
 }
 
-export async function readSession(request, config, now = Date.now(), env = process.env) {
-  const managed = workosRequested(env);
-  if (managed && (!managedHubAvailable(config, env) || !readCookie(request, env.WORKOS_COOKIE_NAME))) return null;
-  const purpose = managed ? MANAGED_SESSION_PURPOSE : 'session';
-  const session = unseal(readCookie(request, SESSION_COOKIE), purpose, config);
-  if (!(session && typeof session.id === 'string' && /^[1-9][0-9]{0,19}$/.test(session.id) &&
+function validSession(session) {
+  return session && typeof session.id === 'string' && /^[1-9][0-9]{0,19}$/.test(session.id) &&
     typeof session.login === 'string' && /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(session.login) &&
-    typeof session.token === 'string' && /^ghu_[A-Za-z0-9_]{10,512}$/.test(session.token) &&
-    tokenPattern.test(session.csrf) && Number.isSafeInteger(session.expiresAt) &&
-    session.expiresAt > now && session.expiresAt <= now + SESSION_AGE_MS)) return null;
-  if (!managed) return session;
+    typeof session.token === 'string' && accessTokenPattern.test(session.token) &&
+    tokenPattern.test(session.csrf) && Number.isSafeInteger(session.expiresAt);
+}
 
-  // The AuthKit proxy verifies the token and strips client-injected session
-  // headers. Require that verified session as well as the sealed GitHub grant.
+async function activeWorkOSIdentity(request, config, env, now) {
+  if (!managedHubAvailable(config, env) || !readCookie(request, env.WORKOS_COOKIE_NAME)) return null;
+  // The AuthKit proxy verifies the token and strips client-injected session headers.
   try {
     const {withAuth, getTokenClaims} = await import('@workos-inc/authkit-nextjs');
     const auth = await withAuth();
     if (!auth.user || auth.impersonator != null || !auth.accessToken) return null;
     const claims = await getTokenClaims(auth.accessToken);
     const identity = workosSessionIdentity(claims, auth.user.id, env.WORKOS_ISSUER, now);
-    return identity && identity.sessionId === auth.sessionId &&
-      session.workos?.userId === identity.userId && session.workos?.sessionId === identity.sessionId &&
-      session.workos?.issuer === identity.issuer ? session : null;
+    return identity?.sessionId === auth.sessionId ? {...identity, validUntil:claims.exp * 1000} : null;
   } catch { return null; }
+}
+
+function matchesWorkOS(session, identity) {
+  return session.workos?.userId === identity.userId && session.workos?.sessionId === identity.sessionId &&
+    session.workos?.issuer === identity.issuer;
+}
+
+function openGrantReference(cookie, config) {
+  if (!cookie?.startsWith('v2.')) return null;
+  const pointer = unseal(cookie.slice(3), GRANT_REFERENCE_PURPOSE, config);
+  return typeof pointer?.reference === 'string' && grantReferencePattern.test(pointer.reference) ? pointer : null;
+}
+
+export async function readSession(request, config, now = Date.now(), env = process.env, fetchImpl = fetch) {
+  const managed = workosRequested(env);
+  const cookie = readCookie(request, SESSION_COOKIE);
+  if (!cookie) return null;
+  if (managed && cookie.startsWith('v2.')) {
+    const pointer = openGrantReference(cookie, config);
+    if (!pointer || !Number.isSafeInteger(pointer.expiresAt) || pointer.expiresAt <= now ||
+        pointer.expiresAt > now + MANAGED_GRANT_AGE_MS) return null;
+    const started = performance.now();
+    const identity = await activeWorkOSIdentity(request, config, env, now);
+    return identity && matchesWorkOS(pointer, identity) ?
+      readManagedGrant(pointer, identity, config, env, now, started, fetchImpl, request.signal) : null;
+  }
+  const session = unseal(cookie, managed ? MANAGED_SESSION_PURPOSE : 'session', config);
+  if (!validSession(session) || session.expiresAt <= now || session.expiresAt > now + SESSION_AGE_MS) return null;
+  if (!managed) return session;
+  const identity = await activeWorkOSIdentity(request, config, env, now);
+  return identity && matchesWorkOS(session, identity) ? session : null;
+}
+
+export async function persistManagedSession(grant, refreshToken, config, env, fetchImpl, now) {
+  if (typeof refreshToken !== 'string' || !refreshTokenPattern.test(refreshToken)) return grant;
+  const store = hubGitHubGrantStore(env, fetchImpl);
+  if (!store) return grant;
+  const reference = randomBytes(32).toString('base64url');
+  const grantExpiresAt = now + MANAGED_GRANT_AGE_MS;
+  const record = {...grant.session, refreshToken, grantExpiresAt};
+  try {
+    if (await store.create(reference, seal(record, grantPurpose(reference), config), grantExpiresAt)) {
+      const pointer = seal({reference, workos:grant.session.workos, expiresAt:grantExpiresAt}, GRANT_REFERENCE_PURPOSE, config);
+      return {...grant, cookie:cookieHeader(SESSION_COOKIE, `v2.${pointer}`, config, MANAGED_GRANT_AGE_MS / 1000)};
+    }
+  } catch { /* Keep the verified short session if the store is unavailable. */ }
+  return grant;
+}
+
+const grantPurpose = reference => `workos-grant:${reference}`;
+
+async function readManagedGrant(pointer, identity, config, env, now, started, fetchImpl, signal) {
+  const store = hubGitHubGrantStore(env, fetchImpl);
+  if (!store) throw new Error('GitHub connection storage is unavailable');
+  const {reference} = pointer;
+  const purpose = grantPurpose(reference);
+  for (;;) {
+    const sealed = await store.read(reference);
+    const grant = unseal(sealed, purpose, config);
+    const elapsed = Math.floor(performance.now() - started);
+    const checkedAt = now + elapsed;
+    if (!validSession(grant) || !matchesWorkOS(grant, identity) || checkedAt >= identity.validUntil ||
+        grant.grantExpiresAt !== pointer.expiresAt || grant.grantExpiresAt <= checkedAt ||
+        typeof grant.refreshToken !== 'string' || !refreshTokenPattern.test(grant.refreshToken)) return null;
+    if (grant.expiresAt > checkedAt && !(grant.refreshAfter > checkedAt)) {
+      return authorizedGrant(grant, store, reference, sealed);
+    }
+    if (signal.aborted || elapsed >= REFRESH_WAIT_MS) throw new Error('GitHub connection renewal is busy');
+    if (!(grant.refreshAfter > checkedAt)) {
+      const claimed = seal({...grant, refreshAfter:checkedAt + REFRESH_LEASE_MS}, purpose, config);
+      if (await store.replace(reference, sealed, claimed)) {
+        // The claim is shared across server instances. GitHub invalidates the
+        // previous pair on rotation, so only the winner can exchange it.
+        const next = await renewManagedGrant(grant, config, fetchImpl, checkedAt);
+        const replacement = next && seal(next, purpose, config);
+        const saved = await store.replace(reference, claimed, replacement);
+        // Sign-out or expiry can remove the grant while GitHub is responding.
+        const finishedAt = now + Math.floor(performance.now() - started);
+        return saved && next && finishedAt < Math.min(identity.validUntil, next.grantExpiresAt, next.expiresAt) ?
+          authorizedGrant(next, store, reference, replacement) : null;
+      }
+    }
+    await delay(350, undefined, {signal});
+  }
+}
+
+function authorizedGrant(grant, store, reference, sealed) {
+  const {id, login, token, csrf, expiresAt, workos} = grant;
+  const session = {id, login, token, csrf, expiresAt, workos};
+  storedGrants.set(session, {store, reference, sealed});
+  return session;
+}
+
+async function renewManagedGrant(grant, config, fetchImpl, now) {
+  const {status, data} = await githubTokenRequest({
+    grant_type:'refresh_token', refresh_token:grant.refreshToken
+  }, config, fetchImpl, AbortSignal.timeout(4000));
+  if ((status === 200 || status === 400 || status === 401) && data?.error === 'bad_refresh_token') return null;
+  if (status !== 200 || data?.error || typeof data?.token_type !== 'string' || data.token_type.toLowerCase() !== 'bearer' ||
+      typeof data.access_token !== 'string' || !accessTokenPattern.test(data.access_token) ||
+      typeof data.refresh_token !== 'string' || !refreshTokenPattern.test(data.refresh_token) ||
+      !Number.isSafeInteger(data.expires_in) || data.expires_in <= 60 || data.expires_in > SESSION_AGE_MS / 1000 ||
+      !Number.isSafeInteger(data.refresh_token_expires_in) || data.refresh_token_expires_in <= 0)
+    throw new Error('Could not renew GitHub connection');
+  const {refreshAfter, ...active} = grant;
+  return {...active, token:data.access_token, refreshToken:data.refresh_token, expiresAt:now + data.expires_in * 1000 - 60_000};
+}
+
+export async function removeManagedGitHubGrant(request, env = process.env) {
+  const config = hubConfig(env);
+  const pointer = config && openGrantReference(readCookie(request, SESSION_COOKIE), config);
+  const store = pointer && hubGitHubGrantStore(env);
+  if (store) {
+    try { await store.remove(pointer.reference); }
+    catch { /* Sign-out still clears the browser cookies and ends the WorkOS session. */ }
+  }
+}
+
+export async function updatedGitHubSession(request, session, config, now, env) {
+  if (!storedGrants.has(session)) return null;
+  const current = await readSession(request, config, now, env);
+  return current && current.id === session.id && current.csrf === session.csrf && current.token !== session.token ? current : null;
+}
+
+export async function rejectedGitHubSession(session, config) {
+  const stored = storedGrants.get(session);
+  if (!stored) return {'Set-Cookie':cookieHeader(SESSION_COOKIE, '', config, 0)};
+  // A delayed 401 for an older token must not remove a newer grant or cookie.
+  try { await stored.store.replace(stored.reference, stored.sealed, null); } catch { /* Report the original 401. */ }
+  return {};
 }
 
 export function newSession(token, user, tokenExpiresIn, config, now = Date.now()) {
@@ -176,7 +310,7 @@ export function newManagedSession(token, user, tokenExpiresIn, config, identity,
 function createSession(token, user, tokenExpiresIn, config, now, workos) {
   if (!user || !Number.isSafeInteger(user.id) || user.id < 1 ||
     !/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(user.login || '') ||
-    typeof token !== 'string' || !/^ghu_[A-Za-z0-9_]{10,512}$/.test(token)) throw new Error('Invalid GitHub identity');
+    typeof token !== 'string' || !accessTokenPattern.test(token)) throw new Error('Invalid GitHub identity');
   const tokenAge = Number.isSafeInteger(tokenExpiresIn) && tokenExpiresIn > 0 ? tokenExpiresIn * 1000 : SESSION_AGE_MS;
   const expiresAt = now + Math.min(SESSION_AGE_MS, tokenAge) - 60_000;
   if (expiresAt <= now) throw new Error('Expired GitHub token');
@@ -210,12 +344,17 @@ export async function githubJson(url, options = {}, fetchImpl = fetch) {
   return {status: response.status, data: await boundedJson(response)};
 }
 
-export async function exchangeCode(code, verifier, config, fetchImpl = fetch) {
-  const {status, data} = await githubJson('https://github.com/login/oauth/access_token', {
-    method: 'POST', headers: {Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded'},
-    body: new URLSearchParams({client_id: config.clientId, client_secret: config.clientSecret,
-      code, redirect_uri: `${config.origin}/api/hub/github/callback`, code_verifier: verifier}).toString()
+function githubTokenRequest(fields, config, fetchImpl, signal = AbortSignal.timeout(8000)) {
+  return githubJson('https://github.com/login/oauth/access_token', {
+    method:'POST', signal, headers:{Accept:'application/json', 'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams({client_id:config.clientId, client_secret:config.clientSecret, ...fields}).toString()
   }, fetchImpl);
+}
+
+export async function exchangeCode(code, verifier, config, fetchImpl = fetch) {
+  const {status, data} = await githubTokenRequest({
+    code, redirect_uri:`${config.origin}/api/hub/github/callback`, code_verifier:verifier
+  }, config, fetchImpl);
   if (status !== 200 || data.token_type?.toLowerCase() !== 'bearer' ||
     !/^ghu_[A-Za-z0-9_]{10,512}$/.test(data.access_token || '')) throw new Error('GitHub token exchange failed');
   return {token: data.access_token, expiresIn: data.expires_in};
@@ -233,13 +372,17 @@ export async function githubUser(token, fetchImpl = fetch) {
 export const githubApiHeaders = token => ({Accept: 'application/vnd.github+json',
   Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': GITHUB_API_VERSION, 'User-Agent': 'ZeroHub'});
 
-export async function sessionResponse(request, env = process.env, now = Date.now()) {
+export async function sessionResponse(request, env = process.env, now = Date.now(), fetchImpl = fetch) {
   const config = hubConfig(env);
   const managed = workosRequested(env);
   const configured = managed ? managedHubAvailable(config, env) : !!config;
-  const session = configured ? await readSession(request, config, now, env) : null;
-  return json({configured, ...(managed ? {managed:true} : {}), user: session ?
-    {id: session.id, login: session.login, csrfToken: session.csrf} : null});
+  try {
+    const session = configured ? await readSession(request, config, now, env, fetchImpl) : null;
+    return json({configured, ...(managed ? {managed:true} : {}), user: session ?
+      {id: session.id, login: session.login, csrfToken: session.csrf} : null});
+  } catch {
+    return json({error:'Could not check your GitHub connection.'}, 503);
+  }
 }
 
 export function loginResponse(request, env = process.env, now = Date.now()) {
@@ -289,10 +432,14 @@ export async function logoutResponse(request, env = process.env, now = Date.now(
   const config = hubConfig(env);
   if (!config) return json({error: 'GitHub sign-in unavailable', configured: false}, 503);
   if (!sameOrigin(request, config)) return json({error: 'Invalid origin'}, 403);
-  const session = await readSession(request, config, now, env);
-  if (!session) return json({error: 'GitHub sign-in required'}, 401);
-  if (!equalSecret(request.headers.get('x-hub-csrf'), session.csrf))
-    return json({error: 'Invalid session token'}, 403);
-  if (workosRequested(env)) return json({error: 'Sign out through your Zero account.'}, 409);
-  return json({ok: true}, 200, {'Set-Cookie': cookieHeader(SESSION_COOKIE, '', config, 0)});
+  try {
+    const session = await readSession(request, config, now, env);
+    if (!session) return json({error: 'GitHub sign-in required'}, 401);
+    if (!equalSecret(request.headers.get('x-hub-csrf'), session.csrf))
+      return json({error: 'Invalid session token'}, 403);
+    if (workosRequested(env)) return json({error: 'Sign out through your Zero account.'}, 409);
+    return json({ok: true}, 200, {'Set-Cookie': cookieHeader(SESSION_COOKIE, '', config, 0)});
+  } catch {
+    return json({error:'Could not check your GitHub connection.'}, 503);
+  }
 }

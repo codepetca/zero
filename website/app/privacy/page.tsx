@@ -8,7 +8,7 @@ export default function Privacy() {
   return <LearnTheme active="">
     <main id="page-content" tabIndex={-1} className="legal-page">
       <h1>Privacy</h1>
-      <p>Codepet Inc. · Last updated November 10, 2026</p>
+      <p>Codepet Inc. · Last updated November 13, 2026</p>
       <div className="legal-summary">
         <h2>The essentials</h2>
         <p>You can browse Zero’s learning material without connecting GitHub. Connecting GitHub lets Zero process your account identity and credentials for the features you choose to use. Your GitHub password is entered on GitHub, not into Zero.</p>
@@ -33,7 +33,7 @@ export default function Privacy() {
       <section id="storage">
         <h2>3. Cookies and information on your device</h2>
         <ul>
-          <li><strong>Website sign-in:</strong> an encrypted browser session cookie holds your GitHub ID, username, access token and a security token. It is unavailable to page JavaScript and is marked Secure on HTTPS. It expires within eight hours, or sooner if the GitHub token expires. A separate sign-in flow cookie expires after ten minutes. Signing out clears the website session cookie.</li>
+          <li><strong>Website sign-in:</strong> WorkOS manages your Zero sign-in. When GitHub supplies a refresh credential, Zero can renew your GitHub connection while the same Zero session is active. An encrypted record in Upstash holds your GitHub ID, username, access and refresh credentials, and the associated Zero session identifiers for up to 180 days from sign-in. The browser cookie holds a reference to that record. Short-lived connections use an encrypted browser cookie that expires within eight hours or sooner if the GitHub credential expires. These cookies are unavailable to page JavaScript and marked Secure on HTTPS. Signing out clears the cookies and requests deletion of the renewable record.</li>
           <li><strong>Desktop browser sign-in:</strong> short-lived verification cookies and tickets connect the browser sign-in to the requesting editor. They are separate from a ZeroHub browser session and expire within minutes.</li>
           <li><strong>Appearance:</strong> your theme choice is saved in the browser’s local storage until you clear it or change it. It has no automatic expiry.</li>
           <li><strong>Documentation:</strong> your last visited tutorial or docs page and section are saved in that browser’s local storage so Zero Docs can reopen it. Query parameters are not saved. The entry has no automatic expiry and can be removed by clearing site data.</li>
@@ -44,8 +44,8 @@ export default function Privacy() {
       </section>
       <section>
         <h2>4. Providers, public destinations and security</h2>
-        <p>GitHub handles sign-in, authorized repository actions, stars and public sharing records. Vercel provides website hosting and related infrastructure. Upstash provides aggregate counters when configured. Downloads, shared assets, playable apps and links may be served by GitHub, GitHub Pages, storage providers or independent project creators. Opening those destinations sends information to their operators under their own policies.</p>
-        <p>Read the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub privacy statement</a>, <a href="https://vercel.com/legal/privacy-notice">Vercel privacy notice</a> and <a href="https://upstash.com/trust/privacy.pdf">Upstash privacy policy</a>. Providers may process information outside Canada. Contact us if you need information about the providers or processing arrangements applicable to your use.</p>
+        <p>GitHub handles sign-in, authorized repository actions, stars and public sharing records. Vercel provides website hosting and related infrastructure. WorkOS provides website sign-in. Upstash stores encrypted renewable GitHub connections and aggregate counters when configured. Downloads, shared assets, playable apps and links may be served by GitHub, GitHub Pages, storage providers or independent project creators. Opening those destinations sends information to their operators under their own policies.</p>
+        <p>Read the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub privacy statement</a>, <a href="https://vercel.com/legal/privacy-notice">Vercel privacy notice</a>, <a href="https://workos.com/legal/privacy">WorkOS privacy policy</a> and <a href="https://upstash.com/trust/privacy.pdf">Upstash privacy policy</a>. Providers may process information outside Canada. Contact us if you need information about the providers or processing arrangements applicable to your use.</p>
         <p>We use protections such as encrypted sign-in cookies, protected editor credential storage and checks on authorized requests. No online system is completely secure. Do not treat a public repository, submission or playable app as private storage.</p>
       </section>
       <section id="retention">

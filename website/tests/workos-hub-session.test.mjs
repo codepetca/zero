@@ -7,7 +7,7 @@ import ts from 'typescript';
 import {sealData, unsealData} from 'iron-session';
 import {SignJWT, decodeJwt} from 'jose';
 import zeroApp from '../../extension/src/github-app/config.json' with {type:'json'};
-import {callbackResponse, hubConfig, loginResponse, logoutResponse, newSession, readSession,
+import {callbackResponse, hubConfig, loginResponse, logoutResponse, newSession, readSession, rejectedGitHubSession, removeManagedGitHubGrant,
   sessionResponse} from '../lib/hub-github-auth.mjs';
 import {getStarResponse, postStarResponse} from '../lib/hub-stars.mjs';
 import {getJamResponse, getJamsResponse, postJamActionResponse, postJamProposalResponse,
@@ -172,9 +172,7 @@ test('managed sign-out recovers an expired session ID from a sealed cookie and c
   assert.equal(logoutCalls,1);
 });
 
-test('private Hub, Stars and Jams require the same active WorkOS session on every request', async t => {
-  const result = await grant();
-  const legacy = newSession(token,githubUser,3600,hubConfig(legacyEnv),now);
+function mockWorkOS(t) {
   const key = '__zeroWorkosHubSessionTest';
   const state = {auth, claims, reads:0};
   globalThis[key] = state;
@@ -196,6 +194,14 @@ test('private Hub, Stars and Jams require the same active WorkOS session on ever
     }`);
   register(loader);
   t.after(() => {delete globalThis[key];});
+
+  return state;
+}
+
+test('private Hub, Stars and Jams require the same active WorkOS session on every request', async t => {
+  const result = await grant();
+  const legacy = newSession(token,githubUser,3600,hubConfig(legacyEnv),now);
+  const state = mockWorkOS(t);
 
   const cookie = `${cookiePair(result.cookie)}; zero-workos-session=opaque-sdk-cookie`;
   const request = (path, {method = 'GET', body, cookies = cookie, csrf = result.session.csrf, from = origin} = {}) =>
@@ -259,5 +265,221 @@ test('private Hub, Stars and Jams require the same active WorkOS session on ever
     const response = await logoutResponse(request('/api/hub/github/logout',{method:'POST',...overrides}),env,now);
     assert.equal(response.status,status);
     assert.equal(response.headers.has('set-cookie'),false);
+  }
+});
+
+const redisEnv = {...env, KV_REST_API_URL:'https://fixture.upstash.io', KV_REST_API_TOKEN:'synthetic-redis-secret'};
+const refreshToken = 'ghr_' + 'r'.repeat(24);
+const nextToken = 'ghu_' + 'n'.repeat(24);
+const nextRefreshToken = 'ghr_' + 'n'.repeat(24);
+const renewedPair = () => Response.json({access_token:nextToken, refresh_token:nextRefreshToken,
+  token_type:'bearer', expires_in:28800, refresh_token_expires_in:15897600});
+const renewAt = now + 86_400_000;
+const longExpiry = now + 180 * 86_400_000;
+
+function grantFixture(t) {
+  const state = mockWorkOS(t);
+  state.claims = {...claims, exp:longExpiry / 1000 + 120};
+  const records = new Map();
+  const requests = [];
+  const refreshes = [];
+  let refresh = renewedPair;
+  const fetchImpl = async (url, options) => {
+    if (url === redisEnv.KV_REST_API_URL) {
+      assert.equal(options.headers.Authorization, 'Bearer synthetic-redis-secret');
+      assert.equal(options.redirect, 'error');
+      const [command, ...args] = JSON.parse(options.body);
+      requests.push(command);
+      const reply = result => Response.json({result});
+      if (command === 'EVAL') {
+        const [, count, key, expected, replacement] = args;
+        assert.equal(count, 1);
+        if (expected === undefined) return reply(records.get(key)?.sealed ?? null);
+        if (records.get(key)?.sealed !== expected) return reply(0);
+        if (replacement === '') records.delete(key);
+        else records.get(key).sealed = replacement;
+        return reply(1);
+      }
+      const [key, sealed, nx, pxat, expiresAt] = args;
+      assert.match(key, /^zero:hub:github-grant:v1:[A-Za-z0-9_-]{43}$/);
+      if (command === 'DEL') return reply(Number(records.delete(key)));
+      assert.equal(command, 'SET');
+      assert.deepEqual([nx, pxat, expiresAt], ['NX', 'PXAT', longExpiry]);
+      assert.doesNotMatch(sealed, /gh[ur]_|student|session_Original|user_Test123/);
+      if (records.has(key)) return reply(null);
+      records.set(key, {sealed, expiresAt});
+      return reply('OK');
+    }
+    if (url === 'https://github.com/login/oauth/access_token') {
+      const fields = new URLSearchParams(options.body);
+      assert.equal(fields.get('client_id'), zeroApp.clientId);
+      assert.equal(fields.get('grant_type'), 'refresh_token');
+      refreshes.push(fields.get('refresh_token'));
+      return refresh();
+    }
+    return github(url);
+  };
+  const connect = (options = {}) => createWorkOSHubSession({...callback,
+    oauthTokens:{...callback.oauthTokens,refreshToken}}, verify,
+    {env:redisEnv,fetchImpl,now:() => now,...options});
+  const request = grant => new Request(`${origin}/api/hub/github/session`, {
+    headers:{cookie:`${cookiePair(grant.cookie)}; zero-workos-session=opaque-sdk-cookie`},
+  });
+  const get = (grant, at = renewAt, activeEnv = redisEnv) => sessionResponse(request(grant), activeEnv, at, fetchImpl);
+  return {state,records,requests,refreshes,fetchImpl,connect,request,get,setRefresh: value => {refresh = value;}};
+}
+
+test('a renewable GitHub grant survives a day away and rotates only once across concurrent Hub requests', async t => {
+  const fixture = grantFixture(t);
+  const connected = await fixture.connect();
+  assert.match(connected.cookie, /^zero_hub_gh_session=v2\.[A-Za-z0-9_-]{80,1024}; Path=\/; HttpOnly; SameSite=Lax; Max-Age=15552000;/);
+  const expected = {configured:true,managed:true,user:{id:'123',login:'student',csrfToken:connected.session.csrf}};
+  t.mock.method(globalThis, 'fetch', fixture.fetchImpl);
+  const before = await readSession(fixture.request(connected),config,now,redisEnv);
+  assert.equal(before.token, token);
+  assert.equal(fixture.refreshes.length, 0);
+  fixture.setRefresh(async () => {
+    await new Promise(resolve => setTimeout(resolve, 25));
+    return renewedPair();
+  });
+  const responses = await Promise.all([fixture.get(connected),fixture.get(connected),
+    readSession(fixture.request(connected),config,renewAt,redisEnv)]);
+  for (const response of responses.slice(0,2)) {
+    assert.deepEqual(await response.json(), expected);
+    assert.equal(response.headers.has('set-cookie'), false);
+  }
+  assert.equal(responses[2].token, nextToken);
+  assert.equal(responses[2].csrf, before.csrf);
+  assert.deepEqual(fixture.refreshes, [refreshToken]);
+  assert.deepEqual(await rejectedGitHubSession(before,config), {});
+  assert.deepEqual(await (await fixture.get(connected)).json(), expected);
+
+  fixture.setRefresh(() => Response.json({error:'bad_refresh_token'}));
+  assert.equal((await (await fixture.get(connected,renewAt + 86_400_000)).json()).user, null);
+  assert.deepEqual(fixture.refreshes, [refreshToken,nextRefreshToken]);
+  assert.equal(fixture.records.size, 0);
+});
+
+test('renewal requires the originating active WorkOS session and respects the original grant expiry', async t => {
+  const fixture = grantFixture(t);
+  const connected = await fixture.connect();
+  for (const [activeAuth,activeClaims] of [
+    [{...auth,impersonator:{}},fixture.state.claims],
+    [{...auth,sessionId:'session_New'},{...fixture.state.claims,sid:'session_New'}],
+    [{...auth,user:{id:'user_Other'}},{...fixture.state.claims,sub:'user_Other'}],
+    [auth,{...fixture.state.claims,exp:renewAt / 1000}],
+  ]) {
+    Object.assign(fixture.state,{auth:activeAuth,claims:activeClaims});
+    const count = fixture.requests.length;
+    assert.equal((await (await fixture.get(connected)).json()).user, null);
+    assert.equal(fixture.requests.length, count);
+  }
+  Object.assign(fixture.state,{auth,claims:{...claims,exp:longExpiry / 1000 + 120}});
+  const lateVisit = longExpiry - 86_400_000;
+  assert.equal((await (await fixture.get(connected,lateVisit)).json()).user.id, '123');
+  assert.equal((await (await fixture.get(connected,longExpiry)).json()).user, null);
+  assert.deepEqual(fixture.refreshes, [refreshToken]);
+  assert.equal((await (await fixture.get(connected,renewAt,legacyEnv)).json()).user, null);
+});
+
+test('sign-out removes the grant and an in-flight renewal cannot bring it back', async t => {
+  const fixture = grantFixture(t);
+  const connected = await fixture.connect();
+  t.mock.method(globalThis, 'fetch', fixture.fetchImpl);
+  const entered = Promise.withResolvers();
+  const complete = Promise.withResolvers();
+  fixture.setRefresh(() => {entered.resolve(); return complete.promise;});
+  const pending = fixture.get(connected);
+  await entered.promise;
+  await removeManagedGitHubGrant(fixture.request(connected),redisEnv);
+  complete.resolve(renewedPair());
+  assert.equal((await (await pending).json()).user, null);
+  assert.equal((await (await fixture.get(connected)).json()).user, null);
+  assert.equal(fixture.records.size, 0);
+});
+
+test('temporary renewal failures leave the grant in place and missing storage preserves the short session', async t => {
+  const fixture = grantFixture(t);
+  const connected = await fixture.connect();
+  fixture.setRefresh(() => Response.json({error:'server_error',internal:refreshToken},{status:502}));
+  const failure = await fixture.get(connected);
+  assert.equal(failure.status, 503);
+  assert.doesNotMatch(await failure.text(), /ghr_|server_error/);
+  assert.equal(fixture.records.size, 1);
+  fixture.setRefresh(renewedPair);
+  assert.equal((await (await fixture.get(connected,renewAt + 21_000)).json()).user.id, '123');
+
+  const unavailable = await fixture.connect({fetchImpl:async (url, options) =>
+    url === redisEnv.KV_REST_API_URL ? new Response(null,{status:503}) : fixture.fetchImpl(url,options)});
+  const preview = await fixture.connect({env:{...redisEnv,VERCEL:'1',VERCEL_ENV:'preview',
+    ZERO_HUB_ORIGIN:'https://zero.codepet.ca',NEXT_PUBLIC_WORKOS_REDIRECT_URI:'https://zero.codepet.ca/zero-account/callback'}});
+  for (const short of [unavailable,preview]) {
+    assert.doesNotMatch(short.cookie, /^zero_hub_gh_session=v2\./);
+    assert.match(short.cookie, /Max-Age=240;/);
+  }
+});
+
+test('ordinary Hub routes report temporary renewal failure without treating the user as signed out', async t => {
+  const fixture = grantFixture(t);
+  const connected = await fixture.connect();
+  t.mock.method(globalThis, 'fetch', async (url, options) =>
+    url === redisEnv.KV_REST_API_URL ? new Response(null,{status:503}) : fixture.fetchImpl(url,options));
+  const request = (path, method = 'GET') => new Request(origin + path, {method,
+    headers:{cookie:fixture.request(connected).headers.get('cookie'),origin,'x-hub-csrf':connected.session.csrf}});
+  const options = {env:redisEnv,now:renewAt,fetchImpl:async () => assert.fail('provider operation must wait for a session')};
+  const jamOptions = {...options,service:{
+    list:async () => assert.fail('do not replace the connected actor with anonymous state'),
+    mutate:async () => assert.fail('do not mutate without a session'),
+  }};
+  const responses = await Promise.all([
+    getStarResponse(request('/api/hub/github/stars?kind=game&id=drawing-pad'),options),
+    postStarResponse(request('/api/hub/github/stars','POST'),options),
+    getJamsResponse(request('/api/jams'),jamOptions),
+    postJamActionResponse(request('/api/jams/jam-55/actions','POST'),'jam-55',jamOptions),
+  ]);
+  assert.ok(responses.every(response => response.status === 503 && !response.headers.has('set-cookie')));
+  assert.equal((await responses[1].json()).outcome, 'not_dispatched');
+  assert.equal(fixture.refreshes.length, 0);
+});
+
+test('a delayed Stars 401 for a rotated token retries reads and preserves an unconfirmed write', async t => {
+  const fixture = grantFixture(t);
+  t.mock.method(globalThis, 'fetch', fixture.fetchImpl);
+  const target = {kind:'game', id:'drawing-pad', repositoryUrl:'https://github.com/codepetca/zero-drawing-pad'};
+  for (const [method, route] of [['GET',getStarResponse],['POST',postStarResponse]]) {
+    const connected = await fixture.connect();
+    const request = new Request(`${origin}/api/hub/github/stars?kind=game&id=drawing-pad`, {
+      method, headers:{cookie:fixture.request(connected).headers.get('cookie'),origin,
+        'x-hub-csrf':connected.session.csrf,'content-type':'application/json'},
+      ...(method === 'POST' ? {body:JSON.stringify({kind:'game',id:'drawing-pad',starred:true})} : {}),
+    });
+    const seen = [];
+    const pending = route(request, {env:redisEnv,now:now + 239_000,
+      visibilityReader:async () => null, resolver:async () => target,
+      destinationReader:async () => ({repositoryUrl:target.repositoryUrl,repositoryId:'12',ownerId:'34',
+        owner:'codepetca',repo:'zero-drawing-pad'}),
+      fetchImpl:async (_url, options) => {
+        const credential = options.headers.Authorization;
+        seen.push(credential);
+        if (credential === `Bearer ${token}`) {
+          assert.equal((await fixture.get(connected,now + 241_000)).status,200);
+          return new Response(null,{status:401});
+        }
+        assert.equal(credential,`Bearer ${nextToken}`);
+        return new Response(null,{status:204});
+      },
+    });
+    const response = await pending;
+    assert.equal(response.headers.has('set-cookie'),false);
+    if (method === 'GET') {
+      assert.equal(response.status,200);
+      assert.deepEqual(await response.json(),{starred:true});
+      assert.equal(seen.length,2);
+    } else {
+      assert.equal(response.status,503);
+      assert.equal((await response.json()).outcome,'uncertain');
+      assert.equal(seen.length,1);
+    }
+    assert.equal((await (await fixture.get(connected)).json()).user.id,'123');
   }
 });

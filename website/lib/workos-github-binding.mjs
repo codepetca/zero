@@ -1,5 +1,5 @@
 import zeroApp from '../../extension/src/github-app/config.json' with {type: 'json'};
-import {githubApiHeaders, githubJson, githubUser, hubConfig, managedHubAvailable, newManagedSession} from './hub-github-auth.mjs';
+import {githubApiHeaders, githubJson, githubUser, hubConfig, managedHubAvailable, newManagedSession, persistManagedSession} from './hub-github-auth.mjs';
 import {githubAuthentication, workosSessionIdentity} from './workos-config.mjs';
 
 const invalid = () => new Error('Zero could not verify the GitHub account.');
@@ -20,7 +20,7 @@ function githubExpiry(value) {
 }
 
 // Accept only the result of a server-side WorkOS code exchange. This binds
-// the accounts for that exchange and does not persist a mapping or any tokens.
+// the accounts for that exchange before the caller can persist a Hub grant.
 export async function verifyWorkOSGitHubBinding(callback, {env = process.env, fetchImpl = fetch} = {}) {
   try {
     const workosUserId = callback?.user?.id;
@@ -76,6 +76,7 @@ export async function createWorkOSHubSession(callback, verifyAccessToken, {env =
     if (!Number.isSafeInteger(expiresAt) || remaining <= 60 || remaining > 28860) return null;
     const identity = workosSessionIdentity(claims, binding.workosUserId, env.WORKOS_ISSUER, checkedAt);
     if (!identity) return null;
-    return newManagedSession(token, {id:Number(binding.githubId), login:binding.login}, remaining, config, identity, checkedAt);
+    const grant = newManagedSession(token, {id:Number(binding.githubId), login:binding.login}, remaining, config, identity, checkedAt);
+    return persistManagedSession(grant, callback.oauthTokens.refreshToken, config, env, fetchImpl, checkedAt);
   } catch { return null; }
 }
