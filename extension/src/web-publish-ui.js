@@ -376,11 +376,11 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
       let checked;
       try {checked=await publisher.verifyLink(expected,saved,{signal:controller.signal});}
       catch(error) {
-        // A remembered link is optional for source sharing. Never attach it when
-        // its repository or current availability cannot be verified.
+        // Never attach a remembered link when its repository or current
+        // availability cannot be verified; Share then asks to publish again.
         await stillCurrent(expected);
         if(error.name==='AbortError')throw error;
-        progress('Sharing source only — the saved playable link could not be verified.');
+        progress('The saved playable link could not be verified. Publish app to share this version.');
         return;
       }
       await stillCurrent(expected);

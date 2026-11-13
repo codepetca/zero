@@ -64,14 +64,16 @@ Save your work. For a playable release, finish **Merge to main** first. Choose
 2. If the project has changes, choose **Commit & push** to upload the source and
    sharing details through the usual reviewed upload flow.
 3. If this revision has no verified playable app, choose **Publish app and
-   continue**, or explicitly choose **Share source only**. Publishing uses its
-   normal account, destination and public-visibility checks.
+   continue**. ZeroHub games are always playable, so Share stops here until the
+   app is published. Publishing uses its normal account, destination and
+   public-visibility checks.
 4. Review the title, version, repository, revision, GitHub identity and playable
-   link/source-only status. Choose **Open GitHub form**, then review and submit
-   the prefilled request on GitHub yourself.
+   link. Choose **Open GitHub form**, then review and submit the prefilled
+   request on GitHub yourself.
 
 Cancel to keep working; choose Share again to continue from the saved state.
-An interrupted upload/publish does not silently become a source-only request.
+An interrupted upload/publish pauses Share; it never opens a form without a
+playable link.
 The form uses a freshly checked uploaded revision, including any commit made
 during publishing. **Play latest** can change later; the shared source snapshot
 stays at its selected version. Opening the form does not submit it or guarantee

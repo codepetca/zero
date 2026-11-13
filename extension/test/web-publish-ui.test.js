@@ -123,12 +123,12 @@ test('nested sharing verification keeps the outer operation lock and rejects mod
   h.simulation=false;h.active='/other';await assert.rejects(h.api.verifiedPublication('/student','a'.repeat(40)),/project changed/);assert.equal(h.busy,false);
 });
 
-test('an unavailable optional saved publication returns source-only while cancellation and project guards remain binding',async t=>{
+test('an unavailable saved publication attaches no link while cancellation and project guards remain binding',async t=>{
   for(const code of ['WEB_PUBLISH_REPOSITORY_CHANGED','HTTP_UNAVAILABLE']) {
     const h=fixture(t);h.choices.push('Publish app');await h.api.publish();
     h.publisher.verifyLink=async()=>{const error=new Error('Saved publication unavailable');error.code=code;throw error;};
     assert.equal(await h.api.verifiedPublication('/student','a'.repeat(40)),undefined);
-    assert.equal(h.busy,false);assert.match(h.states.at(-1),/Sharing source only/);
+    assert.equal(h.busy,false);assert.match(h.states.at(-1),/could not be verified.*Publish app/);
   }
   const cancelled=fixture(t);cancelled.choices.push('Publish app');await cancelled.api.publish();
   cancelled.publisher.verifyLink=async()=>{cancelled.api.disposables[0].dispose();throw Error('Interrupted');};

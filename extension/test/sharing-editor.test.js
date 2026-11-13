@@ -13,7 +13,7 @@ async function fixture(t,{approval,dirty=false,drift=false,policy='b'.repeat(40)
  showInformationMessage:async(message,options)=>{messages.push(message);if(options?.modal){if(drift&&message.startsWith('Extract'))await fs.appendFile(path.join(root,'src/main/java/Health.java'),'// newer');return approval;}return notification;},
  showTextDocument:async()=>{},withProgress:async(_opts,callback)=>callback({report(){}},{onCancellationRequested:()=>({dispose(){}})})
  }};
- const host={setState:message=>states.push(message),project:async()=>root,isBusy:()=>busy,setBusy:x=>{busy=x;},output:{appendLine(){},show(){}},auth:{capture:async()=>({session:{accessToken:'NEVER_LOG',label:'student',accountId:'7'},revision:1}),assertCurrent:async()=>{}}};
+ const host={setState:message=>states.push(message),project:async()=>root,isBusy:()=>busy,setBusy:x=>{busy=x;},output:{appendLine(){},show(){}},auth:{capture:async()=>({session:{accessToken:'NEVER_LOG',label:'student',accountId:'7'},revision:1}),assertCurrent:async()=>{}},verifiedPublication:async(_root,commit)=>({provider:'github-pages',url:'https://student.github.io/game/',commit,runId:42})};
  const git=async(_root,args)=>{gitCalls.push(args);if(args[0]==='rev-parse')return args[1]==='--show-toplevel'?root:'a'.repeat(40);if(args[0]==='remote')return repository.url+'.git';if(args[0]==='status')return '';if(args[0]==='show')return JSON.stringify(descriptor);throw new Error('Unexpected Git action');};
  const reader=()=>({authenticatedUser:async()=>({githubId:owner,login:'student'}),repository:async()=>({...repository,visibility:'public',ownerType:'User'}),source:async()=>{sources++;return {};}});
  const api={...authoring,applyPlan:async plan=>{stagedPlan=plan;return authoring.applyPlan(plan);}};
@@ -145,9 +145,8 @@ test('Share attaches the exact verified playable receipt without changing source
  assert.deepEqual(request.web,web);assert.equal(calls,1);assert.match(detail,/Play latest: https:\/\/student.github.io\/game\//);
  assert.deepEqual(await fs.readFile(path.join(f.root,'zero-game.json')),before);assert.equal(f.stats().busy,false);
 });
-test('source-only sharing stays available and a mismatched web commit cannot enter its form',async t=>{
- const plain=await fixture(t,{approval:'Open GitHub form'});plain.host.verifiedPublication=async()=>undefined;await plain.editor.commands['zero.shareGame']();
- const request=JSON.parse(/```json\n([\s\S]*?)\n```/.exec(new URL(plain.opened[0]).searchParams.get('body'))[1]);assert.equal(Object.hasOwn(request,'web'),false);
+test('game Share without a verified playable app or with a mismatched web commit opens no form',async t=>{
+ const plain=await fixture(t,{approval:'Open GitHub form'});plain.host.verifiedPublication=async()=>undefined;await assert.rejects(plain.editor.commands['zero.shareGame'](),/Publish app/);assert.equal(plain.opened.length,0);assert.equal(plain.stats().busy,false);
  const stale=await fixture(t,{approval:'Open GitHub form'});stale.host.verifiedPublication=async()=>({provider:'github-pages',url:'https://student.github.io/game/',commit:'b'.repeat(40),runId:42});
  await assert.rejects(stale.editor.commands['zero.shareGame'](),/exact shared source/i);assert.equal(stale.opened.length,0);assert.equal(stale.stats().busy,false);
 });
@@ -159,7 +158,7 @@ test('native game discovery offers Play latest without downloading or opening so
  await editor.commands['zero.browseGames']();assert.deepEqual(f.opened,[web.url]);assert.equal(f.stats().busy,false);
 });
 
-test('reconnected same-folder same-commit projects can Share source without a stale playable receipt',async t=>{
+test('reconnected same-folder same-commit projects never share a stale playable receipt',async t=>{
  const {createWebPublishCommands}=require('../src/web-publish-ui');
  for(const accountDrift of [false,true]) {
   const f=await fixture(t,{approval:'Open GitHub form'});let verifyCalls=0,accountChanged=false;
@@ -168,7 +167,7 @@ test('reconnected same-folder same-commit projects can Share source without a st
   t.after(()=>publishing.disposables.forEach(d=>d.dispose()));f.host.verifiedPublication=publishing.verifiedPublication;
   f.host.auth.assertCurrent=async()=>{if(accountChanged)throw Error('The GitHub account changed');};
   if(accountDrift) {await assert.rejects(f.editor.commands['zero.shareGame'](),/account changed/);assert.equal(f.opened.length,0);}
-  else {await f.editor.commands['zero.shareGame']();const request=JSON.parse(/```json\n([\s\S]*?)\n```/.exec(new URL(f.opened[0]).searchParams.get('body'))[1]);assert.equal(request.repository.url,repository.url);assert.equal(request.commit,saved.sha);assert.equal(request.web,undefined);}
+  else {await assert.rejects(f.editor.commands['zero.shareGame'](),/Publish app/);assert.equal(f.opened.length,0);}
   assert.equal(verifyCalls,1);assert.equal(f.stats().busy,false);
  }
 });
@@ -188,8 +187,9 @@ test('guided game Share uploads, optionally publishes, and freezes the fresh pos
  const f=await guidedFixture(t);await f.editor.commands['zero.shareGame']();
  assert.deepEqual(f.statsGuided(),{uploads:1,publishes:1,sha:'d'.repeat(40)});assert.deepEqual(f.sourceCommits,['c'.repeat(40),'d'.repeat(40)]);assert.deepEqual(f.verifiedCommits,['c'.repeat(40),'d'.repeat(40)]);assert.equal(f.request().commit,'d'.repeat(40));assert.equal(f.request().web.commit,f.request().commit);assert.match(f.states.at(-1),/Form opened.*submit on GitHub/);assert.equal(f.stats().busy,false);
 });
-test('game Share can explicitly select source only after upload',async t=>{
- const f=await guidedFixture(t);f.vscode.window.showQuickPick=async entries=>entries.find(e=>e.action==='source')||entries[0];await f.editor.commands['zero.shareGame']();assert.equal(f.statsGuided().uploads,1);assert.equal(f.statsGuided().publishes,0);assert.equal(f.request().web,undefined);assert.equal(f.request().commit,'c'.repeat(40));
+test('game Share offers only Publish app, and declining it pauses without a form',async t=>{
+ const f=await guidedFixture(t);let offered;f.vscode.window.showQuickPick=async(entries,options)=>{if(options.title!=='Publish app before sharing')return entries[0];offered=entries.map(e=>e.action);return undefined;};
+ await f.editor.commands['zero.shareGame']();assert.deepEqual(offered,['publish']);assert.equal(f.statsGuided().uploads,1);assert.equal(f.statsGuided().publishes,0);assert.equal(f.opened.length,0);assert.match(f.states.at(-1),/Share paused.*Publish app/);
 });
 test('cancelled upload decision keeps saved details and opens no form',async t=>{
  const f=await guidedFixture(t),before=await fs.readFile(path.join(f.root,'zero-game.json'));f.vscode.window.showQuickPick=async()=>undefined;await f.editor.commands['zero.shareGame']();assert.equal(f.statsGuided().uploads,0);assert.equal(f.opened.length,0);assert.deepEqual(await fs.readFile(path.join(f.root,'zero-game.json')),before);assert.match(f.states.at(-1),/details kept.*Commit & push/);
