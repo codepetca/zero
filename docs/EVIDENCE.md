@@ -1,3 +1,20 @@
+# Automatic Git setup release review — 2026-11-13
+
+[PR #345](https://github.com/codepetca/zero/pull/345) merged at
+`984cd94141e1d99ed5315aa809efa135c1d68094`. Sol/high reviewed security
+and correctness and Terra/high reviewed platform compatibility for
+`6c97d8cfe..45c398af6`. The fixes reserve and recheck the exact clone
+directory before creating the remote, publish the Windows Git selection for
+existing editor processes, pin credential-bearing operations to one verified
+executable, and check the full private MinGit inventory. Sol/high reviewed
+the follow-up through `15c47f6ff` and ran 72 passing focused tests.
+With three corrected tutorial and onboarding fixtures and the stronger
+Windows smoke test, final head `9f0181bea` passed all 11 checks. The
+[release ledger](RELEASE-LEDGER.md#zero-0573--2026-11-13) records runtime
+and publication evidence. Per-review token and elapsed usage were unavailable.
+
+---
+
 # Compact Git in the Mac installer — 2026-11-13
 
 Local source through `03b336ac3` replaces the separate 64–67 MB Git

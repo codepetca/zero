@@ -1,16 +1,16 @@
 # Zero release ledger
 
-Last reconciled: 2026-11-04 (America/Toronto). This is a dated working record,
+Last reconciled: 2026-11-13 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| Website | Mac 0.5.62 download and exact signed feed verified live November 4; 0.5.63 promotion is pending deployment. | Verify the 0.5.63 download and exact signed feed after this change is deployed. |
-| Mac installer | [0.5.63](https://github.com/codepetca/zero/releases/tag/setup-v0.5.63) published November 4; anonymous download matches the sealed candidate. | The 0.5.61→0.5.62 live update passed on the maintainer Mac. The 0.5.63 update and fresh Mac installation remain untested. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) is publicly listed; the owner confirmed publication on November 2. | Verify the installed version and test Store installation and updates on Windows. |
-| Windows standalone download | [0.5.59 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.59) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.59) published October 31. | Physical Windows and school-device acceptance remains outstanding; updates are disabled. |
+| Website | The 0.5.73 Mac link and signed build 73 appcast are in this promotion. | Verify the deployed link and exact appcast bytes after the merge. |
+| Mac installer | [0.5.73](https://github.com/codepetca/zero/releases/tag/setup-v0.5.73) is public. Its DMG and both corresponding Git source archives match the sealed candidate. | A fresh Mac and the live 0.5.72 → 0.5.73 update remain untested. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.73.0 is in certification as submission 9, with automatic publishing after certification. | Confirm Store delivery of 1.5.73.0. |
+| Windows standalone download | [0.5.73 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.73) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.73) are public. | The preview has updates disabled. Physical and school-managed Windows devices remain untested. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
 updates, recent tutorial changes, and Store Java/VS Code startup fixes. Its exact
@@ -21,13 +21,30 @@ The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
 
-## Zero 0.5.73 source — 2026-11-12
+## Zero 0.5.73 — 2026-11-13
 
-[PR #338](https://github.com/codepetca/zero/pull/338) includes the GitHub
-confirmation code workaround. The source advances to unpublished 0.5.73 so the
-Windows checks can build a fresh test installer. The retained published kit is
-0.5.72. Public installer metadata and update feeds still point to their current
-releases.
+[PR #345](https://github.com/codepetca/zero/pull/345) merged at
+`984cd94141e1d99ed5315aa809efa135c1d68094` after all 11 checks passed.
+This source includes the GitHub confirmation code workaround in
+[#338](https://github.com/codepetca/zero/pull/338) and hides Share game in
+the editor through [#341](https://github.com/codepetca/zero/pull/341).
+[Kit release preparation](https://github.com/codepetca/zero/actions/runs/43520517945)
+used the merged source. Core remains 0.3.0.
+
+The [Windows CI run](https://github.com/codepetca/zero/actions/runs/43518705078)
+built from `f6c9a5b4be2711a1bd5cb24912e05615ae1448d9`, whose tree matches
+the merge. The Direct installer passed setup without system Git on PATH,
+local clone, GitHub HTTPS access, installed extension selection, editor reopen
+and JavaFX. The Store package passed first launch using a separate test-signed
+copy. Both public Windows preview files match the measured CI artifacts.
+
+The Mac DMG was built from the merge, sealed at
+`a8832b353fb669e4be539e07272146a7bf7b9666`, and notarized under submission
+`a4eab712-f922-405a-9896-94e2a6e24077`. Gatekeeper accepted the quarantined
+app copied from the DMG. The notarized launcher used bundled Git 2.56.1 to
+query GitHub in an isolated local profile with system Git blocked. The sealed
+appcast SHA-256 is `a6b5b8d61eadbaa87cdbd951668c39a595aa78806a9010086a1d28d611ad32a9`.
+Authenticated student GitHub workflows remain untested on the released builds.
 
 ## Zero 0.5.72 — 2026-11-11
 
