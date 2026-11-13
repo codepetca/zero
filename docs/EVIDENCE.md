@@ -1,3 +1,27 @@
+# Compact Git in the Mac installer — 2026-11-13
+
+Local source through `03b336ac3` replaces the separate 64–67 MB Git
+download with both private Git builds inside the Mac app. The archived
+Git payload totals 5,527,980 bytes. The universal development DMG grew
+from 6.64 MB to about 12.2 MB. Students receive Git within the app update
+and use the existing first-open flow.
+
+Both pinned compact archives passed the 375-assertion native harness.
+It extracted the actual bundles, committed, pushed and fetched a
+disposable local repository, and cloned a public GitHub repository over
+HTTPS with system Git absent from PATH. The Intel run used Rosetta.
+The installer, kit and focused tests passed. Native release preparation
+collects and measures the corresponding source archives for publication
+alongside the DMG. The update is local. Signed installation and Git
+execution on a fresh Mac remain unverified.
+
+Sol/high and Terra/high reviewed `f0b85c339`. Review confirmed archive
+integrity and command coverage, and identified missing instructions for
+publishing the accompanying source archives. The native release procedure
+now checks both sources in the draft and after publication.
+
+---
+
 # Automatic Git setup on macOS — 2026-11-13
 
 Local source `cbcf42a87` reuses working Mac Git 2.31+ or prepares the
