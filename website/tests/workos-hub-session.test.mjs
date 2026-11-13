@@ -275,7 +275,7 @@ const nextRefreshToken = 'ghr_' + 'n'.repeat(24);
 const renewedPair = () => Response.json({access_token:nextToken, refresh_token:nextRefreshToken,
   token_type:'bearer', expires_in:28800, refresh_token_expires_in:15897600});
 const renewAt = now + 86_400_000;
-const longExpiry = now + 30 * 86_400_000;
+const longExpiry = now + 180 * 86_400_000;
 
 function grantFixture(t) {
   const state = mockWorkOS(t);
@@ -332,7 +332,7 @@ function grantFixture(t) {
 test('a renewable GitHub grant survives a day away and rotates only once across concurrent Hub requests', async t => {
   const fixture = grantFixture(t);
   const connected = await fixture.connect();
-  assert.match(connected.cookie, /^zero_hub_gh_session=v2\.[A-Za-z0-9_-]{80,1024}; Path=\/; HttpOnly; SameSite=Lax; Max-Age=2592000;/);
+  assert.match(connected.cookie, /^zero_hub_gh_session=v2\.[A-Za-z0-9_-]{80,1024}; Path=\/; HttpOnly; SameSite=Lax; Max-Age=15552000;/);
   const expected = {configured:true,managed:true,user:{id:'123',login:'student',csrfToken:connected.session.csrf}};
   t.mock.method(globalThis, 'fetch', fixture.fetchImpl);
   const before = await readSession(fixture.request(connected),config,now,redisEnv);
@@ -375,8 +375,10 @@ test('renewal requires the originating active WorkOS session and respects the or
     assert.equal(fixture.requests.length, count);
   }
   Object.assign(fixture.state,{auth,claims:{...claims,exp:longExpiry / 1000 + 120}});
+  const lateVisit = longExpiry - 86_400_000;
+  assert.equal((await (await fixture.get(connected,lateVisit)).json()).user.id, '123');
   assert.equal((await (await fixture.get(connected,longExpiry)).json()).user, null);
-  assert.equal(fixture.refreshes.length, 0);
+  assert.deepEqual(fixture.refreshes, [refreshToken]);
   assert.equal((await (await fixture.get(connected,renewAt,legacyEnv)).json()).user, null);
 });
 
