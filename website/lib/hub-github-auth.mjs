@@ -243,8 +243,9 @@ async function restoreManagedSession(store, pointer, grant, refreshToken, config
     const saved = unseal(sealed, purpose, config);
     const elapsed = Math.floor(performance.now() - started);
     const checkedAt = now + elapsed;
-    if (!validStoredGrant(saved, pointer, checkedAt) || saved.id !== grant.session.id ||
-        expiresAt - checkedAt < 1000) return null;
+    // A deleted record may be a sign-out racing this callback.
+    if (!validStoredGrant(saved, pointer, checkedAt) || expiresAt - checkedAt < 1000) return grant;
+    if (saved.id !== grant.session.id) return null;
     // Each callback gets its own session cookie. A verified fresh token pair
     // can replace the saved pair without changing its account binding or TTL.
     const update = refreshToken && grant.session.expiresAt >= saved.expiresAt;
@@ -253,7 +254,7 @@ async function restoreManagedSession(store, pointer, grant, refreshToken, config
       refreshToken, refreshAfter:undefined
     }, purpose, config)))) {
       const finishedAt = now + Math.floor(performance.now() - started);
-      if (expiresAt - finishedAt < 1000) return null;
+      if (expiresAt - finishedAt < 1000) return grant;
       return {...grant, cookie:managedGrantCookie(grant.session, reference, expiresAt, config, finishedAt, true)};
     }
     if (elapsed >= REFRESH_WAIT_MS) throw new Error('GitHub connection storage is busy');

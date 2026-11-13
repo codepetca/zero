@@ -425,7 +425,7 @@ test('after WorkOS inactivity, a verified same-account callback restores the sam
   await removeManagedGitHubGrant(fixture.request(restored),redisEnv);
   assert.equal((await (await fixture.get(restored,afterBreak)).json()).user,null);
   assert.equal(fixture.records.size,0);
-  const signedInAgain = await fixture.signBackIn({previous:restored,at:afterBreak});
+  const signedInAgain = await fixture.signBackIn({previous:restored,at:afterBreak,refresh:nextRefreshToken});
   assert.doesNotMatch(signedInAgain.grant.cookie,/^zero_hub_gh_session=v[23]\./);
   assert.equal(fixture.records.size,0);
 });
