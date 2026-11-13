@@ -189,7 +189,7 @@ struct MacRuntime {
         #endif
         let measuredSize = try Self.fm.attributesOfItem(atPath: download.path)[.size] as? NSNumber
         guard measuredSize?.int64Value == asset.size else { throw SetupFailure(message: "Downloaded runtime has the wrong size. Retry setup.") }
-        let digest = try Self.execute("/usr/bin/shasum", ["-a", "256", download.path]).split(separator: " ").first.map(String.init)
+        let digest = try Self.execute("/usr/bin/shasum", ["-a", "256", download.path], environment: gitProbeEnvironment).split(separator: " ").first.map(String.init)
         guard digest == asset.sha256 else { throw SetupFailure(message: "The \(kind) download did not match its verified checksum. Retry setup.") }
         let extracted = staging.appendingPathComponent("extracted")
         try Self.mkdir(extracted)
@@ -464,10 +464,11 @@ struct MacRuntime {
         let publication = try AnchoredZeroFile(directory: root.appendingPathComponent("editor"))
         let leaf = "git-selection.json"
         let previous = try publication.identity(leaf)
-        let bytes = try JSONSerialization.data(withJSONObject: ["schema": 1, "executable": selected?.path as Any? ?? NSNull()])
+        let bytes = try JSONSerialization.data(withJSONObject: ["schema": 1, "executable": selected?.path as Any? ?? NSNull()], options: [.sortedKeys])
         if let previous {
+            guard previous.size <= 8192 else { throw SetupFailure(message: "Zero's Git selection is too large; its contents were kept.") }
             let existing = try publication.read(leaf, expected: previous)
-            guard existing.count <= 8192,
+            guard
                   let value = try JSONSerialization.jsonObject(with: existing) as? [String: Any],
                   Set(value.keys) == ["schema", "executable"], value["schema"] as? Int == 1,
                   value["executable"] is NSNull || (value["executable"] as? String).map({ $0.hasPrefix("/") && $0.hasSuffix("/git") }) == true else {
