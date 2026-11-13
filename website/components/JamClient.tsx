@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
-import {defaultHostedJamDraft,prepareHostedJamDraft,browserJamTimezone,formatJamDateTime,JAM_DRAFT_LIMITS} from '../lib/jam-draft.mjs';
+import {defaultHostedJamDraft,prepareHostedJamDraft,hostedJamDraftStyle,browserJamTimezone,formatJamDateTime,JAM_DRAFT_LIMITS} from '../lib/jam-draft.mjs';
+import {jamStyleClass,JAM_THEMES,JAM_BACKDROPS} from '../lib/jam-style.mjs';
 import {jamVisibilityStatus} from '../lib/jam-visibility-status.mjs';
 import {createContext,useCallback,useContext,useEffect,useRef,useState,type FormEvent,type ReactNode} from 'react';
 import styles from '@/app/hub/hub.module.css';
@@ -9,7 +10,7 @@ import {Icon} from './Icon';
 
 type Source = {repositoryUrl:string;commit:string};
 type Repository = {id:string;ownerId:string;fullName:string;commit?:string};
-type Manifest = {type:'game'|'app';title:string;summary:string;theme:string;rules:string;eligibility:string;websiteUrl?:string;timezone:string;schedule:Record<string,string>};
+type Manifest = {type:'game'|'app';title:string;summary:string;theme:string;rules:string;eligibility:string;websiteUrl?:string;timezone:string;schedule:Record<string,string>;style?:{theme:string;backdrop:string}};
 type Entry = {participantId:string;login:string;title:string;description:string;demoUrl?:string;instructions?:string;repository:Repository;submittedAt:string;status?:string;winner?:boolean;moderatedBy?:string;reason?:string};
 type Event = Manifest & {creator?:{id:string;login:string};id:string;revision:string|null;approvalHistory?:{revision:string;approvedAt:string;manifest:Manifest}[];approvalMode?:string;reviewStatus:string;moderation:{status:string;reason?:string};registrationOpen:boolean;submissionsOpen:boolean;participantCount:number;participantLimit:number;galleryIncomplete?:boolean;participants:{id:string;login:string}[];entries:Entry[];updatedAt:string};
 type Detail = {configured:boolean;event:Event;registration:{status:string;revision?:string;repository?:Repository}|null;entry:Entry|null;moderationEntries?:Entry[];canMaintain:boolean;canHostRemoveEntry?:boolean;canPickWinner?:boolean;proposal?:{revision:string;manifest:Manifest;repository?:Repository;hosting?:string;organizerId?:string;organizerLogin?:string;status:string;reason?:string}};
@@ -123,15 +124,27 @@ function Retry({error,loading,refresh}:{error:string;loading:boolean;refresh:()=
 }
 function DirectPage({path}:{path:string}) {return <p className="jam-notice">Participation and review need a direct Zero page. <a href={path} target="_blank" rel="noopener noreferrer">Open this page on Zero</a>. If a new tab is blocked, copy or open this link directly.</p>;}
 function JamHelpLink() {return <p className="jam-muted"><Link href="/hub/jams/rules">How ZeroJams works</Link></p>;}
-function EventFacts({event}:{event:Manifest}) {
+function EventFacts({event,intro=true}:{event:Manifest;intro?:boolean}) {
   const labels:Record<string,string>={registrationOpensAt:'Registration opens',registrationClosesAt:'Registration closes',startsAt:'Jam starts',submissionsOpenAt:'Submissions open',submissionsCloseAt:'Submissions close',galleryRevealAt:'Gallery opens'};
-  return <><p className="jam-muted">{kindLabel(event.type)} · {event.timezone}</p><p className="lead">{event.summary}</p><dl className="jam-facts">{Object.entries(labels).filter(([key])=>event.schedule[key]).map(([key,label])=><div key={key}><dt>{label}</dt><dd><time dateTime={event.schedule[key]}>{formatJamDateTime(event.schedule[key],event.timezone)}</time></dd></div>)}</dl><h2>Theme</h2><p className="jam-prose">{event.theme}</p><h2>Rules</h2><p>{event.schedule.galleryRevealAt?'Use your own public GitHub repository. Sign in on Zero and link it when you join. Before submissions close, submit its published GitHub Pages URL or a custom domain configured for that repository. No commit is required.':'Use GitHub for your project. Your repository must be public. Sign in on Zero to join and submit your repository URL and exact commit.'}</p><p className="jam-prose">{event.rules}</p><h2>Who can take part</h2><p className="jam-prose">{event.eligibility}</p></>;
+  return <>{intro?<><p className="jam-muted">{kindLabel(event.type)} · {event.timezone}</p><p className="lead">{event.summary}</p></>:<p className="jam-muted">Schedule times use {event.timezone}.</p>}<dl className="jam-facts">{Object.entries(labels).filter(([key])=>event.schedule[key]).map(([key,label])=><div key={key}><dt>{label}</dt><dd><time dateTime={event.schedule[key]}>{formatJamDateTime(event.schedule[key],event.timezone)}</time></dd></div>)}</dl><h2>Theme</h2><p className="jam-prose">{event.theme}</p><h2>Rules</h2><p>{event.schedule.galleryRevealAt?'Use your own public GitHub repository. Sign in on Zero and link it when you join. Before submissions close, submit its published GitHub Pages URL or a custom domain configured for that repository. No commit is required.':'Use GitHub for your project. Your repository must be public. Sign in on Zero to join and submit your repository URL and exact commit.'}</p><p className="jam-prose">{event.rules}</p><h2>Who can take part</h2><p className="jam-prose">{event.eligibility}</p></>;
 }
 function EventStatus({event,now=Number.NEGATIVE_INFINITY}:{event:Event;now?:number}) {
   const status=event.moderation?.status || 'active';
   const registrationOpen=event.registrationOpen&&!(Date.parse(event.schedule.registrationClosesAt)<=now);
   const submissionsOpen=event.submissionsOpen&&!(Date.parse(event.schedule.submissionsCloseAt)<=now);
   return <div className="jam-notice"><p className="jam-status">{!event.revision?'Not approved':status==='suspended'?'Suspended':status==='cancelled'?'Cancelled':'Approved'} · {registrationOpen?'Registration open':'Registration closed'} · {submissionsOpen?'Submissions open':'Submissions closed'}</p>{event.moderation?.reason&&<p>{event.moderation.reason}</p>}{event.revision&&<p className="jam-source">Accepted revision: <code>{event.revision}</code></p>}</div>;
+}
+// Active approved jams show their timing in the hero; other states keep the
+// full status notice with any public moderation reason.
+const listedActive=(event:Event)=>Boolean(event.revision)&&(event.moderation?.status||'active')==='active';
+function JamHero({id,event}:{id:string;event:Event}) {
+  return <header className={`jam-hero jam-art ${jamStyleClass(event)}`}>
+    <p className="jam-chip">{kindLabel(event.type)}</p>
+    <h1>{event.title}</h1>
+    <p className="jam-hero-summary">{event.summary}</p>
+    <ul className="jam-hero-chips" aria-label="Jam summary">{!event.revision?<li className="jam-chip">Not published</li>:event.moderation?.status==='suspended'?<li className="jam-chip">Suspended</li>:event.moderation?.status==='cancelled'?<li className="jam-chip">Cancelled</li>:null}<li className="jam-chip">{event.participantCount} {event.participantCount===1?'participant':'participants'}</li><li className="jam-chip">{event.registrationOpen?'Registration open':'Registration closed'}</li><li className="jam-chip">{event.submissionsOpen?'Submissions open':'Submissions closed'}</li>{listedActive(event)&&<JamScheduleStatus event={event} compact/>}</ul>
+    <div className="jam-actions">{event.revision&&<Link className="jam-button jam-primary" href={`/hub/jams/${id}/participate`}>Review and take part</Link>}{event.websiteUrl&&<a className="jam-button" href={event.websiteUrl} target="_blank" rel="noopener noreferrer">Creator’s jam page</a>}</div>
+  </header>;
 }
 function JamVisibility({event}:{event:Pick<Event,'revision'|'reviewStatus'|'moderation'|'schedule'|'timezone'>}) {
   const visibility=jamVisibilityStatus(event);
@@ -146,7 +159,7 @@ function jamTimeRemaining(schedule:Manifest['schedule'],now:number) {
   const duration=days?`${days}d ${hours}h`:hours?`${hours}h ${minutes%60}m`:`${minutes}m`;
   return `${target===closes?'Submissions due':'Gallery opens'} in ${duration}`;
 }
-function JamScheduleStatus({event}:{event:Event}) {
+function JamScheduleStatus({event,compact=false}:{event:Event;compact?:boolean}) {
   const [now,setNow]=useState<number|null>(null);
   const active=event.moderation.status==='active';
   const {submissionsCloseAt,galleryRevealAt}=event.schedule;
@@ -164,6 +177,7 @@ function JamScheduleStatus({event}:{event:Event}) {
     return ()=>window.clearInterval(timer);
   },[active,submissionsCloseAt,galleryRevealAt]);
   const remaining=active&&now!==null?jamTimeRemaining(event.schedule,now):null;
+  if(compact)return remaining?<li className="jam-chip">{remaining}</li>:null;
   return <><EventStatus event={event} now={now??undefined}/>{remaining&&<p className="jam-status">{remaining}</p>}</>;
 }
 function ApprovedVersions({event}:{event:Event}) {
@@ -202,12 +216,14 @@ export function JamDiscovery() {
       </section>}
       <Retry error={error} loading={loading} refresh={refresh}/>
       {data&&!loading&&!error&&!events.length&&<p role="status">{terms.length?'No jams match your search.':`No ${type==='all'?'jams':kindLabel(type)+'s'} are listed yet.`}</p>}
-      <div className="jam-cards">{events.map(event=><article className="jam-card" key={event.id}>
-        <p className="jam-muted">{kindLabel(event.type)}</p>
+      <div className="jam-cards">{events.map(event=><article className={`jam-card ${jamStyleClass(event)}`} key={event.id}>
+        <div className="jam-card-cover jam-art"><p className="jam-chip">{kindLabel(event.type)}</p></div>
+        <div className="jam-card-body">
         <h2><Link href={`/hub/jams/${event.id}`}>{event.title}</Link></h2>
         <p>{event.summary}</p>
-        <p>{event.registrationOpen?'Registration open':'Registration closed'} · {event.participantCount} participants</p>
+        <p className="jam-muted">{event.registrationOpen?'Registration open':'Registration closed'} · {event.participantCount} participants</p>
         <p><Link href={`/hub/jams/${event.id}`}>View rules and schedule</Link></p>
+        </div>
       </article>)}</div>
   </section>;
 }
@@ -222,6 +238,14 @@ export function JamCreationPane() {
     {!user?<HubAccount showSignOut={false}/>:<Retry error={error} loading={loading} refresh={refresh}/>}
     {hostingUnavailable?<HostingUnavailable/>:!user||!loading&&!error?<p>A Zero Pro license is required to host a jam.</p>:null}
   </>;
+}
+function JamLookPicker({draft,disabled,onChange}:{draft:{type:string;title:string;styleTheme?:string;styleBackdrop?:string};disabled:boolean;onChange:(field:string,value:string)=>void}) {
+  const look=hostedJamDraftStyle(draft);
+  return <fieldset className="jam-look"><legend>Look</legend><p className="jam-muted">Pick colors and a background for your jam page and card. You can’t change them after the jam is created.</p>
+    <div className={`jam-look-preview jam-art jam-theme-${look.theme} jam-backdrop-${look.backdrop}`} aria-hidden="true"><span className="jam-chip">{kindLabel(draft.type)}</span><strong>{draft.title.trim()||'Your jam title'}</strong></div>
+    <fieldset className="jam-swatches"><legend>Colors</legend>{JAM_THEMES.map(theme=><label className="jam-swatch" key={theme.id}><input type="radio" name="styleTheme" value={theme.id} checked={look.theme===theme.id} disabled={disabled} onChange={()=>onChange('styleTheme',theme.id)}/><span className={`jam-art jam-theme-${theme.id} jam-backdrop-plain`}/>{theme.label}</label>)}</fieldset>
+    <fieldset className="jam-swatches"><legend>Background</legend>{JAM_BACKDROPS.map(backdrop=><label className="jam-swatch" key={backdrop.id}><input type="radio" name="styleBackdrop" value={backdrop.id} checked={look.backdrop===backdrop.id} disabled={disabled} onChange={()=>onChange('styleBackdrop',backdrop.id)}/><span className={`jam-art jam-theme-${look.theme} jam-backdrop-${backdrop.id}`}/>{backdrop.label}</label>)}</fieldset>
+  </fieldset>;
 }
 export function JamCreate() {
   const {user}=useHubGitHub(),top=useTopLevel();
@@ -241,7 +265,7 @@ export function JamCreate() {
   }
   return <><h1>Create a ZeroJam</h1><JamHelpLink/><HubAccount showSignOut={false}/>{!top?<DirectPage path="/hub/jams/create"/>:<form className="jam-form" noValidate onSubmit={e=>void propose(e)}>
     <label>Jam type<select value={draft.type} onChange={e=>change('type',e.target.value)} disabled={mutation.busy}><option value="game">Game Jam</option><option value="app">App Jam</option></select></label>
-    {field('title','Title')}{field('summary','Description',{multiline:true})}{field('theme','Theme',{multiline:true})}{field('rules','Rules',{multiline:true})}{field('eligibility','Who can take part',{multiline:true})}
+    {field('title','Title')}{field('summary','Description',{multiline:true})}{field('theme','Theme',{multiline:true})}<JamLookPicker draft={draft} disabled={mutation.busy} onChange={change}/>{field('rules','Rules',{multiline:true})}{field('eligibility','Who can take part',{multiline:true})}
     <fieldset><legend>Schedule</legend><p>Dates and times use <strong>{draft.timezone||'the timezone in More schedule options'}</strong>.</p>{field('registrationOpensAt','Registration opens',{date:true})}{field('startsAt','Jam starts',{date:true})}{field('submissionsCloseAt','Submissions close',{date:true})}{field('galleryRevealAt','Gallery opens',{date:true,help:'The gallery opens after submissions close.'})}<details open={Boolean(errors.timezone||errors.registrationClosesAt||errors.submissionsOpenAt)||undefined}><summary>More schedule options</summary>{field('timezone','Timezone',{help:'Use an IANA timezone, such as Asia/Tokyo. Changing it reinterprets the dates and times above.'})}<p>By default, registration closes and submissions open when the jam starts.</p>{field('registrationClosesAt','Registration closes',{date:true,optional:true})}{field('submissionsOpenAt','Submissions open',{date:true,optional:true})}</details></fieldset>
     {Object.values(errors).some(Boolean)&&<p role="alert" className="jam-error">{errors.form||'Review the highlighted details and try again.'}</p>}
     <button className="jam-primary" disabled={!user||mutation.busy||Boolean(eventId)}>{mutation.busy?'Creating jam…':'Create jam'}</button><Feedback error={mutation.error} success={mutation.success}/>{eventId&&<p><Link href={`/hub/jams/${eventId}`}>View your jam</Link>.</p>}
@@ -379,7 +403,7 @@ export function JamDetail({id}:{id:string}) {
     if(current.cursor) setPage({id,cursor:null,previous:[]});
     else await current.refresh();
   }
-  return <>{cursor&&<button type="button" onClick={()=>setPage({id,cursor:null,previous:[]})}>Start gallery again</button>}<h1>{data?.event.title||'Jam details'}</h1>{moderationNotice?.id===id&&moderationNotice.userId===user?.id&&<p role="status">Most recent confirmed moderation: submission withdrawn.</p>}{cancelConfirmed&&data?.event.moderation?.status!=='cancelled'&&<p role="status">Cancellation confirmed by Zero.</p>}<Retry error={error} loading={loading} refresh={refresh}/>{data&&<><JamScheduleStatus event={data.event}/>{user&&(data.canMaintain||data.event.creator?.id===user.id)&&<JamVisibility event={data.event}/>}<EventFacts event={data.event}/><ApprovedVersions event={data.event}/><div className="jam-actions">{data.event.websiteUrl&&<a className="jam-button" href={data.event.websiteUrl} target="_blank" rel="noopener noreferrer">Creator’s jam page</a>}{data.event.revision&&<Link className="jam-button jam-primary" href={`/hub/jams/${id}/participate`}>Review and take part</Link>}</div><h2>Participants · {data.event.participantCount}</h2>{data.event.participants.length?<p>{data.event.participants.map(p=>`@${p.login}`).join(', ')}</p>:<p>No participants yet.</p>}<h2>Submitted work</h2>{data.event.galleryIncomplete&&<div className="jam-notice"><p role="status">Some submissions could not be verified. Try again later to see the complete gallery.</p><button type="button" disabled={loading} onClick={()=>void refresh()}>Retry verification for this page</button></div>}{data.event.entries.length?<ul className="jam-entries">{data.event.entries.map(entry=><li key={entry.participantId}><h3>{entry.title}</h3>{entry.winner&&<p className="jam-winner">Game Jam winner</p>}<p className="jam-muted">@{entry.login}</p><p className="jam-prose">{entry.description}</p>{entry.instructions&&<p className="jam-prose">{entry.instructions}</p>}<div className="jam-actions"><a href={`https://github.com/${entry.repository.fullName}${entry.repository.commit?`/tree/${entry.repository.commit}`:''}`} target="_blank" rel="noopener noreferrer">{entry.repository.commit?'Exact source':'Project source'}</a>{entry.demoUrl&&<a href={entry.demoUrl} target="_blank" rel="noopener noreferrer">Open demo</a>}</div>{user&&(data.canMaintain||data.canHostRemoveEntry)&&<EntryModeration key={identity} id={id} participantId={entry.participantId} onChanged={refreshAfterModeration} host={!data.canMaintain}/>}</li>)}</ul>:<p>{data.event.schedule.galleryRevealAt&&Date.parse(data.event.schedule.galleryRevealAt)>Date.now()?'The gallery opens after submissions close, at the time shown in the schedule.':data.event.galleryIncomplete?'No verified submissions are available right now.':data.nextCursor||previous.length?'No visible submissions on this page.':'No submissions are available to display.'}</p>}{previous.length>0&&<button type="button" disabled={loading} onClick={()=>setPage({id,cursor:previous.at(-1)??null,previous:previous.slice(0,-1)})}>Previous gallery page</button>}{data.nextCursor&&<button type="button" disabled={loading} onClick={()=>setPage({id,cursor:data.nextCursor,previous:[...previous,cursor]})}>Next gallery page</button>}<HubAccount showSignOut={false}/><CreatorCancel key={`${id}:${user?.id||'public'}`} id={id} event={data.event} onChanged={refreshAfterHostChange} confirmedByParent={cancelConfirmed} onConfirmed={()=>{if(user)setCancelNotice({id,userId:user.id});}}/><Proposal id={id} data={data} onChanged={refresh}/></>}{user&&<JamAccountTools key={`${identity}:${accountVersion}`} id={id} onModeration={refreshAfterModeration} onWinner={refreshAfterHostChange} isCurrent={()=>contextRef.current.generation===generation} galleryError={error}/>}</>;
+  return <>{cursor&&<button type="button" onClick={()=>setPage({id,cursor:null,previous:[]})}>Start gallery again</button>}{data?<JamHero id={id} event={data.event}/>:<h1>Jam details</h1>}{moderationNotice?.id===id&&moderationNotice.userId===user?.id&&<p role="status">Most recent confirmed moderation: submission withdrawn.</p>}{cancelConfirmed&&data?.event.moderation?.status!=='cancelled'&&<p role="status">Cancellation confirmed by Zero.</p>}<Retry error={error} loading={loading} refresh={refresh}/>{data&&<div className={`jam-themed ${jamStyleClass(data.event)}`}>{!listedActive(data.event)&&<JamScheduleStatus event={data.event}/>}{user&&(data.canMaintain||data.event.creator?.id===user.id)&&<JamVisibility event={data.event}/>}<EventFacts event={data.event} intro={false}/><ApprovedVersions event={data.event}/><h2>Participants · {data.event.participantCount}</h2>{data.event.participants.length?<p>{data.event.participants.map(p=>`@${p.login}`).join(', ')}</p>:<p>No participants yet.</p>}<h2>Submitted work</h2>{data.event.galleryIncomplete&&<div className="jam-notice"><p role="status">Some submissions could not be verified. Try again later to see the complete gallery.</p><button type="button" disabled={loading} onClick={()=>void refresh()}>Retry verification for this page</button></div>}{data.event.entries.length?<ul className="jam-entries">{data.event.entries.map(entry=><li key={entry.participantId}><h3>{entry.title}</h3>{entry.winner&&<p className="jam-winner">Game Jam winner</p>}<p className="jam-muted">@{entry.login}</p><p className="jam-prose">{entry.description}</p>{entry.instructions&&<p className="jam-prose">{entry.instructions}</p>}<div className="jam-actions"><a href={`https://github.com/${entry.repository.fullName}${entry.repository.commit?`/tree/${entry.repository.commit}`:''}`} target="_blank" rel="noopener noreferrer">{entry.repository.commit?'Exact source':'Project source'}</a>{entry.demoUrl&&<a href={entry.demoUrl} target="_blank" rel="noopener noreferrer">Open demo</a>}</div>{user&&(data.canMaintain||data.canHostRemoveEntry)&&<EntryModeration key={identity} id={id} participantId={entry.participantId} onChanged={refreshAfterModeration} host={!data.canMaintain}/>}</li>)}</ul>:<p>{data.event.schedule.galleryRevealAt&&Date.parse(data.event.schedule.galleryRevealAt)>Date.now()?'The gallery opens after submissions close, at the time shown in the schedule.':data.event.galleryIncomplete?'No verified submissions are available right now.':data.nextCursor||previous.length?'No visible submissions on this page.':'No submissions are available to display.'}</p>}{previous.length>0&&<button type="button" disabled={loading} onClick={()=>setPage({id,cursor:previous.at(-1)??null,previous:previous.slice(0,-1)})}>Previous gallery page</button>}{data.nextCursor&&<button type="button" disabled={loading} onClick={()=>setPage({id,cursor:data.nextCursor,previous:[...previous,cursor]})}>Next gallery page</button>}<HubAccount showSignOut={false}/><CreatorCancel key={`${id}:${user?.id||'public'}`} id={id} event={data.event} onChanged={refreshAfterHostChange} confirmedByParent={cancelConfirmed} onConfirmed={()=>{if(user)setCancelNotice({id,userId:user.id});}}/><Proposal id={id} data={data} onChanged={refresh}/></div>}{user&&<JamAccountTools key={`${identity}:${accountVersion}`} id={id} onModeration={refreshAfterModeration} onWinner={refreshAfterHostChange} isCurrent={()=>contextRef.current.generation===generation} galleryError={error}/>}</>;
 }
 export function JamParticipate({id,pagesInstallLink}:{id:string,pagesInstallLink:string|null}) {
   const {user}=useHubGitHub();

@@ -19,10 +19,21 @@ export function httpsUrl(value) {
   return url.href;
 }
 
+// Built-in look presets. Only these IDs are stored; Zero ships every image, so
+// jam pages never load creator-supplied or third-party image URLs.
+export const JAM_THEME_IDS = Object.freeze(['violet','ocean','sunset','forest','candy','midnight']);
+export const JAM_BACKDROP_IDS = Object.freeze(['stars','pixels','grid','waves','confetti','plain']);
+function styleData(value) {
+  keys(value,['theme','backdrop']);
+  if (!JAM_THEME_IDS.includes(value.theme) || !JAM_BACKDROP_IDS.includes(value.backdrop)) fail(400,'Choose a listed jam theme and background.');
+  return {theme:value.theme,backdrop:value.backdrop};
+}
+
 export function manifestData(input) { return normalizedManifest(input,false); }
 export function hostedManifestData(input) { return normalizedManifest(input,true); }
 function normalizedManifest(input,hosted) {
-  keys(input,['schema','templateVersion','type','title','summary','theme','rules','eligibility',...(hosted?[]:['websiteUrl']),'timezone','schedule']);
+  const fields=['schema','templateVersion','type','title','summary','theme','rules','eligibility',...(hosted?[]:['websiteUrl']),'timezone','schedule'];
+  keys(input,hosted?[...fields,'style']:fields,fields);
   if (input.schema !== 1 || input.templateVersion !== '1.0.0' || !['game','app'].includes(input.type)) fail(400,'Unsupported jam manifest.');
   const timezone = text(input.timezone,100);
   try { new Intl.DateTimeFormat('en',{timeZone:timezone}).format(); } catch { fail(400,'Use an IANA timezone.'); }
@@ -37,5 +48,5 @@ function normalizedManifest(input,hosted) {
   }
   if (!(times.registrationOpensAt < times.registrationClosesAt && times.registrationOpensAt <= times.startsAt && times.startsAt <= times.submissionsOpenAt && times.submissionsOpenAt < times.submissionsCloseAt && times.registrationClosesAt <= times.submissionsCloseAt)) fail(400,'Jam schedule boundaries are inconsistent.');
   if(hasReveal&&times.galleryRevealAt<=times.submissionsCloseAt)fail(400,'The gallery reveal must be after the submission deadline.');
-  return {schema:1,templateVersion:'1.0.0',type:input.type,title:text(input.title,120),summary:text(input.summary,1000),theme:text(input.theme,1000),rules:text(input.rules,8000),eligibility:text(input.eligibility,2000),...(hosted?{}:{websiteUrl:httpsUrl(input.websiteUrl)}),timezone,schedule};
+  return {schema:1,templateVersion:'1.0.0',type:input.type,title:text(input.title,120),summary:text(input.summary,1000),theme:text(input.theme,1000),rules:text(input.rules,8000),eligibility:text(input.eligibility,2000),...(hosted?{}:{websiteUrl:httpsUrl(input.websiteUrl)}),timezone,schedule,...(hosted&&Object.hasOwn(input,"style")?{style:styleData(input.style)}:{})};
 }
