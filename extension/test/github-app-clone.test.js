@@ -95,6 +95,17 @@ test('a failed managed Windows Git setup directs students to reopen Zero',async 
  await assert.rejects(assertCloneGit(f.parent,async()=>{throw Object.assign(Error('Permission denied'),{code:'EACCES'});},
    {platform:'win32',environment:{ZERO_GIT_EXECUTABLE:'C:\\Zero Data\\cmd\\git.exe'}}),{code:'git-setup-retry'});
 });
+test('macOS Git setup errors give safe, actionable recovery',async t=>{
+ const f=await fixture(t);
+ const {assertCloneGit}=require('../src/github-app/clone');
+ const missingTools=async()=>{throw Object.assign(Error('failed'),{stderr:'xcode-select: error: no developer tools were found, requesting install. SECRET'});};
+ await assert.rejects(assertCloneGit(f.parent,missingTools,{platform:'darwin',environment:{}}),error=>
+   error.code==='git-prerequisite'&&/current Zero installer/.test(error.message)&&/Command Line Tools/.test(error.message)&&!/SECRET/.test(error.message));
+ await assert.rejects(assertCloneGit(f.parent,missingTools,{platform:'darwin',environment:{ZERO_GIT_SETUP_FAILED:'1'}}),error=>
+   error.code==='git-setup-retry'&&/quit Zero and VS Code/.test(error.message)&&/internet/.test(error.message)&&!/Command Line Tools|SECRET/.test(error.message));
+ await assert.rejects(assertCloneGit(f.parent,async()=>{throw Object.assign(Error('missing'),{code:'ENOENT'});},
+   {platform:'darwin',environment:{ZERO_GIT_EXECUTABLE:'/bad/git'}}),{code:'git-setup-retry'});
+});
 test('existing folder and symlink are never overwritten or removed',async t=>{
  const f=await fixture(t),destination=path.join(f.parent,'project');await fs.mkdir(destination);await fs.writeFile(path.join(destination,'keep'),'preserve');await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent}),/already exists/);assert.equal(await fs.readFile(path.join(destination,'keep'),'utf8'),'preserve');assert.equal(f.calls.length,0);
  if(process.platform!=='win32'){await fs.rm(destination,{recursive:true});await fs.symlink(f.source,destination);await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent}),/already exists/);assert.equal((await fs.lstat(destination)).isSymbolicLink(),true);}

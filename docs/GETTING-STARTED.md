@@ -27,8 +27,9 @@ Repositories created through Zero are public. Publishing an app also makes the a
 
 Zero prepares its editor and Java tools when you open the app. If setup cannot finish, check your internet connection and open Zero again. On a managed device, your device administrator can help with installation or network access.
 
-The Windows launcher also prepares Git for creating and cloning projects. It
-reuses a compatible copy when it finds one and can download a private copy.
+On Mac and Windows, the Zero app prepares Git for creating and cloning
+projects. It reuses a compatible copy or downloads one for Zero. Mac students
+using the Zero app can skip Xcode and its Command Line Tools.
 
 For other installation options, use the instructions included with the download you chose.
 
@@ -71,7 +72,7 @@ Run and test your app first. To share it, choose **Publish & open app** from the
 - **Can't find the sidebar or Start Page?** Follow [Back to Zero](https://zero.codepet.ca/tutorials/15).
 - **Zero won't open or finish setup?** Check your internet connection, close Zero and open it again. If needed, download the installer again.
 - **Run fails?** Read the error in Zero or the terminal and check the code and project files. Use **Troubleshooting → Test installation** to check the bundled example separately.
-- **Zero could not prepare Git on Windows?** Fully quit Zero and VS Code, then reopen Zero with internet access. If a school laptop blocks the download, ask school IT for help. Older Zero releases and manual ZIP setups can use [Git for Windows](https://git-scm.com/install/win) with command-line access enabled. If GitHub already has your project, choose **Clone from GitHub** and select the existing repository.
+- **Zero could not prepare Git?** Fully quit Zero and VS Code, then reopen the Zero app with internet access. If a school laptop blocks the download, ask school IT for help. Older Zero releases and manual ZIP setups need a working Git installation. If GitHub already has your project, choose **Clone from GitHub** and select the existing repository.
 - **GitHub says “Sudo authentication failed” after you enter the emailed code?** On GitHub’s **Confirm access** page, try another verification method if one is offered. If the email code keeps failing, try [resetting your GitHub password](https://github.com/password_reset). Then return to Zero and reconnect the same GitHub account.
 - **GitHub actions fail?** Check that you are signed in, the repository is accessible, and your connection is working. Zero displays the next action when it can identify the problem. If Git asks for your name or email, follow [GitHub’s guide to setting your commit name](https://docs.github.com/en/get-started/git-basics/setting-your-username-in-git) and [commit email](https://docs.github.com/en/account-and-profile/how-tos/email-preferences/setting-your-commit-email-address).
 - **Need to update Zero?** On Mac, use **Zero: Check for Updates**. On Windows, follow the update instructions for the installer you used.

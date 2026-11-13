@@ -644,13 +644,61 @@ struct SetupTests {
         let nodeArchive = temporary.appendingPathComponent("valid-node.tar.gz")
         _ = try MacRuntime.execute("/usr/bin/tar",["-czf",nodeArchive.path,"-C",payload.path,nodeFolder])
         let nodeDigest = try MacRuntime.execute("/usr/bin/shasum",["-a","256",nodeArchive.path]).split(separator:" ").first.map(String.init)!
+        let gitPayload = payload.appendingPathComponent("git")
+        let gitScript = gitPayload.appendingPathComponent("bin/git")
+        let gitHelpers = gitPayload.appendingPathComponent("libexec/git-core")
+        try MacRuntime.mkdir(gitScript.deletingLastPathComponent())
+        try MacRuntime.mkdir(gitHelpers)
+        try MacRuntime.mkdir(gitPayload.appendingPathComponent("share/git-core/templates"))
+        let fakeGitScript = """
+            #!/bin/sh
+            test "$GIT_EXEC_PATH" = "${0%/bin/git}/libexec/git-core" || exit 2
+            echo git version 2.56.1
+            """ + "\n"
+        try fakeGitScript.write(to: gitScript, atomically: false, encoding: .utf8)
+        try manager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: gitScript.path)
+        let httpHelper = gitHelpers.appendingPathComponent("git-remote-http")
+        try manager.copyItem(at: gitScript, to: httpHelper)
+        try manager.createSymbolicLink(atPath: httpHelper.path + "s", withDestinationPath: "git-remote-http")
+        let gitArchive = temporary.appendingPathComponent("valid-git.tar.gz")
+        _ = try MacRuntime.execute("/usr/bin/tar", ["-czf", gitArchive.path, "-C", gitPayload.path, "."])
+        let gitDigest = try MacRuntime.execute("/usr/bin/shasum", ["-a", "256", gitArchive.path]).split(separator: " ").first.map(String.init)!
+        if let option = CommandLine.arguments.firstIndex(of: "--git-archive"), CommandLine.arguments.count > option + 1 {
+            let pin = try JSONDecoder().decode(MacRuntime.Manifest.self, from: Data(contentsOf: URL(fileURLWithPath: "setup/mac-downloads.json"))).architectures[nodeArchitecture]!["git"]!
+            let original = URL(fileURLWithPath: CommandLine.arguments[option + 1])
+            try expect(try MacRuntime.execute("/usr/bin/shasum", ["-a", "256", original.path]).hasPrefix(pin.sha256 + " "), "official Git archive matches pin")
+            let realKit = try fixture(temporary.appendingPathComponent("real git kit"))
+            try "kitVersion=1.2.3\nextensionId=zero.zero\nvscodeMinimum=1.95.0\n".write(to: realKit.root.appendingPathComponent("setup/kit.properties"), atomically: true, encoding: .utf8)
+            try manager.removeItem(at: realKit.root.appendingPathComponent("setup/mac-downloads.json"))
+            try manager.copyItem(at: URL(fileURLWithPath: "setup/mac-downloads.json"), to: realKit.root.appendingPathComponent("setup/mac-downloads.json"))
+            let real = try MacRuntime(kit: realKit.root, home: temporary.appendingPathComponent("real git home"))
+            let extracted = temporary.appendingPathComponent("real git extraction")
+            try MacRuntime.mkdir(extracted)
+            try SafeMacArchive.extract(original, to: extracted, allowRootEntry: true)
+            try real.validateExtracted(extracted, kind: "git")
+            let executable = try real.privateGit(in: extracted)
+            let network = ProcessInfo.processInfo.environment["ZERO_TEST_GIT_HTTPS"] == "1"
+            let env = ["PATH": "/bin", "HOME": temporary.path, "GIT_EXEC_PATH": "/does/not/exist",
+                       "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_TERMINAL_PROMPT": "0"]
+            let localSource = temporary.appendingPathComponent("real Git source")
+            _ = try MacRuntime.execute(executable.path, ["init", "--bare", localSource.path], environment: env)
+            let localClone = temporary.appendingPathComponent("real local Git clone")
+            _ = try MacRuntime.execute(executable.path, ["clone", "--", localSource.path, localClone.path], environment: env)
+            try expect(manager.fileExists(atPath: localClone.appendingPathComponent(".git").path), "official portable Git clones with system Git unavailable to the caller")
+            if network {
+                let remoteClone = temporary.appendingPathComponent("real remote Git clone")
+                _ = try MacRuntime.execute(executable.path, ["clone", "--depth=1", "--", "https://github.com/octocat/Hello-World.git", remoteClone.path], environment: env, timeout: 45)
+                try expect(try MacRuntime.execute(executable.path, ["-C", remoteClone.path, "rev-parse", "--verify", "HEAD"], environment: env).count > 39, "official portable Git uses its own HTTPS helper to clone and verify HEAD")
+            }
+        }
         func manifest(_ hash: String = digest, _ url: String = "https://github.com/adoptium/test.tar.gz") throws {
             let asset: [String: Any] = ["url": url, "sha256": hash, "format": "tar.gz", "size": (try manager.attributesOfItem(atPath: archive.path)[.size] as! NSNumber).intValue]
             let editor: [String: Any] = ["url": "https://vscode.download.prss.microsoft.com/test.zip", "sha256": String(repeating: "a", count: 64), "format": "zip", "size": 100]
             var architectures: [String:Any] = [:]
             for architecture in ["arm64","x64"] {
                 let node: [String:Any] = ["url":"https://nodejs.org/dist/v22.23.4/node-v22.23.4-darwin-\(architecture).tar.gz","sha256":nodeDigest,"version":"22.23.4","format":"tar.gz","size":(try manager.attributesOfItem(atPath:nodeArchive.path)[.size] as! NSNumber).intValue]
-                architectures[architecture] = ["jdk":asset,"vscode":editor,"node":node]
+                let git: [String:Any] = ["url":"https://github.com/desktop/dugite-native/releases/download/v2.56.1/dugite-native-v2.56.1-238326e-macOS-\(architecture).tar.gz","sha256":gitDigest,"version":"2.56.1","format":"tar.gz","size":(try manager.attributesOfItem(atPath:gitArchive.path)[.size] as! NSNumber).intValue]
+                architectures[architecture] = ["jdk":asset,"vscode":editor,"node":node,"git":git]
             }
             let values: [String: Any] = ["schemaVersion": 1, "architectures": architectures]
             try JSONSerialization.data(withJSONObject: values).write(to: runtimeKit.root.appendingPathComponent("setup/mac-downloads.json"))
@@ -697,7 +745,27 @@ struct SetupTests {
         let runtimeHome = temporary.appendingPathComponent("private runtime home")
         try MacRuntime.mkdir(runtimeHome)
         var runtime = try MacRuntime(kit: runtimeKit.root, home: runtimeHome)
-        try expect(try runtime.javaHome() == nil && runtime.nodeExecutable() == nil && !manager.fileExists(atPath: runtime.root.path), "read-only Java and Node discovery create nothing")
+        runtime.testGitCandidates = [URL(fileURLWithPath: "/usr/bin/git")]
+        runtime.testDownload = { _, _ in throw SetupFailure(message: "Git unavailable offline") }
+        try expect(runtime.prepareGit() == nil, "Apple shim is skipped and offline Git setup is optional")
+        runtime.testDownload = { target, _ in try manager.copyItem(at: gitArchive, to: target) }
+        let privateGit = runtime.prepareGit()
+        try expect(privateGit == runtime.git.appendingPathComponent("zero-bin/git"), "missing Git selects verified private executable")
+        runtime.testDownload = { _, _ in throw SetupFailure(message: "Unexpected repeat Git download") }
+        try expect(runtime.prepareGit() == privateGit, "reopening uses installed Git without another download")
+        let installedHelper = runtime.git.appendingPathComponent("libexec/git-core/git-remote-http")
+        try manager.removeItem(at: installedHelper)
+        try expect(runtime.prepareGit() == nil && manager.fileExists(atPath: runtime.git.path), "failed repair restores known private Git folder")
+        runtime.testDownload = { target, _ in try manager.copyItem(at: gitArchive, to: target) }
+        try expect(runtime.prepareGit() == privateGit && manager.fileExists(atPath: installedHelper.path), "retry repairs missing HTTPS helper")
+        let existingGit = temporary.appendingPathComponent("installed system tools/git")
+        try MacRuntime.mkdir(existingGit.deletingLastPathComponent())
+        try "#!/bin/sh\necho git version 2.50.1\n".write(to: existingGit, atomically: false, encoding: .utf8)
+        try manager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: existingGit.path)
+        runtime.testGitCandidates = [existingGit]
+        try expect(runtime.prepareGit()?.path == existingGit.resolvingSymlinksInPath().path, "compatible installed tool avoids private download")
+        runtime.testGitCandidates = []
+        try expect(try runtime.javaHome() == nil && runtime.nodeExecutable() == nil, "Java and Node discovery do not select missing runtimes")
         runtime.testDownload = { target, asset in try manager.copyItem(at:asset.url.contains("nodejs.org") ? nodeArchive : archive,to:target) }
         try runtime.install("jdk")
         try runtime.prepareNode()
@@ -711,6 +779,10 @@ struct SetupTests {
         try expect(try runtime.nodeExecutable() == runtime.nodeBinary && runtime.environment(try runtime.javaHome()!)["NODE_OPTIONS"] == nil && runtime.environment(try runtime.javaHome()!)["NODE_PATH"] == nil, "Node version probe and editor environment reject inherited preloads/modules")
         try expect(try manager.destinationOfSymbolicLink(atPath:runtime.nodeBinary.deletingLastPathComponent().appendingPathComponent("npm").path) == "../lib/node_modules/npm/bin/npm-cli.js", "Node npm link extracted only as a contained link, never executed")
         let selected = try runtime.javaHome()!
+        let gitEnvironment = runtime.environment(selected, git: privateGit, projectGit: true)
+        try expect(gitEnvironment["ZERO_GIT_EXECUTABLE"] == privateGit?.path && gitEnvironment["ZERO_GIT_SETUP_FAILED"] == nil && gitEnvironment["PATH"]!.contains("/zero-bin:"), "selected Git reaches editor and terminal child environment")
+        let failedGitEnvironment = runtime.environment(selected, projectGit: true)
+        try expect(failedGitEnvironment["ZERO_GIT_EXECUTABLE"] == nil && failedGitEnvironment["ZERO_GIT_SETUP_FAILED"] == "1", "failed Git is admitted for local work")
         try expect(selected.path.hasPrefix(runtime.root.path), "private verified Java selected independently of host JAVA_HOME")
         let inheritedJava = ProcessInfo.processInfo.environment["JAVA_HOME"], inheritedPath = ProcessInfo.processInfo.environment["PATH"], inheritedZeroJava = ProcessInfo.processInfo.environment["ZERO_JAVA_HOME"]
         let inheritedFlags = Dictionary(uniqueKeysWithValues: MacRuntime.javaStartupVariables.map { ($0, ProcessInfo.processInfo.environment[$0]) })
@@ -856,9 +928,10 @@ struct SetupTests {
         try rejected("student-owned launcher") { try runtime.validateLauncher() }
         try expect(try String(contentsOf: launcher) == "student launcher", "launcher collision preserves student file")
         try manager.removeItem(at: launcher)
-        try runtime.launcher(cli: URL(fileURLWithPath: "/fake editor/code"), java: selected)
+        try runtime.launcher(cli: URL(fileURLWithPath: "/fake editor/code"), java: selected, git: privateGit)
         let generated = try String(contentsOf: launcher)
         try expect(generated.contains("export ZERO_NODE_EXECUTABLE=" + MacRuntime.quote(runtime.nodeBinary.path)) && generated.contains("NODE_OPTIONS NODE_PATH"), "owned launcher carries private Node path and clears inherited injection")
+        try expect(generated.contains("export ZERO_GIT_EXECUTABLE=" + MacRuntime.quote(privateGit!.path)), "standalone launcher selects the same private Git")
         try expect(generated.contains("--new-window") && !generated.contains(runtimeKit.root.appendingPathComponent("starter").path), "standalone fallback opens empty tutorial window")
         try expect(generated.contains("--user-data-dir") && generated.contains("--extensions-dir") && generated.contains("export JAVA_HOME=") && generated.contains("export ZERO_JAVA_HOME=") && generated.contains("export ZERO_KIT_DIR=" + MacRuntime.quote(runtimeKit.root.path)), "standalone launcher preserves private editor, Java and kit location after DMG closes")
         try manager.removeItem(at: launcher)

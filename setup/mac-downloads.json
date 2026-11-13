@@ -22,6 +22,13 @@
         "version": "22.23.4",
         "format": "tar.gz",
         "size": 49996369
+      },
+      "git": {
+        "url": "https://github.com/desktop/dugite-native/releases/download/v2.56.1/dugite-native-v2.56.1-238326e-macOS-arm64.tar.gz",
+        "sha256": "a882ec6882416b57d212a22bac845ae27944f96cf73453a864f6a12c17863a79",
+        "format": "tar.gz",
+        "version": "2.56.1",
+        "size": 63505330
       }
     },
     "x64": {
@@ -45,6 +52,13 @@
         "version": "22.23.4",
         "format": "tar.gz",
         "size": 51190214
+      },
+      "git": {
+        "url": "https://github.com/desktop/dugite-native/releases/download/v2.56.1/dugite-native-v2.56.1-238326e-macOS-x64.tar.gz",
+        "sha256": "3fdb0c2f102fe0273d64b5d5fb77315c19f2b4648a154593723cb9ed98f2bc7d",
+        "format": "tar.gz",
+        "version": "2.56.1",
+        "size": 67474588
       }
     }
   },
@@ -52,6 +66,8 @@
     "nodeCheckedUtc": "2026-11-08T14:46:56Z",
     "nodeChecksums": "https://nodejs.org/dist/v22.23.4/SHASUMS256.txt",
     "nodeSizes": "Official nodejs.org archive HTTP HEAD Content-Length; no archive download or installation.",
-    "nodeSigning": "Codesign verification and metadata from the downloaded checksum-matched Node 22.23.4 darwin-arm64: Developer ID Application: Node.js Foundation (HX7739G8FX), TeamIdentifier=HX7739G8FX."
+    "nodeSigning": "Codesign verification and metadata from the downloaded checksum-matched Node 22.23.4 darwin-arm64: Developer ID Application: Node.js Foundation (HX7739G8FX), TeamIdentifier=HX7739G8FX.",
+    "gitRelease": "https://github.com/desktop/dugite-native/releases/tag/v2.56.1",
+    "gitAsset": "Official GitHub Desktop Dugite releases. Both macOS archive sizes and SHA-256 hashes checked against the downloaded assets on 2026-11-13."
   }
 }

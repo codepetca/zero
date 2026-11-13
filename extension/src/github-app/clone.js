@@ -38,8 +38,9 @@ async function validateCloneParent(parentPath) {
   return {parent,parentStat};
 }
 function gitPrerequisite(message, platform, environment) {
-  if (platform === 'win32' && (environment.ZERO_GIT_SETUP_FAILED === '1' || environment.ZERO_GIT_EXECUTABLE !== undefined)) {
-    return Object.assign(Error('Zero could not prepare Git. Fully quit Zero and VS Code, then reopen Zero while connected to the internet. If Git setup still fails on a school laptop, ask school IT.'), {code:'git-setup-retry'});
+  if ((platform === 'win32' || platform === 'darwin') && (environment.ZERO_GIT_SETUP_FAILED === '1' || environment.ZERO_GIT_EXECUTABLE !== undefined)) {
+    const help = platform === 'win32' ? ' If Git setup still fails on a school laptop, ask school IT.' : '';
+    return Object.assign(Error('Zero could not prepare Git. Fully quit Zero and VS Code, then reopen Zero while connected to the internet.' + help), {code:'git-setup-retry'});
   }
   return Object.assign(Error(message), {code:'git-prerequisite'});
 }
@@ -48,6 +49,12 @@ async function assertCloneGit(parent, run = core.git, {platform = process.platfo
   try { output = await run(parent, ['--version']); }
   catch (error) {
     if (error.code === 'ENOTDIR') throw unavailableCloneFolder();
+    // Apple's Git shim reports missing developer tools as a process failure.
+    // Do not expose its raw output to the user.
+    const diagnostic = [error.message, error.stderr].filter(value => typeof value === 'string').join('\n');
+    if (platform === 'darwin' && /(?:xcode-select|xcrun):[^\n]*(?:no developer tools|unable to find|requires the command line developer tools|invalid active developer path)/i.test(diagnostic)) {
+      throw gitPrerequisite('Git is unavailable because the macOS developer tools are missing. Reopen the current Zero installer, or install the Command Line Tools independently, then fully quit and reopen Zero.', platform, environment);
+    }
     if (!['ENOENT','EACCES','EPERM'].includes(error.code)) throw error;
     // A vanished working directory also produces spawn ENOENT.
     const folder = await fs.stat(parent).catch(error => {

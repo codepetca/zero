@@ -120,7 +120,7 @@ final class NativeCommandRunner: SetupCommandRunning {
                             if line.hasPrefix("ZERO_PROGRESS=") {
                                 let token = String(line.dropFirst(14))
                                 if progressCount < 32, token != lastProgress,
-                                   ["java", "editor", "settings", "zero", "redhat", "verify"].contains(token) {
+                                   ["java", "editor", "settings", "zero", "redhat", "verify", "git"].contains(token) {
                                     progressCount += 1; lastProgress = token
                                     DispatchQueue.main.async { reportProgress?(token) }
                                 }
@@ -661,6 +661,9 @@ final class SetupController {
     private func reportProgress(_ token: String) {
         // Each token starts a stage after the preceding stages succeeded. Already
         // installed extensions may skip tokens; verification confirms those steps.
+        if busy, retryOpening, token == "git" {
+            summary = "Preparing Git…"; changed?(); return
+        }
         let steps = ["java": (2, "Preparing Java…"), "editor": (3, "Preparing Zero editor…"),
                      "settings": (4, "Preparing Zero settings…"), "zero": (5, "Installing Zero support…"),
                      "redhat": (6, "Installing Java support…"), "verify": (7, "Checking Zero is ready…")]
