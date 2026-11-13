@@ -84,6 +84,10 @@ restoring anything. A participant may submit a corrected new entry revision whil
 the event is active and its ordinary submission window remains open.
 `list(actor?)` includes an inbox of submitted/changes-requested proposal summaries
 only for configured maintainer IDs; public and other-account lists omit it.
+A signed-in directory (`listSummaries`) also returns `hosted`: the caller's own
+jams, including pending, suspended and cancelled ones, with display fields,
+moderation, schedule, participant count and a `listed` flag, but no entries or
+participant identities.
 Public `event.approvalHistory` contains at most 50 approved-only revision, manifest
 and approval-date snapshots. Pending proposals stay private. Approving new rules
 does not overwrite a participant's previous `registration.revision`; the next

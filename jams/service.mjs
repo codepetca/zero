@@ -132,6 +132,15 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       .map(({pagesVerification,...entry})=>entry.participantId===winner?.participantId ? {...entry,winner:true} : entry) : [];
     return {id:state.id,creator:structuredClone(state.creator),hosting:state.hosting||'creator',revision:state.accepted?.revision||null,...manifest,approvalHistory,...(state.accepted?.approvalMode?{approvalMode:state.accepted.approvalMode}:{}),reviewStatus:state.proposals.at(-1).status,moderation:structuredClone(state.moderation),registrationOpen:active&&inWindow(time,manifest.schedule.registrationOpensAt,manifest.schedule.registrationClosesAt),submissionsOpen:active&&inWindow(time,manifest.schedule.submissionsOpenAt,manifest.schedule.submissionsCloseAt),participantCount:participants.length,participantLimit:bound.participants,participants,entries:moderation?entries:publicEntries,...(galleryIncomplete?{galleryIncomplete:true}:{}),...(manifest.schedule.galleryRevealAt?{galleryRevealed}:{}),updatedAt:state.updatedAt};
   }
+  // A creator's own directory view includes their unlisted jams so they can
+  // see why each one is or is not listed. Only display fields and counts are
+  // exposed; entries and participant identities stay on the event page.
+  function hostedSummary(state,time) {
+    const manifest=(state.accepted||state.proposals.at(-1)).manifest;
+    const active=!!state.accepted&&state.moderation.status==='active';
+    const participantCount=Object.values(state.registrations).filter(item=>item.status==='joined').length;
+    return {id:state.id,type:manifest.type,title:manifest.title,revision:state.accepted?.revision||null,reviewStatus:state.proposals.at(-1).status,moderation:structuredClone(state.moderation),schedule:structuredClone(manifest.schedule),timezone:manifest.timezone,listed:active,registrationOpen:active&&inWindow(time,manifest.schedule.registrationOpensAt,manifest.schedule.registrationClosesAt),submissionsOpen:active&&inWindow(time,manifest.schedule.submissionsOpenAt,manifest.schedule.submissionsCloseAt),participantCount};
+  }
   function recover(state,actor,op,payloadDigest) {
     const previous=state?.operations[operationKey(actor,op)];
     if(!previous)return null;
@@ -385,7 +394,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       catch { scope.check(); }
       hostingAccess={accountId:actor.id,canCreate};
     }
-    const events=[],proposals=[],canMaintain=!!actor&&maintainers.has(actor.id);
+    const events=[],proposals=[],hosted=[],canMaintain=!!actor&&maintainers.has(actor.id);
     const {states,time,visibility,pagesEligible,pagesUnverified,galleriesDeferred,revision}=await publicDiscovery(scope,{directory});
     for(const [id,state] of states) {
       if(state?.accepted&&state.moderation.status==='active'){
@@ -394,9 +403,10 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
         events.push(event);
       }
       const proposal=state?.proposals.at(-1);
+      if(hostingAccess&&state&&state.creator?.id===actor.id)hosted.push(hostedSummary(state,time));
       if(canMaintain&&proposal&&['submitted','changes-requested'].includes(proposal.status))proposals.push({id,title:proposal.manifest.title,type:proposal.manifest.type,revision:proposal.revision,status:proposal.status,organizerLogin:state.creator.login,submittedAt:proposal.proposedAt});
     }
-    return taggedProjection({events,canMaintain,...(directory||galleriesDeferred?{galleriesDeferred:true}:{}),...(canMaintain?{proposals}:{}),...(hostingAccess?{hostingAccess}:{})},revision);
+    return taggedProjection({events,canMaintain,...(directory||galleriesDeferred?{galleriesDeferred:true}:{}),...(canMaintain?{proposals}:{}),...(hostingAccess?{hostingAccess,hosted}:{})},revision);
   }
   async function read(id,actor,options={}) {
     const {signal}=readOptions(options);
