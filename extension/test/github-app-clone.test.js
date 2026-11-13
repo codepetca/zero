@@ -64,6 +64,17 @@ test('unselected repository and old Git stop before reserving destination or dis
  const f=await fixture(t);f.accessHook=()=>{throw Error('Select repository');};await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent}),/Select repository/);assert.equal(f.calls.length,0);assert.deepEqual(await fs.readdir(f.parent),[]);
  f.accessHook=undefined;f.localHook=(_,args)=>args[0]==='--version'?'git version 2.30.9':undefined;await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent}),/2.31/);assert.equal(f.accessCalls,1);assert.deepEqual(await fs.readdir(f.parent),[]);
 });
+test('spawn ENOENT distinguishes missing Git from a disappeared clone parent',async t=>{
+ const f=await fixture(t);
+ const missing=Object.assign(Error('spawn git ENOENT'),{code:'ENOENT'});
+ f.localHook=()=>{throw missing;};
+ await assert.rejects(f.clone({repositoryUrl:remote,parentPath:f.parent}),error=>error.code==='git-prerequisite'&&/fully quit and reopen Zero/.test(error.message));
+ assert.equal(f.accessCalls,0);
+ assert.deepEqual(await fs.readdir(f.parent),[]);
+ f.localHook=async()=>{await fs.rmdir(f.parent);throw missing;};
+ await assert.rejects(f.clone({repositoryUrl:remote,parentPath:f.parent}),error=>error.code==='clone-folder-unavailable');
+ assert.equal(f.accessCalls,0);
+});
 test('existing folder and symlink are never overwritten or removed',async t=>{
  const f=await fixture(t),destination=path.join(f.parent,'project');await fs.mkdir(destination);await fs.writeFile(path.join(destination,'keep'),'preserve');await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent}),/already exists/);assert.equal(await fs.readFile(path.join(destination,'keep'),'utf8'),'preserve');assert.equal(f.calls.length,0);
  if(process.platform!=='win32'){await fs.rm(destination,{recursive:true});await fs.symlink(f.source,destination);await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent}),/already exists/);assert.equal((await fs.lstat(destination)).isSymbolicLink(),true);}

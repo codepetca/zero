@@ -413,6 +413,19 @@ test('authenticated clone failures explain recovery and cancellation releases th
   failure=undefined;await f.commands.get('zero.cloneRepository')();assert.equal(f.errors.length,count);
   assert.equal(f.calls.filter(([id])=>id==='cloneRepository').length,3);assert.ok(!f.calls.some(([id])=>id==='git.clone'));
 });
+test('clone with unavailable local Git offers the official installer without suggesting GitHub access repair',async t=>{
+ const f=await fixture(t,{empty:true,clone:async()=>{throw Object.assign(Error('Zero could not find Git on this computer.'),{code:'git-prerequisite'});}});
+ f.setInteractiveSession({id:'app',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'});
+ f.vscode.window.showErrorMessage=async(message,action)=>{
+   f.errors.push(message);
+   assert.equal(action,'Get Git');
+   return action;
+ };
+ await f.commands.get('zero.cloneRepository')();
+ assert.match(f.errors.at(-1),/could not find Git/);
+ assert.doesNotMatch(f.errors.at(-1),/GitHub access|ENOENT/);
+ assert.ok(f.calls.some(([id,uri])=>id==='openExternal'&&uri.value===(process.platform==='win32'?'https://git-scm.com/install/win':'https://git-scm.com/downloads/')));
+});
 
 test('tutorial creation serializes form and clone, then releases the shared busy guard', async t=>{
   let finishPick,finishClone;const picks=[];

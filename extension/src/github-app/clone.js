@@ -9,6 +9,27 @@ const {assertNoUrlRewrites}=require('../github');
 const execute=promisify(execFile);
 
 function cancellation(signal) {if(signal?.aborted)throw Object.assign(Error('Cloning cancelled.'),{code:'cancelled'});}
+async function assertCloneGit(parent, run = core.git) {
+  let output;
+  try { output = await run(parent, ['--version']); }
+  catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+    // A vanished working directory also produces spawn ENOENT.
+    const folder = await fs.stat(parent).catch(error => {
+      if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return null;
+      throw error;
+    });
+    if (!folder?.isDirectory()) {
+      throw Object.assign(Error('The selected project folder is unavailable. Choose a folder again.'), {code:'clone-folder-unavailable'});
+    }
+    const install = process.platform === 'win32' ? 'Install Git for Windows' : 'Install Git';
+    throw Object.assign(Error(`Zero could not find Git on this computer. ${install}, then fully quit and reopen Zero.`), {code:'git-prerequisite'});
+  }
+  const version = /^git version (\d+)\.(\d+)(?:\.|\s|$)/.exec(output);
+  if (!version || Number(version[1]) < 2 || (Number(version[1]) === 2 && Number(version[2]) < 31)) {
+    throw Object.assign(Error('Zero needs Git 2.31 or newer. Update Git, then fully quit and reopen Zero.'), {code:'git-prerequisite'});
+  }
+}
 function cleanEnvironment(source) {
   const env={...source};
   for(const key of Object.keys(env)) if (/^GIT_(?:CONFIG(?:_|$)|TRACE|CURL_VERBOSE$|SSL_NO_VERIFY$|ASKPASS$|DIR$|WORK_TREE$|COMMON_DIR$|INDEX_FILE$|OBJECT_DIRECTORY$|ALTERNATE_OBJECT_DIRECTORIES$|NAMESPACE$|TEMPLATE_DIR$)|^SSH_ASKPASS$|^SSLKEYLOGFILE$/i.test(key))delete env[key];
@@ -30,8 +51,8 @@ function createGitHubAppClone({authentication,repositories,spawn=execute,environ
       if(marker)throw Error('Choose a clone folder outside an existing Git repository.');
       if(path.dirname(directory)===directory)break;
     }
-    const version=/^git version (\d+)\.(\d+)(?:\.|\s|$)/.exec(await localRun(parent,['--version']));
-    if(!version||Number(version[1])<2||(Number(version[1])===2&&Number(version[2])<31))throw Error('Zero needs Git 2.31 or newer for isolated GitHub credentials. Update Git, then clone again.');
+    await assertCloneGit(parent,localRun);
+    cancellation(signal);
     const access=await repositories.access(requested.page,{permissions:{contents:'read'},signal});
     const {ticket,repository}=access;
     const repositoryId=repository.id,installationId=access.installation?.id;
@@ -102,4 +123,4 @@ function createGitHubAppClone({authentication,repositories,spawn=execute,environ
     }
   };
 }
-module.exports={createGitHubAppClone};
+module.exports={createGitHubAppClone,assertCloneGit};

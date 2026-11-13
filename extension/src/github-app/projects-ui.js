@@ -5,11 +5,12 @@ const {assertTutorialTemplateReady}=require('../tutorial-template-readiness');
 const {visibleTutorialGroups,DISPLAY_NUMBERS}=require('../tutorial-catalog');
 const core=require('../core');
 const {createProjectProgress,throwIfCancelled}=require('../project-folders');
+const {assertCloneGit}=require('./clone');
 const ORIGINAL_TEMPLATE=Object.freeze({owner:'codepetca',repo:'zero-starter'});
 function nameError(value){
   if(typeof value!=='string'||!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/.test(value)||value.includes('..')||value.endsWith('.')||value.toLowerCase().endsWith('.git')||/^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(value))return 'Use 1–100 letters, numbers, dots, hyphens or underscores; choose an ordinary folder name.';
 }
-function createGitHubProjectCommands({vscode,authentication,repositories,folders,extensionPath,project,prepare,active=()=>true,onProgress=()=>{},onRecovery=async()=>{}}){
+function createGitHubProjectCommands({vscode,authentication,repositories,folders,extensionPath,project,prepare,active=()=>true,onProgress=()=>{},onRecovery=async()=>{},checkCloneGit=assertCloneGit}){
   const drafts=new Map();let disposed=false;const isActive=()=>!disposed&&active();const progress=createProjectProgress(vscode,isActive);
   async function collect(title,key,{clone=false,defaultName='my-project',preparedTicket}={}){
     if(!isActive())return;
@@ -41,6 +42,12 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
     return progress.run('Create GitHub project',async(signal,reportProgress)=>{
       const notify=text=>{if(isActive()&&!signal.aborted){onProgress(text);reportProgress(text);}};
       throwIfCancelled(signal);
+      await checkCloneGit(input.parent.fsPath);
+      throwIfCancelled(signal);
+      if(!isActive())return;
+      await authentication.assertCurrent(input.ticket);
+      throwIfCancelled(signal);
+      if(!isActive())return;
       const intended=core.parseRepositoryUrl(`https://github.com/${input.ticket.session.label}/${input.draft.name}`).page;
       await onRecovery({repositoryUrl:intended,accountId:input.ticket.session.accountId,parentPath:input.parent.fsPath,stage:'creating'});
       notify('Creating your GitHub project…');
@@ -57,7 +64,11 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
         drafts.delete(input.draftKey);
         notify('Project created');
         return result;
-      }catch(error){throw Error(`Your GitHub repository is ready at ${result.repository.html_url}. ${error.message} Use Clone from GitHub to continue; the repository was kept.`);}
+      }catch(error){
+        const failure=Error(`Your GitHub repository is ready at ${result.repository.html_url}. ${error.message} Use Clone from GitHub to continue; the repository was kept.`);
+        if(error.code==='git-prerequisite')failure.code=error.code;
+        throw failure;
+      }
     });
   }
   async function startTutorial(){
