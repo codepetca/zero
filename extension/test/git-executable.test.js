@@ -42,10 +42,10 @@ test('macOS existing native extension host reads the current launcher selection'
   const git = path.join(home,'git');
   const selection = path.join(editor, 'git-selection.json');
   fs.writeFileSync(git, '#!/bin/sh\n', {mode:0o755});
-  fs.writeFileSync(selection, JSON.stringify({executable:git}), {mode:0o600});
+  fs.writeFileSync(selection, JSON.stringify({schema:1,executable:git}), {mode:0o600});
   assert.equal(gitExecutable({ZERO_GIT_SETUP_FAILED:'1'}, 'darwin', fs.statSync, source, home), git);
   assert.equal(gitExecutable({}, 'darwin', fs.statSync, '/other/editor/zero/src', home), 'git');
-  fs.writeFileSync(selection, JSON.stringify({executable:null}));
+  fs.writeFileSync(selection, JSON.stringify({schema:1,executable:null}));
   assert.throws(() => gitExecutable({ZERO_GIT_EXECUTABLE:git}, 'darwin', fs.statSync, source, home), {code:'ZERO_GIT_SETUP_FAILED'});
   fs.unlinkSync(selection);
   fs.symlinkSync(git, selection);

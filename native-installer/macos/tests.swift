@@ -790,6 +790,9 @@ struct SetupTests {
         try runtime.publishGitSelection(nil)
         let unavailable = try JSONSerialization.jsonObject(with: Data(contentsOf: selectionFile)) as! [String: Any]
         try expect(unavailable["executable"] is NSNull, "existing editor can see unavailable Git without falling back")
+        try "student file".write(to: selectionFile, atomically: true, encoding: .utf8)
+        try rejected("foreign Git selection is not replaced") { try runtime.publishGitSelection(privateGit) }
+        try expect(try String(contentsOf: selectionFile) == "student file", "unrecognized Git selection contents are preserved")
         let gitEnvironment = runtime.environment(selected, git: privateGit, projectGit: true)
         try expect(gitEnvironment["ZERO_GIT_EXECUTABLE"] == privateGit?.path && gitEnvironment["ZERO_GIT_SETUP_FAILED"] == nil && gitEnvironment["PATH"]!.contains("/zero-bin:"), "selected Git reaches editor and terminal child environment")
         let failedGitEnvironment = runtime.environment(selected, projectGit: true)

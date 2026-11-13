@@ -464,8 +464,17 @@ struct MacRuntime {
         let publication = try AnchoredZeroFile(directory: root.appendingPathComponent("editor"))
         let leaf = "git-selection.json"
         let previous = try publication.identity(leaf)
-        let bytes = try JSONSerialization.data(withJSONObject: ["executable": selected?.path as Any? ?? NSNull()])
-        if let previous, try publication.read(leaf, expected: previous) == bytes { return }
+        let bytes = try JSONSerialization.data(withJSONObject: ["schema": 1, "executable": selected?.path as Any? ?? NSNull()])
+        if let previous {
+            let existing = try publication.read(leaf, expected: previous)
+            guard existing.count <= 8192,
+                  let value = try JSONSerialization.jsonObject(with: existing) as? [String: Any],
+                  Set(value.keys) == ["schema", "executable"], value["schema"] as? Int == 1,
+                  value["executable"] is NSNull || (value["executable"] as? String).map({ $0.hasPrefix("/") && $0.hasSuffix("/git") }) == true else {
+                throw SetupFailure(message: "Zero's Git selection is unrecognized; its contents were kept.")
+            }
+            if existing == bytes { return }
+        }
         try publication.publish(bytes, leaf: leaf, mode: 0o600, expected: previous)
     }
     func publishEditorUpdate() throws {
@@ -573,7 +582,8 @@ struct MacRuntime {
                     let selected = runtime.prepareGit()
                     do { try runtime.seedSettings(java, git: selected) }
                     catch { print("Zero's editor settings were kept: \(error.localizedDescription)") }
-                    try runtime.publishGitSelection(selected)
+                    do { try runtime.publishGitSelection(selected) }
+                    catch { print("Zero's Git selection was kept: \(error.localizedDescription)") }
                     do { try runtime.launcher(cli: cli, java: java, git: selected) }
                     catch { print("Zero's optional launcher was kept: \(error.localizedDescription)") }
                     return selected

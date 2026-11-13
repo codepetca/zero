@@ -21,7 +21,7 @@ function currentMacGit(sourceDirectory, home) {
     const length = fs.readSync(fd, bytes, 0, bytes.length, 0);
     if (length > 8192) throw Error('Invalid Git selection.');
     const selection = JSON.parse(bytes.subarray(0, length).toString('utf8'));
-    if (!selection || Object.keys(selection).join(',') !== 'executable') throw Error('Unrecognized Git selection.');
+    if (!selection || Object.keys(selection).sort().join(',') !== 'executable,schema' || selection.schema !== 1) throw Error('Unrecognized Git selection.');
     return selection.executable;
   } finally { fs.closeSync(fd); }
 }
