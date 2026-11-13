@@ -1,5 +1,5 @@
 import { getWorkOS, handleAuth } from '@workos-inc/authkit-nextjs';
-import { cookieHeader, FLOW_COOKIE, safeHubReturnTo, SESSION_COOKIE } from '@/lib/hub-github-auth.mjs';
+import { cookieHeader, FLOW_COOKIE, readCookie, safeHubReturnTo, SESSION_COOKIE } from '@/lib/hub-github-auth.mjs';
 import { githubAuthentication, workosConfigured } from '@/lib/workos-config.mjs';
 import { createWorkOSHubSession } from '@/lib/workos-github-binding.mjs';
 
@@ -14,7 +14,9 @@ export async function GET(request: Parameters<ReturnType<typeof handleAuth>>[0])
     returnPathname:'/',
     onSuccess:async data => {
       if (!githubAuthentication(data)) throw new Error('GitHub authentication required');
-      const grant = await createWorkOSHubSession(data, (token: string) => getWorkOS().userManagement.verifyAccessToken(token));
+      const grant = await createWorkOSHubSession(data,
+        (token: string) => getWorkOS().userManagement.verifyAccessToken(token),
+        {previousCookie:readCookie(request, SESSION_COOKIE)});
       hubCookie = grant?.cookie ?? null;
       signedIn = true;
     },

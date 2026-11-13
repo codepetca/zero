@@ -57,7 +57,9 @@ export async function verifyWorkOSGitHubBinding(callback, {env = process.env, fe
 
 // This callback runs after AuthKit's code exchange. A WorkOS identity may
 // sign in to Zero even when the provider did not return an approved App grant.
-export async function createWorkOSHubSession(callback, verifyAccessToken, {env = process.env, fetchImpl = fetch, now = Date.now} = {}) {
+export async function createWorkOSHubSession(callback, verifyAccessToken, {
+  env = process.env, fetchImpl = fetch, now = Date.now, previousCookie = null
+} = {}) {
   const config = hubConfig(env);
   const token = callback?.oauthTokens?.accessToken;
   if (!managedHubAvailable(config, env) || !githubAuthentication(callback) ||
@@ -77,6 +79,6 @@ export async function createWorkOSHubSession(callback, verifyAccessToken, {env =
     const identity = workosSessionIdentity(claims, binding.workosUserId, env.WORKOS_ISSUER, checkedAt);
     if (!identity) return null;
     const grant = newManagedSession(token, {id:Number(binding.githubId), login:binding.login}, remaining, config, identity, checkedAt);
-    return persistManagedSession(grant, callback.oauthTokens.refreshToken, config, env, fetchImpl, checkedAt);
+    return persistManagedSession(grant, callback.oauthTokens.refreshToken, config, env, fetchImpl, checkedAt, {previousCookie});
   } catch { return null; }
 }

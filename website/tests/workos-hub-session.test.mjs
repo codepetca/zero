@@ -322,11 +322,27 @@ function grantFixture(t) {
   const connect = (options = {}) => createWorkOSHubSession({...callback,
     oauthTokens:{...callback.oauthTokens,refreshToken}}, verify,
     {env:redisEnv,fetchImpl,now:() => now,...options});
+  const signBackIn = ({previous, at, subject = claims.sub, githubId = githubUser.id, proof = nextToken}) => {
+    const nextClaims = {...claims, sub:subject, sid:'session_Returned', exp:at / 1000 + 120};
+    const nextAuth = {...auth,user:{id:subject},sessionId:nextClaims.sid};
+    const data = {...callback,user:nextAuth.user,oauthTokens:{accessToken:proof,expiresAt:at / 1000 + 300}};
+    const provider = async (url, options) => {
+      const user = {...githubUser,id:githubId};
+      if (url === 'https://api.github.com/user') return Response.json(user);
+      if (url === `https://api.github.com/applications/${zeroApp.clientId}/token`)
+        return Response.json({app:{client_id:zeroApp.clientId},user});
+      return fetchImpl(url, options);
+    };
+    const previousCookie = previous ? cookiePair(previous.cookie).split('=')[1] : undefined;
+    return createWorkOSHubSession(data, async () => nextClaims, {
+      env:redisEnv,fetchImpl:provider,now:() => at,previousCookie,
+    }).then(grant => ({grant,nextClaims,nextAuth}));
+  };
   const request = grant => new Request(`${origin}/api/hub/github/session`, {
     headers:{cookie:`${cookiePair(grant.cookie)}; zero-workos-session=opaque-sdk-cookie`},
   });
   const get = (grant, at = renewAt, activeEnv = redisEnv) => sessionResponse(request(grant), activeEnv, at, fetchImpl);
-  return {state,records,requests,refreshes,fetchImpl,connect,request,get,setRefresh: value => {refresh = value;}};
+  return {state,records,requests,refreshes,fetchImpl,connect,signBackIn,request,get,setRefresh: value => {refresh = value;}};
 }
 
 test('a renewable GitHub grant survives a day away and rotates only once across concurrent Hub requests', async t => {
@@ -380,6 +396,62 @@ test('renewal requires the originating active WorkOS session and respects the or
   assert.equal((await (await fixture.get(connected,longExpiry)).json()).user, null);
   assert.deepEqual(fixture.refreshes, [refreshToken]);
   assert.equal((await (await fixture.get(connected,renewAt,legacyEnv)).json()).user, null);
+});
+
+test('after WorkOS inactivity, a verified same-account callback restores the same browser grant', async t => {
+  const fixture = grantFixture(t);
+  const connected = await fixture.connect();
+  const afterBreak = now + 3 * 86_400_000;
+  const previousKey = [...fixture.records.keys()][0];
+  Object.assign(fixture.state,{auth:{user:null}});
+  assert.equal((await (await fixture.get(connected,afterBreak)).json()).user, null);
+  const {grant:restored,nextAuth,nextClaims} = await fixture.signBackIn({previous:connected,at:afterBreak});
+  assert.match(restored.cookie, /^zero_hub_gh_session=v2\./);
+  const lifetime = Number(/Max-Age=(\d+)/.exec(restored.cookie)[1]);
+  assert.ok(lifetime <= 177 * 86_400 && lifetime >= 177 * 86_400 - 2);
+  assert.deepEqual([...fixture.records.keys()],[previousKey]);
+  assert.equal(fixture.records.get(previousKey).expiresAt,longExpiry);
+  assert.notEqual(restored.session.csrf,connected.session.csrf);
+  assert.equal((await (await fixture.get(connected,afterBreak)).json()).user,null);
+
+  Object.assign(fixture.state,{auth:nextAuth,claims:nextClaims});
+  assert.equal((await (await fixture.get(connected,afterBreak)).json()).user,null);
+  assert.deepEqual((await (await fixture.get(restored,afterBreak)).json()).user,
+    {id:'123',login:'student',csrfToken:restored.session.csrf});
+  fixture.state.claims = {...nextClaims,exp:afterBreak / 1000 + 600};
+  assert.equal((await (await fixture.get(restored,afterBreak + 300_000)).json()).user.id,'123');
+  assert.deepEqual(fixture.refreshes,[refreshToken]);
+
+  t.mock.method(globalThis,'fetch',fixture.fetchImpl);
+  await removeManagedGitHubGrant(fixture.request(restored),redisEnv);
+  assert.equal((await (await fixture.get(restored,afterBreak)).json()).user,null);
+  assert.equal(fixture.records.size,0);
+  const signedInAgain = await fixture.signBackIn({previous:restored,at:afterBreak});
+  assert.doesNotMatch(signedInAgain.grant.cookie,/^zero_hub_gh_session=v2\./);
+  assert.equal(fixture.records.size,0);
+});
+
+test('restoration requires the saved browser cookie and both verified accounts', async t => {
+  const fixture = grantFixture(t);
+  const connected = await fixture.connect();
+  const afterBreak = now + 3 * 86_400_000;
+  const [key,record] = [...fixture.records.entries()][0];
+  const original = record.sealed;
+  for (const options of [
+    {},
+    {previous:{cookie:connected.cookie.replace(/v2\.[^;]+/,'v2.tampered')}},
+    {previous:connected,subject:'user_Different'},
+    {previous:connected,githubId:124},
+    {previous:connected,at:longExpiry},
+  ]) {
+    const {grant} = await fixture.signBackIn({at:afterBreak,...options});
+    assert.doesNotMatch(grant.cookie,/^zero_hub_gh_session=v2\./);
+    assert.equal(fixture.records.get(key).sealed,original);
+  }
+  const {grant} = await fixture.signBackIn({previous:connected,at:afterBreak,proof:'gho_unverified'});
+  assert.equal(grant,null);
+  assert.equal(fixture.records.get(key).sealed,original);
+  assert.deepEqual(fixture.refreshes,[]);
 });
 
 test('sign-out removes the grant and an in-flight renewal cannot bring it back', async t => {
