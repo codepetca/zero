@@ -21,7 +21,7 @@ function harness({storage=new Map(),fetcher=async()=>{throw new Error('network')
   const react={createContext:defaultValue=>({defaultValue,Provider:()=>null}),useContext:ctx=>directory??ctx.defaultValue,useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(fn){index++;effects.push(fn);}};
   const module={exports:{}};
   const context={participateData,refreshImpl,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return {default:()=>null};return clientRequire(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
-  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useDraft,EventFacts,EventStatus,Proposal,useMutation,useResource,JamHelpLink,JamCreate,JamCreationPane,JamDirectoryProvider,JamDiscovery,jamTimeRemaining,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,JamAccountTools};',context);
+  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useDraft,JamLookPicker,EventFacts,EventStatus,Proposal,useMutation,useResource,JamHelpLink,JamCreate,JamCreationPane,JamDirectoryProvider,JamDiscovery,jamTimeRemaining,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,JamAccountTools};',context);
   return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},renderDraft(name,initial,initializeFresh){index=0;return module.exports.testing.useDraft(name,initial,initializeFresh);},flushEffects(){const work=effects;effects=[];for(const fn of work)fn();},setActor(value){actor=value;},setDirectory(value){directory=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
 }
 function elements(node) {
@@ -687,4 +687,58 @@ test('participation merges an early title with its saved fields and isolates dra
   h.flushEffects();
   assert.deepEqual(JSON.parse(storage.get(key(eventA,accountA))),{...a,title:'Early participant edit'});
   assert.deepEqual(JSON.parse(storage.get(key(eventA,accountB))),b);assert.deepEqual(JSON.parse(storage.get(key(eventB,accountB))),c);
+});
+
+const text=nodes=>nodes.flatMap(node=>[node.props?.children].flat()).filter(value=>typeof value==='string'||typeof value==='number').join(' ');
+test('signed-in creators see their own unlisted jams with visibility in discovery',()=>{
+  const hosted=[{id:'jam-9',type:'game',title:'Toast on the Moon',revision:'a',reviewStatus:'approved',moderation:{status:'suspended'},schedule:{},timezone:'UTC',listed:false,registrationOpen:false,submissionsOpen:false,participantCount:0}];
+  const h=harness({participateData:{events:[],hosted}});
+  h.setDirectory(h.render('JamDirectoryProvider',{}).props.value);
+  const nodes=elements(h.render('JamDiscovery'));
+  assert.match(text(nodes),/Your jams/);assert.match(text(nodes),/Suspended · Not listed on ZeroHub/);
+  assert.ok(nodes.some(node=>node.props?.href==='/hub/jams/jam-9'&&node.props.children==='Toast on the Moon'));
+  h.setActor(null);
+  assert.doesNotMatch(text(elements(h.render('JamDiscovery'))),/Your jams/);
+});
+
+test('the jam page shows visibility to its creator and maintainers only',()=>{
+  const event={id:'jam-42',type:'game',title:'Jam',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',timezone:'UTC',
+    creator:{id:'12',login:'creator'},schedule:{galleryRevealAt:'2099-01-05T00:00:00Z'},revision:'a',moderation:{status:'active'},registrationOpen:false,
+    submissionsOpen:false,participantCount:0,participants:[],entries:[]};
+  const notice=detail=>elements(harness({participateData:{event,registration:null,entry:null,canMaintain:false,...detail}}).render('JamDetail',{id:'jam-42'})).find(node=>node.type?.name==='JamVisibility');
+  const creatorView=notice({});
+  assert.ok(creatorView);
+  const rendered=renderToStaticMarkup(creatorView);
+  assert.match(rendered,/Listed on ZeroHub · Anyone can view/);assert.match(rendered,/Submitted entries stay hidden until the gallery opens/);
+  const other={...event,creator:{id:'99',login:'other'}};
+  assert.equal(notice({event:other}),undefined);
+  assert.ok(notice({event:other,canMaintain:true}));
+});
+
+test('jam pages and cards use the chosen look, and creation previews it',()=>{
+  const event={id:'jam-42',type:'game',title:'Toast',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',timezone:'UTC',style:{theme:'sunset',backdrop:'confetti'},
+    schedule:{},revision:'a',moderation:{status:'active'},registrationOpen:true,submissionsOpen:false,participantCount:1,participants:[],entries:[]};
+  const detail=elements(harness({participateData:{event,registration:null,entry:null,canMaintain:false}}).render('JamDetail',{id:'jam-42'}));
+  const hero=detail.find(node=>node.type?.name==='JamHero');
+  const heroMarkup=renderToStaticMarkup(hero);
+  assert.match(heroMarkup,/class="jam-hero jam-art jam-theme-sunset jam-backdrop-confetti"/);assert.match(heroMarkup,/<h1>Toast<\/h1>/);assert.match(heroMarkup,/1 participant</);
+  const directory=harness({participateData:{events:[event]}});
+  directory.setDirectory(directory.render('JamDirectoryProvider',{}).props.value);
+  assert.equal(elements(directory.render('JamDiscovery')).find(node=>node.type==='article').props.className,'jam-card jam-theme-sunset jam-backdrop-confetti');
+  const picker=renderToStaticMarkup(harness().render('JamLookPicker',{draft:{type:'app',title:'',styleTheme:'ocean',styleBackdrop:'waves'},disabled:false,onChange(){}}));
+  assert.match(picker,/jam-look-preview jam-art jam-theme-ocean jam-backdrop-waves/);assert.match(picker,/Your jam title/);
+  assert.match(picker,/checked="" value="ocean"/);assert.match(picker,/checked="" value="waves"/);assert.equal(picker.match(/checked=""/g).length,2);
+});
+
+test('jam discovery states joining and hosting in one line and links Zero Pro to how to get it',()=>{
+  const h=harness({participateData:{events:[]}});
+  h.setDirectory(h.render('JamDirectoryProvider',{}).props.value);
+  for(const actor of [{id:'12',login:'creator',csrfToken:'csrf'},null]){
+    h.setActor(actor);
+    const nodes=elements(h.render('JamDiscovery'));
+    const lede=nodes.find(node=>node.props?.className==='jam-lede');
+    assert.ok(lede);assert.equal(lede.props.children.filter(child=>typeof child==='string').join('|'),'Join for free. Host with |.');
+    assert.ok(nodes.some(node=>node.props?.href==='/hub/jams/rules#creating-a-jam'&&node.props.children==='Zero Pro'));
+    assert.equal(nodes.some(node=>node.type?.name==='HubAccount'),false);
+  }
 });

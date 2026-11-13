@@ -1,17 +1,20 @@
 .catalog { min-width: 0; overflow-wrap: anywhere; }
-.discovery .sidebar .sidebarTitle { margin: 0 0 8px; font-size: 32px; font-weight: 700; line-height: 1.2; letter-spacing: -1px; }
-.discovery .tagline { margin: 0 0 20px; color: var(--muted); font-size: 16px; line-height: 1.5; }
+.discovery .sidebar .sidebarEyebrow { display: inline-block; margin: 0 0 6px; color: var(--purple); font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; text-decoration: none; }
+.discovery .sidebar .sidebarEyebrow:hover { text-decoration: underline; }
+.discovery .sidebar .sidebarTitle { margin: 0 0 8px; color: var(--ink); font-size: 32px; font-weight: 700; line-height: 1.2; letter-spacing: -1px; }
+.discovery .sidebar .sidebarIntro { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--zero-border, var(--outline)); }
 .discovery .catalog { padding: 0; border: 0; }
 .discovery :global(.secondary) { background: var(--zero-page); color: var(--ink); }
 .discovery :global(.secondary):hover { background: var(--zero-surface); }
 .discovery .navigation, .discovery .subnavigation { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .navigation > li > a, .retry { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 12px; border: 1px solid var(--zero-border, var(--outline)); border-radius: 6px; font: inherit; font-size: 16px; line-height: 1.5; text-decoration: none; background: var(--zero-page, white); }
 .navigation > li > a { width: 100%; }
-.navigation a[data-active] { color: var(--ink); border-color: var(--purple); font-weight: 600; }
-.discovery .subnavigation { gap: 0; margin: 4px 0 4px 12px; }
+.navigation a[data-active] { color: var(--zero-page, #fff); background: var(--purple); border-color: var(--purple); font-weight: 700; box-shadow: 0 6px 16px -10px var(--purple); }
+.navigation a[data-active]:hover { color: var(--zero-page, #fff); filter: brightness(1.08); }
+.discovery .subnavigation { gap: 2px; margin: 8px 0 4px 14px; padding-left: 10px; border-left: 2px solid var(--zero-border, var(--outline)); }
 .discovery .subnavigation a { display: flex; align-items: center; min-height: 44px; padding: 5px 10px; color: var(--muted); font-size: 15px; text-decoration: none; border-radius: 6px; }
 .discovery .subnavigation a:hover { color: var(--ink); background: var(--zero-surface); }
-.discovery .subnavigation a[aria-current="page"] { color: var(--ink); background: color-mix(in srgb, var(--purple) 10%, var(--zero-page)); font-weight: 600; }
+.discovery .subnavigation a[aria-current="page"] { color: var(--ink); background: color-mix(in srgb, var(--purple) 22%, var(--zero-page)); font-weight: 700; }
 .navigation a:focus-visible, .retry:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
 .search { display: flex; align-items: center; gap: 10px; width: min(100%, 28rem); margin: 0 0 16px; padding: 0 12px; border: 1px solid var(--zero-border); border-radius: 6px; background: var(--zero-surface); color: var(--muted); }
 :global(.jam-filter) .search { flex: 1 1 14rem; margin: 0; }
@@ -22,6 +25,8 @@
 .search input::placeholder { color: var(--muted); }
 @media (max-width: 800px) {
   .discovery .navigation { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .discovery .sidebar .sidebarTitle { font-size: 26px; }
+  .discovery .sidebar .sidebarIntro { margin-bottom: 16px; padding-bottom: 12px; }
 }
 @media (max-width: 480px) {
   .navigation > li > a { padding-inline: 8px; font-size: 15px; }

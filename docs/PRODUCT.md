@@ -424,8 +424,8 @@ content pane. On narrow screens the navigation sits above the pane.
 **My Projects** sits under **Projects** and shows the signed-in user's app
 listings. **My Libraries** sits under **Libraries** and shows the libraries
 available in the main catalog under that GitHub account.
-The sidebar keeps the “Play. Share. Learn.” tagline. Account actions stay in
-the header.
+The sidebar shows a small ZeroHub link and the current section title; the
+selected tab is filled. Account actions stay in the header.
 Drawing Pad is a
 maintained Codepet project backed by `codepetca/zero-drawing-pad`, shown alongside
 community projects with a tiny description, square screenshot and GitHub source.
