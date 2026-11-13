@@ -1,3 +1,4 @@
+import {listingThumbnailPath} from './hub-listing-thumbnail.mjs';
 import {createHash} from 'node:crypto';
 import contracts from '../../extension/src/sharing/contracts.js';
 import projects from '../content/projects.json' with {type:'json'};
@@ -73,7 +74,8 @@ function listingDto(entry, visibility, env) {
   const winner = jamsPreviewAvailable(env) && visibility?.isGameJamWinner?.(entry.repositoryId, entry.accountId);
   return {id:entry.repositoryId,title:entry.title,author:entry.author,repositoryUrl:entry.repositoryUrl,
     identity:hash([entry.repositoryId,entry.accountId,entry.repositoryUrl,entry.pagesUrl,entry.commit,entry.runId]),
-    ...(entry.playUrl ? {pagesUrl:entry.playUrl} : {}), ...(winner ? {gameJamWinner:true} : {})};
+    ...(entry.playUrl ? {pagesUrl:entry.playUrl, thumbnail:listingThumbnailPath(entry.repositoryId, entry.commit)} : {}),
+    ...(winner ? {gameJamWinner:true} : {})};
 }
 
 /** Only the page and lookahead receive destination checks. The cursor selects

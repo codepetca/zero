@@ -170,6 +170,15 @@ Other cards link to the repository. **Remove from ZeroHub** takes the card out o
 discovery while the app stays on GitHub Pages. App listings operate separately
 from the library catalog and ZeroJams.
 
+A student chooses the card picture by committing `zerohub/thumbnail.png`: a
+square PNG from 128 to 2048 pixels, up to 1 MB. Publish copies a valid committed
+image to the Pages site as `zero-thumbnail.png` and says whether it was used.
+ZeroHub reads it only from the listed app's canonical GitHub Pages address,
+checks it again and serves the checked bytes for that exact commit. Without a
+valid image, the card shows a mirrored block pattern whose shape and color come
+from the GitHub username and repository name. The `zerohub/` folder is the
+student's own; Zero does not write to it.
+
 ## ZeroJams
 
 The ZeroHub sidebar opens **Jams** when discovery is enabled. The directory

@@ -1,3 +1,4 @@
+import {listingThumbnailPath} from './hub-listing-thumbnail.mjs';
 import {listingRepositoryReader} from './hub-listings-github-app.mjs';
 import {boundedJson, equalSecret, hubConfig, json, readSession, sameOrigin, seal, unseal} from './hub-github-auth.mjs';
 import {configuredListingsStore, listingLimit, listingPageSize, listingsEnabled} from './hub-listings-store.mjs';
@@ -236,7 +237,8 @@ export async function hubPublicListingsResponse(request, {
     return json({projects:page.map(entry => {
       const gameJamWinner = showAwards && fresh?.isGameJamWinner?.(entry.repositoryId, entry.accountId);
       return {id:entry.repositoryId, title:entry.title, author:entry.author, repositoryUrl:entry.repositoryUrl,
-        pagesUrl:entry.playUrl, ...(gameJamWinner ? {gameJamWinner} : {})};
+        pagesUrl:entry.playUrl, ...(entry.playUrl ? {thumbnail:listingThumbnailPath(entry.repositoryId, entry.commit)} : {}),
+        ...(gameJamWinner ? {gameJamWinner} : {})};
     }), next:authorized.length > listingPageSize ? seal({order:page.at(-1).order, search}, pagePurpose, config) : null});
   } catch { return unavailable(); }
   finally { controller.abort(); release(); }

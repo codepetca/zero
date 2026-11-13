@@ -17,7 +17,7 @@ type Release = {slug:string; kind:'library'|'game'; id:string; version:string; t
 type Catalog = {schema:number;revision:string;releases:Release[]};
 type MaintainedProject = {id:string;title:string;description:string;author:string;repositoryId?:string;ownerId?:string;repositoryUrl:string;sourceCommit:string;image?:string;web?:{provider:'github-pages';url:string;commit:string;runId:number}};
 type Presentation = {id:string;sourceCommit:string;image?:string;description?:string;author?:string};
-type PublishedProject = {id:string; title:string; author:string; repositoryUrl:string; identity:string; pagesUrl?:string; gameJamWinner?:boolean};
+type PublishedProject = {id:string; title:string; author:string; repositoryUrl:string; identity:string; pagesUrl?:string; thumbnail?:string; gameJamWinner?:boolean};
 type GalleryAllowance = {maintained:string[];releases:string[];listings:PublishedProject[]};
 const numericIdentity=(value:unknown)=>typeof value==='string'&&/^[1-9][0-9]{0,19}$/.test(value);
 const sourceIdentity=(value:unknown)=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
@@ -333,6 +333,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     </>}
     {visibleListings.map(item=><HubProjectCard key={item.identity} title={item.title} description="GitHub Pages app"
       author={item.author} repositoryHref={item.repositoryUrl} playHref={showDiscoveryCards?undefined:item.pagesUrl}
+      image={item.thumbnail && /^\/api\/hub\/listings\/thumbnail\/[1-9][0-9]{0,19}\/[a-f0-9]{40}$/.test(item.thumbnail) ? item.thumbnail : undefined}
       siteReachable={!showDiscoveryCards&&!!item.pagesUrl} compact>
       {item.gameJamWinner && <span className={styles.winnerBadge}>Game Jam winner</span>}
       {!showDiscoveryCards && !item.pagesUrl && <a href={item.repositoryUrl}>Open on GitHub</a>}

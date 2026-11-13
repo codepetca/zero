@@ -1,8 +1,9 @@
 'use client';
-import {type ReactNode} from 'react';
+import {type ReactNode, useState} from 'react';
 import {HubProjectInfo} from './HubProjectInfo';
 import {Icon} from './Icon';
 import {recordPlayOpen} from '@/lib/hub-metrics-client.mjs';
+import {projectPattern, projectPatternSeed} from '@/lib/project-pattern.mjs';
 import styles from '@/app/hub/hub.module.css';
 
 type Props = {
@@ -11,11 +12,24 @@ type Props = {
   feedback?: (identity?: ReactNode, description?: string, placement?: 'details') => ReactNode; children?: ReactNode;
 };
 
+// Default card art for projects without a valid image.
+export function ProjectPattern({seed}: {seed: string}) {
+  const {size, cells, foreground, background} = projectPattern(seed);
+  return <svg className={styles.pattern} viewBox={`-1 -1 ${size + 2} ${size + 2}`} aria-hidden="true" focusable="false"
+    shapeRendering="crispEdges" style={{background}} data-pattern-seed={seed}>
+    {cells.map(([x, y]) => <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill={foreground} />)}
+  </svg>;
+}
+
 export function HubProjectCard({projectId, title, description, author, version, repositoryHref, image, playHref, compact, siteReachable, feedback, children}: Props) {
+  const [failedImage, setFailedImage] = useState<string>();
+  const pattern = <ProjectPattern seed={projectPatternSeed(author, repositoryHref.split('/').filter(Boolean).at(-1) || title)} />;
   const recordOpen = (event: {button: number}) => { if (projectId && (event.button === 0 || event.button === 1)) recordPlayOpen(projectId); };
   const identity = <p className={styles.metadata}><a href={version ? `https://github.com/${author}` : repositoryHref}>@{author}</a>{version && <> · <a href={repositoryHref} aria-label={`${title} v${version} on GitHub`}>v{version}</a></>}</p>;
   const preview = <>
-    {image ? <img className={styles.thumbnail} src={image} alt={`${title} screenshot`} loading="lazy" /> : <span className={styles.playPlaceholder} aria-hidden="true" />}
+    {image && failedImage !== image ? <img className={styles.thumbnail} src={image} alt={`${title} screenshot`} loading="lazy" onError={() => setFailedImage(image)}
+      // An image can fail before hydration attaches onError.
+      ref={node => { if (node?.complete && !node.naturalWidth) setFailedImage(image); }} /> : pattern}
     {playHref && <span className={styles.playOverlay} aria-hidden="true"><span><Icon name="play" className={styles.playIcon} /></span></span>}
   </>;
   if (compact) return <article className={styles.projectCard} data-hub-project-id={projectId}>

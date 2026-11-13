@@ -149,7 +149,14 @@ export function createHubListingsStore(pool) {
     });
   }
 
-  return {savePublication, manage, owned, mine, discover, stillListed};
+  // Public thumbnail lookup: only a currently listed app at its listed commit.
+  async function listedPublication(repositoryId, commit) {
+    const {rows:[row]} = await pool.query(`SELECT repository_url, pages_url FROM ${table}
+      WHERE repository_id=$1 AND source_commit=$2 AND listed_order IS NOT NULL LIMIT 1`, [repositoryId, commit]);
+    return row ? {repositoryUrl:row.repository_url, pagesUrl:row.pages_url} : null;
+  }
+
+  return {savePublication, manage, owned, mine, discover, stillListed, listedPublication};
 }
 
 export function configuredListingsStore(env = process.env) {
