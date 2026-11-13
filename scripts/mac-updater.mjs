@@ -193,14 +193,14 @@ export function updaterPlistFields(config, signed) {
 }
 
 export function verifyUpdaterAppLayout(contents) {
-  for (const relative of ['', 'Frameworks','MacOS','Resources','Resources/kit','_CodeSignature']) {
+  for (const relative of ['', 'Frameworks','MacOS','Resources','Resources/kit','Resources/Git','_CodeSignature']) {
     const stat = lstatSync(path.join(contents,relative));
     assert.ok(stat.isDirectory() && !stat.isSymbolicLink(), `Owned app directory ${relative}`);
   }
   assert.deepEqual(readdirSync(contents).sort(), ['Frameworks','Info.plist','MacOS','Resources','_CodeSignature'].sort(), 'Scoped updater app layout');
   assert.deepEqual(readdirSync(path.join(contents,'Frameworks')), ['Sparkle.framework']);
   assert.deepEqual(readdirSync(path.join(contents,'MacOS')), ['ZeroSetup']);
-  assert.deepEqual(readdirSync(path.join(contents,'Resources')).sort(), ['Sparkle-LICENSE.txt','Zero.icns','kit']);
+  assert.deepEqual(readdirSync(path.join(contents,'Resources')).sort(), ['Git','Sparkle-LICENSE.txt','Zero.icns','kit']);
   assert.deepEqual(readdirSync(path.join(contents,'_CodeSignature')), ['CodeResources']);
   for (const relative of ['_CodeSignature/CodeResources','Info.plist','MacOS/ZeroSetup','Resources/Sparkle-LICENSE.txt','Resources/Zero.icns']) {
     const stat = lstatSync(path.join(contents,relative));

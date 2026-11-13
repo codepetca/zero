@@ -53,11 +53,12 @@ Mac setup uses a private JDK21 and isolated VS Code user-data/extensions under
 or installs a verified copy for Zero in that private directory. Downloads are
 pinned by URL and SHA256 in `setup/mac-downloads.json`; changed bytes are refused.
 The native Mac app checks for a working Git 2.31 or newer. If none is available,
-it downloads and verifies a private copy of Git from GitHub Desktop before it
-opens the editor. The one-time download is about 64 MB on Apple silicon and
-67 MB for the Intel build. Students can use Git in Zero without Xcode or
-Apple’s Command Line Tools. If the download fails, Zero opens for local work
-and retries Git setup next time it opens.
+it prepares a private copy from the verified Git archives inside Zero.app.
+The archives add about 5.5 MB to the universal installer. Students can use Git
+in Zero without Xcode or Apple’s Command Line Tools or a separate download.
+If Git setup fails, Zero opens for local work and retries next time it opens.
+The Mac release carries the corresponding Git source archives alongside the
+installer. The bundled license and source details are in `Contents/Resources/Git`.
 Normal system Java, VS Code profiles and student source are preserved. Initial
 quiet settings are copied only when Zero's settings file is absent; later theme
 and editor choices are kept. Current source repairs Java-owned settings in that

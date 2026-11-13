@@ -32,6 +32,10 @@
         "files": {
           "bin/git": "af6e97b53f239d948114493c8585788dd2a1e32ddcf4191c55962b3c7e66f11f",
           "libexec/git-core/git-remote-http": "3e9d306234422f98592c3ebde7e4e934f519b72e913c5220c1d920596508e0f3"
+        },
+        "bundled": {
+          "size": 2646104,
+          "sha256": "95cfb3a1d84ef2f50fb817612f21f7270c281e1bf81bb95b81524b8a2d5c3c39"
         }
       }
     },
@@ -66,6 +70,10 @@
         "files": {
           "bin/git": "9b6aaad173a3679ce187ff387aba596208bf2d2575b5ad3c9bbc8576dde2a43d",
           "libexec/git-core/git-remote-http": "6a891b7dd5a09888aae3056189a82dd3eb4b53976e9b2e8e37df99ecce0b2837"
+        },
+        "bundled": {
+          "size": 2881876,
+          "sha256": "0efe69b1b401dbab59033e0b65ae2b4bc97d332b7f397be0aeeb24682a586ca0"
         }
       }
     }

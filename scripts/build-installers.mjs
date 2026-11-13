@@ -5,6 +5,7 @@ import path from 'node:path';
 import {root, releaseDefinition} from './release.mjs';
 import {extractKit, kitEntries} from './installer-payload.mjs';
 import {buildWindowsPackage} from './windows-package.mjs';
+import {bundleMacGit} from './mac-git.mjs';
 import {buildMacIcon} from './mac-icon.mjs';
 import {macArtifactIdentity} from './mac-artifact.mjs';
 import {buildStyledMacDmg} from './mac-dmg-layout.mjs';
@@ -46,6 +47,7 @@ if (platform !== 'windows') {
   const contents = path.join(app, 'Contents'), bin = path.join(contents, 'MacOS');
   mkdirSync(bin, {recursive:true});
   extractKit(kit, path.join(contents, 'Resources/kit'));
+  bundleMacGit(run, root, path.join(contents, 'Resources'));
   const plist = readFileSync(path.join(source, 'Info.plist'), 'utf8');
   writeFileSync(path.join(contents, 'Info.plist'), installerPlist(plist, release.kitVersion, signed, updater));
   buildMacIcon(run, root, work, path.join(contents, 'Resources/Zero.icns'));

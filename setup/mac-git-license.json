@@ -1,0 +1,17 @@
+{
+  "COPYING": {
+    "url": "https://raw.githubusercontent.com/git/git/03b41523c576f26ad34085378717a0c1b287470f/COPYING",
+    "size": 18765,
+    "sha256": "5b2198d1645f767585e8a88ac0499b04472164c0d2da22e75ecf97ef443ab32e"
+  },
+  "git-2.56.1-source.tar.gz": {
+    "url": "https://codeload.github.com/git/git/tar.gz/03b41523c576f26ad34085378717a0c1b287470f",
+    "size": 12804471,
+    "sha256": "234c011d07f7a7c8420ad3a1b692e71ec5b5a62a4626b07bc8d20a332eb3b1a8"
+  },
+  "dugite-native-2.56.1-build-source.tar.gz": {
+    "url": "https://codeload.github.com/desktop/dugite-native/tar.gz/238326e93b097bb31e138a75dbec433d789ef7a2",
+    "size": 44169,
+    "sha256": "1a0f4513f6773472181efdd67052b3d2be04d8def7315570f9b3e46b9ef48697"
+  }
+}

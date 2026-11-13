@@ -8,6 +8,11 @@ struct MacRuntime {
     static let nodeVersion = "22.23.4"
     static let gitVersion = "2.56.1"
     static let gitBuild = "238326e"
+    #if arch(arm64)
+    static let architecture = "arm64"
+    #else
+    static let architecture = "x64"
+    #endif
     static let javaStartupVariables = ["JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "MAVEN_OPTS", "MAVEN_ARGS"]
     let kit: URL
     let home: URL
@@ -18,11 +23,16 @@ struct MacRuntime {
     #if ZERO_SETUP_TESTS
     var testDownload: ((URL, Asset) throws -> Void)?
     var testGitCandidates: [URL]?
+    var testGitArchive: URL?
     var testBeforePublish: (() throws -> Void)?
     var testAfterExchange: (() throws -> Void)?
     var testBeforeExchange: (() throws -> Void)?
     #endif
-    struct Asset: Decodable { let url: String; let sha256: String; let format: String; let size: Int64; let version: String?; let files: [String:String]? }
+    struct ArchiveSeal: Decodable { let size: Int64; let sha256: String }
+    struct Asset: Decodable {
+        let url: String; let sha256: String; let format: String; let size: Int64; let version: String?
+        let files: [String:String]?; let bundled: ArchiveSeal?
+    }
     struct Manifest: Decodable { let schemaVersion: Int; let architectures: [String: [String: Asset]] }
     init(kit: URL, home: URL = fm.homeDirectoryForCurrentUser) throws {
         self.kit = kit; self.home = home
@@ -35,11 +45,7 @@ struct MacRuntime {
               minimum.range(of: #"^\d+\.\d+\.\d+$"#, options: .regularExpression) != nil else { throw SetupFailure(message: "Invalid kit versions.") }
         _ = try KitUpdatePlan.regular(kit.appendingPathComponent("setup/mac-downloads.json"))
         let manifest = try JSONDecoder().decode(Manifest.self, from: Data(contentsOf: kit.appendingPathComponent("setup/mac-downloads.json")))
-        #if arch(arm64)
-        let architecture = "arm64"
-        #else
-        let architecture = "x64"
-        #endif
+        let architecture = Self.architecture
         guard manifest.schemaVersion == 1, var selected = manifest.architectures[architecture], Set(selected.keys) == ["jdk", "vscode", "node", "git"] else { throw SetupFailure(message: "Missing downloads for this Mac.") }
         #if !ZERO_SETUP_TESTS
         // The installed kit lives alongside editable student files. Use the
@@ -61,7 +67,9 @@ struct MacRuntime {
                 official = asset.version == Self.gitVersion &&
                     asset.url == "https://github.com/desktop/dugite-native/releases/download/v\(Self.gitVersion)/dugite-native-v\(Self.gitVersion)-\(Self.gitBuild)-macOS-\(architecture).tar.gz" &&
                     Set((asset.files ?? [:]).keys) == ["bin/git", "libexec/git-core/git-remote-http"] &&
-                    (asset.files ?? [:]).values.allSatisfy { $0.range(of: #"^[a-f0-9]{64}$"#, options: .regularExpression) != nil }
+                    (asset.files ?? [:]).values.allSatisfy { $0.range(of: #"^[a-f0-9]{64}$"#, options: .regularExpression) != nil } &&
+                    asset.bundled.map { $0.size > 0 && $0.size <= 3_100_000 &&
+                        $0.sha256.range(of: #"^[a-f0-9]{64}$"#, options: .regularExpression) != nil } == true
             default:
                 official = ["github.com", "update.code.visualstudio.com", "vscode.download.prss.microsoft.com"].contains(url.host ?? "")
             }
@@ -76,7 +84,7 @@ struct MacRuntime {
     var jdk: URL { root.appendingPathComponent("runtime/jdk-" + assets["jdk"]!.sha256) }
     var editor: URL { root.appendingPathComponent("runtime/vscode-" + assets["vscode"]!.sha256) }
     var node: URL { root.appendingPathComponent("runtime/node-" + assets["node"]!.sha256) }
-    var git: URL { root.appendingPathComponent("runtime/git-" + assets["git"]!.sha256) }
+    var git: URL { root.appendingPathComponent("runtime/git-" + assets["git"]!.bundled!.sha256) }
     var nodeDirectory: String { String(URL(string: assets["node"]!.url)!.lastPathComponent.dropLast(".tar.gz".count)) }
     var nodeBinary: URL { node.appendingPathComponent(nodeDirectory + "/bin/node") }
     var isolated: [String] { ["--user-data-dir", userData.path, "--extensions-dir", extensions.path] }
@@ -168,7 +176,7 @@ struct MacRuntime {
         let receipt = folder.appendingPathComponent(".zero-asset.json")
         _ = try KitUpdatePlan.regular(receipt)
         let text = try String(contentsOf: receipt, encoding: .utf8)
-        guard text == asset.sha256 else { throw SetupFailure(message: "The private Zero runtime has unrecognized contents; your files were kept.") }
+        guard text == (asset.bundled?.sha256 ?? asset.sha256) else { throw SetupFailure(message: "The private Zero runtime has unrecognized contents; your files were kept.") }
         return true
     }
     func install(_ kind: String) throws {
@@ -179,23 +187,38 @@ struct MacRuntime {
         let staging = root.appendingPathComponent("runtime/.install-" + UUID().uuidString)
         try Self.mkdir(staging)
         defer { try? Self.fm.removeItem(at: staging) }
-        let download = staging.appendingPathComponent("download")
-        let label = kind == "git" ? "Git" : kind == "jdk" ? "Java 21" : kind == "node" ? "browser tools" : "VS Code"
-        print("Downloading verified \(label)…")
-        #if ZERO_SETUP_TESTS
-        if let testDownload { try testDownload(download, asset) } else { try downloadAsset(asset, to: download) }
-        #else
-        try downloadAsset(asset, to: download)
-        #endif
-        let measuredSize = try Self.fm.attributesOfItem(atPath: download.path)[.size] as? NSNumber
-        guard measuredSize?.int64Value == asset.size else { throw SetupFailure(message: "Downloaded runtime has the wrong size. Retry setup.") }
-        let digest = try Self.execute("/usr/bin/shasum", ["-a", "256", download.path], environment: gitProbeEnvironment).split(separator: " ").first.map(String.init)
-        guard digest == asset.sha256 else { throw SetupFailure(message: "The \(kind) download did not match its verified checksum. Retry setup.") }
+        let archive: URL
+        let seal: ArchiveSeal
+        if kind == "git", let bundled = asset.bundled {
+            #if ZERO_SETUP_TESTS
+            guard let testGitArchive else { throw SetupFailure(message: "Bundled Git test archive is unavailable.") }
+            archive = testGitArchive
+            #else
+            guard let resources = Bundle.main.resourceURL else { throw SetupFailure(message: "Bundled Git is unavailable.") }
+            archive = resources.appendingPathComponent("Git/" + Self.architecture + ".tar.xz")
+            #endif
+            seal = bundled
+        } else {
+            archive = staging.appendingPathComponent("download")
+            seal = ArchiveSeal(size: asset.size, sha256: asset.sha256)
+            let label = kind == "jdk" ? "Java 21" : kind == "node" ? "browser tools" : "VS Code"
+            print("Downloading verified \(label)…")
+            #if ZERO_SETUP_TESTS
+            if let testDownload { try testDownload(archive, asset) } else { try downloadAsset(asset, to: archive) }
+            #else
+            try downloadAsset(asset, to: archive)
+            #endif
+        }
+        _ = try KitUpdatePlan.regular(archive)
+        let measuredSize = try Self.fm.attributesOfItem(atPath: archive.path)[.size] as? NSNumber
+        guard measuredSize?.int64Value == seal.size else { throw SetupFailure(message: "Private runtime archive has the wrong size.") }
+        let digest = try Self.execute("/usr/bin/shasum", ["-a", "256", archive.path], environment: gitProbeEnvironment).split(separator: " ").first.map(String.init)
+        guard digest == seal.sha256 else { throw SetupFailure(message: "The \(kind) archive did not match its verified checksum.") }
         let extracted = staging.appendingPathComponent("extracted")
         try Self.mkdir(extracted)
-        try SafeMacArchive.extract(download, to: extracted, allowRootEntry: kind == "git")
+        try SafeMacArchive.extract(archive, to: extracted, allowRootEntry: kind == "git")
         try validateExtracted(extracted, kind: kind)
-        try asset.sha256.write(to: extracted.appendingPathComponent(".zero-asset.json"), atomically: false, encoding: .utf8)
+        try seal.sha256.write(to: extracted.appendingPathComponent(".zero-asset.json"), atomically: false, encoding: .utf8)
         // The owned staging and runtime parent stay real folders; never replace an
         // existing entry, even if another process appeared during download.
         try KitUpdatePlan.realDirectory(destination.deletingLastPathComponent())
@@ -374,8 +397,7 @@ struct MacRuntime {
         }
     }
     func downloadAsset(_ asset: Asset, to download: URL) throws {
-        let git = asset.url.hasPrefix("https://github.com/desktop/dugite-native/")
-        _ = try Self.execute("/usr/bin/curl", ["--disable", "--fail", "--location", "--silent", "--show-error", "--proto", "=https", "--proto-redir", "=https", "--connect-timeout", "20", "--max-time", git ? "75" : "600", "--max-filesize", String(asset.size), "--retry", git ? "0" : "2", "--retry-max-time", "900", "--output", download.path, asset.url], timeout: git ? 80 : 950)
+        _ = try Self.execute("/usr/bin/curl", ["--disable", "--fail", "--location", "--silent", "--show-error", "--proto", "=https", "--proto-redir", "=https", "--connect-timeout", "20", "--max-time", "600", "--max-filesize", String(asset.size), "--retry", "2", "--retry-max-time", "900", "--output", download.path, asset.url], timeout: 950)
     }
     func seedSettings(_ java: URL, git: URL? = nil) throws {
         let user = userData.appendingPathComponent("User")

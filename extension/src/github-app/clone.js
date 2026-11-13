@@ -39,8 +39,8 @@ async function validateCloneParent(parentPath) {
 }
 function gitPrerequisite(message, platform, environment) {
   if ((platform === 'win32' || platform === 'darwin') && (environment.ZERO_GIT_SETUP_FAILED === '1' || environment.ZERO_GIT_EXECUTABLE !== undefined)) {
-    const help = platform === 'win32' ? ' If Git setup still fails on a school laptop, ask school IT.' : '';
-    return Object.assign(Error('Zero could not prepare Git. Fully quit Zero and VS Code, then reopen Zero while connected to the internet.' + help), {code:'git-setup-retry'});
+    const help = platform === 'win32' ? ' Reopen Zero while connected to the internet. If Git setup still fails on a school laptop, ask school IT.' : ' Then reopen the Zero app.';
+    return Object.assign(Error('Zero could not prepare Git. Fully quit Zero and VS Code.' + help), {code:'git-setup-retry'});
   }
   return Object.assign(Error(message), {code:'git-prerequisite'});
 }

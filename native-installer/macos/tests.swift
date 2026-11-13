@@ -667,17 +667,17 @@ struct SetupTests {
         if let option = CommandLine.arguments.firstIndex(of: "--git-archive"), CommandLine.arguments.count > option + 1 {
             let pin = try JSONDecoder().decode(MacRuntime.Manifest.self, from: Data(contentsOf: URL(fileURLWithPath: "setup/mac-downloads.json"))).architectures[nodeArchitecture]!["git"]!
             let original = URL(fileURLWithPath: CommandLine.arguments[option + 1])
-            try expect(try MacRuntime.execute("/usr/bin/shasum", ["-a", "256", original.path]).hasPrefix(pin.sha256 + " "), "official Git archive matches pin")
+            try expect(try MacRuntime.execute("/usr/bin/shasum", ["-a", "256", original.path]).hasPrefix(pin.bundled!.sha256 + " "), "bundled compact Git archive matches pin")
             let realKit = try fixture(temporary.appendingPathComponent("real git kit"))
             try "kitVersion=1.2.3\nextensionId=zero.zero\nvscodeMinimum=1.95.0\n".write(to: realKit.root.appendingPathComponent("setup/kit.properties"), atomically: true, encoding: .utf8)
             try manager.removeItem(at: realKit.root.appendingPathComponent("setup/mac-downloads.json"))
             try manager.copyItem(at: URL(fileURLWithPath: "setup/mac-downloads.json"), to: realKit.root.appendingPathComponent("setup/mac-downloads.json"))
             let real = try MacRuntime(kit: realKit.root, home: temporary.appendingPathComponent("real git home"))
-            let extracted = temporary.appendingPathComponent("real git extraction")
-            try MacRuntime.mkdir(extracted)
-            try SafeMacArchive.extract(original, to: extracted, allowRootEntry: true)
-            try real.validateExtracted(extracted, kind: "git")
-            let executable = try real.privateGit(in: extracted)
+            var bundledRuntime = real
+            bundledRuntime.testGitArchive = original
+            bundledRuntime.testGitCandidates = []
+            bundledRuntime.testDownload = { _, _ in throw SetupFailure(message: "Network download is not permitted for bundled Git") }
+            guard let executable = bundledRuntime.prepareGit() else { throw SetupFailure(message: "Bundled Git did not install.") }
             let network = ProcessInfo.processInfo.environment["ZERO_TEST_GIT_HTTPS"] == "1"
             let env = ["PATH": "/bin", "HOME": temporary.path, "GIT_EXEC_PATH": "/does/not/exist",
                        "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_TERMINAL_PROMPT": "0"]
@@ -685,7 +685,13 @@ struct SetupTests {
             _ = try MacRuntime.execute(executable.path, ["init", "--bare", localSource.path], environment: env)
             let localClone = temporary.appendingPathComponent("real local Git clone")
             _ = try MacRuntime.execute(executable.path, ["clone", "--", localSource.path, localClone.path], environment: env)
-            try expect(manager.fileExists(atPath: localClone.appendingPathComponent(".git").path), "official portable Git clones with system Git unavailable to the caller")
+            try expect(manager.fileExists(atPath: localClone.appendingPathComponent(".git").path), "bundled Git clones with system Git unavailable to the caller")
+            let commit = ["-C", localClone.path, "-c", "user.name=Zero", "-c", "user.email=test@example.invalid", "commit", "--allow-empty", "-m", "Verify portable Git"]
+            _ = try MacRuntime.execute(executable.path, commit, environment: env)
+            _ = try MacRuntime.execute(executable.path, ["-C", localClone.path, "push", "origin", "HEAD:refs/heads/portable-test"], environment: env)
+            _ = try MacRuntime.execute(executable.path, ["-C", localClone.path, "fetch", "origin", "refs/heads/portable-test"], environment: env)
+            try expect(try MacRuntime.execute(executable.path, ["-C", localClone.path, "rev-parse", "HEAD"], environment: env) ==
+                       MacRuntime.execute(executable.path, ["-C", localClone.path, "rev-parse", "FETCH_HEAD"], environment: env), "bundled Git commits, pushes and fetches without system Git")
             if network {
                 let remoteClone = temporary.appendingPathComponent("real remote Git clone")
                 _ = try MacRuntime.execute(executable.path, ["clone", "--depth=1", "--", "https://github.com/octocat/Hello-World.git", remoteClone.path], environment: env, timeout: 45)
@@ -698,7 +704,7 @@ struct SetupTests {
             var architectures: [String:Any] = [:]
             for architecture in ["arm64","x64"] {
                 let node: [String:Any] = ["url":"https://nodejs.org/dist/v22.23.4/node-v22.23.4-darwin-\(architecture).tar.gz","sha256":nodeDigest,"version":"22.23.4","format":"tar.gz","size":(try manager.attributesOfItem(atPath:nodeArchive.path)[.size] as! NSNumber).intValue]
-                let git: [String:Any] = ["url":"https://github.com/desktop/dugite-native/releases/download/v2.56.1/dugite-native-v2.56.1-238326e-macOS-\(architecture).tar.gz","sha256":gitDigest,"version":"2.56.1","format":"tar.gz","files":["bin/git":gitFileDigest,"libexec/git-core/git-remote-http":gitFileDigest],"size":(try manager.attributesOfItem(atPath:gitArchive.path)[.size] as! NSNumber).intValue]
+                let git: [String:Any] = ["url":"https://github.com/desktop/dugite-native/releases/download/v2.56.1/dugite-native-v2.56.1-238326e-macOS-\(architecture).tar.gz","sha256":gitDigest,"version":"2.56.1","format":"tar.gz","bundled":["sha256":gitDigest,"size":(try manager.attributesOfItem(atPath:gitArchive.path)[.size] as! NSNumber).intValue],"files":["bin/git":gitFileDigest,"libexec/git-core/git-remote-http":gitFileDigest],"size":(try manager.attributesOfItem(atPath:gitArchive.path)[.size] as! NSNumber).intValue]
                 architectures[architecture] = ["jdk":asset,"vscode":editor,"node":node,"git":git]
             }
             let values: [String: Any] = ["schemaVersion": 1, "architectures": architectures]
@@ -747,17 +753,18 @@ struct SetupTests {
         try MacRuntime.mkdir(runtimeHome)
         var runtime = try MacRuntime(kit: runtimeKit.root, home: runtimeHome)
         runtime.testGitCandidates = [URL(fileURLWithPath: "/usr/bin/git")]
-        runtime.testDownload = { _, _ in throw SetupFailure(message: "Git unavailable offline") }
-        try expect(runtime.prepareGit() == nil, "Apple shim is skipped and offline Git setup is optional")
-        runtime.testDownload = { target, _ in try manager.copyItem(at: gitArchive, to: target) }
+        runtime.testDownload = { _, _ in throw SetupFailure(message: "Unexpected Git download") }
+        try expect(runtime.prepareGit() == nil, "Apple shim is skipped and missing bundled Git is optional")
+        runtime.testGitArchive = gitArchive
         let privateGit = runtime.prepareGit()
         try expect(privateGit == runtime.git.appendingPathComponent("zero-bin/git"), "missing Git selects verified private executable")
         runtime.testDownload = { _, _ in throw SetupFailure(message: "Unexpected repeat Git download") }
         try expect(runtime.prepareGit() == privateGit, "reopening uses installed Git without another download")
         let installedHelper = runtime.git.appendingPathComponent("libexec/git-core/git-remote-http")
         try manager.removeItem(at: installedHelper)
+        runtime.testGitArchive = nil
         try expect(runtime.prepareGit() == nil && manager.fileExists(atPath: runtime.git.path), "failed repair restores known private Git folder")
-        runtime.testDownload = { target, _ in try manager.copyItem(at: gitArchive, to: target) }
+        runtime.testGitArchive = gitArchive
         try expect(runtime.prepareGit() == privateGit && manager.fileExists(atPath: installedHelper.path), "retry repairs missing HTTPS helper")
         try "#!/bin/sh\nexit 0\n".write(to: installedHelper, atomically: false, encoding: .utf8)
         try expect(runtime.prepareGit() == privateGit && (try String(contentsOf: installedHelper)) == fakeGitScript, "cached HTTPS helper bytes must match the archive")
