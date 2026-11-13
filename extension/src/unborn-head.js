@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // Read-only evidence for an ordinary standalone unborn branch. A caller must
 // revalidate this evidence under the relevant Git locks before any mutation.
 const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto');
@@ -25,7 +26,7 @@ async function inspectUnbornHead(root) {
  if(typeof root!=='string'||!path.isAbsolute(root)||await fs.realpath(root)!==root)throw fail();
  const dot=path.join(root,'.git'),rootIdentity=await ordinaryDirectory(root),dotIdentity=await ordinaryDirectory(dot);
  const env=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_ATTR_NOSYSTEM:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_NO_LAZY_FETCH:'1',GIT_TERMINAL_PROMPT:'0',GIT_OPTIONAL_LOCKS:'0'});
- const git=async args=>(await exec('git',['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env,encoding:'utf8',timeout:10000,maxBuffer:1024*1024})).stdout;
+ const git=async args=>(await exec(gitExecutable(),['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env,encoding:'utf8',timeout:10000,maxBuffer:1024*1024})).stdout;
  const head=await boundedFile(path.join(dot,'HEAD'),16384),headText=new TextDecoder('utf-8',{fatal:true}).decode(head.data);
  const match=/^ref: (refs\/heads\/[^\r\n]+)\n$/.exec(headText);if(!match)throw fail();const ref=match[1];
  if(/[\x00-\x20\x7f\\]/.test(ref)||ref.length>2048)throw fail();

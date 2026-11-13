@@ -29,6 +29,11 @@ namespace ZeroSetup
         private const string NodeVersion = "22.23.4";
         private const string GitVersion = "2.56.1";
         private const string GitRelease = GitVersion + ".windows.1";
+        private static readonly string[] PrivateGitFiles =
+        {
+            @"cmd\git.exe", @"ucrt64\bin\git.exe", @"ucrt64\bin\git-remote-https.exe",
+            @"ucrt64\etc\ssl\certs\ca-bundle.crt", @"usr\bin\sh.exe"
+        };
         private static readonly string[] JavaStartupVariables = { "JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "MAVEN_OPTS", "MAVEN_ARGS" };
         private static readonly string[] TerminalOwnedVariables = JavaStartupVariables.Concat(new[] { "JAVA_HOME", "ZERO_JAVA_HOME", "PATH", "MAVEN_SKIP_RC" }).ToArray();
         private sealed class Manifest
@@ -166,6 +171,8 @@ namespace ZeroSetup
             info.EnvironmentVariables["ZERO_KIT_DIR"] = executionKit;
             info.EnvironmentVariables["PATH"] = Path.Combine(java, "bin") + ";" + (node == null ? "" : Path.GetDirectoryName(node) + ";") + (git == null ? "" : Path.GetDirectoryName(git) + ";") + string.Join(";", AbsolutePathEntries());
             info.EnvironmentVariables["NoDefaultCurrentDirectoryInExePath"] = "1";
+            if (git != null) info.EnvironmentVariables["ZERO_GIT_EXECUTABLE"] = git;
+            else info.EnvironmentVariables.Remove("ZERO_GIT_EXECUTABLE");
             if (gitSetupFailed) info.EnvironmentVariables["ZERO_GIT_SETUP_FAILED"] = "1";
             else info.EnvironmentVariables.Remove("ZERO_GIT_SETUP_FAILED");
             if (node != null) info.EnvironmentVariables["ZERO_NODE_EXECUTABLE"] = node;
@@ -293,6 +300,16 @@ namespace ZeroSetup
         }
         private async Task VerifyGitBinary(string executable, CancellationToken cancellation, bool pinned = false)
         {
+            if (pinned)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(executable));
+                foreach (string file in PrivateGitFiles)
+                {
+                    string required = Path.Combine(root, file.Replace('\\', Path.DirectorySeparatorChar));
+                    WindowsRuntimeFolders.Check(required);
+                    if (!File.Exists(required)) throw new IOException("Zero's private Git is missing a required file: " + file);
+                }
+            }
             string output = await Execute(ExecutionPath(executable), new[] { "--version" }, 30000, cancellation);
             var match = Regex.Match(output.Trim(), @"^git version (\d+\.\d+(?:\.\d+)?)(?:[.\s-]|$)");
             if (!match.Success || !AtLeast(match.Groups[1].Value, "2.31") || (pinned && output.Trim() != "git version " + GitRelease)) throw new IOException("Git 2.31 or later could not be verified.");

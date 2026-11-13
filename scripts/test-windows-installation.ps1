@@ -184,6 +184,11 @@ try {
         if (-not (Test-Path -LiteralPath (Join-Path $destination '.git') -PathType Container)) {
             throw 'Private Git did not create a local clone.'
         }
+        [IO.File]::WriteAllText((Join-Path $destination 'git.exe'), 'This file must never be executed.')
+        $probe = "process.env.ZERO_GIT_EXECUTABLE=process.argv[2];require(process.argv[1]).git(process.argv[3],['--version']).then(console.log,e=>{console.error(e.message);process.exitCode=1;})"
+        $core = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\extension\src\core.js'))
+        $selectedVersion = (Invoke-Bounded (Get-Command node.exe -CommandType Application).Source @('-e', $probe, $core, $git, $destination) 30).Trim()
+        if ($selectedVersion -ne $gitVersion) { throw 'Zero did not use the verified Git when the project contained a Git decoy.' }
     }
     $installedExtensions = @(Get-ChildItem -LiteralPath $extensions -Directory | ForEach-Object {
         $manifest = Join-Path $_.FullName 'package.json'

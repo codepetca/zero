@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('../src/git-executable');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
@@ -19,10 +20,11 @@ const nativeSession = () => ({accessToken:token});
 function settings(env) { return Array.from({length:Number(env.GIT_CONFIG_COUNT)},(_,i)=>[env[`GIT_CONFIG_KEY_${i}`],env[`GIT_CONFIG_VALUE_${i}`]]); }
 test('only exact GitHub push/confirmation get a transient credential environment, cleaned after return', async t => {
   const root=await project(t);let spawnOptions;let hookPath;let calls=0;
-  const environment={PATH:process.env.PATH,GIT_TRACE:'trace.log',GIT_TRACE_CURL:'curl.log',GIT_CURL_VERBOSE:'1',GIT_CONFIG_COUNT:'1',GIT_CONFIG_KEY_0:'bad',GIT_CONFIG_VALUE_0:'bad',GIT_CONFIG_PARAMETERS:'bad',GIT_SSL_NO_VERIFY:'1'};
+  const environment={PATH:process.env.PATH,GIT_TRACE:'trace.log',GIT_TRACE_CURL:'curl.log',GIT_CURL_VERBOSE:'1',GIT_CONFIG_COUNT:'1',GIT_CONFIG_KEY_0:'bad',GIT_CONFIG_VALUE_0:'bad',GIT_CONFIG_PARAMETERS:'bad',GIT_SSL_NO_VERIFY:'1',GIT_EXEC_PATH:'/untrusted-helpers'};
   const transport=createTransport(remote,async()=>nativeSession(),{assertCurrentNow:nativeSession,environment,spawn:async(command,args,options)=>{
-    calls++;spawnOptions=options;assert.equal(command,'git');assert.ok(!args.join(' ').includes(token));
+    calls++;spawnOptions=options;assert.equal(command,gitExecutable());assert.ok(!args.join(' ').includes(token));
     assert.ok(!options.env.GIT_TRACE);assert.ok(!options.env.GIT_TRACE_CURL);assert.ok(!options.env.GIT_CURL_VERBOSE);assert.ok(!options.env.GIT_CONFIG_PARAMETERS);assert.ok(!options.env.GIT_SSL_NO_VERIFY);
+    assert.equal(options.env.GIT_EXEC_PATH,undefined);
     const config=settings(options.env);assert.ok(config.some(([key,value])=>key===`http.${remote}.extraHeader` && value===`Authorization: Basic ${Buffer.from(`x-access-token:${token}`).toString('base64')}`));
     for (const [key,value] of [['credential.helper',''],[`http.${remote}.followRedirects`,'false'],[`http.${remote}.sslVerify`,'true'],[`http.${remote}.curloptResolve`,'']]) assert.ok(config.some(([k,v])=>k===key&&v===value));
     hookPath=config.find(([key])=>key==='core.hooksPath')[1];assert.match(hookPath,/zero-upload-hooks-/);assert.deepEqual(await fs.readdir(hookPath),[]);
@@ -104,7 +106,7 @@ test('persistent Git Trace2 config cannot write native-session secrets through e
   }
   let calls=0;
   const run=createTransport(remote,async()=>nativeSession(),{assertCurrentNow:nativeSession,environment,spawn:async(command,args,options)=>{
-    calls++;assert.equal(command,'git');assert.equal(args[0],'push');
+    calls++;assert.equal(command,gitExecutable());assert.equal(args[0],'push');
     assert.equal(options.env.GIT_CONFIG_GLOBAL,configFile);
     for(const key of ['GIT_TRACE2','GIT_TRACE2_EVENT','GIT_TRACE2_PERF']) assert.equal(options.env[key],'0');
     // The only actual child operation is local Git config. No transport occurs.
@@ -254,7 +256,7 @@ test('one reviewed feature delete dispatches the immutable exact lease with isol
     spawn: async (command, sent, value) => {
       events.push('spawn');
       options = value;
-      assert.equal(command, 'git');
+      assert.equal(command, gitExecutable());
       assert.deepEqual(sent, deleteArgs(featureBranch, featureSha));
       assert.equal(options.cwd, root);
       assert.equal(options.env.GIT_DIR, path.join(root, '.git'));

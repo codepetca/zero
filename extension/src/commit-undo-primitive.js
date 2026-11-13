@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // Unwired primitive. Its caller must supply a policy and explain its limits.
 // A remote snapshot and Zero's provenance receipt cannot prove that a commit
 // was never shared, or exclude publication through another tool or copy.
@@ -14,7 +15,7 @@ const exec=promisify(execFile);
 const oid=value=>typeof value==='string'&&/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value);
 const env={...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'};
 const fail=()=>new Error('Project state changed or cannot be verified. Review the commit again.');
-async function git(root,args) {return (await exec('git',['--no-pager','-c','core.fsmonitor=false','-c',`core.hooksPath=${os.devNull}`,'-c','commit.gpgSign=false',...args],{cwd:root,env,timeout:10000,maxBuffer:1024*1024})).stdout.trim();}
+async function git(root,args) {return (await exec(gitExecutable(),['--no-pager','-c','core.fsmonitor=false','-c',`core.hooksPath=${os.devNull}`,'-c','commit.gpgSign=false',...args],{cwd:root,env,timeout:10000,maxBuffer:1024*1024})).stdout.trim();}
 async function syncDir(dir) {const h=await fs.open(dir,'r');try{await h.sync();}finally{await h.close();}}
 async function write(file,value) {const h=await fs.open(file,'wx',0o600);try{await h.writeFile(value);await h.sync();}finally{await h.close();}}
 async function direct(root,branch) {try{await git(root,['symbolic-ref','--quiet','--no-recurse',branch]);}catch(e){if(e.code===1)return;throw e;}throw fail();}

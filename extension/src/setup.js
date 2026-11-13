@@ -4,6 +4,7 @@ const path = require('node:path');
 const {tutorialMarker} = require('./lesson-projects');
 const {execFile} = require('node:child_process');
 const {promisify} = require('node:util');
+const {gitExecutable} = require('./git-executable');
 const {managedJavaHome,managedJavaEnvironment} = require('./managed-java');
 const executeFile = promisify(execFile);
 const JDK_URL = 'https://adoptium.net/temurin/releases/?version=17&package=jdk';
@@ -46,7 +47,7 @@ function taskEnvironmentOverrides(environment,platform) {
 // the same precedence as the bundled Maven wrapper; a broken value must not
 // silently fall back to a different Java on PATH.
 async function inspectSetup(options) {
-  const {project, execute = executeFile, env = process.env, platform = process.platform,
+  const {project, execute = executeFile, env = process.env, platform = process.platform, resolveGit = gitExecutable,
     getExtension = () => undefined, checkProject:check = checkProject,
     getTaskEnvironment = () => ({})} = options;
   const paths = platform === 'win32' ? path.win32 : path;
@@ -57,8 +58,9 @@ async function inspectSetup(options) {
   const source = managedHome ? 'Zero bundled Java' : home ? 'JAVA_HOME' : 'PATH';
   const command = name => home ? paths.join(home,'bin',name + (platform === 'win32' ? '.exe' : '')) : name;
   const inspect = async (name,args) => {
-    const executable = name === 'git' ? name : command(name);
+    let executable = name === 'git' ? name : command(name);
     try {
+      if (name === 'git') executable = resolveGit(env,platform);
       const result = await execute(executable,args,{env:selectedEnv,timeout:10000,maxBuffer:64 * 1024,windowsHide:true});
       return {ok:true, command:executable, text:[result.stdout,result.stderr].filter(Boolean).join('\n').trim()};
     } catch (error) {

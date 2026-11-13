@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 const {execFile} = require('node:child_process');
 const {promisify} = require('node:util');
 const fs = require('node:fs/promises');
@@ -19,12 +20,12 @@ async function assertLinkedWorktree(root, env) {
   const marker=path.join(root,'.git'),text=await read(marker);
   const match=/^gitdir: ([^\r\n]+)\r?\n?$/.exec(text);
   if(!match)throw new Error('Linked worktree metadata cannot be verified.');
-  const actualRoot=await fs.realpath((await exec('git',['rev-parse','--show-toplevel'],options)).stdout.trim());
+  const actualRoot=await fs.realpath((await exec(gitExecutable(),['rev-parse','--show-toplevel'],options)).stdout.trim());
   if(actualRoot!==await fs.realpath(root))throw new Error('File status requires the project repository root.');
   const namedGitdir=path.resolve(root,match[1]),namedInfo=await fs.lstat(namedGitdir);
   if(!namedInfo.isDirectory()||namedInfo.isSymbolicLink())throw new Error('Linked worktree metadata cannot be verified.');
   const gitdir=await fs.realpath(namedGitdir);
-  const common=await fs.realpath(path.resolve(root,(await exec('git',['rev-parse','--git-common-dir'],options)).stdout.trim()));
+  const common=await fs.realpath(path.resolve(root,(await exec(gitExecutable(),['rev-parse','--git-common-dir'],options)).stdout.trim()));
   const worktrees=path.join(common,'worktrees');
   for(const directory of [common,worktrees,gitdir]) {
     const info=await fs.lstat(directory);
@@ -84,7 +85,7 @@ async function readStudentFileStatus(root,{safeConfig=false,standaloneOnly=false
   // background read. Do not execute project or global filter commands while
   // refreshing the tree; report status unavailable instead.
   const inspect = async (directory,args) => {
-    const {stdout} = await exec('git',['--no-pager','-c','core.fsmonitor=false',...args],{cwd:directory,env,encoding:'buffer',timeout:10000,maxBuffer:1024*1024});
+    const {stdout} = await exec(gitExecutable(),['--no-pager','-c','core.fsmonitor=false',...args],{cwd:directory,env,encoding:'buffer',timeout:10000,maxBuffer:1024*1024});
     const text = new TextDecoder('utf-8',{fatal:true}).decode(stdout);
     if (args.includes('-z') && text && !text.endsWith('\0')) throw new Error('Git filter attributes could not be verified. Use Source Control.');
     return text;
@@ -96,7 +97,7 @@ async function readStudentFileStatus(root,{safeConfig=false,standaloneOnly=false
     throw error;
   }
   await assertNoPromisor(root,inspect);
-  const {stdout} = await exec('git', ['--no-pager', '-c', 'core.fsmonitor=false', 'status', '--porcelain=v1', '-z', '--no-renames', '--untracked-files=all'], {
+  const {stdout} = await exec(gitExecutable(), ['--no-pager', '-c', 'core.fsmonitor=false', 'status', '--porcelain=v1', '-z', '--no-renames', '--untracked-files=all'], {
     cwd: root, encoding: 'buffer', timeout: 10000, maxBuffer: 1024 * 1024,
     env
   });
@@ -106,7 +107,7 @@ async function readStudentFileStatus(root,{safeConfig=false,standaloneOnly=false
   // offer them when HEAD is unborn or cannot be verified; mutations recheck.
   if(changes.size) {
     let hasCommittedHead=false;
-    try {await assertNoPromisor(root,inspect);const result=await exec('git',['--no-pager','rev-parse','--verify','HEAD^{commit}'],{cwd:root,encoding:'utf8',timeout:10000,maxBuffer:1024,env});hasCommittedHead=/^(?:[a-f0-9]{40}|[a-f0-9]{64})\n?$/.test(result.stdout);}
+    try {await assertNoPromisor(root,inspect);const result=await exec(gitExecutable(),['--no-pager','rev-parse','--verify','HEAD^{commit}'],{cwd:root,encoding:'utf8',timeout:10000,maxBuffer:1024,env});hasCommittedHead=/^(?:[a-f0-9]{40}|[a-f0-9]{64})\n?$/.test(result.stdout);}
     catch {/* An absent or unreadable HEAD cannot authorize this action. */}
     Object.defineProperty(changes,'hasCommittedHead',{value:hasCommittedHead});
     if(!hasCommittedHead&&metadata.isDirectory()) {

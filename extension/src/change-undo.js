@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // A reviewed inverse is staged as a new change; HEAD is never moved. Git cannot
 // lock other editors or processes out of the worktree during its multi-file write.
 // The caller must enforce workspace trust and saved editors in beforeMutation.
@@ -30,13 +31,13 @@ const env = Object.assign(Object.fromEntries(Object.entries(process.env).filter(
   GIT_CONFIG_NOSYSTEM:'1', GIT_CONFIG_GLOBAL:os.devNull, GIT_ATTR_NOSYSTEM:'1', GIT_TERMINAL_PROMPT:'0', GIT_NO_LAZY_FETCH:'1', GIT_NO_REPLACE_OBJECTS:'1', GIT_OPTIONAL_LOCKS:'0'
 });
 async function git(root,args,conversion={autocrlf:'false',eol:'native'}) {
-  const {stdout} = await exec('git',['-c',`core.hooksPath=${os.devNull}`,'-c','core.fsmonitor=false','-c',`core.autocrlf=${conversion.autocrlf}`,'-c',`core.eol=${conversion.eol}`,'-c','core.safecrlf=false','-c',`core.attributesFile=${os.devNull}`,'-c','merge.autoStash=false','-c','rerere.enabled=false','-c','commit.gpgSign=false',...args],{cwd:root,env,encoding:'buffer',timeout:20000,maxBuffer:4*1024*1024});
+  const {stdout} = await exec(gitExecutable(),['-c',`core.hooksPath=${os.devNull}`,'-c','core.fsmonitor=false','-c',`core.autocrlf=${conversion.autocrlf}`,'-c',`core.eol=${conversion.eol}`,'-c','core.safecrlf=false','-c',`core.attributesFile=${os.devNull}`,'-c','merge.autoStash=false','-c','rerere.enabled=false','-c','commit.gpgSign=false',...args],{cwd:root,env,encoding:'buffer',timeout:20000,maxBuffer:4*1024*1024});
   return new TextDecoder('utf-8',{fatal:true}).decode(stdout);
 }
 // Bounded binary Git plumbing; callers supply only internally constructed input.
 async function gitBinary(root,args,input,max=byteLimit+8*1024*1024) {
   return new Promise((resolve,reject)=>{
-    const child=spawn('git',['-c',`core.hooksPath=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env,stdio:['pipe','pipe','pipe']});
+    const child=spawn(gitExecutable(),['-c',`core.hooksPath=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env,stdio:['pipe','pipe','pipe']});
     let chunks=[],length=0,failed=false;const timer=setTimeout(()=>{failed=true;child.kill();},20000);
     child.stdout.on('data',chunk=>{length+=chunk.length;if(length>max){failed=true;child.kill();}else chunks.push(chunk);});
     child.stderr.resume();child.on('error',()=>{failed=true;});child.stdin.on('error',()=>{failed=true;});

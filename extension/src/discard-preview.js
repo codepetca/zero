@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // The review token is opaque and one-use. Applying it requires a retained
 // recovery copy, confirmation, and fresh workspace and Git/file checks.
 const fs=require('node:fs/promises');
@@ -70,15 +71,15 @@ async function snapshot(root,{windows=false,ownFileRestore}={}) {
   const configFile=await snapshotFile(root,'.git/config',{bytes:0});
   if(!configFile)throw new Error('Discard preview needs ordinary Git configuration.');
   const configEnv=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'});
-  const config=(await exec('git',['config','--local','--no-includes','--name-only','--null','--list'],{cwd:root,env:configEnv,encoding:'utf8',timeout:10000,maxBuffer:1024*1024})).stdout.split('\0').filter(Boolean);
+  const config=(await exec(gitExecutable(),['config','--local','--no-includes','--name-only','--null','--list'],{cwd:root,env:configEnv,encoding:'utf8',timeout:10000,maxBuffer:1024*1024})).stdout.split('\0').filter(Boolean);
   if(config.some(key=>/^(?:filter\.|include\.|includeif\.)|^extensions\.worktreeconfig$/i.test(key)))throw new Error('Custom Git filters, includes or worktree settings require Source Control for discard.');
   // Git must inspect exactly the project that the filesystem operations will
   // mutate. Reject even an apparently equivalent core.worktree override.
   if(config.some(key=>/^core\.worktree$/i.test(key)))throw new Error('A custom Git worktree requires Source Control for discard.');
   try {await fs.lstat(path.join(dot,'info','grafts'));throw new Error('Git grafts require Source Control for this file operation.');}catch(error){if(error.code!=='ENOENT')throw error;}
-  const replacementRefs=(await exec('git',['-c','core.fsmonitor=false','for-each-ref','--format=%(refname)','refs/replace/'],{cwd:root,env:configEnv,encoding:'utf8',timeout:10000,maxBuffer:1024*1024})).stdout;
+  const replacementRefs=(await exec(gitExecutable(),['-c','core.fsmonitor=false','for-each-ref','--format=%(refname)','refs/replace/'],{cwd:root,env:configEnv,encoding:'utf8',timeout:10000,maxBuffer:1024*1024})).stdout;
   if(replacementRefs.trim())throw new Error('Git replacement objects require Source Control for this file operation.');
-  const location=async arg=>(await exec('git',['rev-parse',arg],{cwd:root,env:configEnv,encoding:'utf8',timeout:10000,maxBuffer:1024*1024})).stdout;
+  const location=async arg=>(await exec(gitExecutable(),['rev-parse',arg],{cwd:root,env:configEnv,encoding:'utf8',timeout:10000,maxBuffer:1024*1024})).stdout;
   const top=await location('--show-toplevel'),gitDir=await location('--absolute-git-dir');
   const sameWindowsLocation=async (reported,expected)=>{
     if(!reported.endsWith('\n')||reported.includes('\0'))return false;
@@ -94,9 +95,9 @@ async function snapshot(root,{windows=false,ownFileRestore}={}) {
   if(changes.get('.gitattributes')==='modified') {
     try {
       const info=await snapshotFile(root,'.gitattributes',{bytes:0},4096);if(!info)throw changed();const bytes=await readSnapshot(path.join(root,'.gitattributes'),info);
-      const gitLine=async args=>(await exec('git',args,{cwd:root,env:configEnv,encoding:'utf8',timeout:10000,maxBuffer:4096})).stdout.trim();
+      const gitLine=async args=>(await exec(gitExecutable(),args,{cwd:root,env:configEnv,encoding:'utf8',timeout:10000,maxBuffer:4096})).stdout.trim();
       const headAttr=await gitLine(['rev-parse','--verify','HEAD:.gitattributes']),indexAttr=await gitLine(['rev-parse','--verify',':.gitattributes']);
-      const blob=(await exec('git',['cat-file','blob',indexAttr],{cwd:root,env:configEnv,encoding:'utf8',timeout:10000,maxBuffer:4096})).stdout;
+      const blob=(await exec(gitExecutable(),['cat-file','blob',indexAttr],{cwd:root,env:configEnv,encoding:'utf8',timeout:10000,maxBuffer:4096})).stdout;
       const stock='* text=auto\nmvnw text eol=lf\nmvnw.cmd text eol=crlf\n';
       if(info&&bytes.length===info.size&&digest(bytes)===info.hash&&bytes.toString('utf8').replace(/\r\n/g,'\n')===stock&&blob===stock&&headAttr===indexAttr)changes.delete('.gitattributes');
     } catch {}
@@ -104,7 +105,7 @@ async function snapshot(root,{windows=false,ownFileRestore}={}) {
   // Global ignore settings are deliberately excluded from the safe Git
   // environment. Refuse rather than discard anything they would protect.
   const ignoreEnv=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'});
-  const ignored=(await exec('git',['ls-files','--others','--ignored','--exclude-standard','-z'],{cwd:root,env:ignoreEnv,encoding:'utf8',timeout:10000,maxBuffer:1024*1024})).stdout.split('\0').filter(Boolean);
+  const ignored=(await exec(gitExecutable(),['ls-files','--others','--ignored','--exclude-standard','-z'],{cwd:root,env:ignoreEnv,encoding:'utf8',timeout:10000,maxBuffer:1024*1024})).stdout.split('\0').filter(Boolean);
   const overlaps=(a,b)=>a===b||a.startsWith(b+'/')||b.startsWith(a+'/');
   if([...changes.keys()].some(name=>ignored.some(item=>overlaps(name,item))))throw new Error('A globally ignored file is protected. Use Source Control to review these changes.');
   if(!changes.size)throw new Error('There are no file changes to discard.');
@@ -112,13 +113,13 @@ async function snapshot(root,{windows=false,ownFileRestore}={}) {
   for(const name of ['index','HEAD']) {const info=await fs.lstat(path.join(dot,name));if(!info.isFile()||info.isSymbolicLink()||info.size>4*1024*1024)throw new Error('Unsupported Git metadata. Use Source Control.');}
   const index=(await readOrdinaryBounded(path.join(dot,'index'),4*1024*1024)).data;const head=(await readOrdinaryBounded(path.join(dot,'HEAD'),4*1024*1024)).data;
   const env=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'});
-  const revision=(await exec('git',['rev-parse','--verify','HEAD^{commit}'],{cwd:root,env,encoding:'utf8',timeout:10000,maxBuffer:1024})).stdout.trim();
+  const revision=(await exec(gitExecutable(),['rev-parse','--verify','HEAD^{commit}'],{cwd:root,env,encoding:'utf8',timeout:10000,maxBuffer:1024})).stdout.trim();
   if(!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(revision))throw changed();
   if(windows) {
     const affected=[...changes.keys()];
     if(affected.some(name=>!portableWindowsPath(name)||potentialWindowsShortName(name)))throw new Error('A changed path cannot be reviewed safely on Windows. Use Source Control.');
     const options={cwd:root,env,encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024};
-    const names=async args=>{const text=new TextDecoder('utf-8',{fatal:true}).decode((await exec('git',['-c','core.fsmonitor=false',...args],options)).stdout);if(text&&!text.endsWith('\0'))throw changed();return text.split('\0').filter(Boolean);};
+    const names=async args=>{const text=new TextDecoder('utf-8',{fatal:true}).decode((await exec(gitExecutable(),['-c','core.fsmonitor=false',...args],options)).stdout);if(text&&!text.endsWith('\0'))throw changed();return text.split('\0').filter(Boolean);};
     const [headNames,indexNames]=await Promise.all([names(['ls-tree','-r','--name-only','-z',revision]),names(['ls-files','-z'])]);
     const known=[...headNames,...indexNames,...ignored,...affected];
     if(known.some(name=>!portableWindowsPath(name)||potentialWindowsShortName(name))||windowsPathsCollide(affected,known))throw new Error('A project path or name collision cannot be reviewed safely on Windows. Use Source Control.');
@@ -185,7 +186,7 @@ async function stashDiscard(plan,{binding,beforeMutationNow=()=>{}}={}) {
     GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_ATTR_NOSYSTEM:'1',
     GIT_NO_LAZY_FETCH:'1',GIT_ALLOW_PROTOCOL:'',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'
   });
-  const git=args=>exec('git',['--no-pager','--literal-pathspecs','-c','core.fsmonitor=false',
+  const git=args=>exec(gitExecutable(),['--no-pager','--literal-pathspecs','-c','core.fsmonitor=false',
     '-c',`core.hooksPath=${os.devNull}`,'-c','commit.gpgSign=false',
     '-c','user.name=Zero','-c','user.email=zero@localhost',...args],
   {cwd:root,env,encoding:'utf8',timeout:30000,maxBuffer:1024*1024});
@@ -270,13 +271,13 @@ async function previewFileInternal(root,name,{beforeMutation,_testPlatform}={},m
   const readStatus=async()=>{
     const env=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_ATTR_NOSYSTEM:'1',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_OPTIONAL_LOCKS:'0'});
     const inspect=async (_root,args)=>{
-      const bytes=(await exec('git',['-c','core.fsmonitor=false',...args],{cwd:root,env,encoding:'buffer',timeout:10000,maxBuffer:1024*1024})).stdout;
+      const bytes=(await exec(gitExecutable(),['-c','core.fsmonitor=false',...args],{cwd:root,env,encoding:'buffer',timeout:10000,maxBuffer:1024*1024})).stdout;
       const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);
       if(args.includes('-z')&&text&&!text.endsWith('\0'))throw changed();
       return text;
     };
     await refuseFilters(root,inspect);
-    const bytes=(await exec('git',['-c','core.fsmonitor=false','status','--porcelain=v1','-z','--no-renames','--untracked-files=all'],{cwd:root,env,encoding:'buffer',timeout:10000,maxBuffer:1024*1024})).stdout;
+    const bytes=(await exec(gitExecutable(),['-c','core.fsmonitor=false','status','--porcelain=v1','-z','--no-renames','--untracked-files=all'],{cwd:root,env,encoding:'buffer',timeout:10000,maxBuffer:1024*1024})).stdout;
     return new TextDecoder('utf-8',{fatal:true}).decode(bytes);
   };
   await beforeMutation();
@@ -285,7 +286,7 @@ async function previewFileInternal(root,name,{beforeMutation,_testPlatform}={},m
   if(!selected||(mode==='added'?(selected.kind!=='added'||!selected.current):mode==='committed'?(selected.kind!=='modified'||!selected.current):mode==='modified'?(!['modified','added'].includes(selected.kind)||!selected.current):(selected.kind!=='deleted'||selected.current!==null)))throw changed();
   if(mode==='committed'||(mode==='added'&&source==='index')) {
     const env=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_ATTR_NOSYSTEM:'1',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_OPTIONAL_LOCKS:'0'});
-    const bytes=(await exec('git',['-c','core.fsmonitor=false','ls-files','--debug','-z'],{cwd:root,env,encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout;
+    const bytes=(await exec(gitExecutable(),['-c','core.fsmonitor=false','ls-files','--debug','-z'],{cwd:root,env,encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout;
     if(parseIndexFlags(bytes).get(name)!=='0')throw new Error('This staged file has unsupported index flags. Use Source Control.');
   }
   const parentState=await deletedParents(root,name);
@@ -324,7 +325,7 @@ async function backupDiscard(plan,{binding,_testPlatform}={}) {
     // An index copy alone does not retain staged-only blobs: Git may later
     // prune objects that became unreachable when the index was restored.
     const env=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'});
-    const git=async args=>(await exec('git',['-c','core.fsmonitor=false',...args],{cwd:state.root,env,encoding:'buffer',timeout:20000,maxBuffer:MAX_BYTES+1024})).stdout;
+    const git=async args=>(await exec(gitExecutable(),['-c','core.fsmonitor=false',...args],{cwd:state.root,env,encoding:'buffer',timeout:20000,maxBuffer:MAX_BYTES+1024})).stdout;
     const rows=new TextDecoder('utf-8',{fatal:true}).decode(await git(['ls-files','--stage','-z'])).split('\0').filter(Boolean);
     const names=new Set(state.files.map(file=>file.name));let stagedBytes=0;
     manifest.staged=[];
@@ -433,7 +434,7 @@ async function applyDiscard(backup,{confirmed=false,_testBeforeStep,_testPlatfor
   const verifyLockParent=async()=>{for(const [dir,expected] of [[root,rootIdentity],[dot,dotIdentity]]){const info=await fs.lstat(dir);if(!info.isDirectory()||info.isSymbolicLink()||info.dev!==expected.dev||info.ino!==expected.ino||await fs.realpath(dir)!==dir)throw changed();}};
   try {lockHandle=await fs.open(lock,'wx',0o600);}catch{throw new Error('Another Zero recovery operation is in progress.');}
   const env=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_ATTR_NOSYSTEM:'1',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_LITERAL_PATHSPECS:'1'});
-  const git=async args=>(await exec('git',['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env,encoding:'buffer',timeout:20000,maxBuffer:4*1024*1024})).stdout;
+  const git=async args=>(await exec(gitExecutable(),['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env,encoding:'buffer',timeout:20000,maxBuffer:4*1024*1024})).stdout;
   const parse=bytes=>new TextDecoder('utf-8',{fatal:true}).decode(bytes).split('\0').filter(Boolean);
   let started=false,completed=false,primaryError;
   try {
@@ -486,7 +487,7 @@ async function applyDiscard(backup,{confirmed=false,_testBeforeStep,_testPlatfor
     const preparedIndex=path.join(backup.recovery,'prepared-index');
     await writeDurable(preparedIndex,(await readOrdinaryBounded(path.join(backup.recovery,'index'),4*1024*1024)).data);
     const prepareEnv={...env,GIT_INDEX_FILE:preparedIndex};
-    const prepare=async args=>(await exec('git',['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env:prepareEnv,encoding:'buffer',timeout:20000,maxBuffer:MAX_BYTES+1024})).stdout;
+    const prepare=async args=>(await exec(gitExecutable(),['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env:prepareEnv,encoding:'buffer',timeout:20000,maxBuffer:MAX_BYTES+1024})).stdout;
     await verifyAttributes();
     if(tracked.length&&(!saved.deleted||saved.deleted.source==='head'))await prepare(['restore',`--source=${state.revision}`,'--staged','--',...tracked.map(file=>file.name)]);
     if(added&&saved.deleted.source==='index')await prepare(['update-index','--force-remove','--',saved.deleted.name]);

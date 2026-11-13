@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 const {inertGitConfigKey}=require('./git-config-keys');
 const {conversionSettings}=require('./git-conversion-settings');
 // This review token is read-only. It cannot apply a restore or authorize a
@@ -19,7 +20,7 @@ const baseEnv=Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^
 const env={...baseEnv,GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_ATTR_NOSYSTEM:'1',GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0',GIT_LITERAL_PATHSPECS:'1'};
 async function git(root,args,settings=env,conversion) {
   const conversions=conversion?['-c',`core.autocrlf=${conversion.autocrlf}`,'-c',`core.eol=${conversion.eol}`,'-c','core.safecrlf=false']:[];
-  const {stdout}=await exec('git',['--no-pager','-c','core.fsmonitor=false',...conversions,...args],{cwd:root,env:settings,encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024});
+  const {stdout}=await exec(gitExecutable(),['--no-pager','-c','core.fsmonitor=false',...conversions,...args],{cwd:root,env:settings,encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024});
   return new TextDecoder('utf-8',{fatal:true}).decode(stdout);
 }
 function records(value) {if(value&&!value.endsWith('\0'))throw fail();return value.split('\0').filter(Boolean);}
@@ -387,7 +388,7 @@ async function retainPreparedProjectRestore(result,{_testBeforeRef,_testBeforeRe
   } catch(error) {error.recoveryPath=result.recoveryPath;throw error;}
 }
 async function blob(root,object) {
-  const {stdout}=await exec('git',['--no-pager','-c','core.fsmonitor=false','cat-file','blob',object],
+  const {stdout}=await exec(gitExecutable(),['--no-pager','-c','core.fsmonitor=false','cat-file','blob',object],
     {cwd:root,env,encoding:'buffer',timeout:10000,maxBuffer:64*1024*1024});
   return stdout;
 }

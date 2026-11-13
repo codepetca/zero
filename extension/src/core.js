@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { execFile } = require('node:child_process');
@@ -30,7 +31,7 @@ async function resolveProject(workspacePaths) {
   return unique[0];
 }
 async function git(project, args, options = {}) {
-  const {stdout} = await execute('git', args, {cwd: project, timeout: 15000, maxBuffer: 1024 * 1024, ...(options.env ? {env:options.env} : {}),...(options.encoding==='buffer'?{encoding:'buffer'}:{})});
+  const {stdout} = await execute(gitExecutable(), args, {cwd: project, timeout: 15000, maxBuffer: 1024 * 1024, ...(options.env ? {env:options.env} : {}),...(options.encoding==='buffer'?{encoding:'buffer'}:{})});
   return Buffer.isBuffer(stdout)||args.includes('-z') ? stdout : stdout.trim();
 }
 function validBranchName(branch) {

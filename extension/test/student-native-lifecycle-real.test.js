@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('../src/git-executable');
 const test=require('node:test'),assert=require('node:assert/strict'),Module=require('node:module');
 const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),net=require('node:net');
 const {execFile}=require('node:child_process'),{promisify}=require('node:util');
@@ -56,7 +57,7 @@ test('student local-first lifecycle uses native review and preserves offline com
  const load=Module._load;delete require.cache[require.resolve('../src/extension')];
  Module._load=function(id,...args){
   if(id==='./transport')return {createTransport:(destination,authenticate,options)=>createTransport(destination,authenticate,{...options,spawn:async(command,argv,spawnOptions)=>{
-   assert.equal(command,'git');assert.ok(['push','ls-remote','fetch'].includes(argv[0]));assert.ok(argv.includes(remote));assert.ok(!argv.some(arg=>arg==='reset'||arg==='--reset'||arg.startsWith('--force')));
+   assert.equal(command,gitExecutable());assert.ok(['push','ls-remote','fetch'].includes(argv[0]));assert.ok(argv.includes(remote));assert.ok(!argv.some(arg=>arg==='reset'||arg==='--reset'||arg.startsWith('--force')));
    if(offline&&argv[0]==='push')throw Object.assign(Error('offline fixture'),{kind:'network'});const local=argv.map(arg=>arg===remote?bare:arg);assert.ok(local.includes(bare));assert.ok(!local.some(arg=>/^https?:/.test(arg)));calls.push(argv);if(holdMain&&argv[0]==='ls-remote'&&argv[3]==='refs/heads/main'&&await git(root,['branch','--show-current'])==='feature'){holdMain=false;mainEntered();await mainGate;try{return await execute(command,local,spawnOptions);}finally{mainFinished();}}return execute(command,local,spawnOptions);
   }})};
   return id==='vscode'?textInputs(vscode):load.call(this,id,...args);

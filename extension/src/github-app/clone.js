@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('../git-executable');
 const fs=require('node:fs/promises');
 const path=require('node:path');
 const os=require('node:os');
@@ -37,7 +38,7 @@ async function validateCloneParent(parentPath) {
   return {parent,parentStat};
 }
 function gitPrerequisite(message, platform, environment) {
-  if (platform === 'win32' && environment.ZERO_GIT_SETUP_FAILED === '1') {
+  if (platform === 'win32' && (environment.ZERO_GIT_SETUP_FAILED === '1' || environment.ZERO_GIT_EXECUTABLE !== undefined)) {
     return Object.assign(Error('Zero could not prepare Git. Fully quit Zero and VS Code, then reopen Zero while connected to the internet. If Git setup still fails on a school laptop, ask school IT.'), {code:'git-setup-retry'});
   }
   return Object.assign(Error(message), {code:'git-prerequisite'});
@@ -47,7 +48,7 @@ async function assertCloneGit(parent, run = core.git, {platform = process.platfo
   try { output = await run(parent, ['--version']); }
   catch (error) {
     if (error.code === 'ENOTDIR') throw unavailableCloneFolder();
-    if (error.code !== 'ENOENT') throw error;
+    if (!['ENOENT','EACCES','EPERM'].includes(error.code)) throw error;
     // A vanished working directory also produces spawn ENOENT.
     const folder = await fs.stat(parent).catch(error => {
       if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return null;
@@ -55,7 +56,8 @@ async function assertCloneGit(parent, run = core.git, {platform = process.platfo
     });
     if (!folder?.isDirectory()) throw unavailableCloneFolder();
     const install = platform === 'win32' ? 'Install Git for Windows' : 'Install Git';
-    throw gitPrerequisite(`Zero could not find Git on this computer. ${install}, then fully quit and reopen Zero.`, platform, environment);
+    const problem = error.code === 'ENOENT' ? 'Zero could not find Git on this computer.' : 'Zero could not run Git on this computer.';
+    throw gitPrerequisite(`${problem} ${install}, then fully quit and reopen Zero.`, platform, environment);
   }
   const version = /^git version (\d+)\.(\d+)(?:\.|\s|$)/.exec(output);
   if (!version || Number(version[1]) < 2 || (Number(version[1]) === 2 && Number(version[2]) < 31)) {
@@ -64,7 +66,7 @@ async function assertCloneGit(parent, run = core.git, {platform = process.platfo
 }
 function cleanEnvironment(source) {
   const env={...source};
-  for(const key of Object.keys(env)) if (/^GIT_(?:CONFIG(?:_|$)|TRACE|CURL_VERBOSE$|SSL_NO_VERIFY$|ASKPASS$|DIR$|WORK_TREE$|COMMON_DIR$|INDEX_FILE$|OBJECT_DIRECTORY$|ALTERNATE_OBJECT_DIRECTORIES$|NAMESPACE$|TEMPLATE_DIR$)|^SSH_ASKPASS$|^SSLKEYLOGFILE$/i.test(key))delete env[key];
+  for(const key of Object.keys(env)) if (/^GIT_(?:CONFIG(?:_|$)|TRACE|CURL_VERBOSE$|SSL_NO_VERIFY$|ASKPASS$|DIR$|WORK_TREE$|COMMON_DIR$|INDEX_FILE$|OBJECT_DIRECTORY$|ALTERNATE_OBJECT_DIRECTORIES$|NAMESPACE$|TEMPLATE_DIR$|EXEC_PATH$)|^SSH_ASKPASS$|^SSLKEYLOGFILE$/i.test(key))delete env[key];
   env.GIT_TERMINAL_PROMPT='0';env.GIT_ASKPASS='';env.SSH_ASKPASS='';
   env.GIT_TRACE2='0';env.GIT_TRACE2_EVENT='0';env.GIT_TRACE2_PERF='0';
   return env;
@@ -76,6 +78,7 @@ function createGitHubAppClone({authentication,repositories,spawn=execute,environ
     const {parent,parentStat}=await validateCloneParent(parentPath);
     cancellation(signal);
     await assertCloneGit(parent,localRun);
+    const executable=gitExecutable();
     cancellation(signal);
     const access=await repositories.access(requested.page,{permissions:{contents:'read'},signal});
     const {ticket,repository}=access;
@@ -116,7 +119,7 @@ function createGitHubAppClone({authentication,repositories,spawn=execute,environ
       settings.forEach(([key,value],index)=>{env[`GIT_CONFIG_KEY_${index}`]=key;env[`GIT_CONFIG_VALUE_${index}`]=value;});
       // Dispatch immediately after the synchronous guard. Never expose raw Git
       // output or interpolate a token in an argument, URL, error or file.
-      try {await spawn('git',['clone','--no-recurse-submodules','--',remote,destination],{cwd:parent,env,signal,timeout:120000,maxBuffer:1024*1024});}
+      try {await spawn(executable,['clone','--no-recurse-submodules','--',remote,destination],{cwd:parent,env,signal,timeout:120000,maxBuffer:1024*1024});}
       catch {cancellation(signal);throw Error('GitHub cloning did not finish. Check your connection and Zero’s repository access.');}
       // Remove credentials before any local verification process is dispatched.
       for(const key of Object.keys(env))if(/^GIT_CONFIG_(?:COUNT|KEY_|VALUE_)/.test(key))delete env[key];
@@ -128,7 +131,7 @@ function createGitHubAppClone({authentication,repositories,spawn=execute,environ
       const gitDirectory=await fs.lstat(path.join(destination,'.git'));
       if(!gitDirectory.isDirectory()||gitDirectory.isSymbolicLink())throw Error('Git did not create a standalone project repository.');
       // These read-only commands also run with isolated, credential-free config.
-      async function verify(args) {const {stdout}=await execute('git',args,{cwd:destination,env,timeout:15000,maxBuffer:1024*1024});return stdout.trim();}
+      async function verify(args) {const {stdout}=await execute(executable,args,{cwd:destination,env,timeout:15000,maxBuffer:1024*1024});return stdout.trim();}
       if(await fs.realpath(await verify(['rev-parse','--show-toplevel']))!==destination||await verify(['remote','get-url','origin'])!==remote||!/^[a-f0-9]{40,64}$/.test(await verify(['rev-parse','--verify','HEAD'])))throw Error('Git did not confirm the expected project repository and commit.');
       const final=await repositories.access(repository.html_url,{ticket,permissions:{contents:'read'},signal});
       if(final.repository.id!==repositoryId||final.installation.id!==installationId)throw Error('GitHub repository access changed during cloning.');

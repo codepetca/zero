@@ -7,7 +7,7 @@ const path = require('node:path');
 const {javaMajor,gitVersion,inspectSetup,checklist,taskEnvironmentOverrides} = require('../src/setup');
 
 const defaults = {
-  env:{},platform:'darwin',project:async () => '/student',checkProject:async () => {},
+  env:{},platform:'darwin',project:async () => '/student',checkProject:async () => {},resolveGit:()=> 'git',
   getExtension:() => ({}),
   execute:async command => ({stderr:command.endsWith('javac') ? 'javac 17.0.12' : command === 'git' ? '' : 'openjdk version "17.0.12"',stdout:command === 'git' ? 'git version 2.31.0' : ''})
 };

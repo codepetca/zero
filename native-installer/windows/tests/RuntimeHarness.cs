@@ -43,7 +43,8 @@ internal static class RuntimeHarness
         public bool Unsupported, BrokenDownload, CancelDownload, RejectInstall, Timeout, RepairJavaOnDownload, RepairNodeOnDownload, FailGitDownload;
         public string GitVersion = "2.56.1.windows.1", InstalledGitVersion;
         public bool CancelGitDownload;
-        public byte[] Git = Zip("cmd/git.exe", "fake git");
+        public byte[] Git = Zip("cmd/git.exe", "fake git", "ucrt64/bin/git.exe", "fake git engine",
+            "ucrt64/bin/git-remote-https.exe", "fake HTTPS", "ucrt64/etc/ssl/certs/ca-bundle.crt", "fake CA", "usr/bin/sh.exe", "fake shell");
         public int Downloads, Installs, Runs;
         public string JavaVersion = "21.0.12";
         public string NodeVersion = "22.23.4";
@@ -162,6 +163,7 @@ internal static class RuntimeHarness
             f.Prepare(); var runtime = f.Runtime(); runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
             Assert(f.Host.Downloads == 3 && f.Host.Launched.EnvironmentVariables["PATH"].Contains(bin + ";"), "compatible PATH Git reused");
             Assert(f.Host.Launched.EnvironmentVariables["NoDefaultCurrentDirectoryInExePath"] == "1" && f.Host.Launched.EnvironmentVariables["ZERO_GIT_SETUP_FAILED"] == null, "Git launch selection avoids current directory and clears failure");
+            Assert(f.Host.Launched.EnvironmentVariables["ZERO_GIT_EXECUTABLE"] == Path.Combine(bin, "git.exe"), "editor receives the exact verified system Git");
             Assert(File.ReadAllText(Path.Combine(f.Data, "editor", "user-data", "User", "settings.json")).Contains("git.path"), "isolated editor binds selected Git");
             Environment.SetEnvironmentVariable("PATH", "");
         }
@@ -179,11 +181,16 @@ internal static class RuntimeHarness
             f.Prepare(); string folder = Directory.GetDirectories(Path.Combine(f.Data, "runtime"), "git-*").Single();
             var runtime = f.Runtime(); runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
             Assert(f.Host.Downloads == 4 && f.Host.Launched.EnvironmentVariables["PATH"].Contains(Path.Combine(folder, "cmd") + ";") && f.Host.Launched.EnvironmentVariables["ZERO_GIT_SETUP_FAILED"] == null, "private Git acquired and selected");
+            Assert(f.Host.Launched.EnvironmentVariables["ZERO_GIT_EXECUTABLE"] == Path.Combine(folder, "cmd", "git.exe"), "editor receives the exact verified private Git");
             f.Host.FailGitDownload = true; f.Prepare(); Assert(f.Host.Downloads == 4, "warm Git works offline");
             File.Delete(Path.Combine(folder, "cmd", "git.exe")); f.Prepare();
             runtime = f.Runtime(); runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
             Assert(f.Host.Launched.EnvironmentVariables["ZERO_GIT_SETUP_FAILED"] == "1" && Directory.Exists(folder), "offline repair keeps editor available and old runtime");
+            Assert(f.Host.Launched.EnvironmentVariables["ZERO_GIT_EXECUTABLE"] == null, "failed Git is not exported to the editor");
             f.Host.FailGitDownload = false; f.Prepare(); Assert(File.Exists(Path.Combine(folder, "cmd", "git.exe")), "missing private Git repaired");
+            string https = Path.Combine(folder, "ucrt64", "bin", "git-remote-https.exe");
+            File.Delete(https);
+            f.Prepare(); Assert(File.Exists(https), "missing HTTPS helper repaired before GitHub operations");
             Environment.SetEnvironmentVariable("ZERO_GIT_SETUP_FAILED", null);
         }
         using (var f = new Fixture(parent))

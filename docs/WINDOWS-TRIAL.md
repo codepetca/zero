@@ -34,7 +34,8 @@ Use an interactive desktop if the host cannot create/close editor windows.
 
 For the missing-Git case, add `-RequirePrivateGit`. The test removes Git from
 the first launcher's PATH, checks the pinned private Git selected by Zero,
-and runs a local clone with that executable.
+and runs a local clone with that executable. The test uses Node to check
+that Zero still selects the same Git when the project contains a decoy executable.
 
 The script verifies Setup's measured size/hash, runs its bounded silent install,
 checks the installed launcher/version/layout and Start-menu shortcut, then opens

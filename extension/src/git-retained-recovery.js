@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // Read retained conflict copies only. Never interpret manifest paths as paths to open.
 const fs = require('node:fs/promises');
 const {constants} = require('node:fs');
@@ -380,7 +381,7 @@ async function validatedCompletedDiscard(root,name) {
     budget={bytes:0};for(const move of moves){if(!/^removed-\d+$/.test(move.copy||''))return false;const expected=manifest.files.find(file=>file.name===move.name);const info=await snapshotCopy(move.copy,budget);if(!expected||expected.missing||!info||info.hash!==expected.hash)return false;}
     const env=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:require('node:os').devNull,GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'});
     const exec=require('node:util').promisify(require('node:child_process').execFile);
-    const rows=(await exec('git',['ls-tree','-r','-z',complete.revision],{cwd:root,env,encoding:'utf8',timeout:10000,maxBuffer:4*1024*1024})).stdout.split('\0').filter(Boolean);
+    const rows=(await exec(gitExecutable(),['ls-tree','-r','-z',complete.revision],{cwd:root,env,encoding:'utf8',timeout:10000,maxBuffer:4*1024*1024})).stdout.split('\0').filter(Boolean);
     const headNames=new Set(rows.map(row=>{const match=/^(?:100644|100755) blob [a-f0-9]{40,64}\t([^\0]+)$/.exec(row);return match?.[1];}).filter(Boolean));
     const expected=manifest.files.filter(file=>headNames.has(file.name)).map(file=>file.name).sort();
     const actual=complete.files.map(file=>file?.name).sort();
@@ -448,7 +449,7 @@ async function validatedCompletedFileRestore(root,name) {
     const exec=require('node:util').promisify(require('node:child_process').execFile);
     const env=Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:require('node:os').devNull,GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'});
     const rows=async filename=>{
-      const bytes=(await exec('git',['-c','core.fsmonitor=false','ls-files','--stage','-z'],{cwd:root,env:{...env,GIT_INDEX_FILE:path.join(folder,filename)},encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout;
+      const bytes=(await exec(gitExecutable(),['-c','core.fsmonitor=false','ls-files','--stage','-z'],{cwd:root,env:{...env,GIT_INDEX_FILE:path.join(folder,filename)},encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout;
       const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);if(text&&!text.endsWith('\0'))throw Error();
       const result=new Map();for(const row of text.split('\0').filter(Boolean)){const match=/^(100644|100755) ([a-f0-9]{40,64}) 0\t([^\0]+)$/.exec(row);if(!match||result.has(match[3]))throw Error();result.set(match[3],`${match[1]} ${match[2]}`);}return result;
     };
@@ -459,26 +460,26 @@ async function validatedCompletedFileRestore(root,name) {
       if(selection.source==='untracked'){if(before.has(selection.name)||staged.length!==0)return false;}
       else {
         if(!before.has(selection.name)||staged.length!==1||before.get(selection.name)!==`${staged[0].mode} ${staged[0].object}`)return false;
-        const flags=async filename=>parseIndexFlags((await exec('git',['-c','core.fsmonitor=false','ls-files','--debug','-z'],{cwd:root,env:{...env,GIT_INDEX_FILE:path.join(folder,filename)},encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout);
+        const flags=async filename=>parseIndexFlags((await exec(gitExecutable(),['-c','core.fsmonitor=false','ls-files','--debug','-z'],{cwd:root,env:{...env,GIT_INDEX_FILE:path.join(folder,filename)},encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout);
         const originalFlags=await flags('index'),resultFlags=await flags('completed-index');
         if(originalFlags.size!==before.size||resultFlags.size!==after.size||originalFlags.get(selection.name)!=='0'||resultFlags.has(selection.name))return false;
         for(const [name,value]of originalFlags)if(name!==selection.name&&resultFlags.get(name)!==value)return false;
         before.delete(selection.name);
       }
       if(JSON.stringify([...before])!==JSON.stringify([...after]))return false;
-      const tree=(await exec('git',['ls-tree','-r','--name-only','-z',complete.revision],{cwd:root,env,encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout;
+      const tree=(await exec(gitExecutable(),['ls-tree','-r','--name-only','-z',complete.revision],{cwd:root,env,encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout;
       if(new TextDecoder('utf-8',{fatal:true}).decode(tree).split('\0').includes(selection.name))return false;
     } else if(selection.source==='index') {if(!before.has(selection.name))return false;if(modified){const staged=manifest.staged.filter(entry=>entry.name===selection.name);if(staged.length!==1||before.get(selection.name)!==`${staged[0].mode} ${staged[0].object}`)return false;}}
     else {
       if((committed?!before.has(selection.name):before.has(selection.name))||!after.has(selection.name))return false;
-      const tree=(await exec('git',['ls-tree','-r','-z',complete.revision],{cwd:root,env,encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout;
+      const tree=(await exec(gitExecutable(),['ls-tree','-r','-z',complete.revision],{cwd:root,env,encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout;
       const entries=new TextDecoder('utf-8',{fatal:true}).decode(tree).split('\0').filter(Boolean);
       const found=entries.map(row=>/^(100644|100755) blob ([a-f0-9]{40,64})\t([^\0]+)$/.exec(row)).filter(match=>match&&match[3]===selection.name);
       if(found.length!==1||after.get(selection.name)!==`${found[0][1]} ${found[0][2]}`)return false;
       if(committed) {
         const staged=manifest.staged.filter(entry=>entry.name===selection.name);
         if(staged.length!==1||before.get(selection.name)!==`${staged[0].mode} ${staged[0].object}`||before.get(selection.name)===after.get(selection.name))return false;
-        const flags=async filename=>parseIndexFlags((await exec('git',['-c','core.fsmonitor=false','ls-files','--debug','-z'],{cwd:root,env:{...env,GIT_INDEX_FILE:path.join(folder,filename)},encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout);
+        const flags=async filename=>parseIndexFlags((await exec(gitExecutable(),['-c','core.fsmonitor=false','ls-files','--debug','-z'],{cwd:root,env:{...env,GIT_INDEX_FILE:path.join(folder,filename)},encoding:'buffer',timeout:10000,maxBuffer:4*1024*1024})).stdout);
         const originalFlags=await flags('index'),resultFlags=await flags('completed-index');
         if(originalFlags.size!==before.size||resultFlags.size!==after.size||originalFlags.get(selection.name)!=='0'||resultFlags.get(selection.name)!=='0')return false;
         for(const [name,value]of originalFlags)if(name!==selection.name&&resultFlags.get(name)!==value)return false;
@@ -608,7 +609,7 @@ async function listCommitUndos(root) {
 async function undoRefObservations(root,gitDir,ref,branch) {
   const {execFile}=require('node:child_process'),{promisify}=require('node:util');
   const env={...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:require('node:os').devNull,GIT_OPTIONAL_LOCKS:'0',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'};
-  const run=async args=>(await promisify(execFile)('git',['--no-pager','-c','core.fsmonitor=false',...args],{cwd:root,env,timeout:10000,maxBuffer:1024*1024,encoding:'utf8'})).stdout.trim();
+  const run=async args=>(await promisify(execFile)(gitExecutable(),['--no-pager','-c','core.fsmonitor=false',...args],{cwd:root,env,timeout:10000,maxBuffer:1024*1024,encoding:'utf8'})).stdout.trim();
   try {
     const top=await run(['rev-parse','--show-toplevel']),dir=await run(['rev-parse','--git-dir']),common=await run(['rev-parse','--git-common-dir']);
     if(await fs.realpath(top)!==root || await fs.realpath(path.resolve(root,dir))!==gitDir || await fs.realpath(path.resolve(root,common))!==gitDir)throw Error();

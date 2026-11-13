@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // All durable recovery data is local to the repository. It contains commit IDs
 // and fingerprints, never transport/session credentials. Guided text choices
 // also retain displaced files in private recovery folders.
@@ -201,7 +202,7 @@ async function preview(current, remoteHead, run) {
   const environment = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/^GIT_/i.test(key)));
   Object.assign(environment, {GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: os.devNull, GIT_ATTR_NOSYSTEM: '1', GIT_TERMINAL_PROMPT: '0'});
   const isolated = async (root, args) => {
-    const {stdout} = await execute('git', ['-c', `core.hooksPath=${os.devNull}`, '-c', 'commit.gpgSign=false', '-c', 'core.autocrlf=false', '-c', 'core.attributesFile=' + os.devNull, '-c', 'merge.conflictStyle=merge', '-c', 'merge.autoStash=false', '-c', 'rerere.enabled=false', ...args], {cwd: root, env: environment, timeout: 15000, maxBuffer: 1024 * 1024});
+    const {stdout} = await execute(gitExecutable(), ['-c', `core.hooksPath=${os.devNull}`, '-c', 'commit.gpgSign=false', '-c', 'core.autocrlf=false', '-c', 'core.attributesFile=' + os.devNull, '-c', 'merge.conflictStyle=merge', '-c', 'merge.autoStash=false', '-c', 'rerere.enabled=false', ...args], {cwd: root, env: environment, timeout: 15000, maxBuffer: 1024 * 1024});
     return args.includes('-z') ? stdout : stdout.trim();
   };
   try {
@@ -665,7 +666,7 @@ async function textConversionGuard(root, filename, content, run) {
 async function readBlob(root, id, maxBuffer) {
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/^GIT_/i.test(key)));
   Object.assign(env, {GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: os.devNull, GIT_NO_LAZY_FETCH: '1', GIT_TERMINAL_PROMPT: '0'});
-  return (await execute('git', ['--no-replace-objects', 'cat-file', 'blob', id], {cwd: root, env, encoding: 'buffer', timeout: 15000, maxBuffer})).stdout;
+  return (await execute(gitExecutable(), ['--no-replace-objects', 'cat-file', 'blob', id], {cwd: root, env, encoding: 'buffer', timeout: 15000, maxBuffer})).stdout;
 }
 async function stageBlob(root, entry, filename, run) {
   // Refuse worktree conversions; installing raw object bytes must correspond to

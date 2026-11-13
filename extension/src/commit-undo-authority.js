@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // Policy for a Zero-created commit. The caller supplies a freshly read, guarded
 // upstream snapshot, and every Zero push must use the provenance lock. This is
 // evidence about Zero and that upstream, not proof that no other copy or tool
@@ -15,7 +16,7 @@ const oid = value => typeof value === 'string' && /^(?:[a-f0-9]{40}|[a-f0-9]{64}
 const env = {...Object.fromEntries(Object.entries(process.env).filter(([key]) => !/^GIT_/i.test(key))), GIT_NO_LAZY_FETCH:'1', GIT_NO_REPLACE_OBJECTS:'1', GIT_TERMINAL_PROMPT:'0'};
 const unavailable = () => new Error('Cannot verify this local commit and its upstream. Review this commit instead.');
 async function git(root, args) {
-  return (await exec('git', ['--no-pager','-c','core.fsmonitor=false','-c',`core.hooksPath=${os.devNull}`,...args], {cwd:root,env,timeout:10000,maxBuffer:1024*1024})).stdout.trim();
+  return (await exec(gitExecutable(), ['--no-pager','-c','core.fsmonitor=false','-c',`core.hooksPath=${os.devNull}`,...args], {cwd:root,env,timeout:10000,maxBuffer:1024*1024})).stdout.trim();
 }
 
 async function destination(root, short) {

@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // Untracked removal for verified macOS helpers, including opted-in Zero Dev.
 // Staged additions are unsupported. Failures retain evidence;
 // there is no automatic retry or rollback.
@@ -9,7 +10,7 @@ const {dispatchJournaledDisplacement}=require('./reftable-conflict-displacement-
 const run=promisify(execFile),plans=new WeakMap(),limit=16*1024*1024,fail=()=>new Error('The added file or project changed. Preserve the retained copies and review Source Control.');
 const digest=b=>crypto.createHash('sha256').update(b).digest('hex'),id=s=>({dev:String(s.dev),ino:String(s.ino)}),sig=s=>[s.dev,s.ino,s.mode,s.nlink,s.size,s.mtimeNs,s.ctimeNs].map(String).join(':');
 function gitEnvironment(){const allowed=new Set(['GIT_CONFIG_NOSYSTEM','GIT_CONFIG_GLOBAL','GIT_CONFIG_SYSTEM','GIT_TERMINAL_PROMPT','GIT_OPTIONAL_LOCKS','GIT_NO_REPLACE_OBJECTS','GIT_NO_LAZY_FETCH','GIT_LITERAL_PATHSPECS','GIT_ATTR_NOSYSTEM','GIT_PAGER']);for(const k of Object.keys(process.env))if(/^GIT_/i.test(k)&&!allowed.has(k))throw fail();return {...process.env,GIT_ATTR_NOSYSTEM:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_NO_LAZY_FETCH:'1',GIT_TERMINAL_PROMPT:'0',GIT_OPTIONAL_LOCKS:'0',GIT_LITERAL_PATHSPECS:'1'};}
-async function git(root,args){return (await run('git',['--no-pager','-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env:gitEnvironment(),encoding:'buffer',maxBuffer:1024*1024,timeout:10000})).stdout;}
+async function git(root,args){return (await run(gitExecutable(),['--no-pager','-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...args],{cwd:root,env:gitEnvironment(),encoding:'buffer',maxBuffer:1024*1024,timeout:10000})).stdout;}
 function validName(name){return typeof name==='string'&&Buffer.byteLength(name)<=4096&&name.length>0&&!/[\x00-\x1f\x7f\\]/.test(name)&&!name.startsWith('/')&&name.split('/').every(p=>p&&p!=='.'&&p!=='..'&&p.toLowerCase()!=='.git');}
 async function directory(p){if(await fs.realpath(p)!==p)throw fail();const s=await fs.lstat(p,{bigint:true});if(!s.isDirectory()||s.isSymbolicLink())throw fail();return s;}
 async function read(p,max,optional=false){let a;try{a=await fs.lstat(p,{bigint:true});}catch(e){if(optional&&e.code==='ENOENT')return null;throw e;}if(!a.isFile()||a.isSymbolicLink()||a.nlink!==1n||a.size>BigInt(max))throw fail();const h=await fs.open(p,constants.O_RDONLY|(constants.O_NOFOLLOW||0)|(constants.O_NONBLOCK||0));try{const b=await h.stat({bigint:true});if(sig(a)!==sig(b))throw fail();const data=Buffer.alloc(Number(b.size)+1);let n=0;while(n<data.length){const r=await h.read(data,n,data.length-n,n);if(!r.bytesRead)break;n+=r.bytesRead;}if(n!==Number(b.size)||sig(b)!==sig(await h.stat({bigint:true}))||sig(b)!==sig(await fs.lstat(p,{bigint:true})))throw fail();return {data:data.subarray(0,n),stat:b};}finally{await h.close();}}

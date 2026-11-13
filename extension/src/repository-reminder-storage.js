@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('./git-executable');
 // Select compatibility before any file-ledger attempt. It preserves connected
 // Git workflows for linked/custom metadata, but grants no shared-ledger or
 // history-rewrite authority. Storage errors never change the selected backend.
@@ -14,7 +15,7 @@ async function classify(root) {
  const rootInfo=await fs.lstat(root),marker=path.join(root,'.git'),markerInfo=await fs.lstat(marker);
  if(!rootInfo.isDirectory()||rootInfo.isSymbolicLink()||(!markerInfo.isFile()&&!markerInfo.isDirectory()&&!markerInfo.isSymbolicLink()))throw Error('The Git project metadata cannot be inspected.');
  const env={...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_TERMINAL_PROMPT:'0',GIT_NO_LAZY_FETCH:'1'};
- const git=async args=>(await exec('git',['-c','core.fsmonitor=false',...args],{cwd:root,env,timeout:10000,maxBuffer:1024*1024,encoding:'utf8'})).stdout;
+ const git=async args=>(await exec(gitExecutable(),['-c','core.fsmonitor=false',...args],{cwd:root,env,timeout:10000,maxBuffer:1024*1024,encoding:'utf8'})).stdout;
  const gitDir=await fs.realpath((await git(['rev-parse','--absolute-git-dir'])).trim()),commonDir=await fs.realpath(path.resolve(root,(await git(['rev-parse','--git-common-dir'])).trim()));
  const keys=(await git(['config','--local','--no-includes','--name-only','--null','--list'])).split('\0').filter(Boolean),config=path.join(commonDir,'config'),configInfo=await fs.lstat(config);
  let reason;

@@ -1,4 +1,5 @@
 'use strict';
+const {gitExecutable} = require('../src/git-executable');
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs/promises');
@@ -40,7 +41,7 @@ async function fixture(t) {
 test('authenticated clone uses real local Git behind injected transport and verifies exact repository/commit',async t=>{
  const f=await fixture(t),result=await f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent});assert.equal(result,path.join(f.parent,'project'));assert.equal(await fs.readFile(path.join(result,'Main.java'),'utf8'),'class Main {}');
  assert.equal(await core.git(result,['remote','get-url','origin']),remote);assert.equal(await core.git(result,['rev-parse','HEAD']),await core.git(f.source,['rev-parse','HEAD']));assert.equal(f.accessCalls,2);
- const call=f.calls[0];assert.equal(call.command,'git');assert.deepEqual(call.args,['clone','--no-recurse-submodules','--',remote,result]);assert.ok(!call.args.join(' ').includes(token));
+ const call=f.calls[0];assert.equal(call.command,gitExecutable());assert.deepEqual(call.args,['clone','--no-recurse-submodules','--',remote,result]);assert.ok(!call.args.join(' ').includes(token));
  assert.equal(call.options.env.GIT_CONFIG_COUNT,undefined,'Credential-bearing config references are dropped after dispatch');
  const header=call.settings.find(([key,value])=>key===`http.${remote}.extraHeader`&&value)[1];assert.equal(header,`Authorization: Basic ${Buffer.from(`x-access-token:${token}`).toString('base64')}`);
  for(const [key,value] of [['credential.helper',''],[`credential.${remote}.helper`,''],['http.extraHeader',''],[`http.${remote}.followRedirects`,'false'],[`http.${remote}.sslVerify`,'true'],['protocol.allow','never'],['protocol.https.allow','always'],['submodule.recurse','false']])assert.ok(call.settings.some(([k,v])=>k===key&&v===value));
@@ -91,6 +92,8 @@ test('a failed managed Windows Git setup directs students to reopen Zero',async 
    await assert.rejects(assertCloneGit(f.parent,run,managed),error=>error.code==='git-setup-retry'&&/reopen Zero/.test(error.message));
  }
  await assertCloneGit(f.parent,async()=>'git version 2.56.1.windows.1',managed);
+ await assert.rejects(assertCloneGit(f.parent,async()=>{throw Object.assign(Error('Permission denied'),{code:'EACCES'});},
+   {platform:'win32',environment:{ZERO_GIT_EXECUTABLE:'C:\\Zero Data\\cmd\\git.exe'}}),{code:'git-setup-retry'});
 });
 test('existing folder and symlink are never overwritten or removed',async t=>{
  const f=await fixture(t),destination=path.join(f.parent,'project');await fs.mkdir(destination);await fs.writeFile(path.join(destination,'keep'),'preserve');await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent}),/already exists/);assert.equal(await fs.readFile(path.join(destination,'keep'),'utf8'),'preserve');assert.equal(f.calls.length,0);
