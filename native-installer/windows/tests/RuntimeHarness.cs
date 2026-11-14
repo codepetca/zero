@@ -193,14 +193,24 @@ internal static class RuntimeHarness
             File.WriteAllText(Path.Combine(extensions, "package.json"), "{}");
             f.Host.RedhatVersion = "1.57.0";
             var runtime = new WindowsRuntime(f.Kit, f.Data, f.Project, f.Host, portableTools: tools);
-            // The approved runtimes and VS Code are separate from the student's profile.
-            runtime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult();
-            runtime.Open(false, CancellationToken.None).GetAwaiter().GetResult();
+            string inheritedAppData = Environment.GetEnvironmentVariable("VSCODE_APPDATA");
+            try
+            {
+                Environment.SetEnvironmentVariable("VSCODE_APPDATA", Path.Combine(f.Root, "another-profile"));
+                runtime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult();
+                runtime.Open(false, CancellationToken.None).GetAwaiter().GetResult();
+            }
+            finally { Environment.SetEnvironmentVariable("VSCODE_APPDATA", inheritedAppData); }
+            Assert(f.Host.Commands.Concat(new[] { f.Host.Launched }).All(command => command.EnvironmentVariables["VSCODE_APPDATA"] == null),
+                "portable children ignore an inherited editor profile override");
             Assert(f.Host.Downloads == 0 && !Directory.Exists(Path.Combine(f.Data, "runtime")), "portable tools never download into the profile");
             Assert(f.Host.Commands.All(command => command.FileName.StartsWith(tools + Path.DirectorySeparatorChar, StringComparison.Ordinal)),
                 "portable launcher starts approved tools only");
             Assert(f.Host.Launched.FileName == Path.Combine(tools, "vscode", "Code.exe") &&
-                f.Host.Launched.EnvironmentVariables["ZERO_PORTABLE_TOOLS"] == tools, "portable handoff selects the approved editor");
+                f.Host.Launched.EnvironmentVariables["ZERO_PORTABLE_TOOLS"] == tools &&
+                f.Host.Launched.EnvironmentVariables["ZERO_PORTABLE_STARTER"] == f.Project &&
+                f.Host.Launched.Arguments.Contains(Processes.QuoteArgument(Path.Combine(f.Data, "editor", "shared-data"))),
+                "portable handoff selects the approved editor and private student data");
             string settingsFile = Path.Combine(f.Data, "editor", "user-data", "User", "settings.json");
             var settings = JObject.Parse(File.ReadAllText(settingsFile));
             Assert((string)settings["java.jdt.ls.java.home"] == Path.Combine(tools, "jdk") &&

@@ -22,3 +22,14 @@ test('installation test uses the launcher kit location or native home kit, not t
   assert.equal(isSetupProject(root,options),true);
   assert.throws(()=>setupProjectPath({home,env:{ZERO_KIT_DIR:'relative'}}),/absolute kit/);
 });
+
+test('portable installation test uses the writable starter instead of the verified kit', () => {
+  const starter = 'C:\\Users\\Student\\Zero Portable\\starter';
+  const env = {
+    ZERO_WINDOWS_DISTRIBUTION:'portable',
+    ZERO_KIT_DIR:'C:\\retained-kit',
+    ZERO_PORTABLE_STARTER:starter
+  };
+  assert.equal(setupProjectPath({env}), starter);
+  assert.throws(() => setupProjectPath({env:{...env, ZERO_PORTABLE_STARTER:'relative'}}), /starter location is unavailable/);
+});

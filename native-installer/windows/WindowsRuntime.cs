@@ -145,7 +145,15 @@ namespace ZeroSetup
 #endif
             return Path.Combine(data, "runtime", kind + "-" + digest);
         }
-        private string[] Isolated { get { return new[] { "--user-data-dir", UserData, "--extensions-dir", Extensions }; } }
+        private string[] Isolated
+        {
+            get
+            {
+                var paths = new[] { "--user-data-dir", UserData, "--extensions-dir", Extensions };
+                return portableTools == null ? paths :
+                    paths.Concat(new[] { "--shared-data-dir", Path.Combine(data, "editor", "shared-data") }).ToArray();
+            }
+        }
         internal static bool AtLeast(string installed, string required)
         {
             Version actual, target;
@@ -181,8 +189,15 @@ namespace ZeroSetup
             foreach (string key in JavaStartupVariables) info.EnvironmentVariables.Remove(key);
             info.EnvironmentVariables["MAVEN_SKIP_RC"] = "1";
             info.EnvironmentVariables["ZERO_KIT_DIR"] = executionKit;
-            if (portableTools == null) info.EnvironmentVariables.Remove("ZERO_PORTABLE_TOOLS");
-            else info.EnvironmentVariables["ZERO_PORTABLE_TOOLS"] = portableTools;
+            info.EnvironmentVariables.Remove("ZERO_PORTABLE_TOOLS");
+            info.EnvironmentVariables.Remove("ZERO_PORTABLE_STARTER");
+            if (portableTools != null)
+            {
+                info.EnvironmentVariables["ZERO_PORTABLE_TOOLS"] = portableTools;
+                info.EnvironmentVariables["ZERO_PORTABLE_STARTER"] = project;
+                // VS Code gives this environment override precedence over its CLI flag.
+                info.EnvironmentVariables.Remove("VSCODE_APPDATA");
+            }
             info.EnvironmentVariables["PATH"] = Path.Combine(java, "bin") + ";" + (node == null ? "" : Path.GetDirectoryName(node) + ";") + (git == null ? "" : Path.GetDirectoryName(git) + ";") + string.Join(";", AbsolutePathEntries());
             info.EnvironmentVariables["NoDefaultCurrentDirectoryInExePath"] = "1";
             if (git != null) info.EnvironmentVariables["ZERO_GIT_EXECUTABLE"] = git;
