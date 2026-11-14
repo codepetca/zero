@@ -11,7 +11,7 @@ async function fixture(t,kit='legacy') {
 }
 function unchanged(h){for(const [name,data]of h.legacy)assert.deepEqual(fs.readFileSync(path.join(h.root,name)),data);}
 test('only complete pinned historical baselines upgrade; edited, forged, unknown and incomplete kits fail closed',async t=>{
-  for(const kit of ['legacy','previous'])for(const kind of ['edited','forged','mixed-marker','self-signed','unknown','incomplete','large','directory','symlink','parent-symlink'])await t.test(kit+' '+kind,async t=>{
+  for(const kit of ['legacy','previous','shipping'])for(const kind of ['edited','forged','mixed-marker','self-signed','unknown','incomplete','large','directory','symlink','parent-symlink'])await t.test(kit+' '+kind,async t=>{
     const h=await fixture(t,kit),readme=path.join(h.root,'.zero-web/README.md');
     assert.equal(migration.inspect(h.root,h.current).upgrade,true);
     if(kind==='edited')fs.appendFileSync(readme,'Student edit\n');
@@ -32,10 +32,10 @@ test('only complete pinned historical baselines upgrade; edited, forged, unknown
     assert.throws(()=>migration.inspect(h.root,h.current),/different content|symbolic link|regular file/);
   });
 });
-test('the previous current kit upgrades only the guide and marker and retains its exact recovery bytes',async t=>{
-  const h=await fixture(t,'previous'),review=migration.inspect(h.root,h.current);
+test('the shipping kit upgrades only the workflow and marker and retains its exact recovery bytes',async t=>{
+  const h=await fixture(t,'shipping'),review=migration.inspect(h.root,h.current);
   assert.equal(review.upgrade,true);
-  assert.deepEqual(review.changed,['.zero-web/README.md','.zero-web/owner.json']);
+  assert.deepEqual(review.changed,['.github/workflows/zero-web.yml','.zero-web/owner.json']);
   migration.apply(h.root,h.current,review.original);
   for(const [name,data]of h.current)assert.deepEqual(fs.readFileSync(path.join(h.root,name)),data);
   assert.equal(migration.inspect(h.root,h.current).upgrade,false);
@@ -63,7 +63,7 @@ test('failed staging leaves source untouched; short-write retry installs the own
   const installed=[];
   const io={...fs,writeSync(fd,data,offset,length,position){return fs.writeSync(fd,data,offset,Math.min(length,11),position);},linkSync(source,target){installed.push(path.relative(h.root,target).split(path.sep).join('/'));return fs.linkSync(source,target);},ftruncateSync(){assert.fail('No inode is truncated');}};
   migration.apply(h.root,h.current,migration.inspect(h.root,h.current).original,io);
-  assert.deepEqual(installed,['.zero-web/README.md','.zero-web/owner.json']);
+  assert.deepEqual(installed,['.github/workflows/zero-web.yml','.zero-web/README.md','.zero-web/owner.json']);
   for(const [name,data]of h.current)assert.deepEqual(fs.readFileSync(path.join(h.root,name)),data);
   assert.equal(migration.inspect(h.root,h.current).upgrade,false);
   const saved=copies(h).find(directory=>fs.existsSync(path.join(directory,'original-README.md')));

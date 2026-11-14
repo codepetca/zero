@@ -4,7 +4,7 @@ const path = require('node:path');
 
 // The staging job handles data only. Pages credentials belong to the deploy job.
 const pagesWorkflow = `name: Publish Zero game
-run-name: Zero web \${{ inputs.source_sha }}
+run-name: Zero web \${{ inputs.source_sha }} \${{ inputs.stage_tag }}
 on:
   workflow_dispatch:
     inputs:

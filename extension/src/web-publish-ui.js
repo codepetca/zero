@@ -4,7 +4,7 @@ const {createGitHubPagesPublisher} = require('./web-publish-github');
 const {safePagesUrl}=require('./web-pages-verification');
 
 function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connectedRepository=()=>undefined,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setProgress=()=>{},output,listPublication,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,beforeBuildReview=async()=>{},publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
-  let disposed=false,controller,publishing=false,resume,recheckRequested=false,lastLive;
+  let disposed=false,controller,publishing=false,resume,recheckRequested=false,recheckDispatch=false,lastLive;
   let root,stageProgress,openingRequested=false;
   const clearProgress=()=>{stageProgress=undefined;setProgress(undefined);};
   function startProgress(stages) {
@@ -32,30 +32,67 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
     await stillCurrent(expected);
     assertPublishCurrentNow(expected);
   }
-  async function uploadForPublish(expected,expectedPlan) {
+  async function uploadForPublish(expected,review,expectedPlan) {
     await stillPublishable(expected);
-    if(!uploadChanges)throw new Error('Choose Commit & push on main, then Publish & open app.');
+    if(!uploadChanges)throw new Error('Commit and sync the publishing files on main, then choose Publish & open app.');
     startProgress(['preparing','building','uploading','deploying','verifying']);
-    progress('Saving changes before publishing…');
+    progress('Saving publishing files…');
     // The upload command claims its own lock synchronously. Keep our separate
     // publication guard held while handing the coordinator lock to it.
     setBusy(false);
-    try {return await uploadChanges(authentication,{forPublish:true,expectedRoot:expected,expectedPlan,assertPublishCurrent:()=>stillPublishable(expected),assertPublishCurrentNow:()=>assertPublishCurrentNow(expected)});}
+    try {return await uploadChanges(authentication,{forPublish:true,expectedRoot:expected,expectedPlan,expectedAccount:review.account,assertPublishCurrent:()=>stillPublishable(expected),assertPublishCurrentNow:()=>assertPublishCurrentNow(expected)});}
     finally {setBusy(true);}
   }
   const progress=(message,detail=message)=>{setState(message);output?.appendLine(detail);};
-  async function showAction(result) {
+  async function showAction(result,{allowRecheck=true}={}) {
     clearProgress();
     progress(result.message || result.action?.message || 'Publishing needs one more step.');
     if(!result.action)return;
-    const selected=await vscode.window.showInformationMessage(result.action.message,...(result.action.url?['Open GitHub','Recheck']:['Recheck']));
+    const choices=[...(result.action.url?['Open GitHub']:[]),...(allowRecheck?['Recheck']:[])];
+    const selected=await vscode.window.showInformationMessage(result.action.message,...choices);
     if(selected==='Open GitHub' && !disposed)await vscode.env.openExternal(vscode.Uri.parse(result.action.url));
     if(selected==='Recheck')recheckRequested=true;
   }
+  async function savePending(expected,value,account) {
+    const next={root:expected,value,account};
+    await workspaceState?.update('zero.webPublish.pending',next);
+    resume=next;
+  }
+  async function trackDispatch(expected,value,account) {
+    await savePending(expected,value,account);
+    await workspaceState?.update('zero.webPublish.staging',undefined);
+  }
+  async function showDispatchAction(result,expected) {
+    clearProgress();
+    progress(result.message || result.action.message);
+    const chosen=await vscode.window.showInformationMessage(result.action.message,'Open GitHub Actions','Recheck','Dismiss saved attempt…');
+    await stillPublishable(expected);
+    if(chosen==='Open GitHub Actions')await vscode.env.openExternal(vscode.Uri.parse(result.action.url));
+    if(chosen==='Recheck')recheckDispatch=true;
+    if(chosen==='Dismiss saved attempt…') {
+      const staged=workspaceState?.get('zero.webPublish.staging');
+      if(staged?.root!==expected)return;
+      const confirmed=await vscode.window.showWarningMessage('Dismiss this publishing attempt?',{
+        modal:true,detail:'Check GitHub Actions first. GitHub may still be deploying this app. Dismissing clears Zero’s saved attempt on this computer. GitHub’s run and uploaded bundle are kept.'
+      },'Dismiss saved attempt');
+      if(confirmed!=='Dismiss saved attempt')return;
+      await stillPublishable(expected);
+      await publisher.forgetDispatch(expected,staged.value);
+      await workspaceState?.update('zero.webPublish.staging',undefined);
+      progress('Saved attempt dismissed. Choose Publish & open app to start a new attempt.');
+      return {status:'reset'};
+    }
+  }
+  function sourceUploadRequired() {
+    clearProgress();
+    const message='Commit any changes and choose Sync on main, then choose Publish & open app again.';
+    progress(message);
+    return {status:'upload-required',message};
+  }
   async function waitForDeployment(result,expected,account) {
     for(let attempt=0;result.status==='pending' && attempt<maxChecks;attempt++) {
-      await stillCurrent(expected);progress(result.message);resume={root:expected,value:result.resume,account};
-      await workspaceState?.update('zero.webPublish.pending',resume);
+      await stillCurrent(expected);progress(result.message);
+      await savePending(expected,result.resume,account);
       await new Promise(resolve=>{const timer=setTimeout(done,pollIntervalMs);function done(){clearTimeout(timer);controller?.signal.removeEventListener('abort',done);resolve();}controller.signal.addEventListener('abort',done,{once:true});});
       await stillCurrent(expected);
       result=await publisher.check(result.resume,{signal:controller.signal,onProgress:progress,onStage:stage});
@@ -109,27 +146,27 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
     progress(listing?.listingMessage ? `${message} · ${listing.listingMessage}` : message,`Your playable app is live: ${current.url}`);
     return {...current,opened:opened!==false};
   }
-  async function publish({open=false}={}) {
+  async function publish({open=false,recheckRoot}={}) {
     if(disposed || publishing || isBusy())return;
     publishing=true;setBusy(true);controller=new AbortController();openingRequested=open;
     try {
       root=await project();
       if(disposed || controller.signal.aborted)return;
+      if(recheckRoot && root!==recheckRoot)return;
       if(isSimulation(root)){progress('Simulation only — no publishing files, sign-in, upload or public website changed.');return {status:'simulated'};}
       if(vscode.workspace.isTrusted===false)throw new Error('Trust your own project before publishing its browser game.');
       const expected=root;
+      const staged=workspaceState?.get('zero.webPublish.staging');
+      const recovering=Boolean(recheckRoot || (staged?.root===expected && staged.value?.phase!=='staging'));
+      if(recovering)openingRequested=false;
       startProgress(['checking']);
-      progress(open?'Checking latest app…':'Preparing publishing…');
+      progress(recovering?'Checking saved publishing attempt…':open?'Checking latest app…':'Preparing publishing…');
       // A resumed older deployment may finish while a newer local version exists.
       // Allow one fresh publication, then stop if editing continues; never open stale output.
       for(let attempt=0;attempt<(open?2:1);attempt++) {
         await stillPublishable(expected);
-        if(open && vscode.workspace.textDocuments?.some(document=>document.isDirty)) {
-          if(!await vscode.workspace.saveAll(false))throw Error('Save your project before publishing its browser app.');
-          await stillPublishable(expected);
-        }
-        const result=await publishOnce(expected,{reuse:open});
-        if(!open || result?.status!=='live')return result;
+        const result=await publishOnce(expected,{reuse:open,recovering});
+        if(recovering || !open || result?.status!=='live')return result;
         if(result.alreadyCurrent)return result;
         let current=result;
         if(!result.alreadyCurrent) {
@@ -147,21 +184,30 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
         if(current.status!=='live'){await showAction(current);return current;}
         return current;
       }
-    } finally {clearProgress();controller=undefined;publishing=false;setBusy(false);if(recheckRequested && !disposed){recheckRequested=false;queueMicrotask(()=>{void publish({open}).catch(error=>progress(error.message));});}}
+    } finally {
+      clearProgress();controller=undefined;publishing=false;setBusy(false);
+      const dispatch=recheckDispatch, retry=recheckRequested || dispatch, checkRoot=root;
+      recheckDispatch=false;recheckRequested=false;
+      if(retry && !disposed)queueMicrotask(()=>{void publish({open,recheckRoot:dispatch ? checkRoot : undefined}).catch(error=>progress(error.message));});
+    }
   }
-  async function publishOnce(expected,{reuse=false}={}) {
+  async function publishOnce(expected,{reuse=false,recovering=false}={}) {
     let result,approvedAccount;
     const staged=workspaceState?.get('zero.webPublish.staging');
-    const pendingSaved=resume || workspaceState?.get('zero.webPublish.pending');
-    if(staged?.root===expected && pendingSaved?.root!==expected && publisher.cleanup) {
-      await publisher.cleanup(expected,staged.value);
-      await workspaceState?.update('zero.webPublish.staging',undefined);
-      await stillCurrent(expected);
-    }
     resume=resume || workspaceState?.get('zero.webPublish.pending');
+    if((staged && staged.root!==expected)||(resume && resume.root!==expected)) {
+      clearProgress();
+      const message='Reopen the project with the saved publishing attempt to check it before starting another publish in this window.';
+      progress(message);
+      return {status:'action-required',message};
+    }
     if(resume?.root===expected) {
       startProgress(['deploying','verifying']);progress('Checking saved publishing run…');
       approvedAccount=resume.account;
+      if(staged?.value?.staging?.tag && staged.value.staging.tag===resume.value?.staging?.tag) {
+        // A crash between storing the run and clearing staging leaves both receipts.
+        await workspaceState?.update('zero.webPublish.staging',undefined);
+      }
       try {result=publisher.restore ? await publisher.restore(expected,resume.value,{signal:controller.signal,onStage:stage,onProgress:progress}) : await publisher.check(resume.value,{signal:controller.signal,onProgress:progress,onStage:stage});}
       catch(error) {
         if(error.code!=='WEB_PUBLISH_REPOSITORY_CHANGED')throw error;
@@ -177,7 +223,18 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
         return {status:'action-required',message:'Reconnect the previous repository or forget its saved publishing run.'};
       }
     }
-    else {
+    else if(staged?.root===expected) {
+      startProgress(['deploying','verifying']);progress('Checking saved publishing attempt…');
+      approvedAccount=staged.value?.account;
+      result=await publisher.restoreDispatch(expected,staged.value,{signal:controller.signal,onStage:stage,onProgress:progress,onPending:value=>trackDispatch(expected,value,approvedAccount)});
+      await stillPublishable(expected);
+      if(result.status==='staging-cleared') {
+        await workspaceState?.update('zero.webPublish.staging',undefined);
+        result=undefined;
+      }
+    }
+    if(!result) {
+      if(recovering)return;
       if(vscode.workspace.textDocuments?.some(document=>document.isDirty)) {
         if(!await vscode.workspace.saveAll(false))throw Error('Save your project before publishing its browser app.');
         await stillCurrent(expected);
@@ -191,15 +248,11 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
       }
       await beforeBuildReview(expected,{signal:controller.signal});
       await stillPublishable(expected);
-      let review,uploadedSource;
+      let review;
       try {review=await publisher.review(expected,{signal:controller.signal});}
       catch(error) {
         if(error.code!=='WEB_PUBLISH_UPLOAD_REQUIRED')throw error;
-        uploadedSource=await uploadForPublish(expected,error.plan);
-        if(!uploadedSource?.uploaded)return;
-        await stillCurrent(expected);
-        review=await publisher.review(expected,{signal:controller.signal});
-        if(review.status==='review' && review.sha!==uploadedSource.head)throw new Error('The project version changed after upload. Choose Publish & open app again to publish the intended version.');
+        return sourceUploadRequired();
       }
       await stillCurrent(expected);
       if(review.status!=='review'){await showAction(review);return review;}
@@ -223,7 +276,8 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
         if(!sameDestination || listPublication && !listingNotice) {
           clearProgress();
           const notice = listPublication ? ' When available, Zero will also add the app to ZeroHub. If your app slots are full, this app replaces the first unprotected app in your queue.' : '';
-          const chosen=await vscode.window.showInformationMessage('Publish this app publicly?',{modal:true,detail:`Your app and included assets will be public.${notice}\n${review.publicUrl || (review.repository + ' → GitHub Pages')}`},'Publish app');
+          const setup=review.setup ? `\nZero will sync its publishing files to ${review.repository}.` : '';
+          const chosen=await vscode.window.showInformationMessage('Publish this app publicly?',{modal:true,detail:`Your app and included assets will be public.${notice}\n${review.publicUrl || (review.repository + ' → GitHub Pages')}${setup}`},'Publish app');
           if(chosen!=='Publish app')return;
           await stillCurrent(expected);
           await workspaceState?.update('zero.webPublish.approval',{root:expected,account:review.account,repository:review.repository,url:review.publicUrl,...(listPublication ? {listingNotice:true} : {})});
@@ -239,7 +293,7 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
           const updating=Boolean(review.upgrade);
           if(updating) {
             clearProgress();
-            const chosen=await vscode.window.showInformationMessage('Update publishing files?',{modal:true,detail:`Files:\n${review.upgrade.files.join('\n')}\nSource and destination stay the same. Git history is kept.\n${review.publicUrl || review.repository}`},'Update publishing files');
+            const chosen=await vscode.window.showInformationMessage('Update publishing files?',{modal:true,detail:`Zero will commit and sync these files to ${review.repository}.\n${review.upgrade.files.join('\n')}\nThe previous version stays in Git history.\n${review.publicUrl || review.repository}`},'Update publishing files');
             if(chosen!=='Update publishing files')return;
             await stillCurrent(expected);
             startProgress(['preparing','building','uploading','deploying','verifying']);
@@ -259,8 +313,8 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
           result=await publisher[updating?'update':'setup'](review,{signal:controller.signal});
           if(result.status!=='upload-required'){await showAction(result);return result;}
           progress(result.message);
-          if(!uploadChanges){await showAction({...result,action:{message:'Choose Commit & push to save the publishing setup on main, then choose Publish & open app again.'}});return result;}
-          const uploaded=await uploadForPublish(expected);
+          if(!uploadChanges){await showAction({...result,action:{message:'Commit and sync the publishing files on main, then choose Publish & open app again.'}});return result;}
+          const uploaded=await uploadForPublish(expected,review,result.uploadPlan);
           if(!uploaded?.uploaded)return;
           await stillCurrent(expected);
           review=await publisher.review(expected,{signal:controller.signal});
@@ -271,7 +325,7 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
         }
         await stillCurrent(expected);
         approvedAccount=review.account;
-        result=await publisher.publish(review,{signal:controller.signal,onProgress:progress,onStage:stage,onStaging:async value=>{await workspaceState?.update('zero.webPublish.staging',value?{root:expected,value}:undefined);},onPending:async value=>{resume={root:expected,value,account:approvedAccount};await workspaceState?.update('zero.webPublish.pending',resume);await workspaceState?.update('zero.webPublish.staging',undefined);}});
+        result=await publisher.publish(review,{signal:controller.signal,onProgress:progress,onStage:stage,onStaging:async value=>{await workspaceState?.update('zero.webPublish.staging',value?{root:expected,value}:undefined);},onPending:value=>trackDispatch(expected,value,approvedAccount)});
       }
     }
     result=await waitForDeployment(result,expected,approvedAccount);
@@ -292,7 +346,8 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
         progress(lastLive.listingMessage ? `App published · ${lastLive.listingMessage}` : 'App published',`Your playable app is live: ${result.url}`);
       }
     } else if(result.status==='pending')progress('Publishing is still running. Choose Publish & open app again to recheck this run.');
-    else {resume=undefined;await workspaceState?.update('zero.webPublish.pending',undefined);await showAction(result);}
+    else if(result.status==='dispatch-uncertain')return await showDispatchAction(result,expected) || result;
+    else {resume=undefined;await workspaceState?.update('zero.webPublish.pending',undefined);await showAction(result,{allowRecheck:!recovering && result.status!=='failed'});}
     return result;
   }
   // Rendering reads only a previously verified receipt. It never infers a URL

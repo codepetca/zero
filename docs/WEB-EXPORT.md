@@ -133,26 +133,23 @@ simple labels, and a timer advanced from `update(seconds)` instead of sleeping.
 
 ## Student flow
 
-Choose **Publish & open app** from the arrow beside Run after testing the app.
-Sign in and connect your repository to enable it. Publish saves open files, commits
-pending changes through the normal message input, pushes any unuploaded commits,
-and validates that the deployed source matches the uploaded commit. A clean,
-uploaded `main` skips the upload; already committed work needs no new message.
-A cancelled or failed upload stops deployment. A change branch gets guidance to
-finish with **Merge to main** first; Publish never merges or switches branches.
-First setup
-shows a short public-visibility warning and destination, prepares a small
-deployment-only publishing kit, asks VS Code for GitHub workflow permission,
-and uses the Commit & push message input. Zero validates the uploaded version
-and continues publishing without another confirmation.
+Choose **Commit**, then **Sync** to send your tested changes to GitHub **main**.
+From a change branch, finish with **Merge to main** first. Choose **Publish & open
+app** from the arrow beside **Run**. Zero checks that your saved source matches
+GitHub **main** before preparing the deployment. Sign in and connect your
+repository to enable publishing.
+
+First setup shows a short public-visibility warning and the destination. After
+approval, Zero prepares its deployment files, checks GitHub workflow permission,
+and asks for a commit message to sync those files. Zero checks the uploaded
+version and continues publishing.
 When an unchanged publishing kit from a recognized earlier Zero version needs
 an update, **Publish & open app** offers **Update publishing files**. The review lists
-the affected deployment files; the app source and public destination stay the
-same. The old files remain recoverable in project
-history. Zero then uses ordinary **Commit & push** and checks the exact uploaded
-version again before publishing. Cancelling the update decision leaves the old
-kit and live site untouched. Cancelling Commit & push after accepting the update
-keeps the updated files locally; finish the upload before retrying Publish app.
+the deployment files and the repository Zero will sync them to. Git history
+keeps the previous version. Zero asks for a commit message and verifies the
+uploaded version before publishing. If you cancel the commit message after
+accepting the update, the updated files stay local. Commit and sync them on
+**main**, then choose **Publish & open app** again.
 Edited, incomplete, unknown or symbolic-link setups are preserved and
 need review; Zero does not treat an ownership marker alone as permission to
 overwrite files. Managed-kit updates currently need an ordinary Git clone; a
@@ -171,7 +168,12 @@ Command Palette for retrieving a saved verified publication. Pika still receives
 tracks the exact GitHub workflow run and checks an unauthenticated public marker
 containing both source SHA and run ID before offering the link. A previous live
 page remains available when an update fails. Pending runs and the last verified
-link survive editor restarts.
+link survive editor restarts. If GitHub does not confirm that it started the
+deployment, choose **Open GitHub Actions** or **Recheck**. Zero keeps the uploaded
+bundle available for the original run and looks for that exact attempt. After
+checking Actions, **Dismiss saved attempt…** clears Zero's local tracking and
+leaves the run and upload on GitHub. Choose **Publish & open app** again when you
+are ready to start another attempt.
 
 A school policy, missing capability, account plan, protected environment or
 existing unknown Pages setup produces a specific next action and **Recheck**.
@@ -306,9 +308,13 @@ image/audio format policy or automatic asset transformation. Uploads have a sepa
 
 Workflow finalization and client retries delete only the exact owned staging draft.
 A lost creation response retains its unique name and blocks further staging until
-bounded recovery identifies it safely. Drafts have no automatic expiry; an offline
-client, revoked access or unresolved creation can require repository draft cleanup.
-Recheck retries rather than silently accumulating uploads. Pages artifacts use
+bounded recovery identifies it safely. Zero records the exact draft, asset,
+source and destination before sending the dispatch. After a lost dispatch response,
+Zero uses the draft's unique tag in the workflow run title to identify the attempt
+before following it. If a restart restores an incomplete staging receipt, Zero
+keeps the bundle and directs the owner to check Actions manually. Drafts have no
+automatic expiry and can require repository cleanup after
+the owner confirms that no run needs them. Pages artifacts use
 one-day retention; the live site remains independently available. Normal GitHub
 run/deployment history and account limits still apply. Compiled app bytes never
 enter source Git history or ZeroHub storage.

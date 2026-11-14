@@ -8,7 +8,7 @@ const {publishingFiles}=require('../src/web-publish-github');
 const {createWebPublishCommands}=require('../src/web-publish-ui');
 const {createTransport}=require('../src/transport');
 const disposable=()=>({dispose(){}});
-async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutorial=false,selected=true,publishing=false,dirty=false,branch='main',lateTransport=false,correctionValidator,realLedger=false,capabilities={contents:'write',workflows:'write'}}={}) {
+async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutorial=false,selected=true,publishing=false,dirty=false,sourceUnsynced=dirty,publishSetup=false,publicChoice,branch='main',lateTransport=false,correctionValidator,realLedger=false,capabilities={contents:'write',workflows:'write'}}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-native-upload-auth-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify(practice?{localOnly:true}:{}));
   if(publishing || practice) {
@@ -39,6 +39,7 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
     await options.networkRun(root,['push',plan.remote,`${plan.head}:refs/heads/main`]);
     await options.networkRun(root,['ls-remote','--heads',plan.remote,'refs/heads/main']);
     pushes++;if(failPush){failPush=false;throw Error('GitHub transport failed. Your local commit is preserved.');}
+    if(publishSetup){plan.status='';plan.changes=[];}
     return {head:plan.head,branch:'main',uploaded:true};
   };
   const accessCalls=[];
@@ -59,14 +60,17 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
     return {id:'zero-app-session-'+accountId,account:{id:accountId,label:accountId==='1'?'student':'other'},accessToken:'APP_TEST_ONLY',scopes:[]};
   },onDidChangeSessions:listener=>{listeners.add(listener);return {dispose(){disposed++;listeners.delete(listener);}};}},
   workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],isTrusted:true,textDocuments:[],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saves++;await afterSave();return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
-  window:{createOutputChannel:()=>({appendLine:text=>results.push(text),dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:async(items,options)=>{picks.push({items,options});},showWarningMessage:async(text,options)=>{notices.push(text);await afterWarning(text,options);return text==='Sync saved project commits?'?'Sync commits':undefined;},showInformationMessage:async(text,options)=>{notices.push(text);assert.ok(!options?.modal,'Routine push needs no confirmation');},showInputBox:async()=>{inputs++;await afterInput();return cancelMessage?undefined:'Retry my uploaded source';},showErrorMessage:async text=>errors.push(text)},
+  window:{createOutputChannel:()=>({appendLine:text=>results.push(text),dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:async(items,options)=>{picks.push({items,options});},showWarningMessage:async(text,options)=>{notices.push(text);await afterWarning(text,options);return text==='Sync saved project commits?'?'Sync commits':undefined;},showInformationMessage:async(text,options)=>{notices.push(text);if(publishing&&text==='Publish this app publicly?')return publicChoice;assert.ok(!options?.modal,'Routine push needs no confirmation');},showInputBox:async()=>{inputs++;await afterInput();return cancelMessage?undefined:'Retry my uploaded source';},showErrorMessage:async text=>errors.push(text)},
   tasks:{onDidStartTask:disposable,onDidEndTask:disposable,onDidEndTaskProcess:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}};
-  let publishReviews=0,deploys=0,publishApi;
+  let setupPrepared=false,deploys=0,publishApi;
   const publishPublisher={review:async()=>{
-    publishReviews++;
     if(plan.branch!=='main')throw Error('Finish your change with Merge to main before publishing the app.');
-    if(publishReviews===1)throw Object.assign(Error('Upload required'),{code:'WEB_PUBLISH_UPLOAD_REQUIRED',plan:{...plan}});
-    return {status:'review',repository:plan.page,publicUrl:'https://student.github.io/app/',sha:plan.head,account:'1'};
+    if(sourceUnsynced)throw Object.assign(Error('Upload required'),{code:'WEB_PUBLISH_UPLOAD_REQUIRED',plan:{...plan}});
+    return {status:'review',repository:plan.page,publicUrl:'https://student.github.io/app/',sha:plan.head,account:'1',setup:publishSetup&&!setupPrepared};
+  },setup:async()=>{
+    setupPrepared=true;
+    plan.status=' M .github/workflows/zero-web.yml';plan.fingerprint='publishing-files';plan.changes=[{path:'.github/workflows/zero-web.yml',kind:'M'}];
+    return {status:'upload-required',uploadPlan:{...plan}};
   },publish:async()=>{deploys++;return {status:'live',url:'https://student.github.io/app/',sha:plan.head,resume:{repository:plan.page,sha:plan.head,runId:42}};}};
   const stored=new Map();
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){
@@ -302,8 +306,8 @@ test('Commit & push clears its indicator on preparation failure and after a conf
   });
 });
 
-test('Publish commits dirty main through guarded native upload and retains the verified playable link',async t=>{
-  const h=await harness(t,{publishing:true,dirty:true});
+test('Publish syncs reviewed setup files through guarded native upload and retains the verified playable link',async t=>{
+  const h=await harness(t,{publishing:true,publishSetup:true});
   // Reuse the existing approval for the public destination and its ZeroHub listing.
   h.stored.set('zero.webPublish.approval',{root:h.plan.root,account:'1',repository:h.plan.page,url:'https://student.github.io/app/',listingNotice:true});
   await h.commands.get('zero.publishWeb')();
@@ -312,24 +316,28 @@ test('Publish commits dirty main through guarded native upload and retains the v
   assert.match(h.results.at(-1),/https:\/\/student.github.io\/app\//);
   const webview=await uploadSidebar(h);assert.doesNotMatch(webview.html,/published-app-link|Open published app/);assert.doesNotMatch(webview.html,/Copy playable link/);assert.match(webview.html,/data-command="zero.publishAndOpenWeb"/);
 });
-test('Publish pushes already committed main without asking for another commit message',async t=>{
-  const h=await harness(t,{publishing:true});
-  h.stored.set('zero.webPublish.approval',{root:h.plan.root,account:'1',repository:h.plan.page,url:'https://student.github.io/app/',listingNotice:true});
-  await h.commands.get('zero.publishWeb')();
-  assert.deepEqual(h.errors,[]);assert.equal(h.inputs,0);assert.equal(h.pushes,1);assert.equal(h.deploys,1);
+test('Publish leaves both saved commits and dirty changes for an explicit Sync',async t=>{
+  for(const dirty of [false,true])await t.test(dirty?'dirty source':'saved commits',async t=>{
+    const h=await harness(t,{publishing:true,dirty,sourceUnsynced:true});
+    await h.commands.get('zero.publishWeb')();
+    assert.deepEqual(h.errors,[]);assert.equal(h.inputs,0);assert.equal(h.pushes,0);assert.equal(h.deploys,0);
+    assert.equal(h.transportDispatches,0);assert.match(h.results.at(-1),/choose Sync on main/);
+    assert.ok(!h.notices.includes('Publish this app publicly?'));
+  });
 });
-test('Publish cancellation, push failure and change branch all stop before deployment',async t=>{
-  for(const options of [{dirty:true,cancelMessage:true},{dirty:true,failPush:true},{branch:'add-score'}])await t.test(JSON.stringify(options),async t=>{
+test('Publish approval cancellation, setup upload cancellation or failure, and a change branch stop deployment',async t=>{
+  for(const options of [{publishSetup:true},{publishSetup:true,publicChoice:'Publish app',cancelMessage:true},{publishSetup:true,publicChoice:'Publish app',failPush:true},{branch:'add-score'}])await t.test(JSON.stringify(options),async t=>{
     const h=await harness(t,{publishing:true,...options});if(options.failPush)h.failPush=true;
     await h.commands.get('zero.publishWeb')();assert.equal(h.deploys,0);
     if(options.branch){assert.equal(h.inputs,0);assert.equal(h.pushes,0);assert.match(h.errors.at(-1),/Merge to main/);}
     if(options.failPush)assert.match(h.errors.at(-1),/local commit is preserved/);
+    if(!options.publicChoice){assert.equal(h.inputs,0);assert.equal(h.transportDispatches,0);}
     assert.equal(h.stored.has('zero.webPublish.lastLive'),false);
   });
 });
-test('Publish rejects branch or source drift before the upload handoff',async t=>{
+test('Publish rejects branch or source drift before uploading setup files',async t=>{
   for(const field of ['branch','fingerprint'])await t.test(field,async t=>{
-    const h=await harness(t,{publishing:true,dirty:true});
+    const h=await harness(t,{publishing:true,publishSetup:true,publicChoice:'Publish app'});
     h.afterSave=async()=>{h.plan[field]=field==='branch'?'other-change':'source-v2';};
     await h.commands.get('zero.publishWeb')();
     assert.equal(h.inputs,0);assert.equal(h.pushes,0);assert.equal(h.deploys,0);
@@ -338,7 +346,7 @@ test('Publish rejects branch or source drift before the upload handoff',async t=
 });
 
 test('closing Publish during commit entry cancels before the upload network guard',async t=>{
-  const h=await harness(t,{publishing:true,dirty:true});
+  const h=await harness(t,{publishing:true,publishSetup:true,publicChoice:'Publish app'});
   h.afterInput=async()=>h.publishApi.disposables[0].dispose();
   await h.commands.get('zero.publishWeb')();
   assert.equal(h.inputs,1);assert.equal(h.pushes,0);assert.equal(h.deploys,0);
@@ -347,7 +355,7 @@ test('closing Publish during commit entry cancels before the upload network guar
 
 test('late Publish cancellation and live-mode changes block transport dispatch after async preparation',async t=>{
   for(const change of ['cancel','simulation'])await t.test(change,async t=>{
-    const h=await harness(t,{publishing:true,dirty:true,lateTransport:true});
+    const h=await harness(t,{publishing:true,publishSetup:true,publicChoice:'Publish app',lateTransport:true});
     h.afterTransportPreparation=async()=>{if(change==='cancel')h.publishApi.disposables[0].dispose();else h.mode='simulation';};
     await h.commands.get('zero.publishWeb')();
     assert.equal(h.transportDispatches,0);assert.equal(h.pushes,0);assert.equal(h.deploys,0);
