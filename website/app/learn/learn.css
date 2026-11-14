@@ -261,6 +261,13 @@ html:has(.learn-theme),
   border-top: 0;
 }
 
+/* Keep the school option distinct from regular platform downloads. */
+.learn-theme .home-page .school-download {
+  width: min(100%, 44ch);
+  padding-top: var(--zero-space-5);
+  border-top: 1px solid var(--zero-border);
+}
+
 /* Tutorials open directly into the lesson reader. */
 .learn-theme .lesson-menu h2 {
   margin: 0 0 var(--zero-space-3);

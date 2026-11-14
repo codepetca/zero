@@ -1,6 +1,6 @@
 # Zero release ledger
 
-Last reconciled: 2026-11-13 (America/Toronto). This is a dated working record,
+Last reconciled: 2026-11-14 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
@@ -10,6 +10,7 @@ permission to publish from this ledger.
 | Website | The [homepage](https://zero.codepet.ca/) links to the 0.5.73 Mac DMG. The deployed [appcast](https://zero.codepet.ca/updates/macos/appcast.xml) matches the signed build 73 feed byte for byte. | Verify the live updater on an installed Mac. |
 | Mac installer | [0.5.73](https://github.com/codepetca/zero/releases/tag/setup-v0.5.73) is public. Its DMG and both corresponding Git source archives match the sealed candidate. | A fresh Mac and the live 0.5.72 → 0.5.73 update remain untested. |
 | Windows Store | Partner Center shows submission 9 live with [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.73.0, x64. | Verify installation or update on a physical Windows device. |
+| Windows portable school pilot | 0.5.74 unsigned x64 pilot built and verified locally. | Stage Microsoft’s VS Code ZIP and test on one school desktop under a student login. |
 | Windows standalone download | [0.5.73 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.73) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.73) are public. | The preview has updates disabled. Physical and school-managed Windows devices remain untested. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
@@ -20,6 +21,24 @@ blocked-executables finding, disclosed with the submission. See the
 The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
+
+## Zero Portable 0.5.74 school pilot — 2026-11-14
+
+The local package `dist/school-pilot/Zero-0.5.74-windows-portable-pilot-x64.zip`
+was built from `6adc8a88721d26fcbfabfb4b3e4272b65300a227`. It is
+350,212,127 bytes, with SHA-256
+`a120169366500104d530488e14ce66ba3a0bc10a362505fc1cc3d1a81add41ea`.
+It includes the unsigned launcher, Java, Git, Node and Java editor extension.
+School IT stages the pinned VS Code ZIP from Microsoft before copying the
+folder to the pilot desktop.
+
+The ZIP, staging and automated launcher checks passed. On-device acceptance
+still needs first sign-in, JavaFX Run/Stop and reopening under a student login.
+The restored `/downloads` route in local source describes the private pilot.
+Local previews can download the exact ZIP with `ZERO_LOCAL_DOWNLOADS=1`.
+Hosted builds show the pilot entry and instructions without a binary link.
+See [pilot instructions](WINDOWS-PORTABLE.md) and
+[verification evidence](EVIDENCE.md#windows-portable-school-pilot--2026-11-14).
 
 ## Zero 0.5.73 — 2026-11-13
 

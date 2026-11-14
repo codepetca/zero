@@ -24,6 +24,13 @@ reviewed code. The last change updated sign-in instructions and preserved
 launcher and staging-script bytes. Reviewer token usage unavailable. No Windows
 launch, school policy, JavaFX or GitHub flow has been verified on device.
 
+The release ledger and restored website `/downloads` page record the private
+pilot. Website typecheck, production build and 844 website tests passed.
+Chromium showed the page at 320px in light theme and at desktop width in dark
+theme. The opt-in local HTTP download matched the exact ZIP checksum. A hosted
+configuration with copied local preview flags returned 404 for the ZIP, and
+none of the 71 production file traces included the pilot artifacts.
+
 ---
 
 # Automatic Git setup release review — 2026-11-13

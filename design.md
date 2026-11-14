@@ -412,7 +412,14 @@ states in the playground or real host. Record actual keyboard, responsive,
 theme and operating-system coverage before implementation acceptance. Screenshots
 and browser fixtures do not substitute for native/editor verification.
 
-## Download page — owner update, 2026-11-11
+## Download page — owner update, 2026-11-14
+
+Restore `/downloads` to give the Windows portable school pilot its own entry
+alongside the regular platform downloads. Keep the existing Home download
+actions and reuse their layout, buttons and theme on the separate page.
+The pilot entry reflects the artifact's current availability.
+
+### Historical download routing — 2026-11-11
 
 Platform downloads live on Home (`/`), separate from Tutorials (`/learn`). The
 separate `/downloads` page is removed because Home already offers the same

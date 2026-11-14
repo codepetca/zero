@@ -15,6 +15,19 @@ school restrictions and novice trials remain unverified. A Mac teacher trial
 verified native GitHub sign-in and a private upload; consult
 [VERIFICATION.md](VERIFICATION.md) and [GETTING-STARTED.md](GETTING-STARTED.md).
 
+## Portable Windows
+
+The unsigned Zero Portable pilot is for one x64 Windows school desktop.
+On a staging PC, extract the complete pilot ZIP and run `Stage-VSCode.ps1`
+to fetch and verify Microsoft’s VS Code ZIP. Have school IT approve the
+launcher and copy the complete folder to the approved local path.
+
+Under a regular student login, open `Zero.exe` and complete **Sign in to
+Zero** with a school-approved test account. Open **Zero: Troubleshooting**
+from the Command Palette and choose **Test installation**. Use **Run test**
+and **Stop**, then close and reopen Zero to check that the student profile
+and starter are still usable. The first build downloads Maven and JavaFX.
+
 ## Record the environment
 
 Record the date, kit/VSIX version, OS/version/architecture, VS Code version,

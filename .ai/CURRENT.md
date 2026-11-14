@@ -3,6 +3,9 @@
 Pilot ZIP and SHA-256 are in `dist/school-pilot` on
 `codex/windows-portable`. See [staging and test steps](../docs/WINDOWS-PORTABLE.md)
 and [verification](../docs/EVIDENCE.md#windows-portable-school-pilot--2026-11-14).
+The [release ledger](../docs/RELEASE-LEDGER.md#zero-portable-0574-school-pilot--2026-11-14)
+and restored website `/downloads` route record the private pilot. Opt-in local
+preview serves the measured ZIP. Hosted mode shows setup instructions.
 Next: IT stages the official VS Code ZIP and copies the folder to the approved
 location. Test first sign-in, JavaFX Run/Stop and reopen under a student login.
 

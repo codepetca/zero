@@ -38,6 +38,8 @@ const physical=[...new Map(files.map(f=>[f.canonical,f])).values()];
 const report={measuredAt:new Date().toISOString(),note:'Local emitted route traces. Canonical files deduplicated in union and per route; route sums repeat shared files. Not hosted storage or billing.',routeCount:routes.length,uniqueFiles:physical.length,logicalFiles:files.length,uniqueBytes:physical.reduce((n,f)=>n+f.bytes,0),routeSumBytes:routes.reduce((n,r)=>n+r.bytes,0),largestFiles:physical.slice(0,30),routes,files};
 const args=process.argv.slice(2);assert(args.every(arg=>arg==='--check'||!arg.startsWith('-')),'Unknown argument');
 if(args.includes('--check')){
+ const localPilot=path=>/^\.\.\/(?:dist\/(?:school-pilot|portable[^/]*)|\.verification\/portable)\//.test(path);
+ assert(!files.some(file=>localPilot(file.path)||localPilot(file.canonical)), 'Local Windows pilot artifacts were traced into a hosted function');
  const targetNames=['app/download/[asset]/route.js.nft.json','app/updates/macos/appcast.xml/route.js.nft.json','app/updates/windows/stable.json/route.js.nft.json','app/api/jams/template/route.js.nft.json','app/api/jams/template/preview/route.js.nft.json'];
  for(const target of targetNames){
   const route=routes.find(row=>row.trace===`.next/server/${target}`);assert(route,`Missing route trace: ${target}`);
