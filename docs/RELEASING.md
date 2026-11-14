@@ -118,7 +118,7 @@ failure tests, extension/starter tests, finite JavaFX examples under Xvfb, websi
 checks and, for a new local version, packaging/archive integrity verification.
 Published manifests skip rebuilding immutable downloads. Only an explicit publish
 command carries out publication; a push, tag or ordinary PR never publishes.
-Manual workflow dispatch and deliberate CLI publication remain a fallback below.
+Manual workflow dispatch and resuming its successful run through the publisher remain a fallback below.
 
 Use the selected ref deliberately: `gh workflow run release-review.yml --ref
 <reviewed-ref> -f version=0.5.2`. The workflow file must exist on the default
@@ -164,23 +164,16 @@ a real GitHub student upload. Artifacts expire after 14 days; if expired, prepar
 and review a new candidate, retaining that run's exact bytes and receipts.
 
 Publication requires intentional owner authorization, separate from preparation.
-Confirm the version's tag/release remains absent immediately before creating it.
-An owner can create a draft with the existing GitHub CLI, targeting the exact
-reviewed source commit from `SOURCE.txt`:
+Resume a successful manual run through the kit publisher so the exact artifact
+bytes and Project → New receipt are checked before the draft becomes public:
 
 ```sh
-gh release create v0.5.2 --repo codepetca/zero --target <reviewed-commit> \
-  --draft --title 'Zero 0.5.2' --notes-file <reviewed-release-notes> \
-  zero-bootstrap.zip zero-starter.zip zero-0.5.2.vsix
+npm run release:publish -- --version X.Y.Z --run-id RUN_ID
 ```
 
-Run this in the extracted review directory. Upload exactly those three files;
-do not use a wildcard, `dist/`, a component archive or `--clobber`. Check the draft
-target and three asset names/sizes/hashes. Publish deliberately through GitHub's
-release UI or `gh release edit v0.5.2 --repo codepetca/zero --draft=false` after
-owner approval. Do not rebuild between review and publication. An existing tag or
-release is a stop condition: investigate it and choose a new version as needed,
-never delete or overwrite an immutable release to make preparation succeed.
+The publisher uploads the three reviewed assets and verifies their hashes and
+the exact commit. Use the same run to resume an interrupted draft. Published
+versions are immutable.
 
 ## Verify public downloads and update the website
 
