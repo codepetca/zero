@@ -20,6 +20,9 @@ namespace ZeroSetup
     {
         private readonly string kit, executionKit, data, storage, project, architecture;
         private readonly IWindowsRuntimeHost host;
+        private readonly string portableTools;
+        private const string PortableJavaVersion = "1.57.0";
+        private const string PortableJavaHash = "80a6b852577aec37510b1f975e188279181e8c30ab5cae88812d941cd2d11bff";
         private readonly JavaScriptSerializer json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024, RecursionLimit = 32 };
         private readonly Dictionary<string, WindowsRuntimeAsset> assets;
         private readonly string version, minimum;
@@ -42,9 +45,9 @@ namespace ZeroSetup
             public int schemaVersion { get; set; }
             public Dictionary<string, Dictionary<string, WindowsRuntimeAsset>> architectures { get; set; }
         }
-        public WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, string architecture = null, string storageRoot = null, string executionKitRoot = null)
-            : this(kitRoot, dataRoot, projectRoot, new WindowsRuntimeHost(), architecture, storageRoot, executionKitRoot) { }
-        internal WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, IWindowsRuntimeHost host, string architecture = null, string storageRoot = null, string executionKitRoot = null)
+        public WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, string architecture = null, string storageRoot = null, string executionKitRoot = null, string portableTools = null)
+            : this(kitRoot, dataRoot, projectRoot, new WindowsRuntimeHost(), architecture, storageRoot, executionKitRoot, portableTools) { }
+        internal WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, IWindowsRuntimeHost host, string architecture = null, string storageRoot = null, string executionKitRoot = null, string portableTools = null)
         {
             this.host = host ?? throw new ArgumentNullException("host");
             host.ValidatePlatform();
@@ -52,6 +55,10 @@ namespace ZeroSetup
             if (this.architecture != "x64") throw new IOException("Automatic Zero setup currently supports Windows on Intel or AMD 64-bit computers. Windows ARM and 32-bit computers need a device administrator or IT help.");
             kit = FullPath(kitRoot); executionKit = FullPath(executionKitRoot ?? kitRoot); data = FullPath(dataRoot); storage = FullPath(storageRoot ?? dataRoot); project = FullPath(projectRoot);
             if (Inside(data, kit) || Inside(kit, data) || Inside(storage, kit) || Inside(kit, storage)) throw new IOException("Zero's private tools must be outside the replaceable launcher and kit folders.");
+            this.portableTools = portableTools == null ? null : FullPath(portableTools);
+            if (this.portableTools != null && (Inside(this.portableTools, data) || Inside(data, this.portableTools) ||
+                Inside(this.portableTools, project) || Inside(project, this.portableTools)))
+                throw new IOException("Keep the portable Zero tools apart from student data and projects.");
             var manifest = json.Deserialize<Manifest>(ReadText(Path.Combine(kit, "setup", "windows-downloads.json"), 65536));
             if (manifest == null || manifest.schemaVersion != 1 || manifest.architectures == null || !manifest.architectures.TryGetValue(this.architecture, out assets) || assets.Count != 4 || !assets.ContainsKey("jdk") || !assets.ContainsKey("vscode") || !assets.ContainsKey("node") || !assets.ContainsKey("git"))
                 throw new IOException("Verified Windows download metadata is missing. Reinstall Zero.");
@@ -129,6 +136,7 @@ namespace ZeroSetup
         private string Extensions { get { return Path.Combine(data, "editor", "extensions"); } }
         private string AssetFolder(string kind)
         {
+            if (portableTools != null) return Path.Combine(portableTools, kind);
             string digest = assets[kind].sha256;
 #if ZERO_STORE_PRODUCTION
             // Keep the verifier executable below the Windows path limit. The
@@ -173,6 +181,8 @@ namespace ZeroSetup
             foreach (string key in JavaStartupVariables) info.EnvironmentVariables.Remove(key);
             info.EnvironmentVariables["MAVEN_SKIP_RC"] = "1";
             info.EnvironmentVariables["ZERO_KIT_DIR"] = executionKit;
+            if (portableTools == null) info.EnvironmentVariables.Remove("ZERO_PORTABLE_TOOLS");
+            else info.EnvironmentVariables["ZERO_PORTABLE_TOOLS"] = portableTools;
             info.EnvironmentVariables["PATH"] = Path.Combine(java, "bin") + ";" + (node == null ? "" : Path.GetDirectoryName(node) + ";") + (git == null ? "" : Path.GetDirectoryName(git) + ";") + string.Join(";", AbsolutePathEntries());
             info.EnvironmentVariables["NoDefaultCurrentDirectoryInExePath"] = "1";
             if (git != null) info.EnvironmentVariables["ZERO_GIT_EXECUTABLE"] = git;
@@ -208,10 +218,14 @@ namespace ZeroSetup
         }
         private void Marker(string folder, string kind)
         {
-            if (ReadText(Path.Combine(folder, ".zero-asset.sha256"), 128).Trim() != assets[kind].sha256) throw new IOException("Zero's private tool folder is unrecognized. Reinstall Zero or ask for help.");
+            string receipt = Path.Combine(folder, ".zero-asset.sha256");
+            if (portableTools != null && !File.Exists(receipt))
+                throw new IOException("Missing " + kind + " tools. Ask school IT to stage the complete Zero Portable folder: " + folder);
+            if (ReadText(receipt, 128).Trim() != assets[kind].sha256) throw new IOException("Zero's private tool folder is unrecognized. Reinstall Zero or ask for help.");
         }
         private async Task Install(string kind, Action<string> progress, CancellationToken cancellation)
         {
+            if (portableTools != null) throw new IOException("Ask school IT to restore the approved Zero Portable tools.");
             string destination = StoragePath(AssetFolder(kind));
             WindowsRuntimeFolders.Check(destination);
             if (Directory.Exists(destination)) { Marker(destination, kind); return; }
@@ -261,6 +275,7 @@ namespace ZeroSetup
         }
         private async Task Repair(string kind, Action<string> progress, CancellationToken cancellation)
         {
+            if (portableTools != null) throw new IOException("Ask school IT to restore the approved Zero Portable tools.");
             string destination = StoragePath(AssetFolder(kind));
             // Only replace a recognized private runtime, never an installed editor
             // or an unrecognized directory. Keep the old copy until replacement
@@ -439,7 +454,16 @@ namespace ZeroSetup
         }
         private async Task FindEditor(CancellationToken cancellation)
         {
-            foreach (string candidate in host.InstalledEditors()) if (await CompatibleEditor(candidate, cancellation)) return;
+            if (portableTools == null)
+                foreach (string candidate in host.InstalledEditors()) if (await CompatibleEditor(candidate, cancellation)) return;
+            if (portableTools != null)
+            {
+                string editorData = Path.Combine(AssetFolder("vscode"), "data");
+                WindowsRuntimeFolders.Check(editorData);
+                if (Directory.Exists(editorData) || File.Exists(editorData))
+                    throw new IOException("Ask school IT to remove the VS Code data folder from the shared package. Zero keeps a separate editor profile for each student.");
+                Marker(AssetFolder("vscode"), "vscode");
+            }
             string owned = AssetFolder("vscode");
             if (Directory.Exists(owned)) { Marker(owned, "vscode"); if (await CompatibleEditor(owned, cancellation)) return; }
             editor = null;
@@ -513,9 +537,12 @@ namespace ZeroSetup
                 spans.Add(new SettingSpan { Key = key, Start = start, Value = value, End = end, Comma = comma });
             }
         }
-        private static string PatchSettings(string text, JObject values)
+        private string PatchSettings(string text, JObject values)
         {
-            foreach (string key in new[] { "java.home", "java.jdt.ls.java.home", "java.configuration.runtimes", "java.import.gradle.java.home", "terminal.integrated.env.windows", "terminal.integrated.profiles.windows", "terminal.integrated.defaultProfile.windows" }.Concat(values["git.path"] == null ? new string[0] : new[] { "git.path" }))
+            var keys = new List<string> { "java.home", "java.jdt.ls.java.home", "java.configuration.runtimes", "java.import.gradle.java.home", "terminal.integrated.env.windows", "terminal.integrated.profiles.windows", "terminal.integrated.defaultProfile.windows" };
+            if (values["git.path"] != null) keys.Add("git.path");
+            if (portableTools != null) keys.AddRange(new[] { "update.mode", "extensions.autoUpdate", "extensions.autoCheckUpdates" });
+            foreach (string key in keys)
             {
                 int close; var spans = SettingSpans(text, out close); var matching = spans.Where(span => span.Key == key).ToList();
                 if (matching.Count > 1)
@@ -565,6 +592,13 @@ namespace ZeroSetup
             // The Java extension supplies its own tooling JRE; Java 21 is the project runtime.
             values.Remove("java.jdt.ls.java.home");
             values.Remove("java.home");
+            if (portableTools != null)
+            {
+                values["java.jdt.ls.java.home"] = java;
+                values["update.mode"] = "none";
+                values["extensions.autoUpdate"] = false;
+                values["extensions.autoCheckUpdates"] = false;
+            }
             values["java.import.gradle.java.home"] = java;
             var terminal = values["terminal.integrated.env.windows"] as JObject ?? new JObject();
             // Windows environment names are case-insensitive even though JSON keys are not.
@@ -640,23 +674,51 @@ namespace ZeroSetup
         private bool ExtensionsReady(Dictionary<string, string> state)
         {
             string zero;
-            return state.TryGetValue("zero.zero", out zero) && AtLeast(zero, version) && state.ContainsKey("redhat.java");
+            if (!state.TryGetValue("zero.zero", out zero)) return false;
+            if (portableTools == null) return AtLeast(zero, version) && state.ContainsKey("redhat.java");
+            return zero == version && PortableJavaReady(state);
+        }
+        private bool PortableJavaReady(Dictionary<string, string> state)
+        {
+            // Require the universal extension. The platform-specific package
+            // carries extra executables under the student's extensions folder.
+            string universal = Path.Combine(Extensions, "redhat.java-" + PortableJavaVersion);
+            WindowsRuntimeFolders.Check(universal);
+            return state.TryGetValue("redhat.java", out string installed) && installed == PortableJavaVersion &&
+                File.Exists(Path.Combine(universal, "package.json")) && !Directory.Exists(Path.Combine(universal, "jre"));
+        }
+        private async Task PrepareTools(Action<string> progress, CancellationToken cancellation)
+        {
+            if (portableTools == null)
+            {
+                await PrepareJava(progress, cancellation);
+                await PrepareNode(progress, cancellation);
+                await PrepareGit(progress, cancellation, true);
+                return;
+            }
+            progress("Checking the school’s Zero tools…");
+            await VerifyJava(cancellation);
+            await VerifyNode(cancellation);
+            string folder = AssetFolder("git"), candidate = Path.Combine(folder, "cmd", "git.exe");
+            Marker(folder, "git");
+            await VerifyGitBinary(candidate, cancellation, true);
+            git = candidate;
         }
         public async Task Prepare(Action<string> progress, CancellationToken cancellation)
         {
             progress = progress ?? (_ => { }); cancellation.ThrowIfCancellationRequested();
             using (var folders = new WindowsRuntimeFolders())
             {
-                folders.Ensure(data); folders.Ensure(Path.Combine(data, "runtime"));
+                folders.Ensure(data);
+                if (portableTools == null) folders.Ensure(Path.Combine(data, "runtime"));
                 string lockPath = Path.Combine(data, ".setup-lock"); WindowsRuntimeFolders.Check(lockPath);
                 using (var setupLock = new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
                 {
                     WindowsRuntimeFolders.Check(lockPath);
-                    await PrepareJava(progress, cancellation);
-                    await PrepareNode(progress, cancellation);
-                    await PrepareGit(progress, cancellation, true);
+                    await PrepareTools(progress, cancellation);
                     folders.Ensure(UserData); folders.Ensure(Extensions);
                     progress("Preparing editor…"); await FindEditor(cancellation);
+                    if (editor == null && portableTools != null) throw new IOException("The staged VS Code could not start. Ask school IT to check the approved folder and its application rules.");
                     if (editor == null)
                     {
                         if (Directory.Exists(AssetFolder("vscode"))) await Repair("vscode", progress, cancellation);
@@ -666,15 +728,31 @@ namespace ZeroSetup
                     if (editor == null) throw new IOException("A compatible editor could not be prepared. Retry setup.");
                     progress("Preparing editor settings…"); Settings(folders);
                     var state = await ExtensionState(cancellation); string zero; bool installed = false;
-                    if (!state.TryGetValue("zero.zero", out zero) || !AtLeast(zero, version))
+                    if (!state.TryGetValue("zero.zero", out zero) || (portableTools == null ? !AtLeast(zero, version) : zero != version))
                     {
                         progress("Preparing Zero support…");
                         string vsix = Path.Combine(kit, "zero-" + version + ".vsix"); WindowsRuntimeFolders.Check(vsix);
                         if (!File.Exists(vsix)) throw new IOException("Zero's bundled editor support is missing. Reinstall Zero.");
-                        await Code(new[] { "--install-extension", Path.Combine(executionKit, Path.GetFileName(vsix)) }, 600000, cancellation);
+                        var args = new[] { "--install-extension", Path.Combine(executionKit, Path.GetFileName(vsix)) };
+                        await Code(portableTools == null ? args : args.Concat(new[] { "--force" }), 600000, cancellation);
                         installed = true;
                     }
-                    if (!state.ContainsKey("redhat.java")) { progress("Preparing Java support…"); await Code(new[] { "--install-extension", "redhat.java" }, 600000, cancellation); installed = true; }
+                    if (portableTools == null ? !state.ContainsKey("redhat.java") : !PortableJavaReady(state))
+                    {
+                        progress("Preparing Java support…");
+                        if (portableTools == null)
+                            await Code(new[] { "--install-extension", "redhat.java" }, 600000, cancellation);
+                        else
+                        {
+                            string vsix = Path.Combine(portableTools, "java.vsix");
+                            WindowsRuntimeFolders.Check(vsix);
+                            if (!File.Exists(vsix) || new FileInfo(vsix).Length != 54395892 ||
+                                WindowsRuntimeArchive.Hash(vsix, cancellation) != PortableJavaHash)
+                                throw new IOException("The staged Java extension is missing or damaged. Ask school IT to restore it.");
+                            await Code(new[] { "--install-extension", vsix, "--force" }, 600000, cancellation);
+                        }
+                        installed = true;
+                    }
                     progress("Checking Zero…");
                     // Java/editor were checked above. Only changed extension
                     // state needs another probe here; Open rechecks readiness
@@ -701,7 +779,10 @@ namespace ZeroSetup
             var runtimes = values["java.configuration.runtimes"] as JArray;
             var terminal = values["terminal.integrated.env.windows"] as JObject;
             var profiles = values["terminal.integrated.profiles.windows"] as JObject;
-            return values["java.home"] == null && values["java.jdt.ls.java.home"] == null &&
+            return values["java.home"] == null &&
+                (portableTools == null ? values["java.jdt.ls.java.home"] == null :
+                    (string)values["java.jdt.ls.java.home"] == java && (string)values["update.mode"] == "none" &&
+                    (bool?)values["extensions.autoUpdate"] == false && (bool?)values["extensions.autoCheckUpdates"] == false) &&
                 (string)values["java.import.gradle.java.home"] == java &&
                 (string)values["terminal.integrated.defaultProfile.windows"] == "Zero Java" &&
                 terminal != null && !terminal.Properties().Any(property => TerminalOwnedVariables.Any(key => string.Equals(key, property.Name, StringComparison.OrdinalIgnoreCase) && key != property.Name)) && (string)terminal["MAVEN_SKIP_RC"] == "1" && JavaStartupVariables.All(key => terminal[key]?.Type == JTokenType.Null) && (string)terminal["JAVA_HOME"] == java && (string)terminal["ZERO_JAVA_HOME"] == java && (string)terminal["PATH"] == JavaPath &&
@@ -720,7 +801,12 @@ namespace ZeroSetup
                 if (!Directory.Exists(data) || !Directory.Exists(project)) throw new IOException("Your Zero starter or private support folder is missing. Run setup again.");
                 folders.Ensure(data); folders.Ensure(UserData); folders.Ensure(Extensions);
                 await VerifyJava(cancellation); await VerifyNode(cancellation);
-                if (git == null && !gitSetupFailed) await PrepareGit(_ => { }, cancellation, false);
+                if (portableTools != null)
+                {
+                    if (git == null) throw new IOException("The staged Git could not start. Ask school IT to check the approved folder.");
+                    await VerifyGitBinary(git, cancellation, true);
+                }
+                else if (git == null && !gitSetupFailed) await PrepareGit(_ => { }, cancellation, false);
                 else if (git != null)
                 {
                     try { await VerifyGitBinary(git, cancellation, Inside(git, AssetFolder("git"))); }

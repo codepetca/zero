@@ -7,7 +7,12 @@ namespace ZeroSetup
 {
     internal static class Distribution
     {
-#if ZERO_STORE_PRODUCTION
+#if ZERO_PORTABLE
+        internal const string DataFolder = "ZeroPortableData";
+        internal const string KitFolder = "Zero Portable";
+        internal const string BrokerPrefix = "Codepet.Zero.Portable.Launcher.";
+        internal const string LaunchError = "Zero could not open. Run Zero.exe from the folder prepared by school IT.";
+#elif ZERO_STORE_PRODUCTION
         internal const string DataFolder = "ZeroStudioStoreData";
         internal const string KitFolder = "Zero Studio";
         internal const string BrokerPrefix = "Codepet.Zero.Store.Launcher.";
@@ -19,6 +24,9 @@ namespace ZeroSetup
         internal const string DataFolder = "ZeroData";
         internal const string KitFolder = "Zero";
         internal const string BrokerPrefix = "Codepet.Zero.Launcher.";
+#endif
+#if !ZERO_PORTABLE
+        internal const string LaunchError = "Zero could not open. Try again from the Start menu. If software is blocked on your school device, ask your device administrator or IT.";
 #endif
 #if ZERO_STORE_PRODUCTION
         private static readonly Guid LocalAppData = new Guid("F1B32785-6FBA-4FCF-9D55-7B8E7F157091");
@@ -49,7 +57,9 @@ namespace ZeroSetup
         internal const string StoreUri = "ms-windows-store://downloadsandupdates";
         internal static void SetChildEnvironment(ProcessStartInfo info)
         {
-#if ZERO_STORE_PRODUCTION
+#if ZERO_PORTABLE
+            info.EnvironmentVariables[Marker] = "portable";
+#elif ZERO_STORE_PRODUCTION
             info.EnvironmentVariables[Marker] = "store";
 #elif ZERO_STORE
             info.EnvironmentVariables[Marker] = "msix-feasibility";

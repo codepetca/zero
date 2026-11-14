@@ -109,6 +109,8 @@ test('Windows channel root follows installed extension profile and rejects misma
   assert.equal(windowsNativeRoot(root,src('ZeroStudioStoreData'),'store'),path.win32.join(root,'ZeroStudioStoreData'));
   assert.equal(windowsNativeRoot(root,src('ZEROSTUDIOSTOREDATA')),path.win32.join(root,'ZeroStudioStoreData'));
   assert.equal(windowsNativeRoot(root,src('ZeroMsixFeasibility'),'msix-feasibility'),path.win32.join(root,'ZeroMsixFeasibility'));
+  assert.equal(windowsNativeRoot(root,src('ZeroPortableData'),'portable'),path.win32.join(root,'ZeroPortableData'));
+  assert.throws(()=>windowsNativeRoot(root,src('ZeroData'),'portable'),/does not match/);
   const physical = path.win32.join(root,'Packages','Codepet.zerostudio_g62pw1js6rhjp','LocalCache','Local','ZeroStudioStoreData');
   const physicalSrc = path.win32.join(physical,'editor','extensions','zero.zero-1.0','src');
   assert.equal(windowsNativeRoot(root,physicalSrc,'store'),physical);
@@ -125,12 +127,21 @@ test('Windows coexisting channels resolve their own real retained manifest and J
   const kit=path.join(root,'trusted-kit');await fs.mkdir(path.join(kit,'setup'),{recursive:true});
   const asset={sha256:'a'.repeat(64),version:'jdk-21.0.12.1+1'};
   await fs.writeFile(path.join(kit,'setup','windows-downloads.json'),JSON.stringify({schemaVersion:1,architectures:{x64:{jdk:asset}}}));
-  for (const [folder,marker] of [['ZeroData',undefined],['ZeroStudioStoreData','store'],[path.join('Packages','Codepet.zerostudio_g62pw1js6rhjp','LocalCache','Local','ZeroStudioStoreData'),'store'],['ZeroMsixFeasibility','msix-feasibility']]) {
-    const runtime=path.join(root,folder,'runtime','jdk-'+asset.sha256);
+  for (const [folder,marker] of [['ZeroData',undefined],['ZeroStudioStoreData','store'],[path.join('Packages','Codepet.zerostudio_g62pw1js6rhjp','LocalCache','Local','ZeroStudioStoreData'),'store'],['ZeroMsixFeasibility','msix-feasibility'],['ZeroPortableData','portable']]) {
+    const tools=path.join(root,'Approved Tools');
+    const runtime=marker==='portable'?path.join(tools,'jdk'):path.join(root,folder,'runtime','jdk-'+asset.sha256);
     await fs.mkdir(runtime,{recursive:true});await fs.writeFile(path.join(runtime,'.zero-asset.sha256'),asset.sha256);
     const source=path.join(root,folder,'editor','extensions','zero.zero-1.0','src');
     const env={LOCALAPPDATA:root,ZERO_KIT_DIR:kit,...(marker ? {Zero_Windows_Distribution:marker}:{})};
+    if (marker==='portable') {
+      env.ZERO_PORTABLE_TOOLS=tools;
+      env.ZERO_JAVA_HOME=runtime;
+    }
     assert.equal(managedJavaHome(env,'win32',source),runtime);
+    if (marker==='portable') {
+      assert.throws(()=>managedJavaHome({...env,ZERO_PORTABLE_TOOLS:'relative'},'win32',source),/tools directory is unavailable/);
+      assert.throws(()=>managedJavaHome({...env,ZERO_JAVA_HOME:path.join(root,'other')},'win32',source),/differs from the launcher/);
+    }
   }
   const store=path.join(root,'ZeroStudioStoreData','editor','extensions','zero.zero-1.0','src');
   assert.throws(()=>managedJavaHome({LOCALAPPDATA:root,ZERO_KIT_DIR:kit,ZERO_WINDOWS_DISTRIBUTION:'msix-feasibility'},'win32',store),/does not match/);

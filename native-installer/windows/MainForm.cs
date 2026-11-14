@@ -17,12 +17,12 @@ namespace ZeroSetup
         private readonly Button done;
         private readonly NativeSetupBackend backend;
         private readonly AutomaticSetupController controller;
-#if !ZERO_STORE
+#if !ZERO_NO_UPDATER
         private readonly UpdateCoordinator updates;
 #endif
         private readonly Queue<LauncherRequest> requests = new Queue<LauncherRequest>();
         private readonly CancellationTokenSource lifetime = new CancellationTokenSource();
-#if !ZERO_STORE
+#if !ZERO_NO_UPDATER
         private CancellationTokenSource background;
         private bool settingsVisible, foregroundUpdate;
 #endif
@@ -62,7 +62,7 @@ namespace ZeroSetup
 #if ZERO_STORE
             backend.ApproveDependencies = () => MessageBox.Show(this, DependencyConsent.Message, "Prepare Zero", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes;
             backend.ApproveGitDownload = () => MessageBox.Show(this, DependencyConsent.GitMessage, "Prepare Git", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes;
-#else
+#elif !ZERO_NO_UPDATER
             updates = new UpdateCoordinator(dataRoot);
             updates.StatusChanged += message => OnUI(() => { if (Visible && foregroundUpdate) status.Text = message; });
 #endif
@@ -103,7 +103,7 @@ namespace ZeroSetup
         internal void Request(LauncherRequest request)
         {
             if (closing || lifetime.IsCancellationRequested) return;
-#if !ZERO_STORE
+#if !ZERO_NO_UPDATER
             if (settingsVisible && request == LauncherRequest.Settings) { Activate(); return; }
 #endif
             // Reopening during preparation already has a pending editor handoff.
@@ -128,6 +128,14 @@ namespace ZeroSetup
                         using (var opened = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Distribution.StoreUri) { UseShellExecute = true })) { }
                         Hide();
                     }
+#elif ZERO_PORTABLE
+                    if (active == LauncherRequest.Settings || active == LauncherRequest.Check)
+                    {
+                        Show(); Activate();
+                        status.Text = "Ask school IT about updates for this copy of Zero.";
+                        progress.Visible = false;
+                        ShowCloseButton();
+                    }
 #else
                     if (active == LauncherRequest.Settings) ShowUpdateSettings();
                     else if (active == LauncherRequest.Check) await CheckUpdates(true);
@@ -143,7 +151,7 @@ namespace ZeroSetup
                         }
                         Hide();
                         // Pending explicit requests take precedence over an automatic check.
-#if !ZERO_STORE
+#if !ZERO_NO_UPDATER
                         if (requests.Count == 0 && updates.Enabled && updates.IsDue) await CheckUpdates(false);
 #endif
                     }
@@ -158,7 +166,7 @@ namespace ZeroSetup
             }
         }
 
-#if !ZERO_STORE
+#if !ZERO_NO_UPDATER
         private async Task CheckUpdates(bool manual)
         {
             bool installApproved = false;
@@ -253,14 +261,14 @@ namespace ZeroSetup
 #endif
         private void CancelUpdateCheck()
         {
-#if !ZERO_STORE
+#if !ZERO_NO_UPDATER
             background?.Cancel();
 #endif
         }
 
         private void DisposeUpdates()
         {
-#if !ZERO_STORE
+#if !ZERO_NO_UPDATER
             background?.Dispose();
             updates.Dispose();
 #endif

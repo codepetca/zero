@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Windows.Forms;
-#if !ZERO_STORE
+#if !ZERO_NO_UPDATER
 using Velopack;
 #endif
 
@@ -14,7 +14,7 @@ namespace ZeroSetup
         {
             // Hooks exit here before any setup/UI. Never let an unauthenticated
             // cached package auto-apply before our signed descriptor is checked.
-#if !ZERO_STORE
+#if !ZERO_NO_UPDATER
             VelopackApp.Build().SetAutoApplyOnStartup(false).Run();
 #endif
             Application.EnableVisualStyles();
@@ -42,7 +42,7 @@ namespace ZeroSetup
             }
             catch (Exception error)
             {
-                MessageBox.Show("Zero could not open. Try again from the Start menu. If software is blocked on your school device, ask your device administrator or IT.\r\n\r\n" + error.Message,
+                MessageBox.Show(Distribution.LaunchError + "\r\n\r\n" + error.Message,
                     "Zero", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

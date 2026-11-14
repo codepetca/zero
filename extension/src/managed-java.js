@@ -23,14 +23,14 @@ function readRuntimeFile(filename, limit) {
 
 function windowsNativeRoot(home, sourceDirectory, marker) {
   if (typeof home !== 'string' || !path.win32.isAbsolute(home)) return undefined;
-  const roots = {direct:'ZeroData', store:'ZeroStudioStoreData', 'msix-feasibility':'ZeroMsixFeasibility'};
+  const roots = {direct:'ZeroData', store:'ZeroStudioStoreData', 'msix-feasibility':'ZeroMsixFeasibility', portable:'ZeroPortableData'};
   const extensionParent = path.win32.dirname(path.win32.dirname(sourceDirectory));
   const candidates = Object.entries(roots).map(([channel,folder]) => [channel,path.win32.join(home,folder)]);
   // Store virtualizes LocalAppData; the launcher uses the physical package path
   // so native child processes can load their own adjacent runtime libraries.
   candidates.push(['store',path.win32.join(home,'Packages','Codepet.zerostudio_g62pw1js6rhjp','LocalCache','Local',roots.store)]);
   const detected = candidates.find(([,root]) => extensionParent.toLowerCase() === path.win32.join(root, 'editor', 'extensions').toLowerCase());
-  if (marker !== undefined && !['store','msix-feasibility'].includes(marker)) throw new Error('Zero’s Windows distribution marker is invalid. Reopen Zero.');
+  if (marker !== undefined && !['store','msix-feasibility','portable'].includes(marker)) throw new Error('Zero’s Windows distribution marker is invalid. Reopen Zero.');
   if (detected && marker !== undefined && detected[0] !== marker) throw new Error('Zero’s Windows distribution does not match its editor profile. Reopen Zero.');
   if (!detected && marker !== undefined) throw new Error('Zero’s Windows editor profile is unavailable. Reopen Zero.');
   return detected ? detected[1] : path.win32.join(home, roots.direct);
@@ -43,7 +43,8 @@ function nativeJavaHome(environment, platform, sourceDirectory) {
   if (kit === undefined) return undefined;
   const paths = platform === 'win32' ? path.win32 : path;
   const home = platform === 'win32' ? environmentValue(environment, 'LOCALAPPDATA', platform) : environmentValue(environment, 'HOME', platform) || os.homedir();
-  const privateRoot = platform === 'win32' ? windowsNativeRoot(home, sourceDirectory, environmentValue(environment, 'ZERO_WINDOWS_DISTRIBUTION', platform)) : typeof home === 'string' && paths.isAbsolute(home) ? paths.join(home, 'Library','Application Support','Zero') : undefined;
+  const marker = environmentValue(environment, 'ZERO_WINDOWS_DISTRIBUTION', platform);
+  const privateRoot = platform === 'win32' ? windowsNativeRoot(home, sourceDirectory, marker) : typeof home === 'string' && paths.isAbsolute(home) ? paths.join(home, 'Library','Application Support','Zero') : undefined;
   const nativeExtensions = privateRoot && paths.join(privateRoot, 'editor','extensions');
   const extensionParent = paths.dirname(paths.dirname(sourceDirectory));
   const installedNative = nativeExtensions && (platform === 'win32' ? extensionParent.toLowerCase() === nativeExtensions.toLowerCase() : extensionParent === nativeExtensions);
@@ -56,7 +57,16 @@ function nativeJavaHome(environment, platform, sourceDirectory) {
     const asset = manifest.architectures?.[platform === 'darwin' && process.arch === 'arm64' ? 'arm64' : 'x64']?.jdk;
     if (manifest.schemaVersion !== 1 || !/^[a-f0-9]{64}$/.test(asset?.sha256 || '') || !/^jdk-21\.\d+\.\d+(?:\.\d+)?\+\d+$/.test(asset?.version || '')) throw new Error('Unrecognized Java download metadata.');
     if (!privateRoot) throw new Error('Zero’s private runtime directory is unavailable.');
-    const folder = paths.join(privateRoot, 'runtime', 'jdk-' + asset.sha256);
+    let folder = paths.join(privateRoot, 'runtime', 'jdk-' + asset.sha256);
+    if (platform === 'win32' && marker === 'portable') {
+      const tools = environmentValue(environment, 'ZERO_PORTABLE_TOOLS', platform);
+      if (typeof tools !== 'string' || !/^[a-z]:[\\/]/i.test(tools) || /[\0\r\n]/.test(tools))
+        throw new Error('The school’s Zero tools directory is unavailable.');
+      folder = paths.join(tools, 'jdk');
+      const selected = environmentValue(environment, 'ZERO_JAVA_HOME', platform);
+      if (typeof selected !== 'string' || selected.toLowerCase() !== folder.toLowerCase())
+        throw new Error('The school’s Java selection differs from the launcher.');
+    }
     const receipt = readRuntimeFile(paths.join(folder, platform === 'darwin' ? '.zero-asset.json' : '.zero-asset.sha256'), 128);
     if ((platform === 'win32' ? receipt.trim() : receipt) !== asset.sha256) throw new Error('Private Java receipt differs from the current kit.');
     return platform === 'darwin' ? paths.join(folder, asset.version, 'Contents','Home') : folder;

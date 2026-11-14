@@ -49,7 +49,15 @@ namespace ZeroSetup
             // Retain and copy through the short path, but hand the real snapshot
             // location to the editor and its extension host.
             string executionKit = Path.Combine(runtimeRoot + "-embedded-kits", Path.GetFileName(bundledKit));
-            runtime = new WindowsRuntime(bundledKit, runtimeRoot, Path.Combine(target.Path, "starter"), storageRoot: dataRoot, executionKitRoot: executionKit);
+            string portableTools = null;
+#if ZERO_PORTABLE
+            string portableRoot = AppDomain.CurrentDomain.BaseDirectory;
+            if (!System.Text.RegularExpressions.Regex.IsMatch(portableRoot, @"^[A-Za-z]:[\\/]"))
+                throw new IOException("Ask school IT to copy Zero Portable to an approved folder on this computer’s local drive.");
+            portableTools = Path.Combine(portableRoot, "tools");
+#endif
+            runtime = new WindowsRuntime(bundledKit, runtimeRoot, Path.Combine(target.Path, "starter"),
+                storageRoot: dataRoot, executionKitRoot: executionKit, portableTools: portableTools);
 #if ZERO_STORE
             runtime.ApproveGitDownload = () => DependencyConsent.EnsureGit(dataRoot, ApproveGitDownload);
 #endif
